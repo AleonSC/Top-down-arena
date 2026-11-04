@@ -1,0 +1,96 @@
+<title>Lobby Buttons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: four lobby wireframes (the real 1280 x 720 layout, scaled to fit), one per way of reaching the Hangout.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547; --blue: #6fb4ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+section { display: grid; gap: 12px; min-width: 0; }
+.head { display: grid; gap: 4px; }
+.head .tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.scale { position: relative; width: 100%; overflow: hidden; }
+.lobby { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; background: radial-gradient(ellipse at 30% 20%, #151b26, #080a10 70%); font-family: var(--font-display); color: #fff; }
+.abs { position: absolute; box-sizing: border-box; }
+.title { left: 40px; top: 16px; font-size: 40px; font-weight: 800; letter-spacing: .06em; }
+.mode { left: 40px; top: 76px; width: 376px; height: 58px; border-radius: 29px; background: rgba(10,12,20,.9); display: flex; padding: 4px; gap: 0; }
+.mode i { flex: 1; font-style: normal; text-align: center; font-size: 13px; font-weight: 700; line-height: 50px; color: #8793a6; border-radius: 25px; }
+.mode i.on { background: rgba(80,140,255,.85); color: #fff; }
+.partyh { left: 40px; top: 150px; font-size: 14px; color: #8793a6; letter-spacing: .1em; text-transform: uppercase; }
+.card { left: 40px; width: 376px; height: 88px; border-radius: 12px; border: 1px solid #2a3446; background: #0f1420; }
+.card .face { position: absolute; left: 8px; top: 8px; width: 72px; height: 72px; border-radius: 36px; background: #1b2438; }
+.card .nm { position: absolute; left: 94px; top: 14px; font-size: 16px; font-weight: 700; }
+.card .sub { position: absolute; left: 94px; top: 42px; font-size: 12px; color: #8793a6; font-family: var(--font-body); }
+.card.me { border-color: #5a82d6; }
+.card.open { border-style: dashed; color: #556; display: grid; place-items: center; font-size: 13px; letter-spacing: .1em; }
+.tabs { left: 440px; top: 24px; display: flex; gap: 8px; }
+.tab { height: 34px; border-radius: 17px; padding: 0 16px; background: rgba(255,255,255,.05); color: #8793a6; font-size: 12px; font-weight: 700; letter-spacing: .08em; line-height: 34px; white-space: nowrap; }
+.tab.on { background: rgba(80,140,255,.9); color: #fff; }
+.tab.hg { background: rgba(77,224,189,.9); color: #04281f; }
+.body { left: 440px; top: 68px; width: 800px; height: 532px; border-radius: 12px; border: 1px solid #2a3446; background: rgba(15,20,32,.75); }
+.body .ph { position: absolute; inset: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; }
+.body .ph b { height: 92px; border-radius: 10px; background: rgba(255,255,255,.05); display: block; }
+.bottom { left: 0; top: 624px; width: 1280px; height: 96px; background: rgba(5,7,12,.85); border-top: 1px solid #1c2433; }
+.ready { position: absolute; right: 40px; top: 24px; width: 220px; height: 48px; border-radius: 24px; background: #3aa86a; text-align: center; font-size: 18px; font-weight: 800; line-height: 48px; letter-spacing: .1em; }
+.start { position: absolute; right: 280px; top: 24px; width: 220px; height: 48px; border-radius: 24px; background: #2a3446; text-align: center; font-size: 15px; font-weight: 700; line-height: 48px; letter-spacing: .1em; color: #8793a6; }
+.glow { box-shadow: 0 0 0 3px rgba(77,224,189,.25), 0 0 28px rgba(77,224,189,.45); }
+.room { border: 2px solid rgba(77,224,189,.5); background: rgba(8,13,26,.7); background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 50px 50px; }
+.guy { position: absolute; width: 40px; height: 40px; border-radius: 20px; }
+.guy::after { content: attr(data-n); position: absolute; top: 48px; left: 50%; transform: translateX(-50%); font: 600 12px var(--font-body); color: #cfdae2; white-space: nowrap; }
+.callout { position: absolute; font: 600 13px var(--font-body); color: var(--teal); background: rgba(4,40,31,.9); border: 1px solid var(--teal); border-radius: 8px; padding: 6px 10px; white-space: nowrap; }
+.dbtn { border-radius: 12px; border: 1px solid var(--teal); background: linear-gradient(90deg, rgba(77,224,189,.28), rgba(77,224,189,.08)); }
+.dbtn .t { position: absolute; left: 20px; top: 10px; font-size: 20px; font-weight: 800; letter-spacing: .1em; color: var(--teal); }
+.dbtn .s { position: absolute; left: 20px; top: 40px; font: 500 12px var(--font-body); color: #b9efe0; }
+.dbtn .arr { position: absolute; right: 18px; top: 14px; font-size: 26px; color: var(--teal); }
+footer.note { color: var(--muted); font-size: 14px; }
+
+.btn { position: absolute; box-sizing: border-box; border-radius: 10px; text-align: center; font-weight: 700; letter-spacing: .04em; color: #fff; }
+.b-back { background: #c0394b; font-size: 30px; }
+.b-ready { background: linear-gradient(#3d86f0,#2f6fd0); font-size: 24px; border: 1px solid #6aa3ff; }
+.b-start { background: #2a3a66; color: #7f8db3; font-size: 24px; border: 1px solid #3a4a7a; }
+.b-hang { background: linear-gradient(rgba(77,224,189,.35),rgba(77,224,189,.15)); border: 1px solid var(--teal); color: var(--teal); font-size: 20px; letter-spacing: .1em; }
+.panel { left: 440px; top: 68px; width: 800px; border-radius: 12px; border: 1px solid #3a4a7a; background: rgba(15,20,32,.8); }
+.panel .ph { position: absolute; inset: 14px; display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
+.panel .ph b { border-radius: 10px; background: rgba(255,255,255,.05); display: block; }
+.hostcard { left: 40px; top: 184px; width: 376px; height: 88px; border-radius: 12px; border: 2px solid #e08a3c; background: #131827; }
+.hostcard .face { position: absolute; left: 8px; top: 8px; width: 72px; height: 72px; border-radius: 10px; background: #3a2a1c; }
+.hostcard .nm { position: absolute; left: 94px; top: 10px; font-size: 22px; font-weight: 700; }
+.hostcard .sub { position: absolute; left: 94px; top: 42px; font-size: 14px; color: #e08a3c; font-weight: 700; }
+.hostcard .chip { position: absolute; right: 12px; bottom: 8px; font-size: 12px; background: #1b2438; border-radius: 8px; padding: 2px 10px; color: #cfd8ea; }
+.slot { left: 40px; width: 376px; height: 90px; border: 1px dashed #4a3a30; border-radius: 10px; text-align: center; color: #8a7a70; font-size: 16px; font-weight: 700; padding-top: 22px; }
+.slot small { display: block; font: 12px var(--font-body); margin-top: 6px; }
+.bar { left: 0; top: 624px; width: 1280px; height: 96px; background: rgba(5,7,12,.85); border-top: 1px solid #1c2433; }
+</style><div class="wrap"><header><div class="eyebrow">Lobby · Bottom buttons</div><h1>Where the <span>buttons</span> go</h1>
+<p class="lead">Drawn from your screenshot (1280 x 720). Today Back sits far left, Ready? and Start sit mid-screen, and the left column under the party is empty. Each option also gives the Hangout a door, which opens the room in the right-hand panel and flips to "Back to loadout".</p></header>
+<section><div class="head"><div class="tag">Option 1</div><h2>Stack in the empty left column</h2></div><p class="pros"><span><b>Good:</b> uses dead space, the loadout panel gets taller, Ready/Start are next to the party they affect.</span><span><b>Cost:</b> they move up and the bottom bar goes.</span></p><div class="frame"><div class="scale" data-h="720"><div class="lobby"><div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div><div class="abs partyh">Party (1/3)</div><div class="abs hostcard"><div class="face"></div><div class="nm">Antaleon</div><div class="sub">Soldier DPS</div><div class="chip">NOT READY</div></div><div class="abs slot" style="top:280px">Open slot<small>Room for one more</small></div><div class="abs slot" style="top:376px">Open slot<small>Room for one more</small></div><div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div><div class="abs panel" style="height:600px"><div class="ph"><b></b><b></b></div></div><div class="btn b-back" style="left:40px;top:640px;width:54px;height:54px;line-height:54px">←</div><div class="btn b-hang glow" style="left:40px;top:440px;width:376px;height:56px;line-height:56px">HANGOUT  ➜</div><div class="btn b-ready" style="left:40px;top:508px;width:376px;height:62px;line-height:62px">✔  Ready?</div><div class="btn b-start" style="left:40px;top:580px;width:376px;height:62px;line-height:62px">▶  Start</div><div class="callout" style="left:432px;top:448px">← uses the empty space; the loadout panel grows to the bottom</div></div></div></div></section><section><div class="head"><div class="tag">Option 2</div><h2>One cluster, lined up with the panel</h2></div><p class="pros"><span><b>Good:</b> least change. Same bar, but grouped on the right edge so the eye runs Hangout, Ready, Start.</span><span><b>Cost:</b> big empty middle.</span></p><div class="frame"><div class="scale" data-h="720"><div class="lobby"><div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div><div class="abs partyh">Party (1/3)</div><div class="abs hostcard"><div class="face"></div><div class="nm">Antaleon</div><div class="sub">Soldier DPS</div><div class="chip">NOT READY</div></div><div class="abs slot" style="top:280px">Open slot<small>Room for one more</small></div><div class="abs slot" style="top:376px">Open slot<small>Room for one more</small></div><div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div><div class="abs panel" style="height:532px"><div class="ph"><b></b><b></b></div></div><div class="abs bar"></div><div class="btn b-back" style="left:40px;top:645px;width:54px;height:54px;line-height:54px">←</div><div class="btn b-hang glow" style="left:556px;top:645px;width:190px;height:54px;line-height:54px">HANGOUT</div><div class="btn b-ready" style="left:762px;top:645px;width:230px;height:54px;line-height:54px">✔  Ready?</div><div class="btn b-start" style="left:1008px;top:645px;width:232px;height:54px;line-height:54px">▶  Start</div><div class="callout" style="left:556px;top:600px">all three line up with the loadout panel (x 440 to 1240)</div></div></div></div></section><section><div class="head"><div class="tag">Option 3</div><h2>Hangout on the Party heading</h2></div><p class="pros"><span><b>Good:</b> Hangout lives beside the people; the bar keeps only the two actions, wide and easy to hit.</span><span><b>Cost:</b> a small target.</span></p><div class="frame"><div class="scale" data-h="720"><div class="lobby"><div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div><div class="abs partyh">Party (1/3)</div><div class="btn b-hang glow" style="left:300px;top:142px;width:116px;height:30px;line-height:30px;font-size:13px;border-radius:15px">HANGOUT ➜</div><div class="abs hostcard"><div class="face"></div><div class="nm">Antaleon</div><div class="sub">Soldier DPS</div><div class="chip">NOT READY</div></div><div class="abs slot" style="top:280px">Open slot<small>Room for one more</small></div><div class="abs slot" style="top:376px">Open slot<small>Room for one more</small></div><div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div><div class="abs panel" style="height:532px"><div class="ph"><b></b><b></b></div></div><div class="abs bar"></div><div class="btn b-back" style="left:40px;top:645px;width:54px;height:54px;line-height:54px">←</div><div class="btn b-ready" style="left:400px;top:640px;width:420px;height:64px;line-height:64px">✔  Ready?</div><div class="btn b-start" style="left:836px;top:640px;width:404px;height:64px;line-height:64px">▶  Start</div><div class="callout" style="left:432px;top:142px">← sits on the Party heading; press H as well</div></div></div></div></section><section><div class="head"><div class="tag">Option 4</div><h2>Ready on your card, slim bar</h2></div><p class="pros"><span><b>Good:</b> Ready sits with your NOT READY status, Hangout is a second-tier button by Back, Start stands alone for the host.</span><span><b>Cost:</b> Ready is smaller than today.</span></p><div class="frame"><div class="scale" data-h="720"><div class="lobby"><div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div><div class="abs partyh">Party (1/3)</div><div class="abs hostcard"><div class="face"></div><div class="nm">Antaleon</div><div class="sub">Soldier DPS</div><div class="btn b-ready" style="right:10px;bottom:8px;width:120px;height:30px;line-height:30px;font-size:14px;border-radius:8px">✔ Ready?</div></div><div class="abs slot" style="top:280px">Open slot<small>Room for one more</small></div><div class="abs slot" style="top:376px">Open slot<small>Room for one more</small></div><div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div><div class="abs panel" style="height:532px"><div class="ph"><b></b><b></b></div></div><div class="abs bar"></div><div class="btn b-back" style="left:40px;top:645px;width:54px;height:54px;line-height:54px">←</div><div class="btn b-hang glow" style="left:110px;top:645px;width:210px;height:54px;line-height:54px">HANGOUT ➜</div><div class="btn b-start" style="left:960px;top:645px;width:280px;height:54px;line-height:54px">▶  Start</div><div class="callout" style="left:44px;top:296px">↑ Ready is a toggle on your own card, where your status lives</div></div></div></div></section><footer class="note">Pick one, or mix (for example 2 with the Ready toggle from 4). No network change.</footer></div><script>
+function fit() {
+  document.querySelectorAll('.scale').forEach(function (s) {
+    var k = s.clientWidth / 1280, h = +s.dataset.h;
+    s.style.height = (h * k) + 'px';
+    s.querySelectorAll('.lobby').forEach(function (l) { l.style.transform = 'scale(' + k + ')'; });
+  });
+}
+addEventListener('resize', fit); fit();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+</script>
