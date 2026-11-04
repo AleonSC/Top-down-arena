@@ -1,0 +1,368 @@
+<title>Lifeline Visuals</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: header, a shared transport bar (play, scrub), a 2x2 grid of looping scenes, then a notes panel.
+   Single dark look on purpose: the game's own mockups are dark and the scenes are drawn on near-black. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --heal:#59ff8c; --amber:#ffb547;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
+.wrap { max-width:1100px; margin:0 auto; padding-block:28px 64px; display:grid; gap:24px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--heal); }
+h2 { font-size:20px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:72ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.tag { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--heal); }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:78ch; }
+.bar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
+.bar input[type=range] { flex:1 1 200px; min-width:0; accent-color:var(--heal); }
+.stage { font:600 13px var(--font-display); letter-spacing:.1em; text-transform:uppercase; color:var(--heal); min-width:12ch; font-variant-numeric:tabular-nums; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 14px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outline-offset:2px; }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Healer Soldier · ultimate</div>
+  <h1>Life<span>line</span></h1>
+  <p class="lead">Lifeline revives and fully heals the whole party, then gives everyone 3 s of invulnerability (90 s cooldown; the capstone adds 4 s of Overdrive). Today that is one green ring per player and a thin beam from you to each ally. These are four new looks for the same cast. Each loops one scene at game scale: you (blue, centre), two hurt allies, one downed ally (grey X), and an enemy firing at the ally on the right so you can see the 3 s of invulnerability turn bullets away.</p>
+  <p class="lead">Pause and drag the slider to step through the stages: idle, cast, invulnerable, fade.</p>
+</header>
+
+<div class="bar">
+  <button id="play" type="button" aria-pressed="true">Pause</button>
+  <input id="scrub" type="range" min="0" max="6.8" step="0.01" value="0" aria-label="Time in the loop">
+  <span class="stage" id="stage" aria-live="off">Idle</span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<section class="panel">
+  <h2>What stays the same</h2>
+  <ul>
+    <li>Numbers: 90 s cooldown, revive at full health, full heal for everyone, 3 s invulnerability, 4 s Overdrive with the capstone.</li>
+    <li>Nothing about the network message changes, so the protocol version stays put. The look would live in <code>AbilityLooks.cs</code> as a new set of <code>FxKind</code> effects, played on every client.</li>
+    <li>The last 0.6 s of invulnerability blinks in every look, so players know when the cover ends.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(function () {
+  var W = 480, H = 340, TAU = Math.PI * 2, LOOP = 6.8, CAST = 0.8, INV = 3;
+  var G = '#59ff8c';
+  function clamp(x) { return Math.max(0, Math.min(1, x)); }
+  function ease(x) { return 1 - Math.pow(1 - clamp(x), 3); }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+
+  // Scene cast: index 0 is the healer.
+  var P = [
+    { x: 240, y: 175, hp0: 0.7,  col: '#59a8ff', self: true },
+    { x: 105, y: 95,  hp0: 0.35, col: '#ffb547' },
+    { x: 375, y: 110, hp0: 0.6,  col: '#c28bff' },
+    { x: 135, y: 262, hp0: 0,    col: '#ff6b8a', down: true }
+  ];
+  var E = { x: 452, y: 40 };
+
+  function hash(n) { var v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v); }
+
+  // Each look: arr(p,i) = when the revive and heal land on that player; draw(c,s,layer) paints effects.
+  // s is seconds since the cast. layer 0 sits under the players, layer 1 over them.
+  // shellK gives 0..1 for how strong the invulnerability shell is, with the closing blink.
+  function shellK(p, s) {
+    if (s < p.arr || s > INV) return 0;
+    var k = clamp((s - p.arr) / 0.25);
+    if (s > INV - 0.6) k *= (Math.floor(s * 10) % 2 ? 0.25 : 1);
+    return k;
+  }
+  function fadeOut(s) { return s < INV ? 1 : clamp(1 - (s - INV) / 0.7); }
+
+  var looks = [
+    {
+      tag: 'Look A', name: 'Tether Pulse', note: 'Green cords grow from you to every ally. Pulses travel along them, a ring lands on each player, and the downed ally is lifted by a column of light. Cords stay for the 3 s, with a bubble on everyone.',
+      arr: function (p, i) { return p.self ? 0.2 : 0.35 + 0.1 * i; },
+      draw: function (c, s, layer) {
+        if (layer === 0) {
+          for (var i = 1; i < P.length; i++) {
+            var p = P[i];
+            var g = ease((s - 0.1 * i) / 0.3);
+            if (s > 0 && g > 0) {
+              var f = fadeOut(s), ex = lerp(P[0].x, p.x, g), ey = lerp(P[0].y, p.y, g);
+              c.save(); c.globalAlpha = 0.85 * f; c.strokeStyle = G; c.lineWidth = 3; c.shadowColor = G; c.shadowBlur = 10;
+              c.beginPath(); c.moveTo(P[0].x, P[0].y); c.lineTo(ex, ey); c.stroke(); c.shadowBlur = 0;
+              c.fillStyle = '#eafff1';
+              for (var k = 0; k < 3; k++) {
+                var u = ((s * 1.3 + k / 3) % 1) * g;
+                c.beginPath(); c.arc(lerp(P[0].x, ex, u / Math.max(g, 0.001)), lerp(P[0].y, ey, u / Math.max(g, 0.001)), 3, 0, TAU); c.fill();
+              }
+              c.restore();
+            }
+            if (p.down && s > p.arr - 0.1 && s < p.arr + 0.9) {
+              var a = 1 - clamp((s - p.arr) / 0.9);
+              var gr = c.createLinearGradient(0, p.y - 110, 0, p.y + 14);
+              gr.addColorStop(0, 'rgba(89,255,140,0)'); gr.addColorStop(1, 'rgba(89,255,140,' + 0.55 * a + ')');
+              c.fillStyle = gr; c.fillRect(p.x - 18, p.y - 110, 36, 124);
+            }
+          }
+        }
+        for (var j = 0; j < P.length; j++) {
+          var q = P[j], t = s - q.arr;
+          if (t >= 0 && t < 0.6) {
+            c.save(); c.globalAlpha = 1 - t / 0.6; c.strokeStyle = G; c.lineWidth = 4 * (1 - t / 0.6) + 1;
+            c.beginPath(); c.arc(q.x, q.y, 14 + ease(t / 0.6) * 56, 0, TAU); c.stroke(); c.restore();
+          }
+          var k2 = shellK(q, s);
+          if (layer === 0 && k2 > 0) {
+            c.save(); c.globalAlpha = k2 * fadeOut(s);
+            c.fillStyle = 'rgba(89,255,140,.13)'; c.strokeStyle = G; c.lineWidth = 2;
+            c.beginPath(); c.arc(q.x, q.y, 27, 0, TAU); c.fill(); c.stroke();
+            c.setLineDash([4, 6]); c.lineDashOffset = -s * 30; c.beginPath(); c.arc(q.x, q.y, 21, 0, TAU); c.stroke(); c.restore();
+          }
+        }
+      }
+    },
+    {
+      tag: 'Look B', name: 'Heartbeat', note: 'A double pulse (lub-dub) rolls out from you and each player jolts as it passes. The downed ally gets a defibrillator flash. Cover is a ring that traces a live heart-monitor line.',
+      arr: function (p, i) { var d = Math.hypot(p.x - P[0].x, p.y - P[0].y); return p.self ? 0.1 : 0.12 + d / 330; },
+      draw: function (c, s, layer) {
+        function ecg(u) {
+          if (u < 0.05) return 0;
+          if (u < 0.1) return 0.2 * Math.sin((u - 0.05) / 0.05 * Math.PI);
+          if (u < 0.15) return 0;
+          if (u < 0.19) return -0.35 * ((u - 0.15) / 0.04);
+          if (u < 0.24) return -0.35 + 1.35 * ((u - 0.19) / 0.05);
+          if (u < 0.29) return 1 - 1.5 * ((u - 0.24) / 0.05);
+          if (u < 0.33) return -0.5 + 0.5 * ((u - 0.29) / 0.04);
+          return 0;
+        }
+        if (layer === 0) {
+          [0, 0.22].forEach(function (b, bi) {
+            var r = (s - b) * 330;
+            if (s > 0 && r > 0 && r < 360) {
+              c.save(); c.globalAlpha = (1 - r / 360) * (bi ? 0.7 : 1); c.strokeStyle = G; c.lineWidth = bi ? 3 : 5; c.shadowColor = G; c.shadowBlur = 12;
+              c.beginPath(); c.arc(P[0].x, P[0].y, r, 0, TAU); c.stroke(); c.restore();
+            }
+          });
+        }
+        for (var i = 0; i < P.length; i++) {
+          var p = P[i], t = s - p.arr;
+          if (layer === 1 && p.down && t >= 0 && t < 0.35) {
+            c.save(); c.globalAlpha = 1 - t / 0.35; c.fillStyle = '#fff';
+            c.beginPath(); c.arc(p.x, p.y, 14 + t * 160, 0, TAU); c.fill(); c.restore();
+          }
+          var k = shellK(p, s);
+          if (layer === 0 && k > 0) {
+            c.save(); c.globalAlpha = k * fadeOut(s); c.strokeStyle = G; c.lineWidth = 2.2; c.shadowColor = G; c.shadowBlur = 8;
+            c.beginPath();
+            for (var a = 0; a <= 120; a++) {
+              var ph = a / 120, u = (ph + s * 0.9) % 1, rr = 25 + 9 * ecg(u);
+              var x = p.x + Math.cos(ph * TAU) * rr, y = p.y + Math.sin(ph * TAU) * rr;
+              if (a === 0) c.moveTo(x, y); else c.lineTo(x, y);
+            }
+            c.closePath(); c.stroke(); c.restore();
+          }
+        }
+      }
+    },
+    {
+      tag: 'Look C', name: 'Rescue Line', note: 'You throw a rope to each ally. It lands as a lifebuoy, pulls taut as they are healed, and stays coiled around them for the 3 s. When cover ends the rope snaps into sparks.',
+      arr: function (p, i) { return p.self ? 0.25 : 0.4 + 0.1 * i; },
+      draw: function (c, s, layer) {
+        function rope(x0, y0, x1, y1, sag, frac, alpha) {
+          var N = 28, pts = [], i, u;
+          for (i = 0; i <= N; i++) {
+            u = i / N * frac;
+            pts.push([lerp(x0, x1, u), lerp(y0, y1, u) + Math.sin(u * Math.PI) * sag]);
+          }
+          c.save(); c.globalAlpha = alpha; c.lineCap = 'round'; c.lineWidth = 4.5; c.strokeStyle = '#efe3bd';
+          c.beginPath(); pts.forEach(function (q, j) { if (j) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke();
+          c.strokeStyle = '#2f9a5b'; c.setLineDash([5, 6]); c.beginPath();
+          pts.forEach(function (q, j) { if (j) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke(); c.restore();
+        }
+        function buoy(x, y, r, alpha, spin) {
+          c.save(); c.globalAlpha = alpha; c.translate(x, y); c.rotate(spin); c.lineWidth = 6;
+          for (var q = 0; q < 8; q++) {
+            c.strokeStyle = q % 2 ? '#f5f5f0' : '#2f9a5b';
+            c.beginPath(); c.arc(0, 0, r, q * TAU / 8, (q + 1) * TAU / 8 + 0.02); c.stroke();
+          }
+          c.restore();
+        }
+        if (layer === 0) {
+          for (var i = 1; i < P.length; i++) {
+            var p = P[i];
+            if (s > 3) {
+              var t3 = s - INV;
+              if (t3 < 0.45) {
+                c.save(); c.strokeStyle = '#efe3bd'; c.lineWidth = 2; c.globalAlpha = 1 - t3 / 0.45;
+                for (var k = 0; k < 7; k++) {
+                  var a = hash(i * 9 + k) * TAU, d1 = 8 + t3 * 90, d2 = d1 + 6;
+                  c.beginPath(); c.moveTo(p.x + Math.cos(a) * d1, p.y + Math.sin(a) * d1); c.lineTo(p.x + Math.cos(a) * d2, p.y + Math.sin(a) * d2); c.stroke();
+                }
+                c.restore();
+              }
+              continue;
+            }
+            if (s < 0) continue;
+            var g = ease((s - 0.12 * i) / 0.3), taut = ease((s - p.arr) / 0.4);
+            var blink = s > INV - 0.6 ? (Math.floor(s * 10) % 2 ? 0.3 : 1) : 1;
+            rope(P[0].x, P[0].y, p.x, p.y, 34 * (1 - taut), g, blink);
+          }
+        }
+        for (var j = 0; j < P.length; j++) {
+          var q2 = P[j], k2 = shellK(q2, s);
+          if (layer === 0 && k2 > 0) {
+            buoy(q2.x, q2.y, 24, k2 * fadeOut(s), s * 0.6);
+            c.save(); c.globalAlpha = 0.1 * k2; c.fillStyle = G; c.beginPath(); c.arc(q2.x, q2.y, 24, 0, TAU); c.fill(); c.restore();
+          }
+          var t = s - q2.arr;
+          if (layer === 1 && t >= 0 && t < 0.5) {
+            c.save(); c.globalAlpha = 1 - t / 0.5; c.strokeStyle = '#efe3bd'; c.lineWidth = 3;
+            c.beginPath(); c.arc(q2.x, q2.y, 20 + t * 60, 0, TAU); c.stroke(); c.restore();
+          }
+        }
+      }
+    },
+    {
+      tag: 'Look D', name: 'Halo', note: 'A halo descends over every player and a column of light holds them for the 3 s. The downed ally is raised on the column. When cover ends the halos lift away and fade.',
+      arr: function (p, i) { return p.self ? 0.3 : 0.5 + 0.08 * i; },
+      draw: function (c, s, layer) {
+        for (var i = 0; i < P.length; i++) {
+          var p = P[i], k = shellK(p, s), f = fadeOut(s);
+          if (layer === 0 && s > p.arr - 0.3 && s < INV + 0.7) {
+            if (k > 0) {
+              var pulse = 0.85 + 0.15 * Math.sin(s * 6 + i);
+              var gr = c.createLinearGradient(0, p.y - 100, 0, p.y + 22);
+              gr.addColorStop(0, 'rgba(180,255,200,0)'); gr.addColorStop(0.5, 'rgba(120,255,170,' + 0.3 * k * f * pulse + ')'); gr.addColorStop(1, 'rgba(89,255,140,' + 0.5 * k * f * pulse + ')');
+              c.fillStyle = gr; c.fillRect(p.x - 20, p.y - 100, 40, 122);
+              c.fillStyle = 'rgba(89,255,140,' + 0.18 * k * f + ')'; c.beginPath(); c.ellipse(p.x, p.y + 16, 26, 9, 0, 0, TAU); c.fill();
+              c.fillStyle = '#eafff1';
+              for (var m = 0; m < 5; m++) {
+                var ph = (s * 0.5 + hash(i * 7 + m)) % 1;
+                c.globalAlpha = k * f * (1 - ph) * 0.9;
+                c.fillRect(p.x + (hash(i * 3 + m) - 0.5) * 34 + Math.sin(s * 3 + m) * 4, p.y - 70 + ph * 80, 2, 4);
+              }
+              c.globalAlpha = 1;
+            }
+          }
+          if (layer === 1 && s > 0 && s < INV + 0.7) {
+            var drop = ease((s - 0.1 * i) / 0.45), lift = s > INV ? ease((s - INV) / 0.7) : 0;
+            var hy = p.y - 30 + (1 - drop) * -55 - lift * 30, ha = clamp(drop * 2) * (1 - lift);
+            c.save(); c.globalAlpha = ha; c.strokeStyle = '#c9ffd6'; c.lineWidth = 3; c.shadowColor = G; c.shadowBlur = 12;
+            c.beginPath(); c.ellipse(p.x, hy, 15, 5, 0, 0, TAU); c.stroke(); c.restore();
+          }
+        }
+      }
+    }
+  ];
+
+  // Scene painting shared by all looks.
+  function hpAt(p, s) { return s < p.arr ? p.hp0 : lerp(p.hp0, 1, ease((s - p.arr) / 0.5)); }
+  function paint(c, look, t) {
+    var s = t - CAST;
+    c.clearRect(0, 0, W, H);
+    c.fillStyle = '#070910'; c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(255,255,255,.04)'; c.lineWidth = 1;
+    for (var x = 0; x <= W; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+    for (var y = 0; y <= H; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+    P.forEach(function (p, i) { p.arr = look.arr(p, i); });
+
+    // enemy
+    c.fillStyle = '#d24b4b'; c.beginPath(); c.moveTo(E.x, E.y - 14); c.lineTo(E.x + 13, E.y + 10); c.lineTo(E.x - 13, E.y + 10); c.closePath(); c.fill();
+
+    look.draw(c, s, 0);
+
+    // players
+    P.forEach(function (p, i) {
+      var isDown = p.down && s < p.arr;
+      c.save();
+      c.fillStyle = isDown ? '#4a4f57' : p.col; c.beginPath(); c.arc(p.x, p.y, 13, 0, TAU); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; c.stroke();
+      if (isDown) {
+        c.strokeStyle = '#a9b0b8'; c.lineWidth = 3; c.beginPath();
+        c.moveTo(p.x - 6, p.y - 6); c.lineTo(p.x + 6, p.y + 6); c.moveTo(p.x + 6, p.y - 6); c.lineTo(p.x - 6, p.y + 6); c.stroke();
+      }
+      var hp = isDown ? 0 : hpAt(p, s);
+      c.fillStyle = '#1b2127'; c.fillRect(p.x - 17, p.y - 26, 34, 5);
+      c.fillStyle = hp > 0.6 ? G : hp > 0.3 ? '#ffb547' : '#ff5555'; c.fillRect(p.x - 17, p.y - 26, 34 * hp, 5);
+      c.restore();
+    });
+
+    // enemy bullet toward the ally on the right, every 0.9 s
+    var cyc = ((t % 0.9) / 0.9), target = P[2], inv = shellK(target, s) > 0.2;
+    var bx = lerp(E.x, target.x, cyc), by = lerp(E.y, target.y, cyc);
+    c.fillStyle = '#ff7a7a'; c.beginPath(); c.arc(bx, by, 3.5, 0, TAU); c.fill();
+    if (cyc < 0.14 && t > 0.9) {
+      c.save(); c.globalAlpha = 1 - cyc / 0.14;
+      if (inv) { c.strokeStyle = G; c.lineWidth = 2; c.beginPath(); c.arc(target.x, target.y, 27 + cyc * 40, 0, TAU); c.stroke(); c.fillStyle = G; c.font = '700 12px Oxanium, sans-serif'; c.textAlign = 'center'; c.fillText('0', target.x, target.y - 34 - cyc * 60); }
+      else { c.fillStyle = '#ff5555'; c.font = '700 12px Oxanium, sans-serif'; c.textAlign = 'center'; c.fillText('-12', target.x, target.y - 34 - cyc * 60); }
+      c.restore();
+    }
+
+    look.draw(c, s, 1);
+
+    // callout over the caster
+    if (s > 0 && s < 1.1) {
+      c.save(); c.globalAlpha = 1 - clamp((s - 0.6) / 0.5); c.fillStyle = '#eafff1'; c.font = '700 14px Oxanium, sans-serif'; c.textAlign = 'center';
+      c.fillText('Lifeline', P[0].x, P[0].y - 38 - s * 22); c.restore();
+    }
+    // timer: how much invulnerability is left
+    if (s > 0 && s < INV) {
+      c.fillStyle = 'rgba(89,255,140,.9)'; c.fillRect(P[0].x - 17, P[0].y + 22, 34 * (1 - s / INV), 3);
+    }
+  }
+
+  function stageName(t) {
+    var s = t - CAST;
+    if (s < 0) return 'Idle';
+    if (s < 0.6) return 'Cast';
+    if (s <= INV) return 'Invulnerable ' + (INV - s).toFixed(1) + ' s';
+    if (s <= INV + 0.7) return 'Fade';
+    return 'Idle';
+  }
+
+  var grid = document.getElementById('grid'), cvs = [];
+  looks.forEach(function (look) {
+    var card = document.createElement('div'); card.className = 'card';
+    var cv = document.createElement('canvas'); cv.width = W * 2; cv.height = H * 2;
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', look.name + ' looping preview');
+    var t = document.createElement('div'); t.className = 't';
+    var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = look.tag;
+    var b = document.createElement('b'); b.textContent = look.name;
+    var d = document.createElement('span'); d.textContent = look.note;
+    t.appendChild(tag); t.appendChild(b); t.appendChild(d);
+    card.appendChild(cv); card.appendChild(t); grid.appendChild(card);
+    var c = cv.getContext('2d'); c.scale(2, 2);
+    cvs.push({ c: c, look: look });
+  });
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var playing = !reduce, now = reduce ? 2.4 : 0, last = null;
+  var play = document.getElementById('play'), scrub = document.getElementById('scrub'), stage = document.getElementById('stage');
+  function render() {
+    cvs.forEach(function (o) { paint(o.c, o.look, now); });
+    stage.textContent = stageName(now); scrub.value = now;
+  }
+  function syncBtn() { play.textContent = playing ? 'Pause' : 'Play'; play.setAttribute('aria-pressed', playing ? 'true' : 'false'); }
+  play.addEventListener('click', function () { playing = !playing; last = null; syncBtn(); });
+  scrub.addEventListener('input', function () { playing = false; syncBtn(); now = parseFloat(scrub.value); render(); });
+  function tick(ts) {
+    if (playing) {
+      if (last !== null) now = (now + (ts - last) / 1000) % LOOP;
+      last = ts; render();
+    }
+    requestAnimationFrame(tick);
+  }
+  syncBtn(); render(); requestAnimationFrame(tick);
+})();
+</script>
