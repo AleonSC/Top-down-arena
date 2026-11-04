@@ -26,6 +26,9 @@ namespace Arena
         static readonly Rect MenuQuitRect = new Rect(W / 2f - 24f, H - 66f, 48f, 48f);
         bool menuJoinOpen;    // Join opened the address row
         bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
+        float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between a scan line is sweeping across the box
+        const float MenuPlayLen = 0.85f;  // seconds for that sweep, in either direction
+        static readonly Color ScanColor = new Color(0.44f, 0.89f, 0.77f);
         int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
 
         void DrawMenu()
@@ -144,34 +147,32 @@ namespace Arena
             if (!live && Event.current.type != EventType.Repaint)
                 return;
             float name = MenuIntroK(1.75f, 2.1f), host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
-            if (menuPlayOpen)
+            if (live && Event.current.type == EventType.Repaint)
+            {
+                float target = menuPlayOpen ? 1f : 0f;
+                menuPlayK = fxOn && !fxReduced ? Mathf.MoveTowards(menuPlayK, target, Time.unscaledDeltaTime / MenuPlayLen) : target;
+            }
+            bool sweeping = menuPlayK != (menuPlayOpen ? 1f : 0f);  // also true on the first frame of a move, so no stray click lands
+            if (sweeping)
+            {
+                // The picker shows left of the scan line and the menu's buttons right of it; neither takes a click until it lands.
+                float x = MenuCard.x - 10f + EaseInOut(menuPlayK) * (MenuCard.width + 20f);
+                GUI.BeginGroup(new Rect(0f, 0f, x, H));
+                DrawPlayPicker(t, false);
+                GUI.EndGroup();
+                GUI.BeginGroup(new Rect(x, 0f, W - x, H));
+                GUI.BeginGroup(new Rect(-x, 0f, W, H));
+                DrawMenuButtons(t, false, name, host, join, cont);
+                GUI.EndGroup();
+                GUI.EndGroup();
+                float edge = Mathf.Sin(menuPlayK * Mathf.PI);
+                for (int g = 3; g >= 0; g--)  // the line, with a soft glow either side
+                    Ui.Fill(new Rect(x - 1.5f - g * 5f, MenuCard.y + 2f, 3f + g * 10f, MenuCard.height - 4f), new Color(ScanColor.r, ScanColor.g, ScanColor.b, (g == 0 ? 0.95f : 0.07f) * edge));
+            }
+            else if (menuPlayOpen)
                 DrawPlayPicker(t, live);
             else
-            {
-                if (name > 0f)
-                    MenuRise(name, 24f, () => DrawNameCard(MenuNameRect, 0f, live, t));
-                if (host > 0f)
-                    MenuRise(host, 60f, () =>
-                    {
-                        Ui.PulseRing(MenuHostRect, Ui.Primary, t);
-                        if (Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 30) && live)
-                            OpenPlayPicker();
-                    });
-                if (join > 0f)
-                    MenuRise(join, 24f, () =>
-                    {
-                        if (Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 18) && live)
-                            menuJoinOpen = !menuJoinOpen;
-                    });
-                if (cont > 0f)
-                    MenuRise(cont, 24f, () =>
-                    {
-                        if (Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 18) && live)
-                            recordsOpen = true;
-                        if (Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 18) && live)
-                            settingsOpen = true;
-                    });
-            }
+                DrawMenuButtons(t, live, name, host, join, cont);
             // Join's address row (or, while connecting, how it's going and Cancel), then any message from the last try.
             var row = MenuJoinRow;
             if (session.Connecting)
@@ -191,6 +192,34 @@ namespace Arena
             }
             if (session.Status.Length > 0 && !session.Connecting && live)
                 Ui.Label(new Rect(row.x - 40f, (menuJoinOpen ? row.yMax : row.y) + 6f, row.width + 80f, 40f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
+        }
+
+        /// The box's buttons: your name card, Play, Join game, Records and Settings (each rising in during the intro).
+        void DrawMenuButtons(float t, bool live, float name, float host, float join, float cont)
+        {
+            if (name > 0f)
+                MenuRise(name, 24f, () => DrawNameCard(MenuNameRect, 0f, live, t));
+            if (host > 0f)
+                MenuRise(host, 60f, () =>
+                {
+                    Ui.PulseRing(MenuHostRect, Ui.Primary, t);
+                    if (Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 30) && live)
+                        OpenPlayPicker();
+                });
+            if (join > 0f)
+                MenuRise(join, 24f, () =>
+                {
+                    if (Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 18) && live)
+                        menuJoinOpen = !menuJoinOpen;
+                });
+            if (cont > 0f)
+                MenuRise(cont, 24f, () =>
+                {
+                    if (Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 18) && live)
+                        recordsOpen = true;
+                    if (Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 18) && live)
+                        settingsOpen = true;
+                });
         }
 
         void JoinGame()
