@@ -6,6 +6,9 @@ namespace Arena
     /// "Who's playing?" (Docs/Profiles.md, look C of Docs/Mockups/whos-playing.html): a screen of its own before the main
     /// menu on every launch, a card per profile on the menu's title axis. Click one to play as it; Manage shows Rename and
     /// Delete (Delete asks twice); the + card makes a new one. The main menu's "Switch profile" opens it again.
+    /// There are at most ProfileStore.MaxProfiles (3) profiles, and always four boxes: three slots (an empty one says
+    /// "Empty") and the New profile box, which is grayed out while all three slots are full. That keeps the move to and
+    /// from the main menu (ProfileTransition.cs) the same every time.
     /// Choosing a profile makes it the active one (ProfileStore.cs): its records, rank, saved runs and name.
     public partial class ArenaApp
     {
@@ -16,7 +19,19 @@ namespace Arena
         List<ProfileInfo> whoList = new List<ProfileInfo>();
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
-        const float WhoCardW = 172f;
+        const float WhoCardW = 172f, WhoCardH = 206f, WhoCardGap = 18f, WhoCardTop = 250f;
+        const int WhoSlots = ProfileStore.MaxProfiles;  // profile slots; the New profile box is the box after them
+
+        /// Where box i sits (0 to 2: the slots; 3: New profile). Always four, so the layout never changes.
+        static Rect WhoBox(int i)
+        {
+            float rowW = (WhoSlots + 1) * WhoCardW + WhoSlots * WhoCardGap;
+            return new Rect(W / 2f - rowW / 2f + i * (WhoCardW + WhoCardGap), WhoCardTop, WhoCardW, WhoCardH);
+        }
+
+        bool WhoFull => whoList.Count >= WhoSlots;
+        ProfileInfo WhoInSlot(int i) => i < whoList.Count && i < WhoSlots ? whoList[i] : null;
+        static Color WhoColor(ProfileInfo p) => p == null ? Ui.Muted : RankLook.TierColor(p.Rank);
 
         void OpenWho()
         {
@@ -43,8 +58,8 @@ namespace Arena
             nameText = Profile.Current.Name.Length > 0 ? Profile.Current.Name : nameText;
             SaveMenuFields();
             savesCountT = 0f;  // the Continue count is this profile's (SavesUi.cs)
-            whoOpen = false;
             whoEdit = null;
+            StartProfTrIn(id);  // closes the screen: the move to the menu, or at once (ProfileTransition.cs)
         }
 
         /// Called at start (after the command line): shows this profile's name as yours, unless the command line named you.
@@ -123,21 +138,18 @@ namespace Arena
                 EndUiGl();
             }
 
-            int n = whoList.Count + (whoList.Count < ProfileStore.MaxProfiles ? 1 : 0);
-            int perRow = Mathf.Min(n, 5), rows = (n + 4) / 5;
-            float ch = rows == 1 ? 206f : 184f, gap = 18f, top = rows == 1 ? 250f : 232f;
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i <= WhoSlots; i++)
             {
-                int row = i / 5, inRow = Mathf.Min(5, n - row * 5);
-                float rowW = inRow * WhoCardW + (inRow - 1) * gap;
-                var r = new Rect(W / 2f - rowW / 2f + (i % 5) * (WhoCardW + gap), top + row * (ch + gap), WhoCardW, ch);
-                if (i < whoList.Count)
-                    DrawWhoCard(r, whoList[i], t, !editing);
+                var r = WhoBox(i);
+                if (i == WhoSlots)
+                    DrawWhoNewCard(r, !editing && !whoManage && !WhoFull);
+                else if (WhoInSlot(i) != null)
+                    DrawWhoCard(r, WhoInSlot(i), t, !editing);
                 else
-                    DrawWhoNewCard(r, !editing && !whoManage);
+                    DrawWhoEmptyCard(r);
             }
 
-            float y = top + rows * (ch + gap);
+            float y = WhoCardTop + WhoCardH + WhoCardGap;
             if (editing)
                 DrawWhoEditor(new Rect(W / 2f - 250f, Mathf.Min(y, H - 160f), 500f, 118f));
             else if (whoError.Length > 0)
@@ -158,15 +170,7 @@ namespace Arena
             Ui.Card(r, tier, hover ? 1f : current ? 0.85f : 0.55f);
             if (hover)
                 Ui.Pill(r, new Color(1f, 1f, 1f, 0.05f));
-            RankLook.Draw(new Rect(r.center.x - 40f, r.y + 16f, 80f, 80f), p.Rank);
-            string name = p.Name;
-            int size = 19;
-            while (size > 11 && Ui.TextWidth(name, size, true) + 10f > r.width)
-                size--;
-            Ui.Label(new Rect(r.x + 4f, r.y + 104f, r.width - 8f, 26f), name, size, Color.white, TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x, r.y + 130f, r.width, 18f), Rank.Title(p.Rank) + "  ·  Rank " + p.Rank, 12, tier, TextAnchor.MiddleCenter, true);
-            if (!whoManage)  // (Manage shows Rename and Delete in its place)
-                Ui.Label(new Rect(r.x, r.y + 148f, r.width, 16f), p.Wins + (p.Wins == 1 ? " win" : " wins") + "  ·  " + p.Runs + (p.Runs == 1 ? " run" : " runs"), 11, Ui.Muted, TextAnchor.MiddleCenter);
+            DrawWhoCardBody(r, p);
             if (whoManage && live)
             {
                 float by = r.yMax - 34f;
@@ -197,13 +201,40 @@ namespace Arena
                 ChooseProfile(p.Id);
         }
 
+        /// What is on a profile's box: its rank badge, name, title and rank, and its wins and runs (Manage hides the last).
+        void DrawWhoCardBody(Rect r, ProfileInfo p)
+        {
+            var tier = RankLook.TierColor(p.Rank);
+            RankLook.Draw(new Rect(r.center.x - 40f, r.y + 16f, 80f, 80f), p.Rank);
+            string name = p.Name;
+            int size = 19;
+            while (size > 11 && Ui.TextWidth(name, size, true) + 10f > r.width)
+                size--;
+            Ui.Label(new Rect(r.x + 4f, r.y + 104f, r.width - 8f, 26f), name, size, Color.white, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(r.x, r.y + 130f, r.width, 18f), Rank.Title(p.Rank) + "  ·  Rank " + p.Rank, 12, tier, TextAnchor.MiddleCenter, true);
+            if (!whoManage)  // (Manage shows Rename and Delete in its place)
+                Ui.Label(new Rect(r.x, r.y + 148f, r.width, 16f), p.Wins + (p.Wins == 1 ? " win" : " wins") + "  ·  " + p.Runs + (p.Runs == 1 ? " run" : " runs"), 11, Ui.Muted, TextAnchor.MiddleCenter);
+        }
+
+        /// An unused slot: a dim box that says so. It can't be clicked; New profile fills the first one.
+        void DrawWhoEmptyCard(Rect r)
+        {
+            Ui.Card(r, Ui.Muted, 0.18f);
+            Ui.Label(new Rect(r.x, r.y + r.height / 2f - 14f, r.width, 28f), "Empty", 17, new Color(1f, 1f, 1f, 0.3f), TextAnchor.MiddleCenter, true);
+        }
+
+        /// The fourth box. With all slots full it is grayed out and does nothing.
         void DrawWhoNewCard(Rect r, bool live)
         {
-            bool hover = live && r.Contains(Event.current.mousePosition);
-            Ui.Card(r, Ui.Muted, hover ? 0.9f : 0.35f);
-            Ui.Label(new Rect(r.x, r.y + r.height / 2f - 50f, r.width, 60f), "+", 44, hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x, r.y + r.height / 2f + 8f, r.width, 24f), "New profile", 15, hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
-            if (live && Ui.HitArea(r))
+            bool full = WhoFull;
+            bool hover = live && !full && r.Contains(Event.current.mousePosition);
+            var dim = new Color(1f, 1f, 1f, full ? 0.25f : 1f);
+            Ui.Card(r, Ui.Muted, full ? 0.15f : hover ? 0.9f : 0.35f);
+            Ui.Label(new Rect(r.x, r.y + r.height / 2f - 50f, r.width, 60f), "+", 44, full ? dim : hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(r.x, r.y + r.height / 2f + 8f, r.width, 24f), "New profile", 15, full ? dim : hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
+            if (full)
+                Ui.Label(new Rect(r.x, r.y + r.height / 2f + 32f, r.width, 18f), "All " + WhoSlots + " slots used", 11, dim, TextAnchor.MiddleCenter);
+            if (live && !full && Ui.HitArea(r))
             {
                 whoEdit = "new";
                 whoName = "";

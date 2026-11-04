@@ -34,6 +34,11 @@ namespace Arena
             if (onMenu && menuLastScreen != AppScreen.Menu)
                 menuTipSeed = Random.Range(0, 1000);  // a new line under the title each time the menu opens
             menuLastScreen = session.Screen;
+            if (profTr)
+            {
+                TickProfTr(dt);  // the move to or from the picker runs the menu's intro itself (ProfileTransition.cs)
+                return;
+            }
             if (onMenu && !menuIntroDone && !whoOpen && !settingsOpen && !recordsOpen && !cosmeticsOpen && !continueOpen)
             {
                 menuIntroDone = true;
@@ -51,7 +56,7 @@ namespace Arena
         /// Under the menu, as the full intro starts: the background is dark, then fades up.
         void DrawMenuIntroBackdrop()
         {
-            if (MenuIntroPlaying && MenuIntroFull)
+            if (MenuIntroPlaying && MenuIntroFull && !profTr)
                 Ui.Fill(new Rect(0f, 0f, W, H), new Color(0.01f, 0.01f, 0.03f, 0.9f * (1f - Seg(menuIntroT, 0f, 0.5f))));
         }
 

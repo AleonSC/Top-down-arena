@@ -35,7 +35,7 @@ namespace Arena
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.Panel(MenuCard, true)));
             if (BeginUiGl())
             {
-                DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf * EaseOut(MenuIntroK(0f, 0.45f)), t);  // the title sits on an x-axis
+                DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf * EaseOut(MenuAxisK), t);  // the title sits on an x-axis
                 DrawMenuArc(t, 1f);
                 float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
                 if (snap > 0f)
@@ -215,7 +215,7 @@ namespace Arena
             if (live)
                 TipClear();  // the rank badge's hover card (RankUi.cs)
             if (live && ProfileStore.Root != null && Ui.Button(new Rect(MenuNameRect.x, MenuBarY - 34f, 140f, 26f), "Switch profile", Ui.Neutral))
-                OpenWho();  // ProfilesUi.cs
+                StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
             Ui.Fill(new Rect(0f, MenuBarY, W, 92f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
             Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
             if (withName)

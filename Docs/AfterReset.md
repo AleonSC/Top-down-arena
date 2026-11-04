@@ -31,6 +31,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
       Bestiary/Armory pages still show the old abilities until you ask.
 
 ## Visuals
+- [x] **Profile picker <-> main menu transition, with sound.** Built (Nov 2026, no protocol bump): look C, Plot points, at half speed
+      (`Game/ProfileTransition.cs`), from [`Mockups/profile-transitions.html`](Mockups/profile-transitions.html)
+      (https://claude.ai/artifact/3pyKAd8sSKGrPhRcXE7tND). Max 3 profiles; the picker always shows four boxes (empty slots say "Empty",
+      New profile grays out when full). It replaces the menu's plotted intro after a pick (the intro now runs inside the move).
 - [x] **Healer Soldier Mend Pulse animations.** Built (Nov 2026): look B, Heartbeat (`Game/MendPulseLook.cs`, no protocol bump), from
       [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html) (https://claude.ai/artifact/4RHDSKaLNNGErr8MhprTWx). Left out: the capstone's bullet
       pops (bullets are erased host-side with no event the client sees).

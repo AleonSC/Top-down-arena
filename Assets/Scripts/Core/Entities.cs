@@ -37,6 +37,8 @@ namespace Arena
         RadiantCast, RadiantTouch, RadiantFade,
         // Zombie Infection (Zombies.cs; SoundBank.cs recipes): a groan now and then, getting back up, spit, a grab, a scream, a burst, a mend.
         ZombieGroan, ZombieRise, ZombieSpit, ZombieGrab, ZombieShriek, ZombieBurst, ZombieMend,
+        // The profile picker and the menu trading places (ProfileTransition.cs): your own screen only, never sent.
+        ProfSelect, ProfPing, ProfZip, ProfSweep, ProfSweepBack, ProfScratch, ProfBar, ProfChord,
     }
 
     public struct SoundCue

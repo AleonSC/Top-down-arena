@@ -218,9 +218,18 @@ static partial class Shot {
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "settings" || mode == "who")
+    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "settings" || mode == "who" || mode == "whotr")
     {
-      // who: the "Who's playing?" screen with made-up profiles (MANY=1: seven of them; MANAGE=1: Rename and Delete showing; EMPTY=1: none yet).
+      // who: the "Who's playing?" screen with made-up profiles (TWO=1: two of them, so one slot says Empty; MANAGE=1: Rename and Delete showing; EMPTY=1: none yet).
+      // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..2.26>,<slot 0..2>[,back].
+      if (mode == "whotr") {
+        PreviewWho();
+        var pt = Environment.GetEnvironmentVariable("PROFTR").Split(',');
+        float ptT = float.Parse(pt[0], System.Globalization.CultureInfo.InvariantCulture);
+        set("profTr", true); set("profTrT", ptT); set("profTrSlot", int.Parse(pt[1])); set("profTrFwd", pt.Length < 3);
+        set("menuIntroDone", true); set("menuIntroT", Mathf.Min(2.749f, 0.35f + Mathf.Max(0f, ptT - 0.7f) / 0.65f));
+        typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
+      }
       if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }
       // continue / records: the saved-runs list and the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "menu") PreviewSaves();
@@ -244,7 +253,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) set("menuJoinOpen", true);
       if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipSeed", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which line the chip shows
-      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "cosmetics" ? "DrawCosmetics" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : "DrawHowToPlay", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "cosmetics" ? "DrawCosmetics" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "whotr" ? "DrawProfTr" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "kitgrid")
