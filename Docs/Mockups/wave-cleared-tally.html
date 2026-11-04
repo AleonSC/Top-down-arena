@@ -1,0 +1,224 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Wave Cleared Tally</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Four richer versions of look C ("Squad tally") from wave-cleared.html. Same navy card, blue accent (gold after a boss),
+   rows per player. Each .screen is the real 1280 x 720 canvas, scaled to fit. Example data: wave 4 of a 3-player run. */
+:root { --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --teal:#6fe3c4; --amber:#ffb547;
+  --blue:#5c99ff; --gold:#ffcc59; --good:#73ff8c; --warn:#ffb86b; --bad:#ff6b73; --muted:#9eabc7; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 Barlow,system-ui,sans-serif; margin:0; }
+.wrap { max-width:1240px; margin:0 auto; padding:28px max(16px,env(safe-area-inset-right,0px)) 64px max(16px,env(safe-area-inset-left,0px)); display:grid; gap:28px; }
+h1,h2 { font-family:Oxanium,system-ui,sans-serif; margin:0; text-transform:uppercase; letter-spacing:.04em; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; } h1 span{color:var(--teal)}
+h2 { font-size:20px; font-weight:700; }
+p { margin:0; max-width:75ch; color:#cfdae2; }
+.eyebrow { font:600 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; min-width:0; }
+.card .txt { padding:14px 16px; display:grid; gap:8px; }
+.card .txt b.k { color:var(--teal); font-family:Oxanium; letter-spacing:.06em; }
+.bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+button { font:600 13px Oxanium; letter-spacing:.06em; text-transform:uppercase; color:var(--fg); background:#1b242d; border:1px solid #33414d; border-radius:7px; padding:6px 14px; cursor:pointer; }
+button.on { border-color:var(--gold); color:var(--gold); }
+button:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+.vp { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#0b0e18; }
+.screen { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; font-family:Barlow,Arial,sans-serif; overflow:hidden;
+  background:radial-gradient(ellipse at 50% 45%, #1d2a2a 0%, #121b1d 65%, #0a1011 100%); --ac:var(--blue); --acrgb:92,153,255; color:#fff; }
+.screen.boss { --ac:var(--gold); --acrgb:255,204,89; }
+.screen > *, .abs, .box > * { position:absolute; }
+.grid { inset:0; background:linear-gradient(#ffffff08 1px,transparent 1px) 0 0/64px 64px, linear-gradient(90deg,#ffffff08 1px,transparent 1px) 0 0/64px 64px; }
+.hud-top { left:16px; top:12px; display:flex; gap:10px; } .hud-top i { font:600 12px Oxanium; font-style:normal; background:#0008; border:1px solid #fff2; border-radius:99px; padding:3px 12px; color:#cfd8ea; }
+.hud-bot { left:0; right:0; bottom:12px; display:flex; justify-content:center; gap:8px; } .hud-bot i { width:150px; height:58px; background:#10162a; border:1px solid #2b3248; border-radius:8px; }
+.pl { width:26px; height:26px; border-radius:50%; background:#4f8cff; border:3px solid #fff; box-shadow:0 0 16px #4f8cff; }
+.flash { inset:0; background:radial-gradient(circle at 50% 46%, rgba(var(--acrgb),.5), transparent 62%); opacity:0; pointer-events:none; }
+/* box shell */
+.box { border-radius:12px; background:linear-gradient(#1a2440,#0f1528); border:2px solid var(--ac); box-shadow:0 0 36px rgba(var(--acrgb),.28); overflow:hidden; opacity:0; }
+.t { font-family:Oxanium; font-weight:800; color:#fff; letter-spacing:.05em; text-shadow:0 2px 0 rgba(0,0,0,.45); }
+.sub { font:500 14px Barlow; color:var(--muted); }
+.mut { color:var(--muted); }
+.check { width:30px; height:30px; border-radius:50%; border:3px solid var(--ac); display:grid; place-items:center; }
+.check svg { width:16px; height:16px; stroke:var(--ac); stroke-width:3.2; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; }
+.cbar { height:5px; border-radius:3px; background:#ffffff1c; overflow:hidden; } .cbar i { display:block; height:100%; background:var(--ac); width:100%; transform-origin:0 50%; }
+.chip { font:600 13px Barlow; background:#0007; border:1px solid rgba(var(--acrgb),.45); color:#dbe4f7; padding:2px 11px; border-radius:99px; white-space:nowrap; } .chip b { color:#fff; font-family:Oxanium; }
+.row { height:44px; border-radius:8px; background:#0c1224; border:1px solid #2b3248; display:flex; align-items:center; gap:10px; padding:0 10px; font:600 14px Barlow; white-space:nowrap; }
+.row .av { width:22px; height:22px; border-radius:50%; flex:none; } .row .nm { width:96px; color:#fff; flex:none; overflow:hidden; text-overflow:ellipsis; }
+.row .cl { font:500 11px Barlow; color:var(--muted); display:block; line-height:1; margin-top:2px; }
+.row.hd { height:20px; background:none; border:0; font:600 10px Oxanium; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; padding:0 10px; }
+.c { width:62px; text-align:right; flex:none; font-variant-numeric:tabular-nums; } .c b { color:#fff; }
+.c.bad b { color:var(--warn); } .c.good b { color:var(--good); }
+.tag { font:700 11px Oxanium; letter-spacing:.06em; border-radius:99px; padding:1px 9px; border:1px solid; flex:none; }
+.tag.g { color:var(--good); background:#0a2a14; border-color:#2a7a44; } .tag.y { color:var(--gold); background:#2a2208; border-color:#7a6420; } .tag.b { color:#9cc0ff; background:#0f1c3a; border-color:#3b5da8; } .tag.r { color:var(--bad); background:#2e0f14; border-color:#7a2a32; }
+.xp { height:8px; border-radius:4px; background:#0a0e1c; border:1px solid #2b3248; position:relative; overflow:hidden; flex:1; }
+.xp i { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#ffb547,#ffd96b); }
+.xp i.new { background:repeating-linear-gradient(45deg,#ffe38f 0 5px,#ffd05a 5px 10px); }
+.lv { font:800 11px Oxanium; color:var(--gold); background:#2a2208; border:1px solid #7a6420; border-radius:5px; padding:1px 6px; flex:none; }
+.dot { width:12px; height:12px; border-radius:50%; flex:none; } .d-r{background:#d9565a} .d-o{background:#ff9a3d} .d-p{background:#b46bff} .d-g{background:#5fd07a}
+/* shared animation */
+.go .flash { animation:fl .7s ease-out both; } @keyframes fl { 0%{opacity:0} 15%{opacity:1} 100%{opacity:0} }
+.go .box { animation:dropA .55s .5s cubic-bezier(.2,1.3,.4,1) both, outA .35s 7.2s ease-in forwards; }
+.go .check svg { animation:draw .4s 1s ease-out both; stroke-dashoffset:24; } @keyframes draw { to{stroke-dashoffset:0} }
+.go .row { animation:slideR .35s both; } .go .row:nth-of-type(2){animation-delay:1.05s} .go .row:nth-of-type(3){animation-delay:1.2s} .go .row:nth-of-type(4){animation-delay:1.35s}
+.go .anim { animation:slideR .4s 1.6s both; } .go .anim2 { animation:slideR .4s 1.85s both; }
+.go .cbar i { animation:drain 6s .9s linear both; } @keyframes drain { to{transform:scaleX(0)} }
+.go .xp i { animation:grow 1s 1.5s cubic-bezier(.3,.8,.3,1) both; transform-origin:0 50%; } @keyframes grow { from{transform:scaleX(0)} to{transform:none} }
+@keyframes dropA { from{opacity:0; transform:translateY(-34px) scale(.92)} to{opacity:1; transform:none} }
+@keyframes outA { to{opacity:0; transform:translateY(-22px)} }
+@keyframes slideR { from{opacity:0; transform:translateX(-24px)} to{opacity:1; transform:none} }
+@media (prefers-reduced-motion:reduce) { .go *, .go { animation-duration:.01s !important; animation-delay:0s !important; } }
+/* ---- C1 ---- */
+.C1 .box { left:calc(50% - 400px); top:150px; width:800px; height:412px; }
+.C1 .head { left:0; right:0; top:14px; text-align:center; } .C1 .head .t { font-size:32px; display:flex; justify-content:center; align-items:center; gap:12px; }
+.C1 .chips { left:0; right:0; top:62px; display:flex; justify-content:center; gap:8px; }
+.C1 .rows { left:20px; right:20px; top:104px; display:grid; gap:6px; } .C1 .rows > * { position:relative; }
+.C1 .tot { left:20px; right:20px; top:276px; height:36px; border-radius:8px; background:rgba(var(--acrgb),.12); border:1px solid rgba(var(--acrgb),.4); display:flex; align-items:center; gap:10px; padding:0 10px; font:600 14px Barlow; }
+.C1 .foot { left:20px; right:20px; bottom:14px; display:grid; gap:7px; font:500 14px Barlow; color:var(--muted); } .C1 .foot > div { position:relative; display:flex; justify-content:space-between; }
+/* ---- C2 ---- */
+.C2 .box { left:calc(50% - 360px); top:150px; width:720px; height:392px; }
+.C2 .head { left:20px; right:20px; top:14px; display:flex; align-items:center; gap:12px; } .C2 .head .t { font-size:30px; } .C2 .head .sub { margin-left:auto; text-align:right; line-height:1.2; }
+.C2 .rows { left:20px; right:20px; top:62px; display:grid; gap:8px; } .C2 .rows > * { position:relative; }
+.C2 .rows .row { height:72px; align-items:stretch; padding:8px 10px; gap:12px; }
+.C2 .p1 { width:120px; display:flex; flex-direction:column; justify-content:center; gap:3px; flex:none; } .C2 .p1 .n { display:flex; align-items:center; gap:8px; color:#fff; font:700 15px Barlow; }
+.C2 .p2 { flex:1; display:flex; flex-direction:column; justify-content:center; gap:5px; min-width:0; } .C2 .p2 .l1 { display:flex; align-items:center; gap:8px; font:500 12px Barlow; color:var(--muted); } .C2 .p2 .l1 b { color:var(--gold); font-family:Oxanium; }
+.C2 .p2 .xp { flex:none; }
+.C2 .p3 { width:210px; display:flex; flex-direction:column; justify-content:center; gap:2px; text-align:right; flex:none; font:500 12px Barlow; color:var(--muted); } .C2 .p3 b { color:#fff; font:700 14px Barlow; }
+.C2 .foot { left:20px; right:20px; bottom:14px; display:grid; gap:7px; font:500 14px Barlow; color:var(--muted); } .C2 .foot > div { position:relative; display:flex; justify-content:space-between; }
+/* ---- C3 ---- */
+.C3 .box { left:calc(50% - 470px); top:150px; width:940px; height:392px; }
+.C3 .head { left:20px; right:20px; top:14px; display:flex; align-items:center; gap:12px; } .C3 .head .t { font-size:30px; }
+.C3 .rows { left:20px; top:62px; width:556px; display:grid; gap:6px; } .C3 .rows > * { position:relative; }
+.C3 .side { left:596px; right:20px; top:62px; bottom:46px; border-radius:10px; background:#0c1224; border:1px solid #2b3248; padding:12px 14px; display:grid; align-content:start; gap:9px; }
+.C3 .side > * { position:relative; }
+.C3 .side h3 { margin:0; font:700 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+.C3 .en { display:flex; align-items:center; gap:8px; font:600 14px Barlow; } .C3 .en .n { margin-left:auto; color:#fff; font:800 14px Oxanium; }
+.C3 .road { display:flex; gap:5px; align-items:center; } .C3 .road i { flex:1; height:6px; border-radius:3px; background:#ffffff1c; } .C3 .road i.on { background:var(--ac); } .C3 .road i.boss { background:var(--gold); }
+.C3 .foot { left:20px; right:20px; bottom:14px; } 
+.C3 .foot .cbar { position:absolute; left:0; right:0; bottom:0; }
+.C3 .foot span { position:absolute; left:0; bottom:10px; font:500 14px Barlow; color:var(--muted); }
+/* ---- C4 ---- */
+.C4 .box { left:calc(50% - 340px); top:178px; width:680px; height:340px; }
+.C4 .head { left:0; right:0; top:14px; text-align:center; } .C4 .head .t { font-size:32px; }
+.C4 .rows { left:20px; right:20px; top:70px; display:grid; gap:8px; } .C4 .rows > * { position:relative; }
+.C4 .rows .row { height:62px; padding:0 12px; gap:12px; }
+.C4 .rows .row .big { font:800 22px Oxanium; width:54px; text-align:right; flex:none; }
+.C4 .award { display:flex; gap:6px; margin-left:auto; flex:none; }
+.C4 .rdy { width:26px; height:26px; border-radius:50%; flex:none; display:grid; place-items:center; border:2px solid #3b4670; color:#3b4670; font:700 12px Oxanium; } .C4 .rdy.y { border-color:var(--good); color:var(--good); background:#0a2a14; }
+.C4 .foot { left:20px; right:20px; bottom:14px; height:40px; display:flex; align-items:center; gap:14px; } .C4 .foot .cbar { flex:1; position:relative; } .C4 .foot .k { font:600 12px Oxanium; background:#0005; border:1px solid #ffffff33; padding:2px 8px; border-radius:5px; letter-spacing:.05em; }
+.C4 .foot > * { position:relative; }
+</style>
+<div class="wrap">
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Mockup &middot; Between waves &middot; look C, richer</div>
+  <h1>Squad tally <span>&amp;</span> more to read</h1>
+  <p>Look C from the first mockup, with more information in four different ways. All use the same card, one row per player, a draining timer and the gold version after a boss. The numbers are examples (wave 4, three players). Each description says which numbers the game already has and which need a new counter. Replay runs the transition; the toggle shows the boss wave.</p>
+  <div class="bar"><button id="replay">Replay all</button><button id="boss" aria-pressed="false">Boss wave: off</button></div>
+</header>
+
+<!-- ============ C1 ============ -->
+<section class="card">
+ <div class="vp"><div class="screen C1 go" data-s>
+  <div class="grid"></div><div class="hud-top"><i>WAVE 4</i><i>KILLS 52</i></div><div class="hud-bot"><i></i><i></i><i></i><i></i><i></i></div><div class="pl" style="left:627px;top:610px"></div><div class="flash"></div>
+  <div class="box">
+    <div class="head"><div class="t"><span class="check"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg></span>WAVE 4 CLEARED</div></div>
+    <div class="chips"><span class="chip"><b>0:42</b> clear time</span><span class="chip"><b>14</b> enemies</span><span class="chip"><b>+120</b> score</span><span class="chip"><b>x1.4</b> combo best</span></div>
+    <div class="rows">
+      <div class="row hd"><span style="width:118px">Player</span><span class="c">Kills</span><span class="c">Damage</span><span class="c">Taken</span><span class="c">Accuracy</span><span class="c">Healed</span><span class="c">Revives</span><span style="margin-left:auto">Status</span></div>
+      <div class="row"><span class="av" style="background:#4f8cff"></span><span class="nm">Antho</span><span class="c"><b>18</b></span><span class="c"><b>2,140</b></span><span class="c good"><b>0</b></span><span class="c"><b>41%</b></span><span class="c"><b>0</b></span><span class="c"><b>0</b></span><span class="tag g" style="margin-left:auto">+1 PICK</span></div>
+      <div class="row"><span class="av" style="background:#ff8a3d"></span><span class="nm">Sam</span><span class="c"><b>21</b></span><span class="c"><b>2,880</b></span><span class="c bad"><b>96</b></span><span class="c"><b>38%</b></span><span class="c"><b>0</b></span><span class="c"><b>0</b></span><span class="tag y" style="margin-left:auto">WAS DOWNED</span></div>
+      <div class="row"><span class="av" style="background:#6fe3c4"></span><span class="nm">Jo</span><span class="c"><b>13</b></span><span class="c"><b>1,310</b></span><span class="c"><b>22</b></span><span class="c"><b>52%</b></span><span class="c"><b>640</b></span><span class="c"><b>1</b></span><span class="tag g" style="margin-left:auto">+1 PICK</span></div>
+    </div>
+    <div class="tot anim"><span class="mut">Squad</span><span class="c" style="width:auto"><b>52</b> kills</span><span class="c" style="width:auto"><b>6,330</b> damage</span><span class="c" style="width:auto"><b>118</b> taken</span><span class="c" style="width:auto"><b>640</b> healed</span><span style="margin-left:auto" class="mut">Run total: <b style="color:#fff">189</b> kills &middot; <b style="color:#fff">4:51</b></span></div>
+    <div class="foot anim2"><div><span>Everyone back on their feet &nbsp;&middot;&nbsp; <b style="color:#fff">2</b> upgrade picks waiting</span><span>Wave 5 starts in 4</span></div><div class="cbar"><i></i></div></div>
+  </div>
+ </div></div>
+ <div class="txt"><h2><b class="k">C1</b> &middot; Full stat table</h2>
+  <p>The tally becomes a table: kills, damage, damage taken, accuracy, healing and revives for each player, plus a squad total row and the run total (kills and time). The chip row on top is the team result for the wave. Damage taken is shown in amber when it is the highest, green at zero. Most of this is in the end-of-run stats already; it only needs a per-wave snapshot (the numbers at the start of the wave subtracted from now). The densest option, so it needs a 800 px wide box.</p></div>
+</section>
+
+<!-- ============ C2 ============ -->
+<section class="card">
+ <div class="vp"><div class="screen C2 go" data-s>
+  <div class="grid"></div><div class="hud-top"><i>WAVE 4</i><i>KILLS 52</i></div><div class="hud-bot"><i></i><i></i><i></i><i></i><i></i></div><div class="pl" style="left:627px;top:610px"></div><div class="flash"></div>
+  <div class="box">
+    <div class="head"><span class="check"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg></span><div class="t">WAVE 4 CLEARED</div><div class="sub">0:42 clear time<br>+120 score</div></div>
+    <div class="rows">
+      <div class="row"><span class="p1"><span class="n"><span class="av" style="background:#4f8cff"></span>Antho</span><span class="cl" style="margin:0 0 0 30px">Soldier DPS</span></span>
+        <span class="p2"><span class="l1"><span class="lv">LV 6</span><b>+180 XP</b><span>1,240 / 1,500 to LV 7</span></span><span class="xp"><i style="width:68%"></i><i class="new" style="left:68%;width:12%;position:absolute"></i></span></span>
+        <span class="p3"><span><b>18</b> kills &nbsp;<b>2,140</b> damage</span><span class="tag g" style="align-self:flex-end">+1 PICK</span></span></div>
+      <div class="row"><span class="p1"><span class="n"><span class="av" style="background:#ff8a3d"></span>Sam</span><span class="cl" style="margin:0 0 0 30px">Tank</span></span>
+        <span class="p2"><span class="l1"><span class="lv">LV 6</span><b>+210 XP</b><span>1,500 / 1,500: level up!</span></span><span class="xp"><i style="width:100%"></i></span></span>
+        <span class="p3"><span><b>21</b> kills &nbsp;<b>2,880</b> damage</span><span class="tag y" style="align-self:flex-end">LEVEL UP &middot; +1 PICK</span></span></div>
+      <div class="row"><span class="p1"><span class="n"><span class="av" style="background:#6fe3c4"></span>Jo</span><span class="cl" style="margin:0 0 0 30px">Healer</span></span>
+        <span class="p2"><span class="l1"><span class="lv">LV 5</span><b>+150 XP</b><span>620 / 1,300 to LV 6</span></span><span class="xp"><i style="width:34%"></i><i class="new" style="left:34%;width:12%;position:absolute"></i></span></span>
+        <span class="p3"><span><b>13</b> kills &nbsp;<b>640</b> healed</span><span class="tag b" style="align-self:flex-end">REVIVED SAM</span></span></div>
+    </div>
+    <div class="foot anim"><div><span>Wave 5 starts in 4</span><span>Boss in <b style="color:var(--gold)">3 waves</b> &middot; The Warden</span></div><div class="cbar"><i></i></div></div>
+  </div>
+ </div></div>
+ <div class="txt"><h2><b class="k">C2</b> &middot; Progress per player</h2>
+  <p>Fewer numbers, but each player's row shows what they gained: an XP bar with the new XP as a striped section, level badge, "to LV 7", and a gold LEVEL UP tag when the bar fills (the pick tag stays). The class sits under the name. The footer adds how far the next boss is. It answers "what did I get for that wave?", which is the question players ask at this moment. XP and levels are already replicated; the XP gained per wave is a new per-player number.</p></div>
+</section>
+
+<!-- ============ C3 ============ -->
+<section class="card">
+ <div class="vp"><div class="screen C3 go" data-s>
+  <div class="grid"></div><div class="hud-top"><i>WAVE 4</i><i>KILLS 52</i></div><div class="hud-bot"><i></i><i></i><i></i><i></i><i></i></div><div class="pl" style="left:627px;top:610px"></div><div class="flash"></div>
+  <div class="box">
+    <div class="head"><span class="check"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg></span><div class="t">WAVE 4 CLEARED</div><span class="chip" style="margin-left:auto"><b>0:42</b> clear time</span><span class="chip"><b>+120</b> score</span></div>
+    <div class="rows">
+      <div class="row hd"><span style="width:118px">Player</span><span class="c">Kills</span><span class="c">Damage</span><span class="c">Taken</span><span style="margin-left:auto">Status</span></div>
+      <div class="row"><span class="av" style="background:#4f8cff"></span><span class="nm">Antho</span><span class="c"><b>18</b></span><span class="c"><b>2,140</b></span><span class="c good"><b>0</b></span><span class="tag g" style="margin-left:auto">+1 PICK</span></div>
+      <div class="row"><span class="av" style="background:#ff8a3d"></span><span class="nm">Sam</span><span class="c"><b>21</b></span><span class="c"><b>2,880</b></span><span class="c bad"><b>96</b></span><span class="tag y" style="margin-left:auto">WAS DOWNED</span></div>
+      <div class="row"><span class="av" style="background:#6fe3c4"></span><span class="nm">Jo</span><span class="c"><b>13</b></span><span class="c"><b>1,310</b></span><span class="c"><b>22</b></span><span class="tag g" style="margin-left:auto">+1 PICK</span></div>
+      <div class="row" style="background:rgba(var(--acrgb),.10);border-color:rgba(var(--acrgb),.4)"><span class="mut" style="width:118px">Squad</span><span class="c"><b>52</b></span><span class="c"><b>6,330</b></span><span class="c"><b>118</b></span><span class="mut" style="margin-left:auto">best combo x1.4</span></div>
+    </div>
+    <div class="side anim">
+      <h3>Next: wave 5</h3>
+      <div class="en"><span class="dot d-r"></span>Grunts<span class="n">x16</span></div>
+      <div class="en"><span class="dot d-o"></span>Brutes<span class="n">x4</span></div>
+      <div class="en"><span class="dot d-p"></span>Spitters<span class="n">x3</span></div>
+      <div class="en"><span class="dot d-g"></span>Healers<span class="n">x2</span></div>
+      <h3 style="margin-top:4px">Road to The Warden</h3>
+      <div class="road"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i class="boss"></i></div>
+      <div class="sub" style="font-size:12px">Wave 4 of 8. The Warden arrives on wave 8.</div>
+    </div>
+    <div class="foot"><span>Wave 5 starts in 4 &nbsp;&middot;&nbsp; 2 upgrade picks waiting</span><div class="cbar"><i></i></div></div>
+  </div>
+ </div></div>
+ <div class="txt"><h2><b class="k">C3</b> &middot; Tally and what's next</h2>
+  <p>The tally on the left (compact: kills, damage, taken, a squad row) and a "Next: wave 5" panel on the right: the enemy mix by count in each enemy's colour, and a segmented road showing how far the run is from the next boss (the Approach system already knows this: <code>ApproachLine</code>). Good for players who like to plan, such as picking a defensive upgrade before a Brute wave. The wave list is known to the host; clients would need the next wave's mix sent with the Cleared state (a protocol bump).</p></div>
+</section>
+
+<!-- ============ C4 ============ -->
+<section class="card">
+ <div class="vp"><div class="screen C4 go" data-s>
+  <div class="grid"></div><div class="hud-top"><i>WAVE 4</i><i>KILLS 52</i></div><div class="hud-bot"><i></i><i></i><i></i><i></i><i></i></div><div class="pl" style="left:627px;top:610px"></div><div class="flash"></div>
+  <div class="box">
+    <div class="head"><div class="t">WAVE 4 CLEARED</div></div>
+    <div class="rows">
+      <div class="row"><span class="av" style="background:#4f8cff"></span><span class="nm" style="width:120px">Antho<span class="cl">Soldier DPS</span></span><span class="big" style="color:#fff">18</span><span class="mut" style="font-weight:500;font-size:12px">kills</span>
+        <span class="award"><span class="tag y">UNTOUCHED</span><span class="tag g">+1 PICK</span></span><span class="rdy y">&#10003;</span></div>
+      <div class="row"><span class="av" style="background:#ff8a3d"></span><span class="nm" style="width:120px">Sam<span class="cl">Tank</span></span><span class="big" style="color:#fff">21</span><span class="mut" style="font-weight:500;font-size:12px">kills</span>
+        <span class="award"><span class="tag y">MOST DAMAGE</span><span class="tag y">MOST KILLS</span><span class="tag g">+1 PICK</span></span><span class="rdy y">&#10003;</span></div>
+      <div class="row"><span class="av" style="background:#6fe3c4"></span><span class="nm" style="width:120px">Jo<span class="cl">Healer</span></span><span class="big" style="color:#fff">13</span><span class="mut" style="font-weight:500;font-size:12px">kills</span>
+        <span class="award"><span class="tag b">MOST HEALING</span><span class="tag b">REVIVED SAM</span></span><span class="rdy">&middot;</span></div>
+    </div>
+    <div class="foot anim"><span class="k">SPACE</span><span class="mut" style="font:500 14px Barlow;white-space:nowrap">Ready up to start now &nbsp;&middot;&nbsp; 2 of 3 ready</span><div class="cbar"><i></i></div><span class="t" style="font-size:20px">4</span></div>
+  </div>
+ </div></div>
+ <div class="txt"><h2><b class="k">C4</b> &middot; Awards and ready-up</h2>
+  <p>Less table, more story. One headline number per player (kills) and award tags for who did what: Most damage, Most kills, Most healing, Untouched, Revived Sam, plus the pick tag. On the right of each row, a ready tick: players can press Space to skip the wait once everyone is ready (2 of 3 here). The awards are computed from the per-wave counters; the ready-up is a new mechanic, a new message and a protocol bump, so it is the biggest change of the four. Awards alone could be added to any of the other looks.</p></div>
+</section>
+</div>
+<script>
+function fit(){ document.querySelectorAll('.vp').forEach(v=>{ v.firstElementChild.style.transform='scale('+v.clientWidth/1280+')'; }); }
+addEventListener('resize',fit); fit(); document.fonts&&document.fonts.ready.then(fit);
+const screens=[...document.querySelectorAll('[data-s]')];
+function replay(){ screens.forEach(s=>{ s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }); }
+document.getElementById('replay').onclick=replay;
+const bb=document.getElementById('boss');
+bb.onclick=()=>{ const on=!screens[0].classList.contains('boss'); screens.forEach(s=>s.classList.toggle('boss',on)); bb.classList.toggle('on',on); bb.setAttribute('aria-pressed',on); bb.textContent='Boss wave: '+(on?'on':'off'); replay(); };
+setInterval(replay,10000);
+</script>

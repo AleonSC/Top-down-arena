@@ -259,6 +259,12 @@ namespace Arena
                 case Msg.RunStatsLive:
                     ReadRunStats(r, false);  // RunStats.cs
                     break;
+                case Msg.WaveReady:
+                    ReadWaveReady(r);  // WaveReady.cs
+                    break;
+                case Msg.WaveSummary:
+                    ReadWaveSummary(r);
+                    break;
             }
         }
 
@@ -411,6 +417,8 @@ namespace Arena
             s.Float(ref p.SurgeT);
             s.Float(ref p.FrenzyT);
             s.Float(ref p.UltT);
+            s.Float(ref p.DomeT);
+            s.Vec(ref p.DomePos);
             bool parrying = p.Parrying, firing = p.Firing;  // a client sees the host's Firing as FiringSeen
             s.Bool(ref parrying);
             s.Bool(ref firing);

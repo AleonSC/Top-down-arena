@@ -244,6 +244,7 @@ namespace Arena
             HuntedId = 0;
             Wave = 0;
             Score = 0;
+            WaveReport = null;  // (WaveReady.cs)
             Remaining = 0;
             Players.Clear();
             Enemies.Clear();
@@ -1067,6 +1068,7 @@ namespace Arena
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
+            KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
@@ -1137,6 +1139,7 @@ namespace Arena
                     SpawnMinion(MinionKind.Turret, p, ClampToArena(p.Pos + V2.FromAngle(p.Aim + MathX.Pi + (i - (p.BroodDue - 1) / 2f) * 0.8f) * 40f, 13f), BroodTurretTime);
                 p.BroodDue = 0;
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
+                p.DomeT = Math.Max(0f, p.DomeT - dt);  // Fortress's dome stands on even if its owner goes down (Dome.cs)
                 TickParry(p, dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
                 p.WardT = Math.Max(0f, p.WardT - dt);

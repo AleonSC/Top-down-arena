@@ -78,6 +78,32 @@ namespace Arena
         /// How much of a regular wave is melee: all of wave 1, none from wave 13 on.
         public static float MeleeShare(int wave) => Math.Max(0f, Math.Min(1f, (13f - wave) / 12f));
 
+        /// The enemy types a regular wave can draw from: new ones join as the waves go up (also the between-waves box's "next wave" list).
+        public static List<EnemyType> WavePool(int n)
+        {
+            var pool = new List<EnemyType> { EnemyType.Grunt };
+            if (n >= 2) pool.Add(EnemyType.Burster);
+            if (n >= 3) pool.Add(EnemyType.Sniper);
+            if (n >= 4) pool.Add(EnemyType.Spinner);
+            if (n >= 6) pool.Add(EnemyType.Charger);
+            if (n >= 7) pool.Add(EnemyType.Splitter);
+            if (n >= 8) pool.Add(EnemyType.Mortar);
+            if (n >= 9) pool.Add(EnemyType.Shielder);
+            if (n >= 11) pool.Add(EnemyType.Medic);
+            if (n >= 14) pool.Add(EnemyType.Pauser);   // new shooting patterns (Variety.cs)
+            if (n >= 16) pool.Add(EnemyType.Phantom);
+            if (n >= 18) pool.Add(EnemyType.BeamSentry);  // the second half's new enemies (Variety.cs)
+            if (n >= 19) pool.Add(EnemyType.Leader);
+            if (n >= 21) pool.Add(EnemyType.Hexer);
+            if (n >= 22) pool.Add(EnemyType.Stitcher);
+            if (n >= 24) pool.Add(EnemyType.Scorcher);
+            if (n >= 26) pool.Add(EnemyType.Juggernaut);
+            if (n >= 28) pool.Add(EnemyType.Reaver);
+            if (n >= 31) pool.Add(EnemyType.Nest);
+            if (n >= 36) pool.Add(EnemyType.Warder);
+            return pool;
+        }
+
         void BuildWave(int n)
         {
             spawnQueue.Clear();
@@ -120,27 +146,7 @@ namespace Arena
                 }
                 return;
             }
-            // New enemy types join the mix as the waves go up.
-            var pool = new List<EnemyType> { EnemyType.Grunt };
-            if (n >= 2) pool.Add(EnemyType.Burster);
-            if (n >= 3) pool.Add(EnemyType.Sniper);
-            if (n >= 4) pool.Add(EnemyType.Spinner);
-            if (n >= 6) pool.Add(EnemyType.Charger);
-            if (n >= 7) pool.Add(EnemyType.Splitter);
-            if (n >= 8) pool.Add(EnemyType.Mortar);
-            if (n >= 9) pool.Add(EnemyType.Shielder);
-            if (n >= 11) pool.Add(EnemyType.Medic);
-            if (n >= 14) pool.Add(EnemyType.Pauser);   // new shooting patterns (Variety.cs)
-            if (n >= 16) pool.Add(EnemyType.Phantom);
-            if (n >= 18) pool.Add(EnemyType.BeamSentry);  // the second half's new enemies (Variety.cs)
-            if (n >= 19) pool.Add(EnemyType.Leader);
-            if (n >= 21) pool.Add(EnemyType.Hexer);
-            if (n >= 22) pool.Add(EnemyType.Stitcher);
-            if (n >= 24) pool.Add(EnemyType.Scorcher);
-            if (n >= 26) pool.Add(EnemyType.Juggernaut);
-            if (n >= 28) pool.Add(EnemyType.Reaver);
-            if (n >= 31) pool.Add(EnemyType.Nest);
-            if (n >= 36) pool.Add(EnemyType.Warder);
+            var pool = WavePool(n);  // the types that can join the mix on this wave
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
             if (n <= 5)
                 count += 7 - n;  // the first waves get extra (12, 13, 14, 15, 16), so the opening isn't too quiet

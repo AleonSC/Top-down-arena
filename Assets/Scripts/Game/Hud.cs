@@ -113,6 +113,8 @@ namespace Arena
                         break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
                     if (game.Room == RoomPhase.Portal)
                         break;  // a portal is open: its own call instead (ChallengeLook.cs)
+                    if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
+                        break;
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else

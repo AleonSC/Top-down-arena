@@ -126,6 +126,7 @@ namespace Arena
             ClearSoldierLooks();  // SoldierLooks.cs
             ClearTankLooks();  // TankLooks.cs
             ClearTankGunLooks();  // TankGunLooks.cs
+            ClearAirTrails();  // AirTrailLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -202,6 +203,7 @@ namespace Arena
             juiceClock += dt;
             juiceFrame++;
             UpdateRadiantStardust(dt);  // the Radiant Orb's trail (RadiantOrbLooks.cs)
+            UpdateAirTrails(dt);  // the air trail behind fast movers (AirTrailLooks.cs)
             float t = game.AnimT;
             UpdateTankLooks(t);  // Roar and Bulldoze kick the camera (TankLooks.cs)
             var me = game.Me;
