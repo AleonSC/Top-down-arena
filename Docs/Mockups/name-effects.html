@@ -1,0 +1,175 @@
+<title>Name Effects</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a lobby party at the game's own size (376 x 88 per card) wearing the
+   backgrounds you pick, with a rank slider that locks or unlocks each one. Under it: one card per idea, all animating.
+   A background sits BEHIND the card's content (portrait, name, badges) under a scrim so the text stays readable, and it
+   is clipped to the card's rounded rim; the frame (Rank.cs) is still drawn over it. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.party { display: grid; justify-items: center; padding: 22px 16px 10px; background: #080b11; }
+.party canvas { display: block; width: 100%; max-width: 560px; height: auto; aspect-ratio: 404 / 348; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+input[type=range] { width: min(320px, 70vw); accent-color: var(--teal); }
+.rank { font: 700 16px var(--font-display); min-width: 7ch; font-variant-numeric: tabular-nums; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; cursor: pointer; min-width: 0; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--teal); }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 404 / 116; background: #080b11; border-radius: 6px; }
+.card.locked canvas { filter: grayscale(1) brightness(.5); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tag { font: 700 12px var(--font-display); letter-spacing: .12em; color: var(--teal); }
+.req { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--edge); color: var(--muted); white-space: nowrap; }
+.card:not(.locked) .req { color: var(--teal); border-color: #2c5d52; }
+.card.locked .req::before { content: "\1F512  "; }
+.card p { font-size: 14px; color: var(--soft); }
+.notes { display: grid; gap: 8px; color: var(--soft); font-size: 15px; }
+.notes b { font-family: var(--font-display); color: var(--fg); }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; cosmetics</div>
+  <h1>Name <span>effects</span></h1>
+  <p class="lead">A look for your name wherever it's drawn: the lobby party card, the Hangout name plate, the tag over your head in a match and the results card. Everyone sees it. Eleven ideas plus the plain default, unlocked by rank. Pick one for your name at the top (it shows in all four places at once); drag the rank to see what's locked. Drawing only: the lobby entry would carry one more byte, like the frame.</p>
+</header>
+
+<section class="stage" aria-label="Preview">
+  <div class="party"><canvas id="party" width="808" height="696" style="max-width:560px;aspect-ratio:404/348"></canvas></div>
+  <div class="bar">
+    <div class="group"><span class="label">Your rank</span><input id="rank" type="range" min="1" max="60" value="60" aria-label="Rank"><span class="rank" id="rankv">60</span></div>
+    <div class="group"><span class="label">Effects</span><button id="fxBtn" aria-pressed="true">Animated</button></div>
+  </div>
+</section>
+
+<section class="cards" id="cards" aria-label="Name effects"></section>
+
+<section class="notes">
+  <p><b>Where it shows.</b> Everywhere a player's name is drawn in <code>Ui.Label</code> with the name text: the party card, the Hangout plate, the world tag over a player (<code>Hud.cs</code>) and the results strip. Chat and the pause menu's player list stay plain so they read at a glance.</p>
+  <p><b>Readability.</b> Every effect keeps the letters solid and high-contrast; glows and outlines are thin, and the moving ones (shimmer, glitch, fire) are limited to a small area so a name never gets hard to read. Names longer than 12 letters just stretch the effect.</p>
+  <p><b>Cost.</b> Per-letter fills and a few discs from the clock, like <code>FrameLooks.cs</code>. With Visual effects off each one is its still base colours. In a match the tag is small (12 px), so the motion effects tone down to colour and glow only.</p>
+  <p><b>Wiring (if picked).</b> <code>CosmeticKind.NameEffect</code> at the end of the enum, a <code>Rank.cs</code> row each, one more byte on <code>LobbyEntry</code> and in <code>Msg.Cosmetics</code> (protocol bump), a <code>DrawName</code> helper the four places call instead of <code>Ui.Label</code>, and a section in the Cosmetics drawer.</p>
+</section>
+</div>
+<script>
+"use strict";
+const TAU = Math.PI * 2;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const FONT = s => `800 ${s}px Oxanium, "Segoe UI", sans-serif`;
+const scratch = document.createElement("canvas"); scratch.width = 600; scratch.height = 120; const sc = scratch.getContext("2d");
+
+/* Draw name `s` with left edge x and vertical middle y. `fx` is an effect id. sz = font size. t = seconds. small = a tiny tag (motion toned down). */
+function widthOf(c, s, sz){ c.font = FONT(sz); return c.measureText(s).width; }
+function letters(c, s, sz, fn){ c.font = FONT(sz); let x = 0; for (let i = 0; i < s.length; i++){ const w = c.measureText(s[i]).width; fn(s[i], x, i, w); x += w; } }
+function layered(c, s, x, y, sz, paint){      /* render the text on a scratch canvas, let paint() colour it, then blit */
+  const w = Math.ceil(widthOf(c, s, sz)) + 16, h = Math.ceil(sz * 1.6);
+  sc.clearRect(0,0,600,120); sc.font = FONT(sz); sc.textBaseline = "middle"; sc.fillStyle = "#fff"; sc.fillText(s, 8, h / 2);
+  sc.globalCompositeOperation = "source-atop"; paint(sc, w, h); sc.globalCompositeOperation = "source-over";
+  c.drawImage(scratch, 0, 0, w, h, x - 8, y - h / 2, w, h);
+}
+const sheen = (sc, w, h, t, strength) => { const p = ((t * .45) % 1.6 - .3) * (w + 40); const g = sc.createLinearGradient(p - 18, 0, p + 18, h * .5); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(.5, `rgba(255,255,255,${strength})`); g.addColorStop(1, "rgba(255,255,255,0)"); sc.fillStyle = g; sc.fillRect(0, 0, w, h); };
+
+const FX = [
+ { id:"none", name:"Plain", rank:1, note:"The default: white on the card, no effect.",
+   draw(c,s,x,y,sz,t){ c.font=FONT(sz); c.fillStyle="#fff"; c.fillText(s,x,y); } },
+ { id:"outline", name:"Steel Outline", rank:4, note:"A thin steel-blue line round white letters. Reads on any background.",
+   draw(c,s,x,y,sz,t){ c.font=FONT(sz); c.lineJoin="round"; c.lineWidth=Math.max(2,sz*.12); c.strokeStyle="#6a9bff"; c.strokeText(s,x,y); c.fillStyle="#fff"; c.fillText(s,x,y); } },
+ { id:"frost", name:"Frost", rank:9, note:"White at the top fading to ice blue, with a cold glow.",
+   draw(c,s,x,y,sz,t){ c.font=FONT(sz); const g=c.createLinearGradient(0,y-sz*.6,0,y+sz*.6); g.addColorStop(0,"#fff"); g.addColorStop(1,"#86d4ff"); c.shadowColor="rgba(120,210,255,.7)"; c.shadowBlur=sz*.3; c.fillStyle=g; c.fillText(s,x,y); c.shadowBlur=0; c.fillText(s,x,y); } },
+ { id:"ember", name:"Ember", rank:13, note:"Yellow fading to orange-red, with a few sparks lifting off the top. Pairs with the Ember Edge frame.",
+   draw(c,s,x,y,sz,t,small){ c.font=FONT(sz); const g=c.createLinearGradient(0,y-sz*.6,0,y+sz*.6); g.addColorStop(0,"#ffe07a"); g.addColorStop(1,"#ff5a1f"); c.shadowColor="rgba(255,110,30,.7)"; c.shadowBlur=sz*.28; c.fillStyle=g; c.fillText(s,x,y); c.shadowBlur=0;
+     if(!small){ const w=widthOf(c,s,sz); for(let i=0;i<7;i++){ const life=(t*.7+hash(i))%1, px=x+hash(i*5+1)*w, py=y-sz*.5-life*sz*.9; c.fillStyle=`rgba(255,${150+90*(1-life)|0},60,${(1-life)*.9})`; c.beginPath(); c.arc(px,py,1+1.4*(1-life),0,TAU); c.fill(); } } } },
+ { id:"neon", name:"Neon", rank:18, note:"White letters with a cyan glow that breathes.",
+   draw(c,s,x,y,sz,t){ c.font=FONT(sz); const k=.65+.35*Math.sin(t*3); c.shadowColor=`rgba(70,225,255,${.9*k})`; c.shadowBlur=sz*.5*k+3; c.fillStyle="#eaffff"; c.fillText(s,x,y); c.shadowBlur=sz*.2; c.fillText(s,x,y); c.shadowBlur=0; } },
+ { id:"wave", name:"Wave", rank:22, note:"The letters ride a gentle wave, cyan shading into violet along the name.",
+   draw(c,s,x,y,sz,t,small){ letters(c,s,sz,(ch,lx,i)=>{ const hue=190+i*14; c.fillStyle=`hsl(${hue%360},85%,78%)`; c.fillText(ch,x+lx,y+(small?0:Math.sin(t*3+i*.6)*sz*.1)); }); } },
+ { id:"shimmer", name:"Shimmer", rank:27, note:"Soft silver with a white sheen that glides across the name every second or so.",
+   draw(c,s,x,y,sz,t){ layered(c,s,x,y,sz,(l,w,h)=>{ const g=l.createLinearGradient(0,0,0,h); g.addColorStop(0,"#f4f7ff"); g.addColorStop(1,"#aab6cc"); l.fillStyle=g; l.fillRect(0,0,w,h); sheen(l,w,h,t,.95); }); } },
+ { id:"glitch", name:"Glitch", rank:33, note:"White with red and cyan fringes; every couple of seconds a slice jumps sideways for an instant.",
+   draw(c,s,x,y,sz,t,small){ c.font=FONT(sz); const o=Math.max(.6,sz*.055), g=!small&&(t%2.3)<.16, j=g?(hash(Math.floor(t*40))-.5)*sz*.35:0; c.globalCompositeOperation="lighter"; c.fillStyle="rgba(255,40,80,.85)"; c.fillText(s,x-o+j,y); c.fillStyle="rgba(40,230,255,.85)"; c.fillText(s,x+o-j,y); c.globalCompositeOperation="source-over"; c.fillStyle="#fff"; c.fillText(s,x,y); } },
+ { id:"fire", name:"Fire", rank:38, note:"Yellow core to red tips, each letter flickering, with flames licking up behind it.",
+   draw(c,s,x,y,sz,t,small){ if(!small){ const w=widthOf(c,s,sz); for(let i=0;i<10;i++){ const life=(t*1.1+hash(i))%1, px=x+hash(i*3+1)*w, py=y+sz*.2-life*sz*.9, r=sz*(.16+.12*(1-life)); c.fillStyle=`rgba(255,${70+120*(1-life)|0},20,${.55*(1-life)})`; c.beginPath(); c.ellipse(px,py,r*.7,r*1.3,0,0,TAU); c.fill(); } }
+     letters(c,s,sz,(ch,lx,i)=>{ const f=small?0:Math.sin(t*14+i*2)*.06; const g=c.createLinearGradient(0,y-sz*.6,0,y+sz*.6); g.addColorStop(0,"#ff5a1f"); g.addColorStop(.5+f,"#ffc93a"); g.addColorStop(1,"#fff2b0"); c.fillStyle=g; c.fillText(ch,x+lx,y); }); } },
+ { id:"gold", name:"Gold Foil", rank:44, note:"Rich gold with a darker base and a bright sheen sweeping across. Pairs with the Gold frame.",
+   draw(c,s,x,y,sz,t){ layered(c,s,x,y,sz,(l,w,h)=>{ const g=l.createLinearGradient(0,0,0,h); g.addColorStop(0,"#fff0a0"); g.addColorStop(.5,"#e8b92c"); g.addColorStop(1,"#8f5f08"); l.fillStyle=g; l.fillRect(0,0,w,h); sheen(l,w,h,t*.8,.85); }); } },
+ { id:"void", name:"Void", rank:48, note:"Pale violet letters on a dark violet edge with a purple glow and a few motes circling. Pairs with Void Pulse.",
+   draw(c,s,x,y,sz,t,small){ c.font=FONT(sz); c.lineJoin="round"; c.lineWidth=Math.max(2,sz*.14); c.strokeStyle="#1d0a38"; c.shadowColor="rgba(160,90,255,.85)"; c.shadowBlur=sz*.4; c.strokeText(s,x,y); c.shadowBlur=0; c.fillStyle="#e2ccff"; c.fillText(s,x,y);
+     if(!small){ const w=widthOf(c,s,sz); for(let i=0;i<3;i++){ const a=t*1.2+i*TAU/3, px=x+w/2+Math.cos(a)*(w/2+8), py=y+Math.sin(a)*sz*.55; c.fillStyle="rgba(190,140,255,.85)"; c.beginPath(); c.arc(px,py,1.6,0,TAU); c.fill(); } } } },
+ { id:"rainbow", name:"Rainbow", rank:56, note:"Every letter a different hue, all turning round the spectrum together. The top of the ladder.",
+   draw(c,s,x,y,sz,t){ letters(c,s,sz,(ch,lx,i)=>{ c.fillStyle=`hsl(${(t*70+i*38)%360},85%,68%)`; c.fillText(ch,x+lx,y); }); } },
+];
+const ROLES = [["Antaleon","Soldier Tank","Scattergun · Barrier","#6a9bff",true],["Moss","Ranger Healer","Mender's Bow · Mend Pulse","#5be0a0",false],["Quill","Mage Support","Chain Light · Shield","#e0a0ff",false]];
+
+let rank=60, fx=true, sel=FX[7];   /* your name effect (Glitch to start) */
+function eff(){ return sel.rank>rank?FX[0]:sel; }
+function rr(c,x,y,w,h,r){ c.beginPath(); c.roundRect(x,y,w,h,r); }
+const party=document.getElementById("party"), pc=party.getContext("2d");
+function tt(now){ return fx?now:0; }
+function drawParty(now){
+  const c=pc; c.setTransform(2,0,0,2,0,0); c.clearRect(0,0,404,348); c.fillStyle="#080b11"; c.fillRect(0,0,404,348); c.textBaseline="middle";
+  /* 1. the party card */
+  rr(c,14,14,376,88,9); c.fillStyle="#0e1420"; c.fill(); c.strokeStyle="#6a9bff"; c.lineWidth=1.5; c.stroke();
+  c.fillStyle="rgba(255,255,255,.06)"; rr(c,22,22,72,72,6); c.fill(); c.fillStyle="#6a9bff"; c.beginPath(); c.arc(58,58,15,0,TAU); c.fill(); c.strokeStyle="#fff"; c.lineWidth=2; c.stroke();
+  eff().draw(c,"Antaleon",108,40,22,tt(now));
+  c.font="700 15px Oxanium, sans-serif"; c.fillStyle="#6a9bff"; c.fillText("Soldier Tank",108,64); c.font="500 12px Barlow, sans-serif"; c.fillStyle="#aab4c0"; c.fillText("Scattergun · Barrier",108,86);
+  c.fillStyle="#28406b"; rr(c,330,26,48,17,8); c.fill(); c.fillStyle="#cfe0ff"; c.font="700 10px Oxanium, sans-serif"; c.textAlign="center"; c.fillText("YOU",354,35); c.textAlign="left";
+  /* 2. the Hangout plate */
+  c.font="600 11px Barlow, sans-serif"; c.fillStyle="#7d8aa0"; c.fillText("HANGOUT",16,124);
+  const w=widthOf(c,"Antaleon",12)+50; rr(c,18,134,w,24,12); c.fillStyle="rgba(10,14,24,.94)"; c.fill(); c.strokeStyle="rgba(255,255,255,.3)"; c.lineWidth=1.5; c.stroke();
+  c.fillStyle="#4f7cff"; c.beginPath(); c.arc(32,146,8,0,TAU); c.fill(); c.fillStyle="#fff"; c.font="700 9px Oxanium, sans-serif"; c.textAlign="center"; c.fillText("8",32,146); c.textAlign="left";
+  eff().draw(c,"Antaleon",46,146,12,tt(now),true);
+  c.fillStyle="#6a9bff"; c.beginPath(); c.arc(60+w/2-26,196,14,0,TAU); c.fill(); c.strokeStyle="#fff"; c.lineWidth=2; c.stroke(); c.fillStyle="rgba(255,255,255,.85)"; c.fillRect(60+w/2-26+5,195,12,3);
+  /* 3. the tag over a player in a match */
+  c.font="600 11px Barlow, sans-serif"; c.fillStyle="#7d8aa0"; c.fillText("IN A MATCH",16,236);
+  const px=100, py=300; c.fillStyle="rgba(106,155,255,.14)"; c.beginPath(); c.arc(px,py,18,0,TAU); c.fill(); c.strokeStyle="rgba(106,155,255,.6)"; c.lineWidth=2; c.stroke(); c.fillStyle="#6a9bff"; c.beginPath(); c.arc(px,py,11,0,TAU); c.fill(); c.strokeStyle="#fff"; c.lineWidth=1.5; c.stroke();
+  const label="Antaleon (you)", lw=widthOf(c,label,12); eff().draw(c,label,px-lw/2,py-32,12,tt(now),true);
+  c.fillStyle="#2f2f3a"; rr(c,px-20,py-24,40,4,2); c.fill(); c.fillStyle="#4fe07a"; rr(c,px-20,py-24,28,4,2); c.fill();
+  /* 4. the results strip */
+  c.font="600 11px Barlow, sans-serif"; c.fillStyle="#7d8aa0"; c.fillText("RESULTS",230,236);
+  rr(c,226,250,164,76,9); c.fillStyle="#0e1420"; c.fill(); c.strokeStyle="rgba(255,255,255,.18)"; c.lineWidth=1.5; c.stroke();
+  eff().draw(c,"Antaleon",238,272,16,tt(now)); c.font="500 11px Barlow, sans-serif"; c.fillStyle="#aab4c0"; c.fillText("Wave 24  ·  +1,240 XP",238,296); c.fillStyle="#ffcc59"; c.fillText("RANK 18  ▸  19",238,312);
+}
+const cardsEl=document.getElementById("cards"), mini=[];
+FX.forEach(e=>{ const el=document.createElement("div"); el.className="card"; el.tabIndex=0; el.setAttribute("role","button");
+  el.innerHTML=`<div class="row"><h3>${e.name}</h3><span class="req">Rank ${e.rank}</span></div><canvas width="808" height="120" style="aspect-ratio:404/60"></canvas><p>${e.note}</p>`;
+  const c=el.querySelector("canvas").getContext("2d"); mini.push({e,el,c});
+  const pick=()=>{ sel=e; refresh(); }; el.onclick=pick; el.onkeydown=k=>{ if(k.key==="Enter"||k.key===" "){ k.preventDefault(); pick(); } };
+  cardsEl.appendChild(el); });
+function refresh(){ document.getElementById("rankv").textContent=rank; mini.forEach(m=>{ m.el.classList.toggle("locked",m.e.rank>rank); m.el.setAttribute("aria-current",m.e===sel?"true":"false"); }); }
+document.getElementById("rank").oninput=e=>{ rank=+e.target.value; if(sel.rank>rank) sel=FX[0]; refresh(); };
+const xb=document.getElementById("fxBtn"); xb.onclick=()=>{ fx=!fx; xb.setAttribute("aria-pressed",fx); xb.textContent=fx?"Animated":"Still"; };
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){ fx=false; xb.setAttribute("aria-pressed",false); xb.textContent="Still"; }
+const t0=performance.now();
+function frame(ms){ const now=(ms-t0)/1000; drawParty(now);
+  mini.forEach(m=>{ const c=m.c; c.setTransform(2,0,0,2,0,0); c.clearRect(0,0,404,60); c.fillStyle="#0b0f19"; c.fillRect(0,0,404,60); c.textBaseline="middle"; c.textAlign="center";
+    const w=widthOf(c,"Antaleon",28); c.textAlign="left"; m.e.draw(c,"Antaleon",202-w/2,30,28,tt(now)); });
+  requestAnimationFrame(frame); }
+refresh(); (document.fonts&&document.fonts.ready||Promise.resolve()).then(()=>requestAnimationFrame(frame));
+</script>
