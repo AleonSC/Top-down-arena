@@ -29,10 +29,12 @@ namespace Arena
         {
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
-            DrawMenuTitle(t);
             float box = MenuIntroK(1.65f, 2.0f);
+            if (box > 0f)  // the card's glow first, so it sits under the title, the tip chip and everything else
+                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
+            DrawMenuTitle(t);
             if (box > 0f)
-                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyPanel(MenuCard)));
+                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyBox(MenuCard)));
             if (BeginUiGl())
             {
                 DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf * EaseOut(MenuAxisK), t);  // the title sits on an x-axis

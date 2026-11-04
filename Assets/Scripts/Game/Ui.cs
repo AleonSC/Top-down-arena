@@ -121,8 +121,10 @@ namespace Arena
             Rim(r, Color.Lerp(accent, Color.white, 0.15f), rim);
         }
 
-        /// The lobby's big box (and the menu card it grows into): blue gradient, soft glow.
-        public static void BodyPanel(Rect r) => GlowPanel(r, PanelBlue, 0.5f, 0.85f);
+        /// The lobby's big box (and the menu card it grows into): the blue gradient and rim here, and its soft glow separately
+        /// (BodyGlow), which a screen draws FIRST so it sits under everything else instead of tinting what's drawn before the box.
+        public static void BodyBox(Rect r) => GlowPanel(r, PanelBlue, 0f, 0.85f);
+        public static void BodyGlow(Rect r) => Glow(r, PanelBlue, 0.28f);
 
         public static void Panel(Rect r, bool accent = false)
         {
