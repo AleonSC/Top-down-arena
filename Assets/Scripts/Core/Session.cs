@@ -165,6 +165,7 @@ namespace Arena
             MyId = 1;
             Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
             SyncOwnCosmetics();  // your rank, frame and trail show from the start (not only after the first lobby broadcast, e.g. pressing ready)
+            SyncAvatars();       // (and your Hangout character stands in the room from the start too)
             Screen = AppScreen.Lobby;
             return true;
         }

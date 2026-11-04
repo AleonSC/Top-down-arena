@@ -80,6 +80,8 @@ namespace Arena
         /// Smooths what the other characters show towards where they are (call once a frame, dt in seconds). Yours is exact.
         public void StepAvatars(float dt)
         {
+            if (Avatars.Count != Lobby.Count)
+                SyncAvatars();  // (anyone in the lobby without a character yet gets one, whatever caused the gap)
             float k = 1f - (float)Math.Exp(-14f * dt);
             foreach (var kv in Avatars)
                 kv.Value.Disp = kv.Key == MyId || (kv.Value.Pos - kv.Value.Disp).LengthSq > 90000f ? kv.Value.Pos : V2.Lerp(kv.Value.Disp, kv.Value.Pos, k);
