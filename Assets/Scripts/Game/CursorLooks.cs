@@ -13,7 +13,7 @@ namespace Arena
         struct CursorPt { public V2 At; public float T; }
 
         const float CursorFireLen = 0.24f;
-        const float CycleCursorLife = 2.4f;
+        const float CycleCursorLife = 0.8f;  // the Light Cycle cursor's wall fades fast
         readonly List<CursorPt> cursorHist = new List<CursorPt>();
         readonly List<CursorPt> cursorSnap = new List<CursorPt>();
         float cursorFire;
@@ -43,6 +43,32 @@ namespace Arena
                 cursorSnap.Add(new CursorPt { At = CursorSampleAt(t - i * 0.045f), T = t - i * 0.045f });
             float f = Mathf.Max(0f, 1f - MathX.Fmod(t, 2.2f) / CursorFireLen);
             DrawCursorLook(look, CursorSampleAt(t), t, f, cursorSnap);
+        }
+
+        readonly List<CursorPt> menuCursorHist = new List<CursorPt>();
+        float menuCursorFire;
+
+        /// Menu and lobby: your equipped crosshair replaces the system pointer (Classic keeps the pointer).
+        bool MenuCursorOn => session.Screen != AppScreen.Game && CursorLook() != 0;
+
+        /// Called at the end of OnGUI: the equipped crosshair at the mouse, over everything.
+        void DrawMenuCursor()
+        {
+            if (!MenuCursorOn || Event.current.type != EventType.Repaint)
+                return;
+            float t = Time.unscaledTime;
+            Vector3 mp = Input.mousePosition;
+            var m = new V2((mp.x - offX) / scale, (UnityEngine.Screen.height - mp.y - offY) / scale);
+            menuCursorFire = Input.GetMouseButton(0) ? 1f : Mathf.Max(0f, menuCursorFire - Time.unscaledDeltaTime / CursorFireLen);
+            menuCursorHist.Add(new CursorPt { At = m, T = t });
+            while (menuCursorHist.Count > 0 && t - menuCursorHist[0].T > CycleCursorLife)
+                menuCursorHist.RemoveAt(0);
+            if (BeginUiGl())
+            {
+                UiModelAt(new V2(0f, 0f), 1f);
+                DrawCursorLook(CursorLook(), m, t, menuCursorFire, menuCursorHist);
+                EndUiGl();
+            }
         }
 
         static V2 CursorSampleAt(float t) => new V2(Mathf.Sin(t / 0.7f) * 16f, Mathf.Sin(t / 0.45f + 1f) * 9f);
