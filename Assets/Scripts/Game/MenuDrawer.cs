@@ -41,7 +41,7 @@ namespace Arena
         }
 
         /// The drawer's box and title; what follows is drawn in drawer coordinates until EndDrawer.
-        void BeginDrawer(string title, Color accent, float k, string sub = null)
+        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44)
         {
             float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
             NoteList(title);
@@ -55,7 +55,7 @@ namespace Arena
             var oc = GUI.color;
             GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * ti);
             Ui.Alpha = ti;
-            Ui.Fancy(new Rect(40f, 30f + 14f * (1f - ti), DrawerW - 60f, 60f), title, 44, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft,
+            Ui.Fancy(new Rect(40f, 30f + 14f * (1f - ti), DrawerW - 60f, 60f), title, titleSize, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft,
                 new Color(accent.r, accent.g, accent.b, 0.5f));
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(42f, 98f, DrawerW - 60f, 18f), sub, 12, Ui.Muted);
@@ -1027,7 +1027,7 @@ namespace Arena
         /// topic on the right. `back` is what its close button does.
         void DrawHowToContent(float k, float t, System.Action back)
         {
-            BeginDrawer("HOW TO PLAY", Ui.Accent, k);
+            BeginDrawer("HOW TO PLAY", Ui.Accent, k, null, 34);  // smaller, so the close chip fits beside it
             bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));
             float y = 120f;
             for (int i = 0; i < HowToTopics.Length; i++)
