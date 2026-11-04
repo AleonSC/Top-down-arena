@@ -922,9 +922,11 @@ namespace Arena
             var oldMatrix = GUI.matrix;
             if (style == 3 && env + f > 0.001f)
             {
-                float sc = 1f + 0.05f * env + 0.012f * f;
+                // Two thumps (the second smaller), each a quick swell that snaps back, with the split pushed wide.
+                float thump = p >= 0f ? Mathf.Abs(Mathf.Sin(p * Mathf.PI * 2f)) * (1f - p * 0.6f) : 0f;
+                float sc = 1f + 0.09f * thump + 0.02f * f;
                 GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), r.center);
-                k = f * (1f + 2.2f * env) * 1.4f;
+                k = f * (1f + 3f * thump) * 1.8f;
             }
             if (glow.HasValue)
             {
