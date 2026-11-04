@@ -70,6 +70,7 @@ namespace Arena
                 HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
             if (me != null && !me.Downed)
                 DrawEmoteBar(W / 2f, H - 98f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
+            DrawChat();  // the chat box, bottom right above the player cards (ChatBox.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
 
             switch (game.State)

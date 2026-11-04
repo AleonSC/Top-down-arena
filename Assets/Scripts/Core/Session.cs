@@ -31,6 +31,7 @@ namespace Arena
         LobbyMove,    // client -> host: where this player's character stands in the lobby's Hangout room (LobbyAvatars.cs)
         LobbyPos,     // host -> all: where everyone's character stands in the Hangout room
         Emote,        // client -> host: the emote number to play; host -> all: (player id, emote number) to show over that player (Session.cs, Game/EmoteLooks.cs)
+        Chat,         // client -> host: a line of text; host -> all: (player id, name, text) to add to everyone's chat box (Session.cs, Game/ChatBox.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -84,7 +85,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 142;
+        public const int ProtocolVersion = 143;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -218,6 +219,8 @@ namespace Arena
             Avatars.Clear();
             Emotes.Clear();
             emoteLast.Clear();
+            Chat.Clear();
+            chatLast.Clear();
             Screen = AppScreen.Menu;
             Status = status;
         }
@@ -306,6 +309,83 @@ namespace Arena
             var w = Proto.Begin(Msg.Emote);
             w.Write(id);
             w.Write((byte)index);
+            Broadcast(Proto.End(w));
+        }
+
+        // --- Chat --------------------------------------------------------------
+        // A text chat in a match (Game/ChatBox.cs). A line goes to the host, which trims it, keeps about one a second per player
+        // and passes it to everyone (itself included); the last few lines are kept in Chat.
+
+        public const int ChatMaxLength = 120, ChatKeep = 24;
+        public const double ChatGap = 0.8;
+        public struct ChatLine { public int Id; public string Name, Text; public double At; }
+        public readonly List<ChatLine> Chat = new List<ChatLine>();
+        readonly Dictionary<int, double> chatLast = new Dictionary<int, double>();
+
+        /// Drop control characters, collapse spaces and cut to ChatMaxLength; "" when nothing is left.
+        public static string CleanChat(string text)
+        {
+            if (text == null)
+                return "";
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in text)
+            {
+                if (char.IsControl(c))
+                    continue;
+                if (c == ' ' && (sb.Length == 0 || sb[sb.Length - 1] == ' '))
+                    continue;
+                sb.Append(c);
+                if (sb.Length >= ChatMaxLength)
+                    break;
+            }
+            return sb.ToString().TrimEnd();
+        }
+
+        /// Say something as this player. False: nothing to say.
+        public bool SendChat(string text)
+        {
+            text = CleanChat(text);
+            if (text.Length == 0)
+                return false;
+            if (IsHost || Net == null)
+                HostChat(MyId, text);
+            else
+            {
+                var w = Proto.Begin(Msg.Chat);
+                w.Write(text);
+                SendToHost(Proto.End(w));
+            }
+            return true;
+        }
+
+        void AddChat(int id, string name, string text)
+        {
+            Chat.Add(new ChatLine { Id = id, Name = name, Text = text, At = Clock });
+            if (Chat.Count > ChatKeep)
+                Chat.RemoveAt(0);
+        }
+
+        void HostChat(int id, string text)
+        {
+            text = CleanChat(text);
+            if (text.Length == 0)
+                return;
+            double last;
+            if (chatLast.TryGetValue(id, out last) && Clock - last < ChatGap)
+                return;
+            chatLast[id] = Clock;
+            string name = "?";
+            Player p;
+            LobbyEntry e;
+            if (Game.Players.TryGetValue(id, out p))
+                name = p.Name;
+            else if (Lobby.TryGetValue(id, out e))
+                name = e.Name;
+            AddChat(id, name, text);
+            var w = Proto.Begin(Msg.Chat);
+            w.Write(id);
+            w.Write(name);
+            w.Write(text);
             Broadcast(Proto.End(w));
         }
 
@@ -469,6 +549,9 @@ namespace Arena
                     break;
                 case Msg.Emote:
                     HostEmote(peer, r.ReadByte());
+                    break;
+                case Msg.Chat:
+                    HostChat(peer, r.ReadString());
                     break;
                 case Msg.Cosmetics:
                 {
@@ -1140,6 +1223,13 @@ namespace Arena
                 {
                     int who = r.ReadInt32();
                     Emotes[who] = new EmoteShow { Index = r.ReadByte(), At = Clock };
+                    break;
+                }
+                case Msg.Chat:
+                {
+                    int who = r.ReadInt32();
+                    string name = r.ReadString();
+                    AddChat(who, name.Length > 24 ? name.Substring(0, 24) : name, CleanChat(r.ReadString()));
                     break;
                 }
                 case Msg.Recall:
