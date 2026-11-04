@@ -1,0 +1,216 @@
+<title>Glitch Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;600&family=VT323&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Every card loops the same 3.6 s cycle as the game's Ui.Glitch:
+   crisp, then a 0.6 s build-up (text goes blurry), then a 0.55 s glitch, then crisp again.
+   Only things OnGUI can do are used: offset copies, tints, clipped bands, scale and swapped letters. No blend modes or shaders. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 "Barlow", system-ui, sans-serif; margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 22px; }
+h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 "Oxanium", sans-serif; letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+h1 span { color: var(--teal); }
+p { margin: 0; max-width: 72ch; color: var(--soft); }
+.eyebrow { font: 600 11px "Oxanium", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+button { font: 600 14px "Barlow", sans-serif; color: var(--soft); background: #161c22; border: 1px solid var(--edge); border-radius: 7px; padding: 7px 14px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; }
+.card h2 { font: 700 13px "Oxanium", sans-serif; letter-spacing: .12em; text-transform: uppercase; margin: 0; padding: 10px 14px 2px; }
+.card h2 b { color: var(--amber); margin-right: 8px; }
+.card .note { padding: 0 14px 12px; font-size: 14px; color: var(--muted); }
+.stage { container-type: inline-size; position: relative; overflow: hidden; aspect-ratio: 1000 / 200; display: grid; place-items: center;
+  background: linear-gradient(rgba(92,153,255,.07) 1px, transparent 1px) 0 0 / 5cqw 5cqw, linear-gradient(90deg, rgba(92,153,255,.07) 1px, transparent 1px) 0 0 / 5cqw 5cqw, #080b14; }
+.g { position: relative; display: inline-block; font: 800 7.4cqw/1.25 "Oxanium", "Arial Black", sans-serif; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; color: #fff; }
+.g.small { font-size: 3.4cqw; }
+.g .l { position: absolute; inset: 0; white-space: nowrap; pointer-events: none; }
+.g .l.w { position: relative; inset: auto; pointer-events: auto; }
+.g .l.w.x { position: absolute; inset: 0; }
+.g .sh { color: rgba(0,0,0,.55); transform: translateY(.15cqw); }
+.g .r { color: rgba(255,41,51,.9); } .g .c { color: rgba(26,209,255,.9); }
+.g .blk { position: absolute; background: #ff2a6d; }
+.g .cur { position: absolute; width: .6em; background: #fff; }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; glitch lettering</div>
+  <h1>More glitch <span>ideas</span></h1>
+  <p>Twelve ways for the glitch to hit, all on the same timing: crisp at rest, a blurry build-up, then the glitch. Card 1 is what the game does now. The rest are alternatives or add-ons. Tell me the numbers you like and whether they replace the current tear, or whether some should rotate (for example a different glitch each cycle).</p>
+  <div class="bar"><button id="now">Glitch everything now</button><button id="pause" aria-pressed="false">Pause</button></div>
+</header>
+<div class="grid" id="grid"></div>
+</div>
+
+<script>
+const TEXT = "Cartesian Colosseum";
+const CYCLE = 3.6, PRE = 0.6, LEN = 0.55;
+const SYM = "#%&01/=+?<>";
+const V = [
+  ["slip", "Current: split and slip", "The game now. Fringe builds, then the channels fly apart and one band slips sideways."],
+  ["slices", "Multi-slice shear", "Five thin bands shear different distances at once, like a torn video frame."],
+  ["scramble", "Letter scramble", "Some letters flip to symbols for a moment and resolve. The game already has this for glitchy player names."],
+  ["echo", "Ghost trail", "Afterimages trail behind the text as it jerks, stepping back in time."],
+  ["blocks", "Corrupt blocks", "Solid magenta and cyan blocks flash over the lettering like a bad decode."],
+  ["roll", "Vertical hold", "The text rolls up and wraps round, like a TV losing vertical hold."],
+  ["track", "Tracking bar", "A bright band sweeps down through the text, and the letters inside it lurch sideways."],
+  ["letters", "Few letters only", "Three random letters jump and flash while the rest stay perfectly still. Subtle, good for small text."],
+  ["power", "TV power-on", "The text squashes to a line, flashes white and springs open, like a CRT warming up."],
+  ["vsplit", "Vertical split", "Red goes up and cyan goes down, with a small shake. Reads differently from the sideways split."],
+  ["decode", "Decode sweep", "The title turns to symbols and resolves left to right behind a cursor block."],
+  ["punch", "Punch", "A quick scale pulse with the split, snapping back. The lightest option: no tearing at all."]
+];
+const grid = document.getElementById("grid");
+const stages = V.map(([id, name, note], i) => {
+  const s = document.createElement("section");
+  s.className = "card";
+  s.innerHTML = '<h2><b>' + (i + 1) + '</b>' + name + '</h2><div class="stage"><div class="g" data-v="' + id + '"></div></div><div class="note">' + note + '</div>';
+  grid.appendChild(s);
+  return s.querySelector(".g");
+});
+
+function mk(cls, txt) { const d = document.createElement("div"); d.className = "l " + cls; d.textContent = txt; return d; }
+function rnd(seed) { let x = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+stages.forEach(g => {
+  g.sh = mk("sh", TEXT); g.r = mk("r", TEXT); g.c = mk("c", TEXT); g.w = mk("w", TEXT);
+  g.append(g.sh, g.r, g.c, g.w);
+  g.extra = [];
+  g.v = g.dataset.v;
+  g.style.overflow = g.v === "roll" ? "hidden" : "visible";
+  g.off = 0.35; // cqw
+});
+
+let paused = false, shift = 0, frozen = 0, last = performance.now() / 1000;
+document.getElementById("now").onclick = () => { shift = ((CYCLE - PRE) - (now() % CYCLE) + CYCLE) % CYCLE; };
+const pb = document.getElementById("pause");
+pb.onclick = () => { paused = !paused; pb.setAttribute("aria-pressed", paused); pb.textContent = paused ? "Resume" : "Pause"; };
+let clock = 0;
+function now() { return clock; }
+
+function clear(g) { g.extra.forEach(e => e.remove()); g.extra = []; }
+function add(g, el) { if (el.classList.contains("w")) el.classList.add("x"); g.appendChild(el); g.extra.push(el); return el; }
+function clip(el, top, bot) { el.style.clipPath = "inset(" + top + "% 0 " + bot + "% 0)"; }
+
+function frame(g, t, idx) {
+  const ph = (t + 0 + shift) % CYCLE, cyc = Math.floor((t + 0 + shift) / CYCLE);
+  const p = ph < LEN ? ph / LEN : -1;
+  const sm = x => x * x * (3 - 2 * x);
+  const f = p >= 0 ? 1 - sm(p) : ph > CYCLE - PRE ? Math.pow((ph - (CYCLE - PRE)) / PRE, 2) : 0;
+  const env = p >= 0 ? Math.pow(Math.sin(p * Math.PI), 2) : 0;
+  const k = f * (1 + 2.2 * env), o = g.off;
+  clear(g);
+  g.r.textContent = g.c.textContent = g.w.textContent = g.sh.textContent = TEXT;
+  g.w.style.transform = ""; g.r.style.transform = ""; g.c.style.transform = ""; g.w.style.filter = ""; g.w.style.opacity = 1;
+  g.style.transform = ""; g.style.filter = "";
+  [g.r, g.c].forEach(e => { e.style.opacity = f > 0.01 ? 0.9 * f : 0; e.style.clipPath = ""; });
+  g.r.style.transform = "translate(" + (-o * k) + "cqw,0)";
+  g.c.style.transform = "translate(" + (o * k) + "cqw,0)";
+  const v = g.v, seed = cyc * 17 + idx;
+  const step = Math.floor(ph * 30); // 30 steps a second for jumpy things
+
+  if (v === "slip") {
+    if (env > .02) { const b = add(g, mk("w", TEXT)); const by = 15 + 50 * p; clip(b, by, 100 - by - 22); b.style.transform = "translateX(" + (o * 4 * env * Math.sin(p * 9)) + "cqw)"; }
+  } else if (v === "slices") {
+    if (env > .02) for (let i = 0; i < 5; i++) {
+      const b = add(g, mk("w", TEXT)), top = i * 20 + rnd(seed + i) * 6, h = 8 + rnd(seed + i + 9) * 8;
+      clip(b, top, 100 - top - h);
+      const dir = rnd(seed + i * 3 + step * (env > .6 ? 1 : 0)) - .5;
+      b.style.transform = "translateX(" + (dir * 6 * env) + "cqw)";
+    }
+  } else if (v === "scramble") {
+    if (env > .02 || f > .6) {
+      const n = Math.round(env * 7), w = [...TEXT]; const hit = new Set();
+      for (let i = 0; i < n; i++) hit.add(Math.floor(rnd(seed + step + i * 5) * w.length));
+      const out = w.map((ch, i) => (hit.has(i) && ch !== " ") ? SYM[Math.floor(rnd(step + i) * SYM.length)] : ch).join("");
+      g.w.textContent = out; g.r.textContent = out; g.c.textContent = out;
+    }
+  } else if (v === "echo") {
+    if (f > .01) for (let i = 4; i >= 1; i--) {
+      const e = add(g, mk("c", TEXT)); e.style.opacity = (0.5 * f) / i; e.style.transform = "translateX(" + (-o * 2.6 * i * (f + env)) + "cqw)"; e.style.zIndex = 0;
+    }
+    g.r.style.opacity = 0; g.c.style.opacity = 0;
+    if (env > .02) g.w.style.transform = "translateX(" + (Math.sin(p * 18) * o * 3 * env) + "cqw)";
+  } else if (v === "blocks") {
+    if (env > .05) for (let i = 0; i < 9; i++) {
+      const phase = (rnd(seed + i * 7) * .4 + step * .13 + i * .7) % 1; if (phase > env * 1.05) continue;
+      const b = add(g, document.createElement("div")); b.className = "blk";
+      b.style.left = (rnd(seed + i + step) * 92) + "%"; b.style.top = (rnd(seed + i * 2 + step * 2) * 80) + "%";
+      b.style.width = (3 + rnd(i + step) * 9) + "%"; b.style.height = (10 + rnd(i * 3 + step) * 20) + "%";
+      b.style.background = i % 2 ? "rgba(26,209,255,.9)" : "rgba(255,42,109,.9)"; b.style.opacity = .55 + .4 * env;
+    }
+  } else if (v === "roll") {
+    const h = g.offsetHeight || 1;
+    if (env > .02) {
+      const y = sm(p) * h; g.w.style.transform = "translateY(" + (-y) + "px)";
+      const b = add(g, mk("w", TEXT)); b.style.transform = "translateY(" + (h - y) + "px)";
+      const sk = add(g, mk("r", TEXT)); sk.style.opacity = .5 * env; sk.style.transform = "translate(" + (-o * 2 * env) + "cqw," + (-y) + "px)";
+    }
+  } else if (v === "track") {
+    if (ph < 0.9 && ph > 0.05) {
+      const q = (ph - .05) / .85, top = -14 + q * 112, b = add(g, mk("w", TEXT));
+      clip(b, Math.max(0, top), Math.max(0, 100 - top - 26)); b.style.transform = "translateX(" + (o * 5 * Math.sin(q * 40)) * 1 + "cqw)"; b.style.filter = "brightness(1.5) blur(.12cqw)";
+      const hl = add(g, document.createElement("div")); hl.className = "blk"; hl.style.left = "-4%"; hl.style.right = "-4%"; hl.style.width = "108%"; hl.style.height = "3%"; hl.style.top = Math.min(100, Math.max(0, top + 13)) + "%"; hl.style.background = "rgba(255,255,255,.22)";
+    }
+  } else if (v === "letters") {
+    g.r.style.opacity = g.c.style.opacity = 0;
+    g.w.textContent = ""; g.sh.textContent = "";
+    [...TEXT].forEach((ch, i) => {
+      const s = document.createElement("span"); s.textContent = ch; s.style.display = "inline-block"; s.style.whiteSpace = "pre";
+      const pick = [3, 8, 13].map(n => Math.floor(rnd(seed + n) * TEXT.length));
+      if (pick.includes(i) && (f > .01)) {
+        const a = Math.min(1, f * 1.2);
+        s.style.transform = "translate(" + ((rnd(step + i) - .5) * .8 * a * env + 0) + "cqw," + ((rnd(step * 2 + i) - .5) * 1.6 * a * (env + .15)) + "cqw)";
+        s.style.color = env > .3 && rnd(step + i * 4) > .45 ? (i % 2 ? "#1ad1ff" : "#ff2933") : "#fff";
+        s.style.textShadow = "-.3cqw 0 rgba(255,41,51," + a + "), .3cqw 0 rgba(26,209,255," + a + ")";
+      }
+      g.w.appendChild(s);
+    });
+  } else if (v === "power") {
+    g.r.style.opacity = g.c.style.opacity = 0;
+    if (p >= 0) {
+      const q = p < .25 ? p / .25 : 1;  // squash
+      const sy = p < .18 ? 1 - .93 * sm(p / .18) : .07 + .93 * sm(Math.min(1, (p - .18) / .55));
+      const sx = p < .18 ? 1 : 1 + .03 * Math.sin((p - .18) * 10) * (1 - p);
+      g.style.transform = "scale(" + sx + "," + Math.max(.04, sy) + ")";
+      g.style.filter = "brightness(" + (1 + 1.6 * Math.max(0, 1 - Math.abs(p - .2) / .2)) + ")";
+    } else if (f > 0) { g.w.style.filter = "blur(" + (.18 * f) + "cqw)"; g.w.style.opacity = 1 - .15 * f; }
+  } else if (v === "vsplit") {
+    g.r.style.transform = "translate(0," + (-o * 1.3 * k) + "cqw)"; g.c.style.transform = "translate(0," + (o * 1.3 * k) + "cqw)";
+    if (env > .02) g.w.style.transform = "translate(" + ((rnd(step) - .5) * o * 3 * env) + "cqw," + ((rnd(step + 3) - .5) * o * 2 * env) + "cqw)";
+  } else if (v === "decode") {
+    g.r.style.opacity = g.c.style.opacity = 0;
+    if (p >= 0 || f > .4) {
+      const q = p >= 0 ? Math.min(1, p / .8) : 0, n = TEXT.length, cut = Math.floor(q * n);
+      const out = [...TEXT].map((ch, i) => (i < cut || ch === " ") ? ch : SYM[Math.floor(rnd(step * 3 + i) * SYM.length)]).join("");
+      g.w.textContent = out; g.sh.textContent = out;
+      if (p >= 0 && p < .8) {
+        const cur = add(g, document.createElement("div")); cur.className = "cur"; cur.style.left = (cut / n * 100) + "%"; cur.style.top = "12%"; cur.style.height = "76%"; cur.style.opacity = step % 3 ? .9 : .4; cur.style.width = (100 / n * .55) + "%";
+      }
+      if (p < 0) g.w.textContent = [...TEXT].map((ch, i) => rnd(step + i) < (f - .4) * .5 && ch !== " " ? SYM[Math.floor(rnd(step + i * 2) * SYM.length)] : ch).join("");
+    }
+  } else if (v === "punch") {
+    const sc = 1 + .05 * env + .012 * f;
+    g.style.transform = "scale(" + sc + ")";
+    g.r.style.transform = "translate(" + (-o * 1.4 * k) + "cqw,0)"; g.c.style.transform = "translate(" + (o * 1.4 * k) + "cqw,0)";
+  }
+}
+
+function loop(ts) {
+  const t = ts / 1000;
+  if (!paused) clock += Math.min(0.1, t - last);
+  last = t;
+  stages.forEach((g, i) => frame(g, clock, i));
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
