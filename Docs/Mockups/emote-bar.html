@@ -1,0 +1,249 @@
+<title>Emote Bar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a Hangout room, with a rank slider that locks or unlocks each one. Under it: one card per idea, all animating.
+   A background sits BEHIND the card's content (portrait, name, badges) under a scrim so the text stays readable, and it
+   is clipped to the card's rounded rim; the frame (Rank.cs) is still drawn over it. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.party { display: grid; justify-items: center; padding: 22px 16px 10px; background: #080b11; }
+.party canvas { display: block; width: 100%; max-width: 560px; height: auto; aspect-ratio: 404 / 348; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+input[type=range] { width: min(320px, 70vw); accent-color: var(--teal); }
+.rank { font: 700 16px var(--font-display); min-width: 7ch; font-variant-numeric: tabular-nums; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; cursor: pointer; min-width: 0; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--teal); }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 404 / 116; background: #080b11; border-radius: 6px; }
+.card.locked canvas { filter: grayscale(1) brightness(.5); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tag { font: 700 12px var(--font-display); letter-spacing: .12em; color: var(--teal); }
+.req { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--edge); color: var(--muted); white-space: nowrap; }
+.card:not(.locked) .req { color: var(--teal); border-color: #2c5d52; }
+.card.locked .req::before { content: "\1F512  "; }
+.card p { font-size: 14px; color: var(--soft); }
+.notes { display: grid; gap: 8px; color: var(--soft); font-size: 15px; }
+.notes b { font-family: var(--font-display); color: var(--fg); }
+
+/* The game screen, drawn at 960 x 540 and scaled to fit. The emote bar is DOM on top of it so the mask-fade and the scrolling are easy to see. */
+.screen { position: relative; width: 960px; height: 540px; transform-origin: 0 0; border-radius: 8px; overflow: hidden; background: #080b11; }
+.party { display: block !important; }
+.holder { width: 100%; overflow: hidden; position: relative; }
+.screen > canvas { position: absolute; inset: 0; width: 960px !important; height: 540px !important; max-width: none !important; aspect-ratio: auto !important; }
+.ebar { position: absolute; left: 50%; bottom: 96px; width: 520px; height: 78px; margin-left: -260px; display: flex; align-items: center; opacity: 0; transform: translateY(8px); transition: opacity .14s ease, transform .14s ease; pointer-events: none; user-select: none; }
+.ebar.open { opacity: 1; transform: none; pointer-events: auto; }
+.window { position: absolute; left: 34px; right: 34px; top: 0; bottom: 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%, #000 78%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 22%, #000 78%, transparent 100%); }
+.strip { position: absolute; left: 0; top: 7px; display: flex; gap: 8px; transition: transform .22s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+.slot { flex: none; width: 56px; height: 64px; border-radius: 10px; background: rgba(8,12,20,.28); border: 1px solid rgba(255,255,255,.10); cursor: pointer; position: relative; padding: 0; display: block; }
+.slot:hover { background: rgba(120,160,255,.22); border-color: rgba(160,190,255,.6); }
+.slot canvas { position: absolute; inset: 0; width: 56px !important; height: 64px !important; max-width: none !important; aspect-ratio: auto !important; pointer-events: none; }
+.slot .k { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font: 700 9px var(--font-display); letter-spacing: .06em; color: rgba(231,238,243,.7); text-shadow: 0 1px 2px #000; }
+.ebar.cool .slot { filter: grayscale(.8) brightness(.6); cursor: not-allowed; }
+.arrow { position: absolute; top: 14px; width: 32px; height: 50px; border-radius: 9px; background: rgba(8,12,20,.28); border: 1px solid rgba(255,255,255,.12); color: rgba(231,238,243,.85); font: 700 20px var(--font-display); padding: 0; display: grid; place-items: center; cursor: pointer; }
+.arrow:hover { background: rgba(120,160,255,.25); border-color: rgba(160,190,255,.6); }
+.arrow:disabled { opacity: .25; cursor: default; }
+.arrow.l { left: 0; } .arrow.r { right: 0; }
+.cd { position: absolute; left: 40px; right: 40px; bottom: -8px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; opacity: 0; transition: opacity .15s; }
+.ebar.cool .cd { opacity: 1; }
+.cd i { display: block; height: 100%; width: 100%; background: #7fb3ff; transform-origin: 0 50%; }
+.hint { position: absolute; left: 50%; bottom: 180px; transform: translateX(-50%); font: 600 11px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: rgba(231,238,243,.75); text-shadow: 0 1px 3px #000; white-space: nowrap; opacity: 0; transition: opacity .14s; pointer-events: none; }
+.ebar.open ~ .hint { opacity: 1; }
+.holdkey { font: 700 14px var(--font-display); letter-spacing: .08em; padding: 8px 18px; border-radius: 8px; user-select: none; touch-action: none; }
+.holdkey.down { background: #14281f; border-color: var(--teal); color: var(--fg); }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; HUD</div>
+  <h1>Emote <span>bar</span></h1>
+  <p class="lead">Hold the emote key and a see-through bar slides up above the ability bar with every emote you've unlocked side by side. Its ends fade away. Scroll the wheel, press &larr; &rarr; or click the arrows on the sides to move along it; click any emote in view to use it. Let go of the key and it closes. In a match there's a short cooldown, shown as a thin bar under the strip.</p>
+</header>
+
+<section class="stage" aria-label="Preview">
+  <div class="party" style="padding:14px"><div class="holder" id="holder"><div class="screen" id="screen">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div class="ebar" id="ebar" aria-label="Emote bar">
+      <button class="arrow l" id="prev" aria-label="Previous emotes">&#8249;</button>
+      <div class="window" id="win"><div class="strip" id="strip"></div></div>
+      <button class="arrow r" id="next" aria-label="Next emotes">&#8250;</button>
+      <div class="cd"><i id="cdfill"></i></div>
+    </div>
+    <div class="hint" id="hint">Scroll or &larr; &rarr; to browse &middot; click to use</div>
+  </div></div></div>
+  <div class="bar">
+    <div class="group"><span class="label">Emote key</span><button class="holdkey" id="hold" aria-pressed="false">HOLD V (or here)</button></div>
+    <div class="group"><span class="label">Mode</span><button id="modeBtn" aria-pressed="false">Hold to show</button></div>
+    <div class="group"><span class="label">Your rank</span><input id="rank" type="range" min="1" max="60" value="60" aria-label="Rank"><span class="rank" id="rankv">60</span></div>
+    <div class="group"><span class="label">Cooldown</span><button id="cdBtn" aria-pressed="true">4 s (match)</button></div>
+  </div>
+</section>
+
+<section class="notes">
+  <p><b>Opening.</b> Hold the emote key (default <code>V</code>, rebindable in Settings &gt; Keybinds). While the bar is open, a left click picks an emote instead of firing, and the mouse wheel browses instead of switching weapons or zooming. Let go and it closes (a setting could make the key a toggle instead).</p>
+  <p><b>The bar.</b> Transparent tiles in a row, 56 px each, the row's two ends fading out under a mask so it never looks cut off. It sits just above the ability bar and doesn't cover your character. Only the emotes you've unlocked are listed, in unlock order, and it remembers where you left it. Hover lights a tile; the first nine show their number so <code>1</code>-<code>9</code> work too while it's open.</p>
+  <p><b>In a match.</b> The bubble is smaller (80%) and sits above the player's head for 2.4 s, seen by everyone. After using one the strip greys out for the cooldown (4 s here; the Hangout would use a shorter one) and a thin bar runs down under it. Using one never interrupts shooting, moving or abilities; it's drawing only, nothing it does affects the fight. Hidden while you're downed.</p>
+  <p><b>Wiring (if picked).</b> <code>CosmeticKind.Emote</code> (all unlocked emotes are available, no equip step), a <code>Msg.Emote</code> (the emote number, from client to host, then relayed to everyone) so a protocol bump, the bar drawn by the HUD next to <code>Hud.cs</code>'s ability bar, and the bubble drawn over players in the world renderer and over avatars in <code>LobbyRoom.cs</code>. The host enforces the cooldown.</p>
+</section>
+</div>
+<script>
+
+"use strict";
+const TAU = Math.PI * 2, DUR = 2.4;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+const pop = (t, d = .25) => t < d ? ease(t / d) * 1.12 - (t / d > .7 ? .12 * ease((t / d - .7) / .3) : 0) : 1;   /* bubble pop-in with a little overshoot */
+const fade = t => t > DUR - .35 ? Math.max(0, (DUR - t) / .35) : 1;
+
+function bubble(c, x, y, w, h, t, tint) {            /* a speech bubble centred on x, bottom at y (the tail points down) */
+  const s = pop(t) * 1, a = fade(t); if (s <= 0) return;
+  c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(s, s);
+  c.fillStyle = "rgba(10,14,24,.94)"; c.strokeStyle = tint; c.lineWidth = 2;
+  c.beginPath(); c.roundRect(-w / 2, -h - 8, w, h, 10); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(-6, -8); c.lineTo(0, 0); c.lineTo(6, -8); c.closePath(); c.fillStyle = "rgba(10,14,24,.94)"; c.fill();
+  c.beginPath(); c.moveTo(-6, -8.5); c.lineTo(0, -1); c.lineTo(6, -8.5); c.stroke();
+  c.restore();
+}
+const txt = (c, s, x, y, size, col) => { c.font = `800 ${size}px Oxanium, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = col; c.fillText(s, x, y); };
+const heart = (c, x, y, r, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(x, y + r * .9); c.bezierCurveTo(x - r * 1.6, y - r * .2, x - r * .7, y - r * 1.3, x, y - r * .4); c.bezierCurveTo(x + r * .7, y - r * 1.3, x + r * 1.6, y - r * .2, x, y + r * .9); c.fill(); };
+const star = (c, x, y, r, col) => { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } c.closePath(); c.fill(); };
+
+/* Each draw(c, x, y, t, body): x,y is the character's centre, t seconds into the emote. body is an offset object the emote may
+   change to move the character (dx, dy, spin, squash). The bubble sits about 54 px above. */
+const EM = [
+ { id:"wave", name:"Wave", rank:1, note:"The default. A hand waves in the bubble while you lean a little.",
+   draw(c,x,y,t,b){ b.dx=Math.sin(t*3)*2; bubble(c,x,y-26,50,44,t,"#7fb3ff"); const a=Math.sin(t*9)*.5; c.save(); c.globalAlpha=fade(t); c.translate(x,y-56); c.rotate(a); c.fillStyle="#ffd9a0"; c.beginPath(); c.roundRect(-8,-4,16,18,5); c.fill(); [-6,-2,2,6].forEach((o,i)=>{ c.beginPath(); c.roundRect(o-1.5,-14+Math.abs(o)*.3,3.2,12,2); c.fill(); }); c.beginPath(); c.roundRect(-14,2,8,4,2); c.fill(); c.restore(); } },
+ { id:"thumbs", name:"Thumbs up", rank:1, note:"A thumb that pops up with a little shine. Also free.",
+   draw(c,x,y,t,b){ b.dy=-Math.sin(Math.min(t,.4)/.4*Math.PI)*4; bubble(c,x,y-26,50,44,t,"#6fe3a8"); c.save(); c.globalAlpha=fade(t); c.translate(x,y-56+(1-pop(t))*10); c.fillStyle="#ffd9a0"; c.beginPath(); c.roundRect(-10,-2,18,15,4); c.fill(); c.beginPath(); c.roundRect(-4,-14,7,14,3); c.fill(); c.fillStyle="#2a3a55"; c.fillRect(-14,-2,5,15); c.restore(); if(t>.3&&t<.9) star(c,x+14,y-72,4*(1-(t-.3)/.6),"rgba(255,255,255,.9)"); } },
+ { id:"gg", name:"GG", rank:3, note:"The classic. Bold letters that bounce in; nothing else.",
+   draw(c,x,y,t,b){ bubble(c,x,y-26,56,40,t,"#ffcc59"); c.save(); c.globalAlpha=fade(t); const k=1+Math.max(0,.3-t)*1.5; c.translate(x,y-54); c.scale(k,k); txt(c,"GG",0,0,24,"#ffcc59"); c.restore(); } },
+ { id:"cheer", name:"Cheer", rank:7, note:"Arms up in a hop, and a burst of confetti in your colours.",
+   draw(c,x,y,t,b){ b.dy=-Math.abs(Math.sin(t*6))*7*fade(t); if(t<.2) return; for(let i=0;i<22;i++){ const a=hash(i)*TAU, sp=40+hash(i+4)*60, q=Math.min(1,(t-.1)/1.6); if(q>=1) continue; const px=x+Math.cos(a)*sp*q, py=y-34+Math.sin(a)*sp*q+q*q*60; c.fillStyle=`hsla(${hash(i+9)*360},85%,62%,${1-q})`; c.save(); c.translate(px,py); c.rotate(t*5+i); c.fillRect(-2.5,-1.5,5,3); c.restore(); } bubble(c,x,y-26,44,36,Math.min(t,.4),"#ff8fd0"); txt(c,"!",x,y-52,24,"#ff8fd0"); } },
+ { id:"heart", name:"Heart", rank:9, note:"A heart in the bubble and a few small ones floating up. Good for a revive.",
+   draw(c,x,y,t,b){ bubble(c,x,y-26,50,44,t,"#ff6b8a"); c.save(); c.globalAlpha=fade(t); const k=1+.12*Math.sin(t*10); heart(c,x,y-54,10*k,"#ff4f7a"); c.restore(); for(let i=0;i<5;i++){ const q=((t*.6+hash(i))%1); if(t<.3) break; heart(c,x+(hash(i+3)-.5)*50+Math.sin(q*6+i)*5,y-70-q*40,3+hash(i)*2,`rgba(255,110,150,${(1-q)*fade(t)})`); } } },
+ { id:"laugh", name:"Laugh", rank:11, note:"HA HA shaking in the bubble while you shake with it.",
+   draw(c,x,y,t,b){ b.dx=Math.sin(t*34)*1.6*fade(t); b.dy=-Math.abs(Math.sin(t*12))*2; bubble(c,x,y-26,74,40,t,"#ffb547"); c.save(); c.globalAlpha=fade(t); c.translate(x+Math.sin(t*34)*1.2,y-54); txt(c,"HA HA",0,0,17,"#ffb547"); c.restore(); } },
+ { id:"question", name:"Question", rank:14, note:"A question mark that sways. For when the plan is not clear.",
+   draw(c,x,y,t,b){ bubble(c,x,y-26,42,44,t,"#6fe3c4"); c.save(); c.globalAlpha=fade(t); c.translate(x,y-54); c.rotate(Math.sin(t*5)*.25); txt(c,"?",0,0,28,"#6fe3c4"); c.restore(); } },
+ { id:"sleep", name:"Sleep", rank:17, note:"Zs drifting up while you sink a little. Great while waiting for the host.",
+   draw(c,x,y,t,b){ b.dy=Math.min(t,.6)/.6*4*fade(t); for(let i=0;i<3;i++){ const q=((t*.5+i/3)%1), s=11+i*4; c.save(); c.globalAlpha=Math.min(1,q*3)*(1-q)*fade(t)*1.3; c.translate(x+12+i*8+Math.sin(q*6)*3,y-24-q*44); txt(c,"z",0,0,s,"#9ab4ff"); c.restore(); } } },
+ { id:"dance", name:"Dance", rank:21, note:"Sways side to side to the beat, with notes drifting off.",
+   draw(c,x,y,t,b){ b.dx=Math.sin(t*7)*6*fade(t); b.dy=-Math.abs(Math.sin(t*7))*5*fade(t); b.squash=1+Math.sin(t*14)*.06; for(let i=0;i<4;i++){ const q=((t*.7+i*.25)%1); c.save(); c.globalAlpha=(1-q)*fade(t); c.translate(x+(i%2?1:-1)*(14+q*20),y-24-q*40); c.fillStyle=["#ff8fd0","#7fe3ff","#ffd36b","#a7ff8f"][i]; c.beginPath(); c.ellipse(0,0,4,3,-.4,0,TAU); c.fill(); c.fillRect(2.6,-12,1.6,12); c.restore(); } } },
+ { id:"spin", name:"Spin", rank:25, note:"A full turn with a ring of light round you.",
+   draw(c,x,y,t,b){ const q=Math.min(1,t/1.1); b.spin=ease(q)*TAU*2; if(q<1){ c.save(); c.globalAlpha=(1-q)*.9; c.strokeStyle="#9ab4ff"; c.lineWidth=3; c.beginPath(); c.arc(x,y,22+q*20,b.spin,b.spin+Math.PI*1.1); c.stroke(); c.beginPath(); c.arc(x,y,16+q*14,b.spin+Math.PI,b.spin+Math.PI*2.1); c.stroke(); c.restore(); } } },
+ { id:"salute", name:"Salute", rank:30, note:"Stands straight and snaps a salute. A small gold star in the bubble.",
+   draw(c,x,y,t,b){ b.squash=1+Math.min(t,.2)*.15; bubble(c,x,y-26,46,44,t,"#ffcc59"); c.save(); c.globalAlpha=fade(t); const k=1+.1*Math.sin(t*6); star(c,x,y-54,12*k,"#ffcc59"); c.restore(); } },
+ { id:"fire", name:"Fireworks", rank:40, note:"Three bursts go off above you in turn. The showiest one.",
+   draw(c,x,y,t,b){ for(let k=0;k<3;k++){ const t0=.15+k*.45, q=(t-t0)/1.1; if(q<0||q>1) continue; const cx=x+(k-1)*34, cy=y-64-k%2*12, col=["#ff6b8a","#ffcc59","#7fe3ff"][k]; for(let i=0;i<14;i++){ const a=i/14*TAU, r=q*26; c.fillStyle=col; c.globalAlpha=(1-q)*fade(t); c.beginPath(); c.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r+q*q*8,2.1*(1-q*.5),0,TAU); c.fill(); } c.globalAlpha=1; } } },
+ { id:"angry", name:"Steam", rank:50, note:"Puffs of steam and a red flush. For wipes. The top of the ladder.",
+   draw(c,x,y,t,b){ b.dx=Math.sin(t*40)*1.2*fade(t); for(let i=0;i<6;i++){ const q=((t*1.1+i/6)%1); c.save(); c.globalAlpha=(1-q)*.55*fade(t); c.fillStyle="#e8eef6"; c.beginPath(); c.arc(x+(i%2?1:-1)*(14+q*12),y-14-q*30,3+q*7,0,TAU); c.fill(); c.restore(); } bubble(c,x,y-26,42,40,t,"#ff5a5a"); txt(c,"#!",x,y-54,18,"#ff5a5a"); } },
+];
+
+const ROLES = [["You","#6a9bff"],["Moss","#5be0a0"],["Quill","#e0a0ff"]];
+function person(c, x, y, col, b, t, label, mine){
+  c.save(); c.translate(x + (b.dx||0), y + (b.dy||0)); c.rotate(b.spin||0); c.scale(1, b.squash||1);
+  c.fillStyle="rgba(0,0,0,.35)"; c.beginPath(); c.ellipse(0,19-(b.dy||0)*0,16,5,0,0,TAU); c.fill();
+  c.fillStyle=col; c.beginPath(); c.arc(0,0,16,0,TAU); c.fill(); c.strokeStyle="#fff"; c.lineWidth=2.2; c.stroke();
+  c.fillStyle="rgba(255,255,255,.85)"; c.beginPath(); c.arc(5,-2,4,0,TAU); c.fill(); c.fillRect(8,-1,15,3);
+  c.restore();
+  c.save(); c.font="700 11px Oxanium, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; const w=c.measureText(label).width+16;
+  c.fillStyle="rgba(10,14,24,.9)"; c.strokeStyle=mine?"#7fb3ff":"rgba(255,255,255,.25)"; c.lineWidth=1.5; c.beginPath(); c.roundRect(x-w/2,y+30,w,17,8); c.fill(); c.stroke(); c.fillStyle="#fff"; c.fillText(label,x,y+39); c.restore();
+}
+
+
+let rank = 60, cooldown = 4, toggleMode = false, open = false, coolUntil = 0, t0 = performance.now(), idx = 0;
+const holder = document.getElementById("holder"), screen = document.getElementById("screen");
+const fit = () => { const s = Math.min(1, holder.clientWidth / 960); screen.style.transform = `translateX(${(holder.clientWidth - 960 * s) / 2}px) scale(${s})`; holder.style.height = (540 * s) + "px"; };
+addEventListener("resize", fit); fit();
+
+/* The match: three players, one of them you, and the HUD at the foot. */
+const pl = [ {x:300,y:270,c:"#6a9bff",n:"You"}, {x:560,y:210,c:"#5be0a0",n:"Moss"}, {x:690,y:330,c:"#e0a0ff",n:"Quill"} ];
+const play = [null,null,null], lastBot = [0, 1.5, 3.4];
+const tiles = [["Q","Barrier","#6a9bff"],["E","Mend","#5be0a0"],["⇧","Dash","#ffb547"],["␣","Slam","#ff7a7a"]];
+const gc = document.getElementById("game").getContext("2d");
+function hud(c){
+  const bx=960/2-4*34-4, by=540-62;   /* ability tiles */
+  c.fillStyle="rgba(10,14,24,.85)"; c.beginPath(); c.roundRect(bx-12,by-8,4*68+24,66,12); c.fill();
+  tiles.forEach((tl,i)=>{ const x=bx+i*68; c.fillStyle="rgba(255,255,255,.07)"; c.strokeStyle=tl[2]; c.lineWidth=2; c.beginPath(); c.roundRect(x,by,60,50,8); c.fill(); c.stroke(); c.fillStyle=tl[2]; c.font="800 18px Oxanium, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; c.fillText(tl[1][0],x+30,by+22); c.fillStyle="#e7eef3"; c.font="700 10px Oxanium, sans-serif"; c.fillText(tl[0],x+10,by+10); c.fillText(tl[1],x+30,by+41); });
+  c.fillStyle="rgba(10,14,24,.85)"; c.beginPath(); c.roundRect(20,540-52,240,34,10); c.fill(); c.fillStyle="#2f2f3a"; c.beginPath(); c.roundRect(30,540-42,220,14,7); c.fill(); c.fillStyle="#4fe07a"; c.beginPath(); c.roundRect(30,540-42,150,14,7); c.fill();
+  c.fillStyle="#e7eef3"; c.font="700 11px Oxanium, sans-serif"; c.textAlign="left"; c.fillText("WAVE 12",760,540-40); c.textAlign="right"; c.fillText("SCORE 48,210",940,540-40);
+}
+function frame(ms){
+  const now=(ms-t0)/1000, c=gc;
+  const g=c.createLinearGradient(0,0,0,540); g.addColorStop(0,"#0f1626"); g.addColorStop(1,"#0a0e18"); c.fillStyle=g; c.fillRect(0,0,960,540);
+  c.strokeStyle="rgba(120,150,220,.07)"; c.lineWidth=1; for(let x=0;x<960;x+=48){ c.beginPath(); c.moveTo(x+.5,0); c.lineTo(x+.5,540); c.stroke(); } for(let y=0;y<540;y+=48){ c.beginPath(); c.moveTo(0,y+.5); c.lineTo(960,y+.5); c.stroke(); }
+  for(let i=0;i<5;i++){ const ex=140+hash(i)*680+Math.sin(now*.6+i)*30, ey=70+hash(i+5)*240+Math.cos(now*.5+i)*20; c.fillStyle="#d06a6a"; c.beginPath(); c.arc(ex,ey,12,0,TAU); c.fill(); c.strokeStyle="rgba(255,255,255,.4)"; c.lineWidth=1.5; c.stroke(); }
+  for(let i=0;i<3;i++){
+    if(i>0&&now-lastBot[i]>6+i*1.3){ lastBot[i]=now+hash(Math.floor(now)+i)*3; const pool=EM.filter(e=>e.rank<=40); play[i]={em:pool[Math.floor(hash(Math.floor(now*3)+i*7)*pool.length)],start:now}; }
+    const p=play[i], t=p?now-p.start:99, b={}; 
+    c.save(); c.translate(pl[i].x,pl[i].y); c.scale(.8,.8); c.translate(-pl[i].x,-pl[i].y);  /* a match emote is 80% */
+    if(p&&t<DUR) p.em.draw(c,pl[i].x,pl[i].y,t,b); else play[i]=null;
+    person(c,pl[i].x,pl[i].y+Math.sin(now*1.6+i)*1.5,pl[i].c,b,t,pl[i].n,i===0);
+    c.restore();
+  }
+  hud(c);
+  const left=Math.max(0,coolUntil-now); document.getElementById("cdfill").style.transform=`scaleX(${cooldown?left/cooldown:0})`;
+  document.getElementById("ebar").classList.toggle("cool",left>0);
+  requestAnimationFrame(frame);
+}
+
+/* The bar. Tiles are 56 px + 8 gap; the window shows about 7. idx is the first tile in view. */
+const STEP=64, strip=document.getElementById("strip"), win=document.getElementById("win"), ebar=document.getElementById("ebar");
+let avail=[];
+function icon(e){ const cv=document.createElement("canvas"); cv.width=112; cv.height=128; const c=cv.getContext("2d"); c.scale(2,2); c.translate(28,34); c.scale(.95,.95); c.translate(-28,-4); const b={}; e.draw(c,28,64,.85,b); return cv; }
+function build(){
+  avail=EM.filter(e=>e.rank<=rank); strip.innerHTML="";
+  avail.forEach((e,i)=>{ const s=document.createElement("button"); s.className="slot"; s.title=e.name; s.setAttribute("aria-label",e.name); s.appendChild(icon(e)); const k=document.createElement("span"); k.className="k"; k.textContent=i<9?(i+1):e.name; s.appendChild(k); s.onclick=()=>use(e); strip.appendChild(s); });
+  idx=Math.min(idx,maxIdx()); place();
+}
+const PAD=34, perView=()=>Math.floor((win.clientWidth-2*PAD+8)/STEP)||6, maxIdx=()=>Math.max(0,avail.length-perView());
+function place(){ strip.style.transform=`translateX(${PAD-idx*STEP}px)`; document.getElementById("prev").disabled=idx<=0; document.getElementById("next").disabled=idx>=maxIdx(); }
+function move(d){ idx=Math.max(0,Math.min(maxIdx(),idx+d)); place(); }
+function use(e){ const now=(performance.now()-t0)/1000; if(now<coolUntil) return; play[0]={em:e,start:now}; coolUntil=now+cooldown; if(toggleMode) setOpen(false); }
+function setOpen(v){ open=v; ebar.classList.toggle("open",v); const h=document.getElementById("hold"); h.classList.toggle("down",v); h.setAttribute("aria-pressed",v); }
+document.getElementById("prev").onclick=()=>move(-3); document.getElementById("next").onclick=()=>move(3);
+ebar.addEventListener("wheel",ev=>{ ev.preventDefault(); move(ev.deltaY>0||ev.deltaX>0?1:-1); },{passive:false});
+screen.addEventListener("wheel",ev=>{ if(open){ ev.preventDefault(); move(ev.deltaY>0?1:-1); } },{passive:false});
+/* Hold V, or hold the on-page key (a click toggles it in toggle mode). */
+addEventListener("keydown",k=>{ if(k.target.matches("input")) return; if(k.key==="v"||k.key==="V"){ if(!k.repeat){ if(toggleMode) setOpen(!open); else setOpen(true); } }
+  else if(open&&k.key==="ArrowRight"){ k.preventDefault(); move(1); } else if(open&&k.key==="ArrowLeft"){ k.preventDefault(); move(-1); }
+  else if(open&&/^[1-9]$/.test(k.key)){ const e=avail[+k.key-1]; if(e) use(e); } });
+addEventListener("keyup",k=>{ if((k.key==="v"||k.key==="V")&&!toggleMode) setOpen(false); });
+const hold=document.getElementById("hold");
+hold.addEventListener("pointerdown",ev=>{ ev.preventDefault(); if(toggleMode) setOpen(!open); else setOpen(true); });
+addEventListener("pointerup",()=>{ if(!toggleMode&&hold.classList.contains("down")&&document.activeElement!==null) { /* released the on-page key */ if(holdPointer) setOpen(false); } holdPointer=false; });
+let holdPointer=false; hold.addEventListener("pointerdown",()=>{ holdPointer=true; });
+document.getElementById("rank").oninput=e=>{ rank=+e.target.value; document.getElementById("rankv").textContent=rank; build(); };
+const mb=document.getElementById("modeBtn"); mb.onclick=()=>{ toggleMode=!toggleMode; mb.setAttribute("aria-pressed",toggleMode); mb.textContent=toggleMode?"Press to toggle":"Hold to show"; setOpen(false); };
+const cb=document.getElementById("cdBtn"); cb.onclick=()=>{ cooldown=cooldown===4?1.5:4; cb.textContent=cooldown===4?"4 s (match)":"1.5 s (Hangout)"; };
+build(); (document.fonts&&document.fonts.ready||Promise.resolve()).then(()=>requestAnimationFrame(frame));
+setTimeout(()=>{ if(!open&&!window.__touched){ setOpen(true); } },600);   /* show it open on load so the look is visible */
+["pointerdown","keydown","wheel"].forEach(ev=>addEventListener(ev,()=>{ window.__touched=true; },{once:true,passive:true}));
+</script>

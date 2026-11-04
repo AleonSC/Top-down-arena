@@ -82,8 +82,7 @@ namespace Arena
             }
             // Quick picks for the boss approach (Approaches.cs), in the slot after the last number.
             {
-                int i = shown;
-                var slot = new Rect(x + (i / rows) * (colW + colGap), y + (i % rows) * rowH + 4f, colW, 24f);
+                var slot = new Rect(x, y + rows * rowH + 4f, colW, 24f);  // its own row under the numbers (the numbers fill both columns)
                 bool blend = Mathf.Abs(diff[DiffKnob.ApproachShare] - 0.85f) < 1e-4f && diff[DiffKnob.ApproachRamp] >= 0.5f;
                 bool full = diff[DiffKnob.ApproachShare] >= 0.999f && diff[DiffKnob.ApproachRamp] < 0.5f;
                 float bw = (colW - 8f) / 2f;
