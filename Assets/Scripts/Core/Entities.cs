@@ -39,6 +39,8 @@ namespace Arena
         ZombieGroan, ZombieRise, ZombieSpit, ZombieGrab, ZombieShriek, ZombieBurst, ZombieMend,
         // The profile picker and the menu trading places (ProfileTransition.cs): your own screen only, never sent.
         ProfSelect, ProfPing, ProfZip, ProfSweep, ProfSweepBack, ProfScratch, ProfBar, ProfChord,
+        // The menu title typing out (MenuIntro.cs, look B of Docs/Mockups/menu-typing-sounds.html): a key per letter, the space bar, and Enter on the last. Never sent.
+        TitleKey, TitleSpace, TitleEnter,
     }
 
     public struct SoundCue

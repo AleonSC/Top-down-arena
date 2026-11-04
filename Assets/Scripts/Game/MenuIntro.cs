@@ -47,6 +47,7 @@ namespace Arena
             {
                 menuIntroDone = true;
                 menuIntroT = 0f;
+                menuTypedSnd = 0;
                 return;
             }
             if (!MenuIntroPlaying)
@@ -54,7 +55,29 @@ namespace Arena
             if (!onMenu || Input.anyKeyDown)
                 menuIntroT = MenuIntroLen;  // skipped (or the menu went away)
             else
+            {
                 menuIntroT += dt;
+                TickTitleTyping();
+            }
+        }
+
+        const string CrtTitleText = "CARTESIAN COLOSSEUM";
+        int menuTypedSnd;  // letters whose typing sound has played
+
+        /// Plays a key sound for each new letter of the title as it types (look B of Docs/Mockups/menu-typing-sounds.html): the space bar for
+        /// the gap, Enter for the last letter. Skipping the intro stops it (this isn't called then). Own screen only, nothing sent.
+        void TickTitleTyping()
+        {
+            if (!MenuIntroFull)
+                return;
+            float typeK = Seg(menuIntroT, CrtTypeAt, CrtTypeAt + CrtTypeLen);
+            int n = typeK >= 1f ? CrtTitleText.Length : Mathf.FloorToInt(typeK * CrtTitleText.Length);
+            while (menuTypedSnd < n)
+            {
+                menuTypedSnd++;
+                var s = menuTypedSnd == CrtTitleText.Length ? Sfx.TitleEnter : CrtTitleText[menuTypedSnd - 1] == ' ' ? Sfx.TitleSpace : Sfx.TitleKey;
+                sounds.Play(s, 0.6f, Time.unscaledTime);
+            }
         }
 
         /// Under the menu, as the full intro starts: the background is dark, then fades up.
