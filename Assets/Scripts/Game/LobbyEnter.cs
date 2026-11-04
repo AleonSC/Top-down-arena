@@ -122,7 +122,7 @@ namespace Arena
             float cx = Lerp(W / 2f, 199f, tk), cy = Lerp(MenuTitleY, 41f, tk), size = Lerp(MenuTitleSize, 40f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
-                WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent, Ui.GlitchKind.Punch));
             if (newA > 0f)
                 WithAlpha(newA, () => Ui.Glitch(new Rect(104f + (cx - 199f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent));
 
