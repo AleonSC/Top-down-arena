@@ -173,6 +173,21 @@ namespace Arena
         static Rect hoverNow, hoverLast;
         static bool hoverFound, hoverHadLast;
 
+        /// A small round close button: a dim ring and an X that lights up blue under the mouse (the drawers' "Esc" button).
+        public static bool CloseChip(Rect r)
+        {
+            bool hot = r.Contains(Event.current.mousePosition);
+            var old = GUI.color;
+            GUI.color = Faded(hot ? new Color(0.55f, 0.72f, 1f, 1f) : new Color(0.17f, 0.22f, 0.35f, 1f));
+            GUI.DrawTexture(r, chip);
+            GUI.color = Faded(hot ? new Color(0.18f, 0.43f, 0.85f, 1f) : new Color(0.07f, 0.085f, 0.14f, 1f));
+            GUI.DrawTexture(new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f), chip);
+            GUI.color = old;
+            float isz = Mathf.Round(r.width * 0.5f);
+            Icon(new Rect(r.center.x - isz / 2f, r.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_close"), hot ? Color.white : new Color(0.62f, 0.68f, 0.8f, 1f));
+            return HitArea(r);
+        }
+
         /// An invisible click area over something drawn by hand (cards, tabs, swatches). Counts for the hover sound.
         public static bool HitArea(Rect r)
         {
