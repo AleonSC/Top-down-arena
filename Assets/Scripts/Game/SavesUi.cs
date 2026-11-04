@@ -118,6 +118,7 @@ namespace Arena
             float want = olderWanted ? 1f : 0f;
             if (live && Event.current.type == EventType.Repaint)
                 menuOlderK = fxOn && !fxReduced ? Mathf.MoveTowards(menuOlderK, want, Time.unscaledDeltaTime / MenuOlderLen) : want;
+            DrawPickerHeader(c, live, olderWanted);
             if (menuOlderK >= 1f && olderWanted)
             {
                 DrawOlderRuns(c, t, live, false);
@@ -128,7 +129,7 @@ namespace Arena
                 // The latest run's screen grows into the older runs' screen (and back): the old content fades out, the new fades in.
                 float e = EaseInOut(Mathf.Clamp01(menuOlderK));
                 var from = new Rect(c.x + 30f, c.y + 62f, 620f, 126f);
-                var to = new Rect(c.x + 30f, c.y + 12f, 620f, c.height - 24f);
+                var to = OlderScreenRect(c);
                 var now = new Rect(Mathf.Lerp(from.x, to.x, e), Mathf.Lerp(from.y, to.y, e), Mathf.Lerp(from.width, to.width, e), Mathf.Lerp(from.height, to.height, e));
                 float oldA = Mathf.Clamp01(1f - e * 2f), newA = Mathf.Clamp01(e * 2f - 1f);
                 float saved = Ui.Alpha;
@@ -150,13 +151,50 @@ namespace Arena
             DrawLatestRun(c, t, live, false);
         }
 
+        /// The older runs' screen: the latest run's screen, grown downward over the button row.
+        static Rect OlderScreenRect(Rect c) => new Rect(c.x + 30f, c.y + 62f, 620f, c.height - 74f);
+
+        /// The picker's header: a small CRT screen of its own with the title (and, in the older runs, the page arrows), and a
+        /// physical Back key beside it (a slab with a lamp). Shared by the latest run and the older runs.
+        void DrawPickerHeader(Rect c, bool live, bool olderWanted)
+        {
+            bool calm = fxReduced;
+            bool older = olderWanted && menuOlderK >= 0.5f;
+            var hs = new Rect(c.x + 30f, c.y + 10f, 488f, 44f);
+            int pages = Mathf.Max(1, (savedRuns.Count - 1 + 2) / 3);
+            menuOlderPage = Mathf.Clamp(menuOlderPage, 0, pages - 1);
+            bool prev = false, next = false;
+            CrtUi.Begin(hs);
+            string title = older ? "OLDER RUNS" : savedRuns.Count > 0 ? "CONTINUE YOUR LATEST RUN" : "START A RUN";
+            CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), title, 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            if (older && menuOlderK >= 1f && pages > 1)
+            {
+                prev = CrtUi.Small(new Rect(hs.xMax - 130f, hs.y + 6f, 32f, 32f), "\u2039", null, 20, calm);
+                CrtUi.Text(new Rect(hs.xMax - 96f, hs.y + 6f, 60f, 32f), (menuOlderPage + 1) + " / " + pages, 14, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
+                next = CrtUi.Small(new Rect(hs.xMax - 44f, hs.y + 6f, 32f, 32f), "\u203a", null, 20, calm);
+            }
+            CrtUi.End(hs, Time.unscaledTime, calm);
+            var br = new Rect(c.xMax - 30f - 120f, c.y + 10f, 120f, 44f);
+            bool back = MenuVhs.Draw(br, "TRK 02", live, fxReduced, () =>
+            {
+                bool b = Ui.ActionButton(br, "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15);
+                Ui.Fill(new Rect(br.xMax - 14f, br.center.y - 3f, 6f, 6f), CrtUi.Ink);   // the lamp
+                return b;
+            });
+            if (!live)
+                return;
+            if (prev && menuOlderPage > 0)
+                menuOlderPage--;
+            if (next && menuOlderPage < pages - 1)
+                menuOlderPage++;
+            if (back)
+                PlayPickerBack();
+        }
+
         /// The latest run's view. inner = drawn inside the growing screen of the transition (no screen of its own, no clicks).
         void DrawLatestRun(Rect c, float t, bool live, bool inner)
         {
             bool any = savedRuns.Count > 0;
-            Ui.Glitch(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, TextAnchor.MiddleLeft, SaveColor);
-            if (MenuVhs.Draw(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "TRK 02", live, fxReduced, () => Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15)) && live)
-                PlayPickerBack();
             var r = new Rect(c.x + 30f, c.y + 62f, 620f, 126f);
             bool calm = fxReduced;
             if (!inner)
@@ -250,26 +288,17 @@ namespace Arena
             int older = savedRuns.Count - 1, pages = (older + 2) / 3;
             menuOlderPage = Mathf.Clamp(menuOlderPage, 0, pages - 1);
             bool calm = fxReduced;
-            var scr = new Rect(c.x + 30f, c.y + 12f, 620f, c.height - 24f);
+            var scr = OlderScreenRect(c);
             if (!inner)
                 CrtUi.Begin(scr);
-            CrtUi.Text(new Rect(scr.x + 14f, c.y + 18f, 300f, 34f), "OLDER RUNS", 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
-            bool prev = false, next = false;
-            if (pages > 1)
-            {
-                CrtUi.Text(new Rect(scr.xMax - 322f, c.y + 18f, 80f, 34f), (menuOlderPage + 1) + " / " + pages, 14, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
-                prev = CrtUi.Small(new Rect(scr.xMax - 364f, c.y + 18f, 40f, 34f), "\u2039", null, 20, calm);
-                next = CrtUi.Small(new Rect(scr.xMax - 240f, c.y + 18f, 40f, 34f), "\u203a", null, 20, calm);
-            }
-            bool back = CrtUi.Small(new Rect(scr.xMax - 124f, c.y + 18f, 110f, 34f), "BACK", PixelArt.Get("ui_back"), 15, calm);
             // Table header, then one row per save; the Players column lists every seat, one per line.
             float hx = scr.x + 14f + 12f;
             float[] colX = { 0f, 48f, 132f, 180f, 238f };
             string[] heads = { "WAVE", "SAVED", "SCORE", "PLAYED", "PLAYERS" };
             for (int k = 0; k < heads.Length; k++)
-                CrtUi.Text(new Rect(hx + colX[k], c.y + 60f, 120f, 14f), heads[k], 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
+                CrtUi.Text(new Rect(hx + colX[k], scr.y + 8f, 120f, 14f), heads[k], 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
             var rule = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f);
-            Ui.Fill(new Rect(scr.x + 14f, c.y + 75f, scr.width - 28f, 1f), rule);
+            Ui.Fill(new Rect(scr.x + 14f, scr.y + 23f, scr.width - 28f, 1f), rule);
             RunSave toContinue = null, toDelete = null;
             for (int i = 0; i < 3; i++)
             {
@@ -277,11 +306,11 @@ namespace Arena
                 if (idx >= savedRuns.Count)
                     break;
                 var s = savedRuns[idx];
-                var r = new Rect(scr.x + 14f, c.y + 76f + i * 56f, scr.width - 28f, 52f);
+                var r = new Rect(scr.x + 14f, scr.y + 24f + i * 52f, scr.width - 28f, 48f);
                 bool armed = deleteArmed == s.Id;
                 if (armed)
                     Ui.Fill(r, new Color(1f, 0.42f, 0.48f, 0.08f));
-                Ui.Fill(new Rect(r.x, r.yMax + 3f, r.width, 1f), rule);
+                Ui.Fill(new Rect(r.x, r.yMax + 2f, r.width, 1f), rule);
                 float x = r.x + 12f;
                 CrtUi.Text(new Rect(x + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.Wave + 1).ToString(), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                 if (s.Endless)
@@ -298,23 +327,17 @@ namespace Arena
                     CrtUi.Text(new Rect(x + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                     CrtUi.Text(new Rect(x + colX[4] + 88f, top + k * 15f - 1f, 120f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
                 }
-                if (CrtUi.Small(new Rect(r.xMax - 176f, r.y + 8f, 104f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 14, calm))
+                if (CrtUi.Small(new Rect(r.xMax - 176f, r.y + 6f, 104f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 14, calm))
                     toContinue = s;
-                if (CrtUi.Small(new Rect(r.xMax - 66f, r.y + 8f, 66f, 36f), armed ? "REALLY?" : "DEL", null, armed ? 12 : 15, calm, true, armed))
+                if (CrtUi.Small(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), armed ? "REALLY?" : "DEL", null, armed ? 12 : 15, calm, true, armed))
                     toDelete = s;
             }
-            CrtUi.Text(new Rect(scr.x + 14f, c.yMax - 36f, scr.width - 28f, 16f), deleteArmed != null ? "Click REALLY? again to delete that run." : "DEL asks twice before it deletes.", 11, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
+            CrtUi.Text(new Rect(scr.x + 14f, scr.yMax - 24f, scr.width - 28f, 16f), deleteArmed != null ? "Click REALLY? again to delete that run." : "DEL asks twice before it deletes.", 11, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
             if (!inner)
                 CrtUi.End(scr, Time.unscaledTime, calm);
             if (!live)
                 return;
-            if (prev && menuOlderPage > 0)
-                menuOlderPage--;
-            if (next && menuOlderPage < pages - 1)
-                menuOlderPage++;
-            if (back)
-                PlayPickerBack();
-            else if (toContinue != null)
+            if (toContinue != null)
                 ContinueSave(toContinue);
             else if (toDelete != null)
             {
