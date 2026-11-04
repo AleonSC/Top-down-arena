@@ -592,6 +592,18 @@ namespace Arena
             labelStyle.normal.textColor = new Color(0.9f, 0.92f, 1f);
         }
 
+        /// The main menu under a side drawer (Settings, Records, How to play): the box fades and drifts out as the drawer
+        /// slides in, and back in as it slides out. Draw-only (Repaint), so it takes no clicks. `hidden` skips it.
+        void DrawMenuUnderDrawer(bool hidden)
+        {
+            float vis = hidden ? 1f : WindowVis;
+            if (vis >= 1f || Event.current.type != EventType.Repaint)
+                return;
+            PushShift(70f * EaseOut(vis), 0f, 1f - vis);
+            DrawMenu();
+            PopShift();
+        }
+
         void OnGUI()
         {
             UpdateLayout();
@@ -616,23 +628,21 @@ namespace Arena
                         DrawFieldGuideScreen();  // FieldGuide.cs (the main menu's button)
                     else if (settingsOpen)
                     {
-                        // The box animates out as the drawer slides in (and back in as it slides out): the menu is drawn
-                        // under it, fading and drifting away from the drawer, and takes no clicks (Repaint only).
-                        float menuVis = bgBig ? 1f : WindowVis;
-                        if (menuVis < 1f && Event.current.type == EventType.Repaint)
-                        {
-                            PushShift(70f * EaseOut(menuVis), 0f, 1f - menuVis);
-                            DrawMenu();
-                            PopShift();
-                        }
+                        DrawMenuUnderDrawer(bgBig);
                         DrawSettings();
                     }
                     else if (howToOpen)
+                    {
+                        DrawMenuUnderDrawer(false);
                         DrawHowToPlay();
+                    }
                     else if (continueOpen)
                         DrawContinue();  // SavesUi.cs
                     else if (recordsOpen)
+                    {
+                        DrawMenuUnderDrawer(false);
                         DrawRecords();
+                    }
                     else if (cosmeticsOpen)
                         DrawCosmetics();  // CosmeticsUi.cs
                     else
