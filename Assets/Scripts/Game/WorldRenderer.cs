@@ -293,10 +293,8 @@ namespace Arena
                 Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
             if (p.AdrenalineT > 0f)
                 DrawAdrenaline(p, t);  // heartbeat rings and a thumping heart (AdrenalineLook.cs)
-            if (p.AegisT > 0f)  // Arcane Aegis: a spinning hexagon
-                for (int k = 0; k < 6; k++)
-                    Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),
-                         p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
+            if (p.AegisT > 0f)  // Aeroaegis: the gust shell (AeroaegisLook.cs)
+                DrawAeroaegis(p, t);
             if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a blood-red ring, pulsing faster as it runs out
                 Arc(p.Disp, p.Def.BodyR + 13f, 2f, new Rgba(0.95f, 0.15f, 0.25f, 0.45f + 0.35f * Mathf.Sin(t * (4f + 8f * (1f - p.WardT / 12f)))), 24);
             if (p.ShieldHp > 0f && p.Kit == Kit.Hemomancer)  // Blood Shell: plates of blood (BloodMageLook.cs)

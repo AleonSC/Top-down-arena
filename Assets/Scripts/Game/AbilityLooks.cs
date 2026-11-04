@@ -62,7 +62,7 @@ namespace Arena
             Buff(p => p.OverdriveT, new Rgba(1f, 0.4f, 0.3f)),     // Overdrive
             Buff(p => p.AdrenalineT, new Rgba(1f, 0.31f, 0.35f)),  // Adrenaline Shot
             Buff(p => p.LinkT, new Rgba(0.6f, 1f, 0.9f)),          // Soul Link
-            Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Arcane Aegis
+            Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Aeroaegis
             Buff(p => p.FrenzyT, new Rgba(1f, 0.5f, 0.3f)),        // Alpha Call
             Buff(p => p.WallT, new Rgba(0.55f, 0.9f, 1f)),         // Shield Wall
             Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Unbreakable
@@ -90,7 +90,7 @@ namespace Arena
             for (int i = 0; i < Buffs.Length; i++)
             {
                 float left = Buffs[i].Key(p);
-                if (fxOn && i == RoarBuff)  // Roar's own rim shows its time (TankLooks.cs)
+                if (fxOn && (i == RoarBuff || i == AegisBuff))  // Roar's and Aeroaegis's own rims show their time (TankLooks.cs, AeroaegisLook.cs)
                     left = 0f;
                 int key = p.Id * 64 + i;
                 float full;

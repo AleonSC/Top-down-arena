@@ -34,6 +34,8 @@ namespace Arena
         {
             roarFull.Clear();
             tankShaken.Clear();
+            aegisSeen.Clear();
+            frozenSeen.Clear();
         }
 
         /// The plain ring a Roar (orange, 320 px, 0.5 s) or a Bulldoze (blue, 60 px, 0.35 s) sends, which these looks replace.

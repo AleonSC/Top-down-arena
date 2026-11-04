@@ -129,7 +129,7 @@ namespace Arena
             { "Dash", "dash" },
             { "Cluster Grenade", "grenade" },
             { "Mark for Death", "crosshair" },
-            { "Arcane Aegis", "mirror" },
+            { "Aeroaegis", "mirror" },
             { "Frost Nova", "snow" },
             { "Flame Wall", "flame" },
             { "Healing Rain", "rain" },

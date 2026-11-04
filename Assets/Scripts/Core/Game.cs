@@ -1070,6 +1070,7 @@ namespace Arena
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
+            KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);

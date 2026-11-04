@@ -43,6 +43,11 @@ namespace Arena
                         DrawMendPulseFx(fx, f);  // MendPulseLook.cs
                         break;
                     }
+                    if (IsFrostNova(fx))
+                    {
+                        DrawFrostNova(fx);  // FrostNovaLook.cs
+                        break;
+                    }
                     if (IsTankRing(fx))
                         break;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
                     Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
