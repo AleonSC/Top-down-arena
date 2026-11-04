@@ -4,6 +4,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
 
 ## Bugs / polish
 - [x] **Play to Continue was too abrupt.** Built (Nov 2026, protocol unchanged): look D (Scan wipe) of [`Mockups/play-transition.html`](Mockups/play-transition.html) (https://claude.ai/artifact/KoZjXL3aurKkt4Dhx6GTaB), slowed to 0.85 s (`MenuPlayLen` in `Menus.cs`). A teal line sweeps left to right from the menu buttons to the picker, and right to left on Back or Esc. No clicks during the sweep; it snaps with reduced effects. Needs a try in Unity.
+- [x] **Menu tip tray (no more record line).** Built (Nov 2026, protocol unchanged, 147): look D of [`Mockups/menu-tips-only.html`](Mockups/menu-tips-only.html)
+      (https://claude.ai/artifact/L1PxG3dkzmxsVG5MYVDR7R). The chip under the title is gone, record line and all; a tray slides out from behind the bottom of the menu card
+      every 8 s with a How to play tip, slides back and comes out with the next. It tucks away while the Join address row is open (`DrawMenuTipTray`, `Menus.cs`).
+      The gap under the title axis is now empty; say if you want the card or title moved up. Needs a try in Unity.
 - [x] **Tank gun animations (Scattergun, Flak Cannon, Riot Repeater).** Built (Nov 2026, no protocol change): glowing shots kept, lobby preview matches. Mockup:
       [`Mockups/tank-gun-animations.html`](Mockups/tank-gun-animations.html) (https://claude.ai/artifact/QeTMr1Gr6n1KoJKymyutE3). Needs a try in Unity. Armory pages are now out of date for these three.
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.

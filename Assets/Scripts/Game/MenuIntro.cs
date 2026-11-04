@@ -33,7 +33,7 @@ namespace Arena
             bool onMenu = session.Screen == AppScreen.Menu;
             if (onMenu && menuLastScreen != AppScreen.Menu)
             {
-                menuTipSeed = Random.Range(0, 1000);  // a new line under the title each time the menu opens
+                menuTipSeed = Random.Range(0, 1000);  // a new first tip each time the menu opens
                 menuPlayOpen = false;                 // and the box is back on Play (SavesUi.cs)
                 menuPlayK = 0f;
             }

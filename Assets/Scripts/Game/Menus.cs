@@ -9,12 +9,12 @@ namespace Arena
     public partial class ArenaApp
     {
         // The main menu ("Big play", Docs/Mockups/menu-d.html): the title on its x-axis with a shot arcing over it and a
-        // line under it that changes; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) your name
+        // tip tray pulled out from under the box (DrawMenuTipTray); in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) your name
         // card over one big Play button over Join game, Records and Settings. Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
         // under the box. Quit is a faint power icon at the bottom centre of the screen. The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
-        const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f, MenuTipY = 220f;
+        const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
         const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
         static readonly Rect MenuCard = new Rect(W / 2f - 340f, 250f, 680f, 280f);
         static readonly Rect MenuNameRect = new Rect(MenuCard.x + 30f, MenuCard.y + 22f, 620f, 64f);
@@ -29,14 +29,14 @@ namespace Arena
         float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between a scan line is sweeping across the box
         const float MenuPlayLen = 0.85f;  // seconds for that sweep, in either direction
         static readonly Color ScanColor = new Color(0.44f, 0.89f, 0.77f);
-        int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
+        int menuTipSeed;      // which tip the tray starts on (a new one each time the menu opens)
 
         void DrawMenu()
         {
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
             float box = MenuIntroK(1.65f, 2.0f);
-            if (box > 0f)  // the card's glow first, so it sits under the title, the tip chip and everything else
+            if (box > 0f)  // the card's glow first, so it sits under the title, the tip tray and everything else
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
             DrawMenuTitle(t);
             if (box > 0f)
@@ -57,60 +57,55 @@ namespace Arena
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
         }
 
-        /// The title, the line under it (typed in during the intro), drawn in ink then filled during the intro.
+        /// The title, and the tip tray behind the card (slid out during the intro), drawn in ink then filled during the intro.
         void DrawMenuTitle(float t, float alpha = 1f)
         {
             var r = new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f);
             DrawMenuTitleText(r);
             float tip = MenuIntroK(2.2f, 2.55f);
             if (tip > 0f)
-                DrawMenuTipChip(t, alpha, tip);
+                DrawMenuTipTray(t, alpha, tip);
         }
 
-        /// The line under the title: your best run, then the How to play tips, a new one every 8 s. Gives its topic and the
-        /// rest separately, whether it's a record (else a tip), and how long it has been up.
-        void MenuTip(float t, out string topic, out string body, out bool record, out float age)
+        /// The tip tray's current tip: its topic and text, and how long it has been up. A new tip every MenuTipCycle seconds,
+        /// starting from a random one each time the menu opens (menuTipSeed).
+        void MenuTip(float t, out string topic, out string body, out float age)
         {
-            var p = Profile.Current;
-            int n = HowToTips.GetLength(0) + (p.BestWave > 0 ? 1 : 0);
+            int n = HowToTips.GetLength(0);
             int i = (Mathf.FloorToInt(t / MenuTipCycle) + menuTipSeed) % n;
             age = t % MenuTipCycle;
-            record = p.BestWave > 0 && i == 0;
-            if (record)
-            {
-                topic = "Best run";
-                body = "wave " + p.BestWave + "  ·  " + p.RunsStarted + (p.RunsStarted == 1 ? " run" : " runs") + " started";
-                return;
-            }
-            int k = i - (p.BestWave > 0 ? 1 : 0);
-            topic = HowToTips[k, 0];
-            body = HowToTips[k, 1];
+            topic = HowToTips[i, 0];
+            body = HowToTips[i, 1];
         }
 
-        const float MenuTipCycle = 8f;
+        const float MenuTipCycle = 8f, MenuTipSlide = 0.45f, MenuTipH = 90f;
+        float menuTrayHide;  // 0 to 1: the tray tucks back under the card while the Join address row is open
 
-        /// The line under the title as a chip ("A", Docs/Mockups/menu-tip.html): a dark pill with a coloured tag (no box behind it: a bulb and
-        /// TIP in blue, or a trophy and RECORD in gold), the topic in bold, then the rest. Each line slides up and fades in,
-        /// and slides on up as it fades out. `intro` is how far the menu's intro has brought it in (1 = in place).
-        void DrawMenuTipChip(float t, float alpha, float intro = 1f)
+        /// The tip tray (Docs/Mockups/menu-tips-only.html, D): a panel pulled out from behind the bottom of the menu card, a bulb
+        /// and TIP on the left, the topic in bold and the text on up to two lines. It slides out, holds, slides back and comes
+        /// out again with the next tip. Draw it BEFORE the card so the card hides its top. `intro` is how far the menu's intro has
+        /// brought it in (1 = the normal loop).
+        void DrawMenuTipTray(float t, float alpha, float intro = 1f)
         {
-            MenuTip(t, out string topic, out string body, out bool record, out float age);
-            float inK = intro < 1f ? intro : Mathf.Clamp01(age / 0.35f), outK = intro < 1f ? 0f : Mathf.Clamp01((age - (MenuTipCycle - 0.3f)) / 0.3f);
-            inK = 1f - (1f - inK) * (1f - inK) * (1f - inK);
-            float a = inK * (1f - outK) * alpha;
-            if (a <= 0f)
+            menuTrayHide = Mathf.MoveTowards(menuTrayHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
+            MenuTip(t, out string topic, out string body, out float age);
+            float inK = intro < 1f ? intro : Mathf.Clamp01(age / MenuTipSlide);
+            float outK = intro < 1f ? 0f : Mathf.Clamp01((age - (MenuTipCycle - MenuTipSlide)) / MenuTipSlide);
+            float e = EaseOut(inK) * (1f - EaseOut(outK)) * (1f - EaseOut(menuTrayHide));
+            if (e <= 0f || alpha <= 0f)
                 return;
-            float dy = 10f * (1f - inK) - 8f * outK;
-            var col = record ? new Color(1f, 0.8f, 0.35f) : new Color(0.43f, 0.65f, 1f);
-            string tag = record ? "RECORD" : "TIP";
-            float tagW = Ui.TextWidth(tag, 11, true) + 30f, topicW = Ui.TextWidth(topic, 15, true) + 10f, bodyW = Ui.TextWidth(body, 15);
-            float w = tagW + 6f + topicW + bodyW + 16f, h = 30f, x = W / 2f - w / 2f, y = MenuTipY - h / 2f + dy;
-            Ui.Capsule(new Rect(x, y, w, h), new Color(0.05f, 0.06f, 0.1f, 0.88f * a), new Color(col.r, col.g, col.b, 0.35f * a));
-            Ui.Icon(new Rect(x + 12f, y + 9f, 12f, 12f), PixelArt.Get(record ? "ui_trophy" : "ui_bulb"), new Color(col.r, col.g, col.b, a));  // at its pixel size: crisp
-            Ui.Label(new Rect(x + 28f, y, tagW - 24f, h), tag, 11, new Color(col.r, col.g, col.b, a), TextAnchor.MiddleLeft, true);
-            float tx = x + tagW + 6f;
-            Ui.Label(new Rect(tx, y, topicW, h), topic, 15, new Color(1f, 1f, 1f, a), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tx + topicW, y, bodyW + 8f, h), body, 15, new Color(0.78f, 0.82f, 0.91f, 0.95f * a), TextAnchor.MiddleLeft);
+            const float w = 640f, overlap = 6f;
+            var r = new Rect(W / 2f - w / 2f, MenuCard.yMax - MenuTipH + (MenuTipH - overlap) * e, w, MenuTipH);
+            WithAlpha(alpha, () =>
+            {
+                Ui.BodyBox(r);
+                float ty = r.y + overlap + 6f, th = r.height - overlap - 12f;
+                var blue = new Color(0.43f, 0.65f, 1f);
+                Ui.Icon(new Rect(r.x + 24f, ty + th / 2f - 16f, 12f, 12f), PixelArt.Get("ui_bulb"), blue);  // at its pixel size: crisp
+                Ui.Label(new Rect(r.x + 16f, ty + th / 2f + 2f, 28f, 14f), "TIP", 11, blue, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x + 62f, ty, 20f + w - 90f, 22f), topic, 16, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 62f, ty + 22f, w - 90f, th - 22f), body, 15, new Color(0.78f, 0.82f, 0.91f, 0.95f), TextAnchor.UpperLeft, false, true);
+            });
         }
 
         /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.
