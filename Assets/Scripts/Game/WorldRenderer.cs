@@ -546,8 +546,17 @@ namespace Arena
                 glClip = pieceGlClip;
                 glClipOn = true;
             }
+            else if (menuGlClipX >= 0f)  // the main menu's scan line sweeping: models show only on the menu buttons' side of it (Menus.cs)
+            {
+                glClip = new Rect(menuGlClipX, 0f, Mathf.Max(0f, W - menuGlClipX), H);
+                glClipOn = true;
+            }
             return true;
         }
+
+        /// While the main menu's box sweeps between the buttons and the picker: the scan line's x, so the buttons' GL models
+        /// (your name card's figure) are cut there like the rest of the buttons. -1 = no cut.
+        float menuGlClipX = -1f;
 
         void EndUiGl()
         {
