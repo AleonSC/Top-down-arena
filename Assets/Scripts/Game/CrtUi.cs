@@ -64,6 +64,34 @@ namespace Arena
             return Ui.HitArea(r);
         }
 
+        static readonly Color Danger = new Color(1f, 0.42f, 0.48f);
+
+        /// A small outlined button (pager arrows, Back, row buttons). danger: red, for delete; lit: already filled (a delete waiting for its second click).
+        public static bool Small(Rect r, string text, Texture2D icon, int size, bool calm, bool danger = false, bool lit = false)
+        {
+            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            Color col = danger ? Danger : Ink, dark = danger ? new Color(0.1f, 0.02f, 0.03f) : Bg;
+            bool fill = hover || lit;
+            Ui.Fill(r, fill ? new Color(col.r, col.g, col.b, 0.95f) : new Color(col.r, col.g, col.b, 0.07f));
+            Edge(r, 2f, col);
+            Color tc = fill ? dark : col;
+            float isz = Mathf.Min(size * 1.0f, r.height * 0.5f);
+            float tw = text.Length == 0 ? 0f : Ui.TextWidth(text, size, true) - 6f, gap = icon != null && text.Length > 0 ? 6f : 0f, ic = icon != null ? isz : 0f;
+            float x = r.center.x - (ic + gap + tw) / 2f;
+            if (icon != null)
+                Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), icon, tc);
+            if (text.Length > 0)
+            {
+                var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height);
+                if (fill)
+                    Ui.Label(tr, text, size, tc, TextAnchor.MiddleLeft, true);
+                else
+                    Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, calm);
+            }
+            return Ui.HitArea(r);
+        }
+
         /// Scanlines, vignette and (unless calm) the rolling bar and flicker, over everything drawn since Begin.
         public static void End(Rect r, float t, bool calm)
         {
