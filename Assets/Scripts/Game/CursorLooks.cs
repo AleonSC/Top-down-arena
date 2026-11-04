@@ -48,13 +48,69 @@ namespace Arena
         readonly List<CursorPt> menuCursorHist = new List<CursorPt>();
         float menuCursorFire;
 
-        /// Menu and lobby: your equipped crosshair replaces the system pointer (Classic keeps the pointer).
+        /// Menu and lobby: your equipped crosshair replaces the system pointer (Classic gets the Corner pointer instead, below).
         bool MenuCursorOn => session.Screen != AppScreen.Game && CursorLook() != 0;
 
-        /// Called at the end of OnGUI: the equipped crosshair at the mouse, over everything.
+        // ---- Classic: the Corner pointer that turns into the reticle (mockup: Cursor Morph Lab, "Corner" + "Lock-on") ----
+        const float CursorMorphLen = 0.6f;   // seconds for the pointer <-> reticle morph
+        const float PointerArm = 14f, PointerWidth = 2.4f, PointerInk = 4.4f;
+        float cursorMorph;                   // 0 = menu pointer, 1 = in-game reticle
+        bool cursorWantPointer;              // set each frame by Update: menus, and match overlays (pause, end screen, upgrade cards...)
+
+        void StepCursorMorph(bool pointer)
+        {
+            float target = pointer ? 0f : 1f;
+            cursorMorph = fxOn && !fxReduced ? MathX.MoveTowards(cursorMorph, target, Time.unscaledDeltaTime / CursorMorphLen) : target;
+        }
+
+        static float EaseInOut3(float u) => u < 0.5f ? 4f * u * u * u : 1f - Mathf.Pow(-2f * u + 2f, 3f) / 2f;
+        static float EaseOutExpo(float u) => u >= 1f ? 1f : 1f - Mathf.Pow(2f, -10f * u);
+
+        /// The Classic cursor at morph `k` (0 pointer, 1 reticle; `f` is the fire swell). Lock-on: the L-bracket pointer collapses
+        /// to a dot (k 0 to 0.3), the ring snaps out with an overshoot and a ripple, then the ticks slam in. At k = 1 it is exactly CurClassic.
+        void DrawClassicMorph(V2 m, float f, float k)
+        {
+            if (k >= 1f)
+            {
+                CurClassic(m, f);
+                return;
+            }
+            var white = Rgba.White;
+            const float pivot = 0.3f;
+            if (k < pivot)
+            {
+                float arm = PointerArm * (1f - EaseInOut3(k / pivot));
+                if (arm < 0.4f)
+                    return;
+                V2 a = m + new V2(arm, 0f), c = m + new V2(0f, arm);
+                var ink = new Rgba(0.016f, 0.024f, 0.043f, 0.55f);
+                Line(a, m, PointerInk, ink);
+                Line(m, c, PointerInk, ink);
+                Circle(m, PointerInk / 2f, ink, 8);
+                Line(a, m, PointerWidth, white);
+                Line(m, c, PointerWidth, white);
+                Circle(m, PointerWidth / 2f, white, 8);
+                return;
+            }
+            float u = MathX.Clamp01((k - pivot) / (1f - pivot));
+            float w = EaseOutExpo(MathX.Clamp01((k - 0.45f) / 0.55f));
+            float r = (8f + f * 3f) * EaseOutBack(u), g = 5f + f * 3f, off = (1f - w) * 16f;
+            if (r > 0.3f)
+                Arc(m, r, 1.5f, white.WithAlpha(0.7f), 16);
+            var tick = white.WithAlpha(0.7f * MathX.Clamp01(w * 3f));
+            for (int i = 0; i < 4; i++)
+            {
+                V2 d = i == 0 ? new V2(-1f, 0f) : i == 1 ? new V2(1f, 0f) : i == 2 ? new V2(0f, -1f) : new V2(0f, 1f);
+                Line(m + d * (g + off), m + d * (g + 8f + off), 1.5f, tick);
+            }
+            Arc(m, 8f + EaseOut3(u) * 28f, 1.2f, white.WithAlpha((1f - u) * (1f - u) * 0.8f), 24);
+        }
+
+        /// Called at the end of OnGUI: the equipped crosshair (or the Classic pointer) at the mouse, over everything.
         void DrawMenuCursor()
         {
-            if (!MenuCursorOn || Event.current.type != EventType.Repaint)
+            bool classic = CursorLook() == 0 && cursorWantPointer;  // Classic: the Corner pointer wherever a pointer is wanted
+            if (!(MenuCursorOn || classic) || Event.current.type != EventType.Repaint)
                 return;
             float t = Time.unscaledTime;
             Vector3 mp = Input.mousePosition;
@@ -66,7 +122,10 @@ namespace Arena
             if (BeginUiGl())
             {
                 UiModelAt(new V2(0f, 0f), 1f);
-                DrawCursorLook(CursorLook(), m, t, menuCursorFire, menuCursorHist);
+                if (classic)
+                    DrawClassicMorph(m, menuCursorFire, cursorMorph);
+                else
+                    DrawCursorLook(CursorLook(), m, t, menuCursorFire, menuCursorHist);
                 EndUiGl();
             }
         }

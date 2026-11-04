@@ -329,7 +329,14 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
-            Cursor.visible = (session.Screen != AppScreen.Game && !MenuCursorOn) || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me);
+            bool inMenus = session.Screen != AppScreen.Game;
+            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me)
+                || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
+            // A crosshair you equipped (rank cosmetic) is drawn by us in the menus and the system pointer shows over match overlays.
+            // Classic: we draw the Corner pointer everywhere a pointer is wanted and it morphs to the reticle (CursorLooks.cs).
+            cursorWantPointer = inMenus || overlayPointer;
+            Cursor.visible = CursorLook() != 0 && !inMenus && overlayPointer;
+            StepCursorMorph(cursorWantPointer);
 
             if (!menuUp)
             {

@@ -114,7 +114,10 @@ namespace Arena
             // Crosshair
             V2 m = MouseArena();
             StepCursor(m, t, Input.GetMouseButton(0) && !fireBlocked);
-            DrawCursorLook(CursorLook(), m, t, cursorFire, cursorHist);  // CursorLooks.cs
+            if (CursorLook() != 0)
+                DrawCursorLook(CursorLook(), m, t, cursorFire, cursorHist);  // CursorLooks.cs
+            else if (!cursorWantPointer)
+                DrawClassicMorph(m, cursorFire, cursorMorph);  // the pointer turning into the reticle as a match starts (CursorLooks.cs)
             EndJuiceFrame();
             EndRecording();
         }
