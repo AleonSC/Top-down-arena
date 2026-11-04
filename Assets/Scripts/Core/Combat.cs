@@ -15,6 +15,8 @@ namespace Arena
                 return;
             if (p.SwallowT > 0f && !stomach)
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
+            if (InDome(p.Pos, -2f))
+                return;  // inside Fortress's dome nothing hostile reaches you (Dome.cs)
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
@@ -40,8 +42,6 @@ namespace Arena
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
-                amount *= 0.25f;
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Arcane Ward, Guardian's Oath, Substitution, Blood Shell)
             {
@@ -212,6 +212,7 @@ namespace Arena
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
             lo -= margin;
             hi += margin;
+            bool domesUp = AnyDome();  // Fortress's dome (Dome.cs)
             foreach (var b in Bullets.Values)
             {
                 if (b.AngVel != 0f && b.Kind != Defs.FumaStar)  // a Fuma Shuriken's AngVel only says which way it loops (Ninja.cs)
@@ -227,6 +228,11 @@ namespace Arena
                 if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
                     b.Pos += wind * dt;
                 b.Life -= dt;
+                if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
+                {
+                    scratchIds.Add(b.Id);  // an enemy shot touching a dome is gone
+                    continue;
+                }
                 if (b.Life <= 0f || b.Pos.X < lo.X || b.Pos.Y < lo.Y || b.Pos.X > hi.X || b.Pos.Y > hi.Y)
                 {
                     scratchIds.Add(b.Id);

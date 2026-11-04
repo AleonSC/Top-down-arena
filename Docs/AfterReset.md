@@ -54,6 +54,7 @@ A running list of things to pick up next session. Tick off / delete as they're d
       the pick preview on the card), two-click Reroll, uppercase REROLL / CHOOSE UPGRADE. Mockup: [`Mockups/upgrade-card-layout.html`](Mockups/upgrade-card-layout.html).
 
 ## Visuals
+- [x] **Tank Soldier Fortress dome.** Built (Nov 2026, protocol 146): look B, Bulwark wall (`Game/DomeLook.cs`, `Core/Dome.cs`), 10 s (14 s mastered), no taunt or damage cut. Only players and player bullets cross; enemies (bosses too) and their shots are held out, and nothing hostile damages a player inside. Mockup: [`Mockups/fortress-dome.html`](Mockups/fortress-dome.html) (https://claude.ai/artifact/VapgPykPS23u6D1UnMjHvv). Bestiary/Armory pages still show the old Fortress until you ask.
 - [x] **Profile picker <-> main menu transition, with sound.** Built (Nov 2026, no protocol bump): look C, Plot points, at half speed
       (`Game/ProfileTransition.cs`), from [`Mockups/profile-transitions.html`](Mockups/profile-transitions.html)
       (https://claude.ai/artifact/3pyKAd8sSKGrPhRcXE7tND). Max 3 profiles; the picker always shows four boxes (empty slots say "Empty",

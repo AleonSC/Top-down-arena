@@ -228,7 +228,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
-| **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
+| **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
 | **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
@@ -265,7 +265,7 @@ once mastered); the Tab menu shows the level.
 | **Spirit Swarm** | Releases 8 sprites. | **Phoenix** | Revives at full health, and the phoenix keeps fighting. |
 | **Soul Lantern** | Lasts 9 s, and the linked player can't go down. | **Bat Swarm** | Releases 14 bats. |
 | **Sacrifice** | Double explosion damage, and your companions return at once. | **Alpha Call** | Also summons 3 wolves for 6 s. |
-| **Fortress** | Lasts 12 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
+| **Fortress** | Lasts 14 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
 | **Titan** | The titan is bigger and stays for 25 s. | **Lifeline** | Everyone also gets 4 s of Overdrive. |
 | **Sanctum** | The dome is half again as wide (300 px). | **World Tree** | Lasts 16 s with 8 sprites. |
 | **Bullet Storm** | +4 extra projectiles instead of +2. | **Meteor Storm** | Twenty meteors. |
