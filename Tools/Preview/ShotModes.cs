@@ -135,6 +135,20 @@ static partial class Shot {
           if (le.Trail != 0) listType.GetMethod("set_Item").Invoke(rtField, new object[] { le.Id, list });
           n++;
         }
+        // A walk for the Light Cycle (it keeps corners, not the points above): right, then down, then right again, ending at the spots.
+        if (Array.IndexOf(tr, "trail-lightcycle") >= 0) {
+          var tick = typeof(ArenaApp).GetMethod("TickRoomTrails", BindingFlags.NonPublic | BindingFlags.Instance);
+          for (int f = 0; f <= 150; f++) {
+            float tt = 10f - (150 - f) * 0.016f, u = f / 150f;
+            int ni = 0;
+            foreach (var le in host.Lobby.Values) {
+              var spot = spots[ni++]; var av2 = host.Avatars[le.Id];
+              V2 pp = u < 0.45f ? new V2(spot.X - 220f + 220f * (u / 0.45f) / 1f, spot.Y - 90f) : u < 0.75f ? new V2(spot.X, spot.Y - 90f + 90f * ((u - 0.45f) / 0.3f)) : new V2(spot.X + 150f * ((u - 0.75f) / 0.25f), spot.Y);
+              av2.Pos = av2.Disp = pp;
+            }
+            tick.Invoke(app, new object[] { tt, 0.016f });
+          }
+        }
         host.MyId = 1;
       }
       // MODSFOLD=n: the Modifiers tab with those tiers folded (a bit per ModLean: 1 Harder, 2 Easier, 4 Risky).

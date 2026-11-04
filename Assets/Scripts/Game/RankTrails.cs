@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The trails a rank unlocks (Rank.cs: Ember 8, Frost 14, Storm 18, Void 22, Gold stardust 25, Prism 35), drawn behind a player as they move. Drawing
+    /// The trails a rank unlocks (Rank.cs: Ember 8, Frost 14, Storm 18, Void 22, Gold stardust 25, Prism 35, Light Cycle 45), drawn behind a player as they move. Drawing
     /// only: each screen keeps the last second or so of every player's path itself, and the lobby entry (Session.Lobby)
     /// says which trail each player has, so everyone sees them.
     public partial class ArenaApp
@@ -28,6 +28,18 @@ namespace Arena
                     trails[p.Id] = pts = new List<TrailPoint>();
                 LobbyEntry e;
                 int kind = session.Lobby.TryGetValue(p.Id, out e) ? e.Trail : 0;
+                if (kind != 0 && Rank.TrailId(kind) == CycleId)  // the Light Cycle keeps one point per corner (LightCycleTrail.cs)
+                {
+                    CycleRider cr;
+                    if (!cycles.TryGetValue(p.Id, out cr))
+                        cycles[p.Id] = cr = new CycleRider();
+                    pts.Clear();
+                    if (!p.Downed)
+                        cr.Step(p.Disp, t);
+                    DrawCycleTrail(cr, t, V2.Zero);
+                    continue;
+                }
+                cycles.Remove(p.Id);
                 // Keep the path while they have a trail: a point every few pixels, the oldest dropped as it fades.
                 if (kind != 0 && !p.Downed && (pts.Count == 0 || (pts[pts.Count - 1].At - p.Disp).Length > 7f))
                     pts.Add(new TrailPoint { At = p.Disp, T = t });

@@ -101,7 +101,8 @@ static partial class Program
         PollBoth(host, client);
         Check(entry(host, cid).Trail == 5 && entry(client, cid).Trail == 5 && entry(client, 1).Trail == 1 && Rank.TrailId(5) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the match");
         Check(Rank.RewardsAt(14)[0].Id == "trail-frost" && Rank.RewardsAt(18)[0].Id == "trail-storm" && Rank.RewardsAt(22)[0].Id == "trail-void" && Rank.RewardsAt(35)[0].Id == "trail-prism"
-              && Rank.OfKind(CosmeticKind.Trail).Count == 6 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(7) == "", "Frost, Storm, Void and Prism unlock at 14, 18, 22 and 35, and every trail has its own lobby number");
+              && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 14, 18, 22 and 35, and every trail has its own lobby number");
+        Check(Rank.RewardsAt(45).Count == 1 && Rank.RewardsAt(45)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(44, "trail-lightcycle") && Rank.Owns(45, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 45 as the last trail, and no earlier trail's number moves");
         cp.Trail = "trail-gold"; cp.Xp = Rank.XpAt(24);  // not theirs at rank 24
         client.ShareCosmetics();
         PollBoth(host, client);

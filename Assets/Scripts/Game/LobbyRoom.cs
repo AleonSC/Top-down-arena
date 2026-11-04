@@ -14,6 +14,7 @@ namespace Arena
 
         readonly Player roomPlayer = new Player { Id = -101 };
         readonly Dictionary<int, List<TrailPoint>> roomTrails = new Dictionary<int, List<TrailPoint>>();
+        readonly Dictionary<int, CycleRider> roomCycles = new Dictionary<int, CycleRider>();  // the Light Cycle's walls (LightCycleTrail.cs)
         readonly Dictionary<int, float> roomAim = new Dictionary<int, float>();
         int hangoutFrame = -1;
 
@@ -98,7 +99,17 @@ namespace Arena
                 LobbyEntry e;
                 bool has = session.Lobby.TryGetValue(kv.Key, out e) && e.Trail != 0;
                 V2 at = kv.Value.Disp;
-                if (has && (pts.Count == 0 || (pts[pts.Count - 1].At - at).Length > 7f))
+                if (has && Rank.TrailId(e.Trail) == CycleId)  // (LightCycleTrail.cs)
+                {
+                    CycleRider cr;
+                    if (!roomCycles.TryGetValue(kv.Key, out cr))
+                        roomCycles[kv.Key] = cr = new CycleRider();
+                    cr.Step(at, t);
+                    pts.Clear();
+                }
+                else
+                    roomCycles.Remove(kv.Key);
+                if (has && Rank.TrailId(e.Trail) != CycleId && (pts.Count == 0 || (pts[pts.Count - 1].At - at).Length > 7f))
                     pts.Add(new TrailPoint { At = at, T = t });
                 while (pts.Count > 0 && (!has || t - pts[0].T > TrailLife))
                     pts.RemoveAt(0);
@@ -122,7 +133,10 @@ namespace Arena
             V2 at = new V2(room.x + av.Disp.X, room.y + av.Disp.Y);
             UiModelAt(at, AvatarZoom);
             List<TrailPoint> pts;
-            if (e.Trail != 0 && roomTrails.TryGetValue(id, out pts) && pts.Count > 1)
+            CycleRider cycle;
+            if (e.Trail != 0 && Rank.TrailId(e.Trail) == CycleId && roomCycles.TryGetValue(id, out cycle))
+                DrawCycleTrail(cycle, t, av.Disp);
+            else if (e.Trail != 0 && roomTrails.TryGetValue(id, out pts) && pts.Count > 1)
             {
                 string tid = Rank.TrailId(e.Trail);
                 for (int i = 1; i < pts.Count; i++)

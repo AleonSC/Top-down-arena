@@ -244,6 +244,11 @@ namespace Arena
             if (kind == 0)
                 return;
             string id = Rank.TrailId(kind);
+            if (id == CycleId)
+            {
+                DrawCycleSample(len, amp);  // LightCycleTrail.cs
+                return;
+            }
             const int n = 18;
             V2 prev = V2.Zero;
             for (int i = 1; i <= n; i++)

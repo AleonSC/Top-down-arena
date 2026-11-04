@@ -77,7 +77,7 @@ bonus for harder modifiers; ranks unlock cosmetics only (titles, trails, frames,
 - [x] **Built** (Nov 2026, protocol 135): `Rank.cs` + profile XP + `rank` tests, the results strip, the lobby badge and
       frame, the menu chip, Records > Rank, the Ember and Gold stardust trails, the Steel and Gold frames, and the Dusk
       Grid background. See "As built" in the doc.
-- [ ] **Light cycle (Tron) trail.** Mockup made (Nov 2026): [`Mockups/tron-trail.html`](Mockups/tron-trail.html)
+- [x] **Light cycle (Tron) trail.** Built (Nov 2026, protocol 139): Grid wake with Derezz's breakup, cyan only, rank 45 (`Game/LightCycleTrail.cs`); the orange and magenta equip options were not built. Mockup (Nov 2026): [`Mockups/tron-trail.html`](Mockups/tron-trail.html)
       (https://claude.ai/artifact/Ctzk9h9coiwQf4NvEY48hN). A wall of light that snaps to right-angle turns, in four styles
       (A Light wall, B Derezz, C Grid wake, D Twin rail) and three colours (cyan, orange, magenta), proposed at rank 45. Pick a
       style (my pick: B) and whether the colours are equip options.

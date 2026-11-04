@@ -111,6 +111,7 @@ namespace Arena
             new CosmeticDef { Id = "frame-gold", Name = "Gold frame", Kind = CosmeticKind.Frame, Rank = 30 },
             new CosmeticDef { Id = "frame-foil", Name = "Legend Foil frame", Kind = CosmeticKind.Frame, Rank = 40 },
             new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 35 },
+            new CosmeticDef { Id = "trail-lightcycle", Name = "Light Cycle trail", Kind = CosmeticKind.Trail, Rank = 45 },
             new CosmeticDef { Id = "frame-prism", Name = "Prism frame", Kind = CosmeticKind.Frame, Rank = 50 },
         };
 

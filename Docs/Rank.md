@@ -1,7 +1,7 @@
 # Rank (design)
 
 Status: **built** (Nov 2026, protocol 135): `Core/Rank.cs`, the profile fields, the `rank` test suite, the results strip,
-the lobby badge and frame, the menu chip, Records > Rank, the Ember and Gold trails (Frost, Storm, Void and Prism added later, protocol 136) and the Dusk Grid background.
+the lobby badge and frame, the menu chip, Records > Rank, the Ember and Gold trails (Frost, Storm, Void and Prism added later, protocol 136; Light Cycle 139) and the Dusk Grid background.
 Mockups: [`Mockups/rank-screens.html`](Mockups/rank-screens.html) (https://claude.ai/artifact/6jPzqJeT4sFbfWhm1Ewkf9).
 **The badge is the "Engraved crest" (option A of `Docs/Mockups/rank-badges.html`): a bevelled shield with tier chevrons, wings from Champion and a star on Legend, drawn procedurally in `RankLook.cs`. (Earlier: style B, a pixel shield.)** All numbers below are placeholders to tune now that
 it's playable. What was built differently from the mockup is listed under "As built".
@@ -90,6 +90,7 @@ Placeholder ladder, from the mockup:
 | 30 | Frame: Gold, Title: Legend |
 | 35 | Trail: Prism |
 | 40 | Frame: Legend Foil |
+| 45 | Trail: Light Cycle |
 | 50 | Frame: Prism |
 
 - **Title**: the line under your name on the menu chip, the lobby hover card and Records.

@@ -846,6 +846,7 @@ each kind at a time:
 | 30 | **Gold frame** |
 | 40 | **Legend Foil frame**: gold with a bright band sweeping across the rim and twinkling corner stars |
 | 35 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
+| 45 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
 | 50 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
 
 Everyone in the match sees your trail, and everyone in the lobby sees your rank and frame; the host clamps what
