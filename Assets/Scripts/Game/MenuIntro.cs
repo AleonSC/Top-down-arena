@@ -35,6 +35,7 @@ namespace Arena
             {
                 menuTipSeed = Random.Range(0, 1000);  // a new line under the title each time the menu opens
                 menuPlayOpen = false;                 // and the box is back on Play (SavesUi.cs)
+                menuPlayK = 0f;
             }
             menuLastScreen = session.Screen;
             if (profTr)

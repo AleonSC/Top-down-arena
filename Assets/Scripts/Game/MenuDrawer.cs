@@ -997,7 +997,7 @@ namespace Arena
         {
             new HowTo { Name = "Controls", Icon = "ui_help", Color = new Color(0.6f, 0.75f, 1f), Keys = true, Intro = "Keyboard and mouse. Ability keys show on the bar at the bottom." },
             new HowTo { Name = "The basics", Icon = "crosshair", Color = new Color(1f, 0.55f, 0.5f), Intro = "Survive 50 waves with a boss every fifth one.",
-                Tips = new[,] { { "Hitbox", "Your hitbox is just the small white dot in the middle of your character.", "0" }, { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow.", "1" },
+                Tips = new[,] { { "Hitbox", "Your hitbox is the small ring in the middle of your character, with a coloured dot at its centre. Only the ring's inside can be hit, not the whole body.", "0" }, { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow.", "1" },
                     { "Roles", "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest.", "8" }, { "Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close.", "9" },
                     { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself.", "13" } } },
             new HowTo { Name = "Fighting", Icon = "guard_reinforced", Color = new Color(0.55f, 0.8f, 1f), Intro = "Read the shots, parry what you can, and let your abilities grow.",
