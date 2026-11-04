@@ -52,7 +52,7 @@ namespace Arena
                 Ui.Label(new Rect(0f, 102f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
 
             bool grid = me.OfferMod;  // weapon mods: a grid of small cards (Wide Choice's 4th and 5th level-up cards are tall ones, narrower)
-            float tw = me.Offer.Length <= 4 ? cardW : 224f, tg = me.Offer.Length <= 4 ? gap : 22f;
+            float tw = me.Offer.Length <= 4 ? cardW : 224f, tg = me.Offer.Length <= 4 ? 40f : 30f;  // (the mod grid keeps `gap`)
             if (pickCardRects.Length != me.Offer.Length)
                 pickCardRects = new Rect[me.Offer.Length];  // where each card is, for the outro when one is taken
             float by;
@@ -120,7 +120,7 @@ namespace Arena
                         pickKey = 0;
                     }
                 }
-                by = top + cardH + 14f;
+                by = top + cardH + 28f;
             }
             DrawPickIntroOver(me, slots, me.Offer.Length);  // a ring as each card lands (PickIntro.cs)
 
