@@ -120,9 +120,9 @@ namespace Arena
             Ui.Glitch(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, TextAnchor.MiddleLeft, SaveColor);
             if (MenuVhs.Draw(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "TRK 02", live, fxReduced, () => Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15)) && live)
                 PlayPickerBack();
-            var r = new Rect(c.x + 30f, c.y + 62f, 620f, 118f);
+            var r = new Rect(c.x + 30f, c.y + 62f, 620f, 126f);
             Ui.Card(r, SaveColor, 0.25f);
-            float by = c.y + 196f;
+            float by = c.y + 198f;
             if (!any)
             {
                 Ui.Label(new Rect(r.x + 20f, r.y + 20f, r.width - 40f, 26f), "No saved runs yet.", 20, Color.white, TextAnchor.MiddleCenter, true);
@@ -132,17 +132,32 @@ namespace Arena
                 return;
             }
             var s = savedRuns[0];
-            Ui.Label(new Rect(r.x + 18f, r.y + 6f, 230f, 38f), "Wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : ""), 28, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 18f, r.y + 46f, 230f, 16f), "Saved " + s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 18f, r.y + 63f, 230f, 16f), "Score " + s.Score + "  ·  " + (int)(s.RunTime / 60f) + " min played", 12, Ui.Muted);
+            var rule = new Color(1f, 1f, 1f, 0.10f);
+            // Run column: label, wave, then Saved / Score / Played as label-value pairs.
+            float x = r.x + 18f;
+            Ui.Label(new Rect(x, r.y + 8f, 140f, 14f), "RUN", 10, Ui.Muted);
+            Ui.Label(new Rect(x, r.y + 20f, 160f, 34f), "Wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : ""), 26, Color.white, TextAnchor.MiddleLeft, true);
+            string[] labs = { "SAVED", "SCORE", "PLAYED" };
+            string[] vals = { s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), s.Score.ToString(), (int)(s.RunTime / 60f) + " min" };
+            for (int i = 0; i < 3; i++)
+            {
+                Ui.Label(new Rect(x, r.y + 56f + i * 15f, 50f, 14f), labs[i], 10, Ui.Muted);
+                Ui.Label(new Rect(x + 52f, r.y + 55f + i * 15f, 110f, 15f), vals[i], 12, Ui.Text);
+            }
+            Ui.Fill(new Rect(r.x + 184f, r.y + 12f, 1f, 86f), rule);
+            // Squad column: one line per player, colour bar, name, then class.
+            float sx = r.x + 202f;
+            Ui.Label(new Rect(sx, r.y + 8f, 100f, 14f), "SQUAD", 10, Ui.Muted);
             for (int i = 0; i < s.Seats.Count && i < 3; i++)
             {
                 var seat = s.Seats[i];
-                Ui.Fill(new Rect(r.x + 250f, r.y + 14f + i * 24f, 4f, 18f), ToColor(Defs.Get(seat.Role).Color));
-                Ui.Label(new Rect(r.x + 260f, r.y + 12f + i * 24f, 180f, 22f), seat.Name + " — " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, Ui.Text);
+                Ui.Fill(new Rect(sx, r.y + 28f + i * 23f, 4f, 16f), ToColor(Defs.Get(seat.Role).Color));
+                Ui.Label(new Rect(sx + 12f, r.y + 26f + i * 23f, 100f, 20f), ClipName(seat.Name, 12), 13, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(sx + 114f, r.y + 26f + i * 23f, 110f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, Ui.Muted, TextAnchor.MiddleLeft);
             }
-            DrawSaveBadges(s, r.x + 18f, r.y + 90f, 112f, 6f, 3);
-            if (MenuVhs.Draw(new Rect(r.xMax - 170f, r.y + 28f, 152f, 62f), "TRK 04", live, fxReduced, () => Ui.ActionButton(new Rect(r.xMax - 170f, r.y + 28f, 152f, 62f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 22)) && live)
+            Ui.Fill(new Rect(r.xMax - 188f, r.y + 12f, 1f, 86f), rule);
+            DrawSaveBadges(s, r.x + 18f, r.y + 102f, 112f, 6f, 4);
+            if (MenuVhs.Draw(new Rect(r.xMax - 170f, r.y + 24f, 152f, 62f), "TRK 04", live, fxReduced, () => Ui.ActionButton(new Rect(r.xMax - 170f, r.y + 24f, 152f, 62f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 22)) && live)
                 ContinueSave(s);
             const float bw = 200f;
             if (MenuVhs.Draw(new Rect(c.x + 30f, by, bw, 50f), "TRK 05", live, fxReduced, () => Ui.ActionButton(new Rect(c.x + 30f, by, bw, 50f), "New run", false, Ui.Primary, PixelArt.Get("ui_play"), null, 18)) && live)
@@ -156,6 +171,8 @@ namespace Arena
             }
             DeleteSaveButton(new Rect(c.x + 30f + 2f * (bw + 10f), by, bw, 50f), "Delete this run", s, t, live);
         }
+
+        static string ClipName(string n, int max) => n == null ? "" : n.Length <= max ? n : n.Substring(0, max - 1) + "…";
 
         /// The path, difficulty, modifier and dev-tools tags of a save, in a row (at most max).
         void DrawSaveBadges(RunSave s, float x, float y, float w, float gap, int max)
@@ -197,27 +214,40 @@ namespace Arena
             }
             if (MenuVhs.Draw(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "TRK 07", live, fxReduced, () => Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15)) && live)
                 PlayPickerBack();
+            // Table header, then one row per save; the Players column lists every seat, one per line.
+            float hx = c.x + 30f + 12f;
+            float[] colX = { 0f, 48f, 132f, 180f, 238f };
+            string[] heads = { "WAVE", "SAVED", "SCORE", "PLAYED", "PLAYERS" };
+            for (int k = 0; k < heads.Length; k++)
+                Ui.Label(new Rect(hx + colX[k], c.y + 60f, 120f, 14f), heads[k], 10, Ui.Muted);
             for (int i = 0; i < 3; i++)
             {
                 int idx = 1 + menuOlderPage * 3 + i;
                 if (idx >= savedRuns.Count)
                     break;
                 var s = savedRuns[idx];
-                var r = new Rect(c.x + 30f, c.y + 62f + i * 62f, 620f, 56f);
+                var r = new Rect(c.x + 30f, c.y + 76f + i * 56f, 620f, 52f);
                 Ui.Card(r, SaveColor, 0.25f);
-                float x = r.x + 16f;
-                Ui.Label(new Rect(x, r.y + 3f, 190f, 26f), "Wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : ""), 19, Color.white, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(x, r.y + 28f, 200f, 14f), "Saved " + s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 11, Ui.Muted);
-                Ui.Label(new Rect(x, r.y + 41f, 200f, 14f), "Score " + s.Score + "  ·  " + (int)(s.RunTime / 60f) + " min played", 11, Ui.Muted);
-                for (int k = 0; k < s.Seats.Count && k < 2; k++)
+                float x = r.x + 12f;
+                Ui.Label(new Rect(x + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.Wave + 1).ToString(), 24, Color.white, TextAnchor.MiddleLeft, true);
+                if (s.Endless)
+                    Ui.Label(new Rect(x + colX[0], r.y + 32f, 46f, 14f), "endless", 10, Ui.Muted);
+                Ui.Label(new Rect(x + colX[1], r.y + 4f, 82f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, Ui.Text, TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(x + colX[2], r.y + 4f, 46f, r.height - 8f), s.Score.ToString(), 13, Ui.Text, TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(x + colX[3], r.y + 4f, 56f, r.height - 8f), (int)(s.RunTime / 60f) + " min", 12, Ui.Text, TextAnchor.MiddleLeft);
+                int n = Mathf.Min(s.Seats.Count, 3);
+                float top = r.y + (r.height - n * 15f) / 2f;
+                for (int k = 0; k < n; k++)
                 {
-                    Ui.Fill(new Rect(x + 216f, r.y + 9f + k * 20f, 4f, 15f), ToColor(Defs.Get(s.Seats[k].Role).Color));
-                    Ui.Label(new Rect(x + 226f, r.y + 7f + k * 20f, 190f, 18f), s.Seats[k].Name + " — " + Defs.KitName(s.Seats[k].Kit) + " " + Defs.Get(s.Seats[k].Role).Name, 12, Ui.Text);
+                    var seat = s.Seats[k];
+                    Ui.Fill(new Rect(x + colX[4], top + k * 15f + 2f, 3f, 11f), ToColor(Defs.Get(seat.Role).Color));
+                    Ui.Label(new Rect(x + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, Color.white, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(x + colX[4] + 88f, top + k * 15f - 1f, 120f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, Ui.Muted, TextAnchor.MiddleLeft);
                 }
-                if (MenuVhs.Draw(new Rect(r.xMax - 206f, r.y + 8f, 136f, 40f), "TRK 08", live, fxReduced, () => Ui.ActionButton(new Rect(r.xMax - 206f, r.y + 8f, 136f, 40f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 17)) && live)
+                if (MenuVhs.Draw(new Rect(r.xMax - 176f, r.y + 8f, 118f, 36f), "TRK 08", live, fxReduced, () => Ui.ActionButton(new Rect(r.xMax - 176f, r.y + 8f, 118f, 36f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 16)) && live)
                     ContinueSave(s);
                 bool armed = deleteArmed == s.Id;
-                if (Ui.ActionButton(new Rect(r.xMax - 60f, r.y + 8f, 46f, 40f), "", armed, Ui.Danger, PixelArt.Get("ui_trash"), armed ? (Color?)null : new Color(1f, 0.6f, 0.64f)) && live)
+                if (Ui.ActionButton(new Rect(r.xMax - 52f, r.y + 8f, 40f, 36f), "", armed, Ui.Danger, PixelArt.Get("ui_trash"), armed ? (Color?)null : new Color(1f, 0.6f, 0.64f)) && live)
                 {
                     if (armed)
                     {
@@ -231,7 +261,7 @@ namespace Arena
                     deleteArmed = s.Id;
                 }
             }
-            Ui.Label(new Rect(c.x + 30f, c.yMax - 36f, 620f, 16f), deleteArmed != null ? "Click the red trash button again to delete that run." : "The trash button asks twice before it deletes.", 11, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(c.x + 30f, c.yMax - 30f, 620f, 16f), deleteArmed != null ? "Click the red trash button again to delete that run." : "The trash button asks twice before it deletes.", 11, Ui.Muted, TextAnchor.MiddleCenter);
         }
 
         // --- Continue a run ------------------------------------------------------------------------
