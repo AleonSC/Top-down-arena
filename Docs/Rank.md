@@ -159,7 +159,7 @@ From the mockup, in priority order:
   and is skipped while locked.
 - **Menu chip** (reworked Nov 2026): a generic player figure (no role or class: those are picked in the lobby), your
   name, your rank title and number, the XP bar under them and the badge on the right. It uses your equipped frame
-  for its rim. Click the name or the pencil to rename; click anywhere else on it to open your cosmetics window.
+  for its rim. Click the name to rename; click anywhere else on it to open your cosmetics window.
 - **Cosmetics window** (`Game/CosmeticsUi.cs`): look C, the drawer, from [`Mockups/customization.html`](Mockups/customization.html)
   (https://claude.ai/artifact/GXoYicaHt5JUazDpKnkfPU): a drawer with your rank and a row per category (Frame, Trail,
   Background, Reward ladder), and the open one on the right with a live preview, how others see you, and the Equip
