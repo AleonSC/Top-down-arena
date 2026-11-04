@@ -15,11 +15,11 @@ namespace Arena
 
         static readonly Color SaveColor = new Color(0.42f, 0.86f, 0.62f);
 
-        /// Where saves and the profile live (called once at start).
+        /// Where saves and the profile live (called once at start): the profile last used, under profiles/ (ProfileStore.cs).
+        /// A pre-profiles install is copied into a profile named after the old player name.
         static void InitSaveFolders()
         {
-            SaveStore.Folder = Path.Combine(Application.persistentDataPath, "saves");
-            Profile.Folder = Application.persistentDataPath;
+            ProfileStore.Init(Application.persistentDataPath, PlayerPrefs.GetString("player_name", ""));
         }
 
         float savesCountT;

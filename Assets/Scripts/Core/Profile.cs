@@ -40,7 +40,11 @@ namespace Arena
     public class Profile
     {
         /// 2: adds the closing "end" line, so a cut-off file is told apart from a whole one. Version 1 files (no "end") still load.
-        public const int FormatVersion = 2;
+        /// 3: adds the "name" line (the profile's name, ProfileStore.cs). Older files load with no name.
+        public const int FormatVersion = 3;
+
+        /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
+        public string Name = "";
 
         /// Set by Parse/Load: the file's version, whether it read as a whole profile, and how many lines were skipped.
         public int LoadedVersion;
@@ -216,6 +220,7 @@ namespace Arena
         {
             var sb = new StringBuilder();
             RunSave.Line(sb, "arena-profile", FormatVersion);
+            if (Name.Length > 0) RunSave.Line(sb, "name", Name);
             RunSave.Line(sb, "runs", RunsStarted + " " + RunsWon + " " + RunsLost);
             RunSave.Line(sb, "best", BestWave + " " + BestScore + " " + BestEndlessWave);
             RunSave.Line(sb, "time", PlayTime);
@@ -255,6 +260,7 @@ namespace Arena
                     {
                         case "arena-profile": p.LoadedVersion = RunSave.I(f[0]); sawHeader = true; break;
                         case "end": sawEnd = true; break;
+                        case "name": p.Name = val.Trim(); break;
                         case "runs": p.RunsStarted = RunSave.I(f[0]); p.RunsWon = RunSave.I(f[1]); p.RunsLost = RunSave.I(f[2]); break;
                         case "best": p.BestWave = RunSave.I(f[0]); p.BestScore = RunSave.I(f[1]); p.BestEndlessWave = RunSave.I(f[2]); break;
                         case "time": p.PlayTime = RunSave.Fl(val); break;
@@ -294,7 +300,7 @@ namespace Arena
         /// Brings an older file's data up to FormatVersion. Add a step per version when the format changes.
         static void Migrate(Profile p)
         {
-            // 1 -> 2 only added the "end" line: nothing to convert.
+            // 1 -> 2 only added the "end" line, 2 -> 3 the name: nothing to convert.
             p.LoadedVersion = FormatVersion;
         }
 
@@ -364,16 +370,22 @@ namespace Arena
         {
             if (Folder == null)
                 return true;
+            bool ok = SaveTo(Folder);
+            LastSaveFailed = !ok;
+            return ok;
+        }
+
+        /// Writes it into any profile folder (ProfileStore uses this for profiles that aren't the active one).
+        public bool SaveTo(string folder)
+        {
             try
             {
-                Directory.CreateDirectory(Folder);
-                SaveStore.SafeWrite(FilePath, ToText(), BackupPath);
-                LastSaveFailed = false;
+                Directory.CreateDirectory(folder);
+                SaveStore.SafeWrite(Path.Combine(folder, "profile.txt"), ToText(), Path.Combine(folder, "profile.txt.bak"));
                 return true;
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
-            LastSaveFailed = true;
             return false;
         }
     }

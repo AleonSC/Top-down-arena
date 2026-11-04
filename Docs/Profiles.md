@@ -1,7 +1,10 @@
-# Multiple profiles (design, not built yet)
+# Multiple profiles
 
-Status: **waiting on the owner to pick a picker look** from `Docs/Mockups/profiles.html` (A dropdown on the rank card,
-B a Profiles page, C tabs above the card). Everything else below is decided.
+Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch (look C of
+`Docs/Mockups/whos-playing.html`, `ProfilesUi.cs`), plus a "Switch profile" button above the main menu's name card.
+Code: `Core/ProfileStore.cs`, `Profile.Name` (format 3), `Game/ProfilesUi.cs`; tests in the `saves` suite
+(`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`MANY=1 MANAGE=1 EMPTY=1`). Up to 8 profiles; a
+command-line start (`--host`, `--join`, `--autostart`) skips the screen. Profiles are listed by name.
 
 ## Decisions (owner)
 

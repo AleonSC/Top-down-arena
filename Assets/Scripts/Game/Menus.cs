@@ -214,6 +214,8 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, 100f * (1f - EaseOut(k)), W, H));
             if (live)
                 TipClear();  // the rank badge's hover card (RankUi.cs)
+            if (live && ProfileStore.Root != null && Ui.Button(new Rect(MenuNameRect.x, MenuBarY - 34f, 140f, 26f), "Switch profile", Ui.Neutral))
+                OpenWho();  // ProfilesUi.cs
             Ui.Fill(new Rect(0f, MenuBarY, W, 92f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
             Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
             if (withName)
@@ -321,6 +323,7 @@ namespace Arena
             PlayerPrefs.SetString("net_port", portText);
             PlayerPrefs.SetString("join_address", addressText);
             PlayerPrefs.Save();
+            SyncProfileName();  // your name is the profile's name (ProfilesUi.cs)
         }
 
         /// A glowing x-axis under a title: ticks (a long one every fourth), arrowheads, a pulsing origin and

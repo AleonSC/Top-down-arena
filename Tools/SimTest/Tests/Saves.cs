@@ -172,6 +172,7 @@ static partial class Program
             "a profile's text reads back the same");
 
         ProfileFileTest();
+        ProfileStoreTest();
 
         // Each player's own game keeps their own profile: a boss beaten and the run's end count for both.
         var test = new UnlockDef { Id = "test-loss", Name = "Test", Desc = "Lose a run", Earned = p => p.RunsLost > 0 };
@@ -258,7 +259,7 @@ static partial class Program
                 "a damaged line is skipped, the rest loads, a copy is kept");
 
             // A version 1 file (no "end" line) still loads and is brought up to date.
-            string v1 = text.Replace("arena-profile 2", "arena-profile 1").Replace("end 1\n", "");
+            string v1 = text.Replace("arena-profile 3", "arena-profile 1").Replace("end 1\n", "");
             var old = Profile.Parse(v1);
             Check(old.Valid && old.RunsWon == 2 && old.LoadedVersion == Profile.FormatVersion, "a version 1 profile loads and migrates");
             Check(!Profile.Parse("runs 1 1 0\n").Valid, "text without the header isn't a profile");
@@ -275,6 +276,78 @@ static partial class Program
             Profile.Folder = null;
             Profile.Reload();
             try { Directory.Delete(folder, true); } catch (IOException) { }
+        }
+    }
+
+    /// Several profiles: migration, create/rename/delete, switching without mixing records or saved runs.
+    static void ProfileStoreTest()
+    {
+        string data = Path.Combine(Path.GetTempPath(), "arena-profiles-test-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            // A pre-profiles install: profile.txt and saves/*.run in the data folder.
+            Directory.CreateDirectory(Path.Combine(data, "saves"));
+            var old = new Profile { RunsWon = 4, RunsLost = 2, Xp = 900 };
+            File.WriteAllText(Path.Combine(data, "profile.txt"), old.ToText());
+            File.WriteAllText(Path.Combine(data, "saves", "abc.run"), "x");
+            Check(ProfileStore.Init(data, "Anthony"), "first launch makes a profile from the old files and opens it");
+            var list = ProfileStore.List();
+            Check(list.Count == 1 && list[0].Name == "Anthony" && list[0].Wins == 4 && list[0].Runs == 6, "the migrated profile keeps its records and takes the old player name");
+            Check(Profile.Current.Xp == 900 && Profile.Current.Name == "Anthony", "the active profile is the migrated one");
+            Check(File.Exists(Path.Combine(data, "profile.txt")) && File.Exists(Path.Combine(data, "saves", "abc.run")) && File.Exists(Path.Combine(data, "migrated.txt")), "the old files are left in place");
+            Check(File.Exists(Path.Combine(SaveStore.Folder, "abc.run")), "the old saved runs went with it");
+
+            // A second profile: its own records and saved runs.
+            string sam = ProfileStore.Create("Sam");
+            Check(sam != null && ProfileStore.List().Count == 2, "a new profile is made");
+            Check(ProfileStore.Create("sam") == null && ProfileStore.NameProblem("SAM").Length > 0, "a name already taken (any case) is refused");
+            Check(ProfileStore.Create("   ") == null && ProfileStore.NameProblem("").Length > 0, "an empty name is refused");
+            string anthony = ProfileStore.ActiveId;
+            Profile.Current.RunsWon = 5; Profile.Current.Save();
+            ProfileStore.SetActive(sam);
+            Check(Profile.Current.Name == "Sam" && Profile.Current.RunsWon == 0 && Profile.Current.Xp == 0, "switching loads the other profile's records, not the old ones");
+            Check(Directory.GetFiles(SaveStore.Folder, "*.run").Length == 0, "the other profile has no saved runs");
+            Profile.Current.RunsWon = 1; Profile.Current.Save();
+            ProfileStore.SetActive(anthony);
+            Check(Profile.Current.RunsWon == 5 && Directory.GetFiles(SaveStore.Folder, "*.run").Length == 1, "switching back finds the first profile untouched");
+
+            // Rename, and the choice survives a restart.
+            Check(ProfileStore.Rename(sam, "Samantha") && ProfileStore.Rename(sam, "samantha") && !ProfileStore.Rename(sam, "Anthony"), "rename works, except onto another profile's name");
+            ProfileStore.SetActive(sam);
+            ProfileStore.Init(data, "ignored");
+            Check(ProfileStore.ActiveId == sam && Profile.Current.Name == "samantha" && Profile.Current.RunsWon == 1, "a restart opens the profile used last, with its name");
+
+            // Hostile names make safe folder ids.
+            ProfileStore.Root = Path.Combine(data, "profiles");
+            bool safe = true;
+            foreach (var bad in new[] { "..", "con", "a/b\\c", "COM1", "\u00e9\u00e8", new string('x', 200) })
+            {
+                string id = ProfileStore.NewId(bad);
+                safe &= id.Length > 0 && id.Length <= 28 && id.IndexOfAny(new[] { '/', '\\', '.', ':' }) < 0 && id != "con" && id != "com1";
+            }
+            Check(safe, "hostile names make safe folder ids");
+            Check(ProfileStore.Clean(new string('y', 40)).Length == ProfileStore.MaxNameLength, "names are cut to " + ProfileStore.MaxNameLength + " characters");
+
+            // The profile limit, and deleting.
+            while (ProfileStore.List().Count < ProfileStore.MaxProfiles) ProfileStore.Create("P" + ProfileStore.List().Count);
+            Check(ProfileStore.Create("One too many") == null, "no more than " + ProfileStore.MaxProfiles + " profiles");
+            ProfileStore.SetActive(anthony);
+            Check(ProfileStore.Delete(anthony) && ProfileStore.ActiveId != anthony && ProfileStore.ActiveId.Length > 0 && !Directory.Exists(Path.Combine(data, "profiles", anthony)), "deleting the active profile makes another active and removes its folder");
+            foreach (var p in ProfileStore.List().Skip(1).ToList()) ProfileStore.Delete(p.Id);
+            Check(ProfileStore.List().Count == 1 && !ProfileStore.Delete(ProfileStore.List()[0].Id), "the last profile can't be deleted");
+
+            // A damaged profile in one folder doesn't touch another, and still shows in the list.
+            string other = ProfileStore.Create("Other");
+            File.WriteAllText(Path.Combine(data, "profiles", other, "profile.txt"), "garbage");
+            File.Delete(Path.Combine(data, "profiles", other, "profile.txt.bak"));
+            var ls = ProfileStore.List();
+            Check(ls.Count == 2 && ls.Any(p => p.Id == other), "a damaged profile is still listed");
+        }
+        finally
+        {
+            ProfileStore.Root = null; ProfileStore.ActiveId = "";
+            Profile.Folder = null; SaveStore.Folder = null; Profile.Reload();
+            try { Directory.Delete(data, true); } catch (IOException) { }
         }
     }
 }
