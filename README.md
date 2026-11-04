@@ -825,7 +825,7 @@ blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
 yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
-XP bar; click the name or the pencil to rename, anywhere else to open your cosmetics window) and on each results card;
+XP bar; click the name to rename, anywhere else to open your cosmetics window) and on each results card;
 the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
 what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
 with the modifiers they used and the multiplier).
@@ -945,7 +945,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
   (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen, a big **Host game** button over **Join game** and **Continue** (how many runs are
-  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name or its pencil button to
+  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name to
   change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
   draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
   any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box

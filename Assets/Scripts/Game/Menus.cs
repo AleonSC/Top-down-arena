@@ -204,6 +204,8 @@ namespace Arena
 
         /// The bar along the bottom: your name (type to change it), Records, Settings and Quit. live = false draws it only
         /// (Repaint), for the intro and the move into the lobby.
+        float switchProfA;  // 0 to 1: how visible the "Switch profile" button is
+
         void DrawMenuSecondary(float t, bool live, bool withName = true)
         {
             if (!live && Event.current.type != EventType.Repaint)
@@ -214,8 +216,21 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, 100f * (1f - EaseOut(k)), W, H));
             if (live)
                 TipClear();  // the rank badge's hover card (RankUi.cs)
-            if (live && ProfileStore.Root != null && Ui.Button(new Rect(MenuNameRect.x, MenuBarY - 34f, 140f, 26f), "Switch profile", Ui.Neutral))
-                StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
+            if (live && ProfileStore.Root != null)
+            {
+                // "Switch profile" sits centred above the name card and only fades in while the mouse is over the card or it.
+                var sw = new Rect(MenuNameRect.center.x - 70f, MenuBarY - 34f, 140f, 26f);
+                bool near = MenuNameRect.Contains(Event.current.mousePosition) || sw.Contains(Event.current.mousePosition);
+                if (Event.current.type == EventType.Repaint)
+                    switchProfA = Mathf.MoveTowards(switchProfA, near ? 1f : 0f, Time.unscaledDeltaTime * 5f);
+                if (switchProfA > 0.01f)
+                {
+                    bool clicked = false;
+                    WithAlpha(switchProfA, () => clicked = Ui.Button(sw, "Switch profile", Ui.Neutral));
+                    if (clicked && switchProfA > 0.5f)
+                        StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
+                }
+            }
             Ui.Fill(new Rect(0f, MenuBarY, W, 92f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
             Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
             if (withName)
@@ -232,7 +247,7 @@ namespace Arena
         }
 
         /// Your name card, sized for the bottom bar (k = 0): a neutral player figure (no role or class: that's chosen in the
-        /// lobby), your name, your rank title and badge, and the XP towards the next rank. Click the name or the pencil to
+        /// lobby), your name, your rank title and badge, and the XP towards the next rank. Click the name to
         /// rename; click anywhere else on it to open your cosmetics. (k between 0 and 1 is the move into the lobby: it lays
         /// out toward a full party card, with the class you've picked.)
         void DrawNameCard(Rect r, float k, bool editable, float t)
@@ -243,13 +258,16 @@ namespace Arena
             int myRank = prof.RankNow;
             var mouse = Event.current.mousePosition;
             bool hover = editable && plain && r.Contains(mouse);
+            int cardBg = plain && Rank.Owns(myRank, prof.CardBg) ? Rank.CardBgIndex(prof.CardBg) : 0;  // your chosen card background
             if (Rank.Owns(myRank, prof.Frame))  // your equipped frame (Rank.cs) lights the rim
-                DrawFrameCard(r, Rank.FrameIndex(prof.Frame), t, false);  // FrameLooks.cs
+                DrawFrameCard(r, Rank.FrameIndex(prof.Frame), t, false, cardBg);  // FrameLooks.cs
             else
+            {
                 Ui.Card(r, color, hover ? 1f : 0.85f);
+                DrawCardBackground(r, cardBg, t);  // CardBackgrounds.cs
+            }
             if (hover)
                 Ui.Pill(r, new Color(1f, 1f, 1f, 0.05f));
-            float sc = plain ? r.height / 48f : 1f;  // the menu's chip is drawn larger (the bar is taller)
             float fs = plain ? r.height - 12f : Mathf.Lerp(r.height - 10f, 72f, k);
             var face = new Rect(r.x + Mathf.Lerp(5f, 8f, k), r.y + Mathf.Lerp((r.height - fs) / 2f, 8f, k), fs, fs);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
@@ -267,26 +285,21 @@ namespace Arena
                 }
                 EndUiGl();
             }
-            // The badge sits at the right, before the pencil, so it never covers the name or the XP bar.
+            // The badge sits at the right, so it never covers the name or the XP bar.
             float bsz = plain ? 46f : Mathf.Lerp(22f, 30f, k);
-            float badgeRight = r.xMax - (editable ? 54f * sc : 10f);
+            float badgeRight = r.xMax - 10f;
             var rankRect = plain ? new Rect(badgeRight - bsz, r.y + (r.height - bsz) / 2f, bsz, bsz) : new Rect(face.xMax - bsz * 0.7f, face.yMax - bsz * 0.7f, bsz, bsz);
             RankLook.Draw(rankRect, myRank);
             if (editable)
                 RankBadgeTip(rankRect, myRank, true);
-            float tx = face.xMax + Mathf.Lerp(10f, 14f, k), tw = (plain ? rankRect.x - 8f : r.xMax - 8f - (editable ? 36f : 0f)) - tx;
+            float tx = face.xMax + Mathf.Lerp(10f, 14f, k), tw = (plain ? rankRect.x - 8f : r.xMax - 8f) - tx;
             var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + (plain ? 4f : Mathf.Lerp(3f, 8f, k)), tw + (editable ? 4f : 0f), plain ? 30f : Mathf.Lerp(25f, 26f, k));
             int size = plain ? 22 : Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
             while (size > 11 && Ui.TextWidth(nameText, size, true) + 10f > tw)
                 size--;  // a long name gets smaller until it fits
-            var pencil = new Rect(r.xMax - 46f * sc, r.y + (r.height - 38f * sc) / 2f, 38f * sc, 38f * sc);
             if (editable)
             {
-                // The pencil puts the cursor in your name (clicking the name itself works too); it lights up while typing.
-                bool typing = GUI.GetNameOfFocusedControl() == "menu_name";
-                if (Ui.Button(pencil, "", typing ? Ui.Primary : Ui.Neutral))
-                    GUI.FocusControl("menu_name");
-                Ui.Icon(new Rect(pencil.x + pencil.width / 2f - 10f * sc, pencil.y + pencil.height / 2f - 10f * sc, 20f * sc, 20f * sc), PixelArt.Get("ui_pencil"), Color.white);
+                // Click the name to type a new one (the field takes the click itself).
                 string before = nameText;
                 GUI.SetNextControlName("menu_name");
                 nameText = Ui.BareField(nameRect, nameText, 16, size);
