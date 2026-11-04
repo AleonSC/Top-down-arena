@@ -57,7 +57,7 @@ namespace Arena
                 if (look != null)
                     look(this, p, r, t, col);
             }
-            // The real hitbox, drawn as a bright ring round a core dot (a solid disc would hide the head).
+            // The real hitbox, drawn as a bright ring round a coloured core dot (a solid disc would hide the head).
             if (p.Downed)
             {
                 Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
@@ -66,7 +66,6 @@ namespace Arena
             else
             {
                 Arc(p.Disp, p.Def.HitR - 0.75f, 2.2f, new Rgba(1f, 1f, 1f, 0.9f), 20);
-                Circle(p.Disp, p.Def.HitR * 0.42f, Rgba.White.WithAlpha(0.9f), 10);
                 Circle(p.Disp, p.Def.HitR * 0.3f, col, 10);
             }
 
