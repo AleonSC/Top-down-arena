@@ -19,7 +19,11 @@ static partial class Program
         Check(!Perks.Unlocked(p, PerkId.RiotGear), "losing the Warden Hunt doesn't either");
         p.HuntEnded(EnemyType.Boss, true, 300f);
         Check(Perks.Unlocked(p, PerkId.RiotGear) && p.HuntWins(EnemyType.Boss) == 1 && p.HuntsWonCount == 1, "winning the Warden Hunt unlocks Riot Gear");
-        Check(!Perks.Unlocked(p, PerkId.Contraband) && !Perks.Equip(p, PerkId.Contraband), "Contraband stays locked (its effect isn't built)");
+        Check(!Perks.Unlocked(p, PerkId.Contraband) && !Perks.Equip(p, PerkId.Contraband) && p.HuntWinsHard(EnemyType.Boss) == 0, "Contraband stays locked after a win on Normal");
+        p.HuntEnded(EnemyType.Boss, false, 60f, true);
+        Check(!Perks.Unlocked(p, PerkId.Contraband), "losing the hunt on Hard doesn't unlock it");
+        p.HuntEnded(EnemyType.Boss, true, 280f, true);
+        Check(Perks.Unlocked(p, PerkId.Contraband) && p.HuntWinsHard(EnemyType.Boss) == 1 && p.HuntWins(EnemyType.Boss) == 2, "winning the Warden Hunt on Hard or Nightmare unlocks Contraband");
 
         Check(Perks.Equip(p, PerkId.RiotGear) && Perks.IsEquipped(p, PerkId.RiotGear) && Perks.Equipped(p).Count == 1, "Riot Gear equips into the first slot");
         Check(Perks.Equip(p, PerkId.RiotGear) && p.PerkNames.Count == 1, "equipping it again changes nothing");
@@ -34,23 +38,19 @@ static partial class Program
 
         Check(Perks.Unequip(p, PerkId.RiotGear) && p.PerkNames.Count == 0 && !Perks.Unequip(p, PerkId.RiotGear), "a perk comes off, once");
 
-        // One perk per boss: a second perk from the same boss takes the first one's slot. (Contraband is made playable for the check.)
-        var con = Perks.Get(PerkId.Contraband);
-        var oldBuilt = con.Built; var oldUnlock = con.Unlock;
-        try
-        {
-            con.Built = true; con.Unlock = pr => true;
-            Perks.Equip(p, PerkId.RiotGear);
-            Check(Perks.Equip(p, PerkId.Contraband) && p.PerkNames.Count == 1 && p.PerkNames[0] == "Contraband", "a second perk from the Warden replaces Riot Gear in its slot");
+        // One perk per boss: a second perk from the same boss takes the first one's slot.
+        Perks.Equip(p, PerkId.RiotGear);
+        Check(Perks.Equip(p, PerkId.Contraband) && p.PerkNames.Count == 1 && p.PerkNames[0] == "Contraband", "a second perk from the Warden replaces Riot Gear in its slot");
+        Perks.Equip(p, PerkId.RiotGear);
+        Check(p.PerkNames.Count == 1 && p.PerkNames[0] == "RiotGear", "and Riot Gear swaps back in");
 
-            // The profile line reads back, and Clean drops what isn't valid.
-            Perks.Equip(p, PerkId.RiotGear);
-            Check(p.PerkNames.Count == 1, "Riot Gear swaps back in");
-            var back = Profile.Parse(p.ToText());
-            Check(back.Valid && back.LoadedVersion == Profile.FormatVersion && back.PerkNames.SequenceEqual(p.PerkNames), "the perks line reads back the same");
-            Check(p.ToText().Contains("perks RiotGear"), "the profile writes a perks line when one is equipped");
-        }
-        finally { con.Built = oldBuilt; con.Unlock = oldUnlock; }
+        // The profile line reads back (the hunt line keeps the Hard wins), and Clean drops what isn't valid.
+        var back = Profile.Parse(p.ToText());
+        Check(back.Valid && back.LoadedVersion == Profile.FormatVersion && back.PerkNames.SequenceEqual(p.PerkNames), "the perks line reads back the same");
+        Check(p.ToText().Contains("perks RiotGear"), "the profile writes a perks line when one is equipped");
+        Check(back.HuntWinsHard(EnemyType.Boss) == 1 && back.HuntWins(EnemyType.Boss) == 2 && Perks.Unlocked(back, PerkId.Contraband), "the Hard hunt wins read back, so Contraband stays unlocked");
+        var oldHunt = Profile.Parse("arena-profile 4\nhunt Boss 2 1 300\nend 1\n");
+        Check(oldHunt.Valid && oldHunt.HuntWins(EnemyType.Boss) == 1 && oldHunt.HuntWinsHard(EnemyType.Boss) == 0, "an older hunt line (four fields) loads with no Hard wins");
 
         // Cleaning a file that was hand-edited or that lost its unlocks.
         var edited = Profile.Parse("arena-profile 4\nperks RiotGear,Nonsense,RiotGear,Contraband\nend 1\n");

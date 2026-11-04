@@ -172,7 +172,13 @@ namespace Arena
                 TryAdd(PropKind.Barrel);
             if (Wave >= 20 && rng.NextDouble() < 0.15)
                 TryAdd(PropKind.Barrel);
-            if (Wave >= 2 && rng.NextDouble() < ChestChance)
+            bool chest = Wave >= 2 && rng.NextDouble() < ChestChance;
+            if (!chest && ContrabandChest())
+            {
+                chest = true;  // Contraband: the first wave after each boss always has one (Contraband.cs)
+                DoLog("Contraband: a cycle chest");
+            }
+            if (chest)
                 TryAdd(PropKind.Chest);
         }
 
@@ -482,6 +488,8 @@ namespace Arena
             }
             double roll = rng.NextDouble();
             var want = roll < 0.2 ? Rarity.Uncommon : roll < 0.65 ? Rarity.Rare : Rarity.VeryRare;
+            if (want == Rarity.Uncommon && HasPerk(p, PerkId.Contraband))
+                want = Rarity.Rare;  // Contraband: rare or better
             return Upgrades.RandomOfRarity(rng, want, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id);
         }
 

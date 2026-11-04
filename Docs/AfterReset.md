@@ -278,5 +278,8 @@ So friends can play without Tailscale or port forwarding.
       the Perks tab (clicks, hover tips, seat icons), the plate's look and timing, the HUD chip's place above the XP strip, and how a block feels. The Armory and Bestiary are not
       updated. Replay files are now format 2 (older replays no longer open). Left for later: Contraband and the other bosses' perks, the second/third perk unlocks per boss, the
       no-perks record variant, and a "perks used" line on the run records. Say if reviving should refill the shield (it doesn't now: the timer runs on).
+- [ ] **Contraband, the second Warden perk.** Built (Nov 2026, protocol unchanged, 154; [`Contraband.md`](Contraband.md)): win the Warden Hunt on Hard or Nightmare to unlock it. The first wave after each boss
+      (6, 11, 16...) always has a treasure chest when anyone in the party has it, and your own item from any chest is rare or better. Needs a try in Unity (the chest turning up, the Perks tab card).
+      Left out: a marker or call-out for the cycle chest (say if you want one). The Armory and Bestiary are not updated.
 - [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:
       [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)

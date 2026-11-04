@@ -154,7 +154,8 @@ static partial class Shot {
       // PERKS=1: the Warden Hunt won with Riot Gear equipped (PERKS=2 also has a first run win, for the second slot), and the seats show their perks; LOBBYTAB=5 for the Perks tab.
       if (Environment.GetEnvironmentVariable("PERKS") != null) {
         var pp = host.Game.ProfileOverride = new Profile(); pp.BossBeaten(EnemyType.Boss, 5); pp.HuntEnded(EnemyType.Boss, true, 300f);
-        if (Environment.GetEnvironmentVariable("PERKS") == "2") pp.RunsWon = 1;
+        if (Environment.GetEnvironmentVariable("PERKS") == "2" || Environment.GetEnvironmentVariable("PERKS") == "3") pp.RunsWon = 1;
+        if (Environment.GetEnvironmentVariable("PERKS") == "3") pp.HuntEnded(EnemyType.Boss, true, 280f, true);  // PERKS=3: also won on Hard, so Contraband is unlocked
         Perks.Equip(pp, PerkId.RiotGear);
         host.Lobby[1].PerkIds = new[] { PerkId.RiotGear }; if (host.Lobby.ContainsKey(2)) host.Lobby[2].PerkIds = new[] { PerkId.RiotGear };
       }
