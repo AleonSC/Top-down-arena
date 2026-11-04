@@ -227,8 +227,13 @@ namespace Arena
         }
 
         /// An invisible click area over something drawn by hand (cards, tabs, swatches). Counts for the hover sound.
+        /// Set while a button is drawn a second time for show (MenuVhs.cs ghost copies): it must not take a control id or click.
+        public static bool NoHit;
+
         public static bool HitArea(Rect r)
         {
+            if (NoHit)
+                return false;
             NoteHover(r);
             bool clicked = GUI.Button(r, GUIContent.none, GUIStyle.none);
             clickedThisEvent |= clicked;

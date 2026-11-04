@@ -49,10 +49,12 @@ namespace Arena
             if (snapping && repaint)
             {
                 float k = 1f - snap, off = 7f * k * k;
+                Ui.NoHit = true;  // copies for show: no control id, no click, or ids drift between Repaint and mouse events
                 GUI.color = new Color(1f, 0.3f, 0.35f, old.a * 0.45f * k);
                 GUI.BeginGroup(new Rect(-off, 0f, 4000f, 4000f)); draw(); GUI.EndGroup();
                 GUI.color = new Color(0.3f, 0.85f, 1f, old.a * 0.45f * k);
                 GUI.BeginGroup(new Rect(off, 0f, 4000f, 4000f)); draw(); GUI.EndGroup();
+                Ui.NoHit = false;
                 GUI.color = old;
             }
             bool clicked;
