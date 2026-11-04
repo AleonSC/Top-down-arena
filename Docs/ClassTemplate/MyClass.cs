@@ -54,7 +54,7 @@ namespace Arena
         };
 
         /// Fires every weapon in MyClassWeapons. dmg already includes the player's damage upgrades; extra is the
-        /// number of extra projectiles (Multishot, Bullet Storm), which each weapon upgrades in its own way.
+        /// number of extra projectiles (Multishot, Artillery Assault), which each weapon upgrades in its own way.
         void FireMyClassWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
             var w = p.Weapon;

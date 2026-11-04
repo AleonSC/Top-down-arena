@@ -480,7 +480,7 @@ namespace Arena
                             }
                         }
                     if (have > want && surplus != null && kind != MinionKind.Imp)
-                        Minions.Remove(surplus.Id);  // Bullet Storm's extras leave when it ends
+                        Minions.Remove(surplus.Id);  // Artillery Assault's extras leave when it ends
                     p.CompanionCd -= dt;
                     if (have < want && p.CompanionCd <= 0f)
                     {

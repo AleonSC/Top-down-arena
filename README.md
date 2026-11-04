@@ -126,7 +126,7 @@ them), and blink before vanishing after 12 seconds.
 Each role picks one of three starting weapons in the lobby. Damage, fire rate and Piercing upgrades work
 with all of them.
 
-**Extra projectiles** (Multishot, and +2 during Bullet Storm) upgrade each weapon in its own
+**Extra projectiles** (Multishot, and +2 during Artillery Assault) upgrade each weapon in its own
 way instead of adding more bullets in a line. The Multishot card shows what it'll do for
 your weapon. Per extra projectile:
 
@@ -230,7 +230,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
-| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
+| **DPS** | **Artillery Assault** (60 s): 6 s of triple fire rate and +2 extra projectiles, with a heat aura, speed streaks and a muzzle flash | **Bullet Rain** (70 s): a downpour at your cursor (330 px across) for 6 s: the whole arena darkens and rains, and inside the zone the drops harden into needles that do 45 damage a second to every enemy in it, bosses too | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
 ### Ability mastery
 
@@ -268,7 +268,7 @@ once mastered); the Tab menu shows the level.
 | **Fortress** | Lasts 14 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
 | **Titan** | The titan is bigger and stays for 25 s. | **Lifeline** | Everyone also gets 4 s of Overdrive. |
 | **Sanctum** | The dome is half again as wide (300 px). | **World Tree** | Lasts 16 s with 8 sprites. |
-| **Bullet Storm** | +4 extra projectiles instead of +2. | **Meteor Storm** | Twenty meteors. |
+| **Artillery Assault** | +4 extra projectiles instead of +2. | **Bullet Rain** | Lasts 9 s. |
 | **Legion** | Summons 10 wolves and 10 bats. | **Shield Wall** | Bullets that hit the shield are reflected back as your own. |
 | **Leap Slam** | The landing also erases enemy bullets within 160 px. | **Unbreakable** | Lasts 8 s. |
 | **Consecrate** | The blessed ground follows you. | **Guardian's Oath** | Everyone within 300 px gets the full shield. |
@@ -534,7 +534,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 | **Pot** | Shoot it or walk through it: it smashes into a health orb (35%) or a little XP for everyone. 1 at first, up to 5 |
 | **Barrel** | Rare (from wave 3, a 25-45% chance of one a wave, sometimes two from wave 20). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per wave damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and pots and setting off other barrels |
 | **Health barrel** | Boss fights only: a green barrel with a white cross drops in every 18-26 s (the first after 15 s; two at most), away from the boss. Shoot it or walk into it and it breaks into 2 health orbs |
-| **Treasure chest** | Rare (8% of regular waves from wave 2). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
+| **Treasure chest** | Rare (8% of regular waves from wave 2; always on the first wave after a boss if a player has the Contraband perk). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
 
 ## Paths
 
@@ -707,13 +707,13 @@ what the seat was saved with. Equipped perks are saved with your profile.
 | Perk | Boss | Unlocked by | Effect |
 |---|---|---|---|
 | **Riot Gear** | The Warden | winning the Warden Hunt | A riot-shield plate blocks the next hit that would hurt you: no health lost, no damage counted, and half a second of invulnerability. Then the shield takes **30 s** to come back (the timer keeps running between waves and while you're downed). You start every run with it ready. It blocks one hit from an enemy: a shot, a swing, a blast, a boss slam. **Burning, gas, acid, lava and other damage-over-time ticks go through** and don't spend it. |
-| Contraband | The Warden | winning the Warden Hunt on Hard | Not built yet: shown locked ("Coming soon"). Planned: chests at the start of each boss cycle are rare or better. |
+| **Contraband** | The Warden | winning the Warden Hunt on the Hard or Nightmare preset | **A treasure chest always turns up on the first wave after each boss** (waves 6, 11, 16...) when anyone in the party has it, on top of the random ones (not in Boss Hunts). **Your own item from any chest is rare or better** (never uncommon); teammates still get their own normal item from the same chest. See `Docs/Contraband.md`. |
 
 The plate hovers at your side and swings toward the nearest incoming enemy shot (resting behind you otherwise). While the shield
 recharges a ghost plate fills along its length, and it pops back when ready. A block flashes the plate white, throws sparks off
 the impact and breaks the plate into three pieces that fly off (with visual effects reduced or off, only the flash). A small
 **Riot Gear** chip above the ability bar's XP strip fills from the bottom and shows the seconds left, then READY. Teammates' plates
-show too. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
+show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
 "no perks" record variant is planned). Plan and build notes: `Docs/RiotGear.md`, `Docs/BossHuntsAndPerks.md`.
 
 ## Practice Range

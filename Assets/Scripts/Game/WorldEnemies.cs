@@ -80,6 +80,9 @@ namespace Arena
                         Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 18f) * z.Radius, (7f + 3f * Mathf.Sin(t * 14f + k)) * wall, c.WithAlpha(0.8f * wall), 8);
                     break;
                 }
+                case ZoneKind.BulletRain:  // Downpour: the arena rains, the zone's drops harden into needles (BulletRainLook.cs)
+                    DrawBulletRain(z, t);
+                    break;
                 case ZoneKind.LumenWard:  // a cone of light, god rays and drifting dust (LumenWardLook.cs)
                     DrawLumenWard(z, t);
                     return;

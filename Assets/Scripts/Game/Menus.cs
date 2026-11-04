@@ -220,7 +220,8 @@ namespace Arena
             {
                 Ui.Panel(row, false);
                 Ui.Label(new Rect(row.x + 16f, row.y, row.width - 170f, row.height), session.Status, 14, Ui.Muted, TextAnchor.MiddleLeft, false, true);
-                if (Ui.ActionButton(new Rect(row.xMax - 150f, row.y + 12f, 136f, 40f), "Cancel", false, Ui.Danger, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f), 15) && live)
+                var cr = new Rect(row.xMax - 150f, row.y + 12f, 136f, 40f);
+                if (MenuVhs.Draw(cr, "TRK 02", live, fxReduced, () => Ui.ActionButton(cr, "Cancel", false, Ui.Danger, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f), 15)) && live)
                     session.Leave("");
             }
             else if (menuJoinOpen && join >= 1f && !menuPlayOpen)
@@ -228,7 +229,8 @@ namespace Arena
                 Ui.Panel(row, false);
                 Ui.Label(new Rect(row.x + 16f, row.y + 4f, 200f, 14f), "HOST ADDRESS", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
                 addressText = Ui.Field(new Rect(row.x + 14f, row.y + 20f, row.width - 178f, 36f), addressText, 64);
-                if (Ui.ActionButton(new Rect(row.xMax - 154f, row.y + 18f, 140f, 38f), "Connect", true, Ui.Primary, PixelArt.Get("ui_arrow"), null, 16) && live)
+                var kr = new Rect(row.xMax - 154f, row.y + 18f, 140f, 38f);
+                if (MenuVhs.Draw(kr, "TRK 01", live, fxReduced, () => Ui.ActionButton(kr, "Connect", true, Ui.Primary, PixelArt.Get("ui_arrow"), null, 16)) && live)
                     JoinGame();
             }
             if (session.Status.Length > 0 && !session.Connecting && live)

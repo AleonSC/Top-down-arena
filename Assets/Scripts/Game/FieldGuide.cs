@@ -840,7 +840,7 @@ namespace Arena
             GText(w.Desc, 14, Ui.Text);
             if (!string.IsNullOrEmpty(w.ExtraDesc))
             {
-                GHeading("Each extra projectile (Multishot, Bullet Storm…)");
+                GHeading("Each extra projectile (Multishot, Artillery Assault…)");
                 GText(w.ExtraDesc, 13, Ui.Text);
             }
             GHeading("Used by");

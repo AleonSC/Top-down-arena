@@ -142,8 +142,8 @@ static partial class Program
         // The save's text keeps them, by name; a perk that's gone is skipped; the lobby message is sanitised.
         string text = save.ToText();
         Check(text.Contains("perks RiotGear"), "a saved run writes each seat's perks by name");
-        Check(Perks.FromNames(new[] { "RiotGear", "NoSuchPerk", "RiotGear", "Contraband" }).SequenceEqual(new[] { PerkId.RiotGear }), "perk names that are gone, repeated or not playable yet are skipped");
-        Check(Perks.Sanitize(new byte[] { 0, 0, 1, 200, 255 }).SequenceEqual(new[] { PerkId.RiotGear }), "the host drops ids that aren't real, playable or repeated");
+        Check(Perks.FromNames(new[] { "RiotGear", "NoSuchPerk", "RiotGear", "Contraband" }).SequenceEqual(new[] { PerkId.RiotGear }), "perk names that are gone or repeated, and a second perk from one boss, are skipped");
+        Check(Perks.Sanitize(new byte[] { 0, 0, 1, 200, 255 }).SequenceEqual(new[] { PerkId.RiotGear }), "the host drops ids that aren't real, repeated, or a second perk from one boss");
         host.Leave(""); client.Leave("");
     }
 }

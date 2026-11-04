@@ -3,7 +3,7 @@
 Status: **the Warden Hunt is built** (Nov 2026: `Core/Hunts.cs`, `Game/HuntUi.cs`, `hunts` test suite): ten waves,
 nine of only the boss's own faction (tougher members and squads joining as it goes, its set piece on waves 5 and 9),
 then the boss on wave 10 at wave-10 strength. Later bosses need a faction first (only the Warden has one) and a
-starting build that fits their strength. **Perks: the framework and the first perk, Riot Gear, are built** (Nov 2026: `Core/Perks.cs`, `Core/RiotGear.cs`, `Game/PerksUi.cs`, `Game/RiotGearLook.cs`, `perks` test suite; see [`RiotGear.md`](RiotGear.md)). Not built yet: the other perks, the second and third perk unlocks per boss, and the no-perks record variant. Two features that make one loop:
+starting build that fits their strength. **Perks: the framework, Riot Gear and Contraband are built** ([`Contraband.md`](Contraband.md)) (Nov 2026: `Core/Perks.cs`, `Core/RiotGear.cs`, `Game/PerksUi.cs`, `Game/RiotGearLook.cs`, `perks` test suite; see [`RiotGear.md`](RiotGear.md)). Not built yet: the other bosses' perks, their second and third unlocks, and the no-perks record variant. Two features that make one loop:
 
 ```
 Full run ──beat a boss──▶ unlocks its Boss Hunt
