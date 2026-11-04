@@ -3,6 +3,7 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [ ] **Soldier DPS gun animations (Twin Rifle, Railgun, Burst SMG).** Mockup only (Nov 2026, nothing built): [`Mockups/soldier-dps-gun-animations.html`](Mockups/soldier-dps-gun-animations.html) (https://claude.ai/artifact/75sL7drSpCfqpWaaUaTxjH). Twin Rifle: two angled guns, kick, bolt flick, brass, warming barrels, crossfire X. Railgun: three charging coils, discharge arcs, rail kick, steam, the existing slug and ion trail. Burst SMG: spinning barrel tubes that heat to white, spin ring, the real spray cone. The glowing shots are the in-game ones. Say which bits to build.
 - [ ] **Artillery Assault and Bullet Rain.** Built (Nov 2026, protocol 155). **Artillery Assault** is the DPS Soldier's Bullet Storm renamed, with look A of
       [`Mockups/bullet-rain.html`](Mockups/bullet-rain.html) (heat aura, streaks, muzzle flash; `ArtilleryLook.cs`); mechanics unchanged. **Bullet Rain** replaces the
       Elementalist DPS's Meteor Storm: look D (Downpour) of [`Mockups/bullet-rain-elementalist.html`](Mockups/bullet-rain-elementalist.html). A `ZoneKind.BulletRain`
