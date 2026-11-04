@@ -1,0 +1,182 @@
+<title>Menu VHS Hover Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Main menu replica (1280x720 scaled). Hover a button: old-VHS filter. Click: it snaps into focus and shows its normal look until you leave and re-enter. Three looks in the strip under the screen. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --blue: #73a6ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.screen { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: radial-gradient(ellipse at 50% 45%, #121a2e 0%, #07080d 70%); }
+.game { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(115,166,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(115,166,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+.logo { position: absolute; left: 0; width: 1280px; top: 120px; text-align: center; font: 800 64px var(--font-display); letter-spacing: .12em; color: #eaf1ff; text-shadow: 0 0 30px rgba(115,166,255,.45); }
+.logo small { display: block; font: 500 16px var(--font-data); letter-spacing: .4em; color: #7f93b8; margin-top: 2px; }
+.box { position: absolute; left: 300px; top: 250px; width: 680px; height: 280px; background: linear-gradient(#141b2b, #0e1320); border: 1px solid #3a4a6e; border-radius: 12px; box-shadow: 0 0 40px rgba(80,120,255,.18); }
+.name { position: absolute; left: 30px; top: 22px; width: 620px; height: 64px; background: #182037; border: 1px solid #2c3a5c; border-radius: 8px; display: flex; align-items: center; gap: 14px; padding: 0 16px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: #2b3a63; border: 2px solid var(--blue); }
+.nm { font: 700 20px var(--font-display); color: #fff; line-height: 1.1; }
+.rk { font: 500 12px var(--font-data); color: #8fa3cc; }
+
+/* ---- Buttons ---- */
+.btn { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #3a4a6e; background: #1a2338; color: #dfe8ff; font: 700 18px var(--font-display); letter-spacing: .04em; cursor: pointer; overflow: hidden; user-select: none; isolation: isolate; }
+.btn.pri { background: linear-gradient(#1f6f5e, #154d42); border-color: var(--teal); color: #fff; box-shadow: 0 0 22px rgba(111,227,196,.25); }
+.play { left: 30px; top: 98px; width: 620px; height: 92px; font-size: 30px; letter-spacing: .12em; }
+.join { left: 30px; top: 202px; width: 194px; height: 52px; }
+.rec  { left: 238px; top: 202px; width: 194px; height: 52px; }
+.set  { left: 446px; top: 202px; width: 194px; height: 52px; }
+.lb { position: relative; z-index: 1; }
+/* scanlines + moving tracking band + OSD tag live in pseudo-elements and .osd */
+.btn::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.34) 0 1px, transparent 1px 3px); }
+.btn::after { content: ""; position: absolute; left: 0; right: 0; top: -30%; height: 26%; z-index: 3; pointer-events: none; opacity: 0; background: linear-gradient(transparent, rgba(255,255,255,.22), transparent); }
+.osd { position: absolute; left: 8px; top: 5px; z-index: 4; font: 500 10px var(--font-data); letter-spacing: .12em; color: #fff; opacity: 0; text-shadow: 1px 0 rgba(255,40,80,.9), -1px 0 rgba(40,220,255,.9); pointer-events: none; }
+.btn.vhs::before, .btn.vhs::after, .btn.vhs .osd { opacity: 1; }
+.btn.vhs::after { animation: band 1.5s linear infinite; }
+.btn.vhs { animation: jit .5s steps(1) infinite; }
+@keyframes band { to { top: 110%; } }
+@keyframes jit { 0%{transform:translateX(0)} 8%{transform:translateX(-2px)} 11%{transform:translateX(1px)} 40%{transform:translateX(0)} 62%{transform:translateX(2px) skewX(-1.5deg)} 66%{transform:translateX(0)} }
+
+/* Look A: tracking tape. Scanlines, rolling band, small jitter, red/cyan split. Snap = quick lock with a one-frame roll. */
+[data-look=a] .btn.vhs { filter: saturate(.65) contrast(1.12) blur(.3px); }
+[data-look=a] .btn.vhs .lb { text-shadow: -2px 0 rgba(255,40,80,.85), 2px 0 rgba(40,220,255,.85); }
+[data-look=a] .btn.snap { animation: snapA .24s cubic-bezier(.2,1.4,.4,1); }
+@keyframes snapA { 0%{transform:translateY(-10px) scaleY(1.12);filter:saturate(.5) brightness(1.7) blur(1px)} 35%{transform:translateY(3px) scaleY(.97);filter:brightness(1.25)} 100%{transform:none;filter:none} }
+[data-look=a] .btn.snap .lb { animation: splitIn .24s ease-out; }
+@keyframes splitIn { 0%{text-shadow:-5px 0 rgba(255,40,80,.9),5px 0 rgba(40,220,255,.9)} 100%{text-shadow:0 0 transparent} }
+
+/* Look B: chroma bleed. Heavy colour fringing, grain, washed out and soft. Snap = fringes slam together with a small overshoot. */
+[data-look=b] .btn.vhs { filter: saturate(.45) contrast(.95) blur(.9px) brightness(1.1); }
+[data-look=b] .btn.vhs::before { background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 2px), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .5 0'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.35'/></svg>"); animation: grain .3s steps(3) infinite; }
+@keyframes grain { 0%{background-position:0 0,0 0} 33%{background-position:0 0,-30px 20px} 66%{background-position:0 0,25px -40px} }
+[data-look=b] .btn.vhs .lb { text-shadow: -4px 0 rgba(255,40,80,.9), 4px 0 rgba(40,120,255,.9), 0 0 8px rgba(255,255,255,.4); }
+[data-look=b] .btn.vhs::after { opacity: 0; }
+[data-look=b] .btn.snap { animation: snapB .32s cubic-bezier(.3,1.6,.5,1); }
+@keyframes snapB { 0%{transform:scale(1.04);filter:saturate(.4) blur(2px) brightness(1.4)} 55%{transform:scale(.985);filter:blur(0)} 100%{transform:none;filter:none} }
+[data-look=b] .btn.snap .lb { animation: splitInB .32s cubic-bezier(.3,1.6,.5,1); }
+@keyframes splitInB { 0%{text-shadow:-8px 0 rgba(255,40,80,.9),8px 0 rgba(40,120,255,.9)} 100%{text-shadow:0 0 transparent} }
+
+/* Look C: rewind. Cool blue cast, fat tracking band, flicker, and a tiny "<< REW" tag. Snap = focus pull from blur plus a white flash. */
+[data-look=c] .btn.vhs { filter: saturate(.7) hue-rotate(-12deg) contrast(1.15); animation: jit .5s steps(1) infinite, flick .13s steps(2) infinite; }
+@keyframes flick { 0%{opacity:1} 50%{opacity:.88} }
+[data-look=c] .btn.vhs::after { height: 40%; background: linear-gradient(transparent, rgba(180,220,255,.3), rgba(255,255,255,.15), transparent); animation-duration: .9s; }
+[data-look=c] .btn.vhs .lb { text-shadow: -2px 0 rgba(255,40,80,.7), 2px 0 rgba(40,220,255,.7); letter-spacing: .1em; }
+[data-look=c] .btn.snap { animation: snapC .3s ease-out; }
+@keyframes snapC { 0%{filter:blur(5px) brightness(2.2) saturate(.3);transform:scale(1.03)} 60%{filter:blur(0) brightness(1.2)} 100%{filter:none;transform:none} }
+[data-look=c] .btn.snap .lb { animation: none; }
+
+@media (prefers-reduced-motion: reduce) { .btn.vhs, .btn.vhs::after, .btn.vhs::before { animation: none !important; } }
+
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.beats { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font: 400 12.5px/1.45 var(--font-data); color: var(--muted); }
+.beats b { color: var(--amber); font-weight: 500; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 8px; }
+.notes ul { margin: 0; padding-left: 20px; color: var(--soft); display: grid; gap: 6px; max-width: 80ch; }
+code { font-family: var(--font-data); font-size: 13px; color: var(--teal); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Main menu · button hover</div>
+    <h1>VHS hover, <span>snap to focus</span></h1>
+    <p class="lead">Hold the cursor over any menu button and it turns into a worn tape. Click it and it snaps into focus as the normal button. It stays clean until the cursor leaves and comes back. Pick a look in the strip, or press Auto demo.</p>
+  </header>
+
+  <section class="stage">
+    <div class="screen" id="screen" data-look="a">
+      <div class="game" id="game">
+        <div class="grid"></div>
+        <div class="logo">TOP-DOWN ARENA<small>CO-OP BULLET HELL</small></div>
+        <div class="box">
+          <div class="name"><div class="avatar"></div><div><div class="nm">Anthony</div><div class="rk">RANK 7 · OPERATIVE</div></div></div>
+          <div class="btn pri play"><span class="osd">PLAY ▶ 00:00:07</span><span class="lb">▶ PLAY</span></div>
+          <div class="btn join"><span class="osd">TRK 02</span><span class="lb">Join game</span></div>
+          <div class="btn rec"><span class="osd">TRK 03</span><span class="lb">Records</span></div>
+          <div class="btn set"><span class="osd">TRK 04</span><span class="lb">Settings</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="bar">
+      <span class="lbl">Look</span>
+      <div class="seg" id="looks">
+        <button data-look="a" class="on">A · Tracking tape</button>
+        <button data-look="b">B · Chroma bleed</button>
+        <button data-look="c">C · Rewind</button>
+      </div>
+      <button class="act" id="demo">Auto demo</button>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="card"><h3>A · Tracking tape</h3>
+      <ul class="beats"><li><b>hover</b> scanlines, a bright band rolling down, red/cyan text split, small sideways jitter</li><li><b>click</b> 0.24 s: drops in from above, button squashes, split collapses to nothing</li></ul></div>
+    <div class="card"><h3>B · Chroma bleed</h3>
+      <ul class="beats"><li><b>hover</b> washed out and soft, heavy colour fringing, moving grain, no band</li><li><b>click</b> 0.32 s: fringes slam together, slight overshoot like a lens locking</li></ul></div>
+    <div class="card"><h3>C · Rewind</h3>
+      <ul class="beats"><li><b>hover</b> blue cast, fat band, flicker, and a small tape counter in the corner</li><li><b>click</b> 0.30 s: focus pull from heavy blur with a white flash</li></ul></div>
+  </section>
+
+  <section class="notes">
+    <h3>Notes for the build</h3>
+    <ul>
+      <li>In Unity this is a per-button draw pass in <code>Menus.cs</code> (scanline quads, band rect, offset text copies for the split); no shader needed.</li>
+      <li>Hover VHS time is stateless (driven by <code>Time.unscaledTime</code>), the snap is a 0.2 to 0.3 s timer set on click.</li>
+      <li>Reduced effects: no jitter, band or grain. Hover just tints and the click is instant.</li>
+      <li>The same pass would apply to the Play picker buttons and the pause menu if you like it.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const screen = document.getElementById('screen'), game = document.getElementById('game');
+function fit() { game.style.transform = 'scale(' + (screen.clientWidth / 1280) + ')'; }
+new ResizeObserver(fit).observe(screen); fit();
+
+const btns = [...document.querySelectorAll('.btn')];
+function enter(b) { if (!b.classList.contains('clean') && !b.classList.contains('snap')) b.classList.add('vhs'); }
+function leave(b) { b.classList.remove('vhs', 'clean'); }
+function click(b) {
+  b.classList.remove('vhs', 'snap'); void b.offsetWidth; b.classList.add('snap');
+  const ms = { a: 240, b: 320, c: 300 }[screen.dataset.look];
+  clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('snap'); b.classList.add('clean'); }, ms);
+}
+btns.forEach(b => {
+  b.addEventListener('mouseenter', () => enter(b));
+  b.addEventListener('mouseleave', () => leave(b));
+  b.addEventListener('click', () => click(b));
+});
+document.querySelectorAll('#looks button').forEach(x => x.addEventListener('click', () => {
+  document.querySelectorAll('#looks button').forEach(y => y.classList.toggle('on', y === x));
+  screen.dataset.look = x.dataset.look;
+  btns.forEach(b => b.classList.remove('vhs', 'snap', 'clean'));
+}));
+document.getElementById('demo').addEventListener('click', () => {
+  const seq = [[0, 'enter', 0], [1500, 'click', 0], [2300, 'leave', 0], [2500, 'enter', 2], [3900, 'click', 2], [4700, 'leave', 2]];
+  seq.forEach(([t, k, i]) => setTimeout(() => ({ enter, click, leave })[k](btns[i]), t));
+});
+</script>

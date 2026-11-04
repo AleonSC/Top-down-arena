@@ -1,0 +1,246 @@
+<title>Chalk Fade Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Spirit Chalk: ink now fades out over 10 s by default and no longer blocks bullets. The rare card "Warding Ink" makes it block,
+   and every bullet it stops takes 1.5 s off the dot it hit. Four looks for the slow fade; each scene runs the real numbers
+   (10 s life, 1.5 s wear, dots 10 px apart) at game scale (1 canvas px = 1 arena px). Layout: a two-column card grid under a control bar. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --ink:#a9d4ff; --amber:#ffb547;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1100px; margin:0 auto; padding:28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); display:grid; gap:24px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--ink); }
+h2 { font-size:20px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:72ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:78ch; }
+.bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 12px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button[aria-pressed="true"] { border-color:var(--ink); color:var(--ink); }
+button:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
+.note-motion { display:none; color:var(--muted); font-size:13px; }
+@media (prefers-reduced-motion: reduce) { .note-motion { display:block; } }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Healer Summoner · Spirit Chalk</div>
+  <h1>Chalk <span>Fade</span></h1>
+  <p class="lead">Plain ink no longer stops bullets. It burns down on its own over 10 seconds. The rare card <b>Warding Ink</b> makes it a wall again, but each bullet it stops takes 1.5 s off the dot it hit, so a busy wall is gone in a few seconds. Four looks for the fade. Every scene draws a line, lets it age, then an enemy at the right starts shooting at you from 3 s on. Turn Warding Ink off and on to compare.</p>
+  <div class="bar">
+    <button id="ward" aria-pressed="true">Warding Ink: on</button>
+    <button id="speed" aria-pressed="false">Speed: 1×</button>
+    <button id="pause" aria-pressed="false">Pause</button>
+    <button id="restart">Restart all</button>
+    <span class="note-motion">Reduced motion is on: the scenes show one still frame each.</span>
+  </div>
+</header>
+
+<div class="grid" id="cards"></div>
+
+<section class="panel">
+  <h2>Shared across all four</h2>
+  <ul>
+    <li><b>Life:</b> every dot lasts 10 s (was 4 s). A loop's ring still holds for 3.5 s, then the dots carry on fading like any other.</li>
+    <li><b>Default (no card):</b> enemy bullets fly straight through the ink. It still burns and slows enemies and heals allies.</li>
+    <li><b>Warding Ink (rare card, Spirit Chalk only):</b> bullets are destroyed on contact, and the dot they touched loses 1.5 s. Seven hits finish a fresh dot, and a dot gone from the line is a gap bullets pass through.</li>
+    <li><b>Hit feedback:</b> a spark burst in the look's own colour at the dot, plus a brief flare on that dot so you can see which part of the wall is wearing thin.</li>
+    <li><b>Readout:</b> the clock and the "ink left" bar under each scene show total life left across the line. The game itself has no readout; the line's look is the readout.</li>
+    <li><b>Reduced effects:</b> the line thins and dims (look A) and the sparks and motes are skipped.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(function () {
+  var W = 480, H = 340, LIFE = 10, WEAR = 1.5, N = 24, LOOP = 15;
+  var PX = 70, PY = 175, EX = 452, EY = 175;
+  var ward = true, speed = 1, paused = false;
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function hash(i) { var x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function mix(a, b, u) { return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u]; }
+  function rgba(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, Math.min(1, a)).toFixed(3) + ')'; }
+
+  var looks = [
+    { name: 'A · Thin and dim', blurb: 'The ribbon narrows and cools as it ages, from a bright 12 px line to a faint thread. The simplest to read: width is life.',
+      color: [169, 212, 255], spark: [210, 235, 255],
+      line: function (c, d, f, t) {
+        var w = 3 + 9 * f, col = mix([90, 130, 190], [196, 226, 255], f);
+        return { w: w, glow: 0.18 * f, col: col, a: 0.3 + 0.7 * f };
+      } },
+    { name: 'B · Crumble', blurb: 'The line keeps its width and breaks into dashes: each dot has its own moment to drop out, so gaps open up along it and widen.',
+      color: [180, 215, 255], spark: [225, 240, 255],
+      line: function (c, d, f, t, i) {
+        var vis = f > 0.7 * hash(d.i) || f > 0.85;
+        return { w: 11 * (0.7 + 0.3 * f), glow: 0.12 * f, col: [190, 222, 255], a: vis ? 0.45 + 0.55 * f : 0, dash: true };
+      } },
+    { name: 'C · Dust', blurb: 'The line dims to a ghost while grains lift off it and drift. Light and airy, and the dust makes the fade visible from across the screen.',
+      color: [200, 225, 255], spark: [225, 238, 255],
+      line: function (c, d, f, t) {
+        return { w: 10, glow: 0.1 * f, col: mix([120, 150, 190], [200, 228, 255], f), a: 0.12 + 0.88 * f * f, dust: (1 - f) };
+      } },
+    { name: 'D · Ember', blurb: 'The ink cools like a coal: pale blue to amber to a dull red thread that flickers near the end. Reads as time running out without a number.',
+      color: [255, 190, 110], spark: [255, 190, 110],
+      line: function (c, d, f, t) {
+        var col = f > 0.5 ? mix([255, 178, 92], [196, 226, 255], (f - 0.5) * 2) : mix([120, 46, 36], [255, 178, 92], f * 2);
+        var fl = f < 0.35 ? 0.75 + 0.25 * Math.sin(t * 22 + d.i * 1.7) : 1;
+        return { w: 5 + 7 * f, glow: 0.2 * (1 - Math.abs(f - 0.5)), col: col, a: (0.35 + 0.65 * f) * fl };
+      } }
+  ];
+
+  function Scene(look, canvas) {
+    this.look = look; this.cv = canvas; this.ctx = canvas.getContext('2d');
+    canvas.width = W * 2; canvas.height = H * 2;
+    this.reset();
+  }
+  Scene.prototype.reset = function () {
+    this.t = 0; this.rng = mulberry(7);
+    this.dots = []; this.bullets = []; this.parts = []; this.flash = 0; this.nextShot = 3;
+    for (var i = 0; i < N; i++)
+      this.dots.push({ i: i, x: 250 + 22 * Math.sin(i * 0.28), y: 52 + i * (232 / (N - 1)), T: LIFE, born: i * 0.025, flare: 0 });
+  };
+  Scene.prototype.step = function (dt) {
+    var s = this; s.t += dt;
+    if (s.t >= LOOP) { s.reset(); return; }
+    s.dots.forEach(function (d) { if (s.t >= d.born) { d.T -= dt; } d.flare = Math.max(0, d.flare - dt * 3); if (d.T < 0) d.T = 0; });
+    if (s.t >= s.nextShot && s.t < LOOP - 1.5) {
+      s.nextShot += 0.4;
+      var a = Math.atan2(PY + (s.rng() - 0.5) * 150 - EY, PX - EX);
+      s.bullets.push({ x: EX, y: EY + (s.rng() - 0.5) * 20, vx: Math.cos(a) * 270, vy: Math.sin(a) * 270 });
+    }
+    s.bullets = s.bullets.filter(function (b) {
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      if (ward) {
+        for (var k = 0; k < s.dots.length; k++) {
+          var d = s.dots[k];
+          if (d.T <= 0 || s.t < d.born) continue;
+          if (Math.hypot(b.x - d.x, b.y - d.y) < 11 + 4) {
+            d.T = Math.max(0, d.T - WEAR); d.flare = 1;
+            if (!reduced) for (var q = 0; q < 6; q++) { var an = s.rng() * 6.283; s.parts.push({ x: d.x, y: d.y, vx: Math.cos(an) * 70 + 40, vy: Math.sin(an) * 70, life: 0.4, max: 0.4, c: s.look.spark, r: 1.6 }); }
+            return false;
+          }
+        }
+      }
+      if (Math.hypot(b.x - PX, b.y - PY) < 14) { s.flash = 1; return false; }
+      return b.x > -10 && b.x < W + 10 && b.y > -10 && b.y < H + 10;
+    });
+    s.flash = Math.max(0, s.flash - dt * 4);
+    // look-specific dust from the line
+    if (!reduced && s.look.name.charAt(0) === 'C') {
+      s.dots.forEach(function (d) {
+        var f = d.T / LIFE;
+        if (d.T > 0 && s.t >= d.born && s.rng() < (1 - f) * dt * 3.2) s.parts.push({ x: d.x + (s.rng() - 0.5) * 8, y: d.y + (s.rng() - 0.5) * 8, vx: 14 + s.rng() * 18, vy: -10 - s.rng() * 18, life: 1.4, max: 1.4, c: [205, 228, 255], r: 1.2 });
+      });
+    }
+    s.parts = s.parts.filter(function (p) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.98; return p.life > 0; });
+  };
+  Scene.prototype.draw = function () {
+    var s = this, c = s.ctx, look = s.look, t = s.t;
+    c.setTransform(2, 0, 0, 2, 0, 0);
+    c.fillStyle = '#070910'; c.fillRect(0, 0, W, H);
+    // arena floor grid
+    c.strokeStyle = 'rgba(120,150,190,.06)'; c.lineWidth = 1;
+    for (var gx = 0; gx <= W; gx += 40) { c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, H); c.stroke(); }
+    for (var gy = 0; gy <= H; gy += 40) { c.beginPath(); c.moveTo(0, gy); c.lineTo(W, gy); c.stroke(); }
+    // line
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    var total = 0, prev = null, prevSt = null;
+    for (var pass = 0; pass < 2; pass++) {
+      prev = null;
+      s.dots.forEach(function (d) {
+        var live = t >= d.born && d.T > 0;
+        var f = Math.max(0, d.T) / LIFE;
+        if (pass === 0 && t >= d.born) total += d.T;
+        if (!live) { prev = null; return; }
+        var st = look.line(c, d, f, t);
+        var vis = st.a > 0.01;
+        if (vis && prev && prevSt) {
+          var w = (st.w + prevSt.w) / 2, col = st.col, a = (st.a + prevSt.a) / 2;
+          if (pass === 0) { c.strokeStyle = rgba(col, st.glow * 1.4 + d.flare * 0.35); c.lineWidth = w + 12; }
+          else { c.strokeStyle = rgba(mix(col, [255, 255, 255], d.flare * 0.7), a + d.flare * 0.4); c.lineWidth = w * (1 + d.flare * 0.2); }
+          c.beginPath(); c.moveTo(prev.x, prev.y); c.lineTo(d.x, d.y); c.stroke();
+        } else if (vis && !prev && look.line === looks[1].line) {
+          c.fillStyle = rgba(st.col, st.a); c.beginPath(); c.arc(d.x, d.y, st.w * 0.45, 0, 6.283); c.fill();
+        }
+        prev = vis ? d : null; prevSt = vis ? st : null;
+      });
+    }
+    // thin bright thread through the middle, only while fresh enough
+    prev = null;
+    s.dots.forEach(function (d) {
+      if (t < d.born || d.T <= 0) { prev = null; return; }
+      var f = d.T / LIFE, st = look.line(c, d, f, t);
+      if (st.a > 0.01 && prev) { c.strokeStyle = 'rgba(255,255,255,' + (0.8 * f * (st.a > 0 ? 1 : 0)).toFixed(3) + ')'; c.lineWidth = 1; c.beginPath(); c.moveTo(prev.x, prev.y); c.lineTo(d.x, d.y); c.stroke(); }
+      prev = st.a > 0.01 ? d : null;
+    });
+    // chalk tip while drawing
+    if (t < N * 0.025 + 0.25) {
+      var di = Math.max(0, Math.min(N - 1, Math.floor(t / 0.025))), dd = s.dots[di];
+      c.fillStyle = 'rgba(220,240,255,.3)'; c.beginPath(); c.arc(dd.x, dd.y, 11, 0, 6.283); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); c.arc(dd.x, dd.y, 4, 0, 6.283); c.fill();
+    }
+    // particles
+    s.parts.forEach(function (p) { c.fillStyle = rgba(p.c, p.life / p.max); c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.283); c.fill(); });
+    // enemy and player
+    c.fillStyle = '#5a1f2a'; c.strokeStyle = '#ff6b78'; c.lineWidth = 2; c.beginPath(); c.arc(EX, EY, 14, 0, 6.283); c.fill(); c.stroke();
+    c.fillStyle = '#16314d'; c.strokeStyle = '#8ec6ff'; c.beginPath(); c.arc(PX, PY, 13, 0, 6.283); c.fill(); c.stroke();
+    if (s.flash > 0) { c.strokeStyle = 'rgba(255,90,100,' + s.flash.toFixed(2) + ')'; c.lineWidth = 3; c.beginPath(); c.arc(PX, PY, 13 + 8 * (1 - s.flash), 0, 6.283); c.stroke(); }
+    // bullets
+    s.bullets.forEach(function (b) {
+      var pass = !ward && b.x < 250 + 30 && b.x > 250 - 30;
+      c.fillStyle = 'rgba(255,90,100,.25)'; c.beginPath(); c.arc(b.x, b.y, 8, 0, 6.283); c.fill();
+      c.fillStyle = '#ff7a86'; c.beginPath(); c.arc(b.x, b.y, 4, 0, 6.283); c.fill();
+    });
+    // hud
+    c.fillStyle = 'rgba(231,238,243,.85)'; c.font = '600 12px Oxanium, system-ui, sans-serif'; c.textAlign = 'left';
+    c.fillText('T+ ' + Math.min(t, LOOP).toFixed(1) + ' s', 12, 22);
+    c.fillStyle = ward ? '#a9d4ff' : '#92a1ad';
+    c.fillText('Warding Ink: ' + (ward ? 'on' : 'off'), 12, 40);
+    var left = total / (N * LIFE);
+    c.fillStyle = 'rgba(255,255,255,.1)'; c.fillRect(12, H - 22, 160, 6);
+    c.fillStyle = rgba(look.color, 0.95); c.fillRect(12, H - 22, 160 * left, 6);
+    c.fillStyle = 'rgba(231,238,243,.75)'; c.font = '500 11px Barlow, system-ui, sans-serif';
+    c.fillText('ink left ' + Math.round(left * 100) + '%', 180, H - 15);
+  };
+
+  var scenes = [], host = document.getElementById('cards');
+  looks.forEach(function (look) {
+    var card = document.createElement('div'); card.className = 'card';
+    var cv = document.createElement('canvas');
+    var tx = document.createElement('div'); tx.className = 't';
+    tx.innerHTML = '<b></b><span></span>';
+    tx.firstChild.textContent = look.name; tx.lastChild.textContent = look.blurb;
+    card.appendChild(cv); card.appendChild(tx); host.appendChild(card);
+    scenes.push(new Scene(look, cv));
+  });
+
+  function bind(id, fn) { document.getElementById(id).addEventListener('click', fn); }
+  bind('ward', function (e) { ward = !ward; e.target.setAttribute('aria-pressed', ward); e.target.textContent = 'Warding Ink: ' + (ward ? 'on' : 'off'); scenes.forEach(function (s) { s.reset(); }); });
+  bind('speed', function (e) { speed = speed === 1 ? 3 : 1; e.target.setAttribute('aria-pressed', speed !== 1); e.target.textContent = 'Speed: ' + speed + '×'; });
+  bind('pause', function (e) { paused = !paused; e.target.setAttribute('aria-pressed', paused); e.target.textContent = paused ? 'Play' : 'Pause'; });
+  bind('restart', function () { scenes.forEach(function (s) { s.reset(); }); });
+
+  if (reduced) { scenes.forEach(function (s) { for (var k = 0; k < 360; k++) s.step(1 / 60); s.draw(); }); return; }
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
+    if (!paused) scenes.forEach(function (s) { var n = speed; for (var k = 0; k < n; k++) s.step(dt); });
+    scenes.forEach(function (s) { s.draw(); });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

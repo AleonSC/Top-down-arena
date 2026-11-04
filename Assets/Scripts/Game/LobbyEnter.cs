@@ -78,9 +78,12 @@ namespace Arena
             float t = Time.unscaledTime;
             var oldColor = GUI.color;
             float k = EaseInOut(Seg(e, 0f, 0.7f));
-            var r = LerpRect(MenuCard, LobbyBodyRect, k);
-            if (k < 1f || e < 1.05f)
-                Ui.BodyGlow(r, 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
+            // Continuing a saved run: the Seats tab has no box to grow into, so the card stays put and fades out instead.
+            bool fade = session.Resume != null;
+            float cardA = fade ? 1f - Seg(e, 0f, 0.5f) : 1f;
+            var r = fade ? MenuCard : LerpRect(MenuCard, LobbyBodyRect, k);
+            if (fade ? cardA > 0f : (k < 1f || e < 1.05f))
+                Ui.BodyGlow(r, fade ? cardA : 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
 
             // The bottom bar (your name card with it) drops away and fades; the tip tray fades.
             float drop = Seg(e, 0f, 0.35f);
@@ -94,7 +97,12 @@ namespace Arena
                 });
 
             // The card grows into the loadout panel; its insides fade at once.
-            if (k < 1f || e < 1.05f)
+            if (fade)
+            {
+                if (cardA > 0f)
+                    WithAlpha(cardA, () => Ui.BodyBox(r));
+            }
+            else if (k < 1f || e < 1.05f)
                 Ui.BodyBox(r);
             float empty = Seg(e, 0f, 0.15f);
             if (empty < 1f)
@@ -135,7 +143,7 @@ namespace Arena
                 float arcA = 1f - Seg(e, 0f, 0.3f);  // the shot's arc over the title fades
                 if (arcA > 0f)
                     DrawMenuArc(t, arcA);
-                float cornersA = 1f - Seg(e, 0.75f, 1.1f);
+                float cornersA = fade ? cardA : 1f - Seg(e, 0.75f, 1.1f);
                 if (cornersA > 0f)
                     DrawPlotCorners(r, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * cornersA));
                 float ring = Seg(e, 1.1f, 1.6f);

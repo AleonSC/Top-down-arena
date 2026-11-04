@@ -482,7 +482,7 @@ namespace Arena
             }
             double roll = rng.NextDouble();
             var want = roll < 0.2 ? Rarity.Uncommon : roll < 0.65 ? Rarity.Rare : Rarity.VeryRare;
-            return Upgrades.RandomOfRarity(rng, want, p.Role, p.RoleAbility, p.Taken);
+            return Upgrades.RandomOfRarity(rng, want, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id);
         }
 
         /// Host: does the wave have to wait (an unopened chest, or an item nobody has dealt with)?
@@ -570,7 +570,7 @@ namespace Arena
                 return;  // (a little slack for the client's position arriving late)
             Loots.Remove(lootId);
             var u = Upgrades.All[l.Upgrade];
-            if (take && Upgrades.Available(l.Upgrade, p.Role, p.RoleAbility, p.Taken))
+            if (take && Upgrades.Available(l.Upgrade, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id))
             {
                 Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
                 GrantUpgrade(playerId, l.Upgrade);

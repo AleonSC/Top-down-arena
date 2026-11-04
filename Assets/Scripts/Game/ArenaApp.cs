@@ -615,7 +615,18 @@ namespace Arena
                     else if (fieldGuideOpen)
                         DrawFieldGuideScreen();  // FieldGuide.cs (the main menu's button)
                     else if (settingsOpen)
+                    {
+                        // The box animates out as the drawer slides in (and back in as it slides out): the menu is drawn
+                        // under it, fading and drifting away from the drawer, and takes no clicks (Repaint only).
+                        float menuVis = bgBig ? 1f : WindowVis;
+                        if (menuVis < 1f && Event.current.type == EventType.Repaint)
+                        {
+                            PushShift(70f * EaseOut(menuVis), 0f, 1f - menuVis);
+                            DrawMenu();
+                            PopShift();
+                        }
                         DrawSettings();
+                    }
                     else if (howToOpen)
                         DrawHowToPlay();
                     else if (continueOpen)

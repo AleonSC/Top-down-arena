@@ -81,6 +81,7 @@ namespace Arena
         public float GiftMult = 1f, SiphonRadiusMult = 1f, SiphonBonusTime, MartyrBonus, MartyrInvuln;
         public float BoilMult = 1f, BoilRadiusMult = 1f, RushBonusTime, RushRate;
         public int NovaExtraBolts;
+        public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)
@@ -122,6 +123,7 @@ namespace Arena
         public AbilityId Grants = AbilityId.None;   // very rare: a new Q/E/Shift ability
         public bool NeedsExtraAbility;              // only offered once you have a bonus ability
         public AbilityId RequiresAbility = AbilityId.None;  // only offered if you have this ability (on any key)
+        public WeaponId? RequiresWeapon;            // only offered if this is your weapon (callers that don't pass a weapon never offer it)
         public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
         public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
@@ -223,6 +225,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Second Charge", Desc = "Your Space ability gets a second charge", Apply = s => s.RoleCharges += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Barrier, MaxStacks = 2, Name = "Bastion", Desc = "Barrier is 40% bigger, lasts 1.5 s longer and soaks 50% more",
                 Apply = s => { s.BarrierRadiusMult += 0.4f; s.BarrierBonusTime += 1.5f; s.BarrierCapacityMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresWeapon = WeaponId.SpiritChalk, MaxStacks = 1, Name = "Warding Ink", Desc = "Spirit Chalk blocks enemy bullets, but every bullet it stops wears the ink away fast",
+                Apply = s => s.ChalkWard = true },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Roar, MaxStacks = 2, Name = "Bellow", Desc = "Roar lasts 2 s longer and blocks 15% more damage",
                 Apply = s => { s.RoarBonusTime += 2f; s.RoarExtraReduction += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
@@ -536,10 +540,12 @@ namespace Arena
         }
 
         /// Can this upgrade be offered to a player with these picks and role?
-        public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken)
+        public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null)
         {
             var u = All[id];
             if (u.Unoffered)
+                return false;
+            if (u.RequiresWeapon.HasValue && u.RequiresWeapon.Value != weapon)
                 return false;
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;
@@ -561,14 +567,14 @@ namespace Arena
         }
 
         /// One upgrade of this rarity this player could take (falling back to lower rarities), or -1. (Chests, Props.cs.)
-        public static int RandomOfRarity(Random rng, Rarity want, Role role, AbilityId roleAbility, List<int> taken)
+        public static int RandomOfRarity(Random rng, Rarity want, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null)
         {
             var candidates = new List<int>();
             for (int r = (int)want; r >= 0; r--)
             {
                 candidates.Clear();
                 for (int id = 0; id < All.Length; id++)
-                    if ((int)All[id].Rarity == r && Available(id, role, roleAbility, taken))
+                    if ((int)All[id].Rarity == r && Available(id, role, roleAbility, taken, weapon))
                         for (int k = 0; k < All[id].Weight; k++)
                             candidates.Add(id);
                 if (candidates.Count > 0)
@@ -579,18 +585,18 @@ namespace Arena
 
         /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
         /// A challenge room's prize: three cards, each rare or very rare (Challenges.cs).
-        public static int[] PrizeOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken) =>
-            RollWeighted(rng, role, roleAbility, taken, new[] { 0f, 0f, 55f, 45f });
+        public static int[] PrizeOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null) =>
+            RollWeighted(rng, role, roleAbility, taken, new[] { 0f, 0f, 55f, 45f }, 3, weapon);
 
-        public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level)
+        public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level, WeaponId? weapon = null)
         {
             var st = Compute(taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
             float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
             float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
-            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
+            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra), weapon);
         }
 
-        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights, int count = 3)
+        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights, int count = 3, WeaponId? weapon = null)
         {
             var offer = new int[count];
             var used = new List<int>();
@@ -610,7 +616,7 @@ namespace Arena
                     int want = r >= 0 ? r : -r;
                     var candidates = new List<int>();
                     for (int id = 0; id < All.Length; id++)
-                        if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken))
+                        if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken, weapon))
                             for (int k = 0; k < All[id].Weight; k++)  // class ability cards count triple
                                 candidates.Add(id);
                     if (candidates.Count > 0)

@@ -78,7 +78,7 @@ namespace Arena
         {
             var shelf = new List<int>();
             for (int tries = 0; tries < 6 && shelf.Count < 4; tries++)
-                foreach (int u in Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level))
+                foreach (int u in Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id))
                     if (u >= 0 && shelf.Count < 4 && !shelf.Contains(u))
                         shelf.Add(u);
             while (shelf.Count < 4)
@@ -133,7 +133,7 @@ namespace Arena
                     if (!shopping || arg < 0 || arg >= ShelfSize || Sold(p, arg) || p.Shelf[arg] < 0)
                         return;
                     int u = p.Shelf[arg], price = Price(u);
-                    if (p.Gold < price || !Upgrades.Available(u, p.Role, p.RoleAbility, p.Taken))
+                    if (p.Gold < price || !Upgrades.Available(u, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id))
                         return;
                     p.Gold -= price;
                     p.ShelfSold |= (byte)(1 << arg);
@@ -292,7 +292,7 @@ namespace Arena
         {
             int best = -1;
             for (int i = 0; i < ShelfSize; i++)
-                if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], me.Role, me.RoleAbility, me.Taken)
+                if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], me.Role, me.RoleAbility, me.Taken, me.Weapon.Id)
                     && (best < 0 || Price(me.Shelf[i]) < Price(me.Shelf[best])))
                     best = i;
             if (best >= 0)
