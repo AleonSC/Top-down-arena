@@ -6,12 +6,13 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
-- [x] **Ping system.** Built (Nov 2026, protocol 143; `Msg.PingMark`, since `Msg.Ping` was already the latency check). Mockup:
+- [x] **Ping system.** Built (Nov 2026, protocol 145; `Msg.PingMark`, since `Msg.Ping` was already the latency check). Mockup:
       [`Mockups/ping-system.html`](Mockups/ping-system.html) (https://claude.ai/artifact/UHdFiTLxtxuzmZLQZQbH3Z). I picked the wheel (tap = last pick, hold = wheel),
       the player's slot colour, and a separate key (middle mouse, rebindable). The arena is one fixed screen, so the mockup's off-screen arrows and
       minimap weren't built. Left out for now: muting a player's pings, ping sounds, a Loot mark on the item itself. Say if you want any. Needs a try in Unity.
       Bestiary/Armory pages are unaffected.
-
+- [x] **In-run text chat box.** Built (Nov 2026, protocol 143), look C (Bubbles) of [`Mockups/chat-box.html`](Mockups/chat-box.html) (https://claude.ai/artifact/KL9YxpHUagLVPpcBNU1tB8).
+      Match only; no system lines (joins, revives) yet. Say if you want them or the Hangout to have chat too.
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 - [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
       (`Game/GunBowLooks.cs`). Mockup: [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html)
@@ -26,6 +27,12 @@ A running list of things to pick up next session. Tick off / delete as they're d
             from [`Mockups/totem-staff-rework.html`](Mockups/totem-staff-rework.html) (https://claude.ai/artifact/3cp8ynYASdq6fySbRoaeJZ).
             Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
+
+- [x] **Healer Soldier: Haven replaced by the Adrenaline Shot.** Built (Nov 2026, protocol 144): look C (Heartbeat), capstone C (half-length dose to the nearest
+      other ally within 250 px), from [`Mockups/adrenaline-shot.html`](Mockups/adrenaline-shot.html) (https://claude.ai/artifact/UmTvWZEiBvZ95Qt1a6pQJL).
+      Instant, 14 s cooldown, goes to the player closest to your cursor (you, alone): 8 s of +30% move speed, +40% fire rate, 30% less damage.
+      Hallowed Ground became **Long Dose** (+3 s, 2 stacks). Haven's leftovers are still in the code, waiting for your OK to delete: `ZoneKind.Haven` and its
+      `ZoneDef` (they keep the zone numbers in place), the revive-boost zone code in `Minions.cs` and `SoloZoneHeal`.
 
 - [x] **Healer rework: Soul Lantern (Summoner) and Deployable Medkit (Soldier).** Built (Nov 2026, protocol 139): Soul Lantern look B
       (Wisp Cage) and Deployable Medkit look A (Field Kit), from [`Mockups/soul-lantern.html`](Mockups/soul-lantern.html)

@@ -47,8 +47,8 @@ namespace Arena
                 Sound = Sfx.ShotSmg },
         };
 
-        /// Everything that speeds up firing: upgrades, Overdrive, Bullet Storm, Counterstance.
-        float FireRate(Player p) => p.Stats.FireRateMult * (p.OverdriveT > 0f ? 2f : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
+        /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Bullet Storm, Counterstance.
+        float FireRate(Player p) => p.Stats.FireRateMult * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * BloodFireRate(p);
 
         /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).

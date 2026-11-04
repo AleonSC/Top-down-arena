@@ -77,7 +77,7 @@ namespace Arena
         public const float AuraRange = 170f;
         const float AuraHeal = 9f;
         public const float AuraSelfHeal = 1f;
-        const float SoloZoneHeal = 1.5f;  // Haven heals this much faster when there's nobody to revive  // HP/s the aura heals the Healer themselves (x the aura's heal multiplier)
+        const float SoloZoneHeal = 1.5f;  // a zone with a revive boost heals this much faster when there's nobody to revive  // HP/s the aura heals the Healer themselves (x the aura's heal multiplier)
         const string AuraSource = "aura";
         // A Healer's heals past full health become a shield: up to this share of the target's max health, for this long.
         public const float OverhealCap = 0.2f, OverhealTime = 4f;
@@ -93,7 +93,8 @@ namespace Arena
         const float DashSpeed = 1200f;
         const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
         const float RoarTime = 5f, RoarReduction = 0.4f;
-        const float HavenRadius = 130f, HavenTime = 6f;
+        const float AdrenalineCooldown = 14f, AdrenalineTime = 8f, AdrenalineCut = 0.3f, AdrenalineFire = 1.4f, AdrenalineSplashRange = 250f, AdrenalineSplashTime = 0.5f;  // Adrenaline.cs
+        public const float AdrenalineSpeed = 1.3f;
         const float LinkHeal = 8f;  // Soul Lantern's regeneration a second (SoulLantern.cs)
         const float MedkitCooldown = 14f, MedkitReach = 360f, MedkitFlight = 0.5f, MedkitLife = 6f;  // Medkit.cs
         const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeDamage = 80f;

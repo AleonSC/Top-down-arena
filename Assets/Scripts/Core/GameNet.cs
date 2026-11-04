@@ -403,6 +403,7 @@ namespace Arena
             s.Float(ref p.BarrierFrac);
             s.Float(ref p.InvulnT);
             s.Float(ref p.OverdriveT);
+            s.Float(ref p.AdrenalineT);
             s.Float(ref p.TauntT);
             s.Float(ref p.LinkT);
             s.Int(ref p.LinkTo);

@@ -51,7 +51,10 @@ namespace Arena
         static int swallowFrame = -1;
 
         /// Rebinding is going on (or just ended this frame): the game ignores keys, Esc included.
-        public static bool Busy => Listening >= 0 || swallowFrame == Time.frameCount;
+        public static bool Busy => Listening >= 0 || swallowFrame == Time.frameCount || ChatOpen;
+
+        /// The chat box has the keyboard (ChatBox.cs): typing must not move, cast or pause.
+        public static bool ChatOpen;
 
         public static string Title(KeyAction a) => Titles[(int)a];
         public static string Line(KeyAction a) => Lines[(int)a];

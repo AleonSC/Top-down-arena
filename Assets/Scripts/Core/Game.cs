@@ -1126,6 +1126,7 @@ namespace Arena
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
+                p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);
                 p.AegisT = Math.Max(0f, p.AegisT - dt);
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);

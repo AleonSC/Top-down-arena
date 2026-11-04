@@ -32,7 +32,9 @@ namespace Arena
                 if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
             }
-            amount *= 1f - cut;  // a mastered Haven
+            amount *= 1f - cut;  // the Ninja's smoke
+            if (p.AdrenalineT > 0f)
+                amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
@@ -83,6 +85,7 @@ namespace Arena
                 p.Revive = 0f;
                 p.BarrierT = 0f;
                 p.OverdriveT = 0f;
+                p.AdrenalineT = 0f;
                 p.Firing = false;
             }
         }

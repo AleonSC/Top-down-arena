@@ -290,6 +290,8 @@ namespace Arena
             }
             if (p.OverdriveT > 0f)
                 Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
+            if (p.AdrenalineT > 0f)
+                DrawAdrenaline(p, t);  // heartbeat rings and a thumping heart (AdrenalineLook.cs)
             if (p.AegisT > 0f)  // Arcane Aegis: a spinning hexagon
                 for (int k = 0; k < 6; k++)
                     Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),

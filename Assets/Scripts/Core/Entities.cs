@@ -74,7 +74,7 @@ namespace Arena
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
         public bool Downed;
-        public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
+        public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
@@ -192,7 +192,7 @@ namespace Arena
         public bool DevGod;  // dev menu: takes no damage
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit);
+        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -339,7 +339,7 @@ namespace Arena
         public float Heal => Med ? MedHeal : Dew ? DewHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
     }
 
-    /// An area on the ground: Haven, Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
+    /// An area on the ground: Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
     public class Zone
     {
         public int Id, Owner;
@@ -351,7 +351,7 @@ namespace Arena
         public float ExtraSlow;     // host: mastered Flame Wall also slows
         public float ExtraRevive;   // host: mastered Healing Rain revives downed allies inside this much faster (1 = twice as fast)
         public bool Follow;         // host: mastered Soul Lantern moves with its owner
-        public float DamageCut;     // host: mastered Haven: allies inside take less damage
+        public float DamageCut;     // host: allies inside take less damage (the Ninja's smoke)
         public bool Embers;         // host: a mastered Meteor leaves burning ground
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)

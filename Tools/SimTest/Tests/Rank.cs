@@ -145,6 +145,17 @@ static partial class Program
         Check(host.SendEmote(1), "the host plays one too");
         PollBoth(host, client);
         Check(client.EmoteOf(1, out shown, out age) && shown == 1, "and the client sees the host's");
+        // Chat: a client's line is cleaned and trimmed by the host and shown to everyone; one a second per player.
+        Check(Session.CleanChat("  hi\u0007  there  ") == "hi there" && Session.CleanChat(new string('x', 300)).Length == Session.ChatMaxLength && Session.CleanChat("\n\t") == "", "chat lines lose control characters and extra spaces, and are cut to 120");
+        Check(client.SendChat("on my way") && !client.SendChat("   "), "a client sends a line, and an empty one isn't sent");
+        PollBoth(host, client);
+        Check(host.Chat.Count == 1 && client.Chat.Count == 1 && client.Chat[0].Text == "on my way" && client.Chat[0].Id == cid, "the host and the sender both get the line");
+        client.SendChat("too fast");
+        PollBoth(host, client);
+        Check(host.Chat.Count == 1, "a second line inside the gap is dropped by the host");
+        Check(host.SendChat("hello") && host.Chat.Count == 2, "the host chats too");
+        PollBoth(host, client);
+        Check(client.Chat.Count == 2 && client.Chat[1].Id == 1 && client.Chat[1].Text == "hello", "and the client sees the host's");
         cp.Trail = "trail-gold"; cp.Xp = Rank.XpAt(24);  // not theirs at rank 24
         client.ShareCosmetics();
         PollBoth(host, client);
