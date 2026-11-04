@@ -224,19 +224,35 @@ namespace Arena
             var row = MenuJoinRow;
             if (session.Connecting)
             {
+                // How it's going, on a CRT screen of its own, with Cancel as a key beside it.
                 Ui.Panel(row, false);
-                Ui.Label(new Rect(row.x + 16f, row.y, row.width - 170f, row.height), session.Status, 14, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+                var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
+                CrtUi.Begin(ss);
+                CrtUi.Text(new Rect(ss.x + 14f, ss.y, ss.width - 28f, ss.height), session.Status, 14, CrtUi.Ink, TextAnchor.MiddleLeft, false, fxReduced);
+                CrtUi.End(ss, Time.unscaledTime, fxReduced);
                 var cr = new Rect(row.xMax - 150f, row.y + 12f, 136f, 40f);
                 if (MenuVhs.Draw(cr, "TRK 02", live, fxReduced, () => Ui.ActionButton(cr, "Cancel", false, Ui.Danger, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f), 15)) && live)
                     session.Leave("");
             }
             else if (menuJoinOpen && join >= 1f && !menuPlayOpen)
             {
+                // The address on a CRT screen (label above it), and Connect as a key with a lamp beside it.
                 Ui.Panel(row, false);
-                Ui.Label(new Rect(row.x + 16f, row.y + 4f, 200f, 14f), "HOST ADDRESS", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-                addressText = Ui.Field(new Rect(row.x + 14f, row.y + 20f, row.width - 178f, 36f), addressText, 64);
-                var kr = new Rect(row.xMax - 154f, row.y + 18f, 140f, 38f);
-                if (MenuVhs.Draw(kr, "TRK 01", live, fxReduced, () => Ui.ActionButton(kr, "Connect", true, Ui.Primary, PixelArt.Get("ui_arrow"), null, 16)) && live)
+                var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
+                CrtUi.Begin(ss);
+                CrtUi.Text(new Rect(ss.x + 14f, ss.y + 3f, 200f, 12f), "HOST ADDRESS", 9, CrtUi.Dim, TextAnchor.MiddleLeft, false, true);
+                var oldTint = GUI.contentColor;
+                GUI.contentColor = CrtUi.Ink;
+                addressText = Ui.BareField(new Rect(ss.x + 10f, ss.y + 15f, ss.width - 20f, 28f), addressText, 64, 19);
+                GUI.contentColor = oldTint;
+                CrtUi.End(ss, Time.unscaledTime, fxReduced);
+                var kr = new Rect(row.xMax - 150f, row.y + 11f, 136f, 42f);
+                if (MenuVhs.Draw(kr, "TRK 01", live, fxReduced, () =>
+                {
+                    bool hit = Ui.ActionButton(kr, "Connect", true, Ui.Primary, PixelArt.Get("ui_arrow"), null, 16);
+                    Ui.Fill(new Rect(kr.xMax - 14f, kr.center.y - 3f, 6f, 6f), CrtUi.Ink);   // the lamp
+                    return hit;
+                }) && live)
                     JoinGame();
             }
             if (session.Status.Length > 0 && !session.Connecting && live)

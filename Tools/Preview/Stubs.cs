@@ -39,7 +39,7 @@ namespace UnityEngine {
     public static void BeginGroup(Rect r){ groups.Add(clip); var a = new Rect(r.x+ox, r.y+oy, r.width, r.height); float x0=System.Math.Max(a.x,clip.x), y0=System.Math.Max(a.y,clip.y), x1=System.Math.Min(a.xMax,clip.xMax), y1=System.Math.Min(a.yMax,clip.yMax); clip=new Rect(x0,y0,System.Math.Max(0,x1-x0),System.Math.Max(0,y1-y0)); ox=a.x; oy=a.y; offs.Add(new float[]{r.x, r.y}); }
     static System.Collections.Generic.List<float[]> offs = new System.Collections.Generic.List<float[]>();
     public static void EndGroup(){ clip = groups[groups.Count-1]; groups.RemoveAt(groups.Count-1); var o = offs[offs.Count-1]; offs.RemoveAt(offs.Count-1); ox -= o[0]; oy -= o[1]; }
-    public static Color backgroundColor = new Color(1,1,1,1);
+    public static Color backgroundColor = new Color(1,1,1,1); public static Color contentColor = new Color(1,1,1,1);
     public static void Box(Rect r, GUIContent c, GUIStyle s){ Styled(r, s, backgroundColor); }
     static string Hex(Texture2D t){ var sb = new System.Text.StringBuilder(); if (t.px32 != null) foreach (var c in t.px32) sb.Append(c.r.ToString("x2")+c.g.ToString("x2")+c.b.ToString("x2")+c.a.ToString("x2")); else foreach (var c in t.px) sb.Append(((int)System.Math.Round(c.r*255f)).ToString("x2")+((int)System.Math.Round(c.g*255f)).ToString("x2")+((int)System.Math.Round(c.b*255f)).ToString("x2")+((int)System.Math.Round(c.a*255f)).ToString("x2")); return sb.ToString(); }
     // A styled box: the style's texture 9-sliced into the rect (its border on every side), tinted like Unity does.

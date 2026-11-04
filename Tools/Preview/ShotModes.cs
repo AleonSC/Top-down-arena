@@ -311,7 +311,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("WINCLOSE") != null) { set("winClosingAt", 0f); set("winCloseK", float.Parse(Environment.GetEnvironmentVariable("WINCLOSE"), System.Globalization.CultureInfo.InvariantCulture)); }
       // MENUINTRO=<seconds>: the main menu that far into its intro (MenuIntro.cs); JOINOPEN=1: Join's address row open.
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
-      if (Environment.GetEnvironmentVariable("JOINOPEN") != null) set("menuJoinOpen", true);
+      if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuTipHide", 1f); }
       if (Environment.GetEnvironmentVariable("MENUTIPAT") != null) { Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUTIPAT"), System.Globalization.CultureInfo.InvariantCulture); set("menuTipAt", Time.unscaledTime - 1f); }  // sets the clock; the tip box shows its tip fully from 0.25 s on
       if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipIdx", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which tip the box shows (0-13)
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "cosmetics" ? "DrawCosmetics" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "whotr" ? "DrawProfTr" : "DrawHowToPlay", f2).Invoke(app, null);
