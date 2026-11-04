@@ -409,8 +409,14 @@ namespace Arena
         public void Broadcast(byte[] msg)
         {
             if (Net != null && IsHost)
+            {
                 Net.Broadcast(msg);
+                Game.Replay?.Capture(msg);  // (Replay.cs)
+            }
         }
+
+        /// A replay (ReplayPlayer): read this message the way a client reads one from the host.
+        public void ReplayApply(byte[] data) => HandleClientMessage(data);
 
         // --- Host side ---------------------------------------------------------
 

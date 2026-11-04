@@ -1187,6 +1187,25 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   **Account rank** sets this computer's rank without playing for it (works on the main menu too): **+1 rank**, **+10 ranks**,
   **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
+- **Replays:** record the runs you host and watch them back, below.
+
+### Replays (F1)
+
+**F1 → Replays** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
+default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
+**Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
+**Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and
+Boss Lab fights aren't saved.
+
+**Open** (from the main menu, not in a lobby) plays the run back in the game window as a spectator, with a **timeline** along the bottom:
+a **wave lane** (a block per wave, red for a boss; click one to jump to where it starts), a **time bar** to click or drag (blue ticks are waves,
+red a boss, amber a player going down), and buttons for **Pause / Play**, **-1 f / +1 f** (one frame), **|< Wave / Wave >|**, and speeds
+**0.1x, 0.5x, 1x, 2x, 4x, 10x forward and 10x, 4x, 1x, 0.5x, 0.1x backward**. Keys: **Space** pause, **, .** step a frame, **[ ]** next slower / faster
+speed (through backward too), **Left / Right** 5 s, **Home / End**, **V** (or the Following button) switch which player's screen you watch, **Esc** or
+**Close replay** back to the menu. It plays to the end and holds there.
+A replay is what a second player on the host's game would have seen, so it shows the match, not your inputs: you can watch, pause, rewind and scrub, but not
+take over and play from a point. Seeking anywhere takes a few milliseconds; shots that were already in the air for more than 6 s before the spot you jumped to
+aren't drawn. Nothing about a replay changes the network protocol.
 
 ### DPS meter and target dummy (F2)
 

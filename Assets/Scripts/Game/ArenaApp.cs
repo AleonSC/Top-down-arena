@@ -178,6 +178,8 @@ namespace Arena
             devKillAllKey = PlayerPrefs.GetInt("dev_killall", 0) == 1;
             devPauseKey = PlayerPrefs.GetInt("dev_pausekey", 0) == 1;
             ApplyRecording();
+            recordReplays = PlayerPrefs.GetInt("record_replays", 0) == 1 || opts.ContainsKey("record-replays");
+            ApplyReplayRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
             else if (opts.TryGetValue("join", out v))
@@ -216,6 +218,11 @@ namespace Arena
 
         void Update()
         {
+            if (replay != null)
+            {
+                ReplayUpdate();  // watching a replay: nobody is at the controls (ReplayUi.cs)
+                return;
+            }
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
             game.Update(devFrozen ? 0f : Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs); nothing ages while P has frozen it
@@ -510,6 +517,11 @@ namespace Arena
 
         void FixedUpdate()
         {
+            if (replay != null)
+            {
+                ReplayFixedStep(Time.fixedDeltaTime);  // (ReplayUi.cs)
+                return;
+            }
             session.Poll();
             var input = new PlayerInput
             {
@@ -683,6 +695,8 @@ namespace Arena
                     DrawRecallFade();  // back to the lobby: the screen going dark (Recall.cs)
                     break;
             }
+            if (replay != null && (!modal || Event.current.type == EventType.Repaint))
+                DrawReplayBar();  // the timeline (ReplayUi.cs)
             if (!textEditOpen || Event.current.type == EventType.Repaint)
             {
                 if (waveEdOpen)

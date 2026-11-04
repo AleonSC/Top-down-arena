@@ -62,6 +62,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Net.cs`: `NetPeer`, length-prefixed TCP
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
 - `SessionRecorder.cs`: session JSON recorder
+- `Replay.cs`: replays: `ReplayFile` (.replay: header, marks, frame lengths, every host message), `ReplayRecorder` (fed by `Session.Broadcast` and `Game.FixedStep`), `ReplayPlayer` (a private client-mode `Session` that reads the messages; seek, step, speeds)
 
 ## Saving, stats and text data (Core)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
@@ -132,6 +133,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Dev tools and editors (Game)
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
+- `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `PracticeUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, Practice Range, F1 wave editor
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
 

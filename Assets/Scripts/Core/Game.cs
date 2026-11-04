@@ -126,10 +126,16 @@ namespace Arena
             get
             {
                 Player p;
-                Players.TryGetValue(MyId, out p);
+                Players.TryGetValue(Replaying ? ViewId : MyId, out p);
                 return p;
             }
         }
+
+        // Replays (Replay.cs): a replay watches the recorded match as a spectator (nobody is "you"), seeing the player ViewId's screen.
+        public bool Replaying;
+        public int ViewId;
+        public ReplayRecorder Replay;  // recording this match (HostStart sets it when ReplayFolder is)
+        public string ReplayFolder;    // dev: where to save replays of the matches this game hosts (null = don't record)
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
 
@@ -155,6 +161,12 @@ namespace Arena
             var r = new BinaryReader(new MemoryStream(msg));
             r.ReadByte();
             ReadStart(r);
+            if (ReplayFolder != null && !ShowcaseMode && !Unrecorded && !Replaying)
+            {
+                Replay = new ReplayRecorder(this, session, ReplayFolder);
+                Replay.Capture(msg);  // (the broadcast went out before there was a recorder)
+                Replay.SetParty();
+            }
             if (ResumeFrom != null)
                 ApplyResume(ResumeFrom);
             ResumeFrom = null;
@@ -235,6 +247,11 @@ namespace Arena
         /// Ends the match; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
+            if (Replay != null)
+            {
+                Replay.Finish();
+                Replay = null;
+            }
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (Recorder != null && Running)
@@ -664,7 +681,10 @@ namespace Arena
                     SendSnapshot();
                 return;
             }
-            LocalControl(dt, input);
+            if (IsHost)
+                Replay?.Tick(dt);
+            if (!Replaying)
+                LocalControl(dt, input);  // (a replay has nobody at the controls)
             if (Bot)
                 botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)

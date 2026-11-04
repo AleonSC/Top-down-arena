@@ -10,7 +10,7 @@ namespace Arena
     public partial class ArenaApp
     {
         bool devMenuOpen;
-        int devTab = -1;          // 0 Match, 1 Players, 2 Tools (-1: pick one when the menu opens)
+        int devTab = -1;          // 0 Match, 1 Players, 2 Tools, 3 DPS, 4 Replays (-1: pick one when the menu opens)
         int devWave = 1;          // the wave the "Go" button jumps to
         int devPlayer;            // whose stats are shown (player id; 0 = you)
         float devScroll;          // stat list scroll offset
@@ -20,9 +20,9 @@ namespace Arena
 
         static readonly Rect DevPanel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
 
-        static readonly string[] DevTabNames = { "Match", "Players", "Tools", "DPS" };
-        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves", "Meter and target dummy" };
-        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f), new Color(1f, 0.62f, 0.3f) };
+        static readonly string[] DevTabNames = { "Match", "Players", "Tools", "DPS", "Replays" };
+        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves", "Meter and target dummy", "Record, scrub, rewind runs" };
+        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f), new Color(1f, 0.62f, 0.3f), new Color(1f, 0.45f, 0.5f) };
 
         void DrawDevMenu()
         {
@@ -60,7 +60,7 @@ namespace Arena
                     devFocus = "";
                 }
             }
-            DrawDevStatusCard(new Rect(sx, panel.yMax - 136f, sw, 116f), inMatch);
+            DrawDevStatusCard(new Rect(sx, panel.yMax - 156f, sw, 136f), inMatch);
 
             // Content.
             var body = new Rect(sx + sw + 20f, panel.y + 90f, panel.xMax - 24f - (sx + sw + 20f), panel.height - 110f);
@@ -74,6 +74,9 @@ namespace Arena
                     break;
                 case 3:
                     if (inMatch) DrawDevDps(body); else DevNotInMatch(body, "use the DPS meter and dummies");
+                    break;
+                case 4:
+                    DrawDevReplays(body);  // ReplayUi.cs
                     break;
                 default:
                     DrawDevTools(body);
@@ -101,6 +104,7 @@ namespace Arena
             };
             line("WAVE", inMatch ? Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " / " + Game.MaxWave) : "-", Color.white);
             line("RECORDING", recordSessions ? (game.Recorder != null ? "on, recording" : "on") : "off", recordSessions ? new Color(1f, 0.5f, 0.5f) : Ui.Muted);
+            line("REPLAYS", replay != null ? "watching" : recordReplays ? (game.Replay != null ? "on, recording" : "on") : "off", replay != null ? Ui.Accent : recordReplays ? new Color(1f, 0.5f, 0.5f) : Ui.Muted);
             line("BOT", game.Bot ? "playing for you" : "off", game.Bot ? Ui.Good : Ui.Muted);
             line("AIM DEBUG", aimDebug ? "on" : "off", aimDebug ? Ui.Accent : Ui.Muted);
             line("PLAYERS", session.Lobby.Count.ToString(), Color.white);
