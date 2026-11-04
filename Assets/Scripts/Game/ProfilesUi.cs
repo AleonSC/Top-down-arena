@@ -154,7 +154,7 @@ namespace Arena
                 DrawWhoEditor(new Rect(W / 2f - 250f, Mathf.Min(y, H - 160f), 500f, 118f));
             else if (whoError.Length > 0)
                 Ui.Label(new Rect(W / 2f - 250f, y, 500f, 24f), whoError, 14, Ui.Warn, TextAnchor.MiddleCenter);
-            if (!editing && whoList.Count > 0 && Ui.Button(new Rect(W / 2f - 80f, H - 74f, 160f, 36f), whoManage ? "Done" : "Manage profiles", whoManage ? Ui.Primary : Ui.Neutral))
+            if (!editing && whoList.Count > 0 && Ui.ActionButton(new Rect(W / 2f - 80f, H - 74f, 160f, 36f), whoManage ? "Done" : "Manage profiles", whoManage, Ui.Primary, null, null, 15))
             {
                 whoManage = !whoManage;
                 whoArmed = null;
@@ -260,9 +260,9 @@ namespace Arena
                 Event.current.Use();
             bool canCancel = whoList.Count > 0;
             float bw = 100f, bx = r.xMax - 16f - bw;
-            if ((Ui.Button(new Rect(bx, r.y + 76f, bw, 32f), "Save", Ui.Primary) || enter))
+            if ((Ui.ActionButton(new Rect(bx, r.y + 76f, bw, 32f), "Save", true, Ui.Primary, null, null, 15) || enter))
                 WhoCommitEdit();
-            if (canCancel && Ui.Button(new Rect(bx - bw - 8f, r.y + 76f, bw, 32f), "Cancel", Ui.Neutral))
+            if (canCancel && Ui.ActionButton(new Rect(bx - bw - 8f, r.y + 76f, bw, 32f), "Cancel", false, Ui.Primary, null, null, 15))
             {
                 whoEdit = null;
                 whoError = "";

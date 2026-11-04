@@ -277,10 +277,10 @@ namespace Arena
             if (me.AutoReady)
             {
                 GUI.enabled = false;
-                Ui.Button(btn, "AUTO-READY", Ui.Neutral);
+                Ui.ActionButton(btn, "AUTO-READY", false, Ui.Primary, null, null, 15);
                 GUI.enabled = true;
             }
-            else if (Ui.Button(btn, me.Ready ? "✓  READY   (undo)" : "READY   [" + key + "]", me.Ready ? new Color(0.18f, 0.6f, 0.34f) : new Color(0.25f, 0.45f, 0.9f)))
+            else if (Ui.ActionButton(btn, me.Ready ? "✓  READY   (undo)" : "READY   [" + key + "]", me.Ready, Ui.Primary, null, null, 15))
                 PressReady(me);
 
             // Auto-ready: a switch, remembered between runs.

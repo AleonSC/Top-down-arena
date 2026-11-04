@@ -190,9 +190,9 @@ namespace Arena
             if (pages > 1)
             {
                 Ui.Label(new Rect(c.xMax - 330f, c.y + 18f, 80f, 34f), (menuOlderPage + 1) + " / " + pages, 14, Ui.Muted, TextAnchor.MiddleCenter);
-                if (Ui.Button(new Rect(c.xMax - 372f, c.y + 18f, 40f, 34f), "‹", Ui.Neutral) && live && menuOlderPage > 0)
+                if (Ui.ActionButton(new Rect(c.xMax - 372f, c.y + 18f, 40f, 34f), "‹", false, Ui.Primary, null, null, 20) && live && menuOlderPage > 0)
                     menuOlderPage--;
-                if (Ui.Button(new Rect(c.xMax - 248f, c.y + 18f, 40f, 34f), "›", Ui.Neutral) && live && menuOlderPage < pages - 1)
+                if (Ui.ActionButton(new Rect(c.xMax - 248f, c.y + 18f, 40f, 34f), "›", false, Ui.Primary, null, null, 20) && live && menuOlderPage < pages - 1)
                     menuOlderPage++;
             }
             if (Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15) && live)
@@ -214,10 +214,10 @@ namespace Arena
                     Ui.Fill(new Rect(x + 216f, r.y + 9f + k * 20f, 4f, 15f), ToColor(Defs.Get(s.Seats[k].Role).Color));
                     Ui.Label(new Rect(x + 226f, r.y + 7f + k * 20f, 190f, 18f), s.Seats[k].Name + " — " + Defs.KitName(s.Seats[k].Kit) + " " + Defs.Get(s.Seats[k].Role).Name, 12, Ui.Text);
                 }
-                if (Ui.FancyButton(new Rect(r.xMax - 206f, r.y + 8f, 136f, 40f), "Continue", Ui.Primary, PixelArt.Get("ui_play"), t, 17) && live)
+                if (Ui.ActionButton(new Rect(r.xMax - 206f, r.y + 8f, 136f, 40f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 17) && live)
                     ContinueSave(s);
                 bool armed = deleteArmed == s.Id;
-                if (Ui.FancyButton(new Rect(r.xMax - 60f, r.y + 8f, 46f, 40f), "", armed ? Ui.Danger : Ui.Neutral, PixelArt.Get("ui_trash"), t, 14) && live)
+                if (Ui.ActionButton(new Rect(r.xMax - 60f, r.y + 8f, 46f, 40f), "", armed, Ui.Danger, PixelArt.Get("ui_trash"), armed ? (Color?)null : new Color(1f, 0.6f, 0.64f)) && live)
                 {
                     if (armed)
                     {
@@ -255,7 +255,7 @@ namespace Arena
                 Ui.Label(new Rect(x, y - 4f, w, 16f), "and " + (savedRuns.Count - 5) + " older (delete some to see them)", 11, Ui.Muted, TextAnchor.MiddleCenter);
             if (session.Status.Length > 0)
                 Ui.Label(new Rect(x, panel.yMax - 100f, w, 30f), session.Status, 13, Ui.Warn, TextAnchor.MiddleCenter, false, true);
-            if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), Time.unscaledTime))
+            if (Ui.ActionButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 16))
                 continueOpen = false;
         }
 
@@ -297,7 +297,7 @@ namespace Arena
                 Ui.Badge(new Rect(bx, by, 150f, 20f), "DEV TOOLS USED", Ui.Neutral);
             // Continue, or delete (click twice).
             bool armed = deleteArmed == s.Id;
-            if (Ui.FancyButton(new Rect(r.xMax - 150f, r.y + 10f, 136f, 40f), "Continue", Ui.Primary, PixelArt.Get("ui_play"), Time.unscaledTime))
+            if (Ui.ActionButton(new Rect(r.xMax - 150f, r.y + 10f, 136f, 40f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 16))
             {
                 if (session.HostResume(s, Port(), nameText))
                 {
@@ -305,7 +305,7 @@ namespace Arena
                     continueOpen = false;
                 }
             }
-            if (Ui.FancyButton(new Rect(r.xMax - 150f, r.y + 56f, 136f, 28f), armed ? "Really delete?" : "Delete", armed ? Ui.Danger : Ui.Neutral, PixelArt.Get("ui_trash"), Time.unscaledTime))
+            if (Ui.ActionButton(new Rect(r.xMax - 150f, r.y + 56f, 136f, 28f), armed ? "Really delete?" : "Delete", armed, Ui.Danger, PixelArt.Get("ui_trash"), armed ? (Color?)null : new Color(1f, 0.6f, 0.64f), 13))
             {
                 if (armed)
                 {
@@ -380,7 +380,7 @@ namespace Arena
                 else
                 {
                     Ui.Badge(who, "FREE SEAT", new Color(0.3f, 0.34f, 0.42f));
-                    if (Ui.Button(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "Take this seat", Ui.Primary))
+                    if (Ui.ActionButton(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "Take this seat", true, Ui.Primary, null, null, 16))
                         session.RequestSeat(i);
                 }
                 y += 112f;
