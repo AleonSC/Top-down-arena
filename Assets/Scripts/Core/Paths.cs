@@ -283,6 +283,7 @@ namespace Arena
                 case PathId.SwarmFields:
                 {
                     var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger };
+                    if (n >= 5) { rushers.Add(EnemyType.Buzzsaw); rushers.Add(EnemyType.SpikeBlock); }  // MeleeGrunts.cs
                     for (int i = 0; i < count; i++)
                     {
                         if (rng.NextDouble() < 0.8)

@@ -398,9 +398,11 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | Wave | Melee enemy | What it does |
 |---|---|---|
-| 1 | Swarmer | Small and fast, weaves toward you, comes in pairs |
+| 1 | Swarmer | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs |
 | 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you |
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
+| 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
+| 5 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
 
 | Wave | Shooter | What it does |
 |---|---|---|
@@ -1111,7 +1113,7 @@ Twin Rifle and Burst SMG fire tracers, the Railgun a heavy slug pushing rings of
 Scattergun flechettes, Ice Shards
 (from [`Docs/Mockups/ice-shards.html`](Docs/Mockups/ice-shards.html)) faceted ice kites with glints that shatter on a hit; lightning flickers and forks with a white-hot core; Shuriken spin with motion blur;
 Fireballs shed embers and smoke, the Golem's boulder dust, Blood Bolts drips. The lobby's loadout preview shows the
-new shot looks, trails, sparks, bullet endings and hit flashes too (not the glow). **Bullets end instead of
+new shot looks, trails, sparks, bullet endings and hit flashes too (not the glow). **The Soldier DPS's guns animate** (from [`Docs/Mockups/soldier-dps-gun-animations.html`](Docs/Mockups/soldier-dps-gun-animations.html)), keeping the glowing shots: the Twin Rifle's two guns angle in, kick, flick their charging handles, flash at each muzzle, drop brass out of the outer side and warm up the longer you hold fire; the Railgun's three coils light up one after another between shots with a ring closing on the muzzle when it is ready, and a shot is a white flash, arcs between the rails, a hard kick that shoves the rails apart and steam off the coils; the Burst SMG's three barrel tubes turn faster and heat to white as it spins up, its flash grows, it drops brass and smokes once hot, and a faint cone shows the real spray tightening. **Bullets end instead of
 vanishing:** one that runs out of range shrinks and fades into a wisp of smoke; one that hits an enemy flattens into a
 splash with sparks bouncing back; one that's blocked (your parry, a Barrier, a Shield Wall, a blocking minion, or a
 Shielder's or Riot Shield's front) ricochets off, tumbling, with a bright spark; and one that hits a player bursts in

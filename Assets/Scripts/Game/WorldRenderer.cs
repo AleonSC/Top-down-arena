@@ -272,6 +272,15 @@ namespace Arena
                 var hot = new Rgba(1f, 0.6f, 0.2f).Mix(new Rgba(1f, 0.95f, 0.8f), p.SpinUp);
                 Arc(p.Disp, r, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
                 Arc(p.Disp, r, full ? 3.5f : 2.5f, hot.WithAlpha(full ? 0.7f + 0.3f * Mathf.Sin(t * 30f) : 0.8f), 28, t * 9f, MathX.Tau * p.SpinUp);
+                if (Juicy)  // the real spray cone, tightening as it spins up (DpsGunLooks.cs)
+                {
+                    float spray = Game.SmgSpray - (Game.SmgSpray - Game.SmgSprayTight) * p.SpinUp;
+                    for (int sg = -1; sg <= 1; sg += 2)
+                    {
+                        V2 d = V2.FromAngle(p.Aim + sg * spray);
+                        Line(p.Disp + d * 24f, p.Disp + d * 300f, 1f, new Rgba(1f, 0.7f, 0.35f, 0.14f + 0.14f * p.SpinUp));
+                    }
+                }
             }
             if (p.Role == Role.Healer)
             {
