@@ -97,8 +97,7 @@ namespace Arena
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
             DevUsed(p.Name + ": level up");
-            p.Level++;
-            p.PendingPicks++;
+            LevelUpPlayer(p);  // same path as XP: milestone levels queue their pick too
             if (State == MatchState.Intermission && p.Offer == null)
                 NextOffer(p);
         }

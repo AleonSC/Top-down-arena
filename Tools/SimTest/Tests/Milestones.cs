@@ -81,6 +81,11 @@ static partial class Program
         grant.Invoke(g, new object[] { me, Defs.XpToNext(8) + Defs.XpToNext(9) + Defs.XpToNext(10) });
         Check(me.Level == 11 && me.PendingMilestones == 1 && me.PendingPicks == 3, "three level-ups across level 10: one milestone, three normal picks");
 
+        // The dev menu's Level up button takes the same path, so boosting to level 10 queues the milestone pick.
+        me.PendingPicks = me.PendingMilestones = 0; me.Level = 9;
+        g.DevLevelUp(1);
+        Check(me.Level == 10 && me.PendingMilestones == 1, "dev Level up onto level 10 queues the milestone pick (milestones " + me.PendingMilestones + ")");
+
         // Scholar: more XP.
         me.Taken.Clear(); me.Taken.AddRange(Enumerable.Repeat(U("Scholar"), 2)); me.Stats = Upgrades.Compute(me.Taken);
         me.Level = 3; me.Xp = 0f; me.PendingPicks = 0;
