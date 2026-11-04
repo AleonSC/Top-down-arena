@@ -88,7 +88,46 @@ namespace Arena
             return list;
         }
 
+        /// What this profile takes into a lobby: its equipped perks, as the host would accept them.
+        public static PerkId[] Brought(Profile p)
+        {
+            var bytes = new List<byte>();
+            foreach (var id in Equipped(p))
+                bytes.Add((byte)id);
+            return Sanitize(bytes);
+        }
+
         public static bool IsEquipped(Profile p, PerkId id) => p != null && p.PerkNames.Contains(id.ToString());
+
+        /// What the host accepts from a player's lobby message: real, playable perks, no repeats, one per boss, at most MaxSlots.
+        /// (Whether the player has unlocked them is theirs to say, like their rank: a perk is never more than one slot's worth of power.)
+        public static PerkId[] Sanitize(IEnumerable<byte> ids)
+        {
+            var list = new List<PerkId>();
+            var bosses = new HashSet<EnemyType>();
+            foreach (var b in ids)
+            {
+                var d = b < (byte)PerkId.None ? Get((PerkId)b) : null;
+                if (d == null || !d.Built || list.Contains(d.Id) || bosses.Contains(d.Boss) || list.Count >= MaxSlots)
+                    continue;
+                list.Add(d.Id);
+                bosses.Add(d.Boss);
+            }
+            return list.ToArray();
+        }
+
+        /// Perks by name (a saved run's), skipping any that no longer exist or aren't playable.
+        public static PerkId[] FromNames(IEnumerable<string> names)
+        {
+            var ids = new List<byte>();
+            foreach (var n in names)
+            {
+                var d = Get(n);
+                if (d != null)
+                    ids.Add((byte)d.Id);
+            }
+            return Sanitize(ids);
+        }
 
         /// Equips a perk you've unlocked. A second perk from the same boss takes the first one's slot. False: it isn't yours, or every slot is full.
         public static bool Equip(Profile p, PerkId id)

@@ -404,6 +404,7 @@ namespace Arena
             s.Bool(ref p.Downed);
             s.Float(ref p.Revive);
             s.Float(ref p.BarrierT);
+            s.Float(ref p.RiotT);  // Riot Gear's recharge (RiotGear.cs)
             if (!s.Reading)
                 p.BarrierFrac = p.BarrierMax > 0f ? p.BarrierHp / p.BarrierMax : 1f;  // the host draws from this too
             s.Float(ref p.BarrierFrac);
