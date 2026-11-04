@@ -533,7 +533,7 @@ namespace Arena
         /// false (draw nothing) on other events. Always pair with EndUiGl.
         bool BeginUiGl()
         {
-            if (Event.current.type != EventType.Repaint || glMaterial == null || uiGlBlocked)
+            if (Event.current.type != EventType.Repaint || glMaterial == null || (uiGlBlocked && !pieceGlOn))
                 return false;  // (uiGlBlocked: the lobby sliding away, whose live models wait; LaunchIntro.cs)
             glMaterial.SetPass(0);
             GL.PushMatrix();
@@ -541,6 +541,11 @@ namespace Arena
             GL.Begin(GL.TRIANGLES);
             drawScale = scale;
             glAlpha = Ui.Alpha;  // models in a fading panel fade with it (the pause menu's run card, a window opening)
+            if (pieceGlOn)  // a lobby piece arriving (LobbyEnter.cs): only its own models show, cut to its rect
+            {
+                glClip = pieceGlClip;
+                glClipOn = true;
+            }
             return true;
         }
 

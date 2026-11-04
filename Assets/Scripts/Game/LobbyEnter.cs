@@ -17,6 +17,8 @@ namespace Arena
     public partial class ArenaApp
     {
         const float EnterLen = 1.6f, LeaveLen = 1f, LeaveFrom = 1.15f;  // leaving runs the entrance from 1.15 s back to 0
+        bool pieceGlOn;                           // a lobby piece is drawing its models (BeginUiGl)
+        Rect pieceGlClip;
         float enterT = -1f;                       // seconds since the lobby opened from the menu; below 0 when not entering
         float leaveT = -1f;                       // seconds since Leave was pressed; below 0 when not leaving
         AppScreen enterLastScreen = AppScreen.Menu;
@@ -119,7 +121,7 @@ namespace Arena
             LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
             LobbyPiece(new Rect(0f, PartyTop + 96f, split, LobbyNoteY - 4f - (PartyTop + 96f)), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
             LobbyPiece(new Rect(0f, LobbyNoteY - 4f, split, H - LobbyNoteY + 4f), e, 0.7f, 1.1f, -60f, 0f);  // Ready and Start
-            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f);       // your party card, last
+            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f, true);       // your party card, last
             LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
             LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - LobbyBottomPad - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
             uiGlBlocked = false;
@@ -164,7 +166,7 @@ namespace Arena
         }
 
         /// One piece of the lobby: DrawLobby clipped to `clip`, sliding in from (dx, dy) and fading up between a and b seconds.
-        void LobbyPiece(Rect clip, float e, float a, float b, float dx, float dy)
+        void LobbyPiece(Rect clip, float e, float a, float b, float dx, float dy, bool models = false)
         {
             float k = Seg(e, a, b);
             if (k <= 0f || Event.current.type != EventType.Repaint)
@@ -175,7 +177,15 @@ namespace Arena
             GUI.color = new Color(old.r, old.g, old.b, old.a * k);
             GUI.BeginGroup(new Rect(clip.x + dx * (1f - s), clip.y + dy * (1f - s), clip.width, clip.height));
             GUI.BeginGroup(new Rect(-clip.x, -clip.y, W, H));
+            if (models)  // this piece's live models slide and fade with it, cut to its rect (the other pieces' models wait)
+            {
+                pieceGlOn = true;
+                pieceGlClip = clip;
+                uiShift = new V2(dx * (1f - s), dy * (1f - s));
+            }
             DrawLobby();
+            pieceGlOn = false;
+            uiShift = V2.Zero;
             GUI.EndGroup();
             GUI.EndGroup();
             Ui.Alpha = 1f;
