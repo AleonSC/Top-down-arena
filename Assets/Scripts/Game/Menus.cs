@@ -29,10 +29,12 @@ namespace Arena
         {
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
-            DrawMenuTitle(t);
             float box = MenuIntroK(1.65f, 2.0f);
+            if (box > 0f)  // the card's glow first, so it sits under the title, the tip chip and everything else
+                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
+            DrawMenuTitle(t);
             if (box > 0f)
-                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.Panel(MenuCard, true)));
+                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyBox(MenuCard)));
             if (BeginUiGl())
             {
                 DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf * EaseOut(MenuAxisK), t);  // the title sits on an x-axis
@@ -158,9 +160,6 @@ namespace Arena
                     var col = saved > 0 ? new Color(SaveColor.r * 0.6f, SaveColor.g * 0.6f, SaveColor.b * 0.6f) : Ui.Neutral;
                     if (Ui.FancyButton(MenuContinueRect, "Continue", col, PixelArt.Get("ui_play"), t, 18) && live)
                         OpenContinue();
-                    Ui.Label(new Rect(MenuContinueRect.x, MenuContinueRect.yMax + 4f, MenuContinueRect.width, 18f),
-                        saved > 0 ? saved + (saved == 1 ? " saved run" : " saved runs") : "No saved runs yet", 12,
-                        saved > 0 ? new Color(0.66f, 0.85f, 0.75f, 0.85f) : new Color(1f, 1f, 1f, 0.4f), TextAnchor.MiddleCenter);
                 });
             // Join's address row (or, while connecting, how it's going and Cancel), then any message from the last try.
             var row = MenuJoinRow;

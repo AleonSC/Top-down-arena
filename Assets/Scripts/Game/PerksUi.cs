@@ -12,7 +12,7 @@ namespace Arena
 
         void DrawPerks(Rect r, float t)
         {
-            Ui.Panel(r);
+            Ui.BodyBox(r);
             float lx = r.x + 18f, lw = 236f;
             Ui.Heading(lx, r.y + 14f, lw, "Equipped");
             for (int i = 0; i < PerkSlots; i++)

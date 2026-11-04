@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -25,6 +26,7 @@ namespace Arena
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
+        static readonly Dictionary<int, GUIStyle> gradStyles = new Dictionary<int, GUIStyle>();  // GlowPanel's boxes, by colour
         static GUIStyle glowStyle;               // a soft glow that falls off over GlowSpread px (Glow)
         static Texture2D dotFill, dotRing;       // true circles (Dot): the 9-sliced capsule collapses when it's small
         public const float GlowSpread = 34f;
@@ -97,6 +99,32 @@ namespace Arena
         }
 
         // --- Drawing ------------------------------------------------------------
+
+        /// The blue the big boxes (the menu card, the lobby's body) are lit with.
+        public static readonly Color PanelBlue = new Color(0.42f, 0.6f, 1f);
+
+        /// A box shaded top to bottom in an accent colour (rich at the top, dark at the bottom) with a soft glow of the
+        /// accent round it and a rim: the menu card, the lobby's body, the profile cards. glow 0..1, rim 0..1.
+        public static void GlowPanel(Rect r, Color accent, float glow = 0.3f, float rim = 0.8f)
+        {
+            Glow(r, accent, glow);
+            int key = (Mathf.RoundToInt(accent.r * 255f) << 16) | (Mathf.RoundToInt(accent.g * 255f) << 8) | Mathf.RoundToInt(accent.b * 255f);
+            GUIStyle st;
+            if (!gradStyles.TryGetValue(key, out st))
+            {
+                st = new GUIStyle();
+                st.normal.background = GradientBox(accent);
+                st.border = new RectOffset(12, 12, 12, 12);
+                gradStyles[key] = st;
+            }
+            GUI.Box(r, GUIContent.none, st);
+            Rim(r, Color.Lerp(accent, Color.white, 0.15f), rim);
+        }
+
+        /// The lobby's big box (and the menu card it grows into): the blue gradient and rim here, and its soft glow separately
+        /// (BodyGlow), which a screen draws FIRST so it sits under everything else instead of tinting what's drawn before the box.
+        public static void BodyBox(Rect r) => GlowPanel(r, PanelBlue, 0f, 0.85f);
+        public static void BodyGlow(Rect r) => Glow(r, PanelBlue, 0.28f);
 
         public static void Panel(Rect r, bool accent = false)
         {
@@ -811,6 +839,32 @@ namespace Arena
                     px[y * size + x] = c;
                 }
             }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
+        }
+
+        /// A tall 9-sliceable box: a vertical gradient from the accent's wash at the top to near-black at the bottom, rounded corners.
+        static Texture2D GradientBox(Color accent)
+        {
+            const int w = 32, h = 128;
+            const float radius = 10f;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
+            var px = new Color[w * h];
+            var bottom = new Color(0.055f, 0.065f, 0.1f, 0.97f);
+            var top = new Color(0.1f + accent.r * 0.22f, 0.11f + accent.g * 0.22f, 0.16f + accent.b * 0.22f, 0.97f);
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float v = 1f - (y + 0.5f) / h;  // 0 at the top
+                    float t = Mathf.Clamp01(v / 0.95f);
+                    t = t * t * (3f - 2f * t);
+                    var c = Color.Lerp(top, bottom, t);
+                    float qx = Mathf.Abs(x + 0.5f - w / 2f) - (w / 2f - radius), qy = Mathf.Abs(y + 0.5f - h / 2f) - (h / 2f - radius);
+                    float d = Mathf.Sqrt(Mathf.Max(qx, 0f) * Mathf.Max(qx, 0f) + Mathf.Max(qy, 0f) * Mathf.Max(qy, 0f)) + Mathf.Min(Mathf.Max(qx, qy), 0f) - radius;
+                    c.a *= Mathf.Clamp01(0.5f - d);
+                    px[y * w + x] = c;
+                }
             tex.SetPixels(px);
             tex.Apply();
             return tex;

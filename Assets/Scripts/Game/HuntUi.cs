@@ -11,7 +11,7 @@ namespace Arena
 
         void DrawHuntPicker(Rect r, float t)
         {
-            Ui.Panel(r);
+            Ui.BodyBox(r);
             bool host = session.IsHost;
             var profile = game.Profile;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;

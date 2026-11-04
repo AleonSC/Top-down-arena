@@ -167,7 +167,7 @@ namespace Arena
             var tier = RankLook.TierColor(p.Rank);
             bool hover = live && !whoManage && r.Contains(Event.current.mousePosition);
             bool current = p.Id == ProfileStore.ActiveId;
-            Ui.Card(r, tier, hover ? 1f : current ? 0.85f : 0.55f);
+            Ui.GlowPanel(r, tier, hover ? 0.6f : current ? 0.45f : 0.28f, hover ? 1f : current ? 0.9f : 0.6f);
             if (hover)
                 Ui.Pill(r, new Color(1f, 1f, 1f, 0.05f));
             DrawWhoCardBody(r, p);
@@ -219,7 +219,7 @@ namespace Arena
         /// An unused slot: a dim box that says so. It can't be clicked; New profile fills the first one.
         void DrawWhoEmptyCard(Rect r)
         {
-            Ui.Card(r, Ui.Muted, 0.18f);
+            Ui.GlowPanel(r, Ui.Muted, 0.08f, 0.25f);
             Ui.Label(new Rect(r.x, r.y + r.height / 2f - 14f, r.width, 28f), "Empty", 17, new Color(1f, 1f, 1f, 0.3f), TextAnchor.MiddleCenter, true);
         }
 
@@ -229,7 +229,7 @@ namespace Arena
             bool full = WhoFull;
             bool hover = live && !full && r.Contains(Event.current.mousePosition);
             var dim = new Color(1f, 1f, 1f, full ? 0.25f : 1f);
-            Ui.Card(r, Ui.Muted, full ? 0.15f : hover ? 0.9f : 0.35f);
+            Ui.GlowPanel(r, Ui.Muted, full ? 0.06f : hover ? 0.4f : 0.14f, full ? 0.2f : hover ? 0.95f : 0.4f);
             Ui.Label(new Rect(r.x, r.y + r.height / 2f - 50f, r.width, 60f), "+", 44, full ? dim : hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(r.x, r.y + r.height / 2f + 8f, r.width, 24f), "New profile", 15, full ? dim : hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
             if (full)

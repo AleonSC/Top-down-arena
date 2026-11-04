@@ -77,6 +77,10 @@ namespace Arena
         {
             float t = Time.unscaledTime;
             var oldColor = GUI.color;
+            float k = EaseInOut(Seg(e, 0f, 0.7f));
+            var r = LerpRect(MenuCard, LobbyBodyRect, k);
+            if (k < 1f || e < 1.05f)
+                Ui.BodyGlow(r);  // first, so it sits under everything else
 
             // The bottom bar (your name card with it) drops away and fades; the line under the title fades.
             float drop = Seg(e, 0f, 0.35f);
@@ -90,10 +94,8 @@ namespace Arena
                 });
 
             // The card grows into the loadout panel; its insides fade at once.
-            float k = EaseInOut(Seg(e, 0f, 0.7f));
-            var r = LerpRect(MenuCard, LobbyBodyRect, k);
             if (k < 1f || e < 1.05f)
-                Ui.Panel(r, true);
+                Ui.BodyBox(r);
             float empty = Seg(e, 0f, 0.15f);
             if (empty < 1f)
                 WithAlpha(1f - empty, () => DrawMenuCardInside(t, false));

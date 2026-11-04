@@ -13,7 +13,7 @@ namespace Arena
 
         void DrawModifiers(Rect r, float t)
         {
-            Ui.Panel(r);
+            Ui.BodyBox(r);
             bool host = session.IsHost;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             Ui.Fancy(new Rect(x, y, w, 28f), "RUN MODIFIERS", 20, Color.white, Color.Lerp(ModColor, Color.white, 0.4f), TextAnchor.MiddleLeft, ModColor);
