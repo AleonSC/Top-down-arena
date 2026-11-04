@@ -314,6 +314,7 @@ namespace Arena
                 DrawParryGauge(p, t, 0.4f);
             if (p.DomeT > 0f)  // Fortress: the dome (DomeLook.cs)
                 DrawFortressDome(p, t);
+            DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // spinning muzzle sparks
                 for (int k = 0; k < 3; k++)
                     Arc(p.Disp, p.Def.BodyR + 7f + k * 4f, 2f, new Rgba(1f, 0.6f, 0.25f, 0.8f - k * 0.2f), 12, t * (8f + k * 3f), 1.2f);
