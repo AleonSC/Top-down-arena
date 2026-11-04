@@ -259,7 +259,7 @@ static partial class Program
                 "a damaged line is skipped, the rest loads, a copy is kept");
 
             // A version 1 file (no "end" line) still loads and is brought up to date.
-            string v1 = text.Replace("arena-profile 3", "arena-profile 1").Replace("end 1\n", "");
+            string v1 = text.Replace("arena-profile " + Profile.FormatVersion, "arena-profile 1").Replace("end 1\n", "");
             var old = Profile.Parse(v1);
             Check(old.Valid && old.RunsWon == 2 && old.LoadedVersion == Profile.FormatVersion, "a version 1 profile loads and migrates");
             Check(!Profile.Parse("runs 1 1 0\n").Valid, "text without the header isn't a profile");

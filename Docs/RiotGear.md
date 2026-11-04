@@ -1,6 +1,6 @@
 # Riot Gear and the perk framework
 
-Status: **plan, not built.** Part of [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md) (build steps 2 and 3, Warden only). Picks from
+Status: **step 1 built** (`Core/Perks.cs`, the profile's `perks` line, `perks` test suite); steps 2 to 6 not yet. Part of [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md) (build steps 2 and 3, Warden only). Picks from
 the mockups: the perk menu is **Look A** ([`Mockups/riot-gear-perk-menu.html`](Mockups/riot-gear-perk-menu.html), https://claude.ai/artifact/WrbA5TsYMgcn6tfe7Rd8ad)
 and the shield effect is **Plate** ([`Mockups/riot-gear-effects.html`](Mockups/riot-gear-effects.html), https://claude.ai/artifact/241kgcxDtwMbJVEkRijuuG).
 
