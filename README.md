@@ -733,7 +733,7 @@ as usual.
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Mute sound | M |
-| Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press 1-9 to play it. While it is open a click picks instead of firing. Let go and it closes |
+| Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
 | Change any of these keys | Settings → Keybinds (see below) |

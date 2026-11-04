@@ -164,7 +164,9 @@ namespace Arena
             p.Disp = p.Pos = V2.Zero;
             float aim;
             p.Aim = roomAim.TryGetValue(id, out aim) ? aim : av.Aim;
+            emoteBodyFor = id;  // (so an emote moves this character, EmoteLooks.cs)
             DrawPlayer(p, t, true);
+            emoteBodyFor = -1;
         }
 
         /// UI: the name plate under a character: rank badge, name, their frame (animated, as on the party card), and a green mark when ready.

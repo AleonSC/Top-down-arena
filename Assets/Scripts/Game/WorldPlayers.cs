@@ -37,7 +37,21 @@ namespace Arena
             {
                 Circle(p.Disp, r, p.Flash > 0f ? Rgba.White.WithAlpha(0.25f * col.A) : role.WithAlpha(0.14f * col.A), 28);
                 Arc(p.Disp, r, 2.2f, p.Flash > 0f ? Rgba.White : role.WithAlpha(0.6f * col.A), 28);
-                DrawPlayerModel(p, r, t, col);
+                V2 emoteOff;
+                float emoteSpin;
+                int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
+                if (emoteId >= 0 && EmoteBody(emoteId, out emoteOff, out emoteSpin))  // an emote moves the model only (EmoteLooks.cs)
+                {
+                    V2 keepAt = p.Disp;
+                    float keepAim = p.Aim;
+                    p.Disp += emoteOff;
+                    p.Aim += emoteSpin;
+                    DrawPlayerModel(p, r, t, col);
+                    p.Disp = keepAt;
+                    p.Aim = keepAim;
+                }
+                else
+                    DrawPlayerModel(p, r, t, col);
                 // The class's overlays on top: ability feedback, buffs and the like (ClassLooks.cs)
                 var look = LookOf(p.Kit).Body;
                 if (look != null)
