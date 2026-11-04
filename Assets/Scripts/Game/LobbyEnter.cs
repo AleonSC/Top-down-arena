@@ -87,7 +87,7 @@ namespace Arena
             if (fade ? cardA > 0f : (k < 1f || e < 1.05f))
                 Ui.BodyGlow(r, fade ? cardA : 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
 
-            // The bottom bar (your name card with it) drops away and fades; the tip tray fades.
+            // The bottom bar (your name card with it) drops away and fades; the tip box fades.
             float drop = Seg(e, 0f, 0.35f);
             if (drop < 1f)
                 WithAlpha(1f - drop, () =>
@@ -95,7 +95,7 @@ namespace Arena
                     GUI.BeginGroup(new Rect(0f, drop * drop * drop * 160f, W, H));
                     DrawMenuSecondary(t, false);
                     GUI.EndGroup();
-                    DrawMenuTipTray(t, 1f);
+                    DrawMenuTipBox(t, 1f, 1f, false);  // (its drawing and corners drop out at once)
                 });
 
             // The card grows into the loadout panel; its insides fade at once.

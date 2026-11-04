@@ -281,7 +281,7 @@ static partial class Shot {
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; OLDER=1: the older runs; PAGE=n: their page).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = DateTime.UtcNow.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
-        typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null);
+        typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
         if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>());
         if (Environment.GetEnvironmentVariable("OLDER") != null) set("menuPlayOlder", true);
         if (Environment.GetEnvironmentVariable("PAGE") != null) set("menuOlderPage", int.Parse(Environment.GetEnvironmentVariable("PAGE")));
@@ -304,8 +304,8 @@ static partial class Shot {
       // MENUINTRO=<seconds>: the main menu that far into its intro (MenuIntro.cs); JOINOPEN=1: Join's address row open.
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) set("menuJoinOpen", true);
-      if (Environment.GetEnvironmentVariable("MENUTIPAT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUTIPAT"), System.Globalization.CultureInfo.InvariantCulture);  // seconds into the tip loop (0.2 = sliding out, 3 = holding)
-      if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipSeed", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which tip the tray shows
+      if (Environment.GetEnvironmentVariable("MENUTIPAT") != null) { Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUTIPAT"), System.Globalization.CultureInfo.InvariantCulture); set("menuTipAt", Time.unscaledTime - 1f); }  // sets the clock; the tip box shows its tip fully from 0.25 s on
+      if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipIdx", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which tip the box shows (0-13)
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "cosmetics" ? "DrawCosmetics" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "whotr" ? "DrawProfTr" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }

@@ -891,6 +891,15 @@ namespace Arena
             return x - Mathf.FloorToInt(x);
         }
 
+        /// Random 0..1 to an index in 0..n-1; safe for 1.0, negatives and NaN (which cast to int.MinValue).
+        static int GlitchIdx(float rnd, int n)
+        {
+            if (n <= 0 || float.IsNaN(rnd) || float.IsInfinity(rnd))
+                return 0;
+            int i = Mathf.FloorToInt(rnd * n) % n;
+            return i < 0 ? i + n : i;
+        }
+
         const string GlitchSymbols = "#%&01/=+?<>";
 
         /// Glitch lettering. Crisp most of the time; the red/cyan split fades in over the 0.6 s before a glitch (the
@@ -912,15 +921,15 @@ namespace Arena
             float k = f * (1f + 2.2f * env);
             bool big = size >= 28;
             int style = kind == GlitchKind.Punch ? 3 : ((cyc % 3) + 3) % 3;  // 0 slip, 1 shear, 2 scramble, 3 punch
-            if (style == 2 && env > 0.02f)
+            if (style == 2 && env > 0.02f && text.Length > 0)
             {
                 var sb = new System.Text.StringBuilder(text);
                 int n = Mathf.RoundToInt(env * 7f);
                 for (int i = 0; i < n; i++)
                 {
-                    int at = Mathf.FloorToInt(GlitchRnd(cyc * 17f + step + i * 5f) * text.Length) % text.Length;
+                    int at = GlitchIdx(GlitchRnd(cyc * 17f + step + i * 5f), text.Length);
                     if (text[at] != ' ')
-                        sb[at] = GlitchSymbols[Mathf.FloorToInt(GlitchRnd(step + at) * GlitchSymbols.Length) % GlitchSymbols.Length];
+                        sb[at] = GlitchSymbols[GlitchIdx(GlitchRnd(step + at), GlitchSymbols.Length)];
                 }
                 text = sb.ToString();
             }

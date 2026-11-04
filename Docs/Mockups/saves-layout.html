@@ -1,0 +1,105 @@
+<title>Save Slot Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one section per screen (Latest run, Older runs), three options each, drawn at the game's 620px card width. */
+:root{--bg:#0b0e18;--panel:#141a2c;--card:#10151f;--line:#2c3a5c;--green:#6bdb9e;--blue:#4f8cff;--text:#e8edf8;--muted:#8d98b4;--danger:#ff9aa4;--amber:#f59e3b;--tank:#4f8cff;
+--display:"Rajdhani","Arial Narrow",sans-serif;--body:"Barlow",system-ui,sans-serif}
+:root{color-scheme:dark}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:28px}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font:700 28px var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0;text-wrap:balance}
+h2{font:700 20px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin:20px 0 0}
+p.note{color:var(--muted);margin:0;max-width:65ch;line-height:1.5}
+.opt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.opt>b{font:600 13px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.opt>b em{color:var(--text);font-style:normal}
+.scroll{overflow-x:auto;padding-bottom:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;width:620px;box-shadow:inset 0 0 0 1px rgba(107,219,158,.12)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--blue);background:linear-gradient(#26407a,#1b2d57);color:#fff;font:700 18px var(--display);border-radius:8px;padding:0 18px;height:44px;letter-spacing:.03em;box-shadow:0 0 12px rgba(79,140,255,.35)}
+.btn.big{height:62px;font-size:22px;width:152px}
+.btn::before{content:"";border-left:9px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent}
+.trash{width:44px;height:44px;border:1px solid #6a3440;background:#2a161c;color:var(--danger);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:17px}
+.lab{font:600 11px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.wave{font:700 32px/1 var(--display);letter-spacing:.02em}
+.val{font:600 15px var(--body);font-variant-numeric:tabular-nums}
+.bar{width:4px;align-self:stretch;border-radius:2px;background:var(--tank)}
+.bar.e{background:var(--amber)}
+.who b{display:block;font:600 15px var(--body)}
+.who span{color:var(--muted);font-size:13px}
+.chip{display:inline-flex;gap:6px;align-items:baseline;border:1px solid var(--line);background:#0c111c;border-radius:6px;padding:4px 9px}
+.chip .lab{font-size:10px}
+.pill{font:700 11px var(--display);letter-spacing:.1em;text-transform:uppercase;border-radius:4px;padding:2px 7px;background:#2a2146;color:#c7b3ff;border:1px solid #5a47a0}
+.tabular{font-variant-numeric:tabular-nums}
+/* A: three labelled columns */
+.A{display:grid;grid-template-columns:150px 1px 1fr 1px 152px;gap:0 18px;align-items:center;padding:18px}
+.A .div{background:var(--line);align-self:stretch}
+.A .stats{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:10px;align-items:baseline}
+.A .squad{display:flex;flex-direction:column;gap:10px}
+.A .p{display:flex;gap:10px}
+/* B: header strip + chips */
+.B .top{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.B .top .sp{flex:1}
+.B .bot{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;align-items:center}
+.B .bot .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+/* C: player first */
+.C{display:flex;gap:18px;align-items:center;padding:18px}
+.C .main{flex:1;display:flex;flex-direction:column;gap:6px}
+.C .name{font:700 26px/1 var(--display)}
+.C .line{color:var(--muted);font-size:13px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.C .tag{font:700 12px var(--display);letter-spacing:.1em;color:var(--green);border:1px solid #2c6a4a;background:#0f2a1e;border-radius:4px;padding:2px 8px}
+/* older rows */
+.rows{display:flex;flex-direction:column;gap:8px;padding:14px}
+.row{border:1px solid var(--line);background:#0c111c;border-radius:8px;display:grid;align-items:center;gap:0 14px;padding:10px 12px}
+.rA{grid-template-columns:90px 130px 70px 1fr 120px 44px}
+.rB{grid-template-columns:1fr 120px 44px}
+.rC{grid-template-columns:70px 110px 60px 70px 1fr 112px 44px;padding:8px 12px}
+.row .wave{font-size:24px}
+.row .stack{display:flex;flex-direction:column;gap:3px}
+.row .btn{height:40px;font-size:16px;padding:0 12px}
+.hd{display:grid;gap:0 14px;padding:0 12px 4px;color:var(--muted)}
+.rB .l2{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cap{color:var(--muted);font-size:12px;text-align:center;padding:2px 0 12px}
+</style>
+<main>
+<h1>Save slot layouts</h1>
+<p class="note">Three ways to tidy the Play picker's saved runs. Each screen is drawn at the game's real card width (620px), with your two screenshots' data. Pick one letter per screen and I'll build it in SavesUi.cs.</p>
+
+<h2>Latest run</h2>
+
+<div class="opt"><b><em>A</em> · Labelled columns</b><div class="scroll"><div class="card A">
+ <div><div class="lab">Run</div><div class="wave">Wave 2</div>
+  <div class="stats"><span class="lab">Saved</span><span class="val tabular">Nov 4, 11:28</span><span class="lab">Score</span><span class="val tabular">78</span><span class="lab">Played</span><span class="val tabular">0 min</span></div></div>
+ <div class="div"></div>
+ <div class="squad"><div class="lab">Squad</div><div class="p"><div class="bar"></div><div class="who"><b>Anthony</b><span>Soldier Tank</span></div></div></div>
+ <div class="div"></div>
+ <div class="btn big">Continue</div>
+</div></div></div>
+
+<div class="opt"><b><em>B</em> · Header strip with chips</b><div class="scroll"><div class="card B">
+ <div class="top"><div class="wave">Wave 2</div><span class="pill">Normal</span><div class="sp"></div><div class="btn">Continue</div></div>
+ <div class="bot"><span class="chip"><span class="lab">Saved</span><span class="val tabular">Nov 4, 11:28</span></span><span class="chip"><span class="lab">Score</span><span class="val tabular">78</span></span><span class="chip"><span class="lab">Played</span><span class="val tabular">0 min</span></span><span class="sep"></span><span class="chip"><span class="bar" style="width:4px;height:14px"></span><span class="val">Anthony</span><span class="lab">Soldier Tank</span></span></div>
+</div></div></div>
+
+<div class="opt"><b><em>C</em> · Player first</b><div class="scroll"><div class="card C">
+ <div class="bar" style="align-self:stretch"></div>
+ <div class="main"><div class="lab">Wave 2 · Saved Nov 4, 11:28</div><div class="name">Anthony</div><div class="line"><span>Soldier Tank</span><span>·</span><span class="tabular">Score 78</span><span>·</span><span>0 min played</span></div></div>
+ <div class="btn big">Continue</div>
+</div></div></div>
+
+<h2>Older runs</h2>
+
+<div class="opt"><b><em>A</em> · Aligned columns, labels on each row</b><div class="scroll"><div class="card"><div class="rows">
+ <div class="row rA"><div><div class="lab">Run</div><div class="wave">Wave 2</div></div><div class="stack"><span class="lab">Saved</span><span class="val tabular">Nov 4, 10:16</span></div><div class="stack"><span class="lab">Score</span><span class="val tabular">72</span></div><div style="display:flex;gap:10px"><div class="bar e"></div><div class="who"><b>Antaleon</b><span>Elementalist DPS</span></div></div><div class="btn">Continue</div><div class="trash">🗑</div></div>
+</div><div class="cap">4 min played · The trash button asks twice before it deletes.</div></div></div></div>
+
+<div class="opt"><b><em>B</em> · Two-line rows</b><div class="scroll"><div class="card"><div class="rows">
+ <div class="row rB"><div><div style="display:flex;align-items:baseline;gap:12px"><span class="wave" style="font-size:24px">Wave 2</span><span class="val" style="color:var(--muted);font-weight:500">Nov 4, 10:16</span></div><div class="l2"><span class="chip"><span class="lab">Score</span><span class="val tabular">72</span></span><span class="chip"><span class="lab">Played</span><span class="val tabular">4 min</span></span><span class="chip"><span class="bar e" style="width:4px;height:14px"></span><span class="val">Antaleon</span><span class="lab">Elementalist DPS</span></span></div></div><div class="btn">Continue</div><div class="trash">🗑</div></div>
+</div><div class="cap">The trash button asks twice before it deletes.</div></div></div></div>
+
+<div class="opt"><b><em>C</em> · Compact table with a header row (best once there are three per page)</b><div class="scroll"><div class="card"><div class="rows">
+ <div class="hd rC" style="grid-template-columns:70px 110px 60px 70px 1fr 112px 44px"><span class="lab">Wave</span><span class="lab">Saved</span><span class="lab">Score</span><span class="lab">Played</span><span class="lab">Player</span><span></span><span></span></div>
+ <div class="row rC"><div class="wave">2</div><div class="val tabular" style="font-size:13px">Nov 4, 10:16</div><div class="val tabular">72</div><div class="val tabular">4 min</div><div style="display:flex;gap:8px;min-width:0"><div class="bar e"></div><div class="who"><b style="font-size:14px">Antaleon</b><span style="font-size:12px">Elementalist DPS</span></div></div><div class="btn">Continue</div><div class="trash">🗑</div></div>
+ <div class="row rC" style="opacity:.7"><div class="wave">5</div><div class="val tabular" style="font-size:13px">Nov 2, 21:03</div><div class="val tabular">310</div><div class="val tabular">22 min</div><div style="display:flex;gap:8px;min-width:0"><div class="bar"></div><div class="who"><b style="font-size:14px">Anthony +1</b><span style="font-size:12px">Soldier Tank</span></div></div><div class="btn">Continue</div><div class="trash">🗑</div></div>
+</div><div class="cap">Second row is an example of a longer save, to show alignment.</div></div></div></div>
+</main>
