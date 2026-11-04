@@ -860,12 +860,12 @@ blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
 yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
-XP bar; click the name to rename, anywhere else to open your cosmetics window) and on each results card;
+XP bar; click anywhere on it to open your cosmetics window) and on each results card;
 the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
 what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
 with the modifiers they used and the multiplier).
 
-**Your look** is the cosmetics window: click your name chip on the main menu. A side drawer shows your rank and a row
+**Your look** is the cosmetics window: click your name card on the main menu (a pencil next to your name there renames you). A side drawer shows your rank and a row
 each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder**; the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
@@ -1014,7 +1014,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a **tip tray** that slides out from under
   the box every 8 s (a How to play tip, with the next one coming out after it slides back; it tucks away while the Join row is open). In a box in the middle of the screen:
-  **your name card** (your party card in small; click the name to change it; it's remembered; hover it for **Switch
+  **your name card** (your party card in small; click it to open Your look, where the pencil next to your name renames you; it's remembered; hover it for **Switch
   profile**) over a big **Play** button over **Join game**, **Records** and **Settings**. **Join game** opens a row
   under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Records, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see
   Saved runs): **Continue** your latest run or start a **New run**, which grows the box into the lobby's loadout.
@@ -1189,6 +1189,25 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   **Account rank** sets this computer's rank without playing for it (works on the main menu too): **+1 rank**, **+10 ranks**,
   **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
+- **Replays:** record the runs you host and watch them back, below.
+
+### Replays (F1)
+
+**F1 → Replays** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
+default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
+**Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
+**Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and
+Boss Lab fights aren't saved.
+
+**Open** (from the main menu, not in a lobby) plays the run back in the game window as a spectator, with a **timeline** along the bottom:
+a **wave lane** (a block per wave, red for a boss; click one to jump to where it starts), a **time bar** to click or drag (blue ticks are waves,
+red a boss, amber a player going down), and buttons for **Pause / Play**, **-1 f / +1 f** (one frame), **|< Wave / Wave >|**, and speeds
+**0.1x, 0.5x, 1x, 2x, 4x, 10x forward and 10x, 4x, 1x, 0.5x, 0.1x backward**. Keys: **Space** pause, **, .** step a frame, **[ ]** next slower / faster
+speed (through backward too), **Left / Right** 5 s, **Home / End**, **V** (or the Following button) switch which player's screen you watch, **Esc** or
+**Close replay** back to the menu. It plays to the end and holds there.
+A replay is what a second player on the host's game would have seen, so it shows the match, not your inputs: you can watch, pause, rewind and scrub, but not
+take over and play from a point. Seeking anywhere takes a few milliseconds; shots that were already in the air for more than 6 s before the spot you jumped to
+aren't drawn. Nothing about a replay changes the network protocol.
 
 ### DPS meter and target dummy (F2)
 

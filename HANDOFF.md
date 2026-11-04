@@ -120,6 +120,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
 | `Net.cs` | 0.26k | `NetPeer`: length-prefixed messages over TCP (`NoDelay`) |
 | `SessionRecorder.cs` | 0.5k | the session JSON recorder |
+| `Replay.cs` | 0.4k | run replays. `ReplayRecorder` (made in `HostStart` when `Game.ReplayFolder` is set) keeps every kept host message (`Session.Broadcast` -> `Replay.Capture`) with the frame it went out in, plus each frame's length and timeline marks, and saves a gzipped `.replay` on `Game.Stop`. `ReplayPlayer` owns a private offline `Session` (`Net == null`, so it's a client; `MyId = 0` so nobody is "you", `Game.Replaying` skips `LocalControl`, `Game.ViewId` is whose screen `Me` is) and feeds the messages to `Session.ReplayApply`. `Seek` always resets and replays: it applies lasting messages up to 360 frames before the target, only the newest Snapshot/RunStatsLive, skips Fx/Sound/Spawn/Remove, then steps the last 360 frames for real. No protocol change |
 | `MathTypes.cs` | 0.08k | `V2`, `Rgba`, `MathX` |
 | `Challenges.cs` | 0.85k | challenge rooms: the portal every five waves, Defend the Crystal, the Gatekeeper, Kill Rush, Zones, Mirror (shadows); the altar's prize |
 | `Variety.cs` | 0.94k | the second half's enemies (Beam Sentry, Scorcher, Reaver, Warder), shooting-pattern enemies, elite traits, squads |
@@ -166,7 +167,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `WaveEditorUi.cs` | 0.7k | the F1 wave editor (option B of `Docs/Mockups/wave-editor.html`): arena map (spawn points, props, the wave at the playhead), palette, group settings, timeline (drag clips), save/load `.waves`, Test |
 | `MenuBackgrounds.cs` | 0.34k | 10 animated menu backgrounds + the lobby's picker card (bottom left: live thumbnail, arrows, dots); your pick is also drawn dimmed behind the arena (`DrawWorld`, `ArenaBgDim`) |
 | `DevTextEdit.cs` | 0.15k | F4 text-edit mode: banner, pick a text by clicking (`TextEditBeginGui` in `OnGUI`), the edit box; `Ui.Shown` (called by every label and button) applies edits and finds the text under the mouse. `Tools/TextEdits/fold.py` writes edits into the code |
-| `BossLabUi.cs`, `DevMenu.cs` | 0.3-0.4k each | F1 tools (`DevMenu`: sidebar tabs Match / Players / Tools / DPS, card layout) |
+| `BossLabUi.cs`, `DevMenu.cs` | 0.3-0.4k each | F1 tools (`DevMenu`: sidebar tabs Match / Players / Tools / DPS / Replays, card layout) |
+| `ReplayUi.cs` | 0.4k | the Replays tab (`DrawDevReplays`) and the timeline (`DrawReplayBar`, `ReplayKeys`). While one plays, `ArenaApp.session`/`game` point at the replay's own (swapped back in `CloseReplay`); `Update` and `FixedUpdate` hand off to `ReplayUpdate`/`ReplayFixedStep` |
 | `DpsMeterUi.cs` | 0.1k | the F2 DPS meter overlay (`DrawDpsMeter`) and the F1 DPS tab (`DrawDevDps`) |
 | `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
 | `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |

@@ -15,10 +15,9 @@ namespace Arena
             bool host = session.IsHost;
             var profile = game.Profile;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Fancy(new Rect(x, y, w, 28f), "BOSS HUNT", 20, Color.white, Color.Lerp(HuntColor, Color.white, 0.4f), TextAnchor.MiddleLeft, HuntColor);
-            Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Pick a boss to hunt: nine waves of its own enemies, then the boss. Beat a boss in a run to open its hunt."
+            Ui.Label(new Rect(x, y, w, 18f), host ? "Pick a boss to hunt: nine waves of its own enemies, then the boss. Beat a boss in a run to open its hunt."
                 : "The host picks the boss (from the hunts they've opened).", 12, Ui.Muted);
-            y += 56f;
+            y += 30f;
 
             // Ten cards, five to a row, in the order the bosses come.
             const int cols = 5, count = 10;
@@ -71,7 +70,7 @@ namespace Arena
             }
             bool can = Hunts.Available(picked2, profile);
             string name = BossName(picked2.Boss);
-            Ui.Fancy(new Rect(info.x + 14f, info.y + 8f, info.width - 28f, 26f), picked2.Name.ToUpperInvariant(), 18, Color.white, Color.Lerp(HuntColor, Color.white, 0.4f), TextAnchor.MiddleLeft);
+            Ui.Glitch(new Rect(info.x + 14f, info.y + 8f, info.width - 28f, 26f), picked2.Name.ToUpperInvariant(), 18, Color.white, TextAnchor.MiddleLeft);
             Ui.Label(new Rect(info.x + 14f, info.y + 36f, info.width - 28f, 40f),
                 "Waves 1-" + (Hunts.Length - 1) + ": only " + name + "'s own enemies, tougher ones joining as you go. Wave " + Hunts.Length + ": " + name
                 + ". Beat it and the hunt is won. No paths, challenge rooms or saving; modifiers and difficulty still apply.", 12, Ui.Text, TextAnchor.UpperLeft, false, true);

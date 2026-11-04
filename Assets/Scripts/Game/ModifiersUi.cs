@@ -16,9 +16,8 @@ namespace Arena
             Ui.BodyBox(r);
             bool host = session.IsHost;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Fancy(new Rect(x, y, w, 28f), "RUN MODIFIERS", 20, Color.white, Color.Lerp(ModColor, Color.white, 0.4f), TextAnchor.MiddleLeft, ModColor);
             int n = Modifiers.Count(session.Modifiers);
-            Ui.Label(new Rect(x, y, w, 28f), n == 0 ? "None on: a normal run" : n + " on", 12, n == 0 ? Ui.Muted : ModColor, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(x, y, w, 28f), n == 0 ? "None on: a normal run" : n + " on", 12, n == 0 ? Ui.Muted : ModColor, TextAnchor.MiddleLeft, true);
             if (n > 0 && host && Ui.Button(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off"))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
@@ -136,7 +135,7 @@ namespace Arena
             // Name and the switch, then what it does.
             bool narrow = c.width < 220f;
             float swW = narrow ? 40f : 50f;
-            Ui.Fancy(new Rect(c.x + 12f, c.y + 8f, c.width - swW - 30f, 24f), d.Name, narrow ? 14 : 16, Color.white, on ? Color.Lerp(ModColor, Color.white, 0.5f) : new Color(0.82f, 0.86f, 0.96f), TextAnchor.MiddleLeft);
+            Ui.Glitch(new Rect(c.x + 12f, c.y + 8f, c.width - swW - 30f, 24f), d.Name, narrow ? 14 : 16, on ? Color.Lerp(ModColor, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleLeft);
             Ui.Label(new Rect(c.x + 12f, c.y + 32f, c.width - 22f, c.height - 38f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
             // The switch (ON / OFF beside it when there's room). The tier is the group's heading and the card's colour.
             var sw = new Rect(c.xMax - swW - 12f, c.y + 10f, swW, narrow ? 20f : 22f);
