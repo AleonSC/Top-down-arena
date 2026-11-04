@@ -3,6 +3,7 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [x] **Main menu VHS hover.** Built (Nov 2026, protocol unchanged, 147): look C (Rewind) of [`Mockups/menu-vhs-hover.html`](Mockups/menu-vhs-hover.html) (https://claude.ai/artifact/PsNUAeijJ2QycuxskywvLi). Hover Play, Join game, Records or Settings for the tape look; click snaps it into focus (0.3 s double image and white flash) until you leave and re-enter (`MenuVhs.cs`). Left out of the mockup: the blur of the focus pull (IMGUI has no blur, the double image stands in). Needs a try in Unity. Say if the Play picker and pause menu buttons should get it too.
 - [x] **Play to Continue was too abrupt.** Built (Nov 2026, protocol unchanged): look D (Scan wipe) of [`Mockups/play-transition.html`](Mockups/play-transition.html) (https://claude.ai/artifact/KoZjXL3aurKkt4Dhx6GTaB), slowed to 0.85 s (`MenuPlayLen` in `Menus.cs`). A teal line sweeps left to right from the menu buttons to the picker, and right to left on Back or Esc. No clicks during the sweep; it snaps with reduced effects. Needs a try in Unity.
 - [x] **Menu tip tray (no more record line).** Built (Nov 2026, protocol unchanged, 147): look D of [`Mockups/menu-tips-only.html`](Mockups/menu-tips-only.html)
       (https://claude.ai/artifact/L1PxG3dkzmxsVG5MYVDR7R). The chip under the title is gone, record line and all; a tray slides out from behind the bottom of the menu card

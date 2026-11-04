@@ -198,21 +198,21 @@ namespace Arena
                 MenuRise(host, 60f, () =>
                 {
                     Ui.PulseRing(MenuHostRect, Ui.Primary, t);
-                    if (Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 30) && live)
+                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 30)) && live)
                         OpenPlayPicker();
                 });
             if (join > 0f)
                 MenuRise(join, 24f, () =>
                 {
-                    if (Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 18) && live)
+                    if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 18)) && live)
                         menuJoinOpen = !menuJoinOpen;
                 });
             if (cont > 0f)
                 MenuRise(cont, 24f, () =>
                 {
-                    if (Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 18) && live)
+                    if (MenuVhs.Draw(MenuRecordsRect, "TRK 03", live, fxReduced, () => Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 18)) && live)
                         recordsOpen = true;
-                    if (Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 18) && live)
+                    if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 18)) && live)
                         settingsOpen = true;
                 });
         }

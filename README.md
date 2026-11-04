@@ -1008,7 +1008,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   the box every 8 s (a How to play tip, with the next one coming out after it slides back; it tucks away while the Join row is open). In a box in the middle of the screen:
   **your name card** (your party card in small; click the name to change it; it's remembered; hover it for **Switch
   profile**) over a big **Play** button over **Join game**, **Records** and **Settings**. **Join game** opens a row
-  under the box for the host's address and **Connect**. **Play** swaps the box's insides for the saved-runs picker (see
+  under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Records or Settings and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see
   Saved runs): **Continue** your latest run or start a **New run**, which grows the box into the lobby's loadout.
   **Quit** is a faint power icon at the bottom centre of the screen that lights up red when the mouse is over it. The
   first time it shows after the game starts it draws itself in: a pen writes the title and traces the arc, then the
