@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enemy Prominence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one live arena (big) with a strip of look cards under it. Every card draws the SAME world, so the only
+   difference between them is the look. Single dark look on purpose: it mirrors the arena. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36;
+  --fg: #e7eef3; --muted: #92a1ad; --teal: #6fe3c4; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 24px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 20px; letter-spacing: .04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: #cfdae2; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+#main { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0c1116; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.controls label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.controls input[type=range] { width: 140px; accent-color: var(--teal); }
+.controls output { color: var(--fg); min-width: 3ch; }
+.now { margin-left: auto; font: 600 13px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; cursor: pointer; text-align: left; padding: 0; color: inherit; font: inherit; display: grid; }
+.card:hover { border-color: #3a4753; }
+.card[aria-pressed=true] { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0c1116; }
+.card .txt { padding: 10px 12px 12px; display: grid; gap: 6px; }
+.card h3 { font-size: 15px; letter-spacing: .03em; }
+.card h3 b { color: var(--amber); font-weight: 700; margin-right: 6px; }
+.card p { font-size: 13.5px; color: #bccbd5; }
+.meter { display: flex; align-items: center; gap: 8px; font: 500 11px var(--font-data); color: var(--muted); }
+.meter i { flex: 1; height: 5px; border-radius: 3px; background: #1c252e; overflow: hidden; }
+.meter i s { display: block; height: 100%; background: var(--amber); }
+.recommend { background: #0f1c19; border: 1px solid #1d4a40; border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; }
+.recommend h2 { color: var(--teal); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 78ch; color: #cfdae2; }
+code { font: 500 13px var(--font-data); color: var(--amber); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Visual flair mockup</div>
+    <h1>Enemy <span>prominence</span></h1>
+    <p class="lead">Players wear a wide, soft halo in their role colour (about 5&times; the body radius). Enemies are flat polygons with no light at all, so in a busy fight they read as the dimmest thing on screen. These looks lift them <em>without</em> a halo on every enemy: most use edges, shadow and a lit centre, and spend real glow only when it carries information.</p>
+    <p class="lead">Click a card to put it in the big arena. All cards draw the same fight, so you're comparing looks, not luck.</p>
+  </header>
+
+  <section class="stage" aria-label="Live arena">
+    <canvas id="main" width="1280" height="720"></canvas>
+    <div class="controls">
+      <label>Player glow <input id="pg" type="range" min="0" max="150" value="100"><output id="pgv" class="mono">100%</output></label>
+      <label>Enemy count <input id="cnt" type="range" min="4" max="26" value="14"><output id="cntv" class="mono">14</output></label>
+      <label><input id="bul" type="checkbox" checked> Bullets</label>
+      <label><input id="elite" type="checkbox" checked> Elites</label>
+      <span class="now" id="now"></span>
+    </div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Looks"></section>
+
+  <section class="recommend">
+    <h2>My pick: F, then dial it back if it's too much</h2>
+    <p>F stacks the cheap things (a contact shadow, a dark hull with a bright rim, a hot centre) and keeps real glow for two jobs: the half second before an enemy shoots or lunges, and elites. Grunts and swarmers never glow, so a crowd of 20 stays readable and the players are still the brightest things on screen. If F reads too busy, E alone is the lightest version that still gives the "danger is about to happen" cue.</p>
+    <h2 style="margin-top:8px">Where it would go</h2>
+    <ul>
+      <li>Body, rim, shadow and core: <code>WorldEnemies.DrawEnemy</code> (before <code>Polygon(...)</code> and after it).</li>
+      <li>Glow: the additive pass in <code>Juice.DrawGlowPass</code>, next to the boss disc at line 729. It already has <code>GlowDisc</code>, and its first-vertex trick keeps the preview tool clean.</li>
+      <li>Gated by the existing <b>Visual effects</b> setting, so the plain look stays available. No network change, so no protocol bump.</li>
+      <li>Not touched: bosses (they already glow), zombies and the special-cased bodies (<code>DrawGatekeeper</code>, <code>DrawShadow</code>, <code>ZombieLook</code>); they'd get it in a follow-up if you pick a look.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+const W = 640, H = 360, TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// --- Enemy kinds (colours and shapes from Core/Defs.cs; radii are the game's) ---------------------------
+// threat 0..1 drives the glow in look E; shoot: seconds between shots (0 = melee); tellKind: what it winds up.
+const KINDS = {
+  swarmer: { r: 9,  sides: 3, col: [255,153,77],  sp: 52, threat: 0.0,  melee: true },
+  grunt:   { r: 14, sides: 3, col: [255,89,89],   sp: 34, threat: 0.15, melee: false, shoot: 3.2 },
+  sniper:  { r: 12, sides: 4, col: [255,230,77],  sp: 38, threat: 0.4,  melee: false, shoot: 2.6 },
+  lunger:  { r: 12, sides: 4, col: [242,89,166],  sp: 38, threat: 0.35, melee: true,  lunge: 3.4 },
+  burster: { r: 17, sides: 6, col: [204,102,255], sp: 22, threat: 0.55, melee: false, shoot: 3.8 },
+  spinner: { r: 18, sides: 5, col: [255,153,51],  sp: 14, threat: 0.6,  melee: false, shoot: 3.0 },
+  brute:   { r: 19, sides: 7, col: [204,115,89],  sp: 25, threat: 0.7,  melee: true }
+};
+const MIX = ['swarmer','swarmer','grunt','grunt','sniper','lunger','burster','spinner','brute','grunt','swarmer','sniper'];
+
+// --- Looks -----------------------------------------------------------------------------------------------
+const LOOKS = [
+  { id:'A', name:'Today', glow:0,
+    text:'Flat polygons, no light. The baseline: players glow, enemies don\'t.' },
+  { id:'B', name:'Dark hull + rim', glow:0,
+    text:'Body darkened to a third, edge drawn at full colour with a hot centre dot. Reads as an outline at a glance, zero additive light.' },
+  { id:'C', name:'Lit from within', glow:1,
+    text:'Gradient body: bright near the centre, deeper at the edge, thin dark outline. The light stays inside the shape.' },
+  { id:'D', name:'Shadow + floor stain', glow:1,
+    text:'A dark contact shadow lifts them off the floor and a faint tight colour stain tints the ground. Subtle, and it keeps working on a bright map.' },
+  { id:'E', name:'Wind-up flare', glow:2,
+    text:'Rim look, but real glow only in the half second before a shot or lunge, with a ring closing in. The flare is the warning.' },
+  { id:'F', name:'Combined (pick)', glow:2,
+    text:'Shadow + dark hull + rim + hot core, a wind-up flare, and a steady halo on elites only. Grunts and swarmers never glow.' },
+  { id:'G', name:'Threat-scaled halo', glow:4,
+    text:'Every enemy glows, scaled by threat: swarmers none, brutes and elites strong. The most visible, the most glow, and it fights the players for attention.' }
+];
+const GLOW_LABEL = ['none','low','medium','medium','high'];
+
+// --- The shared world ---------------------------------------------------------------------------------------
+const players = [
+  { col:[90,220,255],  r:11, a:0.0, rx:150, ry:80,  sp:0.35, cx:230, cy:180, bodies:[] },
+  { col:[255,110,200], r:11, a:2.2, rx:120, ry:95,  sp:-0.28, cx:400, cy:175, bodies:[] }
+];
+let enemies = [], bullets = [], T = 0, wantCount = 14, showBul = true, showElite = true, pg = 1;
+
+function spawn(k) {
+  const side = Math.floor(Math.random() * 4);
+  const x = side === 0 ? -20 : side === 1 ? W + 20 : rnd(20, W - 20);
+  const y = side === 2 ? -20 : side === 3 ? H + 20 : rnd(20, H - 20);
+  const d = KINDS[k];
+  return { k, d, x, y, vx:0, vy:0, a:rnd(0, TAU), spin:rnd(-1,1), flash:0, cd:rnd(0.5, d.shoot || d.lunge || 3), tell:0, tellMax:0.55, dash:0, elite:false, wob:rnd(0, 9) };
+}
+function reseed() {
+  enemies = [];
+  for (let i = 0; i < wantCount; i++) { const e = spawn(MIX[i % MIX.length]); e.x = rnd(40, W-40); e.y = rnd(30, H-30); enemies.push(e); }
+  markElites();
+}
+function markElites() {
+  enemies.forEach(e => e.elite = false);
+  if (!showElite) return;
+  const big = enemies.filter(e => e.k === 'brute' || e.k === 'burster' || e.k === 'spinner');
+  big.slice(0, 2).forEach(e => e.elite = true);
+}
+const nearest = (list, x, y) => { let b = null, bd = 1e9; for (const o of list) { const d = Math.hypot(o.x - x, o.y - y); if (d < bd) { bd = d; b = o; } } return b; };
+
+function step(dt) {
+  T += dt;
+  for (const p of players) {
+    p.a += p.sp * dt;
+    p.x = p.cx + Math.cos(p.a) * p.rx * 0.55; p.y = p.cy + Math.sin(p.a * 1.3) * p.ry * 0.7;
+    p.cd = (p.cd ?? rnd(0, 0.4)) - dt;
+    if (p.cd <= 0 && showBul) {
+      const t = nearest(enemies, p.x, p.y);
+      if (t) { const a = Math.atan2(t.y - p.y, t.x - p.x) + rnd(-0.05, 0.05); bullets.push({ x:p.x, y:p.y, vx:Math.cos(a)*300, vy:Math.sin(a)*300, col:p.col, mine:true, life:1.4 }); }
+      p.cd = 0.22;
+    }
+  }
+  for (const e of enemies) {
+    const t = nearest(players, e.x, e.y), d = e.d;
+    const dx = t.x - e.x, dy = t.y - e.y, dist = Math.hypot(dx, dy) || 1;
+    let sp = d.sp;
+    if (!d.melee && dist < 150) sp = -d.sp * 0.4;           // shooters keep their distance
+    if (e.dash > 0) { sp = 190; e.dash -= dt; }
+    if (e.tell > 0) sp = 0;
+    e.vx = dx / dist * sp + Math.cos(T * 0.7 + e.wob) * 8; e.vy = dy / dist * sp + Math.sin(T * 0.9 + e.wob) * 8;
+    e.x += e.vx * dt; e.y += e.vy * dt;
+    e.a += e.spin * dt * (e.k === 'spinner' ? 2.4 : 0.5);
+    e.flash = Math.max(0, e.flash - dt);
+    e.tdir = Math.atan2(dy, dx);
+    // wind-up then fire
+    e.cd -= dt;
+    if (e.tell > 0) {
+      e.tell -= dt;
+      if (e.tell <= 0) {
+        if (d.shoot && showBul) bullets.push({ x:e.x, y:e.y, vx:Math.cos(e.tdir)*150, vy:Math.sin(e.tdir)*150, col:[255,120,100], mine:false, life:3 });
+        if (d.lunge) e.dash = 0.35;
+      }
+    } else if (e.cd <= 0 && (d.shoot || d.lunge)) { e.tell = e.tellMax; e.cd = (d.shoot || d.lunge) * rnd(0.85, 1.2); }
+    // wrap far-away ones
+    if (e.x < -60 || e.x > W + 60 || e.y < -60 || e.y > H + 60) { e.x = clamp(e.x, 10, W - 10); e.y = clamp(e.y, 10, H - 10); }
+  }
+  for (const b of bullets) {
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    if (b.mine) for (const e of enemies) if (Math.hypot(e.x - b.x, e.y - b.y) < e.d.r) { e.flash = 0.08; b.life = 0; break; }
+  }
+  bullets = bullets.filter(b => b.life > 0 && b.x > -20 && b.x < W + 20 && b.y > -20 && b.y < H + 20);
+  if (bullets.length > 140) bullets.splice(0, bullets.length - 140);
+}
+
+// --- Drawing -------------------------------------------------------------------------------------------
+const rgb = (c, a = 1, m = 1) => `rgba(${Math.min(255, c[0]*m)|0},${Math.min(255, c[1]*m)|0},${Math.min(255, c[2]*m)|0},${a})`;
+const lighten = (c, k) => c.map(v => v + (255 - v) * k);
+function poly(ctx, x, y, r, n, rot) { ctx.beginPath(); for (let i = 0; i < n; i++) { const a = rot + i * TAU / n; ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); }
+function disc(ctx, x, y, r, col, a) {            // soft spot of light, like the game's GlowDisc
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, rgb(col, a)); g.addColorStop(0.3, rgb(col, a * 0.38)); g.addColorStop(1, rgb(col, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+}
+const usesShadow = id => id === 'D' || id === 'F';
+const usesRim = id => id === 'B' || id === 'E' || id === 'F' || id === 'G';
+
+function floor(ctx) {
+  ctx.fillStyle = '#0c1116'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(120,150,175,0.07)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+}
+
+function drawEnemyBase(ctx, e, id) {
+  const { x, y } = e, r = e.d.r, c = e.d.col, n = e.d.sides, rot = e.a;
+  if (usesShadow(id)) {
+    ctx.fillStyle = 'rgba(0,0,0,0.42)'; poly(ctx, x + 2.5, y + 4, r * 1.05, n, rot); ctx.fill();
+    if (id === 'D') { const g = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 2.1); g.addColorStop(0, rgb(c, 0.16)); g.addColorStop(1, rgb(c, 0)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 2.1, 0, TAU); ctx.fill(); }
+  }
+}
+function drawEnemyBody(ctx, e, id) {
+  const { x, y } = e, r = e.d.r, c = e.d.col, n = e.d.sides, rot = e.a, hit = e.flash > 0;
+  if (hit) { ctx.fillStyle = '#fff'; poly(ctx, x, y, r, n, rot); ctx.fill(); return; }
+  if (id === 'A' || id === 'D') {
+    ctx.fillStyle = rgb(c); poly(ctx, x, y, r, n, rot); ctx.fill();
+    if (id === 'D') { ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.2; ctx.stroke(); }
+  } else if (id === 'C') {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgb(lighten(c, 0.7))); g.addColorStop(0.45, rgb(c)); g.addColorStop(1, rgb(c, 1, 0.6));
+    ctx.fillStyle = g; poly(ctx, x, y, r, n, rot); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 1.2; ctx.stroke();
+  } else {                                                    // B, E, F, G: dark hull with a bright rim
+    ctx.fillStyle = rgb(c, 1, id === 'G' ? 0.5 : 0.34); poly(ctx, x, y, r, n, rot); ctx.fill();
+    ctx.strokeStyle = rgb(lighten(c, 0.15)); ctx.lineWidth = 1.9; ctx.stroke();
+    if (id === 'B' || id === 'F') {                           // hot core
+      ctx.fillStyle = rgb(lighten(c, 0.75)); ctx.beginPath(); ctx.arc(x, y, Math.max(1.6, r * 0.2), 0, TAU); ctx.fill();
+    }
+  }
+  if (e.elite) { ctx.strokeStyle = 'rgba(255,217,77,0.95)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, r + 4, 0, TAU); ctx.stroke(); }
+}
+function drawWindUp(ctx, e) {
+  if (e.tell <= 0) return;
+  const k = 1 - e.tell / e.tellMax;                          // 0 -> 1
+  ctx.strokeStyle = rgb(e.d.col, 0.85 * k); ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(e.x, e.y, e.d.r * (2.4 - 1.4 * k), 0, TAU); ctx.stroke();
+}
+
+function render(ctx, id, scale, offX = 0, offY = 0) {
+  ctx.save(); ctx.setTransform(scale, 0, 0, scale, offX, offY);
+  floor(ctx);
+  for (const e of enemies) drawEnemyBase(ctx, e, id);
+  for (const e of enemies) drawEnemyBody(ctx, e, id);
+  for (const p of players) {                                   // player bodies
+    ctx.fillStyle = rgb(p.col); ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.35, 0, TAU); ctx.fill();
+  }
+  for (const b of bullets) { ctx.fillStyle = rgb(lighten(b.col, 0.4)); ctx.beginPath(); ctx.arc(b.x, b.y, b.mine ? 2.2 : 3, 0, TAU); ctx.fill(); }
+  if (id === 'E' || id === 'F') for (const e of enemies) drawWindUp(ctx, e);
+
+  // additive glow pass
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of players) {                                   // same numbers as Juice.GlowPlayer
+    const br = 0.92 + 0.08 * Math.sin(T * 2 + p.a);
+    disc(ctx, p.x, p.y, p.r * 5.2, p.col, 0.3 * br * pg);
+    disc(ctx, p.x, p.y, p.r * 2.4, p.col, 0.22 * pg);
+  }
+  if (showBul) for (const b of bullets) disc(ctx, b.x, b.y, b.mine ? 9 : 11, b.col, b.mine ? 0.35 : 0.45);
+  for (const e of enemies) {
+    const c = e.d.col, r = e.d.r;
+    if (id === 'C') disc(ctx, e.x, e.y, r * 1.5, c, 0.18);                         // a little bloom, kept tight
+    if (id === 'G') disc(ctx, e.x, e.y, r * (2 + e.d.threat * 1.6 + (e.elite ? 0.8 : 0)), c, 0.12 + 0.5 * Math.max(e.d.threat, e.elite ? 0.8 : 0));
+    if (id === 'E' || id === 'F') {
+      if (e.tell > 0) { const k = 1 - e.tell / e.tellMax; disc(ctx, e.x, e.y, r * (1.8 + 1.4 * k), c, 0.15 + 0.5 * k); }
+      if (id === 'F' && e.elite) disc(ctx, e.x, e.y, r * 3, [255,217,77], 0.3 + 0.05 * Math.sin(T * 3 + e.wob));
+    }
+    if (id === 'E' && e.elite) disc(ctx, e.x, e.y, r * 2.4, c, 0.2);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+}
+
+// --- Page ------------------------------------------------------------------------------------------------
+const main = $('main'), mctx = main.getContext('2d');
+let sel = 'F';
+const cardsEl = $('cards'), thumbs = [];
+for (const L of LOOKS) {
+  const b = document.createElement('button'); b.className = 'card'; b.type = 'button';
+  b.setAttribute('aria-pressed', L.id === sel ? 'true' : 'false');
+  b.innerHTML = `<canvas width="480" height="270"></canvas><div class="txt"><h3><b>${L.id}</b>${L.name}</h3><p>${L.text}</p>` +
+    `<div class="meter"><span>glow</span><i><s style="width:${L.glow * 25}%"></s></i><span>${GLOW_LABEL[L.glow]}</span></div></div>`;
+  b.onclick = () => { sel = L.id; sync(); };
+  cardsEl.appendChild(b);
+  thumbs.push({ id: L.id, el: b, ctx: b.querySelector('canvas').getContext('2d') });
+}
+function sync() {
+  thumbs.forEach(t => t.el.setAttribute('aria-pressed', t.id === sel ? 'true' : 'false'));
+  const L = LOOKS.find(l => l.id === sel); $('now').textContent = `Showing ${L.id} · ${L.name}`;
+}
+$('pg').oninput = e => { pg = e.target.value / 100; $('pgv').textContent = e.target.value + '%'; };
+$('cnt').oninput = e => { wantCount = +e.target.value; $('cntv').textContent = wantCount; reseed(); };
+$('bul').onchange = e => { showBul = e.target.checked; if (!showBul) bullets = []; };
+$('elite').onchange = e => { showElite = e.target.checked; markElites(); };
+sync(); reseed();
+
+let last = performance.now(), thumbT = 0;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!reduce || T < 0.01) step(reduce ? 0.016 : dt);
+  render(mctx, sel, 2);
+  thumbT += dt;
+  if (thumbT > 0.033 || reduce) { thumbT = 0; for (const t of thumbs) render(t.ctx, t.id, 0.75); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
