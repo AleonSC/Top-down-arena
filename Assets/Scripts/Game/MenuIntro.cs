@@ -5,7 +5,7 @@ namespace Arena
     /// The main menu drawing itself in, the first time it shows after the game starts ("pen plot", option B of
     /// Docs/Mockups/menu-d.html), 2.75 s:
     ///   0.0 s   the background fades up; the x-axis draws out from the origin
-    ///   0.35 s  a pen writes the title in ink, left to right; at 1.35 s the letters fill in
+    ///   0.35 s  the empty CRT screen drops in from above and bounces onto the axis (a flash as it lands); from 0.95 s the title types out
     ///   1.4 s   the pen traces the shot's arc over the title; at 1.9 s the shot sets off along it
     ///   1.65 s  the box opens out of its middle and its plot corners snap on
     ///   1.75 s  your name card, then PLAY rise into it, then Join game, Records and Settings; Quit slides up; the line under the title types out
@@ -15,7 +15,6 @@ namespace Arena
     public partial class ArenaApp
     {
         const float MenuIntroLenFull = 2.75f, MenuIntroLenFade = 0.45f;
-        const float MenuTitleHalf = 390f;  // about half the title's width at its size (where the pen starts and ends)
         float menuIntroT = -1f;            // seconds into the intro; below 0 when none has started
         bool menuIntroDone;                // it has started once this launch
         AppScreen menuLastScreen = AppScreen.Lobby;
@@ -71,10 +70,8 @@ namespace Arena
                 Ui.Fill(new Rect(0f, 0f, W, H), new Color(0.01f, 0.01f, 0.03f, 1f - Seg(menuIntroT, 0f, 0.4f)));
         }
 
-        float MenuPenX(float k) => W / 2f - MenuTitleHalf - 6f + (2f * MenuTitleHalf + 12f) * k;
-        static float MenuPenY(float x) => MenuTitleY - 26f + 52f * (0.5f + 0.5f * Mathf.Sin(x * 0.19f));
 
-        /// The title: during the intro, written in ink up to the pen and then filled in; otherwise as usual.
+        /// The title: during the intro the CRT screen falls in empty and the title types onto it; otherwise as usual.
         void DrawMenuTitleText(Rect r)
         {
             if (!(MenuIntroPlaying && MenuIntroFull))
@@ -84,20 +81,29 @@ namespace Arena
                 DrawCrtFront();
                 return;
             }
-            float pen = Seg(menuIntroT, 0.35f, 1.35f), fill = Seg(menuIntroT, 1.35f, 1.55f);
-            if (pen > 0f && fill < 1f)
-            {
-                var ink = new Color(0.42f, 0.6f, 1f, 0.9f * (1f - fill));  // blue ink, filling in white
-                GUI.BeginGroup(new Rect(0f, r.y, MenuPenX(pen), r.height));
-                Ui.Fancy(new Rect(0f, 0f, W, r.height), "CARTESIAN COLOSSEUM", (int)MenuTitleSize, ink, ink, TextAnchor.MiddleCenter, Ui.Accent);
-                GUI.EndGroup();
-            }
-            if (fill > 0f)
-                WithAlpha(fill, () => { DrawCrtBack(); DrawCrtTitle(r); DrawCrtFront(); });
+            // The empty screen falls in from above the window and bounces onto the axis (with a flash), then the title types out.
+            float T = menuIntroT;
+            if (T < CrtDropAt)
+                return;
+            float bt = T - CrtDropAt, fall = CrtFallLen;
+            float dy = bt < fall ? -(CrtBox.yMax + 24f) * (1f - (bt / fall) * (bt / fall))
+                : -22f * Mathf.Exp(-(bt - fall) * 6f) * Mathf.Abs(Mathf.Sin((bt - fall) * 11f));
+            crtDy = dy;
+            crtFlash = Mathf.Max(0f, 1f - Mathf.Abs(bt - fall) / 0.12f);
+            float typeK = Seg(T, CrtTypeAt, CrtTypeAt + CrtTypeLen);
+            crtTyped = typeK >= 1f ? -1 : Mathf.FloorToInt(typeK * "CARTESIAN COLOSSEUM".Length);
+            DrawCrtBack();
+            if (crtTyped != 0)
+                DrawCrtTitle(r);
+            DrawCrtFront();
+            crtDy = 0f; crtFlash = 0f; crtTyped = -1;
         }
 
         static readonly Color CrtGreen = new Color(0.49f, 1f, 0.66f), CrtGlow = new Color(0.18f, 1f, 0.4f);
-        static Rect CrtBox => new Rect(W / 2f - 520f, MenuTitleY - 52f, 1040f, 104f);
+        const float CrtDropAt = 0.35f, CrtFallLen = 0.32f, CrtTypeAt = 0.95f, CrtTypeLen = 0.6f;  // intro seconds
+        static float crtDy, crtFlash;  // while the screen is falling in: how far it is from home, and the flash as it lands
+        static int crtTyped = -1;      // letters typed so far; -1 = all of them
+        static Rect CrtBox => new Rect(W / 2f - 520f, MenuTitleY - 52f + crtDy, 1040f, 104f);
 
         /// The title as text on a CRT (Docs/Mockups/title-styles.html, look 4): a bezel round a dark green glass screen.
         void DrawCrtBack()
@@ -125,7 +131,17 @@ namespace Arena
             Ui.Fill(new Rect(24f, 5f, box.width * 0.35f, 2f), new Color(1f, 1f, 1f, 0.07f));  // glare
             GUI.EndGroup();
             Ui.Rim(box, CrtGlow, 0.3f);
-            if ((int)(t * 1.2f) % 2 == 0)
+            if (crtFlash > 0f)
+                Ui.Fill(new Rect(box.x + 7f, box.y + 7f, box.width - 14f, box.height - 14f), new Color(0.6f, 1f, 0.7f, 0.35f * crtFlash));
+            if (crtTyped >= 0)
+            {
+                // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
+                const string full = "CARTESIAN COLOSSEUM";
+                float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), cx = W / 2f - fw / 2f + Ui.TextWidth(full.Substring(0, crtTyped), (int)MenuTitleSize, true);
+                if ((int)(t * 8f) % 2 == 0)
+                    Ui.Fill(new Rect(cx + 6f, MenuTitleY + 14f + crtDy, 34f, 8f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.9f));
+            }
+            else if ((int)(t * 1.2f) % 2 == 0)
             {
                 Ui.Fill(new Rect(box.xMax - 58f, box.yMax - 18f, 30f, 7f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.85f));
             }
@@ -137,21 +153,24 @@ namespace Arena
             float t = Time.unscaledTime;
             float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
             var c = new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, flick);
-            Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
+            r.y += crtDy;
+            if (crtTyped < 0)
+            {
+                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
+                return;
+            }
+            const string full = "CARTESIAN COLOSSEUM";
+            float fw = Ui.TextWidth(full, (int)MenuTitleSize, true);
+            Ui.Glitch(new Rect(W / 2f - fw / 2f, r.y, fw + 60f, r.height), full.Substring(0, crtTyped), (int)MenuTitleSize, c, TextAnchor.MiddleLeft, CrtGlow);
         }
 
-        /// GL (inside BeginUiGl): the pen's glowing tip, writing the title and then tracing the arc.
+        /// GL (inside BeginUiGl): the pen's glowing tip, tracing the arc.
         void DrawMenuIntroPen(float t)
         {
             if (!(MenuIntroPlaying && MenuIntroFull))
                 return;
             UiModelAt(V2.Zero, 1f);
-            float pen = Seg(menuIntroT, 0.35f, 1.35f), arc = Seg(menuIntroT, 1.4f, 1.9f);
-            if (pen > 0f && pen < 1f)
-            {
-                float x = MenuPenX(pen);
-                PenTip(new V2(x, MenuPenY(x)));
-            }
+            float arc = Seg(menuIntroT, 1.4f, 1.9f);
             if (arc > 0f && arc < 1f)
                 PenTip(ArcAt(arc));
         }

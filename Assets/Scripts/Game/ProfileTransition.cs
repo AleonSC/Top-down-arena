@@ -7,7 +7,7 @@ namespace Arena
     /// Its clock `profTrT` runs in the mockup's seconds (0 to ProfTrLen) at ProfTrSpeed of real time:
     ///   0.1 s   WHO'S PLAYING? falls into the axis; each box shrinks into a point on it (one after another, with a ping each)
     ///   0.8 s   the points you didn't pick shoot off the ends of the axis; yours slides to the origin
-    ///   0.7 s   the menu's title is written (the menu's own intro, MenuIntro.cs, run from a remapped clock: ProfTrToIntro)
+    ///   0.7 s   the menu's CRT screen drops in and the title types onto it (the menu's own intro, MenuIntro.cs, run from a remapped clock: ProfTrToIntro)
     ///   1.1 s   a sweep as your point opens into the menu's box; the buttons drop in; the bar slides up
     /// There are always four boxes (three slots and New profile, ProfilesUi.cs), so every move is the same. Nothing can be
     /// clicked meanwhile (the menu counts as still in its intro), and any key skips to the end. Reduced effects or Visual
