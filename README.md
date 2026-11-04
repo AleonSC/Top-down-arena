@@ -1004,8 +1004,8 @@ window really close. That goes for the pause menu and for Settings from the lobb
   pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
-  (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen:
+- **The main menu**: the title on its x-axis with a shot arcing over it, and a **tip tray** that slides out from under
+  the box every 8 s (a How to play tip, with the next one coming out after it slides back; it tucks away while the Join row is open). In a box in the middle of the screen:
   **your name card** (your party card in small; click the name to change it; it's remembered; hover it for **Switch
   profile**) over a big **Play** button over **Join game**, **Records** and **Settings**. **Join game** opens a row
   under the box for the host's address and **Connect**. **Play** swaps the box's insides for the saved-runs picker (see

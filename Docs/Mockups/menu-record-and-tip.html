@@ -1,0 +1,203 @@
+<title>Menu Record and Tip</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* The "Best run" record and the tip are one chip today (Menus.cs MenuTip / DrawMenuTipChip: record first, then a tip every 8 s).
+   Both move away from under the title. Each .screen is the real 1280 x 720 canvas, scaled to fit its card. */
+:root { --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547; --tip:#6ea6ff; --gold:#ffcc59; color-scheme: dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 Barlow,system-ui,sans-serif; margin:0; }
+.wrap { max-width:1240px; margin:0 auto; padding:28px max(16px,env(safe-area-inset-left,0px)) 64px; display:grid; gap:28px; }
+h1,h2,h3 { font-family:Oxanium,system-ui,sans-serif; margin:0; text-transform:uppercase; letter-spacing:.04em; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; } h1 span { color:var(--gold); }
+h2 { font-size:20px; font-weight:700; } h3 { font-size:17px; font-weight:700; color:var(--teal); }
+p { margin:0; max-width:75ch; color:#cfdae2; }
+.eyebrow,.tag { font:700 11px Oxanium; letter-spacing:.14em; text-transform:uppercase; color:var(--amber); }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,540px),1fr)); gap:22px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; min-width:0; }
+.card .txt { padding:14px 16px 16px; display:grid; gap:8px; }
+.card ul,.note ul { margin:0; padding-left:18px; color:#b9c7d1; font-size:14.5px; display:grid; gap:3px; } .card li b { color:var(--fg); }
+.vp { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#080a14; }
+.screen { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; font-family:Barlow,Arial,sans-serif; color:#eef2fb; background:#080a14; overflow:hidden; }
+.screen > *, .m-panel > * { position:absolute; }
+.note { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; display:grid; gap:8px; }
+
+/* menu replica: title and card only; the chip is gone */
+.m-bg { inset:0; background: radial-gradient(circle at 18% 40%, #14203a55 0, transparent 280px), radial-gradient(circle at 82% 62%, #3a142e44 0, transparent 330px),
+  repeating-linear-gradient(0deg,#ffffff06 0 1px,transparent 1px 48px), repeating-linear-gradient(90deg,#ffffff06 0 1px,transparent 1px 48px), #0a0c18; }
+.m-title { left:0; width:1280px; top:84px; text-align:center; font:800 88px/1 Oxanium; letter-spacing:.02em; color:#dfe6ff; text-shadow:0 0 28px #4f6cff88, 0 3px 0 #2b3a8a; }
+.m-panel { left:300px; top:230px; width:680px; height:284px; border-radius:16px; background:#171c2c; border:2px solid #4f6cff99; box-shadow:0 0 40px #4f6cff30; z-index:3; }
+.m-prof { left:22px; top:22px; width:636px; height:62px; border-radius:6px; border:2px solid #d9a93f; background:linear-gradient(90deg,#1b2036,#2b1d1a); }
+.m-prof b { position:absolute; left:68px; top:4px; font:700 22px Barlow; } .m-prof i { position:absolute; left:68px; top:34px; font:600 15px Barlow; font-style:normal; color:#ffbd3d; }
+.m-play { left:22px; top:98px; width:636px; height:92px; border-radius:10px; background:#3f78e8; display:grid; place-items:center; font:700 32px Barlow; letter-spacing:.04em; }
+.m-sm { top:206px; width:198px; height:54px; border-radius:8px; background:#2c3350; display:grid; place-items:center; font:600 20px Barlow; color:#dbe2f5; }
+
+/* shared pieces */
+.k { font:700 11px Oxanium; letter-spacing:.12em; text-transform:uppercase; color:var(--tip); white-space:nowrap; }
+.k.gold { color:var(--gold); }
+.ic { width:44px; height:44px; border-radius:50%; display:grid; place-items:center; flex:none; background:#6ea6ff22; border:1px solid #6ea6ff77; }
+.ic.gold { background:#ffcc5922; border-color:#ffcc5988; }
+.topic { font-weight:700; color:#fff; } .body { color:#c7d0e8; }
+.big { font-size:20px; line-height:1.3; }
+.dots { display:flex; gap:6px; } .dots i { width:7px; height:7px; border-radius:50%; background:#ffffff30; display:block; } .dots i.on { background:var(--tip); }
+.kbd { font:700 12px Oxanium; padding:3px 8px; border-radius:5px; border:1px solid #ffffff40; background:#ffffff14; color:#e8eeff; }
+.rec b { color:#fff; } .rec .sub { color:#9fa9c6; }
+
+/* A: one shelf that alternates record then tip */
+.shelf { left:0; bottom:0; width:1280px; height:92px; background:linear-gradient(180deg,#141a30f2,#0c1020f8); border-top:2px solid #6ea6ff66; box-shadow:0 -14px 40px #4f6cff22;
+  transform:translateY(100%); animation:rise 16s cubic-bezier(.2,.8,.2,1) infinite; }
+.shelf .swap { position:absolute; inset:0; padding:0 48px; display:flex; align-items:center; gap:18px; opacity:0; }
+.shelf .swap.r { animation:fadeR 16s infinite; } .shelf .swap.t { animation:fadeT 16s infinite; }
+.shelf .swap .tx { flex:1; min-width:0; }
+@keyframes rise { 0% { transform:translateY(100%); } 5%,93% { transform:translateY(0); } 99%,100% { transform:translateY(100%); } }
+@keyframes fadeR { 0%,6% { opacity:0; } 9%,44% { opacity:1; } 48%,100% { opacity:0; } }
+@keyframes fadeT { 0%,50% { opacity:0; } 54%,90% { opacity:1; } 93%,100% { opacity:0; } }
+
+/* B: split shelf, both at once */
+.split { left:0; bottom:0; width:1280px; height:96px; display:flex; background:linear-gradient(180deg,#141a30f2,#0c1020f8); border-top:2px solid #6ea6ff66; box-shadow:0 -14px 40px #4f6cff22;
+  transform:translateY(100%); animation:rise 14s cubic-bezier(.2,.8,.2,1) infinite; }
+.split .l { width:380px; flex:none; padding:0 30px; display:flex; align-items:center; gap:16px; background:linear-gradient(90deg,#3a2a0c66,#14182800); border-right:1px solid #ffffff1c; }
+.split .r { flex:1; min-width:0; padding:0 40px 0 30px; display:flex; align-items:center; gap:16px; }
+
+/* C: two corner plates */
+.plate { bottom:34px; border-radius:12px; background:#121830f4; padding:14px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 10px 36px #000a; transform:translateY(170%); }
+.plate.rc { left:36px; width:330px; border:1px solid #ffcc5966; animation:up 10s cubic-bezier(.2,.9,.25,1.05) infinite; }
+.plate.tp { right:36px; width:520px; border:1px solid #6ea6ff66; animation:up 10s cubic-bezier(.2,.9,.25,1.05) .25s infinite; display:grid; gap:4px; }
+@keyframes up { 0% { transform:translateY(170%); } 8%,88% { transform:translateY(0); } 96%,100% { transform:translateY(170%); } }
+
+/* D: pull-tab drawer, two columns */
+.dr { left:50%; bottom:0; width:880px; margin-left:-440px; transform:translateY(100%); transition:transform .5s cubic-bezier(.2,.9,.25,1.05); }
+.dr.open { transform:translateY(0); }
+.dr .tab { position:absolute; left:50%; top:-36px; margin-left:-150px; width:300px; height:36px; border-radius:10px 10px 0 0; background:#141a30; border:2px solid #6ea6ff66; border-bottom:0;
+  display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font:700 12px Oxanium; letter-spacing:.1em; color:#c7d0e8; white-space:nowrap; }
+.dr .tab .sep { width:1px; height:16px; background:#ffffff33; }
+.dr .tab .chev { transition:transform .4s; } .dr.open .tab .chev { transform:rotate(180deg); }
+.dr .in { height:150px; border-radius:16px 16px 0 0; background:linear-gradient(180deg,#171d36,#0e1224); border:2px solid #6ea6ff66; border-bottom:0; display:flex; box-shadow:0 -10px 40px #4f6cff22; }
+.dr .col { padding:20px 28px; display:grid; align-content:center; gap:6px; min-width:0; }
+.dr .c1 { width:300px; flex:none; border-right:1px solid #ffffff1c; background:linear-gradient(90deg,#3a2a0c55,transparent); border-radius:14px 0 0 0; }
+.dr .c2 { flex:1; }
+.nv { font:700 13px Oxanium; padding:6px 12px; border-radius:6px; background:#2c3350; color:#dbe2f5; cursor:pointer; user-select:none; }
+
+/* E: tray sliding out from under the card */
+.tray { left:320px; top:514px; width:640px; height:86px; border-radius:0 0 14px 14px; background:linear-gradient(180deg,#10152a,#0c1020); border:2px solid #4f6cff88; border-top:0;
+  transform:translateY(-86px); animation:slide 12s cubic-bezier(.2,.9,.25,1.05) infinite; z-index:1; padding:12px 24px 0 24px; display:grid; align-content:center; gap:5px; box-shadow:0 14px 34px #4f6cff22; }
+.tray .row { display:flex; align-items:center; gap:10px; font-size:16.5px; white-space:nowrap; min-width:0; } .tray .row .body { overflow:hidden; text-overflow:ellipsis; }
+@keyframes slide { 0% { transform:translateY(-86px); } 7%,92% { transform:translateY(0); } 100% { transform:translateY(-86px); } }
+
+/* F: ticker with a pinned record */
+.tk { left:0; bottom:0; width:1280px; height:46px; background:#0b0e1cf0; border-top:1px solid #6ea6ff44; overflow:hidden; display:flex; align-items:center; }
+.tk .pin { position:relative; z-index:2; height:100%; padding:0 22px 0 26px; display:flex; align-items:center; gap:10px; background:#171208; border-right:1px solid #ffcc5955; box-shadow:10px 0 14px #0b0e1c; flex:none; font-size:16px; }
+.tk .lab { position:relative; z-index:2; height:100%; padding:0 14px 0 20px; display:flex; align-items:center; gap:8px; background:#0b0e1c; flex:none; }
+.tk .run { display:flex; gap:64px; white-space:nowrap; font-size:16px; color:#c7d0e8; padding-left:24px; animation:tick 44s linear infinite; }
+.tk .run b { color:#fff; margin-right:8px; } .tk .run span::before { content:"•"; color:var(--tip); margin-right:18px; }
+.tk .fade { right:0; top:0; width:80px; height:46px; background:linear-gradient(90deg,transparent,#0b0e1c); z-index:2; }
+@keyframes tick { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+@media (prefers-reduced-motion:reduce) { .shelf,.split,.plate,.tray,.tk .run { animation:none; transform:none; } .shelf .swap.r { animation:none; opacity:1; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <div class="eyebrow">Mockup · main menu</div>
+    <h1>Record and tip, <span>together</span></h1>
+    <p>You're right: the Best run line and the tip are one chip today, taking turns. Here the whole thing leaves the space under the title. A and F keep them as one thing, B to E show both at once. The card moves up a little in each, since the chip's gap is free. All of them use the real record line and the real tips.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="vp"><div class="screen" id="sA"></div></div><div class="txt"><div class="tag">A · Alternating shelf</div><h3>Same chip logic, slides out from the bottom</h3>
+      <p>One shelf rises from under the bottom edge, shows the record, crossfades to a tip, then slides away. Same "record, then tips" order as now.</p>
+      <ul><li><b>Good:</b> the least change from today; big readable text</li><li><b>Watch out:</b> you only see one of the two at a time</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sB"></div></div><div class="txt"><div class="tag">B · Split shelf</div><h3>Record on the left, tip on the right</h3>
+      <p>The shelf is split in two. The gold record block stays while the tip on the right changes. Both are always visible.</p>
+      <ul><li><b>Good:</b> record never goes missing; clear who is who by colour</li><li><b>Watch out:</b> the tip has less width, so long ones wrap</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sC"></div></div><div class="txt"><div class="tag">C · Corner pair</div><h3>A gold record plate and a blue tip card</h3>
+      <p>Two plates rise from under the bottom edge, one after the other: the record bottom left, the tip bottom right. They stay clear of the card.</p>
+      <ul><li><b>Good:</b> each has its own place and shape, easy to hide one later</li><li><b>Watch out:</b> busiest of the set; two things moving</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sD"></div></div><div class="txt"><div class="tag">D · Pull-tab drawer</div><h3>The tab shows the record, the drawer has both</h3>
+      <p>The closed tab reads "Wave 26 · Tips". Click it (try it above): a drawer with the record on the left and the tip with Prev / Next on the right. It peeks open once.</p>
+      <ul><li><b>Good:</b> nothing in the way when closed, the record still shows</li><li><b>Watch out:</b> tips are hidden until someone opens it</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sE"></div></div><div class="txt"><div class="tag">E · Tray under the card</div><h3>Slides out from behind the main card</h3>
+      <p>A tray hangs off the bottom of the card, as if it were pulled out of it. The record is the first line and the tip is the second, so they belong to the card.</p>
+      <ul><li><b>Good:</b> both together, close to the buttons, stays inside the card's width</li><li><b>Watch out:</b> only two short lines, so long tips get cut</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sF"></div></div><div class="txt"><div class="tag">F · Ticker with a pinned record</div><h3>Record fixed on the left, tips scroll</h3>
+      <p>A thin strip along the bottom. The record is pinned at the left end and the tips run past to its right.</p>
+      <ul><li><b>Good:</b> always there, tiny, both visible</li><li><b>Watch out:</b> scrolling text is easy to ignore</li></ul></div></div>
+  </div>
+
+  <section class="note"><h2>Notes for building it</h2>
+    <ul>
+      <li>The record line only shows once <b>Profile.BestWave</b> is above 0. In A, the record step would just be skipped for a new profile; in B to F the record block hides.</li>
+      <li>MenuTip() already gives topic, body and the record flag, so these mostly change where DrawMenuTipChip draws. No protocol change.</li>
+      <li>A, B, C and E slide in on the menu intro timer (MenuIntroK), as the chip does now.</li>
+    </ul></section>
+</div>
+
+<script>
+const TIPS = [
+  ["Hitbox", "Your hitbox is just the small white dot in the middle of your character."],
+  ["Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow."],
+  ["Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing."],
+  ["Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them."],
+  ["Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked."],
+  ["Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close."]
+];
+const sv = (d, c, w = 22) => '<svg width="' + w + '" height="' + w + '" viewBox="0 0 16 16" fill="none" stroke="' + c + '" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+const BULB = (w) => sv('<path d="M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.8.6 1.3v.5h4V11c0-.5.2-1 .6-1.3A4.5 4.5 0 0 0 8 1.5Z"/><path d="M6.3 14h3.4"/>', '#6ea6ff', w);
+const CUP = (w) => sv('<path d="M4.5 2h7v4a3.5 3.5 0 0 1-7 0V2Z"/><path d="M4.5 3.5H2.5v1a2.5 2.5 0 0 0 2.3 2.5M11.5 3.5h2v1a2.5 2.5 0 0 1-2.3 2.5"/><path d="M8 9.5V12M5.5 14h5"/>', '#ffcc59', w);
+const CHEV = '<svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#6ea6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8l4-4 4 4"/></svg>';
+const dots = n => '<div class="dots">' + TIPS.map((_, i) => '<i class="' + (i === n ? 'on' : '') + '"></i>').join('') + '</div>';
+const menu = (pre = '') => '<div class="m-bg"></div><div class="m-title">CARTESIAN COLOSSEUM</div>' + pre +
+  '<div class="m-panel"><div class="m-prof"><b>Antaleon</b><i>Legend · Rank 999</i></div><div class="m-play">▶ PLAY</div>' +
+  '<div class="m-sm" style="left:22px">Join game</div><div class="m-sm" style="left:241px">Records</div><div class="m-sm" style="left:460px">Settings</div></div>';
+const REC = '<span class="k gold">RECORD</span> <b>Best run</b> <span class="sub">wave 26 · 124 runs started</span>';
+const idx = {};
+function fill(id) {
+  const root = document.getElementById(id), i = idx[id] || 0;
+  root.querySelectorAll('[data-topic]').forEach(e => e.textContent = TIPS[i][0]);
+  root.querySelectorAll('[data-body]').forEach(e => e.textContent = TIPS[i][1]);
+  root.querySelectorAll('[data-dots]').forEach(e => e.innerHTML = dots(i));
+}
+const $ = id => document.getElementById(id);
+
+$('sA').innerHTML = menu() + '<div class="shelf" data-cycle>' +
+  '<div class="swap r"><div class="ic gold">' + CUP(24) + '</div><div class="tx big rec">' + REC + '</div></div>' +
+  '<div class="swap t"><div class="ic">' + BULB(24) + '</div><div class="tx big"><span class="k" style="margin-right:10px">TIP</span><span class="topic" data-topic></span> <span class="body" data-body></span></div><span data-dots></span></div></div>';
+
+$('sB').innerHTML = menu() + '<div class="split" data-cycle>' +
+  '<div class="l"><div class="ic gold">' + CUP(24) + '</div><div class="rec" style="display:grid;gap:2px"><span class="k gold">RECORD</span><b style="font-size:20px">Best run: wave 26</b><span class="sub" style="font-size:14px">124 runs started</span></div></div>' +
+  '<div class="r"><div class="ic">' + BULB(24) + '</div><div style="flex:1;min-width:0;font-size:18px;line-height:1.3"><span class="k" style="margin-right:10px">TIP</span><span class="topic" data-topic></span> <span class="body" data-body></span></div><span data-dots></span></div></div>';
+
+$('sC').innerHTML = menu() +
+  '<div class="plate rc"><div class="ic gold">' + CUP(24) + '</div><div class="rec" style="display:grid;gap:1px"><span class="k gold">RECORD</span><b style="font-size:20px">Best run: wave 26</b><span class="sub" style="font-size:14px">124 runs started</span></div></div>' +
+  '<div class="plate tp" data-cycle><div style="display:flex;gap:8px;align-items:center">' + BULB(16) + '<span class="k">TIP</span><span style="margin-left:auto" data-dots></span></div><div class="topic" style="font:700 20px Oxanium" data-topic></div><div class="body" style="font-size:16.5px;line-height:1.35" data-body></div></div>';
+
+$('sD').innerHTML = menu() + '<div class="dr" id="dr"><div class="tab" id="drtab">' + CUP(15) + '<span style="color:#ffcc59">WAVE 26</span><span class="sep"></span>' + BULB(15) + '<span style="color:#6ea6ff">TIPS</span>' + CHEV + '</div>' +
+  '<div class="in"><div class="col c1"><span class="k gold">RECORD</span><b style="font-size:22px;font-family:Oxanium;white-space:nowrap">Best run: wave 26</b><span style="color:#9fa9c6;font-size:15px">124 runs started</span></div>' +
+  '<div class="col c2"><div style="display:flex;gap:10px;align-items:center"><span class="k">TIP</span><span data-dots></span><span style="margin-left:auto;display:flex;gap:8px"><span class="nv" id="drp">‹ Prev</span><span class="nv" id="drn">Next ›</span></span></div><div class="topic" style="font:700 24px Oxanium" data-topic></div><div class="body" style="font-size:18px;line-height:1.35" data-body></div></div></div></div>';
+{
+  const dr = $('dr'); let touched = false;
+  const step = d => { idx.sD = ((idx.sD || 0) + d + TIPS.length) % TIPS.length; fill('sD'); };
+  $('drtab').onclick = () => { touched = true; dr.classList.toggle('open'); };
+  $('drn').onclick = () => { touched = true; step(1); }; $('drp').onclick = () => { touched = true; step(-1); };
+  const peek = () => { if (touched) return; dr.classList.add('open'); setTimeout(() => { if (!touched) dr.classList.remove('open'); }, 5200); };
+  setTimeout(peek, 1200); setInterval(peek, 14000);
+}
+
+$('sE').innerHTML = menu('<div class="tray" data-cycle><div class="row rec">' + CUP(16) + REC + '</div><div class="row">' + BULB(16) + '<span class="k">TIP</span><span class="topic" data-topic></span><span class="body" data-body></span></div></div>');
+
+const run = TIPS.map(t => '<span><b>' + t[0] + '</b>' + t[1] + '</span>').join('');
+$('sF').innerHTML = menu() + '<div class="tk"><div class="pin rec">' + CUP(18) + '<span class="k gold">RECORD</span><b>Wave 26</b></div><div class="lab">' + BULB(16) + '<span class="k">TIP</span></div><div class="run">' + run + run + '</div><div class="fade"></div></div>';
+
+document.querySelectorAll('[data-cycle]').forEach(el => {
+  const id = el.closest('.screen').id; fill(id);
+  el.addEventListener('animationiteration', e => { if (e.target !== el) return; idx[id] = ((idx[id] || 0) + 1) % TIPS.length; fill(id); });
+});
+fill('sD');
+const fit = () => document.querySelectorAll('.vp').forEach(vp => { vp.firstElementChild.style.transform = 'scale(' + vp.clientWidth / 1280 + ')'; });
+new ResizeObserver(fit).observe(document.body); fit();
+</script>

@@ -125,14 +125,14 @@ namespace Arena
             Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), status, 13, Ui.Muted, TextAnchor.MiddleLeft, true);
             if (session.IsHost && game.ShopT >= Game.ShopHostCloseAfter && waiting.Count > 0)
             {
-                if (!popup && Ui.SmallButton(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", Ui.Danger))
+                if (!popup && Ui.ActionButton(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", false, Ui.Danger, null, null, 13))
                     game.Shop(ShopAction.Close);
             }
             else
                 Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), "Leftover gold becomes XP when everyone is done", 13, Ui.Muted, TextAnchor.MiddleRight, true);
             var doneRect = new Rect(x0 + 5f, by + 28f, 320f, 48f);
             string doneText = me.ShopDone ? "Done ✓   (click to keep shopping)" : "Done shopping  ·  " + me.Gold + " gold → +" + Mathf.RoundToInt(me.Gold * Game.GoldToXp) + " XP";
-            if (Ui.Button(doneRect, doneText, me.ShopDone ? new Color(0.25f, 0.7f, 0.35f) : Ui.Primary) && !popup)
+            if (Ui.ActionButton(doneRect, doneText, me.ShopDone, Ui.Primary, null, null, 15) && !popup)
                 game.Shop(ShopAction.Done, me.ShopDone ? 0 : 1);
             DrawShopTeam(me, new Rect(doneRect.xMax + 16f, doneRect.y + 6f, areaW - doneRect.width - 30f, 36f), popup);
 

@@ -1,0 +1,317 @@
+<title>Play Transition Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the game's 1280x720 menu scaled to fit, playing Play -> saved-runs picker. Strips below pick look, direction, speed; cards under it list each look's beats. Single dark look, like the other mockups. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --blue: #73a6ff; --red: #ff6b7a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.screen { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: radial-gradient(ellipse at 50% 45%, #121a2e 0%, #07080d 70%); }
+.game { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; font-family: var(--font-body); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(115,166,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(115,166,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+.logo { position: absolute; left: 0; width: 1280px; top: 120px; text-align: center; font: 800 64px var(--font-display); letter-spacing: .12em; color: #eaf1ff; text-shadow: 0 0 30px rgba(115,166,255,.45); }
+.logo small { display: block; font: 500 16px var(--font-data); letter-spacing: .4em; color: #7f93b8; margin-top: 2px; }
+.box { position: absolute; left: 300px; top: 250px; width: 680px; height: 280px; background: linear-gradient(#141b2b, #0e1320); border: 1px solid #3a4a6e; border-radius: 12px; box-shadow: 0 0 40px rgba(80,120,255,.18), inset 0 0 0 1px rgba(255,255,255,.03); overflow: hidden; }
+.layer { position: absolute; inset: 0; }
+.it { position: absolute; will-change: transform, opacity; }
+.name { left: 30px; top: 22px; width: 620px; height: 64px; background: #182037; border: 1px solid #2c3a5c; border-radius: 8px; display: flex; align-items: center; gap: 14px; padding: 0 16px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: #2b3a63; border: 2px solid var(--blue); flex: none; }
+.nm { font: 700 20px var(--font-display); color: #fff; line-height: 1.1; }
+.rk { font: 500 12px var(--font-data); color: #8fa3cc; }
+.xp { margin-left: auto; width: 170px; height: 8px; background: #0b1020; border-radius: 4px; overflow: hidden; }
+.xp i { display: block; width: 62%; height: 100%; background: var(--blue); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 8px; border: 1px solid #3a4a6e; background: #1a2338; color: #dfe8ff; font: 700 18px var(--font-display); letter-spacing: .04em; }
+.btn.pri { background: linear-gradient(#1f6f5e, #154d42); border-color: var(--teal); color: #fff; box-shadow: 0 0 22px rgba(111,227,196,.25); }
+.btn .ic { width: 0; height: 0; border-left: 12px solid currentColor; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+.play { left: 30px; top: 98px; width: 620px; height: 92px; font-size: 30px; letter-spacing: .12em; }
+.join { left: 30px; top: 202px; width: 194px; height: 52px; }
+.rec { left: 238px; top: 202px; width: 194px; height: 52px; }
+.set { left: 446px; top: 202px; width: 194px; height: 52px; }
+.ptitle { left: 30px; top: 18px; width: 440px; height: 34px; font: 800 24px var(--font-display); letter-spacing: .06em; color: #b8ffd1; text-shadow: 0 0 14px rgba(110,220,160,.5); display: flex; align-items: center; }
+.back { left: 540px; top: 18px; width: 110px; height: 34px; font-size: 15px; }
+.run { left: 30px; top: 62px; width: 620px; height: 118px; background: #12261f; border: 1px solid rgba(107,219,158,.45); border-radius: 8px; }
+.run .w { position: absolute; left: 18px; top: 6px; font: 800 28px var(--font-display); color: #fff; }
+.run .m { position: absolute; left: 18px; font: 400 12px var(--font-body); color: #8fa3a0; }
+.run .s { position: absolute; left: 250px; font: 500 12px var(--font-body); color: #d6e4f7; padding-left: 10px; border-left: 4px solid; line-height: 18px; }
+.run .tag { position: absolute; left: 18px; top: 90px; height: 20px; padding: 0 10px; font: 700 10px/20px var(--font-display); letter-spacing: .1em; border-radius: 4px; background: #5a3d99; color: #fff; }
+.run .cont { position: absolute; right: 18px; top: 28px; width: 152px; height: 62px; font-size: 22px; }
+.nw { left: 30px; top: 196px; width: 200px; height: 50px; font-size: 18px; }
+.old { left: 240px; top: 196px; width: 200px; height: 50px; font-size: 17px; }
+.del { left: 450px; top: 196px; width: 200px; height: 50px; font-size: 16px; }
+.line { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: var(--teal); box-shadow: 0 0 18px 4px rgba(111,227,196,.7); opacity: 0; }
+.hint { position: absolute; left: 0; width: 1280px; top: 560px; text-align: center; font: 500 14px var(--font-data); color: #6f82a8; letter-spacing: .1em; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+input[type=range] { accent-color: var(--teal); flex: 1 1 160px; min-width: 120px; }
+.t { font: 500 12px var(--font-data); color: var(--muted); min-width: 7ch; text-align: right; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card.pick { border-color: var(--teal); }
+.card .tagline { color: var(--soft); font-size: 15px; }
+.beats { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font: 400 12.5px/1.45 var(--font-data); color: var(--muted); }
+.beats b { color: var(--amber); font-weight: 500; }
+.rec-pill { font: 600 10.5px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--teal); }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 8px; }
+.notes ul { margin: 0; padding-left: 20px; color: var(--soft); display: grid; gap: 6px; max-width: 80ch; }
+code { font-family: var(--font-data); font-size: 13px; color: var(--teal); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Main menu · Play button</div>
+    <h1>Play <span>transition</span></h1>
+    <p class="lead">Today, clicking Play swaps the box to the saved-runs picker in one frame. These four looks bridge the two. Pick one with the strip under the screen, or click Play on the screen itself. Back runs the same move in reverse.</p>
+  </header>
+
+  <section class="stage" aria-label="Menu replica">
+    <div class="screen" id="screen">
+      <div class="game" id="game">
+        <div class="grid"></div>
+        <div class="logo">TOP-DOWN ARENA<small>CO-OP BULLET HELL</small></div>
+        <div class="box" id="box">
+          <div class="layer" id="menuL">
+            <div class="it name" data-k="name"><div class="avatar"></div><div><div class="nm">Anthony</div><div class="rk">RANK 7 · OPERATIVE</div></div><div class="xp"><i></i></div></div>
+            <div class="it btn pri play" data-k="play" id="play"><span class="ic"></span>PLAY</div>
+            <div class="it btn join" data-k="join">Join game</div>
+            <div class="it btn rec" data-k="rec">Records</div>
+            <div class="it btn set" data-k="set">Settings</div>
+          </div>
+          <div class="layer" id="pickL">
+            <div class="it ptitle" data-k="ptitle">CONTINUE YOUR LATEST RUN</div>
+            <div class="it btn back" data-k="back" id="back">Back</div>
+            <div class="it run" data-k="run">
+              <div class="w">Wave 14</div>
+              <div class="m" style="top:46px">Saved Nov 3, 21:40</div>
+              <div class="m" style="top:63px">Score 18240 · 22 min played</div>
+              <div class="s" style="top:14px;border-color:#ff8a5c">Anthony — Bulwark Knight</div>
+              <div class="s" style="top:38px;border-color:#73a6ff">Sam — Arc Mage</div>
+              <div class="tag">HARD</div>
+              <div class="btn pri cont">Continue</div>
+            </div>
+            <div class="it btn nw" data-k="nw">New run</div>
+            <div class="it btn old" data-k="old">Older runs (4)</div>
+            <div class="it btn del" data-k="del">Delete this run</div>
+          </div>
+          <div class="line" id="line"></div>
+        </div>
+        <div class="hint" id="hint">CLICK PLAY</div>
+      </div>
+    </div>
+    <div class="bar">
+      <span class="lbl">Look</span>
+      <div class="seg" id="looks" role="group" aria-label="Look">
+        <button data-look="A" class="on">A · Slide</button>
+        <button data-look="B">B · Morph</button>
+        <button data-look="C">C · Cascade</button>
+        <button data-look="D">D · Scan wipe</button>
+      </div>
+      <span class="lbl">Direction</span>
+      <div class="seg" id="dirs" role="group" aria-label="Direction">
+        <button data-dir="1" class="on">Play →</button>
+        <button data-dir="-1">← Back</button>
+      </div>
+      <span class="lbl">Speed</span>
+      <div class="seg" id="speeds" role="group" aria-label="Speed">
+        <button data-sp="1" class="on">1×</button>
+        <button data-sp="0.4">Slow</button>
+      </div>
+      <button class="act" id="replay" type="button">Replay</button>
+    </div>
+    <div class="bar">
+      <span class="lbl">Scrub</span>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub the transition">
+      <span class="t" id="tl">0.00 s</span>
+    </div>
+  </section>
+
+  <section class="cards" aria-label="The four looks">
+    <article class="card pick">
+      <div class="rec-pill">My pick</div>
+      <h3>B · Morph</h3>
+      <p class="tagline">The Play button becomes the latest-run card, so the click visibly turns into what it opened. Nothing disappears all at once.</p>
+      <ul class="beats">
+        <li><b>0.00 s</b> name card, Join, Records, Settings sink and fade</li>
+        <li><b>0.10 s</b> Play grows and slides up into the run card</li>
+        <li><b>0.25 s</b> title and Back drop in</li>
+        <li><b>0.35 s</b> New run, Older runs, Delete rise in, one after another</li>
+        <li><b>0.70 s</b> done</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3>A · Slide</h3>
+      <p class="tagline">The menu pushes out to the left while the picker comes in from the right. Simple and readable, a plain page turn.</p>
+      <ul class="beats">
+        <li><b>0.00 s</b> menu items slide left 70 px and fade, 40 ms apart</li>
+        <li><b>0.18 s</b> picker items slide in from the right</li>
+        <li><b>0.50 s</b> done</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3>C · Cascade</h3>
+      <p class="tagline">The menu intro played backwards: items drop out bottom first, then the picker rises in top first. Matches how the menu first appears.</p>
+      <ul class="beats">
+        <li><b>0.00 s</b> Settings, Records, Join, Play, name card fall away, 60 ms apart</li>
+        <li><b>0.35 s</b> title, run card, then the three buttons rise in</li>
+        <li><b>0.80 s</b> done</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3>D · Scan wipe</h3>
+      <p class="tagline">A teal scan line sweeps across the box, swapping the menu for the picker behind it. Fits the plot-point look of the menu, but busier.</p>
+      <ul class="beats">
+        <li><b>0.00 s</b> line starts at the left edge</li>
+        <li><b>0.30 s</b> line is mid-box: left half already the picker</li>
+        <li><b>0.60 s</b> line exits right, done</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>One <code>menuPlayT</code> value (0 to 1) moves toward 1 on Play and back to 0 on Back or Esc, using unscaled time. <code>DrawMenuCardInside</code> draws both views while it is between 0 and 1 and passes <code>live = false</code> for the one on its way out, so nothing underneath is clickable during the move.</li>
+      <li>No network or save format change, so the protocol version stays the same.</li>
+      <li>Clicks are ignored until the move is at least 80% done, so a double-click cannot press Continue by accident.</li>
+      <li>The Esc and Back buttons run the same move in reverse, so look and timing stay one setting.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var game = $('game'), screen = $('screen');
+  var menuEls = [].slice.call($('menuL').querySelectorAll('.it'));
+  var pickEls = [].slice.call($('pickL').querySelectorAll('.it'));
+  var E = {}; menuEls.concat(pickEls).forEach(function (e) { E[e.dataset.k] = e; });
+
+  function fit() { game.style.transform = 'scale(' + (screen.clientWidth / 1280) + ')'; }
+  new ResizeObserver(fit).observe(screen); fit();
+
+  function cl(x) { return Math.max(0, Math.min(1, x)); }
+  function seg(p, a, b) { return cl((p - a) / (b - a)); }
+  function eo(x) { return 1 - Math.pow(1 - x, 3); }
+  function eio(x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function set(el, o, x, y, s) {
+    el.style.opacity = o; el.style.transform = 'translate(' + x + 'px,' + y + 'px)' + (s && s !== 1 ? ' scale(' + s + ')' : '');
+    el.style.pointerEvents = 'none';
+  }
+  function reset() {
+    ['menuL', 'pickL'].forEach(function (id) { $(id).style.clipPath = ''; });
+    $('line').style.opacity = 0;
+    var pl = E.play, rn = E.run;
+    pl.style.top = '98px'; pl.style.height = '92px'; pl.style.fontSize = '30px';
+    rn.style.top = '62px'; rn.style.height = '118px';
+  }
+  var DUR = { A: 0.5, B: 0.7, C: 0.8, D: 0.6 };
+
+  // p: 0 = menu, 1 = picker
+  var looks = {
+    A: function (p) {
+      menuEls.forEach(function (e, i) { var k = eo(seg(p, i * .08, i * .08 + .36)); set(e, 1 - k, -70 * k, 0); });
+      pickEls.forEach(function (e, i) { var k = eo(seg(p, .36 + i * .06, .72 + i * .06)); set(e, k, 70 * (1 - k), 0); });
+    },
+    B: function (p) {
+      var m = eio(seg(p, .14, .78));
+      ['name', 'join', 'rec', 'set'].forEach(function (k, i) {
+        var o = eo(seg(p, i * .03, .3 + i * .03)); set(E[k], 1 - o, 0, 22 * o);
+      });
+      E.play.style.top = (98 - 36 * m) + 'px'; E.play.style.height = (92 + 26 * m) + 'px';
+      E.play.style.fontSize = (30 - 6 * m) + 'px';
+      E.run.style.top = (98 - 36 * m) + 'px'; E.run.style.height = (92 + 26 * m) + 'px';
+      set(E.play, 1 - eo(seg(p, .28, .6)), 0, 0);
+      set(E.run, eo(seg(p, .36, .74)), 0, 0);
+      set(E.ptitle, eo(seg(p, .35, .6)), 0, -12 * (1 - eo(seg(p, .35, .6))));
+      set(E.back, eo(seg(p, .4, .65)), 0, -12 * (1 - eo(seg(p, .4, .65))));
+      ['nw', 'old', 'del'].forEach(function (k, i) {
+        var u = eo(seg(p, .5 + i * .08, .8 + i * .08)); set(E[k], u, 0, 20 * (1 - u));
+      });
+    },
+    C: function (p) {
+      ['set', 'rec', 'join', 'play', 'name'].forEach(function (k, i) {
+        var u = eo(seg(p, i * .075, i * .075 + .3)); set(E[k], 1 - u, 0, 34 * u);
+      });
+      ['ptitle', 'back', 'run', 'nw', 'old', 'del'].forEach(function (k, i) {
+        var u = eo(seg(p, .42 + i * .06, .72 + i * .06)); set(E[k], u, 0, 34 * (1 - u));
+      });
+    },
+    D: function (p) {
+      var x = eio(p) * 700 - 10;
+      $('menuL').style.clipPath = 'inset(0 0 0 ' + Math.max(0, x) + 'px)';
+      $('pickL').style.clipPath = 'inset(0 ' + Math.max(0, 680 - x) + 'px 0 0)';
+      var ln = $('line'); ln.style.left = x + 'px'; ln.style.opacity = (p > 0.01 && p < 0.99) ? 1 : 0;
+      menuEls.concat(pickEls).forEach(function (e) { set(e, 1, 0, 0); });
+    }
+  };
+
+  var look = 'A', dir = 1, speed = 1, p = 0, anim = null;
+  function draw() {
+    reset(); looks[look](p);
+    var interactive = p <= 0.001 || p >= 0.999;
+    var vis = (p < 0.5) ? menuEls : pickEls;
+    vis.forEach(function (e) { e.style.pointerEvents = interactive ? 'auto' : 'none'; });
+    $('scrub').value = Math.round(p * 1000);
+    $('tl').textContent = (p * DUR[look]).toFixed(2) + ' s';
+    $('hint').textContent = p >= 0.999 ? 'CLICK BACK TO RETURN' : (p <= 0.001 ? 'CLICK PLAY' : '');
+    if (p <= 0.001 || p >= 0.999) { // at rest: hide the other view entirely
+      (p < 0.5 ? pickEls : menuEls).forEach(function (e) { e.style.opacity = 0; e.style.pointerEvents = 'none'; });
+    }
+  }
+  function run(to) {
+    if (anim) cancelAnimationFrame(anim);
+    var from = p, t0 = performance.now(), d = DUR[look] * 1000 / speed * Math.abs(to - from);
+    if (d < 1) { p = to; draw(); return; }
+    (function step(now) {
+      var k = cl((now - t0) / d); p = from + (to - from) * k; draw();
+      anim = k < 1 ? requestAnimationFrame(step) : null;
+    })(t0);
+  }
+  function replay() {
+    p = dir === 1 ? 0 : 1; draw();
+    setTimeout(function () { run(dir === 1 ? 1 : 0); }, 250);
+  }
+  function group(id, attr, fn) {
+    $(id).addEventListener('click', function (ev) {
+      var b = ev.target.closest('button'); if (!b) return;
+      [].forEach.call($(id).children, function (c) { c.classList.toggle('on', c === b); });
+      fn(b.dataset[attr]);
+    });
+  }
+  group('looks', 'look', function (v) { look = v; replay(); });
+  group('dirs', 'dir', function (v) { dir = +v; replay(); });
+  group('speeds', 'sp', function (v) { speed = +v; replay(); });
+  $('replay').addEventListener('click', replay);
+  $('scrub').addEventListener('input', function (e) { if (anim) cancelAnimationFrame(anim); p = e.target.value / 1000; draw(); });
+  E.play.addEventListener('click', function () { if (p <= 0.001) run(1); });
+  E.back.addEventListener('click', function () { if (p >= 0.999) run(0); });
+  [E.nw, E.old, E.del, E.join, E.rec, E.set].forEach(function (e) { e.style.cursor = 'default'; });
+  E.play.style.cursor = 'pointer'; E.back.style.cursor = 'pointer';
+  draw();
+  setTimeout(function () { run(1); }, 700);
+})();
+</script>

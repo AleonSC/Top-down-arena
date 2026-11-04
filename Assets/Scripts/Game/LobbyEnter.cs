@@ -82,7 +82,7 @@ namespace Arena
             if (k < 1f || e < 1.05f)
                 Ui.BodyGlow(r, 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
 
-            // The bottom bar (your name card with it) drops away and fades; the line under the title fades.
+            // The bottom bar (your name card with it) drops away and fades; the tip tray fades.
             float drop = Seg(e, 0f, 0.35f);
             if (drop < 1f)
                 WithAlpha(1f - drop, () =>
@@ -90,7 +90,7 @@ namespace Arena
                     GUI.BeginGroup(new Rect(0f, drop * drop * drop * 160f, W, H));
                     DrawMenuSecondary(t, false);
                     GUI.EndGroup();
-                    DrawMenuTipChip(t, 1f);
+                    DrawMenuTipTray(t, 1f);
                 });
 
             // The card grows into the loadout panel; its insides fade at once.
@@ -122,9 +122,9 @@ namespace Arena
             float cx = Lerp(W / 2f, 199f, tk), cy = Lerp(MenuTitleY, 41f, tk), size = Lerp(MenuTitleSize, 40f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
-                WithAlpha(oldA, () => Ui.Fancy(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
-                WithAlpha(newA, () => Ui.Fancy(new Rect(104f + (cx - 199f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent));
+                WithAlpha(newA, () => Ui.Glitch(new Rect(104f + (cx - 199f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent));
 
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())

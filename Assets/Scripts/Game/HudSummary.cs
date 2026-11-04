@@ -147,14 +147,17 @@ namespace Arena
             EndPart(buttonsIn, new Vector2(0f, 30f * (1f - Ease(buttonsIn))), () =>  // they come up last (RunEnding.cs)
             {
                 float by = H - 72f, bh = 52f, gap = 10f, x = dockX, xr = dockX + dockW;
-                if (Ui.FancyButton(new Rect(x, by, 120f, bh), "Leave", new Color(0.5f, 0.2f, 0.25f), PixelArt.Get("ui_power"), now, 16))
+                if (Ui.ActionButton(new Rect(x, by, 120f, bh), "Leave", false, Ui.Danger, PixelArt.Get("ui_power"), new Color(1f, 0.6f, 0.64f), 16))
                     session.Leave("");
                 x += 120f + gap;
                 if (game.RunStatsReady && game.LastGain != null)  // the two pages of the results
                 {
                     bool up = game.LastGain.RankedUp;
-                    var tint = up && !rankPage ? Color.Lerp(Ui.GoldButton, new Color(1f, 0.85f, 0.4f), 0.5f + 0.5f * Mathf.Sin(now * 5f)) : Ui.Neutral;
-                    if (Ui.FancyButton(new Rect(x, by, 160f, bh), rankPage ? "Stats" : "Rank report", tint, PixelArt.Get(rankPage ? "ui_back" : "ui_trophy"), now, 16))
+                    bool lit = up && !rankPage;  // a new rank: the button lights up gold and pulses
+                    var rankRect = new Rect(x, by, 160f, bh);
+                    if (lit)
+                        Ui.PulseRing(rankRect, Ui.GoldButton, now);
+                    if (Ui.ActionButton(rankRect, rankPage ? "Stats" : "Rank report", lit, lit ? Ui.GoldButton : Ui.Primary, PixelArt.Get(rankPage ? "ui_back" : "ui_trophy"), null, 16))
                     {
                         if (rankPage)
                             resultsRankPage = false;
@@ -166,17 +169,17 @@ namespace Arena
                 if (session.IsHost)
                 {
                     xr -= 210f;
-                    if (Ui.FancyButton(new Rect(xr, by, 210f, bh), "Back to lobby  [L]", Ui.Neutral, PixelArt.Get("ui_back"), now, 16))
+                    if (Ui.ActionButton(new Rect(xr, by, 210f, bh), "Back to lobby  [L]", false, Ui.Primary, PixelArt.Get("ui_back"), null, 16))
                         RecallToLobby();  // everyone beams out first (Recall.cs)
                     xr -= gap;
                     if (endless)  // (a Boss Hunt is over once its boss is: no endless)
                     {
                         xr -= 260f;
-                        if (Ui.FancyButton(new Rect(xr, by, 260f, bh), "Keep going (endless)  [C]", Ui.GoldButton, PixelArt.Get("ui_star"), now, 16))
+                        if (Ui.ActionButton(new Rect(xr, by, 260f, bh), "Keep going (endless)  [C]", false, Ui.GoldButton, PixelArt.Get("ui_star"), null, 16))
                             game.ContinueEndless();
                         xr -= gap;
                     }
-                    if (Ui.FancyButton(new Rect(x, by, xr - x, bh), "Play again  [R]", Ui.Primary, PixelArt.Get("ui_play"), now, 22))
+                    if (Ui.ActionButton(new Rect(x, by, xr - x, bh), "Play again  [R]", true, Ui.Primary, PixelArt.Get("ui_play"), null, 22))
                         session.StartMatch();
                 }
                 else

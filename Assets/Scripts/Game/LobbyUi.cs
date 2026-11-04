@@ -63,12 +63,10 @@ namespace Arena
 
             // --- Left column, top: the title, then the mode switch (a choice for the whole lobby, so it sits with the party).
             // Back: a small red button beside the title (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs).
-            var backRect = new Rect(40f, 17f, 48f, 48f);
-            bool back = Ui.Button(backRect, "", Ui.Danger);
-            Ui.Icon(new Rect(backRect.center.x - 12f, backRect.center.y - 12f, 24f, 24f), PixelArt.Get("ui_back"));
-            if (back)
+            // Same card as the loadout's tiles (Ui.ActionButton), with a red arrow.
+            if (Ui.ActionButton(new Rect(40f, 15f, LobbyActionH, LobbyActionH), "", false, Ui.Primary, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f)))
                 StartLobbyLeave();  // LobbyEnter.cs
-            Ui.Fancy(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
+            Ui.Glitch(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
                 connInfoOpen = !connInfoOpen;
             if (session.Resume != null)
@@ -85,8 +83,8 @@ namespace Arena
             var hb = new Rect(lx + lw - 88f, y - 3f, 88f, 22f);
             bool hot = inRoom || hb.Contains(Event.current.mousePosition);
             var oldCol = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.3f);
-            bool go = Ui.SmallButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", HangoutColor, 11);
+            GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.5f);
+            bool go = Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11, true);  // the lobby's tile style, small and square
             GUI.color = oldCol;
             if (go)
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
@@ -136,9 +134,9 @@ namespace Arena
 
         const float LobbyBodyTop = 68f;   // the top of the loadout box (under the tabs)
         const float LobbyBottomPad = 36f; // the gap under the loadout box and the action buttons
-        const float LobbyStartH = 66f, LobbyReadyH = 56f;
-        const float LobbyStartY = 720f - LobbyBottomPad - LobbyStartH;  // Start (host) or Ready (guest) sits on the box's bottom edge
-        const float LobbyReadyY = LobbyStartY - 10f - LobbyReadyH;
+        const float LobbyActionH = 52f;   // Back, Ready and Start are all this tall
+        const float LobbyStartY = 720f - LobbyBottomPad - LobbyActionH;  // Start (host) or Ready (guest) sits on the box's bottom edge
+        const float LobbyReadyY = LobbyStartY - 10f - LobbyActionH;
         const float LobbyNoteY = LobbyReadyY - 30f;  // who we're waiting for, just above Ready
         const float PartyTop = 184f;      // the top of the first party card (under the mode switch)
 
@@ -170,7 +168,7 @@ namespace Arena
                     Ui.Pill(h, new Color(c.r, c.g, c.b, 0.22f));
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 15, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
+                Ui.Glitch(new Rect(h.x, h.y + 4f, h.width, 24f), title, 16, on ? Color.white : Color.Lerp(c, Color.white, 0.55f), TextAnchor.MiddleCenter);
                 Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 10, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
                 if (session.IsHost && !on && Ui.HitArea(h))
                     session.SetMode(i == 2, i == 1);
@@ -426,7 +424,7 @@ namespace Arena
                     continue;
                 }
                 var rc = ToColor(Defs.Roles[i].Color);
-                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", glow: false, iconLeft: true))
+                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), null, textSize: 17, glow: false, iconLeft: true, glitch: true))
                 {
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;
@@ -465,7 +463,7 @@ namespace Arena
             // Weapon and ability: side by side, each a 2 x 2 grid.
             float col = (w - 16f) / 2f, ax = x + col + 16f, cell = (col - 6f) / 2f;
             Ui.Heading(x, y, col, "Weapon");
-            Ui.Heading(ax, y, col, "Ability  ·  Space");
+            Ui.Heading(ax, y, col, "Ability");
             int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
             for (int i = 0; i < weaponSlots; i++)
             {
@@ -642,7 +640,7 @@ namespace Arena
             SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, 0);
 
             // Ability: a cooldown ring tile (it fills over the cooldown, on a loop), then charges or a health cost.
-            SpecHeader(right, "ABILITY  ·  SPACE", ability.Name, accent);
+            SpecHeader(right, "ABILITY", ability.Name, accent);
             // What it does, then what Lv 5 adds.
             DrawDescAndMastery(new Rect(right.x, right.y + 46f, right.width, right.yMax - tileH - 4f - (right.y + 46f)), ability.Desc, ability.Id, 12, new Color(0.82f, 0.85f, 0.93f));
             var aTiles = new System.Collections.Generic.List<string[]>();
@@ -957,13 +955,15 @@ namespace Arena
 
         void DrawLobbyActions(LobbyEntry me, bool practice)
         {
-            float t = Time.unscaledTime;
             const float lx = 40f, lw = 376f;
             bool host = session.IsHost;
             bool ready = me != null && me.Ready;
-            // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be.
-            float readyY = host ? LobbyReadyY : LobbyStartY, readyH = host ? LobbyReadyH : LobbyStartH;
-            if (Ui.FancyButton(new Rect(lx, readyY, lw, readyH), ready ? "Ready!" : "Ready?", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, 0))
+            // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be. Lit = you're ready / Start can start.
+            float readyY = host ? LobbyReadyY : LobbyStartY;
+            var readyRect = new Rect(lx, readyY, lw, LobbyActionH);
+            if (ready)
+                Ui.PulseRing(readyRect, Ui.Primary, Time.unscaledTime);  // drawn first, so Start sits over it
+            if (Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check")))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -978,7 +978,7 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                if (Ui.FancyButton(new Rect(lx, LobbyStartY, lw, LobbyStartH), "Start", practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
+                if (Ui.ActionButton(new Rect(lx, LobbyStartY, lw, LobbyActionH), "Start", GUI.enabled, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play")))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }

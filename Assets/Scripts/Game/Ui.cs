@@ -292,7 +292,7 @@ namespace Arena
 
         /// The menus' showpiece button: an icon chip, game-style lettering (two-tone with an
         /// outline, like titles), and on hover a lighter face and a shine sweeping across. No outline around it. t = time in seconds.
-        public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0)
+        public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0, bool glitch = false)
         {
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             bool clicked = Button(r, "", hover ? Color.Lerp(tint, Color.white, 0.12f) : tint);
@@ -322,8 +322,12 @@ namespace Arena
                 float isz = Mathf.Round(cs * 0.62f);
                 Icon(new Rect(c.center.x - isz / 2f, c.center.y - isz / 2f, isz, isz), icon);
             }
-            Fancy(new Rect(x + cs + gap, r.y, tw + 12f, r.height), text, fs, Color.white, Color.Lerp(tint, Color.white, 0.7f), TextAnchor.MiddleLeft,
-                hover ? (Color?)new Color(tint.r, tint.g, tint.b, 0.9f) : null);
+            var tr = new Rect(x + cs + gap, r.y, tw + 12f, r.height);
+            var tglow = hover ? (Color?)new Color(tint.r, tint.g, tint.b, 0.9f) : null;
+            if (glitch)
+                Glitch(tr, text, fs, Color.white, TextAnchor.MiddleLeft, tglow);
+            else
+                Fancy(tr, text, fs, Color.white, Color.Lerp(tint, Color.white, 0.7f), TextAnchor.MiddleLeft, tglow);
             return clicked;
         }
 
@@ -392,14 +396,10 @@ namespace Arena
             return fadeTextures[hundredths] = tex;
         }
 
-        /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
-        /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
-        /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
-        /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
-        /// left of the name and second line, the group centred (the lobby's role cards).
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false)
+        /// The card behind a Choice (and ActionButton): dark, the selected one washed, rimmed and (with glow) haloed in its
+        /// colour, a colour bar along the bottom. Returns the bar's height.
+        static float ChoiceChrome(Rect r, bool selected, bool hover, Color accent, bool glow)
         {
-            bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
             if (glow && selected && r.height >= 30f)  // soft glow behind (left off small rows, where it looks blocky)
             {
@@ -423,6 +423,64 @@ namespace Arena
             float barH = r.height >= 34f ? 3f : 2f;
             FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
 
+            return barH;
+        }
+
+        /// The same card with square corners: a flat fill, a 1 px rim (the accent when lit, a paler one on hover), the bar below.
+        static float SharpChrome(Rect r, bool selected, bool hover, Color accent)
+        {
+            Fill(r, new Color(0.12f, 0.14f, 0.2f, 1f));
+            if (selected)
+                Fill(r, new Color(accent.r, accent.g, accent.b, 0.3f));
+            Color hc = Color.Lerp(accent, Color.white, 0.3f);
+            Color rim = selected ? accent : hover ? new Color(hc.r, hc.g, hc.b, 0.7f) : new Color(0.2f, 0.235f, 0.337f, 1f);
+            Fill(new Rect(r.x, r.y, r.width, 1f), rim);
+            Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), rim);
+            Fill(new Rect(r.x, r.y, 1f, r.height), rim);
+            Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), rim);
+            float barH = r.height >= 34f ? 3f : 2f;
+            FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
+            return barH;
+        }
+
+        /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
+        /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
+        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size; sharp draws square corners (flat fills and a 1 px rim) for small buttons.
+        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false)
+        {
+            bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
+            float barH = sharp ? SharpChrome(r, on, hover, accent) : ChoiceChrome(r, on, hover, accent, true);
+            Color name = on ? Color.white : new Color(0.81f, 0.85f, 0.92f);
+            float isz = Mathf.Min(size * 1.1f, r.height * 0.45f);
+            if (text.Length == 0)
+            {
+                if (icon != null)
+                    Icon(new Rect(r.center.x - isz / 2f, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
+            }
+            else
+            {
+                int fs = size;
+                float tw = TextWidth(text, fs, true) - 6f, gap = icon != null ? 10f : 0f, ic = icon != null ? isz : 0f;
+                while (fs > 12 && ic + gap + tw > r.width - 16f)
+                    tw = TextWidth(text, --fs, true) - 6f;  // narrow buttons shrink the label to fit
+                float x = r.center.x - (ic + gap + tw) / 2f;
+                if (icon != null)
+                    Icon(new Rect(x, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
+                Label(new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH), text, fs, name, TextAnchor.MiddleLeft, true);
+            }
+            return HitArea(r);
+        }
+
+        /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
+        /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
+        /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
+        /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
+        /// left of the name and second line, the group centred (the lobby's role cards).
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false, bool glitch = false)
+        {
+            bool hover = r.Contains(Event.current.mousePosition);
+            float barH = ChoiceChrome(r, selected, hover, accent, glow);
+
             Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
             int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
             if (icon != null && iconLeft)
@@ -440,7 +498,13 @@ namespace Arena
                     Label(new Rect(tx, r.center.y + 1f, tw + 8f, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleLeft);
                 }
                 else
-                    Label(new Rect(tx, r.y, tw + 8f, r.height - barH), text, ns, name, TextAnchor.MiddleLeft, true);
+                {
+                    var nr = new Rect(tx, r.y, tw + 8f, r.height - barH);
+                    if (glitch)
+                        Glitch(nr, text, ns, name, TextAnchor.MiddleLeft);
+                    else
+                        Label(nr, text, ns, name, TextAnchor.MiddleLeft, true);
+                }
             }
             else if (icon != null)
             {
@@ -801,6 +865,39 @@ namespace Arena
             GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * 0.5f + size * 0.02f));
             Label(new Rect(0f, 0f, r.width, r.height), text, size, top, align, true);
             GUI.EndGroup();
+        }
+
+        /// Glitch lettering: a red and a cyan copy split either side of crisp white text (a mistuned screen). Big
+        /// text also tears for a split second every few seconds: the channels fly apart and a band of it slips sideways.
+        public static void Glitch(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null)
+        {
+            float t = Time.unscaledTime, a = color.a;
+            float off = Mathf.Max(1f, size * 0.045f);
+            float ph = t % 2.6f + (text.Length % 7) * 0.31f;  // titles on one screen don't all tear together
+            ph %= 2.6f;
+            bool burst = size >= 28 && ph < 0.14f;
+            float k = burst ? 3f + 2f * Mathf.Sin(t * 90f) : 1f;
+            if (glow.HasValue)
+            {
+                var g = glow.Value;
+                var gc = new Color(g.r, g.g, g.b, 0.22f * g.a * a);
+                for (int i = 0; i < 8; i++)
+                {
+                    float an = i * Mathf.PI / 4f;
+                    Label(new Rect(r.x + Mathf.Cos(an) * 2.5f, r.y + Mathf.Sin(an) * 2.5f, r.width, r.height), text, size, gc, align, true);
+                }
+            }
+            Label(new Rect(r.x, r.y + 1.5f, r.width, r.height), text, size, new Color(0f, 0f, 0f, 0.55f * a), align, true);
+            Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * a), align, true);
+            Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * a), align, true);
+            Label(r, text, size, color, align, true);
+            if (burst)
+            {
+                float by = r.height * (0.15f + 0.5f * (ph / 0.14f)), bh = r.height * 0.22f;
+                GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, bh));
+                Label(new Rect((Mathf.Sin(t * 40f) < 0f ? -off * 5f : off * 5f), -by, r.width, r.height), text, size, color, align, true);
+                GUI.EndGroup();
+            }
         }
 
         // --- Texture generation -------------------------------------------------

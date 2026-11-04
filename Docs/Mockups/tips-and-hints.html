@@ -1,0 +1,280 @@
+<title>Tips and Hints</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Six ways to present tips and hints. Each .screen is the real 1280 x 720 canvas, scaled to fit its card.
+   A, B and C are the main menu (today the tip is the chip under the title, Menus.cs DrawMenuTipChip); D and E are in a match. */
+:root { --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547;
+  --g-bg:#0b0e18; --g-panel:#1a1f2e; --g-edge:#4f6cff; --g-text:#eef2fb; --g-muted:#8f9bb8; --tip:#6ea6ff; --gold:#ffcc59;
+  color-scheme: dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 Barlow,system-ui,sans-serif; margin:0; }
+.wrap { max-width:1240px; margin:0 auto; padding:28px max(16px,env(safe-area-inset-left,0px)) 64px; display:grid; gap:28px; }
+h1,h2,h3 { font-family:Oxanium,system-ui,sans-serif; margin:0; text-transform:uppercase; letter-spacing:.04em; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; } h1 span { color:var(--teal); }
+h2 { font-size:20px; font-weight:700; }
+h3 { font-size:17px; font-weight:700; color:var(--teal); }
+p { margin:0; max-width:75ch; color:#cfdae2; }
+.eyebrow { font:600 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,540px),1fr)); gap:22px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; min-width:0; display:flex; flex-direction:column; }
+.card .txt { padding:14px 16px 16px; display:grid; gap:8px; }
+.card ul { margin:0; padding-left:18px; color:#b9c7d1; font-size:14.5px; display:grid; gap:3px; }
+.card li b { color:var(--fg); font-weight:600; }
+.tag { font:700 11px Oxanium; letter-spacing:.12em; text-transform:uppercase; color:var(--amber); }
+.vp { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:var(--g-bg); }
+.screen { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; font-family:Barlow,Arial,sans-serif; color:var(--g-text);
+  background:#080a14; overflow:hidden; }
+.screen > * { position:absolute; }
+.hintline { font-size:13.5px; color:var(--muted); }
+.note { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; display:grid; gap:8px; }
+.note ul { margin:0; padding-left:18px; color:#b9c7d1; display:grid; gap:4px; }
+
+/* ---------- the menu replica ---------- */
+.m-bg { inset:0; background:
+  radial-gradient(circle at 18% 40%, #14203a55 0, transparent 280px),
+  radial-gradient(circle at 82% 62%, #3a142e44 0, transparent 330px),
+  repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 48px),
+  repeating-linear-gradient(90deg, #ffffff06 0 1px, transparent 1px 48px), #0a0c18; }
+.m-title { left:0; width:1280px; top:84px; text-align:center; font:800 88px/1 Oxanium; letter-spacing:.02em; color:#dfe6ff;
+  text-shadow:0 0 28px #4f6cff88, 0 3px 0 #2b3a8a; }
+.m-chip { left:50%; transform:translateX(-50%); top:208px; height:30px; padding:0 16px 0 14px; display:flex; align-items:center; gap:8px; white-space:nowrap;
+  border-radius:15px; background:#0d1018e6; border:1px solid #6ea6ff59; font-size:15px; color:#c7d0e8; }
+.m-chip.rec { border-color:#ffcc5959; } .m-chip.rec .k { color:var(--gold); }
+.m-chip .k { font:700 11px Oxanium; letter-spacing:.1em; color:var(--tip); }
+.m-chip b { color:#fff; font-weight:700; }
+.m-panel { left:300px; top:254px; width:680px; height:284px; border-radius:16px; background:#171c2c; border:2px solid #4f6cff99; box-shadow:0 0 40px #4f6cff30; }
+.m-panel > * { position:absolute; }
+.m-prof { left:22px; top:22px; width:636px; height:62px; border-radius:6px; border:2px solid #d9a93f; background:linear-gradient(90deg,#1b2036,#2b1d1a); }
+.m-prof b { position:absolute; left:68px; top:4px; font:700 22px Barlow; } .m-prof i { position:absolute; left:68px; top:34px; font:600 15px Barlow; font-style:normal; color:#ffbd3d; }
+.m-play { left:22px; top:98px; width:636px; height:92px; border-radius:10px; background:#3f78e8; display:grid; place-items:center; font:700 32px Barlow; letter-spacing:.04em; }
+.m-sm { top:206px; width:198px; height:54px; border-radius:8px; background:#2c3350; display:grid; place-items:center; font:600 20px Barlow; color:#dbe2f5; }
+
+/* ---------- shared tip pieces ---------- */
+.bulb { width:18px; height:18px; flex:none; }
+.k { font:700 11px Oxanium; letter-spacing:.12em; text-transform:uppercase; color:var(--tip); }
+.kbd { font:700 12px Oxanium; padding:3px 8px; border-radius:5px; border:1px solid #ffffff40; background:#ffffff14; color:#e8eeff; }
+.t-topic { font-weight:700; color:#fff; }
+.t-body { color:#c7d0e8; }
+.dots { display:flex; gap:6px; }
+.dots i { width:7px; height:7px; border-radius:50%; background:#ffffff30; display:block; }
+.dots i.on { background:var(--tip); }
+
+/* ---------- A1: slide-out shelf, automatic ---------- */
+.a1 { left:0; bottom:0; width:1280px; height:92px; padding:0 48px; display:flex; align-items:center; gap:18px;
+  background:linear-gradient(180deg,#141a30f2,#0c1020f8); border-top:2px solid #6ea6ff66; box-shadow:0 -14px 40px #4f6cff22;
+  transform:translateY(100%); animation:a1 11s cubic-bezier(.2,.8,.2,1) infinite; }
+.a1 .ic { width:46px; height:46px; border-radius:50%; background:#6ea6ff22; border:1px solid #6ea6ff77; display:grid; place-items:center; flex:none; }
+.a1 .tx { flex:1; min-width:0; font-size:20px; line-height:1.3; }
+.a1 .meta { display:grid; gap:6px; justify-items:end; flex:none; }
+@keyframes a1 { 0% { transform:translateY(100%); } 7%,90% { transform:translateY(0); } 97%,100% { transform:translateY(100%); } }
+
+/* ---------- A2: pull-tab drawer ---------- */
+.a2 { left:50%; bottom:0; width:760px; margin-left:-380px; transform:translateY(100%); transition:transform .5s cubic-bezier(.2,.9,.25,1.05); }
+.a2.open { transform:translateY(0); }
+.a2 .tab { position:absolute; left:50%; top:-34px; margin-left:-62px; width:124px; height:34px; border-radius:10px 10px 0 0; background:#141a30; border:2px solid #6ea6ff66; border-bottom:0;
+  display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; font:700 12px Oxanium; letter-spacing:.12em; color:var(--tip); }
+.a2 .tab svg.chev { transition:transform .4s; } .a2.open .tab svg.chev { transform:rotate(180deg); }
+.a2 .body { height:150px; border-radius:16px 16px 0 0; background:linear-gradient(180deg,#171d36,#0e1224); border:2px solid #6ea6ff66; border-bottom:0; padding:20px 28px; display:flex; gap:22px; align-items:center; box-shadow:0 -10px 40px #4f6cff22; }
+.a2 .pic { width:84px; height:84px; border-radius:12px; background:#0a0d1a; border:1px solid #ffffff22; display:grid; place-items:center; flex:none; }
+.a2 .tx { flex:1; min-width:0; display:grid; gap:6px; }
+.a2 .tx .t-topic { font:700 24px Oxanium; letter-spacing:.03em; }
+.a2 .tx .t-body { font-size:18px; line-height:1.35; }
+.a2 .nav { display:grid; gap:8px; justify-items:end; flex:none; }
+.a2 .nv { font:700 13px Oxanium; padding:6px 12px; border-radius:6px; background:#2c3350; color:#dbe2f5; cursor:pointer; user-select:none; }
+
+/* ---------- B: corner toast ---------- */
+.b { right:36px; bottom:36px; width:400px; border-radius:12px; background:#121830f4; border:1px solid #6ea6ff55; padding:16px 18px 18px; display:grid; gap:6px; overflow:hidden;
+  transform:translateX(130%); animation:bt 8s cubic-bezier(.2,.8,.2,1) infinite; box-shadow:0 10px 36px #00000088; }
+.b .hd { display:flex; align-items:center; gap:8px; } .b .hd .x { margin-left:auto; color:#8f9bb8; font-size:20px; line-height:1; }
+.b .t-topic { font:700 20px Oxanium; } .b .t-body { font-size:16.5px; line-height:1.35; }
+.b .bar { position:absolute; left:0; bottom:0; height:3px; width:100%; background:var(--tip); transform-origin:0 0; animation:bb 8s linear infinite; }
+@keyframes bt { 0% { transform:translateX(130%); } 6%,92% { transform:translateX(0); } 100% { transform:translateX(130%); } }
+@keyframes bb { 0%,6% { transform:scaleX(1); } 92%,100% { transform:scaleX(0); } }
+
+/* ---------- C: ticker ---------- */
+.c { left:0; bottom:0; width:1280px; height:44px; background:#0b0e1cf0; border-top:1px solid #6ea6ff44; overflow:hidden; display:flex; align-items:center; }
+.c .lab { position:relative; z-index:2; height:100%; padding:0 20px 0 24px; display:flex; align-items:center; gap:8px; background:#0b0e1c; box-shadow:12px 0 14px #0b0e1c; flex:none; }
+.c .run { display:flex; gap:64px; white-space:nowrap; font-size:16px; color:#c7d0e8; padding-left:24px; animation:tick 44s linear infinite; }
+.c .run b { color:#fff; margin-right:8px; } .c .run span::before { content:"•"; color:var(--tip); margin-right:18px; }
+.c .fade { right:0; top:0; width:80px; height:44px; background:linear-gradient(90deg,transparent,#0b0e1c); z-index:2; }
+@keyframes tick { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+/* ---------- D: in-match callout ---------- */
+.arena { inset:0; background:repeating-linear-gradient(0deg,#ffffff07 0 1px,transparent 1px 60px),repeating-linear-gradient(90deg,#ffffff07 0 1px,transparent 1px 60px),#0b0f1c; }
+.pl { left:560px; top:380px; width:44px; height:44px; border-radius:50%; background:#2f6fe0; border:3px solid #9cc0ff; }
+.pl::after { content:""; position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px; border-radius:50%; background:#fff; }
+.ring { left:546px; top:366px; width:72px; height:72px; border-radius:50%; border:2px dashed var(--tip); animation:pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform:scale(1); opacity:.9; } 50% { transform:scale(1.18); opacity:.45; } }
+.bl { width:16px; height:16px; border-radius:50%; background:#ff5a7a; box-shadow:0 0 12px #ff5a7a; }
+.en { width:54px; height:54px; border-radius:10px; background:#7a2438; border:3px solid #d94a6a; }
+.line { left:604px; top:392px; width:130px; height:2px; background:linear-gradient(90deg,var(--tip),#6ea6ff00 ); transform-origin:0 50%; transform:rotate(-28deg); }
+.d { left:710px; top:262px; width:380px; border-radius:12px; background:#0f1428f0; border:1px solid #6ea6ff77; padding:14px 16px 12px; display:grid; gap:6px; box-shadow:0 8px 30px #000a;
+  animation:dpop 9s cubic-bezier(.2,.9,.25,1.1) infinite; transform-origin:0% 100%; }
+.d .hd { display:flex; align-items:center; gap:8px; } .d .hd .x { margin-left:auto; color:#8f9bb8; font-size:20px; }
+.d .t-body { font-size:17px; line-height:1.35; }
+.d .ft { display:flex; gap:12px; align-items:center; font-size:13px; color:#8f9bb8; margin-top:2px; }
+@keyframes dpop { 0%,4% { transform:scale(.6); opacity:0; } 9%,86% { transform:scale(1); opacity:1; } 94%,100% { transform:scale(.9); opacity:0; } }
+.hp { left:36px; top:30px; width:300px; height:16px; border-radius:8px; background:#2a3150; overflow:hidden; } .hp i { display:block; width:62%; height:100%; background:#44d17a; }
+.wv { right:36px; top:26px; font:700 22px Oxanium; letter-spacing:.08em; color:#c7d0e8; }
+
+/* ---------- E: wave cleared footer ---------- */
+.e-dim { inset:0; background:#05070ecc; }
+.e-panel { left:240px; top:90px; width:800px; height:470px; border-radius:16px; background:#171c2c; border:2px solid #4f6cff99; overflow:hidden; box-shadow:0 0 50px #4f6cff30; }
+.e-panel > * { position:absolute; }
+.e-h { left:0; width:800px; top:22px; text-align:center; font:800 40px Oxanium; letter-spacing:.06em; color:#7df0a6; }
+.e-row { left:34px; width:732px; height:46px; border-radius:8px; background:#222a42; display:flex; align-items:center; padding:0 16px; gap:14px; font-size:18px; }
+.e-row span:last-child { margin-left:auto; color:#ffcc59; }
+.e-btn { left:34px; top:330px; width:732px; height:56px; border-radius:10px; background:#3f78e8; display:grid; place-items:center; font:700 24px Barlow; letter-spacing:.04em; }
+.e-foot { left:0; bottom:0; width:800px; height:62px; background:#10152a; border-top:1px solid #6ea6ff44; display:flex; align-items:center; gap:14px; padding:0 28px; font-size:17px; }
+.e-foot .rot { flex:1; min-width:0; position:relative; height:24px; overflow:hidden; }
+.e-foot .rot > div { position:absolute; left:0; right:0; white-space:nowrap; animation:swap 9s infinite; opacity:0; }
+.e-foot .rot > div:nth-child(2) { animation-delay:3s; } .e-foot .rot > div:nth-child(3) { animation-delay:6s; }
+@keyframes swap { 0% { opacity:0; transform:translateY(14px); } 4%,30% { opacity:1; transform:translateY(0); } 34%,100% { opacity:0; transform:translateY(-14px); } }
+.e-foot .rot b { color:#fff; margin-right:8px; }
+
+@media (prefers-reduced-motion:reduce) { .a1,.b,.b .bar,.c .run,.d,.ring,.e-foot .rot > div { animation:none; } .a1,.b { transform:none; } .d { opacity:1; } .e-foot .rot > div:first-child { opacity:1; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <div class="eyebrow">Mockup · tips and hints</div>
+    <h1>Tips and <span>hints</span></h1>
+    <p>Today the menu shows one tip at a time in the chip under the title, and it changes every 8 s. These six look at other places and shapes. A to C are on the main menu, D and E are in a match. Each plays on a loop, with real tips from How to play. A1 and A2 are the slide-out-from-the-bottom ones.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="vp"><div class="screen" id="sA1"></div></div>
+      <div class="txt"><div class="tag">A1 · Slide-out shelf</div><h3>Rises from under the bottom edge</h3>
+        <p>A full-width bar slides up, holds for about 9 s, then slides back. The menu keeps its empty bottom third, and the tip gets room to be a full sentence. Seen once per visit and rotates on each return.</p>
+        <ul><li><b>Good:</b> big readable text, doesn't touch the card, lots of room for a picture</li><li><b>Watch out:</b> moves a lot; players can miss it if they click Play fast</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sA2"></div></div>
+      <div class="txt"><div class="tag">A2 · Pull-tab drawer</div><h3>A TIPS tab you open yourself</h3>
+        <p>A small tab sits on the bottom edge. Click it (try it above) and a drawer slides up with a picture, the tip and Prev / Next. It peeks open by itself once, then stays put and only opens on a click.</p>
+        <ul><li><b>Good:</b> never in the way, and the new player can browse all the tips</li><li><b>Watch out:</b> people who never click it never see a tip</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sB"></div></div>
+      <div class="txt"><div class="tag">B · Corner toast</div><h3>Slides in from the right, counts itself down</h3>
+        <p>A card at the bottom right with a thin timer along its base. It's the pattern players already know from every launcher, so it reads as "optional".</p>
+        <ul><li><b>Good:</b> familiar, easy to dismiss with ×, can carry a "Don't show again"</li><li><b>Watch out:</b> far from where the eyes are on the menu</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sC"></div></div>
+      <div class="txt"><div class="tag">C · Ticker</div><h3>One line scrolling along the bottom</h3>
+        <p>A thin strip with a TIP label on the left and every tip running past, endlessly. Pausing on hover would stop it for reading.</p>
+        <ul><li><b>Good:</b> always there, takes almost no space, shows how many tips exist</li><li><b>Watch out:</b> scrolling text is hard to read; it gets ignored like a news crawl</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sD"></div></div>
+      <div class="txt"><div class="tag">D · In-match callout</div><h3>Hint at the moment it matters</h3>
+        <p>The first time a bullet gets close, a pulse ring marks the hitbox and a callout points at it. It has a close button and "Don't show again". Each hint can fire once per profile (hitbox, downed, boss shots, status icons).</p>
+        <ul><li><b>Good:</b> the tip arrives when it's useful, so it's remembered</li><li><b>Watch out:</b> needs a trigger per hint; keep it off the screen during boss fights</li></ul></div></div>
+
+    <div class="card"><div class="vp"><div class="screen" id="sE"></div></div>
+      <div class="txt"><div class="tag">E · Wave-cleared footer</div><h3>A tip for the pause between waves</h3>
+        <p>The Wave cleared box already makes everyone wait for Ready. A footer on it cycles a tip every 3 s while they wait, so nobody reads one in the middle of a fight.</p>
+        <ul><li><b>Good:</b> players have time to read, and no new window to build</li><li><b>Watch out:</b> auto-ready players never see it</li></ul></div></div>
+  </div>
+
+  <section class="note">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All six use the existing <b>HowToTips</b> list (Menus.cs) and the blue bulb icon, so no new text to write.</li>
+      <li>A1, A2, B and C replace the title chip; the "Best run" record line would stay under the title on its own.</li>
+      <li>D needs a small <b>seen hints</b> list on the profile (a new Profile field, no protocol change). E and A to C need nothing new.</li>
+      <li>You can combine them: A2 on the menu plus D in matches covers both ends.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const TIPS = [
+  ["Hitbox", "Your hitbox is just the small white dot in the middle of your character."],
+  ["Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow."],
+  ["Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing."],
+  ["Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them."],
+  ["Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked."],
+  ["Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close."]
+];
+const BULB = '<svg class="bulb" viewBox="0 0 16 16" fill="none" stroke="#6ea6ff" stroke-width="1.5" stroke-linecap="round"><path d="M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.8.6 1.3v.5h4V11c0-.5.2-1 .6-1.3A4.5 4.5 0 0 0 8 1.5Z"/><path d="M6.3 14h3.4"/></svg>';
+const CHEV = '<svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#6ea6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8l4-4 4 4"/></svg>';
+const dots = n => '<div class="dots">' + TIPS.map((_, i) => '<i class="' + (i === n ? 'on' : '') + '"></i>').join('') + '</div>';
+const chipRec = '<div class="m-chip rec"><span class="k">RECORD</span><b>Best run</b> wave 26 · 124 runs started</div>';
+const chipTip = i => '<div class="m-chip"><span class="k">TIP</span><b>' + TIPS[i][0] + '</b>' + TIPS[i][1].slice(0, 58) + '…</div>';
+const menu = chip => '<div class="m-bg"></div><div class="m-title">CARTESIAN COLOSSEUM</div>' + chip +
+  '<div class="m-panel"><div class="m-prof"><b>Antaleon</b><i>Legend · Rank 999</i></div><div class="m-play">▶ PLAY</div>' +
+  '<div class="m-sm" style="left:22px">Join game</div><div class="m-sm" style="left:241px">Records</div><div class="m-sm" style="left:460px">Settings</div></div>';
+
+// current tip index per screen; animation loops advance it
+const idx = {};
+function fill(id) {
+  const root = document.getElementById(id), i = idx[id] || 0;
+  root.querySelectorAll('[data-topic]').forEach(e => e.textContent = TIPS[i][0]);
+  root.querySelectorAll('[data-body]').forEach(e => e.textContent = TIPS[i][1]);
+  root.querySelectorAll('[data-dots]').forEach(e => e.innerHTML = dots(i));
+}
+
+// A1
+document.getElementById('sA1').innerHTML = menu(chipRec) +
+  '<div class="a1" data-cycle><div class="ic">' + BULB.replace('class="bulb"', 'class="bulb" style="width:24px;height:24px"') + '</div>' +
+  '<div class="tx"><span class="k" style="margin-right:10px">TIP</span><span class="t-topic" data-topic></span> <span class="t-body" data-body></span></div>' +
+  '<div class="meta"><span data-dots></span><span class="kbd">Esc to hide</span></div></div>';
+
+// A2
+document.getElementById('sA2').innerHTML = menu(chipRec) +
+  '<div class="a2" id="a2"><div class="tab" id="a2tab">' + BULB + 'TIPS ' + CHEV + '</div><div class="body">' +
+  '<div class="pic"><svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="9" fill="#2f6fe0" stroke="#9cc0ff" stroke-width="2"/><circle cx="23" cy="23" r="3" fill="#fff"/><circle cx="23" cy="23" r="20" fill="none" stroke="#6ea6ff" stroke-width="1.5" stroke-dasharray="4 4"/></svg></div>' +
+  '<div class="tx"><span class="k">TIP</span><span class="t-topic" data-topic></span><span class="t-body" data-body></span></div>' +
+  '<div class="nav"><span data-dots></span><div style="display:flex;gap:8px"><span class="nv" id="a2p">‹ Prev</span><span class="nv" id="a2n">Next ›</span></div></div></div></div>';
+{
+  const a2 = document.getElementById('a2'); let touched = false;
+  const step = d => { idx.sA2 = ((idx.sA2 || 0) + d + TIPS.length) % TIPS.length; fill('sA2'); };
+  document.getElementById('a2tab').onclick = () => { touched = true; a2.classList.toggle('open'); };
+  document.getElementById('a2n').onclick = () => { touched = true; step(1); };
+  document.getElementById('a2p').onclick = () => { touched = true; step(-1); };
+  const peek = () => { if (touched) return; a2.classList.add('open'); setTimeout(() => { if (!touched) a2.classList.remove('open'); }, 5200); };
+  setTimeout(peek, 1200); setInterval(peek, 14000);
+}
+
+// B
+document.getElementById('sB').innerHTML = menu(chipRec) +
+  '<div class="b" data-cycle><div class="hd">' + BULB + '<span class="k">DID YOU KNOW</span><span class="x">×</span></div>' +
+  '<div class="t-topic" data-topic></div><div class="t-body" data-body></div>' +
+  '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px;color:#8f9bb8"><span>Don\'t show tips</span><span data-dots></span></div><div class="bar"></div></div>';
+
+// C
+const run = TIPS.map(t => '<span><b>' + t[0] + '</b>' + t[1] + '</span>').join('');
+document.getElementById('sC').innerHTML = menu(chipRec) +
+  '<div class="c"><div class="lab">' + BULB + '<span class="k">TIP</span></div><div class="run">' + run + run + '</div><div class="fade"></div></div>';
+
+// D
+document.getElementById('sD').innerHTML = '<div class="arena"></div>' +
+  '<div class="hp"><i></i></div><div class="wv">WAVE 3</div>' +
+  '<div class="en" style="left:900px;top:480px"></div><div class="en" style="left:300px;top:200px"></div>' +
+  '<div class="bl" style="left:660px;top:340px"></div><div class="bl" style="left:700px;top:310px"></div><div class="bl" style="left:480px;top:430px"></div><div class="bl" style="left:820px;top:470px"></div>' +
+  '<div class="pl"></div><div class="ring"></div><div class="line"></div>' +
+  '<div class="d" data-cycle><div class="hd">' + BULB + '<span class="k">FIRST TIME</span><span class="x">×</span></div>' +
+  '<div class="t-topic" style="font:700 20px Oxanium">Hitbox</div><div class="t-body">Your hitbox is just the small white dot in the middle of your character, not the whole ship.</div>' +
+  '<div class="ft"><span class="kbd">Got it</span><span>Don\'t show this again</span></div></div>';
+
+// E
+document.getElementById('sE').innerHTML = '<div class="arena"></div><div class="e-dim"></div><div class="e-panel">' +
+  '<div class="e-h">WAVE 3 CLEARED</div>' +
+  '<div class="e-row" style="top:92px"><span>Antaleon</span><span>12 kills · 2,140 dmg</span><span>Top damage</span></div>' +
+  '<div class="e-row" style="top:146px"><span>Mira</span><span>9 kills · 1,310 dmg</span><span>Most healing</span></div>' +
+  '<div class="e-row" style="top:200px"><span>Joss</span><span>7 kills · 980 dmg</span><span>Most parries</span></div>' +
+  '<div class="e-row" style="top:262px;background:#1c2338;color:#aab5d4"><span>Next: Grunts, Archers, Bombers</span><span style="color:#aab5d4">2 waves to the boss</span></div>' +
+  '<div class="e-btn">READY (Y)</div>' +
+  '<div class="e-foot">' + BULB + '<span class="k">WHILE YOU WAIT</span><div class="rot">' +
+  TIPS.slice(2, 5).map(t => '<div><b>' + t[0] + '</b><span class="t-body">' + t[1] + '</span></div>').join('') + '</div></div></div>';
+
+// rotate the tip each time the looping animation restarts
+document.querySelectorAll('[data-cycle]').forEach(el => {
+  const id = el.closest('.screen').id; fill(id);
+  el.addEventListener('animationiteration', e => { if (e.target !== el) return; idx[id] = ((idx[id] || 0) + 1) % TIPS.length; if (id !== 'sD') fill(id); });
+});
+fill('sA2');
+
+// scale each 1280 x 720 screen to its card
+const fit = () => document.querySelectorAll('.vp').forEach(vp => { vp.firstElementChild.style.transform = 'scale(' + vp.clientWidth / 1280 + ')'; });
+new ResizeObserver(fit).observe(document.body); fit();
+</script>

@@ -18,7 +18,7 @@ namespace Arena
     /// position to the host (Msg.LobbyMove); the host clamps it to the room and sends everyone the lot (Msg.LobbyPos).
     public partial class Session
     {
-        public const float RoomW = 780f, RoomH = 500f, RoomMargin = 30f;  // the room, in its own units (1 unit = 1 UI pixel)
+        public const float RoomW = 780f, RoomH = 560f, RoomMargin = 30f;  // the room, in its own units (1 unit = 1 UI pixel)
         public const float AvatarSpeed = 230f;                            // units a second
         const double AvatarSendEvery = 1.0 / 15.0;                        // how often a position goes out (both ways)
 
