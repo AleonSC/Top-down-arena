@@ -31,6 +31,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
       Bestiary/Armory pages still show the old abilities until you ask.
 
 ## Visuals
+- [ ] **Profile picker <-> main menu transition, with sound.** Mockup done (Nov 2026): [`Mockups/profile-transitions.html`](Mockups/profile-transitions.html).
+      Pick a look (A Name chip, B Page turn, C Plot points); the same move runs backwards for "Switch profile". Each look has synthesised
+      (https://claude.ai/artifact/3pyKAd8sSKGrPhRcXE7tND) sound cues you can play one by one. Not built yet. Question for you: should the move replace the menu's plotted intro after a pick?
 - [x] **Healer Soldier Mend Pulse animations.** Built (Nov 2026): look B, Heartbeat (`Game/MendPulseLook.cs`, no protocol bump), from
       [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html) (https://claude.ai/artifact/4RHDSKaLNNGErr8MhprTWx). Left out: the capstone's bullet
       pops (bullets are erased host-side with no event the client sees).

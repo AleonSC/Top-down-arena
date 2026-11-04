@@ -1,0 +1,690 @@
+<title>Profile Transitions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, the game's 1280 x 720 screen scaled to fit, playing the move
+   between "Who's playing?" and the main menu, with sound. The strips below pick the look, the direction and the profile,
+   scrub or slow it. Under that, one card per look with its beats and its sound cues (each cue has a play button), then
+   notes for building it. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #07080d; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 15px; height: 15px; margin: 0; }
+input[type=range] { accent-color: var(--teal); flex: 1 1 200px; min-width: 120px; }
+input[type=range].vol { flex: 0 1 110px; min-width: 80px; }
+.clock { font: 500 12.5px var(--font-data); color: var(--soft); font-variant-numeric: tabular-nums; min-width: 92px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.hint { font-size: 13px; color: var(--muted); }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 9px; align-content: start; min-width: 0; background: var(--panel-2); }
+.card.on { box-shadow: inset 0 0 0 1px var(--c); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card h3 { margin: 4px 0 0; font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.card ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 13px; color: var(--soft); }
+.card ol li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; }
+.card ol li span { font: 500 11.5px var(--font-data); color: var(--muted); padding-top: 1px; font-variant-numeric: tabular-nums; }
+.card ol.cues li { grid-template-columns: 26px 62px minmax(0, 1fr); align-items: center; }
+.card ol.cues button { width: 24px; height: 22px; padding: 0; border: 1px solid var(--edge); border-radius: 5px; background: var(--panel); color: var(--teal); font-size: 10px; cursor: pointer; }
+.card ol.cues button:hover { border-color: var(--teal); }
+.card p.how { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+code { font: 12.5px var(--font-data); color: var(--fg); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cartesian Colosseum · mockup · profiles</div>
+    <h1>Who's playing, <span>to the menu</span></h1>
+    <p class="lead">Three looks for the move from "Who's playing?" into the main menu when you pick a profile, and back out when you press
+      "Switch profile". Each one has its own sound cues. Press Replay or click a card in the picker to play it; click
+      "Switch profile" on the menu to play it back. Sound starts after your first click on the page.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="scr" width="1280" height="720" aria-label="The Who's playing screen and the main menu, with the selected transition between them"></canvas>
+    <div class="bar">
+      <span class="lbl">Look</span>
+      <div class="seg" id="looks"></div>
+      <span class="lbl">Plays</span>
+      <div class="seg" id="modes">
+        <button type="button" data-v="both" class="on">Both ways</button>
+        <button type="button" data-v="in">Pick → menu</button>
+        <button type="button" data-v="out">Switch profile</button>
+      </div>
+      <span class="lbl">Profile</span>
+      <div class="seg" id="picks"></div>
+      <span class="spacer"></span>
+      <button type="button" class="act" id="replay">Replay</button>
+    </div>
+    <div class="bar">
+      <span class="lbl">Time</span>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the transition">
+      <span class="clock" id="clock">0.00 / 0.00 s</span>
+      <div class="seg" id="speeds">
+        <button type="button" data-v="1" class="on">1x</button>
+        <button type="button" data-v="0.5">½x</button>
+        <button type="button" data-v="0.25">¼x</button>
+      </div>
+      <label class="tog"><input type="checkbox" id="sound" checked> Sound</label>
+      <input type="range" id="vol" class="vol" min="0" max="100" value="70" aria-label="Volume">
+      <span class="hint" id="audiostate">Click once to unlock sound</span>
+      <label class="tog"><input type="checkbox" id="reduced"> Reduced effects</label>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div style="display:grid;gap:6px">
+      <h2>The looks</h2>
+      <p class="hint">Click a header to play that look above. Times are from the click. The ▶ buttons play one cue on its own. The same cues play when
+        the move runs backwards (Switch profile), with the rising sounds turned into falling ones.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>A new <code>Game/ProfileTransition.cs</code> with a clock like <code>MenuIntro.cs</code>. <code>ChooseProfile</code> starts the move in instead of closing the screen at once, and the menu's "Switch profile" button starts it backwards. Neither screen takes a click while it plays, and any key skips to the end.</li>
+      <li>The picker and the menu already share the title's place and the axis, so only the parts above, below and on the axis move. The axis never leaves the screen.</li>
+      <li>Decision for you: at launch the menu's plotted intro (the pen writing the title, 2.75 s) waits for the picker. In all three looks the title is written or slides in as part of the move, so I would let this move replace the plotted intro after a pick, and keep the plotted intro for the other ways into the menu (back from the lobby does not play it today). Say if you want both.</li>
+      <li>Sound: new <code>Sfx</code> values at the end of the enum, made in <code>SoundBank.cs</code> from the same pieces as the pause and picker sounds, played from a small <code>ProfileSounds.cs</code> the way <code>PickSounds.cs</code> does. The pen scratch is the menu intro's. They follow the Effects volume.</li>
+      <li>Reduced effects or Visual effects off: a 0.4 s crossfade with one soft click and a quiet chord, no flying cards.</li>
+      <li>Audio and drawing only: no network message or save format changes, so no protocol bump.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  // -------------------------------------------------------------------------------------------------------------
+  const W = 1280, H = 720;
+  const AXIS_Y = 188, AXIS_HALF = 390;
+  const BLUE = [115, 166, 255];
+  const WHO_TITLE = "WHO'S PLAYING?", MENU_TITLE = "CARTESIAN COLOSSEUM";
+  const GAME_FONT = `"Liberation Sans", Arial, Helvetica, sans-serif`, DATA_FONT = `"IBM Plex Mono", ui-monospace, monospace`;
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const ease = k => 1 - Math.pow(1 - k, 3);
+  const easeIn = k => k * k;
+  const easeBack = k => { const c = 1.70158; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+  const seg = (t, a, b) => clamp01((t - a) / (b - a));
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const rgba = (c, a) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${a})`;
+  const mix = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+
+  const PROFILES = [
+    { name: "Anthony", rank: 14, title: "Champion", wins: 9, runs: 63, col: [255, 181, 71] },
+    { name: "Sam", rank: 6, title: "Veteran", wins: 1, runs: 18, col: [111, 227, 196] },
+    { name: "Little Bee", rank: 3, title: "Contender", wins: 0, runs: 7, col: [255, 122, 162] },
+  ];
+  const NEW_COL = [146, 161, 173];
+  const colOf = i => i < 3 ? PROFILES[i].col : NEW_COL;
+
+  // Positions, as in the game: cards on the title axis, the card and buttons of the menu, the bar and its name chip.
+  const CW = 172, CH = 206, GAP = 18, CTOP = 250;
+  const whoRect = i => ({ x: W / 2 - (4 * CW + 3 * GAP) / 2 + i * (CW + GAP), y: CTOP, w: CW, h: CH });
+  const CHIP = { x: 28, y: 642, w: 360, h: 64 };
+  const CARD = { x: 420, y: 244, w: 440, h: 190 };
+  const SWITCH_BTN = { x: 28, y: 608, w: 140, h: 26 };
+  const CORNERS = [[CARD.x - 7, CARD.y - 7, 1, 1], [CARD.x + CARD.w + 7, CARD.y - 7, -1, 1], [CARD.x + CARD.w + 7, CARD.y + CARD.h + 7, -1, -1], [CARD.x - 7, CARD.y + CARD.h + 7, 1, -1]];
+
+  const cv = document.getElementById("scr"), gMain = cv.getContext("2d");
+  let g = gMain;  // the drawing target (swapped for an offscreen canvas while crossfading)
+  const off = document.createElement("canvas"); off.width = W; off.height = H;
+  const gOff = off.getContext("2d");
+
+  // --- Drawing pieces ----------------------------------------------------------------------------------------
+  function rr(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  const sparks = Array.from({ length: 34 }, (_, i) => ({ x: (i * 397) % W, y: (i * 233 + 40) % H, ph: i * 1.7, pink: i % 3 !== 0 }));
+  function bg(t) {
+    g.fillStyle = "#07080d"; g.fillRect(0, 0, W, H);
+    let gr = g.createRadialGradient(330, 250, 0, 330, 250, 270); gr.addColorStop(0, "rgba(40,70,160,0.16)"); gr.addColorStop(1, "rgba(40,70,160,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    gr = g.createRadialGradient(1050, 480, 0, 1050, 480, 330); gr.addColorStop(0, "rgba(120,50,150,0.12)"); gr.addColorStop(1, "rgba(120,50,150,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(90,110,180,0.10)"; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 48) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); g.stroke(); }
+    for (let y = 14; y <= H; y += 48) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); g.stroke(); }
+    for (const s of sparks) {
+      const a = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t * 1.3 + s.ph));
+      g.fillStyle = s.pink ? `rgba(255,90,120,${a})` : `rgba(120,160,255,${a})`;
+      g.beginPath(); g.arc(s.x, s.y, 2.2, 0, Math.PI * 2); g.fill();
+    }
+  }
+  function axis(t) {
+    const y = AXIS_Y, half = AXIS_HALF;
+    g.strokeStyle = rgba(BLUE, 0.12); g.lineWidth = 6;
+    g.beginPath(); g.moveTo(W / 2 - half, y); g.lineTo(W / 2 + half, y); g.stroke();
+    g.strokeStyle = rgba(BLUE, 0.75); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(W / 2 - half, y); g.lineTo(W / 2 + half, y); g.stroke();
+    for (let i = 1; i * 24 < half - 10; i++) {
+      const len = i % 4 === 0 ? 6 : 3, x = i * 24;
+      g.strokeStyle = rgba(BLUE, 0.7 * (1 - 0.6 * x / half)); g.lineWidth = 1.2;
+      for (const side of [-1, 1]) { g.beginPath(); g.moveTo(W / 2 + side * x, y - len); g.lineTo(W / 2 + side * x, y + len); g.stroke(); }
+    }
+    g.fillStyle = rgba(BLUE, 0.9);
+    for (const side of [-1, 1]) { const x = W / 2 + side * half; g.beginPath(); g.moveTo(x + side * 8, y); g.lineTo(x - side * 3, y - 5); g.lineTo(x - side * 3, y + 5); g.fill(); }
+    const p = 0.5 + 0.5 * Math.sin(t * 3);
+    g.fillStyle = rgba([200, 220, 255], 0.9); g.beginPath(); g.arc(W / 2, y, 3.5, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = rgba(BLUE, 0.5 + 0.3 * p); g.lineWidth = 1.5; g.beginPath(); g.arc(W / 2, y, 6 + 2 * p, 0, Math.PI * 2); g.stroke();
+  }
+  /// A title: glow, dark outline, white top over a pale-blue bottom. wipe < 1 shows only the left part, with a pen glow at the edge.
+  function title(text, size, cy, o = {}) {
+    const alpha = o.alpha === undefined ? 1 : o.alpha, dy = o.dy || 0, wipe = o.wipe === undefined ? 1 : o.wipe;
+    if (alpha <= 0 || wipe <= 0) return;
+    g.save(); g.globalAlpha = alpha;
+    g.font = `bold ${size}px Arial, "Liberation Sans", Helvetica, sans-serif`; g.textBaseline = "middle"; g.textAlign = "center";
+    const tw = g.measureText(text).width, x0 = W / 2 - tw / 2, edge = x0 - 8 + (tw + 16) * wipe, y = cy + dy;
+    if (wipe < 1) { g.beginPath(); g.rect(0, 0, edge, H); g.clip(); }
+    g.shadowColor = "rgba(92,153,255,0.8)"; g.shadowBlur = 16;
+    g.lineJoin = "round"; g.lineWidth = 5; g.strokeStyle = "rgba(14,22,52,0.9)"; g.strokeText(text, W / 2, y);
+    g.shadowBlur = 0;
+    const gr = g.createLinearGradient(0, y - size * 0.32, 0, y + size * 0.32);
+    gr.addColorStop(0, "#fff"); gr.addColorStop(0.5, "#fff"); gr.addColorStop(0.52, "#b8ccff"); gr.addColorStop(1, "#b8ccff");
+    g.fillStyle = gr; g.fillText(text, W / 2, y);
+    g.restore();
+    if (wipe < 1) {  // the pen
+      g.save(); g.globalCompositeOperation = "lighter";
+      const py = y - size * 0.25 + size * 0.5 * (0.5 + 0.5 * Math.sin(edge * 0.21));
+      const gr = g.createRadialGradient(edge, py, 0, edge, py, 16); gr.addColorStop(0, "rgba(255,255,255,0.95)"); gr.addColorStop(0.3, "rgba(150,200,255,0.6)"); gr.addColorStop(1, "rgba(150,200,255,0)");
+      g.globalAlpha = alpha; g.fillStyle = gr; g.beginPath(); g.arc(edge, py, 16, 0, Math.PI * 2); g.fill(); g.restore();
+    }
+  }
+  function cardBody(r, col, o = {}) {
+    const fill = o.fill === undefined ? 1 : o.fill, edge = o.edge === undefined ? 0.6 : o.edge, rad = o.rad === undefined ? 10 : o.rad;
+    g.save();
+    if (o.glow) { g.shadowColor = rgba(col, 0.9 * o.glow); g.shadowBlur = 26 * o.glow; }
+    rr(r.x, r.y, r.w, r.h, rad);
+    if (fill > 0) {
+      g.globalAlpha *= fill;
+      const gr = g.createLinearGradient(0, r.y, 0, r.y + r.h); gr.addColorStop(0, "rgba(31,36,54,0.97)"); gr.addColorStop(1, "rgba(23,26,38,0.97)");
+      g.fillStyle = gr; g.fill(); g.globalAlpha /= fill;
+    }
+    g.shadowBlur = 0;
+    g.strokeStyle = rgba(col, edge); g.lineWidth = 1.5; rr(r.x, r.y, r.w, r.h, rad); g.stroke();
+    g.restore();
+  }
+  function badge(cx, cy, rad, rank, col) {
+    g.save(); g.fillStyle = "rgba(8,10,18,0.9)"; g.beginPath(); g.arc(cx, cy, rad, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = rgba(col, 0.95); g.lineWidth = rad > 30 ? 3.5 : 2.5; g.stroke();
+    g.strokeStyle = rgba(col, 0.3); g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, rad - 6, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = rgba(col, 1); g.font = `bold ${Math.round(rad * 0.85)}px ${GAME_FONT}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(String(rank), cx, cy + 1);
+    g.restore();
+  }
+  function text(s, x, y, font, col, align = "center") { g.font = font; g.fillStyle = col; g.textAlign = align; g.textBaseline = "middle"; g.fillText(s, x, y); }
+  /// What is on a "Who's playing" card (the new-profile card has a plus).
+  function whoContent(i, r, a) {
+    if (a <= 0) return;
+    g.save(); g.globalAlpha *= a; g.beginPath(); rr(r.x, r.y, r.w, r.h, 10); g.clip();
+    const cx = r.x + r.w / 2;
+    if (i >= 3) {
+      text("+", cx, r.y + r.h / 2 - 20, `44px ${GAME_FONT}`, "rgba(146,161,173,1)");
+      text("New profile", cx, r.y + r.h / 2 + 22, `bold 15px ${GAME_FONT}`, "rgba(146,161,173,1)");
+    } else {
+      const p = PROFILES[i];
+      badge(cx, r.y + 56, 38, p.rank, p.col);
+      let size = 19; g.font = `bold ${size}px ${GAME_FONT}`;
+      text(p.name, cx, r.y + 117, `bold ${size}px ${GAME_FONT}`, "#fff");
+      text(`${p.title}  ·  Rank ${p.rank}`, cx, r.y + 141, `12px ${GAME_FONT}`, rgba(p.col, 1));
+      text(`${p.wins} ${p.wins === 1 ? "win" : "wins"}  ·  ${p.runs} runs`, cx, r.y + 160, `11px ${GAME_FONT}`, "rgba(146,161,173,1)");
+    }
+    g.restore();
+  }
+  function whoCard(i, r, o = {}) {
+    const a = o.alpha === undefined ? 1 : o.alpha;
+    if (a <= 0) return;
+    g.save(); g.globalAlpha = a;
+    cardBody(r, colOf(i), { edge: o.edge === undefined ? (i >= 3 ? 0.35 : 0.55) : o.edge, glow: o.glow });
+    whoContent(i, r, 1);
+    g.restore();
+  }
+  /// The name chip in the bottom bar.
+  function chipContent(i, r, a) {
+    if (a <= 0) return;
+    const p = PROFILES[i];
+    g.save(); g.globalAlpha *= a; g.beginPath(); rr(r.x, r.y, r.w, r.h, 10); g.clip();
+    badge(r.x + 40, r.y + 32, 22, p.rank, p.col);
+    text(p.name, r.x + 76, r.y + 24, `bold 20px ${GAME_FONT}`, "#fff", "left");
+    text(`${p.title}  ·  Rank ${p.rank}`, r.x + 76, r.y + 46, `12px ${GAME_FONT}`, rgba(p.col, 1), "left");
+    g.restore();
+  }
+  /// One box that is a card at m = 0 and the name chip at m = 1.
+  function cardChip(i, r, m, o = {}) {
+    cardBody(r, colOf(i), { edge: 0.9, glow: o.glow });
+    whoContent(i, r, 1 - clamp01(m * 2.2));
+    chipContent(i, r, clamp01((m - 0.55) * 2.2));
+  }
+  function plotCorner(x, y, sx, sy, a, len = 22) {
+    if (a <= 0) return;
+    g.strokeStyle = rgba(BLUE, 0.75 * a); g.lineWidth = 3; g.lineCap = "square";
+    g.beginPath(); g.moveTo(x, y + sy * len); g.lineTo(x, y); g.lineTo(x + sx * len, y); g.stroke(); g.lineCap = "butt";
+  }
+  function icon(kind, x, y, s) {
+    g.save(); g.translate(x, y);
+    g.fillStyle = "rgba(255,255,255,0.22)"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#fff"; g.strokeStyle = "#fff"; g.lineWidth = 2; const c = s / 2;
+    if (kind === "play") { g.beginPath(); g.moveTo(c - 4, c - 6); g.lineTo(c + 6, c); g.lineTo(c - 4, c + 6); g.fill(); }
+    if (kind === "arrow") { g.beginPath(); g.moveTo(c - 6, c); g.lineTo(c + 5, c); g.moveTo(c + 1, c - 4); g.lineTo(c + 5, c); g.lineTo(c + 1, c + 4); g.stroke(); }
+    if (kind === "trophy") { g.fillStyle = "#ffd75a"; g.fillRect(c - 5, c - 6, 10, 7); g.fillRect(c - 1.5, c + 1, 3, 4); g.fillRect(c - 4, c + 5, 8, 2); }
+    if (kind === "gear") { g.beginPath(); g.arc(c, c, 5, 0, Math.PI * 2); g.stroke(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; g.fillRect(c + Math.cos(a) * 6.5 - 1.5, c + Math.sin(a) * 6.5 - 1.5, 3, 3); } }
+    if (kind === "power") { g.beginPath(); g.arc(c, c + 1, 5.5, -Math.PI / 2 + 0.6, Math.PI * 1.5 - 0.6); g.stroke(); g.beginPath(); g.moveTo(c, c - 7); g.lineTo(c, c); g.stroke(); }
+    g.restore();
+  }
+  function fancyButton(x, y, w, h, label, col, ic, size = 19) {
+    rr(x, y, w, h, 8);
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, rgba(col.map(v => Math.min(255, v * 1.12)), 1)); gr.addColorStop(1, rgba(col.map(v => v * 0.72), 1));
+    g.fillStyle = gr; g.fill(); g.strokeStyle = "rgba(255,255,255,0.18)"; g.lineWidth = 1; g.stroke();
+    g.font = `bold ${size}px ${GAME_FONT}`;
+    const tw = g.measureText(label).width, is = Math.min(26, h - 10), total = is + 12 + tw, sx = x + w / 2 - total / 2;
+    icon(ic, sx, y + h / 2 - is / 2, is);
+    g.fillStyle = "rgba(0,0,0,0.6)"; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(label, sx + is + 13, y + h / 2 + 1.5);
+    g.fillStyle = "#fff"; g.fillText(label, sx + is + 12, y + h / 2);
+  }
+  function smallButton(r, label, col) {
+    rr(r.x, r.y, r.w, r.h, 6); g.fillStyle = rgba(col, 1); g.fill(); g.strokeStyle = "rgba(255,255,255,0.16)"; g.lineWidth = 1; g.stroke();
+    text(label, r.x + r.w / 2, r.y + r.h / 2 + 1, `bold 13px ${GAME_FONT}`, "#fff");
+  }
+  // The menu card: its box, the plot corners, and the name field (the picked profile's name).
+  function menuCardContent(i, a, dy = 0) {
+    if (a <= 0) return;
+    g.save(); g.globalAlpha *= a; g.translate(0, dy * (1 - ease(a)));
+    const x = CARD.x + 32, w = CARD.w - 64, y = CARD.y + 22;
+    text("YOUR NAME", x + 2, y + 10, `bold 12px ${GAME_FONT}`, "rgba(170,182,210,0.95)", "left");
+    g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(x, y + 21, w, 1);
+    rr(x, y + 30, w, 38, 7); g.fillStyle = "rgba(8,10,18,0.85)"; g.fill(); g.strokeStyle = "rgba(255,255,255,0.10)"; g.lineWidth = 1; g.stroke();
+    text(PROFILES[i].name, x + 12, y + 49, `16px ${GAME_FONT}`, "#e9eefc", "left");
+    g.restore();
+  }
+  function menuCardBox(fillA, edgeA, o = {}) {
+    cardBody(o.rect || CARD, o.col || [107, 153, 255], { fill: fillA, edge: edgeA, rad: o.rad, glow: o.glow });
+  }
+  /// The menu card as a whole, opening from the axis (sy) or sliding (dy, alpha).
+  function menuCard(i, o = {}) {
+    const sy = o.sy === undefined ? 1 : o.sy, dy = o.dy || 0, alpha = o.alpha === undefined ? 1 : o.alpha, content = o.content === undefined ? 1 : o.content;
+    if (sy <= 0 || alpha <= 0) return;
+    g.save(); g.globalAlpha = alpha;
+    g.translate(0, dy); g.translate(0, AXIS_Y); g.scale(1, sy); g.translate(0, -AXIS_Y);
+    menuCardBox(1, 0.95);
+    CORNERS.forEach(c => plotCorner(c[0], c[1], c[2], c[3], 1));
+    g.restore();
+    g.save(); g.globalAlpha = alpha; g.translate(0, dy); menuCardContent(i, content); g.restore();
+  }
+  const BTNS = [
+    { r: [CARD.x + 32, CARD.y + 100, (CARD.w - 64) / 2 - 8, 50], t: "Host game", c: [74, 130, 245], i: "play", s: 19 },
+    { r: [CARD.x + 32 + (CARD.w - 64) / 2 + 8, CARD.y + 100, (CARD.w - 64) / 2 - 8, 50], t: "Join game", c: [76, 84, 112], i: "arrow", s: 19 },
+    { r: [CARD.x, CARD.y + CARD.h + 16, CARD.w, 34], t: "Continue a run  (2)", c: [70, 150, 105], i: "play", s: 16 },
+  ];
+  /// Each button drops in from above with a small overshoot, one after another from t0.
+  function menuButtons(p, t0, gap = 0.08, dur = 0.3) {
+    BTNS.forEach((b, i) => {
+      const k = seg(p, t0 + i * gap, t0 + i * gap + dur);
+      if (k <= 0) return;
+      g.save(); g.globalAlpha = clamp01(k * 2.5); g.translate(0, -16 * (1 - easeBack(k)));
+      fancyButton(b.r[0], b.r[1], b.r[2], b.r[3], b.t, b.c, b.i, b.s);
+      g.restore();
+    });
+  }
+  /// The bottom bar slides up (k): Records, Settings, Quit, the Switch profile button and (withChip) the name chip.
+  function bar(k, i, withChip) {
+    if (k <= 0) return;
+    g.save(); g.translate(0, 110 * (1 - ease(k)));
+    g.fillStyle = "rgba(8,10,15,0.9)"; g.fillRect(0, 628, W, H - 628);
+    g.fillStyle = "rgba(107,153,255,0.3)"; g.fillRect(0, 628, W, 1);
+    fancyButton(480, 649, 150, 50, "Records", [158, 128, 51], "trophy", 17);
+    fancyButton(650, 649, 150, 50, "Settings", [76, 84, 112], "gear", 17);
+    fancyButton(1096, 649, 150, 50, "Quit", [190, 70, 80], "power", 17);
+    smallButton(SWITCH_BTN, "Switch profile", [76, 84, 112]);
+    if (withChip) { cardBody(CHIP, PROFILES[i].col, { edge: 0.9 }); chipContent(i, CHIP, 1); }
+    g.restore();
+  }
+  function ring(r, k, col) {
+    if (k <= 0 || k >= 1) return;
+    const grow = 6 + 44 * ease(k);
+    g.save(); g.strokeStyle = rgba(col, 0.8 * (1 - k)); g.lineWidth = 2.5 * (1 - k) + 0.5;
+    rr(r.x - grow, r.y - grow, r.w + grow * 2, r.h + grow * 2, 10 + grow); g.stroke(); g.restore();
+  }
+  const grow = (r, s) => ({ x: r.x + r.w * (1 - s) / 2, y: r.y + r.h * (1 - s) / 2, w: r.w * s, h: r.h * s });
+
+  // --- The looks. Each draws the moment p seconds into the move in (picker to menu); playing it backwards is the move out.
+  const LOOKS = [
+    { id: "chip", name: "A · Name chip", c: "#6fe3c4", len: 1.75, tag: "1.75 s · your card moves down",
+      sum: "The card you pick lifts out of the row and flies down into your name chip in the bottom bar. The other cards drop away, the new title is written, and the menu opens from the axis. Switch profile runs the same move backwards: the chip leaves the bar and opens into a card, and the others rise in around it.",
+      beats: [[0, 0.2, "Your card pulses; the others dim"], [0.1, 0.45, "The other cards drop away, one after another"], [0.1, 0.45, "WHO'S PLAYING? slides up and out"],
+        [0.25, 0.95, "Your card shrinks along an arc into the name chip"], [0.55, 1.1, "The pen writes CARTESIAN COLOSSEUM"], [0.6, 0.95, "The bottom bar slides up under the chip"],
+        [0.95, 1.35, "A ring pulses where the chip lands; the menu box opens from the axis"], [1.2, 1.66, "Host, Join and Continue drop in"]],
+      cues: [{ t: 0.0, d: 0.15, f: "select", r: null, label: "Select click" }, { t: 0.1, d: 0.3, f: "swishDown", r: "swishUp", label: "Others drop away" },
+        { t: 0.28, d: 0.6, f: "whooshUp", r: "whooshDown", label: "Card flies to the chip" }, { t: 0.55, d: 0.55, f: "scratch", r: "scratch", label: "Pen writes the title" },
+        { t: 0.62, d: 0.3, f: "barSlide", label: "Bar slides up" }, { t: 0.95, d: 0.3, f: "thunk", r: "popSoft", label: "Chip lands" }, { t: 0.97, d: 0.5, f: "chime", label: "Chip chime" },
+        { t: 1.0, d: 0.8, f: "chord", r: "chordDown", label: "Low chord as the box opens" }, { t: 1.2, d: 0.05, f: "tick", label: "Host drops in" }, { t: 1.28, d: 0.05, f: "tick", label: "Join drops in" }, { t: 1.36, d: 0.05, f: "tick", label: "Continue drops in" }],
+      how: "The most personal one: your own card becomes the name chip you will see for the rest of the session. Every piece has a place to go, so nothing just fades.",
+      draw(p, pick, t) {
+        bg(t); axis(t);
+        const to = seg(p, 0.1, 0.45);
+        if (to < 1) title(WHO_TITLE, 58, 110, { alpha: 1 - to, dy: -34 * ease(to) });
+        const tw = seg(p, 0.55, 1.1);
+        if (tw > 0) title(MENU_TITLE, 74, 126, { wipe: ease(tw) });
+        let order = 0;
+        for (let i = 0; i < 4; i++) {
+          if (i === pick) continue;
+          const k = seg(p, 0.1 + 0.05 * order, 0.45 + 0.05 * order); order++;
+          if (k >= 1) continue;
+          const r = whoRect(i);
+          whoCard(i, { x: r.x, y: r.y + 70 * easeIn(k), w: r.w, h: r.h }, { alpha: (1 - k) * (1 - 0.45 * seg(p, 0, 0.2)) });
+        }
+        const ck = seg(p, 0.95, 1.35);
+        menuCard(pick, { sy: ease(ck), alpha: clamp01(ck * 3), content: seg(p, 1.2, 1.5) });
+        menuButtons(p, 1.2);
+        bar(seg(p, 0.6, 0.95), pick, false);
+        const m = seg(p, 0.25, 0.95), e = ease(m), R0 = whoRect(pick);
+        const r = { x: lerp(R0.x, CHIP.x, e), y: lerp(R0.y, CHIP.y, e) - 80 * Math.sin(Math.PI * m), w: lerp(R0.w, CHIP.w, e), h: lerp(R0.h, CHIP.h, e) };
+        cardChip(pick, grow(r, 1 + 0.05 * Math.sin(Math.PI * seg(p, 0, 0.2))), m, { glow: 0.4 * Math.sin(Math.PI * seg(p, 0, 0.25)) });
+        ring(CHIP, seg(p, 0.95, 1.3), PROFILES[pick].col);
+      } },
+    { id: "page", name: "B · Page turn", c: "#7fb6ff", len: 1.4, tag: "1.4 s · the axis is the hinge",
+      sum: "The axis stays put. The picker's title and cards lift off it, yours last with a flash, and the menu's title, box, buttons and bar rise onto it from below. The shortest of the three, and the closest to how the picker is built.",
+      beats: [[0, 0.15, "Your card flashes"], [0.05, 0.55, "The title and the cards lift away, yours last"], [0.45, 0.85, "CARTESIAN COLOSSEUM rises onto the axis"],
+        [0.6, 1.0, "The menu box rises in"], [0.7, 1.1, "The bottom bar and name chip slide up"], [0.85, 1.35, "Host, Join and Continue drop in"]],
+      cues: [{ t: 0.0, d: 0.15, f: "select", r: null, label: "Select click" }, { t: 0.08, d: 0.3, f: "swishUp", r: "swishDown", label: "Picker lifts away" },
+        { t: 0.45, d: 0.3, f: "swishUp", r: "swishDown", label: "Menu rises in" }, { t: 0.6, d: 0.7, f: "chordSoft", r: "chordDown", label: "Soft chord" },
+        { t: 0.72, d: 0.3, f: "barSlide", label: "Bar slides up" }, { t: 0.85, d: 0.05, f: "tick", label: "Host drops in" }, { t: 0.93, d: 0.05, f: "tick", label: "Join drops in" }, { t: 1.01, d: 0.05, f: "tick", label: "Continue drops in" }],
+      how: "Plain and quick, and the cheapest to build: slides and fades only. It does not tie your card to the chip, so the chip simply appears with the bar.",
+      draw(p, pick, t) {
+        bg(t); axis(t);
+        const tk = seg(p, 0.05, 0.4);
+        if (tk < 1) title(WHO_TITLE, 58, 110, { alpha: 1 - tk, dy: -50 * ease(tk) });
+        for (let i = 0; i < 4; i++) {
+          const delay = (i === pick ? 0.12 : 0) + 0.03 * i, k = seg(p, 0.05 + delay, 0.4 + delay);
+          if (k >= 1) continue;
+          const r = whoRect(i);
+          whoCard(i, { x: r.x, y: r.y - 110 * ease(k), w: r.w, h: r.h }, { alpha: 1 - k, glow: i === pick ? Math.sin(Math.PI * seg(p, 0, 0.2)) * 0.8 : 0, edge: i === pick ? 0.9 : undefined });
+        }
+        const nk = seg(p, 0.45, 0.85);
+        if (nk > 0) title(MENU_TITLE, 74, 126, { alpha: nk, dy: 50 * (1 - ease(nk)) });
+        const ck = seg(p, 0.6, 1.0);
+        menuCard(pick, { dy: 90 * (1 - ease(ck)), alpha: clamp01(ck * 2), content: seg(p, 0.85, 1.1) });
+        menuButtons(p, 0.85);
+        bar(seg(p, 0.7, 1.1), pick, true);
+      } },
+    { id: "dots", name: "C · Plot points", c: "#ff8fa8", len: 2.2, tag: "2.2 s · cards become data",
+      sum: "Each card shrinks into a point on the axis, with its name under it. The points you didn't pick shoot off the ends of the axis like bullets, yours slides to the origin, and a ring opens out of it into the menu box. It borrows the game's graph theme.",
+      beats: [[0.1, 0.5, "The title falls into the axis; each card shrinks into a point on it"], [0.5, 0.85, "Points pop into place with their names"],
+        [0.8, 1.15, "The others shoot off the ends; yours slides to the origin"], [0.9, 1.5, "CARTESIAN COLOSSEUM is written"],
+        [1.1, 1.6, "Your point opens out into the menu box"], [1.3, 1.65, "The bottom bar and name chip slide up"], [1.65, 2.1, "Host, Join and Continue drop in"]],
+      cues: [{ t: 0.0, d: 0.15, f: "select", r: null, label: "Select click" }, { t: 0.46, d: 0.3, f: "ping1", label: "Point 1 lands" }, { t: 0.53, d: 0.3, f: "ping2", label: "Point 2 lands" },
+        { t: 0.6, d: 0.3, f: "ping3", label: "Point 3 lands" }, { t: 0.67, d: 0.3, f: "ping4", label: "Point 4 lands" }, { t: 0.85, d: 0.25, f: "zip", r: "zip", label: "Others shoot off" },
+        { t: 1.1, d: 0.5, f: "sweepUp", r: "sweepDown", label: "Ring opens out" }, { t: 1.32, d: 0.3, f: "barSlide", label: "Bar slides up" }, { t: 1.36, d: 0.5, f: "chime", label: "Chip chime" },
+        { t: 1.5, d: 0.3, f: "thunk", r: "popSoft", label: "Box settles" }, { t: 1.65, d: 0.05, f: "tick", label: "Host drops in" }, { t: 1.73, d: 0.05, f: "tick", label: "Join drops in" }, { t: 1.81, d: 0.05, f: "tick", label: "Continue drops in" }],
+      how: "The one that looks most like this game, and the longest. The four ascending pings and the zip give it the strongest sound of the three.",
+      draw(p, pick, t) {
+        bg(t); axis(t);
+        const tk = seg(p, 0.1, 0.5);
+        if (tk < 1) title(WHO_TITLE, 58, 110, { alpha: 1 - tk, dy: 78 * easeIn(tk) });
+        const tw = seg(p, 0.9, 1.5);
+        if (tw > 0) title(MENU_TITLE, 74, 126, { wipe: ease(tw) });
+        const D = 14;
+        for (let i = 0; i < 4; i++) {
+          const R = whoRect(i), cx = R.x + R.w / 2, col = colOf(i), isPick = i === pick;
+          const k1 = seg(p, 0.1 + 0.07 * i, 0.5 + 0.07 * i), e1 = ease(k1), k2 = seg(p, 0.85, 1.15);
+          if (isPick && p >= 1.1) continue;
+          if (!isPick && k2 >= 1) continue;
+          const dx = isPick ? (W / 2 - cx) * ease(seg(p, 0.8, 1.1)) : (cx >= W / 2 ? 1 : -1) * 1000 * easeIn(k2);
+          let r = { x: lerp(R.x, cx - D / 2, e1) + dx, y: lerp(R.y, AXIS_Y - D / 2, e1), w: lerp(R.w, D, e1), h: lerp(R.h, D, e1) };
+          if (k1 <= 0) { whoCard(i, r); continue; }
+          if (!isPick && k2 > 0) {  // a trail behind it
+            const dir = cx >= W / 2 ? 1 : -1, len = 30 + 140 * k2;
+            const gr = g.createLinearGradient(r.x + D / 2, 0, r.x + D / 2 - dir * len, 0); gr.addColorStop(0, rgba(col, 0.8)); gr.addColorStop(1, rgba(col, 0));
+            g.strokeStyle = gr; g.lineWidth = 3; g.beginPath(); g.moveTo(r.x + D / 2, AXIS_Y); g.lineTo(r.x + D / 2 - dir * len, AXIS_Y); g.stroke();
+          }
+          cardBody(r, col, { edge: 0.9, glow: k1 > 0.9 ? 0.5 : 0 });
+          whoContent(i, r, 1 - clamp01(k1 * 2.5));
+          const solid = clamp01((k1 - 0.6) / 0.4);
+          if (solid > 0) { g.fillStyle = rgba(col, solid); g.beginPath(); g.arc(r.x + r.w / 2, r.y + r.h / 2, Math.max(2, r.w / 2 - 2), 0, Math.PI * 2); g.fill(); }
+          const la = seg(k1, 0.7, 1) * (1 - seg(p, isPick ? 0.9 : 0.8, isPick ? 1.1 : 1.0));
+          if (la > 0) text(i < 3 ? PROFILES[i].name : "+ new", r.x + r.w / 2, AXIS_Y + 24, `500 12px ${DATA_FONT}`, rgba(mix(col, [255, 255, 255], 0.4), la));
+          if (isPick && p > 0.5 && p < 1.1) {  // your point pulses
+            const ph = (p * 2.2) % 1; g.strokeStyle = rgba(col, 0.7 * (1 - ph)); g.lineWidth = 2; g.beginPath(); g.arc(r.x + r.w / 2, AXIS_Y, 8 + 12 * ph, 0, Math.PI * 2); g.stroke();
+          }
+        }
+        const k3 = seg(p, 1.1, 1.6);
+        if (k3 > 0) {  // the point opens into the menu box
+          const e = ease(k3), dot = { x: W / 2 - D / 2, y: AXIS_Y - D / 2, w: D, h: D };
+          const r = { x: lerp(dot.x, CARD.x, e), y: lerp(dot.y, CARD.y, e), w: lerp(dot.w, CARD.w, e), h: lerp(dot.h, CARD.h, e) };
+          const col = mix(PROFILES[pick].col, [107, 153, 255], e);
+          if (k3 < 0.5) { g.fillStyle = rgba(PROFILES[pick].col, 1 - k3 * 2); g.beginPath(); g.arc(W / 2, AXIS_Y, 7 * (1 - k3), 0, Math.PI * 2); g.fill(); }
+          menuCardBox(seg(k3, 0.4, 1), 0.95, { rect: r, col, rad: lerp(7, 10, e), glow: 0.6 * Math.sin(Math.PI * k3) });
+          CORNERS.forEach(c => plotCorner(c[0], c[1], c[2], c[3], seg(p, 1.5, 1.7)));
+          menuCardContent(pick, seg(p, 1.5, 1.8));
+        }
+        bar(seg(p, 1.3, 1.65), pick, true);
+        menuButtons(p, 1.65);
+      } },
+  ];
+  const LOOK = id => LOOKS.find(l => l.id === id);
+  const REDUCED = { len: 0.4, cues: [{ t: 0, d: 0.1, f: "select", r: null }, { t: 0.05, d: 0.5, f: "chordSoft", r: "chordDown" }] };
+
+  // --- Sound: everything is synthesised, like SoundBank.cs -----------------------------------------------------
+  let ac = null, master = null, noiseBuf = null, volume = 0.7, soundOn = true;
+  const audioState = document.getElementById("audiostate");
+  function audio() {
+    try {
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain(); master.gain.value = volume; master.connect(ac.destination);
+        noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate);
+        const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ac.state === "suspended") ac.resume();
+      audioState.textContent = ac.state === "running" ? "Sound ready" : "Click once to unlock sound";
+      return ac;
+    } catch (e) { audioState.textContent = "Sound isn't available here"; return null; }
+  }
+  function envelope(node, t0, peak, att, dur) {
+    node.gain.setValueAtTime(0.0001, t0);
+    node.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t0 + att);
+    node.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  }
+  function tone(o) {
+    const c = audio(); if (!c) return;
+    const t0 = c.currentTime + (o.delay || 0), dur = o.dur, f1 = o.f1 || o.f0;
+    const osc = c.createOscillator(), gn = c.createGain();
+    osc.type = o.type || "sine"; osc.frequency.setValueAtTime(o.f0, t0); osc.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
+    envelope(gn, t0, o.vol === undefined ? 0.3 : o.vol, o.att || 0.004, dur);
+    let out = gn;
+    if (o.lp) { const f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = o.lp; gn.connect(f); out = f; }
+    osc.connect(gn); out.connect(master); osc.start(t0); osc.stop(t0 + dur + 0.05);
+  }
+  function noise(o) {
+    const c = audio(); if (!c) return;
+    const t0 = c.currentTime + (o.delay || 0), dur = o.dur, src = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    src.buffer = noiseBuf; src.loop = true;
+    f.type = o.type || "bandpass"; f.Q.value = o.q || 1; f.frequency.setValueAtTime(o.f0, t0); f.frequency.exponentialRampToValueAtTime(Math.max(40, o.f1 || o.f0), t0 + dur);
+    envelope(gn, t0, o.vol === undefined ? 0.2 : o.vol, o.att || 0.01, dur);
+    src.connect(f); f.connect(gn); gn.connect(master); src.start(t0, Math.random()); src.stop(t0 + dur + 0.05);
+  }
+  const SFX = {
+    select() { tone({ f0: 520, f1: 780, dur: 0.1, type: "triangle", vol: 0.22 }); tone({ f0: 780, f1: 1170, dur: 0.16, type: "triangle", vol: 0.2, delay: 0.06 }); },
+    tick() { tone({ f0: 1500, f1: 1050, dur: 0.035, type: "square", vol: 0.07, lp: 3000 }); },
+    swishDown() { noise({ f0: 2600, f1: 600, q: 0.9, dur: 0.28, vol: 0.14, att: 0.04 }); },
+    swishUp() { noise({ f0: 600, f1: 2600, q: 0.9, dur: 0.28, vol: 0.14, att: 0.12 }); },
+    whooshUp() { noise({ f0: 350, f1: 2400, q: 1.3, dur: 0.6, vol: 0.2, att: 0.25 }); tone({ f0: 180, f1: 520, dur: 0.5, vol: 0.05, att: 0.2 }); },
+    whooshDown() { noise({ f0: 2400, f1: 350, q: 1.3, dur: 0.6, vol: 0.2, att: 0.05 }); tone({ f0: 520, f1: 180, dur: 0.5, vol: 0.05, att: 0.05 }); },
+    scratch() {  // a pen on paper: bandpassed noise chopped fast, its pitch wandering
+      const c = audio(); if (!c) return;
+      const t0 = c.currentTime, dur = 0.55, src = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
+      src.buffer = noiseBuf; src.loop = true; f.type = "bandpass"; f.Q.value = 4; f.frequency.setValueAtTime(2800, t0); f.frequency.linearRampToValueAtTime(3800, t0 + dur);
+      gn.gain.setValueAtTime(0.0001, t0); gn.gain.linearRampToValueAtTime(0.07, t0 + 0.05); gn.gain.setValueAtTime(0.07, t0 + dur - 0.1); gn.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+      lfo.frequency.value = 24; lg.gain.value = 0.04; lfo.connect(lg); lg.connect(gn.gain);
+      src.connect(f); f.connect(gn); gn.connect(master); src.start(t0); lfo.start(t0); src.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
+    },
+    barSlide() { noise({ type: "lowpass", f0: 900, f1: 300, dur: 0.3, vol: 0.12, att: 0.05 }); tone({ f0: 200, f1: 250, dur: 0.25, vol: 0.06, att: 0.08 }); },
+    thunk() { tone({ f0: 140, f1: 62, dur: 0.35, vol: 0.5, att: 0.003 }); noise({ type: "lowpass", f0: 500, f1: 200, dur: 0.1, vol: 0.18, att: 0.002 }); },
+    popSoft() { tone({ f0: 320, f1: 170, dur: 0.14, vol: 0.28, att: 0.003 }); },
+    chime() { tone({ f0: 1320, dur: 0.5, vol: 0.14, att: 0.004 }); tone({ f0: 1760, dur: 0.55, vol: 0.1, att: 0.004, delay: 0.045 }); },
+    chord() { [110, 165, 220, 277].forEach((f, i) => tone({ f0: f, dur: 0.85, type: i % 2 ? "triangle" : "sine", vol: 0.12, att: 0.03 })); },
+    chordSoft() { [196, 247, 294].forEach(f => tone({ f0: f, dur: 0.6, vol: 0.07, att: 0.05 })); },
+    chordDown() { [147, 110, 82].forEach((f, i) => tone({ f0: f, f1: f * 0.8, dur: 0.5, vol: 0.1, att: 0.01, delay: i * 0.04 })); },
+    ping1() { tone({ f0: 660, dur: 0.22, vol: 0.18, att: 0.003 }); },
+    ping2() { tone({ f0: 784, dur: 0.22, vol: 0.18, att: 0.003 }); },
+    ping3() { tone({ f0: 988, dur: 0.22, vol: 0.18, att: 0.003 }); },
+    ping4() { tone({ f0: 1175, dur: 0.26, vol: 0.18, att: 0.003 }); },
+    zip() { noise({ f0: 3200, f1: 700, q: 2, dur: 0.22, vol: 0.14, att: 0.01 }); tone({ f0: 1900, f1: 420, dur: 0.16, vol: 0.07, att: 0.005 }); },
+    sweepUp() { tone({ f0: 300, f1: 1400, dur: 0.5, vol: 0.14, att: 0.12 }); tone({ f0: 450, f1: 2100, dur: 0.5, vol: 0.05, att: 0.12 }); },
+    sweepDown() { tone({ f0: 1400, f1: 300, dur: 0.5, vol: 0.14, att: 0.02 }); },
+  };
+  function play(name) { if (!soundOn || !name || !SFX[name]) return; SFX[name](); }
+  function audition(name) { const was = soundOn; soundOn = true; play(name); soundOn = was; }
+
+  // --- Playback ---------------------------------------------------------------------------------------------------
+  let look = "chip", mode = "both", pick = 0, speed = 1, reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let t = 0, prevT = -1e-6, scrubbing = false, seq = [];
+  const scrub = document.getElementById("scrub"), clock = document.getElementById("clock");
+  const moveLen = () => reduced ? REDUCED.len : LOOK(look).len;
+  function buildSeq() {
+    const L = moveLen();
+    seq = mode === "in" ? [{ k: "who", len: 1.1 }, { k: "in", len: L }, { k: "menu", len: 1.5 }]
+      : mode === "out" ? [{ k: "menu", len: 1.1 }, { k: "out", len: L }, { k: "who", len: 1.5 }]
+      : [{ k: "who", len: 1.2 }, { k: "in", len: L }, { k: "menu", len: 1.5 }, { k: "out", len: L }];
+    let s = 0; for (const x of seq) { x.s = s; s += x.len; } seq.total = s;
+  }
+  function locate(tt) { for (const x of seq) if (tt < x.s + x.len) return x; return seq[seq.length - 1]; }
+  function cuesOf() { return reduced ? REDUCED.cues : LOOK(look).cues; }
+  /// Fire every cue whose time falls in (a, b] of the global clock.
+  function fire(a, b) {
+    const L = moveLen();
+    for (const x of seq) {
+      if (x.k !== "in" && x.k !== "out") continue;
+      const la = a - x.s, lb = b - x.s;
+      if (lb < 0 || la >= x.len) continue;
+      for (const c of cuesOf()) {
+        const when = x.k === "in" ? c.t : L - c.t - (c.d || 0.1);
+        const name = x.k === "in" ? c.f : (c.r === undefined ? c.f : c.r);
+        if (when > la && when <= lb) play(name);
+      }
+      if (x.k === "out") { if (0 > la && 0 <= lb) play("select"); }  // pressing Switch profile (rev time 0)
+    }
+  }
+  function drawAt(tt, wall) {
+    const x = locate(tt), local = Math.max(0, Math.min(x.len, tt - x.s)), L = moveLen();
+    let p = x.k === "in" ? local : x.k === "out" ? L - local : x.k === "who" ? 0 : L;
+    if (reduced) {  // a crossfade: the picker, then the menu on top of it with k as its opacity
+      const k = clamp01(p / L), f = LOOK(look);
+      f.draw(0, pick, wall);
+      g = gOff; g.clearRect(0, 0, W, H); f.draw(f.len, pick, wall); g = gMain;
+      g.save(); g.globalAlpha = k; g.drawImage(off, 0, 0); g.restore();
+    } else LOOK(look).draw(p * LOOK(look).len / L, pick, wall);
+    g.font = "600 13px Oxanium, 'Segoe UI', sans-serif"; g.textAlign = "left"; g.textBaseline = "top";
+    g.fillStyle = "rgba(146,161,173,0.85)";
+    g.fillText((LOOK(look).name + (reduced ? "  ·  reduced effects" : "")).toUpperCase(), 18, 16);
+    // Hints at rest
+    const rest = x.k === "who" || x.k === "menu";
+    if (rest) {
+      g.font = `500 12px ${DATA_FONT}`; g.fillStyle = "rgba(146,161,173,0.8)"; g.textAlign = "center"; g.textBaseline = "alphabetic";
+      if (x.k === "who") g.fillText("click a profile", W / 2, H - 30); else g.fillText("click Switch profile", W / 2, 604);
+    }
+  }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!scrubbing) {
+      t += dt * speed;
+      let wrapped = false;
+      if (t >= seq.total) { t -= seq.total; wrapped = true; }
+      if (wrapped) { fire(prevT, seq.total); fire(-1e-6, t); } else fire(prevT, t);
+      prevT = t;
+    }
+    drawAt(t, now / 1000);
+    if (!scrubbing) scrub.value = Math.round(1000 * t / seq.total);
+    clock.textContent = `${t.toFixed(2)} / ${seq.total.toFixed(2)} s`;
+    requestAnimationFrame(frame);
+  }
+  function restart(m) { if (m) mode = m; buildSeq(); t = 0; prevT = -1e-6; syncUi(); }
+  function syncUi() {
+    document.querySelectorAll("#looks button").forEach(b => b.classList.toggle("on", b.dataset.v === look));
+    document.querySelectorAll(".card").forEach(c => c.classList.toggle("on", c.dataset.v === look));
+    document.querySelectorAll("#modes button").forEach(b => b.classList.toggle("on", b.dataset.v === mode));
+    document.querySelectorAll("#picks button").forEach(b => b.classList.toggle("on", +b.dataset.v === pick));
+  }
+  function setLook(id) { look = id; restart(); try { localStorage.setItem("profile-transition-look", id); } catch (e) {} }
+
+  // --- Controls ---------------------------------------------------------------------------------------------------
+  const looksEl = document.getElementById("looks"), cardsEl = document.getElementById("cards"), picksEl = document.getElementById("picks");
+  for (const l of LOOKS) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.v = l.id; b.textContent = l.name; b.onclick = () => { audio(); setLook(l.id); }; looksEl.appendChild(b);
+    const c = document.createElement("div"); c.className = "card"; c.dataset.v = l.id; c.style.setProperty("--c", l.c);
+    c.innerHTML = `<div class="hd"><b class="n"></b><span class="tag"></span></div><p class="sum"></p><h3>Beats</h3><ol class="beats"></ol><h3>Sound cues</h3><ol class="cues"></ol><p class="how"></p>`;
+    c.querySelector(".n").textContent = l.name; c.querySelector(".tag").textContent = l.tag;
+    c.querySelector(".sum").textContent = l.sum; c.querySelector(".how").textContent = l.how;
+    const ol = c.querySelector(".beats");
+    for (const [a, b2, what] of l.beats) { const li = document.createElement("li"), sp = document.createElement("span"); sp.textContent = `${a.toFixed(2)}–${b2.toFixed(2)} s`; li.append(sp, document.createTextNode(what)); ol.appendChild(li); }
+    const co = c.querySelector(".cues");
+    for (const cue of l.cues) {
+      const li = document.createElement("li"), btn = document.createElement("button"), sp = document.createElement("span");
+      btn.type = "button"; btn.textContent = "▶"; btn.setAttribute("aria-label", "Play " + cue.label); btn.onclick = () => { audio(); audition(cue.f); };
+      sp.textContent = `${cue.t.toFixed(2)} s`; li.append(btn, sp, document.createTextNode(cue.label)); co.appendChild(li);
+    }
+    const hd = c.querySelector(".hd"); hd.style.cursor = "pointer"; hd.onclick = () => { audio(); setLook(l.id); window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }); };
+    cardsEl.appendChild(c);
+  }
+  PROFILES.forEach((p, i) => { const b = document.createElement("button"); b.type = "button"; b.dataset.v = i; b.textContent = p.name; b.onclick = () => { audio(); pick = i; restart(); }; picksEl.appendChild(b); });
+  document.querySelectorAll("#modes button").forEach(b => b.onclick = () => { audio(); restart(b.dataset.v); });
+  document.getElementById("replay").onclick = () => { audio(); restart(); };
+  document.querySelectorAll("#speeds button").forEach(b => b.onclick = () => { speed = +b.dataset.v; document.querySelectorAll("#speeds button").forEach(x => x.classList.toggle("on", x === b)); });
+  const red = document.getElementById("reduced"); red.checked = reduced; red.onchange = () => { reduced = red.checked; restart(); };
+  const snd = document.getElementById("sound"); snd.onchange = () => { soundOn = snd.checked; audio(); };
+  const vol = document.getElementById("vol"); vol.oninput = () => { volume = vol.value / 100; if (master) master.gain.value = volume; };
+  scrub.addEventListener("input", () => { scrubbing = true; t = seq.total * scrub.value / 1000; prevT = t; });
+  scrub.addEventListener("change", () => { scrubbing = false; prevT = t; });
+  document.addEventListener("pointerdown", () => audio(), { once: false, capture: true });
+
+  // Click a card in the picker, or the Switch profile button on the menu, to play that move.
+  const toGame = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
+  const inR = (p, r) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+  function hitAtRest(e) {
+    const x = locate(t); if (x.k !== "who" && x.k !== "menu") return null;
+    const p = toGame(e);
+    if (x.k === "who") { for (let i = 0; i < 3; i++) if (inR(p, whoRect(i))) return { kind: "pick", i }; return null; }
+    return inR(p, SWITCH_BTN) ? { kind: "switch" } : null;
+  }
+  cv.addEventListener("click", e => {
+    audio(); const h = hitAtRest(e); if (!h) return;
+    if (h.kind === "pick") { pick = h.i; if (mode === "out") mode = "in"; buildSeq(); t = seq.find(s => s.k === "in").s; prevT = t - 1e-6; syncUi(); }
+    else { if (mode === "in") mode = "out"; buildSeq(); t = seq.find(s => s.k === "out").s; prevT = t - 1e-6; syncUi(); }
+  });
+  cv.addEventListener("mousemove", e => { cv.style.cursor = hitAtRest(e) ? "pointer" : "default"; });
+
+  let saved = null; try { saved = localStorage.getItem("profile-transition-look"); } catch (e) {}
+  const start = () => { look = LOOKS.some(l => l.id === saved) ? saved : "chip"; buildSeq(); syncUi(); requestAnimationFrame(frame); };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+})();
+</script>
