@@ -1,0 +1,294 @@
+<title>Dev Recordings</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one live game-window stage, three looks for the F1 timeline you can switch between. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b; --blue: #6aa8ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 19px; letter-spacing: .04em; }
+p { margin: 0; max-width: 72ch; }
+.muted { color: var(--muted); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs label { cursor: pointer; }
+.tabs input { position: absolute; opacity: 0; }
+.tabs span { display: block; padding: 8px 14px; border: 1px solid var(--edge); border-radius: 8px; background: var(--panel); font: 600 13px var(--font-display); letter-spacing: .06em; }
+.tabs input:checked + span { border-color: var(--teal); color: var(--teal); }
+.tabs input:focus-visible + span { outline: 2px solid var(--teal); outline-offset: 2px; }
+.game { position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: #070910; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.game canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hudtag { position: absolute; left: 12px; top: 10px; font: 500 12px var(--font-data); color: var(--muted); }
+.paused-badge { position: absolute; top: 10px; right: 12px; font: 700 12px var(--font-display); letter-spacing: .14em; color: var(--amber); border: 1px solid var(--amber); padding: 2px 8px; border-radius: 4px; }
+.tl { font-family: var(--font-data); font-size: 12px; color: var(--fg); }
+button { font: inherit; color: inherit; background: var(--panel-2); border: 1px solid var(--edge); border-radius: 6px; cursor: pointer; padding: 4px 9px; min-width: 34px; }
+button:hover { border-color: var(--teal); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+button.on { border-color: var(--teal); color: var(--teal); }
+.track { position: relative; height: 22px; cursor: pointer; touch-action: none; min-width: 0; flex: 1; }
+.track .rail { position: absolute; left: 0; right: 0; top: 9px; height: 4px; background: var(--line); border-radius: 2px; }
+.track .fill { position: absolute; left: 0; top: 9px; height: 4px; background: var(--teal); border-radius: 2px; }
+.track .head { position: absolute; top: 3px; width: 4px; height: 16px; margin-left: -2px; background: var(--fg); border-radius: 2px; }
+.mk { position: absolute; top: 5px; width: 2px; height: 12px; margin-left: -1px; background: var(--blue); }
+.mk.boss { background: var(--red); height: 16px; top: 3px; }
+.mk.down { background: var(--amber); height: 8px; top: 7px; }
+/* look A: docked bar */
+.A { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: rgba(10,13,16,.9); border-top: 1px solid var(--edge); }
+.A .time { white-space: nowrap; padding: 0 6px; }
+/* look B: floating pill */
+.B { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(560px, calc(100% - 24px)); display: grid; gap: 4px; padding: 8px 12px; background: rgba(10,13,16,.88); border: 1px solid var(--edge); border-radius: 14px; }
+.B .row { display: flex; align-items: center; gap: 6px; }
+.B .row.top { justify-content: center; }
+/* look C: film strip */
+.C { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 10px 10px; background: rgba(10,13,16,.92); border-top: 1px solid var(--edge); display: grid; gap: 6px; }
+.C .lane { display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 8px; }
+.C .lane > b { font: 600 10px var(--font-display); letter-spacing: .12em; color: var(--muted); }
+.C .waves { position: relative; height: 18px; background: var(--panel); border-radius: 4px; overflow: hidden; }
+.C .waves i { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--edge); font: 500 10px/18px var(--font-data); color: var(--muted); padding-left: 4px; font-style: normal; }
+.C .waves i.boss { color: var(--red); }
+.C .row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.C .row .grow { flex: 1; }
+.hidden { display: none !important; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.note { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.note b { font: 700 15px var(--font-display); letter-spacing: .04em; color: var(--teal); }
+kbd { font: 500 12px var(--font-data); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 4px; padding: 1px 5px; }
+@media (max-width: 520px) { .A .hide-s { display: none; } }
+
+.devwin { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; overflow: hidden; min-width: 0; }
+.devtabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+.devtabs div { padding: 10px 16px; font: 600 13px var(--font-display); letter-spacing: .08em; color: var(--muted); border-bottom: 2px solid transparent; }
+.devtabs div.on { color: var(--teal); border-bottom-color: var(--teal); }
+.devbody { padding: 14px; display: grid; gap: 12px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toolbar .grow { flex: 1; }
+.path { font: 400 12px var(--font-data); color: var(--muted); overflow-wrap: anywhere; }
+.rec { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); min-width: 0; }
+.rec.sel { border-color: var(--teal); }
+.rec .nm { font: 600 15px var(--font-display); letter-spacing: .03em; overflow-wrap: anywhere; }
+.rec .meta { font: 400 12px var(--font-data); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.rec .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.rec input[type=text] { font: 600 15px var(--font-display); background: var(--bg); color: var(--fg); border: 1px solid var(--teal); border-radius: 6px; padding: 4px 8px; width: 100%; min-width: 0; }
+button.danger:hover { border-color: var(--red); color: var(--red); }
+button.go { border-color: var(--teal); color: var(--teal); }
+.rec .confirm { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--red); font-size: 14px; }
+.empty { padding: 22px; text-align: center; color: var(--muted); border: 1px dashed var(--edge); border-radius: 8px; }
+.badge { font: 600 10px var(--font-display); letter-spacing: .1em; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--edge); color: var(--muted); }
+.badge.rec-on { color: var(--red); border-color: var(--red); }
+.recdot { position: absolute; top: 10px; right: 12px; font: 700 12px var(--font-display); letter-spacing: .14em; color: var(--red); display: flex; align-items: center; gap: 6px; }
+.recdot::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--red); }
+.paused-badge { top: 34px; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <div class="eyebrow">Mockup · F1 dev tools</div>
+    <h1>Run <span>Recordings</span></h1>
+    <p class="muted">A new <b>Recording</b> tab in the F1 menu. Press Record, play a run, and it is saved as a replay. Open one later and the game window plays it back with the wave-lane timeline (look C). Everything below is clickable: record, open, rename, delete.</p>
+  </header>
+  <div class="devwin">
+    <div class="devtabs"><div>MATCH</div><div>PLAYERS</div><div>TOOLS</div><div class="on">RECORDING</div></div>
+    <div class="devbody">
+      <div class="toolbar">
+        <button class="go" id="recBtn">● Record this run</button>
+        <span class="badge" id="recState">NOT RECORDING</span>
+        <span class="grow"></span>
+        <button id="folderBtn">📁 Open folder</button>
+      </div>
+      <div class="path">Replays/ · <span id="pathNote">Opens the replays folder in your file manager</span></div>
+      <div id="list" style="display:grid;gap:8px"></div>
+    </div>
+  </div>
+  <h2>Playback</h2>
+  <p class="muted" id="playHint">Pick a replay above and press Open. The game window then shows it with the timeline.</p>
+  <div class="game" id="game">
+    <canvas id="cv" width="960" height="540"></canvas>
+    <div class="hudtag" id="tag"></div>
+    <div class="paused-badge hidden" id="pb">PAUSED</div>
+    <div class="recdot hidden" id="rd">REPLAY</div>
+    <div class="C tl" id="lookC">
+      <div class="lane"><b>WAVES</b><div class="waves" id="waves"></div></div>
+      <div class="lane"><b>TIME</b><div class="track" data-track></div></div>
+      <div class="row">
+        <button data-a="back">⏪ 4×</button><button data-a="step-">−1 f</button>
+        <button data-a="play" id="playC">⏸ Pause</button>
+        <button data-a="step+">+1 f</button><button data-a="fwd">4× ⏩</button>
+        <span class="grow"></span>
+        <button data-a="prevwave">⏮ Wave</button><button data-a="nextwave">Wave ⏭</button>
+        <button data-a="speed">1×</button>
+        <span data-time></span>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Recording tab</b><p>Record / Stop, a link to the folder, and one row per replay: name, date, mode, class, wave reached, length, size. Open, Rename (inline, Enter to save) and Delete (asks first).</p></div>
+    <div class="note"><b>Playback</b><p>Opening a replay loads it into the game window with the wave-lane bar. Scrub, step frames, change speed, jump wave to wave.</p></div>
+    <div class="note"><b>Can the timeline alter a run?</b><p>Watching and scrubbing is solid: the file stores the match state every half second. Resuming play from any point (take over) is harder, because the game's random numbers are not seeded today and the saved state would need every timer, spawn queue and boss phase. I would ship watch and scrub first and add take over as a second pass.</p></div>
+  </div>
+</div>
+<script>
+(function () {
+  var DUR = 300, FPS = 60;
+  var t = 0, playing = true, speed = 1, holding = 0, lastTs = performance.now();
+  var speeds = [0.25, 0.5, 1, 2, 4], si = 2;
+  var waves = [{ s: 0, n: 1 }, { s: 45, n: 2 }, { s: 90, n: 3 }, { s: 140, n: 4 }, { s: 190, n: 5, boss: 1 }, { s: 250, n: 6 }];
+  var downs = [72, 163, 221];
+  var look = 'C';
+  var cv = document.getElementById('cv'), cx = cv.getContext('2d');
+
+  function fmt(x) { var m = Math.floor(x / 60), s = x - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1); }
+  function waveAt(x) { var w = 0; for (var i = 0; i < waves.length; i++) if (x >= waves[i].s) w = i; return w; }
+
+  // build tracks
+  document.querySelectorAll('[data-track]').forEach(function (tr) {
+    tr.innerHTML = '<div class="rail"></div><div class="fill"></div>';
+    waves.forEach(function (w) { var m = document.createElement('div'); m.className = 'mk' + (w.boss ? ' boss' : ''); m.style.left = (w.s / DUR * 100) + '%'; tr.appendChild(m); });
+    downs.forEach(function (d) { var m = document.createElement('div'); m.className = 'mk down'; m.style.left = (d / DUR * 100) + '%'; tr.appendChild(m); });
+    var h = document.createElement('div'); h.className = 'head'; tr.appendChild(h);
+    function seek(e) { var r = tr.getBoundingClientRect(); t = Math.max(0, Math.min(DUR, (e.clientX - r.left) / r.width * DUR)); }
+    tr.addEventListener('pointerdown', function (e) { tr.setPointerCapture(e.pointerId); seek(e); tr._d = 1; });
+    tr.addEventListener('pointermove', function (e) { if (tr._d) seek(e); });
+    tr.addEventListener('pointerup', function () { tr._d = 0; });
+  });
+  var wv = document.getElementById('waves');
+  waves.forEach(function (w, i) {
+    var e = document.createElement('i'); e.textContent = (w.boss ? 'BOSS ' : 'W') + w.n; if (w.boss) e.className = 'boss';
+    var end = i + 1 < waves.length ? waves[i + 1].s : DUR;
+    e.style.left = (w.s / DUR * 100) + '%'; e.style.width = ((end - w.s) / DUR * 100) + '%'; wv.appendChild(e);
+  });
+
+  function setPlaying(p) { playing = p; }
+  document.getElementById('game').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var a = b.dataset.a;
+    if (a === 'play') setPlaying(!playing);
+    else if (a === 'step-') { setPlaying(false); t = Math.max(0, t - 1 / FPS); }
+    else if (a === 'step+') { setPlaying(false); t = Math.min(DUR, t + 1 / FPS); }
+    else if (a === 'speed') si = (si + 1) % speeds.length, speed = speeds[si];
+    else if (a === 'prevwave') { var w = waveAt(t - 1.5); t = waves[w].s; }
+    else if (a === 'nextwave') { var n = Math.min(waves.length - 1, waveAt(t) + 1); t = waves[n].s; }
+  });
+  ['back', 'fwd'].forEach(function (k) {
+    document.getElementById('game').addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('button'); if (b && b.dataset.a === k) holding = k === 'back' ? -1 : 1;
+    });
+  });
+  addEventListener('pointerup', function () { holding = 0; });
+  addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'BUTTON' && e.key === ' ') return;
+    if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
+    else if (e.key === ',') { setPlaying(false); t = Math.max(0, t - 1 / FPS); }
+    else if (e.key === '.') { setPlaying(false); t = Math.min(DUR, t + 1 / FPS); }
+    else if (e.key === '[') { si = Math.max(0, si - 1); speed = speeds[si]; }
+    else if (e.key === ']') { si = Math.min(speeds.length - 1, si + 1); speed = speeds[si]; }
+    else if (e.key === 'ArrowLeft') t = Math.max(0, t - 5);
+    else if (e.key === 'ArrowRight') t = Math.min(DUR, t + 5);
+  });
+  document.querySelectorAll('input[name=look]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      look = r.value;
+      ['A', 'B', 'C'].forEach(function (k) { document.getElementById('look' + k).classList.toggle('hidden', k !== look); });
+    });
+  });
+
+  // fake arena: deterministic positions from t
+  function draw() {
+    var W = cv.width, H = cv.height;
+    cx.fillStyle = '#070910'; cx.fillRect(0, 0, W, H);
+    cx.strokeStyle = '#121a24'; cx.lineWidth = 1;
+    for (var x = 0; x < W; x += 48) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, H); cx.stroke(); }
+    for (var y = 0; y < H; y += 48) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
+    var w = waveAt(t), n = 6 + w * 3, wt = t - waves[w].s;
+    var px = W / 2 + Math.cos(t * .6) * 180, py = H / 2 + Math.sin(t * .8) * 110;
+    for (var i = 0; i < n; i++) {
+      var a = i * 2.399 + t * (.15 + (i % 3) * .05), r = 380 - Math.min(300, wt * 9) * ((i % 4) + 1) / 4 + 40;
+      var ex = W / 2 + Math.cos(a) * r * 1.2, ey = H / 2 + Math.sin(a) * r * .75;
+      cx.fillStyle = waves[w].boss ? '#ff6b6b' : '#c77dff';
+      cx.beginPath(); cx.arc(ex, ey, waves[w].boss && i === 0 ? 26 : 8, 0, 7); cx.fill();
+    }
+    cx.fillStyle = '#ffb547';
+    for (var j = 0; j < 14; j++) { var b = (t * 2 + j / 14) % 1, ang = j * .9 + t; cx.fillRect(px + Math.cos(ang) * b * 260, py + Math.sin(ang) * b * 260, 4, 4); }
+    cx.fillStyle = '#6fe3c4'; cx.beginPath(); cx.arc(px, py, 12, 0, 7); cx.fill();
+  }
+
+  window.__restart = function () { t = 0; playing = true; };
+  var tag = document.getElementById('tag'), pb = document.getElementById('pb');
+  function frame(ts) {
+    var dt = Math.min(0.1, (ts - lastTs) / 1000); lastTs = ts;
+    if (holding) t += holding * 4 * dt;
+    else if (playing) t += dt * speed;
+    if (t >= DUR) { t = DUR; playing = false; }
+    t = Math.max(0, t);
+    draw();
+    var p = t / DUR * 100 + '%';
+    document.querySelectorAll('[data-track]').forEach(function (tr) { tr.querySelector('.fill').style.width = p; tr.querySelector('.head').style.left = p; });
+    var txt = fmt(t) + ' / ' + fmt(DUR);
+    document.querySelectorAll('[data-time]').forEach(function (e) { e.textContent = txt; });
+    document.querySelectorAll('[data-a=speed]').forEach(function (e) { e.textContent = speed + '×'; });
+    var ic = playing ? '⏸' : '▶';
+        document.getElementById('playC').textContent = ic + (playing ? ' Pause' : ' Play');
+    var ww = waveAt(t);
+    tag.textContent = 'Wave ' + waves[ww].n + (waves[ww].boss ? ' · BOSS' : '') + '  ·  frame ' + Math.round(t * FPS);
+    pb.classList.toggle('hidden', playing || holding !== 0);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+(function () {
+  var reps = [
+    { n: 'Boss practice, Warden', d: 'Nov 3, 21:14', m: 'Boss Hunt', c: 'Knight', w: 'Wave 5', len: '4:52', sz: '3.1 MB' },
+    { n: 'Co-op test, 3 players', d: 'Nov 3, 18:40', m: 'Standard', c: 'Ninja, Healer, Mage', w: 'Wave 12', len: '11:08', sz: '7.4 MB' },
+    { n: 'Run 2026-11-02 16:05', d: 'Nov 2, 16:05', m: 'Endless', c: 'Hemomancer', w: 'Wave 21', len: '18:30', sz: '12.2 MB' }
+  ];
+  var sel = -1, edit = -1, del = -1, recOn = false;
+  var list = document.getElementById('list');
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function render() {
+    if (!reps.length) { list.innerHTML = '<div class="empty">No replays yet. Press Record, play a run, then stop.</div>'; return; }
+    list.innerHTML = reps.map(function (r, i) {
+      var name = edit === i ? '<input type="text" id="ren" value="' + esc(r.n) + '" aria-label="Replay name">' : '<div class="nm">' + esc(r.n) + '</div>';
+      var acts = edit === i ? '<button class="go" data-r="save" data-i="' + i + '">Save</button><button data-r="cancel">Cancel</button>' :
+        '<button class="go" data-r="open" data-i="' + i + '">Open</button><button data-r="rename" data-i="' + i + '">Rename</button><button class="danger" data-r="del" data-i="' + i + '">Delete</button>';
+      var conf = del === i ? '<div class="confirm">Delete “' + esc(r.n) + '” for good? <button class="danger" data-r="yes" data-i="' + i + '">Delete</button><button data-r="cancel">Keep</button></div>' : '';
+      return '<div class="rec' + (sel === i ? ' sel' : '') + '"><div style="min-width:0">' + name + '<div class="meta"><span>' + r.d + '</span><span>' + r.m + '</span><span>' + r.c + '</span><span>' + r.w + '</span><span>' + r.len + '</span><span>' + r.sz + '</span></div></div><div class="acts">' + acts + '</div>' + conf + '</div>';
+    }).join('');
+    var ip = document.getElementById('ren'); if (ip) { ip.focus(); ip.select(); }
+  }
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; var i = +b.dataset.i, a = b.dataset.r;
+    if (a === 'open') { sel = i; document.getElementById('rd').classList.remove('hidden'); document.getElementById('playHint').textContent = 'Playing “' + reps[i].n + '”. Drag the bar or use the buttons.'; window.__restart(); }
+    else if (a === 'rename') { edit = i; del = -1; }
+    else if (a === 'save') { var v = document.getElementById('ren').value.trim(); if (v) reps[i].n = v; edit = -1; }
+    else if (a === 'del') { del = i; edit = -1; }
+    else if (a === 'yes') { reps.splice(i, 1); if (sel === i) sel = -1; else if (sel > i) sel--; del = -1; }
+    else if (a === 'cancel') { edit = -1; del = -1; }
+    render();
+  });
+  list.addEventListener('keydown', function (e) {
+    if (e.target.id !== 'ren') return;
+    if (e.key === 'Enter') e.target.closest('.rec').querySelector('[data-r=save]').click();
+    if (e.key === 'Escape') { edit = -1; render(); }
+  });
+  document.getElementById('recBtn').addEventListener('click', function () {
+    recOn = !recOn;
+    this.textContent = recOn ? '■ Stop recording' : '● Record this run';
+    var s = document.getElementById('recState'); s.textContent = recOn ? 'RECORDING' : 'NOT RECORDING'; s.className = 'badge' + (recOn ? ' rec-on' : '');
+    if (!recOn) { reps.unshift({ n: 'Run 2026-11-04 14:22', d: 'Nov 4, 14:22', m: 'Standard', c: 'Knight', w: 'Wave 3', len: '0:42', sz: '0.4 MB' }); sel = -1; render(); }
+  });
+  document.getElementById('folderBtn').addEventListener('click', function () {
+    document.getElementById('pathNote').textContent = 'Opened in your file manager (mockup: nothing really opens)';
+  });
+  render();
+})();
+</script>

@@ -2,6 +2,18 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // Shot.cs screens: DrawMode draws the screen named by the mode argument (hud, gameover, dev, pause, guide, bg,
 // lobby, kitgrid, practicehud, labsetup, labpanel, tab, shop, picker, ...).
 static partial class Shot {
+  // A made-up replay for the Replays tab and the timeline bar: n waves over `frames` frames, a boss every fifth, a couple of downs.
+  static ReplayFile SampleReplay(string name, int frames, int waves, string mode, string party)
+  {
+    var f = new ReplayFile { Created = DateTime.UtcNow.AddHours(-3), Mode = mode, Party = party, MaxWave = waves, Players = 1 };
+    for (int i = 0; i < frames; i++) f.Dts.Add(1f / 60f);
+    for (int w = 1; w <= waves; w++) f.Marks.Add(new ReplayMark { Frame = (w - 1) * frames / waves, Kind = w % 5 == 0 ? ReplayMark.Boss : ReplayMark.Wave, Value = w });
+    f.Marks.Add(new ReplayMark { Frame = frames * 3 / 10, Kind = ReplayMark.Down, Value = 1 });
+    f.Marks.Add(new ReplayMark { Frame = frames * 6 / 10, Kind = ReplayMark.Down, Value = 1 });
+    f.Seconds = frames / 60f;
+    f.Path = Path.Combine("/tmp/replays", name + ReplayFile.Ext);
+    return f;
+  }
   static void DrawMode() {
     if (mode == "hud") {
       // TILEFX=moment,seconds: every ability tile that long into a reaction (HudTiles.cs): ready, charge, use or deny
@@ -39,12 +51,36 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("RANKPAGE") != null) { set("rankGainSeen", gg.LastGain); set("resultsRankPage", true); set("rankPageAt", float.Parse(Environment.GetEnvironmentVariable("RANKPAGE"), System.Globalization.CultureInfo.InvariantCulture)); }  // RANKPAGE=<start time>: the rank report, that many seconds in (-10: all of it)
       typeof(ArenaApp).GetMethod("DrawRunSummary", f2).Invoke(app, null);
     }
+    else if (mode == "replay")
+    {
+      // The timeline over a replay (ReplayUi.cs). RSPEED=-4 (a speed), RPAUSE=1, RAT=0..1 (how far along).
+      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      var rf = SampleReplay("Boss practice, Warden", 60 * 1100, 12, "Standard", "Mia (Knight)");
+      var rp = new ReplayPlayer(); rp.Load(rf);
+      rp.Seek((int)(rf.Frames * float.Parse(Environment.GetEnvironmentVariable("RAT") ?? "0.42")));
+      rp.Paused = Environment.GetEnvironmentVariable("RPAUSE") != null;
+      rp.Rate = float.Parse(Environment.GetEnvironmentVariable("RSPEED") ?? "1");
+      set("replay", rp);
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
+      typeof(ArenaApp).GetMethod("DrawReplayBar", f2).Invoke(app, null);
+      GL.ToUi = false;
+    }
     else if (mode == "dev")
     {
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
       host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
+      if (Environment.GetEnvironmentVariable("DEVTAB") == "4")
+      {
+        // Sample replays in the replays folder (the stub's persistent data path is /tmp).
+        if (Directory.Exists("/tmp/replays")) Directory.Delete("/tmp/replays", true);
+        SampleReplay("Boss practice, Warden", 60 * 292, 5, "Boss Hunt", "Mia (Knight)").Save("/tmp/replays/Boss practice, Warden.replay");
+        SampleReplay("Co-op test, 3 players", 60 * 668, 12, "Standard", "Mia (Ninja), Bo (Healer), Cy (Tank)").Save("/tmp/replays/Co-op test, 3 players.replay");
+        SampleReplay("Run 2026-11-02 16-05", 60 * 1110, 21, "Endless", "Mia (Hemomancer)").Save("/tmp/replays/Run 2026-11-02 16-05.replay");
+        if (Environment.GetEnvironmentVariable("RENAME") != null) { set("replayRenamePath", "/tmp/replays/Co-op test, 3 players.replay"); set("replayRenameText", "Co-op test, 3 players"); }
+        if (Environment.GetEnvironmentVariable("DELETE") != null) set("replayDeletePath", "/tmp/replays/Boss practice, Warden.replay");
+      }
       if (Environment.GetEnvironmentVariable("DEVTAB") != null) set("devTab", int.Parse(Environment.GetEnvironmentVariable("DEVTAB")));
       if (Environment.GetEnvironmentVariable("FILTER") != null) set("devFilter", Environment.GetEnvironmentVariable("FILTER"));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;

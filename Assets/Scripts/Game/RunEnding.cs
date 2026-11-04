@@ -37,7 +37,7 @@ namespace Arena
         {
             get
             {
-                if (!EndingOn)
+                if (!EndingOn || replay != null)
                     return 1f;
                 if (endT < EndSlowIn)
                     return Mathf.Lerp(1f, EndSlow, Ease(endT / EndSlowIn));
