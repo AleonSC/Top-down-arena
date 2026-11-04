@@ -75,7 +75,14 @@ namespace Arena
             Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
             // The way into the Hangout (LobbyRoom.cs): a button on the Party heading, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            if (Ui.Button(new Rect(lx + lw - 124f, y - 5f, 124f, 28f), inRoom ? "< LOADOUT" : "HANGOUT >", HangoutColor))
+            // Small and see-through until you point at it (or are in the room, where it's the way back).
+            var hb = new Rect(lx + lw - 88f, y - 3f, 88f, 22f);
+            bool hot = inRoom || hb.Contains(Event.current.mousePosition);
+            var oldCol = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.3f);
+            bool go = Ui.SmallButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", HangoutColor, 11);
+            GUI.color = oldCol;
+            if (go)
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             y = PartyTop;
             TipClear();  // hovering a rank badge shows the title (RankUi.cs)
