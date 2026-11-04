@@ -444,7 +444,7 @@ namespace Arena
         };
         static readonly string[,] HowToTips =
         {
-            { "Hitbox", "Your hitbox is just the small white dot in the middle of your character." },
+            { "Hitbox", "Your hitbox is the small ring in the middle of your character, with a coloured dot at its centre. Only the ring's inside can be hit, not the whole body." },
             { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow." },
             { "Status icons", "Snowflake = frozen, arrows = slowed, flame = burning, drop = bleeding, crosshair = marked." },
             { "Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back." },
@@ -479,10 +479,11 @@ namespace Arena
             Circle(c, 17f, new Rgba(1f, 1f, 1f, 0.04f), 24);
             switch (i)
             {
-                case 0:  // hitbox: a character with its white dot
+                case 0:  // hitbox: a character with its white hitbox ring and coloured dot
                     Circle(c, 11f, new Rgba(0.36f, 0.6f, 1f), 24);
                     Circle(c, 7.5f, new Rgba(0.08f, 0.1f, 0.16f), 20);
-                    Circle(c, 2.6f + 0.6f * Mathf.Sin(t * 4f), Rgba.White, 12);
+                    Arc(c, 5.5f, 1.6f, new Rgba(1f, 1f, 1f, 0.95f), 16);
+                    Circle(c, 2f + 0.5f * Mathf.Sin(t * 4f), new Rgba(0.36f, 0.6f, 1f), 12);
                     break;
                 case 1:  // wrap around: out one side, in the other
                 {
