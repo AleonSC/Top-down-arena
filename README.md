@@ -908,7 +908,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box
   into the lobby's loadout while the rest of the menu fades out and the lobby fades in. (The Field guide and How to play are in the
   lobby's and the pause menu's drawer.)
-- **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (level-meter volume sliders: 40 thin bars that turn amber then red near the top and ripple only while you drag, for
+- **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
