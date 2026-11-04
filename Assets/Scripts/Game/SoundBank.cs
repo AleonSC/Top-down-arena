@@ -57,8 +57,47 @@ namespace Arena
         readonly float[] voiceFade = new float[2];
         int activeVoice;
 
+        // The tape hiss under a hovered menu button (MenuVhs.cs): a quiet looping bed that fades in and out. Reduced effects skips it.
+        AudioSource hissVoice;
+        float hissLevel;
+
+        public void UpdateHoverBed(bool on, float dt)
+        {
+            if (hissVoice == null)
+                return;
+            float target = on && !Muted ? 0.05f * Master * Effects : 0f;
+            hissLevel = Mathf.MoveTowards(hissLevel, target, dt * 0.05f / (on ? 0.15f : 0.25f));
+            hissVoice.volume = hissLevel;
+            if (hissLevel > 0.0005f && !hissVoice.isPlaying)
+                hissVoice.Play();
+            else if (hissLevel <= 0.0005f && hissVoice.isPlaying)
+                hissVoice.Stop();
+        }
+
+        void MakeHoverBed(GameObject owner)
+        {
+            int n = Rate * 2;
+            var d = new float[n];
+            float prev = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float x = (float)rng.NextDouble() * 2f - 1f;
+                d[i] = x - prev * 0.85f;  // brighter hiss: a one-pole high-pass
+                prev = x;
+            }
+            var clip = AudioClip.Create("menu_hiss", n, 1, Rate, false);
+            clip.SetData(d, 0);
+            hissVoice = owner.AddComponent<AudioSource>();
+            hissVoice.clip = clip;
+            hissVoice.loop = true;
+            hissVoice.playOnAwake = false;
+            hissVoice.spatialBlend = 0f;
+            hissVoice.volume = 0f;
+        }
+
         public void StartMusic(GameObject owner)
         {
+            MakeHoverBed(owner);
             for (int v = 0; v < musicVoices.Length; v++)
             {
                 musicVoices[v] = owner.AddComponent<AudioSource>();
@@ -541,6 +580,14 @@ namespace Arena
                 Tone(0.07f, Osc.Sine, 95f, 60f, 0.3f, attack: 0.002f, decay: 3f)), 0.26f), 0f);
             Set(Sfx.TitleEnter, Finish(Mix(Tone(0.014f, Osc.Sine, 1400f, 1400f, 0.22f, noise: 0.9f, lowpass: 0.5f, attack: 0.001f, decay: 3f),
                 Tone(0.12f, Osc.Sine, 110f, 55f, 0.4f, attack: 0.002f, decay: 3f)), 0.34f), 0f);
+
+            // A main menu button being hovered (MenuVhs.cs): a dry tick with a puff of tape hiss, like a head touching the tape. Three takes, rotated.
+            var hover = new float[3][];
+            float[] hoverHz = { 0.95f, 1f, 1.06f };
+            for (int k = 0; k < 3; k++)
+                hover[k] = Finish(Mix(Tone(0.012f, Osc.Sine, 5500f, 5500f, 0.12f, noise: 1f, lowpass: 0.9f, attack: 0.001f, decay: 3f),
+                    Tone(0.018f, Osc.Sine, 1200f * hoverHz[k], 900f, 0.09f, attack: 0.001f, decay: 3f)), 0.14f);
+            Set(Sfx.MenuHover, hover, 0.04f);
 
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));

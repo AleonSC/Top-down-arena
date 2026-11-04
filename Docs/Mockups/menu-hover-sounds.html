@@ -1,0 +1,170 @@
+<title>Menu Hover Sounds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, shared controls (volume, mute-on-leave), six option cards each with a stack of real menu buttons to hover.
+   Dark only, like the other menu mockups. */
+:root {
+  --bg:#0a0d10; --panel:#11161b; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --teal:#6fe3c4; --amber:#ffb547;
+  --g-bg:#0b0e18; --g-panel:#1a1f2e; --g-edge:#4f6cff;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; --font-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme: dark;
+}
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1180px; margin:0 auto; padding-block:28px 64px; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); display:grid; gap:22px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--teal); }
+p { margin:0; max-width:72ch; color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+.controls { display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 18px; }
+.controls label { display:flex; align-items:center; gap:10px; font:500 13px var(--font-data); color:var(--soft); }
+.controls input[type=range] { accent-color:var(--teal); width:140px; }
+button:focus-visible, input:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:18px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; display:grid; min-width:0; align-content:start; overflow:hidden; }
+.card h2 { font-size:13px; letter-spacing:.12em; text-transform:uppercase; padding:12px 16px 2px; }
+.card h2 b { color:var(--amber); margin-right:8px; }
+.note { padding:0 16px 12px; font-size:14px; color:var(--muted); }
+.stage { background:var(--g-bg); padding:18px 16px; display:grid; gap:8px; justify-items:center; border-top:1px solid var(--line); }
+.mb { width:min(100%,260px); background:var(--g-panel); color:#eef2fb; border:1px solid #2a3350; border-radius:8px; padding:10px 14px; font:700 14px var(--font-display); letter-spacing:.12em; text-transform:uppercase; cursor:pointer; text-align:left; transition:none; }
+.mb.hot { border-color:var(--g-edge); background:#232a42; box-shadow:0 0 14px rgba(79,108,255,.35); }
+.mb:active { transform:translateY(1px); }
+.spec { padding:12px 16px 14px; border-top:1px solid var(--line); font:400 12px/1.5 var(--font-data); color:var(--muted); }
+.spec button { float:right; margin-left:10px; background:var(--teal); color:#06231b; border:0; border-radius:8px; padding:7px 14px; font:700 12px var(--font-display); letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+.build { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; display:grid; gap:8px; }
+.build h2 { font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--amber); }
+.build ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; }
+code { font:400 13px var(--font-data); color:var(--teal); }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Main menu · buttons</div>
+    <h1>Hover <span>sounds</span></h1>
+    <p>The menu buttons turn into an old VHS tape while the mouse is over them. These are six ways that hover could sound. Move the mouse across the buttons in each card (sweep quickly to hear how it behaves when you skim the list), or press Play. Click a button to hear the click on top of the hover. On a phone, tap.</p>
+  </header>
+
+  <div class="controls">
+    <label for="vol">Volume <input id="vol" type="range" min="0" max="100" value="60"> <span id="volv">60</span></label>
+  </div>
+
+  <div class="grid" id="cards"></div>
+
+  <section class="build" aria-label="How it would be built">
+    <h2>How it would be built</h2>
+    <ul>
+      <li>In <code>MenuVhs.Draw</code> the per-button <code>State.Hover</code> already flips on enter. Play the pick on the false → true edge only (not every frame), and the matching leave sound, if any, on true → false.</li>
+      <li>New <code>Sfx.MenuHover</code> (and <code>Sfx.MenuClick</code> for look-matched clicks) in <code>SoundBank.cs</code>, added at the end of the enum. Three pitch variants are baked and rotated so a sweep doesn't repeat the same sample.</li>
+      <li>Rate limit of about 40 ms between hover sounds, so skimming down the list stays a ripple and not a buzz. Falls under the existing menu sound volume. With Reduced effects (<code>calm</code>) the hover is quieter and the tape-specific layers are skipped.</li>
+      <li>Local only. No network message, so no protocol change.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+let ctx, master, noiseBuf;
+const vol = document.getElementById('vol'), volv = document.getElementById('volv');
+function audio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.connect(ctx.destination);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+  master.gain.value = (vol.value / 100) ** 2;
+  return ctx;
+}
+vol.addEventListener('input', () => { volv.textContent = vol.value; if (master) master.gain.value = (vol.value / 100) ** 2; });
+
+function tone(freq, freq2, len, gain, type = 'sine', when = 0, attack = 0.002) {
+  const t = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + len);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(gain, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + len + 0.02);
+}
+function noise(len, gain, ftype, f, q = 1, when = 0, f2 = null) {
+  const t = ctx.currentTime + when, s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+  s.buffer = noiseBuf; s.loop = true; fl.type = ftype; fl.frequency.setValueAtTime(f, t); fl.Q.value = q;
+  if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + len);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  s.connect(fl); fl.connect(g); g.connect(master); s.start(t, Math.random()); s.stop(t + len + 0.02);
+}
+const jit = (a) => 1 + (Math.random() * 2 - 1) * a;
+let step = 0; // rotates through variants as the mouse sweeps down the list
+
+// hover(i): i is the button index (0 = top). click(): the press.
+const looks = [
+  { id:'A', name:'Tape head tick', note:'A tiny dry tick with a bit of tape hiss, like a head touching the tape. Quietest and least intrusive; good if you skim the menu a lot.',
+    spec:'hover: noise 5 kHz highpass 12 ms + sine 1.2 kHz → 900 Hz 18 ms, ±5% pitch<br>click: lower tick 700 Hz + soft thud',
+    hover() { noise(0.012, 0.12, 'highpass', 5000); tone(1200*jit(.05), 900, 0.018, 0.09, 'sine'); },
+    click() { tone(700, 400, 0.04, 0.16, 'triangle'); tone(110, 60, 0.07, 0.25); } },
+  { id:'B', name:'Rewind whirr', note:'A very short rising whirr, like a tape shuttling a few frames. The most "VHS" of the set; it matches the Rewind look directly.',
+    spec:'hover: sawtooth 180 Hz → 520 Hz 90 ms through a lowpass + noise band sweep 1 → 3 kHz<br>click: reverse of it (520 → 160 Hz, 70 ms) + clunk',
+    hover() {
+      const t = ctx.currentTime, o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(520, t + 0.09);
+      f.type = 'lowpass'; f.frequency.value = 1400; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.1, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t + 0.1);
+      noise(0.09, 0.07, 'bandpass', 1000, 2, 0, 3000);
+    },
+    click() { tone(520, 160, 0.07, 0.12, 'sawtooth'); tone(100, 55, 0.1, 0.3); noise(0.03, 0.12, 'lowpass', 900); } },
+  { id:'C', name:'Static pop', note:'A short burst of CRT static with a small electrical pop, like a TV snapping to a channel. Brighter and punchier than A.',
+    spec:'hover: white noise 25 ms, band 2.5 kHz → 6 kHz + sine 80 Hz pop 20 ms<br>click: louder burst + 55 Hz thump',
+    hover() { noise(0.025, 0.2, 'bandpass', 2500*jit(.1), 1.2, 0, 6000); tone(80, 50, 0.02, 0.18); },
+    click() { noise(0.06, 0.28, 'bandpass', 3000, 1, 0, 800); tone(55, 40, 0.12, 0.4); } },
+  { id:'D', name:'Soft blip', note:'A clean two-note blip, a fourth apart, that steps up the scale as you sweep down the list. Friendly and musical; the least retro-tape.',
+    spec:'hover: triangle, pentatonic step per button (A4 up), 55 ms, second note +5 semitones at 30 ms<br>click: major third confirm, 90 ms',
+    hover() { const s = [0,2,4,7,9][step++ % 5]; const f = 440*Math.pow(2, s/12); tone(f, f, 0.05, 0.12, 'triangle'); tone(f*1.335, f*1.335, 0.045, 0.08, 'triangle', 0.03); },
+    click() { tone(523, 523, 0.09, 0.14, 'triangle'); tone(659, 659, 0.12, 0.14, 'triangle', 0.05); } },
+  { id:'E', name:'Mechanical switch', note:'A light keyboard-switch tick: tight click with a tiny body. Ties in with the mechanical typing option for the title, if that one gets picked.',
+    spec:'hover: noise 2.2 kHz band 6 ms + sine 170 Hz 30 ms, ±8% pitch<br>click: deeper clack, noise 1.6 kHz + 110 Hz thock',
+    hover() { noise(0.006, 0.16*jit(.2), 'bandpass', 2200*jit(.1), 2); tone(170*jit(.08), 110, 0.03, 0.12); },
+    click() { noise(0.012, 0.22, 'bandpass', 1600, 1.5); tone(110, 55, 0.1, 0.35); } },
+  { id:'F', name:'Tracking warble', note:'A short wobbly pitch dip, like a tape losing tracking for a moment. Most distinctive and a little comic; it may get tiring after many hovers.',
+    spec:'hover: sine 700 Hz with 28 Hz vibrato dipping to 520 Hz over 120 ms + faint hiss<br>click: a snap: rising 400 → 1200 Hz chirp 40 ms + white flash noise',
+    hover() {
+      const t = ctx.currentTime, o = ctx.createOscillator(), lfo = ctx.createOscillator(), lg = ctx.createGain(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(520, t + 0.12);
+      lfo.frequency.value = 28; lg.gain.value = 40; lfo.connect(lg); lg.connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.11, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+      o.connect(g); g.connect(master); o.start(t); lfo.start(t); o.stop(t + 0.14); lfo.stop(t + 0.14);
+      noise(0.1, 0.04, 'highpass', 4000);
+    },
+    click() { tone(400, 1200, 0.04, 0.14, 'square'); noise(0.05, 0.2, 'highpass', 3000); tone(90, 55, 0.1, 0.25); } },
+];
+
+const LABELS = ['Play', 'Co-op', 'Settings', 'Quit'];
+const cards = document.getElementById('cards');
+looks.forEach((L) => {
+  const el = document.createElement('article'); el.className = 'card';
+  el.innerHTML = `<h2><b>${L.id}</b>${L.name}</h2><div class="note">${L.note}</div>
+    <div class="stage">${LABELS.map((t, i) => `<button type="button" class="mb" data-i="${i}">${t}</button>`).join('')}</div>
+    <div class="spec"><button type="button" class="demo">Play</button>${L.spec}</div>`;
+  cards.appendChild(el);
+  let last = 0;
+  el.querySelectorAll('.mb').forEach((b) => {
+    const enter = () => {
+      b.classList.add('hot'); audio();
+      const now = performance.now(); if (now - last < 40) return; last = now; // rate limit, as in the game
+      L.hover(+b.dataset.i);
+    };
+    b.addEventListener('pointerenter', enter);
+    b.addEventListener('pointerleave', () => b.classList.remove('hot'));
+    b.addEventListener('focus', () => b.classList.add('hot'));
+    b.addEventListener('blur', () => b.classList.remove('hot'));
+    b.addEventListener('click', () => { audio(); L.click(); });
+  });
+  el.querySelector('.demo').addEventListener('click', () => {
+    audio();
+    const bs = el.querySelectorAll('.mb');
+    bs.forEach((b, i) => setTimeout(() => {
+      bs.forEach((x) => x.classList.remove('hot')); b.classList.add('hot'); L.hover(i);
+      if (i === bs.length - 1) setTimeout(() => { b.classList.remove('hot'); L.click(); }, 300);
+    }, i * 220));
+  });
+});
+</script>

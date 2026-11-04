@@ -12,7 +12,23 @@ namespace Arena
     {
         const float SnapLen = 0.3f;
 
-        class State { public bool Hover, Clean; public float SnapAt = -10f, Seed; }
+        /// Called once each time the mouse moves onto a button (the argument is "calm": Reduced effects, so play it quieter). ArenaApp sets it to play the hover tick.
+        public static Action<bool> OnHover;
+
+        /// True while the mouse rests on a button that is showing its tape look (drawn this frame or the last, and not snapped clean, and not in
+        /// Reduced effects). SoundBank's hiss bed follows it.
+        public static bool Resting
+        {
+            get
+            {
+                foreach (var s in states.Values)
+                    if (s.Hover && !s.Clean && !s.Calm && Time.frameCount - s.Frame <= 2)
+                        return true;
+                return false;
+            }
+        }
+
+        class State { public bool Hover, Clean; public int Frame; public bool Calm; public float SnapAt = -10f, Seed; }
 
         static readonly Dictionary<int, State> states = new Dictionary<int, State>();
 
@@ -25,7 +41,12 @@ namespace Arena
             bool repaint = Event.current.type == EventType.Repaint;
             if (repaint)
             {
+                s.Frame = Time.frameCount;
+                s.Calm = calm;
+                bool was = s.Hover;
                 s.Hover = live && GUI.enabled && r.Contains(Event.current.mousePosition);
+                if (s.Hover && !was)
+                    OnHover?.Invoke(calm);
                 if (!s.Hover)
                     s.Clean = false;
             }
