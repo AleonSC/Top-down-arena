@@ -41,6 +41,7 @@ namespace Arena
             if (profTr)
             {
                 TickProfTr(dt);  // the move to or from the picker runs the menu's intro itself (ProfileTransition.cs)
+                TickTitleTyping();  // which types the title too
                 return;
             }
             if (onMenu && !menuIntroDone && !whoOpen && !settingsOpen && !recordsOpen && !cosmeticsOpen && !continueOpen)
@@ -72,6 +73,11 @@ namespace Arena
                 return;
             float typeK = Seg(menuIntroT, CrtTypeAt, CrtTypeAt + CrtTypeLen);
             int n = typeK >= 1f ? CrtTitleText.Length : Mathf.FloorToInt(typeK * CrtTitleText.Length);
+            if (n < menuTypedSnd || n - menuTypedSnd > 3)
+            {
+                menuTypedSnd = n;  // the clock went backwards or jumped (skipped, or the transition runs in reverse): catch up silently
+                return;
+            }
             while (menuTypedSnd < n)
             {
                 menuTypedSnd++;

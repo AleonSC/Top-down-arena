@@ -12,6 +12,9 @@ namespace Arena
     {
         const float SnapLen = 0.3f;
 
+        /// Called once each time the mouse moves onto a button (the argument is "calm": Reduced effects, so play it quieter). ArenaApp sets it to play the hover tick.
+        public static Action<bool> OnHover;
+
         class State { public bool Hover, Clean; public float SnapAt = -10f, Seed; }
 
         static readonly Dictionary<int, State> states = new Dictionary<int, State>();
@@ -25,7 +28,10 @@ namespace Arena
             bool repaint = Event.current.type == EventType.Repaint;
             if (repaint)
             {
+                bool was = s.Hover;
                 s.Hover = live && GUI.enabled && r.Contains(Event.current.mousePosition);
+                if (s.Hover && !was)
+                    OnHover?.Invoke(calm);
                 if (!s.Hover)
                     s.Clean = false;
             }
@@ -58,6 +64,7 @@ namespace Arena
                 GUI.color = old;
             }
             bool clicked;
+            Ui.SilentHover = true;
             if (dx != 0f)
             {
                 GUI.BeginGroup(new Rect(dx, 0f, 4000f, 4000f));
@@ -66,6 +73,7 @@ namespace Arena
             }
             else
                 clicked = draw();
+            Ui.SilentHover = false;
             GUI.color = old;
 
             if (clicked)

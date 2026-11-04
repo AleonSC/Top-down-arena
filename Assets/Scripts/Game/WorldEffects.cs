@@ -48,6 +48,8 @@ namespace Arena
                         DrawFrostNova(fx);  // FrostNovaLook.cs
                         break;
                     }
+                    if (IsLifelinePlain(fx))
+                        break;  // Lifeline's plain ring: its look draws from FxKind.Lifeline (LifelineLook.cs)
                     if (IsTankRing(fx))
                         break;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
                     Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
@@ -94,7 +96,8 @@ namespace Arena
                     DrawPactBurstFx(fx, f);
                     break;
                 case FxKind.Link:
-                    DrawLinkFx(fx, f);  // AbilityLooks.cs, like Rewind
+                    if (!IsLifelinePlain(fx))  // (Lifeline's own beams: LifelineLook.cs)
+                        DrawLinkFx(fx, f);  // AbilityLooks.cs, like Rewind
                     break;
                 case FxKind.Rewind:
                     DrawRewindFx(fx, f);
@@ -114,11 +117,17 @@ namespace Arena
                 case FxKind.Strike:
                     DrawStrikeFx(fx, f);  // NimbusLook.cs
                     break;
+                case FxKind.Lifeline:
+                    DrawLifelineFx(fx);  // LifelineLook.cs
+                    break;
                 case FxKind.Meteor:
                     DrawMeteorFx(fx);  // ElementalistLooks.cs
                     break;
                 case FxKind.Tsunami:
                     DrawTsunamiFx(fx, t);  // ElementalistLooks.cs
+                    break;
+                case FxKind.RiotBlock:
+                    DrawRiotBlockFx(fx);  // RiotGearLook.cs
                     break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);

@@ -29,6 +29,13 @@ static partial class Program
         WaitForLobby(host, client);
         for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
         Check(host.Lobby[2].PerkIds.Length == 1 && client.Lobby[1].PerkIds.Length == 1, "a player's perks reach the host's lobby and everyone's lobby (Msg.Cosmetics, Msg.Lobby)");
+        // Changing perks in the lobby tells everyone (the Perks tab calls ShareCosmetics): off, then on again.
+        Perks.Unequip(cprof, PerkId.RiotGear); client.ShareCosmetics();
+        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
+        Check(host.Lobby[2].PerkIds.Length == 0 && client.Lobby[2].PerkIds.Length == 0, "taking a perk off in the lobby reaches the host and everyone");
+        Perks.Equip(cprof, PerkId.RiotGear); client.ShareCosmetics();
+        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
+        Check(host.Lobby[2].PerkIds.Length == 1, "and putting it back does too");
         client.RequestReady(true); host.RequestReady(true);
         for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
         host.StartMatch();
@@ -50,6 +57,15 @@ static partial class Program
 
         // A hit is blocked: no health lost, the recharge starts, a half second of grace.
         float before = me.Hp, taken = me.Run.DamageTaken;
+        V2 shotAt = me.Pos + new V2(40f, 0f);
+        g.Bullets[900001] = new Bullet { Id = 900001, Kind = 10, Pos = shotAt, Vel = new V2(-10f, 0f), Life = 3f, Radius = 4f, Dmg = 5f };
+        hit(me, 20f, "Test shot", false);
+        var blockFx = g.Effects.LastOrDefault(e => e.Kind == FxKind.RiotBlock);
+        Check(blockFx != null && blockFx.Pos2.DistanceTo(shotAt) < 1f && blockFx.Pos.DistanceTo(me.Pos) < 1f && Math.Abs(blockFx.Radius - (me.Def.BodyR + 11f)) < 0.01f, "a block sends the RiotBlock effect, pointing at the shot that was blocked");
+        Run(s, dt, 0.15f, null, calm);
+        Check(cg.Effects.Any(e => e.Kind == FxKind.RiotBlock), "and the friend's screen gets it");
+        me.RiotT = 0f; me.InvulnT = 0f;
+        before = me.Hp; taken = me.Run.DamageTaken;
         hit(me, 20f, "Test shot", false);
         Check(me.Hp == before && me.Run.DamageTaken == taken && !me.Downed, "the first hit is blocked: no health lost and no damage counted");
         Check(Math.Abs(me.RiotT - Perks.RiotRecharge) < 0.001f && me.InvulnT >= Perks.RiotGraceT - 0.001f && !Game.RiotReady(me), "a block starts the 30 s recharge and half a second of invulnerability");
@@ -92,7 +108,7 @@ static partial class Program
 
         // The host decides who brings what: none where runs aren't recorded (Practice Range, Boss Lab, lobby preview).
         var entry = host.Lobby[1];
-        Check(entry.PerkIds.Length == 1 && ((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 1, "in a real run the lobby entry's perks are taken in");
+        Check(entry.ChosenPerks.Length == 1 && ((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 1, "in a real run the lobby entry's perks are taken in");
         var oldPlan = g.Practice;
         g.Practice = new PracticePlan();
         Check(((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 0, "the Practice Range takes the perks off");
@@ -108,9 +124,20 @@ static partial class Program
         save.Seats.Add(seat); save.Seats.Add(bare);
         g.ResumeFrom = save; g.ResumeSeats[1] = 0; g.ResumeSeats[2] = 1;
         Check(((PerkId[])perksFor.Invoke(g, new object[] { host.Lobby[1] })).Length == 1, "a continued run keeps the perk the seat was saved with");
-        entry.PerkIds = new[] { PerkId.RiotGear };
+        entry.ChosenPerks = new[] { PerkId.RiotGear };
         Check(((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 1 && ((PerkId[])perksFor.Invoke(g, new object[] { host.Lobby[2] })).Length == 0, "and a seat saved with none can't bring one now");
         g.ResumeFrom = null; g.ResumeSeats.Clear();
+
+        // And the lobby shows that: on a continued run each seat's perks are the saved ones, not the ones picked.
+        var broadcast = typeof(Session).GetMethod("BroadcastLobby", flags);
+        host.Resume = save;
+        host.Lobby[1].Seat = 0; host.Lobby[2].Seat = 1;
+        broadcast.Invoke(host, null);
+        Check(host.Lobby[1].PerkIds.Length == 1 && host.Lobby[2].PerkIds.Length == 0 && host.Lobby[2].ChosenPerks.Length == 1, "a continued run's lobby shows each seat's saved perks, and remembers what was picked");
+        host.Resume = null;
+        host.Lobby[1].Seat = -1; host.Lobby[2].Seat = -1;
+        broadcast.Invoke(host, null);
+        Check(host.Lobby[2].PerkIds.Length == 1, "back to a fresh run, the picked perks show again");
 
         // The save's text keeps them, by name; a perk that's gone is skipped; the lobby message is sanitised.
         string text = save.ToText();

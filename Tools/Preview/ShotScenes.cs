@@ -203,6 +203,27 @@ static partial class Shot {
       me.Disp = me.Pos;
       gm.Bullets.Clear();
     }
+    if (Environment.GetEnvironmentVariable("RIOT") != null) {
+      // Riot Gear (RiotGearLook.cs): RIOT=ready | wait,<seconds left> | block,<seconds after the block>. You and your friend have it; an enemy shot comes in from the right.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }  // a plain Soldier with no ability, so nothing else draws round you
+      me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f; me.Hp = me.MaxHp;
+      foreach (var q in gm.Players.Values) { q.Perks = new[] { PerkId.RiotGear }; q.RiotT = 0f; if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-240f, 90f); q.RiotT = 14f; } }
+      var rp = Environment.GetEnvironmentVariable("RIOT").Split(',');
+      if (rp[0] == "wait") me.RiotT = float.Parse(rp[1]);
+      if (rp[0] == "ready") gm.Bullets[900001] = new Bullet { Id = 900001, Kind = 10, Pos = me.Pos + new V2(95f, 22f), Vel = new V2(-30f, -8f), Life = 3f, Radius = 4f, Dmg = 5f };
+      if (rp[0] == "block") {
+        gm.Bullets[900001] = new Bullet { Id = 900001, Kind = 10, Pos = me.Pos + new V2(34f, 12f), Vel = new V2(-30f, -8f), Life = 3f, Radius = 4f, Dmg = 5f };
+        typeof(Game).GetMethod("Damage", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, 10f, "Test", });
+        gm.Bullets.Clear();
+        float bt = rp.Length > 1 ? float.Parse(rp[1]) : 0.15f;
+        for (int f = 0; f < 60 * bt; f++) { me.Pos = new V2(800f, 450f); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
+        me.Disp = me.Pos;
+      }
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.

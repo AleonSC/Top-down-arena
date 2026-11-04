@@ -542,6 +542,14 @@ namespace Arena
             Set(Sfx.TitleEnter, Finish(Mix(Tone(0.014f, Osc.Sine, 1400f, 1400f, 0.22f, noise: 0.9f, lowpass: 0.5f, attack: 0.001f, decay: 3f),
                 Tone(0.12f, Osc.Sine, 110f, 55f, 0.4f, attack: 0.002f, decay: 3f)), 0.34f), 0f);
 
+            // A main menu button being hovered (MenuVhs.cs): a dry tick with a puff of tape hiss, like a head touching the tape. Three takes, rotated.
+            var hover = new float[3][];
+            float[] hoverHz = { 0.95f, 1f, 1.06f };
+            for (int k = 0; k < 3; k++)
+                hover[k] = Finish(Mix(Tone(0.012f, Osc.Sine, 5500f, 5500f, 0.12f, noise: 1f, lowpass: 0.9f, attack: 0.001f, decay: 3f),
+                    Tone(0.018f, Osc.Sine, 1200f * hoverHz[k], 900f, 0.09f, attack: 0.001f, decay: 3f)), 0.14f);
+            Set(Sfx.MenuHover, hover, 0.04f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));

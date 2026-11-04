@@ -283,12 +283,62 @@ static partial class Program
             var sc = new Showcase();
             sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Adrenaline, true);
             for (int f = 0; f < 120; f++) sc.Step(dt);
-            bool zoneUp = sc.Me.AdrenalineT > 0f;
+            bool zoneUp = sc.Game.Players.Values.Any(p => p.AdrenalineT > 0f);  // (on a stand-in teammate)
             sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Medkit, true);
             sc.Step(dt);
             Console.WriteLine("  showcase switch: Adrenaline up {0}; after switching to the Medkit: {1} zones, {2} casts", zoneUp, sc.Game.Zones.Count, sc.Me.Run.AbilitiesUsed);
             Check(zoneUp && sc.Game.Zones.Count == 0 && sc.Me.Run.AbilitiesUsed == 0, "switching the previewed ability restarts the preview (the last one's effects are gone)");
             sc.Stop();
+        }
+
+        // Abilities that act on teammates get stand-in teammates in the preview (only in its private game).
+        {
+            var sc = new Showcase();
+            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Adrenaline, true);
+            bool shotOn = false, onMe = false;
+            for (int f = 0; f < 300; f++)
+            {
+                sc.Step(dt);
+                foreach (var p in sc.Game.Players.Values)
+                    if (p.AdrenalineT > 0f) { if (p.Id == 1) onMe = true; else shotOn = true; }
+            }
+            int n = sc.Game.Players.Count;
+            sc.Stop();
+            Console.WriteLine("  showcase allies: Adrenaline preview has {0} players, injected a teammate {1}, injected you {2}", n, shotOn, onMe);
+            Check(n == 3 && shotOn && !onMe, "Adrenaline Shot's preview has two teammates and injects one of them, not you");
+
+            sc = new Showcase();
+            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.MendPulse, true);
+            float low = 9f, high = 0f;
+            bool downed = false;
+            for (int f = 0; f < 480; f++)
+            {
+                sc.Step(dt);
+                foreach (var p in sc.Game.Players.Values)
+                    if (p.Id != 1)
+                    {
+                        low = Math.Min(low, p.Hp / p.MaxHp);
+                        high = Math.Max(high, p.Hp / p.MaxHp);
+                        downed |= p.Downed;
+                    }
+            }
+            sc.Stop();
+            Console.WriteLine("  showcase allies: Mend Pulse preview teammates went down to {0:0.00} and back up to {1:0.00}, one downed {2}", low, high, downed);
+            Check(low < 0.4f && high > 0.9f && downed, "Mend Pulse's preview hurts and downs teammates, and the pulse heals and revives them");
+
+            var solo = new List<string>();
+            foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+                for (int k = 0; k < Defs.KitCount; k++)
+                    for (int a = 0; a < Upgrades.RoleAbilityChoices; a++)
+                    {
+                        var id = Upgrades.RoleAbility(role, (Kit)k, a);
+                        sc = new Showcase();
+                        sc.Show(role, (Kit)k, 0, id, true);
+                        bool want = Showcase.TargetsAlly(id);
+                        if ((sc.Game.Players.Count == 3) != want) solo.Add(Upgrades.Ability(id).Name);
+                        sc.Stop();
+                    }
+            Check(solo.Count == 0, "the preview has teammates exactly for the abilities that target them" + (solo.Count > 0 ? " (" + string.Join(", ", solo) + ")" : ""));
         }
 
         // The ultimate can be previewed too: every role and class's ultimate is cast on a loop.

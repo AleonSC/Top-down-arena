@@ -316,6 +316,7 @@ namespace Arena
                 DrawFortressDome(p, t);
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // Artillery Assault (ArtilleryLook.cs)
                 DrawArtillery(p, t);
+            DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
         }
 
         /// The parry shield: an arc toward the cursor, with its durability gauge around the outside.

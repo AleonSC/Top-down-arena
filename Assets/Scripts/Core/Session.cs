@@ -80,7 +80,8 @@ namespace Arena
         public byte Trail;    // their equipped trail: 0 none, else Rank.TrailIndex (drawn behind them in the match)
         public byte NameFx;   // their equipped name effect: 0 none, else Rank.NameFxIndex (how their name is drawn, Game/NameEffects.cs)
         public byte CardBg;   // their equipped card background: 0 none, else Rank.CardBgIndex (the fill of their party card)
-        public PerkId[] PerkIds = Perks.Empty;  // the perks they bring (Perks.cs); the host sanitises what a client says
+        public PerkId[] PerkIds = Perks.Empty;      // the perks they will bring (Perks.cs): what they picked, or on a continued run what their seat was saved with
+        public PerkId[] ChosenPerks = Perks.Empty;  // host: what they picked (sanitised); PerkIds follows it unless a saved run overrides
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -92,7 +93,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 153;
+        public const int ProtocolVersion = 155;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -148,12 +149,16 @@ namespace Arena
         }
 
         /// A private match with no network: this game hosts and nobody can join (the loadout preview, Showcase).
-        public void HostOffline(Role role, Kit kit, int weapon, int ability)
+        /// allies: stand-in teammates (ids 2 and 3, at most 2) for abilities that act on teammates; they only exist in
+        /// this private game, never in the real lobby.
+        public void HostOffline(Role role, Kit kit, int weapon, int ability, int allies = 0)
         {
             Leave("");
             Net = NetPeer.Offline();
             MyId = 1;
             Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
+            for (int k = 0; k < Math.Min(2, allies); k++)
+                Lobby[2 + k] = new LobbyEntry { Id = 2 + k, Name = "Ally " + (k + 1), Role = k == 0 ? Role.Dps : Role.Tank, Kit = Kit.Soldier, Weapon = 0, Ability = 0 };
         }
 
         public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
@@ -600,7 +605,7 @@ namespace Arena
                         who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(trail)) ? (byte)trail : (byte)0;
                         who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(card)) ? (byte)card : (byte)0;
                         who.NameFx = Arena.Rank.Owns(rank, Arena.Rank.NameFxId(namefx)) ? (byte)namefx : (byte)0;
-                        who.PerkIds = Perks.Sanitize(perkBytes);
+                        who.ChosenPerks = Perks.Sanitize(perkBytes);
                         BroadcastLobby();
                     }
                     break;
@@ -830,7 +835,7 @@ namespace Arena
             me.Trail = Arena.Rank.Owns(me.Rank, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0;
             me.CardBg = Arena.Rank.Owns(me.Rank, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0;
             me.NameFx = Arena.Rank.Owns(me.Rank, p.NameFx) ? Arena.Rank.NameFxIndex(p.NameFx) : (byte)0;
-            me.PerkIds = Perks.Brought(p);
+            me.ChosenPerks = Perks.Brought(p);
         }
 
         /// Tells the lobby this player's rank and equipped frame: the host refreshes its own entry, a client tells the
@@ -858,9 +863,19 @@ namespace Arena
             SendToHost(Proto.End(w));
         }
 
+        /// Host: the perks a seat will bring. A continued run gives each seat the perks it was saved with, whatever was picked.
+        PerkId[] ShownPerks(LobbyEntry e)
+        {
+            if (Resume == null)
+                return e.ChosenPerks;
+            return e.Seat >= 0 && e.Seat < Resume.Seats.Count ? Perks.FromNames(Resume.Seats[e.Seat].Perks) : Perks.Empty;
+        }
+
         void BroadcastLobby()
         {
             SyncOwnCosmetics();
+            foreach (var le in Lobby.Values)
+                le.PerkIds = ShownPerks(le);
             SyncAvatars();  // (a new arrival gets a spot, and the next position broadcast tells everyone)
             var w = Proto.Begin(Msg.Lobby);
             w.Write((byte)Lobby.Count);

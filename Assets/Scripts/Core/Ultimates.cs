@@ -7,6 +7,10 @@ namespace Arena
     public partial class Game
     {
         public const float BulletRainRadius = 165f;  // Bullet Rain's zone (the Elementalist DPS ultimate)
+        /// Lifeline: seconds of invulnerability, how long its look runs (the 3 s plus a 0.7 s fade, Game/LifelineLook.cs), and the
+        /// plain ring and beam it also sends, which that look replaces when Visual effects are on (their durations mark them).
+        public const float LifelineInvuln = 3f, LifelineFxTime = 3.7f, LifelinePlainRing = 0.62f, LifelinePlainLink = 0.56f;
+
         bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm;
 
         /// Returns how many it erased; during a cast, every 5 count as a hit for mastery.
@@ -146,12 +150,13 @@ namespace Arena
                         if (q.Downed)
                             RevivePlayer(q, 1f, p);
                         Heal(q, q.MaxHp, p);
-                        q.InvulnT = Math.Max(q.InvulnT, 3f);
+                        q.InvulnT = Math.Max(q.InvulnT, LifelineInvuln);
                         if (cap)
                             q.OverdriveT = Math.Max(q.OverdriveT, 4f);
                         if (q != p)
-                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(0.4f, 1f, 0.55f), 0f, 0.55f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, q.Pos, new Rgba(0.4f, 1f, 0.55f), 90f, 0.6f, Sfx.None);
+                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(0.4f, 1f, 0.55f), 0f, LifelinePlainLink, Sfx.None);
+                        BroadcastFx(FxKind.Ring, q.Pos, new Rgba(0.4f, 1f, 0.55f), 90f, LifelinePlainRing, Sfx.None);
+                        BroadcastFx(FxKind.Lifeline, p.Pos, new V2(q.Id, p.Id), new Rgba(0.35f, 1f, 0.55f), q.Pos.DistanceTo(p.Pos), LifelineFxTime, Sfx.None);
                     }
                     Sounds.Add(Sfx.Ability);
                     break;

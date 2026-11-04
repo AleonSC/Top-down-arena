@@ -27,7 +27,7 @@ namespace Arena
             int seat;
             if (ResumeFrom != null && ResumeSeats.TryGetValue(e.Id, out seat) && seat >= 0 && seat < ResumeFrom.Seats.Count)
                 return Perks.FromNames(ResumeFrom.Seats[seat].Perks);
-            return e.PerkIds;
+            return e.ChosenPerks;
         }
 
         bool tickDamage;  // set while DamageOverTime runs
@@ -48,20 +48,40 @@ namespace Arena
             p.RiotT = Perks.RiotRecharge;
             p.InvulnT = Math.Max(p.InvulnT, Perks.RiotGraceT);
             p.Flash = 0.1f;
-            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.56f, 0.71f, 0.85f), 60f, 0.5f, Sfx.Clang);
-            BroadcastFx(FxKind.Spark, p.Pos, new Rgba(1f, 1f, 1f), 34f, 0.35f, Sfx.None);
+            BroadcastFx(FxKind.RiotBlock, p.Pos, RiotImpactPoint(p), new Rgba(0.56f, 0.71f, 0.85f), p.Def.BodyR + 11f, RiotBlockFxTime, Sfx.Clang);
             DoLog(p.Name + ": Riot Gear blocked " + source);
             return true;
+        }
+
+        public const float RiotBlockFxTime = 0.8f;
+
+        /// Where the blocked hit came from, for the effect: the enemy shot nearest you, else the nearest enemy, else behind where you aim.
+        V2 RiotImpactPoint(Player p)
+        {
+            float best = 90f * 90f;
+            V2 at = p.Pos - V2.FromAngle(p.Aim) * (p.Def.BodyR + 20f);
+            bool found = false;
+            foreach (var b in Bullets.Values)
+            {
+                float d = (b.Pos - p.Pos).LengthSq;
+                if (Defs.IsEnemyShot(b.Kind) && d < best) { best = d; at = b.Pos; found = true; }
+            }
+            if (found)
+                return at;
+            best = 170f * 170f;
+            foreach (var e in Enemies.Values)
+            {
+                float d = (e.Pos - p.Pos).LengthSq;
+                if (d < best) { best = d; at = e.Pos; }
+            }
+            return at;
         }
 
         /// Counts the recharge down (every frame, host and client; the host's number is the real one).
         void TickRiot(Player p, float dt)
         {
-            if (p.RiotT <= 0f)
-                return;
-            p.RiotT = Math.Max(0f, p.RiotT - dt);
-            if (p.RiotT <= 0f && IsHost && HasPerk(p, PerkId.RiotGear))
-                BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.56f, 0.71f, 0.85f), 40f, 0.5f, Sfx.None);  // it's back
+            if (p.RiotT > 0f)
+                p.RiotT = Math.Max(0f, p.RiotT - dt);
         }
     }
 }

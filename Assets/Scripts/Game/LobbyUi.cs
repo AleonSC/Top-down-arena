@@ -266,9 +266,10 @@ namespace Arena
                 bx -= 54f;
                 Ui.Badge(new Rect(bx, r.y + 10f, 50f, 20f), "HOST", Ui.GoldButton);
             }
-            DrawOneLine(new Rect(tx, r.y + 34f, r.xMax - tx - 10f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 11, Color.Lerp(color, Color.white, 0.15f), true);
+            DrawOneLine(new Rect(tx, r.y + 34f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 11, Color.Lerp(color, Color.white, 0.15f), true);
             DrawOneLine(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
                 Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, Ui.Muted, false);
+            DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
             var ready = new Rect(r.xMax - 98f, r.yMax - 30f, 86f, 20f);
             if (e.Ready)
                 Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + 0.1f * Mathf.Sin(t * 4f)));
@@ -386,7 +387,7 @@ namespace Arena
             Ui.Pill(hero, new Color(0.03f, 0.035f, 0.06f, 0.85f));
             DrawShowcase(me, ShowcaseRect(r), roleColor);  // (LobbyRoom.cs: the Hangout grows out of this window)
             float hy = hero.y + 196f;
-            Ui.Fancy(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, Color.Lerp(roleColor, Color.white, 0.3f), TextAnchor.MiddleCenter, roleColor);
+            Ui.Glitch(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, TextAnchor.MiddleCenter, roleColor);
             hy += 32f;
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
@@ -696,7 +697,7 @@ namespace Arena
             }
             Ui.Fancy(new Rect(c.X - 20f, c.Y - 14f, 40f, 28f), "F", 22, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
             float tx = x + rr * 2f + 18f, tw = area.xMax - 8f - tx;
-            Ui.Fancy(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Glitch(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), TextAnchor.MiddleLeft);
             Ui.Label(new Rect(tx, y + 23f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);
             Ui.Label(new Rect(tx, y + 37f, tw, 16f), "starts each match half full", 11, Ui.Muted);
             y += rr * 2f + 14f;
@@ -820,7 +821,7 @@ namespace Arena
             int size = 20;
             while (size > 13 && Ui.TextWidth(name, size, true) > col.width)
                 size--;
-            Ui.Fancy(new Rect(col.x, col.y + 15f, col.width + 10f, 28f), name, size, Color.white, Color.Lerp(accent, Color.white, 0.6f), TextAnchor.MiddleLeft);
+            Ui.Glitch(new Rect(col.x, col.y + 15f, col.width + 10f, 28f), name, size, Color.white, TextAnchor.MiddleLeft);
         }
 
         static float SpecTileWidth(Rect row, int n) => n <= 0 ? 0f : (row.width - 6f * (n - 1)) / n;
