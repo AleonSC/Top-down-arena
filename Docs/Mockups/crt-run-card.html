@@ -1,0 +1,228 @@
+<title>Latest Run CRT Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500;600&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: five variants of the same 620x126 run card, stacked, each a different kind of CRT. */
+:root {
+  --bg: #080b14;
+  --panel: #10162a;
+  --fg: #dfe8ff;
+  --muted: #7d8bb0;
+  --line: #243055;
+  --accent: #5b8cff;
+  --f-display: "VT323", "Courier New", monospace;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --f-ui: "Rajdhani", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--f-ui);
+  padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+header h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: .02em; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; max-width: 62ch; line-height: 1.45; }
+.opt { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.opt .tag { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.opt .tag b { font-size: 20px; letter-spacing: .04em; }
+.opt .tag span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.opt p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 66ch; }
+
+/* ---------- shared screen ---------- */
+.stage { background: var(--panel); border: 1px solid var(--line); padding: 22px; display: grid; place-items: center; }
+.set { width: 100%; max-width: 680px; }
+.screen {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--sbg); color: var(--ink);
+  font-family: var(--f-display); font-size: 20px; line-height: 1;
+  text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow);
+  padding: 16px 20px 18px;
+}
+/* scanlines */
+.screen::before {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
+/* vignette + glass */
+.screen::after {
+  content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background:
+    radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%),
+    linear-gradient(115deg, rgba(255,255,255,.07) 0 14%, transparent 30%);
+}
+.roll { position: absolute; left: 0; right: 0; height: 34%; z-index: 2; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.05), transparent);
+  animation: roll 7s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes flick { 0%, 100% { opacity: 1; } 47% { opacity: .96; } 50% { opacity: .9; } 53% { opacity: .97; } }
+@keyframes blink { 50% { opacity: 0; } }
+.screen > .body { position: relative; z-index: 1; animation: flick 5s infinite; }
+
+.osd { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 18px; letter-spacing: .08em; margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: 1.05fr 1.1fr auto; gap: 0; align-items: stretch; }
+.col { padding: 0 18px; min-width: 0; border-left: 1px dashed var(--rule); }
+.col:first-child { padding-left: 0; border-left: 0; }
+.col:last-child { padding-right: 0; display: grid; place-items: center; }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; opacity: .85; }
+.big { font-size: 46px; letter-spacing: .02em; margin: 2px 0 6px; }
+.kv { display: grid; grid-template-columns: 58px 1fr; font-size: 18px; line-height: 1.12; }
+.kv i { font-style: normal; color: var(--dim); text-shadow: none; }
+.seat { display: flex; align-items: center; gap: 10px; font-size: 21px; margin-top: 7px; white-space: nowrap; }
+.seat .bar { width: 4px; height: 17px; background: #4f86ff; box-shadow: 0 0 8px #4f86ff; flex: none; }
+.seat em { font-style: normal; color: var(--dim); font-size: 18px; text-shadow: none; overflow: hidden; text-overflow: ellipsis; }
+.go { font-family: var(--f-display); font-size: 30px; letter-spacing: .06em; padding: 12px 18px 10px; border: 2px solid var(--ink); color: var(--ink);
+  background: transparent; cursor: pointer; text-shadow: inherit; display: flex; gap: 10px; align-items: center; justify-content: center; white-space: nowrap; }
+.go:hover, .go:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.go svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.cur { display: inline-block; width: .55em; height: .85em; background: var(--ink); margin-left: 4px; vertical-align: -.08em; box-shadow: 0 0 8px var(--glow); animation: blink 1s steps(1) infinite; }
+.foot { display: flex; gap: 10px; margin-top: 14px; }
+.foot span { flex: 1; text-align: center; font-size: 19px; letter-spacing: .06em; padding: 9px 4px 7px; border: 1px solid var(--rule); color: var(--dim); text-shadow: none; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  .col { border-left: 0; padding: 0; }
+  .col + .col { border-top: 1px dashed var(--rule); padding-top: 12px; }
+  .col:last-child { display: block; }
+  .go { width: 100%; }
+  .foot { flex-wrap: wrap; } .foot span { flex: 1 1 40%; }
+  .big { font-size: 40px; }
+}
+
+/* ---------- 1 phosphor ---------- */
+.v1 .screen { --sbg: #03110a; --ink: #4dff9a; --dim: #2fa66a; --glow: rgba(60,255,150,.55); --rule: rgba(77,255,154,.28); border-radius: 14px; box-shadow: inset 0 0 40px rgba(0,0,0,.8), 0 0 0 5px #0d1a14, 0 0 0 7px #1c3a2a, 0 0 28px rgba(60,255,150,.18); }
+
+/* ---------- 2 amber terminal ---------- */
+.v2 .screen { --sbg: #120b02; --ink: #ffb23d; --dim: #b57a22; --glow: rgba(255,170,50,.5); --rule: rgba(255,178,61,.28); border-radius: 6px; box-shadow: inset 0 0 36px rgba(0,0,0,.8), 0 0 0 6px #1d1408, 0 0 0 8px #3a2a10; }
+.v2 .term { font-size: 21px; line-height: 1.18; }
+.v2 .term .row { display: flex; flex-wrap: wrap; gap: 0 18px; }
+.v2 .term .p { color: var(--dim); text-shadow: none; }
+.v2 .layout { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end; }
+.v2 .go { font-size: 26px; border-style: dashed; }
+@media (max-width: 560px) { .v2 .layout { grid-template-columns: 1fr; } }
+
+/* ---------- 3 VHS ---------- */
+.v3 .screen { --sbg: #0a1450; --ink: #f3f6ff; --dim: #aab6ff; --glow: rgba(120,150,255,.55); --rule: rgba(255,255,255,.28); border-radius: 10px;
+  text-shadow: 2px 0 rgba(255,40,80,.65), -2px 0 rgba(40,220,255,.65); box-shadow: inset 0 0 40px rgba(0,0,20,.7), 0 0 0 6px #14161c, 0 0 0 7px #2c3040; }
+.v3 .osd .play { color: #fff; font-size: 24px; } .v3 .osd .play i { font-style: normal; color: #6cff8a; text-shadow: 0 0 8px #6cff8a; }
+.v3 .stamp { color: #ffe86b; font-size: 22px; text-shadow: 2px 0 rgba(255,40,80,.5), -2px 0 rgba(40,220,255,.5); }
+.v3 .noise { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; z-index: 2; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 2px, rgba(255,255,255,.1) 2px 5px, rgba(255,255,255,.7) 5px 6px, transparent 6px 11px);
+  opacity: .5; mask-image: linear-gradient(to top, #000, transparent); -webkit-mask-image: linear-gradient(to top, #000, transparent); animation: jit .5s steps(2) infinite; }
+@keyframes jit { 50% { transform: translateX(-9px); } }
+.v3 .go { background: #fff; color: #0a1450; text-shadow: none; border-color: #fff; }
+.v3 .go:hover, .v3 .go:focus-visible { background: #ffe86b; border-color: #ffe86b; }
+.v3 .kv i { text-shadow: none; }
+
+/* ---------- 4 bezel TV ---------- */
+.v4 .set { background: linear-gradient(#2a2f3d, #171a24); border: 1px solid #3b4258; border-radius: 22px; padding: 18px; display: grid; grid-template-columns: 1fr 58px; gap: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12); }
+.v4 .screen { --sbg: #08142e; --ink: #cfe0ff; --dim: #6f8fd6; --glow: rgba(110,160,255,.5); --rule: rgba(160,190,255,.28); border-radius: 26px / 20px; box-shadow: inset 0 0 50px rgba(0,0,0,.85), inset 0 0 0 2px rgba(0,0,0,.6), 0 0 0 3px #0b0d14; }
+.v4 .go { border-radius: 4px; background: #5b8cff; color: #04102c; border-color: #5b8cff; text-shadow: none; }
+.v4 .go:hover, .v4 .go:focus-visible { background: #fff; border-color: #fff; }
+.v4 .side { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px 0; }
+.v4 .knob { width: 40px; height: 40px; border-radius: 50%; background: conic-gradient(from 20deg, #555c70, #9aa2bb, #555c70, #2c3142, #555c70); border: 3px solid #12151e; position: relative; box-shadow: 0 3px 6px rgba(0,0,0,.6); }
+.v4 .knob::after { content: ""; position: absolute; left: 50%; top: 4px; width: 3px; height: 11px; margin-left: -1.5px; background: #12151e; border-radius: 2px; }
+.v4 .knob.b { transform: rotate(48deg); }
+.v4 .grille { width: 36px; height: 38px; background: repeating-linear-gradient(#0c0e15 0 3px, #2a2f3d 3px 6px); border-radius: 3px; }
+.v4 .led { width: 8px; height: 8px; border-radius: 50%; background: #ff4b4b; box-shadow: 0 0 8px #ff4b4b; }
+@media (max-width: 560px) { .v4 .set { grid-template-columns: 1fr; } .v4 .side { flex-direction: row; } }
+
+/* ---------- 5 vector scope ---------- */
+.v5 .screen { --sbg: #020a0f; --ink: #6df3ff; --dim: #3b9fb0; --glow: rgba(80,230,255,.5); --rule: rgba(109,243,255,.3); border-radius: 12px;
+  background-image: linear-gradient(rgba(109,243,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(109,243,255,.1) 1px, transparent 1px);
+  background-size: 28px 28px; background-position: -1px -1px; box-shadow: inset 0 0 40px rgba(0,0,0,.8), 0 0 0 5px #0a1a22, 0 0 0 7px #1b4150; }
+.v5 .trace { width: 100%; height: 38px; display: block; margin: 6px 0 8px; }
+.v5 .trace path { fill: none; stroke: var(--ink); stroke-width: 2; filter: drop-shadow(0 0 4px var(--glow)); }
+.v5 .trace line { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; }
+.v5 .go { border-radius: 2px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Latest run, as a CRT</h1>
+    <p>Five takes on the "Continue your latest run" card. Same 620 x 126 layout and the same data in each: wave, saved, score, played, squad, and the Continue button. Hover the button to see its pressed state. Pick one, or mix parts, and I'll build it in <code>SavesUi.cs</code>.</p>
+  </header>
+
+  <section class="opt v1">
+    <div class="tag"><b>A. Phosphor</b><span>green mono, matches the title sign</span></div>
+    <div class="stage"><div class="set"><div class="screen"><div class="roll"></div><div class="body">
+      <div class="osd"><span>RUN 01</span><span>● READY</span></div>
+      <div class="grid">
+        <div class="col"><div class="lab">RUN</div><div class="big">Wave 1</div>
+          <div class="kv"><i>SAVED</i><span>Nov 4, 13:19</span><i>SCORE</i><span>0</span><i>PLAYED</i><span>0 min</span></div></div>
+        <div class="col"><div class="lab">SQUAD</div><div class="seat"><span class="bar"></span>Anthony <em>Soldier Tank</em></div></div>
+        <div class="col"><button class="go" type="button"><svg viewBox="0 0 16 16"><path d="M3 1l11 7-11 7z"/></svg>CONTINUE</button></div>
+      </div>
+    </div></div></div></div>
+    <p>Phosphor glow, scanlines, a slow rolling bar and a slight flicker. The button is outlined and flips to inverse video on hover.</p>
+  </section>
+
+  <section class="opt v2">
+    <div class="tag"><b>B. Amber terminal</b><span>text readout</span></div>
+    <div class="stage"><div class="set"><div class="screen"><div class="roll"></div><div class="body">
+      <div class="osd"><span>CARTESIAN-OS 1.0</span><span>SAVE.DAT</span></div>
+      <div class="layout">
+        <div class="term">
+          <div class="row"><span class="p">&gt;</span><span>LOAD LATEST_RUN</span></div>
+          <div class="row"><span class="p">WAVE</span><span>01</span><span class="p">SCORE</span><span>0</span><span class="p">PLAYED</span><span>0 MIN</span></div>
+          <div class="row"><span class="p">SAVED</span><span>NOV 4 13:19</span></div>
+          <div class="row"><span class="p">SQUAD</span><span>ANTHONY / SOLDIER TANK</span></div>
+          <div class="row"><span class="p">&gt;</span><span>READY</span><span class="cur"></span></div>
+        </div>
+        <button class="go" type="button">[ ENTER ] CONTINUE</button>
+      </div>
+    </div></div></div></div>
+    <p>The run reads as a boot log. The cursor blinks, and Continue is a keyboard-style prompt. Fits keyboard and gamepad focus well.</p>
+  </section>
+
+  <section class="opt v3">
+    <div class="tag"><b>C. VHS playback</b><span>ties into the existing TRK tracking buttons</span></div>
+    <div class="stage"><div class="set"><div class="screen"><div class="roll"></div><div class="body">
+      <div class="osd"><span class="play"><i>▶</i> PLAY</span><span class="stamp">SP 0:00:00</span></div>
+      <div class="grid">
+        <div class="col"><div class="lab">RUN</div><div class="big">Wave 1</div>
+          <div class="kv"><i>SAVED</i><span>Nov 4, 13:19</span><i>SCORE</i><span>0</span><i>PLAYED</i><span>0 min</span></div></div>
+        <div class="col"><div class="lab">SQUAD</div><div class="seat"><span class="bar"></span>Anthony <em>Soldier Tank</em></div>
+          <div class="stamp" style="margin-top:14px;font-size:20px">NOV 04 2026 13:19</div></div>
+        <div class="col"><button class="go" type="button"><svg viewBox="0 0 16 16"><path d="M3 1l11 7-11 7z"/></svg>CONTINUE</button></div>
+      </div>
+    </div><div class="noise"></div></div></div></div>
+    <p>Blue tape screen with red and cyan colour fringing, an on-screen PLAY indicator, a yellow date stamp and a jittering tracking-noise band at the bottom.</p>
+  </section>
+
+  <section class="opt v4">
+    <div class="tag"><b>D. Bezel TV</b><span>a physical set around the card</span></div>
+    <div class="stage"><div class="set">
+      <div class="screen"><div class="roll"></div><div class="body">
+        <div class="osd"><span>CH 03 · LATEST RUN</span><span>AV1</span></div>
+        <div class="grid">
+          <div class="col"><div class="lab">RUN</div><div class="big">Wave 1</div>
+            <div class="kv"><i>SAVED</i><span>Nov 4, 13:19</span><i>SCORE</i><span>0</span><i>PLAYED</i><span>0 min</span></div></div>
+          <div class="col"><div class="lab">SQUAD</div><div class="seat"><span class="bar"></span>Anthony <em>Soldier Tank</em></div></div>
+          <div class="col"><button class="go" type="button"><svg viewBox="0 0 16 16"><path d="M3 1l11 7-11 7z"/></svg>CONTINUE</button></div>
+        </div>
+      </div></div>
+      <div class="side"><span class="led"></span><span class="knob"></span><span class="knob b"></span><span class="grille"></span></div>
+    </div></div>
+    <p>The most literal one: curved screen corners, a plastic bezel, two knobs, a speaker grille and a power LED. It takes about 70px more width than the current card.</p>
+  </section>
+
+  <section class="opt v5">
+    <div class="tag"><b>E. Vector scope</b><span>fits "Cartesian" Colosseum</span></div>
+    <div class="stage"><div class="set"><div class="screen"><div class="roll"></div><div class="body">
+      <div class="osd"><span>CH1 · LATEST RUN</span><span>1 WAVE / DIV</span></div>
+      <div class="grid">
+        <div class="col"><div class="lab">RUN</div><div class="big">Wave 1</div>
+          <div class="kv"><i>SAVED</i><span>Nov 4, 13:19</span><i>SCORE</i><span>0</span><i>PLAYED</i><span>0 min</span></div></div>
+        <div class="col"><div class="lab">SQUAD</div><div class="seat"><span class="bar"></span>Anthony <em>Soldier Tank</em></div>
+          <svg class="trace" viewBox="0 0 200 38" preserveAspectRatio="none"><line x1="0" y1="19" x2="200" y2="19"/><path d="M0 19 C 12 -2, 24 -2, 36 19 S 60 40, 72 19 S 96 -2, 108 19 S 132 40, 144 19 S 168 -2, 180 19 L 200 19"/></svg></div>
+        <div class="col"><button class="go" type="button"><svg viewBox="0 0 16 16"><path d="M3 1l11 7-11 7z"/></svg>CONTINUE</button></div>
+      </div>
+    </div></div></div></div>
+    <p>A graticule grid with a cyan trace. The trace could grow with the wave number, so a deeper run draws a longer line. Names the game's own theme.</p>
+  </section>
+</div>
