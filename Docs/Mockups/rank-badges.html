@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rank Badge Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<style>
+/* Mockup: four redesigns of the rank badge, drawn at the same sizes the game uses (large on this screen and the Records
+   page, medium on lobby cards, small beside names). Tier colours are the game's. Rows are ranks that show each tier's
+   look (1, 5, 10, 20, 30) and a three-digit rank. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547;
+  --g-panel:#1a1f2e; --display:"Oxanium","Segoe UI",system-ui,sans-serif; --body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme:dark;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--body); }
+.wrap { max-width:1200px; margin:0 auto; padding-block:28px 64px; padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px)); display:grid; gap:24px; }
+h1,h2 { font-family:var(--display); margin:0; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--teal); }
+p { margin:0; max-width:72ch; color:#cfdae2; }
+.eyebrow { font:600 11px var(--display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.opt { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:12px; min-width:0; }
+.opt h2 { font-size:20px; letter-spacing:.04em; }
+.opt > p { font-size:14px; color:var(--muted); }
+.opt ul { margin:0; padding-left:18px; font-size:14px; color:#cfdae2; display:grid; gap:2px; }
+.board { background:linear-gradient(180deg,#141a33,#0b0e18); border:1px solid #2a3350; border-radius:12px; padding:14px; overflow-x:auto; }
+.rowb { display:grid; grid-template-columns:repeat(6,minmax(96px,1fr)); gap:10px; align-items:end; min-width:620px; }
+.cell { display:grid; justify-items:center; gap:4px; }
+.cell small { font:600 11px var(--display); letter-spacing:.08em; color:var(--muted); text-transform:uppercase; }
+.sizes { display:flex; gap:14px; align-items:flex-end; margin-top:10px; padding-top:10px; border-top:1px solid #2a3350; flex-wrap:wrap; }
+.chip { display:flex; align-items:center; gap:8px; background:#222a40; border-radius:10px; padding:6px 12px 6px 6px; }
+.chip b { font:700 15px var(--display); } .chip span { font-size:12px; color:#8f9bb8; }
+</style>
+<div class="wrap">
+  <div><div class="eyebrow">Mockup · Account rank</div><h1>Rank <span>badges</span></h1></div>
+  <p>Four ways to redraw the badge. Every option shows the same ranks: 1 (Recruit), 5 (Challenger), 10 (Veteran), 20 (Champion), 30 (Legend) and 142 to check three digits. Below each is the small version used beside names, and a menu-chip preview. Tier colours stay the game's: grey, blue, teal, purple, gold.</p>
+  <div id="root" style="display:grid;gap:24px"></div>
+</div>
+<script>
+const TC=["#8a94b0","#5996ff","#4fd1b5","#b573ff","#ffcc59"], TN=["Recruit","Challenger","Veteran","Champion","Legend"];
+const tier=r=>r>=30?4:r>=20?3:r>=10?2:r>=5?1:0;
+function hx(c){return [1,3,5].map(i=>parseInt(c.slice(i,i+2),16));}
+function mix(a,b,t){const A=hx(a),B=hx(b);return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("");}
+const lit=c=>mix(c,"#ffffff",.35), dim=c=>mix(c,"#0a0e1c",.62), deep=c=>mix(c,"#0a0e1c",.82);
+let uid=0;
+function num(r,x,y,base){ const s=String(r); const fs=s.length>=3?base*.62:s.length==2?base*.8:base; return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="Oxanium,sans-serif" font-weight="800" font-size="${fs}" fill="#fff" stroke="#05070e" stroke-width="${fs*.09}" paint-order="stroke" stroke-linejoin="round">${s}</text>`; }
+// A: engraved crest, wings from Champion up, a star on Legend
+function A(r,sz,detail=true){ const t=tier(r),c=TC[t],id="a"+(uid++);
+  const shield="M50 8 L88 20 V60 C88 86 66 104 50 112 C34 104 12 86 12 60 V20 Z", inner="M50 17 L79 26 V59 C79 79 63 93 50 100 C37 93 21 79 21 59 V26 Z";
+  let wings=""; if(t>=3&&detail){ const f=t==4?lit(c):c; wings=`<g fill="${f}" stroke="${deep(c)}" stroke-width="1.5"><path d="M12 38 L-6 30 L0 44 L-8 50 L2 56 L-2 68 L14 64 Z"/><path d="M88 38 L106 30 L100 44 L108 50 L98 56 L102 68 L86 64 Z"/></g>`; }
+  let star=t==4&&detail?`<path d="M50 -2 l4 9 10 1 -8 7 3 10 -9 -6 -9 6 3 -10 -8 -7 10 -1z" fill="${lit(c)}" stroke="${deep(c)}" stroke-width="1.5"/>`:"";
+  let chev=""; if(detail) for(let i=0;i<=t;i++){ const y=84-i*5.5; chev+=`<path d="M40 ${y} L50 ${y-6} L60 ${y} L60 ${y+2.5} L50 ${y-3.5} L40 ${y+2.5} Z" fill="${lit(c)}"/>`; }
+  return `<svg width="${sz}" height="${sz*1.1}" viewBox="-12 -6 124 128" aria-label="rank ${r}"><defs><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lit(c)}"/><stop offset=".5" stop-color="${c}"/><stop offset="1" stop-color="${dim(c)}"/></linearGradient><linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${mix(c,"#0a0e1c",.55)}"/><stop offset="1" stop-color="${deep(c)}"/></linearGradient></defs>${wings}${star}<path d="${shield}" fill="url(#${id}g)" stroke="${deep(c)}" stroke-width="2.5" stroke-linejoin="round"/><path d="${inner}" fill="url(#${id}i)" stroke="${lit(c)}" stroke-opacity=".55" stroke-width="1.5"/><path d="M50 17 L79 26 V40 C66 34 58 30 50 29 C42 30 34 34 21 40 V26 Z" fill="#fff" opacity=".1"/>${chev}${num(r,50,detail?46:55,detail?34:42)}</svg>`; }
+// B: hex medal with pips and a progress ring
+function B(r,sz,detail=true){ const t=tier(r),c=TC[t],id="b"+(uid++);
+  const hex=(R,cx=50,cy=50)=>[0,1,2,3,4,5].map(i=>{const a=Math.PI/3*i-Math.PI/2;return (cx+R*Math.cos(a)).toFixed(1)+","+(cy+R*Math.sin(a)).toFixed(1);}).join(" ");
+  let pips=""; if(detail) for(let i=0;i<5;i++){ pips+=`<circle cx="${30+i*10}" cy="95" r="3.2" fill="${i<=t?lit(c):deep(c)}" stroke="${i<=t?c:dim(c)}" stroke-width="1"/>`; }
+  const ring=detail?`<polygon points="${hex(47)}" fill="none" stroke="${dim(c)}" stroke-width="3" stroke-linejoin="round"/><polygon points="${hex(47)}" fill="none" stroke="${lit(c)}" stroke-width="3" stroke-linejoin="round" pathLength="100" stroke-dasharray="64 100" stroke-linecap="round"/>`:"";
+  return `<svg width="${sz}" height="${sz*1.05}" viewBox="0 0 100 105" aria-label="rank ${r}"><defs><radialGradient id="${id}" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="${mix(c,"#0a0e1c",.35)}"/><stop offset="1" stop-color="${deep(c)}"/></radialGradient></defs><polygon points="${hex(47)}" fill="url(#${id})" stroke="${c}" stroke-width="${detail?0:3}" stroke-linejoin="round"/>${ring}<polygon points="${hex(36)}" fill="none" stroke="${c}" stroke-opacity=".6" stroke-width="1.5" stroke-linejoin="round"/>${num(r,50,detail?47:50,detail?36:46)}${pips}</svg>`; }
+// C: pixel shield, properly shaded, number plate, pixel chevrons
+function C(r,sz,detail=true){ const t=tier(r),c=TC[t],W=16,H=19;
+  const inside=(x,y)=>{ if(y<0||y>=H||x<0||x>=W) return false; const half=y<11?7.5:7.5*(1-Math.pow((y-11)/8.4,1.6)); return Math.abs(x+.5-W/2)<=half; };
+  let px=""; for(let y=0;y<H;y++)for(let x=0;x<W;x++){ if(!inside(x,y)) continue;
+    const edge=!inside(x-1,y)||!inside(x+1,y)||!inside(x,y-1)||!inside(x,y+1);
+    const edge2=!edge&&(!inside(x-2,y)||!inside(x+2,y)||!inside(x,y-2)||!inside(x,y+2));
+    let col; if(edge) col=dim(c); else if(edge2) col=lit(c); else { col=mix(mix(c,"#0a0e1c",.6),"#0a0e1c",y/H*.5); if(x<5&&y<9) col=mix(col,c,.18); }
+    px+=`<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${col}"/>`; }
+  let ch=""; if(detail) for(let i=0;i<=t;i++){ const yb=10+i*2; for(let k=0;k<2;k++){ ch+=`<rect x="${W/2-1-k}" y="${yb+k}" width="1.02" height="1.02" fill="${lit(c)}"/><rect x="${W/2+k}" y="${yb+k}" width="1.02" height="1.02" fill="${lit(c)}"/>`; } }
+  return `<svg width="${sz}" height="${sz*H/W}" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges" aria-label="rank ${r}">${px}${ch}${num(r,W/2,detail?6.2:8.8,detail?6.6:8.6).replace('shape-rendering','')}</svg>`; }
+// D: round medallion with a progress ring and tier points
+function D(r,sz,detail=true){ const t=tier(r),c=TC[t],id="d"+(uid++);
+  let ticks="",n=24; for(let i=0;i<n;i++){ const a=2*Math.PI*i/n-Math.PI/2, x1=50+40*Math.cos(a),y1=50+40*Math.sin(a),x2=50+46*Math.cos(a),y2=50+46*Math.sin(a); ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${i/n<.62?lit(c):dim(c)}" stroke-width="${detail?3.2:4}" stroke-linecap="round"/>`; }
+  let pts=""; if(detail) for(let i=0;i<=t;i++){ const a=(-90+ (i-t/2)*22)*Math.PI/180; const x=50+30*Math.cos(a+Math.PI/2*0)*0; }
+  let dots=""; if(detail) for(let i=0;i<=t;i++){ const x=50+(i-t/2)*9; dots+=`<path d="M${x} 71 l3.2 3.2 -3.2 3.2 -3.2 -3.2z" fill="${lit(c)}"/>`; }
+  const laurel=t>=2&&detail?`<g fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" opacity=".9"><path d="M20 70 C8 56 8 38 18 26"/><path d="M80 70 C92 56 92 38 82 26"/></g>`:"";
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 100 100" aria-label="rank ${r}"><defs><radialGradient id="${id}" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="${mix(c,"#0a0e1c",.4)}"/><stop offset="1" stop-color="${deep(c)}"/></radialGradient></defs>${laurel}${ticks}<circle cx="50" cy="50" r="35" fill="url(#${id})" stroke="${c}" stroke-width="2.5"/><circle cx="50" cy="50" r="30" fill="none" stroke="${lit(c)}" stroke-opacity=".35" stroke-width="1"/>${num(r,50,detail?46:50,detail?30:36)}${dots}</svg>`; }
+const OPTS=[
+ ["A · Engraved crest",A,"The current shield, redrawn: a bevelled metal rim, an inset face, a highlight band and tier chevrons. Champion and Legend grow wings, and Legend gets a star. Reads as a rank at a glance and keeps the shield the game already uses.",["Closest to today's look, so it's the safest swap","Wings and star make the top tiers stand out","Detail drops out below about 40 px (the small version is a plain shield)"]],
+ ["B · Hex medal",B,"A hexagon medal with an inner rim, five pips along the bottom (one more lit per tier) and an outer ring that fills toward the next rank. It shows tier and progress in one shape.",["Progress is visible on the badge itself","Pips make the tier readable without colour","A new shape, so everything that shows a badge changes"]],
+ ["C · Pixel shield, reshaded",C,"Keeps the pixel-art feel but fixes the shading: a dark outline, a light inner edge, a top-left highlight and bolder pixel chevrons. Closest to the game's pixel-art UI icons.",["Fits the existing pixel icons","Crisp at small sizes","Five chevrons get cramped on the top tiers (pips would fit better)","Least impressive at large sizes"]],
+ ["D · Round medallion",D,"A circular medal with a ring of ticks that lights up as you approach the next rank, a diamond per tier under the number, and laurels from Veteran up.",["Looks like a medal, great as the big badge","The tick ring doubles as an XP meter","Round, so it no longer matches the shield-shaped frames and cosmetics"]]];
+const RANKS=[1,5,10,20,30,142];
+function build(){ document.getElementById("root").innerHTML=OPTS.map(([name,f,desc,pros])=>`<div class="opt"><div class="eyebrow">Option</div><h2>${name}</h2><p>${desc}</p>
+ <div class="board"><div class="rowb">${RANKS.map(r=>`<div class="cell">${f(r,92)}<small>R${r} · ${TN[tier(r)]}</small></div>`).join("")}</div>
+ <div class="sizes">${[96,48,28,20].map(s=>`<div class="cell">${f(14,s,s>=40)}<small>${s}px</small></div>`).join("")}
+ <div class="chip">${f(14,44)}<span style="display:grid"><b>Anthony</b><span style="color:${TC[2]}">Veteran · Rank 14</span></span></div>
+ <div class="chip">${f(31,44)}<span style="display:grid"><b>Aleon</b><span style="color:${TC[4]}">Legend · Rank 31</span></span></div></div></div>
+ <ul>${pros.map(x=>`<li>${x}</li>`).join("")}</ul></div>`).join(""); }
+build();
+</script>
+</body>
+</html>
