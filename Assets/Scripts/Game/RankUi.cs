@@ -234,6 +234,8 @@ namespace Arena
                 int rk = row.Rank;
                 Ui.Fancy(b, row.Name, 34, Color.white, RankLook.TierColor(rk), TextAnchor.MiddleCenter, new Color(0.4f, 0.5f, 0.8f, 0.3f));
             }
+            else if (row.Cosmetic.Kind == CosmeticKind.NameEffect)
+                DrawName(b, nameText, 26, Rank.NameFxIndex(row.Cosmetic.Id), t, Color.white, TextAnchor.MiddleCenter);
             else if (row.Cosmetic.Kind == CosmeticKind.Emote)
             {
                 if (BeginUiGl()) { UiModelAt(new V2(b.center.x, b.center.y + 24f), 1.3f); DrawGenericPlayer(t); EndUiGl(); }
@@ -354,8 +356,8 @@ namespace Arena
             Ui.Label(new Rect(x, top + 202f, lw, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 12, Ui.Text, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(x, top + 220f, lw, 18f), p.Xp.ToString("N0") + " XP in total", 11, Ui.Muted, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(x, top + 262f, lw, 16f), "EQUIPPED", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[,] eq = { { "Title", Rank.Title(info.Rank) }, { "Frame", NameOf(p.Frame) }, { "Trail", NameOf(p.Trail) }, { "Background", NameOf(p.Background) }, { "Card", NameOf(p.CardBg) } };
-            for (int i = 0; i < 5; i++)
+            string[,] eq = { { "Title", Rank.Title(info.Rank) }, { "Frame", NameOf(p.Frame) }, { "Trail", NameOf(p.Trail) }, { "Background", NameOf(p.Background) }, { "Card", NameOf(p.CardBg) }, { "Name", NameOf(p.NameFx) } };
+            for (int i = 0; i < 6; i++)
             {
                 var rr = new Rect(x, top + 284f + i * 34f, lw, 28f);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, 0.04f));

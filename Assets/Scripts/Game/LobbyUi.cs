@@ -242,7 +242,7 @@ namespace Arena
             if (e.Id == 1)
                 bx -= 54f;
             float badgesLeft = (mine || e.Id == 1) ? bx : r.xMax - 12f;
-            DrawOneLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 26f), e.Name, 19, 13, Color.white, true);
+            DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 26f), e.Name, 19, 13, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
             bx = r.xMax - 12f;
             if (mine)
             {
@@ -745,6 +745,22 @@ namespace Arena
         }
 
         /// One line of text that always stays inside r: smaller text first (down to minSize), then cut short with "…".
+        /// A name on one line: smaller text first, then cut short, like DrawOneLine, drawn in their name effect.
+        void DrawNameLine(Rect r, string text, int size, int minSize, int fx, float t)
+        {
+            int s = size;
+            while (s > minSize && Ui.TextWidth(text, s, true) > r.width)
+                s--;
+            if (Ui.TextWidth(text, s, true) > r.width)
+            {
+                int n = text.Length;
+                while (n > 1 && Ui.TextWidth(text.Substring(0, n).TrimEnd() + "…", s, true) > r.width)
+                    n--;
+                text = text.Substring(0, n).TrimEnd() + "…";
+            }
+            DrawName(r, text, s, fx, t, Color.white);
+        }
+
         static void DrawOneLine(Rect r, string text, int size, int minSize, Color color, bool bold)
         {
             int s = size;

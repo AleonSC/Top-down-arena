@@ -80,6 +80,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
+- `EnemyPresenceLook.cs`: regular enemies' soft shadow and quiet colour glow with Visual effects on (look D of `Docs/Mockups/enemy-prominence.html`)
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
 - `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on
 - `SoldierLooks.cs`: Soldier DPS ability looks with Visual effects on: Dash's comet streak, the Cluster Grenade's flight ring and Frag Burst blast, Mark for Death's reticle and skull
@@ -108,7 +109,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `PerksUi.cs`: the lobby's Perks tab (placeholder: every slot and perk locked, "Coming soon"; see `Docs/BossHuntsAndPerks.md`)
 - `CosmeticsUi.cs`: your cosmetics window (the drawer opened by the main menu's name chip: Frame, Trail, Background, Reward ladder)
-- `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
+- `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a room where everyone's character walks with WASD wearing their cosmetics (`Docs/Hangout.md`)
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds (the picker is in Settings > Visual effects)
 - `SavesUi.cs`: Continue list, Records, unlock toasts

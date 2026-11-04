@@ -38,6 +38,42 @@ namespace Arena
             Ui.Alpha = oldAlpha;
         }
 
+        // --- The body ---------------------------------------------------------------------------------------------
+
+        int emoteBodyFor = -1;  // the player id whose model is being drawn now (-1: none; the lobby sets it for its characters)
+
+        /// How far an emote moves the player's model (in world units: a hop, a sway, a shake) and how far it turns it, for the
+        /// player being drawn. The footprint, hitbox ring and name stay put; only the model moves. Zero with Visual effects off.
+        bool EmoteBody(int playerId, out V2 off, out float spin)
+        {
+            off = V2.Zero;
+            spin = 0f;
+            int index;
+            float t;
+            if (!fxOn || !session.EmoteOf(playerId, out index, out t))
+                return false;
+            float fade = t > Session.EmoteLife - 0.35f ? Mathf.Max(0f, (Session.EmoteLife - t) / 0.35f) : 1f;
+            switch (Rank.EmoteId(index))
+            {
+                case "emote-wave": off = new V2(Mathf.Sin(t * 3f) * 2f, 0f); break;
+                case "emote-thumbs": off = new V2(0f, -Mathf.Sin(Mathf.Min(t, 0.4f) / 0.4f * 3.14159f) * 4f); break;
+                case "emote-cheer": off = new V2(0f, -Mathf.Abs(Mathf.Sin(t * 6f)) * 7f * fade); break;
+                case "emote-laugh": off = new V2(Mathf.Sin(t * 34f) * 1.6f * fade, -Mathf.Abs(Mathf.Sin(t * 12f)) * 2f); break;
+                case "emote-sleep": off = new V2(0f, Mathf.Min(t, 0.6f) / 0.6f * 4f * fade); break;
+                case "emote-dance": off = new V2(Mathf.Sin(t * 7f) * 6f * fade, -Mathf.Abs(Mathf.Sin(t * 7f)) * 5f * fade); break;
+                case "emote-spin":
+                {
+                    float q = Mathf.Min(1f, t / 1.1f);
+                    spin = (1f - (1f - q) * (1f - q) * (1f - q)) * 12.566f;  // two full turns, easing out
+                    break;
+                }
+                case "emote-salute": off = new V2(0f, -Mathf.Min(t, 0.2f) * 10f * fade); break;  // snaps up straight
+                case "emote-steam": off = new V2(Mathf.Sin(t * 40f) * 1.2f * fade, 0f); break;
+                default: return false;
+            }
+            return true;
+        }
+
         // --- Pieces ---------------------------------------------------------------------------------------------
 
         /// A point in the emote's own units (x across, y up from the player's centre; the bubble sits about 54 up), in HUD pixels.

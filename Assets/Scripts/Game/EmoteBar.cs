@@ -11,6 +11,8 @@ namespace Arena
         bool emoteBarOpen;
         float emoteBarK;     // 0 closed .. 1 open (eases)
         int emoteFirst;      // the first emote in view
+        /// How many emotes the bar shows at once, and so how many number-key slots it has.
+        static int EmoteView => Mathf.Max(1, Mathf.FloorToInt((EmoteBarW - 2f * (EmoteArrowW + 2f) - 2f * EmotePad + 8f) / EmoteStep));
         const float EmoteBarW = 520f, EmoteBarH = 78f, EmoteTile = 56f, EmoteTileH = 64f, EmoteStep = 64f, EmotePad = 34f, EmoteArrowW = 32f;
 
         /// Every emote number your rank has, in unlock order.
@@ -36,10 +38,13 @@ namespace Arena
             emoteBarK = Mathf.MoveTowards(emoteBarK, emoteBarOpen ? 1f : 0f, Time.unscaledDeltaTime * 7f);
             if (!emoteBarOpen)
                 return;
+            // The number keys are the slots of the bar (1 is the leftmost one in view): they always mean the same place, so which
+            // emote a key plays depends on how far along the bar you've scrolled.
             var own = EmotesOwned();
-            for (int i = 0; i < 9 && i < own.Count; i++)
-                if (Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1 + i)))
-                    session.SendEmote(own[i]);
+            emoteFirst = Mathf.Clamp(emoteFirst, 0, Mathf.Max(0, own.Count - EmoteView));
+            for (int k = 0; k < EmoteView; k++)
+                if (emoteFirst + k < own.Count && Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1 + k)))
+                    session.SendEmote(own[emoteFirst + k]);
         }
 
         /// UI: the bar, with its centre-bottom at (cx, bottom).
@@ -54,7 +59,7 @@ namespace Arena
             Ui.Alpha = oldAlpha * emoteBarK;
             var bar = new Rect(cx - EmoteBarW / 2f, bottom - EmoteBarH + (1f - emoteBarK) * 8f, EmoteBarW, EmoteBarH);
             var win = new Rect(bar.x + EmoteArrowW + 2f, bar.y, bar.width - 2f * (EmoteArrowW + 2f), bar.height);
-            int view = Mathf.Max(1, Mathf.FloorToInt((win.width - 2f * EmotePad + 8f) / EmoteStep));
+            int view = EmoteView;
             int maxFirst = Mathf.Max(0, own.Count - view);
             emoteFirst = Mathf.Clamp(emoteFirst, 0, maxFirst);
             var ev = Event.current;
@@ -76,6 +81,7 @@ namespace Arena
 
             // The tiles, each faded by how near it is to an end of the window.
             float fadeW = win.width * 0.22f;
+            string hoverName = null;
             Vector2 mp = ev.mousePosition;
             for (int i = 0; i < own.Count; i++)
             {
@@ -97,7 +103,11 @@ namespace Arena
                 GUI.BeginGroup(tile);
                 DrawEmote(own[i], new Vector2(tile.width / 2f, 46f), EmoteIconTime(own[i]), 0.62f);
                 GUI.EndGroup();
-                Ui.Label(new Rect(tile.x, tile.yMax - 14f, tile.width, 12f), i < 9 ? (i + 1).ToString() : Rank.Cosmetic(Rank.EmoteId(own[i])).Name.Replace(" emote", ""), 9, new Color(0.9f, 0.93f, 0.96f, 0.75f), TextAnchor.MiddleCenter, true);
+                int slot = i - emoteFirst;  // 0.. : the number key that plays it (only the ones in view have one)
+                if (slot >= 0 && slot < view)
+                    Ui.Label(new Rect(tile.x, tile.yMax - 14f, tile.width, 12f), (slot + 1).ToString(), 9, new Color(0.9f, 0.93f, 0.96f, 0.85f), TextAnchor.MiddleCenter, true);
+                if (hot)
+                    hoverName = Rank.Cosmetic(Rank.EmoteId(own[i])).Name.Replace(" emote", "");
                 Ui.NoteHover(tile);
                 Ui.Alpha = old2;
                 if (hot && ev.type == EventType.MouseDown && ev.button == 0)
@@ -114,7 +124,7 @@ namespace Arena
                 Ui.Fill(track, new Color(1f, 1f, 1f, 0.1f));
                 Ui.Fill(new Rect(track.x, track.y, track.width * Mathf.Clamp01(wait / Mathf.Max(0.01f, session.EmotePause)), track.height), new Color(0.5f, 0.7f, 1f, 0.9f));
             }
-            Ui.Label(new Rect(bar.x, bar.y - 18f, bar.width, 14f), "SCROLL OR CLICK THE ARROWS  ·  CLICK TO USE  ·  1-9", 9, new Color(0.9f, 0.93f, 0.96f, 0.7f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(bar.x, bar.y - 18f, bar.width, 14f), hoverName != null ? hoverName.ToUpperInvariant() : "SCROLL OR USE THE ARROWS  ·  CLICK OR PRESS 1-" + view, 9, new Color(0.9f, 0.93f, 0.96f, 0.7f), TextAnchor.MiddleCenter, true);
             Ui.Alpha = oldAlpha;
         }
 

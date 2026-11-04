@@ -347,7 +347,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
   Enemies and bullets don't wrap, so the edges make a good escape route.
-- Your hitbox is the small white dot in the middle of your character, not the whole circle.
+- Your hitbox is the small coloured dot ringed in white in the middle of your character, not the whole circle.
 - **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't
   move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding
   (drops fall off it), **red crosshair** = marked (takes extra damage).
@@ -379,6 +379,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
 little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 13** the early rushers are gone (melee
 comes back in squads, and with the Reaver from wave 28).
+
+With **Visual effects** on, regular enemies stand out from the floor: a soft dark shadow under each body and a faint glow in their own colour, much quieter than a player's halo. Bosses, spawning enemies and zombies don't get it.
 
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
@@ -733,7 +735,7 @@ as usual.
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Mute sound | M |
-| Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press 1-9 to play it. While it is open a click picks instead of firing. Let go and it closes |
+| Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
 | Change any of these keys | Settings → Keybinds (see below) |
@@ -825,13 +827,13 @@ blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
 yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
-XP bar; click the name or the pencil to rename, anywhere else to open your cosmetics window) and on each results card;
+XP bar; click the name to rename, anywhere else to open your cosmetics window) and on each results card;
 the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
 what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name chip on the main menu. A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background**, **Card background** and the **Reward ladder**; the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect** and the **Reward ladder**; the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
@@ -864,6 +866,35 @@ each kind at a time:
 | 37 | **Void Rift card**: a slow violet vortex behind your portrait (the fill of your lobby party card, behind your name) |
 | 42 | **Gilded Foil card**: brushed gold with a sheen sweeping across (the fill of your lobby party card, behind your name) |
 | 55 | **Prism Shards card**: spectrum shards turning slowly and overlapping (the fill of your lobby party card, behind your name) |
+| 1 | **Wave emote**: a hand waves while you sway |
+| 1 | **Thumbs up emote**: a thumb pops up, you bob |
+| 3 | **GG emote** |
+| 7 | **Cheer emote**: you hop, with a burst of confetti |
+| 10 | **Heart emote**: small hearts floating up |
+| 12 | **Laugh emote**: you shake with it |
+| 15 | **Question emote** |
+| 17 | **Sleep emote**: Zs drifting up while you sink |
+| 21 | **Dance emote**: you sway to the beat, notes drifting off |
+| 25 | **Spin emote**: two turns inside a ring of light |
+| 31 | **Salute emote**: you snap upright |
+| 41 | **Fireworks emote**: three bursts in turn |
+| 52 | **Steam emote**: puffs of steam and a red bubble, you shake |
+| 4 | **Steel Outline name**: a thin steel-blue line round white letters |
+| 11 | **Frost name**: white fading to ice blue with a cold glow |
+| 13 | **Ember name**: yellow fading to orange-red with sparks lifting off |
+| 18 | **Neon name**: white letters with a cyan glow that breathes |
+| 22 | **Wave name**: letters riding a gentle wave, cyan shading into violet |
+| 27 | **Shimmer name**: silver with a white sheen gliding across |
+| 33 | **Glitch name**: red and cyan fringes, and every couple of seconds a slice jumps sideways |
+| 36 | **Glitchy name**: always glitching: letters jump, swap for symbols, the line splits and slides, the fringes pulse and it flickers |
+| 38 | **Fire name**: yellow core to red tips, each letter flickering, flames licking up |
+| 44 | **Gold Foil name**: rich gold with a sheen sweeping across |
+| 48 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
+| 56 | **Rainbow name**: every letter its own hue, turning round the spectrum |
+
+**Name effects** change how your name is drawn for everyone: on the lobby party card, the Hangout name plate and the tag over your head in a match (small names keep only colour and glow, so they stay readable; with Visual effects off each is still).
+
+**Emotes** are a short bubble over your head for 2.4 s (a gesture, a heart, GG...) that everyone sees, in the Hangout and in a match; several also move your character (a hop, a sway, a shake, two spins), the model only, never your hitbox, and not with Visual effects off. Every one your rank has is on the emote bar (hold T); nothing to equip. After one there is a 2 s pause in a match (0.75 s in the Hangout).
 
 Everyone in the match sees your trail, and everyone in the lobby sees your rank, frame and card background; the host clamps what
 players report, and only accepts a frame or trail your rank has. XP, what's equipped and the last six runs are kept in
@@ -945,7 +976,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
   (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen, a big **Host game** button over **Join game** and **Continue** (how many runs are
-  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name or its pencil button to
+  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name to
   change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
   draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
   any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box

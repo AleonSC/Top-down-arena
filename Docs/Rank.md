@@ -107,7 +107,8 @@ Placeholder ladder, from the mockup:
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).
 - **Frame**: the border of your lobby party card (and your results card).
 - **Card background**: the fill of your lobby party card, behind your name (`Game/CardBackgrounds.cs`; mockup `Docs/Mockups/card-backgrounds.html`). Ten, from rank 6 to 55. Everyone in the lobby sees it (`LobbyEntry.CardBg`, protocol 140).
-- **Emote**: a bubble over your head for 2.4 s, seen by everyone in the Hangout and in a match (`Game/EmoteLooks.cs`, the bar in `Game/EmoteBar.cs`; mockups `Docs/Mockups/emotes.html`, `emote-bar.html`). Thirteen, rank 1 to 52, nothing to equip: hold the Emote key (T) for the bar. `Msg.Emote` (protocol 141); the host checks the rank and keeps the pause (2 s in a match, 0.75 s in the lobby).
+- **Name effect**: how your name is drawn for everyone (`Game/NameEffects.cs`, `DrawName`; mockup `Docs/Mockups/name-effects.html`). Twelve, rank 4 to 56, including Glitchy at 36. `LobbyEntry.NameFx`, protocol 142.
+- **Emote**: a bubble over your head for 2.4 s, seen by everyone in the Hangout and in a match (`Game/EmoteLooks.cs`, the bar in `Game/EmoteBar.cs`; mockups `Docs/Mockups/emotes.html`, `emote-bar.html`). Thirteen, rank 1 to 52, nothing to equip: hold the Emote key (T) for the bar; the number keys 1-6 play the bar's slots (the leftmost in view is 1), so they play whatever you have scrolled to. Some move the model (`EmoteBody` in `EmoteLooks.cs`, applied in `DrawPlayer` and the Hangout avatar). `Msg.Emote` (protocol 141); the host checks the rank and keeps the pause (2 s in a match, 0.75 s in the lobby).
 - **Menu background**: an extra entry in the Settings > Visual effects picker (`MenuBackgrounds.cs`).
 - Equipped on a Cosmetics tab in the lobby (or Records). One of each kind at a time. Everyone sees your frame and
   title; the trail is seen by the players in the match.
@@ -159,7 +160,7 @@ From the mockup, in priority order:
   and is skipped while locked.
 - **Menu chip** (reworked Nov 2026): a generic player figure (no role or class: those are picked in the lobby), your
   name, your rank title and number, the XP bar under them and the badge on the right. It uses your equipped frame
-  for its rim. Click the name or the pencil to rename; click anywhere else on it to open your cosmetics window.
+  for its rim. Click the name to rename; click anywhere else on it to open your cosmetics window.
 - **Cosmetics window** (`Game/CosmeticsUi.cs`): look C, the drawer, from [`Mockups/customization.html`](Mockups/customization.html)
   (https://claude.ai/artifact/GXoYicaHt5JUazDpKnkfPU): a drawer with your rank and a row per category (Frame, Trail,
   Background, Reward ladder), and the open one on the right with a live preview, how others see you, and the Equip

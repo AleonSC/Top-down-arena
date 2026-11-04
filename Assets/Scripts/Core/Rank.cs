@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a cosmetic changes. Titles aren't here: they come with the tier (Rank.TierName).
-    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote }
+    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote, NameEffect }
 
     /// A cosmetic reward for reaching a rank. Id is stored in the profile: never change one once players own it.
     public class CosmeticDef
@@ -136,6 +136,18 @@ namespace Arena
             new CosmeticDef { Id = "emote-salute", Name = "Salute emote", Kind = CosmeticKind.Emote, Rank = 31 },
             new CosmeticDef { Id = "emote-fireworks", Name = "Fireworks emote", Kind = CosmeticKind.Emote, Rank = 41 },
             new CosmeticDef { Id = "emote-steam", Name = "Steam emote", Kind = CosmeticKind.Emote, Rank = 52 },
+            new CosmeticDef { Id = "name-outline", Name = "Steel Outline name", Kind = CosmeticKind.NameEffect, Rank = 4 },
+            new CosmeticDef { Id = "name-frost", Name = "Frost name", Kind = CosmeticKind.NameEffect, Rank = 11 },
+            new CosmeticDef { Id = "name-ember", Name = "Ember name", Kind = CosmeticKind.NameEffect, Rank = 13 },
+            new CosmeticDef { Id = "name-neon", Name = "Neon name", Kind = CosmeticKind.NameEffect, Rank = 18 },
+            new CosmeticDef { Id = "name-wave", Name = "Wave name", Kind = CosmeticKind.NameEffect, Rank = 22 },
+            new CosmeticDef { Id = "name-shimmer", Name = "Shimmer name", Kind = CosmeticKind.NameEffect, Rank = 27 },
+            new CosmeticDef { Id = "name-glitch", Name = "Glitch name", Kind = CosmeticKind.NameEffect, Rank = 33 },
+            new CosmeticDef { Id = "name-glitchy", Name = "Glitchy name", Kind = CosmeticKind.NameEffect, Rank = 36 },
+            new CosmeticDef { Id = "name-fire", Name = "Fire name", Kind = CosmeticKind.NameEffect, Rank = 38 },
+            new CosmeticDef { Id = "name-gold", Name = "Gold Foil name", Kind = CosmeticKind.NameEffect, Rank = 44 },
+            new CosmeticDef { Id = "name-void", Name = "Void name", Kind = CosmeticKind.NameEffect, Rank = 48 },
+            new CosmeticDef { Id = "name-rainbow", Name = "Rainbow name", Kind = CosmeticKind.NameEffect, Rank = 56 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -203,6 +215,9 @@ namespace Arena
         public static byte EmoteIndex(string id) => IndexOf(CosmeticKind.Emote, id);
         public static string EmoteId(int index) => IdOf(CosmeticKind.Emote, index);
         public static int EmoteCount => OfKind(CosmeticKind.Emote).Count;
+        /// Name effects (Game/NameEffects.cs): the look of a player's name, seen by everyone. 0 none, then 1.. in table order.
+        public static byte NameFxIndex(string id) => IndexOf(CosmeticKind.NameEffect, id);
+        public static string NameFxId(int index) => IdOf(CosmeticKind.NameEffect, index);
         public static string CardBgId(int index) => IdOf(CosmeticKind.CardBackground, index);  // "card-dusk" ... (Game/CardBackgrounds.cs draws them)
 
         /// The frame's base colour for a lobby entry's frame number (the extras on top are Game/FrameLooks.cs).
