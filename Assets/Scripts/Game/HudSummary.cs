@@ -52,7 +52,7 @@ namespace Arena
                 var shake = EndTitleShake();
                 var tr = new Rect(shake.x - W * (ts - 1f) / 2f, ty + shake.y - 33f * (ts - 1f), W * ts, 66f * ts);
                 EndPart(titleIn, Vector2.zero, () =>
-                    Ui.Fancy(tr, title, Mathf.RoundToInt(baseSize * ts), Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f)));
+                    Ui.Glitch(tr, title, Mathf.RoundToInt(baseSize * ts), Color.white, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f)));
             }
             var oldAlpha = Ui.Alpha;
             var oldColor = GUI.color;
