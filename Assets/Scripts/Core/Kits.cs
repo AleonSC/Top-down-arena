@@ -112,7 +112,7 @@ namespace Arena
             new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
             new ZoneDef { Name = "Soul Lantern", Color = new Rgba(1f, 0.9f, 0.5f), HealRate = 5f, PreventDown = true },
             new ZoneDef { Name = "Meteor", Color = new Rgba(1f, 0.35f, 0.15f), BlastDamage = 150f },
-            new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), HealRate = 20f, PreventDown = true, BlockCapacity = 1500f },
+            new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), PreventDown = true, BlockCapacity = 1500f },  // heals in pulses (Sanctum.cs), not by HealRate
             new ZoneDef { Name = "World Tree", Color = new Rgba(0.4f, 0.9f, 0.4f), HealRate = 18f, Dps = 20f, Slow = 0.4f },
             new ZoneDef { Name = "Consecrated Ground", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 12f, Dps = 20f },
             new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), BlastDamage = 200f },

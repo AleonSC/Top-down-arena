@@ -31,6 +31,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Combat.cs`: bullets, collisions, damage to players/enemies, on-hit/on-kill, burn, orbs
 - `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
 - `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates, ability XP/levels
+- `Sanctum.cs`: the Healer Elementalist's Sanctum ultimate: seven healing pulses from the dome's centre, each ally healed as the ring reaches them (`SanctumPulse`, called from `TickZones`; `SanctumLook.cs` draws the bubble)
 - `Aegis.cs`: the Elementalist tank's Aeroaegis vortex (goes to the player the cursor is nearest, enemies held out; `AeroaegisLook.cs` draws it)
 - `Dome.cs`: the Tank Soldier's Fortress dome (enemies and their shots held out, `DomeLook.cs` draws it)
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs`: parry shield, stun, knockback slides, repulsion cannon
@@ -103,6 +104,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `EnergyWardLook.cs`: the Healer Elementalist's Energy Ward bubble with Visual effects on: a spring-driven radius that shrinks and squashes toward each hit, blue to green, and a green heal core growing inside (Heal core + Jelly hits)
 - `MendPulseLook.cs`: the Healer Soldier's Mend Pulse with Visual effects on: a swelling fill, a double-beat ring and a heart on each ally reached (style B, Heartbeat)
 - `TankLooks.cs`: the Tank Soldier's Roar (wave, enemy "!" pops, orbiting plates, draining rim, tethers) and Bulldoze (lane, afterimages, bow wave, hit sparks, landing stomp) with Visual effects on, timed from the cast's `FxKind.Callout`
+- `SanctumLook.cs`: Sanctum's Bubble look (shimmering shell, pulse discs and sparkles, rim flare, flicker at the end); the old plain dome with Visual effects off
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)

@@ -838,6 +838,8 @@ namespace Arena
                     else if (d.HealRate > 0f)
                         Heal(q, d.HealRate * z.HealMult * (d.ReviveBoost > 0f && Players.Count == 1 ? SoloZoneHeal : 1f) * dt, PlayerOrNull(z.Owner));  // alone, nobody to revive: heals faster
                 }
+                if (z.Kind == ZoneKind.Sanctum)
+                    SanctumPulse(z, dt);  // Sanctum.cs
                 if (z.Kind == ZoneKind.BloodPool && !z.Congealed && z.Duration - z.T >= PoolCongeal)
                     CongealPool(z);  // BloodMage.cs
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
