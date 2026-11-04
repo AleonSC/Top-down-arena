@@ -787,6 +787,13 @@ stack above it) and **your card** right of it (health, shield, level, XP). Teamm
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
 the top middle, and the "Hold TAB" hint is in the top-right corner.
 
+**Chat.** In a match, press **Enter** to open a text line at the bottom right, above your card and the teammates'
+rows. Type (up to 120 characters), **Enter** sends and **Esc** cancels. While you type, movement, abilities and
+the pause key are ignored. Each message is a small pill with an edge in its player's colour; lines fade away one by
+one after about 6 seconds, and the box is gone when it's quiet (a line from a teammate shows it again for a moment,
+without taking your keyboard). The line also closes itself after 12 seconds with no typing. The host keeps it to
+about one message a second per player. Mockup: `Docs/Mockups/chat-box.html`.
+
 ## End of a run
 
 When a run ends a results screen in the level-up picker's style says **GAME OVER** (red, with the boss that
