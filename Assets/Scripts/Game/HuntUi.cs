@@ -15,7 +15,7 @@ namespace Arena
             bool host = session.IsHost;
             var profile = game.Profile;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Fancy(new Rect(x, y, w, 28f), "BOSS HUNT", 20, Color.white, Color.Lerp(HuntColor, Color.white, 0.4f), TextAnchor.MiddleLeft, HuntColor);
+            Ui.Glitch(new Rect(x, y, w, 28f), "BOSS HUNT", 20, Color.white, TextAnchor.MiddleLeft, HuntColor);
             Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Pick a boss to hunt: nine waves of its own enemies, then the boss. Beat a boss in a run to open its hunt."
                 : "The host picks the boss (from the hunts they've opened).", 12, Ui.Muted);
             y += 56f;
@@ -40,7 +40,7 @@ namespace Arena
                 Ui.Card(c, picked ? HuntColor : open ? Ui.Gold : Ui.Muted, picked ? 0.9f : hover ? 0.5f : open ? 0.25f : 0.08f);
                 if (picked)
                     Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(HuntColor.r, HuntColor.g, HuntColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
-                Ui.Label(new Rect(c.x, c.y + 96f, c.width, 18f), BossName(boss), 13, open || picked ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
+                Ui.Glitch(new Rect(c.x, c.y + 96f, c.width, 18f), BossName(boss), 13, open || picked ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
                 string state = hunt == null ? "Coming soon" : open ? (profile.HuntWon(boss) > 0 ? "Won " + profile.HuntWon(boss) + " of " + profile.HuntPlayed(boss) : Hunts.Length + " waves") : "Locked";
                 Ui.Label(new Rect(c.x, c.y + 116f, c.width, 16f), state, 11, hunt != null && open ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter);
                 if (hunt != null && !open)
@@ -71,7 +71,7 @@ namespace Arena
             }
             bool can = Hunts.Available(picked2, profile);
             string name = BossName(picked2.Boss);
-            Ui.Fancy(new Rect(info.x + 14f, info.y + 8f, info.width - 28f, 26f), picked2.Name.ToUpperInvariant(), 18, Color.white, Color.Lerp(HuntColor, Color.white, 0.4f), TextAnchor.MiddleLeft);
+            Ui.Glitch(new Rect(info.x + 14f, info.y + 8f, info.width - 28f, 26f), picked2.Name.ToUpperInvariant(), 18, Color.white, TextAnchor.MiddleLeft);
             Ui.Label(new Rect(info.x + 14f, info.y + 36f, info.width - 28f, 40f),
                 "Waves 1-" + (Hunts.Length - 1) + ": only " + name + "'s own enemies, tougher ones joining as you go. Wave " + Hunts.Length + ": " + name
                 + ". Beat it and the hunt is won. No paths, challenge rooms or saving; modifiers and difficulty still apply.", 12, Ui.Text, TextAnchor.UpperLeft, false, true);
