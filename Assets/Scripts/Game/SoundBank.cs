@@ -529,6 +529,19 @@ namespace Arena
             Set(Sfx.ProfChord, Finish(Reverb(Mix(Tone(0.85f, Osc.Sine, 110f, 110f, 0.12f, attack: 0.03f, decay: 2f), Tone(0.85f, Osc.Triangle, 165f, 165f, 0.12f, attack: 0.03f, decay: 2f),
                 Tone(0.85f, Osc.Sine, 220f, 220f, 0.12f, attack: 0.03f, decay: 2f), Tone(0.85f, Osc.Triangle, 277f, 277f, 0.1f, attack: 0.03f, decay: 2f))), 0.22f), 0.4f);
 
+            // The menu title typing (MenuIntro.cs): a mechanical keyboard. Each key is a click over a soft thock (four takes, slightly
+            // different pitch, played in turn); the space bar is deeper; the last letter is Enter, a bigger thock.
+            var titleKeys = new float[4][];
+            float[] keyHz = { 0.92f, 1f, 1.08f, 0.97f };
+            for (int k = 0; k < 4; k++)
+                titleKeys[k] = Finish(Mix(Tone(0.008f, Osc.Sine, 2200f * keyHz[k], 2200f * keyHz[k], 0.18f, noise: 0.9f, lowpass: 0.6f, attack: 0.001f, decay: 3f),
+                    Tone(0.045f, Osc.Sine, 150f * keyHz[k], 90f, 0.22f, attack: 0.002f, decay: 3f)), 0.2f);
+            Set(Sfx.TitleKey, titleKeys, 0f);
+            Set(Sfx.TitleSpace, Finish(Mix(Tone(0.012f, Osc.Sine, 1500f, 1500f, 0.16f, noise: 0.9f, lowpass: 0.5f, attack: 0.001f, decay: 3f),
+                Tone(0.07f, Osc.Sine, 95f, 60f, 0.3f, attack: 0.002f, decay: 3f)), 0.26f), 0f);
+            Set(Sfx.TitleEnter, Finish(Mix(Tone(0.014f, Osc.Sine, 1400f, 1400f, 0.22f, noise: 0.9f, lowpass: 0.5f, attack: 0.001f, decay: 3f),
+                Tone(0.12f, Osc.Sine, 110f, 55f, 0.4f, attack: 0.002f, decay: 3f)), 0.34f), 0f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
