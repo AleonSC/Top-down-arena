@@ -109,7 +109,7 @@ Themed on each boss's mechanics. Numbers are starting points.
 
 | Boss | Perk | Effect |
 |---|---|---|
-| Warden | **Riot Gear** | A one-hit shield that blocks the first hit you take each wave. |
+| Warden | **Riot Gear** | A shield that blocks one hit, then recharges in 30 s (plan: [`RiotGear.md`](RiotGear.md)). |
 | Warden | Contraband | Chests at the start of each boss cycle are guaranteed rare or better. |
 | Hive Queen | **Royal Jelly** | Health orbs heal 30% more, and you pick them up from further away. |
 | Hive Queen | Brood | Start each wave with a small drone that orbits you and chips enemies (weak, dies in a few hits). |
