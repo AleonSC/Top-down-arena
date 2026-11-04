@@ -186,6 +186,7 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot)
                     DrawSmallShot(b, t);
+            DrawFrozenShots(t);  // bullets a Lumen Ward is holding (LumenWardLook.cs)
             DrawQueenSwarm(t);  // QueenLook.cs
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);

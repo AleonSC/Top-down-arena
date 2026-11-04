@@ -42,6 +42,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, clones, Vanish
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
+- `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
 - `RadiantOrb.cs`: Healer's Radiant Orb
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
@@ -86,6 +87,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
+- `LumenWardLook.cs`: Lumen Ward's cone of light (look A, Cathedral, of `Docs/Mockups/sanctify-cone.html`: bands, god rays, dust) and the halo on bullets it holds
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
