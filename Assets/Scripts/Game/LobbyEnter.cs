@@ -93,7 +93,7 @@ namespace Arena
             float k = EaseInOut(Seg(e, 0f, 0.7f));
             var r = LerpRect(MenuCard, LobbyBodyRect, k);
             if (k < 1f || e < 1.05f)
-                Ui.Panel(r, true);
+                Ui.BodyPanel(r);
             float empty = Seg(e, 0f, 0.15f);
             if (empty < 1f)
                 WithAlpha(1f - empty, () => DrawMenuCardInside(t, false));

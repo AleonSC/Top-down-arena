@@ -366,7 +366,7 @@ namespace Arena
 
         void DrawLoadout(LobbyEntry me, Rect r, float t)
         {
-            Ui.Panel(r);
+            Ui.BodyPanel(r);
             var roleColor = ToColor(Defs.Get(me.Role).Color);
 
             // Hero card: your character on a glowing pedestal, with the numbers that matter.

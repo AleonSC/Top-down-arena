@@ -28,7 +28,7 @@ namespace Arena
 
         void DrawDifficulty(Rect r, float t)
         {
-            Ui.Panel(r);
+            Ui.BodyPanel(r);
             bool host = session.IsHost, locked = session.Resume != null;
             bool canEdit = host && !locked;
             var diff = session.Diff;
