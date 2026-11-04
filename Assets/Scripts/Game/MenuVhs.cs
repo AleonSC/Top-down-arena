@@ -64,6 +64,7 @@ namespace Arena
                 GUI.color = old;
             }
             bool clicked;
+            Ui.SilentHover = true;
             if (dx != 0f)
             {
                 GUI.BeginGroup(new Rect(dx, 0f, 4000f, 4000f));
@@ -72,6 +73,7 @@ namespace Arena
             }
             else
                 clicked = draw();
+            Ui.SilentHover = false;
             GUI.color = old;
 
             if (clicked)
