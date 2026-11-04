@@ -74,7 +74,11 @@ Design doc: [`Rank.md`](Rank.md); mockups: [`Mockups/rank-screens.html`](Mockups
 bonus for harder modifiers; ranks unlock cosmetics only (titles, trails, frames, menu backgrounds).
 - [x] **Built** (Nov 2026, protocol 135): `Rank.cs` + profile XP + `rank` tests, the results strip, the lobby badge and
       frame, the menu chip, Records > Rank, the Ember and Gold stardust trails, the Steel and Gold frames, and the Dusk
-      Grid background. See "As built" in the doc. Left for later: tuning the XP numbers from real play.
+      Grid background. See "As built" in the doc.
+- [x] **More rank trails.** Built (Nov 2026, protocol 136): Frost 14, Storm 18, Void 22 and Prism 35, from
+      [`Mockups/rank-trails.html`](Mockups/rank-trails.html) (https://claude.ai/artifact/L5DppgBwZDXzgAaPo2cf2o). Drawing only
+      (`TrailPiece` in `Game/RankTrails.cs`, shared with the cosmetics window samples). Trails are numbered in rank order in the
+      lobby, so Gold went from 2 to 5, hence the bump. The reward ladder panel goes to three columns. Armory and Bestiary untouched. Left for later: tuning the XP numbers from real play.
 
 ## Unlocks & ascensions plan
 Two layers that don't compete: **unlocks give new items, ascensions deepen the ones you have.** Both use the unused

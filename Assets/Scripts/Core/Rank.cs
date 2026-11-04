@@ -100,9 +100,13 @@ namespace Arena
         {
             new CosmeticDef { Id = "trail-ember", Name = "Ember trail", Kind = CosmeticKind.Trail, Rank = 8 },
             new CosmeticDef { Id = "frame-steel", Name = "Steel frame", Kind = CosmeticKind.Frame, Rank = 12 },
+            new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 14 },
             new CosmeticDef { Id = "bg-dusk", Name = "Dusk grid", Kind = CosmeticKind.Background, Rank = 15 },
+            new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 18 },
+            new CosmeticDef { Id = "trail-void", Name = "Void trail", Kind = CosmeticKind.Trail, Rank = 22 },
             new CosmeticDef { Id = "trail-gold", Name = "Gold stardust", Kind = CosmeticKind.Trail, Rank = 25 },
             new CosmeticDef { Id = "frame-gold", Name = "Gold frame", Kind = CosmeticKind.Frame, Rank = 30 },
+            new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 35 },
         };
 
         public static CosmeticDef Cosmetic(string id)

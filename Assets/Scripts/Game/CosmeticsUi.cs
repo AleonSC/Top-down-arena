@@ -222,12 +222,13 @@ namespace Arena
             OpenSectionPanel("REWARD LADDER", Ui.Gold, "What each rank unlocks. Titles come with your tier.", k);
             int rank = p.RankNow;
             var rows = Ladder();  // RankUi.cs
-            float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f, cw = (DrawerPanel.width - 52f - 14f) / 2f;
+            int cols = rows.Count > 12 ? 3 : 2;  // three columns once the ladder is long (the panel is a fixed height)
+            float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f, cw = (DrawerPanel.width - 52f - 14f * (cols - 1)) / cols;
             for (int i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
                 bool got = row.Rank <= rank;
-                var rr = new Rect(x + (i % 2) * (cw + 14f), top + (i / 2) * 92f, cw, 80f);
+                var rr = new Rect(x + (i % cols) * (cw + 14f), top + (i / cols) * 92f, cw, 80f);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, got ? 0.05f : 0.025f));
                 RankLook.Draw(new Rect(rr.x + 12f, rr.y + 16f, 48f, 48f), row.Rank, got ? 1f : 0.5f);
                 Ui.Label(new Rect(rr.x + 76f, rr.y + 14f, rr.width - 90f, 24f), row.Name, 18, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -242,28 +243,14 @@ namespace Arena
         {
             if (kind == 0)
                 return;
-            bool gold = Rank.TrailId(kind) == "trail-gold";
+            string id = Rank.TrailId(kind);
             const int n = 18;
             V2 prev = V2.Zero;
             for (int i = 1; i <= n; i++)
             {
-                float f = i / (float)n, a = 1f - f;
+                float f = i / (float)n;
                 var pt = new V2(-f * len, Mathf.Sin(f * 5f + t * 3f) * amp * f);
-                if (gold)
-                {
-                    Line(prev, pt, 3f * a + 0.5f, new Rgba(1f, 0.85f, 0.4f, 0.22f * a));
-                    if (i % 2 == 0)
-                    {
-                        float tw = 0.5f + 0.5f * Mathf.Sin(t * 14f + i * 1.7f);
-                        Circle(pt + V2.FromAngle(i * 2.4f) * (4f * f), 1.2f + 1.4f * a * tw, new Rgba(1f, 0.95f, 0.75f, 0.85f * a * tw), 6);
-                    }
-                }
-                else
-                {
-                    Line(prev, pt, 5f * a + 0.5f, new Rgba(1f, 0.4f, 0.1f, 0.16f * a));
-                    float flick = 0.6f + 0.4f * Mathf.Sin(t * 20f + i * 2.3f);
-                    Circle(pt + new V2(0f, -10f * f), 1.6f + 2.2f * a * flick, new Rgba(1f, 0.55f + 0.3f * a, 0.15f, 0.75f * a), 7);
-                }
+                TrailPiece(id, pt, prev, i, f, t, V2.Zero);
                 prev = pt;
             }
         }

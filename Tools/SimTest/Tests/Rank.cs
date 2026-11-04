@@ -95,7 +95,9 @@ static partial class Program
         hp.Equip(CosmeticKind.Trail, "trail-ember");
         client.ShareCosmetics(); host.ShareCosmetics();
         PollBoth(host, client);
-        Check(entry(host, cid).Trail == 2 && entry(client, cid).Trail == 2 && entry(client, 1).Trail == 1 && Rank.TrailId(2) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the match");
+        Check(entry(host, cid).Trail == 5 && entry(client, cid).Trail == 5 && entry(client, 1).Trail == 1 && Rank.TrailId(5) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the match");
+        Check(Rank.RewardsAt(14)[0].Id == "trail-frost" && Rank.RewardsAt(18)[0].Id == "trail-storm" && Rank.RewardsAt(22)[0].Id == "trail-void" && Rank.RewardsAt(35)[0].Id == "trail-prism"
+              && Rank.OfKind(CosmeticKind.Trail).Count == 6 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(7) == "", "Frost, Storm, Void and Prism unlock at 14, 18, 22 and 35, and every trail has its own lobby number");
         cp.Trail = "trail-gold"; cp.Xp = Rank.XpAt(24);  // not theirs at rank 24
         client.ShareCosmetics();
         PollBoth(host, client);
