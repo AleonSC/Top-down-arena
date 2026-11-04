@@ -90,9 +90,22 @@ namespace Arena
                 });
             }
 
+            // Which page: the players' stat cards, or the rank report (RankUi.cs; a new run's results start on the stats).
+            if (!ReferenceEquals(game.LastGain, rankGainSeen))
+            {
+                rankGainSeen = game.LastGain;
+                resultsRankPage = false;
+            }
+            bool rankPage = resultsRankPage && game.RunStatsReady && game.LastGain != null;
+
             // A trophy card for each player.
             const float cardTop = 176f, cardH = 408f;
-            if (!game.RunStatsReady)
+            if (rankPage)
+            {
+                float rk = EndCardIn(0);
+                EndPart(rk, new Vector2(0f, 60f * (1f - Ease(rk))), () => DrawRankReport(new Rect(70f, cardTop, W - 140f, 460f), now - rankPageAt));
+            }
+            else if (!game.RunStatsReady)
                 Ui.Label(new Rect(0f, cardTop + 180f, W, 30f), "Collecting results…", 18, Ui.Muted, TextAnchor.MiddleCenter);
             else
             {
@@ -109,12 +122,17 @@ namespace Arena
                 }
             }
 
-            // The rank strip: what the run earned towards your account rank (Rank.cs, RankUi.cs).
-            if (game.RunStatsReady && game.LastGain != null)
+            // The rank strip: what the run earned towards your account rank (Rank.cs, RankUi.cs). Click it for the full report.
+            if (game.RunStatsReady && game.LastGain != null && !rankPage)
             {
                 float sk = EndingOn ? Seg(endT, EndButtonsAt, EndButtonsAt + 1.8f) : 1f;
                 var strip = new Rect(70f, cardTop + cardH + 8f, W - 140f, 44f);
-                EndPart(EndCardIn(0), new Vector2(0f, 40f * (1f - Ease(EndCardIn(0)))), () => DrawRankStrip(strip, sk, now));
+                EndPart(EndCardIn(0), new Vector2(0f, 40f * (1f - Ease(EndCardIn(0)))), () =>
+                {
+                    DrawRankStrip(strip, sk, now);
+                    if (Ui.HitArea(strip))
+                        OpenRankReport(now);
+                });
             }
 
             // Buttons, laid out like the lobby's: Leave on the left, the host's choices on the right.
@@ -124,6 +142,18 @@ namespace Arena
                 float by = H - 82f;
                 if (Ui.FancyButton(new Rect(70f, by, 170f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), now))
                     session.Leave("");
+                if (game.RunStatsReady && game.LastGain != null)  // the two pages of the results
+                {
+                    bool up = game.LastGain.RankedUp;
+                    var tint = up && !rankPage ? Color.Lerp(Ui.GoldButton, new Color(1f, 0.85f, 0.4f), 0.5f + 0.5f * Mathf.Sin(now * 5f)) : Ui.Neutral;
+                    if (Ui.FancyButton(new Rect(256f, by, 168f, 48f), rankPage ? "Stats" : "Rank report", tint, PixelArt.Get(rankPage ? "ui_back" : "ui_trophy"), now, 16))
+                    {
+                        if (rankPage)
+                            resultsRankPage = false;
+                        else
+                            OpenRankReport(now);
+                    }
+                }
                 if (session.IsHost)
                 {
                     float bx = W - 70f;

@@ -203,7 +203,7 @@ namespace Arena
         {
             float half = (body.width - 14f) / 2f;
             // Recording.
-            var rec = new Rect(body.x, body.y, half, 212f);
+            var rec = new Rect(body.x, body.y, half, 150f);
             float y = DevCard(rec, "Session recording", "Saves each match you host as JSON for balancing.", new Color(1f, 0.45f, 0.45f));
             bool on = Ui.Toggle(new Rect(rec.x + 16f, y, rec.width - 32f, 26f), recordSessions, "Record sessions (when hosting)");
             if (on != recordSessions)
@@ -217,6 +217,22 @@ namespace Arena
             if (Ui.Button(new Rect(rec.x + 16f, y, 190f, 30f), "Open sessions folder"))
                 OpenFolder(SessionsFolder);
             Ui.Label(new Rect(rec.x + 16f, y + 36f, rec.width - 32f, 18f), "Summarise them with Tools/SessionReport", 11, Ui.Muted);
+
+            // Account rank (RankUi.cs): set this computer's rank without playing for it.
+            var rk = new Rect(body.x, body.y + 164f, half, 120f);
+            var prof = Profile.Current;
+            y = DevCard(rk, "Account rank", "Rank " + prof.RankNow + "  ·  " + prof.Xp.ToString("N0") + " XP  ·  this computer's profile", Ui.Gold);
+            float rbw = (rk.width - 32f - 16f) / 3f;
+            string[] rankNames = { "+1 rank", "+10 ranks", "Rank 30" };
+            for (int i = 0; i < 3; i++)
+                if (Ui.Button(new Rect(rk.x + 16f + i * (rbw + 8f), y, rbw, 26f), rankNames[i], Ui.Neutral))
+                    DevSetRank(i == 0 ? prof.RankNow + 1 : i == 1 ? prof.RankNow + 10 : 30);
+            y += 32f;
+            if (Ui.Button(new Rect(rk.x + 16f, y, rbw, 26f), "Max rank", Ui.GoldButton))
+                DevSetRank(Rank.MaxRank);
+            if (Ui.Button(new Rect(rk.x + 16f + (rbw + 8f), y, rbw, 26f), "Reset", Ui.Danger))
+                DevSetRank(1);
+            Ui.Label(new Rect(rk.x + 16f + 2f * (rbw + 8f) - 8f, y, rbw + 8f, 26f), "Rank 30: every reward", 10, Ui.Muted, TextAnchor.MiddleLeft);
 
             // Overlays and the bot.
             var ov = new Rect(body.x + half + 14f, body.y, half, 212f);
@@ -249,7 +265,7 @@ namespace Arena
                 OpenFolder(PracticeFolder);
 
             // Boss Lab.
-            var lab = new Rect(body.x, body.y + 226f, body.width, 150f);
+            var lab = new Rect(body.x, body.y + 296f, body.width, 112f);
             y = DevCard(lab, "Boss Lab", "Watch bots that play like people fight any boss, with any party, at up to 8x speed, and see what hurts them.", Ui.Gold);
             if (Ui.Button(new Rect(lab.x + 16f, y + 6f, 260f, 44f), "Open Boss Lab", Ui.GoldButton))
             {
@@ -259,7 +275,7 @@ namespace Arena
             Ui.Label(new Rect(lab.x + 292f, y + 6f, lab.width - 308f, 44f), "Starting the lab leaves any match you're in.", 11, Ui.Muted, TextAnchor.MiddleLeft, false, true);
 
             // The wave editor (WaveEditorUi.cs).
-            var wed = new Rect(body.x, body.y + 390f, body.width, 140f);
+            var wed = new Rect(body.x, body.y + 420f, body.width, 110f);
             y = DevCard(wed, "Wave editor", "Design waves on a timeline: enemies, squads, spawn points, timing and props. Test them in the Practice Range.", EdColor);
             if (Ui.Button(new Rect(wed.x + 16f, y + 6f, 260f, 44f), "Open wave editor", EdDark(EdColor, 0.75f)))
                 OpenWaveEditor();

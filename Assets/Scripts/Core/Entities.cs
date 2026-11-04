@@ -35,6 +35,8 @@ namespace Arena
         ShotRepulse, SpellChainCone, SpellChainArc,
         // The Radiant Orb (RadiantOrb.cs): cast, a twinkle each tick that touches something, and fading out. Sent, so quieter for allies.
         RadiantCast, RadiantTouch, RadiantFade,
+        // Zombie Infection (Zombies.cs; SoundBank.cs recipes): a groan now and then, getting back up, spit, a grab, a scream, a burst, a mend.
+        ZombieGroan, ZombieRise, ZombieSpit, ZombieGrab, ZombieShriek, ZombieBurst, ZombieMend,
     }
 
     public struct SoundCue

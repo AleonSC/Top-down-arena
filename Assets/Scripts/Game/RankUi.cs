@@ -90,6 +90,196 @@ namespace Arena
             Line(at(5f, -4f), at(5f, 4f), 2f, new Rgba(0.25f, 0.3f, 0.45f));  // a visor line, so you can tell which way it faces
         }
 
+        // --- The rank report (the results screen's second page) ----------------------------------------------------
+
+        bool resultsRankPage;     // the results show the rank report instead of the stat cards
+        float rankPageAt;         // when it was opened (its rows tick in and its bar fills from then)
+        RankGain rankGainSeen;    // which run's gain the page choice belongs to
+
+        void OpenRankReport(float now)
+        {
+            resultsRankPage = true;
+            rankPageAt = now;
+        }
+
+        /// The full report (Docs/Mockups/rank-screens.html, screen 1): your badge and bar with the XP breakdown ticking in under
+        /// it, the rank-up, your party's ranks, and the reward you've just earned or the next one to go for. rt is the seconds
+        /// since the page opened.
+        void DrawRankReport(Rect r, float rt)
+        {
+            var g = game.LastGain;
+            if (g == null)
+                return;
+            float now = Time.unscaledTime;
+            const float RowAt = 0.45f, RowGap = 0.32f;
+
+            // The breakdown, as rows.
+            var rows = new List<string[]>();  // label, detail, value, kind (0 normal, 1 muted, 2 modifier, 3 total)
+            foreach (var l in g.Award.Lines)
+                rows.Add(new[] { l.Label, l.Detail, l.Xp.ToString("N0"), "0" });
+            bool hasMult = Mathf.Abs(g.Award.ModMult - 1f) > 0.001f, hasDiff = Mathf.Abs(g.Award.DiffMult - 1f) > 0.001f;
+            if (hasMult || hasDiff)
+                rows.Add(new[] { "Subtotal", "", g.Award.Subtotal.ToString("N0"), "1" });
+            if (hasMult)
+                rows.Add(new[] { "Modifiers", string.Join(", ", g.Award.ModNotes.ToArray()), "×" + g.Award.ModMult.ToString("0.##"), "2" });
+            if (hasDiff)
+                rows.Add(new[] { "Difficulty", "", "×" + g.Award.DiffMult.ToString("0.##"), "2" });
+            rows.Add(new[] { "Total", "", "+" + g.Award.Total.ToString("N0") + " XP", "3" });
+            float barAt = RowAt + RowGap * rows.Count + 0.25f;
+            float k = Seg(rt, barAt, barAt + 1.7f);
+            var info = Rank.Of(g.Before + (long)(g.Award.Total * Ease(k)));
+            bool up = info.Rank > g.RankBefore;
+            var col = RankLook.TierColor(info.Rank);
+
+            // Left: you.
+            var left = new Rect(r.x, r.y, 700f, r.height);
+            Ui.Card(left, up ? Ui.Gold : col, up ? 0.9f : 0.6f);
+            Ui.Label(new Rect(left.x + 26f, left.y + 16f, 300f, 16f), "YOUR RANK", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            float crossAt = barAt + 1.7f * 0.5f, since = rt - crossAt;
+            float pop = up ? 1f + 0.22f * Mathf.Max(0f, Mathf.Sin(Mathf.Clamp(since * 4f, 0f, Mathf.PI))) : 1f;
+            float bs = 112f * pop;
+            RankLook.Draw(new Rect(left.x + 26f + (112f - bs) / 2f, left.y + 40f + (112f - bs) / 2f, bs, bs), info.Rank);
+            Ui.Fancy(new Rect(left.x + 156f, left.y + 40f, 380f, 36f), nameText, 28, Color.white, Color.Lerp(col, Color.white, 0.4f), TextAnchor.MiddleLeft, new Color(col.r, col.g, col.b, 0.4f));
+            Ui.Label(new Rect(left.x + 156f, left.y + 78f, 320f, 22f), Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 16, col, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(left.xMax - 226f, left.y + 78f, 200f, 22f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 14, Ui.Text, TextAnchor.MiddleRight, true);
+            Ui.Bar(new Rect(left.x + 156f, left.y + 112f, left.width - 182f, 20f), info.Fraction, col);
+            if (up && since > 0f && since < 0.5f)  // a flash across the bar as the rank turns over
+                Ui.Fill(new Rect(left.x + 156f, left.y + 112f, left.width - 182f, 20f), new Color(1f, 1f, 1f, 0.5f * (1f - since / 0.5f)));
+            if (up && since > 0f)
+                Ui.Fancy(new Rect(left.x + 330f, left.y + 36f, 340f, 40f), "RANK UP!", 30, Color.white, Ui.Gold, TextAnchor.MiddleRight, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.6f * Mathf.Clamp01(since * 3f)));
+
+            // The breakdown ticking in.
+            float y = left.y + 158f;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                float a = Seg(rt, RowAt + RowGap * i, RowAt + RowGap * i + 0.3f);
+                if (a <= 0f)
+                    continue;
+                var row = rows[i];
+                int kind = int.Parse(row[3]);
+                var rr = new Rect(left.x + 20f + 24f * (1f - Ease(a)) * -1f, y + i * 34f, left.width - 40f, 30f);
+                int ri = i;
+                WithAlpha(a, () =>
+                {
+                    if (kind == 3)
+                        Ui.Pill(rr, new Color(1f, 0.8f, 0.35f, 0.12f));
+                    else if (kind == 2)
+                        Ui.Pill(rr, new Color(0.7f, 0.45f, 1f, 0.12f));
+                    Ui.Label(new Rect(rr.x + 14f, rr.y, 230f, rr.height), row[0], kind == 3 ? 18 : 15, kind == 3 ? Ui.Gold : kind == 1 ? Ui.Muted : Ui.Text, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(rr.x + 230f, rr.y, rr.width - 360f, rr.height), row[1], 12, kind == 2 ? new Color(0.78f, 0.65f, 1f) : Ui.Muted, TextAnchor.MiddleLeft);
+                    Ui.Label(new Rect(rr.xMax - 150f, rr.y, 136f, rr.height), row[2], kind == 3 ? 20 : 16, kind == 3 ? Ui.Gold : kind == 2 ? new Color(0.78f, 0.65f, 1f) : Color.white, TextAnchor.MiddleRight, true);
+                });
+            }
+
+            // Right, top: the party's ranks.
+            var party = new Rect(r.x + 720f, r.y, r.width - 720f, 196f);
+            Ui.Card(party, Ui.Accent, 0.5f);
+            Ui.Label(new Rect(party.x + 22f, party.y + 14f, 200f, 16f), "PARTY", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            float py = party.y + 38f;
+            foreach (var pl in game.Players.Values)
+            {
+                if (py + 46f > party.yMax)
+                    break;
+                int pr = pl.Id == game.MyId ? info.Rank : RankOfPlayer(pl);
+                var pc = ToColor(pl.Def.Color);
+                RankLook.Draw(new Rect(party.x + 22f, py, 40f, 40f), pr);
+                Ui.Label(new Rect(party.x + 74f, py - 2f, party.width - 100f, 24f), pl.Name + (pl.Id == game.MyId ? "  (you)" : ""), 16, Color.Lerp(pc, Color.white, 0.25f), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(party.x + 74f, py + 20f, party.width - 100f, 18f), Rank.Title(pr) + "  ·  Rank " + pr, 12, RankLook.TierColor(pr), TextAnchor.MiddleLeft, true);
+                py += 50f;
+            }
+
+            // Right, bottom: the reward you earned, or the next one.
+            var rw = new Rect(party.x, party.yMax + 16f, party.width, r.yMax - party.yMax - 16f);
+            Ui.Card(rw, Ui.Gold, 0.4f);
+            LadderRow shown = null;
+            bool earned = false;
+            if (g.Unlocked.Count > 0)
+            {
+                earned = true;
+                shown = new LadderRow { Rank = g.Unlocked[0].Rank, Name = g.Unlocked[0].Name, Kind = g.Unlocked[0].Kind.ToString(), Cosmetic = g.Unlocked[0] };
+            }
+            else if (g.RankedUp && Rank.Title(g.RankAfter) != Rank.Title(g.RankBefore))
+            {
+                earned = true;
+                shown = new LadderRow { Rank = g.RankAfter, Name = Rank.Title(g.RankAfter), Kind = "Title" };
+            }
+            else
+                foreach (var row in Ladder())
+                    if (row.Rank > g.RankAfter) { shown = row; break; }
+            bool got = earned && up;  // shown once the bar has crossed
+            Ui.Label(new Rect(rw.x + 22f, rw.y + 14f, 300f, 16f), earned ? (got ? "NEW REWARD" : "REWARD AT RANK " + shown.Rank) : "NEXT REWARD", 11, earned && got ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            if (shown == null)
+                Ui.Label(new Rect(rw.x + 22f, rw.y + 60f, rw.width - 44f, 40f), "You've earned every reward.", 15, Ui.Text, TextAnchor.UpperLeft, true, true);
+            else
+            {
+                DrawRewardPreview(new Rect(rw.x + 22f, rw.y + 38f, rw.width - 44f, 110f), shown, now, !(earned && got));
+                Ui.Fancy(new Rect(rw.x + 22f, rw.y + 154f, rw.width - 44f, 32f), shown.Name, 22, Color.white, earned && got ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter);
+                string line = earned && got ? shown.Kind + ". Equip it from your name chip on the main menu."
+                    : shown.Kind + "  ·  rank " + shown.Rank + "  ·  " + Mathf.Max(0L, Rank.XpAt(shown.Rank) - (g.Before + (long)(g.Award.Total * Ease(k)))).ToString("N0") + " XP to go";
+                Ui.Label(new Rect(rw.x + 22f, rw.y + 188f, rw.width - 44f, 36f), line, 12, Ui.Muted, TextAnchor.UpperCenter, false, true);
+            }
+        }
+
+        /// A picture of a reward in a box: a frame's rim round the figure, a trail behind it, a background, or a title in words.
+        void DrawRewardPreview(Rect b, LadderRow row, float t, bool dim)
+        {
+            Ui.Pill(b, new Color(0.04f, 0.05f, 0.09f, 0.55f));
+            if (row.Cosmetic == null)
+            {
+                int rk = row.Rank;
+                Ui.Fancy(b, row.Name, 34, Color.white, RankLook.TierColor(rk), TextAnchor.MiddleCenter, new Color(0.4f, 0.5f, 0.8f, 0.3f));
+            }
+            else if (row.Cosmetic.Kind == CosmeticKind.Background)
+            {
+                if (BeginUiGl())
+                {
+                    int keep = menuBg;
+                    menuBg = DuskGridIndex;
+                    BackgroundThumb(b, BackgroundAccents[DuskGridIndex], 0.4f);
+                    menuBg = keep;
+                    EndUiGl();
+                }
+            }
+            else
+            {
+                if (row.Cosmetic.Kind == CosmeticKind.Frame)
+                    FrameOutline(new Rect(b.x + b.width * 0.3f, b.y + 14f, b.width * 0.4f, b.height - 28f), RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(row.Cosmetic.Id))));
+                if (BeginUiGl())
+                {
+                    UiModelAt(new V2(b.center.x + (row.Cosmetic.Kind == CosmeticKind.Trail ? 40f : 0f), b.center.y), 1.3f);
+                    if (row.Cosmetic.Kind == CosmeticKind.Trail)
+                        DrawTrailSample(Rank.TrailIndex(row.Cosmetic.Id), 80f, t, 12f);
+                    DrawGenericPlayer(t);
+                    EndUiGl();
+                }
+            }
+            if (dim)
+            {
+                Ui.Fill(b, new Color(0.02f, 0.03f, 0.06f, 0.55f));
+                Ui.Icon(new Rect(b.center.x - 14f, b.center.y - 14f, 28f, 28f), PixelArt.Get("ui_lock"), Ui.Muted);
+            }
+        }
+
+        // --- Dev tool ----------------------------------------------------------------------------------------------
+
+        /// F1 > Tools > Account rank: set this computer's rank straight away (1 to Rank.MaxRank). Cosmetics the new rank hasn't
+        /// reached come off, and the lobby is told.
+        void DevSetRank(int rank)
+        {
+            var p = Profile.Current;
+            p.Xp = Rank.XpAt(Mathf.Clamp(rank, 1, Rank.MaxRank));
+            foreach (CosmeticKind kind in System.Enum.GetValues(typeof(CosmeticKind)))
+                if (!Rank.Owns(p.RankNow, p.Equipped(kind)))
+                {
+                    if (kind == CosmeticKind.Background)
+                        SetDuskGridEquipped(false);  // back to your own pick (MenuBackgrounds.cs)
+                    else
+                        p.Equip(kind, "");
+                }
+            p.Save();
+            session.ShareCosmetics();
+        }
+
         // --- Hover card ---------------------------------------------------------------------------------------
 
         /// Hovering a rank badge: its title and rank, and (for yours) the XP towards the next. Call between TipClear and DrawTip.

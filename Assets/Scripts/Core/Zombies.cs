@@ -165,9 +165,29 @@ namespace Arena
                 var z = SpawnEnemyAt(r.Type, ClampToArena(r.Pos, Defs.Get(r.Type).Radius), 0.5f, 0, r.Elite);
                 z.Hp = z.MaxHp * Zombies.RiseHp;
                 z.Risen = true;
-                BroadcastFx(FxKind.Ring, r.Pos, new Rgba(0.45f, 0.85f, 0.35f), 40f, 0.4f, Sfx.None);
+                BroadcastFx(FxKind.Ring, r.Pos, new Rgba(0.45f, 0.85f, 0.35f), 40f, 0.4f, Sfx.ZombieRise);
             }
             TickAcid(dt);
+            TickGroans(dt);
+        }
+
+        float groanT;
+
+        /// Host: every few seconds one of the horde, picked at random, groans (a sound for everyone, nothing on screen).
+        void TickGroans(float dt)
+        {
+            if (!ZombiesOn)
+                return;
+            groanT -= dt;
+            if (groanT > 0f)
+                return;
+            groanT = Rand(2.5f, 5f);
+            foreach (var e in Enemies.Values)
+                if (Zombies.Is(e.Type) && e.Hp > 0f && rng.NextDouble() < 0.1)
+                {
+                    BroadcastSound(Sfx.ZombieGroan);
+                    return;
+                }
         }
 
         void ClearRisers() => risers.Clear();
@@ -238,7 +258,7 @@ namespace Arena
                     if (p != null && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR + 4f)
                     {
                         Damage(p, e.Def.Contact * D(DiffKnob.EnemyDamage), "Bloater");
-                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, Zombies.SporeRadius * 0.6f, 0.4f, Sfx.BossSplat);
+                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, Zombies.SporeRadius * 0.6f, 0.4f, Sfx.ZombieBurst);
                         e.Hp = 0f;  // it bursts on you (the spores come with its death, MaybeRise)
                     }
                     break;
@@ -250,7 +270,7 @@ namespace Arena
                         e.T2 = Zombies.ShriekEvery;
                         e.PhaseT = 0.6f;
                         act = Zombies.PhAct;
-                        BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.89f, 1f, 0.61f), Zombies.ShriekRange, 0.8f, Sfx.Roar);
+                        BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.89f, 1f, 0.61f), Zombies.ShriekRange, 0.8f, Sfx.ZombieShriek);
                         foreach (var o in Enemies.Values)
                             if (o != e && !o.Def.IsBoss && o.Pos.DistanceTo(e.Pos) < Zombies.ShriekRange)
                             {
@@ -266,7 +286,7 @@ namespace Arena
                         e.T2 = Zombies.MendEvery;
                         e.PhaseT = 0.6f;
                         act = Zombies.PhAct;
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, Zombies.MendRange, 0.9f, Sfx.BossChime);
+                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, Zombies.MendRange, 0.9f, Sfx.ZombieMend);
                         foreach (var o in Enemies.Values)
                             if (o != e && !o.Def.IsBoss && o.Hp < o.MaxHp && o.Pos.DistanceTo(e.Pos) < Zombies.MendRange)
                             {
@@ -308,7 +328,7 @@ namespace Arena
             e.GrabHp = e.Hp;
             e.Facing = (p.Pos - e.Pos).Angle;
             p.StunT = Zombies.GrabTime;
-            BroadcastFx(FxKind.Ring, p.Pos, e.Def.Color, 34f, 0.3f, Sfx.BossSplat);
+            BroadcastFx(FxKind.Ring, p.Pos, e.Def.Color, 34f, 0.3f, Sfx.ZombieGrab);
         }
 
         void ReleaseGrab(Enemy e)
@@ -337,7 +357,7 @@ namespace Arena
             e.PhaseT = 0.5f;
             V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 20f), 50f);
             SpawnPatchAt(PatchKind.Acid, at, Zombies.SpitFlight, Zombies.SpitFlight + Zombies.AcidLife, Zombies.AcidRadius, Zombies.AcidRadius);
-            BroadcastFx(FxKind.Target, at, new Rgba(0.91f, 0.89f, 0.35f), Zombies.AcidRadius, Zombies.SpitFlight, Sfx.Throw);
+            BroadcastFx(FxKind.Target, at, new Rgba(0.91f, 0.89f, 0.35f), Zombies.AcidRadius, Zombies.SpitFlight, Sfx.ZombieSpit);
             return true;
         }
     }

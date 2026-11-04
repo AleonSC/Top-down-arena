@@ -131,6 +131,9 @@ From the mockup, in priority order:
   since rank 2 costs 200 XP and a first run is worth about that much already.
 - **Hunts** earn XP for the waves cleared and the boss, with no win bonus. A boss beaten on the wave you then lose on
   counts (the wave is treated as cleared).
+- **Rank report** (the results' second page, `DrawRankReport` in `RankUi.cs`): the mockup's full panel. The **Rank report**
+  button by Leave (or a click on the strip) swaps the stat cards for it; **Stats** swaps back. Each run's results start
+  on the stats page. Other players' XP gains aren't known on your screen, so the party box shows their ranks only.
 - **Results screen:** the rank strip sits under the cards (they're 408 px high now, the tiles 56) rather than in a
   panel beside them: the screen had no room for one. It shows the bar filling, the total, the breakdown on one line
   and the modifiers behind the multiplier, or on a rank up what it unlocked. Each card has its player's badge.
@@ -146,6 +149,9 @@ From the mockup, in priority order:
   list. "Your pick" for the background goes back to the one you had before Dusk Grid. The "example" tiles in the mockup
   aren't built.
 - **Titles** come with the tier and aren't equipped separately.
+- **Dev tool:** F1 > Tools > Account rank (+1, +10, Rank 30, Max rank, Reset): `ArenaApp.DevSetRank` in `RankUi.cs`.
+- **Main menu bar:** 92 px tall (was 70) with a 360 x 64 chip, a 46 px badge and 150 x 50 buttons, so the chip's name, title
+  and XP bar fit.
 - **Network:** `LobbyEntry` gained `Rank` and `Frame` and `Trail` (in the `Lobby` message), and clients send
   `Msg.Cosmetics` (rank, frame, trail) when they join, return to the lobby, or equip something. The host clamps the
   rank and drops a frame or trail the rank doesn't have. Protocol 134 to 135.

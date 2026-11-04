@@ -32,6 +32,8 @@ static partial class Shot {
       PreviewSaves();
       var before = new Profile { Xp = Rank.XpAt(Environment.GetEnvironmentVariable("RANKUP") != null ? 7 : 8) + (Environment.GetEnvironmentVariable("RANKUP") != null ? 900 : 300) };
       gg.LastGain = before.AwardXp(Rank.Award(mode == "victory", 10, 2, 1, RunMod.ToughCrowd | RunMod.Nightfall, DifficultyLevel.Normal), 11, mode == "victory" ? 1 : 0);
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;  // (the rank report draws a reward preview with GL)
+      if (Environment.GetEnvironmentVariable("RANKPAGE") != null) { set("rankGainSeen", gg.LastGain); set("resultsRankPage", true); set("rankPageAt", float.Parse(Environment.GetEnvironmentVariable("RANKPAGE"), System.Globalization.CultureInfo.InvariantCulture)); }  // RANKPAGE=<start time>: the rank report, that many seconds in (-10: all of it)
       typeof(ArenaApp).GetMethod("DrawRunSummary", f2).Invoke(app, null);
     }
     else if (mode == "dev")
