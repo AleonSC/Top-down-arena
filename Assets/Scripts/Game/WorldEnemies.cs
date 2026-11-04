@@ -395,6 +395,7 @@ namespace Arena
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
+            DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);

@@ -380,6 +380,8 @@ The first waves are **melee rushers** (spiky, they never shoot, they hurt on con
 little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 13** the early rushers are gone (melee
 comes back in squads, and with the Reaver from wave 28).
 
+With **Visual effects** on, regular enemies stand out from the floor: a soft dark shadow under each body and a faint glow in their own colour, much quieter than a player's halo. Bosses, spawning enemies and zombies don't get it.
+
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
 four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
