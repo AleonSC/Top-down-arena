@@ -84,7 +84,7 @@ namespace Arena
             bool hot = inRoom || hb.Contains(Event.current.mousePosition);
             var oldCol = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.5f);
-            bool go = Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11);  // the lobby's tile style, small
+            bool go = Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11, true);  // the lobby's tile style, small and square
             GUI.color = oldCol;
             if (go)
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;

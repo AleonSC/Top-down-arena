@@ -154,21 +154,21 @@ namespace Arena
                     MenuRise(host, 60f, () =>
                     {
                         Ui.PulseRing(MenuHostRect, Ui.Primary, t);
-                        if (Ui.FancyButton(MenuHostRect, "PLAY", Ui.Primary, PixelArt.Get("ui_play"), t, 30) && live)
+                        if (Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 30) && live)
                             OpenPlayPicker();
                     });
                 if (join > 0f)
                     MenuRise(join, 24f, () =>
                     {
-                        if (Ui.FancyButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t, 18) && live)
+                        if (Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 18) && live)
                             menuJoinOpen = !menuJoinOpen;
                     });
                 if (cont > 0f)
                     MenuRise(cont, 24f, () =>
                     {
-                        if (Ui.FancyButton(MenuRecordsRect, "Records", Ui.Neutral, PixelArt.Get("ui_trophy"), t, 18) && live)
+                        if (Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 18) && live)
                             recordsOpen = true;
-                        if (Ui.FancyButton(MenuSettingsRect, "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 18) && live)
+                        if (Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 18) && live)
                             settingsOpen = true;
                     });
             }

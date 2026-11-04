@@ -422,15 +422,32 @@ namespace Arena
             return barH;
         }
 
+        /// The same card with square corners: a flat fill, a 1 px rim (the accent when lit, a paler one on hover), the bar below.
+        static float SharpChrome(Rect r, bool selected, bool hover, Color accent)
+        {
+            Fill(r, new Color(0.12f, 0.14f, 0.2f, 1f));
+            if (selected)
+                Fill(r, new Color(accent.r, accent.g, accent.b, 0.3f));
+            Color hc = Color.Lerp(accent, Color.white, 0.3f);
+            Color rim = selected ? accent : hover ? new Color(hc.r, hc.g, hc.b, 0.7f) : new Color(0.2f, 0.235f, 0.337f, 1f);
+            Fill(new Rect(r.x, r.y, r.width, 1f), rim);
+            Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), rim);
+            Fill(new Rect(r.x, r.y, 1f, r.height), rim);
+            Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), rim);
+            float barH = r.height >= 34f ? 3f : 2f;
+            FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
+            return barH;
+        }
+
         /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
         /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
-        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size.
-        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20)
+        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size; sharp draws square corners (flat fills and a 1 px rim) for small buttons.
+        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false)
         {
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
-            float barH = ChoiceChrome(r, on, hover, accent, true);
+            float barH = sharp ? SharpChrome(r, on, hover, accent) : ChoiceChrome(r, on, hover, accent, true);
             Color name = on ? Color.white : new Color(0.81f, 0.85f, 0.92f);
-            float isz = Mathf.Min(22f, r.height * 0.45f);
+            float isz = Mathf.Min(size * 1.1f, r.height * 0.45f);
             if (text.Length == 0)
             {
                 if (icon != null)

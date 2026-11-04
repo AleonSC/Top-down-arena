@@ -88,7 +88,7 @@ namespace Arena
         bool DeleteSaveButton(Rect r, string label, RunSave s, float t, bool live)
         {
             bool armed = deleteArmed == s.Id;
-            if (!Ui.FancyButton(r, armed ? "Really delete?" : label, armed ? Ui.Danger : Ui.Neutral, PixelArt.Get("ui_trash"), t, 16) || !live)
+            if (!Ui.ActionButton(r, armed ? "Really delete?" : label, armed, Ui.Danger, PixelArt.Get("ui_trash"), armed ? (Color?)null : new Color(1f, 0.6f, 0.64f), 16) || !live)
                 return false;
             if (!armed)
             {
@@ -118,7 +118,7 @@ namespace Arena
             }
             bool any = savedRuns.Count > 0;
             Ui.Fancy(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, new Color(0.72f, 1f, 0.82f), TextAnchor.MiddleLeft, SaveColor);
-            if (Ui.FancyButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", Ui.Neutral, PixelArt.Get("ui_back"), t, 15) && live)
+            if (Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15) && live)
                 PlayPickerBack();
             var r = new Rect(c.x + 30f, c.y + 62f, 620f, 118f);
             Ui.Card(r, SaveColor, 0.25f);
@@ -127,7 +127,7 @@ namespace Arena
             {
                 Ui.Label(new Rect(r.x + 20f, r.y + 20f, r.width - 40f, 26f), "No saved runs yet.", 20, Color.white, TextAnchor.MiddleCenter, true);
                 Ui.Label(new Rect(r.x + 40f, r.y + 52f, r.width - 80f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 14, Ui.Muted, TextAnchor.UpperCenter, false, true);
-                if (Ui.FancyButton(new Rect(c.x + 30f, by, 620f, 50f), "New run", Ui.Primary, PixelArt.Get("ui_play"), t, 20) && live)
+                if (Ui.ActionButton(new Rect(c.x + 30f, by, 620f, 50f), "New run", true, Ui.Primary, PixelArt.Get("ui_play"), null, 20) && live)
                     StartNewRun();
                 return;
             }
@@ -142,13 +142,13 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 260f, r.y + 12f + i * 24f, 180f, 22f), seat.Name + " — " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, Ui.Text);
             }
             DrawSaveBadges(s, r.x + 18f, r.y + 90f, 112f, 6f, 3);
-            if (Ui.FancyButton(new Rect(r.xMax - 170f, r.y + 28f, 152f, 62f), "Continue", Ui.Primary, PixelArt.Get("ui_play"), t, 22) && live)
+            if (Ui.ActionButton(new Rect(r.xMax - 170f, r.y + 28f, 152f, 62f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 22) && live)
                 ContinueSave(s);
             const float bw = 200f;
-            if (Ui.FancyButton(new Rect(c.x + 30f, by, bw, 50f), "New run", Ui.Neutral, PixelArt.Get("ui_play"), t, 18) && live)
+            if (Ui.ActionButton(new Rect(c.x + 30f, by, bw, 50f), "New run", false, Ui.Primary, PixelArt.Get("ui_play"), null, 18) && live)
                 StartNewRun();
             int older = savedRuns.Count - 1;
-            if (Ui.FancyButton(new Rect(c.x + 30f + bw + 10f, by, bw, 50f), "Older runs (" + older + ")", Ui.Neutral, PixelArt.Get("ui_book"), t, 17) && live && older > 0)
+            if (Ui.ActionButton(new Rect(c.x + 30f + bw + 10f, by, bw, 50f), "Older runs (" + older + ")", false, Ui.Primary, PixelArt.Get("ui_book"), null, 17) && live && older > 0)
             {
                 menuPlayOlder = true;
                 menuOlderPage = 0;
@@ -195,7 +195,7 @@ namespace Arena
                 if (Ui.Button(new Rect(c.xMax - 248f, c.y + 18f, 40f, 34f), "›", Ui.Neutral) && live && menuOlderPage < pages - 1)
                     menuOlderPage++;
             }
-            if (Ui.FancyButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", Ui.Neutral, PixelArt.Get("ui_back"), t, 15) && live)
+            if (Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15) && live)
                 PlayPickerBack();
             for (int i = 0; i < 3; i++)
             {
