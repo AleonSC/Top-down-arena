@@ -305,7 +305,7 @@ namespace Arena
             public float Y, H;
         }
 
-        const float LadderRowH = 42f, LadderRowGap = 6f;
+        const float LadderRowH = 52f, LadderRowGap = 6f;
 
         static Color LadderKindColor(string kind)
         {
@@ -475,8 +475,10 @@ namespace Arena
                         if (isNext)
                             Ui.Rim(rr, Ui.Gold, 0.6f);
                         Ui.Icon(new Rect(rr.x + 12f, rr.center.y - 11f, 22f, 22f), PixelArt.Get(LadderKindIcon(row.Kind)), got ? kc : new Color(kc.r, kc.g, kc.b, 0.4f));
-                        Ui.Label(new Rect(rr.x + 46f, rr.y, rr.width - 330f, rr.height), row.Name, 17, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                        Ui.Label(new Rect(rr.xMax - 280f, rr.y, 170f, rr.height), row.Kind.ToUpper(), 11, got ? kc : new Color(kc.r, kc.g, kc.b, 0.6f), TextAnchor.MiddleRight, true);
+                        // Two lines (Docs/Mockups/reward-ladder-text.html, A): the name gets the width, the kind sits under it.
+                        float nameW = rr.width - 46f - 100f;
+                        Ui.Label(new Rect(rr.x + 46f, rr.y + 5f, nameW, 24f), row.Name, 16, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
+                        Ui.Label(new Rect(rr.x + 46f, rr.y + 28f, nameW, 16f), row.Kind.ToUpper(), 10, got ? kc : new Color(kc.r, kc.g, kc.b, 0.6f), TextAnchor.MiddleLeft, true);
                         Ui.Label(new Rect(rr.xMax - 100f, rr.y, 88f, rr.height), got ? "Unlocked" : isNext ? "Next" : "Locked", 12, got ? Ui.Good : isNext ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight, true);
                     }
                 }

@@ -3,6 +3,7 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [ ] **Your look: Reward ladder first, two-line ladder rows.** Built (Nov 2026, protocol unchanged): the Reward ladder is the first row of the drawer (`SectionOrder`, `CosmeticsUi.cs`), and each ladder row is two lines, name on top with the kind under it, status on the right (look A of [`Mockups/reward-ladder-text.html`](Mockups/reward-ladder-text.html), https://claude.ai/artifact/8DzFHSAzyt9YBpRTFkyJhS), so names are no longer cut off. Rows are 52 px (were 42). Not compiled (no mono in the cloud container) and not tried in Unity.
 - [ ] **Sanctum: healing pulses, Bubble look.** Built (Nov 2026, protocol unchanged, 156): look B of [`Mockups/sanctum.html`](Mockups/sanctum.html) (https://claude.ai/artifact/TT6twY4kADa161ohhGM9aj).
       The dome (200 px, 300 with the capstone, 7 s, still stops bullets and prevents going down) no longer heals 20 HP/s: it sends 7 pulses from its centre, one every 0.9 s starting at 0.9 s,
       20 HP each and 30 for the last (150 total, was 140). A ring takes 0.55 s to reach the rim and each ally is healed as it passes them (`Core/Sanctum.cs`; `Game/SanctumLook.cs`).
