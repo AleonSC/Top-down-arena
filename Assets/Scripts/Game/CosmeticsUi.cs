@@ -14,6 +14,7 @@ namespace Arena
         int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor, 7 Reward ladder
 
         static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Cursor", "Reward ladder" };
+        static readonly int[] SectionOrder = { 7, 0, 1, 2, 3, 4, 5, 6 };  // the drawer's row order: Reward ladder first
         static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_cursor", "ui_trophy" };
 
         void OpenCosmetics()
@@ -82,7 +83,7 @@ namespace Arena
             Ui.Label(new Rect(42f, 230f, DrawerW - 84f, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 11, Ui.Muted, TextAnchor.MiddleRight);
 
             float y = 262f;
-            for (int i = 0; i < CosmeticSections.Length; i++)
+            foreach (int i in SectionOrder)
             {
                 bool on = i == cosmeticsSection;
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 56f : 46f);
