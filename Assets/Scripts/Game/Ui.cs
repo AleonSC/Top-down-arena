@@ -884,12 +884,16 @@ namespace Arena
         {
             float t = Time.unscaledTime, a = color.a;
             float off = Mathf.Max(1f, size * 0.045f);
-            float ph = (t + (text.Length % 7) * 0.45f) % 3.6f;  // titles on one screen don't all tear together
-            const float len = 0.55f;
-            float p = size >= 28 && ph < len ? ph / len : -1f;  // 0..1 through the tear
-            float env = p >= 0f ? Mathf.Sin(p * Mathf.PI) : 0f;  // eases in and out, no sudden jump
+            // Crisp most of the time. The red/cyan split fades in over the half second before a glitch (the text goes blurry),
+            // holds as the glitch hits, then settles back. Big text also tears: the channels fly apart and a band slips sideways.
+            const float cycle = 3.6f, pre = 0.6f, len = 0.55f;
+            float ph = (t + (text.Length % 7) * 0.45f) % cycle;  // titles on one screen don't all glitch together
+            float p = ph < len ? ph / len : -1f;  // 0..1 through the glitch
+            float f = p >= 0f ? 1f - p * p * (3f - 2f * p) : ph > cycle - pre ? Mathf.Pow((ph - (cycle - pre)) / pre, 2f) : 0f;  // how split the colours are
+            float env = p >= 0f ? Mathf.Sin(p * Mathf.PI) : 0f;
             env *= env;
-            float k = 1f + 2.2f * env;
+            float k = f * (1f + 2.2f * env);
+            bool tear = size >= 28 && env > 0.02f;
             if (glow.HasValue)
             {
                 var g = glow.Value;
@@ -901,10 +905,13 @@ namespace Arena
                 }
             }
             Label(new Rect(r.x, r.y + 1.5f, r.width, r.height), text, size, new Color(0f, 0f, 0f, 0.55f * a), align, true);
-            Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * a), align, true);
-            Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * a), align, true);
+            if (f > 0.01f)
+            {
+                Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * f * a), align, true);
+                Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * f * a), align, true);
+            }
             Label(r, text, size, color, align, true);
-            if (env > 0.02f)
+            if (tear)
             {
                 float by = r.height * (0.15f + 0.5f * p), bh = r.height * 0.22f;
                 GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, bh));
