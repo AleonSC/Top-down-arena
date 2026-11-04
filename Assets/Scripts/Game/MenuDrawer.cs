@@ -241,7 +241,7 @@ namespace Arena
             }
             if (pauseHowTo)
             {
-                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, "Back  [Esc]", () => pauseHowTo = false);
+                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, () => pauseHowTo = false);
                 return;
             }
             DrawerIn("pause", false);
@@ -331,7 +331,7 @@ namespace Arena
             }
             if (pauseHowTo)
             {
-                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, "Back  [Esc]", () => pauseHowTo = false);
+                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, () => pauseHowTo = false);
                 return;
             }
             float t = Time.unscaledTime;
@@ -603,6 +603,7 @@ namespace Arena
             float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
             BeginDrawer("SETTINGS", Ui.Accent, k);
+            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));  // round X beside the title; Esc does the same
             string[] icons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change any key, Left Alt for weapon secondaries" };
@@ -630,7 +631,7 @@ namespace Arena
             bool line = SwitchRow(new Rect(quick.x + 14f, quick.y + 56f, quick.width - 28f, 40f), aimLine, "Aim line", null, Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
             if (line != aimLine)
                 SetAimLine(line);
-            if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
+            if (closeChip)
             {
                 Keybinds.Listening = -1;
                 if (paused)
@@ -816,6 +817,7 @@ namespace Arena
             float t = Time.unscaledTime;
             float k = DrawerIn(inMenu ? "pause-records" : "records", !inMenu);
             BeginDrawer("RECORDS", Ui.Gold, k, "Kept on this computer");
+            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));
             int bossesBeaten = 0;
             foreach (var b in RecordBosses)
                 if (p.Beaten(b) > 0)
@@ -839,7 +841,7 @@ namespace Arena
                     recordsSection = i;
                 y += r.height + 4f;
             }
-            if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
+            if (closeChip)
             {
                 if (inMenu)
                     pauseRecords = false;
@@ -1016,14 +1018,15 @@ namespace Arena
         void DrawHowToWindow()
         {
             float t = Time.unscaledTime;
-            DrawHowToContent(DrawerIn("howto", true), t, "Back  [Esc]", () => CloseWindow(() => howToOpen = false));
+            DrawHowToContent(DrawerIn("howto", true), t, () => CloseWindow(() => howToOpen = false));
         }
 
         /// How to play (from the main menu): its topics in the drawer, the open
-        /// topic on the right. `back` is what its Back button does.
-        void DrawHowToContent(float k, float t, string backLabel, System.Action back)
+        /// topic on the right. `back` is what its close button does.
+        void DrawHowToContent(float k, float t, System.Action back)
         {
             BeginDrawer("HOW TO PLAY", Ui.Accent, k);
+            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));
             float y = 120f;
             for (int i = 0; i < HowToTopics.Length; i++)
             {
@@ -1034,7 +1037,7 @@ namespace Arena
                     howToTopic = i;
                 y += 56f;
             }
-            if (Ui.FancyButton(new Rect(40f, H - 100f, 260f, 48f), backLabel, Ui.Primary, PixelArt.Get("ui_back"), t))
+            if (closeChip)
                 back();
             EndDrawer();
 
