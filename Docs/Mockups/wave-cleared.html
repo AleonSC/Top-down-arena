@@ -1,0 +1,178 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Wave Cleared</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Three looks for the "WAVE n CLEARED" box and the transition into it (Hud.cs DrawBanner, BannerRect 560 x 96 at the
+   centre of the 1280 x 720 canvas). Each .screen is the real canvas size, scaled to fit; press Replay to run the
+   transition. Colours are the game's: Ui.Accent blue for a normal wave, Ui.Gold after a boss. */
+:root { --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --teal:#6fe3c4; --amber:#ffb547;
+  --blue:#5c99ff; --gold:#ffcc59; --good:#73ff8c; --muted:#9eabc7; --card:#141a2c; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 Barlow,system-ui,sans-serif; margin:0; }
+.wrap { max-width:1240px; margin:0 auto; padding:28px max(16px,env(safe-area-inset-left,0px)) 64px; display:grid; gap:28px; }
+h1,h2 { font-family:Oxanium,system-ui,sans-serif; margin:0; text-transform:uppercase; letter-spacing:.04em; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; } h1 span{color:var(--teal)}
+h2 { font-size:20px; font-weight:700; }
+p { margin:0; max-width:75ch; color:#cfdae2; }
+.eyebrow { font:600 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+.card .txt { padding:14px 16px; display:grid; gap:8px; }
+.card .txt b.k { color:var(--teal); font-family:Oxanium; letter-spacing:.06em; }
+.bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+button { font:600 13px Oxanium; letter-spacing:.06em; text-transform:uppercase; color:var(--fg); background:#1b242d; border:1px solid #33414d; border-radius:7px; padding:6px 14px; cursor:pointer; }
+button.on { border-color:var(--gold); color:var(--gold); }
+.vp { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#0b0e18; }
+.screen { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; font-family:Barlow,Arial,sans-serif; overflow:hidden;
+  background:radial-gradient(ellipse at 50% 45%, #1d2a2a 0%, #121b1d 65%, #0a1011 100%); --ac:var(--blue); --acrgb:92,153,255; }
+.screen.boss { --ac:var(--gold); --acrgb:255,204,89; }
+.screen > *, .screen .abs, .box > *, .band > * { position:absolute; }
+.grid { inset:0; background:linear-gradient(#ffffff08 1px,transparent 1px) 0 0/64px 64px, linear-gradient(90deg,#ffffff08 1px,transparent 1px) 0 0/64px 64px; }
+.hud-top { left:16px; top:12px; display:flex; gap:10px; } .hud-top i { font:600 12px Oxanium; font-style:normal; background:#0008; border:1px solid #fff2; border-radius:99px; padding:3px 12px; color:#cfd8ea; }
+.hud-bot { left:0; right:0; bottom:12px; display:flex; justify-content:center; gap:8px; } .hud-bot i { width:150px; height:58px; background:#10162a; border:1px solid #2b3248; border-radius:8px; }
+.dot { width:16px; height:16px; border-radius:50%; background:#d9565a; box-shadow:0 0 12px #ff4a5088; }
+.pl { width:26px; height:26px; border-radius:50%; background:#4f8cff; border:3px solid #fff; box-shadow:0 0 16px #4f8cff; }
+/* ----- shared pieces ----- */
+.t { font-family:Oxanium; font-weight:800; color:#fff; letter-spacing:.05em; text-shadow:0 2px 0 rgba(0,0,0,.45); }
+.mut { color:var(--muted); }
+.chip { font:600 13px Barlow; background:#0007; border:1px solid rgba(var(--acrgb),.45); color:#dbe4f7; padding:3px 12px; border-radius:99px; white-space:nowrap; }
+.chip b { color:#fff; font-family:Oxanium; }
+.check { width:34px; height:34px; border-radius:50%; border:3px solid var(--ac); display:grid; place-items:center; }
+.check svg { width:18px; height:18px; stroke:var(--ac); stroke-width:3.2; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; stroke-dashoffset:0; }
+.ring { width:54px; height:54px; position:relative; } .ring svg { width:54px; height:54px; transform:rotate(-90deg); }
+.ring circle { fill:none; stroke-width:5; } .ring .bg { stroke:#ffffff1c; } .ring .fg { stroke:var(--ac); stroke-linecap:round; stroke-dasharray:138.2; stroke-dashoffset:0; }
+.ring b { position:absolute; inset:0; display:grid; place-items:center; font:800 20px Oxanium; color:#fff; }
+.cbar { height:5px; border-radius:3px; background:#ffffff1c; overflow:hidden; } .cbar i { display:block; height:100%; background:var(--ac); width:100%; transform-origin:0 50%; }
+.flash { inset:0; background:radial-gradient(circle at 50% 46%, rgba(var(--acrgb),.55), transparent 62%); opacity:0; pointer-events:none; }
+.sweep { top:0; bottom:0; width:260px; left:-300px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent); transform:skewX(-18deg); opacity:0; }
+/* ----- A: Result plate ----- */
+.A .box { left:calc(50% - 280px); top:260px; width:560px; height:128px; border-radius:12px; background:linear-gradient(#1a2440,#0f1528); border:2px solid var(--ac);
+  box-shadow:0 0 0 1px #000a, 0 0 36px rgba(var(--acrgb),.28); overflow:hidden; opacity:0; }
+.A .box .rule { left:40px; right:40px; top:12px; height:1px; background:rgba(var(--acrgb),.4); }
+.A .box .head { left:0; right:0; top:18px; display:flex; justify-content:center; align-items:center; gap:14px; }
+.A .box .head .t { font-size:30px; }
+.A .box .chips { left:0; right:0; top:64px; display:flex; justify-content:center; gap:8px; }
+.A .box .foot { left:24px; right:24px; bottom:12px; display:flex; align-items:center; gap:12px; font:500 14px Barlow; color:var(--muted); } .A .box .foot .cbar { flex:1; }
+/* ----- B: Full-width band ----- */
+.B .band { left:0; width:1280px; top:268px; height:112px; background:linear-gradient(90deg,transparent,rgba(8,12,24,.92) 14%,rgba(8,12,24,.92) 86%,transparent); opacity:0; overflow:hidden; }
+.B .band::before,.B .band::after { content:""; position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--ac) 20%,var(--ac) 80%,transparent); }
+.B .band::before{top:0} .B .band::after{bottom:0}
+.B .band .t { left:0; right:0; top:10px; text-align:center; font-size:44px; letter-spacing:.14em; }
+.B .band .sub { left:0; right:0; top:66px; text-align:center; font:500 15px Barlow; color:var(--muted); letter-spacing:.06em; }
+.B .band .cbar { left:420px; right:420px; bottom:12px; }
+.B .next { left:calc(50% - 170px); top:392px; width:340px; height:46px; border-radius:10px; background:#10162aee; border:1px solid rgba(var(--acrgb),.5); display:flex; align-items:center; gap:10px; padding:0 14px; font:600 14px Barlow; color:#dbe4f7; opacity:0; }
+.B .next .dot { width:12px; height:12px; } .B .next .mut{margin-left:auto}
+/* ----- C: Squad tally ----- */
+.C .box { left:calc(50% - 300px); top:218px; width:600px; height:228px; border-radius:12px; background:linear-gradient(#1a2440,#0f1528); border:2px solid var(--ac); box-shadow:0 0 36px rgba(var(--acrgb),.28); overflow:hidden; opacity:0; }
+.C .box .head { left:0; right:0; top:14px; text-align:center; } .C .box .head .t { font-size:30px; } .C .box .head .sub { font:500 14px Barlow; color:var(--muted); margin-top:-2px; }
+.C .rows { position:absolute; left:24px; right:24px; top:78px; display:grid; gap:6px; }
+.C .row { height:34px; border-radius:8px; background:#0c1224; border:1px solid #2b3248; display:flex; align-items:center; gap:10px; padding:0 10px; font:600 14px Barlow; }
+.C .row .av { width:20px; height:20px; border-radius:50%; } .C .row .nm { width:130px; color:#fff; } .C .row .st { color:var(--muted); flex:1; font-weight:500; } .C .row .st b { color:#fff; }
+.C .row .up { font:700 12px Oxanium; letter-spacing:.06em; color:var(--good); background:#0a2a14; border:1px solid #2a7a44; border-radius:99px; padding:1px 9px; }
+.C .box .cbar { left:24px; right:24px; bottom:14px; }
+/* ----- animation (replayed by JS toggling .go) ----- */
+.go .flash { animation:fl .7s ease-out both; }
+.go .dot { animation:dotout .5s ease-in both; } .go .dot:nth-child(2n){animation-delay:.08s} .go .dot:nth-child(3n){animation-delay:.16s}
+@keyframes dotout { to { transform:scale(0); opacity:0; } }
+@keyframes fl { 0%{opacity:0} 15%{opacity:1} 100%{opacity:0} }
+.go.A .box { animation:dropA .55s .55s cubic-bezier(.2,1.3,.4,1) both, outA .35s 5.6s ease-in forwards; }
+.go.A .box .sweep { animation:sw .7s 1s ease-out both; }
+.go.A .check svg { animation:draw .4s 1.05s ease-out both; stroke-dashoffset:24; }
+.go.A .chips .chip { animation:pop .35s both; } .go.A .chips .chip:nth-child(1){animation-delay:1.15s} .go.A .chips .chip:nth-child(2){animation-delay:1.27s} .go.A .chips .chip:nth-child(3){animation-delay:1.39s}
+.go .cbar i { animation:drain 5s .9s linear both; }
+.go .ring .fg { animation:ringdrain 5s .9s linear both; }
+@keyframes dropA { from{opacity:0; transform:translateY(-34px) scale(.92)} to{opacity:1; transform:none} }
+@keyframes outA { to{opacity:0; transform:translateY(-22px)} }
+@keyframes draw { to{stroke-dashoffset:0} }
+@keyframes pop { from{opacity:0; transform:translateY(6px) scale(.85)} to{opacity:1; transform:none} }
+@keyframes sw { 0%{left:-300px;opacity:1} 100%{left:620px;opacity:0} }
+@keyframes drain { to{transform:scaleX(0)} } @keyframes ringdrain { to{stroke-dashoffset:138.2} }
+.go.B .band { animation:wipeB .6s .5s cubic-bezier(.2,.9,.3,1) both, outB .4s 5.6s ease-in forwards; }
+.go.B .band .t { animation:trackB .9s .5s ease-out both; }
+.go.B .next { animation:rise .4s 1.4s ease-out both, outB .3s 5.5s ease-in forwards; }
+@keyframes wipeB { from{opacity:0; clip-path:inset(0 50% 0 50%)} to{opacity:1; clip-path:inset(0 0 0 0)} }
+@keyframes trackB { from{letter-spacing:.4em; opacity:0} to{letter-spacing:.14em; opacity:1} }
+@keyframes outB { to{opacity:0} } @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+.go.C .box { animation:dropA .55s .55s cubic-bezier(.2,1.3,.4,1) both, outA .35s 5.6s ease-in forwards; }
+.go.C .row { animation:slideR .35s both; } .go.C .row:nth-child(1){animation-delay:1.1s} .go.C .row:nth-child(2){animation-delay:1.25s} .go.C .row:nth-child(3){animation-delay:1.4s}
+.go.C .check svg { animation:draw .4s 1s ease-out both; stroke-dashoffset:24; }
+@keyframes slideR { from{opacity:0; transform:translateX(-24px)} to{opacity:1; transform:none} }
+.static .box, .static .band, .static .next, .static .row, .static .chip { opacity:1; }
+</style>
+<div class="wrap">
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Mockup &middot; Between waves</div>
+  <h1>Wave cleared <span>&amp;</span> the transition</h1>
+  <p>Today the box is a plain 560 x 96 card that pops in once the last enemy dies: "WAVE 4 CLEARED" and one line under it ("Wave 5 starts in 4"). Nothing marks the moment itself, and nothing on it says how the wave went. Same navy card, blue accent (gold after a boss); three ways to dress it. Each plays the same beat: <b>last enemy pops, a soft flash, leftover shots clear, the box arrives, the countdown drains, the box leaves</b>. Press Replay to watch it; the little toggle switches to the boss (gold) version.</p>
+  <div class="bar"><button id="replay">Replay all</button><button id="boss">Boss wave: off</button></div>
+</header>
+
+<!-- ============ A ============ -->
+<section class="card">
+ <div class="vp"><div class="screen A go" data-s>
+  <div class="abs grid"></div>
+  <div class="abs hud-top"><i>WAVE 4</i><i>KILLS 52</i></div>
+  <div class="abs hud-bot"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="abs dot" style="left:380px;top:300px"></div><div class="abs dot" style="left:860px;top:330px"></div><div class="abs dot" style="left:600px;top:520px"></div><div class="abs dot" style="left:920px;top:480px"></div>
+  <div class="abs pl" style="left:627px;top:480px"></div>
+  <div class="abs flash"></div>
+  <div class="box"><div class="rule"></div><div class="sweep"></div>
+    <div class="head"><div class="check"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg></div><div class="t">WAVE 4 CLEARED</div></div>
+    <div class="chips"><span class="chip"><b>14.2s</b> clear time</span><span class="chip"><b>0</b> damage taken</span><span class="chip"><b>+120</b> score</span></div>
+    <div class="foot"><span>Wave 5 starts in 4</span><div class="cbar"><i></i></div></div>
+  </div>
+ </div></div>
+ <div class="txt"><h2><b class="k">A</b> &middot; Result plate</h2>
+  <p>The smallest change: same spot, same card, but taller (128). A check mark draws itself next to the title, a light sweeps across, three chips fade in with how the wave went (clear time, damage taken, score gained), and the "starts in N" line gets a draining bar instead of just a number. Boss waves turn the whole card gold. Front end only; clear time and damage are already tracked for the end-of-run stats.</p></div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="card">
+ <div class="vp"><div class="screen B go" data-s>
+  <div class="abs grid"></div>
+  <div class="abs hud-top"><i>WAVE 4</i><i>KILLS 52</i></div>
+  <div class="abs hud-bot"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="abs dot" style="left:380px;top:300px"></div><div class="abs dot" style="left:860px;top:330px"></div><div class="abs dot" style="left:600px;top:520px"></div><div class="abs dot" style="left:920px;top:480px"></div>
+  <div class="abs pl" style="left:627px;top:480px"></div>
+  <div class="abs flash"></div>
+  <div class="band"><div class="t">WAVE 4 CLEARED</div><div class="sub">EVERYONE IS BACK ON THEIR FEET</div><div class="cbar"><i></i></div></div>
+  <div class="next"><span class="dot"></span><span>Next: <b style="color:#fff">Wave 5</b> &nbsp;&middot;&nbsp; Brutes and Spitters</span><span class="mut">starts in 4</span></div>
+ </div></div>
+ <div class="txt"><h2><b class="k">B</b> &middot; Full-width band</h2>
+  <p>A cinematic strip: it wipes open from the centre across the whole screen, the title tracks in from wide letter-spacing, and a thin timer bar runs under it. The "next wave" line moves out of the box into its own small chip below, with a taste of what's coming (enemy names from the wave list). Loudest of the three, so best kept to the quiet beat between waves; it never covers the HUD top or bottom.</p></div>
+</section>
+
+<!-- ============ C ============ -->
+<section class="card">
+ <div class="vp"><div class="screen C go" data-s>
+  <div class="abs grid"></div>
+  <div class="abs hud-top"><i>WAVE 4</i><i>KILLS 52</i></div>
+  <div class="abs hud-bot"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="abs dot" style="left:380px;top:300px"></div><div class="abs dot" style="left:860px;top:330px"></div><div class="abs dot" style="left:600px;top:560px"></div><div class="abs dot" style="left:920px;top:520px"></div>
+  <div class="abs pl" style="left:627px;top:520px"></div>
+  <div class="abs flash"></div>
+  <div class="box">
+    <div class="head"><div class="t">WAVE 4 CLEARED</div><div class="sub">Wave 5 starts in 4</div></div>
+    <div class="rows">
+      <div class="row"><span class="av" style="background:#4f8cff"></span><span class="nm">Antho</span><span class="st"><b>18</b> kills &nbsp;&middot;&nbsp; <b>2,140</b> damage</span><span class="up">+1 PICK</span></div>
+      <div class="row"><span class="av" style="background:#ff8a3d"></span><span class="nm">Sam</span><span class="st"><b>21</b> kills &nbsp;&middot;&nbsp; <b>2,880</b> damage</span><span class="up">REVIVED</span></div>
+      <div class="row"><span class="av" style="background:#6fe3c4"></span><span class="nm">Jo</span><span class="st"><b>13</b> kills &nbsp;&middot;&nbsp; <b>1,310</b> damage</span><span class="up">+1 PICK</span></div>
+    </div>
+    <div class="cbar"><i></i></div>
+  </div>
+ </div></div>
+ <div class="txt"><h2><b class="k">C</b> &middot; Squad tally</h2>
+  <p>Built for co-op: the box grows one row per player (kills, damage, and a green tag for an upgrade pick waiting or a revive, since clearing a wave stands everyone back up). Rows slide in one after another. Solo it shows a single row, so it's still fine. The tallest box, so it sits a bit higher than today's banner to stay clear of the players. Needs the per-wave kills and damage counted per player (a small new counter, and a protocol bump if clients must see them).</p></div>
+</section>
+</div>
+<script>
+function fit(){ document.querySelectorAll('.vp').forEach(v=>{ v.firstElementChild.style.transform='scale('+v.clientWidth/1280+')'; }); }
+addEventListener('resize',fit); fit(); document.fonts&&document.fonts.ready.then(fit);
+const screens=[...document.querySelectorAll('[data-s]')];
+function replay(){ screens.forEach(s=>{ s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }); }
+document.getElementById('replay').onclick=replay;
+const bb=document.getElementById('boss');
+bb.onclick=()=>{ const on=!screens[0].classList.contains('boss'); screens.forEach(s=>s.classList.toggle('boss',on)); bb.classList.toggle('on',on); bb.textContent='Boss wave: '+(on?'on':'off'); replay(); };
+setInterval(replay,9000);
+</script>

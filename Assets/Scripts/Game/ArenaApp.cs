@@ -307,9 +307,10 @@ namespace Arena
             bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
                 TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
+            TickPing(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay && !emoteBarOpen);  // PingLooks.cs: tap to ping, hold for the wheel
             TickChat(session.Screen == AppScreen.Game && me != null && !menuUp && !choosing && !tabHeld && !pathChoice && !shopping);  // ChatBox.cs: Enter opens the chat line
             // Fire and Parry (a key or a mouse button, Keybinds) pressed while a menu was up stay off until let go.
-            if ((overlay || emoteBarOpen) && Keybinds.Down(KeyAction.Fire))
+            if ((overlay || emoteBarOpen || pingWheelOpen) && Keybinds.Down(KeyAction.Fire))
                 fireOnMenu = true;
             if (overlay && Keybinds.Down(KeyAction.Parry))
                 parryOnMenu = true;
@@ -317,7 +318,7 @@ namespace Arena
                 fireOnMenu = false;
             if (!Keybinds.Held(KeyAction.Parry))
                 parryOnMenu = false;
-            fireBlocked = overlay || fireOnMenu || emoteBarOpen;
+            fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
             Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab();
@@ -381,6 +382,7 @@ namespace Arena
             {
                 SyncSelection(me);
             }
+            TickWaveReady(me);  // the saved Auto-ready sent to the host, the Ready key (WaveClearedUi.cs)
             TickPickSounds(me, choosing && session.Screen == AppScreen.Game);  // the picker opening and closing (PickSounds.cs)
             if (choosing && !tabHeld && !PickOutroPlaying && !PickIntroPlaying(me))  // the cards are still flying out (PickIntro.cs)
             {

@@ -6,8 +6,19 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
+- [x] **Ping system.** Built (Nov 2026, protocol 145; `Msg.PingMark`, since `Msg.Ping` was already the latency check). Mockup:
+      [`Mockups/ping-system.html`](Mockups/ping-system.html) (https://claude.ai/artifact/UHdFiTLxtxuzmZLQZQbH3Z). I picked the wheel (tap = last pick, hold = wheel),
+      the player's slot colour, and a separate key (middle mouse, rebindable). The arena is one fixed screen, so the mockup's off-screen arrows and
+      minimap weren't built. Left out for now: muting a player's pings, ping sounds, a Loot mark on the item itself. Say if you want any. Needs a try in Unity.
+      Bestiary/Armory pages are unaffected.
+- [x] **"Wave cleared" box with awards and a ready system.** Built (Nov 2026, protocol 146): look 1 of [`Mockups/wave-cleared-ready.html`](Mockups/wave-cleared-ready.html)
+      (https://claude.ai/artifact/U4U1dESwvCGWizAUC9ivBk): squad tally with an Awards column, the next wave's enemy types and the road to the boss,
+      Ready (Y) and an Auto-ready switch (off by default). Everyone ready = a 3 s countdown; everyone on auto-ready = the usual 4 s; otherwise it waits.
+      The next-wave panel lists enemy *types* (the counts are random per wave), so no counts like the mockup.
 - [x] **In-run text chat box.** Built (Nov 2026, protocol 143), look C (Bubbles) of [`Mockups/chat-box.html`](Mockups/chat-box.html) (https://claude.ai/artifact/KL9YxpHUagLVPpcBNU1tB8).
       Match only; no system lines (joins, revives) yet. Say if you want them or the Hangout to have chat too.
+- [x] **Air trail behind fast movers.** Built (Nov 2026, look A Ribbons, protocol unchanged): `AirTrailLooks.cs`, from [`Mockups/air-trail.html`](Mockups/air-trail.html)
+      (https://claude.ai/artifact/7n5yGrXprCX62ViuzaxePi). Players, enemies and minions; none under 110 px/s, full at 330. Tune `AirStart`/`AirFull` if it's too shy or too loud.
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 - [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
       (`Game/GunBowLooks.cs`). Mockup: [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html)
@@ -47,6 +58,7 @@ A running list of things to pick up next session. Tick off / delete as they're d
       the pick preview on the card), two-click Reroll, uppercase REROLL / CHOOSE UPGRADE. Mockup: [`Mockups/upgrade-card-layout.html`](Mockups/upgrade-card-layout.html).
 
 ## Visuals
+- [x] **Tank Soldier Fortress dome.** Built (Nov 2026, protocol 146): look B, Bulwark wall (`Game/DomeLook.cs`, `Core/Dome.cs`), 10 s (14 s mastered), no taunt or damage cut. Only players and player bullets cross; enemies (bosses too) and their shots are held out, and nothing hostile damages a player inside. Mockup: [`Mockups/fortress-dome.html`](Mockups/fortress-dome.html) (https://claude.ai/artifact/VapgPykPS23u6D1UnMjHvv). Bestiary/Armory pages still show the old Fortress until you ask.
 - [x] **Profile picker <-> main menu transition, with sound.** Built (Nov 2026, no protocol bump): look C, Plot points, at half speed
       (`Game/ProfileTransition.cs`), from [`Mockups/profile-transitions.html`](Mockups/profile-transitions.html)
       (https://claude.ai/artifact/3pyKAd8sSKGrPhRcXE7tND). Max 3 profiles; the picker always shows four boxes (empty slots say "Empty",

@@ -153,6 +153,7 @@ static partial class Program
     // Every role and class has its own ultimate on right click, and each one works over the network.
     static void UltimateSweep(float dt)
     {
+        domesAllowed = true;  // Fortress has to be able to go off here
         var seenUlts = new HashSet<AbilityId>();
         foreach (var kit in new[] { Kit.Soldier, Kit.Elementalist, Kit.Summoner })
         foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
@@ -230,6 +231,7 @@ static partial class Program
             client.Leave("");
         }
         Check(seenUlts.Count == 9, "all 9 role and class combinations have their own ultimate");
+        domesAllowed = false;
     }
 
     // The lobby's loadout preview (Showcase): an offline copy of the game where every weapon hits the

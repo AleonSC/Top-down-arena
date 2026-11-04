@@ -228,7 +228,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
-| **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
+| **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
 | **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
@@ -265,7 +265,7 @@ once mastered); the Tab menu shows the level.
 | **Spirit Swarm** | Releases 8 sprites. | **Phoenix** | Revives at full health, and the phoenix keeps fighting. |
 | **Soul Lantern** | Lasts 9 s, and the linked player can't go down. | **Bat Swarm** | Releases 14 bats. |
 | **Sacrifice** | Double explosion damage, and your companions return at once. | **Alpha Call** | Also summons 3 wolves for 6 s. |
-| **Fortress** | Lasts 12 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
+| **Fortress** | Lasts 14 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
 | **Titan** | The titan is bigger and stays for 25 s. | **Lifeline** | Everyone also gets 4 s of Overdrive. |
 | **Sanctum** | The dome is half again as wide (300 px). | **World Tree** | Lasts 16 s with 8 sprites. |
 | **Bullet Storm** | +4 extra projectiles instead of +2. | **Meteor Storm** | Twenty meteors. |
@@ -382,6 +382,8 @@ comes back in squads, and with the Reaver from wave 28).
 
 With **Visual effects** on, regular enemies stand out from the floor: a soft dark shadow under each body and a faint glow in their own colour, much quieter than a player's halo. Bosses, spawning enemies and zombies don't get it.
 
+With **Visual effects** on, anything that moves fast leaves an **air trail**: two thin streamlines off its shoulders that wobble and fade. It follows speed: none at or below 110 px/s (Grunts, Brutes, bosses), light for mid speeds (a Tank or Healer walking is about 10-25%), and full at 330 px/s and up (Hive Bombers, dashes, hard knockback). Players, enemies and minions all get it. Not sent over the network.
+
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
 four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
@@ -435,7 +437,10 @@ boss fight itself is the same. A chip above the wave panel says "Approach · The
 the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction
 (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a
 wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its
-shields are down. The other bosses' factions come next.
+shields are down. The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
+Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Menders from 34, with two squads (Graveyard
+shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
+outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
@@ -734,7 +739,9 @@ as usual.
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
+| Ready for the next wave | Ready button or Y (rebindable), once your upgrade picks are done. Auto-ready switch beside it |
 | Mute sound | M |
+| Ping | Middle mouse (rebindable), in a match. **Tap** to mark your cursor with the ping you used last (Here to begin with). **Hold** for 0.2 s and a six-slice wheel opens at the cursor: move to a slice and let go to send it, let go in the middle to cancel. Everyone sees it in your colour (teal, amber, violet) as a ripple, a beam of light and a glyph ring with your name for a second. **Here** (5 s), **Focus** (6 s: snaps to the enemy nearest your cursor, rings it and follows it until it dies), **Danger** (4 s, pulses faster), **Help** (5 s: also rings you), **Loot** (5 s) and **Go** (5 s). Three live per player (a fourth replaces your oldest), 0.4 s between pings. A click doesn't fire while the wheel is open |
 | Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
@@ -786,6 +793,19 @@ in the middle, the **wave panel** left of it (wave, enemies left, score, progres
 stack above it) and **your card** right of it (health, shield, level, XP). Teammates show as slim rows above
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
 the top middle, and the "Hold TAB" hint is in the top-right corner.
+
+**Between waves.** When the last enemy dies a **Wave n cleared** box drops in (shaded like the upgrade cards, with a
+soft glow; gold after a boss). It shows the wave's **clear time** and **score**, a row per player with **kills, damage
+dealt and damage taken** for that wave, and **awards**: **Untouched** (took no damage), **Reviver** (stood a teammate up),
+and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
+A **Squad** row adds them up. On the right: the enemy types the next wave draws from (new ones marked NEW; a boss wave
+names its boss) and the **road to the next boss**. Along the bottom: the **Ready** button (Y), the **Auto-ready** switch
+and the status. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
+timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
+picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
+old pace (it is off by default). A small ring beside each player shows who is ready (a ring with an A for auto-ready).
+The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
+`Docs/Mockups/wave-cleared-ready.html` (option 1).
 
 **Chat.** In a match, press **Enter** to open a text line at the bottom right, above your card and the teammates'
 rows. Type (up to 120 characters), **Enter** sends and **Esc** cancels. While you type, movement, abilities and

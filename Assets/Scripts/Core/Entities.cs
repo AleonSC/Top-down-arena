@@ -120,7 +120,9 @@ namespace Arena
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
         public float BashGraceT;    // host: until a Riot Shield can bash this player again (WardenFaction.cs)
         public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
-        public float UltT;                     // Fortress / Bullet Storm time left
+        public float UltT;                     // ultimate time left (Fortress: its dome's time, too)
+        public float DomeT;                    // Fortress: the dome's time left (replicated; Dome.cs)
+        public V2 DomePos;                     // Fortress: where the dome stands (replicated)
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
         public int AmmoUsed;                   // Revolver: rounds fired since the last reload (replicated)
@@ -183,6 +185,8 @@ namespace Arena
         public V2 RadiantPos, RadiantDisp;      // ...where it is (replicated), and where this screen draws it
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
+        public bool Ready;           // pressed Ready for the next wave (replicated by Msg.WaveReady; WaveReady.cs)
+        public bool AutoReady = true;  // 'Auto-ready from now on': counts as ready as soon as their picks are done (replicated; the app sets it from the player's saved choice)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();

@@ -18,6 +18,7 @@ namespace Arena
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
+            DrawMatchPings();       // the party's pings (PingLooks.cs)
             HudGroup(1, new Vector2(-150f, 30f), new Rect(SideL, SideY, SideW, SideH), DrawWaveCorner);
             HudGroup(3, new Vector2(0f, -80f), new Rect(W / 2f - 320f, 0f, 640f, 60f), () =>
             {
@@ -70,6 +71,7 @@ namespace Arena
                 HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
             if (me != null && !me.Downed)
                 DrawEmoteBar(W / 2f, H - 98f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
+            DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
             DrawChat();  // the chat box, bottom right above the player cards (ChatBox.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
 
@@ -111,6 +113,8 @@ namespace Arena
                         break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
                     if (game.Room == RoomPhase.Portal)
                         break;  // a portal is open: its own call instead (ChallengeLook.cs)
+                    if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
+                        break;
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else

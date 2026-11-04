@@ -4,7 +4,7 @@ namespace Arena
 {
     /// Pushes slide. A knocked-back enemy travels its push over KnockTime instead of jumping the whole way in one tick
     /// (hard to follow by eye): every push (the Repulsion Cannon, Roar and the shockwave, the Scattergun's point-blank
-    /// shove, Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) goes through KnockEnemy, and TickKnock moves
+    /// shove, Knight swings, Bulldoze, the Fuma Shuriken's fan) goes through KnockEnemy, and TickKnock moves
     /// the enemy each tick. Pushes that land together add up. Host only: clients see the slide in the snapshot, and a
     /// FxKind.Knock effect (start and end) draws its dust streak and impact puff on every screen (WorldEffects.cs).
     public partial class Game
