@@ -124,7 +124,7 @@ namespace Arena
         /// The lobby's big box (and the menu card it grows into): the blue gradient and rim here, and its soft glow separately
         /// (BodyGlow), which a screen draws FIRST so it sits under everything else instead of tinting what's drawn before the box.
         public static void BodyBox(Rect r) => GlowPanel(r, PanelBlue, 0f, 0.85f);
-        public static void BodyGlow(Rect r) => Glow(r, PanelBlue, 0.28f);
+        public static void BodyGlow(Rect r, float scale = 1f) => Glow(r, PanelBlue, 0.14f * scale);  // (the menu card only: the lobby's box has none)
 
         public static void Panel(Rect r, bool accent = false)
         {

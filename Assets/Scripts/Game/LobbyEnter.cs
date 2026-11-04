@@ -80,7 +80,7 @@ namespace Arena
             float k = EaseInOut(Seg(e, 0f, 0.7f));
             var r = LerpRect(MenuCard, LobbyBodyRect, k);
             if (k < 1f || e < 1.05f)
-                Ui.BodyGlow(r);  // first, so it sits under everything else
+                Ui.BodyGlow(r, 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
 
             // The bottom bar (your name card with it) drops away and fades; the line under the title fades.
             float drop = Seg(e, 0f, 0.35f);

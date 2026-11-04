@@ -51,7 +51,6 @@ namespace Arena
                 lobbyTab = 0;
             if (practice && lobbyTab == PerkTab)
                 lobbyTab = 0;  // perks are off in the Practice Range
-            Ui.BodyGlow(LobbyBodyRect);  // the body's glow, first: under the tabs, the party and the rest
             var infoButton = new Rect(196f, 28f, 28f, 28f);
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
