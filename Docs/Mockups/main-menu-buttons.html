@@ -4,142 +4,19 @@
 :root{color-scheme:dark;--page:#0a0c12;--ink:#e9edf8;--muted:#9ea9c4;--line:rgba(255,255,255,.08);--gold:#ffcc59;--font:"Arial","Liberation Sans",Helvetica,sans-serif}
 body{background:var(--page);color:var(--ink);font-family:var(--font)}
 .wrap{max-width:1320px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:44px}
-header h1{font-size:30px;margin:0 0 6px;text-wrap:balance}
+h1{font-size:30px;margin:0 0 6px;text-wrap:balance}
 header p{color:var(--muted);margin:0;max-width:76ch;line-height:1.5}
 .option{display:grid;gap:12px;min-width:0}
-.option h2{margin:0;font-size:20px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+h2{margin:0;font-size:20px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .tag{font-size:12px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
 .sub{margin:0;color:var(--muted);max-width:80ch;line-height:1.5}
+img{width:100%;aspect-ratio:16/9;display:block;border-radius:10px;box-shadow:0 0 0 1px var(--line),0 18px 50px rgba(0,0,0,.5);background:#0b0d14}
 .notes{color:var(--muted);line-height:1.55;margin:0;padding-left:18px;max-width:92ch}
-.fit{width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;border-radius:10px;box-shadow:0 0 0 1px var(--line),0 18px 50px rgba(0,0,0,.5);container-type:inline-size;background:#04060d}
-.stage{width:1280px;height:720px;position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(calc(100cqw / 1280px));color:#fff;font-family:var(--font)}
-@supports not (width:1cqw){.stage{transform:scale(.6)}}
-.abs{position:absolute}
-.bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 70%,#0b1230,#04060d 70%)}
-.bg::before{content:"";position:absolute;left:50%;top:78%;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;box-shadow:0 0 0 1px #1a2548,0 0 0 120px #04060d00,inset 0 0 0 1px #1a2548;opacity:.7}
-.bg::after{content:"";position:absolute;left:350px;top:648px;width:30px;height:30px;border-radius:50%;background:#ffcd6a;box-shadow:0 0 22px #ffb73a, 780px 70px 0 -9px #e8a8ff, 440px 40px 0 -12px #cfe6ff;transform:translate(-15px,-15px)}
-.title{position:absolute;left:0;right:0;top:206px;text-align:center;font:900 82px/1 var(--font);letter-spacing:1px;background:linear-gradient(#fff,#a9bdff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px #3b66ff)}
-.axis{position:absolute;left:245px;right:245px;top:313px;height:2px;background:#4a5f9f}
-.axis i{position:absolute;inset:-4px 0;background:repeating-linear-gradient(90deg,#6f86c8 0 1px,transparent 1px 20px);height:10px}
-.axis b{position:absolute;left:50%;top:-8px;width:14px;height:14px;margin-left:-9px;border-radius:50%;border:2px solid #8fb2ff;background:#fff}
-.tip{position:absolute;left:210px;right:210px;top:332px;height:30px;border-radius:15px;border:1px solid #2a3b73;background:#0d1330;font-size:15px;line-height:28px;padding:0 16px;white-space:nowrap;overflow:hidden;color:#d8e0f8}
-.tip em{font-style:normal;font-weight:700;font-size:12px;color:#5b9bff;margin-right:6px}.tip strong{color:#fff;margin-right:8px}
-.cardframe{border:2px solid #4766c4;border-radius:6px;background:linear-gradient(#141d3e,#0f1630);box-shadow:0 0 30px #2a50ff44}
-.btn{display:flex;align-items:center;justify-content:center;gap:10px;border-radius:9px;font-weight:700;font-size:22px;box-sizing:border-box;color:#e8ecfa;background:linear-gradient(#4a5272,#363d5a);box-shadow:inset 0 1px 0 #ffffff33,0 4px 10px #0007}
-.btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.btn.host{background:linear-gradient(#5b97ff,#2f62e0);font-size:34px;letter-spacing:1px;box-shadow:inset 0 1px 0 #ffffff55,0 0 24px #3a6bff66}
-.btn.host.big{font-size:42px}
-.btn.cont{background:linear-gradient(#3e9a62,#2b7a49)}
-.btn.rec{background:linear-gradient(#7a6a2a,#5a4d1e);color:#fff3cf}
-.btn.set{background:linear-gradient(#4a5272,#363d5a)}
-.btn.quit{background:linear-gradient(#a03a47,#7a2733)}
-.btn.join,.btn.cont,.btn.rec,.btn.set,.btn.quit{font-size:21px}
-.btn.iconly span{display:none}.btn.quit svg{margin:0}
-.btn.tile{flex-direction:column;gap:14px;font-size:26px}.btn.tile svg{width:46px;height:46px}.btn.host.tile{font-size:32px}
-.btn.list{justify-content:flex-start;padding:0 18px;background:#ffffff0a;box-shadow:none;border:1px solid #ffffff12}
-.btn.list.danger{color:#ff8e9b;background:#ff4d6a0f}
-.row{display:flex;gap:14px}
-.dock{display:grid;gap:12px}
-.dock hr{border:0;height:1px;background:#ffffff1f;margin:4px 0;width:100%}
-.barwrap{box-sizing:border-box;background:linear-gradient(#0a0f26ee,#070a18);border-top:1px solid #1d2a5c}
-.sep{width:1px;height:40px;background:#ffffff22;margin:0 6px}
-.profile{width:370px;height:64px;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:0 14px;border:2px solid #d9a93a;border-radius:4px;background:linear-gradient(90deg,#10152e,#2b1a12);flex:none}
-.profile .av{width:52px;height:52px;border-radius:8px;background:#1b2347;box-shadow:inset 0 0 0 1px #3a4a8a}
-.profile b{display:block;font-size:24px;line-height:1.1}.profile small{color:var(--gold);font-weight:700;font-size:15px}
-.profile .badge{margin-left:auto;width:42px;height:46px;border-radius:12px 12px 22px 22px;background:#c99a2e;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
 </style>
-<svg width="0" height="0" style="position:absolute"><defs>
-<symbol id="play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z" fill="currentColor"/></symbol>
-<symbol id="arrow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 12h9M13 8.5l3.5 3.5-3.5 3.5"/></symbol>
-<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v4M8 20h8"/></symbol>
-<symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
-<symbol id="power" viewBox="0 0 24 24"><path d="M12 3v8M7 6.5a8 8 0 1 0 10 0"/></symbol>
-</defs></svg>
 <div class="wrap">
-<header><h1>Main Menu Button Layouts</h1><p>Five new arrangements for the main menu buttons. The title, tip bar, background and profile card are the same in every one; only the button layout changes. The first picture is today's menu for comparison. Each option moves Host game, Join game, Continue, Records, Settings and Quit, and none removes a button.</p></header>
-<section class="option"><h2><span class="tag">Today</span>Reference</h2><p class="sub">For comparison: the card in the middle and Quit alone at the bottom right.</p><div class="fit"><div class="stage">
-<div class="bg"></div>
-<div class="title">CARTESIAN COLOSSEUM</div>
-<div class="axis"><i></i><b></b></div>
-<div class="tip"><em>TIP</em> <strong>Downed</strong> At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.</div>
-
-<div class="abs cardframe" style="left:428px;top:380px;width:444px;height:216px"></div>
-<div class="abs" style="left:455px;top:402px;width:390px;display:grid;gap:14px">
- <div class="btn host wide" style="height:84px"><svg><use href="#play"/></svg><span>HOST GAME</span></div>
- <div class="row"><div class="btn join " style="flex:1;height:54px"><svg><use href="#arrow"/></svg><span>Join game</span></div><div class="btn cont " style="flex:1;height:54px"><svg><use href="#play"/></svg><span>Continue</span></div></div>
-</div>
-<div class="abs" style="left:24px;bottom:28px"><div class="profile"><div class="av"></div><div><b>Antaleon</b><small>Legend &nbsp;·&nbsp; Rank 999</small></div><div class="badge">999</div></div></div>
-<div class="abs" style="left:488px;bottom:34px;display:flex;gap:20px"><div class="btn rec " style="width:152px;height:50px"><svg><use href="#trophy"/></svg><span>Records</span></div><div class="btn set " style="width:152px;height:50px"><svg><use href="#gear"/></svg><span>Settings</span></div></div>
-<div class="btn quit " style="position:absolute;right:24px;bottom:34px;width:152px;height:50px"><svg><use href="#power"/></svg><span>Quit</span></div>
-</div></div><ul class="notes"><li>Join game and Continue sit inside the framed card under Host game.</li><li>Records and Settings float in the middle of the bottom bar, Quit is far right.</li></ul></section>
-<section class="option"><h2><span class="tag">Option A</span>Stack and corner</h2><p class="sub">Three bars stacked in a column, no card frame. Quit shrinks to an icon in the top right corner.</p><div class="fit"><div class="stage">
-<div class="bg"></div>
-<div class="title">CARTESIAN COLOSSEUM</div>
-<div class="axis"><i></i><b></b></div>
-<div class="tip"><em>TIP</em> <strong>Downed</strong> At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.</div>
-
-<div class="abs" style="left:480px;top:385px;width:320px;display:grid;gap:10px">
- <div class="btn host wide" style="height:70px"><svg><use href="#play"/></svg><span>HOST GAME</span></div>
- <div class="btn join wide" style="height:50px"><svg><use href="#arrow"/></svg><span>Join game</span></div>
- <div class="btn cont wide" style="height:50px"><svg><use href="#play"/></svg><span>Continue</span></div>
-</div>
-<div class="abs" style="left:24px;bottom:28px"><div class="profile"><div class="av"></div><div><b>Antaleon</b><small>Legend &nbsp;·&nbsp; Rank 999</small></div><div class="badge">999</div></div></div>
-<div class="abs" style="left:480px;bottom:34px;display:flex;gap:20px"><div class="btn rec " style="width:150px"><svg><use href="#trophy"/></svg><span>Records</span></div><div class="btn set " style="width:170px"><svg><use href="#gear"/></svg><span>Settings</span></div></div>
-<div class="btn quit iconly" style="position:absolute;right:24px;top:24px;width:46px;height:46px"><svg><use href="#power"/></svg><span>Quit</span></div>
-</div></div><ul class="notes"><li>Host game is the tallest bar so it still reads as the main action.</li><li>Records and Settings stay on the bottom bar, pulled to line up under the stack.</li><li>Quit is out of the way, away from the buttons you press by mistake.</li></ul></section>
-<section class="option"><h2><span class="tag">Option B</span>Three tiles</h2><p class="sub">Host, Join and Continue become one row of tiles with the icon above the label. Records, Settings and Quit group at the bottom right.</p><div class="fit"><div class="stage">
-<div class="bg"></div>
-<div class="title">CARTESIAN COLOSSEUM</div>
-<div class="axis"><i></i><b></b></div>
-<div class="tip"><em>TIP</em> <strong>Downed</strong> At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.</div>
-
-<div class="abs" style="left:290px;top:420px;width:700px;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:18px">
- <div class="btn host tile" style="height:170px"><svg><use href="#play"/></svg><span>HOST GAME</span></div><div class="btn join tile" style="height:170px"><svg><use href="#arrow"/></svg><span>Join game</span></div><div class="btn cont tile" style="height:170px"><svg><use href="#play"/></svg><span>Continue</span></div>
-</div>
-<div class="abs" style="left:24px;bottom:28px"><div class="profile"><div class="av"></div><div><b>Antaleon</b><small>Legend &nbsp;·&nbsp; Rank 999</small></div><div class="badge">999</div></div></div>
-<div class="abs" style="right:24px;bottom:34px;display:flex;gap:12px"><div class="btn rec " style="width:132px;height:50px"><svg><use href="#trophy"/></svg><span>Records</span></div><div class="btn set " style="width:132px;height:50px"><svg><use href="#gear"/></svg><span>Settings</span></div><div class="btn quit iconly" style="width:50px;height:50px"><svg><use href="#power"/></svg><span>Quit</span></div></div>
-</div></div><ul class="notes"><li>Host is a wider tile. The row replaces the card.</li><li>The bottom right gets one tidy cluster instead of one lone Quit button.</li><li>Quit is an icon-only square, kept next to Settings.</li></ul></section>
-<section class="option"><h2><span class="tag">Option C</span>Along the axis</h2><p class="sub">The three main buttons are spread along the x-axis under the title: Join on the left, Host at the origin, Continue on the right.</p><div class="fit"><div class="stage">
-<div class="bg"></div>
-<div class="title">CARTESIAN COLOSSEUM</div>
-<div class="axis"><i></i><b></b></div>
-<div class="tip"><em>TIP</em> <strong>Downed</strong> At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.</div>
-
-<div class="abs" style="left:490px;top:400px;width:320px"><div class="btn host wide" style="height:84px"><svg><use href="#play"/></svg><span>HOST GAME</span></div></div>
-<div class="abs" style="left:250px;top:440px;width:220px"><div class="btn join wide" style="height:60px"><svg><use href="#arrow"/></svg><span>Join game</span></div></div>
-<div class="abs" style="left:810px;top:440px;width:220px"><div class="btn cont wide" style="height:60px"><svg><use href="#play"/></svg><span>Continue</span></div></div>
-<div class="abs" style="left:24px;bottom:28px"><div class="profile"><div class="av"></div><div><b>Antaleon</b><small>Legend &nbsp;·&nbsp; Rank 999</small></div><div class="badge">999</div></div></div>
-<div class="abs" style="left:520px;bottom:34px;display:flex;gap:14px;align-items:center"><div class="btn rec " style="width:120px;height:46px"><svg><use href="#trophy"/></svg><span>Records</span></div><div class="btn set " style="width:130px;height:46px"><svg><use href="#gear"/></svg><span>Settings</span></div></div>
-<div class="btn quit iconly" style="position:absolute;left:24px;top:24px;width:46px;height:46px"><svg><use href="#power"/></svg><span>Quit</span></div>
-</div></div><ul class="notes"><li>Join sits under the left tick, Host under the origin dot and Continue under the right tick, so the row reads as points along the axis.</li><li>Records and Settings sit low and centred. Quit is an icon in the top left.</li><li>Buttons spread wider, so the screen feels less crowded in the middle.</li></ul></section>
-<section class="option"><h2><span class="tag">Option D</span>Left dock</h2><p class="sub">A menu column on the left, below the title. Host, then Join and Continue, then Records, Settings and Quit below a divider.</p><div class="fit"><div class="stage">
-<div class="bg"></div>
-<div class="title">CARTESIAN COLOSSEUM</div>
-<div class="axis"><i></i><b></b></div>
-<div class="tip"><em>TIP</em> <strong>Downed</strong> At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.</div>
-
-<div class="abs dock" style="left:70px;top:385px;width:380px">
- <div class="btn host wide" style="height:72px"><svg><use href="#play"/></svg><span>HOST GAME</span></div>
- <div class="row"><div class="btn join " style="flex:1;height:52px"><svg><use href="#arrow"/></svg><span>Join game</span></div><div class="btn cont " style="flex:1;height:52px"><svg><use href="#play"/></svg><span>Continue</span></div></div>
- <hr>
- <div class="row"><div class="btn rec" style="flex:1;height:46px"><svg><use href="#trophy"/></svg><span>Records</span></div><div class="btn set" style="flex:1;height:46px"><svg><use href="#gear"/></svg><span>Settings</span></div><div class="btn quit" style="width:46px;height:46px"><svg><use href="#power"/></svg></div></div>
-</div>
-<div class="abs" style="left:24px;bottom:28px"><div class="profile"><div class="av"></div><div><b>Antaleon</b><small>Legend &nbsp;·&nbsp; Rank 999</small></div><div class="badge">999</div></div></div>
-</div></div><ul class="notes"><li>Everything is in one block on the left, so the order is easy to scan with a controller or arrow keys.</li><li>Records, Settings and Quit share one row under a divider, with Quit as a small icon.</li><li>The right half of the screen is left for the planets and orbit rings.</li></ul></section>
-<section class="option"><h2><span class="tag">Option E</span>Bottom dock</h2><p class="sub">Host game stands alone in the middle. Every other button lives on one dock along the bottom with the profile card.</p><div class="fit"><div class="stage">
-<div class="bg"></div>
-<div class="title">CARTESIAN COLOSSEUM</div>
-<div class="axis"><i></i><b></b></div>
-<div class="tip"><em>TIP</em> <strong>Downed</strong> At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.</div>
-
-<div class="abs" style="left:430px;top:390px;width:420px"><div class="btn host wide big" style="height:104px"><svg><use href="#play"/></svg><span>HOST GAME</span></div></div>
-<div class="abs barwrap" style="left:0;right:0;bottom:0;height:92px;display:flex;align-items:center;gap:14px;padding:0 24px">
- <div class="profile"><div class="av"></div><div><b>Antaleon</b><small>Legend &nbsp;·&nbsp; Rank 999</small></div><div class="badge">999</div></div>
- <div style="flex:1"></div>
- <div class="btn join " style="width:150px;height:50px"><svg><use href="#arrow"/></svg><span>Join game</span></div><div class="btn cont " style="width:150px;height:50px"><svg><use href="#play"/></svg><span>Continue</span></div>
- <span class="sep"></span>
- <div class="btn rec " style="width:130px;height:50px"><svg><use href="#trophy"/></svg><span>Records</span></div><div class="btn set " style="width:130px;height:50px"><svg><use href="#gear"/></svg><span>Settings</span></div>
- <div class="btn quit iconly" style="width:50px;height:50px"><svg><use href="#power"/></svg><span>Quit</span></div>
-</div>
-</div></div><ul class="notes"><li>Join, Continue, Records, Settings and Quit are all in one row, nothing sits in the centre except Host.</li><li>Quit is an icon at the end of the row.</li><li>Fewest buttons on the stage; the title and Host game get the room.</li></ul></section>
+<header><h1>Main Menu Button Layouts</h1><p>Each picture is a screenshot of the real menu, drawn by the game's own menu code with only the button positions changed, so sizes, colours and the box frame are exactly what you would see. The tip line under the title and your name are not drawn by the screenshot tool. They stay exactly as they are today.</p></header>
+<section class="option"><h2><span class="tag">Today</span>Reference</h2><p class="sub">Join game and Continue are in the framed card under Host game. Records and Settings sit in the middle of the bottom bar and Quit is alone on the right.</p><img src="main-menu-buttons/today.png" alt="Reference" width="1280" height="720"></section>
+<section class="option"><h2><span class="tag">Option A</span>One row</h2><p class="sub">Join, Host and Continue sit in one wide box under the title, level with each other. Records and Settings move to the bottom right beside your name card, and Quit goes up to the top right corner.</p><img src="main-menu-buttons/a.png" alt="One row" width="1280" height="720"><ul class="notes"><li>Host game stays the biggest button, in the middle of the row.</li><li>The bottom bar now has your name on the left and two buttons on the right, nothing floating in the centre.</li><li>Quit is out of the bottom bar, away from the buttons you press all the time.</li></ul></section>
+<section class="option"><h2><span class="tag">Option B</span>One box on the left</h2><p class="sub">Every button lives in one box on the left: Host game, Join and Continue, then Records and Settings, then Quit across the bottom of the box.</p><img src="main-menu-buttons/b.png" alt="One box on the left" width="1280" height="720"><ul class="notes"><li>The bottom bar is just your name card.</li><li>The right side of the screen is left open for the background.</li><li>Quit is a full-width bar at the foot of the box, the last thing you reach.</li></ul></section>
+<section class="option"><h2><span class="tag">Option C</span>Host alone</h2><p class="sub">The box holds only Host game. Join, Continue, Records and Settings run along the bottom bar next to your name card, and Quit moves to the top left corner.</p><img src="main-menu-buttons/c.png" alt="Host alone" width="1280" height="720"><ul class="notes"><li>The middle of the screen is just the title and one big button.</li><li>The bottom bar is one row: name, Join, Continue, Records, Settings.</li><li>Join's address row still opens under the box.</li></ul></section>
 </div>
