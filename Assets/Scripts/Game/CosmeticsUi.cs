@@ -10,6 +10,7 @@ namespace Arena
     {
         bool cosmeticsOpen;
         float ladderScroll;  // the reward ladder's scroll, in px
+        bool editingName;  // the name in Your look is a text field while the pencil is on
         int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Reward ladder
 
         static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Reward ladder" };
@@ -19,6 +20,7 @@ namespace Arena
         {
             cosmeticsOpen = true;
             cosmeticsSection = 0;
+            editingName = false;
         }
 
         void DrawCosmetics() { if (!SkipWhileClosing) DrawCosmeticsWindow(); }
@@ -39,7 +41,41 @@ namespace Arena
 
             // You: the badge, your name and title, the XP towards the next rank.
             RankLook.Draw(new Rect(40f, 130f, 72f, 72f), info.Rank);
-            Ui.Label(new Rect(128f, 134f, DrawerW - 160f, 30f), nameText, 22, Color.white, TextAnchor.MiddleLeft, true);
+            int nsize = 22;
+            while (nsize > 12 && Ui.TextWidth(nameText, nsize, true) + 10f > DrawerW - 210f)
+                nsize--;
+            var nameBox = new Rect(128f, 134f, DrawerW - 210f, 30f);
+            if (editingName)
+            {
+                string before = nameText;
+                GUI.SetNextControlName("look_name");
+                nameText = Ui.BareField(nameBox, nameText, 16, nsize);
+                if (nameText != before)
+                    SaveMenuFields();
+                if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
+                {
+                    editingName = false;
+                    GUI.FocusControl(null);
+                    Event.current.Use();
+                }
+            }
+            else
+                Ui.Label(nameBox, nameText, nsize, Color.white, TextAnchor.MiddleLeft, true);
+            // The pencil: rename yourself here (the main menu's card only opens this window).
+            float nw = editingName ? Ui.TextWidth(nameText, nsize, true) + 10f : Ui.TextWidth(nameText, nsize, true);
+            var pencil = new Rect(Mathf.Min(128f + nw + 4f, DrawerW - 72f), 138f, 24f, 24f);
+            if (Ui.HitArea(pencil))
+            {
+                editingName = !editingName;
+                if (editingName)
+                    GUI.FocusControl("look_name");
+                else
+                {
+                    GUI.FocusControl(null);
+                    SaveMenuFields();
+                }
+            }
+            Ui.Icon(new Rect(pencil.x + 3f, pencil.y + 3f, 18f, 18f), PixelArt.Get("ui_pencil"), pencil.Contains(Event.current.mousePosition) || editingName ? Ui.Gold : Ui.Muted);
             Ui.Label(new Rect(128f, 164f, DrawerW - 160f, 20f), Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 14, tc, TextAnchor.MiddleLeft, true);
             Ui.Bar(new Rect(42f, 218f, DrawerW - 84f, 9f), info.Fraction, tc);
             Ui.Label(new Rect(42f, 230f, DrawerW - 84f, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 11, Ui.Muted, TextAnchor.MiddleRight);
