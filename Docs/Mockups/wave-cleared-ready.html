@@ -1,0 +1,204 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Wave Cleared Ready</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Four richer versions of look C ("Squad tally") from wave-cleared.html. Same navy card, blue accent (gold after a boss),
+   rows per player. Each .screen is the real 1280 x 720 canvas, scaled to fit. Example data: wave 4 of a 3-player run. */
+:root { --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --teal:#6fe3c4; --amber:#ffb547;
+  --blue:#5c99ff; --gold:#ffcc59; --good:#73ff8c; --warn:#ffb86b; --bad:#ff6b73; --muted:#9eabc7; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 Barlow,system-ui,sans-serif; margin:0; }
+.wrap { max-width:1240px; margin:0 auto; padding:28px max(16px,env(safe-area-inset-right,0px)) 64px max(16px,env(safe-area-inset-left,0px)); display:grid; gap:28px; }
+h1,h2 { font-family:Oxanium,system-ui,sans-serif; margin:0; text-transform:uppercase; letter-spacing:.04em; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; } h1 span{color:var(--teal)}
+h2 { font-size:20px; font-weight:700; }
+p { margin:0; max-width:75ch; color:#cfdae2; }
+.eyebrow { font:600 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; min-width:0; }
+.card .txt { padding:14px 16px; display:grid; gap:8px; }
+.card .txt b.k { color:var(--teal); font-family:Oxanium; letter-spacing:.06em; }
+.bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+button { font:600 13px Oxanium; letter-spacing:.06em; text-transform:uppercase; color:var(--fg); background:#1b242d; border:1px solid #33414d; border-radius:7px; padding:6px 14px; cursor:pointer; }
+button.on { border-color:var(--gold); color:var(--gold); }
+button:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+.vp { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#0b0e18; }
+.screen { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; font-family:Barlow,Arial,sans-serif; overflow:hidden;
+  background:radial-gradient(ellipse at 50% 45%, #1d2a2a 0%, #121b1d 65%, #0a1011 100%); --ac:var(--blue); --acrgb:92,153,255; color:#fff; }
+.screen.boss { --ac:var(--gold); --acrgb:255,204,89; }
+.screen > *, .abs, .box > * { position:absolute; }
+.grid { inset:0; background:linear-gradient(#ffffff08 1px,transparent 1px) 0 0/64px 64px, linear-gradient(90deg,#ffffff08 1px,transparent 1px) 0 0/64px 64px; }
+.hud-top { left:16px; top:12px; display:flex; gap:10px; } .hud-top i { font:600 12px Oxanium; font-style:normal; background:#0008; border:1px solid #fff2; border-radius:99px; padding:3px 12px; color:#cfd8ea; }
+.hud-bot { left:0; right:0; bottom:12px; display:flex; justify-content:center; gap:8px; } .hud-bot i { width:150px; height:58px; background:#10162a; border:1px solid #2b3248; border-radius:8px; }
+.pl { width:26px; height:26px; border-radius:50%; background:#4f8cff; border:3px solid #fff; box-shadow:0 0 16px #4f8cff; }
+.flash { inset:0; background:radial-gradient(circle at 50% 46%, rgba(var(--acrgb),.5), transparent 62%); opacity:0; pointer-events:none; }
+/* box shell */
+.box { border-radius:12px; background:linear-gradient(#1a2440,#0f1528); border:2px solid var(--ac); box-shadow:0 0 36px rgba(var(--acrgb),.28); overflow:hidden; opacity:0; }
+.t { font-family:Oxanium; font-weight:800; color:#fff; letter-spacing:.05em; text-shadow:0 2px 0 rgba(0,0,0,.45); }
+.sub { font:500 14px Barlow; color:var(--muted); }
+.mut { color:var(--muted); }
+.check { width:30px; height:30px; border-radius:50%; border:3px solid var(--ac); display:grid; place-items:center; }
+.check svg { width:16px; height:16px; stroke:var(--ac); stroke-width:3.2; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:24; }
+.cbar { height:5px; border-radius:3px; background:#ffffff1c; overflow:hidden; } .cbar i { display:block; height:100%; background:var(--ac); width:100%; transform-origin:0 50%; }
+.chip { font:600 13px Barlow; background:#0007; border:1px solid rgba(var(--acrgb),.45); color:#dbe4f7; padding:2px 11px; border-radius:99px; white-space:nowrap; } .chip b { color:#fff; font-family:Oxanium; }
+.row { height:44px; border-radius:8px; background:#0c1224; border:1px solid #2b3248; display:flex; align-items:center; gap:10px; padding:0 10px; font:600 14px Barlow; white-space:nowrap; }
+.row .av { width:22px; height:22px; border-radius:50%; flex:none; } .row .nm { width:96px; color:#fff; flex:none; overflow:hidden; text-overflow:ellipsis; }
+.row .cl { font:500 11px Barlow; color:var(--muted); display:block; line-height:1; margin-top:2px; }
+.row.hd { height:20px; background:none; border:0; font:600 10px Oxanium; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; padding:0 10px; }
+.c { width:62px; text-align:right; flex:none; font-variant-numeric:tabular-nums; } .c b { color:#fff; }
+.c.bad b { color:var(--warn); } .c.good b { color:var(--good); }
+.tag { font:700 11px Oxanium; letter-spacing:.06em; border-radius:99px; padding:1px 9px; border:1px solid; flex:none; }
+.tag.g { color:var(--good); background:#0a2a14; border-color:#2a7a44; } .tag.y { color:var(--gold); background:#2a2208; border-color:#7a6420; } .tag.b { color:#9cc0ff; background:#0f1c3a; border-color:#3b5da8; } .tag.r { color:var(--bad); background:#2e0f14; border-color:#7a2a32; }
+.xp { height:8px; border-radius:4px; background:#0a0e1c; border:1px solid #2b3248; position:relative; overflow:hidden; flex:1; }
+.xp i { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#ffb547,#ffd96b); }
+.xp i.new { background:repeating-linear-gradient(45deg,#ffe38f 0 5px,#ffd05a 5px 10px); }
+.lv { font:800 11px Oxanium; color:var(--gold); background:#2a2208; border:1px solid #7a6420; border-radius:5px; padding:1px 6px; flex:none; }
+.dot { width:12px; height:12px; border-radius:50%; flex:none; } .d-r{background:#d9565a} .d-o{background:#ff9a3d} .d-p{background:#b46bff} .d-g{background:#5fd07a}
+/* shared animation */
+.go .flash { animation:fl .7s ease-out both; } @keyframes fl { 0%{opacity:0} 15%{opacity:1} 100%{opacity:0} }
+.go .box { animation:dropA .55s .5s cubic-bezier(.2,1.3,.4,1) both; }
+.go .check svg { animation:draw .4s 1s ease-out both; stroke-dashoffset:24; } @keyframes draw { to{stroke-dashoffset:0} }
+
+
+.go .cbar i { animation:drain 6s .9s linear both; } @keyframes drain { to{transform:scaleX(0)} }
+.go .xp i { animation:grow 1s 1.5s cubic-bezier(.3,.8,.3,1) both; transform-origin:0 50%; } @keyframes grow { from{transform:scaleX(0)} to{transform:none} }
+@keyframes dropA { from{opacity:0; transform:translateY(-34px) scale(.92)} to{opacity:1; transform:none} }
+@keyframes outA { to{opacity:0; transform:translateY(-22px)} }
+@keyframes slideR { from{opacity:0; transform:translateX(-24px)} to{opacity:1; transform:none} }
+@media (prefers-reduced-motion:reduce) { .go *, .go { animation-duration:.01s !important; animation-delay:0s !important; } }
+/* ---- shared layout for the three versions (look C3: tally on the left, next wave on the right) ---- */
+.box { left:calc(50% - 470px); top:120px; width:940px; height:470px; }
+.head { left:20px; right:20px; top:14px; display:flex; align-items:center; gap:12px; } .head .t { font-size:30px; }
+.rows { left:20px; top:62px; width:600px; display:grid; gap:6px; } .rows > * { position:relative; }
+.rows .row .nm { width:84px; } .rows .row .c { width:54px; }
+.award { display:flex; gap:5px; margin-left:auto; flex:none; }
+.side { left:640px; right:20px; top:62px; bottom:84px; border-radius:10px; background:#0c1224; border:1px solid #2b3248; padding:12px 14px; display:grid; align-content:start; gap:8px; }
+.side > * { position:relative; }
+.side h3 { margin:0; font:700 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+.en { display:flex; align-items:center; gap:8px; font:600 14px Barlow; } .en .n { margin-left:auto; color:#fff; font:800 14px Oxanium; }
+.road { display:flex; gap:5px; align-items:center; } .road i { flex:1; height:6px; border-radius:3px; background:#ffffff1c; } .road i.on { background:var(--ac); } .road i.boss { background:var(--gold); }
+.foot { left:20px; right:20px; bottom:14px; height:62px; }
+.foot > * { position:absolute; }
+.stat { font:500 14px Barlow; color:var(--muted); white-space:nowrap; } .stat b { color:#fff; }
+.stat.r { right:0; bottom:14px; } .stat.l { left:0; bottom:14px; }
+.fbar { left:0; right:0; bottom:0; }
+.idle { background:repeating-linear-gradient(45deg,#ffffff1f 0 8px,#ffffff0d 8px 16px); }
+.idle i { display:none; }
+.drain i { animation:drainK linear both; } @keyframes drainK { to{transform:scaleX(0)} }
+/* ready controls */
+.rdy { width:24px; height:24px; border-radius:50%; flex:none; display:grid; place-items:center; border:2px solid #3b4670; color:#3b4670; font:700 12px Oxanium; margin-left:8px; }
+.rdy.y { border-color:var(--good); color:var(--good); background:#0a2a14; } .rdy.a { border-color:var(--ac); color:var(--ac); background:rgba(var(--acrgb),.12); }
+.rbtn { height:40px; border-radius:9px; font:700 17px Barlow; color:#fff; border:2px solid #8db3ff; background:linear-gradient(#4f8cff,#2f64d8); box-shadow:0 3px 0 #0006, inset 0 1px 0 #fff3; display:flex; align-items:center; justify-content:center; gap:10px; padding:0 16px; cursor:pointer; user-select:none; white-space:nowrap; }
+.rbtn .k { font:600 12px Oxanium; background:#0005; padding:2px 7px; border-radius:5px; letter-spacing:.05em; }
+.rbtn.on { background:linear-gradient(#2fa85a,#1f7a40); border-color:#7dffb0; }
+.rbtn.auto { background:linear-gradient(#444d70,#2f3652); border-color:#6d78a3; color:#c3cbe0; cursor:default; }
+.tg { display:flex; align-items:center; gap:9px; font:600 14px Barlow; color:#dbe4f7; cursor:pointer; user-select:none; white-space:nowrap; }
+.sw { width:42px; height:24px; border-radius:12px; background:#2b3248; border:2px solid #4a5578; position:relative; flex:none; transition:.15s; } .sw::after { content:""; position:absolute; left:2px; top:2px; width:16px; height:16px; border-radius:50%; background:#9aa6c4; transition:.15s; }
+.tg.on .sw { background:var(--good); border-color:var(--good); } .tg.on .sw::after { left:20px; background:#06210f; }
+.tg small { font:500 12px Barlow; color:var(--muted); display:block; line-height:1.1; }
+.you { border-color:rgba(var(--acrgb),.7) !important; background:rgba(var(--acrgb),.08) !important; }
+.v1 .box,.v3 .box { height:410px; }
+.v3 .rows { width:650px; } .v3 .side { left:690px; } .v3 .rows .row .nm { width:70px; } .v3 .rows .row .c { width:46px; } .v3 .tg small { display:none; }
+.statePick { display:flex; gap:8px; flex-wrap:wrap; }
+.note { font:500 13px Barlow; color:var(--muted); }
+</style>
+<div class="wrap">
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Mockup &middot; Between waves &middot; look C3 with Awards and Ready</div>
+  <h1>Awards <span>&amp;</span> ready up</h1>
+  <p>Look C3 with the Status column replaced by <b>Awards</b>, and a ready system for the next wave. Pressing Ready (or Space) says you are set; the wave starts a few seconds after everyone is ready, and until then there is no timer. The <b>Auto-ready</b> switch is remembered between runs: while it is on you count as ready as soon as your upgrade pick is done, and when everyone has it on the wave starts on the same countdown as today, so solo play keeps today's pace. Three places to put the controls. The buttons and the switch work; the state buttons jump to common cases (the other two players are examples).</p>
+  <div class="statePick" role="group" aria-label="Example state">
+    <button data-p="waiting" class="on">Waiting for Jo</button><button data-p="allready">Everyone ready</button><button data-p="auto">Everyone on auto-ready</button><button data-p="soloauto">Solo, auto-ready on</button><button data-p="solomanual">Solo, auto-ready off</button><button id="boss" aria-pressed="false">Boss wave: off</button>
+  </div>
+</header>
+
+<section class="card"><div class="vp"><div class="screen go" data-v="1" data-s></div></div>
+ <div class="txt"><h2><b class="k">1</b> &middot; Ready bar along the bottom</h2>
+  <p>A button, the Auto-ready switch and the status all sit in one bar under the tally, so the right side stays purely information. Each row gets a small tick on the far right that shows who is ready (a ring for players who are on auto-ready). The bar underneath is striped while the wave is waiting and drains once a countdown runs. The easiest to find, and the closest to the Game Over buttons.</p></div></section>
+
+<section class="card"><div class="vp"><div class="screen go" data-v="2" data-s></div></div>
+ <div class="txt"><h2><b class="k">2</b> &middot; Ready under "Next wave"</h2>
+  <p>The button and switch sit at the bottom of the Next wave panel, where the eye ends after reading what is coming: read the mix, then say you are ready. The tally keeps ready ticks on each row. The bar at the bottom shows the status. The panel is a bit more crowded, but the control belongs to the thing it starts.</p></div></section>
+
+<section class="card"><div class="vp"><div class="screen go" data-v="3" data-s></div></div>
+ <div class="txt"><h2><b class="k">3</b> &middot; Ready on your own row</h2>
+  <p>Your own row is highlighted and ends in the Ready button; everyone else's row ends in a READY / WAITING pill, so the tally doubles as the ready list. The Auto-ready switch goes in the Squad row. The bottom bar is only the status line and timer. Fewest extra elements, and it reads well in 3 players, but the button is smaller and further from the middle of the screen.</p></div></section>
+</div>
+<script>
+function fit(){ document.querySelectorAll('.vp').forEach(v=>{ v.firstElementChild.style.transform='scale('+v.clientWidth/1280+')'; }); }
+addEventListener('resize',fit);
+const PRESETS = {
+  waiting:   {solo:false, me:true,  auto:false, sam:true,  samAuto:false, jo:false, joAuto:false},
+  allready:  {solo:false, me:true,  auto:false, sam:true,  samAuto:false, jo:true,  joAuto:false},
+  auto:      {solo:false, me:false, auto:true,  sam:false, samAuto:true,  jo:false, joAuto:true},
+  soloauto:  {solo:true,  me:false, auto:true},
+  solomanual:{solo:true,  me:false, auto:false}
+};
+let st = Object.assign({}, PRESETS.waiting);
+const TAG = (c,t)=>'<span class="tag '+c+'">'+t+'</span>';
+const PL = [
+  {id:'me',  name:'Antho', col:'#4f8cff', k:18, d:'2,140', t:'0',  tc:'good', aw:[['y','UNTOUCHED']]},
+  {id:'sam', name:'Sam',   col:'#ff8a3d', k:21, d:'2,880', t:'96', tc:'bad',  aw:[['y','MOST DAMAGE'],['y','MOST KILLS']]},
+  {id:'jo',  name:'Jo',    col:'#6fe3c4', k:13, d:'1,310', t:'22', tc:'',     aw:[['b','MOST HEALING'],['b','REVIVED SAM']]}
+];
+const isAuto = p => p.id==='me' ? st.auto : !!st[p.id+'Auto'];
+const isReady = p => (p.id==='me' ? st.me : !!st[p.id]) || isAuto(p);
+function players(){ return st.solo ? [PL[0]] : PL; }
+function status(){
+  const ps = players(), all = ps.every(isReady), allAuto = ps.every(isAuto);
+  const wait = ps.filter(p=>!isReady(p)).map(p=>p.name);
+  if (allAuto) return {kind:'auto', text:'Wave 5 starts in <b>5</b>', secs:5};
+  if (all) return {kind:'go', text:'Everyone is ready. Wave 5 starts in <b>3</b>', secs:3};
+  return {kind:'wait', text:'Waiting for <b>'+wait.join(' and ')+'</b>' + (st.solo ? '' : ' &nbsp;&middot;&nbsp; no timer until everyone is ready')};
+}
+function rdyDot(p){ return isAuto(p) ? '<span class="rdy a" title="auto-ready">A</span>' : isReady(p) ? '<span class="rdy y">&#10003;</span>' : '<span class="rdy">&middot;</span>'; }
+function pill(p){ return isAuto(p) ? TAG('b','AUTO') : isReady(p) ? TAG('g','READY') : TAG('r','WAITING'); }
+function row(p, v){
+  const you = p.id==='me' && v===3 ? ' you' : '';
+  const end = v===3 ? (p.id==='me' ? meBtn(true) : pill(p)) : rdyDot(p);
+  return '<div class="row'+you+'"><span class="av" style="background:'+p.col+'"></span><span class="nm">'+p.name+'</span>'
+   +'<span class="c"><b>'+p.k+'</b></span><span class="c"><b>'+p.d+'</b></span><span class="c '+p.tc+'"><b>'+p.t+'</b></span>'
+   +'<span class="award">'+p.aw.map(a=>TAG(a[0],a[1])).join('')+'</span>'+end+'</div>';
+}
+function meBtn(small){
+  const s = small ? 'height:32px;font-size:14px;padding:0 10px;margin-left:8px;' : 'width:200px;';
+  if (st.auto) return '<span class="rbtn auto" style="'+s+'">AUTO-READY</span>';
+  if (st.me) return '<span class="rbtn on" data-act="ready" style="'+s+'">&#10003; READY'+(small?'':' <span class="k">undo</span>')+'</span>';
+  return '<span class="rbtn" data-act="ready" style="'+s+'">READY'+(small?'':' <span class="k">SPACE</span>')+'</span>';
+}
+function toggle(){ return '<span class="tg'+(st.auto?' on':'')+'" data-act="auto" role="switch" aria-checked="'+st.auto+'"><span class="sw"></span><span>Auto-ready<small>from now on, every wave</small></span></span>'; }
+function bar(s){ return '<div class="cbar fbar '+(s.kind==='wait'?'idle':'drain')+'"><i style="animation-duration:'+(s.secs||1)+'s"></i></div>'; }
+function side(v){
+  const btn = v===2 ? '<div style="position:relative;display:grid;gap:10px;margin-top:2px">'+meBtn(false).replace('width:200px;','width:100%;')+toggle()+'</div>' : '';
+  return '<div class="side"><h3>Next: wave 5</h3>'
+   +'<div class="en"><span class="dot d-r"></span>Grunts<span class="n">x16</span></div><div class="en"><span class="dot d-o"></span>Brutes<span class="n">x4</span></div>'
+   +'<div class="en"><span class="dot d-p"></span>Spitters<span class="n">x3</span></div><div class="en"><span class="dot d-g"></span>Healers<span class="n">x2</span></div>'
+   +'<h3 style="margin-top:4px">Road to The Warden</h3><div class="road"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i class="boss"></i></div>'
+   +btn+'</div>';
+}
+function build(el){
+  const v = +el.dataset.v, s = status(), ps = players(); el.classList.add('v'+v);
+  const sq = '<div class="row" style="background:rgba(var(--acrgb),.10);border-color:rgba(var(--acrgb),.4)"><span class="mut" style="width:118px;flex:none">Squad</span><span class="c"><b>52</b></span><span class="c"><b>6,330</b></span><span class="c"><b>118</b></span>'
+    + (v===3 ? '<span style="margin-left:auto">'+toggle()+'</span>' : '<span class="mut" style="margin-left:auto">best combo x1.4</span>')+'</div>';
+  const head = '<div class="row hd"><span style="width:116px">Player</span><span class="c">Kills</span><span class="c">Damage</span><span class="c">Taken</span><span style="margin-left:6px">Awards</span></div>';
+  let foot;
+  if (v===1) foot = '<div class="foot">'+'<span style="left:0;bottom:16px;display:flex;align-items:center;gap:18px">'+meBtn(false)+toggle()+'</span><span class="stat r">'+s.text+'</span>'+bar(s)+'</div>';
+  else foot = '<div class="foot"><span class="stat l" style="bottom:14px">'+s.text+'</span>'+bar(s)+'</div>';
+  el.innerHTML = '<div class="grid"></div><div class="hud-top"><i>WAVE 4</i><i>KILLS 52</i></div><div class="hud-bot"><i></i><i></i><i></i><i></i><i></i></div><div class="pl" style="left:627px;top:640px"></div><div class="flash"></div>'
+   + '<div class="box"><div class="head"><span class="check"><svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9"/></svg></span><div class="t">WAVE 4 CLEARED</div><span class="chip" style="margin-left:auto"><b>0:42</b> clear time</span><span class="chip"><b>+120</b> score</span></div>'
+   + '<div class="rows">'+head+ps.map(p=>row(p,v)).join('')+(st.solo?'':sq)+(st.solo && v===3 ? '<div class="row" style="justify-content:flex-end;background:none;border:0">'+toggle()+'</div>':'')+'</div>'
+   + side(v) + foot + '</div>';
+}
+const screens=[...document.querySelectorAll('[data-s]')];
+function renderAll(){ screens.forEach(build); fit(); }
+function replay(){ screens.forEach(s=>{ s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }); }
+function act(a){ if (a==='ready' && !st.auto) st.me = !st.me; if (a==='auto') { st.auto = !st.auto; if (st.auto) st.me = false; } renderAll(); }
+document.addEventListener('click', e=>{ const t=e.target.closest('[data-act]'); if (t) act(t.dataset.act); });
+document.addEventListener('keydown', e=>{ if (e.code==='Space' && !/BUTTON|INPUT/.test(document.activeElement.tagName)) { e.preventDefault(); act('ready'); } });
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{ st=Object.assign({}, PRESETS[b.dataset.p]); document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on',x===b)); renderAll(); });
+const bb=document.getElementById('boss');
+bb.onclick=()=>{ const on=!screens[0].classList.contains('boss'); screens.forEach(s=>s.classList.toggle('boss',on)); bb.classList.toggle('on',on); bb.setAttribute('aria-pressed',on); bb.textContent='Boss wave: '+(on?'on':'off'); };
+renderAll(); document.fonts&&document.fonts.ready.then(fit);
+</script>
