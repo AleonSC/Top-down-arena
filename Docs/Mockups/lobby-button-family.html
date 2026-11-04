@@ -1,0 +1,124 @@
+<title>Lobby Button Family</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Round two of the lobby's Back / Ready / Start buttons. Feedback on round one: too different in size and colour from each other.
+   So here all three share one height (52 px), one hue and one shape, and state is shown by rim, glow and a check mark rather
+   than by switching to gold or green. Each stage is the real left column (376 px wide) in three states. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --line: #242d36; --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 36px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+.tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.rec { color: var(--amber); }
+
+.stage { background: radial-gradient(ellipse at 30% 90%, #3a1d2e 0%, #14101f 55%, #080a10 100%); border: 1px solid var(--line); border-radius: 10px; padding: 22px max(16px, 2vw); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 376px)); gap: 26px 30px; justify-content: start; min-width: 0; }
+.col { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.cap { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: #8f9bb8; }
+.title { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
+.title i { font: normal 800 40px var(--font-display); letter-spacing: .06em; color: #fff; text-shadow: 0 2px 0 #3a4a8a; }
+.stub { height: 44px; border-radius: 10px; border: 1px dashed #5a4a52; opacity: .5; }
+.note { font: 500 14px var(--font-body); color: #aab4cc; text-align: center; height: 22px; line-height: 22px; }
+.note.ok { color: #6fe3a0; }
+
+/* shared button shape: 52 px tall for all three */
+.b { position: relative; box-sizing: border-box; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 12px; font: 800 20px var(--font-display); letter-spacing: .04em; color: #fff; user-select: none; }
+.b svg { width: 22px; height: 22px; fill: currentColor; flex: none; }
+.b.sq { width: 52px; flex: none; }
+.chk { width: 24px; height: 24px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; flex: none; opacity: .75; }
+.chk svg { width: 16px; height: 16px; opacity: 0; }
+.on .chk { background: #fff; border-color: #fff; color: #2a4fb0; opacity: 1; }
+.on .chk svg { opacity: 1; }
+
+/* ---------- 1. One family: slate blue, filled ---------- */
+.o1 .b { background: linear-gradient(#34457a, #26335f); border: 1px solid #5169a8; box-shadow: 0 3px 0 #131b38, inset 0 1px 0 rgba(255,255,255,.22); }
+.o1 .b.on { background: linear-gradient(#4a74dc, #3358b8); border-color: #9dbcff; box-shadow: 0 3px 0 #14275e, 0 0 20px rgba(90,148,255,.5), inset 0 1px 0 rgba(255,255,255,.4); }
+.o1 .b.off { opacity: .45; box-shadow: none; }
+.o1 .back svg { color: #ff9da3; }
+.o1 .b.prac.on { background: linear-gradient(#3fb9a0, #25907c); border-color: #a8f0df; box-shadow: 0 3px 0 #0e463d, 0 0 20px rgba(79,224,192,.45), inset 0 1px 0 rgba(255,255,255,.4); }
+
+/* ---------- 2. Same as the lobby's own tiles: dark glass, blue rim, underline when selected ---------- */
+.o2 .b { background: rgba(15,22,42,.88); border: 2px solid #34406a; color: #cfd8ea; overflow: hidden; }
+.o2 .b.on { background: rgba(50,86,180,.28); border-color: #5a8cff; color: #fff; box-shadow: 0 0 18px rgba(90,140,255,.3); }
+.o2 .b.on::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, transparent, #7fa8ff, transparent); }
+.o2 .b.off { color: #6a7599; border-color: #272f4d; background: rgba(15,22,42,.55); }
+.o2 .back svg { color: #ff8a90; }
+.o2 .b.prac.on { background: rgba(40,160,140,.25); border-color: #4fe0c0; box-shadow: 0 0 18px rgba(79,224,192,.3); }
+.o2 .b.prac.on::after { background: linear-gradient(90deg, transparent, #7ff0d6, transparent); }
+
+/* ---------- 3. Side by side: Ready and Start share one row, same blue ---------- */
+.o3 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.o3 .b { background: linear-gradient(#3d63c8, #2c4a9c); border: 1px solid #7b9bec; box-shadow: 0 3px 0 #14275e, inset 0 1px 0 rgba(255,255,255,.3); }
+.o3 .b.on { background: linear-gradient(#5a86f0, #3f66c6); border-color: #c4d6ff; box-shadow: 0 3px 0 #14275e, 0 0 20px rgba(110,160,255,.55), inset 0 1px 0 rgba(255,255,255,.5); }
+.o3 .b.off { background: linear-gradient(#2c3452, #232a44); border-color: #3b4570; color: #7480a6; box-shadow: none; }
+.o3 .back { background: linear-gradient(#2c3a68, #212c52); border-color: #4a5fa0; }
+.o3 .back svg { color: #dbe5ff; }
+.o3 .b.prac.on { background: linear-gradient(#3fb9a0, #25907c); border-color: #b5fbe9; box-shadow: 0 3px 0 #0e463d, 0 0 20px rgba(79,224,192,.45), inset 0 1px 0 rgba(255,255,255,.4); }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Lobby &middot; Button styles, round two</div>
+  <h1>One <span>family</span> of buttons</h1>
+  <p class="lead">Round one made Back, Ready and Start three different colours and two different heights. Here all three are 52 px tall with the same corner, border and type. There is one hue, and state shows through the rim, a glow and a check mark: <b>unselected</b>, <b>on</b> (you're ready; Start can start), and <b>dimmed</b> (Start waiting). Each stage shows the left column in four moments: you're not ready, you're ready and others aren't, everyone's ready (host), and the same in Practice, where Start takes a teal tint.</p>
+</header>
+
+<section>
+  <div><div class="tag">Option 1</div><h2>Slate blue, filled</h2></div>
+  <p class="pros"><span><b>Good:</b> a solid version of today's blue. Same fill on all three, bright blue only when "on". The smallest step from the current look.</span><span><b>Cost:</b> still the heaviest, since filled buttons next to the panel are loud.</span></p>
+  <div class="stage o1" id="o1"></div>
+</section>
+
+<section>
+  <div><div class="tag">Option 2 <span class="rec">&middot; my pick</span></div><h2>The lobby's own tiles</h2></div>
+  <p class="pros"><span><b>Good:</b> reuses the dark glass, blue rim and underline of the Role / Class / Weapon tiles in the loadout, so the buttons read as part of the same screen and don't compete with it.</span><span><b>Good:</b> "on" is the same signal as a selected tile, so Ready behaves like picking an option.</span><span><b>Cost:</b> calmer, so Start needs the glow to stand out when it's ready.</span></p>
+  <div class="stage o2" id="o2"></div>
+</section>
+
+<section>
+  <div><div class="tag">Option 3</div><h2>Ready and Start side by side</h2></div>
+  <p class="pros"><span><b>Good:</b> two equal buttons in one row, the same blue, so they can't look like different sizes. Frees about 62 px of column height.</span><span><b>Good:</b> Back is the same blue, darker.</span><span><b>Cost:</b> shorter labels (Ready? / Start) and each button is 183 px wide.</span></p>
+  <div class="stage o3" id="o3"></div>
+</section>
+</div>
+
+<script>
+var CHECK = '<svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg>';
+var PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+var BACK = '<svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg>';
+var STATES = [
+  { cap: 'You are not ready', ready: false, start: 'off', note: 'Waiting for 2 players to ready up' },
+  { cap: 'You are ready, others are not', ready: true, start: 'off', note: 'Waiting for 1 player to ready up' },
+  { cap: 'Everyone is ready (host)', ready: true, start: 'on', note: "Everyone's ready", ok: true },
+  { cap: 'Practice, everyone is ready', ready: true, start: 'on prac', note: "Everyone's ready", ok: true }
+];
+function ready(s, label) { return '<div class="b ' + (s.ready ? 'on' : '') + '"><span class="chk">' + CHECK + '</span><span>' + (s.ready ? 'Ready!' : label) + '</span></div>'; }
+function col(opt, s) {
+  var head = '<div class="cap">' + s.cap + '</div><div class="title"><div class="b back sq">' + BACK + '</div><i>LOBBY</i></div><div class="stub"></div><div class="stub"></div>';
+  var note = '<div class="note ' + (s.ok ? 'ok' : '') + '">' + s.note + '</div>';
+  var start = '<div class="b ' + s.start + '">' + PLAY + '<span>Start</span></div>';
+  if (opt === 3) {
+    var st = s.start === 'off' ? 'off' : s.start;
+    return '<div class="col">' + head + note + '<div class="pair">' + ready(s, 'Ready?') + '<div class="b ' + st + '">' + PLAY + '<span>Start</span></div></div></div>';
+  }
+  return '<div class="col">' + head + note + ready(s, 'Ready?') + start + '</div>';
+}
+[1, 2, 3].forEach(function (o) {
+  document.getElementById('o' + o).innerHTML = STATES.map(function (s) { return col(o, s); }).join('');
+});
+</script>
