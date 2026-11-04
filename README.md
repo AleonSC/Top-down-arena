@@ -1063,6 +1063,8 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
 - **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
   (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
   hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+  **Account rank** sets this computer's rank without playing for it (works on the main menu too): **+1 rank**, **+10 ranks**,
+  **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
 
 ### DPS meter and target dummy (F2)

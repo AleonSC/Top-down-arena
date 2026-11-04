@@ -142,6 +142,9 @@ From the mockup, in priority order:
   list. "Your pick" for the background goes back to the one you had before Dusk Grid. The "example" tiles in the mockup
   aren't built.
 - **Titles** come with the tier and aren't equipped separately.
+- **Dev tool:** F1 > Tools > Account rank (+1, +10, Rank 30, Max rank, Reset): `ArenaApp.DevSetRank` in `RankUi.cs`.
+- **Main menu bar:** 92 px tall (was 70) with a 360 x 64 chip, a 46 px badge and 150 x 50 buttons, so the chip's name, title
+  and XP bar fit.
 - **Network:** `LobbyEntry` gained `Rank` and `Frame` and `Trail` (in the `Lobby` message), and clients send
   `Msg.Cosmetics` (rank, frame, trail) when they join, return to the lobby, or equip something. The host clamps the
   rank and drops a frame or trail the rank doesn't have. Protocol 134 to 135.

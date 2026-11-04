@@ -15,13 +15,13 @@ namespace Arena
         // draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f, MenuTipY = 220f;
         const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
-        const float MenuBarY = H - 70f;                                        // the bottom bar
+        const float MenuBarY = H - 92f;                                        // the bottom bar
         static readonly Rect MenuCard = new Rect(W / 2f - 220f, (H - 214f) / 2f, 440f, 214f);  // in the middle of the screen
         static readonly Rect MenuHostRect = new Rect(W / 2f - 190f, MenuCard.y + 24f, 380f, 82f);
         static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, MenuCard.y + 124f, 186f, 52f);
         static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, MenuCard.y + 124f, 186f, 52f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, MenuCard.yMax + 12f, 440f, 64f);
-        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 11f, 300f, 48f);
+        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 14f, 360f, 64f);
         bool menuJoinOpen;    // Join opened the address row
         int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
 
@@ -211,18 +211,18 @@ namespace Arena
             float k = MenuIntroK(2.1f, 2.5f);
             if (k <= 0f)
                 return;
-            GUI.BeginGroup(new Rect(0f, 80f * (1f - EaseOut(k)), W, H));
+            GUI.BeginGroup(new Rect(0f, 100f * (1f - EaseOut(k)), W, H));
             if (live)
                 TipClear();  // the rank badge's hover card (RankUi.cs)
-            Ui.Fill(new Rect(0f, MenuBarY, W, 70f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
+            Ui.Fill(new Rect(0f, MenuBarY, W, 92f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
             Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
             if (withName)
                 DrawNameCard(MenuNameRect, 0f, live, t);
-            if (Ui.FancyButton(new Rect(W / 2f - 125f, MenuBarY + 16f, 120f, 38f), "Records", new Color(0.36f, 0.3f, 0.14f), PixelArt.Get("ui_trophy"), t, 14) && live)
+            if (Ui.FancyButton(new Rect(W / 2f - 160f, MenuBarY + 21f, 150f, 50f), "Records", new Color(0.36f, 0.3f, 0.14f), PixelArt.Get("ui_trophy"), t, 17) && live)
                 recordsOpen = true;
-            if (Ui.FancyButton(new Rect(W / 2f + 5f, MenuBarY + 16f, 120f, 38f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 14) && live)
+            if (Ui.FancyButton(new Rect(W / 2f + 10f, MenuBarY + 21f, 150f, 50f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 17) && live)
                 settingsOpen = true;
-            if (Ui.FancyButton(new Rect(W - 148f, MenuBarY + 16f, 120f, 38f), "Quit", new Color(0.46f, 0.18f, 0.21f), PixelArt.Get("ui_power"), t, 14) && live)
+            if (Ui.FancyButton(new Rect(W - 178f, MenuBarY + 21f, 150f, 50f), "Quit", new Color(0.46f, 0.18f, 0.21f), PixelArt.Get("ui_power"), t, 17) && live)
                 Application.Quit();
             if (live)
                 DrawTip();
@@ -247,7 +247,8 @@ namespace Arena
                 Ui.Card(r, color, hover ? 1f : 0.85f);
             if (hover)
                 Ui.Pill(r, new Color(1f, 1f, 1f, 0.05f));
-            float fs = Mathf.Lerp(r.height - 10f, 72f, k);
+            float sc = plain ? r.height / 48f : 1f;  // the menu's chip is drawn larger (the bar is taller)
+            float fs = plain ? r.height - 12f : Mathf.Lerp(r.height - 10f, 72f, k);
             var face = new Rect(r.x + Mathf.Lerp(5f, 8f, k), r.y + Mathf.Lerp((r.height - fs) / 2f, 8f, k), fs, fs);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
             if (BeginUiGl())
@@ -265,25 +266,25 @@ namespace Arena
                 EndUiGl();
             }
             // The badge sits at the right, before the pencil, so it never covers the name or the XP bar.
-            float bsz = plain ? 30f : Mathf.Lerp(22f, 30f, k);
-            float badgeRight = r.xMax - (editable ? 46f : 10f);
+            float bsz = plain ? 46f : Mathf.Lerp(22f, 30f, k);
+            float badgeRight = r.xMax - (editable ? 54f * sc : 10f);
             var rankRect = plain ? new Rect(badgeRight - bsz, r.y + (r.height - bsz) / 2f, bsz, bsz) : new Rect(face.xMax - bsz * 0.7f, face.yMax - bsz * 0.7f, bsz, bsz);
             RankLook.Draw(rankRect, myRank);
             if (editable)
                 RankBadgeTip(rankRect, myRank, true);
             float tx = face.xMax + Mathf.Lerp(10f, 14f, k), tw = (plain ? rankRect.x - 8f : r.xMax - 8f - (editable ? 36f : 0f)) - tx;
-            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(3f, 8f, k), tw + (editable ? 4f : 0f), Mathf.Lerp(25f, 26f, k));
-            int size = Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
+            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + (plain ? 4f : Mathf.Lerp(3f, 8f, k)), tw + (editable ? 4f : 0f), plain ? 30f : Mathf.Lerp(25f, 26f, k));
+            int size = plain ? 22 : Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
             while (size > 11 && Ui.TextWidth(nameText, size, true) + 10f > tw)
                 size--;  // a long name gets smaller until it fits
-            var pencil = new Rect(r.xMax - 38f, r.y + (r.height - 30f) / 2f, 30f, 30f);
+            var pencil = new Rect(r.xMax - 46f * sc, r.y + (r.height - 38f * sc) / 2f, 38f * sc, 38f * sc);
             if (editable)
             {
                 // The pencil puts the cursor in your name (clicking the name itself works too); it lights up while typing.
                 bool typing = GUI.GetNameOfFocusedControl() == "menu_name";
                 if (Ui.Button(pencil, "", typing ? Ui.Primary : Ui.Neutral))
                     GUI.FocusControl("menu_name");
-                Ui.Icon(new Rect(pencil.x + 7f, pencil.y + 7f, 16f, 16f), PixelArt.Get("ui_pencil"), Color.white);
+                Ui.Icon(new Rect(pencil.x + pencil.width / 2f - 10f * sc, pencil.y + pencil.height / 2f - 10f * sc, 20f * sc, 20f * sc), PixelArt.Get("ui_pencil"), Color.white);
                 string before = nameText;
                 GUI.SetNextControlName("menu_name");
                 nameText = Ui.BareField(nameRect, nameText, 16, size);
@@ -295,8 +296,8 @@ namespace Arena
             if (plain)
             {
                 // Under the name: the rank title and number, then the XP towards the next rank, thin.
-                Ui.Label(new Rect(tx, r.y + 25f, tw, 16f), Rank.Title(myRank) + "  ·  Rank " + myRank, 11, RankLook.TierColor(myRank), TextAnchor.MiddleLeft, true);
-                Ui.Bar(new Rect(tx, r.yMax - 7f, tw, 3f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
+                Ui.Label(new Rect(tx, r.y + 33f, tw, 18f), Rank.Title(myRank) + "  ·  Rank " + myRank, 14, RankLook.TierColor(myRank), TextAnchor.MiddleLeft, true);
+                Ui.Bar(new Rect(tx, r.yMax - 11f, tw, 4f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
                 // Anywhere else on the chip opens your cosmetics. (Drawn last: the name and the pencil take their own clicks first.)
                 if (editable && Ui.HitArea(r))
                     OpenCosmetics();

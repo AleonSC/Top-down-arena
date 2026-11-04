@@ -90,6 +90,26 @@ namespace Arena
             Line(at(5f, -4f), at(5f, 4f), 2f, new Rgba(0.25f, 0.3f, 0.45f));  // a visor line, so you can tell which way it faces
         }
 
+        // --- Dev tool ----------------------------------------------------------------------------------------------
+
+        /// F1 > Tools > Account rank: set this computer's rank straight away (1 to Rank.MaxRank). Cosmetics the new rank hasn't
+        /// reached come off, and the lobby is told.
+        void DevSetRank(int rank)
+        {
+            var p = Profile.Current;
+            p.Xp = Rank.XpAt(Mathf.Clamp(rank, 1, Rank.MaxRank));
+            foreach (CosmeticKind kind in System.Enum.GetValues(typeof(CosmeticKind)))
+                if (!Rank.Owns(p.RankNow, p.Equipped(kind)))
+                {
+                    if (kind == CosmeticKind.Background)
+                        SetDuskGridEquipped(false);  // back to your own pick (MenuBackgrounds.cs)
+                    else
+                        p.Equip(kind, "");
+                }
+            p.Save();
+            session.ShareCosmetics();
+        }
+
         // --- Hover card ---------------------------------------------------------------------------------------
 
         /// Hovering a rank badge: its title and rank, and (for yours) the XP towards the next. Call between TipClear and DrawTip.
