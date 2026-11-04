@@ -1,0 +1,520 @@
+<title>Sanctify Light Cone</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Three looping previews of one behaviour (a huge light cone: enemy
+   bullets outside it slow to a stop, everyone inside heals over time). Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --gold: #ffd36b; --amber: #ffb547; --heal: #7dffb0; --ice: #9fe4ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--gold); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 15px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section.ab { display: grid; gap: 12px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+canvas.arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 540; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.bar.top { border-top: 0; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group label.t { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 13px var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 6px; padding: 7px 13px; cursor: pointer; }
+button:hover { border-color: var(--gold); color: var(--fg); }
+button[aria-pressed="true"] { background: #2a2312; border-color: var(--gold); color: var(--gold); }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.cap { color: var(--muted); font-size: 14px; max-width: 80ch; }
+.cap b { color: var(--soft); font-weight: 600; }
+.tag { font: 800 13px var(--font-display); letter-spacing: 0.12em; color: #1a1306; background: var(--gold); border-radius: 4px; padding: 2px 8px; margin-right: 8px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.card p { color: var(--muted); font-size: 14.5px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: var(--panel-2); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; color: var(--soft); white-space: nowrap; }
+td.num { font-family: var(--font-data); font-size: 13.5px; }
+ul { margin: 0; padding-left: 1.2em; color: var(--muted); font-size: 14.5px; display: grid; gap: 4px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Elementalist · Healer</div>
+    <h1>Sanctify <span>Light Cone</span></h1>
+    <p class="lead">Sanctify stops being a pulse around you. It becomes a massive cone of light thrown along your aim. Enemy bullets outside the cone slow to a standstill and hang in the air. Everyone standing in the light heals over time. Three looks for the same behaviour, all looping below.</p>
+    <p class="cap">In every preview: you are the teal healer, bottom left. The blue ally stays in the light. The amber ally keeps stepping across the lower edge. The violet ally is outside, so their health bar does not move. Enemies keep firing the whole time, so frozen bullets pile up around them.</p>
+  </header>
+
+  <div class="stage" style="border-radius:10px">
+    <div class="bar top" style="border-bottom:0">
+      <div class="group"><label class="t">Playback</label>
+        <button id="replay" type="button">Replay</button>
+        <button id="pause" type="button" aria-pressed="false">Pause</button>
+        <button id="slow" type="button" aria-pressed="false">Slow motion</button>
+      </div>
+      <div class="group"><label class="t">Bullets inside the light</label>
+        <button id="inErase" type="button" aria-pressed="true">Burn away</button>
+        <button id="inPass" type="button" aria-pressed="false">Keep flying</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="ab">
+    <h2><span class="tag">A</span>Cathedral</h2>
+    <div class="stage">
+      <canvas class="arena" id="cvA" aria-label="Look A, Cathedral: a gold cone of light with drifting god rays and dust motes"></canvas>
+      <div class="bar"><p class="cap"><b>Warm gold shafts of light.</b> Long god rays shimmer through the cone and dust drifts toward the far end. The floor outside goes dark and cold. Frozen bullets get a pale gold halo, like a candle behind frosted glass. Softest and calmest of the three, so it is the easiest to read in a busy fight.</p></div>
+    </div>
+  </section>
+
+  <section class="ab">
+    <h2><span class="tag">B</span>Radiant Lens</h2>
+    <div class="stage">
+      <canvas class="arena" id="cvB" aria-label="Look B, Radiant Lens: a crisp white cone with travelling wave arcs, a rotating sigil and a lens flare"></canvas>
+      <div class="bar"><p class="cap"><b>Crisp, geometric and loud.</b> A hard white rim with a gold and cyan split, wave arcs rolling out of the caster (each one is a healing tick), a turning sigil and a lens flare at the apex. Bullets outside lock into cold star glints with a ring, as if time stopped on them. Most readable as a "tick", least subtle.</p></div>
+    </div>
+  </section>
+
+  <section class="ab">
+    <h2><span class="tag">C</span>Dawnfall</h2>
+    <div class="stage">
+      <canvas class="arena" id="cvC" aria-label="Look C, Dawnfall: a fan of feathered amber and rose beams with drifting golden leaves"></canvas>
+      <div class="bar"><p class="cap"><b>A fan of feathered beams, like a wing opening.</b> Eleven blades of amber and rose light that sway and overlap, brightest at the caster, with golden leaves lifting off them. The dark outside is a deep violet. Frozen bullets are set in amber beads with a glint. Most distinct from Meteor, Blizzard and Tsunami, and the most "healer".</p></div>
+    </div>
+  </section>
+
+  <section class="ab">
+    <h2>Another name for it</h2>
+    <p class="cap">A cone that freezes bullets and heals over time is not really a "sanctify" any more. Candidates, with the first one my pick. The enum <code>AbilityId.Sanctify</code> would stay as it is, so nothing on the wire changes for the rename.</p>
+    <div class="cols">
+      <div class="card"><h3>Daybreak (my pick)</h3><p>Light spilling across the arena while the bullets hang in the dark. Short, fits the Dawnfall look, and nothing else in the kit is called that.</p></div>
+      <div class="card"><h3>Hallowbeam</h3><p>Plain and clear about the shape. Reads well on the ability tile.</p></div>
+      <div class="card"><h3>Stillness</h3><p>Names the bullet freeze rather than the light. Best with look B.</p></div>
+      <div class="card"><h3>Lumen Sanctum</h3><p>Keeps a nod to Sanctify. Longer, so it needs a smaller tile label.</p></div>
+    </div>
+  </section>
+
+  <section class="ab">
+    <h2>Proposed numbers</h2>
+    <p class="cap">These are my suggestions for the rules behind the pictures. None are built, and I have not touched the code. Current Sanctify is in <code>Minions.cs</code>.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Thing</th><th>Today</th><th>Light cone</th></tr></thead>
+        <tbody>
+          <tr><td>Shape</td><td class="num">Circle, 280 px around you</td><td class="num">Cone along your aim, 740 px long, 54° wide (opens in 0.5 s)</td></tr>
+          <tr><td>Duration</td><td class="num">Instant</td><td class="num">6 s, aim locked at the cast</td></tr>
+          <tr><td>Healing</td><td class="num">25, once</td><td class="num">9 HP/s while inside (54 over the full 6 s)</td></tr>
+          <tr><td>Enemy bullets</td><td class="num">Erased once at the cast</td><td class="num">Outside: slowed to a full stop in about 0.7 s, anywhere on the map. Inside: burned away. They fly again when the light ends.</td></tr>
+          <tr><td>Cooldown</td><td class="num">12 s</td><td class="num">20 s (it is much stronger)</td></tr>
+          <tr><td>Mastered</td><td class="num">Freezes enemies within 280 px for 1.5 s</td><td class="num">Enemies outside the cone stop too, for the whole 6 s (not bosses)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ab">
+    <h2>Notes for building it</h2>
+    <div class="cols">
+      <div class="card"><h3>Netcode</h3><p>Needs a cone zone in <code>Core</code> and a new <code>FxKind</code> for the light, so a protocol bump. Bullets would carry a slow factor instead of being erased, which touches the snapshot.</p></div>
+      <div class="card"><h3>Reduced effects</h3><p>Rays, motes, leaves and the flare drop out. The cone fill, the rim and the frozen bullets stay, so it still reads.</p></div>
+      <div class="card"><h3>Left out of the preview</h3><p>The ability tile, the cast sound and how a mastered cone looks. Say which look you like and I will mock those next.</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const W = 960, H = 540, TAU = Math.PI * 2;
+  const CAST = 1.0, DUR = 6.0, OPEN = 0.5, CLOSE = 0.7, LOOP = 10.5;
+  const AX = 130, AY = 445, AIM = -0.36, HALF = 0.47, LEN = 740, HEAL = 9;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const eo = x => 1 - Math.pow(1 - x, 3);
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const opts = { erase: true, speed: 1, paused: false };
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MONO = '500 11px "IBM Plex Mono", ui-monospace, monospace';
+
+  const ENEMIES = [{ x: 300, y: 48, ph: 0.2 }, { x: 480, y: 28, ph: 0.9 }, { x: 915, y: 215, ph: 0.55 }];
+  const ALLY_COL = ['#7aa8ff', '#ffb547', '#d98cff'];
+  function allyPos(i, t) {
+    if (i === 0) return [420 + 30 * Math.sin(t * 0.8), 330 + 25 * Math.cos(t * 0.6)];
+    if (i === 1) return [610 + 40 * Math.sin(t * 0.5), 495 + 38 * Math.sin(t * 0.9)];
+    return [150 + 20 * Math.sin(t * 0.7), 170 + 20 * Math.cos(t * 0.5)];
+  }
+
+  function sprite(size, draw) {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    draw(c.getContext('2d'), size / 2); return c;
+  }
+  function glow(g, r, stops) {
+    const gr = g.createRadialGradient(r, r, 0, r, r, r);
+    stops.forEach(s => gr.addColorStop(s[0], s[1]));
+    g.fillStyle = gr; g.fillRect(0, 0, r * 2, r * 2);
+  }
+  const bulletSprite = sprite(40, (g, r) => {
+    glow(g, r, [[0, 'rgba(255,120,90,0.9)'], [0.35, 'rgba(255,70,60,0.45)'], [1, 'rgba(255,60,60,0)']]);
+    g.fillStyle = '#ffe3d6'; g.beginPath(); g.arc(r, r, 4, 0, TAU); g.fill();
+  });
+  const frozenSprites = {
+    A: sprite(56, (g, r) => {
+      glow(g, r, [[0, 'rgba(255,244,200,0.95)'], [0.3, 'rgba(255,220,130,0.5)'], [1, 'rgba(255,200,100,0)']]);
+      g.fillStyle = '#fffbe8'; g.beginPath(); g.arc(r, r, 4.5, 0, TAU); g.fill();
+    }),
+    B: sprite(56, (g, r) => {
+      glow(g, r, [[0, 'rgba(200,240,255,0.55)'], [1, 'rgba(160,220,255,0)']]);
+      g.strokeStyle = 'rgba(210,245,255,0.95)'; g.lineWidth = 1.3;
+      g.beginPath(); g.arc(r, r, 9, 0, TAU); g.stroke();
+      g.lineWidth = 1.6; g.beginPath();
+      g.moveTo(r - 17, r); g.lineTo(r + 17, r); g.moveTo(r, r - 17); g.lineTo(r, r + 17); g.stroke();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(r, r, 3.2, 0, TAU); g.fill();
+    }),
+    C: sprite(56, (g, r) => {
+      const gr = g.createRadialGradient(r - 3, r - 4, 1, r, r, 11);
+      gr.addColorStop(0, 'rgba(255,236,170,0.95)'); gr.addColorStop(0.6, 'rgba(255,170,70,0.75)'); gr.addColorStop(1, 'rgba(230,110,50,0.8)');
+      g.fillStyle = gr; g.beginPath(); g.arc(r, r, 11, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(255,200,120,0.9)'; g.lineWidth = 1.5; g.beginPath(); g.arc(r, r, 11, 0, TAU); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 1.8; g.beginPath(); g.arc(r, r, 7, Math.PI * 1.05, Math.PI * 1.55); g.stroke();
+      g.fillStyle = 'rgba(80,30,10,0.9)'; g.beginPath(); g.arc(r, r, 2.6, 0, TAU); g.fill();
+    })
+  };
+  const LOOK = {
+    A: { dim: '4,6,16', dimA: 0.62, hud: '#ffe9a8', plus: '#b6ffcf' },
+    B: { dim: '3,8,18', dimA: 0.58, hud: '#bfeaff', plus: '#9dffe0' },
+    C: { dim: '14,6,22', dimA: 0.66, hud: '#ffd2a0', plus: '#c8ffb0' }
+  };
+
+  function conePath(g, half, len) {
+    g.beginPath(); g.moveTo(AX, AY); g.arc(AX, AY, len, AIM - half, AIM + half); g.closePath();
+  }
+  function wedge(g, ang, w, l) {
+    g.beginPath(); g.moveTo(AX, AY);
+    g.lineTo(AX + Math.cos(ang - w) * l, AY + Math.sin(ang - w) * l);
+    g.lineTo(AX + Math.cos(ang + w) * l, AY + Math.sin(ang + w) * l);
+    g.closePath();
+  }
+  function lin(g, ang, l, c0, c1, mid) {
+    const gr = g.createLinearGradient(AX, AY, AX + Math.cos(ang) * l, AY + Math.sin(ang) * l);
+    gr.addColorStop(0, c0); if (mid) gr.addColorStop(mid[0], mid[1]); gr.addColorStop(1, c1); return gr;
+  }
+  function rad(g, r, stops) {
+    const gr = g.createRadialGradient(AX, AY, 6, AX, AY, r);
+    stops.forEach(s => gr.addColorStop(s[0], s[1])); return gr;
+  }
+
+  /* ---------- the three looks ---------- */
+  function drawA(g, c) {
+    const { len, half, k, t } = c;
+    g.globalCompositeOperation = 'lighter';
+    conePath(g, half * 1.1, len * 1.03);
+    g.fillStyle = rad(g, len, [[0, 'rgba(255,236,170,0.6)'], [0.45, 'rgba(255,205,110,0.24)'], [1, 'rgba(255,190,90,0)']]); g.fill();
+    conePath(g, half * 0.55, len * 0.88);
+    g.fillStyle = rad(g, len * 0.88, [[0, 'rgba(255,252,235,0.6)'], [0.5, 'rgba(255,240,200,0.18)'], [1, 'rgba(255,230,180,0)']]); g.fill();
+    for (let i = 0; i < 18; i++) {
+      const o = ((i * 0.618034) % 1) * 2 - 1, ang = AIM + o * half * 0.95;
+      const w = 0.012 + ((i * 0.37) % 1) * 0.03, l = len * (0.55 + ((i * 0.73) % 1) * 0.45);
+      const a = (0.08 + 0.1 * (0.5 + 0.5 * Math.sin(t * (0.9 + (i % 5) * 0.25) + i * 1.7))) * k;
+      wedge(g, ang, w, l);
+      g.fillStyle = lin(g, ang, l, `rgba(255,246,210,${a})`, 'rgba(255,230,160,0)'); g.fill();
+    }
+    g.shadowColor = 'rgba(255,215,120,0.9)'; g.shadowBlur = 16; g.lineWidth = 2;
+    g.strokeStyle = rad(g, len, [[0, `rgba(255,240,190,${0.7 * k})`], [1, 'rgba(255,220,140,0.05)']]);
+    g.beginPath(); g.moveTo(AX + Math.cos(AIM - half) * len, AY + Math.sin(AIM - half) * len); g.lineTo(AX, AY);
+    g.lineTo(AX + Math.cos(AIM + half) * len, AY + Math.sin(AIM + half) * len); g.stroke();
+    g.shadowBlur = 0;
+    g.fillStyle = rad(g, 110 * k + 8, [[0, 'rgba(255,255,240,0.95)'], [0.3, 'rgba(255,225,140,0.45)'], [1, 'rgba(255,200,100,0)']]);
+    g.fillRect(AX - 120, AY - 120, 240, 240);
+  }
+
+  function drawB(g, c) {
+    const { len, half, k, t } = c;
+    g.globalCompositeOperation = 'lighter';
+    conePath(g, half, len);
+    g.fillStyle = rad(g, len, [[0, 'rgba(230,248,255,0.5)'], [0.5, 'rgba(190,230,255,0.2)'], [1, 'rgba(170,215,255,0.08)']]); g.fill();
+    g.save(); conePath(g, half, len); g.clip();
+    g.fillStyle = `rgba(210,240,255,${0.22 * k})`;
+    for (let x = 0; x < W; x += 36) for (let y = 0; y < H; y += 36) {
+      const px = x + ((y / 36) % 2) * 18; g.fillRect(px - 1, y - 0.5, 2, 1); g.fillRect(px - 0.5, y - 1, 1, 2);
+    }
+    for (let j = 0; j < 5; j++) {
+      const r = ((t * 460) + j * (len / 5)) % len, a = (1 - r / len) * k * 0.9;
+      for (const [off, col] of [[-2.5, `rgba(120,230,255,${a * 0.7})`], [0, `rgba(255,255,255,${a})`], [2.5, `rgba(255,205,110,${a * 0.7})`]]) {
+        g.strokeStyle = col; g.lineWidth = off === 0 ? 3 : 2;
+        g.beginPath(); g.arc(AX, AY, Math.max(1, r + off), AIM - half, AIM + half); g.stroke();
+      }
+    }
+    g.restore();
+    g.lineWidth = 1.6;
+    for (const [dx, dy, col] of [[-1.5, 1.5, `rgba(110,225,255,${0.8 * k})`], [1.5, -1.5, `rgba(255,200,100,${0.8 * k})`], [0, 0, `rgba(255,255,255,${0.95 * k})`]]) {
+      g.strokeStyle = col; g.shadowColor = 'rgba(190,235,255,0.9)'; g.shadowBlur = col.includes('255,255,255') ? 14 : 0;
+      g.beginPath(); g.moveTo(AX + dx + Math.cos(AIM - half) * len, AY + dy + Math.sin(AIM - half) * len); g.lineTo(AX + dx, AY + dy);
+      g.lineTo(AX + dx + Math.cos(AIM + half) * len, AY + dy + Math.sin(AIM + half) * len); g.stroke();
+      g.beginPath(); g.arc(AX + dx, AY + dy, len, AIM - half, AIM + half); g.stroke();
+    }
+    g.shadowBlur = 0;
+    for (const [rr, sp, n] of [[58, 0.7, 24], [88, -0.5, 36]]) {
+      g.strokeStyle = `rgba(220,245,255,${0.6 * k})`; g.lineWidth = 1.4;
+      g.beginPath(); g.arc(AX, AY, rr * k, 0, TAU); g.stroke();
+      g.lineWidth = 2;
+      for (let i = 0; i < n; i++) {
+        const a = t * sp + i * TAU / n, c = Math.cos(a), s = Math.sin(a), l = i % 3 === 0 ? 9 : 4;
+        g.beginPath(); g.moveTo(AX + c * rr * k, AY + s * rr * k); g.lineTo(AX + c * (rr * k + l), AY + s * (rr * k + l)); g.stroke();
+      }
+    }
+    g.fillStyle = rad(g, 130 * k + 8, [[0, 'rgba(255,255,255,1)'], [0.2, 'rgba(210,240,255,0.55)'], [1, 'rgba(180,225,255,0)']]);
+    g.fillRect(AX - 140, AY - 140, 280, 280);
+    g.save(); g.translate(AX, AY); g.scale(1, 0.07);
+    const sg = g.createRadialGradient(0, 0, 0, 0, 0, 520 * k + 1);
+    sg.addColorStop(0, 'rgba(255,255,255,0.9)'); sg.addColorStop(1, 'rgba(200,230,255,0)');
+    g.fillStyle = sg; g.beginPath(); g.arc(0, 0, 520 * k + 1, 0, TAU); g.fill(); g.restore();
+    g.save(); g.translate(AX, AY); g.rotate(t * 0.4);
+    for (let i = 0; i < 8; i++) {
+      g.rotate(TAU / 8); g.fillStyle = `rgba(255,255,255,${0.35 * k})`;
+      g.beginPath(); g.moveTo(0, -2.5); g.lineTo(i % 2 ? 90 * k : 140 * k, 0); g.lineTo(0, 2.5); g.closePath(); g.fill();
+    }
+    g.restore();
+    for (const [f, r] of [[0.22, 20], [0.4, 34], [0.62, 14]]) {
+      const x = AX + Math.cos(AIM) * len * f, y = AY + Math.sin(AIM) * len * f;
+      g.strokeStyle = `rgba(190,235,255,${0.35 * k})`; g.lineWidth = 2; g.beginPath(); g.arc(x, y, r * k, 0, TAU); g.stroke();
+    }
+  }
+
+  function drawC(g, c) {
+    const { len, half, k, t } = c;
+    g.globalCompositeOperation = 'lighter';
+    const N = 11;
+    for (let i = 0; i < N; i++) {
+      const u = i / (N - 1) * 2 - 1, sway = Math.sin(t * 1.1 + i * 0.9) * 0.025;
+      const ang = AIM + u * half * 0.92 + sway;
+      const l = len * (1 - 0.32 * Math.abs(u)) * (0.94 + 0.06 * Math.sin(t * 1.7 + i));
+      const w = half / N * 1.55 + 0.012 * Math.sin(t * 1.3 + i * 2);
+      const rose = Math.abs(u) > 0.5;
+      wedge(g, ang, w, l);
+      g.fillStyle = lin(g, ang, l, 'rgba(255,248,225,0.42)', rose ? 'rgba(255,120,140,0)' : 'rgba(255,170,70,0)',
+        [0.35, rose ? 'rgba(255,170,150,0.2)' : 'rgba(255,200,110,0.2)']);
+      g.globalAlpha = k; g.fill(); g.globalAlpha = 1;
+    }
+    const tx = AX + Math.cos(AIM) * len * 0.82, ty = AY + Math.sin(AIM) * len * 0.82;
+    const pool = g.createRadialGradient(tx, ty, 4, tx, ty, 230 * k + 1);
+    pool.addColorStop(0, 'rgba(255,190,100,0.28)'); pool.addColorStop(1, 'rgba(255,150,80,0)');
+    g.fillStyle = pool; g.fillRect(tx - 240, ty - 240, 480, 480);
+    g.fillStyle = rad(g, 150 * k + 8, [[0, 'rgba(255,250,235,1)'], [0.25, 'rgba(255,215,140,0.55)'], [1, 'rgba(255,160,90,0)']]);
+    g.fillRect(AX - 160, AY - 160, 320, 320);
+  }
+
+  const LOOK_FN = { A: drawA, B: drawB, C: drawC };
+
+  /* ---------- one preview ---------- */
+  function Stage(canvas, look) {
+    const g = canvas.getContext('2d');
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    let S, visible = true;
+
+    function reset() {
+      S = { t: 0, bul: [], par: [], ringT: ENEMIES.map(e => e.ph * 1.5), aimT: ENEMIES.map(e => 0.5 + e.ph), hp: [48, 62, 35],
+        plusT: [0, 0, 0], moteT: 0, frozen: 0, healing: 0 };
+    }
+    function geom() {
+      const t = S.t, open = clamp((t - CAST) / OPEN, 0, 1), close = clamp((t - CAST - DUR) / CLOSE, 0, 1);
+      const k = t < CAST ? 0 : eo(open) * (1 - close * close);
+      return { t, k, len: LEN * k, half: HALF * (0.3 + 0.7 * eo(open)) * (1 - close * 0.4),
+        on: t >= CAST && t < CAST + DUR, waveR: Math.max(0, (t - CAST) * 1100) };
+    }
+    function inCone(c, x, y) {
+      if (c.k < 0.02) return false;
+      const dx = x - AX, dy = y - AY, d = Math.hypot(dx, dy);
+      if (d > c.len) return false;
+      if (d < 30) return true;
+      let a = Math.atan2(dy, dx) - AIM; a = Math.atan2(Math.sin(a), Math.cos(a));
+      return Math.abs(a) < c.half;
+    }
+    function spawn(x, y, a, sp) { S.bul.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, st: 0 }); }
+    function burst(x, y, n, col) {
+      for (let i = 0; i < n; i++) {
+        const a = rnd(0, TAU), s = rnd(30, 110);
+        S.par.push({ k: 'spark', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0, max: rnd(0.25, 0.5), col });
+      }
+    }
+
+    function step(dt) {
+      S.t += dt;
+      if (S.t >= LOOP) reset();
+      const c = geom(), t = S.t;
+      const targets = [[AX, AY], ...[0, 1, 2].map(i => allyPos(i, t))];
+      if (t < LOOP - 3) {
+        ENEMIES.forEach((e, i) => {
+          if ((S.ringT[i] -= dt) <= 0) {
+            S.ringT[i] = 1.7; const rot = rnd(0, TAU);
+            for (let n = 0; n < 18; n++) spawn(e.x, e.y, rot + n * TAU / 18, 125);
+          }
+          if ((S.aimT[i] -= dt) <= 0) {
+            S.aimT[i] = 1.1; const tg = targets[(Math.random() * targets.length) | 0], a = Math.atan2(tg[1] - e.y, tg[0] - e.x);
+            for (const f of [-0.13, 0, 0.13]) spawn(e.x, e.y, a + f, 215);
+          }
+        });
+      }
+      const burnCol = look === 'B' ? 'rgb(200,240,255)' : look === 'C' ? 'rgb(255,190,110)' : 'rgb(255,230,150)';
+      let frozen = 0;
+      for (let i = S.bul.length - 1; i >= 0; i--) {
+        const b = S.bul[i], inside = inCone(c, b.x, b.y);
+        if (inside && opts.erase && c.k > 0.25) { burst(b.x, b.y, 2, burnCol); S.bul.splice(i, 1); continue; }
+        if (c.on && !inside) { if (Math.hypot(b.x - AX, b.y - AY) < c.waveR) b.st = Math.min(1, b.st + dt * 1.5); }
+        else b.st = Math.max(0, b.st - dt * (c.on ? 3 : 2.2));
+        const f = Math.pow(1 - b.st, 1.6);
+        b.x += b.vx * f * dt; b.y += b.vy * f * dt;
+        if (b.st > 0.9) frozen++;
+        if (b.x < -40 || b.x > W + 40 || b.y < -40 || b.y > H + 40) S.bul.splice(i, 1);
+      }
+      S.frozen = frozen;
+      let healing = 0;
+      for (let i = 0; i < 3; i++) {
+        const p = allyPos(i, t);
+        if (c.on && inCone(c, p[0], p[1])) {
+          healing++; S.hp[i] = Math.min(100, S.hp[i] + HEAL * dt);
+          if ((S.plusT[i] -= dt) <= 0) {
+            S.plusT[i] = 0.32;
+            S.par.push({ k: 'plus', x: p[0] + rnd(-10, 10), y: p[1] - 12, vx: rnd(-6, 6), vy: -rnd(30, 48), life: 0, max: 0.9 });
+          }
+        }
+      }
+      S.healing = healing;
+      if (c.k > 0.4 && (look === 'A' || look === 'C')) {
+        S.moteT -= dt;
+        const rate = look === 'A' ? 0.035 : 0.09;
+        while (S.moteT <= 0) {
+          S.moteT += rate;
+          const r = rnd(0.05, 0.95) * c.len, a = AIM + rnd(-1, 1) * c.half * 0.9;
+          S.par.push({ k: look === 'A' ? 'mote' : 'leaf', x: AX + Math.cos(a) * r, y: AY + Math.sin(a) * r,
+            vx: Math.cos(AIM) * 16 + rnd(-6, 6), vy: Math.sin(AIM) * 16 - rnd(4, 18), life: 0, max: rnd(1.8, 3), rot: rnd(0, TAU), sp: rnd(-2, 2) });
+        }
+      }
+      for (let i = S.par.length - 1; i >= 0; i--) {
+        const p = S.par[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt;
+        if (p.k === 'mote' || p.k === 'leaf') { p.vx += Math.sin(t * 2 + p.x * 0.02) * 6 * dt; p.rot += (p.sp || 0) * dt; }
+        if (p.life >= p.max) S.par.splice(i, 1);
+      }
+    }
+
+    function draw() {
+      const c = geom(), t = S.t, L = LOOK[look];
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+      g.fillStyle = '#070910'; g.fillRect(0, 0, W, H);
+      g.strokeStyle = 'rgba(120,150,180,0.07)'; g.lineWidth = 1; g.beginPath();
+      for (let x = 0; x <= W; x += 48) { g.moveTo(x, 0); g.lineTo(x, H); }
+      for (let y = 0; y <= H; y += 48) { g.moveTo(0, y); g.lineTo(W, y); }
+      g.stroke();
+      if (c.k > 0) {
+        g.fillStyle = `rgba(${L.dim},${L.dimA * c.k * 0.45})`;
+        g.beginPath(); g.rect(0, 0, W, H); g.moveTo(AX, AY); g.arc(AX, AY, c.len * 1.05, AIM - c.half * 1.12, AIM + c.half * 1.12); g.closePath(); g.fill('evenodd');
+        g.fillStyle = `rgba(${L.dim},${L.dimA * c.k * 0.55})`;
+        g.beginPath(); g.rect(0, 0, W, H); g.moveTo(AX, AY); g.arc(AX, AY, c.len, AIM - c.half, AIM + c.half); g.closePath(); g.fill('evenodd');
+      }
+      g.save(); LOOK_FN[look](g, { t, k: c.k, len: Math.max(1, c.len), half: Math.max(0.01, c.half) }); g.restore();
+      g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+
+      for (const b of S.bul) {
+        g.drawImage(bulletSprite, b.x - 20, b.y - 20);
+        if (b.st > 0.05) {
+          const tw = look === 'B' ? 0.85 + 0.15 * Math.sin(t * 6 + b.x) : 1;
+          g.globalAlpha = Math.min(1, b.st * 1.2) * tw;
+          const sc = 0.7 + 0.3 * b.st, fs = frozenSprites[look];
+          g.drawImage(fs, b.x - 28 * sc, b.y - 28 * sc, 56 * sc, 56 * sc);
+          g.globalAlpha = 1;
+        }
+      }
+      ENEMIES.forEach(e => {
+        g.save(); g.translate(e.x, e.y); g.rotate(t * 0.5 + e.ph);
+        g.fillStyle = 'rgba(255,70,60,0.22)'; g.beginPath(); g.arc(0, 0, 22, 0, TAU); g.fill();
+        g.fillStyle = '#2a0f12'; g.strokeStyle = '#ff5a4a'; g.lineWidth = 2; g.beginPath();
+        for (let i = 0; i < 6; i++) { const a = i * TAU / 6; g[i ? 'lineTo' : 'moveTo'](Math.cos(a) * 14, Math.sin(a) * 14); }
+        g.closePath(); g.fill(); g.stroke(); g.restore();
+      });
+      for (let i = 0; i < 3; i++) {
+        const p = allyPos(i, t), col = ALLY_COL[i], lit = c.on && inCone(c, p[0], p[1]);
+        if (lit) {
+          g.strokeStyle = L.plus; g.globalAlpha = 0.45 + 0.25 * Math.sin(t * 5 + i); g.lineWidth = 2;
+          g.beginPath(); g.arc(p[0], p[1], 19 + 2 * Math.sin(t * 5), 0, TAU); g.stroke(); g.globalAlpha = 1;
+        }
+        g.fillStyle = '#10151b'; g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath(); g.arc(p[0], p[1], 13, 0, TAU); g.fill(); g.stroke();
+        g.fillStyle = col; g.beginPath(); g.arc(p[0], p[1], 4.5, 0, TAU); g.fill();
+        g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillRect(p[0] - 19, p[1] + 19, 38, 5);
+        g.fillStyle = lit ? '#7dffb0' : '#e8606a'; g.fillRect(p[0] - 19, p[1] + 19, 38 * S.hp[i] / 100, 5);
+        if (lit) { g.fillStyle = L.plus; g.font = MONO; g.textAlign = 'center'; g.fillText('+' + HEAL + '/s', p[0], p[1] + 38); }
+      }
+      g.fillStyle = '#0d1a18'; g.strokeStyle = '#6fe3c4'; g.lineWidth = 3; g.beginPath(); g.arc(AX, AY, 15, 0, TAU); g.fill(); g.stroke();
+      g.fillStyle = '#6fe3c4'; g.fillRect(AX - 2.5, AY - 8, 5, 16); g.fillRect(AX - 8, AY - 2.5, 16, 5);
+
+      g.globalCompositeOperation = 'lighter';
+      for (const p of S.par) {
+        const u = p.life / p.max;
+        if (p.k === 'mote') {
+          g.fillStyle = `rgba(255,244,200,${0.75 * Math.sin(u * Math.PI)})`; g.beginPath(); g.arc(p.x, p.y, 1.6, 0, TAU); g.fill();
+        } else if (p.k === 'leaf') {
+          g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.fillStyle = `rgba(255,205,120,${0.8 * Math.sin(u * Math.PI)})`;
+          g.beginPath(); g.ellipse(0, 0, 5, 1.8, 0, 0, TAU); g.fill(); g.restore();
+        } else if (p.k === 'spark') {
+          g.strokeStyle = (p.col || 'rgb(255,230,150)').replace('rgb', 'rgba').replace(')', `,${1 - u})`); g.lineWidth = 1.6;
+          g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x - p.vx * 0.06, p.y - p.vy * 0.06); g.stroke();
+        }
+      }
+      g.globalCompositeOperation = 'source-over';
+      for (const p of S.par) if (p.k === 'plus') {
+        const u = p.life / p.max; g.fillStyle = L.plus; g.globalAlpha = 1 - u * u;
+        g.fillRect(p.x - 4, p.y - 1.2, 8, 2.4); g.fillRect(p.x - 1.2, p.y - 4, 2.4, 8); g.globalAlpha = 1;
+      }
+      g.fillStyle = L.hud; g.font = MONO; g.textAlign = 'left';
+      const left = c.on ? (CAST + DUR - t).toFixed(1) + ' s' : t < CAST ? 'ready' : 'ended';
+      g.fillText('SANCTIFY  ' + left, 16, 24);
+      g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(16, 32, 120, 3);
+      g.fillStyle = L.hud; g.fillRect(16, 32, c.on ? 120 * (CAST + DUR - t) / DUR : 0, 3);
+      g.textAlign = 'right'; g.fillText('FROZEN BULLETS  ' + S.frozen, W - 16, 24);
+      g.fillText('ALLIES HEALING  ' + S.healing + ' / 3', W - 16, 42);
+    }
+
+    reset();
+    function seek(t) { reset(); while (S.t < t) step(1 / 60); draw(); }
+    return { step, draw, reset, seek, canvas, setVisible: v => { visible = v; }, get visible() { return visible; } };
+  }
+
+  const stages = [['cvA', 'A'], ['cvB', 'B'], ['cvC', 'C']].map(([id, look]) => Stage(document.getElementById(id), look));
+  window.__stages = stages;
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => stages.find(s => s.canvas === e.target).setVisible(e.isIntersecting)), { threshold: 0.05 });
+    stages.forEach(s => io.observe(s.canvas));
+  }
+  let last = performance.now(), acc = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!opts.paused) {
+      acc += dt * opts.speed;
+      while (acc >= 1 / 60) { stages.forEach(s => s.visible && s.step(1 / 60)); acc -= 1 / 60; }
+    }
+    stages.forEach(s => s.visible && s.draw());
+    requestAnimationFrame(frame);
+  }
+  const $ = id => document.getElementById(id);
+  function press(btn, on) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  $('replay').onclick = () => stages.forEach(s => s.reset());
+  $('pause').onclick = e => { opts.paused = !opts.paused; press(e.currentTarget, opts.paused); e.currentTarget.textContent = opts.paused ? 'Play' : 'Pause'; };
+  $('slow').onclick = e => { opts.speed = opts.speed === 1 ? 0.3 : 1; press(e.currentTarget, opts.speed !== 1); };
+  $('inErase').onclick = () => { opts.erase = true; press($('inErase'), true); press($('inPass'), false); };
+  $('inPass').onclick = () => { opts.erase = false; press($('inErase'), false); press($('inPass'), true); };
+  if (reduce) { opts.paused = true; press($('pause'), true); $('pause').textContent = 'Play'; stages.forEach(s => s.seek(4)); }
+  requestAnimationFrame(frame);
+})();
+</script>

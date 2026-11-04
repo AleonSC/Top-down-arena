@@ -83,6 +83,9 @@ namespace Arena
                 case ZoneKind.BulletRain:  // Downpour: the arena rains, the zone's drops harden into needles (BulletRainLook.cs)
                     DrawBulletRain(z, t);
                     break;
+                case ZoneKind.LumenWard:  // a cone of light, god rays and drifting dust (LumenWardLook.cs)
+                    DrawLumenWard(z, t);
+                    return;
                 case ZoneKind.Blizzard:  // a whiteout of wind-driven snow (ElementalistLooks.cs)
                     DrawBlizzard(z, t);
                     break;
@@ -155,6 +158,11 @@ namespace Arena
                     break;
                 }
                 case ZoneKind.Sanctum:  // a shining dome
+                    if (fxOn)
+                    {
+                        DrawSanctum(z, t);  // SanctumLook.cs
+                        return;
+                    }
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f + 0.04f * Mathf.Sin(t * 3f)), 56);
                     Arc(z.Pos, z.Radius - 6f, 2f, c.WithAlpha(0.5f), 56);
                     for (int k = 0; k < 8; k++)

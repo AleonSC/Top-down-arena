@@ -73,6 +73,15 @@ static partial class Program
         behind.Hp = behind.MaxHp; behind.WetT = 0f;
         step(4.5f);
         Check(behind.WetT > Game.WetTime && behind.MaxHp - behind.Hp < 0.5f, "the mastered wave rolls back and wets what it missed");
+        // Bullet Rain (the Elementalist DPS ultimate): enemies in its zone are wet and hurt, and it wears off 3 s after they leave.
+        var addZone = typeof(Game).GetMethod("AddZone", flags);
+        g.Enemies.Clear(); spots.Clear();
+        var soaked = pin(new V2(900f, 450f)); var outside = pin(new V2(300f, 150f));
+        addZone.Invoke(g, new object[] { ZoneKind.BulletRain, me, new V2(900f, 450f), Game.BulletRainRadius, 2f });
+        step(1f);
+        Check(soaked.WetT > 2f && soaked.MaxHp - soaked.Hp > 30f && outside.WetT == 0f && outside.Hp == outside.MaxHp, "Bullet Rain wets and hurts what is in its zone and leaves the rest dry");
+        step(1.2f + Game.BulletRainWetTime + 0.5f);
+        Check(soaked.WetT == 0f, "the rain's wet wears off a few seconds after the zone ends");
         host.Leave("");
     }
 }

@@ -134,7 +134,7 @@ namespace Arena
             { "Flame Wall", "flame" },
             { "Healing Rain", "rain" },
             { "Energy Ward", "shield" },
-            { "Sanctify", "aura" },
+            { "Lumen Ward", "aura" },
             { "Meteor", "explode" },
             { "Blizzard", "snow" },
             { "Tsunami", "cyclone" },
