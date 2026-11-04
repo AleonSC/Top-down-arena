@@ -534,7 +534,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 | **Pot** | Shoot it or walk through it: it smashes into a health orb (35%) or a little XP for everyone. 1 at first, up to 5 |
 | **Barrel** | Rare (from wave 3, a 25-45% chance of one a wave, sometimes two from wave 20). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per wave damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and pots and setting off other barrels |
 | **Health barrel** | Boss fights only: a green barrel with a white cross drops in every 18-26 s (the first after 15 s; two at most), away from the boss. Shoot it or walk into it and it breaks into 2 health orbs |
-| **Treasure chest** | Rare (8% of regular waves from wave 2). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
+| **Treasure chest** | Rare (8% of regular waves from wave 2; always on the first wave after a boss if a player has the Contraband perk). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
 
 ## Paths
 
@@ -707,13 +707,13 @@ what the seat was saved with. Equipped perks are saved with your profile.
 | Perk | Boss | Unlocked by | Effect |
 |---|---|---|---|
 | **Riot Gear** | The Warden | winning the Warden Hunt | A riot-shield plate blocks the next hit that would hurt you: no health lost, no damage counted, and half a second of invulnerability. Then the shield takes **30 s** to come back (the timer keeps running between waves and while you're downed). You start every run with it ready. It blocks one hit from an enemy: a shot, a swing, a blast, a boss slam. **Burning, gas, acid, lava and other damage-over-time ticks go through** and don't spend it. |
-| Contraband | The Warden | winning the Warden Hunt on Hard | Not built yet: shown locked ("Coming soon"). Planned: chests at the start of each boss cycle are rare or better. |
+| **Contraband** | The Warden | winning the Warden Hunt on the Hard or Nightmare preset | **A treasure chest always turns up on the first wave after each boss** (waves 6, 11, 16...) when anyone in the party has it, on top of the random ones (not in Boss Hunts). **Your own item from any chest is rare or better** (never uncommon); teammates still get their own normal item from the same chest. See `Docs/Contraband.md`. |
 
 The plate hovers at your side and swings toward the nearest incoming enemy shot (resting behind you otherwise). While the shield
 recharges a ghost plate fills along its length, and it pops back when ready. A block flashes the plate white, throws sparks off
 the impact and breaks the plate into three pieces that fly off (with visual effects reduced or off, only the flash). A small
 **Riot Gear** chip above the ability bar's XP strip fills from the bottom and shows the seconds left, then READY. Teammates' plates
-show too. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
+show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
 "no perks" record variant is planned). Plan and build notes: `Docs/RiotGear.md`, `Docs/BossHuntsAndPerks.md`.
 
 ## Practice Range
