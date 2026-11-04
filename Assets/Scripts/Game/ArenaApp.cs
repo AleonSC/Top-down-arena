@@ -329,7 +329,8 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
-            Cursor.visible = (session.Screen != AppScreen.Game && !MenuCursorOn) || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me);
+            Cursor.visible = (session.Screen != AppScreen.Game && !MenuCursorOn) || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me)
+                || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // end screen + rank report need the pointer
 
             if (!menuUp)
             {
