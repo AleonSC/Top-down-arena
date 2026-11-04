@@ -111,7 +111,7 @@ static partial class Program
         var seen = new HashSet<EnemyType>();
         bool eliteSeen = false;
         int ghosts = 0, frame = 0;
-        Run(s, dt, 120, () => s[0].Game.Wave >= 14 || s[0].Game.State == MatchState.GameOver, () =>
+        Run(s, dt, 120, () => s[0].Game.Wave >= 16 || s[0].Game.State == MatchState.GameOver, () =>
         {
             foreach (var e in s[1].Game.Enemies.Values)
             {
