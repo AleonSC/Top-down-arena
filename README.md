@@ -1012,8 +1012,8 @@ window really close. That goes for the pause menu and for Settings from the lobb
   pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu**: the title on its x-axis with a shot arcing over it, and a **tip tray** that slides out from under
-  the box every 8 s (a How to play tip, with the next one coming out after it slides back; it tucks away while the Join row is open). In a box in the middle of the screen:
+- **The main menu**: the title on its x-axis with a shot arcing over it, and a **tip box** under the card with corner
+  outlines: a drawing, a How to play tip, and **Prev / Next** with the count; it moves on by itself every 8 s and fades out while the Join row is open. In a box in the middle of the screen:
   **your name card** (your party card in small; click it to open Your look, where the pencil next to your name renames you; it's remembered; hover it for **Switch
   profile**) over a big **Play** button over **Join game**, **Records** and **Settings**. **Join game** opens a row
   under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Records, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see

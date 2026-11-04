@@ -9,7 +9,7 @@ namespace Arena
     public partial class ArenaApp
     {
         // The main menu ("Big play", Docs/Mockups/menu-d.html): the title on its x-axis with a shot arcing over it and a
-        // tip tray pulled out from under the box (DrawMenuTipTray); in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) your name
+        // tip box under it (DrawMenuTipBox); in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) your name
         // card over one big Play button over Join game, Records and Settings. Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
         // under the box. Quit is a faint power icon at the bottom centre of the screen. The port is in Settings (Gameplay).
@@ -29,14 +29,13 @@ namespace Arena
         float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between a scan line is sweeping across the box
         const float MenuPlayLen = 0.85f;  // seconds for that sweep, in either direction
         static readonly Color ScanColor = new Color(0.44f, 0.89f, 0.77f);
-        int menuTipSeed;      // which tip the tray starts on (a new one each time the menu opens)
 
         void DrawMenu()
         {
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
             float box = MenuIntroK(1.65f, 2.0f);
-            if (box > 0f)  // the card's glow first, so it sits under the title, the tip tray and everything else
+            if (box > 0f)  // the card's glow first, so it sits under the title, the tip box and everything else
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
             DrawMenuTitle(t);
             if (box > 0f)
@@ -54,58 +53,101 @@ namespace Arena
             bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
             DrawMenuCardInside(t, live);
             DrawMenuSecondary(t, live);
+            float tipK = MenuIntroK(2.2f, 2.55f);
+            if (tipK > 0f)
+            {
+                DrawMenuTipBox(t, 1f, tipK, live);
+                if (BeginUiGl())
+                {
+                    DrawMenuTipGl(t, 1f, tipK);
+                    EndUiGl();
+                }
+            }
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
         }
 
-        /// The title, and the tip tray behind the card (slid out during the intro), drawn in ink then filled during the intro.
+        /// The title, drawn in ink then filled during the intro.
         void DrawMenuTitle(float t, float alpha = 1f)
         {
             var r = new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f);
             DrawMenuTitleText(r);
-            float tip = MenuIntroK(2.2f, 2.55f);
-            if (tip > 0f)
-                DrawMenuTipTray(t, alpha, tip);
         }
 
-        /// The tip tray's current tip: its topic and text, and how long it has been up. A new tip every MenuTipCycle seconds,
-        /// starting from a random one each time the menu opens (menuTipSeed).
+        const float MenuTipCycle = 8f, MenuTipGap = 22f, MenuTipH = 92f;
+        static readonly Rect MenuTipRect = new Rect(W / 2f - 340f, MenuCard.yMax + MenuTipGap, 680f, MenuTipH);
+        int menuTipIdx;               // the tip showing (HowToTips row)
+        float menuTipAt = -10f;       // when it came up (the next one follows after MenuTipCycle, or at once on Prev / Next)
+        float menuTipHide;            // 0 to 1: the box fades out while the Join address row is open (they share the spot)
+
+        /// The tip box's current tip, stepping to the next one every MenuTipCycle seconds. `age` is how long this one has been up.
         void MenuTip(float t, out string topic, out string body, out float age)
         {
             int n = HowToTips.GetLength(0);
-            int i = (Mathf.FloorToInt(t / MenuTipCycle) + menuTipSeed) % n;
-            age = t % MenuTipCycle;
-            topic = HowToTips[i, 0];
-            body = HowToTips[i, 1];
+            if (t - menuTipAt >= MenuTipCycle)
+            {
+                menuTipIdx = (menuTipIdx + 1) % n;
+                menuTipAt = t;
+            }
+            age = t - menuTipAt;
+            topic = HowToTips[menuTipIdx, 0];
+            body = HowToTips[menuTipIdx, 1];
         }
 
-        const float MenuTipCycle = 8f, MenuTipSlide = 0.45f, MenuTipH = 90f;
-        float menuTrayHide;  // 0 to 1: the tray tucks back under the card while the Join address row is open
-
-        /// The tip tray (Docs/Mockups/menu-tips-only.html, D): a panel pulled out from behind the bottom of the menu card, a bulb
-        /// and TIP on the left, the topic in bold and the text on up to two lines. It slides out, holds, slides back and comes
-        /// out again with the next tip. Draw it BEFORE the card so the card hides its top. `intro` is how far the menu's intro has
-        /// brought it in (1 = the normal loop).
-        void DrawMenuTipTray(float t, float alpha, float intro = 1f)
+        /// How far the tip box is showing (0 to 1): the menu's intro brings it in, and the Join row's address row takes its spot.
+        float MenuTipShow(float intro)
         {
-            menuTrayHide = Mathf.MoveTowards(menuTrayHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
+            menuTipHide = Mathf.MoveTowards(menuTipHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
+            return intro * (1f - EaseOut(menuTipHide));
+        }
+
+        /// The tip box (Docs/Mockups/menu-tip-box.html, C with D's corner outlines): its own box under the menu card, a drawing for the
+        /// tip on the left, TIP and the topic in bold over the text, and Prev / Next with the count on the right. The tip changes with
+        /// a quick fade. `intro` is how far the menu's intro has brought it in (1 = in place); `live` lets the buttons take clicks.
+        /// GUI part; DrawMenuTipGl draws the drawing and the corners over it.
+        void DrawMenuTipBox(float t, float alpha, float intro, bool live)
+        {
+            float show = MenuTipShow(intro);
             MenuTip(t, out string topic, out string body, out float age);
-            float inK = intro < 1f ? intro : Mathf.Clamp01(age / MenuTipSlide);
-            float outK = intro < 1f ? 0f : Mathf.Clamp01((age - (MenuTipCycle - MenuTipSlide)) / MenuTipSlide);
-            float e = EaseOut(inK) * (1f - EaseOut(outK)) * (1f - EaseOut(menuTrayHide));
-            if (e <= 0f || alpha <= 0f)
+            float a = alpha * show;
+            if (a <= 0f)
                 return;
-            const float w = 640f, overlap = 6f;
-            var r = new Rect(W / 2f - w / 2f, MenuCard.yMax - MenuTipH + (MenuTipH - overlap) * e, w, MenuTipH);
-            WithAlpha(alpha, () =>
+            var r = MenuTipRect;
+            r.y += 12f * (1f - show);  // rises into place
+            float ca = Mathf.Clamp01(age / 0.25f);  // the new tip fades in
+            var blue = new Color(0.43f, 0.65f, 1f);
+            int n = HowToTips.GetLength(0);
+            bool prev = false, next = false;
+            WithAlpha(a, () =>
             {
                 Ui.BodyBox(r);
-                float ty = r.y + overlap + 6f, th = r.height - overlap - 12f;
-                var blue = new Color(0.43f, 0.65f, 1f);
-                Ui.Icon(new Rect(r.x + 24f, ty + th / 2f - 16f, 12f, 12f), PixelArt.Get("ui_bulb"), blue);  // at its pixel size: crisp
-                Ui.Label(new Rect(r.x + 16f, ty + th / 2f + 2f, 28f, 14f), "TIP", 11, blue, TextAnchor.MiddleCenter, true);
-                Ui.Label(new Rect(r.x + 62f, ty, 20f + w - 90f, 22f), topic, 16, Color.white, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 62f, ty + 22f, w - 90f, th - 22f), body, 15, new Color(0.78f, 0.82f, 0.91f, 0.95f), TextAnchor.UpperLeft, false, true);
+                IconTile(new Rect(r.x + 22f, r.center.y - 26f, 52f, 52f), null, blue, 0f);
+                float tx = r.x + 92f, tw = r.width - 92f - 196f;
+                Ui.Label(new Rect(tx, r.y + 9f, 32f, 20f), "TIP", 11, new Color(blue.r, blue.g, blue.b, ca), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(tx + 32f, r.y + 9f, tw - 32f, 20f), topic, 17, new Color(1f, 1f, 1f, ca), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(tx, r.y + 31f, tw, r.height - 34f), body, 14, new Color(0.78f, 0.82f, 0.91f, 0.95f * ca), TextAnchor.UpperLeft, false, true);
+                float bx = r.xMax - 20f - 168f;
+                Ui.Label(new Rect(bx, r.y + 16f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, blue, TextAnchor.MiddleRight, true);
+                prev = Ui.SmallButton(new Rect(bx, r.y + 40f, 80f, 32f), "< Prev", 13);
+                next = Ui.SmallButton(new Rect(bx + 88f, r.y + 40f, 80f, 32f), "Next >", 13);
             });
+            if (live && show >= 1f && (prev || next))
+            {
+                menuTipIdx = (menuTipIdx + (next ? 1 : n - 1)) % n;
+                menuTipAt = t;
+            }
+        }
+
+        /// GL (inside BeginUiGl): the tip's drawing in its tile, and the corner outlines around the box (the same ones as the menu card's).
+        void DrawMenuTipGl(float t, float alpha, float intro)
+        {
+            float show = MenuTipShow(intro) * alpha;
+            if (show <= 0f)
+                return;
+            var r = MenuTipRect;
+            r.y += 12f * (1f - show);
+            UiModelAt(V2.Zero, 1f);
+            DrawTipGlyph(menuTipIdx, new V2(r.x + 48f, r.center.y), t);
+            DrawPlotCorners(r, 5f, 14f, new Rgba(0.45f, 0.65f, 1f, 0.7f * show));
         }
 
         /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.
