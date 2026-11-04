@@ -41,7 +41,8 @@ namespace Arena
     {
         /// 2: adds the closing "end" line, so a cut-off file is told apart from a whole one. Version 1 files (no "end") still load.
         /// 3: adds the "name" line (the profile's name, ProfileStore.cs). Older files load with no name.
-        public const int FormatVersion = 3;
+        /// 4: adds the "perks" line (the perks equipped, Perks.cs). Older files load with none.
+        public const int FormatVersion = 4;
 
         /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
         public string Name = "";
@@ -70,6 +71,8 @@ namespace Arena
         public readonly Dictionary<string, int> HuntsWon = new Dictionary<string, int>();      // EnemyType name -> hunts won
         public readonly Dictionary<string, float> HuntBest = new Dictionary<string, float>();  // EnemyType name -> fastest win (seconds)
         public readonly HashSet<string> Unlocked = new HashSet<string>();
+        /// The perks equipped, by PerkId name, in slot order (Perks.cs). Perks.Clean keeps it to what is unlocked.
+        public readonly List<string> PerkNames = new List<string>();
 
         // Rank (Rank.cs, Docs/Rank.md): total XP, the cosmetics equipped (ids from Rank.Cosmetics; "" none) and the last few runs' XP.
         public long Xp;
@@ -131,6 +134,11 @@ namespace Arena
 
         static int Get(Dictionary<string, int> d, string k) { int v; return d.TryGetValue(k, out v) ? v : 0; }
         static void Bump(Dictionary<string, int> d, string k) => d[k] = Get(d, k) + 1;
+
+        public int HuntWins(EnemyType boss) => Get(HuntsWon, boss.ToString());
+
+        /// How many different bosses' hunts have been won.
+        public int HuntsWonCount { get { int n = 0; foreach (var kv in HuntsWon) if (kv.Value > 0) n++; return n; } }
 
         public int Beaten(EnemyType boss) => Get(BossesBeaten, boss.ToString());
         public int RoomPlayed(ChallengeKind k) => Get(RoomsPlayed, k.ToString());
@@ -237,6 +245,7 @@ namespace Arena
             foreach (var kv in RoomsPlayed) RunSave.Line(sb, "room", kv.Key + " " + kv.Value + " " + Get(RoomsWon, kv.Key));
             foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
+            if (PerkNames.Count > 0) RunSave.Line(sb, "perks", string.Join(",", PerkNames));
             RunSave.Line(sb, "xp", Xp);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')));
@@ -283,6 +292,7 @@ namespace Arena
                             if (RunSave.Fl(f[3]) > 0f) p.HuntBest[f[0]] = RunSave.Fl(f[3]);
                             break;
                         case "unlocked": p.Unlocked.Add(val); break;
+                        case "perks": foreach (var n in val.Split(',')) if (n.Length > 0) p.PerkNames.Add(n.Trim()); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); break;
                         case "rlog":
@@ -305,7 +315,8 @@ namespace Arena
         /// Brings an older file's data up to FormatVersion. Add a step per version when the format changes.
         static void Migrate(Profile p)
         {
-            // 1 -> 2 only added the "end" line, 2 -> 3 the name: nothing to convert.
+            // 1 -> 2 only added the "end" line, 2 -> 3 the name, 3 -> 4 the perks: nothing to convert.
+            Perks.Clean(p);  // drop a perk that isn't unlocked (a hand-edited file) or no longer fits the slots
             p.LoadedVersion = FormatVersion;
         }
 
