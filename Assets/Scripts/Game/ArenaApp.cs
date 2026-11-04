@@ -117,6 +117,7 @@ namespace Arena
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
             sounds = new SoundBank(gameObject);
+            LoadMusicPack();  // clips you assigned in Unity replace / join the generated music (MusicPack.cs)
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
             ScanCustomMusic();

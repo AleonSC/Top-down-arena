@@ -47,6 +47,7 @@ namespace Arena
             public volatile float[] Samples;
             public AudioClip Clip;
             public float Length;    // seconds
+            public bool External;   // a clip from the Unity project: never destroyed or dropped
             public float ResumeAt;  // where to pick up next time (menu and battle tracks)
         }
 
@@ -71,10 +72,19 @@ namespace Arena
         }
 
         /// Start rendering a track if it isn't already. Safe to call every frame.
+        /// Clips assigned in Unity (MusicPack.cs) that play in place of a generated track: id -> (clip, volume).
+        public readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.KeyValuePair<AudioClip, float>> Overrides =
+            new System.Collections.Generic.Dictionary<string, System.Collections.Generic.KeyValuePair<AudioClip, float>>();
+
         public void RequestTrack(string id, Func<float[]> render, float gain)
         {
             if (tracks.ContainsKey(id))
                 return;
+            if (Overrides.TryGetValue(id, out var own) && own.Key != null)
+            {
+                tracks[id] = new Track { Id = id, Gain = own.Value, Clip = own.Key, Length = own.Key.length, External = true };
+                return;
+            }
             var track = new Track { Id = id, Gain = gain };
             tracks[id] = track;
             System.Threading.ThreadPool.QueueUserWorkItem(_ => track.Samples = render());
@@ -86,6 +96,8 @@ namespace Arena
         public void RequestLibraryTrack(string id)
         {
             var e = id == null ? null : MusicLibrary.Find(id);
+            if (e != null && e.Clip is AudioClip clip)
+                Overrides[e.Id] = new System.Collections.Generic.KeyValuePair<AudioClip, float>(clip, e.Gain);
             if (e != null)
                 RequestTrack(e.Id, e.Render, e.Gain);
         }
@@ -174,7 +186,7 @@ namespace Arena
             // Let go of boss tracks nobody needs any more (they're a few MB each).
             string drop = null;
             foreach (var t in tracks.Values)
-                if (MusicLibrary.IsTransient(t.Id) && t.Clip != null && t.Id != wanted && t.Id != keep && t.Id != keep2 && t != voiceTrack[0] && t != voiceTrack[1])
+                if (MusicLibrary.IsTransient(t.Id) && t.Clip != null && t.Id != wanted && t.Id != keep && t.Id != keep2 && !t.External && t != voiceTrack[0] && t != voiceTrack[1])
                     drop = t.Id;
             if (drop != null)
             {

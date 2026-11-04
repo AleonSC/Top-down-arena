@@ -1,7 +1,7 @@
 // Signature-only stubs of the Unity APIs used by the project, for compile checks.
 using System;
 namespace UnityEngine {
-  public class Object { public HideFlags hideFlags; public static T FindFirstObjectByType<T>() where T: Object { return null; } public static void DontDestroyOnLoad(Object o){} public static void Destroy(Object o){} public static implicit operator bool(Object o){return o!=null;} }
+  public class Object { public string name; public HideFlags hideFlags; public static T FindFirstObjectByType<T>() where T: Object { return null; } public static void DontDestroyOnLoad(Object o){} public static void Destroy(Object o){} public static implicit operator bool(Object o){return o!=null;} }
   public enum HideFlags { None=0, HideAndDontSave=61 }
   public class Component : Object { public GameObject gameObject; public string tag; }
   public class Behaviour : Component {}
@@ -73,6 +73,13 @@ namespace UnityEngine {
   public class PlayerPrefs { public static string GetString(string k, string d){return d;} public static void SetString(string k, string v){} public static float GetFloat(string k, float d){return d;} public static int GetInt(string k, int d){return d;} public static void SetFloat(string k, float v){} public static void SetInt(string k, int v){} public static void Save(){} }
   public class GUIUtility { public static int keyboardControl; public static Vector2 GUIToScreenPoint(Vector2 p) => p; }
   public enum FullScreenMode { ExclusiveFullScreen, FullScreenWindow, MaximizedWindow, Windowed }
+}
+namespace UnityEngine {
+  public class ScriptableObject : Object {}
+  public class Resources { public static T Load<T>(string p) where T: Object {return null;} public static T[] LoadAll<T>(string p) where T: Object {return new T[0];} }
+  public class CreateAssetMenuAttribute : System.Attribute { public string menuName, fileName; public int order; }
+  public class TooltipAttribute : System.Attribute { public TooltipAttribute(string s){} }
+  public class RangeAttribute : System.Attribute { public RangeAttribute(float a, float b){} }
 }
 namespace UnityEngine.Networking {
   public enum AudioType { UNKNOWN = 0, MPEG = 13, OGGVORBIS = 14, WAV = 20 }

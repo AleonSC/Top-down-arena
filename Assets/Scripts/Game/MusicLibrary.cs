@@ -14,6 +14,7 @@ namespace Arena
             public float Gain;
             public Func<float[]> Render;
             public string Path;       // custom tracks: the file
+            public object Clip;       // an AudioClip assigned in Unity (MusicPack.cs, Assets/Resources/Music)
             public bool NeedsUnity;    // custom mp3 / ogg: Unity decodes it (MusicPlayerUi.cs)
             public EnemyType? Boss;   // set for boss themes (their id is SoundBank.BossTrackId)
         }
@@ -158,6 +159,16 @@ namespace Arena
         {
             All.RemoveAll(e => e.Id.StartsWith(CustomMusic.IdPrefix));
             All.AddRange(entries);
+        }
+
+        public const string ClipPrefix = "clip:";
+
+        /// Swap in the clips found in the Unity project (Assets/Resources/Music and the Music Pack's Tracks).
+        public static void SetProject(List<Entry> entries)
+        {
+            All.RemoveAll(e => e.Id.StartsWith(ClipPrefix));
+            int at = All.FindIndex(e => e.Id.StartsWith(CustomMusic.IdPrefix));
+            All.InsertRange(at < 0 ? All.Count : at, entries);   // (before any tracks from the music folder)
         }
 
         public static Entry Find(string id)

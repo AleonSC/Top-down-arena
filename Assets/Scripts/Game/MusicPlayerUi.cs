@@ -17,6 +17,54 @@ namespace Arena
 
         // --- Your own tracks (CustomMusic.cs) ---------------------------------------------------------------------------
 
+        /// Clips you assigned in Unity: everything in Assets/Resources/Music becomes a track in the player, and a Music Pack
+        /// asset (Resources/MusicPack, see MusicPack.cs) can also replace the menu, battle and boss music. Call before StartMusic.
+        void LoadMusicPack()
+        {
+            var entries = new List<MusicLibrary.Entry>();
+            var ids = new HashSet<string>();
+            var used = new HashSet<AudioClip>();
+            var pack = Resources.Load<MusicPack>("MusicPack");
+            if (pack != null)
+            {
+                foreach (var t in pack.Tracks)
+                    if (t != null)
+                        AddProjectClip(entries, ids, used, t.Title, t.Clip, t.Mood.ToString(), t.Volume);
+                ReplaceTrack(MusicLibrary.Menu, pack.MainMenu);
+                ReplaceTrack(MusicLibrary.Battle, pack.WaveBattle);
+                foreach (var bs in pack.Bosses)
+                    if (bs != null)
+                        ReplaceTrack(SoundBank.BossTrackId(bs.Boss == EnemyType.TwinB ? EnemyType.TwinA : bs.Boss), bs.Music);
+            }
+            foreach (var clip in Resources.LoadAll<AudioClip>("Music"))
+                AddProjectClip(entries, ids, used, null, clip, "Custom", 0.6f);
+            MusicLibrary.SetProject(entries);
+        }
+
+        static void AddProjectClip(List<MusicLibrary.Entry> entries, HashSet<string> ids, HashSet<AudioClip> used, string title, AudioClip clip, string mood, float volume)
+        {
+            if (clip == null || !used.Add(clip))
+                return;
+            string id = MusicLibrary.ClipPrefix + clip.name;
+            for (int n = 2; !ids.Add(id); n++)
+                id = MusicLibrary.ClipPrefix + clip.name + "#" + n;
+            entries.Add(new MusicLibrary.Entry
+            {
+                Id = id, Title = string.IsNullOrEmpty(title) || title.Trim().Length == 0 ? CustomMusic.TitleOf(clip.name) : title,
+                Mood = mood, Gain = volume, Clip = clip, Blurb = "From your Unity project: " + clip.name,
+            });
+        }
+
+        void ReplaceTrack(string id, MusicPack.Slot slot)
+        {
+            if (slot == null || slot.Clip == null)
+                return;
+            sounds.Overrides[id] = new KeyValuePair<AudioClip, float>(slot.Clip, slot.Volume);
+            var e = MusicLibrary.Find(id);
+            if (e != null)
+                e.Blurb = "Your clip: " + slot.Clip.name;
+        }
+
         static string MusicFolder => Path.Combine(Application.persistentDataPath, "music");
         int customCount;
         readonly Dictionary<string, UnityWebRequest> decodeJobs = new Dictionary<string, UnityWebRequest>();

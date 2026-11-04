@@ -170,4 +170,24 @@ static partial class Program
             try { Directory.Delete(dir, true); } catch (Exception) { }
         }
     }
+
+    // Clips assigned in Unity join the player's list before any tracks from the music folder, and can be swapped out.
+    static void ProjectClipsTest()
+    {
+        int builtIn = MusicLibrary.All.Count;
+        MusicLibrary.SetCustom(CustomMusic.Entries(new System.Collections.Generic.List<string> { "/x/zed.wav" }));
+        var mine = new System.Collections.Generic.List<MusicLibrary.Entry>
+        {
+            new MusicLibrary.Entry { Id = "clip:a", Title = "A", Mood = "Custom", Gain = 0.6f, Clip = new object() },
+            new MusicLibrary.Entry { Id = "clip:b", Title = "B", Mood = "Epic", Gain = 0.6f, Clip = new object() },
+        };
+        MusicLibrary.SetProject(mine);
+        bool order = MusicLibrary.All.Count == builtIn + 3 && MusicLibrary.IndexOf("clip:a") == builtIn && MusicLibrary.IndexOf("clip:b") == builtIn + 1
+            && MusicLibrary.IndexOf("file:zed.wav") == builtIn + 2 && !MusicLibrary.IsTransient("clip:a");
+        MusicLibrary.SetProject(new System.Collections.Generic.List<MusicLibrary.Entry> { mine[1] });
+        order &= MusicLibrary.Find("clip:a") == null && MusicLibrary.Find("clip:b") != null && MusicLibrary.All.Count == builtIn + 2;
+        MusicLibrary.SetProject(new System.Collections.Generic.List<MusicLibrary.Entry>());
+        MusicLibrary.SetCustom(new System.Collections.Generic.List<MusicLibrary.Entry>());
+        Check(order && MusicLibrary.All.Count == builtIn, "unity clips: they join the list before the music folder's tracks, and a reload swaps them out");
+    }
 }

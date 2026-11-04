@@ -1019,7 +1019,13 @@ ten boss themes there are eight extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lou
 "Boss themes still play" (on by default: a boss fight swaps in its own theme, then your track returns). Wheel scrolls the
 list. Your pick, shuffle and repeat are saved. Tracks render in the background the first time (a few seconds).
 
-**Your own music:** in the Music player click **Open folder** (the game's `music` folder inside its save data folder; it is
+**Your own music in Unity:** drop audio files into `Assets/Resources/Music` and they appear in the music player as
+*Custom* tracks, no setup (for long songs set the clip's Load Type to Streaming). For more control make a **Music Pack**
+(Assets > Create > Arena > Music Pack, saved as `Assets/Resources/MusicPack`): assign a clip to replace the **menu**
+theme, the **wave battle** track or any **boss's** theme (with a volume each), and list **Tracks** with your own title
+and mood. Anything you don't fill in stays generated. Code: `Game/MusicPack.cs`, `LoadMusicPack` in `MusicPlayerUi.cs`.
+
+**Your own music from files (no Unity needed):** in the Music player click **Open folder** (the game's `music` folder inside its save data folder; it is
 made for you), drop in `.wav`, `.mp3` or `.ogg` files, and click **Rescan** (the tab also rescans when you open it). They
 join the list as green *Custom* tracks, named after the file (`my_song.mp3` shows as "my song"), and work with everything
 above: shuffle, repeat, play in menus and matches. Tracks are levelled to a similar loudness and loop. A file the game
