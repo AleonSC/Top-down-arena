@@ -25,6 +25,7 @@ namespace Arena
             var z = AddZone(ZoneKind.LumenWard, p, p.Pos, LumenLength, LumenTime + LumenClose);
             z.Aim = d.LengthSq > 1f ? d.Angle : p.Aim;
             z.Freezes = mastered;
+            z.Follow = true;  // the apex moves with you (TickZones); the cone keeps the aim it was cast along
             Sounds.Add(Sfx.SpellHoly);
         }
 
