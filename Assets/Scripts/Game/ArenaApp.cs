@@ -146,6 +146,10 @@ namespace Arena
             }
             string v;
             LoadMenuFields();  // your name, the port and the last address (Menus.cs); the command line wins
+            SyncNameFromProfile();  // the active profile's name is yours (ProfilesUi.cs)
+            whoOpen = !(opts.ContainsKey("host") || opts.ContainsKey("join") || opts.ContainsKey("autostart"));  // "Who's playing?" first, unless started from the command line
+            if (whoOpen)
+                WhoRefresh();
             if (opts.TryGetValue("name", out v)) nameText = v;
             if (opts.TryGetValue("port", out v)) portText = v;
             if (opts.TryGetValue("role", out v))
@@ -590,7 +594,9 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    if (fieldGuideOpen)
+                    if (whoOpen)
+                        DrawWho();  // ProfilesUi.cs
+                    else if (fieldGuideOpen)
                         DrawFieldGuideScreen();  // FieldGuide.cs (the main menu's button)
                     else if (settingsOpen)
                         DrawSettings();

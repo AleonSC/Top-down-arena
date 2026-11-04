@@ -39,7 +39,21 @@ namespace Arena
     /// were used. Saved as "key value" lines in Folder/profile.txt.
     public class Profile
     {
-        public const int FormatVersion = 1;
+        /// 2: adds the closing "end" line, so a cut-off file is told apart from a whole one. Version 1 files (no "end") still load.
+        /// 3: adds the "name" line (the profile's name, ProfileStore.cs). Older files load with no name.
+        public const int FormatVersion = 3;
+
+        /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
+        public string Name = "";
+
+        /// Set by Parse/Load: the file's version, whether it read as a whole profile, and how many lines were skipped.
+        public int LoadedVersion;
+        public bool Valid;
+        public int SkippedLines;
+        /// What Load did about a bad file, for the log ("" none): it fell back to the backup, or set the file aside.
+        public static string LoadNote = "";
+        /// True when the last Save could not write (the front end warns the player).
+        public static bool LastSaveFailed;
 
         public int RunsStarted, RunsWon, RunsLost;
         public int BestWave, BestScore, BestEndlessWave;
@@ -206,6 +220,7 @@ namespace Arena
         {
             var sb = new StringBuilder();
             RunSave.Line(sb, "arena-profile", FormatVersion);
+            if (Name.Length > 0) RunSave.Line(sb, "name", Name);
             RunSave.Line(sb, "runs", RunsStarted + " " + RunsWon + " " + RunsLost);
             RunSave.Line(sb, "best", BestWave + " " + BestScore + " " + BestEndlessWave);
             RunSave.Line(sb, "time", PlayTime);
@@ -220,6 +235,7 @@ namespace Arena
             RunSave.Line(sb, "xp", Xp);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')));
+            RunSave.Line(sb, "end", 1);
             return sb.ToString();
         }
 
@@ -229,6 +245,7 @@ namespace Arena
         public static Profile Parse(string text)
         {
             var p = new Profile();
+            bool sawHeader = false, sawEnd = false;
             foreach (var raw in (text ?? "").Split('\n'))
             {
                 string line = raw.Trim();
@@ -241,6 +258,9 @@ namespace Arena
                     var f = val.Split(' ');
                     switch (key)
                     {
+                        case "arena-profile": p.LoadedVersion = RunSave.I(f[0]); sawHeader = true; break;
+                        case "end": sawEnd = true; break;
+                        case "name": p.Name = val.Trim(); break;
                         case "runs": p.RunsStarted = RunSave.I(f[0]); p.RunsWon = RunSave.I(f[1]); p.RunsLost = RunSave.I(f[2]); break;
                         case "best": p.BestWave = RunSave.I(f[0]); p.BestScore = RunSave.I(f[1]); p.BestEndlessWave = RunSave.I(f[2]); break;
                         case "time": p.PlayTime = RunSave.Fl(val); break;
@@ -268,38 +288,105 @@ namespace Arena
                 }
                 catch (Exception e) when (e is FormatException || e is IndexOutOfRangeException || e is OverflowException)
                 {
-                    // a damaged line: skip it
+                    p.SkippedLines++;  // a damaged line: skip it (Load keeps a copy of the file before it is overwritten)
                 }
             }
+            p.Valid = sawHeader && (p.LoadedVersion < 2 || sawEnd);
+            if (p.Valid)
+                Migrate(p);
             return p;
         }
 
-        static string FilePath => Path.Combine(Folder, "profile.txt");
-
-        static Profile Load()
+        /// Brings an older file's data up to FormatVersion. Add a step per version when the format changes.
+        static void Migrate(Profile p)
         {
-            if (Folder == null)
-                return new Profile();
-            try
-            {
-                return File.Exists(FilePath) ? Parse(File.ReadAllText(FilePath)) : new Profile();
-            }
-            catch (IOException) { return new Profile(); }
-            catch (UnauthorizedAccessException) { return new Profile(); }
+            // 1 -> 2 only added the "end" line, 2 -> 3 the name: nothing to convert.
+            p.LoadedVersion = FormatVersion;
         }
 
-        /// Writes it (temp file first, then swapped in, so a crash can't leave half a profile or none).
-        public void Save()
+        static string FilePath => Path.Combine(Folder, "profile.txt");
+        static string BackupPath => FilePath + ".bak";
+
+        /// Reads one file: null if it is missing, unreadable, or doesn't read as a whole profile.
+        static Profile TryRead(string path)
         {
-            if (Folder == null)
-                return;
             try
             {
-                Directory.CreateDirectory(Folder);
-                SaveStore.SafeWrite(FilePath, ToText());
+                if (!File.Exists(path))
+                    return null;
+                var p = Parse(File.ReadAllText(path));
+                return p.Valid ? p : null;
+            }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+        }
+
+        /// Moves a bad file out of the way (never overwritten or deleted), so the next Save can't destroy it.
+        static void SetAside(string path, string label)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Copy(path, Path.Combine(Folder, "profile." + label + "-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + ".txt"), true);
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
+        }
+
+        static Profile Load()
+        {
+            LoadNote = "";
+            if (Folder == null)
+                return new Profile();
+            bool mainExists = false;
+            try { mainExists = File.Exists(FilePath); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            var p = TryRead(FilePath);
+            if (p != null)
+            {
+                if (p.SkippedLines > 0)
+                {
+                    SetAside(FilePath, "damaged");  // keep the lines that were dropped
+                    LoadNote = "profile.txt had " + p.SkippedLines + " damaged line(s); a copy was kept";
+                }
+                return p;
+            }
+            // Missing, cut off or unreadable: try the backup from the save before last.
+            var b = TryRead(BackupPath);
+            if (mainExists)
+                SetAside(FilePath, "corrupt");
+            if (b != null)
+            {
+                LoadNote = mainExists ? "profile.txt was damaged; restored from profile.txt.bak" : "profile.txt was missing; restored from profile.txt.bak";
+                return b;
+            }
+            if (mainExists)
+                LoadNote = "profile.txt was damaged and there is no backup; a copy was kept and a new profile started";
+            return new Profile();
+        }
+
+        /// Writes it (temp file first, then swapped in with the old file kept as profile.txt.bak, so a crash can't
+        /// leave half a profile or none). False if it couldn't write; LastSaveFailed says so for the front end.
+        public bool Save()
+        {
+            if (Folder == null)
+                return true;
+            bool ok = SaveTo(Folder);
+            LastSaveFailed = !ok;
+            return ok;
+        }
+
+        /// Writes it into any profile folder (ProfileStore uses this for profiles that aren't the active one).
+        public bool SaveTo(string folder)
+        {
+            try
+            {
+                Directory.CreateDirectory(folder);
+                SaveStore.SafeWrite(Path.Combine(folder, "profile.txt"), ToText(), Path.Combine(folder, "profile.txt.bak"));
+                return true;
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            return false;
         }
     }
 }

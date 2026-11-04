@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile Picker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Mockup: three ways to pick, create and delete profiles, in the game's own panel colours. All clickable:
+   click a profile to switch, "New profile" adds one, Delete asks twice (like the Continue list does). */
+:root {
+  --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547;
+  --g-bg:#0b0e18; --g-panel:#1a1f2e; --g-edge:#4f6cff; --g-text:#eef2fb; --g-muted:#8f9bb8; --g-track:#2b3248; --red:#ff6b86;
+  --display:"Oxanium","Segoe UI",system-ui,sans-serif; --body:"Barlow","Segoe UI",system-ui,sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--body); }
+.wrap { max-width:1200px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:24px; }
+h1,h2 { font-family:var(--display); margin:0; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--teal); }
+h2 { font-size:20px; letter-spacing:.04em; }
+p { margin:0; max-width:70ch; color:#cfdae2; }
+.eyebrow { font:600 11px var(--display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:12px; align-content:start; }
+.card > p { font-size:14px; color:var(--muted); }
+.screen { background:var(--g-panel); border:1px solid #2a3350; border-radius:12px; padding:14px; color:var(--g-text); display:grid; gap:10px; min-height:330px; align-content:start; position:relative; }
+button { font:600 13px var(--body); color:var(--g-text); background:#252c44; border:1px solid #333c5c; border-radius:8px; padding:7px 12px; cursor:pointer; }
+button:hover { background:#2f3857; }
+button:focus-visible { outline:2px solid var(--teal); outline-offset:1px; }
+button.primary { background:#3b57e0; border-color:#5671f0; }
+button.danger.armed { background:#8c2338; border-color:var(--red); }
+.me { display:grid; grid-template-columns:44px 1fr auto; gap:10px; align-items:center; background:#222a40; border-radius:10px; padding:10px; text-align:left; width:100%; }
+.face { width:44px; height:44px; border-radius:50%; display:grid; place-items:center; font:800 18px var(--display); color:#0b0e18; }
+.nm { font:700 17px var(--display); }
+.sub { font-size:12px; color:var(--g-muted); }
+.badge { font:800 13px var(--display); border:2px solid currentColor; border-radius:8px; padding:2px 8px; }
+.list { display:grid; gap:6px; }
+.opt { display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:center; padding:8px; border-radius:8px; background:transparent; border:1px solid transparent; width:100%; text-align:left; }
+.opt:hover { background:#252c44; }
+.opt.on { border-color:var(--g-edge); background:#222a40; }
+.opt .face { width:34px; height:34px; font-size:15px; }
+.menu { position:absolute; left:14px; right:14px; top:84px; background:#151a2a; border:1px solid #333c5c; border-radius:10px; padding:8px; box-shadow:0 12px 30px #000a; z-index:2; }
+.menu[hidden] { display:none; }
+.tabs { display:flex; gap:6px; flex-wrap:wrap; }
+.tab { display:flex; gap:8px; align-items:center; border-radius:999px; padding:4px 12px 4px 4px; }
+.tab .face { width:28px; height:28px; font-size:13px; }
+.tab.on { background:#3b57e0; border-color:#5671f0; }
+.pgrid { display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+.pc { background:#222a40; border:2px solid transparent; border-radius:12px; padding:12px; display:grid; gap:6px; justify-items:center; text-align:center; }
+.pc.on { border-color:var(--g-edge); }
+.pc .face { width:56px; height:56px; font-size:24px; }
+.pc .acts { display:flex; gap:6px; }
+.pc .acts button { padding:4px 8px; font-size:12px; }
+.note { font-size:12px; color:var(--g-muted); }
+.field { background:#10142200; border:1px solid #333c5c; border-radius:8px; padding:7px 10px; color:var(--g-text); font:600 14px var(--body); width:100%; }
+.pros li, .cons li { font-size:14px; color:#cfdae2; }
+ul { margin:0; padding-left:18px; display:grid; gap:2px; }
+.cons li { color:#e8c9a0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Mockup · Multiple profiles</div>
+    <h1>Profile <span>picker</span></h1>
+  </div>
+  <p>Three ways to switch between profiles. Each profile has its own name, records, rank, cosmetics and saved runs. Click around: switch, make a new profile, delete (click twice). The first profile can't be deleted while it is the only one.</p>
+  <div class="grid" id="root"></div>
+</div>
+<script>
+const COLORS=["#6fe3c4","#ffb547","#ff7aa2","#8fa8ff","#c3e86b"];
+const state={ list:[
+  {id:"anthony",name:"Anthony",rank:14,runs:63,wins:9,hrs:21.4,c:0},
+  {id:"sam",name:"Sam",rank:6,runs:18,wins:1,hrs:5.2,c:1},
+  {id:"kid",name:"Little Bee",rank:3,runs:7,wins:0,hrs:1.9,c:2}], active:"anthony", armed:null, menuOpen:false };
+const cur=()=>state.list.find(p=>p.id===state.active);
+const face=p=>`<span class="face" style="background:${COLORS[p.c%5]}">${p.name[0].toUpperCase()}</span>`;
+const badge=p=>`<span class="badge" style="color:${COLORS[(p.rank>>2)%5]}">R${p.rank}</span>`;
+function add(){ const n=prompt("Name for the new profile","Player "+(state.list.length+1)); if(!n) return;
+  state.list.push({id:n.toLowerCase().replace(/\W+/g,"-")+state.list.length,name:n.slice(0,16),rank:1,runs:0,wins:0,hrs:0,c:state.list.length}); state.active=state.list.at(-1).id; render(); }
+function pick(id){ state.active=id; state.menuOpen=false; state.armed=null; render(); }
+function del(id){ if(state.list.length<2) return; if(state.armed!==id){ state.armed=id; render(); return; }
+  state.list=state.list.filter(p=>p.id!==id); if(state.active===id) state.active=state.list[0].id; state.armed=null; render(); }
+function ren(id){ const p=state.list.find(x=>x.id===id), n=prompt("New name",p.name); if(n){p.name=n.slice(0,16); render();} }
+function A(){ const p=cur(); return `<div class="card"><div class="eyebrow">A · Dropdown on the player card</div>
+ <div class="screen"><button class="me" onclick="state.menuOpen=!state.menuOpen;render()" aria-expanded="${state.menuOpen}">${face(p)}<span><div class="nm">${p.name}</div><div class="sub">Rank ${p.rank} · tap to switch profile ▾</div></span>${badge(p)}</button>
+ <div class="menu" ${state.menuOpen?"":"hidden"}><div class="list">${state.list.map(q=>`<button class="opt ${q.id===state.active?"on":""}" onclick="pick('${q.id}')">${face(q)}<span><div class="nm">${q.name}</div><div class="sub">Rank ${q.rank} · ${q.wins} wins</div></span>${badge(q)}</button>`).join("")}
+ <button class="opt" onclick="add()"><span class="face" style="background:#333c5c;color:#fff">+</span><span class="nm">New profile</span><span></span></button></div></div>
+ <div class="note">Host · Join · Continue …the rest of the main menu sits here.</div></div>
+ <p>The existing rank card becomes the switcher. Fewest clicks for people with two or three profiles; delete and rename live in a small "Manage" page (not shown).</p>
+ <ul class="pros"><li>Uses the card that is already there</li><li>One click to switch</li></ul><ul class="cons"><li>Delete and rename are hidden away</li></ul></div>`; }
+function B(){ return `<div class="card"><div class="eyebrow">B · Profiles page</div>
+ <div class="screen"><div class="nm">Who's playing?</div><div class="pgrid">${state.list.map(q=>`<div class="pc ${q.id===state.active?"on":""}">${face(q)}<div class="nm">${q.name}</div>${badge(q)}<div class="sub">${q.runs} runs · ${q.wins} wins · ${q.hrs}h</div>
+ <div class="acts"><button class="${q.id===state.active?"primary":""}" onclick="pick('${q.id}')">${q.id===state.active?"Playing":"Select"}</button><button onclick="ren('${q.id}')">Rename</button><button class="danger ${state.armed===q.id?"armed":""}" onclick="del('${q.id}')" ${state.list.length<2?"disabled":""}>${state.armed===q.id?"Sure?":"Delete"}</button></div></div>`).join("")}
+ <button class="pc" onclick="add()" style="justify-content:center;min-height:150px"><span class="face" style="background:#333c5c;color:#fff">+</span><span class="nm">New profile</span></button></div></div>
+ <p>A full page opened from the main menu's bottom bar (next to Records and Settings), like a console "who's playing" screen. Everything in one place, with each profile's stats.</p>
+ <ul class="pros"><li>Delete, rename and stats all visible</li><li>Room to grow (avatar, colour)</li></ul><ul class="cons"><li>One more click to switch</li></ul></div>`; }
+function C(){ const p=cur(); return `<div class="card"><div class="eyebrow">C · Tabs above the card</div>
+ <div class="screen"><div class="tabs">${state.list.map(q=>`<button class="tab ${q.id===state.active?"on":""}" onclick="pick('${q.id}')">${face(q)}${q.name}</button>`).join("")}<button class="tab" onclick="add()"><span class="face" style="background:#333c5c;color:#fff">+</span>New</button></div>
+ <div class="me" style="cursor:default">${face(p)}<span><div class="nm">${p.name}</div><div class="sub">Rank ${p.rank} · ${p.runs} runs · ${p.wins} wins</div></span>${badge(p)}</div>
+ <div style="display:flex;gap:6px"><button onclick="ren('${p.id}')">Rename</button><button class="danger ${state.armed===p.id?"armed":""}" onclick="del('${p.id}')" ${state.list.length<2?"disabled":""}>${state.armed===p.id?"Sure? Click again":"Delete this profile"}</button></div>
+ <div class="note">Host · Join · Continue …</div></div>
+ <p>Chips along the top of the menu card: always visible, one click to switch, and the active profile's Rename and Delete sit right under it. Best when several people share a computer.</p>
+ <ul class="pros"><li>Everything on the main menu</li><li>Always shows who is active</li></ul><ul class="cons"><li>Gets crowded past ~5 profiles</li><li>Takes menu space</li></ul></div>`; }
+function render(){ document.getElementById("root").innerHTML=A()+B()+C(); }
+render();
+</script>
+</body>
+</html>

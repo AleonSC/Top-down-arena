@@ -15,11 +15,11 @@ namespace Arena
 
         static readonly Color SaveColor = new Color(0.42f, 0.86f, 0.62f);
 
-        /// Where saves and the profile live (called once at start).
+        /// Where saves and the profile live (called once at start): the profile last used, under profiles/ (ProfileStore.cs).
+        /// A pre-profiles install is copied into a profile named after the old player name.
         static void InitSaveFolders()
         {
-            SaveStore.Folder = Path.Combine(Application.persistentDataPath, "saves");
-            Profile.Folder = Application.persistentDataPath;
+            ProfileStore.Init(Application.persistentDataPath, PlayerPrefs.GetString("player_name", ""));
         }
 
         float savesCountT;
@@ -219,7 +219,8 @@ namespace Arena
                 float a = Mathf.Clamp01(t.T / 0.5f);
                 var r = new Rect(cx - 260f, y + i * 48f, 520f, 42f);
                 Ui.Pill(r, new Color(0.12f, 0.09f, 0.02f, 0.85f * a));
-                Ui.Shadowed(new Rect(r.x, r.y + 2f, r.width, 22f), "UNLOCKED: " + t.Unlock.Name.ToUpperInvariant(), 16, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, a));
+                Color head = t.Warning ? new Color(1f, 0.35f, 0.3f, a) : new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, a);
+                Ui.Shadowed(new Rect(r.x, r.y + 2f, r.width, 22f), (t.Warning ? "" : "UNLOCKED: ") + t.Unlock.Name.ToUpperInvariant(), 16, head);
                 Ui.Label(new Rect(r.x, r.y + 22f, r.width, 16f), t.Unlock.Desc, 11, new Color(1f, 1f, 1f, 0.8f * a), TextAnchor.MiddleCenter);
             }
         }

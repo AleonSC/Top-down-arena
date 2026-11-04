@@ -34,7 +34,7 @@ namespace Arena
             if (onMenu && menuLastScreen != AppScreen.Menu)
                 menuTipSeed = Random.Range(0, 1000);  // a new line under the title each time the menu opens
             menuLastScreen = session.Screen;
-            if (onMenu && !menuIntroDone && !settingsOpen && !recordsOpen && !cosmeticsOpen && !continueOpen)
+            if (onMenu && !menuIntroDone && !whoOpen && !settingsOpen && !recordsOpen && !cosmeticsOpen && !continueOpen)
             {
                 menuIntroDone = true;
                 menuIntroT = 0f;
