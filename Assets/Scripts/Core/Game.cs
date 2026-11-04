@@ -202,6 +202,7 @@ namespace Arena
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
+                GivePerks(p, IsHost && id == MyId ? Profile : null);  // the host's own perks; everyone else's come with the lobby sync (Docs/RiotGear.md step 3)
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
                 entries.Add(p);
@@ -1149,6 +1150,7 @@ namespace Arena
                 TickSlots(p, dt);
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
+                TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);

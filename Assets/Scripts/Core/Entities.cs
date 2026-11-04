@@ -195,6 +195,8 @@ namespace Arena
         public AbilityId[] BonusKeys = { AbilityId.None, AbilityId.None, AbilityId.None };
         public Dictionary<int, float> StatOverrides = new Dictionary<int, float>();  // dev menu: hand-edited stats (index into Game.StatFields)
         public bool DevGod;  // dev menu: takes no damage
+        public PerkId[] Perks = Arena.Perks.Empty;  // the perks brought into the run (host; RiotGear.cs)
+        public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
         public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f);

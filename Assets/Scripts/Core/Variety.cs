@@ -334,7 +334,7 @@ namespace Arena
                     foreach (var pt in Patches.Values)
                         if (pt.Kind == PatchKind.Embers && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
                         {
-                            Damage(p, EmberDps * 0.25f, "Scorcher (embers)");
+                            Damage(p, EmberDps * 0.25f, "Scorcher (embers)", true);
                             break;
                         }
                 }

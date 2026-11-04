@@ -569,7 +569,7 @@ namespace Arena
         void HurtNoIframes(Player p, float amount, string source)
         {
             float inv = p.InvulnT;
-            Damage(p, amount, source);
+            Damage(p, amount, source, true);
             if (!p.Downed)
                 p.InvulnT = inv;
         }

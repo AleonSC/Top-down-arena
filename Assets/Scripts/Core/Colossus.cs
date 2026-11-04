@@ -619,7 +619,7 @@ namespace Arena
                     foreach (var pt in Patches.Values)
                         if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
                         {
-                            Damage(p, LavaDps * 0.25f, "The Colossus (lava)");
+                            Damage(p, LavaDps * 0.25f, "The Colossus (lava)", true);
                             break;
                         }
                 }

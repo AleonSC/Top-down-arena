@@ -9,7 +9,8 @@ namespace Arena
         static string ShotSource(Bullet b) =>
             (b.Source.HasValue ? Defs.Get(b.Source.Value).Name : "Enemy") + (b.Kind == Defs.PierceShot ? " (aimed)" : "");
 
-        void Damage(Player p, float amount, string source = "Other")
+        /// overTime: a burn, gas, acid or lava tick, which Riot Gear's shield doesn't block.
+        void Damage(Player p, float amount, string source = "Other", bool overTime = false)
         {
             if (p.DevGod)
                 return;
@@ -17,6 +18,8 @@ namespace Arena
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
             if (InDome(p.Pos, -2f))
                 return;  // inside Fortress's dome nothing hostile reaches you (Dome.cs)
+            if (!overTime && RiotBlocks(p, source))
+                return;  // Riot Gear took the hit (RiotGear.cs)
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);

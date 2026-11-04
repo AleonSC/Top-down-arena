@@ -28,6 +28,8 @@ namespace Arena
 
         public const int MaxSlots = 3;
 
+        public static readonly PerkId[] Empty = new PerkId[0];
+
         public static readonly PerkDef[] All =
         {
             new PerkDef
