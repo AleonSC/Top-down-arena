@@ -12,6 +12,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
       [`Mockups/tank-gun-animations.html`](Mockups/tank-gun-animations.html) (https://claude.ai/artifact/QeTMr1Gr6n1KoJKymyutE3). Needs a try in Unity. Armory pages are now out of date for these three.
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
+- [x] **HUD panels get the upgrade-card gradient.** Built (Nov 2026, protocol unchanged, 147): `Ui.HudPanel` now shades every HUD panel like `CardArt.Body` (slate when plain, tinted by the accent otherwise). Needs a try in Unity.
+- [ ] **HUD animations: pick a style.** Mockup: [`Mockups/hud-animations.html`](Mockups/hud-animations.html) (https://claude.ai/artifact/FtY5EZaHeJZgckp88Pb9SN). A Ember (ready glows, used burns out), B Liquid, C Hologram, D Rim runner, E Calm. Nothing built yet.
+
 ## Balance / design
 - [x] **Elementalist DPS abilities: Meteor and Blizzard visuals, Arcane Surge becomes Tsunami.** Built (Nov 2026, protocol 147): look A for all three, from
       [`Mockups/elementalist-dps-abilities.html`](Mockups/elementalist-dps-abilities.html) (https://claude.ai/artifact/R7eis4QntDJvmvq8mpvhb9). Meteor gets a falling

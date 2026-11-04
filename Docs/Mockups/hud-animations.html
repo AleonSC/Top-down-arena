@@ -1,0 +1,321 @@
+<title>HUD Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. A live strip of the game's bottom HUD (wave plate, ability bar,
+   player card) drawn with the new upgrade-card gradient. Five animation styles play on it; the strip below picks one,
+   slows it down, or uses every ability on cue. Under it, one card per style, then build notes. Single dark look by
+   choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 1280 / 134; background: #070910; cursor: pointer; }
+canvas:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 30px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #3a2610; box-shadow: inset 0 0 0 1px var(--amber); }
+.act { height: 32px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--amber); width: 15px; height: 15px; margin: 0; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.hint { font-size: 13px; color: var(--muted); }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--panel-2); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.card:hover { border-color: var(--edge); border-top-color: var(--c); }
+.card.on { box-shadow: inset 0 0 0 1px var(--c); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card dl { margin: 0; display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 5px 10px; font-size: 13px; }
+.card dt { font: 600 10.5px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+.card dd { margin: 0; color: var(--soft); }
+.notes { display: grid; gap: 8px; font-size: 14px; color: var(--soft); padding-left: 18px; margin: 0; max-width: 90ch; }
+code { font: 500 12.5px var(--font-data); color: var(--amber); }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">HUD mockup · Elementalist, wave 1</div>
+  <h1>HUD <span>animations</span></h1>
+  <p class="lead">Every panel on the HUD now has the upgrade cards' shading: a rich top fading to near-black, tinted by the panel's colour. That part is built. Below are five ways to make the ability bar move on top of it. Style A is the one you asked for: ready abilities glow, used ones burn out and warm back up as they recharge.</p>
+</header>
+
+<section class="stage" aria-label="Live HUD strip">
+  <canvas id="hud" width="1280" height="134" tabindex="0" aria-label="The bottom of the game screen: wave plate, ability bar and player card, animated in the selected style"></canvas>
+  <div class="bar">
+    <span class="lbl">Style</span>
+    <div class="seg" id="styles" role="group" aria-label="Animation style"></div>
+    <span class="spacer"></span>
+    <button class="act" id="useAll" type="button">Use every ability</button>
+    <label class="tog" for="auto"><input type="checkbox" id="auto" checked> Auto-use</label>
+    <label class="tog" for="slow"><input type="checkbox" id="slow"> Slow motion</label>
+  </div>
+</section>
+<p class="hint">Click a ready tile to use it, or press <b>Use every ability</b>. Every ability is class orange and the ultimate is gold, as in the game. Cooldowns are shortened so you see a full cycle.</p>
+
+<section class="sec">
+  <h2>The five styles</h2>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section class="sec">
+  <h2>Building it</h2>
+  <ul class="notes">
+    <li><b>Done already:</b> <code>Ui.HudPanel</code> shades every HUD panel like <code>CardArt.Body</code>. Plain panels are slate, accented ones take their colour (class, gold for boss waves, red when downed). The lit rim wash is lighter because the gradient carries the colour now.</li>
+    <li>All five styles slot into the existing <code>TileLook</code> in <code>HudTiles.cs</code>. They add a few fields (burn, heat, sparks) and draw in <code>DrawAbilityTile</code>. No network or snapshot change, so the protocol stays put.</li>
+    <li>Particles (sparks, ash) would reuse the HUD's existing dot and glow helpers. Reduced effects keeps the glow and the colour change but drops sparks, ash, the glitch and any movement. Visual effects off draws the bar as it does today.</li>
+    <li>Style A needs the most new drawing: a scorch overlay with a moving burn line, hand-placed cracks per tile and a handful of particles. B and E are the cheapest.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById("hud"), ctx = cv.getContext("2d");
+  const W = 1280, H = 134, TW = 150, TH = 58, GAP = 8, X0 = (W - (5 * TW + 4 * GAP)) / 2, TY = H - TH - 12;
+  const ORANGE = [240, 140, 50], GOLD = [255, 205, 80], SLATE = [107, 128, 199], GREEN = [90, 235, 120];
+  const FONT_D = '"Oxanium","Segoe UI",system-ui,sans-serif', FONT_B = '"Barlow","Segoe UI",system-ui,sans-serif';
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const STYLES = [
+    { id: "A", n: "Ember", c: "#ff9a3c", tag: "ready glows · used burns out", sum: "A ready ability glows and throws sparks. Using it scorches the tile from the top down. It sits charred and grey, with cracks that cool, and warms back to colour as it recharges.",
+      dl: [["Ready", "Pulsing bloom and rim glow, sparks rising off the top edge."], ["Used", "White-hot flash, a burn line sweeping down, ash drifting up."], ["Recharging", "Charred grey. Cracks glow, then go dark, then re-ignite near the end."], ["Ready again", "Ring flash and a burst of sparks as the colour returns."]] },
+    { id: "B", n: "Liquid", c: "#5ad7ff", tag: "tile fills as it charges", sum: "The tile is a vessel. The ability's colour rises from the bottom as the cooldown runs, with a rippling surface, and it drains the moment you use it.",
+      dl: [["Ready", "Full, with a slow diagonal shine every couple of seconds."], ["Used", "The level drops out of the tile in a quarter second."], ["Recharging", "Colour rises with a wave on top and a few bubbles."], ["Ready again", "A bright surge across the top as it brims."]] },
+    { id: "C", n: "Hologram", c: "#6fe3c4", tag: "scanlines and glitch", sum: "The bar reads as a projection. A scan line sweeps ready tiles. Using one glitches it apart, and it sits dim and full of static until it comes back online.",
+      dl: [["Ready", "Bright, with a scan line passing every 2 s."], ["Used", "Sliced horizontal offsets and a red/cyan split for 0.4 s."], ["Recharging", "Dim, scanlines thickened, a slow flicker."], ["Ready again", "Three quick flickers, then steady."]] },
+    { id: "D", n: "Rim runner", c: "#c58bff", tag: "light travels the border", sum: "All the motion lives on the tile's border. A cooldown draws the rim round as a loading ring. A ready tile has a spark circling it forever.",
+      dl: [["Ready", "One bright spark with a tail circling the rim."], ["Used", "The rim snuffs out with a small burst at the key cap."], ["Recharging", "The rim fills clockwise from the top left."], ["Ready again", "The ring closes with a flash and the spark starts."]] },
+    { id: "E", n: "Calm", c: "#9fb4c8", tag: "quiet, nothing moves", sum: "No scaling or particles. A ready tile breathes slowly in brightness. A used one dims, and a soft wash sweeps across when it's ready. Best if the screen is already busy.",
+      dl: [["Ready", "Slow brightness breath, about 4 s a cycle."], ["Used", "Fades to a dim body over 0.3 s."], ["Recharging", "Colour returns steadily with the timer."], ["Ready again", "A pale wash sweeps left to right once."]] }
+  ];
+
+  // --- state ---
+  const slots = [
+    { key: "SPACE", name: "Tsunami", cdMax: 7, cd: 0, ready: 5, use: 99 },
+    { key: "Q", name: "Blizzard", cdMax: 9, cd: 4.2, ready: 99, use: 1.6 },
+    { key: "E", name: "Arc Lightning", cdMax: 5, cd: 2.4, ready: 99, use: 0.8 },
+    { key: "SHIFT", empty: true },
+    { key: "F", name: "Meteor Storm", ult: true, cdMax: 14, cd: 0, ready: 6, use: 99 }
+  ];
+  slots.forEach((s, i) => { s.ph = i * 1.7; s.disp = s.cd > 0 ? 1 - s.cd / s.cdMax : 1; s.auto = 1.2 + i * 0.7;
+    s.cracks = []; for (let k = 0; k < 3; k++) { let px = 20 + Math.random() * (TW - 40), py = 0, pts = [[px, py]]; for (let j = 0; j < 5; j++) { px += (Math.random() - 0.5) * 26; py += 10 + Math.random() * 6; pts.push([px, Math.min(py, TH)]); } s.cracks.push(pts); } });
+  let cur = "A", T = 0, auto = true, slow = false, parts = [], wave = { left: 7, max: 12, t: 0 };
+
+  // --- helpers ---
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  const rgba = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${clamp(a)})`;
+  const ease3 = k => 1 - Math.pow(1 - k, 3);
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function txt(s, x, y, size, col, align = "left", weight = 700, font = FONT_D) { ctx.font = `${weight} ${size}px ${font}`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(s, x, y); }
+
+  // The upgrade-card shading: rich at the top, near-black at the bottom, a bloom behind the upper part.
+  function body(x, y, w, h, rc, k, bloom = 1, alpha = 1) {
+    const top = [(0.085 + rc[0] / 255 * k) * 255, (0.095 + rc[1] / 255 * k) * 255, (0.14 + rc[2] / 255 * k) * 255], base = [11, 14, 24];
+    const g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, rgba(top, alpha)); g.addColorStop(0.45, rgba(mix(top, base, 0.55), alpha)); g.addColorStop(1, rgba(base, alpha));
+    rr(x, y, w, h, 9); ctx.fillStyle = g; ctx.fill();
+    if (bloom > 0) {
+      ctx.save(); rr(x, y, w, h, 9); ctx.clip();
+      const b = ctx.createRadialGradient(x + w * 0.3, y + h * 0.3, 0, x + w * 0.3, y + h * 0.3, w * 0.7);
+      b.addColorStop(0, rgba(rc, 0.3 * bloom * alpha)); b.addColorStop(1, rgba(rc, 0)); ctx.fillStyle = b; ctx.fillRect(x, y, w, h); ctx.restore();
+    }
+    rr(x + 0.5, y + 0.5, w - 1, h - 1, 9); ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  function rim(x, y, w, h, col, a, blur = 0) {
+    ctx.save(); if (blur) { ctx.shadowColor = rgba(col, a); ctx.shadowBlur = blur; }
+    rr(x + 1, y + 1, w - 2, h - 2, 9); ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+  }
+  function perim(w, h, r = 9) { return 2 * (w + h - 4 * r) + 2 * Math.PI * r; }
+  function spark(x, y, vx, vy, life, col, size, add = true, g = 0) { if (!reduce) parts.push({ x, y, vx, vy, life: 0, max: life, col, size, add, g }); }
+
+  // --- ability tile content (text, key cap, recharge line), shared ---
+  function content(s, x, y, ready, fill, acc, o = {}) {
+    const dim = o.dim || 0, textCol = mix([255, 255, 255], [150, 156, 172], dim), nameLo = ready ? mix(acc, [255, 255, 255], 0.25) : [160, 170, 200];
+    const key = s.ult ? "ULT · " + s.key : s.key;
+    ctx.font = `700 9px ${FONT_D}`; const kw = ctx.measureText(key).width + 14;
+    rr(x + 8, y + 7, kw, 16, 4); ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fill();
+    txt(key, x + 8 + kw / 2, y + 15.5, 9, rgba(ready ? acc : [190, 195, 210], ready ? 1 : 0.75), "center");
+    const ng = ctx.createLinearGradient(0, y + 24, 0, y + 46); ng.addColorStop(0, rgba(textCol)); ng.addColorStop(1, rgba(mix(nameLo, [120, 120, 130], dim)));
+    ctx.save(); if (ready && !o.noGlow) { ctx.shadowColor = rgba(acc, 0.7); ctx.shadowBlur = 8; }
+    txt(s.name, x + 8, y + 35, 15, ng); ctx.restore();
+    if (ready) { const rin = o.readyIn == null ? 1 : o.readyIn, hi = s.ult ? [255, 242, 180] : [205, 255, 215], lo = s.ult ? GOLD : GREEN;
+      ctx.save(); ctx.globalAlpha = rin; const gg = ctx.createLinearGradient(0, y + 8, 0, y + 20); gg.addColorStop(0, rgba(hi)); gg.addColorStop(1, rgba(lo));
+      if (!o.noGlow) { ctx.shadowColor = rgba(lo, 0.8); ctx.shadowBlur = 8; }
+      txt(s.ult ? "READY!" : "READY", x + TW - 8 + 14 * (1 - rin), y + 14, 11, gg, "right"); ctx.restore();
+    } else txt(s.ult ? Math.floor(fill * 100) + "%" : s.cd.toFixed(s.cd < 10 ? 1 : 0) + "s", x + TW - 8, y + 14, 14, "rgba(190,205,255,0.95)", "right");
+    const sx = x + 8, sy = y + TH - 13, sw = TW - 16;
+    rr(sx, sy, sw, 7, 3.5); ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fill();
+    ctx.save(); rr(sx, sy, sw, 7, 3.5); ctx.clip();
+    ctx.fillStyle = "rgb(90,230,115)"; ctx.fillRect(sx, sy, sw * 0.18, 3);
+    const lc = o.lineCol || (ready ? acc : [128, 153, 204]); ctx.fillStyle = rgba(lc); ctx.fillRect(sx, sy + 3, sw * clamp(fill), 4); ctx.restore();
+    if (o.lineGlow) { ctx.save(); ctx.shadowColor = rgba(lc, 0.9); ctx.shadowBlur = 8; ctx.fillStyle = rgba(lc); ctx.beginPath(); ctx.arc(sx + sw * clamp(fill), sy + 5, 2.2, 0, 7); ctx.fill(); ctx.restore(); }
+  }
+
+  // --- the five styles; each draws one filled tile ---
+  const S = {};
+  S.A = (s, x, y, ready, fill, acc) => {
+    const warm = ready ? 1 : Math.pow(fill, 1.7), burn = ready ? 0 : 1 - warm, pulse = 0.5 + 0.5 * Math.sin(T * 3.2 + s.ph), tu = s.use;
+    const rc = mix(acc, [66, 58, 56], burn * 0.9), k = ready ? 0.34 + 0.07 * pulse : 0.04 + 0.3 * warm;
+    body(x, y, TW, TH, rc, k, ready ? 1 + 0.5 * pulse : 0.3 * warm + 0.1);
+    if (ready) { rim(x, y, TW, TH, acc, 0.75 + 0.25 * pulse, 12 + 8 * pulse); if (Math.random() < (s.ult ? 0.4 : 0.18)) spark(x + 10 + Math.random() * (TW - 20), y + 2, (Math.random() - 0.5) * 14, -26 - Math.random() * 22, 0.9, mix(acc, [255, 240, 200], 0.4), 1.4 + Math.random()); if (s.ready < 0.28) rim(x, y, TW, TH, [255, 255, 255], 1 - s.ready / 0.28, 14); }
+    else {
+      ctx.save(); rr(x, y, TW, TH, 9); ctx.clip();
+      const front = TH * clamp(tu / 0.38);
+      ctx.fillStyle = `rgba(18,11,9,${0.5 * burn})`; ctx.fillRect(x, y, TW, front);
+      const v = ctx.createRadialGradient(x + TW / 2, y + TH, 6, x + TW / 2, y + TH, TW * 0.7); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, `rgba(0,0,0,${0.45 * burn})`); ctx.fillStyle = v; ctx.fillRect(x, y, TW, TH);
+      if (tu < 0.5) { const g = ctx.createLinearGradient(0, y + front - 6, 0, y + front + 2); g.addColorStop(0, "rgba(255,140,40,0)"); g.addColorStop(0.8, `rgba(255,170,70,${1 - tu / 0.5})`); g.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = g; ctx.fillRect(x, y + front - 6, TW, 8); }
+      if (tu < 0.16) { ctx.fillStyle = `rgba(255,236,200,${0.85 * (1 - tu / 0.16)})`; ctx.fillRect(x, y, TW, TH); }
+      const reheat = clamp((fill - 0.68) / 0.32) * (0.55 + 0.45 * Math.sin(T * 7 + s.ph)), heat = Math.max(clamp(1 - tu / 1.5), reheat);
+      ctx.lineJoin = "round";
+      s.cracks.forEach(c => { ctx.beginPath(); c.forEach((p, i) => i ? ctx.lineTo(x + p[0], y + p[1]) : ctx.moveTo(x + p[0], y + p[1])); ctx.strokeStyle = `rgba(0,0,0,${0.55 * burn})`; ctx.lineWidth = 2.4; ctx.stroke();
+        if (heat > 0.05) { ctx.save(); ctx.shadowColor = `rgba(255,100,20,${heat})`; ctx.shadowBlur = 8; ctx.strokeStyle = `rgba(255,${110 + 90 * heat | 0},40,${heat * Math.max(burn, 0.35)})`; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore(); } });
+      ctx.restore();
+      rim(x, y, TW, TH, [60, 50, 48], 0.5 * burn);
+      if (tu < 1.8 && Math.random() < 0.3) spark(x + 10 + Math.random() * (TW - 20), y + 6 + Math.random() * TH * 0.6, (Math.random() - 0.5) * 8, -14 - Math.random() * 10, 1.4, [120, 116, 112], 1.6, false);
+    }
+    content(s, x, y, ready, fill, acc, { dim: burn * 0.8, lineCol: ready ? acc : mix([170, 50, 20], acc, warm), lineGlow: !ready && fill > 0.5, readyIn: ease3(clamp(s.ready / 0.3)) });
+  };
+  S.B = (s, x, y, ready, fill, acc) => {
+    const lvl = s.disp; body(x, y, TW, TH, acc, 0.1 + 0.22 * lvl, 0.4);
+    ctx.save(); rr(x, y, TW, TH, 9); ctx.clip();
+    const top = y + TH * (1 - lvl); ctx.beginPath(); ctx.moveTo(x, y + TH); for (let i = 0; i <= TW; i += 5) ctx.lineTo(x + i, top + (lvl < 0.995 ? Math.sin(i / 14 + T * 3 + s.ph) * 2.2 : 0)); ctx.lineTo(x + TW, y + TH); ctx.closePath();
+    const g = ctx.createLinearGradient(0, top, 0, y + TH); g.addColorStop(0, rgba(mix(acc, [255, 255, 255], 0.25), 0.62)); g.addColorStop(1, rgba(acc, 0.18)); ctx.fillStyle = g; ctx.fill();
+    if (lvl < 0.995 && lvl > 0.02) { ctx.strokeStyle = rgba(mix(acc, [255, 255, 255], 0.6), 0.7); ctx.lineWidth = 1.2; ctx.beginPath(); for (let i = 0; i <= TW; i += 5) { const yy = top + Math.sin(i / 14 + T * 3 + s.ph) * 2.2; i ? ctx.lineTo(x + i, yy) : ctx.moveTo(x + i, yy); } ctx.stroke();
+      for (let b = 0; b < 4; b++) { const by = y + TH - ((T * 14 + b * 23 + s.ph * 9) % (TH * lvl + 1)), bx = x + 20 + b * 36 + Math.sin(T * 2 + b) * 4; ctx.fillStyle = "rgba(255,255,255,0.35)"; ctx.beginPath(); ctx.arc(bx, by, 1.5, 0, 7); ctx.fill(); } }
+    if (ready) { const p = ((T * 0.42 + s.ph * 0.13) % 1.5) - 0.25; const sg = ctx.createLinearGradient(x + p * TW * 1.4 - 30, y, x + p * TW * 1.4 + 30, y + TH); sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(0.5, "rgba(255,255,255,0.2)"); sg.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = sg; ctx.fillRect(x, y, TW, TH);
+      if (s.ready < 0.35) { ctx.fillStyle = `rgba(255,255,255,${0.7 * (1 - s.ready / 0.35)})`; ctx.fillRect(x, y, TW, 5 + 6 * s.ready / 0.35); } }
+    ctx.restore(); rim(x, y, TW, TH, acc, ready ? 0.9 : 0.25, ready ? 8 : 0);
+    content(s, x, y, ready, fill, acc, { dim: ready ? 0 : 0.15, readyIn: ease3(clamp(s.ready / 0.3)) });
+  };
+  S.C = (s, x, y, ready, fill, acc) => {
+    const online = ready ? (s.ready < 0.5 ? (Math.floor(s.ready * 16) % 2 === 0 ? 0.35 : 1) : 1) : 0.35;
+    body(x, y, TW, TH, mix(acc, [70, 200, 190], 0.45), 0.3 * online, 0.7 * online, 0.6 + 0.4 * online);
+    content(s, x, y, ready, fill, acc, { dim: ready ? 0 : 0.45, noGlow: !ready, readyIn: ease3(clamp(s.ready / 0.3)) });
+    ctx.save(); rr(x, y, TW, TH, 9); ctx.clip();
+    const sp = ready ? 3 : 2; ctx.fillStyle = `rgba(160,255,240,${ready ? 0.05 : 0.14})`; for (let l = (T * 14) % sp; l < TH; l += sp) ctx.fillRect(x, y + l, TW, 1);
+    if (ready) { const p = (T * 0.45 + s.ph * 0.2) % 1.6; if (p < 1) { const yy = y + p * TH, g = ctx.createLinearGradient(0, yy - 7, 0, yy + 2); g.addColorStop(0, "rgba(140,255,230,0)"); g.addColorStop(1, "rgba(180,255,240,0.5)"); ctx.fillStyle = g; ctx.fillRect(x, yy - 7, TW, 9); } }
+    else if (Math.random() < 0.05) { ctx.fillStyle = "rgba(160,255,240,0.15)"; ctx.fillRect(x, y + Math.random() * TH, TW, 2); }
+    ctx.restore();
+    rim(x, y, TW, TH, [110, 235, 215], ready ? 0.7 : 0.18, ready ? 6 : 0);
+    if (s.use < 0.45) { const k = 1 - s.use / 0.45; for (let n = 0; n < 5; n++) { const sy = Math.floor(rnd(n + Math.floor(T * 22)) * (TH - 8)), sh = 5 + rnd(n + 9) * 8, off = (rnd(n + 3 + Math.floor(T * 22)) - 0.5) * 34 * k;
+      ctx.drawImage(cv, x, y + sy, TW, sh, x + off, y + sy, TW, sh); ctx.fillStyle = `rgba(255,70,110,${0.35 * k})`; ctx.fillRect(x + off + 3, y + sy, TW, 1.5); ctx.fillStyle = `rgba(70,240,255,${0.35 * k})`; ctx.fillRect(x + off - 3, y + sy + sh - 1.5, TW, 1.5); } }
+  };
+  S.D = (s, x, y, ready, fill, acc) => {
+    body(x, y, TW, TH, acc, ready ? 0.3 : 0.12, ready ? 0.9 : 0.25);
+    const L = perim(TW, TH); ctx.save(); ctx.lineCap = "round"; ctx.lineWidth = 2; rr(x + 1, y + 1, TW - 2, TH - 2, 9);
+    ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.setLineDash([]); ctx.stroke();
+    ctx.shadowColor = rgba(acc, 0.9); ctx.shadowBlur = ready ? 10 : 5; ctx.strokeStyle = rgba(acc, ready ? 0.6 : 0.85);
+    ctx.setLineDash([Math.max(0.01, L * fill), L * 2]); rr(x + 1, y + 1, TW - 2, TH - 2, 9); ctx.stroke();
+    if (ready) { const head = (T * 0.3 + s.ph * 0.17) % 1; for (let t = 0; t < 8; t++) { ctx.setLineDash([16, L * 2]); ctx.lineDashOffset = -(head * L - t * 15 + L * 2) % (L * 2); ctx.strokeStyle = rgba(mix(acc, [255, 255, 255], 0.7), 1 - t / 8); ctx.lineWidth = 3 - t * 0.25; rr(x + 1, y + 1, TW - 2, TH - 2, 9); ctx.stroke(); } }
+    ctx.restore();
+    content(s, x, y, ready, fill, acc, { dim: ready ? 0 : 0.25, noGlow: true, readyIn: ease3(clamp(s.ready / 0.3)) });
+    if (ready && s.ready < 0.3) rim(x, y, TW, TH, [255, 255, 255], 1 - s.ready / 0.3, 12);
+  };
+  S.E = (s, x, y, ready, fill, acc) => {
+    const dimk = ready ? 1 : 0.35 + 0.35 * fill, br = ready ? 0.3 + 0.05 * Math.sin(T * 1.6 + s.ph) : 0.08 + 0.2 * fill;
+    body(x, y, TW, TH, acc, br, dimk);
+    if (ready) rim(x, y, TW, TH, acc, 0.5 + 0.12 * Math.sin(T * 1.6 + s.ph), 4);
+    if (ready && s.ready < 0.8) { const p = s.ready / 0.8; ctx.save(); rr(x, y, TW, TH, 9); ctx.clip(); const g = ctx.createLinearGradient(x + p * (TW + 80) - 80, 0, x + p * (TW + 80), 0); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(1, `rgba(255,255,255,${0.22 * (1 - p)})`); ctx.fillStyle = g; ctx.fillRect(x, y, TW, TH); ctx.restore(); }
+    content(s, x, y, ready, fill, acc, { dim: ready ? 0 : 0.2, noGlow: true });
+  };
+  const rnd = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+
+  // --- plate, player card, XP strip: the new gradient everywhere ---
+  function plate(x, y, w, h, rc, k, bg) { body(x, y, w, h, rc, k, 0.5); }
+  function drawWave() {
+    const x = 12, y = H - 12 - 72, w = 229, h = 72; plate(x, y, w, h, SLATE, 0.2);
+    txt("WAVE", x + 16, y + 15, 10, "rgba(160,170,200,0.9)", "left", 700); txt("1", x + 14, y + 40, 34, "#fff", "left", 800); txt("/ 50", x + 38, y + 43, 13, "rgba(160,170,200,0.9)", "left", 700);
+    txt("ENEMIES LEFT", x + w - 16, y + 15, 10, "rgba(160,170,200,0.9)", "right", 700); txt(String(wave.left), x + w - 16, y + 33, 20, "#fff", "right", 800); txt("SCORE 72", x + w - 16, y + 51, 10, "#ffcd50", "right", 700);
+    const bx = x + 14, by = y + h - 12, bw = w - 28; rr(bx, by, bw, 5, 2.5); ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fill(); rr(bx, by, Math.max(5, bw * (1 - wave.left / wave.max)), 5, 2.5); ctx.fillStyle = "#5b8cff"; ctx.fill();
+  }
+  function drawPlayer() {
+    const w = 229, h = 72, x = W - 12 - w, y = H - 12 - h; plate(x, y, w, h, ORANGE, 0.34);
+    rr(x + 6, y + 9, 4, h - 18, 2); ctx.fillStyle = rgba(ORANGE); ctx.fill();
+    txt("Antaleon", x + 18, y + 15, 13, "#fff", "left", 700); txt("Elementalist DPS", x + 18, y + 30, 10, rgba(ORANGE), "left", 700);
+    rr(x + w - 52, y + 8, 42, 18, 4); ctx.fillStyle = "rgba(255,205,90,0.22)"; ctx.fill(); txt("LV 2", x + w - 31, y + 17, 10, "#ffcd50", "center");
+    const hx = x + 18, hy = y + 39, hw = w - 28; rr(hx, hy, hw, 12, 4); ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fill();
+    rr(hx, hy, hw, 12, 4); const g = ctx.createLinearGradient(0, hy, 0, hy + 12); g.addColorStop(0, "#7dff8f"); g.addColorStop(1, "#27b04a"); ctx.fillStyle = g; ctx.fill();
+    txt("81 / 81", hx + hw / 2, hy + 6.5, 10, "#fff", "center"); rr(hx, y + 55, hw * 0.4, 4, 2); ctx.fillStyle = "#ffd24d"; ctx.fill();
+  }
+  function drawXp() {
+    const w = 5 * TW + 4 * GAP, y = TY - 22; rr(X0, y, 52, 16, 5); ctx.fillStyle = "rgba(255,205,90,0.25)"; ctx.fill(); txt("LV 2", X0 + 26, y + 8.5, 10, "#ffcd50", "center");
+    rr(X0 + 58, y + 5, w - 58, 6, 3); ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fill(); rr(X0 + 58, y + 5, (w - 58) * 0.46, 6, 3); ctx.fillStyle = "#ffd24d"; ctx.fill();
+  }
+
+  // --- tiles ---
+  function tile(i) {
+    const s = slots[i], x = X0 + i * (TW + GAP), y = TY;
+    if (s.empty) { body(x, y, TW, TH, SLATE, 0.12, 0.2, 0.7); txt(s.key, x + 8 + 22, y + 15.5, 9, "rgba(255,255,255,0.45)", "center"); txt("Empty", x + 8, y + 34, 12, "rgba(255,255,255,0.45)"); txt("from a very rare upgrade", x + 8, y + 48, 9, "rgba(255,255,255,0.35)", "left", 500, FONT_B); return; }
+    const ready = s.cd <= 0, fill = ready ? 1 : 1 - s.cd / s.cdMax, acc = s.ult ? GOLD : ORANGE;
+    let sc = 1; if (cur !== "E" && !reduce) { const rl = s.ult ? 0.4 : 0.3; if (s.ready < rl) sc = 1 + (s.ult ? 0.12 : 0.08) * Math.sin(Math.PI * ease3(s.ready / rl)); if (s.use < 0.2) { const k = s.use / 0.2; sc = k < 0.35 ? 1 - 0.07 * k / 0.35 : 1 - 0.07 * (1 - (1 + 2.7 * Math.pow(k * 1.54 - 0.54 - 1, 3) + 1.7 * Math.pow(k * 1.54 - 0.54 - 1, 2))); } }
+    ctx.save(); ctx.translate(x + TW / 2, y + TH / 2); ctx.scale(sc, sc); ctx.translate(-(x + TW / 2), -(y + TH / 2));
+    S[cur](s, x, y, ready, fill, acc); ctx.restore();
+  }
+
+  // --- loop ---
+  function useSlot(i) { const s = slots[i]; if (s.empty || s.cd > 0) return; s.cd = s.cdMax; s.use = 0; s.disp = 1; s.auto = 1.5 + Math.random() * 2.2;
+    const x = X0 + i * (TW + GAP), acc = s.ult ? GOLD : ORANGE;
+    if (cur === "A") { for (let n = 0; n < 16; n++) spark(x + Math.random() * TW, y0() + Math.random() * 12, (Math.random() - 0.5) * 40, -12 - Math.random() * 20, 1.8, n % 3 ? [120, 116, 112] : [255, 160, 70], 1.5 + Math.random() * 1.5, n % 3 === 0, -6); }
+    if (cur === "D") for (let n = 0; n < 10; n++) spark(x + 20, y0() + 15, (Math.random() - 0.5) * 70, (Math.random() - 0.5) * 70, 0.5, acc, 1.6); }
+  const y0 = () => TY;
+  function readyFx(i) { const s = slots[i], x = X0 + i * (TW + GAP), acc = s.ult ? GOLD : ORANGE; s.ready = 0;
+    if (cur === "A" || cur === "D") for (let n = 0; n < 12; n++) spark(x + Math.random() * TW, TY + TH * Math.random(), (Math.random() - 0.5) * 60, -20 - Math.random() * 30, 0.7, mix(acc, [255, 255, 255], 0.5), 1.8); }
+  function step(dt) {
+    T += dt; wave.t += dt; if (wave.t > 2.2) { wave.t = 0; wave.left = wave.left > 0 ? wave.left - 1 : wave.max; }
+    slots.forEach((s, i) => { if (s.empty) return; s.ready += dt; s.use += dt;
+      if (s.cd > 0) { s.cd -= dt; if (s.cd <= 0) { s.cd = 0; readyFx(i); } }
+      const f = s.cd > 0 ? 1 - s.cd / s.cdMax : 1; s.disp += (f - s.disp) * Math.min(1, dt * (s.disp > f ? 14 : 8)); if (s.cd === 0 && s.disp > 0.99) s.disp = 1;
+      if (auto && s.cd === 0 && s.ready > 1) { s.auto -= dt; if (s.auto <= 0) useSlot(i); } });
+    parts = parts.filter(p => (p.life += dt) < p.max); parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; });
+  }
+  function drawParts() { ctx.save(); parts.forEach(p => { const k = p.life / p.max; ctx.globalCompositeOperation = p.add ? "lighter" : "source-over"; ctx.fillStyle = rgba(p.col, (1 - k) * (p.add ? 0.9 : 0.6)); ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (p.add ? 1 - 0.4 * k : 1 + k * 0.6), 0, 7); ctx.fill(); }); ctx.restore(); }
+  function frame() { ctx.clearRect(0, 0, W, H); const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#080a12"); g.addColorStop(1, "#0d1020"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    drawWave(); drawXp(); for (let i = 0; i < 5; i++) tile(i); drawPlayer(); drawParts(); }
+  let last = performance.now();
+  function loop(now) { const dt = Math.min(0.05, (now - last) / 1000) * (slow ? 0.3 : 1); last = now; step(dt); frame(); requestAnimationFrame(loop); }
+  window.__hudStep = (n, dt = 0.05) => { for (let i = 0; i < n; i++) step(dt); frame(); };
+
+  // --- controls ---
+  const seg = document.getElementById("styles"), cards = document.getElementById("cards");
+  function setStyle(id) { cur = id; parts = []; [...seg.children].forEach(b => b.classList.toggle("on", b.dataset.id === id)); [...cards.children].forEach(b => b.classList.toggle("on", b.dataset.id === id)); }
+  STYLES.forEach(st => {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.id = st.id; b.textContent = st.id + " · " + st.n; b.onclick = () => setStyle(st.id); seg.appendChild(b);
+    const c = document.createElement("button"); c.type = "button"; c.className = "card"; c.dataset.id = st.id; c.style.setProperty("--c", st.c);
+    c.innerHTML = `<span class="hd"><b class="n">${st.id} · ${st.n}</b><span class="tag">${st.tag}</span></span><p class="sum">${st.sum}</p><dl>${st.dl.map(r => `<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl>`;
+    c.onclick = () => { setStyle(st.id); window.scrollTo({ top: 0, behavior: "smooth" }); }; cards.appendChild(c);
+  });
+  document.getElementById("useAll").onclick = () => slots.forEach((s, i) => useSlot(i));
+  document.getElementById("auto").onchange = e => auto = e.target.checked;
+  document.getElementById("slow").onchange = e => slow = e.target.checked;
+  cv.addEventListener("click", e => { const r = cv.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width, py = (e.clientY - r.top) * H / r.height;
+    if (py >= TY && py <= TY + TH) { const i = Math.floor((px - X0) / (TW + GAP)); if (i >= 0 && i < 5 && px - X0 - i * (TW + GAP) <= TW) useSlot(i); } });
+  cv.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); slots.forEach((s, i) => useSlot(i)); } });
+  setStyle("A"); requestAnimationFrame(t => { last = t; loop(t); });
+})();
+</script>

@@ -22,7 +22,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, meterThumb, check, hud, hudLit, hudRim, pill, rim;
+        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, meterThumb, check, hud, hudGrad, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
@@ -41,6 +41,8 @@ namespace Arena
 
             // In-match HUD: translucent so the arena shows through, with a lighter rim.
             hud = Style(Rounded(9, new Color(0.08f, 0.09f, 0.14f, 0.88f), new Color(0.04f, 0.05f, 0.08f, 0.88f), new Color(1f, 1f, 1f, 0.14f), 1.5f), 9);
+            // The upgrade cards' shading for HUD panels: white at the top and dark at the bottom, tinted by backgroundColor (HudPanel).
+            hudGrad = Style(Rounded(9, new Color(1f, 1f, 1f, 1f), new Color(0.14f, 0.15f, 0.2f, 1f), new Color(1f, 1f, 1f, 0.2f), 1.5f), 9);
             hudLit = Style(Rounded(9, new Color(1f, 1f, 1f, 0.9f), new Color(0.85f, 0.85f, 0.9f, 0.9f), new Color(1f, 1f, 1f, 1f), 2f), 9);
             hudRim = Style(Rounded(9, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 9);
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
@@ -703,13 +705,18 @@ namespace Arena
         public static void HudPanel(Rect r, Color? accent = null)
         {
             GUI.Box(r, GUIContent.none, hud);
+            // Shaded like the picker cards (CardArt.Body): a rich top fading to near-black, in the accent's colour (a cool slate when plain).
+            var rc = accent.HasValue ? new Color(accent.Value.r, accent.Value.g, accent.Value.b) : new Color(0.42f, 0.5f, 0.78f);
+            float k = accent.HasValue ? 0.34f : 0.2f, a = accent.HasValue ? Mathf.Clamp01(accent.Value.a) : 1f;
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.085f + rc.r * k, 0.095f + rc.g * k, 0.14f + rc.b * k, 0.95f);
+            GUI.Box(r, GUIContent.none, hudGrad);
             if (accent.HasValue)
             {
-                var old = GUI.backgroundColor;
-                GUI.backgroundColor = new Color(accent.Value.r, accent.Value.g, accent.Value.b, 0.22f * accent.Value.a);
-                GUI.Box(r, GUIContent.none, hudLit);
-                GUI.backgroundColor = old;
+                GUI.backgroundColor = new Color(rc.r, rc.g, rc.b, 0.1f * a);
+                GUI.Box(r, GUIContent.none, hudLit);  // the lit rim, a lighter wash than before: the gradient carries the colour now
             }
+            GUI.backgroundColor = old;
         }
 
         /// Just a HUD panel's rim, in a colour (an ability tile flashing; HudTiles.cs).
