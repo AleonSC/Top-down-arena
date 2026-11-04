@@ -22,8 +22,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
 ## Visuals
-- [ ] **Healer Soldier Mend Pulse animations.** Mockup ready, pick a look: [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html)
-      (A today, B Heartbeat, C Verdant Bloom, D Cross Pulse). Drawing only, no protocol bump.
+- [x] **Healer Soldier Mend Pulse animations.** Built (Nov 2026): look B, Heartbeat (`Game/MendPulseLook.cs`, no protocol bump), from
+      [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html) (https://claude.ai/artifact/4RHDSKaLNNGErr8MhprTWx). Left out: the capstone's bullet
+      pops (bullets are erased host-side with no event the client sees).
 - [x] **Tank Soldier Barrier animations.** Built (Nov 2026): look C, Bulwark Plates (`Game/BarrierLook.cs`, no protocol bump). Reflect tint left out (host-only flag). Mockup: [`Mockups/barrier-animations.html`](Mockups/barrier-animations.html)
       (https://claude.ai/artifact/CpWoeYAWoSirm4mkf7XHx4): A today, B Force Field (hex dome), C Bulwark Plates (8 plates,
       one knocked off per boss hit), D Soap Bubble. Drawing only; a reflect-specific tint would need `BarrierReflect`

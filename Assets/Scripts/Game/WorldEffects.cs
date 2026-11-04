@@ -33,6 +33,11 @@ namespace Arena
                     Arc(fx.Pos, Mathf.Max(1f, fx.Radius * f), 2f, fx.Color.WithAlpha(1f - f), 12);
                     break;
                 case FxKind.Ring:
+                    if (IsMendPulse(fx))
+                    {
+                        DrawMendPulseFx(fx, f);  // MendPulseLook.cs
+                        break;
+                    }
                     Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
                     break;
                 case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
