@@ -1,0 +1,230 @@
+<title>Upgrade Card Layout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: 1280x720 game screens scaled to the page width. Dark on purpose: these mock the game's own screen. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12; --ink: #e9edf8; --muted: #9ea9c4; --panel: #151a26; --line: rgba(255,255,255,0.08);
+  --gold: #ffcc59; --common: #d9d9e6; --uncommon: #59e666; --rare: #5999ff; --vrare: #cc66ff; --legend: #ff9926;
+  --good: #7dff8f;
+  --font: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 72ch; line-height: 1.5; }
+.option { display: grid; gap: 14px; min-width: 0; }
+.option h2 { margin: 0; font-size: 20px; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 90ch; }
+.screen-box { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 45%, rgba(40,52,90,0.35), transparent 60%), linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px, #0b0d14; }
+.screen::after { content: ""; position: absolute; inset: 0; background: rgba(4,6,12,0.55); pointer-events: none; }
+.screen > * { position: absolute; z-index: 1; }
+.fancy { position: relative; font-weight: 900; color: transparent; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c, #9cc0ff) 45%, transparent)) drop-shadow(0 2px 0 rgba(0,0,0,.6)); white-space: nowrap; }
+.fancy::before, .fancy::after { content: attr(data-text); position: absolute; inset: 0; }
+.fancy::before { color: #0b1020; -webkit-text-stroke: 5px #0b1020; }
+.fancy::after { background: linear-gradient(#fff 35%, var(--c, #9cc0ff)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.chip { display: inline-flex; font-size: 11px; font-weight: 800; letter-spacing: .08em; border-radius: 5px; padding: 4px 11px; color: #0b1020; }
+.key { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 22px; border-radius: 5px; background: #2a3146; box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); font-size: 12px; font-weight: 800; color: #c9d0e2; }
+canvas.px { image-rendering: pixelated; display: block; }
+.fbtn { display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 22px 0 8px; border-radius: 10px; font-size: 19px; font-weight: 800; color: #fff; background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 rgba(0,0,0,.35); }
+.fbtn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,.18); display: grid; place-items: center; }
+.fbtn small { font-size: 13px; opacity: .75; }
+.fbtn.gray { --b1: #4a5470; --b2: #343c54; }
+.fbtn.blue { --b1: #5a97ff; --b2: #3a6fe0; }
+
+/* The new card. --rc is the rarity colour. */
+.cards { display: grid; gap: 30px; } .cards > * { min-width: 0; } .cards.small .name { font-size: 20px; } .cards.small .desc { font-size: 13px; }
+.card { --rc: var(--common); position: relative; top: 0; border-radius: 14px; padding: 18px 16px 16px; box-sizing: border-box; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+  background: linear-gradient(color-mix(in srgb, var(--rc) 9%, #151a26), #121722 70%);
+  border: 1px solid color-mix(in srgb, var(--rc) 40%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--rc) 22%, transparent), 0 6px 18px rgba(0,0,0,.4);
+  transition: top .2s; }
+.card.picked { top: -12px; border: 2px solid var(--rc); background: linear-gradient(color-mix(in srgb, var(--rc) 20%, #151a26), #121722 75%);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--rc) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--rc) 60%, transparent), 0 10px 24px rgba(0,0,0,.45); }
+.card.back { filter: brightness(.7); }
+.card.uncommon { --rc: var(--uncommon); } .card.rare { --rc: var(--rare); } .card.vrare { --rc: var(--vrare); } .card.legend { --rc: var(--legend); }
+.card .rar { background: var(--rc); }
+.tile { width: 104px; height: 104px; border-radius: 14px; display: grid; place-items: center; flex: none;
+  background: color-mix(in srgb, var(--rc) 15%, #0c101a); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 45%, transparent), inset 0 0 18px color-mix(in srgb, var(--rc) 20%, transparent); }
+.card .name { --c: #c7d4f0; font-size: 25px; } .card.picked .name { --c: var(--rc); }
+.card .desc { font-size: 15px; line-height: 1.4; color: #c9d0e2; max-width: 240px; } .card.picked .desc { color: #fff; }
+.grow { flex: 1; }
+.pips { display: flex; gap: 8px; }
+.pip { width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; border: 2px solid rgba(255,255,255,.22); background: #0c101a; }
+.pip.on { background: var(--rc); border-color: var(--rc); box-shadow: 0 0 8px color-mix(in srgb, var(--rc) 70%, transparent); }
+.pip.next { border-color: var(--rc); box-shadow: 0 0 0 2px color-mix(in srgb, var(--rc) 35%, transparent); background: color-mix(in srgb, var(--rc) 25%, #0c101a); }
+.change { height: 18px; font-size: 14px; font-weight: 800; color: var(--good); text-shadow: 0 1px 0 #000; white-space: nowrap; }
+.change small { color: #7c8aa8; font-weight: 700; font-size: inherit; }
+/* No pips on this card: the change line sits on the card itself. */
+.overlay { position: absolute; left: 10px; right: 10px; bottom: 44px; padding: 7px 6px; line-height: 1.35; border-radius: 8px; font-size: 14px; font-weight: 800; color: var(--good);
+  background: rgba(8,12,20,.82); box-shadow: inset 0 0 0 1px rgba(125,255,143,.35); }
+.overlay small { color: #7c8aa8; font-weight: 700; font-size: inherit; }
+.bar { position: absolute; left: 14px; right: 14px; bottom: 6px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--rc), transparent); opacity: .5; }
+.card.picked .bar { opacity: 1; height: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .bobber { animation: bob 3.4s ease-in-out infinite; animation-delay: var(--d, 0s); }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+}
+
+/* Button row mockups */
+.brow { display: grid; gap: 22px; }
+.variant { display: grid; gap: 10px; }
+.variant h3 { margin: 0; font-size: 16px; } .variant h3 span { color: var(--gold); font-size: 12px; letter-spacing: .12em; margin-right: 8px; }
+.states { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 540px), 1fr)); gap: 14px; }
+.state { background: #0b0d14; border-radius: 10px; box-shadow: 0 0 0 1px var(--line); padding: 14px 16px 16px; display: grid; gap: 10px; min-width: 0; }
+.state .cap { font-size: 11px; letter-spacing: .1em; font-weight: 800; color: var(--muted); }
+.row { display: flex; gap: 14px; flex-wrap: wrap; }
+.btn { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 18px 0 8px; border-radius: 10px; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; font-size: 16px; text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 rgba(0,0,0,.35); cursor: pointer; border: 0; font-family: var(--font); white-space: nowrap; }
+.btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.btn.gray { --b1: #4a5470; --b2: #343c54; } .btn.blue { --b1: #5a97ff; --b2: #3a6fe0; } .btn.amber { --b1: #f0b43c; --b2: #c07f12; color: #1a1204; text-shadow: none; }
+.btn.gray, .btn.amber, .btn.off { min-width: 300px; }
+.btn.off { --b1: #2c3248; --b2: #232839; color: rgba(255,255,255,.35); cursor: default; box-shadow: none; }
+.btn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,.18); display: grid; place-items: center; flex: none; }
+.btn.amber .ichip { background: rgba(0,0,0,.18); }
+.btn .count { min-width: 26px; height: 26px; border-radius: 13px; padding: 0 8px; box-sizing: border-box; display: grid; place-items: center; background: rgba(0,0,0,.32); font-size: 14px; letter-spacing: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.btn .kc { height: 22px; min-width: 22px; border-radius: 5px; display: grid; place-items: center; background: rgba(0,0,0,.3); font-size: 12px; letter-spacing: 0; box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); }
+.btn .stack { display: grid; line-height: 1.1; text-align: left; } .btn .stack small { font-size: 11px; letter-spacing: .12em; opacity: .75; }
+.btn .drain { position: absolute; left: 0; bottom: 0; height: 4px; background: rgba(26,18,4,.55); width: 100%; transform-origin: left; }
+@media (prefers-reduced-motion: no-preference) { .btn .drain { animation: drain 3s linear infinite; } @keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } } }
+.live { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Upgrade Card Layout</h1>
+    <p>The level-up cards redrawn like the milestone perk cards: rarity chip centered on top, the icon in a cutout tile, then name and text. Cards with a stack cap get circles that fill with how many you hold. Each card glows in its rarity colour and bobs slowly. The "THIS PICK" line moves off the bottom of the screen and onto the picked card. Same offer as your screenshot (level 2, Soldier DPS).</p>
+  </header>
+
+  <section class="option">
+    <h2>A. Picked card has a cap (Thick Skin)</h2>
+    <div class="screen-box"><div class="screen" id="A"></div></div>
+    <ul class="notes">
+      <li>Reinforced Guard (cap 4, you hold 2) and Thick Skin (cap 3, you hold 1) show circles: filled for what you hold, a ringed circle for the one this pick would add.</li>
+      <li>The change line takes the circles' place under them, only on the picked card: "Damage taken 100% → 90%".</li>
+      <li>Focus has no cap, so it shows no circles.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>B. Picked card has no cap (Focus)</h2>
+    <div class="screen-box"><div class="screen" id="B"></div></div>
+    <ul class="notes">
+      <li>With no circles to hold the line, "THIS PICK" is an overlay strip at the bottom of the picked card.</li>
+      <li>Unpicked capped cards keep their circles but not the change line. The old line under the cards is gone, so the buttons move up.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>C. Glow by rarity</h2>
+    <div class="screen-box"><div class="screen" id="C"></div></div>
+    <ul class="notes">
+      <li>Common whitish, Uncommon green, Rare blue, Very Rare purple, Legendary orange (the game's existing rarity colours). The glow is soft on idle cards and about twice as strong on the picked one.</li>
+      <li>Bob: 5 px up and down over 3.4 s, each card offset so they don't move together. Skipped when reduced motion is on. The picked card also lifts 12 px.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>D. Buttons under the cards</h2>
+    <div class="brow" id="D"></div>
+    <ul class="notes">
+      <li>The hint line under the buttons is gone. Both labels are uppercase with a little letter spacing; "Pick a card" becomes CHOOSE UPGRADE.</li>
+      <li>Reroll needs two clicks. The first click arms it: the button turns amber, reads CLICK AGAIN TO REROLL and a bar along the bottom drains over 3 seconds. A second click inside that time rerolls. If the bar runs out, or you pick a card, it goes back to normal.</li>
+      <li>Three looks for the idle Reroll label. Each row's buttons below are live: click Reroll to try the confirm.</li>
+      <li>The R key would follow the same rule: first press arms, second press rerolls. When you have no rerolls left the button is greyed and can't be armed.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal": {".": null, "k": "#14141e", "w": "#ffffff", "g": "#bec6d7", "G": "#6e768a", "y": "#ffd750", "Y": "#e18c28", "o": "#ff8c28", "r": "#f04040", "R": "#961e28", "p": "#ff80b4", "b": "#5a96ff", "B": "#284bb4", "c": "#8ce6ff", "n": "#64e664", "N": "#288c41", "v": "#b473ff", "V": "#6432a5", "m": "#9b6441", "M": "#5a371e"}, "icons": {"shield": [".kkkkkkkkkk.", ".kggggggggk.", ".kgwwggggGk.", ".kgwggggGGk.", ".kgggggGGGk.", ".kggggGGGGk.", "..kgggGGGk..", "..kgggGGGk..", "...kggGGk...", "....kgGk....", ".....kk.....", "............"], "regen2": [".n.......n..", "nnnkk..kknnn", ".nrrrkkrrrn.", "krrrrwwrrrrk", "krrrrwwrrrrk", "krrwwwwwwrrk", ".krwwwwwwrk.", "..krrwwrrk..", "...krwwrk.n.", "....krrk.nnn", ".....kk...n.", "............"], "dash": ["............", "......kkkk..", "..cc..kbbk..", "......kbwk..", ".ccc..kbbk..", "......kbbk..", "..cc..kbbkkk", "......kbbbbk", ".ccc.kbbbbbk", ".....kBBBBBk", ".....kkkkkkk", "............"], "ui_check": ["............", "..........ww", ".........www", "........www.", ".......www..", "ww....www...", "www..www....", ".wwwwww.....", "..wwww......", "...ww.......", "............", "............"], "ui_arrow": ["............", "............", "......w.....", "......ww....", "......www...", ".wwwwwwwww..", ".wwwwwwwww..", "......www...", "......ww....", "......w.....", "............", "............"], "ui_star": ["............", ".....ww.....", ".....ww.....", "....wwww....", "wwwwwwwwwwww", ".wwwwwwwwww.", "..wwwwwwww..", "..wwwwwwww..", ".wwww..wwww.", ".www....www.", ".ww......ww.", "............"], "role_dps": ["..........kk", ".........kwk", "........kwgk", ".......kwgk.", "......kwgk..", ".....kwgk...", "..k..kgk....", "..kkkgk.....", "...kok......", "..kok.kk....", ".kok........", "kk.........."], "multishot": [".....kk.....", "....kyyk....", ".kk.kywk.kk.", "kyykkyykkyyk", "kywkkYYkkywk", "kyykkggkkyyk", "kYYkkgwkkYYk", "kggkkggkkggk", "kgwkkGGkkgwk", "kggkkkkkkggk", "kGGk....kGGk", "kkkk....kkkk"], "hollow": ["...kkkkkk...", "...kokkok...", "...kooook...", "...kYYYYk...", "...kggggk...", "...kgwggk...", "...kgwggk...", "...kgwggk...", "...kggggk...", "...kggggk...", "...kGGGGk...", "...kkkkkk..."], "blink": [".v.......v..", "..v..vv..v..", ".....vv.....", "..kkk..v..v.", ".kvvvk......", "kvvwvvk.vv..", "kvvvvvk.vv..", ".kvvvk......", "..kkk...v...", ".v.....v..v.", "....v.......", "..v...v...v."], "ui_play": ["............", "..ww........", "..www.......", "..wwww......", "..wwwww.....", "..wwwwww....", "..wwwwww....", "..wwwww.....", "..wwww......", "..www.......", "..ww........", "............"]}};
+ICONS.icons.hourglass = ["kkkkkkkkkkk","kgggggggggk",".kyyyyyyyk.",".kyyyyyyyk.","..kyyyyyk..","...kyyyk...","....kyk....","....kyk....","...kyyyk...","..kyyyyyk..",".kyyyyyyyk.",".kyyyyyyyk.","kgggggggggk","kkkkkkkkkkk"];
+function iconCanvas(name, scale, grey) {
+  const g = ICONS.icons[name], h = g.length, w = g[0].length, c = document.createElement("canvas");
+  c.width = w; c.height = h; c.className = "px"; c.style.width = (w * scale) + "px"; c.style.height = (h * scale) + "px";
+  if (grey) c.style.filter = "grayscale(1) brightness(1.05)";
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+const RN = { common: "COMMON", uncommon: "UNCOMMON", rare: "RARE", vrare: "VERY RARE", legend: "LEGENDARY" };
+
+function card(c, state) { // state: "picked" | "back" | ""
+  const pips = c.max ? `<div class="pips">${Array.from({ length: c.max }, (_, i) => `<span class="pip ${i < c.have ? "on" : (state === "picked" && i === c.have ? "next" : "")}"></span>`).join("")}</div>
+    <div class="change">${state === "picked" ? `<small>${c.stat}</small> ${c.from} → ${c.to}` : ""}</div>` : "";
+  const overlay = !c.max && state === "picked" ? `<div class="overlay"><div style="font-size:10px;letter-spacing:.12em;color:#9ea9c4">THIS PICK</div><div><small>${c.stat}</small> ${c.from} → ${c.to}</div></div>` : "";
+  const node = el(`<div class="bobber" style="--d:${c.delay || 0}s"><div class="card ${c.r} ${state}" style="height:${c.h || 400}px">
+    <span class="chip rar">${RN[c.r]}</span>
+    <div class="tile"></div>
+    <div class="fancy name" data-text="${c.name}">${c.name}</div>
+    <div class="desc">${c.desc}</div>
+    <div class="grow"></div>${pips}
+    <span class="key">${c.key}</span>${overlay}<div class="bar"></div></div></div>`);
+  node.querySelector(".tile").appendChild(iconCanvas(c.icon, 6, c.grey));
+  return node;
+}
+const OFFER = [
+  { name: "Reinforced Guard", r: "common", icon: "shield", desc: "Your parry shield takes 25% more before it breaks", max: 4, have: 2, stat: "Parry durability", from: 150, to: 187, key: 1, delay: 0 },
+  { name: "Thick Skin", r: "uncommon", icon: "shield", grey: true, desc: "Take 10% less damage", max: 3, have: 1, stat: "Damage taken", from: "90%", to: "81%", key: 2, delay: -1.1 },
+  { name: "Focus", r: "common", icon: "hourglass", desc: "-6% ability cooldowns", stat: "Ability cooldowns", from: "100%", to: "94%", key: 3, delay: -2.2 },
+];
+function frame(id, cardsLeft, cardsTop, cardW, cardsArr, pickedIdx, opts = {}) {
+  const s = document.getElementById(id);
+  s.appendChild(el(`<div style="left:0; right:0; top:34px; display:flex; flex-direction:column; align-items:center;"><div class="fancy" data-text="LEVEL UP!" style="--c:#ffd36b; font-size:58px; letter-spacing:.04em;">LEVEL UP!</div><div style="color:#9ea9c4; font-size:15px; font-weight:700; letter-spacing:.1em; margin-top:2px;">LEVEL 2 · PICK ONE</div></div>`));
+  const host = el(`<div class="cards ${cardW < 250 ? "small" : ""}" style="left:${cardsLeft}px; top:${cardsTop}px; width:${cardsArr.length * cardW + (cardsArr.length - 1) * 30}px; grid-template-columns:repeat(${cardsArr.length}, minmax(0, 1fr));"></div>`);
+  cardsArr.forEach((c, i) => host.appendChild(card(c, pickedIdx === i ? "picked" : (pickedIdx >= 0 ? "back" : ""))));
+  s.appendChild(host);
+  if (opts.buttons !== false) s.appendChild(el(`<div style="left:0; right:0; top:${opts.btnTop || 570}px; display:flex; justify-content:center; gap:18px;">
+    <div class="fbtn gray" style="width:230px;"><span class="ichip" data-icon="ui_arrow"></span>Reroll <small>2 · [R]</small></div>
+    <div class="fbtn blue" style="width:290px;"><span class="ichip" data-icon="ui_check"></span>Pick a card</div></div>`));
+  if (opts.buttons !== false) s.appendChild(el(`<div style="left:0; right:0; top:${(opts.btnTop || 570) + 62}px; text-align:center; color:rgba(255,255,255,.45); font-size:12px;">1 / 2 / 3 or click a card, Enter to take it · Rerolls: 2 to start, +2 a boss · Hold Tab for your build</div>`));
+  s.querySelectorAll("[data-icon]").forEach(n => n.appendChild(iconCanvas(n.dataset.icon, 2)));
+}
+frame("A", 190, 150, 280, OFFER, 1);
+frame("B", 190, 150, 280, OFFER, 2);
+// C: all rarities, nothing picked except a legendary
+const ALL = [
+  { name: "Sharpened Rounds", r: "common", icon: "multishot", desc: "+10% damage", key: 1, delay: 0, h: 300 },
+  { name: "Regeneration", r: "uncommon", icon: "regen2", desc: "Regenerate 3 HP per second", key: 2, delay: -.7, h: 300 },
+  { name: "Phase Step", r: "rare", icon: "dash", desc: "Dash invulnerability lasts 0.25 s longer", key: 3, delay: -1.4, h: 300 },
+  { name: "Hollow Points", r: "vrare", icon: "hollow", desc: "Shots pierce one more enemy", key: 4, delay: -2.1, h: 300 },
+  { name: "Blink Master", r: "legend", icon: "blink", desc: "Dash teleports you instead", key: 5, delay: -2.8, h: 300 },
+];
+frame("C", 70, 190, 200, ALL.map(c => ({ ...c })), -1, { buttons: false });
+
+const BTN_VARIANTS = [
+  { id: "V1", tag: "A", name: "Count badge and key", idle: n => `<span class="ichip" data-icon="ui_arrow"></span>Reroll<span class="count">${n}</span><span class="kc">R</span>` },
+  { id: "V2", tag: "B", name: "Stacked, rerolls left underneath", idle: n => `<span class="ichip" data-icon="ui_arrow"></span><span class="stack">Reroll<small>${n} LEFT · R</small></span>` },
+  { id: "V3", tag: "C", name: "Plain label, count on the right", idle: n => `<span class="ichip" data-icon="ui_arrow"></span>Reroll<span style="margin-left:auto;padding-left:16px;font-size:13px;opacity:.8;letter-spacing:.06em">×${n}</span>` },
+];
+const ARMED = `<span class="ichip" data-icon="ui_arrow"></span>Click again to reroll<span class="drain"></span>`;
+const CHOOSE = `<span class="ichip" data-icon="ui_check"></span>Choose upgrade`;
+function iconFill(root) { root.querySelectorAll("[data-icon]").forEach(n => { if (!n.firstChild) n.appendChild(iconCanvas(n.dataset.icon, 2)); }); }
+(function () {
+  const host = document.getElementById("D");
+  for (const v of BTN_VARIANTS) {
+    const box = el(`<div class="variant"><h3><span>OPTION ${v.tag}</span>${v.name}</h3><div class="states">
+      <div class="state"><div class="cap">IDLE</div><div class="row"><button class="btn gray" type="button">${v.idle(2)}</button><button class="btn blue" type="button">${CHOOSE}</button></div></div>
+      <div class="state"><div class="cap">ARMED (AFTER FIRST CLICK)</div><div class="row"><button class="btn amber" type="button">${ARMED}</button><button class="btn blue" type="button">${CHOOSE}</button></div></div>
+      <div class="state"><div class="cap">NO REROLLS LEFT</div><div class="row"><button class="btn off" type="button">${v.idle(0)}</button><button class="btn blue" type="button">${CHOOSE}</button></div></div>
+      <div class="state"><div class="cap">TRY IT</div><div class="row"><button class="btn gray live-reroll" type="button">${v.idle(2)}</button><button class="btn blue" type="button">${CHOOSE}</button></div><div class="live">Click Reroll twice.</div></div>
+    </div></div>`);
+    host.appendChild(box); iconFill(box);
+    const b = box.querySelector(".live-reroll"), note = box.querySelector(".live"); let left = 2, t = null;
+    const idle = () => { b.className = "btn gray live-reroll"; b.innerHTML = v.idle(left); iconFill(b); };
+    b.addEventListener("click", () => {
+      if (left === 0) return;
+      if (t) { clearTimeout(t); t = null; left--; note.textContent = left ? "Rerolled. " + left + " left." : "Rerolled. None left."; if (!left) b.className = "btn off live-reroll"; b.innerHTML = v.idle(left); iconFill(b); return; }
+      b.className = "btn amber live-reroll"; b.innerHTML = ARMED; iconFill(b); note.textContent = "Armed. Click again within 3 s.";
+      t = setTimeout(() => { t = null; idle(); note.textContent = "Timed out, nothing rerolled."; }, 3000);
+    });
+  }
+})();
+// scale screens
+function fit() { document.querySelectorAll(".screen-box").forEach(b => { b.firstElementChild.style.transform = `scale(${b.clientWidth / 1280})`; }); }
+addEventListener("resize", fit); fit();
+</script>

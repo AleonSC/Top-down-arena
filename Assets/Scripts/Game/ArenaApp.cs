@@ -388,7 +388,7 @@ namespace Arena
                         pickKey = 0;
                     }
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
-                else if (Keybinds.Down(KeyAction.Reroll) && !RerollLocked) game.RerollOffer();
+                else if (Keybinds.Down(KeyAction.Reroll)) RerollPress();  // (a second press within a moment rerolls)
             }
             // Standing on your chest item: G takes it, X throws it away (Props.cs).
             if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.MyLootInReach != null)
@@ -538,6 +538,7 @@ namespace Arena
                 StartPickIntro(reroll);
                 selectedCard = -1;
                 offerShownAt = Time.unscaledTime;
+                rerollArmedAt = -99f;
             }
         }
 
@@ -546,6 +547,7 @@ namespace Arena
             var me = game.Me;
             if (selectedCard < 0 || game.RerollPending || PickOutroPlaying || PickIntroPlaying(me))
                 return;
+            rerollArmedAt = -99f;
             StartPickOutro(me, selectedCard);  // the cards fly back into you, yours last (PickOutro.cs)
             int key = 0;
             if (me != null && me.Offer != null && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)

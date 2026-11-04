@@ -292,10 +292,13 @@ Mastery resets each run.
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when the wave is
 cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to select a card, then
-**Take** it (or Enter). The cards are tall, with the icon big on a backdrop of the card's rarity (rare and better ones
-shine); the one you pick lifts and glows, and a line under the cards says what it changes ("Regeneration 0.25 → 3.25
-HP/s", or a new ability and its key). Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendaries)
-or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set. You
+**Choose Upgrade** (or Enter). Each card has its rarity centered on top, the icon in a cutout tile, and a soft glow in the
+rarity's color (whitish common, green uncommon, blue rare, purple very rare, orange legendary) while it bobs slowly (rare and
+better ones also shine); the one you pick lifts and glows stronger. Upgrades with a stack cap show circles that fill with how
+many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
+ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendaries)
+or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
+(or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
 start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone have chosen.
 
 | Rarity | Color | What you get |
@@ -727,7 +730,7 @@ as usual.
 | Take / discard your chest item (standing on it) | G / X |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
-| Reroll upgrades | Reroll button or R |
+| Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Mute sound | M |
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
