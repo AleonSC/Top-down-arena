@@ -85,6 +85,8 @@ namespace Arena
 
         /// Twin Rifle: the streams cross at your cursor's distance (from TwinCrossMin to their full range); a hit within
         /// TwinCrossZone of the crossing is crossfire, for TwinCrossMult.
+        /// TwinBarrelGap is the total width of the barrels (however many); TwinCopySpan is the same for a Barrage copy.
+        public const float TwinCopySpan = 20f;
         public const float TwinBarrelGap = 60f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 2f;
         public float TwinCrossDistance(Player p) => Math.Max(TwinCrossMin, Math.Min(p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
 
@@ -420,13 +422,17 @@ namespace Arena
                 {
                     // Barrels spread apart (two, plus one per extra projectile), angled in so every stream crosses at
                     // your cursor's distance; hits near the crossing are crossfire, for double. Each volley strays up to 2°.
+                    // The barrels share a fixed width (extra projectiles fill it in, not widen it), and Barrage's fanned
+                    // copies fire from a narrow cluster so the fan reads as a fan, not overlapping wide pairs.
                     int n = 2 + extra;
+                    float span = volleyShare < 1f ? TwinCopySpan : TwinBarrelGap;
+                    float gap = span / (n - 1);
                     float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
                     V2 v = V2.FromAngle(a), side = v.Orthogonal();
                     V2 cross = p.Pos + v * TwinCrossDistance(p);
                     for (int i = 0; i < n; i++)
                     {
-                        V2 from = muzzle + side * ((i - (n - 1) / 2f) * TwinBarrelGap);
+                        V2 from = muzzle + side * ((i - (n - 1) / 2f) * gap);
                         var b = SpawnBullet(Defs.DpsShot, from, (cross - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.Cross = cross;
                         b.Crossfire = true;
