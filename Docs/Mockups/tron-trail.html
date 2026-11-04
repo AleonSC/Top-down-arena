@@ -1,0 +1,290 @@
+<title>Light Cycle Trail</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a patch of arena at the game's scale with a player on a looping
+   path, wearing the light-cycle trail in the style and colour you pick. Under it: one card per style, all running the
+   same path. The faint grid is the 40 px grid the wall snaps to. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59; --neon: #46e6ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--neon); text-shadow: 0 0 18px rgba(70, 230, 255, .45); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 960 / 400; background: #05070c; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14262b; border-color: var(--neon); color: var(--fg); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: -1px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; cursor: pointer; min-width: 0; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--neon); }
+.card canvas { border: 1px solid var(--line); border-radius: 6px; }
+.tag { font: 700 12px var(--font-display); letter-spacing: .12em; color: var(--neon); }
+.card p { font-size: 14px; color: var(--soft); }
+.ladder { display: grid; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ladder div { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; padding: 9px 14px; border-top: 1px solid var(--line); align-items: baseline; font-size: 15px; }
+.ladder div:first-child { border-top: 0; }
+.ladder b { font-family: var(--font-display); }
+.ladder span:last-child { color: var(--muted); font-size: 13px; }
+.new { font: 600 10px var(--font-display); letter-spacing: .14em; color: #0a0d10; background: var(--amber); padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Account rank · Cosmetics · Trails</div>
+    <h1>Light Cycle <span>Trail</span></h1>
+    <p class="lead">A light cycle leaves a solid wall of light behind it, and it can only turn at right angles. This trail
+      does both: it follows where you have been but snaps the path to long straight runs with sharp corners, so a
+      swerve becomes an L. The wall lasts about two seconds and fades from the tail. Below are four ways to draw it, in
+      three colours. The faint grid is the 40 px grid the wall snaps to, and your character still moves freely: only the
+      trail is square.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="400"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group" id="colBtns"><span class="label">Colour</span></div>
+      <div class="group"><span class="label">Time</span>
+        <button id="pause" aria-pressed="false">Pause</button>
+        <button id="slow" aria-pressed="false">Slow-mo &frac14;&times;</button></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The styles</h2>
+    <p class="lead" style="margin-block:6px 14px">Every card runs the same path at the same moment. Click one to put it on the
+      big stage.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>Where it fits</h2>
+    <p class="lead" style="margin-block:6px 14px">It is the most dramatic trail, so I'd put it past Prism as the top trail
+      reward, with the other two colours as free variants once you have it.</p>
+    <div class="ladder" id="ladder"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li><b>Drawing only.</b> Like every rank trail it is the client replaying where a player has been
+        (<code>Game/RankTrails.cs</code>), so every screen draws everyone's trail from the lobby's trail number and nothing
+        new goes over the network.</li>
+      <li><b>The snapping.</b> Instead of a point every 7 px, this trail keeps one point per corner. It holds the wall on
+        one axis until you drift 50 px sideways, then turns 90 degrees there. That is a handful of points (about 6 to 12)
+        rather than 30, so it is cheaper than Ember. The last stretch from the last corner to you is drawn as a short
+        faint link, so the wall always reaches your character.</li>
+      <li><b>Lasts longer.</b> The wall lives about 2.4 s instead of 0.9 s, so it is a thin line of walls behind a moving
+        player. Everything is kept at low alpha, under the player and under all projectiles, so a bullet crossing the wall
+        stays easy to see. With Visual effects off it is one flat line, no glow.</li>
+      <li><b>Colour.</b> Cyan is the classic. Orange and magenta would be equip options on the same trail (a small
+        colour row in the cosmetics window). The id would stay one cosmetic, with the colour stored next to it in the
+        profile.</li>
+      <li><b>Protocol.</b> One new entry at the end of <code>Rank.Cosmetics</code>, so no existing number moves. The colour
+        choice adds one byte to the cosmetics message and the lobby entry, so the protocol would be bumped.</li>
+      <li><b>My pick: B, Derezz.</b> The wall reads as light while it is fresh, then breaks into squares that drift off
+        and fade, which is the signature look from the films and also thins the trail out when it is oldest. A is the
+        plain version if you want the quietest one.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, W = 960, H = 400, CELL = 40, TURN = 50, LIFE = 2.4;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const COLORS = [{ id: "cyan", name: "Cyan", c: [70, 230, 255] }, { id: "orange", name: "Orange", c: [255, 140, 30] }, { id: "magenta", name: "Magenta", c: [255, 70, 210] }];
+  const mixW = (c, f) => [c[0] + (255 - c[0]) * f, c[1] + (255 - c[1]) * f, c[2] + (255 - c[2]) * f];
+  const rgba = (c, a) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${clamp01(a)})`;
+  const hash = n => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
+
+  // --- The path: the same smooth loop for every preview, with the speed easing so it slows near the turns ---
+  function pathAt(t) {
+    const u = t - 0.9 * Math.sin(t * 0.55);
+    return { x: W / 2 + 340 * Math.sin(u * 0.62), y: H / 2 + 120 * Math.sin(u * 1.24 + 0.4) };
+  }
+
+  // --- A rider: keeps one point per corner. The wall holds one axis until the player drifts TURN px sideways. ---
+  class Rider {
+    constructor() { this.pts = []; this.axis = "h"; this.fx = 0; this.fy = 0; this.ready = false; this.pos = { x: 0, y: 0 }; this.head = { x: 0, y: 0 }; }
+    step(t, pos) {
+      this.pos = pos;
+      if (!this.ready) { this.ready = true; this.fx = pos.x; this.fy = pos.y; this.pts.push({ x: pos.x, y: pos.y, t }); }
+      if (this.axis === "h") {
+        if (Math.abs(pos.y - this.fy) > TURN) { this.pts.push({ x: pos.x, y: this.fy, t }); this.axis = "v"; this.fx = pos.x; }
+      } else if (Math.abs(pos.x - this.fx) > TURN) { this.pts.push({ x: this.fx, y: pos.y, t }); this.axis = "h"; this.fy = pos.y; }
+      this.head = this.axis === "h" ? { x: pos.x, y: this.fy } : { x: this.fx, y: pos.y };
+      while (this.pts.length > 1 && t - this.pts[1].t > LIFE) this.pts.shift();
+      this.now = t;
+    }
+    // The wall as one polyline with an age at every vertex (the head is age 0).
+    poly(t) {
+      const out = this.pts.map(p => ({ x: p.x, y: p.y, age: t - p.t }));
+      out.push({ x: this.head.x, y: this.head.y, age: 0 });
+      return out;
+    }
+  }
+  // Walk the polyline in pieces of about 10 px: fn(x0, y0, x1, y1, age, dist) with age 0..1 of LIFE.
+  function walk(poly, fn) {
+    let dist = 0;
+    for (let i = 1; i < poly.length; i++) {
+      const a = poly[i - 1], b = poly[i], len = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.round(len / 10));
+      for (let k = 0; k < n; k++) {
+        const f0 = k / n, f1 = (k + 1) / n, ag = (a.age + (b.age - a.age) * (f0 + f1) / 2) / LIFE;
+        if (ag < 1) fn(a.x + (b.x - a.x) * f0, a.y + (b.y - a.y) * f0, a.x + (b.x - a.x) * f1, a.y + (b.y - a.y) * f1, ag, dist + len * f0, i * 100 + k);
+      }
+      dist += len;
+    }
+  }
+  function line(c, x0, y0, x1, y1, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+
+  // The last bit from the wall's end to the player, and the corner nodes.
+  function link(c, rider, col) { line(c, rider.head.x, rider.head.y, rider.pos.x, rider.pos.y, 2, rgba(col, .35)); }
+  function nodes(c, poly, col) {
+    for (let i = 1; i < poly.length - 1; i++) { const a = 1 - poly[i].age / LIFE; if (a > 0) { c.fillStyle = rgba(mixW(col, .85), .9 * a); c.beginPath(); c.arc(poly[i].x, poly[i].y, 3.2, 0, TAU); c.fill(); } }
+  }
+  function wall(c, poly, col, core, glowW, fade) {
+    c.save(); c.globalCompositeOperation = "lighter";
+    walk(poly, (x0, y0, x1, y1, ag) => {
+      const a = fade(ag);
+      line(c, x0, y0, x1, y1, glowW, rgba(col, .10 * a));
+      line(c, x0, y0, x1, y1, glowW * .45, rgba(col, .34 * a));
+    });
+    c.restore();
+    walk(poly, (x0, y0, x1, y1, ag) => line(c, x0, y0, x1, y1, core, rgba(mixW(col, .8), .95 * fade(ag))));
+  }
+
+  const STYLES = [
+    { id: "wall", tag: "A", name: "Light wall", text: "A solid neon line with a soft glow, bright white core and glowing corners. It fades evenly from the tail. The plainest and quietest.",
+      draw(c, r, col, t) {
+        const poly = r.poly(t);
+        wall(c, poly, col, 2.4, 14, ag => 1 - ag * ag); nodes(c, poly, col); link(c, r, col);
+      } },
+    { id: "derezz", tag: "B", name: "Derezz", text: "The fresh wall is solid light. As it ages it breaks into small squares that drift off and fade, like a program being derezzed.",
+      draw(c, r, col, t) {
+        const poly = r.poly(t), SOLID = .42;
+        wall(c, poly, col, 2.4, 14, ag => ag < SOLID ? 1 : Math.max(0, 1 - (ag - SOLID) / .1));  // the wall dissolves quickly past 42% of its life
+        c.save(); c.globalCompositeOperation = "lighter";
+        walk(poly, (x0, y0, x1, y1, ag, dist, key) => {
+          if (ag < SOLID - .05) return;
+          const f = clamp01((ag - SOLID) / (1 - SOLID)), dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1;
+          for (let j = 0; j < 3; j++) {
+            const h = hash(key * 3.1 + j), h2 = hash(key * 7.7 + j), s = 2 + 3 * h, side = (h2 - .5) * 2;
+            const x = x0 + dx * h + (-dy / L) * side * (4 + 26 * f) + (h2 - .5) * 10 * f, y = y0 + dy * h + (dx / L) * side * (4 + 26 * f) - 36 * f * f - 6 * f;
+            c.fillStyle = rgba(mixW(col, .5 * (1 - f)), (1 - f) * .95); c.fillRect(x - s / 2, y - s / 2, s, s);
+          }
+        });
+        c.restore(); nodes(c, poly.filter(p => p.age / LIFE < SOLID), col); link(c, r, col);
+      } },
+    { id: "grid", tag: "C", name: "Grid wake", text: "A thin line, but the floor tiles it crosses light up and fade out, so the grid itself shows where you have been.",
+      draw(c, r, col, t) {
+        const poly = r.poly(t), lit = new Map();
+        walk(poly, (x0, y0, x1, y1, ag) => {
+          const cx = Math.floor((x0 + x1) / 2 / CELL), cy = Math.floor((y0 + y1) / 2 / CELL), k = cx + "," + cy;
+          if (!lit.has(k) || lit.get(k).ag > ag) lit.set(k, { cx, cy, ag });
+        });
+        for (const { cx, cy, ag } of lit.values()) {
+          const a = 1 - ag;
+          c.fillStyle = rgba(col, .15 * a); c.fillRect(cx * CELL + 1, cy * CELL + 1, CELL - 2, CELL - 2);
+          c.strokeStyle = rgba(col, .42 * a); c.lineWidth = 1; c.strokeRect(cx * CELL + 1.5, cy * CELL + 1.5, CELL - 3, CELL - 3);
+        }
+        wall(c, poly, col, 1.8, 8, ag => 1 - ag); nodes(c, poly, col); link(c, r, col);
+      } },
+    { id: "twin", tag: "D", name: "Twin rail", text: "The wall drawn as two bright rails with a translucent panel between them and bars of light travelling along it.",
+      draw(c, r, col, t) {
+        const poly = r.poly(t);
+        walk(poly, (x0, y0, x1, y1, ag, dist) => {
+          const a = 1 - ag * ag, dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1, nx = -dy / L * 6, ny = dx / L * 6;
+          line(c, x0, y0, x1, y1, 12, rgba(col, .1 * a));
+          const bar = .5 + .5 * Math.sin(dist * .09 - t * 9);
+          line(c, x0, y0, x1, y1, 9, rgba(col, (.06 + .2 * bar) * a));
+          line(c, x0 + nx, y0 + ny, x1 + nx, y1 + ny, 1.8, rgba(mixW(col, .7), .95 * a));
+          line(c, x0 - nx, y0 - ny, x1 - nx, y1 - ny, 1.8, rgba(mixW(col, .7), .95 * a));
+        });
+        nodes(c, poly, col); link(c, r, col);
+      } },
+  ];
+
+  function backdrop(c) {
+    c.fillStyle = "#05070c"; c.fillRect(0, 0, W, H);
+    c.strokeStyle = "rgba(70,180,230,.07)"; c.lineWidth = 1; c.beginPath();
+    for (let x = 0; x <= W; x += CELL) { c.moveTo(x + .5, 0); c.lineTo(x + .5, H); }
+    for (let y = 0; y <= H; y += CELL) { c.moveTo(0, y + .5); c.lineTo(W, y + .5); }
+    c.stroke();
+  }
+  function player(c, r, col) {  // the character: a dark disc in a neon ring, a bright nose showing where it is heading
+    const { x, y } = r.pos, p0 = r.prev || r.pos, dx = x - p0.x, dy = y - p0.y, L = Math.hypot(dx, dy) || 1;
+    c.fillStyle = rgba(col, .16); c.beginPath(); c.arc(x, y, 20, 0, TAU); c.fill();
+    c.fillStyle = "#0a1018"; c.beginPath(); c.arc(x, y, 12, 0, TAU); c.fill();
+    c.strokeStyle = rgba(mixW(col, .4), 1); c.lineWidth = 2; c.beginPath(); c.arc(x, y, 12, 0, TAU); c.stroke();
+    line(c, x, y, x + dx / L * 15, y + dy / L * 15, 3, rgba(mixW(col, .8), 1));
+  }
+
+  const $ = id => document.getElementById(id);
+  const main = $("arena"), mctx = main.getContext("2d"), mr = new Rider();
+  let sel = "derezz", colId = "cyan", paused = false, slow = false, clock = 0, last = performance.now();
+  const byId = (arr, id) => arr.find(s => s.id === id);
+
+  const cardsEl = $("cards"), cards = [];
+  for (const s of STYLES) {
+    const el = document.createElement("div"); el.className = "card"; el.tabIndex = 0; el.setAttribute("role", "button");
+    el.innerHTML = `<canvas width="${W}" height="${H}"></canvas><h3><span class="tag">${s.tag}</span> ${s.name}</h3><p>${s.text}</p>`;
+    const pick = () => { sel = s.id; refresh(); };
+    el.onclick = pick; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
+    cardsEl.appendChild(el);
+    cards.push({ s, el, ctx: el.querySelector("canvas").getContext("2d"), r: new Rider() });
+  }
+  const sbtn = $("styleBtns"), cbtn = $("colBtns");
+  for (const s of STYLES) { const b = document.createElement("button"); b.textContent = s.tag + "  " + s.name; b.onclick = () => { sel = s.id; refresh(); }; b.dataset.id = s.id; sbtn.appendChild(b); }
+  for (const k of COLORS) { const b = document.createElement("button"); b.innerHTML = `<span class="sw" style="background:${rgba(k.c, 1)}"></span>${k.name}`; b.onclick = () => { colId = k.id; refresh(); }; b.dataset.id = k.id; cbtn.appendChild(b); }
+  function refresh() {
+    for (const b of sbtn.querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.id === sel);
+    for (const b of cbtn.querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.id === colId);
+    for (const c of cards) c.el.setAttribute("aria-current", c.s.id === sel ? "true" : "false");
+  }
+  const tog = (id, fn) => { const b = $(id); b.onclick = () => { const v = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", v); fn(v); }; };
+  tog("pause", v => paused = v); tog("slow", v => slow = v);
+
+  const lad = [[8, "Trail: Ember"], [14, "Trail: Frost"], [18, "Trail: Storm"], [22, "Trail: Void"], [25, "Trail: Gold stardust"], [35, "Trail: Prism"], [45, "Trail: Light Cycle (cyan, orange and magenta)", 2]];
+  $("ladder").innerHTML = lad.map(([r, n, k]) => `<div><b>${r}</b><span>${n}${k ? ' <span class="new">NEW</span>' : ""}</span><span>trail</span></div>`).join("");
+
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!paused) clock += dt * (slow ? .25 : 1);
+    const t = clock, pos = pathAt(t), col = byId(COLORS, colId).c;
+    // Step the rider a few times so the corner test sees a fine path even at a low frame rate.
+    const sub = 4, tp = Math.max(0, t - dt * (slow ? .25 : 1));
+    for (let k = 1; k <= sub; k++) { const tt = tp + (t - tp) * k / sub; mr.prev = mr.pos; mr.step(tt, pathAt(tt)); for (const c of cards) { c.r.prev = c.r.pos; c.r.step(tt, pathAt(tt)); } }
+    backdrop(mctx); byId(STYLES, sel).draw(mctx, mr, col, t); player(mctx, mr, col);
+    for (const c of cards) { backdrop(c.ctx); c.s.draw(c.ctx, c.r, col, t); player(c.ctx, c.r, col); }
+    requestAnimationFrame(frame);
+  }
+  refresh(); requestAnimationFrame(frame);
+})();
+</script>
