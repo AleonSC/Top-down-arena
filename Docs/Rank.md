@@ -127,6 +127,9 @@ From the mockup, in priority order:
   since rank 2 costs 200 XP and a first run is worth about that much already.
 - **Hunts** earn XP for the waves cleared and the boss, with no win bonus. A boss beaten on the wave you then lose on
   counts (the wave is treated as cleared).
+- **Rank report** (the results' second page, `DrawRankReport` in `RankUi.cs`): the mockup's full panel. The **Rank report**
+  button by Leave (or a click on the strip) swaps the stat cards for it; **Stats** swaps back. Each run's results start
+  on the stats page. Other players' XP gains aren't known on your screen, so the party box shows their ranks only.
 - **Results screen:** the rank strip sits under the cards (they're 408 px high now, the tiles 56) rather than in a
   panel beside them: the screen had no room for one. It shows the bar filling, the total, the breakdown on one line
   and the modifiers behind the multiplier, or on a rank up what it unlocked. Each card has its player's badge.

@@ -788,7 +788,11 @@ where they had the best number: **Most damage**, **Best healer**, **Sharpshooter
 damage dealt, kills (elite and boss), biggest hit, accuracy, healing done, allies revived, damage taken, times
 downed and abilities used, each with a bar against the party's best (gold where they lead), and the upgrades
 picked by rarity. Under the cards a **rank strip** shows what the run earned towards your account rank (see **Rank**
-below), and each card carries that player's rank badge. **Leave** sits bottom-left as in the lobby; the host can play
+below), and each card carries that player's rank badge. Click the strip, or the **Rank report** button next to Leave
+(it pulses gold on a rank up), for the full **rank report**: your badge, name and XP bar with the breakdown ticking in
+line by line (waves, bosses, revives, victory, then the modifier and difficulty multipliers and the total), the bar
+filling and, on a rank up, RANK UP! with a flash; your party's ranks; and the reward you've just earned (with a preview
+of the trail, frame, background or title) or the next one to go for and how much XP it needs. **Stats** goes back. **Leave** sits bottom-left as in the lobby; the host can play
 again, go back to the lobby, or keep going after a victory.
 
 ## Rank
