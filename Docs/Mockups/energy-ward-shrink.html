@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Energy Ward Shrink</title>
+<style>
+:root{--bg:#0a0d10;--panel:#11161b;--line:#242d36;--fg:#e7eef3;--muted:#92a1ad;--blue:#7fb4ff;--green:#6dff9a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 56px;display:grid;gap:18px}
+h1{margin:0;font-size:clamp(26px,5vw,40px);text-transform:uppercase;letter-spacing:.04em}
+h1 span{color:var(--blue)} p{margin:0;max-width:75ch;color:#cfdae2}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+canvas{display:block;width:100%;height:auto;background:#070910}
+#c{aspect-ratio:960/400}#s{aspect-ratio:960/190;border-top:1px solid var(--line)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--line);align-items:center}
+button{font:600 14px system-ui;color:#cfdae2;background:#161c22;border:1px solid #36424e;border-radius:7px;padding:7px 12px;cursor:pointer}
+button[aria-pressed=true]{background:#10303a;border-color:var(--blue);color:#fff}
+input[type=range]{flex:1;min-width:140px}
+.desc{padding:0 14px 14px;color:var(--muted);font-size:14px}
+ul{margin:0;padding-left:20px;color:#cfdae2}
+</style></head><body><div class="wrap">
+<h1>Energy Ward: <span>shrink</span> animations</h1>
+<p>Look A (the glassy energy bubble) is locked in. This page is only about how it shrinks. Each idea reacts to every hit on its own, instead of sliding smoothly down, and all of them turn green at under half shield and pay back half of what was soaked when the bubble breaks or the 8 s timer ends. Use the slider to scrub, and flip between <b>Current</b> and the ideas to compare.</p>
+<div class="stage"><canvas id="c" width="960" height="400"></canvas>
+<canvas id="s" width="960" height="190"></canvas>
+<div class="bar"><span style="color:var(--muted);font-size:14px">Idea</span><span id="looks" style="display:contents"></span></div>
+<div class="bar"><button id="play" aria-pressed="true">Pause</button><button id="replay">Replay</button><input id="scrub" type="range" min="0" max="10" step="0.01" value="0" aria-label="Time"><span id="clock" style="font:14px ui-monospace,monospace;color:var(--muted);min-width:5ch">0.0 s</span></div>
+<div class="desc" id="desc"></div></div>
+<ul>
+<li>The strip shows the left player at 1.05, 2.0, 3.7, 4.5 and 5.3 s (the break) and 6.2 s (after), in the idea you have selected.</li>
+<li>Numbers don't change (60 soak, 8 s, 300 px, capstone 120), so this is drawing only. No protocol bump.</li>
+<li>Every idea can be mixed: for example Jelly hits with Heal core's green charge inside.</li>
+</ul>
+</div>
+<script>
+const LOOKS={
+plain:['Current','The smooth version from the first mockup: the radius slides down with the shield, nothing reacts to a hit.'],
+jelly:['1 · Jelly hits','Each hit squashes the bubble toward the shooter, then it springs back a little smaller, wobbling around the rim. Heavy hits squash more.'],
+ratchet:['2 · Ratchet','The bubble shrinks in clear steps. Every hit snaps it down with a small overshoot, sends a ring inward and throws off blue shards.'],
+leak:['3 · Leak and breathe','Energy leaks out as droplets from where it was hit. The rim breaks into dashes as it weakens, and the bubble breathes faster and faster, like a heartbeat, when it is green.'],
+core:['4 · Heal core','As the blue shell shrinks, a green core grows inside and beats. The core is the heal charging up: you can see how big the payback will be before the shell goes.']};
+let look='plain';
+const looksEl=document.getElementById('looks'),descEl=document.getElementById('desc');
+for(const k in LOOKS){const b=document.createElement('button');b.textContent=LOOKS[k][0];b.setAttribute('aria-pressed',k==look);
+ b.onclick=()=>{look=k;[...looksEl.children].forEach(x=>x.setAttribute('aria-pressed',x===b));descEl.textContent=LOOKS[k][1];seek(S.t);buildSnaps()};looksEl.appendChild(b)}
+descEl.textContent=LOOKS.plain[1];
+
+const cv=document.getElementById('c'),g=cv.getContext('2d'),sv=document.getElementById('s'),sg=sv.getContext('2d');
+const LEN=10,DUR=8,RMAX=64,RMIN=.55,DT=1/60;
+const PL=[{x:300,y:210,from:Math.PI,name:'You',hits:[[1,8],[1.9,10],[2.8,8],[3.6,12],[4.4,10],[5.2,12]]},
+          {x:660,y:210,from:0,name:'Ally',hits:[[1.5,10],[3.2,10],[5,8]]}];
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mix=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+const BLUE=[110,170,255],GREEN=[90,255,140],WHITE=[255,255,255];
+const rgba=(c,a)=>'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+a+')';
+const SPRING={plain:[14,7.5],jelly:[90,5],ratchet:[260,9],leak:[14,7.5],core:[70,7]};
+
+function fracOf(hp,t){return Math.min(hp/60,clamp((DUR-t)/2.5,0,1))}
+function mk(v){
+ const s={v,t:0,seed:7,parts:[],rings:[],p:PL.map((p,i)=>({i,x:p.x,y:p.y,from:p.from,hits:p.hits,hp:60,end:null,r:RMAX*.3,rv:0,q:0,qv:0,wob:[0,0],wph:0,last:9,flash:0,popped:0,soaked:0}))};
+ s.rnd=()=>{s.seed=(s.seed*16807)%2147483647;return s.seed/2147483647};return s}
+function emit(s,o,x,y,ang,sp,life,kind,size){s.parts.push({o,x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life,max:life,kind,size,rot:s.rnd()*6})}
+function onHit(s,P,d){
+ const k=d/10, hx=P.x+Math.cos(P.from)*P.r, hy=P.y;
+ if(s.v==='jelly'){P.rv-=55*k;P.q=Math.min(.38,P.q+.2*k);P.wob[0]+=.05;P.wob[1]+=.04}
+ if(s.v==='ratchet'){P.rv-=60;P.q+=.05;s.rings.push({o:P.i,x:P.x,y:P.y,r0:P.r,r1:P.r*.55,age:0,life:.35});
+  for(let i=0;i<7;i++)emit(s,P.i,hx,hy,P.from+(s.rnd()-.5)*1.6,120+s.rnd()*110,.5,'shard',3+s.rnd()*2)}
+ if(s.v==='leak'){P.rv-=8;P.q+=.04;for(let i=0;i<10;i++)emit(s,P.i,hx,hy,P.from+(s.rnd()-.5)*2,30+s.rnd()*40,.9,'drop',2+s.rnd()*2.5)}
+ if(s.v==='core'){P.rv-=30;P.q+=.1;P.flash=1}
+}
+function step(s,dt){
+ const t0=s.t;s.t+=dt;const t=s.t,[K,C]=SPRING[s.v];
+ for(const P of s.p){
+  if(P.end===null){
+   for(const [ht,d] of P.hits){if(P.end!==null)break;if(ht>t0&&ht<=t){P.hp=Math.max(0,P.hp-d);P.soaked+=d;P.last=0;onHit(s,P,d);if(P.hp<=0)P.end=ht}}
+   if(P.end===null&&t>=DUR)P.end=DUR;
+  }
+  P.last+=dt;P.flash=Math.max(0,P.flash-dt*3);
+  if(P.end!==null){P.popped=t-P.end;continue}
+  const f=fracOf(P.hp,t),tr=RMAX*lerp(RMIN,1,f);
+  P.rv+=(K*(tr-P.r)-C*P.rv)*dt;P.r+=P.rv*dt;
+  P.qv+=(-120*P.q-8*P.qv)*dt;P.q+=P.qv*dt;
+  P.wph+=dt*9;P.wob[0]*=Math.exp(-dt*3);P.wob[1]*=Math.exp(-dt*4.2);
+  if(s.v==='leak'&&f<.5&&s.rnd()<dt*lerp(2,12,1-f/.5)){const a=s.rnd()*6.283;emit(s,P.i,P.x+Math.cos(a)*P.r,P.y+Math.sin(a)*P.r,a,25+s.rnd()*25,.8,'drop',2+s.rnd()*2)}
+ }
+ for(const q of s.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=.96;q.vy*=.96;q.life-=dt}
+ s.parts=s.parts.filter(q=>q.life>0);
+ for(const r of s.rings)r.age+=dt;s.rings=s.rings.filter(r=>r.age<r.life);
+}
+function runTo(s,t){while(s.t<t-1e-6)step(s,Math.min(DT,t-s.t))}
+
+function drawBubble(G,s,P){
+ const t=s.t,f=fracOf(P.hp,t),col=mix(BLUE,GREEN,clamp((.5-f)/.3,0,1));
+ const urgent=f<.35,pulse=urgent?.5+.5*Math.sin(t*lerp(6,14,1-f/.35)):0;
+ let r=P.r;if(s.v==='leak')r*=1+.035*Math.sin(t*lerp(2,10,1-f))*(f<.5?1.6:1);
+ const x=P.x,y=P.y,w0=P.wob[0],w1=P.wob[1];
+ const path=()=>{G.beginPath();for(let a=0;a<=6.2832+.07;a+=.07){const rr=r*(1-P.q*Math.cos(2*(a-P.from))+w0*Math.sin(3*a+P.wph)+w1*Math.sin(5*a-P.wph*1.3));G.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}G.closePath()};
+ G.save();
+ const gr=G.createRadialGradient(x,y,r*.3,x,y,r);gr.addColorStop(0,rgba(col,.04));gr.addColorStop(.75,rgba(col,.14+.1*pulse));gr.addColorStop(1,rgba(col,.55));
+ path();G.fillStyle=gr;G.fill();
+ if(s.v==='core'&&f<1){const cr=r*.62*Math.pow(1-f,.85)*(1+.12*Math.sin(t*lerp(4,12,1-f))+P.flash*.12);
+  const cg=G.createRadialGradient(x,y,0,x,y,Math.max(1,cr));cg.addColorStop(0,'rgba(190,255,210,.95)');cg.addColorStop(.5,'rgba(90,255,140,.6)');cg.addColorStop(1,'rgba(90,255,140,0)');
+  G.fillStyle=cg;G.beginPath();G.arc(x,y,Math.max(1,cr),0,7);G.fill()}
+ G.strokeStyle=rgba(col,.35);G.lineWidth=2;
+ for(let i=0;i<3;i++){const a=t*(.9+i*.35)+i*2.1+P.i;G.beginPath();G.arc(x,y,r*(.55+i*.14),a,a+1.4);G.stroke()}
+ G.shadowColor=rgba(col,1);G.shadowBlur=14+10*pulse+(s.v==='core'?P.flash*10:0);G.strokeStyle=rgba(mix(col,WHITE,.35),.95);G.lineWidth=3;
+ if(s.v==='leak'&&f<.6){const gap=lerp(0,16,(.6-f)/.6);G.setLineDash([Math.max(6,26-gap),gap]);G.lineDashOffset=-t*18}
+ path();G.stroke();G.setLineDash([]);G.shadowBlur=0;
+ if(P.last<.3){G.strokeStyle='rgba(255,255,255,'+(1-P.last/.3)*.9+')';G.lineWidth=6;G.beginPath();G.arc(x,y,r,P.from-.5,P.from+.5);G.stroke()}
+ G.restore();
+}
+function drawPop(G,P,s){
+ const age=P.popped;if(P.end===null||age>1.1)return;const a=1-age/1.1,amt=Math.round(P.soaked/2),x=P.x,y=P.y;
+ G.save();
+ G.strokeStyle='rgba(120,255,160,'+a*.9+')';G.lineWidth=4*a+1;G.beginPath();G.arc(x,y,RMAX*.55+age*70,0,7);G.stroke();
+ for(let i=0;i<10;i++){const ang=i/10*6.2832+i,k=clamp(age/.7,0,1),rr=lerp(RMAX*.55+30,10,k*k);
+  G.fillStyle='rgba(140,255,170,'+(1-k)*.9+')';G.beginPath();G.arc(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr,3,0,7);G.fill()}
+ G.fillStyle='rgba(140,255,170,'+a+')';G.font='bold 16px system-ui';G.textAlign='center';G.fillText('+'+amt,x,y-RMAX*.55-12-age*28);
+ G.restore();
+}
+function drawPlayer(G,x,y,label){G.fillStyle='#e9d9ff';G.strokeStyle='#fff';G.lineWidth=2;G.beginPath();G.arc(x,y,15,0,7);G.fill();G.stroke();
+ if(label){G.fillStyle='#92a1ad';G.font='12px system-ui';G.textAlign='center';G.fillText(label,x,y+RMAX+22)}}
+function drawSim(G,s,only,labels){
+ for(const P of s.p){if(only!==undefined&&P.i!==only)continue;
+  drawPlayer(G,P.x,P.y,labels?P.name:'');
+  if(P.end===null)drawBubble(G,s,P);else drawPop(G,P,s);
+  if(labels&&P.end===null){G.fillStyle='rgba(150,170,190,.9)';G.font='12px ui-monospace,monospace';G.textAlign='center';G.fillText(Math.round(fracOf(P.hp,s.t)*100)+'% shield',P.x,P.y+RMAX+38)}}
+ for(const r of s.rings){if(only!==undefined&&r.o!==only)continue;const k=r.age/r.life;G.strokeStyle='rgba(255,255,255,'+(1-k)*.8+')';G.lineWidth=3;G.beginPath();G.arc(r.x,r.y,lerp(r.r0,r.r1,k),0,7);G.stroke()}
+ for(const q of s.parts){if(only!==undefined&&q.o!==only)continue;const a=q.life/q.max;
+  if(q.kind==='shard'){G.save();G.translate(q.x,q.y);G.rotate(q.rot+q.life*8);G.fillStyle='rgba(150,200,255,'+a+')';G.fillRect(-q.size,-q.size*.4,q.size*2,q.size*.8);G.restore()}
+  else{G.fillStyle='rgba(120,255,170,'+a*.9+')';G.beginPath();G.arc(q.x,q.y,q.size*a+.5,0,7);G.fill()}}
+}
+function scene(){
+ g.clearRect(0,0,960,400);
+ g.strokeStyle='#10151d';g.lineWidth=1;for(let x=0;x<960;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,400);g.stroke()}for(let y=0;y<400;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(960,y);g.stroke()}
+ const t=S.t;
+ PL.forEach((p,i)=>{for(const [ht] of p.hits){const dt=ht-t,P=S.p[i];if(dt>0&&dt<.35&&P.end===null){const sx=i?900:60,k=1-dt/.35,ex=p.x+(i?1:-1)*RMAX*.7;g.fillStyle='#ff9a3c';g.beginPath();g.arc(lerp(sx,ex,k),p.y-30+(i?-1:1)*(1-k)*20,5,0,7);g.fill()}}});
+ drawSim(g,S,undefined,true);
+ if(t<.5){g.strokeStyle='rgba(127,180,255,'+(1-t/.5)*.7+')';g.lineWidth=3;g.beginPath();g.arc(PL[0].x,PL[0].y,lerp(10,300,t/.5),0,7);g.stroke()}
+}
+const SNAPS=[1.05,2.0,3.7,4.5,5.3,6.2];let snaps=[];
+function buildSnaps(){snaps=SNAPS.map(t=>{const s=mk(look);runTo(s,t);return s})}
+function strip(){
+ sg.clearRect(0,0,960,190);sg.fillStyle='#070910';sg.fillRect(0,0,960,190);
+ snaps.forEach((s,i)=>{const cx=100+i*152;sg.save();sg.translate(cx-PL[0].x,86-PL[0].y);drawSim(sg,s,0,false);sg.restore();
+  sg.fillStyle='#92a1ad';sg.font='12px system-ui';sg.textAlign='center';sg.fillText(SNAPS[i].toFixed(2)+' s'+(i==4?' · break':''),cx,180)})
+}
+let S=mk(look),playing=true,last=performance.now(),acc=0;
+function seek(t){S=mk(look);runTo(S,clamp(t,0,LEN))}
+const scrub=document.getElementById('scrub'),clock=document.getElementById('clock'),play=document.getElementById('play');
+function setPlay(v){playing=v;play.textContent=v?'Pause':'Play';play.setAttribute('aria-pressed',v)}
+play.onclick=()=>setPlay(!playing);
+document.getElementById('replay').onclick=()=>{seek(0);setPlay(true)};
+scrub.oninput=()=>{seek(+scrub.value);setPlay(false)};
+buildSnaps();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(playing){acc+=dt;while(acc>=DT){step(S,DT);acc-=DT}if(S.t>=LEN)seek(0)}
+ scrub.value=S.t;clock.textContent=S.t.toFixed(1)+' s';scene();strip();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html>
