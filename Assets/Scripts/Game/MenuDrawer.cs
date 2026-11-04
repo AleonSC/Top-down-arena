@@ -258,7 +258,7 @@ namespace Arena
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
                 if (r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     lobbySel = i;
-                if (DrawerRow(r, PixelArt.Get(icons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on))
+                if (MenuVhs.Draw(r, "TRK " + (i + 1).ToString("00"), true, fxReduced, () => DrawerRow(r, PixelArt.Get(icons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on)))
                     LobbyChoose(i);
                 y += r.height + 4f;
             }
@@ -367,7 +367,7 @@ namespace Arena
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
                 if (r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
-                if (DrawerRow(r, PixelArt.Get(icons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on))
+                if (MenuVhs.Draw(r, "TRK " + (i + 1).ToString("00"), true, fxReduced, () => DrawerRow(r, PixelArt.Get(icons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on)))
                     PauseChoose(i);
                 y += r.height + 4f;
             }

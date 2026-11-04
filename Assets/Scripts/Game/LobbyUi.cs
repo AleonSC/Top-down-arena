@@ -64,10 +64,11 @@ namespace Arena
             // --- Left column, top: the title, then the mode switch (a choice for the whole lobby, so it sits with the party).
             // Back: a small red button beside the title (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs).
             // Same card as the loadout's tiles (Ui.ActionButton), with a red arrow.
-            if (Ui.ActionButton(new Rect(40f, 15f, LobbyActionH, LobbyActionH), "", false, Ui.Primary, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f)))
+            var backR = new Rect(40f, 15f, LobbyActionH, LobbyActionH);
+            if (MenuVhs.Draw(backR, null, true, fxReduced, () => Ui.ActionButton(backR, "", false, Ui.Primary, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f))))
                 StartLobbyLeave();  // LobbyEnter.cs
             Ui.Glitch(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent);
-            if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
+            if (MenuVhs.Draw(infoButton, null, true, fxReduced, () => Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral)))
                 connInfoOpen = !connInfoOpen;
             if (session.Resume != null)
                 DrawResumeBanner(new Rect(40f, 76f, 376f, 58f), t);  // continuing a saved run (SavesUi.cs)
@@ -84,7 +85,7 @@ namespace Arena
             bool hot = inRoom || hb.Contains(Event.current.mousePosition);
             var oldCol = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.5f);
-            bool go = Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11, true);  // the lobby's tile style, small and square
+            bool go = MenuVhs.Draw(hb, "TRK 02", true, fxReduced, () => Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11, true));  // the lobby's tile style, small and square
             GUI.color = oldCol;
             if (go)
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
@@ -970,7 +971,7 @@ namespace Arena
             var readyRect = new Rect(lx, readyY, lw, LobbyActionH);
             if (ready)
                 Ui.PulseRing(readyRect, Ui.Primary, Time.unscaledTime);  // drawn first, so Start sits over it
-            if (Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check"), glitch: true))
+            if (MenuVhs.Draw(readyRect, "TRK 03", true, fxReduced, () => Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check"), glitch: true)))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -985,7 +986,9 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                if (Ui.ActionButton(new Rect(lx, LobbyStartY, lw, LobbyActionH), "Start", GUI.enabled, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play"), glitch: true))
+                var startR = new Rect(lx, LobbyStartY, lw, LobbyActionH);
+                bool startOn = GUI.enabled;
+                if (MenuVhs.Draw(startR, "TRK 04", true, fxReduced, () => Ui.ActionButton(startR, "Start", startOn, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play"), glitch: true)))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }
