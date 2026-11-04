@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a cosmetic changes. Titles aren't here: they come with the tier (Rank.TierName).
-    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote, NameEffect }
+    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote, NameEffect, AimLine }
 
     /// A cosmetic reward for reaching a rank. Id is stored in the profile: never change one once players own it.
     public class CosmeticDef
@@ -148,6 +148,15 @@ namespace Arena
             new CosmeticDef { Id = "name-gold", Name = "Gold Foil name", Kind = CosmeticKind.NameEffect, Rank = 44 },
             new CosmeticDef { Id = "name-void", Name = "Void name", Kind = CosmeticKind.NameEffect, Rank = 48 },
             new CosmeticDef { Id = "name-rainbow", Name = "Rainbow name", Kind = CosmeticKind.NameEffect, Rank = 56 },
+            new CosmeticDef { Id = "aim-dotted", Name = "Dotted Tracer aim line", Kind = CosmeticKind.AimLine, Rank = 5 },
+            new CosmeticDef { Id = "aim-chevron", Name = "Chevron Flow aim line", Kind = CosmeticKind.AimLine, Rank = 11 },
+            new CosmeticDef { Id = "aim-ruler", Name = "Ruler aim line", Kind = CosmeticKind.AimLine, Rank = 14 },
+            new CosmeticDef { Id = "aim-ember", Name = "Ember Wisp aim line", Kind = CosmeticKind.AimLine, Rank = 17 },
+            new CosmeticDef { Id = "aim-frost", Name = "Frost Shard aim line", Kind = CosmeticKind.AimLine, Rank = 21 },
+            new CosmeticDef { Id = "aim-storm", Name = "Storm Arc aim line", Kind = CosmeticKind.AimLine, Rank = 26 },
+            new CosmeticDef { Id = "aim-pixel", Name = "Pixel Beam aim line", Kind = CosmeticKind.AimLine, Rank = 29 },
+            new CosmeticDef { Id = "aim-helix", Name = "Helix aim line", Kind = CosmeticKind.AimLine, Rank = 34 },
+            new CosmeticDef { Id = "aim-prism", Name = "Prism aim line", Kind = CosmeticKind.AimLine, Rank = 46 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -218,6 +227,9 @@ namespace Arena
         /// Name effects (Game/NameEffects.cs): the look of a player's name, seen by everyone. 0 none, then 1.. in table order.
         public static byte NameFxIndex(string id) => IndexOf(CosmeticKind.NameEffect, id);
         public static string NameFxId(int index) => IdOf(CosmeticKind.NameEffect, index);
+        /// Aim lines (Game/AimLineLooks.cs): only your own line is drawn, so this never goes on the wire. 0 is the Classic line, then 1.. in table order.
+        public static byte AimLineIndex(string id) => IndexOf(CosmeticKind.AimLine, id);
+        public static string AimLineId(int index) => IdOf(CosmeticKind.AimLine, index);
         public static string CardBgId(int index) => IdOf(CosmeticKind.CardBackground, index);  // "card-dusk" ... (Game/CardBackgrounds.cs draws them)
 
         /// The frame's base colour for a lobby entry's frame number (the extras on top are Game/FrameLooks.cs).

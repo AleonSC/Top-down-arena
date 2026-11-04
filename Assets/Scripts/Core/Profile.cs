@@ -73,7 +73,7 @@ namespace Arena
 
         // Rank (Rank.cs, Docs/Rank.md): total XP, the cosmetics equipped (ids from Rank.Cosmetics; "" none) and the last few runs' XP.
         public long Xp;
-        public string Frame = "", Trail = "", Background = "", CardBg = "", NameFx = "";
+        public string Frame = "", Trail = "", Background = "", CardBg = "", NameFx = "", AimLine = "";
         public readonly List<RankLog> Recent = new List<RankLog>();
         public const int RecentKept = 6;
 
@@ -120,11 +120,12 @@ namespace Arena
             else if (kind == CosmeticKind.Trail) Trail = id;
             else if (kind == CosmeticKind.CardBackground) CardBg = id;
             else if (kind == CosmeticKind.NameEffect) NameFx = id;
+            else if (kind == CosmeticKind.AimLine) AimLine = id;
             else Background = id;
             return true;
         }
 
-        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Emote ? "" : kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : kind == CosmeticKind.CardBackground ? CardBg : kind == CosmeticKind.NameEffect ? NameFx : Background;
+        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Emote ? "" : kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : kind == CosmeticKind.CardBackground ? CardBg : kind == CosmeticKind.NameEffect ? NameFx : kind == CosmeticKind.AimLine ? AimLine : Background;
 
         public static string ClassKey(Role role, Kit kit) => Defs.KitName(kit) + " " + Defs.Get(role).Name;  // "Knight Tank", as the lobby says it
 
@@ -237,7 +238,7 @@ namespace Arena
             foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             RunSave.Line(sb, "xp", Xp);
-            RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx));
+            RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')));
             RunSave.Line(sb, "end", 1);
             return sb.ToString();
@@ -283,7 +284,7 @@ namespace Arena
                             break;
                         case "unlocked": p.Unlocked.Add(val); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
-                        case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); break;
+                        case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); break;
                         case "rlog":
                             if (p.Recent.Count < RecentKept)
                                 p.Recent.Add(new RankLog { Wave = RunSave.I(f[0]), Result = RunSave.I(f[1]), Xp = RunSave.I(f[2]), MultPct = RunSave.I(f[3]), Mods = f.Length > 4 ? UnDash(f[4]).Replace('_', ' ') : "" });

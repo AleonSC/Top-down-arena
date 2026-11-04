@@ -129,6 +129,12 @@ static partial class Program
         client.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).NameFx == 0, "a name effect the rank doesn't have is dropped by the host");
+        // Aim lines: nine unlocks beside the free Classic line; local only (nothing on the wire), saved with the profile.
+        Check(Rank.OfKind(CosmeticKind.AimLine).Count == 9 && Rank.AimLineIndex("aim-dotted") == 1 && Rank.AimLineIndex("aim-prism") == 9 && Rank.AimLineId(9) == "aim-prism" && Rank.AimLineId(10) == "" && Rank.AimLineIndex("") == 0
+              && Rank.Owns(46, "aim-prism") && !Rank.Owns(45, "aim-prism") && Rank.Owns(5, "aim-dotted") && !Rank.Owns(4, "aim-dotted"), "nine aim lines, Dotted Tracer at rank 5 to Prism at 46, numbered in rank order, Classic is 0");
+        cp.Xp = Rank.XpAt(20);
+        Check(cp.Equip(CosmeticKind.AimLine, "aim-ember") && cp.AimLine == "aim-ember" && cp.Equipped(CosmeticKind.AimLine) == "aim-ember" && !cp.Equip(CosmeticKind.AimLine, "aim-storm") && !cp.Equip(CosmeticKind.Trail, "aim-dotted") && cp.Equip(CosmeticKind.AimLine, "") && cp.AimLine == "",
+            "you equip the aim lines your rank has, only in their slot, and \"\" goes back to Classic");
         cp.Xp = Rank.XpAt(30);
         // Emotes: thirteen, on the bar (nothing to equip); a player sends one, the host checks rank and pause, everyone sees it.
         Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(1, "emote-wave") && !Rank.Owns(24, "emote-spin") && Rank.Owns(25, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",

@@ -860,7 +860,7 @@ what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, 
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name chip on the main menu. A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect** and the **Reward ladder**; the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder**; the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
@@ -918,6 +918,8 @@ each kind at a time:
 | 44 | **Gold Foil name**: rich gold with a sheen sweeping across |
 | 48 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
 | 56 | **Rainbow name**: every letter its own hue, turning round the spectrum |
+
+**Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 5), Chevron Flow (11), Ruler (14), Ember Wisp (17), Frost Shard (21), Storm Arc (26), Pixel Beam (29), Helix (34) and Prism (46) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
 
 **Name effects** change how your name is drawn for everyone: on the lobby party card, the Hangout name plate and the tag over your head in a match (small names keep only colour and glow, so they stay readable; with Visual effects off each is still).
 

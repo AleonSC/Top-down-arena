@@ -10,10 +10,10 @@ namespace Arena
     {
         bool cosmeticsOpen;
         float ladderScroll;  // the reward ladder's scroll, in px
-        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Reward ladder
+        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Reward ladder
 
-        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Reward ladder" };
-        static readonly string[] CosmeticIcons = { "ui_star", "blink", "snow", "ui_star", "ui_star", "ui_trophy" };
+        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Reward ladder" };
+        static readonly string[] CosmeticIcons = { "ui_star", "blink", "snow", "ui_star", "ui_star", "ui_star", "ui_trophy" };
 
         void OpenCosmetics()
         {
@@ -23,7 +23,7 @@ namespace Arena
 
         void DrawCosmetics() { if (!SkipWhileClosing) DrawCosmeticsWindow(); }
 
-        static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : s == 4 ? CosmeticKind.NameEffect : CosmeticKind.Background;
+        static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : s == 4 ? CosmeticKind.NameEffect : s == 5 ? CosmeticKind.AimLine : CosmeticKind.Background;
 
         void DrawCosmeticsWindow()
         {
@@ -49,7 +49,7 @@ namespace Arena
             {
                 bool on = i == cosmeticsSection;
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                string line = i == 5 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
+                string line = i == 6 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
                 if (DrawerRow(r, PixelArt.Get(CosmeticIcons[i]), CosmeticSections[i], line, null, null, Ui.Gold, on))
                     cosmeticsSection = i;
                 y += r.height + 4f;
@@ -57,7 +57,7 @@ namespace Arena
             EndDrawer();
 
             BeginPanelAnim("cosmetics" + cosmeticsSection);
-            if (cosmeticsSection == 5)
+            if (cosmeticsSection == 6)
                 DrawLadderPanel(p, k);
             else
                 DrawCosmeticPanel(p, t, k);
@@ -67,7 +67,7 @@ namespace Arena
         static string EquippedName(Profile p, CosmeticKind kind)
         {
             var c = Rank.Cosmetic(p.Equipped(kind));
-            return c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : "None";
+            return c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine ? "Classic" : "None";
         }
 
         // --- A category: the preview, and what to choose ---------------------------------------------------------
@@ -82,6 +82,7 @@ namespace Arena
                 "Your menu background. Dusk Grid is a rank reward; the others are in Settings > Visual effects.",
                 "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
                 "How your name looks to everyone: the lobby, the Hangout, and over your head in a match.",
+                "The line from your weapon to the crosshair in a match. Only you see it. Classic is the default.",
             };
             OpenSectionPanel(CosmeticSections[cosmeticsSection].ToUpperInvariant(), Ui.Gold, subs[cosmeticsSection], k);
             float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f;
@@ -94,6 +95,8 @@ namespace Arena
                 BackgroundThumb(look, Ui.Gold, 0.4f);
                 UiModelAt(new V2(look.center.x + 10f, look.center.y), 1.6f);
                 DrawTrailSample(Rank.TrailIndex(p.Trail), 90f, t, 14f);
+                if (kind == CosmeticKind.AimLine)
+                    DrawAimLook(AimLook(), new V2(18f, 0f), new V2(1f, 0f), 100f, t, AimSampleColor, true);  // AimLineLooks.cs
                 DrawGenericPlayer(t);
                 EndUiGl();
             }
@@ -117,10 +120,10 @@ namespace Arena
                 Ui.Pill(rr, on ? new Color(1f, 0.8f, 0.35f, 0.12f) : new Color(1f, 1f, 1f, ok ? 0.05f : 0.025f));
                 float th = Mathf.Min(42f, rh - 6f);
                 RowThumb(new Rect(rr.x + 8f, rr.y + (rh - th) / 2f, 64f, th), kind, c, p, t, ok);
-                string name = c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : "None";
+                string name = c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine ? "Classic" : "None";
                 float ty = (rh - (tiny ? 32f : 40f)) / 2f;
                 Ui.Label(new Rect(rr.x + 84f, rr.y + ty, rr.width - 180f, tiny ? 18f : 20f), name, tiny ? 14 : 15, ok ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                string sub = c == null ? (kind == CosmeticKind.Background ? "what you chose in Settings" : "nothing equipped") : ok ? "unlocked" : "needs rank " + c.Rank;
+                string sub = c == null ? (kind == CosmeticKind.Background ? "what you chose in Settings" : kind == CosmeticKind.AimLine ? "the default line" : "nothing equipped") : ok ? "unlocked" : "needs rank " + c.Rank;
                 Ui.Label(new Rect(rr.x + 84f, rr.y + ty + (tiny ? 15f : 22f), rr.width - 180f, tiny ? 16f : 18f), sub, tiny ? 10 : 11, ok ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
                 if (ok)
                 {
@@ -209,6 +212,17 @@ namespace Arena
                 Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
                 if (c != null)
                     DrawCardBackground(new Rect(r.x - CardBgInset, r.y - CardBgInset, r.width + 2f * CardBgInset, r.height + 2f * CardBgInset), Rank.CardBgIndex(c.Id), t);
+            }
+            else if (kind == CosmeticKind.AimLine)
+            {
+                Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
+                if (BeginUiGl())
+                {
+                    UiModelAt(new V2(r.x + 12f, r.center.y), 0.5f);
+                    DrawAimLook(c != null ? Rank.AimLineIndex(c.Id) : 0, new V2(12f, 0f), new V2(1f, 0f), 92f, t, AimSampleColor, true);
+                    DrawGenericPlayer(t);
+                    EndUiGl();
+                }
             }
             else
             {

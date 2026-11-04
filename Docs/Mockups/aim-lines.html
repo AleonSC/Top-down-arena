@@ -63,7 +63,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
   <header>
     <div class="eyebrow">Cosmetics mockup · aim line</div>
     <h1>Aim line <span>cosmetics</span></h1>
-    <p class="lead">Ten looks for the line from your weapon to the crosshair. Move the cursor over the arena to try one, or pick a card. All of them keep the rules of today's line: it runs from you toward the crosshair, never past your weapon's range, and ends in a cap when the crosshair is farther than that. Unlock ranks are placeholders.</p>
+    <p class="lead">Ten looks for the line from your weapon to the crosshair. Move the cursor over the arena to try one, or pick a card. All of them keep the rules of today's line: it runs from you toward the crosshair, never past your weapon's range, and ends in a cap when the crosshair is farther than that. Ranks match the ones built into the game. The built Ruler has no numbers, since the arena draws shapes only.</p>
   </header>
 
   <section>
@@ -77,7 +77,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
       <div class="bar">
         <div class="group"><span class="label">Class colour</span><span id="swatches" class="group"></span></div>
         <label class="sl" for="range">Weapon range <input id="range" type="range" min="120" max="575" value="400"><b id="rangeV">400 px</b></label>
-        <label class="sl" for="rank">Player rank <input id="rank" type="range" min="0" max="25" value="25"><b id="rankV">25</b></label>
+        <label class="sl" for="rank">Player rank <input id="rank" type="range" min="0" max="50" value="50"><b id="rankV">50</b></label>
       </div>
     </div>
   </section>
@@ -142,14 +142,14 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) L(e, e.reach, -6, e.reach, 6, 2, rgba(c, 0.45));
       } },
 
-    { id: 'dotted', name: 'Dotted Tracer', rank: 3, blurb: 'Evenly spaced beads that march toward the target and shrink with distance.',
+    { id: 'dotted', name: 'Dotted Tracer', rank: 5, blurb: 'Evenly spaced beads that march toward the target and shrink with distance.',
       draw: function (e) {
         var c = mix(e.col, WHITE, 0.25);
         for (var d = (e.t * 50) % 14; d < e.reach; d += 14) { var f = fade(e, d, 0.85); dot(e, d, 0, 0.8 + 2.4 * f, rgba(c, 0.9 * f + 0.1)); }
         if (e.capped) ring(e, e.reach, 0, 5, 1.6, rgba(c, 0.7));
       } },
 
-    { id: 'chevron', name: 'Chevron Flow', rank: 5, blurb: 'A stream of arrowheads, so the direction reads at a glance even on a busy screen.',
+    { id: 'chevron', name: 'Chevron Flow', rank: 11, blurb: 'A stream of arrowheads, so the direction reads at a glance even on a busy screen.',
       draw: function (e) {
         var c = mix(e.col, WHITE, 0.3);
         L(e, 0, 0, e.reach, 0, 1, rgba(c, 0.12));
@@ -160,7 +160,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) { poly(e, [[e.reach - 6, -7], [e.reach + 1, 0], [e.reach - 6, 7]], 2.5, rgba(c, 0.9)); }
       } },
 
-    { id: 'ruler', name: 'Ruler', rank: 7, blurb: 'A thin rule with ticks every 20 px and a number every 100. Good for learning your weapon\'s reach.',
+    { id: 'ruler', name: 'Ruler', rank: 14, blurb: 'A thin rule with ticks every 20 px and a number every 100. Good for learning your weapon\'s reach.',
       draw: function (e) {
         var c = mix(e.col, WHITE, 0.4), g = e.g, d;
         L(e, 0, 0, e.reach, 0, 1, rgba(c, 0.35));
@@ -174,7 +174,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) { L(e, e.reach, -7, e.reach, 7, 2.2, rgba(c, 0.9)); }
       } },
 
-    { id: 'ember', name: 'Ember Wisp', rank: 8, blurb: 'A warm line shedding sparks that drift sideways and cool from yellow to red.',
+    { id: 'ember', name: 'Ember Wisp', rank: 17, blurb: 'A warm line shedding sparks that drift sideways and cool from yellow to red.',
       draw: function (e) {
         var g = e.g, ember = [255, 150, 60], i;
         L(e, 0, 0, e.reach, 0, 6, rgba(mix(e.col, ember, 0.7), 0.07));
@@ -190,7 +190,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) { poly(e, [[e.reach - 7, 0], [e.reach, -5], [e.reach + 7, 0], [e.reach, 5], [e.reach - 7, 0]], 1.6, rgba(ember, 0.85)); }
       } },
 
-    { id: 'frost', name: 'Frost Shard', rank: 10, blurb: 'Pale ice diamonds with small slivers either side. Ends in a six-point snowflake.',
+    { id: 'frost', name: 'Frost Shard', rank: 21, blurb: 'Pale ice diamonds with small slivers either side. Ends in a six-point snowflake.',
       draw: function (e) {
         var ice = mix(e.col, [170, 235, 255], 0.7), i = 0, g = e.g;
         L(e, 0, 0, e.reach, 0, 6, rgba(ice, 0.06));
@@ -205,7 +205,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) for (var k = 0; k < 3; k++) { var an = k * Math.PI / 3, ox = Math.cos(an) * 7, oy = Math.sin(an) * 7; e.g.strokeStyle = rgba(ice, 0.85); e.g.lineWidth = 1.5; var p = P(e, e.reach, 0); e.g.beginPath(); e.g.moveTo(p[0] - ox, p[1] - oy); e.g.lineTo(p[0] + ox, p[1] + oy); e.g.stroke(); }
       } },
 
-    { id: 'storm', name: 'Storm Arc', rank: 13, blurb: 'A crackling bolt that re-forms about twenty times a second, with the odd forked spur.',
+    { id: 'storm', name: 'Storm Arc', rank: 26, blurb: 'A crackling bolt that re-forms about twenty times a second, with the odd forked spur.',
       draw: function (e) {
         var bolt = [200, 170, 255], seed = Math.floor(e.t * 20), n = Math.max(2, Math.floor(e.reach / 14)), pts = [], k;
         for (k = 0; k <= n; k++) {
@@ -224,7 +224,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) { L(e, e.reach, -6, e.reach, 6, 2, rgba(bolt, 0.85)); dot(e, e.reach, 0, 3, rgba([255, 255, 255], 0.9)); }
       } },
 
-    { id: 'pixel', name: 'Pixel Beam', rank: 16, blurb: 'Chunky 4 px squares snapped to a grid, blinking in a march. Retro and unmistakable.',
+    { id: 'pixel', name: 'Pixel Beam', rank: 29, blurb: 'Chunky 4 px squares snapped to a grid, blinking in a march. Retro and unmistakable.',
       draw: function (e) {
         var c = mix(e.col, WHITE, 0.2), g = e.g, G = 4, d;
         function sq(x, y, col) { g.fillStyle = col; g.fillRect(Math.floor(x / G) * G, Math.floor(y / G) * G, G, G); }
@@ -235,7 +235,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) { var q = P(e, e.reach, 0), col = rgba(c, 0.95); sq(q[0], q[1], col); sq(q[0] - G, q[1], col); sq(q[0] + G, q[1], col); sq(q[0], q[1] - G, col); sq(q[0], q[1] + G, col); }
       } },
 
-    { id: 'helix', name: 'Helix', rank: 20, blurb: 'Two strands winding around the aim axis, joined by faint rungs. It never leaves the line.',
+    { id: 'helix', name: 'Helix', rank: 34, blurb: 'Two strands winding around the aim axis, joined by faint rungs. It never leaves the line.',
       draw: function (e) {
         var c1 = mix(e.col, WHITE, 0.3), c2 = mix(e.col, [255, 200, 90], 0.75), A = [], B = [], d;
         for (d = 0; d <= e.reach; d += 3) {
@@ -248,7 +248,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
         if (e.capped) { ring(e, e.reach, 0, 6, 1.6, rgba(c1, 0.8)); dot(e, e.reach, 0, 1.8, rgba(c2, 0.9)); }
       } },
 
-    { id: 'prism', name: 'Prism', rank: 25, blurb: 'The top-rank line. A gradient that slides through every hue and ignores the class colour.',
+    { id: 'prism', name: 'Prism', rank: 46, blurb: 'The top-rank line. A gradient that slides through every hue and ignores the class colour.',
       draw: function (e) {
         var step = 5, d;
         e.g.globalCompositeOperation = 'lighter';
@@ -264,7 +264,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
   ];
 
   var COLORS = [['Soldier', '#6ec1ff'], ['Knight', '#ff8a5c'], ['Mage', '#b48cff'], ['Ranger', '#7be37b']];
-  var state = { sel: 0, color: hex(COLORS[0][1]), range: 400, rank: 25, mx: null, my: null, t: 0 };
+  var state = { sel: 0, color: hex(COLORS[0][1]), range: 400, rank: 50, mx: null, my: null, t: 0 };
 
   function setup(cv, w, h, k) { cv.width = w * k; cv.height = h * k; var g = cv.getContext('2d'); g.setTransform(k, 0, 0, k, 0, 0); return g; }
 

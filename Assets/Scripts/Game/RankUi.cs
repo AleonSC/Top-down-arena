@@ -265,9 +265,11 @@ namespace Arena
                     FrameOutline(new Rect(b.x + b.width * 0.3f, b.y + 14f, b.width * 0.4f, b.height - 28f), RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(row.Cosmetic.Id))));
                 if (BeginUiGl())
                 {
-                    UiModelAt(new V2(b.center.x + (row.Cosmetic.Kind == CosmeticKind.Trail ? 40f : 0f), b.center.y), 1.3f);
+                    UiModelAt(new V2(b.center.x + (row.Cosmetic.Kind == CosmeticKind.Trail ? 40f : row.Cosmetic.Kind == CosmeticKind.AimLine ? -b.width * 0.3f : 0f), b.center.y), 1.3f);
                     if (row.Cosmetic.Kind == CosmeticKind.Trail)
                         DrawTrailSample(Rank.TrailIndex(row.Cosmetic.Id), 80f, t, 12f);
+                    else if (row.Cosmetic.Kind == CosmeticKind.AimLine)
+                        DrawAimLook(Rank.AimLineIndex(row.Cosmetic.Id), new V2(14f, 0f), new V2(1f, 0f), 110f, t, AimSampleColor, true);
                     DrawGenericPlayer(t);
                     EndUiGl();
                 }
@@ -335,7 +337,7 @@ namespace Arena
                 rows.Add(new LadderRow { Rank = at, Name = Rank.TierNames[t], Kind = "Title" });
             }
             foreach (var c in Rank.Cosmetics)
-                rows.Add(new LadderRow { Rank = c.Rank, Name = c.Name, Kind = c.Kind == CosmeticKind.CardBackground ? "Card background" : c.Kind.ToString(), Cosmetic = c });
+                rows.Add(new LadderRow { Rank = c.Rank, Name = c.Name, Kind = c.Kind == CosmeticKind.CardBackground ? "Card background" : c.Kind == CosmeticKind.AimLine ? "Aim line" : c.Kind.ToString(), Cosmetic = c });
             rows.Sort((a, b) => a.Rank != b.Rank ? a.Rank.CompareTo(b.Rank) : string.CompareOrdinal(a.Kind, b.Kind));
             return rows;
         }
@@ -356,8 +358,8 @@ namespace Arena
             Ui.Label(new Rect(x, top + 202f, lw, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 12, Ui.Text, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(x, top + 220f, lw, 18f), p.Xp.ToString("N0") + " XP in total", 11, Ui.Muted, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(x, top + 262f, lw, 16f), "EQUIPPED", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[,] eq = { { "Title", Rank.Title(info.Rank) }, { "Frame", NameOf(p.Frame) }, { "Trail", NameOf(p.Trail) }, { "Background", NameOf(p.Background) }, { "Card", NameOf(p.CardBg) }, { "Name", NameOf(p.NameFx) } };
-            for (int i = 0; i < 6; i++)
+            string[,] eq = { { "Title", Rank.Title(info.Rank) }, { "Frame", NameOf(p.Frame) }, { "Trail", NameOf(p.Trail) }, { "Background", NameOf(p.Background) }, { "Card", NameOf(p.CardBg) }, { "Name", NameOf(p.NameFx) }, { "Aim", p.AimLine == "" ? "Classic" : NameOf(p.AimLine) } };
+            for (int i = 0; i < 7; i++)
             {
                 var rr = new Rect(x, top + 284f + i * 34f, lw, 28f);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, 0.04f));

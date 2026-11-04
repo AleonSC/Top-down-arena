@@ -3,6 +3,7 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [x] **Aim line cosmetics.** Built (Nov 2026, protocol unchanged, 147): the ten looks of [`Mockups/aim-lines.html`](Mockups/aim-lines.html) (https://claude.ai/artifact/DqF7ZeYmB5eJkJizFEkubX), under **Aim line** in Your look. Classic is free; the other nine unlock at ranks 5, 11, 14, 17, 21, 26, 29, 34 and 46. Only your own line is drawn, so nothing goes on the wire. Left out: the Ruler's numbers (the arena draws shapes only, no text) and additive glow on Ember, Storm and Prism. Needs a try in Unity. The Armory and Bestiary are unaffected.
 - [x] **Play to Continue was too abrupt.** Built (Nov 2026, protocol unchanged): look D (Scan wipe) of [`Mockups/play-transition.html`](Mockups/play-transition.html) (https://claude.ai/artifact/KoZjXL3aurKkt4Dhx6GTaB), slowed to 0.85 s (`MenuPlayLen` in `Menus.cs`). A teal line sweeps left to right from the menu buttons to the picker, and right to left on Back or Esc. No clicks during the sweep; it snaps with reduced effects. Needs a try in Unity.
 - [x] **Menu tip tray (no more record line).** Built (Nov 2026, protocol unchanged, 147): look D of [`Mockups/menu-tips-only.html`](Mockups/menu-tips-only.html)
       (https://claude.ai/artifact/L1PxG3dkzmxsVG5MYVDR7R). The chip under the title is gone, record line and all; a tray slides out from behind the bottom of the menu card

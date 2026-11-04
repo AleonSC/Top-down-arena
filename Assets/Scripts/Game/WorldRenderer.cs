@@ -769,36 +769,15 @@ namespace Arena
             float reach = Mathf.Min(range, toCursor);
             if (reach < 4f)
                 return;  // crosshair on top of you
+            bool capped = toCursor >= range;  // the crosshair is beyond the weapon's reach: the look ends in a cap
+            DrawAimLook(AimLook(), from, dir, reach, t, me.Def.Color, capped);  // AimLineLooks.cs
             var c = me.Def.Color.Mix(Rgba.White, 0.35f);
-            const int Steps = 24;
-            for (int i = 0; i < Steps; i++)
-            {
-                float a = (float)i / Steps, b = (float)(i + 1) / Steps;
-                float fade = 1f - 0.8f * a;  // strongest at the gun, still visible at the crosshair
-                V2 p0 = from + dir * (reach * a), p1 = from + dir * (reach * b);
-                Line(p0, p1, 8f, c.WithAlpha(0.07f * fade));   // soft glow
-                Line(p0, p1, 1.5f, c.WithAlpha(0.32f * fade));  // thin core
-            }
             if (me.Weapon.Id == WeaponId.TwinRifle)  // an X where the Twin Rifle's streams cross: crossfire there
             {
                 V2 x = me.Disp + dir * game.TwinCrossDistance(me), s0 = V2.FromAngle(me.Aim + MathX.Pi / 4f) * 7f, s1 = V2.FromAngle(me.Aim - MathX.Pi / 4f) * 7f;
                 Line(x - s0, x + s0, 2f, c.WithAlpha(0.7f));
                 Line(x - s1, x + s1, 2f, c.WithAlpha(0.7f));
                 Arc(x, Game.TwinCrossZone, 1.2f, c.WithAlpha(0.18f), 28);
-            }
-            // A small cap where the weapon's reach ends (when the crosshair is beyond it).
-            if (toCursor >= range)
-            {
-                V2 end = from + dir * reach, side = dir.Orthogonal();
-                Line(end - side * 6f, end + side * 6f, 2f, c.WithAlpha(0.45f));
-            }
-            // Motes drifting outward.
-            const float Spacing = 34f;
-            float offset = MathX.Fmod(t * 140f, Spacing);
-            for (float d = offset; d < reach; d += Spacing)
-            {
-                float f = 1f - 0.75f * d / reach;
-                Circle(from + dir * d, 1.3f + 1.2f * f, c.WithAlpha(0.5f * f), 8);
             }
         }
     }
