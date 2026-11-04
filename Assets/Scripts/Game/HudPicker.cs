@@ -43,7 +43,7 @@ namespace Arena
             if (band > 0f)
                 for (int k = 0; k < 7; k++)  // a dark band behind it, soft at the edges
                     Ui.Fill(new Rect(0f, titleY - 70f + k * 20f, W, 20f), new Color(0f, 0f, 0f, 0.55f * band * Mathf.Sin((k + 0.5f) / 7f * Mathf.PI)));
-            Ui.Fancy(new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f), title, titleSize, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
+            Ui.Glitch(new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f), title, titleSize, Color.white, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
             int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones + me.PrizePicks - 1;
             string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
@@ -175,7 +175,7 @@ namespace Arena
             var rerollR = new Rect(bx, by, rerollW, 48f);
             if (canReroll)
             {
-                if (Ui.FancyButton(rerollR, armed ? "CLICK AGAIN TO REROLL" : "REROLL", armed ? RerollArmedTint : Ui.Neutral, PixelArt.Get("ui_arrow"), now) && !opening)
+                if (Ui.FancyButton(rerollR, armed ? "CLICK AGAIN TO REROLL" : "REROLL", armed ? RerollArmedTint : Ui.Neutral, PixelArt.Get("ui_arrow"), now, 0, true) && !opening)
                     RerollPress();
                 if (armed)
                     Ui.Fill(new Rect(rerollR.x + 12f, rerollR.yMax - 7f, (rerollR.width - 24f) * (1f - (now - rerollArmedAt) / RerollArmTime), 3f), new Color(0.1f, 0.06f, 0f, 0.6f));
@@ -183,7 +183,7 @@ namespace Arena
                     Ui.Label(new Rect(rerollR.xMax - 66f, rerollR.y, 50f, rerollR.height), "×" + me.Rerolls, 15, new Color(1f, 1f, 1f, GUI.enabled ? 0.85f : 0.4f), TextAnchor.MiddleRight, true);
             }
             GUI.enabled = picked && !game.RerollPending;
-            if (Ui.FancyButton(new Rect(bx + rerollW + bgap, by, takeW, 48f), "CHOOSE UPGRADE", picked ? Ui.GoldButton : Ui.Neutral, PixelArt.Get("ui_check"), now) && !opening)
+            if (Ui.FancyButton(new Rect(bx + rerollW + bgap, by, takeW, 48f), "CHOOSE UPGRADE", picked ? Ui.GoldButton : Ui.Neutral, PixelArt.Get("ui_check"), now, 0, true) && !opening)
                 ConfirmPick();
             SyncSelection(me);  // notes when these cards appeared, for the reroll lock (ArenaApp.cs)
             GUI.enabled = wasEnabled;
@@ -338,7 +338,7 @@ namespace Arena
 
             // Name, description (and what mastering a granted ability adds), a note.
             Color nameLow = selected ? Color.Lerp(rc, Color.white, 0.25f) : new Color(0.78f, 0.83f, 0.94f);
-            Ui.Fancy(new Rect(r.x + 8f, r.y + 150f, r.width - 16f, 34f), u.Name, u.Name.Length > 16 ? 21 : 25, Color.white, nameLow, TextAnchor.MiddleCenter,
+            Ui.Glitch(new Rect(r.x + 8f, r.y + 150f, r.width - 16f, 34f), u.Name, u.Name.Length > 16 ? 21 : 25, Color.Lerp(nameLow, Color.white, 0.6f), TextAnchor.MiddleCenter,
                 selected ? (Color?)new Color(rc.r, rc.g, rc.b, 0.6f) : null);
             string desc = Upgrades.DescFor(u, me.Weapon);
             int ds = desc.Length > 110 ? 12 : 14;
@@ -434,7 +434,7 @@ namespace Arena
                 Ui.Pill(frame, new Color(rc.r * 0.3f, rc.g * 0.3f, rc.b * 0.3f, 0.9f));
                 Ui.Icon(new Rect(frame.x + 2f, frame.y + 2f + bob * 0.5f, 48f, 48f), icon);
                 Ui.Label(new Rect(r.x + 74f, r.y + 14f, r.width - 82f, 16f), note, 10, rc, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 74f, r.y + 30f, r.width - 82f, 36f), u.Name, 15, Color.white, TextAnchor.UpperLeft, true, true);
+                Ui.Glitch(new Rect(r.x + 74f, r.y + 30f, r.width - 82f, 36f), u.Name, 15, Color.white, TextAnchor.UpperLeft);
                 Ui.Label(new Rect(r.x + 12f, r.y + 74f, r.width - 24f, 52f), Upgrades.DescFor(u, me.Weapon), 11, Ui.Text, TextAnchor.UpperLeft, false, true);
                 if (selected && pickParts != null)  // (a strip would cover the text on these small cards: one green line instead)
                     Ui.Label(new Rect(r.x + 10f, r.yMax - 22f, r.width - 20f, 16f), pickParts[0], 10, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleRight, true);
@@ -454,7 +454,7 @@ namespace Arena
             Ui.Pill(new Rect(tile.x - 4f, tile.y - 4f, tile.width + 8f, tile.height + 8f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
             Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + bob, 72f, 72f), icon);
-            Ui.Label(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter, true);
+            Ui.Glitch(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter);
             Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
             string desc = Upgrades.DescFor(u, me.Weapon);
             int ds = desc.Length > 110 ? 12 : 14;
