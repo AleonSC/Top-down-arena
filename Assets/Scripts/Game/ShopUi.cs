@@ -125,7 +125,7 @@ namespace Arena
             Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), status, 13, Ui.Muted, TextAnchor.MiddleLeft, true);
             if (session.IsHost && game.ShopT >= Game.ShopHostCloseAfter && waiting.Count > 0)
             {
-                if (!popup && Ui.SmallButton(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", Ui.Danger))
+                if (!popup && Ui.ActionButton(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", false, Ui.Danger, null, null, 13))
                     game.Shop(ShopAction.Close);
             }
             else
