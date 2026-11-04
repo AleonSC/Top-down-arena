@@ -60,7 +60,7 @@ li::marker{color:var(--c)}
 <div class="cards">
   <article class="card" style="--c:var(--saw)">
     <div class="head"><canvas id="pv-saw" width="192" height="192" aria-label="Buzzsaw sprite"></canvas>
-      <div><span class="tag">New &middot; replaces Swarmer</span><h2>Buzzsaw</h2><div class="sub">A round body ringed by spikes that spin at a blur.</div></div></div>
+      <div><span class="tag">New &middot; replaces Swarmer</span><h2>Buzzsaw</h2><div class="sub">A round body ringed by spikes that spin steadily.</div></div></div>
     <div class="arena"><canvas id="cv-saw" aria-label="Buzzsaw chasing a target"></canvas><div class="hint">Live</div></div>
     <div class="read"><span>Damage taken<b id="d-saw">0</b></span><span>Hits<b id="h-saw">0</b></span></div>
     <div class="stats">
@@ -70,13 +70,13 @@ li::marker{color:var(--c)}
     <ul>
       <li>Steers with momentum, so it swoops in on curves and loops past you instead of turning on a spot.</li>
       <li>Fastest grunt. Low damage per hit but a hit lands about 8 times a second (about 33 damage per second).</li>
-      <li>Spikes spin at roughly 3 turns a second, which is purely visual. It hurts on any contact.</li>
+      <li>Spikes turn at a steady, readable pace (about 1 turn a second), which is purely visual. It hurts on any contact.</li>
     </ul>
   </article>
 
   <article class="card" style="--c:var(--swarm)">
     <div class="head"><canvas id="pv-swarm" width="192" height="192" aria-label="Swarmer sprite"></canvas>
-      <div><span class="tag">Changed &middot; movement</span><h2>Swarmer</h2><div class="sub">Same small orange triangle, now unpredictable.</div></div></div>
+      <div><span class="tag">Changed &middot; movement</span><h2>Swarmer</h2><div class="sub">Same small orange triangle, now with a long thin spike on each face and an unpredictable path.</div></div></div>
     <div class="arena"><canvas id="cv-swarm" aria-label="Swarmer zig-zagging toward a target"></canvas><div class="hint">Live</div></div>
     <div class="read"><span>Damage taken<b id="d-swarm">0</b></span><span>Hits<b id="h-swarm">0</b></span></div>
     <div class="stats">
@@ -136,6 +136,10 @@ function drawEnemy(ctx,kind,e,x,y,k){
     ctx.beginPath();ctx.moveTo(0,-4);ctx.lineTo(0,-9);ctx.lineWidth=2;ctx.strokeStyle=C.saw;ctx.stroke();
   }else if(kind==='swarm'){
     ctx.rotate(e.ang);
+    ctx.fillStyle='#ffd9b8';
+    [[2,-4.5,-1.147],[2,4.5,1.147],[-8,0,Math.PI]].forEach(function(f){
+      ctx.save();ctx.translate(f[0],f[1]);ctx.rotate(f[2]);spikeTri(ctx,0,-1.6,13,0,0,1.6);ctx.restore();
+    });
     ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-8,-9);ctx.lineTo(-8,9);ctx.closePath();
     ctx.fillStyle=C.swarm;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#5a2a0c';ctx.stroke();
   }else{
@@ -183,7 +187,7 @@ function makeSim(kind){
     if(kind==='saw'){
       var k=Math.min(1,dt*3.2);
       e.vx+=(dx/d*170-e.vx)*k;e.vy+=(dy/d*170-e.vy)*k;
-      e.x+=e.vx*dt;e.y+=e.vy*dt;e.spin+=dt*19;
+      e.x+=e.vx*dt;e.y+=e.vy*dt;e.spin+=dt*7;
       if(d<30){s.tick-=dt;while(s.tick<=0){hurt(4);s.tick+=.12}}else s.tick=0;
     }else if(kind==='swarm'){
       e.zt-=dt;
@@ -244,7 +248,7 @@ function makePreview(kind){
   var cv=document.getElementById('pv-'+kind),ctx=cv.getContext('2d');
   return function(t){
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,192,192);
-    var e={spin:t*14,ang:-.5+Math.sin(t*.8)*.25,a:Math.sin(t*.6)*.3,ph:(Math.floor(t/1.6)%2)?'wind':'go'};
+    var e={spin:t*5,ang:-.5+Math.sin(t*.8)*.25,a:Math.sin(t*.6)*.3,ph:(Math.floor(t/1.6)%2)?'wind':'go'};
     drawEnemy(ctx,kind,e,96,96,kind==='block'?2.4:kind==='swarm'?3.8:3.2);
   };
 }
