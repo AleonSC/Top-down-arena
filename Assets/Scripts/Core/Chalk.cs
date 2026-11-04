@@ -290,6 +290,7 @@ namespace Arena
                         continue;
                     gone.Add(b.Id);
                     d.T -= ChalkWear;
+                    BroadcastFx(FxKind.Spark, d.Pos, new Rgba(0.8f, 0.9f, 1f), 12f, 0.25f, Sfx.None);  // a puff of dust where it hit
                     break;
                 }
             }
