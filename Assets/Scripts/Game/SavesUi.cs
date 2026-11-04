@@ -117,7 +117,7 @@ namespace Arena
                 return;
             }
             bool any = savedRuns.Count > 0;
-            Ui.Fancy(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, new Color(0.72f, 1f, 0.82f), TextAnchor.MiddleLeft, SaveColor);
+            Ui.Glitch(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, TextAnchor.MiddleLeft, SaveColor);
             if (MenuVhs.Draw(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "TRK 02", live, fxReduced, () => Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15)) && live)
                 PlayPickerBack();
             var r = new Rect(c.x + 30f, c.y + 62f, 620f, 118f);
@@ -240,7 +240,7 @@ namespace Arena
         {
             var panel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
             Ui.Panel(panel, true);
-            Ui.Fancy(new Rect(panel.x, panel.y + 14f, panel.width, 50f), "CONTINUE A RUN", 34, Color.white, new Color(0.72f, 1f, 0.82f), TextAnchor.MiddleCenter, SaveColor);
+            Ui.Glitch(new Rect(panel.x, panel.y + 14f, panel.width, 50f), "CONTINUE A RUN", 34, Color.white, TextAnchor.MiddleCenter, SaveColor);
             Ui.Label(new Rect(panel.x, panel.y + 60f, panel.width, 18f), "Runs save themselves as each wave starts, and when you leave between waves. You host the run; friends join and take their seats.",
                 12, Ui.Muted, TextAnchor.MiddleCenter);
             float x = panel.x + 30f, w = panel.width - 60f, y = panel.y + 96f;
