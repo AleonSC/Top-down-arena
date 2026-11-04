@@ -8,7 +8,7 @@
 :root {
   --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
   --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547;
-  --a: #b97dff; --b: #ffd782; --c: #ff9f5a; --d: #6ef0cd;
+  --a: #82beff; --b: #96e1ff; --c: #c8d3e3; --d: #78afee;
   --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
   --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -56,8 +56,9 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
   <header>
     <div class="eyebrow">Mockup · DPS Elementalist · ultimate · replaces Meteor Storm · pick a look</div>
     <h1>Bullet <span>Rain</span></h1>
-    <p class="lead">Bullet Rain takes over the Elementalist DPS ultimate slot from <b>Meteor Storm</b> (F, 70 s cooldown). A zone locks on at your cursor,
-      you raise the staff, and magic rounds fall inside it for six seconds. Four ways to make it read as magic rather than gunfire. Nothing here is in the game yet, and the damage and rate numbers are placeholders.</p>
+    <p class="lead">Real rain. The Elementalist raises the staff and calls a storm, then <b>hones the raindrops into needles</b>: each drop falls soft and
+      blue, flashes partway down as it hardens, and lands as a sharp round. Four ways to show that. Every one has the same moment of change, so you can watch
+      a drop turn from water into a weapon. Nothing here is in the game yet, and the damage and rate numbers are placeholders.</p>
     <div class="group">
       <span class="label">All previews</span>
       <button id="pause" aria-pressed="false">Pause</button>
@@ -67,45 +68,45 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
     </div>
   </header>
   <section class="look" data-look="0">
-    <div class="lookhead"><span class="tag" style="color:var(--a)">LOOK A</span><h2>Arcane Barrage</h2></div>
+    <div class="lookhead"><span class="tag" style="color:var(--a)">LOOK A</span><h2>Honed Rain</h2></div>
     <div class="stage">
-      <canvas class="arena" aria-label="Look A: a rune circle and violet bolts"></canvas>
+      <canvas class="arena" aria-label="Look A: raindrops sharpen into clear needles"></canvas>
       <div class="bar">
-        <div><span class="k">What you see</span><p>A rotating rune circle with a hexagram, glyphs round the rim and drifting sparkles. Violet bolts with a bright core fall through it. Each lands with a flare, a ring and a scorch of light.</p></div>
-        <div><span class="k">Magic feel</span><p>The most classic spell circle. Reads instantly as a ritual, and the circle doubles as a clear edge for allies to avoid.</p></div>
+        <div><span class="k">What you see</span><p>A beam from the staff calls the storm. Thin blue drops fall, glint halfway down and become long glassy needles. Each lands with a ring and a splash, and leaves a puddle ripple.</p></div>
+        <div><span class="k">Magic feel</span><p>The plainest and most literal version: it is clearly water. Cheapest to draw and the easiest to read for allies.</p></div>
         <button class="pick" data-pick="0" aria-pressed="false">Pick Look A</button>
       </div>
     </div>
   </section>
   <section class="look" data-look="1">
-    <div class="lookhead"><span class="tag" style="color:var(--b)">LOOK B</span><h2>Starfall</h2></div>
+    <div class="lookhead"><span class="tag" style="color:var(--b)">LOOK B</span><h2>Frost Needles</h2></div>
     <div class="stage">
-      <canvas class="arena" aria-label="Look B: shooting stars fall into a twinkling pool"></canvas>
+      <canvas class="arena" aria-label="Look B: raindrops freeze into ice spears"></canvas>
       <div class="bar">
-        <div><span class="k">What you see</span><p>The zone fills with twinkling stars. Slanted gold and pale blue shooting stars with long glittering tails fall in. Each lands as a starburst and leaves motes drifting up.</p></div>
-        <div><span class="k">Magic feel</span><p>Soft and beautiful. The gentlest look, and the heaviest on glow, so it has the highest effect cost.</p></div>
+        <div><span class="k">What you see</span><p>Same storm, but the drops freeze mid-fall into pointed ice spears with a diamond tip and a glitter trail. Each shatters into shards and leaves a small frost patch.</p></div>
+        <div><span class="k">Magic feel</span><p>Strong silhouette, and a natural fit for the class. A frost patch could chill or slow, if you want the rain to do more than damage.</p></div>
         <button class="pick" data-pick="1" aria-pressed="false">Pick Look B</button>
       </div>
     </div>
   </section>
   <section class="look" data-look="2">
-    <div class="lookhead"><span class="tag" style="color:var(--c)">LOOK C</span><h2>Elemental Volley</h2></div>
+    <div class="lookhead"><span class="tag" style="color:var(--c)">LOOK C</span><h2>Steel Rain</h2></div>
     <div class="stage">
-      <canvas class="arena" aria-label="Look C: fire, ice and lightning rounds fall in turn"></canvas>
+      <canvas class="arena" aria-label="Look C: raindrops harden into steel needles"></canvas>
       <div class="bar">
-        <div><span class="k">What you see</span><p>Three kinds of round fall mixed together: fire with ember tails, ice crystals that shatter into shards, and jagged lightning that arcs to the two nearest enemies on impact. Three coloured arcs mark the rim.</p></div>
-        <div><span class="k">Magic feel</span><p>Ties into the rest of the class: the lightning fits Tsunami and its wet enemies. Easiest to read at a glance, because each element has its own colour and shape.</p></div>
+        <div><span class="k">What you see</span><p>The drops turn metallic: a bright cross-flash as they harden, then thin silver needles. They land with a pale ring and a few orange sparks, like steel on stone.</p></div>
+        <div><span class="k">Magic feel</span><p>The most weapon-like look, and the one that best sells that the water became bullets. Least magical of the four, more industrial.</p></div>
         <button class="pick" data-pick="2" aria-pressed="false">Pick Look C</button>
       </div>
     </div>
   </section>
   <section class="look" data-look="3">
-    <div class="lookhead"><span class="tag" style="color:var(--d)">LOOK D</span><h2>Rift Rain</h2></div>
+    <div class="lookhead"><span class="tag" style="color:var(--d)">LOOK D</span><h2>Downpour</h2></div>
     <div class="stage">
-      <canvas class="arena" aria-label="Look D: a tear in the air pours ghostly rounds down"></canvas>
+      <canvas class="arena" aria-label="Look D: it rains over the whole arena, only the zone is sharp"></canvas>
       <div class="bar">
-        <div><span class="k">What you see</span><p>A swirling rift opens above the zone, teal and pink. Ghost rounds with comet tails pour out of it in a cone, and each landing releases soul wisps that float up.</p></div>
-        <div><span class="k">Magic feel</span><p>The strangest and most summoned-feeling look. The rift is a strong silhouette, and it is the only one where the rounds visibly come from one place.</p></div>
+        <div><span class="k">What you see</span><p>The whole arena darkens and rains, with ripples everywhere and an occasional lightning flash. Only the drops over your zone harden into needles. Everything outside it falls soft and harmless.</p></div>
+        <div><span class="k">Magic feel</span><p>The most atmospheric. It changes the whole screen for six seconds, so it has the biggest effect cost and the most need for a Reduced effects fallback.</p></div>
         <button class="pick" data-pick="3" aria-pressed="false">Pick Look D</button>
       </div>
     </div>
@@ -119,16 +120,17 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
         <tbody>
           <tr><th>Cooldown</th><td class="n">70 s</td><td class="n">70 s</td></tr>
           <tr><th>Duration</th><td class="n">3 s</td><td class="n">6 s</td></tr>
-          <tr><th>Output</th><td class="n">12 meteors, 150 damage each</td><td class="n">about 80 rounds a second, 4 damage each (placeholder)</td></tr>
+          <tr><th>Output</th><td class="n">12 meteors, 150 damage each</td><td class="n">about 80 needles a second, 4 damage each (placeholder)</td></tr>
           <tr><th>Targeting</th><td class="n">Lands on enemies</td><td class="n">330 px zone at your cursor, drifting with it</td></tr>
           <tr><th>Mastery</th><td class="n">Twenty meteors</td><td class="n">Not designed yet</td></tr>
         </tbody>
       </table>
     </div>
     <ul>
+      <li>The needle forms about halfway down. That gives a short, readable warning before the damage lands, and it is the same in all four looks.</li>
+      <li>Rain suits Tsunami: enemies hit could count as wet, so the lightning arcs reach them. That is a gameplay idea, not drawn here.</li>
       <li>Meteor Storm's mastery bonus, its damage total and the Meteor zone type would all need a rework if one of these goes in.</li>
-      <li>Look C needs the three elements to be real reactions to match the visuals. The lightning arcs are drawn like Chain Light and Arc Lightning.</li>
-      <li><b>Reduced effects</b> turns off screen shake, the activation flash and the edge glow, like the game's own setting.</li>
+      <li><b>Reduced effects</b> turns off screen shake, the activation flash, the edge glow and Downpour's lightning flashes.</li>
       <li>Any version needs the zone's position in the snapshot, so it bumps <code>Session.ProtocolVersion</code>.</li>
     </ul>
   </section>
@@ -382,171 +384,159 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
     c.strokeStyle = 'rgba(' + core + ',.95)'; c.lineWidth = 1.8; c.beginPath(); c.moveTo(tx, ty); c.lineTo(hx, hy); c.stroke();
   }
 
-  /* ---------- Look A: Arcane Barrage ---------- */
+  /* ---------- Real rain, hardened into needles ---------- */
+  var SL = 0.22; // rain slant: head sits SL*z to the right of where it lands
+  function callBeam(c, s, col) { // the staff calls the storm: a beam from the orb to the sky
+    var e = env01(s.t, 0.35, 0.4); if (e <= 0) return; var o = tipM(-1.45 * e);
+    c.save(); c.globalCompositeOperation = 'lighter';
+    var g = c.createLinearGradient(0, o.y, 0, 0); g.addColorStop(0, 'rgba(' + col + ',' + (0.55 * e) + ')'); g.addColorStop(1, 'rgba(' + col + ',0)');
+    c.fillStyle = g; c.fillRect(o.x - 2.5 - Math.sin(s.t * 20) * 0.8, 0, 5, o.y); c.restore();
+  }
+  function sharpen(s, b, glintCol) { b.hard = true; P(s, { type: 'star', x: b.x + SL * b.z, y: b.y - b.z, life: 0.3, size: 12, col: glintCol }); P(s, { type: 'glow', x: b.x + SL * b.z, y: b.y - b.z, size: 14, life: 0.2, col: glintCol }); }
+  function needle(c, b, len, soft, core, w) {
+    var hx = b.x + SL * b.z, hy = b.y - b.z, dl = Math.hypot(SL, 1), ux = SL / dl, uy = -1 / dl;
+    var bx = hx + ux * len, by = hy + uy * len, nx = -uy * w, ny = ux * w;
+    var g = c.createLinearGradient(hx, hy, bx, by); g.addColorStop(0, 'rgba(' + core + ',1)'); g.addColorStop(0.5, 'rgba(' + soft + ',.55)'); g.addColorStop(1, 'rgba(' + soft + ',0)');
+    c.fillStyle = g; c.beginPath(); c.moveTo(hx, hy); c.lineTo(bx + nx, by + ny); c.lineTo(bx - nx, by - ny); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(' + core + ',.9)'; c.lineWidth = 1; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx + ux * len * 0.55, hy + uy * len * 0.55); c.stroke();
+  }
+  function softDrop(c, b, a) {
+    var hx = b.x + SL * b.z, hy = b.y - b.z, dl = Math.hypot(SL, 1);
+    c.strokeStyle = 'rgba(150,195,240,' + a + ')'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx + SL / dl * 26, hy - 1 / dl * 26); c.stroke();
+  }
+  function puddles(c, s, col) {
+    for (var i = 0; i < s.scorch.length; i++) { var q = s.scorch[i], age = 1 - q.l / (q.max || 1.4); c.strokeStyle = 'rgba(' + (q.c || col) + ',' + (q.l / (q.max || 1.4) * 0.5) + ')'; c.lineWidth = 1; c.beginPath(); c.ellipse(q.x, q.y, 3 + age * 9, (3 + age * 9) * 0.55, 0, 0, TAU); c.stroke(); }
+  }
+  function splash(s, x, y, col, n, sp0) { for (var i = 0; i < n; i++) { var a = -Math.PI / 2 + rnd(-1.2, 1.2), sp = rnd(sp0 * 0.5, sp0); P(s, { x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.8, life: rnd(0.2, 0.4), size: 1.8, col: col, drag: 4 }); } }
+
+  /* ---------- Look A: Honed Rain ---------- */
   var LA = mk({
-    acc: '185,125,255',
+    acc: '130,190,255',
     update: function (s, dt, active) {
       tick(s, dt);
       if (active) {
-        launch(s, dt, '200,160,255', 0.07);
-        rainSpawn(s, dt, 85, function (x, y) { s.bul.push({ x: x, y: y, z: rnd(300, 520), vz: -rnd(1300, 1700) }); });
-        if (Math.random() < dt * 14) { var z = zoneOf(s), a = rnd(0, TAU); P(s, { type: 'star', x: z.x + Math.cos(a) * z.R * rnd(.85, 1), y: z.y + Math.sin(a) * z.R * rnd(.85, 1), vy: -30, life: 0.7, size: 7, col: '215,175,255' }); }
+        launch(s, dt, '170,215,255', 0.12);
+        rainSpawn(s, dt, 85, function (x, y) { var z0 = rnd(430, 620); s.bul.push({ x: x, y: y, z: z0, vz: -rnd(900, 1200), hz: z0 * 0.5, hard: false }); });
       }
+      for (var i = 0; i < s.bul.length; i++) { var b = s.bul[i]; if (!b.hard && b.z <= b.hz) sharpen(s, b, '220,245,255'); }
       fallers(s, dt, function (s, b) {
-        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 22, life: 0.35, size: 2.5, col: '190,130,255' });
-        P(s, { type: 'star', x: b.x, y: b.y, life: 0.28, size: 11, col: '240,215,255' });
-        for (var i = 0; i < 2; i++) { var a = rnd(0, TAU), sp = rnd(80, 200); P(s, { x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.22, size: 1.6, col: '200,150,255' }); }
+        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 20, life: 0.35, size: 2, col: '170,215,255' });
+        splash(s, b.x, b.y, '190,225,255', 6, 200);
         if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4 });
-        dmgAt(s, b.x, b.y, 8, 4, '200,150,255');
+        dmgAt(s, b.x, b.y, 8, 4, '190,225,255');
       });
     },
-    ground: function (c, s) {
-      scorchDraw(c, s, '185,125,255', 1.4);
-      var d = zoneDisc(c, s, '185,125,255', [16, 10]); if (!d) return;
-      var z = d.z, R = d.R, t = s.t;
-      c.save(); c.lineCap = 'round'; c.lineWidth = 1.2;
-      c.strokeStyle = 'rgba(200,150,255,' + (0.5 * d.za) + ')';
-      c.beginPath(); c.arc(z.x, z.y, R * 0.62, 0, TAU); c.stroke();
-      c.beginPath(); c.arc(z.x, z.y, R + 14, 0, TAU); c.stroke();
-      for (var h = 0; h < 2; h++) { c.beginPath(); for (var i = 0; i <= 3; i++) { var a = t * (h ? -0.35 : 0.35) + h * TAU / 6 + i * TAU / 3, px = z.x + Math.cos(a) * R * 0.62, py = z.y + Math.sin(a) * R * 0.62; if (i) c.lineTo(px, py); else c.moveTo(px, py); } c.stroke(); }
-      c.strokeStyle = 'rgba(230,200,255,' + (0.8 * d.za) + ')'; c.lineWidth = 1.5;
-      for (var g = 0; g < 18; g++) { var ga = -t * 0.25 + g * TAU / 18; rune(c, z.x + Math.cos(ga) * (R + 7), z.y + Math.sin(ga) * (R + 7), 5, ga + Math.PI / 2, g * 3.1); }
-      c.restore();
-    },
+    ground: function (c, s) { puddles(c, s, '160,205,255'); zoneDisc(c, s, '130,190,255', [16, 10]); },
     air: function (c, s) {
-      c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
-      for (var i = 0; i < s.bul.length; i++) { var b = s.bul[i], hy = b.y - b.z; if (hy < -70) continue; streak(c, b.x, hy, b.x, hy - 50, '170,110,255', '240,220,255'); c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.arc(b.x, hy, 2, 0, TAU); c.fill(); if (Math.random() < 0.18) c.fillRect(b.x + rnd(-6, 6), hy - rnd(8, 40), 1.5, 1.5); }
-      c.restore();
+      c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+      for (var i = 0; i < s.bul.length; i++) { var b = s.bul[i]; if (b.y - b.z < -90) continue; if (b.hard) needle(c, b, 62, '120,185,255', '235,250,255', 1.8); else softDrop(c, b, 0.4); }
+      callBeam(c, s, '160,210,255'); c.restore();
     }
   });
 
-  /* ---------- Look B: Starfall ---------- */
+  /* ---------- Look B: Frost Needles ---------- */
   var LB = mk({
-    acc: '255,215,130',
-    init: function (s) { s.arcs = []; s.twinkle = []; for (var i = 0; i < 70; i++) s.twinkle.push({ a: rnd(0, TAU), r: Math.sqrt(Math.random()), ph: rnd(0, TAU) }); },
+    acc: '150,225,255',
     update: function (s, dt, active) {
       tick(s, dt);
       if (active) {
-        launch(s, dt, '255,230,160', 0.09);
-        rainSpawn(s, dt, 75, function (x, y) { s.bul.push({ x: x, y: y, z: rnd(380, 620), vz: -rnd(900, 1200), cool: Math.random() < 0.3 }); });
+        launch(s, dt, '190,240,255', 0.12);
+        rainSpawn(s, dt, 75, function (x, y) { var z0 = rnd(430, 620); s.bul.push({ x: x, y: y, z: z0, vz: -rnd(850, 1150), hz: z0 * rnd(0.45, 0.6), hard: false }); });
       }
+      for (var i = 0; i < s.bul.length; i++) { var b = s.bul[i]; if (!b.hard && b.z <= b.hz) { sharpen(s, b, '210,245,255'); for (var k = 0; k < 4; k++) P(s, { x: b.x + SL * b.z, y: b.y - b.z, vx: rnd(-60, 60), vy: rnd(-60, 60), life: 0.3, size: 1.8, col: '220,248,255', drag: 3 }); } }
       fallers(s, dt, function (s, b) {
-        var col = b.cool ? '170,225,255' : '255,225,140';
-        P(s, { type: 'star', x: b.x, y: b.y, life: 0.4, size: 15, col: col });
-        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 18, life: 0.3, size: 2, col: col });
-        for (var i = 0; i < 4; i++) P(s, { type: 'glow', x: b.x + rnd(-10, 10), y: b.y + rnd(-6, 6), vy: -rnd(20, 50), size: rnd(5, 9), life: rnd(0.5, 0.9), col: col });
-        if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4 });
-        dmgAt(s, b.x, b.y, 8, 4, col);
+        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 20, life: 0.3, size: 2, col: '180,235,255' });
+        P(s, { type: 'star', x: b.x, y: b.y, life: 0.3, size: 12, col: '225,248,255' });
+        for (var j = 0; j < 7; j++) { var a = rnd(0, TAU), sp = rnd(100, 260); P(s, { x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.35, size: 2.4, col: '210,245,255', drag: 3 }); }
+        if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 2, max: 2, frost: true });
+        dmgAt(s, b.x, b.y, 8, 4, '200,240,255');
       });
     },
     ground: function (c, s) {
-      scorchDraw(c, s, '255,225,150', 1.4);
-      var d = zoneDisc(c, s, '255,215,130', null); if (!d) return;
-      c.save(); c.globalCompositeOperation = 'lighter';
-      for (var i = 0; i < s.twinkle.length; i++) { var q = s.twinkle[i], tw = 0.5 + 0.5 * Math.sin(s.t * 3 + q.ph); c.fillStyle = 'rgba(255,240,200,' + (0.7 * tw * d.za) + ')'; c.beginPath(); c.arc(d.z.x + Math.cos(q.a) * q.r * d.R * 0.95, d.z.y + Math.sin(q.a) * q.r * d.R * 0.95, 0.8 + tw * 1.4, 0, TAU); c.fill(); }
-      c.restore();
+      for (var i = 0; i < s.scorch.length; i++) { var q = s.scorch[i], a = q.l / 2; c.fillStyle = 'rgba(170,230,255,' + (a * 0.22) + ')'; c.beginPath(); c.arc(q.x, q.y, 7, 0, TAU); c.fill(); c.strokeStyle = 'rgba(220,248,255,' + (a * 0.6) + ')'; c.lineWidth = 1; c.beginPath(); for (var k = 0; k < 3; k++) { var ang = k * Math.PI / 3; c.moveTo(q.x + Math.cos(ang) * 6, q.y + Math.sin(ang) * 6); c.lineTo(q.x - Math.cos(ang) * 6, q.y - Math.sin(ang) * 6); } c.stroke(); }
+      zoneDisc(c, s, '150,225,255', null);
     },
     air: function (c, s) {
-      c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
-      var dx = 0.3, dy = -1, dl = Math.hypot(dx, dy);
-      for (var i = 0; i < s.bul.length; i++) {
-        var b = s.bul[i], hx = b.x + dx * b.z, hy = b.y - b.z; if (hy < -90) continue;
-        var cool = b.cool, soft = cool ? '120,190,255' : '255,190,90', core = cool ? '225,245,255' : '255,245,210';
-        streak(c, hx, hy, hx + dx / dl * 90, hy + dy / dl * 90, soft, core);
-        var gl = c.createRadialGradient(hx, hy, 0, hx, hy, 9); gl.addColorStop(0, 'rgba(255,255,255,.95)'); gl.addColorStop(1, 'rgba(' + soft + ',0)'); c.fillStyle = gl; c.beginPath(); c.arc(hx, hy, 9, 0, TAU); c.fill();
-        if (Math.random() < 0.3) { c.fillStyle = 'rgba(' + core + ',.9)'; c.fillRect(hx + dx / dl * rnd(10, 70) + rnd(-3, 3), hy + dy / dl * rnd(10, 70), 1.6, 1.6); }
-      }
-      c.restore();
-    }
-  });
-
-  /* ---------- Look C: Elemental Volley ---------- */
-  var KIND = ['fire', 'ice', 'bolt'];
-  var LC = mk({
-    acc: '255,160,90',
-    update: function (s, dt, active) {
-      tick(s, dt);
-      if (active) {
-        launch(s, dt, '255,200,140', 0.07);
-        rainSpawn(s, dt, 70, function (x, y) { s.bul.push({ x: x, y: y, z: rnd(300, 520), vz: -rnd(1250, 1600), kind: KIND[Math.floor(Math.random() * 3)] }); });
-      }
-      fallers(s, dt, function (s, b) {
-        if (b.kind === 'fire') {
-          P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 26, life: 0.35, size: 3, col: '255,140,60' });
-          P(s, { type: 'glow', x: b.x, y: b.y, size: 24, life: 0.25, col: '255,150,60' });
-          for (var i = 0; i < 4; i++) P(s, { x: b.x, y: b.y, vx: rnd(-90, 90), vy: -rnd(60, 190), life: rnd(0.3, 0.6), size: 2, col: '255,170,70', drag: 2 });
-          if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4, c: '255,110,50' });
-          dmgAt(s, b.x, b.y, 10, 4, '255,150,70');
-        } else if (b.kind === 'ice') {
-          P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 22, life: 0.35, size: 2, col: '170,230,255' });
-          for (var j = 0; j < 7; j++) { var a = rnd(0, TAU), sp = rnd(100, 260); P(s, { x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.35, size: 2.4, col: '200,240,255', drag: 3 }); }
-          P(s, { type: 'star', x: b.x, y: b.y, life: 0.3, size: 12, col: '210,245,255' });
-          if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4, c: '150,215,255' });
-          dmgAt(s, b.x, b.y, 8, 4, '190,235,255');
-        } else {
-          P(s, { type: 'glow', x: b.x, y: b.y, size: 20, life: 0.18, col: '255,245,150' });
-          var near = s.enemies.filter(function (e) { return e.dead <= 0 && Math.hypot(e.x - b.x, e.y - b.y) < 150; }).sort(function (p, q) { return Math.hypot(p.x - b.x, p.y - b.y) - Math.hypot(q.x - b.x, q.y - b.y); }).slice(0, 2);
-          near.forEach(function (e) { bolt(s, { x: b.x, y: b.y }, { x: e.x, y: e.y }, '255,245,150', 1.6); hit(s, e, 4, e.x, e.y, '255,245,150'); });
-          if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4, c: '255,240,140' });
-        }
-      });
-    },
-    ground: function (c, s) {
-      for (var i = 0; i < s.scorch.length; i++) { var q = s.scorch[i]; c.fillStyle = 'rgba(' + (q.c || '255,140,80') + ',' + (q.l / 1.4 * 0.5) + ')'; c.beginPath(); c.arc(q.x, q.y, 2.4, 0, TAU); c.fill(); }
-      var d = zoneDisc(c, s, '255,170,100', [16, 10]); if (!d) return;
-      var cols = ['255,140,60', '150,215,255', '255,240,140'];
-      c.save(); c.lineWidth = 3;
-      for (var k = 0; k < 3; k++) { c.strokeStyle = 'rgba(' + cols[k] + ',' + (0.85 * d.za) + ')'; c.beginPath(); c.arc(d.z.x, d.z.y, d.R + 10, s.t * 0.6 + k * TAU / 3, s.t * 0.6 + k * TAU / 3 + 1.4); c.stroke(); }
-      c.restore();
-    },
-    air: function (c, s) {
-      c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
-      for (var i = 0; i < s.bul.length; i++) {
-        var b = s.bul[i], hy = b.y - b.z; if (hy < -70) continue;
-        if (b.kind === 'fire') { streak(c, b.x, hy, b.x, hy - 52, '255,100,40', '255,225,160'); var g = c.createRadialGradient(b.x, hy, 0, b.x, hy, 10); g.addColorStop(0, 'rgba(255,240,200,1)'); g.addColorStop(1, 'rgba(255,110,40,0)'); c.fillStyle = g; c.beginPath(); c.arc(b.x, hy, 10, 0, TAU); c.fill(); if (Math.random() < 0.4) { c.fillStyle = 'rgba(255,170,70,.9)'; c.fillRect(b.x + rnd(-5, 5), hy - rnd(10, 50), 2, 2); } }
-        else if (b.kind === 'ice') { streak(c, b.x, hy, b.x, hy - 40, '120,200,255', '225,248,255'); c.save(); c.translate(b.x, hy); c.rotate(b.z * 0.02); c.fillStyle = 'rgba(225,248,255,.95)'; c.beginPath(); c.moveTo(0, -6); c.lineTo(3.5, 0); c.lineTo(0, 6); c.lineTo(-3.5, 0); c.closePath(); c.fill(); c.restore(); }
-        else { var x0 = b.x, y0 = hy - 56; c.strokeStyle = 'rgba(255,245,150,.25)'; c.lineWidth = 6; c.beginPath(); c.moveTo(x0, y0); for (var k = 1; k <= 5; k++) c.lineTo(x0 + Math.sin(b.z * 0.09 + k * 2.1) * 6, y0 + k * 56 / 5); c.stroke(); c.strokeStyle = 'rgba(255,255,220,.95)'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x0, y0); for (var m = 1; m <= 5; m++) c.lineTo(x0 + Math.sin(b.z * 0.09 + m * 2.1) * 6, y0 + m * 56 / 5); c.stroke(); }
-      }
-      c.restore(); drawArcs(c, s);
-    }
-  });
-
-  /* ---------- Look D: Rift Rain ---------- */
-  var LD = mk({
-    acc: '110,240,205',
-    rift: function (s) { var z = zoneOf(s); return { x: z.x, y: Math.max(70, z.y - 215) }; },
-    update: function (s, dt, active) {
-      tick(s, dt);
-      if (active) {
-        launch(s, dt, '150,250,225', 0.1);
-        rainSpawn(s, dt, 80, function (x, y, z) { s.bul.push({ x: x, y: y, z: 430, z0: 430, vz: -rnd(900, 1300), pink: Math.random() < 0.25 }); });
-      }
-      fallers(s, dt, function (s, b) {
-        var col = b.pink ? '255,150,220' : '120,245,210';
-        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 20, life: 0.35, size: 2, col: col });
-        for (var i = 0; i < 3; i++) P(s, { type: 'glow', x: b.x + rnd(-6, 6), y: b.y, vx: rnd(-12, 12), vy: -rnd(25, 60), size: rnd(6, 11), life: rnd(0.7, 1.2), col: col });
-        if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4 });
-        dmgAt(s, b.x, b.y, 8, 4, col);
-      });
-    },
-    ground: function (c, s) { scorchDraw(c, s, '110,240,205', 1.4); var d = zoneDisc(c, s, '110,240,205', [4, 10]); },
-    air: function (c, s) {
-      var za = zoneAlpha(s).za, r = LD.rift(s);
       c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
       for (var i = 0; i < s.bul.length; i++) {
-        var b = s.bul[i], u = 1 - b.z / b.z0, o = LD.rift(s), px = o.x + (b.x - o.x) * u, py = o.y + (b.y - o.y) * u;
-        var u2 = Math.max(0, u - 0.09), tx = o.x + (b.x - o.x) * u2, ty = o.y + (b.y - o.y) * u2;
-        var soft = b.pink ? '255,120,210' : '80,230,190', core = b.pink ? '255,225,245' : '220,255,245';
-        streak(c, px, py, tx, ty, soft, core);
-        var g = c.createRadialGradient(px, py, 0, px, py, 8); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(1, 'rgba(' + soft + ',0)'); c.fillStyle = g; c.beginPath(); c.arc(px, py, 8, 0, TAU); c.fill();
+        var b = s.bul[i]; if (b.y - b.z < -90) continue;
+        if (!b.hard) { softDrop(c, b, 0.4); continue; }
+        needle(c, b, 54, '140,215,255', '240,252,255', 2.6);
+        var hx = b.x + SL * b.z, hy = b.y - b.z; c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.moveTo(hx, hy - 4); c.lineTo(hx + 2.4, hy); c.lineTo(hx, hy + 4); c.lineTo(hx - 2.4, hy); c.closePath(); c.fill();
+        if (Math.random() < 0.3) c.fillRect(hx + rnd(-4, 8), hy + rnd(8, 50), 1.6, 1.6);
       }
-      if (za > 0) { // the rift: swirling arms around a bright core
-        var gg = c.createRadialGradient(r.x, r.y, 0, r.x, r.y, 70); gg.addColorStop(0, 'rgba(230,255,248,' + (0.9 * za) + ')'); gg.addColorStop(0.3, 'rgba(90,230,190,' + (0.35 * za) + ')'); gg.addColorStop(1, 'rgba(90,230,190,0)');
-        c.fillStyle = gg; c.beginPath(); c.arc(r.x, r.y, 70, 0, TAU); c.fill();
-        for (var arm = 0; arm < 4; arm++) { c.strokeStyle = 'rgba(' + (arm % 2 ? '255,150,220' : '120,245,210') + ',' + (0.7 * za) + ')'; c.lineWidth = 2; c.beginPath(); for (var k = 0; k <= 24; k++) { var f = k / 24, a = s.t * 2.2 + arm * TAU / 4 + f * 2.4, rad = 6 + f * 46; var px2 = r.x + Math.cos(a) * rad, py2 = r.y + Math.sin(a) * rad * 0.7; if (k) c.lineTo(px2, py2); else c.moveTo(px2, py2); } c.stroke(); }
-        c.strokeStyle = 'rgba(200,255,240,' + (0.6 * za) + ')'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(r.x, r.y, 56, 39, 0, 0, TAU); c.stroke();
+      callBeam(c, s, '190,240,255'); c.restore();
+    }
+  });
+
+  /* ---------- Look C: Steel Rain ---------- */
+  var LC = mk({
+    acc: '190,205,225',
+    update: function (s, dt, active) {
+      tick(s, dt);
+      if (active) {
+        launch(s, dt, '215,225,240', 0.12);
+        rainSpawn(s, dt, 80, function (x, y) { var z0 = rnd(430, 620); s.bul.push({ x: x, y: y, z: z0, vz: -rnd(1100, 1500), hz: z0 * 0.55, hard: false }); });
       }
-      c.restore();
+      for (var i = 0; i < s.bul.length; i++) { var b = s.bul[i]; if (!b.hard && b.z <= b.hz) { sharpen(s, b, '255,255,255'); b.glintT = 0.12; } }
+      fallers(s, dt, function (s, b) {
+        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 16, life: 0.28, size: 2, col: '200,215,235' });
+        P(s, { type: 'star', x: b.x, y: b.y, life: 0.2, size: 9, col: '255,255,255' });
+        for (var j = 0; j < 5; j++) { var a = rnd(0, TAU), sp = rnd(120, 300); P(s, { x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.25, size: 1.7, col: '255,190,110', drag: 3 }); }
+        if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4, c: '170,185,205' });
+        dmgAt(s, b.x, b.y, 8, 4, '255,220,160');
+      });
+      for (var k = 0; k < s.bul.length; k++) if (s.bul[k].glintT) s.bul[k].glintT = Math.max(0, s.bul[k].glintT - dt);
+    },
+    ground: function (c, s) { puddles(c, s, '170,185,205'); zoneDisc(c, s, '190,205,225', [16, 10]); },
+    air: function (c, s) {
+      c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+      for (var i = 0; i < s.bul.length; i++) {
+        var b = s.bul[i]; if (b.y - b.z < -90) continue;
+        if (!b.hard) { softDrop(c, b, 0.4); continue; }
+        needle(c, b, 70, '170,190,215', '255,255,255', 1.5);
+        if (b.glintT > 0) { var hx = b.x + SL * b.z, hy = b.y - b.z; c.strokeStyle = 'rgba(255,255,255,' + (b.glintT / 0.12) + ')'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(hx - 14, hy); c.lineTo(hx + 14, hy); c.moveTo(hx, hy - 14); c.lineTo(hx, hy + 14); c.stroke(); }
+      }
+      callBeam(c, s, '210,222,240'); c.restore();
+    }
+  });
+
+  /* ---------- Look D: Downpour (the whole arena rains; only the zone is sharp) ---------- */
+  var LD = mk({
+    acc: '120,175,240',
+    init: function (s) { s.arcs = []; s.amb = []; s.flashT = 0; s.nextFlash = rnd(1.5, 2.5); },
+    update: function (s, dt, active) {
+      tick(s, dt);
+      var e = env01(s.t, 0.8, 1.2);
+      if (s.t >= T0 - 0.2 && s.t < T1 + 1) {
+        s.acc3 = (s.acc3 || 0) + dt; var rate = 150 * e;
+        while (rate > 0 && s.acc3 >= 1 / rate) { s.acc3 -= 1 / rate; s.amb.push({ x: rnd(0, W), y: rnd(0, H), z: rnd(380, 620), vz: -rnd(800, 1100) }); }
+      }
+      for (var i = s.amb.length - 1; i >= 0; i--) { var a = s.amb[i]; a.z += a.vz * dt; if (a.z <= 0) { P(s, { type: 'ring', x: a.x, y: a.y, r0: 1, r1: 9, life: 0.4, size: 1, col: '140,185,240' }); s.amb.splice(i, 1); } }
+      s.nextFlash -= dt; if (active && s.nextFlash <= 0) { s.flashT = 0.12; s.nextFlash = rnd(1.4, 2.4); }
+      s.flashT = Math.max(0, s.flashT - dt);
+      if (active) {
+        launch(s, dt, '160,205,255', 0.12);
+        rainSpawn(s, dt, 80, function (x, y) { var z0 = rnd(430, 620); s.bul.push({ x: x, y: y, z: z0, vz: -rnd(900, 1200), hz: z0 * 0.5, hard: false }); });
+      }
+      for (var j = 0; j < s.bul.length; j++) { var b = s.bul[j]; if (!b.hard && b.z <= b.hz) sharpen(s, b, '220,245,255'); }
+      fallers(s, dt, function (s, b) {
+        P(s, { type: 'ring', x: b.x, y: b.y, r0: 2, r1: 20, life: 0.35, size: 2, col: '170,215,255' });
+        splash(s, b.x, b.y, '190,225,255', 6, 200);
+        if (s.scorch.length < 260) s.scorch.push({ x: b.x, y: b.y, l: 1.4 });
+        dmgAt(s, b.x, b.y, 8, 4, '190,225,255');
+      });
+    },
+    ground: function (c, s) {
+      var e = env01(s.t, 0.8, 1.2); c.fillStyle = 'rgba(40,70,120,' + (0.18 * e) + ')'; c.fillRect(0, 0, W, H);
+      puddles(c, s, '150,195,250'); zoneDisc(c, s, '130,190,255', [16, 10]);
+    },
+    air: function (c, s) {
+      c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+      for (var i = 0; i < s.amb.length; i++) { var a = s.amb[i]; if (a.y - a.z < -60) continue; softDrop(c, a, 0.22); }
+      for (var j = 0; j < s.bul.length; j++) { var b = s.bul[j]; if (b.y - b.z < -90) continue; if (b.hard) needle(c, b, 62, '120,185,255', '235,250,255', 1.8); else softDrop(c, b, 0.4); }
+      callBeam(c, s, '160,210,255'); c.restore();
+      if (s.flashT > 0 && !ctl.reduced) { c.fillStyle = 'rgba(210,225,255,' + (s.flashT / 0.12 * 0.16) + ')'; c.fillRect(0, 0, W, H); }
     }
   });
 
@@ -632,7 +622,7 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
   try {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { ctl.reduced = true; document.getElementById('reduced').setAttribute('aria-pressed', 'true'); }
   } catch (e) {}
-  var names = ['A · Arcane Barrage', 'B · Starfall', 'C · Elemental Volley', 'D · Rift Rain'];
+  var names = ['A · Honed Rain', 'B · Frost Needles', 'C · Steel Rain', 'D · Downpour'];
   document.querySelectorAll('[data-pick]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var n = +btn.getAttribute('data-pick');
