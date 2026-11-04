@@ -214,7 +214,7 @@ namespace Arena
         {
             for (int i = 0; i < PicksFor; i++)
             {
-                var offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, 1 + i);
+                var offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, 1 + i, p.Weapon.Id);
                 if (offer != null && offer.Length > 0)
                     g.GrantUpgrade(p.Id, offer[rng.Next(offer.Length)]);
             }

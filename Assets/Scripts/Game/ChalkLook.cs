@@ -55,7 +55,7 @@ namespace Arena
                 while (j < ink.Count && ink[j].Owner == owner && ink[j].Stroke == stroke && (j == i || ink[j - 1].Pos.DistanceTo(ink[j].Pos) < 40f))
                 {
                     var d = ink[j];
-                    inkRun.Add(new InkVert { P = d.Pos, Fade = Mathf.Clamp01(d.T / 0.8f) * (0.93f + 0.07f * Mathf.Sin(t * 7f + d.Pos.X * 0.05f)), Sealed = d.Pen != 0 });
+                    inkRun.Add(new InkVert { P = d.Pos, Fade = Mathf.Min(Mathf.Clamp01(d.T / 0.8f), 0.3f + 0.7f * Mathf.Clamp01(d.T / Game.ChalkLife)) * (0.93f + 0.07f * Mathf.Sin(t * 7f + d.Pos.X * 0.05f)), Sealed = d.Pen != 0 });
                     j++;
                 }
                 V2 tip;

@@ -3,6 +3,10 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [ ] **Spirit Chalk: no bullet block by default, slow fade, Warding Ink card.** Built (Nov 2026, protocol 148 because a card was added and card ids shifted). Ink now lasts 10 s (`ChalkLife`)
+      and lets bullets through; the new Rare card **Warding Ink** (Spirit Chalk only; `Upgrades.RequiresWeapon`) makes it destroy bullets, each taking 1.5 s (`ChalkWear`) off the dot it hit.
+      The in-game fade is a placeholder (alpha eases from full to 30% over the dot's life, `ChalkLook.cs`). **Pick a look** from [`Mockups/chalk-fade.html`](Mockups/chalk-fade.html)
+      (A thin and dim, B crumble, C dust, D ember) and I'll build it, plus a hit flare on the worn dot. Needs a try in Unity. Armory page for Spirit Chalk is out of date.
 - [x] **Play to Continue was too abrupt.** Built (Nov 2026, protocol unchanged): look D (Scan wipe) of [`Mockups/play-transition.html`](Mockups/play-transition.html) (https://claude.ai/artifact/KoZjXL3aurKkt4Dhx6GTaB), slowed to 0.85 s (`MenuPlayLen` in `Menus.cs`). A teal line sweeps left to right from the menu buttons to the picker, and right to left on Back or Esc. No clicks during the sweep; it snaps with reduced effects. Needs a try in Unity.
 - [x] **Menu tip tray (no more record line).** Built (Nov 2026, protocol unchanged, 147): look D of [`Mockups/menu-tips-only.html`](Mockups/menu-tips-only.html)
       (https://claude.ai/artifact/L1PxG3dkzmxsVG5MYVDR7R). The chip under the title is gone, record line and all; a tray slides out from behind the bottom of the menu card
