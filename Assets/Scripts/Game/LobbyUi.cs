@@ -63,10 +63,8 @@ namespace Arena
 
             // --- Left column, top: the title, then the mode switch (a choice for the whole lobby, so it sits with the party).
             // Back: a small red button beside the title (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs).
-            var backRect = new Rect(40f, 17f, 48f, 48f);
-            bool back = Ui.Button(backRect, "", Ui.Danger);
-            Ui.Icon(new Rect(backRect.center.x - 12f, backRect.center.y - 12f, 24f, 24f), PixelArt.Get("ui_back"));
-            if (back)
+            // Same card as the loadout's tiles (Ui.ActionButton), with a red arrow.
+            if (Ui.ActionButton(new Rect(40f, 15f, LobbyActionH, LobbyActionH), "", false, Ui.Primary, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f)))
                 StartLobbyLeave();  // LobbyEnter.cs
             Ui.Fancy(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
@@ -136,9 +134,9 @@ namespace Arena
 
         const float LobbyBodyTop = 68f;   // the top of the loadout box (under the tabs)
         const float LobbyBottomPad = 36f; // the gap under the loadout box and the action buttons
-        const float LobbyStartH = 66f, LobbyReadyH = 56f;
-        const float LobbyStartY = 720f - LobbyBottomPad - LobbyStartH;  // Start (host) or Ready (guest) sits on the box's bottom edge
-        const float LobbyReadyY = LobbyStartY - 10f - LobbyReadyH;
+        const float LobbyActionH = 52f;   // Back, Ready and Start are all this tall
+        const float LobbyStartY = 720f - LobbyBottomPad - LobbyActionH;  // Start (host) or Ready (guest) sits on the box's bottom edge
+        const float LobbyReadyY = LobbyStartY - 10f - LobbyActionH;
         const float LobbyNoteY = LobbyReadyY - 30f;  // who we're waiting for, just above Ready
         const float PartyTop = 184f;      // the top of the first party card (under the mode switch)
 
@@ -957,13 +955,12 @@ namespace Arena
 
         void DrawLobbyActions(LobbyEntry me, bool practice)
         {
-            float t = Time.unscaledTime;
             const float lx = 40f, lw = 376f;
             bool host = session.IsHost;
             bool ready = me != null && me.Ready;
-            // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be.
-            float readyY = host ? LobbyReadyY : LobbyStartY, readyH = host ? LobbyReadyH : LobbyStartH;
-            if (Ui.FancyButton(new Rect(lx, readyY, lw, readyH), ready ? "Ready!" : "Ready?", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, 0))
+            // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be. Lit = you're ready / Start can start.
+            float readyY = host ? LobbyReadyY : LobbyStartY;
+            if (Ui.ActionButton(new Rect(lx, readyY, lw, LobbyActionH), ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check")))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -978,7 +975,7 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                if (Ui.FancyButton(new Rect(lx, LobbyStartY, lw, LobbyStartH), "Start", practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
+                if (Ui.ActionButton(new Rect(lx, LobbyStartY, lw, LobbyActionH), "Start", GUI.enabled, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play")))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }

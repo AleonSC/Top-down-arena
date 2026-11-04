@@ -392,14 +392,10 @@ namespace Arena
             return fadeTextures[hundredths] = tex;
         }
 
-        /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
-        /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
-        /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
-        /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
-        /// left of the name and second line, the group centred (the lobby's role cards).
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false)
+        /// The card behind a Choice (and ActionButton): dark, the selected one washed, rimmed and (with glow) haloed in its
+        /// colour, a colour bar along the bottom. Returns the bar's height.
+        static float ChoiceChrome(Rect r, bool selected, bool hover, Color accent, bool glow)
         {
-            bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
             if (glow && selected && r.height >= 30f)  // soft glow behind (left off small rows, where it looks blocky)
             {
@@ -422,6 +418,47 @@ namespace Arena
             GUI.backgroundColor = old;
             float barH = r.height >= 34f ? 3f : 2f;
             FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
+
+            return barH;
+        }
+
+        /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
+        /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
+        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow).
+        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null)
+        {
+            bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
+            float barH = ChoiceChrome(r, on, hover, accent, true);
+            Color name = on ? Color.white : new Color(0.81f, 0.85f, 0.92f);
+            float isz = Mathf.Min(22f, r.height - 20f);
+            if (text.Length == 0)
+            {
+                if (icon != null)
+                    Icon(new Rect(r.center.x - isz / 2f, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
+            }
+            else
+            {
+                int fs = 20;
+                float tw = TextWidth(text, fs, true) - 6f, gap = icon != null ? 10f : 0f, ic = icon != null ? isz : 0f;
+                while (fs > 12 && ic + gap + tw > r.width - 16f)
+                    tw = TextWidth(text, --fs, true) - 6f;  // narrow buttons shrink the label to fit
+                float x = r.center.x - (ic + gap + tw) / 2f;
+                if (icon != null)
+                    Icon(new Rect(x, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
+                Label(new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH), text, fs, name, TextAnchor.MiddleLeft, true);
+            }
+            return HitArea(r);
+        }
+
+        /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
+        /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
+        /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
+        /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
+        /// left of the name and second line, the group centred (the lobby's role cards).
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false)
+        {
+            bool hover = r.Contains(Event.current.mousePosition);
+            float barH = ChoiceChrome(r, selected, hover, accent, glow);
 
             Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
             int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
