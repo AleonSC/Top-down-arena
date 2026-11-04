@@ -48,8 +48,8 @@ namespace Arena
                 if (LaunchHides(p))
                     continue;  // not landed yet (LaunchIntro.cs)
                 DrawLaunchIcon(p, at, r);
-                Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12,
-                    ToColor(p.Def.Color.WithAlpha(0.95f)));
+                DrawName(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
+                    ToColor(p.Def.Color.WithAlpha(0.95f)), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 22f;

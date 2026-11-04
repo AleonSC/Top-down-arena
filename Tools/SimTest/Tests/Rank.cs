@@ -116,6 +116,20 @@ static partial class Program
         client.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).CardBg == 0, "a card background the rank doesn't have is dropped by the host");
+        // Name effects: twelve, numbered in rank order, shared through the lobby; the host drops one the rank doesn't have.
+        Check(Rank.OfKind(CosmeticKind.NameEffect).Count == 12 && Rank.NameFxIndex("name-outline") == 1 && Rank.NameFxIndex("name-glitchy") == 8 && Rank.NameFxId(12) == "name-rainbow" && Rank.NameFxId(13) == "" && Rank.Owns(36, "name-glitchy") && !Rank.Owns(35, "name-glitchy") && Rank.RewardsAt(36).Exists(rw => rw.Id == "name-glitchy"),
+            "twelve name effects, Steel Outline at rank 4 to Rainbow at 56, with Glitchy at 36");
+        cp.Xp = Rank.XpAt(40); hp.Xp = Rank.XpAt(40);
+        Check(cp.Equip(CosmeticKind.NameEffect, "name-glitchy") && cp.NameFx == "name-glitchy" && !cp.Equip(CosmeticKind.NameEffect, "name-gold") && !cp.Equip(CosmeticKind.Frame, "name-fire") && cp.Equipped(CosmeticKind.NameEffect) == "name-glitchy", "you equip the name effects your rank has, and only in their slot");
+        hp.Equip(CosmeticKind.NameEffect, "name-outline");
+        client.ShareCosmetics(); host.ShareCosmetics();
+        PollBoth(host, client);
+        Check(entry(host, cid).NameFx == 8 && entry(client, cid).NameFx == 8 && entry(client, 1).NameFx == 1, "everyone's lobby knows each player's name effect");
+        cp.NameFx = "name-rainbow";  // not theirs at rank 40
+        client.ShareCosmetics();
+        PollBoth(host, client);
+        Check(entry(host, cid).NameFx == 0, "a name effect the rank doesn't have is dropped by the host");
+        cp.Xp = Rank.XpAt(30);
         // Emotes: thirteen, on the bar (nothing to equip); a player sends one, the host checks rank and pause, everyone sees it.
         Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(1, "emote-wave") && !Rank.Owns(24, "emote-spin") && Rank.Owns(25, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",
             "thirteen emotes from rank 1 to 52, numbered in order, and nothing to equip");

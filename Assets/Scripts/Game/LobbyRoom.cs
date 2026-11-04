@@ -189,7 +189,7 @@ namespace Arena
                 Ui.Pill(tag, new Color(0.04f, 0.06f, 0.12f, 0.94f));
             }
             RankLook.Draw(new Rect(tag.x + 3f, tag.y + 1f, 22f, 22f), e.Rank);
-            Ui.Label(new Rect(tag.x + 28f, tag.y, tag.width - 40f, tag.height), e.Name, 12, mine ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
+            DrawName(new Rect(tag.x + 28f, tag.y, tag.width - 40f, tag.height), e.Name, 12, e.NameFx, t, mine ? Color.white : Ui.Text);  // NameEffects.cs
             if (e.Ready)
                 Ui.Pill(new Rect(tag.xMax - 14f, tag.y + 8f, 8f, 8f), new Color(0.3f, 1f, 0.45f, 0.8f + 0.2f * Mathf.Sin(t * 4f)));
         }

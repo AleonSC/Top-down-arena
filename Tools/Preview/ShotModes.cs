@@ -105,6 +105,7 @@ static partial class Shot {
       // FRAME=frame-prism: your party card wears that frame (and AFRAME for Aleon's), e.g. frame-circuit, frame-ember, frame-void, frame-foil.
       if (Environment.GetEnvironmentVariable("FRAME") != null) host.Lobby[1].Frame = Rank.FrameIndex(Environment.GetEnvironmentVariable("FRAME"));
       if (Environment.GetEnvironmentVariable("CARD") != null) { var ids = Environment.GetEnvironmentVariable("CARD").Split(','); host.Lobby[1].CardBg = Rank.CardBgIndex(ids[0]); if (ids.Length > 1) host.Lobby[2].CardBg = Rank.CardBgIndex(ids[1]); }  // CARD=card-aurora,card-foil
+      if (Environment.GetEnvironmentVariable("NAMEFX") != null) { var ids = Environment.GetEnvironmentVariable("NAMEFX").Split(','); host.Lobby[1].NameFx = Rank.NameFxIndex(ids[0]); if (ids.Length > 1) host.Lobby[2].NameFx = Rank.NameFxIndex(ids[1]); }  // NAMEFX=name-glitchy,name-gold
       if (Environment.GetEnvironmentVariable("AFRAME") != null) host.Lobby[2].Frame = Rank.FrameIndex(Environment.GetEnvironmentVariable("AFRAME"));
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).

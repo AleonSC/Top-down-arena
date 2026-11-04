@@ -833,7 +833,7 @@ what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, 
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name chip on the main menu. A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background**, **Card background** and the **Reward ladder**; the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect** and the **Reward ladder**; the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
@@ -879,6 +879,20 @@ each kind at a time:
 | 31 | **Salute emote**: you snap upright |
 | 41 | **Fireworks emote**: three bursts in turn |
 | 52 | **Steam emote**: puffs of steam and a red bubble, you shake |
+| 4 | **Steel Outline name**: a thin steel-blue line round white letters |
+| 11 | **Frost name**: white fading to ice blue with a cold glow |
+| 13 | **Ember name**: yellow fading to orange-red with sparks lifting off |
+| 18 | **Neon name**: white letters with a cyan glow that breathes |
+| 22 | **Wave name**: letters riding a gentle wave, cyan shading into violet |
+| 27 | **Shimmer name**: silver with a white sheen gliding across |
+| 33 | **Glitch name**: red and cyan fringes, and every couple of seconds a slice jumps sideways |
+| 36 | **Glitchy name**: always glitching: letters jump, swap for symbols, the line splits and slides, the fringes pulse and it flickers |
+| 38 | **Fire name**: yellow core to red tips, each letter flickering, flames licking up |
+| 44 | **Gold Foil name**: rich gold with a sheen sweeping across |
+| 48 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
+| 56 | **Rainbow name**: every letter its own hue, turning round the spectrum |
+
+**Name effects** change how your name is drawn for everyone: on the lobby party card, the Hangout name plate and the tag over your head in a match (small names keep only colour and glow, so they stay readable; with Visual effects off each is still).
 
 **Emotes** are a short bubble over your head for 2.4 s (a gesture, a heart, GG...) that everyone sees, in the Hangout and in a match; several also move your character (a hop, a sway, a shake, two spins), the model only, never your hitbox, and not with Visual effects off. Every one your rank has is on the emote bar (hold T); nothing to equip. After one there is a 2 s pause in a match (0.75 s in the Hangout).
 
