@@ -1,0 +1,371 @@
+TOP-DOWN ARENA: THE GAME IN PLAIN WORDS
+=======================================
+
+This is a plain-language description of the whole game: what it is, how a run
+plays out, and how each system fits in. It is meant for someone who has never
+seen the game. For exact numbers, see README.md.
+
+
+1. THE BIG PICTURE
+------------------
+
+Top-Down Arena is a co-op "bullet hell" game. You look down on a flat arena,
+move around with the keyboard, aim with the mouse, and fight waves of enemies
+that fire patterns of bullets at you. One to three players can play together
+over the network. The game is built in Unity 6, and every picture in it is
+drawn by code, so there are no art files.
+
+The goal is to survive 50 waves. Every 5th wave is a boss fight, so there are
+ten bosses. Beat the last one, The Eclipse, and you win. After a win, the host
+can keep going in "endless" mode, where the bosses come around again and get
+tougher.
+
+The run ends in defeat if every player is down at the same time.
+
+
+2. THE ARENA
+------------
+
+- The arena is a single screen, 1600 by 900. It wraps around for players: walk
+  off the left edge and you come in on the right. Enemies and bullets do not
+  wrap, so the edges are a good escape route.
+- Your real hitbox is only the small coloured dot in the middle of your
+  character, not the whole body. That is what makes weaving through bullets
+  possible.
+- The arena holds props: crates you can hide behind (enemy shots stop at them,
+  yours fly over), pots that break into health or XP, and explosive barrels.
+  Treasure chests turn up now and then. In boss fights, health barrels drop in.
+- Several things can change the arena: paths, modifiers and boss mechanics (see
+  below).
+
+
+3. PICKING A CHARACTER
+----------------------
+
+Before a run, each player picks a role, a class, a weapon and a Space ability.
+
+ROLE sets your job and your health:
+- Tank: 240 health. Enemies prefer to target you. You soak damage.
+- Healer: 140 health. You have a healing aura around you that mends allies.
+- DPS: 95 health. You deal the most damage but can take the least.
+
+CLASS sets your style. There are six:
+- Soldier: guns and gear.
+- Elementalist: fire, frost, lightning and arcane spells.
+- Summoner: you bring minions (wolves, bats, golems, sprites) that fight for you
+  and stay with you between waves.
+- Knight: melee. Holding fire swings a weapon instead, and the swing can cut
+  small bullets out of the air. Knights are armoured and hit hard.
+- Ninja: fast, lightly protected, with thrown blades, quick melee and tricks
+  like teleporting behind an enemy.
+- Hemomancer: blood magic. Every Space ability costs you health, but you deal
+  more damage the lower your health is, and your hits heal you a little.
+
+Each role and class pairing gets its own three weapons and three Space
+abilities to choose from, plus one fixed ultimate. Several players can pick
+the same role if they like.
+
+The game also has a lobby where you choose all this. A live preview shows your
+character using your weapon on target dummies, so you can see how it feels
+before you commit. There is also a "Hangout" room where everyone's characters
+walk around, and an optional PvP mode there for fun.
+
+
+4. WHAT YOU DO IN A FIGHT
+-------------------------
+
+Controls, by default:
+- Move: WASD or arrow keys. Aim: mouse.
+- Shoot: hold left click. Weapon behaviour depends on what you picked.
+- Space: your role ability. F: your ultimate.
+- Right click: parry. Hold it to raise a small shield on the side facing your
+  cursor. It blocks bullets and shoves melee enemies back. If you raise it
+  just as a shot arrives, that is a "perfect parry" and the bullet is sent
+  back at the enemies. You cannot shoot while parrying and you move slower.
+- Q, E and Shift: extra abilities you earn during the run.
+- Tab: shows all your stats and upgrades.
+- Pings (middle mouse) and a chat line let teammates talk without voice.
+Every key can be changed in the settings.
+
+Your abilities and ultimate:
+- Space abilities have cooldowns. Examples: a Tank's Barrier blocks bullets,
+  a Healer's Mend Pulse heals everyone nearby, a DPS Soldier's Dash gets you
+  out of trouble.
+- The ultimate (F) is a big move with a long cooldown, around a minute or more.
+  You start each match half charged. Examples: Fortress puts up a dome that
+  keeps enemies out; Lifeline revives and fully heals the whole party; Bullet
+  Rain drops a damaging storm on the spot you aim at.
+
+When you go down (0 health), you are "downed", not dead. A teammate stands next
+to you for about 4 seconds to revive you, or a Healer can pulse you back.
+When a wave is cleared, anyone who is down gets back up and everyone heals a
+bit.
+
+Every enemy killed drops XP for everyone. Some kills drop small green health
+orbs (heal 15) or, rarely, big gold-ringed ones (heal 60). Bosses always drop
+orbs.
+
+
+5. THE GAMEPLAY LOOP
+--------------------
+
+A run repeats the same cycle:
+
+1. The wave starts. Enemies pour in, many in small squads that come from one
+   edge together. You dodge, shoot, use abilities, and help your team.
+2. The wave is cleared. A "Wave cleared" box shows the clear time, score, and
+   per-player kills, damage dealt and damage taken, with small awards like
+   "Untouched" and "Reviver".
+3. You level up. Everyone who gained levels this wave picks upgrades from cards
+   (see section 6).
+4. Sometimes, a bonus event happens during the break: a portal to a challenge
+   room, a treasure chest, or a shop.
+5. Everyone presses Ready. The next wave only starts once all players are
+   ready, so nobody is rushed. There is an "auto-ready" option for people who
+   want the pace to be quicker.
+6. Every 5th wave, instead of normal enemies, a boss arrives. Beating it gives
+   special rewards, and then the host picks a "path" for the next stretch.
+
+Then it all repeats, getting harder each time, until wave 50.
+
+
+6. LEVELS AND UPGRADES
+----------------------
+
+Upgrades are what make each run different. After a wave, you get three cards
+for each level you gained. You pick one. You can "reroll" the cards if you do
+not like them (you start with 2 rerolls and gain 2 more per boss killed).
+
+Cards come in rarities, from plain to special:
+- Common (white): small boosts, like more damage, more fire rate, more health,
+  faster movement.
+- Uncommon (green): bigger boosts and damage reduction.
+- Rare (blue): upgrades for specific abilities, a "Second Charge" for your
+  Space ability, extra projectiles, piercing shots.
+- Very rare (purple): a brand-new ability on Q, E or Shift. You choose which
+  key. These can be universal abilities (Shockwave, Blink, Nova, Turret,
+  Overdrive) or your class's other abilities that you did not pick at the start.
+- Legendary (orange): unique weapon upgrades that only come from bosses. Each
+  boss offers its own set of three. For example, the Warden can give you a
+  guard who fights at your side.
+- Weapon mods (teal): after every boss you can also pick any "mod" that changes
+  how your shots behave, like homing, ricochet, burning, freezing, shock,
+  explosive or faster rounds. Each can stack up to three times.
+- Milestone (gold): every 10 levels you get an extra pick from a special pool,
+  such as more XP, more cards per level-up, more rerolls, or extra health.
+
+Abilities also get stronger the more you use them. Each ability has a mastery
+level from 1 to 5. Each level adds a bit of power and shortens the cooldown, and
+level 5 unlocks a "capstone", which changes how the ability works (a Barrier
+that reflects bullets, a Nova that fires twice as many shots, and so on).
+Mastery resets every run.
+
+Parry has its own upgrade cards too, such as a sturdier shield or a longer
+window for perfect parries.
+
+
+7. ENEMIES
+----------
+
+The early waves are mostly melee "rushers" that run at you and hurt on contact.
+Shooters take over more and more as waves go up. From wave 13 on, the early
+rushers are mostly gone.
+
+New enemy types appear as you go. A few examples:
+- Grunts fire small aimed spreads. Bursters fire slow rings of bullets that you
+  can slip through. Snipers fire fast, accurate shots from far away.
+- Chargers flash a warning line and then dash at you.
+- Mortars lob bombs at where you are standing.
+- Shielders have a front shield that blocks your shots, so you have to flank.
+- Medics heal other enemies, so you want to kill them first.
+- Phantoms blink next to you. Beam Sentries plant themselves and sweep a long
+  beam across the screen. Leaders aim where you will be, not where you are.
+- Juggernauts and Reavers are armoured and cannot be slowed or pushed.
+- Nests are stationary and keep hatching small enemies until destroyed.
+
+From wave 12, any enemy can show up as an "elite" (a gold ring): tougher, worth
+more XP, always dropping an orb, and carrying special traits (faster, shielded,
+explodes when killed, splits in two, reflects some of your shots, or buffs
+nearby allies). Later waves can give an elite two traits.
+
+The game is designed so that you can read what is coming: enemies glow just
+before they fire, bullet shapes tell you what they will do (darts are aimed,
+crescents curve, rounds are rings), and the number of bullets on screen is
+capped, with only a few shooters firing at a time. Later waves get harder
+mostly because enemies get tougher and hit harder, not because the screen fills
+with more bullets. Enemy damage grows a few percent every wave.
+
+Status effects are shown by icons over enemies: frozen, slowed, burning,
+bleeding and marked (takes extra damage).
+
+
+8. BOSSES
+---------
+
+There are ten bosses, one every 5 waves. Each one is a long, multi-stage fight
+with its own mechanics, and each stage shows a clear warning before its attacks:
+
+- Wave 5, The Warden: a prison riot. Searchlights, gates of push-back bullets,
+  tear gas, and rioters pouring out of cells.
+- Wave 10, Hive Queen: drones, bombers and dives.
+- Wave 15, Twin Reapers: two bosses at once, tied together by a soul bond.
+- Wave 20, The Singularity: a black hole with gravity wells that bend your shots.
+- Wave 25, The Colossus: a stone giant that breaks down as it goes.
+- Wave 30, The Duelist: a one-on-one duel of lunges and guards.
+- Wave 35, The Lich: graves, soul beams and the dead rising.
+- Wave 40, Storm Herald: lightning strikes and storms.
+- Wave 45, The Devourer: grows bigger with each stage.
+- Wave 50, The Eclipse: the final boss, with five stages and a last stand. It is
+  about twice as long as any other boss.
+
+Boss health is set so a fight lasts roughly one to two minutes. It also scales
+with your party size and with how strong your build is, so a party with a very
+strong build meets a tougher boss. Bosses never take turns shooting like normal
+enemies do. They always fire.
+
+The four waves before a boss are its "approach". Part of each wave is made of
+that boss's own kind of enemy, so you meet its world on the way. Right now the
+Warden and the Lich have their own faction of enemies for this.
+
+When a boss changes stage, a few health orbs are knocked loose to help you.
+After the boss dies, each player picks a legendary upgrade and a weapon mod.
+
+
+9. PATHS, CHALLENGE ROOMS AND SHOPS
+-----------------------------------
+
+PATHS. After each boss, the host chooses one of two "paths" for the next four
+regular waves, or no path. A path changes the enemy mix and the floor, and it
+pays a prize before the next boss based on how risky it is (one to three
+skulls). Examples:
+- Swarm Fields: lots of melee enemies, but weaker.
+- Sniper Ridge: mostly long-range shooters.
+- Elite Gauntlet: half as many enemies, but all elite.
+- Burning Grounds: patches of fire spread across the floor.
+- Sanctuary: healing pools and fewer enemies (the easy one).
+- Frozen Lake: you slide as if on ice.
+- Blood Moon: no health drops and no regen, but kills heal you.
+- Fogbound: you can only see close to your team.
+- Narrow Pass: walls close in and wrapping is turned off.
+- Bazaar: every kill drops gold, which you spend in a shop (see below).
+Riskier paths give bonus XP and score while you are on them, plus better
+prizes: an extra upgrade pick or even an extra legendary pick.
+
+CHALLENGE ROOMS. Once in every five waves, a portal opens during the break.
+If everyone steps in, you go to a special room with one of five challenges:
+defend a crystal for 40 seconds, beat a mini-boss, kill 40 enemies in 40
+seconds, hold three zones in turn, or beat shadow copies of yourselves. Win and
+you get a prize pick of rare or very rare cards (sometimes a legendary too).
+Lose and you are simply sent back with nothing lost, so it is safe to fail.
+If you ignore the portal it closes on its own.
+
+THE BAZAAR SHOP. On the Bazaar path, kills drop gold for everyone. Before the
+boss, each player gets a shop with a shelf of upgrades picked for their class,
+plus services like restocking, removing an old upgrade, a full heal, or a
+"revive token" that gets you back up automatically once. You can also give gold
+to teammates. Leftover gold turns into XP when the shop closes.
+
+TREASURE CHESTS. Rarely, a chest appears. When opened, each player gets their
+own private item card that only they can see. They can take it or throw it away,
+and the wave waits until everyone has decided.
+
+
+10. DIFFICULTY AND MODIFIERS
+----------------------------
+
+The host picks a difficulty before the run: Easy, Normal, Hard, Nightmare, or
+Custom. These change things like enemy health, damage, speed, how many enemies
+there are, how fast you regenerate, how long revives take, and more. In Custom,
+the host can set each number. Party size also matters: solo players face weaker
+enemies, and three-player parties face more and tougher ones.
+
+On top of that, the host can turn on "modifiers", 17 switches that change the
+whole run. They are grouped as Easier, Risky and Harder. Some examples:
+- Easier: Lucky (extra rerolls), Head Start (start at level 3), Second Wind (a
+  free self-revive once per boss cycle), Gold Rush (shops before every boss).
+- Risky: Glass Cannon (everyone deals and takes 50% more damage), Hunted (one
+  player at a time draws all the enemies but deals double damage), Bloodlust.
+- Harder: Tough Crowd (more enemy health), Frenzy (faster fire), Swift Foes,
+  Famine (no health drops), Tiny Arena (walls close in after each boss),
+  Nightfall (the arena goes dark), Death Throes (enemies burst into bullet
+  rings when killed), Solid Walls, Cluttered (lots of crates), and Zombie
+  Infection (every regular wave becomes a horde of zombies of seven kinds).
+Modifiers raise the XP you earn for your account rank.
+
+
+11. OTHER MODES
+---------------
+
+- Run: the main 50-wave game.
+- Boss Hunt: a short run of ten waves ending in one boss, using only that boss's
+  own enemies. You unlock a boss's hunt by beating that boss in a normal run.
+  Right now only the Warden has a hunt.
+- Practice Range: you build your own waves from any enemies and bosses, set how
+  strong they are, and practise against them. Setups can be saved and shared. It
+  does not count towards your records or rank.
+- Boss Lab and a wave editor are in the developer tools, for testing.
+
+
+12. PERKS
+---------
+
+Winning a Boss Hunt unlocks a "perk" for that boss. You equip perks in the lobby.
+You start with one slot, get a second after winning a full run, and a third
+after winning five different hunts. The two perks that exist so far belong to
+the Warden:
+- Riot Gear: a shield plate blocks the next hit that would hurt you, then
+  takes 30 seconds to come back.
+- Contraband: a treasure chest always appears on the first wave after each boss,
+  and your own item from any chest is rare or better.
+
+
+13. PROGRESSION BETWEEN RUNS
+----------------------------
+
+Runs save themselves at the start of each wave, so you can quit and continue
+later with everyone's characters, upgrades and progress restored. A lost or
+won run loses its save.
+
+Your profile (up to three per computer) tracks records: runs won and lost,
+best wave, best score, time played, kills, bosses beaten, and wins per class.
+
+You also have an account Rank. Each finished run earns XP (20 per wave cleared,
+150 per boss, 40 per revive, 500 for a win, multiplied by modifiers and
+difficulty). Rank is purely cosmetic: it never makes you stronger. It unlocks
+things like titles, trails behind your character, frames for your name card,
+menu backgrounds, name effects, aim-line styles, cursors and emotes. The tiers
+go Recruit, Challenger, Veteran, Champion and Legend.
+
+At the end of a run you get a results screen with the wave reached, time, score,
+kills, and a card per player with damage, kills, healing, revives and awards
+such as "Most damage" or "Best healer".
+
+
+14. PLAYING WITH FRIENDS
+------------------------
+
+One player hosts and the others join over the network (the game suggests a
+free VPN tool called Tailscale, or you can forward TCP port 7777 on a router).
+Everyone needs the same game version. Players pick their loadouts, press Ready,
+and the host starts the match. Teammates see each other's pings, emotes and
+chat. Everyone's records and rank grow from the same run.
+
+
+15. WHAT MAKES THE GAME WORK
+----------------------------
+
+In short, the game rests on a few ideas:
+- Readable danger: warnings, bullet shapes and caps so that a hit feels fair.
+- Teamwork: roles that matter (tank draws fire, healer keeps people up, DPS
+  kills), revives, shared XP, and abilities that help allies.
+- Build variety: six classes, three roles each, many weapons and abilities, then
+  hundreds of upgrade combinations, so no two runs feel the same.
+- Escalation: more enemy types, elites, paths, and ten very different bosses
+  across 50 waves.
+- Replayability: difficulties, modifiers, paths, boss hunts, perks and cosmetic
+  ranks give reasons to run it again.
+
+Under the hood, the game's rules are plain C# code kept separate from Unity
+(in Assets/Scripts/Core), with the Unity-specific drawing and input in
+Assets/Scripts/Game. The Core code runs on the host and is checked by a set of
+simulation tests that run without Unity.
