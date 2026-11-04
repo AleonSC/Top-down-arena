@@ -270,8 +270,7 @@ namespace Arena
             }
             Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
             Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
-            Ui.Label(new Rect(r.x, r.y + 20f, r.width, 24f), "Open slot", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x, r.y + 44f, r.width, 18f), slot == 1 ? "Click ! by the title for your address" : "Room for one more (optional)", 11, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(r.x, r.y, r.width, r.height), "OPEN SLOT", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
         }
 
         string[] InviteAddresses() => (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
