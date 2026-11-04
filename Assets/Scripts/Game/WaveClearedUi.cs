@@ -100,9 +100,9 @@ namespace Arena
             {
                 var p = game.Players[id];
                 var line = rep.For(id) ?? new WaveLine { Id = id };
-                DrawTallyRow(new Rect(rx, ry, 600f, 44f), p, line);
+                DrawTallyRow(new Rect(rx, ry, 600f, 60f), p, line);
                 kills += line.Kills; dmg += line.Damage; taken += line.Taken;
-                ry += 50f;
+                ry += 66f;
             }
             if (ids.Count > 1)
             {
@@ -155,28 +155,29 @@ namespace Arena
             var color = ToColor(p.Def.Color);
             Ui.Pill(row, mine ? new Color(0.14f, 0.2f, 0.36f, 0.9f) : new Color(0.05f, 0.07f, 0.14f, 0.9f));
             Ui.Rim(row, mine ? Ui.Accent : new Color(0.3f, 0.34f, 0.5f), mine ? 0.7f : 0.5f);
-            Ui.Dot(new Rect(row.x + 10f, row.y + 11f, 22f, 22f), color);
+            Ui.Dot(new Rect(row.x + 10f, row.y + (row.height - 22f) / 2f, 22f, 22f), color);
             Ui.Label(new Rect(row.x + 38f, row.y, 82f, row.height), p.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
             Color takenColor = line.Taken <= 0.5f ? Ui.Good : Color.white;
             DrawNums(row, line.Kills, line.Damage, line.Taken, takenColor, true);
 
             // Awards: tags left to right, as many as fit.
-            float ax = row.x + 284f, limit = row.x + 566f;
+            // Each tag is a square, the label split onto two lines at its space (MOST / DAMAGE).
+            float ax = row.x + 284f, limit = row.x + 562f, side = 52f;
             foreach (var a in AwardList(line.Awards))
             {
-                float w = 14f + a.Item1.Length * 6.1f;
+                float w = side;
                 if (ax + w > limit)
                     break;
-                var tag = new Rect(ax, row.y + 13f, w, 18f);
+                var tag = new Rect(ax, row.y + (row.height - side) / 2f, side, side);
                 Color tc = a.Item2 ? WcBlue : WcGold;
                 Ui.Pill(tag, new Color(tc.r * 0.16f, tc.g * 0.16f, tc.b * 0.16f, 0.95f));
                 Ui.Rim(tag, tc, 0.7f);
-                Ui.Label(tag, a.Item1, 10, tc, TextAnchor.MiddleCenter, true);
-                ax += w + 5f;
+                Ui.Label(tag, a.Item1.Replace(' ', '\n'), 8, tc, TextAnchor.MiddleCenter, true);
+                ax += w + 3f;
             }
 
             // Ready tick: a ring for auto-ready, a green tick when ready, an empty ring while they are not.
-            var dot = new Rect(row.xMax - 34f, row.y + 10f, 24f, 24f);
+            var dot = new Rect(row.xMax - 34f, row.y + (row.height - 24f) / 2f, 24f, 24f);
             if (p.AutoReady)
             {
                 Ui.Dot(dot, Ui.Accent, true);

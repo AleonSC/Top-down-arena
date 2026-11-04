@@ -321,7 +321,7 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab();
+            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me);
 
             if (!menuUp)
             {
