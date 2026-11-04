@@ -880,10 +880,12 @@ namespace Arena
         {
             float t = Time.unscaledTime, a = color.a;
             float off = Mathf.Max(1f, size * 0.045f);
-            float ph = t % 2.6f + (text.Length % 7) * 0.31f;  // titles on one screen don't all tear together
-            ph %= 2.6f;
-            bool burst = size >= 28 && ph < 0.14f;
-            float k = burst ? 3f + 2f * Mathf.Sin(t * 90f) : 1f;
+            float ph = (t + (text.Length % 7) * 0.45f) % 3.6f;  // titles on one screen don't all tear together
+            const float len = 0.55f;
+            float p = size >= 28 && ph < len ? ph / len : -1f;  // 0..1 through the tear
+            float env = p >= 0f ? Mathf.Sin(p * Mathf.PI) : 0f;  // eases in and out, no sudden jump
+            env *= env;
+            float k = 1f + 2.2f * env;
             if (glow.HasValue)
             {
                 var g = glow.Value;
@@ -898,11 +900,11 @@ namespace Arena
             Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * a), align, true);
             Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * a), align, true);
             Label(r, text, size, color, align, true);
-            if (burst)
+            if (env > 0.02f)
             {
-                float by = r.height * (0.15f + 0.5f * (ph / 0.14f)), bh = r.height * 0.22f;
+                float by = r.height * (0.15f + 0.5f * p), bh = r.height * 0.22f;
                 GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, bh));
-                Label(new Rect((Mathf.Sin(t * 40f) < 0f ? -off * 5f : off * 5f), -by, r.width, r.height), text, size, color, align, true);
+                Label(new Rect(off * 4f * env * Mathf.Sin(p * 9f), -by, r.width, r.height), text, size, color, align, true);
                 GUI.EndGroup();
             }
         }

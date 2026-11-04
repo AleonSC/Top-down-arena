@@ -162,7 +162,7 @@ namespace Arena
             float t = Time.unscaledTime;
             float tk = Seg(T, 0.1f, 0.5f);
             if (tk < 1f)
-                WithAlpha(1f - tk, () => Ui.Fancy(new Rect(0f, MenuTitleY - 56f + 78f * tk * tk, W, 80f), "WHO'S PLAYING?", 58, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(1f - tk, () => Ui.Glitch(new Rect(0f, MenuTitleY - 56f + 78f * tk * tk, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent));
 
             int boxes = WhoSlots + 1;
             var dotAt = new Vector2[boxes];
