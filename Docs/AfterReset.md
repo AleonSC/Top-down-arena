@@ -8,10 +8,13 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
-- [ ] **Elementalist DPS abilities: Meteor and Blizzard visuals, Arcane Surge becomes Tsunami.** Mockup (Nov 2026, nothing built yet):
-      [`Mockups/elementalist-dps-abilities.html`](Mockups/elementalist-dps-abilities.html). Pick a look (A/B/C) for each of Meteor, Blizzard and Tsunami.
-      Tsunami: a wave rolls out from you along your aim, 12 damage, leaves enemies **wet** (8 s, 30% slow); any lightning hit arcs to every wet enemy on the map
-      for 40% damage (Arc Lightning, Storm Hammer, Chain Light, Nimbus). Numbers are in the mockup's table. Needs a protocol bump when built.
+- [x] **Elementalist DPS abilities: Meteor and Blizzard visuals, Arcane Surge becomes Tsunami.** Built (Nov 2026, protocol 147): look A for all three, from
+      [`Mockups/elementalist-dps-abilities.html`](Mockups/elementalist-dps-abilities.html) (https://claude.ai/artifact/R7eis4QntDJvmvq8mpvhb9). Meteor gets a falling
+      fireball and a flash/ring/sparks/scorch impact (`FxKind.Meteor`), Blizzard a whiteout of wind-driven snow. **Tsunami** (`Core/Tsunami.cs`): a wave 340 px wide
+      along your aim, 12 damage, **wet** for 8 s (14 mastered), slowed 30% (15% on bosses and heavy enemies); every lightning hit (Arc Lightning, Storm Hammer pulses,
+      Chain Light, Nimbus) arcs to every wet enemy on the map for 40% of that hit, at most once per 0.4 s per enemy. Mastered: the wave rolls back and wets what it
+      missed. Storm Hammer pulses count as half a hammer hit (their own arcs are only an eighth, which would have made wet arcs about 2 damage). Needs a try in Unity.
+      Armory and Bestiary pages are out of date for Arcane Surge, Meteor and Blizzard. Say if you want fire (Fireball, Meteor) to dry enemies off.
 - [x] **Ping system.** Built (Nov 2026, protocol 145; `Msg.PingMark`, since `Msg.Ping` was already the latency check). Mockup:
       [`Mockups/ping-system.html`](Mockups/ping-system.html) (https://claude.ai/artifact/UHdFiTLxtxuzmZLQZQbH3Z). I picked the wheel (tap = last pick, hold = wheel),
       the player's slot colour, and a separate key (middle mouse, rebindable). The arena is one fixed screen, so the mockup's off-screen arrows and

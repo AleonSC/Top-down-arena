@@ -132,11 +132,6 @@ namespace Arena
                     p.Run.ShotsFired++;
                 }
                 b.Pierce = p.Stats.Pierce;
-                if (p.SurgeT > 0f)  // Arcane Surge
-                {
-                    b.Dmg *= 1.6f;
-                    b.Pierce += 2;
-                }
             }
             var sent = new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Homing = homing };
             pendingSpawns.Add(sent);

@@ -113,9 +113,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.ArcaneSurge, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2,
-                Name = "Arcane Surge", Cooldown = 16f, Desc = "For 5 s your shots deal 60% more damage and pierce 2 more enemies.",
-                Capstone = "+1 extra projectile while it lasts.",
+                Id = AbilityId.Tsunami, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2,
+                Name = "Tsunami", Cooldown = 16f, Desc = "A wave rolls out where you aim: 12 damage, and it leaves enemies wet for 8 s, slowed 30%. Lightning (Arc Lightning, Storm Hammer, Chain Light, Nimbus) arcs to every wet enemy on the map.",
+                Capstone = "Wet lasts 14 s, and the wave rolls back to you, wetting what it missed.",
             },
         };
 
@@ -307,9 +307,8 @@ namespace Arena
                     AddZone(ZoneKind.Blizzard, p, target, 130f, cap ? 10f : 5f);
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.Blizzard).Color, 130f, 0.4f, Sfx.Freeze);
                     break;
-                case AbilityId.ArcaneSurge:
-                    p.SurgeT = 5f * pw;
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.ArcaneShot), 70f, 0.4f, Sfx.Ability);
+                case AbilityId.Tsunami:
+                    CastTsunami(p, cap, pw);
                     break;
                 // Summoner
                 case AbilityId.GolemWall:
@@ -858,7 +857,10 @@ namespace Arena
                     foreach (var e in Enemies.Values)
                         if (e.SpawnT <= 0f && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
                             HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
-                    BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.BigExplode);
+                    if (z.Kind == ZoneKind.Meteor)
+                        BroadcastFx(FxKind.Meteor, z.Pos, z.Def.Color, z.Radius, 2.8f, Sfx.BigExplode);  // flash, ring, sparks and a scorch mark (ElementalistLooks.cs)
+                    else
+                        BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.BigExplode);
                     Player caster;
                     if (z.Consecrates && Players.TryGetValue(z.Owner, out caster))
                     {

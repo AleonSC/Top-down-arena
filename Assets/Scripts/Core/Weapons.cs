@@ -191,7 +191,7 @@ namespace Arena
 
         /// Extra projectiles from upgrades, plus two during Bullet Storm.
         public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
-            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0) + (p.SurgeT > 0f && Mastered(p, AbilityId.ArcaneSurge) ? 1 : 0)
+            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0)
             + (p.FuryT > 0f && Mastered(p, AbilityId.BattleFury) ? 1 : 0);
 
         // --- Revolver (the Healer's Pistol) -------------------------------------------

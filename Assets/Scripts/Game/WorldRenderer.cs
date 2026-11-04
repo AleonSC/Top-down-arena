@@ -303,8 +303,6 @@ namespace Arena
                 DrawBloodShellOn(p, t);
             else if (p.ShieldHp > 0f)  // Arcane Ward
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
-            if (p.SurgeT > 0f)  // Arcane Surge: a violet glow with sparks crackling round it
-                DrawArcaneSurge(p, t);  // AbilityLooks.cs
             if (p.FrenzyT > 0f)  // Alpha Call
                 Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
             if (p.ParryActive)

@@ -1052,6 +1052,7 @@ namespace Arena
             TickScytheClock(dt);  // Twin Scythes' cut timers (ReaperLoot.cs)
             foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickBloodMages (BloodMage.cs)
                 tick(this, dt);
+            TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
@@ -1131,7 +1132,6 @@ namespace Arena
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);
                 p.AegisT = Math.Max(0f, p.AegisT - dt);
-                p.SurgeT = Math.Max(0f, p.SurgeT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
                 p.BoltCd -= dt;  // Ricochet's bounce bolts (Combat.cs)
                 p.BroodCd -= dt;  // Brood Mother's boss turrets

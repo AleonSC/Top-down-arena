@@ -109,6 +109,12 @@ namespace Arena
                 case FxKind.Strike:
                     DrawStrikeFx(fx, f);  // NimbusLook.cs
                     break;
+                case FxKind.Meteor:
+                    DrawMeteorFx(fx);  // ElementalistLooks.cs
+                    break;
+                case FxKind.Tsunami:
+                    DrawTsunamiFx(fx, t);  // ElementalistLooks.cs
+                    break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
                     break;
