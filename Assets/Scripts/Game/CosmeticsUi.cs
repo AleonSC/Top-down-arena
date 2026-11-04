@@ -14,12 +14,13 @@ namespace Arena
         int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Reward ladder
 
         static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Reward ladder" };
-        static readonly string[] CosmeticIcons = { "ui_star", "blink", "snow", "ui_star", "ui_star", "ui_star", "ui_trophy" };
+        static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_trophy" };
 
         void OpenCosmetics()
         {
             cosmeticsOpen = true;
             cosmeticsSection = 0;
+            ladderScroll = -1f;  // the ladder opens at your rank
             editingName = false;
         }
 
@@ -279,37 +280,192 @@ namespace Arena
         }
 
         // --- The reward ladder --------------------------------------------------------------------------------------
+        // Docs/Mockups/reward-ladder-next.html, look 1: the next reward pinned in a box on the left, the ladder as a vertical
+        // rail on the right (rank shields on a line, rewards beside them, a gold "you" marker at your rank).
+
+        /// One thing on the rail: a tier banner, a rank's node (its rewards), or the "you are here" marker.
+        class LadderItem
+        {
+            public int Kind;  // 0 tier banner, 1 node, 2 you
+            public int Rank, Tier;
+            public int First, Count;  // for a node: its rows in Ladder()
+            public float Y, H;
+        }
+
+        const float LadderRowH = 42f, LadderRowGap = 6f;
+
+        static Color LadderKindColor(string kind)
+        {
+            switch (kind)
+            {
+                case "Frame": return new Color(1f, 0.82f, 0.31f);
+                case "Trail": return new Color(0.44f, 0.85f, 1f);
+                case "Background": return new Color(0.5f, 0.7f, 1f);
+                case "Card background": return new Color(0.31f, 0.88f, 0.75f);
+                case "Emote": return new Color(1f, 0.56f, 0.75f);
+                case "Aim line": return new Color(1f, 0.48f, 0.36f);
+                case "Name effect": return new Color(0.73f, 0.54f, 1f);
+                default: return new Color(0.96f, 0.97f, 1f);  // Title
+            }
+        }
+
+        static string LadderKindIcon(string kind)
+        {
+            switch (kind)
+            {
+                case "Frame": return "ui_frame";
+                case "Trail": return "ui_trail";
+                case "Background": return "ui_scene";
+                case "Card background": return "ui_card";
+                case "Emote": return "ui_emote";
+                case "Aim line": return "ui_aim";
+                case "Name effect": return "ui_name";
+                default: return "ui_trophy";
+            }
+        }
+
+        static int LadderTierOf(int rank)
+        {
+            int[] at = { 0, 5, 10, 20, 30 };
+            int t = 0;
+            for (int i = 0; i < at.Length; i++)
+                if (at[i] <= rank) t = i;
+            return t;
+        }
 
         void DrawLadderPanel(Profile p, float k)
         {
             OpenSectionPanel("REWARD LADDER", Ui.Gold, "What each rank unlocks. Titles come with your tier.", k);
             int rank = p.RankNow;
             var rows = Ladder();  // RankUi.cs
-            int cols = rows.Count > 12 ? 3 : 2;  // three columns once the ladder is long (the panel is a fixed height)
-            float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f, cw = (DrawerPanel.width - 52f - 14f * (cols - 1)) / cols;
-            // Three columns of rows, scrolling with the wheel when there are more than fit.
-            float step = 92f, rh = 80f, viewH = DrawerPanel.height - 128f;
-            float contentH = Mathf.Ceil(rows.Count / (float)cols) * step;
-            var view = new Rect(x - 4f, top, DrawerPanel.width - 44f, viewH);
+            LadderRow next = null;
+            foreach (var r in rows)
+                if (r.Rank > rank) { next = r; break; }
+            float t = Time.unscaledTime;
+            float top = DrawerPanel.y + 112f, viewH = DrawerPanel.height - 128f;
+
+            // Left: the next reward.
+            var box = new Rect(DrawerPanel.x + 26f, top, 280f, Mathf.Min(viewH, 360f));
+            Ui.Pill(box, new Color(1f, 0.82f, 0.31f, 0.07f));
+            Ui.Rim(box, Ui.Gold, 0.35f);
+            if (next == null)
+            {
+                Ui.Label(new Rect(box.x + 16f, box.y + 16f, box.width - 32f, 18f), "ALL DONE", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(box.x + 16f, box.y + 50f, box.width - 32f, 60f), "You've earned every reward.", 17, Color.white, TextAnchor.MiddleCenter, true, true);
+            }
+            else
+            {
+                var kc = LadderKindColor(next.Kind);
+                Ui.Label(new Rect(box.x + 16f, box.y + 14f, box.width - 32f, 18f), "NEXT REWARD  ·  RANK " + next.Rank, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
+                DrawRewardPreview(new Rect(box.x + 16f, box.y + 40f, box.width - 32f, 120f), next, t, false);
+                Ui.Fancy(new Rect(box.x + 12f, box.y + 170f, box.width - 24f, 34f), next.Name, 22, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
+                Ui.Icon(new Rect(box.center.x - Ui.TextWidth(next.Kind.ToUpper(), 11, true) / 2f - 20f, box.y + 210f, 14f, 14f), PixelArt.Get(LadderKindIcon(next.Kind)), kc);
+                Ui.Label(new Rect(box.x + 12f, box.y + 208f, box.width - 24f, 18f), next.Kind.ToUpper(), 11, kc, TextAnchor.MiddleCenter, true);
+                long have = p.Xp, from = Rank.XpAt(rank), to = Rank.XpAt(next.Rank);
+                float frac = to > from ? Mathf.Clamp01((float)(have - from) / (to - from)) : 1f;
+                Ui.Bar(new Rect(box.x + 16f, box.y + 242f, box.width - 32f, 10f), frac, Ui.Gold);
+                Ui.Label(new Rect(box.x + 12f, box.y + 258f, box.width - 24f, 18f), Mathf.Max(0L, to - have).ToString("N0") + " XP to go", 12, Ui.Muted, TextAnchor.MiddleCenter);
+            }
+
+            // Right: the rail, built as a list so it can be measured, scrolled and drawn from one place.
+            float rx = box.xMax + 18f, rw = DrawerPanel.xMax - 22f - rx;
+            var items = new System.Collections.Generic.List<LadderItem>();
+            float y = 0f, youY = 0f;
+            int lastTier = -1;
+            bool youDone = false;
+            for (int i = 0; i < rows.Count;)
+            {
+                int j = i;
+                while (j < rows.Count && rows[j].Rank == rows[i].Rank) j++;
+                int rk = rows[i].Rank, tier = LadderTierOf(rk);
+                if (tier != lastTier)
+                {
+                    items.Add(new LadderItem { Kind = 0, Rank = rk, Tier = tier, Y = y, H = 34f });
+                    y += 34f;
+                    lastTier = tier;
+                }
+                if (!youDone && rk > rank)
+                {
+                    items.Add(new LadderItem { Kind = 2, Rank = rank, Y = y, H = 46f });
+                    youY = y;
+                    y += 46f;
+                    youDone = true;
+                }
+                float h = 8f + (j - i) * (LadderRowH + LadderRowGap);
+                items.Add(new LadderItem { Kind = 1, Rank = rk, First = i, Count = j - i, Y = y, H = h });
+                y += h;
+                i = j;
+            }
+            if (!youDone)
+            {
+                items.Add(new LadderItem { Kind = 2, Rank = rank, Y = y, H = 46f });
+                youY = y;
+                y += 46f;
+            }
+            float contentH = y + 8f;
+
+            var view = new Rect(rx, top, rw, viewH);
             var ev = Event.current;
+            if (ladderScroll < 0f)
+                ladderScroll = youY - viewH * 0.4f;  // first look: your place on the ladder
             if (ev.type == EventType.ScrollWheel && view.Contains(ev.mousePosition))
             {
                 ladderScroll += ev.delta.y * 30f;
                 ev.Use();
             }
             ladderScroll = Mathf.Clamp(ladderScroll, 0f, Mathf.Max(0f, contentH - viewH));
+            float cx = 26f;  // the shields' centre line, in the group
             GUI.BeginGroup(view);
-            for (int i = 0; i < rows.Count; i++)
+            foreach (var it in items)
             {
-                var row = rows[i];
-                bool got = row.Rank <= rank;
-                var rr = new Rect(4f + (i % cols) * (cw + 14f), (i / cols) * step - ladderScroll, cw, rh);
-                if (rr.yMax < 0f || rr.y > viewH)
+                float iy = it.Y - ladderScroll;
+                if (iy + it.H < 0f || iy > viewH)
                     continue;
-                Ui.Pill(rr, new Color(1f, 1f, 1f, got ? 0.05f : 0.025f));
-                RankLook.Draw(new Rect(rr.x + 12f, rr.y + 16f, 48f, 48f), row.Rank, got ? 1f : 0.5f);
-                Ui.Label(new Rect(rr.x + 76f, rr.y + 14f, rr.width - 90f, 24f), row.Name, 18, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(rr.x + 76f, rr.y + 40f, rr.width - 90f, 20f), row.Kind + (got ? "  ·  unlocked" : ""), 12, got ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
+                if (it.Kind == 0)
+                {
+                    var tc = RankLook.TierColor(it.Rank);
+                    int[] at = { 0, 5, 10, 20, 30 };
+                    string range = it.Tier + 1 < at.Length ? "ranks " + Mathf.Max(1, at[it.Tier]) + " to " + (at[it.Tier + 1] - 1) : "rank " + at[it.Tier] + " and up";
+                    string head = (Rank.TierNames[it.Tier] + " tier").ToUpper() + "  ·  " + range;
+                    Ui.Label(new Rect(cx + 40f, iy + 8f, rw - cx - 40f, 22f), head, 12, tc, TextAnchor.MiddleLeft, true);
+                    float lx = cx + 40f + Ui.TextWidth(head, 12, true) + 12f;
+                    for (int s = 0; s < 20 && lx + s * 14f < rw - 8f; s++)
+                        Ui.Fill(new Rect(lx + s * 14f, iy + 19f, 14f, 1f), new Color(tc.r, tc.g, tc.b, 0.5f * (1f - s / 20f)));
+                }
+                else if (it.Kind == 2)
+                {
+                    Ui.Fill(new Rect(cx - 1.5f, iy, 3f, it.H), new Color(0.14f, 0.17f, 0.28f));
+                    Ui.Capsule(new Rect(cx - 12f, iy + it.H / 2f - 12f, 24f, 24f), new Color(1f, 0.82f, 0.31f, 0.22f));
+                    Ui.Capsule(new Rect(cx - 7f, iy + it.H / 2f - 7f, 14f, 14f), Ui.Gold);
+                    long have = p.Xp;
+                    LadderRow nx = null;
+                    foreach (var r in rows) if (r.Rank > rank) { nx = r; break; }
+                    long from = Rank.XpAt(rank), to = nx != null ? Rank.XpAt(nx.Rank) : from + 1;
+                    Ui.Label(new Rect(cx + 40f, iy + 4f, 260f, 16f), "YOU  ·  RANK " + rank, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(rw - 270f, iy + 4f, 262f, 16f), nx != null ? Mathf.Max(0L, to - have).ToString("N0") + " XP to rank " + nx.Rank : "Every reward unlocked", 12, Ui.Text, TextAnchor.MiddleRight);
+                    Ui.Bar(new Rect(cx + 40f, iy + 24f, rw - cx - 48f, 8f), nx != null ? Mathf.Clamp01((float)(have - from) / (to - from)) : 1f, Ui.Gold);
+                }
+                else
+                {
+                    bool got = it.Rank <= rank;
+                    var tc = RankLook.TierColor(it.Rank);
+                    Ui.Fill(new Rect(cx - 1.5f, iy, 3f, it.H), got ? new Color(tc.r, tc.g, tc.b, 0.8f) : new Color(0.14f, 0.17f, 0.28f));
+                    RankLook.Draw(new Rect(cx - 20f, iy + 8f, 40f, 40f), it.Rank, got ? 1f : 0.45f);
+                    for (int n = 0; n < it.Count; n++)
+                    {
+                        var row = rows[it.First + n];
+                        var rr = new Rect(cx + 40f, iy + 8f + n * (LadderRowH + LadderRowGap), rw - cx - 48f, LadderRowH);
+                        bool isNext = row == next;
+                        var kc = LadderKindColor(row.Kind);
+                        Ui.Pill(rr, isNext ? new Color(1f, 0.82f, 0.31f, 0.09f) : new Color(1f, 1f, 1f, got ? 0.05f : 0.025f));
+                        if (isNext)
+                            Ui.Rim(rr, Ui.Gold, 0.6f);
+                        Ui.Icon(new Rect(rr.x + 12f, rr.center.y - 11f, 22f, 22f), PixelArt.Get(LadderKindIcon(row.Kind)), got ? kc : new Color(kc.r, kc.g, kc.b, 0.4f));
+                        Ui.Label(new Rect(rr.x + 46f, rr.y, rr.width - 330f, rr.height), row.Name, 17, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
+                        Ui.Label(new Rect(rr.xMax - 280f, rr.y, 170f, rr.height), row.Kind.ToUpper(), 11, got ? kc : new Color(kc.r, kc.g, kc.b, 0.6f), TextAnchor.MiddleRight, true);
+                        Ui.Label(new Rect(rr.xMax - 100f, rr.y, 88f, rr.height), got ? "Unlocked" : isNext ? "Next" : "Locked", 12, got ? Ui.Good : isNext ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight, true);
+                    }
+                }
             }
             GUI.EndGroup();
             if (contentH > viewH)

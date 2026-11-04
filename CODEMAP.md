@@ -85,6 +85,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
+- `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails

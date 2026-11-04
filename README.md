@@ -229,7 +229,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
-| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
+| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
 | **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
 ### Ability mastery
@@ -866,7 +866,7 @@ what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, 
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name card on the main menu (a pencil next to your name there renames you). A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder**; the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder** (a box with your next reward and the XP to go, beside a vertical ladder of rank shields that opens at your rank); the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
