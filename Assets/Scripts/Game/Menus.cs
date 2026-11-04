@@ -127,8 +127,10 @@ namespace Arena
                 Ui.Label(new Rect(tx, r.y + 31f, tw, r.height - 34f), body, 14, new Color(0.78f, 0.82f, 0.91f, 0.95f * ca), TextAnchor.UpperLeft, false, true);
                 float bx = r.xMax - 20f - 168f;
                 Ui.Label(new Rect(bx, r.y + 16f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, blue, TextAnchor.MiddleRight, true);
-                prev = Ui.SmallButton(new Rect(bx, r.y + 40f, 80f, 32f), "< Prev", 13);
-                next = Ui.SmallButton(new Rect(bx + 88f, r.y + 40f, 80f, 32f), "Next >", 13);
+                var pr = new Rect(bx, r.y + 40f, 80f, 32f);
+                var nr = new Rect(bx + 88f, r.y + 40f, 80f, 32f);
+                prev = MenuVhs.Draw(pr, "TRK 05", live && show >= 1f, fxReduced, () => Ui.SmallButton(pr, "< Prev", 13));  // the same tape hover, tick and snap as the menu buttons
+                next = MenuVhs.Draw(nr, "TRK 06", live && show >= 1f, fxReduced, () => Ui.SmallButton(nr, "Next >", 13));
             });
             if (live && show >= 1f && (prev || next))
             {
