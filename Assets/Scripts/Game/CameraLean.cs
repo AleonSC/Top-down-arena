@@ -5,14 +5,14 @@ namespace Arena
     /// Camera lean: the picture eases a few percent toward where you aim and move, so the far side of the screen shows a
     /// little more. The arena itself is unchanged (still 1600x900, players still wrap); only the drawing slides.
     ///   target   65% the crosshair's direction (scaled by how far out it is) + 35% your movement, per axis up to
-    ///            LeanMaxX x LeanMaxY arena units (5% of the arena) x LeanStrength (75%), eased at dt * 4.
+    ///            LeanMaxX x LeanMaxY arena units (5% of the arena) x LeanStrength (50%), eased at dt * 4.
     ///   position the lean ignores where you are, so wrapping round an edge never makes the camera jump.
     ///   screen   world drawing is shifted in Px (WorldRenderer.cs); labels placed from a world position go through ToUi, and
     ///            MouseArena adds the lean back, so aiming stays exact. The strip the shift uncovers is dimmed like the backdrop.
     /// Setting: Settings → Gameplay → Camera lean (PlayerPrefs "cam_lean", on by default). Off draws exactly as before.
     public partial class ArenaApp
     {
-        const float LeanStrength = 0.75f, LeanMaxX = 80f, LeanMaxY = 45f, LeanReach = 450f, LeanEase = 4f;
+        const float LeanStrength = 0.5f, LeanMaxX = 80f, LeanMaxY = 45f, LeanReach = 450f, LeanEase = 4f;
 
         bool camLean = true;
         V2 lean;                 // how far the picture is shifted, in arena units (the world is drawn at position - lean)
