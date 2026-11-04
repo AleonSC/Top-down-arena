@@ -1,0 +1,360 @@
+<title>Air Trail</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The field-manual look of the other mockups. Up top, nine movers at the game's scale (1 canvas px = 1 arena px), one
+   per lane, each running at its real speed in px/s. Under it, the speed curve, then one card per look with the same
+   mover at three speeds. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --air: #9fdcff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--air); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #070910; }
+#arena { aspect-ratio: 960 / 520; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--air); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #12242c; border-color: var(--air); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--air); margin-right: 6px; }
+.sl { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font: 500 12px var(--font-data); color: var(--muted); min-width: 250px; flex: 1 1 250px; }
+.sl b { font-weight: 500; color: var(--fg); min-width: 7ch; text-align: right; }
+input[type=range] { accent-color: var(--air); width: 100%; min-width: 0; }
+
+.curve { padding: 12px; }
+#curve { aspect-ratio: 960 / 200; border-radius: 6px; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--air); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--air); }
+.card h3 { font-size: 18px; }
+.card canvas { aspect-ratio: 280 / 76; border: 1px solid var(--line); border-radius: 6px; }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.cap { font: 500 11px var(--font-data); color: var(--muted); margin-top: -6px; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Air trail · pick a look</div>
+    <h1>Air <span>Trail</span></h1>
+    <p class="lead">A trail of disturbed air behind anything that moves, scaled by how fast it moves. Slow movers get nothing. Fast ones get a lot. Players, enemies and minions all use the same rule. Each lane runs a real mover at its real speed from the game's data.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="arena" width="960" height="520" aria-label="Nine movers running at different speeds with the picked air trail"></canvas>
+    <div class="bar">
+      <div class="group" id="looks"><span class="label">Look</span></div>
+      <div class="group"><button id="pause" aria-pressed="false">Pause</button></div>
+      <label class="sl" for="lo">Starts at <input id="lo" type="range" min="40" max="300" step="5" value="110"><b id="lov"></b></label>
+      <label class="sl" for="hi">Full at <input id="hi" type="range" min="200" max="700" step="10" value="330"><b id="hiv"></b></label>
+      <label class="sl" for="gain">Strength <input id="gain" type="range" min="0.3" max="1.6" step="0.05" value="1"><b id="gainv"></b></label>
+      <label class="sl" for="test">Test lane speed <input id="test" type="range" min="0" max="700" step="5" value="260"><b id="testv"></b></label>
+    </div>
+  </div>
+
+  <section>
+    <h2>Speed to trail</h2>
+    <p>One curve for everything. Trail strength is 0 at or below "Starts at", then rises slowly (squared) so the middle speeds stay light and only the fast movers get the full effect. Dots are the lanes above.</p>
+    <div class="stage curve"><canvas id="curve" width="960" height="200" aria-label="Trail strength against speed"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Four looks, three speeds</h2>
+    <p>Each card shows the same three movers: a Grunt (85), a Healer (215) and a Hive Bomber (330). Click a card to put its look on the arena.</p>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <div class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li>Speed comes from how far the body moved this frame, smoothed over a few frames, so every client works it out for itself. Nothing is sent and the protocol version stays the same.</li>
+      <li>Drawn with the other Visual effects, under the body, and skipped when they are off. Knockback, dashes and Bulldoze count as speed too, so a dash gets the full trail for free.</li>
+      <li>Particle looks (B, C) cap at about 24 live bits per body and stop spawning below the start speed. Looks A and D are drawn from a short position history and cost almost nothing.</li>
+      <li>Bosses are slow, so they get little. The Dual Reaper (150) and the Duelist's lunges are the exceptions. Say if bosses should be left out.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(() => {
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const P = { lo: 110, hi: 330, gain: 1, paused: false, look: 'A' };
+  const kOf = v => Math.min(1, Math.pow(clamp((v - P.lo) / (P.hi - P.lo), 0, 1), 2) * P.gain);
+  const rgb = (c, a, w) => `rgba(${Math.round(c[0] * 255 * (1 - w) + 255 * w)},${Math.round(c[1] * 255 * (1 - w) + 255 * w)},${Math.round(c[2] * 255 * (1 - w) + 255 * w)},${a})`;
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+
+  const DEFS = {
+    grunt:  { name: 'Grunt',        kind: 'enemy',  speed: 85,  r: 14, sides: 3, col: [1, .35, .35] },
+    reaver: { name: 'Reaver',       kind: 'enemy',  speed: 150, r: 19, sides: 3, col: [1, .3, .43] },
+    tank:   { name: 'Tank',         kind: 'player', speed: 185, r: 18, col: [.4, .75, 1] },
+    shadow: { name: 'Shadow',       kind: 'enemy',  speed: 190, r: 16, sides: 0, col: [.62, .4, 1] },
+    healer: { name: 'Healer',       kind: 'player', speed: 215, r: 14, col: [.5, 1, .6] },
+    dps:    { name: 'Fast DPS',     kind: 'player', speed: 240, r: 12, col: [1, .8, .35] },
+    bomber: { name: 'Hive Bomber',  kind: 'enemy',  speed: 330, r: 10, sides: 3, col: [1, .45, .15] },
+    dash:   { name: 'Bulldoze',     kind: 'player', speed: 620, r: 18, col: [.4, .75, 1] },
+    test:   { name: 'Test',         kind: 'enemy',  speed: 260, r: 13, sides: 4, col: [.9, .9, .95] },
+  };
+
+  class Mover {
+    constructor(d, x, y, dir) { Object.assign(this, d); this.x = x; this.y = y; this.dir = dir; this.hist = []; this.parts = []; this.acc = 0; }
+    reset() { this.hist = []; this.parts = []; this.acc = 0; }
+  }
+
+  // ---------- the four looks ----------
+  const LOOKS = {
+    A: { name: 'Ribbons', draw(c, m, k, now) {
+      // two thin streamlines off the shoulders, drawn from the last half second of positions
+      const life = 0.15 + 0.4 * k, h = m.hist;
+      c.lineCap = 'round';
+      for (const s of [-1, 1]) {
+        for (let i = 1; i < h.length; i++) {
+          const a0 = now - h[i - 1].t, a1 = now - h[i].t;
+          if (a0 > life) continue;
+          const f = 1 - a0 / life;
+          const off = (a, ph) => s * m.r * 0.7 + Math.sin(a * 14 + ph) * m.r * 0.3 * k * (a / life);
+          c.strokeStyle = rgb(m.col, 0.65 * k * f, 0.65);
+          c.lineWidth = 0.6 + m.r * 0.16 * f * k;
+          c.beginPath();
+          c.moveTo(h[i - 1].x, h[i - 1].y + off(a0, s));
+          c.lineTo(h[i].x, h[i].y + off(a1, s));
+          c.stroke();
+        }
+      }
+    } },
+    B: { name: 'Speed lines', draw(c, m, k, now, dt) {
+      // short streaks left in the air, standing still while the body leaves them
+      if (k > 0.02) {
+        m.acc += k * 70 * dt;
+        while (m.acc >= 1 && m.parts.length < 24) {
+          m.acc--;
+          m.parts.push({ x: m.x - m.dir * m.r * (0.3 + Math.random() * 0.8), y: m.y + (Math.random() * 2 - 1) * m.r * 1.3,
+            len: (24 + 110 * k) * (0.5 + Math.random() * 0.7), life: 0.2 + Math.random() * 0.25, age: 0, a: k, dir: m.dir });
+        }
+        m.acc = Math.min(m.acc, 1);
+      }
+      c.lineCap = 'round';
+      m.parts = m.parts.filter(p => (p.age += dt) < p.life);
+      for (const p of m.parts) {
+        const f = 1 - p.age / p.life;
+        c.strokeStyle = rgb(m.col, 0.6 * p.a * f, 0.7);
+        c.lineWidth = 1.1 + p.a * 0.9;
+        c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - p.dir * p.len * f, p.y); c.stroke();
+      }
+    } },
+    C: { name: 'Air rings', draw(c, m, k, now, dt) {
+      // curved pressure rings shed from the back, spaced wider the faster you go
+      if (k > 0.02) {
+        m.acc += k * (8 + 10 * k) * dt;
+        while (m.acc >= 1 && m.parts.length < 24) { m.acc--; m.parts.push({ x: m.x - m.dir * m.r * 0.6, y: m.y, age: 0, life: 0.45, dir: m.dir, a: k }); }
+        m.acc = Math.min(m.acc, 1);
+      }
+      m.parts = m.parts.filter(p => (p.age += dt) < p.life);
+      for (const p of m.parts) {
+        const t = p.age / p.life, rad = m.r * (0.5 + 1.4 * t), ctr = p.dir > 0 ? Math.PI : 0;
+        c.strokeStyle = rgb(m.col, 0.65 * p.a * (1 - t), 0.7);
+        c.lineWidth = 2.2 * (1 - t) + 0.4;
+        c.lineCap = 'round';
+        c.beginPath(); c.arc(p.x, p.y, rad, ctr - 1.05, ctr + 1.05); c.stroke();
+      }
+    } },
+    D: { name: 'Slipstream', draw(c, m, k, now) {
+      // a soft tapered wake with three wisps rippling inside it
+      if (k < 0.02) return;
+      const L = m.r * 1.2 + 150 * k, x0 = m.x - m.dir * m.r * 0.3, x1 = x0 - m.dir * L, hw = m.r * (0.9 + 0.2 * k), y = m.y;
+      let g = c.createLinearGradient(x0, 0, x1, 0);
+      g.addColorStop(0, rgb(m.col, 0.4 * k, 0.7)); g.addColorStop(1, rgb(m.col, 0, 0.7));
+      c.fillStyle = g;
+      c.beginPath(); c.moveTo(x0, y - hw);
+      c.quadraticCurveTo(x0 - m.dir * L * 0.5, y - hw * 0.35, x1, y);
+      c.quadraticCurveTo(x0 - m.dir * L * 0.5, y + hw * 0.35, x0, y + hw);
+      c.fill();
+      g = c.createLinearGradient(x0, 0, x1, 0);
+      g.addColorStop(0, rgb(m.col, 0.7 * k, 0.8)); g.addColorStop(1, rgb(m.col, 0, 0.8));
+      c.strokeStyle = g; c.lineWidth = 1.2; c.lineCap = 'round';
+      for (let j = -1; j <= 1; j++) {
+        c.beginPath();
+        for (let i = 0; i <= 12; i++) {
+          const u = i / 12;
+          const px = x0 - m.dir * L * 0.85 * u, py = y + j * hw * 0.5 * (1 - u * 0.6) + Math.sin(u * 6 - now * 25 + j * 2) * hw * 0.18 * u;
+          i ? c.lineTo(px, py) : c.moveTo(px, py);
+        }
+        c.stroke();
+      }
+    } },
+  };
+
+  function body(c, m) {
+    c.save(); c.translate(m.x, m.y);
+    const face = m.dir > 0 ? 0 : Math.PI;
+    if (m.kind === 'enemy') {
+      c.beginPath();
+      if (!m.sides) c.arc(0, 0, m.r, 0, 6.2832);
+      else for (let i = 0; i < m.sides; i++) { const a = face + i * 6.2832 / m.sides; i ? c.lineTo(Math.cos(a) * m.r, Math.sin(a) * m.r) : c.moveTo(Math.cos(a) * m.r, Math.sin(a) * m.r); }
+      c.closePath();
+      c.fillStyle = rgb(m.col, 0.9, 0); c.fill();
+      c.strokeStyle = rgb(m.col, 1, 0.55); c.lineWidth = 1.5; c.stroke();
+    } else {
+      c.beginPath(); c.arc(0, 0, m.r, 0, 6.2832);
+      c.fillStyle = rgb(m.col, 0.35, 0); c.fill();
+      c.strokeStyle = rgb(m.col, 1, 0.2); c.lineWidth = 2; c.stroke();
+      c.beginPath(); c.moveTo(Math.cos(face) * m.r * 1.35, 0); c.lineTo(Math.cos(face + 2.5) * m.r * 0.6, Math.sin(face + 2.5) * m.r * 0.6); c.lineTo(Math.cos(face - 2.5) * m.r * 0.6, Math.sin(face - 2.5) * m.r * 0.6); c.closePath();
+      c.fillStyle = rgb(m.col, 1, 0.3); c.fill();
+    }
+    c.restore();
+  }
+
+  // ---------- scenes ----------
+  class Scene {
+    constructor(cv, w, h, x0, x1, look, movers, labels) {
+      this.cv = cv; this.w = w; this.h = h; this.x0 = x0; this.x1 = x1; this.look = look; this.movers = movers; this.labels = labels;
+      cv.width = w * DPR; cv.height = h * DPR; this.c = cv.getContext('2d'); this.last = look();
+    }
+    frame(now, dt) {
+      const c = this.c, look = this.look();
+      c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      c.clearRect(0, 0, this.w, this.h);
+      if (look !== this.last) { this.movers.forEach(m => m.reset()); this.last = look; }
+      // floor grid
+      c.strokeStyle = 'rgba(120,150,180,0.06)'; c.lineWidth = 1;
+      for (let x = this.x0 - ((this.x0) % 48); x < this.x1; x += 48) { c.beginPath(); c.moveTo(x + .5, 0); c.lineTo(x + .5, this.h); c.stroke(); }
+      for (const m of this.movers) {
+        if (m.id === 'test') m.speed = +document.getElementById('test').value;
+        if (!P.paused) {
+          m.x += m.dir * m.speed * dt;
+          if (m.dir > 0 && m.x > this.x1 + 40) { m.x = this.x0 - 40; m.reset(); }
+          if (m.dir < 0 && m.x < this.x0 - 40) { m.x = this.x1 + 40; m.reset(); }
+          m.hist.push({ x: m.x, y: m.y, t: now });
+          while (m.hist.length && now - m.hist[0].t > 0.8) m.hist.shift();
+        }
+        const k = kOf(m.speed);
+        c.save(); c.beginPath(); c.rect(this.x0, 0, this.x1 - this.x0, this.h); c.clip();
+        if (look !== 'off') LOOKS[look].draw(c, m, k, now, P.paused ? 0 : dt);
+        body(c, m);
+        c.restore();
+        if (this.labels) {
+          c.fillStyle = '#e7eef3'; c.font = '600 13px Barlow, system-ui, sans-serif'; c.textAlign = 'left';
+          c.fillText(m.name, 14, m.y - 2);
+          c.fillStyle = '#92a1ad'; c.font = '500 11px "IBM Plex Mono", monospace';
+          c.fillText(`${Math.round(m.speed)} px/s · trail ${Math.round(k * 100)}%`, 14, m.y + 14);
+        }
+      }
+    }
+  }
+
+  const scenes = [];
+  // main arena: nine lanes, alternating direction
+  const ids = ['grunt', 'reaver', 'tank', 'shadow', 'healer', 'dps', 'bomber', 'dash', 'test'];
+  const laneH = 520 / ids.length;
+  const arenaMovers = ids.map((id, i) => { const m = new Mover(DEFS[id], 0, laneH * (i + 0.5), i % 2 ? -1 : 1); m.id = id; m.x = 150 + (i * 97) % 700; return m; });
+  scenes.push(new Scene(document.getElementById('arena'), 960, 520, 160, 960, () => P.look, arenaMovers, true));
+
+  // look buttons
+  const looksEl = document.getElementById('looks');
+  const btns = {};
+  const addBtn = (key, name) => {
+    const b = document.createElement('button'); b.setAttribute('aria-pressed', key === P.look);
+    b.innerHTML = key === 'off' ? 'Off' : `<span class="k">${key}</span>${name}`;
+    b.onclick = () => pick(key); looksEl.appendChild(b); btns[key] = b;
+  };
+  Object.keys(LOOKS).forEach(k => addBtn(k, LOOKS[k].name)); addBtn('off', 'Off');
+
+  // cards
+  const INFO = {
+    A: ['Two thin streamlines off the shoulders that wobble and fade.', 'Clean. Easy to read on a crowded screen.', 'Almost free (position history).'],
+    B: ['Short streaks left standing in the air as the body leaves them.', 'The classic speed line. Busiest at full speed.', 'Up to 24 bits per body.'],
+    C: ['Curved pressure rings shed from the back, spaced wider as speed rises.', 'Reads as air, not motion blur. Quiet on mid speeds.', 'Up to 24 bits per body.'],
+    D: ['A soft tapered wake with three rippling wisps inside.', 'The strongest silhouette. Most visible on big, fast bodies.', 'Almost free (one gradient).'],
+  };
+  const cardsEl = document.getElementById('cards'), cards = {};
+  for (const key of Object.keys(LOOKS)) {
+    const el = document.createElement('div'); el.className = 'card'; el.tabIndex = 0; el.setAttribute('role', 'button');
+    el.setAttribute('aria-current', key === P.look);
+    el.innerHTML = `<div class="tag">LOOK ${key}</div><h3>${LOOKS[key].name}</h3>` +
+      ['grunt', 'healer', 'bomber'].map(id => `<canvas data-id="${id}"></canvas><div class="cap" data-cap="${id}"></div>`).join('') +
+      `<dl><dt>Is</dt><dd>${INFO[key][0]}</dd><dt>Feels</dt><dd>${INFO[key][1]}</dd><dt>Cost</dt><dd>${INFO[key][2]}</dd></dl>`;
+    el.onclick = () => pick(key);
+    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(key); } };
+    cardsEl.appendChild(el); cards[key] = el;
+    el.querySelectorAll('canvas').forEach(cv => {
+      const id = cv.dataset.id;
+      const m = new Mover(DEFS[id], 90, 38, 1); m.id = id;
+      scenes.push(new Scene(cv, 280, 76, 0, 280, () => key, [m], false));
+    });
+  }
+  function pick(key) {
+    P.look = key;
+    for (const k in btns) btns[k].setAttribute('aria-pressed', k === key);
+    for (const k in cards) cards[k].setAttribute('aria-current', k === key);
+  }
+
+  // sliders
+  const bind = (id, fmt, key) => {
+    const el = document.getElementById(id), out = document.getElementById(id + 'v');
+    const upd = () => { if (key) P[key] = +el.value; out.textContent = fmt(+el.value); drawCurve(); };
+    el.addEventListener('input', upd); upd();
+  };
+  const curveCv = document.getElementById('curve');
+  bind('lo', v => v + ' px/s', 'lo'); bind('hi', v => v + ' px/s', 'hi');
+  bind('gain', v => '×' + v.toFixed(2), 'gain'); bind('test', v => v + ' px/s', null);
+  document.getElementById('pause').onclick = e => { P.paused = !P.paused; e.currentTarget.setAttribute('aria-pressed', P.paused); };
+
+  // speed curve
+  function drawCurve() {
+    if (!curveCv) return;
+    const W = 960, H = 200, c = curveCv.getContext('2d');
+    curveCv.width = W * DPR; curveCv.height = H * DPR; c.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const L = 56, R = 24, T = 20, B = 40, X = v => L + v / 700 * (W - L - R), Y = k => T + (1 - k) * (H - T - B);
+    c.font = '500 11px "IBM Plex Mono", monospace'; c.textAlign = 'center';
+    for (let v = 0; v <= 700; v += 100) { c.strokeStyle = 'rgba(120,150,180,0.12)'; c.beginPath(); c.moveTo(X(v), T); c.lineTo(X(v), H - B); c.stroke(); c.fillStyle = '#92a1ad'; c.fillText(v, X(v), H - B + 16); }
+    c.textAlign = 'right';
+    for (const k of [0, .5, 1]) { c.strokeStyle = 'rgba(120,150,180,0.12)'; c.beginPath(); c.moveTo(L, Y(k)); c.lineTo(W - R, Y(k)); c.stroke(); c.fillStyle = '#92a1ad'; c.fillText(Math.round(k * 100) + '%', L - 8, Y(k) + 4); }
+    c.textAlign = 'center'; c.fillStyle = '#92a1ad'; c.fillText('speed, px/s', W / 2, H - 6);
+    c.strokeStyle = '#9fdcff'; c.lineWidth = 2.5; c.beginPath();
+    for (let v = 0; v <= 700; v += 5) { const x = X(v), y = Y(kOf(v)); v ? c.lineTo(x, y) : c.moveTo(x, y); }
+    c.stroke();
+    ids.filter(i => i !== 'test').forEach((id, i) => {
+      const d = DEFS[id], k = kOf(d.speed), x = X(d.speed), y = Y(k);
+      c.fillStyle = '#ffb547'; c.beginPath(); c.arc(x, y, 4, 0, 6.2832); c.fill();
+      c.fillStyle = '#cfdae2'; c.textAlign = 'center'; c.fillText(d.name, x, y - 10 - (i % 3) * 12);
+    });
+  }
+
+  // captions on the cards follow the sliders
+  const capEls = [...document.querySelectorAll('[data-cap]')];
+  const syncCaps = () => capEls.forEach(el => { const d = DEFS[el.dataset.cap]; el.textContent = `${d.name} · ${d.speed} px/s · trail ${Math.round(kOf(d.speed) * 100)}%`; });
+
+  let last = performance.now() / 1000, frames = 0;
+  function loop(t) {
+    const now = t / 1000, dt = Math.min(0.05, now - last); last = now;
+    for (const s of scenes) s.frame(now, dt);
+    if (++frames % 15 === 0) syncCaps();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
