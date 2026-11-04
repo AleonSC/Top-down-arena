@@ -87,8 +87,8 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.ArcaneWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Instant = true,
-                Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and allies within 300 px for 60 damage for 8 s. When a shield breaks or runs out, half of what it soaked comes back as healing.",
+                Id = AbilityId.EnergyWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Instant = true,
+                Name = "Energy Ward", Cooldown = 14f, Desc = "Wrap you and allies within 300 px in a bubble of energy that soaks 60 damage for 8 s. It shrinks and turns green as it wears; when it breaks or runs out, half of what it soaked comes back as healing.",
                 Capstone = "The shield soaks 120 damage.",
                 Bot = b => b.Danger,
             },
@@ -273,17 +273,17 @@ namespace Arena
                     AddZone(ZoneKind.HealingRain, p, target, 130f, cap ? 10f : 6f).ExtraRevive = cap ? 1f : 0f;
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.HealingRain).Color, 130f, 0.4f, Sfx.SpellHoly);
                     break;
-                case AbilityId.ArcaneWard:
+                case AbilityId.EnergyWard:
                     foreach (var q in Players.Values)
                         if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 300f)
                         {
-                            if (q.ArcaneOn)
-                                ArcanePayback(q);  // a fresh ward pays out the old one first
-                            q.ShieldHp = (cap ? 120f : 60f) * pw;
+                            if (q.EnergyOn)
+                                EnergyPayback(q);  // a fresh ward pays out the old one first
+                            q.ShieldHp = q.EnergyMax = (cap ? 120f : 60f) * pw;
                             q.ShieldT = 8f;
-                            q.ArcaneOn = true;
-                            q.ArcaneStore = 0f;
-                            q.ArcaneBy = p.Id;
+                            q.EnergyOn = true;
+                            q.EnergyStore = 0f;
+                            q.EnergyBy = p.Id;
                             castHits++;
                             if (q != p)
                                 BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(0.5f, 0.7f, 1f), 0f, 0.45f, Sfx.None);
@@ -791,16 +791,17 @@ namespace Arena
             return z;
         }
 
-        public const float ArcaneRepay = 0.5f;  // an Arcane Ward pays back this share of what it soaked, as healing, when it ends or breaks
+        public const float EnergyRepay = 0.5f;  // an Energy Ward pays back this share of what it soaked, as healing, when it ends or breaks
 
-        void ArcanePayback(Player p)
+        void EnergyPayback(Player p)
         {
-            p.ArcaneOn = false;
-            float heal = p.ArcaneStore * ArcaneRepay;
-            p.ArcaneStore = 0f;
+            p.EnergyOn = false;
+            p.EnergyMax = 0f;
+            float heal = p.EnergyStore * EnergyRepay;
+            p.EnergyStore = 0f;
             if (heal <= 0f || p.Downed)
                 return;
-            Heal(p, heal, PlayerOrNull(p.ArcaneBy));
+            Heal(p, heal, PlayerOrNull(p.EnergyBy));
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 40f, 0.4f, Sfx.SpellHoly);
         }
 

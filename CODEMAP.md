@@ -96,6 +96,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `TankGunLooks.cs`: the Tank Soldier's Scattergun (recoil, pump, shell), Flak Cannon (recoil, heat, lifted shell, airburst) and Riot Repeater (bolt kick, brass, glowing rounds) with Visual effects on
 - `SoldierLooks.cs`: Soldier DPS ability looks with Visual effects on: Dash's comet streak, the Cluster Grenade's flight ring and Frag Burst blast, Mark for Death's reticle and skull
 - `ChainLightLooks.cs`: Chain Light with Visual effects on: a soft fan of light, beams and halos (style A, Radiance)
+- `EnergyWardLook.cs`: the Healer Elementalist's Energy Ward bubble with Visual effects on: a spring-driven radius that shrinks and squashes toward each hit, blue to green, and a green heal core growing inside (Heal core + Jelly hits)
 - `MendPulseLook.cs`: the Healer Soldier's Mend Pulse with Visual effects on: a swelling fill, a double-beat ring and a heart on each ally reached (style B, Heartbeat)
 - `TankLooks.cs`: the Tank Soldier's Roar (wave, enemy "!" pops, orbiting plates, draining rim, tethers) and Bulldoze (lane, afterimages, bow wave, hit sparks, landing stomp) with Visual effects on, timed from the cast's `FxKind.Callout`
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)

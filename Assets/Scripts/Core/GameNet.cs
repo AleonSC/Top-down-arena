@@ -424,6 +424,8 @@ namespace Arena
             s.Float(ref p.ParryHp);
             s.Float(ref p.ParryBroken);
             s.Float(ref p.ShieldHp);
+            s.Float(ref p.ShieldT);
+            s.Float(ref p.EnergyMax);
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);

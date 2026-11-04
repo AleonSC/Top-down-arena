@@ -145,10 +145,11 @@ namespace Arena
         public float AegisReflectMult = 1f;           // host: a mastered Aegis reflects twice as hard
         public Dictionary<AbilityId, float> MasteryXp = new Dictionary<AbilityId, float>();  // ability mastery (Mastery.cs)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
-        public float ShieldHp, ShieldT;        // Arcane Ward
-        public bool ArcaneOn;                    // host: the shield is an Arcane Ward's, storing what it soaks to pay back as healing
-        public float ArcaneStore;                // host: what it has soaked
-        public int ArcaneBy;                     // host: who cast it
+        public float ShieldHp, ShieldT;        // Energy Ward
+        public float EnergyMax;                  // the Energy Ward's full shield (0 = the shield isn't one); replicated, with ShieldT, so every screen can draw it shrinking and turning green (Game/EnergyWardLook.cs)
+        public bool EnergyOn;                    // host: the shield is an Energy Ward's, storing what it soaks to pay back as healing
+        public float EnergyStore;                // host: what it has soaked
+        public int EnergyBy;                     // host: who cast it
         public float WardT, WardFrac, WardInvuln;  // Martyr's ward: going down while it lasts gets you straight back up (WardT replicated)
         public float CompanionCd;              // host: summoner companion timer
         public readonly float[] HpHistory = new float[16];   // host: unused since Time Rewind was replaced by Healing Rain (every 0.25 s)

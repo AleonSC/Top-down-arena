@@ -10,7 +10,7 @@ namespace Arena
         Barrier, MendPulse, Dash, Shockwave, Overdrive, Blink, Nova, Turret,
         Roar, Bulldoze, Adrenaline, Medkit, Grenade, Mark,  // Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's
         // Mage
-        ArcaneAegis, FrostNova, FlameWall, HealingRain, ArcaneWard, Sanctify, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
+        ArcaneAegis, FrostNova, FlameWall, HealingRain, EnergyWard, Sanctify, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
         // Summoner
         GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
         // Ultimates (F): one per role and class

@@ -309,7 +309,7 @@ namespace Arena
             else
             {
                 GhostBar(hpBar, frac, hpCol, PlayerKey(p.Id, true));
-                if (p.ShieldHp > 0f)  // Arcane Ward: a blue stripe along the bottom of the health bar
+                if (p.ShieldHp > 0f)  // Energy Ward: a blue stripe along the bottom of the health bar
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }

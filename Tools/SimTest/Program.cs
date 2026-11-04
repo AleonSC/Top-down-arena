@@ -263,7 +263,7 @@ static partial class Program
         Test("fourmore", "Shuriken, Bone Spear, Lightbringer and Treant Rod", () => FourMoreTest(Dt)),
         Test("healerfive", "Censer, Spirit Fan, Ofuda, Sprite Staff and Totem Staff", () => HealerFiveTest(Dt)),
         Test("healingrain", "Healing Rain: heals allies inside, slows enemies, ends on time, mastered lasts 10 s", () => HealingRainTest(Dt)),
-        Test("wards", "Spirit Ward, Healing Mist and Arcane Ward", () => HealerWardsTest(Dt)),
+        Test("wards", "Spirit Ward, Healing Mist and Energy Ward", () => HealerWardsTest(Dt)),
         Test("lastfour", "Clot Bolt, Transfusion Darts, Rapier and Katana", () => LastFourTest(Dt)),
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),
         Test("quarterstaff", "the Quarterstaff", () => QuarterstaffTest(Dt)),

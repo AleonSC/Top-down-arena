@@ -1166,8 +1166,8 @@ namespace Arena
                 p.WardT = Math.Max(0f, p.WardT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
-                if (p.ArcaneOn && p.ShieldHp <= 0f)
-                    ArcanePayback(p);  // the Arcane Ward ran out: what it soaked comes back as healing (Minions.cs)
+                if (p.EnergyOn && p.ShieldHp <= 0f)
+                    EnergyPayback(p);  // the Energy Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
                 p.LinkT = Math.Max(0f, p.LinkT - dt);
                 if (p.Downed)

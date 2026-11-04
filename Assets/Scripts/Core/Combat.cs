@@ -43,16 +43,16 @@ namespace Arena
             amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
-            if (p.ShieldHp > 0f)  // shields soak damage next (Arcane Ward, Guardian's Oath, Substitution, Blood Shell)
+            if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
                 p.ShieldHp -= soak;
                 amount -= soak;
-                if (p.ArcaneOn)
+                if (p.EnergyOn)
                 {
-                    p.ArcaneStore += soak;  // an Arcane Ward keeps it, to pay back
+                    p.EnergyStore += soak;  // an Energy Ward keeps it, to pay back
                     if (p.ShieldHp <= 0f)
-                        ArcanePayback(p);
+                        EnergyPayback(p);
                 }
             }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
