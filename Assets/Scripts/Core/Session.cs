@@ -32,6 +32,8 @@ namespace Arena
         LobbyPos,     // host -> all: where everyone's character stands in the Hangout room
         Emote,        // client -> host: the emote number to play; host -> all: (player id, emote number) to show over that player (Session.cs, Game/EmoteLooks.cs)
         Chat,         // client -> host: a line of text; host -> all: (player id, name, text) to add to everyone's chat box (Session.cs, Game/ChatBox.cs)
+        WaveReady,    // client -> host: (kind 0 Ready / 1 Auto-ready, on or off); host -> all: everyone's ready and auto-ready flags (WaveReady.cs)
+        WaveSummary,  // host -> all: how the wave just cleared went: clear time, score, each player's kills, damage, damage taken and awards (WaveReady.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -85,7 +87,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 144;
+        public const int ProtocolVersion = 145;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -516,6 +518,9 @@ namespace Arena
                     break;
                 case Msg.Loot:
                     Game.OnLoot(peer, r);
+                    break;
+                case Msg.WaveReady:
+                    Game.OnWaveReady(peer, r);
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);

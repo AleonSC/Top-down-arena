@@ -244,6 +244,7 @@ namespace Arena
             HuntedId = 0;
             Wave = 0;
             Score = 0;
+            WaveReport = null;  // (WaveReady.cs)
             Remaining = 0;
             Players.Clear();
             Enemies.Clear();

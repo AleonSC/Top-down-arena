@@ -66,7 +66,7 @@ namespace Arena
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
                     if (!AnyonePicking() && PathOffer == null && !ShopOpen && Room == RoomPhase.None)  // (and while a portal is open)
-                        StateTimer -= dt;
+                        TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
                     if (StateTimer <= 0f)
                     {
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
@@ -98,6 +98,7 @@ namespace Arena
                             bossName = IsBossWave(Wave) ? Defs.Get(BossAt(Wave)).Name : null;
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
+                        MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)
                         Recorder?.WaveStart(this, Wave, bossName);
                         DoLog("wave " + Wave + ": " + string.Join(",", spawnQueue));
                     }
@@ -150,6 +151,7 @@ namespace Arena
         void WaveCleared()
         {
             Recorder?.WaveEnd(this);
+            SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
             ResetBossState();
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)
             ClearRisers();
@@ -177,6 +179,7 @@ namespace Arena
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            ClearReady();  // nobody is ready yet (WaveReady.cs)
             DoLog("wave " + Wave + " cleared");
         }
     }

@@ -381,6 +381,7 @@ namespace Arena
             {
                 SyncSelection(me);
             }
+            TickWaveReady(me);  // the saved Auto-ready sent to the host, the Ready key (WaveClearedUi.cs)
             TickPickSounds(me, choosing && session.Screen == AppScreen.Game);  // the picker opening and closing (PickSounds.cs)
             if (choosing && !tabHeld && !PickOutroPlaying && !PickIntroPlaying(me))  // the cards are still flying out (PickIntro.cs)
             {

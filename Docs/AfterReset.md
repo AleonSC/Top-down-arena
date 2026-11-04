@@ -6,6 +6,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
+- [x] **"Wave cleared" box with awards and a ready system.** Built (Nov 2026, protocol 145): look 1 of [`Mockups/wave-cleared-ready.html`](Mockups/wave-cleared-ready.html)
+      (https://claude.ai/artifact/U4U1dESwvCGWizAUC9ivBk): squad tally with an Awards column, the next wave's enemy types and the road to the boss,
+      Ready (Y) and an Auto-ready switch (off by default). Everyone ready = a 3 s countdown; everyone on auto-ready = the usual 4 s; otherwise it waits.
+      The next-wave panel lists enemy *types* (the counts are random per wave), so no counts like the mockup.
 - [x] **In-run text chat box.** Built (Nov 2026, protocol 143), look C (Bubbles) of [`Mockups/chat-box.html`](Mockups/chat-box.html) (https://claude.ai/artifact/KL9YxpHUagLVPpcBNU1tB8).
       Match only; no system lines (joins, revives) yet. Say if you want them or the Hangout to have chat too.
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.

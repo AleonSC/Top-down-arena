@@ -183,6 +183,8 @@ namespace Arena
         public V2 RadiantPos, RadiantDisp;      // ...where it is (replicated), and where this screen draws it
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
+        public bool Ready;           // pressed Ready for the next wave (replicated by Msg.WaveReady; WaveReady.cs)
+        public bool AutoReady = true;  // 'Auto-ready from now on': counts as ready as soon as their picks are done (replicated; the app sets it from the player's saved choice)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();

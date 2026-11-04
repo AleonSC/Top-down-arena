@@ -21,7 +21,7 @@ namespace Arena
         // --- Waves ---------------------------------------------------------------------------------------------------
 
         const float StartDelay = 3f;
-        const float IntermissionTime = 4f;
+        public const float IntermissionTime = 4f;
         public const int MaxWave = 50;
         const int LateBossWave = 20;
         const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)

@@ -734,6 +734,7 @@ as usual.
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
+| Ready for the next wave | Ready button or Y (rebindable), once your upgrade picks are done. Auto-ready switch beside it |
 | Mute sound | M |
 | Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
@@ -786,6 +787,19 @@ in the middle, the **wave panel** left of it (wave, enemies left, score, progres
 stack above it) and **your card** right of it (health, shield, level, XP). Teammates show as slim rows above
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
 the top middle, and the "Hold TAB" hint is in the top-right corner.
+
+**Between waves.** When the last enemy dies a **Wave n cleared** box drops in (shaded like the upgrade cards, with a
+soft glow; gold after a boss). It shows the wave's **clear time** and **score**, a row per player with **kills, damage
+dealt and damage taken** for that wave, and **awards**: **Untouched** (took no damage), **Reviver** (stood a teammate up),
+and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
+A **Squad** row adds them up. On the right: the enemy types the next wave draws from (new ones marked NEW; a boss wave
+names its boss) and the **road to the next boss**. Along the bottom: the **Ready** button (Y), the **Auto-ready** switch
+and the status. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
+timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
+picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
+old pace (it is off by default). A small ring beside each player shows who is ready (a ring with an A for auto-ready).
+The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
+`Docs/Mockups/wave-cleared-ready.html` (option 1).
 
 **Chat.** In a match, press **Enter** to open a text line at the bottom right, above your card and the teammates'
 rows. Type (up to 120 characters), **Enter** sends and **Esc** cancels. While you type, movement, abilities and

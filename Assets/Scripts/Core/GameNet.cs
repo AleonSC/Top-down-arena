@@ -259,6 +259,12 @@ namespace Arena
                 case Msg.RunStatsLive:
                     ReadRunStats(r, false);  // RunStats.cs
                     break;
+                case Msg.WaveReady:
+                    ReadWaveReady(r);  // WaveReady.cs
+                    break;
+                case Msg.WaveSummary:
+                    ReadWaveSummary(r);
+                    break;
             }
         }
 
