@@ -37,6 +37,7 @@ namespace Arena
         WaveSummary,  // host -> all: how the wave just cleared went: clear time, score, each player's kills, damage, damage taken and awards (WaveReady.cs)
         LobbyFire,    // client -> host: this player fired in the Hangout, aimed at this angle (LobbyCombat.cs)
         LobbyShot,    // host -> all: (owner id, position, angle) of a shot fired in the Hangout, for everyone to draw (LobbyCombat.cs)
+        LobbyAbility, // client -> host: cast your Hangout ability (a dash, barrier or burst heal by role) toward this angle; host -> all: (owner id, kind, position, angle) to show and apply (LobbyCombat.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -90,7 +91,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 148;
+        public const int ProtocolVersion = 149;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -560,6 +561,9 @@ namespace Arena
                     break;
                 case Msg.LobbyFire:
                     HostFire(peer, r.ReadSingle(), true);
+                    break;
+                case Msg.LobbyAbility:
+                    HostAbility(peer, r.ReadSingle(), true);
                     break;
                 case Msg.Emote:
                     HostEmote(peer, r.ReadByte());
@@ -1205,6 +1209,9 @@ namespace Arena
                     break;
                 case Msg.LobbyShot:
                     ClientLobbyShot(r);
+                    break;
+                case Msg.LobbyAbility:
+                    ClientLobbyAbility(r);
                     break;
                 case Msg.Lobby:
                 {

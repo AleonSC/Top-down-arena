@@ -17,6 +17,10 @@ namespace Arena
         public byte Respawns;  // counts up each time the host puts it back at a spawn spot, so its owner knows to follow
         public double NextFire;  // (on the screen that fires for it) the earliest the next shot may go
         public double LastHit;   // the host: when it was last hurt (health returns a few seconds after)
+        public double AbilityReady;  // (on the screen that casts for it) when its ability is ready again
+        public float BarrierLeft;    // a Tank's barrier: seconds left (every screen counts it down)
+        public float DashLeft;       // its own screen: seconds of dash left
+        public V2 DashDir;           // ...and which way
         public byte SentHp = 100;  // the host: the health last broadcast, so regrowth only triggers a send when it shows
     }
 

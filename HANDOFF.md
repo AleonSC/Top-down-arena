@@ -116,7 +116,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
 | `Pings.cs` | 0.15k | pings: `PingKind` (Here, Focus, Danger, Help, Loot, Go), `Session.Pings`, `SendPing` / `HostPing` (host-checked pause 0.4 s, 3 live each, finite position, Focus snaps to the nearest enemy and follows it via `PingNow`), `Msg.PingMark` (protocol 145); `Game/PingLooks.cs` is the tap / hold-wheel input (`TickPing`, Ping key = middle mouse) and the drawing (`DrawMatchPings`, `DrawPingWheel`) |
 | `LobbyAvatars.cs` | 0.2k | the lobby Hangout room: `Avatar`, room size (2400 x 1600), `MoveMyAvatar`/`StepAvatars`, `Msg.LobbyMove`/`LobbyPos` (a partial of `Session`; `Docs/Hangout.md`) |
-| `LobbyCombat.cs` | 0.2k | Hangout PvP: `FireMyShot`, `SetMyPvp`, `StepLobbyCombat` (called from `Poll`), `ShotStats`, `Msg.LobbyFire`/`LobbyShot`; the host decides hits (a partial of `Session`) |
+| `LobbyCombat.cs` | 0.2k | Hangout PvP: `FireMyShot`, `CastMyAbility` (Dash / Barrier / Burst heal by role), `SetMyPvp`, `StepLobbyCombat` (called from `Poll`), `ShotStats`, `Msg.LobbyFire`/`LobbyShot`/`LobbyAbility`; the host decides hits (a partial of `Session`) |
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
 | `Net.cs` | 0.26k | `NetPeer`: length-prefixed messages over TCP (`NoDelay`) |
 | `SessionRecorder.cs` | 0.5k | the session JSON recorder |

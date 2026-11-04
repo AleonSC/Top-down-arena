@@ -842,6 +842,8 @@ plays a 0.85 s grow: the loadout's preview window stretches into the room (it ju
 
 **PvP** is a checkbox under the minimap, **off** by default and yours alone; everyone sees each player's setting. With it **on** you face the mouse and **hold the left button** to fire your loadout weapon (its fire rate, shot speed and reach; one plain shot, none of the abilities, pellets, beams or swings), and other players with PvP on can shoot you. With it **off** you can neither shoot nor be shot, shots pass through you. Everyone has 100 health with a bar overhead; it comes back 3 s after the last hit. At 0 you are **knocked out** for 2.5 s (a ghost, can't move or shoot), then return at a spawn spot with full health. Turning PvP off heals you. The host decides every hit.
 
+**Abilities** (PvP on only; **Space** or **right click**, one per role, like the very first build): a **DPS** has **Dash** (a quick 240 px lunge the way you walk, or the way you face when standing still; 2.5 s cooldown). A **Tank** has **Barrier** (a 360 degree bubble around you that deletes every other player's shots for 4 s; 10 s cooldown; your own shots pass out). A **Healer** has **Burst heal** (heals everyone within 230 px, you included, for 60 health and **revives anyone knocked out at once** with 60; 8 s cooldown). Your ability and its cooldown show under the PvP box. Turning PvP off drops a barrier.
+
 ## Rank
 
 A **cosmetic account rank**. Every finished run (and Boss Hunt) earns XP; XP raises your **Rank**; ranks unlock

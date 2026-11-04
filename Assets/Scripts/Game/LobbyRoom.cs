@@ -205,10 +205,51 @@ namespace Arena
                 Line(s.Pos - dir * 16f, s.Pos, 6f, new Rgba(c.r, c.g, c.b, 0.35f));
                 Line(s.Pos - dir * 12f, s.Pos, 3f, new Rgba(Mathf.Lerp(c.r, 1f, 0.6f), Mathf.Lerp(c.g, 1f, 0.6f), Mathf.Lerp(c.b, 1f, 0.6f), 1f));
             }
+            foreach (var kv in session.Avatars)  // a Tank's barrier: a bubble round them while it lasts (it flickers out in its last second)
+            {
+                var b = kv.Value;
+                if (b.BarrierLeft <= 0f || b.Hp <= 0f)
+                    continue;
+                float flick = b.BarrierLeft < 1f ? (Mathf.Sin(b.BarrierLeft * 40f) > 0f ? 1f : 0.35f) : 1f;
+                var bc = new Rgba(0.45f, 0.75f, 1f, 1f);
+                Circle(b.Disp, Session.BarrierRadius, bc.WithAlpha(0.1f * flick), 40);
+                RingLine(b.Disp, Session.BarrierRadius, 3f, bc.WithAlpha(0.8f * flick));
+            }
+            foreach (var fx in session.Fx)
+            {
+                float f = fx.Age / Session.FxLife;
+                if (fx.Kind == LobbyAbilityKind.Dash)
+                {
+                    Line(fx.Pos, fx.Pos - V2.FromAngle(fx.Angle) * Session.DashDist, 18f * (1f - f), new Rgba(1f, 0.85f, 0.45f, 0.35f * (1f - f)));  // the streak it left
+                    Circle(fx.Pos, 24f * (1f - f), new Rgba(1f, 0.9f, 0.6f, 0.4f * (1f - f)), 20);
+                }
+                else if (fx.Kind == LobbyAbilityKind.BurstHeal)
+                {
+                    float rr = Session.HealRadius * Mathf.Sqrt(Mathf.Clamp01(f * 1.6f));
+                    Circle(fx.Pos, rr, new Rgba(0.35f, 1f, 0.55f, 0.16f * (1f - f)), 40);
+                    RingLine(fx.Pos, rr, 4f, new Rgba(0.5f, 1f, 0.65f, 0.9f * (1f - f)));
+                }
+                else
+                    RingLine(fx.Pos, Session.BarrierRadius * (1f + 0.5f * f), 3f, new Rgba(0.6f, 0.85f, 1f, 0.9f * (1f - f)));  // the barrier's pop
+            }
             foreach (var h in session.Hits)
             {
                 float f = h.Age / 0.3f;
                 Circle(h.Pos, 8f + 18f * f, new Rgba(1f, 0.4f, 0.35f, 0.5f * (1f - f)), 16);
+            }
+        }
+
+        /// GL: a ring drawn as short lines (Circle is filled).
+        void RingLine(V2 c, float r, float width, Rgba col)
+        {
+            const int n = 36;
+            V2 prev = c + new V2(r, 0f);
+            for (int i = 1; i <= n; i++)
+            {
+                float ang = Mathf.PI * 2f * i / n;
+                V2 cur = c + new V2(Mathf.Cos(ang) * r, Mathf.Sin(ang) * r);
+                Line(prev, cur, width, col);
+                prev = cur;
             }
         }
 
@@ -273,8 +314,23 @@ namespace Arena
             else
                 Ui.Label(tog, "PVP", 14, Ui.Text, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(box.x + 8f, box.y + 28f, box.width - 12f, 16f), on ? "You can shoot and be shot" : "Off: no shooting either way", 10, on ? new Color(1f, 0.6f, 0.55f) : Ui.Muted, TextAnchor.MiddleLeft);
+            // Your ability, under the switch (only while PvP is on): what it is, its keys and its cooldown.
+            var abox = new Rect(box.x, box.yMax + 6f, MiniW, 44f);
+            if (on && live && mine != null)
+            {
+                LobbyEntry me;
+                if (session.Lobby.TryGetValue(session.MyId, out me))
+                {
+                    var kind = Session.AbilityFor(me.Role);
+                    float total, left = session.MyAbilityCooldownLeft(out total);
+                    Ui.Fill(abox, new Color(0.03f, 0.05f, 0.09f, 0.85f));
+                    Ui.Label(new Rect(abox.x + 8f, abox.y + 2f, abox.width - 12f, 20f), Session.AbilityName(kind).ToUpperInvariant(), 13, left > 0f ? Ui.Muted : Color.white, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(abox.x + 8f, abox.y + 20f, abox.width - 12f, 14f), Keybinds.SlotLabels[0] + " or right click", 10, Ui.Muted, TextAnchor.MiddleLeft);
+                    Ui.Meter(new Rect(abox.x + 8f, abox.yMax - 8f, abox.width - 16f, 4f), 1f - left / total, left > 0f ? new Color(0.6f, 0.65f, 0.8f) : new Color(0.4f, 0.95f, 0.7f));
+                }
+            }
             hangoutHudRects[0] = mini;
-            hangoutHudRects[1] = box;
+            hangoutHudRects[1] = on && live ? new Rect(box.x, box.y, box.width, abox.yMax - box.y) : box;
         }
 
         readonly Rect[] hangoutHudRects = new Rect[2];
@@ -310,9 +366,13 @@ namespace Arena
                 while (d < -Mathf.PI) d += 2f * Mathf.PI;
                 aim += Mathf.Clamp(d, -14f * dt, 14f * dt);
             }
+            float castAim = dir.LengthSq > 0f ? dir.Angle : aim;  // a dash goes the way you walk, or the way you face when standing still
             if (dir.LengthSq > 0f)
                 dir = dir.Normalized();
-            session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt), aim);
+            session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt) + session.TakeDashStep(a, dt), aim);
+            // Ability: Space (or whatever it's bound to) or the right button.
+            if (a.Pvp && (Keybinds.Down(KeyAction.Ability) || (Input.GetMouseButtonDown(1) && view.Contains(mouse))))
+                session.CastMyAbility(castAim);
             // Fire: PvP on, the button held over the window (not over the minimap or switch, nor while the emote bar is picking).
             if (aiming && Input.GetMouseButton(0) && !emoteBarOpen && !hangoutHudRects[0].Contains(mouse) && !hangoutHudRects[1].Contains(mouse))
                 session.FireMyShot(aim);

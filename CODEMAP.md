@@ -57,7 +57,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Networking (Core)
 - `Pings.cs`: pings (`PingKind`, `Session.SendPing`, host pause and cap, Focus snapping to an enemy; `Msg.PingMark`); a partial of `Session`
 - `LobbyAvatars.cs`: the Hangout room's characters, their positions and `Msg.LobbyMove`/`LobbyPos`; a partial of `Session`
-- `LobbyCombat.cs`: Hangout PvP: shots, health, knock-out, respawn (`Msg.LobbyFire`/`LobbyShot`); a partial of `Session`
+- `LobbyCombat.cs`: Hangout PvP: shots, health, knock-out, respawn, the Dash/Barrier/Burst heal abilities (`Msg.LobbyFire`/`LobbyShot`/`LobbyAbility`); a partial of `Session`
 - `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes)
 - `Net.cs`: `NetPeer`, length-prefixed TCP
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)

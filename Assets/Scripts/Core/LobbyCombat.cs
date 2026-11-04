@@ -19,6 +19,18 @@ namespace Arena
         public float Age;
     }
 
+    /// Which Hangout ability a role gets: the first build's three (Docs/Hangout.md).
+    public enum LobbyAbilityKind : byte { Dash, Barrier, BurstHeal }
+
+    /// A flash from a cast: a dash streak, a barrier pop or a heal ring, to draw for a moment.
+    public struct LobbyFx
+    {
+        public LobbyAbilityKind Kind;
+        public int Owner;
+        public V2 Pos;
+        public float Angle, Age;
+    }
+
     /// Shooting in the Hangout (Docs/Hangout.md). A deliberately light fight: everyone has RoomHp health and each weapon fires one plain
     /// shot at its own rate, speed and reach (the loadout's numbers, nothing special: no abilities, pellets, beams or swings). The host
     /// decides every hit. PvP is a per-player switch that starts off: with it off you can't fire and shots pass through you.
@@ -30,6 +42,15 @@ namespace Arena
 
         public readonly List<LobbyShot> Shots = new List<LobbyShot>();
         public readonly List<LobbyHit> Hits = new List<LobbyHit>();
+        public readonly List<LobbyFx> Fx = new List<LobbyFx>();
+
+        // The abilities (Space or right click, PvP on): the first build's three. A DPS dashes, a Tank puts up a barrier that deletes
+        // other players' shots, a Healer bursts everyone nearby back up and revives the knocked out at once.
+        public const float DashDist = 240f, DashTime = 0.16f, BarrierRadius = 75f, BarrierTime = 4f, HealRadius = 230f, HealAmount = 60f, FxLife = 0.7f;
+
+        public static LobbyAbilityKind AbilityFor(Role role) => role == Role.Tank ? LobbyAbilityKind.Barrier : role == Role.Healer ? LobbyAbilityKind.BurstHeal : LobbyAbilityKind.Dash;
+        public static float AbilityCooldown(LobbyAbilityKind k) => k == LobbyAbilityKind.Dash ? 2.5f : k == LobbyAbilityKind.Barrier ? 10f : 8f;
+        public static string AbilityName(LobbyAbilityKind k) => k == LobbyAbilityKind.Dash ? "Dash" : k == LobbyAbilityKind.Barrier ? "Barrier" : "Burst heal";
         double lastCombatStep = -1;
 
         /// What a weapon's Hangout shot is like, from its stats: the fire interval, the shot's speed and lifetime (so its reach), and the damage
@@ -58,6 +79,7 @@ namespace Arena
             a.Pvp = on;
             if (!on)
             {
+                a.BarrierLeft = 0f;
                 a.Hp = RoomHp;
                 a.Down = 0f;
                 a.SentHp = (byte)RoomHp;
@@ -137,6 +159,126 @@ namespace Arena
             AddShot(owner, pos, aim, e);
         }
 
+        /// Seconds until your ability is ready (0 = ready), and how long its cooldown is, for the HUD.
+        public float MyAbilityCooldownLeft(out float total)
+        {
+            Avatar a;
+            LobbyEntry e;
+            total = 1f;
+            if (!Avatars.TryGetValue(MyId, out a) || !Lobby.TryGetValue(MyId, out e))
+                return 0f;
+            total = AbilityCooldown(AbilityFor(e.Role));
+            return (float)Math.Max(0.0, a.AbilityReady - avatarClock.Elapsed.TotalSeconds);
+        }
+
+        /// Cast your own ability (Space or right click in the Hangout). `aim` is the way a dash goes. False when it can't: PvP off, knocked out, cooling down.
+        public bool CastMyAbility(float aim)
+        {
+            Avatar a;
+            LobbyEntry e;
+            if (Game.Running || !Avatars.TryGetValue(MyId, out a) || !Lobby.TryGetValue(MyId, out e) || !a.Pvp || a.Hp <= 0f || float.IsNaN(aim) || float.IsInfinity(aim))
+                return false;
+            double now = avatarClock.Elapsed.TotalSeconds;
+            if (now < a.AbilityReady)
+                return false;
+            var kind = AbilityFor(e.Role);
+            a.AbilityReady = now + AbilityCooldown(kind);
+            if (IsHost)
+                HostAbility(MyId, aim, false);
+            else
+            {
+                if (kind == LobbyAbilityKind.Dash)  // (your own movement and barrier start at once; the host's echo only draws it)
+                {
+                    a.DashLeft = DashTime;
+                    a.DashDir = V2.FromAngle(aim);
+                }
+                else if (kind == LobbyAbilityKind.Barrier)
+                    a.BarrierLeft = BarrierTime;
+                var w = Proto.Begin(Msg.LobbyAbility);
+                w.Write(aim);
+                SendToHost(Proto.End(w));
+            }
+            return true;
+        }
+
+        /// How far your dash carries you this frame (zero when you aren't dashing). The Hangout adds it to your walk.
+        public V2 TakeDashStep(Avatar a, float dt)
+        {
+            if (a.DashLeft <= 0f)
+                return V2.Zero;
+            float step = Math.Min(dt, a.DashLeft);
+            a.DashLeft -= step;
+            return a.DashDir * (DashDist / DashTime * step);
+        }
+
+        /// The host: a player cast (a client's message, checked here, or the host's own, already checked).
+        void HostAbility(int id, float aim, bool check)
+        {
+            Avatar a;
+            LobbyEntry e;
+            if (Game.Running || !Avatars.TryGetValue(id, out a) || !Lobby.TryGetValue(id, out e) || !a.Pvp || a.Hp <= 0f || float.IsNaN(aim) || float.IsInfinity(aim))
+                return;
+            var kind = AbilityFor(e.Role);
+            double now = avatarClock.Elapsed.TotalSeconds;
+            if (check)
+            {
+                if (now < a.AbilityReady - 0.1)
+                    return;  // sooner than its cooldown allows
+                a.AbilityReady = Math.Max(a.AbilityReady, now + AbilityCooldown(kind) * 0.9);
+            }
+            if (kind == LobbyAbilityKind.Dash && id == MyId)
+            {
+                a.DashLeft = DashTime;
+                a.DashDir = V2.FromAngle(aim);
+            }
+            else if (kind == LobbyAbilityKind.Barrier)
+                a.BarrierLeft = BarrierTime;
+            else if (kind == LobbyAbilityKind.BurstHeal)
+            {
+                foreach (var kv in Avatars)
+                {
+                    var t = kv.Value;
+                    if (!t.Pvp || (t.Pos - a.Pos).LengthSq > HealRadius * HealRadius)
+                        continue;
+                    if (t.Hp <= 0f)  // knocked out: back up at once, with the heal as their health
+                    {
+                        t.Hp = HealAmount;
+                        t.Down = 0f;
+                        t.SentHp = 0;
+                    }
+                    else
+                        t.Hp = Math.Min(RoomHp, t.Hp + HealAmount);
+                    t.LastHit = now;
+                    avatarsDirty = true;
+                }
+            }
+            Fx.Add(new LobbyFx { Kind = kind, Owner = id, Pos = a.Pos, Angle = aim });
+            if (Net != null)
+            {
+                var w = Proto.Begin(Msg.LobbyAbility);
+                w.Write(id);
+                w.Write((byte)kind);
+                w.Write(a.Pos);
+                w.Write(aim);
+                Broadcast(Proto.End(w));
+            }
+        }
+
+        /// A client: the host says someone cast.
+        void ClientLobbyAbility(BinaryReader r)
+        {
+            int owner = r.ReadInt32();
+            byte kind = r.ReadByte();
+            var pos = r.ReadV2();
+            float aim = r.ReadSingle();
+            Avatar a;
+            if (kind > (byte)LobbyAbilityKind.BurstHeal || !Avatars.TryGetValue(owner, out a) || float.IsNaN(aim) || float.IsInfinity(aim) || float.IsNaN(pos.X) || float.IsNaN(pos.Y))
+                return;
+            if (kind == (byte)LobbyAbilityKind.Barrier && owner != MyId)
+                a.BarrierLeft = BarrierTime;
+            Fx.Add(new LobbyFx { Kind = (LobbyAbilityKind)kind, Owner = owner, Pos = pos, Angle = aim });
+        }
+
         /// Everyone: fly the shots and check what they hit; the host also deals the damage, regrows health and respawns the knocked out.
         /// Called from Poll, so it runs whatever tab a screen is on.
         void StepLobbyCombat()
@@ -144,14 +286,36 @@ namespace Arena
             double now = avatarClock.Elapsed.TotalSeconds;
             float dt = lastCombatStep < 0 ? 0f : (float)Math.Min(0.1, now - lastCombatStep);
             lastCombatStep = now;
-            if (Screen != AppScreen.Lobby || (Shots.Count == 0 && Hits.Count == 0 && !IsHost))
+            if (Screen != AppScreen.Lobby)
                 return;
+            foreach (var av in Avatars.Values)
+                if (av.BarrierLeft > 0f)
+                    av.BarrierLeft = Math.Max(0f, av.BarrierLeft - dt);
+            for (int i = Fx.Count - 1; i >= 0; i--)
+            {
+                var f = Fx[i];
+                f.Age += dt;
+                if (f.Age > FxLife)
+                    Fx.RemoveAt(i);
+                else
+                    Fx[i] = f;
+            }
             for (int i = Shots.Count - 1; i >= 0; i--)
             {
                 var s = Shots[i];
                 s.Pos += s.Vel * dt;
                 s.Life -= dt;
                 bool gone = s.Life <= 0f || s.Pos.X < 0f || s.Pos.Y < 0f || s.Pos.X > RoomW || s.Pos.Y > RoomH;
+                if (!gone)
+                    foreach (var kv in Avatars)  // a Tank's barrier deletes anyone else's shot that reaches it
+                    {
+                        var b = kv.Value;
+                        if (kv.Key == s.Owner || b.BarrierLeft <= 0f || b.Hp <= 0f || ((IsHost ? b.Pos : b.Disp) - s.Pos).LengthSq > BarrierRadius * BarrierRadius)
+                            continue;
+                        Hits.Add(new LobbyHit { Pos = s.Pos });
+                        gone = true;
+                        break;
+                    }
                 if (!gone)
                     foreach (var kv in Avatars)
                     {
