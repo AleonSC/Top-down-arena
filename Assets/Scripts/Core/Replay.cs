@@ -30,7 +30,7 @@ namespace Arena
     public class ReplayFile
     {
         public const string Ext = ".replay";
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;  // 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer (old replays no longer read)
         static readonly byte[] Magic = { (byte)'A', (byte)'R', (byte)'N', (byte)'R' };
 
         // Header (what the list shows).

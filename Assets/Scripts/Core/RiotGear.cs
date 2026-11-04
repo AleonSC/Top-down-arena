@@ -11,13 +11,23 @@ namespace Arena
         /// Is Riot Gear up for this player?
         public static bool RiotReady(Player p) => HasPerk(p, PerkId.RiotGear) && p.RiotT <= 0f;
 
-        /// Match start (host): the perks a player brings. None in the Practice Range, the lobby preview or the Boss Lab.
-        void GivePerks(Player p, Profile from)
+        /// Match start (everyone, from the Start message): the perks a player brings, and the shield ready.
+        void GivePerks(Player p, PerkId[] ids)
         {
-            p.Perks = Perks.Empty;
-            p.RiotT = 0f;  // every run starts with the shield ready
-            if (from != null && RecordsRuns)
-                p.Perks = Perks.Equipped(from).ToArray();
+            p.Perks = ids;
+            p.RiotT = 0f;
+        }
+
+        /// Host: the perks this lobby entry takes into the match. None in the Practice Range, the lobby preview or the Boss Lab
+        /// (anywhere runs aren't recorded); a continued run gives each seat back the perks it was saved with.
+        PerkId[] PerksFor(LobbyEntry e)
+        {
+            if (!RecordsRuns)
+                return Perks.Empty;
+            int seat;
+            if (ResumeFrom != null && ResumeSeats.TryGetValue(e.Id, out seat) && seat >= 0 && seat < ResumeFrom.Seats.Count)
+                return Perks.FromNames(ResumeFrom.Seats[seat].Perks);
+            return e.PerkIds;
         }
 
         bool tickDamage;  // set while DamageOverTime runs

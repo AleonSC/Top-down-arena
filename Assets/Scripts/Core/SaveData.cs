@@ -15,6 +15,7 @@ namespace Arena
         public int Weapon, Ability;
         public readonly List<string> Taken = new List<string>();   // upgrade names, in the order picked
         public readonly string[] BonusKeys = { "", "", "" };        // abilities on Q, E, Shift (by name)
+        public readonly List<string> Perks = new List<string>();  // the perks they brought (by name; a continued run can't change them)
         public int Level = 1, Rerolls, Gold;
         public float Xp, HpFrac = 1f;
         public bool ReviveToken;
@@ -78,6 +79,7 @@ namespace Arena
                 Line(sb, "token", s.ReviveToken ? 1 : 0);
                 Line(sb, "hp", s.HpFrac);
                 Line(sb, "keys", string.Join(",", s.BonusKeys));
+                if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
                 foreach (var t in s.Taken)
                     Line(sb, "upgrade", t);
                 foreach (var kv in s.Mastery)
@@ -164,6 +166,7 @@ namespace Arena
                 case "rerolls": s.Rerolls = Math.Max(0, I(val)); break;
                 case "gold": s.Gold = Math.Max(0, I(val)); break;
                 case "token": s.ReviveToken = I(val) != 0; break;
+                case "perks": foreach (var n in val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) s.Perks.Add(n.Trim()); break;
                 case "hp": s.HpFrac = Math.Max(0.05f, Math.Min(1f, Fl(val))); break;
                 case "keys":
                 {
