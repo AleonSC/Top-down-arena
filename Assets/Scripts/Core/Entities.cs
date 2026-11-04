@@ -221,6 +221,7 @@ namespace Arena
         public int Score;
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;
         public float Facing;    // direction it faces (shields, charges)
+        public V2 Vel;          // host only: a Buzzsaw's steering velocity (it swoops instead of turning on the spot)
         public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
         public float PhaseT;
         public bool Elite;

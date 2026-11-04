@@ -3,6 +3,7 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [ ] **Melee grunts: Buzzsaw, zig-zag Swarmer, Spike Block.** Built (Nov 2026, protocol 156) from [`Mockups/melee-grunts.html`](Mockups/melee-grunts.html) (https://claude.ai/artifact/6eBLdvmwXbaWiwDVRPKpo4). The Buzzsaw (new, `EnemyType.Buzzsaw`) and Spike Block (new, `EnemyType.SpikeBlock`) join the melee mix from wave 5 (and Swarm Fields); the Swarmer stays, now zig-zagging with a thin spike on each face (the Buzzsaw is added beside it, not instead of it: say if you want the Swarmer gone). Numbers are first guesses (`MeleeGrunts.cs`). A Buzzsaw cuts your hit grace to 0.12 s so its touches come fast. The Swarmer's zig-zag makes it slower to arrive (about 0.6 of its speed toward you). Needs a try in Unity. Bestiary and Armory pages are out of date (no entries for the two new enemies).
 - [ ] **Artillery Assault and Bullet Rain.** Built (Nov 2026, protocol 155). **Artillery Assault** is the DPS Soldier's Bullet Storm renamed, with look A of
       [`Mockups/bullet-rain.html`](Mockups/bullet-rain.html) (heat aura, streaks, muzzle flash; `ArtilleryLook.cs`); mechanics unchanged. **Bullet Rain** replaces the
       Elementalist DPS's Meteor Storm: look D (Downpour) of [`Mockups/bullet-rain-elementalist.html`](Mockups/bullet-rain-elementalist.html). A `ZoneKind.BulletRain`
