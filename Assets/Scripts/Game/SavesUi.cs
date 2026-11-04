@@ -315,7 +315,7 @@ namespace Arena
                 CrtUi.Begin(scr);
             // Table header, then one row per save; the Players column lists every seat, one per line.
             float hx = scr.x + 14f + 12f;
-            float[] colX = { 0f, 48f, 132f, 180f, 238f };
+            float[] colX = { 0f, 38f, 126f, 170f, 218f };
             string[] heads = { "WAVE", "SAVED", "SCORE", "PLAYED", "PLAYERS" };
             for (int k = 0; k < heads.Length; k++)
                 CrtUi.Text(new Rect(hx + colX[k], scr.y + 8f, 120f, 14f), heads[k], 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
@@ -337,7 +337,7 @@ namespace Arena
                 CrtUi.Text(new Rect(x + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.Wave + 1).ToString(), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                 if (s.Endless)
                     CrtUi.Text(new Rect(x + colX[0], r.y + 32f, 46f, 14f), "endless", 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
-                CrtUi.Text(new Rect(x + colX[1], r.y + 4f, 82f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
+                CrtUi.Text(new Rect(x + colX[1], r.y + 4f, 86f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
                 CrtUi.Text(new Rect(x + colX[2], r.y + 4f, 46f, r.height - 8f), s.Score.ToString(), 13, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
                 CrtUi.Text(new Rect(x + colX[3], r.y + 4f, 56f, r.height - 8f), (int)(s.RunTime / 60f) + " min", 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
                 int n = Mathf.Min(s.Seats.Count, 3);
@@ -347,9 +347,9 @@ namespace Arena
                     var seat = s.Seats[k];
                     Ui.Fill(new Rect(x + colX[4], top + k * 15f + 2f, 3f, 11f), ToColor(Defs.Get(seat.Role).Color));
                     CrtUi.Text(new Rect(x + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
-                    CrtUi.Text(new Rect(x + colX[4] + 88f, top + k * 15f - 1f, 120f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
+                    CrtUi.Text(new Rect(x + colX[4] + 78f, top + k * 15f - 1f, 84f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
                 }
-                if (CrtUi.Small(new Rect(r.xMax - 176f, r.y + 6f, 104f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 14, calm))
+                if (CrtUi.Small(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 13, calm))
                     toContinue = s;
                 if (CrtUi.Small(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), armed ? "REALLY?" : "DEL", null, armed ? 12 : 15, calm, true, armed))
                     toDelete = s;
