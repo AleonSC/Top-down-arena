@@ -401,8 +401,8 @@ namespace Arena
                 }
             }
             bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
-            BeginDrawer("TO LOBBY?", LobbyConfirmColor, 1f, many ? "Ends the run for everyone" : "Ends the run");
-            string[] names = { "BACK TO THE LOBBY", "KEEP PLAYING" };
+            BeginDrawer("TO LOBBY?", LobbyConfirmColor, 1f);
+            string[] names = { "LEAVE", "KEEP PLAYING" };
             string[] lines = { many ? "Everyone beams out to the lobby" : "Beam out to the lobby", "Back to the pause menu" };
             string[] icons = { "ui_back", "ui_play" };
             Color[] cols = { LobbyConfirmColor, Ui.Primary };
