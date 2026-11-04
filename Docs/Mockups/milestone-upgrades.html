@@ -1,0 +1,276 @@
+<title>Milestone Upgrades</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: 1280x720 game screens scaled to the page width. Dark on purpose: these mock the game's own screen. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12; --ink: #e9edf8; --muted: #9ea9c4; --panel: #151a26; --line: rgba(255,255,255,0.08);
+  --gold: #ffcc59; --common: #d9d9e6; --uncommon: #59e666; --rare: #5999ff; --vrare: #cc66ff; --legend: #ff9926;
+  --good: #7dff8f;
+  --font: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 72ch; line-height: 1.5; }
+.option { display: grid; gap: 14px; min-width: 0; }
+.option h2 { margin: 0; font-size: 20px; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 90ch; }
+.screen-box { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 45%, rgba(40,52,90,0.35), transparent 60%), linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px, #0b0d14; }
+.screen::after { content: ""; position: absolute; inset: 0; background: rgba(4,6,12,0.55); pointer-events: none; }
+.screen > * { position: absolute; z-index: 1; }
+.fancy { position: relative; font-weight: 900; color: transparent; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c, #9cc0ff) 45%, transparent)) drop-shadow(0 2px 0 rgba(0,0,0,.6)); white-space: nowrap; }
+.fancy::before, .fancy::after { content: attr(data-text); position: absolute; inset: 0; }
+.fancy::before { color: #0b1020; -webkit-text-stroke: 5px #0b1020; }
+.fancy::after { background: linear-gradient(#fff 35%, var(--c, #9cc0ff)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.chip { display: inline-flex; font-size: 11px; font-weight: 800; letter-spacing: .08em; border-radius: 5px; padding: 4px 11px; color: #0b1020; }
+.key { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 22px; border-radius: 5px; background: #2a3146; box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); font-size: 12px; font-weight: 800; color: #c9d0e2; }
+canvas.px { image-rendering: pixelated; display: block; }
+.fbtn { display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 22px 0 8px; border-radius: 10px; font-size: 19px; font-weight: 800; color: #fff; background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 rgba(0,0,0,.35); }
+.fbtn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,.18); display: grid; place-items: center; }
+.fbtn small { font-size: 13px; opacity: .75; }
+.fbtn.gray { --b1: #4a5470; --b2: #343c54; }
+.fbtn.blue { --b1: #5a97ff; --b2: #3a6fe0; }
+
+/* The new card. --rc is the rarity colour. */
+.cards { display: grid; gap: 30px; } .cards > * { min-width: 0; } .cards.small .name { font-size: 20px; } .cards.small .desc { font-size: 13px; }
+.card { --rc: var(--common); position: relative; top: 0; border-radius: 14px; padding: 18px 16px 16px; box-sizing: border-box; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+  background: linear-gradient(color-mix(in srgb, var(--rc) 9%, #151a26), #121722 70%);
+  border: 1px solid color-mix(in srgb, var(--rc) 40%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--rc) 22%, transparent), 0 6px 18px rgba(0,0,0,.4);
+  transition: top .2s; }
+.card.picked { top: -12px; border: 2px solid var(--rc); background: linear-gradient(color-mix(in srgb, var(--rc) 20%, #151a26), #121722 75%);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--rc) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--rc) 60%, transparent), 0 10px 24px rgba(0,0,0,.45); }
+.card.back { filter: brightness(.7); }
+.card.uncommon { --rc: var(--uncommon); } .card.rare { --rc: var(--rare); } .card.vrare { --rc: var(--vrare); } .card.legend { --rc: var(--legend); }
+.card .rar { background: var(--rc); }
+.tile { width: 104px; height: 104px; border-radius: 14px; display: grid; place-items: center; flex: none;
+  background: color-mix(in srgb, var(--rc) 15%, #0c101a); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 45%, transparent), inset 0 0 18px color-mix(in srgb, var(--rc) 20%, transparent); }
+.card .name { --c: #c7d4f0; font-size: 25px; } .card.picked .name { --c: var(--rc); }
+.card .desc { font-size: 15px; line-height: 1.4; color: #c9d0e2; max-width: 240px; } .card.picked .desc { color: #fff; }
+.grow { flex: 1; }
+.pips { display: flex; gap: 8px; }
+.pip { width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; border: 2px solid rgba(255,255,255,.22); background: #0c101a; }
+.pip.on { background: var(--rc); border-color: var(--rc); box-shadow: 0 0 8px color-mix(in srgb, var(--rc) 70%, transparent); }
+.pip.next { border-color: var(--rc); box-shadow: 0 0 0 2px color-mix(in srgb, var(--rc) 35%, transparent); background: color-mix(in srgb, var(--rc) 25%, #0c101a); }
+.change { height: 18px; font-size: 14px; font-weight: 800; color: var(--good); text-shadow: 0 1px 0 #000; white-space: nowrap; }
+.change small { color: #7c8aa8; font-weight: 700; font-size: inherit; }
+/* No pips on this card: the change line sits on the card itself. */
+.overlay { position: absolute; left: 10px; right: 10px; bottom: 44px; padding: 7px 6px; line-height: 1.35; border-radius: 8px; font-size: 14px; font-weight: 800; color: var(--good);
+  background: rgba(8,12,20,.82); box-shadow: inset 0 0 0 1px rgba(125,255,143,.35); }
+.overlay small { color: #7c8aa8; font-weight: 700; font-size: inherit; }
+.bar { position: absolute; left: 14px; right: 14px; bottom: 6px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--rc), transparent); opacity: .5; }
+.card.picked .bar { opacity: 1; height: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .bobber { animation: bob 3.4s ease-in-out infinite; animation-delay: var(--d, 0s); }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+}
+
+/* Button row mockups */
+.brow { display: grid; gap: 22px; }
+.variant { display: grid; gap: 10px; }
+.variant h3 { margin: 0; font-size: 16px; } .variant h3 span { color: var(--gold); font-size: 12px; letter-spacing: .12em; margin-right: 8px; }
+.states { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 540px), 1fr)); gap: 14px; }
+.state { background: #0b0d14; border-radius: 10px; box-shadow: 0 0 0 1px var(--line); padding: 14px 16px 16px; display: grid; gap: 10px; min-width: 0; }
+.state .cap { font-size: 11px; letter-spacing: .1em; font-weight: 800; color: var(--muted); }
+.row { display: flex; gap: 14px; flex-wrap: wrap; }
+.btn { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 18px 0 8px; border-radius: 10px; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; font-size: 16px; text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 rgba(0,0,0,.35); cursor: pointer; border: 0; font-family: var(--font); white-space: nowrap; }
+.btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.btn.gray { --b1: #4a5470; --b2: #343c54; } .btn.blue { --b1: #5a97ff; --b2: #3a6fe0; } .btn.amber { --b1: #f0b43c; --b2: #c07f12; color: #1a1204; text-shadow: none; }
+.btn.off { --b1: #2c3248; --b2: #232839; color: rgba(255,255,255,.35); cursor: default; box-shadow: none; }
+.btn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,.18); display: grid; place-items: center; flex: none; }
+.btn.amber .ichip { background: rgba(0,0,0,.18); }
+.btn .count { min-width: 26px; height: 26px; border-radius: 13px; padding: 0 8px; box-sizing: border-box; display: grid; place-items: center; background: rgba(0,0,0,.32); font-size: 14px; letter-spacing: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.btn .kc { height: 22px; min-width: 22px; border-radius: 5px; display: grid; place-items: center; background: rgba(0,0,0,.3); font-size: 12px; letter-spacing: 0; box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); }
+.btn .stack { display: grid; line-height: 1.1; text-align: left; } .btn .stack small { font-size: 11px; letter-spacing: .12em; opacity: .75; }
+.btn .drain { position: absolute; left: 0; bottom: 0; height: 4px; background: rgba(26,18,4,.55); width: 100%; transform-origin: left; }
+@media (prefers-reduced-motion: no-preference) { .btn .drain { animation: drain 3s linear infinite; } @keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } } }
+.live { color: var(--muted); font-size: 13px; }
+
+/* Milestone cards: gold, with corner brackets on the picked one. */
+.card.milestone { --rc: #ffcc59; }
+.card.milestone .name { --c: #ffe08a; }
+.card.milestone.picked .name { --c: #ffcc59; }
+.card.milestone .tile { background: color-mix(in srgb, var(--rc) 12%, #0c101a); }
+.brk { --bc: #ffcc59; }
+.brk::after { content: ""; position: absolute; inset: -7px; pointer-events: none; border-radius: 4px;
+  background:
+    linear-gradient(var(--bc), var(--bc)) top left / 24px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) top left / 3px 24px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) top right / 24px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) top right / 3px 24px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 24px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom left / 3px 24px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 24px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom right / 3px 24px no-repeat; }
+.card .change.always { color: #8ea0c4; } .card .change.always b { color: var(--good); }
+.pip.on.sm, .pip.sm { width: 17px; height: 17px; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th { text-align: left; font-size: 11px; letter-spacing: .1em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.tbl td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tblwrap { overflow-x: auto; background: var(--panel); border-radius: 12px; box-shadow: 0 0 0 1px var(--line); }
+.mini { color: var(--muted); }
+.xp { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #c9d0e2; }
+.xp .track { position: relative; height: 10px; width: 420px; background: #0b0f1a; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.xp .fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg,#c9942a,#ffcc59); border-radius: 5px; }
+.xp .gem { position: absolute; top: -5px; width: 20px; height: 20px; transform: rotate(45deg) scale(.7); background: #ffcc59; border-radius: 3px; box-shadow: 0 0 12px #ffcc59; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Milestone Upgrades</h1>
+    <p>A second pool of upgrades, offered every 10 levels. The cards use the same layout as the new level-up cards, in gold, so they read as a different kind of pick. A very rare regular card (Milestone Compass) lets a milestone offer turn up between the milestone levels. Numbers are placeholders for you to tune. Nothing here is built yet.</p>
+  </header>
+
+  <section class="option">
+    <h2>A. Milestone level (level 10)</h2>
+    <div class="screen-box"><div class="screen" id="A"></div></div>
+    <ul class="notes">
+      <li>At levels 10, 20, 30 and so on you get a milestone pick. The title turns to "MILESTONE!" and the three cards come from the milestone pool only.</li>
+      <li>Every card shows its circles (the next one ringed) and what the pick changes, all the time, since every milestone card has a cap. The picked card gets corner brackets and a stronger glow.</li>
+      <li>No Reroll button, like boss rewards. Only CHOOSE UPGRADE.</li>
+      <li>The milestone pick comes on top of that level's normal pick, so reaching level 10 is never worth less. It shows first, and the normal cards follow ("1 MORE AFTER THIS").</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>B. The very rare card in a normal level-up</h2>
+    <div class="screen-box"><div class="screen" id="B"></div></div>
+    <ul class="notes">
+      <li>Milestone Compass is a Very Rare card with a cap of 3. Each stack gives every level-up a 5% chance of also offering a milestone pick (5%, 10%, 15%).</li>
+      <li>It is a normal card, so it only turns up in normal offers and it competes with two other cards for your pick. The circles show it at 0 of 3, and the line on the card shows the new chance.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>C. A lucky milestone (any other level)</h2>
+    <div class="screen-box"><div class="screen" id="C"></div></div>
+    <ul class="notes">
+      <li>When the Compass roll hits, you get the same milestone screen, titled "LUCKY MILESTONE!". It is an extra pick on top of that level's normal one, like a boss reward.</li>
+      <li>It never takes the place of a real milestone level, and it draws from the same pool, so maxed cards stay out.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>D. Level bar marker</h2>
+    <div class="screen-box" style="aspect-ratio: 1280 / 120;"><div class="screen" id="D" style="height:720px"></div></div>
+    <ul class="notes">
+      <li>A small gold diamond on the level bar shows the next milestone, so people know it is coming. The count under it ticks down.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>The milestone pool (placeholder numbers)</h2>
+    <div class="tblwrap"><table class="tbl" id="pool"><thead><tr><th>CARD</th><th>EACH STACK</th><th>CAP</th><th>AT CAP</th></tr></thead><tbody></tbody></table></div>
+    <ul class="notes">
+      <li>Maxed cards leave the pool. If fewer than three are left, you see fewer cards; with none left, the milestone pick is skipped.</li>
+      <li>I picked effects that touch what the game already has: XP, rerolls, offer size and extra picks, card rarity odds, max HP and ability cooldowns. Swap, add or remove any of them.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <h2>Things I assumed</h2>
+    <ul class="notes">
+      <li>Milestone picks are extra picks, not replacements. If you would rather the level-10 pick be the milestone <em>instead of</em> the normal pick, that is a one-line change.</li>
+      <li>Everyone in a co-op run gets their own milestone pick at their own level.</li>
+      <li>The Compass chance is rolled once per level-up, not per pick, so a double level-up can roll twice.</li>
+      <li>Milestone stacks are listed on the Tab screen with your other upgrades.</li>
+    </ul>
+  </section>
+</div>
+<script>
+const ICONS = {"pal": {".": null, "k": "#14141e", "w": "#ffffff", "g": "#bec6d7", "G": "#6e768a", "y": "#ffd750", "Y": "#e18c28", "o": "#ff8c28", "r": "#f04040", "R": "#961e28", "p": "#ff80b4", "b": "#5a96ff", "B": "#284bb4", "c": "#8ce6ff", "n": "#64e664", "N": "#288c41", "v": "#b473ff", "V": "#6432a5", "m": "#9b6441", "M": "#5a371e"}, "icons": {"shield": [".kkkkkkkkkk.", ".kggggggggk.", ".kgwwggggGk.", ".kgwggggGGk.", ".kgggggGGGk.", ".kggggGGGGk.", "..kgggGGGk..", "..kgggGGGk..", "...kggGGk...", "....kgGk....", ".....kk.....", "............"], "regen2": [".n.......n..", "nnnkk..kknnn", ".nrrrkkrrrn.", "krrrrwwrrrrk", "krrrrwwrrrrk", "krrwwwwwwrrk", ".krwwwwwwrk.", "..krrwwrrk..", "...krwwrk.n.", "....krrk.nnn", ".....kk...n.", "............"], "dash": ["............", "......kkkk..", "..cc..kbbk..", "......kbwk..", ".ccc..kbbk..", "......kbbk..", "..cc..kbbkkk", "......kbbbbk", ".ccc.kbbbbbk", ".....kBBBBBk", ".....kkkkkkk", "............"], "ui_check": ["............", "..........ww", ".........www", "........www.", ".......www..", "ww....www...", "www..www....", ".wwwwww.....", "..wwww......", "...ww.......", "............", "............"], "ui_arrow": ["............", "............", "......w.....", "......ww....", "......www...", ".wwwwwwwww..", ".wwwwwwwww..", "......www...", "......ww....", "......w.....", "............", "............"], "ui_star": ["............", ".....ww.....", ".....ww.....", "....wwww....", "wwwwwwwwwwww", ".wwwwwwwwww.", "..wwwwwwww..", "..wwwwwwww..", ".wwww..wwww.", ".www....www.", ".ww......ww.", "............"], "role_dps": ["..........kk", ".........kwk", "........kwgk", ".......kwgk.", "......kwgk..", ".....kwgk...", "..k..kgk....", "..kkkgk.....", "...kok......", "..kok.kk....", ".kok........", "kk.........."], "multishot": [".....kk.....", "....kyyk....", ".kk.kywk.kk.", "kyykkyykkyyk", "kywkkYYkkywk", "kyykkggkkyyk", "kYYkkgwkkYYk", "kggkkggkkggk", "kgwkkGGkkgwk", "kggkkkkkkggk", "kGGk....kGGk", "kkkk....kkkk"], "hollow": ["...kkkkkk...", "...kokkok...", "...kooook...", "...kYYYYk...", "...kggggk...", "...kgwggk...", "...kgwggk...", "...kgwggk...", "...kggggk...", "...kggggk...", "...kGGGGk...", "...kkkkkk..."], "blink": [".v.......v..", "..v..vv..v..", ".....vv.....", "..kkk..v..v.", ".kvvvk......", "kvvwvvk.vv..", "kvvvvvk.vv..", ".kvvvk......", "..kkk...v...", ".v.....v..v.", "....v.......", "..v...v...v."], "ui_play": ["............", "..ww........", "..www.......", "..wwww......", "..wwwww.....", "..wwwwww....", "..wwwwww....", "..wwwww.....", "..wwww......", "..www.......", "..ww........", "............"]}};
+ICONS.icons.hourglass = ["kkkkkkkkkkk","kgggggggggk",".kyyyyyyyk.",".kyyyyyyyk.","..kyyyyyk..","...kyyyk...","....kyk....","....kyk....","...kyyyk...","..kyyyyyk..",".kyyyyyyyk.",".kyyyyyyyk.","kgggggggggk","kkkkkkkkkkk"];
+function iconCanvas(name, scale, grey) {
+  const g = ICONS.icons[name], h = g.length, w = g[0].length, c = document.createElement("canvas");
+  c.width = w; c.height = h; c.className = "px"; c.style.width = (w * scale) + "px"; c.style.height = (h * scale) + "px";
+  if (grey) c.style.filter = "grayscale(1) brightness(1.05)";
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+const RN = { common: "COMMON", uncommon: "UNCOMMON", rare: "RARE", vrare: "VERY RARE", legend: "LEGENDARY" };
+
+function card(c, state) { // state: "picked" | "back" | ""
+  const pips = c.max ? `<div class="pips">${Array.from({ length: c.max }, (_, i) => `<span class="pip ${i < c.have ? "on" : (state === "picked" && i === c.have ? "next" : "")}"></span>`).join("")}</div>
+    <div class="change">${state === "picked" ? `<small>${c.stat}</small> ${c.from} → ${c.to}` : ""}</div>` : "";
+  const overlay = !c.max && state === "picked" ? `<div class="overlay"><div style="font-size:10px;letter-spacing:.12em;color:#9ea9c4">THIS PICK</div><div><small>${c.stat}</small> ${c.from} → ${c.to}</div></div>` : "";
+  const node = el(`<div class="bobber" style="--d:${c.delay || 0}s"><div class="card ${c.r} ${state}" style="height:${c.h || 400}px">
+    <span class="chip rar">${RN[c.r]}</span>
+    <div class="tile"></div>
+    <div class="fancy name" data-text="${c.name}">${c.name}</div>
+    <div class="desc">${c.desc}</div>
+    <div class="grow"></div>${pips}
+    <span class="key">${c.key}</span>${overlay}<div class="bar"></div></div></div>`);
+  node.querySelector(".tile").appendChild(iconCanvas(c.icon, 6, c.grey));
+  return node;
+}
+
+const POOL = [
+  { name: "Scholar", icon: "ui_star", desc: "Gain 15% more XP per stack", max: 5, per: "+15% XP", cap: "+75% XP" },
+  { name: "Second Helping", icon: "hollow", desc: "10% chance a level-up gives an extra pick", max: 5, per: "+10% chance of an extra pick", cap: "50%" },
+  { name: "Wide Choice", icon: "multishot", desc: "+1 card in every level-up offer (max 2)", max: 2, per: "+1 card per offer", cap: "5 cards" },
+  { name: "Reroll Cache", icon: "ui_arrow", desc: "Gain 3 rerolls now, and 1 more after every boss", max: 4, per: "+3 rerolls now, +1 per boss", cap: "+12 now, +4 a boss" },
+  { name: "Fortune", icon: "blink", desc: "Rarer cards turn up 8% more often", max: 5, per: "+8% rarer-card odds", cap: "+40%" },
+  { name: "Iron Constitution", icon: "regen2", desc: "+25 max HP", max: 5, per: "+25 max HP", cap: "+125 HP" },
+  { name: "Quickening", icon: "dash", desc: "-4% ability cooldowns", max: 5, per: "-4% cooldowns", cap: "-20%" },
+];
+const NAMES = Object.fromEntries(POOL.map(p => [p.name, p]));
+function mcard(name, have, state, from, to, key, delay, extra) {
+  const p = NAMES[name];
+  const pips = Array.from({ length: p.max }, (_, i) => `<span class="pip ${i < have ? "on" : (i === have ? "next" : "")}"></span>`).join("");
+  const n = el(`<div class="bobber" style="--d:${delay}s"><div class="card milestone ${state} ${state === "picked" ? "brk" : ""}" style="height:400px">
+    <span class="chip rar">MILESTONE</span><div class="tile"></div>
+    <div class="fancy name" data-text="${name}">${name}</div><div class="desc">${p.desc}</div><div class="grow"></div>
+    <div class="pips">${pips}</div><div class="change always"><b>${from}</b> → <b>${to}</b></div>
+    <span class="key">${key}</span><div class="bar"></div></div></div>`);
+  n.querySelector(".tile").appendChild(iconCanvas(p.icon, 6)); return n;
+}
+function scene(id, title, sub, titleColor, cards, picked, buttons) {
+  const s = document.getElementById(id);
+  s.appendChild(el(`<div style="left:0; right:0; top:34px; display:flex; flex-direction:column; align-items:center;"><div class="fancy" data-text="${title}" style="--c:${titleColor}; font-size:58px; letter-spacing:.04em;">${title}</div><div style="color:#9ea9c4; font-size:15px; font-weight:700; letter-spacing:.1em; margin-top:2px;">${sub}</div></div>`));
+  const host = el(`<div class="cards" style="left:190px; top:150px; width:900px; grid-template-columns:repeat(3, minmax(0, 1fr));"></div>`);
+  cards.forEach(c => host.appendChild(c)); s.appendChild(host);
+  s.appendChild(el(`<div style="left:0; right:0; top:570px; display:flex; justify-content:center; gap:18px;">${buttons}</div>`));
+  s.querySelectorAll("[data-icon]").forEach(n => { if (!n.firstChild) n.appendChild(iconCanvas(n.dataset.icon, 2)); });
+}
+const CHOOSEBTN = `<div class="btn blue" style="min-width:300px;"><span class="ichip" data-icon="ui_check"></span>Choose upgrade</div>`;
+const REROLLBTN = `<div class="btn gray" style="min-width:300px;"><span class="ichip" data-icon="ui_arrow"></span>Reroll<span style="margin-left:auto;padding-left:16px;font-size:13px;opacity:.8">×2</span></div>`;
+const mset = (pickedName) => [["Scholar", 2, "+30% XP", "+45% XP"], ["Second Helping", 1, "10% extra pick", "20%"], ["Wide Choice", 0, "3 cards", "4 cards"]]
+  .map((c, i) => mcard(c[0], c[1], c[0] === pickedName ? "picked" : "back", c[2], c[3], i + 1, -i * 1.1));
+scene("A", "MILESTONE!", "LEVEL 10  ·  PICK ONE MILESTONE UPGRADE  ·  1 MORE AFTER THIS", "#ffcc59", mset("Second Helping"), 1, CHOOSEBTN);
+scene("C", "LUCKY MILESTONE!", "LEVEL 7  ·  A LUCKY BREAK  ·  PICK ONE  ·  1 MORE AFTER THIS", "#ffcc59", mset("Scholar"), 0, CHOOSEBTN);
+// B: a normal level-up with the Compass
+(function () {
+  const reg = (c, state, delay) => {
+    const pips = c.max ? `<div class="pips">${Array.from({ length: c.max }, (_, i) => `<span class="pip ${i < c.have ? "on" : (state === "picked" && i === c.have ? "next" : "")}"></span>`).join("")}</div><div class="change">${state === "picked" && c.from ? `<small>${c.stat}</small> ${c.from} → ${c.to}` : ""}</div>` : "";
+    const ov = !c.max && state === "picked" ? `<div class="overlay"><div style="font-size:10px;letter-spacing:.12em;color:#9ea9c4">THIS PICK</div><div><small>${c.stat}</small> ${c.from} → ${c.to}</div></div>` : "";
+    const n = el(`<div class="bobber" style="--d:${delay}s"><div class="card ${c.r} ${state}" style="height:400px"><span class="chip rar">${RN[c.r]}</span><div class="tile"></div>
+      <div class="fancy name" data-text="${c.name}">${c.name}</div><div class="desc">${c.desc}</div><div class="grow"></div>${pips}<span class="key">${c.key}</span>${ov}<div class="bar"></div></div></div>`);
+    n.querySelector(".tile").appendChild(iconCanvas(c.icon, 6)); return n;
+  };
+  const cards = [
+    reg({ name: "Regeneration", r: "uncommon", icon: "regen2", desc: "Regenerate 3 HP per second", key: 1 }, "back", 0),
+    reg({ name: "Milestone Compass", r: "vrare", icon: "ui_star", desc: "Each level-up has a 5% chance to also offer a milestone pick", max: 3, have: 0, stat: "Milestone chance", from: "0%", to: "5%", key: 2 }, "picked", -1.1),
+    reg({ name: "Phase Step", r: "rare", icon: "dash", desc: "Dash invulnerability lasts 0.25 s longer", key: 3 }, "back", -2.2),
+  ];
+  scene("B", "LEVEL UP!", "LEVEL 6  ·  PICK ONE", "#ffd36b", cards, 1, REROLLBTN + CHOOSEBTN);
+})();
+// D: level bar
+(function () {
+  const s = document.getElementById("D");
+  s.appendChild(el(`<div style="left:60px; top:40px; display:grid; gap:10px;">
+    <div class="xp"><span>LV 8</span><div class="track"><div class="fill" style="width:62%"></div><div class="gem" style="left:calc(100% - 10px)"></div></div><span style="color:#ffcc59">LV 10 · MILESTONE</span></div>
+    <div style="font-size:12px;color:#9ea9c4;letter-spacing:.06em;padding-left:56px;">MILESTONE IN 2 LEVELS</div></div>`));
+  s.style.height = "120px";
+})();
+(function () {
+  const tb = document.querySelector("#pool tbody");
+  POOL.forEach(p => tb.appendChild(el(`<tr><td><b>${p.name}</b></td><td>${p.per}</td><td class="num">${p.max}</td><td class="num">${p.cap}</td></tr>`)));
+  tb.appendChild(el(`<tr><td><b>Milestone Compass</b> <span class="mini">(normal card, Very Rare)</span></td><td>+5% chance per level-up of a milestone pick</td><td class="num">3</td><td class="num">15%</td></tr>`));
+})();
+function fit() { document.querySelectorAll(".screen-box").forEach(b => { b.firstElementChild.style.transform = `scale(${b.clientWidth / 1280})`; }); }
+addEventListener("resize", fit); fit();
+</script>

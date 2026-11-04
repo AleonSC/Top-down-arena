@@ -420,14 +420,22 @@ namespace Arena
                 GrantXpTo(p, amount);
         }
 
+        /// Every 10 levels is a milestone (its own pick, from the milestone pool); Second Helping can add a normal pick,
+        /// and the Milestone Compass can add a lucky milestone pick.
+        public const int MilestoneEvery = 10;
+
         void GrantXpTo(Player p, float amount)
         {
-            p.Xp += amount;
+            p.Xp += amount * p.Stats.XpMult;  // Scholar
             while (p.Xp >= Defs.XpToNext(p.Level))
             {
                 p.Xp -= Defs.XpToNext(p.Level);
                 p.Level++;
                 p.PendingPicks++;
+                if (p.Level % MilestoneEvery == 0 || p.Stats.MilestoneChance > 0f && rng.NextDouble() < p.Stats.MilestoneChance)
+                    p.PendingMilestones = Math.Min(255, p.PendingMilestones + 1);
+                if (p.Stats.ExtraPickChance > 0f && rng.NextDouble() < p.Stats.ExtraPickChance)
+                    p.PendingPicks++;
             }
         }
 
@@ -457,7 +465,7 @@ namespace Arena
         public void RerollOffer()
         {
             var me = Me;
-            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferPrize || me.Rerolls <= 0 || RerollPending)
+            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferMilestone || me.OfferPrize || me.Rerolls <= 0 || RerollPending)
                 return;
             Sounds.Add(Sfx.Pick);
             if (IsHost)
@@ -474,7 +482,7 @@ namespace Arena
         public void HostReroll(int id)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.OfferPrize || p.Rerolls <= 0 || State != MatchState.Intermission)
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.OfferMilestone || p.OfferPrize || p.Rerolls <= 0 || State != MatchState.Intermission)
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
@@ -496,17 +504,20 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
                 return;
             int upgrade = p.Offer[index];
-            Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferPrize ? "prize" : "level");
+            Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferMilestone ? "milestone" : p.OfferPrize ? "prize" : "level");
             if (p.OfferLegendary)
                 p.LegendaryQueue.RemoveAt(0);
             else if (p.OfferMod)
                 p.PendingMods = Math.Max(0, p.PendingMods - 1);
+            else if (p.OfferMilestone)
+                p.PendingMilestones = Math.Max(0, p.PendingMilestones - 1);
             else if (p.OfferPrize)
                 p.PrizePicks = Math.Max(0, p.PrizePicks - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
             PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
             GrantUpgrade(id, upgrade);
+            p.Rerolls += Upgrades.All[upgrade].RerollsNow;  // Reroll Cache
             NextOffer(p);
             DoLog(p.Role + " picked " + Upgrades.All[upgrade].Name);
             SendSnapshot();  // show the next offer right away
@@ -518,6 +529,7 @@ namespace Arena
             p.PendingLegendary = p.LegendaryQueue.Count;
             p.OfferLegendary = p.LegendaryQueue.Count > 0;
             p.OfferMod = false;
+            p.OfferMilestone = false;
             p.OfferPrize = false;
             int[] mods = null;
             if (!p.OfferLegendary && p.PendingMods > 0)
@@ -538,8 +550,13 @@ namespace Arena
                 p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken);  // a challenge room's prize (Challenges.cs)
                 p.OfferPrize = true;
             }
+            else if (p.PendingMilestones > 0 && (p.Offer = Upgrades.MilestoneOffer(rng, p.Role, p.RoleAbility, p.Taken)) != null)
+                p.OfferMilestone = true;  // its own pool, before the level's normal pick
             else if (p.PendingPicks > 0)
+            {
+                p.PendingMilestones = 0;  // (only reached with the milestone pool used up)
                 p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level);
+            }
             else
                 p.Offer = null;
         }
@@ -621,7 +638,7 @@ namespace Arena
         public bool AnyonePicking()
         {
             foreach (var p in Players.Values)
-                if (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PrizePicks > 0)  // (a challenge room's prize too: the break used to run out under it)
+                if (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PendingMilestones > 0 || p.PrizePicks > 0)  // (a challenge room's prize too: the break used to run out under it)
                     return true;
             return false;
         }

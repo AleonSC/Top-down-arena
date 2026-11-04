@@ -178,7 +178,7 @@ namespace Arena
                 counts[id] = counts.ContainsKey(id) ? counts[id] + 1 : 1;
             // A flat list of headers (id < 0, rarity in -id - 1) and upgrades, rarest first.
             var items = new List<int>();
-            for (int rr = (int)Rarity.Mod; rr >= 0; rr--)
+            for (int rr = (int)Rarity.Milestone; rr >= 0; rr--)
             {
                 var group = new List<int>();
                 foreach (var id in counts.Keys)

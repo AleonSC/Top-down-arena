@@ -27,7 +27,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
 - `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates, ability XP/levels
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs`: parry shield, stun, knockback slides, repulsion cannon
-- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards and ability registry, stat panel numbers, boss health scaling
+- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards and ability registry (the milestone pool is added last, `WithMilestones`), stat panel numbers, boss health scaling
 
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
@@ -95,6 +95,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## HUD and in-run UI (Game)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
+- `CardArt.cs`: the picker cards' shaded gradient bodies (one texture per colour; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
 - `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker, run summary, Tab menu, ability tile animations
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
@@ -137,7 +138,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |
 | Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry then `node Docs/Bestiary/build_data.js` |
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
-| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `PickIntro.cs` |
+| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs` |
+| Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
 | Damage numbers, hit effects, shake | `Juice.cs`, `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`) |
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
 | HUD layout | `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |

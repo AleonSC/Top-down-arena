@@ -43,7 +43,7 @@ namespace Arena
             outroPicked = picked;
             outroIcon = PixelArt.ForUpgrade(Upgrades.All[me.Offer[picked]].Name);
             outroTarget = PickHome(me);
-            outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods <= 1;
+            outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones <= 1;
             pickOutroAt = Time.unscaledTime;
         }
 

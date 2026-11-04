@@ -34,6 +34,8 @@ namespace Arena
                 p.PendingLegendary = 0;
                 p.PendingMods = 0;
                 p.OfferMod = false;
+                p.PendingMilestones = 0;
+                p.OfferMilestone = false;
             }
             BroadcastRunStats();
             RunOver(false);  // its save goes; profiles hear about it (RunSaves.cs)

@@ -25,6 +25,9 @@ namespace Arena
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
+        static GUIStyle glowStyle;               // a soft glow that falls off over GlowSpread px (Glow)
+        static Texture2D dotFill, dotRing;       // true circles (Dot): the 9-sliced capsule collapses when it's small
+        public const float GlowSpread = 34f;
         static Texture2D checkOn, checkOff;
 
         public static void Init()
@@ -52,6 +55,11 @@ namespace Arena
             chip = Circle(40, Color.white, Color.white);
             capsule = Style(Rounded(15, Color.white, Color.white, new Color(1f, 1f, 1f, 0f), 0f), 15);
             capsuleRim = Style(Rounded(15, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.2f), 15);
+            glowStyle = new GUIStyle();
+            glowStyle.normal.background = GlowTexture();
+            glowStyle.border = new RectOffset(36, 36, 36, 36);
+            dotFill = Circle(32, Color.white, Color.white);
+            dotRing = RingTexture(48, 3.2f);
             button.alignment = TextAnchor.MiddleCenter;
             button.fontSize = 16;
             button.fontStyle = FontStyle.Bold;
@@ -670,6 +678,45 @@ namespace Arena
             GUI.backgroundColor = old;
         }
 
+        /// A soft glow round a rect: colour c, strength 0..1 at the rect's edge, falling off smoothly over GlowSpread px.
+        /// Draw it before the thing it surrounds (the rect itself is solid, so that covers it).
+        public static void Glow(Rect r, Color c, float strength)
+        {
+            if (strength <= 0.01f)
+                return;
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(c.r, c.g, c.b, Mathf.Clamp01(strength) * Alpha);
+            GUI.Box(new Rect(r.x - GlowSpread, r.y - GlowSpread, r.width + GlowSpread * 2f, r.height + GlowSpread * 2f), GUIContent.none, glowStyle);
+            GUI.backgroundColor = old;
+        }
+
+        /// A filled circle (or just its ring, when ring is true), in a colour: for stack counters.
+        public static void Dot(Rect r, Color c, bool ring = false)
+        {
+            var old = GUI.color;
+            GUI.color = Faded(c);
+            GUI.DrawTexture(r, ring ? dotRing : dotFill);
+            GUI.color = old;
+        }
+
+        /// A rim only (no fill), in a colour: the outline of a card whose body is drawn some other way.
+        public static void Rim(Rect r, Color c, float strength)
+        {
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(c.r, c.g, c.b, Mathf.Clamp01(strength));
+            GUI.Box(r, GUIContent.none, cardRim);
+            GUI.backgroundColor = old;
+        }
+
+        /// A texture stretched over a rect (card bodies from CardArt).
+        public static void Picture(Rect r, Texture2D tex)
+        {
+            var old = GUI.color;
+            GUI.color = Faded(Color.white);
+            GUI.DrawTexture(r, tex);
+            GUI.color = old;
+        }
+
         public static void Pill(Rect r, Color c)
         {
             if (r.width <= 0f || r.height <= 0f)
@@ -764,6 +811,45 @@ namespace Arena
                     px[y * size + x] = c;
                 }
             }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
+        }
+
+        /// 80 px: a small solid box in the middle with alpha falling off smoothly to nothing at the edge (9-sliced by Glow).
+        static Texture2D GlowTexture()
+        {
+            const int size = 80;
+            var tex = NewTexture(size);
+            var px = new Color[size * size];
+            const float lo = 34f, hi = 46f, radius = 5f;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float qx = Mathf.Abs(x + 0.5f - size / 2f) - ((hi - lo) / 2f - radius);
+                    float qy = Mathf.Abs(y + 0.5f - size / 2f) - ((hi - lo) / 2f - radius);
+                    float d = Mathf.Sqrt(Mathf.Max(qx, 0f) * Mathf.Max(qx, 0f) + Mathf.Max(qy, 0f) * Mathf.Max(qy, 0f)) + Mathf.Min(Mathf.Max(qx, qy), 0f) - radius;
+                    float f = Mathf.Clamp01(1f - Mathf.Max(d, 0f) / lo);
+                    px[y * size + x] = new Color(1f, 1f, 1f, f * f * (3f - 2f * f));  // smoothstep: bright at the rim, soft far out
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
+        }
+
+        /// A ring of the given thickness (px at this size), white.
+        static Texture2D RingTexture(int size, float thickness)
+        {
+            var tex = NewTexture(size);
+            var px = new Color[size * size];
+            float c = size / 2f;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float d = Mathf.Sqrt((x + 0.5f - c) * (x + 0.5f - c) + (y + 0.5f - c) * (y + 0.5f - c));
+                    float outer = Mathf.Clamp01(c - 1f - d + 0.5f), inner = Mathf.Clamp01(d - (c - 1f - thickness) + 0.5f);
+                    px[y * size + x] = new Color(1f, 1f, 1f, outer * inner);
+                }
             tex.SetPixels(px);
             tex.Apply();
             return tex;

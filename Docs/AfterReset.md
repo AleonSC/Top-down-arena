@@ -30,6 +30,14 @@ A running list of things to pick up next session. Tick off / delete as they're d
       drawing) is dormant: nothing casts it. Say the word and I'll remove it. The old zone lantern (`ZoneKind.Lantern`) is dormant too.
       Bestiary/Armory pages still show the old abilities until you ask.
 
+- [x] **Milestone upgrades.** Built (Nov 2026, protocol 141): every 10 levels an extra pick from their own gold pool (Scholar, Second Helping,
+      Wide Choice, Reroll Cache, Fortune, Iron Constitution, Quickening), plus the very rare **Milestone Compass** (5% a stack, max 3, a lucky
+      milestone pick on any level-up). Mockup: [`Mockups/milestone-upgrades.html`](Mockups/milestone-upgrades.html)
+      (https://claude.ai/artifact/G9mB2sSNavM6WPVZvzWXQL). Numbers are placeholders to tune. Milestone picks can't be rerolled, and a lucky one
+      uses the same "MILESTONE!" title. Bestiary/Armory pages don't list these yet.
+- [x] **Level-up cards redrawn** like the milestone cards (rarity chip on top, cutout icon tile, stack circles, rarity glow and gradient body, slow bob,
+      the pick preview on the card), two-click Reroll, uppercase REROLL / CHOOSE UPGRADE. Mockup: [`Mockups/upgrade-card-layout.html`](Mockups/upgrade-card-layout.html).
+
 ## Visuals
 - [x] **Profile picker <-> main menu transition, with sound.** Built (Nov 2026, no protocol bump): look C, Plot points, at half speed
       (`Game/ProfileTransition.cs`), from [`Mockups/profile-transitions.html`](Mockups/profile-transitions.html)

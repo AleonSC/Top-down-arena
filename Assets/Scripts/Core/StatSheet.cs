@@ -13,6 +13,21 @@ namespace Arena
     /// menu can also preview what a card would change.
     public static class StatSheet
     {
+        /// The starting value of a milestone stat line, for a card's "old → new" when you have none of it yet.
+        public static string Default(string label)
+        {
+            switch (label)
+            {
+                case "XP gain": return "+0% XP";
+                case "Extra pick chance": return "0%";
+                case "Cards per offer": return "3 cards";
+                case "Rerolls per boss": return Game.BossRerolls.ToString();
+                case "Rarer cards": return "+0%";
+                case "Milestone chance": return "0%";
+                default: return null;
+            }
+        }
+
         /// newKey: for a preview that adds a new ability, the key it would go on (1-3; 0 = first free).
         /// baseRegen: the run's passive regeneration (its difficulty's; Game.PassiveRegen).
         public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0, float baseRegen = 0.25f)
@@ -31,6 +46,19 @@ namespace Arena
             lines.Add(new StatLine { Label = "Pierce", Value = "+" + s.Pierce });
             if (s.ShotSizeMult != 1f)
                 lines.Add(new StatLine { Label = "Shot size", Value = Pct(s.ShotSizeMult) });  // Magnum Rounds
+            // Milestone upgrades: shown once you have one (Default() gives the starting value a card's preview compares with).
+            if (s.XpMult != 1f)
+                lines.Add(new StatLine { Label = "XP gain", Value = "+" + Math.Round((s.XpMult - 1f) * 100f) + "% XP" });
+            if (s.ExtraPickChance > 0f)
+                lines.Add(new StatLine { Label = "Extra pick chance", Value = Math.Round(s.ExtraPickChance * 100f) + "%" });
+            if (s.OfferExtra > 0)
+                lines.Add(new StatLine { Label = "Cards per offer", Value = (3 + s.OfferExtra) + " cards" });
+            if (s.BossRerolls > 0)
+                lines.Add(new StatLine { Label = "Rerolls per boss", Value = (Game.BossRerolls + s.BossRerolls).ToString() });
+            if (s.RarityLuck > 0f)
+                lines.Add(new StatLine { Label = "Rarer cards", Value = "+" + Math.Round(s.RarityLuck * 100f) + "%" });
+            if (s.MilestoneChance > 0f)
+                lines.Add(new StatLine { Label = "Milestone chance", Value = Math.Round(s.MilestoneChance * 100f) + "%" });
             lines.Add(new StatLine { Label = "Parry durability", Value = ((int)(Game.ParryCapacity * s.ParryCapacityMult)).ToString() });
             lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.RoleCharges).ToString() });
 

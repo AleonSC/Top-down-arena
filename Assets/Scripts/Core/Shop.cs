@@ -40,6 +40,7 @@ namespace Arena
                 case Rarity.Rare: return 100;
                 case Rarity.VeryRare: return 160;
                 case Rarity.Mod: return 200;
+                case Rarity.Milestone: return 240;
                 default: return 280;  // legendary
             }
         }

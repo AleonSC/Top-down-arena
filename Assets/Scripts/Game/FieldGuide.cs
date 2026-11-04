@@ -228,7 +228,7 @@ namespace Arena
         static List<GuideItem> BuildUpgradeItems()
         {
             var list = new List<GuideItem>();
-            for (int rar = 0; rar <= (int)Rarity.Mod; rar++)
+            for (int rar = 0; rar <= (int)Rarity.Milestone; rar++)
                 for (int i = 0; i < Upgrades.All.Length; i++)
                 {
                     var u = Upgrades.All[i];
@@ -984,6 +984,7 @@ namespace Arena
             {
                 case Rarity.Legendary: return "Legendary cards are a boss's reward: beat it and pick one of its cards.";
                 case Rarity.Mod: return "Weapon mods are picked after each boss, alongside its legendary card.";
+                case Rarity.Milestone: return "Milestone cards come from their own pool: you're offered three every 10 levels, and the Milestone Compass can bring one early.";
                 case Rarity.VeryRare: return "Very rare cards give a new ability for Q, E or Shift (up to three).";
                 default: return Upgrades.RarityName(r).Substring(0, 1) + Upgrades.RarityName(r).Substring(1).ToLowerInvariant() + " card: offered when you level up.";
             }

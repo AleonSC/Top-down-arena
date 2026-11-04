@@ -33,6 +33,24 @@ for line in open(base+'.ui',encoding='utf-8'):
     if kind=='fill' and (w<1 or h<1): continue
     if kind=='fill':
         ld.rectangle([x,y,x+w-1,y+h-1],fill=c8(*floats(p[3])))
+    elif kind=='box9':
+        tint=floats(p[3]); n=int(p[4]); hn=int(p[5]); b=int(p[6]); hexs=p[7]; gc=floats(p[8])
+        if w<1 or h<1: continue
+        tile=Image.new('RGBA',(n,hn)); pxl=[]
+        for i in range(n*hn):
+            hx_=hexs[i*8:i*8+8]
+            pxl.append(tuple(int(int(hx_[2*k:2*k+2],16)*tint[k]*gc[k]) for k in range(4)))
+        tile.putdata(pxl); tile=tile.transpose(Image.FLIP_TOP_BOTTOM)
+        sc=min(1.0, w/(2*b), h/(2*b)); bw=max(1,int(round(b*sc))); W2=max(1,int(round(w))); H2=max(1,int(round(h)))
+        o9=Image.new('RGBA',(W2,H2),(0,0,0,0))
+        xs=[0,b,n-b,n]; ys=[0,b,hn-b,hn]; xd=[0,bw,W2-bw,W2]; yd=[0,bw,H2-bw,H2]
+        for j in range(3):
+            for i in range(3):
+                dw=xd[i+1]-xd[i]; dh=yd[j+1]-yd[j]
+                if dw<=0 or dh<=0 or xs[i+1]<=xs[i] or ys[j+1]<=ys[j]: continue
+                piece=tile.crop((xs[i],ys[j],xs[i+1],ys[j+1])).resize((dw,dh),Image.BILINEAR)
+                o9.paste(piece,(xd[i],yd[j]))
+        layer.paste(o9,(int(round(x)),int(round(y))),o9)
     elif kind=='box':
         t=floats(p[3]); mid=floats(p[4]); edge=floats(p[5]); rad=int(p[6]); top=floats(p[7]); bot=floats(p[8])
         mul=lambda c:[c[i]*t[i] for i in range(4)]
@@ -74,7 +92,7 @@ for line in open(base+'.ui',encoding='utf-8'):
             hx_=hexs[i*8:i*8+8]
             px.append((int(int(hx_[0:2],16)*tint[0]),int(int(hx_[2:4],16)*tint[1]),int(int(hx_[4:6],16)*tint[2]),int(int(hx_[6:8],16)*tint[3])))  # GUI.color multiplies the texture
         tile.putdata(px)
-        tile=tile.transpose(Image.FLIP_TOP_BOTTOM).resize((max(1,int(w)),max(1,int(h))),Image.BILINEAR if hn==1 else Image.NEAREST)
+        tile=tile.transpose(Image.FLIP_TOP_BOTTOM).resize((max(1,int(w)),max(1,int(h))),Image.BILINEAR if hn==1 or (len(p)>6 and p[6]=='1') else Image.NEAREST)
         layer.paste(tile,(int(x),int(y)),tile)
     elif kind=='label':
         col=floats(p[3]); size=int(p[4]); align=int(p[5]); bold=p[6]=='1'; text=p[8].replace('\\n','\n')

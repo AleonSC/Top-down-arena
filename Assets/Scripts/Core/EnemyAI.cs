@@ -1080,12 +1080,12 @@ namespace Arena
             var bossKey = IsReaper(e.Type) ? EnemyType.TwinA : e.Type;
             foreach (var p in Players.Values)
             {
-                p.Rerolls += BossRerolls;
+                p.Rerolls += BossRerolls + p.Stats.BossRerolls;  // (Reroll Cache adds to it)
                 p.LegendaryQueue.Add(bossKey);  // picked at the end of the wave
                 p.PendingLegendary = p.LegendaryQueue.Count;
                 p.PendingMods++;                // then a weapon mod
             }
-            DoLog(e.Def.Name + " defeated: everyone gets " + BossRerolls + " rerolls");
+            DoLog(e.Def.Name + " defeated: everyone gets " + BossRerolls + "+ rerolls");
             return true;
         }
     }

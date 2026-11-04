@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    public enum Rarity : byte { Common, Uncommon, Rare, VeryRare, Legendary, Mod }  // Mod: weapon mods, picked after each boss
+    public enum Rarity : byte { Common, Uncommon, Rare, VeryRare, Legendary, Mod, Milestone }  // Mod: weapon mods, picked after each boss; Milestone: their own pool, offered every 10 levels
 
     public enum AbilityId : byte
     {
@@ -102,11 +102,20 @@ namespace Arena
         // Parry upgrades.
         public float ParryCapacityMult = 1f, ParryArcMult = 1f, PerfectBonus, ReflectMult = 1f, CounterFireRate, MirrorChance;
         public bool ParryNoSlow;
+
+        // Milestone upgrades (offered every 10 levels; Upgrades.WithMilestones).
+        public float XpMult = 1f;          // Scholar: XP earned
+        public float ExtraPickChance;      // Second Helping: a level-up may give an extra pick
+        public int OfferExtra;             // Wide Choice: more cards in every level-up offer
+        public float RarityLuck;           // Fortune: rarer cards turn up more often
+        public int BossRerolls;            // Reroll Cache: more rerolls after every boss
+        public float MilestoneChance;      // Milestone Compass: a level-up may also offer a milestone pick
     }
 
     public class UpgradeDef
     {
         public string Name, Desc;
+        public int RerollsNow;  // picking it also gives this many rerolls on the spot (Reroll Cache)
         public Rarity Rarity;
         public int MaxStacks = 99;
         public Role? Role;                          // only offered to this role
@@ -188,7 +197,7 @@ namespace Arena
         }
 
 
-        public static readonly UpgradeDef[] All = WithClassAbilities(new[]
+        public static readonly UpgradeDef[] All = WithMilestones(WithClassAbilities(new[]
         {
             // Common: small stat boosts
             new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+10% damage", Apply = s => s.DmgMult += 0.1f },
@@ -362,7 +371,7 @@ namespace Arena
                 Apply = s => s.MirrorChance = Math.Min(0.75f, s.MirrorChance + 0.25f) },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
                 Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
-        });
+        }));
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(Role role, AbilityId roleAbility, List<int> taken)
@@ -438,6 +447,7 @@ namespace Arena
                 case Rarity.VeryRare: return new Rgba(0.8f, 0.4f, 1f);
                 case Rarity.Legendary: return new Rgba(1f, 0.6f, 0.15f);
                 case Rarity.Mod: return new Rgba(0.25f, 0.95f, 0.85f);
+                case Rarity.Milestone: return new Rgba(1f, 0.8f, 0.35f);
                 default: return new Rgba(0.85f, 0.85f, 0.9f);
             }
         }
@@ -467,6 +477,44 @@ namespace Arena
                 });
             }
             return all.ToArray();
+        }
+
+        /// The milestone pool and the Milestone Compass, added last so every older upgrade keeps its number.
+        static UpgradeDef[] WithMilestones(UpgradeDef[] before)
+        {
+            var all = new List<UpgradeDef>(before);
+            all.AddRange(new[]
+            {
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Scholar", Desc = "Gain 15% more XP per stack", Apply = s => s.XpMult += 0.15f },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Second Helping", Desc = "10% chance a level-up gives an extra pick", Apply = s => s.ExtraPickChance += 0.1f },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 2, Name = "Wide Choice", Desc = "+1 card in every level-up offer (max 2)", Apply = s => s.OfferExtra += 1 },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 4, Name = "Reroll Cache", Desc = "Gain 3 rerolls now, and 1 more after every boss", RerollsNow = 3, Apply = s => s.BossRerolls += 1 },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Fortune", Desc = "Rarer cards turn up 8% more often", Apply = s => s.RarityLuck += 0.08f },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Iron Constitution", Desc = "+25 max HP", Apply = s => s.BonusHp += 25f },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Quickening", Desc = "-4% ability cooldowns", Apply = s => s.CdMult *= 0.96f },
+                // A normal very rare card: milestone offers can turn up between the milestone levels.
+                new UpgradeDef { Rarity = Rarity.VeryRare, MaxStacks = 3, Name = "Milestone Compass", Desc = "Each level-up has a 5% chance to also offer a milestone pick", Apply = s => s.MilestoneChance += 0.05f },
+            });
+            return all.ToArray();
+        }
+
+        /// A milestone pick: up to three cards from the milestone pool (not the ones you've maxed out), or null if none are left.
+        public static int[] MilestoneOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken)
+        {
+            var ids = new List<int>();
+            for (int id = 0; id < All.Length; id++)
+                if (All[id].Rarity == Rarity.Milestone && Available(id, role, roleAbility, taken))
+                    ids.Add(id);
+            if (ids.Count == 0)
+                return null;
+            var offer = new List<int>();
+            while (offer.Count < 3 && ids.Count > 0)
+            {
+                int k = rng.Next(ids.Count);
+                offer.Add(ids[k]);
+                ids.RemoveAt(k);
+            }
+            return offer.ToArray();
         }
 
         /// Which role and class a Space ability belongs to (each belongs to exactly one), or -1.
@@ -536,14 +584,15 @@ namespace Arena
 
         public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level)
         {
-            float veryRare = Math.Min(10f, 3f + level * 0.5f);
-            float rare = Math.Min(22f, 11f + level * 0.8f);
-            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f, rare, veryRare });
+            var st = Compute(taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
+            float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
+            float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
+            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
         }
 
-        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights)
+        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights, int count = 3)
         {
-            var offer = new int[3];
+            var offer = new int[count];
             var used = new List<int>();
             for (int i = 0; i < offer.Length; i++)
             {

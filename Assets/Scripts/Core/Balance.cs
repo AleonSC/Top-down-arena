@@ -52,7 +52,7 @@ namespace Arena
         // --- Level-up picks ------------------------------------------------------------------------------------------
 
         public const int StartingRerolls = 2;
-        const int BossRerolls = 2;
+        public const int BossRerolls = 2;
 
         // --- Health: regeneration, health orbs, reviving -------------------------------------------------------------
 

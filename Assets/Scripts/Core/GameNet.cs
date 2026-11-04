@@ -475,6 +475,8 @@ namespace Arena
             s.Bool(ref p.OfferLegendary);
             s.Byte(ref p.PendingMods);
             s.Bool(ref p.OfferMod);
+            s.Byte(ref p.PendingMilestones);
+            s.Bool(ref p.OfferMilestone);
             s.Byte(ref p.PrizePicks);
             s.Bool(ref p.OfferPrize);
             int offers = p.Offer != null ? p.Offer.Length : 0;

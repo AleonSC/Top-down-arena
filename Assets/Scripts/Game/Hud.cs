@@ -95,7 +95,7 @@ namespace Arena
                     }
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
-                        if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PrizePicks > 0 && p.Id != game.MyId)
+                        if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingMilestones + p.PrizePicks > 0 && p.Id != game.MyId)
                             choosing.Add(p.Name);
                     var pr = game.Practice;
                     int pNext = pr == null ? 0 : (game.PracticeIndex + 1) % Math.Max(1, pr.Waves.Count);

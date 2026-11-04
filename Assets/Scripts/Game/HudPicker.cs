@@ -17,7 +17,16 @@ namespace Arena
         {
             SyncSelection(me);
             float now = Time.unscaledTime;
-            pickParts = PickChangeParts(me);  // what the picked card changes, drawn on that card
+            pickParts = PickChangeParts(me, selectedCard);  // what the picked card changes, drawn on that card
+            if (me.OfferMilestone && me.Offer != null)  // milestone cards always show theirs
+            {
+                if (milestoneParts == null || milestoneParts.Length != me.Offer.Length)
+                    milestoneParts = new List<string>[me.Offer.Length];
+                for (int i = 0; i < me.Offer.Length; i++)
+                    milestoneParts[i] = PickChangeParts(me, i);
+            }
+            else
+                milestoneParts = null;
             bool opening = PickIntroPlaying(me);  // the cards are still flying out of you: nothing can be chosen yet
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.82f * (introFull ? Seg(IntroElapsed, 0f, 0.3f) : 1f)));
             const float cardW = 270f, cardH = 384f, gap = 30f;
@@ -25,8 +34,9 @@ namespace Arena
 
             // Heading: a big outlined title in the offer's colour, and a line under it.
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
+                : me.OfferMilestone ? ToColor(Upgrades.RarityColor(Rarity.Milestone))
                 : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : me.OfferPrize ? ToColor(Upgrades.RarityColor(Rarity.VeryRare)) : Ui.Gold;
-            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
+            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
             PickTitleMotion(72f, 54, out titleY, out titleSize, out band);  // a full opening pops it in the middle first
@@ -34,14 +44,15 @@ namespace Arena
                 for (int k = 0; k < 7; k++)  // a dark band behind it, soft at the edges
                     Ui.Fill(new Rect(0f, titleY - 70f + k * 20f, W, 20f), new Color(0f, 0f, 0f, 0.55f * band * Mathf.Sin((k + 0.5f) / 7f * Mathf.PI)));
             Ui.Fancy(new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f), title, titleSize, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
-            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PrizePicks - 1;
-            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
+            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones + me.PrizePicks - 1;
+            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
             if (titleY <= 73f)
                 Ui.Label(new Rect(0f, 102f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
 
-            bool grid = me.Offer.Length > 3;
+            bool grid = me.OfferMod;  // weapon mods: a grid of small cards (Wide Choice's 4th and 5th level-up cards are tall ones, narrower)
+            float tw = me.Offer.Length <= 4 ? cardW : 224f, tg = me.Offer.Length <= 4 ? gap : 22f;
             if (pickCardRects.Length != me.Offer.Length)
                 pickCardRects = new Rect[me.Offer.Length];  // where each card is, for the outro when one is taken
             float by;
@@ -60,9 +71,9 @@ namespace Arena
             }
             else
             {
-                float x0 = mid - (me.Offer.Length * cardW + (me.Offer.Length - 1) * gap) / 2f;
+                float x0 = mid - (me.Offer.Length * tw + (me.Offer.Length - 1) * tg) / 2f;
                 for (int i = 0; i < me.Offer.Length; i++)
-                    slots[i] = new Rect(x0 + i * (cardW + gap), 150f, cardW, cardH);
+                    slots[i] = new Rect(x0 + i * (tw + tg), 150f, tw, cardH);
             }
             DrawPickIntroUnder(me, slots, me.Offer.Length);  // the pillar out of you, and streaks behind the cards (PickIntro.cs)
             if (grid)
@@ -154,7 +165,7 @@ namespace Arena
             by = Mathf.Min(by, H - 70f);
             bool wasEnabled = GUI.enabled;
             bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length;
-            bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
+            bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferMilestone && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
             const float rerollW = 300f, takeW = 300f, bgap = 18f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked;  // (not off while opening: GUI.enabled draws at half opacity)
@@ -185,6 +196,7 @@ namespace Arena
         static readonly Color RerollArmedTint = new Color(0.92f, 0.5f, 0.14f);
         bool RerollArmed => Time.unscaledTime - rerollArmedAt < RerollArmTime;
         List<string> pickParts;                     // what the selected card changes, set each frame by the picker
+        List<string>[] milestoneParts;              // what each milestone card changes (they always show it)
 
         /// Reroll (button or R): the first press arms it, a second press within RerollArmTime rerolls.
         void RerollPress()
@@ -203,13 +215,13 @@ namespace Arena
 
         /// "Regeneration  0.25 → 3.25 HP/s": what the selected card changes (up to three stats), or the new ability and
         /// its key. Null with nothing selected. Drawn on the picked card itself.
-        List<string> PickChangeParts(Player me)
+        List<string> PickChangeParts(Player me, int index)
         {
-            if (selectedCard < 0 || me.Offer == null || selectedCard >= me.Offer.Length)
+            if (index < 0 || me.Offer == null || index >= me.Offer.Length)
                 return null;
-            var u = Upgrades.All[me.Offer[selectedCard]];
+            var u = Upgrades.All[me.Offer[index]];
             var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
-            var after = StatSheet.Describe(me, new List<int>(me.Taken) { me.Offer[selectedCard] }, pickKey, game.PassiveRegen);
+            var after = StatSheet.Describe(me, new List<int>(me.Taken) { me.Offer[index] }, pickKey, game.PassiveRegen);
             var parts = new List<string>();
             string grant = u.Grants != AbilityId.None ? Upgrades.Ability(u.Grants).Name : null;
             foreach (var line in after)
@@ -220,27 +232,43 @@ namespace Arena
                 foreach (var n in now)
                     if (!n.Header && n.Label == line.Label)
                         old = n.Value;
+                if (old == null)
+                    old = StatSheet.Default(line.Label);  // a milestone stat you have none of yet
                 if (old == line.Value)
                     continue;
                 parts.Add(old != null ? line.Label + "  " + old + " → " + line.Value : line.Label + "  " + line.Value);
             }
             if (grant != null)
-                parts.Insert(0, "New ability: " + grant + (pickKey >= 1 ? " on " + SlotKeys[pickKey] : ""));
+                parts.Insert(0, "New ability: " + grant + (pickKey >= 1 && index == selectedCard ? " on " + SlotKeys[pickKey] : ""));
             return parts.Count == 0 ? null : parts;
         }
 
         /// A soft glow round a card in its rarity colour (about twice as strong on the picked one).
         void DrawCardGlow(Rect r, Color rc, bool selected, bool hover, bool behind, float now)
         {
-            float a = selected ? 0.07f + 0.03f * Mathf.Sin(now * 4f) : behind ? 0.02f : hover ? 0.055f : 0.035f;
-            for (int k = 3; k >= 1; k--)
-                Ui.Pill(new Rect(r.x - 5f * k, r.y - 5f * k, r.width + 10f * k, r.height + 10f * k), new Color(rc.r, rc.g, rc.b, a * (4 - k) / 3f));
+            float a = selected ? 0.95f + 0.05f * Mathf.Sin(now * 4f) : behind ? 0.16f : hover ? 0.6f : 0.42f;
+            Ui.Glow(r, rc, a);
+            if (selected)
+                Ui.Glow(r, rc, 0.55f + 0.15f * Mathf.Sin(now * 4f));  // twice, for a hotter core
+        }
+
+        /// Gold corner brackets round a card (the picked milestone).
+        static void DrawBrackets(Rect r, Color c)
+        {
+            const float len = 24f, th = 3f, o = 7f;
+            float x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
+            Ui.Fill(new Rect(x0, y0, len, th), c); Ui.Fill(new Rect(x0, y0, th, len), c);
+            Ui.Fill(new Rect(x1 - len, y0, len, th), c); Ui.Fill(new Rect(x1 - th, y0, th, len), c);
+            Ui.Fill(new Rect(x0, y1 - th, len, th), c); Ui.Fill(new Rect(x0, y1 - len, th, len), c);
+            Ui.Fill(new Rect(x1 - len, y1 - th, len, th), c); Ui.Fill(new Rect(x1 - th, y1 - len, th, len), c);
         }
 
         /// The picked card's change lines (up to two) in green on a dark strip over the card's bottom.
-        void DrawPickStrip(Rect strip, int size, bool label)
+        void DrawPickStrip(Rect strip, int size, bool label, List<string> parts = null)
         {
-            int lines = Math.Min(2, pickParts.Count);
+            if (parts == null)
+                parts = pickParts;
+            int lines = Math.Min(2, parts.Count);
             Ui.Card(strip, new Color(0.45f, 0.95f, 0.55f), 0.6f);
             float y = strip.y + 4f;
             if (label)
@@ -249,7 +277,7 @@ namespace Arena
                 y += 13f;
             }
             for (int i = 0; i < lines; i++, y += size + 4f)
-                Ui.Label(new Rect(strip.x, y, strip.width, size + 4f), pickParts[i], pickParts[i].Length > 32 ? size - 1 : size, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(strip.x, y, strip.width, size + 4f), parts[i], parts[i].Length > 32 ? size - 1 : size, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
         }
 
         static Texture2D hatchTex;
@@ -281,9 +309,10 @@ namespace Arena
             float lift = selected ? -16f : behind ? 8f : hover ? -4f : 0f;
             float bob = behind ? 0f : Mathf.Sin(now * 1.85f + index * 2.1f) * 2.5f;  // 5 px top to bottom, each card out of step
             var r = new Rect(slot.x, slot.y + lift + bob, slot.width, slot.height);
+            bool ms = u.Rarity == Rarity.Milestone;  // the milestone pool: gold, its change line always shown, brackets on the picked one
             DrawCardGlow(r, rc, selected, hover, behind, now);
-            Ui.Card(r, rc, selected ? 1f : hover ? 0.7f : 0.4f);
-            Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 150f), new Color(rc.r, rc.g, rc.b, selected ? 0.12f : 0.06f));
+            Ui.Picture(r, CardArt.Body(rc, true));  // the shaded body: rich at the top, dark at the bottom, a bloom behind the icon
+            Ui.Rim(r, rc, selected ? 1f : hover ? 0.8f : 0.55f);
 
             // Rarity chip, centred on top, above the icon's cutout tile.
             string rarity = Upgrades.RarityName(u.Rarity);
@@ -292,8 +321,9 @@ namespace Arena
             Ui.Pill(chipR, new Color(rc.r, rc.g, rc.b, 0.9f));
             Ui.Label(chipR, rarity, 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
             var tile = new Rect(r.center.x - 52f, r.y + 42f, 104f, 104f);
-            Ui.Card(tile, rc, selected ? 0.9f : 0.5f);
-            Ui.Pill(tile, new Color(rc.r, rc.g, rc.b, 0.14f));
+            Ui.Glow(tile, rc, selected ? 0.5f : 0.28f);
+            Ui.Card(tile, rc, selected ? 0.9f : 0.6f);
+            Ui.Pill(tile, new Color(rc.r, rc.g, rc.b, 0.16f));
             Ui.Icon(new Rect(tile.center.x - 38f, tile.center.y - 38f, 76f, 76f), PixelArt.ForUpgrade(u.Name));
             if (u.Rarity >= Rarity.Rare)
             {
@@ -327,7 +357,8 @@ namespace Arena
                 Ui.Label(new Rect(r.x, r.y + 266f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
 
             // Stack circles: filled for what you hold; on the picked card the next one is ringed. The change goes under them.
-            bool showParts = selected && pickParts != null;
+            var shown = ms ? (milestoneParts != null && index < milestoneParts.Length ? milestoneParts[index] : null) : selected ? pickParts : null;
+            bool showParts = shown != null;
             if (capped)
             {
                 int total = Math.Min(u.MaxStacks, 8), have = Upgrades.Count(me.Taken, me.Offer[index]);
@@ -337,18 +368,28 @@ namespace Arena
                 {
                     var c = new Rect(px + k * (d + pg), py, d, d);
                     if (k < have)
-                        Ui.Capsule(c, rc, Color.Lerp(rc, Color.white, 0.4f));
-                    else if (selected && k == have)
-                        Ui.Capsule(c, new Color(rc.r, rc.g, rc.b, 0.25f + 0.15f * Mathf.Sin(now * 5f)), rc);
+                    {
+                        Ui.Glow(c, rc, 0.22f);
+                        Ui.Dot(c, rc);
+                        Ui.Dot(c, Color.Lerp(rc, Color.white, 0.55f), true);
+                    }
+                    else if ((selected || ms) && k == have)
+                    {
+                        Ui.Dot(c, new Color(rc.r, rc.g, rc.b, 0.22f + 0.14f * Mathf.Sin(now * 5f)));
+                        Ui.Dot(c, rc, true);
+                    }
                     else
-                        Ui.Capsule(c, new Color(0.04f, 0.05f, 0.09f, 1f), new Color(1f, 1f, 1f, 0.22f));
+                    {
+                        Ui.Dot(c, new Color(0.03f, 0.04f, 0.08f, 1f));
+                        Ui.Dot(c, new Color(1f, 1f, 1f, 0.36f), true);
+                    }
                 }
                 if (showParts && !grants)
-                    for (int i = 0; i < Math.Min(2, pickParts.Count); i++)
-                        Ui.Label(new Rect(r.x + 6f, r.yMax - 76f + i * 15f, r.width - 12f, 16f), pickParts[i], pickParts[i].Length > 34 ? 11 : 12, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
+                    for (int i = 0; i < Math.Min(2, shown.Count); i++)
+                        Ui.Label(new Rect(r.x + 6f, r.yMax - 76f + i * 15f, r.width - 12f, 16f), shown[i], shown[i].Length > 34 ? 11 : 12, ms && !selected ? new Color(0.45f, 0.85f, 0.52f) : new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
             }
             else if (showParts && !grants)
-                DrawPickStrip(new Rect(r.x + 10f, r.yMax - 98f, r.width - 20f, 20f + 15f * Math.Min(2, pickParts.Count)), 12, true);
+                DrawPickStrip(new Rect(r.x + 10f, r.yMax - 98f, r.width - 20f, 20f + 15f * Math.Min(2, shown.Count)), 12, true, shown);
 
             // The key, bottom centre, over the fading rarity line.
             string keyText = (index + 1).ToString();
@@ -359,6 +400,8 @@ namespace Arena
                 Ui.Fill(new Rect(r.x + 8f + (r.width - 16f) * k / 24f, r.yMax - 12f, (r.width - 16f) / 24f + 0.5f, selected ? 4f : 3f),
                     new Color(rc.r, rc.g, rc.b, f * (selected ? 0.95f : 0.55f)));
             }
+            if (selected && ms)
+                DrawBrackets(r, rc);
             if (behind)  // another card is picked: this one steps back
                 Ui.Pill(r, new Color(0.01f, 0.012f, 0.03f, 0.32f));
         }
@@ -370,9 +413,8 @@ namespace Arena
             if (!selected)
                 r.y += Mathf.Sin(now * 1.85f + index * 2.1f) * 2.5f;  // the same slow bob as the tall cards
             DrawCardGlow(r, rc, selected, hover, false, now);
-            Ui.Card(r, rc, selected ? 1f : hover ? 0.75f : 0.45f);
-            // A wash of the rarity color across the top of the card.
-            Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, compact ? 30f : 120f), new Color(rc.r, rc.g, rc.b, 0.08f));
+            Ui.Picture(r, CardArt.Body(rc, false));
+            Ui.Rim(r, rc, selected ? 1f : hover ? 0.85f : 0.55f);
             if (u.Rarity == Rarity.Legendary)
             {
                 // A shimmer that sweeps across legendary cards.
@@ -394,8 +436,8 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 74f, r.y + 14f, r.width - 82f, 16f), note, 10, rc, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(r.x + 74f, r.y + 30f, r.width - 82f, 36f), u.Name, 15, Color.white, TextAnchor.UpperLeft, true, true);
                 Ui.Label(new Rect(r.x + 12f, r.y + 74f, r.width - 24f, 52f), Upgrades.DescFor(u, me.Weapon), 11, Ui.Text, TextAnchor.UpperLeft, false, true);
-                if (selected && pickParts != null)
-                    DrawPickStrip(new Rect(r.x + 6f, r.yMax - 8f - 8f - 15f * Math.Min(2, pickParts.Count), r.width - 12f, 8f + 15f * Math.Min(2, pickParts.Count) + 4f), 11, false);
+                if (selected && pickParts != null)  // (a strip would cover the text on these small cards: one green line instead)
+                    Ui.Label(new Rect(r.x + 10f, r.yMax - 22f, r.width - 20f, 16f), pickParts[0], 10, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleRight, true);
                 else
                     Ui.Label(new Rect(r.x, r.yMax - 22f, r.width - 12f, 16f), selected ? "SELECTED" : "[" + (index + 1) + "]", 11,
                         selected ? rc : new Color(1, 1, 1, 0.45f), TextAnchor.MiddleRight, true);
