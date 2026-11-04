@@ -131,7 +131,7 @@ namespace Arena
                 var dim = CrtUi.Dim;
                 CrtUi.Text(new Rect(tx, r.y + 15f, 32f, 20f), "TIP", 11, new Color(dim.r, dim.g, dim.b, ca), TextAnchor.MiddleLeft, true, calm);
                 CrtUi.Text(new Rect(tx + 32f, r.y + 15f, tw - 32f, 20f), topic, 17, new Color(ink.r, ink.g, ink.b, ca), TextAnchor.MiddleLeft, true, calm);
-                CrtUi.Text(new Rect(tx, r.y + 36f, tw, r.height - 44f), body, 14, new Color(dim.r + 0.1f, dim.g + 0.25f, dim.b + 0.2f, 0.95f * ca), TextAnchor.UpperLeft, false, calm);
+                CrtUi.Text(new Rect(tx, r.y + 34f, tw, r.height - 40f), body, 13, new Color(dim.r + 0.1f, dim.g + 0.25f, dim.b + 0.2f, 0.95f * ca), TextAnchor.UpperLeft, false, calm, true);
                 float bx = r.xMax - 20f - 168f;
                 CrtUi.Text(new Rect(bx, r.y + 17f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, dim, TextAnchor.MiddleRight, true, calm);
                 prev = CrtUi.Small(new Rect(bx, r.y + 42f, 80f, 30f), "< PREV", null, 14, calm);

@@ -37,17 +37,17 @@ namespace Arena
         }
 
         /// A label that glows: four faint copies a pixel around it, then the text.
-        public static void Text(Rect r, string s, int size, Color c, TextAnchor align, bool bold, bool calm)
+        public static void Text(Rect r, string s, int size, Color c, TextAnchor align, bool bold, bool calm, bool wrap = false)
         {
             if (!calm && Event.current.type == EventType.Repaint)
             {
                 var g = new Color(c.r, c.g, c.b, c.a * 0.16f);
-                Ui.Label(new Rect(r.x - 1f, r.y, r.width, r.height), s, size, g, align, bold);
-                Ui.Label(new Rect(r.x + 1f, r.y, r.width, r.height), s, size, g, align, bold);
-                Ui.Label(new Rect(r.x, r.y - 1f, r.width, r.height), s, size, g, align, bold);
-                Ui.Label(new Rect(r.x, r.y + 1f, r.width, r.height), s, size, g, align, bold);
+                Ui.Label(new Rect(r.x - 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
+                Ui.Label(new Rect(r.x + 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
+                Ui.Label(new Rect(r.x, r.y - 1f, r.width, r.height), s, size, g, align, bold, wrap);
+                Ui.Label(new Rect(r.x, r.y + 1f, r.width, r.height), s, size, g, align, bold, wrap);
             }
-            Ui.Label(r, s, size, c, align, bold);
+            Ui.Label(r, s, size, c, align, bold, wrap);
         }
 
         /// An outlined button that flips to inverse video (green block, dark text) under the mouse. True when clicked.
