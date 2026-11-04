@@ -79,7 +79,7 @@ namespace Arena
         {
             if (!(MenuIntroPlaying && MenuIntroFull))
             {
-                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
+                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent, Ui.GlitchKind.Punch);
                 return;
             }
             float pen = Seg(menuIntroT, 0.35f, 1.35f), fill = Seg(menuIntroT, 1.35f, 1.55f);
@@ -91,7 +91,7 @@ namespace Arena
                 GUI.EndGroup();
             }
             if (fill > 0f)
-                WithAlpha(fill, () => Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(fill, () => Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent, Ui.GlitchKind.Punch));
         }
 
         /// GL (inside BeginUiGl): the pen's glowing tip, writing the title and then tracing the arc.

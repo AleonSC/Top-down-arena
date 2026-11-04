@@ -878,22 +878,54 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// Glitch lettering: a red and a cyan copy split either side of crisp white text (a mistuned screen). Big
-        /// text also tears for a split second every few seconds: the channels fly apart and a band of it slips sideways.
-        public static void Glitch(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null)
+        public enum GlitchKind { Rotate, Punch }
+
+        static float GlitchRnd(float seed)
+        {
+            float x = Mathf.Sin(seed * 127.1f + 311.7f) * 43758.5453f;
+            return x - Mathf.FloorToInt(x);
+        }
+
+        const string GlitchSymbols = "#%&01/=+?<>";
+
+        /// Glitch lettering. Crisp most of the time; the red/cyan split fades in over the 0.6 s before a glitch (the
+        /// text goes blurry), holds as it hits, then settles. Rotate: each glitch is the next of three (a band slipping
+        /// sideways, five bands shearing, letters flipping to symbols); the tears and shears are for big text only.
+        /// Punch: a quick scale pulse with the split and nothing else (the main menu's title).
+        public static void Glitch(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null, GlitchKind kind = GlitchKind.Rotate)
         {
             float t = Time.unscaledTime, a = color.a;
             float off = Mathf.Max(1f, size * 0.045f);
-            // Crisp most of the time. The red/cyan split fades in over the half second before a glitch (the text goes blurry),
-            // holds as the glitch hits, then settles back. Big text also tears: the channels fly apart and a band slips sideways.
             const float cycle = 3.6f, pre = 0.6f, len = 0.55f;
-            float ph = (t + (text.Length % 7) * 0.45f) % cycle;  // titles on one screen don't all glitch together
+            float tt = t + (text.Length % 7) * 0.45f;  // titles on one screen don't all glitch together
+            float ph = tt % cycle;
+            int cyc = Mathf.FloorToInt(tt / cycle), step = Mathf.FloorToInt(ph * 30f);
             float p = ph < len ? ph / len : -1f;  // 0..1 through the glitch
             float f = p >= 0f ? 1f - p * p * (3f - 2f * p) : ph > cycle - pre ? Mathf.Pow((ph - (cycle - pre)) / pre, 2f) : 0f;  // how split the colours are
             float env = p >= 0f ? Mathf.Sin(p * Mathf.PI) : 0f;
             env *= env;
             float k = f * (1f + 2.2f * env);
-            bool tear = size >= 28 && env > 0.02f;
+            bool big = size >= 28;
+            int style = kind == GlitchKind.Punch ? 3 : ((cyc % 3) + 3) % 3;  // 0 slip, 1 shear, 2 scramble, 3 punch
+            if (style == 2 && env > 0.02f)
+            {
+                var sb = new System.Text.StringBuilder(text);
+                int n = Mathf.RoundToInt(env * 7f);
+                for (int i = 0; i < n; i++)
+                {
+                    int at = Mathf.FloorToInt(GlitchRnd(cyc * 17f + step + i * 5f) * text.Length) % text.Length;
+                    if (text[at] != ' ')
+                        sb[at] = GlitchSymbols[Mathf.FloorToInt(GlitchRnd(step + at) * GlitchSymbols.Length) % GlitchSymbols.Length];
+                }
+                text = sb.ToString();
+            }
+            var oldMatrix = GUI.matrix;
+            if (style == 3 && env + f > 0.001f)
+            {
+                float sc = 1f + 0.05f * env + 0.012f * f;
+                GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), r.center);
+                k = f * (1f + 2.2f * env) * 1.4f;
+            }
             if (glow.HasValue)
             {
                 var g = glow.Value;
@@ -911,13 +943,30 @@ namespace Arena
                 Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * f * a), align, true);
             }
             Label(r, text, size, color, align, true);
-            if (tear)
+            if (big && env > 0.02f && style < 2)
             {
-                float by = r.height * (0.15f + 0.5f * p), bh = r.height * 0.22f;
-                GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, bh));
-                Label(new Rect(off * 4f * env * Mathf.Sin(p * 9f), -by, r.width, r.height), text, size, color, align, true);
-                GUI.EndGroup();
+                int bands = style == 0 ? 1 : 5;
+                for (int i = 0; i < bands; i++)
+                {
+                    float top, h, dx;
+                    if (style == 0)
+                    {
+                        top = 0.15f + 0.5f * p; h = 0.22f;
+                        dx = off * 4f * env * Mathf.Sin(p * 9f);
+                    }
+                    else
+                    {
+                        top = i * 0.2f + GlitchRnd(cyc * 17f + i) * 0.06f;
+                        h = 0.08f + GlitchRnd(cyc * 17f + i + 9f) * 0.08f;
+                        dx = (GlitchRnd(cyc * 17f + i * 3f + (env > 0.6f ? step : 0)) - 0.5f) * size * 0.8f * env;
+                    }
+                    float by = r.height * top;
+                    GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, r.height * h));
+                    Label(new Rect(dx, -by, r.width, r.height), text, size, color, align, true);
+                    GUI.EndGroup();
+                }
             }
+            GUI.matrix = oldMatrix;
         }
 
         // --- Texture generation -------------------------------------------------
