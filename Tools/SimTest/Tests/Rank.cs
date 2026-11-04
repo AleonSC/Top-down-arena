@@ -135,6 +135,12 @@ static partial class Program
         cp.Xp = Rank.XpAt(20);
         Check(cp.Equip(CosmeticKind.AimLine, "aim-ember") && cp.AimLine == "aim-ember" && cp.Equipped(CosmeticKind.AimLine) == "aim-ember" && !cp.Equip(CosmeticKind.AimLine, "aim-storm") && !cp.Equip(CosmeticKind.Trail, "aim-dotted") && cp.Equip(CosmeticKind.AimLine, "") && cp.AimLine == "",
             "you equip the aim lines your rank has, only in their slot, and \"\" goes back to Classic");
+        // Cursors: ten unlocks beside the free Classic crosshair; local only, saved as the seventh field of the equip line.
+        Check(Rank.OfKind(CosmeticKind.Cursor).Count == 10 && Rank.CursorIndex("cursor-fine") == 1 && Rank.CursorIndex("cursor-cycle") == 10 && Rank.CursorId(10) == "cursor-cycle" && Rank.CursorId(11) == "" && Rank.CursorIndex("") == 0
+              && Rank.Owns(46, "cursor-cycle") && !Rank.Owns(45, "cursor-cycle") && Rank.Owns(3, "cursor-fine") && !Rank.Owns(2, "cursor-fine"), "ten cursors, Fine Cross at rank 3 to Light Cycle at 46, numbered in rank order, Classic is 0");
+        cp.Xp = Rank.XpAt(20);
+        Check(cp.Equip(CosmeticKind.Cursor, "cursor-ember") && cp.Cursor == "cursor-ember" && cp.Equipped(CosmeticKind.Cursor) == "cursor-ember" && !cp.Equip(CosmeticKind.Cursor, "cursor-storm") && !cp.Equip(CosmeticKind.AimLine, "cursor-fine") && cp.Equip(CosmeticKind.Cursor, "cursor-fine") && cp.Equip(CosmeticKind.Cursor, "") && cp.Cursor == "",
+            "you equip the cursors your rank has, only in their slot, and \"\" goes back to Classic");
         cp.Xp = Rank.XpAt(30);
         // Emotes: thirteen, on the bar (nothing to equip); a player sends one, the host checks rank and pause, everyone sees it.
         Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(1, "emote-wave") && !Rank.Owns(24, "emote-spin") && Rank.Owns(25, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",

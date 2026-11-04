@@ -21,7 +21,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Props.cs`: crates, pots, barrels, treasure chests
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
-- `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game
+- `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game (with stand-in teammates for ally abilities)
 - `Tsunami.cs`: the Elementalist DPS's Tsunami: the wave, wet (slow) and lightning that arcs to every wet enemy (`WetArcs`, called from each lightning source)
 - `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain, strikes) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
 - `DpsTools.cs`: DPS meter data (`DpsTrack`, `Game.Dps`, host only) and target dummies (`DevSpawnDummy`, `TickDummy`, `Foes()`)
@@ -131,7 +131,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `PerksUi.cs`: the lobby's Perks tab (look A: your slots left, perk cards right; click to equip, hover for the rules) and the perk icons on party cards (`DrawSeatPerks`); see `Docs/RiotGear.md`
 - `CosmeticsUi.cs`: your cosmetics window (the drawer opened by the main menu's name chip: Frame, Trail, Background, Reward ladder)
-- `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
+- `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
 - `SavesUi.cs`: the Play picker in the main menu box (latest run, New run, Older runs), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages

@@ -113,12 +113,8 @@ namespace Arena
 
             // Crosshair
             V2 m = MouseArena();
-            var ch = new Rgba(1f, 1f, 1f, 0.7f);
-            Arc(m, 8f, 1.5f, ch, 16);
-            Line(m - new V2(13, 0), m - new V2(5, 0), 1.5f, ch);
-            Line(m + new V2(5, 0), m + new V2(13, 0), 1.5f, ch);
-            Line(m - new V2(0, 13), m - new V2(0, 5), 1.5f, ch);
-            Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
+            StepCursor(m, t, Input.GetMouseButton(0) && !fireBlocked);
+            DrawCursorLook(CursorLook(), m, t, cursorFire, cursorHist);  // CursorLooks.cs
             EndJuiceFrame();
             EndRecording();
         }

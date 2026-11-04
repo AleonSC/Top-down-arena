@@ -11,10 +11,10 @@ namespace Arena
         bool cosmeticsOpen;
         float ladderScroll;  // the reward ladder's scroll, in px
         bool editingName;  // the name in Your look is a text field while the pencil is on
-        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Reward ladder
+        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor, 7 Reward ladder
 
-        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Reward ladder" };
-        static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_trophy" };
+        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Cursor", "Reward ladder" };
+        static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_cursor", "ui_trophy" };
 
         void OpenCosmetics()
         {
@@ -26,7 +26,7 @@ namespace Arena
 
         void DrawCosmetics() { if (!SkipWhileClosing) DrawCosmeticsWindow(); }
 
-        static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : s == 4 ? CosmeticKind.NameEffect : s == 5 ? CosmeticKind.AimLine : CosmeticKind.Background;
+        static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : s == 4 ? CosmeticKind.NameEffect : s == 5 ? CosmeticKind.AimLine : s == 6 ? CosmeticKind.Cursor : CosmeticKind.Background;
 
         void DrawCosmeticsWindow()
         {
@@ -85,8 +85,8 @@ namespace Arena
             for (int i = 0; i < CosmeticSections.Length; i++)
             {
                 bool on = i == cosmeticsSection;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                string line = i == 6 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
+                var r = new Rect(28f, y, DrawerW - 56f, on ? 56f : 46f);
+                string line = i == 7 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
                 if (DrawerRow(r, PixelArt.Get(CosmeticIcons[i]), CosmeticSections[i], line, null, null, Ui.Gold, on))
                     cosmeticsSection = i;
                 y += r.height + 4f;
@@ -94,7 +94,7 @@ namespace Arena
             EndDrawer();
 
             BeginPanelAnim("cosmetics" + cosmeticsSection);
-            if (cosmeticsSection == 6)
+            if (cosmeticsSection == 7)
                 DrawLadderPanel(p, k);
             else
                 DrawCosmeticPanel(p, t, k);
@@ -104,7 +104,7 @@ namespace Arena
         static string EquippedName(Profile p, CosmeticKind kind)
         {
             var c = Rank.Cosmetic(p.Equipped(kind));
-            return c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine ? "Classic" : "None";
+            return c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
         }
 
         // --- A category: the preview, and what to choose ---------------------------------------------------------
@@ -120,6 +120,7 @@ namespace Arena
                 "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
                 "How your name looks to everyone: the lobby, the Hangout, and over your head in a match.",
                 "The line from your weapon to the crosshair in a match. Only you see it. Classic is the default.",
+                "Your crosshair in a match. Only you see it. Classic is the default.",
             };
             OpenSectionPanel(CosmeticSections[cosmeticsSection].ToUpperInvariant(), Ui.Gold, subs[cosmeticsSection], k);
             float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f;
@@ -135,6 +136,8 @@ namespace Arena
                 if (kind == CosmeticKind.AimLine)
                     DrawAimLook(AimLook(), new V2(18f, 0f), new V2(1f, 0f), 100f, t, AimSampleColor, true);  // AimLineLooks.cs
                 DrawGenericPlayer(t);
+                if (kind == CosmeticKind.Cursor)
+                    DrawCursorSample(CursorLook(), new V2(look.center.x + 120f, look.center.y), t);  // CursorLooks.cs
                 EndUiGl();
             }
             Ui.Label(new Rect(x, look.yMax + 8f, 340f, 16f), "HOW OTHERS SEE YOU", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -157,10 +160,10 @@ namespace Arena
                 Ui.Pill(rr, on ? new Color(1f, 0.8f, 0.35f, 0.12f) : new Color(1f, 1f, 1f, ok ? 0.05f : 0.025f));
                 float th = Mathf.Min(42f, rh - 6f);
                 RowThumb(new Rect(rr.x + 8f, rr.y + (rh - th) / 2f, 64f, th), kind, c, p, t, ok);
-                string name = c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine ? "Classic" : "None";
+                string name = c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
                 float ty = (rh - (tiny ? 32f : 40f)) / 2f;
                 Ui.Label(new Rect(rr.x + 84f, rr.y + ty, rr.width - 180f, tiny ? 18f : 20f), name, tiny ? 14 : 15, ok ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                string sub = c == null ? (kind == CosmeticKind.Background ? "what you chose in Settings" : kind == CosmeticKind.AimLine ? "the default line" : "nothing equipped") : ok ? "unlocked" : "needs rank " + c.Rank;
+                string sub = c == null ? (kind == CosmeticKind.Background ? "what you chose in Settings" : kind == CosmeticKind.AimLine ? "the default line" : kind == CosmeticKind.Cursor ? "the default crosshair" : "nothing equipped") : ok ? "unlocked" : "needs rank " + c.Rank;
                 Ui.Label(new Rect(rr.x + 84f, rr.y + ty + (tiny ? 15f : 22f), rr.width - 180f, tiny ? 16f : 18f), sub, tiny ? 10 : 11, ok ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
                 if (ok)
                 {
@@ -261,6 +264,15 @@ namespace Arena
                     EndUiGl();
                 }
             }
+            else if (kind == CosmeticKind.Cursor)
+            {
+                Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
+                if (BeginUiGl())
+                {
+                    DrawCursorSample(c != null ? Rank.CursorIndex(c.Id) : 0, new V2(r.center.x, r.center.y), t);
+                    EndUiGl();
+                }
+            }
             else
             {
                 Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
@@ -319,6 +331,7 @@ namespace Arena
                 case "Card background": return "ui_card";
                 case "Emote": return "ui_emote";
                 case "Aim line": return "ui_aim";
+                case "Cursor": return "ui_cursor";
                 case "Name effect": return "ui_name";
                 default: return "ui_trophy";
             }
