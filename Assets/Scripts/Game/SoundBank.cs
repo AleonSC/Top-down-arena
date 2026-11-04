@@ -200,7 +200,7 @@ namespace Arena
             if (s == Sfx.EnemyShot)
                 return Category.Enemies;
             string name = s.ToString();
-            if (name.StartsWith("Boss"))
+            if (name.StartsWith("Boss") || name.StartsWith("Zombie"))
                 return Category.Enemies;
             if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit)
                 return Category.Weapons;
@@ -477,6 +477,23 @@ namespace Arena
             Set(Sfx.RadiantTouch, twinkles, 0.1f);
             Set(Sfx.RadiantFade, Finish(Reverb(Mix(Tone(0.4f, Osc.Sine, 1400f, 500f, 0.16f, attack: 0.01f, decay: 2.2f),
                 Tone(0.4f, Osc.Triangle, 2100f, 900f, 0.06f, attack: 0.01f, decay: 2.5f))), 0.22f), 0.1f);
+
+            // Zombie Infection: rasping, wet and low. Groans come in three takes so a horde doesn't repeat itself.
+            Set(Sfx.ZombieGroan, new[] {
+                Tone(0.7f, Osc.Saw, 95f, 60f, 0.32f, noise: 0.3f, lowpass: 0.12f, attack: 0.12f, decay: 1.6f),
+                Tone(0.8f, Osc.Saw, 80f, 50f, 0.3f, noise: 0.35f, lowpass: 0.1f, attack: 0.15f, decay: 1.4f),
+                Tone(0.6f, Osc.Saw, 120f, 70f, 0.3f, noise: 0.25f, lowpass: 0.14f, attack: 0.1f, decay: 1.8f) }, 0.3f);
+            Set(Sfx.ZombieRise, Mix(Tone(0.5f, Osc.Saw, 55f, 130f, 0.3f, noise: 0.4f, lowpass: 0.1f, attack: 0.2f, decay: 1.2f),
+                Tone(0.25f, Osc.Sine, 160f, 50f, 0.25f, noise: 0.7f, lowpass: 0.3f, attack: 0.01f, decay: 3f)), 0.15f);
+            Set(Sfx.ZombieSpit, Mix(Tone(0.12f, Osc.Sine, 300f, 700f, 0.2f, noise: 0.5f, lowpass: 0.4f, attack: 0.005f, decay: 3f),
+                Tone(0.2f, Osc.Sine, 500f, 150f, 0.15f, noise: 0.7f, lowpass: 0.3f, attack: 0.03f, decay: 3f)), 0.2f);
+            Set(Sfx.ZombieGrab, Mix(Tone(0.3f, Osc.Saw, 140f, 70f, 0.35f, noise: 0.3f, lowpass: 0.15f, attack: 0.005f, decay: 2.5f),
+                Tone(0.12f, Osc.Sine, 200f, 60f, 0.3f, noise: 0.5f, lowpass: 0.25f, attack: 0.002f, decay: 4f)), 0.2f);
+            Set(Sfx.ZombieShriek, Mix(Tone(0.8f, Osc.Saw, 700f, 1500f, 0.25f, noise: 0.25f, lowpass: 0.6f, attack: 0.02f, decay: 1.5f),
+                Tone(0.8f, Osc.Square, 1050f, 2100f, 0.1f, attack: 0.05f, decay: 1.5f)), 0.5f);
+            Set(Sfx.ZombieBurst, Mix(Tone(0.4f, Osc.Sine, 120f, 40f, 0.4f, noise: 0.6f, lowpass: 0.2f, attack: 0.002f, decay: 2.5f),
+                Tone(0.3f, Osc.Sine, 400f, 120f, 0.2f, noise: 0.8f, lowpass: 0.4f, attack: 0.002f, decay: 3f)), 0.15f);
+            Set(Sfx.ZombieMend, Notes(new[] { 330f, 440f, 392f }, 0.1f, Osc.Triangle, 0.18f, 0.5f), 0.3f);
 
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
