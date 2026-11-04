@@ -170,10 +170,10 @@ static partial class Shot {
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "settings")
+    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "settings")
     {
       // continue / records: the saved-runs list and the Records page, with made-up saves and a profile (SavesUi.cs).
-      if (mode == "continue" || mode == "records" || mode == "menu") PreviewSaves();
+      if (mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "menu") PreviewSaves();
       if (mode == "continue") { typeof(ArenaApp).GetMethod("OpenContinue", f2).Invoke(app, null); if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>()); }
       GL.Tris.Clear();
       set("drawScale", 1f);
@@ -185,7 +185,7 @@ static partial class Shot {
       GL.ToUi = true;
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
-      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("howToTopic", sec); set("panelKey", (mode == "howto" ? "howto" : mode) + sec); set("panelAt", -10f); }
+      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("howToTopic", sec); set("panelKey", (mode == "howto" ? "howto" : mode) + sec); set("panelAt", -10f); }
       set("drawerKey", mode == "howto" ? "howto" : mode); set("drawerAt", -10f);
       // WINT=<s>: that far into the window's opening; WINCLOSE=0..1: that far through closing (WindowAnim.cs).
       if (Environment.GetEnvironmentVariable("WINT") != null) set("winOpenAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("WINT"), System.Globalization.CultureInfo.InvariantCulture));
@@ -194,7 +194,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) set("menuJoinOpen", true);
       if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipSeed", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which line the chip shows
-      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "settings" ? "DrawSettings" : "DrawHowToPlay", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "cosmetics" ? "DrawCosmetics" : mode == "settings" ? "DrawSettings" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "kitgrid")

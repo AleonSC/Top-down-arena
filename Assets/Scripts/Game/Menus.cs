@@ -306,14 +306,6 @@ namespace Arena
                     Mathf.RoundToInt(Mathf.Lerp(11f, 14f, k)), Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
         }
 
-        /// The chip's click. For now it opens Records > Rank (the reward ladder, with Equip); the customization window
-        /// designed in Docs/Mockups/customization.html replaces it.
-        void OpenCosmetics()
-        {
-            recordsSection = 5;
-            recordsOpen = true;
-        }
-
         /// Your name and the port are kept between sessions (unless given on the command line).
         void LoadMenuFields()
         {

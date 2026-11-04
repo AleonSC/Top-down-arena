@@ -178,7 +178,7 @@ namespace Arena
                     if (Ui.SmallButton(new Rect(rr.xMax - 84f, rr.y + 9f, 76f, 26f), on ? "On" : "Equip", on ? Ui.GoldButton : Ui.Neutral, 12))
                     {
                         if (row.Cosmetic.Kind == CosmeticKind.Background)
-                            SetBackground(on ? 0 : DuskGridIndex);  // the menu background picker (MenuBackgrounds.cs); it keeps the profile too
+                            SetDuskGridEquipped(!on);  // CosmeticsUi.cs; it keeps the profile too
                         else
                         {
                             p.Equip(row.Cosmetic.Kind, on ? "" : row.Cosmetic.Id);

@@ -415,6 +415,8 @@ namespace Arena
                     CloseWindow(() => howToOpen = false);
                 else if (recordsOpen)
                     CloseWindow(() => recordsOpen = false);
+                else if (cosmeticsOpen)
+                    CloseWindow(() => cosmeticsOpen = false);  // CosmeticsUi.cs
             }
             if (session.Screen == AppScreen.Game && !RecallActive && !edWasOpen)  // (nothing to open while everyone's beaming out: Recall.cs)
             {
@@ -598,6 +600,8 @@ namespace Arena
                         DrawContinue();  // SavesUi.cs
                     else if (recordsOpen)
                         DrawRecords();
+                    else if (cosmeticsOpen)
+                        DrawCosmetics();  // CosmeticsUi.cs
                     else
                         DrawMenu();
                     break;

@@ -807,12 +807,16 @@ blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
 yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
-XP bar; click the name or the pencil to rename, anywhere else to open your cosmetics) and on each results card;
+XP bar; click the name or the pencil to rename, anywhere else to open your cosmetics window) and on each results card;
 the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
 what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
 with the modifiers they used and the multiplier).
 
-**Rewards** (equip them in **Records > Rank**; one of each kind at a time):
+**Your look** is the cosmetics window: click your name chip on the main menu. A side drawer shows your rank and a row
+each for **Frame**, **Trail**, **Background** and the **Reward ladder**; the open one shows a live preview of you
+(moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
+for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
+each kind at a time:
 
 | Rank | Reward |
 |---|---|
