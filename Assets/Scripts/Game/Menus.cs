@@ -157,7 +157,9 @@ namespace Arena
                 GUI.EndGroup();
                 GUI.BeginGroup(new Rect(x, 0f, W - x, H));
                 GUI.BeginGroup(new Rect(-x, 0f, W, H));
+                menuGlClipX = x;
                 DrawMenuButtons(t, false, name, host, join, cont);
+                menuGlClipX = -1f;
                 GUI.EndGroup();
                 GUI.EndGroup();
                 float edge = Mathf.Sin(menuPlayK * Mathf.PI);
