@@ -42,11 +42,11 @@ namespace Arena
             },
             new PerkDef
             {
-                Id = PerkId.Contraband, Boss = EnemyType.Boss, Name = "Contraband", Built = false,
-                Line = "Boss-cycle chests are rare or better",
-                Tip = "Chests at the start of each boss cycle are guaranteed rare or better.",
-                UnlockText = "Win the Warden Hunt on Hard",
-                Unlock = p => false,  // needs a "won on Hard" counter, which comes with the second perk of each boss
+                Id = PerkId.Contraband, Boss = EnemyType.Boss, Name = "Contraband", Built = true,
+                Line = "Free chest each cycle",
+                Tip = "A treasure chest turns up on the first wave after each boss, and your item from any chest is rare or better. Teammates still get their own item from the same chest.",
+                UnlockText = "Win the Warden Hunt on Hard or Nightmare",
+                Unlock = p => p.HuntWinsHard(EnemyType.Boss) > 0,
             },
         };
 
