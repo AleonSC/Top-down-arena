@@ -3,6 +3,18 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Tank gun animations (Nov 2026), protocol 145 (no change):** the owner's go-ahead on
+`Docs/Mockups/tank-gun-animations.html` (https://claude.ai/artifact/QeTMr1Gr6n1KoJKymyutE3), "make sure lobby previews match".
+`Game/TankGunLooks.cs`, with Visual effects on, drawing only. Scattergun: flash cone, sparks, 0.14 s recoil, then a pump (the
+front hand slides back and forward, 0.14 to 0.34 s) with a red shell dropping out at 0.24 s. Flak Cannon: big flash and
+smoke, 0.3 s breech recoil, the orange bands glowing hot for 0.8 s, the shell lifted on an arc with a ground shadow (its
+glow rides with it), and an airburst of flash, orange disc, two rings, shrapnel and smoke (`IsFlakBoom`: the Boom in the
+shell's colour). Riot Repeater: small flash, 0.09 s bolt kick, a brass casing per round, one magazine rib lighting, and
+the rounds as glowing orbs with a white core and a tapered tracer. `CharacterModels.cs` takes the pose from
+`TankGunPose`; `ShotLooks.cs` maps `TankShot` to the Riot Repeater as well and `FlakShell` to the Flak Cannon. The lobby's
+preview runs the same Juice pass, so it matches with no extra code (`TANKGUN=0|1|2` in `Tools/Preview` shows it).
+The Armory pages are not updated.
+
 **Arc Lightning, style A "Thunderhead" (Nov 2026), protocol 129 (no change):** the owner's pick from
 `Docs/Mockups/arc-lightning.html`, "make sure the lobby preview matches". `Game/ArcLightningLooks.cs`, with Visual effects
 on: `DrawArcFieldFx` and `DrawArcCharge` hand the strip and the charge to the glow pass (`DrawArcLightningGlow`): a halo

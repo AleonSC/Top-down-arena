@@ -16,6 +16,7 @@ namespace Arena
         // --- the drawing frame ---
         V2 mO, mDir, mSide;          // the player's centre and the aim and right-hand unit vectors
         float mU = 1f, mAim, mT;     // local unit -> arena px, the aim angle, the time
+        float mPump, mHeat; int mLit = -1;  // the Tank guns' pose with Visual effects on: the front hand's pump, the Flak's glow, the Riot's lit rib (TankGunLooks.cs)
         float mOx, mOy, mAng, mWs = 1f;  // the current sub-frame (a weapon): where its origin is in the body frame, its turn and size
         bool mMir;                   // mirrored (the second gun of a pair)
         float mAlpha = 1f, mWhite;   // the player's alpha (i-frames, Vanish) and hit flash
@@ -140,6 +141,10 @@ namespace Arena
                 case 2: rhx = 14f; rhy = 11f; lhx = 14f; lhy = -11f; break;                  // a gun in each hand
                 default: rhx = 11f; rhy = 3.5f; lhx = 7f; lhy = -13f + sway; break;          // open palm, a staff or a floating prop
             }
+            float gKick, gPump, gHeat; int gLit;
+            TankGunPose(p, out gKick, out gPump, out gHeat, out gLit);  // the Scattergun, Flak Cannon and Riot Repeater kick and pump (TankGunLooks.cs)
+            rhx -= gKick; lhx -= gKick + gPump * wk;
+            mPump = gPump; mHeat = gHeat; mLit = gLit;
             ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
             ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
             MFrame(rhx, rhy, 0f, wk, false);
@@ -352,15 +357,20 @@ namespace Arena
             {
                 // ---- Soldier
                 case WeaponId.Scattergun:
-                    MRect(-12f, -2.6f, 12f, 5.2f, MWood); MRect(0f, -3.2f, 16f, 6.4f, MDark); MLine(2f, -1.7f, 29f, -1.7f, 2.4f, MSteel); MLine(2f, 1.7f, 29f, 1.7f, 2.4f, MSteel); MRect(12f, -4f, 9f, 8f, Hx(0x6a4b2e));
+                    MRect(-12f, -2.6f, 12f, 5.2f, MWood); MRect(0f, -3.2f, 16f, 6.4f, MDark); MLine(2f, -1.7f, 29f, -1.7f, 2.4f, MSteel); MLine(2f, 1.7f, 29f, 1.7f, 2.4f, MSteel); MRect(12f - mPump, -4f, 9f, 8f, Hx(0x6a4b2e));
                     break;
                 case WeaponId.FlakCannon:
                     MRect(-6f, -4f, 12f, 8f, MDark); MPoly(Hx(0x55606e), 6f, 0f, 6f, -5f, 26f, -6f, 32f, -9f, 32f, 9f, 26f, 6f, 6f, 5f);
-                    MLine(14f, -6f, 14f, 6f, 2f, Hx(0xff9d3a)); MLine(22f, -7f, 22f, 7f, 2f, Hx(0xff9d3a)); MCirc(9f, -7f, 4.5f, Hx(0x3b4350));
+                {
+                    var band = Hx(0xff9d3a).Mix(new Rgba(1f, 0.95f, 0.75f), mHeat * 0.7f);  // the bands glow hot after a shot
+                    MLine(14f, -6f, 14f, 6f, 2f, band); MLine(22f, -7f, 22f, 7f, 2f, band); MCirc(9f, -7f, 4.5f, Hx(0x3b4350));
+                    if (mHeat > 0.1f)
+                        MLine(32f, -8f, 32f, 8f, 2f, new Rgba(1f, 0.48f, 0.24f, mHeat * 0.7f));
                     break;
+                }
                 case WeaponId.RiotRepeater:
                     MRect(-8f, -2.5f, 8f, 5f, MWood); MRect(0f, -3.5f, 26f, 7f, MDark); MRect(6f, -5.5f, 14f, 11f, Hx(0x4c5a68));
-                    for (int i = 0; i < 4; i++) MLine(8f + i * 3.2f, -4f, 8f + i * 3.2f, 4f, 1f, Hx(0x1b2026));
+                    for (int i = 0; i < 4; i++) MLine(8f + i * 3.2f, -4f, 8f + i * 3.2f, 4f, i == mLit ? 1.4f : 1f, i == mLit ? Hx(0x7bd8ff) : Hx(0x1b2026));  // one rib lights as a round cycles
                     MLine(24f, -1.5f, 31f, -1.5f, 2.2f, MSteel);
                     break;
                 case WeaponId.LightBolt:  // Repulsion Cannon: a bell-mouthed emitter

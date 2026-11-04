@@ -3,6 +3,8 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
+- [x] **Tank gun animations (Scattergun, Flak Cannon, Riot Repeater).** Built (Nov 2026, no protocol change): glowing shots kept, lobby preview matches. Mockup:
+      [`Mockups/tank-gun-animations.html`](Mockups/tank-gun-animations.html) (https://claude.ai/artifact/QeTMr1Gr6n1KoJKymyutE3). Needs a try in Unity. Armory pages are now out of date for these three.
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
