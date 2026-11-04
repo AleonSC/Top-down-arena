@@ -83,8 +83,8 @@ namespace Arena
             var hb = new Rect(lx + lw - 88f, y - 3f, 88f, 22f);
             bool hot = inRoom || hb.Contains(Event.current.mousePosition);
             var oldCol = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.3f);
-            bool go = Ui.SmallButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", HangoutColor, 11);
+            GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.5f);
+            bool go = Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11);  // the lobby's tile style, small
             GUI.color = oldCol;
             if (go)
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
@@ -960,7 +960,10 @@ namespace Arena
             bool ready = me != null && me.Ready;
             // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be. Lit = you're ready / Start can start.
             float readyY = host ? LobbyReadyY : LobbyStartY;
-            if (Ui.ActionButton(new Rect(lx, readyY, lw, LobbyActionH), ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check")))
+            var readyRect = new Rect(lx, readyY, lw, LobbyActionH);
+            if (ready)
+                Ui.PulseRing(readyRect, Ui.Primary, Time.unscaledTime);  // drawn first, so Start sits over it
+            if (Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check")))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)

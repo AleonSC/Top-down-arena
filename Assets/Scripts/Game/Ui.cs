@@ -424,13 +424,13 @@ namespace Arena
 
         /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
         /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
-        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow).
-        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null)
+        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size.
+        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20)
         {
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             float barH = ChoiceChrome(r, on, hover, accent, true);
             Color name = on ? Color.white : new Color(0.81f, 0.85f, 0.92f);
-            float isz = Mathf.Min(22f, r.height - 20f);
+            float isz = Mathf.Min(22f, r.height * 0.45f);
             if (text.Length == 0)
             {
                 if (icon != null)
@@ -438,7 +438,7 @@ namespace Arena
             }
             else
             {
-                int fs = 20;
+                int fs = size;
                 float tw = TextWidth(text, fs, true) - 6f, gap = icon != null ? 10f : 0f, ic = icon != null ? isz : 0f;
                 while (fs > 12 && ic + gap + tw > r.width - 16f)
                     tw = TextWidth(text, --fs, true) - 6f;  // narrow buttons shrink the label to fit

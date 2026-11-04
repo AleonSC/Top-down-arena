@@ -6,7 +6,7 @@ collisions: it is somewhere to stand while the party sorts out loadouts and read
 
 ## What you see
 
-- A **Hangout** button on the lobby's Party heading (`LobbyUi.cs`); it shows the room in the right-hand panel and flips to "< Loadout" to return. The room is 780 x 500 units, one unit per
+- A **Hangout** button on the lobby's Party heading (`LobbyUi.cs`); it shows the room in the right-hand panel and flips to "< Loadout" to return. The room is 780 x 560 units, one unit per
   UI pixel, with a faint grid over the lobby's own background.
 - Each character is drawn with the real model for their role, class and weapon (the same drawing as the party cards).
   It faces the way it walks, and keeps its facing when it stops.
