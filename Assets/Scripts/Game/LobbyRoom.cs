@@ -54,11 +54,11 @@ namespace Arena
             hangoutAnim = fxOn && !fxReduced ? Mathf.MoveTowards(hangoutAnim, target, Time.unscaledDeltaTime / HangoutAnimLen) : target;
         }
 
-        /// Mid-switch: the Loadout fades away over the first 40% while the preview window stretches into the room and your ship
+        /// Mid-switch: the Loadout fades away over the first 50% (the room fades in over the first 35%) while the preview window stretches into the room and your ship
         /// grows to its size there; the rest of the room (the others, name plates, minimap, PvP switch) arrives over the last 40%.
         void DrawHangoutTransition(LobbyEntry me, Rect body, float t)
         {
-            float fade = 1f - Mathf.Clamp01(hangoutAnim / 0.4f);
+            float fade = 1f - Mathf.Clamp01(hangoutAnim / 0.5f);
             if (fade > 0f)
             {
                 var old = GUI.color;
@@ -66,7 +66,13 @@ namespace Arena
                 DrawLoadout(me, body, t);
                 GUI.color = old;
             }
+            // The room fades in over the preview (and out over it going back), so the ship's small jump between the two
+            // renderings is a crossfade instead of a hop.
+            float inAlpha = EaseInOut(Mathf.Clamp01(hangoutAnim / 0.35f));
+            float oldAlpha = Ui.Alpha;
+            Ui.Alpha = oldAlpha * inAlpha;
             DrawHangout(body, t);
+            Ui.Alpha = oldAlpha;
         }
 
         void DrawHangout(Rect body, float t)
