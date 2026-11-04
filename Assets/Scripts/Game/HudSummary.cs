@@ -99,7 +99,7 @@ namespace Arena
             bool rankPage = resultsRankPage && game.RunStatsReady && game.LastGain != null;
 
             // A trophy card for each player.
-            const float cardTop = 176f, cardH = 408f;
+            const float cardTop = 176f, cardH = 384f;
             if (rankPage)
             {
                 float rk = EndCardIn(0);
@@ -122,11 +122,17 @@ namespace Arena
                 }
             }
 
+            // The results column (cards, rank card and button dock) shares one width: the cards' own, or the full row with endless.
+            int cols = Mathf.Max(1, game.Players.Count);
+            float rowW = cols == 1 ? 760f : W - 140f;
+            bool endless = won && game.Hunt == null && session.IsHost;
+            float dockW = endless || rankPage ? W - 140f : rowW, dockX = W / 2f - dockW / 2f;
+
             // The rank strip: what the run earned towards your account rank (Rank.cs, RankUi.cs). Click it for the full report.
             if (game.RunStatsReady && game.LastGain != null && !rankPage)
             {
                 float sk = EndingOn ? Seg(endT, EndButtonsAt, EndButtonsAt + 1.8f) : 1f;
-                var strip = new Rect(70f, cardTop + cardH + 8f, W - 140f, 44f);
+                var strip = new Rect(dockX, cardTop + cardH + 6f, dockW, 74f);
                 EndPart(EndCardIn(0), new Vector2(0f, 40f * (1f - Ease(EndCardIn(0)))), () =>
                 {
                     DrawRankStrip(strip, sk, now);
@@ -135,47 +141,49 @@ namespace Arena
                 });
             }
 
-            // Buttons, laid out like the lobby's: Leave on the left, the host's choices on the right.
+            // The button dock under the rank card: Leave (quiet) and the rank report on the left, the host's choices on the right
+            // with Play again as the wide one.
             float buttonsIn = EndButtonsIn;
             EndPart(buttonsIn, new Vector2(0f, 30f * (1f - Ease(buttonsIn))), () =>  // they come up last (RunEnding.cs)
             {
-                float by = H - 82f;
-                if (Ui.FancyButton(new Rect(70f, by, 170f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), now))
+                float by = H - 72f, bh = 52f, gap = 10f, x = dockX, xr = dockX + dockW;
+                if (Ui.FancyButton(new Rect(x, by, 120f, bh), "Leave", new Color(0.5f, 0.2f, 0.25f), PixelArt.Get("ui_power"), now, 16))
                     session.Leave("");
+                x += 120f + gap;
                 if (game.RunStatsReady && game.LastGain != null)  // the two pages of the results
                 {
                     bool up = game.LastGain.RankedUp;
                     var tint = up && !rankPage ? Color.Lerp(Ui.GoldButton, new Color(1f, 0.85f, 0.4f), 0.5f + 0.5f * Mathf.Sin(now * 5f)) : Ui.Neutral;
-                    if (Ui.FancyButton(new Rect(256f, by, 168f, 48f), rankPage ? "Stats" : "Rank report", tint, PixelArt.Get(rankPage ? "ui_back" : "ui_trophy"), now, 16))
+                    if (Ui.FancyButton(new Rect(x, by, 160f, bh), rankPage ? "Stats" : "Rank report", tint, PixelArt.Get(rankPage ? "ui_back" : "ui_trophy"), now, 16))
                     {
                         if (rankPage)
                             resultsRankPage = false;
                         else
                             OpenRankReport(now);
                     }
+                    x += 160f + gap;
                 }
                 if (session.IsHost)
                 {
-                    float bx = W - 70f;
-                    if (won && game.Hunt == null)  // (a Boss Hunt is over once its boss is: no endless)
-                    {
-                        bx -= 300f;
-                        if (Ui.FancyButton(new Rect(bx, by, 300f, 48f), "Keep going (endless)  [C]", Ui.GoldButton, PixelArt.Get("ui_star"), now))
-                            game.ContinueEndless();
-                        bx -= 14f;
-                    }
-                    bx -= 230f;
-                    if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Back to lobby  [L]", Ui.Neutral, PixelArt.Get("ui_back"), now))
+                    xr -= 210f;
+                    if (Ui.FancyButton(new Rect(xr, by, 210f, bh), "Back to lobby  [L]", Ui.Neutral, PixelArt.Get("ui_back"), now, 16))
                         RecallToLobby();  // everyone beams out first (Recall.cs)
-                    bx -= 244f;
-                    if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Play again  [R]", Ui.Primary, PixelArt.Get("ui_play"), now))
+                    xr -= gap;
+                    if (endless)  // (a Boss Hunt is over once its boss is: no endless)
+                    {
+                        xr -= 260f;
+                        if (Ui.FancyButton(new Rect(xr, by, 260f, bh), "Keep going (endless)  [C]", Ui.GoldButton, PixelArt.Get("ui_star"), now, 16))
+                            game.ContinueEndless();
+                        xr -= gap;
+                    }
+                    if (Ui.FancyButton(new Rect(x, by, xr - x, bh), "Play again  [R]", Ui.Primary, PixelArt.Get("ui_play"), now, 22))
                         session.StartMatch();
                 }
                 else
-                    Ui.Label(new Rect(W - 470f, by, 400f, 48f), "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
+                    Ui.Label(new Rect(x, by, xr - x, bh), "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
             });
             if (game.Recorder != null)
-                Ui.Label(new Rect(70f, H - 26f, W - 140f, 16f), "Session recorded: " + game.Recorder.Path, 10, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(dockX, H - 16f, dockW, 14f), "Session recorded: " + game.Recorder.Path, 10, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
         }
 
         /// One player's trophy card: on the left their class icon big on a glowing, hatched backdrop in their colour,
@@ -252,7 +260,7 @@ namespace Arena
                     Ui.Fill(new Rect(x, y + 22f, w, 3f), new Color(1f, 1f, 1f, 0.05f));
                     Ui.Fill(new Rect(x, y + 22f, w * Mathf.Clamp01(val / top), 3f), leading ? Ui.Gold : new Color(color.r, color.g, color.b, 0.75f));
                 }
-                y += 30f;
+                y += 27f;
             }
 
             // Upgrades picked, by rarity, and any legendaries by name.
