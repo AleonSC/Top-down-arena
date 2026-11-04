@@ -75,6 +75,8 @@ namespace Arena
             Buff(p => p.UltT, new Rgba(1f, 0.84f, 0.35f)),         // any ultimate
         };
 
+        const int RoarBuff = 1;  // its place in Buffs
+
         static KeyValuePair<Func<Player, float>, Rgba> Buff(Func<Player, float> left, Rgba c) => new KeyValuePair<Func<Player, float>, Rgba>(left, c);
 
         /// The most each buff's timer has read since it went up (player id * 64 + buff), so its arc shows the share left
@@ -88,6 +90,8 @@ namespace Arena
             for (int i = 0; i < Buffs.Length; i++)
             {
                 float left = Buffs[i].Key(p);
+                if (fxOn && i == RoarBuff)  // Roar's own rim shows its time (TankLooks.cs)
+                    left = 0f;
                 int key = p.Id * 64 + i;
                 float full;
                 if (left <= 0f)

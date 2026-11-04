@@ -38,6 +38,8 @@ namespace Arena
                         DrawMendPulseFx(fx, f);  // MendPulseLook.cs
                         break;
                     }
+                    if (IsTankRing(fx))
+                        break;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
                     Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
                     break;
                 case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
@@ -88,7 +90,8 @@ namespace Arena
                     DrawRewindFx(fx, f);
                     break;
                 case FxKind.Callout:
-                    break;  // a name over the caster, drawn on the HUD (AbilityLooks.cs)
+                    DrawTankCastFx(fx);  // Roar and Bulldoze's floor looks (TankLooks.cs); the name over the caster is on the HUD (AbilityLooks.cs)
+                    break;
                 case FxKind.Repulse:
                     DrawRepulseFx(fx, f);
                     break;

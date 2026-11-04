@@ -1,0 +1,472 @@
+<title>Tank Soldier Ability Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: two stacked ability stages, each a canvas with Current/Proposed toggle, then a beat-by-beat timeline.
+   Colour: Roar is ember orange, Bulldoze is steel cyan (the game's own FX colours). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --roar:#cf3f1a; --bull:#146f9e; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --arena:#141a17; --grid:#1f2824;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --roar:#ff6a3d; --bull:#52b8ee; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f0d; --grid:#161d19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --roar:#ff6a3d; --bull:#52b8ee; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f0d; --grid:#161d19; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:62ch;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+#roar h2{color:var(--roar)} #bull h2{color:var(--bull)}
+.blurb{margin:0;max-width:66ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card.plain li{display:block;padding-left:14px;position:relative}
+.card.plain li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--muted)}
+.dev{font-size:14.5px;color:var(--muted);max-width:76ch}
+.dev strong{color:var(--fg)}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<main>
+<header>
+  <h1>Tank Soldier: Roar and Bulldoze</h1>
+  <p>Animation mockup. Flip each stage between what the game draws today and the proposed version. Both play on the same scene, so the difference is only the effects. Slow-mo helps read the beats.</p>
+</header>
+
+<section class="stage" id="roar">
+  <h2>Roar <small>14 s cooldown · taunt 5 s · 40% less damage</small></h2>
+  <p class="blurb">Today: one orange ring, then a thin pulsing arc for five seconds. Proposed: a wind-up, a layered shockwave that visibly turns enemies, and a plated shield that counts down the taunt.</p>
+  <div class="frame"><canvas id="roarCv" width="720" height="400" aria-label="Roar animation preview"></canvas><div class="hud" id="roarHud"></div></div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Roar version">
+      <input type="radio" name="roarV" id="roarCur" value="cur"><label for="roarCur">Current</label>
+      <input type="radio" name="roarV" id="roarNew" value="new" checked><label for="roarNew">Proposed</label>
+    </div>
+    <button type="button" id="roarReplay">Replay</button>
+    <button type="button" id="roarPause">Pause</button>
+    <label class="chk" for="roarSlow"><input type="checkbox" id="roarSlow"> Slow-mo (0.25×)</label>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Proposed beats</h3>
+      <ol>
+        <li><b>0.00–0.20 s</b><span>Wind-up. Soldier swells, red sparks are sucked in. Telegraphs the cast.</span></li>
+        <li><b>0.20 s</b><span>Release. Body slams to 125%, screen edge flashes red, camera kicks.</span></li>
+        <li><b>0.20–0.90 s</b><span>Three staggered rings plus a filled blast disc and 28 speed streaks.</span></li>
+        <li><b>as wave hits</b><span>Each enemy flashes, pops a "!" and swings round to face the soldier.</span></li>
+        <li><b>0.20–5.20 s</b><span>Six armour plates orbit the soldier. A rim arc drains as the taunt runs out. Dashed tethers show who is aggroed. A soft pulse goes out every second.</span></li>
+        <li><b>last 1 s</b><span>Plates flicker so the player knows the 40% damage cut is about to end.</span></li>
+      </ol>
+    </div>
+    <div class="card plain"><h3>What it fixes</h3>
+      <ul>
+        <li>Today nothing shows that enemies actually turned. Now each one reacts when the wave reaches it.</li>
+        <li>The old arc says "taunted" but not for how long. The draining rim does.</li>
+        <li>The damage reduction has no visual. The plates are it.</li>
+        <li>The cast has no weight. The wind-up and shake give a tank-sized hit.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="bull">
+  <h2>Bulldoze <small>9 s cooldown · 60 damage · 0.35 s charge · invulnerable</small></h2>
+  <p class="blurb">Today: the soldier slides forward and a small ring appears at the destination the moment you cast. Proposed: a lane telegraph, a bow wave that plows through, and a stomp where the charge ends. The big enemy in the lane is heavy, so it takes the hit but does not move.</p>
+  <div class="frame"><canvas id="bullCv" width="720" height="400" aria-label="Bulldoze animation preview"></canvas><div class="hud" id="bullHud"></div></div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Bulldoze version">
+      <input type="radio" name="bullV" id="bullCur" value="cur"><label for="bullCur">Current</label>
+      <input type="radio" name="bullV" id="bullNew" value="new" checked><label for="bullNew">Proposed</label>
+    </div>
+    <button type="button" id="bullReplay">Replay</button>
+    <button type="button" id="bullPause">Pause</button>
+    <label class="chk" for="bullSlow"><input type="checkbox" id="bullSlow"> Slow-mo (0.25×)</label>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Proposed beats</h3>
+      <ol>
+        <li><b>0.00–0.12 s</b><span>Lane telegraph with moving chevrons. Soldier crouches back and kicks dust.</span></li>
+        <li><b>0.12–0.47 s</b><span>Charge. Afterimages, speed streaks, dust off both heels, skid marks that fade over 1.6 s, and a shield flicker for the invulnerable window.</span></li>
+        <li><b>on contact</b><span>Enemy flashes white, shows "60", spins off sideways with a streak. A 50 ms hit-stop sells the weight. Heavy enemies throw sparks and stay put.</span></li>
+        <li><b>0.47 s</b><span>Stomp at the end point: double ring and a ring of dust, small camera kick.</span></li>
+      </ol>
+    </div>
+    <div class="card plain"><h3>What it fixes</h3>
+      <ul>
+        <li>The ring now lands when the charge lands, not at the cast.</li>
+        <li>The path is readable before and after the charge, so players learn the 60 px sweep width.</li>
+        <li>Hits have feedback beyond the slide: flash, number, hit-stop.</li>
+        <li>Heavy enemies visibly resist, which explains why they do not move.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<p class="dev"><strong>Build notes.</strong> The "Current" view is reconstructed from <code>Abilities.cs</code> and <code>WorldRenderer.DrawPlayerLinks</code>, so treat it as approximate. Roar's plates, tethers and wind-up read <code>TauntT</code>, which is already synced, so they are drawing-only. The Bulldoze trail, hit sparks and end stomp need either a client-side check of the soldier's dash (as <code>Ambience.cs</code> does) or a new <code>FxKind</code> at the end of the enum, which would bump <code>Session.ProtocolVersion</code>. Nothing here changes gameplay numbers.</p>
+</main>
+
+<script>
+(function(){
+var W=720,H=400, TAU=Math.PI*2;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function eo(f){f=clamp(f,0,1);return 1-Math.pow(1-f,3)}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function rgba(c,a){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'}
+var ORANGE=[255,115,76], RED=[255,70,50], CYAN=[128,191,255], WHITE=[255,255,255], DUST=[150,140,120];
+
+function Stage(kind){
+  this.kind=kind;
+  this.cv=document.getElementById(kind+'Cv'); this.ctx=this.cv.getContext('2d');
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  this.cv.width=W*dpr; this.cv.height=H*dpr; this.ctx.setTransform(dpr,0,0,dpr,0,0);
+  this.hud=document.getElementById(kind+'Hud');
+  this.fancy=true; this.slow=false; this.paused=reduce; this.reset();
+}
+Stage.prototype.reset=function(){
+  this.t=0; this.parts=[]; this.skids=[]; this.ghosts=[]; this.shake=0; this.hs=0; this.vig=0; this.endHold=0;
+  this.fired=false; this.landed=false; this.pulseN=0; this.ghostT=0;
+  if(this.kind==='roar'){
+    this.p={x:360,y:205,r:16,s:1};
+    this.ally={x:110,y:332};
+    var pos=[[190,110],[250,300],[470,120],[540,262],[330,72],[600,150],[420,338],[122,200],[648,322]];
+    this.en=pos.map(function(q){return {x:q[0],y:q[1],r:12,ang:0,flash:0,aggro:false,delay:0,spin:0,kn:null}});
+  }else{
+    this.p={x:150,y:200,r:16,s:1};
+    this.x0=150; this.L=262;
+    var q=[[236,198,12],[288,170,12],[304,242,12],[362,205,21,1],[412,172,12],[460,252,12],[332,108,12]];
+    this.en=q.map(function(a){return {x:a[0],y:a[1],r:a[2],heavy:!!a[3],ang:0,flash:0,hit:false,spin:0,kn:null}});
+  }
+};
+Stage.prototype.add=function(o){o.life=0;o.delay=o.delay||0;o.drag=o.drag||0;o.vx=o.vx||0;o.vy=o.vy||0;this.parts.push(o)};
+
+Stage.prototype.updateParts=function(dt){
+  for(var i=this.parts.length-1;i>=0;i--){
+    var p=this.parts[i];
+    if(p.delay>0){p.delay-=dt;continue}
+    p.life+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+    if(p.drag){var k=Math.max(0,1-p.drag*dt);p.vx*=k;p.vy*=k}
+    if(p.life>=p.max)this.parts.splice(i,1);
+  }
+  for(i=this.skids.length-1;i>=0;i--){this.skids[i].life+=dt;if(this.skids[i].life>1.6)this.skids.splice(i,1)}
+  for(i=this.ghosts.length-1;i>=0;i--){this.ghosts[i].life+=dt;if(this.ghosts[i].life>0.22)this.ghosts.splice(i,1)}
+  this.shake*=Math.exp(-dt*14); this.vig=Math.max(0,this.vig-dt*2.4);
+};
+Stage.prototype.moveEnemies=function(dt){
+  this.en.forEach(function(e){
+    if(e.flash>0)e.flash-=dt;
+    if(e.spin){e.ang+=e.spin*dt;e.spin*=Math.exp(-dt*5);if(Math.abs(e.spin)<0.3)e.spin=0}
+    if(e.kn){
+      e.kn.t+=dt; var f=eo(e.kn.t/0.18);
+      e.x=e.kn.x0+e.kn.dx*f; e.y=e.kn.y0+e.kn.dy*f;
+      if(e.kn.t>=0.18)e.kn=null;
+    }
+  });
+};
+
+/* ---------- ROAR ---------- */
+var FIRE=0.2, TAUNT=5;
+Stage.prototype.updateRoar=function(dt){
+  var f=this.fancy, p=this.p, t=this.t, self=this;
+  if(f&&t<FIRE&&Math.random()<0.7){
+    var a=rnd(0,TAU), d=rnd(70,110);
+    this.add({type:'spark',x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,vx:-Math.cos(a)*d/0.18,vy:-Math.sin(a)*d/0.18,max:0.18,col:RED,tail:.05});
+  }
+  if(!this.fired&&t>=FIRE){
+    this.fired=true;
+    this.add({type:'ring',x:p.x,y:p.y,r0:20,r1:320,max:0.5,w:f?10:3,a:f?0.95:0.9,col:ORANGE});
+    if(f){
+      this.add({type:'ring',x:p.x,y:p.y,r0:20,r1:320,max:0.6,w:5,a:0.6,col:ORANGE,delay:0.06});
+      this.add({type:'ring',x:p.x,y:p.y,r0:20,r1:320,max:0.7,w:3,a:0.4,col:[255,200,160],delay:0.12});
+      this.add({type:'disc',x:p.x,y:p.y,r0:10,r1:320,max:0.45,a:0.28,col:ORANGE});
+      for(var i=0;i<28;i++){var an=rnd(0,TAU),sp=rnd(700,1000);this.add({type:'spark',x:p.x+Math.cos(an)*30,y:p.y+Math.sin(an)*30,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,max:0.28,col:[255,170,120],tail:.09})}
+      this.shake=7; this.vig=0.55;
+    }
+    this.en.forEach(function(e){e.delay=Math.hypot(e.x-p.x,e.y-p.y)/640});
+  }
+  var since=t-FIRE;
+  if(f){ p.s = t<FIRE ? 1+0.15*eo(t/FIRE) : 1+0.25*Math.exp(-since*10); } else p.s=1;
+  // enemy reactions as the wave reaches them
+  this.en.forEach(function(e){
+    if(self.fired&&!e.aggro&&since>=e.delay){
+      e.aggro=true; e.flash=f?0.16:0;
+      if(f){
+        self.add({type:'text',x:e.x,y:e.y-e.r-8,vy:-46,max:0.7,str:'!',col:RED,size:20});
+        for(var i=0;i<6;i++){var an=rnd(0,TAU);self.add({type:'spark',x:e.x,y:e.y,vx:Math.cos(an)*160,vy:Math.sin(an)*160,max:0.2,col:[255,160,120],tail:.04})}
+      }
+    }
+    var tx=e.aggro?p.x:self.ally.x, ty=e.aggro?p.y:self.ally.y;
+    var dx=tx-e.x, dy=ty-e.y, d=Math.hypot(dx,dy)||1, want=Math.atan2(dy,dx), da=Math.atan2(Math.sin(want-e.ang),Math.cos(want-e.ang));
+    e.ang+=da*Math.min(1,dt*(e.aggro?(f?14:30):8));
+    if(!e.kn&&d>(e.aggro?80:30)){var sp=e.aggro?30:16;e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt}
+  });
+  this.taunt=self.fired?Math.max(0,TAUNT-since):0;
+  if(f&&this.fired&&this.taunt>0){
+    var n=Math.floor(since);
+    if(n>this.pulseN&&n<=5){this.pulseN=n;this.add({type:'ring',follow:true,r0:34,r1:100,max:0.7,w:2,a:0.35,col:ORANGE})}
+  }
+  return FIRE+TAUNT+0.3;
+};
+
+/* ---------- BULLDOZE ---------- */
+var WIND=0.12, CHG=0.35;
+Stage.prototype.updateBull=function(dt){
+  var f=this.fancy, p=this.p, t=this.t, self=this;
+  if(!this.fired&&t>=WIND){
+    this.fired=true;
+    if(!f)this.add({type:'ring',x:this.x0+this.L,y:200,r0:0,r1:60,max:0.35,w:3,a:0.9,col:CYAN});
+  }
+  var fr=clamp((t-WIND)/CHG,0,1), moving=this.fired&&fr<1;
+  var prog=1-Math.pow(1-fr,1.8);
+  p.x=this.x0+this.L*prog; p.y=200;
+  if(f){
+    if(t<WIND){ p.s=1-0.12*eo(t/WIND); p.ox=-7*eo(t/WIND); if(Math.random()<0.5)this.add({type:'dust',x:p.x-16,y:p.y+rnd(-14,14),vx:rnd(-70,-20),vy:rnd(-25,25),max:0.4,size:7,a:0.3,col:DUST}); }
+    else if(moving){ p.s=1.15; p.ox=0 }
+    else { p.s=1+0.1*Math.exp(-(t-WIND-CHG)*12); p.ox=0 }
+  }else{p.s=1;p.ox=0}
+  if(f&&moving){
+    this.ghostT-=dt;
+    if(this.ghostT<=0){this.ghostT=0.03;this.ghosts.push({x:p.x,y:p.y,life:0})}
+    for(var i=0;i<2;i++){
+      this.add({type:'spark',x:p.x-22-rnd(0,8),y:p.y+rnd(-22,22),vx:-520,vy:0,max:0.18,col:[200,235,255],tail:.07});
+      this.add({type:'dust',x:p.x-14,y:p.y+(i?14:-14),vx:rnd(-90,-30),vy:(i?1:-1)*rnd(25,70),max:0.55,size:6,a:0.32,col:DUST});
+    }
+    this.skids.push({x1:p.x-14,x2:p.x,y1:p.y-11,y2:p.y-11,life:0});
+    this.skids.push({x1:p.x-14,x2:p.x,y1:p.y+11,y2:p.y+11,life:0});
+  }
+  // contact
+  this.en.forEach(function(e){
+    if(!self.fired||e.hit)return;
+    if(moving&&Math.hypot(e.x-p.x,e.y-p.y)<e.r+16+14){
+      e.hit=true; e.flash=f?0.14:0.07;
+      if(f){
+        self.add({type:'text',x:e.x,y:e.y-e.r-6,vy:-60,max:0.8,str:'60',col:[255,255,255],size:e.heavy?22:16});
+        self.hs=0.05; self.shake=Math.max(self.shake,e.heavy?6:3);
+        var n=e.heavy?14:7;
+        for(var i=0;i<n;i++){var an=rnd(-1.4,1.4),sp=rnd(180,380);self.add({type:'spark',x:e.x-e.r,y:e.y,vx:Math.cos(an)*sp*(e.heavy?0.8:1),vy:Math.sin(an)*sp,max:0.22,col:[220,240,255],tail:.05})}
+        self.add({type:'ring',x:e.x,y:e.y,r0:e.r,r1:e.r+26,max:0.2,w:3,a:0.8,col:WHITE});
+      }
+      if(!e.heavy){
+        var sg=e.y<p.y?-1:1;
+        e.kn={x0:e.x,y0:e.y,dx:0,dy:sg*70,t:0};
+        e.spin=f?sg*14:0;
+        self.add({type:'dust',x:e.x,y:e.y,vx:0,vy:0,max:0.3,size:f?10:6,a:0.4,col:DUST});
+        if(f)for(var j=0;j<5;j++)self.add({type:'spark',x:e.x,y:e.y,vx:rnd(-30,30),vy:sg*-rnd(60,160),max:0.22,col:[210,225,240],tail:.06});
+      }
+    }
+    if(e.kn&&f&&Math.random()<0.8)self.add({type:'spark',x:e.x,y:e.y,vx:0,vy:-e.kn.dy*1.5,max:0.14,col:[200,220,240],tail:.05});
+  });
+  // landing
+  if(f&&!this.landed&&this.fired&&fr>=1){
+    this.landed=true; this.shake=Math.max(this.shake,5);
+    this.add({type:'ring',x:p.x,y:p.y,r0:20,r1:92,max:0.42,w:5,a:0.9,col:CYAN});
+    this.add({type:'ring',x:p.x,y:p.y,r0:16,r1:62,max:0.3,w:3,a:0.6,col:WHITE,delay:0.05});
+    for(var k=0;k<14;k++){var an=k/14*TAU+rnd(-.2,.2);this.add({type:'dust',x:p.x+Math.cos(an)*14,y:p.y+Math.sin(an)*14,vx:Math.cos(an)*rnd(70,150),vy:Math.sin(an)*rnd(70,150),drag:3,max:0.6,size:8,a:0.4,col:DUST})}
+  }
+  return WIND+CHG+1.4;
+};
+
+Stage.prototype.update=function(rawDt){
+  var dt=rawDt*(this.slow?0.25:1);
+  if(this.hs>0){this.hs-=dt;dt*=0.08}
+  this.t+=dt;
+  this.updateParts(dt); this.moveEnemies(dt);
+  var total=this.kind==='roar'?this.updateRoar(dt):this.updateBull(dt);
+  if(this.t>total){this.endHold+=dt;if(this.endHold>0.9)this.reset()}
+};
+
+/* ---------- drawing ---------- */
+function circle(c,x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,r,0,TAU);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function arc(c,x,y,r,a0,a1,col,lw){c.beginPath();c.arc(x,y,r,a0,a1);c.lineWidth=lw;c.strokeStyle=col;c.lineCap='round';c.stroke()}
+
+Stage.prototype.drawPlayer=function(c,x,y,sx,sy,alpha){
+  c.save(); c.translate(x,y); c.scale(sx,sy); c.globalAlpha=alpha==null?1:alpha;
+  c.fillStyle='#2f3d29'; c.fillRect(8,-4,26,8);                  // barrel
+  c.fillStyle='#8b979a'; c.fillRect(30,-5,6,10);
+  circle(c,0,0,16,'#5f7d4b','#2b3a26',3);                         // body
+  c.fillStyle='#4b6639'; c.fillRect(-6,-19,12,6); c.fillRect(-6,13,12,6); // heavy shoulder plates
+  circle(c,2,0,8,'#90a77a','#3b4d31',2);                          // helmet
+  c.restore();
+};
+Stage.prototype.drawEnemy=function(c,e){
+  var aggro=this.kind==='roar'?e.aggro:false;
+  c.save(); c.translate(e.x,e.y); c.rotate(e.ang);
+  var fill=e.flash>0?'#ffffff':(aggro?'#b5453a':(e.heavy?'#6b5a85':'#8a739c'));
+  circle(c,0,0,e.r,fill,e.heavy?'#2b2038':'#33263f',3);
+  if(e.heavy){circle(c,0,0,e.r-6,null,'rgba(255,255,255,.25)',2)}
+  c.fillStyle=e.flash>0?'#999':'#1b1320'; c.beginPath(); c.arc(e.r*.5,-e.r*.28,2.2,0,TAU); c.arc(e.r*.5,e.r*.28,2.2,0,TAU); c.fill();
+  c.restore();
+};
+Stage.prototype.drawPart=function(c,p){
+  if(p.delay>0)return;
+  var k=p.life/p.max, ik=1-k, pl=this.p;
+  switch(p.type){
+    case 'ring':
+      var x=p.follow?pl.x:p.x, y=p.follow?pl.y:p.y, r=p.r0+(p.r1-p.r0)*eo(k);
+      circle(c,x,y,r,null,rgba(p.col,p.a*ik),Math.max(.5,p.w*(1-k*.6))); break;
+    case 'disc':
+      var rr=p.r0+(p.r1-p.r0)*eo(k), g=c.createRadialGradient(p.x,p.y,rr*.55,p.x,p.y,rr);
+      g.addColorStop(0,rgba(p.col,0)); g.addColorStop(1,rgba(p.col,p.a*ik*ik));
+      circle(c,p.x,p.y,rr,g); break;
+    case 'dust':
+      circle(c,p.x,p.y,p.size*(0.6+k*1.1),rgba(p.col,p.a*ik)); break;
+    case 'spark':
+      c.beginPath(); c.moveTo(p.x,p.y); c.lineTo(p.x-p.vx*p.tail,p.y-p.vy*p.tail);
+      c.lineWidth=2; c.lineCap='round'; c.strokeStyle=rgba(p.col,ik); c.stroke(); break;
+    case 'text':
+      c.save(); c.globalAlpha=1-k*k; c.font='700 '+p.size+'px Barlow Condensed, sans-serif'; c.textAlign='center';
+      c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.7)'; c.strokeText(p.str,p.x,p.y); c.fillStyle=rgba(p.col,1); c.fillText(p.str,p.x,p.y); c.restore(); break;
+  }
+};
+
+Stage.prototype.draw=function(){
+  var c=this.ctx, p=this.p, f=this.fancy, t=this.t, self=this;
+  var cs=getComputedStyle(document.documentElement);
+  var arena=cs.getPropertyValue('--arena').trim()||'#141a17', grid=cs.getPropertyValue('--grid').trim()||'#1f2824';
+  c.save(); c.clearRect(0,0,W,H); c.fillStyle=arena; c.fillRect(0,0,W,H);
+  c.strokeStyle=grid; c.lineWidth=1; c.beginPath();
+  for(var gx=0;gx<=W;gx+=40){c.moveTo(gx+.5,0);c.lineTo(gx+.5,H)} for(var gy=0;gy<=H;gy+=40){c.moveTo(0,gy+.5);c.lineTo(W,gy+.5)} c.stroke();
+  if(f&&this.shake>0.2)c.translate(rnd(-1,1)*this.shake,rnd(-1,1)*this.shake);
+
+  // skids
+  this.skids.forEach(function(s){c.beginPath();c.moveTo(s.x1,s.y1);c.lineTo(s.x2,s.y2);c.lineWidth=2;c.strokeStyle='rgba(0,0,0,'+(0.45*(1-s.life/1.6))+')';c.stroke()});
+
+  if(this.kind==='roar') this.drawRoarUnder(c);
+  else this.drawBullUnder(c);
+
+  // ground-layer particles first (rings, discs, dust)
+  this.parts.forEach(function(q){if(q.type==='ring'||q.type==='disc'||q.type==='dust')self.drawPart(c,q)});
+  this.en.forEach(function(e){self.drawEnemy(c,e)});
+  if(this.kind==='roar'){
+    circle(c,this.ally.x,this.ally.y,11,'#4e86b8','#223a52',3);
+    c.font='600 11px Barlow, sans-serif'; c.fillStyle='rgba(200,215,225,.7)'; c.textAlign='center'; c.fillText('ally',this.ally.x,this.ally.y+26);
+  }
+
+  // player
+  if(this.kind==='roar'){
+    this.drawPlayer(c,p.x,p.y,p.s,p.s);
+    if(this.fired&&this.taunt>0) this.drawRoarSustain(c);
+  }else{
+    this.ghosts.forEach(function(g){self.drawPlayer(c,g.x,g.y,1.1,0.95,0.38*(1-g.life/0.22))});
+    this.drawPlayer(c,p.x+(p.ox||0),p.y,p.s,this.fancy&&p.s>1.1?0.92:(p.s<1?1/p.s:1));
+    if(f)this.drawBullOver(c);
+  }
+  this.parts.forEach(function(q){if(q.type==='spark'||q.type==='text')self.drawPart(c,q)});
+  c.restore();
+
+  // vignette (unshaken)
+  if(this.vig>0.01){
+    var g=c.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,W*0.62);
+    g.addColorStop(0,'rgba(255,60,30,0)'); g.addColorStop(1,'rgba(255,60,30,'+this.vig+')');
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+  }
+  var phase;
+  if(this.kind==='roar') phase=t<FIRE?'wind-up':(this.taunt>0?'taunt '+this.taunt.toFixed(1)+' s':'ended');
+  else phase=t<WIND?'wind-up':(t<WIND+CHG?'charge':'recover');
+  this.hud.textContent=(f?'PROPOSED':'CURRENT')+' · '+t.toFixed(2)+' s · '+phase;
+};
+
+Stage.prototype.drawRoarUnder=function(c){
+  var p=this.p, f=this.fancy, t=this.t;
+  if(!this.fired||this.taunt<=0)return;
+  if(f){
+    // aura
+    var pu=0.5+0.5*Math.sin(t*5), g=c.createRadialGradient(p.x,p.y,10,p.x,p.y,70);
+    g.addColorStop(0,'rgba(255,100,60,'+(0.22+0.08*pu)+')'); g.addColorStop(1,'rgba(255,100,60,0)');
+    circle(c,p.x,p.y,70,g);
+    // tethers
+    var a=Math.min(1,this.taunt)*0.38;
+    c.save(); c.setLineDash([6,7]); c.lineDashOffset=-t*70; c.lineWidth=1.5; c.strokeStyle='rgba(255,90,60,'+a+')';
+    this.en.forEach(function(e){if(!e.aggro)return;c.beginPath();c.moveTo(e.x,e.y);c.lineTo(p.x,p.y);c.stroke()});
+    c.restore();
+  }
+};
+Stage.prototype.drawRoarSustain=function(c){
+  var p=this.p, t=this.t, R=p.r;
+  if(!this.fancy){
+    arc(c,p.x,p.y,R+12+3*Math.sin(t*16),0,TAU,'rgba(255,102,64,.85)',3); return;
+  }
+  var fl=this.taunt<1?(Math.sin(t*38)>0?1:0.2):1, rot=t*1.6, rr=R*p.s+15;
+  for(var i=0;i<6;i++){
+    var a0=rot+i*TAU/6;
+    arc(c,p.x,p.y,rr,a0,a0+0.72,'rgba(255,120,76,'+(0.92*fl)+')',5);
+    arc(c,p.x,p.y,rr-5,a0+0.08,a0+0.64,'rgba(255,215,190,'+(0.55*fl)+')',1.5);
+  }
+  var frac=this.taunt/TAUNT;
+  arc(c,p.x,p.y,R+27,-Math.PI/2,-Math.PI/2+TAU*frac,'rgba(255,170,130,'+(0.65*fl)+')',2);
+};
+Stage.prototype.drawBullUnder=function(c){
+  var f=this.fancy, p=this.p, t=this.t;
+  if(f&&t<WIND+0.02){
+    // lane telegraph: 60 px sweep width, shown out to the end point
+    var a=Math.min(1,t/0.05)*(t<WIND?1:0.4), x0=this.x0, x1=this.x0+this.L;
+    c.fillStyle='rgba(128,191,255,'+(0.07*a)+')'; c.fillRect(x0,170,this.L,60);
+    c.strokeStyle='rgba(128,191,255,'+(0.55*a)+')'; c.lineWidth=1.5; c.setLineDash([8,6]);
+    c.beginPath(); c.moveTo(x0,170); c.lineTo(x1,170); c.moveTo(x0,230); c.lineTo(x1,230); c.stroke(); c.setLineDash([]);
+    for(var i=0;i<5;i++){
+      var cx=x0+40+((i*52+t*260)%(this.L-40));
+      c.beginPath(); c.moveTo(cx-8,190); c.lineTo(cx,200); c.lineTo(cx-8,210);
+      c.lineWidth=3; c.lineCap='round'; c.strokeStyle='rgba(160,215,255,'+(0.7*a)+')'; c.stroke();
+    }
+  }
+};
+Stage.prototype.drawBullOver=function(c){
+  var p=this.p, t=this.t, fr=clamp((t-WIND)/CHG,0,1);
+  if(t<WIND||fr>=1)return;
+  var g=c.createRadialGradient(p.x+10,p.y,4,p.x+10,p.y,46);
+  g.addColorStop(0,'rgba(160,215,255,.35)'); g.addColorStop(1,'rgba(160,215,255,0)');
+  circle(c,p.x+10,p.y,46,g);
+  arc(c,p.x,p.y,28,-0.95,0.95,'rgba(235,248,255,.95)',4);       // bow wave
+  arc(c,p.x,p.y,38,-0.7,0.7,'rgba(160,215,255,.55)',2.5);
+  var fl=Math.sin(t*60)>-0.2?0.5:0.15;                           // invulnerable flicker
+  circle(c,p.x,p.y,24,null,'rgba(128,191,255,'+fl+')',2);
+};
+
+/* ---------- wiring ---------- */
+var stages={roar:new Stage('roar'),bull:new Stage('bull')};
+function wire(k){
+  var s=stages[k];
+  document.getElementById(k+'Cur').addEventListener('change',function(){s.fancy=false;s.reset();s.paused=false;sync()});
+  document.getElementById(k+'New').addEventListener('change',function(){s.fancy=true;s.reset();s.paused=false;sync()});
+  document.getElementById(k+'Replay').addEventListener('click',function(){s.reset();s.paused=false;sync()});
+  document.getElementById(k+'Pause').addEventListener('click',function(){s.paused=!s.paused;sync()});
+  document.getElementById(k+'Slow').addEventListener('change',function(e){s.slow=e.target.checked});
+  function sync(){document.getElementById(k+'Pause').textContent=s.paused?'Play':'Pause'}
+  sync();
+}
+wire('roar'); wire('bull');
+var last=performance.now();
+function frame(now){
+  var dt=Math.min(0.05,(now-last)/1000); last=now;
+  for(var k in stages){var s=stages[k]; if(!s.paused)s.update(dt); s.draw()}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

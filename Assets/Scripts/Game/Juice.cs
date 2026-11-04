@@ -124,6 +124,7 @@ namespace Arena
             scorches.Clear(); ripples.Clear(); numbers.Clear(); bursts.Clear(); muzzleT.Clear();
             ClearGunBowLooks();  // GunBowLooks.cs
             ClearSoldierLooks();  // SoldierLooks.cs
+            ClearTankLooks();  // TankLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -201,6 +202,7 @@ namespace Arena
             juiceFrame++;
             UpdateRadiantStardust(dt);  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             float t = game.AnimT;
+            UpdateTankLooks(t);  // Roar and Bulldoze kick the camera (TankLooks.cs)
             var me = game.Me;
 
             // New effects: blasts shake, spark, scorch and ripple.
