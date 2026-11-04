@@ -36,7 +36,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outli
 <header>
   <div class="eyebrow">Mockup · Healer Soldier · ultimate</div>
   <h1>Life<span>line</span></h1>
-  <p class="lead">Lifeline revives and fully heals the whole party, then gives everyone 3 s of invulnerability (90 s cooldown; the capstone adds 4 s of Overdrive). Today that is one green ring per player and a thin beam from you to each ally. These are four new looks for the same cast. Each loops one scene at game scale: you (blue, centre), two hurt allies, one downed ally (grey X), and an enemy firing at the ally on the right so you can see the 3 s of invulnerability turn bullets away.</p>
+  <p class="lead">Lifeline revives and fully heals the whole party, then gives everyone 3 s of invulnerability (90 s cooldown; the capstone adds 4 s of Overdrive). Today that is one green ring per player and a thin beam from you to each ally. These are five new looks for the same cast. Each loops one scene at game scale: you (blue, centre), two hurt allies, one downed ally (grey X), and an enemy firing at the ally on the right so you can see the 3 s of invulnerability turn bullets away.</p>
   <p class="lead">Pause and drag the slider to step through the stages: idle, cast, invulnerable, fade.</p>
 </header>
 
@@ -135,7 +135,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outli
     {
       tag: 'Look B', name: 'Heartbeat', note: 'A double pulse (lub-dub) rolls out from you and each player jolts as it passes. The downed ally gets a defibrillator flash. Cover is a ring that traces a live heart-monitor line.',
       arr: function (p, i) { var d = Math.hypot(p.x - P[0].x, p.y - P[0].y); return p.self ? 0.1 : 0.12 + d / 330; },
-      draw: function (c, s, layer) {
+      draw: function (c, s, layer, opts) {
         function ecg(u) {
           if (u < 0.05) return 0;
           if (u < 0.1) return 0.2 * Math.sin((u - 0.05) / 0.05 * Math.PI);
@@ -155,6 +155,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outli
             }
           });
         }
+        if (opts && opts.ringsOnly) return;
         for (var i = 0; i < P.length; i++) {
           var p = P[i], t = s - p.arr;
           if (layer === 1 && p.down && t >= 0 && t < 0.35) {
@@ -236,7 +237,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outli
     {
       tag: 'Look D', name: 'Halo', note: 'A halo descends over every player and a column of light holds them for the 3 s. The downed ally is raised on the column. When cover ends the halos lift away and fade.',
       arr: function (p, i) { return p.self ? 0.3 : 0.5 + 0.08 * i; },
-      draw: function (c, s, layer) {
+      draw: function (c, s, layer, opts) {
         for (var i = 0; i < P.length; i++) {
           var p = P[i], k = shellK(p, s), f = fadeOut(s);
           if (layer === 0 && s > p.arr - 0.3 && s < INV + 0.7) {
@@ -256,7 +257,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outli
             }
           }
           if (layer === 1 && s > 0 && s < INV + 0.7) {
-            var drop = ease((s - 0.1 * i) / 0.45), lift = s > INV ? ease((s - INV) / 0.7) : 0;
+            var drop = ease((s - (opts && opts.t0 ? opts.t0(p, i) : 0.1 * i)) / 0.45), lift = s > INV ? ease((s - INV) / 0.7) : 0;
             var hy = p.y - 30 + (1 - drop) * -55 - lift * 30, ha = clamp(drop * 2) * (1 - lift);
             c.save(); c.globalAlpha = ha; c.strokeStyle = '#c9ffd6'; c.lineWidth = 3; c.shadowColor = G; c.shadowBlur = 12;
             c.beginPath(); c.ellipse(p.x, hy, 15, 5, 0, 0, TAU); c.stroke(); c.restore();
@@ -265,6 +266,16 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--heal); outli
       }
     }
   ];
+
+  // Look E: Heartbeat's opening pulse, then Halo's resurrection on each player as the pulse reaches them.
+  looks.push({
+    tag: 'Look E', name: 'Heartbeat Halo', note: 'The lub-dub pulse rolls out from you. As it reaches each player a halo drops over them and the column of light holds them for the 3 s. The downed ally is raised the moment the pulse lands. Halos lift away when cover ends.',
+    arr: function (p, i) { return looks[1].arr(p, i); },
+    draw: function (c, s, layer) {
+      looks[1].draw(c, s, layer, { ringsOnly: true });
+      looks[3].draw(c, s, layer, { t0: function (p) { return p.arr - 0.1; } });
+    }
+  });
 
   // Scene painting shared by all looks.
   function hpAt(p, s) { return s < p.arr ? p.hp0 : lerp(p.hp0, 1, ease((s - p.arr) / 0.5)); }
