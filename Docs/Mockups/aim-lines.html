@@ -1,0 +1,376 @@
+<title>Aim Line Cosmetics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Field-manual look of the other mockups. Top: a live arena where the equipped aim line follows your cursor, with range,
+   rank and class-colour controls. Below: ten aim lines, one card each, every card animated. Single dark look by choice:
+   it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --accent: #9fdcff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--accent); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #070910; }
+#arena { aspect-ratio: 960 / 520; cursor: crosshair; touch-action: none; }
+.status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); font: 500 12px var(--font-data); color: var(--muted); }
+.status b { color: var(--fg); font-weight: 500; }
+.status .lock { color: var(--amber); }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--edge); padding: 0; cursor: pointer; }
+.sw[aria-pressed="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px var(--bg) inset; }
+.sw:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sl { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font: 500 12px var(--font-data); color: var(--muted); min-width: 250px; flex: 1 1 250px; }
+.sl b { font-weight: 500; color: var(--fg); min-width: 7ch; text-align: right; }
+input[type=range] { accent-color: var(--accent); width: 100%; min-width: 0; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-checked="true"] { border-color: var(--accent); }
+.card .tag { display: flex; justify-content: space-between; font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--accent); }
+.card .tag em { font-style: normal; color: var(--muted); }
+.card[aria-checked="true"] .tag em { color: var(--accent); }
+.card h3 { font-size: 18px; }
+.card canvas { aspect-ratio: 280 / 76; border: 1px solid var(--line); border-radius: 6px; }
+.card p { font-size: 14px; color: var(--soft); }
+.card .unlock { font: 500 12px var(--font-data); color: var(--muted); }
+.card.locked .unlock { color: var(--amber); }
+.card.locked canvas { opacity: 0.55; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cosmetics mockup · aim line</div>
+    <h1>Aim line <span>cosmetics</span></h1>
+    <p class="lead">Ten looks for the line from your weapon to the crosshair. Move the cursor over the arena to try one, or pick a card. All of them keep the rules of today's line: it runs from you toward the crosshair, never past your weapon's range, and ends in a cap when the crosshair is farther than that. Unlock ranks are placeholders.</p>
+  </header>
+
+  <section>
+    <div class="stage">
+      <div class="status">
+        <span>Equipped <b id="eqName">Classic</b></span>
+        <span id="eqLock">Unlocked</span>
+        <span>Reach <b id="eqReach">0</b> px</span>
+      </div>
+      <canvas id="arena" width="960" height="520" aria-label="Arena preview of the selected aim line"></canvas>
+      <div class="bar">
+        <div class="group"><span class="label">Class colour</span><span id="swatches" class="group"></span></div>
+        <label class="sl" for="range">Weapon range <input id="range" type="range" min="120" max="575" value="400"><b id="rangeV">400 px</b></label>
+        <label class="sl" for="rank">Player rank <input id="rank" type="range" min="0" max="25" value="25"><b id="rankV">25</b></label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The ten looks</h2>
+    <div class="styles" id="cards" role="radiogroup" aria-label="Aim line styles"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>Only your own line is drawn, so this is a local cosmetic: store the pick in the profile like the other cosmetics and switch inside <code>DrawAimLine</code>. No network message changes, so no protocol bump.</li>
+      <li>Every look is tinted by the class colour, except Prism, which cycles through every hue, and Storm and Ember, which keep their own palette and use the class colour for the glow only.</li>
+      <li>Ruler counts from the muzzle, just past your body, so its numbers are the distance a shot has travelled.</li>
+      <li>Pixel Beam snaps to a 4 px grid, which is the one look that should not be anti-aliased.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var TAU = Math.PI * 2;
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var WHITE = [255, 255, 255];
+  function hex(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function mix(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+  function rgba(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, Math.min(1, a)) + ')'; }
+  function rnd(x) { var s = Math.sin(x * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+  function hsl(h, s, l) {
+    h = ((h % 360) + 360) % 360 / 360;
+    function f(n) { var k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l); return 255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))); }
+    return [f(0), f(8), f(4)];
+  }
+
+  // env: g = context, from = {x,y}, dir = {x,y}, reach, t, col, capped
+  function P(e, d, o) { return [e.from.x + e.dir.x * d - e.dir.y * o, e.from.y + e.dir.y * d + e.dir.x * o]; }
+  function L(e, d0, o0, d1, o1, w, col) {
+    var a = P(e, d0, o0), b = P(e, d1, o1), g = e.g;
+    g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+  function dot(e, d, o, r, col) { var p = P(e, d, o); e.g.fillStyle = col; e.g.beginPath(); e.g.arc(p[0], p[1], r, 0, TAU); e.g.fill(); }
+  function ring(e, d, o, r, w, col) { var p = P(e, d, o); e.g.strokeStyle = col; e.g.lineWidth = w; e.g.beginPath(); e.g.arc(p[0], p[1], r, 0, TAU); e.g.stroke(); }
+  function poly(e, pts, w, col) {
+    var g = e.g; g.strokeStyle = col; g.lineWidth = w; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath();
+    for (var i = 0; i < pts.length; i++) { var p = P(e, pts[i][0], pts[i][1]); if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); }
+    g.stroke();
+  }
+  function fade(e, d, k) { return 1 - (k === undefined ? 0.8 : k) * d / e.reach; }
+
+  var STYLES = [
+    { id: 'classic', name: 'Classic', rank: 0, blurb: 'Today\'s line: a soft glow, a thin core and motes drifting outward.',
+      draw: function (e) {
+        var c = mix(e.col, WHITE, 0.35), n = 24, i;
+        for (i = 0; i < n; i++) {
+          var a = i / n, b = (i + 1) / n, f = 1 - 0.8 * a;
+          L(e, e.reach * a, 0, e.reach * b, 0, 8, rgba(c, 0.07 * f));
+          L(e, e.reach * a, 0, e.reach * b, 0, 1.5, rgba(c, 0.32 * f));
+        }
+        for (var d = (e.t * 140) % 34; d < e.reach; d += 34) { var m = fade(e, d, 0.75); dot(e, d, 0, 1.3 + 1.2 * m, rgba(c, 0.5 * m)); }
+        if (e.capped) L(e, e.reach, -6, e.reach, 6, 2, rgba(c, 0.45));
+      } },
+
+    { id: 'dotted', name: 'Dotted Tracer', rank: 3, blurb: 'Evenly spaced beads that march toward the target and shrink with distance.',
+      draw: function (e) {
+        var c = mix(e.col, WHITE, 0.25);
+        for (var d = (e.t * 50) % 14; d < e.reach; d += 14) { var f = fade(e, d, 0.85); dot(e, d, 0, 0.8 + 2.4 * f, rgba(c, 0.9 * f + 0.1)); }
+        if (e.capped) ring(e, e.reach, 0, 5, 1.6, rgba(c, 0.7));
+      } },
+
+    { id: 'chevron', name: 'Chevron Flow', rank: 5, blurb: 'A stream of arrowheads, so the direction reads at a glance even on a busy screen.',
+      draw: function (e) {
+        var c = mix(e.col, WHITE, 0.3);
+        L(e, 0, 0, e.reach, 0, 1, rgba(c, 0.12));
+        for (var d = (e.t * 100) % 28; d < e.reach; d += 28) {
+          var f = fade(e, d);
+          poly(e, [[d - 5, -5], [d, 0], [d - 5, 5]], 2, rgba(c, 0.85 * f));
+        }
+        if (e.capped) { poly(e, [[e.reach - 6, -7], [e.reach + 1, 0], [e.reach - 6, 7]], 2.5, rgba(c, 0.9)); }
+      } },
+
+    { id: 'ruler', name: 'Ruler', rank: 7, blurb: 'A thin rule with ticks every 20 px and a number every 100. Good for learning your weapon\'s reach.',
+      draw: function (e) {
+        var c = mix(e.col, WHITE, 0.4), g = e.g, d;
+        L(e, 0, 0, e.reach, 0, 1, rgba(c, 0.35));
+        for (d = 20; d <= e.reach; d += 20) {
+          var major = d % 100 === 0, mid = d % 50 === 0, len = major ? 9 : mid ? 6 : 3.5;
+          L(e, d, -len / 2, d, len / 2, major ? 1.6 : 1, rgba(c, major ? 0.8 : 0.45));
+          if (major) { var p = P(e, d, -17); g.fillStyle = rgba(c, 0.75); g.font = '500 10px "IBM Plex Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(d, p[0], p[1]); }
+        }
+        var s = (e.t * 260) % (e.reach + 60) - 30;
+        if (s > 0 && s < e.reach) dot(e, s, 0, 2.6, rgba(c, 0.9));
+        if (e.capped) { L(e, e.reach, -7, e.reach, 7, 2.2, rgba(c, 0.9)); }
+      } },
+
+    { id: 'ember', name: 'Ember Wisp', rank: 8, blurb: 'A warm line shedding sparks that drift sideways and cool from yellow to red.',
+      draw: function (e) {
+        var g = e.g, ember = [255, 150, 60], i;
+        L(e, 0, 0, e.reach, 0, 6, rgba(mix(e.col, ember, 0.7), 0.07));
+        L(e, 0, 0, e.reach, 0, 1.4, rgba(ember, 0.22));
+        g.globalCompositeOperation = 'lighter';
+        for (i = 0; i < 28; i++) {
+          var ph = (e.t * 0.7 + i * 0.618) % 1, r = rnd(i), d = ph * e.reach;
+          var o = (r - 0.5) * 10 + Math.sin(e.t * 5 + i * 2) * 4 * ph;
+          var col = mix([255, 220, 110], [220, 50, 20], ph);
+          dot(e, d, o, 0.7 + 2.2 * (1 - ph), rgba(col, 0.9 * (1 - ph)));
+        }
+        g.globalCompositeOperation = 'source-over';
+        if (e.capped) { poly(e, [[e.reach - 7, 0], [e.reach, -5], [e.reach + 7, 0], [e.reach, 5], [e.reach - 7, 0]], 1.6, rgba(ember, 0.85)); }
+      } },
+
+    { id: 'frost', name: 'Frost Shard', rank: 10, blurb: 'Pale ice diamonds with small slivers either side. Ends in a six-point snowflake.',
+      draw: function (e) {
+        var ice = mix(e.col, [170, 235, 255], 0.7), i = 0, g = e.g;
+        L(e, 0, 0, e.reach, 0, 6, rgba(ice, 0.06));
+        L(e, 0, 0, e.reach, 0, 1.2, rgba(ice, 0.28));
+        for (var d = (e.t * 40) % 44; d < e.reach; d += 44, i++) {
+          var f = fade(e, d, 0.6), s = 1.5 + 4 * f, side = i % 2 ? 1 : -1;
+          L(e, d - 10, 0, d - 18, side * 6, 1.2, rgba(ice, 0.45 * f));
+          g.fillStyle = rgba(ice, 0.85 * f);
+          var a = P(e, d - s * 1.6, 0), b = P(e, d, -s), c = P(e, d + s * 1.6, 0), h = P(e, d, s);
+          g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.lineTo(h[0], h[1]); g.closePath(); g.fill();
+        }
+        if (e.capped) for (var k = 0; k < 3; k++) { var an = k * Math.PI / 3, ox = Math.cos(an) * 7, oy = Math.sin(an) * 7; e.g.strokeStyle = rgba(ice, 0.85); e.g.lineWidth = 1.5; var p = P(e, e.reach, 0); e.g.beginPath(); e.g.moveTo(p[0] - ox, p[1] - oy); e.g.lineTo(p[0] + ox, p[1] + oy); e.g.stroke(); }
+      } },
+
+    { id: 'storm', name: 'Storm Arc', rank: 13, blurb: 'A crackling bolt that re-forms about twenty times a second, with the odd forked spur.',
+      draw: function (e) {
+        var bolt = [200, 170, 255], seed = Math.floor(e.t * 20), n = Math.max(2, Math.floor(e.reach / 14)), pts = [], k;
+        for (k = 0; k <= n; k++) {
+          var amp = k === 0 || k === n ? 0 : 5;
+          pts.push([e.reach * k / n, (rnd(seed * 13 + k) - 0.5) * 2 * amp]);
+        }
+        e.g.globalCompositeOperation = 'lighter';
+        poly(e, pts, 8, rgba(mix(e.col, bolt, 0.5), 0.14));
+        poly(e, pts, 2.6, rgba(bolt, 0.5));
+        poly(e, pts, 1.2, rgba([255, 255, 255], 0.9));
+        if (rnd(seed) > 0.45 && n > 3) {
+          var b = 1 + Math.floor(rnd(seed + 9) * (n - 2)), s = rnd(seed + 4) > 0.5 ? 1 : -1, p = pts[b];
+          poly(e, [p, [p[0] + 10, p[1] + s * 8], [p[0] + 20, p[1] + s * 5 + (rnd(seed + 2) - 0.5) * 6]], 1.1, rgba([255, 255, 255], 0.7));
+        }
+        e.g.globalCompositeOperation = 'source-over';
+        if (e.capped) { L(e, e.reach, -6, e.reach, 6, 2, rgba(bolt, 0.85)); dot(e, e.reach, 0, 3, rgba([255, 255, 255], 0.9)); }
+      } },
+
+    { id: 'pixel', name: 'Pixel Beam', rank: 16, blurb: 'Chunky 4 px squares snapped to a grid, blinking in a march. Retro and unmistakable.',
+      draw: function (e) {
+        var c = mix(e.col, WHITE, 0.2), g = e.g, G = 4, d;
+        function sq(x, y, col) { g.fillStyle = col; g.fillRect(Math.floor(x / G) * G, Math.floor(y / G) * G, G, G); }
+        for (d = 0; d < e.reach; d += 8) {
+          var p = P(e, d, 0), on = ((Math.floor((d - e.t * 60) / 8) % 3) + 3) % 3 !== 0;
+          sq(p[0], p[1], rgba(c, on ? 0.9 * fade(e, d, 0.5) + 0.1 : 0.14));
+        }
+        if (e.capped) { var q = P(e, e.reach, 0), col = rgba(c, 0.95); sq(q[0], q[1], col); sq(q[0] - G, q[1], col); sq(q[0] + G, q[1], col); sq(q[0], q[1] - G, col); sq(q[0], q[1] + G, col); }
+      } },
+
+    { id: 'helix', name: 'Helix', rank: 20, blurb: 'Two strands winding around the aim axis, joined by faint rungs. It never leaves the line.',
+      draw: function (e) {
+        var c1 = mix(e.col, WHITE, 0.3), c2 = mix(e.col, [255, 200, 90], 0.75), A = [], B = [], d;
+        for (d = 0; d <= e.reach; d += 3) {
+          var env = Math.min(1, d / 24), o = Math.sin(d / 56 * TAU - e.t * 5) * 6 * env;
+          A.push([d, o]); B.push([d, -o]);
+        }
+        for (d = 14; d < e.reach; d += 14) { var oo = Math.sin(d / 56 * TAU - e.t * 5) * 6 * Math.min(1, d / 24); L(e, d, oo, d, -oo, 1, rgba(c1, 0.14 * fade(e, d))); }
+        poly(e, A, 1.8, rgba(c1, 0.75));
+        poly(e, B, 1.8, rgba(c2, 0.75));
+        if (e.capped) { ring(e, e.reach, 0, 6, 1.6, rgba(c1, 0.8)); dot(e, e.reach, 0, 1.8, rgba(c2, 0.9)); }
+      } },
+
+    { id: 'prism', name: 'Prism', rank: 25, blurb: 'The top-rank line. A gradient that slides through every hue and ignores the class colour.',
+      draw: function (e) {
+        var step = 5, d;
+        e.g.globalCompositeOperation = 'lighter';
+        for (d = 0; d < e.reach; d += step) {
+          var col = hsl(d * 0.9 - e.t * 140, 0.95, 0.62), f = fade(e, d, 0.45);
+          L(e, d, 0, Math.min(d + step + 0.5, e.reach), 0, 9, rgba(col, 0.09 * f));
+          L(e, d, 0, Math.min(d + step + 0.5, e.reach), 0, 2.4, rgba(col, 0.8 * f));
+        }
+        for (d = (e.t * 120) % 40; d < e.reach; d += 40) dot(e, d, 0, 1.8, rgba(WHITE, 0.7 * fade(e, d)));
+        e.g.globalCompositeOperation = 'source-over';
+        if (e.capped) { var h = hsl(-e.t * 140 + e.reach * 0.9, 0.95, 0.7); L(e, e.reach, -7, e.reach, 7, 2.5, rgba(h, 0.95)); }
+      } }
+  ];
+
+  var COLORS = [['Soldier', '#6ec1ff'], ['Knight', '#ff8a5c'], ['Mage', '#b48cff'], ['Ranger', '#7be37b']];
+  var state = { sel: 0, color: hex(COLORS[0][1]), range: 400, rank: 25, mx: null, my: null, t: 0 };
+
+  function setup(cv, w, h, k) { cv.width = w * k; cv.height = h * k; var g = cv.getContext('2d'); g.setTransform(k, 0, 0, k, 0, 0); return g; }
+
+  // ---- arena
+  var arena = document.getElementById('arena'), ag = setup(arena, 960, 520, 2);
+  var ME = { x: 300, y: 260, r: 14 };
+  var DUMMIES = [[640, 150], [760, 330], [560, 400], [830, 200]];
+  var lastReach = 0;
+
+  function drawArena() {
+    var g = ag, t = state.t, i;
+    g.fillStyle = '#070910'; g.fillRect(0, 0, 960, 520);
+    g.strokeStyle = 'rgba(120,150,180,0.07)'; g.lineWidth = 1;
+    for (i = 0; i <= 960; i += 40) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 520); g.stroke(); }
+    for (i = 0; i <= 520; i += 40) { g.beginPath(); g.moveTo(0, i); g.lineTo(960, i); g.stroke(); }
+    DUMMIES.forEach(function (d, k) {
+      g.fillStyle = 'rgba(255,90,90,0.16)'; g.strokeStyle = 'rgba(255,110,110,0.55)'; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(d[0], d[1], 16 + (k % 2) * 4, 0, TAU); g.fill(); g.stroke();
+    });
+    var mx = state.mx, my = state.my;
+    if (mx === null) { var a = Math.sin(t * 0.5) * 0.7 + 0.1, r = 260 + Math.sin(t * 0.37) * 140; mx = ME.x + Math.cos(a) * r; my = ME.y + Math.sin(a) * r; }
+    var dx = mx - ME.x, dy = my - ME.y, dist = Math.hypot(dx, dy) || 1, dir = { x: dx / dist, y: dy / dist };
+    var off = ME.r + 8, range = Math.max(state.range - off, 20), toCur = dist - off, reach = Math.min(range, toCur);
+    lastReach = Math.max(0, reach);
+    if (reach >= 4) {
+      STYLES[state.sel].draw({ g: g, from: { x: ME.x + dir.x * off, y: ME.y + dir.y * off }, dir: dir, reach: reach, t: t, col: state.color, capped: toCur >= range });
+    }
+    var col = state.color;
+    g.fillStyle = rgba(mix(col, [0, 0, 0], 0.55), 1); g.strokeStyle = rgba(col, 1); g.lineWidth = 2.5;
+    g.beginPath(); g.arc(ME.x, ME.y, ME.r, 0, TAU); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(ME.x + dir.x * ME.r, ME.y + dir.y * ME.r); g.lineTo(ME.x + dir.x * (ME.r + 6), ME.y + dir.y * (ME.r + 6)); g.lineWidth = 4; g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 1.4;
+    g.beginPath(); g.arc(mx, my, 7, 0, TAU); g.moveTo(mx - 11, my); g.lineTo(mx - 3, my); g.moveTo(mx + 3, my); g.lineTo(mx + 11, my); g.moveTo(mx, my - 11); g.lineTo(mx, my - 3); g.moveTo(mx, my + 3); g.lineTo(mx, my + 11); g.stroke();
+  }
+
+  function pointer(ev) {
+    var r = arena.getBoundingClientRect();
+    state.mx = (ev.clientX - r.left) * 960 / r.width; state.my = (ev.clientY - r.top) * 520 / r.height;
+  }
+  arena.addEventListener('pointermove', pointer);
+  arena.addEventListener('pointerdown', pointer);
+  arena.addEventListener('pointerleave', function (ev) { if (ev.pointerType === 'mouse') { state.mx = null; state.my = null; } });
+
+  // ---- cards
+  var cardsEl = document.getElementById('cards'), cards = [];
+  STYLES.forEach(function (s, i) {
+    var el = document.createElement('div');
+    el.className = 'card'; el.tabIndex = 0; el.setAttribute('role', 'radio'); el.setAttribute('aria-label', s.name);
+    el.innerHTML = '<div class="tag"><span>AIM ' + (i < 9 ? '0' : '') + (i + 1) + '</span><em></em></div><h3></h3><canvas></canvas><p></p><div class="unlock"></div>';
+    el.querySelector('h3').textContent = s.name;
+    el.querySelector('p').textContent = s.blurb;
+    el.querySelector('.unlock').textContent = s.rank === 0 ? 'Default · free' : 'Unlocks at rank ' + s.rank;
+    var cv = el.querySelector('canvas'); s.g = setup(cv, 280, 76, 2);
+    el.addEventListener('click', function () { select(i); });
+    el.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(i); } });
+    cardsEl.appendChild(el); cards.push(el);
+  });
+
+  function drawCard(s) {
+    var g = s.g, t = state.t;
+    g.fillStyle = '#070910'; g.fillRect(0, 0, 280, 76);
+    g.fillStyle = rgba(mix(state.color, [0, 0, 0], 0.55), 1); g.strokeStyle = rgba(state.color, 1); g.lineWidth = 2;
+    g.beginPath(); g.arc(20, 38, 9, 0, TAU); g.fill(); g.stroke();
+    s.draw({ g: g, from: { x: 36, y: 38 }, dir: { x: 1, y: 0 }, reach: 218, t: t, col: state.color, capped: true });
+  }
+
+  var eqName = document.getElementById('eqName'), eqLock = document.getElementById('eqLock'), eqReach = document.getElementById('eqReach');
+  function refresh() {
+    STYLES.forEach(function (s, i) {
+      var locked = s.rank > state.rank, el = cards[i];
+      el.classList.toggle('locked', locked);
+      el.setAttribute('aria-checked', i === state.sel ? 'true' : 'false');
+      el.querySelector('em').textContent = i === state.sel ? 'Equipped' : locked ? 'Locked' : 'Owned';
+    });
+    var s = STYLES[state.sel];
+    eqName.textContent = s.name;
+    eqLock.className = s.rank > state.rank ? 'lock' : '';
+    eqLock.textContent = s.rank > state.rank ? 'Locked · previewing, unlocks at rank ' + s.rank : 'Unlocked';
+  }
+  function select(i) { state.sel = i; refresh(); }
+
+  // ---- controls
+  var sws = document.getElementById('swatches');
+  COLORS.forEach(function (c, i) {
+    var b = document.createElement('button');
+    b.className = 'sw'; b.type = 'button'; b.title = c[0]; b.setAttribute('aria-label', c[0] + ' colour'); b.style.background = c[1];
+    b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      state.color = hex(c[1]);
+      Array.prototype.forEach.call(sws.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+    sws.appendChild(b);
+  });
+  document.getElementById('range').addEventListener('input', function (ev) { state.range = +ev.target.value; document.getElementById('rangeV').textContent = state.range + ' px'; });
+  document.getElementById('rank').addEventListener('input', function (ev) { state.rank = +ev.target.value; document.getElementById('rankV').textContent = state.rank; refresh(); });
+
+  refresh();
+  var prev = performance.now();
+  function frame(now) {
+    if (!reduced) state.t += Math.min(0.05, (now - prev) / 1000);
+    prev = now;
+    drawArena();
+    STYLES.forEach(drawCard);
+    eqReach.textContent = Math.round(lastReach);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
