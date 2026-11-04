@@ -393,6 +393,8 @@ namespace Arena
             Ui.HudPanel(r, ready ? new Color(accent.r, accent.g, accent.b, ultimate ? 0.6f + 0.4f * pulse : 1f) : (Color?)null);
             if (look.White > 0f)
                 Ui.HudRim(r, new Color(1f, 1f, 1f, 0.9f * look.White));
+            if (fxOn)
+                DrawTileRim(r, i, accent, slot.Charges > 0, slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, game.Cooldown(me, i)), tileUse[i], fxReduced);
 
             // Cooldown: a dark shade over the tile that drains downward as it recharges.
             if (!ready)

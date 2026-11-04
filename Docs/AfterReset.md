@@ -13,7 +13,7 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 - [x] **HUD panels get the upgrade-card gradient.** Built (Nov 2026, protocol unchanged, 147): `Ui.HudPanel` now shades every HUD panel like `CardArt.Body` (slate when plain, tinted by the accent otherwise). Needs a try in Unity.
-- [ ] **HUD animations: pick a style.** Mockup: [`Mockups/hud-animations.html`](Mockups/hud-animations.html) (https://claude.ai/artifact/FtY5EZaHeJZgckp88Pb9SN). A Ember (ready glows, used burns out), B Liquid, C Hologram, D Rim runner, E Calm. Nothing built yet.
+- [x] **HUD animations: rim runner.** Built (Nov 2026, protocol unchanged, 147): look D of [`Mockups/hud-animations.html`](Mockups/hud-animations.html) (https://claude.ai/artifact/FtY5EZaHeJZgckp88Pb9SN). Recharging draws the tile's border as a loading ring, a ready tile has a spark circling it, using it snuffs the rim with a burst at the key cap (`DrawTileRim`, `HudTiles.cs`). Reduced effects: the ring only. Needs a try in Unity.
 
 ## Balance / design
 - [x] **Elementalist DPS abilities: Meteor and Blizzard visuals, Arcane Surge becomes Tsunami.** Built (Nov 2026, protocol 147): look A for all three, from
