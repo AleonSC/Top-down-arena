@@ -67,7 +67,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   <header>
     <div class="eyebrow">Cartesian Colosseum · mockup · profiles</div>
     <h1>Who's playing, <span>to the menu</span></h1>
-    <p class="lead">Three looks for the move from "Who's playing?" into the main menu when you pick a profile, and back out when you press
+    <p class="lead"><b>Picked: C · Plot points, at half speed (built).</b> Three looks for the move from "Who's playing?" into the main menu when you pick a profile, and back out when you press
       "Switch profile". Each one has its own sound cues. Press Replay or click a card in the picker to play it; click
       "Switch profile" on the menu to play it back. Sound starts after your first click on the page.</p>
   </header>
@@ -93,8 +93,8 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
       <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the transition">
       <span class="clock" id="clock">0.00 / 0.00 s</span>
       <div class="seg" id="speeds">
-        <button type="button" data-v="1" class="on">1x</button>
-        <button type="button" data-v="0.5">½x</button>
+        <button type="button" data-v="1">1x</button>
+        <button type="button" data-v="0.5" class="on">½x</button>
         <button type="button" data-v="0.25">¼x</button>
       </div>
       <label class="tog"><input type="checkbox" id="sound" checked> Sound</label>
@@ -249,8 +249,10 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     g.save(); g.globalAlpha *= a; g.beginPath(); rr(r.x, r.y, r.w, r.h, 10); g.clip();
     const cx = r.x + r.w / 2;
     if (i >= 3) {
-      text("+", cx, r.y + r.h / 2 - 20, `44px ${GAME_FONT}`, "rgba(146,161,173,1)");
-      text("New profile", cx, r.y + r.h / 2 + 22, `bold 15px ${GAME_FONT}`, "rgba(146,161,173,1)");
+      // Three profiles, so all slots are full: New profile is grayed out.
+      text("+", cx, r.y + r.h / 2 - 20, `44px ${GAME_FONT}`, "rgba(146,161,173,0.3)");
+      text("New profile", cx, r.y + r.h / 2 + 22, `bold 15px ${GAME_FONT}`, "rgba(146,161,173,0.3)");
+      text("All 3 slots used", cx, r.y + r.h / 2 + 44, `11px ${GAME_FONT}`, "rgba(146,161,173,0.3)");
     } else {
       const p = PROFILES[i];
       badge(cx, r.y + 56, 38, p.rank, p.col);
@@ -566,7 +568,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   function audition(name) { const was = soundOn; soundOn = true; play(name); soundOn = was; }
 
   // --- Playback ---------------------------------------------------------------------------------------------------
-  let look = "chip", mode = "both", pick = 0, speed = 1, reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let look = "dots", mode = "both", pick = 0, speed = 0.5, reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let t = 0, prevT = -1e-6, scrubbing = false, seq = [];
   const scrub = document.getElementById("scrub"), clock = document.getElementById("clock");
   const moveLen = () => reduced ? REDUCED.len : LOOK(look).len;
@@ -684,7 +686,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   cv.addEventListener("mousemove", e => { cv.style.cursor = hitAtRest(e) ? "pointer" : "default"; });
 
   let saved = null; try { saved = localStorage.getItem("profile-transition-look"); } catch (e) {}
-  const start = () => { look = LOOKS.some(l => l.id === saved) ? saved : "chip"; buildSeq(); syncUi(); requestAnimationFrame(frame); };
+  const start = () => { look = LOOKS.some(l => l.id === saved) ? saved : "dots"; buildSeq(); syncUi(); requestAnimationFrame(frame); };
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
 })();
 </script>

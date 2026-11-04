@@ -507,6 +507,28 @@ namespace Arena
                 Tone(0.3f, Osc.Sine, 400f, 120f, 0.2f, noise: 0.8f, lowpass: 0.4f, attack: 0.002f, decay: 3f)), 0.15f);
             Set(Sfx.ZombieMend, Notes(new[] { 330f, 440f, 392f }, 0.1f, Osc.Triangle, 0.18f, 0.5f), 0.3f);
 
+            // The profile picker and the menu (ProfileTransition.cs): a two-note select click, four rising pings (takes played in turn)
+            // as the cards become points, a zip as the others shoot off, a sweep as your point opens into the box (and backwards),
+            // a pen scratch for the title, the bar sliding up, and a low chord as the menu settles.
+            Set(Sfx.ProfSelect, Finish(Concat(Tone(0.09f, Osc.Triangle, 520f, 780f, 0.22f, attack: 0.003f, decay: 2.5f),
+                Tone(0.14f, Osc.Triangle, 780f, 1170f, 0.2f, attack: 0.003f, decay: 2.5f)), 0.3f), 0.1f);
+            var profPings = new float[4][];
+            float[] pingHz = { 660f, 784f, 988f, 1175f };
+            for (int k = 0; k < 4; k++)
+                profPings[k] = Finish(Mix(Tone(0.22f, Osc.Sine, pingHz[k], pingHz[k], 0.18f, attack: 0.003f, decay: 3f),
+                    Tone(0.15f, Osc.Sine, pingHz[k] * 2f, pingHz[k] * 2f, 0.04f, attack: 0.003f, decay: 4f)), 0.22f);
+            Set(Sfx.ProfPing, profPings, 0.03f);
+            Set(Sfx.ProfZip, Finish(Mix(Tone(0.22f, Osc.Sine, 3200f, 700f, 0.14f, noise: 0.8f, lowpass: 0.5f, attack: 0.01f, decay: 2f),
+                Tone(0.16f, Osc.Sine, 1900f, 420f, 0.07f, attack: 0.005f, decay: 2.5f)), 0.22f), 0.1f);
+            var sweep = Mix(Tone(0.5f, Osc.Sine, 300f, 1400f, 0.14f, attack: 0.12f, decay: 1.5f), Tone(0.5f, Osc.Sine, 450f, 2100f, 0.05f, attack: 0.12f, decay: 1.5f));
+            Set(Sfx.ProfSweep, Finish(sweep, 0.2f), 0.3f);
+            Set(Sfx.ProfSweepBack, Finish(Reverse(Mix(Tone(0.5f, Osc.Sine, 300f, 1400f, 0.14f, attack: 0.12f, decay: 1.5f), Tone(0.5f, Osc.Sine, 450f, 2100f, 0.05f, attack: 0.12f, decay: 1.5f))), 0.2f), 0.3f);
+            Set(Sfx.ProfScratch, Finish(Tremolo(Tone(0.55f, Osc.Sine, 2800f, 3800f, 0.1f, noise: 1f, lowpass: 0.75f, attack: 0.05f, decay: 0.8f), 24f, 0.7f), 0.1f), 0.3f);
+            Set(Sfx.ProfBar, Finish(Mix(Tone(0.3f, Osc.Sine, 900f, 300f, 0.12f, noise: 0.9f, lowpass: 0.2f, attack: 0.05f, decay: 2f),
+                Tone(0.25f, Osc.Sine, 200f, 250f, 0.06f, attack: 0.08f, decay: 2f)), 0.16f), 0.2f);
+            Set(Sfx.ProfChord, Finish(Reverb(Mix(Tone(0.85f, Osc.Sine, 110f, 110f, 0.12f, attack: 0.03f, decay: 2f), Tone(0.85f, Osc.Triangle, 165f, 165f, 0.12f, attack: 0.03f, decay: 2f),
+                Tone(0.85f, Osc.Sine, 220f, 220f, 0.12f, attack: 0.03f, decay: 2f), Tone(0.85f, Osc.Triangle, 277f, 277f, 0.1f, attack: 0.03f, decay: 2f))), 0.22f), 0.4f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));

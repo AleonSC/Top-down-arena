@@ -330,6 +330,7 @@ static partial class Program
 
             // The profile limit, and deleting.
             while (ProfileStore.List().Count < ProfileStore.MaxProfiles) ProfileStore.Create("P" + ProfileStore.List().Count);
+            Check(ProfileStore.MaxProfiles == 3, "three profile slots, so the picker always has four boxes");
             Check(ProfileStore.Create("One too many") == null, "no more than " + ProfileStore.MaxProfiles + " profiles");
             ProfileStore.SetActive(anthony);
             Check(ProfileStore.Delete(anthony) && ProfileStore.ActiveId != anthony && ProfileStore.ActiveId.Length > 0 && !Directory.Exists(Path.Combine(data, "profiles", anthony)), "deleting the active profile makes another active and removes its folder");

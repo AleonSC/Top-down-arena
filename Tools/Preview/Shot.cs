@@ -32,8 +32,8 @@ static partial class Shot {
     if (Directory.Exists(dir)) Directory.Delete(dir, true);
     ProfileStore.Init(dir, "");
     if (Environment.GetEnvironmentVariable("EMPTY") != null) return;
-    var names = Environment.GetEnvironmentVariable("MANY") != null ? new[] { "Anthony", "Sam", "Little Bee", "Aleon", "Mum", "Dad", "Grandpa" } : new[] { "Anthony", "Sam", "Little Bee" };
-    int[] ranks = { 14, 6, 3, 22, 9, 1, 31 };
+    var names = Environment.GetEnvironmentVariable("TWO") != null ? new[] { "Anthony", "Sam" } : new[] { "Anthony", "Sam", "Little Bee" };
+    int[] ranks = { 14, 6, 3 };
     for (int i = 0; i < names.Length; i++) {
       string id = ProfileStore.Create(names[i]);
       new Profile { Name = names[i], Xp = Rank.XpAt(ranks[i]) + 40, RunsWon = ranks[i] / 3, RunsLost = ranks[i] * 2 }.SaveTo(Path.Combine(dir, "profiles", id));

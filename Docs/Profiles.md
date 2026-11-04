@@ -3,7 +3,7 @@
 Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch (look C of
 `Docs/Mockups/whos-playing.html`, `ProfilesUi.cs`), plus a "Switch profile" button above the main menu's name card.
 Code: `Core/ProfileStore.cs`, `Profile.Name` (format 3), `Game/ProfilesUi.cs`; tests in the `saves` suite
-(`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`MANY=1 MANAGE=1 EMPTY=1`). Up to 8 profiles; a
+(`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`TWO=1 MANAGE=1 EMPTY=1`; the move: `shot.sh whotr whotr` with `PROFTR=<0..2.26>,<slot>[,back]`). At most **3 profiles** and always **four boxes** (three slots, an empty one says "Empty", and New profile, grayed out when all three are used), so the move to and from the menu is the same every time; a
 command-line start (`--host`, `--join`, `--autostart`) skips the screen. Profiles are listed by name.
 
 ## Decisions (owner)
@@ -72,3 +72,13 @@ Continue list (`deleteArmed`). Add the new files to `CODEMAP.md` and `HANDOFF.md
 
 No network message changes, so **no `Session.ProtocolVersion` bump**. Cloud sync and a PIN/lock per profile are out
 of scope.
+
+## The move to and from the menu (built, Nov 2026)
+
+Look C ("Plot points") of `Docs/Mockups/profile-transitions.html`, at half speed (~4.5 s), `Game/ProfileTransition.cs`.
+Picking a profile plays it forward; the menu's "Switch profile" plays it backwards. Each box shrinks into a point on the axis
+(a ping each), the points you didn't pick shoot off the ends, yours slides to the origin and opens into the menu box; the
+menu's own intro (`MenuIntro.cs`) runs from a remapped clock. Sounds are `Sfx.Prof*` (SoundBank.cs) plus the pause menu's
+thunk and key ticks. Any key skips it; nothing can be clicked meanwhile. Reduced effects or Visual effects off: no move.
+Audio and drawing only, no protocol bump. Preview: `PROFTR=<0..2.26>,<slot>[,back] Tools/Preview/shot.sh x whotr`.
+Profiles made before the limit (more than 3) stay on disk; the picker shows the first three until some are deleted.

@@ -597,7 +597,9 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    if (whoOpen)
+                    if (profTr)
+                        DrawProfTr();  // the picker and the menu trading places (ProfileTransition.cs)
+                    else if (whoOpen)
                         DrawWho();  // ProfilesUi.cs
                     else if (fieldGuideOpen)
                         DrawFieldGuideScreen();  // FieldGuide.cs (the main menu's button)

@@ -58,7 +58,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Saving, stats and text data (Core)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
-- `ProfileStore.cs`, `ProfilesUi.cs`: several profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu (`Docs/Profiles.md`)
+- `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: always four boxes (`Docs/Profiles.md`)
+- `ProfileTransition.cs`: the half-speed move between that screen and the main menu (plot points), with its sounds
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
 - `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
@@ -141,7 +142,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
-| Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs` (`Docs/Profiles.md`) |
+| Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs` (`Docs/Profiles.md`) |
 | Account rank, XP, cosmetics | `Rank.cs`, `Profile.cs`, `RankLook.cs`, `RankUi.cs`, `RankTrails.cs` (`Docs/Rank.md`) |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
 | Paths, challenge rooms, props | `Paths.cs`/`PathsUi.cs`, `Challenges.cs`/`ChallengeLook.cs`, `Props.cs`/`PropsLook.cs` |
