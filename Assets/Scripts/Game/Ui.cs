@@ -22,7 +22,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, meterThumb, check, hud, hudLit, hudRim, pill, rim;
+        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, meterThumb, check, hud, hudGrad, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
@@ -41,6 +41,8 @@ namespace Arena
 
             // In-match HUD: translucent so the arena shows through, with a lighter rim.
             hud = Style(Rounded(9, new Color(0.08f, 0.09f, 0.14f, 0.88f), new Color(0.04f, 0.05f, 0.08f, 0.88f), new Color(1f, 1f, 1f, 0.14f), 1.5f), 9);
+            // The upgrade cards' shading for HUD panels: white at the top and dark at the bottom, tinted by backgroundColor (HudPanel).
+            hudGrad = Style(Rounded(9, new Color(1f, 1f, 1f, 1f), new Color(0.14f, 0.15f, 0.2f, 1f), new Color(1f, 1f, 1f, 0.2f), 1.5f), 9);
             hudLit = Style(Rounded(9, new Color(1f, 1f, 1f, 0.9f), new Color(0.85f, 0.85f, 0.9f, 0.9f), new Color(1f, 1f, 1f, 1f), 2f), 9);
             hudRim = Style(Rounded(9, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 9);
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
@@ -446,7 +448,7 @@ namespace Arena
         /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
         /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
         /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size; sharp draws square corners (flat fills and a 1 px rim) for small buttons.
-        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false)
+        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false, bool glitch = false)
         {
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             float barH = sharp ? SharpChrome(r, on, hover, accent) : ChoiceChrome(r, on, hover, accent, true);
@@ -466,7 +468,11 @@ namespace Arena
                 float x = r.center.x - (ic + gap + tw) / 2f;
                 if (icon != null)
                     Icon(new Rect(x, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
-                Label(new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH), text, fs, name, TextAnchor.MiddleLeft, true);
+                var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH);
+                if (glitch)
+                    Glitch(tr, text, fs, name, TextAnchor.MiddleLeft);
+                else
+                    Label(tr, text, fs, name, TextAnchor.MiddleLeft, true);
             }
             return HitArea(r);
         }
@@ -703,13 +709,18 @@ namespace Arena
         public static void HudPanel(Rect r, Color? accent = null)
         {
             GUI.Box(r, GUIContent.none, hud);
+            // Shaded like the picker cards (CardArt.Body): a rich top fading to near-black, in the accent's colour (a cool slate when plain).
+            var rc = accent.HasValue ? new Color(accent.Value.r, accent.Value.g, accent.Value.b) : new Color(0.42f, 0.5f, 0.78f);
+            float k = accent.HasValue ? 0.34f : 0.2f, a = accent.HasValue ? Mathf.Clamp01(accent.Value.a) : 1f;
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.085f + rc.r * k, 0.095f + rc.g * k, 0.14f + rc.b * k, 0.95f);
+            GUI.Box(r, GUIContent.none, hudGrad);
             if (accent.HasValue)
             {
-                var old = GUI.backgroundColor;
-                GUI.backgroundColor = new Color(accent.Value.r, accent.Value.g, accent.Value.b, 0.22f * accent.Value.a);
-                GUI.Box(r, GUIContent.none, hudLit);
-                GUI.backgroundColor = old;
+                GUI.backgroundColor = new Color(rc.r, rc.g, rc.b, 0.1f * a);
+                GUI.Box(r, GUIContent.none, hudLit);  // the lit rim, a lighter wash than before: the gradient carries the colour now
             }
+            GUI.backgroundColor = old;
         }
 
         /// Just a HUD panel's rim, in a colour (an ability tile flashing; HudTiles.cs).
@@ -873,10 +884,16 @@ namespace Arena
         {
             float t = Time.unscaledTime, a = color.a;
             float off = Mathf.Max(1f, size * 0.045f);
-            float ph = t % 2.6f + (text.Length % 7) * 0.31f;  // titles on one screen don't all tear together
-            ph %= 2.6f;
-            bool burst = size >= 28 && ph < 0.14f;
-            float k = burst ? 3f + 2f * Mathf.Sin(t * 90f) : 1f;
+            // Crisp most of the time. The red/cyan split fades in over the half second before a glitch (the text goes blurry),
+            // holds as the glitch hits, then settles back. Big text also tears: the channels fly apart and a band slips sideways.
+            const float cycle = 3.6f, pre = 0.6f, len = 0.55f;
+            float ph = (t + (text.Length % 7) * 0.45f) % cycle;  // titles on one screen don't all glitch together
+            float p = ph < len ? ph / len : -1f;  // 0..1 through the glitch
+            float f = p >= 0f ? 1f - p * p * (3f - 2f * p) : ph > cycle - pre ? Mathf.Pow((ph - (cycle - pre)) / pre, 2f) : 0f;  // how split the colours are
+            float env = p >= 0f ? Mathf.Sin(p * Mathf.PI) : 0f;
+            env *= env;
+            float k = f * (1f + 2.2f * env);
+            bool tear = size >= 28 && env > 0.02f;
             if (glow.HasValue)
             {
                 var g = glow.Value;
@@ -888,14 +905,17 @@ namespace Arena
                 }
             }
             Label(new Rect(r.x, r.y + 1.5f, r.width, r.height), text, size, new Color(0f, 0f, 0f, 0.55f * a), align, true);
-            Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * a), align, true);
-            Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * a), align, true);
-            Label(r, text, size, color, align, true);
-            if (burst)
+            if (f > 0.01f)
             {
-                float by = r.height * (0.15f + 0.5f * (ph / 0.14f)), bh = r.height * 0.22f;
+                Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * f * a), align, true);
+                Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * f * a), align, true);
+            }
+            Label(r, text, size, color, align, true);
+            if (tear)
+            {
+                float by = r.height * (0.15f + 0.5f * p), bh = r.height * 0.22f;
                 GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, bh));
-                Label(new Rect((Mathf.Sin(t * 40f) < 0f ? -off * 5f : off * 5f), -by, r.width, r.height), text, size, color, align, true);
+                Label(new Rect(off * 4f * env * Mathf.Sin(p * 9f), -by, r.width, r.height), text, size, color, align, true);
                 GUI.EndGroup();
             }
         }

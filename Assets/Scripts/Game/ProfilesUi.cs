@@ -131,7 +131,7 @@ namespace Arena
                 Event.current.Use();
                 editing = false;
             }
-            Ui.Fancy(new Rect(0f, MenuTitleY - 56f, W, 80f), "WHO'S PLAYING?", 58, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
+            Ui.Glitch(new Rect(0f, MenuTitleY - 56f, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
             if (BeginUiGl())
             {
                 DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf, t);

@@ -11,14 +11,25 @@ namespace Arena
         public V2 Pos;       // where the player's game says it is (the target other screens follow)
         public V2 Disp;      // what's drawn: Pos, smoothed (Session.StepAvatars)
         public float Aim;    // which way it faces, radians (it turns the way it walks)
+        public bool Pvp;     // fighting: it can shoot and be shot (LobbyCombat.cs). Off by default; off means neither
+        public float Hp = Session.RoomHp;  // 0 means knocked out until the host respawns it
+        public float Down;   // the host: seconds of being knocked out left
+        public byte Respawns;  // counts up each time the host puts it back at a spawn spot, so its owner knows to follow
+        public double NextFire;  // (on the screen that fires for it) the earliest the next shot may go
+        public double LastHit;   // the host: when it was last hurt (health returns a few seconds after)
+        public double AbilityReady;  // (on the screen that casts for it) when its ability is ready again
+        public float BarrierLeft;    // a Tank's barrier: seconds left (every screen counts it down)
+        public float DashLeft;       // its own screen: seconds of dash left
+        public V2 DashDir;           // ...and which way
+        public byte SentHp = 100;  // the host: the health last broadcast, so regrowth only triggers a send when it shows
     }
 
     /// The lobby's Hangout room (Docs/Hangout.md): everyone's character walks around a shared room with WASD, wearing
-    /// their cosmetics. Cosmetic only: no shooting, no collisions. Each player moves their own avatar and sends its
+    /// their cosmetics, and (with PvP on) shoot each other (LobbyCombat.cs). Each player moves their own avatar and sends its
     /// position to the host (Msg.LobbyMove); the host clamps it to the room and sends everyone the lot (Msg.LobbyPos).
     public partial class Session
     {
-        public const float RoomW = 780f, RoomH = 560f, RoomMargin = 30f;  // the room, in its own units (1 unit = 1 UI pixel)
+        public const float RoomW = 2400f, RoomH = 1600f, RoomMargin = 30f;  // the room (a map the Hangout window scrolls over), in its own units (1 unit = 1 UI pixel)
         public const float AvatarSpeed = 230f;                            // units a second
         const double AvatarSendEvery = 1.0 / 15.0;                        // how often a position goes out (both ways)
 
@@ -47,6 +58,7 @@ namespace Arena
                     gone.Add(id);
             foreach (int id in gone)
                 Avatars.Remove(id);
+            Shots.RemoveAll(sh => !Avatars.ContainsKey(sh.Owner));
             int slot = 0;
             foreach (int id in Lobby.Keys)
             {
@@ -106,6 +118,10 @@ namespace Arena
                     w.Write(kv.Key);
                     w.Write(kv.Value.Pos);
                     w.Write(kv.Value.Aim);
+                    w.Write(kv.Value.Pvp);
+                    w.Write((byte)Math.Round(kv.Value.Hp));
+                    w.Write(kv.Value.Respawns);
+                    kv.Value.SentHp = (byte)Math.Round(kv.Value.Hp);
                 }
                 Broadcast(Proto.End(w));
             }
@@ -117,6 +133,7 @@ namespace Arena
                 var w = Proto.Begin(Msg.LobbyMove);
                 w.Write(a.Pos);
                 w.Write(a.Aim);
+                w.Write(a.Pvp);
                 SendToHost(Proto.End(w));
             }
         }
@@ -126,9 +143,13 @@ namespace Arena
         {
             var pos = r.ReadV2();
             float aim = r.ReadSingle();
+            bool pvp = r.ReadBoolean();
             Avatar a;
             if (!Avatars.TryGetValue(peer, out a) || Game.Running)
                 return;
+            SetPvp(a, pvp);
+            if (a.Hp <= 0f)
+                return;  // knocked out: it stays where it fell
             a.Pos = ClampToRoom(pos);
             a.Aim = float.IsNaN(aim) || float.IsInfinity(aim) ? a.Aim : aim;
             avatarsDirty = true;
@@ -143,15 +164,29 @@ namespace Arena
                 int id = r.ReadInt32();
                 var pos = ClampToRoom(r.ReadV2());
                 float aim = r.ReadSingle();
+                bool pvp = r.ReadBoolean();
+                float hp = r.ReadByte();
+                byte respawns = r.ReadByte();
                 if (!Lobby.ContainsKey(id))
                     continue;
                 Avatar a;
                 if (!Avatars.TryGetValue(id, out a))
-                    Avatars[id] = a = new Avatar { Pos = pos, Disp = pos, Aim = aim };
-                else if (id != MyId)  // our own is ours: the host's copy lags behind what we've done since
+                    Avatars[id] = a = new Avatar { Pos = pos, Disp = pos, Aim = aim, Pvp = pvp, Hp = hp, Respawns = respawns };
+                else
                 {
-                    a.Pos = pos;
-                    a.Aim = aim;
+                    a.Hp = hp;
+                    if (id != MyId)  // our own position and PvP choice are ours: the host's copy lags behind what we've done since
+                    {
+                        a.Pos = pos;
+                        a.Aim = aim;
+                        a.Pvp = pvp;
+                    }
+                    else if (respawns != a.Respawns)  // ...unless the host has put us back at a spawn spot
+                    {
+                        a.Pos = a.Disp = pos;
+                        a.Respawns = respawns;
+                    }
+                    a.Respawns = respawns;
                 }
             }
         }

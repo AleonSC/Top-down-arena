@@ -54,8 +54,8 @@ namespace Arena
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 22f;
-                    Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 58f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
-                        new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)));
+                    Ui.Glitch(new Rect(at.X - 100f, at.Y - r - 58f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
+                        new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)), TextAnchor.MiddleCenter);
                 }
                 if (p.Downed)
                 {
@@ -393,6 +393,8 @@ namespace Arena
             Ui.HudPanel(r, ready ? new Color(accent.r, accent.g, accent.b, ultimate ? 0.6f + 0.4f * pulse : 1f) : (Color?)null);
             if (look.White > 0f)
                 Ui.HudRim(r, new Color(1f, 1f, 1f, 0.9f * look.White));
+            if (fxOn)
+                DrawTileRim(r, i, accent, slot.Charges > 0, slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, game.Cooldown(me, i)), tileUse[i], fxReduced);
 
             // Cooldown: a dark shade over the tile that drains downward as it recharges.
             if (!ready)

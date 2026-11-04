@@ -1,0 +1,237 @@
+<title>Hangout Transition</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three looped animations of the real lobby (1300 x 730, scaled to fit). The Loadout tab's preview window
+   grows into the Hangout room. Each loops forward, holds, runs backward (the "< Loadout" return), holds. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --k: 1;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 34px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+.tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.ctl { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--soft); }
+.ctl label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.ctl button { font: 600 13px var(--font-display); letter-spacing: .08em; color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 14px; cursor: pointer; }
+.ctl button:focus-visible, .ctl input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.scale { position: relative; width: 100%; overflow: hidden; }
+.notes { display: grid; gap: 6px; color: var(--soft); padding-left: 18px; margin: 0; max-width: 80ch; }
+
+/* ---- the lobby ---- */
+.lobby { --D: calc(0.9s * var(--k)); position: absolute; left: 0; top: 0; width: 1300px; height: 730px; overflow: hidden; transform-origin: 0 0; background: radial-gradient(ellipse at 30% 20%, #151b26, #080a10 70%); font-family: var(--font-display); color: #fff; }
+.lobby.go { --dir: normal; } .lobby.rev { --dir: reverse; }
+.abs { position: absolute; box-sizing: border-box; }
+.title { left: 42px; top: 16px; font-size: 40px; font-weight: 800; letter-spacing: .06em; }
+.mode { left: 46px; top: 80px; width: 376px; height: 52px; border-radius: 26px; background: rgba(10,12,20,.9); display: flex; padding: 3px; }
+.mode i { flex: 1; font-style: normal; text-align: center; font-size: 13px; font-weight: 700; line-height: 46px; color: #8793a6; border-radius: 23px; }
+.mode i.on { background: rgba(80,140,255,.85); color: #fff; }
+.partyh { left: 42px; top: 156px; font-size: 14px; color: #8793a6; letter-spacing: .1em; }
+.hbtn { left: 333px; top: 148px; width: 90px; height: 24px; border-radius: 3px; background: rgba(40,60,70,.8); font-size: 11px; font-weight: 700; color: #cfe; text-align: center; line-height: 24px; letter-spacing: .06em; }
+.hbtn span { position: absolute; inset: 0; }
+.card { left: 42px; top: 187px; width: 381px; height: 90px; border-radius: 12px; border: 2px solid #e8b64a; background: #0f1420; box-shadow: 0 0 14px rgba(232,182,74,.3); }
+.card .face { position: absolute; left: 8px; top: 8px; width: 72px; height: 72px; border-radius: 12px; background: #1d2535; }
+.card b { position: absolute; left: 94px; top: 10px; font-size: 20px; }
+.card small { position: absolute; left: 94px; top: 36px; font-size: 14px; color: #5aa0ff; font-weight: 700; }
+.card em { position: absolute; left: 94px; top: 58px; font-style: normal; font-size: 12px; color: #8793a6; }
+.card .st { position: absolute; right: 10px; bottom: 10px; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 10px; background: #1c2434; color: #aab5c8; }
+.open { left: 42px; width: 381px; height: 88px; border-radius: 12px; border: 1px dashed #2a3446; text-align: center; line-height: 88px; font-size: 18px; font-weight: 700; color: #4a5568; letter-spacing: .08em; }
+.btn { left: 42px; width: 381px; height: 52px; border-radius: 8px; background: #1b2438; border-bottom: 3px solid #2b6cc4; text-align: center; line-height: 49px; font-size: 22px; font-weight: 700; }
+.tabs { left: 447px; top: 18px; display: flex; gap: 8px; font-size: 13px; font-weight: 700; color: #aab5c8; }
+.tabs i { font-style: normal; padding: 10px 14px; background: rgba(40,50,70,.8); border-radius: 6px; }
+.tabs i.on { background: #2a68c9; color: #fff; }
+
+/* loadout panel (everything except the preview window) */
+.panel { left: 447px; top: 70px; width: 810px; height: 625px; border: 3px solid #3a6fd0; border-radius: 14px; background: rgba(15,24,48,.92); box-shadow: 0 0 22px rgba(58,111,208,.35); }
+.panel .ph { position: absolute; background: rgba(120,150,210,.16); border-radius: 6px; }
+.panel .pt { position: absolute; background: rgba(160,180,220,.28); height: 8px; border-radius: 4px; }
+.panel .lbl { position: absolute; font-size: 11px; letter-spacing: .1em; color: #8aa0c8; }
+
+/* preview window: the source of the Hangout */
+.box { left: 469px; top: 90px; width: 220px; height: 186px; border: 2px solid #3a6fd0; background: rgba(5,9,22,.95); overflow: hidden; z-index: 3; }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 44px 44px; background-position: 6px 10px; }
+.dummy { position: absolute; width: 0; height: 0; border: 7px solid transparent; border-left: 12px solid #ff5a4a; }
+.ship { position: absolute; left: 50%; top: 76%; width: 0; height: 0; z-index: 2; }
+.ship svg { position: absolute; left: -30px; top: -30px; overflow: visible; }
+.plate { position: absolute; left: -48px; top: 32px; width: 96px; text-align: center; font-size: 11px; font-weight: 700; line-height: 18px; border-radius: 9px; background: rgba(15,20,32,.92); border: 1.5px solid #e8b64a; }
+.plate.b { border-color: #5aa0ff; } .plate.c { border-color: #c06bff; }
+
+/* the room's own things, laid over the grown window */
+.roomx { left: 458px; top: 102px; width: 790px; height: 565px; overflow: hidden; pointer-events: none; z-index: 4; border: 1px solid rgba(77,224,189,.5); }
+.ent { position: absolute; width: 0; height: 0; }
+.ent svg { position: absolute; left: -30px; top: -30px; overflow: visible; }
+.rimR { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: var(--teal); box-shadow: 0 0 16px var(--teal); }
+.rimB { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--teal); box-shadow: 0 0 16px var(--teal); }
+.mini { position: absolute; left: 14px; top: 14px; width: 150px; height: 100px; border: 1px solid rgba(77,224,189,.7); background: rgba(5,10,20,.8); border-radius: 4px; }
+.mini .vp { position: absolute; left: 50px; top: 34px; width: 49px; height: 32px; border: 1.5px solid #fff; background: rgba(255,255,255,.08); }
+.mini .d { position: absolute; width: 6px; height: 6px; border-radius: 50%; margin: -3px 0 0 -3px; }
+.pvp { position: absolute; left: 14px; top: 122px; width: 150px; height: 40px; border-radius: 6px; background: rgba(8,12,20,.85); border: 1px solid #24304a; display: flex; align-items: center; gap: 9px; padding: 0 10px; font-size: 14px; font-weight: 700; letter-spacing: .08em; }
+.pvp .box2 { width: 20px; height: 20px; border-radius: 5px; border: 2px solid #6c7a90; background: rgba(255,255,255,.04); flex: none; }
+.pvp small { display: block; font-size: 9px; font-weight: 500; letter-spacing: 0; color: #8793a6; line-height: 1.1; }
+.hint { position: absolute; right: 14px; top: 12px; font-size: 12px; font-weight: 600; color: #8793a6; }
+
+/* ---- shared timeline: one length D, every property keyed in % so the reverse run is the exact opposite ---- */
+.go .panel, .rev .panel { animation: panelOut var(--D) linear both var(--dir); animation-direction: var(--dir); }
+.go .hbtn span.a, .rev .hbtn span.a { animation: swapA var(--D) linear both; animation-direction: var(--dir); }
+.go .hbtn span.b, .rev .hbtn span.b { animation: swapB var(--D) linear both; animation-direction: var(--dir); }
+.hbtn span.b { opacity: 0; }
+.go .tabs i.on, .rev .tabs i.on { animation: tabOn var(--D) linear both; animation-direction: var(--dir); }
+@keyframes panelOut { 0% { opacity: 1; } 40% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes swapA { 0%, 45% { opacity: 1; } 55%, 100% { opacity: 0; } }
+@keyframes swapB { 0%, 45% { opacity: 0; } 55%, 100% { opacity: 1; } }
+@keyframes tabOn { 0%, 50% { background: #2a68c9; } 100% { background: #1d6e60; } }
+.roomx, .roomfull { opacity: 0; }
+
+/* look A: Grow */
+.A .box { }
+.A.go .box, .A.rev .box { animation: grow var(--D) cubic-bezier(.65,0,.2,1) both; animation-direction: var(--dir); }
+@keyframes grow { 0% { left: 469px; top: 90px; width: 220px; height: 186px; border-color: #3a6fd0; }
+  100% { left: 458px; top: 102px; width: 790px; height: 565px; border-color: rgba(77,224,189,.5); } }
+.A.go .ship, .A.rev .ship, .C.go .ship, .C.rev .ship { animation: shipMove var(--D) cubic-bezier(.65,0,.2,1) both; animation-direction: var(--dir); }
+@keyframes shipMove { 0% { left: 50%; top: 76%; transform: scale(.85); } 100% { left: 30%; top: 70%; transform: scale(1.5); } }
+.go .dummy, .rev .dummy { animation: fadeEarly var(--D) linear both; animation-direction: var(--dir); }
+@keyframes fadeEarly { 0% { opacity: 1; } 30%, 100% { opacity: 0; } }
+.go .roomx, .rev .roomx { animation: roomIn var(--D) linear both; animation-direction: var(--dir); }
+@keyframes roomIn { 0%, 60% { opacity: 0; } 100% { opacity: 1; } }
+
+/* look B: Iris. The room is already in place beneath; a teal ring opens from the preview window. */
+.roomfull { left: 458px; top: 102px; width: 790px; height: 565px; overflow: hidden; z-index: 4; border: 1px solid rgba(77,224,189,.5); background: rgba(3,6,14,.95); opacity: 1; clip-path: circle(0px at 121px 80px); }
+.B.go .roomfull, .B.rev .roomfull { animation: iris var(--D) cubic-bezier(.5,0,.2,1) both; animation-direction: var(--dir); }
+@keyframes iris { 0% { clip-path: circle(0px at 121px 80px); } 100% { clip-path: circle(1100px at 121px 80px); } }
+.ring { position: absolute; left: 121px; top: 80px; width: 0; height: 0; border: 3px solid var(--teal); border-radius: 50%; box-shadow: 0 0 22px var(--teal), inset 0 0 22px rgba(77,224,189,.5); transform: translate(-50%, -50%); z-index: 6; opacity: 0; }
+.B.go .ring, .B.rev .ring { animation: ringOpen var(--D) cubic-bezier(.5,0,.2,1) both; animation-direction: var(--dir); }
+@keyframes ringOpen { 0% { width: 0; height: 0; opacity: 1; } 85% { opacity: 1; } 100% { width: 2200px; height: 2200px; opacity: 0; } }
+.B.go .box, .B.rev .box { animation: boxHold var(--D) linear both; animation-direction: var(--dir); }
+@keyframes boxHold { 0%, 10% { opacity: 1; } 30%, 100% { opacity: 0; } }
+
+/* look C: Pull-back. Same growth as A, but the grid shrinks like a camera pulling out and the others walk in. */
+.C.go .box, .C.rev .box { animation: grow var(--D) cubic-bezier(.65,0,.2,1) both; animation-direction: var(--dir); }
+.C.go .grid, .C.rev .grid { animation: pull var(--D) cubic-bezier(.65,0,.2,1) both; animation-direction: var(--dir); }
+@keyframes pull { 0% { background-size: 110px 110px; } 100% { background-size: 50px 50px; } }
+.C.go .roomx, .C.rev .roomx { animation: roomInC var(--D) linear both; animation-direction: var(--dir); }
+@keyframes roomInC { 0%, 25% { opacity: 0; } 40%, 100% { opacity: 1; } }
+.C .mira { animation: none; }
+.C.go .mira, .C.rev .mira { animation: walkR var(--D) cubic-bezier(.3,0,.2,1) both; animation-direction: var(--dir); }
+.C.go .rook, .C.rev .rook { animation: walkB var(--D) cubic-bezier(.3,0,.2,1) both; animation-direction: var(--dir); }
+@keyframes walkR { 0%, 25% { transform: translateX(340px); } 100% { transform: none; } }
+@keyframes walkB { 0%, 25% { transform: translateY(260px); } 100% { transform: none; } }
+.C.go .uiIn, .C.rev .uiIn { animation: uiIn var(--D) linear both; animation-direction: var(--dir); }
+@keyframes uiIn { 0%, 65% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) { .lobby * { animation-duration: 0.001s !important; } }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hangout upgrade</div>
+    <h1>Lobby to <span>Hangout</span></h1>
+    <p class="lead">The Loadout tab's preview window (the square with your ship in it) becomes the Hangout room. Three ways to do it, each about 0.9 s like the Play button's scan wipe. Each one plays forward, holds, then runs backward the way the return to Loadout would. The room is the 790 x 565 one you have now, with the layout B extras: minimap top left, the PvP toggle under it.</p>
+    <div class="ctl"><label for="slow"><input type="checkbox" id="slow"> Slow motion (3x)</label><button id="restart" type="button">RESTART ALL</button></div>
+  </header>
+  <div id="out" style="display:grid;gap:34px"></div>
+  <section>
+    <h2>Details in all three</h2>
+    <ul class="notes">
+      <li>The loadout panel fades out in the first 40%. Everything else on the left (party, Ready, Start) stays put, and the Hangout button swaps to "&lt; Loadout" halfway.</li>
+      <li>Your ship scales to the room's 1.5x size as it moves from the window to its spot; the room extras (name plates, minimap, PvP toggle, glowing border) arrive in the last 40%.</li>
+      <li>No clicks during the animation. With reduced effects on it snaps, like the Play wipe.</li>
+    </ul>
+  </section>
+</div>
+<script>
+function man(ang, ring) {
+  return '<svg width="60" height="60" viewBox="-30 -30 60 60"><g transform="rotate(' + ang + ')"><rect x="8" y="-9" width="22" height="4" rx="1" fill="#8aa0b8"/><rect x="8" y="5" width="22" height="4" rx="1" fill="#8aa0b8"/><rect x="26" y="-9" width="4" height="4" fill="#6fd0ff"/><rect x="26" y="5" width="4" height="4" fill="#6fd0ff"/></g><circle r="15" fill="#2a303c" stroke="' + ring + '" stroke-width="4"/><circle r="6" fill="none" stroke="#e8f0ff" stroke-width="2"/></svg>';
+}
+function party() {
+  var h = '<div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div><div class="abs partyh">PARTY (1/3)</div>';
+  h += '<div class="abs hbtn"><span class="a">HANGOUT &gt;</span><span class="b">&lt; LOADOUT</span></div>';
+  h += '<div class="abs card"><div class="face"></div><b>Antaleon</b><small>Soldier Tank</small><em>Scattergun · Barrier</em><div class="st">NOT READY</div></div>';
+  h += '<div class="abs open" style="top:291px">OPEN SLOT</div><div class="abs open" style="top:388px">OPEN SLOT</div>';
+  h += '<div class="abs btn" style="top:578px">✔ Ready?</div><div class="abs btn" style="top:642px;opacity:.7">▶ Start</div>';
+  h += '<div class="abs tabs"><i class="on">LOADOUT</i><i>PERKS</i><i>DIFFICULTY</i><i>MODIFIERS</i></div>';
+  return h;
+}
+function panel() {
+  var h = '<div class="abs panel">', i, j;
+  h += '<div class="lbl" style="left:268px;top:18px">ROLE</div>';
+  for (i = 0; i < 4; i++) h += '<div class="ph" style="left:' + (268 + i * 134) + 'px;top:40px;width:124px;height:44px"></div>';
+  h += '<div class="lbl" style="left:268px;top:98px">CLASS</div>';
+  for (j = 0; j < 2; j++) for (i = 0; i < 4; i++) h += '<div class="ph" style="left:' + (268 + i * 134) + 'px;top:' + (120 + j * 38) + 'px;width:124px;height:30px"></div>';
+  h += '<div class="lbl" style="left:268px;top:208px">WEAPON</div><div class="lbl" style="left:538px;top:208px">ABILITY · SPACE</div>';
+  for (j = 0; j < 2; j++) for (i = 0; i < 4; i++) h += '<div class="ph" style="left:' + (268 + i * 134) + 'px;top:' + (230 + j * 38) + 'px;width:124px;height:30px"></div>';
+  h += '<div class="ph" style="left:268px;top:344px;width:520px;height:236px;background:rgba(10,16,34,.8)"></div>';
+  for (i = 0; i < 5; i++) h += '<div class="pt" style="left:286px;top:' + (400 + i * 22) + 'px;width:' + (200 + (i % 3) * 40) + 'px"></div>';
+  h += '<div class="ph" style="left:14px;top:206px;width:220px;height:190px;background:transparent"></div>';
+  h += '<div class="lbl" style="left:80px;top:226px;font-size:16px;color:#bcd">Soldier Tank</div>';
+  for (i = 0; i < 4; i++) h += '<div class="pt" style="left:18px;top:' + (262 + i * 28) + 'px;width:' + (170 - i * 20) + 'px"></div>';
+  h += '</div>';
+  return h;
+}
+function previewBox() {
+  var h = '<div class="abs box"><div class="grid"></div>';
+  h += '<div class="dummy" style="left:70px;top:48px"></div><div class="dummy" style="left:138px;top:52px"></div>';
+  h += '<div class="ship">' + man(-90, '#3a8fe0') + '</div></div>';
+  return h;
+}
+function extras() {
+  var h = '<div class="rimR"></div><div class="rimB"></div>';
+  h += '<div class="mini uiIn"><div class="vp"></div><div class="d" style="left:75px;top:72px;background:#3a8fe0"></div><div class="d" style="left:120px;top:60px;background:#5aa0ff"></div><div class="d" style="left:60px;top:82px;background:#c06bff"></div></div>';
+  h += '<div class="pvp uiIn"><span class="box2"></span><span>PVP<small>Off: no shooting</small></span></div>';
+  h += '<div class="hint uiIn">Mouse aims · click to fire</div>';
+  return h;
+}
+function others() {
+  return '<div class="ent mira" style="left:560px;top:215px">' + man(200, '#5aa0ff') + '<div class="plate b">Mira</div></div><div class="ent rook" style="left:150px;top:430px">' + man(20, '#c06bff') + '<div class="plate c">Rook</div></div>';
+}
+function mePlate() { return '<div class="ent" style="left:237px;top:395px"><div class="plate">Antaleon</div></div>'; }
+var looks = [
+  { c: 'A', tag: 'Plain and quick', name: 'A. Grow', pros: '<b>What you see:</b> the preview window\'s frame stretches out into the room while the loadout panel fades. Your ship scales up and slides to its spot. <b>Feels like:</b> the window opening up.',
+    html: function () { return party() + panel() + previewBox() + '<div class="abs roomx">' + mePlate() + others() + extras() + '</div>'; } },
+  { c: 'B', tag: 'Most dramatic', name: 'B. Iris', pros: '<b>What you see:</b> a teal ring opens from the middle of the preview window and the room appears inside it, wiping the loadout panel away. <b>Feels like:</b> a portal. Same ring in reverse on the way back.',
+    html: function () { return party() + panel() + previewBox() + '<div class="abs roomfull"><div class="grid" style="background-size:50px 50px"></div>' + mePlate() + '<div class="ent" style="left:237px;top:395px;margin-top:-1px">' + man(-90, '#3a8fe0').replace('<svg', '<svg style="transform:scale(1.5)"') + '</div>' + others() + extras() + '<div class="ring"></div></div>'; } },
+  { c: 'C', tag: 'Most alive', name: 'C. Pull-back', pros: '<b>What you see:</b> like A, but the grid shrinks as the window grows, like a camera pulling out, and the other party members walk in from the edges. <b>Feels like:</b> arriving in a place that already has people in it.',
+    html: function () { return party() + panel() + previewBox() + '<div class="abs roomx">' + mePlate() + others() + extras() + '</div>'; } }
+];
+var out = document.getElementById('out'), stages = [];
+looks.forEach(function (l) {
+  var s = document.createElement('section');
+  s.innerHTML = '<div class="tag">' + l.tag + '</div><h2>' + l.name + '</h2><p class="pros">' + l.pros + '</p><div class="frame"><div class="scale"><div class="lobby ' + l.c + '">' + l.html() + '</div></div></div>';
+  out.appendChild(s);
+  stages.push(s.querySelector('.lobby'));
+});
+function fit() {
+  document.querySelectorAll('.scale').forEach(function (s) {
+    var k = s.clientWidth / 1300;
+    s.style.height = (730 * k) + 'px';
+    s.querySelector('.lobby').style.transform = 'scale(' + k + ')';
+  });
+}
+fit(); addEventListener('resize', fit);
+var timers = [], gen = 0;
+function setCls(el, c) { el.classList.remove('go', 'rev'); void el.offsetWidth; if (c) el.classList.add(c); }
+function loop(el, myGen) {
+  var D = 900 * (document.getElementById('slow').checked ? 3 : 1);
+  setCls(el, null);
+  function step(c, wait, next) { timers.push(setTimeout(function () { if (myGen !== gen) return; setCls(el, c); timers.push(setTimeout(function () { if (myGen === gen) next(); }, wait)); }, 0)); }
+  step('go', D + 1500, function () { step('rev', D + 900, function () { loop(el, myGen); }); });
+}
+function startAll() { gen++; timers.forEach(clearTimeout); timers = []; stages.forEach(function (el, i) { timers.push(setTimeout(function () { loop(el, gen); }, 500 + i * 120)); }); }
+document.getElementById('restart').onclick = startAll;
+document.getElementById('slow').onchange = function () { document.documentElement.style.setProperty('--k', this.checked ? 3 : 1); startAll(); };
+startAll();
+</script>
