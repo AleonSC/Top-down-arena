@@ -85,7 +85,7 @@ namespace Arena
             float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f;
             int rank = p.RankNow;
 
-            // The preview: you, moving, with your trail, background and frame.
+            // The preview: you, moving, with your trail and background (the frame shows on the card below).
             var look = new Rect(x, top, 340f, 200f);
             if (BeginUiGl())
             {
@@ -95,9 +95,6 @@ namespace Arena
                 DrawGenericPlayer(t);
                 EndUiGl();
             }
-            Color? frameCol = FrameOf(p);
-            if (frameCol.HasValue)
-                FrameOutline(new Rect(look.x + 70f, look.y + 36f, look.width - 140f, look.height - 72f), frameCol.Value);
             Ui.Label(new Rect(x, look.yMax + 8f, 340f, 16f), "HOW OTHERS SEE YOU", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             DrawLookCard(new Rect(x, look.yMax + 28f, 340f, 88f), p, t);
 
@@ -142,13 +139,6 @@ namespace Arena
             p.Equip(kind, id);
             p.Save();
             session.ShareCosmetics();
-        }
-
-        static Color? FrameOf(Profile p)
-        {
-            if (!Rank.Owns(p.RankNow, p.Frame))
-                return null;
-            return RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(p.Frame)));
         }
 
         /// A rim in four thin lines (soft glow under it), for a frame preview.
