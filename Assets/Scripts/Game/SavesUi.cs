@@ -52,6 +52,9 @@ namespace Arena
         int menuOlderPage;   // which page of them (three to a page)
         float menuOlderK;    // 0 = latest run, 1 = older runs; in between the screen is growing (or shrinking back)
         const float MenuOlderLen = 0.4f;
+        string menuHdrShown;   // the header screen's text as typed so far (null = not shown yet, so it appears at once)
+        float menuHdrT;        // time until the next character is typed or erased
+        const float MenuHdrCharTime = 0.025f;
 
         /// Play was clicked: the box shows the picker (a new run, or your saved runs).
         void OpenPlayPicker()
@@ -62,6 +65,7 @@ namespace Arena
             menuPlayOlder = false;
             menuOlderPage = 0;
             menuOlderK = 0f;
+            menuHdrShown = null;
             menuPlayOpen = true;
         }
 
@@ -159,14 +163,32 @@ namespace Arena
         void DrawPickerHeader(Rect c, bool live, bool olderWanted)
         {
             bool calm = fxReduced;
-            bool older = olderWanted && menuOlderK >= 0.5f;
+            bool older = olderWanted;
             var hs = new Rect(c.x + 30f, c.y + 10f, 488f, 44f);
             int pages = Mathf.Max(1, (savedRuns.Count - 1 + 2) / 3);
             menuOlderPage = Mathf.Clamp(menuOlderPage, 0, pages - 1);
             bool prev = false, next = false;
             CrtUi.Begin(hs);
-            string title = older ? "OLDER RUNS" : savedRuns.Count > 0 ? "CONTINUE YOUR LATEST RUN" : "START A RUN";
-            CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), title, 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            string title = older ? "OLDER RUNS" : savedRuns.Count > 0 ? "LATEST RUN" : "START A RUN";
+            // The title is typed: the old words are erased from the end, then the new ones typed in.
+            bool typing = false;
+            if (menuHdrShown == null || !(fxOn && !fxReduced))
+                menuHdrShown = title;
+            else if (menuHdrShown != title)
+            {
+                typing = true;
+                if (Event.current.type == EventType.Repaint)
+                {
+                    menuHdrT -= Time.unscaledDeltaTime;
+                    while (menuHdrT <= 0f && menuHdrShown != title)
+                    {
+                        menuHdrT += MenuHdrCharTime;
+                        menuHdrShown = title.StartsWith(menuHdrShown) ? title.Substring(0, menuHdrShown.Length + 1) : menuHdrShown.Substring(0, menuHdrShown.Length - 1);
+                    }
+                }
+            }
+            bool cursor = typing || calm == false && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
+            CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), menuHdrShown + (cursor ? "_" : " "), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
             if (older && menuOlderK >= 1f && pages > 1)
             {
                 prev = CrtUi.Small(new Rect(hs.xMax - 130f, hs.y + 6f, 32f, 32f), "\u2039", null, 20, calm);
