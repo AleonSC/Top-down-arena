@@ -120,17 +120,23 @@ namespace Arena
             WithAlpha(a, () =>
             {
                 Ui.BodyBox(r);
-                IconTile(new Rect(r.x + 22f, r.center.y - 26f, 52f, 52f), null, blue, 0f);
+                // The tip sits on a green CRT screen inset in the box (Docs/Mockups/crt-tip-box.html, B): picture tile, TIP, topic, text,
+                // and the count with Prev / Next, all on the screen. DrawMenuTipGl draws the picture over the tile.
+                var scr = new Rect(r.x + 10f, r.y + 10f, r.width - 20f, r.height - 20f);
+                bool calm = fxReduced;
+                CrtUi.Begin(scr);
+                CrtUi.Tile(new Rect(r.x + 22f, r.center.y - 26f, 52f, 52f));
                 float tx = r.x + 92f, tw = r.width - 92f - 196f;
-                Ui.Label(new Rect(tx, r.y + 9f, 32f, 20f), "TIP", 11, new Color(blue.r, blue.g, blue.b, ca), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(tx + 32f, r.y + 9f, tw - 32f, 20f), topic, 17, new Color(1f, 1f, 1f, ca), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(tx, r.y + 31f, tw, r.height - 34f), body, 14, new Color(0.78f, 0.82f, 0.91f, 0.95f * ca), TextAnchor.UpperLeft, false, true);
+                var ink = CrtUi.Ink;
+                var dim = CrtUi.Dim;
+                CrtUi.Text(new Rect(tx, r.y + 15f, 32f, 20f), "TIP", 11, new Color(dim.r, dim.g, dim.b, ca), TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(tx + 32f, r.y + 15f, tw - 32f, 20f), topic, 17, new Color(ink.r, ink.g, ink.b, ca), TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(tx, r.y + 36f, tw, r.height - 44f), body, 14, new Color(dim.r + 0.1f, dim.g + 0.25f, dim.b + 0.2f, 0.95f * ca), TextAnchor.UpperLeft, false, calm);
                 float bx = r.xMax - 20f - 168f;
-                Ui.Label(new Rect(bx, r.y + 16f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, blue, TextAnchor.MiddleRight, true);
-                var pr = new Rect(bx, r.y + 40f, 80f, 32f);
-                var nr = new Rect(bx + 88f, r.y + 40f, 80f, 32f);
-                prev = MenuVhs.Draw(pr, "TRK 05", live && show >= 1f, fxReduced, () => Ui.SmallButton(pr, "< Prev", 13));  // the same tape hover, tick and snap as the menu buttons
-                next = MenuVhs.Draw(nr, "TRK 06", live && show >= 1f, fxReduced, () => Ui.SmallButton(nr, "Next >", 13));
+                CrtUi.Text(new Rect(bx, r.y + 17f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, dim, TextAnchor.MiddleRight, true, calm);
+                prev = CrtUi.Small(new Rect(bx, r.y + 42f, 80f, 30f), "< PREV", null, 14, calm);
+                next = CrtUi.Small(new Rect(bx + 88f, r.y + 42f, 80f, 30f), "NEXT >", null, 14, calm);
+                CrtUi.End(scr, Time.unscaledTime, calm);
             });
             if (live && show >= 1f && (prev || next))
             {

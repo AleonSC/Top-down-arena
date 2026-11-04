@@ -29,6 +29,13 @@ namespace Arena
             Ui.Fill(new Rect(r.xMax - w, r.y, w, r.height), c);
         }
 
+        /// An outlined, faintly lit square for a picture to sit in.
+        public static void Tile(Rect r)
+        {
+            Ui.Fill(r, new Color(Ink.r, Ink.g, Ink.b, 0.07f));
+            Edge(r, 2f, Ink);
+        }
+
         /// A label that glows: four faint copies a pixel around it, then the text.
         public static void Text(Rect r, string s, int size, Color c, TextAnchor align, bool bold, bool calm)
         {
