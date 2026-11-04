@@ -514,6 +514,7 @@ namespace Arena
                 AdvanceJukebox();
             }
             sounds.UpdateMusic(wanted, keep, Time.unscaledDeltaTime, keep2);
+            sounds.UpdateHoverBed(MenuVhs.Resting, Time.unscaledDeltaTime);
         }
 
         void FixedUpdate()

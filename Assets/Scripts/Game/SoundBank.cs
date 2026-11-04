@@ -57,8 +57,47 @@ namespace Arena
         readonly float[] voiceFade = new float[2];
         int activeVoice;
 
+        // The tape hiss under a hovered menu button (MenuVhs.cs): a quiet looping bed that fades in and out. Reduced effects skips it.
+        AudioSource hissVoice;
+        float hissLevel;
+
+        public void UpdateHoverBed(bool on, float dt)
+        {
+            if (hissVoice == null)
+                return;
+            float target = on && !Muted ? 0.05f * Master * Effects : 0f;
+            hissLevel = Mathf.MoveTowards(hissLevel, target, dt * 0.05f / (on ? 0.15f : 0.25f));
+            hissVoice.volume = hissLevel;
+            if (hissLevel > 0.0005f && !hissVoice.isPlaying)
+                hissVoice.Play();
+            else if (hissLevel <= 0.0005f && hissVoice.isPlaying)
+                hissVoice.Stop();
+        }
+
+        void MakeHoverBed(GameObject owner)
+        {
+            int n = Rate * 2;
+            var d = new float[n];
+            float prev = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float x = (float)rng.NextDouble() * 2f - 1f;
+                d[i] = x - prev * 0.85f;  // brighter hiss: a one-pole high-pass
+                prev = x;
+            }
+            var clip = AudioClip.Create("menu_hiss", n, 1, Rate, false);
+            clip.SetData(d, 0);
+            hissVoice = owner.AddComponent<AudioSource>();
+            hissVoice.clip = clip;
+            hissVoice.loop = true;
+            hissVoice.playOnAwake = false;
+            hissVoice.spatialBlend = 0f;
+            hissVoice.volume = 0f;
+        }
+
         public void StartMusic(GameObject owner)
         {
+            MakeHoverBed(owner);
             for (int v = 0; v < musicVoices.Length; v++)
             {
                 musicVoices[v] = owner.AddComponent<AudioSource>();
