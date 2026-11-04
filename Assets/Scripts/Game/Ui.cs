@@ -514,12 +514,12 @@ namespace Arena
 
         static readonly System.Collections.Generic.Dictionary<int, float> meterKick = new System.Collections.Generic.Dictionary<int, float>();
 
-        /// Level-meter slider (Settings > Audio): 40 thin bars that light up to the value, amber then red at the top, in `tint`.
+        /// Level-meter slider (Settings > Audio): 100 thin bars that light up to the value, amber then red at the top, in `tint`.
         /// Drag or click anywhere on it; r should be about 36 px tall. Lit bars ripple like a live meter (faster and
         /// livelier the higher the value), glow, and the bars at the value kick up when it changes, then settle.
         public static float MeterSlider(Rect r, float value, Color tint)
         {
-            const int Segs = 40;
+            const int Segs = 100;
             float v = GUI.HorizontalSlider(r, value, 0f, 1f, track, meterThumb);
             float t = Time.unscaledTime;
             int id = Mathf.RoundToInt(r.y * 7f + r.x);
@@ -534,14 +534,14 @@ namespace Arena
             int peak = Mathf.RoundToInt(v * Segs) - 1;
             for (int i = 0; i < Segs; i++)
             {
-                float h = r.height * (0.5f + 0.3f * Mathf.Abs(Mathf.Sin(i * 0.3f)));
+                float h = r.height * (0.5f + 0.3f * Mathf.Abs(Mathf.Sin(i * 0.12f)));
                 bool on = (i + 0.5f) / Segs <= v;
                 Color c = !on ? new Color(0.17f, 0.2f, 0.28f) : i >= Segs * 0.85f ? new Color(1f, 0.33f, 0.44f) : i >= Segs * 0.7f ? new Color(1f, 0.71f, 0.28f) : tint;
                 if (on)
                 {
                     // only while moving: a wave runs back from the value and dies out as the kick fades
-                    float near = Mathf.Clamp01(1f - Mathf.Abs(i - peak) / 8f);
-                    float wave = 0.5f + 0.5f * Mathf.Sin(t * 18f - i * 0.7f);
+                    float near = Mathf.Clamp01(1f - Mathf.Abs(i - peak) / 20f);
+                    float wave = 0.5f + 0.5f * Mathf.Sin(t * 18f - i * 0.3f);
                     h += r.height * 0.45f * kick * near * wave;
                 }
                 h = Mathf.Min(r.height, h);
