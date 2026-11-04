@@ -1,0 +1,191 @@
+<title>Saves Screens Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: one interactive console. A header screen with a physical Back key beside it, and a content screen under it that grows from the run card into the older-runs list. */
+:root {
+  --bg: #080b14; --panel: #10162a; --fg: #dfe8ff; --muted: #7d8bb0; --line: #243055;
+  --f-display: "VT323", "Courier New", monospace;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --f-ui: "Rajdhani", system-ui, sans-serif;
+  --sbg: #03110a; --ink: #4dff9a; --dim: #2fa66a; --glow: rgba(60,255,150,.55); --rule: rgba(77,255,154,.28);
+  --red: #ff6b7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p, .note { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 64ch; }
+.ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.ctl span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.seg { font-family: var(--f-ui); font-weight: 700; font-size: 15px; letter-spacing: .04em; color: var(--fg); background: transparent; border: 1px solid var(--line); padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--line); }
+.seg:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.stage { background: var(--panel); border: 1px solid var(--line); padding: 28px 22px; display: grid; place-items: start center; min-height: 440px; }
+
+/* ---- console frame ---- */
+.console { width: 100%; max-width: 680px; background: #151d38; border: 1px solid #2c3a68; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.4); }
+.top { display: flex; gap: 12px; align-items: stretch; }
+
+/* ---- CRT screens ---- */
+.screen { position: relative; overflow: hidden; isolation: isolate; background: var(--sbg); color: var(--ink);
+  font-family: var(--f-display); font-size: 20px; line-height: 1; text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow);
+  border-radius: 12px; box-shadow: inset 0 0 36px rgba(0,0,0,.8), 0 0 0 3px #0d1a14, 0 0 0 5px #1c3a2a, 0 0 20px rgba(60,255,150,.14); }
+.screen::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+.screen::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%), linear-gradient(115deg, rgba(255,255,255,.07) 0 14%, transparent 30%); }
+.screen > .in { position: relative; z-index: 1; }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 6px; vertical-align: -.05em; box-shadow: 0 0 8px var(--glow); animation: blink 1s steps(1) infinite; }
+
+.hdr { flex: 1; min-width: 0; }
+.hdr .in { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 62px; }
+.hdr h2 { margin: 0; font: inherit; font-size: 32px; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hdr .pg { font-size: 20px; color: var(--dim); text-shadow: none; letter-spacing: .08em; white-space: nowrap; transition: opacity .2s; }
+.hdr h2 .t { display: inline-block; }
+
+/* ---- physical Back key ---- */
+.phys { flex: none; width: 112px; cursor: pointer; font-family: var(--f-ui); font-weight: 700; font-size: 18px; letter-spacing: .1em; color: #cfd9ff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 0; padding: 0; }
+.phys:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* A: arcade key cap sitting in a recessed well */
+.kA .phys { background: #0b1124; border-radius: 12px; padding: 6px; box-shadow: inset 0 3px 8px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.06); }
+.kA .cap { width: 100%; height: 100%; border-radius: 8px; background: linear-gradient(#3b4d86, #2a3866); display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 6px 0 #16204a, 0 8px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25); transform: translateY(-3px); transition: transform .06s, box-shadow .06s; }
+.kA .phys:active .cap, .kA .phys.press .cap { transform: translateY(3px); box-shadow: 0 0 0 #16204a, 0 1px 2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+/* B: flat metal slab with a status lamp */
+.kB .phys { background: linear-gradient(#27325c, #1c2548); border-radius: 10px; border: 1px solid #3a4a82; gap: 8px; flex-direction: row;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 3px 0 #0e1530; transition: transform .06s, box-shadow .06s; }
+.kB .phys:active, .kB .phys.press { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 #0e1530; }
+.kB .lamp { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 8px var(--glow); }
+.kA .lamp { display: none; }
+.phys svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* ---- content screen that grows ---- */
+.main { transition: height .45s cubic-bezier(.3,.7,.2,1); }
+.view { position: absolute; left: 0; right: 0; top: 0; padding: 16px 22px 18px; transition: opacity .25s; }
+.view.off { opacity: 0; pointer-events: none; }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; opacity: .85; }
+.row { display: grid; grid-template-columns: 1.05fr 1.1fr auto; align-items: stretch; }
+.col { padding: 0 18px; min-width: 0; border-left: 1px dashed var(--rule); }
+.col:first-child { padding-left: 0; border-left: 0; }
+.col:last-child { padding-right: 0; display: grid; place-items: center; }
+.big { font-size: 46px; letter-spacing: .02em; margin: 2px 0 6px; }
+.kv { display: grid; grid-template-columns: 58px 1fr; font-size: 18px; line-height: 1.12; }
+.kv i { font-style: normal; color: var(--dim); text-shadow: none; }
+.seat { display: flex; align-items: center; gap: 10px; font-size: 21px; margin-top: 7px; white-space: nowrap; }
+.seat .bar { width: 4px; height: 17px; background: #4f86ff; box-shadow: 0 0 8px #4f86ff; flex: none; }
+.seat em { font-style: normal; color: var(--dim); font-size: 18px; text-shadow: none; }
+.btn { font-family: var(--f-display); font-size: 22px; letter-spacing: .05em; padding: 6px 12px 4px; border: 2px solid var(--ink); color: var(--ink); background: rgba(77,255,154,.07);
+  cursor: pointer; text-shadow: inherit; white-space: nowrap; line-height: 1; }
+.btn.go { font-size: 30px; padding: 12px 18px 10px; }
+.btn:hover, .btn:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.btn.danger { border-color: var(--red); color: var(--red); background: rgba(255,107,122,.07); }
+.btn.danger:hover, .btn.danger:focus-visible, .btn.danger.armed { background: var(--red); color: #1a0508; text-shadow: none; }
+.tbl { display: grid; grid-template-columns: 34px 104px 48px 58px minmax(0,1fr) auto; column-gap: 10px; align-items: center; }
+.tbl .h { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; padding-bottom: 4px; border-bottom: 1px dashed var(--rule); }
+.tbl .c { padding: 12px 0 10px; border-bottom: 1px dashed var(--rule); font-size: 20px; white-space: nowrap; display: flex; align-items: center; align-self: stretch; min-width: 0; overflow: hidden; }
+.tbl .wave { font-size: 30px; } .tbl .acts { gap: 6px; justify-content: flex-end; overflow: visible; } .tbl .btn { font-size: 19px; padding: 5px 9px 3px; } .tbl .seat em { display: none; }
+.tbl .seat { margin: 0; font-size: 18px; gap: 8px; } .tbl .seat .bar { height: 12px; width: 3px; } 
+.hint { margin-top: 12px; text-align: center; font-size: 17px; color: var(--dim); text-shadow: none; letter-spacing: .06em; }
+
+/* ---- button row (physical keys under the run screen) ---- */
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; overflow: hidden; max-height: 70px; transition: max-height .35s ease, opacity .25s, margin .35s; padding-bottom: 8px; }
+.keys.gone { max-height: 0; opacity: 0; margin-top: -12px; padding-bottom: 0; pointer-events: none; }
+.key { font-family: var(--f-ui); font-weight: 700; font-size: 17px; letter-spacing: .04em; color: #dfe8ff; border: 1px solid #3a4a82; border-radius: 10px; padding: 14px 10px;
+  background: linear-gradient(#27325c, #1c2548); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 4px 0 #0e1530; cursor: pointer; display: flex; justify-content: center; gap: 8px; align-items: center; }
+.key:active { transform: translateY(3px); box-shadow: 0 1px 0 #0e1530; }
+.key:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.key.red { color: #ffb3bb; }
+
+@media (max-width: 560px) {
+  .phys { width: 84px; } .hdr h2 { font-size: 24px; } .stage { padding: 16px 10px; }
+  .row { grid-template-columns: 1fr; gap: 12px; } .col { border-left: 0; padding: 0; } .col + .col { border-top: 1px dashed var(--rule); padding-top: 10px; } .col:last-child { display: block; }
+  .btn.go { width: 100%; } .big { font-size: 38px; }
+  .tbl { grid-template-columns: 38px 1fr auto; } .tbl .x { display: none; }
+  .keys { grid-template-columns: 1fr; max-height: 190px; } .key { padding: 11px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .main, .view, .keys { transition: none; } .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Saves screens, split into separate screens</h1>
+    <p>The title now has its own small screen, and Back is a physical key beside it. Press Older runs: the run screen grows into the older-runs screen while the title changes and the three buttons slide away. Back shrinks it again. Try both key styles.</p>
+  </header>
+  <div class="ctl"><span>Back key</span>
+    <button class="seg" id="sA" type="button" aria-pressed="true">A · Key cap</button>
+    <button class="seg" id="sB" type="button" aria-pressed="false">B · Slab with lamp</button>
+  </div>
+  <div class="stage">
+    <div class="console kA" id="con">
+      <div class="top">
+        <div class="screen hdr"><div class="in">
+          <h2><span class="t" id="title">CONTINUE YOUR LATEST RUN</span><span class="cur"></span></h2>
+          <span class="pg" id="pg" style="opacity:0">1 / 1</span>
+        </div></div>
+        <button class="phys" id="back" type="button" aria-label="Back"><span class="cap"><span class="lamp"></span><svg viewBox="0 0 16 16"><path d="M7 2 1 8l6 6V9.5h8v-3H7z"/></svg>BACK</span></button>
+      </div>
+      <div class="screen main" id="main"><div class="in">
+        <div class="view" id="vRun"><div class="row">
+          <div class="col"><div class="lab">RUN</div><div class="big">Wave 1</div>
+            <div class="kv"><i>SAVED</i><span>Nov 4, 13:55</span><i>SCORE</i><span>0</span><i>PLAYED</i><span>0 min</span></div></div>
+          <div class="col"><div class="lab">SQUAD</div><div class="seat"><span class="bar"></span>Anthony <em>Elementalist Healer</em></div></div>
+          <div class="col"><div><div class="lab" style="text-align:center;margin-bottom:8px">&bull; READY</div><button class="btn go" type="button">&#9654; CONTINUE</button></div></div>
+        </div></div>
+        <div class="view off" id="vOld">
+          <div class="tbl">
+            <div class="h">WAVE</div><div class="h">SAVED</div><div class="h x">SCORE</div><div class="h x">PLAYED</div><div class="h x">PLAYERS</div><div class="h"></div>
+            <div class="c wave">1</div><div class="c">Nov 4, 13:19</div><div class="c x">0</div><div class="c x">0 min</div>
+            <div class="c x"><div class="seat"><span class="bar"></span>Anthony <em>Soldier Tank</em></div></div>
+            <div class="c acts"><button class="btn" type="button">&#9654; CONTINUE</button><button class="btn danger del" type="button">DEL</button></div>
+            <div class="c wave">2</div><div class="c">Nov 4, 11:28</div><div class="c x">78</div><div class="c x">0 min</div>
+            <div class="c x"><div class="seat"><span class="bar"></span>Anthony <em>Soldier Tank</em></div></div>
+            <div class="c acts"><button class="btn" type="button">&#9654; CONTINUE</button><button class="btn danger del" type="button">DEL</button></div>
+          </div>
+          <div class="hint">DEL asks twice before it deletes.</div>
+        </div>
+      </div></div>
+      <div class="keys" id="keys">
+        <button class="key" type="button">&#9654; New run</button>
+        <button class="key" id="oldBtn" type="button">&#128214; Older runs (2)</button>
+        <button class="key red" type="button">&#128465; Delete this run</button>
+      </div>
+    </div>
+  </div>
+  <p class="note">Behind the scenes: the header screen, the content screen and the key row are three separate objects, so the same header and Back key serve every saves page. In the older-runs state Back returns to the run card, and on the run card it leaves to the main menu. With reduced effects on, the glow, scanlines and the grow animation are dropped and the screen simply swaps.</p>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var con = $('con'), main = $('main'), vRun = $('vRun'), vOld = $('vOld'), keys = $('keys');
+  var title = $('title'), pg = $('pg'), state = 'run';
+  function fit() { var v = state === 'run' ? vRun : vOld; main.style.height = v.offsetHeight + 'px'; }
+  function go(s) {
+    state = s;
+    vRun.classList.toggle('off', s !== 'run'); vOld.classList.toggle('off', s !== 'old');
+    keys.classList.toggle('gone', s !== 'run');
+    title.textContent = s === 'run' ? 'CONTINUE YOUR LATEST RUN' : 'OLDER RUNS';
+    pg.style.opacity = s === 'old' ? 1 : 0;
+    fit();
+  }
+  $('oldBtn').onclick = function () { go('old'); };
+  $('back').onclick = function () { if (state === 'old') go('run'); };
+  [].forEach.call(document.querySelectorAll('.del'), function (b) {
+    b.onclick = function () {
+      if (b.classList.contains('armed')) { b.classList.remove('armed'); b.textContent = 'DEL'; }
+      else { b.classList.add('armed'); b.textContent = 'REALLY?'; }
+    };
+  });
+  function style(k) { con.className = 'console k' + k; $('sA').setAttribute('aria-pressed', k === 'A'); $('sB').setAttribute('aria-pressed', k === 'B'); }
+  $('sA').onclick = function () { style('A'); }; $('sB').onclick = function () { style('B'); };
+  main.style.transition = 'none'; fit(); requestAnimationFrame(function () { main.style.transition = ''; });
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { main.style.transition = 'none'; fit(); requestAnimationFrame(function () { main.style.transition = ''; }); });
+})();
+</script>
