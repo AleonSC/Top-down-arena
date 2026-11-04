@@ -150,6 +150,7 @@ namespace Arena
                 nb.Bomblet = true;
                 nb.Burst = 1;
             }
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.3f, Sfx.Explode);
             BroadcastFx(FxKind.Ring, b.Pos, Rgba.White, b.Splash * 1.15f, 0.2f, Sfx.None);
         }
