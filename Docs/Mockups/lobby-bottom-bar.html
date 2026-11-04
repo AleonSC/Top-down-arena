@@ -1,0 +1,165 @@
+<title>Lobby Bottom Bar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Four ways to lay out Back / Ready? / Start on the lobby (LobbyUi.cs DrawLobbyBottom). Each wireframe is the real
+   1280 x 720 canvas measured from the in-editor screenshot, scaled to fit. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547;
+  --blue1: #4f8cff; --blue2: #2f64d8; --gold1: #ffd96b; --gold2: #c8901a; --red1: #d64a52; --red2: #a52b34;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 34px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+section { display: grid; gap: 12px; min-width: 0; }
+.head { display: grid; gap: 4px; }
+.tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.scale { position: relative; width: 100%; overflow: hidden; }
+.lobby { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; background: radial-gradient(ellipse at 30% 90%, #3a1d2e 0%, #14101f 55%, #080a10 100%); font-family: var(--font-display); color: #fff; }
+.a { position: absolute; box-sizing: border-box; }
+.title { left: 40px; top: 16px; font-size: 40px; font-weight: 800; letter-spacing: .06em; }
+.mode { left: 40px; top: 76px; width: 376px; height: 58px; border-radius: 12px; background: rgba(10,12,20,.9); display: flex; padding: 4px; }
+.mode i { flex: 1; font-style: normal; text-align: center; font-size: 13px; font-weight: 700; line-height: 50px; color: #8793a6; border-radius: 9px; }
+.mode i.on { background: rgba(80,140,255,.85); color: #fff; }
+.partyh { left: 40px; top: 152px; font-size: 13px; color: #8793a6; letter-spacing: .1em; }
+.hostcard { left: 40px; top: 182px; width: 376px; height: 90px; border-radius: 10px; border: 2px solid #f0b640; background: #131827; }
+.hostcard .face { position: absolute; left: 8px; top: 8px; width: 72px; height: 72px; border-radius: 10px; background: #1b2438; }
+.hostcard .nm { position: absolute; left: 94px; top: 12px; font-size: 20px; font-weight: 700; }
+.hostcard .sub { position: absolute; left: 94px; top: 40px; font-size: 14px; color: #6fb4ff; font-weight: 700; }
+.hostcard .sub2 { position: absolute; left: 94px; top: 62px; font: 400 12px var(--font-body); color: #8793a6; }
+.chip { position: absolute; right: 10px; bottom: 8px; font: 700 11px var(--font-display); letter-spacing: .08em; background: rgba(255,255,255,.1); border-radius: 6px; padding: 5px 10px; color: #dfe6f3; }
+.chip.btn { background: linear-gradient(var(--blue1), var(--blue2)); border: 1px solid #8db3ff; font-size: 12px; padding: 6px 12px; box-shadow: 0 0 0 3px rgba(79,140,255,.25); }
+.slot { left: 40px; width: 376px; height: 90px; border: 1px dashed #5a4a52; border-radius: 10px; text-align: center; line-height: 90px; color: #7a6a72; font-size: 15px; font-weight: 700; letter-spacing: .1em; }
+.tabs { left: 440px; top: 24px; display: flex; gap: 8px; }
+.tab { height: 34px; border-radius: 8px; padding: 0 16px; background: rgba(255,255,255,.06); color: #8793a6; font-size: 12px; font-weight: 700; letter-spacing: .08em; line-height: 34px; }
+.tab.on { background: rgba(80,140,255,.9); color: #fff; }
+.panel { left: 440px; top: 68px; width: 800px; border-radius: 12px; border: 2px solid #3a4a7a; background: rgba(15,22,40,.85); }
+.panel .ph { position: absolute; inset: 14px; display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
+.panel .ph b { border-radius: 10px; background: rgba(255,255,255,.05); display: block; }
+.bar { left: 0; width: 1280px; background: rgba(5,7,12,.55); border-top: 1px solid rgba(255,255,255,.07); }
+.btn { position: absolute; box-sizing: border-box; border-radius: 9px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; letter-spacing: .03em; color: #fff; border: 2px solid; box-shadow: 0 3px 0 #0006, inset 0 1px 0 #fff3; }
+.primary { background: linear-gradient(var(--blue1), var(--blue2)); border-color: #8db3ff; }
+.outline { background: rgba(79,140,255,.12); border-color: #6d9bf0; color: #cfe0ff; box-shadow: none; }
+.gold { background: linear-gradient(var(--gold1), var(--gold2)); border-color: #fff0b0; color: #2a1c00; }
+.off { background: #232a44; border-color: #34406a; color: #6f7ba0; box-shadow: none; }
+.danger { background: linear-gradient(var(--red1), var(--red2)); border-color: #ff8a90; font-size: 24px; }
+.go { background: linear-gradient(#41d88a, #1f9f5c); border-color: #9bf0c4; box-shadow: 0 3px 0 #0006, 0 0 22px rgba(65,216,138,.55); }
+.note { color: #aab4cc; font: 500 15px var(--font-body); display: flex; align-items: center; gap: 10px; }
+.note b { color: #fff; }
+.pip { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #3a4262; }
+.pip.on { background: #41d88a; }
+.states { display: flex; flex-wrap: wrap; gap: 10px 14px; padding: 14px 16px; border-top: 1px solid var(--line); align-items: center; }
+.states .lbl { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.states .btn { position: static; height: 40px; padding: 0 20px; font-size: 16px; }
+.arrow { color: var(--muted); }
+.callout { position: absolute; font: 600 13px var(--font-body); color: var(--teal); background: rgba(4,40,31,.92); border: 1px solid var(--teal); border-radius: 8px; padding: 5px 10px; white-space: nowrap; }
+.rec { color: var(--amber); }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Lobby &middot; Bottom buttons</div>
+  <h1>Placing <span>Back, Ready &amp; Start</span></h1>
+  <p class="lead">Measured from your screenshot. Today the 88 px bar has Back far left and a Ready? + Start pair floating mid-screen: they line up with nothing above them, the two look equally important (a greyed Start reads as a second Ready), and the "Waiting for N players" note is small, grey and far from what it describes. The party column also ends at y&nbsp;460 and leaves ~150 px empty. Four takes below, all using the existing Ready (blue, then gold) and Start (blue, practice-tinted) colours.</p>
+</header>
+
+<section>
+  <div class="head"><div class="tag">Option A</div><h2>Dock right, aligned to the loadout panel</h2></div>
+  <p class="pros"><span><b>Good:</b> the smallest change: same bar, same buttons; the pair's right edge lines up with the panel edge (x&nbsp;1240) and Start is the corner "finish" button.</span><span><b>Good:</b> the status note sits next to the buttons with ready dots.</span><span><b>Cost:</b> left side of the bar is mostly empty.</span></p>
+  <div class="frame"><div class="scale" data-h="720"><div class="lobby" id="A"></div></div>
+  <div class="states"><span class="lbl">Ready button</span><span class="btn outline">Ready?</span><span class="arrow">&rarr;</span><span class="btn gold">&#10003; Ready!</span><span class="lbl" style="margin-left:14px">Start</span><span class="btn off">Start</span><span class="arrow">&rarr;</span><span class="btn go">&#9654; Start</span></div></div>
+</section>
+
+<section>
+  <div class="head"><div class="tag">Option B <span class="rec">&middot; my pick</span></div><h2>One button that changes with the situation</h2></div>
+  <p class="pros"><span><b>Good:</b> one big centre button under the panel; no disabled Start sitting there. Guests see Ready? &rarr; Ready!; the host sees Ready? &rarr; Ready! &rarr; Start the moment everyone is in.</span><span><b>Good:</b> unready is a small link, so a misclick can't un-ready you.</span><span><b>Cost:</b> a behaviour change for the host: Start isn't visible until everyone's ready (the note says who's missing).</span></p>
+  <div class="frame"><div class="scale" data-h="720"><div class="lobby" id="B"></div></div>
+  <div class="states"><span class="lbl">Guest</span><span class="btn primary">&#10003; Ready?</span><span class="arrow">&rarr;</span><span class="btn gold">&#10003; Ready!</span><span class="lbl" style="margin-left:14px">Host</span><span class="btn primary">&#10003; Ready?</span><span class="arrow">&rarr;</span><span class="btn gold">&#10003; Ready!</span><span class="arrow">&rarr;</span><span class="btn go">&#9654; Start</span></div></div>
+</section>
+
+<section>
+  <div class="head"><div class="tag">Option C</div><h2>Ready lives on your party card</h2></div>
+  <p class="pros"><span><b>Good:</b> the card already says NOT READY; make that chip the button. Ready is right next to the name it changes, and the bottom bar shrinks to Back + Start.</span><span><b>Good:</b> every player's card shows their state, so it doubles as the "who's missing" list.</span><span><b>Cost:</b> less obvious to new players, so the chip pulses until clicked once.</span></p>
+  <div class="frame"><div class="scale" data-h="720"><div class="lobby" id="C"></div></div>
+  <div class="states"><span class="lbl">Chip</span><span class="btn primary">Ready?</span><span class="arrow">&rarr;</span><span class="btn gold">&#10003; Ready</span><span class="lbl" style="margin-left:14px">Start</span><span class="btn off">Start</span><span class="arrow">&rarr;</span><span class="btn go">&#9654; Start</span></div></div>
+</section>
+
+<section>
+  <div class="head"><div class="tag">Option D</div><h2>Stack under the party, remove the bottom bar</h2></div>
+  <p class="pros"><span><b>Good:</b> fills the empty left column; Ready and Start sit directly under the party they act on; the loadout panel grows ~90 px taller.</span><span><b>Good:</b> Back becomes a small button beside the title, where "back" usually lives.</span><span><b>Cost:</b> biggest change; it is the same idea as Option 1 in <code>lobby-buttons.html</code> (that one was about the Hangout door).</span></p>
+  <div class="frame"><div class="scale" data-h="720"><div class="lobby" id="D"></div></div>
+  <div class="states"><span class="lbl">Ready</span><span class="btn primary">Ready?</span><span class="arrow">&rarr;</span><span class="btn gold">&#10003; Ready!</span><span class="lbl" style="margin-left:14px">Start</span><span class="btn off">Start</span><span class="arrow">&rarr;</span><span class="btn go">&#9654; Start</span></div></div>
+</section>
+</div>
+
+<script>
+// Shared lobby chrome, then each option adds its own bottom area. (Wireframe only: nothing here is game code.)
+function base(o) {
+  o = o || {};
+  var h = o.panelH || 553;
+  return '<div class="a title" style="' + (o.titleLeft ? 'left:' + o.titleLeft + 'px' : '') + '">LOBBY</div>' +
+    '<div class="a mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div>' +
+    '<div class="a partyh">PARTY (1/3)</div>' +
+    '<div class="a hostcard"><div class="face"></div><div class="nm">Antaleon</div><div class="sub">Soldier Tank</div><div class="sub2">Scattergun &middot; Barrier</div>' +
+      (o.chip || '<div class="chip">NOT READY</div>') + '</div>' +
+    '<div class="a slot" style="top:282px">OPEN SLOT</div><div class="a slot" style="top:378px">OPEN SLOT</div>' +
+    '<div class="a tabs"><span class="tab on">LOADOUT</span><span class="tab">PERKS</span><span class="tab">DIFFICULTY</span><span class="tab">MODIFIERS</span></div>' +
+    '<div class="a panel" style="height:' + h + 'px"><div class="ph"><b></b><b></b></div></div>';
+}
+var pips = '<span class="pip on"></span><span class="pip"></span><span class="pip"></span>';
+var back = '<div class="btn danger" style="left:40px;top:648px;width:48px;height:48px">&#8592;</div>';
+var el = function (id, html) { document.getElementById(id).innerHTML = html; };
+
+// A: right-docked pair, status beside it
+el('A', base() + '<div class="a bar" style="top:632px;height:88px"></div>' + back +
+  '<div class="a note" style="right:760px;top:648px;height:48px">' + pips + '<span><b>1 of 3</b> ready: waiting for 2 players</span></div>' +
+  '<div class="btn outline" style="left:700px;top:648px;width:240px;height:48px;font-size:22px">Ready?</div>' +
+  '<div class="btn off" style="left:960px;top:648px;width:280px;height:48px;font-size:22px">&#9654; Start</div>' +
+  '<div class="callout" style="left:760px;top:600px">right edges line up with the panel (x 1240)</div>');
+
+// B: single morphing button under the panel
+el('B', base() + '<div class="a bar" style="top:632px;height:88px"></div>' + back +
+  '<div class="a note" style="left:110px;top:648px;height:48px">' + pips + '<span><b>1 of 3</b> ready</span></div>' +
+  '<div class="btn primary" style="left:630px;top:642px;width:420px;height:60px;font-size:26px">&#10003; Ready?</div>' +
+  '<div class="a note" style="left:1070px;top:648px;height:48px;font-size:13px;opacity:.8">Waiting for 2 players</div>' +
+  '<div class="callout" style="left:700px;top:598px">same slot becomes Ready! (gold) and, for the host, Start</div>');
+
+// C: ready chip on the card, slim bar
+el('C', base({ chip: '<div class="chip btn">READY?</div>', panelH: 577 }) + '<div class="a bar" style="top:660px;height:60px"></div>' +
+  '<div class="btn danger" style="left:40px;top:666px;width:48px;height:48px;font-size:24px">&#8592;</div>'.replace('top:666px', 'top:666px;height:48px') +
+  '<div class="a note" style="right:340px;top:666px;height:48px">' + pips + '<span>waiting for 2 players</span></div>' +
+  '<div class="btn off" style="left:960px;top:666px;width:280px;height:48px;font-size:22px">&#9654; Start</div>' +
+  '<div class="callout" style="left:232px;top:270px;transform:translateY(-2px)">click your chip to ready up</div>');
+
+// D: stack in the left column, no bottom bar
+el('D', base({ panelH: 616, titleLeft: 104 }) +
+  '<div class="btn danger" style="left:40px;top:14px;width:48px;height:48px">&#8592;</div>' +
+  '<div class="a note" style="left:40px;top:488px;width:376px;justify-content:center">' + pips + '<span>waiting for 2 players</span></div>' +
+  '<div class="btn primary" style="left:40px;top:524px;width:376px;height:56px;font-size:24px">&#10003; Ready?</div>' +
+  '<div class="btn off" style="left:40px;top:594px;width:376px;height:66px;font-size:26px">&#9654; Start</div>');
+
+function fit() {
+  document.querySelectorAll('.scale').forEach(function (s) {
+    var k = s.clientWidth / 1280, h = +s.dataset.h;
+    s.style.height = (h * k) + 'px';
+    s.querySelectorAll('.lobby').forEach(function (l) { l.style.transform = 'scale(' + k + ')'; });
+  });
+}
+addEventListener('resize', fit); fit();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+</script>
