@@ -293,10 +293,10 @@ var notes={
 var noteEl=document.getElementById('note');
 function setLook(v){look=v;noteEl.innerHTML=notes[v]}
 function lastT(ts){return ts}
-var prev=0;
+var prev=0,acc=0;
 function frame(ts){
   var dt=Math.min(.05,(ts-prev)/1000||0);prev=ts;
-  if(!paused){var steps=dt*speed*60,n=Math.max(0,Math.round(steps));for(var i=0;i<n;i++)step(1/60)}
+  if(!paused){acc+=dt*speed;while(acc>=1/60){step(1/60);acc-=1/60}}
   draw();requestAnimationFrame(frame)
 }
 var radios=document.querySelectorAll('input[name=look]');
@@ -307,8 +307,6 @@ var pb=document.getElementById('pause'),sb=document.getElementById('slow');
 pb.addEventListener('click',function(){paused=!paused;pb.setAttribute('aria-pressed',paused);pb.textContent=paused?'Resume':'Pause'});
 sb.addEventListener('click',function(){var on=sb.getAttribute('aria-pressed')!=='true';sb.setAttribute('aria-pressed',on);speed=on?.25:1});
 setLook('A');reset(2.6);
-var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if(reduce){paused=true;pb.setAttribute('aria-pressed','true');pb.textContent='Resume'}
 requestAnimationFrame(frame);
 })();
 </script>
