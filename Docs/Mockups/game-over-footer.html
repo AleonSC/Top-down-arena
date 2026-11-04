@@ -1,0 +1,169 @@
+<title>Game Over Footer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Three ways to lay out the rank strip and the buttons on the Game Over screen (HudSummary.cs, 1280 x 720 canvas).
+   Each .screen is the real canvas size, scaled to fit. The trophy card is a stand-in at its real size (760 x ~330). */
+:root { --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547;
+  --g-bg:#0b0e18; --g-panel:#1a1f2e; --g-edge:#4f6cff; --g-text:#eef2fb; --g-muted:#8f9bb8; --g-track:#2b3248;
+  --orange:#ff8a3d; --gold:#ffc83d; --red:#e0474f; --blue:#3b7bff; --neutral:#3a4260;
+  color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 Barlow,system-ui,sans-serif; margin:0; }
+.wrap { max-width:1240px; margin:0 auto; padding:28px max(16px,env(safe-area-inset-left,0px)) 64px; display:grid; gap:28px; }
+h1,h2 { font-family:Oxanium,system-ui,sans-serif; margin:0; text-transform:uppercase; letter-spacing:.04em; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; } h1 span{color:var(--teal)}
+h2 { font-size:20px; font-weight:700; }
+p { margin:0; max-width:75ch; color:#cfdae2; }
+.eyebrow { font:600 11px Oxanium; letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+.card .txt { padding:14px 16px; display:grid; gap:6px; }
+.card .txt b { color:var(--teal); font-family:Oxanium; letter-spacing:.06em; }
+.vp { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:var(--g-bg); }
+.screen { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; font-family:Barlow,Arial,sans-serif; color:var(--g-text);
+  background:radial-gradient(ellipse at 50% 40%, #3a0f1a 0%, #1a0710 70%, #0b0308 100%); overflow:hidden; }
+.screen > * { position:absolute; box-sizing:border-box; }
+/* title + stats */
+.title { left:0; width:1280px; top:18px; text-align:center; font:800 64px Oxanium; letter-spacing:.04em; color:#ff5f66; text-shadow:0 3px 0 #7a1c24, 0 0 24px #ff3a4a66; }
+.sub { left:0; width:1280px; top:92px; text-align:center; font:600 15px Barlow; letter-spacing:.12em; color:#b8bfd6; }
+.sub b { color:#ff8a8f; }
+.stats { left:0; width:1280px; top:122px; display:flex; gap:12px; justify-content:center; }
+.tile { width:170px; height:56px; background:#141a2c; border:2px solid #4a3a6a; border-radius:8px; text-align:center; display:grid; align-content:center; }
+.tile b { font:800 24px Oxanium; line-height:1; } .tile i { font:600 10px Barlow; letter-spacing:.14em; color:#9aa6c4; font-style:normal; margin-top:2px; }
+/* trophy card stand-in */
+.trophy { left:260px; width:760px; top:190px; height:330px; background:#10162a; border:2px solid var(--orange); border-radius:10px; display:flex; }
+.trophy .art { width:176px; background:repeating-linear-gradient(45deg,#3a1d0e 0 3px,#2a1409 3px 6px); border-right:1px solid #3b2a1c; display:grid; place-items:center; }
+.trophy .art span { width:100px; height:76px; background:#2fb04a; border-radius:50% 50% 8px 8px; box-shadow:0 0 0 6px #111; }
+.trophy .rows { flex:1; padding:14px 18px; display:grid; align-content:start; gap:6px; }
+.trophy .nm { font:800 24px Oxanium; color:#fff; } .trophy .cl { font:600 13px Barlow; color:var(--orange); }
+.trophy .r { display:flex; justify-content:space-between; font:500 14px Barlow; color:#c3cbe0; border-bottom:2px solid #2b3248; padding-bottom:3px; }
+.trophy .r b { color:#fff; }
+/* shared button look */
+.btn { display:flex; align-items:center; justify-content:center; gap:10px; height:48px; border-radius:9px; font:700 19px Barlow; color:#fff; border:2px solid; box-shadow:0 3px 0 #0006, inset 0 1px 0 #fff3; }
+.btn .k { font:600 12px Oxanium; background:#0005; padding:2px 7px; border-radius:5px; letter-spacing:.05em; }
+.btn svg { width:20px; height:20px; fill:currentColor; }
+.primary { background:linear-gradient(#4f8cff,#2f64d8); border-color:#8db3ff; }
+.neutral { background:linear-gradient(#444d70,#2f3652); border-color:#6d78a3; }
+.danger { background:linear-gradient(#d64a52,#a52b34); border-color:#ff8a90; }
+.ghost { background:transparent; border-color:#ffffff22; color:#c3cbe0; box-shadow:none; }
+.ghost.danger { color:#ff8a90; border-color:#e0474f66; }
+.big { height:60px; font-size:24px; }
+/* rank badge: shield with number */
+.badge { position:relative; width:46px; height:54px; background:linear-gradient(#ffd96b,#c8901a); clip-path:polygon(0 0,100% 0,100% 70%,50% 100%,0 70%); display:grid; place-items:center; }
+.badge::before { content:""; position:absolute; inset:3px; background:#1c2238; clip-path:polygon(0 0,100% 0,100% 70%,50% 100%,0 70%); }
+.badge b { position:relative; font:800 15px Oxanium; color:#ffd96b; margin-top:-5px; }
+.badge.lg { width:64px; height:76px; } .badge.lg b { font-size:22px; }
+.rk { background:#12182b; border:2px solid #ffb547aa; border-radius:10px; }
+.rk .t { font:800 20px Oxanium; letter-spacing:.04em; color:#fff; } .rk .t em { font:600 13px Barlow; color:#ffb547; font-style:normal; display:block; letter-spacing:.1em; text-transform:uppercase; }
+.track { position:relative; height:14px; border-radius:7px; background:#0c1020; border:1px solid #2b3248; overflow:hidden; }
+.track i { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#ffb547,#ffd96b); border-radius:7px; }
+.track i.new { background:repeating-linear-gradient(45deg,#ffe38f 0 6px,#ffd05a 6px 12px); }
+.xp { font:800 26px Oxanium; color:#7dffb0; text-shadow:0 0 12px #3dff8a66; }
+.chip { font:600 12px Barlow; background:#1d2540; border:1px solid #3a4670; color:#c3cbe0; padding:2px 9px; border-radius:99px; }
+.num { font:500 13px Barlow; color:#9aa6c4; } .num b { color:#fff; }
+.tiny { left:70px; top:698px; font:400 10px Barlow; color:#ffffff59; }
+.dim { inset:0; background:radial-gradient(circle at 20% 80%,#ffffff08 0 6px,transparent 7px) 0 0/60px 60px; opacity:.6; }
+</style>
+<div class="wrap">
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Mockup &middot; Game Over screen</div>
+  <h1>Rank <span>&amp;</span> buttons</h1>
+  <p>Today the rank strip is a thin bar jammed between the card and the buttons, "Waves 80" floats loose in the middle, and Leave / Play again / Back to lobby are three equal-weight pills on one line. Same dark-navy panels, orange edge, gold rank and blue Play again; three ways to rearrange them.</p>
+</header>
+
+<!-- ============ A ============ -->
+<section class="card">
+ <div class="vp"><div class="screen">
+  <div class="dim"></div>
+  <div class="title">GAME OVER</div><div class="sub">YOU MADE IT TO WAVE 5 &nbsp;&middot;&nbsp; <b>THE WARDEN</b></div>
+  <div class="stats"><div class="tile"><b>5</b><i>WAVE</i></div><div class="tile"><b>2:33</b><i>TIME</i></div><div class="tile"><b>526</b><i>SCORE</i></div><div class="tile"><b>65</b><i>KILLS</i></div></div>
+  <div class="trophy" style="height:300px"><div class="art"><span></span></div><div class="rows"><div class="nm">x_xPu55eeSlayuhx</div><div class="cl">Soldier DPS &middot; Twin Rifle</div>
+   <div class="r">Damage dealt<b>9853</b></div><div class="r">Kills<b>65</b></div><div class="r">Biggest hit<b>80</b></div><div class="r">Accuracy<b>38%</b></div><div class="r">Damage taken<b>134</b></div><div class="r">Times downed<b>1</b></div></div></div>
+  <!-- rank card, same width as the trophy card, hugging it -->
+  <div class="rk" style="left:260px;top:504px;width:760px;height:84px;display:flex;align-items:center;gap:16px;padding:0 18px">
+    <div class="badge lg"><b>999</b></div>
+    <div style="flex:1;display:grid;gap:7px">
+      <div style="display:flex;align-items:baseline;gap:12px"><span class="t">RANK 999 <span style="color:#ffb547;font-size:15px">&middot; Legend</span></span><span style="flex:1"></span><span class="num"><b>80</b> / 199,800 XP</span></div>
+      <div class="track"><i style="width:3%"></i></div>
+      <div style="display:flex;gap:6px"><span class="chip">Waves +80</span><span class="chip" style="opacity:.55">Boss kills +0</span><span class="chip" style="opacity:.55">Revives +0</span></div>
+    </div>
+    <div style="text-align:center;padding-left:12px;border-left:1px solid #2b3248"><div class="xp">+80</div><div class="num">XP EARNED</div></div>
+  </div>
+  <!-- action dock: one big primary, two quiet secondaries -->
+  <div style="left:260px;top:604px;width:760px;display:grid;grid-template-columns:150px 1fr 190px;gap:12px;align-items:center">
+    <div class="btn ghost danger"><svg viewBox="0 0 20 20"><path d="M9 2h2v8H9zM5.3 4.6l1.4 1.4a5 5 0 1 0 6.6 0l1.4-1.4a7 7 0 1 1-9.4 0z"/></svg>Leave</div>
+    <div class="btn primary big"><svg viewBox="0 0 20 20"><path d="M5 3l12 7-12 7z"/></svg>Play again <span class="k">R</span></div>
+    <div class="btn neutral"><svg viewBox="0 0 20 20"><path d="M10 3l1.4 1.4L7.8 8H17v2H7.8l3.6 3.6L10 15l-6-6z" transform="translate(0 1)"/></svg>Lobby <span class="k">L</span></div>
+  </div>
+  <div class="tiny" style="left:260px;top:690px">Session recorded: C:\Users\antho\AppData\LocalLow\...\session-20261103-193231.json</div>
+ </div></div>
+ <div class="txt"><h2><b>A</b> &middot; Stacked dock</h2>
+  <p><b>Rank:</b> a card exactly as wide as the trophy card, so the column reads as one stack. Big badge, title, a thicker XP bar, a "+80 XP" block on the right and the breakdown as chips (the stray "Waves 80" becomes a chip). <b>Buttons:</b> directly under, on the same width. Play again is the wide hero, Lobby is the neutral side button, Leave is a ghost (outlined, no fill) so nobody hits it by reflex. Closest to today, least risky.</p></div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="card">
+ <div class="vp"><div class="screen">
+  <div class="dim"></div>
+  <div class="title">GAME OVER</div><div class="sub">YOU MADE IT TO WAVE 5 &nbsp;&middot;&nbsp; <b>THE WARDEN</b></div>
+  <div class="stats"><div class="tile"><b>5</b><i>WAVE</i></div><div class="tile"><b>2:33</b><i>TIME</i></div><div class="tile"><b>526</b><i>SCORE</i></div><div class="tile"><b>65</b><i>KILLS</i></div></div>
+  <div class="trophy" style="left:260px;height:430px;top:196px"><div class="art"><span></span></div><div class="rows"><div class="nm">x_xPu55eeSlayuhx</div><div class="cl">Soldier DPS &middot; Twin Rifle</div>
+   <div class="r">Damage dealt<b>9853</b></div><div class="r">Kills<b>65</b></div><div class="r">Biggest hit<b>80</b></div><div class="r">Accuracy<b>38%</b></div><div class="r">Healing done<b>0</b></div><div class="r">Allies revived<b>0</b></div><div class="r">Damage taken<b>134</b></div><div class="r">Times downed<b>1</b></div><div class="r">Abilities used<b>6</b></div></div></div>
+  <!-- left rail: actions -->
+  <div style="left:36px;top:196px;width:206px;display:grid;gap:12px">
+    <div class="btn primary big" style="flex-direction:column;height:92px;gap:4px"><svg viewBox="0 0 20 20" style="width:30px;height:30px"><path d="M5 3l12 7-12 7z"/></svg><span>Play again</span><span class="k">R</span></div>
+    <div class="btn neutral" style="height:56px"><svg viewBox="0 0 20 20"><path d="M10 3l1.4 1.4L7.8 8H17v2H7.8l3.6 3.6L10 15l-6-6z" transform="translate(0 1)"/></svg>Back to lobby <span class="k">L</span></div>
+    <div class="btn ghost danger" style="height:44px"><svg viewBox="0 0 20 20"><path d="M9 2h2v8H9zM5.3 4.6l1.4 1.4a5 5 0 1 0 6.6 0l1.4-1.4a7 7 0 1 1-9.4 0z"/></svg>Leave</div>
+  </div>
+  <!-- right rail: rank -->
+  <div class="rk" style="left:1038px;top:196px;width:206px;height:430px;padding:20px 16px;display:grid;align-content:start;justify-items:center;gap:10px;text-align:center">
+    <div class="num" style="letter-spacing:.14em;color:#ffb547;font-weight:700">ACCOUNT RANK</div>
+    <div class="badge lg" style="width:96px;height:114px"><b style="font-size:32px">999</b></div>
+    <div class="t" style="font-size:24px">Legend</div>
+    <div class="xp" style="margin-top:6px">+80 XP</div>
+    <div class="track" style="width:100%"><i style="width:3%"></i></div>
+    <div class="num"><b>80</b> / 199,800</div>
+    <div style="flex:1"></div>
+    <div style="display:grid;gap:6px;width:100%;margin-top:14px"><span class="chip">Waves +80</span></div>
+  </div>
+  <div class="tiny" style="left:260px">Session recorded: C:\Users\antho\AppData\LocalLow\...\session-20261103-193231.json</div>
+ </div></div>
+ <div class="txt"><h2><b>B</b> &middot; Side rails</h2>
+  <p>Uses the empty margins either side of the card. Actions on the left (Play again is a tall hero tile), rank on the right as a tall "account" panel with the big badge. Nothing is squeezed under the card any more, so the card can keep every row. With 2-3 players the cards fill the width, so the rails would fall back to A's stacked layout.</p></div>
+</section>
+
+<!-- ============ C ============ -->
+<section class="card">
+ <div class="vp"><div class="screen">
+  <div class="dim"></div>
+  <div class="title">GAME OVER</div><div class="sub">YOU MADE IT TO WAVE 5 &nbsp;&middot;&nbsp; <b>THE WARDEN</b></div>
+  <div class="stats" style="gap:12px">
+    <div class="tile"><b>5</b><i>WAVE</i></div><div class="tile"><b>2:33</b><i>TIME</i></div><div class="tile"><b>526</b><i>SCORE</i></div><div class="tile"><b>65</b><i>KILLS</i></div>
+  </div>
+  <!-- rank folded into the trophy card as its footer -->
+  <div class="trophy" style="left:260px;top:190px;height:384px;flex-direction:column;overflow:hidden">
+    <div style="display:flex;flex:1"><div class="art"><span></span></div><div class="rows"><div class="nm">x_xPu55eeSlayuhx</div><div class="cl">Soldier DPS &middot; Twin Rifle</div>
+     <div class="r">Damage dealt<b>9853</b></div><div class="r">Kills<b>65</b></div><div class="r">Biggest hit<b>80</b></div><div class="r">Accuracy<b>38%</b></div><div class="r">Damage taken<b>134</b></div><div class="r">Times downed<b>1</b></div></div></div>
+    <div style="height:66px;border-top:2px solid var(--orange);background:#0d1224;display:flex;align-items:center;gap:14px;padding:0 16px">
+      <div class="badge"><b>999</b></div>
+      <div style="width:140px"><div class="t" style="font:800 18px Oxanium">LEGEND</div><div class="num" style="font-size:12px">Rank 999</div></div>
+      <div style="flex:1;display:grid;gap:4px"><div class="track" style="height:12px"><i style="width:3%"></i></div><div class="num" style="font-size:12px"><b>80</b> / 199,800 XP &nbsp;&middot;&nbsp; Waves +80</div></div>
+      <div class="xp">+80 XP</div>
+    </div>
+  </div>
+  <!-- one centred button row, grouped by meaning -->
+  <div style="left:0;width:1280px;top:600px;display:flex;justify-content:center;align-items:center;gap:14px">
+    <div class="btn ghost danger" style="width:140px"><svg viewBox="0 0 20 20"><path d="M9 2h2v8H9zM5.3 4.6l1.4 1.4a5 5 0 1 0 6.6 0l1.4-1.4a7 7 0 1 1-9.4 0z"/></svg>Leave</div>
+    <div style="width:1px;height:36px;background:#ffffff22;margin:0 6px"></div>
+    <div class="btn neutral" style="width:220px"><svg viewBox="0 0 20 20"><path d="M10 3l1.4 1.4L7.8 8H17v2H7.8l3.6 3.6L10 15l-6-6z" transform="translate(0 1)"/></svg>Back to lobby <span class="k">L</span></div>
+    <div class="btn primary big" style="width:260px"><svg viewBox="0 0 20 20"><path d="M5 3l12 7-12 7z"/></svg>Play again <span class="k">R</span></div>
+  </div>
+  <div class="tiny" style="left:260px;top:690px">Session recorded: C:\Users\antho\AppData\LocalLow\...\session-20261103-193231.json</div>
+ </div></div>
+ <div class="txt"><h2><b>C</b> &middot; Rank as the card's footer</h2>
+  <p>The rank belongs to <i>you</i>, so it moves inside your trophy card as a footer row (one per player in co-op, each with their own rank and +XP). That removes the separate strip entirely, so the buttons get a clean centered row with a divider: Leave on its own, then lobby, then the big Play again on the right where the eye ends. Tidiest, but touches the card code too.</p></div>
+</section>
+</div>
+<script>
+function fit(){ document.querySelectorAll('.vp').forEach(v=>{ const s=v.clientWidth/1280; v.firstElementChild.style.transform='scale('+s+')'; }); }
+addEventListener('resize',fit); fit(); document.fonts&&document.fonts.ready.then(fit);
+</script>
