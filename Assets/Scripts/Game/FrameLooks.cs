@@ -29,7 +29,7 @@ namespace Arena
         }
 
         /// A card's frame: the soft glow, the lit rim, then the frame's own effect. Call in place of Ui.Card for a framed card.
-        void DrawFrameCard(Rect r, int index, float t, bool glow = true)
+        void DrawFrameCard(Rect r, int index, float t, bool glow = true, int cardBg = 0)
         {
             var fc = FrameTint(index, t);
             string id = Rank.FrameId(index);
@@ -38,6 +38,7 @@ namespace Arena
                 for (int k = 3; k >= 1; k--)
                     Ui.Pill(new Rect(r.x - 3f * k, r.y - 3f * k, r.width + 6f * k, r.height + 6f * k), new Color(fc.r, fc.g, fc.b, 0.05f * (4 - k) / 3f * pulse));
             Ui.Card(r, fc, 1f);
+            DrawCardBackground(r, cardBg, t);  // CardBackgrounds.cs: under the frame's own effect
             DrawFrameFx(r, index, t);
         }
 

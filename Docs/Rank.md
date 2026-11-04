@@ -92,10 +92,21 @@ Placeholder ladder, from the mockup:
 | 40 | Frame: Legend Foil |
 | 45 | Trail: Light Cycle |
 | 50 | Frame: Prism |
+| 6 | Card background: Dusk Grid |
+| 10 | Card background: Starfield |
+| 13 | Card background: Blueprint |
+| 19 | Card background: Ember Glow |
+| 23 | Card background: Aurora |
+| 27 | Card background: Circuit Board |
+| 32 | Card background: Rain on Glass |
+| 37 | Card background: Void Rift |
+| 42 | Card background: Gilded Foil |
+| 55 | Card background: Prism Shards |
 
 - **Title**: the line under your name on the menu chip, the lobby hover card and Records.
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).
 - **Frame**: the border of your lobby party card (and your results card).
+- **Card background**: the fill of your lobby party card, behind your name (`Game/CardBackgrounds.cs`; mockup `Docs/Mockups/card-backgrounds.html`). Ten, from rank 6 to 55. Everyone in the lobby sees it (`LobbyEntry.CardBg`, protocol 140).
 - **Menu background**: an extra entry in the Settings > Visual effects picker (`MenuBackgrounds.cs`).
 - Equipped on a Cosmetics tab in the lobby (or Records). One of each kind at a time. Everyone sees your frame and
   title; the trail is seen by the players in the match.

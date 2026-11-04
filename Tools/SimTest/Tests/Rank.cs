@@ -103,6 +103,19 @@ static partial class Program
         Check(Rank.RewardsAt(14)[0].Id == "trail-frost" && Rank.RewardsAt(18)[0].Id == "trail-storm" && Rank.RewardsAt(22)[0].Id == "trail-void" && Rank.RewardsAt(35)[0].Id == "trail-prism"
               && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 14, 18, 22 and 35, and every trail has its own lobby number");
         Check(Rank.RewardsAt(45).Count == 1 && Rank.RewardsAt(45)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(44, "trail-lightcycle") && Rank.Owns(45, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 45 as the last trail, and no earlier trail's number moves");
+        // Card backgrounds: ten of them, numbered in rank order, shared through the lobby like frames and trails.
+        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 10 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "" && Rank.Owns(55, "card-prism") && !Rank.Owns(54, "card-prism") && Rank.RewardsAt(6)[0].Id == "card-dusk",
+            "ten card backgrounds, Dusk Grid at rank 6 to Prism Shards at 55, numbered for the lobby");
+        cp.Xp = Rank.XpAt(30); hp.Xp = Rank.XpAt(30);
+        Check(cp.Equip(CosmeticKind.CardBackground, "card-rain") == false && cp.Equip(CosmeticKind.CardBackground, "card-circuit") && cp.CardBg == "card-circuit" && !cp.Equip(CosmeticKind.Frame, "card-dusk") && cp.Equipped(CosmeticKind.CardBackground) == "card-circuit", "you equip the card backgrounds your rank has, and only in their slot");
+        hp.Equip(CosmeticKind.CardBackground, "card-dusk");
+        client.ShareCosmetics(); host.ShareCosmetics();
+        PollBoth(host, client);
+        Check(entry(host, cid).CardBg == 6 && entry(client, cid).CardBg == 6 && entry(client, 1).CardBg == 1, "everyone's lobby knows each player's card background");
+        cp.CardBg = "card-prism";  // not theirs at rank 30
+        client.ShareCosmetics();
+        PollBoth(host, client);
+        Check(entry(host, cid).CardBg == 0, "a card background the rank doesn't have is dropped by the host");
         cp.Trail = "trail-gold"; cp.Xp = Rank.XpAt(24);  // not theirs at rank 24
         client.ShareCosmetics();
         PollBoth(host, client);

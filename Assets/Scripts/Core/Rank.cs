@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a cosmetic changes. Titles aren't here: they come with the tier (Rank.TierName).
-    public enum CosmeticKind : byte { Frame, Trail, Background }
+    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground }
 
     /// A cosmetic reward for reaching a rank. Id is stored in the profile: never change one once players own it.
     public class CosmeticDef
@@ -113,6 +113,16 @@ namespace Arena
             new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 35 },
             new CosmeticDef { Id = "trail-lightcycle", Name = "Light Cycle trail", Kind = CosmeticKind.Trail, Rank = 45 },
             new CosmeticDef { Id = "frame-prism", Name = "Prism frame", Kind = CosmeticKind.Frame, Rank = 50 },
+            new CosmeticDef { Id = "card-dusk", Name = "Dusk Grid card", Kind = CosmeticKind.CardBackground, Rank = 6 },
+            new CosmeticDef { Id = "card-stars", Name = "Starfield card", Kind = CosmeticKind.CardBackground, Rank = 10 },
+            new CosmeticDef { Id = "card-blueprint", Name = "Blueprint card", Kind = CosmeticKind.CardBackground, Rank = 13 },
+            new CosmeticDef { Id = "card-embers", Name = "Ember Glow card", Kind = CosmeticKind.CardBackground, Rank = 19 },
+            new CosmeticDef { Id = "card-aurora", Name = "Aurora card", Kind = CosmeticKind.CardBackground, Rank = 23 },
+            new CosmeticDef { Id = "card-circuit", Name = "Circuit Board card", Kind = CosmeticKind.CardBackground, Rank = 27 },
+            new CosmeticDef { Id = "card-rain", Name = "Rain on Glass card", Kind = CosmeticKind.CardBackground, Rank = 32 },
+            new CosmeticDef { Id = "card-void", Name = "Void Rift card", Kind = CosmeticKind.CardBackground, Rank = 37 },
+            new CosmeticDef { Id = "card-foil", Name = "Gilded Foil card", Kind = CosmeticKind.CardBackground, Rank = 42 },
+            new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 55 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -175,6 +185,8 @@ namespace Arena
         public static string FrameId(int index) => IdOf(CosmeticKind.Frame, index);
         public static byte TrailIndex(string id) => IndexOf(CosmeticKind.Trail, id);
         public static string TrailId(int index) => IdOf(CosmeticKind.Trail, index);
+        public static byte CardBgIndex(string id) => IndexOf(CosmeticKind.CardBackground, id);
+        public static string CardBgId(int index) => IdOf(CosmeticKind.CardBackground, index);  // "card-dusk" ... (Game/CardBackgrounds.cs draws them)
 
         /// The frame's base colour for a lobby entry's frame number (the extras on top are Game/FrameLooks.cs).
         public static Rgba FrameColor(int index)

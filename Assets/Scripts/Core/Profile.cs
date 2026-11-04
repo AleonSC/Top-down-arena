@@ -73,7 +73,7 @@ namespace Arena
 
         // Rank (Rank.cs, Docs/Rank.md): total XP, the cosmetics equipped (ids from Rank.Cosmetics; "" none) and the last few runs' XP.
         public long Xp;
-        public string Frame = "", Trail = "", Background = "";
+        public string Frame = "", Trail = "", Background = "", CardBg = "";
         public readonly List<RankLog> Recent = new List<RankLog>();
         public const int RecentKept = 6;
 
@@ -116,11 +116,12 @@ namespace Arena
             }
             if (kind == CosmeticKind.Frame) Frame = id;
             else if (kind == CosmeticKind.Trail) Trail = id;
+            else if (kind == CosmeticKind.CardBackground) CardBg = id;
             else Background = id;
             return true;
         }
 
-        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : Background;
+        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : kind == CosmeticKind.CardBackground ? CardBg : Background;
 
         public static string ClassKey(Role role, Kit kit) => Defs.KitName(kit) + " " + Defs.Get(role).Name;  // "Knight Tank", as the lobby says it
 
@@ -233,7 +234,7 @@ namespace Arena
             foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             RunSave.Line(sb, "xp", Xp);
-            RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background));
+            RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')));
             RunSave.Line(sb, "end", 1);
             return sb.ToString();
@@ -279,7 +280,7 @@ namespace Arena
                             break;
                         case "unlocked": p.Unlocked.Add(val); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
-                        case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); break;
+                        case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); break;
                         case "rlog":
                             if (p.Recent.Count < RecentKept)
                                 p.Recent.Add(new RankLog { Wave = RunSave.I(f[0]), Result = RunSave.I(f[1]), Xp = RunSave.I(f[2]), MultPct = RunSave.I(f[3]), Mods = f.Length > 4 ? UnDash(f[4]).Replace('_', ' ') : "" });

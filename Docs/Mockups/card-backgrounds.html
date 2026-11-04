@@ -98,31 +98,31 @@ const BG = [
      for(let L=0;L<3;L++) for(let i=0;i<26;i++){ const sp=(L+1)*9, x=((hash(i+L*40)*w - t*sp)%w+w)%w, y=hash(i*3+L*17)*h, tw=.55+.45*Math.sin(t*2+i);
        c.fillStyle=`rgba(220,230,255,${(.25+L*.22)*tw})`; const s=.7+L*.6; c.fillRect(x,y,s,s); }
      const p=(t*.22)%1; if(p<.18){ const q=p/.18, x=w*.9-q*w*.5, y=h*.1+q*h*.45; c.strokeStyle=`rgba(255,255,255,${1-q})`; c.lineWidth=1.4; c.beginPath(); c.moveTo(x,y); c.lineTo(x+30,y-12); c.stroke(); } } },
- { id:"blueprint", name:"Blueprint", rank:14, note:"Cyan drafting paper: a fine grid, a dimension line and a few drawn-in circles that trace themselves.",
+ { id:"blueprint", name:"Blueprint", rank:13, note:"Cyan drafting paper: a fine grid, a dimension line and a few drawn-in circles that trace themselves.",
    draw(c,w,h,t){ c.fillStyle="#0e2a4a"; c.fillRect(0,0,w,h); c.strokeStyle="rgba(120,190,255,.14)"; c.lineWidth=1;
      for(let x=0;x<w;x+=12){ c.beginPath(); c.moveTo(x+.5,0); c.lineTo(x+.5,h); c.stroke(); } for(let y=0;y<h;y+=12){ c.beginPath(); c.moveTo(0,y+.5); c.lineTo(w,y+.5); c.stroke(); }
      c.strokeStyle="rgba(150,210,255,.45)"; const a=((t*.25)%1)*TAU; c.beginPath(); c.arc(w*.8,h*.5,26,0,a); c.stroke(); c.beginPath(); c.arc(w*.8,h*.5,14,0,TAU); c.stroke();
      c.beginPath(); c.moveTo(w*.45,h-12); c.lineTo(w-14,h-12); c.moveTo(w*.45,h-16); c.lineTo(w*.45,h-8); c.moveTo(w-14,h-16); c.lineTo(w-14,h-8); c.stroke(); } },
- { id:"embers", name:"Ember Glow", rank:18, note:"A warm glow rising from the bottom edge, with embers lifting off it. Pairs with the Ember Edge frame.",
+ { id:"embers", name:"Ember Glow", rank:19, note:"A warm glow rising from the bottom edge, with embers lifting off it. Pairs with the Ember Edge frame.",
    draw(c,w,h,t){ c.fillStyle=lin(c,0,h,0,0,[[0,"#4a1a08"],[.5,"#1e0d0a"],[1,"#0f0a0c"]]); c.fillRect(0,0,w,h);
      for(let i=0;i<22;i++){ const life=(t*.4+hash(i))%1, x=hash(i*5+1)*w+Math.sin(t*2+i)*6, y=h-life*h*1.05; c.fillStyle=`rgba(255,${150+90*(1-life)|0},60,${(1-life)*.8})`; c.beginPath(); c.arc(x,y,1+1.8*(1-life),0,TAU); c.fill(); } } },
- { id:"aurora", name:"Aurora", rank:22, note:"Slow green and violet ribbons, three sine curves blended additively. The calmest animated one.",
+ { id:"aurora", name:"Aurora", rank:23, note:"Slow green and violet ribbons, three sine curves blended additively. The calmest animated one.",
    draw(c,w,h,t){ c.fillStyle="#08121a"; c.fillRect(0,0,w,h); c.globalCompositeOperation="lighter";
      [["60,255,170",0],["120,110,255",2],["60,220,255",4]].forEach(([col,ph],k)=>{ c.fillStyle=`rgba(${col},.10)`; c.beginPath(); c.moveTo(0,h);
        for(let x=0;x<=w;x+=6) c.lineTo(x, h*(.3+.12*k)+Math.sin(x*.02+t*.6+ph)*14+Math.sin(x*.045-t*.4+ph)*7); c.lineTo(w,h); c.closePath(); c.fill(); }); c.globalCompositeOperation="source-over"; } },
- { id:"circuit", name:"Circuit Board", rank:26, note:"Dark green traces with a pulse running along each, to go with the Circuit frame.",
+ { id:"circuit", name:"Circuit Board", rank:27, note:"Dark green traces with a pulse running along each, to go with the Circuit frame.",
    draw(c,w,h,t){ c.fillStyle="#07140f"; c.fillRect(0,0,w,h); c.lineWidth=1.5;
      for(let i=0;i<6;i++){ const y=10+i*(h-20)/5, x0=hash(i)*40, bend=60+hash(i+9)*120; c.strokeStyle="rgba(60,200,150,.22)"; c.beginPath(); c.moveTo(0,y); c.lineTo(x0+bend,y); c.lineTo(x0+bend+14,y+(i%2?14:-14)); c.lineTo(w,y+(i%2?14:-14)); c.stroke();
        const px=((t*60+i*70)%(w+40))-20; c.fillStyle="rgba(150,255,220,.9)"; c.beginPath(); c.arc(px,px<x0+bend?y:y+(i%2?14:-14),2,0,TAU); c.fill(); c.fillStyle="rgba(60,200,150,.5)"; c.fillRect(x0+bend-2,y-2,4,4); } } },
- { id:"rain", name:"Rain on Glass", rank:30, note:"Cool grey-blue with fast thin streaks and the odd bead sliding down. Moody and readable.",
+ { id:"rain", name:"Rain on Glass", rank:32, note:"Cool grey-blue with fast thin streaks and the odd bead sliding down. Moody and readable.",
    draw(c,w,h,t){ c.fillStyle=lin(c,0,0,0,h,[[0,"#141c26"],[1,"#0b1018"]]); c.fillRect(0,0,w,h); c.strokeStyle="rgba(170,200,230,.22)"; c.lineWidth=1;
      for(let i=0;i<34;i++){ const x=hash(i)*w, sp=.8+hash(i+7)*.9, y=((t*sp*140+hash(i+3)*h)%(h+30))-15; c.beginPath(); c.moveTo(x,y); c.lineTo(x-3,y+14); c.stroke(); }
      for(let i=0;i<5;i++){ const x=hash(i+30)*w, y=((t*18+hash(i+40)*h)%h); c.fillStyle="rgba(200,225,255,.35)"; c.beginPath(); c.arc(x,y,2.2,0,TAU); c.fill(); } } },
- { id:"void", name:"Void Rift", rank:36, note:"A slow violet vortex behind the portrait, with specks spiralling in. Goes with Void Pulse.",
+ { id:"void", name:"Void Rift", rank:37, note:"A slow violet vortex behind the portrait, with specks spiralling in. Goes with Void Pulse.",
    draw(c,w,h,t){ c.fillStyle="#0a0614"; c.fillRect(0,0,w,h); const cx=w*.2, cy=h*.5;
      for(let r=0;r<5;r++){ c.strokeStyle=`rgba(150,90,255,${.28-r*.04})`; c.lineWidth=1.5; c.beginPath(); for(let a=0;a<TAU*1.6;a+=.2){ const rad=(10+r*14)+a*7, an=a-t*(.6+r*.1)+r; const x=cx+Math.cos(an)*rad*1.6, y=cy+Math.sin(an)*rad*.7; a?c.lineTo(x,y):c.moveTo(x,y); } c.stroke(); }
      const g=c.createRadialGradient(cx,cy,0,cx,cy,50); g.addColorStop(0,"rgba(190,140,255,.45)"); g.addColorStop(1,"rgba(190,140,255,0)"); c.fillStyle=g; c.fillRect(0,0,w,h); } },
- { id:"foil", name:"Gilded Foil", rank:45, note:"Brushed gold with a diagonal sheen that sweeps across every few seconds. The first one that should feel expensive.",
+ { id:"foil", name:"Gilded Foil", rank:42, note:"Brushed gold with a diagonal sheen that sweeps across every few seconds. The first one that should feel expensive.",
    draw(c,w,h,t){ c.fillStyle=lin(c,0,0,w,h,[[0,"#3a2a08"],[.5,"#6b4e12"],[1,"#2e2006"]]); c.fillRect(0,0,w,h); c.fillStyle="rgba(255,225,140,.05)"; for(let y=0;y<h;y+=3) c.fillRect(0,y,w,1);
      const p=((t*.28)%1.4)-.2, x=p*(w+120)-60; c.fillStyle=lin(c,x-40,0,x+40,0,[[0,"rgba(255,240,180,0)"],[.5,"rgba(255,240,180,.4)"],[1,"rgba(255,240,180,0)"]]); c.save(); c.transform(1,0,-.4,1,0,0); c.fillRect(x-40+h*.2,0,80,h); c.restore(); } },
  { id:"prism", name:"Prism Shards", rank:55, note:"Translucent triangles in the whole spectrum, turning slowly and overlapping. Goes with the Prism frame; the top of the ladder.",

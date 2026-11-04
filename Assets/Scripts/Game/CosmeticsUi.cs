@@ -9,10 +9,10 @@ namespace Arena
     public partial class ArenaApp
     {
         bool cosmeticsOpen;
-        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Reward ladder
+        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Reward ladder
 
-        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Reward ladder" };
-        static readonly string[] CosmeticIcons = { "ui_star", "blink", "snow", "ui_trophy" };
+        static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Reward ladder" };
+        static readonly string[] CosmeticIcons = { "ui_star", "blink", "snow", "ui_star", "ui_trophy" };
 
         void OpenCosmetics()
         {
@@ -22,7 +22,7 @@ namespace Arena
 
         void DrawCosmetics() { if (!SkipWhileClosing) DrawCosmeticsWindow(); }
 
-        static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : CosmeticKind.Background;
+        static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : CosmeticKind.Background;
 
         void DrawCosmeticsWindow()
         {
@@ -48,7 +48,7 @@ namespace Arena
             {
                 bool on = i == cosmeticsSection;
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                string line = i == 3 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
+                string line = i == 4 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
                 if (DrawerRow(r, PixelArt.Get(CosmeticIcons[i]), CosmeticSections[i], line, null, null, Ui.Gold, on))
                     cosmeticsSection = i;
                 y += r.height + 4f;
@@ -56,7 +56,7 @@ namespace Arena
             EndDrawer();
 
             BeginPanelAnim("cosmetics" + cosmeticsSection);
-            if (cosmeticsSection == 3)
+            if (cosmeticsSection == 4)
                 DrawLadderPanel(p, k);
             else
                 DrawCosmeticPanel(p, t, k);
@@ -79,6 +79,7 @@ namespace Arena
                 "A rim on your lobby party card and your menu chip.",
                 "Drawn behind you in the match, for everyone to see.",
                 "Your menu background. Dusk Grid is a rank reward; the others are in Settings > Visual effects.",
+                "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
             };
             OpenSectionPanel(CosmeticSections[cosmeticsSection].ToUpperInvariant(), Ui.Gold, subs[cosmeticsSection], k);
             float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f;
@@ -106,25 +107,27 @@ namespace Arena
             var items = Rank.OfKind(kind);
             items.Insert(0, null);  // null: none
             float y = top + 16f;
+            bool compact = items.Count > 9;  // the card backgrounds: eleven rows have to fit the panel
+            float rh = compact ? 44f : 58f, step = compact ? 46f : 66f, dy = compact ? -7f : 0f;
             foreach (var c in items)
             {
                 string id = c == null ? "" : c.Id;
                 bool ok = c == null || rank >= c.Rank, on = p.Equipped(kind) == id;
-                var rr = new Rect(lx, y, 352f, 58f);
+                var rr = new Rect(lx, y, 352f, rh);
                 Ui.Pill(rr, on ? new Color(1f, 0.8f, 0.35f, 0.12f) : new Color(1f, 1f, 1f, ok ? 0.05f : 0.025f));
-                RowThumb(new Rect(rr.x + 8f, rr.y + 8f, 64f, 42f), kind, c, p, t, ok);
+                RowThumb(new Rect(rr.x + 8f, rr.y + (compact ? 4f : 8f), 64f, 36f + (compact ? 0f : 6f)), kind, c, p, t, ok);
                 string name = c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : "None";
-                Ui.Label(new Rect(rr.x + 84f, rr.y + 8f, rr.width - 180f, 20f), name, 15, ok ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(rr.x + 84f, rr.y + 8f + dy, rr.width - 180f, 20f), name, 15, ok ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
                 string sub = c == null ? (kind == CosmeticKind.Background ? "what you chose in Settings" : "nothing equipped") : ok ? "unlocked" : "needs rank " + c.Rank;
-                Ui.Label(new Rect(rr.x + 84f, rr.y + 30f, rr.width - 180f, 18f), sub, 11, ok ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(rr.x + 84f, rr.y + 30f + dy, rr.width - 180f, 18f), sub, 11, ok ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
                 if (ok)
                 {
-                    if (Ui.SmallButton(new Rect(rr.xMax - 88f, rr.y + 17f, 78f, 24f), on ? (c == null ? "In use" : "Equipped") : "Equip", on ? Ui.GoldButton : Ui.Neutral, 12) && !on)
+                    if (Ui.SmallButton(new Rect(rr.xMax - 88f, rr.y + 17f + dy, 78f, 24f), on ? (c == null ? "In use" : "Equipped") : "Equip", on ? Ui.GoldButton : Ui.Neutral, 12) && !on)
                         EquipCosmetic(p, kind, id);
                 }
                 else
-                    Ui.Icon(new Rect(rr.xMax - 34f, rr.y + 18f, 22f, 22f), PixelArt.Get("ui_lock"), Ui.Muted);
-                y += 66f;
+                    Ui.Icon(new Rect(rr.xMax - 34f, rr.y + 18f + dy, 22f, 22f), PixelArt.Get("ui_lock"), Ui.Muted);
+                y += step;
             }
         }
 
@@ -164,10 +167,14 @@ namespace Arena
         void DrawLookCard(Rect r, Profile p, float t)
         {
             int rank = p.RankNow;
+            int bg = Rank.Owns(rank, p.CardBg) ? Rank.CardBgIndex(p.CardBg) : 0;
             if (Rank.Owns(rank, p.Frame))
-                DrawFrameCard(r, Rank.FrameIndex(p.Frame), t);  // FrameLooks.cs
+                DrawFrameCard(r, Rank.FrameIndex(p.Frame), t, true, bg);  // FrameLooks.cs
             else
+            {
                 Ui.Card(r, Ui.Accent, 0.85f);
+                DrawCardBackground(r, bg, t);  // CardBackgrounds.cs
+            }
             var face = new Rect(r.x + 8f, r.y + 8f, 72f, 72f);
             Ui.Pill(face, new Color(0.06f, 0.09f, 0.16f, 0.9f));
             if (BeginUiGl())
@@ -197,6 +204,12 @@ namespace Arena
                     EndUiGl();
                 }
             }
+            else if (kind == CosmeticKind.CardBackground)
+            {
+                Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
+                if (c != null)
+                    DrawCardBackground(new Rect(r.x - CardBgInset, r.y - CardBgInset, r.width + 2f * CardBgInset, r.height + 2f * CardBgInset), Rank.CardBgIndex(c.Id), t);
+            }
             else
             {
                 Ui.Pill(r, new Color(0.05f, 0.07f, 0.12f, 0.95f));
@@ -224,15 +237,20 @@ namespace Arena
             var rows = Ladder();  // RankUi.cs
             int cols = rows.Count > 12 ? 3 : 2;  // three columns once the ladder is long (the panel is a fixed height)
             float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f, cw = (DrawerPanel.width - 52f - 14f * (cols - 1)) / cols;
+            // The longer the ladder, the tighter the rows (it has to fit the panel).
+            float step = Mathf.Min(92f, (DrawerPanel.height - 128f) / Mathf.Ceil(rows.Count / (float)cols)), rh = step - 12f;
+            bool tight = rh < 70f;
             for (int i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
                 bool got = row.Rank <= rank;
-                var rr = new Rect(x + (i % cols) * (cw + 14f), top + (i / cols) * 92f, cw, 80f);
+                var rr = new Rect(x + (i % cols) * (cw + 14f), top + (i / cols) * step, cw, rh);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, got ? 0.05f : 0.025f));
-                RankLook.Draw(new Rect(rr.x + 12f, rr.y + 16f, 48f, 48f), row.Rank, got ? 1f : 0.5f);
-                Ui.Label(new Rect(rr.x + 76f, rr.y + 14f, rr.width - 90f, 24f), row.Name, 18, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(rr.x + 76f, rr.y + 40f, rr.width - 90f, 20f), row.Kind + (got ? "  ·  unlocked" : ""), 12, got ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
+                float bs = tight ? rh - 8f : 48f;
+                RankLook.Draw(new Rect(rr.x + 10f, rr.y + (rh - bs) / 2f, bs, bs), row.Rank, got ? 1f : 0.5f);
+                float tx = rr.x + 10f + bs + 12f;
+                Ui.Label(new Rect(tx, rr.y + (tight ? 2f : 14f), rr.xMax - tx - 6f, tight ? 20f : 24f), row.Name, tight ? 14 : 18, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(tx, rr.y + (tight ? 20f : 40f), rr.xMax - tx - 6f, tight ? 16f : 20f), row.Kind + (got ? "  ·  unlocked" : ""), tight ? 11 : 12, got ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
             }
         }
 

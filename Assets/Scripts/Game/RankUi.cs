@@ -234,6 +234,13 @@ namespace Arena
                 int rk = row.Rank;
                 Ui.Fancy(b, row.Name, 34, Color.white, RankLook.TierColor(rk), TextAnchor.MiddleCenter, new Color(0.4f, 0.5f, 0.8f, 0.3f));
             }
+            else if (row.Cosmetic.Kind == CosmeticKind.CardBackground)
+            {
+                var card = new Rect(b.x + 10f, b.y + b.height / 2f - 30f, b.width - 20f, 60f);
+                Ui.Card(card, Ui.Accent, 0.6f);
+                DrawCardBackground(card, Rank.CardBgIndex(row.Cosmetic.Id), t);
+                Ui.Label(new Rect(card.x + 12f, card.y, card.width - 24f, card.height), nameText, 18, Color.white, TextAnchor.MiddleLeft, true);
+            }
             else if (row.Cosmetic.Kind == CosmeticKind.Background)
             {
                 if (BeginUiGl())
@@ -321,7 +328,7 @@ namespace Arena
                 rows.Add(new LadderRow { Rank = at, Name = Rank.TierNames[t], Kind = "Title" });
             }
             foreach (var c in Rank.Cosmetics)
-                rows.Add(new LadderRow { Rank = c.Rank, Name = c.Name, Kind = c.Kind.ToString(), Cosmetic = c });
+                rows.Add(new LadderRow { Rank = c.Rank, Name = c.Name, Kind = c.Kind == CosmeticKind.CardBackground ? "Card background" : c.Kind.ToString(), Cosmetic = c });
             rows.Sort((a, b) => a.Rank != b.Rank ? a.Rank.CompareTo(b.Rank) : string.CompareOrdinal(a.Kind, b.Kind));
             return rows;
         }
@@ -342,10 +349,10 @@ namespace Arena
             Ui.Label(new Rect(x, top + 202f, lw, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 12, Ui.Text, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(x, top + 220f, lw, 18f), p.Xp.ToString("N0") + " XP in total", 11, Ui.Muted, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(x, top + 262f, lw, 16f), "EQUIPPED", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[,] eq = { { "Title", Rank.Title(info.Rank) }, { "Frame", NameOf(p.Frame) }, { "Trail", NameOf(p.Trail) }, { "Background", NameOf(p.Background) } };
-            for (int i = 0; i < 4; i++)
+            string[,] eq = { { "Title", Rank.Title(info.Rank) }, { "Frame", NameOf(p.Frame) }, { "Trail", NameOf(p.Trail) }, { "Background", NameOf(p.Background) }, { "Card", NameOf(p.CardBg) } };
+            for (int i = 0; i < 5; i++)
             {
-                var rr = new Rect(x, top + 284f + i * 36f, lw, 30f);
+                var rr = new Rect(x, top + 284f + i * 34f, lw, 28f);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, 0.04f));
                 Ui.Label(new Rect(rr.x + 10f, rr.y, 90f, rr.height), eq[i, 0], 12, Ui.Muted, TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(rr.x + 90f, rr.y, rr.width - 100f, rr.height), eq[i, 1], 12, eq[i, 1] == "none" ? Ui.Muted : Color.white, TextAnchor.MiddleRight, true);
@@ -359,8 +366,13 @@ namespace Arena
             foreach (var row in rows)
                 if (row.Rank > info.Rank) { nextAt = row.Rank; break; }
             float y = top + 16f;
-            foreach (var row in rows)
+            int first = 0, room = (int)((DrawerPanel.height - 128f) / 48f);  // only what fits: from just before the next reward on
+            for (int i = 0; i < rows.Count; i++)
+                if (rows[i].Rank > info.Rank) { first = Mathf.Max(0, i - 2); break; }
+            first = Mathf.Min(first, Mathf.Max(0, rows.Count - room));
+            for (int i = first; i < Mathf.Min(rows.Count, first + room); i++)
             {
+                var row = rows[i];
                 bool got = row.Rank <= info.Rank, next = row.Rank == nextAt;
                 var rr = new Rect(mx, y, mw, 44f);
                 Ui.Pill(rr, next ? new Color(1f, 0.8f, 0.35f, 0.12f) : new Color(1f, 1f, 1f, got ? 0.05f : 0.025f));

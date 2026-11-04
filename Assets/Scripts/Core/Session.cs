@@ -70,6 +70,7 @@ namespace Arena
         public int Rank = 1;  // the player's account rank (Rank.cs), cosmetic and client-reported (the host clamps it)
         public byte Frame;    // their equipped frame: 0 none, else Rank.FrameIndex
         public byte Trail;    // their equipped trail: 0 none, else Rank.TrailIndex (drawn behind them in the match)
+        public byte CardBg;   // their equipped card background: 0 none, else Rank.CardBgIndex (the fill of their party card)
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -81,7 +82,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 139;
+        public const int ProtocolVersion = 140;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -399,13 +400,14 @@ namespace Arena
                 case Msg.Cosmetics:
                 {
                     int rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, r.ReadInt32()));
-                    int frame = r.ReadByte(), trail = r.ReadByte();
+                    int frame = r.ReadByte(), trail = r.ReadByte(), card = r.ReadByte();
                     LobbyEntry who;
                     if (Lobby.TryGetValue(peer, out who))
                     {
                         who.Rank = rank;
                         who.Frame = Arena.Rank.Owns(rank, Arena.Rank.FrameId(frame)) ? (byte)frame : (byte)0;  // only a frame or trail their rank has
                         who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(trail)) ? (byte)trail : (byte)0;
+                        who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(card)) ? (byte)card : (byte)0;
                         BroadcastLobby();
                     }
                     break;
@@ -633,6 +635,7 @@ namespace Arena
             me.Rank = p.RankNow;
             me.Frame = Arena.Rank.Owns(me.Rank, p.Frame) ? Arena.Rank.FrameIndex(p.Frame) : (byte)0;
             me.Trail = Arena.Rank.Owns(me.Rank, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0;
+            me.CardBg = Arena.Rank.Owns(me.Rank, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0;
         }
 
         /// Tells the lobby this player's rank and equipped frame: the host refreshes its own entry, a client tells the
@@ -651,6 +654,7 @@ namespace Arena
             w.Write(p.RankNow);
             w.Write(Arena.Rank.Owns(p.RankNow, p.Frame) ? Arena.Rank.FrameIndex(p.Frame) : (byte)0);
             w.Write(Arena.Rank.Owns(p.RankNow, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0);
+            w.Write(Arena.Rank.Owns(p.RankNow, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0);
             SendToHost(Proto.End(w));
         }
 
@@ -673,6 +677,7 @@ namespace Arena
                 w.Write((short)e.Rank);
                 w.Write(e.Frame);
                 w.Write(e.Trail);
+                w.Write(e.CardBg);
             }
             w.Write((int)Modifiers);
             Diff.Write(w);
@@ -1029,6 +1034,7 @@ namespace Arena
                         e.Rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, (int)r.ReadInt16()));
                         e.Frame = r.ReadByte();
                         e.Trail = r.ReadByte();
+                        e.CardBg = r.ReadByte();
                         Lobby[e.Id] = e;
                     }
                     SyncAvatars();

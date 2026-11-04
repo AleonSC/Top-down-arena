@@ -215,10 +215,13 @@ namespace Arena
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
             {
-                DrawFrameCard(r, e.Frame, t);  // FrameLooks.cs
+                DrawFrameCard(r, e.Frame, t, true, e.CardBg);  // FrameLooks.cs
             }
             else
+            {
                 Ui.Card(r, color, mine ? 0.85f : 0.3f);
+                DrawCardBackground(r, e.CardBg, t);  // CardBackgrounds.cs
+            }
             // Portrait: their character, aiming around.
             var face = new Rect(r.x + 8f, r.y + 8f, 72f, 72f);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));

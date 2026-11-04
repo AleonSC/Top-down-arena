@@ -825,7 +825,7 @@ what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, 
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name chip on the main menu. A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background** and the **Reward ladder**; the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background** and the **Reward ladder**; the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
@@ -848,8 +848,18 @@ each kind at a time:
 | 35 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
 | 45 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
 | 50 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
+| 6 | **Dusk Grid card**: a perspective grid sliding toward you under a violet horizon (the fill of your lobby party card, behind your name) |
+| 10 | **Starfield card**: three layers of drifting stars and now and then a shooting star (the fill of your lobby party card, behind your name) |
+| 13 | **Blueprint card**: cyan drafting paper with a grid, a dimension line and a circle that traces itself (the fill of your lobby party card, behind your name) |
+| 19 | **Ember Glow card**: a warm glow along the bottom edge with embers lifting off it (the fill of your lobby party card, behind your name) |
+| 23 | **Aurora card**: slow green and violet ribbons (the fill of your lobby party card, behind your name) |
+| 27 | **Circuit Board card**: dark green traces with a pulse running along each (the fill of your lobby party card, behind your name) |
+| 32 | **Rain on Glass card**: cool grey-blue with thin streaks and beads running down (the fill of your lobby party card, behind your name) |
+| 37 | **Void Rift card**: a slow violet vortex behind your portrait (the fill of your lobby party card, behind your name) |
+| 42 | **Gilded Foil card**: brushed gold with a sheen sweeping across (the fill of your lobby party card, behind your name) |
+| 55 | **Prism Shards card**: spectrum shards turning slowly and overlapping (the fill of your lobby party card, behind your name) |
 
-Everyone in the match sees your trail, and everyone in the lobby sees your rank and frame; the host clamps what
+Everyone in the match sees your trail, and everyone in the lobby sees your rank, frame and card background; the host clamps what
 players report, and only accepts a frame or trail your rank has. XP, what's equipped and the last six runs are kept in
 `profile.txt` (`xp`, `equip`, `rlog` lines).
 
