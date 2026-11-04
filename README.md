@@ -934,8 +934,11 @@ upgrades, the path is chosen and the shop is closed), and again if the match is 
 waves. Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
-**Continue a run** on the main menu lists the saves (wave, when, score, time played, each seat's player and
-class, the path and modifiers), newest first, with **Continue** and **Delete** (click twice). Continuing hosts a
+**Play** on the main menu opens the saved-runs picker in the menu's box. It shows your latest save as a card
+(wave, when, score, time played, each seat's player and class, the path, difficulty and modifiers) with a big
+**Continue**, and under it **New run**, **Older runs (n)** (every other save, three to a page, each with Continue
+and a trash button) and **Delete this run** (click twice). With no saves it says so, in a box, and offers **New
+run**. **Back** or Esc closes it. Continuing hosts a
 lobby for that run: it shows **Continuing a saved run** instead of the mode switch, and a **Seats** tab instead of
 your loadout. Everyone plays the character they had: a friend who joins takes back the seat with their name (or
 the first free seat, and moves aside if its owner turns up); **Take this seat** moves you to a free one. Classes,
@@ -1002,13 +1005,16 @@ window really close. That goes for the pause menu and for Settings from the lobb
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
-  (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen, a big **Host game** button over **Join game** and **Continue** (how many runs are
-  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name to
-  change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
-  draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
-  any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box
-  into the lobby's loadout while the rest of the menu fades out and the lobby fades in. (The Field guide and How to play are in the
-  lobby's and the pause menu's drawer.)
+  (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen:
+  **your name card** (your party card in small; click the name to change it; it's remembered; hover it for **Switch
+  profile**) over a big **Play** button over **Join game**, **Records** and **Settings**. **Join game** opens a row
+  under the box for the host's address and **Connect**. **Play** swaps the box's insides for the saved-runs picker (see
+  Saved runs): **Continue** your latest run or start a **New run**, which grows the box into the lobby's loadout.
+  **Quit** is a faint power icon at the bottom centre of the screen that lights up red when the mouse is over it. The
+  first time it shows after the game starts it draws itself in: a pen writes the title and traces the arc, then the
+  box opens and its buttons rise into it (2.75 s; any key or click skips it; with Reduced effects or Visual effects
+  off, a short fade). Starting a run grows the box into the lobby's loadout while the rest of the menu fades out and
+  the lobby fades in. (The Field guide and How to play are in the lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
@@ -1116,7 +1122,7 @@ pulling an update, everyone should rebuild (or the host should send the new buil
 One person **hosts**, the other **joins**. The host's game acts as the server, so you don't need anything else.
 
 1. Both of you install [Tailscale](https://tailscale.com/download) (free) and join the same tailnet.
-2. Host: open the game, click **Host game**. Click the **!** next to the Lobby title to see your port and addresses;
+2. Host: open the game, click **Play**, then **New run** (or **Continue** a saved run). Click the **!** next to the Lobby title to see your port and addresses;
    give your friend the one starting with `100.`.
 3. Friend: type that address into **Host address**, click **Join game**.
 4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host

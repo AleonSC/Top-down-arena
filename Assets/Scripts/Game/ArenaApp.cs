@@ -430,6 +430,8 @@ namespace Arena
                     CloseWindow(() => recordsOpen = false);
                 else if (cosmeticsOpen)
                     CloseWindow(() => cosmeticsOpen = false);  // CosmeticsUi.cs
+                else if (menuPlayOpen && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
+                    PlayPickerBack();  // the saved-runs picker: back to the older runs' first page, or to the menu (SavesUi.cs)
             }
             if (session.Screen == AppScreen.Game && !RecallActive && !edWasOpen)  // (nothing to open while everyone's beaming out: Recall.cs)
             {

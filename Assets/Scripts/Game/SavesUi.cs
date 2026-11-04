@@ -46,6 +46,194 @@ namespace Arena
             continueOpen = true;
         }
 
+        // --- Play: the saved-runs picker inside the menu's box -------------------------------------
+
+        bool menuPlayOlder;  // the picker is showing the older runs (every save but the newest)
+        int menuOlderPage;   // which page of them (three to a page)
+
+        /// Play was clicked: the box shows the picker (a new run, or your saved runs).
+        void OpenPlayPicker()
+        {
+            savedRuns = SaveStore.List();
+            deleteArmed = null;
+            menuJoinOpen = false;
+            menuPlayOlder = false;
+            menuOlderPage = 0;
+            menuPlayOpen = true;
+        }
+
+        /// Esc or Back: from the older runs to the latest one, or out of the picker to the menu's buttons.
+        void PlayPickerBack()
+        {
+            deleteArmed = null;
+            if (menuPlayOlder)
+            {
+                menuPlayOlder = false;
+                menuOlderPage = 0;
+            }
+            else
+                menuPlayOpen = false;
+        }
+
+        /// Starts a fresh run: what Play used to do.
+        void StartNewRun() => HostGame();
+
+        void ContinueSave(RunSave s)
+        {
+            if (session.HostResume(s, Port(), nameText))
+                addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
+        }
+
+        /// A delete button that needs a second click: the first one arms it.
+        bool DeleteSaveButton(Rect r, string label, RunSave s, float t, bool live)
+        {
+            bool armed = deleteArmed == s.Id;
+            if (!Ui.FancyButton(r, armed ? "Really delete?" : label, armed ? Ui.Danger : Ui.Neutral, PixelArt.Get("ui_trash"), t, 16) || !live)
+                return false;
+            if (!armed)
+            {
+                deleteArmed = s.Id;
+                return false;
+            }
+            SaveStore.Delete(s.Id);
+            savedRuns = SaveStore.List();
+            deleteArmed = null;
+            if (savedRuns.Count < 2)
+            {
+                menuPlayOlder = false;
+                menuOlderPage = 0;
+            }
+            return true;
+        }
+
+        /// The box after Play: your latest run with a big Continue, and New run, Older runs and Delete under it. With no saves
+        /// it says so, in a box, and offers New run.
+        void DrawPlayPicker(float t, bool live)
+        {
+            var c = MenuCard;
+            if (menuPlayOlder && savedRuns.Count > 1)
+            {
+                DrawOlderRuns(c, t, live);
+                return;
+            }
+            bool any = savedRuns.Count > 0;
+            Ui.Fancy(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, new Color(0.72f, 1f, 0.82f), TextAnchor.MiddleLeft, SaveColor);
+            if (Ui.FancyButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", Ui.Neutral, PixelArt.Get("ui_back"), t, 15) && live)
+                PlayPickerBack();
+            var r = new Rect(c.x + 30f, c.y + 62f, 620f, 118f);
+            Ui.Card(r, SaveColor, 0.25f);
+            float by = c.y + 196f;
+            if (!any)
+            {
+                Ui.Label(new Rect(r.x + 20f, r.y + 20f, r.width - 40f, 26f), "No saved runs yet.", 20, Color.white, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x + 40f, r.y + 52f, r.width - 80f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 14, Ui.Muted, TextAnchor.UpperCenter, false, true);
+                if (Ui.FancyButton(new Rect(c.x + 30f, by, 620f, 50f), "New run", Ui.Primary, PixelArt.Get("ui_play"), t, 20) && live)
+                    StartNewRun();
+                return;
+            }
+            var s = savedRuns[0];
+            Ui.Label(new Rect(r.x + 18f, r.y + 6f, 230f, 38f), "Wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : ""), 28, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 18f, r.y + 46f, 230f, 16f), "Saved " + s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, Ui.Muted);
+            Ui.Label(new Rect(r.x + 18f, r.y + 63f, 230f, 16f), "Score " + s.Score + "  ·  " + (int)(s.RunTime / 60f) + " min played", 12, Ui.Muted);
+            for (int i = 0; i < s.Seats.Count && i < 3; i++)
+            {
+                var seat = s.Seats[i];
+                Ui.Fill(new Rect(r.x + 250f, r.y + 14f + i * 24f, 4f, 18f), ToColor(Defs.Get(seat.Role).Color));
+                Ui.Label(new Rect(r.x + 260f, r.y + 12f + i * 24f, 180f, 22f), seat.Name + " — " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, Ui.Text);
+            }
+            DrawSaveBadges(s, r.x + 18f, r.y + 90f, 112f, 6f, 3);
+            if (Ui.FancyButton(new Rect(r.xMax - 170f, r.y + 28f, 152f, 62f), "Continue", Ui.Primary, PixelArt.Get("ui_play"), t, 22) && live)
+                ContinueSave(s);
+            const float bw = 200f;
+            if (Ui.FancyButton(new Rect(c.x + 30f, by, bw, 50f), "New run", Ui.Neutral, PixelArt.Get("ui_play"), t, 18) && live)
+                StartNewRun();
+            int older = savedRuns.Count - 1;
+            if (Ui.FancyButton(new Rect(c.x + 30f + bw + 10f, by, bw, 50f), "Older runs (" + older + ")", Ui.Neutral, PixelArt.Get("ui_book"), t, 17) && live && older > 0)
+            {
+                menuPlayOlder = true;
+                menuOlderPage = 0;
+                deleteArmed = null;
+            }
+            DeleteSaveButton(new Rect(c.x + 30f + 2f * (bw + 10f), by, bw, 50f), "Delete this run", s, t, live);
+        }
+
+        /// The path, difficulty, modifier and dev-tools tags of a save, in a row (at most max).
+        void DrawSaveBadges(RunSave s, float x, float y, float w, float gap, int max)
+        {
+            int n = 0;
+            if (s.CurrentPath != PathId.None && s.PathTo > s.Wave && n < max)
+            {
+                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), Game.PathName(s.CurrentPath).ToUpperInvariant(), new Color(0.55f, 0.4f, 0.85f));
+                n++;
+            }
+            if (s.Diff.Level != DifficultyLevel.Normal && n < max)
+            {
+                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), s.Diff.Name.ToUpperInvariant(), DiffBadgeColor(s.Diff.Level));
+                n++;
+            }
+            int mods = Modifiers.Count(s.Mods);
+            if (mods > 0 && n < max)
+            {
+                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), mods + (mods == 1 ? " MODIFIER" : " MODIFIERS"), ModColor);
+                n++;
+            }
+            if (s.DevUsed && n < max)
+                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), "DEV TOOLS USED", Ui.Neutral);
+        }
+
+        /// The picker's second view: every save but the newest, three to a page, each with Continue and a delete button.
+        void DrawOlderRuns(Rect c, float t, bool live)
+        {
+            int older = savedRuns.Count - 1, pages = (older + 2) / 3;
+            menuOlderPage = Mathf.Clamp(menuOlderPage, 0, pages - 1);
+            Ui.Fancy(new Rect(c.x + 30f, c.y + 18f, 300f, 34f), "OLDER RUNS", 24, Color.white, new Color(0.72f, 1f, 0.82f), TextAnchor.MiddleLeft, SaveColor);
+            if (pages > 1)
+            {
+                Ui.Label(new Rect(c.xMax - 330f, c.y + 18f, 80f, 34f), (menuOlderPage + 1) + " / " + pages, 14, Ui.Muted, TextAnchor.MiddleCenter);
+                if (Ui.Button(new Rect(c.xMax - 372f, c.y + 18f, 40f, 34f), "‹", Ui.Neutral) && live && menuOlderPage > 0)
+                    menuOlderPage--;
+                if (Ui.Button(new Rect(c.xMax - 248f, c.y + 18f, 40f, 34f), "›", Ui.Neutral) && live && menuOlderPage < pages - 1)
+                    menuOlderPage++;
+            }
+            if (Ui.FancyButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", Ui.Neutral, PixelArt.Get("ui_back"), t, 15) && live)
+                PlayPickerBack();
+            for (int i = 0; i < 3; i++)
+            {
+                int idx = 1 + menuOlderPage * 3 + i;
+                if (idx >= savedRuns.Count)
+                    break;
+                var s = savedRuns[idx];
+                var r = new Rect(c.x + 30f, c.y + 62f + i * 62f, 620f, 56f);
+                Ui.Card(r, SaveColor, 0.25f);
+                float x = r.x + 16f;
+                Ui.Label(new Rect(x, r.y + 3f, 190f, 26f), "Wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : ""), 19, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, r.y + 28f, 200f, 14f), "Saved " + s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 11, Ui.Muted);
+                Ui.Label(new Rect(x, r.y + 41f, 200f, 14f), "Score " + s.Score + "  ·  " + (int)(s.RunTime / 60f) + " min played", 11, Ui.Muted);
+                for (int k = 0; k < s.Seats.Count && k < 2; k++)
+                {
+                    Ui.Fill(new Rect(x + 216f, r.y + 9f + k * 20f, 4f, 15f), ToColor(Defs.Get(s.Seats[k].Role).Color));
+                    Ui.Label(new Rect(x + 226f, r.y + 7f + k * 20f, 190f, 18f), s.Seats[k].Name + " — " + Defs.KitName(s.Seats[k].Kit) + " " + Defs.Get(s.Seats[k].Role).Name, 12, Ui.Text);
+                }
+                if (Ui.FancyButton(new Rect(r.xMax - 206f, r.y + 8f, 136f, 40f), "Continue", Ui.Primary, PixelArt.Get("ui_play"), t, 17) && live)
+                    ContinueSave(s);
+                bool armed = deleteArmed == s.Id;
+                if (Ui.FancyButton(new Rect(r.xMax - 60f, r.y + 8f, 46f, 40f), "", armed ? Ui.Danger : Ui.Neutral, PixelArt.Get("ui_trash"), t, 14) && live)
+                {
+                    if (armed)
+                    {
+                        SaveStore.Delete(s.Id);
+                        savedRuns = SaveStore.List();
+                        deleteArmed = null;
+                        if (savedRuns.Count < 2)
+                            menuPlayOlder = false;
+                        return;
+                    }
+                    deleteArmed = s.Id;
+                }
+            }
+            Ui.Label(new Rect(c.x + 30f, c.yMax - 36f, 620f, 16f), deleteArmed != null ? "Click the red trash button again to delete that run." : "The trash button asks twice before it deletes.", 11, Ui.Muted, TextAnchor.MiddleCenter);
+        }
+
         // --- Continue a run ------------------------------------------------------------------------
 
         void DrawContinue()

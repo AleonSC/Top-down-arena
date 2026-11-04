@@ -121,7 +121,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a room where everyone's character walks with WASD wearing their cosmetics (`Docs/Hangout.md`)
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds (the picker is in Settings > Visual effects)
-- `SavesUi.cs`: Continue list, Records, unlock toasts
+- `SavesUi.cs`: the Play picker in the main menu box (latest run, New run, Older runs), Records, unlock toasts
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
 
 ## Dev tools and editors (Game)
