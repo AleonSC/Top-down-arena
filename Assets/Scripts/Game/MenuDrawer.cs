@@ -698,6 +698,10 @@ namespace Arena
                     bool hud = SwitchRow(new Rect(x, y, w, 48f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)));
                     if (hud != hudShown)
                         hudShown = hud;
+                    y += 58f;
+                    bool lean2 = SwitchRow(new Rect(x, y, w, 48f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
+                    if (lean2 != camLean)
+                        SetCamLean(lean2);
                     y += 70f;
                     // The network port (it used to sit on the main menu): hosting and joining both use it.
                     Ui.Label(new Rect(x, y, w - 130f, 20f), "Network port", 15, Ui.Text, TextAnchor.MiddleLeft, true);

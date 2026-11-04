@@ -37,7 +37,7 @@ namespace Arena
         static float EaseBack(float f) { const float c = 1.70158f; float q = f - 1f; return 1f + (c + 1f) * q * q * q + c * q * q; }
 
         /// Where the picker's cards fly from and back to: your character, on the HUD canvas (the bottom middle if you're down).
-        V2 PickHome(Player me) => me == null || me.Downed ? new V2(W / 2f, H - 140f) : me.Disp * WorldToUi;
+        V2 PickHome(Player me) => me == null || me.Downed ? new V2(W / 2f, H - 140f) : ToUi(me.Disp);
 
         /// A point on card i's flight between home (f = 0) and its slot's middle (f = 1): an arc, higher for later cards.
         static V2 PickArc(V2 home, Vector2 slot, int i, float f)

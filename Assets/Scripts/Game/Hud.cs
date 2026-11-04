@@ -40,7 +40,7 @@ namespace Arena
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
-                V2 at = p.Disp * WorldToUi;  // arena -> HUD coordinates
+                V2 at = ToUi(p.Disp);  // arena -> HUD coordinates (with the camera lean)
                 r *= WorldToUi;
                 if (banner && !LaunchHoldsBanner && at.X > BannerRect.x - 100f && at.X < BannerRect.xMax + 100f && at.Y > BannerRect.y - 20f && at.Y < BannerRect.yMax + r + 60f)
                     continue;

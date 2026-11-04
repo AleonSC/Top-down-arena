@@ -50,7 +50,8 @@ namespace Arena
             DrawMenuBackground(Time.time);
             drawScale = worldScale;
             BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)
-            FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
+            BeginLeanFrame();    // the camera lean: the arena slides, the backdrop doesn't (CameraLean.cs)
+            FillArenaBackdrop(new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
             bool infected = ZombieArena;  // Zombie Infection: the arena goes dark green (ZombieLook.cs)
             if (infected)
                 FillRect(0, 0, AW, AH, ZombieFloor);
@@ -522,8 +523,8 @@ namespace Arena
         Vector3 Px(V2 p)
         {
             var v = CanvasPx(glShift + p * glZoom);
-            v.x += shakeX;  // screen shake while the world is drawn (Juice.cs); 0 otherwise
-            v.y += shakeY;
+            v.x += shakeX - leanPxX;  // screen shake (Juice.cs) and camera lean (CameraLean.cs) while the world is drawn; 0 otherwise
+            v.y += shakeY + leanPxY;  // (GL's y runs up the screen, the arena's runs down)
             return v;
         }
 

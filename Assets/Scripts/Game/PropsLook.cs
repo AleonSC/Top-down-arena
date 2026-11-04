@@ -376,7 +376,7 @@ namespace Arena
             Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
             float now = Time.unscaledTime;
             // Beside the item (right of it, or left if there's no room), so you still see the arena around you.
-            V2 at = l.Pos * WorldToUi;
+            V2 at = ToUi(l.Pos);
             float w = 280f, h = 236f;
             float x = at.X + 46f;
             if (x + w > W - 10f)

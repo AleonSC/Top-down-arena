@@ -604,7 +604,7 @@ namespace Arena
             string tag = w.StunT > 0f ? "STUNNED" : w.ExposedT > 0f ? "EXPOSED  ·  +" + Mathf.RoundToInt((Game.ExposedMult - 1f) * 100f) + "% DAMAGE" : null;
             if (tag == null)
                 return;
-            V2 at = e.Disp * WorldToUi;
+            V2 at = ToUi(e.Disp);
             float r = e.Radius * WorldToUi;
             var col = w.StunT > 0f ? new Color(0.55f, 0.9f, 1f) : new Color(1f, 0.88f, 0.45f);
             Ui.Shadowed(new Rect(at.X - 160f, at.Y - r - 52f, 320f, 22f), tag, 16, new Color(col.r, col.g, col.b, 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 8f)));

@@ -124,6 +124,7 @@ namespace Arena
             LoadJukebox();
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
+            LoadCamLean();     // CameraLean.cs
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
@@ -226,6 +227,7 @@ namespace Arena
             UpdateMusic();
             UpdateLayout();
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
+            UpdateCameraLean(Time.unscaledDeltaTime);  // the picture eases toward your aim (CameraLean.cs)
             StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (WindowAnim.cs)
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
@@ -568,7 +570,7 @@ namespace Arena
         {
             Vector3 m = Input.mousePosition;
             float ws = scale * WorldToUi;
-            return new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws);
+            return new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws) + lean;  // (+ the camera lean, CameraLean.cs)
         }
 
         // --- Menus and HUD (IMGUI, arena coordinates) --------------------------

@@ -43,7 +43,7 @@ namespace Arena
                     if (o.Kind == FxKind.Callout && (int)o.Pos2.X == p.Id)
                         stack++;
                 }
-                V2 at = p.Disp * WorldToUi;  // HUD coordinates; it starts just above their name tag (Hud.cs) and rises
+                V2 at = ToUi(p.Disp);  // HUD coordinates; it starts just above their name tag (Hud.cs) and rises
                 at.Y -= p.Def.BodyR * WorldToUi + 42f + 16f * f + 16f * stack;
                 Color c = ult ? new Color(1f, 0.84f, 0.35f) : Color.Lerp(ToColor(p.Def.Color), Color.white, 0.45f);
                 c.a = fade;

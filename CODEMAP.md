@@ -77,6 +77,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
+- `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 75% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
@@ -138,6 +139,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
 | Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `PickIntro.cs` |
 | Damage numbers, hit effects, shake | `Juice.cs`, `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`) |
+| Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
 | HUD layout | `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
 | Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |

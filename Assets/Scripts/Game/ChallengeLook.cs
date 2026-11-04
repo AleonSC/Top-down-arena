@@ -351,7 +351,7 @@ namespace Arena
         /// Over the portal: what's on the other side, who's in, and how long it stays open.
         void DrawPortalLabel(Color acc, float now)
         {
-            V2 at = game.PortalPos * WorldToUi;
+            V2 at = ToUi(game.PortalPos);
             int alive = 0, inside = 0;
             foreach (var p in game.Players.Values)
                 if (!p.Downed)
@@ -447,7 +447,7 @@ namespace Arena
             {
                 for (int i = game.ZoneIndex; i < Challenges.ZoneCount; i++)
                 {
-                    V2 at = game.RoomZones[i] * WorldToUi;
+                    V2 at = ToUi(game.RoomZones[i]);
                     Ui.Shadowed(new Rect(at.X - 40f, at.Y - 12f, 80f, 24f), (i + 1).ToString(), i == game.ZoneIndex ? 22 : 15,
                         i == game.ZoneIndex ? Color.white : new Color(1f, 1f, 1f, 0.4f));
                 }
@@ -470,7 +470,7 @@ namespace Arena
             GUI.color = oldColor;
             if (game.Room == RoomPhase.Won)  // a pointer over the altar
             {
-                V2 at = game.AltarPos * WorldToUi;
+                V2 at = ToUi(game.AltarPos);
                 float bob = 6f * Mathf.Sin(now * 4f);
                 Ui.Shadowed(new Rect(at.X - 60f, at.Y - 118f + bob, 120f, 20f), "PRIZE", 14, Ui.Gold);
             }

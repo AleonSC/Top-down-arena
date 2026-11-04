@@ -734,6 +734,7 @@ as usual.
 | Change any of these keys | Settings → Keybinds (see below) |
 | Developer tools | F1 (see below) |
 | Kill every enemy on the field (dev, host) | X, once the F1 Match tab's kill-all key is on |
+| Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
@@ -949,7 +950,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
-  HUD, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
+  HUD, **camera lean**, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
 - **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
   won) and Unlocks.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The

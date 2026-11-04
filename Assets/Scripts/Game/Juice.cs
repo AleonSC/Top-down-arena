@@ -598,7 +598,11 @@ namespace Arena
             shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
         }
 
-        void EndJuiceFrame() => shakeX = shakeY = 0f;
+        void EndJuiceFrame()
+        {
+            shakeX = shakeY = 0f;
+            EndLeanFrame();  // CameraLean.cs
+        }
 
         /// On the floor, under everything: scorch marks fading, and trails behind fast shots.
         void DrawJuiceFloor()
@@ -951,7 +955,7 @@ namespace Arena
             {
                 float f = n.T / NumberLife, pop = Mathf.Min(1f, n.T * 12f);
                 int size = Mathf.RoundToInt((n.Big ? 17f : 12f) * (0.6f + 0.4f * pop));
-                V2 at = n.Pos * WorldToUi;
+                V2 at = ToUi(n.Pos);
                 var col = n.Big ? new Color(1f, 0.84f, 0.35f, 1f - f * f) : new Color(0.92f, 0.94f, 1f, 1f - f * f);
                 Ui.Shadowed(new Rect(at.X - 40f, at.Y - 10f, 80f, 20f), n.Value.ToString(), size, col);
             }
