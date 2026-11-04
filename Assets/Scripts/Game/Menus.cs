@@ -265,7 +265,7 @@ namespace Arena
                 if (switchProfA > 0.01f)
                 {
                     bool clicked = false;
-                    WithAlpha(switchProfA, () => clicked = Ui.Button(sw, "Switch profile", Ui.Neutral));
+                    WithAlpha(switchProfA, () => clicked = Ui.ActionButton(sw, "Switch profile", false, Ui.Primary, null, null, 14));
                     if (clicked && switchProfA > 0.5f)
                         StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
                 }
