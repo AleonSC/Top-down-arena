@@ -6,6 +6,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
+- [x] **Air trail behind fast movers.** Built (Nov 2026, look A Ribbons, protocol unchanged): `AirTrailLooks.cs`, from [`Mockups/air-trail.html`](Mockups/air-trail.html)
+      (https://claude.ai/artifact/7n5yGrXprCX62ViuzaxePi). Players, enemies and minions; none under 110 px/s, full at 330. Tune `AirStart`/`AirFull` if it's too shy or too loud.
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 - [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
       (`Game/GunBowLooks.cs`). Mockup: [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html)

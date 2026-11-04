@@ -154,6 +154,7 @@ namespace Arena
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
+            DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerLinks(p, t);
             foreach (var minion in game.Minions.Values)
