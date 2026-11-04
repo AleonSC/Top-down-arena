@@ -835,8 +835,12 @@ again, go back to the lobby, or keep going after a victory.
 The lobby's **Hangout** (a button on the Party heading, which becomes **< Loadout** while you are in the room) is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
 or your rebound movement keys); the others in the lobby move theirs, and everyone sees everyone. Each character is
 your real class and weapon model, with the **trail** you have equipped behind it, your **rank badge** and a name plate
-with your **frame's** colour (and a green dot once you've readied up). No shooting, abilities or collisions: it's just a
-place to stand while the party gets ready. Works in every lobby mode. Design: [`Docs/Hangout.md`](Docs/Hangout.md).
+with your **frame's** colour (and a green dot once you've readied up). Works in every lobby mode. Design: [`Docs/Hangout.md`](Docs/Hangout.md).
+
+The room is a big map (2400 x 1600) that you see through a window: the view follows you and stops at the glowing teal border. A **minimap** at the window's top left shows where everyone is. Switching to the Hangout from the Loadout tab
+plays a 0.85 s grow: the loadout's preview window stretches into the room (it just snaps with reduced effects or from any other tab).
+
+**PvP** is a checkbox under the minimap, **off** by default and yours alone; everyone sees each player's setting. With it **on** you face the mouse and **hold the left button** to fire your loadout weapon (its fire rate, shot speed and reach; one plain shot, none of the abilities, pellets, beams or swings), and other players with PvP on can shoot you. With it **off** you can neither shoot nor be shot, shots pass through you. Everyone has 100 health with a bar overhead; it comes back 3 s after the last hit. At 0 you are **knocked out** for 2.5 s (a ghost, can't move or shoot), then return at a spawn spot with full health. Turning PvP off heals you. The host decides every hit.
 
 ## Rank
 

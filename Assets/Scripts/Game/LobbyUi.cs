@@ -108,7 +108,10 @@ namespace Arena
             var area = new Rect(440f, 24f, W - 480f, H - LobbyBottomPad - 24f);
             DrawLobbyTabs(new Rect(area.x, area.y, area.width, 34f), practice);
             var body = new Rect(area.x, LobbyBodyTop, area.width, area.yMax - LobbyBodyTop);
-            if (lobbyTab == 1 && practice)
+            TickHangoutAnim();  // LobbyRoom.cs
+            if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
+                DrawHangoutTransition(me, body, t);  // the preview window growing into the Hangout (or shrinking back)
+            else if (lobbyTab == 1 && practice)
                 DrawPracticeEditor(body, t);
             else if (lobbyTab == 4 && hunt)
                 DrawHuntPicker(body, t);  // HuntUi.cs
@@ -381,7 +384,7 @@ namespace Arena
             // Hero card: your character on a glowing pedestal, with the numbers that matter.
             var hero = new Rect(r.x + 14f, r.y + 14f, 232f, r.height - 28f);
             Ui.Pill(hero, new Color(0.03f, 0.035f, 0.06f, 0.85f));
-            DrawShowcase(me, new Rect(hero.x + 8f, hero.y + 8f, hero.width - 16f, 180f), roleColor);
+            DrawShowcase(me, ShowcaseRect(r), roleColor);  // (LobbyRoom.cs: the Hangout grows out of this window)
             float hy = hero.y + 196f;
             Ui.Fancy(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, Color.Lerp(roleColor, Color.white, 0.3f), TextAnchor.MiddleCenter, roleColor);
             hy += 32f;
@@ -842,8 +845,9 @@ namespace Arena
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
         void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
         {
-            if (uiGlBlocked)
-                return;  // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
+            if (uiGlBlocked || hangoutAnim > 0f)
+                return;  // (hangoutAnim: the window is turning into the Hangout, which draws its own floor and ship)
+            // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
             int shown = abilityHover >= 0 ? abilityHover : me.Ability;
             bool ult = abilityHover < 0 && Time.unscaledTime < ultDemoUntil;  // hovering an ability shows that instead
             bool demo = ult || abilityHover >= 0 || Time.unscaledTime < abilityDemoUntil;

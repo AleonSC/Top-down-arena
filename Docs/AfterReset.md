@@ -16,6 +16,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **HUD animations: rim runner.** Built (Nov 2026, protocol unchanged, 147): look D of [`Mockups/hud-animations.html`](Mockups/hud-animations.html) (https://claude.ai/artifact/FtY5EZaHeJZgckp88Pb9SN). Recharging draws the tile's border as a loading ring, a ready tile has a spark circling it, using it snuffs the rim with a burst at the key cap (`DrawTileRim`, `HudTiles.cs`). Reduced effects: the ring only. Needs a try in Unity.
 
 ## Balance / design
+- [x] **Hangout: scrolling map, PvP and shooting.** Built (Nov 2026, protocol 148): layout B of [`Mockups/hangout-pvp.html`](Mockups/hangout-pvp.html) (https://claude.ai/artifact/Xn5oUe7SyRfa7pNCxk6WLT)
+      without the background slider (you dropped it), the PvP checkbox under the minimap, and look A (Grow) of [`Mockups/hangout-transition.html`](Mockups/hangout-transition.html)
+      (https://claude.ai/artifact/3FWZesgUXiUERrtzBmmikm). 2400 x 1600 map. Shots use your weapon's rate, speed and reach only: no abilities, pellets, beams or swings. Needs a try in Unity.
+      Differences from the mockup: nobody is drawn faded when PvP is off (everyone starts off, so everything would be ghosted); instead health bars show on fighters. Say if you want the faded look or abilities.
 - [x] **Elementalist DPS abilities: Meteor and Blizzard visuals, Arcane Surge becomes Tsunami.** Built (Nov 2026, protocol 147): look A for all three, from
       [`Mockups/elementalist-dps-abilities.html`](Mockups/elementalist-dps-abilities.html) (https://claude.ai/artifact/R7eis4QntDJvmvq8mpvhb9). Meteor gets a falling
       fireball and a flash/ring/sparks/scorch impact (`FxKind.Meteor`), Blizzard a whiteout of wind-driven snow. **Tsunami** (`Core/Tsunami.cs`): a wave 340 px wide
