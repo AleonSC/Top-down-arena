@@ -73,6 +73,10 @@ namespace Arena
             // --- Left: the party, under the mode switch.
             float lx = 40f, lw = 376f, y = 150f;
             Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
+            // The way into the Hangout (LobbyRoom.cs): a button on the Party heading, which flips to "Loadout" while you're in the room.
+            bool inRoom = lobbyTab == HangoutTab;
+            if (Ui.Button(new Rect(lx + lw - 124f, y - 5f, 124f, 28f), inRoom ? "< LOADOUT" : "HANGOUT >", HangoutColor))
+                lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             y = PartyTop;
             TipClear();  // hovering a rank badge shows the title (RankUi.cs)
             int slot = 0;
@@ -161,9 +165,9 @@ namespace Arena
             bool hunt = session.HuntMode && !practice && session.Resume == null;
             // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout); null = not shown.
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", "Hangout" };
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null };  // Hangout has its own button on the Party heading
             // The same order in every mode: the shared tabs, then the mode's own tab at the end.
-            int[] order = { 0, HangoutTab, PerkTab, 3, 2, 1, 4 };
+            int[] order = { 0, PerkTab, 3, 2, 1, 4 };
             float x = r.x;
             foreach (int i in order)
             {
