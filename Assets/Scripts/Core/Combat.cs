@@ -192,6 +192,7 @@ namespace Arena
             }
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
             PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // and cracks a Warden gate's lock (Warden.cs)
         }
 
         void MoveBullets(float dt)
@@ -282,6 +283,7 @@ namespace Arena
                             HurtEnemy(e, b.Dmg, b.Owner);
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
                     PropBlast(b.Pos, b.Splash, b.Owner);
+                    GateLockBlast(b.Pos, b.Splash, b.Owner);
                     continue;
                 }
                 if (b.Owner != 0)

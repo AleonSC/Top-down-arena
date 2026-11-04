@@ -808,18 +808,56 @@ namespace Arena
             {
                 if (!OnGateLock(g, b.Pos, b.Radius))
                     continue;
-                V2 at = new V2(g.LockX, (g.Front + GateBack(g)) / 2f);
-                if (--g.LockHp <= 0)
-                {
-                    g.LockOpen = true;
-                    BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.82f, 0.3f), 60f, 0.4f, Sfx.Clang);
-                    DoLog("a gate's lock was shot out");
-                }
-                else
-                    BroadcastFx(FxKind.Spark, at, new Rgba(1f, 0.85f, 0.4f), 14f, 0.15f, Sfx.Hit);
+                TakeLockHit(g);
                 return true;
             }
             return false;
+        }
+
+        /// One hit off a gate's lock; the last opens the third door.
+        void TakeLockHit(WardenGate g)
+        {
+            V2 at = new V2(g.LockX, (g.Front + GateBack(g)) / 2f);
+            if (--g.LockHp <= 0)
+            {
+                g.LockOpen = true;
+                BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.82f, 0.3f), 60f, 0.4f, Sfx.Clang);
+                DoLog("a gate's lock was shot out");
+            }
+            else
+                BroadcastFx(FxKind.Spark, at, new Rgba(1f, 0.85f, 0.4f), 14f, 0.15f, Sfx.Hit);
+        }
+
+        /// Host: something that isn't a plain bullet (a blast, a melee swing, a beam) reaches the lock if `reaches`
+        /// says so for any point along it (the lock counts as a target LockW/2 wide). Each gate takes one hit per strike.
+        void GateLockStrike(Func<V2, bool> reaches)
+        {
+            var e = TheWarden();
+            if (e == null || e.Warden == null || e.Warden.Gates.Count == 0)
+                return;
+            foreach (var g in e.Warden.Gates)
+            {
+                if (g.Warn > 0f || g.LockOpen)
+                    continue;
+                float back = GateBack(g), lo = Math.Min(g.Front, back), hi = Math.Max(g.Front, back);
+                for (float y = lo; ; y += 16f)
+                {
+                    if (reaches(new V2(g.LockX, Math.Min(y, hi))))
+                    {
+                        TakeLockHit(g);
+                        break;
+                    }
+                    if (y >= hi)
+                        break;
+                }
+            }
+        }
+
+        /// Host: a blast (grenade, boulder, flak, bomblet) breaks the lock if it reaches it.
+        void GateLockBlast(V2 at, float radius, int owner)
+        {
+            if (owner != 0)
+                GateLockStrike(q => q.DistanceTo(at) < radius + LockW / 2f);
         }
 
         /// Moves the gates along (every game: the host, and clients between snapshots).
