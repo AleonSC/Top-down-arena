@@ -137,28 +137,19 @@ namespace Arena
                 return;  // not risen yet
             }
 
-            // A card that grants a new ability: choose which key it goes on.
-            if (selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
+            // A card that grants a new ability: choose which key it goes on. The key switch sits between Reroll and Choose;
+            // the two buttons spring apart to make room for it (and back) so nothing below the cards moves down.
+            bool grantCard = selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None;
+            if (grantCard)
             {
-                var grant = Upgrades.All[me.Offer[selectedCard]].Grants;
                 if (pickKey < 1 || pickKey > Upgrades.BonusSlots)
                 {
                     pickKey = 1;  // default: the first free key
                     for (int k = 1; k <= Upgrades.BonusSlots; k++)
                         if (me.Slots[k].Id == AbilityId.None) { pickKey = k; break; }
                 }
-                const float keyW = 190f;
-                float kx = mid - (keyW * 3 + 16f) / 2f;
-                Ui.Label(new Rect(0f, by - 4f, W, 18f), "PUT " + Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 12, Ui.Muted, TextAnchor.MiddleCenter, true);
-                for (int k = 1; k <= Upgrades.BonusSlots; k++)
-                {
-                    var on = me.Slots[k].Id;
-                    string label = SlotKeys[k] + (on != AbilityId.None ? "  ·  swap " + Upgrades.Ability(on).Name : "  ·  empty");
-                    if (Ui.Choice(new Rect(kx + (k - 1) * (keyW + 8f), by + 16f, keyW, 32f), label, pickKey == k, ToColor(me.Def.Color)))
-                        pickKey = k;
-                }
-                by += 60f;
             }
+            StepKeySwitch(grantCard);
 
             // Reroll and choose, the lobby's fancy buttons. Reroll takes a second click to confirm: the first arms it (the
             // button turns orange and a bar drains over RerollArmTime), and the button never changes size, so both stay put.
@@ -166,8 +157,11 @@ namespace Arena
             bool wasEnabled = GUI.enabled;
             bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length;
             bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferMilestone && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
-            const float rerollW = 300f, takeW = 300f, bgap = 18f;
+            const float rerollW = 300f, takeW = 300f, bgap = 18f, keysW = 230f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
+            float spread = keySwitch * (keysW + bgap * 2f) / 2f;  // with Reroll: each button moves half the switch and its gaps outward
+            float chooseX = bx + rerollW + bgap + (canReroll ? spread : keySwitch * (keysW + bgap) / 2f);  // (with no Reroll, Choose just moves right of the switch)
+            bx -= spread;
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked;  // (not off while opening: GUI.enabled draws at half opacity)
             if (!GUI.enabled)
                 rerollArmedAt = -99f;
@@ -183,12 +177,65 @@ namespace Arena
                     Ui.Label(new Rect(rerollR.xMax - 66f, rerollR.y, 50f, rerollR.height), "×" + me.Rerolls, 15, new Color(1f, 1f, 1f, GUI.enabled ? 0.85f : 0.4f), TextAnchor.MiddleRight, true);
             }
             GUI.enabled = picked && !game.RerollPending;
-            if (Ui.FancyButton(new Rect(bx + rerollW + bgap, by, takeW, 48f), "CHOOSE UPGRADE", picked ? Ui.GoldButton : Ui.Neutral, PixelArt.Get("ui_check"), now, 0, true) && !opening)
+            if (Ui.FancyButton(new Rect(chooseX, by, takeW, 48f), "CHOOSE UPGRADE", picked ? Ui.GoldButton : Ui.Neutral, PixelArt.Get("ui_check"), now, 0, true) && !opening)
                 ConfirmPick();
+            DrawKeySwitch(me, by, canReroll ? mid : chooseX - bgap - keysW / 2f, keysW, rowAlpha, opening);
             SyncSelection(me);  // notes when these cards appeared, for the reroll lock (ArenaApp.cs)
             GUI.enabled = wasEnabled;
             Ui.Alpha = 1f;
             GUI.color = oldRowColor;
+        }
+
+        float keySwitch, keySwitchVel;              // 0 = no key switch, 1 = out between the buttons (a spring, so it overshoots a little)
+        float keySwitchAt = -1f;                    // unscaled time of the last step
+
+        /// Moves the key switch's spring toward out (1) or away (0). A spring keeps its speed when the target flips, so
+        /// clicking between cards mid-slide turns the buttons round without a jump. Steps once per frame (repaint only).
+        void StepKeySwitch(bool out_)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            float now = Time.unscaledTime, dt = keySwitchAt < 0f ? 0f : Mathf.Min(now - keySwitchAt, 0.033f);
+            keySwitchAt = now;
+            float target = out_ ? 1f : 0f;
+            keySwitchVel += (target - keySwitch) * 900f * dt;
+            keySwitchVel *= Mathf.Exp(-33f * dt);
+            keySwitch += keySwitchVel * dt;
+            if (Mathf.Abs(target - keySwitch) < 0.001f && Mathf.Abs(keySwitchVel) < 0.01f)
+            {
+                keySwitch = target;
+                keySwitchVel = 0f;
+            }
+        }
+
+        /// Q / E / SHIFT between Reroll and Choose: it fades and scales up as the buttons spring apart.
+        void DrawKeySwitch(Player me, float by, float mid, float w, float rowAlpha, bool opening)
+        {
+            if (keySwitch < 0.02f || selectedCard < 0 || selectedCard >= me.Offer.Length)
+                return;
+            var grant = Upgrades.All[me.Offer[selectedCard]].Grants;
+            if (grant == AbilityId.None)
+                return;  // (still sliding away after the card changed: nothing to name)
+            float a = Mathf.Clamp01(keySwitch * 1.5f) * rowAlpha;
+            var oldColor = GUI.color;
+            var oldMatrix = GUI.matrix;
+            float oldAlpha = Ui.Alpha;
+            Ui.Alpha = a;
+            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, a);
+            float sc = Mathf.Lerp(0.6f, 1f, keySwitch);
+            GUIUtility.ScaleAroundPivot(new Vector2(sc, sc), new Vector2(mid, by + 24f));
+            Ui.Label(new Rect(mid - w / 2f - 20f, by - 22f, w + 40f, 18f), Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
+            float kw = w / Upgrades.BonusSlots;
+            for (int k = 1; k <= Upgrades.BonusSlots; k++)
+            {
+                var r = new Rect(mid - w / 2f + (k - 1) * kw, by, kw, 48f);
+                string hint = me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
+                if (Ui.Choice(r, SlotKeys[k], pickKey == k, ToColor(me.Def.Color), null, hint) && !opening)
+                    pickKey = k;
+            }
+            GUI.matrix = oldMatrix;
+            GUI.color = oldColor;
+            Ui.Alpha = oldAlpha;
         }
 
         float rerollArmedAt = -99f;                 // when Reroll was clicked once (unscaled time), -99 = not armed
@@ -484,7 +531,7 @@ namespace Arena
             {
                 string cls = u.ClassAbility ? "Class ability  ·  " : "";
                 if (index == selectedCard && pickKey >= 1)
-                    return cls + "Goes on " + SlotKeys[pickKey] + " (choose below)";
+                    return cls + "Goes on " + SlotKeys[pickKey] + " (choose with the keys)";
                 return cls + "You choose its key";
             }
             if (u.Role.HasValue)
