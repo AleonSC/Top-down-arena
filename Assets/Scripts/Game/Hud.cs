@@ -54,8 +54,8 @@ namespace Arena
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 22f;
-                    Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 58f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
-                        new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)));
+                    Ui.Glitch(new Rect(at.X - 100f, at.Y - r - 58f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
+                        new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)), TextAnchor.MiddleCenter);
                 }
                 if (p.Downed)
                 {
