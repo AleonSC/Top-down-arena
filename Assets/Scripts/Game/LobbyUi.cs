@@ -463,7 +463,7 @@ namespace Arena
             // Weapon and ability: side by side, each a 2 x 2 grid.
             float col = (w - 16f) / 2f, ax = x + col + 16f, cell = (col - 6f) / 2f;
             Ui.Heading(x, y, col, "Weapon");
-            Ui.Heading(ax, y, col, "Ability  ·  Space");
+            Ui.Heading(ax, y, col, "Ability");
             int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
             for (int i = 0; i < weaponSlots; i++)
             {
@@ -640,7 +640,7 @@ namespace Arena
             SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, 0);
 
             // Ability: a cooldown ring tile (it fills over the cooldown, on a loop), then charges or a health cost.
-            SpecHeader(right, "ABILITY  ·  SPACE", ability.Name, accent);
+            SpecHeader(right, "ABILITY", ability.Name, accent);
             // What it does, then what Lv 5 adds.
             DrawDescAndMastery(new Rect(right.x, right.y + 46f, right.width, right.yMax - tileH - 4f - (right.y + 46f)), ability.Desc, ability.Id, 12, new Color(0.82f, 0.85f, 0.93f));
             var aTiles = new System.Collections.Generic.List<string[]>();
