@@ -149,12 +149,16 @@ namespace Arena
         }
 
         /// A private match with no network: this game hosts and nobody can join (the loadout preview, Showcase).
-        public void HostOffline(Role role, Kit kit, int weapon, int ability)
+        /// allies: stand-in teammates (ids 2 and 3, at most 2) for abilities that act on teammates; they only exist in
+        /// this private game, never in the real lobby.
+        public void HostOffline(Role role, Kit kit, int weapon, int ability, int allies = 0)
         {
             Leave("");
             Net = NetPeer.Offline();
             MyId = 1;
             Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
+            for (int k = 0; k < Math.Min(2, allies); k++)
+                Lobby[2 + k] = new LobbyEntry { Id = 2 + k, Name = "Ally " + (k + 1), Role = k == 0 ? Role.Dps : Role.Tank, Kit = Kit.Soldier, Weapon = 0, Ability = 0 };
         }
 
         public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)

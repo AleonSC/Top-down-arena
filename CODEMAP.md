@@ -20,7 +20,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Props.cs`: crates, pots, barrels, treasure chests
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
-- `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game
+- `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game (with stand-in teammates for ally abilities)
 - `Tsunami.cs`: the Elementalist DPS's Tsunami: the wave, wet (slow) and lightning that arcs to every wet enemy (`WetArcs`, called from each lightning source)
 - `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain, strikes) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
 - `DpsTools.cs`: DPS meter data (`DpsTrack`, `Game.Dps`, host only) and target dummies (`DevSpawnDummy`, `TickDummy`, `Foes()`)
