@@ -72,7 +72,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BulletStorm, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
+                Name = "Artillery Assault", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
                 Capstone = "+4 extra projectiles instead of +2.",
             },
             new AbilityDef
@@ -177,7 +177,8 @@ namespace Arena
 
                 case AbilityId.BulletStorm:  // DPS: Soldier
                     p.UltT = 6f;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 80f, 0.4f, Sfx.Ability);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 140f, 0.6f, Sfx.Ability);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.8f), 85f, 0.45f, Sfx.None);
                     break;
 
                 case AbilityId.MeteorStorm:  // DPS: Mage
