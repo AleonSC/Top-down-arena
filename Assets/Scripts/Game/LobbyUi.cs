@@ -266,9 +266,10 @@ namespace Arena
                 bx -= 54f;
                 Ui.Badge(new Rect(bx, r.y + 10f, 50f, 20f), "HOST", Ui.GoldButton);
             }
-            DrawOneLine(new Rect(tx, r.y + 34f, r.xMax - tx - 10f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 11, Color.Lerp(color, Color.white, 0.15f), true);
+            DrawOneLine(new Rect(tx, r.y + 34f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 11, Color.Lerp(color, Color.white, 0.15f), true);
             DrawOneLine(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
                 Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, Ui.Muted, false);
+            DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
             var ready = new Rect(r.xMax - 98f, r.yMax - 30f, 86f, 20f);
             if (e.Ready)
                 Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + 0.1f * Mathf.Sin(t * 4f)));

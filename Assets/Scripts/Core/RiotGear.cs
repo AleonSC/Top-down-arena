@@ -27,7 +27,7 @@ namespace Arena
             int seat;
             if (ResumeFrom != null && ResumeSeats.TryGetValue(e.Id, out seat) && seat >= 0 && seat < ResumeFrom.Seats.Count)
                 return Perks.FromNames(ResumeFrom.Seats[seat].Perks);
-            return e.PerkIds;
+            return e.ChosenPerks;
         }
 
         bool tickDamage;  // set while DamageOverTime runs

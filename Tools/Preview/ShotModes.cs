@@ -151,6 +151,13 @@ static partial class Shot {
         PreviewSaves(); host.Resume = SaveStore.List()[0];
         host.Lobby.Remove(2); host.Lobby[1].Seat = 0; host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Knight; host.Lobby[1].Weapon = 1; host.Lobby[1].Ability = 2; host.Lobby[1].Ready = false;
       }
+      // PERKS=1: the Warden Hunt won with Riot Gear equipped (PERKS=2 also has a first run win, for the second slot), and the seats show their perks; LOBBYTAB=5 for the Perks tab.
+      if (Environment.GetEnvironmentVariable("PERKS") != null) {
+        var pp = host.Game.ProfileOverride = new Profile(); pp.BossBeaten(EnemyType.Boss, 5); pp.HuntEnded(EnemyType.Boss, true, 300f);
+        if (Environment.GetEnvironmentVariable("PERKS") == "2") pp.RunsWon = 1;
+        Perks.Equip(pp, PerkId.RiotGear);
+        host.Lobby[1].PerkIds = new[] { PerkId.RiotGear }; if (host.Lobby.ContainsKey(2)) host.Lobby[2].PerkIds = new[] { PerkId.RiotGear };
+      }
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
       // mid-stride (so the trail shows), e.g. HANGOUT=trail-void,trail-prism,trail-frost.

@@ -335,6 +335,36 @@ namespace Arena
                 "..kRRRRRRk..",
                 "...kkkkkk...",
             },
+            ["perk_riot"] = new[]  // a riot shield with a viewing slit (Riot Gear, Perks.cs)
+            {
+                "............",
+                ".kkkkkkkkkk.",
+                ".kggggggggk.",
+                ".kgbbbbbbgk.",
+                ".kgggggggGk.",
+                ".kgggggggGk.",
+                ".kgggggggGk.",
+                ".kgggggggGk.",
+                "..kgggggGk..",
+                "...kgggGk...",
+                "....kGGk....",
+                ".....kk.....",
+            },
+            ["perk_bag"] = new[]  // a sack of loot (Contraband, Perks.cs)
+            {
+                "............",
+                "...kkkkkk...",
+                "....kyyk....",
+                "...kYYYYk...",
+                "..kYyyyyYk..",
+                "..kYyyyyYk..",
+                ".kYyyyyyyYk.",
+                ".kYyyyyyyYk.",
+                ".kYyyyyyyYk.",
+                "..kYYYYYYk..",
+                "...kkkkkk...",
+                "............",
+            },
             ["ui_lock"] = new[]  // a padlock (the lobby's locked slots)
             {
                 "............",
