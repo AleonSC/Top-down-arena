@@ -33,6 +33,10 @@ namespace Arena
             leaveT = 0f;
             enterT = -1f;
             settingsOpen = false;
+            // The card shrinks back into the menu's box; show the state the menu will reset to (the buttons, not the Play
+            // picker you may have launched from) so it doesn't jump when the menu takes over (MenuIntro.cs does the same reset).
+            menuPlayOpen = false;
+            menuPlayK = 0f;
         }
 
         /// Coming into the lobby from the menu right now, including the frame the Host click lands on (before Update ticks).

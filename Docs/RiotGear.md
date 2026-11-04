@@ -1,6 +1,6 @@
 # Riot Gear and the perk framework
 
-Status: **step 1 built** (`Core/Perks.cs`, the profile's `perks` line, `perks` test suite); steps 2 to 6 not yet. Part of [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md) (build steps 2 and 3, Warden only). Picks from
+Status: **steps 1 to 3 built** (`Core/Perks.cs`, the profile's `perks` line, `Core/RiotGear.cs`, the `Damage` hook; `perks` test suite); steps 4 to 6 not yet. The lobby sync is in (protocol 152): a client's perks go in `Msg.Cosmetics` (host sanitises them with `Perks.Sanitize`), `Msg.Lobby` carries every seat's, the match-start message carries each player's (`Game.PerksFor` on the host: none where runs aren't recorded, the saved seat's perks on a continued run), the snapshot carries `RiotT`, and saved runs keep a `perks` line per seat. Replay format is 2, so older replays no longer open. The block uses the existing Ring and Spark effects (`FxKind.RiotBlock` comes with the look in step 5, with the protocol bump). Part of [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md) (build steps 2 and 3, Warden only). Picks from
 the mockups: the perk menu is **Look A** ([`Mockups/riot-gear-perk-menu.html`](Mockups/riot-gear-perk-menu.html), https://claude.ai/artifact/WrbA5TsYMgcn6tfe7Rd8ad)
 and the shield effect is **Plate** ([`Mockups/riot-gear-effects.html`](Mockups/riot-gear-effects.html), https://claude.ai/artifact/241kgcxDtwMbJVEkRijuuG).
 
@@ -106,8 +106,9 @@ Steps 1 to 3 are the framework and are testable without Unity. Steps 4 and 5 nee
 
 ## Open questions
 
-- **Source test**: is "any damage with an enemy-type source" right, or should some boss slams be exempt? Leaning to count them all, so
-  the perk is strongest against the boss that unlocks it. To decide after the `Damage` call survey.
+- **Source test** (decided in step 2): every `Damage` call counts as a hit except the tick sources, which pass `overTime: true`: Burning
+  Grounds, Spitter acid, the Crawler's grab, tear gas, the Colossus's lava, the Warden's gas, the Devourer's bile and stomach, Scorcher embers, and
+  the Eclipse's darkness and burning edge. Boss slams, lasers, barrels and contact hits are blocked.
 - **Downed and revived**: should reviving refill the shield? Leaning no, since the timer runs on.
 - **Co-op unlocks**: each player brings their own perks (from the doc). A teammate without the Warden unlock can't equip it.
 - **Contraband** and perk 2 and 3 unlocks wait for the first playtest of Riot Gear.

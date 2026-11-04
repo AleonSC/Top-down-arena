@@ -957,7 +957,7 @@ namespace Arena
                     continue;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
-                        Damage(p, GasDps * 0.25f, "The Warden (gas)");
+                        DamageOverTime(p, GasDps * 0.25f, "The Warden (gas)");
             }
         }
 

@@ -503,7 +503,7 @@ namespace Arena
             {
                 s.StomachT = 1f;
                 stomach = true;
-                Damage(p, s.Stage == DevourStage.LastStand ? 20f : 10f, "The Devourer (swallowed)");
+                DamageOverTime(p, s.Stage == DevourStage.LastStand ? 20f : 10f, "The Devourer (swallowed)");
                 stomach = false;
             }
             if (p.Downed || s.SwallowT <= 0f || s.SwallowTaken >= SwallowFreeAt)
@@ -571,7 +571,7 @@ namespace Arena
                 foreach (var pt in Patches.Values)
                     if (pt.Kind == PatchKind.Bile && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
                     {
-                        Damage(p, BileDps * 0.25f, "The Devourer (bile)");
+                        DamageOverTime(p, BileDps * 0.25f, "The Devourer (bile)");
                         break;
                     }
             }

@@ -65,6 +65,8 @@ namespace Arena
                     Level = p.Level, Xp = p.Xp, Rerolls = p.Rerolls, Gold = p.Gold, ReviveToken = p.ReviveToken,
                     HpFrac = p.Downed || p.MaxHp <= 0f ? 0.4f : p.Hp / p.MaxHp, Run = p.Run,
                 };
+                foreach (var pk in p.Perks)
+                    seat.Perks.Add(pk.ToString());
                 foreach (int t in p.Taken)
                     seat.Taken.Add(Upgrades.All[t].Name);
                 for (int k = 0; k < p.BonusKeys.Length; k++)

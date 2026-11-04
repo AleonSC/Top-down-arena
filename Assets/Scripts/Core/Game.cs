@@ -154,6 +154,10 @@ namespace Arena
                 w.Write((byte)e.Kit);
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
+                var perks = PerksFor(e);
+                w.Write((byte)perks.Length);
+                foreach (var id in perks)
+                    w.Write((byte)id);
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             var msg = Proto.End(w);
@@ -190,6 +194,9 @@ namespace Arena
                 var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
+                var perkBytes = new List<byte>();
+                for (int pn = r.ReadByte(); pn > 0; pn--)
+                    perkBytes.Add(r.ReadByte());
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
                 p.Kit = kit;
@@ -202,6 +209,7 @@ namespace Arena
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
+                GivePerks(p, Perks.Sanitize(perkBytes));
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
                 entries.Add(p);
@@ -1149,6 +1157,7 @@ namespace Arena
                 TickSlots(p, dt);
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
+                TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);

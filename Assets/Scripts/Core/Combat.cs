@@ -17,6 +17,8 @@ namespace Arena
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
             if (InDome(p.Pos, -2f))
                 return;  // inside Fortress's dome nothing hostile reaches you (Dome.cs)
+            if (!tickDamage && RiotBlocks(p, source))
+                return;  // Riot Gear took the hit (RiotGear.cs)
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
