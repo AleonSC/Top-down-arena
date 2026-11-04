@@ -79,7 +79,8 @@ namespace Arena
         {
             if (!(MenuIntroPlaying && MenuIntroFull))
             {
-                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent, Ui.GlitchKind.Punch);
+                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
+                DrawVhsOsd(r);
                 return;
             }
             float pen = Seg(menuIntroT, 0.35f, 1.35f), fill = Seg(menuIntroT, 1.35f, 1.55f);
@@ -91,7 +92,28 @@ namespace Arena
                 GUI.EndGroup();
             }
             if (fill > 0f)
-                WithAlpha(fill, () => Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent, Ui.GlitchKind.Punch));
+                WithAlpha(fill, () => Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent));
+        }
+
+        /// The title as a VCR's on-screen display (Docs/Mockups/title-styles.html, look 6): "PLAY" top left, a running
+        /// tape counter bottom right, and a tracking band that drifts down through the title every few seconds.
+        void DrawVhsOsd(Rect r)
+        {
+            float t = Time.unscaledTime, left = W / 2f - MenuTitleHalf, right = W / 2f + MenuTitleHalf;
+            float band = (t % 6f) / 1.6f;  // 0..1 while it drifts down, then it rests
+            if (band < 1f)
+            {
+                GUI.BeginGroup(new Rect(left - 10f, r.y, right - left + 20f, r.height));
+                float by = -24f + (r.height + 24f) * band;
+                Ui.Fill(new Rect(0f, by, right - left + 20f, 22f), new Color(1f, 1f, 1f, 0.07f));
+                Ui.Fill(new Rect(0f, by + 22f, right - left + 20f, 1f), new Color(1f, 1f, 1f, 0.12f));
+                GUI.EndGroup();
+            }
+            Ui.Icon(new Rect(left - 4f, r.y - 14f, 14f, 14f), PixelArt.Get("ui_play"));
+            Ui.Shadowed(new Rect(left + 14f, r.y - 16f, 80f, 18f), "PLAY", 13, Color.white, TextAnchor.MiddleLeft);
+            int secs = Mathf.FloorToInt(t);
+            string clock = "SP  " + (secs / 3600) + ":" + (secs / 60 % 60).ToString("00") + ":" + (secs % 60).ToString("00");
+            Ui.Shadowed(new Rect(right - 140f, r.yMax - 8f, 144f, 18f), clock, 13, new Color(1f, 1f, 1f, 0.9f), TextAnchor.MiddleRight);
         }
 
         /// GL (inside BeginUiGl): the pen's glowing tip, writing the title and then tracing the arc.
