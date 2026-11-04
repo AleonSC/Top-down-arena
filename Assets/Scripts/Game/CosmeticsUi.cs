@@ -163,11 +163,10 @@ namespace Arena
         void DrawLookCard(Rect r, Profile p, float t)
         {
             int rank = p.RankNow;
-            Color? fc = FrameOf(p);
-            if (fc.HasValue)
-                for (int g = 3; g >= 1; g--)
-                    Ui.Pill(new Rect(r.x - 3f * g, r.y - 3f * g, r.width + 6f * g, r.height + 6f * g), new Color(fc.Value.r, fc.Value.g, fc.Value.b, 0.05f * (4 - g) / 3f));
-            Ui.Card(r, fc ?? Ui.Accent, fc.HasValue ? 1f : 0.85f);
+            if (Rank.Owns(rank, p.Frame))
+                DrawFrameCard(r, Rank.FrameIndex(p.Frame), t);  // FrameLooks.cs
+            else
+                Ui.Card(r, Ui.Accent, 0.85f);
             var face = new Rect(r.x + 8f, r.y + 8f, 72f, 72f);
             Ui.Pill(face, new Color(0.06f, 0.09f, 0.16f, 0.9f));
             if (BeginUiGl())

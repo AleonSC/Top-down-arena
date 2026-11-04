@@ -242,7 +242,7 @@ namespace Arena
             var mouse = Event.current.mousePosition;
             bool hover = editable && plain && r.Contains(mouse);
             if (Rank.Owns(myRank, prof.Frame))  // your equipped frame (Rank.cs) lights the rim
-                Ui.Card(r, RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(prof.Frame))), 1f);
+                DrawFrameCard(r, Rank.FrameIndex(prof.Frame), t, false);  // FrameLooks.cs
             else
                 Ui.Card(r, color, hover ? 1f : 0.85f);
             if (hover)

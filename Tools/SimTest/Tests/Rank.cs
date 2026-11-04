@@ -22,7 +22,11 @@ static partial class Program
 
         // Cosmetics: owned from their rank, one frame number each.
         Check(!Rank.Owns(7, "trail-ember") && Rank.Owns(8, "trail-ember") && !Rank.Owns(99, "nonsense") && Rank.Owns(30, "frame-gold"), "a cosmetic is yours from its rank, and unknown ids never are");
-        Check(Rank.FrameIndex("") == 0 && Rank.FrameIndex("frame-steel") == 1 && Rank.FrameIndex("frame-gold") == 2 && Rank.FrameId(2) == "frame-gold" && Rank.FrameId(9) == "" && Rank.FrameId(0) == "", "frames are numbered 1, 2 for the lobby (0 none)");
+        Check(Rank.FrameIndex("") == 0 && Rank.FrameIndex("frame-steel") == 1 && Rank.FrameIndex("frame-gold") == 5 && Rank.FrameId(5) == "frame-gold" && Rank.FrameId(9) == "" && Rank.FrameId(0) == "", "frames are numbered in rank order for the lobby (0 none), so Gold is 5");
+        Check(Rank.RewardsAt(16)[0].Id == "frame-circuit" && Rank.RewardsAt(20).Exists(rw => rw.Id == "frame-ember") && Rank.RewardsAt(24)[0].Id == "frame-void" && Rank.RewardsAt(40)[0].Id == "frame-foil" && Rank.RewardsAt(50)[0].Id == "frame-prism" && Rank.OfKind(CosmeticKind.Frame).Count == 7 && Rank.FrameIndex("frame-prism") == 7 && Rank.FrameId(8) == "", "Circuit, Ember Edge, Void Pulse, Legend Foil and Prism unlock at 16, 20, 24, 40 and 50");
+        bool distinct = true;
+        for (int i = 1; i <= 7; i++) for (int j = i + 1; j <= 7; j++) distinct &= Rank.FrameId(i) != Rank.FrameId(j);
+        Check(distinct && Rank.FrameColor(2).G > 0.8f && Rank.FrameColor(3).R > 0.9f, "every frame has its own number and a base colour");
         Check(Rank.RewardsAt(8).Count == 1 && Rank.RewardsAt(8)[0].Id == "trail-ember" && Rank.RewardsAt(9).Count == 0, "rank 8 brings the Ember trail, rank 9 nothing");
 
         // XP for a run.
@@ -76,7 +80,7 @@ static partial class Program
         PollBoth(host, client);
         Func<Session, int, LobbyEntry> entry = (sess, id) => sess.Lobby.ContainsKey(id) ? sess.Lobby[id] : null;
         int cid = client.MyId;
-        Check(entry(host, 1).Rank == 30 && entry(host, 1).Frame == 2 && entry(client, 1).Rank == 30 && entry(client, 1).Frame == 2, "the host's rank 30 and gold frame show in everyone's lobby");
+        Check(entry(host, 1).Rank == 30 && entry(host, 1).Frame == 5 && entry(client, 1).Rank == 30 && entry(client, 1).Frame == 5, "the host's rank 30 and gold frame show in everyone's lobby");
         Check(entry(host, cid).Rank == 12 && entry(host, cid).Frame == 1 && entry(client, cid).Rank == 12 && entry(client, cid).Frame == 1, "the friend's rank 12 and steel frame reach the host and the lobby");
         cp.Xp = Rank.XpAt(13);
         cp.Frame = "frame-gold";  // not theirs yet: a tampered profile

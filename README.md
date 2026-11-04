@@ -836,12 +836,17 @@ each kind at a time:
 | 8 | **Ember trail**: embers drift behind you as you move |
 | 12 | **Steel frame**: a lit rim on your lobby party card and name chip |
 | 14 | **Frost trail**: a pale chill line with ice crystals that stay where they formed, glint and melt |
+| 16 | **Circuit frame**: a teal rim with bracketed corners and a pulse of light running round the edge |
 | 15 | **Dusk Grid**: a 21st menu background (also pickable in Settings > Visual effects once unlocked) |
 | 18 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
+| 20 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
 | 22 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
+| 24 | **Void Pulse frame**: a violet rim with a breathing inner rim and two dark motes circling the card |
 | 25 | **Gold stardust trail** |
 | 30 | **Gold frame** |
+| 40 | **Legend Foil frame**: gold with a bright band sweeping across the rim and twinkling corner stars |
 | 35 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
+| 50 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
 
 Everyone in the match sees your trail, and everyone in the lobby sees your rank and frame; the host clamps what
 players report, and only accepts a frame or trail your rank has. XP, what's equipped and the last six runs are kept in

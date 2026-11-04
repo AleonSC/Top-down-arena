@@ -80,13 +80,17 @@ Placeholder ladder, from the mockup:
 | 10 | Title: Veteran |
 | 12 | Frame: Steel |
 | 14 | Trail: Frost |
+| 16 | Frame: Circuit |
 | 15 | Menu background: Dusk grid |
 | 18 | Trail: Storm |
-| 20 | Title: Champion |
+| 20 | Title: Champion, Frame: Ember Edge |
 | 22 | Trail: Void |
+| 24 | Frame: Void Pulse |
 | 25 | Trail: Gold stardust |
 | 30 | Frame: Gold, Title: Legend |
 | 35 | Trail: Prism |
+| 40 | Frame: Legend Foil |
+| 50 | Frame: Prism |
 
 - **Title**: the line under your name on the menu chip, the lobby hover card and Records.
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).

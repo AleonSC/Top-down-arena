@@ -208,10 +208,7 @@ namespace Arena
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
             {
-                var fc = RankLook.Tint(Rank.FrameColor(e.Frame));
-                for (int k = 3; k >= 1; k--)
-                    Ui.Pill(new Rect(r.x - 3f * k, r.y - 3f * k, r.width + 6f * k, r.height + 6f * k), new Color(fc.r, fc.g, fc.b, 0.05f * (4 - k) / 3f));
-                Ui.Card(r, fc, 1f);
+                DrawFrameCard(r, e.Frame, t);  // FrameLooks.cs
             }
             else
                 Ui.Card(r, color, mine ? 0.85f : 0.3f);

@@ -75,9 +75,9 @@ bonus for harder modifiers; ranks unlock cosmetics only (titles, trails, frames,
 - [x] **Built** (Nov 2026, protocol 135): `Rank.cs` + profile XP + `rank` tests, the results strip, the lobby badge and
       frame, the menu chip, Records > Rank, the Ember and Gold stardust trails, the Steel and Gold frames, and the Dusk
       Grid background. See "As built" in the doc.
-- [ ] **More rank frames (borders).** Mockup made (Nov 2026): [`Mockups/rank-frames.html`](Mockups/rank-frames.html)
+- [x] **More rank frames (borders).** Built (Nov 2026, protocol 138): all five, drawn by `Game/FrameLooks.cs` on the party card, the menu chip and the cosmetics look card. Mockup (Nov 2026): [`Mockups/rank-frames.html`](Mockups/rank-frames.html)
       (https://claude.ai/artifact/CRkVFKgeCQEWGGFahRY3c3). Today's Steel (12) and Gold (30) plus five new animated ones:
-      Circuit 16, Ember Edge 20, Void Pulse 24, Legend Foil 40, Prism 50. Pick which to build.
+      Circuit 16, Ember Edge 20, Void Pulse 24, Legend Foil 40, Prism 50. Frames are numbered in rank order in the lobby (Gold 2 to 5, hence the bump); with Visual effects off they fall back to a static rim.
 - [x] **Lobby Hangout.** Built (Nov 2026, protocol 137): a Hangout tab in the lobby where every player's character walks around
       with WASD, wearing their trail, frame and rank (`Game/LobbyRoom.cs`, `Core/LobbyAvatars.cs`, `Docs/Hangout.md`). No mockup
       first, at the owner's request. Left for later: emotes, a ready pad, a weapon preview spot.

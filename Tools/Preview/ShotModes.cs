@@ -98,7 +98,10 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
       host.Lobby.Clear();
       host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true, Rank = 8, Frame = 1 };
-      host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1, Rank = 27, Frame = 2 };
+      host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1, Rank = 27, Frame = Rank.FrameIndex("frame-gold") };
+      // FRAME=frame-prism: your party card wears that frame (and AFRAME for Aleon's), e.g. frame-circuit, frame-ember, frame-void, frame-foil.
+      if (Environment.GetEnvironmentVariable("FRAME") != null) host.Lobby[1].Frame = Rank.FrameIndex(Environment.GetEnvironmentVariable("FRAME"));
+      if (Environment.GetEnvironmentVariable("AFRAME") != null) host.Lobby[2].Frame = Rank.FrameIndex(Environment.GetEnvironmentVariable("AFRAME"));
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).
       if (Environment.GetEnvironmentVariable("RESUME") != null) {

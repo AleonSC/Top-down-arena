@@ -100,13 +100,18 @@ namespace Arena
         {
             new CosmeticDef { Id = "trail-ember", Name = "Ember trail", Kind = CosmeticKind.Trail, Rank = 8 },
             new CosmeticDef { Id = "frame-steel", Name = "Steel frame", Kind = CosmeticKind.Frame, Rank = 12 },
+            new CosmeticDef { Id = "frame-circuit", Name = "Circuit frame", Kind = CosmeticKind.Frame, Rank = 16 },
             new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 14 },
             new CosmeticDef { Id = "bg-dusk", Name = "Dusk grid", Kind = CosmeticKind.Background, Rank = 15 },
+            new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 20 },
             new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 18 },
+            new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 24 },
             new CosmeticDef { Id = "trail-void", Name = "Void trail", Kind = CosmeticKind.Trail, Rank = 22 },
             new CosmeticDef { Id = "trail-gold", Name = "Gold stardust", Kind = CosmeticKind.Trail, Rank = 25 },
             new CosmeticDef { Id = "frame-gold", Name = "Gold frame", Kind = CosmeticKind.Frame, Rank = 30 },
+            new CosmeticDef { Id = "frame-foil", Name = "Legend Foil frame", Kind = CosmeticKind.Frame, Rank = 40 },
             new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 35 },
+            new CosmeticDef { Id = "frame-prism", Name = "Prism frame", Kind = CosmeticKind.Frame, Rank = 50 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -170,11 +175,19 @@ namespace Arena
         public static byte TrailIndex(string id) => IndexOf(CosmeticKind.Trail, id);
         public static string TrailId(int index) => IdOf(CosmeticKind.Trail, index);
 
-        /// The frame colour to draw for a lobby entry's frame number (steel grey, gold).
+        /// The frame's base colour for a lobby entry's frame number (the extras on top are Game/FrameLooks.cs).
         public static Rgba FrameColor(int index)
         {
-            string id = FrameId(index);
-            return id == "frame-gold" ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(0.72f, 0.78f, 0.9f);
+            switch (FrameId(index))
+            {
+                case "frame-circuit": return new Rgba(0.31f, 0.82f, 0.71f);
+                case "frame-ember": return new Rgba(1f, 0.48f, 0.1f);
+                case "frame-void": return new Rgba(0.71f, 0.45f, 1f);
+                case "frame-gold":
+                case "frame-foil": return new Rgba(1f, 0.8f, 0.35f);
+                case "frame-prism": return new Rgba(0.9f, 0.95f, 1f);
+                default: return new Rgba(0.72f, 0.78f, 0.9f);  // Steel
+            }
         }
 
         // --- XP for a finished run ------------------------------------------------------------------
