@@ -176,7 +176,14 @@ namespace Arena
         /// Host: every few seconds one of the horde, picked at random, groans (a sound for everyone, nothing on screen).
         void TickGroans(float dt)
         {
-            if (!ZombiesOn)
+            bool any = false;  // (no zombies, no rolls: waves without them play out exactly as before)
+            foreach (var e in Enemies.Values)
+                if (Zombies.Is(e.Type) && e.Hp > 0f)
+                {
+                    any = true;
+                    break;
+                }
+            if (!any)
                 return;
             groanT -= dt;
             if (groanT > 0f)

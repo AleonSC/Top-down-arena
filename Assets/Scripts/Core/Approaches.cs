@@ -49,6 +49,27 @@ namespace Arena
                     EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield,
                     EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard } },
             },
+            new FactionDef
+            {
+                Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Shambler, Weight = 4f },
+                    new FactionMember { Type = EnemyType.Runner, Weight = 1.5f, From = 2 },  // (a pick is a pack of three)
+                    new FactionMember { Type = EnemyType.Spitter, Weight = 1.5f, From = 2 },
+                    new FactionMember { Type = EnemyType.Crawler, Weight = 1f, From = 3 },
+                    new FactionMember { Type = EnemyType.Mender, Weight = 0.7f, From = 4 },
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Graveyard shift", From = 1, Members = new[] { EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler } },
+                    new SquadDef { Name = "Grave rush", From = 2, Members = new[] { EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Shambler, EnemyType.Shambler } },
+                },
+                // Wave 4: a shambling wall with Menders to keep it standing, Runners on its flanks.
+                Finale = new SquadDef { Name = "Dead march", From = 4, Members = new[] {
+                    EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler,
+                    EnemyType.Mender, EnemyType.Mender, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner } },
+            },
         };
 
         /// The faction of a boss, or null if it has none yet.
@@ -101,7 +122,7 @@ namespace Arena
             int themed = Math.Min(count, (int)Math.Round(of * share));
             if (themed <= 0)
                 return;
-            int reach = Hunt != null ? Hunts.Step(n) : n;  // (a hunt's nine waves reach through the faction as a run's four do)
+            int reach = Hunt != null ? Hunts.Step(n) : ApproachStep(n);  // (a hunt's nine waves reach through the faction as a run's four do)
             var members = Array.FindAll(f.Members, m => m.From <= reach);
             var squads = Array.FindAll(f.Squads, s => s.From <= reach);
             int spent = 0;
@@ -118,7 +139,7 @@ namespace Arena
             while (spent < themed)
             {
                 // About half of it as squads, if one fits in what's left.
-                var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent);
+                var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent && approachSquads.FindAll(a => a == s).Count < 2);  // (none more than twice)
                 if (fits.Length > 0 && rng.NextDouble() < 0.5)
                 {
                     var s = fits[rng.Next(fits.Length)];
@@ -138,9 +159,10 @@ namespace Arena
                     }
                 }
                 approachSingles.Add(pick.Type);
-                if (pick.Type == EnemyType.Rioter)
-                    approachSingles.Add(EnemyType.Rioter);  // rioters come in pairs
-                spent += pick.Type == EnemyType.Rioter ? 2 : 1;
+                int pack = pick.Type == EnemyType.Rioter ? 2 : pick.Type == EnemyType.Runner ? 3 : 1;  // rioters come in pairs, runners in threes
+                for (int k = 1; k < pack; k++)
+                    approachSingles.Add(pick.Type);
+                spent += pack;
             }
         }
 

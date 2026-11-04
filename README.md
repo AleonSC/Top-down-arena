@@ -437,7 +437,10 @@ boss fight itself is the same. A chip above the wave panel says "Approach · The
 the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction
 (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a
 wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its
-shields are down. The other bosses' factions come next.
+shields are down. The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
+Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Menders from 34, with two squads (Graveyard
+shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
+outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
