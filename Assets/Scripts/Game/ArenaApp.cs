@@ -332,10 +332,10 @@ namespace Arena
             bool inMenus = session.Screen != AppScreen.Game;
             bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me)
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
-            // A crosshair you equipped (rank cosmetic) is drawn by us in the menus and the system pointer shows over match overlays.
-            // Classic: we draw the Corner pointer everywhere a pointer is wanted and it morphs to the reticle (CursorLooks.cs).
+            // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
+            // morphs into the crosshair when the match takes over (CursorLooks.cs).
             cursorWantPointer = inMenus || overlayPointer;
-            Cursor.visible = CursorLook() != 0 && !inMenus && overlayPointer;
+            Cursor.visible = false;
             StepCursorMorph(cursorWantPointer);
 
             if (!menuUp)
