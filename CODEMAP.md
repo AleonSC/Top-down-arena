@@ -19,6 +19,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
 - `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game
+- `Tsunami.cs`: the Elementalist DPS's Tsunami: the wave, wet (slow) and lightning that arcs to every wet enemy (`WetArcs`, called from each lightning source)
 - `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain, strikes) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
 - `DpsTools.cs`: DPS meter data (`DpsTrack`, `Game.Dps`, host only) and target dummies (`DevSpawnDummy`, `TickDummy`, `Foes()`)
 - `MathTypes.cs`: `V2`, `Rgba`, `MathX`
@@ -80,6 +81,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
+- `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
@@ -124,7 +126,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a room where everyone's character walks with WASD wearing their cosmetics (`Docs/Hangout.md`)
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds (the picker is in Settings > Visual effects)
-- `SavesUi.cs`: Continue list, Records, unlock toasts
+- `SavesUi.cs`: the Play picker in the main menu box (latest run, New run, Older runs), Records, unlock toasts
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
 
 ## Dev tools and editors (Game)

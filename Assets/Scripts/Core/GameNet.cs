@@ -414,7 +414,6 @@ namespace Arena
             s.Float(ref p.LinkT);
             s.Int(ref p.LinkTo);
             s.Float(ref p.AegisT);
-            s.Float(ref p.SurgeT);
             s.Float(ref p.FrenzyT);
             s.Float(ref p.UltT);
             s.Float(ref p.DomeT);
@@ -536,7 +535,7 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int hemorrhage = 0, stars = 0, traits = 0, bubble = 0, ward = 0;
-            bool winding = false, penned = false;
+            bool winding = false, penned = false, wet = false;
             int bleedHits = 0;
             if (!s.Reading)
             {
@@ -544,6 +543,8 @@ namespace Arena
                 traits = e.Traits;
                 winding = e.Winding;
                 penned = e.PenId != 0;
+                wet = e.WetT > 0f;
+                e.Wet = wet;
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
                 bubble = (int)Math.Ceiling(e.BubbleFrac * 255f);
                 ward = e.BubbleHp > 0f ? e.WardId : 0;
@@ -585,6 +586,7 @@ namespace Arena
             s.Bool(ref winding);  // about to fire (Readability.cs)
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
+            s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -619,6 +621,7 @@ namespace Arena
                 e.Winding = winding;
                 e.Penned = penned;
                 e.BleedHits = bleedHits;
+                e.Wet = wet;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

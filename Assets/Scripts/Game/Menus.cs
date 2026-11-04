@@ -9,20 +9,23 @@ namespace Arena
     public partial class ArenaApp
     {
         // The main menu ("Big play", Docs/Mockups/menu-d.html): the title on its x-axis with a shot arcing over it and a
-        // line under it that changes; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big
-        // Host game button over Join and Continue; Join opens the address row under the box; a bar along the bottom with
-        // your name, Records, Settings and Quit. The port is in Settings (Gameplay). The first time the menu shows, it
-        // draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
+        // line under it that changes; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) your name
+        // card over one big Play button over Join game, Records and Settings. Play swaps the box's insides for the saved-runs
+        // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
+        // under the box. Quit is a faint power icon at the bottom centre of the screen. The port is in Settings (Gameplay).
+        // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f, MenuTipY = 220f;
         const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
-        const float MenuBarY = H - 92f;                                        // the bottom bar
-        static readonly Rect MenuCard = new Rect(W / 2f - 220f, (H - 214f) / 2f, 440f, 214f);  // in the middle of the screen
-        static readonly Rect MenuHostRect = new Rect(W / 2f - 190f, MenuCard.y + 24f, 380f, 82f);
-        static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, MenuCard.y + 124f, 186f, 52f);
-        static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, MenuCard.y + 124f, 186f, 52f);
-        static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, MenuCard.yMax + 12f, 440f, 64f);
-        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 14f, 360f, 64f);
+        static readonly Rect MenuCard = new Rect(W / 2f - 340f, 250f, 680f, 280f);
+        static readonly Rect MenuNameRect = new Rect(MenuCard.x + 30f, MenuCard.y + 22f, 620f, 64f);
+        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 98f, 620f, 92f);  // the Play button
+        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 202f, 194f, 52f);
+        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 202f, 194f, 52f);
+        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 202f, 194f, 52f);
+        static readonly Rect MenuJoinRow = new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
+        static readonly Rect MenuQuitRect = new Rect(W / 2f - 24f, H - 66f, 48f, 48f);
         bool menuJoinOpen;    // Join opened the address row
+        bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
         int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
 
         void DrawMenu()
@@ -133,34 +136,42 @@ namespace Arena
 
         static V2 ArcAt(float u) => new V2(Mathf.Lerp(ArcX0, ArcX1, u), ArcBase - (ArcBase - ArcTop) * 4f * u * (1f - u));
 
-        /// The box's buttons: Host game, Join and Continue, the address row Join opens, and how joining is going.
+        /// The box's insides: your name card, Play, Join game, Records and Settings, or (after Play) the saved-runs picker,
+        /// then the address row Join opens and how joining is going.
         /// live = false draws them only (Repaint), for the intro and the move into the lobby (LobbyEnter.cs).
         void DrawMenuCardInside(float t, bool live)
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
-            float host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
-            if (host > 0f)
-                MenuRise(host, 60f, () =>
-                {
-                    Ui.PulseRing(MenuHostRect, Ui.Primary, t);
-                    if (Ui.FancyButton(MenuHostRect, "HOST GAME", Ui.Primary, PixelArt.Get("ui_play"), t, 30) && live)
-                        HostGame();
-                });
-            if (join > 0f)
-                MenuRise(join, 24f, () =>
-                {
-                    if (Ui.FancyButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t, 18) && live)
-                        menuJoinOpen = !menuJoinOpen;
-                });
-            if (cont > 0f)
-                MenuRise(cont, 24f, () =>
-                {
-                    int saved = savedRunsCount;  // saved runs (SavesUi.cs)
-                    var col = saved > 0 ? new Color(SaveColor.r * 0.6f, SaveColor.g * 0.6f, SaveColor.b * 0.6f) : Ui.Neutral;
-                    if (Ui.FancyButton(MenuContinueRect, "Continue", col, PixelArt.Get("ui_play"), t, 18) && live)
-                        OpenContinue();
-                });
+            float name = MenuIntroK(1.75f, 2.1f), host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
+            if (menuPlayOpen)
+                DrawPlayPicker(t, live);
+            else
+            {
+                if (name > 0f)
+                    MenuRise(name, 24f, () => DrawNameCard(MenuNameRect, 0f, live, t));
+                if (host > 0f)
+                    MenuRise(host, 60f, () =>
+                    {
+                        Ui.PulseRing(MenuHostRect, Ui.Primary, t);
+                        if (Ui.FancyButton(MenuHostRect, "PLAY", Ui.Primary, PixelArt.Get("ui_play"), t, 30) && live)
+                            OpenPlayPicker();
+                    });
+                if (join > 0f)
+                    MenuRise(join, 24f, () =>
+                    {
+                        if (Ui.FancyButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t, 18) && live)
+                            menuJoinOpen = !menuJoinOpen;
+                    });
+                if (cont > 0f)
+                    MenuRise(cont, 24f, () =>
+                    {
+                        if (Ui.FancyButton(MenuRecordsRect, "Records", Ui.Neutral, PixelArt.Get("ui_trophy"), t, 18) && live)
+                            recordsOpen = true;
+                        if (Ui.FancyButton(MenuSettingsRect, "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 18) && live)
+                            settingsOpen = true;
+                    });
+            }
             // Join's address row (or, while connecting, how it's going and Cancel), then any message from the last try.
             var row = MenuJoinRow;
             if (session.Connecting)
@@ -170,7 +181,7 @@ namespace Arena
                 if (Ui.FancyButton(new Rect(row.xMax - 150f, row.y + 12f, 136f, 40f), "Cancel", Ui.Danger, PixelArt.Get("ui_back"), t, 15) && live)
                     session.Leave("");
             }
-            else if (menuJoinOpen && join >= 1f)
+            else if (menuJoinOpen && join >= 1f && !menuPlayOpen)
             {
                 Ui.Panel(row, false);
                 Ui.Label(new Rect(row.x + 16f, row.y + 4f, 200f, 14f), "HOST ADDRESS", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -201,11 +212,12 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// The bar along the bottom: your name (type to change it), Records, Settings and Quit. live = false draws it only
-        /// (Repaint), for the intro and the move into the lobby.
+        /// What's left outside the box: the "Switch profile" tab on the box's top edge (only while the mouse is over your name
+        /// card or the tab), the faint Quit icon at the bottom centre, and the tooltip. live = false draws it only (Repaint),
+        /// for the intro and the move into the lobby.
         float switchProfA;  // 0 to 1: how visible the "Switch profile" button is
 
-        void DrawMenuSecondary(float t, bool live, bool withName = true)
+        void DrawMenuSecondary(float t, bool live)
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
@@ -215,10 +227,9 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, 100f * (1f - EaseOut(k)), W, H));
             if (live)
                 TipClear();  // the rank badge's hover card (RankUi.cs)
-            if (live && ProfileStore.Root != null)
+            if (live && ProfileStore.Root != null && !menuPlayOpen)
             {
-                // "Switch profile" sits centred above the name card and only fades in while the mouse is over the card or it.
-                var sw = new Rect(MenuNameRect.center.x - 70f, MenuBarY - 34f, 140f, 26f);
+                var sw = new Rect(MenuNameRect.center.x - 70f, MenuCard.y - 12f, 140f, 24f);
                 bool near = MenuNameRect.Contains(Event.current.mousePosition) || sw.Contains(Event.current.mousePosition);
                 if (Event.current.type == EventType.Repaint)
                     switchProfA = Mathf.MoveTowards(switchProfA, near ? 1f : 0f, Time.unscaledDeltaTime * 5f);
@@ -230,22 +241,20 @@ namespace Arena
                         StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
                 }
             }
-            Ui.Fill(new Rect(0f, MenuBarY, W, 92f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
-            Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
-            if (withName)
-                DrawNameCard(MenuNameRect, 0f, live, t);
-            if (Ui.FancyButton(new Rect(W / 2f - 160f, MenuBarY + 21f, 150f, 50f), "Records", new Color(0.36f, 0.3f, 0.14f), PixelArt.Get("ui_trophy"), t, 17) && live)
-                recordsOpen = true;
-            if (Ui.FancyButton(new Rect(W / 2f + 10f, MenuBarY + 21f, 150f, 50f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 17) && live)
-                settingsOpen = true;
-            if (Ui.FancyButton(new Rect(W - 178f, MenuBarY + 21f, 150f, 50f), "Quit", new Color(0.46f, 0.18f, 0.21f), PixelArt.Get("ui_power"), t, 17) && live)
+            // Quit: a see-through power icon that lights up red under the mouse.
+            var q = MenuQuitRect;
+            bool hot = live && q.Contains(Event.current.mousePosition);
+            Ui.Icon(new Rect(q.center.x - 16f, q.center.y - 16f, 32f, 32f), PixelArt.Get("ui_power"), hot ? new Color(1f, 0.45f, 0.5f, 1f) : new Color(0.8f, 0.85f, 1f, 0.6f));
+            if (hot)
+                Ui.Label(new Rect(q.x - 30f, q.y - 14f, q.width + 60f, 14f), "Quit", 12, new Color(1f, 0.6f, 0.65f), TextAnchor.MiddleCenter, true);
+            if (live && Ui.HitArea(q))
                 Application.Quit();
             if (live)
                 DrawTip();
             GUI.EndGroup();
         }
 
-        /// Your name card, sized for the bottom bar (k = 0): a neutral player figure (no role or class: that's chosen in the
+        /// Your name card, sized for the top row of the menu box (k = 0): a neutral player figure (no role or class: that's chosen in the
         /// lobby), your name, your rank title and badge, and the XP towards the next rank. Click the name to
         /// rename; click anywhere else on it to open your cosmetics. (k between 0 and 1 is the move into the lobby: it lays
         /// out toward a full party card, with the class you've picked.)

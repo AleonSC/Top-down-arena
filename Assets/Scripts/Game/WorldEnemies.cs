@@ -64,9 +64,8 @@ namespace Arena
             float timeLeft = MathX.Clamp01(z.T / Mathf.Max(0.01f, z.Duration));
             switch (z.Kind)
             {
-                case ZoneKind.Meteor:  // warning circle that fills in, then the meteor lands
-                    Circle(z.Pos, z.Radius * (1f - timeLeft), c.WithAlpha(0.25f), 40);
-                    Arc(z.Pos, z.Radius, 3f, c.WithAlpha(MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.5f), 48);
+                case ZoneKind.Meteor:  // warning circle that fills in while the meteor falls (ElementalistLooks.cs)
+                    DrawMeteorWarning(z, t);
                     return;
                 case ZoneKind.FlameWall:  // a ring of flickering flames; lower once it's done blocking
                 {
@@ -81,13 +80,8 @@ namespace Arena
                         Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 18f) * z.Radius, (7f + 3f * Mathf.Sin(t * 14f + k)) * wall, c.WithAlpha(0.8f * wall), 8);
                     break;
                 }
-                case ZoneKind.Blizzard:  // swirling snow
-                    Circle(z.Pos, z.Radius, c.WithAlpha(0.14f), 40);
-                    for (int k = 0; k < 14; k++)
-                    {
-                        float a = t * 1.5f + k * 2.4f, rr = z.Radius * MathX.Fmod(k * 0.37f + t * 0.2f, 1f);
-                        Circle(z.Pos + V2.FromAngle(a) * rr, 2.5f, Rgba.White.WithAlpha(0.8f), 6);
-                    }
+                case ZoneKind.Blizzard:  // a whiteout of wind-driven snow (ElementalistLooks.cs)
+                    DrawBlizzard(z, t);
                     break;
                 case ZoneKind.HealingRain:  // Verdant Bloom: grass and flowers sprout as it rains; motes rise, drops splash (Docs/HealingRain.md)
                 {
@@ -621,6 +615,8 @@ namespace Arena
                     Circle(at, (1f - f) * (4f + r * 0.28f), FireColor.Mix(new Rgba(1f, 0.85f, 0.3f), f).WithAlpha(0.9f * (1f - f)), 8);
                 }
             }
+            if (e.Wet)
+                col = DrawWet(e, pos, r, col, t);  // Tsunami (ElementalistLooks.cs)
             if (e.Bleeding)
             {
                 col = col.Mix(BleedColor, 0.18f);

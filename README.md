@@ -45,7 +45,7 @@ unique to their role and class.
 |---|---|---|---|
 | **Tank** (240 HP, enemies prefer you) | Weapons: Scattergun (double damage and a shove point-blank), Flak Cannon (airbursts at your cursor, shredding enemy bullets), Riot Repeater (rounds suppress: enemies hit shoot slower)<br>Abilities: Barrier, Roar, Bulldoze | Weapons: Flamethrower (sets enemies burning), Frost Lance (an icicle out from you that splinters sideways, slowing), Storm Hammer (a spinning hammer that electrifies what it hits)<br>Abilities: **Aeroaegis** (a wind vortex round the player your cursor is nearest: enemies can't enter, bullets are reflected), **Frost Nova** (freezes nearby enemies), **Flame Wall** (burns enemies, blocks bullets) | Weapons: Golem Staff (hold to lob a crushing boulder, + bullet-blocking Golem), Bone Guard (darts that cage enemies, + 2 orbiting skeletons that shoot the caged), Bear Totem (melee claws that cause bleeding, + Bear)<br>Abilities: **Golem Wall** (3 stone walls), **Earthquake** (you and every minion slam), **Guardian Spirit** (eats nearby bullets for 8 s) |
 | **Healer** (140 HP, healing aura) | Weapons: Repulsion Cannon, Revolver, Mender's Bow<br>Abilities: Mend Pulse, **Adrenaline Shot** (instant, 14 s cooldown: injects the player closest to your cursor, you included, or just you when alone: 8 s of +30% move speed, +40% fire rate and 30% less damage taken; fire rate doesn't stack with Overdrive, the bigger wins; a heartbeat ring pulses round them while it lasts), Deployable Medkit (thrown at your cursor, 14 s cooldown: bursts into 6 healing orbs worth 15 health each that anyone can pick up for 6 s; a downed ally an orb reaches is picked up at 20% health) | Weapons: Radiant Orb (heals allies it passes), Chain Light (a cone of light, its damage shared between what's in it), Nimbus (a storm cloud follows your cursor, raining healing on allies under it; click calls lightning on the spot beneath it)<br>Abilities: **Healing Rain** (a rain at your cursor for 6 s: heals allies inside 8 HP a second, slows enemies 30%), **Arcane Ward** (60 HP shields; when one breaks or runs out, half of what it soaked comes back as healing), **Sanctify** (erase bullets, heal) | Weapons: Sprite Staff (a firefly that seeds up to three enemies, + 2 healing sprites; seeded kills free more), Treant Rod (a root lash that mends allies it touches; the Treant roots and a root to you heals allies and slows enemies crossing it), Spirit Chalk (hold and drag to draw a line of spirit ink that burns enemies, heals allies on it and destroys bullets; draw a loop round enemies to trap them)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (fights, and instantly revives a downed ally), **Soul Lantern** (a lantern lands beside the ally nearest your cursor, or you when alone, and links to them for 6 s: it follows them, heals 8 health a second and flames the nearest enemy within 260 px for 7 every 0.6 s; 18 s cooldown) |
-| **DPS** (95 HP) | Weapons: Twin Rifle (streams cross at your cursor for double), Railgun (leaves its path charged for a second), Burst SMG (spins up: tighter and harder the longer you fire)<br>Abilities: Dash, Cluster Grenade, Mark for Death | Weapons: Fireball (big, rolls through enemies, burning them), Arc Lightning (hold to charge a strip of lightning), Ice Shards (bank in orbit, launching at enemies that come near)<br>Abilities: **Meteor** (warning circle, then 150 damage), **Blizzard** (slowing storm), **Arcane Surge** (+60% damage, +2 pierce) | Weapons: Wolf Whistle (darts mark the prey the 2 wolves hunt; every wolf biting at once is a takedown), Wisp Lantern (3 orbiting wisps you send out as your shots), Imp Caller (imps wait by you; tap to send them, hold to merge them into one big blast)<br>Abilities: **Bat Swarm** (8 bats), **Sacrifice** (all your minions explode, then return), **Alpha Call** (minions frenzy) |
+| **DPS** (95 HP) | Weapons: Twin Rifle (streams cross at your cursor for double), Railgun (leaves its path charged for a second), Burst SMG (spins up: tighter and harder the longer you fire)<br>Abilities: Dash, Cluster Grenade, Mark for Death | Weapons: Fireball (big, rolls through enemies, burning them), Arc Lightning (hold to charge a strip of lightning), Ice Shards (bank in orbit, launching at enemies that come near)<br>Abilities: **Meteor** (a fireball streaks in over the warning circle, then 150 damage), **Blizzard** (slowing storm), **Tsunami** (a wave that soaks enemies: slowed, and lightning arcs to every wet one) | Weapons: Wolf Whistle (darts mark the prey the 2 wolves hunt; every wolf biting at once is a takedown), Wisp Lantern (3 orbiting wisps you send out as your shots), Imp Caller (imps wait by you; tap to send them, hold to merge them into one big blast)<br>Abilities: **Bat Swarm** (8 bats), **Sacrifice** (all your minions explode, then return), **Alpha Call** (minions frenzy) |
 
 Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
 use your damage and attack-speed bonuses too.
@@ -260,7 +260,7 @@ once mastered); the Tab menu shows the level.
 | **Flame Wall** | The fire also slows enemies by 40%. | **Healing Rain** | Lasts 10 s, and downed allies inside revive twice as fast. |
 | **Arcane Ward** | The shield soaks 120 damage. | **Sanctify** | Also freezes enemies around you solid for 1.5 s (not bosses). |
 | **Meteor** | Leaves burning ground for 3 s. | **Blizzard** | Lasts 10 s. |
-| **Arcane Surge** | +1 extra projectile while it lasts. | **Golem Wall** | Raises five walls. |
+| **Tsunami** | Wet lasts 14 s, and the wave rolls back to you. | **Golem Wall** | Raises five walls. |
 | **Earthquake** | Also freezes the enemies it hits for 1 s (not bosses). | **Guardian Spirit** | The guardian also heals you 6 HP/s. |
 | **Spirit Swarm** | Releases 8 sprites. | **Phoenix** | Revives at full health, and the phoenix keeps fighting. |
 | **Soul Lantern** | Lasts 9 s, and the linked player can't go down. | **Bat Swarm** | Releases 14 bats. |
@@ -827,7 +827,7 @@ below), and each card carries that player's rank badge. Click the strip, or the 
 (it pulses gold on a rank up), for the full **rank report**: your badge, name and XP bar with the breakdown ticking in
 line by line (waves, bosses, revives, victory, then the modifier and difficulty multipliers and the total), the bar
 filling and, on a rank up, RANK UP! with a flash; your party's ranks; and the reward you've just earned (with a preview
-of the trail, frame, background or title) or the next one to go for and how much XP it needs. **Stats** goes back. **Leave** sits bottom-left as in the lobby; the host can play
+of the trail, frame, background or title) or the next one to go for and how much XP it needs. **Stats** goes back. **Leave** sits bottom-left; the host can play
 again, go back to the lobby, or keep going after a victory.
 
 ## Lobby Hangout
@@ -934,8 +934,11 @@ upgrades, the path is chosen and the shop is closed), and again if the match is 
 waves. Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
-**Continue a run** on the main menu lists the saves (wave, when, score, time played, each seat's player and
-class, the path and modifiers), newest first, with **Continue** and **Delete** (click twice). Continuing hosts a
+**Play** on the main menu opens the saved-runs picker in the menu's box. It shows your latest save as a card
+(wave, when, score, time played, each seat's player and class, the path, difficulty and modifiers) with a big
+**Continue**, and under it **New run**, **Older runs (n)** (every other save, three to a page, each with Continue
+and a trash button) and **Delete this run** (click twice). With no saves it says so, in a box, and offers **New
+run**. **Back** or Esc closes it. Continuing hosts a
 lobby for that run: it shows **Continuing a saved run** instead of the mode switch, and a **Seats** tab instead of
 your loadout. Everyone plays the character they had: a friend who joins takes back the seat with their name (or
 the first free seat, and moves aside if its owner turns up); **Take this seat** moves you to a free one. Classes,
@@ -1002,13 +1005,16 @@ window really close. That goes for the pause menu and for Settings from the lobb
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
-  (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen, a big **Host game** button over **Join game** and **Continue** (how many runs are
-  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name to
-  change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
-  draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
-  any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box
-  into the lobby's loadout while the rest of the menu fades out and the lobby fades in. (The Field guide and How to play are in the
-  lobby's and the pause menu's drawer.)
+  (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen:
+  **your name card** (your party card in small; click the name to change it; it's remembered; hover it for **Switch
+  profile**) over a big **Play** button over **Join game**, **Records** and **Settings**. **Join game** opens a row
+  under the box for the host's address and **Connect**. **Play** swaps the box's insides for the saved-runs picker (see
+  Saved runs): **Continue** your latest run or start a **New run**, which grows the box into the lobby's loadout.
+  **Quit** is a faint power icon at the bottom centre of the screen that lights up red when the mouse is over it. The
+  first time it shows after the game starts it draws itself in: a pen writes the title and traces the arc, then the
+  box opens and its buttons rise into it (2.75 s; any key or click skips it; with Reduced effects or Visual effects
+  off, a short fade). Starting a run grows the box into the lobby's loadout while the rest of the menu fades out and
+  the lobby fades in. (The Field guide and How to play are in the lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
@@ -1116,7 +1122,7 @@ pulling an update, everyone should rebuild (or the host should send the new buil
 One person **hosts**, the other **joins**. The host's game acts as the server, so you don't need anything else.
 
 1. Both of you install [Tailscale](https://tailscale.com/download) (free) and join the same tailnet.
-2. Host: open the game, click **Host game**. Click the **!** next to the Lobby title to see your port and addresses;
+2. Host: open the game, click **Play**, then **New run** (or **Continue** a saved run). Click the **!** next to the Lobby title to see your port and addresses;
    give your friend the one starting with `100.`.
 3. Friend: type that address into **Host address**, click **Join game**.
 4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host

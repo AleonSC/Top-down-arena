@@ -137,7 +137,7 @@ namespace Arena
             { "Sanctify", "aura" },
             { "Meteor", "explode" },
             { "Blizzard", "snow" },
-            { "Arcane Surge", "velocity" },
+            { "Tsunami", "cyclone" },
             { "Golem Wall", "guard_wide" },
             { "Earthquake", "earthshaker" },
             { "Guardian Spirit", "guard_reinforced" },

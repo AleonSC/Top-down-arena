@@ -86,11 +86,6 @@ namespace Arena
                     float k = 1f + w.Grow * extra;
                     float beamDmg = w.Damage * k * dmg * HomingCost(p) * (casting && !firingWeapon ? castPower : 1f);
                     int pierce = p.Stats.Pierce;
-                    if (p.SurgeT > 0f)  // Arcane Surge, as on bullets
-                    {
-                        beamDmg *= 1.6f;
-                        pierce += 2;
-                    }
                     pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = w.Reach * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce, HalfWidth = VeinBeamHalfWidth * AreaMult(p) });  // Velocity Rounds stretch it
                     break;
                 }

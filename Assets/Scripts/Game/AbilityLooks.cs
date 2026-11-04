@@ -10,7 +10,7 @@ namespace Arena
     ///   each timed buff shows a shrinking arc under the player, in the buff's colour (DrawBuffTimers);
     ///   enemies a taunt has turned get an eye over them, watching the taunter (DrawTauntMarks);
     ///   an ability that reaches an ally sends a beam of light to them (FxKind.Link);
-    ///   and a few buffs' own looks (Arcane Surge, Blade Tempest, Alpha Call's frenzy, Time Rewind's clock).
+    ///   and a few buffs' own looks (Blade Tempest, Alpha Call's frenzy, Time Rewind's clock).
     public partial class ArenaApp
     {
         bool fxCallouts = true;
@@ -63,7 +63,6 @@ namespace Arena
             Buff(p => p.AdrenalineT, new Rgba(1f, 0.31f, 0.35f)),  // Adrenaline Shot
             Buff(p => p.LinkT, new Rgba(0.6f, 1f, 0.9f)),          // Soul Link
             Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Aeroaegis
-            Buff(p => p.SurgeT, new Rgba(0.75f, 0.45f, 1f)),       // Arcane Surge
             Buff(p => p.FrenzyT, new Rgba(1f, 0.5f, 0.3f)),        // Alpha Call
             Buff(p => p.WallT, new Rgba(0.55f, 0.9f, 1f)),         // Shield Wall
             Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Unbreakable
@@ -151,23 +150,6 @@ namespace Arena
         }
 
         // --- Buff looks -----------------------------------------------------------------------------------------------
-
-        /// Arcane Surge: a violet glow, a bright ring and sparks crackling round it.
-        void DrawArcaneSurge(Player p, float t)
-        {
-            var c = new Rgba(0.75f, 0.45f, 1f);
-            float r = p.Def.BodyR + 10f;
-            Circle(p.Disp, r + 3f * Mathf.Sin(t * 12f), c.WithAlpha(0.22f), 32);
-            Arc(p.Disp, r, 2f, c.WithAlpha(0.8f), 32);
-            for (int k = 0; k < 4; k++)  // little bolts jumping off the ring, a new spot every tenth of a second
-            {
-                float a = ((float)Math.Floor(t * 10f) * 2.3f + k * 1.7f) % MathX.Tau;
-                V2 d = V2.FromAngle(a), side = d.Orthogonal();
-                V2 a0 = p.Disp + d * r, a1 = a0 + d * 5f + side * 3f, a2 = a1 + d * 5f - side * 3f;
-                Line(a0, a1, 1.5f, new Rgba(0.9f, 0.75f, 1f, 0.9f));
-                Line(a1, a2, 1.5f, new Rgba(0.9f, 0.75f, 1f, 0.9f));
-            }
-        }
 
         /// Blade Tempest: three spectral swords wheeling round the knight, ready to fly with each swing.
         void DrawBladeTempest(Player p, float r, float t)
