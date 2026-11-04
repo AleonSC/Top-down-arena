@@ -32,10 +32,7 @@ namespace Arena
             bool host = session.IsHost, locked = session.Resume != null;
             bool canEdit = host && !locked;
             var diff = session.Diff;
-            var accent = DiffColor(diff.Level);
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Label(new Rect(x, y, w, 28f), diff.Name.ToUpperInvariant(), 13, accent, TextAnchor.MiddleLeft, true);
-            y += 32f;
 
             // The five cards.
             const float gap = 8f, ch = 62f;
