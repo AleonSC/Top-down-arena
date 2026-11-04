@@ -21,56 +21,263 @@ namespace Arena
         /// Whether the keyboard is ours: no text box, window or menu is taking it.
         bool HangoutKeysFree => GUIUtility.keyboardControl == 0 && !settingsOpen && !lobbyMenuOpen && !connInfoOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning;
 
+        // --- The window: the Hangout's view of the big room, which scrolls with you and stops at the room's border.
+        const float MiniW = 150f, MiniH = 100f;       // the minimap, top left of the window (the room is 2400 x 1600: 1/16 scale)
+        const float ShowcaseShipX = 0.5f, ShowcaseShipY = 0.76f, ShowcaseZoom = 1.1f;  // where your ship sits in the loadout's preview window, so the grow starts from it
+        float hangoutAnim;       // 0 = the Loadout, 1 = the Hangout; moves over HangoutAnimLen when you switch (the preview window grows into the room)
+        int hangoutLastTab;
+        const float HangoutAnimLen = 0.85f;
+
+        /// The Loadout's preview window (the live mini-arena on the hero card): the Hangout grows out of it. DrawLoadout uses this too.
+        static Rect ShowcaseRect(Rect body)
+        {
+            var hero = new Rect(body.x + 14f, body.y + 14f, 232f, body.height - 28f);
+            return new Rect(hero.x + 8f, hero.y + 8f, hero.width - 16f, 180f);
+        }
+
+        static Rect HangoutView(Rect body) => new Rect(body.x + 4f, body.y + 30f, body.width - 8f, body.height - 34f);
+
+        /// Once a frame: slide hangoutAnim towards where the tab says. Only Loadout <-> Hangout animates; any other switch, and
+        /// reduced effects, snap.
+        void TickHangoutAnim()
+        {
+            float target = lobbyTab == HangoutTab ? 1f : 0f;
+            if (lobbyTab != hangoutLastTab)
+            {
+                bool fromLoadout = (lobbyTab == HangoutTab && hangoutLastTab == 0) || (lobbyTab == 0 && hangoutLastTab == HangoutTab);
+                if (!fromLoadout || session.Resume != null)
+                    hangoutAnim = target;
+                hangoutLastTab = lobbyTab;
+            }
+            if (hangoutAnim == target)
+                return;
+            hangoutAnim = fxOn && !fxReduced ? Mathf.MoveTowards(hangoutAnim, target, Time.unscaledDeltaTime / HangoutAnimLen) : target;
+        }
+
+        /// Mid-switch: the Loadout fades away over the first 40% while the preview window stretches into the room and your ship
+        /// grows to its size there; the rest of the room (the others, name plates, minimap, PvP switch) arrives over the last 40%.
+        void DrawHangoutTransition(LobbyEntry me, Rect body, float t)
+        {
+            float fade = 1f - Mathf.Clamp01(hangoutAnim / 0.4f);
+            if (fade > 0f)
+            {
+                var old = GUI.color;
+                GUI.color = new Color(old.r, old.g, old.b, old.a * fade);
+                DrawLoadout(me, body, t);
+                GUI.color = old;
+            }
+            DrawHangout(body, t);
+        }
+
         void DrawHangout(Rect body, float t)
         {
-            Ui.Label(new Rect(body.x + 4f, body.y, body.width - 8f, 26f), "Walk around with " + MoveKeysText() + ". Everyone sees your character, trail and frame. There's nothing to shoot here.", 13, Ui.Muted, TextAnchor.MiddleLeft);
-            var room = new Rect(body.x + (body.width - Session.RoomW) / 2f, body.y + 32f, Session.RoomW, Session.RoomH);
+            float k = Mathf.Clamp01(hangoutAnim);
+            if (lobbyTab == HangoutTab && hangoutAnim <= 0f)
+                k = 1f;  // (nothing has ticked the animation yet)
+            bool live = k >= 1f;
+            float e = EaseInOut(k);
+            float roomAlpha = Mathf.Clamp01((k - 0.6f) / 0.4f);
+            if (live)
+                Ui.Label(new Rect(body.x + 4f, body.y, body.width - 8f, 26f), "Walk with " + MoveKeysText() + ". PvP on (under the minimap): aim with the mouse, hold click to shoot.", 13, Ui.Muted, TextAnchor.MiddleLeft);
+            var full = HangoutView(body);
+            var view = live ? full : LerpRect(ShowcaseRect(body), full, e);
+            float ws = live ? 1f : Mathf.Lerp(ShowcaseZoom / AvatarZoom, 1f, e);  // the room's scale on screen
             Avatar mine;
             session.Avatars.TryGetValue(session.MyId, out mine);
+            V2 me2 = mine != null ? mine.Disp : new V2(Session.RoomW / 2f, Session.RoomH / 2f);
+
+            // The camera follows you and stops at the room's edge. Mid-switch it keeps your ship at its place in the window and
+            // eases it to where it will really stand.
+            V2 camFull = new V2(Mathf.Clamp(me2.X - full.width / 2f, 0f, Mathf.Max(0f, Session.RoomW - full.width)), Mathf.Clamp(me2.Y - full.height / 2f, 0f, Mathf.Max(0f, Session.RoomH - full.height)));
+            V2 cam = camFull;
+            if (!live)
+            {
+                float fx = Mathf.Lerp(ShowcaseShipX, (me2.X - camFull.X) / full.width, e), fy = Mathf.Lerp(ShowcaseShipY, (me2.Y - camFull.Y) / full.height, e);
+                cam = new V2(me2.X - fx * view.width / ws, me2.Y - fy * view.height / ws);
+            }
+            V2 origin = new V2(view.x - cam.X * ws, view.y - cam.Y * ws);  // where the room's corner is on screen
 
             if (Event.current.type == EventType.Repaint && hangoutFrame != Time.frameCount)
             {
                 hangoutFrame = Time.frameCount;
                 float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);
                 session.StepAvatars(dt);
-                if (mine != null && HangoutKeysFree)
-                    WalkMine(mine, dt);
+                if (mine != null && live && HangoutKeysFree)
+                    WalkMine(mine, dt, view, cam);
                 TickRoomTrails(t, dt);
             }
 
-            // The floor: a faint grid and a rim, with the lobby's own background showing through.
-            Ui.Fill(room, new Color(0.03f, 0.05f, 0.1f, 0.62f));
-            for (float x = 50f; x < room.width; x += 50f)
-                Ui.Fill(new Rect(room.x + x, room.y, 1f, room.height), new Color(1f, 1f, 1f, 0.035f));
-            for (float y = 50f; y < room.height; y += 50f)
-                Ui.Fill(new Rect(room.x, room.y + y, room.width, 1f), new Color(1f, 1f, 1f, 0.035f));
-            Ui.Fill(new Rect(room.x, room.y, room.width, 2f), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.5f));
-            Ui.Fill(new Rect(room.x, room.yMax - 2f, room.width, 2f), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.5f));
-            Ui.Fill(new Rect(room.x, room.y, 2f, room.height), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.5f));
-            Ui.Fill(new Rect(room.xMax - 2f, room.y, 2f, room.height), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.5f));
+            // The floor: a faint grid over the lobby's own background, and a glowing rim at the room's edge.
+            Ui.Fill(view, new Color(0.02f, 0.03f, 0.06f, 0.9f));
+            var world = new Rect(origin.X, origin.Y, Session.RoomW * ws, Session.RoomH * ws);
+            float fx0 = Mathf.Max(view.x, world.x), fy0 = Mathf.Max(view.y, world.y), fx1 = Mathf.Min(view.xMax, world.xMax), fy1 = Mathf.Min(view.yMax, world.yMax);
+            if (fx1 > fx0 && fy1 > fy0)
+            {
+                var floor = new Rect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+                Ui.Fill(floor, new Color(0.03f, 0.05f, 0.1f, 0.62f));
+                float step = 50f * ws;
+                for (float x = world.x + Mathf.Ceil((fx0 - world.x) / step) * step; x < fx1; x += step)
+                    Ui.Fill(new Rect(x, fy0, 1f, fy1 - fy0), new Color(1f, 1f, 1f, 0.035f));
+                for (float y = world.y + Mathf.Ceil((fy0 - world.y) / step) * step; y < fy1; y += step)
+                    Ui.Fill(new Rect(fx0, y, fx1 - fx0, 1f), new Color(1f, 1f, 1f, 0.035f));
+            }
+            var rim = new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.9f);
+            var glow = new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.14f);
+            DrawRimLine(view, new Rect(world.x - 2f, world.y - 2f, 4f, world.height + 4f), rim, glow);
+            DrawRimLine(view, new Rect(world.xMax - 2f, world.y - 2f, 4f, world.height + 4f), rim, glow);
+            DrawRimLine(view, new Rect(world.x - 2f, world.y - 2f, world.width + 4f, 4f), rim, glow);
+            DrawRimLine(view, new Rect(world.x - 2f, world.yMax - 2f, world.width + 4f, 4f), rim, glow);
+            Ui.Fill(new Rect(view.x, view.y, view.width, 1f), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
+            Ui.Fill(new Rect(view.x, view.yMax - 1f, view.width, 1f), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
+            Ui.Fill(new Rect(view.x, view.y, 1f, view.height), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
+            Ui.Fill(new Rect(view.xMax - 1f, view.y, 1f, view.height), new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.35f));
 
-            // Everyone, the ones further down the room in front.
+            // Everyone, the ones further down the room in front, and the shots between them.
             var order = new List<KeyValuePair<int, Avatar>>(session.Avatars);
             order.Sort((a, b) => a.Value.Disp.Y.CompareTo(b.Value.Disp.Y));
             if (BeginUiGl())
             {
-                UiClip(room);
+                UiClip(view);
+                if (roomAlpha > 0f)
+                    DrawLobbyShots(origin, ws);
                 foreach (var kv in order)
-                    DrawAvatar(kv.Key, kv.Value, room, t);
+                {
+                    if (roomAlpha <= 0f && kv.Key != session.MyId)
+                        continue;  // (the others walk in as the window finishes growing)
+                    var sp = new V2(origin.X + kv.Value.Disp.X * ws, origin.Y + kv.Value.Disp.Y * ws);
+                    if (sp.X < view.x - 60f || sp.X > view.xMax + 60f || sp.Y < view.y - 60f || sp.Y > view.yMax + 60f)
+                        continue;
+                    float keep = glAlpha;
+                    if (kv.Value.Hp <= 0f)
+                        glAlpha = keep * 0.3f;  // knocked out: a ghost until it respawns
+                    DrawAvatar(kv.Key, kv.Value, origin, ws, t);
+                    glAlpha = keep;
+                }
                 EndUiGl();
             }
-            foreach (var kv in order)
-                DrawAvatarTag(kv.Key, kv.Value, room, t);
-            foreach (var kv in order)  // their emotes (EmoteBar.cs)
+            var oldCol = GUI.color;
+            GUI.color = new Color(oldCol.r, oldCol.g, oldCol.b, oldCol.a * roomAlpha);
+            if (roomAlpha > 0f)
             {
-                int index;
-                float age;
-                if (session.EmoteOf(kv.Key, out index, out age))
-                    DrawEmote(index, new Vector2(room.x + kv.Value.Disp.X, room.y + kv.Value.Disp.Y - 30f), age, 1f);
+                foreach (var kv in order)
+                    DrawAvatarTag(kv.Key, kv.Value, view, origin, ws, t);
+                foreach (var kv in order)  // their emotes (EmoteBar.cs)
+                {
+                    int index;
+                    float age;
+                    if (session.EmoteOf(kv.Key, out index, out age))
+                        DrawEmote(index, new Vector2(origin.X + kv.Value.Disp.X * ws, origin.Y + kv.Value.Disp.Y * ws - 30f), age, 1f);
+                }
+                DrawHangoutHud(view, cam, mine, live, t);
             }
-            TickEmoteBar(HangoutKeysFree);
-            DrawEmoteBar(room.center.x, room.yMax - 14f);
+            GUI.color = oldCol;
+            if (live)
+            {
+                TickEmoteBar(HangoutKeysFree);
+                DrawEmoteBar(view.center.x, view.yMax - 14f);
+            }
         }
+
+        static void DrawRimLine(Rect view, Rect line, Color rim, Color glow)
+        {
+            var g = new Rect(line.x - 8f, line.y - 8f, line.width + 16f, line.height + 16f);
+            if (g.xMax < view.x || g.x > view.xMax || g.yMax < view.y || g.y > view.yMax)
+                return;
+            Ui.Fill(ClipTo(view, g), glow);
+            Ui.Fill(ClipTo(view, line), rim);
+        }
+
+        static Rect ClipTo(Rect view, Rect r)
+        {
+            float x0 = Mathf.Max(view.x, r.x), y0 = Mathf.Max(view.y, r.y), x1 = Mathf.Min(view.xMax, r.xMax), y1 = Mathf.Min(view.yMax, r.yMax);
+            return new Rect(x0, y0, Mathf.Max(0f, x1 - x0), Mathf.Max(0f, y1 - y0));
+        }
+
+        /// GL: every shot in flight (a short bright dash in its owner's class colour) and the rings where shots landed.
+        void DrawLobbyShots(V2 origin, float ws)
+        {
+            UiModelAt(origin, ws);
+            foreach (var s in session.Shots)
+            {
+                LobbyEntry e;
+                var c = session.Lobby.TryGetValue(s.Owner, out e) ? ToColor(Defs.Get(e.Role).Color) : Color.white;
+                var dir = s.Vel.Normalized();
+                Line(s.Pos - dir * 16f, s.Pos, 6f, new Rgba(c.r, c.g, c.b, 0.35f));
+                Line(s.Pos - dir * 12f, s.Pos, 3f, new Rgba(Mathf.Lerp(c.r, 1f, 0.6f), Mathf.Lerp(c.g, 1f, 0.6f), Mathf.Lerp(c.b, 1f, 0.6f), 1f));
+            }
+            foreach (var h in session.Hits)
+            {
+                float f = h.Age / 0.3f;
+                Circle(h.Pos, 8f + 18f * f, new Rgba(1f, 0.4f, 0.35f, 0.5f * (1f - f)), 16);
+            }
+        }
+
+        /// UI: the minimap (top left of the window), the PvP switch under it and each fighter's health bar.
+        void DrawHangoutHud(Rect view, V2 cam, Avatar mine, bool live, float t)
+        {
+            // Health bars over everyone who's fighting.
+            foreach (var kv in session.Avatars)
+            {
+                var a = kv.Value;
+                if (!a.Pvp)
+                    continue;
+                var sp = new V2(view.x + a.Disp.X - cam.X, view.y + a.Disp.Y - cam.Y);
+                if (!live || sp.X < view.x - 30f || sp.X > view.xMax + 30f || sp.Y < view.y - 30f || sp.Y > view.yMax + 30f)
+                    continue;
+                var bar = new Rect(sp.X - 25f, sp.Y - 46f, 50f, 6f);
+                float f = Mathf.Clamp01(a.Hp / Session.RoomHp);
+                Ui.Fill(new Rect(bar.x - 1f, bar.y - 1f, bar.width + 2f, bar.height + 2f), new Color(0f, 0f, 0f, 0.7f));
+                Ui.Fill(new Rect(bar.x, bar.y, bar.width * f, bar.height), Color.Lerp(new Color(1f, 0.3f, 0.3f), new Color(0.35f, 0.95f, 0.5f), f));
+                if (a.Hp <= 0f)
+                    Ui.Label(new Rect(sp.X - 50f, sp.Y - 70f, 100f, 18f), "KNOCKED OUT", 10, new Color(1f, 0.55f, 0.55f), TextAnchor.MiddleCenter, true);
+            }
+
+            var mini = new Rect(view.x + 10f, view.y + 10f, MiniW, MiniH);
+            Ui.Fill(mini, new Color(0.02f, 0.04f, 0.08f, 0.82f));
+            var edge = new Color(HangoutColor.r, HangoutColor.g, HangoutColor.b, 0.7f);
+            Ui.Fill(new Rect(mini.x, mini.y, mini.width, 1f), edge);
+            Ui.Fill(new Rect(mini.x, mini.yMax - 1f, mini.width, 1f), edge);
+            Ui.Fill(new Rect(mini.x, mini.y, 1f, mini.height), edge);
+            Ui.Fill(new Rect(mini.xMax - 1f, mini.y, 1f, mini.height), edge);
+            float mk = MiniW / Session.RoomW;
+            var vp = new Rect(mini.x + cam.X * mk, mini.y + cam.Y * mk, view.width * mk, view.height * mk);
+            var vc = new Color(1f, 1f, 1f, 0.85f);
+            Ui.Fill(new Rect(vp.x, vp.y, vp.width, 1f), vc);
+            Ui.Fill(new Rect(vp.x, vp.yMax - 1f, vp.width, 1f), vc);
+            Ui.Fill(new Rect(vp.x, vp.y, 1f, vp.height), vc);
+            Ui.Fill(new Rect(vp.xMax - 1f, vp.y, 1f, vp.height), vc);
+            foreach (var kv in session.Avatars)
+            {
+                LobbyEntry e;
+                if (!session.Lobby.TryGetValue(kv.Key, out e))
+                    continue;
+                var c = ToColor(Defs.Get(e.Role).Color);
+                float d = kv.Key == session.MyId ? 6f : 5f;
+                var dot = new Rect(mini.x + kv.Value.Disp.X * mk - d / 2f, mini.y + kv.Value.Disp.Y * mk - d / 2f, d, d);
+                if (kv.Key == session.MyId)
+                    Ui.Fill(new Rect(dot.x - 1f, dot.y - 1f, d + 2f, d + 2f), Color.white);
+                Ui.Fill(dot, c);
+            }
+
+            // The PvP switch: yours alone. Off, you can neither shoot nor be shot.
+            var box = new Rect(mini.x, mini.yMax + 6f, MiniW, 46f);
+            Ui.Fill(box, new Color(0.03f, 0.05f, 0.09f, 0.85f));
+            bool on = mine != null && mine.Pvp;
+            var tog = new Rect(box.x + 8f, box.y + 2f, box.width - 12f, 28f);
+            if (live)
+            {
+                bool now = Ui.Toggle(tog, on, "PVP");
+                if (now != on)
+                    session.SetMyPvp(now);
+            }
+            else
+                Ui.Label(tog, "PVP", 14, Ui.Text, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(box.x + 8f, box.y + 28f, box.width - 12f, 16f), on ? "You can shoot and be shot" : "Off: no shooting either way", 10, on ? new Color(1f, 0.6f, 0.55f) : Ui.Muted, TextAnchor.MiddleLeft);
+            hangoutHudRects[0] = mini;
+            hangoutHudRects[1] = box;
+        }
+
+        readonly Rect[] hangoutHudRects = new Rect[2];
 
         static string MoveKeysText()
         {
@@ -80,21 +287,35 @@ namespace Arena
             return stock ? "WASD (or the arrow keys)" : "your movement keys";
         }
 
-        /// Your own character: the movement keys walk it, and it turns the way it goes.
-        void WalkMine(Avatar a, float dt)
+        /// Your own character: the movement keys walk it, and it turns the way it goes. With PvP on it faces the mouse instead, and the
+        /// held button fires. (view and cam: the window and where it's looking, to turn the mouse into a point in the room.)
+        void WalkMine(Avatar a, float dt, Rect view, V2 cam)
         {
+            if (a.Hp <= 0f)
+                return;  // knocked out: it waits for the host to respawn it
             V2 dir = new V2((Keybinds.Held(KeyAction.MoveRight) ? 1f : 0f) - (Keybinds.Held(KeyAction.MoveLeft) ? 1f : 0f),
                             (Keybinds.Held(KeyAction.MoveDown) ? 1f : 0f) - (Keybinds.Held(KeyAction.MoveUp) ? 1f : 0f));
             float aim = a.Aim;
-            if (dir.LengthSq > 0f)
+            var mouse = Event.current.mousePosition;
+            bool aiming = a.Pvp && view.Contains(mouse);
+            if (aiming)
             {
-                dir = dir.Normalized();
-                float want = dir.Angle, d = want - aim;
+                V2 target = new V2(mouse.x - view.x + cam.X, mouse.y - view.y + cam.Y);
+                aim = (target - a.Pos).Angle;
+            }
+            else if (dir.LengthSq > 0f)
+            {
+                float want = dir.Normalized().Angle, d = want - aim;
                 while (d > Mathf.PI) d -= 2f * Mathf.PI;
                 while (d < -Mathf.PI) d += 2f * Mathf.PI;
                 aim += Mathf.Clamp(d, -14f * dt, 14f * dt);
             }
+            if (dir.LengthSq > 0f)
+                dir = dir.Normalized();
             session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt), aim);
+            // Fire: PvP on, the button held over the window (not over the minimap or switch, nor while the emote bar is picking).
+            if (aiming && Input.GetMouseButton(0) && !emoteBarOpen && !hangoutHudRects[0].Contains(mouse) && !hangoutHudRects[1].Contains(mouse))
+                session.FireMyShot(aim);
         }
 
         /// Each character's path for its trail, the last second or so (as the match does it: RankTrails.cs).
@@ -134,13 +355,13 @@ namespace Arena
         }
 
         /// GL: one character, with its trail behind it. Models sit around the origin, so each gets its own spot on the canvas.
-        void DrawAvatar(int id, Avatar av, Rect room, float t)
+        void DrawAvatar(int id, Avatar av, V2 origin, float ws, float t)
         {
             LobbyEntry e;
             if (!session.Lobby.TryGetValue(id, out e))
                 return;
-            V2 at = new V2(room.x + av.Disp.X, room.y + av.Disp.Y);
-            UiModelAt(at, AvatarZoom);
+            V2 at = new V2(origin.X + av.Disp.X * ws, origin.Y + av.Disp.Y * ws);
+            UiModelAt(at, AvatarZoom * ws);
             List<TrailPoint> pts;
             CycleRider cycle;
             if (e.Trail != 0 && Rank.TrailId(e.Trail) == CycleId && roomCycles.TryGetValue(id, out cycle))
@@ -170,16 +391,19 @@ namespace Arena
         }
 
         /// UI: the name plate under a character: rank badge, name, their frame (animated, as on the party card), and a green mark when ready.
-        void DrawAvatarTag(int id, Avatar av, Rect room, float t)
+        void DrawAvatarTag(int id, Avatar av, Rect view, V2 origin, float ws, float t)
         {
             LobbyEntry e;
             if (!session.Lobby.TryGetValue(id, out e))
                 return;
             bool mine = id == session.MyId;
             float w = Mathf.Max(92f, 50f + e.Name.Length * 7.6f), h = 24f;
-            var tag = new Rect(room.x + av.Disp.X - w / 2f, room.y + av.Disp.Y + 40f, w, h);
-            tag.x = Mathf.Clamp(tag.x, room.x + 4f, room.xMax - w - 4f);
-            tag.y = Mathf.Min(tag.y, room.yMax - h - 4f);
+            float sx = origin.X + av.Disp.X * ws, sy = origin.Y + av.Disp.Y * ws;
+            if (sx < view.x - 40f || sx > view.xMax + 40f || sy < view.y - 40f || sy > view.yMax + 40f)
+                return;  // (off the window)
+            var tag = new Rect(sx - w / 2f, sy + 40f * ws, w, h);
+            tag.x = Mathf.Clamp(tag.x, view.x + 4f, view.xMax - w - 4f);
+            tag.y = Mathf.Clamp(tag.y, view.y + 4f, view.yMax - h - 4f);
             if (e.Frame > 0)
                 DrawFrameCard(tag, e.Frame, t);  // their equipped frame, animated like on the party card (FrameLooks.cs)
             else

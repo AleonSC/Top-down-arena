@@ -121,6 +121,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("HANGOUT") != null) {
         var tr = Environment.GetEnvironmentVariable("HANGOUT").Split(',');
         set("lobbyTab", 6);
+        // HANGOUTANIM=<0..1>: freeze the Loadout -> Hangout transition part-way (0.5 = the window half grown); the Loadout tab is the start.
+        if (Environment.GetEnvironmentVariable("HANGOUTANIM") != null) { set("lobbyTab", 6); set("hangoutLastTab", 6); set("hangoutAnim", float.Parse(Environment.GetEnvironmentVariable("HANGOUTANIM"))); }
         host.Lobby[3] = new LobbyEntry { Id = 3, Name = "Sam", Role = Role.Healer, Kit = Kit.Summoner, Weapon = 0, Ability = 0, Rank = 14, Frame = 1 };
         Time.unscaledTime = 10f;
         var tpType = typeof(ArenaApp).GetNestedType("TrailPoint", BindingFlags.NonPublic);

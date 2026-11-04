@@ -55,7 +55,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Networking (Core)
 - `Pings.cs`: pings (`PingKind`, `Session.SendPing`, host pause and cap, Focus snapping to an enemy; `Msg.PingMark`); a partial of `Session`
-- `LobbyAvatars.cs`: the Hangout room's characters, their positions and the two messages (`Msg.LobbyMove`, `Msg.LobbyPos`); a partial of `Session`
+- `LobbyAvatars.cs`: the Hangout room's characters, their positions and `Msg.LobbyMove`/`LobbyPos`; a partial of `Session`
+- `LobbyCombat.cs`: Hangout PvP: shots, health, knock-out, respawn (`Msg.LobbyFire`/`LobbyShot`); a partial of `Session`
 - `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes)
 - `Net.cs`: `NetPeer`, length-prefixed TCP
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
@@ -122,7 +123,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PerksUi.cs`: the lobby's Perks tab (placeholder: every slot and perk locked, "Coming soon"; see `Docs/BossHuntsAndPerks.md`)
 - `CosmeticsUi.cs`: your cosmetics window (the drawer opened by the main menu's name chip: Frame, Trail, Background, Reward ladder)
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
-- `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a room where everyone's character walks with WASD wearing their cosmetics (`Docs/Hangout.md`)
+- `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds (the picker is in Settings > Visual effects)
 - `SavesUi.cs`: the Play picker in the main menu box (latest run, New run, Older runs), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
