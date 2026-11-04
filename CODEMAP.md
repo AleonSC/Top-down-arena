@@ -103,6 +103,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `AirTrailLooks.cs`: the air trail with Visual effects on (look A, Ribbons): two fading streamlines behind any player, enemy or minion, scaled by drawn speed (none under 110 px/s, full at 330)
 - `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on
 - `TankGunLooks.cs`: the Tank Soldier's Scattergun (recoil, pump, shell), Flak Cannon (recoil, heat, lifted shell, airburst) and Riot Repeater (bolt kick, brass, glowing rounds) with Visual effects on
+- `DpsGunLooks.cs`: the Soldier DPS's Twin Rifle (angled guns, kick, handle flick, brass, warming barrels), Railgun (charging coils, discharge arcs, rail kick, steam) and Burst SMG (spinning barrel tubes that heat up, growing flash, brass, smoke) with Visual effects on; the spray cone is in `WorldRenderer.cs`
 - `SoldierLooks.cs`: Soldier DPS ability looks with Visual effects on: Dash's comet streak, the Cluster Grenade's flight ring and Frag Burst blast, Mark for Death's reticle and skull
 - `ChainLightLooks.cs`: Chain Light with Visual effects on: a soft fan of light, beams and halos (style A, Radiance)
 - `EnergyWardLook.cs`: the Healer Elementalist's Energy Ward bubble with Visual effects on: a spring-driven radius that shrinks and squashes toward each hit, blue to green, and a green heal core growing inside (Heal core + Jelly hits)
