@@ -963,7 +963,7 @@ namespace Arena
             var readyRect = new Rect(lx, readyY, lw, LobbyActionH);
             if (ready)
                 Ui.PulseRing(readyRect, Ui.Primary, Time.unscaledTime);  // drawn first, so Start sits over it
-            if (Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check")))
+            if (Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check"), glitch: true))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -978,7 +978,7 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                if (Ui.ActionButton(new Rect(lx, LobbyStartY, lw, LobbyActionH), "Start", GUI.enabled, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play")))
+                if (Ui.ActionButton(new Rect(lx, LobbyStartY, lw, LobbyActionH), "Start", GUI.enabled, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play"), glitch: true))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }
