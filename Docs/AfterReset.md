@@ -21,6 +21,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
             Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
+- [ ] **Healer Soldier: replace Haven with Adrenaline Shot.** Instant cast on the player closest to your cursor (you, if solo): 8 s of +30% move speed,
+      +40% fire rate and 30% less damage taken, 14 s cooldown. Pick a look (A Auto-Injector, B Syringe, C Heartbeat, D Pixel Vial) and a capstone, then build.
+      Mockup: [`Mockups/adrenaline-shot.html`](Mockups/adrenaline-shot.html).
+
 - [x] **Healer rework: Soul Lantern (Summoner) and Deployable Medkit (Soldier).** Built (Nov 2026, protocol 139): Soul Lantern look B
       (Wisp Cage) and Deployable Medkit look A (Field Kit), from [`Mockups/soul-lantern.html`](Mockups/soul-lantern.html)
       (https://claude.ai/artifact/1LBQNmz4VkR48go2Un1xSk) and [`Mockups/deployable-medkit.html`](Mockups/deployable-medkit.html)
