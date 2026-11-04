@@ -612,10 +612,12 @@ namespace Arena
         {
             Ui.Heading(x, y, w, title);
             float left = Ui.TextWidth(title.ToUpperInvariant(), 12, true) + 24f;
-            int size = 12;
-            while (size > 10 && Ui.TextWidth(blurb, size) > w - left)
+            // All caps, bold and slightly smaller, so it reads as a quiet caption beside the heading.
+            blurb = blurb.ToUpperInvariant();
+            int size = 11;
+            while (size > 8 && Ui.TextWidth(blurb, size, true) > w - left)
                 size--;
-            Ui.Label(new Rect(x + left, y, w - left, 20f), blurb, size, new Color(0.78f, 0.82f, 0.92f), TextAnchor.MiddleRight);
+            Ui.Label(new Rect(x + left, y, w - left, 20f), blurb, size, new Color(0.62f, 0.70f, 0.88f), TextAnchor.MiddleRight, true);
         }
 
         /// The loadout's spec sheet: the picked weapon (left) and ability (right), each with its name, description
@@ -695,7 +697,7 @@ namespace Arena
                 Arc(c, rr, 6f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 1f), 48, -MathX.Pi / 2f, MathX.Tau * fill);
                 EndUiGl();
             }
-            Ui.Fancy(new Rect(c.X - 20f, c.Y - 14f, 40f, 28f), "F", 22, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
+            Ui.Glitch(new Rect(c.X - 20f, c.Y - 15f, 40f, 28f), "F", 22, Color.white, TextAnchor.MiddleCenter, Ui.Gold);
             float tx = x + rr * 2f + 18f, tw = area.xMax - 8f - tx;
             Ui.Glitch(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), TextAnchor.MiddleLeft);
             Ui.Label(new Rect(tx, y + 23f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);

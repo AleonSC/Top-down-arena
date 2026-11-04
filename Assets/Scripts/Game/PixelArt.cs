@@ -710,6 +710,21 @@ namespace Arena
                 "............",
                 "............",
             },
+            ["ui_cursor"] = new[]  // a crosshair ring (Cursor)
+            {
+                "............",
+                ".....ww.....",
+                "...wwwwww...",
+                "..ww.ww.ww..",
+                "..w..ww..w..",
+                ".www.ww.www.",
+                ".www.ww.www.",
+                "..w..ww..w..",
+                "..ww.ww.ww..",
+                "...wwwwww...",
+                ".....ww.....",
+                "............",
+            },
             ["ui_emote"] = new[]  // a smiling face (Emote)
             {
                 "............",
