@@ -92,69 +92,79 @@ header p { margin: 0; color: var(--muted); font-size: 16px; max-width: 62ch; lin
   .big { font-size: 40px; }
 }
 
-.v1 .screen { --sbg: #03110a; --ink: #4dff9a; --dim: #2fa66a; --glow: rgba(60,255,150,.55); --rule: rgba(77,255,154,.28); border-radius: 14px; box-shadow: inset 0 0 40px rgba(0,0,0,.8), 0 0 0 5px #0d1a14, 0 0 0 7px #1c3a2a, 0 0 28px rgba(60,255,150,.18); padding: 14px 20px; }
-.tip { display: grid; grid-template-columns: 64px 1fr auto; gap: 18px; align-items: center; min-height: 82px; }
-.tile { width: 64px; height: 64px; border: 2px solid var(--ink); display: grid; place-items: center; background: rgba(77,255,154,.07); }
-.tile svg { width: 40px; height: 40px; fill: none; stroke: var(--ink); stroke-width: 2; filter: drop-shadow(0 0 4px var(--glow)); }
+.stage { background: radial-gradient(90% 120% at 30% 20%, #151c3a, #0a0e1e); }
+.panel { position: relative; width: 100%; max-width: 680px; border-radius: 14px; border: 1px solid #4a68b8; background: linear-gradient(#2f3d68, #12162c 85%); padding: 14px; box-shadow: 0 0 30px rgba(80,120,255,.14); }
+.panel::before, .panel::after { content: ""; position: absolute; width: 22px; height: 22px; pointer-events: none; border: 2px solid rgba(110,165,255,.7); }
+.panel::before { left: -8px; top: -8px; border-right: 0; border-bottom: 0; }
+.panel::after { right: -8px; bottom: -8px; border-left: 0; border-top: 0; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: stretch; }
+.screen { --sbg: #03110a; --ink: #4dff9a; --dim: #2fa66a; --glow: rgba(60,255,150,.55); --rule: rgba(77,255,154,.28); border-radius: 4px; padding: 10px 16px; box-shadow: inset 0 0 30px rgba(0,0,0,.8), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; min-width: 0; }
+.tip { display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; min-height: 66px; }
+.tile { width: 54px; height: 54px; border: 2px solid var(--ink); display: grid; place-items: center; background: rgba(77,255,154,.07); }
+.tile svg { width: 34px; height: 34px; fill: none; stroke: var(--ink); stroke-width: 2; filter: drop-shadow(0 0 4px var(--glow)); }
 .txt { min-width: 0; }
-.head { display: flex; gap: 12px; align-items: baseline; }
-.head .tg { font-size: 16px; color: var(--sbg); background: var(--ink); padding: 2px 7px 0; text-shadow: none; letter-spacing: .1em; }
-.head .tp { font-size: 30px; letter-spacing: .04em; }
-.msg { font-size: 22px; line-height: 1.15; color: var(--ink); margin-top: 6px; max-width: 46ch; min-height: 50px; }
-.ctl { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-.cnt { font-size: 18px; color: var(--dim); letter-spacing: .1em; text-shadow: none; }
+.head { display: flex; gap: 10px; align-items: baseline; }
+.head .tg { font-size: 15px; color: var(--sbg); background: var(--ink); padding: 2px 6px 0; text-shadow: none; letter-spacing: .1em; }
+.head .tp { font-size: 26px; letter-spacing: .04em; }
+.msg { font-size: 20px; line-height: 1.12; margin-top: 4px; min-height: 45px; }
+.side { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 8px; }
+.cnt { font: 600 11px var(--f-ui); color: #6ea5ff; letter-spacing: .06em; padding-top: 2px; }
 .btns { display: flex; gap: 8px; }
-.sm { font-family: var(--f-display); font-size: 22px; letter-spacing: .05em; padding: 6px 14px 4px; border: 2px solid var(--ink); color: var(--ink); background: rgba(77,255,154,.07); cursor: pointer; text-shadow: inherit; white-space: nowrap; line-height: 1; }
+.blue { font: 700 13px var(--f-ui); color: #e6edff; background: linear-gradient(#3b4a78, #232c4c); border: 1px solid #4a5a8e; border-radius: 8px; padding: 8px 14px; min-width: 78px; cursor: pointer; }
+.blue:hover, .blue:focus-visible { background: linear-gradient(#4d60a0, #2e3a66); outline: none; }
+.inside { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; align-items: center; }
+.inside .cnt { color: var(--dim); font: 500 17px var(--f-display); letter-spacing: .1em; margin-right: auto; text-shadow: none; }
+.sm { font-family: var(--f-display); font-size: 20px; letter-spacing: .05em; padding: 4px 12px 3px; border: 2px solid var(--ink); color: var(--ink); background: rgba(77,255,154,.07); cursor: pointer; text-shadow: inherit; white-space: nowrap; line-height: 1; }
 .sm:hover, .sm:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
 .burst { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; background: repeating-linear-gradient(0deg, rgba(180,255,210,.55) 0 1px, rgba(0,0,0,.4) 1px 3px); }
 .burst.on { animation: burst .28s steps(4); }
 @keyframes burst { 0% { opacity: .9; transform: translateY(-6px); } 60% { opacity: .5; transform: translateY(5px); } 100% { opacity: 0; } }
-.hint { font-size: 15px; color: var(--muted); font-family: var(--f-mono); letter-spacing: .04em; }
-@media (max-width: 640px) { .tip { grid-template-columns: 52px 1fr; } .tile { width: 52px; height: 52px; } .ctl { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; } }
+@media (max-width: 640px) { .row { grid-template-columns: 1fr; } .side { flex-direction: row; align-items: center; } }
 @media (prefers-reduced-motion: reduce) { .burst.on { animation: none; } }
 </style>
 
 <div class="wrap">
   <header>
-    <h1>Tip box, as a CRT</h1>
-    <p>The tip box under the menu card, in the same phosphor look as the run cards. Press Next or Prev: the screen does a short channel-change burst and the new tip types in. Reduced effects would drop the burst, the glow and the typing, and just swap the text.</p>
+    <h1>Tip box, screen on the box</h1>
+    <p>The tip box keeps its blue panel and corner brackets, like the menu card above it. The tip itself sits on a phosphor screen inset in that panel, the same way the latest run does. Two ways to place the buttons. Click them to change tips.</p>
   </header>
-  <section class="opt v1">
-    <div class="tag"><b>Tip box</b><span>680 wide, one tip at a time</span></div>
-    <div class="stage"><div class="set"><div class="screen"><div class="roll"></div><div class="burst" id="burst"></div><div class="body">
-      <div class="tip">
-        <div class="tile" id="tile"></div>
-        <div class="txt"><div class="head"><span class="tg">TIP</span><span class="tp" id="topic"></span></div><div class="msg"><span id="msg"></span><span class="cur"></span></div></div>
-        <div class="ctl"><div class="cnt" id="cnt"></div><div class="btns"><button class="sm" type="button" id="prev">&lt; PREV</button><button class="sm" type="button" id="next">NEXT &gt;</button></div></div>
-      </div>
-    </div></div></div></div>
-    <p class="hint">The icon tile keeps the tip's own drawing, redrawn in phosphor green.</p>
-  </section>
+  <section class="opt"><div class="tag"><b>A. Buttons on the box</b><span>blue buttons stay as they are</span></div>
+    <div class="stage"><div class="panel" data-v="a"><div class="row"><div class="screen"><div class="roll"></div><div class="burst"></div><div class="body">
+        <div class="tip"><div class="tile"></div><div class="txt"><div class="head"><span class="tg">TIP</span><span class="tp"></span></div><div class="msg"><span class="m"></span><span class="cur"></span></div></div></div>
+      </div></div>
+      <div class="side"><div class="cnt"></div><div class="btns"><button class="blue" type="button" data-d="-1">&lt; Prev</button><button class="blue" type="button" data-d="1">Next &gt;</button></div></div></div></div></div>
+    <p>Only the tip is on the screen. Prev, Next and the counter stay blue, so they match New run, Older runs and Back.</p></section>
+  <section class="opt"><div class="tag"><b>B. Buttons on the screen</b><span>everything inside the CRT</span></div>
+    <div class="stage"><div class="panel" data-v="b"><div class="screen"><div class="roll"></div><div class="burst"></div><div class="body">
+        <div class="tip"><div class="tile"></div><div class="txt"><div class="head"><span class="tg">TIP</span><span class="tp"></span></div><div class="msg"><span class="m"></span><span class="cur"></span></div></div></div><div class="inside"><span class="cnt"></span><button class="sm" type="button" data-d="-1">&lt; PREV</button><button class="sm" type="button" data-d="1">NEXT &gt;</button></div>
+      </div></div></div></div>
+    <p>The counter and the buttons move into the screen. The box is just a frame, and the box is a little shorter.</p></section>
 </div>
 <script>
 var TIPS=[
- ["Practice Range","Pick it in the lobby to play waves and bosses you set up yourself.",'<circle cx="20" cy="20" r="16"/><circle cx="20" cy="20" r="9"/><circle cx="20" cy="20" r="2.5"/>'],
- ["Parry","Press block just before a hit lands to turn it back on the attacker.",'<path d="M20 4 L34 10 V20 C34 29 28 35 20 38 C12 35 6 29 6 20 V10 Z"/>'],
- ["Revive","Stand next to a downed friend and hold interact. Enemies nearby slow you down.",'<path d="M20 34 C6 24 6 12 14 10 C18 9 20 12 20 14 C20 12 22 9 26 10 C34 12 34 24 20 34 Z"/>']
+ ["Practice Range","Pick it in the lobby to play waves and bosses you set up yourself.",'<circle cx="17" cy="17" r="14"/><circle cx="17" cy="17" r="8"/><circle cx="17" cy="17" r="2"/>'],
+ ["Perfect parry","Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.",'<path d="M17 3 L29 8 V17 C29 25 24 30 17 33 C10 30 5 25 5 17 V8 Z"/>'],
+ ["Revive","Stand next to a downed friend and hold interact. Enemies nearby slow you down.",'<path d="M17 29 C5 21 5 10 12 8 C15 7 17 10 17 12 C17 10 19 7 22 8 C29 10 29 21 17 29 Z"/>']
 ];
-var i=0, timer=null;
+var i=1, timers=[];
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function show(){
   var t=TIPS[i];
-  document.getElementById('topic').textContent=t[0].toUpperCase();
-  document.getElementById('tile').innerHTML='<svg viewBox="0 0 40 40">'+t[2]+'</svg>';
-  document.getElementById('cnt').textContent=(i+1)+' / '+TIPS.length;
-  var el=document.getElementById('msg'); clearInterval(timer);
-  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){el.textContent=t[1];return;}
-  var n=0; el.textContent='';
-  timer=setInterval(function(){n+=2; el.textContent=t[1].slice(0,n); if(n>=t[1].length) clearInterval(timer);},22);
+  document.querySelectorAll('.panel').forEach(function(p,k){
+    p.querySelector('.tp').textContent=t[0].toUpperCase();
+    p.querySelector('.tile').innerHTML='<svg viewBox="0 0 34 34">'+t[2]+'</svg>';
+    p.querySelector('.cnt').textContent=(i+1)+' / '+TIPS.length;
+    var el=p.querySelector('.m'); clearInterval(timers[k]);
+    if(reduce){el.textContent=t[1];return;}
+    var n=0; el.textContent='';
+    timers[k]=setInterval(function(){n+=2; el.textContent=t[1].slice(0,n); if(n>=t[1].length) clearInterval(timers[k]);},22);
+  });
 }
 function go(d){
   i=(i+d+TIPS.length)%TIPS.length;
-  var b=document.getElementById('burst'); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+  document.querySelectorAll('.burst').forEach(function(b){b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');});
   show();
 }
-document.getElementById('next').onclick=function(){go(1)};
-document.getElementById('prev').onclick=function(){go(-1)};
+document.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){go(+b.dataset.d)};});
 show();
 </script>

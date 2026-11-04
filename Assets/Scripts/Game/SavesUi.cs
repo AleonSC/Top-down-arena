@@ -50,6 +50,8 @@ namespace Arena
 
         bool menuPlayOlder;  // the picker is showing the older runs (every save but the newest)
         int menuOlderPage;   // which page of them (three to a page)
+        float menuOlderK;    // 0 = latest run, 1 = older runs; in between the screen is growing (or shrinking back)
+        const float MenuOlderLen = 0.4f;
 
         /// Play was clicked: the box shows the picker (a new run, or your saved runs).
         void OpenPlayPicker()
@@ -59,6 +61,7 @@ namespace Arena
             menuJoinOpen = false;
             menuPlayOlder = false;
             menuOlderPage = 0;
+            menuOlderK = 0f;
             menuPlayOpen = true;
         }
 
@@ -111,24 +114,60 @@ namespace Arena
         void DrawPlayPicker(float t, bool live)
         {
             var c = MenuCard;
-            if (menuPlayOlder && savedRuns.Count > 1)
+            bool olderWanted = menuPlayOlder && savedRuns.Count > 1;
+            float want = olderWanted ? 1f : 0f;
+            if (live && Event.current.type == EventType.Repaint)
+                menuOlderK = fxOn && !fxReduced ? Mathf.MoveTowards(menuOlderK, want, Time.unscaledDeltaTime / MenuOlderLen) : want;
+            if (menuOlderK >= 1f && olderWanted)
             {
-                DrawOlderRuns(c, t, live);
+                DrawOlderRuns(c, t, live, false);
                 return;
             }
+            if (menuOlderK != want)
+            {
+                // The latest run's screen grows into the older runs' screen (and back): the old content fades out, the new fades in.
+                float e = EaseInOut(Mathf.Clamp01(menuOlderK));
+                var from = new Rect(c.x + 30f, c.y + 62f, 620f, 126f);
+                var to = new Rect(c.x + 30f, c.y + 12f, 620f, c.height - 24f);
+                var now = new Rect(Mathf.Lerp(from.x, to.x, e), Mathf.Lerp(from.y, to.y, e), Mathf.Lerp(from.width, to.width, e), Mathf.Lerp(from.height, to.height, e));
+                float oldA = Mathf.Clamp01(1f - e * 2f), newA = Mathf.Clamp01(e * 2f - 1f);
+                float saved = Ui.Alpha;
+                CrtUi.Begin(now);
+                if (oldA > 0f)
+                {
+                    Ui.Alpha = saved * oldA;
+                    DrawLatestRun(c, t, false, true);
+                }
+                if (newA > 0f && savedRuns.Count > 1)
+                {
+                    Ui.Alpha = saved * newA;
+                    DrawOlderRuns(c, t, false, true);
+                }
+                Ui.Alpha = saved;
+                CrtUi.End(now, Time.unscaledTime, fxReduced);
+                return;
+            }
+            DrawLatestRun(c, t, live, false);
+        }
+
+        /// The latest run's view. inner = drawn inside the growing screen of the transition (no screen of its own, no clicks).
+        void DrawLatestRun(Rect c, float t, bool live, bool inner)
+        {
             bool any = savedRuns.Count > 0;
             Ui.Glitch(new Rect(c.x + 30f, c.y + 18f, 440f, 34f), any ? "CONTINUE YOUR LATEST RUN" : "START A RUN", 24, Color.white, TextAnchor.MiddleLeft, SaveColor);
             if (MenuVhs.Draw(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "TRK 02", live, fxReduced, () => Ui.ActionButton(new Rect(c.xMax - 140f, c.y + 18f, 110f, 34f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15)) && live)
                 PlayPickerBack();
             var r = new Rect(c.x + 30f, c.y + 62f, 620f, 126f);
             bool calm = fxReduced;
-            CrtUi.Begin(r);
+            if (!inner)
+                CrtUi.Begin(r);
             float by = c.y + 198f;
             if (!any)
             {
                 CrtUi.Text(new Rect(r.x + 20f, r.y + 20f, r.width - 40f, 26f), "NO SAVED RUNS YET.", 20, CrtUi.Ink, TextAnchor.MiddleCenter, true, calm);
                 CrtUi.Text(new Rect(r.x + 40f, r.y + 52f, r.width - 80f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 14, CrtUi.Dim, TextAnchor.UpperCenter, false, calm);
-                CrtUi.End(r, Time.unscaledTime, calm);
+                if (!inner)
+                    CrtUi.End(r, Time.unscaledTime, calm);
                 if (MenuVhs.Draw(new Rect(c.x + 30f, by, 620f, 50f), "TRK 03", live, fxReduced, () => Ui.ActionButton(new Rect(c.x + 30f, by, 620f, 50f), "New run", true, Ui.Primary, PixelArt.Get("ui_play"), null, 20)) && live)
                     StartNewRun();
                 return;
@@ -162,7 +201,8 @@ namespace Arena
             bool blink = calm || Mathf.FloorToInt(Time.unscaledTime * 1.5f) % 2 == 0;
             CrtUi.Text(new Rect(r.xMax - 170f, r.y + 6f, 152f, 14f), (blink ? "\u25cf " : "  ") + "READY", 10, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
             bool go = CrtUi.Button(new Rect(r.xMax - 170f, r.y + 28f, 152f, 56f), "CONTINUE", PixelArt.Get("ui_play"), 20, calm);
-            CrtUi.End(r, Time.unscaledTime, calm);
+            if (!inner)
+                CrtUi.End(r, Time.unscaledTime, calm);
             if (go && live)
                 ContinueSave(s);
             const float bw = 200f;
@@ -205,13 +245,14 @@ namespace Arena
         }
 
         /// The picker's second view: every save but the newest, three to a page, each with Continue and a delete button, all on one CRT screen.
-        void DrawOlderRuns(Rect c, float t, bool live)
+        void DrawOlderRuns(Rect c, float t, bool live, bool inner)
         {
             int older = savedRuns.Count - 1, pages = (older + 2) / 3;
             menuOlderPage = Mathf.Clamp(menuOlderPage, 0, pages - 1);
             bool calm = fxReduced;
             var scr = new Rect(c.x + 30f, c.y + 12f, 620f, c.height - 24f);
-            CrtUi.Begin(scr);
+            if (!inner)
+                CrtUi.Begin(scr);
             CrtUi.Text(new Rect(scr.x + 14f, c.y + 18f, 300f, 34f), "OLDER RUNS", 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
             bool prev = false, next = false;
             if (pages > 1)
@@ -263,7 +304,8 @@ namespace Arena
                     toDelete = s;
             }
             CrtUi.Text(new Rect(scr.x + 14f, c.yMax - 36f, scr.width - 28f, 16f), deleteArmed != null ? "Click REALLY? again to delete that run." : "DEL asks twice before it deletes.", 11, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
-            CrtUi.End(scr, Time.unscaledTime, calm);
+            if (!inner)
+                CrtUi.End(scr, Time.unscaledTime, calm);
             if (!live)
                 return;
             if (prev && menuOlderPage > 0)
