@@ -77,10 +77,9 @@ namespace Arena
         /// The title: during the intro, written in ink up to the pen and then filled in; otherwise as usual.
         void DrawMenuTitleText(Rect r)
         {
-            var bottom = new Color(0.72f, 0.8f, 1f);
             if (!(MenuIntroPlaying && MenuIntroFull))
             {
-                Ui.Fancy(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, bottom, TextAnchor.MiddleCenter, Ui.Accent);
+                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                 return;
             }
             float pen = Seg(menuIntroT, 0.35f, 1.35f), fill = Seg(menuIntroT, 1.35f, 1.55f);
@@ -92,7 +91,7 @@ namespace Arena
                 GUI.EndGroup();
             }
             if (fill > 0f)
-                WithAlpha(fill, () => Ui.Fancy(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, bottom, TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(fill, () => Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent));
         }
 
         /// GL (inside BeginUiGl): the pen's glowing tip, writing the title and then tracing the arc.

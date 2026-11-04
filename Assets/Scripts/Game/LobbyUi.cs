@@ -66,7 +66,7 @@ namespace Arena
             // Same card as the loadout's tiles (Ui.ActionButton), with a red arrow.
             if (Ui.ActionButton(new Rect(40f, 15f, LobbyActionH, LobbyActionH), "", false, Ui.Primary, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f)))
                 StartLobbyLeave();  // LobbyEnter.cs
-            Ui.Fancy(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
+            Ui.Glitch(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
                 connInfoOpen = !connInfoOpen;
             if (session.Resume != null)
@@ -168,7 +168,7 @@ namespace Arena
                     Ui.Pill(h, new Color(c.r, c.g, c.b, 0.22f));
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 15, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
+                Ui.Glitch(new Rect(h.x, h.y + 4f, h.width, 24f), title, 16, on ? Color.white : Color.Lerp(c, Color.white, 0.55f), TextAnchor.MiddleCenter);
                 Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 10, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
                 if (session.IsHost && !on && Ui.HitArea(h))
                     session.SetMode(i == 2, i == 1);
@@ -424,7 +424,7 @@ namespace Arena
                     continue;
                 }
                 var rc = ToColor(Defs.Roles[i].Color);
-                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", glow: false, iconLeft: true))
+                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), null, textSize: 17, glow: false, iconLeft: true, glitch: true))
                 {
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;

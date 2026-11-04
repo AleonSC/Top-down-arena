@@ -292,7 +292,7 @@ namespace Arena
 
         /// The menus' showpiece button: an icon chip, game-style lettering (two-tone with an
         /// outline, like titles), and on hover a lighter face and a shine sweeping across. No outline around it. t = time in seconds.
-        public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0)
+        public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0, bool glitch = false)
         {
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             bool clicked = Button(r, "", hover ? Color.Lerp(tint, Color.white, 0.12f) : tint);
@@ -322,8 +322,12 @@ namespace Arena
                 float isz = Mathf.Round(cs * 0.62f);
                 Icon(new Rect(c.center.x - isz / 2f, c.center.y - isz / 2f, isz, isz), icon);
             }
-            Fancy(new Rect(x + cs + gap, r.y, tw + 12f, r.height), text, fs, Color.white, Color.Lerp(tint, Color.white, 0.7f), TextAnchor.MiddleLeft,
-                hover ? (Color?)new Color(tint.r, tint.g, tint.b, 0.9f) : null);
+            var tr = new Rect(x + cs + gap, r.y, tw + 12f, r.height);
+            var tglow = hover ? (Color?)new Color(tint.r, tint.g, tint.b, 0.9f) : null;
+            if (glitch)
+                Glitch(tr, text, fs, Color.white, TextAnchor.MiddleLeft, tglow);
+            else
+                Fancy(tr, text, fs, Color.white, Color.Lerp(tint, Color.white, 0.7f), TextAnchor.MiddleLeft, tglow);
             return clicked;
         }
 
@@ -472,7 +476,7 @@ namespace Arena
         /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
         /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
         /// left of the name and second line, the group centred (the lobby's role cards).
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false)
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false, bool glitch = false)
         {
             bool hover = r.Contains(Event.current.mousePosition);
             float barH = ChoiceChrome(r, selected, hover, accent, glow);
@@ -494,7 +498,13 @@ namespace Arena
                     Label(new Rect(tx, r.center.y + 1f, tw + 8f, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleLeft);
                 }
                 else
-                    Label(new Rect(tx, r.y, tw + 8f, r.height - barH), text, ns, name, TextAnchor.MiddleLeft, true);
+                {
+                    var nr = new Rect(tx, r.y, tw + 8f, r.height - barH);
+                    if (glitch)
+                        Glitch(nr, text, ns, name, TextAnchor.MiddleLeft);
+                    else
+                        Label(nr, text, ns, name, TextAnchor.MiddleLeft, true);
+                }
             }
             else if (icon != null)
             {
@@ -855,6 +865,39 @@ namespace Arena
             GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * 0.5f + size * 0.02f));
             Label(new Rect(0f, 0f, r.width, r.height), text, size, top, align, true);
             GUI.EndGroup();
+        }
+
+        /// Glitch lettering: a red and a cyan copy split either side of crisp white text (a mistuned screen). Big
+        /// text also tears for a split second every few seconds: the channels fly apart and a band of it slips sideways.
+        public static void Glitch(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null)
+        {
+            float t = Time.unscaledTime, a = color.a;
+            float off = Mathf.Max(1f, size * 0.045f);
+            float ph = t % 2.6f + (text.Length % 7) * 0.31f;  // titles on one screen don't all tear together
+            ph %= 2.6f;
+            bool burst = size >= 28 && ph < 0.14f;
+            float k = burst ? 3f + 2f * Mathf.Sin(t * 90f) : 1f;
+            if (glow.HasValue)
+            {
+                var g = glow.Value;
+                var gc = new Color(g.r, g.g, g.b, 0.22f * g.a * a);
+                for (int i = 0; i < 8; i++)
+                {
+                    float an = i * Mathf.PI / 4f;
+                    Label(new Rect(r.x + Mathf.Cos(an) * 2.5f, r.y + Mathf.Sin(an) * 2.5f, r.width, r.height), text, size, gc, align, true);
+                }
+            }
+            Label(new Rect(r.x, r.y + 1.5f, r.width, r.height), text, size, new Color(0f, 0f, 0f, 0.55f * a), align, true);
+            Label(new Rect(r.x - off * k, r.y, r.width, r.height), text, size, new Color(1f, 0.16f, 0.2f, 0.9f * a), align, true);
+            Label(new Rect(r.x + off * k, r.y, r.width, r.height), text, size, new Color(0.1f, 0.82f, 1f, 0.9f * a), align, true);
+            Label(r, text, size, color, align, true);
+            if (burst)
+            {
+                float by = r.height * (0.15f + 0.5f * (ph / 0.14f)), bh = r.height * 0.22f;
+                GUI.BeginGroup(new Rect(r.x, r.y + by, r.width, bh));
+                Label(new Rect((Mathf.Sin(t * 40f) < 0f ? -off * 5f : off * 5f), -by, r.width, r.height), text, size, color, align, true);
+                GUI.EndGroup();
+            }
         }
 
         // --- Texture generation -------------------------------------------------

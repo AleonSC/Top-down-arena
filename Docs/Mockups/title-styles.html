@@ -1,0 +1,221 @@
+<title>Title Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;600&family=Orbitron:wght@400;700;900&family=Monoton&family=VT323&family=Press+Start+2P&family=Bungee&family=Michroma&family=Rubik+Mono+One&family=Audiowide&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Each card is the main-menu / lobby title in a different style.
+   The game draws it with OnGUI text, so a real version is a pre-rendered sprite or a font asset (see notes under each). */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --line: #242d36; --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4;
+  --accent: #5c99ff; --menu-bg: #080b14;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 "Barlow", system-ui, sans-serif; margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 22px; }
+h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 "Oxanium", sans-serif; letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+h1 span { color: var(--teal); }
+p { margin: 0; max-width: 72ch; color: var(--soft); }
+.eyebrow { font: 600 11px "Oxanium", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; }
+.card.wide { grid-column: 1 / -1; }
+.card h2 { font: 700 13px "Oxanium", sans-serif; letter-spacing: .12em; text-transform: uppercase; margin: 0; padding: 10px 14px 2px; }
+.card h2 b { color: var(--amber); margin-right: 8px; }
+.card .note { padding: 0 14px 12px; font-size: 14px; color: var(--muted); }
+.stage { container-type: inline-size; position: relative; overflow: hidden; background: var(--menu-bg); aspect-ratio: 1000 / 200; display: grid; place-items: center; }
+/* the arena menu backdrop: dark navy with a faint grid */
+.stage.arena { background:
+  linear-gradient(rgba(92,153,255,.07) 1px, transparent 1px) 0 0 / 5cqw 5cqw,
+  linear-gradient(90deg, rgba(92,153,255,.07) 1px, transparent 1px) 0 0 / 5cqw 5cqw, #080b14; }
+.stage svg { width: 100%; height: 100%; display: block; position: absolute; inset: 0; }
+.t { position: relative; white-space: nowrap; text-transform: uppercase; line-height: 1; }
+
+/* 1 baseline */
+.s1 { font: 800 7.4cqw "Oxanium", "Arial Black", sans-serif; color: #c4d4ff; -webkit-text-stroke: .5cqw #1a2650; paint-order: stroke fill; letter-spacing: .02em;
+  text-shadow: 0 0 1.4cqw rgba(92,153,255,.6); }
+
+/* D crt */
+.crt { width: 92%; height: 82%; border-radius: 4cqw / 3cqw; background: radial-gradient(ellipse at center, #0e2a1a 0%, #04120a 70%, #010603 100%);
+  box-shadow: inset 0 0 4cqw #000, inset 0 0 .6cqw #1f5, 0 0 0 1cqw #20242a, 0 0 0 1.3cqw #3a424c; display: grid; place-items: center; position: relative; overflow: hidden; }
+.crt::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(transparent 0 .5cqw, rgba(0,0,0,.35) .5cqw .75cqw); pointer-events: none; animation: roll 6s linear infinite; }
+.crt::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 40%); }
+.crt .t { font: 400 8.6cqw "VT323", monospace; color: #7dffa8; text-shadow: 0 0 .8cqw #2f6, 0 0 2.5cqw #1c5; letter-spacing: .04em; animation: flick 3s steps(1) infinite; }
+.crt .t::after { content: "▌"; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes flick { 0%,92%,96%,100% { opacity: 1; } 94% { opacity: .75; } 98% { opacity: .9; } }
+@keyframes roll { to { background-position-y: 1.25cqw; } }
+
+/* E wood console */
+.wood { width: 100%; height: 100%; display: grid; place-items: center; background:
+  repeating-linear-gradient(92deg, rgba(0,0,0,.09) 0 .3cqw, transparent .3cqw .9cqw),
+  repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1.4cqw, transparent 1.4cqw 2.9cqw), linear-gradient(#6b3f1e, #4a2a12 60%, #5a3318); }
+.plate { padding: 1.6cqw 3.4cqw; border-radius: .8cqw; position: relative; background: linear-gradient(180deg, #f4f4f4, #b9bec4 45%, #dfe3e7 55%, #9aa0a6);
+  box-shadow: 0 .4cqw 1cqw rgba(0,0,0,.6), inset 0 0 .3cqw #fff; }
+.plate::before, .plate::after { content: ""; position: absolute; top: 50%; width: 1.1cqw; height: 1.1cqw; margin-top: -.55cqw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #777); box-shadow: 0 0 0 .15cqw #555; }
+.plate::before { left: 1.1cqw; } .plate::after { right: 1.1cqw; }
+.plate .t { font: 900 5.9cqw "Orbitron", sans-serif; color: #2b2f35; letter-spacing: .02em; text-shadow: 0 .18cqw 0 rgba(255,255,255,.8), 0 -.1cqw 0 rgba(0,0,0,.4); }
+.plate small { position: absolute; right: 3.4cqw; bottom: .4cqw; font: 600 1.1cqw "Barlow", sans-serif; letter-spacing: .3em; color: #555; }
+
+/* F vhs */
+.vhs { width: 100%; height: 100%; display: grid; place-items: center; position: relative; background: linear-gradient(#0b0f2a, #121a4a 50%, #0a0e28); }
+.vhs .t { font: 400 9.5cqw "VT323", monospace; color: #fff; text-shadow: .3cqw 0 0 #f0f, -.3cqw 0 0 #0ff, 0 0 1cqw rgba(255,255,255,.6); letter-spacing: .05em; }
+.vhs .osd { position: absolute; font: 400 3cqw "VT323", monospace; color: #fff; text-shadow: .2cqw .2cqw 0 #000; }
+.vhs .tl { left: 3cqw; top: 2cqw; } .vhs .br { right: 3cqw; bottom: 2cqw; }
+.vhs::after { content: ""; position: absolute; left: 0; right: 0; height: 3.5cqw; background: rgba(255,255,255,.1); backdrop-filter: blur(.4cqw); animation: track 5s linear infinite; }
+@keyframes track { from { top: -4cqw; } to { top: 105%; } }
+
+/* G glitch */
+.gl { font: 900 5.9cqw "Orbitron", sans-serif; color: #fff; letter-spacing: .02em; }
+.gl::before, .gl::after { content: attr(data-t); position: absolute; left: 0; top: 0; mix-blend-mode: screen; }
+.gl::before { color: #f22; transform: translate(-.35cqw, 0); animation: g1 2.4s steps(1) infinite; }
+.gl::after { color: #0cf; transform: translate(.35cqw, 0); animation: g2 2.4s steps(1) infinite; }
+.gl span { position: relative; z-index: 1; mix-blend-mode: screen; }
+@keyframes g1 { 0%,100% { transform: translate(-.35cqw,0); clip-path: inset(0); } 20% { transform: translate(-1.2cqw,.2cqw); clip-path: inset(10% 0 55% 0); } 21% { transform: translate(-.35cqw,0); clip-path: inset(0); } 60% { transform: translate(.8cqw,-.2cqw); clip-path: inset(60% 0 8% 0); } 62% { transform: translate(-.35cqw,0); clip-path: inset(0); } }
+@keyframes g2 { 0%,100% { transform: translate(.35cqw,0); clip-path: inset(0); } 22% { transform: translate(1.3cqw,0); clip-path: inset(50% 0 12% 0); } 23% { transform: translate(.35cqw,0); clip-path: inset(0); } 61% { transform: translate(-1cqw,.2cqw); clip-path: inset(8% 0 62% 0); } 63% { transform: translate(.35cqw,0); clip-path: inset(0); } }
+
+/* H neon */
+.neon { font: 400 5.5cqw "Monoton", sans-serif; color: #ffd6fb; letter-spacing: .02em; text-shadow: 0 0 .5cqw #fff, 0 0 1.4cqw #f4f, 0 0 3cqw #f0f, 0 0 6cqw #a0f; animation: nflick 4s steps(1) infinite; }
+@keyframes nflick { 0%,18%,22%,62%,100% { opacity: 1; } 20% { opacity: .55; } 64% { opacity: .8; } 66% { opacity: 1; } }
+
+/* J test card */
+.tc { font: 400 6.2cqw "Bungee", sans-serif; letter-spacing: .01em;
+  background: linear-gradient(90deg, #ccc 0 14.28%, #cc0 0 28.56%, #0cc 0 42.84%, #0c0 0 57.12%, #c0c 0 71.4%, #c00 0 85.68%, #00c 0); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .3cqw 0 #000); }
+.tcframe { border: .5cqw solid #ddd; padding: 1.2cqw 3cqw; background: #000; border-radius: 1cqw; }
+.tcframe small { position: absolute; left: 0; right: 0; bottom: 1.3cqw; text-align: center; font: 400 1.6cqw "VT323", monospace; color: #bbb; letter-spacing: .6em; }
+
+/* K chrome */
+.chrome { font: 900 5.9cqw "Orbitron", sans-serif; letter-spacing: .01em; background: linear-gradient(180deg, #fff 0 38%, #8fb0ff 48%, #1b2a6a 50%, #6a8cff 62%, #dbe6ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 1.2cqw rgba(92,153,255,.7)) drop-shadow(0 .35cqw 0 #0a1540); }
+
+/* L pixel */
+.px { font: 400 4.55cqw "Press Start 2P", monospace; color: #ffe066; text-shadow: .35cqw .35cqw 0 #e8590c, .7cqw .7cqw 0 #7a1f00, 1.05cqw 1.05cqw 0 #000; letter-spacing: -.02em; }
+
+/* M teletext */
+.tt { width: 88%; display: grid; gap: .5cqw; font: 400 6cqw "VT323", monospace; }
+.tt div { padding: .2cqw 2cqw; letter-spacing: .08em; }
+.tt .a { background: #00f; color: #0ff; } .tt .b { background: #00f; color: #ff0; } .tt .c { background: #0f0; color: #000; font-size: 2.2cqw; letter-spacing: .3em; }
+
+/* N led */
+.led { font: 900 5.6cqw "Orbitron", sans-serif; color: transparent; background: radial-gradient(circle, #ffb347 38%, #3a1a00 42% 55%, transparent 60%) 0 0 / .62cqw .62cqw; -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 0 .8cqw rgba(255,150,40,.6)); }
+.ledbg { background: #0c0603 !important; }
+
+/* I cartesian */
+.cart { font: 700 7.1cqw "Orbitron", sans-serif; fill: none; stroke: #9cc0ff; stroke-width: .18cqw; }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; main menu and lobby title</div>
+  <h1>Title <span>styles</span></h1>
+  <p>Fourteen takes on “CARTESIAN COLOSSEUM”, plus the current one for comparison. The old-TV ones (1 to 6) are the ones you asked about. Tell me the number you like (or a mix, like 3’s cutout with 5’s nameplate) and I’ll build it into the menu, lobby entry and wherever else the title shows.</p>
+</header>
+
+<div class="grid">
+
+<section class="card"><h2><b>0</b>Current</h2>
+<div class="stage arena"><div class="t s1">Cartesian Colosseum</div></div>
+<div class="note">Baseline for comparison.</div></section>
+
+<section class="card"><h2><b>1</b>TV cutout: static</h2>
+<div class="stage arena">
+<svg viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
+<defs>
+<mask id="m1"><rect width="1000" height="200" fill="#fff"/><text x="500" y="125" text-anchor="middle" font-family="Bungee" font-size="84" textLength="900" lengthAdjust="spacingAndGlyphs" fill="#000">CARTESIAN COLOSSEUM</text></mask>
+<filter id="f1" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9 0.5" numOctaves="1" seed="3"><animate attributeName="seed" values="1;2;3;4;5;6;7;8" dur=".4s" calcMode="discrete" repeatCount="indefinite"/></feTurbulence><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope="1.8" intercept="-.2"/><feFuncG type="linear" slope="1.8" intercept="-.2"/><feFuncB type="linear" slope="1.9" intercept="-.15"/></feComponentTransfer></filter>
+<pattern id="sl1" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="2" fill="rgba(0,0,0,.35)"/></pattern>
+</defs>
+<rect x="20" y="20" width="960" height="160" rx="34" fill="#1b1f26"/>
+<rect x="20" y="20" width="960" height="160" rx="34" filter="url(#f1)"/>
+<rect x="20" y="20" width="960" height="160" rx="34" fill="url(#sl1)"/>
+<rect x="20" y="20" width="960" height="160" rx="34" fill="#0b0e14" mask="url(#m1)"/>
+<rect x="20" y="20" width="960" height="160" rx="34" fill="none" stroke="#3a4250" stroke-width="3"/>
+</svg></div>
+<div class="note">A rounded TV-shaped plate with the letters punched out, and live static showing through them. Scanlines over the gaps. Real build: animated sprite sheet in the letters.</div></section>
+
+<section class="card"><h2><b>2</b>TV cutout: color bars</h2>
+<div class="stage" style="background:#d9d2bd">
+<svg viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
+<defs>
+<mask id="m2"><rect width="1000" height="200" fill="#fff"/><text x="500" y="124" text-anchor="middle" font-family="Rubik Mono One" font-size="70" textLength="900" lengthAdjust="spacingAndGlyphs" fill="#000">CARTESIAN COLOSSEUM</text></mask>
+<linearGradient id="bars" x1="0" x2="1"><stop offset="0" stop-color="#ddd"/><stop offset=".1428" stop-color="#ddd"/><stop offset=".1428" stop-color="#dd0"/><stop offset=".2856" stop-color="#dd0"/><stop offset=".2856" stop-color="#0dd"/><stop offset=".4284" stop-color="#0dd"/><stop offset=".4284" stop-color="#0d0"/><stop offset=".5712" stop-color="#0d0"/><stop offset=".5712" stop-color="#d0d"/><stop offset=".714" stop-color="#d0d"/><stop offset=".714" stop-color="#d00"/><stop offset=".8568" stop-color="#d00"/><stop offset=".8568" stop-color="#00d"/><stop offset="1" stop-color="#00d"/></linearGradient>
+</defs>
+<rect width="1000" height="200" fill="url(#bars)"/>
+<rect width="1000" height="200" fill="#d9d2bd" mask="url(#m2)"/>
+<rect x="8" y="8" width="984" height="184" rx="14" fill="none" stroke="#7a705a" stroke-width="3"/>
+</svg></div>
+<div class="note">70s cream plastic panel, letters cut out onto SMPTE bars. Brightest and most “signal lost”. Would clash a little with the dark menu, so it reads best as a lobby banner.</div></section>
+
+<section class="card"><h2><b>3</b>TV cutout: arena grid</h2>
+<div class="stage" style="background:#0d1117">
+<svg viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
+<defs>
+<mask id="m3"><rect width="1000" height="200" fill="#fff"/><text x="500" y="124" text-anchor="middle" font-family="Audiowide" font-size="78" textLength="900" lengthAdjust="spacingAndGlyphs" fill="#000">CARTESIAN COLOSSEUM</text></mask>
+<pattern id="g3" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#a8c6ff" stroke-width="1.5" opacity=".8"/></pattern>
+<radialGradient id="sw"><stop offset="0" stop-color="#8fb8ff" stop-opacity=".9"/><stop offset="1" stop-color="#4d86ff" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1000" height="200" fill="#1d3f9e"/>
+<rect width="1000" height="200" fill="url(#g3)"/>
+<ellipse cx="0" cy="100" rx="160" ry="200" fill="url(#sw)"><animate attributeName="cx" values="-100;1100" dur="3.5s" repeatCount="indefinite"/></ellipse>
+<rect x="10" y="10" width="980" height="180" rx="40" fill="#101522" mask="url(#m3)"/>
+<rect x="10" y="10" width="980" height="180" rx="40" fill="none" stroke="#3a4a66" stroke-width="3"/>
+</svg></div>
+<div class="note">Same punched-plate idea, but the “channel” is the game’s own grid with a radar sweep passing under the letters. Closest to the current menu’s feel.</div></section>
+
+<section class="card"><h2><b>4</b>CRT screen, phosphor green</h2>
+<div class="stage"><div class="crt"><div class="t">CARTESIAN COLOSSEUM</div></div></div>
+<div class="note">Whole title is text on a curved glass tube: scanlines rolling, glow, slow flicker, blinking cursor.</div></section>
+
+<section class="card"><h2><b>5</b>Wood-grain console badge</h2>
+<div class="stage"><div class="wood"><div class="plate"><div class="t">Cartesian Colosseum</div><small>MODEL CC-1 · SOLID STATE</small></div></div></div>
+<div class="note">Brushed chrome nameplate screwed onto a 1970s wood TV cabinet, with embossed lettering.</div></section>
+
+<section class="card"><h2><b>6</b>VHS on-screen display</h2>
+<div class="stage"><div class="vhs"><span class="osd tl">▶ PLAY</span><div class="t">CARTESIAN COLOSSEUM</div><span class="osd br">SP 0:00:13</span></div></div>
+<div class="note">Blue-screen VCR look with a tracking band drifting down and a magenta/cyan fringe on the text.</div></section>
+
+<section class="card"><h2><b>7</b>RGB-split glitch</h2>
+<div class="stage arena"><div class="t gl" data-t="CARTESIAN COLOSSEUM"><span>CARTESIAN COLOSSEUM</span></div></div>
+<div class="note">Clean white title with red/cyan channels that tear apart for a split second every few seconds. Good for hit-flash moments too.</div></section>
+
+<section class="card"><h2><b>8</b>Neon tube</h2>
+<div class="stage" style="background:#0a0610"><div class="t neon">Cartesian Colosseum</div></div>
+<div class="note">Monoton’s double-line lettering lit like a bar sign, with the occasional dying-tube flicker.</div></section>
+
+<section class="card"><h2><b>9</b>Plotted on the axes</h2>
+<div class="stage arena">
+<svg viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
+<line x1="30" y1="100" x2="970" y2="100" stroke="#5c99ff" stroke-width="1.5" opacity=".7"/>
+<line x1="500" y1="14" x2="500" y2="186" stroke="#5c99ff" stroke-width="1.5" opacity=".7"/>
+<g stroke="#5c99ff" stroke-width="1.2" opacity=".6"><path d="M80 94v12M140 94v12M200 94v12M260 94v12M320 94v12M380 94v12M440 94v12M560 94v12M620 94v12M680 94v12M740 94v12M800 94v12M860 94v12M920 94v12"/></g>
+<path d="M30 190 Q500 -90 970 190" fill="none" stroke="#ff7a59" stroke-width="2" stroke-dasharray="7 6" opacity=".7"/>
+<text x="500" y="125" text-anchor="middle" font-family="Orbitron" font-weight="700" font-size="74" textLength="900" lengthAdjust="spacingAndGlyphs" fill="#0a1230" fill-opacity=".85" stroke="#cfe0ff" stroke-width="1.8">CARTESIAN COLOSSEUM</text>
+<circle cx="500" cy="100" r="6" fill="#fff"><animate attributeName="r" values="5;9;5" dur="2s" repeatCount="indefinite"/></circle>
+<text x="36" y="20" font-family="Orbitron" font-size="12" fill="#8fb0ff">y = −x² + 4</text><text x="964" y="190" text-anchor="end" font-family="Orbitron" font-size="12" fill="#8fb0ff">(0, 0)</text>
+</svg></div>
+<div class="note">Outlined lettering crossed by real axes, tick marks, a plotted curve and a pulsing origin dot. Leans into the name rather than into TVs.</div></section>
+
+<section class="card"><h2><b>10</b>Test card / “please stand by”</h2>
+<div class="stage" style="background:#050505"><div class="tcframe"><div class="t tc">CARTESIAN COLOSSEUM</div></div><small style="position:absolute;bottom:1.4cqw;font:400 1.7cqw VT323,monospace;color:#bbb;letter-spacing:.6em">PLEASE STAND BY</small></div>
+<div class="note">Letters filled with the colour-bar stripes inside a broadcast-card frame.</div></section>
+
+<section class="card"><h2><b>11</b>Chrome with horizon split</h2>
+<div class="stage arena"><div class="t chrome">Cartesian Colosseum</div></div>
+<div class="note">Sharp 80s chrome gradient in the menu’s blue palette with a hard horizon line through the letters.</div></section>
+
+<section class="card"><h2><b>12</b>8-bit with stacked shadow</h2>
+<div class="stage arena"><div class="t px">Cartesian Colosseum</div></div>
+<div class="note">Press Start 2P, yellow with a three-step orange-to-black block shadow.</div></section>
+
+<section class="card"><h2><b>13</b>Teletext page</h2>
+<div class="stage" style="background:#000;aspect-ratio:1000/260"><div class="tt"><div class="a">CARTESIAN</div><div class="b">COLOSSEUM</div><div class="c">PAGE 100 · CEEFAX</div></div></div>
+<div class="note">Stacked on blue/black teletext blocks. Two-line, so it suits the lobby sidebar or the pause screen more than the wide menu strip.</div></section>
+
+<section class="card"><h2><b>14</b>LED dot-matrix board</h2>
+<div class="stage ledbg" style="background:#0c0603"><div class="t led">Cartesian Colosseum</div></div>
+<div class="note">Amber lamp dots like a scoreboard or arrivals sign; the glow works nicely when the title animates in.</div></section>
+
+</div>
+</div>
