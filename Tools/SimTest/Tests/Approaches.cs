@@ -90,6 +90,22 @@ static partial class Program
         Check(full1.Count > 0 && full1.All(faction.Contains) && !full1.Contains(EnemyType.RiotShield) && !full1.Contains(EnemyType.GasGrenadier),
             "Fully themed: wave 1 is all prisoners and guards (Riot Shields and Grenadiers join from wave 2)");
 
+        // --- The Lich's approach: zombies, ramping with the usual mix ------------------------------------------------------
+        var dead = new HashSet<EnemyType>(Approaches.For(EnemyType.Lich).Members.Select(m => m.Type));
+        gb.Diff.Set(DiffKnob.ApproachShare, 0.85f);
+        gb.Diff.Set(DiffKnob.ApproachRamp, 1f);
+        Func<int, int> zombies = n => wave(gb, n).Count(Zombies.Is);
+        int z31 = zombies(31), z34 = zombies(34);
+        Console.WriteLine("  Lich approach at Blend: zombies in waves 30-35 = {0}", string.Join(", ", Enumerable.Range(30, 6).Select(zombies)));
+        Check(Game.ApproachBoss(32) == EnemyType.Lich && zombies(30) == 0 && zombies(35) == 0 && z31 > 0 && z34 > z31,
+            "the Lich's approach (waves 31-34) brings zombies, more each wave; none before it or on his wave");
+        var w34 = wave(gb, 34);
+        Check(w34.Count(t => t == EnemyType.Mender) >= 2 && w34.Any(t => !Zombies.Is(t)), "wave 34 has the Dead march and still has the usual mix");
+        gb.Diff.Set(DiffKnob.ApproachShare, 1f);
+        gb.Diff.Set(DiffKnob.ApproachRamp, 0f);
+        var full31 = wave(gb, 31);
+        Check(full31.Count > 0 && full31.All(dead.Contains) && full31.All(t => t == EnemyType.Shambler), "Fully themed: wave 31 is all Shamblers (the other kinds join from wave 32)");
+
         // --- The Riot Shield --------------------------------------------------------------------------------------------
         var s2 = StartPlain(dt, 2);
         var host = s2[0]; var client = s2[1];
