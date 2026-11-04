@@ -1,0 +1,188 @@
+<title>Hangout PvP Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three 1280 x 720 lobby wireframes (scaled to fit) showing where the PvP checkbox, the background slider,
+   the scrolling camera and the minimap go in the Hangout. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 34px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.notes { display: grid; gap: 6px; color: var(--soft); padding-left: 18px; margin: 0; max-width: 80ch; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.scale { position: relative; width: 100%; overflow: hidden; }
+.lobby { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; background: radial-gradient(ellipse at 30% 20%, #151b26, #080a10 70%); font-family: var(--font-display); color: #fff; }
+.abs { position: absolute; box-sizing: border-box; }
+.title { left: 40px; top: 16px; font-size: 40px; font-weight: 800; letter-spacing: .06em; }
+.mode { left: 40px; top: 76px; width: 376px; height: 58px; border-radius: 29px; background: rgba(10,12,20,.9); display: flex; padding: 4px; }
+.mode i { flex: 1; font-style: normal; text-align: center; font-size: 13px; font-weight: 700; line-height: 50px; color: #8793a6; border-radius: 25px; }
+.mode i.on { background: rgba(80,140,255,.85); color: #fff; }
+.partyh { left: 40px; top: 150px; font-size: 14px; color: #8793a6; letter-spacing: .1em; text-transform: uppercase; }
+.tabs { left: 448px; top: 16px; display: flex; gap: 8px; font-size: 13px; font-weight: 700; color: #aab5c8; }
+.tabs i { font-style: normal; padding: 10px 14px; background: rgba(40,50,70,.8); border-radius: 6px; }
+.tabs i.on { background: #1d6e60; color: #fff; }
+.card { left: 40px; width: 376px; height: 88px; border-radius: 12px; border: 1px solid #2a3446; background: #0f1420; }
+.card.me { border-color: #e8b64a; box-shadow: 0 0 14px rgba(232,182,74,.25); }
+.card .face { position: absolute; left: 8px; top: 8px; width: 72px; height: 72px; border-radius: 36px; background: #1d2535; }
+.card b { position: absolute; left: 92px; top: 10px; font-size: 20px; }
+.card small { position: absolute; left: 92px; top: 36px; font-size: 13px; color: #ff9a55; font-weight: 700; }
+.card em { position: absolute; left: 92px; top: 56px; font-style: normal; font-size: 12px; color: #8793a6; }
+.card .st { position: absolute; right: 10px; bottom: 10px; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 10px; background: #1c2434; color: #aab5c8; }
+.card .pvp { position: absolute; right: 10px; top: 10px; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: #aab5c8; }
+.open { left: 40px; width: 376px; height: 88px; border-radius: 12px; border: 1px dashed #2a3446; text-align: center; line-height: 88px; font-size: 18px; font-weight: 700; color: #4a5568; letter-spacing: .08em; }
+.btn { left: 40px; width: 376px; height: 52px; border-radius: 8px; background: #1b2438; border-bottom: 3px solid #2b6cc4; text-align: center; line-height: 49px; font-size: 22px; font-weight: 700; }
+.room { overflow: hidden; border: 1px solid rgba(77,224,189,.5); background: rgba(3,6,14,.72); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px); background-size: 50px 50px; background-position: 14px 22px; }
+.rimR { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: var(--teal); box-shadow: 0 0 16px var(--teal); }
+.rimB { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--teal); box-shadow: 0 0 16px var(--teal); }
+.ent { position: absolute; width: 0; height: 0; }
+.ent svg { position: absolute; left: -30px; top: -30px; overflow: visible; }
+.plate { position: absolute; left: -46px; top: 30px; width: 92px; text-align: center; font-size: 11px; font-weight: 700; line-height: 18px; border-radius: 9px; background: rgba(15,20,32,.92); border: 1.5px solid #e8b64a; }
+.plate.rim2 { border-color: #5aa0ff; }
+.plate.rim3 { border-color: #c06bff; }
+.hp { position: absolute; left: -24px; top: -40px; width: 48px; height: 5px; background: rgba(0,0,0,.6); border-radius: 3px; }
+.hp i { display: block; height: 100%; border-radius: 3px; background: #ff6b6b; }
+.ghost svg { opacity: .38; }
+.ghost .plate { opacity: .6; border-style: dashed; }
+.zz { position: absolute; left: -30px; top: -46px; width: 60px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .12em; color: #9fb0c4; }
+.bul { position: absolute; width: 9px; height: 5px; border-radius: 3px; background: #ffd27a; box-shadow: 0 0 8px #ffb547; }
+.hit { position: absolute; width: 0; height: 0; }
+.hit b { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ff6b6b; }
+.hit span { position: absolute; left: 14px; top: -34px; font-size: 14px; font-weight: 800; color: #ff8c8c; }
+.mini { position: absolute; border: 1px solid rgba(77,224,189,.7); background: rgba(5,10,20,.8); border-radius: 4px; }
+.mini .vp { position: absolute; border: 1.5px solid #fff; background: rgba(255,255,255,.08); }
+.mini .d { position: absolute; width: 6px; height: 6px; border-radius: 50%; margin: -3px 0 0 -3px; }
+.bar { background: rgba(8,12,20,.94); border: 1px solid #24304a; border-radius: 8px; display: flex; align-items: center; gap: 22px; padding: 0 16px; }
+.cb { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; }
+.cb .box { width: 22px; height: 22px; border-radius: 5px; border: 2px solid #4de0bd; background: rgba(77,224,189,.18); position: relative; flex: none; }
+.cb .box::after { content: ""; position: absolute; left: 6px; top: 1px; width: 5px; height: 11px; border: solid #4de0bd; border-width: 0 3px 3px 0; transform: rotate(40deg); }
+.cb.off .box { border-color: #6c7a90; background: rgba(255,255,255,.04); }
+.cb.off .box::after { display: none; }
+.cb small { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0; color: #8793a6; }
+.sl { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: #aab5c8; white-space: nowrap; }
+.sl .track { width: 160px; height: 6px; border-radius: 3px; background: #26324a; position: relative; }
+.sl .track i { position: absolute; left: 0; top: 0; bottom: 0; width: 62%; border-radius: 3px; background: #4de0bd; }
+.sl .track u { position: absolute; left: 62%; top: -6px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(77,224,189,.35); }
+.sl output { font: 500 12px var(--font-data); color: #cfdae2; min-width: 34px; }
+.sep { width: 1px; align-self: stretch; margin: 10px 0; background: #24304a; }
+.hint { font-size: 12px; font-weight: 600; color: #8793a6; letter-spacing: .04em; }
+.sw { display: inline-block; vertical-align: -3px; }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hangout upgrade</div>
+    <h1>Hangout <span>PvP</span> layouts</h1>
+    <p class="lead">Three ways to lay out the new Hangout: a bigger room that scrolls to a border, a background slider, a PvP checkbox, and shooting. All three show the same scene: you (gold frame) are shooting <b>Mira</b>, who has PvP on and loses health. <b>Rook</b> has PvP off, so Rook is drawn faded with a dashed plate and your shots pass through. The panel is 790 x 520, the same space the room has now.</p>
+  </header>
+  <div id="out" style="display:grid;gap:34px"></div>
+  <section>
+    <h2>Behaviour in all three</h2>
+    <ul class="notes">
+      <li><b>Scrolling:</b> the world is bigger than the panel (default 2400 x 1600). The camera follows you and stops at the border, so the glowing teal rim is as far as anyone can go. A small minimap shows where everyone is.</li>
+      <li><b>Shooting:</b> aim with the mouse, hold left click to fire your own loadout weapon with its normal fire rate. Hangout hits do a little damage, health refills in a few seconds, and nobody dies for real (a short knock-out flash, then respawn at a spot along the bottom).</li>
+      <li><b>PvP off:</b> you can't fire (the cursor shows a crossed-out reticle), your shots from others pass through you, and you're drawn faded with a dashed name plate and a "PEACEFUL" tag. Everybody sees each other's setting. It starts off.</li>
+      <li><b>Background slider:</b> I drew it as brightness of the floor, from a dim void to a bright floor, since the lobby backdrop is already your menu background. If you meant a slider that steps through different backgrounds, say so and I'll swap it.</li>
+      <li><b>Network:</b> a new message for shots and a PvP flag on each character, so the protocol version goes up. The host decides hits.</li>
+    </ul>
+  </section>
+</div>
+<script>
+var SW = '<svg class="sw" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 2l9 9M14 2l-9 9M3 12l-1 2 2-1M13 12l1 2-2-1"/></svg>';
+function man(ang, ring, ghost) {
+  return '<svg width="60" height="60" viewBox="-30 -30 60 60"><g transform="rotate(' + ang + ')"><rect x="8" y="-9" width="22" height="4" rx="1" fill="#8aa0b8"/><rect x="8" y="5" width="22" height="4" rx="1" fill="#8aa0b8"/><rect x="26" y="-9" width="4" height="4" fill="#6fd0ff"/><rect x="26" y="5" width="4" height="4" fill="#6fd0ff"/></g><circle r="15" fill="#2a303c" stroke="' + ring + '" stroke-width="4"/><circle r="6" fill="none" stroke="#e8f0ff" stroke-width="2"/></svg>';
+}
+// Room viewport is 790 x 520 in lobby px. Returns the inner html (entities, bullets, rim).
+function scene(o) {
+  var W = 790, H = 520, h = '<div class="grid"></div><div class="rimR"></div><div class="rimB"></div>';
+  var me = { x: 330, y: 330 }, mira = { x: 575, y: 215 }, rook = { x: 170, y: 400 };
+  for (var i = 0; i < 4; i++) h += '<div class="bul" style="left:' + (380 + i * 52) + 'px;top:' + (318 - i * 22) + 'px;transform:rotate(-24deg)"></div>';
+  h += '<div class="bul" style="left:150px;top:370px;transform:rotate(-24deg);opacity:.5"></div>';
+  h += '<div class="ent" style="left:' + mira.x + 'px;top:' + mira.y + 'px"><div class="hp"><i style="width:55%"></i></div>' + man(200, '#5aa0ff') + '<div class="plate rim2">Mira <span style="color:#ff6b6b">' + SW + '</span></div></div>';
+  h += '<div class="hit" style="left:' + (mira.x - 22) + 'px;top:' + (mira.y + 12) + 'px"><b></b><span>-4</span></div>';
+  h += '<div class="ent ghost" style="left:' + rook.x + 'px;top:' + rook.y + 'px"><div class="zz">PEACEFUL</div>' + man(20, '#c06bff') + '<div class="plate rim3">Rook</div></div>';
+  h += '<div class="ent" style="left:' + me.x + 'px;top:' + me.y + 'px"><div class="hp"><i style="width:100%;background:#4de0bd"></i></div>' + man(-24, '#e8943a') + '<div class="plate">Antaleon <span style="color:#ff6b6b">' + SW + '</span></div></div>';
+  // crosshair
+  h += '<svg style="position:absolute;left:640px;top:156px" width="40" height="40" viewBox="-20 -20 40 40" fill="none" stroke="#fff" stroke-width="2"><circle r="9"/><path d="M-18 0h8M10 0h8M0 -18v8M0 10v8"/></svg>';
+  if (o.mini) h += mini(o.mini);
+  if (o.float) h += o.float;
+  return h;
+}
+function mini(p) {
+  // world 2400 x 1600 -> 150 x 100. Viewport 790 x 520 sits at the bottom-right corner (camera clamped).
+  return '<div class="mini" style="' + p + ';width:150px;height:100px"><div class="vp" style="left:' + (150 - 49.4) + 'px;top:' + (100 - 32.5) + 'px;width:49.4px;height:32.5px"></div><div class="d" style="left:120px;top:88px;background:#e8943a"></div><div class="d" style="left:134px;top:78px;background:#5aa0ff"></div><div class="d" style="left:108px;top:90px;background:#c06bff;opacity:.5"></div><div class="d" style="left:30px;top:30px;background:#6c7a90"></div></div>';
+}
+function party(variant) {
+  var h = '<div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div><div class="abs partyh">Party (3/3)</div>';
+  var rows = [['Antaleon', 'Soldier DPS', 'Twin Rifle · Dash', '#e8b64a', 'on', 'NOT READY', 'me'], ['Mira', 'Healer Support', 'Mender\'s Bow · Barrier', '', 'on', 'READY', ''], ['Rook', 'Tank', 'Scattergun · Fortress', '', 'off', 'NOT READY', '']];
+  rows.forEach(function (r, i) {
+    var pv = '';
+    if (variant === 'C') {
+      var on = r[4] === 'on';
+      pv = '<div class="pvp" style="color:' + (on ? '#4de0bd' : '#8793a6') + '">' + (i === 0 ? '<span class="cb ' + (on ? '' : 'off') + '" style="gap:6px"><span class="box" style="width:16px;height:16px;border-width:2px"></span></span>' : '') + (on ? 'PVP ON' : 'PEACEFUL') + '</div>';
+    }
+    h += '<div class="abs card ' + r[6] + '" style="top:' + (176 + i * 100) + 'px"><div class="face"></div><b>' + r[0] + '</b><small>' + r[1] + '</small><em>' + r[2] + '</em>' + pv + '<div class="st">' + r[5] + '</div></div>';
+  });
+  h += '<div class="abs btn" style="top:560px">✔ Ready?</div><div class="abs btn" style="top:626px;opacity:.7">▶ Start</div>';
+  h += '<div class="abs tabs"><i>LOADOUT</i><i>PERKS</i><i>DIFFICULTY</i><i>MODIFIERS</i><i class="on">HANGOUT</i></div>';
+  return h;
+}
+var layouts = [
+  { id: 'A', name: 'A. Control bar under the room', tag: 'Closest to what you described',
+    pros: '<b>Clear:</b> checkbox and slider sit together in one bar at the bottom. <b>Cost:</b> the room loses about 50 px of height, so the world panel is 790 x 470.',
+    build: function () {
+      var H = party('A');
+      H += '<div class="abs room" style="left:448px;top:166px;width:790px;height:470px"><div style="position:absolute;left:0;top:0;width:790px;height:520px;transform-origin:0 0;transform:scale(1)">' + scene({ mini: 'right:14px;top:14px' }) + '</div></div>';
+      H += '<div class="abs bar" style="left:448px;top:648px;width:790px;height:56px"><div class="cb"><span class="box"></span><span>PvP<small>Off: you can\'t shoot or be shot</small></span></div><div class="sep"></div><div class="sl">BACKGROUND<span style="color:#6c7a90">DIM</span><span class="track"><i></i><u></u></span><span style="color:#6c7a90">BRIGHT</span><output>62%</output></div><div style="flex:1"></div><div class="hint" style="white-space:nowrap">Mouse aims · hold click to fire</div></div>';
+      return H;
+    } },
+  { id: 'B', name: 'B. Controls floating inside the room', tag: 'Biggest play area',
+    pros: '<b>Roomy:</b> the room keeps its full height and the controls sit on a small glass strip along its bottom edge. <b>Cost:</b> the strip covers a little of the floor, so I would fade it when you walk or shoot underneath it.',
+    build: function () {
+      var H = party('B');
+      var strip = '<div class="bar" style="position:absolute;left:50%;bottom:14px;transform:translateX(-50%);height:44px;gap:18px;background:rgba(8,12,20,.78);backdrop-filter:blur(2px)"><div class="cb" style="font-size:14px"><span class="box"></span>PVP</div><div class="sep"></div><div class="sl" style="font-size:12px">BACKGROUND<span class="track" style="width:130px"><i></i><u></u></span><output>62%</output></div></div>';
+      H += '<div class="abs room" style="left:448px;top:166px;width:790px;height:520px"><div style="position:absolute;inset:0">' + scene({ mini: 'left:14px;top:14px', float: strip }) + '</div></div>';
+      H += '<div class="abs hint" style="left:448px;top:692px">Aim: mouse · Fire: hold left click · the strip fades while you move</div>';
+      return H;
+    } },
+  { id: 'C', name: 'C. PvP lives on the party cards', tag: 'Shows everyone\'s setting at a glance',
+    pros: '<b>Visible:</b> each party card shows PvP on or peaceful, and your own card has the checkbox. <b>Cost:</b> the checkbox is away from the room, so I would also let you press <code>P</code> in the room to flip it. The slider sits in a thin footer under the room.',
+    build: function () {
+      var H = party('C');
+      H += '<div class="abs room" style="left:448px;top:166px;width:790px;height:480px"><div style="position:absolute;left:0;top:0;width:790px;height:520px">' + scene({ mini: 'right:14px;bottom:60px' }) + '</div></div>';
+      H += '<div class="abs bar" style="left:448px;top:656px;width:790px;height:46px;border-radius:0 0 8px 8px"><div class="cb off" style="font-size:13px"><span class="box" style="width:18px;height:18px"></span><span>PvP: P<small style="font-size:10px">same as your card</small></span></div><div class="sep"></div><div class="sl">BACKGROUND<span class="track"><i></i><u></u></span><output>62%</output></div></div>';
+      return H;
+    } }
+];
+var out = document.getElementById('out');
+layouts.forEach(function (l) {
+  var s = document.createElement('section');
+  s.innerHTML = '<div class="tag">' + l.tag + '</div><h2>' + l.name + '</h2><p class="pros">' + l.pros + '</p><div class="frame"><div class="scale"><div class="lobby">' + l.build() + '</div></div></div>';
+  out.appendChild(s);
+});
+function fit() {
+  document.querySelectorAll('.scale').forEach(function (s) {
+    var k = s.clientWidth / 1280;
+    s.style.height = (720 * k) + 'px';
+    s.querySelector('.lobby').style.transform = 'scale(' + k + ')';
+  });
+}
+fit(); addEventListener('resize', fit);
+</script>
