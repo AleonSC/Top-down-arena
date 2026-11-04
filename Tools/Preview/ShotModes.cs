@@ -107,6 +107,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("CARD") != null) { var ids = Environment.GetEnvironmentVariable("CARD").Split(','); host.Lobby[1].CardBg = Rank.CardBgIndex(ids[0]); if (ids.Length > 1) host.Lobby[2].CardBg = Rank.CardBgIndex(ids[1]); }  // CARD=card-aurora,card-foil
       if (Environment.GetEnvironmentVariable("NAMEFX") != null) { var ids = Environment.GetEnvironmentVariable("NAMEFX").Split(','); host.Lobby[1].NameFx = Rank.NameFxIndex(ids[0]); if (ids.Length > 1) host.Lobby[2].NameFx = Rank.NameFxIndex(ids[1]); }  // NAMEFX=name-glitchy,name-gold
       if (Environment.GetEnvironmentVariable("AFRAME") != null) host.Lobby[2].Frame = Rank.FrameIndex(Environment.GetEnvironmentVariable("AFRAME"));
+      // TANKGUN=0|1|2: your card is a Soldier Tank with that weapon (0 Scattergun, 1 Flak Cannon, 2 Riot Repeater).
+      if (Environment.GetEnvironmentVariable("TANKGUN") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = byte.Parse(Environment.GetEnvironmentVariable("TANKGUN")); host.Lobby[1].Ability = 0; }
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).
       if (Environment.GetEnvironmentVariable("RESUME") != null) {

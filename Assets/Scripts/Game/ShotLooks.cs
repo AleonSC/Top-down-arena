@@ -31,7 +31,8 @@ namespace Arena
                 case Defs.DpsShot: return w == WeaponId.TwinRifle || w == WeaponId.BurstSmg ? w : (WeaponId?)null;
                 case Defs.RailShot: return w == WeaponId.Railgun ? w : (WeaponId?)null;
                 case Defs.HealerShot: return w == WeaponId.Pistol ? w : (WeaponId?)null;
-                case Defs.TankShot: return w == WeaponId.Scattergun ? w : (WeaponId?)null;
+                case Defs.TankShot: return w == WeaponId.Scattergun || w == WeaponId.RiotRepeater ? w : (WeaponId?)null;
+                case Defs.FlakShell: return w == WeaponId.FlakCannon ? w : (WeaponId?)null;
                 case Defs.ArcaneShot: return w == WeaponId.ArcaneMissiles ? w : (WeaponId?)null;
                 case Defs.BloodShot: return w == WeaponId.BloodBolts ? w : (WeaponId?)null;
                 case Defs.BoulderShot: return w == WeaponId.GolemStaff ? w : (WeaponId?)null;
@@ -85,6 +86,12 @@ namespace Arena
                 case WeaponId.Scattergun:
                     GlowDisc(b.Pos, 7f, c, 0.6f);  // flechettes: a pin of light each, not a blob
                     return;
+                case WeaponId.FlakCannon:
+                {
+                    float sc = 1f + FlakLift(b) / 70f;  // the shell's glow rides up the arc with it (TankGunLooks.cs)
+                    GlowDisc(b.Pos + new V2(0f, -FlakLift(b)), Mathf.Max(14f, b.Radius * 4.5f) * sc, c, 0.5f);
+                    return;
+                }
                 case WeaponId.ArcaneMissiles:
                     GlowDisc(b.Pos, 16f, IceCol, 0.7f);  // a cold glow round the shard
                     return;
@@ -142,6 +149,12 @@ namespace Arena
                     Line(b.Pos - dir * 11f, b.Pos + dir * 3f, 1.6f, c);
                     Line(b.Pos - dir * 11f, b.Pos - dir * 7f, 3f, c.WithAlpha(0.5f));
                     Circle(b.Pos + dir * 3f, 1.5f, Rgba.White, 6);
+                    return true;
+                case WeaponId.FlakCannon:
+                    DrawFlakShell(b, c);  // TankGunLooks.cs
+                    return true;
+                case WeaponId.RiotRepeater:
+                    DrawRiotRound(b, c);
                     return true;
                 case WeaponId.BloodBolts:
                 {

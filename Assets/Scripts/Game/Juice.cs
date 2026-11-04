@@ -125,6 +125,7 @@ namespace Arena
             ClearGunBowLooks();  // GunBowLooks.cs
             ClearSoldierLooks();  // SoldierLooks.cs
             ClearTankLooks();  // TankLooks.cs
+            ClearTankGunLooks();  // TankGunLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -222,6 +223,8 @@ namespace Arena
                 boomShake = Mathf.Max(boomShake, Mathf.Min(0.22f, fx.Radius / 450f) * near);
                 if (IsGrenadeBoom(fx))
                     FragBurst(fx);  // a grenade's shards and smoke (SoldierLooks.cs)
+                else if (IsFlakBoom(fx))
+                    FlakBurstParts(fx);  // a Flak airburst's shrapnel and smoke (TankGunLooks.cs)
                 else
                     Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
                 if (fx.Radius >= 80f)
@@ -325,6 +328,8 @@ namespace Arena
                     bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f;
                     if (fromGun && owner.Weapon.Id == WeaponId.Pistol && b.Kind == Defs.HealerShot)
                         OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
+                    else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
+                        OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
                     if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
                     {
                         muzzleT[b.Owner] = juiceClock + 0.05f;
@@ -376,6 +381,7 @@ namespace Arena
             }
 
             UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
+            UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
             UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
             UpdateDust(dt);      // dust at your feet
             UpdateWeather(dt);   // the path's weather
@@ -719,7 +725,7 @@ namespace Arena
                 if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx))
                 {
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
-                    GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));
+                    GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) || IsFlakBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));
                 }
             DrawWeatherGlow();  // Ambience.cs
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
