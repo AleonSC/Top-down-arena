@@ -3,10 +3,16 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
-- [ ] **Sanctum: healing pulses, Bubble look.** Built (Nov 2026, protocol unchanged, 154): look B of [`Mockups/sanctum.html`](Mockups/sanctum.html) (https://claude.ai/artifact/TT6twY4kADa161ohhGM9aj).
+- [ ] **Sanctum: healing pulses, Bubble look.** Built (Nov 2026, protocol unchanged, 155): look B of [`Mockups/sanctum.html`](Mockups/sanctum.html) (https://claude.ai/artifact/TT6twY4kADa161ohhGM9aj).
       The dome (200 px, 300 with the capstone, 7 s, still stops bullets and prevents going down) no longer heals 20 HP/s: it sends 7 pulses from its centre, one every 0.9 s starting at 0.9 s,
       20 HP each and 30 for the last (150 total, was 140). A ring takes 0.55 s to reach the rim and each ally is healed as it passes them (`Core/Sanctum.cs`; `Game/SanctumLook.cs`).
       Left out of the mockup: ripples where bullets hit the shell. Needs a try in Unity. Armory page for Sanctum is out of date.
+- [ ] **Artillery Assault and Bullet Rain.** Built (Nov 2026, protocol 155). **Artillery Assault** is the DPS Soldier's Bullet Storm renamed, with look A of
+      [`Mockups/bullet-rain.html`](Mockups/bullet-rain.html) (heat aura, streaks, muzzle flash; `ArtilleryLook.cs`); mechanics unchanged. **Bullet Rain** replaces the
+      Elementalist DPS's Meteor Storm: look D (Downpour) of [`Mockups/bullet-rain-elementalist.html`](Mockups/bullet-rain-elementalist.html). A `ZoneKind.BulletRain`
+      zone (165 px radius, fixed where you cast it, 6 s or 9 s mastered) that does 45 damage a second to every enemy in it (`BulletRainLook.cs` draws it). Needs a try in
+      Unity; the 45 a second is a first guess and the zone does not follow the cursor as the mockup did. Enemies in the rain are wet (3 s after they leave, with the 30% wet slow).
+      `AbilityId.MeteorStorm` became `BulletRain`. Armory and Bestiary pages are out of date for both.
 - [x] **Your look: side-menu icons + Reward ladder.** Built (Nov 2026, protocol unchanged, 152): the icons (`ui_frame`, `ui_trail`, `ui_scene`, `ui_card`, `ui_name`, `ui_aim`, `ui_emote` in `PixelArt.cs`) and look 1 of [`Mockups/reward-ladder-next.html`](Mockups/reward-ladder-next.html) (https://claude.ai/artifact/XySVp6TrCVv4ruoSvgm8oh): the next reward pinned in a box on the left (live preview, XP to go), the ladder as a rail on the right (shields on a line, tier banners, a gold "you" marker; it opens at your rank). Compile check, core and feature suites pass. Needs a try in Unity.
 - [x] **Lifeline look.** Built (Nov 2026, protocol 153): look E (Heartbeat Halo) of [`Mockups/lifeline.html`](Mockups/lifeline.html) (https://claude.ai/artifact/KTCFvJN7mTMWBGzBJ1sbu7), under Visual effects (`LifelineLook.cs`, new `FxKind.Lifeline`). Needs a try in Unity, with an ally down, to see the halo and column on everyone. The downed ally is revived at the cast (as before), so the mockup's raise-on-landing is just the halo dropping in. The Armory and Bestiary are unaffected.
 - [x] **Menu title typing sounds.** Built (Nov 2026, protocol unchanged, 151): look B (Mechanical keyboard) of [`Mockups/menu-typing-sounds.html`](Mockups/menu-typing-sounds.html) (https://claude.ai/artifact/TQwbAXCgovn2mq9gH7V5mK). A click-and-thock per letter while the intro types the title (four takes), a deeper one for the space, and a bigger Enter thock on the last letter (`TickTitleTyping`, `MenuIntro.cs`; `Sfx.TitleKey/TitleSpace/TitleEnter`). Plays in the profile picker to menu move too (it types the title as well). Own screen only; silent when the intro is skipped or with reduced effects. Needs a try in Unity.
@@ -282,5 +288,8 @@ So friends can play without Tailscale or port forwarding.
       the Perks tab (clicks, hover tips, seat icons), the plate's look and timing, the HUD chip's place above the XP strip, and how a block feels. The Armory and Bestiary are not
       updated. Replay files are now format 2 (older replays no longer open). Left for later: Contraband and the other bosses' perks, the second/third perk unlocks per boss, the
       no-perks record variant, and a "perks used" line on the run records. Say if reviving should refill the shield (it doesn't now: the timer runs on).
+- [ ] **Contraband, the second Warden perk.** Built (Nov 2026, protocol unchanged, 154; [`Contraband.md`](Contraband.md)): win the Warden Hunt on Hard or Nightmare to unlock it. The first wave after each boss
+      (6, 11, 16...) always has a treasure chest when anyone in the party has it, and your own item from any chest is rare or better. Needs a try in Unity (the chest turning up, the Perks tab card).
+      Left out: a marker or call-out for the cycle chest (say if you want one). The Armory and Bestiary are not updated.
 - [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:
       [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)

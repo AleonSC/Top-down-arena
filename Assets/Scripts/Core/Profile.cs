@@ -69,6 +69,7 @@ namespace Arena
         public readonly Dictionary<string, int> RoomsWon = new Dictionary<string, int>();      // ChallengeKind name -> rooms won
         public readonly Dictionary<string, int> HuntsPlayed = new Dictionary<string, int>();   // EnemyType name -> hunts finished
         public readonly Dictionary<string, int> HuntsWon = new Dictionary<string, int>();      // EnemyType name -> hunts won
+        public readonly Dictionary<string, int> HuntsWonHard = new Dictionary<string, int>();  // EnemyType name -> hunts won on the Hard or Nightmare preset (a perk's second unlock, Perks.cs)
         public readonly Dictionary<string, float> HuntBest = new Dictionary<string, float>();  // EnemyType name -> fastest win (seconds)
         public readonly HashSet<string> Unlocked = new HashSet<string>();
         /// The perks equipped, by PerkId name, in slot order (Perks.cs). Perks.Clean keeps it to what is unlocked.
@@ -137,6 +138,7 @@ namespace Arena
         static void Bump(Dictionary<string, int> d, string k) => d[k] = Get(d, k) + 1;
 
         public int HuntWins(EnemyType boss) => Get(HuntsWon, boss.ToString());
+        public int HuntWinsHard(EnemyType boss) => Get(HuntsWonHard, boss.ToString());
 
         /// How many different bosses' hunts have been won.
         public int HuntsWonCount { get { int n = 0; foreach (var kv in HuntsWon) if (kv.Value > 0) n++; return n; } }
@@ -149,13 +151,15 @@ namespace Arena
         public float HuntBestTime(EnemyType boss) { float v; return HuntBest.TryGetValue(boss.ToString(), out v) ? v : 0f; }
 
         /// A Boss Hunt finished (won: the boss beaten). Hunts aren't runs: they don't count towards the run records.
-        public List<UnlockDef> HuntEnded(EnemyType boss, bool won, float time)
+        public List<UnlockDef> HuntEnded(EnemyType boss, bool won, float time, bool hard = false)
         {
             string k = boss.ToString();
             Bump(HuntsPlayed, k);
             if (won)
             {
                 Bump(HuntsWon, k);
+                if (hard)
+                    Bump(HuntsWonHard, k);  // won on Hard or Nightmare
                 float best = HuntBestTime(boss);
                 if (best <= 0f || time < best)
                     HuntBest[k] = time;
@@ -244,7 +248,7 @@ namespace Arena
             foreach (var kv in WinsAs) RunSave.Line(sb, "won", kv.Value + " " + kv.Key);
             foreach (var kv in ModWins) RunSave.Line(sb, "modwin", kv.Key + " " + kv.Value);
             foreach (var kv in RoomsPlayed) RunSave.Line(sb, "room", kv.Key + " " + kv.Value + " " + Get(RoomsWon, kv.Key));
-            foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f));
+            foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f) + " " + Get(HuntsWonHard, kv.Key));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             if (PerkNames.Count > 0) RunSave.Line(sb, "perks", string.Join(",", PerkNames));
             RunSave.Line(sb, "xp", Xp);
@@ -291,6 +295,7 @@ namespace Arena
                         case "hunt":
                             p.HuntsPlayed[f[0]] = RunSave.I(f[1]); p.HuntsWon[f[0]] = RunSave.I(f[2]);
                             if (RunSave.Fl(f[3]) > 0f) p.HuntBest[f[0]] = RunSave.Fl(f[3]);
+                            if (f.Length > 4) p.HuntsWonHard[f[0]] = RunSave.I(f[4]);  // (older files have four fields)
                             break;
                         case "unlocked": p.Unlocked.Add(val); break;
                         case "perks": foreach (var n in val.Split(',')) if (n.Length > 0) p.PerkNames.Add(n.Trim()); break;

@@ -1,0 +1,572 @@
+<title>Soldier Bullet Rain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Field-manual look shared with the other mockups. Three looping scenes at game scale (1 canvas px = 1 arena px),
+   one per look. Single dark look by choice: it mirrors the game. Each look has its own accent. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547;
+  --a: #ff9646; --b: #ff6e50; --c: #78e1ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 48px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--a); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 12px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1b2430; border-color: var(--amber); color: var(--fg); }
+section.look { display: grid; gap: 12px; }
+.lookhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.tag { font: 800 13px var(--font-display); letter-spacing: 0.14em; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+.stage[data-picked="true"] { border-color: var(--amber); }
+canvas.arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 420; background: #070910; }
+.bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px 24px; padding: 14px 16px; border-top: 1px solid var(--line); align-items: start; }
+.bar div { min-width: 0; display: grid; gap: 3px; }
+.bar .k { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.bar p { font-size: 14px; color: var(--soft); }
+.bar .pick { align-self: center; justify-self: start; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 12px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 92ch; color: var(--soft); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 14px; min-width: 560px; width: 100%; }
+th, td { text-align: left; padding: 7px 14px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
+#pickline { font: 500 13px var(--font-data); color: var(--amber); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · DPS Soldier · ultimate · pick a look</div>
+    <h1>Bullet <span>Rain</span></h1>
+    <p class="lead">Today the DPS Soldier's ultimate is <b>Bullet Storm</b> (F, 60 s cooldown): 6 s of triple fire rate and +2 projectiles, with
+      no visual of its own. These three looks give it one. <b>Look A</b> keeps the mechanics exactly and only adds flair.
+      <b>Looks B and C</b> turn it into a literal bullet rain that falls on an area, which is a design change and needs its own balance pass.
+      Every scene loops: activate, six seconds of fire, wind-down.</p>
+    <div class="group">
+      <span class="label">All previews</span>
+      <button id="pause" aria-pressed="false">Pause</button>
+      <button id="slow" aria-pressed="false">¼× speed</button>
+      <button id="reduced" aria-pressed="false">Reduced effects</button>
+      <span id="pickline">No look picked yet</span>
+    </div>
+  </header>
+
+  <section class="look" data-look="0">
+    <div class="lookhead"><span class="tag" style="color:var(--a)">LOOK A</span><h2>Storm Surge</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look A preview: a Soldier sweeping a wall of tracers across a crowd"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>The Twin Rifle becomes a firehose. Three tracers per shot, the two extra projectiles drawn hotter, brass flying, a heat aura and an orange edge glow while it lasts.</p></div>
+        <div><span class="k">Gameplay</span><p>Unchanged: 6 s, ×3 fire rate, +2 projectiles. Cheapest to build, works with every weapon.</p></div>
+        <button class="pick" data-pick="0" aria-pressed="false">Pick Look A</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="look" data-look="1">
+    <div class="lookhead"><span class="tag" style="color:var(--b)">LOOK B</span><h2>Rain Barrage</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look B preview: a targeting zone locks on and bullets fall into it"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>A red zone locks on at your cursor, you fire straight up, and bullets come down inside it. Each lands with a ripple, sparks and a scorch mark. Every falling round shows a growing dot first, so allies can read it.</p></div>
+        <div><span class="k">Gameplay</span><p>Area denial. The zone follows your cursor within 40 px a second. Close to an airstrike, so your own fire rate stops mattering.</p></div>
+        <button class="pick" data-pick="1" aria-pressed="false">Pick Look B</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="look" data-look="2">
+    <div class="lookhead"><span class="tag" style="color:var(--c)">LOOK C</span><h2>Skyfall Curtain</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look C preview: a curtain of slanted bullets sweeps across the arena"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>Volleys leave the barrel straight up, then a slanted curtain of cold white-blue bullets sweeps across the arena in a 140 px band. Chevrons mark the leading edge. It reads like real rain.</p></div>
+        <div><span class="k">Gameplay</span><p>A sweeping wall. Enemies caught in the band take the hits, so you steer it by positioning. The band is a clear shape to dodge for friends standing in it.</p></div>
+        <button class="pick" data-pick="2" aria-pressed="false">Pick Look C</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>Numbers and notes</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th></th><th>A · Storm Surge</th><th>B · Rain Barrage</th><th>C · Skyfall Curtain</th></tr></thead>
+        <tbody>
+          <tr><th>Duration</th><td class="n">6 s</td><td class="n">6 s</td><td class="n">6 s</td></tr>
+          <tr><th>Cooldown</th><td class="n">60 s</td><td class="n">60 s</td><td class="n">60 s</td></tr>
+          <tr><th>Output</th><td class="n">×3 fire rate, +2 projectiles</td><td class="n">about 85 falling rounds a second (proposed)</td><td class="n">about 110 falling rounds a second (proposed)</td></tr>
+          <tr><th>Area</th><td class="n">Wherever you aim</td><td class="n">330 px circle at the cursor (proposed)</td><td class="n">140 px band sweeping 520 px (proposed)</td></tr>
+          <tr><th>Damage per round</th><td class="n">Your weapon's</td><td class="n">4 (proposed)</td><td class="n">4 (proposed)</td></tr>
+          <tr><th>Protocol</th><td class="n">No change</td><td class="n">New snapshot data, version bump</td><td class="n">New snapshot data, version bump</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>The scenes here are mockups and share no code with the game. Damage numbers for B and C are placeholders to show density, not balance.</li>
+      <li><b>Reduced effects</b> turns off screen shake, the activation flash and the edge glow, as the game's own setting does. It starts on if your system asks for reduced motion.</li>
+      <li>A can ship without touching the network. B and C need the zone or band position in the snapshot, so they bump <code>Session.ProtocolVersion</code>.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var W = 960, H = 420, LOOP = 8, T0 = 0.7, T1 = 6.7, TAU = Math.PI * 2;
+  var SOL = { x: 150, y: 210 };
+  var ctl = { paused: false, slow: false, reduced: false };
+  var rnd = function (a, b) { return a + Math.random() * (b - a); };
+  var gauss = function () { return (Math.random() + Math.random() + Math.random()) / 1.5 - 1; };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  // 0 before activation, ramps up, holds, then eases out after the active window
+  function env01(t, rise, fall) { return t < T0 ? 0 : t < T1 ? Math.min(1, (t - T0) / rise) : Math.max(0, 1 - (t - T1) / fall); }
+
+  /* ---------- particles ---------- */
+  function P(s, o) {
+    if (s.parts.length > 1200) return;
+    var p = { x: 0, y: 0, vx: 0, vy: 0, drag: 0, life: 0.3, size: 2, col: '255,170,80', type: 'spark', rot: 0, vr: 0, r0: 2, r1: 20 };
+    for (var k in o) p[k] = o[k];
+    p.max = p.life; s.parts.push(p);
+  }
+  function updateParts(s, dt) {
+    for (var i = s.parts.length - 1; i >= 0; i--) {
+      var p = s.parts[i]; p.life -= dt;
+      if (p.life <= 0) { s.parts.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.drag) { var k = Math.exp(-p.drag * dt); p.vx *= k; p.vy *= k; }
+      p.rot += p.vr * dt;
+    }
+  }
+  function drawParts(c, s) {
+    c.save(); c.lineCap = 'round';
+    for (var i = 0; i < s.parts.length; i++) {
+      var p = s.parts[i], lf = p.life / p.max;
+      if (p.type === 'spark') {
+        c.globalCompositeOperation = 'lighter'; c.strokeStyle = 'rgba(' + p.col + ',' + lf + ')'; c.lineWidth = p.size;
+        c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); c.stroke();
+      } else if (p.type === 'ring') {
+        c.globalCompositeOperation = 'lighter'; var r = p.r0 + (p.r1 - p.r0) * (1 - lf);
+        c.strokeStyle = 'rgba(' + p.col + ',' + (lf * 0.9) + ')'; c.lineWidth = p.size * lf + 0.5;
+        c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.stroke();
+      } else if (p.type === 'glow') {
+        c.globalCompositeOperation = 'lighter';
+        var g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+        g.addColorStop(0, 'rgba(' + p.col + ',' + (lf * 0.8) + ')'); g.addColorStop(1, 'rgba(' + p.col + ',0)');
+        c.fillStyle = g; c.fillRect(p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+      } else if (p.type === 'casing') {
+        c.globalCompositeOperation = 'source-over'; c.save(); c.translate(p.x, p.y); c.rotate(p.rot);
+        c.fillStyle = 'rgba(' + p.col + ',' + Math.min(1, lf * 1.6) + ')'; c.fillRect(-3, -1.5, 6, 3); c.restore();
+      } else if (p.type === 'smoke') {
+        c.globalCompositeOperation = 'source-over'; c.fillStyle = 'rgba(150,160,170,' + (lf * 0.22) + ')';
+        c.beginPath(); c.arc(p.x, p.y, p.size * (1.6 - lf * 0.6), 0, TAU); c.fill();
+      }
+    }
+    c.restore();
+  }
+
+  /* ---------- enemies ---------- */
+  function spawnEnemy(s, look) {
+    var e = { hp: 60, max: 60, flash: 0, dead: 0, r: 15, ph: rnd(0, TAU), ox: 0, oy: 0, x: 0, y: 0 };
+    look.place(e); return e;
+  }
+  function enemyPos(s, look, e) {
+    var a = look.anchor(s);
+    e.x = a.x + e.ox + Math.sin(s.t * 1.1 + e.ph) * 10;
+    e.y = a.y + e.oy + Math.cos(s.t * 0.9 + e.ph) * 10;
+  }
+  function hit(s, e, dmg, x, y, col) {
+    if (e.dead > 0) return false;
+    e.hp -= dmg; e.flash = 0.07;
+    for (var i = 0; i < 2; i++) { var a = rnd(0, TAU), sp = rnd(120, 300); P(s, { x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.18, size: 1.6, col: col }); }
+    if (Math.random() < 0.06) s.floats.push({ x: e.x + rnd(-8, 8), y: e.y - 18, t: 0.6, txt: String(dmg) });
+    if (e.hp <= 0) {
+      e.dead = 1.1;
+      for (var j = 0; j < 14; j++) { var b = rnd(0, TAU), v = rnd(80, 340); P(s, { x: e.x, y: e.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, life: rnd(0.25, 0.5), size: 2, col: '255,120,90', drag: 3 }); }
+      P(s, { type: 'ring', x: e.x, y: e.y, r0: 6, r1: 38, life: 0.35, size: 3, col: '255,140,100' });
+      P(s, { type: 'smoke', x: e.x, y: e.y, size: 16, life: 0.7, vy: -20 });
+      s.shake = Math.max(s.shake, 3);
+    }
+    return true;
+  }
+  function drawEnemy(c, e) {
+    if (e.dead > 0) return;
+    c.save(); c.translate(e.x, e.y);
+    c.fillStyle = e.flash > 0 ? '#ffffff' : '#a93f36'; c.beginPath(); c.arc(0, 0, e.r, 0, TAU); c.fill();
+    c.strokeStyle = e.flash > 0 ? '#fff' : '#ff7a66'; c.lineWidth = 2; c.stroke();
+    c.fillStyle = e.flash > 0 ? '#ffd9d0' : '#5c2420'; c.beginPath(); c.arc(0, 0, e.r * 0.55, 0, TAU); c.fill();
+    if (e.hp < e.max) {
+      c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(-12, -e.r - 9, 24, 4);
+      c.fillStyle = '#ff8a6a'; c.fillRect(-12, -e.r - 9, 24 * Math.max(0, e.hp / e.max), 4);
+    }
+    c.restore();
+  }
+
+  /* ---------- soldier, HUD, floor ---------- */
+  function tipPos(aim, side) {
+    return { x: SOL.x + Math.cos(aim) * 40 - Math.sin(aim) * side, y: SOL.y + Math.sin(aim) * 40 + Math.cos(aim) * side };
+  }
+  function drawSoldier(c, aim, acc, glow, t) {
+    c.save(); c.translate(SOL.x, SOL.y);
+    if (glow > 0) {
+      var g = c.createRadialGradient(0, 0, 6, 0, 0, 64); g.addColorStop(0, 'rgba(' + acc + ',' + (0.38 * glow) + ')'); g.addColorStop(1, 'rgba(' + acc + ',0)');
+      c.fillStyle = g; c.beginPath(); c.arc(0, 0, 64, 0, TAU); c.fill();
+      c.strokeStyle = 'rgba(' + acc + ',' + (0.55 * glow) + ')'; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, 30 + Math.sin(t * 18) * 2.5 * glow, 0, TAU); c.stroke();
+    }
+    c.rotate(aim);
+    c.fillStyle = '#26303a'; c.fillRect(8, -10, 30, 5); c.fillRect(8, 5, 30, 5);
+    c.fillStyle = '#56626f'; c.fillRect(34, -10, 5, 5); c.fillRect(34, 5, 5, 5);
+    c.fillStyle = '#4a5b4a'; c.beginPath(); c.arc(0, 0, 16, 0, TAU); c.fill();
+    c.strokeStyle = '#1b2420'; c.lineWidth = 2; c.stroke();
+    c.fillStyle = '#3b4a3b'; c.fillRect(-4, -19, 10, 7); c.fillRect(-4, 12, 10, 7);
+    c.fillStyle = '#6f836a'; c.beginPath(); c.arc(1, 0, 8, 0, TAU); c.fill();
+    c.restore();
+  }
+  function drawHud(c, s, name, acc) {
+    var t = s.t, active = t >= T0 && t < T1, rem = t < T0 ? 1 : t < T1 ? (T1 - t) / (T1 - T0) : 0;
+    c.save(); c.textBaseline = 'middle';
+    c.font = '700 12px Oxanium, "Segoe UI", sans-serif'; c.fillStyle = 'rgb(' + acc + ')';
+    if ('letterSpacing' in c) c.letterSpacing = '2px';
+    c.fillText('F   ' + name.toUpperCase(), 18, 22);
+    c.fillStyle = 'rgba(255,255,255,.1)'; c.fillRect(18, 36, 170, 6);
+    c.fillStyle = 'rgb(' + acc + ')'; c.fillRect(18, 36, 170 * rem, 6);
+    c.font = '500 11px "IBM Plex Mono", ui-monospace, monospace'; c.fillStyle = 'rgba(231,238,243,.75)';
+    if ('letterSpacing' in c) c.letterSpacing = '0px';
+    c.fillText(t < T0 ? 'ACTIVATING' : active ? (rem * 6).toFixed(1) + ' s' : 'COOLDOWN 60 s', 198, 39);
+    c.restore();
+  }
+  function chip(c, x, y, txt, acc) {
+    c.save(); c.font = '600 11px "IBM Plex Mono", ui-monospace, monospace'; c.textBaseline = 'middle';
+    var w = c.measureText(txt).width + 16;
+    c.fillStyle = 'rgba(10,13,16,.7)'; c.strokeStyle = 'rgba(' + acc + ',.7)'; c.lineWidth = 1;
+    c.beginPath(); c.rect(x, y - 10, w, 20); c.fill(); c.stroke();
+    c.fillStyle = 'rgb(' + acc + ')'; c.fillText(txt, x + 8, y + 1); c.restore(); return w;
+  }
+  function drawFloor(c) {
+    c.fillStyle = '#0b1016'; c.fillRect(0, 0, W, H);
+    c.strokeStyle = '#111923'; c.lineWidth = 1; c.beginPath();
+    for (var x = 48; x < W; x += 48) { c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, H); }
+    for (var y = 48; y < H; y += 48) { c.moveTo(0, y + 0.5); c.lineTo(W, y + 0.5); }
+    c.stroke();
+    c.strokeStyle = '#1c2631'; c.lineWidth = 2; c.strokeRect(6, 6, W - 12, H - 12);
+  }
+  function vignette(c, acc, a) {
+    if (a <= 0) return;
+    var g = c.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, W * 0.62);
+    g.addColorStop(0, 'rgba(' + acc + ',0)'); g.addColorStop(1, 'rgba(' + acc + ',' + a + ')');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+  }
+  function scorchUpdate(s, dt) { for (var i = s.scorch.length - 1; i >= 0; i--) { s.scorch[i].l -= dt; if (s.scorch[i].l <= 0) s.scorch.splice(i, 1); } }
+  function scorchDraw(c, s, col, life) {
+    for (var i = 0; i < s.scorch.length; i++) { var q = s.scorch[i]; c.fillStyle = 'rgba(' + col + ',' + (q.l / life * 0.45) + ')'; c.beginPath(); c.arc(q.x, q.y, 2.2, 0, TAU); c.fill(); }
+  }
+  function land(s, x, y, col, dmg) {
+    P(s, { type: 'ring', x: x, y: y, r0: 2, r1: 22, life: 0.35, size: 2.5, col: col });
+    for (var i = 0; i < 2; i++) { var a = rnd(0, TAU), sp = rnd(80, 200); P(s, { x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.22, size: 1.6, col: col }); }
+    if (s.scorch.length < 260) s.scorch.push({ x: x, y: y, l: 1.4 });
+    for (var k = 0; k < s.enemies.length; k++) {
+      var e = s.enemies[k]; if (e.dead > 0) continue;
+      var dx = e.x - x, dy = e.y - y;
+      if (dx * dx + dy * dy < (e.r + 8) * (e.r + 8)) hit(s, e, dmg, x, y, col);
+    }
+  }
+
+  /* ---------- Look A: Storm Surge (mechanics unchanged) ---------- */
+  var A = {
+    acc: '255,150,70', name: 'Bullet Storm',
+    anchor: function () { return { x: 730, y: 210 }; },
+    place: function (e) { e.ox = rnd(-170, 170); e.oy = rnd(-150, 150); },
+    aim: function (s) { if (s.t < T0) return 0; var env = s.t < T1 ? 1 : Math.max(0, 1 - (s.t - T1) / 0.4); return Math.sin((s.t - T0) * 1.4) * 0.2 * env; },
+    glow: function (s) { return env01(s.t, 0.2, 0.5); },
+    init: function (s) { s.n = 0; },
+    update: function (s, dt, active) {
+      if (active) {
+        s.acc += dt;
+        while (s.acc >= 0.034) {
+          s.acc -= 0.034; s.n++;
+          var a0 = A.aim(s), bs = s.n % 2 ? 7 : -7, o = tipPos(a0, bs);
+          [-0.11, 0, 0.11].forEach(function (off, k) {
+            var a = a0 + off + rnd(-0.012, 0.012);
+            s.bul.push({ x: o.x, y: o.y, vx: Math.cos(a) * 1300, vy: Math.sin(a) * 1300, main: k === 1 });
+          });
+          if (Math.random() < 0.55) {
+            var sg = bs > 0 ? 1 : -1, sp = rnd(120, 260);
+            P(s, { type: 'casing', x: SOL.x + Math.cos(a0) * 12 - Math.sin(a0) * bs, y: SOL.y + Math.sin(a0) * 12 + Math.cos(a0) * bs, vx: -Math.sin(a0) * sg * sp, vy: Math.cos(a0) * sg * sp, life: 0.65, drag: 3, rot: rnd(0, TAU), vr: rnd(-18, 18), col: '255,200,100' });
+          }
+        }
+      }
+      for (var i = s.bul.length - 1; i >= 0; i--) {
+        var b = s.bul[i]; b.x += b.vx * dt; b.y += b.vy * dt;
+        var gone = b.x > W + 20 || b.x < -20 || b.y < -20 || b.y > H + 20;
+        if (!gone) for (var k = 0; k < s.enemies.length; k++) {
+          var e = s.enemies[k]; if (e.dead > 0) continue;
+          var dx = e.x - b.x, dy = e.y - b.y;
+          if (dx * dx + dy * dy < (e.r + 3) * (e.r + 3)) { hit(s, e, 4, b.x, b.y, b.main ? '255,150,70' : '255,230,140'); gone = true; break; }
+        }
+        if (gone) s.bul.splice(i, 1);
+      }
+    },
+    ground: function () {},
+    air: function (c, s) {
+      c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < s.bul.length; i++) {
+        var b = s.bul[i], d = Math.hypot(b.vx, b.vy), ux = b.vx / d, uy = b.vy / d, L = b.main ? 34 : 28;
+        var col = b.main ? '255,140,60' : '255,225,130';
+        c.strokeStyle = 'rgba(' + col + ',.18)'; c.lineWidth = 5; c.beginPath(); c.moveTo(b.x - ux * L, b.y - uy * L); c.lineTo(b.x, b.y); c.stroke();
+        c.strokeStyle = 'rgba(' + col + ',.95)'; c.lineWidth = 2; c.beginPath(); c.moveTo(b.x - ux * L, b.y - uy * L); c.lineTo(b.x, b.y); c.stroke();
+        c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(b.x, b.y, 1.6, 0, TAU); c.fill();
+      }
+      if (s.t >= T0 && s.t < T1) {
+        var a0 = A.aim(s);
+        [-7, 7].forEach(function (bs) {
+          var o = tipPos(a0, bs), g = c.createRadialGradient(o.x, o.y, 0, o.x, o.y, 22);
+          g.addColorStop(0, 'rgba(255,240,200,.95)'); g.addColorStop(1, 'rgba(255,140,60,0)');
+          c.fillStyle = g; c.beginPath(); c.arc(o.x, o.y, 22, 0, TAU); c.fill();
+          var r = rnd(0, TAU); c.fillStyle = 'rgba(255,220,150,.9)'; c.beginPath();
+          for (var k = 0; k < 10; k++) { var ang = r + k * TAU / 10, len = k % 2 ? 6 : rnd(18, 34); c.lineTo(o.x + Math.cos(ang) * len, o.y + Math.sin(ang) * len); }
+          c.closePath(); c.fill();
+        });
+        c.globalCompositeOperation = 'source-over';
+        var w = chip(c, 18, 66, '×3 FIRE RATE', A.acc); chip(c, 18 + w + 8, 66, '+2 PROJECTILES', '255,225,130');
+      }
+      c.restore();
+    },
+    top: function (c, s) { vignette(c, A.acc, 0.2 * env01(s.t, 0.3, 0.5) * (ctl.reduced ? 0 : 1)); }
+  };
+
+  /* ---------- Look B: Rain Barrage (targeted zone) ---------- */
+  var B = {
+    acc: '255,110,80', name: 'Bullet Rain',
+    zone: function (s) { return { x: 690 + 40 * Math.sin(s.t * 0.8), y: 210 + 30 * Math.sin(s.t * 1.3), R: 165 }; },
+    anchor: function (s) { var z = B.zone(s); return { x: z.x, y: z.y }; },
+    place: function (e) { var a = rnd(0, TAU), r = Math.sqrt(Math.random()) * 132; e.ox = Math.cos(a) * r; e.oy = Math.sin(a) * r; },
+    aim: function (s) { return -1.45 * env01(s.t, 0.35, 0.4); },
+    glow: function (s) { return env01(s.t, 0.3, 0.6) * 0.8; },
+    init: function (s) {},
+    update: function (s, dt, active) {
+      scorchUpdate(s, dt);
+      if (active) {
+        s.acc2 += dt; var a0 = B.aim(s);
+        while (s.acc2 >= 0.07) { s.acc2 -= 0.07; var o = tipPos(a0, Math.random() < 0.5 ? -7 : 7); P(s, { x: o.x, y: o.y, vx: rnd(-30, 30), vy: -1100, life: 0.55, size: 2.5, col: '255,180,110' }); }
+        s.acc += dt; var z = B.zone(s);
+        while (s.acc >= 1 / 85) {
+          s.acc -= 1 / 85; var a = rnd(0, TAU), r = Math.sqrt(Math.random()) * z.R;
+          s.bul.push({ x: z.x + Math.cos(a) * r, y: z.y + Math.sin(a) * r, z: rnd(300, 520), vz: -rnd(1300, 1700) });
+        }
+      }
+      for (var i = s.bul.length - 1; i >= 0; i--) {
+        var b = s.bul[i]; b.z += b.vz * dt;
+        if (b.z <= 0) { land(s, b.x, b.y, '255,140,90', 4); s.bul.splice(i, 1); }
+      }
+    },
+    ground: function (c, s) {
+      scorchDraw(c, s, '255,120,80', 1.4);
+      var z = B.zone(s), t = s.t;
+      var za = t < T0 ? t / T0 : t > T1 ? Math.max(0, 1 - (t - T1) / 0.8) : 1;
+      var k = t < T0 ? 1.6 - 0.6 * (t / T0) : 1, R = z.R * k;
+      if (za > 0) {
+        c.save();
+        c.setLineDash([5, 9]); c.strokeStyle = 'rgba(255,130,90,' + (0.22 * za) + ')'; c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(SOL.x, SOL.y); c.lineTo(z.x, z.y); c.stroke();
+        var g = c.createRadialGradient(z.x, z.y, 0, z.x, z.y, R);
+        g.addColorStop(0, 'rgba(255,90,60,' + (0.03 * za) + ')'); g.addColorStop(0.75, 'rgba(255,90,60,' + (0.09 * za) + ')'); g.addColorStop(1, 'rgba(255,90,60,' + (0.22 * za) + ')');
+        c.fillStyle = g; c.beginPath(); c.arc(z.x, z.y, R, 0, TAU); c.fill();
+        c.setLineDash([16, 10]); c.lineDashOffset = -t * 50; c.lineWidth = 2.5; c.strokeStyle = 'rgba(255,130,90,' + (0.85 * za) + ')';
+        c.beginPath(); c.arc(z.x, z.y, R, 0, TAU); c.stroke();
+        c.setLineDash([]); c.lineWidth = 1; c.strokeStyle = 'rgba(255,130,90,' + (0.25 * za) + ')';
+        c.beginPath(); c.arc(z.x, z.y, R + 12, 0, TAU); c.stroke();
+        c.lineWidth = 3; c.strokeStyle = 'rgba(255,170,130,' + (0.8 * za) + ')';
+        for (var i = 0; i < 4; i++) { var a = t * 0.5 + i * TAU / 4; c.beginPath(); c.moveTo(z.x + Math.cos(a) * (R + 4), z.y + Math.sin(a) * (R + 4)); c.lineTo(z.x + Math.cos(a) * (R + 20), z.y + Math.sin(a) * (R + 20)); c.stroke(); }
+        c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,200,170,' + (0.7 * za) + ')';
+        c.beginPath(); c.moveTo(z.x - 14, z.y); c.lineTo(z.x - 5, z.y); c.moveTo(z.x + 5, z.y); c.lineTo(z.x + 14, z.y); c.moveTo(z.x, z.y - 14); c.lineTo(z.x, z.y - 5); c.moveTo(z.x, z.y + 5); c.lineTo(z.x, z.y + 14); c.stroke();
+        c.restore();
+      }
+      for (var j = 0; j < s.bul.length; j++) {
+        var b = s.bul[j], kk = 1 - clamp(b.z / 520, 0, 1);
+        c.fillStyle = 'rgba(255,150,100,' + (0.12 + 0.5 * kk) + ')'; c.beginPath(); c.arc(b.x, b.y, 1.2 + 2.4 * kk, 0, TAU); c.fill();
+      }
+    },
+    air: function (c, s) {
+      c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < s.bul.length; i++) {
+        var b = s.bul[i], hy = b.y - b.z;
+        if (hy < -70) continue;
+        c.strokeStyle = 'rgba(255,120,80,.2)'; c.lineWidth = 5; c.beginPath(); c.moveTo(b.x, hy - 48); c.lineTo(b.x, hy); c.stroke();
+        c.strokeStyle = 'rgba(255,225,185,.95)'; c.lineWidth = 1.8; c.beginPath(); c.moveTo(b.x, hy - 48); c.lineTo(b.x, hy); c.stroke();
+        c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.arc(b.x, hy, 1.5, 0, TAU); c.fill();
+      }
+      c.restore();
+    },
+    top: function (c, s) { vignette(c, B.acc, 0.16 * env01(s.t, 0.3, 0.5) * (ctl.reduced ? 0 : 1)); }
+  };
+
+  /* ---------- Look C: Skyfall Curtain (sweeping band) ---------- */
+  var C = {
+    acc: '120,225,255', name: 'Bullet Rain',
+    sx: function (s) { return 400 + clamp((s.t - T0) / (T1 - T0), 0, 1) * 520; },
+    anchor: function () { return { x: 0, y: 0 }; },
+    place: function (e) { e.ox = rnd(470, 910); e.oy = rnd(50, 370); },
+    aim: function (s) { return -1.25 * env01(s.t, 0.35, 0.4); },
+    glow: function (s) { return env01(s.t, 0.3, 0.6) * 0.8; },
+    init: function (s) {},
+    update: function (s, dt, active) {
+      scorchUpdate(s, dt);
+      if (active) {
+        s.acc2 += dt; var a0 = C.aim(s);
+        while (s.acc2 >= 0.12) { s.acc2 -= 0.12; for (var q = 0; q < 3; q++) { var o = tipPos(a0, q === 1 ? 0 : (q ? 7 : -7)); P(s, { x: o.x, y: o.y, vx: rnd(80, 200), vy: -1000 + rnd(-60, 60), life: 0.55, size: 2.2, col: '170,235,255' }); } }
+        s.acc += dt; var sx = C.sx(s);
+        while (s.acc >= 1 / 110) {
+          s.acc -= 1 / 110;
+          var x = clamp(sx + gauss() * 70, 30, W - 14);
+          s.bul.push({ x: x, y: rnd(26, H - 26), z: rnd(380, 620), vz: -rnd(850, 1150) });
+        }
+      }
+      for (var i = s.bul.length - 1; i >= 0; i--) {
+        var b = s.bul[i]; b.z += b.vz * dt;
+        if (b.z <= 0) { land(s, b.x, b.y, '150,230,255', 4); s.bul.splice(i, 1); }
+      }
+    },
+    ground: function (c, s) {
+      scorchDraw(c, s, '120,225,255', 1.4);
+      var t = s.t, sx = C.sx(s), ba = t < T0 ? t / T0 : t > T1 ? Math.max(0, 1 - (t - T1) / 0.8) : 1;
+      if (ba <= 0) return;
+      c.save();
+      var g = c.createLinearGradient(sx - 110, 0, sx + 110, 0);
+      g.addColorStop(0, 'rgba(120,225,255,0)'); g.addColorStop(0.5, 'rgba(120,225,255,' + (0.12 * ba) + ')'); g.addColorStop(1, 'rgba(120,225,255,0)');
+      c.fillStyle = g; c.fillRect(sx - 110, 0, 220, H);
+      c.setLineDash([10, 8]); c.lineDashOffset = -t * 40; c.lineWidth = 1.5; c.strokeStyle = 'rgba(160,235,255,' + (0.45 * ba) + ')';
+      c.beginPath(); c.moveTo(sx + 70, 8); c.lineTo(sx + 70, H - 8); c.moveTo(sx - 70, 8); c.lineTo(sx - 70, H - 8); c.stroke();
+      c.setLineDash([]); c.lineWidth = 2; c.strokeStyle = 'rgba(190,240,255,' + (0.7 * ba) + ')';
+      var off = (t * 60) % 22;
+      for (var i = -3; i <= 3; i++) {
+        var x = sx + i * 22 + off - 11;
+        [18, H - 18].forEach(function (y) { c.beginPath(); c.moveTo(x - 4, y - 6); c.lineTo(x + 2, y); c.lineTo(x - 4, y + 6); c.stroke(); });
+      }
+      c.restore();
+    },
+    air: function (c, s) {
+      c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
+      var dx = 0.28, dy = -1, dl = Math.hypot(dx, dy);
+      for (var i = 0; i < s.bul.length; i++) {
+        var b = s.bul[i], hx = b.x + dx * b.z, hy = b.y - b.z;
+        if (hy < -70) continue;
+        var tx = hx + dx / dl * 62, ty = hy + dy / dl * 62;
+        c.strokeStyle = 'rgba(120,225,255,.2)'; c.lineWidth = 5; c.beginPath(); c.moveTo(tx, ty); c.lineTo(hx, hy); c.stroke();
+        c.strokeStyle = 'rgba(215,248,255,.95)'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(tx, ty); c.lineTo(hx, hy); c.stroke();
+        c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.arc(hx, hy, 1.5, 0, TAU); c.fill();
+      }
+      c.restore();
+    },
+    top: function (c, s) { vignette(c, C.acc, 0.14 * env01(s.t, 0.3, 0.5) * (ctl.reduced ? 0 : 1)); }
+  };
+
+  /* ---------- scene runner ---------- */
+  function Scene(canvas, look) {
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    var c = canvas.getContext('2d'), s, self = { visible: true, dirty: true };
+    function reset() {
+      s = { t: 0, enemies: [], parts: [], bul: [], floats: [], scorch: [], shake: 0, flash: 0, acc: 0, acc2: 0, n: 0 };
+      look.init(s);
+      for (var i = 0; i < 7; i++) s.enemies.push(spawnEnemy(s, look));
+    }
+    reset();
+    self.step = function (dt) {
+      var prev = s.t; s.t += dt;
+      if (s.t >= LOOP) { reset(); return; }
+      var active = s.t >= T0 && s.t < T1;
+      if (prev < T0 && s.t >= T0) {
+        P(s, { type: 'ring', x: SOL.x, y: SOL.y, r0: 10, r1: 280, life: 0.6, size: 6, col: look.acc });
+        P(s, { type: 'ring', x: SOL.x, y: SOL.y, r0: 6, r1: 170, life: 0.45, size: 3, col: '255,255,255' });
+        s.flash = 0.5; s.shake = 6;
+      }
+      if (prev < T1 && s.t >= T1) P(s, { type: 'ring', x: SOL.x, y: SOL.y, r0: 50, r1: 14, life: 0.5, size: 3, col: look.acc });
+      for (var i = 0; i < s.enemies.length; i++) {
+        var e = s.enemies[i];
+        if (e.dead > 0) { e.dead -= dt; if (e.dead <= 0) { look.place(e); e.hp = e.max; e.flash = 0; } continue; }
+        e.flash = Math.max(0, e.flash - dt); enemyPos(s, look, e);
+      }
+      look.update(s, dt, active);
+      updateParts(s, dt);
+      for (var f = s.floats.length - 1; f >= 0; f--) { s.floats[f].t -= dt; s.floats[f].y -= 30 * dt; if (s.floats[f].t <= 0) s.floats.splice(f, 1); }
+      s.shake = Math.max(0, s.shake - dt * 20); s.flash = Math.max(0, s.flash - dt * 2.4);
+      self.dirty = true;
+    };
+    self.draw = function () {
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+      c.save();
+      if (s.shake > 0 && !ctl.reduced) c.translate(rnd(-1, 1) * s.shake, rnd(-1, 1) * s.shake);
+      drawFloor(c); look.ground(c, s);
+      for (var i = 0; i < s.enemies.length; i++) { if (s.enemies[i].dead <= 0 && s.enemies[i].x === 0) enemyPos(s, look, s.enemies[i]); drawEnemy(c, s.enemies[i]); }
+      drawSoldier(c, look.aim(s), look.acc, look.glow(s), s.t);
+      drawParts(c, s); look.air(c, s);
+      c.font = '600 12px "IBM Plex Mono", ui-monospace, monospace'; c.textAlign = 'center';
+      for (var f = 0; f < s.floats.length; f++) { var fl = s.floats[f]; c.fillStyle = 'rgba(255,235,200,' + clamp(fl.t / 0.6, 0, 1) + ')'; c.fillText(fl.txt, fl.x, fl.y); }
+      c.textAlign = 'start';
+      c.restore();
+      look.top(c, s);
+      if (s.flash > 0 && !ctl.reduced) { c.fillStyle = 'rgba(' + look.acc + ',' + (s.flash * 0.35) + ')'; c.fillRect(0, 0, W, H); }
+      drawHud(c, s, look.name, look.acc);
+      var fade = s.t > LOOP - 0.35 ? (s.t - (LOOP - 0.35)) / 0.35 : s.t < 0.3 ? 1 - s.t / 0.3 : 0;
+      if (fade > 0) { c.fillStyle = 'rgba(7,9,16,' + clamp(fade, 0, 1) + ')'; c.fillRect(0, 0, W, H); }
+      self.dirty = false;
+    };
+    return self;
+  }
+
+  var looks = [A, B, C], scenes = [];
+  var canvases = document.querySelectorAll('canvas.arena');
+  canvases.forEach(function (cv, i) {
+    var sc = Scene(cv, looks[i]); scenes.push(sc);
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { sc.visible = en[0].isIntersecting; }).observe(cv);
+  });
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    scenes.forEach(function (sc) {
+      if (!sc.visible) return;
+      if (!ctl.paused) sc.step(dt * (ctl.slow ? 0.25 : 1));
+      if (!ctl.paused || sc.dirty) sc.draw();
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ---------- controls ---------- */
+  function toggle(id, key) {
+    var b = document.getElementById(id);
+    b.addEventListener('click', function () { ctl[key] = !ctl[key]; b.setAttribute('aria-pressed', String(ctl[key])); scenes.forEach(function (s) { s.dirty = true; }); });
+    return b;
+  }
+  toggle('pause', 'paused'); toggle('slow', 'slow'); toggle('reduced', 'reduced');
+  try {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { ctl.reduced = true; document.getElementById('reduced').setAttribute('aria-pressed', 'true'); }
+  } catch (e) {}
+  var names = ['A · Storm Surge', 'B · Rain Barrage', 'C · Skyfall Curtain'];
+  document.querySelectorAll('[data-pick]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var n = +btn.getAttribute('data-pick');
+      document.querySelectorAll('[data-pick]').forEach(function (o) { var on = +o.getAttribute('data-pick') === n; o.setAttribute('aria-pressed', String(on)); o.textContent = on ? 'Picked' : 'Pick Look ' + 'ABC'[+o.getAttribute('data-pick')]; });
+      document.querySelectorAll('.stage').forEach(function (st, i) { st.setAttribute('data-picked', String(i === n)); });
+      document.getElementById('pickline').textContent = 'Picked: ' + names[n];
+    });
+  });
+})();
+</script>

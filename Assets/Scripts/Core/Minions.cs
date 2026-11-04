@@ -492,7 +492,7 @@ namespace Arena
                             }
                         }
                     if (have > want && surplus != null && kind != MinionKind.Imp)
-                        Minions.Remove(surplus.Id);  // Bullet Storm's extras leave when it ends
+                        Minions.Remove(surplus.Id);  // Artillery Assault's extras leave when it ends
                     p.CompanionCd -= dt;
                     if (have < want && p.CompanionCd <= 0f)
                     {
@@ -849,6 +849,8 @@ namespace Arena
                             continue;
                         if (d.Dps > 0f)
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
+                        if (z.Kind == ZoneKind.BulletRain)
+                            e.WetT = Math.Max(e.WetT, BulletRainWetTime);  // soaked: slowed, and lightning arcs to it (Tsunami.cs)
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
                         if (slow > 0f)
                         {

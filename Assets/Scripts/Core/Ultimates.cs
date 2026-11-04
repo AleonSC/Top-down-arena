@@ -6,6 +6,7 @@ namespace Arena
     /// Ultimates (F): one per role and class, on a long cooldown (host only).
     public partial class Game
     {
+        public const float BulletRainRadius = 165f, BulletRainWetTime = 3f;  // Bullet Rain's zone (the Elementalist DPS ultimate)
         /// Lifeline: seconds of invulnerability, how long its look runs (the 3 s plus a 0.7 s fade, Game/LifelineLook.cs), and the
         /// plain ring and beam it also sends, which that look replaces when Visual effects are on (their durations mark them).
         public const float LifelineInvuln = 3f, LifelineFxTime = 3.7f, LifelinePlainRing = 0.62f, LifelinePlainLink = 0.56f;
@@ -76,14 +77,14 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BulletStorm, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
+                Name = "Artillery Assault", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
                 Capstone = "+4 extra projectiles instead of +2.",
             },
             new AbilityDef
             {
-                Id = AbilityId.MeteorStorm, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
-                Capstone = "Twenty meteors.",
+                Id = AbilityId.BulletRain, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Bullet Rain", Cooldown = 70f, Desc = "Call a downpour at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet.",
+                Capstone = "Lasts 9 s.",
             },
             new AbilityDef
             {
@@ -182,24 +183,15 @@ namespace Arena
 
                 case AbilityId.BulletStorm:  // DPS: Soldier
                     p.UltT = 6f;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 80f, 0.4f, Sfx.Ability);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 140f, 0.6f, Sfx.Ability);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.8f), 85f, 0.45f, Sfx.None);
                     break;
 
-                case AbilityId.MeteorStorm:  // DPS: Mage
+                case AbilityId.BulletRain:  // DPS: Mage
                 {
-                    var targets = new List<Enemy>();
-                    foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Def.Xp > 0)
-                            targets.Add(e);
-                    int meteors = cap ? 20 : 12;
-                    for (int i = 0; i < meteors; i++)
-                    {
-                        V2 at = targets.Count > 0
-                            ? targets[(i + rng.Next(targets.Count)) % targets.Count].Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 30f)
-                            : target + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 200f);
-                        AddZone(ZoneKind.Meteor, p, ClampToArena(at, 10f), 90f, 0.7f + 0.2f * i * 12f / meteors);
-                    }
-                    Sounds.Add(Sfx.SpellFire);
+                    V2 at = ClampToArena(target, BulletRainRadius);
+                    AddZone(ZoneKind.BulletRain, p, at, BulletRainRadius, cap ? 9f : 6f);
+                    BroadcastFx(FxKind.Ring, at, Kits.Get(ZoneKind.BulletRain).Color, BulletRainRadius, 0.6f, Sfx.SpellFire);
                     break;
                 }
 
