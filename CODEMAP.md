@@ -50,6 +50,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
 
 ## Networking (Core)
+- `Pings.cs`: pings (`PingKind`, `Session.SendPing`, host pause and cap, Focus snapping to an enemy; `Msg.PingMark`); a partial of `Session`
 - `LobbyAvatars.cs`: the Hangout room's characters, their positions and the two messages (`Msg.LobbyMove`, `Msg.LobbyPos`); a partial of `Session`
 - `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes)
 - `Net.cs`: `NetPeer`, length-prefixed TCP

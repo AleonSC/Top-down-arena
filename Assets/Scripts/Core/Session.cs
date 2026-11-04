@@ -31,6 +31,7 @@ namespace Arena
         LobbyMove,    // client -> host: where this player's character stands in the lobby's Hangout room (LobbyAvatars.cs)
         LobbyPos,     // host -> all: where everyone's character stands in the Hangout room
         Emote,        // client -> host: the emote number to play; host -> all: (player id, emote number) to show over that player (Session.cs, Game/EmoteLooks.cs)
+        PingMark,     // client -> host: ping kind and arena position; host -> all: (owner id, kind, position, target enemy id or -1) to show (Pings.cs, Game/PingLooks.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -84,7 +85,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 142;
+        public const int ProtocolVersion = 143;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -218,6 +219,8 @@ namespace Arena
             Avatars.Clear();
             Emotes.Clear();
             emoteLast.Clear();
+            Pings.Clear();
+            pingLast.Clear();
             Screen = AppScreen.Menu;
             Status = status;
         }
@@ -470,6 +473,13 @@ namespace Arena
                 case Msg.Emote:
                     HostEmote(peer, r.ReadByte());
                     break;
+                case Msg.PingMark:
+                {
+                    byte kind = r.ReadByte();
+                    float px = r.ReadSingle(), py = r.ReadSingle();
+                    HostPing(peer, (PingKind)kind, new V2(px, py));
+                    break;
+                }
                 case Msg.Cosmetics:
                 {
                     int rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, r.ReadInt32()));
@@ -1140,6 +1150,16 @@ namespace Arena
                 {
                     int who = r.ReadInt32();
                     Emotes[who] = new EmoteShow { Index = r.ReadByte(), At = Clock };
+                    break;
+                }
+                case Msg.PingMark:
+                {
+                    int owner = r.ReadInt32();
+                    byte kind = r.ReadByte();
+                    float px = r.ReadSingle(), py = r.ReadSingle();
+                    int target = r.ReadInt32();
+                    if (kind <= (byte)PingKind.Go && Finite(new V2(px, py)))
+                        AddPing(owner, (PingKind)kind, new V2(px, py), target);
                     break;
                 }
                 case Msg.Recall:

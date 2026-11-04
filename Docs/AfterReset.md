@@ -6,8 +6,11 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
-- [ ] **Ping system.** Mockup: [`Mockups/ping-system.html`](Mockups/ping-system.html) (tap = ping, hold = six-slice wheel; on-screen, edge arrow and minimap looks).
-      Waiting on your picks: wheel or tap-only, player colour or class colour, and whether it shares the emote key. Nothing built yet.
+- [x] **Ping system.** Built (Nov 2026, protocol 143; `Msg.PingMark`, since `Msg.Ping` was already the latency check). Mockup:
+      [`Mockups/ping-system.html`](Mockups/ping-system.html) (https://claude.ai/artifact/UHdFiTLxtxuzmZLQZQbH3Z). I picked the wheel (tap = last pick, hold = wheel),
+      the player's slot colour, and a separate key (middle mouse, rebindable). The arena is one fixed screen, so the mockup's off-screen arrows and
+      minimap weren't built. Left out for now: muting a player's pings, ping sounds, a Loot mark on the item itself. Say if you want any. Needs a try in Unity.
+      Bestiary/Armory pages are unaffected.
 
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 - [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
