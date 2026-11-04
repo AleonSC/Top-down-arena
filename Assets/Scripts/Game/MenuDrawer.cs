@@ -55,7 +55,7 @@ namespace Arena
             var oc = GUI.color;
             GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * ti);
             Ui.Alpha = ti;
-            Ui.Fancy(new Rect(40f, 30f + 14f * (1f - ti), DrawerW - 60f, 60f), title, titleSize, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft,
+            Ui.Glitch(new Rect(40f, 30f + 14f * (1f - ti), DrawerW - 60f, 60f), title, titleSize, Color.white, TextAnchor.MiddleLeft,
                 new Color(accent.r, accent.g, accent.b, 0.5f));
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(42f, 98f, DrawerW - 60f, 18f), sub, 12, Ui.Muted);
@@ -104,7 +104,7 @@ namespace Arena
                 Ui.Icon(new Rect(r.x + 18f, r.center.y - 12f, 24f, 24f), icon);
             bool twoLines = on && !string.IsNullOrEmpty(line);
             if (on)
-                Ui.Fancy(new Rect(r.x + 62f, twoLines ? r.y + 6f : r.y, r.width - 150f, twoLines ? 28f : r.height), name, 21, Color.white, Color.Lerp(col, Color.white, 0.3f), TextAnchor.MiddleLeft);
+                Ui.Glitch(new Rect(r.x + 62f, twoLines ? r.y + 6f : r.y, r.width - 150f, twoLines ? 28f : r.height), name, 21, Color.white, TextAnchor.MiddleLeft);
             else
                 Ui.Label(new Rect(r.x + 62f, r.y, r.width - 150f, r.height), name, 18, new Color(0.79f, 0.83f, 0.92f), TextAnchor.MiddleLeft, true);
             if (twoLines)
@@ -197,7 +197,7 @@ namespace Arena
         void OpenSectionPanel(string title, Color col, string sub, float k)
         {
             Ui.Panel(DrawerPanel, false);
-            Ui.Fancy(new Rect(DrawerPanel.x + 26f, DrawerPanel.y + 18f, DrawerPanel.width - 52f, 46f), title, 32, Color.white, Color.Lerp(col, Color.white, 0.25f), TextAnchor.MiddleLeft,
+            Ui.Glitch(new Rect(DrawerPanel.x + 26f, DrawerPanel.y + 18f, DrawerPanel.width - 52f, 46f), title, 32, Color.white, TextAnchor.MiddleLeft,
                 new Color(col.r, col.g, col.b, 0.5f));
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(DrawerPanel.x + 28f, DrawerPanel.y + 64f, DrawerPanel.width - 56f, 34f), sub, 13, new Color(0.79f, 0.83f, 0.92f), TextAnchor.UpperLeft, false, true);
