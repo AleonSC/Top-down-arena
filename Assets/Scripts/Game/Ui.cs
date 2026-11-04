@@ -448,7 +448,7 @@ namespace Arena
         /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
         /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
         /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size; sharp draws square corners (flat fills and a 1 px rim) for small buttons.
-        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false)
+        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false, bool glitch = false)
         {
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             float barH = sharp ? SharpChrome(r, on, hover, accent) : ChoiceChrome(r, on, hover, accent, true);
@@ -468,7 +468,11 @@ namespace Arena
                 float x = r.center.x - (ic + gap + tw) / 2f;
                 if (icon != null)
                     Icon(new Rect(x, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
-                Label(new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH), text, fs, name, TextAnchor.MiddleLeft, true);
+                var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH);
+                if (glitch)
+                    Glitch(tr, text, fs, name, TextAnchor.MiddleLeft);
+                else
+                    Label(tr, text, fs, name, TextAnchor.MiddleLeft, true);
             }
             return HitArea(r);
         }
