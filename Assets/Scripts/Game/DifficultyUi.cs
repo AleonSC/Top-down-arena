@@ -62,11 +62,19 @@ namespace Arena
             const int cols = 2;
             const float colGap = 22f, rowH = 41f;
             float colW = (w - colGap) / cols;
-            int rows = (Difficulty.Knobs.Length + cols - 1) / cols;
+            int shown = 0;  // the flavour knobs (boss approach) have quick picks below instead of sliders
+            foreach (var fk in Difficulty.Knobs)
+                if (!fk.Flavour)
+                    shown++;
+            int rows = (shown + cols - 1) / cols;
             string hoverDesc = null;
-            for (int i = 0; i < Difficulty.Knobs.Length; i++)
+            int slotIdx = 0;
+            for (int ki = 0; ki < Difficulty.Knobs.Length; ki++)
             {
-                var k = Difficulty.Knobs[i];
+                var k = Difficulty.Knobs[ki];
+                if (k.Flavour)
+                    continue;
+                int i = slotIdx++;
                 var row = new Rect(x + (i / rows) * (colW + colGap), y + (i % rows) * rowH, colW, rowH - 5f);
                 if (row.Contains(Event.current.mousePosition))
                     hoverDesc = k.Name + ": " + k.Desc + "  (Normal: " + k.Format(k.Normal) + ")";
@@ -74,7 +82,7 @@ namespace Arena
             }
             // Quick picks for the boss approach (Approaches.cs), in the slot after the last number.
             {
-                int i = Difficulty.Knobs.Length;
+                int i = shown;
                 var slot = new Rect(x + (i / rows) * (colW + colGap), y + (i % rows) * rowH + 4f, colW, 24f);
                 bool blend = Mathf.Abs(diff[DiffKnob.ApproachShare] - 0.85f) < 1e-4f && diff[DiffKnob.ApproachRamp] >= 0.5f;
                 bool full = diff[DiffKnob.ApproachShare] >= 0.999f && diff[DiffKnob.ApproachRamp] < 0.5f;
