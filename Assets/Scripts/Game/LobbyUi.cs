@@ -612,10 +612,12 @@ namespace Arena
         {
             Ui.Heading(x, y, w, title);
             float left = Ui.TextWidth(title.ToUpperInvariant(), 12, true) + 24f;
-            int size = 12;
-            while (size > 10 && Ui.TextWidth(blurb, size) > w - left)
+            // All caps, bold and slightly smaller, so it reads as a quiet caption beside the heading.
+            blurb = blurb.ToUpperInvariant();
+            int size = 11;
+            while (size > 8 && Ui.TextWidth(blurb, size, true) > w - left)
                 size--;
-            Ui.Label(new Rect(x + left, y, w - left, 20f), blurb, size, new Color(0.78f, 0.82f, 0.92f), TextAnchor.MiddleRight);
+            Ui.Label(new Rect(x + left, y, w - left, 20f), blurb, size, new Color(0.62f, 0.70f, 0.88f), TextAnchor.MiddleRight, true);
         }
 
         /// The loadout's spec sheet: the picked weapon (left) and ability (right), each with its name, description
