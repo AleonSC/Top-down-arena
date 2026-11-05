@@ -1,0 +1,173 @@
+<title>Terminal To Lobby Transition</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 960x540 stage scaled to fit; menu layer, black "link" beat, lobby layer, plus overlay effects. */
+:root {
+  --bg: #080b14; --panel: #10162a; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55);
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 66ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.go { font: 700 15px var(--f-ui); color: #04140b; background: var(--ink); border: 0; border-radius: 8px; padding: 9px 18px; cursor: pointer; }
+.go:focus-visible, .seg:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.state { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .08em; margin-left: auto; }
+
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+.layer { position: absolute; inset: 0; }
+#lobby { opacity: 0; }
+
+/* shared CRT screen */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate; box-shadow: inset 0 0 30px rgba(0,0,0,.8), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%); }
+.scr > * { position: relative; z-index: 1; }
+.panel { position: absolute; border-radius: 14px; border: 1px solid #4a68b8; background: linear-gradient(#2f3d68, #12162c 85%); box-shadow: 0 0 30px rgba(80,120,255,.14); }
+.panel::before, .panel::after { content: ""; position: absolute; width: 20px; height: 20px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.panel::before { left: -8px; top: -8px; border-right: 0; border-bottom: 0; } .panel::after { right: -8px; bottom: -8px; border-left: 0; border-top: 0; }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* menu */
+#sign { left: 130px; top: 22px; width: 700px; height: 78px; border-radius: 8px; display: grid; place-items: center; font-size: 62px; letter-spacing: .04em; }
+#card { left: 250px; top: 140px; width: 460px; height: 210px; }
+#card h2 { position: absolute; left: 22px; top: 14px; margin: 0; font: 700 17px var(--f-ui); letter-spacing: .03em; color: #fff; }
+#run { left: 22px; top: 46px; width: 416px; height: 90px; border-radius: 3px; padding: 8px 14px; }
+#run .l { font-size: 12px; color: var(--dim); text-shadow: none; letter-spacing: .1em; }
+#run .w { font-size: 34px; line-height: .95; }
+#run .k { font-size: 13px; line-height: 1.05; color: var(--dim); text-shadow: none; } #run .k b { font-weight: 400; color: var(--ink); }
+#run .sq { position: absolute; left: 112px; top: 12px; font-size: 16px; white-space: nowrap; } #run .sq em { font-style: normal; color: var(--dim); font-size: 13px; margin-left: 8px; text-shadow: none; }
+#cont { position: absolute; right: 12px; top: 22px; width: 124px; height: 44px; white-space: nowrap; border: 2px solid var(--ink); background: rgba(77,255,154,.07); color: var(--ink); font: 22px var(--f-crt); letter-spacing: .04em; cursor: pointer; text-shadow: inherit; z-index: 5; }
+#cont:hover, #cont:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.btn { position: absolute; top: 148px; width: 134px; height: 40px; border-radius: 8px; background: linear-gradient(#262d4b, #171b30); border: 1px solid #3a4670; color: #cfd8ee; font: 700 14px/38px var(--f-ui); text-align: center; }
+#tip { left: 250px; top: 372px; width: 460px; height: 70px; }
+#tipscr { left: 8px; top: 8px; width: 444px; height: 54px; border-radius: 3px; padding: 6px 12px 0 62px; font-size: 20px; line-height: .95; }
+#tipscr .t { font-size: 22px; } #tipscr .m { font-size: 15px; color: var(--dim); text-shadow: none; margin-top: 2px; }
+#tipscr i { position: absolute; left: 10px; top: 7px; width: 38px; height: 38px; border: 2px solid var(--ink); background: rgba(77,255,154,.07); }
+
+/* link beat */
+#link { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; background: #000; color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 8px var(--glow), 0 0 18px var(--glow); text-align: left; }
+#link div { font-size: 44px; letter-spacing: .08em; line-height: 1.05; min-width: 420px; } #link small { font-size: 24px; color: var(--dim); text-shadow: none; display: block; letter-spacing: .1em; }
+
+/* lobby (placeholder look) */
+#lobby .panel { left: 120px; top: 90px; width: 720px; height: 380px; }
+#lobby h3 { position: absolute; left: 30px; top: 18px; margin: 0; font: 700 26px var(--f-ui); letter-spacing: .05em; color: #fff; }
+.cls { position: absolute; top: 76px; width: 200px; height: 200px; border-radius: 10px; background: linear-gradient(#1f2744, #121730); border: 1px solid #3a4670; padding: 14px; font-weight: 700; }
+.cls b { display: block; font-size: 20px; margin-bottom: 4px; } .cls span { font-size: 13px; color: #8f9cc4; font-weight: 500; }
+.cls i { position: absolute; left: 14px; right: 14px; bottom: 12px; height: 4px; border-radius: 2px; }
+.cls .av { width: 64px; height: 64px; border-radius: 50%; margin: 18px 0 10px; }
+.rdy { position: absolute; bottom: 24px; width: 200px; height: 46px; border-radius: 10px; font: 700 18px/46px var(--f-ui); text-align: center; }
+
+/* overlay effects */
+#resid { position: absolute; inset: 0; z-index: 30; pointer-events: none; opacity: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.35) 0 1px, transparent 1px 3px), radial-gradient(120% 120% at 50% 50%, transparent 50%, rgba(0,20,10,.6) 100%); }
+#flash { position: absolute; inset: 0; z-index: 31; pointer-events: none; opacity: 0; background: #d8ffe8; }
+#sweep { position: absolute; left: 0; right: 0; top: 0; height: 120px; z-index: 29; pointer-events: none; opacity: 0; transform: translateY(-120px);
+  background: linear-gradient(to bottom, transparent, rgba(77,255,154,.12) 70%, rgba(150,255,200,.65) 99%, #eafff2 100%); box-shadow: 0 0 22px 4px var(--glow); }
+.cap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 22px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.cap b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 2px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Terminal to lobby</h1>
+    <p>What happens when you press Continue. The menu is a terminal made of small CRT screens. Pressing Continue powers those screens down, a black "link" beat names the player, and the lobby arrives in full colour with the scanlines fading off it. The lobby here is a stand-in; yours is untouched.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Style</span><button class="seg" type="button" data-v="a" aria-pressed="true">A. Power down</button><button class="seg" type="button" data-v="b" aria-pressed="false">B. Scan wipe</button></div>
+    <div class="grp"><span>Speed</span><button class="seg" type="button" data-s="1" aria-pressed="true">Normal</button><button class="seg" type="button" data-s="2.5" aria-pressed="false">Slow</button></div>
+    <button class="go" type="button" id="play">Play transition</button>
+    <span class="state" id="state">MENU</span>
+  </div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="layer" id="menu">
+      <div class="scr" id="sign">CARTESIAN COLOSSEUM</div>
+      <div class="panel" id="card"><h2>CONTINUE YOUR LATEST RUN</h2>
+        <div class="scr" id="run"><div class="l">RUN</div><div class="w">Wave 1</div><div class="k">SAVED <b>Nov 4, 13:19</b><br>SCORE <b>0</b><br>PLAYED <b>0 min</b></div>
+          <div class="sq">&#9646; Anthony <em>Soldier Tank</em></div><button id="cont" type="button">&#9654; CONTINUE</button></div>
+        <div class="btn" style="left:22px">&#9654; New run</div><div class="btn" style="left:163px">Older runs (1)</div><div class="btn" style="left:304px">Delete this run</div></div>
+      <div class="panel" id="tip"><div class="scr" id="tipscr"><i></i><div class="t">PRACTICE RANGE</div><div class="m">Pick it in the lobby to play waves and bosses you set up.</div></div></div>
+    </div>
+    <div id="link"><div><span id="l1"></span><span class="cur"></span><small id="l2"></small></div></div>
+    <div class="layer" id="lobby"><div class="panel"><h3>LOBBY</h3>
+      <div class="cls" style="left:30px"><b>Soldier</b><span>Tank</span><div class="av" style="background:#4f86ff"></div><i style="background:#4f86ff"></i></div>
+      <div class="cls" style="left:260px"><b>Knight</b><span>Tank</span><div class="av" style="background:#f08a30"></div><i style="background:#f08a30"></i></div>
+      <div class="cls" style="left:490px"><b>Elementalist</b><span>Healer</span><div class="av" style="background:#47d6a0"></div><i style="background:#47d6a0"></i></div>
+      <div class="rdy" style="left:30px;background:#232c4c;border:1px solid #4a5a8e">Back</div><div class="rdy" style="left:490px;background:#5b8cff;color:#05102c">Ready</div></div></div>
+    <div id="sweep"></div><div id="resid"></div><div id="flash"></div>
+  </div></div>
+
+  <div class="cap">
+    <div><b>A. Power down</b>Screens stutter, squash to a bright line, then to a dot. Black beat: LINK ESTABLISHED, then the player and class. The lobby flashes on and the scanlines fade out over a second. About 2.8 s.</div>
+    <div><b>B. Scan wipe</b>A bright scanline sweeps down the whole view. The menu is above it and the lobby is revealed below it, and LINK ESTABLISHED flashes at the line. No black beat, so it is quicker. About 2.2 s.</div>
+    <div><b>Reduced effects</b>Both become a short crossfade with no flicker, flash or sweep.</div>
+  </div>
+</div>
+
+<script>
+var view=document.getElementById('view'), stage=document.getElementById('stage');
+function fit(){ stage.style.transform='scale('+(view.clientWidth/960)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+var $=function(id){return document.getElementById(id)};
+var variant='a', K=1, anims=[], timers=[], running=false, inLobby=false;
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function an(el,kf,t,d,ease){ var a=el.animate(kf,{delay:t*K*1000,duration:d*K*1000,fill:'forwards',easing:ease||'linear'}); anims.push(a); return a; }
+function later(fn,t){ timers.push(setTimeout(fn,t*K*1000)); }
+function type(el,txt,t,per){ for(let i=1;i<=txt.length;i++) later(function(){el.textContent=txt.slice(0,i)}, t+i*per); }
+function reset(){ anims.forEach(function(a){a.cancel()}); anims=[]; timers.forEach(clearTimeout); timers=[]; $('l1').textContent=''; $('l2').textContent=''; running=false; inLobby=false; $('state').textContent='MENU'; $('play').textContent='Play transition'; }
+var scr=[$('sign'),$('run'),$('tipscr')];
+function done(){ running=false; inLobby=true; $('state').textContent='LOBBY'; $('play').textContent='Back to menu'; }
+function runA(){
+  scr.forEach(function(s,i){ an(s,[
+    {opacity:1,transform:'scale(1,1)',filter:'brightness(1)',offset:0},
+    {opacity:.4,transform:'translateX(-4px)',offset:.08},{opacity:1,transform:'translateX(3px)',offset:.16},
+    {opacity:.5,transform:'translateX(-2px)',offset:.26},{opacity:1,transform:'scale(1,1)',filter:'brightness(1)',offset:.4},
+    {opacity:1,transform:'scale(1,.02)',filter:'brightness(4)',offset:.68},
+    {opacity:1,transform:'scale(0,.02)',filter:'brightness(5)',offset:.92},{opacity:0,transform:'scale(0,.02)',offset:1}
+  ],0+i*.05,.95,'ease-in'); });
+  an($('card'),[{opacity:1},{opacity:0}],.55,.35); an($('tip'),[{opacity:1},{opacity:0}],.55,.35);
+  an($('link'),[{opacity:0},{opacity:1}],.95,.05); type($('l1'),'LINK ESTABLISHED',1.0,.035); later(function(){ $('l2').textContent='ANTHONY / SOLDIER TANK'; },1.6);
+  an($('link'),[{opacity:1},{opacity:0}],2.0,.1);
+  an($('lobby'),[{opacity:0,transform:'scale(.98)'},{opacity:1,transform:'scale(1)'}],2.0,.45,'ease-out');
+  an($('flash'),[{opacity:.55},{opacity:0}],2.0,.2);
+  an($('resid'),[{opacity:.6},{opacity:.6,offset:.2},{opacity:0}],2.0,1.1);
+  later(done,3.1);
+}
+function runB(){
+  var H=540;
+  an($('sweep'),[{opacity:1,transform:'translateY(-120px)'},{opacity:1,transform:'translateY('+H+'px)'},{opacity:0,transform:'translateY('+(H+30)+'px)'}].map(function(f,i){f.offset=[0,.92,1][i];return f}),.2,1.3,'linear');
+  an($('menu'),[{clipPath:'inset(0 0 0 0)'},{clipPath:'inset(100% 0 0 0)'}],.2,1.2);
+  an($('lobby'),[{opacity:1,clipPath:'inset(0 0 100% 0)'},{opacity:1,clipPath:'inset(0 0 0% 0)'}],.2,1.2);
+  an($('link'),[{opacity:0,background:'rgba(0,0,0,0)'},{opacity:1,background:'rgba(0,0,0,.45)'},{opacity:0,background:'rgba(0,0,0,0)'}],.55,.9);
+  type($('l1'),'LINK ESTABLISHED',.6,.03); later(function(){ $('l2').textContent='ANTHONY / SOLDIER TANK'; },1.1);
+  an($('resid'),[{opacity:.6},{opacity:.6,offset:.25},{opacity:0}],.2,2.0);
+  an($('flash'),[{opacity:0},{opacity:.35,offset:.5},{opacity:0}],1.35,.2);
+  later(done,2.3);
+}
+function runReduced(){
+  an($('menu'),[{opacity:1},{opacity:0}],0,.3); an($('lobby'),[{opacity:0},{opacity:1}],0,.3); later(done,.35);
+}
+function play(){
+  if(running) return;
+  if(inLobby){ reset(); return; }
+  reset(); running=true; $('state').textContent='LINKING...';
+  if(reduce) runReduced(); else if(variant==='a') runA(); else runB();
+}
+$('play').onclick=play; $('cont').onclick=play;
+document.querySelectorAll('[data-v]').forEach(function(b){ b.onclick=function(){ reset(); variant=b.dataset.v; document.querySelectorAll('[data-v]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
+document.querySelectorAll('[data-s]').forEach(function(b){ b.onclick=function(){ reset(); K=+b.dataset.s; document.querySelectorAll('[data-s]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
+</script>
