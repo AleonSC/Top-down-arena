@@ -161,8 +161,7 @@ A running list of things to pick up next session. Tick off / delete as they're d
       page still says Arcane Missiles until you ask for it to be updated.
 - [x] **Radiant Orb trail.** Built (Nov 2026): style B, Stardust (`Game/RadiantOrbLooks.cs`), from
       [`Mockups/radiant-orb-trails.html`](Mockups/radiant-orb-trails.html). Light Orbs get it at half size. Drawing only.
-- [x] **Arc Lightning looks.** Built (Nov 2026): style A, Thunderhead (`Game/ArcLightningLooks.cs`), in the arena and the
-      lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
+- [x] **Arc Lightning: cone + Lichtenberg look.** Built (Nov 2026, protocol 175, no change): the strip is now a cone (24 px wide at the staff, 120 px at the far end, `Game.ArcTaper`/`ArcNear`), and that cone is what hits; Barrage's extra cones fan out from the staff. Look F (Lichtenberg) of [`Mockups/arc-lightning-2.html`](Mockups/arc-lightning-2.html) (https://claude.ai/artifact/LKmsYerhGbrtkx92cwFTq1) replaces Thunderhead (`Game/ArcLightningLooks.cs`): violet tendrils creep along the dashed cone while you charge; on release a fractal tree whips down it in 0.26 s with a branch to each enemy, cools to violet and stays as a scar for about a second (the effect now lasts 1.4 s). Needs a try in Unity (tree density/brightness, up to ~350 line segments per strip so check Barrage's frame cost, the cone against your aim). Looks round two had eight options (E to L); the rest are unbuilt. The Armory page for Arc Lightning is out of date.
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
 - [x] **Soldier DPS ability visuals: Dash, Cluster Grenade, Mark for Death.** Built (Nov 2026, no protocol change,
