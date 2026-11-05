@@ -1,0 +1,359 @@
+<title>Last Stand Rampart</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>/* Field-manual look shared with the other mockups. Single dark look by choice: it mirrors the game. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --accent:rgb(255,181,71); --amber:#ffb547; --bad:#ff7a66;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; --font-data:"IBM Plex Mono",ui-monospace,Menlo,monospace; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1180px; margin:0 auto; padding-block:28px 64px; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); display:grid; gap:24px; }
+h1,h2,h3 { font-family:var(--font-display); text-wrap:balance; margin:0; }
+h1 { font-size:clamp(30px,5vw,46px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; } h1 span { color:var(--accent); }
+h2 { font-size:19px; font-weight:700; letter-spacing:.04em; } p { margin:0; max-width:72ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+.stage { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; min-width:0; }
+canvas { display:block; width:100%; max-width:100%; height:auto; aspect-ratio:960/440; background:#070a10; cursor:crosshair; touch-action:none; }
+.bar { display:flex; flex-wrap:wrap; gap:10px 22px; align-items:center; padding:12px 14px; border-top:1px solid var(--line); }
+.group { display:flex; flex-wrap:wrap; gap:6px; align-items:center; } .label { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-right:4px; }
+button { font:600 13px var(--font-display); letter-spacing:.04em; color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:6px; padding:7px 12px; cursor:pointer; }
+button:hover { border-color:var(--accent); } button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+button[aria-pressed="true"] { background:#12243a; border-color:var(--accent); color:var(--fg); }
+#act { background:var(--accent); color:#06121f; border-color:var(--accent); font-size:14px; padding:8px 16px; } #act[data-mode="cancel"] { background:#3a1f1b; color:#ffb4a8; border-color:var(--bad); }
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border-top:1px solid var(--line); }
+.stat { background:var(--panel); padding:10px 14px; display:grid; gap:2px; min-width:0; } .stat b { font:700 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+.stat span { font:500 18px var(--font-data); color:var(--fg); font-variant-numeric:tabular-nums; }
+.hpwrap { height:8px; background:#0b0f14; border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-top:3px; } #hpBar { height:100%; width:100%; transition:background .2s; }
+.now { font:500 12px var(--font-data); color:var(--muted); padding:0 14px 12px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:10px; align-content:start; min-width:0; }
+.card h2 { font-size:15px; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; } .card ul { margin:0; padding-left:20px; display:grid; gap:7px; color:var(--soft); font-size:15px; }
+table { border-collapse:collapse; width:100%; font-size:14px; } td { padding:8px 10px; border-top:1px solid var(--line); vertical-align:top; color:var(--soft); } td:first-child { font:600 12px var(--font-display); letter-spacing:.12em; text-transform:uppercase; color:var(--amber); white-space:nowrap; width:1%; }
+.tbl { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow-x:auto; } code { font:500 13px var(--font-data); color:var(--soft); background:var(--panel-2); padding:1px 5px; border-radius:4px; }
+.notes ul { margin:0; padding-left:20px; display:grid; gap:8px; max-width:95ch; color:var(--soft); }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Knight · Tank ultimate · Option C of 3</div>
+    <h1>Last Stand <span>Rampart</span></h1>
+    <p class="lead">A straight energy wall 400 px wide, planted 110 px ahead of you between two pylons. It blocks the whole lane in front of it, so teammates can spread out behind it instead of huddling. You stay behind the middle of it, holding the line.</p>
+  </header>
+  <section class="stage" aria-label="Live preview">
+    <canvas id="cv" width="960" height="440"></canvas>
+    <div class="stats">
+      <div class="stat"><b>Knight HP</b><span id="hpTxt">400 / 400</span><div class="hpwrap"><div id="hpBar"></div></div></div>
+      <div class="stat"><b>Barrier absorbed</b><span id="abs">0</span></div>
+      <div class="stat"><b>You took</b><span id="tak">0.0</span></div>
+      <div class="stat"><b>Leaked past it</b><span id="leak">0</span></div>
+      <div class="stat"><b>Lasts about</b><span id="eta">-</span></div>
+    </div>
+    <div class="bar">
+      <div class="group"><button id="act">Plant (Q)</button><button id="replay">Reset</button></div>
+      <div class="group"><span class="label">Fire</span><span id="scBtns" class="group"></span></div>
+      <div class="group"><span class="label">You take</span><span id="pctBtns" class="group"></span></div>
+      <div class="group"><span class="label">Speed</span><span id="spdBtns" class="group"></span><button id="pause" aria-pressed="false">Pause</button></div>
+    </div>
+    <div class="now" id="now"></div>
+  </section>
+  <p class="lead" style="font-size:14px;color:var(--muted)">It plants by itself 0.7 s in. Press Q or the button to cancel early, or let the fire wear you down. Move the pointer over the arena to aim. The three coloured dots are teammates; their shots pass straight through.</p>
+  <section class="grid">
+    <div class="card"><h2>How it plays</h2><ul><li>Plant: two stakes drive in, the pylons rise and the wall unfolds outward from the middle in 0.5 s.</li><li>A shock band runs along the wall from every hit and the cell under it flares. The wall flickers when you are under 25% HP.</li><li>It turns with your cursor at 1.7 rad/s, like Aegis.</li></ul></div>
+    <div class="card"><h2>Why pick it</h2><ul><li>Biggest sheltered area in a lane fight, and teammates do not need to stack on you.</li><li>Easiest for teammates to read: a line they stay behind.</li><li>Reads as a different ability from Fortress and Shield Wall.</li></ul></div>
+    <div class="card"><h2>Watch out for</h2><ul><li>Only blocks the front. Enemies that walk round the pylons ignore it, and shots from the sides leak.</li><li>Not obviously you holding it: the wall is ahead, not on you.</li><li>A boss that targets the wall's end can shoot past the pylon.</li></ul></div>
+  </section>
+  <section class="tbl" aria-label="Numbers"><table><tr><td>Shape</td><td>A straight wall 400 px wide, 110 px ahead of you, perpendicular to your cursor. Blocks shots crossing it toward you.</td></tr><tr><td>Plant</td><td>Casting roots you: no walking, dashing or leaping while it is up. Planting takes 0.5 s and the barrier only blocks once it is down.</td></tr><tr><td>Damage share</td><td>Every point of damage the barrier stops, you take 10% of it. Shots that reach you directly hurt in full.</td></tr><tr><td>Teammates</td><td>Their bullets and abilities pass out through the barrier and through you. No friendly fire.</td></tr><tr><td>Ends</td><td>When you die, or when you press the ultimate again to cancel. No timer. The cooldown starts when it ends.</td></tr><tr><td>Replaces</td><td>Last Stand today: can't drop below 1 HP, enemies target you, +50% damage.</td></tr></table></section>
+  <section class="card notes"><h2>Build notes</h2><ul>
+    <li><code>Knight.cs</code>: <code>AbilityId.LastStand</code> keeps its enum value; its def (name, desc, no timer, cancel on second press) and the cast branch change. <code>LastStanding(p)</code> and its 1 HP clamp in <code>Combat.cs</code> go away, and so does the +50% in <code>KnightDamageMult</code>.</li>
+    <li>The 10% share is a damage redirect where the barrier consumes a shot: the shot is removed and the knight is hurt for a tenth of its damage. The Fortress dome and Shield Wall already stop shots, so the hit test has a precedent.</li>
+    <li>Rooting needs a planted flag on the player that blocks movement, dash and leap. Clients need it, and the barrier's shape and aim, so it is a snapshot change and a <code>Session.ProtocolVersion</code> bump (now 171).</li>
+    <li>The 400 HP in this mockup is a stand-in so the collapse can be seen. In the game the real value is the knight's own max HP; every number above scales with it.</li>
+    <li>This is a mockup only. Nothing in the game changes until one of the three is picked.</li>
+  </ul></section>
+</div>
+<script>
+const C = {"shape":"line","D":110,"len":400,"rgb":"255,181,71","stakes":2,"stakeOff":3.14,"allies":[[-80,-90],[-100,55],[-30,150]]};
+/* Rampart: a wide energy wall between two pylons, planted a step ahead. Shock bands run along it from each hit. */
+const NC = 20;
+const LOOK = {
+  init(S) { S.heat = new Array(NC).fill(0); S.shocks = []; },
+  onEnd(S) { for (let i = 0; i < 18; i++) { const u = (Math.random() - 0.5) * C.len, nx = Math.cos(S.aim), ny = Math.sin(S.aim); const x = KX + nx * C.D - ny * u, y = KY + ny * C.D + nx * u; spark(x, y, Math.random() * TAU, 70 + Math.random() * 100, 0.6, C.rgb, 2); } },
+  hit(S, h) { const i = clamp(Math.floor((h.u / C.len + 0.5) * NC), 0, NC - 1); for (const d of [-1, 0, 1]) { const j = i + d; if (j >= 0 && j < NC) S.heat[j] = Math.min(1.4, S.heat[j] + (d === 0 ? 1 : 0.4) * (h.big ? 1.3 : 0.8)); } S.shocks.push({ u: h.u, t: S.t, big: h.big }); },
+  tick(S, dt) { for (let i = 0; i < NC; i++) S.heat[i] = Math.max(0, S.heat[i] - dt * 3); while (S.shocks.length && S.t - S.shocks[0].t > 0.6) S.shocks.shift(); },
+  ground(ctx, S) {
+    const k = S.sc; if (k <= 0) return;
+    ctx.save(); ctx.translate(KX, KY); ctx.rotate(S.aim);
+    /* sheltered strip behind the wall */
+    ctx.fillStyle = "rgba(" + C.rgb + "," + 0.05 * k + ")"; ctx.fillRect(-C.D, -C.len / 2 * k, C.D * 2, C.len * k);
+    ctx.strokeStyle = "rgba(" + C.rgb + "," + 0.22 * k + ")"; ctx.lineWidth = 1; ctx.setLineDash([2, 7]); ctx.beginPath(); ctx.moveTo(C.D, -C.len / 2 * k); ctx.lineTo(-C.D * 0.4, -C.len / 2 * k); ctx.moveTo(C.D, C.len / 2 * k); ctx.lineTo(-C.D * 0.4, C.len / 2 * k); ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+  },
+  front(ctx, S) {
+    const k = S.sc; if (k <= 0) return; const dmg = 1 - S.integ;
+    ctx.save(); ctx.translate(KX, KY); ctx.rotate(S.aim);
+    const half = C.len / 2 * ease(S.phase === "plant" ? clamp(S.pl * 1.25) : k);
+    const flick = S.integ < 0.25 && S.phase === "up" ? 0.65 + 0.35 * Math.sin(S.t * 36) : 1;
+    /* field */
+    const g = ctx.createLinearGradient(C.D - 22, 0, C.D + 22, 0); g.addColorStop(0, "rgba(" + C.rgb + ",0.0)"); g.addColorStop(0.5, "rgba(" + C.rgb + "," + 0.22 * flick + ")"); g.addColorStop(1, "rgba(" + C.rgb + ",0.0)");
+    ctx.fillStyle = g; ctx.fillRect(C.D - 22, -half, 44, half * 2);
+    /* cells */
+    for (let i = 0; i < NC; i++) { const u0 = -C.len / 2 + i * C.len / NC, u1 = u0 + C.len / NC; if (Math.abs((u0 + u1) / 2) > half) continue; const h = S.heat[i];
+      ctx.fillStyle = "rgba(" + (h > 0.4 ? "255,255,255" : C.rgb) + "," + clamp((0.45 + h * 0.5) * flick * clamp(k * 1.3)) + ")"; ctx.fillRect(C.D - 3 - h * 2, u0 + 1.2, 6 + h * 4, u1 - u0 - 2.4); }
+    /* scanline */
+    ctx.fillStyle = "rgba(255,255,255," + 0.12 * k + ")"; const sy = ((S.t * 90) % C.len) - C.len / 2; if (Math.abs(sy) < half) ctx.fillRect(C.D - 12, sy, 24, 2);
+    /* shock bands */
+    for (const s of S.shocks) { const f = (S.t - s.t) / 0.6, w = (s.big ? 90 : 50) * f; ctx.strokeStyle = "rgba(255,255,255," + (1 - f) * 0.6 + ")"; ctx.lineWidth = 1.5; for (const sg of [-1, 1]) { const y = s.u + sg * w; if (Math.abs(y) < half) { ctx.beginPath(); ctx.moveTo(C.D - 14, y); ctx.lineTo(C.D + 14, y); ctx.stroke(); } } }
+    /* cracks */
+    if (dmg > 0.2) { ctx.strokeStyle = "rgba(255,150,110," + 0.6 * k + ")"; ctx.lineWidth = 1.2; const n = Math.floor(dmg * 10); for (let c = 0; c < n; c++) { const y = (hash(c * 2.3) - 0.5) * C.len * 0.9; if (Math.abs(y) > half) continue; ctx.beginPath(); ctx.moveTo(C.D - 12, y); ctx.lineTo(C.D, y + 8); ctx.lineTo(C.D + 4, y - 6); ctx.lineTo(C.D + 12, y + 3); ctx.stroke(); } }
+    /* pylons */
+    for (const sg of [-1, 1]) { const y = sg * half; ctx.save(); ctx.translate(C.D, y); const pr = 15 * clamp(k * 1.5);
+      const pg = ctx.createRadialGradient(-3, -3, 2, 0, 0, pr); pg.addColorStop(0, "#9fb2c6"); pg.addColorStop(1, "#47596d"); ctx.fillStyle = pg; ctx.strokeStyle = "rgba(" + C.rgb + ",0.95)"; ctx.lineWidth = 2;
+      ctx.beginPath(); for (let m = 0; m < 6; m++) { const a = m * Math.PI / 3 + Math.PI / 6; m ? ctx.lineTo(Math.cos(a) * pr, Math.sin(a) * pr) : ctx.moveTo(Math.cos(a) * pr, Math.sin(a) * pr); } ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "rgba(" + C.rgb + ",0.9)"; ctx.beginPath(); ctx.arc(0, 0, 4 * clamp(k * 1.5), 0, TAU); ctx.fill(); ctx.restore(); }
+    ctx.restore();
+  }
+};
+
+"use strict";
+/* Arena px, 1:1 with the game. Knight planted at (300,220), teammates sheltering behind, enemy fire from the right. */
+const W = 960, H = 440, TAU = Math.PI * 2, KX = 300, KY = 220, HPMAX = 400, PLANT = 0.5, COLL = 0.4;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = x => 1 - Math.pow(1 - x, 3);
+const lerp = (a, b, t) => a + (b - a) * t;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const $ = id => document.getElementById(id);
+const ui = { sc: "volley", pct: 0.1, speed: 1, paused: false };
+
+const SC = {
+  volley:   { name: "Volley",   rate: 7,  sp: 230, r: 3.5, dmg: 8,  from: "front", note: "Steady regular fire from the front, aimed at you and your teammates." },
+  boss:     { name: "Boss shells", rate: 1.4, sp: 165, r: 10, dmg: 70, from: "front", note: "Heavy shells, 70 damage each. The barrier takes the hit, you take 10% of it." },
+  surround: { name: "Surround", rate: 8,  sp: 220, r: 3.5, dmg: 8,  from: "all",   note: "Fire from every side. Shows what the shape does not cover." },
+  siege:    { name: "Siege",    rate: 18, sp: 250, r: 4,   dmg: 20, from: "front", note: "More fire than you can stand under. The barrier drops when you do." }
+};
+const ALLY_COLS = ["120,235,170", "255,200,110", "190,150,255"];
+let S;
+
+function reset(auto) {
+  const al = C.allies.map((o, i) => ({ x: KX + o[0], y: KY + o[1], hp: 100, col: ALLY_COLS[i], fireT: i * 0.09, flash: 0 }));
+  S = { t: 0, phase: "idle", auto: auto !== false, pt: 0, pl: 0, ct: 0, col: 0, sc: 0, cancelled: false,
+        aim: 0, tgtAim: 0, hp: HPMAX, absorbed: 0, taken: 0, allies: al, bullets: [], ab: [], parts: [], nums: [], log: [],
+        spawnAcc: 0, kFlash: 0, numAcc: 0, numT: 0, doneAt: 0, leaks: 0 };
+  LOOK.init(S);
+}
+function plant() { if (S.phase !== "idle") return; S.phase = "plant"; S.pt = 0; LOOK.onPlant && LOOK.onPlant(S); ring(KX, KY, 20, C.shape === "dome" ? C.R : 150, 0.45, C.rgb, 2.5); }
+function cancel() { if (S.phase !== "up" && S.phase !== "plant") return; S.cancelled = true; startCollapse(); }
+function startCollapse() { S.phase = "collapse"; S.ct = 0; S.col = 0; LOOK.onEnd && LOOK.onEnd(S); }
+function act() { if (S.phase === "idle") plant(); else if (S.phase === "up" || S.phase === "plant") cancel(); else if (S.phase === "done") reset(true); }
+
+/* ---------- particles ---------- */
+function spark(x, y, ang, sp, max, col, size) { S.parts.push({ k: "s", x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 0, max, col, size }); }
+function ring(x, y, r0, r1, max, col, w) { S.parts.push({ k: "r", x, y, r0, r1, life: 0, max, col, w: w || 2 }); }
+function num(x, y, txt, col) { S.nums.push({ x, y, txt, col, life: 0 }); }
+
+/* ---------- barrier test (enemy bullets only; teammate shots pass) ---------- */
+function crossing(x0, y0, x1, y1) {
+  if (C.shape === "dome" || C.shape === "arc") {
+    const R = C.shape === "dome" ? C.R : C.R;
+    const d0 = Math.hypot(x0 - KX, y0 - KY), d1 = Math.hypot(x1 - KX, y1 - KY);
+    if (d0 > R && d1 <= R) {
+      const a = Math.atan2(y1 - KY, x1 - KX);
+      if (C.shape === "arc") { let da = a - S.aim; da = Math.atan2(Math.sin(da), Math.cos(da)); if (Math.abs(da) > C.half) return null; }
+      return { x: KX + Math.cos(a) * R, y: KY + Math.sin(a) * R, a };
+    }
+    return null;
+  }
+  const nx = Math.cos(S.aim), ny = Math.sin(S.aim), ux = -ny, uy = nx;
+  const cx = KX + nx * C.D, cy = KY + ny * C.D;
+  const s0 = (x0 - cx) * nx + (y0 - cy) * ny, s1 = (x1 - cx) * nx + (y1 - cy) * ny;
+  if (s0 > 0 && s1 <= 0) {
+    const f = s0 / (s0 - s1), px = x0 + (x1 - x0) * f, py = y0 + (y1 - y0) * f;
+    const u = (px - cx) * ux + (py - cy) * uy;
+    if (Math.abs(u) <= C.len / 2) return { x: px, y: py, a: S.aim, u };
+  }
+  return null;
+}
+const blocking = () => S.phase === "up" || (S.phase === "collapse" && S.col < 0.15);
+
+/* ---------- enemy fire ---------- */
+function spawnEnemy(sc) {
+  let sx, sy;
+  if (sc.from === "front") { sx = W - 24; sy = 30 + Math.random() * (H - 60); }
+  else { const e = (Math.random() * 4) | 0; if (e === 0) { sx = 20; sy = 20 + Math.random() * (H - 40); } else if (e === 1) { sx = W - 20; sy = 20 + Math.random() * (H - 40); } else if (e === 2) { sx = 60 + Math.random() * (W - 120); sy = 14; } else { sx = 60 + Math.random() * (W - 120); sy = H - 14; } }
+  const tg = [{ x: KX, y: KY }].concat(S.allies.filter(a => a.hp > 0));
+  const t = tg[(Math.random() * tg.length) | 0];
+  const ang = Math.atan2(t.y - sy, t.x - sx) + (Math.random() - 0.5) * 0.09;
+  S.bullets.push({ x: sx, y: sy, vx: Math.cos(ang) * sc.sp, vy: Math.sin(ang) * sc.sp, r: sc.r, dmg: sc.dmg, big: sc.r > 6 });
+  S.parts.push({ k: "r", x: sx, y: sy, r0: 3, r1: 12, life: 0, max: 0.2, col: "255,110,90", w: 1.5 });
+}
+
+function hurtKnight(raw, direct) {
+  const take = direct ? raw : raw * ui.pct;
+  S.hp = Math.max(0, S.hp - take); S.taken += take; S.kFlash = 1; S.numAcc += take; S.log.push({ t: S.t, v: take });
+  if (S.hp <= 0 && (S.phase === "up" || S.phase === "plant")) { S.cancelled = false; S.down = true; startCollapse(); }
+}
+
+function step(dt) {
+  S.t += dt;
+  const sc = SC[ui.sc];
+  /* phases */
+  if (S.phase === "idle" && S.auto && S.t >= 0.7) plant();
+  if (S.phase === "plant") { S.pt += dt; S.pl = clamp(S.pt / PLANT); if (S.pt >= PLANT) { S.phase = "up"; S.pl = 1; } }
+  if (S.phase === "collapse") { S.ct += dt; S.col = clamp(S.ct / COLL); if (S.ct >= COLL) { S.phase = "done"; S.doneAt = S.t; } }
+  if (S.phase === "done" && S.t - S.doneAt > 4) reset(true);
+  S.sc = S.phase === "plant" ? ease(S.pl) : S.phase === "up" ? 1 : S.phase === "collapse" ? 1 - ease(S.col) : 0;
+  S.integ = S.hp / HPMAX;
+  /* aim: free until planted, then it turns slowly */
+  const planted = S.phase === "plant" || S.phase === "up";
+  if (planted && C.shape !== "dome") { let d = S.tgtAim - S.aim; d = Math.atan2(Math.sin(d), Math.cos(d)); S.aim += clamp(d, -1.7 * dt, 1.7 * dt); }
+  else if (!planted && S.phase !== "collapse") S.aim = S.tgtAim;
+  /* spawn */
+  S.spawnAcc += dt * sc.rate;
+  while (S.spawnAcc >= 1) { S.spawnAcc -= 1; spawnEnemy(sc); }
+  /* teammates shoot straight out through the barrier */
+  for (const a of S.allies) { if (a.hp <= 0) continue; a.flash = Math.max(0, a.flash - dt * 6); a.fireT -= dt;
+    if (a.fireT <= 0) { a.fireT = 0.3; const an = S.aim + (Math.random() - 0.5) * 0.06; S.ab.push({ x: a.x + Math.cos(an) * 14, y: a.y + Math.sin(an) * 14, vx: Math.cos(an) * 440, vy: Math.sin(an) * 440, col: a.col }); } }
+  for (let i = S.ab.length - 1; i >= 0; i--) { const b = S.ab[i]; b.x += b.vx * dt; b.y += b.vy * dt; if (b.x < -20 || b.x > W + 20 || b.y < -20 || b.y > H + 20) S.ab.splice(i, 1); }
+  /* enemy bullets */
+  for (let i = S.bullets.length - 1; i >= 0; i--) {
+    const b = S.bullets[i], x0 = b.x, y0 = b.y; b.x += b.vx * dt; b.y += b.vy * dt;
+    if (blocking()) {
+      const hit = crossing(x0, y0, b.x, b.y);
+      if (hit) {
+        hit.dmg = b.dmg; hit.big = b.big; hit.bvx = b.vx; hit.bvy = b.vy; hit.t = S.t;
+        S.absorbed += b.dmg; hurtKnight(b.dmg, false);
+        LOOK.hit(S, hit);
+        const back = Math.atan2(-b.vy, -b.vx);
+        for (let k = 0; k < (b.big ? 12 : 5); k++) spark(hit.x, hit.y, back + (Math.random() - 0.5) * 1.5, 80 + Math.random() * (b.big ? 200 : 120), 0.35, C.rgb, b.big ? 2.2 : 1.5);
+        ring(hit.x, hit.y, 3, b.big ? 34 : 18, b.big ? 0.4 : 0.25, C.rgb, b.big ? 3 : 1.6);
+        num(hit.x - 6, hit.y - 10, "" + b.dmg, "170,185,200");
+        S.bullets.splice(i, 1); continue;
+      }
+    }
+    if (Math.hypot(b.x - KX, b.y - KY) < b.r + 17) { hurtKnight(b.dmg, true); S.leaks += b.dmg; for (let k = 0; k < 6; k++) spark(b.x, b.y, Math.random() * TAU, 90, 0.3, "255,110,80", 1.6); num(KX, KY - 30, "-" + b.dmg, "255,110,90"); S.bullets.splice(i, 1); continue; }
+    let gone = false;
+    for (const a of S.allies) if (a.hp > 0 && Math.hypot(b.x - a.x, b.y - a.y) < b.r + 13) { a.hp = Math.max(0, a.hp - b.dmg); a.flash = 1; S.leaks += b.dmg; for (let k = 0; k < 5; k++) spark(b.x, b.y, Math.random() * TAU, 80, 0.3, "255,110,80", 1.5); num(a.x, a.y - 22, "-" + b.dmg, "255,110,90"); gone = true; break; }
+    if (gone || b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30) S.bullets.splice(i, 1);
+  }
+  /* knight damage popups, batched */
+  S.numT += dt; if (S.numAcc >= 1 || (S.numAcc > 0 && S.numT > 0.45)) { if (S.numT > 0.18) { num(KX + 8, KY - 34, "-" + (S.numAcc < 10 ? S.numAcc.toFixed(1) : Math.round(S.numAcc)), "255,120,100"); S.numAcc = 0; S.numT = 0; } }
+  S.kFlash = Math.max(0, S.kFlash - dt * 5);
+  while (S.log.length && S.t - S.log[0].t > 4) S.log.shift();
+  LOOK.tick && LOOK.tick(S, dt);
+  for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.life += dt; if (p.life >= p.max) { S.parts.splice(i, 1); continue; } if (p.k === "s") { p.x += p.vx * dt; p.y += p.vy * dt; const k = Math.exp(-4 * dt); p.vx *= k; p.vy *= k; } }
+  for (let i = S.nums.length - 1; i >= 0; i--) { const n = S.nums[i]; n.life += dt; n.y -= 22 * dt; if (n.life > 0.9) S.nums.splice(i, 1); }
+}
+
+/* ---------- drawing ---------- */
+function drawFloor() {
+  ctx.fillStyle = "#070a10"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "rgba(70,95,120,0.14)"; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+}
+/* stakes driven into the floor around the knight: n of them at radius r */
+function anchors(n, r, len, off) {
+  const e = ease(S.sc); if (e <= 0) return;
+  for (let i = 0; i < n; i++) {
+    const a = (off || 0) + i / n * TAU, c = Math.cos(a), s = Math.sin(a), r0 = r + len * (1 - e) + 4, r1 = r0 + len * e;
+    ctx.fillStyle = "rgba(20,28,38,0.95)"; ctx.strokeStyle = "rgba(" + C.rgb + "," + (0.5 * e) + ")"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(KX + c * r0 - s * 4, KY + s * r0 + c * 4); ctx.lineTo(KX + c * r1, KY + s * r1); ctx.lineTo(KX + c * r0 + s * 4, KY + s * r0 - c * 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  if (S.pl < 1 && S.phase === "plant") { ctx.strokeStyle = "rgba(" + C.rgb + "," + (0.35 * (1 - S.pl)) + ")"; ctx.lineWidth = 1; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + 0.2; ctx.beginPath(); ctx.moveTo(KX + Math.cos(a) * 24, KY + Math.sin(a) * 24); ctx.lineTo(KX + Math.cos(a) * (24 + 40 * S.pl), KY + Math.sin(a) * (24 + 40 * S.pl)); ctx.stroke(); } }
+}
+function drawKnight() {
+  const stance = S.phase === "plant" ? ease(S.pl) : S.phase === "up" ? 1 : S.phase === "collapse" ? 1 - ease(S.col) : 0;
+  const r = 17 + stance * 2.5, shake = (S.phase === "up" ? S.kFlash : 0) * 1.2 * (Math.random() - 0.5);
+  ctx.save(); ctx.translate(KX + shake, KY + shake); ctx.rotate(S.aim);
+  /* tower shield */
+  ctx.fillStyle = "#3b4c60"; ctx.strokeStyle = "rgba(" + C.rgb + "," + (0.55 + 0.4 * stance) + ")"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(r + 2, -15 - 7 * stance); ctx.lineTo(r + 9 + 4 * stance, -9); ctx.lineTo(r + 9 + 4 * stance, 9); ctx.lineTo(r + 2, 15 + 7 * stance); ctx.closePath(); ctx.fill(); ctx.stroke();
+  /* body */
+  const g = ctx.createRadialGradient(-4, -4, 2, 0, 0, r); g.addColorStop(0, "#c2d0de"); g.addColorStop(1, "#6a7d92");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+  ctx.strokeStyle = S.kFlash > 0.05 ? "rgba(255,120,100," + S.kFlash + ")" : "#27323f"; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.fillStyle = "#1c2530"; ctx.beginPath(); ctx.arc(2, 0, 7, 0, TAU); ctx.fill();
+  ctx.strokeStyle = "rgba(" + C.rgb + ",0.9)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(1, -3); ctx.lineTo(9, -3); ctx.moveTo(1, 3); ctx.lineTo(9, 3); ctx.stroke();
+  ctx.restore();
+}
+function drawAllies() {
+  for (const a of S.allies) {
+    if (a.hp <= 0) { ctx.fillStyle = "rgba(90,100,110,0.5)"; ctx.beginPath(); ctx.arc(a.x, a.y, 9, 0, TAU); ctx.fill(); continue; }
+    ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(S.aim);
+    ctx.fillStyle = "rgba(" + a.col + ",0.95)"; ctx.beginPath(); ctx.arc(0, 0, 12, 0, TAU); ctx.fill();
+    ctx.strokeStyle = a.flash > 0.05 ? "rgba(255,110,90," + a.flash + ")" : "rgba(10,14,20,0.9)"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = "#1a2230"; ctx.fillRect(6, -2.5, 12, 5);
+    ctx.restore();
+    ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(a.x - 13, a.y + 17, 26, 3); ctx.fillStyle = "rgba(" + a.col + ",1)"; ctx.fillRect(a.x - 13, a.y + 17, 26 * a.hp / 100, 3);
+  }
+}
+function drawBullets() {
+  for (const b of S.bullets) {
+    const sp = Math.hypot(b.vx, b.vy), tx = b.vx / sp, ty = b.vy / sp;
+    ctx.strokeStyle = "rgba(255,90,70,0.35)"; ctx.lineWidth = b.r * 1.3; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(b.x - tx * (b.big ? 22 : 12), b.y - ty * (b.big ? 22 : 12)); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.fillStyle = b.big ? "#ffb08a" : "#ff6a52"; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, TAU); ctx.fill();
+  }
+  for (const b of S.ab) { ctx.strokeStyle = "rgba(" + b.col + ",0.95)"; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(b.x - b.vx * 0.022, b.y - b.vy * 0.022); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+}
+function drawParts() {
+  for (const p of S.parts) { const f = p.life / p.max;
+    if (p.k === "s") { ctx.fillStyle = "rgba(" + p.col + "," + (1 - f) + ")"; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (1 - f * 0.5), 0, TAU); ctx.fill(); }
+    else { ctx.strokeStyle = "rgba(" + p.col + "," + (1 - f) * 0.85 + ")"; ctx.lineWidth = p.w * (1 - f * 0.6); ctx.beginPath(); ctx.arc(p.x, p.y, lerp(p.r0, p.r1, ease(f)), 0, TAU); ctx.stroke(); } }
+  ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+  for (const n of S.nums) { ctx.fillStyle = "rgba(" + n.col + "," + (1 - n.life / 0.9) + ")"; ctx.fillText(n.txt, n.x, n.y); }
+}
+function banner() {
+  let t = "", c = "#92a1ad";
+  if (S.phase === "idle") t = "Teammates under fire. Plant to shield them.";
+  else if (S.phase === "plant") { t = "Planting (can be hit)"; c = "#ffb547"; }
+  else if (S.phase === "up") { t = "Planted: " + (C.shape === "dome" ? "can't move" : "can't move, turns slowly"); c = "rgb(" + C.rgb + ")"; }
+  else if (S.phase === "collapse" || S.phase === "done") { t = S.down ? "Knight down: the barrier is gone" : "Cancelled: moving again"; c = S.down ? "#ff7a66" : "#ffb547"; }
+  ctx.font = "700 13px Oxanium, sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = c; ctx.fillText(t.toUpperCase(), 14, 24);
+}
+function draw() {
+  drawFloor();
+  LOOK.ground(ctx, S);
+  anchors(C.stakes, 30, 20, C.stakeOff || 0);
+  drawAllies();
+  drawKnight();
+  LOOK.front(ctx, S);
+  drawBullets();
+  drawParts();
+  banner();
+}
+function hud() {
+  const hp = Math.ceil(S.hp);
+  $("hpBar").style.width = (S.hp / HPMAX * 100) + "%"; $("hpBar").style.background = S.integ > 0.5 ? "rgb(" + C.rgb + ")" : S.integ > 0.25 ? "#ffb547" : "#ff6a52";
+  $("hpTxt").textContent = hp + " / " + HPMAX;
+  $("abs").textContent = Math.round(S.absorbed); $("tak").textContent = S.taken.toFixed(1); $("leak").textContent = Math.round(S.leaks);
+  const rate = S.log.reduce((a, l) => a + l.v, 0) / Math.min(4, Math.max(1, S.t));
+  $("eta").textContent = (S.phase === "up" && rate > 0.05) ? "about " + Math.round(S.hp / rate) + " s" : "-";
+  const b = $("act"); b.textContent = S.phase === "idle" ? "Plant (Q)" : (S.phase === "up" || S.phase === "plant") ? "Cancel early (Q)" : S.phase === "done" ? "Replay" : "...";
+  b.dataset.mode = S.phase === "up" || S.phase === "plant" ? "cancel" : "plant";
+  $("now").textContent = SC[ui.sc].note;
+}
+
+/* ---------- ui ---------- */
+function mk(box, items, key, cb) {
+  const el = $(box); el.innerHTML = "";
+  items.forEach(([v, label]) => { const b = document.createElement("button"); b.textContent = label; b.setAttribute("aria-pressed", String(ui[key] === v)); b.onclick = () => { ui[key] = v; cb && cb(v); [...el.children].forEach((c, i) => c.setAttribute("aria-pressed", String(items[i][0] === ui[key]))); }; el.appendChild(b); });
+}
+mk("scBtns", Object.keys(SC).map(k => [k, SC[k].name]), "sc", () => reset(true));
+mk("pctBtns", [[0.05, "5%"], [0.1, "10%"], [0.15, "15%"], [0.25, "25%"]], "pct", () => reset(true));
+mk("spdBtns", [[0.25, "¼×"], [1, "1×"], [3, "3×"]], "speed");
+$("act").onclick = act; $("replay").onclick = () => reset(true);
+$("pause").onclick = e => { ui.paused = !ui.paused; e.target.setAttribute("aria-pressed", String(ui.paused)); };
+window.addEventListener("keydown", e => { if (e.key === "q" || e.key === "Q") act(); });
+cv.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); const x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height; if (S) S.tgtAim = Math.atan2(y - KY, x - KX); });
+cv.addEventListener("pointerleave", () => { if (S) S.tgtAim = 0; });
+reset(true);
+let last = performance.now(), acc = 0;
+function frame(now) {
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!ui.paused) { acc += dt * ui.speed; while (acc > 1 / 120) { step(1 / 120); acc -= 1 / 120; } }
+  draw(); hud(); requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__arena = { get S() { return S; }, step, draw, hud, reset, act };
+
+</script>
