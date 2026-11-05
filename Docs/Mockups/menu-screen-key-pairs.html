@@ -1,0 +1,191 @@
+<title>Main Menu Screen Key Pairs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game's canvas) scaled to fit. Tactile buttons sit on the blue chassis, digital ones live on green screens. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --gold: #f2c14e; --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --danger: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .tac:focus-visible, .sm:focus-visible, .go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.log { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .06em; margin-left: auto; min-height: 1em; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
+
+/* screens (digital) */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.roll { position: absolute; left: 0; right: 0; height: 34%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.05), transparent); animation: roll 7s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px var(--glow); }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; }
+.sm { font: 22px/1 var(--f-crt); letter-spacing: .05em; color: var(--ink); background: rgba(77,255,154,.07); border: 2px solid var(--ink); padding: 5px 12px 3px; cursor: pointer; text-shadow: inherit; white-space: nowrap; }
+.sm:hover, .sm:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; }
+.sm.big { font-size: 28px; padding: 10px 16px 8px; }
+.sm.del { color: var(--danger); border-color: var(--danger); background: rgba(255,107,122,.07); }
+.sm.del:hover, .sm.del:focus-visible, .sm.del.armed { background: var(--danger); color: #1a0508; }
+
+/* chassis (tactile) */
+.chassis { position: absolute; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.chassis::before, .chassis::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; letter-spacing: .02em; cursor: pointer; border-radius: 10px;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28);
+  transition: transform .06s, box-shadow .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); }
+.tac:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0f22, 0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+.tac .led { position: absolute; left: 13px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac:hover .led, .tac:focus-visible .led { background: #6cff9a; box-shadow: 0 0 9px #6cff9a; }
+.tac.play { font-size: 30px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); }
+.h2 { position: absolute; margin: 0; font: 700 25px var(--f-ui); letter-spacing: .03em; color: #fff; text-shadow: 0 0 10px rgba(110,255,170,.45); }
+.state { position: absolute; inset: 0; }
+[hidden] { display: none !important; }
+
+
+
+/* screen + key pairs */
+.sc { position: relative; z-index: 1; height: 100%; padding: 0 18px; display: flex; flex-direction: column; justify-content: center; }
+.sc .v { font-size: 34px; line-height: 1; letter-spacing: .05em; white-space: nowrap; }
+.sc .s { font-size: 17px; line-height: 1.05; color: var(--dim); text-shadow: none; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc.big .v { font-size: 54px; } .sc.big .s { font-size: 20px; margin-top: 6px; }
+.sc.sm1 .v { font-size: 24px; } .sc.sm1 .s { display: none; }
+.cur { display: none; } .hot .cur { display: inline-block; }
+.scr { transition: background .12s, box-shadow .12s; }
+.scr.hot { background: #05200f; box-shadow: inset 0 0 36px rgba(0,0,0,.7), 0 0 0 3px #0d1a14, 0 0 0 4px #4dff9a, 0 0 18px rgba(77,255,154,.35); }
+.tac.hot { filter: brightness(1.14); } .tac.hot .led { background: #6cff9a; box-shadow: 0 0 9px #6cff9a; }
+.tac.play { padding-left: 14px; }
+.tac.tall { display: grid; place-items: center; padding: 0; }
+.tac.tall .led { top: 14px; margin-top: 0; left: 50%; margin-left: -4px; }
+.tac.pw { padding-top: 0; display: grid; place-items: center; }
+.tac.pw svg { width: 22px; height: 22px; }
+.deck { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.big-d .v { font-size: 56px; }
+.d-rows { position: absolute; left: 18px; right: 18px; bottom: 16px; font-size: 20px; line-height: 1.15; }
+.d-rows div { display: flex; justify-content: space-between; border-top: 1px dashed rgba(77,255,154,.25); padding: 3px 0 0; margin-top: 3px; }
+.d-rows span:first-child { color: var(--dim); text-shadow: none; }
+.legend b em { font-style: normal; color: var(--gold); margin-left: 6px; font-size: 13px; letter-spacing: .08em; }
+.quit { position: absolute; left: 624px; top: 676px; width: 32px; height: 32px; opacity: .55; }
+
+/* tip */
+#tip { left: 300px; top: 460px; width: 680px; height: 92px; transition: top .2s; }
+#tipscr { left: 10px; top: 10px; width: 660px; height: 72px; padding: 8px 20px 0 92px; }
+#tipscr i { position: absolute; left: 14px; top: 10px; width: 52px; height: 52px; border: 2px solid var(--ink); background: rgba(77,255,154,.07); }
+#tipscr .t { font-size: 24px; line-height: 1; } #tipscr .m { font-size: 17px; color: var(--dim); text-shadow: none; margin-top: 3px; line-height: 1; }
+#tipscr .n { position: absolute; right: 18px; top: 8px; font-size: 16px; color: var(--dim); text-shadow: none; }
+.title { left: 112px; top: 24px; width: 1056px; height: 96px; display: grid; place-items: center; font-size: 80px; letter-spacing: .05em; position: absolute; border-radius: 8px; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.legend b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 3px; }
+@media (prefers-reduced-motion: reduce) { .roll, .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Main menu: screen + key pairs</h1>
+    <p>The "Your runs" window pairs a green CRT screen with a physical key beside it: the screen says where you are, the key is the thing you press. Five ways to carry that onto the main menu buttons. Hover a key (or its screen) to see the pair light up; the screen cursor starts blinking. In look D the single screen follows the key you hover.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Layout</span>
+      <button class="seg" type="button" data-l="A" aria-pressed="true">A Console rows</button>
+      <button class="seg" type="button" data-l="B" aria-pressed="false">B Hero + trio</button>
+      <button class="seg" type="button" data-l="C" aria-pressed="false">C Module grid</button>
+      <button class="seg" type="button" data-l="D" aria-pressed="false">D One screen, key bank</button>
+      <button class="seg" type="button" data-l="E" aria-pressed="false">E Header screen + Quit</button></div>
+    <span class="log" id="log" aria-live="polite"></span>
+  </div>
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="scr title" id="sign"><div class="roll"></div><span style="position:relative;z-index:1">CARTESIAN COLOSSEUM</span></div>
+    <div class="chassis" id="card" style="left:300px;top:232px;width:680px;transition:height .2s"><div class="deck" id="deck"></div></div>
+    <svg class="quit" id="quit" viewBox="0 0 32 32" fill="none" stroke="#c8d6ff" stroke-width="3" stroke-linecap="round"><path d="M16 4v11"/><path d="M9 9a10 10 0 1 0 14 0"/></svg>
+    <div class="chassis" id="tip" style="left:300px;width:680px;height:92px"><div class="scr" id="tipscr"><div class="roll"></div><i></i><div class="n">8 / 14</div><div class="t">PERFECT PARRY</div><div class="m">Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.</div></div></div>
+  </div></div>
+  <div class="legend" id="legend"></div>
+</div>
+<script>
+var view=document.getElementById('view'), stage=document.getElementById('stage'), $=function(i){return document.getElementById(i)};
+function fit(){ stage.style.transform='scale('+(view.clientWidth/1280)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+var ITEMS={
+ play:{n:'PLAY',k:'&#9654; Play',s:'LATEST: WAVE 24',rows:[['LATEST RUN','WAVE 24'],['SQUAD','ANTHONY + ALEON'],['SAVES ON FILE','3']]},
+ join:{n:'JOIN GAME',k:'Join',s:'TYPE A HOST ADDRESS',rows:[['LAST HOST','192.168.1.20'],['PORT','7777'],['STATUS','READY']]},
+ rec:{n:'RECORDS',k:'Open',s:'BEST WAVE 31 · 47 RUNS',rows:[['BEST WAVE','31'],['BEST SCORE','24,900'],['RUNS PLAYED','47']]},
+ set:{n:'SETTINGS',k:'Open',s:'AUDIO 80% · FX ON',rows:[['AUDIO','80%'],['EFFECTS','ON'],['FULLSCREEN','OFF']]}
+};
+var PW='<svg viewBox="0 0 32 32" fill="none" stroke="#e9efff" stroke-width="3" stroke-linecap="round"><path d="M16 4v11"/><path d="M9 9a10 10 0 1 0 14 0"/></svg>';
+function scr(p,x,y,w,h,inner,extra){ return '<div class="scr" data-p="'+p+'" style="left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px'+(extra||'')+'"><div class="roll"></div>'+inner+'</div>'; }
+function key(p,x,y,w,h,txt,cls,st){ return '<button class="tac '+(cls||'')+'" type="button" data-p="'+p+'" data-act="'+p+'" style="left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;'+(st||'')+'"><i class="led"></i>'+txt+'</button>'; }
+function sc(it,cls){ return '<div class="sc '+(cls||'')+'"><div class="v">'+it.n+'<span class="cur"></span></div><div class="s">'+it.s+'</div></div>'; }
+var L={};
+L.A=function(){ var o='',y=22,hs=[76,54,54,54],ks=['play','join','rec','set'];
+  ks.forEach(function(k,i){ var it=ITEMS[k],h=hs[i];
+    o+=scr(k,22,y,496,h,sc(it,i?'':'')); o+=key(k,532,y,126,h,it.k,k=='play'?'play':'','padding-top:'+(h/2-12)+'px;'+(k=='play'?'font-size:26px;':'')); y+=h+10; });
+  return {h:y-10+22,html:o}; };
+L.B=function(){ var o='';
+  o+=scr('play',22,22,470,98,sc(ITEMS.play,'big')); o+=key('play',506,22,152,98,ITEMS.play.k,'play','padding-top:36px;font-size:30px');
+  [['join',22],['rec',238],['set',454]].forEach(function(a){ var it=ITEMS[a[0]];
+    o+=scr(a[0],a[1],134,204,46,sc(it,'sm1')); o+=key(a[0],a[1],188,204,44,it.k,'','padding-top:11px'); });
+  return {h:254,html:o}; };
+L.C=function(){ var o='',pos=[['play',22,22],['join',349,22],['rec',22,120],['set',349,120]];
+  pos.forEach(function(a){ var it=ITEMS[a[0]];
+    o+=scr(a[0],a[1],a[2],190,84,sc(it)); o+=key(a[0],a[1]+204,a[2],107,84,it.k,a[0]=='play'?'play':'','padding-top:28px;'+(a[0]=='play'?'font-size:24px':'')); });
+  return {h:226,html:o}; };
+L.D=function(){ var o='',ks=['play','join','rec','set'],y=22;
+  var sw='<div class="sc" id="dsc" style="justify-content:flex-start;padding-top:20px"></div>';
+  o+=scr('dscr',22,22,430,238,sw);
+  ks.forEach(function(k,i){ o+=key(k,466,22+i*62,192,52,ITEMS[k].k,k=='play'?'play':'','padding-top:'+(k=='play'?10:13)+'px;'+(k=='play'?'font-size:26px':'')); });
+  return {h:282,html:o,after:function(){ showD('play'); }}; };
+L.E=function(){ var o='';
+  o+=scr('menu',22,22,530,52,'<div class="sc sm1"><div class="v">MAIN MENU<span class="cur" style="display:inline-block"></span></div></div>');
+  o+='<button class="tac pw" type="button" data-p="quit" data-act="quit" style="left:566px;top:22px;width:92px;height:52px"><i class="led" style="left:10px"></i><span style="display:flex;gap:6px;align-items:center;font-size:15px">'+PW+'Quit</span></button>';
+  o+=key('play',22,90,636,84,ITEMS.play.k,'play','padding-top:26px;font-size:34px');
+  [['join',22],['rec',238],['set',454]].forEach(function(a){ o+=key(a[0],a[1],190,204,50,ITEMS[a[0]].n.replace('JOIN GAME','Join').replace('RECORDS','Records').replace('SETTINGS','Settings'),'','padding-top:13px'); });
+  return {h:262,html:o,noquit:1}; };
+function showD(k){ var it=ITEMS[k]; $('dsc').innerHTML='<div class="v" style="font-size:56px;line-height:1;letter-spacing:.05em">'+it.n+'<span class="cur" style="display:inline-block"></span></div><div class="s" style="font-size:20px;margin-top:6px">'+it.s+'</div><div class="d-rows">'+it.rows.map(function(r){return '<div><span>'+r[0]+'</span><span>'+r[1]+'</span></div>'}).join('')+'</div>'; }
+var NOTES={
+ A:['<b>A Console rows</b>Every button is a row: a screen with the name and a live readout (latest wave, best wave, audio) and its own key on the right. Most "screen-like", every button gets a status line. Play is a taller row. Stack ends at y 542.',
+    '<b>Why</b>The same shape as Your runs, repeated four times, so nothing new to learn. The cost is height (about 290 px of box against 214 today) and four screens competing for attention.',
+    '<b>Cheap variant</b>Drop the readout on Join and Settings (name only) so the status lines mean something: Play and Records only.'],
+ B:['<b>B Hero + trio</b>Play is the big pair (screen with the latest run, huge key). Join, Records and Settings are small pairs with the key under the screen, since there is no width to put it beside.',
+    '<b>Why</b>Keeps today\'s hierarchy: Play first, the rest secondary. Close to the current layout, so the least change in muscle memory.',
+    '<b>Catch</b>The small screens only hold a name, so they are mostly decoration. The key under the screen breaks the "key beside" rule.'],
+ C:['<b>C Module grid</b>Four equal pairs, 2 by 2, key beside each screen. Play is told apart only by its brighter key.',
+    '<b>Why</b>Compact (226 px) and symmetrical. Reads as a control panel.',
+    '<b>Catch</b>Play loses its weight; a first-time player has to find it. Fine if Continue is moved into the screen text.'],
+ D:['<b>D One screen, key bank</b>One big screen, four keys in a column beside it. The screen shows the key you hover or focus (description and a few readouts); Play is shown by default. Try hovering each key.',
+    '<b>Why</b>The most faithful copy of the Your runs idea (one screen, a key next to it) and the screen has room for real information, so the tip box could even merge into it.',
+    '<b>Catch</b>The screen changes on hover only, so gamepad and keyboard need focus to drive it too. Touch has no hover.'],
+ E:['<b>E Header screen + Quit</b>Exactly the Your runs header: a small screen that says MAIN MENU_ with a physical key next to it, here the Quit key (the loose power icon moves into it). Below it today\'s Play key and trio unchanged.',
+    '<b>Why</b>Smallest change, and it gives Quit a proper home. The header screen could also scroll the latest tip or the host address.',
+    '<b>Catch</b>The screen does little on its own; it is chrome, like in the picker.']
+};
+var cur='A';
+function build(l){ cur=l; var r=L[l](); $('deck').innerHTML=r.html; $('card').style.height=r.h+'px';
+  $('tip').style.top=(232+r.h+14)+'px'; $('quit').style.display=r.noquit?'none':''; if(r.after) r.after();
+  document.querySelectorAll('.seg').forEach(function(b){ b.setAttribute('aria-pressed',b.dataset.l===l); });
+  $('legend').innerHTML=NOTES[l].map(function(t){return '<div>'+t+'</div>'}).join('');
+  $('log').textContent='LAYOUT '+l+' · stack ends y '+(232+r.h+14+92); }
+function hot(p,on){ if(!p) return; document.querySelectorAll('[data-p="'+p+'"]').forEach(function(e){ e.classList.toggle('hot',on); }); }
+document.addEventListener('mouseover',function(e){ var t=e.target.closest('[data-p]'); if(!t) return; hot(t.dataset.p,true); if(cur=='D'&&ITEMS[t.dataset.p]){ hot('dscr',true); showD(t.dataset.p); } });
+document.addEventListener('mouseout',function(e){ var t=e.target.closest('[data-p]'); if(!t) return; hot(t.dataset.p,false); if(cur=='D') hot('dscr',false); });
+document.addEventListener('focusin',function(e){ var t=e.target.closest('[data-p]'); if(t){ hot(t.dataset.p,true); if(cur=='D'&&ITEMS[t.dataset.p]) showD(t.dataset.p); } });
+document.addEventListener('focusout',function(e){ var t=e.target.closest('[data-p]'); if(t) hot(t.dataset.p,false); });
+document.addEventListener('click',function(e){ var s=e.target.closest('.seg'); if(s){ build(s.dataset.l); return; } var k=e.target.closest('.tac'); if(k&&k.dataset.act) $('log').textContent='PRESSED '+k.dataset.act.toUpperCase(); });
+build('A');
+</script>
