@@ -17,7 +17,8 @@ namespace Arena
         const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
         const float MistRadius = 130f, MistTime = 6f, SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
         const float VanishTime = 3f, AmbushGrace = 1f, FanDamage = 18f, KunaiBonus = 0.5f;
-        const float BlossomTime = 5f, BlossomHeal = 20f, BlossomClear = 100f, LotusRange = 350f, LotusDamage = 100f;
+        const float BlossomTime = 5f, BlossomHeal = 20f, BlossomClear = 100f, LotusRange = 350f, LotusDamage = 100f, LotusStagger = 0.11f, LotusStaggerCap = 0.07f, LotusStain = 2.2f;
+        public static readonly Rgba LotusCrimson = new Rgba(1f, 0.18f, 0.42f);
 
         // --- Weapons ------------------------------------------------------------------
 
@@ -411,17 +412,17 @@ namespace Arena
                     int most = cap ? 14 : 8;
                     if (marks.Count > most)
                         marks.RemoveRange(most, marks.Count - most);
-                    V2 from = p.Pos;
-                    foreach (var e in marks)
+                    float gap = cap ? LotusStaggerCap : LotusStagger;  // the cuts show one after another; the damage lands now
+                    BroadcastFx(FxKind.DeathLotus, p.Pos, new V2(-1f, p.Id), LotusCrimson, marks.Count, marks.Count * gap + 1.5f, Sfx.SwingHeavy);
+                    for (int i = 0; i < marks.Count; i++)
                     {
+                        var e = marks[i];
                         float dmg = LotusDamage * s.DmgMult;
                         HurtEnemy(e, dmg, p.Id);
-                        OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - from).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
-                        BroadcastFx(FxKind.Slash, from, e.Pos, new Rgba(1f, 0.55f, 0.75f), 0.12f, 0.35f, Sfx.None);
-                        from = e.Pos;
+                        OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                        BroadcastFx(FxKind.DeathLotus, e.Pos, new V2(i * gap, p.Id), LotusCrimson, e.Radius, i * gap + LotusStain, Sfx.None);
                     }
                     p.InvulnT = Math.Max(p.InvulnT, 1f);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.55f, 0.75f), 70f, 0.4f, Sfx.SwingHeavy);
                     return true;
                 }
             }

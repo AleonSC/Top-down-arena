@@ -92,6 +92,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
 - `LumenWardLook.cs`: Lumen Ward's cone of light (look A, Cathedral, of `Docs/Mockups/sanctify-cone.html`: bands, god rays, dust) and the halo on bullets it holds
+- `DeathLotusLook.cs`: the Ninja's Death Lotus (Crimson Reaping: dark arena, three glowing cuts and a lotus stain per enemy struck, camera kick; `FxKind.DeathLotus`)
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies

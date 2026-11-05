@@ -126,6 +126,9 @@ namespace Arena
                 case FxKind.Tsunami:
                     DrawTsunamiFx(fx, t);  // ElementalistLooks.cs
                     break;
+                case FxKind.DeathLotus:
+                    DrawDeathLotusFx(fx);  // DeathLotusLook.cs
+                    break;
                 case FxKind.RiotBlock:
                     DrawRiotBlockFx(fx);  // RiotGearLook.cs
                     break;
