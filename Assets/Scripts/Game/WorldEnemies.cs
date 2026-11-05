@@ -199,6 +199,11 @@ namespace Arena
                     Circle(z.Pos, 12f, new Rgba(0.45f, 0.32f, 0.2f), 12);
                     break;
                 case ZoneKind.Smoke:  // billowing grey puffs
+                    if (fxOn)
+                    {
+                        DrawSmokeCloud(z, t);  // SmokeBombLook.cs
+                        break;
+                    }
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.18f), 40);
                     for (int k = 0; k < 9; k++)
                     {
