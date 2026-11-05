@@ -112,6 +112,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `SanctumLook.cs`: Sanctum's Bubble look (shimmering shell, pulse discs and sparkles, rim flare, flicker at the end); the old plain dome with Visual effects off
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
+- `LegionLook.cs`: Legion (Summoner DPS ultimate): the blood moon and red tint, drawn from `Player.LegionT`
 - `BulletRainLook.cs`: Bullet Rain (Elementalist DPS ultimate, `ZoneKind.BulletRain`): arena-wide rain, needles hardening in the zone
 - `ArtilleryLook.cs`: Artillery Assault (DPS Soldier ultimate, once Bullet Storm): heat aura and ring, speed streaks, muzzle flash
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)

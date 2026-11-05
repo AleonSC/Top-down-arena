@@ -529,7 +529,7 @@ namespace Arena
                         m.BlockHp = d.BlockCapacity * m.Scale;  // back on its feet
                 }
                 bool frenzy = owner.FrenzyT > 0f && !m.NoFrenzy;
-                float speed = d.Speed * (frenzy ? 1.6f : 1f);
+                float speed = d.Speed * (frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
                 float rate = owner.Stats.FireRateMult * (frenzy ? 2f : 1f);
                 float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;
                 float reach = d.Range * m.Scale;
@@ -571,6 +571,15 @@ namespace Arena
                     if (MoveSent(m, owner, dt))  // sent at something by the Wisp Lantern or Imp Caller (they don't act on their own)
                         exploding.Add(m);
                     m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
+
+                if (m.Hold > 0f)  // Legion's pack circles its owner before it is let loose
+                {
+                    m.Hold -= dt;
+                    m.Ang += 7f * dt;
+                    float ring = m.Kind == MinionKind.Wolf ? LegionRing : LegionRing * 0.65f;
+                    m.Pos += (owner.Pos + V2.FromAngle(m.Ang) * ring - m.Pos).LimitLength(900f * dt);
                     continue;
                 }
 

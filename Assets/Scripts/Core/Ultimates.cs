@@ -6,6 +6,7 @@ namespace Arena
     /// Ultimates (F): one per role and class, on a long cooldown (host only).
     public partial class Game
     {
+        public const float LegionRing = 46f, LegionHold = 1.1f, LegionSpeed = 1.4f;  // Legion: the pack circles you, then runs 40% faster
         public const float BulletRainRadius = 165f, BulletRainWetTime = 3f;  // Bullet Rain's zone (the Elementalist DPS ultimate)
         /// Lifeline: seconds of invulnerability, how long its look runs (the 3 s plus a 0.7 s fade, Game/LifelineLook.cs), and the
         /// plain ring and beam it also sends, which that look replaces when Visual effects are on (their durations mark them).
@@ -89,7 +90,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Legion, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and your other minions frenzy.",
+                Name = "Legion", Cooldown = 70f, Desc = "A blood moon rises. Summon 6 wolves and 6 bats that circle you, then run 40% faster for 10 s; your other minions frenzy.",
                 Capstone = "Summons 10 wolves and 10 bats.",
             },
         };
@@ -195,16 +196,21 @@ namespace Arena
                     break;
                 }
 
-                case AbilityId.Legion:  // DPS: Summoner
+                case AbilityId.Legion:  // DPS: Summoner. Blood Moon: the pack circles you, then is let loose, faster than normal
                     int pack = cap ? 10 : 6;
                     for (int i = 0; i < pack; i++)
                     {
-                        V2 d = V2.FromAngle(MathX.Tau * i / pack);
-                        SpawnMinion(MinionKind.Wolf, p, p.Pos + d * 30f, 10f).NoFrenzy = true;
-                        SpawnMinion(MinionKind.Bat, p, p.Pos + d * 18f, 10f).NoFrenzy = true;
+                        float a = MathX.Tau * i / pack;
+                        var w = SpawnMinion(MinionKind.Wolf, p, p.Pos + V2.FromAngle(a) * LegionRing, 10f);
+                        var b = SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(a + 0.5f) * (LegionRing * 0.65f), 10f);
+                        w.NoFrenzy = b.NoFrenzy = true;  // the pack has its own speed-up
+                        w.Hold = b.Hold = LegionHold;
+                        w.Ang = a;
+                        b.Ang = a + 0.5f;
                     }
-                    p.FrenzyT = Math.Max(p.FrenzyT, 10f);  // your other minions frenzy; the pack itself doesn't
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 140f, 0.5f, Sfx.Roar);
+                    p.LegionT = 10f;
+                    p.FrenzyT = Math.Max(p.FrenzyT, 10f);  // your other minions frenzy
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.3f, 0.3f), 140f, 0.5f, Sfx.Roar);
                     break;
             }
         }

@@ -416,6 +416,7 @@ namespace Arena
             s.Int(ref p.LinkTo);
             s.Float(ref p.AegisT);
             s.Float(ref p.FrenzyT);
+            s.Float(ref p.LegionT);
             s.Float(ref p.UltT);
             s.Float(ref p.DomeT);
             s.Vec(ref p.DomePos);
