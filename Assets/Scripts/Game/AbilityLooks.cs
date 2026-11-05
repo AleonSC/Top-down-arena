@@ -64,7 +64,7 @@ namespace Arena
             Buff(p => p.LinkT, new Rgba(0.6f, 1f, 0.9f)),          // Soul Link
             Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Aeroaegis
             Buff(p => p.FrenzyT, new Rgba(1f, 0.5f, 0.3f)),        // Alpha Call
-            Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Unbreakable
+            Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Cavalry Call: the guard
             Buff(p => p.FuryT, new Rgba(1f, 0.3f, 0.2f)),          // Battle Fury
             Buff(p => p.WhirlT, new Rgba(0.8f, 0.85f, 0.9f)),      // Whirlwind
             Buff(p => p.IronT, new Rgba(0.75f, 0.78f, 0.85f)),     // Iron Body

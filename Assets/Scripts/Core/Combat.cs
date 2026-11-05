@@ -40,7 +40,7 @@ namespace Arena
             if (p.AdrenalineT > 0f)
                 amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
-                amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
+                amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot

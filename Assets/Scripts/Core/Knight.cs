@@ -688,10 +688,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Unbreakable, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
-                Name = "Unbreakable", Cooldown = 16f, Desc = "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal.",
-                Capstone = "Lasts 8 s.",
-                Bot = b => b.Danger,
+                Id = AbilityId.CavalryCall, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
+                Name = "Cavalry Call", Cooldown = 18f, Desc = "Two lancers ride in at your sides and charge across the map along your aim. Each enemy they meet takes 35, is shoved out of the lane and slowed 45% for 3 s (Heavy enemies and bosses barely move and are slowed less). You take 20% less damage for 3 s.",
+                Capstone = "Two more lancers ride outside the first pair, and the guard lasts 5 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
@@ -783,9 +783,8 @@ namespace Arena
                     // The Bulwark look (Game/LeapSlamLook.cs) covers the whole leap, landing and stun from this one effect.
                     BroadcastFx(FxKind.LeapSlam, p.Pos, target, LeapBoomColor.WithAlpha(cap ? 1f : 0.5f), p.Id * 1000f + SlamRadius * s.SlamRadiusMult, LeapTime + LeapFxTail + 1f + s.SlamStunBonus, Sfx.None);
                     return true;
-                case AbilityId.Unbreakable:
-                    p.UnbreakT = cap ? 8f : 5f;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.85f, 0.75f, 0.5f), 60f, 0.4f, Sfx.Clang);
+                case AbilityId.CavalryCall:
+                    CastCavalryCall(p, target, cap, pw);  // CavalryCall.cs
                     return true;
                 case AbilityId.Consecrate:
                 {
@@ -885,10 +884,10 @@ namespace Arena
         /// Damage multiplier from Knight buffs on whoever dealt the hit (applied in HurtEnemy).
         float KnightDamageMult(Player p) => p.FuryT > 0f ? 1.25f : 1f;
 
-        /// Unbreakable and Battle Fury (with Bloodlust) heal you for part of what you deal.
+        /// Battle Fury (with Bloodlust) heals you for part of what you deal.
         void KnightLifesteal(Player p, float dealt)
         {
-            float frac = (p.UnbreakT > 0f ? 0.15f + p.Stats.UnbreakHealBonus : 0f) + (p.FuryT > 0f ? p.Stats.FuryLifesteal : 0f);
+            float frac = (p.FuryT > 0f ? p.Stats.FuryLifesteal : 0f);
             if (frac > 0f && !p.Downed && dealt > 0f)
                 Heal(p, dealt * frac, p);
         }

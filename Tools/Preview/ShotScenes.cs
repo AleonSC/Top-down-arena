@@ -261,6 +261,25 @@ static partial class Shot {
         en.FrozenT = stunned ? 99f : 0f; en.Frozen = stunned;
       }
     }
+    if (Environment.GetEnvironmentVariable("CAVALRY") != null) {
+      // A Tank Knight's Cavalry Call look (CavalryCallLook.cs): CAVALRY=<seconds after the cast> (lancers appear 0.45 s, ride 0.85 s to 2.75 s), CAVMASTERED=1 for four lancers, CAVAIM=<radians>. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank);
+      float ct = float.Parse(Environment.GetEnvironmentVariable("CAVALRY"));
+      float aimA = float.Parse(Environment.GetEnvironmentVariable("CAVAIM") ?? "0.14");
+      V2 from = new V2(300f, 450f), dirC = V2.FromAngle(aimA);
+      me.Pos = me.Disp = from; me.Aim = aimA; me.AimAt = from + dirC * 300f;
+      bool capC = Environment.GetEnvironmentVariable("CAVMASTERED") != null;
+      gm.Effects.Add(new Effect { Kind = FxKind.CavalryCall, Pos = from, Pos2 = from + dirC * Game.CavRange, Color = new Rgba(1f, 0.82f, 0.36f, capC ? 1f : 0.5f), Radius = capC ? 4f : 2f, Dur = Game.CavEndT + Game.CavFadeT + 0.6f, T = ct });
+      float[,] spotsC = { { 380f, 10f }, { 520f, -40f }, { 560f, 60f }, { 700f, 0f }, { 860f, -90f }, { 900f, 110f }, { 1050f, 20f }, { 640f, 200f }, { 780f, -230f } };
+      for (int i = 0; i < 9; i++) {
+        V2 at = from + dirC * spotsC[i, 0] + dirC.Orthogonal() * spotsC[i, 1];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i % 4 == 3 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+      }
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
