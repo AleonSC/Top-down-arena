@@ -1,0 +1,263 @@
+<title>New Run Lobby</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: a 960x540 stage scaled to fit. Menu layer (title, Start a Run panel with its green console, player card) and a lobby window that grows out of the console. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55);
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 66ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.go { font: 700 15px var(--f-ui); color: #04140b; background: var(--ink); border: 0; border-radius: 8px; padding: 9px 18px; cursor: pointer; }
+.go:focus-visible, .seg:focus-visible, #newrun:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.state { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .08em; margin-left: auto; }
+
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { --scan: .2; --mask: none; position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage.strong { --scan: .42; --mask: repeating-linear-gradient(90deg, rgba(255,40,40,.07) 0 1px, rgba(40,255,40,.07) 1px 2px, rgba(40,80,255,.07) 2px 3px); }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+
+/* CRT screen: phosphor background, scanlines, vignette */
+.scr { position: absolute; background: radial-gradient(70% 80% at 50% 45%, #0a2a1b 0%, rgba(10,42,27,0) 100%), linear-gradient(rgba(77,255,154,.045) 1px, transparent 1px) 0 0 / 100% 4px, var(--sbg);
+  color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 30px rgba(0,0,0,.8), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,var(--scan)) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: var(--mask), radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.6) 100%); }
+.scr > * { position: relative; z-index: 1; }
+.panel { position: absolute; border-radius: 14px; border: 1px solid #4a68b8; background: linear-gradient(#2f3d68, #12162c 85%); box-shadow: 0 0 30px rgba(80,120,255,.14); }
+.panel::before, .panel::after { content: ""; position: absolute; width: 20px; height: 20px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.panel::before { left: -8px; top: -8px; border-right: 0; border-bottom: 0; } .panel::after { right: -8px; bottom: -8px; border-left: 0; border-top: 0; }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* menu */
+#sign { left: 130px; top: 14px; width: 700px; height: 70px; border-radius: 8px; display: grid; place-items: center; font-size: 60px; letter-spacing: .05em;
+  text-shadow: -2px 0 rgba(255,60,90,.75), 2px 0 rgba(60,120,255,.75), 0 0 12px var(--glow); }
+#card { left: 250px; top: 112px; width: 460px; height: 300px; }
+#ttl { left: 22px; top: 14px; width: 338px; height: 30px; border-radius: 3px; padding-left: 14px; font-size: 26px; line-height: 31px; letter-spacing: .04em; }
+.btn { position: absolute; border-radius: 6px; font: 700 13px var(--f-ui); text-align: center; color: #fff; background: linear-gradient(#5273d6, #2c428f); border: 1px solid #7f9bf0; box-shadow: 0 2px 0 #17214d; }
+#back { left: 372px; top: 14px; width: 66px; height: 30px; line-height: 28px; }
+#newrun { left: 22px; top: 256px; width: 416px; height: 30px; font-size: 15px; cursor: pointer; padding: 0; }
+#newrun:hover { filter: brightness(1.18); }
+#console { left: 272px; top: 166px; width: 416px; height: 190px; border-radius: 3px; display: grid; place-items: center; }
+#ctext { text-align: center; font-family: var(--f-ui); }
+#ctext b { display: block; font-size: 17px; letter-spacing: .03em; text-shadow: none; }
+#ctext span { display: block; font-size: 11px; color: var(--dim); margin-top: 5px; text-shadow: none; }
+#pcard { left: 250px; top: 432px; width: 460px; height: 52px; border-radius: 8px; border: 2px solid #9b5cff; box-shadow: 0 0 18px rgba(155,92,255,.35);
+  background: linear-gradient(90deg, #0e1226 55%, rgba(155,92,255,.25)), #0e1226; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 8px; }
+#pcard .av { width: 36px; height: 36px; border-radius: 6px; background: #151b36; display: grid; place-items: center; }
+#pcard .av i { width: 18px; height: 18px; border-radius: 50%; background: #b9c4ee; box-shadow: 0 0 8px #7f93d8; }
+#pcard .who { flex: 1; line-height: 1.1; } #pcard .who b { display: block; font-size: 17px; color: #fff; } #pcard .who span { font-size: 12px; font-weight: 700; color: #f0b030; }
+#pcard .bdg { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(#f6cf60, #b27a12); color: #3a2400; font: 700 12px/34px var(--f-ui); text-align: center; box-shadow: 0 0 10px rgba(240,176,48,.5); }
+
+/* lobby window (CRT) */
+#winframe { left: 80px; top: 26px; width: 800px; height: 488px; opacity: 0; z-index: 9; }
+#win { left: 90px; top: 36px; width: 780px; height: 468px; z-index: 10; opacity: 0; border-radius: 0; font-family: var(--f-ui); text-shadow: 0 0 5px rgba(120,255,190,.22); color: #cfdcff; font-size: 11px; }
+#opening { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 2; display: grid; place-items: center; font: 34px/1 var(--f-crt); letter-spacing: .1em; color: var(--ink); text-shadow: 0 0 8px var(--glow), 0 0 18px var(--glow); opacity: 0; pointer-events: none; }
+.roll { position: absolute; left: 0; right: 0; top: 0; height: 110px; z-index: 2; pointer-events: none; background: linear-gradient(transparent, rgba(120,255,180,.07) 55%, rgba(150,255,200,.11) 98%, transparent); animation: roll 7s linear infinite; }
+@keyframes roll { from { transform: translateY(-120px); } to { transform: translateY(520px); } }
+.c { position: absolute; inset: 0; padding: 16px; display: flex; gap: 14px; animation: flick 6s steps(1) infinite; }
+@keyframes flick { 0%, 100% { opacity: 1; } 31% { opacity: .96; } 32% { opacity: 1; } 71% { opacity: .94; } 72% { opacity: 1; } }
+#wsweep { position: absolute; left: 0; right: 0; top: 0; height: 90px; z-index: 2; opacity: 0; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(77,255,154,.12) 70%, rgba(150,255,200,.6) 99%, #eafff2 100%); box-shadow: 0 0 20px 3px var(--glow); }
+.it { opacity: 0; }
+.left { width: 196px; flex: none; display: flex; flex-direction: column; gap: 8px; }
+.right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+.lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.lab b { font: 400 19px/1 var(--f-crt); letter-spacing: .08em; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+.lab span { font-weight: 600; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #7f93c8; }
+.row { display: grid; gap: 6px; } .r4 { grid-template-columns: repeat(4, 1fr); } .r2 { grid-template-columns: 1fr 1fr; }
+.opt { height: 25px; border-radius: 6px; border: 1px solid #34457a; background: rgba(18,28,62,.78); color: #cfdcff; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.opt.sel { border-color: #6aa0ff; background: rgba(54,92,200,.5); color: #fff; box-shadow: 0 0 10px rgba(90,140,255,.45), inset 0 0 8px rgba(120,170,255,.25); }
+.opt.lock { border-style: dashed; border-color: #2b3560; background: rgba(10,16,36,.5); color: #55608a; font-size: 11px; }
+.opt i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.role .opt { height: 34px; font-size: 15px; }
+.role .opt svg { flex: none; }
+svg.lk { width: 9px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.asc { display: flex; align-items: center; gap: 8px; height: 26px; }
+.asc > b { font-size: 10px; letter-spacing: .06em; color: #aebbe0; line-height: 1.05; white-space: nowrap; } .asc > b em { display: block; font-style: normal; color: #7f93c8; font-weight: 600; }
+.chip { flex: 1; height: 24px; border: 1px dashed #2b3560; border-radius: 5px; background: rgba(10,16,36,.5); font-size: 9.5px; font-weight: 700; color: #f0b030; line-height: 1; padding: 3px 6px; opacity: .85; }
+.chip em { display: block; font-style: normal; color: #55608a; font-weight: 600; }
+.arr { color: #34457a; font-size: 14px; }
+.detail { position: relative; flex: 1; min-height: 0; border: 1px solid #2c3b70; background: rgba(8,16,36,.62); display: grid; grid-template-columns: 1fr 1fr; }
+.detail::before, .detail::after { content: ""; position: absolute; width: 16px; height: 16px; border: 2px solid rgba(110,165,255,.8); pointer-events: none; }
+.detail::before { left: -3px; top: -3px; border-right: 0; border-bottom: 0; } .detail::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
+.col { padding: 10px 14px 0; display: flex; flex-direction: column; min-height: 0; } .col + .col { border-left: 1px solid #1f2b57; }
+.col small { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #7f93c8; }
+.col h4 { margin: 1px 0 4px; font-size: 20px; color: #fff; line-height: 1.05; }
+.col p { margin: 0 0 5px; font-size: 10.5px; line-height: 1.25; color: #aebbe0; }
+.col p.m { color: #f0b030; }
+.chips { margin-top: auto; display: flex; gap: 6px; margin-bottom: 0; }
+.cs { flex: 1; height: 34px; background: #151e45; display: flex; align-items: center; gap: 6px; padding: 0 8px; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: #8fa0d0; }
+.cs b { font-size: 19px; color: #fff; letter-spacing: 0; }
+.ring { width: 22px; height: 22px; border-radius: 50%; flex: none; background: conic-gradient(#f0b030 0 100%, #2a3050 0); display: grid; place-items: center; }
+.ring::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: #121a3a; }
+.prev { height: 116px; border: 1px solid #34457a; position: relative; background: linear-gradient(rgba(90,130,255,.08) 1px, transparent 1px) 0 0 / 100% 14px, rgba(4,14,12,.6); }
+.tri { position: absolute; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 11px solid #ef4d52; filter: drop-shadow(0 0 4px #ef4d52); }
+.pl { position: absolute; left: 90px; top: 78px; width: 16px; height: 16px; border-radius: 50%; background: #dce6ff; box-shadow: 0 0 10px #8fb0ff; }
+.pl::after { content: ""; position: absolute; left: 4px; top: -22px; width: 8px; height: 18px; background: linear-gradient(#ffe27a, transparent); }
+.pname { text-align: center; font-size: 18px; font-weight: 700; color: #fff; margin: 2px 0 0; }
+.stat { display: grid; grid-template-columns: 1fr auto; font-size: 10.5px; font-weight: 600; color: #aebbe0; row-gap: 2px; margin-bottom: 7px; }
+.stat b { color: #fff; } .stat .bar { grid-column: 1 / -1; height: 4px; background: #1a2347; } .stat .bar i { display: block; height: 100%; }
+.abil { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: center; margin-top: 2px; }
+.abring { width: 44px; height: 44px; border-radius: 50%; background: conic-gradient(#f0b030 0 70%, #2a3050 0); display: grid; place-items: center; }
+.abring span { width: 34px; height: 34px; border-radius: 50%; background: #0a1226; display: grid; place-items: center; font-size: 18px; font-weight: 700; color: #fff; }
+.abil h5 { margin: 0; font-size: 16px; color: #f0b030; line-height: 1; } .abil div div { font-size: 9.5px; color: #8fa0d0; line-height: 1.2; font-weight: 600; }
+.atxt { font-size: 10px; line-height: 1.25; color: #aebbe0; margin: 6px 0 0; } .atxt em { display: block; font-style: normal; color: #f0b030; margin-top: 4px; }
+.hint { margin-top: auto; text-align: center; font-size: 8.5px; letter-spacing: .08em; color: #55608a; font-weight: 700; }
+
+.cap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 22px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.cap b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 2px; }
+@media (prefers-reduced-motion: reduce) { .roll, .c, .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>New run to lobby</h1>
+    <p>Pressing New run on the Start a Run panel powers up the green console. The console opens outward until it is the lobby window, and the lobby is drawn on a CRT screen: phosphor glow, scanlines, a slow roll bar and a faint flicker. The lobby controls keep their usual colours on top. The menu elements around it step aside as it opens.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>CRT</span><button class="seg" type="button" data-c="" aria-pressed="true">Subtle</button><button class="seg" type="button" data-c="strong" aria-pressed="false">Strong</button></div>
+    <div class="grp"><span>Speed</span><button class="seg" type="button" data-s="1" aria-pressed="true">Normal</button><button class="seg" type="button" data-s="2.5" aria-pressed="false">Slow</button></div>
+    <button class="go" type="button" id="play">Press New run</button>
+    <button class="seg" type="button" id="skip">Jump to lobby</button>
+    <span class="state" id="state">MENU</span>
+  </div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="lock" viewBox="0 0 9 10"><rect x="1" y="4.5" width="7" height="5" rx="1"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5"/></symbol></defs></svg>
+
+    <div class="scr" id="sign">CARTESIAN COLOSSEUM</div>
+    <div class="panel" id="card">
+      <div class="scr" id="ttl">START A RUN</div>
+      <div class="btn" id="back">&#8592; Back</div>
+      <button class="btn" id="newrun" type="button">&#9654; New run</button>
+    </div>
+    <div class="scr" id="console"><div id="ctext"><b>NO SAVED RUNS YET.</b><span>Start a run: it's saved from its first wave on, until it's won or lost.</span></div></div>
+    <div id="pcard"><div class="av"><i></i></div><div class="who"><b>Anthony</b><span>Legend &middot; Rank 999</span></div><div class="bdg">999</div></div>
+
+    <div class="panel" id="winframe"></div>
+    <div class="scr" id="win">
+      <div class="roll"></div><div id="wsweep"></div>
+      <div id="opening"><span id="o1"></span><span class="cur"></span></div>
+      <div class="c">
+        <div class="left it">
+          <div class="prev"><i class="tri" style="left:36px;top:22px"></i><i class="tri" style="left:90px;top:14px"></i><i class="tri" style="left:146px;top:22px"></i><i class="pl"></i></div>
+          <div class="pname">Soldier Tank</div>
+          <div>
+            <div class="stat"><span>HEALTH</span><b>240 HP</b><div class="bar"><i style="width:82%;background:#4ade80"></i></div></div>
+            <div class="stat"><span>SPEED</span><b>185</b><div class="bar"><i style="width:62%;background:#4f8bff"></i></div></div>
+            <div class="stat"><span>RANGE</span><b>278 px</b><div class="bar"><i style="width:44%;background:#f0b030"></i></div></div>
+            <div class="stat"><span>DAMAGE</span><b>154 / s</b><div class="bar"><i style="width:70%;background:#ef4d52"></i></div></div>
+          </div>
+          <div class="abil"><div class="abring"><span>F</span></div><div><h5>Fortress</h5><div>70 s to charge<br>starts each match half full</div></div></div>
+          <p class="atxt">Raises a fixed, impenetrable dome for 10 s. Only players and player bullets can get in or shoot through: enemies and their shots can't.<em>&#9733; Mastered (Lv 5): Lasts 14 s.</em></p>
+          <div class="hint">CLICK THE RING TO PREVIEW</div>
+        </div>
+
+        <div class="right">
+          <div class="it role"><div class="lab"><b>ROLE</b><span>Big HP pool. Enemies prefer to target you.</span></div>
+            <div class="row r4">
+              <div class="opt sel"><svg width="11" height="12" viewBox="0 0 10 12"><path d="M5 0L10 2V6Q10 10 5 12Q0 10 0 6V2Z" fill="#8fb4ff"/></svg>Tank</div>
+              <div class="opt"><b style="color:#4ade80;font-size:17px">+</b>Healer</div>
+              <div class="opt"><b style="color:#f0883a;font-size:15px">/</b>DPS</div>
+              <div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+
+          <div class="it"><div class="lab"><b>CLASS</b><span>Guns and gear. Full health.</span></div>
+            <div class="row r4" style="margin-bottom:6px">
+              <div class="opt sel"><i style="background:#4ade80"></i>Soldier</div><div class="opt"><i style="background:#f0883a"></i>Elementalist</div><div class="opt"><i style="background:#47d6e8"></i>Summoner</div><div class="opt"><i style="background:#dfe8ff"></i>Knight</div></div>
+            <div class="row r4">
+              <div class="opt"><i style="background:#ef4d52"></i>Ninja</div><div class="opt"><i style="background:#ef4d52"></i>Hemomancer</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+
+          <div class="it" style="display:grid;grid-template-columns:1.12fr 1fr;gap:16px">
+            <div><div class="lab"><b>WEAPON</b></div><div class="row r2" style="margin-bottom:6px"><div class="opt sel">Scattergun</div><div class="opt">Flak Cannon</div></div><div class="row r2"><div class="opt">Riot Repeater</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+            <div><div class="lab"><b>ABILITY</b></div><div class="row r2" style="margin-bottom:6px"><div class="opt sel">Barrier</div><div class="opt">Roar</div></div><div class="row r2"><div class="opt">Bulldoze</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+          </div>
+
+          <div class="it asc"><b>SCATTERGUN<em>ASCENSIONS 0/3</em></b>
+            <div class="chip">Ascension I<em>Locked</em></div><span class="arr">&#8250;</span><div class="chip">Ascension II<em>Locked</em></div><span class="arr">&#8250;</span><div class="chip">Ascension III<em>Locked</em></div></div>
+
+          <div class="it detail">
+            <div class="col"><small>WEAPON</small><h4>Scattergun</h4><p>A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back.</p>
+              <div class="chips"><div class="cs"><b>7</b>PER HIT</div><div class="cs"><b>2</b>SHOTS / S</div></div></div>
+            <div class="col"><small>ABILITY</small><h4>Barrier</h4><p>A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage).</p><p class="m">&#9733; Mastered (Lv 5): Bullets that hit the barrier are reflected back as your own.</p>
+              <div class="chips"><div class="cs"><span class="ring"></span><b>12 s</b>COOLDOWN</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="cap">
+    <div><b>1. Press New run</b>The button lights, the "No saved runs" text clears and the green console flares. The title, panel frame and player card slide away.</div>
+    <div><b>2. Console opens</b>The console grows from its own edges to the full lobby window, with OPENING LOBBY typed in the middle. A bright scanline sweeps down it as it settles.</div>
+    <div><b>3. CRT lobby</b>The lobby fades in section by section on the CRT background, then the blue frame closes around it. The roll bar and flicker keep running. About 2.4 s in total.</div>
+    <div><b>Reduced effects</b>The menu crossfades to the lobby. The roll bar and flicker are off.</div>
+  </div>
+</div>
+
+<script>
+var view=document.getElementById('view'), stage=document.getElementById('stage');
+function fit(){ stage.style.transform='scale('+(view.clientWidth/960)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+var $=function(id){return document.getElementById(id)};
+var K=1, anims=[], timers=[], running=false, inLobby=false, touched=false;
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function an(el,kf,t,d,ease){ var a=el.animate(kf,{delay:t*K*1000,duration:Math.max(d*K*1000,1),fill:'forwards',easing:ease||'linear'}); anims.push(a); return a; }
+function later(fn,t){ timers.push(setTimeout(fn,t*K*1000)); }
+function type(el,txt,t,per){ for(let i=1;i<=txt.length;i++) later(function(){el.textContent=txt.slice(0,i)}, t+i*per); }
+function reset(){ anims.forEach(function(a){a.cancel()}); anims=[]; timers.forEach(clearTimeout); timers=[]; $('o1').textContent=''; running=false; inLobby=false; $('state').textContent='MENU'; $('play').textContent='Press New run'; }
+function done(){ running=false; inLobby=true; $('state').textContent='LOBBY'; $('play').textContent='Back to menu'; }
+var items=document.querySelectorAll('.it');
+var CLIP0='inset(130px 182px 148px 182px round 3px)', CLIP1='inset(0px 0px 0px 0px round 0px)';
+function run(){
+  /* press */
+  an($('newrun'),[{filter:'brightness(1)'},{filter:'brightness(1.7)',offset:.4},{filter:'brightness(1.2)'}],0,.3);
+  an($('ctext'),[{opacity:1},{opacity:0}],.1,.25);
+  an($('console'),[{filter:'brightness(1)'},{filter:'brightness(2.1)'}],0,.4,'ease-in');
+  /* menu steps aside */
+  an($('sign'),[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-30px)'}],.25,.5,'ease-in');
+  an($('card'),[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.96)'}],.25,.45,'ease-in');
+  an($('pcard'),[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(30px)'}],.25,.5,'ease-in');
+  /* console becomes the lobby window */
+  an($('console'),[{opacity:1},{opacity:0}],.4,.01);
+  an($('win'),[{opacity:1,filter:'brightness(2.1)',clipPath:CLIP0},{opacity:1,filter:'brightness(1)',clipPath:CLIP1}],.4,.8,'cubic-bezier(.65,0,.25,1)');
+  an($('opening'),[{opacity:0,offset:0},{opacity:1,offset:.1},{opacity:1,offset:.78},{opacity:0,offset:1}],.5,.7);
+  type($('o1'),'OPENING LOBBY',.5,.03);
+  an($('wsweep'),[{opacity:1,transform:'translateY(-90px)',offset:0},{opacity:1,transform:'translateY(468px)',offset:.92},{opacity:0,transform:'translateY(500px)',offset:1}],1.05,1.0);
+  an($('winframe'),[{opacity:0},{opacity:1}],1.15,.4);
+  items.forEach(function(it,i){ an(it,[{opacity:0,transform:'translateY(6px)',offset:0},{opacity:.9,offset:.2},{opacity:.3,offset:.34},{opacity:1,offset:.5},{opacity:.7,offset:.62},{opacity:1,transform:'none',offset:1}],1.05+i*.13,.4); });
+  later(done,2.4);
+}
+function runReduced(){
+  ['sign','card','pcard','console'].forEach(function(id){ an($(id),[{opacity:1},{opacity:0}],0,.3); });
+  an($('win'),[{opacity:0},{opacity:1}],0,.3); an($('winframe'),[{opacity:0},{opacity:1}],0,.3);
+  items.forEach(function(it){ an(it,[{opacity:0},{opacity:1}],.1,.3); });
+  later(done,.4);
+}
+function play(){
+  touched=true;
+  if(running) return;
+  if(inLobby){ reset(); return; }
+  reset(); running=true; $('state').textContent='OPENING...';
+  if(reduce) runReduced(); else run();
+}
+$('play').onclick=play; $('newrun').onclick=play;
+$('skip').onclick=function(){ touched=true; reset(); var k=K; K=.001; running=true; if(reduce) runReduced(); else run(); K=k; };
+document.querySelectorAll('[data-s]').forEach(function(b){ b.onclick=function(){ reset(); K=+b.dataset.s; document.querySelectorAll('[data-s]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
+document.querySelectorAll('[data-c]').forEach(function(b){ b.onclick=function(){ stage.classList.toggle('strong',b.dataset.c==='strong'); document.querySelectorAll('[data-c]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
+setTimeout(function(){ if(!touched) play(); },1200);
+</script>
