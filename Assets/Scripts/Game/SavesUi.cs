@@ -173,7 +173,7 @@ namespace Arena
                 }
             }
             CrtUi.End(scr, Time.unscaledTime, calm);
-            if (MenuVhs.Draw(newRun, "TRK 03", live, fxReduced, () => Ui.ActionButton(newRun, "New run", !any, Ui.Primary, PixelArt.Get("ui_play"), null, 20)) && live)
+            if (MenuVhs.Draw(newRun, "TRK 03", live, fxReduced, () => KeyUi.Key(newRun, "New run", PixelArt.Get("ui_play"), 20)) && live)
                 StartNewRun();
             if (!inside)
                 return;
@@ -282,11 +282,7 @@ namespace Arena
             CrtUi.End(hs, Time.unscaledTime, calm);
             var br = new Rect(c.xMax - 30f - 120f, c.y + 10f, 120f, 44f);
             bool back = MenuVhs.Draw(br, "TRK 02", live, fxReduced, () =>
-            {
-                bool b = Ui.ActionButton(br, "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 15);
-                Ui.Fill(new Rect(br.xMax - 14f, br.center.y - 3f, 6f, 6f), CrtUi.Ink);   // the lamp
-                return b;
-            });
+                KeyUi.Key(br, "Back", PixelArt.Get("ui_back"), 15, true));  // a keycap with its lamp always lit
             if (live && back)
                 PlayPickerBack();
         }

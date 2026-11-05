@@ -1,0 +1,212 @@
+<title>Mechanical Menu Buttons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: the 1280x720 menu stage as it is now (box 320 tall, player card below). Three mechanical button styles swap in by class on the stage. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --danger: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span, .snd { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.grp > span { margin-right: 4px; }
+.snd { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .mech:focus-visible, .pcard:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.log { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .06em; margin-left: auto; min-height: 1em; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
+[hidden] { display: none !important; }
+
+/* screens (digital) */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; }
+.sm2 { font: 22px/1 var(--f-crt); letter-spacing: .05em; color: var(--ink); background: rgba(77,255,154,.07); border: 2px solid var(--ink); padding: 5px 12px 3px; cursor: pointer; text-shadow: inherit; white-space: nowrap; position: relative; z-index: 8; }
+.sm2:hover, .sm2:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.sm2.big { font-size: 24px; padding: 7px 14px 5px; } .sm2.del { color: var(--danger); border-color: var(--danger); background: rgba(255,107,122,.07); font-size: 20px; }
+.sm2.del:hover, .sm2.del.armed { background: var(--danger); color: #1a0508; }
+.title { position: absolute; left: 112px; top: 66px; width: 1056px; height: 120px; display: grid; place-items: center; font-size: 100px; letter-spacing: .05em; }
+.axis { position: absolute; left: 240px; top: 196px; width: 800px; height: 14px; background: linear-gradient(#5b78c8,#5b78c8) center/100% 2px no-repeat, repeating-linear-gradient(90deg, #5b78c8 0 2px, transparent 2px 26px) center/100% 10px no-repeat; opacity: .7; }
+.chassis { position: absolute; left: 300px; top: 268px; width: 680px; height: 320px; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.chassis::before, .chassis::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.h2 { position: absolute; left: 30px; top: 10px; width: 488px; height: 44px; padding: 5px 16px; font-size: 32px; line-height: 1.1; }
+
+/* ---------- mechanical buttons: shared ---------- */
+.mech { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; font-family: var(--f-ui); color: #eef2ff; -webkit-tap-highlight-color: transparent; }
+.mech .well, .mech .cap { position: absolute; }
+.mech .cap { inset: 0; display: flex; align-items: center; justify-content: center; gap: 14px; font-weight: 700; user-select: none; }
+.mech svg { width: 1.05em; height: 1.05em; fill: currentColor; flex: none; }
+.mech .lamp { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #18204a; box-shadow: inset 0 1px 2px rgba(0,0,0,.7); transition: background .1s, box-shadow .1s; }
+.mech:hover .lamp, .mech:focus-visible .lamp { background: #6cff9a; box-shadow: 0 0 10px #6cff9a, 0 0 2px #fff inset; }
+.big .cap { font-size: 38px; letter-spacing: .08em; } .md .cap { font-size: 22px; } .nr .cap { font-size: 22px; letter-spacing: .04em; } .bk .cap { font-size: 16px; }
+
+/* A: keycaps in wells */
+.sA .well { inset: -7px; border-radius: 15px; background: #070a16; box-shadow: inset 0 4px 10px #000, 0 1px 0 rgba(255,255,255,.1); }
+.sA .cap { border-radius: 11px; background: linear-gradient(#566fb8, #2f3e76 55%, #28346a); border: 1px solid #8aa0e6; transform: translateY(-5px);
+  box-shadow: 0 9px 0 #141c3d, 0 11px 0 #050816, inset 0 2px 0 rgba(255,255,255,.38), inset 0 -4px 8px rgba(0,0,0,.35); text-shadow: 0 -1px 0 rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.18); transition: transform .05s, box-shadow .05s, filter .1s; }
+.sA .cap::before { content: ""; position: absolute; inset: 6px; border-radius: 7px; background: linear-gradient(#2c3a70, #3b4d8d); box-shadow: inset 0 3px 6px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.15); z-index: -1; }
+.sA .cap > :not(.lamp) { position: relative; }
+.sA .mech:hover .cap { filter: brightness(1.12); } .sA .mech:active .cap { transform: translateY(2px); box-shadow: 0 2px 0 #141c3d, 0 3px 0 #050816, inset 0 2px 0 rgba(255,255,255,.25), inset 0 -2px 6px rgba(0,0,0,.35); }
+.sA .lamp { right: 14px; top: 11px; } .sA .big .lamp { right: 20px; top: 18px; width: 12px; height: 12px; } .sA .bk .lamp { right: 9px; top: 8px; width: 7px; height: 7px; }
+
+/* B: riveted industrial plates */
+.sB .well { display: none; }
+.sB .cap { border-radius: 5px; letter-spacing: .18em; text-transform: uppercase; color: #d6dcf2;
+  background: radial-gradient(circle at 11px 11px, #aab1cf 0 2.5px, #1a1e32 3px 4.5px, transparent 5px), radial-gradient(circle at calc(100% - 11px) 11px, #aab1cf 0 2.5px, #1a1e32 3px 4.5px, transparent 5px),
+    radial-gradient(circle at 11px calc(100% - 11px), #aab1cf 0 2.5px, #1a1e32 3px 4.5px, transparent 5px), radial-gradient(circle at calc(100% - 11px) calc(100% - 11px), #aab1cf 0 2.5px, #1a1e32 3px 4.5px, transparent 5px),
+    linear-gradient(#444a66, #2a2e45); border: 1px solid #6d759a; transform: translateY(-4px);
+  box-shadow: 0 7px 0 #14172a, 0 9px 12px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 4px rgba(0,0,0,.18); text-shadow: 0 1px 0 rgba(0,0,0,.6); transition: transform .06s, box-shadow .06s, filter .1s; }
+.sB .mech:hover .cap { filter: brightness(1.12); } .sB .mech:active .cap { transform: translateY(2px); box-shadow: 0 1px 0 #14172a, 0 2px 4px rgba(0,0,0,.5), inset 0 3px 8px rgba(0,0,0,.5); }
+.sB .big .cap { font-size: 34px; } .sB .md .cap { font-size: 19px; letter-spacing: .14em; } .sB .nr .cap { font-size: 19px; } .sB .bk .cap { font-size: 14px; letter-spacing: .1em; }
+.sB .big .cap::after { content: ""; position: absolute; left: 30px; right: 30px; bottom: 12px; height: 9px; background: repeating-linear-gradient(-45deg, #f2c14e 0 9px, #1a1405 9px 18px); opacity: .9; border-radius: 1px; }
+.sB .lamp { left: 28px; top: 50%; margin-top: -4.5px; border-radius: 2px; width: 6px; height: 18px; margin-top: -9px; background: #3a2a0a; }
+.sB .mech:hover .lamp, .sB .mech:focus-visible .lamp { background: #ffb23d; box-shadow: 0 0 12px #ffb23d; }
+.sB .md .lamp { left: 22px; height: 14px; margin-top: -7px; } .sB .bk .lamp, .sB .nr .lamp { left: 18px; height: 12px; margin-top: -6px; }
+.sB .big .lamp { left: 40px; width: 8px; height: 28px; margin-top: -14px; }
+
+/* C: arcade dome and rocker switches */
+.sC .well { inset: -8px; border-radius: 26px; background: #070a16; box-shadow: inset 0 4px 12px #000, 0 1px 0 rgba(255,255,255,.1); }
+.sC .md .well, .sC .nr .well, .sC .bk .well { border-radius: 12px; inset: -5px; }
+.sC .big .cap { border-radius: 20px; background: radial-gradient(130% 150% at 50% -10%, #86a9ff, #3a5fd0 50%, #213f9e); border: 1px solid #9db6ff; transform: translateY(-8px);
+  box-shadow: 0 13px 0 #0f1d55, 0 15px 0 #050816, 0 0 34px rgba(80,120,255,.5), inset 0 10px 16px rgba(255,255,255,.35), inset 0 -12px 20px rgba(0,0,0,.35); text-shadow: 0 2px 4px rgba(0,0,0,.5); transition: transform .06s, box-shadow .06s, filter .1s; }
+.sC .big .cap::before { content: ""; position: absolute; left: 6%; right: 6%; top: 6px; height: 34%; border-radius: 16px 16px 40% 40%; background: linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,0)); pointer-events: none; }
+.sC .mech:hover .cap { filter: brightness(1.12); } .sC .big:active .cap { transform: translateY(5px); box-shadow: 0 3px 0 #0f1d55, 0 4px 0 #050816, 0 0 20px rgba(80,120,255,.4), inset 0 8px 14px rgba(255,255,255,.25), inset 0 -8px 16px rgba(0,0,0,.35); }
+.sC .md .cap, .sC .nr .cap, .sC .bk .cap { border-radius: 8px; background: linear-gradient(#5f6c9e, #444f7e 55%, #333c64); border: 1px solid #6f7bab; transform: perspective(300px) rotateX(-6deg) translateY(-3px); transform-origin: 50% 100%;
+  box-shadow: 0 6px 0 #11152d, 0 8px 8px rgba(0,0,0,.5), inset 0 2px 0 rgba(255,255,255,.3); text-shadow: 0 1px 0 rgba(0,0,0,.6); transition: transform .06s, box-shadow .06s, filter .1s; }
+.sC .md:active .cap, .sC .nr:active .cap, .sC .bk:active .cap { transform: perspective(300px) rotateX(9deg) translateY(1px); box-shadow: 0 1px 0 #11152d, inset 0 3px 6px rgba(0,0,0,.4); background: linear-gradient(#2f3860, #3d4874 55%, #4a5580); }
+.sC .lamp { right: 16px; top: 50%; margin-top: -4.5px; } .sC .big .lamp { right: 28px; top: 28px; width: 12px; height: 12px; margin-top: 0; } .sC .bk .lamp { right: 8px; width: 7px; height: 7px; margin-top: -3.5px; }
+
+/* positions */
+#play { left: 30px; top: 40px; width: 620px; height: 156px; }
+#join { left: 30px; top: 212px; width: 194px; height: 64px; } #rec { left: 238px; top: 212px; width: 194px; height: 64px; } #set { left: 446px; top: 212px; width: 194px; height: 64px; }
+#back { left: 530px; top: 10px; width: 120px; height: 44px; } #newrun { left: 30px; top: 262px; width: 620px; height: 46px; }
+
+/* runs screen */
+#runs { left: 30px; top: 62px; width: 620px; height: 190px; }
+#list { position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow-y: auto; z-index: 1; scrollbar-width: thin; scrollbar-color: var(--dim) transparent; }
+#list::-webkit-scrollbar { width: 8px; } #list::-webkit-scrollbar-thumb { background: var(--dim); } #list::-webkit-scrollbar-track { background: rgba(77,255,154,.08); }
+.row { display: grid; grid-template-columns: 50px 100px 54px 58px minmax(0,1fr) auto; column-gap: 10px; align-items: center; padding: 6px 14px; min-height: 52px; border-bottom: 1px dashed rgba(77,255,154,.22); }
+.row .w { font-size: 30px; line-height: 1; } .row .t { font-size: 18px; white-space: nowrap; }
+.pl { font-size: 16px; line-height: 1.05; white-space: nowrap; min-width: 0; } .pl div { overflow: hidden; text-overflow: ellipsis; } .pl b { font-weight: 400; display: inline-block; width: 3px; height: 11px; margin-right: 6px; } .pl em { font-style: normal; color: var(--dim); text-shadow: none; margin-left: 6px; font-size: 14px; }
+.acts { display: flex; gap: 6px; }
+.row.latest { grid-template-columns: 1fr 1fr auto; min-height: 126px; padding: 8px 14px 10px; background: rgba(77,255,154,.05); }
+.latest .big2 { font-size: 40px; line-height: 1; margin: 2px 0 4px; } .latest .kv { font-size: 16px; color: var(--dim); text-shadow: none; line-height: 1.1; } .latest .kv b { font-weight: 400; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+.latest .sq { font-size: 19px; line-height: 1.18; } .sq em { font-style: normal; color: var(--dim); text-shadow: none; margin-left: 8px; font-size: 15px; } .sq b { font-weight: 400; display: inline-block; width: 3px; height: 12px; margin-right: 7px; } .latest .acts { flex-direction: column; align-items: stretch; width: 152px; }
+.chip { display: inline-block; margin: 8px 6px 0 0; font: 700 10px var(--f-ui); letter-spacing: .08em; padding: 3px 8px; border: 1px solid rgba(77,255,154,.45); color: var(--ink); text-shadow: none; }
+
+/* player card, quit */
+.pcard { position: absolute; left: 330px; top: 610px; width: 620px; height: 64px; border-radius: 12px; border: 2px solid #5b8cff; background: linear-gradient(#141a34, #0c1024); cursor: pointer; }
+.pcard .av { position: absolute; left: 10px; top: 9px; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #86abff, #2b4bb0); }
+.pcard .nm { position: absolute; left: 70px; top: 6px; font: 700 26px var(--f-ui); color: #fff; line-height: 1.1; } .pcard .rk { position: absolute; left: 70px; top: 36px; font: 700 15px var(--f-ui); color: #6ea5ff; }
+.pcard .bd { position: absolute; right: 14px; top: 9px; width: 34px; height: 40px; border-radius: 8px 8px 17px 17px; background: linear-gradient(#5b8cff, #2a4aa8); display: grid; place-items: center; font: 700 15px var(--f-ui); }
+.quit { position: absolute; left: 1208px; top: 654px; width: 32px; height: 32px; opacity: .55; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px; color: var(--muted); font-size: 15px; line-height: 1.45; } .legend b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 3px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Mechanical buttons</h1>
+    <p>The menu's tactile buttons rebuilt as real mechanical controls, in three styles, on the main menu and on the Play screen. Press and hold a button to feel the travel, and turn on Click sound to hear it. The green CRT controls (Continue, DEL) stay digital.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Style</span><button class="seg" type="button" data-s="A" aria-pressed="true">A. Keycaps</button><button class="seg" type="button" data-s="B" aria-pressed="false">B. Industrial plates</button><button class="seg" type="button" data-s="C" aria-pressed="false">C. Dome and rockers</button></div>
+    <div class="grp"><span>Screen</span><button class="seg" type="button" data-p="menu" aria-pressed="true">Main menu</button><button class="seg" type="button" data-p="runs" aria-pressed="false">Play screen</button></div>
+    <label class="snd"><input type="checkbox" id="snd"> Click sound</label>
+    <span class="log" id="log" aria-live="polite"></span>
+  </div>
+
+  <div class="view" id="view"><div class="stage sA" id="stage">
+    <div class="scr title"><span style="position:relative;z-index:1">CARTESIAN COLOSSEUM</span></div><div class="axis"></div>
+    <div class="chassis" id="box">
+      <div id="pg-menu">
+        <button class="mech big" id="play" type="button" data-act="Play"><span class="well"></span><span class="cap"><i class="lamp"></i><svg viewBox="0 0 16 16"><path d="M3 1l11 7-11 7z"/></svg>PLAY</span></button>
+        <button class="mech md" id="join" type="button" data-act="Join game"><span class="well"></span><span class="cap"><i class="lamp"></i><svg viewBox="0 0 16 16"><path d="M1 6h8V2l6 6-6 6v-4H1z"/></svg>Join game</span></button>
+        <button class="mech md" id="rec" type="button" data-act="Records"><span class="well"></span><span class="cap"><i class="lamp"></i><svg viewBox="0 0 16 16"><path d="M4 1h8v3a4 4 0 0 1-3 3.9V11h3v2H4v-2h3V7.9A4 4 0 0 1 4 4zM1 2h2v2a2 2 0 0 0 1 1.7V7A3 3 0 0 1 1 4zM15 2h-2v2a2 2 0 0 1-1 1.7V7a3 3 0 0 0 3-3z"/></svg>Records</span></button>
+        <button class="mech md" id="set" type="button" data-act="Settings"><span class="well"></span><span class="cap"><i class="lamp"></i><svg viewBox="0 0 16 16"><path d="M7 0h2l.4 2a6 6 0 0 1 1.5.9l1.9-.8 1 1.7-1.5 1.4a6 6 0 0 1 0 1.8l1.5 1.4-1 1.7-1.9-.8a6 6 0 0 1-1.5.9L9 16H7l-.4-2a6 6 0 0 1-1.5-.9l-1.9.8-1-1.7 1.5-1.4a6 6 0 0 1 0-1.8L2.2 5.6l1-1.7 1.9.8A6 6 0 0 1 6.6 2zM8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>Settings</span></button>
+      </div>
+      <div id="pg-runs" hidden>
+        <div class="scr h2"><span id="hdr"></span></div>
+        <button class="mech bk" id="back" type="button" data-act="Back"><span class="well"></span><span class="cap"><i class="lamp"></i><svg viewBox="0 0 16 16"><path d="M15 6H7V2L1 8l6 6v-4h8z"/></svg>Back</span></button>
+        <div class="scr" id="runs"><div id="list"></div></div>
+        <button class="mech nr" id="newrun" type="button" data-act="New run"><span class="well"></span><span class="cap"><i class="lamp"></i><svg viewBox="0 0 16 16"><path d="M3 1l11 7-11 7z"/></svg>New run</span></button>
+      </div>
+    </div>
+    <div class="pcard"><div class="av"></div><div class="nm">Player</div><div class="rk">Challenger &middot; Rank 8</div><div class="bd">8</div></div>
+    <svg class="quit" viewBox="0 0 32 32" fill="none" stroke="#c8d6ff" stroke-width="3" stroke-linecap="round"><path d="M16 4v11"/><path d="M9 9a10 10 0 1 0 14 0"/></svg>
+  </div></div>
+
+  <div class="legend">
+    <div><b>A. Keycaps</b>Each button is a keycap with a dished top, sitting in a dark well. It has a lamp in the corner and drops about 7 px when pressed. The most keyboard-like, and the closest to what you have now.</div>
+    <div><b>B. Industrial plates</b>A riveted steel plate with stencil lettering and an amber indicator bar. Play gets a hazard stripe. It's heavier and more machine-like, with less glow.</div>
+    <div><b>C. Dome and rockers</b>Play is a big arcade dome button. The smaller buttons are rocker switches that tilt when pressed. The most varied, and the most playful.</div>
+  </div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)}, view=$('view'), stage=$('stage');
+function fit(){ stage.style.transform='scale('+(view.clientWidth/1280)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+var B='#4f86ff', O='#f08a30';
+var RUNS=[
+ {w:24,d:'Nov 5, 11:28',s:18450,p:'45 min',pl:[['Anthony','Knight Tank',B],['Aleon','Elementalist DPS',O]],chips:['BAZAAR','2 MODIFIERS']},
+ {w:17,d:'Nov 2, 21:40',s:12400,p:'38 min',pl:[['Anthony','Knight Tank',B],['Aleon','Elementalist DPS',O]]},
+ {w:9,d:'Oct 30, 18:12',s:5300,p:'21 min',pl:[['Anthony','Soldier Tank',B]]},
+ {w:5,d:'Oct 28, 09:03',s:1900,p:'11 min',pl:[['Anthony','Soldier Tank',B]]}
+];
+var armed=-1;
+function pl(r){ return r.pl.map(function(p){return '<div><b style="background:'+p[2]+'"></b>'+p[0]+'<em>'+p[1]+'</em></div>'}).join(''); }
+function render(){
+  var h='';
+  RUNS.forEach(function(r,i){
+    var del='<button class="sm2 del'+(armed===i?' armed':'')+'" type="button" data-del="'+i+'">'+(armed===i?'REALLY?':'DEL')+'</button>';
+    if(i===0) h+='<div class="row latest"><div><div class="lab">LATEST RUN</div><div class="big2">Wave '+r.w+'</div><div class="kv">SAVED <b>'+r.d+'</b><br>SCORE <b>'+r.s+'</b> &nbsp; PLAYED <b>'+r.p+'</b></div></div><div><div class="lab">SQUAD</div><div class="sq">'+pl(r)+'</div>'+(r.chips||[]).map(function(c){return '<span class="chip">'+c+'</span>'}).join('')+'</div><div class="acts"><button class="sm2 big" type="button" data-cont="0">&#9654; CONTINUE</button>'+del+'</div></div>';
+    else h+='<div class="row"><div class="w">'+r.w+'</div><div class="t">'+r.d+'</div><div class="t">'+r.s+'</div><div class="t">'+r.p+'</div><div class="pl">'+pl(r)+'</div><div class="acts"><button class="sm2" type="button" data-cont="'+i+'">&#9654; CONTINUE</button>'+del+'</div></div>';
+  });
+  $('list').innerHTML=h;
+}
+var page='menu';
+function setPage(p){ page=p; $('pg-menu').hidden=p!=='menu'; $('pg-runs').hidden=p!=='runs'; $('hdr').textContent='YOUR RUNS_'; armed=-1; render();
+  document.querySelectorAll('[data-p]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.p===p)}); }
+document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){setPage(b.dataset.p)}});
+document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){ stage.className='stage s'+b.dataset.s; document.querySelectorAll('[data-s]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }});
+/* sound: a short synthesized click, different per style */
+var ac=null;
+function click(down){
+  if(!$('snd').checked) return;
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    var st=stage.className.slice(-1), t=ac.currentTime, len=st==='B'?.09:.05;
+    var buf=ac.createBuffer(1,Math.floor(ac.sampleRate*len),ac.sampleRate), d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length, st==='B'?2:3);
+    var src=ac.createBufferSource(); src.buffer=buf;
+    var f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=(down?1:1.5)*(st==='A'?1800:st==='B'?500:900); f.Q.value=st==='B'?1:3;
+    var g=ac.createGain(); g.gain.value=down?.55:.4;
+    src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+  }catch(e){}
+}
+stage.addEventListener('pointerdown',function(e){ if(e.target.closest('.mech')) click(true); });
+stage.addEventListener('pointerup',function(e){ if(e.target.closest('.mech')) click(false); });
+stage.addEventListener('click',function(e){
+  var m=e.target.closest('.mech'), l=$('log');
+  if(m){ if(m.dataset.act==='Play'){ setPage('runs'); l.textContent='Tactile: Play'; return; } if(m.dataset.act==='Back'){ setPage('menu'); l.textContent='Tactile: Back'; return; } l.textContent='Tactile: '+m.dataset.act; return; }
+  var c=e.target.closest('[data-cont]'); if(c){ l.textContent='Digital: continue wave '+RUNS[+c.dataset.cont].w; return; }
+  var d=e.target.closest('[data-del]'); if(d){ var i=+d.dataset.del; if(armed===i){ RUNS.splice(i,1); armed=-1; l.textContent='Digital: run deleted'; } else armed=i; var st=$('list').scrollTop; render(); $('list').scrollTop=st; }
+});
+setPage('menu');
+</script>
