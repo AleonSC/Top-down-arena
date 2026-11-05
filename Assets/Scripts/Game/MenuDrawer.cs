@@ -621,7 +621,7 @@ namespace Arena
             bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));  // round X beside the title; Esc does the same
             string[] icons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change any key, Left Alt for weapon secondaries" };
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", null };
             if (settingsGroup != 3)
                 Keybinds.Listening = -1;  // (leaving the page ends a rebind)
             float y = 128f;
@@ -633,19 +633,6 @@ namespace Arena
                     settingsGroup = i;
                 y += r.height + 4f;
             }
-            y += 24f;
-            Ui.Label(new Rect(42f, y, 200f, 16f), "QUICK", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            var quick = new Rect(40f, y + 22f, DrawerW - 80f, 104f);
-            Ui.Pill(quick, new Color(1f, 1f, 1f, 0.03f));
-            bool mute = SwitchRow(new Rect(quick.x + 14f, quick.y + 8f, quick.width - 28f, 40f), sounds.Muted, "Mute all sound", null, Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
-            if (mute != sounds.Muted)
-            {
-                sounds.Muted = mute;
-                SaveAudioSettings();
-            }
-            bool line = SwitchRow(new Rect(quick.x + 14f, quick.y + 56f, quick.width - 28f, 40f), aimLine, "Aim line", null, Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
-            if (line != aimLine)
-                SetAimLine(line);
             if (closeChip)
             {
                 Keybinds.Listening = -1;

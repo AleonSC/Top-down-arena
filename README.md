@@ -1059,7 +1059,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
-  HUD, **camera lean**, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
+  HUD, **camera lean**, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one).
 - **Profile:** four tabs. **Look** (the cosmetics), **Rank** (Reward ladder, Rank and runs), **Records** (Overview, Bosses with each one moving beside its count, Classes, **Recent runs**, **Challenge rooms** with each room played and
   won) and **Unlocks**. Mid-run and in the lobby it has no Look tab.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The

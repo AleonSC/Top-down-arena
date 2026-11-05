@@ -6,21 +6,30 @@ namespace Arena
     /// side or middle button works too); Esc cancels. A key another action uses swaps over. Saved at once (Keybinds.cs).
     public partial class ArenaApp
     {
+        float keybindScroll;  // the page's scroll offset
+
         void DrawKeybindsSection(Color col, float t, float k)
         {
-            OpenSectionPanel("KEYBINDS", col, "Click a key, then press the one you want. Esc cancels. A key that's already in use swaps over.", k);
-            float x = DrawerPanel.x + 26f, w = DrawerPanel.width - 52f, top = DrawerPanel.y + 112f;
-            float colW = (w - 28f) / 2f;
+            OpenSectionPanel("KEYBINDS", col, null, k);
+            float px = DrawerPanel.x + 26f, pw = DrawerPanel.width - 52f;
             Keybinds.Listening = Mathf.Clamp(Keybinds.Listening, -1, Keybinds.All.Length - 1);
 
+            // The groups scroll with the mouse wheel inside this view; positions below are local to it.
+            var view = new Rect(DrawerPanel.x + 20f, DrawerPanel.y + 76f, DrawerPanel.width - 40f, DrawerPanel.yMax - 66f - (DrawerPanel.y + 76f));
+            float x = 6f, w = view.width - 24f;
+            float colW = (w - 28f) / 2f;
+
             int hovered = -1;
-            // Each group is a heading and its rows; the left column holds Movement and Combat, the right the rest.
-            float yL = top, yR = top;
+            // Each group is a heading and its rows; the left column holds Movement and Abilities, the right the rest.
+            float yL = 8f, yR = 8f;
+            var ev = Event.current;
+            bool inView = view.Contains(ev.mousePosition);
+            GUI.BeginGroup(view);
             for (int g = 0; g < Keybinds.GroupNames.Length; g++)
             {
                 bool left = g < 2;  // Movement and Abilities on the left; Weapon, Items and Toggles on the right
                 float gx = left ? x : x + colW + 28f;
-                float gy = left ? yL : yR;
+                float gy = (left ? yL : yR) - keybindScroll;
                 Ui.Label(new Rect(gx + 2f, gy, colW, 16f), Keybinds.GroupNames[g], 11, Ui.Muted, TextAnchor.MiddleLeft, true);
                 Ui.Fill(new Rect(gx, gy + 18f, colW, 1f), new Color(1f, 1f, 1f, 0.08f));
                 gy += 24f;
@@ -31,16 +40,16 @@ namespace Arena
                     var row = new Rect(gx, gy, colW, 31f);
                     if (KeybindRow(row, (KeyAction)i, col, t))
                         Keybinds.Listening = Keybinds.Listening == i ? -1 : i;
-                    if (row.Contains(Event.current.mousePosition))
+                    if (inView && row.Contains(ev.mousePosition))
                         hovered = i;
                     gy += 34f;
                 }
                 gy += 12f;
-                if (left) yL = gy; else yR = gy;
+                if (left) yL = gy + keybindScroll; else yR = gy + keybindScroll;
             }
 
             // The right column's last: put everything back.
-            var reset = new Rect(x + colW + 28f, yR + 4f, colW, 38f);
+            var reset = new Rect(x + colW + 28f, yR + 4f - keybindScroll, colW, 38f);
             if (Ui.SmallButton(reset, "Reset all keys to their defaults", Ui.Neutral, 13))
             {
                 Keybinds.Listening = -1;
@@ -48,20 +57,35 @@ namespace Arena
                 Keybinds.Notice = "Every key is back to its default";
                 Keybinds.NoticeAt = Time.unscaledTime;
             }
+            GUI.EndGroup();
+
+            float contentH = Mathf.Max(yL, yR + 4f + 38f) + 8f;
+            float maxScroll = Mathf.Max(0f, contentH - view.height);
+            if (ev.type == EventType.ScrollWheel && view.Contains(ev.mousePosition))
+            {
+                keybindScroll = Mathf.Clamp(keybindScroll + ev.delta.y * 24f, 0f, maxScroll);
+                ev.Use();
+            }
+            keybindScroll = Mathf.Clamp(keybindScroll, 0f, maxScroll);
+            if (maxScroll > 0f)
+            {
+                float th = view.height * view.height / contentH, ty = view.y + (view.height - th) * (keybindScroll / maxScroll);
+                Ui.Fill(new Rect(view.xMax - 6f, ty, 3f, th), new Color(1f, 1f, 1f, 0.3f));
+            }
 
             // Fire and Parry can also take a click, which can't be pressed while the page is the one being clicked: two buttons.
             var la = (KeyAction)Keybinds.Listening;
             if (Keybinds.Listening >= 0 && (la == KeyAction.Fire || la == KeyAction.Parry))
             {
-                Ui.Label(new Rect(x + 2f, DrawerPanel.yMax - 120f, 60f, 32f), "Or use", 13, Ui.Muted, TextAnchor.MiddleLeft, true);
-                if (Ui.SmallButton(new Rect(x + 62f, DrawerPanel.yMax - 120f, 130f, 32f), "Left click", Ui.Neutral, 13))
+                Ui.Label(new Rect(px + pw - 340f, DrawerPanel.yMax - 58f, 60f, 32f), "Or use", 13, Ui.Muted, TextAnchor.MiddleLeft, true);
+                if (Ui.SmallButton(new Rect(px + pw - 280f, DrawerPanel.yMax - 58f, 130f, 32f), "Left click", Ui.Neutral, 13))
                     FinishMouseBind(la, KeyCode.Mouse0);
-                if (Ui.SmallButton(new Rect(x + 200f, DrawerPanel.yMax - 120f, 130f, 32f), "Right click", Ui.Neutral, 13))
+                if (Ui.SmallButton(new Rect(px + pw - 142f, DrawerPanel.yMax - 58f, 130f, 32f), "Right click", Ui.Neutral, 13))
                     FinishMouseBind(la, KeyCode.Mouse1);
             }
 
-            // The line along the bottom: what a key does (hover), a message about the last change, or the fixed keys.
-            string info;
+            // The line along the bottom: what a key does (hover) or a message about the last change.
+            string info = null;
             Color infoCol = Ui.Muted;
             if (Keybinds.Listening >= 0)
             {
@@ -75,9 +99,8 @@ namespace Arena
             }
             else if (hovered >= 0)
                 info = Keybinds.Title((KeyAction)hovered) + ": " + Keybinds.Line((KeyAction)hovered);
-            else
-                info = "Fixed: Esc pauses, Tab shows your stats, 1-3 pick a card, Enter confirms. Menus are always clicked with the mouse.";
-            Ui.Label(new Rect(x, DrawerPanel.yMax - 54f, w, 36f), info, 13, infoCol, TextAnchor.UpperLeft, false, true);
+            if (info != null)
+                Ui.Label(new Rect(px, DrawerPanel.yMax - 54f, pw - 350f, 36f), info, 13, infoCol, TextAnchor.UpperLeft, false, true);
         }
 
         void FinishMouseBind(KeyAction a, KeyCode mouse)
