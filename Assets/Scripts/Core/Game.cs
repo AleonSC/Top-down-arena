@@ -55,6 +55,7 @@ namespace Arena
 
         public bool RerollPending => rerollsAtRequest >= 0;
 
+        public bool HoldShell;  // tests: the Blood Shell's key is down
         public bool Bot;  // drive the local player automatically (testing)
         V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
@@ -407,7 +408,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s))
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -941,6 +942,10 @@ namespace Arena
                 knockLeft = 0f;
             }
 
+            bool shellHeld = false;  // the Blood Shell's key is down (BloodShell.cs)
+            for (int slot = 0; slot < held.Length; slot++)
+                if (held[slot] && me.Slots[slot].Id == AbilityId.BloodShell)
+                    shellHeld = true;
             for (int slot = 0; slot < held.Length; slot++)
             {
                 bool pressed = held[slot] && !abilityWasDown[slot];
@@ -1041,6 +1046,7 @@ namespace Arena
             if (IsHost)
             {
                 me.Firing = firing;
+                me.ShellHold = shellHeld || HoldShell || me.ShellT < ShellMinUp;
                 if (bowRelease > 0f)
                     me.BowRelease = bowRelease;
             }
@@ -1054,6 +1060,7 @@ namespace Arena
                 w.Write(me.Parrying);
                 w.Write(me.DrawT);
                 w.Write(bowRelease);
+                w.Write(shellHeld);
                 session.SendToHost(Proto.End(w));
             }
         }
@@ -1103,6 +1110,7 @@ namespace Arena
             TickEnemies(dt);
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
+            KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
@@ -1178,6 +1186,7 @@ namespace Arena
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
                 p.DomeT = Math.Max(0f, p.DomeT - dt);  // Fortress's dome stands on even if its owner goes down (Dome.cs)
                 TickParry(p, dt);
+                TickBloodShell(p, dt);  // BloodShell.cs
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
                 p.WardT = Math.Max(0f, p.WardT - dt);
                 if (p.ShieldT <= 0f)

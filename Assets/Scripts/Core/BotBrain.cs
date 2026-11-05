@@ -182,6 +182,11 @@ namespace Arena
             for (int slot = 0; slot < Upgrades.SlotCount; slot++)
             {
                 var s = me.Slots[slot];
+                if (s.Id == AbilityId.BloodShell && me.ShellOn)
+                {
+                    held[slot] = botHeldLast[slot] = BotDanger > 0.3f;  // keep the shell up while shots are coming
+                    continue;
+                }
                 if (s.Id == AbilityId.None || s.Charges <= 0 || botHeldLast[slot])
                 {
                     botHeldLast[slot] = false;  // release so the next press counts

@@ -16,6 +16,7 @@ namespace Arena
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
+            bool shellHeld = r.ReadBoolean();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
@@ -28,6 +29,7 @@ namespace Arena
             p.AimAt = aimAt;
             p.Firing = firing;
             p.Parrying = parry;
+            p.ShellHold = shellHeld || p.ShellT < ShellMinUp;
         }
 
         public void OnWeaponDash(int peer, BinaryReader r)
@@ -431,6 +433,8 @@ namespace Arena
             s.Bool(ref firing);
             s.Float(ref p.ParryHp);
             s.Float(ref p.ParryBroken);
+            bool shellOn = p.ShellOn;
+            s.Bool(ref shellOn);  // Blood Shell (BloodShell.cs)
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
             s.Float(ref p.EnergyMax);
@@ -532,6 +536,7 @@ namespace Arena
                 p.FiringSeen = firing;
                 p.DrawT = drawT;        // your own draw is measured here
             }
+            p.ShellOn = shellOn;
             if (hp < p.Hp)
                 p.Flash = 0.1f;
             p.Hp = hp;

@@ -16,7 +16,7 @@ namespace Arena
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
         const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
-        const float ShellTime = 5f, ShellMult = 3f;
+        const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
         public const float PactDuration = 4f;
         const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
@@ -767,9 +767,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BloodShell, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0,
-                Name = "Blood Shell", Cooldown = 9f, HealthCost = 0.15f, Desc = "Pay 15% of your max health for a shield worth three times as much, for 5 s.",
-                Capstone = "Also erases enemy bullets within 160 px.",
-                Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.4f,
+                Name = "Blood Shell", Cooldown = 9f, Desc = "Hold to wrap yourself in a big bubble of blood. It blocks bullets and enemies; allies can stand inside. Each bullet it stops costs you 7 health and heals every ally inside for 4. It bursts at a third of your health, or when you let go.",
+                Capstone = "The burst also erases enemy bullets within 160 px.",
+                Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.55f,
             },
             new AbilityDef
             {
@@ -860,14 +860,8 @@ namespace Arena
             switch (id)
             {
                 case AbilityId.BloodShell:
-                    p.ShieldHp = Math.Max(p.ShieldHp, castPaid * (ShellMult + s.ShellBonus) * pw);
-                    p.ShieldT = Math.Max(p.ShieldT, ShellTime + s.ShellBonusTime);
-                    if (cap)
-                    {
-                        EraseEnemyBullets(p.Pos, 160f);
-                        BroadcastFx(FxKind.Ring, p.Pos, blood, 160f, 0.4f, Sfx.None);  // how far it cleared
-                    }
-                    BroadcastFx(FxKind.BloodShell, p.Pos, new V2(p.Id, 0f), blood, p.Def.BodyR, 0.45f, Sfx.Ability);
+                    RaiseShell(p, pw, cap);  // BloodShell.cs: held, not timed
+                    BroadcastFx(FxKind.ShellPop, p.Pos, new V2(p.Id, 2f), blood, ShellRadius, 0.5f, Sfx.Ability);  // forming
                     return true;
                 case AbilityId.CrimsonPact:
                     p.PactT = PactTime;

@@ -77,7 +77,7 @@ namespace Arena
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;
         // Blood Mage abilities
-        public float ShellBonus, ShellBonusTime, PactMult = 1f, PactRadiusMult = 1f, DrainMult = 1f, DrainRadiusMult = 1f;
+        public float ShellBonus, PactMult = 1f, PactRadiusMult = 1f, DrainMult = 1f, DrainRadiusMult = 1f;
         public float GiftMult = 1f, SiphonRadiusMult = 1f, SiphonBonusTime, MartyrBonus, MartyrInvuln;
         public float BoilMult = 1f, BoilRadiusMult = 1f, RushBonusTime, RushRate;
         public int NovaExtraBolts;
@@ -277,8 +277,8 @@ namespace Arena
                 Apply = s => { s.VanishBonusTime += 1.5f; s.AmbushMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladeFan, MaxStacks = 2, Name = "Storm of Steel", Desc = "Blade Fan throws 6 more kunai",
                 Apply = s => s.FanExtraKunai += 6 },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell is worth one more times what you paid and lasts 2 s longer",
-                Apply = s => { s.ShellBonus += 1f; s.ShellBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",
+                Apply = s => s.ShellBonus += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Crimson Pact's burst hits 50% harder and reaches 30% farther",
                 Apply = s => { s.PactMult += 0.5f; s.PactRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Exsanguinate, MaxStacks = 2, Name = "Deep Veins", Desc = "Exsanguinate reaches 30% farther and drains 50% more",

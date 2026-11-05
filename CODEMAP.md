@@ -44,6 +44,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, Thousand Clones' clones, Vanish, Healing Dash (`TickMists`: footprints and their healing; sprint speed is `Player.DashT` in `Entities.cs`; looks in `Game/NinjaLooks.cs` `DrawFootprint`, `DrawDashWake`)
 - `CloneWall.cs`: Shadow Clone as a wall of 9 `MinionKind.CloneWall` that soak bullets (wearing from every shot) and get shoved by players
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
+- `BloodShell.cs`: the Hemomancer tank's held Blood Shell bubble (blocks bullets and enemies, costs health per hit, heals allies inside, bursts at 1/3 health; `BloodShellLook.cs` draws it)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
 - `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
 - `RadiantOrb.cs`: Healer's Radiant Orb

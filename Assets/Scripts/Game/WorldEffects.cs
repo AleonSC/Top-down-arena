@@ -90,6 +90,12 @@ namespace Arena
                 case FxKind.BloodShell:
                     DrawBloodShellFx(fx, f);
                     break;
+                case FxKind.ShellHit:
+                    DrawShellHitFx(fx, f);  // BloodShellLook.cs
+                    break;
+                case FxKind.ShellPop:
+                    DrawShellPopFx(fx, f);
+                    break;
                 case FxKind.Drain:
                     DrawDrainFx(fx, f);
                     break;

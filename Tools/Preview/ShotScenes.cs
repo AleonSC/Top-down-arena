@@ -264,7 +264,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
-      var gm = host.Game; gm.Bot = false;
+      var gm = host.Game; gm.Bot = false; gm.HoldShell = true;  // (a held ability, the Blood Shell, stays up)
       var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
       var adef = Upgrades.Ability(aid);
       int slot = adef.Choice == AbilityDef.Ult ? Upgrades.UltSlot : 0;
@@ -278,7 +278,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("CASTCLEAN") != null) { gm.Enemies.Clear(); gm.Props.Clear(); }  // CASTCLEAN=1: an empty arena (the caster, the allies, the ability)
       int k = 0;
       foreach (var e in gm.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(k * 1.3f + 0.4f) * (130f + 45f * (k % 3)); k++; }
-      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-260f, 120f); q.Hp = q.MaxHp * 0.5f; }
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-260f, 120f); q.Hp = q.MaxHp * 0.5f; if (aid == AbilityId.BloodShell) q.Pos = q.Disp = me.Pos + new V2(-42f, 34f); }
+      if (Environment.GetEnvironmentVariable("CASTHP") != null) me.Hp = me.MaxHp * float.Parse(Environment.GetEnvironmentVariable("CASTHP"));  // CASTHP=<share of max health left>
       if (aid == AbilityId.Bulldoze) {  // three enemies in the lane (a light one off-centre), the rest well clear of it
         V2 ld = V2.FromAngle(me.Aim), ln = ld.Orthogonal(); int li = 0;
         foreach (var e in gm.Enemies.Values) { if (li < 3) e.Pos = e.Disp = me.Pos + ld * (80f + 55f * li) + ln * (li == 1 ? 26f : -10f * li); else e.Pos = e.Disp = me.Pos + ln * (140f + 40f * (li % 3)) * (li % 2 == 0 ? 1f : -1f) + ld * (40f * li); li++; }

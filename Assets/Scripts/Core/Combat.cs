@@ -522,6 +522,12 @@ namespace Arena
                             WearWall(p, plate, b.Dmg, b.Pos);  // every shot wears a plate, not only a boss's
                             break;
                         }
+                        if (p.ShellOn && Enters(b, p.Pos, ShellRadius))
+                        {
+                            scratchIds.Add(b.Id);  // Blood Shell: stops everything, red aimed shots too, and bills its owner (BloodShell.cs)
+                            ShellHit(p, b);
+                            break;
+                        }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))
                         {
                             reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult });  // Aeroaegis

@@ -200,13 +200,49 @@ static partial class Program
         // Health costs: a share of max health, never below 1.
         hp.Hp = hp.MaxHp * 0.5f;
         float h0 = hp.Hp;
-        use(AbilityId.BloodShell, hp.Pos);
+        use(AbilityId.Exsanguinate, hp.Pos);
         float paid = h0 - hp.Hp;
-        Console.WriteLine("  blood shell: paid {0:0.0} of {1:0} max; shield {2:0}", paid, hp.MaxHp, hp.ShieldHp);
-        Check(Math.Abs(paid - hp.MaxHp * 0.15f) < 0.5f && Math.Abs(hp.ShieldHp - paid * 3f) < 1f, "Blood Shell costs 15% of max health and shields three times as much");
-        hp.ShieldHp = 0f; hp.Hp = 1f;
+        Console.WriteLine("  exsanguinate: paid {0:0.0} of {1:0} max", paid, hp.MaxHp);
+        Check(Math.Abs(paid - hp.MaxHp * 0.1f) < 0.5f, "a Blood Mage ability costs its share of max health");
+        hp.Hp = 1f;
+        use(AbilityId.Exsanguinate, hp.Pos);
+        Check(hp.Hp == 1f && !hp.Downed, "a health cost stops at 1 HP (the ability still casts, for nothing)");
+
+        // Blood Shell: held, free to raise; stops bullets and enemies at its skin; each bullet costs you and heals allies inside.
+        place(1, 500f); place(2, 540f); run(0.3f);
+        hp.Hp = hp.MaxHp * 0.5f; cp.Hp = cp.MaxHp * 0.5f;
+        float s0 = hp.Hp, cAlly0 = cp.Hp;
+        g.HoldShell = true;
         use(AbilityId.BloodShell, hp.Pos);
-        Check(hp.Hp == 1f && hp.ShieldHp == 0f && !hp.Downed, "a health cost stops at 1 HP (the ability still casts, for nothing)");
+        Check(hp.ShellOn && hp.Hp == s0 && hp.ShieldHp == 0f, "Blood Shell costs nothing to raise and doesn't shield");
+        var inside = dummy(hp.Pos + new V2(40f, 0f));
+        run(0.3f);
+        float want = Game.ShellRadius + inside.Radius - 1f;
+        Console.WriteLine("  blood shell: enemy put out to {0:0} (skin at {1:0})", inside.Pos.DistanceTo(hp.Pos), Game.ShellRadius + inside.Radius);
+        Check(inside.Pos.DistanceTo(hp.Pos) >= want, "enemies can't be inside the shell: one in it is put out at the skin");
+        g.Bullets[900001] = new Bullet { Id = 900001, Kind = 10, Pos = hp.Pos + new V2(0f, -220f), Vel = new V2(0f, 300f), Life = 3f, Radius = 4f, Dmg = 5f };
+        float prevHp = hp.Hp, maxDrop = 0f;
+        Run(s, dt, 1f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; maxDrop = Math.Max(maxDrop, prevHp - hp.Hp); prevHp = hp.Hp; });
+        Console.WriteLine("  blood shell: one bullet cost {0:0.0}, ally gained {1:0.0}", maxDrop, cp.Hp - cAlly0);
+        Check(!g.Bullets.ContainsKey(900001) && Math.Abs(maxDrop - 7f) < 0.6f, "a bullet stops at the skin and costs 7 health");
+        Check(cp.Hp - cAlly0 >= 3.5f && cp.Hp - cAlly0 < 20f && hp.ShellOn, "an ally inside heals when it stops a bullet, and the shell stays up");
+        g.HoldShell = false;
+        run(0.5f);
+        Check(!hp.ShellOn, "letting go brings the shell down");
+        hp.Hp = hp.MaxHp * Game.ShellPopFrac + 1f;
+        g.HoldShell = true;
+        use(AbilityId.BloodShell, hp.Pos);
+        var near = dummy(hp.Pos + new V2(Game.ShellRadius + 30f, 0f));
+        run(0.2f);
+        float before = near.Pos.DistanceTo(hp.Pos);
+        g.Bullets[900002] = new Bullet { Id = 900002, Kind = 10, Pos = hp.Pos + new V2(0f, -220f), Vel = new V2(0f, 300f), Life = 3f, Radius = 4f, Dmg = 5f };
+        run(1f);
+        Console.WriteLine("  blood shell: burst with {0:0} of {1:0} health, an enemy at the skin was thrown {2:0} px", hp.Hp, hp.MaxHp, near.Pos.DistanceTo(hp.Pos) - before);
+        Check(!hp.ShellOn && hp.Hp <= hp.MaxHp * Game.ShellPopFrac + 8f, "it bursts when your health falls to a third");
+        Check(near.Pos.DistanceTo(hp.Pos) > before + 60f, "the burst throws nearby enemies back");
+        g.HoldShell = false;
+        keep.Remove(inside); keep.Remove(near); inside.Hp = near.Hp = 0f;
+        run(0.2f);
 
         // Blood Price: up to +40% at 10% health.
         hp.Hp = hp.MaxHp;
