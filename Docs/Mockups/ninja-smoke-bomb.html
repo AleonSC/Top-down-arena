@@ -1,0 +1,349 @@
+<title>Smoke Bomb Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ability stage (canvas, Current/Proposed toggle, replay/pause/slow-mo, upgrade toggles), then a beat-by-beat card, a what-it-fixes card and dev notes.
+   Colour: smoke is dusk violet-grey with a lit upper rim; the seal ring and sparks are lantern amber. Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecedf1; --fg:#1c1b26; --muted:#5f5e70; --panel:#f8f8fb; --line:#d0cfdb;
+  --acc:#6a52c4; --amber:#c47a10; --chip:#e1e0ea; --chip-on:#1c1b26; --chip-on-fg:#f3f2f9;
+  --arena:#12111a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e0d14; --fg:#e8e7f1; --muted:#9795ab; --panel:#171622; --line:#2b2a3b;
+  --acc:#a590ff; --amber:#ffb84a; --chip:#232233; --chip-on:#e8e7f1; --chip-on-fg:#0e0d14;
+  --arena:#0a0910; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0d14; --fg:#e8e7f1; --muted:#9795ab; --panel:#171622; --line:#2b2a3b;
+  --acc:#a590ff; --amber:#ffb84a; --chip:#232233; --chip-on:#e8e7f1; --chip-on-fg:#0e0d14;
+  --arena:#0a0910; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+header h1{font:700 clamp(36px,6.5vw,62px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header h1 span{color:var(--acc)}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfcde0;opacity:.9;pointer-events:none;text-shadow:0 1px 2px #000;display:flex;flex-direction:column;gap:2px}
+.tag{position:absolute;right:10px;top:8px;font:600 13px var(--display);letter-spacing:.1em;text-transform:uppercase;color:#cfcde0;opacity:.8;pointer-events:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px}
+.card li b{font:500 12.5px/1.7 var(--mono);color:var(--acc);font-variant-numeric:tabular-nums}
+.card.plain li{display:block;padding-left:14px;position:relative}
+.card.plain li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--amber)}
+.dev{font-size:14.5px;color:var(--muted);max-width:78ch;margin:0}
+.dev strong{color:var(--fg)} .dev code{font:500 13px var(--mono);color:var(--fg)}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.hud{display:none}}
+</style>
+
+<main>
+  <header>
+    <h1>Smoke Bomb <span>Rework</span></h1>
+    <p>Tank Ninja, Space ability. Today it is a flat grey disc. The proposal gives it a thrown pellet, a crack and flash, a cloud with real volume, a lantern seal that shows the time left, and a clear read of which bullets are slowed.</p>
+  </header>
+
+  <section class="stage" aria-label="Smoke Bomb preview">
+    <div class="frame">
+      <canvas id="cv" width="1440" height="800" role="img" aria-label="Animated preview of the Smoke Bomb cloud with enemy bullets crossing it"></canvas>
+      <div class="hud" id="hud"></div>
+      <div class="tag" id="tag">Proposed</div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Look">
+        <input type="radio" name="look" id="lkNew" value="new" checked><label for="lkNew">Proposed</label>
+        <input type="radio" name="look" id="lkOld" value="old"><label for="lkOld">Current</label>
+      </div>
+      <button id="replay" type="button">Replay</button>
+      <button id="pause" type="button">Pause</button>
+      <label class="chk"><input type="checkbox" id="slow"> Slow-mo</label>
+      <label class="chk"><input type="checkbox" id="thick"> Thick Smoke (+40% size, +2 s)</label>
+      <label class="chk"><input type="checkbox" id="cap"> Capstone (enemy inside slowed 40%)</label>
+    </div>
+  </section>
+
+  <div class="cols">
+    <div class="card">
+      <h3>Beat by beat</h3>
+      <ol>
+        <li><b>0.00 s</b><span>Pellet drops from the ninja's hand with a lit fuse and shrinks as it lands.</span></li>
+        <li><b>0.16 s</b><span>Crack: a white-violet flash, 14 amber sparks and a shockwave ring out to the cloud edge.</span></li>
+        <li><b>0.16 to 0.8 s</b><span>The cloud blooms outward in layered puffs, each with a dark body and a lit upper rim. The ninja sits half veiled.</span></li>
+        <li><b>to 4 s</b><span>The cloud churns slowly, outer puffs turning faster than inner ones, with thin wisps circling. Bullets crossing it stretch short and cool to violet.</span></li>
+        <li><b>last 1.2 s</b><span>The seal ring blinks, the edge frays and the puffs lift and thin out.</span></li>
+      </ol>
+    </div>
+    <div class="card plain">
+      <h3>What it fixes</h3>
+      <ul>
+        <li>The cloud now has depth, so it reads as smoke and not as a debug circle.</li>
+        <li>An amber seal ring drains with the time left, like the Spirit Ward, so allies know when cover ends.</li>
+        <li>Slowed bullets visibly change: short trails and a violet tint inside, so the half speed is readable at a glance.</li>
+        <li>The cast has a cause and an effect (pellet, crack) instead of a ring appearing from nothing.</li>
+        <li>The fade-out warns before it ends, where today it just vanishes.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="dev"><strong>Dev notes.</strong> Visual only, so no protocol change. The cloud replaces the <code>ZoneKind.Smoke</code> case in <code>WorldEnemies.cs</code>; the pellet and crack ride on the existing <code>FxKind.Ring</code> broadcast plus a small particle burst on the cast. The puff layout is seeded from the zone id so every peer draws the same cloud. Gameplay numbers (140 px, 5 s, half speed, 30% less damage) are unchanged. Capstone and Thick Smoke toggles above show the larger cloud and the slowed enemy.</p>
+</main>
+
+<script>
+(function(){
+  const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+  const W=720,H=400,CX=360,CY=200,K=0.75;
+  ctx.scale(2,2);
+  const $=id=>document.getElementById(id);
+  const hud=$('hud'), tag=$('tag');
+  let look='new', paused=false, slowmo=false, thick=false, cap=false;
+  let t=0, st=null, last=performance.now();
+  const PRE=0.16, GROW=0.65;
+
+  function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+  const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+  const eo=x=>1-Math.pow(1-clamp(x),3);
+
+  // sprites: a dark body puff and a lit rim puff
+  function sprite(stops){
+    const c=document.createElement('canvas');c.width=c.height=128;
+    const g=c.getContext('2d'),gr=g.createRadialGradient(64,64,0,64,64,64);
+    stops.forEach(s=>gr.addColorStop(s[0],s[1]));
+    g.fillStyle=gr;g.fillRect(0,0,128,128);return c;
+  }
+  const BODY=sprite([[0,'rgba(66,60,96,.62)'],[.55,'rgba(58,52,86,.38)'],[1,'rgba(40,36,62,0)']]);
+  const LIT=sprite([[0,'rgba(196,190,236,.5)'],[.5,'rgba(160,154,208,.22)'],[1,'rgba(140,134,190,0)']]);
+  const DARK=sprite([[0,'rgba(22,20,36,.55)'],[.7,'rgba(22,20,36,.3)'],[1,'rgba(22,20,36,0)']]);
+
+  function reset(){
+    t=0;
+    const r=rng(7);
+    const R=140*K*(thick?1.4:1), life=5+(thick?2:0);
+    const puffs=[];
+    for(let i=0;i<58;i++){
+      const rad=Math.sqrt(r())*0.88, spin=(r()-.5)*0.55*(1.25-rad);
+      puffs.push({a:r()*6.283,rad,spin,size:R*(0.2+r()*0.2),ph:r()*6.283,front:r()>0.55,del:r()*0.18});
+    }
+    const wisps=[];
+    for(let i=0;i<9;i++)wisps.push({a:r()*6.283,rad:0.25+r()*0.65,len:0.5+r()*0.9,spin:0.2+r()*0.35});
+    const sparks=[];
+    for(let i=0;i<14;i++)sparks.push({a:r()*6.283,v:90+r()*140});
+    st={R,life,puffs,wisps,sparks,bullets:[],nextB:0.5,rb:rng(31),enemy:{x:-20,y:CY-R*0.62-10},bulletsIn:0};
+  }
+
+  function inside(x,y,R){const dx=x-CX,dy=y-CY;return dx*dx+dy*dy<R*R;}
+  function zoneR(){ // current zone radius for gameplay
+    return look==='old'?st.R:st.R*eo((t-PRE)/GROW)*1;
+  }
+
+  function step(dt){
+    t+=dt;
+    const R=(look==='old')?(t>0.05?st.R:0):zoneR();
+    const alive=look==='old'?t<st.life:(t>PRE&&t<PRE+st.life);
+    st.bulletsIn=0;
+    st.nextB-=dt;
+    if(st.nextB<=0){
+      st.nextB=0.32;
+      const side=st.rb()<0.5?-1:1, y0=40+st.rb()*320, y1=CY+(st.rb()-.5)*110;
+      const x0=side<0?-10:W+10, x1=CX+(st.rb()-.5)*60;
+      const dx=x1-x0,dy=y1-y0,d=Math.hypot(dx,dy),sp=210;
+      st.bullets.push({x:x0,y:y0,vx:dx/d*sp,vy:dy/d*sp,inn:0});
+    }
+    for(const b of st.bullets){
+      const sl=alive&&inside(b.x,b.y,R);
+      b.inn+=((sl?1:0)-b.inn)*Math.min(1,dt*14);
+      const m=sl?0.5:1;
+      b.x+=b.vx*m*dt;b.y+=b.vy*m*dt;
+      if(sl)st.bulletsIn++;
+    }
+    st.bullets=st.bullets.filter(b=>b.x>-30&&b.x<W+30&&b.y>-30&&b.y<H+30);
+    const e=st.enemy, es=(cap&&alive&&inside(e.x,e.y,R))?0.6:1;
+    e.x+=55*es*dt; if(e.x>W+20)e.x=-20;
+    st.enemyIn=es<1;
+    if(t>st.life+PRE+1.3)reset();
+  }
+
+  function puffPos(p,te,R,fade){
+    const e=eo((te-p.del)/GROW);
+    const drift=1+(1-fade)*0.18;
+    const ang=p.a+p.spin*te;
+    const rr=p.rad*R*e*drift;
+    return {x:CX+Math.cos(ang)*rr+Math.sin(te*0.7+p.ph)*3,y:CY+Math.sin(ang)*rr*0.94-(1-fade)*14+Math.cos(te*0.6+p.ph)*3,s:p.size*(0.4+0.6*e)*(1+(1-fade)*0.12),e};
+  }
+
+  function drawPuffs(front,te,R,fade){
+    for(const p of st.puffs){
+      if(p.front!==front)continue;
+      const q=puffPos(p,te,R,fade); if(q.e<=0)continue;
+      const al=clamp(q.e*1.6)*fade*(front?0.7:1);
+      const s2=q.s*2;
+      ctx.globalAlpha=al;
+      ctx.drawImage(BODY,q.x-q.s,q.y-q.s,s2,s2);
+      ctx.globalAlpha=al*0.85;
+      const l=q.s*0.72;
+      ctx.drawImage(LIT,q.x-q.s*0.22-l,q.y-q.s*0.3-l,l*2,l*2);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  function drawNinja(){
+    ctx.save();ctx.translate(CX,CY);
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,5,12,5,0,0,6.283);ctx.fill();
+    ctx.strokeStyle='#e05a5a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-8,-3);ctx.quadraticCurveTo(-18,-6+Math.sin(t*5)*2,-24,0+Math.sin(t*5+1)*2);ctx.stroke();
+    ctx.fillStyle='#2a2a3e';ctx.strokeStyle='#8fa4d8';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,0,11,0,6.283);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#e05a5a';ctx.fillRect(-9,-4,18,3);
+    ctx.restore();
+  }
+
+  function drawBullets(R,alive){
+    for(const b of st.bullets){
+      const sp=Math.hypot(b.vx,b.vy), ux=b.vx/sp, uy=b.vy/sp, k=b.inn;
+      const len=(1-0.55*k)*26;
+      const col=k>0.5?'#9d86ff':'#ff6a4a';
+      ctx.lineCap='round';
+      ctx.strokeStyle=col;ctx.globalAlpha=0.35;ctx.lineWidth=5;
+      ctx.beginPath();ctx.moveTo(b.x-ux*len,b.y-uy*len);ctx.lineTo(b.x,b.y);ctx.stroke();
+      ctx.globalAlpha=1;ctx.fillStyle=k>0.5?'#d6caff':'#ffd2c2';
+      ctx.beginPath();ctx.arc(b.x,b.y,3.6,0,6.283);ctx.fill();
+      ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(b.x,b.y,3.6,0,6.283);ctx.stroke();
+      if(k>0.5&&look==='new'){ctx.globalAlpha=0.35;ctx.beginPath();ctx.arc(b.x,b.y,8+Math.sin(t*14+b.x)*1.5,0,6.283);ctx.stroke();ctx.globalAlpha=1;}
+    }
+  }
+
+  function drawEnemy(){
+    const e=st.enemy;
+    ctx.save();ctx.translate(e.x,e.y);
+    ctx.fillStyle=st.enemyIn?'#8a5a9a':'#a03030';ctx.strokeStyle='#ffb0a0';ctx.lineWidth=1.5;
+    ctx.beginPath();for(let i=0;i<6;i++){const a=i*1.0472+0.5;ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);}ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawNew(){
+    const R0=st.R, te=t-PRE, alive=te>0&&te<st.life;
+    const fade=alive?clamp((st.life-te)/1.2):0;
+    const grow=eo(te/GROW), R=R0*grow;
+
+    // pellet
+    if(t<PRE){
+      const u=t/PRE, y=CY-26+u*u*26, s=1-0.45*u;
+      ctx.fillStyle='#222232';ctx.strokeStyle='#8fa4d8';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(CX+6*(1-u),y,5*s,0,6.283);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#ffb84a';ctx.beginPath();ctx.arc(CX+6*(1-u)+3,y-5*s,2.2+Math.sin(t*90),0,6.283);ctx.fill();
+    }
+
+    if(te>0){
+      // ground disk
+      if(fade>0){
+        const g=ctx.createRadialGradient(CX,CY,0,CX,CY,R);
+        g.addColorStop(0,'rgba(34,30,56,.5)');g.addColorStop(.8,'rgba(34,30,56,.34)');g.addColorStop(1,'rgba(34,30,56,0)');
+        ctx.globalAlpha=fade;ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX,CY,R,0,6.283);ctx.fill();ctx.globalAlpha=1;
+      }
+      drawPuffs(false,te,R0,fade);
+    }
+
+    drawBullets(R,alive);
+    drawEnemy();
+    drawNinja();
+
+    if(te>0){
+      drawPuffs(true,te,R0,fade);
+      // wisps
+      ctx.lineCap='round';
+      for(const w of st.wisps){
+        const a=w.a+te*w.spin, r=w.rad*R, a2=a+w.len*0.6;
+        ctx.strokeStyle='rgba(200,194,240,'+(0.18*fade*grow)+')';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(CX,CY,r,a,a2);ctx.stroke();
+      }
+      // seal ring: amber arc draining with time, dashed base
+      if(alive){
+        const frac=clamp(1-te/st.life), blink=(st.life-te<1.2)?(0.55+0.45*Math.sin(te*18)):1;
+        ctx.setLineDash([4,7]);ctx.strokeStyle='rgba(200,194,240,'+(0.35*grow)+')';ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.arc(CX,CY,R-2,0,6.283);ctx.stroke();ctx.setLineDash([]);
+        ctx.strokeStyle='rgba(255,184,74,'+(0.9*blink*grow)+')';ctx.lineWidth=3;
+        ctx.beginPath();ctx.arc(CX,CY,R-2,-1.5708,-1.5708+6.283*frac);ctx.stroke();
+        // lantern ticks
+        ctx.strokeStyle='rgba(255,184,74,'+(0.5*grow)+')';ctx.lineWidth=2;
+        for(let i=0;i<8;i++){const a=i*0.7854+te*0.15;ctx.beginPath();ctx.moveTo(CX+Math.cos(a)*(R-9),CY+Math.sin(a)*(R-9));ctx.lineTo(CX+Math.cos(a)*(R-15),CY+Math.sin(a)*(R-15));ctx.stroke();}
+        // allies shroud shimmer
+        ctx.strokeStyle='rgba(165,144,255,'+(0.35+0.2*Math.sin(te*4))*fade+')';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(CX,CY,17,0,6.283);ctx.stroke();
+      }
+    }
+
+    // crack: flash, sparks, shockwave
+    if(t>=PRE){
+      const u=t-PRE;
+      if(u<0.3){
+        const f=1-u/0.3, g=ctx.createRadialGradient(CX,CY,0,CX,CY,R0*0.5*(0.5+u*3));
+        g.addColorStop(0,'rgba(240,236,255,'+0.85*f+')');g.addColorStop(1,'rgba(165,144,255,0)');
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX,CY,R0*0.5*(0.5+u*3),0,6.283);ctx.fill();
+      }
+      if(u<0.55){
+        const f=1-u/0.55;
+        ctx.lineCap='round';ctx.strokeStyle='rgba(255,184,74,'+f+')';ctx.lineWidth=2;
+        for(const s of st.sparks){
+          const d1=s.v*u*K, d0=Math.max(0,d1-10);
+          ctx.beginPath();ctx.moveTo(CX+Math.cos(s.a)*d0,CY+Math.sin(s.a)*d0);ctx.lineTo(CX+Math.cos(s.a)*d1,CY+Math.sin(s.a)*d1);ctx.stroke();
+        }
+        const rr=R0*1.08*eo(u/0.45);
+        ctx.strokeStyle='rgba(220,214,255,'+0.8*f+')';ctx.lineWidth=3*f+1;
+        ctx.beginPath();ctx.arc(CX,CY,rr,0,6.283);ctx.stroke();
+      }
+    }
+  }
+
+  function drawOld(){
+    const R=st.R, alive=t<st.life;
+    const c='98,98,112'; // game colour 0.62,0.62,0.7
+    if(alive){
+      ctx.fillStyle='rgba(158,158,178,.18)';ctx.beginPath();ctx.arc(CX,CY,R,0,6.283);ctx.fill();
+      for(let k=0;k<9;k++){
+        const pa=6.283*k/9+t*0.25, pr=R*(0.35+0.45*((k*0.53+t*0.1)%1));
+        ctx.fillStyle='rgba(158,158,178,.12)';ctx.beginPath();ctx.arc(CX+Math.cos(pa)*pr,CY+Math.sin(pa)*pr,R*0.3,0,6.283);ctx.fill();
+      }
+    }
+    if(t<0.4){ctx.strokeStyle='rgba(158,158,178,'+(1-t/0.4)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(CX,CY,R*eo(t/0.4),0,6.283);ctx.stroke();}
+    drawBullets(R,alive);drawEnemy();drawNinja();
+  }
+
+  function frame(now){
+    let dt=Math.min(0.05,(now-last)/1000);last=now;
+    if(!paused)step(dt*(slowmo?0.25:1));
+    ctx.clearRect(0,0,W,H);
+    // arena floor
+    const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#15141f');g.addColorStop(1,'#0d0c14');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(255,255,255,.035)';ctx.lineWidth=1;
+    for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    if(look==='new')drawNew();else drawOld();
+    const rem=Math.max(0,st.life-(look==='new'?Math.max(0,t-PRE):t));
+    hud.innerHTML='<span>t '+t.toFixed(2)+' s'+(paused?' (paused)':'')+'</span><span>cloud '+Math.round(st.R/K)+' px · '+rem.toFixed(1)+' s left</span><span>bullets slowed: '+st.bulletsIn+'</span>';
+    requestAnimationFrame(frame);
+  }
+
+  document.querySelectorAll('input[name=look]').forEach(el=>el.addEventListener('change',()=>{look=el.value;tag.textContent=look==='new'?'Proposed':'Current';reset();}));
+  $('replay').addEventListener('click',reset);
+  $('pause').addEventListener('click',e=>{paused=!paused;e.target.textContent=paused?'Resume':'Pause';});
+  $('slow').addEventListener('change',e=>slowmo=e.target.checked);
+  $('thick').addEventListener('change',e=>{thick=e.target.checked;reset();});
+  $('cap').addEventListener('change',e=>{cap=e.target.checked;});
+  reset();requestAnimationFrame(frame);
+})();
+</script>
