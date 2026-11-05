@@ -15,8 +15,17 @@ namespace Arena
         static readonly Color LampOn = new Color(0.42f, 1f, 0.6f);
         static int pressedKey;  // the key the mouse went down on (until it comes up)
 
+        /// A vertical gradient drawn as bands (the game's boxes are flat, so depth is built from strips).
+        static void Band(Rect r, Color top, Color bottom, int steps)
+        {
+            steps = Mathf.Max(steps, Mathf.FloorToInt(r.height / 3f));  // thin strips, so no stripes show
+            float h = r.height / steps;
+            for (int i = 0; i < steps; i++)
+                Ui.Fill(new Rect(r.x, r.y + i * h, r.width, h + 0.5f), Color.Lerp(top, bottom, (i + 0.5f) / steps));
+        }
+
         /// The dark well around a key (a few pixels bigger than the key's rect), for rings and layout.
-        public static Rect Well(Rect r) => new Rect(r.x - 6f, r.y - 5f, r.width + 12f, r.height + 11f);
+        public static Rect Well(Rect r) => new Rect(r.x - 7f, r.y - 6f, r.width + 14f, r.height + 13f);
 
         /// A keycap in rect r (its full height, travel included). lampOn keeps the lamp lit; otherwise it lights under the mouse.
         /// True when clicked.
@@ -30,13 +39,29 @@ namespace Arena
             else if (e.type == EventType.MouseUp)
                 pressedKey = 0;
             bool pressed = hover && pressedKey == id;
-            float travel = Mathf.Clamp(r.height * 0.1f, 5f, 8f);
-            Ui.Pill(Well(r), WellCol);
-            Ui.Pill(new Rect(r.x, r.y + travel, r.width, r.height - travel), BaseCol);  // the key's side, in shade
-            var cap = new Rect(r.x, r.y + (pressed ? travel - 2f : 0f), r.width, r.height - travel);
-            Ui.Pill(cap, hover ? Color.Lerp(CapCol, Color.white, 0.12f) : CapCol);
-            Ui.Pill(new Rect(cap.x + 5f, cap.y + 5f, cap.width - 10f, cap.height - 10f), DishCol);  // the dished top
-            Ui.Fill(new Rect(cap.x + 7f, cap.y + 1f, cap.width - 14f, 1f), new Color(1f, 1f, 1f, 0.4f));
+            float travel = Mathf.Clamp(r.height * 0.14f, 7f, 14f);
+            var well = Well(r);
+            Ui.Pill(well, WellCol);
+            Ui.Fill(new Rect(well.x + 3f, well.y + 2f, well.width - 6f, 3f), new Color(0f, 0f, 0f, 0.55f));        // the well's inner shadow at the top
+            Ui.Fill(new Rect(well.x + 4f, well.yMax - 2f, well.width - 8f, 1f), new Color(1f, 1f, 1f, 0.07f));      // and its lit lip at the bottom
+            float drop = pressed ? travel - 3f : 0f;
+            var cap = new Rect(r.x, r.y + drop, r.width, r.height - travel);
+            // A soft shadow under the key, then its side (a gradient from lit to dark), which the cap travels down over.
+            Ui.Pill(new Rect(r.x + 2f, r.y + travel + 3f, r.width - 4f, r.height - travel), new Color(0f, 0f, 0f, 0.5f));
+            var side = new Rect(r.x, r.y + travel, r.width, r.height - travel);
+            Ui.Pill(side, new Color(0.07f, 0.1f, 0.24f));
+            Band(new Rect(side.x + 2f, side.y, side.width - 4f, side.height - 2f), new Color(0.24f, 0.33f, 0.62f), new Color(0.09f, 0.13f, 0.3f), 6);
+            // The cap: a rim, a face that is lit at the top and darker at the bottom, bevel lines, then the dished top.
+            float lit = hover ? 0.1f : 0f;
+            Ui.Pill(cap, Color.Lerp(new Color(0.22f, 0.3f, 0.56f), Color.white, lit));
+            Band(new Rect(cap.x + 2f, cap.y + 2f, cap.width - 4f, cap.height - 4f), Color.Lerp(new Color(0.5f, 0.64f, 0.98f), Color.white, lit), Color.Lerp(new Color(0.27f, 0.36f, 0.68f), Color.white, lit), 10);
+            Ui.Fill(new Rect(cap.x + 5f, cap.y + 1f, cap.width - 10f, 2f), new Color(1f, 1f, 1f, 0.6f));            // the lit top edge
+            Ui.Fill(new Rect(cap.x + 5f, cap.yMax - 3f, cap.width - 10f, 2f), new Color(0f, 0f, 0f, 0.3f));         // the shaded bottom edge
+            var dish = new Rect(cap.x + 8f, cap.y + 8f, cap.width - 16f, cap.height - 16f);
+            Ui.Pill(dish, new Color(0.1f, 0.14f, 0.32f));
+            Band(new Rect(dish.x + 1f, dish.y + 2f, dish.width - 2f, dish.height - 3f), new Color(0.14f, 0.19f, 0.4f), Color.Lerp(new Color(0.27f, 0.36f, 0.66f), Color.white, lit * 0.6f), 8);  // concave: dark at the top, lighter at the bottom
+            Ui.Fill(new Rect(dish.x + 3f, dish.y + 1f, dish.width - 6f, 2f), new Color(0f, 0f, 0f, 0.4f));          // shadow under the dish's top lip
+            Ui.Fill(new Rect(dish.x + 3f, dish.yMax - 1f, dish.width - 6f, 1f), new Color(1f, 1f, 1f, 0.22f));     // light on its bottom lip
             // The label, engraved: a dark copy under it, then the text; the icon sits before it, the pair centred.
             float isz = Mathf.Min(size * 1.1f, cap.height * 0.5f);
             float tw = Ui.TextWidth(text, size, true) - 6f, gap = icon != null ? 12f : 0f, ic = icon != null ? isz : 0f;
