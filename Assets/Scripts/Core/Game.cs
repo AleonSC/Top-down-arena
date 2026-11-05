@@ -1098,6 +1098,7 @@ namespace Arena
                 tick(this, dt);
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
+            TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey

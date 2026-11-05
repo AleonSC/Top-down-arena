@@ -103,7 +103,7 @@ namespace Arena
                 }
             if (p.FuryT > 0f)
                 Arc(p.Disp, r + 6f, 3f, new Rgba(1f, 0.3f, 0.2f, 0.5f + 0.4f * Mathf.Sin(t * 12f)), 24);
-            if (p.UnbreakT > 0f)  // Unbreakable: a golden octagon of plates, its edges bright
+            if (p.UnbreakT > 0f)  // Cavalry Call's guard: a golden octagon of plates, its edges bright
             {
                 Polygon(p.Disp, r + 9f, 8, t * 0.5f, new Rgba(0.9f, 0.8f, 0.5f, 0.3f));
                 for (int k = 0; k < 8; k++)
