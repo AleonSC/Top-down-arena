@@ -673,7 +673,7 @@ namespace Arena
         {
             int id = 0, kind = 0, owner = 0, link = 0, stacks = 0;
             V2 pos = default(V2);
-            float aim = 0f, t = 0f, duration = 0f, guard = 0f, scale = 0f;
+            float aim = 0f, t = 0f, duration = 0f, guard = 0f, scale = 0f, wind = 0f;
             if (!s.Reading)
             {
                 id = m.Id;
@@ -690,6 +690,7 @@ namespace Arena
                 scale = m.Scale;
                 link = m.LinkTo;
                 stacks = m.Stacks;
+                wind = m.Wind;
             }
             s.Int(ref id);
             s.Byte(ref kind);
@@ -702,6 +703,7 @@ namespace Arena
             s.Float(ref scale);
             s.Int(ref link);
             s.Byte(ref stacks);
+            s.Float(ref wind);
             if (s.Reading)
             {
                 if (!Minions.TryGetValue(id, out m))
@@ -717,6 +719,7 @@ namespace Arena
                 m.Scale = scale;
                 m.LinkTo = link;
                 m.Stacks = stacks;
+                m.Wind = wind;
             }
             return id;
         }

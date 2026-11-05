@@ -222,6 +222,8 @@ namespace Arena
                     Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
+                if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X < 2f && me.Pos.DistanceTo(fx.Pos) < 1100f)
+                    Shake(fx.Pos2.X > 0f ? 0.3f : 0.2f);  // a slam or the titan standing up (TitanLook.cs)
                 if (fx.Kind != FxKind.Boom)
                     continue;
                 newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
