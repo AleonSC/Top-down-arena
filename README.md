@@ -1045,7 +1045,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   profile**); it fades out while the Join row is open. **Join game** opens a row
   under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Records, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see
   Saved runs): **Continue** your latest run or start a **New run**, which grows the box into the lobby's loadout.
-  **Quit** is a faint power icon at the bottom right of the screen that lights up red when the mouse is over it. The
+  **Quit** is a physical key with a lamp, beside a small "MAIN MENU_" CRT screen at the top of the box (like the saved-runs picker's Back). The
   first time it shows after the game starts it draws itself in: a pen writes the title and traces the arc, then the
   box opens and its buttons rise into it (2.75 s; any key or click skips it; with Reduced effects or Visual effects
   off, a short fade). Starting a run grows the box into the lobby's loadout while the rest of the menu fades out and
