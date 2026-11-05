@@ -8,7 +8,7 @@ namespace Arena
     ///   0.04 to 0.50  the header screen's letters flip like a split-flap board, left to right, to the picker's title
     ///   0.10 to 0.42  the Play key splits down the middle and its halves slide into the box's walls
     ///   0.12 to 0.48  the Quit key's legend swaps to Back (same keycap: the cap dips, the icon turns, the lamp lights)
-    ///   0.08 to 0.50  Join game, Records and Settings slide down their rails and out through the floor, one after another
+    ///   0.08 to 0.50  Join game and Settings slide down their rails and out through the floor, one after another
     ///   0.38 to 0.64  the runs screen, behind the doors, opens to its full height
     ///   0.60 to 0.84  New run rises into the gap, overshoots a little and settles; the box gives a small thunk
     /// Sounds (Sfx.Bay*) are cued off the same number (ServoCues). Reduced effects or effects off skip all of it (the box just switches).
@@ -36,10 +36,8 @@ namespace Arena
             new ServoCue(ServoDoorA, 0.32f, Sfx.BayServo, Sfx.BayServoBack, 0.6f),     // the doors' rising whine
             new ServoCue(ServoDropS, 0.24f, Sfx.BayWhirr, Sfx.BayWhirr, 0.6f),         // each key leaving
             new ServoCue(ServoDropS + ServoDropGap, 0.24f, Sfx.BayWhirr, Sfx.BayWhirr, 0.6f),
-            new ServoCue(ServoDropS + 2f * ServoDropGap, 0.24f, Sfx.BayWhirr, Sfx.BayWhirr, 0.6f),
             new ServoCue(ServoDropS + ServoDropLen * 0.88f, 0f, Sfx.BayTick, Sfx.BayTick, 0.6f),    // and landing
             new ServoCue(ServoDropS + ServoDropGap + ServoDropLen * 0.88f, 0f, Sfx.BayTick, Sfx.BayTick, 0.6f),
-            new ServoCue(ServoDropS + 2f * ServoDropGap + ServoDropLen * 0.88f, 0f, Sfx.BayTick, Sfx.BayTick, 0.6f),
             new ServoCue(0.38f, 0.26f, Sfx.BayLift, Sfx.BayLift, 0.45f),               // the screen's frame coming out
             new ServoCue(ServoDoorB, 0f, Sfx.BayClamp, Sfx.BayClamp, 0.6f),
             new ServoCue(0.44f, 0f, Sfx.BayZap, Sfx.BayZap, 0.5f),
@@ -110,10 +108,9 @@ namespace Arena
                 });
             }
 
-            // Join game, Records and Settings drop through the floor, then New run rises into the gap.
+            // Join game and Settings drop through the floor, then New run rises into the gap.
             DrawServoKey(MenuJoinRect, "Join game", "ui_arrow", 0, floor, p);
-            DrawServoKey(MenuRecordsRect, "Records", "ui_trophy", 1, floor, p);
-            DrawServoKey(MenuSettingsRect, "Settings", "ui_gear", 2, floor, p);
+            DrawServoKey(MenuSettingsRect, "Settings", "ui_gear", 1, floor, p);
             float u = ServoSeg(p, 0.60f, 0.84f);
             if (u > 0f)
             {

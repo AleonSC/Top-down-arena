@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// How the side-drawer windows move ("slide and stagger", Docs/Mockups/menu-animations.html option A): the pause
-    /// menu, Settings (main menu, lobby, pause menu), Records and How to play.
+    /// menu, Settings (main menu, lobby, pause menu), Profile and How to play.
     ///   Opening: the drawer slides in from the left (0.3 s); its rows follow one after another (from 0.18 s, 0.06 s
     ///            apart); the line under the title draws across; the party cards rise; the run card (or the open
     ///            section's panel) drops in with a small bounce.
@@ -51,7 +51,7 @@ namespace Arena
         /// Each frame: run a closing window's clock, then close it.
         void TickWindowClose()
         {
-            if (!settingsOpen && !howToOpen && !recordsOpen && !cosmeticsOpen && !lobbyMenuOpen && pauseAnim <= 0f && !WindowClosing)
+            if (!settingsOpen && !howToOpen && !profileOpen && !lobbyMenuOpen && pauseAnim <= 0f && !WindowClosing)
                 drawerKey = null;  // nothing open: the next window opens with its slide, however the last one closed
             if (!WindowClosing)
                 return;

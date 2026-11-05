@@ -171,6 +171,22 @@ static partial class Program
         Check(pb.RunsStarted == 5 && pb.RunsWon == 1 && pb.RunsLost == 3 && pb.BestWave == 37 && pb.Kills == 812 && pb.Beaten(EnemyType.HiveQueen) == 2 && pb.IsUnlocked("something"),
             "a profile's text reads back the same");
 
+        // The menu's "your profile" nudge: shown for the first 5 launches, gone for good once the profile is opened, and kept in the file.
+        var hint = new Profile();
+        for (int i = 1; i <= Profile.HintMaxLaunches; i++)
+        {
+            hint.NoteMenuLaunch();
+            Check(hint.ShowProfileHint, "the profile hint shows on launch " + i);
+        }
+        hint.NoteMenuLaunch();
+        Check(!hint.ShowProfileHint, "the profile hint stops after " + Profile.HintMaxLaunches + " launches");
+        var hint2 = new Profile();
+        hint2.NoteMenuLaunch();
+        hint2.ProfileOpened = true;
+        var hintBack = Profile.Parse(hint2.ToText());
+        Check(hintBack.Valid && hintBack.HintLaunches == 1 && hintBack.ProfileOpened && !hintBack.ShowProfileHint, "opening the profile turns the hint off for good, and the file remembers it");
+        Check(Profile.Parse("arena-profile 4\nruns 1 0 0\nend 1\n").HintLaunches == 0 && Profile.Parse(new Profile().ToText()).LoadedVersion == Profile.FormatVersion, "an older profile file loads with no hint count");
+
         ProfileFileTest();
         ProfileStoreTest();
 

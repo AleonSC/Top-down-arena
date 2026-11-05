@@ -2,105 +2,19 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Your cosmetics window (Docs/Mockups/customization.html, look C): the side drawer opened by clicking your name chip on the
-    /// main menu. A drawer with your rank and a row per category (Frame, Trail, Background, Reward ladder), and the open one
-    /// on the right: a live preview of your look, a card showing how others see you, and the list to equip from. What's
-    /// here is what Rank.cs unlocks. Equipping saves the profile and tells the lobby (Session.ShareCosmetics).
+    /// The Look and Rank tabs of your profile (ProfileUi.cs; Docs/Mockups/customization.html, look C, before the merge): a category
+    /// row per cosmetic, and the open one on the right: a live preview of your look, a card showing how others see you, and the list
+    /// to equip from. What's here is what Rank.cs unlocks. Equipping saves the profile and tells the lobby (Session.ShareCosmetics).
     public partial class ArenaApp
     {
-        bool cosmeticsOpen;
         float ladderScroll;  // the reward ladder's scroll, in px
-        bool editingName;  // the name in Your look is a text field while the pencil is on
-        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor, 7 Reward ladder
+        bool editingName;  // the name in your profile is a text field while the pencil is on
+        int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor (7: the Reward ladder, which has its own panel)
 
         static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Cursor", "Reward ladder" };
-        static readonly int[] SectionOrder = { 7, 0, 1, 2, 3, 4, 5, 6 };  // the drawer's row order: Reward ladder first
         static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_cursor", "ui_trophy" };
 
-        void OpenCosmetics()
-        {
-            cosmeticsOpen = true;
-            cosmeticsSection = 0;
-            ladderScroll = -1f;  // the ladder opens at your rank
-            editingName = false;
-        }
-
-        void DrawCosmetics() { if (!SkipWhileClosing) DrawCosmeticsWindow(); }
-
         static CosmeticKind KindOfSection(int s) => s == 0 ? CosmeticKind.Frame : s == 1 ? CosmeticKind.Trail : s == 3 ? CosmeticKind.CardBackground : s == 4 ? CosmeticKind.NameEffect : s == 5 ? CosmeticKind.AimLine : s == 6 ? CosmeticKind.Cursor : CosmeticKind.Background;
-
-        void DrawCosmeticsWindow()
-        {
-            var p = Profile.Current;
-            float t = Time.unscaledTime;
-            float k = DrawerIn("cosmetics", true);
-            var info = Rank.Of(p.Xp);
-            var tc = RankLook.TierColor(info.Rank);
-            BeginDrawer("YOUR LOOK", Ui.Gold, k, "Cosmetics from your rank");
-            // Close: a round X to the right of the title (Esc does the same).
-            if (Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f)))
-                CloseWindow(() => cosmeticsOpen = false);
-
-            // You: the badge, your name and title, the XP towards the next rank.
-            RankLook.Draw(new Rect(40f, 130f, 72f, 72f), info.Rank);
-            int nsize = 22;
-            while (nsize > 12 && Ui.TextWidth(nameText, nsize, true) + 10f > DrawerW - 210f)
-                nsize--;
-            var nameBox = new Rect(128f, 134f, DrawerW - 210f, 30f);
-            if (editingName)
-            {
-                string before = nameText;
-                GUI.SetNextControlName("look_name");
-                nameText = Ui.BareField(nameBox, nameText, 16, nsize);
-                if (nameText != before)
-                    SaveMenuFields();
-                if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
-                {
-                    editingName = false;
-                    GUI.FocusControl(null);
-                    Event.current.Use();
-                }
-            }
-            else
-                Ui.Label(nameBox, nameText, nsize, Color.white, TextAnchor.MiddleLeft, true);
-            // The pencil: rename yourself here (the main menu's card only opens this window).
-            float nw = editingName ? Ui.TextWidth(nameText, nsize, true) + 10f : Ui.TextWidth(nameText, nsize, true);
-            var pencil = new Rect(Mathf.Min(128f + nw + 4f, DrawerW - 72f), 138f, 24f, 24f);
-            if (Ui.HitArea(pencil))
-            {
-                editingName = !editingName;
-                if (editingName)
-                    GUI.FocusControl("look_name");
-                else
-                {
-                    GUI.FocusControl(null);
-                    SaveMenuFields();
-                }
-            }
-            Ui.Icon(new Rect(pencil.x + 3f, pencil.y + 3f, 18f, 18f), PixelArt.Get("ui_pencil"), pencil.Contains(Event.current.mousePosition) || editingName ? Ui.Gold : Ui.Muted);
-            Ui.Label(new Rect(128f, 164f, DrawerW - 160f, 20f), Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 14, tc, TextAnchor.MiddleLeft, true);
-            Ui.Bar(new Rect(42f, 218f, DrawerW - 84f, 9f), info.Fraction, tc);
-            Ui.Label(new Rect(42f, 230f, DrawerW - 84f, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 11, Ui.Muted, TextAnchor.MiddleRight);
-
-            float y = 262f;
-            foreach (int i in SectionOrder)
-            {
-                bool on = i == cosmeticsSection;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 56f : 46f);
-                string line = i == 7 ? "Rank by rank" : EquippedName(p, KindOfSection(i));
-                if (DrawerRow(r, PixelArt.Get(CosmeticIcons[i]), CosmeticSections[i], line, null, null, Ui.Gold, on))
-                    cosmeticsSection = i;
-                y += r.height + 4f;
-            }
-            EndDrawer();
-
-            BeginPanelAnim("cosmetics" + cosmeticsSection);
-            if (cosmeticsSection == 7)
-                DrawLadderPanel(p, k);
-            else
-                DrawCosmeticPanel(p, t, k);
-            EndPanelAnim();
-        }
 
         static string EquippedName(Profile p, CosmeticKind kind)
         {

@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The menu's mechanical buttons (style A, "Keycaps", of Docs/Mockups/mech-buttons.html): a keycap with a dished top sitting in a
     /// dark well, a lamp in its corner that lights under the mouse, and a few pixels of travel when pressed. Used for the main menu's
-    /// Play, Join game, Records and Settings and the Play screen's New run and Back (the green CRT controls stay digital).
+    /// Play, Join game and Settings and the Play screen's New run and Back (the green CRT controls stay digital).
     public static class KeyUi
     {
         static readonly Color WellCol = new Color(0.03f, 0.04f, 0.09f);
