@@ -313,6 +313,11 @@ namespace Arena
                 DrawBear(m, t);  // BearLooks.cs
                 return;
             }
+            if (m.Kind == MinionKind.Bat)
+            {
+                DrawBat(m, t);  // BatLook.cs
+                return;
+            }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
             if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)
                 Circle(m.Disp, d.Radius * 2.2f, c.WithAlpha(0.2f), 12);

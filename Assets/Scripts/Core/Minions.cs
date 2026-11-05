@@ -363,8 +363,12 @@ namespace Arena
                 {
                     int bats = cap ? 14 : 8;
                     for (int i = 0; i < bats; i++)
-                        SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(MathX.Tau * i / bats) * 15f, 6f);
-                    Sounds.Add(Sfx.Summon);
+                    {
+                        var bat = SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(MathX.Tau * i / bats) * 15f, 6f);
+                        bat.Ang = MathX.Tau * i / bats;
+                        bat.Launch = BatGuardTime + i * (BatPeelSpan / bats);  // they circle you first, then peel off one by one
+                    }
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.7f, 0.5f, 0.95f), 120f, 0.5f, Sfx.Summon);  // the bell toll
                     break;
                 }
                 case AbilityId.Sacrifice:
@@ -395,6 +399,8 @@ namespace Arena
         }
 
         // --- Minions -----------------------------------------------------------
+
+        const float BatGuardTime = 0.6f, BatPeelSpan = 0.6f, BatRingNear = 34f, BatRingGrow = 18f;  // Bat Swarm: circle the owner 0.6 s, then each bat peels off in turn over 0.6 s
 
         Minion SpawnMinion(MinionKind kind, Player owner, V2 pos, float life, bool companion = false)
         {
@@ -583,12 +589,24 @@ namespace Arena
                         break;
                     case MinionMove.Chase:
                     {
+                        if (m.Launch > 0f)  // a Bat Swarm bat still circling its owner
+                        {
+                            m.Launch -= dt;
+                            V2 before = m.Pos;
+                            m.Ang += 6f * dt;
+                            float ring = BatRingNear + Math.Min((m.Duration - m.T) * 40f, BatRingGrow);
+                            m.Pos = owner.Pos + V2.FromAngle(m.Ang) * ring;
+                            m.Aim = (m.Pos - before).Angle;
+                            break;
+                        }
                         target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange);  // wolves hunt the Wolf Whistle's prey
                         V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(m.Id) * 50f;
                         V2 to = goal - m.Pos;
                         float stop = target != null ? target.Radius + d.Radius : 10f;
                         if (to.Length > stop)
                             m.Pos += to.Normalized() * Math.Min(speed * dt, to.Length - stop);
+                        if (m.Kind == MinionKind.Bat && to.Length > 1f)
+                            m.Aim = to.Angle;  // faces where it's flying (the bat's look streaks behind it)
                         break;
                     }
                     case MinionMove.FollowHurt:
@@ -657,6 +675,8 @@ namespace Arena
                             m.Cd = d.Interval;
                             m.Aim = (e.Pos - m.Pos).Angle;
                             HurtEnemy(e, dmg, m.Owner);
+                            if (m.Kind == MinionKind.Bat && m.BiteN++ % 2 == 0)  // a crescent slash across the prey (Game/BatLook.cs draws the bat)
+                                BroadcastFx(FxKind.Slash, m.Pos, e.Pos, new Rgba(0.85f, 0.7f, 1f), 0.9f, 0.2f, Sfx.None);
                             if (m.Kind == MinionKind.Wolf)
                                 PackBite(owner, m, e);
                             // Bear Totem's extra projectiles: the bear's bites also hit enemies around its target.
