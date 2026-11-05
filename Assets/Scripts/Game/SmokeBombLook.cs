@@ -11,6 +11,30 @@ namespace Arena
         const int SmokePuffs = 40;
         static readonly Rgba SmokeBody = new Rgba(0.26f, 0.235f, 0.38f), SmokeLit = new Rgba(0.75f, 0.73f, 0.93f), SmokeAmber = new Rgba(1f, 0.72f, 0.29f);
 
+        /// The capstone: a slow violet undertow turning against the cloud, and curls of smoke dragging at each enemy inside it.
+        void SmokeCling(Zone z, V2 c, float R, float age, float k)
+        {
+            Arc(c, R * 0.55f, 3f, SmokeAmber.WithAlpha(0.22f * k), 40, -age * 0.35f, MathX.Tau * 0.7f);
+            Arc(c, R * 0.8f, 2f, SmokeLit.WithAlpha(0.2f * k), 48, -age * 0.25f + 2f, MathX.Tau * 0.55f);
+            foreach (var e in game.Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Disp.DistanceTo(c) > R + e.Radius)
+                    continue;
+                float r = e.Radius + 5f;
+                for (int j = 0; j < 3; j++)  // three curls turning slowly round it
+                {
+                    float a = age * 1.1f + j * MathX.Tau / 3f + e.Id;
+                    Arc(e.Disp, r + j * 2.5f, 2.5f, SmokeLit.WithAlpha((0.55f - 0.12f * j) * k), 10, a, 1.2f);
+                }
+                Circle(e.Disp + new V2(0f, e.Radius * 0.5f), e.Radius * 1.1f, SmokeBody.WithAlpha(0.35f * k), 14);  // weight pooled at its feet
+                for (int j = 0; j < 3; j++)  // drag: motes that trail behind and sink
+                {
+                    float f = MathX.Fmod(age * 0.9f + j * 0.33f + e.Id * 0.17f, 1f);
+                    Circle(e.Disp + new V2(Mathf.Sin(f * 6f + j) * 6f, e.Radius * 0.3f + f * 14f), 2.2f * (1f - f), SmokeLit.WithAlpha(0.6f * (1f - f) * k), 6);
+                }
+            }
+        }
+
         void DrawSmokeCloud(Zone z, float t)
         {
             float R0 = z.Radius, age = z.Duration - z.T;
@@ -66,6 +90,10 @@ namespace Arena
                 V2 d = V2.FromAngle(MathX.Tau * k / 8f + age * 0.15f);
                 Line(c + d * (R - 9f), c + d * (R - 15f), 2f, SmokeAmber.WithAlpha(0.5f * grow));
             }
+
+            // mastered: a heavier, slower cloud, and smoke clings to every enemy inside it (its 40% slow)
+            if (z.GuardFrac > 0f)
+                SmokeCling(z, c, R, age, fade * grow);
 
             // the crack: flash, sparks, shockwave
             if (age < 0.55f)
