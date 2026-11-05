@@ -46,7 +46,7 @@ button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid v
 <header>
   <h1>Katana look: Neon</h1>
   <p id="lead"></p>
-  <p>Every panel loops the real timing from the combo mockup. Only the look changes between the three variations (Ink, Neon, Steel).</p>
+  <p>Every panel loops the real timing from the combo mockup. Only the look changes between the variations (Ink, Neon, Steel, and this game-accurate Current glow).</p>
 </header>
 
 <section>
@@ -80,14 +80,16 @@ var $=function(i){return document.getElementById(i)};
 var PAL={
  ink:{bg:'#15140f',grid:'rgba(255,255,255,.03)',pl:'#e8e4d8',plS:'#0b0a08',en:'#8a2a22',enS:'#2a0a07',acc:'#c4262e',hi:'#f2eee2',name:['Paper','#e9e6dc','Ink','#0b0a08','Vermilion','#c4262e','Dark lacquer','#2a1c14']},
  neon:{bg:'#070a14',grid:'rgba(80,200,255,.07)',pl:'#10303a',plS:'#3ff0ff',en:'#2a0c1e',enS:'#ff3f8e',acc:'#ff2fd0',hi:'#3ff0ff',name:['Cyan','#3ff0ff','Magenta','#ff2fd0','Void','#070a14','Hot pink','#ff3f8e']},
+ glow:{bg:'#12171b',grid:'rgba(255,255,255,.045)',pl:'#5fd0c4',plS:'#0c2f2b',en:'#d8503f',enS:'#4a1510',acc:'#ff8fa8',hi:'#ffffff',name:['Katana rose','#ff8fa8','Core','#ffffff','Steel','#e6edfc','Guard gold','#d9bf7a']},
  steel:{bg:'#11161a',grid:'rgba(255,255,255,.045)',pl:'#5fd0c4',plS:'#0c2f2b',en:'#d8503f',enS:'#4a1510',acc:'#cfe3f0',hi:'#ffffff',name:['Blade','#cfe3f0','Edge','#ffffff','Spark','#ffb070','Brass','#b79a4a']}
 }[LOOK];
 var NOTES={
  ink:['Reads as a brush stroke. Every swipe is a single tapered pale stroke with dry-brush streaks, so the arc has a visible start and a thin end.','Hits throw ink splashes, with a few vermilion drops. No sparks, no glow.','The Alt strike is one heavy brush line across the map. When it lands, a red seal stamps beside you, and the enemy splits on the line.','Quietest on screen. Works well against busy bullet patterns because the strokes are opaque and short-lived.','Colour budget: pale paper, black ink, one red.'],
  neon:['Light-blade look. The blade and every trail glow cyan with a magenta fringe, drawn additively so overlapping cuts get brighter.','Swipes leave two lagging echoes. The lunge splits into a cyan and a magenta line, like a chromatic aberration.','The Alt strike is a thin double line with faint afterimages of you along the route. The enemy splits along a bright cyan edge.','Loudest option. Needs a check against bullet colours, because cyan and magenta are common enemy bullet hues.','Colour budget: cyan, magenta, a very dark blue ground.'],
+ glow:['The swipes are the game\'s own melee look, ported from MeleeLooks.cs: a rose energy band between 72% and 100% of the reach, brightest at the blade, a 2 px white core at 92%, and 22 sparks thrown off the tip.','The sweep is 0.11 s and the glow fades over 0.55 s, so the chain reads as overlapping afterimages when you tap fast.','The lunge uses the game\'s thrust look: a wide soft beam, a narrower brighter one and a white core, with sparks sprayed along it.','The Alt strike extends the same language. The route is one very long thrust beam, the cut enemy splits on a rose edge, and the aim route and reticle use the same rose.','No new colours. The Katana already has its own rose, so the rework changes shapes and timing, not the palette.'],
  steel:['Plainest and closest to a real blade. A steel gradient, a brass guard and a glint that runs along the edge.','Swipes are thin crisp arcs that get wider toward the tip. Hits are short orange-white spark bursts.','The lunge is a single hairline with air rings ahead of the tip. The Alt strike is a hairline with a star glint at the end, and the enemy splits on a crack.','Charged state adds a warm glow along the edge and a faster glint, so you can see the meter is full from the weapon itself.','Colour budget: steel white, one warm spark colour.']
 };
-$('lead').textContent={ink:'Ink: the Katana as a brush. Strokes instead of light, one accent red.',neon:'Neon: the Katana as a light blade. Glow, echoes and a chromatic split.',steel:'Steel: the Katana as a real blade. Crisp lines, sparks and a glint.'}[LOOK];
+$('lead').textContent={ink:'Ink: the Katana as a brush. Strokes instead of light, one accent red.',neon:'Neon: the Katana as a light blade. Glow, echoes and a chromatic split.',steel:'Steel: the Katana as a real blade. Crisp lines, sparks and a glint.',glow:'Current look: the game\'s own melee glow (style E, Weapon + energy) for the Katana, used on both swipes and the lunge, with the Alt strike built from the same parts.'}[LOOK];
 $('notes').innerHTML=NOTES[LOOK].map(function(t){return '<li>'+t+'</li>'}).join('');
 var n=PAL.name;$('sw').innerHTML=[0,2,4,6].map(function(i){return '<span class="sw"><i style="background:'+n[i+1]+'"></i>'+n[i]+' '+n[i+1]+'</span>'}).join('');
 
@@ -103,8 +105,34 @@ function enemy(x,ex,ey,flash,ang,a){x.save();x.globalAlpha=a==null?1:a;x.transla
   x.fillStyle=flash>0?'#fff':PAL.en;x.strokeStyle=PAL.enS;x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();x.shadowBlur=0;
   x.fillStyle=PAL.enS;x.beginPath();x.moveTo(14,0);x.lineTo(7,-5);x.lineTo(7,5);x.closePath();x.fill();x.restore()}
 
+var ROSE='255,143,168';
+function gameBlade(x,ox,oy,ang,reach,alpha,bright){if(alpha<=0)return;x.save();x.translate(ox,oy);x.rotate(ang);
+  var r0=18,r1=reach*.98,hilt=r0+(r1-r0)*.3,wd=5;
+  x.lineCap='butt';x.strokeStyle='rgba(107,87,64,'+alpha+')';x.lineWidth=4;x.beginPath();x.moveTo(r0-6,0);x.lineTo(hilt,0);x.stroke();
+  x.strokeStyle='rgba(217,191,122,'+alpha+')';x.lineWidth=3;x.beginPath();x.moveTo(hilt,7);x.lineTo(hilt,-7);x.stroke();
+  x.fillStyle=(bright?'rgba(255,255,255,':'rgba(230,237,252,')+alpha+')';x.beginPath();x.moveTo(hilt,wd);x.lineTo(r1-10,wd*.8);x.lineTo(r1,0);x.lineTo(r1-10,-wd*.6);x.lineTo(hilt,-wd*.6);x.closePath();x.fill();
+  x.strokeStyle='rgba('+ROSE+','+(.9*alpha)+')';x.lineWidth=1.2;x.beginPath();x.moveTo(hilt,wd);x.lineTo(r1-10,wd*.8);x.lineTo(r1,0);x.lineTo(r1-10,-wd*.6);x.lineTo(hilt,-wd*.6);x.stroke();x.restore()}
+function glowBand(x,cx,cy,r0,r1,from,to,al0,al1,steps){x.save();x.globalCompositeOperation='lighter';x.shadowColor='rgb('+ROSE+')';x.shadowBlur=18;
+  for(var i=0;i<steps;i++){var t0=lerp(from,to,i/steps),t1=lerp(from,to,(i+1)/steps);x.fillStyle='rgba('+ROSE+','+lerp(al0,al1,(i+.5)/steps)+')';
+    x.beginPath();x.arc(cx,cy,r1,t0,t1,t1<t0);x.arc(cx,cy,r0,t1,t0,t1>=t0);x.closePath();x.fill()}x.restore()}
+function softLine(x,ax,ay,bx,by,w,a,col){var dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,nx=-dy/L*w/2,ny=dx/L*w/2,mx=(ax+bx)/2,my=(ay+by)/2;
+  var g=x.createLinearGradient(mx+nx,my+ny,mx-nx,my-ny);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');
+  x.strokeStyle=g;x.lineWidth=w;x.lineCap='butt';x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke()}
+function glowSparks(x,cx,cy,R,a0,a1,t,active,seed,line,count){var s=a1>a0?1:-1;
+  for(var i=0;i<(count||22);i++){var born=active*rnd(seed+i*3.1),spd=120+160*rnd(seed+i*5.7+1),spread=(rnd(seed+i*7.3+2)-.5)*.9,age=t-born;if(age<0||age>.5)continue;
+    var bx,by,oa;if(line){bx=cx+Math.cos(a0)*(30+R*born/active);by=cy+Math.sin(a0)*(30+R*born/active);oa=a0+spread*1.4}
+    else{var ba=lerp(a0,a1,easeOut(born/active));bx=cx+Math.cos(ba)*R;by=cy+Math.sin(ba)*R;oa=ba+s*.9+spread}
+    var dd=spd*age*(1-age);x.fillStyle=(i%3?'rgba('+ROSE+',':'rgba(255,255,255,')+(.9*(1-age/.5))+')';x.fillRect(bx+Math.cos(oa)*dd-1.5,by+Math.sin(oa)*dd-1.5,3,3)}}
+
 /* ---- the katana itself, local origin = hand, blade points +x ---- */
 function katana(x,o){x.save();x.scale(o.s||1,o.s||1);
+  if(LOOK==='glow'){var hl=18+(80.4-18)*.3;
+    if(o.sheathed){x.strokeStyle='#6b5740';x.lineWidth=4;x.beginPath();x.moveTo(12,0);x.lineTo(hl,0);x.stroke();x.strokeStyle='#d9bf7a';x.lineWidth=3;x.beginPath();x.moveTo(hl,7);x.lineTo(hl,-7);x.stroke();
+      x.fillStyle='#2a2f36';x.strokeStyle='rgba('+ROSE+',.8)';x.lineWidth=1;x.beginPath();x.rect(hl+1,-3.2,60,6.4);x.fill();x.stroke()}
+    else{gameBlade(x,0,0,0,82,1,false);
+      if(o.charged){var pu=o.pulse||0;x.save();x.globalCompositeOperation='lighter';x.shadowColor='rgb('+ROSE+')';x.shadowBlur=14;softLine(x,hl,0,80,0,9+5*pu,.22+.12*pu,ROSE);x.restore()}
+      if(o.glint!=null){var gp=clamp(o.glint,0,1),gx=lerp(hl+4,80,gp),ga=Math.sin(gp*Math.PI);x.strokeStyle='rgba(255,255,255,'+ga+')';x.lineWidth=.9;x.beginPath();x.moveTo(gx-6,0);x.lineTo(gx+6,0);x.moveTo(gx,-5);x.lineTo(gx,5);x.stroke()}}
+    x.restore();return}
   var tk=LOOK==='ink'?'#2a1c14':LOOK==='neon'?'#0d1530':'#262626';
   x.fillStyle=tk;x.strokeStyle=LOOK==='ink'?'#0b0a08':LOOK==='neon'?'#ff2fd0':'#0d0d0d';x.lineWidth=1;
   if(LOOK==='neon'){x.shadowColor='#ff2fd0';x.shadowBlur=8}
@@ -139,7 +167,10 @@ function katana(x,o){x.save();x.scale(o.s||1,o.s||1);
 
 /* ---- trails ---- */
 function swipeTrail(x,cx,cy,R,a0,cur,a){
-  if(a<=0)return;x.save();x.translate(cx,cy);var dir=cur>a0?1:-1;
+  if(a<=0)return;
+  if(LOOK==='glow'){glowBand(x,cx,cy,R*.72,R,a0,cur,.05*a,.55*a,Math.max(6,Math.ceil(Math.abs(cur-a0)*14)));
+    x.save();x.globalCompositeOperation='lighter';x.strokeStyle='rgba(255,255,255,'+(.95*a)+')';x.lineWidth=2;x.beginPath();x.arc(cx,cy,R*.92,Math.min(a0,cur),Math.max(a0,cur));x.stroke();x.restore();return}
+  x.save();x.translate(cx,cy);var dir=cur>a0?1:-1;
   if(LOOK==='ink'){
     var N=26;var pts=[];for(var i=0;i<=N;i++){var t=i/N,ang=lerp(a0,cur,t),w=15*Math.pow(Math.sin(Math.PI*Math.min(1,t*.95+.02)),.7)*(.5+.5*t)+1,rr=R-3+(rnd(i)-.5)*1.4;
       pts.push([Math.cos(ang)*(rr+w/2),Math.sin(ang)*(rr+w/2),Math.cos(ang)*(rr-w/2),Math.sin(ang)*(rr-w/2)])}
@@ -158,7 +189,10 @@ function swipeTrail(x,cx,cy,R,a0,cur,a){
       x.strokeStyle='rgba(255,255,255,'+(a*(.35+.65*f1))+')';x.lineWidth=.6+3.4*f1;x.beginPath();x.arc(0,0,R-1,s0,s1,dir<0);x.stroke()}}
   x.restore()}
 function lungeTrail(x,x0,x1,y,a,tipAge){
-  if(a<=0)return;x.save();
+  if(a<=0)return;
+  if(LOOK==='glow'){x.save();x.globalCompositeOperation='lighter';var hx=x1+66;softLine(x,x0+20,y,hx,y,26*a+4,.5*a,ROSE);softLine(x,x0+20,y,hx,y,10*a+2,.6*a,ROSE);
+    x.strokeStyle='rgba(255,255,255,'+(.9*a)+')';x.lineWidth=2.5;x.beginPath();x.moveTo(x0+20,y);x.lineTo(hx,y);x.stroke();x.restore();return}
+  x.save();
   if(LOOK==='ink'){var N=18;x.fillStyle='rgba(240,236,224,'+(.9*a)+')';x.beginPath();x.moveTo(x0,y);
     for(var i=0;i<=N;i++){var t=i/N;x.lineTo(lerp(x0,x1+64,t),y-(1+11*Math.pow(t,1.4))/2+(rnd(i)-.5))}
     for(i=N;i>=0;i--){t=i/N;x.lineTo(lerp(x0,x1+64,t),y+(1+11*Math.pow(t,1.4))/2+(rnd(i+7)-.5))}x.closePath();x.fill();
@@ -171,7 +205,10 @@ function lungeTrail(x,x0,x1,y,a,tipAge){
     for(var r=0;r<3;r++){x.strokeStyle='rgba(200,225,240,'+(a*(.5-r*.14))+')';x.lineWidth=1;x.beginPath();x.arc(x1+66+r*9,y,10+r*7+tipAge*30,-.9,.9);x.stroke()}}
   x.restore()}
 function strikeLine(x,p,a,w){
-  if(a<=0)return;x.save();x.lineCap='round';var dx=p.x1-p.x0,dy=p.y1-p.y0,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+  if(a<=0)return;
+  if(LOOK==='glow'){x.save();x.globalCompositeOperation='lighter';softLine(x,p.x0,p.y0,p.x1,p.y1,34*a+6,.5*a,ROSE);softLine(x,p.x0,p.y0,p.x1,p.y1,12*a+2,.6*a,ROSE);
+    x.strokeStyle='rgba(255,255,255,'+(.9*a)+')';x.lineWidth=2.5;x.beginPath();x.moveTo(p.x0,p.y0);x.lineTo(p.x1,p.y1);x.stroke();x.restore();return}
+  x.save();x.lineCap='round';var dx=p.x1-p.x0,dy=p.y1-p.y0,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
   if(LOOK==='ink'){var N=30;x.fillStyle='rgba(240,236,224,'+(.92*a)+')';x.beginPath();
     var up=[],dn=[];for(var i=0;i<=N;i++){var t=i/N,wd=(w*2.6)*Math.pow(Math.sin(Math.PI*(.08+.9*t)),.6)*(.6+.4*t)+.8,j=(rnd(i+2)-.5)*1.2,cx=p.x0+dx*t,cy=p.y0+dy*t;
       up.push([cx+nx*(wd/2+j),cy+ny*(wd/2+j)]);dn.push([cx-nx*(wd/2-j),cy-ny*(wd/2-j)])}
@@ -184,7 +221,8 @@ function strikeLine(x,p,a,w){
     x.strokeStyle='rgba(255,255,255,'+a+')';x.lineWidth=Math.max(1,w*.4);x.beginPath();x.moveTo(p.x0,p.y0);x.lineTo(p.x1,p.y1);x.stroke()}
   x.restore()}
 function impact(x,px,py,age){ if(age<0||age>.32)return;var q=age/.32,a=1-q;x.save();x.translate(px,py);
-  if(LOOK==='ink'){x.fillStyle='rgba(240,236,224,'+a+')';for(var i=0;i<9;i++){var an=i/9*TAU+rnd(i)*.5,d=6+q*(14+rnd(i+4)*10);x.beginPath();x.arc(Math.cos(an)*d,Math.sin(an)*d,2.6*(1-q)+.6,0,TAU);x.fill()}
+  if(LOOK==='glow'){for(var g=0;g<10;g++){var ga=g/10*TAU+rnd(g)*.5,gd=4+q*(16+rnd(g+3)*14);x.fillStyle=(g%3?'rgba('+ROSE+',':'rgba(255,255,255,')+a+')';x.fillRect(Math.cos(ga)*gd-1.5,Math.sin(ga)*gd-1.5,3,3)}}
+  else if(LOOK==='ink'){x.fillStyle='rgba(240,236,224,'+a+')';for(var i=0;i<9;i++){var an=i/9*TAU+rnd(i)*.5,d=6+q*(14+rnd(i+4)*10);x.beginPath();x.arc(Math.cos(an)*d,Math.sin(an)*d,2.6*(1-q)+.6,0,TAU);x.fill()}
     x.fillStyle='rgba(196,38,46,'+a+')';for(i=0;i<4;i++){an=rnd(i+20)*TAU;d=8+q*20;x.beginPath();x.arc(Math.cos(an)*d,Math.sin(an)*d,2*(1-q)+.5,0,TAU);x.fill()}}
   else if(LOOK==='neon'){x.globalCompositeOperation='lighter';x.strokeStyle='rgba(63,240,255,'+a+')';x.lineWidth=2;x.beginPath();
     for(var h=0;h<=6;h++){var an2=h/6*TAU,r=8+q*20;x[h?'lineTo':'moveTo'](Math.cos(an2)*r,Math.sin(an2)*r)}x.stroke();
@@ -195,33 +233,39 @@ function impact(x,px,py,age){ if(age<0||age>.32)return;var q=age/.32,a=1-q;x.sav
 function halves(x,hx,hy,ux,uy,q){var off=easeOut(q)*22,a=1-clamp((q-.45)/.55,0,1),an=Math.atan2(uy,ux),nx=-uy,ny=ux;
   [[1,0],[-1,Math.PI]].forEach(function(h){x.save();x.globalAlpha=a;x.translate(hx+nx*off*h[0],hy+ny*off*h[0]);
     if(LOOK==='neon'){x.shadowColor='#3ff0ff';x.shadowBlur=10}
-    x.fillStyle=PAL.en;x.strokeStyle=LOOK==='steel'?'#fff':LOOK==='neon'?'#3ff0ff':'#f2eee2';x.lineWidth=2;
+    x.fillStyle=PAL.en;x.strokeStyle=LOOK==='steel'?'#fff':LOOK==='neon'?'#3ff0ff':LOOK==='glow'?'#ff8fa8':'#f2eee2';x.lineWidth=2;
     x.beginPath();x.arc(0,0,14,an+h[1],an+h[1]+Math.PI);x.closePath();x.fill();x.stroke();x.restore()})}
 function seal(x,sx,sy,a){if(LOOK!=='ink'||a<=0)return;x.save();x.globalAlpha=a;x.translate(sx,sy);x.rotate(-.1);x.fillStyle='#c4262e';x.beginPath();x.rect(-11,-11,22,22);x.fill();
   x.strokeStyle='#15140f';x.lineWidth=2;x.beginPath();x.moveTo(-6,-6);x.lineTo(6,-6);x.moveTo(0,-6);x.lineTo(0,7);x.moveTo(-6,0);x.lineTo(6,0);x.moveTo(-6,7);x.lineTo(6,7);x.stroke();x.restore()}
 function bracket(x,px,py,r,col,w){x.save();x.strokeStyle=col;x.lineWidth=w;if(LOOK==='neon'){x.shadowColor=col;x.shadowBlur=8}x.beginPath();
   [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(c){var cx=px+c[0]*r,cy=py+c[1]*r;x.moveTo(cx-c[0]*6,cy);x.lineTo(cx,cy);x.lineTo(cx,cy-c[1]*6)});x.stroke();x.restore()}
-var HOT=LOOK==='ink'?'#c4262e':LOOK==='neon'?'#ff2fd0':'#ffb070';
-var GHOST=LOOK==='ink'?'rgba(240,236,224,.8)':LOOK==='neon'?'rgba(63,240,255,.9)':'rgba(95,208,196,.9)';
+var HOT=LOOK==='ink'?'#c4262e':LOOK==='neon'?'#ff2fd0':LOOK==='glow'?'#ff8fa8':'#ffb070';
+
 
 /* ---- panels ---- */
 var PX=70,PY=110;
 function swipePanel(dir){return function(x,t){
-  bg(x,PW,PH);var a0=dir>0?-HALF:HALF,a1=-a0,p=clamp(t/.26,0,1),cur=lerp(a0,a1,easeOut(p));
-  var rest=t<.26?cur:(t<1.0?a1:lerp(a1,a0,easeOut((t-1.0)/.5)));
-  var fl=t>.1&&t<.4?1-(t-.1)/.3:0;
+  bg(x,PW,PH);var G=LOOK==='glow',sw=G?.11:.26,a0=dir>0?-HALF:HALF,a1=-a0,p=clamp(t/sw,0,1),cur=lerp(a0,a1,easeOut(p));
+  var rest=t<sw?cur:(t<1.0?a1:lerp(a1,a0,easeOut((t-1.0)/.5)));
+  var h0=G?.03:.1,fl=t>h0&&t<h0+.3?1-(t-h0)/.3:0;
   enemy(x,148+(fl>0?Math.sin(t*60)*2.5*fl:0),110,fl,Math.PI);
-  if(t<.62)swipeTrail(x,PX,PY,80,a0,cur,t<.26?1:1-(t-.26)/.36);
-  player(x,PX,PY,0);x.save();x.translate(PX,PY);x.rotate(rest);katana(x,{s:1,glint:(t*.9)%1.4-.2});x.restore();
-  impact(x,134,110,t-.1)}}
+  if(!G&&t<.62)swipeTrail(x,PX,PY,80,a0,cur,t<.26?1:1-(t-.26)/.36);
+  player(x,PX,PY,0);
+  if(G){if(t<.4){var hold=t<sw+.1?1:1-clamp((t-sw-.1)/.18,0,1);gameBlade(x,PX,PY,cur,80,hold,t<sw)}
+    var fade=t<sw?1:1-clamp((t-sw)/.55,0,1);swipeTrail(x,PX,PY,80,a0,cur,fade);glowSparks(x,PX,PY,80,a0,a1,t,sw,dir*7+3,false,22)}
+  else{x.save();x.translate(PX,PY);x.rotate(rest);katana(x,{s:1,glint:(t*.9)%1.4-.2});x.restore()}
+  impact(x,134,110,t-h0)}}
 function lungePanel(x,t){
   bg(x,PW,PH);var px=PX,y=PY,ph;
   if(t<.3)px=PX-14*easeOut(t/.3);else if(t<.42)px=lerp(PX-14,PX+120,easeOut((t-.3)/.12));else if(t<1.4)px=PX+120;else px=lerp(PX+120,PX,easeOut((t-1.4)/.5));
   var flA=t>.36&&t<.66?1-(t-.36)/.3:0;
   enemy(x,175,y-6,flA,Math.PI);enemy(x,255,y+8,t>.4&&t<.7?1-(t-.4)/.3:0,Math.PI);enemy(x,320,y-2,0,Math.PI,1);
-  var ta=t<.3?0:t<.42?1:clamp(1-(t-.42)/.4,0,1);lungeTrail(x,PX-14,px,y,ta,Math.max(0,t-.42));
-  player(x,px,y,0);x.save();x.translate(px,y);
-  if(t<.3)x.translate(-8*easeOut(t/.3),5);katana(x,{s:1,glint:(t*.9)%1.4-.2});x.restore();
+  var G=LOOK==='glow',ta=t<.3?0:t<.42?1:clamp(1-(t-.42)/(G?.55:.4),0,1);if(!G)lungeTrail(x,PX-14,px,y,ta,Math.max(0,t-.42));
+  player(x,px,y,0);
+  if(G){var rc=t<.3?44:lerp(44,88,easeOut((t-.3)/.12));gameBlade(x,px,y,0,rc,t<.52?1:1-clamp((t-.52)/.15,0,1),t>=.3&&t<.42);
+    lungeTrail(x,PX-14,px,y,ta,0);if(t>.3)glowSparks(x,PX-14,y,150,0,0,t-.3,.066,11,true,18)}
+  else{x.save();x.translate(px,y);
+  if(t<.3)x.translate(-8*easeOut(t/.3),5);katana(x,{s:1,glint:(t*.9)%1.4-.2});x.restore()}
   impact(x,175-8,y-6,t-.36);impact(x,255-8,y+8,t-.4)}
 function alt1Panel(x,t,T){
   bg(x,PW,PH);var P0={x:50,y:182},en=[{x:140,y:62},{x:225,y:150},{x:300,y:76}],sel=t<T*.42?0:2;
