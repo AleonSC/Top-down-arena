@@ -226,7 +226,7 @@ namespace Arena
                 float f = fx.Age / Session.FxLife;
                 if (fx.Kind == LobbyAbilityKind.Dash)
                 {
-                    Line(fx.Pos, fx.Pos - V2.FromAngle(fx.Angle) * Session.DashDist, 18f * (1f - f), new Rgba(1f, 0.85f, 0.45f, 0.35f * (1f - f)));  // the streak it left
+                    Line(fx.Pos, fx.Pos + V2.FromAngle(fx.Angle) * Session.DashDist, 18f * (1f - f), new Rgba(1f, 0.85f, 0.45f, 0.35f * (1f - f)));  // the streak it left
                     Circle(fx.Pos, 24f * (1f - f), new Rgba(1f, 0.9f, 0.6f, 0.4f * (1f - f)), 20);
                 }
                 else if (fx.Kind == LobbyAbilityKind.BurstHeal)

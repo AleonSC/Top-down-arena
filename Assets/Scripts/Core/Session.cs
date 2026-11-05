@@ -572,11 +572,17 @@ namespace Arena
                     HostAvatarMove(peer, r);
                     break;
                 case Msg.LobbyFire:
-                    HostFire(peer, r.ReadSingle(), true);
+                {
+                    float fireAim = r.ReadSingle();
+                    HostFire(peer, fireAim, true, r.ReadV2());
                     break;
+                }
                 case Msg.LobbyAbility:
-                    HostAbility(peer, r.ReadSingle(), true);
+                {
+                    float castAim = r.ReadSingle();
+                    HostAbility(peer, castAim, true, r.ReadV2());
                     break;
+                }
                 case Msg.Emote:
                     HostEmote(peer, r.ReadByte());
                     break;
