@@ -1,0 +1,415 @@
+<title>Menu to Picker Emerge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: the game's 1280x720 menu scaled to fit, driven by one progress value p (0 = main menu, 1 = saved-runs picker). Looks A-C move the Play key, trio and screen; the header text and the Quit-to-Back key have three styles each and mix with any look. Single dark look, like the other mockups. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --danger: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+h2 { font-size: 18px; margin: 0 0 8px; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.scrub { display: flex; gap: 12px; align-items: center; }
+.scrub input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.scrub output { font: 500 12px var(--f-mono); color: var(--ink); width: 7ch; text-align: right; }
+.chk { font: 500 12px var(--f-mono); color: var(--muted); display: flex; gap: 6px; align-items: center; letter-spacing: .06em; text-transform: uppercase; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+
+/* CRT screens */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.flash { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: 0; background: radial-gradient(80% 120% at 50% 50%, #eafff3, #4dff9a 60%, transparent); mix-blend-mode: screen; }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px var(--glow); }
+.sign { left: 112px; top: 66px; width: 1056px; height: 118px; display: grid; place-items: center; font-size: 100px; letter-spacing: .05em; }
+#hdr { left: 27px; top: 8px; width: 490px; height: 46px; padding: 6px 20px 0; font-size: 36px; line-height: 1.05; white-space: pre; }
+#hdr .t { position: relative; z-index: 1; }
+
+/* chassis and keys */
+.chassis { position: absolute; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.chassis::before, .chassis::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; letter-spacing: .02em; border-radius: 10px; white-space: nowrap; overflow: hidden;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); }
+.tac .lbl { position: absolute; inset: 0; display: grid; place-items: center; }
+.tac .led { position: absolute; left: 13px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac.play { font-size: 30px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); }
+.tac.play .led { left: 22px; }
+.pole { position: absolute; left: 0; right: 0; top: 0; height: 3px; opacity: 0; background: #d9fff0; box-shadow: 0 0 18px 4px rgba(100,255,170,.9), 0 0 50px 10px rgba(77,255,154,.5); border-radius: 2px; }
+
+/* Quit / Back key */
+#kb { position: absolute; border-radius: 10px; }
+#kb .face { position: absolute; inset: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 9px; font: 700 18px var(--f-ui); overflow: hidden; backface-visibility: hidden; }
+#kb .q { background: linear-gradient(#1b2244, #0e1330); border: 1px solid #2c3766; color: #cfd8f5; }
+#kb .b { background: linear-gradient(#5b7de6, #2c43a2); border: 1px solid #86a1f4; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+#kb .face svg { width: 18px; height: 18px; flex: none; }
+#kb .lamp { position: absolute; width: 7px; height: 7px; right: 10px; top: 50%; margin-top: -3px; background: #4dff9a; box-shadow: 0 0 7px #4dff9a; }
+#kb .b .lamp { top: 6px; right: 6px; margin: 0; background: #7dffb5; box-shadow: 0 0 9px #4dff9a; }
+
+/* picker screen content */
+#pick { left: 28px; top: 63px; width: 620px; height: 189px; }
+#pick .pk { position: absolute; z-index: 1; }
+.big { font-size: 40px; line-height: 1; margin: 2px 0 6px; }
+.kv { font-size: 16px; color: var(--dim); text-shadow: none; line-height: 1.12; } .kv b { font-weight: 400; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+.sq { font-size: 21px; line-height: 1.2; margin-top: 3px; } .sq i { display: inline-block; width: 3px; height: 14px; background: #4f86ff; box-shadow: 0 0 6px #4f86ff; margin-right: 8px; } .sq em { font-style: normal; color: var(--dim); font-size: 16px; text-shadow: none; margin-left: 34px; }
+.sm { display: block; width: 100%; font: 24px/1 var(--f-crt); letter-spacing: .05em; color: var(--ink); background: rgba(77,255,154,.07); border: 2px solid var(--ink); padding: 8px 12px 5px; text-shadow: inherit; text-align: center; }
+.sm.del { color: var(--danger); border-color: var(--danger); background: rgba(255,107,122,.07); font-size: 19px; padding: 3px 10px 1px; margin-top: 7px; }
+
+/* player card, static */
+.pcard { position: absolute; left: 332px; top: 610px; width: 617px; height: 62px; border: 2px solid #9b5cf0; border-radius: 6px; background: linear-gradient(90deg, #1a1436, #0f1228); box-shadow: 0 0 14px rgba(155,92,240,.45); }
+.pcard i { position: absolute; left: 10px; top: 8px; width: 44px; height: 44px; border-radius: 6px; background: #1a2142; border: 1px solid #2c3766; }
+.pcard i::after { content: ""; position: absolute; left: 11px; top: 11px; width: 20px; height: 20px; border-radius: 50%; border: 4px solid #8fa3e8; }
+.pcard b { position: absolute; left: 70px; top: 6px; font: 700 24px var(--f-ui); color: #fff; }
+.pcard span { position: absolute; left: 70px; top: 33px; font: 700 15px var(--f-ui); color: #f2c14e; }
+.pcard em { position: absolute; right: 18px; top: 10px; width: 40px; height: 42px; border-radius: 8px 8px 20px 20px; background: #c9a13b; color: #2a1d00; font: 700 12px/42px var(--f-ui); text-align: center; font-style: normal; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px 28px; }
+.cards > div { min-width: 0; }
+.cards p, .cards li { color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0 0 6px; }
+.cards ul { margin: 0; padding-left: 18px; }
+.cards b { color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Menu to picker, emerging</h1>
+    <p>Pressing Play makes the saved-runs screen come out of the main menu instead of replacing it. The header text rewrites itself, the Quit key becomes the Back key, the Play key turns into the runs screen and the three small keys fold into New run. Pick a look, then change the header and key styles on their own. Back plays the same thing in reverse.</p>
+  </header>
+
+  <div class="ctl">
+    <div class="grp"><span>Look</span>
+      <button class="seg" type="button" data-look="A" aria-pressed="true">A &middot; Morph</button>
+      <button class="seg" type="button" data-look="B" aria-pressed="false">B &middot; Power-on</button>
+      <button class="seg" type="button" data-look="C" aria-pressed="false">C &middot; Hatch</button></div>
+    <div class="grp"><span>Header text</span>
+      <button class="seg" type="button" data-hdr="1" aria-pressed="true">Backspace</button>
+      <button class="seg" type="button" data-hdr="2" aria-pressed="false">Scramble</button>
+      <button class="seg" type="button" data-hdr="3" aria-pressed="false">Overwrite</button></div>
+    <div class="grp"><span>Quit to Back</span>
+      <button class="seg" type="button" data-key="1" aria-pressed="true">Morph</button>
+      <button class="seg" type="button" data-key="2" aria-pressed="false">Flip</button>
+      <button class="seg" type="button" data-key="3" aria-pressed="false">Reel</button></div>
+  </div>
+  <div class="ctl">
+    <div class="grp"><button class="seg" type="button" id="go">&#9654; Press Play</button><button class="seg" type="button" id="back">&#9664; Back</button></div>
+    <div class="grp"><span>Speed</span>
+      <button class="seg" type="button" data-sp="0.25" aria-pressed="false">0.25x</button>
+      <button class="seg" type="button" data-sp="0.5" aria-pressed="false">0.5x</button>
+      <button class="seg" type="button" data-sp="1" aria-pressed="true">1x</button></div>
+    <label class="chk"><input type="checkbox" id="loop"> Loop</label>
+  </div>
+  <div class="scrub"><span class="chk" style="margin:0">Scrub</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Transition progress"><output id="pv">0.00</output></div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="scr sign"><div class="roll"></div><span style="position:relative;z-index:1">CARTESIAN COLOSSEUM</span></div>
+
+    <div class="chassis" id="card" style="left:302px;top:267px;width:676px;height:320px">
+      <div class="scr" id="hdr"><span class="t" id="hdrT">MAIN MENU</span><span class="cur" id="hdrC" style="display:none;position:relative;z-index:1"></span></div>
+
+      <div id="kb">
+        <div class="face q" id="fq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8M6.3 6.7a8 8 0 1 0 11.4 0"/></svg><span>Quit</span><i class="lamp"></i></div>
+        <div class="face b" id="fb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg><span>Back</span><i class="lamp"></i></div>
+      </div>
+
+      <div class="scr" id="pick"><div class="roll"></div><div class="flash" id="flash"></div>
+        <div class="pk" id="pk1" style="left:20px;top:14px"><div class="lab">LATEST RUN</div><div class="big">Wave 1</div><div class="kv">SAVED <b>Nov 5, 07:06</b><br>SCORE <b>0</b> &nbsp; PLAYED <b>0 min</b></div></div>
+        <div class="pk" id="pk2" style="left:212px;top:14px;width:200px"><div class="lab">SQUAD</div><div class="sq"><i></i>Anthony</div><div class="sq" style="margin-top:0"><em>Soldier Tank</em></div></div>
+        <div class="pk" id="pk3" style="left:440px;top:14px;width:162px"><div class="lab" style="text-align:center;margin-bottom:6px">&#9679; READY</div><div class="sm">&#9654; CONTINUE</div><div class="sm del">DEL</div></div>
+      </div>
+
+      <div class="tac play" id="play"><span class="lbl" id="playL">&#9654; PLAY</span><i class="led"></i></div>
+      <div class="pole" id="pole"></div>
+      <div class="tac" id="t0"><span class="lbl">Join game</span></div>
+      <div class="tac" id="t1"><span class="lbl">Records</span></div>
+      <div class="tac" id="t2"><span class="lbl">Settings</span></div>
+      <div class="tac play" id="nr" style="font-size:20px;letter-spacing:.02em"><span class="lbl">&#9654; New run</span></div>
+    </div>
+
+    <div class="pcard"><i></i><b>Anthony</b><span>Legend &middot; Rank 999</span><em>999</em></div>
+  </div></div>
+
+  <div class="cards">
+    <div><h2>A &middot; Morph</h2><ul>
+      <li>The Play key's rectangle grows into the runs screen: the blue face dims out while the green screen powers up inside the same box.</li>
+      <li>Join, Records and Settings slide down and slide together until they are one bar, which is New run.</li>
+      <li>Calmest of the three. Nothing disappears, everything changes shape.</li></ul></div>
+    <div><h2>B &middot; Power-on</h2><ul>
+      <li>Play dips like a pressed key, then collapses into a bright line, the way a CRT switches on.</li>
+      <li>The line opens up into the screen with a flash, and the run details flicker on row by row.</li>
+      <li>The small keys sink into the chassis one after another, then New run rises.</li></ul></div>
+    <div><h2>C &middot; Hatch</h2><ul>
+      <li>The Play key swings up on its top edge like a lid and the screen is already there underneath, opening as the lid goes.</li>
+      <li>The three keys drop away and New run unfolds from the middle outwards.</li>
+      <li>Most physical of the three. It reads as a compartment opening.</li></ul></div>
+    <div><h2>Header text</h2><ul>
+      <li><b>Backspace:</b> MAIN MENU is deleted letter by letter, then YOUR RUNS is typed. The caret stays, as it does on the picker today.</li>
+      <li><b>Scramble:</b> every letter scrambles, then settles into the new text left to right.</li>
+      <li><b>Overwrite:</b> a block cursor sweeps across and replaces each letter in place. Both titles are 9 characters, so this fits.</li></ul></div>
+    <div><h2>Quit to Back</h2><ul>
+      <li><b>Morph:</b> the key grows taller and wider, turns from dark to blue, and the power icon turns into the arrow.</li>
+      <li><b>Flip:</b> the key turns over to show Back on its other side.</li>
+      <li><b>Reel:</b> Quit scrolls up out of the slot and Back scrolls in from below.</li></ul></div>
+    <div><h2>Building it</h2><ul>
+      <li>One progress value drives everything, so Back is the same animation played backwards, and the header rewrites to MAIN MENU in the same style.</li>
+      <li>Same length as the existing Scan wipe (about 0.9 s). Clicks are ignored during it. With reduced effects it snaps.</li>
+      <li>Not built yet. Pick a look, a header style and a key style.</li></ul></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  var view = $('view'), stage = $('stage');
+  function fit() { stage.style.transform = 'scale(' + (view.clientWidth / 1280) + ')'; }
+  fit(); new ResizeObserver(fit).observe(view);
+
+  function cl(x) { return Math.max(0, Math.min(1, x)); }
+  function seg(p, a, b) { return cl((p - a) / (b - a)); }
+  function eo(x) { return 1 - Math.pow(1 - x, 3); }
+  function eio(x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function hash(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function R(el, l, t, w, h) { el.style.left = l + 'px'; el.style.top = t + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px'; }
+  function S(el, o, tx, ty, sy) {
+    el.style.opacity = o; el.style.visibility = o <= 0.002 ? 'hidden' : 'visible';
+    el.style.transform = 'translate(' + (tx || 0) + 'px,' + (ty || 0) + 'px)' + (sy !== undefined && sy !== 1 ? ' scaleY(' + sy + ')' : '');
+  }
+
+  var E = { play: $('play'), pplayL: $('playL'), pick: $('pick'), flash: $('flash'), pole: $('pole'), nr: $('nr'), kb: $('kb'), fq: $('fq'), fb: $('fb'),
+    t: [$('t0'), $('t1'), $('t2')], pk: [$('pk1'), $('pk2'), $('pk3')] };
+  // Geometry in card coordinates, read off the game's two screens.
+  var PLAY = [29, 68, 618, 138], PICK = [28, 63, 620, 189], NR = [29, 261, 616, 40];
+  var TRIO = [[29, 224, 191, 61], [236, 224, 191, 61], [444, 224, 201, 61]];
+  var TRIO_END = [[29, 261, 206, 40], [235, 261, 206, 40], [441, 261, 204, 40]];
+  var QUIT = [529, 11, 116, 40], BACK = [520, 4, 133, 54];
+
+  function showContent(p, a, b, flick) {
+    E.pk.forEach(function (el, i) {
+      var k = eo(seg(p, a + i * .07, b + i * .07));
+      var o = k;
+      if (flick && k > 0 && k < 1) o = hash(i * 31 + Math.floor(p * 70)) > .35 ? 1 : .15;
+      S(el, o, 0, flick ? 0 : 10 * (1 - k));
+    });
+  }
+
+  var looks = {
+    A: function (p) {
+      var m = eio(seg(p, .1, .7)), tm = eio(seg(p, .05, .65));
+      R(E.play, lerp(PLAY[0], PICK[0], m), lerp(PLAY[1], PICK[1], m), lerp(PLAY[2], PICK[2], m), lerp(PLAY[3], PICK[3], m));
+      S(E.play, 1 - seg(p, .22, .55), 0, 0); E.play.style.transformOrigin = '50% 50%';
+      S(E.pplayL = E.pplayL || $('playL'), 1 - seg(p, 0, .25), 0, 0);
+      R(E.pick, lerp(PLAY[0], PICK[0], m), lerp(PLAY[1], PICK[1], m), lerp(PLAY[2], PICK[2], m), lerp(PLAY[3], PICK[3], m));
+      E.pick.style.clipPath = ''; S(E.pick, seg(p, .2, .55), 0, 0);
+      E.flash.style.opacity = 0.5 * Math.sin(Math.PI * seg(p, .2, .6));
+      showContent(p, .5, .8, false);
+      E.pole.style.opacity = 0;
+      E.t.forEach(function (el, i) {
+        R(el, lerp(TRIO[i][0], TRIO_END[i][0], tm), lerp(TRIO[i][1], TRIO_END[i][1], tm), lerp(TRIO[i][2], TRIO_END[i][2], tm), lerp(TRIO[i][3], TRIO_END[i][3], tm));
+        S(el, 1 - seg(p, .55, .8), 0, 0); S(el.firstChild, 1 - seg(p, 0, .3), 0, 0);
+      });
+      R(E.nr, NR[0], NR[1], NR[2], NR[3]); S(E.nr, seg(p, .5, .8), 0, 0);
+    },
+    B: function (p) {
+      // press, collapse to a line, open into the screen
+      var press = Math.sin(Math.PI * seg(p, 0, .16));
+      var c = eio(seg(p, .14, .3)), e = eio(seg(p, .3, .62));
+      var cy = PLAY[1] + PLAY[3] / 2;
+      var H = lerp(PLAY[3], 3, c), top = cy - H / 2 + 4 * press;
+      R(E.play, PLAY[0], top, PLAY[2], H);
+      S(E.play, p < .3 ? 1 : 0, 0, 0); S(E.pplayL = $('playL'), 1 - seg(p, .06, .18), 0, 0);
+      E.play.style.filter = 'brightness(' + (1 + .8 * seg(p, .08, .16)) + ')';
+      R(E.pole, PLAY[0], cy - 1.5, PLAY[2], 3);
+      var line = p < .3 ? seg(p, .2, .3) : 1 - seg(p, .3, .36);
+      E.pole.style.opacity = line;
+      var sh = lerp(3, PICK[3], e), sc = lerp(cy, PICK[1] + PICK[3] / 2, e);
+      R(E.pick, PICK[0], sc - sh / 2, PICK[2], sh);
+      E.pick.style.clipPath = ''; S(E.pick, p >= .3 ? 1 : 0, 0, 0);
+      E.pick.style.filter = 'brightness(' + (1 + 1.5 * (1 - e)) + ')';
+      E.flash.style.opacity = p >= .3 ? .95 * (1 - eo(seg(p, .3, .66))) : 0;
+      showContent(p, .55, .68, true);
+      E.t.forEach(function (el, i) {
+        var s = eo(seg(p, .02 + i * .07, .3 + i * .07));
+        R(el, TRIO[i][0], TRIO[i][1], TRIO[i][2], TRIO[i][3]);
+        S(el, 1 - s, 0, 14 * s, 1 - .7 * s);
+      });
+      var u = eo(seg(p, .55, .82));
+      R(E.nr, NR[0], NR[1], NR[2], NR[3]); S(E.nr, u, 0, 16 * (1 - u));
+    },
+    C: function (p) {
+      // lid swings up on its top edge, screen opens beneath it
+      var a = eio(seg(p, .06, .5)) * 112, h = eio(seg(p, .15, .65));
+      R(E.play, PLAY[0], PLAY[1], PLAY[2], PLAY[3]);
+      E.play.style.transformOrigin = '50% 0'; E.play.style.transform = 'perspective(650px) rotateX(' + (-a) + 'deg)';
+      E.play.style.opacity = a > 88 ? 0 : 1; E.play.style.visibility = a > 88 ? 'hidden' : 'visible';
+      E.play.style.filter = 'brightness(' + (1 - .55 * seg(a, 0, 90)) + ')';
+      S(E.pplayL = $('playL'), 1, 0, 0);
+      R(E.pick, PICK[0], PICK[1], PICK[2], PICK[3]);
+      var top = (PLAY[1] - PICK[1]) * (1 - h), bot = (PICK[1] + PICK[3] - PLAY[1] - PLAY[3]) * (1 - h);
+      var side = 1 * (1 - h);
+      E.pick.style.opacity = p > 0 ? 1 : 0; E.pick.style.visibility = p > 0 ? 'visible' : 'hidden';
+      E.pick.style.clipPath = 'inset(' + top + 'px ' + side + 'px ' + bot + 'px ' + side + 'px)'; E.pick.style.transform = '';
+      E.flash.style.opacity = .35 * Math.sin(Math.PI * seg(p, .2, .55));
+      showContent(p, .45, .75, false);
+      E.pole.style.opacity = 0;
+      E.t.forEach(function (el, i) {
+        var s = eo(seg(p, .05 + i * .08, .4 + i * .08));
+        R(el, TRIO[i][0], TRIO[i][1], TRIO[i][2], TRIO[i][3]);
+        S(el, 1 - s, 0, 18 * s); S(el.firstChild, 1, 0, 0);
+      });
+      var u = eo(seg(p, .5, .85)), side2 = (1 - u) * 50;
+      R(E.nr, NR[0], NR[1], NR[2], NR[3]); S(E.nr, p > .5 ? 1 : 0, 0, 0);
+      E.nr.style.clipPath = 'inset(0 ' + side2 + '% 0 ' + side2 + '%)';
+    }
+  };
+
+  // clear leftovers when switching look
+  function clean() {
+    [E.play, E.pick, E.nr].concat(E.t).forEach(function (el) { el.style.filter = ''; el.style.clipPath = ''; el.style.transformOrigin = ''; el.style.transform = ''; });
+    E.pole.style.opacity = 0;
+  }
+
+  // ---- header text: q 0..1 goes from `from` to `to` ----
+  var GL = '█▓▒░#%&@$01';
+  var hdrStyles = {
+    1: function (q, from, to) {
+      var a = seg(q, .05, .4), b = seg(q, .42, .8);
+      if (b <= 0) return from.slice(0, Math.ceil(from.length * (1 - a)));
+      return to.slice(0, Math.floor(to.length * b + .001));
+    },
+    2: function (q, from, to) {
+      var out = '';
+      for (var i = 0; i < to.length; i++) {
+        var done = .3 + .5 * i / (to.length - 1);
+        if (q < .08) out += from[i]; else if (q >= done) out += to[i];
+        else out += to[i] === ' ' ? ' ' : GL[Math.floor(hash(i * 13 + Math.floor(q * 90)) * GL.length)];
+      }
+      return out;
+    },
+    3: function (q, from, to) {
+      var f = seg(q, .08, .85) * (to.length + 1), out = '';
+      for (var i = 0; i < to.length; i++) {
+        if (i + 1 <= f - 1) out += to[i];
+        else if (i <= f && f < to.length + 1 && f > 0) out += hash(i * 7 + Math.floor(q * 80)) > .5 ? '█' : to[i];
+        else out += from[i];
+      }
+      return out;
+    }
+  };
+
+  // ---- Quit -> Back key ----
+  var keyStyles = {
+    1: function (p) {
+      var k = eio(seg(p, .15, .72));
+      R(E.kb, lerp(QUIT[0], BACK[0], k), lerp(QUIT[1], BACK[1], k), lerp(QUIT[2], BACK[2], k), lerp(QUIT[3], BACK[3], k));
+      E.kb.style.transform = ''; E.kb.style.boxShadow = '0 ' + lerp(1, 4, k) + 'px 0 #0b0f22, 0 ' + lerp(2, 7, k) + 'px ' + lerp(4, 12, k) + 'px rgba(0,0,0,.5)';
+      E.fq.style.transform = E.fb.style.transform = ''; E.fq.style.top = E.fb.style.top = '0';
+      E.fq.style.opacity = 1 - seg(k, .1, .55); E.fb.style.opacity = seg(k, .35, .8);
+      E.fq.firstChild.style.transform = 'rotate(' + (-90 * seg(k, 0, .55)) + 'deg)';
+      E.fb.firstChild.style.transform = 'rotate(' + (90 * (1 - seg(k, .35, .9))) + 'deg)';
+      E.kb.style.overflow = '';
+    },
+    2: function (p) {
+      var k = eio(seg(p, .15, .72));
+      R(E.kb, lerp(QUIT[0], BACK[0], k), lerp(QUIT[1], BACK[1], k), lerp(QUIT[2], BACK[2], k), lerp(QUIT[3], BACK[3], k));
+      E.kb.style.boxShadow = '0 ' + lerp(1, 4, k) + 'px 0 #0b0f22, 0 ' + lerp(2, 7, k) + 'px 12px rgba(0,0,0,.5)';
+      E.kb.style.transformStyle = 'preserve-3d';
+      E.kb.style.transform = 'perspective(420px) rotateX(' + (-180 * k) + 'deg)';
+      E.fq.style.opacity = E.fb.style.opacity = 1; E.fq.style.top = E.fb.style.top = '0';
+      E.fq.style.transform = ''; E.fb.style.transform = 'rotateX(180deg)';
+      E.fq.firstChild.style.transform = E.fb.firstChild.style.transform = '';
+    },
+    3: function (p) {
+      var k = eio(seg(p, .15, .72));
+      R(E.kb, lerp(QUIT[0], BACK[0], k), lerp(QUIT[1], BACK[1], k), lerp(QUIT[2], BACK[2], k), lerp(QUIT[3], BACK[3], k));
+      E.kb.style.transform = ''; E.kb.style.overflow = 'hidden';
+      E.kb.style.boxShadow = '0 ' + lerp(1, 4, k) + 'px 0 #0b0f22, 0 ' + lerp(2, 7, k) + 'px 12px rgba(0,0,0,.5)';
+      E.fq.style.opacity = E.fb.style.opacity = 1; E.fq.style.transform = E.fb.style.transform = '';
+      E.fq.style.top = (-k * 100) + '%'; E.fb.style.top = ((1 - k) * 100) + '%';
+      E.fq.firstChild.style.transform = E.fb.firstChild.style.transform = '';
+    }
+  };
+
+  var st = { look: 'A', hdr: '1', key: '1', p: 0, dir: 1, playing: false, speed: 1, hold: 0 };
+  var DUR = { A: .95, B: 1.15, C: 1.05 };
+
+  function render() {
+    var p = st.p;
+    looks[st.look](p);
+    keyStyles[st.key](p);
+    // header text, direction-aware so Back rewrites to MAIN MENU in the same style
+    var A = 'MAIN MENU', B = 'YOUR RUNS', txt;
+    if (st.dir > 0) txt = hdrStyles[st.hdr](p, A, B); else txt = hdrStyles[st.hdr](1 - p, B, A);
+    $('hdrT').textContent = txt;
+    $('hdrC').style.display = (st.hdr === '3' || p < .005) ? 'none' : (st.hdr === '3' ? 'none' : 'inline-block');
+    if (st.hdr === '3' && p > .995) $('hdrC').style.display = 'inline-block';
+    $('scrub').value = Math.round(p * 1000); $('pv').textContent = p.toFixed(2);
+  }
+
+  var last = 0;
+  function tick(t) {
+    var dt = Math.min(.05, (t - last) / 1000); last = t;
+    if (st.playing) {
+      if (st.hold > 0) st.hold -= dt;
+      else {
+        st.p = cl(st.p + st.dir * dt * st.speed / DUR[st.look]);
+        if ((st.dir > 0 && st.p >= 1) || (st.dir < 0 && st.p <= 0)) {
+          if ($('loop').checked) { st.hold = .9; st.dir = -st.dir; } else st.playing = false;
+        }
+        render();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  function play(dir) {
+    st.dir = dir; st.playing = true; st.hold = 0;
+    if (dir > 0 && st.p >= 1) st.p = 0;
+    if (dir < 0 && st.p <= 0) st.p = 1;
+    render();
+  }
+  $('go').onclick = function () { st.p = 0; play(1); };
+  $('back').onclick = function () { st.p = 1; play(-1); };
+  $('scrub').oninput = function () { st.playing = false; st.p = this.value / 1000; render(); };
+
+  function pick(attr, key) {
+    document.querySelectorAll('[data-' + attr + ']').forEach(function (b) {
+      b.onclick = function () {
+        document.querySelectorAll('[data-' + attr + ']').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+        st[key] = b.dataset[attr]; clean();
+        if (attr === 'look') { var d = { A: ['1', '1'], B: ['2', '2'], C: ['3', '3'] }[st.look]; setPreset(d); }
+        if (attr === 'sp') st.speed = parseFloat(st.sp = b.dataset.sp);
+        if (attr !== 'sp') { st.p = 0; play(1); }
+      };
+    });
+  }
+  function setPreset(d) {
+    st.hdr = d[0]; st.key = d[1];
+    document.querySelectorAll('[data-hdr]').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.hdr === d[0]); });
+    document.querySelectorAll('[data-key]').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.key === d[1]); });
+  }
+  pick('look', 'look'); pick('hdr', 'hdr'); pick('key', 'key'); pick('sp', 'sp');
+
+  render();
+  requestAnimationFrame(function (t) { last = t; tick(t); });
+  setTimeout(function () { st.p = 0; play(1); }, 700);
+})();
+</script>
