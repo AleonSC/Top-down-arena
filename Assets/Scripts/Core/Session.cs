@@ -275,6 +275,9 @@ namespace Arena
         static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
         public static double Clock => clock.Elapsed.TotalSeconds;
 
+        public bool AnyEmote;  // a lobby bot (PartyBots.cs): every emote is its own, whatever its rank
+        public readonly HashSet<int> BotSeats = new HashSet<int>();  // host: the lobby seats that belong to lobby bots (they may play any emote)
+
         public float EmotePause => Screen == AppScreen.Game ? EmoteCooldown : EmoteHangoutCooldown;
         /// Seconds until you can play another (0 = ready).
         public float EmoteWait => (float)Math.Max(0.0, emoteReadyAt - Clock);
@@ -297,7 +300,7 @@ namespace Arena
         /// Play emote number `index` (Rank.EmoteIndex) as this player. False: not yours yet, or still pausing.
         public bool SendEmote(int index)
         {
-            if (Net == null || index < 1 || index > Arena.Rank.EmoteCount || EmoteWait > 0f || !Arena.Rank.Owns(Game.Profile.RankNow, Arena.Rank.EmoteId(index)))
+            if (Net == null || index < 1 || index > Arena.Rank.EmoteCount || EmoteWait > 0f || !AnyEmote && !Arena.Rank.Owns(Game.Profile.RankNow, Arena.Rank.EmoteId(index)))
                 return false;
             emoteReadyAt = Clock + EmotePause;
             if (IsHost)
@@ -314,7 +317,7 @@ namespace Arena
         void HostEmote(int id, int index)
         {
             LobbyEntry e;
-            if (!Lobby.TryGetValue(id, out e) || index < 1 || index > Arena.Rank.EmoteCount || !Arena.Rank.Owns(e.Rank, Arena.Rank.EmoteId(index)))
+            if (!Lobby.TryGetValue(id, out e) || index < 1 || index > Arena.Rank.EmoteCount || !BotSeats.Contains(id) && !Arena.Rank.Owns(e.Rank, Arena.Rank.EmoteId(index)))
                 return;
             double last;
             if (emoteLast.TryGetValue(id, out last) && Clock - last < EmotePause * 0.8)  // (a little slack for the trip)

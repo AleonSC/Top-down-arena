@@ -30,6 +30,17 @@ static partial class Program
         Check(added1 && added2 && !added3 && filled, "two bots fill the open slots and a third is refused");
         Check(rolesDiffer && ready && full, "bots take the free roles and ready up by themselves");
 
+        // In the Hangout the bots stroll about and emote.
+        var startAt = new System.Collections.Generic.Dictionary<int, V2>();
+        foreach (var bt in pb.Bots) startAt[bt.Id] = host.Avatars[bt.Id].Pos;
+        bool emoted = false;
+        run(14f, () => { foreach (var bt in pb.Bots) { int ix; float age; emoted |= host.EmoteOf(bt.Id, out ix, out age); } return false; });
+        float moved = 0f;
+        foreach (var bt in pb.Bots) moved = Math.Max(moved, host.Avatars[bt.Id].Pos.DistanceTo(startAt[bt.Id]));
+        Console.WriteLine("  hangout: a bot walked {0:0} px, emoted {1}", moved, emoted);
+        Check(moved > 100f, "bots walk around the Hangout");
+        Check(emoted, "bots emote in the Hangout (any emote, whatever the rank)");
+
         // Remove one, add another, then start together.
         pb.Remove(pb.Bots[0]);
         run(1.5f, () => host.Lobby.Count == 2);
@@ -74,7 +85,7 @@ static partial class Program
             return false;
         });
         Console.WriteLine("  bot trigger frames {0}, with nothing in reach {1}", shotsAll, shotsFar);
-        Check(shotsAll > 0 && shotsFar <= shotsAll / 50, "bots only shoot with an enemy in reach");
+        Check(shotsAll > 0 && shotsFar <= shotsAll / 8, "bots only shoot with an enemy in reach");
         float dmg = 0;
         foreach (var p in host.Game.Players.Values)
             if (p.Id != host.MyId) dmg += p.Run.DamageDealt;

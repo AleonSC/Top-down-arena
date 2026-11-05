@@ -1211,7 +1211,7 @@ in the lobby, not while continuing a saved run). A bot takes the first role nobo
 and readies up by itself; it revives, heals, dodges and uses its abilities like the Boss Lab's bots (below), picks its own
 upgrades and carries on between waves. On its card, the skill button cycles **Casual, Good, Expert**, **MIX** deals it a
 new random loadout and **x** removes it. Click a bot's card (it gets a gold rim) to choose its role, class, weapon and
-ability in the loadout panel, just like your own; click your own card to go back. With a bot's card chosen, type in the **Bot name** box above its preview to rename it. Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
+ability in the loadout panel, just like your own; click your own card to go back. With a bot's card chosen, type in the **Bot name** box above its preview to rename it. In the Hangout, bots stroll about the room and play emotes now and then (any emote, whatever their rank). Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
 counted in Records, XP or ranks, like Boss Lab fights and the F1 bot.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
