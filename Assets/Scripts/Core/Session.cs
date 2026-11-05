@@ -38,6 +38,7 @@ namespace Arena
         LobbyFire,    // client -> host: this player fired in the Hangout, aimed at this angle (LobbyCombat.cs)
         LobbyShot,    // host -> all: (owner id, position, angle) of a shot fired in the Hangout, for everyone to draw (LobbyCombat.cs)
         LobbyAbility, // client -> host: cast your Hangout ability (a dash, barrier or burst heal by role) toward this angle; host -> all: (owner id, kind, position, angle) to show and apply (LobbyCombat.cs)
+        Dodge,        // client -> host: this player dodged from this spot; the host gives them a moment of invulnerability (Dodge.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -93,7 +94,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 178;
+        public const int ProtocolVersion = 179;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -543,6 +544,9 @@ namespace Arena
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);
+                    break;
+                case Msg.Dodge:
+                    Game.OnDodge(peer, r);
                     break;
                 case Msg.WeaponDash:
                     Game.OnWeaponDash(peer, r);

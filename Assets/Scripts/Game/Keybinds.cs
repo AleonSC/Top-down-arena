@@ -10,7 +10,7 @@ namespace Arena
     /// only the order on the page (each group is a run of this list).
     public enum KeyAction
     {
-        MoveUp, MoveDown, MoveLeft, MoveRight, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
+        MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
         TakeItem, DiscardItem, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp,
     }
 
@@ -20,18 +20,19 @@ namespace Arena
 
         static readonly KeyCode[] Defaults =
         {
-            KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
+            KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
             KeyCode.G, KeyCode.X, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M, KeyCode.T, KeyCode.Mouse2, KeyCode.Y,
         };
         static readonly string[] Titles =
         {
-            "Move up", "Move down", "Move left", "Move right", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
+            "Move up", "Move down", "Move left", "Move right", "Dodge", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
             "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave",
         };
         static readonly string[] Lines =
         {
             "Also the up arrow", "Also the down arrow", "Also the left arrow", "Also the right arrow",
+            "A tiny dash with a moment of invulnerability; double tap a movement key does it too",
             "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
             "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel",
