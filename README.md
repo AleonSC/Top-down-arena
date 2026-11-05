@@ -557,6 +557,9 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
   gates drop away (the inner walls stay).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it.
+- With a layout up, regular waves have **30% more enemies** (waves 1-4 on Normal: 16, 17, 18 and 20 instead of 12, 13, 14
+  and 15), because the walls and gates make the crowd easier to read. Boss waves are unchanged. The number is
+  `LayoutEnemyMult` in `Balance.cs`.
 
 | Layout | Edges | What it is |
 |---|---|---|
