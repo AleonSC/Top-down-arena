@@ -37,10 +37,26 @@ namespace Arena
         readonly Dictionary<Effect, MeleeSeen> meleeSeen = new Dictionary<Effect, MeleeSeen>();
         readonly Dictionary<int, float> meleeFlip = new Dictionary<int, float>();
         readonly Dictionary<int, float> halberdLast = new Dictionary<int, float>();
+        // The held weapon phases out while the swinging model is out, and back in after (HeldPhase, CharacterModels.cs).
+        readonly Dictionary<int, float> swingFrom = new Dictionary<int, float>(), swingTo = new Dictionary<int, float>();
+        const float HeldFadeOut = 0.04f, HeldFadeIn = 0.14f;
+
+        /// 1 = the weapon is in hand, 0 = it's out (a swing's model is drawn in its place).
+        float HeldPhase(int id)
+        {
+            float to, from;
+            if (!swingTo.TryGetValue(id, out to) || !swingFrom.TryGetValue(id, out from))
+                return 1f;
+            float now = Time.unscaledTime;
+            if (now < to)
+                return 1f - Mathf.Clamp01((now - from) / HeldFadeOut);
+            return Mathf.Clamp01((now - to) / HeldFadeIn);
+        }
+
         readonly HashSet<Effect> meleeLive = new HashSet<Effect>();
 
         /// The player who made this melee effect (the one standing where it started, holding a melee weapon), or null.
-        MeleeSeen MeleeOwnerOf(Effect fx, float life, bool thrust = false)
+        MeleeSeen MeleeOwnerOf(Effect fx, float life, bool thrust = false, float hold = 0.4f)
         {
             MeleeSeen seen;
             if (meleeSeen.TryGetValue(fx, out seen))
@@ -88,6 +104,10 @@ namespace Arena
             }
             seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = alternates ? flip : 1f, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };
             meleeSeen[fx] = seen;
+            float now = Time.unscaledTime;
+            float st;
+            swingFrom[best.Id] = swingTo.TryGetValue(best.Id, out st) && st > now ? swingFrom[best.Id] : now;  // chained swings keep the weapon out
+            swingTo[best.Id] = Mathf.Max(st, now + hold);
             if (fx.Dur < life)
                 fx.Dur = life;  // the energy outlasts the old flash (front end only; the effect is drawing, nothing reads it)
             return seen;
@@ -161,7 +181,7 @@ namespace Arena
             bool thrust = half < 0f;
             if (half >= 0f && half < 0.2f)
                 return false;  // a lunge or a dash streak, not a swing: the old look
-            var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust);
+            var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust, thrust ? MeleeThrustTime + 0.25f : (half >= MathX.Pi - 0.01f ? 0.4f : MeleeSweepTime + 0.28f));
             if (seen == null)
                 return false;
             V2 o = MeleeOrigin(fx, seen);
@@ -217,7 +237,7 @@ namespace Arena
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)
                 return false;
-            var seen = MeleeOwnerOf(fx, HammerSwingTime + 0.5f);
+            var seen = MeleeOwnerOf(fx, HammerSwingTime + 0.5f, false, 0.5f);
             if (seen == null || seen.Weapon != WeaponId.Lance && seen.Weapon != WeaponId.Warhammer)
                 return false;
             V2 o = MeleeOrigin(fx, seen), dir = to / reach, side = dir.Orthogonal();
