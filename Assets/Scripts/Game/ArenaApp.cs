@@ -304,6 +304,9 @@ namespace Arena
             }
             bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || devMenuOpen || labSetupOpen || waveEdOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
+            // The Hangout's ability press is caught here, every frame, and used by its next draw (a key press read only inside OnGUI could be missed).
+            if (session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab && (Keybinds.Down(KeyAction.Ability) || Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(1)))
+                hangoutCastLatch = true;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
             // Holding Tab opens the loadout, which has buttons (moving abilities between keys). It works

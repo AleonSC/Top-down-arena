@@ -474,7 +474,8 @@ namespace Arena
             s.Int(ref p.PreyId);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
-            s.Float(ref p.SheathT);
+            s.Byte(ref p.KatanaStep);
+            s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.DoseT);
             s.Vec(ref p.KunaiMark);

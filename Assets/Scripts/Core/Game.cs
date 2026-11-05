@@ -878,6 +878,11 @@ namespace Arena
                 DashT = 0f;
                 iceVel = V2.Zero;
             }
+            if (KatanaStriking && !katanaDashed)
+            {
+                move = V2.Zero;  // the Katana's stance before the cut: you hold still and can't swing (Ninja.cs)
+                firing = false;
+            }
             float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;
@@ -1047,7 +1052,7 @@ namespace Arena
                 }
             }
 
-            LocalWeaponDash(me, move, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
             me.AimAt = aimAt;
@@ -1106,6 +1111,7 @@ namespace Arena
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
+            TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
@@ -1233,6 +1239,8 @@ namespace Arena
                 }
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
+                else if (p.Weapon.Id == WeaponId.Katana)
+                    TickKatanaFire(p);  // swipe, swipe, lunge, with the next step queued if you tap ahead (Ninja.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);

@@ -213,6 +213,12 @@ namespace Arena
                     V2 at = p.Disp + new V2((k - 1.5f) * p.Def.BodyR * 0.45f, p.Def.BodyR * 0.6f - f * p.Def.BodyR * 1.8f);
                     Circle(at, 2.2f * (1f - f) + 0.8f, new Rgba(0.5f, 1f, 0.6f, 0.85f * (1f - f)), 6);
                 }
+            if (p.Weapon.Id == WeaponId.Katana)  // the strike meter round you, and your aim while you hold the key (KatanaLook.cs)
+            {
+                DrawKatanaMeter(p, t);
+                if (p.Id == game.MyId)
+                    DrawKatanaAim(p, t);
+            }
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);
