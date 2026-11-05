@@ -3,7 +3,7 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
-**Katana combo rework (Nov 2026), protocol 176:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
+**Katana combo rework (Nov 2026), protocol 178:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
 `katana-look-glow.html`. The sheathe and quick-draw (`SheathT`, `KatanaSheath`, `KatanaDraw*`) are gone. The Katana is
 swipe, swipe, lunge (`Player.KatanaStep`, replicated; `Core/Katana.cs`): each step sets its own `FireCd`, a tap during a
 step is queued (`TickKatanaFire`), and `KatanaChainWindow` 0.7 s without the next step starts over. The lunge is a 260 px
@@ -13,7 +13,7 @@ box Swing (`DrawCut`, drawn as the thrust look) landing 0.15 s after it starts. 
 cursor-nearest enemy, `Game.KatanaAiming/KatanaMark`), letting go sends the enemy's position, the host spends the meter,
 sets `InvulnT` and, `KatanaWind + KatanaCut` later, deals 120 to the target and 60 along the line
 (`TickKatanaStrikes`), broadcasting the new `FxKind.KatanaStrike` (`Game/KatanaLook.cs`). Your own game holds you still for the
-0.35 s stance, then slides you to 52 px behind the target in 0.14 s (`DashT`). The lunge steps you 110 px forward (`Player.KatanaLunges`, protocol 177: your own game moves you when it changes). Not built from the design doc: a time slow while aiming (none, to keep co-op fair). Test: `lastfour` (chain, queue, reset, meter,
+0.35 s stance, then slides you to 52 px behind the target in 0.14 s (`DashT`). The lunge steps you 110 px forward (`Player.KatanaLunges`, protocol 178: your own game moves you when it changes). Not built from the design doc: a time slow while aiming (none, to keep co-op fair). Test: `lastfour` (chain, queue, reset, meter,
 drain, strike).
 
 **Tank gun animations (Nov 2026), protocol 145 (no change):** the owner's go-ahead on

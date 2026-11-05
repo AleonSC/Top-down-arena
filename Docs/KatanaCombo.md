@@ -1,6 +1,6 @@
 # Katana combo rework (design)
 
-Status: **built** (Nov 2026, protocol 176), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
+Status: **built** (Nov 2026, protocol 178), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
 `Docs/Mockups/katana-look-glow.html` (the chosen look). Three other looks were mocked and not picked:
 `katana-look-ink.html`, `-neon.html`, `-steel.html` (all from `katana-look.template.html`).
 
@@ -83,7 +83,7 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 - **New message** `Msg.KatanaStrike` (added at the **end** of `Msg`, before `None`): client to host, carrying the target
   enemy id. The host checks the meter, the weapon and that the enemy is alive, then runs the strike. The marking while
   holding is local to the player's own screen and is not sent.
-- **Bump `Session.ProtocolVersion`** from 175 to **176**.
+- **Bump `Session.ProtocolVersion`** from 177 to **178**.
 - **Time in co-op:** the mockup slows time to 12% while targeting. That is fine in solo, but in a shared simulation
   it would slow other players. Recommendation: targeting never slows the simulation. Instead the striker's own screen
   dims and its UI runs a slow-motion style highlight, and the hold lasts at most **1.5 s** before it cancels.
@@ -127,10 +127,10 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 ## Built differently from the plan above
 - **No new message.** The strike reuses `Msg.WeaponDash` with a new kind, `DashKatana`, sending the target enemy's
   position (the host takes the nearest enemy within 90 px of it). `Msg.KatanaStrike` was not added. The protocol bump to
-  176 (177 with the lunge step) is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
+  178 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
 - **The lunge steps you forward 110 px, not 150.** A player's own game owns their position, so the host cannot move them:
   it counts lunges in a replicated `Player.KatanaLunges`, and your own game steps you forward (`LocalKatana`, 0.12 s) as the
-  lunge lands, 0.15 s after the press. The line itself is 260 px from where you stood. Protocol 177.
+  lunge lands, 0.15 s after the press. The line itself is 260 px from where you stood. Protocol 178.
 - **No time slow while aiming**, the recommendation in the co-op section. The arena dims and brackets appear on your
   screen only; the hold is capped at 1.5 s and a hold that runs out cancels.
 - **The meter shows as a rose arc round the swordsman** (a gauge like the Lightbringer's) instead of a HUD bar. Full, the
