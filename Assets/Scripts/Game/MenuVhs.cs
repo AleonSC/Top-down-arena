@@ -65,14 +65,11 @@ namespace Arena
             }
             bool clicked;
             Ui.SilentHover = true;
-            if (dx != 0f)
-            {
-                GUI.BeginGroup(new Rect(dx, 0f, 4000f, 4000f));
-                clicked = draw();
-                GUI.EndGroup();
-            }
-            else
-                clicked = draw();
+            // Always inside a group, even when dx is 0: BeginGroup takes a control id, so opening it only during the lurch
+            // shifted the button's id between a MouseDown and its MouseUp and the click was lost.
+            GUI.BeginGroup(new Rect(dx, 0f, 4000f, 4000f));
+            clicked = draw();
+            GUI.EndGroup();
             Ui.SilentHover = false;
             GUI.color = old;
 
