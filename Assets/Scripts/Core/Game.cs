@@ -951,7 +951,7 @@ namespace Arena
                     continue;  // nothing to mark: don't waste the cooldown
                 if (!Consume(me, slot, false))
                     continue;
-                V2 target = aimAt;
+                V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
                 {
                     case AbilityId.Dash:
@@ -1019,13 +1019,16 @@ namespace Arena
                 }
                 if (IsHost)
                 {
+                    StepFrom = castFrom;
                     HostAbility(MyId, slot, target, true);
+                    StepFrom = null;
                 }
                 else
                 {
                     var w = Proto.Begin(Msg.Ability);
                     w.Write((byte)slot);
                     w.Write(target);
+                    w.Write(castFrom);  // (only the Shadow Step reads it)
                     session.SendToHost(Proto.End(w));
                 }
             }

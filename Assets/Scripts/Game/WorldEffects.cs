@@ -50,6 +50,8 @@ namespace Arena
                     }
                     if (IsLifelinePlain(fx))
                         break;  // Lifeline's plain ring: its look draws from FxKind.Lifeline (LifelineLook.cs)
+                    if (IsShadowStepPlain(fx))
+                        break;  // the Shadow Step's plain ring: its look draws from FxKind.ShadowStep (ShadowStepLook.cs)
                     if (IsTankRing(fx))
                         break;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
                     Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
@@ -60,6 +62,8 @@ namespace Arena
                     Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
                     break;
                 case FxKind.Slash:
+                    if (IsShadowStepPlain(fx))
+                        break;  // the Shadow Step's strike is drawn by its look
                     DrawSlashFx(fx, f, t);
                     break;
                 case FxKind.Jab:
@@ -128,6 +132,9 @@ namespace Arena
                     break;
                 case FxKind.RiotBlock:
                     DrawRiotBlockFx(fx);  // RiotGearLook.cs
+                    break;
+                case FxKind.ShadowStep:
+                    DrawShadowStepFx(fx);  // ShadowStepLook.cs
                     break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);

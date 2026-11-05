@@ -197,6 +197,21 @@ static partial class Program
         run(5.2f);
         Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.Clone) && d1.Hp < dhp - 30f, "a Shadow Clone bursts when it ends");
 
+        // Shadow Step: the host sends the smoke look's effect with where they stood, where they landed and who and what it struck.
+        place(1, 300f); run(0.2f);
+        var stepTarget = dummy(new V2(500f, 450f));
+        stepTarget.Pos = new V2(500f, 450f);
+        V2 landed = new V2(500f + stepTarget.Radius + hp.Def.BodyR + 8f, 450f);
+        hp.Pos = landed;  // (your own game moves you to the landing spot before the cast)
+        g.Effects.Clear();
+        use(1, AbilityId.ShadowStep, landed);
+        var stepFx = g.Effects.FirstOrDefault(e => e.Kind == FxKind.ShadowStep);
+        Check(stepFx != null && stepFx.Pos2.DistanceTo(landed) < 1f && Math.Abs(stepFx.Radius - (1000f + stepTarget.Radius)) < 0.01f && Math.Abs(stepFx.Dur - Game.ShadowStepFxTime) < 0.001f,
+            "Shadow Step sends its look: landing spot, the caster's id and the struck enemy's radius");
+        run(0.1f);
+        Check(client.Game.Effects.Any(e => e.Kind == FxKind.ShadowStep && e.Pos2.DistanceTo(landed) < 1f), "the other player's screen gets the Shadow Step look too");
+        place(1, 400f); run(0.2f);
+
         // Vanish: enemies lose you and the next hit is an ambush (double damage, once).
         use(1, AbilityId.Vanish, hp.Pos);
         run(3.5f / 3f);
