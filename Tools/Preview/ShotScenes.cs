@@ -224,6 +224,23 @@ static partial class Shot {
       }
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    if (Environment.GetEnvironmentVariable("SHADOWSTEP") != null) {
+      // A Ninja's Shadow Step look (ShadowStepLook.cs): SHADOWSTEP=<seconds after the press>, SHADOWDIST=<px from where you stood to the enemy, default 400>, SHADOWNONE=1 for a short step with no enemy. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Ninja; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps);
+      float sd = Environment.GetEnvironmentVariable("SHADOWDIST") != null ? float.Parse(Environment.GetEnvironmentVariable("SHADOWDIST")) : 400f;
+      V2 from = new V2(300f, 450f), foe = from + new V2(sd, 0f);
+      float er = 0f;
+      if (Environment.GetEnvironmentVariable("SHADOWNONE") == null) {
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { EnemyType.Brute, foe, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.FrozenT = 99f; en.Pos = en.Disp = foe; er = en.Radius;
+      }
+      V2 land = er > 0f ? foe + new V2(er + me.Def.BodyR + 8f, 0f) : from + new V2(300f, 0f);
+      me.Pos = me.Disp = land; me.Aim = 0f; me.AimAt = foe;
+      gm.Effects.Add(new Effect { Kind = FxKind.ShadowStep, Pos = from, Pos2 = land, Color = new Rgba(0.72f, 0.58f, 1f), Radius = me.Id * 1000f + er, Dur = Game.ShadowStepFxTime, T = float.Parse(Environment.GetEnvironmentVariable("SHADOWSTEP")) });
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.

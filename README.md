@@ -384,6 +384,8 @@ With **Visual effects** on, regular enemies stand out from the floor: a soft dar
 
 With **Visual effects** on, anything that moves fast leaves an **air trail**: two thin streamlines off its shoulders that wobble and fade. It follows speed: none at or below 110 px/s (Grunts, Brutes, bosses), light for mid speeds (a Tank or Healer walking is about 10-25%), and full at 330 px/s and up (Hive Bombers, dashes, hard knockback). Players, enemies and minions all get it. Not sent over the network.
 
+With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into puffs that split into two halves, each following a pale eye round one side of the enemy, and meet again behind it to re-form as you strike (you aren't drawn for the first third of a second; the step and its damage are instant as before). Off, it's the plain ring and slash. The two ends of the step are sent over the network (`FxKind.ShadowStep`).
+
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
 four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach

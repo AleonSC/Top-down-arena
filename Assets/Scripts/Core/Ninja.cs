@@ -12,6 +12,8 @@ namespace Arena
         public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
         public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
+        public const float ShadowStepFxTime = 1f;
+        V2? StepFrom;  // where the caster stood when they pressed Shadow Step (set around HostAbility; null: use their position)
         const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
         const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
@@ -364,6 +366,8 @@ namespace Arena
                         OnBulletHit(new Bullet { Pos = best.Pos, Vel = (best.Pos - target).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, best);
                         BroadcastFx(FxKind.Slash, target, best.Pos + (best.Pos - target).Normalized() * best.Radius, new Rgba(0.75f, 0.6f, 1f), 0.12f, 0.2f, Sfx.SwingLight);
                     }
+                    // The smoke look (Game/ShadowStepLook.cs) starts where they stood; the plain ring and slash above stay for Visual effects off.
+                    BroadcastFx(FxKind.ShadowStep, StepFrom ?? p.Pos, target, new Rgba(0.72f, 0.58f, 1f), p.Id * 1000f + (best != null ? best.Radius : 0f), ShadowStepFxTime, Sfx.None);
                     return true;
                 }
                 case AbilityId.Vanish:

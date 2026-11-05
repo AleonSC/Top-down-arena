@@ -1,0 +1,532 @@
+<title>Shadow Step Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Field-manual look of the other mockups. One big stage at the game's scale (1 canvas px = 1 arena px) that loops the
+   chosen look, then one card per look playing the same step side by side. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --shadow: #b794ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--shadow); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font: 500 13px var(--font-data); color: var(--muted); }
+.facts b { color: var(--fg); font-weight: 500; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #070910; }
+#main { aspect-ratio: 960 / 520; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--shadow); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1e1530; border-color: var(--shadow); color: var(--fg); }
+.sl { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font: 500 12px var(--font-data); color: var(--muted); min-width: 240px; flex: 1 1 240px; }
+.sl b { font-weight: 500; color: var(--fg); min-width: 7ch; text-align: right; }
+input[type=range] { accent-color: var(--shadow); width: 100%; min-width: 0; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; cursor: pointer; }
+.card[aria-current="true"] { border-color: var(--shadow); }
+.card canvas { aspect-ratio: 480 / 300; }
+.card .txt { padding: 12px 14px 14px; display: grid; gap: 6px; align-content: start; }
+.card .txt p { font-size: 14px; color: var(--soft); }
+.card .tag { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.card .read { font: 500 12.5px var(--font-data); color: var(--muted); }
+.note { font-size: 14px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .note-motion { display: block; } }
+.note-motion { display: none; color: var(--amber); font-size: 14px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Ninja · DPS · Shadow Step</div>
+    <h1>Shadow Step <span>looks</span></h1>
+    <p class="lead">Today the step is an instant hop plus a violet slash. These six looks dress the same move: the same 450 px reach, the same landing behind the target, the same 80 damage strike. Only the way you travel changes. Pick one on the stage or click a card.</p>
+    <div class="facts">
+      <span>Reach <b>450 px</b></span><span>Damage <b>80</b></span><span>Cooldown <b>7 s</b></span>
+      <span>Lands <b>enemy radius + body radius + 8 px</b> behind</span><span>No target: <b>300 px</b> step toward cursor</span>
+    </div>
+    <p class="note-motion">Reduced motion is on in your system. The loop still plays; press Pause to hold on a frame and drag Scrub.</p>
+  </header>
+
+  <section>
+    <h2>Stage</h2>
+    <div class="stage">
+      <canvas id="main" width="960" height="520" aria-label="Shadow Step preview"></canvas>
+      <div class="bar">
+        <div class="group" id="looks"><span class="label">Look</span></div>
+        <div class="group">
+          <button id="replay" type="button">Replay</button>
+          <button id="pause" type="button" aria-pressed="false">Pause</button>
+          <button id="target" type="button" aria-pressed="true">Target: enemy</button>
+        </div>
+        <label class="sl" for="dist"><span>Distance</span><input id="dist" type="range" min="90" max="450" value="400"><b id="distv">400 px</b></label>
+        <label class="sl" for="speed"><span>Speed</span><input id="speed" type="range" min="0.1" max="1.5" step="0.05" value="0.6"><b id="speedv">0.60×</b></label>
+        <label class="sl" for="scrub"><span>Scrub</span><input id="scrub" type="range" min="0" max="1000" value="0"><b id="scrubv">0.00 s</b></label>
+      </div>
+    </div>
+    <p class="note">Speed 1.00× is real time: the travel takes 0.14 s and the strike 0.2 s, so the default plays slower to let you read it. Drag Scrub while paused to step through frame by frame.</p>
+  </section>
+
+  <section>
+    <h2>All six at once</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // ---- timing (seconds since the key press) ---------------------------------------------------------------------
+  const WIND = 0.10, TRAVEL = 0.14, ARR = WIND + TRAVEL, SLASH = 0.20, CYCLE = 2.6, LEAD = 0.55;
+  const ER = 18, BR = 14, GAP = BR + ER + 8;            // enemy radius, body radius, landing gap (matches Ninja.cs)
+  const VIOLET = [183, 148, 255], DEEP = [38, 22, 70], INK = [14, 10, 28], MIST = [96, 80, 140];
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+  const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+  const ease = x => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  const out = x => 1 - Math.pow(1 - clamp(x), 3);
+  const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+  const state = { look: 'afterimage', dist: 400, speed: 0.6, paused: false, hasTarget: true, t: 0, scrubbing: false };
+
+  // ---- the scene: arena px, 960 x 520 ---------------------------------------------------------------------------
+  function scene() {
+    const dep = { x: 150, y: 300 };
+    const ang = -0.18;                                              // the enemy sits slightly above the line
+    const d = state.hasTarget ? state.dist : 300;
+    const enemy = state.hasTarget ? { x: dep.x + Math.cos(ang) * d, y: dep.y + Math.sin(ang) * d } : null;
+    const arr = enemy ? { x: enemy.x + Math.cos(ang) * GAP, y: enemy.y + Math.sin(ang) * GAP }
+                      : { x: dep.x + Math.cos(ang) * d, y: dep.y + Math.sin(ang) * d };
+    const cursor = enemy ? { x: enemy.x + 8, y: enemy.y - 6 } : arr;
+    return { dep, arr, enemy, ang, cursor };
+  }
+
+  // ---- shared pieces --------------------------------------------------------------------------------------------
+  let NOW = 0;
+  function glow(g, x, y, r, c, a) {
+    if (a <= 0.003 || r <= 0.5) return;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, rgba(c, a)); gr.addColorStop(0.45, rgba(c, a * 0.35)); gr.addColorStop(1, rgba(c, 0));
+    g.save(); g.globalCompositeOperation = 'lighter'; g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.restore();
+  }
+  function drawGround(g, S) {
+    g.fillStyle = '#070910'; g.fillRect(-200, -200, 1400, 1000);
+    const vg = g.createRadialGradient(480, 260, 120, 480, 260, 620);
+    vg.addColorStop(0, 'rgba(60,44,100,0.16)'); vg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = vg; g.fillRect(0, 0, 960, 520);
+    g.strokeStyle = 'rgba(120,140,170,0.07)'; g.lineWidth = 1;
+    for (let x = 0; x <= 960; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 520); g.stroke(); }
+    for (let y = 0; y <= 520; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(960, y); g.stroke(); }
+    g.strokeStyle = 'rgba(183,148,255,0.22)'; g.setLineDash([6, 8]); g.lineWidth = 1.5;
+    g.beginPath(); g.arc(S.dep.x, S.dep.y, 450, -0.9, 0.9); g.stroke(); g.setLineDash([]);
+  }
+  function shadowOf(g, x, y, r, a = 0.4) { g.fillStyle = `rgba(0,0,0,${a})`; g.beginPath(); g.ellipse(x + 3, y + r * 0.9, r * 1.05, r * 0.5, 0, 0, 7); g.fill(); }
+
+  function drawEnemy(g, S, tt) {
+    if (!S.enemy) return;
+    const hit = tt >= ARR ? clamp(1 - (tt - ARR) / 0.22) : 0, hs = hit * hit;
+    const x = S.enemy.x + hs * 7 * Math.cos(S.ang), y = S.enemy.y + Math.sin(tt * 3) * 1.2 + hs * 7 * Math.sin(S.ang);
+    shadowOf(g, x, y, ER);
+    const gr = g.createRadialGradient(x - 5, y - 6, 2, x, y, ER);
+    gr.addColorStop(0, `rgb(${Math.round(230 + 25 * hit)},${Math.round(110 + 140 * hit)},${Math.round(90 + 150 * hit)})`); gr.addColorStop(1, `rgb(${Math.round(140 + 100 * hit)},${Math.round(38 + 190 * hit)},${Math.round(34 + 190 * hit)})`);
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, ER, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(255,205,180,0.55)'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, ER, 0, 7); g.stroke();
+    const lx = S.dep.x - x, ly = S.dep.y - y, ll = Math.hypot(lx, ly) || 1;
+    const look = tt >= ARR ? [Math.cos(S.ang), Math.sin(S.ang)] : [lx / ll, ly / ll];   // it watches where you were
+    g.fillStyle = '#240b08'; g.beginPath(); g.arc(x + look[0] * 7, y + look[1] * 7, 5, 0, 7); g.fill();
+    g.fillStyle = '#ffd9b8'; g.beginPath(); g.arc(x + look[0] * 8.5 - 1.5, y + look[1] * 8.5 - 1.5, 1.3, 0, 7); g.fill();
+    if (hit > 0) glow(g, x, y, ER * 3 * (0.6 + hit * 0.6), [255, 235, 210], 0.55 * hit);
+    if (tt >= ARR) {
+      const k = clamp((tt - ARR) / 0.7);
+      g.save(); g.globalAlpha = 1 - k * k * k; g.textAlign = 'center'; g.font = '800 ' + Math.round(20 + 10 * (1 - k)) + 'px Oxanium, system-ui, sans-serif';
+      g.lineWidth = 4; g.strokeStyle = 'rgba(20,8,0,0.8)'; g.fillStyle = '#ffe6a8';
+      const ty = S.enemy.y - ER - 14 - 30 * out(k); g.strokeText('80', S.enemy.x, ty); g.fillText('80', S.enemy.x, ty); g.restore();
+    }
+  }
+  function drawCursor(g, S, tt) {
+    const c = S.cursor, a = tt < 0.6 ? 1 : 0.35, sc = 1 + (tt > -0.2 && tt < 0.1 ? 0.25 * (1 - Math.abs(tt + 0.05) / 0.15) : 0);
+    g.strokeStyle = `rgba(231,238,243,${a})`; g.lineWidth = 1.5; g.save(); g.translate(c.x, c.y); g.scale(sc, sc);
+    g.beginPath(); g.arc(0, 0, 9, 0, 7); g.moveTo(-15, 0); g.lineTo(-5, 0); g.moveTo(5, 0); g.lineTo(15, 0); g.moveTo(0, -15); g.lineTo(0, -5); g.moveTo(0, 5); g.lineTo(0, 15); g.stroke(); g.restore();
+  }
+
+  // The ninja: layered cloak disc with a violet rim light, glowing eye slits, a sword hilt over the shoulder and a
+  // scarf that streams behind its heading. `tint` flattens it to one colour for afterimages.
+  function drawNinja(g, x, y, heading, o = {}) {
+    const a = o.alpha ?? 1, s = o.scale ?? 1, sx = o.sx ?? 1, sy = o.sy ?? 1, tint = o.tint;
+    if (a <= 0.003 || s <= 0.003) return;
+    if (!tint && !o.noShadow) { g.save(); g.globalAlpha = a; shadowOf(g, x, y, BR * s, 0.38); g.restore(); }
+    g.save(); g.translate(x, y); g.rotate(heading); g.scale(s * sx, s * sy); g.globalAlpha = a;
+    const fl = Math.sin(NOW * 14) * 2.2 + (o.flutter ?? 0), len = o.scarf ?? 1;
+    if (tint) {
+      g.fillStyle = rgba(tint, 1); g.strokeStyle = rgba(tint, 1); g.lineWidth = 3;
+      g.beginPath(); g.moveTo(-BR + 2, -2); g.quadraticCurveTo(-BR - 12 * len, -9, -BR - 24 * len, 1); g.stroke();
+      g.beginPath(); g.arc(0, 0, BR, 0, 7); g.fill();
+    } else {
+      g.strokeStyle = '#ff5f7a'; g.lineWidth = 3.2; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(-BR + 2, -2); g.quadraticCurveTo(-BR - 12 * len, -9 + fl, -BR - 22 * len, 0 + fl * 0.6); g.stroke();
+      g.strokeStyle = '#c93556'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(-BR + 2, 1); g.quadraticCurveTo(-BR - 10 * len, 4 - fl * 0.5, -BR - 17 * len, 8 - fl); g.stroke();
+      g.strokeStyle = '#2e2150'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(-9, 11); g.lineTo(8, -12); g.stroke();      // sword over the back
+      g.fillStyle = '#6d5a9c'; g.fillRect(-11.5, 9.5, 5, 3.2);
+      const gr = g.createRadialGradient(-4, -5, 1, 0, 0, BR);
+      gr.addColorStop(0, '#34265c'); gr.addColorStop(1, '#0f0a1f');
+      g.fillStyle = gr; g.beginPath(); g.arc(0, 0, BR, 0, 7); g.fill();
+      g.strokeStyle = rgba(VIOLET, 1); g.lineWidth = 2; g.beginPath(); g.arc(0, 0, BR, 0, 7); g.stroke();
+      g.strokeStyle = 'rgba(235,225,255,0.65)'; g.lineWidth = 1.3; g.beginPath(); g.arc(0, 0, BR - 1.5, -1.0, 0.1); g.stroke();   // rim light
+      g.fillStyle = '#0a0614'; g.beginPath(); g.ellipse(5.5, 0, 6.5, 5.2, 0, 0, 7); g.fill();                                // face opening
+      g.fillStyle = '#f2e8ff'; g.shadowColor = '#c9a8ff'; g.shadowBlur = 6; g.fillRect(4, -3.7, 5.5, 2); g.fillRect(4, 1.7, 5.5, 2); g.shadowBlur = 0;
+    }
+    g.restore();
+  }
+
+  // The strike (the game's own Slash fx, kept): a thick crescent with a white core, a thin cut line through the target,
+  // a flash and a few sparks. Same for every look so the looks can be compared on travel alone.
+  function drawStrike(g, S, tt) {
+    if (!S.enemy || tt < ARR || tt > ARR + 0.45) return;
+    const age = tt - ARR, k = clamp(age / SLASH), mid = S.ang, ex = S.enemy.x, ey = S.enemy.y;
+    if (age < SLASH) {
+      g.save(); g.translate(ex, ey); g.lineCap = 'round';
+      const r = ER + 15 + 12 * k, a0 = mid - 1.05 + k * 0.6, a1 = mid + 1.05 + k * 0.6;
+      g.globalCompositeOperation = 'lighter';
+      g.strokeStyle = rgba(VIOLET, 0.55 * (1 - k)); g.lineWidth = 15 * (1 - k) + 2; g.beginPath(); g.arc(0, 0, r, a0, a1); g.stroke();
+      g.strokeStyle = `rgba(255,248,255,${0.95 * (1 - k)})`; g.lineWidth = 5 * (1 - k) + 1; g.beginPath(); g.arc(0, 0, r, a0 + 0.1, a1 - 0.1); g.stroke();
+      const cut = mid + Math.PI / 2 + 0.5, cl = 46 * out(k * 2.4);
+      g.strokeStyle = `rgba(255,255,255,${0.9 * (1 - k)})`; g.lineWidth = 2; g.beginPath(); g.moveTo(-Math.cos(cut) * cl, -Math.sin(cut) * cl); g.lineTo(Math.cos(cut) * cl, Math.sin(cut) * cl); g.stroke();
+      g.restore();
+    }
+    for (let i = 0; i < 9; i++) {
+      const a = mid + (hash(i) - 0.5) * 2.6, d = (ER + 4 + 40 * hash(i * 3 + 1)) * out(age / 0.25), life = clamp(1 - age / (0.2 + 0.2 * hash(i * 5)));
+      g.strokeStyle = rgba([255, 235, 255], life); g.lineWidth = 1.6; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(ex + Math.cos(a) * d, ey + Math.sin(a) * d); g.lineTo(ex + Math.cos(a) * (d + 7 * life), ey + Math.sin(a) * (d + 7 * life)); g.stroke();
+    }
+  }
+  function pathPos(S, f) { return { x: S.dep.x + (S.arr.x - S.dep.x) * f, y: S.dep.y + (S.arr.y - S.dep.y) * f }; }
+  function perp(S) { return S.ang + Math.PI / 2; }
+  function ring(g, x, y, age, dur, r0, r1, c, w = 3) {
+    if (age < 0 || age > dur) return; const k = age / dur;
+    g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = rgba(c, 0.8 * (1 - k)); g.lineWidth = w * (1 - k) + 0.5;
+    g.beginPath(); g.arc(x, y, lerp(r0, r1, out(k)), 0, 7); g.stroke(); g.restore();
+  }
+
+  // ---- the five looks -------------------------------------------------------------------------------------------
+  const looks = {
+    // 1 · a stack of full silhouettes in cold-to-violet colours is left behind, joined by a light smear and speed lines.
+    afterimage(g, S, tt) {
+      if (tt < WIND) { const k = clamp(tt / WIND); glow(g, S.dep.x, S.dep.y, 40 * k, VIOLET, 0.25 * k); drawNinja(g, S.dep.x, S.dep.y, S.ang, { sx: 1 + 0.18 * k, sy: 1 - 0.2 * k, scarf: 1 + k }); return; }
+      const f = ease((tt - WIND) / TRAVEL), fe = clamp((tt - WIND) / TRAVEL), perpA = perp(S);
+      const smearLife = clamp(1 - (tt - WIND) / 0.5), head = pathPos(S, tt < ARR ? f : 1);
+      if (smearLife > 0) {                                                      // light smear
+        g.save(); g.globalCompositeOperation = 'lighter';
+        const gr = g.createLinearGradient(S.dep.x, S.dep.y, head.x, head.y); gr.addColorStop(0, rgba([110, 150, 255], 0)); gr.addColorStop(0.7, rgba([140, 130, 255], 0.35 * smearLife)); gr.addColorStop(1, rgba(VIOLET, 0.5 * smearLife));
+        const w = BR * 1.5 * smearLife;
+        g.fillStyle = gr; g.beginPath(); g.moveTo(S.dep.x, S.dep.y); g.lineTo(head.x + Math.cos(perpA) * w, head.y + Math.sin(perpA) * w); g.lineTo(head.x - Math.cos(perpA) * w, head.y - Math.sin(perpA) * w); g.closePath(); g.fill();
+        for (let i = 0; i < 9; i++) {                                           // speed lines
+          const off = (hash(i * 3) - 0.5) * 46, f0 = hash(i * 7) * 0.5, f1 = f0 + 0.3 + hash(i) * 0.2, a = pathPos(S, f0 * (tt < ARR ? fe : 1)), b = pathPos(S, Math.min(1, f1) * (tt < ARR ? fe : 1));
+          g.strokeStyle = rgba([210, 220, 255], 0.5 * smearLife); g.lineWidth = 1.3;
+          g.beginPath(); g.moveTo(a.x + Math.cos(perpA) * off, a.y + Math.sin(perpA) * off); g.lineTo(b.x + Math.cos(perpA) * off, b.y + Math.sin(perpA) * off); g.stroke();
+        }
+        g.restore();
+      }
+      const N = 11;
+      for (let i = 0; i < N; i++) {                                             // silhouettes
+        const born = WIND + TRAVEL * (i / N), age = tt - born; if (age < 0) continue;
+        const p = pathPos(S, ease(i / N)), life = clamp(1 - age / 0.5), m = i / (N - 1);
+        g.save(); g.globalCompositeOperation = 'lighter';
+        drawNinja(g, p.x, p.y, S.ang, { alpha: 0.5 * life * life, tint: [lerp(90, 190, m), lerp(140, 130, m), 255], sx: 1.5 + (1 - life) * 0.4, sy: 1 - (1 - life) * 0.3, noShadow: true });
+        g.restore();
+      }
+      if (tt < ARR) { glow(g, head.x, head.y, 44, [150, 160, 255], 0.35); drawNinja(g, head.x, head.y, S.ang, { sx: 1.7, sy: 0.7, scarf: 2.2 }); }
+      else {
+        const a = tt - ARR, k = out(a / 0.14);
+        ring(g, S.arr.x, S.arr.y, a, 0.3, 14, 52, VIOLET, 4);
+        for (let i = 0; i < 6; i++) { const an = Math.PI + S.ang + (hash(i) - 0.5) * 1.8, d = 10 + 30 * out(a / 0.3) * hash(i + 4); g.fillStyle = rgba([150, 130, 200], 0.5 * clamp(1 - a / 0.35)); g.beginPath(); g.arc(S.arr.x + Math.cos(an) * d, S.arr.y + Math.sin(an) * d + 10, 3 + 3 * hash(i), 0, 7); g.fill(); }
+        drawNinja(g, S.arr.x, S.arr.y, S.ang, { sx: 1.7 - 0.7 * k, sy: 0.7 + 0.3 * k, scarf: 2.2 - 1.2 * k });
+      }
+    },
+    // 2 · a billowing smoke ball (soft puffs with a violet rim light) covers the departure; a second one the arrival.
+    smoke(g, S, tt) {
+      const puff = (c, t0, n, big, dirA) => {
+        const age = tt - t0; if (age < 0) return;
+        glow(g, c.x, c.y, 70 * big * clamp(1 - age / 0.18), [255, 240, 255], 0.5 * clamp(1 - age / 0.18));
+        for (let i = 0; i < n; i++) {
+          const a = hash(i + t0 * 10) * 6.28 + age * (hash(i * 5) - 0.5) * 3, sp = 0.5 + hash(i * 3 + 1);
+          const d = (6 + 34 * hash(i * 3 + 2)) * out(age / 0.5) * big * sp, r = (11 + 15 * hash(i * 7)) * big * (0.45 + out(age / 0.42)) ;
+          const life = clamp(1 - age / (0.6 + hash(i) * 0.3)), px = c.x + Math.cos(a) * d + (dirA ? Math.cos(S.ang) * 10 * age : 0), py = c.y + Math.sin(a) * d * 0.8 - age * 22;
+          const gr = g.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
+          gr.addColorStop(0, rgba([128, 108, 184], 0.85 * life)); gr.addColorStop(0.65, rgba([58, 42, 104], 0.8 * life)); gr.addColorStop(1, rgba([30, 20, 60], 0));
+          g.fillStyle = gr; g.beginPath(); g.arc(px, py, r, 0, 7); g.fill();
+          if (i % 3 === 0) { g.strokeStyle = rgba([225, 210, 255], 0.28 * life); g.lineWidth = 1.5; g.beginPath(); g.arc(px, py, r * 0.8, -2.5, -1.1); g.stroke(); }   // rim light, top left
+        }
+        ring(g, c.x, c.y, age, 0.35, 8, 62 * big, [150, 120, 220], 3);
+        for (let i = 0; i < 7; i++) {                                                 // sparks
+          const a = hash(i * 11 + t0) * 6.28, d = 14 + 50 * out(age / 0.3) * hash(i * 2), l = clamp(1 - age / 0.35);
+          g.fillStyle = rgba([235, 220, 255], l); g.beginPath(); g.arc(c.x + Math.cos(a) * d, c.y + Math.sin(a) * d, 1.6, 0, 7); g.fill();
+        }
+      };
+      if (tt < WIND) { const k = clamp(tt / WIND); drawNinja(g, S.dep.x, S.dep.y, S.ang, { scale: 1 - 0.1 * k, sy: 1 - 0.1 * k }); }
+      else if (tt < WIND + 0.06) { const k = (tt - WIND) / 0.06; drawNinja(g, S.dep.x, S.dep.y, S.ang, { alpha: 1 - k, scale: 0.9 }); }
+      puff(S.dep, WIND, 15, 1.05, false);
+      if (tt >= ARR) { const k = out((tt - ARR - 0.04) / 0.16); drawNinja(g, S.arr.x, S.arr.y, S.ang, { alpha: k, scale: 0.85 + 0.15 * k }); }
+      puff(S.arr, ARR, 12, 0.9, true);
+    },
+    // 3 · a calligraphy ribbon is painted from your feet to the landing spot, with dry-brush edges, an ink ring and splatter.
+    ink(g, S, tt) {
+      const brush = [66, 42, 124];
+      if (tt < WIND) { const k = clamp(tt / WIND); drawNinja(g, S.dep.x, S.dep.y, S.ang, { sx: 1 - 0.1 * k, sy: 1 + 0.12 * k }); ring(g, S.dep.x, S.dep.y, tt, WIND, 40, 12, brush, 3); return; }
+      const head = ease((tt - WIND) / TRAVEL), segs = 70, px = Math.cos(perp(S)), py = Math.sin(perp(S));
+      for (let i = 0; i < segs; i++) {
+        const f0 = i / segs, f1 = (i + 1.4) / segs; if (f0 > head) break;
+        const age = tt - (WIND + TRAVEL * f0), life = clamp(1 - age / 0.62); if (life <= 0) continue;
+        const prof = (f) => (3 + 15 * Math.pow(Math.sin(Math.PI * Math.min(1, f)), 0.75)) * (0.25 + 0.75 * life) * (0.88 + 0.12 * Math.sin(f * 41));
+        const a = pathPos(S, f0), b = pathPos(S, Math.min(1, f1)), w0 = prof(f0), w1 = prof(Math.min(1, f1));
+        g.fillStyle = rgba(brush, 0.96 * life);
+        g.beginPath(); g.moveTo(a.x + px * w0, a.y + py * w0); g.lineTo(b.x + px * w1, b.y + py * w1); g.lineTo(b.x - px * w1, b.y - py * w1); g.lineTo(a.x - px * w0, a.y - py * w0); g.closePath(); g.fill();
+        g.fillStyle = rgba([210, 190, 255], 0.55 * life);                                   // wet highlight
+        g.beginPath(); g.moveTo(a.x + px * w0 * 0.55, a.y + py * w0 * 0.55); g.lineTo(b.x + px * w1 * 0.55, b.y + py * w1 * 0.55); g.lineTo(b.x + px * w1 * 0.3, b.y + py * w1 * 0.3); g.lineTo(a.x + px * w0 * 0.3, a.y + py * w0 * 0.3); g.closePath(); g.fill();
+      }
+      for (let i = 0; i < 18; i++) {                                                         // dry-brush bristles trailing the head
+        const f = hash(i * 5) * head, age = tt - (WIND + TRAVEL * f), life = clamp(1 - age / 0.45), p = pathPos(S, f);
+        const off = (hash(i * 9) - 0.5) * 2 * (6 + 14 * Math.sin(Math.PI * f)), l = 14 + 30 * hash(i * 2);
+        g.strokeStyle = rgba(brush, 0.8 * life); g.lineWidth = 1.2;
+        g.beginPath(); g.moveTo(p.x + px * off, p.y + py * off); g.lineTo(p.x + px * off + Math.cos(S.ang) * l, p.y + py * off + Math.sin(S.ang) * l); g.stroke();
+      }
+      if (tt < ARR) { const hp = pathPos(S, head); glow(g, hp.x, hp.y, 28, VIOLET, 0.4); }
+      if (tt >= ARR) {
+        const age = tt - ARR;
+        if (age < 0.4) {                                                                     // ink ring, drawn open like an enso
+          const k = out(age / 0.2); g.save(); g.lineCap = 'round'; g.strokeStyle = rgba([215, 195, 255], 0.9 * clamp(1 - age / 0.4)); g.lineWidth = 4 - 2.5 * age / 0.4;
+          g.beginPath(); g.arc(S.arr.x, S.arr.y, 30, S.ang + 0.5, S.ang + 0.5 + 5.4 * k); g.stroke(); g.restore();
+        }
+        for (let i = 0; i < 20; i++) {
+          const a = S.ang + Math.PI + (hash(i) - 0.5) * 2.8, d = (14 + hash(i * 2) * 58) * out(age / 0.22), life = clamp(1 - age / 0.75), r = (1.6 + hash(i * 4) * 4.2) * life;
+          const x = S.arr.x + Math.cos(a) * d, y = S.arr.y + Math.sin(a) * d;
+          g.fillStyle = rgba(i % 4 ? brush : [215, 195, 255], 0.95 * life);
+          g.beginPath(); g.ellipse(x, y, r * 1.8, r, a, 0, 7); g.fill();
+        }
+        const k = out(age / 0.1); drawNinja(g, S.arr.x, S.arr.y, S.ang, { scale: 0.75 + 0.25 * k, alpha: k });
+      }
+    },
+    // 4 · two torn doorways of black glass: you are pulled into the first and step out of the second.
+    rift(g, S, tt) {
+      const tear = (c, t0, dur, size, inward) => {
+        const age = tt - t0; if (age < 0 || age > dur) return;
+        const k = age / dur, open = Math.sin(Math.PI * k), len = size * (0.3 + 0.7 * out(k * 1.8)), wid = 2 + 13 * Math.pow(open, 0.8);
+        glow(g, c.x, c.y, len * 1.1, VIOLET, 0.55 * open);
+        g.save(); g.translate(c.x, c.y); g.rotate(perp(S));
+        const pts = 18, L = [], R = [];
+        for (let i = 0; i <= pts; i++) {
+          const u = i / pts - 0.5, prof = Math.pow(1 - Math.abs(u) * 2, 0.7), j = (hash(i * 3.3 + t0 * 9) - 0.5) * 5 * open;
+          L.push([u * len, -wid * prof + j]); R.push([u * len, wid * prof - j]);
+        }
+        g.beginPath(); g.moveTo(L[0][0], L[0][1]); for (const p of L) g.lineTo(p[0], p[1]); for (let i = R.length - 1; i >= 0; i--) g.lineTo(R[i][0], R[i][1]); g.closePath();
+        g.fillStyle = '#04020a'; g.fill();
+        g.strokeStyle = rgba([235, 220, 255], 0.95 * open); g.lineWidth = 1.6; g.shadowColor = '#b794ff'; g.shadowBlur = 12; g.stroke(); g.shadowBlur = 0;
+        g.restore();
+        for (let i = 0; i < 16; i++) {                                                   // motes spiralling in / out
+          const ph = (hash(i * 4 + t0) + k * (inward ? 1 : -1) * 1.4 + 2) % 1, rr = 8 + 46 * (inward ? ph : 1 - ph), a = hash(i) * 6.28 + k * 6 * (inward ? 1 : -1);
+          const l = Math.sin(Math.PI * clamp(k)) ;
+          g.fillStyle = rgba([225, 205, 255], 0.9 * l * (inward ? (1 - ph) : ph)); g.beginPath(); g.arc(c.x + Math.cos(a) * rr, c.y + Math.sin(a) * rr * 0.9, 1.6, 0, 7); g.fill();
+        }
+      };
+      const dur = 0.4;
+      g.save(); g.strokeStyle = rgba(VIOLET, 0.28 * clamp(1 - Math.abs(tt - 0.1) / 0.35)); g.setLineDash([2, 8]); g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(S.dep.x, S.dep.y); g.lineTo(S.arr.x, S.arr.y); g.stroke(); g.restore();
+      if (tt < ARR) {
+        const k = clamp(tt / (WIND + 0.1)), sq = 1 - ease(clamp((tt - WIND * 0.3) / 0.16));
+        const p = { x: S.dep.x + Math.cos(S.ang) * 10 * k, y: S.dep.y + Math.sin(S.ang) * 10 * k };
+        if (tt >= 0) drawNinja(g, p.x, p.y, S.ang, { sx: Math.max(0.03, sq), sy: 1 + 0.25 * (1 - sq), alpha: clamp(sq * 2) }); else drawNinja(g, S.dep.x, S.dep.y, S.ang);
+      }
+      tear(S.dep, -0.02, dur, 84, true);
+      tear(S.arr, ARR - 0.06, dur, 84, false);
+      if (tt >= ARR - 0.02) {
+        const a = tt - ARR, k = out(a / 0.16);
+        g.save(); g.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 7; i++) { const an = perp(S) + (i - 3) * 0.12 + (i % 2 ? Math.PI : 0), l = 70 * clamp(1 - a / 0.3) * hash(i + 2); g.strokeStyle = rgba(VIOLET, 0.35 * clamp(1 - a / 0.3)); g.lineWidth = 1.4; g.beginPath(); g.moveTo(S.arr.x, S.arr.y); g.lineTo(S.arr.x + Math.cos(an) * l, S.arr.y + Math.sin(an) * l); g.stroke(); }
+        g.restore();
+        drawNinja(g, S.arr.x - Math.cos(S.ang) * 8 * (1 - k), S.arr.y - Math.sin(S.ang) * 8 * (1 - k), S.ang, { sx: Math.max(0.03, k), sy: 0.8 + 0.2 * k, alpha: clamp(k * 2) });
+      }
+    },
+    // 5 · the body bursts into 4 px squares that stream along the route with glowing streaks and lock back together.
+    shatter(g, S, tt) {
+      const size = 4, half = 3, cubes = [];
+      for (let iy = -half; iy <= half; iy++) for (let ix = -half; ix <= half; ix++) {
+        const ox = ix * size, oy = iy * size; if (Math.hypot(ox, oy) <= BR - 0.5) cubes.push({ ox, oy, i: (iy + half) * 7 + ix + half });
+      }
+      const cs = Math.cos(S.ang), sn = Math.sin(S.ang), rot = (x, y) => [x * cs - y * sn, x * sn + y * cs], px = Math.cos(perp(S)), py = Math.sin(perp(S));
+      const pre = clamp(tt / WIND);
+      if (tt < WIND * 0.5) drawNinja(g, S.dep.x, S.dep.y, S.ang, { alpha: 1 - pre * 2 });
+      glow(g, S.dep.x, S.dep.y, 50 * Math.sin(Math.PI * clamp(tt / 0.25)), VIOLET, 0.3);
+      let done = 0;
+      for (const c of cubes) {
+        const j = hash(c.i * 3.1), sp = (hash(c.i * 7.7) - 0.5) * 80, delay = WIND + j * 0.035, dur = TRAVEL + 0.05 + j * 0.05;
+        const f = ease((tt - delay) / dur), [rx, ry] = rot(c.ox, c.oy);
+        let x, y, rc = 0, moving = false;
+        if (tt < delay) { const k = out(clamp(tt / WIND)); x = S.dep.x + rx * (1 + k * 1.1); y = S.dep.y + ry * (1 + k * 1.1); rc = k * (hash(c.i) - 0.5) * 2; }
+        else if (f < 1) {
+          moving = true; const base = pathPos(S, f), s = Math.sin(Math.PI * f) * sp, sc = 1 + 1.1 * (1 - f * f);
+          x = base.x + rx * sc + px * s; y = base.y + ry * sc + py * s; rc = (1 - f) * (hash(c.i) - 0.5) * 6;
+          const back = pathPos(S, Math.max(0, f - 0.25)), gr = g.createLinearGradient(back.x, back.y, x, y);
+          gr.addColorStop(0, rgba(VIOLET, 0)); gr.addColorStop(1, rgba(VIOLET, 0.7 * Math.sin(Math.PI * f)));
+          g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = gr; g.lineWidth = 2;
+          g.beginPath(); g.moveTo(back.x + rx * sc + px * s, back.y + ry * sc + py * s); g.lineTo(x, y); g.stroke(); g.restore();
+        } else { const k = clamp((tt - delay - dur) / 0.14); x = S.arr.x + rx * (1 + (1 - out(k)) * 0.35); y = S.arr.y + ry * (1 + (1 - out(k)) * 0.35); if (k >= 1) done++; }
+        const lock = tt > delay + dur ? clamp(1 - (tt - delay - dur) / 0.16) : 0;
+        g.save(); g.translate(x, y); g.rotate(rc + S.ang * (moving ? 0 : 0));
+        if (moving) { g.globalCompositeOperation = 'lighter'; g.fillStyle = rgba(VIOLET, 0.5); g.fillRect(-size * 1.1, -size * 1.1, size * 2.2, size * 2.2); g.globalCompositeOperation = 'source-over'; }
+        g.fillStyle = lock > 0 ? rgba([240, 230, 255], 1) : (c.i % 3 ? '#2a1f4c' : rgba(VIOLET, 1));
+        g.fillRect(-size / 2 + 0.2, -size / 2 + 0.2, size - 0.4, size - 0.4);
+        g.strokeStyle = rgba(VIOLET, 0.9); g.lineWidth = 0.8; g.strokeRect(-size / 2 + 0.2, -size / 2 + 0.2, size - 0.4, size - 0.4); g.restore();
+      }
+      if (tt >= ARR) { const a = tt - ARR; glow(g, S.arr.x, S.arr.y, 60 * clamp(1 - a / 0.25), [235, 220, 255], 0.6 * clamp(1 - a / 0.25)); ring(g, S.arr.x, S.arr.y, a, 0.3, 10, 48, VIOLET, 3); }
+      if (tt >= ARR + 0.16) drawNinja(g, S.arr.x, S.arr.y, S.ang, { alpha: clamp((tt - ARR - 0.16) / 0.07) });
+    },
+    // 6 · like Pixel Shatter, but the body is smoke: it dissolves into puffs, the cloud splits in two, each half sweeps
+    // round one side of the target behind its own glowing eye, and the halves meet and re-form behind it.
+    smokeform(g, S, tt) {
+      const N = 32, px = Math.cos(perp(S)), py = Math.sin(perp(S));
+      const L = Math.hypot(S.arr.x - S.dep.x, S.arr.y - S.dep.y), se = S.enemy ? L - GAP : L * 0.55, A = ER + BR + 24;
+      const lat = (f) => {                                                               // 0 on the line, 1 level with the target's flank
+        const s = f * L, rise = clamp((s - (se - 170)) / 170), fall = clamp((s - se) / Math.max(1, L - se));
+        return Math.sin(Math.PI / 2 * rise) * Math.cos(Math.PI / 2 * fall);
+      };
+      const wisp = (x, y, rx, ry, rot, a) => {
+        if (a <= 0.01 || rx <= 0.5) return;
+        g.save(); g.translate(x, y); g.rotate(rot); g.scale(1, ry / rx);
+        const gr = g.createRadialGradient(-rx * 0.25, -rx * 0.25, rx * 0.1, 0, 0, rx);
+        gr.addColorStop(0, rgba([132, 112, 190], 0.9 * a)); gr.addColorStop(0.6, rgba([60, 44, 108], 0.8 * a)); gr.addColorStop(1, rgba([30, 20, 60], 0));
+        g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, 7); g.fill(); g.restore();
+      };
+      const dissolve = clamp(tt / (WIND + 0.05));
+      if (tt < WIND + 0.06) drawNinja(g, S.dep.x, S.dep.y, S.ang, { alpha: 1 - out(dissolve), scale: 1 + 0.05 * dissolve });
+      const eyeA = tt >= 0 ? 1 : 0;
+      // the smoke left behind at the start
+      for (let i = 0; i < 5; i++) {
+        const age = tt - WIND - 0.02 * i; if (age < 0) continue; const life = clamp(1 - age / 0.8);
+        wisp(S.dep.x + (hash(i) - 0.5) * 30, S.dep.y - age * 16 + (hash(i * 3) - 0.5) * 14, 12 + 20 * out(age / 0.6), 12 + 18 * out(age / 0.6), 0, 0.55 * life);
+      }
+      for (let i = 0; i < N; i++) {
+        const a0 = hash(i * 2.3) * 6.28, rr = Math.sqrt(hash(i * 5.1)) * (BR - 3), ox = Math.cos(a0) * rr, oy = Math.sin(a0) * rr;
+        const j = hash(i * 3.1), side = (ox * px + oy * py) >= 0 ? 1 : -1, sp = (hash(i * 7.7) - 0.5) * 26, delay = WIND * 0.7 + j * 0.05, dur = TRAVEL + 0.06 + j * 0.1, r0 = 6 + 5 * hash(i * 9.1);
+        const at = (f) => {                                                                // where this puff is at route fraction f
+          const base = pathPos(S, f), s = Math.sin(Math.PI * f) * sp + side * A * lat(f) * (0.8 + 0.4 * hash(i * 4.4)), sc = 1 + 1.3 * (1 - f * f) * (1 - Math.max(0, f - 0.8) * 3);
+          return [base.x + ox * sc + px * s, base.y + oy * sc + py * s];
+        };
+        const f = ease((tt - delay) / dur);
+        if (tt < delay) {
+          const k = out(clamp(tt / WIND)), sw = k * 0.8 * (hash(i) - 0.5), pull = k * 7 * side;
+          const x = S.dep.x + (ox * Math.cos(sw) - oy * Math.sin(sw)) * (1 + k * 0.7) + px * pull, y = S.dep.y + (ox * Math.sin(sw) + oy * Math.cos(sw)) * (1 + k * 0.7) - k * 4 + py * pull;
+          wisp(x, y, r0 * (0.7 + 0.5 * k), r0 * (0.7 + 0.5 * k), 0, clamp(dissolve * 1.6) * 0.95);
+        } else if (f < 1) {
+          const sh = Math.sin(Math.PI * f), [x, y] = at(f);
+          for (let k = 6; k >= 1; k--) {                                                     // wispy tail
+            const [bx, by] = at(Math.max(0, f - k * 0.045)), t = 1 - k / 7;
+            wisp(bx, by, r0 * (0.4 + 0.5 * t), r0 * (0.3 + 0.4 * t), S.ang, 0.4 * t * sh);
+          }
+          wisp(x, y, r0 * (1 + 0.9 * sh), r0 * (1 - 0.2 * sh), S.ang, 0.95);
+        } else {
+          const k = clamp((tt - delay - dur) / 0.2), [x, y] = at(1), pull = 1 - out(k);
+          wisp(S.arr.x + (x - S.arr.x) * (0.4 + 0.6 * pull), S.arr.y + (y - S.arr.y) * (0.4 + 0.6 * pull), r0 * (1 + 0.5 * pull), r0 * (1 + 0.5 * pull), 0, 0.95 * (1 - k * k));
+        }
+      }
+      // two eyes lead the cloud
+      if (tt >= WIND * 0.3 && tt < ARR + 0.2) {
+        const f = tt < WIND ? 0 : ease((tt - WIND) / TRAVEL), p = pathPos(S, f), fx = Math.cos(S.ang) * 5.5, fy = Math.sin(S.ang) * 5.5, fade = tt > ARR + 0.1 ? clamp(1 - (tt - ARR - 0.1) / 0.1) : 1;
+        for (const sd of [-1, 1]) {
+          const sdx = sd * (3.2 + A * lat(f)), ex = p.x + fx + px * sdx, ey = p.y + fy + py * sdx;
+          if (f > 0 && f < 1) { g.save(); g.globalCompositeOperation = 'lighter'; const gr = g.createLinearGradient(ex - Math.cos(S.ang) * 46, ey - Math.sin(S.ang) * 46, ex, ey); gr.addColorStop(0, rgba(VIOLET, 0)); gr.addColorStop(1, rgba([240, 230, 255], 0.75)); g.strokeStyle = gr; g.lineWidth = 2; g.beginPath(); g.moveTo(ex - Math.cos(S.ang) * 46, ey - Math.sin(S.ang) * 46); g.lineTo(ex, ey); g.stroke(); g.restore(); }
+          glow(g, ex, ey, 10, [220, 200, 255], 0.9 * fade);
+          g.fillStyle = rgba([250, 244, 255], fade); g.beginPath(); g.ellipse(ex, ey, 3, 1.6, S.ang, 0, 7); g.fill();
+        }
+      }
+      if (tt >= ARR) {
+        const a = tt - ARR; glow(g, S.arr.x, S.arr.y, 55 * clamp(1 - a / 0.3), VIOLET, 0.35 * clamp(1 - a / 0.3)); ring(g, S.arr.x, S.arr.y, a, 0.32, 12, 54, [150, 120, 220], 3);
+      }
+      if (tt >= ARR + 0.1) { const k = out((tt - ARR - 0.1) / 0.16); drawNinja(g, S.arr.x, S.arr.y, S.ang, { alpha: k, scale: 0.9 + 0.1 * k }); }
+    },
+  };
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  const META = {
+    afterimage: { name: 'Afterimage', tag: 'Hard cut, soft trail', text: 'Nine ghosts of the ninja stay behind along the path and fade over half a second. The body squashes into the dash and settles on arrival.', read: 'Reads fast. Cheap: 9 discs.' },
+    smoke: { name: 'Smoke Drop', tag: 'Disappear, reappear', text: 'A smoke ball swallows you at the start and a second one opens behind the target. Nothing draws the route, so the jump feels like a cut.', read: 'Hides the trip. 21 puffs.' },
+    ink: { name: 'Ink Stroke', tag: 'Brush on the floor', text: 'A calligraphy line is painted from your feet to the landing spot, thick in the middle, thin at the ends, with dry bristles and a splatter at the end.', read: 'Shows the route. Fits the Ninja theme.' },
+    rift: { name: 'Shadow Rift', tag: 'Door to door', text: 'A black tear opens at your feet and pulls you in. Another opens behind the target and you step out of it. The tears sit across the route.', read: 'Clear start and end. Name matches.' },
+    smokeform: { name: 'Smoke Reform', tag: 'Split, flank, rejoin', text: 'Pixel Shatter, made of smoke. The body dissolves into 32 puffs and splits in two. Each half follows its own glowing eye round one side of the target, and the halves meet and re-form into the ninja behind it.', read: 'Softer than Shatter. Busy: ~200 gradient circles.' },
+    shatter: { name: 'Pixel Shatter', tag: 'Break and reform', text: 'The body splits into squares that stream along the route with violet streaks and lock back into a ninja behind the target.', read: 'Busiest. Matches the pixel-art style.' },
+  };
+
+  // ---- drawing a whole frame ------------------------------------------------------------------------------------
+  function frame(g, look, tt, scale, S) {
+    NOW = tt;
+    g.save(); g.setTransform(scale, 0, 0, scale, 0, 0);
+    const sh = tt >= ARR && tt < ARR + 0.12 ? (1 - (tt - ARR) / 0.12) * 3 : 0;      // a short shake as the strike lands
+    if (sh) g.translate(Math.sin(tt * 190) * sh, Math.cos(tt * 230) * sh);
+    drawGround(g, S);
+    drawCursor(g, S, tt);
+    drawEnemy(g, S, tt);
+    looks[look](g, S, tt);
+    drawStrike(g, S, tt);
+    g.restore();
+  }
+
+  // ---- wiring ---------------------------------------------------------------------------------------------------
+  const main = document.getElementById('main'), mg = main.getContext('2d');
+  const looksBar = document.getElementById('looks'), cards = document.getElementById('cards');
+  const cardCtx = {};
+  for (const id of Object.keys(META)) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = META[id].name; b.dataset.look = id; looksBar.appendChild(b);
+    const c = document.createElement('div'); c.className = 'card'; c.dataset.look = id;
+    c.innerHTML = `<canvas width="480" height="300" aria-label="${META[id].name} preview"></canvas><div class="txt"><div class="tag">${META[id].tag}</div><h3>${META[id].name}</h3><p>${META[id].text}</p><div class="read">${META[id].read}</div></div>`;
+    cards.appendChild(c); cardCtx[id] = c.querySelector('canvas').getContext('2d');
+  }
+  function select(id) {
+    state.look = id; state.t = 0;
+    looksBar.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.look === id)));
+    cards.querySelectorAll('.card').forEach(c => c.setAttribute('aria-current', String(c.dataset.look === id)));
+  }
+  looksBar.addEventListener('click', e => { const b = e.target.closest('button'); if (b) select(b.dataset.look); });
+  cards.addEventListener('click', e => { const c = e.target.closest('.card'); if (c) select(c.dataset.look); });
+  const $ = id => document.getElementById(id);
+  $('replay').onclick = () => { state.t = 0; state.paused = false; $('pause').setAttribute('aria-pressed', 'false'); $('pause').textContent = 'Pause'; };
+  $('pause').onclick = () => { state.paused = !state.paused; $('pause').setAttribute('aria-pressed', String(state.paused)); $('pause').textContent = state.paused ? 'Play' : 'Pause'; };
+  $('target').onclick = () => { state.hasTarget = !state.hasTarget; $('target').setAttribute('aria-pressed', String(state.hasTarget)); $('target').textContent = state.hasTarget ? 'Target: enemy' : 'Target: none'; $('dist').disabled = !state.hasTarget; state.t = 0; };
+  $('dist').oninput = e => { state.dist = +e.target.value; $('distv').textContent = state.dist + ' px'; state.t = 0; };
+  $('speed').oninput = e => { state.speed = +e.target.value; $('speedv').textContent = state.speed.toFixed(2) + '×'; };
+  $('scrub').oninput = e => { state.paused = true; $('pause').setAttribute('aria-pressed', 'true'); $('pause').textContent = 'Play'; state.t = (+e.target.value / 1000) * CYCLE; };
+
+  select('afterimage');
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!state.paused) { state.t += dt * state.speed; if (state.t > CYCLE) state.t -= CYCLE; }
+    const tt = state.t - LEAD, S = scene();
+    frame(mg, state.look, tt, 1, S);
+    const sf = 480 / 960;
+    for (const id of Object.keys(META)) {
+      // The cards always run at 0.6× so all six can be compared at the same pace.
+      const ct = ((now / 1000) * 0.6) % CYCLE - LEAD;
+      cardCtx[id].save(); cardCtx[id].scale(1, 1); cardCtx[id].restore();
+      frame(cardCtx[id], id, ct, sf, S);
+    }
+    $('scrub').value = Math.round(state.t / CYCLE * 1000);
+    $('scrubv').textContent = Math.max(0, tt).toFixed(2) + ' s';
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
