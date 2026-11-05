@@ -13,18 +13,18 @@ namespace Arena
         // button over Join game, Records and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect). The tip
         // box (DrawMenuTipBox, MenuTip, HowToTips) is parked: nothing draws it for now. Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
-        // under the box. Quit is a faint power icon at the bottom centre of the screen. The port is in Settings (Gameplay).
+        // under the box. Quit is a faint power icon at the bottom right of the screen. The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
         const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
-        static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 280f);  // the saved-runs picker needs this height, so the menu's buttons grow to fill it
+        static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra)
         static readonly Rect MenuPlayerRect = new Rect(W / 2f - 310f, MenuCard.yMax + 22f, 620f, 64f);  // your player card, under the box
-        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 36f, 620f, 132f);  // the Play button
-        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 184f, 194f, 60f);
-        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 184f, 194f, 60f);
-        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 184f, 194f, 60f);
+        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 40f, 620f, 156f);  // the Play button
+        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 212f, 194f, 64f);
+        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 212f, 194f, 64f);
+        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 212f, 194f, 64f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
-        static readonly Rect MenuQuitRect = new Rect(W / 2f - 24f, H - 66f, 48f, 48f);
+        static readonly Rect MenuQuitRect = new Rect(W - 72f, H - 66f, 48f, 48f);  // bottom right
         bool menuJoinOpen;    // Join opened the address row
         bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
         float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between a scan line is sweeping across the box
@@ -311,7 +311,7 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// What's left outside the box: the "Switch profile" tab on your player card's top edge (only while the mouse is over the
+        /// What's left outside the box: the "Switch profile" tab under your player card (only while the mouse is over the
         /// card or the tab), the faint Quit icon at the bottom centre, and the tooltip. live = false draws it only (Repaint),
         /// for the intro and the move into the lobby.
         float switchProfA;  // 0 to 1: how visible the "Switch profile" button is
@@ -328,7 +328,7 @@ namespace Arena
                 TipClear();  // the rank badge's hover card (RankUi.cs)
             if (live && ProfileStore.Root != null && !menuPlayOpen)
             {
-                var sw = new Rect(MenuPlayerRect.center.x - 70f, MenuPlayerRect.y - 14f, 140f, 24f);
+                var sw = new Rect(MenuPlayerRect.center.x - 70f, MenuPlayerRect.yMax + 6f, 140f, 24f);  // under the card
                 bool near = MenuPlayerRect.Contains(Event.current.mousePosition) || sw.Contains(Event.current.mousePosition);
                 if (Event.current.type == EventType.Repaint)
                     switchProfA = Mathf.MoveTowards(switchProfA, near ? 1f : 0f, Time.unscaledDeltaTime * 5f);

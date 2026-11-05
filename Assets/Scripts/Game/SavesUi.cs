@@ -57,8 +57,8 @@ namespace Arena
         const float RunRowLatestH = 126f, RunRowH = 52f;  // the newest run's row is tall; every other row is compact
 
         /// Where the saved runs scroll (a CRT screen under the header), and the New run button under it.
-        static Rect RunsScreenRect(Rect c) => new Rect(c.x + 30f, c.y + 62f, 620f, 150f);
-        static Rect NewRunRect(Rect c) => new Rect(c.x + 30f, c.y + 222f, 620f, 46f);
+        static Rect RunsScreenRect(Rect c) => new Rect(c.x + 30f, c.y + 62f, 620f, 190f);
+        static Rect NewRunRect(Rect c) => new Rect(c.x + 30f, c.y + 262f, 620f, 46f);
 
         /// Play was clicked: the box shows the picker (a new run, or your saved runs).
         void OpenPlayPicker()
