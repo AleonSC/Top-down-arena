@@ -236,13 +236,8 @@ namespace Arena
                 addressText = Ui.BareField(new Rect(ss.x + 10f, ss.y + 15f, ss.width - 20f, 28f), addressText, 64, 19);
                 GUI.contentColor = oldTint;
                 CrtUi.End(ss, Time.unscaledTime, fxReduced);
-                var kr = new Rect(row.xMax - 150f, row.y + 11f, 136f, 42f);
-                if (MenuVhs.Draw(kr, "TRK 01", live, fxReduced, () =>
-                {
-                    bool hit = Ui.ActionButton(kr, "Connect", true, Ui.Primary, PixelArt.Get("ui_arrow"), null, 16);
-                    Ui.Fill(new Rect(kr.xMax - 14f, kr.center.y - 3f, 6f, 6f), CrtUi.Ink);   // the lamp
-                    return hit;
-                }) && live)
+                var kr = new Rect(row.xMax - 160f, row.y + 9f, 146f, 46f);   // a keycap like the menu's (its lamp lights under the mouse)
+                if (MenuVhs.Draw(kr, "TRK 01", live, fxReduced, () => KeyUi.Key(kr, "Connect", PixelArt.Get("ui_arrow"), 16)) && live)
                     JoinGame();
             }
             if (session.Status.Length > 0 && !session.Connecting && live)
