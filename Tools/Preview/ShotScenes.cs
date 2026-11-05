@@ -196,7 +196,7 @@ static partial class Shot {
       gm.Bullets.Clear();
       me.Pos = me.Disp = new V2(800f, 450f);
       for (int f = 0; f < 3; f++) { gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f); }
-      typeof(Game).GetMethod("SpawnSquad", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { Approaches.For(EnemyType.Boss).Finale });
+      typeof(Game).GetMethod("SpawnSquad", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { Approaches.For(EnemyType.Warden).Finale });
       float rt = float.Parse(Environment.GetEnvironmentVariable("RIOTLINE"));
       for (int f = 0; f < 60 * rt; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f); }
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;

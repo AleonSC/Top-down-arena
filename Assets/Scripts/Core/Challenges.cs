@@ -623,7 +623,7 @@ namespace Arena
         public float BossEquivalentHp(int wave)
         {
             float late = LateBossBoost(wave);
-            return SpawnHp(EnemyType.Boss, wave) * Math.Max(late, BossPowerScale()) / late;
+            return SpawnHp(EnemyType.Warden, wave) * Math.Max(late, BossPowerScale()) / late;
         }
 
         float ShadowHp(Player p) => SpawnHp(EnemyType.Shadow, Wave);

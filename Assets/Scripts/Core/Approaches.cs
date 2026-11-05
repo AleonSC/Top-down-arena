@@ -31,7 +31,7 @@ namespace Arena
         {
             new FactionDef
             {
-                Boss = EnemyType.Boss,  // the Warden: prisoners, guards and riot gear (Warden.cs, WardenFaction.cs)
+                Boss = EnemyType.Warden,  // the Warden: prisoners, guards and riot gear (Warden.cs, WardenFaction.cs)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Rioter, Weight = 3f },

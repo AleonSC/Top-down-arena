@@ -73,12 +73,12 @@ namespace Arena
         {
             switch (wave)
             {
-                case 5: return EnemyType.Boss;
+                case 5: return EnemyType.Warden;
                 case 10: return EnemyType.HiveQueen;
                 case 15: return EnemyType.TwinA;
                 case 20: return EnemyType.Singularity;
                 case 25: return EnemyType.Colossus;
-                default: return EnemyType.Boss;  // later bosses: any legendaries (the offer tops up from others)
+                default: return EnemyType.Warden;  // later bosses: any legendaries (the offer tops up from others)
             }
         }
 

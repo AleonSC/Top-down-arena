@@ -13,8 +13,8 @@ static partial class Program
     static void ParryTest(float dt)
     {
         var s = StartBuffed(dt, 5, 0);
-        Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-        var w = Find(s[0], EnemyType.Boss);
+        Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+        var w = Find(s[0], EnemyType.Warden);
         var me = s[0].Game.Players[1];
         s[1].Game.Bot = false;
         s[0].Game.Bot = true;  // aims at the Warden and holds the trigger
@@ -22,7 +22,7 @@ static partial class Program
         {
             foreach (var e in s[0].Game.Enemies.Values)
                 if (!e.Def.IsBoss) e.Hp = 0f;
-            var bw = Find(s[0], EnemyType.Boss);
+            var bw = Find(s[0], EnemyType.Warden);
             if (bw != null)
                 me.Pos = bw.Pos + new V2(0f, 170f);  // stand in front of it
             s[1].Game.Players[2].Pos = new V2(60f, Game.Height - 60f);  // the friend stays out of the way
@@ -85,7 +85,7 @@ static partial class Program
     static void ParryUpgradeTest(float dt)
     {
         var s = StartBuffed(dt, 5, 0);
-        Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+        Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
         var me = s[0].Game.Players[1];
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         s[0].Game.Bot = s[1].Game.Bot = false;
@@ -136,7 +136,7 @@ static partial class Program
         {
             foreach (var e in s[0].Game.Enemies.Values)
                 if (!e.Def.IsBoss) e.Hp = 0f;
-            var w = Find(s[0], EnemyType.Boss);
+            var w = Find(s[0], EnemyType.Warden);
             if (w != null)
                 me.Pos = w.Pos + new V2(0f, 170f);
             s[1].Game.Players[2].Pos = new V2(60f, Game.Height - 60f);

@@ -13,17 +13,17 @@ static partial class Program
         Check(!Perks.Equip(p, PerkId.RiotGear) && p.PerkNames.Count == 0, "a locked perk can't be equipped");
 
         // Beating the Warden in a run opens the hunt, but the perk needs the hunt won.
-        p.BossBeaten(EnemyType.Boss, 5);
+        p.BossBeaten(EnemyType.Warden, 5);
         Check(!Perks.Unlocked(p, PerkId.RiotGear), "beating the Warden in a run doesn't unlock Riot Gear");
-        p.HuntEnded(EnemyType.Boss, false, 60f);
+        p.HuntEnded(EnemyType.Warden, false, 60f);
         Check(!Perks.Unlocked(p, PerkId.RiotGear), "losing the Warden Hunt doesn't either");
-        p.HuntEnded(EnemyType.Boss, true, 300f);
-        Check(Perks.Unlocked(p, PerkId.RiotGear) && p.HuntWins(EnemyType.Boss) == 1 && p.HuntsWonCount == 1, "winning the Warden Hunt unlocks Riot Gear");
-        Check(!Perks.Unlocked(p, PerkId.Contraband) && !Perks.Equip(p, PerkId.Contraband) && p.HuntWinsHard(EnemyType.Boss) == 0, "Contraband stays locked after a win on Normal");
-        p.HuntEnded(EnemyType.Boss, false, 60f, true);
+        p.HuntEnded(EnemyType.Warden, true, 300f);
+        Check(Perks.Unlocked(p, PerkId.RiotGear) && p.HuntWins(EnemyType.Warden) == 1 && p.HuntsWonCount == 1, "winning the Warden Hunt unlocks Riot Gear");
+        Check(!Perks.Unlocked(p, PerkId.Contraband) && !Perks.Equip(p, PerkId.Contraband) && p.HuntWinsHard(EnemyType.Warden) == 0, "Contraband stays locked after a win on Normal");
+        p.HuntEnded(EnemyType.Warden, false, 60f, true);
         Check(!Perks.Unlocked(p, PerkId.Contraband), "losing the hunt on Hard doesn't unlock it");
-        p.HuntEnded(EnemyType.Boss, true, 280f, true);
-        Check(Perks.Unlocked(p, PerkId.Contraband) && p.HuntWinsHard(EnemyType.Boss) == 1 && p.HuntWins(EnemyType.Boss) == 2, "winning the Warden Hunt on Hard or Nightmare unlocks Contraband");
+        p.HuntEnded(EnemyType.Warden, true, 280f, true);
+        Check(Perks.Unlocked(p, PerkId.Contraband) && p.HuntWinsHard(EnemyType.Warden) == 1 && p.HuntWins(EnemyType.Warden) == 2, "winning the Warden Hunt on Hard or Nightmare unlocks Contraband");
 
         Check(Perks.Equip(p, PerkId.RiotGear) && Perks.IsEquipped(p, PerkId.RiotGear) && Perks.Equipped(p).Count == 1, "Riot Gear equips into the first slot");
         Check(Perks.Equip(p, PerkId.RiotGear) && p.PerkNames.Count == 1, "equipping it again changes nothing");
@@ -48,9 +48,9 @@ static partial class Program
         var back = Profile.Parse(p.ToText());
         Check(back.Valid && back.LoadedVersion == Profile.FormatVersion && back.PerkNames.SequenceEqual(p.PerkNames), "the perks line reads back the same");
         Check(p.ToText().Contains("perks RiotGear"), "the profile writes a perks line when one is equipped");
-        Check(back.HuntWinsHard(EnemyType.Boss) == 1 && back.HuntWins(EnemyType.Boss) == 2 && Perks.Unlocked(back, PerkId.Contraband), "the Hard hunt wins read back, so Contraband stays unlocked");
+        Check(back.HuntWinsHard(EnemyType.Warden) == 1 && back.HuntWins(EnemyType.Warden) == 2 && Perks.Unlocked(back, PerkId.Contraband), "the Hard hunt wins read back, so Contraband stays unlocked");
         var oldHunt = Profile.Parse("arena-profile 4\nhunt Boss 2 1 300\nend 1\n");
-        Check(oldHunt.Valid && oldHunt.HuntWins(EnemyType.Boss) == 1 && oldHunt.HuntWinsHard(EnemyType.Boss) == 0, "an older hunt line (four fields) loads with no Hard wins");
+        Check(oldHunt.Valid && oldHunt.HuntWins(EnemyType.Warden) == 1 && oldHunt.HuntWinsHard(EnemyType.Warden) == 0, "an older hunt line (four fields) loads with no Hard wins");
 
         // Cleaning a file that was hand-edited or that lost its unlocks.
         var edited = Profile.Parse("arena-profile 4\nperks RiotGear,Nonsense,RiotGear,Contraband\nend 1\n");

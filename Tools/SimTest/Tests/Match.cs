@@ -649,8 +649,8 @@ static partial class Program
         foreach (string mode in new[] { "barrier", "flame wall" })
         {
             var s = StartBuffed(dt, 5, 0);
-            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-            var boss = Find(s[0], EnemyType.Boss);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+            var boss = Find(s[0], EnemyType.Warden);
             var tank = s[0].Game.Players[1];
             if (mode == "flame wall")
                 s[0].Game.AddZone(ZoneKind.FlameWall, tank, boss.Pos, 90f, 30f);
@@ -658,7 +658,7 @@ static partial class Program
             float hpBefore = s[0].Game.Players[2].Hp + s[0].Game.Players[1].Hp;
             Run(s, dt, 8, null, () =>
             {
-                var b = Find(s[0], EnemyType.Boss);
+                var b = Find(s[0], EnemyType.Warden);
                 if (b == null)
                     return;
                 if (mode == "barrier")
@@ -697,14 +697,14 @@ static partial class Program
         // ...but a Barrier still tanks incoming fire until it has soaked its limit, then shatters.
         {
             var s = StartBuffed(dt, 5, 0);
-            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
             var tank = s[0].Game.Players[1];
             float blockedAt = -1f, brokeAt = -1f, t = 0f;
             tank.BarrierT = 30f;
             tank.BarrierMax = tank.BarrierHp = 360f;
             Run(s, dt, 30, () => brokeAt >= 0f, () =>
             {
-                var b = Find(s[0], EnemyType.Boss);
+                var b = Find(s[0], EnemyType.Warden);
                 if (b != null)
                     tank.Pos = b.Pos + new V2(0f, 250f);  // in the line of fire, not on top of it
                 t += dt;

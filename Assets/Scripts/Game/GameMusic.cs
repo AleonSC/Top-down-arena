@@ -65,7 +65,7 @@ namespace Arena
         {
             switch (boss)
             {
-                case EnemyType.Boss:  // The Warden: driving and martial
+                case EnemyType.Warden:  // The Warden: driving and martial
                     return new Recipe
                     {
                         Bpm = 124f, Chords = new[] { "Em", "C", "D", "B" }, Passes = 4,

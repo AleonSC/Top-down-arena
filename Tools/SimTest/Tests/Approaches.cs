@@ -36,7 +36,7 @@ static partial class Program
         bool normal = Math.Abs(share(1) - 0.34f) < 1e-4f && Math.Abs(share(2) - 0.51f) < 1e-4f && Math.Abs(share(3) - 0.68f) < 1e-4f && Math.Abs(share(4) - 0.85f) < 1e-4f && share(5) == 0f;
         Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
         Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%; nothing on his wave");
-        Check(share(6) == 0f && share(9) == 0f && Game.ApproachBoss(9) == EnemyType.HiveQueen && Game.ApproachBoss(51) == EnemyType.Boss,
+        Check(share(6) == 0f && share(9) == 0f && Game.ApproachBoss(9) == EnemyType.HiveQueen && Game.ApproachBoss(51) == EnemyType.Warden,
             "a boss with no faction yet has no approach; the waves after 50 lead to the bosses again");
         g0.Diff.Set(DiffKnob.ApproachShare, 1f);
         g0.Diff.Set(DiffKnob.ApproachRamp, 0f);
@@ -55,7 +55,7 @@ static partial class Program
         Check(hard[DiffKnob.ApproachShare] == 1f && Difficulty.Of(DifficultyLevel.Normal).ToText() == "Normal", "picking another preset keeps the approach setting");
 
         // --- Waves built with it (host only, no fighting) --------------------------------------------------------------
-        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Warden).Members.Select(m => m.Type));
         var build = typeof(Game).GetMethod("BuildWave", NP);
         var queueF = typeof(Game).GetField("spawnQueue", NP);
         var squadsF = typeof(Game).GetField("squadQueue", NP);
@@ -198,7 +198,7 @@ static partial class Program
         gren.Hp = 0f;
 
         // --- The Riot Line (the last wave before the Warden): shields march in a wall, guards behind, then charge --------
-        var finale = Approaches.For(EnemyType.Boss).Finale;
+        var finale = Approaches.For(EnemyType.Warden).Finale;
         Check(finale != null && w4.Count(t => t == EnemyType.RiotShield) >= 4 && w4.Count(t => t == EnemyType.Guard) >= 5,
             "the last wave before the Warden always brings the Riot Line (four Riot Shields, five Guards)");
         foreach (var e in g2.Enemies.Values) e.Hp = 0f;
@@ -224,8 +224,8 @@ static partial class Program
         // --- The Warden's pair in his searchlight turn ---------------------------------------------------------------------
         var s5 = StartPlain(dt, 5);
         var g5 = s5[0].Game;
-        Run(s5, dt, 8f, () => g5.State == MatchState.Fighting && Find(s5[0], EnemyType.Boss) != null && !Find(s5[0], EnemyType.Boss).Spawning);
-        var warden = Find(s5[0], EnemyType.Boss);
+        Run(s5, dt, 8f, () => g5.State == MatchState.Fighting && Find(s5[0], EnemyType.Warden) != null && !Find(s5[0], EnemyType.Warden).Spawning);
+        var warden = Find(s5[0], EnemyType.Warden);
         typeof(Game).GetMethod("SendRiotShields", NP).Invoke(g5, new object[] { warden });
         typeof(Game).GetMethod("SendRiotShields", NP).Invoke(g5, new object[] { warden });
         var pair = g5.Enemies.Values.Where(e => e.Type == EnemyType.RiotShield && e.ParentId == warden.Id).ToList();

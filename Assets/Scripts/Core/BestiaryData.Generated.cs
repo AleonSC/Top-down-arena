@@ -376,7 +376,7 @@ namespace Arena
             },
             new BestiaryEntry
             {
-                Type = EnemyType.Boss,
+                Type = EnemyType.Warden,
                 Name = "The Warden",
                 Group = "Bosses",
                 Wave = 5,

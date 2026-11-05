@@ -23,7 +23,7 @@ namespace Arena
         /// later bosses will need the party handed a build that fits their strength (levels, legendaries and mods).
         public static readonly HuntDef[] All =
         {
-            new HuntDef { Boss = EnemyType.Boss, HomeWave = 5, Name = "Warden Hunt", UnlockId = "hunt-warden" },
+            new HuntDef { Boss = EnemyType.Warden, HomeWave = 5, Name = "Warden Hunt", UnlockId = "hunt-warden" },
         };
 
         /// How far into its faction a build-up wave reaches, 1 to 4 (as the four approach waves of a run): enemies and

@@ -15,7 +15,7 @@ static partial class Program
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
 
-        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.Boss).Select(i => Upgrades.All[i].Name).ToArray();
+        var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.Warden).Select(i => Upgrades.All[i].Name).ToArray();
         Check(U("Warden's Halo") < 0 && U("Iron Volley") < 0 && own.Contains("Warden's Guard") && own.Contains("Stun Gun") && own.Contains("Searchlight") && U("Ringburst") < 0
             && Upgrades.All[U("Stun Gun")].Grants == AbilityId.StunGun, "the Warden's legendaries: Warden's Guard, Stun Gun and Searchlight (" + string.Join(", ", own) + ")");
 

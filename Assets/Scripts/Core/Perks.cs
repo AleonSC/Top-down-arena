@@ -34,19 +34,19 @@ namespace Arena
         {
             new PerkDef
             {
-                Id = PerkId.RiotGear, Boss = EnemyType.Boss, Name = "Riot Gear", Built = true,
+                Id = PerkId.RiotGear, Boss = EnemyType.Warden, Name = "Riot Gear", Built = true,
                 Line = "Blocks a hit every 30 s",
                 Tip = "You start every run with a shield that blocks the next hit that would hurt you. A block gives half a second of invulnerability, then the shield takes 30 seconds to come back.",
                 UnlockText = "Win the Warden Hunt",
-                Unlock = p => p.HuntWins(EnemyType.Boss) > 0,
+                Unlock = p => p.HuntWins(EnemyType.Warden) > 0,
             },
             new PerkDef
             {
-                Id = PerkId.Contraband, Boss = EnemyType.Boss, Name = "Contraband", Built = true,
+                Id = PerkId.Contraband, Boss = EnemyType.Warden, Name = "Contraband", Built = true,
                 Line = "Free chest each cycle",
                 Tip = "A treasure chest turns up on the first wave after each boss, and your item from any chest is rare or better. Teammates still get their own item from the same chest.",
                 UnlockText = "Win the Warden Hunt on Hard or Nightmare",
-                Unlock = p => p.HuntWinsHard(EnemyType.Boss) > 0,
+                Unlock = p => p.HuntWinsHard(EnemyType.Warden) > 0,
             },
         };
 

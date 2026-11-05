@@ -223,7 +223,7 @@ static partial class Program
         V2 ctr = from + new V2(190f, 0f);
         var brute = make(ctr + new V2(10f, 10f), EnemyType.Brute, true);  // held still while you draw round them
         var grunt = make(ctr + new V2(-20f, -25f), EnemyType.Grunt, true);
-        var big = make(ctr + new V2(25f, -15f), EnemyType.Boss, true);
+        var big = make(ctr + new V2(25f, -15f), EnemyType.Warden, true);
         float R = 78f;
         for (int f = 0; f < 240 && !g.Ink.Any(d => d.Pen != 0); f++)
         {

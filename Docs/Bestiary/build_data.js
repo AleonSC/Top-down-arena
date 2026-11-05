@@ -14,7 +14,7 @@ const rgb = (r, g, b) => [r, g, b];
 const { B, E } = new Function("rgb", html.slice(start, end) + "\nreturn { B, E };")(rgb);
 
 // Page ids that aren't EnemyType names.
-const TYPE = { Warden: "Boss", Twins: "TwinA" };
+const TYPE = { Twins: "TwinA" };
 
 const enumSrc = fs.readFileSync(path.join(root, "Assets/Scripts/Core/Defs.cs"), "utf8");
 const enumBody = enumSrc.slice(enumSrc.indexOf("enum EnemyType"), enumSrc.indexOf("}", enumSrc.indexOf("enum EnemyType")));

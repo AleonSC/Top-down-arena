@@ -304,8 +304,8 @@ static partial class Program
         var g = s[0].Game; var cg = s[1].Game;
         g.Bot = false; cg.Bot = false;  // the players stand where the test puts them
         g.DevSetGod(1, true);
-        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-        var w = Find(s[0], EnemyType.Boss);
+        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+        var w = Find(s[0], EnemyType.Warden);
         var me = g.Players[1]; var friend = g.Players[2];
         Action Clear = () => { foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Grunt) e.Hp = 0f; };
         Check(w != null && Math.Abs(w.Pos.X - Game.Width / 2f) < 5f && Math.Abs(w.Pos.Y - Game.Height / 2f) < 5f, "the Warden appears in the middle of the arena");
@@ -411,7 +411,7 @@ static partial class Program
             var had = new HashSet<int>(g.Bullets.Keys);
             bool clientExposed = cg.Enemies[w.Id].Warden.ExposedT > 0f;
             Run(s, dt, 2f, null, () => { Clear(); me.Pos = new V2(200f, 800f); });
-            int shots = g.Bullets.Values.Count(b => !had.Contains(b.Id) && Defs.IsEnemyShot(b.Kind) && b.Source == EnemyType.Boss);
+            int shots = g.Bullets.Values.Count(b => !had.Contains(b.Id) && Defs.IsEnemyShot(b.Kind) && b.Source == EnemyType.Warden);
             Console.WriteLine("  warden exposed: {0} (client saw it {1}); a 100 hit took {2:0}; boss shots while blinded {3}", exposed, clientExposed, took, shots);
             Check(exposed && clientExposed && Math.Abs(took - 100f * Game.ExposedMult) < 1f && shots == 0,
                 "led across the Warden, its own searchlight blinds it: it takes 50% more damage and holds its fire (everyone sees it)");
@@ -484,7 +484,7 @@ static partial class Program
             Run(s, dt, 6f, null, () =>
             {
                 Clear(); me.Pos = new V2(60f, 60f);
-                foreach (var b in g.Bullets.Values) if (hadShots.Add(b.Id) && b.Source == EnemyType.Boss) bursts++;
+                foreach (var b in g.Bullets.Values) if (hadShots.Add(b.Id) && b.Source == EnemyType.Warden) bursts++;
             });
             var clouds = g.Patches.Values.Where(pt => pt.Kind == PatchKind.Gas && !cloudsBefore.Contains(pt.Id)).ToList();
             int clientClouds = cg.Patches.Values.Count(pt => pt.Kind == PatchKind.Gas);

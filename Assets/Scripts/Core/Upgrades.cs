@@ -315,12 +315,12 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Turret, Name = "Turret", Desc = "New ability: deploy a turret that shoots for 10 seconds" },
 
             // Legendary: unique weapon upgrades, only from killing bosses (three per boss).
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Guard",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, MaxStacks = 3, Name = "Warden's Guard",
                 Desc = "One of the Warden's riot guards switches sides: it follows you and fights for you with its baton (+1 guard per stack). If it falls, another arrives 15 s later",
                 Apply = s => s.Guards += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, Grants = AbilityId.StunGun, Name = "Stun Gun",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, Grants = AbilityId.StunGun, Name = "Stun Gun",
                 Desc = "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired" },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Searchlight",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Warden, MaxStacks = 3, Name = "Searchlight",
                 Desc = "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
                 Apply = s => s.Searchlight += 1 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Hive Drones",

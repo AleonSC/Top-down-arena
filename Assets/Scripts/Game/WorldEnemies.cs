@@ -519,7 +519,7 @@ namespace Arena
                     if (e.Phase == 1 && !spawning)  // bursting: a hot glow
                         Circle(pos, r + 8f + 3f * Mathf.Sin(t * 20f), new Rgba(1f, 0.6f, 0.2f, 0.25f), 24);
                     break;
-                case EnemyType.Boss:
+                case EnemyType.Warden:
                     DrawWardenUnderlay(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.Lunger:

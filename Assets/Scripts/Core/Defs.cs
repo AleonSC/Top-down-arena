@@ -5,7 +5,7 @@ namespace Arena
 
     public enum EnemyType : byte
     {
-        Grunt, Burster, Sniper, Spinner, Boss,
+        Grunt, Burster, Sniper, Spinner, Warden,  // Warden = the wave-5 boss (was named Boss; value 4 unchanged)
         Charger, Splitter, Shard, Mortar, Shielder, Medic,
         HiveQueen, TwinA, TwinB, Singularity,
         // late game

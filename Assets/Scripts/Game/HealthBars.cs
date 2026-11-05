@@ -96,7 +96,7 @@ namespace Arena
                 Ui.Shadowed(new Rect(x, y, w * 0.7f, 14f), e.Def.Name.ToUpperInvariant(), 10, new Color(1f, 1f, 1f, 0.9f), TextAnchor.MiddleLeft);
                 Ui.Shadowed(new Rect(x + w * 0.7f, y, w * 0.3f, 14f), Mathf.CeilToInt(frac * 100f) + "%", 10, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleRight);
                 GhostBar(new Rect(x, y + 16f, w, 6f), frac, col, EnemyKey(e.Id) | 1L << 40);
-                if (e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f)  // its last-stand armor, above
+                if (e.Type == EnemyType.Warden && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f)  // its last-stand armor, above
                     GhostBar(new Rect(x, y + 12f, w, 3f), Mathf.Clamp01(e.Warden.Armor / e.Warden.ArmorMax), new Color(0.45f, 0.65f, 1f), EnemyKey(e.Id) | 2L << 40);
                 Ui.Alpha = 1f;
                 GUI.color = old;

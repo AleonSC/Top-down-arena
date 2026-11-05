@@ -70,7 +70,7 @@ static partial class Program
         Func<V2, EnemyType, Enemy> Dummy = (at, t) => { var e = (Enemy)spawn.Invoke(g, new object[] { t, at, 0f, 0, false }); e.MaxHp = e.Hp = 1e5f; e.Speed = 0f; e.FireT = 99f; return e; };
         var front = Dummy(new V2(680f, 450f), EnemyType.Grunt);   // in the cone
         var side = Dummy(new V2(560f, 300f), EnemyType.Grunt);    // 68 degrees off the aim: outside it
-        var boss = Dummy(new V2(700f, 520f), EnemyType.Boss);     // in the cone, too heavy to shove
+        var boss = Dummy(new V2(700f, 520f), EnemyType.Warden);     // in the cone, too heavy to shove
         V2 f0 = front.Pos, b0 = boss.Pos;
         me.Pos = from;
         foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = true } : new PlayerInput()); }
@@ -732,7 +732,7 @@ static partial class Program
         play(Game.BoneCageImmune + 0.1f, false);
         for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, target });
         Check(!rebuiltAtOnce && target.CageT > 0f, "a broken cage can't be rebuilt for a second, then it can");
-        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, at, 0f, 0, false });
+        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, at, 0f, 0, false });
         for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, boss });
         Check(boss.CageT <= 0f, "bosses can't be caged");
         host.Leave(""); client.Leave("");

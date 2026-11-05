@@ -45,7 +45,7 @@ namespace Arena
             }
             foreach (var e in g.Enemies.Values)
             {
-                if (e.Type == EnemyType.Boss && e.Warden != null && e.Warden.TransT > 0f)
+                if (e.Type == EnemyType.Warden && e.Warden != null && e.Warden.TransT > 0f)
                 {
                     var to = e.Warden.TransTo;
                     if (to == WardenStage.LastStand)

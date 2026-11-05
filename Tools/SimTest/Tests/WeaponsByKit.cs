@@ -614,7 +614,7 @@ static partial class Program
         play(0.1f, new PlayerInput());  // (back to the start spot)
         // The fan is tight enough that a boss-sized target 400 px away takes all three stars.
         var far = dummy(from + new V2(400f, 0f));
-        far.Radius = Defs.Get(EnemyType.Boss).Radius;
+        far.Radius = Defs.Get(EnemyType.Warden).Radius;
         volley.Invoke(g, new object[] { me, 0f, 0 });
         play(0.8f, new PlayerInput());
         int farStuck = far.StarsStuck;

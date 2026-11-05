@@ -141,7 +141,7 @@ namespace Arena
                 Extra("haunted", "Haunted Hollow", "Dark", "Slow, eerie bells and choir", Haunted),
                 Extra("iron", "Iron Rain", "Dark", "Industrial grind, distorted fifths", Iron),
                 Extra("laststand", "Last Stand", "Epic", "Big drums, choir, one more wave", LastStand),
-                BossEntry(EnemyType.Boss, "The Warden", "Driving and martial"),
+                BossEntry(EnemyType.Warden, "The Warden", "Driving and martial"),
                 BossEntry(EnemyType.HiveQueen, "Hive Queen", "Buzzing and insectile"),
                 BossEntry(EnemyType.TwinA, "The Twin Reapers", "Two voices trading phrases"),
                 BossEntry(EnemyType.Singularity, "The Singularity", "Half-time, deep and warping"),

@@ -189,11 +189,11 @@ static partial class Program
             var s = new[] { host, client };
             WaitForGame(host, client, dt);
             var g = host.Game;
-            Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-            Find(host, EnemyType.Boss).Hp = 0f;
-            Run(s, dt, 3f, () => cp.Beaten(EnemyType.Boss) > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-            Console.WriteLine("  profiles: runs started host {0} client {1}; the Warden beaten host {2} client {3}; best wave {4}/{5}", hp.RunsStarted, cp.RunsStarted, hp.Beaten(EnemyType.Boss), cp.Beaten(EnemyType.Boss), hp.BestWave, cp.BestWave);
-            Check(hp.RunsStarted == 1 && cp.RunsStarted == 1 && hp.Beaten(EnemyType.Boss) == 1 && cp.Beaten(EnemyType.Boss) == 1 && cp.BestWave == 5, "every player's profile counts the run and the boss");
+            Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+            Find(host, EnemyType.Warden).Hp = 0f;
+            Run(s, dt, 3f, () => cp.Beaten(EnemyType.Warden) > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+            Console.WriteLine("  profiles: runs started host {0} client {1}; the Warden beaten host {2} client {3}; best wave {4}/{5}", hp.RunsStarted, cp.RunsStarted, hp.Beaten(EnemyType.Warden), cp.Beaten(EnemyType.Warden), hp.BestWave, cp.BestWave);
+            Check(hp.RunsStarted == 1 && cp.RunsStarted == 1 && hp.Beaten(EnemyType.Warden) == 1 && cp.Beaten(EnemyType.Warden) == 1 && cp.BestWave == 5, "every player's profile counts the run and the boss");
             foreach (var p in g.Players.Values) { p.Downed = true; p.ReviveToken = false; }
             typeof(Game).GetMethod("CheckGameOver", flags).Invoke(g, null);
             Run(s, dt, 1f, () => cp.RunsLost > 0);
@@ -210,10 +210,10 @@ static partial class Program
             host.Host(port, "Host", Role.Tank);
             host.StartMatch();
             host.Game.DevSetGod(1, true);
-            for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Boss) != null && !host.Game.IsSpawning(Find(host, EnemyType.Boss))); i++) Step(host, dt);
-            Find(host, EnemyType.Boss).Hp = 0f;
+            for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Warden) != null && !host.Game.IsSpawning(Find(host, EnemyType.Warden))); i++) Step(host, dt);
+            Find(host, EnemyType.Warden).Hp = 0f;
             for (int i = 0; i < 60; i++) Step(host, dt);
-            Check(dp.RunsStarted == 1 && dp.Beaten(EnemyType.Boss) == 0, "a run where dev tools were used doesn't count towards records");
+            Check(dp.RunsStarted == 1 && dp.Beaten(EnemyType.Warden) == 0, "a run where dev tools were used doesn't count towards records");
             host.Leave("");
         }
         finally

@@ -141,7 +141,7 @@ static partial class Program
         ahead.Hp = beside.Hp = 0f; keep.Remove(ahead); keep.Remove(beside);
         // And it stuns what it hits for a second (not bosses).
         var stunned = Dummy(new V2(900f, 600f));
-        var lanceBoss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(900f, 600f), 0f, 0, false });
+        var lanceBoss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, new V2(900f, 600f), 0f, 0, false });
         lanceBoss.Hp = lanceBoss.MaxHp = 1e6f; lanceBoss.SpawnT = 0f; keep.Add(lanceBoss);
         float stunAt = 0f, bossFrozen = 0f;
         for (int f = 0; f < 45; f++)

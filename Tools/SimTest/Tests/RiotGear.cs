@@ -15,14 +15,14 @@ static partial class Program
         int port = nextPort++;
         var host = new Session { StartWave = 3 };
         var prof = host.Game.ProfileOverride = new Profile();
-        prof.BossBeaten(EnemyType.Boss, 5);
-        prof.HuntEnded(EnemyType.Boss, true, 300f);
+        prof.BossBeaten(EnemyType.Warden, 5);
+        prof.HuntEnded(EnemyType.Warden, true, 300f);
         Perks.Equip(prof, PerkId.RiotGear);
         host.Host(port, "Host", Role.Tank, 0);
         var client = new Session();
         var cprof = client.Game.ProfileOverride = new Profile();
-        cprof.BossBeaten(EnemyType.Boss, 5);
-        cprof.HuntEnded(EnemyType.Boss, true, 300f);
+        cprof.BossBeaten(EnemyType.Warden, 5);
+        cprof.HuntEnded(EnemyType.Warden, true, 300f);
         Perks.Equip(cprof, PerkId.RiotGear);
         client.Join("127.0.0.1", port, "Friend", Role.Dps, 0);
         var s = new[] { host, client };

@@ -116,7 +116,7 @@ namespace Arena
         public bool OthersCanEdit;
         public bool HuntMode;                       // a Boss Hunt instead (Hunts.cs): HuntBoss's
         public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
-        public EnemyType HuntBoss = EnemyType.Boss;
+        public EnemyType HuntBoss = EnemyType.Warden;
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
         public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)

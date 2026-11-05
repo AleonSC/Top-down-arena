@@ -381,14 +381,14 @@ namespace Arena
                 }
                 else if (e.Type == EnemyType.Eclipse && e.Eclipse != null)
                     note = EclipseNote(e.Eclipse, ref noteColor);
-                else if (e.Type == EnemyType.Boss && e.Warden != null)
+                else if (e.Type == EnemyType.Warden && e.Warden != null)
                     note = WardenNote(e.Warden, ref noteColor);
                 else if (Game.IsReaper(e.Type) && game.Reapers != null)
                     note = ReaperNote(e, game.Reapers, ref noteColor);
                 else if (e.Type == EnemyType.Gatekeeper)
                     note = GatekeeperNote(e, ref noteColor);  // ChallengeLook.cs
                 // The Warden's last-stand armor: a blue bar above its health, as long as it, that wears down first.
-                bool armored = e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
+                bool armored = e.Type == EnemyType.Warden && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
                 float armorH = armored ? 9f : 0f;
                 float h = (note != null ? 62f : 46f) + armorH;
                 var panel = new Rect(x0, y, panelW, h);

@@ -151,12 +151,12 @@ namespace Arena
         public Enemy TheWarden()
         {
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Boss)
+                if (e.Type == EnemyType.Warden)
                     return e;
             return null;
         }
 
-        bool WardenImmune(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.TransT > 0f;
+        bool WardenImmune(Enemy e) => e.Type == EnemyType.Warden && e.Warden != null && e.Warden.TransT > 0f;
 
         /// The riot shield stops shots from the front (120 degrees).
         bool WardenShieldBlocks(Enemy e, V2 from)
@@ -625,7 +625,7 @@ namespace Arena
         }
 
         /// Its riot shield broken this riot turn: it takes RiotBrokenMult (HurtEnemy).
-        public static bool WardenShieldBroken(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Turn == WardenTurn.Rioters
+        public static bool WardenShieldBroken(Enemy e) => e.Type == EnemyType.Warden && e.Warden != null && e.Warden.Turn == WardenTurn.Rioters
             && e.Warden.RiotShieldMax > 0f && e.Warden.RiotShield <= 0f && e.Warden.TransT <= 0f;
 
         /// Host, from HurtEnemy: the last stand's armor takes the hit first. True if it took all of it.
@@ -646,7 +646,7 @@ namespace Arena
             return dmg <= 0f;
         }
 
-        public static bool WardenExposed(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.ExposedT > 0f && e.Warden.TransT <= 0f;
+        public static bool WardenExposed(Enemy e) => e.Type == EnemyType.Warden && e.Warden != null && e.Warden.ExposedT > 0f && e.Warden.TransT <= 0f;
 
         /// A stun shot parried back at the Warden (Combat.cs): frozen for WardenStunTime.
         void StunWarden(Enemy e)

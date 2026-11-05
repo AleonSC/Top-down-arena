@@ -12,7 +12,7 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Boss: return e.Warden == null ? 0 : (int)e.Warden.Stage * 100 + (e.Warden.TransT > 0f ? 50 : (int)e.Warden.Turn);
+                case EnemyType.Warden: return e.Warden == null ? 0 : (int)e.Warden.Stage * 100 + (e.Warden.TransT > 0f ? 50 : (int)e.Warden.Turn);
                 case EnemyType.HiveQueen: return e.Queen == null ? 0 : (int)e.Queen.Stage * 100 + (e.Queen.TransT > 0f ? 50 : (int)e.Queen.Turn);
                 case EnemyType.TwinA:  // one Reaper speaks for both (and the Dual Reaper for itself)
                 case EnemyType.DualReaper:
@@ -31,7 +31,7 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Boss:  // a stage change chimes (StartWardenTransition); the light and the charge rise; a breather is quiet
+                case EnemyType.Warden:  // a stage change chimes (StartWardenTransition); the light and the charge rise; a breather is quiet
                 {
                     var turn = (WardenTurn)(sig % 100);
                     return sig % 100 == 50 || turn == WardenTurn.Rest ? Sfx.None : turn == WardenTurn.Light || turn == WardenTurn.Charge ? Sfx.BossCharge : Sfx.BossShift;

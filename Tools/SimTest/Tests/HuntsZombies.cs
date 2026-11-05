@@ -22,15 +22,15 @@ static partial class Program
         solo.StartMatch();
         Check(solo.HuntMode && solo.LobbyHunt == null && !solo.Game.Running && solo.Screen == AppScreen.Lobby,
             "a Boss Hunt is locked until its boss is beaten in a run: picking it, the match won't start");
-        fresh.BossBeaten(EnemyType.Boss, 5);
-        Check(solo.LobbyHunt != null && solo.LobbyHunt.Boss == EnemyType.Boss, "beating the Warden in a run opens the Warden Hunt");
+        fresh.BossBeaten(EnemyType.Warden, 5);
+        Check(solo.LobbyHunt != null && solo.LobbyHunt.Boss == EnemyType.Warden, "beating the Warden in a run opens the Warden Hunt");
         solo.Leave("");
 
         // The hunt itself, in co-op: the friend's lobby and game know it's a hunt.
         port = nextPort++;
         var host = new Session();
         var hp = host.Game.ProfileOverride = new Profile();
-        hp.BossBeaten(EnemyType.Boss, 5);
+        hp.BossBeaten(EnemyType.Warden, 5);
         host.Host(port, "Host", Role.Tank);
         var client = new Session();
         var cp = client.Game.ProfileOverride = new Profile();  // the friend hasn't beaten it: the host's unlock is what counts
@@ -42,14 +42,14 @@ static partial class Program
         host.SetMode(false, true);
         host.SetHuntBoss(EnemyType.HiveQueen);  // no hunt for her yet: ignored
         Sync();
-        Check(client.HuntMode && client.HuntBoss == EnemyType.Boss && host.HuntBoss == EnemyType.Boss, "the friend's lobby shows the Boss Hunt and its boss (only bosses with a hunt can be picked)");
+        Check(client.HuntMode && client.HuntBoss == EnemyType.Warden && host.HuntBoss == EnemyType.Warden, "the friend's lobby shows the Boss Hunt and its boss (only bosses with a hunt can be picked)");
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
         WaitForGame(host, client, dt);
         var g = host.Game;
         var c = client.Game;
         g.ChallengesOn = true;  // (on, to show a hunt opens no portal)
-        Check(g.Hunt != null && c.Hunt != null && c.Hunt.Boss == EnemyType.Boss && hp.RunsStarted == 0 && cp.RunsStarted == 0,
+        Check(g.Hunt != null && c.Hunt != null && c.Hunt.Boss == EnemyType.Warden && hp.RunsStarted == 0 && cp.RunsStarted == 0,
             "the hunt starts on every game, and it doesn't count as a run started");
         Check(Math.Abs(g.ApproachShare(1) - 1f) < 0.01f && Math.Abs(g.ApproachShare(9) - 1f) < 0.01f && g.ApproachShare(10) == 0f && !g.IsBossWave(5) && g.IsBossWave(10),
             "a hunt's nine build-up waves are all its boss's own enemies, and only its tenth is a boss wave");
@@ -62,10 +62,10 @@ static partial class Program
             foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
         };
         bool portal = false, pathOffered = false;
-        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Warden).Members.Select(m => m.Type));
         var seen = new HashSet<EnemyType>();
         var others = new HashSet<EnemyType>();
-        Run(s, dt, 400f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () =>
+        Run(s, dt, 400f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () =>
         {
             keep();
             portal |= g.Room != RoomPhase.None;
@@ -76,22 +76,22 @@ static partial class Program
         });
         Console.WriteLine("  build-up waves: the Warden's own {0}; anything else: {1}", string.Join(", ", seen), others.Count == 0 ? "none" : string.Join(", ", others));
         Check(others.Count == 0 && seen.Count == faction.Count, "the build-up waves bring only the Warden's own enemies, every kind of them by the end");
-        Check(g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && c.HuntWave == Hunts.Length && !portal && !pathOffered,
+        Check(g.Wave == Hunts.Length && Find(host, EnemyType.Warden) != null && c.HuntWave == Hunts.Length && !portal && !pathOffered,
             "nine waves, then the Warden on the hunt's tenth (no challenge portal or path offer on the way)");
         var saveable = (bool)typeof(Game).GetProperty("Saveable", flags).GetValue(g, null);
         Check(!saveable, "a hunt isn't saved to continue later");
-        Find(host, EnemyType.Boss).Hp = 0f;
-        Run(s, dt, 6f, () => c.State == MatchState.Victory && cp.HuntPlayed(EnemyType.Boss) > 0, () => { keep(); pathOffered |= g.PathOffer != null; });
+        Find(host, EnemyType.Warden).Hp = 0f;
+        Run(s, dt, 6f, () => c.State == MatchState.Victory && cp.HuntPlayed(EnemyType.Warden) > 0, () => { keep(); pathOffered |= g.PathOffer != null; });
         Console.WriteLine("  hunt: host won {0} of {1} (best {2:0.0} s), friend won {3} of {4}; runs won {5}/{6}",
-            hp.HuntWon(EnemyType.Boss), hp.HuntPlayed(EnemyType.Boss), hp.HuntBestTime(EnemyType.Boss), cp.HuntWon(EnemyType.Boss), cp.HuntPlayed(EnemyType.Boss), hp.RunsWon, cp.RunsWon);
+            hp.HuntWon(EnemyType.Warden), hp.HuntPlayed(EnemyType.Warden), hp.HuntBestTime(EnemyType.Warden), cp.HuntWon(EnemyType.Warden), cp.HuntPlayed(EnemyType.Warden), hp.RunsWon, cp.RunsWon);
         Check(g.State == MatchState.Victory && c.State == MatchState.Victory && !pathOffered, "beating the Warden wins the hunt (no path offer after it)");
-        Check(hp.HuntWon(EnemyType.Boss) == 1 && cp.HuntWon(EnemyType.Boss) == 1 && hp.HuntBestTime(EnemyType.Boss) > 0f && hp.RunsWon == 0 && cp.RunsWon == 0,
+        Check(hp.HuntWon(EnemyType.Warden) == 1 && cp.HuntWon(EnemyType.Warden) == 1 && hp.HuntBestTime(EnemyType.Warden) > 0f && hp.RunsWon == 0 && cp.RunsWon == 0,
             "every player's profile records the hunt won (with a best time), not a run won");
         g.ContinueEndless();
         Run(s, dt, 0.5f);
         Check(g.State == MatchState.Victory && !g.Endless, "a won hunt has no endless");
         var back = Profile.Parse(hp.ToText());
-        Check(back.HuntWon(EnemyType.Boss) == 1 && back.HuntPlayed(EnemyType.Boss) == 1 && Math.Abs(back.HuntBestTime(EnemyType.Boss) - hp.HuntBestTime(EnemyType.Boss)) < 0.01f,
+        Check(back.HuntWon(EnemyType.Warden) == 1 && back.HuntPlayed(EnemyType.Warden) == 1 && Math.Abs(back.HuntBestTime(EnemyType.Warden) - hp.HuntBestTime(EnemyType.Warden)) < 0.01f,
             "hunt records read back from the profile's text");
         host.Leave(""); client.Leave("");
     }

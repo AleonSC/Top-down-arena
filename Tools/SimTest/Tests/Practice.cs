@@ -22,17 +22,17 @@ static partial class Program
         // Text format: what's saved loads back the same; typos are reported, not fatal.
         var plan = new PracticePlan { Loop = false };
         var w1 = new PracticeWave { Level = 2 }; w1.Counts[EnemyType.Grunt] = 3; w1.Counts[EnemyType.Sniper] = 2;
-        var w2 = new PracticeWave { Level = 9 }; w2.Counts[EnemyType.Boss] = 1; w2.Counts[EnemyType.Swarmer] = 2;
+        var w2 = new PracticeWave { Level = 9 }; w2.Counts[EnemyType.Warden] = 1; w2.Counts[EnemyType.Swarmer] = 2;
         var w3 = new PracticeWave { Level = 4 }; w3.Counts[EnemyType.TwinA] = 1;
         plan.Waves.Add(w1); plan.Waves.Add(w2); plan.Waves.Add(w3);
         string text = plan.ToText("test");
         List<string> problems;
         var back = PracticePlan.Parse(text, out problems);
         Console.WriteLine("  practice file:\n    " + text.Trim().Replace("\n", "\n    "));
-        Check(problems.Count == 0 && back.ToText("test") == text && back.Waves.Count == 3 && back.Waves[1].Level == 9 && back.Waves[1].Counts[EnemyType.Boss] == 1
+        Check(problems.Count == 0 && back.ToText("test") == text && back.Waves.Count == 3 && back.Waves[1].Level == 9 && back.Waves[1].Counts[EnemyType.Warden] == 1
             && back.Waves[2].Counts[EnemyType.TwinA] == 1 && !back.Loop, "a practice setup saves to text and loads back the same");
         var messy = PracticePlan.Parse("loop: yes\r\nwave 3: grunt x2, Blorp x4, warden\r\nnonsense\r\nwave 999: Swarmer x500\r\n", out problems);
-        Check(messy.Loop && messy.Waves.Count == 2 && messy.Waves[0].Counts[EnemyType.Grunt] == 2 && messy.Waves[0].Counts[EnemyType.Boss] == 1
+        Check(messy.Loop && messy.Waves.Count == 2 && messy.Waves[0].Counts[EnemyType.Grunt] == 2 && messy.Waves[0].Counts[EnemyType.Warden] == 1
             && messy.Waves[1].Level == Game.MaxWave && messy.Waves[1].Counts[EnemyType.Swarmer] == 99 && problems.Count == 2,
             "hand-edited setups load forgivingly (case, missing counts, limits) and list what was skipped");
 
@@ -76,7 +76,7 @@ static partial class Program
         Func<Dictionary<EnemyType, int>, EnemyType, int> C = (d, t) => d.TryGetValue(t, out var n) ? n : 0;
         Console.WriteLine("  practice waves: " + string.Join(" | ", seen.Select((d, i) => "lv " + levels[i] + ": " + string.Join(", ", d.Select(kv => kv.Key + " x" + kv.Value)))) + "  -> " + g.State);
         Check(seen.Count == 3 && C(seen[0], EnemyType.Grunt) == 3 && C(seen[0], EnemyType.Sniper) == 2 && seen[0].Count == 2
-            && C(seen[1], EnemyType.Boss) == 1 && C(seen[1], EnemyType.Swarmer) >= 2 && C(seen[2], EnemyType.TwinA) == 1 && C(seen[2], EnemyType.TwinB) == 1,
+            && C(seen[1], EnemyType.Warden) == 1 && C(seen[1], EnemyType.Swarmer) >= 2 && C(seen[2], EnemyType.TwinA) == 1 && C(seen[2], EnemyType.TwinB) == 1,
             "practice waves spawn exactly the enemies chosen (the Twin Reapers as a pair)");
         Check(levels.SequenceEqual(new[] { 2, 9, 4 }), "each practice wave is fought at its own level");
         Check(g.State == MatchState.Victory, "a practice run ends after its last wave");
@@ -136,7 +136,7 @@ static partial class Program
         me.WallT = 0f;
         g.DevSetGod(1, false);
         me.InvulnT = 0f;
-        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(800f, 450f), 0f, 0, false });
+        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, new V2(800f, 450f), 0f, 0, false });
         boss.Hp = boss.MaxHp = 1e6f;
         Solo(1.5f, null);  // let it finish spawning
         int hits = 0;

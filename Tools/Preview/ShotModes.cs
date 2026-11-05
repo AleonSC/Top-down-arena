@@ -153,9 +153,9 @@ static partial class Shot {
       }
       // PERKS=1: the Warden Hunt won with Riot Gear equipped (PERKS=2 also has a first run win, for the second slot), and the seats show their perks; LOBBYTAB=5 for the Perks tab.
       if (Environment.GetEnvironmentVariable("PERKS") != null) {
-        var pp = host.Game.ProfileOverride = new Profile(); pp.BossBeaten(EnemyType.Boss, 5); pp.HuntEnded(EnemyType.Boss, true, 300f);
+        var pp = host.Game.ProfileOverride = new Profile(); pp.BossBeaten(EnemyType.Warden, 5); pp.HuntEnded(EnemyType.Warden, true, 300f);
         if (Environment.GetEnvironmentVariable("PERKS") == "2" || Environment.GetEnvironmentVariable("PERKS") == "3") pp.RunsWon = 1;
-        if (Environment.GetEnvironmentVariable("PERKS") == "3") pp.HuntEnded(EnemyType.Boss, true, 280f, true);  // PERKS=3: also won on Hard, so Contraband is unlocked
+        if (Environment.GetEnvironmentVariable("PERKS") == "3") pp.HuntEnded(EnemyType.Warden, true, 280f, true);  // PERKS=3: also won on Hard, so Contraband is unlocked
         Perks.Equip(pp, PerkId.RiotGear);
         host.Lobby[1].PerkIds = new[] { PerkId.RiotGear }; if (host.Lobby.ContainsKey(2)) host.Lobby[2].PerkIds = new[] { PerkId.RiotGear };
       }
@@ -209,7 +209,7 @@ static partial class Shot {
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=1: Boss Hunt mode, its tab (the Warden's hunt open, won once).
-      if (Environment.GetEnvironmentVariable("HUNT") != null) { host.HuntMode = true; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Boss, 5); hpr.HuntEnded(EnemyType.Boss, true, 312f); hpr.HuntEnded(EnemyType.Boss, false, 200f); }
+      if (Environment.GetEnvironmentVariable("HUNT") != null) { host.HuntMode = true; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Warden, 5); hpr.HuntEnded(EnemyType.Warden, true, 312f); hpr.HuntEnded(EnemyType.Warden, false, 200f); }
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { set("settingsOpen", true); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); }
       if (mode == "lobbypr") {

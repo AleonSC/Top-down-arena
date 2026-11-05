@@ -106,7 +106,7 @@ class JuiceCheck {
     Check((int)get("partN") >= p0 + 30, "a level up bursts with gold sparks");
 
     // A boss: the entrance card, then its death in waves.
-    var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(800f, 300f), 0f, 0, false });
+    var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Warden, new V2(800f, 300f), 0f, 0, false });
     boss.SpawnT = 0f;
     frame();
     Check((float)get("introT") > 0f && (string)get("introName") == "THE WARDEN", "a boss's arrival brings its entrance card");

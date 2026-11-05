@@ -401,11 +401,11 @@ namespace Arena
 
         static readonly EnemyType[] RecordBosses =
         {
-            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.Warden, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
         };
 
-        static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Boss ? "The Warden" : Defs.Get(t).Name;
+        static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Warden ? "The Warden" : Defs.Get(t).Name;
 
         /// Records, as the side drawer (MenuDrawer.cs).
         void DrawRecords() { if (!SkipWhileClosing) DrawRecordsWindow(); }

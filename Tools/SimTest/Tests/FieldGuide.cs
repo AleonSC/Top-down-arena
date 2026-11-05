@@ -43,7 +43,7 @@ static partial class Program
         var g = s[0].Game;
         Run(s, dt, 3f, () => g.State == MatchState.Fighting);
         bool same = true;
-        foreach (var t in new[] { EnemyType.Grunt, EnemyType.Juggernaut, EnemyType.Boss, EnemyType.Eclipse })
+        foreach (var t in new[] { EnemyType.Grunt, EnemyType.Juggernaut, EnemyType.Warden, EnemyType.Eclipse })
         {
             var e = (Enemy)spawn.Invoke(g, new object[] { t, new V2(40f, 40f), 0f, 0, false });
             same &= Math.Abs(e.MaxHp - g.SpawnHp(t, g.Wave)) < 0.01f;

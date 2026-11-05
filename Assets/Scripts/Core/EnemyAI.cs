@@ -9,7 +9,7 @@ namespace Arena
         // A different boss every 5 waves up to the final one at 50; endless mode then cycles through them.
         static readonly EnemyType[] BossCycle =
         {
-            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.Warden, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
         };
 
@@ -113,8 +113,8 @@ namespace Arena
             {
                 switch (BossAt(n))  // (a hunt's boss on its last wave; Hunts.cs)
                 {
-                    case EnemyType.Boss:
-                        spawnQueue.Add(EnemyType.Boss);
+                    case EnemyType.Warden:
+                        spawnQueue.Add(EnemyType.Warden);
                         for (int i = 0; i < n / 2; i++)
                             spawnQueue.Add(EnemyType.Grunt);
                         break;
@@ -547,7 +547,7 @@ namespace Arena
                 WearRiotShield(e, amount);  // WardenFaction.cs
                 return;
             }
-            if (e.Type == EnemyType.Boss && e.Warden != null)
+            if (e.Type == EnemyType.Warden && e.Warden != null)
             {
                 WearWardenShield(e, amount);  // the Warden's riot shield (Warden.cs)
                 return;
@@ -585,7 +585,7 @@ namespace Arena
                 return true;  // the Colossus changing stage (Colossus.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
-            if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
+            if (e.Type == EnemyType.Warden && (WardenImmune(e) || WardenShieldBlocks(e, from)))
                 return true;  // changing stage, or behind its riot shield (Warden.cs)
             if (SoulBound(e))
                 return true;  // the more-hurt Twin Reaper, until the other catches up
@@ -729,7 +729,7 @@ namespace Arena
                         e.Waypoint = RandomInArena(Walled ? 80f : 150f);
                     v = (e.Waypoint - e.Pos).Normalized();
                     break;
-                case EnemyType.Boss:
+                case EnemyType.Warden:
                     v = WardenMove(e, tpos, ref speed);  // Warden.cs
                     break;
                 case EnemyType.Rioter:
@@ -799,7 +799,7 @@ namespace Arena
                 case EnemyType.RiotShield:
                     RiotShieldSpecial(e, tpos, dt);  // WardenFaction.cs
                     break;
-                case EnemyType.Boss:
+                case EnemyType.Warden:
                     WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
                     break;
                 case EnemyType.TwinA:
@@ -1009,7 +1009,7 @@ namespace Arena
                     e.FireT = 2.5f;
                     EnemyShot(e, aim, 160f, Defs.SmallShot);
                     break;
-                case EnemyType.Boss:
+                case EnemyType.Warden:
                     WardenFire(e, tpos);  // Warden.cs
                     break;
                 case EnemyType.HiveQueen:
@@ -1044,7 +1044,7 @@ namespace Arena
             if (InRoom)
                 RoomKilled(e);  // the kill rush's count, a shadow gone (Challenges.cs)
             VarietyKilled(e);  // Volatile, Splitting, a Warder's bubbles (Variety.cs)
-            if (e.Type == EnemyType.Boss)
+            if (e.Type == EnemyType.Warden)
             {
                 ClearRioters();  // the riot's over (Warden.cs)
                 ClearGuards();

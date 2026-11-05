@@ -87,8 +87,8 @@ static partial class Program
         // right (a static "+" that cuts the arena into quadrants), then moves and does it again, four times.
         {
             var s = StartBuffed(dt, 5, 0);
-            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-            var w = Find(s[0], EnemyType.Boss);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
+            var w = Find(s[0], EnemyType.Warden);
             s[0].Game.Bot = s[1].Game.Bot = false;
             // Drop it into the Lockdown, and wait for the cross to start.
             Run(s, dt, 8, () => w.Warden != null && w.Warden.Turn == WardenTurn.Cross && w.Warden.TransT <= 0f, () => w.Hp = Math.Min(w.Hp, w.MaxHp * 0.6f));
@@ -104,7 +104,7 @@ static partial class Program
                 foreach (var p in s[0].Game.Players.Values)
                     p.InvulnT = 1f;
                 w.Hp = Math.Max(w.Hp, w.MaxHp * 0.5f);
-                var cw = Find(s[1], EnemyType.Boss);
+                var cw = Find(s[1], EnemyType.Warden);
                 bool cCross = cw != null && cw.Warden != null && cw.Warden.Turn == WardenTurn.Cross;
                 phaseOnClient |= cCross && !cw.Warden.Dashing;
                 movingOnClient |= cCross && cw.Warden.Dashing;

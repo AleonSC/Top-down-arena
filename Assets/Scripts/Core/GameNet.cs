@@ -636,7 +636,7 @@ namespace Arena
                 e.BleedHits = bleedHits;
                 e.Wet = wet;
             }
-            if (kind == EnemyType.Boss)
+            if (kind == EnemyType.Warden)
                 SyncWarden(s, e);  // Warden.cs
             else if (kind == EnemyType.HiveQueen)
                 SyncQueen(s, e);   // Queen.cs

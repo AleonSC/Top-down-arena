@@ -463,7 +463,7 @@ namespace Arena
                                 scratchIds.Add(b.Id);
                                 break;
                             }
-                            if (b.StunBack && e.Type == EnemyType.Boss)
+                            if (b.StunBack && e.Type == EnemyType.Warden)
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);

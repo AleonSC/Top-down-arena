@@ -28,7 +28,7 @@ namespace Arena
         /// then check Profile.IsUnlocked("first-win") wherever it should matter (a lobby choice, a modifier...).
         public static readonly List<UnlockDef> All = new List<UnlockDef>
         {
-            new UnlockDef { Id = "hunt-warden", Name = "Warden Hunt", Desc = "Beat the Warden in a run: hunt it any time from the lobby's Boss Hunt", Earned = p => p.Beaten(EnemyType.Boss) > 0 },
+            new UnlockDef { Id = "hunt-warden", Name = "Warden Hunt", Desc = "Beat the Warden in a run: hunt it any time from the lobby's Boss Hunt", Earned = p => p.Beaten(EnemyType.Warden) > 0 },
         };
 
         public static UnlockDef Get(string id) => All.Find(u => u.Id == id);
@@ -136,6 +136,9 @@ namespace Arena
 
         static int Get(Dictionary<string, int> d, string k) { int v; return d.TryGetValue(k, out v) ? v : 0; }
         static void Bump(Dictionary<string, int> d, string k) => d[k] = Get(d, k) + 1;
+
+        /// Older profiles stored the Warden under its old enum name "Boss".
+        static string OldBossKey(string k) => k == "Boss" ? nameof(EnemyType.Warden) : k;
 
         public int HuntWins(EnemyType boss) => Get(HuntsWon, boss.ToString());
         public int HuntWinsHard(EnemyType boss) => Get(HuntsWonHard, boss.ToString());
@@ -287,12 +290,13 @@ namespace Arena
                             p.Kills = RunSave.I(f[0]); p.BossKills = RunSave.I(f[1]); p.Downs = RunSave.I(f[2]); p.Revives = RunSave.I(f[3]);
                             p.DamageDealt = RunSave.Fl(f[4]); p.HealingDone = RunSave.Fl(f[5]);
                             break;
-                        case "boss": p.BossesBeaten[f[0]] = RunSave.I(f[1]); break;
+                        case "boss": p.BossesBeaten[OldBossKey(f[0])] = RunSave.I(f[1]); break;
                         case "played": p.RunsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "won": p.WinsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "modwin": p.ModWins[f[0]] = RunSave.I(f[1]); break;
                         case "room": p.RoomsPlayed[f[0]] = RunSave.I(f[1]); p.RoomsWon[f[0]] = RunSave.I(f[2]); break;
                         case "hunt":
+                            { string hk = OldBossKey(f[0]); f[0] = hk; }
                             p.HuntsPlayed[f[0]] = RunSave.I(f[1]); p.HuntsWon[f[0]] = RunSave.I(f[2]);
                             if (RunSave.Fl(f[3]) > 0f) p.HuntBest[f[0]] = RunSave.Fl(f[3]);
                             if (f.Length > 4) p.HuntsWonHard[f[0]] = RunSave.I(f[4]);  // (older files have four fields)

@@ -186,9 +186,9 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game;
         Check(g.LastGain == null && client.Game.LastGain == null && hp.Xp == 0, "no XP before the run ends");
-        Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
-        Find(host, EnemyType.Boss).Hp = 0f;
-        Run(s, dt, 3f, () => cp.Beaten(EnemyType.Boss) > 0, () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Warden) != null && !g.IsSpawning(Find(host, EnemyType.Warden)), () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
+        Find(host, EnemyType.Warden).Hp = 0f;
+        Run(s, dt, 3f, () => cp.Beaten(EnemyType.Warden) > 0, () => { foreach (var pl in g.Players.Values) pl.InvulnT = 1f; });
         foreach (var pl in g.Players.Values) { pl.Downed = true; pl.ReviveToken = false; }
         typeof(Game).GetMethod("CheckGameOver", flags).Invoke(g, null);
         Run(s, dt, 1f, () => cp.RunsLost > 0);
@@ -206,8 +206,8 @@ static partial class Program
         host.Host(port, "Host", Role.Tank);
         host.StartMatch();
         host.Game.DevSetGod(1, true);
-        for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Boss) != null && !host.Game.IsSpawning(Find(host, EnemyType.Boss))); i++) Step(host, dt);
-        Find(host, EnemyType.Boss).Hp = 0f;
+        for (int i = 0; i < 20 * 60 && !(Find(host, EnemyType.Warden) != null && !host.Game.IsSpawning(Find(host, EnemyType.Warden))); i++) Step(host, dt);
+        Find(host, EnemyType.Warden).Hp = 0f;
         for (int i = 0; i < 60; i++) Step(host, dt);
         foreach (var pl in host.Game.Players.Values) { pl.Downed = true; pl.ReviveToken = false; }
         typeof(Game).GetMethod("CheckGameOver", flags).Invoke(host.Game, null);

@@ -136,7 +136,7 @@ static partial class Program
         int legendaries = 0;
         foreach (var p in client.Game.Players.Values)
             foreach (int t in p.Taken)
-                if (Upgrades.All[t].Rarity == Rarity.Legendary && Upgrades.All[t].Boss == EnemyType.Boss)
+                if (Upgrades.All[t].Rarity == Rarity.Legendary && Upgrades.All[t].Boss == EnemyType.Warden)
                 {
                     legendaries++;
                     Console.WriteLine("  {0} took legendary: {1}", p.Role, Upgrades.All[t].Name);

@@ -24,7 +24,7 @@ namespace Arena
         [Serializable]
         public class BossSlot
         {
-            [Tooltip("The Twin Reapers share one slot: pick TwinA.")] public EnemyType Boss = EnemyType.Boss;
+            [Tooltip("The Twin Reapers share one slot: pick TwinA.")] public EnemyType Boss = EnemyType.Warden;
             public Slot Music = new Slot();
         }
 
