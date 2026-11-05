@@ -68,7 +68,7 @@ namespace Arena
         public float WallCapMult = 1f, WallArcMult = 1f;
         public float SlamRadiusMult = 1f, SlamStunBonus;
         public float UnbreakBonus, UnbreakHealBonus;
-        public float ConsecrateRadiusMult = 1f, ConsecrateBonusTime, OathMult = 1f, LayMult = 1f;
+        public float ConsecrateRadiusMult = 1f, ConsecrateBonusTime, OathCut, LayMult = 1f;
         public float WhirlBonusTime, WhirlRadiusMult = 1f, LungeRangeMult = 1f, LungeDmgMult = 1f, FuryLifesteal;
         public int GrenadeExtraShrapnel;
         // Ninja abilities
@@ -251,7 +251,7 @@ namespace Arena
                 Apply = s => { s.UnbreakBonus += 0.15f; s.UnbreakHealBonus += 0.1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate is 40% bigger and lasts 3 s longer",
                 Apply = s => { s.ConsecrateRadiusMult += 0.4f; s.ConsecrateBonusTime += 3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath shields are 60% stronger", Apply = s => s.OathMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Cyclone", Desc = "Whirlwind lasts 1 s longer and reaches 30% further",
                 Apply = s => { s.WhirlBonusTime += 1f; s.WhirlRadiusMult += 0.3f; } },
