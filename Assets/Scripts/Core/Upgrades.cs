@@ -16,7 +16,7 @@ namespace Arena
         // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, BulletRain, Legion,
         // Knight (Space), then the Knight ultimates
-        ShieldWall, LeapSlam, Unbreakable, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
+        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
         LastStand, HallowedBlade, BladeTempest,
         // Ninja (Space), then the Ninja ultimates
         ShadowClone, SmokeBomb, IronBody, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
@@ -67,7 +67,7 @@ namespace Arena
         // Knight abilities
         public float WallCapMult = 1f, WallArcMult = 1f;
         public float SlamRadiusMult = 1f, SlamStunBonus;
-        public float UnbreakBonus, UnbreakHealBonus;
+        public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
         public float WhirlBonusTime, WhirlRadiusMult = 1f, LungeRangeMult = 1f, LungeDmgMult = 1f, FuryLifesteal;
         public int GrenadeExtraShrapnel;
@@ -247,8 +247,8 @@ namespace Arena
                 Apply = s => { s.WallArcMult += 0.33f; s.WallCapMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LeapSlam, MaxStacks = 2, Name = "Earthshaker", Desc = "Leap Slam hits 40% wider and stuns for 1 s longer",
                 Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Unbreakable, MaxStacks = 2, Name = "Iron Will", Desc = "Unbreakable blocks 15% more damage and heals you for 10% more of what you deal",
-                Apply = s => { s.UnbreakBonus += 0.15f; s.UnbreakHealBonus += 0.1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CavalryCall, MaxStacks = 2, Name = "Iron Will", Desc = "Cavalry Call blocks 10% more damage while the lancers ride and every lance hits for 10 more",
+                Apply = s => { s.UnbreakBonus += 0.1f; s.CavalryDmgBonus += 10f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate flies 40% farther and its Swiftness lasts 2 s longer",
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },

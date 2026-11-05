@@ -102,6 +102,9 @@ namespace Arena
                 case FxKind.KatanaStrike:
                     DrawKatanaStrikeFx(fx);  // KatanaLook.cs
                     break;
+                case FxKind.CavalryCall:
+                    DrawCavalryCallFx(fx);  // CavalryCallLook.cs
+                    break;
                 case FxKind.ShellPop:
                     DrawShellPopFx(fx, f);
                     break;

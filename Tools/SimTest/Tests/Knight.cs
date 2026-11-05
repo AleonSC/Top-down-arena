@@ -193,12 +193,12 @@ static partial class Program
         Check(me.Run.DamageTaken > beforeGap, "a shot through a broken plate's gap hits the knight");
         for (int f = 0; f < 270; f++) { me.InvulnT = 1f; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
         Check(me.WallUp, "the Shield Wall has no timer: it is still up after 4.5 s");
-        // Unbreakable halves damage.
+        // Cavalry Call: 20% less damage while the lancers ride.
         var damage = typeof(Game).GetMethod("Damage", flags);
         me.InvulnT = 0f; float t0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 40f, "test" }); float plain = me.Run.DamageTaken - t0;
-        Cast(1, AbilityId.Unbreakable, me.Pos);
+        Cast(1, AbilityId.CavalryCall, me.Pos);
         me.InvulnT = 0f; t0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 40f, "test" }); float tough = me.Run.DamageTaken - t0;
-        Check(Math.Abs(tough - plain * 0.5f) < 0.5f, "Unbreakable halves the damage you take");
+        Check(Math.Abs(tough - plain * 0.8f) < 0.5f, "Cavalry Call takes 20% off the damage you take");
         // Last Stand: you plant, the plates stop shots from the front and you take a tenth of them, teammates' shots pass out
         // through, you can't move, pressing it again brings it down, and going down ends it.
         foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
