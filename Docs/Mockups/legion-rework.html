@@ -1,0 +1,416 @@
+<title>Legion Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Field-manual look shared with the other mockups. Four looping scenes at game scale (1 canvas px = 1 arena px). */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547;
+  --a: #ff9a5a; --b: #9be8ff; --c: #ff5a6e; --d: #c9a0ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 48px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--a); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 12px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--b); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1b2430; border-color: var(--amber); color: var(--fg); }
+section.look { display: grid; gap: 12px; }
+.lookhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.tag { font: 800 13px var(--font-display); letter-spacing: 0.14em; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+.stage[data-picked="true"] { border-color: var(--amber); }
+canvas.arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 420; background: #070910; }
+.bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px 24px; padding: 14px 16px; border-top: 1px solid var(--line); align-items: start; }
+.bar div { min-width: 0; display: grid; gap: 3px; }
+.bar .k { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.bar p { font-size: 14px; color: var(--soft); }
+.bar .pick { align-self: center; justify-self: start; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 12px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 14px; min-width: 620px; width: 100%; }
+th, td { text-align: left; padding: 7px 14px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
+#pickline { font: 500 13px var(--font-data); color: var(--amber); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · DPS Summoner · ultimate · reworks Legion · pick a look</div>
+    <h1>Leg<span>ion</span></h1>
+    <p class="lead">Today Legion drops 6 wolves and 6 bats around you for 10 s (10 and 10 when mastered) and your other minions frenzy. It works, but it reads as
+      "more of the same minions". Four ways to give the ultimate its own shape. Each preview shows the same moment: the cast, the pack going in, and the
+      fade-out. The teal wolves are your normal companions, which frenzy (red glow) in every look. Damage, counts and timings here are placeholders.</p>
+    <div class="group">
+      <span class="label">All previews</span>
+      <button id="bPause" aria-pressed="false">Pause</button>
+      <button id="bSlow" aria-pressed="false">Slow motion</button>
+      <button id="bReduced" aria-pressed="false">Reduced effects</button>
+      <button id="bRestart">Restart</button>
+      <span id="pickline">No look picked yet</span>
+    </div>
+  </header>
+
+  <section class="look" data-look="0">
+    <div class="lookhead"><span class="tag" style="color:var(--a)">LOOK A</span><h2>Howling Pack</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look A: the pack bursts out of a ring and hunts"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>The current ultimate, finished properly. A howl ring, then 6 wolves and 6 bats burst outward from you and hunt. Wolves leave an ember trail, bats a flutter of sparks. They fade out together at 10 s.</p></div>
+        <div><span class="k">Feel</span><p>Safest and cheapest. Reads instantly, no new rules, easiest to balance. It is still just a bigger swarm.</p></div>
+        <button class="pick" data-pick="0" aria-pressed="false">Pick Look A</button>
+      </div>
+    </div>
+  </section>
+  <section class="look" data-look="1">
+    <div class="lookhead"><span class="tag" style="color:var(--b)">LOOK B</span><h2>Spirit Stampede</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look B: ghost wolves and bats charge across the arena in waves"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>Ghostly wolves and bats surge out in a fan, wave after wave, and pass straight through everything. Each spirit hits each enemy once, then dissolves at the far edge. Nothing stays behind.</p></div>
+        <div><span class="k">Feel</span><p>A burst of damage you aim by facing. Plays like a piercing line attack, so it suits crowds and long corridors but does little against one target that stands still.</p></div>
+        <button class="pick" data-pick="1" aria-pressed="false">Pick Look B</button>
+      </div>
+    </div>
+  </section>
+  <section class="look" data-look="2">
+    <div class="lookhead"><span class="tag" style="color:var(--c)">LOOK C</span><h2>Alpha</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look C: one huge alpha wolf with bats that peel off"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>One huge spectral Alpha wolf, three times normal size, with a ring of bats orbiting it. The Alpha charges the nearest enemy and howls every 2 s for a small shockwave. A bat peels off every 0.4 s to hunt on its own.</p></div>
+        <div><span class="k">Feel</span><p>A single big thing to watch and root for. Strongest silhouette of the four, and the Alpha could be a target for enemy fire. Fewer bodies on screen than today.</p></div>
+        <button class="pick" data-pick="2" aria-pressed="false">Pick Look C</button>
+      </div>
+    </div>
+  </section>
+  <section class="look" data-look="3">
+    <div class="lookhead"><span class="tag" style="color:var(--d)">LOOK D</span><h2>Blood Moon</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look D: a blood moon rises and the pack orbits then is released"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>A red moon rises over the arena and tints it. The pack circles you for a second, then is released all at once, running faster than normal. When the moon sets, the pack goes with it.</p></div>
+        <div><span class="k">Feel</span><p>The most dramatic, and the only one that changes the whole screen. The moon could also buff allies in range. Biggest effect cost, so it needs a Reduced effects version.</p></div>
+        <button class="pick" data-pick="3" aria-pressed="false">Pick Look D</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>Numbers and notes</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th></th><th>Legion (today)</th><th>A Howling Pack</th><th>B Spirit Stampede</th><th>C Alpha</th><th>D Blood Moon</th></tr></thead>
+        <tbody>
+          <tr><td>Bodies</td><td class="n">6 + 6 (10 + 10)</td><td class="n">6 + 6 (10 + 10)</td><td class="n">~16 spirits in waves</td><td class="n">1 Alpha + 8 bats</td><td class="n">6 + 6 (10 + 10)</td></tr>
+          <tr><td>Duration</td><td class="n">10 s</td><td class="n">10 s</td><td class="n">~2 s cast, 1.6 s each</td><td class="n">10 s</td><td class="n">10 s</td></tr>
+          <tr><td>Own pack frenzies</td><td class="n">No</td><td class="n">No</td><td class="n">n/a</td><td class="n">No</td><td class="n">Fast instead</td></tr>
+          <tr><td>New rules</td><td class="n">None</td><td class="n">None</td><td class="n">Piercing, once per enemy</td><td class="n">Alpha has HP, howl shockwave</td><td class="n">Screen tint, optional ally buff</td></tr>
+          <tr><td>Net change</td><td class="n">None</td><td class="n">Visual only</td><td class="n">New damage profile</td><td class="n">Needs a new minion kind</td><td class="n">Visual plus a speed rule</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lead">Because Legion is already near the top of the ultimate damage report, whichever look is picked should keep roughly the post-nerf total (about 5,400 on one big target in 12 s). Looks C and D change the shape of that damage more than the amount.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var W = 960, H = 420, LOOP = 9, T0 = 0.7, T1 = 9.2, TAU = Math.PI * 2;
+  var CAST = { x: 150, y: 210 };
+  var ctl = { paused: false, slow: false, reduced: false };
+  var rnd = function (a, b) { return a + Math.random() * (b - a); };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  var dist = function (a, b) { return Math.hypot(a.x - b.x, a.y - b.y); };
+
+  function P(s, o) {
+    if (s.parts.length > 700) return;
+    var p = { x: 0, y: 0, vx: 0, vy: 0, drag: 0, life: 0.3, size: 2, col: '255,170,80', type: 'spark', r0: 2, r1: 20 };
+    for (var k in o) p[k] = o[k];
+    p.max = p.life; s.parts.push(p);
+  }
+  function updateParts(s, dt) {
+    for (var i = s.parts.length - 1; i >= 0; i--) {
+      var p = s.parts[i]; p.life -= dt;
+      if (p.life <= 0) { s.parts.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.drag) { var k = Math.exp(-p.drag * dt); p.vx *= k; p.vy *= k; }
+    }
+  }
+  function drawParts(c, s) {
+    c.save(); c.lineCap = 'round'; c.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < s.parts.length; i++) {
+      var p = s.parts[i], lf = p.life / p.max;
+      if (p.type === 'spark') {
+        c.strokeStyle = 'rgba(' + p.col + ',' + lf + ')'; c.lineWidth = p.size;
+        c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - p.vx * 0.04, p.y - p.vy * 0.04); c.stroke();
+      } else if (p.type === 'ring') {
+        var r = p.r0 + (p.r1 - p.r0) * (1 - lf);
+        c.strokeStyle = 'rgba(' + p.col + ',' + (lf * 0.9) + ')'; c.lineWidth = p.size * lf + 0.5;
+        c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.stroke();
+      } else if (p.type === 'glow') {
+        var g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+        g.addColorStop(0, 'rgba(' + p.col + ',' + (lf * 0.6) + ')'); g.addColorStop(1, 'rgba(' + p.col + ',0)');
+        c.fillStyle = g; c.fillRect(p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+      }
+    }
+    c.restore();
+  }
+
+  /* ---------- creatures ---------- */
+  function drawWolf(c, x, y, ang, sz, col, alpha, glow) {
+    c.save(); c.translate(x, y); c.rotate(ang); c.scale(sz, sz); c.globalAlpha = alpha;
+    if (glow) { c.shadowColor = glow; c.shadowBlur = 14; }
+    c.fillStyle = col;
+    c.beginPath(); c.ellipse(0, 0, 11, 6, 0, 0, TAU); c.fill();           // body
+    c.beginPath(); c.ellipse(11, 0, 5.5, 4.2, 0, 0, TAU); c.fill();       // head
+    c.beginPath(); c.moveTo(14, -3); c.lineTo(17, -7); c.lineTo(11, -4.5); c.fill();   // ears
+    c.beginPath(); c.moveTo(14, 3); c.lineTo(17, 7); c.lineTo(11, 4.5); c.fill();
+    c.beginPath(); c.moveTo(-10, -2); c.quadraticCurveTo(-18, 0, -17, 6); c.lineTo(-10, 2); c.fill();  // tail
+    c.shadowBlur = 0; c.fillStyle = 'rgba(255,255,255,0.9)';
+    c.fillRect(13, -1.2, 2, 2.4);
+    c.restore();
+  }
+  function drawBat(c, x, y, ang, sz, col, alpha, flap, glow) {
+    c.save(); c.translate(x, y); c.rotate(ang); c.scale(sz, sz); c.globalAlpha = alpha;
+    if (glow) { c.shadowColor = glow; c.shadowBlur = 10; }
+    c.fillStyle = col; var f = Math.sin(flap) * 0.6 + 0.4;
+    c.beginPath(); c.ellipse(0, 0, 4.5, 3, 0, 0, TAU); c.fill();
+    [-1, 1].forEach(function (sd) {
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(-3, sd * 13 * f); c.lineTo(-7, sd * 8 * f);
+      c.lineTo(-9, sd * 12 * f); c.lineTo(-12, sd * 3); c.closePath(); c.fill();
+    });
+    c.restore();
+  }
+  var COL = { wolf: '#ff9a5a', bat: '#b47dff', ally: '#5ad8c4', ghostW: '#bfe9ff', ghostB: '#d9ccff', alpha: '#ff5a6e', moonW: '#ff6a6a', moonB: '#ff9ac0' };
+
+  /* ---------- scene state ---------- */
+  function makeEnemies() {
+    var a = [], pts = [[600, 90], [700, 170], [640, 250], [780, 120], [800, 230], [720, 330], [860, 300], [560, 340]];
+    pts.forEach(function (q, i) { a.push({ x: q[0], y: q[1], hx: q[0], hy: q[1], hp: 100, max: 100, flash: 0, ph: i * 1.3, r: i === 3 ? 22 : 15 }); });
+    return a;
+  }
+  function reset(s) {
+    s.t = 0; s.parts = []; s.mins = []; s.enemies = makeEnemies(); s.fired = {}; s.wave = 0; s.alphaHowl = 0; s.batTimer = 0;
+    s.allies = [{ x: CAST.x - 28, y: CAST.y - 34, ang: 0 }, { x: CAST.x - 28, y: CAST.y + 34, ang: 0 }];
+  }
+  function hitEnemy(s, e, dmg, col) {
+    e.hp = Math.max(0, e.hp - dmg); e.flash = 0.12;
+    if (!ctl.reduced) for (var i = 0; i < 3; i++) P(s, { x: e.x, y: e.y, vx: rnd(-160, 160), vy: rnd(-160, 160), life: 0.25, size: 2, col: col, drag: 4 });
+  }
+  function spawn(s, kind, x, y, o) {
+    var m = { kind: kind, x: x, y: y, vx: 0, vy: 0, ang: rnd(0, TAU), life: 99, max: 99, cd: 0, speed: kind === 'wolf' ? 300 : 260, ph: rnd(0, 9), size: 1, col: '', hit: null, mode: 'hunt', orb: 0, orbR: 0, pierce: false };
+    for (var k in o) m[k] = o[k];
+    m.max = m.life; s.mins.push(m); return m;
+  }
+  function nearest(s, m) {
+    var best = null, bd = 1e9;
+    s.enemies.forEach(function (e) { if (e.hp <= 0) return; var d = dist(m, e); if (d < bd) { bd = d; best = e; } });
+    return best;
+  }
+  function steer(m, tx, ty, dt, turn, sp) {
+    var want = Math.atan2(ty - m.y, tx - m.x), d = want - m.ang;
+    d = Math.atan2(Math.sin(d), Math.cos(d)); m.ang += clamp(d, -turn * dt, turn * dt);
+    m.x += Math.cos(m.ang) * sp * dt; m.y += Math.sin(m.ang) * sp * dt;
+  }
+
+  /* ---------- per-look casts ---------- */
+  function cast(s, look) {
+    var i, n = 6;
+    if (look === 0) {
+      P(s, { type: 'ring', x: CAST.x, y: CAST.y, col: '255,130,70', life: 0.6, r0: 10, r1: 150, size: 5 });
+      for (i = 0; i < n; i++) {
+        var a = TAU * i / n;
+        spawn(s, 'wolf', CAST.x + Math.cos(a) * 30, CAST.y + Math.sin(a) * 30, { ang: a, life: 10, col: COL.wolf, speed: 330 });
+        spawn(s, 'bat', CAST.x + Math.cos(a + 0.26) * 18, CAST.y + Math.sin(a + 0.26) * 18, { ang: a, life: 10, col: COL.bat });
+      }
+    } else if (look === 2) {
+      P(s, { type: 'ring', x: CAST.x, y: CAST.y, col: '255,70,100', life: 0.7, r0: 10, r1: 170, size: 6 });
+      s.alpha = spawn(s, 'alpha', CAST.x + 40, CAST.y, { life: 9.2, col: COL.alpha, speed: 250, size: 3, ang: 0 });
+      for (i = 0; i < 8; i++) spawn(s, 'bat', s.alpha.x, s.alpha.y, { life: 9.2, col: COL.bat, mode: 'orbit', orb: TAU * i / 8, orbR: 56 });
+    } else if (look === 3) {
+      for (i = 0; i < n; i++) {
+        var b = TAU * i / n;
+        spawn(s, 'wolf', CAST.x, CAST.y, { life: 9, col: COL.moonW, speed: 430, mode: 'orbit', orb: b, orbR: 46, size: 1.1 });
+        spawn(s, 'bat', CAST.x, CAST.y, { life: 9, col: COL.moonB, speed: 380, mode: 'orbit', orb: b + 0.5, orbR: 30 });
+      }
+    }
+  }
+  function waveSpawn(s) {   // look B
+    var i, cnt = 4, base = rnd(-0.1, 0.1);
+    for (i = 0; i < cnt; i++) {
+      var a = base + (i - (cnt - 1) / 2) * 0.17, wolf = (i + s.wave) % 2 === 0;
+      spawn(s, wolf ? 'wolf' : 'bat', CAST.x + 24, CAST.y + (i - 1.5) * 12, {
+        ang: a, vx: Math.cos(a) * 560, vy: Math.sin(a) * 560, life: 1.7, col: wolf ? COL.ghostW : COL.ghostB, mode: 'fly', pierce: true, hit: {}
+      });
+    }
+    P(s, { type: 'ring', x: CAST.x + 20, y: CAST.y, col: '150,220,255', life: 0.35, r0: 6, r1: 60, size: 3 });
+    s.wave++;
+  }
+
+  /* ---------- update ---------- */
+  function update(s, look, dt) {
+    var prev = s.t; s.t += dt;
+    if (s.t >= LOOP) { reset(s); return; }
+    var active = s.t >= T0 && s.t < T1;
+    if (prev < T0 && s.t >= T0) cast(s, look);
+    if (look === 1 && s.t >= T0 && s.t < T0 + 1.6 && s.t >= T0 + s.wave * 0.2) waveSpawn(s);
+    var i;
+    s.enemies.forEach(function (e) {
+      e.ph += dt; e.flash = Math.max(0, e.flash - dt);
+      e.x = e.hx + Math.sin(e.ph * 0.9) * 14; e.y = e.hy + Math.cos(e.ph * 0.7) * 10;
+      if (e.hp <= 0) { e.dead = (e.dead || 0) + dt; if (e.dead > 1.6) { e.hp = e.max; e.dead = 0; } }
+    });
+    // allies frenzy while the ult is active
+    s.allies.forEach(function (a, k) {
+      var tgt = nearest(s, a), sp = active ? 320 : 150;
+      if (tgt && s.t > 0.3) { steer(a, tgt.x, tgt.y, dt, 6, sp); if (dist(a, tgt) < 20) { a.cd = (a.cd || 0) - dt; if (a.cd <= 0) { a.cd = active ? 0.18 : 0.5; hitEnemy(s, tgt, 4, '90,216,196'); } } }
+    });
+    if (look === 2 && s.alpha && s.alpha.life > 0) {
+      s.alphaHowl += dt;
+      if (s.alphaHowl > 2) {
+        s.alphaHowl = 0; var al = s.alpha;
+        P(s, { type: 'ring', x: al.x, y: al.y, col: '255,90,110', life: 0.55, r0: 20, r1: 140, size: 6 });
+        s.enemies.forEach(function (e) { if (e.hp > 0 && dist(e, al) < 140) hitEnemy(s, e, 14, '255,90,110'); });
+      }
+      s.batTimer += dt;
+      if (s.batTimer > 0.4) { s.batTimer = 0; for (i = 0; i < s.mins.length; i++) if (s.mins[i].mode === 'orbit') { s.mins[i].mode = 'hunt'; break; } }
+    }
+    for (i = s.mins.length - 1; i >= 0; i--) {
+      var m = s.mins[i]; m.life -= dt; m.ph += dt * 18;
+      if (m.life <= 0) { s.mins.splice(i, 1); continue; }
+      if (m.mode === 'fly') {
+        m.x += m.vx * dt; m.y += m.vy * dt;
+        if (!ctl.reduced && Math.random() < 0.6) P(s, { x: m.x, y: m.y, vx: -m.vx * 0.1, vy: rnd(-20, 20), life: 0.35, size: 3, col: m.kind === 'wolf' ? '150,220,255' : '190,160,255', type: 'glow' });
+        s.enemies.forEach(function (e) { if (e.hp > 0 && !m.hit[e.hx] && dist(m, e) < e.r + 10) { m.hit[e.hx + ':' + e.hy] = 1; m.hit[e.hx] = 1; hitEnemy(s, e, 9, '150,220,255'); } });
+        continue;
+      }
+      if (m.mode === 'orbit') {
+        var cx = look === 2 ? s.alpha.x : CAST.x, cy = look === 2 ? s.alpha.y : CAST.y;
+        m.orb += dt * (look === 3 ? 7 : 4);
+        m.x = cx + Math.cos(m.orb) * m.orbR; m.y = cy + Math.sin(m.orb) * m.orbR; m.ang = m.orb + Math.PI / 2;
+        if (look === 3 && s.t > T0 + 1.1) m.mode = 'hunt';
+        continue;
+      }
+      var tg = m.kind === 'alpha' ? nearest(s, m) : nearest(s, m);
+      var sp = m.speed * (m.kind === 'bat' ? 1 + 0.15 * Math.sin(m.ph * 0.4) : 1);
+      if (tg) {
+        steer(m, tg.x + (m.kind === 'bat' ? Math.sin(m.ph * 0.3) * 30 : 0), tg.y, dt, m.kind === 'bat' ? 7 : 5, sp);
+        if (dist(m, tg) < tg.r + 8 * m.size) { m.cd -= dt; if (m.cd <= 0) { m.cd = m.kind === 'alpha' ? 0.3 : 0.22; hitEnemy(s, tg, m.kind === 'alpha' ? 10 : 6, look === 3 ? '255,100,100' : '255,150,80'); } }
+      } else { m.ang += dt; m.x += Math.cos(m.ang) * 60 * dt; m.y += Math.sin(m.ang) * 60 * dt; }
+      if (!ctl.reduced && Math.random() < 0.5 * (m.kind === 'alpha' ? 2 : 1) && look !== 1)
+        P(s, { x: m.x, y: m.y, vx: rnd(-20, 20), vy: rnd(-20, 20), life: 0.4, size: 3 * m.size, col: look === 3 ? '255,70,70' : look === 2 ? '255,80,100' : m.kind === 'wolf' ? '255,130,60' : '170,110,255', type: 'glow' });
+    }
+    updateParts(s, dt);
+  }
+
+  /* ---------- draw ---------- */
+  function draw(c, s, look) {
+    var t = s.t, active = t >= T0 && t < T1, fade = t > T1 - 0.5 ? clamp((T1 - t) / 0.5, 0, 1) : 1;
+    c.clearRect(0, 0, W, H);
+    // floor
+    c.fillStyle = '#0b0e16'; c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(255,255,255,0.035)'; c.lineWidth = 1;
+    for (var x = 0; x < W; x += 60) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+    for (var y = 0; y < H; y += 60) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+    if (look === 3) {   // blood moon
+      var k = clamp((t - T0) / 1.2, 0, 1) * (t < T1 ? 1 : clamp(1 - (t - T1) / 0.8, 0, 1));
+      if (k > 0) {
+        c.fillStyle = 'rgba(120,10,20,' + (0.2 * k) + ')'; c.fillRect(0, 0, W, H);
+        var my = 90 - 40 * k + 60 * (1 - k), mg = c.createRadialGradient(840, my, 10, 840, my, 130);
+        mg.addColorStop(0, 'rgba(255,90,80,' + (0.55 * k) + ')'); mg.addColorStop(1, 'rgba(255,60,60,0)');
+        c.fillStyle = mg; c.fillRect(700, my - 140, 260, 280);
+        c.fillStyle = 'rgba(255,110,100,' + k + ')'; c.beginPath(); c.arc(840, my, 34, 0, TAU); c.fill();
+        c.fillStyle = 'rgba(190,50,50,' + (0.5 * k) + ')'; c.beginPath(); c.arc(828, my - 6, 8, 0, TAU); c.arc(850, my + 12, 5, 0, TAU); c.fill();
+      }
+    }
+    // enemies
+    s.enemies.forEach(function (e) {
+      if (e.hp <= 0) return;
+      c.fillStyle = e.flash > 0 ? '#ffffff' : '#7a3a52'; c.beginPath(); c.arc(e.x, e.y, e.r, 0, TAU); c.fill();
+      c.strokeStyle = 'rgba(255,120,150,0.5)'; c.lineWidth = 2; c.stroke();
+      c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(e.x - 14, e.y - e.r - 9, 28, 4);
+      c.fillStyle = '#ff6a7a'; c.fillRect(e.x - 14, e.y - e.r - 9, 28 * e.hp / e.max, 4);
+    });
+    // player
+    c.fillStyle = '#e7eef3'; c.beginPath(); c.arc(CAST.x, CAST.y, 13, 0, TAU); c.fill();
+    c.strokeStyle = '#ffb547'; c.lineWidth = 3; c.beginPath(); c.arc(CAST.x, CAST.y, 13, 0, TAU); c.stroke();
+    // allies
+    s.allies.forEach(function (a) {
+      drawWolf(c, a.x, a.y, a.ang, 0.9, COL.ally, 1, active && !ctl.reduced ? '#ff4a4a' : null);
+      if (active) { c.strokeStyle = 'rgba(255,70,70,0.7)'; c.lineWidth = 2; c.beginPath(); c.arc(a.x, a.y, 15, 0, TAU); c.stroke(); }
+    });
+    drawParts(c, s);
+    // minions
+    s.mins.forEach(function (m) {
+      var al = clamp(m.life / 0.5, 0, 1) * (look === 1 ? clamp(m.life / m.max * 2.2, 0, 1) * 0.85 : 1);
+      var glow = ctl.reduced ? null : m.col;
+      if (m.kind === 'wolf') drawWolf(c, m.x, m.y, m.ang, m.size, m.col, al, glow);
+      else if (m.kind === 'alpha') {
+        drawWolf(c, m.x, m.y, m.ang, m.size, m.col, al, glow);
+        c.strokeStyle = 'rgba(255,90,110,' + (0.5 * al) + ')'; c.lineWidth = 2; c.beginPath(); c.arc(m.x, m.y, 40, 0, TAU); c.stroke();
+      } else drawBat(c, m.x, m.y, m.ang, 1, m.col, al, m.ph, glow);
+    });
+    // 10 s timer
+    if (look !== 1) {
+      var f = active ? clamp((T1 - t) / (T1 - T0), 0, 1) : 0;
+      c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(CAST.x - 30, CAST.y + 24, 60, 4);
+      c.fillStyle = look === 2 ? '#ff5a6e' : look === 3 ? '#ff6a6a' : '#ff9a5a'; c.fillRect(CAST.x - 30, CAST.y + 24, 60 * f, 4);
+    }
+    c.font = '500 12px "IBM Plex Mono", monospace'; c.fillStyle = 'rgba(146,161,173,0.9)';
+    c.fillText(t < T0 ? 'ready' : active ? 'LEGION  ' + Math.max(0, T1 - t).toFixed(1) + ' s' : 'ended', 14, 24);
+  }
+
+  /* ---------- wiring ---------- */
+  var looks = [];
+  document.querySelectorAll('section.look').forEach(function (sec, idx) {
+    var cv = sec.querySelector('canvas');
+    cv.width = W * 2; cv.height = H * 2;
+    var c = cv.getContext('2d'); c.scale(2, 2);
+    var s = { }; reset(s);
+    looks.push({ s: s, c: c, idx: idx, cv: cv, vis: true });
+  });
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { for (var i = 0; i < looks.length; i++) if (looks[i].cv === e.target) looks[i].vis = e.isIntersecting; }); });
+    looks.forEach(function (l) { io.observe(l.cv); });
+  }
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!ctl.paused) looks.forEach(function (l) { if (l.vis) update(l.s, l.idx, dt * (ctl.slow ? 0.3 : 1)); });
+    looks.forEach(function (l) { if (l.vis) draw(l.c, l.s, l.idx); });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function tog(id, key) {
+    var b = document.getElementById(id);
+    b.addEventListener('click', function () { ctl[key] = !ctl[key]; b.setAttribute('aria-pressed', ctl[key]); if (id === 'bPause') b.textContent = ctl[key] ? 'Play' : 'Pause'; });
+  }
+  tog('bPause', 'paused'); tog('bSlow', 'slow'); tog('bReduced', 'reduced');
+  document.getElementById('bRestart').addEventListener('click', function () { looks.forEach(function (l) { reset(l.s); }); });
+  var names = ['A Howling Pack', 'B Spirit Stampede', 'C Alpha', 'D Blood Moon'];
+  document.querySelectorAll('.pick').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var n = +b.dataset.pick;
+      document.querySelectorAll('.pick').forEach(function (o) { var on = +o.dataset.pick === n; o.setAttribute('aria-pressed', on); o.closest('.stage').dataset.picked = on; });
+      document.getElementById('pickline').textContent = 'Picked: Look ' + names[n];
+    });
+  });
+})();
+</script>
