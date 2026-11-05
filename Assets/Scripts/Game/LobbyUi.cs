@@ -233,6 +233,8 @@ namespace Arena
         // --- Party ----------------------------------------------------------------
 
         readonly PartyBots partyBots = new PartyBots();  // bots in the open slots (PartyBots.cs)
+        string botNameText = "";  // the name being typed for the chosen bot
+        int botNameFor = -1;
         int editBotId = -1;  // the bot whose loadout the host is choosing (click its card); -1 = your own
 
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
@@ -439,7 +441,20 @@ namespace Arena
             Ui.Pill(hero, new Color(0.03f, 0.035f, 0.06f, 0.85f));
             DrawShowcase(me, ShowcaseRect(r), roleColor);
             if (!self)
-                Ui.Label(new Rect(hero.x, hero.y + 2f, hero.width, 14f), "EDITING " + bot.Name.ToUpper(), 10, Ui.Gold, TextAnchor.MiddleCenter, true);  // (LobbyRoom.cs: the Hangout grows out of this window)
+            {
+                // The bot's name: type to rename it (up to 16 letters).
+                Ui.Label(new Rect(hero.x, hero.y + 2f, 62f, 20f), "BOT NAME", 10, Ui.Gold, TextAnchor.MiddleRight, true);
+                var nameBox = new Rect(hero.x + 68f, hero.y + 2f, hero.width - 76f, 20f);
+                Ui.Fill(nameBox, new Color(0f, 0f, 0f, 0.55f));
+                if (botNameFor != bot.Id)
+                {
+                    botNameFor = bot.Id;
+                    botNameText = bot.Name;
+                }
+                botNameText = Ui.BareField(new Rect(nameBox.x + 4f, nameBox.y, nameBox.width - 8f, nameBox.height), botNameText, 16, 13);
+                if (botNameText.Trim().Length > 0 && Session.CleanName(botNameText) != bot.Name)
+                    partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
+            }  // (LobbyRoom.cs: the Hangout grows out of this window)
             float hy = hero.y + 196f;
             Ui.Glitch(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, TextAnchor.MiddleCenter, roleColor);
             hy += 32f;

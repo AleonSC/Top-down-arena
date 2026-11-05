@@ -49,13 +49,32 @@ static partial class Program
         Console.WriteLine("  chosen loadout: {0} weapon {1} ability {2}, ready again {3}", ce.Kit, ce.Weapon, ce.Ability, ce.Ready);
         Check(ce.Kit == Kit.Knight && ce.Weapon == 2 && ce.Ability == 1 && ce.Ready, "a bot's loadout can be chosen, and it readies up again");
 
+        pb.Rename(host, chosen, "Big Bob");
+        run(1f, () => host.Lobby[chosen.Id].Name == "Big Bob");
+        Check(host.Lobby[chosen.Id].Name == "Big Bob", "a bot can be given a name");
+
         host.RequestReady(true);
         Check(host.AllReady, "everyone's ready once the host is");
         host.StartMatch();
         run(2f, () => host.Game.Running && host.Game.Players.Count == 3);
         Check(host.Game.Running && host.Game.Players.Count == 3 && host.Game.Unrecorded, "the match starts with both bots, unrecorded");
-        float t = 0;
-        run(40f, () => { t += dt; return false; });
+        int shotsFar = 0, shotsAll = 0;
+        run(40f, () =>
+        {
+            foreach (var p in host.Game.Players.Values)
+            {
+                if (p.Id == host.MyId || !p.Firing || p.Downed || host.Game.Enemies.Count == 0) continue;
+                shotsAll++;
+                bool near = false;
+                float reach = Math.Max(host.Game.WeaponRange(p), 150f);
+                foreach (var e in host.Game.Enemies.Values)
+                    if (e.Pos.DistanceTo(p.Pos) <= Math.Max(reach + e.Radius, p.Weapon.BotRange) + 60f) near = true;
+                if (!near) shotsFar++;
+            }
+            return false;
+        });
+        Console.WriteLine("  bot trigger frames {0}, with nothing in reach {1}", shotsAll, shotsFar);
+        Check(shotsAll > 0 && shotsFar <= shotsAll / 50, "bots only shoot with an enemy in reach");
         float dmg = 0;
         foreach (var p in host.Game.Players.Values)
             if (p.Id != host.MyId) dmg += p.Run.DamageDealt;

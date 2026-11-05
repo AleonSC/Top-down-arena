@@ -877,6 +877,16 @@ namespace Arena
             return e.Seat >= 0 && e.Seat < Resume.Seats.Count ? Perks.FromNames(Resume.Seats[e.Seat].Perks) : Perks.Empty;
         }
 
+        /// Host: change the name on a seat (the lobby's bots).
+        public void RenameSeat(int id, string name)
+        {
+            LobbyEntry e;
+            if (!IsHost || !Lobby.TryGetValue(id, out e))
+                return;
+            e.Name = CleanName(name);
+            BroadcastLobby();
+        }
+
         void BroadcastLobby()
         {
             SyncOwnCosmetics();
