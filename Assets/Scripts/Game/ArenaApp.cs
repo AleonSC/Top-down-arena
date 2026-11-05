@@ -228,6 +228,7 @@ namespace Arena
             session.Poll();
             game.Update(devFrozen ? 0f : Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs); nothing ages while P has frozen it
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
+            partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
             WaveEditorUpdate(Time.unscaledDeltaTime);  // the wave editor's playhead and keys (WaveEditorUi.cs)
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
@@ -551,6 +552,10 @@ namespace Arena
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
             game.FixedStep(Time.fixedDeltaTime * EndSpeed, input);
             LabFixedStep(Time.fixedDeltaTime);
+            if (lab.Active)
+                partyBots.Clear();  // the Boss Lab hosts its own bots
+            else
+                partyBots.Step(session, Time.fixedDeltaTime);  // (PartyBots.cs)
             ShowcaseFixedStep(Time.fixedDeltaTime);  // the lobby's loadout preview (LobbyUi.cs)
         }
 
