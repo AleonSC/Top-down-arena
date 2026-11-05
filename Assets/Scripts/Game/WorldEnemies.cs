@@ -174,6 +174,22 @@ namespace Arena
                     for (int k = 0; k < 6; k++)
                         Polygon(z.Pos + V2.FromAngle(t * 0.4f + MathX.Tau * k / 6f) * (z.Radius - 14f), 4f, 4, t, c.WithAlpha(0.8f));
                     break;
+                case ZoneKind.OathWard:  // Guardian's Oath's ward: gold ground, a rune ring and two turning triangles; it fades out over its last second
+                {
+                    float fade = Mathf.Clamp01(z.T / 0.9f), grow = Mathf.Clamp01((z.Duration - z.T) / 0.4f), r = z.Radius * grow;
+                    Circle(z.Pos, r, c.WithAlpha((0.14f + 0.04f * Mathf.Sin(t * 3f)) * fade), 56);
+                    Circle(z.Pos, r * 0.6f, c.WithAlpha(0.10f * fade), 40);
+                    Arc(z.Pos, r - 2f, 3f, c.WithAlpha(0.9f * fade), 56);
+                    Arc(z.Pos, Mathf.Max(1f, r - 10f), 1.5f, c.WithAlpha(0.5f * fade), 56);
+                    for (int k = 0; k < 3; k++)
+                    {
+                        float a = t * 0.5f + MathX.Tau * k / 3f;
+                        Line(z.Pos + V2.FromAngle(a) * r * 0.7f, z.Pos + V2.FromAngle(a + MathX.Tau / 3f) * r * 0.7f, 1.5f, c.WithAlpha(0.5f * fade));
+                        a = -t * 0.5f + MathX.Tau * k / 3f + 1.57f;
+                        Line(z.Pos + V2.FromAngle(a) * r * 0.7f, z.Pos + V2.FromAngle(a + MathX.Tau / 3f) * r * 0.7f, 1.5f, c.WithAlpha(0.5f * fade));
+                    }
+                    break;
+                }
                 case ZoneKind.HolySword:  // a gold circle and a beam while a giant sword drops down it (HallowedBladeLook.cs)
                     DrawHolySwordFall(z, t);
                     return;

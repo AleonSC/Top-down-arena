@@ -96,6 +96,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Minions.cs` | 0.93k | Elementalist and Summoner abilities (`KitAbility`), minions (`SpawnMinion`, `TickMinions`) and ground zones (`AddZone`, `TickZones`) |
 | `KitWeapons.cs` | 0.93k | Elementalist and Summoner weapons (`FireKitWeapon`) and what they leave behind: bleeds, chain lightning, seeds and vines, sent minions, orbiters, refraction, ion trails, the wolf pack, arc fields, light cones, bone cages, boulders, shocks |
 | `Knight.cs` | 0.6k | Knight melee: swings (`Swing`, `LandSwing`, Lance box), sword waves, Knight abilities |
+| `GuardiansOath.cs` | 0.1k | the Healer Knight's Guardian's Oath: `LocalOathCharge` (your own game dashes to the player nearest the cursor), `OathCast`/`TickOath` (host: grab, `KnockPlayer` pull, a downed ally carried with `MovePlayer`, then the `ZoneKind.OathWard` with `DamageCut` 0.5 and `ExtraRevive`); the Bulwark upgrade adds `OathCut` |
 | `Ultimates.cs` | 0.15k | the 12 ultimates |
 | `Mastery.cs` | 0.2k | ability XP/levels and capstone helpers (capstone texts are in each `AbilityDef`) |
 | `Knock.cs` | 0.05k | pushes slide: `KnockEnemy(e, delta)` (every shove goes through it), `TickKnock` (from `TickEnemies`); a `FxKind.Knock` draws the streak and dust (`WorldEffects.DrawKnockFx`) |

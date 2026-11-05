@@ -706,7 +706,7 @@ namespace Arena
                 Arc(c, rr, 6f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 1f), 48, -MathX.Pi / 2f, MathX.Tau * fill);
                 EndUiGl();
             }
-            Ui.Glitch(new Rect(c.X - 20f, c.Y - 15f, 40f, 28f), "F", 22, Color.white, TextAnchor.MiddleCenter, Ui.Gold);
+            Ui.Glitch(new Rect(c.X - 19f, c.Y - 13f, 40f, 28f), "F", 22, Color.white, TextAnchor.MiddleCenter, Ui.Gold);
             float tx = x + rr * 2f + 18f, tw = area.xMax - 8f - tx;
             Ui.Glitch(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), TextAnchor.MiddleLeft);
             Ui.Label(new Rect(tx, y + 23f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);
