@@ -77,7 +77,7 @@ namespace Arena
 
             // --- Left: the party, under the mode switch.
             float lx = 40f, lw = 376f, y = 150f;
-            Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
+            LobbyHeading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
             // The way into the Hangout (LobbyRoom.cs): a button on the Party heading, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
             // Small and see-through until you point at it (or are in the room, where it's the way back).
@@ -332,7 +332,7 @@ namespace Arena
             Ui.Fill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, r.height - 6f), new Color(0.05f, 0.06f, 0.09f, 0.97f));  // solid backing over the party
             Ui.Panel(r, true);
             float x = r.x + 14f, w = r.width - 28f, y = r.y + 14f;
-            Ui.Heading(x, y, w, session.IsHost ? "Invite friends" : "Connection");
+            LobbyHeading(x, y, w, session.IsHost ? "Invite friends" : "Connection");
             y += 30f;
             Ui.Label(new Rect(x, y, w, 18f), session.IsHost ? "You're hosting  ·  port " + session.Port : "Connected to " + HostName(), 12, Ui.Text);
             y += 22f;
@@ -467,8 +467,8 @@ namespace Arena
 
             // Weapon and ability: side by side, each a 2 x 2 grid.
             float col = (w - 16f) / 2f, ax = x + col + 16f, cell = (col - 6f) / 2f;
-            Ui.Heading(x, y, col, "Weapon");
-            Ui.Heading(ax, y, col, "Ability");
+            LobbyHeading(x, y, col, "Weapon");
+            LobbyHeading(ax, y, col, "Ability");
             int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
             for (int i = 0; i < weaponSlots; i++)
             {
@@ -608,10 +608,18 @@ namespace Arena
             Ui.Label(tip, text, 12, Ui.Gold, TextAnchor.MiddleCenter, true);
         }
 
+        /// A lobby section heading: Ui.Heading in the CRT's cyan, glowing, with a cyan rule (LobbyCrt.cs).
+        void LobbyHeading(float x, float y, float w, string text)
+        {
+            var r = new Rect(x, y, w, 20f);
+            CrtUi.Text(r, Ui.Shown(r, text).ToUpperInvariant(), 12, LobbyInk, TextAnchor.MiddleLeft, true, fxReduced);
+            Ui.Fill(new Rect(x, y + 21f, w, 1f), new Color(LobbyInk.r, LobbyInk.g, LobbyInk.b, 0.22f));
+        }
+
         /// A section heading with a short blurb right-aligned in the same line (shrunk to fit).
         void HeadingWithBlurb(float x, float y, float w, string title, string blurb)
         {
-            Ui.Heading(x, y, w, title);
+            LobbyHeading(x, y, w, title);
             float left = Ui.TextWidth(title.ToUpperInvariant(), 12, true) + 24f;
             // All caps, bold and slightly smaller, so it reads as a quiet caption beside the heading.
             blurb = blurb.ToUpperInvariant();
