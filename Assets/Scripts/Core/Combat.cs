@@ -405,6 +405,11 @@ namespace Arena
             {
                 if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
                     continue;  // grenades, boulders, medkits and flak shells fly over enemies and land or burst where you aimed
+                if (LayoutOn && SolidStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
+                    continue;
+                }
                 if (Props.Count > 0 && PropStops(b))
                 {
                     scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)

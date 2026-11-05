@@ -541,6 +541,36 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 | **Health barrel** | Boss fights only: a green barrel with a white cross drops in every 18-26 s (the first after 15 s; two at most), away from the boss. Shoot it or walk into it and it breaks into 2 health orbs |
 | **Treasure chest** | Rare (8% of regular waves from wave 2; always on the first wave after a boss if a player has the Contraband perk). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
 
+## Arena layouts
+
+Each **boss cycle** (the regular waves between two bosses) gets one of six fixed floor plans, picked at random and never
+the same one twice running. Boss waves, the Practice Range, challenge rooms and the loadout preview are the plain open
+arena. A teal chip above the wave plate names the layout. Mockups: [`Docs/Mockups/arena-layouts.html`](Docs/Mockups/arena-layouts.html);
+design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
+
+- **Walls and pillars** (steel) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
+  and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
+  starts the cycle with its own crates; random crates, pots and barrels still turn up, clear of the walls.
+- **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
+  through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (red holograms, part of the
+  wall) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
+  and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
+  gates drop away (the inner walls stay).
+- Enemies that walk steer round a wall that's in their way instead of pushing at it.
+
+| Layout | Edges | What it is |
+|---|---|---|
+| **Pillar Ring** | Centre gates | Eight pillars round an open middle (gaps about 135 px), crate pairs in the corners |
+| **Twin Lanes** | Sides only | Two long walls with a 120 px door in each: a middle corridor and two outer strips. You can only wrap left and right |
+| **Cross** | Twin gates | A plus-shaped wall: four rooms round a 160 px hub, a crate pair in each |
+| **Islands** | Open | Crate clusters (a heavy 2 x 2 block in the middle) and two small pillars; the layout wears away as crates break |
+| **Funnels** | Open | Two walls near the sides with two 120 px gates each; enemies only come in from the left and right |
+| **Bunker** | Centre gates | A 320 x 240 fort with a 90 px door on each side and a hold point (ring) inside |
+
+Edge sets: **Centre gates** (one player gate in the middle of each edge, two enemy gates beside it), **Twin gates** (two
+player gates per edge, one enemy gate between them), **Sides only** (top and bottom walled, so you can only wrap left
+and right; enemy gates on all four edges).
+
 ## Paths
 
 After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next

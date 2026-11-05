@@ -199,6 +199,7 @@ static partial class Program
             Game.SeedForTests((int)(h & 0x7fffffff) ^ salt);
         }
         Game.PropsByDefault = false;  // props only where a test asks for them (the core match, the props test)
+        Game.LayoutsByDefault = false;  // floor plans too (the layouts test)
         Game.ChallengesByDefault = false;  // challenge rooms too (the challenges test)
         test();
     }
@@ -329,6 +330,7 @@ static partial class Program
         Test("paths", "divergent paths", () => PathsTest(Dt), () => PathHazardsTest(Dt), () => PathTwistsTest(Dt), () => PathArenaRulesTest(Dt)),
         Test("bazaar", "the Bazaar", () => BazaarTest(Dt)),
         Test("props", "the arena's props: crates as cover, pots, barrels, the treasure chest and its items", () => PropsTest(Dt)),
+        Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("hunts", "Boss Hunts: locked until the boss is beaten, the hunt's waves, winning it, its records", () => HuntTest(Dt)),
         Test("perks", "perks: unlock rules, slots, equipping (one per boss), the profile line; Riot Gear: block, grace, 30 s recharge, burns go through; Contraband: the cycle chest and rare-or-better items", () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt)),

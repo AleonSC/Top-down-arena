@@ -150,6 +150,7 @@ namespace Arena
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
+            DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)
