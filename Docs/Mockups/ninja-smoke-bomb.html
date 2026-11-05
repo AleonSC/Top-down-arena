@@ -322,7 +322,9 @@ button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid v
     drawBullets(R,alive);drawEnemy();drawNinja();
   }
 
-  function frame(now){
+  function frame(){
+    const now=performance.now();
+    if(now-last<8)return;
     let dt=Math.min(0.05,(now-last)/1000);last=now;
     if(!paused)step(dt*(slowmo?0.25:1));
     ctx.clearRect(0,0,W,H);
@@ -335,8 +337,8 @@ button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid v
     if(look==='new')drawNew();else drawOld();
     const rem=Math.max(0,st.life-(look==='new'?Math.max(0,t-PRE):t));
     hud.innerHTML='<span>t '+t.toFixed(2)+' s'+(paused?' (paused)':'')+'</span><span>cloud '+Math.round(st.R/K)+' px · '+rem.toFixed(1)+' s left</span><span>bullets slowed: '+st.bulletsIn+'</span>';
-    requestAnimationFrame(frame);
   }
+  function loop(){try{frame();}catch(e){console.error(e);}requestAnimationFrame(loop);}
 
   document.querySelectorAll('input[name=look]').forEach(el=>el.addEventListener('change',()=>{look=el.value;tag.textContent=look==='new'?'Proposed':'Current';reset();}));
   $('replay').addEventListener('click',reset);
@@ -344,6 +346,6 @@ button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid v
   $('slow').addEventListener('change',e=>slowmo=e.target.checked);
   $('thick').addEventListener('change',e=>{thick=e.target.checked;reset();});
   $('cap').addEventListener('change',e=>{cap=e.target.checked;});
-  reset();requestAnimationFrame(frame);
+  reset();loop();setInterval(()=>{try{frame();}catch(e){console.error(e);}},33);  // timer keeps it running where rAF is throttled
 })();
 </script>
