@@ -154,7 +154,7 @@ your weapon. Per extra projectile:
 | | **Railgun** | Slow shots (45) that pierce 3; the path stays charged for 1 s behind the round, hurting anything in it (25 a second) | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast spray (5) that spins up as you keep firing: over 2 s the spray tightens from 9° to 2° either side and damage climbs to +60%; it winds down in 0.6 s when you stop | +1 bullet per shot (half damage) and a wider spray |
 | DPS · Elementalist | **Fireball** | A big, slow fireball that rolls through every enemy in its path (22 each), setting them burning (8 a second for 3 s) | +1 fireball, fanned out |
-| | **Arc Lightning** | Hold to charge a 90 px wide strip in front of you, 160 px for a tap out to half the arena at full; let go and everything in it is shocked (40, 0.4 s stun) | +25% damage |
+| | **Arc Lightning** | Hold to charge a slight cone of lightning in front of you (36 px wide at your staff, 120 px at its far end), 160 px long for a tap out to half the arena at full; let go and everything in it is shocked (40, 0.4 s stun) | +25% damage |
 | | **Ice Shards** | Each cast puts 3 shards of ice (7) into orbit round you (up to 6); they launch, homing, at enemies within 300 px, one every 0.08 s. With the orbit full, a cast flies at your aim | +1 shard a cast, +2 in orbit, and faster launches |
 | DPS · Summoner | **Wolf Whistle** | Darts mark the enemy they hit as prey for 4 s and your 2 wolves hunt it (a fanned or piercing dart that clips an enemy farther from your cursor doesn't move the prey); every wolf biting it within a second is a takedown (20 per wolf, 0.6 s stun) | +1 Wolf |
 | | **Wisp Lantern** | 3 wisps orbit you and are your shots: each shot sends one at the enemy nearest your cursor (22), and it comes back | +1 Wisp, and each shot sends one more |
@@ -1132,9 +1132,9 @@ so they never change the fight or what your friend sees):
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
 What it adds: the Tank Soldier's **Roar** (from [`Docs/Mockups/tank-abilities.html`](Docs/Mockups/tank-abilities.html)): a short pull-in, then three staggered rings with a filled blast and speed streaks, and each enemy flashes and pops a "!" as the wave reaches it; while the taunt runs, six armour plates turn round the soldier (flickering in its last second), a rim arc drains with the timer, dashed tethers run to the nearest ten enemies and a soft pulse goes out every second. **Bulldoze** shows its 60 px lane for half a second, then afterimages, speed streaks, dust off both heels, skid marks, a bow wave and a flicker for the invulnerable window; enemies in the lane flash and throw sparks (heavy ones more), and a double ring and a ring of dust mark where it ends. Both kick the camera (not in Reduced effects). Off, the old ring and arc draw as before. The Soldier DPS's abilities (from [`Docs/Mockups/soldier-dps-abilities.html`](Docs/Mockups/soldier-dps-abilities.html)): **Dash** leaves a tapered cyan comet streak (your own dash) that cools over 0.4 s, with sparks where you land; the **Cluster Grenade** is an olive grenade with a faint ring growing to its blast radius, then a white flash, an orange blast, eight streaking shards and smoke; **Mark for Death** puts a red reticle that snaps onto the enemy and circles it, a timer arc unwinding round it, and a small skull floating overhead, all blinking for the last second; **Chain Light** as a soft fan of light blooming out of your hand, with god-rays and a beam and halo on
-each enemy it hits; **Arc Lightning** as a halo and sparks building on your staff with a dashed outline of the strip (a pulse
-running out to a crackling marker), then one white-hot bolt racing down it with forks to its edges, and a crackle on each
-enemy it stuns; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
+each enemy it hits; **Arc Lightning** as a violet halo and sparks building on your staff with a dashed outline of the cone and tendrils of lightning creeping
+along it, then a whole tree of lightning (a trunk with branches three deep, and a branch to each enemy) whipping down it,
+cooling to violet and staying on the ground for a second, and a crackle on each enemy it stuns; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
 embers (thrusts stab through a beam, the Lance slides out through a glowing box, and the Warhammer is raised over your
 shoulder as it charges, then swung over into the floor with a glowing circle and a pillar of light); an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
 when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains
@@ -1205,6 +1205,13 @@ One person **hosts**, the other **joins**. The host's game acts as the server, s
 3. Friend: type that address into **Host address**, click **Join game**.
 4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host
    clicks **Start**.
+
+**Bots.** The host can fill the lobby's open slots with bots that play with them: click **+ Add a bot** on an OPEN SLOT (host only,
+in the lobby, not while continuing a saved run). A bot takes the first role nobody has, a random class, weapon and Space ability,
+and readies up by itself; it revives, heals, dodges and uses its abilities like the Boss Lab's bots (below), picks its own
+upgrades and carries on between waves. On its card, the skill button cycles **Casual, Good, Expert**, **MIX** deals it a
+new random loadout and **x** removes it. Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
+counted in Records, XP or ranks, like Boss Lab fights and the F1 bot.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask
@@ -1338,7 +1345,7 @@ defensive abilities when things get tight, and use the rest on the boss.
 | Good | 0.24 s | 0.4 s | nearest 12 bullets | ~7 times a second |
 | Expert | 0.15 s | 0.5 s | nearest 25 bullets | ~12 times a second |
 
-Bots don't parry, pick up health orbs, or reroll upgrades.
+Bots don't parry, pick up health orbs, or reroll upgrades. (The same bots can join your own lobby: see **Bots** under Playing with a friend.)
 
 From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]` runs
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank

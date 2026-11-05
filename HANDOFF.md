@@ -120,6 +120,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Shop.cs` | 0.3k | the Bazaar: gold per kill (`GrantGold`, `GoldPerXp`), `OpenShop` / per-player shelf (`RollShelf`), `ShopAction`s (`Shop` → `Msg.Shop` → `HostShop`), giving gold (`Msg.ShopGift`, notices), `CloseShop` (leftover gold → XP), revive token, `BotShop`, snapshot fields |
 | `Modifiers.cs` | 0.07k | `RunMod` flags and `ModDef`s; `Game.Mods` / `Has()`; sent in the lobby message |
 | `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, the picker list (`Choices`, built from each `EnemyDef.Picker`), building a practice wave |
+| `PartyBots.cs` | 0.1k | bots in the lobby's open slots: each is a `Session` joined to the host over localhost with `Game.Bot` on; readies itself; marks the host game `Unrecorded` |
 | `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use (`BotSense`; each ability's rule is its `AbilityDef.Bot`) |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
 | `Classes.cs` | 0.08k | the class registry: `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks `Fire`, `Ability`, `Tick`, `TickEnemy`, `OnShotHit`, `OnKill`), `Classes.All` (Kit order, checked at start-up) and the gathered hook lists the game loop runs |
