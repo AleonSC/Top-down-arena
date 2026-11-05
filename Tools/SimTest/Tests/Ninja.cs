@@ -241,7 +241,11 @@ static partial class Program
         hp.Slots[Upgrades.UltSlot].Charges = 1;
         g.ShowcaseSetAbility(AbilityId.DeathLotus);  // on Space for the test
         hp.Slots[0].Charges = 1;
+        g.Effects.Clear();
         cast.Invoke(g, new object[] { 1, 0, new V2(1180f, 330f), true });
+        var lotusFx = g.Effects.Where(e => e.Kind == FxKind.DeathLotus).ToList();
+        Check(lotusFx.Count(e => e.Pos2.X < 0f) == 1 && lotusFx.Count(e => e.Pos2.X >= 0f) == 8, "Death Lotus sends one cast effect and one per enemy struck");
+        Check(lotusFx.Where(e => e.Pos2.X >= 0f).Select(e => e.Pos2.X).OrderBy(x => x).SequenceEqual(Enumerable.Range(0, 8).Select(i => i * 0.11f)), "the cuts are staggered 0.11 s apart");
         int struck = marks.Where((e, i) => e.Hp < hpsBefore[i]).Count();
         Console.WriteLine("  blade fan: {0} kunai; death lotus struck {1} of 10", kunai, struck);
         Check(kunai == 12 && struck == 8, "Blade Fan throws 12 kunai and Death Lotus strikes 8 enemies");

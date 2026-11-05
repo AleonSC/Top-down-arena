@@ -219,6 +219,8 @@ namespace Arena
                 fx.Juiced = true;
                 if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
                     Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
+                if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
+                    Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
                 if (fx.Kind != FxKind.Boom)
                     continue;
                 newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
