@@ -33,8 +33,8 @@ Mockups: [`Mockups/hangout-pvp.html`](Mockups/hangout-pvp.html) (layout B picked
 - `Msg.LobbyMove` (client to host): where this player's character is, which way it faces and its PvP switch, up to 15 a second, only
   while something changed.
 - `Msg.LobbyPos` (host to all): everyone's position, facing, PvP switch, health and a respawn counter (so an owner knows the host moved it), up to 15 a second, only while something changed.
-- `Msg.LobbyAbility` (client to host: the angle; host to all: owner, kind, position, angle).
-- `Msg.LobbyFire` (client to host): the angle a shot went. `Msg.LobbyShot` (host to all): owner, position and angle of a shot, for everyone to draw.
+- `Msg.LobbyAbility` (client to host: the angle and where the caster stood; host to all: owner, kind, position, angle).
+- `Msg.LobbyFire` (client to host): the angle a shot went and where it left from (protocol 175: the host used to place a client's shot at its own, a few frames old, copy of them, so shots left from behind the shooter; it now takes the sent spot when within 200 px of its copy). `Msg.LobbyShot` (host to all): owner, position and angle of a shot, for everyone to draw.
 - Your own character is yours: it shows at once, and the host's echo of it is ignored. Everyone else's is smoothed
   towards the last position heard.
 - The host keeps every position inside the room (and drops NaN and infinity), spawns each new arrival in a spot along the

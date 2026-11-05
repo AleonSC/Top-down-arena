@@ -700,6 +700,17 @@ namespace Arena
                 BroadcastFx(FxKind.ArcField, p.Pos + side * (shifts[v] * ArcNear), p.Pos + side * shifts[v] + dir * len, bolt, half, 0.35f,  // from the cone's narrow end's middle to its far end's middle
                     v > 0 ? Sfx.None : c > 0.95f ? Sfx.BigExplode : Sfx.Shockwave);
             p.Run.ShotsFired++;
+            GateLockStrike(q =>  // a Warden gate's lock inside any strip takes a hit (Warden.cs)
+            {
+                V2 r = q - p.Pos;
+                float al = Dot(r, dir), ac = Dot(r, side);
+                if (al < -LockW / 2f || al > len + LockW / 2f)
+                    return false;
+                for (int v = 0; v < n; v++)
+                    if (Math.Abs(ac - shifts[v]) <= half + LockW / 2f)
+                        return true;
+                return false;
+            });
             bool any = false;
             foreach (var e in Enemies.Values)
             {

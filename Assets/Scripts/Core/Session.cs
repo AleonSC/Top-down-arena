@@ -93,7 +93,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 174;
+        public const int ProtocolVersion = 175;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -572,11 +572,17 @@ namespace Arena
                     HostAvatarMove(peer, r);
                     break;
                 case Msg.LobbyFire:
-                    HostFire(peer, r.ReadSingle(), true);
+                {
+                    float fireAim = r.ReadSingle();
+                    HostFire(peer, fireAim, true, r.ReadV2());
                     break;
+                }
                 case Msg.LobbyAbility:
-                    HostAbility(peer, r.ReadSingle(), true);
+                {
+                    float castAim = r.ReadSingle();
+                    HostAbility(peer, castAim, true, r.ReadV2());
                     break;
+                }
                 case Msg.Emote:
                     HostEmote(peer, r.ReadByte());
                     break;

@@ -19,6 +19,7 @@ namespace Arena
         int hangoutFrame = -1;
 
         /// Whether the keyboard is ours: no text box, window or menu is taking it.
+        bool hangoutCastLatch;  // an ability press seen in Update (ArenaApp), waiting for the Hangout's next draw
         bool HangoutKeysFree => GUIUtility.keyboardControl == 0 && !settingsOpen && !lobbyMenuOpen && !connInfoOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning;
 
         // --- The window: the Hangout's view of the big room, which scrolls with you and stops at the room's border.
@@ -226,7 +227,7 @@ namespace Arena
                 float f = fx.Age / Session.FxLife;
                 if (fx.Kind == LobbyAbilityKind.Dash)
                 {
-                    Line(fx.Pos, fx.Pos - V2.FromAngle(fx.Angle) * Session.DashDist, 18f * (1f - f), new Rgba(1f, 0.85f, 0.45f, 0.35f * (1f - f)));  // the streak it left
+                    Line(fx.Pos, fx.Pos + V2.FromAngle(fx.Angle) * Session.DashDist, 18f * (1f - f), new Rgba(1f, 0.85f, 0.45f, 0.35f * (1f - f)));  // the streak it left
                     Circle(fx.Pos, 24f * (1f - f), new Rgba(1f, 0.9f, 0.6f, 0.4f * (1f - f)), 20);
                 }
                 else if (fx.Kind == LobbyAbilityKind.BurstHeal)
@@ -377,7 +378,9 @@ namespace Arena
                 dir = dir.Normalized();
             session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt) + session.TakeDashStep(a, dt), aim);
             // Ability: Space (or whatever it's bound to) or the right button.
-            if (a.Pvp && (Keybinds.Down(KeyAction.Ability) || (Input.GetMouseButtonDown(1) && view.Contains(mouse))))
+            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability) || Input.GetKeyDown(KeyCode.Space);
+            hangoutCastLatch = false;
+            if (a.Pvp && (castPress || (Input.GetMouseButtonDown(1) && view.Contains(mouse))))
                 session.CastMyAbility(castAim);
             // Fire: PvP on, the button held over the window (not over the minimap or switch, nor while the emote bar is picking).
             if (aiming && Input.GetMouseButton(0) && !emoteBarOpen && !hangoutHudRects[0].Contains(mouse) && !hangoutHudRects[1].Contains(mouse))
