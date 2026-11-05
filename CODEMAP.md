@@ -41,7 +41,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
 - `Knight.cs`: melee swings, sword waves, Knight abilities
-- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, clones, Vanish
+- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, clones, Vanish, Healing Dash (`TickMists`: footprints and their healing; sprint speed is `Player.DashT` in `Entities.cs`; looks in `Game/NinjaLooks.cs` `DrawFootprint`, `DrawDashWake`)
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
 - `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)

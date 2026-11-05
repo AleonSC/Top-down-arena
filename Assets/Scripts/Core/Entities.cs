@@ -83,6 +83,9 @@ namespace Arena
         public bool Downed;
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)
         public float TauntT;  // Roar: enemies target this player
+        public float DashT;   // replicated: the Ninja's Healing Dash, seconds of sprint left (Ninja.cs)
+        public float DashHeal = 1f, DashRadius;  // host: the footprints it leaves heal this much more, and are this wide
+        public V2 DashLast;   // host: where the last footprint went down
         public float AegisT, FrenzyT;  // Arcane Aegis, Alpha Call
         public float LegionT;          // replicated: seconds of Legion's Blood Moon left (Ultimates.cs, Game/LegionLook.cs)
         public float ScentT;           // host: Alpha Call's Blood Scent, which makes the frenzy build with each bite (Legion's frenzy stays flat)
@@ -212,7 +215,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -352,15 +355,13 @@ namespace Arena
     {
         public int Id;
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
-        public bool Dew;        // a drop of Healing Mist's dew (Ninja.cs)
-        public float DewHeal;   // host: what that drop heals
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs)
         public float MedHeal;   // host: what it heals
         public V2 Pos, Disp;
         public float Life;
 
-        public float Radius => Big ? 11f : Med ? 8f : Tiny || Dew ? 4f : 6f;
-        public float Heal => Med ? MedHeal : Dew ? DewHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
+        public float Radius => Big ? 11f : Med ? 8f : Tiny ? 4f : 6f;
+        public float Heal => Med ? MedHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
     }
 
     /// An area on the ground: Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
@@ -382,7 +383,6 @@ namespace Arena
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
         public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Spirit Ward's soak)
-        public float Charge;        // host: a Mist's timer to its next dewdrop (Ninja.cs)
         public bool Congealed;      // host: a Blood Pool that has set (BloodMage.cs)
         public float Soak, SoakMax, Soaked;  // host: a Spirit Ward's damage left to take for allies, its most, and what it has taken (Ninja.cs)
         public ZoneDef Def => Kits.Get(Kind);

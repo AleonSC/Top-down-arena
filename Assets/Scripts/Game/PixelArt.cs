@@ -169,7 +169,7 @@ namespace Arena
             { "Shadow Clone", "clone" },
             { "Smoke Bomb", "smoke" },
             { "Iron Body", "ironbody" },
-            { "Healing Mist", "dew" },
+            { "Healing Dash", "dew" },
             { "Substitution", "swap" },
             { "Spirit Ward", "talisman" },
             { "Shadow Step", "assassin" },
