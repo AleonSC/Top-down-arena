@@ -1,0 +1,221 @@
+<title>Consecrate Cross Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three stacked stages, one per look, each a canvas with replay; shared slow-mo; then a comparison table.
+   Colour: holy gold on a dark arena, cyan for Swiftness, red for damage. Type: Barlow Condensed / Barlow / Plex Mono. */
+:root{
+  --bg:#f1eee6; --fg:#241f14; --muted:#6a6150; --panel:#fbf9f3; --line:#d9d2c0;
+  --holy:#b7791f; --chip:#e7e1d1; --chip-on:#241f14; --chip-on-fg:#f6f2e8;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12100c; --fg:#ece6d6; --muted:#a39a85; --panel:#1a1710; --line:#2f2a1d;
+  --holy:#f2c25a; --chip:#272216; --chip-on:#ece6d6; --chip-on-fg:#12100c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12100c; --fg:#ece6d6; --muted:#a39a85; --panel:#1a1710; --line:#2f2a1d;
+  --holy:#f2c25a; --chip:#272216; --chip-on:#ece6d6; --chip-on-fg:#12100c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--holy);margin-bottom:8px}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.blurb{margin:0;max-width:66ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#14171c}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#d9d3c0;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-size:14px}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:70ch}
+li::marker{color:var(--holy)}
+.sec h2{margin-bottom:14px}
+</style>
+
+<main>
+<header>
+  <div class="kicker">Healer Knight · Mockup 2</div>
+  <h1>Consecrate: three looks</h1>
+  <p>The same ability in three different visual takes. The cross flies in a line, grows as it goes, heals allies for 35, gives them Swiftness for 4 s, and now hits enemies for 25 damage. Each target is hit once per cast.</p>
+</header>
+
+<div class="controls"><button id="slow" type="button" aria-pressed="false">Slow-mo: off</button><span class="hint">Click or tap any arena to aim and recast.</span></div>
+
+<section class="stage"><h2>A · Radiant Cross <small>solid light, the straight read</small></h2>
+  <p class="blurb">Two glowing bars with a white-hot core. It stays level with your aim and is the easiest to read in a crowded fight.</p>
+  <div class="frame"><canvas id="cA" width="720" height="400" aria-label="Look A preview"></canvas><div class="hud" id="hA"></div></div>
+  <div class="controls"><button data-replay="A" type="button">Replay</button></div></section>
+
+<section class="stage"><h2>B · Turning Cross <small>quarter-turn as it flies</small></h2>
+  <p class="blurb">The cross rotates a quarter turn over its flight, with a halo ring at the center. The hit area turns with it, so late targets are caught on the diagonal.</p>
+  <div class="frame"><canvas id="cB" width="720" height="400" aria-label="Look B preview"></canvas><div class="hud" id="hB"></div></div>
+  <div class="controls"><button data-replay="B" type="button">Replay</button></div></section>
+
+<section class="stage"><h2>C · Stained Glass <small>tiled cross with afterimages</small></h2>
+  <p class="blurb">A cross built from colored glass tiles, leaving fading echoes of itself behind. It looks heavier and more ceremonial, and the echoes show the path it took.</p>
+  <div class="frame"><canvas id="cC" width="720" height="400" aria-label="Look C preview"></canvas><div class="hud" id="hC"></div></div>
+  <div class="controls"><button data-replay="C" type="button">Replay</button></div></section>
+
+<section class="sec"><h2>What is shared</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Stat</th><th>Value</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Travel</td><td class="n">480 px in 1.2 s</td><td>Arms grow from 36 to 156 px, bars from 14 to 32 px thick</td></tr>
+      <tr><td>Ally effect</td><td class="n">+35 HP, +30% speed for 4 s</td><td>Once per ally per cast</td></tr>
+      <tr><td>Enemy effect</td><td class="n">25 damage</td><td>Once per enemy per cast, white flash and red number</td></tr>
+      <tr><td>Cooldown</td><td class="n">14 s</td><td>Unchanged</td></tr>
+    </tbody>
+  </table></div></section>
+
+<section class="sec"><h2>Still open</h2>
+  <ul>
+    <li><b>Does it heal you?</b> The mockups say no.</li>
+    <li><b>Does the 25 scale with power?</b> Guardian's Oath and Lay on Hands scale with the healer's power, so the heal and the damage could too.</li>
+    <li><b>Pierce limit.</b> Right now it hits everyone. A cap of 5 targets would keep it from clearing swarms by itself.</li>
+  </ul></section>
+</main>
+
+<script>
+(function(){
+  var W=720,H=400,P={x:110,y:200},RANGE=480,TRAVEL=1.2,BUFF=4,slow=false;
+  function ease(x){x=Math.max(0,Math.min(1,x));return 1-Math.pow(1-x,2.2)}
+  function make(id,hudId,look){
+    var cv=document.getElementById(id),ctx=cv.getContext('2d'),hud=document.getElementById(hudId);
+    var aim=0,t=0,hold=0,allies,ens,pops,trail,echoes,lastEcho;
+    function reset(){
+      t=0;hold=0;pops=[];trail=[];echoes=[];lastEcho=0;
+      allies=[
+        {n:'Mira',x:330,y:182,hp:38,sh:38,b:0,c:'#6aa8ff',hit:false,ph:0,hx:330,hy:182},
+        {n:'Odo',x:520,y:226,hp:52,sh:52,b:0,c:'#7be08a',hit:false,ph:1.6,hx:520,hy:226},
+        {n:'Kes',x:400,y:48,hp:45,sh:45,b:0,c:'#c79bff',hit:false,ph:3.1,hx:400,hy:48}
+      ];
+      ens=[
+        {x:250,y:150,hp:60,sh:60,f:0,hit:false},{x:430,y:270,hp:60,sh:60,f:0,hit:false},
+        {x:600,y:120,hp:60,sh:60,f:0,hit:false},{x:630,y:300,hp:60,sh:60,f:0,hit:false},
+        {x:380,y:200,hp:60,sh:60,f:0,hit:false}
+      ];
+    }
+    function ang(){return look==='B'?aim+(Math.PI/2)*ease(t/TRAVEL):aim}
+    function cross(){
+      var d=RANGE*ease(t/TRAVEL),g=d/RANGE;
+      return {x:P.x+Math.cos(aim)*d,y:P.y+Math.sin(aim)*d,arm:36+120*g,hw:7+9*g,a:t>TRAVEL-.25?Math.max(0,(TRAVEL-t)/.25):1,on:t<=TRAVEL,r:ang()};
+    }
+    function inCross(q,c,rad){
+      var dx=q.x-c.x,dy=q.y-c.y,ca=Math.cos(c.r),sa=Math.sin(c.r);
+      var u=dx*ca+dy*sa,v=-dx*sa+dy*ca;
+      return (Math.abs(u)<=c.arm+rad&&Math.abs(v)<=c.hw+rad)||(Math.abs(v)<=c.arm+rad&&Math.abs(u)<=c.hw+rad);
+    }
+    function step(dt){
+      t+=dt;
+      var c=cross();
+      allies.forEach(function(a){
+        a.ph+=dt;
+        if(a.b>0){a.b-=dt;var s=a.b>0?1:0;a.x=a.hx+Math.cos(a.ph*3.4)*38*s;a.y=a.hy+Math.sin(a.ph*3.4)*22*s;if(s)trail.push({x:a.x,y:a.y,l:.35})}
+        else{a.x=a.hx+Math.cos(a.ph*.9)*5;a.y=a.hy+Math.sin(a.ph*1.1)*4}
+        a.sh+=(a.hp-a.sh)*Math.min(1,dt*6);
+        if(c.on&&!a.hit&&inCross(a,c,13)){a.hit=true;a.hp=Math.min(100,a.hp+35);a.b=BUFF;pops.push({x:a.x,y:a.y-18,t:1.1,s:'+35',col:'#7dff95',sub:'SWIFT'})}
+      });
+      ens.forEach(function(e){
+        e.f=Math.max(0,e.f-dt*4);e.sh+=(e.hp-e.sh)*Math.min(1,dt*8);
+        if(c.on&&!e.hit&&inCross(e,c,13)){e.hit=true;e.hp-=25;e.f=1;pops.push({x:e.x,y:e.y-18,t:1.1,s:'-25',col:'#ff6a55'})}
+      });
+      if(look==='C'&&c.on&&t-lastEcho>.07){lastEcho=t;echoes.push({x:c.x,y:c.y,arm:c.arm,hw:c.hw,r:c.r,l:.5})}
+      var i;
+      for(i=echoes.length-1;i>=0;i--){echoes[i].l-=dt;if(echoes[i].l<=0)echoes.splice(i,1)}
+      for(i=pops.length-1;i>=0;i--){pops[i].t-=dt;pops[i].y-=dt*22;if(pops[i].t<=0)pops.splice(i,1)}
+      for(i=trail.length-1;i>=0;i--){trail[i].l-=dt;if(trail[i].l<=0)trail.splice(i,1)}
+      if(t>TRAVEL+BUFF+.8){hold+=dt;if(hold>1.2)reset()}
+    }
+    function bar(x,y,w,f,col){ctx.fillStyle='#000a';ctx.fillRect(x,y,w,5);ctx.fillStyle=col;ctx.fillRect(x,y,w*Math.max(0,Math.min(1,f)),5)}
+    function barsGlow(c,alpha,scale){
+      var arm=c.arm*scale,hw=c.hw*scale;
+      ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.r);ctx.globalAlpha=alpha;
+      ctx.shadowColor='#ffd266';ctx.shadowBlur=26;
+      var g=ctx.createLinearGradient(-arm,0,arm,0);
+      g.addColorStop(0,'rgba(255,210,102,.55)');g.addColorStop(.5,'rgba(255,236,170,.95)');g.addColorStop(1,'rgba(255,210,102,.55)');
+      ctx.fillStyle=g;ctx.fillRect(-arm,-hw,arm*2,hw*2);
+      var g2=ctx.createLinearGradient(0,-arm,0,arm);
+      g2.addColorStop(0,'rgba(255,210,102,.55)');g2.addColorStop(.5,'rgba(255,236,170,.95)');g2.addColorStop(1,'rgba(255,210,102,.55)');
+      ctx.fillStyle=g2;ctx.fillRect(-hw,-arm,hw*2,arm*2);
+      ctx.shadowBlur=0;ctx.fillStyle='#fffaf0';
+      ctx.fillRect(-arm*.9,-hw*.28,arm*1.8,hw*.56);ctx.fillRect(-hw*.28,-arm*.9,hw*.56,arm*1.8);
+      ctx.restore();
+    }
+    function glass(c,alpha){
+      var cols=['#f2c25a','#e8913a','#fff0b8','#d9a441'];
+      ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.r);ctx.globalAlpha=alpha;
+      ctx.shadowColor='#ffb347';ctx.shadowBlur=20;
+      var n=Math.max(3,Math.round(c.arm/14)),step2=c.arm*2/(n*2),k=0,i;
+      function tile(x,y,w,h){ctx.fillStyle=cols[k++%4];ctx.fillRect(x+1,y+1,w-2,h-2)}
+      for(i=0;i<n*2;i++)tile(-c.arm+i*step2,-c.hw,step2,c.hw*2);
+      for(i=0;i<n*2;i++){var y=-c.arm+i*step2;if(Math.abs(y+step2/2)>c.hw)tile(-c.hw,y,c.hw*2,step2)}
+      ctx.shadowBlur=0;ctx.strokeStyle='#5a3b10';ctx.lineWidth=1.5;
+      ctx.strokeRect(-c.arm,-c.hw,c.arm*2,c.hw*2);ctx.strokeRect(-c.hw,-c.arm,c.hw*2,c.arm*2);
+      ctx.restore();
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle='#14171c';ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle='#1d222a';ctx.lineWidth=1;
+      for(var x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+      for(var y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+      ctx.strokeStyle='#2a2f38';ctx.strokeRect(.5,.5,W-1,H-1);
+      ctx.setLineDash([5,7]);ctx.strokeStyle='rgba(242,194,90,.22)';ctx.beginPath();ctx.moveTo(P.x,P.y);
+      ctx.lineTo(P.x+Math.cos(aim)*RANGE,P.y+Math.sin(aim)*RANGE);ctx.stroke();ctx.setLineDash([]);
+      ens.forEach(function(e){
+        ctx.fillStyle=e.f>0?'#ffffff':'#c44a3a';
+        ctx.beginPath();ctx.moveTo(e.x,e.y-14);ctx.lineTo(e.x+13,e.y+10);ctx.lineTo(e.x-13,e.y+10);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#ff9b8a';ctx.lineWidth=1.5;ctx.stroke();
+        bar(e.x-16,e.y-26,32,e.sh/60,'#e0503f');
+      });
+      trail.forEach(function(s){ctx.globalAlpha=Math.max(0,s.l/.35)*.45;ctx.fillStyle='#4fd0e6';ctx.beginPath();ctx.arc(s.x,s.y,12,0,7);ctx.fill()});
+      ctx.globalAlpha=1;
+      allies.forEach(function(a){
+        if(a.b>0){ctx.strokeStyle='rgba(79,208,230,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(a.x,a.y,19,0,7);ctx.stroke()}
+        ctx.fillStyle=a.c;ctx.beginPath();ctx.arc(a.x,a.y,13,0,7);ctx.fill();ctx.strokeStyle='#0008';ctx.lineWidth=2;ctx.stroke();
+        bar(a.x-16,a.y-26,32,a.sh/100,'#5ee27a');
+        ctx.fillStyle='#d9d3c0';ctx.font='500 11px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.fillText(a.n,a.x,a.y+28);
+      });
+      ctx.save();ctx.translate(P.x,P.y);ctx.rotate(aim);
+      ctx.fillStyle='#e9e2cf';ctx.beginPath();ctx.arc(0,0,15,0,7);ctx.fill();ctx.strokeStyle='#f2c25a';ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle='#f2c25a';ctx.fillRect(8,-3,14,6);ctx.restore();
+      ctx.fillStyle='#d9d3c0';ctx.font='500 11px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.fillText('You',P.x,P.y+31);
+      if(t<.3){ctx.strokeStyle='rgba(255,226,140,'+(1-t/.3)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(P.x,P.y,18+t*110,0,7);ctx.stroke()}
+      echoes.forEach(function(e){glass(e,Math.max(0,e.l/.5)*.28)});
+      var c=cross();
+      if(c.on&&c.a>0){
+        if(look==='C')glass(c,c.a);else barsGlow(c,c.a,1);
+        if(look==='B'){ctx.save();ctx.globalAlpha=c.a;ctx.strokeStyle='#fff3c4';ctx.lineWidth=3;ctx.shadowColor='#ffd266';ctx.shadowBlur=14;
+          ctx.beginPath();ctx.arc(c.x,c.y,c.hw*2.6,0,7);ctx.stroke();ctx.restore()}
+      }
+      ctx.font='700 16px Barlow,sans-serif';ctx.textAlign='center';
+      pops.forEach(function(p){ctx.globalAlpha=Math.min(1,p.t*2);ctx.fillStyle=p.col;ctx.fillText(p.s,p.x,p.y);
+        if(p.sub){ctx.fillStyle='#4fd0e6';ctx.font='500 10px IBM Plex Mono,monospace';ctx.fillText(p.sub,p.x,p.y+11);ctx.font='700 16px Barlow,sans-serif'}});
+      ctx.globalAlpha=1;
+      hud.textContent=allies.filter(function(a){return a.hit}).length+' allies blessed · '+ens.filter(function(e){return e.hit}).length+' enemies hit for 25';
+    }
+    var last=0;
+    function loop(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt*(slow?.3:1));draw();requestAnimationFrame(loop)}
+    cv.addEventListener('pointerdown',function(e){
+      var r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;
+      aim=Math.atan2(y-P.y,x-P.x);reset();
+    });
+    document.querySelector('[data-replay="'+look+'"]').addEventListener('click',reset);
+    reset();requestAnimationFrame(loop);
+  }
+  make('cA','hA','A');make('cB','hB','B');make('cC','hC','C');
+  var sb=document.getElementById('slow');
+  sb.addEventListener('click',function(){slow=!slow;sb.textContent='Slow-mo: '+(slow?'on':'off');sb.setAttribute('aria-pressed',slow)});
+})();
+</script>
