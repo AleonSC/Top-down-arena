@@ -55,7 +55,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Enemies and bosses (Core)
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
-- `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Swarmer and the Spike Block's lunge
+- `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Spiker and the Spike Block's lunge
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies

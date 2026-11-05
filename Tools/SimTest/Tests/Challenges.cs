@@ -102,6 +102,7 @@ static partial class Program
             hold();
             foreach (var e in g.Enemies.Values) e.Hp = 0f;
         });
+        Run(s, dt, 0.3f, null, hold);  // the client hears about the win a moment after the host
         Check(z0 == 0 && g.Room == RoomPhase.Won && g.ZoneIndex == Challenges.ZoneCount && cg.Room == RoomPhase.Won, "Hold the Zones: standing in each zone fills it, and three won is the challenge");
 
         // The altar: touch it for the prize, picked from rare or better.

@@ -429,7 +429,7 @@ namespace Arena
                 return;
             }
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !spawning && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type))
+            if (e.Def.Melee && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -442,6 +442,8 @@ namespace Arena
                 col = Rgba.White;
             if (Zombies.Is(e.Type))
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
+            else if (e.Type == EnemyType.Swarmer)
+                DrawChomper(e, pos, r, col, t);
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)
@@ -475,9 +477,36 @@ namespace Arena
             DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
         }
 
+        /// A Swarmer: a white disc with a wedge for a mouth that points where it runs. No eyes. The mouth gapes wider as it
+        /// closes in on you, and chews quickly while it walks.
+        void DrawChomper(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            float nearest = 9999f;
+            foreach (var p in game.Players.Values)
+                if (!p.Downed)
+                    nearest = Mathf.Min(nearest, p.Disp.DistanceTo(pos));
+            float near = MathX.Clamp01(1f - nearest / 120f);
+            float chew = 0.5f + 0.5f * Mathf.Sin(t * 11f + e.Id * 1.7f);
+            float open = 0.18f + 0.5f * chew * (0.5f + 0.5f * near);
+            float face = e.Facing;
+            SetColor(col.Darkened(0.45f));
+            const int segs = 16;
+            V2 prev = pos + V2.FromAngle(face + open) * r;
+            for (int i = 1; i <= segs; i++)
+            {
+                V2 next = pos + V2.FromAngle(face + open + (MathX.Tau - 2f * open) * i / segs) * r;
+                Tri(pos, prev, next);
+                prev = next;
+            }
+            V2 lip0 = pos + V2.FromAngle(face + open) * r, lip1 = pos + V2.FromAngle(face - open) * r;
+            Arc(pos, r, 2.5f, col, 20, face + open, MathX.Tau - 2f * open);
+            Line(lip0, pos, 2.5f, col);
+            Line(lip1, pos, 2.5f, col);
+        }
+
         void DrawMeleeSpikes(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            if (e.Type == EnemyType.Swarmer || e.Type == EnemyType.SpikeBlock)
+            if (e.Type == EnemyType.Spiker || e.Type == EnemyType.SpikeBlock)
             {
                 DrawFaceSpikes(e, pos, r, col);  // MeleeGrunts: a spike on each face
                 return;
@@ -504,7 +533,7 @@ namespace Arena
             float apothem = block ? r * 0.7071f : r * 0.5f;       // centre to the middle of a face
             float len = block ? r * 1.05f : r * 1.4f;              // how far a spike sticks out of its face
             float half = block ? r * 0.4f : r * 0.16f;             // half the spike's width at its base
-            float first = block ? e.Facing : e.Facing + MathX.Pi / 3f;  // a Swarmer's faces lie between its corners
+            float first = block ? e.Facing : e.Facing + MathX.Pi / 3f;  // a Spiker's faces lie between its corners
             for (int k = 0; k < faces; k++)
             {
                 V2 d = V2.FromAngle(first + MathX.Tau * k / faces), side = d.Orthogonal();
@@ -733,6 +762,7 @@ namespace Arena
             {
                 case EnemyType.SpikeBlock:
                     return e.Facing + MathX.Pi / 4f;  // a corner is 45 degrees off a face, and its spikes point out of the faces
+                case EnemyType.Spiker:
                 case EnemyType.Swarmer:
                 case EnemyType.Charger:
                 case EnemyType.Lunger:
