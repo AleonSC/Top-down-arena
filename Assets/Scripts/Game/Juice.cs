@@ -124,6 +124,7 @@ namespace Arena
             scorches.Clear(); ripples.Clear(); numbers.Clear(); bursts.Clear(); muzzleT.Clear();
             ClearGunBowLooks();  // GunBowLooks.cs
             ClearSoldierLooks();  // SoldierLooks.cs
+            ClearCloneWallLook();  // CloneWallLook.cs
             ClearTankLooks();  // TankLooks.cs
             ClearTankGunLooks();  // TankGunLooks.cs
             ClearDpsGunLooks();  // DpsGunLooks.cs

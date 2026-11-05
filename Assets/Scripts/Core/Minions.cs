@@ -794,7 +794,7 @@ namespace Arena
             {
                 if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= BlockerWear(b);
+                m.BlockHp -= m.Kind == MinionKind.CloneWall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)

@@ -72,7 +72,7 @@ namespace Arena
         public float WhirlBonusTime, WhirlRadiusMult = 1f, LungeRangeMult = 1f, LungeDmgMult = 1f, FuryLifesteal;
         public int GrenadeExtraShrapnel;
         // Ninja abilities
-        public float CloneBonusTime, CloneBurstMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, IronBonusTime, IronWaveMult = 1f;
+        public float CloneBonusTime, CloneHpMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, IronBonusTime, IronWaveMult = 1f;
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;
@@ -259,8 +259,8 @@ namespace Arena
                 Apply = s => { s.LungeRangeMult += 0.4f; s.LungeDmgMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Bloodlust", Desc = "During Battle Fury your hits heal you for 10% of the damage they deal",
                 Apply = s => s.FuryLifesteal += 0.1f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowClone, MaxStacks = 2, Name = "Mirror Image", Desc = "Shadow Clone lasts 2 s longer and bursts 50% harder",
-                Apply = s => { s.CloneBonusTime += 2f; s.CloneBurstMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowClone, MaxStacks = 2, Name = "Mirror Image", Desc = "Shadow Clone lasts 2 s longer and its clones have 50% more health",
+                Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Iron Body lasts 1 s longer and its shockwave hits 50% harder",

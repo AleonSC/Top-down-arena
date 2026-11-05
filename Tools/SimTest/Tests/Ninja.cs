@@ -185,17 +185,30 @@ static partial class Program
             "Smoke Bomb slows enemy bullets inside to half speed on every machine, and allies inside take 30% less");
         g.Zones.Clear();
 
-        // Shadow Clone: enemies aim at it, and it bursts when it ends.
+        // Shadow Clone: a wall of nine that enemies aim at, that eats bullets, that players shove, and that ends with no burst.
         place(1, 650f); run(0.2f);
         use(1, AbilityId.ShadowClone, hp.Pos);
         run(0.1f);
-        Minion clone = g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.Clone);
-        V2 aimed = clone != null ? (V2)aimAt.Invoke(g, new object[] { d1, hp, hp.Pos }) : new V2(-1f, -1f);
-        Check(clone != null && aimed.DistanceTo(clone.Pos) < 1f, "enemies aim at a Shadow Clone instead of you");
-        clone.Pos = d1.Pos + new V2(-30f, 0f);
+        var wall = g.Minions.Values.Where(m => m.Kind == MinionKind.CloneWall).ToList();
+        V2 aimed = wall.Count > 0 ? (V2)aimAt.Invoke(g, new object[] { d1, hp, hp.Pos }) : new V2(-1f, -1f);
+        Check(wall.Count == Game.CloneWallCount && wall.Any(m => aimed.DistanceTo(m.Pos) < 1f)
+            && client.Game.Minions.Values.Count(m => m.Kind == MinionKind.CloneWall) == Game.CloneWallCount, "Shadow Clone raises a wall of 9 clones that enemies aim at, on every machine");
+        var w0 = wall.OrderBy(m => m.Pos.DistanceSq(hp.Pos)).First();
+        float hpBefore = hp.Hp;
+        var shotAt = typeof(Game).GetMethod("SpawnBullet", flags);
+        V2 fromSide = (w0.Pos - hp.Pos).Normalized();
+        shotAt.Invoke(g, new object[] { (byte)10, w0.Pos + fromSide * 70f, fromSide * -300f, 0f, 1f, 10f, 0, false, 0f });
+        run(0.4f);
+        float wallHp = wall.Sum(m => m.BlockHp);
+        Console.WriteLine("  wall: health left {0:0} of {1:0}, player took {2:0}", wallHp, wall.Sum(m => m.MaxHp), hpBefore - hp.Hp);
+        Check(wallHp < wall.Count * 50f && hp.Hp >= hpBefore, "a wall clone soaks an enemy bullet");
+        V2 w0Was = w0.Pos;
+        hp.Pos = hp.Disp = w0.Pos - (w0.Pos - hp.Pos).Normalized() * 8f;
+        run(0.3f);
+        Check(w0.Pos.DistanceTo(w0Was) > 4f, "walking into a wall clone shoves it");
         dhp = d1.Hp;
-        run(5.2f);
-        Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.Clone) && d1.Hp < dhp - 30f, "a Shadow Clone bursts when it ends");
+        run(7.5f);
+        Check(!g.Minions.Values.Any(m => m.Kind == MinionKind.CloneWall) && d1.Hp >= dhp, "the wall fades after 7 s and does no damage");
 
         // Shadow Step: the host sends the smoke look's effect with where they stood, where they landed and who and what it struck.
         place(1, 300f); run(0.2f);

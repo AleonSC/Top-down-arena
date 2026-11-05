@@ -17,6 +17,7 @@ namespace Arena
         SoulLantern,  // Soul Lantern: hovers by the player it is linked to, heals them and flames enemies near it (SoulLantern.cs)
         Hydra,        // Hydra (the DPS Summoner's ability): stays where it was called, its heads each spit venom at a different enemy (Hydra.cs)
         Butterfly,    // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
+        CloneWall,    // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
         None = 255,
     }
 
@@ -106,6 +107,7 @@ namespace Arena
             new MinionDef { Name = "Hydra", Radius = 26f, Sides = 8, Color = new Rgba(0.53f, 0.88f, 0.56f), Move = MinionMove.Static,
                 Interval = 0.6f, Damage = 10f, Range = 520f },  // shoots by Hydra.cs
             new MinionDef { Name = "Butterfly", Radius = 6f, Sides = 4, Color = new Rgba(1f, 0.84f, 0.43f), Move = MinionMove.Static },  // flown by WorldTree.cs
+            new MinionDef { Name = "Shadow Clone", Radius = 16f, Sides = 8, Color = new Rgba(0.22f, 0.8f, 0.9f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 50f },  // shoved by CloneWall.cs
         };
 
         // Indexed by ZoneKind.

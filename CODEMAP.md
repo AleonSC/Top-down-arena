@@ -41,7 +41,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
 - `Knight.cs`: melee swings, sword waves, Knight abilities
-- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, clones, Vanish
+- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, Thousand Clones' clones, Vanish
+- `CloneWall.cs`: Shadow Clone as a wall of 9 `MinionKind.CloneWall` that soak bullets (wearing from every shot) and get shoved by players
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
 - `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
@@ -115,6 +116,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `MendPulseLook.cs`: the Healer Soldier's Mend Pulse with Visual effects on: a swelling fill, a double-beat ring and a heart on each ally reached (style B, Heartbeat)
 - `TankLooks.cs`: the Tank Soldier's Roar (wave, enemy "!" pops, orbiting plates, draining rim, tethers) and Bulldoze (lane, afterimages, bow wave, hit sparks, landing stomp) with Visual effects on, timed from the cast's `FxKind.Callout`
 - `SanctumLook.cs`: Sanctum's Bubble look (shimmering shell, pulse discs and sparkles, rim flare, flicker at the end); the old plain dome with Visual effects off
+- `CloneWallLook.cs` (Game): the Ninja's Shadow Clone wall as the Afterimage Phalanx (dash-out afterimages, landing ring, energy fence, glitch hits, shatter; `Docs/Mockups/shadow-clone-wall.html`)
 - `ShieldWallLook.cs`: the Knight's Shield Wall as seven steel plates that slam down, kick, crack and break one by one (`Docs/Mockups/shield-wall.html`).
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)

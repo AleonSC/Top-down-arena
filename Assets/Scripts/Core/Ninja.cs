@@ -14,7 +14,7 @@ namespace Arena
         const float StepRange = 450f, StepDamage = 80f;
         public const float ShadowStepFxTime = 1f;
         V2? StepFrom;  // where the caster stood when they pressed Shadow Step (set around HostAbility; null: use their position)
-        const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
+        const float CloneWallTime = 7f, CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
         const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
         const float MistRadius = 130f, MistTime = 6f, SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
@@ -285,8 +285,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShadowClone, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0,
-                Name = "Shadow Clone", Cooldown = 14f, Desc = "Leave a decoy for 5 s that every enemy targets. It bursts for 60 damage when it ends.",
-                Capstone = "Leaves two clones.",
+                Name = "Shadow Clone", Cooldown = 14f, Desc = "Summon a wall of 9 clones for 7 s. Every enemy targets them and each soaks 50 damage. They never fight: walk into them to shove the wall.",
+                Capstone = "Every clone has double the health.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
@@ -377,10 +377,7 @@ namespace Arena
             {
                 case AbilityId.ShadowClone:
                 {
-                    float life = CloneTime + s.CloneBonusTime, burst = pw * s.CloneBurstMult * s.DmgMult;
-                    SpawnClone(p, p.Pos + V2.FromAngle(p.Aim + MathX.Pi) * 40f, life, burst);
-                    if (cap)
-                        SpawnClone(p, p.Pos + V2.FromAngle(p.Aim) * 60f, life, burst);
+                    SpawnCloneWall(p, CloneWallTime + s.CloneBonusTime, pw * s.CloneHpMult * (cap ? 2f : 1f));  // CloneWall.cs
                     Sounds.Add(Sfx.Summon);
                     return true;
                 }
@@ -1130,8 +1127,9 @@ namespace Arena
                 }
             clones.Clear();
             foreach (var m in Minions.Values)
-                if (m.Kind == MinionKind.Clone)
+                if (m.Kind == MinionKind.Clone || m.Kind == MinionKind.CloneWall)
                     clones.Add(m);
+            TickCloneWalls(dt);  // CloneWall.cs
             foreach (var p in Players.Values)
             {
                 p.VanishT = Math.Max(0f, p.VanishT - dt);
@@ -1164,7 +1162,7 @@ namespace Arena
             }
             foreach (var m in clones)
             {
-                if (m.T < 0f || m.T > dt)
+                if (m.Kind != MinionKind.Clone || m.T < 0f || m.T > dt)
                     continue;
                 Player owner;
                 if (!Players.TryGetValue(m.Owner, out owner))
