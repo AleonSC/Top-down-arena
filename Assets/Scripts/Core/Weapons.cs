@@ -520,8 +520,8 @@ namespace Arena
                 case WeaponId.FrostLance:  // the icicle, out from you
                 case WeaponId.TreantRod:   // the root lash, out from you
                     return MeleeReach(p, w.Reach + w.Grow * x);
-                case WeaponId.Katana:  // sheathed, the quick-draw cut reaches much further (Ninja.cs)
-                    return MeleeReach(p, p.SheathT >= KatanaSheath ? KatanaDrawReach : w.Reach);
+                case WeaponId.Katana:  // the lunge reaches much further than the swipes (Ninja.cs)
+                    return MeleeReach(p, p.KatanaStep == 2 ? KatanaLungeReach : w.Reach);
                 case WeaponId.Greatsword:  // extra projectiles add sword beams
                     return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, w.Reach);
             }

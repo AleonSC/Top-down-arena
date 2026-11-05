@@ -96,6 +96,9 @@ namespace Arena
                 case FxKind.HolyCross:
                     DrawHolyCrossFx(fx);  // HolyCrossLook.cs
                     break;
+                case FxKind.KatanaStrike:
+                    DrawKatanaStrikeFx(fx);  // KatanaLook.cs
+                    break;
                 case FxKind.ShellPop:
                     DrawShellPopFx(fx, f);
                     break;

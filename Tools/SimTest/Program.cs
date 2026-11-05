@@ -268,7 +268,7 @@ static partial class Program
         Test("healingrain", "Healing Rain: heals allies inside, slows enemies, ends on time, mastered lasts 10 s", () => HealingRainTest(Dt)),
         Test("lumenward", "Lumen Ward: a cone of light that heals inside, burns bullets in it and holds the ones outside", () => LumenWardTest(Dt)),
         Test("wards", "Spirit Ward, Healing Mist and Energy Ward", () => HealerWardsTest(Dt)),
-        Test("lastfour", "Clot Bolt, Transfusion Darts, Rapier and Katana", () => LastFourTest(Dt)),
+        Test("lastfour", "Clot Bolt, Transfusion Darts, Rapier and the Katana (chain, meter, Alt strike)", () => LastFourTest(Dt)),
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),
         Test("quarterstaff", "the Quarterstaff", () => QuarterstaffTest(Dt)),
         Test("tankknight", "the Warhammer's charged slam and the Halberd's sweep", () => TankKnightTest(Dt)),

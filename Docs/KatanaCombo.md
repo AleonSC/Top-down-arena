@@ -1,6 +1,6 @@
 # Katana combo rework (design)
 
-Status: **designed, not built.** Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
+Status: **built** (Nov 2026, protocol 175), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
 `Docs/Mockups/katana-look-glow.html` (the chosen look). Three other looks were mocked and not picked:
 `katana-look-ink.html`, `-neon.html`, `-steel.html` (all from `katana-look.template.html`).
 
@@ -123,3 +123,15 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 - Does taking damage drain the meter faster (for example +10 per second of drain for 2 s after being hit)?
 - Co-op: is the recommendation above (no global slow) acceptable, or should the strike briefly slow everything?
 - Should Alt strike be usable while moving (aim and release while walking), or lock movement during the hold?
+
+## Built differently from the plan above
+- **No new message.** The strike reuses `Msg.WeaponDash` with a new kind, `DashKatana`, sending the target enemy's
+  position (the host takes the nearest enemy within 90 px of it). `Msg.KatanaStrike` was not added. The protocol bump to
+  175 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
+- **The lunge does not step you forward 150 px** (a player's own game owns their position, so the host cannot move them).
+  It is a 260 px line from where you stand, landing 0.15 s after the press. A client-side step could follow later.
+- **No time slow while aiming**, the recommendation in the co-op section. The arena dims and brackets appear on your
+  screen only; the hold is capped at 1.5 s and a hold that runs out cancels.
+- **The meter shows as a rose arc round the swordsman** (a gauge like the Lightbringer's) instead of a HUD bar. Full, the
+  blade is drawn sheathed with a glint.
+- The meter's drain pause and bosses (full 120 for now) are as in the open questions.

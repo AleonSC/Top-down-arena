@@ -32,7 +32,8 @@ namespace Arena
         public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
-        public bool DrawCut;          // the Katana's quick-draw cut: a box (HalfWidth) drawn as a long thin slash, not a jab
+        public bool DrawCut;          // the Katana's lunge: a box (HalfWidth) drawn as a long thin slash, not a jab
+        public float Meter;           // the strike meter each enemy this swing hits adds (the Katana's swipes and lunge)
         public bool Root;             // the Treant Rod's root lash: a box drawn as a thorny root (FxKind.RootLash) that heals allies inside it
         public float RootHeal;        // what an ally touched by the lash is healed
     }
@@ -458,6 +459,8 @@ namespace Arena
                 p.Combo = Math.Min(ComboMax, p.Combo + 1);
                 p.ComboT = ComboWindow;
             }
+            if (hits.Count > 0 && s.Meter > 0f)  // a Katana step landed: the strike meter builds, per enemy hit
+                KatanaGain(p, s.Meter * hits.Count);
             int healed = 0;
             foreach (var e in hits)
             {

@@ -40,7 +40,7 @@ namespace Arena
         readonly HashSet<Effect> meleeLive = new HashSet<Effect>();
 
         /// The player who made this melee effect (the one standing where it started, holding a melee weapon), or null.
-        MeleeSeen MeleeOwnerOf(Effect fx, float life)
+        MeleeSeen MeleeOwnerOf(Effect fx, float life, bool thrust = false)
         {
             MeleeSeen seen;
             if (meleeSeen.TryGetValue(fx, out seen))
@@ -75,7 +75,7 @@ namespace Arena
             float flip;
             meleeFlip.TryGetValue(best.Id, out flip);
             bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana;
-            if (alternates)
+            if (alternates && !(thrust && best.Weapon.Id == WeaponId.Katana))  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
             else if (best.Weapon.Id == WeaponId.Halberd)
             {
@@ -161,7 +161,7 @@ namespace Arena
             bool thrust = half < 0f;
             if (half >= 0f && half < 0.2f)
                 return false;  // a lunge or a dash streak, not a swing: the old look
-            var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail);
+            var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust);
             if (seen == null)
                 return false;
             V2 o = MeleeOrigin(fx, seen);

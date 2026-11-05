@@ -89,7 +89,7 @@ namespace Arena
         public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
 
         // The main attack's numbers, in one place: the code that fires it, WeaponRange (the aim line) and the bots
-        // all read these. Secondary parts (fragments, sword waves, a Katana's quick-draw, heals) stay with the weapon's code.
+        // all read these. Secondary parts (fragments, sword waves, a Katana's lunge and Alt strike, heals) stay with the weapon's code.
         public float Speed, Life;      // a shot's speed (px/s) and lifetime (s): it reaches Speed × Life
         public float Damage;           // the main shot's or swing's damage (before upgrades)
         public float Reach;            // a swing's reach (px), or a beam's length
