@@ -45,6 +45,7 @@ header p{margin:0;max-width:66ch;color:var(--muted)}
 .seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
 .seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
 .seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+.gnote{margin:10px 0 0;font-size:14px;color:var(--muted);max-width:70ch;min-height:1.5em}
 .tog{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
 .tog input{width:18px;height:18px;accent-color:var(--acc)}
 .card{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -67,7 +68,7 @@ ol.q li::marker{font-family:var(--mono);color:var(--acc)}
 <main>
 <header>
   <h1>Arena layouts</h1>
-  <p>Six fixed floor plans for the 1600 x 900 arena, drawn to scale. Pick one, then click or drag in the arena to put a shooter anywhere and see what its shots can reach. Switch between enemy fire (crates stop it) and your fire (crates don't, walls and pillars do).</p>
+  <p>Six fixed floor plans for the 1600 x 900 arena, drawn to scale. Pick one, then click or drag in the arena to put a shooter anywhere and see what its shots can reach. Switch between enemy fire (crates stop it) and your fire (crates don't, walls and pillars do). Then wall the edges with <b>Edge gates</b> so players can only wrap round through set openings.</p>
 </header>
 
 <section>
@@ -85,9 +86,17 @@ ol.q li::marker{font-family:var(--mono);color:var(--acc)}
         <input type="radio" name="mode" id="m-foe" value="foe" checked><label for="m-foe">Enemy fire</label>
         <input type="radio" name="mode" id="m-you" value="you"><label for="m-you">Your fire</label>
       </div>
+      <div class="seg" role="radiogroup" aria-label="Edge gates">
+        <input type="radio" name="gates" id="g-off" value="off" checked><label for="g-off">Open edges</label>
+        <input type="radio" name="gates" id="g-centre" value="centre"><label for="g-centre">Centre gates</label>
+        <input type="radio" name="gates" id="g-twin" value="twin"><label for="g-twin">Twin gates</label>
+        <input type="radio" name="gates" id="g-sides" value="sides"><label for="g-sides">Sides only</label>
+      </div>
+      <label class="tog" for="t-links"><input type="checkbox" id="t-links" checked>Wrap links</label>
       <label class="tog" for="t-spawn"><input type="checkbox" id="t-spawn" checked>Enemy entry edges</label>
       <label class="tog" for="t-grid"><input type="checkbox" id="t-grid" checked>100 px grid</label>
     </div>
+    <p class="gnote" id="gnote"></p>
   </div>
   <aside class="card" id="card" aria-live="polite"></aside>
 </section>
@@ -98,6 +107,7 @@ ol.q li::marker{font-family:var(--mono);color:var(--acc)}
     <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="12" width="28" height="10" rx="1" fill="#7f98a6" stroke="#b3c7d2"/></svg><span><b>Wall</b>24 px thick. Never breaks. Stops enemy shots and yours, blocks walking.</span></div>
     <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="12" fill="#7f98a6" stroke="#b3c7d2"/><circle cx="17" cy="17" r="5" fill="#0e1719" opacity=".5"/></svg><span><b>Pillar</b>Round wall, 56 px across. Same rules, easier to circle.</span></div>
     <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="5" y="5" width="24" height="24" fill="#c98b3b" stroke="#f0b865"/><path d="M5 5L29 29M29 5L5 29" stroke="#f0b865" opacity=".6"/></svg><span><b>Crate</b>44 px (heavy 54). Today's cover: stops enemy shots until worn down, your shots fly over.</span></div>
+    <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M2 17H32" stroke="#3fd6c4" stroke-width="2" stroke-dasharray="4 3"/><path d="M8 11L2 17L8 23M26 11L32 17L26 23" fill="none" stroke="#3fd6c4" stroke-width="2"/></svg><span><b>Wrap link</b>A gate in an edge wall. Walk through it and you come out of the matching gate on the other side.</span></div>
     <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="0" y="4" width="8" height="26" fill="#ff5a4a" opacity=".85"/><path d="M14 11L24 17L14 23Z" fill="#ff5a4a"/></svg><span><b>Entry edge</b>Where squads walk in. Players can still wrap round every edge.</span></div>
   </div>
 </section>
@@ -105,6 +115,8 @@ ol.q li::marker{font-family:var(--mono);color:var(--acc)}
 <section>
   <h2>Open questions</h2>
   <ol class="q">
+    <li>With edge gates on, do enemies enter only through the gates (as drawn), or still spawn along the whole edge?</li>
+    <li>Gates always pair with the matching spot on the opposite edge here. Should some pair with a different spot, so a gate acts like a portal?</li>
     <li>Should walls and pillars block your shots too? The mockups assume yes, so angles matter for both sides. Crates stay one-way.</li>
     <li>When does a layout change? Choices: each new boss cycle in a fixed order, a random pick each cycle, or a pick the host makes alongside the path choice.</li>
     <li>Do random crates, pots and barrels still spawn in the gaps? The mockups leave room for them.</li>
@@ -164,13 +176,24 @@ var LAYOUTS=[
   risk:'The fort is the safest spot, so people will camp it. Mortars and Beam Sentries are the natural counter, which may be what you want.'}
 ];
 
+var gates='off',links=true;
+var GATES={centre:{lr:[[360,540]],tb:[[700,900]],note:'One gate in the middle of each edge. Everyone who wraps crosses the same spot, so the other side is where the fight comes to you.'},
+ twin:{lr:[[140,280],[620,760]],tb:[[300,500],[1100,1300]],note:'Two gates per edge, away from the middle. You pick a side to escape through, and enemies have two places to funnel in.'},
+ sides:{lr:[[300,600]],tb:[],note:'Top and bottom are fully walled. Players can only wrap left and right, so the arena plays like a ring you run round.'}};
 var cur=0,mode='foe',shooter=LAYOUTS[0].shooter.slice(),showSpawn=true,showGrid=true;
 var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),hud=document.getElementById('hud');
 function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
 
 /* ---- geometry ---- */
 function rectOf(o){return{x0:o.cx-o.w/2,x1:o.cx+o.w/2,y0:o.cy-o.h/2,y1:o.cy+o.h/2}}
-function blockers(L,m){return L.obs.filter(function(o){return o.t==='w'||o.t==='p'||(o.t==='c'&&m==='foe')})}
+function edgeObs(){
+  var g=GATES[gates],out=[];if(!g)return out;
+  function segs(len,holes){var a=0,r=[];holes.slice().sort(function(p,q){return p[0]-q[0]}).forEach(function(h){if(h[0]>a)r.push([a,h[0]]);a=h[1]});if(a<len)r.push([a,len]);return r}
+  segs(H,g.lr).forEach(function(s){out.push(wall(12,(s[0]+s[1])/2,24,s[1]-s[0]),wall(W-12,(s[0]+s[1])/2,24,s[1]-s[0]))});
+  segs(W,g.tb).forEach(function(s){out.push(wall((s[0]+s[1])/2,12,s[1]-s[0],24),wall((s[0]+s[1])/2,H-12,s[1]-s[0],24))});
+  return out}
+function allObs(L){return L.obs.concat(edgeObs())}
+function blockers(L,m){return allObs(L).filter(function(o){return o.t==='w'||o.t==='p'||(o.t==='c'&&m==='foe')})}
 function hitRect(ox,oy,dx,dy,r){
   var tmin=-Infinity,tmax=Infinity;
   if(Math.abs(dx)<1e-9){if(ox<r.x0||ox>r.x1)return Infinity}else{var a=(r.x0-ox)/dx,b=(r.x1-ox)/dx;if(a>b){var s=a;a=b;b=s}tmin=Math.max(tmin,a);tmax=Math.min(tmax,b)}
@@ -206,7 +229,7 @@ function visibility(L,m,ox,oy){
 
 /* ---- drawing ---- */
 function drawObs(c,L,sc,detail){
-  L.obs.forEach(function(o){
+  allObs(L).forEach(function(o){
     if(o.t==='z'){c.save();c.setLineDash([10*sc,8*sc]);c.lineWidth=Math.max(1,2*sc);c.strokeStyle=tok('--zone');c.beginPath();c.arc(o.cx*sc,o.cy*sc,o.r*sc,0,7);c.stroke();c.restore();
       if(detail){c.fillStyle=tok('--zone');c.font=(15*sc)+'px '+tok('--mono');c.textAlign='center';c.fillText('HOLD POINT',o.cx*sc,(o.cy+4)*sc)}return}
     if(o.t==='p'){c.fillStyle=tok('--wall');c.strokeStyle=tok('--wall-hi');c.lineWidth=Math.max(1,2*sc);c.beginPath();c.arc(o.cx*sc,o.cy*sc,o.r*sc,0,7);c.fill();c.stroke();
@@ -217,6 +240,21 @@ function drawObs(c,L,sc,detail){
       c.globalAlpha=.55;c.beginPath();c.moveTo(x,y);c.lineTo(x+w,y+h);c.moveTo(x+w,y);c.lineTo(x,y+h);c.stroke();c.globalAlpha=1}})}
 function drawSpawn(c,L,sc,detail){
   var col=tok('--foe');c.fillStyle=col;
+  var g=GATES[gates];
+  if(g){L.spawn.forEach(function(s){
+    var holes=s==='L'||s==='R'?g.lr:g.tb;
+    holes.forEach(function(h){var m=(h[0]+h[1])/2,len=h[1]-h[0];
+      c.globalAlpha=.35;
+      if(s==='L')c.fillRect(0,h[0]*sc,24*sc,len*sc);else if(s==='R')c.fillRect((W-24)*sc,h[0]*sc,24*sc,len*sc);
+      else if(s==='T')c.fillRect(h[0]*sc,0,len*sc,24*sc);else c.fillRect(h[0]*sc,(H-24)*sc,len*sc,24*sc);
+      c.globalAlpha=1;c.beginPath();
+      if(s==='L'){c.moveTo(30*sc,(m-16)*sc);c.lineTo(58*sc,m*sc);c.lineTo(30*sc,(m+16)*sc)}
+      else if(s==='R'){c.moveTo((W-30)*sc,(m-16)*sc);c.lineTo((W-58)*sc,m*sc);c.lineTo((W-30)*sc,(m+16)*sc)}
+      else if(s==='T'){c.moveTo((m-16)*sc,30*sc);c.lineTo(m*sc,58*sc);c.lineTo((m+16)*sc,30*sc)}
+      else{c.moveTo((m-16)*sc,(H-30)*sc);c.lineTo(m*sc,(H-58)*sc);c.lineTo((m+16)*sc,(H-30)*sc)}
+      c.closePath();c.fill()})});
+    if(detail){c.font=(13*sc)+'px '+tok('--mono');c.textAlign='left';c.fillStyle=col;c.fillText('ENEMY ENTRY',40*sc,(H-40)*sc)}
+    return}
   L.spawn.forEach(function(s){
     var th=14*sc,n=s==='L'||s==='R'?5:7,i;
     if(s==='L'||s==='R'){var x=s==='L'?0:W*sc-th;c.globalAlpha=.8;c.fillRect(x,0,th,H*sc);c.globalAlpha=1;
@@ -227,6 +265,13 @@ function drawSpawn(c,L,sc,detail){
         c.beginPath();c.moveTo(x2-14*sc,by);c.lineTo(x2,by+dir2*22*sc);c.lineTo(x2+14*sc,by);c.closePath();c.fill()}}});
   if(detail){c.font=(13*sc)+'px '+tok('--mono');c.textAlign='left';c.fillStyle=col;
     if(L.spawn.indexOf('L')>-1){c.save();c.translate(30*sc,(H-26)*sc);c.fillText('ENEMY ENTRY',0,0);c.restore()}}}
+function drawLinks(c,sc,detail){
+  var g=GATES[gates];if(!g)return;var col=tok('--friend');
+  c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=Math.max(1,2*sc);c.setLineDash([10*sc,9*sc]);c.globalAlpha=.55;
+  function chev(x,y,dx,dy){c.setLineDash([]);c.beginPath();c.moveTo(x-dy*10*sc-dx*8*sc,y+dx*10*sc-dy*8*sc);c.lineTo(x,y);c.lineTo(x+dy*10*sc-dx*8*sc,y-dx*10*sc-dy*8*sc);c.stroke();c.setLineDash([10*sc,9*sc])}
+  g.lr.forEach(function(h){var m=(h[0]+h[1])/2*sc;c.beginPath();c.moveTo(34*sc,m);c.lineTo((W-34)*sc,m);c.stroke();chev(30*sc,m,-1,0);chev((W-30)*sc,m,1,0)});
+  g.tb.forEach(function(h){var m=(h[0]+h[1])/2*sc;c.beginPath();c.moveTo(m,34*sc);c.lineTo(m,(H-34)*sc);c.stroke();chev(m,30*sc,0,-1);chev(m,(H-30)*sc,0,1)});
+  c.restore()}
 function paint(c,L,sc,opt){
   c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,W*sc,H*sc);
   c.fillStyle=tok('--arena');c.fillRect(0,0,W*sc,H*sc);
@@ -234,6 +279,7 @@ function paint(c,L,sc,opt){
     for(var x=100;x<W;x+=100){c.moveTo(x*sc,0);c.lineTo(x*sc,H*sc)}for(var y=100;y<H;y+=100){c.moveTo(0,y*sc);c.lineTo(W*sc,y*sc)}c.stroke()}
   if(opt.vis){c.fillStyle=opt.m==='foe'?'rgba(255,90,74,.20)':'rgba(63,214,196,.20)';c.strokeStyle=opt.m==='foe'?'rgba(255,90,74,.55)':'rgba(63,214,196,.55)';c.lineWidth=Math.max(1,1.5*sc);
     c.beginPath();opt.vis.pts.forEach(function(p,i){i?c.lineTo(p[0]*sc,p[1]*sc):c.moveTo(p[0]*sc,p[1]*sc)});c.closePath();c.fill();c.stroke()}
+  if(opt.links)drawLinks(c,sc,opt.detail);
   drawObs(c,L,sc,opt.detail);
   if(opt.spawn)drawSpawn(c,L,sc,opt.detail);
   if(opt.shooter){var col=opt.m==='foe'?tok('--foe'):tok('--friend'),sx=opt.shooter[0]*sc,sy=opt.shooter[1]*sc;
@@ -242,8 +288,9 @@ function paint(c,L,sc,opt){
     c.beginPath();c.moveTo(sx-24*sc,sy);c.lineTo(sx-9*sc,sy);c.moveTo(sx+9*sc,sy);c.lineTo(sx+24*sc,sy);c.moveTo(sx,sy-24*sc);c.lineTo(sx,sy-9*sc);c.moveTo(sx,sy+9*sc);c.lineTo(sx,sy+24*sc);c.stroke()}}
 
 function render(){
+  var gn=document.getElementById('gnote');if(gn)gn.textContent=GATES[gates]?GATES[gates].note:'Edges are open: players wrap anywhere along them. Pick a gate set to wall them in.';
   var L=LAYOUTS[cur],v=visibility(L,mode,shooter[0],shooter[1]);
-  paint(ctx,L,1,{grid:showGrid,vis:v,m:mode,spawn:showSpawn,shooter:shooter,detail:true});
+  paint(ctx,L,1,{links:links,grid:showGrid,vis:v,m:mode,spawn:showSpawn,shooter:shooter,detail:true});
   hud.textContent=v?((mode==='foe'?'Enemy at ':'You at ')+Math.round(shooter[0])+', '+Math.round(shooter[1])+'  ·  shots reach '+v.pct.toFixed(0)+'% of the floor  ·  click or drag to move'):'Marker is inside cover. Move it into open floor.';
   var stat=document.getElementById('stat');if(stat){
     var f=visibility(L,'foe',shooter[0],shooter[1]),y=visibility(L,'you',shooter[0],shooter[1]);
@@ -261,6 +308,8 @@ pk.innerHTML='<legend style="position:absolute;opacity:0">Layout</legend>'+LAYOU
   return '<input type="radio" name="lay" id="l'+i+'" value="'+i+'"'+(i===0?' checked':'')+'><label for="l'+i+'"><canvas width="320" height="180"></canvas><span>'+L.name+'</span><small>'+L.sub+'</small></label>'}).join('');
 pk.addEventListener('change',function(e){select(+e.target.value)});
 document.querySelectorAll('input[name=mode]').forEach(function(r){r.addEventListener('change',function(){mode=r.value;render()})});
+document.querySelectorAll('input[name=gates]').forEach(function(r){r.addEventListener('change',function(){gates=r.value;all()})});
+document.getElementById('t-links').addEventListener('change',function(e){links=e.target.checked;render()});
 document.getElementById('t-spawn').addEventListener('change',function(e){showSpawn=e.target.checked;render()});
 document.getElementById('t-grid').addEventListener('change',function(e){showGrid=e.target.checked;render()});
 
