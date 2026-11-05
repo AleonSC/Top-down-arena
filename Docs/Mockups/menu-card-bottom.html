@@ -1,0 +1,131 @@
+<title>Player Card Below Menu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: the 1280x720 menu stage. The tip box is gone and the player card sits where it was, under the action box. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --gold: #f2c14e; --purple: #b24cff;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .tac:focus-visible, .pcard:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.log { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .06em; margin-left: auto; min-height: 1em; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
+.abs { position: absolute; transition: top .25s; }
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.title { left: 112px; width: 1056px; height: 120px; display: grid; place-items: center; font-size: 100px; letter-spacing: .05em; }
+.axis { left: 240px; width: 800px; height: 14px; background: linear-gradient(#5b78c8,#5b78c8) center/100% 2px no-repeat, repeating-linear-gradient(90deg, #5b78c8 0 2px, transparent 2px 26px) center/100% 10px no-repeat; opacity: .8; }
+.chassis { position: absolute; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); transition: top .25s; }
+.chassis.br::before, .chassis.br::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis.br::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis.br::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; cursor: pointer; border-radius: 10px;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); transition: transform .06s, box-shadow .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); } .tac:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0f22, inset 0 1px 0 rgba(255,255,255,.2); }
+.tac .led { position: absolute; left: 13px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac:hover .led { background: #6cff9a; box-shadow: 0 0 9px #6cff9a; }
+.tac.play { font-size: 30px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); }
+
+/* the existing player card: purple rim, grid horizon, avatar, name, rank and shield */
+.pcard { position: absolute; width: 620px; height: 64px; border-radius: 6px; border: 2px solid var(--purple); cursor: pointer; overflow: visible;
+  background: linear-gradient(#12122c, #0a0a1c); box-shadow: 0 0 14px rgba(178,76,255,.35); }
+.pcard .grid { position: absolute; inset: 0; overflow: hidden; border-radius: 4px; }
+.pcard .grid::before { content: ""; position: absolute; left: -20%; right: -20%; bottom: 0; height: 60%; transform: perspective(60px) rotateX(55deg); transform-origin: bottom;
+  background: repeating-linear-gradient(90deg, rgba(178,76,255,.55) 0 1px, transparent 1px 26px), repeating-linear-gradient(0deg, rgba(178,76,255,.55) 0 1px, transparent 1px 10px); }
+.pcard .grid::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,10,28,.95) 38%, rgba(10,10,28,0) 85%); }
+.pcard .av { position: absolute; left: 10px; top: 9px; width: 42px; height: 42px; border-radius: 8px; background: #1b2140; display: grid; place-items: center; }
+.pcard .av svg { width: 30px; height: 30px; }
+.pcard .nm { position: absolute; left: 70px; top: 6px; font: 700 26px var(--f-ui); color: #fff; letter-spacing: .01em; line-height: 1.1; }
+.pcard .rk { position: absolute; left: 70px; top: 36px; font: 700 15px var(--f-ui); color: var(--gold); letter-spacing: .02em; }
+.pcard .bd { position: absolute; right: 14px; top: 5px; width: 44px; height: 50px; }
+.pcard .nd { position: absolute; width: 8px; height: 8px; background: #0a0a1c; border: 2px solid var(--purple); }
+.sw { position: absolute; left: 50%; top: -14px; margin-left: -70px; width: 140px; height: 26px; border-radius: 8px; font: 700 13px/24px var(--f-ui); text-align: center; color: #e9efff; letter-spacing: .02em;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 3px 0 #0b0f22, 0 5px 8px rgba(0,0,0,.5); opacity: 0; transform: translateY(6px); transition: opacity .15s, transform .15s; pointer-events: none; z-index: 5; }
+.hov:hover .sw { opacity: 1; transform: translateY(0); }
+.quit { position: absolute; left: 624px; top: 664px; width: 32px; height: 32px; opacity: .55; }
+.rule { position: absolute; left: 20px; right: 20px; border-top: 1px dashed rgba(255,255,255,.22); font: 500 11px var(--f-mono); color: rgba(255,255,255,.55); letter-spacing: .06em; padding-top: 3px; transition: top .25s; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px; color: var(--muted); font-size: 15px; line-height: 1.45; } .legend b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 3px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Player card below the menu</h1>
+    <p>The tip box is removed from the main menu and the player card takes its place under the action box. The card itself is unchanged: purple rim, avatar, name, rank and shield. The action box loses the card, so it is 76 px shorter. Hover the card to see the Switch profile tab.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Layout</span><button class="seg" type="button" data-l="a" aria-pressed="true">A. In place</button><button class="seg" type="button" data-l="b" aria-pressed="false">B. Re-centred</button></div>
+    <div class="grp"><span>Card frame</span><button class="seg" type="button" data-f="box" aria-pressed="true">Boxed</button><button class="seg" type="button" data-f="bare" aria-pressed="false">Bare</button></div>
+    <span class="log" id="log" aria-live="polite"></span>
+  </div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="scr title abs" id="sign"><span style="position:relative;z-index:1">CARTESIAN COLOSSEUM</span></div>
+    <div class="axis abs" id="axis"></div>
+    <div class="chassis br" id="box" style="left:300px;width:680px;height:204px">
+      <button class="tac play" type="button" data-act="Play" style="left:30px;top:22px;width:620px;height:92px;padding-top:24px"><i class="led"></i>&#9654; PLAY</button>
+      <button class="tac" type="button" data-act="Join game" style="left:30px;top:126px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Join game</button>
+      <button class="tac" type="button" data-act="Records" style="left:238px;top:126px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Records</button>
+      <button class="tac" type="button" data-act="Settings" style="left:446px;top:126px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Settings</button>
+    </div>
+    <div class="chassis br hov" id="cbox" style="left:300px;width:680px;height:92px"></div>
+    <div class="hov abs" id="bare" style="left:330px;width:620px;height:64px" hidden></div>
+    <svg class="quit" viewBox="0 0 32 32" fill="none" stroke="#c8d6ff" stroke-width="3" stroke-linecap="round"><path d="M16 4v11"/><path d="M9 9a10 10 0 1 0 14 0"/></svg>
+    <div class="rule" id="r1">y 454: action box ends</div>
+  </div></div>
+
+  <div class="legend">
+    <div><b>What changed</b>The tip box is gone from the main menu (its code stays for the pause menu and How to play). The player card moves into the slot under the action box. The action box keeps Play, Join game, Records and Settings.</div>
+    <div><b>Boxed or bare</b>Boxed uses the same chassis and corner brackets as the box above, so it is a straight swap for the tip box. Bare drops the chassis, since the card already has its own purple rim and a second frame can read as double.</div>
+    <div><b>Layout</b>A keeps every position as it is today, with the extra room at the bottom. B moves the title, box and card down a little so the group sits more centred. The dashed line marks where the action box ends.</div>
+  </div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)}, view=$('view'), stage=$('stage');
+function fit(){ stage.style.transform='scale('+(view.clientWidth/1280)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+var CARD='<div class="pcard" tabindex="0" role="button" aria-label="Player card: Anthony, Legend, rank 999. Opens cosmetics" style="%S"><div class="grid"></div>'
+ +'<div class="av"><svg viewBox="0 0 32 32" fill="none" stroke="#9db4ff" stroke-width="2"><circle cx="14" cy="18" r="9" fill="#6f86d6" stroke="#cfd8ff"/><path d="M20 12l8-8"/><circle cx="14" cy="18" r="2.5" fill="#cfd8ff" stroke="none"/></svg></div>'
+ +'<div class="nm">Anthony</div><div class="rk">Legend &middot; Rank 999</div>'
+ +'<svg class="bd" viewBox="0 0 44 50"><path d="M22 2l16 6v16c0 11-7 18-16 22C13 42 6 35 6 24V8z" fill="#2a2150" stroke="#f2c14e" stroke-width="3"/><path d="M4 14l-3 6 4 1M40 14l3 6-4 1" stroke="#f2c14e" stroke-width="3" fill="none"/><text x="22" y="29" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="14" fill="#fff">999</text></svg>'
+ +'<i class="nd" style="left:50%;top:-6px;margin-left:-4px"></i><i class="nd" style="left:67%;bottom:-6px"></i>'
+ +'<div class="sw">Switch profile</div></div>';
+var layout='a', frame='box';
+var POS={a:{title:66,axis:196,box:250,card:476},b:{title:84,axis:214,box:286,card:512}};
+function render(){
+  var p=POS[layout];
+  $('sign').style.top=p.title+'px'; $('axis').style.top=p.axis+'px'; $('box').style.top=p.box+'px';
+  var boxed=frame==='box';
+  var cardTop=p.card;
+  $('cbox').hidden=!boxed; $('bare').hidden=boxed;
+  if(boxed){ $('cbox').style.top=cardTop+'px'; $('cbox').innerHTML=CARD.replace('%S','left:30px;top:13px'); }
+  else { $('bare').style.top=(cardTop+14)+'px'; $('bare').innerHTML=CARD.replace('%S','left:0;top:0'); }
+  $('r1').style.top=(p.box+204)+'px'; $('r1').textContent='y '+(p.box+204)+': action box ends';
+  document.querySelectorAll('[data-l]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.l===layout)});
+  document.querySelectorAll('[data-f]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===frame)});
+}
+document.querySelectorAll('[data-l]').forEach(function(b){b.onclick=function(){layout=b.dataset.l;render()}});
+document.querySelectorAll('[data-f]').forEach(function(b){b.onclick=function(){frame=b.dataset.f;render()}});
+stage.addEventListener('click',function(e){
+  var t=e.target.closest('[data-act]'); if(t){ $('log').textContent='Tactile: '+t.dataset.act; return; }
+  if(e.target.closest('.pcard')) $('log').textContent='Opens cosmetics';
+});
+render();
+</script>
