@@ -1,0 +1,414 @@
+<title>Katana Combo Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, then two playable stages (combo chain, then the Alt strike), each a canvas + controls + beat list; numbers table and open questions last.
+   Colour: steel blade, crimson for the strike (matches Death Lotus). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --steel:#2f6f8f; --crim:#c4163f; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --arena:#12171b; --pip:#d3dacf;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:66ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:68ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.hot{background:var(--crim);border-color:var(--crim);color:#fff}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--panel);color:var(--fg)}
+.pips{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.pip{flex:1 1 120px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--panel);display:flex;flex-direction:column;gap:2px;transition:background .08s,border-color .08s}
+.pip b{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase}
+.pip span{font:500 12px var(--mono);color:var(--muted)}
+.pip.next{border-color:var(--steel)}
+.pip.on{background:var(--steel);border-color:var(--steel)} .pip.on b,.pip.on span{color:#fff}
+.pip.lunge.on{background:var(--crim);border-color:var(--crim)}
+.pip.queued::after{content:"QUEUED";font:600 11px var(--mono);letter-spacing:.08em;color:var(--steel)}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bar{flex:1 1 200px;min-width:0;height:14px;border:1px solid var(--line);border-radius:3px;background:var(--pip);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--steel);transition:width .1s}
+.bar.full i{background:var(--crim);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.bar.full i{animation:none}}
+.meter .num{font:500 13px var(--mono);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.msg{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 14px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<main>
+<header>
+  <h1>Katana combo rework</h1>
+  <p>The Katana stops being a single repeating slash. It becomes a fixed three-step chain, <strong>swipe, swipe, lunge</strong>, always in that order, and every hit charges a meter that pays for a map-wide <strong>Alt strike</strong>.</p>
+  <p>Both stages below are playable. Everything is mockup timing, not final numbers.</p>
+</header>
+
+<section class="stage" id="s1">
+  <h2>1 · The chain <small>swipe → swipe → lunge</small></h2>
+  <p class="blurb">Press attack to start the chain. Press again while a step is playing and the next step is queued, so tapping through the two swipes lands the lunge as soon as the second swipe ends. Stop for 0.7 s and the chain resets to the first swipe. The lunge replaces today's sheathe-and-quick-draw cut.</p>
+  <div class="frame">
+    <canvas id="c1" width="720" height="400" aria-label="Katana combo stage"></canvas>
+    <div class="hud" id="hud1">AUTO-PLAY</div>
+  </div>
+  <div class="pips" id="pips">
+    <div class="pip" id="pip0"><b>Swipe</b><span>20 dmg · +10 meter</span></div>
+    <div class="pip" id="pip1"><b>Swipe</b><span>20 dmg · +10 meter</span></div>
+    <div class="pip lunge" id="pip2"><b>Lunge</b><span>45 dmg · +20 meter</span></div>
+  </div>
+  <div class="meter"><span class="lab">Strike meter</span><div class="bar" id="bar1"><i></i></div><span class="num" id="num1">0 / 100</span></div>
+  <div class="controls">
+    <button class="primary" id="atk1" type="button">Attack</button>
+    <label class="chk"><input type="checkbox" id="auto1" checked> Auto-play</label>
+    <span class="kbd">Space</span><span class="msg" style="min-height:0">also attacks (click the stage first)</span>
+  </div>
+  <p class="msg" id="note1">The player slides back to the start after each lunge so the demo loops. In the game you stay where the lunge ends.</p>
+</section>
+
+<section class="stage" id="s2">
+  <h2>2 · The Alt strike <small>hold Alt, aim, release</small></h2>
+  <p class="blurb">When the meter is full, hold <span class="kbd">Alt</span>. Time crawls, every enemy gets a bracket, and the one nearest your cursor is marked with a route line that runs through it and ends behind it. Release Alt to go: the screen freezes, you cross the map as one cut, and the enemy falls a beat after you have already sheathed.</p>
+  <div class="frame">
+    <canvas id="c2" width="720" height="400" aria-label="Alt strike stage"></canvas>
+    <div class="hud" id="hud2">AUTO-PLAY</div>
+  </div>
+  <div class="meter"><span class="lab">Strike meter</span><div class="bar" id="bar2"><i></i></div><span class="num" id="num2">0 / 100</span></div>
+  <div class="controls">
+    <button id="hit2" type="button">Land a hit (+20)</button>
+    <button id="fill2" type="button">Fill meter</button>
+    <button class="hot" id="hold2" type="button">Hold to target</button>
+    <label class="chk"><input type="checkbox" id="auto2" checked> Auto-play</label>
+    <span class="kbd">Alt</span><span class="msg" style="min-height:0">hold, move the mouse, release (click the stage first)</span>
+  </div>
+  <p class="msg" id="msg2"></p>
+  <div class="cols">
+    <div class="card">
+      <h3>Beat by beat</h3>
+      <ol>
+        <li><b>hold</b><span>Time drops to 12% speed, the arena dims, brackets appear. Nearest enemy to the cursor gets the crimson reticle and a dashed route to its back.</span></li>
+        <li><b>0.35 s</b><span>Release. Time stops, black bars slide in, you crouch in the sheathed stance.</span></li>
+        <li><b>0.14 s</b><span>The cut: one bright line drawn across the map from you to the point behind the target. You are gone from the start and appear at the end. Invulnerable from release to the end of the cut.</span></li>
+        <li><b>0.65 s</b><span>Held frame. The line stays, you sheathe (small ring), the enemy is still standing.</span></li>
+        <li><b>0.8 s</b><span>The enemy splits along the line, 120 damage. Anything the route crossed takes 60 and a crimson stain. Time returns.</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Rules in this mockup</h3>
+      <ul>
+        <li>Costs the whole meter (100). Charge it with swipes (+10) and lunges (+20) per enemy hit.</li>
+        <li>No range limit and no line of sight. The route ignores walls and bullets.</li>
+        <li>You always end 52 px behind the target, facing away from where you came from.</li>
+        <li>Releasing Alt with less than a full meter does nothing, and the bar shakes.</li>
+        <li>The Alt strike is not part of the chain. Using it does not reset or advance swipe, swipe, lunge.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="plain">Numbers</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Attack</th><th>Shape</th><th>Timing</th><th>Damage</th><th>Meter</th></tr></thead>
+      <tbody>
+        <tr><td>Swipe 1</td><td>110° arc, sweeps left to right</td><td class="n">0.26 s</td><td class="n">20</td><td class="n">+10 per hit</td></tr>
+        <tr><td>Swipe 2</td><td>110° arc, sweeps back right to left</td><td class="n">0.26 s</td><td class="n">20</td><td class="n">+10 per hit</td></tr>
+        <tr><td>Lunge</td><td>Step forward 150 px, 260 px line through everything in it</td><td class="n">0.20 wind-up, 0.12 thrust, 0.24 recover</td><td class="n">45</td><td class="n">+20 per hit</td></tr>
+        <tr><td>Alt strike</td><td>Map-wide line to one enemy, land 52 px behind it</td><td class="n">0.35 wind-up, 0.14 cut, 0.65 hold</td><td class="n">120 target, 60 on route</td><td class="n">costs 100</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="cols">
+  <div class="card">
+    <h3>What changes from today</h3>
+    <ul>
+      <li>The 0.6 s sheathe and 220 px quick-draw (2.5× for 50) is replaced by the lunge as step 3.</li>
+      <li>Slashes stop being a repeat of one animation. The two swipes alternate direction.</li>
+      <li>A new meter on the Ninja HUD, charged by hits, spent by the Alt strike.</li>
+      <li>Alt strike is a new input. Shadow Step and Kunai Mark already teleport, so this needs a different look and a different trigger from both.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Open questions</h3>
+    <ul>
+      <li>Should the meter drain when you stop attacking, or hold until spent?</li>
+      <li>Is Alt the right key? The weapon-action key is already used by Shuriken and Kunai. Katana could use either.</li>
+      <li>Should the route cut other enemies for 60, or only the target?</li>
+      <li>Do bosses take the full 120, or a capped share?</li>
+      <li>Co-op: does the freeze stop time for all players, or only slow the striker's own view?</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var W=720,H=400,TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var easeOut=function(t){return 1-Math.pow(1-clamp(t,0,1),3)};
+var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $=function(id){return document.getElementById(id)};
+function setup(c){var d=Math.min(window.devicePixelRatio||1,2);c.width=W*d;c.height=H*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+function toLocal(c,e){var r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function grid(x){x.fillStyle='#12171b';x.fillRect(0,0,W,H);x.strokeStyle='rgba(255,255,255,.045)';x.lineWidth=1;x.beginPath();
+  for(var i=0;i<=W;i+=40){x.moveTo(i+.5,0);x.lineTo(i+.5,H)}for(var j=0;j<=H;j+=40){x.moveTo(0,j+.5);x.lineTo(W,j+.5)}x.stroke()}
+function drawPlayer(x,px,py,face,alpha){x.save();x.globalAlpha=alpha==null?1:alpha;x.translate(px,py);x.rotate(face);
+  x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(14,0);x.lineTo(5,-6);x.lineTo(5,6);x.closePath();x.fill();x.restore()}
+function floats(x,list,dt){for(var i=list.length-1;i>=0;i--){var f=list[i];f.age+=dt;if(f.age>f.life){list.splice(i,1);continue}
+  var a=1-f.age/f.life;x.save();x.globalAlpha=a;x.font='700 '+(f.big?30:18)+'px Barlow Condensed, sans-serif';x.textAlign='center';
+  x.fillStyle=f.col||'#fff';x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;var y=f.y-f.age*(f.big?30:40);x.strokeText(f.text,f.x,y);x.fillText(f.text,f.x,y);x.restore()}}
+
+/* ---------------- Stage 1: the chain ---------------- */
+var c1=$('c1'),x1=setup(c1);
+var S1={px:190,py:200,bx:190,step:0,phase:'idle',pt:0,gap:0,queued:false,hit:{},lx:190,meter:0,ready:0,auto:!rm,aT:0,
+  sw:{a0:0,a1:0,p:1,fade:1},streak:null,fl:[],ret:0,rx:0,
+  dum:[{x:285,y:188,f:0,w:0},{x:365,y:214,f:0,w:0},{x:440,y:196,f:0,w:0}]};
+var DUR=[.26,.26,.56],DMG=[20,20,45],GAIN=[10,10,20],HALF=55*Math.PI/180;
+function atkStart(){S1.phase='atk';S1.pt=0;S1.hit={};if(S1.step===2){S1.lx=S1.px}else{var a=S1.step===0?-HALF:HALF;S1.sw={a0:a,a1:-a,p:0,fade:1}}}
+function press1(){if(S1.phase==='idle'||S1.phase==='gap')atkStart();else if(S1.phase==='atk'&&!S1.queued)S1.queued=true}
+function hitD(d,dmg,gain){d.f=1;d.w=1;S1.fl.push({x:d.x,y:d.y-24,text:String(dmg),age:0,life:.7});
+  S1.meter=Math.min(100,S1.meter+gain)}
+function upd1(dt){
+  var s=S1;
+  if(s.auto){s.aT+=dt;
+    if(s.phase==='idle'&&s.aT>.9){press1();s.aT=0}
+    else if(s.phase==='atk'&&s.step<2&&s.pt/DUR[s.step]>.55&&!s.queued){press1()}}
+  if(s.phase==='atk'){
+    s.pt+=dt;var d=DUR[s.step],p=clamp(s.pt/d,0,1);
+    if(s.step<2){s.sw.p=p;
+      if(p>.4&&!s.hit.x){s.hit.x=1;for(var i=0;i<s.dum.length;i++){var m=s.dum[i],dx=m.x-s.px,dy=m.y-s.py;
+        if(Math.hypot(dx,dy)<98&&Math.abs(Math.atan2(dy,dx))<HALF+.15)hitD(m,DMG[s.step],GAIN[s.step])}}}
+    else{
+      if(p<.36)s.px=s.lx-14*easeOut(p/.36);
+      else{var q=easeOut((p-.36)/.21);s.px=lerp(s.lx-14,s.lx+150,q);
+        s.streak={x0:s.lx-14,x1:s.px,y:s.py,age:0}}
+      if(p>.45&&!s.hit.x){s.hit.x=1;for(var k=0;k<s.dum.length;k++){var n=s.dum[k];
+        if(n.x>s.lx&&n.x<s.lx+270&&Math.abs(n.y-s.py)<32)hitD(n,DMG[2],GAIN[2])}}}
+    if(s.pt>=d){s.step=(s.step+1)%3;
+      if(s.step===0){s.phase='return';s.ret=0;s.rx=s.px;s.queued=false}
+      else if(s.queued){s.queued=false;atkStart()}
+      else{s.phase='gap';s.gap=0}}}
+  else if(s.phase==='gap'){s.gap+=dt;if(s.gap>.7){s.step=0;s.phase='idle';s.aT=0}}
+  else if(s.phase==='return'){s.ret+=dt;s.px=lerp(s.rx,s.bx,easeOut(s.ret/.45));if(s.ret>=.45){s.px=s.bx;s.phase='idle';s.aT=0}}
+  if(s.phase!=='atk'||s.step===2){s.sw.fade=Math.max(0,s.sw.fade-dt*6)}
+  if(s.phase==='atk'&&s.step<2)s.sw.fade=1;
+  if(s.streak){s.streak.age+=dt;if(s.streak.age>.28)s.streak=null}
+  for(var j=0;j<s.dum.length;j++){var u=s.dum[j];u.f=Math.max(0,u.f-dt*4);u.w=Math.max(0,u.w-dt*3)}
+  if(s.meter>=100){s.ready+=dt;if(s.ready>1.4){s.meter=0;s.ready=0}}
+  var bar=$('bar1');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100);$('num1').textContent=Math.round(s.meter)+' / 100'+(s.meter>=100?' ★':'');
+  for(var i2=0;i2<3;i2++){var el=$('pip'+i2),cur=s.phase==='atk'&&s.step===i2,nxt=!cur&&((s.phase==='gap'||s.phase==='idle'||s.phase==='atk'&&s.queued)&&((s.phase==='atk'?(s.step+1)%3:s.step)===i2));
+    el.classList.toggle('on',cur);el.classList.toggle('next',nxt);el.classList.toggle('queued',nxt&&s.queued)}
+}
+function draw1(dt){
+  var x=x1,s=S1;grid(x);
+  /* lunge streak */
+  if(s.streak){var a=1-s.streak.age/.28;x.save();x.globalAlpha=a;var g=x.createLinearGradient(s.streak.x0,0,s.streak.x1+70,0);
+    g.addColorStop(0,'rgba(196,22,63,0)');g.addColorStop(.7,'rgba(255,255,255,.9)');g.addColorStop(1,'#fff');
+    x.fillStyle=g;x.beginPath();x.moveTo(s.streak.x0,s.streak.y-1);x.lineTo(s.streak.x1+70,s.streak.y-4);x.lineTo(s.streak.x1+70,s.streak.y+4);x.lineTo(s.streak.x0,s.streak.y+1);x.closePath();x.fill();
+    x.shadowColor='#ff4d78';x.shadowBlur=16;x.fill();x.restore()}
+  /* dummies */
+  for(var i=0;i<s.dum.length;i++){var d=s.dum[i],ox=d.w*Math.sin(d.w*14)*5;
+    x.save();x.translate(d.x+ox,d.y);x.fillStyle=d.f>0?'#fff':'#d8503f';x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,17,0,TAU);x.fill();x.stroke();
+    x.fillStyle='#4a1510';x.beginPath();x.moveTo(-17,0);x.lineTo(-9,-5);x.lineTo(-9,5);x.closePath();x.fill();x.restore()}
+  /* swipe */
+  if(s.sw.fade>0){var sw=s.sw,cur=lerp(sw.a0,sw.a1,easeOut(sw.p)),R=80;
+    x.save();x.globalAlpha=Math.min(1,sw.fade);x.translate(s.px,s.py);
+    var steps=10,dir=sw.a1>sw.a0?1:-1;
+    for(var k=0;k<steps;k++){var f0=k/steps,f1=(k+1)/steps,aa=lerp(sw.a0,cur,f0),bb=lerp(sw.a0,cur,f1);
+      x.fillStyle='rgba(180,225,245,'+(0.04+0.22*f1)+')';x.beginPath();x.moveTo(0,0);x.arc(0,0,R,aa,bb,dir<0);x.closePath();x.fill()}
+    x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=5;x.lineCap='round';x.beginPath();x.arc(0,0,R-2,lerp(sw.a0,cur,.65),cur,dir<0);x.stroke();
+    x.lineWidth=3;x.beginPath();x.moveTo(Math.cos(cur)*16,Math.sin(cur)*16);x.lineTo(Math.cos(cur)*R,Math.sin(cur)*R);x.stroke();x.restore()}
+  /* lunge blade */
+  if(s.phase==='atk'&&s.step===2){var p=clamp(s.pt/DUR[2],0,1);x.save();x.translate(s.px,s.py);x.strokeStyle='#fff';x.lineWidth=3;x.lineCap='round';x.beginPath();
+    if(p<.36){x.moveTo(0,6);x.lineTo(-30,10)}else{x.moveTo(8,0);x.lineTo(70,0)}x.stroke();x.restore()}
+  drawPlayer(x,s.px,s.py,0);
+  floats(x,s.fl,dt);
+  var lab=s.phase==='atk'?(s.step===2?'LUNGE':'SWIPE '+(s.step+1)):(s.phase==='gap'?'WINDOW '+Math.max(0,(.7-s.gap)).toFixed(1)+'s':'READY');
+  $('hud1').textContent=(s.auto?'AUTO-PLAY · ':'')+lab;
+}
+
+/* ---------------- Stage 2: the Alt strike ---------------- */
+var c2=$('c2'),x2=setup(c2);
+var S2={px:90,py:320,face:0,meter:0,phase:'idle',pt:0,ts:1,clock:0,sel:-1,cur:{x:400,y:180},auto:!rm,aT:0,aS:0,aA:0,aB:0,
+  dim:0,lt:0,flash:0,shake:0,fl:[],stain:[],path:null,halves:null,en:[],shakeBar:0,ghost:[]};
+var SPAWNS=[[250,110],[430,260],[560,110],[640,300],[330,340],[500,190]];
+SPAWNS.forEach(function(p,i){S2.en.push({ox:p[0],oy:p[1],rad:14+i*3,spd:.5+i*.13,ph:i*1.7,alive:true,f:0,app:1})});
+function epos(e){return{x:e.ox+Math.cos(S2.clock*e.spd+e.ph)*e.rad,y:e.oy+Math.sin(S2.clock*e.spd+e.ph)*e.rad*.7}}
+function alive(){return S2.en.filter(function(e){return e.alive})}
+function pickSel(){var best=-1,bd=1e9;S2.en.forEach(function(e,i){if(!e.alive)return;var p=epos(e),d=Math.hypot(p.x-S2.cur.x,p.y-S2.cur.y);if(d<bd){bd=d;best=i}});S2.sel=best}
+function setMsg(t){$('msg2').textContent=t}
+function startTarget(){var s=S2;if(s.phase!=='idle')return;
+  if(s.meter<100){s.shakeBar=.4;setMsg('Meter '+Math.round(s.meter)+' / 100. Land more hits first.');return}
+  s.phase='target';s.pt=0;pickSel();setMsg('Aim with the mouse, then release Alt.')}
+function release(){var s=S2;if(s.phase!=='target')return;if(s.sel<0){s.phase='idle';return}fire(s.sel)}
+function fire(i){var s=S2,e=s.en[i],p=epos(e),dx=p.x-s.px,dy=p.y-s.py,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
+  var ex=clamp(p.x+ux*52,24,W-24),ey=clamp(p.y+uy*52,24,H-24);
+  s.path={x0:s.px,y0:s.py,x1:ex,y1:ey,tx:p.x,ty:p.y,ux:ux,uy:uy,idx:i};s.meter=0;s.phase='wind';s.pt=0;s.face=Math.atan2(uy,ux);setMsg('')}
+function segDist(px,py,a,b,c,d){var vx=c-a,vy=d-b,t=clamp(((px-a)*vx+(py-b)*vy)/(vx*vx+vy*vy||1),0,1);return Math.hypot(px-(a+vx*t),py-(b+vy*t))}
+function cutNow(){var s=S2,pa=s.path,e=s.en[pa.idx];e.alive=false;
+  s.halves={x:pa.tx,y:pa.ty,ux:pa.ux,uy:pa.uy,age:0};
+  s.fl.push({x:pa.tx,y:pa.ty-30,text:'120',age:0,life:1.3,big:true,col:'#ff4d78'});
+  s.stain.push({x0:pa.x0,y0:pa.y0,x1:pa.x1,y1:pa.y1,age:0});
+  s.en.forEach(function(o,i){if(!o.alive||i===pa.idx)return;var q=epos(o);
+    if(segDist(q.x,q.y,pa.x0,pa.y0,pa.x1,pa.y1)<26){o.f=1;s.fl.push({x:q.x,y:q.y-24,text:'60',age:0,life:.9,col:'#fff'})}});
+  s.flash=.35;s.shake=7}
+function respawn(){var s=S2;s.en.forEach(function(e){if(e.alive)return;var tries=0,x,y;
+  do{x=80+Math.random()*(W-160);y=50+Math.random()*(H-100);tries++}while(Math.hypot(x-s.px,y-s.py)<180&&tries<20);
+  e.ox=x;e.oy=y;e.alive=true;e.app=0})}
+function upd2(dt){var s=S2;
+  var tsT=1,dimT=0,ltT=0;
+  if(s.phase==='target'){tsT=.12;dimT=1;ltT=0}
+  if(s.phase==='wind'||s.phase==='dash'||s.phase==='freeze'){tsT=0;dimT=.6;ltT=1}
+  if(s.phase==='cut'){tsT=.5;dimT=.2;ltT=1}
+  s.ts=tsT;s.clock+=dt*s.ts;s.dim=lerp(s.dim,dimT,clamp(dt*10,0,1));s.lt=lerp(s.lt,ltT,clamp(dt*9,0,1));
+  s.flash=Math.max(0,s.flash-dt*1.6);s.shake=Math.max(0,s.shake-dt*18);s.shakeBar=Math.max(0,s.shakeBar-dt);
+  s.en.forEach(function(e){e.f=Math.max(0,e.f-dt*3);if(e.app<1)e.app=Math.min(1,e.app+dt*2)});
+  /* auto-play */
+  if(s.auto){
+    if(s.phase==='idle'){
+      if(s.meter<100){s.aT+=dt;if(s.aT>.5){s.aT=0;s.meter=Math.min(100,s.meter+20);var q=epos(alive()[0]||s.en[0]);s.fl.push({x:q.x,y:q.y-20,text:'+20',age:0,life:.6,col:'#7cc4e6'})}}
+      else{s.aT+=dt;if(s.aT>.7){s.aT=0;s.aS=0;var al=s.en.map(function(e,i){return i}).filter(function(i){return s.en[i].alive});
+        s.aA=al[Math.floor(Math.random()*al.length)];
+        s.aB=al.slice().sort(function(a,b){var pa=epos(s.en[a]),pb=epos(s.en[b]);return Math.hypot(pb.x-s.px,pb.y-s.py)-Math.hypot(pa.x-s.px,pa.y-s.py)})[0];
+        startTarget()}}}
+    else if(s.phase==='target'){s.aS+=dt;var ti=s.aS>.9?s.aB:s.aA,tp=epos(s.en[ti]);s.cur.x=lerp(s.cur.x,tp.x,clamp(dt*9,0,1));s.cur.y=lerp(s.cur.y,tp.y,clamp(dt*9,0,1));
+      if(s.aS>1.9)release()}}
+  if(s.phase==='target'){pickSel();if(s.sel<0)s.phase='idle'}
+  if(s.phase==='wind'){s.pt+=dt;if(s.pt>=.35){s.phase='dash';s.pt=0}}
+  else if(s.phase==='dash'){s.pt+=dt;if(s.pt>=.14){s.phase='freeze';s.pt=0;s.px=s.path.x1;s.py=s.path.y1;s.face=Math.atan2(s.path.uy,s.path.ux);s.flash=.8;s.shake=5}}
+  else if(s.phase==='freeze'){s.pt+=dt;if(s.pt>=.65){s.phase='cut';s.pt=0;cutNow()}}
+  else if(s.phase==='cut'){s.pt+=dt;if(s.pt>=.8){s.phase='after';s.pt=0}}
+  else if(s.phase==='after'){s.pt+=dt;if(s.pt>=.9){s.phase='idle';s.pt=0;s.aT=0;respawn();s.halves=null;s.path=null}}
+  if(s.halves)s.halves.age+=dt;
+  for(var i=s.stain.length-1;i>=0;i--){s.stain[i].age+=dt;if(s.stain[i].age>2.2)s.stain.splice(i,1)}
+  var bar=$('bar2');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100);$('num2').textContent=Math.round(s.meter)+' / 100'+(s.meter>=100?' ★':'');
+  bar.style.transform=s.shakeBar>0?'translateX('+(Math.sin(s.shakeBar*60)*4).toFixed(1)+'px)':'none';
+  var h=$('hold2');h.classList.toggle('hot',s.phase!=='target');h.classList.toggle('primary',s.phase==='target');h.textContent=s.phase==='target'?'Release to strike':'Hold to target';
+}
+function slashLine(x,p,a,w,col){x.save();x.globalAlpha=a;x.lineCap='round';
+  x.strokeStyle=col||'#ff4d78';x.lineWidth=w*4;x.globalAlpha=a*.25;x.beginPath();x.moveTo(p.x0,p.y0);x.lineTo(p.x1,p.y1);x.stroke();
+  x.globalAlpha=a;x.strokeStyle='#fff';x.lineWidth=w;x.beginPath();x.moveTo(p.x0,p.y0);x.lineTo(p.x1,p.y1);x.stroke();x.restore()}
+function drawEnemy(x,e,i,hi){var p=epos(e);x.save();x.translate(p.x,p.y);x.globalAlpha=e.app;
+  var ang=Math.atan2(S2.py-p.y,S2.px-p.x);x.rotate(ang);
+  x.fillStyle=e.f>0?'#fff':(hi?'#ff6a55':'#d8503f');x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,15,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(15,0);x.lineTo(7,-5);x.lineTo(7,5);x.closePath();x.fill();x.restore();return p}
+function brackets(x,p,r,col,w){x.save();x.strokeStyle=col;x.lineWidth=w;x.beginPath();
+  [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(c){var cx=p.x+c[0]*r,cy=p.y+c[1]*r;x.moveTo(cx-c[0]*7,cy);x.lineTo(cx,cy);x.lineTo(cx,cy-c[1]*7)});x.stroke();x.restore()}
+function draw2(dt){var x=x2,s=S2;
+  x.save();if(s.shake>0)x.translate((Math.random()-.5)*s.shake,(Math.random()-.5)*s.shake);
+  grid(x);
+  /* stains */
+  s.stain.forEach(function(st){var a=Math.max(0,1-st.age/2.2);slashLine(x,st,a*.55,2,'#c4163f')});
+  /* enemies */
+  var pos={};
+  s.en.forEach(function(e,i){if(!e.alive)return;pos[i]=drawEnemy(x,e,i,s.phase==='target'&&i===s.sel)});
+  /* halves */
+  if(s.halves){var h=s.halves,q=clamp(h.age/.8,0,1),off=easeOut(q)*26,a=1-clamp((q-.4)/.6,0,1),an=Math.atan2(h.uy,h.ux),nx=-h.uy,ny=h.ux;
+    [[1,0],[-1,Math.PI]].forEach(function(hv){x.save();x.globalAlpha=a;x.translate(h.x+nx*off*hv[0],h.y+ny*off*hv[0]);x.fillStyle='#d8503f';x.strokeStyle='#ff4d78';x.lineWidth=2;
+      x.beginPath();x.arc(0,0,15,an+hv[1],an+hv[1]+Math.PI);x.closePath();x.fill();x.stroke();x.restore()})}
+  /* dim */
+  if(s.dim>.01){x.fillStyle='rgba(4,6,10,'+(.5*s.dim)+')';x.fillRect(0,0,W,H);
+    /* re-draw enemies on top of dim so they read */
+    s.en.forEach(function(e,i){if(e.alive)drawEnemy(x,e,i,s.phase==='target'&&i===s.sel)})}
+  /* targeting overlay */
+  if(s.phase==='target'){
+    s.en.forEach(function(e,i){if(!e.alive)return;var p=epos(e);brackets(x,p,i===s.sel?24:20,i===s.sel?'#ff4d78':'rgba(255,255,255,.55)',i===s.sel?2.5:1.5)});
+    if(s.sel>=0){var p=epos(s.en[s.sel]),dx=p.x-s.px,dy=p.y-s.py,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,ex=clamp(p.x+ux*52,24,W-24),ey=clamp(p.y+uy*52,24,H-24);
+      x.save();x.setLineDash([9,7]);x.lineDashOffset=-performance.now()/40;x.strokeStyle='#ff4d78';x.lineWidth=2;x.beginPath();x.moveTo(s.px,s.py);x.lineTo(ex,ey);x.stroke();x.setLineDash([]);
+      x.beginPath();x.arc(ex,ey,14,0,TAU);x.strokeStyle='rgba(95,208,196,.9)';x.stroke();
+      x.fillStyle='rgba(95,208,196,.25)';x.fill();
+      x.translate(ex,ey);x.rotate(Math.atan2(uy,ux));x.fillStyle='rgba(95,208,196,.9)';x.beginPath();x.moveTo(9,0);x.lineTo(1,-5);x.lineTo(1,5);x.closePath();x.fill();x.restore();
+      x.save();x.translate(p.x,p.y);x.rotate(performance.now()/900);x.strokeStyle='#ff4d78';x.lineWidth=2;x.setLineDash([6,6]);x.beginPath();x.arc(0,0,30,0,TAU);x.stroke();x.restore()}
+    x.save();x.strokeStyle='rgba(255,255,255,.8)';x.lineWidth=1.5;x.beginPath();x.moveTo(s.cur.x-9,s.cur.y);x.lineTo(s.cur.x+9,s.cur.y);x.moveTo(s.cur.x,s.cur.y-9);x.lineTo(s.cur.x,s.cur.y+9);x.stroke();x.restore()}
+  /* player + strike visuals */
+  var pa=s.path;
+  if(s.phase==='wind'){var c=clamp(s.pt/.35,0,1);drawPlayer(x,s.px-ux0()*6*c,s.py-uy0()*6*c,s.face)}
+  else if(s.phase==='dash'){var q2=clamp(s.pt/.14,0,1),hx=lerp(pa.x0,pa.x1,q2),hy=lerp(pa.y0,pa.y1,q2);
+    slashLine(x,{x0:pa.x0,y0:pa.y0,x1:hx,y1:hy},1,4);
+    [.2,.45,.7].forEach(function(f){if(q2>f)drawPlayer(x,lerp(pa.x0,pa.x1,f*q2),lerp(pa.y0,pa.y1,f*q2),s.face,.25*(1-f))})}
+  else if(s.phase==='freeze'){var a=lerp(1,.4,clamp(s.pt/.65,0,1));slashLine(x,pa,a,3);drawPlayer(x,s.px,s.py,s.face);
+    if(s.pt>.35){var r=(s.pt-.35)/.3*26;x.save();x.globalAlpha=1-clamp((s.pt-.35)/.3,0,1);x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(s.px,s.py,14+r,0,TAU);x.stroke();x.restore()}
+    /* hairline appears on the enemy just before the cut */
+    if(s.pt>.45){var t=pa;x.save();x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.5;x.beginPath();x.moveTo(t.tx-t.ux*17,t.ty-t.uy*17);x.lineTo(t.tx+t.ux*17,t.ty+t.uy*17);x.stroke();x.restore()}}
+  else drawPlayer(x,s.px,s.py,s.face);
+  if(s.phase==='cut'||s.phase==='after')slashLine(x,pa,Math.max(0,.4-s.pt*.5),3);
+  floats(x,s.fl,dt);
+  /* flash + letterbox */
+  if(s.flash>0){x.fillStyle='rgba(255,255,255,'+Math.min(.85,s.flash)+')';x.fillRect(0,0,W,H)}
+  x.restore();
+  var bh=48*s.lt;x.fillStyle='#000';x.fillRect(0,0,W,bh);x.fillRect(0,H-bh,W,bh);
+  x.font='500 12px IBM Plex Mono, monospace';x.textAlign='center';x.fillStyle='rgba(255,255,255,.85)';
+  if(s.phase==='target')x.fillText('RELEASE ALT TO STRIKE',W/2,H-14);
+  var lbl={idle:'READY',target:'TARGETING',wind:'STANCE',dash:'CUT',freeze:'HELD FRAME',cut:'FALLS',after:'RESOLVE'}[s.phase];
+  $('hud2').textContent=(s.auto?'AUTO-PLAY · ':'')+lbl;
+}
+function ux0(){return S2.path?S2.path.ux:1}function uy0(){return S2.path?S2.path.uy:0}
+
+/* ---------------- input ---------------- */
+function userTakeover(which){if(which===1&&S1.auto){S1.auto=false;$('auto1').checked=false}
+  if(which===2&&S2.auto){S2.auto=false;$('auto2').checked=false;if(S2.phase==='target'){S2.phase='idle'}}}
+$('atk1').addEventListener('click',function(){userTakeover(1);press1()});
+$('auto1').addEventListener('change',function(e){S1.auto=e.target.checked;S1.aT=0});
+$('auto2').addEventListener('change',function(e){S2.auto=e.target.checked;S2.aT=0});
+c1.tabIndex=0;c2.tabIndex=0;
+c1.addEventListener('pointerdown',function(){c1.focus()});
+c2.addEventListener('pointerdown',function(e){c2.focus();if(S2.phase==='target'&&!S2.auto){S2.cur=toLocal(c2,e)}});
+c2.addEventListener('pointermove',function(e){if(!S2.auto){S2.cur=toLocal(c2,e)}});
+c1.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();if(!e.repeat){userTakeover(1);press1()}}});
+c2.addEventListener('keydown',function(e){if(e.key==='Alt'){e.preventDefault();if(!e.repeat){userTakeover(2);startTarget()}}});
+c2.addEventListener('keyup',function(e){if(e.key==='Alt'){e.preventDefault();release()}});
+c2.addEventListener('blur',function(){if(S2.phase==='target'&&!S2.auto)S2.phase='idle'});
+$('hit2').addEventListener('click',function(){userTakeover(2);if(S2.phase==='idle'){S2.meter=Math.min(100,S2.meter+20);S2.fl.push({x:S2.px,y:S2.py-24,text:'+20',age:0,life:.6,col:'#7cc4e6'});setMsg('')}});
+$('fill2').addEventListener('click',function(){userTakeover(2);if(S2.phase==='idle'){S2.meter=100;setMsg('')}});
+var hold=$('hold2');
+hold.addEventListener('pointerdown',function(e){e.preventDefault();userTakeover(2);startTarget()});
+['pointerup','pointercancel'].forEach(function(n){hold.addEventListener(n,function(){release()})});
+hold.addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();userTakeover(2);if(S2.phase==='target')release();else startTarget()}});
+
+/* ---------------- loop ---------------- */
+var last=performance.now();
+function frame(t){var dt=Math.min(.05,(t-last)/1000);last=t;upd1(dt);upd2(dt);draw1(dt);draw2(dt);requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>
