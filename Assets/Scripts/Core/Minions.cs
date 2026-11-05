@@ -219,9 +219,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Sacrifice, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Instant = true,
-                Name = "Sacrifice", Cooldown = 10f, Desc = "All your minions explode; your companions return 3 s later.",
-                Capstone = "Double explosion damage, and your companions return at once.",
+                Id = AbilityId.Hydra, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1,
+                Name = "Hydra", Cooldown = 18f, Desc = "A three-headed hydra rises at your cursor for 8 s. Each head picks its own enemy and spits venom at it (10 damage, every 0.6 s per head).",
+                Capstone = "A fourth head.",
+                Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
@@ -367,17 +368,9 @@ namespace Arena
                     Sounds.Add(Sfx.Summon);
                     break;
                 }
-                case AbilityId.Sacrifice:
-                {
-                    var mine = new List<Minion>();
-                    foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id)
-                            mine.Add(m);
-                    foreach (var m in mine)
-                        ExplodeMinion(m, 60f * dmg * (cap ? 2f : 1f), 90f);
-                    p.CompanionCd = cap ? 0f : 3f;
+                case AbilityId.Hydra:
+                    CastHydra(p, target, pw);  // Hydra.cs (mastered: a fourth head)
                     break;
-                }
                 case AbilityId.AlphaCall:
                     p.FrenzyT = 6f * pw;
                     if (cap)
@@ -533,6 +526,11 @@ namespace Arena
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
                         expired.Add(m);
+                    continue;
+                }
+                if (m.Kind == MinionKind.Hydra)
+                {
+                    TickHydra(m, dmg);  // Hydra.cs
                     continue;
                 }
                 if (m.Kind == MinionKind.HiveDrone)

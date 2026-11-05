@@ -405,6 +405,7 @@ namespace Arena
         public float SentT;              // host: how long it has been out
         public int Stings;               // host: a Hive Drone's stings left on this sortie (QueenLoot.cs)
         public int LinkTo;               // replicated: the player a Soul Lantern is linked to (SoulLantern.cs)
+        public int Head;                 // host: a Hydra's next head to spit (Hydra.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 

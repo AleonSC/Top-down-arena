@@ -138,6 +138,7 @@ static partial class Program
                     case AbilityId.Phoenix: abilityOk = minions.Contains(MinionKind.Phoenix); break;
                     case AbilityId.SoulLantern: abilityOk = minions.Contains(MinionKind.SoulLantern); break;
                     case AbilityId.BatSwarm: abilityOk = minions.Contains(MinionKind.Bat); break;
+                    case AbilityId.Hydra: abilityOk = minions.Contains(MinionKind.Hydra); break;
                     case AbilityId.AlphaCall: abilityOk = frenzy; break;
                 }
                 bool kitOk = p.Kit == kit && Math.Abs(host.Game.Players[id].MaxHp - p.Def.Hp * Defs.KitHpMult(kit)) < 0.5f
