@@ -20,7 +20,7 @@ namespace Arena
         bool pauseRecords;       // the lobby or pause menu showing the profile (ProfileUi.cs, without the Look tab)
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
-        int recordsSection;      // the Records tab's open row: 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms (ProfileUi.cs)
+        int recordsSection;      // the Records tab's open row: 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Recent runs (ProfileUi.cs)
         int howToTopic;          // HowToTopics
         string drawerKey;        // which window the drawer last slid in for
         float drawerAt = -10f;
@@ -946,6 +946,9 @@ namespace Arena
                     }
                     break;
                 }
+                case 6:
+                    DrawRecentRuns(p, t, col, k);  // RunGraphs.cs
+                    break;
                 default:
                     DrawRankRecords(p, t, col, k);  // RankUi.cs
                     break;

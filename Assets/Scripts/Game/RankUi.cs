@@ -414,8 +414,9 @@ namespace Arena
             if (p.Recent.Count == 0)
                 Ui.Label(new Rect(rx, top + 16f, rw, 60f), "Finish a run to earn your first XP.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
             y = top + 16f;
-            foreach (var l in p.Recent)
+            for (int li = 0; li < p.Recent.Count && li < Profile.RankPageRuns; li++)
             {
+                var l = p.Recent[li];
                 var rr = new Rect(rx, y, rw, 70f);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, 0.04f));
                 bool hunt = l.Result >= 2, won = l.Result == 1 || l.Result == 3;

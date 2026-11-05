@@ -54,7 +54,7 @@ static partial class Program
         var g2 = p.AwardXp(Rank.Award(false, 10, 2, 1, RunMod.ToughCrowd | RunMod.Nightfall, DifficultyLevel.Normal), 11, 0);
         Check(g2.RankBefore == 7 && g2.RankAfter == 8 && g2.Unlocked.Count == 1 && g2.Unlocked[0].Id == "trail-ember" && Rank.Of(p.Xp).Into == 310, "rank 7 + 810 XP is rank 8, which unlocks the Ember trail");
         Check(p.Recent.Count == 2 && p.Recent[0].Xp == 810 && p.Recent[0].MultPct == 150 && p.Recent[0].Mods == "Tough Crowd|Nightfall", "the run is logged, newest first");
-        for (int i = 0; i < 9; i++) p.AwardXp(Rank.Award(false, 1, 0, 0, RunMod.None, DifficultyLevel.Normal), 2, 0);
+        for (int i = 0; i < Profile.RecentKept + 3; i++) p.AwardXp(Rank.Award(false, 1, 0, 0, RunMod.None, DifficultyLevel.Normal), 2, 0);
         Check(p.Recent.Count == Profile.RecentKept, "only the last few runs are kept");
         p.Xp = Rank.XpAt(12);
         Check(!p.Equip(CosmeticKind.Frame, "frame-gold") && p.Frame == "" && !p.Equip(CosmeticKind.Trail, "frame-steel") && p.Equip(CosmeticKind.Frame, "frame-steel") && p.Frame == "frame-steel" && p.Equip(CosmeticKind.Trail, "trail-ember"), "you can equip what your rank has and the right kind, not more");

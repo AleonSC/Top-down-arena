@@ -6,7 +6,7 @@ namespace Arena
     /// and Records. On the left of the drawer: your card (badge, name, title, XP) and four tabs. Under the tabs, the rows of the open tab:
     ///   Look     the cosmetics (CosmeticsUi.cs: Frame, Trail, Background, Card background, Name effect, Aim line, Cursor)
     ///   Rank     the Reward ladder (CosmeticsUi.cs) and Rank and runs (RankUi.cs)
-    ///   Records  Overview, Bosses, Classes, Challenge rooms (MenuDrawer.cs, DrawRecordsSection)
+    ///   Records  Overview, Bosses, Classes, Challenge rooms, Recent runs (MenuDrawer.cs, DrawRecordsSection; RunGraphs.cs)
     ///   Unlocks  the unlock list
     /// The open row fills the panel on the right. It opens from your player card on the main menu (OpenProfile). In the lobby and pause
     /// menus it opens without the Look tab (nothing is renamed or equipped mid-run; Rank > Rank and runs still has Equip).
@@ -18,7 +18,7 @@ namespace Arena
 
         static readonly string[] ProfileTabs = { "Look", "Rank", "Records", "Unlocks" };
         static readonly string[] RankRows = { "Reward ladder", "Rank and runs" };
-        static readonly string[] RecordRows = { "Overview", "Bosses", "Classes", "Challenge rooms" };
+        static readonly string[] RecordRows = { "Overview", "Bosses", "Classes", "Challenge rooms", "Recent runs" };
 
         /// Open the profile on a tab (0 Look, 1 Rank, 2 Records, 3 Unlocks). Opening it ends the main menu's "your profile" nudge for good.
         void OpenProfile(int tab = 0)
@@ -122,7 +122,7 @@ namespace Arena
                     classWins++;
             foreach (var c in Challenges.All)
                 roomsWon += p.RoomWon(c);
-            Color[] cols = { Ui.Gold, Ui.Gold, new Color(1f, 0.6f, 0.3f), new Color(0.45f, 0.9f, 1f), Ui.Gold, tc };
+            Color[] cols = { Ui.Gold, Ui.Gold, new Color(1f, 0.6f, 0.3f), new Color(0.45f, 0.9f, 1f), Ui.Gold, tc, new Color(0.45f, 0.9f, 1f) };  // (4 Unlocks, 5 the Rank page, 6 Recent runs: sections past the row list)
             float y = 312f;
             if (profileTab == 0)
             {
@@ -152,13 +152,13 @@ namespace Arena
             }
             else if (profileTab == 2)
             {
-                string[] icons = { "ui_star", "ui_skull", "class_knight", "blink" };
-                string[] tags = { p.RunsStarted + " runs", bossesBeaten + " / " + RecordBosses.Length, classWins + " won", roomsWon + " won" };
+                string[] icons = { "ui_star", "ui_skull", "class_knight", "blink", "ui_book" };
+                string[] tags = { p.RunsStarted + " runs", bossesBeaten + " / " + RecordBosses.Length, classWins + " won", roomsWon + " won", p.Recent.Count == 0 ? "none yet" : "last " + p.Recent.Count };
                 for (int i = 0; i < RecordRows.Length; i++)
                 {
                     bool on = i == recordsSection;
                     var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                    if (DrawerRow(r, PixelArt.Get(icons[i]), RecordRows[i], i == 0 ? "Practice and dev-tool runs don't count" : null, null, tags[i], cols[i], on,
+                    if (DrawerRow(r, PixelArt.Get(icons[i]), RecordRows[i], i == 0 ? "Practice and dev-tool runs don't count" : i == 4 ? "Graphs of how each run went" : null, null, tags[i], cols[i], on,
                         i == 1 && bossesBeaten > 0 ? Ui.Good : (Color?)null))
                         recordsSection = i;
                     y += r.height + 4f;
@@ -194,7 +194,7 @@ namespace Arena
                     else
                         DrawRecordsSection(5, p, t, bossesBeaten, roomsWon, cols);  // the Rank page (RankUi.cs)
                     break;
-                case 2: DrawRecordsSection(recordsSection, p, t, bossesBeaten, roomsWon, cols); break;
+                case 2: DrawRecordsSection(recordsSection == 4 ? 6 : recordsSection, p, t, bossesBeaten, roomsWon, cols); break;  // (row 4 is Recent runs, page 6)
                 default: DrawRecordsSection(4, p, t, bossesBeaten, roomsWon, cols); break;  // Unlocks
             }
             EndPanelAnim();

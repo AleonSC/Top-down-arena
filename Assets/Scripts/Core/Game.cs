@@ -717,6 +717,7 @@ namespace Arena
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
             AgePatches(dt);  // Paths.cs (every game, so the floors look the same everywhere)
+            TickRunTimeline(dt);  // RunTimeline.cs (every game: the Recent runs graphs)
             TickArenaRules(dt);
             foreach (var e in Enemies.Values)
                 e.Flash = Math.Max(0f, e.Flash - dt);

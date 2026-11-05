@@ -73,6 +73,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Net.cs`: `NetPeer`, length-prefixed TCP
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
 - `SessionRecorder.cs`: session JSON recorder
+- `RunTimeline.cs`: Records > Recent runs data: `RunTimeline` (a sample of every player's running totals and HP% every 10 s of play: `Rates`, `Series`, `AccuracyPerWave`, text save/load), `RunTimelineStore` (`Profile.Folder/runs/<id>.run`, newest `Profile.RecentKept` kept), and the `Game` sampler (`TickRunTimeline` from `FixedStep`, `FinishTimeline` from the run's End record in `RunSaves.cs`). `RankLog` (in `Profile.cs`) carries the run's class, mode, time, damage and the file name
 - `Replay.cs`: replays: `ReplayFile` (.replay: header, marks, frame lengths, every host message), `ReplayRecorder` (fed by `Session.Broadcast` and `Game.FixedStep`), `ReplayPlayer` (a private client-mode `Session` that reads the messages; seek, step, speeds)
 
 ## Saving, stats and text data (Core)
@@ -159,6 +160,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
 - `LobbyCrt.cs`: the lobby's cyan CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`; `LobbyEnter.cs` has the other entrances)
+- `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
 
@@ -195,6 +197,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
+| Recent runs graphs | `RunTimeline.cs` (data, sampler, files), `RunGraphs.cs` (page), Tests `RecentRuns.cs` |
 | Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs` (`Docs/Profiles.md`) |
 | Account rank, XP, cosmetics | `Rank.cs`, `Profile.cs`, `RankLook.cs`, `RankUi.cs`, `RankTrails.cs` (`Docs/Rank.md`) |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |

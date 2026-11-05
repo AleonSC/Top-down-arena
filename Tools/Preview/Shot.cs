@@ -24,6 +24,38 @@ static partial class Shot {
     pr.Recent.Add(new RankLog { Wave = 11, Result = 0, Xp = 810, MultPct = 150, Mods = "Tough Crowd|Nightfall" });
     pr.Recent.Add(new RankLog { Wave = 23, Result = 1, Xp = 3120, MultPct = 175, Mods = "Death Throes|Frenzy|Tough Crowd" });
     pr.Recent.Add(new RankLog { Wave = 14, Result = 0, Xp = 440, MultPct = 100, Mods = "" });
+    // Recent runs (RunGraphs.cs): eight made-up runs with curves, newest first, plus the three older log lines above.
+    var rng = new System.Random(5);
+    string[] modes = { "Endless", "Campaign", "Endless", "Campaign", "Endless", "Campaign", "Endless", "Endless" };
+    string[] cls = { "Knight Tank", "Soldier DPS", "Elementalist DPS", "Ninja Healer", "Knight Tank", "Soldier DPS", "Knight Tank", "Ninja Healer" };
+    int[] mins = { 21, 14, 15, 9, 18, 12, 7, 16 }, party = { 3, 1, 2, 1, 3, 1, 1, 2 };
+    bool[] won = { false, true, false, true, false, false, false, true };
+    var older = new System.Collections.Generic.List<RankLog>(pr.Recent);
+    pr.Recent.Clear();
+    for (int i = 0; i < 8; i++) {
+      var tl = new RunTimeline { Id = "2026110" + (8 - i) + "-120000-ab" + i, Mode = modes[i], Class = cls[i], Diff = "Normal", Mods = i % 2 == 0 ? "Tough Crowd" : "", Won = won[i], Wave = 6 + mins[i] / 2 };
+      string[] names = { "Anthony", "Mira", "Jonas" };
+      for (int pl = 0; pl < party[i]; pl++) tl.PlayerIndex(pl + 1, names[pl], pl == 0);
+      var tot = new RunStats[party[i]]; for (int pl = 0; pl < tot.Length; pl++) tot[pl] = new RunStats();
+      var hp = new float[party[i]]; for (int pl = 0; pl < hp.Length; pl++) hp[pl] = 100f;
+      for (float t = 0f; t <= mins[i] * 60f; t += 10f) {
+        float inten = 0.5f + t / (mins[i] * 60f) * 0.9f + 0.25f * (float)Math.Sin(t / 30f);
+        var smp = tl.Begin(t, 1 + (int)(t / 70f), t / 70f % 1f > 0.55f && (int)(t / 70f) % 5 == 4);
+        for (int pl = 0; pl < tot.Length; pl++) {
+          float dmg = (700f + 1200f * inten) * (0.7f + (float)rng.NextDouble() * 0.6f) / (1 + pl * 0.3f);
+          float hit = (float)rng.NextDouble() < 0.22f ? 380f * inten : 60f * (float)rng.NextDouble();
+          tot[pl].DamageDealt += dmg; tot[pl].DamageTaken += hit; tot[pl].HealingDone += pl == 0 && i == 3 ? 300f : 30f; tot[pl].Kills += (int)(dmg / 150f);
+          tot[pl].ShotsFired += 90; tot[pl].ShotsHit += (int)(90 * (0.35f + 0.4f * (float)rng.NextDouble()));
+          hp[pl] = Math.Max(4f, Math.Min(100f, hp[pl] - hit / 14f + (float)rng.NextDouble() * 6f + (rng.NextDouble() < 0.08 ? 18f : 0f)));
+          if (hp[pl] < 14f && rng.NextDouble() < 0.3) { tot[pl].Downs++; hp[pl] = 60f; }
+          tl.Set(smp, pl, tot[pl], hp[pl]);
+        }
+      }
+      tl.Seconds = mins[i] * 60f;
+      string fileId = RunTimelineStore.Save(tl, 99);
+      pr.Recent.Add(new RankLog { Wave = tl.Wave, Result = won[i] ? 1 : 0, Xp = 300 + (int)(tl.Wave * 38), MultPct = 100, Mods = tl.Mods, Class = cls[i], Mode = modes[i], Seconds = tl.Seconds, Dealt = tot[0].DamageDealt, Taken = tot[0].DamageTaken, Heal = tot[0].HealingDone, Players = party[i], File = i == 6 ? "" : fileId });
+    }
+    pr.Recent.AddRange(older);
     File.WriteAllText(Path.Combine(dir, "profile.txt"), pr.ToText()); Profile.Reload();
   }
   // A few made-up profiles in a temp folder, for the "Who's playing?" screen (ProfilesUi.cs).
