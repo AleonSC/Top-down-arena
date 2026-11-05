@@ -51,6 +51,10 @@ namespace Arena
             return s;
         }
 
+        /// A point in a strip: `along` out from o, `across` sideways measured at the far end (the strip is a slight cone, so it
+        /// is scaled in by Game.ArcTaper nearer you).
+        static V2 ArcPt(V2 o, V2 dir, V2 side, float len, float along, float across) => o + dir * along + side * (across * Game.ArcTaper(along, len));
+
         void ThunderBolt(System.Collections.Generic.List<V2> pts, float w, float a, Rgba col)
         {
             for (int i = 0; i + 1 < pts.Count; i++)
@@ -112,17 +116,18 @@ namespace Arena
             float len = Game.ArcLength(p, c), w = Game.ArcWidth(p);
             foreach (float sh in ArcShifts(p))
             {
-                V2 o = p.Disp + side * sh;
-                V2 a0 = o + side * w, a1 = o - side * w, e0 = a0 + dir * len, e1 = a1 + dir * len;
+                V2 o = p.Disp;
+                V2 a0 = ArcPt(o, dir, side, len, 0f, sh + w), a1 = ArcPt(o, dir, side, len, 0f, sh - w), e0 = ArcPt(o, dir, side, len, len, sh + w), e1 = ArcPt(o, dir, side, len, len, sh - w);
                 var line = col.WithAlpha(0.25f + 0.4f * c);
                 float off = -t * 40f / ThunderS;
                 ThunderDashes(a0, e0, 10f / ThunderS, 8f / ThunderS, off, 2.5f, line);
                 ThunderDashes(a1, e1, 10f / ThunderS, 8f / ThunderS, off, 2.5f, line);
                 ThunderDashes(a0, a1, 10f / ThunderS, 8f / ThunderS, off, 2.5f, line);
                 ThunderDashes(e0, e1, 10f / ThunderS, 8f / ThunderS, off, 2.5f, line);
-                GlowDisc(o + dir * (MathX.Fmod(t * 1.6f, 1f) * len), 22f / ThunderS, col, 0.25f + 0.3f * c);  // the pulse running out
+                GlowDisc(ArcPt(o, dir, side, len, MathX.Fmod(t * 1.6f, 1f) * len, sh), 22f / ThunderS, col, 0.25f + 0.3f * c);  // the pulse running out
                 float tick = Mathf.Sin(t * 30f) * 0.5f + 0.5f;  // the crackling marker at the far end
-                Line(o + dir * (len + 3f) + side * (12f / ThunderS), o + dir * (len + 3f) - side * (12f / ThunderS), 2.5f, col.WithAlpha(0.4f + 0.5f * tick));
+                V2 endMid = ArcPt(o, dir, side, len, len, sh);
+                Line(endMid + dir * 3f + side * (12f / ThunderS), endMid + dir * 3f - side * (12f / ThunderS), 2.5f, col.WithAlpha(0.4f + 0.5f * tick));
             }
         }
 
@@ -139,15 +144,15 @@ namespace Arena
             V2 mid = fx.Pos + dir * (len / 2f), reach = fx.Pos + dir * (len * run);
             GlowDisc(mid, len / 2f + 40f / ThunderS, col, 0.28f * fade);
             SetColor(col.WithAlpha(0.14f * fade));
-            Quad(fx.Pos + side * half, fx.Pos + dir * len + side * half, fx.Pos + dir * len - side * half, fx.Pos - side * half);
+            Quad(fx.Pos + side * (half * Game.ArcNear), fx.Pos + dir * len + side * half, fx.Pos + dir * len - side * half, fx.Pos - side * (half * Game.ArcNear));  // the cone: narrow at the staff
             uint s = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)(since * 30f) * 83492791) | 1u;  // re-rolls as it fades; the same on every screen
-            var spine = ThunderJag(fx.Pos, reach, Mathf.Max(6, (int)(len / 28f)), 28f, ref s);
+            var spine = ThunderJag(fx.Pos, reach, Mathf.Max(6, (int)(len / 28f)), 18f, ref s);
             ThunderBolt(spine, 5f, fade, col);
             if (since < 0.2f)
                 for (int i = 1; i < spine.Count - 1; i += 2)  // forks off it to the strip's edges
                 {
                     float sd = Rand01(ref s) < 0.5f ? -1f : 1f;
-                    V2 end = spine[i] + dir * ((16f + Rand01(ref s) * 18f) / ThunderS) + side * (sd * half * (0.6f + Rand01(ref s) * 0.5f) - (spine[i] - fx.Pos).Dot(side));
+                    V2 end = spine[i] + dir * ((16f + Rand01(ref s) * 18f) / ThunderS) + side * (sd * half * Game.ArcTaper((spine[i] - fx.Pos).Dot(dir), len) * (0.6f + Rand01(ref s) * 0.5f) - (spine[i] - fx.Pos).Dot(side));
                     ThunderBolt(ThunderJag(spine[i], end, 4, 9f, ref s), 2f, fade * 0.9f, col);
                 }
             GlowDisc(reach, 26f / ThunderS, Rgba.White, 0.8f * fade);  // the head of the bolt
@@ -160,7 +165,7 @@ namespace Arena
                     continue;
                 V2 rel = e.Pos - fx.Pos;
                 float along = rel.Dot(dir), across = rel.Dot(side);
-                if (along < -e.Radius || along > len + e.Radius || Mathf.Abs(across) > half + e.Radius)
+                if (along < -e.Radius || along > len + e.Radius || Mathf.Abs(across) > half * Game.ArcTaper(along, len) + e.Radius)
                     continue;
                 if (since < ThunderRun * (along / len) || since > Game.ArcStun)
                     continue;  // not before the bolt gets there, nor after the stun ends

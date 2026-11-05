@@ -56,14 +56,15 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Mockup · Elementalist DPS · Arc Lightning · round two</div>
+    <div class="eyebrow">Mockup · Elementalist DPS · Arc Lightning · round two (cone)</div>
     <h1>Arc <span>Lightning</span> 2</h1>
-    <p class="lead">Style A "Thunderhead" is built. Here are four <b>different</b> directions, none of them a jagged line
-      with forks (A, B, C and D in the first round were all variations on that): <b>E Skyfall</b> drops strikes from above
-      one after another, <b>F Lichtenberg</b> grows a fractal tree of lightning along the strip, <b>G Circuit</b> runs
-      right-angle pulses and lights a pixel matrix (it matches the CRT menus), and <b>H Ion Wave</b> sends a ringing
-      sine wave down the strip. Each covers <b>charge</b>, <b>release</b>, <b>aftermath</b>. Same numbers as the game
-      (now a slight cone, 36 px wide at the staff to 90 px at the far end, 160 to 800 px long, 0.9 s to full, 40 damage, 0.4 s stun).</p>
+    <p class="lead">Style A "Thunderhead" is built. Here are <b>eight</b> different directions, none of them the plain jagged line of
+      round one. <b>The strip is now a cone</b>: 48 px wide at the staff, 120 px at the far end (a little wider than before),
+      and the same cone is what hits enemies. Barrage's extra cones fan out from the staff. Top row, E–H: <b>Skyfall</b>
+      (strikes from above), <b>Lichtenberg</b> (a fractal tree), <b>Circuit</b> (pulses and a pixel matrix), <b>Ion Wave</b> (a
+      ringing sine). Second row, I–L: <b>Fan Bolts</b> (rays across the cone), <b>Ball Lightning</b> (rolling plasma),
+      <b>Shock Arcs</b> (sweeping wavefronts), <b>Shatter Floor</b> (the ground cracks). Each covers <b>charge</b>, <b>release</b>,
+      <b>aftermath</b>. Same numbers as the game: 160 to 800 px long, 0.9 s to full, 40 damage, 0.4 s stun.</p>
   </header>
 
   <section class="stage" aria-label="Live preview">
@@ -92,6 +93,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   <section class="notes">
     <h2>Notes for building it</h2>
     <ul>
+      <li>The cone is built in (<code>Game.ArcTaper</code>, <code>ArcNear</code> 0.4, far half-width 60): the hit test, the release effect and the charge outline all use it. Barrage's cones fan out from the staff and still never overlap.</li>
       <li>Same hooks as style A: charge in <code>DrawArcCharge</code>, release in <code>FxKind.ArcField</code> (<code>DrawArcFieldFx</code>), which already carries the strip's start, end, half width and colour. <b>No protocol change</b>: every pattern below is seeded by where the strip went off, so all screens draw the same thing.</li>
       <li>Only your own charge shows the strip preview (outline and markers), like today. Allies see the build-up at the caster only.</li>
       <li>E needs the strike times (<code>since = i * 0.28 / (n-1)</code>), F a cached tree per cast (about 350 segments, built once), G a 16 px cell grid snapped to the strip, H nothing but a sine. All of them are cheap next to the glow pass.</li>
@@ -107,10 +109,10 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   const TAU = Math.PI * 2, S = 0.55;
   const clamp01 = x => Math.max(0, Math.min(1, x));
   const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
-  const BOLT = [0.75, 0.85, 1], GOLD = [1, 0.82, 0.3], WHITE = [1, 1, 1], VIO = [0.72, 0.6, 1], CYAN = [0.4, 1, 0.9], ION = [0.55, 0.78, 1], AMBER = [1, 0.7, 0.3];
+  const BOLT = [0.75, 0.85, 1], GOLD = [1, 0.82, 0.3], WHITE = [1, 1, 1], VIO = [0.72, 0.6, 1], CYAN = [0.4, 1, 0.9], ION = [0.55, 0.78, 1], AMBER = [1, 0.7, 0.3], ICE = [0.62, 0.92, 1];
   const rgba = (c, a) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${Math.max(0, Math.min(1, a))})`;
   const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-  const LMIN = 160, LMAX = 800, HW = 45, STUN = 0.4, MIN_DRAW = 0.15, FULL_DRAW = 0.9, BODY = 16;
+  const LMIN = 160, LMAX = 800, HW = 60, STUN = 0.4, MIN_DRAW = 0.15, FULL_DRAW = 0.9, BODY = 16;
   const P = { x: 70, y: 210 };
   const SPOTS = [[170, -10], [300, 30], [420, -35], [540, 5], [650, 38], [760, -20], [230, 120], [480, -130], [700, 110]];
   const lenFor = c => LMIN + (LMAX - LMIN) * c;
@@ -123,7 +125,8 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
     for (let v = 0; v < n; v++) shifts.push(v === 0 ? 0 : (v % 2 ? 1 : -1) * 2 * HW * Math.ceil(v / 2));
     const enemies = SPOTS.map(([along, across]) => {
       let strip = -1;
-      for (let v = 0; v < n && strip < 0; v++) if (along <= len + 13 && Math.abs(across - shifts[v]) <= HW + 13) strip = v;
+      const tf = 0.4 + 0.6 * clamp01(along / len);
+      for (let v = 0; v < n && strip < 0; v++) if (along <= len + 13 && Math.abs(across - shifts[v] * tf) <= HW * tf + 13) strip = v;
       return { along, across, strip };
     });
     return { len, shifts, enemies };
@@ -233,6 +236,25 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   function bracket(ctx, x, y, r, col, a) {
     ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 1.8; const l = r * 0.55;
     for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { ctx.beginPath(); ctx.moveTo(x + sx * r, y + sy * (r - l)); ctx.lineTo(x + sx * r, y + sy * r); ctx.lineTo(x + sx * (r - l), y + sy * r); ctx.stroke(); }
+  }
+
+  // ---------- K, L helpers ----------
+  function coneClip(ctx, len) { ctx.beginPath(); ctx.moveTo(X(0), Y(-HW * 0.4)); ctx.lineTo(X(len), Y(-HW)); ctx.lineTo(X(len), Y(HW)); ctx.lineTo(X(0), Y(HW * 0.4)); ctx.closePath(); ctx.clip(); }
+  function arcLine(ctx, r, col, w, t, amp) {   // a wavefront: an arc about the staff, shivering
+    const R = rnd(7 + Math.floor(t * 24) * 5); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin = "round"; ctx.beginPath();
+    for (let a = -0.62; a <= 0.62; a += 0.04) { const rr = r * S + (R() - 0.5) * 2 * amp; a < -0.61 ? ctx.moveTo(P.x + Math.cos(a) * rr, P.y + Math.sin(a) * rr) : ctx.lineTo(P.x + Math.cos(a) * rr, P.y + Math.sin(a) * rr); }
+    ctx.stroke();
+  }
+  const SHARDS = {};
+  function shards(len) {   // the floor of the cone cut into triangles (arena px, local coords), cached per length
+    const key = Math.round(len); if (SHARDS[key]) return SHARDS[key];
+    const R = rnd(909), cols = Math.max(2, Math.round(len / 48)), rows = 3, pts = [], tris = [];
+    for (let i = 0; i <= cols; i++) { pts[i] = []; for (let j = 0; j <= rows; j++) { const a = Math.max(0, Math.min(len, i * len / cols + (i && i < cols ? (R() - 0.5) * 22 : 0))), u = (j / rows * 2 - 1); pts[i][j] = [a, u * HW * TF(a, len) * (j && j < rows ? 1 + (R() - 0.5) * 0.25 : 1)]; } }
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const A = pts[i][j], B = pts[i + 1][j], C = pts[i + 1][j + 1], D = pts[i][j + 1], flip = R() < 0.5;
+      for (const p of flip ? [[A, B, C], [A, C, D]] : [[A, B, D], [B, C, D]]) tris.push({ p, cx: (p[0][0] + p[1][0] + p[2][0]) / 3, R1: R(), R2: R() });
+    }
+    return SHARDS[key] = tris;
   }
 
   // ---------- The styles ----------
@@ -381,6 +403,126 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
         }
       },
       stun(ctx, x, y, r, t) { ctx.strokeStyle = rgba(ION, 0.8); ctx.lineWidth = 1.4; for (let i = 0; i < 2; i++) { ctx.beginPath(); ctx.arc(x, y, r * (1.4 + ((t * 3 + i * 0.5) % 1)), 0, TAU); ctx.globalAlpha = 1 - ((t * 3 + i * 0.5) % 1); ctx.stroke(); ctx.globalAlpha = 1; } }
+    },
+
+    fan: { key: "I", name: "Fan Bolts", col: BOLT, travel: 0.07,
+      hitT: (along, len) => along / len * 0.07 + 0.02,
+      charge(ctx, o) {
+        outline(ctx, o.len, 0.2, BOLT);
+        const n = 7, flick = Math.floor(o.t * 14);
+        for (let i = 0; i < n; i++) {   // thin rays reach out along the cone, longer as you charge
+          const u = (i / (n - 1) * 2 - 1) * 0.85, R = rnd(60 + i * 7 + flick * 13), L = o.len * (0.25 + 0.75 * o.c) * (0.85 + 0.15 * R());
+          const pts = jagged(X(0), Y(0), X(L), Y(u * HW * TF(L, o.len) ), 8, 5, R);
+          stroke(ctx, pts, 1.1, rgba(o.c > 0.95 ? GOLD : BOLT, 0.25 + 0.45 * o.c));
+        }
+        glow(ctx, P.x + 16, P.y, 10 + 22 * o.c, BOLT, 0.7);
+      },
+      release(ctx, o) {
+        const n = 7, f = Math.floor(o.since * 30), live = o.since < 0.42;
+        if (o.since < 0.4) {
+          ctx.fillStyle = rgba(BOLT, 0.12 * (1 - o.since / 0.4));
+          ctx.beginPath(); ctx.moveTo(X(0), Y(-HW * 0.4)); ctx.lineTo(X(o.len), Y(-HW)); ctx.lineTo(X(o.len), Y(HW)); ctx.lineTo(X(0), Y(HW * 0.4)); ctx.fill();
+        }
+        for (let i = 0; i < n; i++) {
+          const u = (i / (n - 1) * 2 - 1) * 0.9, order = Math.abs(i - 3), k = o.since - order * 0.012;
+          if (k < 0 || !live) continue;
+          const run = easeOut(k / 0.07), fade = clamp01(1 - (k - 0.06) / 0.34), R = rnd(300 + i * 11 + f * 17 + o.seed * 3);
+          const L = o.len * run, endY = u * HW * TF(L, o.len);
+          const pts = jagged(X(0), Y(0), X(L), Y(endY), Math.max(6, Math.round(L / 28)), 9 * (order === 0 ? 1 : 0.8), R);
+          bolt(ctx, pts, order === 0 ? 3.2 : 2.2, fade);
+          if (k < 0.2) for (let j = 2; j < pts.length - 1; j += 3) { const R2 = rnd(j * 5 + i * 3 + f); stroke(ctx, jagged(pts[j][0], pts[j][1], pts[j][0] + 10 + R2() * 12, pts[j][1] + (R2() - 0.5) * 26, 3, 4, R2), 1, rgba(WHITE, fade * 0.7)); }
+          glow(ctx, X(L), Y(endY), 18 + 10 * (run >= 1 ? 1 - k / 0.4 : 0), BOLT, fade);
+        }
+      },
+      stun(ctx, x, y, r, t) { const R = rnd(11 + Math.floor(t * 20) * 7 + Math.round(x)); for (let k = 0; k < 3; k++) { const a = R() * TAU; stroke(ctx, jagged(x, y, x + Math.cos(a) * r * 2.2, y + Math.sin(a) * r * 2.2, 3, 3, R), 1.2, rgba(WHITE, 0.85)); } }
+    },
+
+    orbs: { key: "J", name: "Ball Lightning", col: GOLD, travel: 0.32,
+      hitT: (along, len) => along / len * 0.3 + 0.05,
+      charge(ctx, o) {
+        outline(ctx, o.len, 0.18, GOLD);
+        const x = P.x + 22, r = 5 + 9 * o.c;   // one plasma ball swells at the staff, sparks orbiting it
+        glow(ctx, x, P.y, r * 3.2, GOLD, 0.8); glow(ctx, x, P.y, r * 1.6, WHITE, 0.9);
+        for (let i = 0; i < 4; i++) { const a = o.t * 7 + i * TAU / 4, rr = r * 1.8; glow(ctx, x + Math.cos(a) * rr, P.y + Math.sin(a) * rr, 5, BOLT, 0.9); }
+        const n = Math.max(1, Math.round(o.len / 140));   // dots showing where the balls will roll
+        for (let i = 1; i <= n; i++) { const a = i * o.len / n; for (const u of [-0.5, 0, 0.5]) glow(ctx, X(a), Y(u * HW * TF(a, o.len)), 4, GOLD, 0.25 + 0.2 * Math.sin(o.t * 6 + i)); }
+      },
+      release(ctx, o) {
+        const lanes = [-0.7, -0.35, 0, 0.35, 0.7], pos = [];
+        lanes.forEach((u, i) => {
+          const k = o.since - Math.abs(i - 2) * 0.04, run = clamp01(k / 0.3); if (k < 0) return;
+          const a = run * o.len, y = u * HW * TF(a, o.len), fade = run >= 1 ? clamp01(1 - (k - 0.3) / 0.2) : 1;
+          for (let t = 0; t < 14; t++) {   // beaded trail
+            const ta = a - t * 14; if (ta < 0) break;
+            glow(ctx, X(ta), Y(u * HW * TF(ta, o.len)), 6 * (1 - t / 14) + 2, GOLD, 0.6 * (1 - t / 14) * fade);
+          }
+          glow(ctx, X(a), Y(y), 22, GOLD, fade); glow(ctx, X(a), Y(y), 11, WHITE, fade);
+          if (run >= 1 && k < 0.5) { const kk = (k - 0.3) / 0.2; ctx.strokeStyle = rgba(GOLD, 0.8 * (1 - kk)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X(a), Y(y), 8 + 22 * easeOut(kk), 0, TAU); ctx.stroke(); }
+          if (fade > 0) pos.push([a, y, i]);
+        });
+        const f = Math.floor(o.since * 30);
+        for (const h of o.hits) for (const [a, y, i] of pos) {   // an arc from each ball to enemies it rolls past
+          if (Math.hypot(h.along - a, h.across - y) > 80) continue;
+          const R = rnd(55 + i * 7 + f * 3 + Math.round(h.along));
+          bolt(ctx, jagged(X(a), Y(y), X(h.along), Y(h.across), 4, 6, R), 1.5, 0.9, BOLT);
+        }
+      },
+      stun(ctx, x, y, r, t) { for (let i = 0; i < 3; i++) { const a = t * 6 + i * TAU / 3; glow(ctx, x + Math.cos(a) * r * 1.7, y + Math.sin(a) * r * 1.7, 5, GOLD, 0.9); } }
+    },
+
+    sonar: { key: "K", name: "Shock Arcs", col: ION, travel: 0.3,
+      hitT: (along, len) => along / len * 0.25 + 0.03,
+      charge(ctx, o) {
+        outline(ctx, o.len, 0.18, ION);
+        ctx.save(); coneClip(ctx, o.len);
+        for (let i = 0; i < 4; i++) {   // arcs drawn IN toward the staff while you charge
+          const ph = (o.t * 0.9 + i / 4) % 1, r = o.len * (1 - ph) + 20;
+          arcLine(ctx, r, rgba(ION, (0.15 + 0.5 * o.c) * Math.sin(ph * Math.PI)), 1.6, o.t, 3);
+        }
+        ctx.restore(); glow(ctx, P.x + 16, P.y, 10 + 18 * o.c, ION, 0.7);
+      },
+      release(ctx, o) {
+        ctx.save(); coneClip(ctx, o.len);
+        const fadeAll = clamp01(1 - o.since / 0.9);
+        const fronts = [0, 1, 2].map(i => ({ r: clamp01((o.since - i * 0.07) / 0.25) * o.len, i }));
+        const lead = fronts[0].r;
+        ctx.fillStyle = rgba(ION, 0.12 * fadeAll); ctx.fillRect(X(0), Y(-HW), (lead * S), 2 * HW * S);   // the swept ground glows
+        for (const { r, i } of fronts) {
+          if (r <= 1) continue; const a = clamp01(1 - (o.since - i * 0.07 - 0.25) / 0.35);
+          arcLine(ctx, r, rgba(ION, 0.35 * a), 9 - i * 2, o.t, 5); arcLine(ctx, r, rgba(WHITE, a), 3.2 - i * 0.7, o.t, 3);
+        }
+        ctx.restore();
+        for (const h of o.hits) { const k = o.since - (h.along / o.len * 0.25 + 0.03); if (k > 0 && k < 0.5) { ctx.strokeStyle = rgba(ION, 0.9 * (1 - k / 0.5)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X(h.along), Y(h.across), 6 + 22 * easeOut(k / 0.5), 0, TAU); ctx.stroke(); } }
+      },
+      stun(ctx, x, y, r, t) { ctx.strokeStyle = rgba(ION, 0.8); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r * 1.7, Math.PI * 0.6, Math.PI * 1.4); ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, r * 2.2, Math.PI * 0.7, Math.PI * 1.3); ctx.stroke(); }
+    },
+
+    shatter: { key: "L", name: "Shatter Floor", col: ICE, travel: 0.3,
+      hitT: (along, len) => along / len * 0.25 + 0.03,
+      charge(ctx, o) {
+        const tris = shards(o.len), flick = 0.6 + 0.4 * Math.sin(o.t * 30);
+        outline(ctx, o.len, 0.18, ICE);
+        ctx.lineWidth = 1; ctx.lineCap = "round";
+        for (const t of tris) {   // hairline cracks creep along the ground, more of them the longer you hold
+          if (t.cx > o.len * (0.2 + 0.8 * o.c) || t.R1 > 0.35 + 0.65 * o.c) continue;
+          ctx.strokeStyle = rgba(ICE, 0.32 * flick); ctx.beginPath(); ctx.moveTo(X(t.p[0][0]), Y(t.p[0][1])); ctx.lineTo(X(t.p[1][0]), Y(t.p[1][1])); ctx.stroke();
+        }
+        glow(ctx, P.x + 16, P.y, 8 + 18 * o.c, ICE, 0.7);
+      },
+      release(ctx, o) {
+        const tris = shards(o.len);
+        for (const t of tris) {
+          const k = o.since - (t.cx / o.len * 0.25 + t.R1 * 0.06); if (k < 0) continue;
+          const life = 0.35 + t.R2 * 0.5, a = clamp01(1 - k / life);
+          ctx.beginPath(); ctx.moveTo(X(t.p[0][0]), Y(t.p[0][1])); ctx.lineTo(X(t.p[1][0]), Y(t.p[1][1])); ctx.lineTo(X(t.p[2][0]), Y(t.p[2][1])); ctx.closePath();
+          if (a > 0) { ctx.fillStyle = rgba(k < 0.05 ? WHITE : ICE, a * (0.25 + 0.5 * t.R2)); ctx.fill(); }
+          const edge = k < 0.12 ? 1 : Math.max(0.22 * clamp01(1 - (k - 0.12) / 1.2), 0);   // the cracks stay as a scar
+          if (edge > 0) { ctx.strokeStyle = rgba(k < 0.12 ? WHITE : ICE, edge); ctx.lineWidth = k < 0.12 ? 1.8 : 1; ctx.stroke(); }
+        }
+        const head = clamp01(o.since / 0.25) * o.len; if (o.since < 0.3) glow(ctx, X(head), Y(0), 34, ICE, 1 - o.since / 0.3);
+        for (const h of o.hits) { const k = o.since - (h.along / o.len * 0.25 + 0.03); if (k > 0 && k < 0.5) { const R = rnd(Math.round(h.along) * 3 + 1); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + R() * 0.5, d = (10 + 22 * R()) * easeOut(k / 0.25); stroke(ctx, [[X(h.along), Y(h.across)], [X(h.along) + Math.cos(a) * d, Y(h.across) + Math.sin(a) * d]], 1.3, rgba(WHITE, 1 - k / 0.5)); } } }
+      },
+      stun(ctx, x, y, r, t) { ctx.strokeStyle = rgba(ICE, 0.85); ctx.lineWidth = 1.2; for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + 0.3; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r * 1.2, y + Math.sin(a) * r * 1.2); ctx.lineTo(x + Math.cos(a + 0.2) * r * 2.1, y + Math.sin(a + 0.2) * r * 2.1); ctx.stroke(); } }
     }
   };
 
@@ -395,9 +537,10 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
       if (k >= 0 && k < STUN) st.stun(ctx, X(e.along), Y(e.across), 13 * S * 1.4, clock);
     });
     L.shifts.forEach((sh, v) => {
-      ctx.save(); ctx.translate(0, sh * S);
+      const shy = sh * 0.6 / (since < 0 ? lenFor(chargeC) : L.len);
+      ctx.save(); ctx.transform(1, shy, 0, 1, 0, sh * S * 0.4 - shy * P.x);   // Barrage's cones fan out from the staff
       if (since < 0) st.charge(ctx, { len: lenFor(chargeC), c: chargeC, t: clock, seed: v });
-      else st.release(ctx, { len: L.len, c, since, t: clock, seed: v, hits: L.enemies.filter(e => e.strip === v).map(e => ({ along: e.along, across: e.across - sh })) });
+      else st.release(ctx, { len: L.len, c, since, t: clock, seed: v, hits: L.enemies.filter(e => e.strip === v).map(e => ({ along: e.along, across: e.across - sh * TF(e.along, L.len) })) });
       ctx.restore();
     });
     caster(ctx, since < 0 ? chargeC : Math.max(0, 1 - since / 0.25) * c, st.col);
@@ -433,6 +576,10 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
     sky: ["Ground markers show where each strike will land; the far one pulses and goes gold at full charge.", "Strikes drop from above one after another along the strip (one per 110 px, 0.28 s in total): white flash, a ring, sparks.", "Each strike leaves a scorch with cracks that fades over 1.3 s.", "Gold dashed ring on the enemy for 0.4 s.", "Heavy, a storm falling on the arena."],
     tree: ["Pale violet tendrils creep out of the staff and branch, as far as the strip will reach.", "A fractal tree whips down the strip in 0.26 s: white-hot trunk, three levels of branches, and an extra branch to each enemy.", "It cools from white to violet and stays as a scar for a second.", "Violet crackle on the enemy.", "Organic and eerie, like a Lichtenberg figure burned into the floor."],
     circ: ["Three right-angle traces run out of the staff to the strip's far end, with corner marks.", "Pulses race down the traces and a 16 px pixel matrix lights up in a wave across the whole strip; brackets lock onto enemies.", "Pixels fade out one by one (about 0.7 s).", "Square brackets round the enemy for 0.4 s.", "Digital, matches the CRT menus. The only look with a hard grid."],
+    fan: ["Seven thin rays flicker out of the staff across the cone, reaching farther the longer you hold.", "Seven bolts fire out together, the middle one first, each fanning to a different point on the far edge; they re-roll every frame and flash at their tips.", "The cone glows faintly and the bolts fade over about 0.4 s.", "White crackle round the enemy.", "The most literal match for the cone: a lightning arc fanning out. Closest to the old look, so the safest pick."],
+    orbs: ["One plasma ball swells at the staff with sparks circling it; dots on the ground show the three lanes it will roll along.", "Five glowing balls roll down five lanes of the cone with beaded trails; each throws an arc to any enemy it passes.", "The balls pop in a ring at the far end.", "Three sparks orbit the enemy.", "Slower and more visible than the others: you can watch it travel. Reads as a projectile volley."],
+    sonar: ["Arcs are pulled in toward the staff, brighter the longer you hold (the opposite direction to the release).", "Three bright shock fronts sweep out through the cone, each an arc about the staff, with the swept ground glowing behind.", "The glow fades in about 0.9 s.", "Double arc round the enemy.", "Reads as a shockwave, the cone's shape coming from the arcs themselves."],
+    shatter: ["Hairline cracks creep across the ground, more of them the longer you hold.", "The cone's floor is cut into glass-like shards that flash white then blue in a wave outward, with a bright crack line.", "The crack lines stay on the floor as a scar for about 1.3 s.", "A burst of cracks round the enemy.", "Lightning as a thing that happens to the floor. The most distinctive, and the busiest."],
     wave: ["A two-line sine (a double helix) shivers inside the strip and grows in height and pitch with the charge.", "A bright wave packet runs down the strip in 0.18 s; ripples spread where it passes an enemy.", "The wave keeps ringing along the whole strip and dies away over about a second.", "Two repeating ripple rings round the enemy.", "Clean and readable: the shape of the strip is the shape of the wave."]
   };
   keys.forEach(k => {

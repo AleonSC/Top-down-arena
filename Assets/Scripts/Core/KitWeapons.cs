@@ -677,12 +677,16 @@ namespace Arena
 
         /// Arc Lightning: hold to charge a strip of ground in front of you, longer the longer you hold (out to half
         /// the arena); let go and lightning shocks everything in it.
-        public const float ArcMin = 160f, ArcMax = Width * 0.5f, ArcHalfWidth = 45f, ArcStun = 0.4f, ArcGrow = 0.25f;  // lengths from your centre; half its width; stun (not bosses); +damage per extra projectile
+        public const float ArcMin = 160f, ArcMax = Width * 0.5f, ArcHalfWidth = 60f, ArcNear = 0.4f, ArcStun = 0.4f, ArcGrow = 0.25f;  // lengths from your centre; half its width at the far end; how wide it is at your staff, as a fraction of that; stun (not bosses); +damage per extra projectile
         public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds stretch it
         public static float ArcWidth(Player p) => ArcHalfWidth * AreaMult(p);  // Homing Rounds widen it
 
-        /// Barrage adds strips side by side, parallel to the first and alternating sides, so they never overlap: an
-        /// enemy anywhere in them is shocked once.
+        /// The strip is a slight cone, like a lightning arc fanning out: ArcNear of its far width at your staff, full width
+        /// at the far end. Everything (each strip's half width and its sideways shift) scales by this at distance `along`.
+        public static float ArcTaper(float along, float len) => ArcNear + (1f - ArcNear) * Math.Max(0f, Math.Min(1f, along / Math.Max(1f, len)));
+
+        /// Barrage adds cones side by side, fanning out from the same staff and alternating sides, so they never overlap:
+        /// an enemy anywhere in them is shocked once.
         void ArcField(Player p, float aim, float dmg, float c)
         {
             float len = ArcLength(p, c), half = ArcWidth(p);
@@ -693,7 +697,7 @@ namespace Arena
             for (int v = 0; v < n; v++)
                 shifts[v] = v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 2f * half * ((v + 1) / 2);
             for (int v = 0; v < n; v++)
-                BroadcastFx(FxKind.ArcField, p.Pos + side * shifts[v], p.Pos + side * shifts[v] + dir * len, bolt, half, 0.35f,
+                BroadcastFx(FxKind.ArcField, p.Pos + side * (shifts[v] * ArcNear), p.Pos + side * shifts[v] + dir * len, bolt, half, 0.35f,  // from the cone's narrow end's middle to its far end's middle
                     v > 0 ? Sfx.None : c > 0.95f ? Sfx.BigExplode : Sfx.Shockwave);
             p.Run.ShotsFired++;
             bool any = false;
@@ -706,8 +710,9 @@ namespace Arena
                 if (along < -e.Radius - p.Def.BodyR || along > len + e.Radius)
                     continue;
                 int strip = -1;
+                float tf = ArcTaper(along, len);
                 for (int v = 0; v < n && strip < 0; v++)
-                    if (Math.Abs(across - shifts[v]) <= half + e.Radius)
+                    if (Math.Abs(across - shifts[v] * tf) <= half * tf + e.Radius)
                         strip = v;
                 if (strip < 0)
                     continue;
@@ -722,7 +727,7 @@ namespace Arena
                 WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
                 if (!e.Def.IsBoss)
                     e.FrozenT = Math.Max(e.FrozenT, ArcStun);
-                BroadcastFx(FxKind.Bolt, p.Pos + side * shifts[strip] + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from its strip's middle line
+                BroadcastFx(FxKind.Bolt, p.Pos + side * (shifts[strip] * tf) + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from its strip's middle line
             }
             if (any)
                 p.Run.ShotsHit++;

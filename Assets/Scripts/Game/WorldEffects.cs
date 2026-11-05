@@ -480,20 +480,20 @@ namespace Arena
                 return;
             V2 dir = to / len, side = dir.Orthogonal();
             float fade = 1f - f;
-            V2 a0 = fx.Pos + side * w, a1 = fx.Pos - side * w;
+            V2 a0 = fx.Pos + side * (w * Game.ArcNear), a1 = fx.Pos - side * (w * Game.ArcNear), e0 = fx.Pos + dir * len + side * w, e1 = fx.Pos + dir * len - side * w;  // a slight cone
             SetColor(fx.Color.WithAlpha(0.2f * fade));
-            Quad(a0, a0 + dir * len, a1 + dir * len, a1);
-            Line(a0, a0 + dir * len, 2f, fx.Color.WithAlpha(0.7f * fade));
-            Line(a1, a1 + dir * len, 2f, fx.Color.WithAlpha(0.7f * fade));
+            Quad(a0, e0, e1, a1);
+            Line(a0, e0, 2f, fx.Color.WithAlpha(0.7f * fade));
+            Line(a1, e1, 2f, fx.Color.WithAlpha(0.7f * fade));
             uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)(f * 8f) * 83492791) | 1u;  // re-rolls a few times as it fades
             Func<float> rnd = () => { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed & 0xFFFFFF) / 16777216f; };
             for (int k = 0; k < 3; k++)  // bolts running its length
             {
-                V2 prev = fx.Pos + side * ((rnd() - 0.5f) * w);
+                V2 prev = fx.Pos + side * ((rnd() - 0.5f) * w * Game.ArcNear);
                 int n = Math.Max(4, (int)(len / 40f));
                 for (int i = 1; i <= n; i++)
                 {
-                    V2 next = fx.Pos + dir * (len * i / n) + side * ((rnd() - 0.5f) * w * 1.6f);
+                    V2 next = fx.Pos + dir * (len * i / n) + side * ((rnd() - 0.5f) * w * 1.6f * Game.ArcTaper(len * i / n, len));
                     Line(prev, next, k == 0 ? 3f : 1.5f, (k == 0 ? Rgba.White : fx.Color).WithAlpha(fade));
                     prev = next;
                 }
@@ -518,12 +518,12 @@ namespace Arena
             V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
             float len = Game.ArcLength(p, c), w = Game.ArcWidth(p);
             var col = (full ? gold : bolt).WithAlpha(0.35f + 0.35f * c);
-            V2 a = p.Disp + side * w, b = p.Disp - side * w;
+            V2 a = p.Disp + side * (w * Game.ArcNear), b = p.Disp - side * (w * Game.ArcNear), ae = p.Disp + dir * len + side * w, be = p.Disp + dir * len - side * w;  // a slight cone
             SetColor(col.WithAlpha(0.05f + 0.1f * c));
-            Quad(a, a + dir * len, b + dir * len, b);
-            Line(a, a + dir * len, 2f, col);
-            Line(b, b + dir * len, 2f, col);
-            Line(a + dir * len, b + dir * len, 3f, col.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 30f)));  // the crackling far edge
+            Quad(a, ae, be, b);
+            Line(a, ae, 2f, col);
+            Line(b, be, 2f, col);
+            Line(ae, be, 3f, col.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 30f)));  // the crackling far edge
         }
 
         /// Chain Light's cone: a flash of light fanning out from the caster, brightest at its edges, with rays

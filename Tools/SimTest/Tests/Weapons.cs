@@ -933,7 +933,7 @@ static partial class Program
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ArcLightning);
         Check(Game.ChargeWeapon(WeaponId.ArcLightning), "Arc Lightning charges like a bow");
         float far = Game.ArcLength(me, 1f), near = Game.ArcLength(me, 0f);
-        var strip = new[] { from + new V2(near - 30f, 0f), from + new V2(far - 30f, 20f), from + new V2(far + 60f, 0f), from + new V2(300f, Game.ArcHalfWidth + 60f) };
+        var strip = new[] { from + new V2(near - 30f, 0f), from + new V2(far - 30f, 20f), from + new V2(far + 60f, 0f), from + new V2(300f, Game.ArcHalfWidth + 60f), from + new V2(100f, 75f), from + new V2(far - 100f, 55f) };  // the last two: wide of the cone near you, inside it far out
         var ds2 = dummies(strip);
         me.BowShotDraw = Game.BowMinDraw;
         volley.Invoke(g, new object[] { me, 0f, 0 });
@@ -942,14 +942,14 @@ static partial class Program
         me.BowShotDraw = g.BowFull(me);
         volley.Invoke(g, new object[] { me, 0f, 0 });
         float[] full = ds2.Select((e, k) => e.MaxHp - e.Hp - tap[k]).ToArray();
-        Console.WriteLine("  arc lightning: tap reaches {0:0} px, full {1:0} px (half the arena); tap hits {2:0.0} / {3:0.0}; full hits {4:0.0} / {5:0.0} / past it {6:0.0} / beside it {7:0.0}; stunned {8:0.00} s",
-            near, far, tap[0], tap[1], full[0], full[1], full[2], full[3], ds2[1].FrozenT);
-        Check(tap[0] > 0f && tap[1] == 0f && full[0] > 0f && full[1] > 0f && full[2] == 0f && full[3] == 0f && Math.Abs(far - Game.Width * 0.5f) < 1f,
-            "Arc Lightning shocks everything in its strip: a tap reaches a little way, a full charge half the arena, nothing past or beside it");
+        Console.WriteLine("  arc lightning: tap reaches {0:0} px, full {1:0} px (half the arena); tap hits {2:0.0} / {3:0.0}; full hits {4:0.0} / {5:0.0} / past it {6:0.0} / beside it {7:0.0} / wide near you {9:0.0} / wide far out {10:0.0}; stunned {8:0.00} s",
+            near, far, tap[0], tap[1], full[0], full[1], full[2], full[3], ds2[1].FrozenT, full[4], full[5]);
+        Check(tap[0] > 0f && tap[1] == 0f && full[0] > 0f && full[1] > 0f && full[2] == 0f && full[3] == 0f && full[4] == 0f && full[5] > 0f && Math.Abs(far - Game.Width * 0.5f) < 1f,
+            "Arc Lightning shocks everything in its cone: a tap reaches a little way, a full charge half the arena, nothing past or beside it, and it is narrower near you than at its far end");
         Check(ds2[1].FrozenT > 0.3f, "its shock stuns briefly");
         // Barrage: parallel strips side by side; an enemy ahead is shocked once, one beside the strip only with Barrage.
         var fanned = typeof(Game).GetMethod("FireFanned", flags);
-        var side = new[] { from + new V2(300f, 0f), from + new V2(300f, 2f * Game.ArcHalfWidth) };
+        var side = new[] { from + new V2(300f, 0f), from + new V2(300f, 2f * Game.ArcHalfWidth * Game.ArcTaper(300f, far)) };
         Func<int, float[]> Strip = fan =>
         {
             var ds = dummies(side);
