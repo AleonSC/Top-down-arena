@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recent Runs Mockup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: A is the Records > Recent runs page with a run strip, stat tiles and tabbed graphs; B shows every chart type at once. */
+:root {
+  --bg: #080b14; --panel: #12182e; --panel2: #1a2140; --line: #28325a;
+  --fg: #e4ebff; --muted: #8190b8; --gold: #e8b030; --cyan: #5ad0f0;
+  --purple: #b08cff; --green: #5fd98a; --orange: #ff9a4a; --red: #ff5c6c;
+  --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-ui);
+  padding: 40px max(16px, env(safe-area-inset-right)) 64px max(16px, env(safe-area-inset-left)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: .02em; text-wrap: balance; }
+h2 { font-size: 22px; margin: 0 0 4px; letter-spacing: .04em; }
+.sub { color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 70ch; margin: 0; }
+.mono { font-family: var(--f-mono); }
+
+/* ---------- game frame ---------- */
+.frame { display: grid; grid-template-columns: 300px minmax(0, 1fr); background: #0b1020; border: 1px solid var(--line); min-height: 640px; margin-top: 14px; }
+.side { padding: 18px 16px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.side .t { font-size: 34px; font-weight: 700; letter-spacing: .04em; border-bottom: 2px solid #6a5420; padding-bottom: 4px; }
+.card { display: flex; gap: 10px; align-items: center; }
+.shield { width: 44px; height: 50px; background: linear-gradient(#f2c04a, #a97b18); clip-path: polygon(50% 0, 100% 14%, 100% 62%, 50% 100%, 0 62%, 0 14%); display: grid; place-items: center; color: #251a05; font-weight: 700; font-size: 14px; }
+.card b { font-size: 21px; display: block; line-height: 1; }
+.card i { font-style: normal; color: var(--gold); font-size: 14px; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tabs span { background: #262f55; border-radius: 6px; text-align: center; padding: 7px 0; font-weight: 600; font-size: 14px; color: #c9d4ff; }
+.tabs span.on { background: var(--gold); color: #2a1d04; }
+.rows { display: flex; flex-direction: column; gap: 2px; }
+.rows div { display: flex; justify-content: space-between; align-items: center; padding: 11px 10px; font-size: 19px; font-weight: 600; border-left: 3px solid transparent; }
+.rows div em { font-style: normal; font-size: 15px; color: var(--muted); }
+.rows div.on { background: linear-gradient(90deg, #1b3550, #131a30); border-left-color: var(--cyan); }
+.rows div.new em { color: var(--gold); }
+
+.main { padding: 18px 20px 22px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.main h3 { margin: 0; font-size: 34px; letter-spacing: .04em; }
+.main .lead { color: var(--muted); font-size: 14px; margin-top: -10px; }
+
+/* run strip */
+.strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.run { flex: 0 0 168px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; cursor: pointer; text-align: left; color: inherit; font-family: inherit; }
+.run:hover { border-color: #46548f; }
+.run.on { border-color: var(--gold); background: #1c1f33; }
+.run .r1 { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.run .r2 { font-size: 20px; font-weight: 700; line-height: 1.15; }
+.run .r3 { font-size: 13px; color: var(--muted); }
+.won { color: var(--green); } .lost { color: var(--red); }
+.spark { display: block; width: 100%; height: 22px; margin-top: 4px; }
+
+/* stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.tile small { display: block; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.tile b { font-size: 24px; font-weight: 700; line-height: 1.1; }
+.tile u { text-decoration: none; font-size: 12px; margin-left: 4px; }
+.up { color: var(--green); } .down { color: var(--red); }
+
+/* graph tabs */
+.gtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.gtabs button { background: #232b4e; color: #c9d4ff; border: 0; border-radius: 6px; padding: 7px 14px; font: 600 15px var(--f-ui); cursor: pointer; }
+.gtabs button.on { background: var(--cyan); color: #06222c; }
+.charts { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
+.chart { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px 8px; grid-column: span 6; min-width: 0; position: relative; }
+.chart.w12 { grid-column: span 12; } .chart.w8 { grid-column: span 8; } .chart.w4 { grid-column: span 4; }
+.chart h4 { margin: 0; font-size: 16px; letter-spacing: .05em; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.chart h4 span { font-weight: 500; color: var(--muted); font-size: 13px; letter-spacing: 0; }
+.chart svg { display: block; width: 100%; height: auto; margin-top: 6px; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.tip { position: absolute; pointer-events: none; background: #0a0f1fee; border: 1px solid var(--line); border-radius: 5px; padding: 5px 8px; font-size: 13px; line-height: 1.35; display: none; z-index: 5; white-space: nowrap; }
+.tip b { color: var(--gold); }
+svg text { font-family: var(--f-ui); fill: var(--muted); font-size: 11px; }
+svg .ax { stroke: #232c52; stroke-width: 1; }
+.gallery { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.gallery .chart { grid-column: span 4; }
+.gallery .chart.w8 { grid-column: span 8; } .gallery .chart.w12 { grid-column: span 12; }
+.note { color: var(--muted); font-size: 14px; max-width: 80ch; line-height: 1.5; margin: 8px 0 0; }
+.note b { color: var(--fg); }
+
+@media (max-width: 900px) {
+  .frame { grid-template-columns: 1fr; }
+  .side { border-right: 0; border-bottom: 1px solid var(--line); }
+  .chart, .chart.w8, .chart.w4, .gallery .chart, .gallery .chart.w8 { grid-column: span 12; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Records &gt; Recent runs</h1>
+    <p class="sub">A fifth Records row. Pick a run from the strip and read it as graphs: the damage you did, what hurt you, how you survived, who carried. All numbers below are made up; hover the time charts for a readout, click a run to swap the data.</p>
+  </header>
+
+  <section>
+    <h2>A · The page</h2>
+    <p class="sub">The strip holds the last runs; today the profile only keeps 6 results (<span class="mono">Profile.RecentKept</span>), so keeping the curves would mean saving a sampled series per run (about 1 sample every 10 s).</p>
+    <div class="frame">
+      <div class="side">
+        <div class="t">PROFILE</div>
+        <div class="card"><div class="shield">999</div><div><b>Anthony</b><i>Legend · Rank 999</i></div></div>
+        <div class="tabs"><span>Look</span><span>Rank</span><span class="on">Records</span><span>Unlocks</span></div>
+        <div class="rows">
+          <div>Overview <em>136 runs</em></div>
+          <div>Bosses <em>5 / 10</em></div>
+          <div>Classes <em>0 won</em></div>
+          <div>Challenge rooms <em>6 won</em></div>
+          <div class="on new">Recent runs <em>last 6</em></div>
+        </div>
+      </div>
+      <div class="main">
+        <h3>RECENT RUNS</h3>
+        <div class="lead" id="lead"></div>
+        <div class="strip" id="strip"></div>
+        <div class="tiles" id="tiles"></div>
+        <div class="gtabs" id="gtabs"></div>
+        <div class="charts" id="charts"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>B · Every chart type</h2>
+    <p class="sub">The pieces the tabs above are built from, shown for the selected run. Pick the ones you want and the rest can wait.</p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+</div>
+
+<script>
+/* ---------- fake data, seeded per run ---------- */
+const RUNS = [
+  { name: "Endless", cls: "Knight", wave: 18, res: "Died", mins: 21, xp: 640, mods: "Hard", seed: 3 },
+  { name: "Gatekeeper", cls: "Soldier", wave: 10, res: "Won", mins: 14, xp: 910, mods: "Boss", seed: 7 },
+  { name: "Endless", cls: "Elementalist", wave: 12, res: "Died", mins: 15, xp: 420, mods: "", seed: 11 },
+  { name: "Kill Rush", cls: "Ninja", wave: 8, res: "Won", mins: 9, xp: 530, mods: "Fast", seed: 19 },
+  { name: "Endless", cls: "Knight", wave: 15, res: "Died", mins: 18, xp: 560, mods: "", seed: 23 },
+  { name: "Mirror Match", cls: "Summoner", wave: 6, res: "Died", mins: 7, xp: 210, mods: "Hard", seed: 31 },
+];
+const PLAYERS = [{ n: "Anthony", c: "#e8b030" }, { n: "Mira", c: "#5ad0f0" }, { n: "Jonas", c: "#b08cff" }];
+const SRC = [["Weapon", "#5ad0f0"], ["Abilities", "#b08cff"], ["Minions", "#5fd98a"], ["Passives", "#e8b030"], ["Other", "#ff9a4a"]];
+const ENEMIES = ["Grunt", "Swarmer", "Shooter", "Buzzsaw", "Spike Block", "Bat", "Elite", "Boss"];
+const WAVE_SEC = 70;
+
+function rng(s) { return () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296; }
+function build(run) {
+  const r = rng(run.seed * 977), secs = run.mins * 60, step = 10, n = Math.floor(secs / step) + 1;
+  const waves = Math.max(1, Math.round(secs / WAVE_SEC));
+  const t = [...Array(n)].map((_, i) => i * step);
+  const intensity = i => 0.5 + 0.5 * Math.sin(i / 3.1) * 0.5 + (i / n) * 0.9;
+  const dps = t.map((_, i) => Math.max(0, (60 + 120 * intensity(i)) * (0.7 + r() * 0.6)));
+  const take = t.map((_, i) => Math.max(0, (8 + 40 * intensity(i)) * (r() < .25 ? 2.6 : .5 + r() * .8)));
+  const hp = PLAYERS.map((_, p) => {
+    let h = 100, out = [];
+    t.forEach((_, i) => { h += 7 * r() - (take[i] / 18) * (0.7 + p * .15 + r() * .6) + (r() < .08 ? 18 : 0); h = Math.max(4, Math.min(100, h)); out.push(h); });
+    return out;
+  });
+  const downs = [];
+  hp.forEach((a, p) => a.forEach((v, i) => { if (v < 22 && (!downs.length || i - downs[downs.length - 1].i > 4)) downs.push({ p, i }); }));
+  const srcTot = SRC.map(() => 0.1 + r());
+  const srcSeries = SRC.map((_, k) => t.map((_, i) => dps[i] * (srcTot[k] / srcTot.reduce((a, b) => a + b)) * (0.8 + r() * 0.4)));
+  const kills = ENEMIES.map((e, k) => Math.round((k < 3 ? 90 : k < 6 ? 35 : k == 6 ? 8 : 1) * (0.5 + r()) * run.mins / 12));
+  const acc = [...Array(waves)].map((_, w) => 38 + r() * 42 - w * 0.5);
+  const dmgBy = PLAYERS.map(() => ({ dealt: 20000 + r() * 60000, taken: 3000 + r() * 9000, heal: r() * 14000 }));
+  const hurt = [["Shooter bullets", 31], ["Swarmer touch", 22], ["Boss slam", 17], ["Buzzsaw", 14], ["Bat bites", 9], ["Other", 7]].map(([a, b]) => [a, Math.round(b * (0.6 + r() * .8))]);
+  const cds = ["Shield", "Leap Slam", "Taunt", "Rally"].map((a, k) => ({ a, c: SRC[(k + 1) % 5][1], uses: [...Array(Math.floor(secs / (22 + k * 9)))].map((_, j) => j * (22 + k * 9) + r() * 8) }));
+  const heat = [...Array(8)].map(() => [...Array(12)].map(() => r()));
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 12; x++) heat[y][x] *= Math.exp(-(((x - 5.5) / 5) ** 2 + ((y - 3.5) / 4) ** 2) * 0.7) * (x < 2 || x > 9 ? 1.6 : 1);
+  const radar = ["Damage", "Survival", "Accuracy", "Support", "Mobility", "Clutch"].map(() => 0.3 + r() * 0.65);
+  return { run, secs, n, t, waves, dps, take, hp, downs, srcSeries, kills, acc, dmgBy, hurt, cds, heat, radar };
+}
+let CUR = 0, TAB = 0, D = build(RUNS[0]);
+
+/* ---------- svg helpers ---------- */
+const W = 620;
+const fmt = v => v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : Math.round(v);
+const mmss = s => Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0");
+const px = (v, max, w) => (v / max) * w;
+function axes(h, ml, ymax, secs, unit) {
+  let g = "";
+  for (let k = 0; k <= 4; k++) { const y = 10 + (h - 30) * (1 - k / 4); g += `<line class="ax" x1="${ml}" x2="${W}" y1="${y}" y2="${y}"/><text x="${ml - 6}" y="${y + 4}" text-anchor="end">${fmt(ymax * k / 4)}${unit || ""}</text>`; }
+  if (secs) for (let m = 0; m <= secs / 60; m += Math.max(1, Math.round(secs / 60 / 7))) g += `<text x="${ml + (W - ml) * m * 60 / secs}" y="${h - 4}" text-anchor="middle">${m}m</text>`;
+  return g;
+}
+function waveBands(h, ml, secs) {
+  let g = "";
+  for (let w = 0; w * WAVE_SEC < secs; w++) {
+    const x0 = ml + (W - ml) * w * WAVE_SEC / secs, x1 = ml + (W - ml) * Math.min(secs, (w + 1) * WAVE_SEC) / secs;
+    if (w % 2) g += `<rect x="${x0}" y="10" width="${x1 - x0}" height="${h - 30}" fill="#ffffff" opacity=".035"/>`;
+  }
+  return g;
+}
+function pathOf(arr, ymax, h, ml, secs, t) {
+  return arr.map((v, i) => `${i ? "L" : "M"}${(ml + (W - ml) * t[i] / secs).toFixed(1)},${(10 + (h - 30) * (1 - Math.min(1, v / ymax))).toFixed(1)}`).join("");
+}
+function legend(items) { return `<div class="legend">${items.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join("")}</div>`; }
+function card(title, meta, body, cls, id) { return `<div class="chart ${cls || ""}" ${id ? `data-tl="${id}"` : ""}><h4>${title}<span>${meta || ""}</span></h4>${body}</div>`; }
+
+/* ---------- charts ---------- */
+function cDps(cls) {
+  const h = 230, ml = 40, ymax = Math.ceil(Math.max(...D.dps) / 100) * 100, p = pathOf(D.dps, ymax, h, ml, D.secs, D.t);
+  const base = 10 + (h - 30);
+  const boss = `<line x1="${ml + (W - ml) * (D.secs - 40) / D.secs}" x2="${ml + (W - ml) * (D.secs - 40) / D.secs}" y1="10" y2="${base}" stroke="#ff5c6c" stroke-dasharray="3 3"/><text x="${ml + (W - ml) * (D.secs - 40) / D.secs - 4}" y="22" text-anchor="end" fill="#ff5c6c" style="fill:#ff5c6c">boss</text>`;
+  const downs = D.downs.map(d => `<path d="M${ml + (W - ml) * D.t[d.i] / D.secs},${base + 2} l-5,9 h10z" fill="${PLAYERS[d.p].c}"/>`).join("");
+  const body = `<svg viewBox="0 0 ${W} ${h}">${axes(h, ml, ymax, D.secs)}${waveBands(h, ml, D.secs)}
+    <path d="${p}L${W},${base}L${ml},${base}Z" fill="#5ad0f0" opacity=".16"/><path d="${p}" fill="none" stroke="#5ad0f0" stroke-width="2"/>${boss}${downs}</svg>
+    ${legend([["Damage per second", "#5ad0f0"], ["Teammate down ▼", "#e8b030"], ["Alternate bands = waves", "#2a335c"]])}`;
+  return card("DAMAGE PER SECOND", "avg " + fmt(D.dps.reduce((a, b) => a + b) / D.dps.length), body, cls, "dps");
+}
+function cStack(cls) {
+  const h = 230, ml = 40, tot = D.t.map((_, i) => D.srcSeries.reduce((a, s) => a + s[i], 0)), ymax = Math.ceil(Math.max(...tot) / 100) * 100;
+  let acc = D.t.map(() => 0), layers = "";
+  D.srcSeries.forEach((s, k) => {
+    const lo = acc.slice(); acc = acc.map((v, i) => v + s[i]);
+    const top = D.t.map((_, i) => `${(ml + (W - ml) * D.t[i] / D.secs).toFixed(1)},${(10 + (h - 30) * (1 - acc[i] / ymax)).toFixed(1)}`);
+    const bot = D.t.map((_, i) => `${(ml + (W - ml) * D.t[i] / D.secs).toFixed(1)},${(10 + (h - 30) * (1 - lo[i] / ymax)).toFixed(1)}`).reverse();
+    layers += `<polygon points="${top.join(" ")} ${bot.join(" ")}" fill="${SRC[k][1]}" opacity=".78"/>`;
+  });
+  return card("DAMAGE BY SOURCE", "stacked, per second", `<svg viewBox="0 0 ${W} ${h}">${axes(h, ml, ymax, D.secs)}${layers}</svg>${legend(SRC)}`, cls, "stack");
+}
+function cHp(cls) {
+  const h = 230, ml = 40, base = 10 + (h - 30);
+  const lines = D.hp.map((a, p) => `<path d="${pathOf(a, 100, h, ml, D.secs, D.t)}" fill="none" stroke="${PLAYERS[p].c}" stroke-width="2" opacity=".9"/>`).join("");
+  const downs = D.downs.map(d => `<circle cx="${ml + (W - ml) * D.t[d.i] / D.secs}" cy="${10 + (h - 30) * (1 - D.hp[d.p][d.i] / 100)}" r="4.5" fill="#ff5c6c" stroke="#0b1020" stroke-width="1.5"/>`).join("");
+  return card("HEALTH OVER TIME", D.downs.length + " downs", `<svg viewBox="0 0 ${W} ${h}">${axes(h, ml, 100, D.secs, "%")}${waveBands(h, ml, D.secs)}${lines}${downs}</svg>${legend([...PLAYERS.map(p => [p.n, p.c]), ["Downed ●", "#ff5c6c"]])}`, cls, "hp");
+}
+function cKills(cls) {
+  const max = Math.max(...D.kills), rows = D.kills.map((v, i) => `<text x="86" y="${i * 24 + 15}" text-anchor="end">${ENEMIES[i]}</text><rect x="94" y="${i * 24 + 5}" width="${px(v, max, 440)}" height="14" rx="2" fill="${i == 7 ? "#ff5c6c" : i == 6 ? "#e8b030" : "#5ad0f0"}" opacity=".85"/><text x="${100 + px(v, max, 440)}" y="${i * 24 + 16}" style="fill:#e4ebff">${v}</text>`).join("");
+  return card("KILLS BY ENEMY", D.kills.reduce((a, b) => a + b) + " total", `<svg viewBox="0 0 ${W} ${D.kills.length * 24 + 4}">${rows}</svg>`, cls);
+}
+function cAcc(cls) {
+  const h = 190, ml = 40, n = D.acc.length, bw = (W - ml) / n, base = 10 + (h - 30);
+  const bars = D.acc.map((v, i) => `<rect x="${ml + i * bw + 3}" y="${base - (h - 30) * v / 100}" width="${bw - 6}" height="${(h - 30) * v / 100}" rx="2" fill="#5fd98a" opacity="${v < 45 ? .45 : .85}"/><text x="${ml + i * bw + bw / 2}" y="${h - 4}" text-anchor="middle">${i + 1}</text>`).join("");
+  const avg = D.acc.reduce((a, b) => a + b) / n, ya = base - (h - 30) * avg / 100;
+  return card("ACCURACY PER WAVE", "avg " + Math.round(avg) + "%", `<svg viewBox="0 0 ${W} ${h}">${axes(h, ml, 100, 0, "%")}${bars}<line x1="${ml}" x2="${W}" y1="${ya}" y2="${ya}" stroke="#e8b030" stroke-dasharray="4 3"/></svg>`, cls);
+}
+function cDonut(cls) {
+  const tot = D.hurt.reduce((a, b) => a + b[1], 0), cols = ["#ff5c6c", "#ff9a4a", "#e8b030", "#b08cff", "#5ad0f0", "#5c6b9c"];
+  let a0 = -Math.PI / 2, segs = "";
+  D.hurt.forEach(([n, v], i) => {
+    const a1 = a0 + v / tot * Math.PI * 2, R = 62, r = 38, big = a1 - a0 > Math.PI ? 1 : 0;
+    const P = (a, q) => `${(80 + q * Math.cos(a)).toFixed(1)},${(80 + q * Math.sin(a)).toFixed(1)}`;
+    segs += `<path d="M${P(a0, R)} A${R},${R} 0 ${big} 1 ${P(a1 - .01, R)} L${P(a1 - .01, r)} A${r},${r} 0 ${big} 0 ${P(a0, r)}Z" fill="${cols[i]}"/>`; a0 = a1;
+  });
+  const lg = D.hurt.map(([n, v], i) => `<text x="190" y="${28 + i * 22}" style="fill:#e4ebff"><tspan fill="${cols[i]}" style="fill:${cols[i]}">■</tspan> ${n}</text><text x="${cls == "w4" ? 290 : 330}" y="${28 + i * 22}" text-anchor="end">${Math.round(v / tot * 100)}%</text>`).join("");
+  return card("DAMAGE TAKEN FROM", "what hurt", `<svg viewBox="0 0 ${cls == "w4" ? 300 : 340} 160">${segs}<text x="80" y="85" text-anchor="middle" style="fill:#e4ebff;font-size:15px;font-weight:700">${fmt(D.dmgBy.reduce((a, b) => a + b.taken, 0))}</text>${lg}</svg>`, cls);
+}
+function cTeam(cls) {
+  const keys = [["dealt", "Damage dealt", "#5ad0f0"], ["heal", "Healing", "#5fd98a"], ["taken", "Damage taken", "#ff5c6c"]];
+  const rows = keys.map(([k, lab, c], j) => {
+    const max = Math.max(...D.dmgBy.map(p => p[k])), y0 = j * 78;
+    return `<text x="0" y="${y0 + 11}" style="fill:#e4ebff;font-weight:600">${lab}</text>` + D.dmgBy.map((p, i) => `<text x="62" y="${y0 + 30 + i * 16}" text-anchor="end">${PLAYERS[i].n}</text><rect x="70" y="${y0 + 20 + i * 16}" width="${px(p[k], max, 430)}" height="11" rx="2" fill="${c}" opacity="${.95 - i * .2}"/><text x="${76 + px(p[k], max, 430)}" y="${y0 + 30 + i * 16}">${fmt(p[k])}</text>`).join("");
+  }).join("");
+  return card("TEAM COMPARISON", "who carried", `<svg viewBox="0 0 ${W} 236">${rows}</svg>`, cls);
+}
+function cGantt(cls) {
+  const h = 20 + D.cds.length * 30 + 20, ml = 74;
+  const rows = D.cds.map((c, i) => `<text x="${ml - 8}" y="${34 + i * 30}" text-anchor="end" style="fill:#e4ebff">${c.a}</text><line class="ax" x1="${ml}" x2="${W}" y1="${30 + i * 30}" y2="${30 + i * 30}"/>` + c.uses.map(u => `<rect x="${ml + (W - ml) * u / D.secs}" y="${20 + i * 30}" width="${Math.max(3, (W - ml) * 5 / D.secs)}" height="20" rx="2" fill="${c.c}" opacity=".85"/>`).join("")).join("");
+  const bursts = D.downs.map(d => `<line x1="${ml + (W - ml) * D.t[d.i] / D.secs}" x2="${ml + (W - ml) * D.t[d.i] / D.secs}" y1="10" y2="${h - 20}" stroke="#ff5c6c" opacity=".45" stroke-dasharray="2 3"/>`).join("");
+  return card("ABILITY TIMELINE", "red lines = downs", `<svg viewBox="0 0 ${W} ${h}">${rows}${bursts}${[...Array(Math.floor(D.secs / 60 / 3) + 1)].map((_, k) => `<text x="${ml + (W - ml) * k * 180 / D.secs}" y="${h - 4}" text-anchor="middle">${k * 3}m</text>`).join("")}</svg>`, cls);
+}
+function cHeat(cls) {
+  const cw = 46, ch = 28, cells = D.heat.map((row, y) => row.map((v, x) => `<rect x="${x * cw}" y="${y * ch}" width="${cw - 2}" height="${ch - 2}" rx="3" fill="rgb(${Math.round(30 + 225 * Math.min(1, v * 1.7))},${Math.round(40 + 40 * (1 - v))},${Math.round(90 - 40 * v)})"/>`).join("")).join("");
+  return card("WHERE YOU GOT HIT", "arena heat map", `<svg viewBox="0 0 ${12 * cw} ${8 * ch}">${cells}</svg><div class="legend"><span>Hotter = more damage taken in that part of the arena</span></div>`, cls);
+}
+function cRadar(cls) {
+  const cx = 110, cy = 100, R = 76, n = D.radar.length, ang = i => -Math.PI / 2 + i * 2 * Math.PI / n;
+  let g = [.25, .5, .75, 1].map(f => `<polygon points="${D.radar.map((_, i) => `${cx + R * f * Math.cos(ang(i))},${cy + R * f * Math.sin(ang(i))}`).join(" ")}" fill="none" stroke="#28325a"/>`).join("");
+  g += D.radar.map((_, i) => `<line x1="${cx}" y1="${cy}" x2="${cx + R * Math.cos(ang(i))}" y2="${cy + R * Math.sin(ang(i))}" stroke="#28325a"/><text x="${cx + (R + 14) * Math.cos(ang(i))}" y="${cy + (R + 14) * Math.sin(ang(i)) + 4}" text-anchor="middle">${["Damage", "Survival", "Accuracy", "Support", "Mobility", "Clutch"][i]}</text>`).join("");
+  const poly = D.radar.map((v, i) => `${cx + R * v * Math.cos(ang(i))},${cy + R * v * Math.sin(ang(i))}`).join(" ");
+  return card("RUN SHAPE", "vs your average", `<svg viewBox="0 0 220 200">${g}<polygon points="${poly}" fill="#e8b030" fill-opacity=".25" stroke="#e8b030" stroke-width="2"/></svg>`, cls);
+}
+function cTrend(cls) {
+  const h = 190, ml = 40, pts = RUNS.slice().reverse(), max = 1000, base = 10 + (h - 30);
+  const xs = i => ml + 30 + i * ((W - ml - 60) / (pts.length - 1));
+  const xp = pts.map((r, i) => `${i ? "L" : "M"}${xs(i)},${10 + (h - 30) * (1 - r.xp / max)}`).join("");
+  const wv = pts.map((r, i) => `${i ? "L" : "M"}${xs(i)},${10 + (h - 30) * (1 - r.wave / 20)}`).join("");
+  const dots = pts.map((r, i) => `<circle cx="${xs(i)}" cy="${10 + (h - 30) * (1 - r.xp / max)}" r="4" fill="${r.res == "Won" ? "#5fd98a" : "#ff5c6c"}"/><text x="${xs(i)}" y="${h - 4}" text-anchor="middle">${r.cls.slice(0, 7)}</text>`).join("");
+  return card("LAST 6 RUNS", "oldest to newest", `<svg viewBox="0 0 ${W} ${h}">${axes(h, ml, max, 0)}<path d="${wv}" fill="none" stroke="#b08cff" stroke-dasharray="5 4" stroke-width="2"/><path d="${xp}" fill="none" stroke="#e8b030" stroke-width="2"/>${dots}</svg>${legend([["XP earned", "#e8b030"], ["Wave reached (of 20)", "#b08cff"], ["Won ●", "#5fd98a"], ["Died ●", "#ff5c6c"]])}`, cls);
+}
+
+/* ---------- page ---------- */
+const TABS = [
+  ["Overview", () => [cDps("w12"), cStack(), cHp(), cKills("w8"), cDonut("w4")]],
+  ["Damage", () => [cDps("w12"), cStack("w12"), cKills(), cAcc()]],
+  ["Survival", () => [cHp("w12"), cDonut(), cHeat(), cGantt("w12")]],
+  ["Team", () => [cTeam("w8"), cRadar("w4"), cStack("w12")]],
+  ["Trends", () => [cTrend("w12"), cRadar(), cAcc()]],
+];
+function spark(r) {
+  const d = build(r).dps, m = Math.max(...d);
+  return `<svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><path d="${d.map((v, i) => `${i ? "L" : "M"}${i * 100 / (d.length - 1)},${21 - 19 * v / m}`).join("")}" fill="none" stroke="${r.res == "Won" ? "#5fd98a" : "#ff5c6c"}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function tileSet() {
+  const r = D.run, dealt = D.dmgBy.reduce((a, b) => a + b.dealt, 0), taken = D.dmgBy.reduce((a, b) => a + b.taken, 0), heal = D.dmgBy.reduce((a, b) => a + b.heal, 0);
+  const avg = RUNS.reduce((a, b) => a + b.xp, 0) / RUNS.length;
+  return [["Result", `<span class="${r.res == "Won" ? "won" : "lost"}">${r.res}</span>`], ["Time", mmss(D.secs)], ["Wave", r.wave], ["Damage", fmt(dealt)], ["Taken", fmt(taken)], ["Healing", fmt(heal)], ["Downs", D.downs.length], ["XP", `+${r.xp}<u class="${r.xp >= avg ? "up" : "down"}">${r.xp >= avg ? "▲" : "▼"}${Math.abs(Math.round((r.xp / avg - 1) * 100))}%</u>`]]
+    .map(([a, b]) => `<div class="tile"><small>${a}</small><b>${b}</b></div>`).join("");
+}
+function paint() {
+  D = build(RUNS[CUR]);
+  document.getElementById("lead").textContent = `${D.run.name} · ${D.run.cls}${D.run.mods ? " · " + D.run.mods : ""} · ${PLAYERS.length} players (made-up data)`;
+  document.getElementById("strip").innerHTML = RUNS.map((r, i) => `<button class="run ${i == CUR ? "on" : ""}" data-i="${i}"><div class="r1"><span>${i == 0 ? "latest" : i + " runs ago"}</span><span class="${r.res == "Won" ? "won" : "lost"}">${r.res}</span></div><div class="r2">${r.name}</div><div class="r3">${r.cls} · wave ${r.wave} · ${r.mins}m</div>${spark(r)}</button>`).join("");
+  document.getElementById("tiles").innerHTML = tileSet();
+  document.getElementById("gtabs").innerHTML = TABS.map((t, i) => `<button class="${i == TAB ? "on" : ""}" data-t="${i}">${t[0]}</button>`).join("");
+  document.getElementById("charts").innerHTML = TABS[TAB][1]().join("");
+  document.getElementById("gallery").innerHTML = [cDps("w12"), cStack("w8"), cDonut("w4"), cHp("w8"), cRadar("w4"), cKills("w8"), cAcc("w4"), cTeam("w8"), cHeat("w4"), cGantt("w12"), cTrend("w12")].join("");
+  wire();
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-i]"), b = e.target.closest("[data-t]");
+  if (a) { CUR = +a.dataset.i; paint(); }
+  if (b) { TAB = +b.dataset.t; paint(); }
+});
+/* hover readout on the time charts */
+function wire() {
+  document.querySelectorAll("[data-tl]").forEach(c => {
+    const svg = c.querySelector("svg"), kind = c.dataset.tl, ml = 40;
+    const tip = document.createElement("div"); tip.className = "tip"; c.appendChild(tip);
+    const guide = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    guide.setAttribute("y1", 10); guide.setAttribute("y2", 200); guide.setAttribute("stroke", "#e4ebff"); guide.setAttribute("opacity", ".5"); guide.style.display = "none"; svg.appendChild(guide);
+    svg.addEventListener("mousemove", ev => {
+      const box = svg.getBoundingClientRect(), x = (ev.clientX - box.left) / box.width * W;
+      if (x < ml) return;
+      const i = Math.max(0, Math.min(D.n - 1, Math.round((x - ml) / (W - ml) * D.secs / 10)));
+      let txt = `<b>${mmss(D.t[i])}</b> · wave ${Math.floor(D.t[i] / WAVE_SEC) + 1}<br>`;
+      if (kind == "dps") txt += `${Math.round(D.dps[i])} dmg/s · took ${Math.round(D.take[i])}/s`;
+      if (kind == "stack") txt += SRC.map((s, k) => `<span style="color:${s[1]}">${s[0]}</span> ${Math.round(D.srcSeries[k][i])}`).join("<br>");
+      if (kind == "hp") txt += PLAYERS.map((p, k) => `<span style="color:${p.c}">${p.n}</span> ${Math.round(D.hp[k][i])}%`).join("<br>");
+      const gx = ml + (W - ml) * D.t[i] / D.secs;
+      guide.setAttribute("x1", gx); guide.setAttribute("x2", gx); guide.style.display = "";
+      tip.innerHTML = txt; tip.style.display = "block";
+      const cb = c.getBoundingClientRect(); let left = ev.clientX - cb.left + 14; if (left > cb.width - 160) left -= 180;
+      tip.style.left = left + "px"; tip.style.top = (ev.clientY - cb.top - 10) + "px";
+    });
+    svg.addEventListener("mouseleave", () => { tip.style.display = "none"; guide.style.display = "none"; });
+  });
+}
+paint();
+</script>
+</body>
+</html>
