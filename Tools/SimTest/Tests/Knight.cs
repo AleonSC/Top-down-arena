@@ -243,7 +243,7 @@ static partial class Program
         Cast(1, AbilityId.Consecrate, me.Pos);
         float hp0 = dp.Hp;
         Run(s, dt, 1f, null, () => { Clear(); dp.Pos = me.Pos + new V2(40f, 0f); });
-        Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.Consecrate) && dp.Hp > hp0 + 5f, "Consecrate blesses the ground and heals allies on it");
+        Check(g.Effects.Any(e => e.Kind == FxKind.HolyCross) && dp.Hp > hp0 + 5f && dp.SwiftT > 0f, "Consecrate throws a Holy Cross that heals and hastens the ally it crosses");
         // Guardian's Oath: the charge is the Knight's own game (here we start at the grab point), then both are pulled clear and a ward is planted.
         foreach (bool downedAlly in new[] { false, true })
         {
