@@ -220,8 +220,8 @@ namespace Arena
                 CrtUi.Begin(ss);
                 CrtUi.Text(new Rect(ss.x + 14f, ss.y, ss.width - 28f, ss.height), session.Status, 14, CrtUi.Ink, TextAnchor.MiddleLeft, false, fxReduced);
                 CrtUi.End(ss, Time.unscaledTime, fxReduced);
-                var cr = new Rect(row.xMax - 150f, row.y + 12f, 136f, 40f);
-                if (MenuVhs.Draw(cr, "TRK 02", live, fxReduced, () => Ui.ActionButton(cr, "Cancel", false, Ui.Danger, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f), 15)) && live)
+                var cr = new Rect(row.xMax - 160f, row.y + 9f, 146f, 46f);   // a keycap, the same as Connect's
+                if (MenuVhs.Draw(cr, "TRK 02", live, fxReduced, () => KeyUi.Key(cr, "Cancel", PixelArt.Get("ui_back"), 16)) && live)
                     session.Leave("");
             }
             else if (menuJoinOpen && join >= 1f && !menuPlayOpen)
