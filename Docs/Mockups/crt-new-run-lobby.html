@@ -25,13 +25,15 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 .state { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .08em; margin-left: auto; }
 
 .view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
-.stage { --scan: .2; --mask: none; position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden;
+.stage { --scan: .2; --mask: none; --pg: #0a2a1b; --pl: rgba(77,255,154,.045); --tg: rgba(120,255,190,.2); --rl: rgba(120,255,180,.1); --sw: rgba(150,255,200,.6); position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden;
   background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage.amber { --ink: #ffb347; --dim: #b87a1e; --sbg: #140c02; --glow: rgba(255,170,60,.55); --pg: #2e1c06; --pl: rgba(255,170,60,.05); --tg: rgba(255,190,100,.2); --rl: rgba(255,190,100,.1); --sw: rgba(255,210,140,.6); }
+.stage.cyan { --ink: #5ce1ff; --dim: #2a8fb0; --sbg: #02101a; --glow: rgba(70,200,255,.55); --pg: #0a2a3d; --pl: rgba(80,200,255,.05); --tg: rgba(120,220,255,.2); --rl: rgba(120,210,255,.1); --sw: rgba(160,230,255,.6); }
 .stage.strong { --scan: .42; --mask: repeating-linear-gradient(90deg, rgba(255,40,40,.07) 0 1px, rgba(40,255,40,.07) 1px 2px, rgba(40,80,255,.07) 2px 3px); }
 .stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
 
 /* CRT screen: phosphor background, scanlines, vignette */
-.scr { position: absolute; background: radial-gradient(70% 80% at 50% 45%, #0a2a1b 0%, rgba(10,42,27,0) 100%), linear-gradient(rgba(77,255,154,.045) 1px, transparent 1px) 0 0 / 100% 4px, var(--sbg);
+.scr { position: absolute; background: radial-gradient(70% 80% at 50% 45%, var(--pg) 0%, transparent 100%), linear-gradient(var(--pl) 1px, transparent 1px) 0 0 / 100% 4px, var(--sbg);
   color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
   box-shadow: inset 0 0 30px rgba(0,0,0,.8), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; }
 .scr::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,var(--scan)) 0 1px, transparent 1px 3px); }
@@ -64,14 +66,14 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 #pcard .bdg { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(#f6cf60, #b27a12); color: #3a2400; font: 700 12px/34px var(--f-ui); text-align: center; box-shadow: 0 0 10px rgba(240,176,48,.5); }
 
 /* lobby window (CRT): the whole game screen, laid out like the real lobby */
-#win { left: 0; top: 0; width: 960px; height: 540px; z-index: 10; opacity: 0; border-radius: 0; box-shadow: none; font-family: var(--f-ui); text-shadow: 0 0 5px rgba(120,255,190,.2); color: #cfdcff; font-size: 11px; }
-#opening { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; font: 34px/1 var(--f-crt); letter-spacing: .1em; color: var(--ink); text-shadow: 0 0 8px var(--glow), 0 0 18px var(--glow); opacity: 0; pointer-events: none; }
-.roll { position: absolute; left: 0; right: 0; top: 0; height: 120px; z-index: 2; pointer-events: none; background: linear-gradient(transparent, rgba(120,255,180,.07) 55%, rgba(150,255,200,.11) 98%, transparent); animation: roll 7s linear infinite; }
+#win { left: 0; top: 0; width: 960px; height: 540px; z-index: 10; opacity: 0; border-radius: 0; box-shadow: none; font-family: var(--f-ui); text-shadow: 0 0 5px var(--tg); color: #cfdcff; font-size: 11px; }
+#opening { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; font: 34px/1.15 var(--f-crt); letter-spacing: .1em; white-space: pre; text-align: left; color: var(--ink); text-shadow: 0 0 8px var(--glow), 0 0 18px var(--glow); opacity: 0; pointer-events: none; }
+.roll { position: absolute; left: 0; right: 0; top: 0; height: 120px; z-index: 2; pointer-events: none; background: linear-gradient(transparent, var(--rl) 98%, transparent); animation: roll 7s linear infinite; }
 @keyframes roll { from { transform: translateY(-130px); } to { transform: translateY(560px); } }
 .c { position: absolute; inset: 0; animation: flick 6s steps(1) infinite; }
 @keyframes flick { 0%, 100% { opacity: 1; } 31% { opacity: .96; } 32% { opacity: 1; } 71% { opacity: .94; } 72% { opacity: 1; } }
 #wsweep { position: absolute; left: 0; right: 0; top: 0; height: 100px; z-index: 2; opacity: 0; pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(77,255,154,.12) 70%, rgba(150,255,200,.6) 99%, #eafff2 100%); box-shadow: 0 0 20px 3px var(--glow); }
+  background: linear-gradient(to bottom, transparent, var(--rl) 70%, var(--sw) 99%, #fff 100%); box-shadow: 0 0 20px 3px var(--glow); }
 .it { opacity: 0; }
 .c > .it, #main > .it { position: absolute; }
 .dk { background: rgba(12,18,42,.8); border: 1px solid #34457a; }
@@ -151,6 +153,10 @@ svg.lk { width: 8px; height: 9px; fill: none; stroke: currentColor; stroke-width
 .atxt { font-size: 9px; line-height: 1.25; color: #aebbe0; margin: 2px 0 0; } .atxt em { display: block; font-style: normal; color: #f0b030; margin-top: 3px; }
 .hint { margin-top: auto; text-align: center; font-size: 7.5px; letter-spacing: .08em; color: #55608a; font-weight: 700; }
 
+.stage.crisp #win::before, .stage.crisp #win::after { z-index: 0; }
+.stage.crisp #win .c { z-index: 5; }
+.stage.glass #win { border-radius: 26px; box-shadow: inset 0 0 70px rgba(0,0,0,.95), 0 0 0 6px #0a0f1e, 0 0 0 8px #263a66; }
+.stage.glass #win::after { background: var(--mask), linear-gradient(135deg, rgba(255,255,255,.07), transparent 28%), radial-gradient(110% 120% at 50% 45%, transparent 45%, rgba(0,0,0,.7) 100%); }
 .cap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 22px; color: var(--muted); font-size: 15px; line-height: 1.45; }
 .cap b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 2px; }
 @media (prefers-reduced-motion: reduce) { .roll, .c, .cur { animation: none; } }
@@ -162,7 +168,15 @@ svg.lk { width: 8px; height: 9px; fill: none; stroke: currentColor; stroke-width
     <p>Pressing New run on the Start a Run panel powers up the green console. The console opens outward until it fills the whole screen as the lobby, laid out like the game: back button and title, mode tabs, party list, Ready and Start on the left, and the loadout panel on the right. The background is a CRT screen with phosphor glow, scanlines, a slow roll bar and a faint flicker. The lobby controls keep their usual colours on top.</p>
   </header>
   <div class="ctl">
-    <div class="grp"><span>CRT</span><button class="seg" type="button" data-c="" aria-pressed="true">Subtle</button><button class="seg" type="button" data-c="strong" aria-pressed="false">Strong</button></div>
+    <div class="grp"><span>Opening</span><button class="seg" type="button" data-v="a" aria-pressed="true">A. Expand</button><button class="seg" type="button" data-v="b" aria-pressed="false">B. Power-on line</button><button class="seg" type="button" data-v="c" aria-pressed="false">C. Scan wipe</button><button class="seg" type="button" data-v="d" aria-pressed="false">D. Terminal boot</button></div>
+  </div>
+  <div class="ctl">
+    <div class="grp"><span>Phosphor</span><button class="seg" type="button" data-k="stage" data-c="" aria-pressed="true">Green</button><button class="seg" type="button" data-k="stage" data-c="amber" aria-pressed="false">Amber</button><button class="seg" type="button" data-k="stage" data-c="cyan" aria-pressed="false">Cyan</button></div>
+    <div class="grp"><span>Screen</span><button class="seg" type="button" data-k="glass" data-c="" aria-pressed="true">Flat</button><button class="seg" type="button" data-k="glass" data-c="glass" aria-pressed="false">Curved glass</button></div>
+    <div class="grp"><span>Scanlines</span><button class="seg" type="button" data-k="crisp" data-c="" aria-pressed="true">Over everything</button><button class="seg" type="button" data-k="crisp" data-c="crisp" aria-pressed="false">Behind panels</button></div>
+    <div class="grp"><span>CRT</span><button class="seg" type="button" data-k="str" data-c="" aria-pressed="true">Subtle</button><button class="seg" type="button" data-k="str" data-c="strong" aria-pressed="false">Strong</button></div>
+  </div>
+  <div class="ctl">
     <div class="grp"><span>Speed</span><button class="seg" type="button" data-s="1" aria-pressed="true">Normal</button><button class="seg" type="button" data-s="2.5" aria-pressed="false">Slow</button></div>
     <button class="go" type="button" id="play">Press New run</button>
     <button class="seg" type="button" id="skip">Jump to lobby</button>
@@ -231,10 +245,13 @@ svg.lk { width: 8px; height: 9px; fill: none; stroke: currentColor; stroke-width
   </div></div>
 
   <div class="cap">
-    <div><b>1. Press New run</b>The button lights, the "No saved runs" text clears and the green console flares. The title, panel frame and player card slide away.</div>
-    <div><b>2. Console opens</b>The console grows from its own edges to the full screen, with OPENING LOBBY typed in the middle. A bright scanline sweeps down it as it settles.</div>
-    <div><b>3. CRT lobby</b>The lobby fades in piece by piece on the CRT background: title and modes, party, buttons, then the loadout panel and its sections. The roll bar and flicker keep running. About 2.4 s in total.</div>
-    <div><b>Reduced effects</b>The menu crossfades to the lobby. The roll bar and flicker are off.</div>
+    <div><b>A. Expand</b>The console flares, then grows from its own edges to the full screen. OPENING LOBBY types in the middle and a scanline sweeps down as it settles. About 2.5 s.</div>
+    <div><b>B. Power-on line</b>The console squashes to a bright line, as an old set does when it switches off, then the line opens upward and downward into the lobby. Fastest, about 1.9 s.</div>
+    <div><b>C. Scan wipe</b>A bright scanline travels down the screen. The menu is covered above it and the lobby appears below it, with each piece lighting up as the line passes. About 2.2 s.</div>
+    <div><b>D. Terminal boot</b>The console expands as in A, then prints a short link log (player, loadout, lobby) before the lobby draws in. Slowest and most atmospheric, about 3.6 s.</div>
+    <div><b>Phosphor</b>Green matches the current menu console. Amber and cyan recolour the title, console, labels and glow for comparison.</div>
+    <div><b>Screen and scanlines</b>Curved glass rounds the corners, adds a bezel and a glass highlight. "Behind panels" keeps scanlines on the background only, so the lobby text stays crisp. CRT strength adds heavier lines and an RGB mask. All of these apply live in the lobby.</div>
+    <div><b>Reduced effects</b>Every opening becomes a short crossfade. The roll bar and flicker are off.</div>
   </div>
 </div>
 
@@ -251,24 +268,46 @@ function type(el,txt,t,per){ for(let i=1;i<=txt.length;i++) later(function(){el.
 function reset(){ anims.forEach(function(a){a.cancel()}); anims=[]; timers.forEach(clearTimeout); timers=[]; $('o1').textContent=''; running=false; inLobby=false; $('state').textContent='MENU'; $('play').textContent='Press New run'; }
 function done(){ running=false; inLobby=true; $('state').textContent='LOBBY'; $('play').textContent='Back to menu'; }
 var items=document.querySelectorAll('#win .it');
-var CLIP0='inset(166px 272px 184px 272px round 3px)', CLIP1='inset(0px 0px 0px 0px round 0px)';
-function run(){
-  /* press */
+var V='a', R=0, CLIP0='inset(166px 272px 184px 272px round 3px)';
+function clip1(){ return 'inset(0px round '+R+'px)'; }
+function press(){
   an($('newrun'),[{filter:'brightness(1)'},{filter:'brightness(1.7)',offset:.4},{filter:'brightness(1.2)'}],0,.3);
   an($('ctext'),[{opacity:1},{opacity:0}],.1,.25);
-  an($('console'),[{filter:'brightness(1)'},{filter:'brightness(2.1)'}],0,.4,'ease-in');
-  /* menu steps aside */
-  an($('sign'),[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-30px)'}],.25,.5,'ease-in');
-  an($('card'),[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.96)'}],.25,.45,'ease-in');
-  an($('pcard'),[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(30px)'}],.25,.5,'ease-in');
-  /* console becomes the lobby window */
-  an($('console'),[{opacity:1},{opacity:0}],.4,.01);
-  an($('win'),[{opacity:1,filter:'brightness(2.1)',clipPath:CLIP0},{opacity:1,filter:'brightness(1)',clipPath:CLIP1}],.4,.8,'cubic-bezier(.65,0,.25,1)');
-  an($('opening'),[{opacity:0,offset:0},{opacity:1,offset:.1},{opacity:1,offset:.78},{opacity:0,offset:1}],.5,.7);
-  type($('o1'),'OPENING LOBBY',.5,.03);
-  an($('wsweep'),[{opacity:1,transform:'translateY(-100px)',offset:0},{opacity:1,transform:'translateY(540px)',offset:.92},{opacity:0,transform:'translateY(570px)',offset:1}],1.05,1.0);
-  items.forEach(function(it,i){ an(it,[{opacity:0,transform:'translateY(6px)',offset:0},{opacity:.9,offset:.2},{opacity:.3,offset:.34},{opacity:1,offset:.5},{opacity:.7,offset:.62},{opacity:1,transform:'none',offset:1}],1.05+i*.08,.4); });
-  later(done,2.5);
+}
+function menuAway(t){
+  an($('sign'),[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-30px)'}],t,.5,'ease-in');
+  an($('card'),[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.96)'}],t,.45,'ease-in');
+  an($('pcard'),[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(30px)'}],t,.5,'ease-in');
+}
+function sweep(t,d){ an($('wsweep'),[{opacity:1,transform:'translateY(-100px)',offset:0},{opacity:1,transform:'translateY(540px)',offset:.92},{opacity:0,transform:'translateY(570px)',offset:1}],t,d); }
+function pieces(t,gap){ items.forEach(function(it,i){ an(it,[{opacity:0,transform:'translateY(6px)',offset:0},{opacity:.9,offset:.2},{opacity:.3,offset:.34},{opacity:1,offset:.5},{opacity:.7,offset:.62},{opacity:1,transform:'none',offset:1}],t+i*gap,.4); }); }
+function openingText(txt,t,d,per){ an($('opening'),[{opacity:0,offset:0},{opacity:1,offset:.08},{opacity:1,offset:.82},{opacity:0,offset:1}],t,d); type($('o1'),txt,t,per); }
+function swap(t){ an($('console'),[{opacity:1},{opacity:0}],t,.01); }
+function runA(){
+  press(); an($('console'),[{filter:'brightness(1)'},{filter:'brightness(2.1)'}],0,.4,'ease-in'); menuAway(.25); swap(.4);
+  an($('win'),[{opacity:1,filter:'brightness(2.1)',clipPath:CLIP0},{opacity:1,filter:'brightness(1)',clipPath:clip1()}],.4,.8,'cubic-bezier(.65,0,.25,1)');
+  openingText('OPENING LOBBY',.5,.7,.03); sweep(1.05,1.0); pieces(1.05,.08); later(done,2.5);
+}
+function runB(){
+  press();
+  an($('console'),[{transform:'scale(1,1)',filter:'brightness(1)',offset:0},{transform:'scale(1,.03)',filter:'brightness(4)',offset:.6},{transform:'scale(1,.03)',filter:'brightness(5)',offset:1}],.1,.6,'ease-in');
+  menuAway(.3); swap(.7);
+  an($('win'),[{opacity:1,filter:'brightness(3)',clipPath:'inset(268px 0px 268px 0px round 0px)'},{opacity:1,filter:'brightness(1)',clipPath:clip1()}],.7,.6,'cubic-bezier(.2,.7,.2,1)');
+  sweep(1.0,.9); pieces(1.0,.07); later(done,1.9);
+}
+function runC(){
+  press(); an($('console'),[{filter:'brightness(1)'},{filter:'brightness(2.2)'}],0,.3);
+  menuAway(.9);
+  an($('win'),[{opacity:1,clipPath:'inset(0px 0px 100% 0px round '+R+'px)'},{opacity:1,clipPath:clip1()}],.3,1.2);
+  sweep(.3,1.2);
+  items.forEach(function(it,i){ var y=[10,59,111,427,19,51,62,62,150,230,430][i]||100; var t=.3+1.2*(y/540)+.05; an(it,[{opacity:0,offset:0},{opacity:.9,offset:.2},{opacity:.3,offset:.34},{opacity:1,offset:.5},{opacity:.7,offset:.62},{opacity:1,offset:1}],t,.4); });
+  later(done,2.2);
+}
+function runD(){
+  press(); an($('console'),[{filter:'brightness(1)'},{filter:'brightness(2.1)'}],0,.4,'ease-in'); menuAway(.25); swap(.4);
+  an($('win'),[{opacity:1,filter:'brightness(2.1)',clipPath:CLIP0},{opacity:1,filter:'brightness(1)',clipPath:clip1()}],.4,.8,'cubic-bezier(.65,0,.25,1)');
+  openingText('> LINK ESTABLISHED\n> PLAYER  ANTHONY\n> LOADOUT  SOLDIER TANK .... OK\n> OPENING LOBBY',.6,1.7,.028);
+  sweep(2.0,1.0); pieces(2.0,.08); later(done,3.6);
 }
 function runReduced(){
   ['sign','card','pcard','console'].forEach(function(id){ an($(id),[{opacity:1},{opacity:0}],0,.3); });
@@ -276,6 +315,7 @@ function runReduced(){
   items.forEach(function(it){ an(it,[{opacity:0},{opacity:1}],.1,.3); });
   later(done,.4);
 }
+function run(){ R=stage.classList.contains('glass')?26:0; ({a:runA,b:runB,c:runC,d:runD})[V](); }
 function play(){
   touched=true;
   if(running) return;
@@ -286,6 +326,10 @@ function play(){
 $('play').onclick=play; $('newrun').onclick=play;
 $('skip').onclick=function(){ touched=true; reset(); var k=K; K=.001; running=true; if(reduce) runReduced(); else run(); K=k; };
 document.querySelectorAll('[data-s]').forEach(function(b){ b.onclick=function(){ reset(); K=+b.dataset.s; document.querySelectorAll('[data-s]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
-document.querySelectorAll('[data-c]').forEach(function(b){ b.onclick=function(){ stage.classList.toggle('strong',b.dataset.c==='strong'); document.querySelectorAll('[data-c]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
+document.querySelectorAll('[data-v]').forEach(function(b){ b.onclick=function(){ reset(); V=b.dataset.v; document.querySelectorAll('[data-v]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); play(); }; });
+var look={stage:['amber','cyan'],glass:['glass'],crisp:['crisp'],str:['strong']};
+document.querySelectorAll('[data-k]').forEach(function(b){ b.onclick=function(){
+  var k=b.dataset.k; look[k].forEach(function(c){ stage.classList.remove(c); }); if(b.dataset.c) stage.classList.add(b.dataset.c);
+  document.querySelectorAll('[data-k="'+k+'"]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); }; });
 setTimeout(function(){ if(!touched) play(); },1200);
 </script>
