@@ -68,6 +68,29 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid #fff; outlin
 .chip.hover-hint .go { opacity: 0; transition: opacity .15s; } .chip.hover-hint:hover .go { opacity: 1; }
 .menu .foot { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font: 500 13px var(--f-mono); color: #5d6b99; letter-spacing: .1em; }
 
+/* part 1b: hints that point at the card */
+@keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(170,110,255,.7); } 100% { box-shadow: 0 0 0 16px rgba(170,110,255,0); } }
+@keyframes bob { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-10px); } }
+@keyframes bobd { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@keyframes blink { 50% { opacity: 0; } }
+.h-ring { animation: ring 1.6s ease-out infinite; }
+.bub { position: absolute; left: 972px; top: 586px; width: 270px; padding: 12px 14px; border-radius: 10px; background: #f1f4fd; color: #101734; font: 600 17px/1.25 var(--f-ui); box-shadow: 0 8px 20px rgba(0,0,0,.5); }
+.bub::before { content: ""; position: absolute; left: -10px; top: 26px; border: 10px solid transparent; border-left: 0; border-right-color: #f1f4fd; }
+.bub b { display: block; font-size: 12px; font-family: var(--f-mono); letter-spacing: .1em; color: #5b3fb0; margin-bottom: 3px; }
+.bub .ok2 { margin-top: 8px; font: 700 13px var(--f-ui); letter-spacing: .06em; color: #101734; background: #d6dcf2; border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.bub.gold { background: var(--gold); color: #201400; } .bub.gold::before { border-right-color: var(--gold); } .bub.gold b { color: #6a4300; }
+.tag { position: absolute; left: 968px; top: 620px; font: 700 18px var(--f-ui); letter-spacing: .1em; color: #e5d4ff; background: #3a1f6b; border: 1px solid #9a5ee6; border-radius: 6px; padding: 6px 12px; animation: bob 1.1s ease-in-out infinite; white-space: nowrap; }
+.tip { position: absolute; left: 332px; top: 678px; background: #f1f4fd; color: #101734; font: 600 15px var(--f-ui); padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .15s; pointer-events: none; }
+.chip:hover ~ .tip { opacity: 1; }
+.dn { position: absolute; left: 626px; top: 590px; width: 28px; text-align: center; color: var(--ok); font-size: 18px; animation: bobd 1s ease-in-out infinite; text-shadow: 0 0 8px rgba(60,255,150,.7); z-index: 3; }
+.crt .cur { animation: blink 1s steps(1) infinite; }
+.ping { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--warn); color: #fff; font: 700 14px/22px var(--f-ui); text-align: center; left: 934px; top: 596px; box-shadow: 0 0 0 2px #080b1e; z-index: 3; }
+.ping::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--warn); animation: ring2 1.4s ease-out infinite; }
+@keyframes ring2 { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .h-ring, .tag, .dn, .crt .cur, .ping::after { animation: none; } }
+.cmp5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rule { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; color: #c8d4ff; font-size: 16px; line-height: 1.4; max-width: none; }
+
 /* part 2: profile window */
 .pw { position: absolute; left: 60px; right: 60px; top: 40px; bottom: 40px; border-radius: 16px; background: var(--panel); border: 1px solid #4a68b8; box-shadow: 0 0 60px rgba(80,120,255,.2); display: flex; overflow: hidden; }
 .pw .x { position: absolute; right: 14px; top: 12px; font: 700 18px var(--f-ui); color: #9fb4ff; background: #1a2242; border: 1px solid var(--line); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; z-index: 5; }
@@ -138,6 +161,24 @@ table.t td, table.t th { padding: 7px 8px; text-align: left; border-bottom: 1px 
   </div>
   <div class="view" id="v1"><div class="stage menu" id="s1"></div></div>
   <div class="cmp" id="cmp1"></div>
+
+  
+  <h2>Part 1b. Telling players the card is a button (chip-only option)</h2>
+  <p>Five ways to point at the card. Each one goes away for good after the player clicks the card once.</p>
+  <div class="ctl">
+    <div class="grp" id="g4"><span>Hint</span>
+      <button class="seg" data-v="1" aria-pressed="true">1 · Speech bubble</button>
+      <button class="seg" data-v="2" aria-pressed="false">2 · Pulse + hover tip</button>
+      <button class="seg" data-v="3" aria-pressed="false">3 · Screen tip</button>
+      <button class="seg" data-v="4" aria-pressed="false">4 · New reward ping</button>
+      <button class="seg" data-v="5" aria-pressed="false">5 · Nudge tag</button>
+    </div>
+    <div class="grp"><button class="seg" id="replay" aria-pressed="false">Replay hint</button></div>
+    <div class="log" id="log4"></div>
+  </div>
+  <div class="view" id="v4"><div class="stage menu" id="s4"></div></div>
+  <div class="cmp cmp5" id="cmp4"></div>
+  <div class="rule"><b>When it shows:</b> until the player clicks the card once, and at most for their first 5 launches, remembered per profile (a saved flag, no network change). Idea 4 is different: it shows each time a rank-up or unlock has not been looked at yet. With Reduced effects on, the pulse, bounce and blink become still.</div>
 
   <h2>Part 2. How the profile looks</h2>
   <div class="ctl">
@@ -306,7 +347,48 @@ table.t td, table.t th { padding: 7px 8px; text-align: left; border-bottom: 1px 
   $('#g2').addEventListener('click', function (e) { var b = e.target.closest('.seg'); if (!b) return; layout = b.dataset.v; setPressed($('#g2'), layout); draw2(); flash($('#log2'), 'LAYOUT ' + layout); });
   $('#g3').addEventListener('click', function (e) { var b = e.target.closest('.seg'); if (!b) return; tab = b.dataset.v; setPressed($('#g3'), tab); draw2(); flash($('#log2'), 'OPEN ON ' + tab.toUpperCase()); });
 
-  drawMenu(); draw2(); fit();
+
+  /* ---------------- Part 1b ---------------- */
+  var hint = '1', seen = false;
+  var CMP4 = {
+    '1': { t: '1 · Speech bubble', pro: ['Says exactly what to do, in words', 'Has a "Got it" so it is easy to dismiss'], con: ['Most intrusive; text on a clean menu', 'Needs room beside the card (it sits to the right)'] },
+    '2': { t: '2 · Pulse + hover tip', pro: ['No text on screen until the mouse is over the card', 'The card already has a PROFILE hint on hover'], con: ['Players who never hover may miss the meaning', 'The pulse alone does not say what it does'] },
+    '3': { t: '3 · Screen tip', pro: ['Uses the existing MAIN MENU_ screen, so it fits the style', 'Quiet; no new objects'], con: ['Easy to overlook at the top of the box', 'Has to share the screen with other tips'] },
+    '4': { t: '4 · New reward ping', pro: ['Only appears when there is something to see', 'Gives a real reason to click, not just a hint'], con: ['Says nothing to a player with no new reward', 'Needs a "seen" marker for rank-ups and unlocks'] },
+    '5': { t: '5 · Nudge tag', pro: ['Small, one word, impossible to miss', 'Shorter than a bubble'], con: ['Bouncing can feel nagging', 'No explanation of what the profile holds'] }
+  };
+  function drawHint() {
+    var extra = '', crt = 'MAIN MENU<span class="cur">_</span>', ringCls = '';
+    if (!seen) {
+      if (hint === '1') extra = '<div class="bub" id="bub"><b>YOUR PROFILE</b>Click your card to change how you look and see your records.<br><button class="ok2" id="gotit">GOT IT</button></div>';
+      if (hint === '2') ringCls = ' h-ring';
+      if (hint === '3') { crt = 'TIP: CLICK YOUR CARD FOR PROFILE<span class="cur">_</span>'; extra = '<div class="dn">\u25BC</div>'; }
+      if (hint === '4') { ringCls = ' h-ring'; extra = '<div class="ping">!</div><div class="bub gold"><b>RANK UP!</b>Gold frame is ready. Click your card to equip it.</div>'; }
+      if (hint === '5') extra = '<div class="tag">\u25C0 YOUR PROFILE</div>';
+    }
+    $('#s4').innerHTML =
+      '<div class="banner">CARTESIAN COLOSSEUM</div><div class="ruler"></div>' +
+      '<div class="box"><div class="hdr"><div class="crt">' + crt + '</div><button class="tac">\u23FB Quit</button></div>' +
+        '<div class="krow"><button class="tac play" style="height:150px">\u25B6 PLAY</button></div>' +
+        '<div class="krow"><button class="tac" style="flex:1">\u2192 Join game</button><button class="tac" style="flex:1">\u2699 Settings</button></div></div>' +
+      '<button class="chip live' + ringCls + '" id="chip4" type="button" aria-label="Open profile">' +
+        '<div class="av" style="width:42px;height:42px;font-size:18px;box-shadow:0 0 0 2px #12162c, 0 0 0 4px var(--gold)">A</div>' +
+        '<div class="col"><span class="nm">Anthony</span><span class="sub">Veteran \u00B7 Rank 5</span></div>' +
+        (hint === '2' || seen ? '<span class="go" style="opacity:0">PROFILE \u203A</span>' : '') +
+        '<div class="sh">5</div></button>' +
+      (hint === '2' && !seen ? '<div class="tip">Profile: your look, rank and records</div>' : '') +
+      extra + '<div class="toast" id="t4"></div>';
+    $('#chip4').addEventListener('click', function () { toast('t4', 'Opens Profile (Look tab)'); if (!seen) { seen = true; flash($('#log4'), 'HINT DISMISSED FOR GOOD'); setTimeout(drawHint, 400); fit(); } });
+    var g = $('#gotit'); if (g) g.addEventListener('click', function (e) { e.stopPropagation(); seen = true; flash($('#log4'), 'DISMISSED WITHOUT OPENING'); drawHint(); fit(); });
+    $('#cmp4').innerHTML = ['1', '2', '3', '4', '5'].map(function (k) {
+      var c = CMP4[k];
+      return '<div class="' + (k === hint ? 'on' : '') + '"><h3>' + c.t + '</h3><ul class="pro">' + c.pro.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><ul class="con">' + c.con.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+  }
+  $('#g4').addEventListener('click', function (e) { var b = e.target.closest('.seg'); if (!b) return; hint = b.dataset.v; seen = false; setPressed($('#g4'), hint); drawHint(); fit(); flash($('#log4'), 'HINT ' + hint); });
+  $('#replay').addEventListener('click', function () { seen = false; drawHint(); fit(); flash($('#log4'), 'HINT REPLAYED'); });
+
+  drawMenu(); drawHint(); draw2(); fit();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 })();
 </script>
