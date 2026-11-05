@@ -441,10 +441,8 @@ namespace Arena
                     CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
                 else if (howToOpen)
                     CloseWindow(() => howToOpen = false);
-                else if (recordsOpen)
-                    CloseWindow(() => recordsOpen = false);
-                else if (cosmeticsOpen)
-                    CloseWindow(() => cosmeticsOpen = false);  // CosmeticsUi.cs
+                else if (profileOpen)
+                    CloseWindow(() => profileOpen = false);  // ProfileUi.cs
                 else if (menuPlayOpen && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
                     PlayPickerBack();  // the saved-runs picker: back to the older runs' first page, or to the menu (SavesUi.cs)
             }
@@ -612,7 +610,7 @@ namespace Arena
             labelStyle.normal.textColor = new Color(0.9f, 0.92f, 1f);
         }
 
-        /// The main menu under a side drawer (Settings, Records, How to play): the box fades and drifts out as the drawer
+        /// The main menu under a side drawer (Settings, Profile, How to play): the box fades and drifts out as the drawer
         /// slides in, and back in as it slides out. Draw-only (Repaint), so it takes no clicks. `hidden` skips it.
         void DrawMenuUnderDrawer(bool hidden)
         {
@@ -658,13 +656,11 @@ namespace Arena
                     }
                     else if (continueOpen)
                         DrawContinue();  // SavesUi.cs
-                    else if (recordsOpen)
+                    else if (profileOpen)
                     {
                         DrawMenuUnderDrawer(false);
-                        DrawRecords();
+                        DrawProfile();  // ProfileUi.cs
                     }
-                    else if (cosmeticsOpen)
-                        DrawCosmetics();  // CosmeticsUi.cs
                     else
                         DrawMenu();
                     break;

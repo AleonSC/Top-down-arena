@@ -67,7 +67,7 @@ classes.
 
 | | Weapons | Space abilities | Ultimate |
 |---|---|---|---|
-| **Tank** | **Warhammer** (hold to charge, let go to slam a fixed circle ahead (160 px across, the same size however long you hold): up to 80 damage and a 0.9 s stun at full charge. A faint outline shows where it lands while you charge, and a disc grows inside it as the charge builds), **Lance** (a heavy jab: a 180 × 88 px box straight ahead that slides out, shoves enemies 140 px back and stuns them for 1 s), **Halberd** (a long, thin 18° blade swept across 80° in front of you, hitting each enemy once a sweep) | **Shield Wall** (4 s: blocks every bullet coming at your front 120°, red aimed shots included, soaks 400 boss damage), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land. With Visual effects on, the knight swells and rises with the shadow left on the floor, a hexagon closes in on the landing radius, and the landing sends out hex pressure rings, steel plates and sparks and leaves a hex rune; each stunned enemy sits in a hex cage whose ring drains over the stun), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
+| **Tank** | **Warhammer** (hold to charge, let go to slam a fixed circle ahead (160 px across, the same size however long you hold): up to 80 damage and a 0.9 s stun at full charge. A faint outline shows where it lands while you charge, and a disc grows inside it as the charge builds), **Lance** (a heavy jab: a 180 × 88 px box straight ahead that slides out, shoves enemies 140 px back and stuns them for 1 s), **Halberd** (a long, thin 18° blade swept across 80° in front of you, hitting each enemy once a sweep) | **Shield Wall** (seven steel plates across your front 120°, blocking every bullet, red aimed shots included; each shot wears down the plate it hits (400 damage shared between the plates), a broken plate leaves a gap, and the wall has no timer: it stays up until every plate is broken), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land. With Visual effects on, the knight swells and rises with the shadow left on the floor, a hexagon closes in on the landing radius, and the landing sends out hex pressure rings, steel plates and sparks and leaves a hex rune; each stunned enemy sits in a hex cage whose ring drains over the stun), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
 | **Healer** | **Quarterstaff** (wide sweeps that knock enemies back and bat enemy bullets back at them; each enemy hit heals you and allies near you for 2), **Lightbringer** (hits fill a light gauge; full, the next crescents heal three times as much; sword cut plus a crescent of light that heals allies it passes), **Censer** (leaves a healing incense trail that spoils enemy aim; a flail whirled all the way round; each spin heals allies near you for 3) | **Consecrate** (6 s of blessed ground: allies heal 12 HP/s, enemies burn 20/s), **Guardian's Oath** (shield the ally nearest your cursor for 100, yourself for 50, for 6 s), **Lay on Hands** (heal the most hurt ally within 300 px for 70, or revive them at half health) | **Hallowed Blade** (80 s): a giant sword falls at your cursor for 200 damage around it, then blesses the ground for 8 s (allies heal 15 HP/s) |
 | **DPS** | **Twin Blades** (very fast alternating slashes; 10 hits in a row prime a dash-strike: press the weapon-action key to lunge through enemies for triple), **Greatsword** (each sweep leaves a bullet-stopping crescent for 0.5 s; huge 170° sweeps), **Rapier** (thrusts at the nearest enemy; each hit in a row on it deals 10% more, up to +60%; each thrust skewers up to 3 enemy bullets on its line, each adding to the streak) | **Whirlwind** (spin for 2 s hitting everything within 110 px every 0.2 s and slicing small bullets), **Lunge** (dash 260 px toward your cursor hitting everything you pass for 35; two charges), **Battle Fury** (6 s: swing 40% faster, +25% damage) | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
@@ -886,15 +886,16 @@ blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
 yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
-XP bar; click anywhere on it to open your cosmetics window) and on each results card;
+XP bar; click anywhere on it to open your profile) and on each results card;
 the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
-what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
+what it unlocked); and **Profile > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
 with the modifiers they used and the multiplier).
 
-**Your look** is the cosmetics window: click your name card on the main menu (a pencil next to your name there renames you). A side drawer shows your rank and a row
+**Your look** is the profile's **Look** tab: click your name card on the main menu (see **Profile** below; a pencil next to your name there renames you). Its rows are
+**Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and **Cursor**; the **Reward ladder** is in the Rank tab (a box with your next reward and the XP to go, beside a vertical ladder of rank shields that opens at your rank). The old text for the Look tab and the ladder follows. A side drawer shows your rank and a row
 each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line**, **Cursor** and the **Reward ladder** (a box with your next reward and the XP to go, beside a vertical ladder of rank shields that opens at your rank); the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
-for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
+for each reward you've earned (locked ones say the rank they need). Profile > Rank > Rank and runs has the same equip buttons. One of
 each kind at a time:
 
 | Rank | Reward |
@@ -984,14 +985,14 @@ everyone's upgrades, ability keys, levels, XP, rerolls, mastery, gold, revive to
 and the run's score, time, path and route. Saves are plain text in the game's data folder (`saves/*.run`),
 with upgrades and abilities by name, so they keep working as the game changes.
 
-**Records** on the main menu: this computer's player's runs started, won and lost, best wave, best endless wave,
+**Profile** (the old Records and Your look pages, merged; opened by clicking your player card on the main menu, or from the pause and lobby menus' **Profile** row, which leaves out the Look tab): a side drawer with your card (badge, name, rank title, XP) and four tabs. **Look** is the cosmetics above. **Rank** is the Reward ladder and Rank and runs. **Records** is Overview, Bosses, Classes and Challenge rooms. **Unlocks** lists every unlock. The Records tab keeps this computer's player's runs started, won and lost, best wave, best endless wave,
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
-**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 3: there are always four boxes, an unused slot says Empty, and New profile is grayed out when all three are used), **Manage profiles** to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Picking one plays a slow move into the menu (each box shrinks to a point on the axis, yours opens into the menu), and Switch profile plays it backwards, with sounds; any key skips it. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Records > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
+**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 3: there are always four boxes, an unused slot says Empty, and New profile is grayed out when all three are used), **Manage profiles** to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Picking one plays a slow move into the menu (each box shrinks to a point on the axis, yours opens into the menu), and Switch profile plays it backwards, with sounds; any key skips it. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Profile > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
 
 **Unlocks**: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the records; it's earned the
-moment the condition holds (an **Unlocked** toast in the match, listed in Records). So far: **Warden Hunt** (beat the
+moment the condition holds (an **Unlocked** toast in the match, listed in Profile > Unlocks). So far: **Warden Hunt** (beat the
 Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins and best time.
 
 ## Run stats (Tab)
@@ -1020,7 +1021,7 @@ everyone the run's numbers about once a second, and again the moment the game pa
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
-sees who paused) and either player can resume. The pause menu, **Settings**, **Records** and **How to play**
+sees who paused) and either player can resume. The pause menu, **Settings**, **Profile** and **How to play**
 share one look, a **side drawer**: a tall panel on the left with the title and a list, and the open section in a panel
 on the right. Every one of them moves the same way: opening, the drawer **slides in** from the left, its rows follow
 one after another, the line under the title draws across, your party rises and the run card (or the open section)
@@ -1042,10 +1043,10 @@ window really close. That goes for the pause menu and for Settings from the lobb
   pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu**: the title on its x-axis with a shot arcing over it. In a box in the middle of the screen: a big **Play** key over **Join game**, **Records** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
-  **your player card** (your party card in small; click it to open Your look, where the pencil next to your name renames you; it's remembered; hover it for **Switch
-  profile**); it fades out while the Join row is open. **Join game** opens a row
-  under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Records, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see
+- **The main menu**: the title on its x-axis with a shot arcing over it. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
+  **your player card** (your party card in small; click it to open your **Profile**, where the pencil next to your name renames you; it's remembered; hover it for **Switch
+  profile**). Until you have opened your profile once (and for at most your first five launches on that profile), a small purple **YOUR PROFILE** tag beside the card bounces toward it; clicking the tag opens the profile too, and it holds still with Reduced effects; it fades out while the Join row is open. **Join game** opens a row
+  under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see
   Saved runs): **Continue** your latest run or start a **New run**, which grows the box into the lobby's loadout.
   **Quit** is a physical key with a lamp, beside a small "MAIN MENU_" CRT screen at the top of the box (like the saved-runs picker's Back). The
   first time it shows after the game starts it draws itself in: a pen writes the title and traces the arc, then the
@@ -1057,8 +1058,8 @@ window really close. That goes for the pause menu and for Settings from the lobb
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
   HUD, **camera lean**, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
-- **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
-  won) and Unlocks.
+- **Profile:** four tabs. **Look** (the cosmetics), **Rank** (Reward ladder, Rank and runs), **Records** (Overview, Bosses with each one moving beside its count, Classes, **Challenge rooms** with each room played and
+  won) and **Unlocks**. Mid-run and in the lobby it has no Look tab.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
   basics, Fighting, Between waves, Challenge rooms (with a little animated portal), Paths and modifiers, Playing
   together, and the **Field guide** under them.

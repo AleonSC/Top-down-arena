@@ -1,0 +1,394 @@
+<title>Player Profile Merge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: two clickable 1280x720 stages. Part 1 compares how you open the profile (A chip only, B key only, C both). Part 2 compares how the merged profile is laid out (1 fixed card + tabs, 2 banner + tabs, 3 one scrolling page). All numbers are sample data. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --panel: #0f1530; --panel2: #151d3f; --gold: #f2c14e; --ok: #6cff9a; --warn: #ff8a5b;
+  --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; } h2 { font-size: 22px; margin: 26px 0 0; text-wrap: balance; }
+p, .note { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.log { font: 500 12px var(--f-mono); color: var(--ok); letter-spacing: .06em; margin-left: auto; min-height: 1em; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+
+/* shared bits */
+.av { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #86abff, #2b4bb0); display: grid; place-items: center; font-weight: 700; color: #fff; flex: none; box-shadow: 0 0 0 3px #12162c, 0 0 0 5px var(--gold); }
+.rkb { white-space: nowrap; display: inline-block; background: var(--gold); color: #201400; font: 700 12px/1 var(--f-ui); padding: 3px 7px 2px; border-radius: 4px; letter-spacing: .06em; }
+.xp { height: 6px; background: #0a0e20; border-radius: 3px; overflow: hidden; } .xp i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, #d8a73a, #ffe08f); }
+.mono { font: 500 12px var(--f-mono); color: #9aa7cf; letter-spacing: .04em; }
+.tac { display: block; font: 700 22px var(--f-ui); color: #e9efff; text-align: center; cursor: pointer; border-radius: 10px; padding: 14px 0; width: 100%;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); transition: transform .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); } .tac:active { transform: translateY(3px); }
+.tac.play { font-size: 32px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); padding: 18px 0; }
+.tac.new { box-shadow: 0 4px 0 #0b0f22, 0 0 0 2px var(--ok), 0 0 16px rgba(108,255,154,.45); }
+.toast { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); background: #0a1a12; color: var(--ok); border: 1px solid #1c6b43; border-radius: 8px; padding: 10px 18px; font: 500 15px var(--f-mono); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 30; }
+.toast.on { opacity: 1; }
+.cmp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cmp > div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.cmp > div.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cmp h3 { margin: 0; font-size: 18px; } .cmp ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 15px; line-height: 1.4; }
+.cmp .pro { color: #a9f0c3; } .cmp .con { color: #ffb79a; }
+@media (max-width: 760px) { .cmp { grid-template-columns: 1fr; } .log { margin-left: 0; } }
+
+/* part 1: main menu, laid out like the real one (title banner, box with CRT header + Quit, big Play, key row, player card under the box) */
+.menu .banner { position: absolute; left: 114px; right: 114px; top: 66px; height: 116px; border-radius: 8px; background: #04120b; border: 2px solid #3b4a6e; box-shadow: inset 0 0 40px rgba(0,0,0,.8); display: grid; place-items: center;
+  font: 700 76px var(--f-ui); letter-spacing: .04em; color: #5dffa6; text-shadow: 3px 0 #ff4a6a, -3px 0 #4aa0ff, 0 0 18px rgba(80,255,160,.5); }
+.menu .ruler { position: absolute; left: 240px; right: 240px; top: 196px; height: 1px; background: #3a4b86; }
+.menu .ruler::after { content: ""; position: absolute; left: 50%; top: -6px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; border: 2px solid #8fb0ff; background: #0b0e1c; }
+.menu .box { position: absolute; left: 294px; width: 692px; top: 258px; height: 336px; padding: 22px; border-radius: 14px; border: 1px solid #4a68b8; background: linear-gradient(#262f58, #0f1330 90%); display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 40px rgba(80,120,255,.16); }
+.menu .hdr { display: flex; gap: 12px; align-items: stretch; }
+.menu .crt { flex: 1; background: #03110a; border: 1px solid #1c3a2a; border-radius: 4px; padding: 10px 14px; font: 700 26px var(--f-ui); letter-spacing: .08em; color: #4dff9a; text-shadow: 0 0 8px rgba(60,255,150,.6); }
+.menu .hdr .tac { width: 120px; font-size: 18px; padding: 10px 0; }
+.menu .krow { display: flex; gap: 14px; } .menu .krow .tac { font-size: 22px; }
+.menu .tac.play { flex: 1; font-size: 40px; letter-spacing: .12em; color: #c8d2f0; background: linear-gradient(#3a4d94, #1c2750); }
+.menu .tac.hl { box-shadow: 0 4px 0 #0b0f22, 0 0 0 2px var(--gold), 0 0 14px rgba(242,193,78,.45); }
+.chip { position: absolute; left: 332px; top: 608px; width: 616px; height: 62px; display: flex; gap: 14px; align-items: center; padding: 0 16px 0 10px; border-radius: 6px; background: #080b1e; border: 2px solid #9a5ee6; color: #fff; text-align: left; font-family: var(--f-ui); }
+.chip .col { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.chip .nm { font-weight: 700; font-size: 24px; line-height: 1; }
+.chip .sub { font: 700 15px var(--f-ui); color: var(--gold); }
+.chip .go { font: 700 14px var(--f-ui); letter-spacing: .1em; color: #c9a8ff; white-space: nowrap; }
+.chip .sh { width: 38px; height: 44px; clip-path: polygon(0 0, 100% 0, 100% 68%, 50% 100%, 0 68%); background: var(--gold); display: grid; place-items: center; color: #201400; font: 700 16px var(--f-ui); padding-bottom: 6px; }
+.chip.live { cursor: pointer; } .chip.live:hover { border-color: #d2a8ff; box-shadow: 0 0 18px rgba(170,110,255,.55); background: #120d2e; }
+.chip.static { cursor: default; }
+.chip.hover-hint .go { opacity: 0; transition: opacity .15s; } .chip.hover-hint:hover .go { opacity: 1; }
+.menu .foot { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font: 500 13px var(--f-mono); color: #5d6b99; letter-spacing: .1em; }
+
+/* part 1b: hints that point at the card */
+@keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(170,110,255,.7); } 100% { box-shadow: 0 0 0 16px rgba(170,110,255,0); } }
+@keyframes bob { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-10px); } }
+@keyframes bobd { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@keyframes blink { 50% { opacity: 0; } }
+.h-ring { animation: ring 1.6s ease-out infinite; }
+.bub { position: absolute; left: 972px; top: 586px; width: 270px; padding: 12px 14px; border-radius: 10px; background: #f1f4fd; color: #101734; font: 600 17px/1.25 var(--f-ui); box-shadow: 0 8px 20px rgba(0,0,0,.5); }
+.bub::before { content: ""; position: absolute; left: -10px; top: 26px; border: 10px solid transparent; border-left: 0; border-right-color: #f1f4fd; }
+.bub b { display: block; font-size: 12px; font-family: var(--f-mono); letter-spacing: .1em; color: #5b3fb0; margin-bottom: 3px; }
+.bub .ok2 { margin-top: 8px; font: 700 13px var(--f-ui); letter-spacing: .06em; color: #101734; background: #d6dcf2; border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.bub.gold { background: var(--gold); color: #201400; } .bub.gold::before { border-right-color: var(--gold); } .bub.gold b { color: #6a4300; }
+.tag { position: absolute; left: 968px; top: 620px; font: 700 18px var(--f-ui); letter-spacing: .1em; color: #e5d4ff; background: #3a1f6b; border: 1px solid #9a5ee6; border-radius: 6px; padding: 6px 12px; animation: bob 1.1s ease-in-out infinite; white-space: nowrap; }
+.tip { position: absolute; left: 332px; top: 678px; background: #f1f4fd; color: #101734; font: 600 15px var(--f-ui); padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .15s; pointer-events: none; }
+.chip:hover ~ .tip { opacity: 1; }
+.dn { position: absolute; left: 626px; top: 590px; width: 28px; text-align: center; color: var(--ok); font-size: 18px; animation: bobd 1s ease-in-out infinite; text-shadow: 0 0 8px rgba(60,255,150,.7); z-index: 3; }
+.crt .cur { animation: blink 1s steps(1) infinite; }
+.ping { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--warn); color: #fff; font: 700 14px/22px var(--f-ui); text-align: center; left: 934px; top: 596px; box-shadow: 0 0 0 2px #080b1e; z-index: 3; }
+.ping::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--warn); animation: ring2 1.4s ease-out infinite; }
+@keyframes ring2 { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .h-ring, .tag, .dn, .crt .cur, .ping::after { animation: none; } }
+.cmp5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rule { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; color: #c8d4ff; font-size: 16px; line-height: 1.4; max-width: none; }
+
+/* part 2: profile window */
+.pw { position: absolute; left: 60px; right: 60px; top: 40px; bottom: 40px; border-radius: 16px; background: var(--panel); border: 1px solid #4a68b8; box-shadow: 0 0 60px rgba(80,120,255,.2); display: flex; overflow: hidden; }
+.pw .x { position: absolute; right: 14px; top: 12px; font: 700 18px var(--f-ui); color: #9fb4ff; background: #1a2242; border: 1px solid var(--line); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; z-index: 5; }
+.tabs { display: flex; gap: 6px; }
+.tab { font: 700 18px var(--f-ui); letter-spacing: .06em; color: #9fb4ff; background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 18px; cursor: pointer; }
+.tab:hover { color: #fff; } .tab[aria-selected="true"] { color: #fff; border-bottom-color: var(--gold); }
+.pane { overflow: hidden; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.pane h4 { margin: 0; font: 500 12px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.card { background: var(--panel2); border: 1px solid #27346a; border-radius: 10px; padding: 14px 16px; }
+.lrow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #222d5a; font-size: 18px; }
+.lrow:last-child { border-bottom: 0; } .lrow b { width: 150px; color: #c8d4ff; font-weight: 600; } .lrow .val { flex: 1; color: #fff; font-weight: 700; }
+.lrow .eq { font: 700 13px var(--f-ui); letter-spacing: .06em; color: #9fb4ff; background: #1a2242; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stat { background: var(--panel2); border: 1px solid #27346a; border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; }
+.stat b { font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; } .stat span { font: 500 11px var(--f-mono); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 17px; font-variant-numeric: tabular-nums; }
+table.t td, table.t th { padding: 7px 8px; text-align: left; border-bottom: 1px solid #222d5a; } table.t th { font: 500 11px var(--f-mono); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.ladder { display: flex; gap: 8px; align-items: flex-end; }
+.step { flex: 1; text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; font-size: 14px; color: var(--muted); }
+.shield { width: 44px; height: 52px; clip-path: polygon(0 0, 100% 0, 100% 68%, 50% 100%, 0 68%); background: #26315f; display: grid; place-items: center; font-weight: 700; color: #8190b6; font-size: 18px; }
+.step.done .shield { background: #3b6fd1; color: #fff; } .step.now .shield { background: var(--gold); color: #201400; transform: scale(1.18); } .step.now { color: var(--gold); font-weight: 700; }
+.lock { color: var(--warn); font: 500 13px var(--f-mono); }
+.ok { color: var(--ok); font: 500 13px var(--f-mono); }
+.bar { height: 8px; background: #0a0e20; border-radius: 4px; overflow: hidden; flex: 1; } .bar i { display: block; height: 100%; background: linear-gradient(90deg, #3b6fd1, #86abff); }
+.cls { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 17px; } .cls b { width: 110px; font-weight: 600; } .cls em { font: 500 12px var(--f-mono); color: var(--muted); width: 62px; text-align: right; font-style: normal; }
+.fig { position: relative; width: 100%; height: 160px; border-radius: 10px; background: radial-gradient(circle at 50% 60%, #2a2f66, #0c1030 75%); overflow: hidden; border: 1px solid #27346a; }
+.fig .me { position: absolute; left: 62%; top: 50%; width: 30px; height: 30px; margin: -15px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #b6ceff, #3156c8); box-shadow: 0 0 0 3px #12162c, 0 0 0 5px #9aa7cf; }
+.fig .tr { position: absolute; top: 50%; border-radius: 50%; background: #ff9a4a; }
+.eqrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.eqrow span { font: 500 11px var(--f-mono); letter-spacing: .04em; background: #1a2242; border: 1px solid var(--line); border-radius: 5px; padding: 3px 7px; color: #c8d4ff; }
+
+/* layout 1 */
+.l1 .side { width: 320px; flex: none; padding: 24px; display: flex; flex-direction: column; gap: 14px; background: #0b1128; border-right: 1px solid #27346a; }
+.l1 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.l1 .main .tabs { padding: 16px 70px 0 24px; border-bottom: 1px solid #27346a; }
+.l1 .main .pane { flex: 1; }
+/* layout 2 */
+.l2 { flex-direction: column; }
+.l2 .banner { display: flex; align-items: center; gap: 22px; padding: 18px 70px 14px 28px; background: linear-gradient(#18214a, #0f1530); border-bottom: 1px solid #27346a; }
+.l2 .banner .fig { width: 190px; height: 92px; flex: none; }
+.l2 .banner .mid { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.l2 .tabs { padding: 0 24px; border-bottom: 1px solid #27346a; } .l2 .pane { flex: 1; }
+/* layout 3 */
+.l3 .rail { width: 210px; flex: none; padding: 24px 14px; background: #0b1128; border-right: 1px solid #27346a; display: flex; flex-direction: column; gap: 4px; }
+.l3 .rail .who { display: flex; align-items: center; gap: 10px; padding: 0 8px 14px; } .l3 .rail .who .nm { font-weight: 700; font-size: 18px; }
+.l3 .rail .tab { text-align: left; border: 0; border-left: 3px solid transparent; border-radius: 0; padding: 9px 12px; font-size: 17px; }
+.l3 .rail .tab[aria-selected="true"] { border-left-color: var(--gold); background: #151d3f; }
+.l3 .scroll { flex: 1; overflow-y: auto; padding: 20px 28px 40px; display: flex; flex-direction: column; gap: 22px; scrollbar-width: thin; }
+.l3 .scroll section { display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
+.l3 .scroll h3 { margin: 0; font: 700 22px var(--f-ui); letter-spacing: .06em; color: #fff; border-bottom: 1px solid #27346a; padding-bottom: 6px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Player Profile Merge</h1>
+    <p>"Your look" and Records become one profile. Part 1 compares how you open it. Part 2 compares how it is laid out. Click anything on the stages. All names and numbers are sample data.</p>
+  </header>
+
+  <h2>Part 1. How you open it (on the real menu layout)</h2>
+  <div class="ctl">
+    <div class="grp" id="g1"><span>Entry</span>
+      <button class="seg" data-v="A" aria-pressed="true">A · Chip only</button>
+      <button class="seg" data-v="B" aria-pressed="false">B · Key only</button>
+      <button class="seg" data-v="C" aria-pressed="false">C · Both</button>
+    </div>
+    <div class="log" id="log1"></div>
+  </div>
+  <div class="view" id="v1"><div class="stage menu" id="s1"></div></div>
+  <div class="cmp" id="cmp1"></div>
+
+  
+  <h2>Part 1b. Telling players the card is a button (chip-only option)</h2>
+  <p>Five ways to point at the card. Each one goes away for good after the player clicks the card once.</p>
+  <div class="ctl">
+    <div class="grp" id="g4"><span>Hint</span>
+      <button class="seg" data-v="1" aria-pressed="true">1 · Speech bubble</button>
+      <button class="seg" data-v="2" aria-pressed="false">2 · Pulse + hover tip</button>
+      <button class="seg" data-v="3" aria-pressed="false">3 · Screen tip</button>
+      <button class="seg" data-v="4" aria-pressed="false">4 · New reward ping</button>
+      <button class="seg" data-v="5" aria-pressed="false">5 · Nudge tag</button>
+    </div>
+    <div class="grp"><button class="seg" id="replay" aria-pressed="false">Replay hint</button></div>
+    <div class="log" id="log4"></div>
+  </div>
+  <div class="view" id="v4"><div class="stage menu" id="s4"></div></div>
+  <div class="cmp cmp5" id="cmp4"></div>
+  <div class="rule"><b>When it shows:</b> until the player clicks the card once, and at most for their first 5 launches, remembered per profile (a saved flag, no network change). Idea 4 is different: it shows each time a rank-up or unlock has not been looked at yet. With Reduced effects on, the pulse, bounce and blink become still.</div>
+
+  <h2>Part 2. How the profile looks</h2>
+  <div class="ctl">
+    <div class="grp" id="g2"><span>Layout</span>
+      <button class="seg" data-v="1" aria-pressed="true">1 · Card + tabs</button>
+      <button class="seg" data-v="2" aria-pressed="false">2 · Banner + tabs</button>
+      <button class="seg" data-v="3" aria-pressed="false">3 · One page</button>
+    </div>
+    <div class="grp" id="g3"><span>Open on</span>
+      <button class="seg" data-v="Look" aria-pressed="true">Look</button>
+      <button class="seg" data-v="Rank" aria-pressed="false">Rank</button>
+      <button class="seg" data-v="Records" aria-pressed="false">Records</button>
+      <button class="seg" data-v="Unlocks" aria-pressed="false">Unlocks</button>
+    </div>
+    <div class="log" id="log2"></div>
+  </div>
+  <div class="view" id="v2"><div class="stage" id="s2"></div></div>
+  <div class="cmp" id="cmp2"></div>
+</div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  /* scale each 1280x720 stage to its frame */
+  function fit() { $$('.view').forEach(function (v) { $('.stage', v).style.transform = 'scale(' + (v.clientWidth / 1280) + ')'; }); }
+  window.addEventListener('resize', fit);
+
+  function flash(el, text) { el.textContent = text; }
+  function setPressed(group, val) { $$('.seg', group).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === val)); }); }
+
+  /* ---------------- Part 1 ---------------- */
+  var entry = 'A';
+  var KEYS = { A: ['Play', 'Join game', 'Settings'], B: ['Play', 'Join game', 'Profile', 'Settings'], C: ['Play', 'Join game', 'Records', 'Settings'] };
+  var TARGET = { Profile: 'Profile (Look tab)', Records: 'Profile (Records tab)' };
+  var CMP1 = {
+    A: { t: 'A · Chip only', pro: ['Fewest buttons; the menu stays Play, Join, Settings', 'Your card is already "you", so stats live there'], con: ['Needs a clear clickable look or players will hunt for a Records key', 'Controller or keyboard focus needs a stop on the chip'] },
+    B: { t: 'B · Key only', pro: ['Matches what players expect: a menu item for stats; the Records slot is just renamed', 'Easy to find'], con: ['The chip becomes display only, losing today\'s click-to-open', 'One more key in the stack to fit and animate'] },
+    C: { t: 'C · Both', pro: ['Safest to find', 'The chip keeps its current click; the key goes to the Records tab'], con: ['Two doors, one room', 'The key label has to differ from the chip ("Records", not "Profile")'] }
+  };
+  function drawMenu() {
+    var keys = KEYS[entry].filter(function (k) { return k !== 'Play'; }).map(function (k) {
+      var hl = (k === 'Profile' || k === 'Records') ? ' hl' : '';
+      var ic = { 'Join game': '\u2192 ', Records: '\u2606 ', Profile: '\u2606 ', Settings: '\u2699 ' }[k] || '';
+      return '<button class="tac' + hl + '" data-k="' + k + '" style="flex:1">' + ic + k + '</button>';
+    }).join('');
+    var live = entry !== 'B';
+    var chipCls = 'chip ' + (live ? 'live' : 'static') + (entry === 'C' ? ' hover-hint' : '');
+    var hint = live ? '<span class="go">PROFILE \u203A</span>' : '';
+    var tag = live ? 'button' : 'div';
+    $('#s1').innerHTML =
+      '<div class="banner">CARTESIAN COLOSSEUM</div><div class="ruler"></div>' +
+      '<div class="box"><div class="hdr"><div class="crt">MAIN MENU_</div><button class="tac" data-k="Quit">\u23FB Quit</button></div>' +
+        '<div class="krow"><button class="tac play" data-k="Play" style="height:150px">\u25B6 PLAY</button></div>' +
+        '<div class="krow">' + keys + '</div></div>' +
+      '<' + tag + ' class="' + chipCls + '" id="chip"' + (live ? ' type="button" aria-label="Open profile"' : '') + '>' +
+        '<div class="av" style="width:42px;height:42px;font-size:18px;box-shadow:0 0 0 2px #12162c, 0 0 0 4px var(--gold)">A</div>' +
+        '<div class="col"><span class="nm">Anthony</span><span class="sub">Veteran \u00B7 Rank 5</span></div>' + hint +
+        '<div class="sh">5</div>' +
+      '</' + tag + '>' +
+      '<div class="foot">' + (entry === 'A' ? 'Records key removed. The player card is the way in.' : entry === 'B' ? 'Records becomes a Profile key. The player card is display only.' : 'The card opens the Look tab. The Records key opens the Records tab.') + '</div>' +
+      '<div class="toast" id="t1"></div>';
+    $$('#s1 .tac').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.dataset.k;
+        if (TARGET[k]) toast('t1', 'Opens ' + TARGET[k]);
+        else toast('t1', k + ' (unchanged)');
+      });
+    });
+    if (live) $('#chip').addEventListener('click', function () { toast('t1', 'Opens Profile (Look tab)'); });
+    else $('#chip').addEventListener('click', function () { toast('t1', 'Nothing happens: display only'); });
+    $('#cmp1').innerHTML = ['A', 'B', 'C'].map(function (k) {
+      var c = CMP1[k];
+      return '<div class="' + (k === entry ? 'on' : '') + '"><h3>' + c.t + '</h3><ul class="pro">' + c.pro.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><ul class="con">' + c.con.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+  }
+  var tmr = {};
+  function toast(id, text) {
+    var el = document.getElementById(id); el.textContent = text; el.classList.add('on');
+    clearTimeout(tmr[id]); tmr[id] = setTimeout(function () { el.classList.remove('on'); }, 1700);
+  }
+  $('#g1').addEventListener('click', function (e) {
+    var b = e.target.closest('.seg'); if (!b) return;
+    entry = b.dataset.v; setPressed($('#g1'), entry); drawMenu(); fit();
+    flash($('#log1'), 'ENTRY ' + entry);
+  });
+
+  /* ---------------- Part 2 ---------------- */
+  var layout = '1', tab = 'Look';
+  var TABS = ['Look', 'Rank', 'Records', 'Unlocks'];
+
+  var LOOK = [['Frame', 'Steel'], ['Trail', 'Ember'], ['Background', 'Dusk'], ['Card background', 'Plain'], ['Name effect', 'None'], ['Aim line', 'Dotted'], ['Cursor', 'Crosshair']];
+  function pLook() {
+    return '<h4>Cosmetics</h4><div class="card">' + LOOK.map(function (r) {
+      return '<div class="lrow"><b>' + r[0] + '</b><span class="val">' + r[1] + '</span><button class="eq" tabindex="-1">CHANGE ›</button></div>';
+    }).join('') + '</div><div class="card" style="display:flex;gap:14px;align-items:center"><div class="mono" style="width:120px">NEXT REWARD</div><div style="flex:1;font-size:18px"><b>Gold frame</b> at Rank 7</div><div class="bar" style="max-width:200px"><i style="width:48%"></i></div><div class="mono">340 XP to go</div></div>';
+  }
+  function pRank() {
+    var steps = '';
+    for (var i = 1; i <= 8; i++) steps += '<div class="step ' + (i < 5 ? 'done' : i === 5 ? 'now' : '') + '"><div class="shield">' + i + '</div>' + (i === 5 ? 'You' : i > 5 ? '' : '') + '</div>';
+    return '<h4>Reward ladder</h4><div class="card"><div class="ladder">' + steps + '</div></div>' +
+      '<h4>Last runs</h4><div class="card"><table class="t"><tr><th>Run</th><th>Result</th><th>Modifiers</th><th>XP</th></tr>' +
+      '<tr><td>Endless</td><td class="ok">Wave 31</td><td>2</td><td>+420</td></tr><tr><td>Classic</td><td class="ok">Won</td><td>1</td><td>+310</td></tr>' +
+      '<tr><td>Warden Hunt</td><td class="lock">Lost</td><td>3</td><td>+150</td></tr><tr><td>Classic</td><td class="ok">Won</td><td>0</td><td>+240</td></tr></table></div>';
+  }
+  function pRecords() {
+    return '<h4>Overview</h4><div class="stats">' +
+      [['48', 'Runs started'], ['19', 'Won'], ['29', 'Lost'], ['54', 'Best endless wave']].map(function (s) { return '<div class="stat"><b>' + s[0] + '</b><span>' + s[1] + '</span></div>'; }).join('') + '</div>' +
+      '<div class="two"><div><h4>Bosses</h4><div class="card"><table class="t"><tr><th>Boss</th><th>Plays</th><th>Wins</th><th>Best</th></tr><tr><td>Warden</td><td>7</td><td>4</td><td>6:12</td></tr><tr><td>Colossus</td><td>3</td><td>1</td><td>9:40</td></tr><tr><td>Devourer</td><td>2</td><td>0</td><td>n/a</td></tr></table></div></div>' +
+      '<div><h4>Classes</h4><div class="card">' + [['Duelist', 70, '22 runs'], ['Knight', 45, '14 runs'], ['Elementalist', 30, '9 runs']].map(function (c) { return '<div class="cls"><b>' + c[0] + '</b><div class="bar"><i style="width:' + c[1] + '%"></i></div><em>' + c[2] + '</em></div>'; }).join('') + '</div></div></div>';
+  }
+  function pUnlocks() {
+    return '<h4>Unlocks</h4><div class="card"><table class="t"><tr><th>Unlock</th><th>Condition</th><th>State</th></tr>' +
+      '<tr><td>Warden Hunt</td><td>Beat the Warden in a run</td><td class="ok">Unlocked</td></tr>' +
+      '<tr><td>Gold frame</td><td>Reach Rank 7</td><td class="lock">Locked · 340 XP</td></tr>' +
+      '<tr><td>Aurora trail</td><td>Win a run with 3 modifiers</td><td class="lock">Locked · 2 of 3</td></tr></table></div>';
+  }
+  var PANES = { Look: pLook, Rank: pRank, Records: pRecords, Unlocks: pUnlocks };
+
+  function fig() { var t = ''; for (var i = 0; i < 9; i++) t += '<i class="tr" style="left:calc(62% - ' + (i * 16 + 20) + 'px);width:' + (22 - i * 2) + 'px;height:' + (22 - i * 2) + 'px;margin-top:-' + (11 - i) + 'px;opacity:' + (0.85 - i * 0.08) + '"></i>'; return '<div class="fig">' + t + '<div class="me"></div></div>'; }
+  function eq() { return '<div class="eqrow"><span>Steel frame</span><span>Ember trail</span><span>Dusk bg</span></div>'; }
+  function tabBar() { return '<div class="tabs" role="tablist">' + TABS.map(function (t) { return '<button class="tab" role="tab" data-t="' + t + '" aria-selected="' + (t === tab) + '">' + t + '</button>'; }).join('') + '</div>'; }
+
+  function draw2() {
+    var h = '';
+    if (layout === '1') {
+      h = '<div class="pw l1"><button class="x" aria-label="Close">×</button>' +
+        '<div class="side">' + fig() + '<div style="display:flex;gap:12px;align-items:center"><div class="av" style="width:52px;height:52px;font-size:22px">A</div><div><div style="font-size:22px;font-weight:700">Anthony</div><div class="mono">VETERAN</div></div></div>' +
+        '<div style="display:flex;gap:8px;align-items:center"><span class="rkb">RANK 5</span><div class="xp" style="flex:1"><i></i></div></div><div class="mono">1,240 / 2,000 XP</div>' + eq() +
+        '<div class="card" style="margin-top:auto"><div class="mono">AS OTHERS SEE YOU</div><div style="display:flex;gap:10px;align-items:center;margin-top:8px"><div class="av" style="width:34px;height:34px;font-size:15px">A</div><b style="font-size:17px">Anthony</b><span class="rkb" style="margin-left:auto">5</span></div></div></div>' +
+        '<div class="main">' + tabBar() + '<div class="pane" id="pane"></div></div></div>';
+    } else if (layout === '2') {
+      h = '<div class="pw l2"><button class="x" aria-label="Close">×</button>' +
+        '<div class="banner">' + fig().replace('class="fig"', 'class="fig"') + '<div class="mid"><div style="display:flex;gap:12px;align-items:center"><span style="font-size:28px;font-weight:700">Anthony</span><span class="rkb">RANK 5 · VETERAN</span></div><div style="display:flex;gap:10px;align-items:center"><div class="xp" style="flex:1;max-width:360px"><i></i></div><span class="mono">1,240 / 2,000 XP</span></div>' + eq() + '</div></div>' +
+        tabBar() + '<div class="pane" id="pane"></div></div>';
+    } else {
+      h = '<div class="pw l3"><button class="x" aria-label="Close">×</button>' +
+        '<div class="rail"><div class="who"><div class="av" style="width:40px;height:40px;font-size:18px">A</div><div><div class="nm">Anthony</div><span class="rkb">RANK 5</span></div></div>' +
+        TABS.map(function (t) { return '<button class="tab" role="tab" data-t="' + t + '" aria-selected="' + (t === tab) + '">' + t + '</button>'; }).join('') + fig().replace('class="fig"', 'class="fig" style="height:110px;margin-top:auto"') + '</div>' +
+        '<div class="scroll" id="scroll">' + TABS.map(function (t) { return '<section id="sec-' + t + '"><h3>' + t.toUpperCase() + '</h3>' + PANES[t]().replace(/<h4>[^<]*<\/h4>/, '') + '</section>'; }).join('') + '</div></div>';
+    }
+    $('#s2').innerHTML = h + '<div class="toast" id="t2"></div>';
+    if (layout !== '3') $('#pane').innerHTML = PANES[tab]();
+    else { var sc = $('#scroll'); var sec = $('#sec-' + tab); sc.scrollTop = sec.offsetTop - 20; }
+    $$('#s2 .tab').forEach(function (b) {
+      b.addEventListener('click', function () {
+        tab = b.dataset.t; setPressed($('#g3'), tab);
+        if (layout === '3') { $$('#s2 .tab').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); }); var s = $('#scroll'); s.scrollTo({ top: $('#sec-' + tab).offsetTop - 20, behavior: 'smooth' }); }
+        else draw2();
+        flash($('#log2'), 'TAB ' + tab.toUpperCase());
+      });
+    });
+    $$('#s2 .x').forEach(function (b) { b.addEventListener('click', function () { toast('t2', 'Closes the profile'); }); });
+    var C2 = {
+      '1': { t: '1 · Card + tabs', pro: ['You and your look stay on screen while you browse', 'Closest to today\'s Your look window'], con: ['Tab content gets about 70% of the width', 'Tight at 1280x720 for the wide Records tables'] },
+      '2': { t: '2 · Banner + tabs', pro: ['Full width for Records tables and the ladder', 'Rank and XP always visible at the top'], con: ['The preview gets small, so it loses the live look', 'Banner uses about a sixth of the height'] },
+      '3': { t: '3 · One page', pro: ['No hidden tabs; everything is one scroll', 'The rail still jumps to a section'], con: ['The live preview shrinks to a thumbnail', 'Long page; hard to keep Equip and its preview together'] }
+    };
+    $('#cmp2').innerHTML = ['1', '2', '3'].map(function (k) {
+      var c = C2[k];
+      return '<div class="' + (k === layout ? 'on' : '') + '"><h3>' + c.t + '</h3><ul class="pro">' + c.pro.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><ul class="con">' + c.con.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+    fit();
+  }
+  $('#g2').addEventListener('click', function (e) { var b = e.target.closest('.seg'); if (!b) return; layout = b.dataset.v; setPressed($('#g2'), layout); draw2(); flash($('#log2'), 'LAYOUT ' + layout); });
+  $('#g3').addEventListener('click', function (e) { var b = e.target.closest('.seg'); if (!b) return; tab = b.dataset.v; setPressed($('#g3'), tab); draw2(); flash($('#log2'), 'OPEN ON ' + tab.toUpperCase()); });
+
+
+  /* ---------------- Part 1b ---------------- */
+  var hint = '1', seen = false;
+  var CMP4 = {
+    '1': { t: '1 · Speech bubble', pro: ['Says exactly what to do, in words', 'Has a "Got it" so it is easy to dismiss'], con: ['Most intrusive; text on a clean menu', 'Needs room beside the card (it sits to the right)'] },
+    '2': { t: '2 · Pulse + hover tip', pro: ['No text on screen until the mouse is over the card', 'The card already has a PROFILE hint on hover'], con: ['Players who never hover may miss the meaning', 'The pulse alone does not say what it does'] },
+    '3': { t: '3 · Screen tip', pro: ['Uses the existing MAIN MENU_ screen, so it fits the style', 'Quiet; no new objects'], con: ['Easy to overlook at the top of the box', 'Has to share the screen with other tips'] },
+    '4': { t: '4 · New reward ping', pro: ['Only appears when there is something to see', 'Gives a real reason to click, not just a hint'], con: ['Says nothing to a player with no new reward', 'Needs a "seen" marker for rank-ups and unlocks'] },
+    '5': { t: '5 · Nudge tag', pro: ['Small, one word, impossible to miss', 'Shorter than a bubble'], con: ['Bouncing can feel nagging', 'No explanation of what the profile holds'] }
+  };
+  function drawHint() {
+    var extra = '', crt = 'MAIN MENU<span class="cur">_</span>', ringCls = '';
+    if (!seen) {
+      if (hint === '1') extra = '<div class="bub" id="bub"><b>YOUR PROFILE</b>Click your card to change how you look and see your records.<br><button class="ok2" id="gotit">GOT IT</button></div>';
+      if (hint === '2') ringCls = ' h-ring';
+      if (hint === '3') { crt = 'TIP: CLICK YOUR CARD FOR PROFILE<span class="cur">_</span>'; extra = '<div class="dn">\u25BC</div>'; }
+      if (hint === '4') { ringCls = ' h-ring'; extra = '<div class="ping">!</div><div class="bub gold"><b>RANK UP!</b>Gold frame is ready. Click your card to equip it.</div>'; }
+      if (hint === '5') extra = '<div class="tag">\u25C0 YOUR PROFILE</div>';
+    }
+    $('#s4').innerHTML =
+      '<div class="banner">CARTESIAN COLOSSEUM</div><div class="ruler"></div>' +
+      '<div class="box"><div class="hdr"><div class="crt">' + crt + '</div><button class="tac">\u23FB Quit</button></div>' +
+        '<div class="krow"><button class="tac play" style="height:150px">\u25B6 PLAY</button></div>' +
+        '<div class="krow"><button class="tac" style="flex:1">\u2192 Join game</button><button class="tac" style="flex:1">\u2699 Settings</button></div></div>' +
+      '<button class="chip live' + ringCls + '" id="chip4" type="button" aria-label="Open profile">' +
+        '<div class="av" style="width:42px;height:42px;font-size:18px;box-shadow:0 0 0 2px #12162c, 0 0 0 4px var(--gold)">A</div>' +
+        '<div class="col"><span class="nm">Anthony</span><span class="sub">Veteran \u00B7 Rank 5</span></div>' +
+        (hint === '2' || seen ? '<span class="go" style="opacity:0">PROFILE \u203A</span>' : '') +
+        '<div class="sh">5</div></button>' +
+      (hint === '2' && !seen ? '<div class="tip">Profile: your look, rank and records</div>' : '') +
+      extra + '<div class="toast" id="t4"></div>';
+    $('#chip4').addEventListener('click', function () { toast('t4', 'Opens Profile (Look tab)'); if (!seen) { seen = true; flash($('#log4'), 'HINT DISMISSED FOR GOOD'); setTimeout(drawHint, 400); fit(); } });
+    var g = $('#gotit'); if (g) g.addEventListener('click', function (e) { e.stopPropagation(); seen = true; flash($('#log4'), 'DISMISSED WITHOUT OPENING'); drawHint(); fit(); });
+    $('#cmp4').innerHTML = ['1', '2', '3', '4', '5'].map(function (k) {
+      var c = CMP4[k];
+      return '<div class="' + (k === hint ? 'on' : '') + '"><h3>' + c.t + '</h3><ul class="pro">' + c.pro.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><ul class="con">' + c.con.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+  }
+  $('#g4').addEventListener('click', function (e) { var b = e.target.closest('.seg'); if (!b) return; hint = b.dataset.v; seen = false; setPressed($('#g4'), hint); drawHint(); fit(); flash($('#log4'), 'HINT ' + hint); });
+  $('#replay').addEventListener('click', function () { seen = false; drawHint(); fit(); flash($('#log4'), 'HINT REPLAYED'); });
+
+  drawMenu(); drawHint(); draw2(); fit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

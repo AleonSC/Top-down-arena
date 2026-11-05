@@ -93,12 +93,7 @@ namespace Arena
         {
             V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
             // Abilities
-            if (p.WallT > 0f)
-            {
-                float half = 1.05f * p.Stats.WallArcMult;
-                Arc(p.Disp, r + 34f, 12f, new Rgba(0.75f, 0.85f, 1f, 0.22f), 20, p.Aim - half, 2f * half);
-                Arc(p.Disp, r + 40f, 4f, new Rgba(0.85f, 0.92f, 1f, 0.9f), 20, p.Aim - half, 2f * half);
-            }
+            DrawShieldWall(p, r, t);  // ShieldWallLook.cs (also runs when it's down, to notice it going up)
             if (p.WhirlT > 0f)
                 for (int k = 0; k < 3; k++)
                 {

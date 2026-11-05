@@ -17,10 +17,10 @@ namespace Arena
         int pauseSel;            // the pause menu's highlighted choice (↑ ↓, Enter)
         bool pauseSettings;      // the pause menu showing Settings
         bool pauseHowTo;         // the pause (or lobby) menu showing How to play
-        bool pauseRecords;       // the lobby or pause menu showing Records
+        bool pauseRecords;       // the lobby or pause menu showing the profile (ProfileUi.cs, without the Look tab)
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
-        int recordsSection;      // 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Unlocks
+        int recordsSection;      // the Records tab's open row: 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms (ProfileUi.cs)
         int howToTopic;          // HowToTopics
         string drawerKey;        // which window the drawer last slid in for
         float drawerAt = -10f;
@@ -205,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
+        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -236,7 +236,7 @@ namespace Arena
             }
             if (pauseRecords)
             {
-                DrawRecordsWindow(true);  // its Back returns to this list
+                DrawProfileWindow(true);  // its Back returns to this list
                 return;
             }
             if (pauseHowTo)
@@ -249,7 +249,7 @@ namespace Arena
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : null);
             Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
             string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
             float y = 128f;
             for (int i = 0; i < LobbyChoices.Length; i++)
@@ -303,7 +303,7 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "SETTINGS", "QUIT" };
+        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "SETTINGS", "QUIT" };
         const int PauseQuit = 6;  // asks "to lobby or desktop?" (DrawLobbyConfirm); the lobby is the host's: it takes everyone back
 
         /// The pause menu's choices for this player.
@@ -327,7 +327,7 @@ namespace Arena
             }
             if (pauseRecords)
             {
-                DrawRecordsWindow(true);  // its Back returns to the choices
+                DrawProfileWindow(true);  // its Back returns to the choices
                 return;
             }
             if (pauseHowTo)
@@ -354,7 +354,7 @@ namespace Arena
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
             Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
             string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
-            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
+            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
             var rows = PauseRows();
             pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
@@ -830,58 +830,16 @@ namespace Arena
 
         // --- Records -----------------------------------------------------------------------------------------------------
 
-        static readonly string[] RecordSections = { "Overview", "Bosses", "Classes", "Challenge rooms", "Unlocks", "Rank" };
+        // The Records pages are tabs of the profile now (ProfileUi.cs): Overview, Bosses, Classes, Challenge rooms (Records tab), Unlocks
+        // (Unlocks tab) and Rank (Rank tab, "Rank and runs"). `sec` is 0 to 5 in that order.
 
-        void DrawRecordsWindow(bool inMenu = false)
-        {
-            var p = Profile.Current;
-            float t = Time.unscaledTime;
-            float k = DrawerIn(inMenu ? "pause-records" : "records", !inMenu);
-            BeginDrawer("RECORDS", Ui.Gold, k, "Kept on this computer");
-            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));
-            int bossesBeaten = 0;
-            foreach (var b in RecordBosses)
-                if (p.Beaten(b) > 0)
-                    bossesBeaten++;
-            int classWins = 0, roomsWon = 0;
-            foreach (var kv in p.WinsAs)
-                if (kv.Value > 0)
-                    classWins++;
-            foreach (var c in Challenges.All)
-                roomsWon += p.RoomWon(c);
-            string[] icons = { "ui_star", "ui_skull", "class_knight", "blink", "ui_lock", "ui_trophy" };
-            string[] tags = { p.RunsStarted + " runs", bossesBeaten + " / " + RecordBosses.Length, classWins + " won", roomsWon + " won", Unlocks.All.Count == 0 ? "soon" : null, "Rank " + p.RankNow };
-            Color[] cols = { Ui.Gold, Ui.Gold, new Color(1f, 0.6f, 0.3f), new Color(0.45f, 0.9f, 1f), Ui.Gold, RankLook.TierColor(p.RankNow) };
-            float y = 128f;
-            for (int i = 0; i < RecordSections.Length; i++)
-            {
-                bool on = i == recordsSection;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                if (DrawerRow(r, PixelArt.Get(icons[i]), RecordSections[i], i == 0 ? "Practice and dev-tool runs don't count" : null, null, tags[i], cols[i], on,
-                    i == 1 && bossesBeaten > 0 ? Ui.Good : (Color?)null))
-                    recordsSection = i;
-                y += r.height + 4f;
-            }
-            if (closeChip)
-            {
-                if (inMenu)
-                    pauseRecords = false;
-                else
-                    CloseWindow(() => recordsOpen = false);
-            }
-            EndDrawer();
-            BeginPanelAnim("records" + recordsSection);
-            DrawRecordsSection(p, t, bossesBeaten, roomsWon, cols);
-            EndPanelAnim();
-        }
-
-        void DrawRecordsSection(Profile p, float t, int bossesBeaten, int roomsWon, Color[] cols)
+        void DrawRecordsSection(int sec, Profile p, float t, int bossesBeaten, int roomsWon, Color[] cols)
         {
             float k = 1f;
 
-            var col = cols[recordsSection];
+            var col = cols[sec];
             float x = DrawerPanel.x + 26f, w = DrawerPanel.width - 52f;
-            switch (recordsSection)
+            switch (sec)
             {
                 case 0:
                 {

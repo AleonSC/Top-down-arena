@@ -133,7 +133,7 @@ static partial class Program
         Check(!g.Bullets.ContainsKey(red.Id) && me.Run.DamageTaken == took, "Shield Wall stops a red aimed shot from the front");
 
         // Touching a boss: one hit, a shove back out, and no more hits for a second.
-        me.WallT = 0f;
+        Array.Clear(me.WallPlate, 0, Player.WallPlates);
         g.DevSetGod(1, false);
         me.InvulnT = 0f;
         var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(800f, 450f), 0f, 0, false });
