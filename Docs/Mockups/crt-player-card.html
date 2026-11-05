@@ -1,0 +1,175 @@
+<title>Player Card Placement</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: one 1280x720 stage with the box and tip; the player card moves between a left dock and a corner badge, in three looks. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --gold: #f2c14e;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; } h2 { font-size: 20px; margin: 14px 0 0; }
+header p, .note { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .tac:focus-visible, .pc:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.log { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .06em; margin-left: auto; min-height: 1em; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
+
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.scr > * { position: relative; z-index: 1; }
+.chassis { position: absolute; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.chassis.br::before, .chassis.br::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis.br::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis.br::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; cursor: pointer; border-radius: 10px;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); transition: transform .06s, box-shadow .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); } .tac:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0f22, inset 0 1px 0 rgba(255,255,255,.2); }
+.tac .led { position: absolute; left: 13px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac:hover .led { background: #6cff9a; box-shadow: 0 0 9px #6cff9a; }
+.tac.play { font-size: 30px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); }
+.tac.st { position: relative; }
+.title { position: absolute; display: grid; place-items: center; letter-spacing: .05em; border-radius: 8px; transition: left .25s, width .25s, font-size .25s; }
+
+/* player card (shared) */
+.pc { position: absolute; font-family: var(--f-ui); color: #fff; cursor: pointer; }
+.pc .av { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #86abff, #2b4bb0); display: grid; place-items: center; font-weight: 700; color: #fff; box-shadow: 0 0 0 3px #12162c, 0 0 0 5px var(--gold); flex: none; }
+.rkb { white-space: nowrap; display: inline-block; background: var(--gold); color: #201400; font: 700 12px/1 var(--f-ui); padding: 3px 7px 2px; border-radius: 4px; letter-spacing: .06em; }
+.xp { height: 5px; background: #0a0e20; border-radius: 3px; overflow: hidden; } .xp i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, #d8a73a, #ffe08f); }
+.sw { font: 600 12px var(--f-ui); color: #9fb4ff; letter-spacing: .04em; opacity: 0; transition: opacity .15s; } .pc:hover .sw { opacity: 1; }
+.nm { font-weight: 700; letter-spacing: .02em; }
+.xpt { font: 500 11px var(--f-mono); color: #9aa7cf; }
+.led2 { width: 7px; height: 7px; border-radius: 50%; background: #6cff9a; box-shadow: 0 0 8px #6cff9a; flex: none; }
+
+/* look 1: keycard in a reader slot */
+.l1 .slot { position: absolute; left: 0; right: 0; top: 0; height: 30px; border-radius: 10px; background: #070a16; border: 1px solid #2a3560; box-shadow: inset 0 3px 8px #000; display: flex; align-items: center; gap: 8px; padding: 0 12px; font: 16px var(--f-crt); color: var(--ink); text-shadow: 0 0 6px var(--glow); z-index: 3; letter-spacing: .06em; }
+.l1 .card { position: absolute; left: 12px; right: 12px; border-radius: 8px 8px 12px 12px; background: linear-gradient(#f1f4fd, #b9c5e8); color: #101734; z-index: 2; box-shadow: 0 6px 14px rgba(0,0,0,.5); transition: transform .15s; display: flex; }
+.l1 .card .nm { color: #101734; } .l1 .card .xpt { color: #4a5680; } .l1 .card .xp { background: #8f9cc8; }
+.l1 .card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 14px; height: 10px; background: #1a2142; opacity: .85; }
+.pc:hover .card { transform: translateY(6px); }
+.l1.dock { width: 224px; height: 214px; }
+.l1.dock .card { top: 20px; height: 138px; padding: 24px 14px 0; flex-direction: column; gap: 6px; }
+.l1.dock .card .top { display: flex; align-items: center; gap: 12px; } .l1.dock .av { width: 50px; height: 50px; font-size: 22px; } .l1.dock .nm { font-size: 22px; }
+.l1.dock .tac.st { position: absolute; left: 12px; right: 12px; bottom: 4px; height: 36px; font-size: 15px; padding-top: 8px; }
+.l1.corner { width: 232px; height: 92px; }
+.l1.corner .card { top: 16px; height: 74px; padding: 18px 12px 0; align-items: center; gap: 10px; }
+.l1.corner .av { width: 38px; height: 38px; font-size: 17px; } .l1.corner .nm { font-size: 19px; line-height: 1; } .l1.corner .meta { display: flex; flex-direction: column; gap: 4px; }
+.l1.corner .card::after { display: none; }
+
+/* look 2: id badge */
+.l2 .body { position: absolute; inset: 0; border-radius: 14px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c); box-shadow: 0 0 24px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.l2.dock { width: 224px; height: 214px; } .l2.corner { width: 232px; height: 88px; }
+.l2.dock .body { padding: 16px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+.l2.dock .top { display: flex; gap: 14px; align-items: center; } .l2.dock .av { width: 70px; height: 70px; border-radius: 14px; font-size: 30px; } .l2.dock .nm { font-size: 24px; line-height: 1; margin-bottom: 6px; }
+.l2.dock .tac.st { height: 36px; font-size: 15px; padding-top: 8px; margin-top: 4px; } .l2.dock .sw { text-align: center; }
+.l2.corner .body { padding: 12px; display: flex; align-items: center; gap: 12px; } .l2.corner .av { width: 50px; height: 50px; border-radius: 12px; font-size: 22px; }
+.l2.corner .nm { font-size: 21px; line-height: 1; margin-bottom: 5px; } .l2.corner .meta { flex: 1; min-width: 0; } .l2.corner .row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+/* look 3: chip */
+.l3 .body { position: absolute; inset: 0; border-radius: 999px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #1a2147); box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.2); display: flex; align-items: center; gap: 10px; padding: 0 16px 0 8px; transition: filter .1s; }
+.l3:hover .body { filter: brightness(1.15); }
+.l3.corner { width: 214px; height: 48px; } .l3.corner .av { width: 32px; height: 32px; font-size: 14px; box-shadow: 0 0 0 2px #12162c, 0 0 0 3px var(--gold); } .l3 .nm { font-size: 18px; flex: 1; } .l3 .chev { color: #9fb4ff; font-size: 14px; }
+.l3.dock { width: 224px; height: 56px; } .l3.dock .av { width: 38px; height: 38px; font-size: 17px; box-shadow: 0 0 0 2px #12162c, 0 0 0 3px var(--gold); }
+.l3.dock .sw { position: absolute; left: 0; right: 0; top: 62px; text-align: center; }
+.l3.corner .sw { position: absolute; left: 12px; top: 54px; }
+.gal { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px; }
+.cell { position: relative; background: #0d1226; border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-height: 130px; }
+.cell .box { position: relative; margin: 0 auto; } .cell .cap { position: absolute; left: 12px; top: 8px; font: 500 11px var(--f-mono); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.cell .box.d { width: 224px; } .cell .box.c { width: 232px; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px; color: var(--muted); font-size: 15px; line-height: 1.45; } .legend b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 3px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Player card placement</h1>
+    <p>The player card moves out of the main box, which now holds only actions. Two placements (a dock to the left of the box, and a corner badge) in three looks of the card itself. The card stays a proper card, not a CRT field. Hover it to see the cosmetics and Switch profile affordances. Click it to open cosmetics.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Placement</span><button class="seg" type="button" data-p="a" aria-pressed="true">A. Card dock</button><button class="seg" type="button" data-p="b" aria-pressed="false">B. Corner badge</button></div>
+    <div class="grp"><span>Card look</span><button class="seg" type="button" data-l="1" aria-pressed="true">1. Keycard</button><button class="seg" type="button" data-l="2" aria-pressed="false">2. ID badge</button><button class="seg" type="button" data-l="3" aria-pressed="false">3. Chip</button></div>
+    <span class="log" id="log" aria-live="polite"></span>
+  </div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="scr title" id="sign" style="font-size:100px"><span>CARTESIAN COLOSSEUM</span></div>
+    <div class="chassis br" id="box" style="left:300px;top:262px;width:680px;height:214px">
+      <button class="tac play" type="button" data-act="Play" style="left:30px;top:22px;width:620px;height:92px;padding-top:24px"><i class="led"></i>&#9654; PLAY</button>
+      <button class="tac" type="button" data-act="Join" style="left:30px;top:130px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Join</button>
+      <button class="tac" type="button" data-act="Records" style="left:238px;top:130px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Records</button>
+      <button class="tac" type="button" data-act="Settings" style="left:446px;top:130px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Settings</button>
+    </div>
+    <div class="chassis br" style="left:300px;top:498px;width:680px;height:92px"><div class="scr" style="left:10px;top:10px;width:660px;height:72px;padding:8px 20px 0 92px"><i style="position:absolute;left:14px;top:10px;width:52px;height:52px;border:2px solid var(--ink);background:rgba(77,255,154,.07)"></i><div style="position:absolute;right:18px;top:8px;font-size:16px;color:var(--dim);text-shadow:none">8 / 14</div><div style="font-size:24px;line-height:1">PERFECT PARRY</div><div style="font-size:17px;color:var(--dim);text-shadow:none;margin-top:3px;line-height:1">Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.</div></div></div>
+    <div id="holder"></div>
+  </div></div>
+
+  <div class="legend">
+    <div><b>A. Card dock</b>A panel to the left of the box, lined up with its top. Plenty of room for the avatar, name, rank and XP, and a visible Cosmetics key. The box is 86 px shorter than with the name card inside it.</div>
+    <div><b>B. Corner badge</b>A small badge in the top-left corner. It takes the least space and leaves the centre calm, but the title sign narrows to make room, and it is easier to overlook.</div>
+    <div><b>What the three looks do</b>Keycard is the strongest for your terminal story: a card sitting in a reader slot with a small CRT line, PROFILE LOADED. ID badge is the clearest and holds the most. Chip is the quietest, with the least room for rank.</div>
+  </div>
+
+  <h2>All six, side by side</h2>
+  <p class="note">The same cards outside the stage, so you can compare the looks at full size.</p>
+  <div class="gal" id="gal"></div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)}, view=$('view'), stage=$('stage');
+function fit(){ stage.style.transform='scale('+(view.clientWidth/1280)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+function card(look,mode){
+  var av='<div class="av">A</div>', rk='<span class="rkb">RANK 8</span>', xp='<div class="xp"><i></i></div>', xpt='<div class="xpt">1,240 / 1,600 XP</div>';
+  var sw='<div class="sw">Switch profile</div>';
+  var key='<button class="tac st" type="button" data-cos="1">Cosmetics</button>';
+  if(look===1){
+    var slot='<div class="slot"><i class="led2"></i>PROFILE LOADED</div>';
+    if(mode==='dock') return '<div class="pc l1 dock" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics">'+slot+'<div class="card"><div class="top">'+av+'<div><div class="nm">ANTHONY</div>'+rk+'</div></div>'+xp+xpt+'</div>'+key+'</div>';
+    return '<div class="pc l1 corner" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics">'+slot+'<div class="card">'+av+'<div class="meta"><div class="nm">ANTHONY</div>'+rk+'</div></div></div>';
+  }
+  if(look===2){
+    if(mode==='dock') return '<div class="pc l2 dock" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics"><div class="body"><div class="top">'+av+'<div><div class="nm">ANTHONY</div>'+rk+'</div></div>'+xp+xpt+key+sw+'</div></div>';
+    return '<div class="pc l2 corner" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics"><div class="body">'+av+'<div class="meta"><div class="nm">ANTHONY</div><div class="row">'+rk+'</div>'+xp+'</div></div></div>';
+  }
+  return '<div class="pc l3 '+mode+'" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics"><div class="body">'+av+'<div class="nm">ANTHONY</div>'+rk+'<span class="chev">&#9662;</span></div>'+sw+'</div>';
+}
+var place='a', look=1;
+function render(){
+  var h=card(look,place==='a'?'dock':'corner');
+  $('holder').innerHTML=h;
+  var pc=$('holder').firstChild;
+  if(place==='a'){ pc.style.left='44px'; pc.style.top='262px'; }
+  else { pc.style.left='24px'; pc.style.top='22px'; }
+  var s=$('sign');
+  if(place==='b'){ s.style.left='290px'; s.style.top='26px'; s.style.width='700px'; s.style.height='110px'; s.style.fontSize='64px'; }
+  else { s.style.left='112px'; s.style.top='66px'; s.style.width='1056px'; s.style.height='120px'; s.style.fontSize='100px'; }
+  $('box').style.top=(place==='a'?262:262)+'px';
+  document.querySelectorAll('[data-p]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.p===place)});
+  document.querySelectorAll('[data-l]').forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.l===look)});
+}
+document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){place=b.dataset.p;render()}});
+document.querySelectorAll('[data-l]').forEach(function(b){b.onclick=function(){look=+b.dataset.l;render()}});
+stage.addEventListener('click',function(e){
+  if(e.target.closest('[data-act]')){ $('log').textContent='Tactile: '+e.target.closest('[data-act]').dataset.act; return; }
+  if(e.target.closest('.pc')) $('log').textContent='Opens cosmetics';
+});
+var g='';
+[1,2,3].forEach(function(l){ ['dock','corner'].forEach(function(m){
+  var hgt=m==='dock'?(l===3?100:230):(l===1?112:l===2?100:70);
+  g+='<div class="cell" style="min-height:'+(hgt+40)+'px"><div class="cap">Look '+l+' / '+(m==='dock'?'dock':'corner')+'</div><div class="box '+(m==='dock'?'d':'c')+'" style="height:'+hgt+'px;margin-top:22px">'+card(l,m).replace('class="pc ','class="pc ').replace('<div class="pc','<div style="position:absolute;left:0;top:0" class="pc')+'</div></div>';
+});});
+$('gal').innerHTML=g;
+render();
+</script>
