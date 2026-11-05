@@ -98,6 +98,7 @@ namespace Arena
             var vis = new Rect(scr.x + side, top, scr.width - 2f * side, bot - top);
             if (p > ServoDoorA * 0.8f)
             {
+                KeyUi.Bezel(vis);   // the screen's frame opens with it
                 float content = ServoSeg(p, 0.50f, 0.66f);
                 ServoClip(vis, () =>
                 {

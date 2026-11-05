@@ -187,6 +187,9 @@ namespace Arena
             if (!live && Event.current.type != EventType.Repaint)
                 return;
             float name = MenuIntroK(1.75f, 2.1f), host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
+            if (name >= 1f)   // the box's corner screws
+                foreach (var b in new[] { new Vector2(MenuCard.x + 9f, MenuCard.y + 9f), new Vector2(MenuCard.xMax - 9f, MenuCard.y + 9f), new Vector2(MenuCard.x + 9f, MenuCard.yMax - 9f), new Vector2(MenuCard.xMax - 9f, MenuCard.yMax - 9f) })
+                    KeyUi.Bolt(b, 7f);
             if (live && Event.current.type == EventType.Repaint)
             {
                 float target = menuPlayOpen ? 1f : 0f;

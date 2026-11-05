@@ -114,6 +114,8 @@ namespace Arena
             var scr = RunsScreenRect(c);
             var newRun = NewRunRect(c);
             bool any = savedRuns.Count > 0;
+            if (!servoPicker)
+                KeyUi.Bezel(scr);   // the Play move draws its own, following the opening screen (MenuServo.cs)
             RunSave toContinue = null, toDelete = null;
             var mouse = Event.current.mousePosition;
             bool inside = live && scr.Contains(mouse);  // clicks on rows count only while the mouse is really over the screen

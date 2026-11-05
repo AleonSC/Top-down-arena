@@ -27,6 +27,30 @@ namespace Arena
             Ui.Label(tr, text, size, new Color(0.93f, 0.95f, 1f, a), TextAnchor.MiddleLeft, true);
         }
 
+        /// A screw head: a dark ring, a metal dome with a highlight, and a slot.
+        public static void Bolt(Vector2 c, float d)
+        {
+            Ui.Dot(new Rect(c.x - d / 2f - 1f, c.y - d / 2f - 1f, d + 2f, d + 2f), new Color(0.03f, 0.04f, 0.1f));
+            Ui.Dot(new Rect(c.x - d / 2f, c.y - d / 2f, d, d), new Color(0.3f, 0.39f, 0.68f));
+            Ui.Dot(new Rect(c.x - d * 0.3f, c.y - d * 0.35f, d * 0.4f, d * 0.4f), new Color(0.6f, 0.7f, 0.95f));
+            Ui.Fill(new Rect(c.x - d * 0.3f, c.y, d * 0.6f, 1f), new Color(0.03f, 0.04f, 0.1f, 0.8f));
+        }
+
+        /// The riveted metal frame around the runs screen (Docs/Mockups/menu-bay-doors.html): drawn under the screen, 7 px out on every side.
+        public static void Bezel(Rect screen)
+        {
+            var r = new Rect(screen.x - 7f, screen.y - 7f, screen.width + 14f, screen.height + 14f);
+            Ui.Pill(new Rect(r.x, r.y + 4f, r.width, r.height), new Color(0.03f, 0.04f, 0.09f, 0.55f));   // drop shadow
+            Ui.Pill(r, new Color(0.42f, 0.52f, 0.81f));                                                     // lit rim
+            var f = new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f);
+            Ui.Pill(f, new Color(0.14f, 0.18f, 0.37f));
+            Band(new Rect(f.x + 1f, f.y + 1f, f.width - 2f, f.height - 2f), new Color(0.23f, 0.29f, 0.51f), new Color(0.1f, 0.13f, 0.27f), 8);
+            Ui.Fill(new Rect(f.x + 5f, f.y + 1f, f.width - 10f, 1f), new Color(1f, 1f, 1f, 0.25f));        // the lit top edge
+            if (r.width > 40f && r.height > 40f)
+                foreach (var c in new[] { new Vector2(r.x + 6f, r.y + 6f), new Vector2(r.xMax - 6f, r.y + 6f), new Vector2(r.x + 6f, r.yMax - 6f), new Vector2(r.xMax - 6f, r.yMax - 6f) })
+                    Bolt(c, 5f);
+        }
+
         /// A vertical gradient drawn as bands (the game's boxes are flat, so depth is built from strips).
         static void Band(Rect r, Color top, Color bottom, int steps)
         {
