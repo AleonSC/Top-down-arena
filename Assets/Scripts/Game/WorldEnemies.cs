@@ -174,15 +174,12 @@ namespace Arena
                     for (int k = 0; k < 6; k++)
                         Polygon(z.Pos + V2.FromAngle(t * 0.4f + MathX.Tau * k / 6f) * (z.Radius - 14f), 4f, 4, t, c.WithAlpha(0.8f));
                     break;
-                case ZoneKind.HolySword:  // a warning circle while a giant sword drops toward it
-                {
-                    Circle(z.Pos, z.Radius * (1f - timeLeft), c.WithAlpha(0.2f), 40);
-                    Arc(z.Pos, z.Radius, 3f, c.WithAlpha(MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.5f), 48);
-                    V2 tip = z.Pos - new V2(0f, 420f * timeLeft);
-                    Line(tip, tip - new V2(0f, 90f), 10f, c.WithAlpha(0.9f));
-                    Line(tip - new V2(0f, 90f) + new V2(-22f, 0f), tip - new V2(0f, 90f) + new V2(22f, 0f), 6f, new Rgba(0.8f, 0.65f, 0.3f));
+                case ZoneKind.HolySword:  // a gold circle and a beam while a giant sword drops down it (HallowedBladeLook.cs)
+                    DrawHolySwordFall(z, t);
                     return;
-                }
+                case ZoneKind.HallowedBlade:  // the planted sword, its ring and its arena-wide pulses (HallowedBladeLook.cs)
+                    DrawHallowedBlade(z, t);
+                    return;
                 case ZoneKind.Grove:  // a great tree with roots spreading out
                     if (fxOn)
                     {

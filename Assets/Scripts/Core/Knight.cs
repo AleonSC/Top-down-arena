@@ -742,7 +742,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.HallowedBlade, Kit = Kit.Knight, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then the ground is blessed for 8 s (allies heal 15 HP/s, enemies burn).",
+                Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then it stays planted for 8 s (allies in the ring heal 15 HP/s, enemies burn), and every 2 s a pulse crosses the whole arena healing allies and hurting enemies for a third as much.",
                 Capstone = "Three swords fall: one at your cursor and one either side.",
             },
             new AbilityDef
