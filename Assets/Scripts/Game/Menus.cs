@@ -272,22 +272,22 @@ namespace Arena
             if (host > 0f)
                 MenuRise(host, 60f, () =>
                 {
-                    Ui.PulseRing(MenuHostRect, Ui.Primary, t);
-                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 34)) && live)
+                    Ui.PulseRing(KeyUi.Well(MenuHostRect), Ui.Primary, t);
+                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => KeyUi.Key(MenuHostRect, "PLAY", PixelArt.Get("ui_play"), 34)) && live)
                         OpenPlayPicker();
                 });
             if (join > 0f)
                 MenuRise(join, 24f, () =>
                 {
-                    if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 20)) && live)
+                    if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => KeyUi.Key(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", PixelArt.Get("ui_arrow"), 20, menuJoinOpen)) && live)
                         menuJoinOpen = !menuJoinOpen;
                 });
             if (cont > 0f)
                 MenuRise(cont, 24f, () =>
                 {
-                    if (MenuVhs.Draw(MenuRecordsRect, "TRK 03", live, fxReduced, () => Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 20)) && live)
+                    if (MenuVhs.Draw(MenuRecordsRect, "TRK 03", live, fxReduced, () => KeyUi.Key(MenuRecordsRect, "Records", PixelArt.Get("ui_trophy"), 20)) && live)
                         recordsOpen = true;
-                    if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 20)) && live)
+                    if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => KeyUi.Key(MenuSettingsRect, "Settings", PixelArt.Get("ui_gear"), 20)) && live)
                         settingsOpen = true;
                 });
         }
