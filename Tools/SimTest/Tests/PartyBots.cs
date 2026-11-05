@@ -39,6 +39,16 @@ static partial class Program
         run(4f, () => host.Lobby.Count == 3 && botsReady());
         Check(removed && host.Lobby.Count == 3 && botsReady(), "a bot can be removed and another added");
 
+        // The host chooses a bot's loadout (the lobby's panel sends these through the bot's own session).
+        var chosen = pb.Bots[0];
+        chosen.S.RequestKit(Kit.Knight);
+        chosen.S.RequestWeapon(2);
+        chosen.S.RequestAbility(1);
+        run(2f, () => host.Lobby[chosen.Id].Ready && host.Lobby[chosen.Id].Kit == Kit.Knight && host.Lobby[chosen.Id].Weapon == 2 && host.Lobby[chosen.Id].Ability == 1);
+        var ce = host.Lobby[chosen.Id];
+        Console.WriteLine("  chosen loadout: {0} weapon {1} ability {2}, ready again {3}", ce.Kit, ce.Weapon, ce.Ability, ce.Ready);
+        Check(ce.Kit == Kit.Knight && ce.Weapon == 2 && ce.Ability == 1 && ce.Ready, "a bot's loadout can be chosen, and it readies up again");
+
         host.RequestReady(true);
         Check(host.AllReady, "everyone's ready once the host is");
         host.StartMatch();
