@@ -9,7 +9,7 @@ namespace Arena
     /// Records page, the lobby's seats when continuing a run, and "Unlocked" toasts in a match.
     public partial class ArenaApp
     {
-        bool continueOpen, recordsOpen;
+        bool continueOpen;
         List<RunSave> savedRuns = new List<RunSave>();
         string deleteArmed;  // the save whose Delete was clicked once (a second click deletes it)
 
@@ -402,7 +402,7 @@ namespace Arena
             }
         }
 
-        // --- Records ---------------------------------------------------------------------------------
+        // --- What the profile's Records tab reads (ProfileUi.cs) ----------------------------------------
 
         static readonly EnemyType[] RecordBosses =
         {
@@ -411,9 +411,6 @@ namespace Arena
         };
 
         static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Boss ? "The Warden" : Defs.Get(t).Name;
-
-        /// Records, as the side drawer (MenuDrawer.cs).
-        void DrawRecords() { if (!SkipWhileClosing) DrawRecordsWindow(); }
 
         // --- The lobby, continuing a run --------------------------------------------------------------
 

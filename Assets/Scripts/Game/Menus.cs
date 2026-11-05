@@ -10,7 +10,8 @@ namespace Arena
     {
         // The main menu ("Big play", Docs/Mockups/menu-d.html, player card below: Docs/Mockups/menu-card-bottom.html): the title on its
         // x-axis with a shot arcing over it; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big Play
-        // button over Join game, Records and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect). The tip
+        // button over Join game and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect), which opens your
+        // profile (ProfileUi.cs) and wears a "YOUR PROFILE" nudge until it has (DrawProfileHint). The tip
         // box (DrawMenuTipBox, MenuTip, HowToTips) is parked: nothing draws it for now. Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
         // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
@@ -20,9 +21,8 @@ namespace Arena
         static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra)
         static readonly Rect MenuPlayerRect = new Rect(W / 2f - 310f, MenuCard.yMax + 22f, 620f, 64f);  // your player card, under the box
         static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
-        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 194f, 64f);
-        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 224f, 194f, 64f);
-        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 224f, 194f, 64f);
+        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 303f, 64f);
+        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 347f, MenuCard.y + 224f, 303f, 64f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
         static readonly Rect MenuHeaderRect = new Rect(MenuCard.x + 30f, MenuCard.y + 10f, 488f, 44f);  // the header screen (same spot as the picker's)
         static readonly Rect MenuQuitKey = new Rect(MenuCard.xMax - 30f - 120f, MenuCard.y + 10f, 120f, 44f);  // the Quit key beside it
@@ -179,7 +179,7 @@ namespace Arena
 
         static V2 ArcAt(float u) => new V2(Mathf.Lerp(ArcX0, ArcX1, u), ArcBase - (ArcBase - ArcTop) * 4f * u * (1f - u));
 
-        /// The box's insides: your name card, Play, Join game, Records and Settings, or (after Play) the saved-runs picker,
+        /// The box's insides: your name card, Play, Join game and Settings, or (after Play) the saved-runs picker,
         /// then the address row Join opens and how joining is going.
         /// live = false draws them only (Repaint), for the intro and the move into the lobby (LobbyEnter.cs).
         void DrawMenuCardInside(float t, bool live)
@@ -256,10 +256,14 @@ namespace Arena
                 return;
             var r = MenuPlayerRect;
             r.y += 12f * (1f - show);  // rises into place
-            WithAlpha(a, () => DrawNameCard(r, 0f, live && show >= 1f, t));
+            WithAlpha(a, () =>
+            {
+                DrawNameCard(r, 0f, live && show >= 1f, t);
+                DrawProfileHint(r, t, live && show >= 1f);  // ProfileUi.cs
+            });
         }
 
-        /// The box's buttons: Play, Join game, Records and Settings (each rising in during the intro).
+        /// The box's buttons: Play, Join game and Settings (each rising in during the intro).
         void DrawMenuButtons(float t, bool live, float name, float host, float join, float cont)
         {
             if (name > 0f)
@@ -291,8 +295,6 @@ namespace Arena
             if (cont > 0f)
                 MenuRise(cont, 24f, () =>
                 {
-                    if (MenuVhs.Draw(MenuRecordsRect, "TRK 03", live, fxReduced, () => KeyUi.Key(MenuRecordsRect, "Records", PixelArt.Get("ui_trophy"), 20)) && live)
-                        recordsOpen = true;
                     if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => KeyUi.Key(MenuSettingsRect, "Settings", PixelArt.Get("ui_gear"), 20)) && live)
                         settingsOpen = true;
                 });
@@ -353,7 +355,7 @@ namespace Arena
 
         /// Your name card, sized for the top row of the menu box (k = 0): a neutral player figure (no role or class: that's chosen in the
         /// lobby), your name, your rank title and badge, and the XP towards the next rank. Click the name to
-        /// rename; click anywhere else on it to open your cosmetics. (k between 0 and 1 is the move into the lobby: it lays
+        /// rename; click anywhere else on it to open your profile. (k between 0 and 1 is the move into the lobby: it lays
         /// out toward a full party card, with the class you've picked.)
         void DrawNameCard(Rect r, float k, bool editable, float t)
         {
@@ -402,15 +404,15 @@ namespace Arena
             int size = plain ? 22 : Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
             while (size > 11 && Ui.TextWidth(nameText, size, true) + 10f > tw)
                 size--;  // a long name gets smaller until it fits
-            Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);  // renamed with the pencil in Your look (CosmeticsUi.cs)
+            Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);  // renamed with the pencil in your profile (ProfileUi.cs)
             if (plain)
             {
                 // Under the name: the rank title and number, then the XP towards the next rank, thin.
                 Ui.Label(new Rect(tx, r.y + 33f, tw, 18f), Rank.Title(myRank) + "  ·  Rank " + myRank, 14, RankLook.TierColor(myRank), TextAnchor.MiddleLeft, true);
                 Ui.Bar(new Rect(tx, r.yMax - 11f, tw, 4f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
-                // Anywhere on the card opens your cosmetics.
+                // Anywhere on the card opens your profile.
                 if (editable && Ui.HitArea(r))
-                    OpenCosmetics();
+                    OpenProfile();
             }
             else
                 Ui.Label(new Rect(tx, r.y + Mathf.Lerp(27f, 34f, k), tw, 18f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name,
