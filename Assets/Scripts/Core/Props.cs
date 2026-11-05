@@ -107,7 +107,7 @@ namespace Arena
                 float m = Math.Min(Math.Min(l, rr), Math.Min(t, b));
                 pos = m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
             }
-            return pos;
+            return PushOutOfSolids(pos, r);  // and the layout's walls and pillars (LayoutRules.cs)
         }
 
         // --- Spawning (host) ------------------------------------------------------------------------
@@ -123,6 +123,7 @@ namespace Arena
                 ClearProps(true);
                 return;
             }
+            PlaceLayoutCrates();  // a new cycle's floor plan brings its own cover (LayoutRules.cs)
             // Anything left outside the arena (Narrow Pass's walls closing in) goes, and the boss fight's health barrels.
             var outside = new List<int>();
             foreach (var p in Props.Values)
@@ -215,6 +216,8 @@ namespace Arena
         {
             if (ClampToArena(at, size + 60f).DistanceTo(at) > 0.5f)
                 return false;
+            if (NearSolid(at, size + 16f))
+                return false;  // and clear of the layout's walls and pillars (LayoutRules.cs)
             foreach (var pl in Players.Values)
                 if (pl.Pos.DistanceTo(at) < playerGap + size)
                     return false;
