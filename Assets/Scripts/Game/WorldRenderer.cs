@@ -299,6 +299,8 @@ namespace Arena
             }
             if (p.OverdriveT > 0f)
                 Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
+            if (p.SwiftT > 0f)
+                DrawSwiftness(p, t);  // cyan ring and speed streaks (HolyCrossLook.cs)
             if (p.AdrenalineT > 0f)
                 DrawAdrenaline(p, t);  // heartbeat rings and a thumping heart (AdrenalineLook.cs)
             if (p.AegisT > 0f)  // Aeroaegis: the gust shell (AeroaegisLook.cs)

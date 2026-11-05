@@ -1093,6 +1093,7 @@ namespace Arena
             foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickBloodMages (BloodMage.cs)
                 tick(this, dt);
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
+            TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
@@ -1173,6 +1174,7 @@ namespace Arena
                 TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
+                p.SwiftT = Math.Max(0f, p.SwiftT - dt);
                 p.DashT = Math.Max(0f, p.DashT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);
                 p.AegisT = Math.Max(0f, p.AegisT - dt);

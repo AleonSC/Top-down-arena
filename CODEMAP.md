@@ -48,6 +48,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `BloodShell.cs`: the Hemomancer tank's held Blood Shell bubble (blocks bullets and enemies, costs health per hit, heals allies inside, bursts at 1/3 health; `BloodShellLook.cs` draws it)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
 - `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
+- `HolyCross.cs`: the Healer Knight's Consecrate: a Holy Cross flying along the aim and growing; heals and hastens (`Player.SwiftT`) allies, damages, slows and knocks back enemies, once each (`TickHolyCross`, called from `FixedStep`; `Game/HolyCrossLook.cs` draws it and the Swiftness ring)
 - `RadiantOrb.cs`: Healer's Radiant Orb
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
 - `WorldTree.cs`, `Game/WorldTreeLook.cs`: the Healer Summoner's World Tree ultimate: a 100 px zone for 15 s plus waves of healing butterflies (`MinionKind.Butterfly`, one per ally, target in `LinkTo`) and the tree's and butterflies' drawing

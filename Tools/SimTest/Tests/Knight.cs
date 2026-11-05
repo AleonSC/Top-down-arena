@@ -243,7 +243,7 @@ static partial class Program
         Cast(1, AbilityId.Consecrate, me.Pos);
         float hp0 = dp.Hp;
         Run(s, dt, 1f, null, () => { Clear(); dp.Pos = me.Pos + new V2(40f, 0f); });
-        Check(g.Zones.Values.Any(z => z.Kind == ZoneKind.Consecrate) && dp.Hp > hp0 + 5f, "Consecrate blesses the ground and heals allies on it");
+        Check(g.Effects.Any(e => e.Kind == FxKind.HolyCross) && dp.Hp > hp0 + 5f && dp.SwiftT > 0f, "Consecrate throws a Holy Cross that heals and hastens the ally it crosses");
         Cast(1, AbilityId.GuardiansOath, dp.Pos);
         Check(dp.ShieldHp >= 99f && me.ShieldHp >= 49f, "Guardian's Oath shields the ally near your cursor (and you)");
         dp.Downed = true; dp.Hp = 0f;

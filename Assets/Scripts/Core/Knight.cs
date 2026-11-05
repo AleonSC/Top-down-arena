@@ -693,8 +693,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
-                Name = "Consecrate", Cooldown = 14f, Desc = "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second.",
-                Capstone = "The blessed ground follows you.",
+                Name = "Consecrate", Cooldown = 14f, Desc = "Throw a Holy Cross along your aim. It grows as it flies: allies it crosses heal 35 and run 30% faster for 4 s; enemies take 25, are slowed 40% for 3 s and are knocked back.",
+                Capstone = "Two more crosses fly out at 22 degrees either side (each target is hit once).",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
@@ -786,9 +786,7 @@ namespace Arena
                     return true;
                 case AbilityId.Consecrate:
                 {
-                    var z = AddZone(ZoneKind.Consecrate, p, p.Pos, 130f * s.ConsecrateRadiusMult, 6f + s.ConsecrateBonusTime);
-                    z.Follow = cap;
-                    BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.SpellHoly);
+                    CastHolyCross(p, target, cap, pw);  // HolyCross.cs
                     return true;
                 }
                 case AbilityId.GuardiansOath:
