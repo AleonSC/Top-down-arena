@@ -949,7 +949,8 @@ namespace Arena
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
                     continue;  // nothing to mark: don't waste the cooldown
-                if (!Consume(me, slot, false))
+                bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
+                if (!orbitOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)

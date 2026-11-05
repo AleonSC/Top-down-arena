@@ -248,7 +248,21 @@ static partial class Program
         // Blade Fan throws 12 kunai; Death Lotus strikes up to 8 enemies near the cursor.
         g.Bullets.Clear();
         use(1, AbilityId.BladeFan, hp.Pos);
+        int orbiting = hp.OrbitN, thrownAtCast = g.Bullets.Values.Count(b => b.Kind == Defs.KunaiShot && b.Owner == 1);
+        run(0.3f);
+        var spin = dummy(hp.Pos + new V2(60f, 0f));  // an enemy on the circle gets cut as a kunai passes (at most once per 0.5 s)
+        var stray = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, hp.Pos + new V2(0f, 60f), new V2(0f, 0f), 0f, 5f, 10f, 0, false, 0f });
+        run(0.7f);
+        bool cut = spin.Hp < spin.MaxHp;
+        bool erased = !g.Bullets.ContainsKey(stray.Id);
+        keep.Remove(spin);
+        spin.Hp = 0f;
+        float tLeft = hp.OrbitT;
+        use(1, AbilityId.BladeFan, hp.Pos);  // pressed again: they fly out, and the cooldown is not spent again
         int kunai = g.Bullets.Values.Count(b => b.Kind == Defs.KunaiShot && b.Owner == 1);
+        Check(orbiting == 12 && thrownAtCast == 0 && cut && erased && hp.OrbitT == 0f && hp.OrbitN == 0 && kunai == 12 && tLeft > 1f,
+            "Blade Fan: 12 kunai orbit (none thrown), cut a touching enemy, erase bullets, and fly out as 12 on the second press");
+        g.Bullets.Clear();
         var marks = new List<Enemy>();
         for (int i = 0; i < 10; i++) marks.Add(dummy(new V2(1100f + (i % 5) * 40f, 300f + (i / 5) * 60f)));
         run(0.2f);
@@ -263,7 +277,7 @@ static partial class Program
         Check(lotusFx.Where(e => e.Pos2.X >= 0f).Select(e => e.Pos2.X).OrderBy(x => x).SequenceEqual(Enumerable.Range(0, 8).Select(i => i * 0.11f)), "the cuts are staggered 0.11 s apart");
         int struck = marks.Where((e, i) => e.Hp < hpsBefore[i]).Count();
         Console.WriteLine("  blade fan: {0} kunai; death lotus struck {1} of 10", kunai, struck);
-        Check(kunai == 12 && struck == 8, "Blade Fan throws 12 kunai and Death Lotus strikes 8 enemies");
+        Check(struck == 8, "Death Lotus strikes 8 enemies");
 
         // Thousand Clones (the Tank Ninja's ultimate): five clones.
         hp.Slots[Upgrades.UltSlot].Charges = 1;
