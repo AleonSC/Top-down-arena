@@ -1,0 +1,551 @@
+<title>Blood Shell</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ability stage (canvas, look toggle, replay/pause/slow-mo/release), then artefacts: shell condition strip, tile + HUD pill, palette, beat-by-beat and rules cards.
+   Colour: oxblood bubble on a near-black arena; ally colours match the game (healer teal, DPS amber). Type: Barlow Condensed display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#f1ebe9; --fg:#2a1517; --muted:#7a5d60; --panel:#fbf7f6; --line:#dccbcb;
+  --acc:#b3122d; --chip:#eadcdb; --chip-on:#2a1517; --chip-on-fg:#f8efee;
+  --arena:#120a0d; --grid:#1d1115;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#140b0d; --fg:#f0e2e1; --muted:#a58487; --panel:#1d1013; --line:#37212a;
+  --acc:#ff4a63; --chip:#2a171b; --chip-on:#f0e2e1; --chip-on-fg:#140b0d;
+  --arena:#0b0507; --grid:#150b0f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#140b0d; --fg:#f0e2e1; --muted:#a58487; --panel:#1d1013; --line:#37212a;
+  --acc:#ff4a63; --chip:#2a171b; --chip-on:#f0e2e1; --chip-on-fg:#140b0d;
+  --arena:#0b0507; --grid:#150b0f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:62ch;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--acc)}
+h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:68ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#cv{aspect-ratio:720/400}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#e7cfd0;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card.plain li{display:block;padding-left:14px;position:relative}
+.card.plain li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--acc)}
+.strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.strip figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.strip canvas{border:1px solid var(--line);border-radius:6px;background:var(--arena);aspect-ratio:1}
+.strip figcaption{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.strip figcaption b{color:var(--fg);font-weight:500}
+.arte{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px}
+.tilewrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.tile{width:88px;height:88px;border-radius:8px;border:1px solid var(--line);background:#1a0c10;flex:none;display:block}
+.tilemeta{min-width:0;flex:1 1 140px}
+.tilemeta b{display:block;font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+.tilemeta span{font:500 12px var(--mono);color:var(--muted)}
+.pill{position:relative;height:26px;border-radius:13px;background:#24131a;border:1px solid #4a2630;overflow:hidden;margin-top:14px}
+.pill i{position:absolute;inset:0 auto 0 0;width:78%;background:linear-gradient(90deg,#7a0f20,#d72b45);display:block}
+.pill u{position:absolute;top:0;bottom:0;left:33.33%;width:2px;background:#fff;opacity:.85}
+.pill s{position:absolute;inset:0;display:flex;align-items:center;padding-left:12px;font:500 11px var(--mono);color:#fff;text-decoration:none;letter-spacing:.04em}
+.pillkey{display:flex;justify-content:space-between;font:500 11px var(--mono);color:var(--muted);margin-top:4px}
+.sw{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.sw span{display:flex;flex-direction:column;gap:4px;font:500 11px var(--mono);color:var(--muted)}
+.sw i{display:block;width:52px;height:30px;border-radius:4px;border:1px solid var(--line)}
+.dev{font-size:14.5px;color:var(--muted);max-width:76ch}
+.dev strong{color:var(--fg)}
+@media (max-width:720px){.cols,.arte{grid-template-columns:minmax(0,1fr)}.strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+<main>
+<header>
+  <h1>Hemomancer Tank: Blood Shell</h1>
+  <p>Animation mockup. Blood Shell stops being a plain shield and becomes a big blood bubble you hold. Bullets and enemies stop at the skin, allies sit inside and get healed, and you pay for every hit with your own health until you reach a third.</p>
+</header>
+
+<section class="stage">
+  <h2>Blood Shell <small>hold to keep up · pops at 1/3 health · each blocked bullet costs you, heals allies inside</small></h2>
+  <p class="blurb">The bubble follows you. Enemy bullets burst against the skin and the shot's cost comes out of your health; every ally inside gets a share back. Enemies cannot walk in. Allies cross the skin freely. The ring around the bubble is the health you can still spend before it pops. Pick a look, then press Release early to let go before the third.</p>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Blood Shell animation preview"></canvas><div class="hud" id="hud"></div></div>
+  <div class="controls">
+    <div class="seg" id="seg" role="radiogroup" aria-label="Look">
+      <input type="radio" name="look" id="lA" value="0" checked><label for="lA">A · Membrane</label>
+      <input type="radio" name="look" id="lB" value="1"><label for="lB">B · Heartbeat</label>
+      <input type="radio" name="look" id="lC" value="2"><label for="lC">C · Scab shell</label>
+    </div>
+    <button type="button" id="replay">Replay</button>
+    <button type="button" id="pause">Pause</button>
+    <button type="button" id="release">Release early</button>
+    <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo (0.25×)</label>
+  </div>
+</section>
+
+<section class="stage">
+  <h2>Shell condition <small>same look, four moments</small></h2>
+  <div class="strip">
+    <figure><canvas id="s0" width="260" height="260"></canvas><figcaption><b>Fresh</b> · 240 HP</figcaption></figure>
+    <figure><canvas id="s1" width="260" height="260"></canvas><figcaption><b>Taking hits</b> · 190 HP</figcaption></figure>
+    <figure><canvas id="s2" width="260" height="260"></canvas><figcaption><b>Thin</b> · 115 HP</figcaption></figure>
+    <figure><canvas id="s3" width="260" height="260"></canvas><figcaption><b>About to pop</b> · 82 HP</figcaption></figure>
+  </div>
+  <p class="blurb">The skin gets thinner and darker as you spend health. A: the film fades and the rim flickers. B: the heartbeat speeds up from 60 to 150 beats a minute. C: a crack opens at every hit.</p>
+</section>
+
+<section class="stage">
+  <h2>Artefacts <small>HUD and icon</small></h2>
+  <div class="arte">
+    <div class="card">
+      <h3>Ability tile</h3>
+      <div class="tilewrap">
+        <svg class="tile" viewBox="0 0 88 88" role="img" aria-label="Blood Shell icon">
+          <defs>
+            <radialGradient id="tg" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#ff7a8a" stop-opacity=".55"/><stop offset=".6" stop-color="#b3122d" stop-opacity=".6"/><stop offset="1" stop-color="#5a0614" stop-opacity=".9"/></radialGradient>
+          </defs>
+          <rect width="88" height="88" fill="#1a0c10"/>
+          <circle cx="44" cy="46" r="31" fill="url(#tg)" stroke="#ff6a7c" stroke-width="2.5"/>
+          <path d="M44 28 C52 40 58 46 58 54 A14 14 0 0 1 30 54 C30 46 36 40 44 28Z" fill="#ff3a55" stroke="#ffd0d6" stroke-width="1.5"/>
+          <path d="M26 36 A24 24 0 0 1 38 22" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="62" cy="30" r="2.4" fill="#fff" fill-opacity=".7"/>
+        </svg>
+        <div class="tilemeta"><b>Blood Shell</b><span>Space · hold · no timer</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Health bar while the shell is up</h3>
+      <div class="pill" role="img" aria-label="Health bar with a notch at one third"><i></i><u></u><s>78% · SHELL POPS AT 33%</s></div>
+      <div class="pillkey"><span>0</span><span>notch at 1/3</span><span>240</span></div>
+      <div class="sw" aria-label="Palette">
+        <span><i style="background:#5a0614"></i>core</span>
+        <span><i style="background:#b3122d"></i>skin</span>
+        <span><i style="background:#ff4a63"></i>rim</span>
+        <span><i style="background:#ffb3bd"></i>glint</span>
+        <span><i style="background:#47e0c4"></i>healer</span>
+        <span><i style="background:#ffb84a"></i>dps</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cols">
+  <div class="card">
+    <h3>Beat by beat</h3>
+    <ol>
+      <li><b>0.0 s</b><span>Press Space. Blood rushes in from the ground and swells into a bubble 96 px out.</span></li>
+      <li><b>hold</b><span>The bubble stays on you with no timer. The ring shows health left to spend.</span></li>
+      <li><b>each hit</b><span>The bullet bursts on the skin and the skin dents and ripples. A bead of blood runs from you to the impact and beads run to each ally inside.</span></li>
+      <li><b>+0.35 s</b><span>Beads land: your health drops 7, each ally inside gains 4.</span></li>
+      <li><b>1/3 HP</b><span>The skin shudders, then bursts. Enemies nearby are shoved back and a stain stays on the floor.</span></li>
+      <li><b>release</b><span>Let go early and it collapses back to the ground.</span></li>
+    </ol>
+  </div>
+  <div class="card plain">
+    <h3>Rules as drawn</h3>
+    <ul>
+      <li>Blocks every enemy bullet that reaches the skin, red aimed shots included.</li>
+      <li>Enemy bodies cannot enter. They bunch up outside and slide round it.</li>
+      <li>Allies and you cross the skin freely and can stand inside.</li>
+      <li>Every blocked bullet costs you 7 HP (about 3% of 240).</li>
+      <li>Every ally inside gets 4 HP back per blocked bullet.</li>
+      <li>It ends when you let go, or when your health reaches 1/3.</li>
+    </ul>
+  </div>
+</section>
+
+<p class="dev"><strong>Left out:</strong> the numbers (7 and 4 per hit, 96 px) are first guesses. Whether the cost scales with the bullet's own damage, boss attacks, the Hemomancer's other abilities and perks, sound, and the network snapshot (it will need a new protocol version) are not covered. Today's Blood Shell (plates of blood, 5 s) is unchanged until you pick a look.</p>
+</main>
+
+<script>
+(function(){
+const TAU=Math.PI*2;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const W=720,H=400;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let look=0;
+const R=96, MAXHP=240, POPHP=MAXHP/3, DRAIN=7, HEAL=4;
+
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mul(7);
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const wrapA=a=>{a=(a+Math.PI)%TAU;if(a<0)a+=TAU;return a-Math.PI};
+
+/* ---------- shell drawing, shared by stage and strip ---------- */
+function shellR(a,R,t,fx){
+  let r=R+2*Math.sin(3*a+t*2)+1.5*Math.sin(5*a-t*3);
+  if(fx.beat)r+=fx.beat*3;
+  for(const p of fx.ripples){
+    const dt=t-p.t0; if(dt<0||dt>2)continue;
+    const d=wrapA(a-p.a);
+    r+=-p.amp*Math.exp(-dt*3)*Math.exp(-d*d/(.25+dt*2))*Math.cos(dt*18);
+  }
+  return r;
+}
+function shellPts(cx,cy,R,t,fx,N){
+  const pts=[];
+  for(let i=0;i<N;i++){const a=i/N*TAU,r=shellR(a,R,t,fx);pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r,a,r])}
+  return pts;
+}
+function path(ctx,pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath()}
+
+function drawShell(c,cx,cy,R,lk,integ,t,fx){
+  const al=0.45+0.55*integ;
+  if(lk===2){drawScab(c,cx,cy,R,integ,t,fx);return}
+  const pts=shellPts(cx,cy,R,t,fx,96);
+  c.save();
+  path(c,pts);
+  const g=c.createRadialGradient(cx-R*.3,cy-R*.35,R*.1,cx,cy,R*1.05);
+  if(lk===0){
+    g.addColorStop(0,'rgba(150,18,36,'+(.10*al)+')');g.addColorStop(.7,'rgba(170,16,40,'+(.22*al)+')');g.addColorStop(1,'rgba(230,40,70,'+(.5*al)+')');
+  }else{
+    g.addColorStop(0,'rgba(110,8,22,'+(.26*al)+')');g.addColorStop(.7,'rgba(140,10,30,'+(.34*al)+')');g.addColorStop(1,'rgba(220,30,60,'+(.55*al)+')');
+  }
+  c.fillStyle=g;c.fill();
+  c.clip();
+  if(lk===0){
+    /* drifting blood cells */
+    for(let i=0;i<16;i++){
+      const o=i*1.7, rr=R*(.2+.65*((i*37)%100)/100), a=t*(.12+.05*(i%4))*(i%2?1:-1)+o;
+      const x=cx+Math.cos(a)*rr, y=cy+Math.sin(a*1.2)*rr*.9;
+      c.fillStyle='rgba(255,90,105,'+(.16*al)+')';c.beginPath();c.ellipse(x,y,5+(i%3)*2,3+(i%2)*2,a,0,TAU);c.fill();
+    }
+    /* swirl */
+    c.strokeStyle='rgba(255,120,135,'+(.18*al)+')';c.lineWidth=2;
+    for(let k=0;k<3;k++){c.beginPath();for(let s=0;s<=40;s++){const a=s/40*TAU*.8+t*.6+k*2.1,r=R*(.25+.6*s/40);const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;s?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()}
+  }else{
+    /* cell wall + veins */
+    const beat=fx.beatRaw||0;
+    c.strokeStyle='rgba(255,90,110,'+(.14*al)+')';c.lineWidth=1.2;
+    for(let gy=-4;gy<=4;gy++)for(let gx=-4;gx<=4;gx++){
+      const x=cx+gx*34+(gy%2?17:0), y=cy+gy*29;
+      if(Math.hypot(x-cx,y-cy)>R)continue;
+      c.beginPath();c.arc(x,y,13+beat*2,0,TAU);c.stroke();
+    }
+    const vr=mul(11);
+    for(let v=0;v<7;v++){
+      let a=v/7*TAU+.3, x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R;
+      c.beginPath();c.moveTo(x,y);
+      const pp=[[x,y]];
+      for(let s=0;s<6;s++){a+=Math.PI+(vr()-.5)*.9;a=a-Math.PI;x=lerp(x,cx,.18)+(vr()-.5)*14;y=lerp(y,cy,.18)+(vr()-.5)*14;c.lineTo(x,y);pp.push([x,y])}
+      c.strokeStyle='rgba(255,70,95,'+(.30*al)+')';c.lineWidth=2;c.stroke();
+      /* pulse travelling along the vein */
+      const ph=(t*.9+v*.13)%1, k=Math.floor(ph*(pp.length-1)), f=ph*(pp.length-1)-k;
+      if(pp[k+1]){const px=lerp(pp[k][0],pp[k+1][0],f),py=lerp(pp[k][1],pp[k+1][1],f);c.fillStyle='rgba(255,190,200,'+(.6*al)+')';c.beginPath();c.arc(px,py,2.6+beat*1.5,0,TAU);c.fill()}
+    }
+  }
+  /* inner shade near the rim */
+  const rg=c.createRadialGradient(cx,cy,R*.72,cx,cy,R*1.02);rg.addColorStop(0,'rgba(0,0,0,0)');rg.addColorStop(1,'rgba(40,0,10,'+(.35*al)+')');
+  c.fillStyle=rg;c.fillRect(cx-R-10,cy-R-10,R*2+20,R*2+20);
+  c.restore();
+
+  /* rim */
+  c.save();
+  path(c,pts);
+  const flick=integ<.35?(.65+.35*Math.sin(t*38)):1;
+  c.shadowColor='rgba(255,50,80,'+(.8*al)+')';c.shadowBlur=14;
+  c.strokeStyle='rgba(255,92,112,'+(.95*al*flick)+')';c.lineWidth=lk===1?3+(fx.beatRaw||0)*3:3;c.stroke();
+  c.shadowBlur=0;
+  if(lk===0){
+    if(c.createConicGradient){
+      const cg=c.createConicGradient(t*.5,cx,cy);
+      cg.addColorStop(0,'rgba(255,140,60,.55)');cg.addColorStop(.25,'rgba(255,60,120,.55)');cg.addColorStop(.5,'rgba(190,40,230,.4)');cg.addColorStop(.75,'rgba(255,60,90,.55)');cg.addColorStop(1,'rgba(255,140,60,.55)');
+      c.globalAlpha=.6*al;c.strokeStyle=cg;c.lineWidth=7;path(c,shellPts(cx,cy,R-5,t,fx,96));c.stroke();c.globalAlpha=1;
+    }
+  }
+  c.strokeStyle='rgba(255,215,220,'+(.45*al)+')';c.lineWidth=1;path(c,shellPts(cx,cy,R-4,t,fx,96));c.stroke();
+  c.restore();
+  /* glints */
+  c.save();c.lineCap='round';
+  c.strokeStyle='rgba(255,255,255,'+(.8*al)+')';c.lineWidth=4;c.beginPath();c.arc(cx,cy,R-12,Math.PI*1.1,Math.PI*1.38);c.stroke();
+  c.lineWidth=2.5;c.beginPath();c.arc(cx,cy,R-12,Math.PI*1.45,Math.PI*1.5);c.stroke();
+  c.fillStyle='rgba(255,255,255,'+(.6*al)+')';c.beginPath();c.arc(cx+R*.52,cy+R*.52,3,0,TAU);c.fill();
+  c.restore();
+}
+
+/* Look C: faceted scab with cracks */
+const scabJit=[];{const r=mul(5);for(let i=0;i<14;i++)scabJit.push(1+(r()-.5)*.07)}
+function drawScab(c,cx,cy,R,integ,t,fx){
+  const al=.5+.5*integ, N=scabJit.length;
+  const pts=[];for(let i=0;i<N;i++){const a=i/N*TAU+.2,r=shellR(a,R,t,fx)*scabJit[i];pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r,a,r])}
+  c.save();
+  path(c,pts);c.fillStyle='rgba(60,6,16,'+(.38*al)+')';c.fill();c.clip();
+  /* facets */
+  for(let i=0;i<N;i++){
+    const p=pts[i],q=pts[(i+1)%N];
+    c.beginPath();c.moveTo(cx,cy);c.lineTo(p[0],p[1]);c.lineTo(q[0],q[1]);c.closePath();
+    const sh=.5+.5*Math.cos(i/N*TAU-2.2);
+    c.fillStyle='rgba('+Math.round(120+90*sh)+','+Math.round(12+20*sh)+','+Math.round(30+20*sh)+','+(.14+.2*sh)*al+')';c.fill();
+    c.strokeStyle='rgba(255,120,135,'+(.12*al)+')';c.lineWidth=1;c.stroke();
+  }
+  /* inner ring facets */
+  c.strokeStyle='rgba(255,110,125,'+(.16*al)+')';c.lineWidth=1;
+  c.beginPath();pts.forEach((p,i)=>{const x=lerp(cx,p[0],.55),y=lerp(cy,p[1],.55);i?c.lineTo(x,y):c.moveTo(x,y)});c.closePath();c.stroke();
+  /* cracks */
+  for(const k of fx.cracks){
+    const age=Math.max(0,t-k.t0), glow=Math.exp(-age*2);
+    c.beginPath();
+    for(let s=0;s<k.pts.length;s++){
+      const rr=R-k.pts[s][0], aa=k.a+k.pts[s][1];
+      const x=cx+Math.cos(aa)*rr,y=cy+Math.sin(aa)*rr;s?c.lineTo(x,y):c.moveTo(x,y);
+    }
+    c.strokeStyle='rgba(255,'+Math.round(80+130*glow)+','+Math.round(95+110*glow)+','+(.85)+')';c.lineWidth=1.6;c.stroke();
+  }
+  c.restore();
+  c.save();path(c,pts);
+  c.shadowColor='rgba(255,60,85,'+(.7*al)+')';c.shadowBlur=10;
+  c.strokeStyle='rgba(255,96,115,'+(.95*al)+')';c.lineWidth=3.5;c.lineJoin='round';c.stroke();
+  c.shadowBlur=0;c.strokeStyle='rgba(255,220,225,'+(.5*al)+')';c.lineWidth=1.2;
+  c.beginPath();for(let i=0;i<N;i++){const p=pts[i];const x=lerp(cx,p[0],.96),y=lerp(cy,p[1],.96);i?c.lineTo(x,y):c.moveTo(x,y)}c.closePath();c.stroke();
+  c.restore();
+  c.save();c.lineCap='round';c.strokeStyle='rgba(255,255,255,'+(.7*al)+')';c.lineWidth=3.5;c.beginPath();c.arc(cx,cy,R-12,Math.PI*1.12,Math.PI*1.34);c.stroke();c.restore();
+}
+function makeCrack(a,seed){
+  const r=mul(seed),pts=[[0,0]];let d=0,off=0;const len=16+r()*26;
+  while(d<len){d+=5+r()*6;off+=(r()-.5)*.09;pts.push([d,off])}
+  return {a,pts,t0:0};
+}
+
+/* ---------- world ---------- */
+let W0;
+function reset(){
+  W0={t:0,hp:MAXHP,popped:false,popT:0,released:false,
+    P:{x:300,y:205},
+    shooters:[{x:640,y:120,n:.2},{x:620,y:300,n:.7},{x:360,y:30,n:1.1},{x:110,y:340,n:.45}],
+    bullets:[],grunts:[],gSpawn:1.2,
+    allies:[
+      {name:'healer',x:0,y:0,hp:58,col:'#47e0c4',r:11,inside:false},
+      {name:'dps',x:0,y:0,hp:35,col:'#ffb84a',r:11,inside:false}],
+    parts:[],floats:[],beads:[],ripples:[],cracks:[],stains:[],rings:[],shards:[],flash:0,hitFlash:0,formT:0};
+}
+const seedR=mul(99);
+function allyPos(a,t,P){
+  if(a.name==='healer')return {x:P.x-42+Math.sin(t*.9)*6,y:P.y+34+Math.cos(t*.7)*5};
+  /* dps: walks in, stands, walks out */
+  const tin=2,tout=8.5;let ox,oy;
+  if(t<tin){ox=-210+(t/tin)*180;oy=-60+(t/tin)*28}
+  else if(t<tout){ox=-30+Math.sin(t)*14;oy=-32+Math.cos(t*.8)*8}
+  else{const f=clamp((t-tout)/2,0,1);ox=-30-210*f;oy=-32-30*f}
+  return {x:P.x+ox,y:P.y+oy};
+}
+function spawnDrops(x,y,ang,n,sp,life,sz){
+  for(let i=0;i<n;i++){const a=ang+(seedR()-.5)*1.5,s=sp*(.4+seedR()*.9);
+    W0.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t0:W0.t,life:life*(.6+seedR()*.6),sz:sz*(.6+seedR()*.8)})}
+}
+function fire(s){
+  const P=W0.P,dx=P.x-s.x,dy=P.y-s.y,d=Math.hypot(dx,dy);
+  W0.bullets.push({x:s.x,y:s.y,vx:dx/d*190,vy:dy/d*190});
+}
+function hit(b,ang){
+  const t=W0.t,P=W0.P;
+  const ix=P.x+Math.cos(ang)*R,iy=P.y+Math.sin(ang)*R;
+  W0.ripples.push({a:ang,t0:t,amp:7});
+  if(W0.ripples.length>12)W0.ripples.shift();
+  W0.rings.push({x:ix,y:iy,t0:t});
+  W0.flash=1;
+  spawnDrops(ix,iy,ang,9,150,.55,2.4);
+  const ck=makeCrack(ang,Math.floor(t*1000)+W0.cracks.length);ck.t0=t;W0.cracks.push(ck);
+  W0.beads.push({t0:t,dur:.18,to:{x:ix,y:iy},ally:null,col:'#8a0d22'});
+  for(const a of W0.allies)if(a.inside)W0.beads.push({t0:t,dur:.35,to:null,ally:a,col:'#ff8fa0'});
+  W0.hp=Math.max(0,W0.hp-DRAIN);W0.hitFlash=1;
+  W0.floats.push({x:P.x+(seedR()-.5)*16,y:P.y-22,t0:t,txt:'-'+DRAIN,col:'#ff4a63'});
+}
+function pop(){
+  const t=W0.t,P=W0.P;W0.popped=true;W0.popT=t;
+  W0.rings.push({x:P.x,y:P.y,t0:t,big:true});
+  for(let i=0;i<70;i++){const a=seedR()*TAU;spawnDrops(P.x+Math.cos(a)*R*.9,P.y+Math.sin(a)*R*.9,a,1,230,.9,3.2)}
+  W0.stains.push({x:P.x,y:P.y,t0:t,blobs:Array.from({length:22},()=>({a:seedR()*TAU,d:R*(.4+seedR()*.9),r:3+seedR()*9}))});
+  if(look===2)for(let i=0;i<14;i++){const a=i/14*TAU+.2;W0.shards.push({x:P.x+Math.cos(a)*R*.9,y:P.y+Math.sin(a)*R*.9,a,vx:Math.cos(a)*(120+seedR()*80),vy:Math.sin(a)*(120+seedR()*80),rot:(seedR()-.5)*8,t0:t})}
+  for(const g of W0.grunts){const a=Math.atan2(g.y-P.y,g.x-P.x);g.kx=Math.cos(a)*260;g.ky=Math.sin(a)*260}
+}
+
+function step(dt){
+  const w=W0;w.t+=dt;const t=w.t;
+  /* player sways */
+  w.P.x=300+30*Math.sin(t*.5);w.P.y=205+10*Math.sin(t*.8);
+  const P=w.P;
+  /* shell forms over 0.5 s */
+  if(!w.popped&&!w.released){
+    for(const s of w.shooters){
+      s.n-=dt;if(s.n<=0&&t>.6){fire(s);s.n=.8+seedR()*.6}
+    }
+  }
+  /* grunts */
+  if(!w.popped&&!w.released){w.gSpawn-=dt;if(w.gSpawn<=0&&w.grunts.length<7){
+    const e=Math.floor(seedR()*4);const sx=[W+20,W+20,-20,-20][e],sy=[60,340,80,320][e];
+    w.grunts.push({x:sx,y:sy,kx:0,ky:0});w.gSpawn=1.6}}
+  const live=!w.popped&&!w.released&&t>.5;
+  for(const g of w.grunts){
+    const dx=P.x-g.x,dy=P.y-g.y,d=Math.hypot(dx,dy)||1;
+    if(w.popped||w.released){g.x+=g.kx*dt;g.y+=g.ky*dt;g.kx*=.94;g.ky*=.94;continue}
+    g.x+=dx/d*55*dt;g.y+=dy/d*55*dt;
+    const lim=R+12;
+    if(live){const nd=Math.hypot(g.x-P.x,g.y-P.y);if(nd<lim){const a=Math.atan2(g.y-P.y,g.x-P.x);
+      if(!g.bump||t-g.bump>.9){g.bump=t;w.ripples.push({a,t0:t,amp:2.5})}
+      g.x=P.x+Math.cos(a)*lim+Math.cos(a+1.57)*Math.sin(t*5+g.y)*.6;g.y=P.y+Math.sin(a)*lim+Math.sin(a+1.57)*Math.sin(t*5+g.y)*.6}}
+  }
+  /* bullets */
+  for(let i=w.bullets.length-1;i>=0;i--){
+    const b=w.bullets[i];b.x+=b.vx*dt;b.y+=b.vy*dt;
+    const d=Math.hypot(b.x-P.x,b.y-P.y);
+    if(live&&d<=R){hit(b,Math.atan2(b.y-P.y,b.x-P.x));w.bullets.splice(i,1);continue}
+    if(b.x<-30||b.x>W+30||b.y<-30||b.y>H+30||w.popped||w.released&&d<R)w.bullets.splice(i,1);
+  }
+  if(w.released&&!w.popped&&!w.relT){w.relT=t}
+  /* allies */
+  for(const a of w.allies){const p=allyPos(a,t,P);a.x=p.x;a.y=p.y;a.inside=!w.popped&&!w.released&&t>.5&&Math.hypot(a.x-P.x,a.y-P.y)<R-8}
+  /* beads */
+  for(let i=w.beads.length-1;i>=0;i--){const b=w.beads[i];if(t-b.t0>=b.dur){
+    if(b.ally){const a=b.ally;a.hp=Math.min(100,a.hp+HEAL);w.floats.push({x:a.x,y:a.y-22,t0:t,txt:'+'+HEAL,col:'#ff9aab'});a.glow=t}
+    w.beads.splice(i,1)}}
+  /* particles */
+  for(let i=w.parts.length-1;i>=0;i--){const p=w.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;if(t-p.t0>p.life)w.parts.splice(i,1)}
+  for(let i=w.floats.length-1;i>=0;i--)if(t-w.floats[i].t0>1)w.floats.splice(i,1);
+  for(const s of w.shards){s.x+=s.vx*dt;s.y+=s.vy*dt;s.vx*=.95;s.vy*=.95}
+  w.flash=Math.max(0,w.flash-dt*5);w.hitFlash=Math.max(0,w.hitFlash-dt*6);
+  if(!w.popped&&!w.released&&w.hp<=POPHP+.01)pop();
+}
+
+/* ---------- scene ---------- */
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function drawPlayer(c,x,y,flash){
+  c.save();c.fillStyle='#7d1a28';c.strokeStyle='#d7a3a8';c.lineWidth=2.5;
+  c.beginPath();c.arc(x,y,15,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#2a0a10';c.beginPath();c.arc(x,y,7,0,TAU);c.fill();
+  c.fillStyle='#d7a3a8';c.fillRect(x+10,y-2.5,13,5);
+  if(flash>0){c.fillStyle='rgba(255,255,255,'+flash*.7+')';c.beginPath();c.arc(x,y,15,0,TAU);c.fill()}
+  c.restore();
+}
+function draw(){
+  const w=W0,t=w.t,P=w.P,c=ctx;
+  c.clearRect(0,0,W,H);
+  c.fillStyle=css('--arena');c.fillRect(0,0,W,H);
+  c.strokeStyle=css('--grid');c.lineWidth=1;
+  for(let x=0;x<=W;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}
+  for(let y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+  /* stains */
+  for(const s of w.stains){const age=t-s.t0,al=clamp(1-age/3.2,0,1)*.6;c.fillStyle='rgba(120,10,25,'+al+')';
+    for(const b of s.blobs){c.beginPath();c.arc(s.x+Math.cos(b.a)*b.d,s.y+Math.sin(b.a)*b.d,b.r,0,TAU);c.fill()}}
+  const up=!w.popped&&!w.released;
+  const form=up?clamp(t/.5,0,1):0;
+  const relF=w.released&&!w.popped?clamp(1-(t-w.relT)/.3,0,1):0;
+  const sc=up?(1-Math.pow(1-form,3)):relF;
+  const integ=clamp((w.hp-POPHP)/(MAXHP-POPHP),0,1);
+  /* floor glow + reserve ring */
+  if(sc>0){
+    const g=c.createRadialGradient(P.x,P.y,R*.3,P.x,P.y,R*1.25);g.addColorStop(0,'rgba(190,20,45,'+.28*sc+')');g.addColorStop(.8,'rgba(150,10,35,'+.14*sc+')');g.addColorStop(1,'rgba(150,10,35,0)');
+    c.fillStyle=g;c.beginPath();c.arc(P.x,P.y,R*1.25,0,TAU);c.fill();
+    /* sigil ticks */
+    c.save();c.translate(P.x,P.y);c.rotate(t*.25);c.strokeStyle='rgba(255,110,125,'+.35*sc+')';c.lineWidth=1.5;
+    for(let i=0;i<36;i++){const a=i/36*TAU,r0=R+8,r1=R+(i%3?12:17);c.beginPath();c.moveTo(Math.cos(a)*r0,Math.sin(a)*r0);c.lineTo(Math.cos(a)*r1,Math.sin(a)*r1);c.stroke()}
+    c.restore();
+    /* reserve ring: clockwise from top, shrinking as health is spent */
+    c.save();c.lineCap='round';
+    c.strokeStyle='rgba(255,255,255,'+.08*sc+')';c.lineWidth=4;c.beginPath();c.arc(P.x,P.y,R+24,0,TAU);c.stroke();
+    c.strokeStyle='rgba(255,74,99,'+.95*sc+')';c.lineWidth=4;c.beginPath();c.arc(P.x,P.y,R+24,-Math.PI/2,-Math.PI/2+TAU*integ);c.stroke();
+    c.fillStyle='rgba(255,255,255,'+.9*sc+')';c.beginPath();c.arc(P.x,P.y-R-24,3,0,TAU);c.fill();
+    c.restore();
+  }
+  /* grunts + shooters */
+  for(const g of w.grunts){c.fillStyle='#46604a';c.strokeStyle='#9ec4a2';c.lineWidth=2;c.beginPath();c.arc(g.x,g.y,11,0,TAU);c.fill();c.stroke();c.fillStyle='#0d1a10';c.fillRect(g.x-5,g.y-2,3,3);c.fillRect(g.x+2,g.y-2,3,3)}
+  for(const s of w.shooters){if(w.popped)break;c.fillStyle='#4a3a6b';c.strokeStyle='#a99bd3';c.lineWidth=2;c.fillRect(s.x-11,s.y-11,22,22);c.strokeRect(s.x-11,s.y-11,22,22);c.fillStyle='#ffb347';c.fillRect(s.x-4,s.y-4,8,8)}
+  /* bullets */
+  for(const b of w.bullets){c.fillStyle='#ffb347';c.shadowColor='#ff8a1a';c.shadowBlur=8;c.beginPath();c.arc(b.x,b.y,4,0,TAU);c.fill();c.shadowBlur=0}
+  /* allies */
+  for(const a of w.allies){
+    c.fillStyle=a.col;c.strokeStyle=a.inside?'#fff':'rgba(255,255,255,.5)';c.lineWidth=2;c.beginPath();c.arc(a.x,a.y,a.r,0,TAU);c.fill();c.stroke();
+    if(a.glow&&t-a.glow<.3){c.fillStyle='rgba(255,170,185,'+(.6*(1-(t-a.glow)/.3))+')';c.beginPath();c.arc(a.x,a.y,a.r+2,0,TAU);c.fill()}
+    c.fillStyle='rgba(0,0,0,.6)';c.fillRect(a.x-14,a.y-20,28,4);c.fillStyle=a.inside?'#ff6a80':'#c9b0b3';c.fillRect(a.x-14,a.y-20,28*a.hp/100,4);
+  }
+  drawPlayer(c,P.x,P.y,w.hitFlash);
+  /* shell */
+  if(sc>0){
+    const beatBpm=lerp(150,60,integ),beatRaw=look===1?Math.pow(Math.max(0,Math.sin(t*beatBpm/60*Math.PI)),6):0;
+    const fx={ripples:w.ripples,cracks:w.cracks,beat:beatRaw*.8,beatRaw};
+    c.save();c.globalAlpha=Math.min(1,sc*1.4);
+    const r=R*sc;
+    drawShell(c,P.x,P.y,r,look,integ,t,fx);
+    c.restore();
+    /* heal threads */
+    for(const a of w.allies)if(a.inside){c.strokeStyle='rgba(255,110,130,.22)';c.lineWidth=1.5;c.setLineDash([3,5]);c.lineDashOffset=-t*20;c.beginPath();c.moveTo(P.x,P.y);c.lineTo(a.x,a.y);c.stroke();c.setLineDash([])}
+  }
+  /* shards (look C pop) */
+  for(const s of w.shards){const age=t-s.t0,al=clamp(1-age/.9,0,1);if(al<=0)continue;c.save();c.translate(s.x,s.y);c.rotate(s.a+s.rot*age);c.globalAlpha=al;c.fillStyle='#8c1226';c.strokeStyle='#ff6a7c';c.lineWidth=1.5;c.beginPath();c.moveTo(-14,-8);c.lineTo(14,-4);c.lineTo(2,9);c.closePath();c.fill();c.stroke();c.restore()}
+  /* impact rings */
+  for(const r of w.rings){const age=t-r.t0,d=r.big?.7:.3;if(age>d)continue;const f=age/d;c.strokeStyle='rgba(255,130,145,'+(1-f)*(r.big?.9:.8)+')';c.lineWidth=r.big?5*(1-f)+1:2;c.beginPath();c.arc(r.x,r.y,(r.big?R*.9+f*R*1.5:4+f*18),0,TAU);c.stroke();
+    if(!r.big){const fg=c.createRadialGradient(r.x,r.y,0,r.x,r.y,16);fg.addColorStop(0,'rgba(255,230,230,'+(1-f)+')');fg.addColorStop(1,'rgba(255,60,80,0)');c.fillStyle=fg;c.beginPath();c.arc(r.x,r.y,16,0,TAU);c.fill()}}
+  /* beads */
+  for(const b of w.beads){const f=clamp((t-b.t0)/b.dur,0,1),e=f*f*(3-2*f);
+    const tx=b.ally?b.ally.x:b.to.x,ty=b.ally?b.ally.y:b.to.y;
+    const mx=(P.x+tx)/2+(ty-P.y)*.2,my=(P.y+ty)/2-(tx-P.x)*.2;
+    const x=(1-e)*(1-e)*P.x+2*(1-e)*e*mx+e*e*tx,y=(1-e)*(1-e)*P.y+2*(1-e)*e*my+e*e*ty;
+    c.fillStyle=b.col;c.shadowColor=b.col;c.shadowBlur=8;c.beginPath();c.arc(x,y,b.ally?3.6:3,0,TAU);c.fill();c.shadowBlur=0}
+  /* droplets */
+  for(const p of w.parts){const f=(t-p.t0)/p.life;c.fillStyle='rgba(255,70,95,'+(1-f)*.9+')';c.beginPath();c.arc(p.x,p.y,p.sz*(1-f*.5),0,TAU);c.fill()}
+  /* floats */
+  c.font='600 15px "IBM Plex Mono",monospace';c.textAlign='center';
+  for(const f of w.floats){const age=t-f.t0;c.fillStyle=f.col;c.globalAlpha=1-age;c.strokeStyle='rgba(0,0,0,.7)';c.lineWidth=3;c.strokeText(f.txt,f.x,f.y-age*24);c.fillText(f.txt,f.x,f.y-age*24);c.globalAlpha=1}
+  /* health bar */
+  const bx=W/2-130,by=H-26,bw=260;
+  c.fillStyle='rgba(0,0,0,.6)';c.fillRect(bx-1,by-1,bw+2,12);
+  const hg=c.createLinearGradient(bx,0,bx+bw,0);hg.addColorStop(0,'#7a0f20');hg.addColorStop(1,'#d72b45');
+  c.fillStyle=hg;c.fillRect(bx,by,bw*w.hp/MAXHP,10);
+  c.fillStyle='#fff';c.fillRect(bx+bw/3-1,by-4,2,18);
+  c.font='500 11px "IBM Plex Mono",monospace';c.textAlign='left';c.fillStyle='#e7cfd0';
+  c.fillText(Math.round(w.hp)+' / '+MAXHP,bx,by-8);c.textAlign='right';c.fillText('pops at '+POPHP,bx+bw,by-8);
+  document.getElementById('hud').textContent=w.popped?'shell burst at 1/3 health':w.released?'released':'holding · '+Math.round(integ*100)+'% reserve';
+}
+
+/* ---------- strip ---------- */
+const strips=[[0,1],[1,.69],[2,.36],[3,.015]].map(([i,integ])=>({c:document.getElementById('s'+i).getContext('2d'),integ}));
+function drawStrips(t){
+  for(let i=0;i<strips.length;i++){
+    const s=strips[i],c=s.c,cx=130,cy=130,rr=88;
+    c.clearRect(0,0,260,260);c.fillStyle=css('--arena');c.fillRect(0,0,260,260);
+    const g=c.createRadialGradient(cx,cy,rr*.3,cx,cy,rr*1.2);g.addColorStop(0,'rgba(190,20,45,.25)');g.addColorStop(1,'rgba(150,10,35,0)');c.fillStyle=g;c.beginPath();c.arc(cx,cy,rr*1.2,0,TAU);c.fill();
+    drawPlayer(c,cx,cy,0);
+    const beatBpm=lerp(150,60,s.integ),beatRaw=look===1?Math.pow(Math.max(0,Math.sin(t*beatBpm/60*Math.PI)),6):0;
+    const nCr=Math.round((1-s.integ)*9),cracks=[];for(let k=0;k<nCr;k++){const ck=makeCrack(k*2.4+.5,k+3);ck.t0=-5;cracks.push(ck)}
+    drawShell(c,cx,cy,rr,look,s.integ,t,{ripples:[],cracks,beat:beatRaw*.8,beatRaw});
+    c.save();c.lineCap='round';c.strokeStyle='rgba(255,255,255,.1)';c.lineWidth=3;c.beginPath();c.arc(cx,cy,rr+14,0,TAU);c.stroke();
+    c.strokeStyle='#ff4a63';c.beginPath();c.arc(cx,cy,rr+14,-Math.PI/2,-Math.PI/2+TAU*s.integ);c.stroke();c.restore();
+  }
+}
+
+/* ---------- loop & controls ---------- */
+reset();
+let paused=false,last=performance.now(),slow=false;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  const sp=slow?.25:1;
+  if(!paused){
+    const n=Math.max(1,Math.round(dt*sp*60));
+    for(let i=0;i<n;i++)step(dt*sp/n);
+    if(W0.popped&&W0.t-W0.popT>3.6||W0.released&&W0.t-W0.relT>2.2)reset();
+  }
+  draw();drawStrips(W0.t);
+  requestAnimationFrame(frame);
+}
+if(reduce){paused=true;for(let i=0;i<300;i++)step(1/60)}
+document.getElementById('replay').addEventListener('click',()=>{reset();paused=false;document.getElementById('pause').textContent='Pause'});
+document.getElementById('pause').addEventListener('click',e=>{paused=!paused;e.target.textContent=paused?'Resume':'Pause'});
+document.getElementById('release').addEventListener('click',()=>{if(!W0.popped&&!W0.released)W0.released=true});
+document.getElementById('slow').addEventListener('change',e=>{slow=e.target.checked});
+document.getElementById('seg').addEventListener('change',e=>{look=+e.target.value;reset();paused=false;document.getElementById('pause').textContent='Pause'});
+requestAnimationFrame(frame);
+window.__bs={step,reset,draw,get w(){return W0},setLook:v=>{look=v}};
+})();
+</script>
