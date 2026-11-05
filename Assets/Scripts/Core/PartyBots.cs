@@ -67,6 +67,13 @@ namespace Arena
             return true;
         }
 
+        /// Give a bot a name (the host's lobby shows it, and it carries into the run).
+        public void Rename(Session host, PartyBot bot, string name)
+        {
+            bot.Name = Session.CleanName(name);
+            host.RenameSeat(bot.Id, bot.Name);
+        }
+
         public void SetSkill(PartyBot bot, BotSkill skill)
         {
             bot.Skill = skill;

@@ -1211,7 +1211,7 @@ in the lobby, not while continuing a saved run). A bot takes the first role nobo
 and readies up by itself; it revives, heals, dodges and uses its abilities like the Boss Lab's bots (below), picks its own
 upgrades and carries on between waves. On its card, the skill button cycles **Casual, Good, Expert**, **MIX** deals it a
 new random loadout and **x** removes it. Click a bot's card (it gets a gold rim) to choose its role, class, weapon and
-ability in the loadout panel, just like your own; click your own card to go back. Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
+ability in the loadout panel, just like your own; click your own card to go back. With a bot's card chosen, type in the **Bot name** box above its preview to rename it. Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
 counted in Records, XP or ranks, like Boss Lab fights and the F1 bot.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
@@ -1336,7 +1336,7 @@ boss plays out and what to change.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
 bullets, enemy bodies, lightning strikes and the Reapers' tether will be. They keep a distance that suits
-their weapon and role, lead their shots, and go for the adds that protect a boss first (phylacteries,
+their weapon and role, close in until a target is within their weapon's reach before they pull the trigger (using anything already in reach on the way), lead their shots, and go for the adds that protect a boss first (phylacteries,
 gravity wells, the Queen's shield drones). They revive downed allies, heal when someone is hurt, use
 defensive abilities when things get tight, and use the rest on the boss.
 
