@@ -139,6 +139,9 @@ namespace Arena
                 case FxKind.ShadowStep:
                     DrawShadowStepFx(fx);  // ShadowStepLook.cs
                     break;
+                case FxKind.LeapSlam:
+                    DrawLeapSlamFx(fx);  // LeapSlamLook.cs
+                    break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
                     break;

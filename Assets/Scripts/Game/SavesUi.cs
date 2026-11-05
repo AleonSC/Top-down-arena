@@ -103,14 +103,19 @@ namespace Arena
 
         /// The box after Play: every saved run on one scrolling CRT screen, the newest first and larger, each with Continue and a
         /// delete key (DEL, then REALLY?), and New run under it. With no saves it says so, on the screen, and offers New run.
+        bool servoPicker;  // drawn inside the Play move (MenuServo.cs): the header, Quit/Back key and New run are drawn there
+
         void DrawPlayPicker(float t, bool live)
         {
             var c = MenuCard;
-            DrawPickerHeader(c, live);
+            if (!servoPicker)
+                DrawPickerHeader(c, live);
             bool calm = fxReduced;
             var scr = RunsScreenRect(c);
             var newRun = NewRunRect(c);
             bool any = savedRuns.Count > 0;
+            if (!servoPicker)
+                KeyUi.Bezel(scr);   // the Play move draws its own, following the opening screen (MenuServo.cs)
             RunSave toContinue = null, toDelete = null;
             var mouse = Event.current.mousePosition;
             bool inside = live && scr.Contains(mouse);  // clicks on rows count only while the mouse is really over the screen
@@ -173,6 +178,8 @@ namespace Arena
                 }
             }
             CrtUi.End(scr, Time.unscaledTime, calm);
+            if (servoPicker)
+                return;
             if (MenuVhs.Draw(newRun, "TRK 03", live, fxReduced, () => KeyUi.Key(newRun, "New run", PixelArt.Get("ui_play"), 20)) && live)
                 StartNewRun();
             if (!inside)

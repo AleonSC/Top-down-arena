@@ -550,6 +550,29 @@ namespace Arena
                     Tone(0.018f, Osc.Sine, 1200f * hoverHz[k], 900f, 0.09f, attack: 0.001f, decay: 3f)), 0.14f);
             Set(Sfx.MenuHover, hover, 0.04f);
 
+            // The menu's Play transition (MenuServo.cs): two beeps (takes rotated), the doors' servo whine and its reverse, a clamp click, the screen's
+            // power-on zap, a falling whirr for each key leaving, a ratchet tick as it lands, the box lifting, its seating thud, and a flap click per header letter.
+            Set(Sfx.BayBeep, new[] { Finish(Tone(0.07f, Osc.Sine, 1320f, 1320f, 0.3f, attack: 0.004f, decay: 2.5f), 0.26f),
+                Finish(Tone(0.07f, Osc.Sine, 1760f, 1760f, 0.3f, attack: 0.004f, decay: 2.5f), 0.26f) }, 0.04f);
+            Set(Sfx.BayServo, Finish(Tone(0.32f, Osc.Saw, 280f, 920f, 0.1f, lowpass: 0.12f, attack: 0.05f, decay: 1.2f), 0.22f), 0.1f);
+            Set(Sfx.BayServoBack, Finish(Reverse(Tone(0.32f, Osc.Saw, 280f, 920f, 0.1f, lowpass: 0.12f, attack: 0.05f, decay: 1.2f)), 0.22f), 0.1f);
+            Set(Sfx.BayClamp, Finish(Concat(Tone(0.012f, Osc.Sine, 2600f, 2600f, 0.3f, noise: 1f, lowpass: 0.6f, attack: 0.001f, decay: 3f),
+                Tone(0.03f, Osc.Sine, 700f, 400f, 0.25f, noise: 0.6f, lowpass: 0.3f, attack: 0.001f, decay: 3f)), 0.3f), 0.05f);
+            Set(Sfx.BayZap, Finish(Mix(Tone(0.18f, Osc.Saw, 90f, 2400f, 0.12f, lowpass: 0.4f, attack: 0.005f, decay: 1.5f),
+                Tone(0.15f, Osc.Sine, 3500f, 3500f, 0.1f, noise: 1f, lowpass: 0.8f, attack: 0.002f, decay: 3f)), 0.2f), 0.05f);
+            Set(Sfx.BayWhirr, Finish(Tone(0.24f, Osc.Saw, 700f, 260f, 0.07f, lowpass: 0.12f, attack: 0.03f, decay: 1.5f), 0.16f), 0.03f);
+            Set(Sfx.BayTick, Finish(Mix(Tone(0.008f, Osc.Sine, 3600f, 3600f, 0.2f, noise: 1f, lowpass: 0.7f, attack: 0.001f, decay: 3f),
+                Tone(0.02f, Osc.Square, 520f, 520f, 0.05f, attack: 0.001f, decay: 3f)), 0.22f), 0.03f);
+            Set(Sfx.BayLift, Finish(Tone(0.24f, Osc.Saw, 420f, 760f, 0.08f, lowpass: 0.12f, attack: 0.04f, decay: 1.4f), 0.18f), 0.05f);
+            Set(Sfx.BaySeat, Finish(Mix(Tone(0.18f, Osc.Sine, 95f, 40f, 0.45f, attack: 0.002f, decay: 3f),
+                Tone(0.08f, Osc.Sine, 320f, 320f, 0.3f, noise: 1f, lowpass: 0.15f, attack: 0.001f, decay: 3f)), 0.4f), 0.05f);
+            var clacks = new float[3][];
+            float[] clackHz = { 0.92f, 1f, 1.1f };
+            for (int k = 0; k < 3; k++)
+                clacks[k] = Finish(Mix(Tone(0.014f, Osc.Sine, 2300f * clackHz[k], 2300f * clackHz[k], 0.25f, noise: 0.9f, lowpass: 0.6f, attack: 0.001f, decay: 3f),
+                    Tone(0.01f, Osc.Square, 700f * clackHz[k], 700f * clackHz[k], 0.05f, attack: 0.001f, decay: 3f)), 0.16f);
+            Set(Sfx.BayClack, clacks, 0.015f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));

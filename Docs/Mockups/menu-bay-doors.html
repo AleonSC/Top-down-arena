@@ -1,0 +1,505 @@
+<title>Bay Doors Transition</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: the game's 1280x720 menu scaled to fit, driven by one progress value p (0 = main menu, 1 = saved-runs picker). Four versions of the bay-doors transition, each with its own timing, motion and synthesized sound set. Single dark look, like the other mockups. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --danger: #ff6b7a; --amber: #ffb547;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+h2 { font-size: 18px; margin: 0 0 8px; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.chk { font: 500 12px var(--f-mono); color: var(--muted); display: flex; gap: 6px; align-items: center; letter-spacing: .06em; text-transform: uppercase; }
+.scrub { display: flex; gap: 12px; align-items: center; }
+.scrub input[type=range], .ctl input[type=range] { accent-color: var(--accent); min-width: 0; }
+.scrub input[type=range] { flex: 1; }
+.scrub output { font: 500 12px var(--f-mono); color: var(--ink); width: 7ch; text-align: right; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+
+/* CRT screens */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.flash { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: 0; background: radial-gradient(80% 120% at 50% 50%, #eafff3, #4dff9a 60%, transparent); mix-blend-mode: screen; }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px var(--glow); }
+.sign { left: 112px; top: 66px; width: 1056px; height: 118px; display: grid; place-items: center; font-size: 100px; letter-spacing: .05em; }
+#hdr { left: 27px; top: 8px; width: 480px; height: 46px; padding: 6px 20px 0; font-size: 36px; line-height: 1.05; white-space: pre; }
+#hdr .t { position: relative; z-index: 1; }
+.fl { display: inline-block; width: .6em; margin-right: 2px; text-align: center; border-radius: 2px; position: relative; z-index: 1; font-weight: 400;
+  background: linear-gradient(#0a2a1a, #031109 48%, #000 48%, #000 52%, #04180e 52%, #031109); }
+
+/* chassis and keys */
+.chassis { position: absolute; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.chassis::before, .chassis::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; letter-spacing: .02em; border-radius: 10px; white-space: nowrap; overflow: hidden;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); }
+.tac .lbl { position: absolute; inset: 0; display: grid; place-items: center; }
+.tac .led { position: absolute; left: 13px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac.play { font-size: 30px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); }
+.tac.play .led { left: 22px; }
+
+/* Quit / Back: one key, one style. Only the legend, the icon and the lamp change. */
+#kb { position: absolute; left: 522px; top: 6px; width: 130px; height: 50px; border-radius: 10px; background: linear-gradient(#4a63b3, #26336a); border: 1px solid #7f9bf0;
+  box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); color: #fff; }
+#kb svg { position: absolute; left: 12px; top: 15px; width: 20px; height: 20px; }
+#kb .lamp { position: absolute; width: 7px; height: 7px; right: 7px; top: 6px; }
+#lg { position: absolute; left: 40px; top: 10px; width: 78px; height: 30px; border-radius: 4px; overflow: hidden; background: linear-gradient(#0a1030, #121a42); box-shadow: inset 0 2px 5px rgba(0,0,0,.7), 0 0 0 1px #7f9bf0; font: 700 19px/30px var(--f-ui); letter-spacing: .04em; text-align: center; }
+#lg .row { position: absolute; left: 0; right: 0; height: 30px; }
+.lc { display: inline-block; width: 15px; height: 24px; line-height: 24px; margin: 3px 1px; border-radius: 2px; text-align: center; font: 700 19px/24px var(--f-ui);
+  background: linear-gradient(#1a2352, #0a1030 48%, #000 48%, #000 52%, #0d1538 52%, #121a42); }
+
+/* picker screen content */
+#pick { left: 28px; top: 63px; width: 620px; height: 189px; }
+#pick .pk { position: absolute; z-index: 1; }
+.big { font-size: 40px; line-height: 1; margin: 2px 0 6px; }
+.kv { font-size: 16px; color: var(--dim); text-shadow: none; line-height: 1.12; } .kv b { font-weight: 400; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+.sq { font-size: 21px; line-height: 1.2; margin-top: 3px; } .sq i { display: inline-block; width: 3px; height: 14px; background: #4f86ff; box-shadow: 0 0 6px #4f86ff; margin-right: 8px; } .sq em { font-style: normal; color: var(--dim); font-size: 16px; text-shadow: none; margin-left: 34px; }
+.sm { display: block; width: 100%; font: 24px/1 var(--f-crt); letter-spacing: .05em; color: var(--ink); background: rgba(77,255,154,.07); border: 2px solid var(--ink); padding: 8px 12px 5px; text-shadow: inherit; text-align: center; }
+.sm.del { color: var(--danger); border-color: var(--danger); background: rgba(255,107,122,.07); font-size: 19px; padding: 3px 10px 1px; margin-top: 7px; }
+
+/* mechanical details */
+.bolt { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8fa6e6, #2b3868 60%, #0c1126); box-shadow: 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px rgba(0,0,0,.45); z-index: 2; }
+.bolt::after { content: ""; position: absolute; left: 1px; right: 1px; top: 4px; height: 1px; background: rgba(0,0,0,.6); transform: rotate(35deg); }
+#bez { position: absolute; border-radius: 6px; opacity: 0; background: linear-gradient(#3a4a82, #1a2144); box-shadow: 0 0 0 1px #6c85cf, 0 4px 0 #0b0f22, 0 8px 14px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+#bez .bolt { width: 6px; height: 6px; } #bez .bolt::after { top: 2px; }
+#steam i { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; opacity: 0; background: radial-gradient(circle, rgba(235,245,255,.75), rgba(200,220,255,0) 70%); }
+.amb { position: absolute; width: 16px; height: 44px; border-radius: 8px; background: radial-gradient(circle at 50% 30%, #ffe4a8, #ff9a1f 55%, #7a3a00); box-shadow: 0 0 22px 6px rgba(255,170,40,.8); opacity: 0; }
+.pcard { position: absolute; left: 332px; top: 610px; width: 617px; height: 62px; border: 2px solid #9b5cf0; border-radius: 6px; background: linear-gradient(90deg, #1a1436, #0f1228); box-shadow: 0 0 14px rgba(155,92,240,.45); }
+.pcard i { position: absolute; left: 10px; top: 8px; width: 44px; height: 44px; border-radius: 6px; background: #1a2142; border: 1px solid #2c3766; }
+.pcard i::after { content: ""; position: absolute; left: 11px; top: 11px; width: 20px; height: 20px; border-radius: 50%; border: 4px solid #8fa3e8; }
+.pcard b { position: absolute; left: 70px; top: 6px; font: 700 24px var(--f-ui); color: #fff; }
+.pcard span { position: absolute; left: 70px; top: 33px; font: 700 15px var(--f-ui); color: #f2c14e; }
+.pcard em { position: absolute; right: 18px; top: 10px; width: 40px; height: 42px; border-radius: 8px 8px 20px 20px; background: #c9a13b; color: #2a1d00; font: 700 12px/42px var(--f-ui); text-align: center; font-style: normal; }
+#cue { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 22px; z-index: 3; }
+
+/* sound cue strip under the stage */
+.cuebox { display: flex; flex-direction: column; gap: 8px; }
+.cuebar { position: relative; height: 54px; border: 1px solid var(--line); border-radius: 6px; background: #0d1226; overflow: hidden; }
+.cuebar .ph { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+.cuebar .mk { position: absolute; top: 8px; width: 3px; height: 38px; border-radius: 2px; background: #3b4a82; transition: background .05s; }
+.cuebar .mk.on { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.cuelog { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .06em; min-height: 1.4em; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px 28px; }
+.cards > div { min-width: 0; }
+.cards p, .cards li { color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0 0 6px; }
+.cards ul { margin: 0; padding-left: 18px; }
+.cards b { color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Bay doors, four versions</h1>
+    <p>The Play key splits and its halves slide into the chassis walls. The three bottom keys drop out through the floor, one after another. Quit and Back are now one keycap, and only its legend changes. Each version has its own timing, motion and sound set. Press <b>Press Play</b> with sound on to hear it (browsers only allow sound after a click).</p>
+  </header>
+
+  <div class="ctl">
+    <div class="grp"><span>Version</span>
+      <button class="seg" type="button" data-v="1" aria-pressed="true">1 &middot; Hydraulic</button>
+      <button class="seg" type="button" data-v="2" aria-pressed="false">2 &middot; Servo</button>
+      <button class="seg" type="button" data-v="3" aria-pressed="false">3 &middot; Relay</button>
+      <button class="seg" type="button" data-v="4" aria-pressed="false">4 &middot; Blast door</button></div>
+  </div>
+  <div class="ctl">
+    <div class="grp"><button class="seg" type="button" id="go">&#9654; Press Play</button><button class="seg" type="button" id="back">&#9664; Back</button></div>
+    <div class="grp"><span>Speed</span>
+      <button class="seg" type="button" data-sp="0.25" aria-pressed="false">0.25x</button>
+      <button class="seg" type="button" data-sp="0.5" aria-pressed="false">0.5x</button>
+      <button class="seg" type="button" data-sp="1" aria-pressed="true">1x</button></div>
+    <label class="chk"><input type="checkbox" id="snd" checked> Sound</label>
+    <label class="chk">Volume <input type="range" id="vol" min="0" max="100" value="60" aria-label="Volume"></label>
+    <label class="chk"><input type="checkbox" id="loop"> Loop</label>
+  </div>
+  <div class="scrub"><span class="chk" style="margin:0">Scrub</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Transition progress"><output id="pv">0.00</output></div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="scr sign"><span style="position:relative;z-index:1">CARTESIAN COLOSSEUM</span></div>
+    <i class="amb" id="ambL" style="left:272px;top:395px"></i><i class="amb" id="ambR" style="left:992px;top:395px"></i>
+
+    <div class="chassis" id="card" style="left:302px;top:267px;width:676px;height:320px">
+      <div class="scr" id="hdr"><span class="t" id="hdrT">MAIN MENU</span><span class="cur" id="hdrC" style="display:none;position:relative;z-index:1"></span></div>
+
+      <div id="kb">
+        <svg id="icoQ" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8M6.3 6.7a8 8 0 1 0 11.4 0"/></svg>
+        <svg id="icoB" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="opacity:0"><path d="M20 12H5M11 5l-7 7 7 7"/></svg>
+        <div id="lg"></div>
+        <i class="lamp" id="lampQ" style="background:#ff6b5a;box-shadow:0 0 8px #ff6b5a"></i><i class="lamp" id="lampB" style="background:#7dffb5;box-shadow:0 0 9px #4dff9a;opacity:0"></i>
+      </div>
+
+      <i class="bolt" style="left:9px;top:9px"></i><i class="bolt" style="right:9px;top:9px"></i><i class="bolt" style="left:9px;bottom:9px"></i><i class="bolt" style="right:9px;bottom:9px"></i>
+      <div id="bez"><i class="bolt" style="left:3px;top:3px"></i><i class="bolt" style="right:3px;top:3px"></i><i class="bolt" style="left:3px;bottom:3px"></i><i class="bolt" style="right:3px;bottom:3px"></i></div>
+      <div class="scr" id="pick"><div class="flash" id="flash"></div>
+        <div class="pk" id="pk1" style="left:20px;top:14px"><div class="lab">LATEST RUN</div><div class="big">Wave 1</div><div class="kv">SAVED <b>Nov 5, 07:06</b><br>SCORE <b>0</b> &nbsp; PLAYED <b>0 min</b></div></div>
+        <div class="pk" id="pk2" style="left:212px;top:14px;width:200px"><div class="lab">SQUAD</div><div class="sq"><i></i>Anthony</div><div class="sq" style="margin-top:0"><em>Soldier Tank</em></div></div>
+        <div class="pk" id="pk3" style="left:440px;top:14px;width:162px"><div class="lab" style="text-align:center;margin-bottom:6px">&#9679; READY</div><div class="sm">&#9654; CONTINUE</div><div class="sm del">DEL</div></div>
+      </div>
+
+      <div class="tac play" id="play"><span class="lbl">&#9654; PLAY</span><i class="led"></i></div>
+      <div class="tac play" id="play2"><span class="lbl">&#9654; PLAY</span><i class="led"></i></div>
+      <div class="tac" id="t0"><span class="lbl">Join game</span></div>
+      <div class="tac" id="t1"><span class="lbl">Records</span></div>
+      <div class="tac" id="t2"><span class="lbl">Settings</span></div>
+      <div class="tac play" id="nr" style="font-size:20px;letter-spacing:.02em"><span class="lbl">&#9654; New run</span></div>
+      <div id="steam"></div>
+    </div>
+
+    <div class="pcard"><i></i><b>Anthony</b><span>Legend &middot; Rank 999</span><em>999</em></div>
+  </div></div>
+
+  <div class="cuebox">
+    <div class="grp"><span>Sound cues, in order</span></div>
+    <div class="cuebar" id="cuebar"></div>
+    <div class="cuelog" id="cuelog" aria-live="off">&nbsp;</div>
+  </div>
+
+  <div class="cards">
+    <div><h2>1 &middot; Hydraulic</h2><ul>
+      <li>Heavy and slow (1.5 s). A valve hiss, then the doors unlock with a thunk and glide apart on a long steady hiss.</li>
+      <li>Steam puffs out at the chassis walls when the doors stop. The three keys drop with a gravity fall and a thud each. The legend rolls like a reel.</li>
+      <li>New run slams down with a big thunk and a last hiss.</li></ul></div>
+    <div class="cards-b"><h2>2 &middot; Servo</h2><ul>
+      <li>Quick and clean (1 s). Beeps on the open and close, a rising whine while the doors move, and a clamp click.</li>
+      <li>The keys slide down their rails smoothly, each with a falling whirr. The legend crossfades with a key press. New run rises from below instead of slamming.</li></ul></div>
+    <div><h2>3 &middot; Relay</h2><ul>
+      <li>All clicks (1.7 s). The doors open in six notches, each with a ratchet click.</li>
+      <li>The keys drop in four notches. The legend is a split-flap, like the header. New run slams with a plain thunk.</li></ul></div>
+    <div><h2>4 &middot; Blast door</h2><ul>
+      <li>Slowest and loudest (2 s). Amber warning lamps flash outside the box and a klaxon sounds before anything moves.</li>
+      <li>The doors grind open with a low rumble and a small shake, then boom. The keys tilt like trapdoors before they fall. New run lands with the biggest slam and a steam blast.</li></ul></div>
+    <div><h2>Sound</h2><ul>
+      <li>All sounds are made in the page (no audio files), so they only approximate the real kit. Each one is a candidate for a real sample.</li>
+      <li>The strip under the stage shows each cue's position in the transition. Letters in the header and legend click as they flip, in every version.</li>
+      <li>Back plays everything in reverse with the same sounds, so the doors close with the same thunks.</li></ul></div>
+    <div><h2>Notes for building it</h2><ul>
+      <li>I read "the 2 buttons at the bottom" as the whole bottom row (Join game, Records, Settings), since all three leave. Say if only two should drop.</li>
+      <li>Quit and Back are the same blue keycap, same size, lamp in the corner. The lamp goes from red (power) to green (back).</li>
+      <li>Not built. Pick a version and I will build it, with the sounds as new Sfx entries.</li></ul></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); };
+  var view = $('view'), stage = $('stage');
+  function fit() { stage.style.transform = 'scale(' + (view.clientWidth / 1280) + ')'; }
+  fit(); new ResizeObserver(fit).observe(view);
+
+  function cl(x) { return Math.max(0, Math.min(1, x)); }
+  function seg(p, a, b) { return cl((p - a) / (b - a)); }
+  function eo(x) { return 1 - Math.pow(1 - x, 3); }
+  function eio(x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function hash(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function R(el, l, t, w, h) { el.style.left = l + 'px'; el.style.top = t + 'px'; el.style.width = w + 'px'; el.style.height = h + 'px'; }
+  function bounce(x) { var n = 7.5625, d = 2.75; if (x < 1 / d) return n * x * x; if (x < 2 / d) return n * (x -= 1.5 / d) * x + .75; if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + .9375; return n * (x -= 2.625 / d) * x + .984375; }
+  function bk(x) { var c = 1.70158; x = x - 1; return 1 + (c + 1) * x * x * x + c * x * x; }
+  function cb(y, h) { return Math.max(0, y + h - 308); }   // px to clip at the chassis floor
+
+  // ---------- sound: everything synthesized with Web Audio ----------
+  var A = { ctx: null, master: null, nb: null };
+  function ensure() {
+    if (A.ctx) { if (A.ctx.state === 'suspended') A.ctx.resume(); return; }
+    try {
+      var C = window.AudioContext || window.webkitAudioContext; A.ctx = new C();
+      var comp = A.ctx.createDynamicsCompressor(); A.master = A.ctx.createGain(); A.master.connect(comp); comp.connect(A.ctx.destination);
+      var len = A.ctx.sampleRate * 1.5, b = A.ctx.createBuffer(1, len, A.ctx.sampleRate), d = b.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      A.nb = b; setVol();
+    } catch (e) { A.ctx = null; }
+  }
+  function setVol() { if (A.master) A.master.gain.value = Math.pow($('vol').value / 100, 2) * 1.2; }
+  function live() { return A.ctx && $('snd').checked; }
+  function env(g, t, atk, dur, peak) { g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + atk); g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dur, atk + .01)); }
+  function nz(dur, type, f, q, peak, atk, f2, delay) {
+    if (!live()) return; var t = A.ctx.currentTime + (delay || 0), s = A.ctx.createBufferSource(), fl = A.ctx.createBiquadFilter(), g = A.ctx.createGain();
+    s.buffer = A.nb; fl.type = type; fl.frequency.setValueAtTime(f, t); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur); fl.Q.value = q;
+    env(g, t, atk || .002, dur, peak); s.connect(fl); fl.connect(g); g.connect(A.master); s.start(t, Math.random() * .8); s.stop(t + dur + .05);
+  }
+  function tn(dur, type, f, f2, peak, atk, delay, lp) {
+    if (!live()) return; var t = A.ctx.currentTime + (delay || 0), o = A.ctx.createOscillator(), g = A.ctx.createGain(), last = o;
+    o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    if (lp) { var fl = A.ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; o.connect(fl); last = fl; }
+    env(g, t, atk || .003, dur, peak); last.connect(g); g.connect(A.master); o.start(t); o.stop(t + dur + .05);
+  }
+  var S = {
+    key: function () { tn(.07, 'sine', 190, 80, .5); nz(.02, 'highpass', 3500, .7, .25); nz(.05, 'lowpass', 600, .7, .3, .002, 0, .02); },
+    latch: function () { nz(.012, 'bandpass', 2600, 4, .5); nz(.03, 'bandpass', 900, 3, .45, .002, 0, .045); },
+    clack: function (hi) { nz(.014, 'bandpass', (hi ? 3300 : 2300) + Math.random() * 500, 5, .38); tn(.01, 'square', 700 + Math.random() * 200, 0, .06, .001); },
+    ratchet: function () { nz(.008, 'bandpass', 3600, 6, .45); nz(.02, 'bandpass', 1500, 5, .35, .001, 0, .012); tn(.02, 'square', 520, 0, .05, .001); },
+    hiss: function (len, g, hp) { nz(len, 'highpass', hp || 3200, .6, g, Math.min(.08, len * .3), 6000); },
+    servo: function (len, f0, f1, g) {
+      if (!live()) return; var t = A.ctx.currentTime, o = A.ctx.createOscillator(), l = A.ctx.createOscillator(), lg = A.ctx.createGain(), fl = A.ctx.createBiquadFilter(), ge = A.ctx.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len);
+      l.frequency.value = 16; lg.gain.value = f0 * .05; l.connect(lg); lg.connect(o.frequency);
+      fl.type = 'lowpass'; fl.frequency.value = 1500; fl.Q.value = 4;
+      ge.gain.setValueAtTime(.0001, t); ge.gain.linearRampToValueAtTime(g, t + Math.min(.06, len * .25)); ge.gain.setValueAtTime(g, t + len * .8); ge.gain.exponentialRampToValueAtTime(.0001, t + len);
+      o.connect(fl); fl.connect(ge); ge.connect(A.master); o.start(t); l.start(t); o.stop(t + len + .05); l.stop(t + len + .05);
+    },
+    grind: function (len, g) { nz(len, 'lowpass', 260, 2, g, .1, 160); S.servo(len, 38, 52, g * .5); nz(len, 'bandpass', 900, 6, g * .25, .2, 500); },
+    thunk: function (w) { w = w || 1; tn(.28, 'sine', 125, 36, .8 * w, .002); nz(.14, 'lowpass', 420, .8, .7 * w, .002); },
+    thud: function (w) { w = w || 1; tn(.18, 'sine', 95, 40, .6 * w, .002); nz(.08, 'lowpass', 320, .8, .5 * w, .002); },
+    clank: function (g, f) {
+      f = f || 420; [1, 2.76, 5.4, 8.93].forEach(function (m, i) { tn(.35 - i * .06, 'sine', f * m, 0, .14 * g / (i + 1), .001); });
+    },
+    slam: function (w) { S.thunk(w); S.clank(.9 * w, 300); nz(.3, 'lowpass', 900, .7, .5 * w, .002); },
+    lock: function () { S.latch(); S.clank(.25, 700); },
+    beep: function (f) { tn(.07, 'sine', f, 0, .3, .004); },
+    zap: function () { tn(.18, 'sawtooth', 90, 2400, .12, .005, 0, 1800); nz(.15, 'highpass', 2500, .7, .2, .002); },
+    alarm: function () { for (var i = 0; i < 3; i++) { tn(.11, 'square', i % 2 ? 480 : 700, 0, .09, .005, i * .13, 1800); } },
+    whirr: function (len) { S.servo(len, 700, 260, .07); }
+  };
+  $('vol').oninput = setVol;
+
+  // ---------- the four versions ----------
+  var V = {
+    1: { name: 'Hydraulic', dur: 1.5, door: [.12, .52], doorMode: 'smooth', vert: [.46, .76], hdr: [.05, .6], leg: [.2, .6], legMode: 'reel',
+         drop: { s: .1, gap: .09, len: .3, mode: 'gravity' }, nr: { a: .72, b: .94, mode: 'slam' }, clunk: [.93, 4], steam: true, klaxon: false, seam: '#9dffd0' },
+    2: { name: 'Servo', dur: 1.0, door: [.1, .42], doorMode: 'smooth', vert: [.38, .64], hdr: [.04, .5], leg: [.12, .48], legMode: 'press',
+         drop: { s: .08, gap: .06, len: .24, mode: 'rail' }, nr: { a: .6, b: .84, mode: 'rise' }, clunk: [.86, 1.5], steam: false, klaxon: false, seam: '#7df0ff' },
+    3: { name: 'Relay', dur: 1.7, door: [.12, .6], doorMode: 'steps', vert: [.56, .8], hdr: [.05, .7], leg: [.18, .64], legMode: 'flap',
+         drop: { s: .1, gap: .1, len: .3, mode: 'steps' }, nr: { a: .78, b: .95, mode: 'slam' }, clunk: [.95, 3], steam: false, klaxon: false, seam: '#ffffff' },
+    4: { name: 'Blast door', dur: 2.0, door: [.22, .66], doorMode: 'grind', vert: [.6, .84], hdr: [.1, .76], leg: [.3, .72], legMode: 'flap',
+         drop: { s: .12, gap: .1, len: .34, mode: 'trap' }, nr: { a: .82, b: .97, mode: 'slam' }, clunk: [.97, 7], steam: true, klaxon: true, seam: '#ffc46b' }
+  };
+
+  var st = { v: 1, p: 0, dir: 1, playing: false, speed: 1, hold: 0 };
+  function T(dp) { return dp * V[st.v].dur / st.speed; }
+  function dropLand(v, i) { return v.drop.s + i * v.drop.gap + v.drop.len * .88; }
+
+  // cue lists: [forward progress, label, function]
+  function cues(n) {
+    var v = V[n], e = [], d = v.door, dr = v.drop;
+    function add(t, l, f) { e.push({ t: t, l: l, f: f }); }
+    add(0, 'key press', S.key);
+    if (n === 1) {
+      add(.05, 'valve', function () { S.hiss(T(.07), .1); });
+      add(d[0], 'doors unlock', function () { S.thunk(.55); S.latch(); });
+      add(d[0] + .01, 'hydraulics', function () { S.hiss(T(d[1] - d[0]), .2); S.servo(T(d[1] - d[0]), 70, 120, .06); });
+      add(d[1], 'doors open', function () { S.thunk(1); S.clank(.5); });
+      add(d[1], 'steam', function () { S.hiss(T(.2), .22, 4200); });
+      add(v.vert[0], 'bezel rises', function () { S.servo(T(v.vert[1] - v.vert[0]), 80, 150, .05); });
+      add(v.vert[1], 'screen latch', S.lock);
+      add(.62, 'zzt', S.zap);
+      [0, 1, 2].forEach(function (i) { add(dr.s + i * dr.gap, 'release ' + (i + 1), S.latch); add(dropLand(v, i), 'drop ' + (i + 1), function () { S.thud(.8 - i * .12); }); });
+      add(v.nr.b - .1, 'new run falls', function () { S.hiss(T(.1), .08); });
+      add(v.nr.b, 'new run slam', function () { S.slam(1); S.hiss(T(.12), .15); });
+    } else if (n === 2) {
+      add(.07, 'beep', function () { S.beep(1320); });
+      add(d[0], 'servo open', function () { S.servo(T(d[1] - d[0]), 280, 920, .1); });
+      add(d[1], 'clamp', S.lock);
+      add(d[1] + .02, 'beep', function () { S.beep(1760); });
+      add(v.vert[0], 'frame out', function () { S.servo(T(v.vert[1] - v.vert[0]), 400, 700, .07); });
+      add(v.vert[0] + .04, 'zzt', S.zap);
+      [0, 1, 2].forEach(function (i) { add(dr.s + i * dr.gap, 'whirr ' + (i + 1), function () { S.whirr(T(dr.len)); }); add(dropLand(v, i), 'tick ' + (i + 1), S.ratchet); });
+      add(v.nr.a, 'lift', function () { S.servo(T(v.nr.b - v.nr.a), 420, 760, .08); });
+      add(v.nr.b, 'seat', function () { S.thud(.7); S.latch(); });
+    } else if (n === 3) {
+      add(d[0] - .03, 'release', S.latch);
+      for (var i = 0; i < 6; i++) add(d[0] + (d[1] - d[0]) * i / 6 + .004, 'notch ' + (i + 1), S.ratchet);
+      add(d[1], 'doors lock', function () { S.clank(.5, 520); S.lock(); });
+      add(v.vert[0], 'frame', function () { S.servo(T(v.vert[1] - v.vert[0]), 120, 200, .04); });
+      add(v.vert[0], 'zzt', S.zap);
+      add(v.vert[1], 'screen latch', S.lock);
+      [0, 1, 2].forEach(function (k) {
+        add(dr.s + k * dr.gap, 'release ' + (k + 1), S.latch);
+        for (var j = 1; j < 4; j++) add(dr.s + k * dr.gap + dr.len * j / 4, 'notch', S.ratchet);
+        add(dropLand(v, k), 'drop ' + (k + 1), function () { S.thud(.7); });
+      });
+      add(v.nr.b, 'new run slam', function () { S.thunk(1); S.clank(.4, 500); });
+    } else {
+      add(0, 'klaxon', S.alarm); add(.1, 'klaxon', S.alarm);
+      add(.2, 'seals', function () { S.hiss(T(.1), .2, 2500); S.thud(.8); });
+      add(d[0], 'grind', function () { S.grind(T(d[1] - d[0]), .5); });
+      add(d[1], 'boom', function () { S.slam(1.2); S.hiss(T(.2), .25, 3000); });
+      add(v.vert[0], 'frame', function () { S.servo(T(v.vert[1] - v.vert[0]), 60, 120, .06); });
+      add(v.vert[1], 'screen latch', function () { S.lock(); S.zap(); });
+      [0, 1, 2].forEach(function (i) { add(dr.s + i * dr.gap, 'trapdoor ' + (i + 1), function () { S.clank(.3, 260); S.latch(); }); add(dropLand(v, i), 'drop ' + (i + 1), function () { S.thud(1.1 - i * .15); }); });
+      add(v.nr.b, 'new run slam', function () { S.slam(1.5); S.hiss(T(.15), .3, 2800); });
+    }
+    return e.sort(function (a, b) { return a.t - b.t; });
+  }
+  var EV = [], marks = [];
+  function buildCues() {
+    EV = cues(st.v); var bar = $('cuebar'); bar.innerHTML = ''; marks = [];
+    EV.forEach(function (c) { var m = document.createElement('i'); m.className = 'mk'; m.style.left = (c.t * 100) + '%'; m.title = c.l; bar.appendChild(m); marks.push(m); });
+    var ph = document.createElement('i'); ph.className = 'ph'; ph.id = 'ph'; bar.appendChild(ph);
+  }
+  function fire(i) {
+    var c = EV[i]; if (live()) c.f(); marks[i].classList.add('on'); $('cuelog').textContent = (c.t * V[st.v].dur).toFixed(2) + ' s  ' + c.l;
+    setTimeout(function () { marks[i].classList.remove('on'); }, 160);
+  }
+  function fireRange(a, b) {   // events crossed moving from a to b
+    var lo = Math.min(a, b), hi = Math.max(a, b);
+    for (var i = 0; i < EV.length; i++) { var t = EV[i].t; if (a <= b ? (t > a && t <= b) : (t >= b && t < a)) fire(i); }
+  }
+
+  // ---------- split-flap cells ----------
+  var ABC = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var flapSteps = { h: 0, l: 0 };
+  function flapCells(q, from, to, a, b, cls, key) {
+    var h = '', tot = 0, n = to.length, span = b - a;
+    for (var i = 0; i < n; i++) {
+      var ai = ABC.indexOf(from[i]), bi = ABC.indexOf(to[i]), dist = (bi - ai + ABC.length) % ABC.length;
+      var d = n > 1 ? span * .4 * i / (n - 1) : 0;
+      var t = seg(q, a + d, a + span * .6 + d), x = t * dist, k = Math.floor(x), f = x - k;
+      var c = t >= 1 ? to[i] : ABC[(ai + k) % ABC.length];
+      tot += t >= 1 ? dist : k;
+      var sy = (t > 0 && t < 1) ? 1 - .35 * Math.sin(Math.PI * f) : 1;
+      h += '<b class="' + cls + '" style="transform:scaleY(' + sy + ')">' + (c === ' ' ? '&nbsp;' : c) + '</b>';
+    }
+    flapSteps[key] = tot; return h;
+  }
+
+  // ---------- elements ----------
+  var E = { play: $('play'), play2: $('play2'), pick: $('pick'), flash: $('flash'), nr: $('nr'), bez: $('bez'), card: $('card'), kb: $('kb'),
+    t: [$('t0'), $('t1'), $('t2')], pk: [$('pk1'), $('pk2'), $('pk3')], amb: [$('ambL'), $('ambR')] };
+  var PLAY = [29, 68, 618, 138], PICK = [28, 63, 620, 189], NR = [29, 261, 616, 40];
+  var TRIO = [[29, 224, 191, 61], [236, 224, 191, 61], [444, 224, 201, 61]];
+  var puffs = []; for (var j = 0; j < 12; j++) { var pi = document.createElement('i'); $('steam').appendChild(pi); puffs.push(pi); }
+
+  function showContent(p, a, b) {
+    E.pk.forEach(function (el, i) { var k = eo(seg(p, a + i * .06, b + i * .06)); el.style.opacity = k; el.style.transform = 'translateY(' + (10 * (1 - k)) + 'px)'; });
+  }
+
+  function render() {
+    var p = st.p, v = V[st.v], d = v.door, dr = v.drop;
+    // doors
+    var k = seg(p, d[0], d[1]), g;
+    if (v.doorMode === 'steps') { var n = 6, x = k * n, i0 = Math.floor(x), f = x - i0; g = Math.min(1, (i0 + eo(cl(f * 2.4))) / n); }
+    else if (v.doorMode === 'grind') g = Math.pow(eio(k), 1.15);
+    else g = eio(k);
+    var dx = g * 330, lc = Math.max(0, dx - 17), press = Math.sin(Math.PI * seg(p, 0, d[0] * .7));
+    var jit = (v.doorMode === 'grind' && k > 0 && k < 1) ? (hash(Math.floor(p * 160)) - .5) * 2.2 : 0;
+    R(E.play, PLAY[0], PLAY[1], PLAY[2], PLAY[3]); R(E.play2, PLAY[0], PLAY[1], PLAY[2], PLAY[3]);
+    E.play.style.visibility = E.play2.style.visibility = dx > 345 ? 'hidden' : 'visible';
+    E.play.style.clipPath = 'inset(0 50% 0 ' + lc + 'px)'; E.play.style.transform = 'translate(' + (-dx) + 'px,' + (4 * press + jit) + 'px)';
+    E.play2.style.clipPath = 'inset(0 ' + lc + 'px 0 50%)'; E.play2.style.transform = 'translate(' + dx + 'px,' + (4 * press - jit) + 'px)';
+    // screen opens behind the doors, then to full height in its bezel
+    var gap = Math.max(0, 310 - dx), vv = eio(seg(p, v.vert[0], v.vert[1]));
+    var top = (PLAY[1] - PICK[1]) * (1 - vv), bot = (PICK[1] + PICK[3] - PLAY[1] - PLAY[3]) * (1 - vv), on = p > d[0] * .8;
+    R(E.pick, PICK[0], PICK[1], PICK[2], PICK[3]); E.pick.style.visibility = on ? 'visible' : 'hidden';
+    E.pick.style.clipPath = 'inset(' + top + 'px ' + gap + 'px ' + bot + 'px ' + gap + 'px)';
+    R(E.bez, PICK[0] + gap - 6, PICK[1] + top - 6, PICK[2] - 2 * gap + 12, PICK[3] - top - bot + 12); E.bez.style.opacity = on ? 1 : 0;
+    E.flash.style.opacity = .35 * Math.sin(Math.PI * seg(p, v.vert[0] - .05, v.vert[1]));
+    E.flash.style.background = 'radial-gradient(80% 120% at 50% 50%, ' + v.seam + ', transparent)';
+    showContent(p, v.vert[1] - .16, v.vert[1] + .02);
+    // bottom keys drop through the floor
+    E.t.forEach(function (el, i) {
+      var tt = seg(p, dr.s + i * dr.gap, dr.s + i * dr.gap + dr.len), y, rot = 0, gg;
+      if (dr.mode === 'gravity') gg = tt * tt;
+      else if (dr.mode === 'rail') gg = eio(tt);
+      else if (dr.mode === 'steps') { var q = tt * 4, qi = Math.floor(q); gg = Math.min(1, (qi + eo(cl((q - qi) * 3))) / 4); }
+      else { rot = 38 * eo(seg(tt, 0, .35)); gg = Math.pow(seg(tt, .3, 1), 2); }
+      y = 100 * gg;
+      R(el, TRIO[i][0], TRIO[i][1], TRIO[i][2], TRIO[i][3]);
+      el.style.clipPath = 'inset(0 0 ' + cb(TRIO[i][1] + y, TRIO[i][3]) + 'px 0)';
+      el.style.transformOrigin = '50% 100%';
+      el.style.transform = 'translateY(' + y + 'px)' + (rot ? ' perspective(300px) rotateX(' + (-rot) + 'deg)' : '');
+      el.style.visibility = y >= 86 ? 'hidden' : 'visible';
+    });
+    // New run
+    var u = seg(p, v.nr.a, v.nr.b), ny, vis = u > 0;
+    if (v.nr.mode === 'slam') ny = -46 * (1 - bounce(u)); else ny = 50 * (1 - bk(u));
+    R(E.nr, NR[0], NR[1], NR[2], NR[3]); E.nr.style.visibility = vis ? 'visible' : 'hidden';
+    E.nr.style.transform = 'translateY(' + ny + 'px)'; E.nr.style.clipPath = 'inset(0 0 ' + cb(NR[1] + ny, NR[3]) + 'px 0)';
+    // header: split-flap, direction-aware so Back rewrites to MAIN MENU
+    var A0 = 'MAIN MENU', B0 = 'YOUR RUNS', qh = st.dir > 0 ? p : 1 - p;
+    $('hdrT').innerHTML = st.dir > 0 ? flapCells(qh, A0, B0, v.hdr[0], v.hdr[1], 'fl', 'h') : flapCells(qh, B0, A0, v.hdr[0], v.hdr[1], 'fl', 'h');
+    $('hdrC').style.display = p < .995 ? 'none' : 'inline-block';
+    // Quit -> Back: same keycap, new legend
+    var lk = seg(p, v.leg[0], v.leg[1]), lg = $('lg');
+    if (v.legMode === 'flap') {
+      var ql = st.dir > 0 ? p : 1 - p;
+      lg.innerHTML = st.dir > 0 ? flapCells(ql, 'QUIT', 'BACK', v.leg[0], v.leg[1], 'lc', 'l') : flapCells(ql, 'BACK', 'QUIT', v.leg[0], v.leg[1], 'lc', 'l');
+      lg.style.textAlign = 'center';
+    } else if (v.legMode === 'reel') {
+      var rg = lk < 1 ? bk(lk) : 1; flapSteps.l = Math.floor(lk * 7);
+      lg.innerHTML = '<div class="row" style="top:' + (-rg * 30) + 'px">QUIT</div><div class="row" style="top:' + (30 - rg * 30) + 'px">BACK</div>';
+    } else {
+      lg.innerHTML = '<div class="row" style="opacity:' + (1 - seg(lk, .3, .6)) + '">QUIT</div><div class="row" style="opacity:' + seg(lk, .4, .7) + '">BACK</div>'; flapSteps.l = 0;
+    }
+    var kd = Math.sin(Math.PI * seg(lk, .7, 1)) * 3 + (v.legMode === 'press' ? Math.sin(Math.PI * seg(lk, .35, .65)) * 3 : 0);
+    E.kb.style.transform = 'translateY(' + kd + 'px)';
+    $('icoQ').style.opacity = 1 - seg(lk, .35, .6); $('icoB').style.opacity = seg(lk, .4, .65);
+    $('icoQ').style.transform = 'rotate(' + (-90 * seg(lk, .2, .6)) + 'deg)'; $('icoB').style.transform = 'rotate(' + (90 * (1 - seg(lk, .4, .8))) + 'deg)';
+    $('lampQ').style.opacity = 1 - seg(lk, .45, .7); $('lampB').style.opacity = seg(lk, .5, .75);
+    // extras: warning lamps, steam, settle-thunk
+    var run = v.klaxon && p > 0 && p < d[1] + .08, blink = run && Math.sin(p * 70) > -.2 ? 1 : (run ? .15 : 0);
+    E.amb.forEach(function (a, i) { a.style.opacity = i ? blink : (run ? (blink > .5 ? .15 : 1) : 0); });
+    puffs.forEach(function (el, j) {
+      if (!v.steam) { el.style.opacity = 0; return; }
+      var side = j % 2, t0 = d[1] - .06 + Math.floor(j / 2) * .02, uu = seg(p, t0, t0 + .22);
+      el.style.opacity = .55 * Math.sin(Math.PI * uu); el.style.left = (side ? 662 : 14) + (side ? 10 : -10) * uu + 'px';
+      el.style.top = (137 - 45 * uu + (j % 3) * 9 - 10) + 'px'; el.style.transform = 'scale(' + (1 + 2.4 * uu) + ')';
+    });
+    var dt = p - v.clunk[0]; E.card.style.transform = dt > 0 ? 'translateY(' + (v.clunk[1] * Math.exp(-dt * 26) * Math.sin(dt * 95)).toFixed(2) + 'px)' : '';
+    $('scrub').value = Math.round(p * 1000); $('pv').textContent = p.toFixed(2);
+    var ph = $('ph'); if (ph) ph.style.left = (p * 100) + '%';
+  }
+
+  // ---------- playback ----------
+  var last = 0, seenH = 0, seenL = 0;
+  function tick(t) {
+    var dt = Math.min(.05, (t - last) / 1000); last = t;
+    if (st.playing) {
+      if (st.hold > 0) st.hold -= dt;
+      else {
+        var prev = st.p;
+        st.p = cl(st.p + st.dir * dt * st.speed / V[st.v].dur);
+        fireRange(prev, st.p); render();
+        var dh = Math.abs(flapSteps.h - seenH), dl = Math.abs(flapSteps.l - seenL);
+        for (var i = 0; i < Math.min(3, dh); i++) setTimeout(function () { if (live()) S.clack(false); }, i * 14);
+        for (var j = 0; j < Math.min(2, dl); j++) setTimeout(function () { if (live()) S.clack(true); }, j * 14);
+        seenH = flapSteps.h; seenL = flapSteps.l;
+        if ((st.dir > 0 && st.p >= 1) || (st.dir < 0 && st.p <= 0)) {
+          if ($('loop').checked) { st.hold = .9; st.dir = -st.dir; } else st.playing = false;
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  function play(dir) {
+    ensure(); st.dir = dir; st.playing = true; st.hold = 0;
+    if (dir > 0 && st.p >= 1) st.p = 0;
+    if (dir < 0 && st.p <= 0) st.p = 1;
+    render(); seenH = flapSteps.h; seenL = flapSteps.l;
+    if (dir > 0 && st.p === 0) fire(0);
+  }
+  $('go').onclick = function () { st.p = 0; play(1); };
+  $('back').onclick = function () { st.p = 1; play(-1); };
+  $('scrub').oninput = function () { st.playing = false; st.p = this.value / 1000; render(); seenH = flapSteps.h; seenL = flapSteps.l; };
+  document.querySelectorAll('[data-v]').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('[data-v]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      st.v = b.dataset.v; buildCues(); st.p = 0; play(1);
+    };
+  });
+  document.querySelectorAll('[data-sp]').forEach(function (b) {
+    b.onclick = function () { document.querySelectorAll('[data-sp]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); }); st.speed = parseFloat(b.dataset.sp); };
+  });
+
+  buildCues(); render();
+  requestAnimationFrame(function (t) { last = t; tick(t); });
+  setTimeout(function () { if (!st.playing && st.p === 0) { st.p = 0; st.dir = 1; st.playing = true; seenH = flapSteps.h; seenL = flapSteps.l; } }, 700);
+})();
+</script>

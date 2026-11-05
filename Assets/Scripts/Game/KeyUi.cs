@@ -15,6 +15,42 @@ namespace Arena
         static readonly Color LampOn = new Color(0.42f, 1f, 0.6f);
         static int pressedKey;  // the key the mouse went down on (until it comes up)
 
+        static void Legend(Rect cap, string text, Texture2D icon, int size, float a)
+        {
+            float isz = Mathf.Min(size * 1.1f, cap.height * 0.5f);
+            float tw = Ui.TextWidth(text, size, true) - 6f, gap = icon != null ? 12f : 0f, ic = icon != null ? isz : 0f;
+            float x = cap.center.x - (ic + gap + tw) / 2f;
+            if (icon != null)
+                Ui.Icon(new Rect(x, cap.center.y - isz / 2f, isz, isz), icon, new Color(1f, 1f, 1f, a));
+            var tr = new Rect(x + ic + gap, cap.y, tw + 12f, cap.height);
+            Ui.Label(new Rect(tr.x, tr.y + 1f, tr.width, tr.height), text, size, new Color(0f, 0f, 0f, 0.5f * a), TextAnchor.MiddleLeft, true);
+            Ui.Label(tr, text, size, new Color(0.93f, 0.95f, 1f, a), TextAnchor.MiddleLeft, true);
+        }
+
+        /// A screw head: a dark ring, a metal dome with a highlight, and a slot.
+        public static void Bolt(Vector2 c, float d)
+        {
+            Ui.Dot(new Rect(c.x - d / 2f - 1f, c.y - d / 2f - 1f, d + 2f, d + 2f), new Color(0.03f, 0.04f, 0.1f));
+            Ui.Dot(new Rect(c.x - d / 2f, c.y - d / 2f, d, d), new Color(0.3f, 0.39f, 0.68f));
+            Ui.Dot(new Rect(c.x - d * 0.3f, c.y - d * 0.35f, d * 0.4f, d * 0.4f), new Color(0.6f, 0.7f, 0.95f));
+            Ui.Fill(new Rect(c.x - d * 0.3f, c.y, d * 0.6f, 1f), new Color(0.03f, 0.04f, 0.1f, 0.8f));
+        }
+
+        /// The riveted metal frame around the runs screen (Docs/Mockups/menu-bay-doors.html): drawn under the screen, 7 px out on every side.
+        public static void Bezel(Rect screen)
+        {
+            var r = new Rect(screen.x - 7f, screen.y - 7f, screen.width + 14f, screen.height + 14f);
+            Ui.Pill(new Rect(r.x, r.y + 4f, r.width, r.height), new Color(0.03f, 0.04f, 0.09f, 0.55f));   // drop shadow
+            Ui.Pill(r, new Color(0.42f, 0.52f, 0.81f));                                                     // lit rim
+            var f = new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f);
+            Ui.Pill(f, new Color(0.14f, 0.18f, 0.37f));
+            Band(new Rect(f.x + 1f, f.y + 1f, f.width - 2f, f.height - 2f), new Color(0.23f, 0.29f, 0.51f), new Color(0.1f, 0.13f, 0.27f), 8);
+            Ui.Fill(new Rect(f.x + 5f, f.y + 1f, f.width - 10f, 1f), new Color(1f, 1f, 1f, 0.25f));        // the lit top edge
+            if (r.width > 40f && r.height > 40f)
+                foreach (var c in new[] { new Vector2(r.x + 6f, r.y + 6f), new Vector2(r.xMax - 6f, r.y + 6f), new Vector2(r.x + 6f, r.yMax - 6f), new Vector2(r.xMax - 6f, r.yMax - 6f) })
+                    Bolt(c, 5f);
+        }
+
         /// A vertical gradient drawn as bands (the game's boxes are flat, so depth is built from strips).
         static void Band(Rect r, Color top, Color bottom, int steps)
         {
@@ -28,8 +64,9 @@ namespace Arena
         public static Rect Well(Rect r) => new Rect(r.x - 7f, r.y - 6f, r.width + 14f, r.height + 13f);
 
         /// A keycap in rect r (its full height, travel included). lampOn keeps the lamp lit; otherwise it lights under the mouse.
-        /// True when clicked.
-        public static bool Key(Rect r, string text, Texture2D icon, int size, bool lampOn = false)
+        /// True when clicked. text2 / icon2 / mix swap the legend to a second label (mix 0 = the first, 1 = the second; the menu's
+        /// Quit becoming Back, MenuServo.cs), and dip pushes the cap down that many extra pixels.
+        public static bool Key(Rect r, string text, Texture2D icon, int size, bool lampOn = false, string text2 = null, Texture2D icon2 = null, float mix = 0f, float dip = 0f)
         {
             var e = Event.current;
             int id = Mathf.RoundToInt(r.y * 17f + r.width) + Mathf.FloorToInt(r.x / 8f) * 7919;
@@ -44,7 +81,7 @@ namespace Arena
             Ui.Pill(well, WellCol);
             Ui.Fill(new Rect(well.x + 3f, well.y + 2f, well.width - 6f, 3f), new Color(0f, 0f, 0f, 0.55f));        // the well's inner shadow at the top
             Ui.Fill(new Rect(well.x + 4f, well.yMax - 2f, well.width - 8f, 1f), new Color(1f, 1f, 1f, 0.07f));      // and its lit lip at the bottom
-            float drop = pressed ? travel - 3f : 0f;
+            float drop = (pressed ? travel - 3f : 0f) + dip;
             var cap = new Rect(r.x, r.y + drop, r.width, r.height - travel);
             // A soft shadow under the key, then its side (a gradient from lit to dark), which the cap travels down over.
             Ui.Pill(new Rect(r.x + 2f, r.y + travel + 3f, r.width - 4f, r.height - travel), new Color(0f, 0f, 0f, 0.5f));
@@ -63,14 +100,15 @@ namespace Arena
             Ui.Fill(new Rect(dish.x + 3f, dish.y + 1f, dish.width - 6f, 2f), new Color(0f, 0f, 0f, 0.4f));          // shadow under the dish's top lip
             Ui.Fill(new Rect(dish.x + 3f, dish.yMax - 1f, dish.width - 6f, 1f), new Color(1f, 1f, 1f, 0.22f));     // light on its bottom lip
             // The label, engraved: a dark copy under it, then the text; the icon sits before it, the pair centred.
-            float isz = Mathf.Min(size * 1.1f, cap.height * 0.5f);
-            float tw = Ui.TextWidth(text, size, true) - 6f, gap = icon != null ? 12f : 0f, ic = icon != null ? isz : 0f;
-            float x = cap.center.x - (ic + gap + tw) / 2f;
-            if (icon != null)
-                Ui.Icon(new Rect(x, cap.center.y - isz / 2f, isz, isz), icon, Color.white);
-            var tr = new Rect(x + ic + gap, cap.y, tw + 12f, cap.height);
-            Ui.Label(new Rect(tr.x, tr.y + 1f, tr.width, tr.height), text, size, new Color(0f, 0f, 0f, 0.5f), TextAnchor.MiddleLeft, true);
-            Ui.Label(tr, text, size, new Color(0.93f, 0.95f, 1f), TextAnchor.MiddleLeft, true);
+            if (text2 == null)
+                Legend(cap, text, icon, size, 1f);
+            else
+            {
+                if (mix < 1f)
+                    Legend(cap, text, icon, size, 1f - mix);
+                if (mix > 0f)
+                    Legend(cap, text2, icon2, size, mix);
+            }
             // The lamp in the corner.
             float ls = Mathf.Clamp(cap.height / 9f, 6f, 11f);
             var lamp = new Rect(cap.xMax - 10f - ls, cap.y + 8f, ls, ls);
