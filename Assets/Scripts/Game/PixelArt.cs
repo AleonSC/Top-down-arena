@@ -145,7 +145,7 @@ namespace Arena
             { "Phoenix", "flame" },
             { "Soul Lantern", "halo" },
             { "Bat Swarm", "brood" },
-            { "Sacrifice", "explode" },
+            { "Hydra", "split" },
             { "Alpha Call", "fangs" },
             { "Shield Wall", "towershield" },
             { "Leap Slam", "earthshaker" },
