@@ -97,5 +97,50 @@ namespace Arena
                 Circle(b - dir * 10f, 2.2f, OrbitCol.WithAlpha(flick), 6);
             }
         }
+
+        /// A Healing Dash footprint: a faint healing disc, a glowing print (the side alternates with the zone's id) and small rings that
+        /// spread out of it, one after another, like ripples on mist. It fades in at once and out over the last second.
+        void DrawFootprint(Zone z, Rgba c, float t)
+        {
+            float age = z.Duration - z.T;
+            float f = Mathf.Clamp01(age / 0.2f) * Mathf.Clamp01(z.T / 1f);
+            Circle(z.Pos, z.Radius * 0.9f, c.WithAlpha(0.07f * f), 32);
+            int rings = fxReduced ? 1 : 2;
+            for (int k = 0; k < rings; k++)  // a new ring every 1.1 s per ripple, each from the print out to 80% of the radius
+            {
+                float ph = MathX.Fmod(age * 0.9f + k * 0.5f + z.Id * 0.37f, 1f);
+                if (age < 0.15f && k > 0)
+                    continue;
+                Arc(z.Pos, 2f + ph * z.Radius * 0.8f, 1.6f, new Rgba(0.8f, 1f, 0.92f, 0.5f * (1f - ph) * f), 24);
+            }
+            float side = (z.Id & 1) == 0 ? 1f : -1f;
+            V2 fwd = V2.FromAngle(z.Aim), left = fwd.Orthogonal() * (7f * side), p = z.Pos + left;
+            float glow = (0.65f + 0.1f * Mathf.Sin(t * 4f + z.Id)) * f;
+            Rgba print = new Rgba(0.67f, 1f, 0.85f, glow);
+            Circle(p - fwd * 4f, 5f, print, 10);  // the sole (two overlapping discs) and the toes
+            Circle(p - fwd * 0.5f, 4.2f, print, 10);
+            Circle(p + fwd * 6f, 2.8f, print, 8);
+            Circle(p + fwd * 6f + fwd.Orthogonal() * 3.5f, 1.8f, print, 6);
+        }
+
+        /// Healing Dash's sprint: a mint haze behind the runner and short speed lines streaming off the body.
+        void DrawDashWake(Player p, float t)
+        {
+            if (p.Downed)
+                return;
+            var mint = new Rgba(0.55f, 1f, 0.8f);
+            V2 back = V2.FromAngle(p.Aim + MathX.Pi);
+            for (int k = 0; k < 3; k++)
+                Circle(p.Disp + back * (14f + k * 11f), 12f - k * 2.5f, mint.WithAlpha(0.22f - k * 0.06f), 12);
+            if (fxReduced)
+                return;
+            V2 side = back.Orthogonal();
+            for (int k = 0; k < 4; k++)
+            {
+                float off = (k - 1.5f) * 8f, len = 16f + 12f * MathX.Fmod(t * 7f + k * 0.37f, 1f);
+                V2 a = p.Disp + back * 20f + side * off;
+                Line(a, a + back * len, 1.6f, new Rgba(0.92f, 1f, 0.96f, 0.5f));
+            }
+        }
     }
 }

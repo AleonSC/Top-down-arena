@@ -19,7 +19,7 @@ namespace Arena
         ShieldWall, LeapSlam, Unbreakable, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
         LastStand, HallowedBlade, BladeTempest,
         // Ninja (Space), then the Ninja ultimates
-        ShadowClone, SmokeBomb, IronBody, HealingMist, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
+        ShadowClone, SmokeBomb, IronBody, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
         ThousandClones, BlossomStorm, DeathLotus,
         // Blood Mage (Space), then the Blood Mage ultimates
         BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
@@ -265,7 +265,7 @@ namespace Arena
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Iron Body lasts 1 s longer and its shockwave hits 50% harder",
                 Apply = s => { s.IronBonusTime += 1f; s.IronWaveMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingMist, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Mist's dew heals 50% more, and the mist is 25% bigger",
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
                 Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
                 Apply = s => { s.SubShieldMult += 0.6f; s.SubBonusTime += 2f; } },

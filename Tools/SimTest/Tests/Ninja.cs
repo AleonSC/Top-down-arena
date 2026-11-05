@@ -230,13 +230,13 @@ static partial class Program
         Console.WriteLine("  substitution: host {0:0},{1:0} client {2:0},{3:0}; ally shield {4:0}", hostAt.X, hostAt.Y, clientAt.X, clientAt.Y, cp.ShieldHp);
         Check(Math.Abs(hostAt.X - 1000f) < 10f && Math.Abs(clientAt.X - 500f) < 10f && cp.ShieldHp > 50f, "Substitution swaps you with your ally and shields them");
 
-        // Healing Mist follows you and heals allies in it; Blossom Storm heals everyone and clears bullets near them.
-        place(1, 700f); place(2, 760f); run(0.3f);
+        // Healing Dash's footprints heal allies who stand in them; Blossom Storm heals everyone and clears bullets near them.
+        place(1, 700f); place(2, 725f); run(0.3f);
         cp.Hp = cp.MaxHp * 0.3f;
         float low = cp.Hp;
-        use(1, AbilityId.HealingMist, hp.Pos);
+        use(1, AbilityId.HealingDash, hp.Pos);
         run(1f);
-        Check(cp.Hp > low + 6f, "Healing Mist heals allies in it");
+        Check(cp.Hp > low + 6f, "Healing Dash footprints heal allies");
         g.Zones.Clear();
         cp.Hp = cp.MaxHp * 0.3f; low = cp.Hp;
         cp.Slots[Upgrades.UltSlot].Charges = 1;

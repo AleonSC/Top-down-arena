@@ -1,0 +1,283 @@
+<title>Ninja Healing Mist Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one stage (canvas, look / screen toggles, play controls, scrub bar), then beat list and numbers.
+   Colour: Healing Mist mint (.55,1,.8) on a dark arena. Type: Barlow Condensed / Barlow / Plex Mono like the other mockups. */
+:root{
+  --bg:#edeef3; --fg:#1c1b27; --muted:#5d5c70; --panel:#f8f8fc; --line:#cfcfdd;
+  --acc:#1c8a68; --red:#c0453a; --chip:#e0e0ea; --chip-on:#1c1b27; --chip-on-fg:#f3f2fa; --arena:#14131c;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f0e15; --fg:#e8e7f2; --muted:#9594aa; --panel:#181722; --line:#2d2b3d;
+  --acc:#7fe3bd; --red:#ff8b7e; --chip:#242333; --chip-on:#e8e7f2; --chip-on-fg:#0f0e15; --arena:#0b0a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0e15; --fg:#e8e7f2; --muted:#9594aa; --panel:#181722; --line:#2d2b3d;
+  --acc:#7fe3bd; --red:#ff8b7e; --chip:#242333; --chip-on:#e8e7f2; --chip-on-fg:#0f0e15; --arena:#0b0a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:700 clamp(36px,7vw,60px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:0 0 8px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/460}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grp>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+.scrub{display:flex;align-items:center;gap:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--acc)}
+.scrub output{font:500 13px var(--mono);color:var(--muted);min-width:4.5em;text-align:right}
+.look-note{margin:0;max-width:72ch;color:var(--muted);min-height:4.5em}
+.look-note b{color:var(--fg)}
+.cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
+.card h2{font:700 24px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;margin:0 0 12px}
+.beats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.beats li{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:10px}
+.beats time{font:500 13px var(--mono);color:var(--acc);padding-top:2px}
+.beats em{font-style:normal;color:var(--muted)}
+dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px}
+dt{color:var(--muted)} dd{margin:0;font:500 14px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.ask{margin:14px 0 0;color:var(--muted);font-size:15px}
+</style>
+
+<main>
+<header>
+  <p class="kicker">Ninja · Healer · Ability</p>
+  <h1>Healing Mist</h1>
+  <p>Today a mist follows the ninja for 6 seconds and sheds a drop of dew twice a second. The rework turns it into a sprint. The ninja runs faster for a few seconds and leaves a trail behind. Anyone who steps into the trail heals for as long as they stand in it. Three looks for the trail; the numbers are the same in each.</p>
+</header>
+
+<section class="stage" aria-label="Healing Mist stage">
+  <div class="frame"><canvas id="cv" width="1440" height="920" aria-label="Healing Mist animation: the ninja sprints and leaves a healing trail, two hurt allies step into it and recover health"></canvas></div>
+  <div class="controls">
+    <div class="grp"><span>Look</span>
+      <div class="seg" role="radiogroup" aria-label="Look">
+        <input type="radio" name="look" id="lkA" value="A" checked><label for="lkA">A · Dew trail</label>
+        <input type="radio" name="look" id="lkB" value="B"><label for="lkB">B · Mist ribbon</label>
+        <input type="radio" name="look" id="lkC" value="C"><label for="lkC">C · Footprints</label>
+      </div></div>
+    <div class="grp"><span>Morning Dew</span>
+      <div class="seg" role="radiogroup" aria-label="Morning Dew upgrade">
+        <input type="radio" name="dew" id="dwN" value="0" checked><label for="dwN">Off</label>
+        <input type="radio" name="dew" id="dwY" value="1"><label for="dwY">On</label>
+      </div></div>
+    <div class="grp"><span>Capstone</span>
+      <div class="seg" role="radiogroup" aria-label="Capstone">
+        <input type="radio" name="cap" id="cpN" value="0" checked><label for="cpN">Off</label>
+        <input type="radio" name="cap" id="cpY" value="1"><label for="cpY">Longer sprint</label>
+      </div></div>
+    <div class="grp">
+      <button id="replay" type="button">Replay</button>
+      <button id="pause" type="button" aria-pressed="false">Pause</button>
+      <button id="slow" type="button" aria-pressed="false">Slow-mo</button>
+    </div>
+  </div>
+  <div class="scrub"><label for="seek" class="grp"><span>Time</span></label><input id="seek" type="range" min="0" max="12" step="0.01" value="0"><output id="tt">0.00 s</output></div>
+  <p class="look-note" id="note"></p>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>Beat by beat</h2>
+    <ol class="beats">
+      <li><time>0.0 s</time><span>The ninja walks. Two allies are hurt (45 and 30 HP) and standing off to the side.</span></li>
+      <li><time>0.5 s</time><span>Cast. A ring of mist, and the ninja speeds up by 45%. Speed lines trail the body.</span></li>
+      <li><time>0.5 – 4.5 s</time><span>Every 0.15 s the ninja drops a patch of mist on the ground. Together the patches make a continuous trail. <em>(Today: dew drops fall inside a mist that follows you.)</em></span></li>
+      <li><time>2.4 – 4.4 s</time><span>Both allies walk into the trail. Each heals 12 HP a second while standing in it, and the ninja heals too while the trail is under its feet.</span></li>
+      <li><time>4.5 s</time><span>The sprint ends and the ninja drops back to normal speed. The trail stays.</span></li>
+      <li><time>5 s after each patch</time><span>That patch fades. The oldest part of the trail goes first, so the trail shortens from the tail.</span></li>
+    </ol>
+    <p class="ask">Pick a look (A, B or C). Left out of every look: the cooldown ring on the ability slot, and the enemies and their bullets.</p>
+  </section>
+  <section class="card">
+    <h2>Numbers</h2>
+    <dl>
+      <dt>Cooldown</dt><dd>15 s (unchanged)</dd>
+      <dt>Sprint</dt><dd>4 s, +45% speed</dd>
+      <dt>Patch every</dt><dd>0.15 s</dd>
+      <dt>Patch lasts</dt><dd>5 s</dd>
+      <dt>Patch radius</dt><dd>34 px</dd>
+      <dt>Heal</dt><dd>12 HP/s</dd>
+      <dt>Overlap</dt><dd>does not stack</dd>
+      <dt>Who heals</dt><dd>anyone, you too</dd>
+      <dt>Morning Dew</dt><dd>+50% heal, +25% size</dd>
+      <dt>Capstone</dt><dd>6 s sprint</dd>
+      <dt>Network</dt><dd>patches replace dew orbs</dd>
+    </dl>
+  </section>
+</div>
+</main>
+
+<script>
+(function(){
+var cv=document.getElementById('cv'),c=cv.getContext('2d'),TAU=Math.PI*2;
+var CAST=.5,BASE=50,BOOST=1.45,LAY=.15,LIFE=5,T=12;
+var st={t:0,paused:false,slow:false,look:'A',dew:false,cap:false};
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,k){return a+(b-a)*k}
+function eo(k){k=clamp(k,0,1);return 1-(1-k)*(1-k)}
+function es(k){k=clamp(k,0,1);return k*k*(3-2*k)}
+function hash(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function rgba(r,g,b,a){return 'rgba('+r+','+g+','+b+','+clamp(a,0,1).toFixed(3)+')'}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+var MINT=[140,255,205];
+
+/* ---- scene as pure functions of time ---- */
+function BE(){return CAST+(st.cap?6:4)}
+function R(){return st.dew?42:34}
+function H(){return st.dew?18:12}
+function sOf(t){
+  var be=BE();
+  if(t<=CAST)return BASE*t;
+  if(t<=be)return BASE*CAST+BASE*BOOST*(t-CAST);
+  return BASE*CAST+BASE*BOOST*(be-CAST)+BASE*.5*(t-be);
+}
+function path(s){return {x:80+s*.85,y:225+70*Math.sin(s/80)}}
+function ninja(t){return path(sOf(t))}
+function ang(t){var s=sOf(t),a=path(s),b=path(s+2);return Math.atan2(b.y-a.y,b.x-a.x)}
+function patches(){var out=[],be=BE();for(var k=0,te=CAST;te<=be+1e-6;k++,te=CAST+k*LAY){var p=ninja(te);out.push({x:p.x,y:p.y,te:te,k:k,a:ang(te)})}return out}
+var PA=[];
+function alive(p,t){return t>=p.te&&t<p.te+LIFE}
+var ALLY=[
+ {name:'ALLY',hp0:45,from:{x:250,y:385},lay:1.7,go:2.4,arr:3.6,col:['#2c5a6e','#7fd0f0']},
+ {name:'ALLY',hp0:30,from:{x:430,y:95},lay:2.6,go:3.0,arr:4.4,col:['#6e4a2c','#f0b87f']}];
+function allyPos(i,t){var a=ALLY[i],to=ninja(a.lay),k=es((t-a.go)/(a.arr-a.go));return {x:lerp(a.from.x,to.x,k),y:lerp(a.from.y,to.y,k)}}
+function entPos(i,t){return i<0?ninja(t):allyPos(i,t)}
+function inside(i,t){var p=entPos(i,t),r=R();for(var q=0;q<PA.length;q++){var m=PA[q];if(alive(m,t)&&Math.hypot(m.x-p.x,m.y-p.y)<r)return m}return null}
+function hpAt(i,t){
+  var hp=i<0?80:ALLY[i].hp0,h=H();
+  for(var u=0;u<t;u+=.02)if(inside(i,u))hp=Math.min(100,hp+h*.02);
+  return hp;
+}
+function nearest(i,t){var p=entPos(i,t),best=null,bd=1e9;for(var q=0;q<PA.length;q++){var m=PA[q];if(!alive(m,t))continue;var d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bd){bd=d;best=m}}return best}
+function pfade(m,t){var age=t-m.te;return clamp(age/.2,0,1)*clamp((m.te+LIFE-t)/1.0,0,1)}
+
+/* ---- drawing helpers ---- */
+function ninjaBody(x,y,a,al){
+  c.save();c.translate(x,y);c.rotate(a);c.globalAlpha=clamp(al,0,1);
+  c.strokeStyle='#a58cf0';c.lineWidth=3;c.beginPath();
+  var w=Math.sin(st.t*14)*3;c.moveTo(-10,-2);c.quadraticCurveTo(-24,-6+w,-34,-2-w);c.moveTo(-10,3);c.quadraticCurveTo(-22,8-w,-30,6+w);c.stroke();
+  c.fillStyle='#241f3d';c.beginPath();c.arc(0,0,14,0,TAU);c.fill();c.lineWidth=2.2;c.stroke();
+  c.fillStyle='#f2eaff';c.fillRect(3,-4,9,3);c.restore();
+}
+function allyBody(x,y,col){c.fillStyle=col[0];c.strokeStyle=col[1];c.lineWidth=2.4;c.beginPath();c.arc(x,y,13,0,TAU);c.fill();c.stroke();c.fillStyle=col[1];c.beginPath();c.arc(x+3,y-2,2.2,0,TAU);c.fill()}
+function blob(x,y,r,col,al){var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,rgba(col[0],col[1],col[2],al));g.addColorStop(1,rgba(col[0],col[1],col[2],0));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill()}
+function ring(x,y,r,col,w){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.arc(x,y,r,0,TAU);c.stroke()}
+function txt(s,x,y,size,col,al,font){c.save();c.globalAlpha=al==null?1:al;c.fillStyle=col;c.font=(font||'600')+' '+size+'px Barlow, system-ui, sans-serif';c.textAlign='center';c.fillText(s,x,y);c.restore()}
+function hpBar(x,y,hp,lab,tint){c.fillStyle='rgba(255,255,255,.15)';c.fillRect(x-20,y,40,5);c.fillStyle=tint;c.fillRect(x-20,y,40*hp/100,5);txt(lab+' '+Math.round(hp),x,y-3,9,'rgba(220,225,240,.85)',1,'500')}
+function rise(x,y,t,seed,n,col,sym){for(var i=0;i<n;i++){var ph=((t*.9+hash(i+seed))%1),xx=x+(hash(i*3+seed)-.5)*26,yy=y-8-ph*34;c.globalAlpha=Math.sin(ph*Math.PI)*.9;c.fillStyle=col;if(sym){c.font='700 11px Barlow, sans-serif';c.textAlign='center';c.fillText('+',xx,yy)}else{c.beginPath();c.arc(xx,yy,2.2,0,TAU);c.fill()}}c.globalAlpha=1}
+
+/* ---- looks ---- */
+var LOOK={
+A:{
+ note:'<b>A · Dew trail.</b> Each patch is a pool of pale mint dew that shimmers and sends out slow ripples, with a bead of dew standing up on every fourth one. It matches the dew drops the ability makes today. While healing, drops of dew rise off whoever stands in it.',
+ ground:function(t){
+  for(var q=0;q<PA.length;q++){var m=PA[q];if(!alive(m,t))continue;var f=pfade(m,t),age=t-m.te,r=R();
+   blob(m.x,m.y,r*.9,MINT,.17*f);
+   if(m.k%2===0){var rp=((age*.7+hash(m.k))%1);ring(m.x,m.y,rp*r*.8,rgba(200,255,230,.5*(1-rp)*f),1.5)}
+   if(m.k%4===0){var bob=Math.sin(age*3+m.k)*1.5,bx=m.x+(hash(m.k+2)-.5)*r*.8,by=m.y+(hash(m.k+7)-.5)*r*.8+bob;
+     c.fillStyle=rgba(190,255,225,.85*f);c.beginPath();c.arc(bx,by,4.5,0,TAU);c.fill();c.fillStyle=rgba(255,255,255,.9*f);c.beginPath();c.arc(bx-1.4,by-1.6,1.4,0,TAU);c.fill()}}
+ },
+ wake:function(t){if(t<CAST||t>BE()+.4)return;for(var k=0;k<10;k++){var te=t-.05*k;if(te<CAST||te>BE())continue;var n=ninja(te),age=t-te;blob(n.x+(hash(k+Math.floor(te*9))-.5)*10,n.y-age*14,10+age*18,MINT,.22*(1-age/.5))}},
+ heal:function(x,y,t,i){rise(x,y,t,i*5+1,5,'rgba(190,255,225,1)',false)}
+},
+B:{
+ note:'<b>B · Mist ribbon.</b> One continuous band of drifting fog instead of separate pools. It fades from the tail, so you can see how much trail is left. A thread of mist reaches out from the ribbon to anyone healing from it.',
+ ground:function(t){
+  var prev=null;
+  for(var q=0;q<PA.length;q++){var m=PA[q];if(!alive(m,t)){prev=null;continue}var f=pfade(m,t),age=t-m.te,r=R(),dy=Math.sin(age*1.6+m.k*.5)*5,dx=Math.cos(age*1.2+m.k*.4)*3;
+   var x=m.x+dx,y=m.y+dy;
+   if(prev){c.lineCap='round';c.strokeStyle=rgba(MINT[0],MINT[1],MINT[2],.12*f);c.lineWidth=r*1.5;c.beginPath();c.moveTo(prev.x,prev.y);c.lineTo(x,y);c.stroke();
+     c.strokeStyle=rgba(225,255,240,.2*f);c.lineWidth=r*.55;c.beginPath();c.moveTo(prev.x,prev.y);c.lineTo(x,y);c.stroke()}
+   if(m.k%3===0)blob(x,y,r*1.05,[220,255,240],.12*f);
+   prev={x:x,y:y}}
+  c.lineCap='butt';
+ },
+ wake:function(t){if(t<CAST||t>BE()+.6)return;for(var k=0;k<8;k++){var te=t-.07*k;if(te<CAST||te>BE())continue;var n=ninja(te),age=t-te;
+   c.strokeStyle=rgba(230,255,245,.35*(1-age/.6));c.lineWidth=2;c.beginPath();var yy=n.y+(k-3.5)*3;c.moveTo(n.x,yy);c.lineTo(n.x-26-k*3,yy);c.stroke()}},
+ heal:function(x,y,t,i){var m=nearest(i,t);if(!m)return;var ph=t*1.4,bx=(x+m.x)/2,by=(y+m.y)/2-18;
+   c.strokeStyle=rgba(225,255,240,.45+.2*Math.sin(ph*4));c.lineWidth=3;c.beginPath();c.moveTo(m.x,m.y);c.quadraticCurveTo(bx,by,x,y);c.stroke();
+   rise(x,y,t,i*5+9,3,'rgba(225,255,240,1)',false)}
+},
+C:{
+ note:'<b>C · Footprints.</b> Glowing footprints alternate left and right along the path. A faint band under them marks where the healing works, and each print is a rune that flares when someone steps near. The most ninja-like of the three, and the easiest to read at a glance.',
+ ground:function(t){
+  for(var q=0;q<PA.length;q++){var m=PA[q];if(!alive(m,t))continue;var f=pfade(m,t),r=R();blob(m.x,m.y,r*.85,MINT,.07*f)}
+  for(var q2=0;q2<PA.length;q2+=4){var p=PA[q2];if(!alive(p,t))continue;var f2=pfade(p,t),side=(q2/4)%2?1:-1,ox=-Math.sin(p.a)*8*side,oy=Math.cos(p.a)*8*side;
+   var near=0;for(var e=-1;e<2;e++){var pp=entPos(e,t);if(Math.hypot(pp.x-p.x,pp.y-p.y)<R())near=1}
+   var glow=.55+.35*near+.1*Math.sin(t*4+q2);
+   c.save();c.translate(p.x+ox,p.y+oy);c.rotate(p.a);
+   c.fillStyle=rgba(170,255,215,glow*f2);c.beginPath();c.ellipse(-3,0,6.5,3.6,0,0,TAU);c.fill();
+   c.beginPath();c.ellipse(5,0,3.4,2.6,0,0,TAU);c.fill();
+   if(near){c.strokeStyle=rgba(220,255,240,.7*f2);c.lineWidth=1.2;c.beginPath();c.arc(0,0,12,0,TAU);c.stroke()}
+   c.restore()}
+ },
+ wake:function(t){if(t<CAST||t>BE()+.3)return;for(var k=0;k<5;k++){var te=t-.06*k;if(te<CAST||te>BE())continue;var n=ninja(te);blob(n.x,n.y,12,MINT,.25*(1-k/5))}},
+ heal:function(x,y,t,i){rise(x,y,t,i*5+3,4,'rgba(190,255,225,1)',true);ring(x,y,16+((t*1.3)%1)*10,rgba(190,255,225,.5*(1-((t*1.3)%1))),1.5)}
+}};
+
+/* ---- frame ---- */
+function draw(){
+  var t=st.t,L=LOOK[st.look],acc=css('--acc')||'#7fe3bd',be=BE();
+  c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,720,460);
+  c.fillStyle=css('--arena')||'#0b0a10';c.fillRect(0,0,720,460);
+  c.strokeStyle='rgba(160,150,200,.07)';c.lineWidth=1;c.beginPath();for(var gx=0;gx<=720;gx+=40){c.moveTo(gx,0);c.lineTo(gx,460)}for(var gy=0;gy<=460;gy+=40){c.moveTo(0,gy);c.lineTo(720,gy)}c.stroke();
+  var n=ninja(t),a=ang(t),boost=t>=CAST&&t<be;
+  L.ground(t);
+  // cast ring
+  var v=t-CAST;if(v>=0&&v<.5){ring(n.x,n.y,10+eo(v/.35)*70,rgba(MINT[0],MINT[1],MINT[2],.9*(1-v/.5)),3)}
+  L.wake(t);
+  // speed lines
+  if(boost){c.strokeStyle='rgba(235,255,245,.5)';c.lineWidth=1.5;for(var s=0;s<4;s++){var off=(s-1.5)*8,len=18+hash(s+Math.floor(t*12))*14,sx=n.x-Math.cos(a)*(22)-Math.sin(a)*off,sy=n.y-Math.sin(a)*(22)+Math.cos(a)*off;c.beginPath();c.moveTo(sx,sy);c.lineTo(sx-Math.cos(a)*len,sy-Math.sin(a)*len);c.stroke()}}
+  // allies
+  var hps=[hpAt(-1,t),hpAt(0,t),hpAt(1,t)];
+  for(var i=0;i<2;i++){var ap=allyPos(i,t);allyBody(ap.x,ap.y,ALLY[i].col);
+    if(inside(i,t)&&hps[i+1]<100)L.heal(ap.x,ap.y,t,i);
+    hpBar(ap.x,ap.y-30,hps[i+1],ALLY[i].name,hps[i+1]>=100?'#6fe39a':hps[i+1]<40?'#ff8b7e':'#f0d36f')}
+  ninjaBody(n.x,n.y,a,1);
+  if(inside(-1,t)&&hps[0]<100)L.heal(n.x,n.y,t,-1);
+  hpBar(n.x,n.y-30,hps[0],'YOU',hps[0]>=100?'#6fe39a':'#f0d36f');
+  // sprint ring
+  if(boost){var rem=1-(t-CAST)/(be-CAST);c.strokeStyle=acc;c.globalAlpha=.8;c.lineWidth=2.5;c.beginPath();c.arc(n.x,n.y,22,-Math.PI/2,-Math.PI/2+TAU*rem);c.stroke();c.globalAlpha=1}
+  // HUD
+  var live=0;for(var q=0;q<PA.length;q++)if(alive(PA[q],t))live++;
+  hud(18,424,'SPRINT',boost?(be-t)/(be-CAST):0,boost?((be-t).toFixed(1)+' s'):'—',acc);
+  hud(190,424,'TRAIL',live/Math.ceil(LIFE/LAY+1),live+' patches',acc);
+  txt('+'+(boost?'45':'0')+'% SPEED',n.x,n.y+36,10,acc,boost?1:0,'600');
+  document.getElementById('tt').textContent=t.toFixed(2)+' s';
+}
+function hud(x,y,lab,f,val,col){c.fillStyle='rgba(150,145,180,.9)';c.font='500 10px IBM Plex Mono, monospace';c.textAlign='left';c.fillText(lab+'  '+val,x,y-5);c.fillStyle='rgba(150,145,180,.22)';c.fillRect(x,y,140,6);c.fillStyle=col;c.fillRect(x,y,140*clamp(f,0,1),6)}
+
+/* ---- controls and loop ---- */
+var seek=document.getElementById('seek'),note=document.getElementById('note'),last=0,pb=document.getElementById('pause'),sb=document.getElementById('slow');
+function setNote(){note.innerHTML=LOOK[st.look].note}
+function rebuild(){PA=patches()}
+document.querySelectorAll('input[name=look]').forEach(function(r){r.addEventListener('change',function(){st.look=r.value;setNote();draw()})});
+document.querySelectorAll('input[name=dew]').forEach(function(r){r.addEventListener('change',function(){st.dew=r.value==='1';st.t=0;rebuild();draw()})});
+document.querySelectorAll('input[name=cap]').forEach(function(r){r.addEventListener('change',function(){st.cap=r.value==='1';st.t=0;rebuild();draw()})});
+document.getElementById('replay').onclick=function(){st.t=0;st.paused=false;pb.setAttribute('aria-pressed','false');pb.textContent='Pause'};
+pb.onclick=function(){st.paused=!st.paused;pb.setAttribute('aria-pressed',st.paused);pb.textContent=st.paused?'Play':'Pause'};
+sb.onclick=function(){st.slow=!st.slow;sb.setAttribute('aria-pressed',st.slow)};
+seek.addEventListener('input',function(){st.t=parseFloat(seek.value);draw()});
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){st.paused=true;st.t=4.6;pb.setAttribute('aria-pressed','true');pb.textContent='Play'}
+function frame(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!st.paused){st.t+=dt*(st.slow?.25:1);if(st.t>T)st.t=0;seek.value=st.t}
+  draw();requestAnimationFrame(frame)}
+rebuild();setNote();draw();requestAnimationFrame(frame);
+})();
+</script>

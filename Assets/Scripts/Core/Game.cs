@@ -1164,6 +1164,7 @@ namespace Arena
                 TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
+                p.DashT = Math.Max(0f, p.DashT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);
                 p.AegisT = Math.Max(0f, p.AegisT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
