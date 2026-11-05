@@ -760,7 +760,7 @@ static partial class Program
     static void LastFourTest(float dt)
     {
         // Clot Bolt pools congeal, sticking enemies and guarding their owner; Transfusion Darts give an ally a lot for a little
-        // and steal a sliver from enemies; the Rapier skewers bullets into its streak; the Katana's sheathed quick-draw cut.
+        // and steal a sliver from enemies; the Rapier skewers bullets into its streak; the Katana's chain, meter and Alt strike.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -860,28 +860,72 @@ static partial class Program
         Check(me.RapierStreak >= Math.Min(6, s0 + 1 + Game.RapierSkewerMax), "each skewered bullet adds to the Rapier's streak");
         reset();
 
-        // Katana: held off, the blade sheathes; the next cut is a long quick-draw through everything in its line.
+        // Katana (Docs/KatanaCombo.md): swipe, swipe, lunge in that order; the lunge cuts through everything in its line; a pause starts the chain over.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);
         me.Hp = me.MaxHp;  // (Blood Price would change the damage as health moves)
         var nearK = dummy(from + new V2(60f, 0f), 1e5f);
         var farK = dummy(from + new V2(200f, 0f), 1e5f);
-        me.SheathT = 0f;
+        me.KatanaStep = 0; me.KatanaMeter = 0f; me.KatanaGap = 0f;
+        var kNear = new float[3]; var kFar = new float[3]; var kOrder = new int[3];
+        for (int step = 0; step < 3; step++)
+        {
+            nearK.Hp = nearK.MaxHp; farK.Hp = farK.MaxHp;
+            kOrder[step] = me.KatanaStep;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            play(0.3f, new PlayerInput());
+            kNear[step] = nearK.MaxHp - nearK.Hp; kFar[step] = farK.MaxHp - farK.Hp;
+        }
+        Console.WriteLine("  katana: steps {0},{1},{2}; near {3:0}/{4:0}/{5:0}, far {6:0}/{7:0}/{8:0}; next step {9}; meter {10:0}",
+            kOrder[0], kOrder[1], kOrder[2], kNear[0], kNear[1], kNear[2], kFar[0], kFar[1], kFar[2], me.KatanaStep, me.KatanaMeter);
+        Check(kOrder[0] == 0 && kOrder[1] == 1 && kOrder[2] == 2 && me.KatanaStep == 0, "the Katana goes swipe, swipe, lunge, then starts over");
+        Check(kNear[0] > 0f && kFar[0] == 0f && kFar[1] == 0f && Math.Abs(kNear[1] - kNear[0]) < 0.5f, "both swipes keep the short reach and the same damage");
+        Check(Math.Abs(kNear[2] - kNear[0] * Game.KatanaLungeMult) < 1.5f && Math.Abs(kFar[2] - kNear[2]) < 1.5f, "the lunge cuts through everything in its line for 2.25x");
+        Check(Math.Abs(me.KatanaMeter - (Game.KatanaSwipeMeter * 2 + Game.KatanaLungeMeter * 2)) < 0.5f && client.Game.Players[1].KatanaMeter > 0f, "each enemy a step hits builds the strike meter (and the client sees it)");
         volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(0.1f, new PlayerInput());
-        float plainNear = nearK.MaxHp - nearK.Hp, plainFar = farK.MaxHp - farK.Hp;
-        play(Game.KatanaSheath + 0.1f, new PlayerInput());
-        bool sheathed = me.SheathT >= Game.KatanaSheath, seen = client.Game.Players[1].SheathT >= Game.KatanaSheath;
-        float range = g.WeaponRange(me);
-        nearK.Hp = nearK.MaxHp; farK.Hp = farK.MaxHp;
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(0.1f, new PlayerInput());
-        float drawNear = nearK.MaxHp - nearK.Hp, drawFar = farK.MaxHp - farK.Hp;
-        Console.WriteLine("  katana: a plain cut hit near {0:0} / far {1:0}; sheathed {2} (client saw {3}, aim line {4:0} px); the quick-draw hit near {5:0} / far {6:0}; unsheathed after {7}",
-            plainNear, plainFar, sheathed, seen, range, drawNear, drawFar, me.SheathT < Game.KatanaSheath);
-        Check(plainNear > 0f && plainFar == 0f, "a plain Katana slash keeps its short reach");
-        Check(sheathed && seen && range > 200f, "holding off sheathes the Katana (synced, and its aim line reaches the quick-draw)");
-        Check(Math.Abs(drawNear - plainNear * Game.KatanaDrawMult) < 1.5f && Math.Abs(drawFar - drawNear) < 1.5f && me.SheathT < Game.KatanaSheath,
-            "the sheathed Katana's quick-draw cuts through everything in its line for 2.5x");
+        play(0.05f, new PlayerInput());
+        float held = me.KatanaMeter;
+        play(1.0f, new PlayerInput());
+        Check(me.KatanaStep == 0 && me.KatanaMeter == held, "a pause of 0.7 s resets the chain; the meter holds for 1.2 s");
+        play(0.2f + 1.0f, new PlayerInput());
+        Check(me.KatanaMeter < held - 15f && me.KatanaMeter > 0f, "then the meter drains");
+
+        // Tapping ahead queues the next step: two quick taps play swipe 1 at once and swipe 2 the moment it ends, with no third press.
+        me.KatanaStep = 0; me.KatanaGap = 5f; me.FireCd = 0f;
+        var tapSteps = new List<int>();
+        int lastStep = me.KatanaStep;
+        for (int f = 0; f < 0.6f * 60; f++)
+        {
+            bool tap = f == 0 || f == 6;  // a press, then another during the cooldown
+            play(1f / 60f, new PlayerInput { Fire = tap, AimAt = from + new V2(100f, 0f) });
+            if (me.KatanaStep != lastStep) { tapSteps.Add(me.KatanaStep); lastStep = me.KatanaStep; }
+        }
+        Console.WriteLine("  katana queue: steps after two taps {0}", string.Join(",", tapSteps));
+        Check(tapSteps.Count >= 2 && tapSteps[0] == 1 && tapSteps[1] == 2, "a tap during a step queues the next one, which starts as soon as the first ends");
+
+        // The Alt strike: hold the weapon-action key with a full meter to aim, let go to cut across the arena to the enemy and land behind it.
+        reset();
+        me.Hp = me.MaxHp;
+        var kTarget = dummy(from + new V2(400f, 0f), 1e5f);
+        var kRoute = dummy(from + new V2(200f, 6f), 1e5f);
+        var kOff = dummy(from + new V2(200f, -150f), 1e5f);
+        var hostDash = typeof(Game).GetMethod("HostWeaponDash", flags);
+        me.KatanaMeter = 50f; me.KatanaIdle = 0f;
+        hostDash.Invoke(g, new object[] { 1, 5, kTarget.Pos });
+        play(Game.KatanaWind + Game.KatanaCut + 0.2f, new PlayerInput());
+        Check(kTarget.Hp == kTarget.MaxHp && me.KatanaMeter > 0f, "a strike with less than a full meter does nothing");
+        me.KatanaMeter = 100f; me.KatanaIdle = 0f;
+        play(0.1f, new PlayerInput { WeaponAction = true, AimAt = kTarget.Pos });
+        bool aiming = g.KatanaAiming && g.KatanaMark == kTarget.Id;
+        play(0.05f, new PlayerInput { AimAt = kTarget.Pos });  // let go (the cursor stays where it was)
+        bool started = g.KatanaStriking && me.KatanaMeter == 0f && me.InvulnT > 0f;
+        play(Game.KatanaWind + Game.KatanaCut + 0.2f, new PlayerInput());
+        float hitT = kTarget.MaxHp - kTarget.Hp, hitR = kRoute.MaxHp - kRoute.Hp, hitO = kOff.MaxHp - kOff.Hp;
+        Console.WriteLine("  katana strike: aiming {0}, started {1}; target took {2:0}, enemy on the route {3:0}, one off it {4:0}; striking after {5}", aiming, started, hitT, hitR, hitO, g.KatanaStriking);
+        Check(aiming, "holding the key with a full meter aims at the enemy nearest the cursor");
+        Check(started, "letting go spends the whole meter and starts the strike (untouchable)");
+        Check(Math.Abs(hitT - kNear[0] * Game.KatanaStrikeDmg / Defs.Weapons.First(w => w.Id == WeaponId.Katana).Damage) < 1.5f, "the target takes the full 120");
+        Check(Math.Abs(hitR - hitT / 2f) < 1.5f && hitO == 0f, "an enemy on the route takes half, one off it nothing");
+        Check(Math.Abs(g.KatanaStrikeEnd(from, kTarget.Pos, 10f).X - (kTarget.Pos.X + Game.KatanaBehind)) < 1f, "the strike lands you behind the target, on the far side");
         host.Leave(""); client.Leave("");
     }
 

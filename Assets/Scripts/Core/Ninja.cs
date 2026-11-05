@@ -8,7 +8,12 @@ namespace Arena
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
-        public const float KatanaSheath = 0.6f, KatanaDrawReach = 220f, KatanaDrawMult = 2.5f, KatanaDrawWidth = 22f;  // hold off this long and the next cut is a quick-draw (each weapon's main reach, speed and damage are in Defs)
+        // The Katana (Docs/KatanaCombo.md): swipe, swipe, lunge, always in that order (each weapon's main reach, speed and damage are in Defs).
+        public const float KatanaChainWindow = 0.7f, KatanaLungeReach = 260f, KatanaLungeWidth = 26f, KatanaLungeMult = 2.25f, KatanaLungeWind = 0.15f;  // how long after a step ends the next one still follows; the lunge's line, its damage and the pull-back before it
+        public static readonly float[] KatanaStepTime = { 0.26f, 0.26f, 0.56f };  // how long each step holds the next one off
+        public const float KatanaMeterMax = 100f, KatanaSwipeMeter = 10f, KatanaLungeMeter = 20f, KatanaDrainDelay = 1.2f, KatanaDrain = 25f;  // the strike meter: full, gained per enemy hit, and how it drains once you stop hitting
+        public const float KatanaWind = 0.35f, KatanaCut = 0.14f, KatanaBehind = 52f, KatanaAimMax = 1.5f;  // the Alt strike: the stance before it, the cut across the arena, how far behind the target you land, the longest you can hold to aim
+        public const float KatanaStrikeDmg = 120f, KatanaRouteDmg = 60f, KatanaRouteWidth = 24f, KatanaTargetSlack = 90f;  // what it deals to the target and to what it cut through; how far from where you aimed the host will take the target
         public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
         public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
@@ -115,19 +120,28 @@ namespace Arena
                 }
                 case WeaponId.Katana:
                 {
-                    // Held off long enough, the blade was sheathed: this one is a quick-draw cut through everything in its line.
-                    bool draw = p.SheathT >= KatanaSheath;
-                    p.SheathT = 0f;
+                    // Swipe, swipe, lunge, always in that order; each holds the next off for its own time.
+                    int step = p.KatanaStep;
+                    float hold = KatanaStepTime[step] / FireRate(p);
+                    p.KatanaStep = (byte)((step + 1) % 3);
+                    p.KatanaGap = -hold;
+                    p.FireCd = hold;
                     Swing s;
-                    if (draw)
+                    if (step == 2)
                     {
-                        s = NewSwing(p, aim, KatanaDrawReach, 20f, w.Damage * KatanaDrawMult * dmg);
-                        s.HalfWidth = KatanaDrawWidth;
+                        // The lunge: a line through everything in front of you, after a short pull-back.
+                        s = NewSwing(p, aim, KatanaLungeReach, 20f, w.Damage * KatanaLungeMult * dmg);
+                        s.HalfWidth = KatanaLungeWidth;
                         s.DrawCut = true;
                         s.Heavy = true;
+                        s.Delay = KatanaLungeWind;
+                        s.Meter = KatanaLungeMeter;
                     }
                     else
+                    {
                         s = NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
+                        s.Meter = KatanaSwipeMeter;
+                    }
                     pendingSwings.Add(s);
                     for (int k = 1; k <= extra; k++)
                     {
@@ -274,7 +288,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
                 Desc = "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; press your weapon-action key (Left Alt by default) to recall them sooner." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
-                Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
+                Desc = "Swipe, swipe, lunge, always in that order (tap ahead to queue the next): two 110° slashes, then a 260 px lunge through every enemy in its line for 2.25× damage. Every enemy a step hits builds the strike meter, which drains if you stop hitting. At full, hold your weapon-action key (Left Alt by default), aim at any enemy and let go to cut across the arena and land behind it: 120 to it, 60 to everything on the way." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 30f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f,
                 Desc = "Slow, heavy throwing knives, +50% damage to enemies that aren't targeting you. Every throw is a shadow kunai that leaves a mark where it lands: press your weapon-action key (Left Alt by default) to blink there, and your next hit lands double." },
         };
@@ -600,7 +614,7 @@ namespace Arena
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
         public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
-        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4;
+        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -863,12 +877,14 @@ namespace Arena
         /// PlayerInput.WeaponAction). The Bo Staff vaults when you press it while moving; the Kusarigama reels you in to
         /// the enemy it's hooked in; Twin Blades lunge when the combo is full; the Kunai blinks to its mark; the Shuriken
         /// stars come back.
-        void LocalWeaponDash(Player me, V2 move, bool weaponAction, float dt)
+        void LocalWeaponDash(Player me, V2 move, V2 aimAt, bool weaponAction, float dt)
         {
             vaultCd -= dt;
             reelCd -= dt;
             bool pressed = weaponAction && !wasWeaponAction;
             wasWeaponAction = weaponAction;
+            if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
+                return;  // the Katana's Alt strike (below)
             if (me.Downed || DashT > 0f || me.StunT > 0f)
                 return;
             if (me.Weapon.Id == WeaponId.Shuriken && pressed)
@@ -958,6 +974,11 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
             var w = p.Weapon;
+            if (kind == DashKatana)
+            {
+                HostKatanaStrike(p, target);
+                return;
+            }
             if (kind == DashRecall)
             {
                 if (w.Id == WeaponId.Shuriken)
@@ -1134,8 +1155,7 @@ namespace Arena
                         p.DoseHps = 0f;
                 }
                 p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
-                if (p.Weapon.Id == WeaponId.Katana && !p.Firing && !p.Downed)
-                    p.SheathT = Math.Min(5f, p.SheathT + dt);  // holding off: the blade goes back in its sheath
+                TickKatana(p, dt);
             }
             foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
                 if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))

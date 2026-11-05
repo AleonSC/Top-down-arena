@@ -610,7 +610,7 @@ namespace Arena
                     break;
                 case WeaponId.Katana:
                     MLine(-6f, 0f, 0f, 0f, 3f, Hx(0x1d1d26)); MCirc(1f, 0f, 3.4f, MGold, 8); MCirc(1f, 0f, 1.4f, Hx(0x1d1d26), 6);
-                    if (p.SheathT >= Game.KatanaSheath)  // sheathed for a quick-draw: a dark scabbard with a glint running along it
+                    if (p.KatanaMeter >= Game.KatanaMeterMax)  // strike meter full: sheathed, ready to cut, a dark scabbard with a glint running along it
                     {
                         MLine(1f, 0f, 36f, 0f, 3.2f, Hx(0x16131f));
                         float gl = MathX.Fmod(t * 1.6f, 1f) * 35f + 1f, sp = 0.5f + 0.5f * Mathf.Sin(t * 12f);

@@ -127,7 +127,17 @@ namespace Arena
             else if (session.Resume != null)
                 DrawResumeSeats(body, t);  // SavesUi.cs
             else if (me != null)
-                DrawLoadout(me, body, t);
+            {
+                var editing = session.IsHost ? partyBots.Find(editBotId) : null;
+                LobbyEntry shown;
+                if (editing != null && session.Lobby.TryGetValue(editing.Id, out shown))
+                    DrawLoadout(shown, body, t, editing);  // the host choosing a bot's loadout
+                else
+                {
+                    editBotId = -1;
+                    DrawLoadout(me, body, t);
+                }
+            }
 
             DrawLobbyActions(me, practice);
             DrawLockedTip();  // on top of the loadout
@@ -222,8 +232,12 @@ namespace Arena
 
         // --- Party ----------------------------------------------------------------
 
+        readonly PartyBots partyBots = new PartyBots();  // bots in the open slots (PartyBots.cs)
+        int editBotId = -1;  // the bot whose loadout the host is choosing (click its card); -1 = your own
+
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
         {
+            var botSeat = session.IsHost ? partyBots.Find(e.Id) : null;
             var color = ToColor(Defs.Get(e.Role).Color);
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
@@ -254,7 +268,9 @@ namespace Arena
                 bx -= 44f;
             if (e.Id == 1)
                 bx -= 54f;
-            float badgesLeft = (mine || e.Id == 1) ? bx : r.xMax - 12f;
+            if (botSeat != null)
+                bx -= 136f;  // the bot's buttons (below)
+            float badgesLeft = (mine || e.Id == 1 || botSeat != null) ? bx : r.xMax - 12f;
             DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 26f), e.Name, 19, 13, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
             bx = r.xMax - 12f;
             if (mine)
@@ -271,10 +287,40 @@ namespace Arena
             DrawOneLine(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
                 Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, Ui.Muted, false);
             DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
+            if (session.IsHost && (botSeat != null || mine))  // click a card to choose that player's loadout: yours, or a bot's
+            {
+                bool picked = botSeat != null ? editBotId == e.Id : editBotId < 0;
+                if (picked && partyBots.Bots.Count > 0)
+                    Ui.Rim(r, Ui.Gold, 0.9f);
+                float room = botSeat != null ? 136f : 0f;
+                if (Ui.HitArea(new Rect(r.x, r.y, r.width - 12f - room, r.height)))
+                    editBotId = botSeat != null ? e.Id : -1;
+            }
+            if (botSeat != null)
+                DrawBotButtons(r, botSeat);
             var ready = new Rect(r.xMax - 98f, r.yMax - 30f, 86f, 20f);
             if (e.Ready)
                 Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + 0.1f * Mathf.Sin(t * 4f)));
             Ui.Badge(ready, e.Ready ? "READY" : "NOT READY", e.Ready ? new Color(0.2f, 0.62f, 0.32f) : Ui.Neutral);
+        }
+
+        /// A bot's controls on its party card (the host's): its skill (click to change), a new random loadout, and remove.
+        void DrawBotButtons(Rect r, PartyBots.PartyBot bot)
+        {
+            float x = r.xMax - 12f - 22f;
+            if (Ui.SmallButton(new Rect(x, r.y + 10f, 22f, 20f), "x", 12))
+            {
+                if (editBotId == bot.Id)
+                    editBotId = -1;
+                partyBots.Remove(bot);
+                return;
+            }
+            x -= 38f;
+            if (Ui.SmallButton(new Rect(x, r.y + 10f, 34f, 20f), "MIX", 10))
+                partyBots.Shuffle(bot);  // a new random loadout
+            x -= 68f;
+            if (Ui.SmallButton(new Rect(x, r.y + 10f, 64f, 20f), bot.Skill.ToString().ToUpper(), 11))
+                partyBots.SetSkill(bot, bot.Skill == BotSkill.Casual ? BotSkill.Good : bot.Skill == BotSkill.Good ? BotSkill.Expert : BotSkill.Casual);
         }
 
         void DrawOpenSlot(Rect r, int slot, float t)
@@ -294,7 +340,10 @@ namespace Arena
             }
             Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
             Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
-            Ui.Label(new Rect(r.x, r.y, r.width, r.height), "OPEN SLOT", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
+            bool canAdd = partyBots.CanAdd(session);
+            Ui.Label(new Rect(r.x, r.y, r.width, canAdd ? r.height - 30f : r.height), "OPEN SLOT", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
+            if (canAdd && Ui.Button(new Rect(r.center.x - 70f, r.yMax - 40f, 140f, 28f), "+ Add a bot", Ui.Primary))
+                partyBots.Add(session);  // a bot takes the slot and plays with you
         }
 
         string[] InviteAddresses() => (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
@@ -378,15 +427,19 @@ namespace Arena
 
         static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps" };  // PixelArt.cs
 
-        void DrawLoadout(LobbyEntry me, Rect r, float t)
+        void DrawLoadout(LobbyEntry me, Rect r, float t, PartyBots.PartyBot bot = null)
         {
+            Session tgt = bot != null ? bot.S : session;  // whose loadout the buttons change: yours, or a bot's (its own session asks the host)
+            bool self = bot == null;
             Ui.BodyBox(r);
             var roleColor = ToColor(Defs.Get(me.Role).Color);
 
             // Hero card: your character on a glowing pedestal, with the numbers that matter.
             var hero = new Rect(r.x + 14f, r.y + 14f, 232f, r.height - 28f);
             Ui.Pill(hero, new Color(0.03f, 0.035f, 0.06f, 0.85f));
-            DrawShowcase(me, ShowcaseRect(r), roleColor);  // (LobbyRoom.cs: the Hangout grows out of this window)
+            DrawShowcase(me, ShowcaseRect(r), roleColor);
+            if (!self)
+                Ui.Label(new Rect(hero.x, hero.y + 2f, hero.width, 14f), "EDITING " + bot.Name.ToUpper(), 10, Ui.Gold, TextAnchor.MiddleCenter, true);  // (LobbyRoom.cs: the Hangout grows out of this window)
             float hy = hero.y + 196f;
             Ui.Glitch(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, TextAnchor.MiddleCenter, roleColor);
             hy += 32f;
@@ -431,11 +484,14 @@ namespace Arena
                 var rc = ToColor(Defs.Roles[i].Color);
                 if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), null, textSize: 17, glow: false, iconLeft: true, glitch: true))
                 {
-                    session.RequestRole((Role)i);
-                    hostRole = (Role)i;
-                    joinRole = (Role)i;
-                    weaponChoice = 0;
-                    abilityChoice = 0;
+                    tgt.RequestRole((Role)i);
+                    if (self)
+                    {
+                        hostRole = (Role)i;
+                        joinRole = (Role)i;
+                        weaponChoice = 0;
+                        abilityChoice = 0;
+                    }
                 }
             }
             y += 84f;
@@ -457,10 +513,13 @@ namespace Arena
                 }
                 if (Ui.Choice(b, Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, PixelArt.Get(Classes.Get((Kit)i).Icon), null, kitSize, glow: false, iconLeft: true))
                 {
-                    session.RequestKit((Kit)i);
-                    kitChoice = (Kit)i;
-                    weaponChoice = 0;
-                    abilityChoice = 0;
+                    tgt.RequestKit((Kit)i);
+                    if (self)
+                    {
+                        kitChoice = (Kit)i;
+                        weaponChoice = 0;
+                        abilityChoice = 0;
+                    }
                 }
             }
             y += 28f + ((classSlots + 3) / 4) * 38f + 4f;
@@ -477,8 +536,9 @@ namespace Arena
                     LockedSlot(b);
                 else if (Ui.Choice(b, Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
                 {
-                    session.RequestWeapon(i);
-                    weaponChoice = i;
+                    tgt.RequestWeapon(i);
+                    if (self)
+                        weaponChoice = i;
                 }
             }
             int hovered = -1;
@@ -495,8 +555,9 @@ namespace Arena
                     hovered = i;
                 if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor, glow: false))
                 {
-                    session.RequestAbility(i);
-                    abilityChoice = i;
+                    tgt.RequestAbility(i);
+                    if (self)
+                        abilityChoice = i;
                     abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
                     ultDemoUntil = 0f;
                 }
