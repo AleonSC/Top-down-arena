@@ -738,9 +738,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Last Stand", Cooldown = 70f, Desc = "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage.",
-                Capstone = "Lasts 12 s.",
-                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 220f,
+                Name = "Last Stand", Cooldown = 70f, Desc = "You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down.",
+                Capstone = "You take 5% of the damage instead of 10%.",
+                Bot = b => b.Danger,
             },
             new AbilityDef
             {
@@ -856,17 +856,8 @@ namespace Arena
 
                 // Ultimates
                 case AbilityId.LastStand:
-                {
-                    float time = cap ? 12f : 8f;
-                    p.UltT = time;
-                    foreach (var e in Enemies.Values)
-                    {
-                        e.TargetId = p.Id;
-                        e.RetargetT = time;
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 160f, 0.6f, Sfx.Roar);
+                    PlantStand(p, cap);  // LastStand.cs
                     return true;
-                }
                 case AbilityId.HallowedBlade:
                 {
                     var spots = new List<V2> { target };
@@ -891,10 +882,8 @@ namespace Arena
             return false;
         }
 
-        bool LastStanding(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.LastStand;
-
         /// Damage multiplier from Knight buffs on whoever dealt the hit (applied in HurtEnemy).
-        float KnightDamageMult(Player p) => (p.FuryT > 0f ? 1.25f : 1f) * (LastStanding(p) ? 1.5f : 1f);
+        float KnightDamageMult(Player p) => p.FuryT > 0f ? 1.25f : 1f;
 
         /// Unbreakable and Battle Fury (with Bloodlust) heal you for part of what you deal.
         void KnightLifesteal(Player p, float dealt)
@@ -925,6 +914,7 @@ namespace Arena
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
                 p.FuryT = Math.Max(0f, p.FuryT - dt);
                 p.BossContactT = Math.Max(0f, p.BossContactT - dt);
+                TickStand(p, dt);  // LastStand.cs
                 if (p.Downed)
                 {
                     Array.Clear(p.WallPlate, 0, Player.WallPlates);

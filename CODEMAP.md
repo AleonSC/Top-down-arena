@@ -43,6 +43,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
 - `Knight.cs`: melee swings, sword waves, Knight abilities
+- `LastStand.cs`: the Tank Knight's Last Stand ultimate: plant, a crescent of nine plates that stops enemy bullets from the front while you take 10% of the damage (`StandBlocks`/`StandHit`, called from the bullet loop in `Combat.cs`), root, turns slowly, ends on cancel, going down or the wave ending (`LastStandLook.cs` draws the plates, stakes and hit sparks; `Docs/Mockups/last-stand-aegis.html`)
 - `GuardiansOath.cs`: the Healer Knight's Guardian's Oath: charge to the player nearest the cursor, pull them clear, plant a damage-cutting Ward of Light (`ZoneKind.OathWard`, `Zone.DamageCut`); the ward is drawn in `Game/WorldEnemies.cs`; mockup in `Docs/Mockups/guardians-oath.html`
 - `Katana.cs`, `Game/KatanaLook.cs`: the Katana's swipe-swipe-lunge chain timers and queue, the strike meter (gain, drain), the Alt strike (aim, `DashKatana` over `Msg.WeaponDash`, the host's `TickKatanaStrikes`) and its meter arc, aim overlay and `FxKind.KatanaStrike`; the swipes and lunge are `Ninja.cs` swings drawn by `MeleeLooks.cs`
 - `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, Thousand Clones' clones, Vanish, Healing Dash (`TickMists`: footprints and their healing; sprint speed is `Player.DashT` in `Entities.cs`; looks in `Game/NinjaLooks.cs` `DrawFootprint`, `DrawDashWake`)
@@ -68,6 +69,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
   `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
   late-boss logic
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot
+- `PartyBots.cs`: bots that fill the lobby's open slots (extra sessions joined over localhost; stepped by `ArenaApp`; buttons in `LobbyUi.cs`)
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
 
 ## Networking (Core)
@@ -133,7 +135,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `NinjaLooks.cs`: Ninja DPS looks: Vanish's smoke (puffs, wisps, bank and ring on the vanish spot) and Blade Fan's circling kunai
 - `ArtilleryLook.cs`: Artillery Assault (DPS Soldier ultimate, once Bullet Storm): heat aura and ring, speed streaks, muzzle flash
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
-- `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: charge halo, sparks and dashed strip, the spine bolt (style A, Thunderhead)
+- `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: violet halo, sparks, dashed cone with tendrils, and the whipping fractal tree (style F, Lichtenberg)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
@@ -210,6 +212,6 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Paths, challenge rooms, props | `Paths.cs`/`PathsUi.cs`, `Challenges.cs`/`ChallengeLook.cs`, `Props.cs`/`PropsLook.cs` |
 | Sounds and music | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs`, `MusicLibrary.cs` (add a track here), `MusicPlayerUi.cs`, `BossSounds.cs`; hear them with `Tools/SoundCheck/render.sh` |
 | Pixel icons | `PixelArt.cs` |
-| Bots, Boss Lab | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs` |
+| Bots, Boss Lab, lobby bots | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs`, `PartyBots.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
 | A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/CompileCheck/UnityStubs.cs` and `Tools/Preview/Stubs.cs` |

@@ -437,6 +437,9 @@ namespace Arena
             s.Float(ref p.ParryBroken);
             bool shellOn = p.ShellOn;
             s.Bool(ref shellOn);  // Blood Shell (BloodShell.cs)
+            bool standOn = p.StandOn;
+            s.Bool(ref standOn);  // Last Stand (LastStand.cs)
+            s.Float(ref p.StandAim);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
             s.Float(ref p.EnergyMax);
@@ -541,6 +544,7 @@ namespace Arena
                 p.DrawT = drawT;        // your own draw is measured here
             }
             p.ShellOn = shellOn;
+            p.StandOn = standOn;
             if (hp < p.Hp)
                 p.Flash = 0.1f;
             p.Hp = hp;

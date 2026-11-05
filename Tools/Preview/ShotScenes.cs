@@ -284,6 +284,11 @@ static partial class Shot {
         V2 ld = V2.FromAngle(me.Aim), ln = ld.Orthogonal(); int li = 0;
         foreach (var e in gm.Enemies.Values) { if (li < 3) e.Pos = e.Disp = me.Pos + ld * (80f + 55f * li) + ln * (li == 1 ? 26f : -10f * li); else e.Pos = e.Disp = me.Pos + ln * (140f + 40f * (li % 3)) * (li % 2 == 0 ? 1f : -1f) + ld * (40f * li); li++; }
       }
+      if (aid == AbilityId.LastStand) {  // it only stands while fighting; a volley from the front (CASTHP shows the wear, CASTT how long it has stood)
+        gm.State = MatchState.Fighting; me.Aim = 0f; me.AimAt = me.Pos + new V2(200f, 0f);
+        var shootM = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+        for (int b = 0; b < 14; b++) shootM.Invoke(gm, new object[] { Defs.BigShot, me.Pos + new V2(330f + 28f * b, -150f + 24f * b), new V2(-240f, 0f), 0f, 5f, 8f, 0, false, 0f });
+      }
       me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
       if (Environment.GetEnvironmentVariable("CASTSTORE") != null) me.PactStore = float.Parse(Environment.GetEnvironmentVariable("CASTSTORE"));
