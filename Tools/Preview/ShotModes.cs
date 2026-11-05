@@ -286,13 +286,12 @@ static partial class Shot {
       // continue / records: the saved-runs list and the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "menu") PreviewSaves();
       if (mode == "continue") { typeof(ArenaApp).GetMethod("OpenContinue", f2).Invoke(app, null); if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>()); }
-      // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; OLDER=1: the older runs; PAGE=n: their page).
+      // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = DateTime.UtcNow.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
         typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
         if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>());
-        if (Environment.GetEnvironmentVariable("OLDER") != null) { set("menuPlayOlder", true); set("menuOlderK", 1f); }
-        if (Environment.GetEnvironmentVariable("PAGE") != null) set("menuOlderPage", int.Parse(Environment.GetEnvironmentVariable("PAGE")));
+        if (Environment.GetEnvironmentVariable("SCROLL") != null) { float sc = float.Parse(Environment.GetEnvironmentVariable("SCROLL"), System.Globalization.CultureInfo.InvariantCulture); set("menuListScroll", sc); set("menuListShown", sc); }
       }
       GL.Tris.Clear();
       set("drawScale", 1f);
