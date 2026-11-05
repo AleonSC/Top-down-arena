@@ -41,7 +41,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
 - `Knight.cs`: melee swings, sword waves, Knight abilities
-- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, Thousand Clones' clones, Vanish
+- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, Thousand Clones' clones, Vanish, Healing Dash (`TickMists`: footprints and their healing; sprint speed is `Player.DashT` in `Entities.cs`; looks in `Game/NinjaLooks.cs` `DrawFootprint`, `DrawDashWake`)
 - `CloneWall.cs`: Shadow Clone as a wall of 9 `MinionKind.CloneWall` that soak bullets (wearing from every shot) and get shoved by players
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
@@ -118,6 +118,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `SanctumLook.cs`: Sanctum's Bubble look (shimmering shell, pulse discs and sparkles, rim flare, flicker at the end); the old plain dome with Visual effects off
 - `CloneWallLook.cs` (Game): the Ninja's Shadow Clone wall as the Afterimage Phalanx (dash-out afterimages, landing ring, energy fence, glitch hits, shatter; `Docs/Mockups/shadow-clone-wall.html`)
 - `ShieldWallLook.cs`: the Knight's Shield Wall as seven steel plates that slam down, kick, crack and break one by one (`Docs/Mockups/shield-wall.html`).
+- `SmokeBombLook.cs`: the Ninja's Smoke Bomb cloud, crack and seal ring, with Visual effects on (`Docs/Mockups/ninja-smoke-bomb.html`).
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
 - `LegionLook.cs`: Legion (Summoner DPS ultimate): the blood moon and red tint, drawn from `Player.LegionT`
@@ -156,6 +157,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CosmeticsUi.cs`: the Look tab's panels (Frame, Trail, Background, Card background, Name effect, Aim line, Cursor) and the Rank tab's Reward ladder
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
+- `LobbyCrt.cs`: the lobby's cyan CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`; `LobbyEnter.cs` has the other entrances)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
 

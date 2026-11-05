@@ -261,10 +261,18 @@ static partial class Shot {
       var lobbyOut = Environment.GetEnvironmentVariable("LOBBYOUT");
       // RETURN=<seconds>: that far into coming back from a run (Recall.cs).
       var lobbyBack = Environment.GetEnvironmentVariable("RETURN");
-      if (lobbyBack != null) { set("returnT", float.Parse(lobbyBack, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyReturning", f2).Invoke(app, null); }
+      // CRT=<seconds>: that far into New run's CRT boot (LobbyCrt.cs). Every lobby shot has the CRT screen and glass round it.
+      var crtIn = Environment.GetEnvironmentVariable("CRT");
+      if (crtIn != null) set("crtEntry", true);
+      if (crtIn != null) set("enterT", float.Parse(crtIn, System.Globalization.CultureInfo.InvariantCulture));
+      Action<string> crtDraw = n => { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod(n, f2, null, new[] { typeof(float) }, null).Invoke(app, new object[] { 7.3f }); };
+      crtDraw("DrawLobbyCrtBack");
+      if (crtIn != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEnteringCrt", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
+      else if (lobbyBack != null) { set("returnT", float.Parse(lobbyBack, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyReturning", f2).Invoke(app, null); }
       else if (lobbyOut != null) { set("leaveT", float.Parse(lobbyOut, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyLeavingToMenu", f2).Invoke(app, null); }
       else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
       else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      crtDraw("DrawLobbyCrtGlass");
       if (Environment.GetEnvironmentVariable("LOBBYMENU") != null) { set("lobbyMenuOpen", true); set("winOpenAt", -10f); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "settings") set("pauseSettings", true); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "howto") set("pauseHowTo", true); Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawLobbyMenu", f2).Invoke(app, null); }  // Esc's menu (MenuDrawer.cs)
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
       if (te != null) endTe.Invoke(app, null);

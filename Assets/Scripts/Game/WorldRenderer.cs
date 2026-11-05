@@ -328,6 +328,8 @@ namespace Arena
                 DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
+            if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
+                DrawDashWake(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)
                 DrawBladeOrbit(p, t);
         }
@@ -473,16 +475,6 @@ namespace Arena
                 return;
             float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : o.Tiny ? 11f : 8f) + o.Id);
             float r = o.Radius * pulse;
-            if (o.Dew)  // Healing Mist's dew: a pale drop with a glint
-            {
-                var dew = new Rgba(0.6f, 1f, 0.9f);
-                Circle(o.Disp, r * 2.4f, dew.WithAlpha(0.14f), 16);
-                Circle(o.Disp, r, dew, 12);
-                SetColor(dew);
-                Tri(o.Disp + new V2(0f, -r * 2.2f), o.Disp + new V2(-r * 0.9f, -r * 0.3f), o.Disp + new V2(r * 0.9f, -r * 0.3f));
-                Circle(o.Disp + new V2(-r * 0.35f, -r * 0.35f), r * 0.3f, Rgba.White.WithAlpha(0.9f), 6);
-                return;
-            }
             var green = o.Tiny ? new Rgba(0.55f, 1f, 0.75f) : new Rgba(0.35f, 1f, 0.5f);  // tiny orbs are paler
             Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
             Circle(o.Disp, r, green, 16);

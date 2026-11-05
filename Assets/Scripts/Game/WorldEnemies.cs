@@ -199,6 +199,11 @@ namespace Arena
                     Circle(z.Pos, 12f, new Rgba(0.45f, 0.32f, 0.2f), 12);
                     break;
                 case ZoneKind.Smoke:  // billowing grey puffs
+                    if (fxOn)
+                    {
+                        DrawSmokeCloud(z, t);  // SmokeBombLook.cs
+                        break;
+                    }
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.18f), 40);
                     for (int k = 0; k < 9; k++)
                     {
@@ -206,11 +211,9 @@ namespace Arena
                         Circle(z.Pos + V2.FromAngle(pa) * pr, z.Radius * 0.3f, c.WithAlpha(0.12f), 16);
                     }
                     break;
-                case ZoneKind.Mist:  // a soft green mist with drifting droplets
-                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 3f)), 48);
-                    for (int k = 0; k < 8; k++)
-                        Circle(z.Pos + V2.FromAngle(t * 0.6f + MathX.Tau * k / 8f) * (z.Radius * 0.7f), 3f, c.WithAlpha(0.6f), 6);
-                    break;
+                case ZoneKind.Mist:  // a Healing Dash footprint (NinjaLooks.cs)
+                    DrawFootprint(z, c, t);
+                    return;
                 case ZoneKind.Ward:  // a paper talisman with a slowly turning seal ring; a bright rim for the damage it can still take
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 48);
                     Arc(z.Pos, z.Radius - 2f, 3f, c.WithAlpha(0.15f), 48);

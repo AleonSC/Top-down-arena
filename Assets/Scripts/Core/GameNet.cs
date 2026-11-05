@@ -457,6 +457,7 @@ namespace Arena
             s.Float(ref p.IronT);
             s.Vec(ref p.VanishFrom);
             s.Float(ref p.OrbitT);
+            s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)
             s.Byte(ref p.OrbitN);
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
@@ -739,13 +740,12 @@ namespace Arena
         int SyncOrb(NetSync s, Orb o)
         {
             int id = o != null ? o.Id : 0;
-            bool big = o != null && o.Big, tiny = o != null && o.Tiny, dew = o != null && o.Dew, med = o != null && o.Med;
+            bool big = o != null && o.Big, tiny = o != null && o.Tiny, med = o != null && o.Med;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
             s.Int(ref id);
             s.Bool(ref big);
             s.Bool(ref tiny);
-            s.Bool(ref dew);
             s.Bool(ref med);
             s.Vec(ref pos);
             s.Float(ref life);
@@ -753,7 +753,7 @@ namespace Arena
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Tiny = tiny, Dew = dew, Med = med, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;

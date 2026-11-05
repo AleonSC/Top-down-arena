@@ -129,13 +129,13 @@ namespace Arena
             crtDy = 0f; crtFlash = 0f; crtTyped = -1;
         }
 
-        static readonly Color CrtGreen = new Color(0.49f, 1f, 0.66f), CrtGlow = new Color(0.18f, 1f, 0.4f);
+        static readonly Color CrtGreen = new Color(0.62f, 0.78f, 1f), CrtGlow = new Color(0.25f, 0.5f, 1f);  // (blue now; the names are from when it was green)
         const float CrtDropAt = 0.35f, CrtFallLen = 0.32f, CrtTypeAt = 0.95f, CrtTypeLen = 0.6f;  // intro seconds
         static float crtDy, crtFlash;  // while the screen is falling in: how far it is from home, and the flash as it lands
         static int crtTyped = -1;      // letters typed so far; -1 = all of them
         static Rect CrtBox => new Rect(W / 2f - 520f, MenuTitleY - 52f + crtDy, 1040f, 104f);
 
-        /// The title as text on a CRT (Docs/Mockups/title-styles.html, look 4): a bezel round a dark green glass screen.
+        /// The title as text on a CRT (Docs/Mockups/title-styles.html, look 4): a bezel round a dark blue glass screen.
         void DrawCrtBack()
         {
             var box = CrtBox;
@@ -145,7 +145,7 @@ namespace Arena
             for (int i = 0; i < 6; i++)  // glass: dark at the edges, lighter towards the middle
             {
                 float k = i / 5f;
-                Ui.Pill(new Rect(box.x + i * 20f, box.y + i * 6f, box.width - i * 40f, box.height - i * 12f), Color.Lerp(new Color(0.004f, 0.02f, 0.01f), new Color(0.05f, 0.17f, 0.1f), k));
+                Ui.Pill(new Rect(box.x + i * 20f, box.y + i * 6f, box.width - i * 40f, box.height - i * 12f), Color.Lerp(new Color(0.004f, 0.01f, 0.03f), new Color(0.05f, 0.1f, 0.22f), k));
             }
         }
 
@@ -162,7 +162,7 @@ namespace Arena
             GUI.EndGroup();
             Ui.Rim(box, CrtGlow, 0.3f);
             if (crtFlash > 0f)
-                Ui.Fill(new Rect(box.x + 7f, box.y + 7f, box.width - 14f, box.height - 14f), new Color(0.6f, 1f, 0.7f, 0.35f * crtFlash));
+                Ui.Fill(new Rect(box.x + 7f, box.y + 7f, box.width - 14f, box.height - 14f), new Color(0.6f, 0.75f, 1f, 0.35f * crtFlash));
             if (crtTyped >= 0)
             {
                 // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
@@ -177,7 +177,7 @@ namespace Arena
             }
         }
 
-        /// The title text: phosphor green with a glow, and a brief dip in brightness now and then (the screen flickering).
+        /// The title text: phosphor blue with a glow, and a brief dip in brightness now and then (the screen flickering).
         void DrawCrtTitle(Rect r)
         {
             float t = Time.unscaledTime;

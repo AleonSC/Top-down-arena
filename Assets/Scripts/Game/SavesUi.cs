@@ -80,7 +80,7 @@ namespace Arena
         }
 
         /// Starts a fresh run: what Play used to do.
-        void StartNewRun() => HostGame();
+        void StartNewRun() => StartNewRunCrt();  // LobbyCrt.cs: hosts, and opens the lobby with the CRT boot
 
         void ContinueSave(RunSave s)
         {

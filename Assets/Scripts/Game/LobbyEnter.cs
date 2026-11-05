@@ -61,8 +61,12 @@ namespace Arena
             if (enterT < 0f)
                 return;
             enterT += dt;
-            if (session.Screen != AppScreen.Lobby || enterT >= EnterLen)
+            SkipCrtEntry();  // LobbyCrt.cs
+            if (session.Screen != AppScreen.Lobby || enterT >= (crtEntry ? EnterCrtLen : EnterLen))
+            {
                 enterT = -1f;
+                crtEntry = false;
+            }
         }
 
         static float EaseInOut(float x) => x < 0.5f ? 4f * x * x * x : 1f - Mathf.Pow(-2f * x + 2f, 3f) / 2f;
@@ -114,21 +118,7 @@ namespace Arena
             if (empty < 1f)
                 WithAlpha(1f - empty, () => DrawMenuCardInside(t, false));
 
-            // The lobby, in pieces: each slides in from its side and fades up. Not usable yet: the pieces are drawn on
-            // Repaint only, so nothing in them takes a click (GUI.enabled = false would also draw them half see-through).
-            // Its live models wait.
-            uiGlBlocked = true;
-            const float split = 430f;
-            LobbyPiece(new Rect(0f, 0f, 100f, 68f), e, 0.5f, 0.8f, -60f, 0f);                      // the back button
-            LobbyPiece(new Rect(240f, 0f, split - 240f, 68f), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
-            LobbyPiece(new Rect(0f, 68f, split, 80f), e, 0.45f, 0.85f, -60f, 0f);                  // the mode switch
-            LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
-            LobbyPiece(new Rect(0f, PartyTop + 96f, split, LobbyNoteY - 4f - (PartyTop + 96f)), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
-            LobbyPiece(new Rect(0f, LobbyNoteY - 4f, split, H - LobbyNoteY + 4f), e, 0.7f, 1.1f, -60f, 0f);  // Ready and Start
-            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f, true);       // your party card, last
-            LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
-            LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - LobbyBottomPad - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
-            uiGlBlocked = false;
+            DrawLobbyPieces(e, false);
             GUI.color = oldColor;
 
             // The title flies to the top left, shrinking, and turns into LOBBY on the way.
@@ -157,6 +147,28 @@ namespace Arena
                     DrawPartyCardRing(ring);
                 EndUiGl();
             }
+        }
+
+        /// The lobby's pieces sliding in and fading up (title: the LOBBY title is one of them), e seconds into the entrance.
+        void DrawLobbyPieces(float e, bool title)
+        {
+            // The lobby, in pieces: each slides in from its side and fades up. Not usable yet: the pieces are drawn on
+            // Repaint only, so nothing in them takes a click (GUI.enabled = false would also draw them half see-through).
+            // Its live models wait.
+            uiGlBlocked = true;
+            const float split = 430f;
+            LobbyPiece(new Rect(0f, 0f, 100f, 68f), e, 0.5f, 0.8f, -60f, 0f);                      // the back button
+            if (title)
+                LobbyPiece(new Rect(100f, 0f, 140f, 68f), e, 0.45f, 0.8f, 0f, -20f);                  // the LOBBY title (the menu's entrance flies it in instead)
+            LobbyPiece(new Rect(240f, 0f, split - 240f, 68f), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
+            LobbyPiece(new Rect(0f, 68f, split, 80f), e, 0.45f, 0.85f, -60f, 0f);                  // the mode switch
+            LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
+            LobbyPiece(new Rect(0f, PartyTop + 96f, split, LobbyNoteY - 4f - (PartyTop + 96f)), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
+            LobbyPiece(new Rect(0f, LobbyNoteY - 4f, split, H - LobbyNoteY + 4f), e, 0.7f, 1.1f, -60f, 0f);  // Ready and Start
+            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f, true);       // your party card, last
+            LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
+            LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - LobbyBottomPad - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
+            uiGlBlocked = false;
         }
 
         /// GL (inside BeginUiGl): a ring growing off your party card and fading, `ring` 0 to 1 (also Recall.cs).
