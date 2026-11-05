@@ -1,0 +1,285 @@
+<title>Arena Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, then one stage (six layout thumbnails that act as the picker, a to-scale 1600x900 arena you can poke
+   at, and a notes card), then a legend and the open questions.
+   Colour: slate-and-teal arena, amber crates, steel walls, red for enemy entry and enemy fire. Type: Barlow Condensed
+   display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#edf0ef; --fg:#142024; --muted:#5d7077; --panel:#f8faf9; --line:#cfd9d8;
+  --acc:#0f7f78; --chip:#e1e8e7; --chip-on:#142024; --chip-on-fg:#f1f6f5;
+  --arena:#0e1719; --grid:#16242a; --wall:#7f98a6; --wall-hi:#b3c7d2; --crate:#c98b3b; --crate-hi:#f0b865;
+  --foe:#ff5a4a; --friend:#3fd6c4; --zone:#e6d36a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1214; --fg:#e3eeec; --muted:#8aa1a6; --panel:#121c1f; --line:#243338;
+  --acc:#3fd6c4; --chip:#1a272b; --chip-on:#e3eeec; --chip-on-fg:#0b1214; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1214; --fg:#e3eeec; --muted:#8aa1a6; --panel:#121c1f; --line:#243338;
+  --acc:#3fd6c4; --chip:#1a272b; --chip-on:#e3eeec; --chip-on-fg:#0b1214; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 10px;color:var(--acc)}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+.picker{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;border:0;margin:0;padding:0}
+.picker input{position:absolute;opacity:0;pointer-events:none}
+.picker label{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;min-width:0}
+.picker canvas{width:100%;height:auto;display:block;border-radius:3px;aspect-ratio:16/9}
+.picker span{font:600 13px/1.1 var(--display);text-transform:uppercase;letter-spacing:.05em;font-size:15px}
+.picker small{font:400 11px var(--mono);color:var(--muted)}
+.picker input:checked+label{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.picker input:focus-visible+label{outline:2px solid var(--fg);outline-offset:2px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:16/9;touch-action:pan-y;cursor:crosshair}
+#cv:focus-visible{outline:2px solid var(--friend);outline-offset:-3px}
+.hud{position:absolute;left:10px;top:8px;right:10px;font:500 12px var(--mono);color:#cfe3e1;opacity:.9;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+.tog{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.tog input{width:18px;height:18px;accent-color:var(--acc)}
+.card{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h3{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;margin:0}
+.card dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.card dt{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card dd{margin:2px 0 0;font-size:15px}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font:500 12px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.stats b{color:var(--fg);font-weight:500}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.legend div{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.legend b{color:var(--fg);display:block;font-weight:600}
+.legend svg{flex:none}
+ol.q{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;max-width:76ch}
+ol.q li::marker{font-family:var(--mono);color:var(--acc)}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}.picker{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:420px){.picker{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+<main>
+<header>
+  <h1>Arena layouts</h1>
+  <p>Six fixed floor plans for the 1600 x 900 arena, drawn to scale. Pick one, then click or drag in the arena to put a shooter anywhere and see what its shots can reach. Switch between enemy fire (crates stop it) and your fire (crates don't, walls and pillars do).</p>
+</header>
+
+<section>
+  <fieldset class="picker" id="picker" aria-label="Layout"></fieldset>
+</section>
+
+<section class="stage">
+  <div>
+    <div class="frame">
+      <canvas id="cv" width="1600" height="900" tabindex="0" role="img" aria-label="Arena layout. Click or use the arrow keys to move the shooter."></canvas>
+      <div class="hud" id="hud"></div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Whose fire">
+        <input type="radio" name="mode" id="m-foe" value="foe" checked><label for="m-foe">Enemy fire</label>
+        <input type="radio" name="mode" id="m-you" value="you"><label for="m-you">Your fire</label>
+      </div>
+      <label class="tog" for="t-spawn"><input type="checkbox" id="t-spawn" checked>Enemy entry edges</label>
+      <label class="tog" for="t-grid"><input type="checkbox" id="t-grid" checked>100 px grid</label>
+    </div>
+  </div>
+  <aside class="card" id="card" aria-live="polite"></aside>
+</section>
+
+<section>
+  <h2>How to read it</h2>
+  <div class="legend">
+    <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="12" width="28" height="10" rx="1" fill="#7f98a6" stroke="#b3c7d2"/></svg><span><b>Wall</b>24 px thick. Never breaks. Stops enemy shots and yours, blocks walking.</span></div>
+    <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="12" fill="#7f98a6" stroke="#b3c7d2"/><circle cx="17" cy="17" r="5" fill="#0e1719" opacity=".5"/></svg><span><b>Pillar</b>Round wall, 56 px across. Same rules, easier to circle.</span></div>
+    <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="5" y="5" width="24" height="24" fill="#c98b3b" stroke="#f0b865"/><path d="M5 5L29 29M29 5L5 29" stroke="#f0b865" opacity=".6"/></svg><span><b>Crate</b>44 px (heavy 54). Today's cover: stops enemy shots until worn down, your shots fly over.</span></div>
+    <div><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="0" y="4" width="8" height="26" fill="#ff5a4a" opacity=".85"/><path d="M14 11L24 17L14 23Z" fill="#ff5a4a"/></svg><span><b>Entry edge</b>Where squads walk in. Players can still wrap round every edge.</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <ol class="q">
+    <li>Should walls and pillars block your shots too? The mockups assume yes, so angles matter for both sides. Crates stay one-way.</li>
+    <li>When does a layout change? Choices: each new boss cycle in a fixed order, a random pick each cycle, or a pick the host makes alongside the path choice.</li>
+    <li>Do random crates, pots and barrels still spawn in the gaps? The mockups leave room for them.</li>
+    <li>Should paths and layouts mix freely (Fogbound in the Bunker), or should Narrow Pass keep its own walls and ignore layouts?</li>
+    <li>Which two or three to build first? The Pillar Ring and Twin Lanes are the simplest to tune, the Bunker the most different to play.</li>
+  </ol>
+</section>
+</main>
+
+<script>
+(function(){
+var W=1600,H=900;
+function wall(cx,cy,w,h){return{t:'w',cx:cx,cy:cy,w:w,h:h}}
+function hw(x1,x2,y){return wall((x1+x2)/2,y,x2-x1,24)}
+function vw(x,y1,y2){return wall(x,(y1+y2)/2,24,y2-y1)}
+function crate(cx,cy,big){var s=big?54:44;return{t:'c',cx:cx,cy:cy,w:s,h:s}}
+function pil(cx,cy,r){return{t:'p',cx:cx,cy:cy,r:r}}
+function pair(cx,cy,vert){return vert?[crate(cx,cy-22),crate(cx,cy+22)]:[crate(cx-22,cy),crate(cx+22,cy)]}
+function flat(a){return [].concat.apply([],a)}
+
+var ringObs=[];
+for(var k=0;k<8;k++){var a=Math.PI/8+k*Math.PI/4;ringObs.push(pil(800+260*Math.cos(a),450+260*Math.sin(a),28))}
+
+var LAYOUTS=[
+ {id:'ring',name:'Pillar Ring',sub:'8 pillars, open centre',spawn:['L','R','T','B'],shooter:[70,450],
+  obs:ringObs.concat(flat([pair(330,200),pair(1270,200),pair(330,700),pair(1270,700)])),
+  idea:'Eight pillars circle an open middle. The gaps are about 135 px wide, so you can slip out of the ring, round it, or back in. Four crate pairs sit in the corners as breakable cover.',
+  good:'Melee and mobile classes that kite in loops. Frozen Lake and Fogbound play very differently here.',
+  risk:'Ring volleys (Burster, Phantom) can trap a player inside the pillars. Ranged DPS has to step out of the ring to shoot past a pillar.'},
+ {id:'lanes',name:'Twin Lanes',sub:'two long walls, centre corridor',spawn:['L','R','T','B'],shooter:[70,450],
+  obs:[hw(300,740,300),hw(860,1300,300),hw(300,740,600),hw(860,1300,600),crate(800,406),crate(800,450),crate(800,494)].concat(pair(800,150),pair(800,750)),
+  idea:'Two walls split the floor into a middle corridor and two outer strips. The ends are open, and each wall has a 120 px door in the centre. Edge wrap links the left and right ends of every lane.',
+  good:'Piercing and beam weapons, tanks holding a lane, and a healer sitting behind a wall.',
+  risk:'A Sniper or Beam Sentry at one end gets a long clean line down the corridor. Pair with fewer snipers or add a crate block in the lane.'},
+ {id:'cross',name:'Cross',sub:'four rooms, open hub',spawn:['L','R','T','B'],shooter:[70,200],
+  obs:[hw(160,720,450),hw(880,1440,450),vw(800,110,390),vw(800,510,790)].concat(pair(430,230,true),pair(1170,230,true),pair(430,670,true),pair(1170,670,true)),
+  idea:'A plus-shaped wall makes four quadrants that meet in a 160 px hub. Each quadrant has a crate pair. Players pick a room; enemies have to funnel into the hub or go round.',
+  good:'Co-op splits (one player per quadrant), area weapons into the hub, Swarm Fields.',
+  risk:'Squads that arrive in one quadrant can leave a teammate alone. Keep Medic and Warder out of reach of the hub.'},
+ {id:'islands',name:'Islands',sub:'crate clusters, no walls',spawn:['L','R','T','B'],shooter:[70,450],
+  obs:flat([[crate(773,423,1),crate(827,423,1),crate(773,477,1),crate(827,477,1)],
+   [crate(340,190),crate(384,190),crate(340,234)],[crate(1260,190),crate(1216,190),crate(1260,234)],
+   [crate(340,710),crate(384,710),crate(340,666)],[crate(1260,710),crate(1216,710),crate(1260,666)]]).concat([pil(800,130,24),pil(800,770,24)]),
+  idea:'Everything is crates, so the layout wears away as the wave goes on. A heavy 2 x 2 block holds the centre and four L-shaped clusters hold the corners. Two small pillars guard the top and bottom lanes.',
+  good:'The closest to today. A safe first step that keeps barrels and chain explosions useful.',
+  risk:'Cover is one-way and temporary, so late waves look like an open field. Fine as a baseline, not a statement.'},
+ {id:'funnels',name:'Funnels',sub:'two gated walls, side entry',spawn:['L','R'],shooter:[70,300],
+  obs:[vw(260,0,240),vw(260,360,540),vw(260,660,900),vw(1340,0,240),vw(1340,360,540),vw(1340,660,900),pil(800,450,36)].concat(pair(560,190),pair(560,710),pair(1040,190),pair(1040,710)),
+  idea:'Two walls close to each side leave two 120 px gates apiece. Enemies that enter from the sides have to squeeze through the gates, so they arrive in streams you can aim at. Players hold the middle pocket.',
+  good:'Swarm Fields, Brute packs, anything that rushes. Area damage on the gates.',
+  risk:'Strong for the defenders. It needs more shooters or tougher waves to stay tense. Only works with side-heavy entry.'},
+ {id:'bunker',name:'Bunker',sub:'walled fort, four doors',spawn:['L','R','T','B'],shooter:[70,200],
+  obs:[hw(640,755,330),hw(845,960,330),hw(640,755,570),hw(845,960,570),vw(640,330,405),vw(640,495,570),vw(960,330,405),vw(960,495,570),
+   {t:'z',cx:800,cy:450,r:46},pil(330,200,28),pil(1270,200,28),pil(330,700,28),pil(1270,700,28)].concat(pair(480,450,true),pair(1120,450,true)),
+  idea:'A 320 x 240 fort in the middle with a 90 px door on each side and a hold point inside. Outside, pillars and crate pairs give spots to fight from. It is the one layout with a place to defend.',
+  good:'Tank and healer teams: Fortress dome, Lumen Ward, Sanctum, Blood Shell all have a natural home. Bosses with rings are readable against the walls.',
+  risk:'The fort is the safest spot, so people will camp it. Mortars and Beam Sentries are the natural counter, which may be what you want.'}
+];
+
+var cur=0,mode='foe',shooter=LAYOUTS[0].shooter.slice(),showSpawn=true,showGrid=true;
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),hud=document.getElementById('hud');
+function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+
+/* ---- geometry ---- */
+function rectOf(o){return{x0:o.cx-o.w/2,x1:o.cx+o.w/2,y0:o.cy-o.h/2,y1:o.cy+o.h/2}}
+function blockers(L,m){return L.obs.filter(function(o){return o.t==='w'||o.t==='p'||(o.t==='c'&&m==='foe')})}
+function hitRect(ox,oy,dx,dy,r){
+  var tmin=-Infinity,tmax=Infinity;
+  if(Math.abs(dx)<1e-9){if(ox<r.x0||ox>r.x1)return Infinity}else{var a=(r.x0-ox)/dx,b=(r.x1-ox)/dx;if(a>b){var s=a;a=b;b=s}tmin=Math.max(tmin,a);tmax=Math.min(tmax,b)}
+  if(Math.abs(dy)<1e-9){if(oy<r.y0||oy>r.y1)return Infinity}else{var c=(r.y0-oy)/dy,d=(r.y1-oy)/dy;if(c>d){var s2=c;c=d;d=s2}tmin=Math.max(tmin,c);tmax=Math.min(tmax,d)}
+  if(tmin>tmax||tmax<0)return Infinity;return tmin>0?tmin:Infinity}
+function hitCirc(ox,oy,dx,dy,o){
+  var qx=ox-o.cx,qy=oy-o.cy,b=qx*dx+qy*dy,c=qx*qx+qy*qy-o.r*o.r,disc=b*b-c;
+  if(disc<0)return Infinity;var t=-b-Math.sqrt(disc);return t>0?t:Infinity}
+function cast(ox,oy,ang,bl){
+  var dx=Math.cos(ang),dy=Math.sin(ang);
+  var tx=dx>1e-9?(W-ox)/dx:dx<-1e-9?(0-ox)/dx:Infinity, ty=dy>1e-9?(H-oy)/dy:dy<-1e-9?(0-oy)/dy:Infinity;
+  var t=Math.min(tx,ty);
+  for(var i=0;i<bl.length;i++){var o=bl[i];var h=o.t==='p'?hitCirc(ox,oy,dx,dy,o):hitRect(ox,oy,dx,dy,rectOf(o));if(h<t)t=h}
+  return t}
+function inside(ox,oy,bl){
+  for(var i=0;i<bl.length;i++){var o=bl[i];
+    if(o.t==='p'){if(Math.hypot(ox-o.cx,oy-o.cy)<o.r)return true}
+    else{var r=rectOf(o);if(ox>r.x0&&ox<r.x1&&oy>r.y0&&oy<r.y1)return true}}
+  return false}
+function visibility(L,m,ox,oy){
+  var bl=blockers(L,m);if(inside(ox,oy,bl))return null;
+  var angs=[],i,e=1e-4;
+  for(i=0;i<360;i++)angs.push(i*Math.PI/180);
+  bl.forEach(function(o){
+    if(o.t==='p'){var d=Math.hypot(o.cx-ox,o.cy-oy),base=Math.atan2(o.cy-oy,o.cx-ox),sp=Math.asin(Math.min(1,o.r/d));
+      [-sp,sp].forEach(function(s){angs.push(base+s-e,base+s+e)})}
+    else{var r=rectOf(o);[[r.x0,r.y0],[r.x1,r.y0],[r.x1,r.y1],[r.x0,r.y1]].forEach(function(p){var a=Math.atan2(p[1]-oy,p[0]-ox);angs.push(a-e,a+e)})}});
+  [[0,0],[W,0],[W,H],[0,H]].forEach(function(p){var a=Math.atan2(p[1]-oy,p[0]-ox);angs.push(a-e,a+e)});
+  angs=angs.map(function(a){return Math.atan2(Math.sin(a),Math.cos(a))}).sort(function(a,b){return a-b});
+  var pts=angs.map(function(a){var t=cast(ox,oy,a,bl);return[ox+Math.cos(a)*t,oy+Math.sin(a)*t]});
+  var area=0;for(i=0;i<pts.length;i++){var p=pts[i],q=pts[(i+1)%pts.length];area+=p[0]*q[1]-q[0]*p[1]}
+  return{pts:pts,pct:Math.abs(area)/2/(W*H)*100}}
+
+/* ---- drawing ---- */
+function drawObs(c,L,sc,detail){
+  L.obs.forEach(function(o){
+    if(o.t==='z'){c.save();c.setLineDash([10*sc,8*sc]);c.lineWidth=Math.max(1,2*sc);c.strokeStyle=tok('--zone');c.beginPath();c.arc(o.cx*sc,o.cy*sc,o.r*sc,0,7);c.stroke();c.restore();
+      if(detail){c.fillStyle=tok('--zone');c.font=(15*sc)+'px '+tok('--mono');c.textAlign='center';c.fillText('HOLD POINT',o.cx*sc,(o.cy+4)*sc)}return}
+    if(o.t==='p'){c.fillStyle=tok('--wall');c.strokeStyle=tok('--wall-hi');c.lineWidth=Math.max(1,2*sc);c.beginPath();c.arc(o.cx*sc,o.cy*sc,o.r*sc,0,7);c.fill();c.stroke();
+      c.fillStyle='rgba(14,23,25,.45)';c.beginPath();c.arc(o.cx*sc,o.cy*sc,o.r*sc*.4,0,7);c.fill();return}
+    var r=rectOf(o),x=r.x0*sc,y=r.y0*sc,w=o.w*sc,h=o.h*sc;
+    if(o.t==='w'){c.fillStyle=tok('--wall');c.strokeStyle=tok('--wall-hi');c.lineWidth=Math.max(1,2*sc);c.fillRect(x,y,w,h);c.strokeRect(x,y,w,h)}
+    else{c.fillStyle=tok('--crate');c.strokeStyle=tok('--crate-hi');c.lineWidth=Math.max(1,2*sc);c.fillRect(x,y,w,h);c.strokeRect(x,y,w,h);
+      c.globalAlpha=.55;c.beginPath();c.moveTo(x,y);c.lineTo(x+w,y+h);c.moveTo(x+w,y);c.lineTo(x,y+h);c.stroke();c.globalAlpha=1}})}
+function drawSpawn(c,L,sc,detail){
+  var col=tok('--foe');c.fillStyle=col;
+  L.spawn.forEach(function(s){
+    var th=14*sc,n=s==='L'||s==='R'?5:7,i;
+    if(s==='L'||s==='R'){var x=s==='L'?0:W*sc-th;c.globalAlpha=.8;c.fillRect(x,0,th,H*sc);c.globalAlpha=1;
+      for(i=0;i<n;i++){var y=(i+.5)*H/n*sc,dir=s==='L'?1:-1,bx=s==='L'?th+4*sc:W*sc-th-4*sc;
+        c.beginPath();c.moveTo(bx,y-14*sc);c.lineTo(bx+dir*22*sc,y);c.lineTo(bx,y+14*sc);c.closePath();c.fill()}}
+    else{var y0=s==='T'?0:H*sc-th;c.globalAlpha=.8;c.fillRect(0,y0,W*sc,th);c.globalAlpha=1;
+      for(i=0;i<n;i++){var x2=(i+.5)*W/n*sc,dir2=s==='T'?1:-1,by=s==='T'?th+4*sc:H*sc-th-4*sc;
+        c.beginPath();c.moveTo(x2-14*sc,by);c.lineTo(x2,by+dir2*22*sc);c.lineTo(x2+14*sc,by);c.closePath();c.fill()}}});
+  if(detail){c.font=(13*sc)+'px '+tok('--mono');c.textAlign='left';c.fillStyle=col;
+    if(L.spawn.indexOf('L')>-1){c.save();c.translate(30*sc,(H-26)*sc);c.fillText('ENEMY ENTRY',0,0);c.restore()}}}
+function paint(c,L,sc,opt){
+  c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,W*sc,H*sc);
+  c.fillStyle=tok('--arena');c.fillRect(0,0,W*sc,H*sc);
+  if(opt.grid){c.strokeStyle=tok('--grid');c.lineWidth=1;c.beginPath();
+    for(var x=100;x<W;x+=100){c.moveTo(x*sc,0);c.lineTo(x*sc,H*sc)}for(var y=100;y<H;y+=100){c.moveTo(0,y*sc);c.lineTo(W*sc,y*sc)}c.stroke()}
+  if(opt.vis){c.fillStyle=opt.m==='foe'?'rgba(255,90,74,.20)':'rgba(63,214,196,.20)';c.strokeStyle=opt.m==='foe'?'rgba(255,90,74,.55)':'rgba(63,214,196,.55)';c.lineWidth=Math.max(1,1.5*sc);
+    c.beginPath();opt.vis.pts.forEach(function(p,i){i?c.lineTo(p[0]*sc,p[1]*sc):c.moveTo(p[0]*sc,p[1]*sc)});c.closePath();c.fill();c.stroke()}
+  drawObs(c,L,sc,opt.detail);
+  if(opt.spawn)drawSpawn(c,L,sc,opt.detail);
+  if(opt.shooter){var col=opt.m==='foe'?tok('--foe'):tok('--friend'),sx=opt.shooter[0]*sc,sy=opt.shooter[1]*sc;
+    c.strokeStyle=col;c.fillStyle=col;c.lineWidth=3*sc;c.beginPath();c.arc(sx,sy,15*sc,0,7);c.stroke();
+    c.beginPath();c.arc(sx,sy,5*sc,0,7);c.fill();
+    c.beginPath();c.moveTo(sx-24*sc,sy);c.lineTo(sx-9*sc,sy);c.moveTo(sx+9*sc,sy);c.lineTo(sx+24*sc,sy);c.moveTo(sx,sy-24*sc);c.lineTo(sx,sy-9*sc);c.moveTo(sx,sy+9*sc);c.lineTo(sx,sy+24*sc);c.stroke()}}
+
+function render(){
+  var L=LAYOUTS[cur],v=visibility(L,mode,shooter[0],shooter[1]);
+  paint(ctx,L,1,{grid:showGrid,vis:v,m:mode,spawn:showSpawn,shooter:shooter,detail:true});
+  hud.textContent=v?((mode==='foe'?'Enemy at ':'You at ')+Math.round(shooter[0])+', '+Math.round(shooter[1])+'  ·  shots reach '+v.pct.toFixed(0)+'% of the floor  ·  click or drag to move'):'Marker is inside cover. Move it into open floor.';
+  var stat=document.getElementById('stat');if(stat){
+    var f=visibility(L,'foe',shooter[0],shooter[1]),y=visibility(L,'you',shooter[0],shooter[1]);
+    stat.innerHTML='<span>Enemy fire from here <b>'+(f?f.pct.toFixed(0)+'%':'n/a')+'</b></span><span>Your fire from here <b>'+(y?y.pct.toFixed(0)+'%':'n/a')+'</b></span>'}}
+function thumbs(){
+  document.querySelectorAll('.picker canvas').forEach(function(c,i){paint(c.getContext('2d'),LAYOUTS[i],c.width/W,{grid:false,spawn:true,detail:false})})}
+function card(){
+  var L=LAYOUTS[cur];
+  document.getElementById('card').innerHTML='<h3>'+L.name+'</h3><dl><div><dt>What it does</dt><dd>'+L.idea+'</dd></div><div><dt>Good for</dt><dd>'+L.good+'</dd></div><div><dt>Watch out</dt><dd>'+L.risk+'</dd></div></dl><div class="stats" id="stat"></div>'}
+function select(i){cur=i;shooter=LAYOUTS[i].shooter.slice();card();render()}
+
+/* picker */
+var pk=document.getElementById('picker');
+pk.innerHTML='<legend style="position:absolute;opacity:0">Layout</legend>'+LAYOUTS.map(function(L,i){
+  return '<input type="radio" name="lay" id="l'+i+'" value="'+i+'"'+(i===0?' checked':'')+'><label for="l'+i+'"><canvas width="320" height="180"></canvas><span>'+L.name+'</span><small>'+L.sub+'</small></label>'}).join('');
+pk.addEventListener('change',function(e){select(+e.target.value)});
+document.querySelectorAll('input[name=mode]').forEach(function(r){r.addEventListener('change',function(){mode=r.value;render()})});
+document.getElementById('t-spawn').addEventListener('change',function(e){showSpawn=e.target.checked;render()});
+document.getElementById('t-grid').addEventListener('change',function(e){showGrid=e.target.checked;render()});
+
+/* shooter placement */
+function place(e){var r=cv.getBoundingClientRect();shooter=[Math.max(0,Math.min(W,(e.clientX-r.left)/r.width*W)),Math.max(0,Math.min(H,(e.clientY-r.top)/r.height*H))];render()}
+var down=false;
+cv.addEventListener('pointerdown',function(e){down=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}place(e)});
+cv.addEventListener('pointermove',function(e){if(down)place(e)});
+cv.addEventListener('pointerup',function(){down=false});
+cv.addEventListener('pointercancel',function(){down=false});
+cv.addEventListener('keydown',function(e){
+  var d={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[e.key];if(!d)return;e.preventDefault();
+  shooter=[Math.max(0,Math.min(W,shooter[0]+d[0])),Math.max(0,Math.min(H,shooter[1]+d[1]))];render()});
+
+/* redraw when the theme changes */
+function all(){thumbs();render()}
+new MutationObserver(all).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',all)}catch(_){}
+card();all();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(all);
+})();
+</script>
