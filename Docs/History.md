@@ -3,7 +3,7 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
-**Katana combo rework (Nov 2026), protocol 175:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
+**Katana combo rework (Nov 2026), protocol 176:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
 `katana-look-glow.html`. The sheathe and quick-draw (`SheathT`, `KatanaSheath`, `KatanaDraw*`) are gone. The Katana is
 swipe, swipe, lunge (`Player.KatanaStep`, replicated; `Core/Katana.cs`): each step sets its own `FireCd`, a tap during a
 step is queued (`TickKatanaFire`), and `KatanaChainWindow` 0.7 s without the next step starts over. The lunge is a 260 px

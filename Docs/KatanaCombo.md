@@ -1,6 +1,6 @@
 # Katana combo rework (design)
 
-Status: **built** (Nov 2026, protocol 175), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
+Status: **built** (Nov 2026, protocol 176), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
 `Docs/Mockups/katana-look-glow.html` (the chosen look). Three other looks were mocked and not picked:
 `katana-look-ink.html`, `-neon.html`, `-steel.html` (all from `katana-look.template.html`).
 
@@ -83,7 +83,7 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 - **New message** `Msg.KatanaStrike` (added at the **end** of `Msg`, before `None`): client to host, carrying the target
   enemy id. The host checks the meter, the weapon and that the enemy is alive, then runs the strike. The marking while
   holding is local to the player's own screen and is not sent.
-- **Bump `Session.ProtocolVersion`** from 174 to **175**.
+- **Bump `Session.ProtocolVersion`** from 175 to **176**.
 - **Time in co-op:** the mockup slows time to 12% while targeting. That is fine in solo, but in a shared simulation
   it would slow other players. Recommendation: targeting never slows the simulation. Instead the striker's own screen
   dims and its UI runs a slow-motion style highlight, and the hold lasts at most **1.5 s** before it cancels.
@@ -127,7 +127,7 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 ## Built differently from the plan above
 - **No new message.** The strike reuses `Msg.WeaponDash` with a new kind, `DashKatana`, sending the target enemy's
   position (the host takes the nearest enemy within 90 px of it). `Msg.KatanaStrike` was not added. The protocol bump to
-  175 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
+  176 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
 - **The lunge does not step you forward 150 px** (a player's own game owns their position, so the host cannot move them).
   It is a 260 px line from where you stand, landing 0.15 s after the press. A client-side step could follow later.
 - **No time slow while aiming**, the recommendation in the co-op section. The arena dims and brackets appear on your
