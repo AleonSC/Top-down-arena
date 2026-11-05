@@ -281,6 +281,7 @@ static partial class Program
         foreach (bool downedAlly in new[] { false, true })
         {
             g.Zones.Clear(); Clear();
+            foreach (var e in g.Enemies.Values) { e.Pos = new V2(60f, 860f); e.FrozenT = 5f; }  // the pull runs away from nearby enemies: keep them well out of it so where it ends is the same every time
             dp.Downed = downedAlly; dp.Hp = downedAlly ? 0f : dp.MaxHp;
             dp.Pos = cp.Pos = new V2(900f, 300f); me.Pos = client.Game.Players[1].Pos = new V2(860f, 320f);
             V2 grab = dp.Pos;
