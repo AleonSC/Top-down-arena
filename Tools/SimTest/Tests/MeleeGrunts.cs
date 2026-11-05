@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// The melee grunts (MeleeGrunts.cs): Buzzsaw and Spike Block from wave 5, the zig-zagging Swarmer.
+// The melee grunts (MeleeGrunts.cs): Buzzsaw and Spike Block from wave 5, the zig-zagging Spiker.
 static partial class Program
 {
     static void MeleeGruntsTest(float dt)
@@ -48,9 +48,9 @@ static partial class Program
             clearOut();
             V2 home = new V2(Game.Width / 2f, Game.Height / 2f);
 
-            // Swarmer: zig-zags (the side flips) and still gets there.
+            // Spiker: zig-zags (the side flips) and still gets there.
             p.Pos = home;
-            var sw = put(EnemyType.Swarmer, home + new V2(-600f, 0f));
+            var sw = put(EnemyType.Spiker, home + new V2(-600f, 0f));
             sw.Speed = 135f;
             int flips = 0; byte lastSide = 0; float maxOff = 0f;
             Run(s, dt, 3f, () => sw.Pos.DistanceTo(p.Pos) < 40f, () =>
@@ -60,11 +60,25 @@ static partial class Program
                 float off = Math.Abs(MathX.Fmod((p.Pos - sw.Pos).Angle - sw.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
                 if (sw.Pos.DistanceTo(p.Pos) > 200f) maxOff = Math.Max(maxOff, off);
             });
-            Console.WriteLine("  Swarmer: {0} side flips, widest swing {1:0} deg", flips, maxOff * 57.3f);
-            Check(flips >= 4, "Swarmer: swings from side to side every 0.2 to 0.45 s");
-            Check(maxOff > 0.6f && maxOff < 1.3f, "Swarmer: heads 40 to 65 degrees off the straight line while far away");
+            Console.WriteLine("  Spiker: {0} side flips, widest swing {1:0} deg", flips, maxOff * 57.3f);
+            Check(flips >= 4, "Spiker: swings from side to side every 0.2 to 0.45 s");
+            Check(maxOff > 0.6f && maxOff < 1.3f, "Spiker: heads 40 to 65 degrees off the straight line while far away");
             Run(s, dt, 4f, () => sw.Pos.DistanceTo(p.Pos) < 40f, () => { calm(); p.Pos = home; });
-            Check(sw.Pos.DistanceTo(p.Pos) < 40f, "Swarmer: zig-zagging, it still reaches you");
+            Check(sw.Pos.DistanceTo(p.Pos) < 40f, "Spiker: zig-zagging, it still reaches you");
+            clearOut();
+
+            // Swarmer: the plain one. It walks a straight line at you, with no swing, and has no tricks.
+            p.Pos = home;
+            var pl = put(EnemyType.Swarmer, home + new V2(-600f, 0f));
+            float worstOff = 0f;
+            Run(s, dt, 6f, () => pl.Pos.DistanceTo(p.Pos) < 40f, () =>
+            {
+                calm(); p.Pos = home;
+                worstOff = Math.Max(worstOff, Math.Abs(pl.Pos.Y - home.Y));
+            });
+            Check(pl.Pos.DistanceTo(p.Pos) < 40f, "Swarmer: walks straight up to you");
+            Check(worstOff < 5f, "Swarmer: no zig-zag, it stays on the straight line (" + worstOff.ToString("0.0") + " px off)");
+            Check(Defs.Get(EnemyType.Swarmer).Hp < Defs.Get(EnemyType.Spiker).Hp, "Swarmer: weaker than the Spiker");
             clearOut();
 
             // Buzzsaw: lots of small touches.

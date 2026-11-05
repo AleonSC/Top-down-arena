@@ -59,7 +59,7 @@ namespace Arena
 
         public static readonly SquadDef[] Squads =
         {
-            new SquadDef { Name = "Rush", From = 1, Members = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer } },
+            new SquadDef { Name = "Rush", From = 1, Members = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer } },
             new SquadDef { Name = "Firing line", From = 3, Members = new[] { EnemyType.Grunt, EnemyType.Grunt, EnemyType.Grunt, EnemyType.Sniper } },
             new SquadDef { Name = "Brute pack", From = 5, Members = new[] { EnemyType.Brute, EnemyType.Brute, EnemyType.Lunger } },
             new SquadDef { Name = "Splinters", From = 7, Members = new[] { EnemyType.Splitter, EnemyType.Splitter, EnemyType.Grunt } },
@@ -69,7 +69,7 @@ namespace Arena
             new SquadDef { Name = "Ambush", From = 16, Members = new[] { EnemyType.Phantom, EnemyType.Phantom, EnemyType.Phantom }, Form = SquadForm.Around },
             new SquadDef { Name = "Beam battery", From = 18, Members = new[] { EnemyType.Shielder, EnemyType.BeamSentry, EnemyType.BeamSentry } },
             new SquadDef { Name = "Pincer", From = 21, Members = new[] { EnemyType.Hexer, EnemyType.Hexer, EnemyType.Grunt, EnemyType.Grunt }, Form = SquadForm.Pincer },
-            new SquadDef { Name = "Scorched earth", From = 24, Members = new[] { EnemyType.Scorcher, EnemyType.Scorcher, EnemyType.Swarmer, EnemyType.Swarmer } },
+            new SquadDef { Name = "Scorched earth", From = 24, Members = new[] { EnemyType.Scorcher, EnemyType.Scorcher, EnemyType.Spiker, EnemyType.Spiker } },
             new SquadDef { Name = "Siege", From = 26, Members = new[] { EnemyType.Juggernaut, EnemyType.Medic, EnemyType.Medic } },
             new SquadDef { Name = "Reaver pack", From = 28, Members = new[] { EnemyType.Reaver, EnemyType.Reaver, EnemyType.Lunger, EnemyType.Lunger } },
             new SquadDef { Name = "Hive", From = 31, Members = new[] { EnemyType.Nest, EnemyType.Splitter, EnemyType.Splitter } },

@@ -158,7 +158,7 @@ your weapon. Per extra projectile:
 | | **Ice Shards** | Each cast puts 3 shards of ice (7) into orbit round you (up to 6); they launch, homing, at enemies within 300 px, one every 0.08 s. With the orbit full, a cast flies at your aim | +1 shard a cast, +2 in orbit, and faster launches |
 | DPS · Summoner | **Wolf Whistle** | Darts mark the enemy they hit as prey for 4 s and your 2 wolves hunt it (a fanned or piercing dart that clips an enemy farther from your cursor doesn't move the prey); every wolf biting it within a second is a takedown (20 per wolf, 0.6 s stun) | +1 Wolf |
 | | **Wisp Lantern** | 3 wisps orbit you and are your shots: each shot sends one at the enemy nearest your cursor (22), and it comes back | +1 Wisp, and each shot sends one more |
-| | **Imp Caller** | An imp every 3 s (up to 3) waits by you; tap fire to send them charging at your cursor (45 each), or hold to merge them into one big imp (blast 125% of theirs together, and wider) | +1 Imp, arriving 50% faster |
+| | **Imp Caller** | An imp every second (up to 5) waits by you; tap fire to send one charging at your cursor (45), or hold to merge them all into one big imp (blast 125% of theirs together, and wider) | +1 Imp, arriving 50% faster |
 | Tank · Knight | **Warhammer** | Charge slam: hold to charge (0.9 s), let go to slam a fixed 160 px circle centred about 100 px ahead (it clears small bullets too); 20 damage and a 0.25 s stun for a tap, up to 80 damage and a 0.9 s stun at full charge | +1 aftershock: another slam 0.2 s later, 40 px further out (60% damage) |
 | | **Lance** | Heavy jab (36 damage) that hits a box straight ahead, 180 px long and 88 px wide, shoves enemies 140 px back (not bosses or heavies) and stuns them for 1 s (not bosses) | +30 px reach, 24 px wider and +60 px knockback |
 | | **Halberd** | Sweep: an 18° blade, 200 px long, swept across 80° in 0.18 s; 30 to each enemy it passes, once a sweep | +30 px reach and a return sweep (60% damage) |
@@ -229,7 +229,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
-| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (7 pulses: 20 each, the last 30; each ally heals as the ring reaches them) | **World Tree** (80 s): a 100 px tree for 15 s that heals everyone under it (18 HP/s), slows and burns enemies, and sends a wave of healing butterflies, one to each ally (the most hurt first), every 1.9 s; each butterfly flutters to its ally and heals 14 on arrival | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
+| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (7 pulses: 20 each, the last 30; each ally heals as the ring reaches them) | **World Tree** (80 s): a 100 px tree for 15 s that heals everyone under it (18 HP/s), slows and burns enemies, and sends a wave of healing butterflies, one to each ally (the most hurt first), every 1.9 s; each butterfly flutters to its ally and heals 14 on arrival | **Hallowed Blade** (80 s): a giant sword of light falls at your cursor (200 damage) and stays planted for 8 s; allies in its ring heal 15 HP/s and enemies burn 20 a second, and every 2 s a pulse crosses the whole arena (4 pulses, the last bigger) healing every ally 10 and hurting every enemy 13 as the ring reaches them |
 | **DPS** | **Artillery Assault** (60 s): 6 s of triple fire rate and +2 extra projectiles, with a heat aura, speed streaks and a muzzle flash | **Bullet Rain** (70 s): a downpour at your cursor (330 px across) for 6 s: the whole arena darkens and rains, and inside the zone the drops harden into needles that do 45 damage a second to every enemy in it, bosses too, and leaves them **wet** (as Tsunami does: slowed, and any lightning anywhere arcs to them) for 3 s after they leave | **Legion** (70 s): a blood moon rises and tints the arena for 10 s; 6 wolves and 6 bats circle you for a second, then run 40% faster, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
 ### Ability mastery
@@ -388,19 +388,20 @@ With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into
 
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
-four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
+five Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
 you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder
 leading two Snipers that keep behind it), Field hospital (11: three Brutes and a Medic behind them), Hold the line
 (14: a Pauser and two Grunts), Ambush (16: three Phantoms blink in around you), Beam battery (18: two Beam Sentries
 guarded by a Shielder), Hunting party (19: two Leaders and a Sniper), Pincer (21: Hexers from opposite edges),
-Seamstresses (22: two Stitchers side by side, and a Grunt), Scorched earth (24: two Scorchers and Swarmers), Siege
+Seamstresses (22: two Stitchers side by side, and a Grunt), Scorched earth (24: two Scorchers and Spikers), Siege
 (26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two Lungers), Hive (31: a Nest guarded by
 Splitters), Bastion (36: a Warder, a Juggernaut and two Grunts). Early waves keep their share of rushers (a melee
 squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | Wave | Melee enemy | What it does |
 |---|---|---|
-| 1 | Swarmer | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs |
+| 1 | **Swarmer** | The simplest enemy: a small white chomper with a wedge for a mouth and no eyes. Walks straight at you (115), 14 health, 6 per bite. Comes in packs of four, so cut them down together |
+| 2 | **Spiker** | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs. (Called the Swarmer before the plain white one arrived) |
 | 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you |
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
 | 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
@@ -585,7 +586,7 @@ Bosses are always the standard fight. A path changes the enemy mix and the arena
 
 | Path | Danger | What changes |
 |---|---|---|
-| **Swarm Fields** | 2 | Mostly melee rushers (Swarmers, Brutes, Lungers), twice as many, at 60% health |
+| **Swarm Fields** | 2 | Mostly melee rushers (Swarmers, Spikers, Brutes, Lungers), twice as many, at 60% health |
 | **Sniper Ridge** | 2 | Mostly Snipers, Mortars and Grunts; hardly any melee |
 | **Elite Gauntlet** | 3 | Half as many enemies, every one elite |
 | **Burning Grounds** | 3 | Fire patches flash a warning ring, then ignite and spread for a few seconds; they burn you (10 damage a second, plus 3% a wave on Normal) and the enemies |
@@ -632,7 +633,7 @@ with an objective plate at the top of the screen:
 
 | Challenge | Goal |
 |---|---|
-| **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Its enemies are mostly melee (Swarmers, Lungers, Brutes; about 1 in 7 is a Grunt or Sniper), so it's about cutting off the bodies rushing it: two in three go for it (their hits and shots wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
+| **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Its enemies are mostly melee (Swarmers, Spikers, Lungers, Brutes; about 1 in 7 is a Grunt or Sniper), so it's about cutting off the bodies rushing it: two in three go for it (their hits and shots wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
 | **The Gatekeeper** | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has half the Warden's health at your wave. |
 | **Kill Rush** | Kill 40 enemies in 40 s (+14 for each extra player). Weak enemies (half health) pour in from every side. |
 | **Hold the Zones** | Stand in each of three zones in turn until it fills (8 s; half as fast with an enemy in it, and it drains slowly if you leave) within 60 s. Half the enemies crowd the zone. |

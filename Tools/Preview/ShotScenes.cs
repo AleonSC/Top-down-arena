@@ -480,8 +480,8 @@ static partial class Shot {
         gg.RoomGoal = 44; gg.RoomKills = 27; gg.ZoneIndex = 1; gg.ZoneFill = 0.6f;
         gg.RoomZones[0] = Challenges.ZoneSpots[0]; gg.RoomZones[1] = Challenges.ZoneSpots[1]; gg.RoomZones[2] = Challenges.ZoneSpots[2];
         if (gg.Room == RoomPhase.Active) {
-          if (gg.RoomKind == ChallengeKind.Defend) { put(EnemyType.Grunt, new V2(560f, 300f)); put(EnemyType.Swarmer, new V2(690f, 380f)); put(EnemyType.Brute, new V2(1000f, 520f)); rps[0].Pos = rps[0].Disp = new V2(760f, 560f); }
-          if (gg.RoomKind == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Swarmer, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
+          if (gg.RoomKind == ChallengeKind.Defend) { put(EnemyType.Grunt, new V2(560f, 300f)); put(EnemyType.Spiker, new V2(690f, 380f)); put(EnemyType.Brute, new V2(1000f, 520f)); rps[0].Pos = rps[0].Disp = new V2(760f, 560f); }
+          if (gg.RoomKind == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Spiker, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
           if (gg.RoomKind == ChallengeKind.HoldZones) { rps[0].Pos = rps[0].Disp = gg.RoomZones[1] + new V2(-30f, 20f); put(EnemyType.Grunt, gg.RoomZones[1] + new V2(140f, -90f)); put(EnemyType.Sniper, new V2(800f, 160f)); }
           if (gg.RoomKind == ChallengeKind.MiniBoss) { var gk = put(EnemyType.Gatekeeper, new V2(800f, 330f)); gk.Hp = gk.MaxHp * 0.42f; gk.Phase = 1; gk.Facing = (rps[0].Pos - gk.Pos).Angle; }
           if (gg.RoomKind == ChallengeKind.Mirror) foreach (var pl in rps) { var sh = put(EnemyType.Shadow, new V2(1600f - pl.Pos.X, 900f - pl.Pos.Y)); gg.ShadowOf[sh.Id] = pl.Id; sh.Facing = (pl.Pos - sh.Pos).Angle; }

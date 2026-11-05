@@ -261,10 +261,22 @@ static partial class Program
         Cast(1, AbilityId.BattleFury, me.Pos);
         Check((float)fireRate.Invoke(g, new object[] { me }) > fr0 * 1.35f, "Battle Fury makes you swing 40% faster");
         me.Slots[Upgrades.UltSlot].Id = AbilityId.HallowedBlade;
+        g.Zones.Clear();
         var under = Dummy(new V2(900f, 300f)); float u0 = under.Hp;
+        var farFoe = Dummy(new V2(100f, 850f)); float far0 = farFoe.Hp;  // well outside the ring
+        var farAlly = g.Players[2]; farAlly.Pos = client.Game.Players[2].Pos = new V2(1500f, 100f); farAlly.Hp = farAlly.MaxHp * 0.5f; float ally0 = farAlly.Hp;
         cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, new V2(900f, 300f), true });
-        Run(s, dt, 1f, null, () => { Clear(); under.FrozenT = 1f; under.Pos = new V2(900f, 300f); });
-        Check(u0 - under.Hp > 150f && g.Zones.Values.Any(z => z.Kind == ZoneKind.Consecrate && z.Pos.DistanceTo(new V2(900f, 300f)) < 1f), "Hallowed Blade lands for big damage and blesses the ground");
+        Func<bool> held = () => { Clear(); under.FrozenT = 1f; under.Pos = new V2(900f, 300f); farFoe.FrozenT = 1f; farFoe.Pos = new V2(100f, 850f); farAlly.Pos = new V2(1500f, 100f); return true; };
+        Run(s, dt, 1f, null, () => { held(); });
+        Check(u0 - under.Hp > 150f && g.Zones.Values.Any(z => z.Kind == ZoneKind.HallowedBlade && z.Pos.DistanceTo(new V2(900f, 300f)) < 1f), "Hallowed Blade lands for big damage and stays planted");
+        Check(far0 - farFoe.Hp < 1f, "the landing hurts only what is under the sword");
+        float ring0 = under.Hp;
+        Run(s, dt, 1f, null, () => { held(); });
+        float burnPerSec = ring0 - under.Hp;
+        Check(burnPerSec > 18f && burnPerSec < 30f, "enemies under the planted sword burn about 20 a second");
+        Run(s, dt, 2f, null, () => { held(); });  // 2.8 s after landing: the first pulse (at 2 s) has crossed the arena
+        Check(Math.Abs((far0 - farFoe.Hp) * 3f - burnPerSec * 2f) < burnPerSec * 0.3f, "the first pulse hurts an enemy far outside the ring for a third of what the ring does in 2 s");
+        Check(farAlly.Hp - ally0 > Game.HallowedPulseHeal * 0.9f && farAlly.Hp - ally0 < Game.HallowedPulseHeal * 1.3f, "the first pulse heals an ally far outside the ring for a third of what the ring does in 2 s");
         under.Hp = 0f;
         me.Slots[Upgrades.UltSlot].Id = AbilityId.BladeTempest;
         cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, true });

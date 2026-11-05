@@ -1,7 +1,7 @@
 # Arena layouts
 
 Mockups: [`Mockups/arena-layouts.html`](Mockups/arena-layouts.html) (https://claude.ai/artifact/UyfbbAwAhNxfg3WEUrRniy).
-Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs` (protocol 169).
+Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs` (protocol 171).
 
 ## Decisions (from the owner)
 

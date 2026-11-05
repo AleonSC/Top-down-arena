@@ -45,7 +45,7 @@ namespace Arena
         {
             new PathDef { Id = PathId.SwarmFields, Name = "Swarm Fields", Kind = "Enemy mix", Danger = 2,
                 Blurb = "Open grassland overrun by rushers.",
-                Rules = new[] { "Mostly melee rushers: Swarmers, Brutes, Lungers", "Twice as many of them, at 60% health" },
+                Rules = new[] { "Mostly melee rushers: Swarmers, Spikers, Brutes, Lungers", "Twice as many of them, at 60% health" },
                 Floor = new Rgba(0.16f, 0.32f, 0.14f), Accent = new Rgba(0.55f, 0.95f, 0.45f),
                 Showcase = new[] { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger } },
             new PathDef { Id = PathId.SniperRidge, Name = "Sniper Ridge", Kind = "Enemy mix", Danger = 2,
@@ -82,7 +82,7 @@ namespace Arena
                 Blurb = "A thick mist rolls in. Stay close together.",
                 Rules = new[] { "You only see a short way around each player", "Enemies and bullets beyond fade into the mist" },
                 Floor = new Rgba(0.17f, 0.18f, 0.21f), Accent = new Rgba(0.8f, 0.86f, 0.95f),
-                Showcase = new[] { EnemyType.Lunger, EnemyType.Sniper, EnemyType.Swarmer } },
+                Showcase = new[] { EnemyType.Lunger, EnemyType.Sniper, EnemyType.Spiker } },
             new PathDef { Id = PathId.NarrowPass, Name = "Narrow Pass", Kind = "Arena rule", Danger = 2,
                 Blurb = "A canyon pass hemmed in by glowing walls.",
                 Rules = new[] { "The arena closes in to a narrow pass", "Walls on every side: no wrapping round the edges" },
@@ -282,7 +282,7 @@ namespace Arena
                     return false;
                 case PathId.SwarmFields:
                 {
-                    var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger };
+                    var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Spiker, EnemyType.Brute, EnemyType.Lunger };
                     if (n >= 5) { rushers.Add(EnemyType.Buzzsaw); rushers.Add(EnemyType.SpikeBlock); }  // MeleeGrunts.cs
                     for (int i = 0; i < count; i++)
                     {

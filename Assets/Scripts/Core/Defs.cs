@@ -13,7 +13,7 @@ namespace Arena
         Colossus, Duelist, Decoy, Lich, Phylactery, StormHerald, Devourer, Eclipse,
         GravityWell,  // the Singularity's adds: they pull players' shots into themselves
         // melee: they never shoot, they run at you (early waves are mostly these)
-        Swarmer, Brute, Lunger,
+        Spiker, Brute, Lunger,
         HiveBomber,  // the Hive Queen's explosive drones: fly straight at where you were and blow up
         CageWell,    // the Singularity's small wells that ring a player in a shrinking cage
         Rioter,      // the Warden's riot: prisoners who run at whoever's nearest, the Warden included (Warden.cs)
@@ -36,6 +36,8 @@ namespace Arena
         Shambler, Runner, Spitter, Crawler, Bloater, Shrieker, Mender,
         // melee grunts from wave 5 (EnemyAI.cs, MeleeGrunts.cs)
         Buzzsaw, SpikeBlock,
+        // the simplest melee grunt: a white chomper that walks straight at you, in packs (EnemyAI.cs)
+        Swarmer,
     }
 
     public class RoleDef
@@ -196,7 +198,7 @@ namespace Arena
                 Picker = PickerGroup.Boss, Late = true, Blurb = "Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova." },
             new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f), Late = true },
             // Melee
-            new EnemyDef { Name = "Swarmer", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f,
+            new EnemyDef { Name = "Spiker", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "Small and fast melee rusher with long thin spikes. It zig-zags toward you in pairs." },
             new EnemyDef { Name = "Brute", Hp = 110f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
                 Picker = PickerGroup.Melee, Blurb = "Slow, tough melee bruiser that hits hard (24) when it reaches you." },
@@ -253,6 +255,8 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A fast ring of spinning spikes that swoops round on curves. Each touch is small, but they come about eight times a second." },
             new EnemyDef { Name = "Spike Block", Hp = 60f, Radius = 14f, Speed = 120f, Score = 14, Xp = 14, Sides = 4, Color = new Rgba(0.9f, 0.28f, 0.3f), Melee = true, Contact = 12f,
                 Picker = PickerGroup.Melee, Blurb = "Rocks from side to side as it closes in, then stops, flashes a red line and lunges for a big hit (35). Slow to recover." },
+            new EnemyDef { Name = "Swarmer", Hp = 14f, Radius = 9f, Speed = 115f, Score = 3, Xp = 3, Sides = 24, Color = new Rgba(0.97f, 0.97f, 0.95f), Melee = true, Contact = 6f,
+                Picker = PickerGroup.Melee, Blurb = "The simplest melee rusher: a white chomper with no eyes that walks straight at you. Weak alone, and it comes in packs." },
         };
 
         public const int WeaponsPerRole = 3;

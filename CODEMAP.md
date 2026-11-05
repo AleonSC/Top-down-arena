@@ -34,6 +34,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
 - `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates, ability XP/levels
 - `Sanctum.cs`: the Healer Elementalist's Sanctum ultimate: seven healing pulses from the dome's centre, each ally healed as the ring reaches them (`SanctumPulse`, called from `TickZones`; `SanctumLook.cs` draws the bubble)
+- `HallowedBlade.cs`: the Healer Knight's Hallowed Blade ultimate once it lands: a planted `ZoneKind.HallowedBlade` zone (ring heals allies and burns enemies) plus an arena-wide pulse every 2 s at a third of the ring's strength (`HallowedPulse`, called from `TickZones`; `HallowedBladeLook.cs` draws the sword, beam and ripples, and the falling sword)
 - `Aegis.cs`: the Elementalist tank's Aeroaegis vortex (goes to the player the cursor is nearest, enemies held out; `AeroaegisLook.cs` draws it)
 - `Dome.cs`: the Tank Soldier's Fortress dome (enemies and their shots held out, `DomeLook.cs` draws it)
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs`: parry shield, stun, knockback slides, repulsion cannon
@@ -56,7 +57,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Enemies and bosses (Core)
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
-- `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Swarmer and the Spike Block's lunge
+- `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Spiker and the Spike Block's lunge
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies

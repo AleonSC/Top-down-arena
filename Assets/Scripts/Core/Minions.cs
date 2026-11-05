@@ -161,8 +161,8 @@ namespace Arena
                 Companion = MinionKind.Wisp, CompanionCount = 3,
                 Sound = Sfx.SpellArcane, HomingDesc = "wisps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
             new WeaponDef { Id = WeaponId.ImpCaller, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2, BotRange = 380f, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f,
-                Desc = "An imp arrives every 3 s (up to 3) and waits by you. Tap fire to send them all charging at your cursor to explode (45 each); hold to merge them into one big imp whose blast is bigger than theirs put together.",
-                Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f,
+                Desc = "An imp arrives every second (up to 5) and waits by you. Tap fire to send one charging at your cursor to explode (45); hold to merge them all into one big imp whose blast is bigger than theirs put together.",
+                Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
                 HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
         };
 
@@ -882,11 +882,13 @@ namespace Arena
                         q.Revive += dt / D(DiffKnob.ReviveTime) * (d.ReviveBoost + z.ExtraRevive);  // on top of the normal revive
                         q.ReviveBy = z.Owner;
                     }
-                    else if (d.HealRate > 0f)
+                    else if (d.HealRate > 0f && !HallowedSpent(z))
                         Heal(q, d.HealRate * z.HealMult * (d.ReviveBoost > 0f && Players.Count == 1 ? SoloZoneHeal : 1f) * dt, PlayerOrNull(z.Owner));  // alone, nobody to revive: heals faster
                 }
                 if (z.Kind == ZoneKind.Sanctum)
                     SanctumPulse(z, dt);  // Sanctum.cs
+                if (z.Kind == ZoneKind.HallowedBlade)
+                    HallowedPulse(z, dt);  // HallowedBlade.cs
                 if (z.Kind == ZoneKind.Grove)
                     WorldTreeWave(z, dt);  // WorldTree.cs
                 if (z.Kind == ZoneKind.BloodPool && !z.Congealed && z.Duration - z.T >= PoolCongeal)
@@ -896,7 +898,7 @@ namespace Arena
                     {
                         if (e.SpawnT > 0f || e.Pos.DistanceTo(z.Pos) > z.Radius + e.Radius)
                             continue;
-                        if (d.Dps > 0f)
+                        if (d.Dps > 0f && !HallowedSpent(z))
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
                         if (z.Kind == ZoneKind.BulletRain)
                             e.WetT = Math.Max(e.WetT, BulletRainWetTime);  // soaked: slowed, and lightning arcs to it (Tsunami.cs)
@@ -924,9 +926,9 @@ namespace Arena
                     Player caster;
                     if (z.Consecrates && Players.TryGetValue(z.Owner, out caster))
                     {
-                        var holy = AddZone(ZoneKind.Consecrate, caster, z.Pos, z.Radius, 8f);
+                        var holy = AddZone(ZoneKind.HallowedBlade, caster, z.Pos, z.Radius, HallowedLife);  // the sword stays planted (HallowedBlade.cs)
                         holy.DmgMult = z.DmgMult;
-                        holy.HealMult = z.HealMult * 1.25f;  // 15 HP/s
+                        holy.HealMult = z.HealMult;
                     }
                     if (z.Embers && Players.TryGetValue(z.Owner, out caster))
                     {

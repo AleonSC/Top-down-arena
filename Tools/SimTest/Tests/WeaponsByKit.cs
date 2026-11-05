@@ -139,7 +139,7 @@ static partial class Program
         Check(before > 0f && Math.Abs(crossed - before * Game.TwinCrossMult) < 0.5f, "the Twin Rifle's streams cross at your cursor's distance, and hits there do double");
         // Its barrels are set wide: up close, aiming past a small enemy, the streams go either side of it; and it reaches
         // about 575 px, no further.
-        float close = VolleyAt(from + new V2(70f, 0f), from + new V2(500f, 0f), EnemyType.Swarmer);
+        float close = VolleyAt(from + new V2(70f, 0f), from + new V2(500f, 0f), EnemyType.Spiker);
         float far = Volley(from + new V2(650f, 0f), from + new V2(650f, 0f));
         Console.WriteLine("  twin rifle: a small enemy 70 px away, aiming past it {0:0.0}; a big one 650 px away {1:0.0}", close, far);
         Check(close == 0f && far == 0f, "the Twin Rifle's wide barrels miss a small enemy up close unless you aim at it, and it reaches about 575 px");
@@ -465,14 +465,15 @@ static partial class Program
         // Imp Caller.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ImpCaller);
         Func<int> imps = () => g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Imp && !m.Sent);
-        for (int f = 0; f < 600 && imps() < 3; f++) { me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); play(1f / 60f, new PlayerInput()); }
+        for (int f = 0; f < 600 && imps() < 5; f++) { me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); play(1f / 60f, new PlayerInput()); }
         var target = dummy(from + new V2(240f, 0f));
         me.AimAt = target.Pos;
         me.BowShotDraw = Game.BowMinDraw;
         volley.Invoke(g, new object[] { me, 0f, 0 });
+        int afterTap = imps();  // before the 1 s respawn refills it
         play(1.5f, new PlayerInput { AimAt = target.Pos });
         float tap = target.MaxHp - target.Hp;
-        for (int f = 0; f < 600 && imps() < 3; f++) { me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); play(1f / 60f, new PlayerInput { AimAt = target.Pos }); }
+        for (int f = 0; f < 600 && imps() < 5; f++) { me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); play(1f / 60f, new PlayerInput { AimAt = target.Pos }); }
         float t1 = target.Hp;
         me.BowShotDraw = g.BowFull(me);
         volley.Invoke(g, new object[] { me, 0f, 0 });
@@ -481,8 +482,8 @@ static partial class Program
         int sentCount = g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Imp && m.Sent);
         play(1.5f, new PlayerInput { AimAt = target.Pos });
         float merged = t1 - target.Hp;
-        Console.WriteLine("  imp caller: a tap sent 3 imps for {0:0.0}; a full charge merged them into one (scale {1:0.00}, {2} sent) for {3:0.0}", tap, bigScale, sentCount, merged);
-        Check(tap > 0f && sentCount == 1 && bigScale > 1.2f && merged > tap * 1.1f, "a tap sends the waiting imps at your cursor; a full charge merges them into one bigger blast");
+        Console.WriteLine("  imp caller: a tap sent 1 imp (left {4} waiting) for {0:0.0}; a full charge merged them into one (scale {1:0.00}, {2} sent) for {3:0.0}", tap, bigScale, sentCount, merged, afterTap);
+        Check(tap > 0f && afterTap == 4 && sentCount == 1 && bigScale > 1.2f && merged > tap * 2f, "a tap sends one waiting imp at your cursor; a full charge merges them all into one bigger blast");
         host.Leave(""); client.Leave("");
     }
 

@@ -41,7 +41,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade }
 
     public class ZoneDef
     {
@@ -135,6 +135,7 @@ namespace Arena
             new ZoneDef { Name = "Healing Rain", Color = new Rgba(0.4f, 0.85f, 0.5f), HealRate = 8f, Slow = 0.3f },  // the Healer Elementalist's rain (Docs/HealingRain.md)
             new ZoneDef { Name = "Bullet Rain", Color = new Rgba(0.47f, 0.69f, 0.94f), Dps = 45f },  // the Elementalist DPS ultimate (BulletRainLook.cs)
             new ZoneDef { Name = "Lumen Ward", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 9f },  // a cone of light along the caster's aim (LumenWard.cs): heals inside, enemy bullets outside slow to a stop
+            new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), HealRate = 15f, Dps = 20f },  // the planted sword (HallowedBlade.cs): ring heals allies and burns enemies, and the whole arena gets a weaker pulse
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

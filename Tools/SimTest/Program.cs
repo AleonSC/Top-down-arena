@@ -287,7 +287,7 @@ static partial class Program
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
         Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
-        Test("grunts", "melee grunts: Buzzsaw and Spike Block from wave 5, the zig-zagging Swarmer", () => MeleeGruntsTest(Dt)),
+        Test("grunts", "melee grunts: Buzzsaw and Spike Block from wave 5, the zig-zagging Spiker", () => MeleeGruntsTest(Dt)),
         Test("late", "waves 11-13: new enemies and elites", () => LateGameEnemies(Dt)),
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
