@@ -34,10 +34,13 @@ Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, 
   waypoint with the shortest way round, and keep it for 0.5 s. Bosses don't steer (they only appear on open waves).
 - **Narrow Pass, Tiny Arena, Solid Walls** (`Walled`): the edge wall and the gates drop away; inner walls stay.
 
+- **More enemies**: regular waves with a layout up have 30% more (`LayoutEnemyMult`, `Balance.cs`; applied in `BuildWave`
+  before the party-size and difficulty multipliers).
+
 ## Known limits and ideas
 
 - Bots don't path round walls; they can get stuck behind them.
 - Enemy beams (Beam Sentry) and the Reaver's cone pass through walls.
 - Enemies standing behind a wall still fire (their shots stop at it).
-- No lobby switch to turn layouts off. A Difficulty-tab toggle and a "pick the layout" host option are easy to add.
+- The lobby's Difficulty tab has **Layouts on / off** (`DiffKnob.ArenaLayouts`, a flavour knob like the boss approach: same on every preset, doesn't make a Custom difficulty; protocol 174). A "pick the layout" host option would be easy to add.
 - Gate portals (a gate that leads to a different spot) are for later.

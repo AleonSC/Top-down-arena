@@ -107,6 +107,7 @@ namespace Arena
                 AddShot(MyId, a.Pos, aim, e);  // (at once on our own screen; the host's echo of it is skipped)
                 var w = Proto.Begin(Msg.LobbyFire);
                 w.Write(aim);
+                w.Write(a.Pos);  // (where the shot really left from; the host's copy of us lags a few frames behind)
                 SendToHost(Proto.End(w));
             }
             return true;
@@ -121,7 +122,7 @@ namespace Arena
         }
 
         /// The host: a player fired (a client's message, checked here, or the host's own, already checked).
-        void HostFire(int id, float aim, bool check)
+        void HostFire(int id, float aim, bool check, V2? from = null)
         {
             Avatar a;
             LobbyEntry e;
@@ -136,15 +137,27 @@ namespace Arena
                     return;  // faster than its weapon allows
                 a.NextFire = Math.Max(a.NextFire, now + interval * 0.9);
             }
-            AddShot(id, a.Pos, aim, e);
+            V2 at = TrustedPos(a, from);
+            AddShot(id, at, aim, e);
             if (Net != null)
             {
                 var w = Proto.Begin(Msg.LobbyShot);
                 w.Write(id);
-                w.Write(a.Pos);
+                w.Write(at);
                 w.Write(aim);
                 Broadcast(Proto.End(w));
             }
+        }
+
+        /// Where a client's shot or cast happened: the position it sent when that is close to where the host has it (it is fresher), else the host's.
+        static V2 TrustedPos(Avatar a, V2? claimed)
+        {
+            if (!claimed.HasValue || float.IsNaN(claimed.Value.X) || float.IsNaN(claimed.Value.Y) || float.IsInfinity(claimed.Value.X) || float.IsInfinity(claimed.Value.Y))
+                return a.Pos;
+            V2 p = claimed.Value;
+            if ((p - a.Pos).LengthSq > 200f * 200f)
+                return a.Pos;
+            return new V2(Math.Max(0f, Math.Min(RoomW, p.X)), Math.Max(0f, Math.Min(RoomH, p.Y)));
         }
 
         /// A client: the host says someone fired.
@@ -194,8 +207,10 @@ namespace Arena
                 }
                 else if (kind == LobbyAbilityKind.Barrier)
                     a.BarrierLeft = BarrierTime;
+                Fx.Add(new LobbyFx { Kind = kind, Owner = MyId, Pos = a.Pos, Angle = aim });  // (our own flash at once; the host's echo of it is skipped)
                 var w = Proto.Begin(Msg.LobbyAbility);
                 w.Write(aim);
+                w.Write(a.Pos);
                 SendToHost(Proto.End(w));
             }
             return true;
@@ -212,7 +227,7 @@ namespace Arena
         }
 
         /// The host: a player cast (a client's message, checked here, or the host's own, already checked).
-        void HostAbility(int id, float aim, bool check)
+        void HostAbility(int id, float aim, bool check, V2? from = null)
         {
             Avatar a;
             LobbyEntry e;
@@ -220,6 +235,7 @@ namespace Arena
                 return;
             var kind = AbilityFor(e.Role);
             double now = avatarClock.Elapsed.TotalSeconds;
+            V2 at = TrustedPos(a, from);
             if (check)
             {
                 if (now < a.AbilityReady - 0.1)
@@ -238,7 +254,7 @@ namespace Arena
                 foreach (var kv in Avatars)
                 {
                     var t = kv.Value;
-                    if (!t.Pvp || (t.Pos - a.Pos).LengthSq > HealRadius * HealRadius)
+                    if (!t.Pvp || (t.Pos - at).LengthSq > HealRadius * HealRadius)
                         continue;
                     if (t.Hp <= 0f)  // knocked out: back up at once, with the heal as their health
                     {
@@ -252,13 +268,13 @@ namespace Arena
                     avatarsDirty = true;
                 }
             }
-            Fx.Add(new LobbyFx { Kind = kind, Owner = id, Pos = a.Pos, Angle = aim });
+            Fx.Add(new LobbyFx { Kind = kind, Owner = id, Pos = at, Angle = aim });
             if (Net != null)
             {
                 var w = Proto.Begin(Msg.LobbyAbility);
                 w.Write(id);
                 w.Write((byte)kind);
-                w.Write(a.Pos);
+                w.Write(at);
                 w.Write(aim);
                 Broadcast(Proto.End(w));
             }
@@ -274,7 +290,9 @@ namespace Arena
             Avatar a;
             if (kind > (byte)LobbyAbilityKind.BurstHeal || !Avatars.TryGetValue(owner, out a) || float.IsNaN(aim) || float.IsInfinity(aim) || float.IsNaN(pos.X) || float.IsNaN(pos.Y))
                 return;
-            if (kind == (byte)LobbyAbilityKind.Barrier && owner != MyId)
+            if (owner == MyId)
+                return;  // (we drew our own at once, and started our own barrier)
+            if (kind == (byte)LobbyAbilityKind.Barrier)
                 a.BarrierLeft = BarrierTime;
             Fx.Add(new LobbyFx { Kind = (LobbyAbilityKind)kind, Owner = owner, Pos = pos, Angle = aim });
         }

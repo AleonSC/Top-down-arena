@@ -145,7 +145,7 @@ namespace Arena
                     {
                         float a = aim + (i == 0 ? 0f : (i % 2 == 1 ? 1f : -1f) * 0.07f * ((i + 1) / 2));
                         var b = SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
-                        b.ShadowKunai = i == 0 && ++p.KunaiCount % KunaiShadowEvery == 0;  // every few throws, one leaves a mark to blink to
+                        b.ShadowKunai = i == 0 && ++p.KunaiCount % KunaiShadowEvery == 0;  // every throw: one leaves a mark to blink to
                     }
                     break;
                 }
@@ -275,8 +275,8 @@ namespace Arena
                 Desc = "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; press your weapon-action key (Left Alt by default) to recall them sooner." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
-            new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
-                Desc = "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: press your weapon-action key (Left Alt by default) to blink there, and your next hit lands double." },
+            new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 30f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f,
+                Desc = "Slow, heavy throwing knives, +50% damage to enemies that aren't targeting you. Every throw is a shadow kunai that leaves a mark where it lands: press your weapon-action key (Left Alt by default) to blink there, and your next hit lands double." },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
@@ -797,7 +797,7 @@ namespace Arena
 
         // --- Kunai: the shadow kunai ---------------------------------------------------------------
 
-        public const int KunaiShadowEvery = 4;
+        public const int KunaiShadowEvery = 1;
         public const float KunaiAmbush = 1.5f;  // after a blink, your next hit within this long lands double
         public const float KunaiMarkTime = 3f;  // the mark lasts this long; the weapon-action key blinks you to it
 

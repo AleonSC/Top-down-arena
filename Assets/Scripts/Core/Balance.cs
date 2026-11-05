@@ -20,6 +20,7 @@ namespace Arena
     {
         // --- Waves ---------------------------------------------------------------------------------------------------
 
+        public const float LayoutEnemyMult = 1.3f;  // regular waves with an arena layout (Layouts.cs) have 30% more enemies: walls and gates make them predictable, so there is room for more
         const float StartDelay = 3f;
         public const float IntermissionTime = 4f;
         public const int MaxWave = 50;

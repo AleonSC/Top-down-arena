@@ -96,6 +96,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Minions.cs` | 0.93k | Elementalist and Summoner abilities (`KitAbility`), minions (`SpawnMinion`, `TickMinions`) and ground zones (`AddZone`, `TickZones`) |
 | `KitWeapons.cs` | 0.93k | Elementalist and Summoner weapons (`FireKitWeapon`) and what they leave behind: bleeds, chain lightning, seeds and vines, sent minions, orbiters, refraction, ion trails, the wolf pack, arc fields, light cones, bone cages, boulders, shocks |
 | `Knight.cs` | 0.6k | Knight melee: swings (`Swing`, `LandSwing`, Lance box), sword waves, Knight abilities |
+| `GuardiansOath.cs` | 0.1k | the Healer Knight's Guardian's Oath: `LocalOathCharge` (your own game dashes to the player nearest the cursor), `OathCast`/`TickOath` (host: grab, `KnockPlayer` pull, a downed ally carried with `MovePlayer`, then the `ZoneKind.OathWard` with `DamageCut` 0.5 and `ExtraRevive`); the Bulwark upgrade adds `OathCut` |
 | `Ultimates.cs` | 0.15k | the 12 ultimates |
 | `Mastery.cs` | 0.2k | ability XP/levels and capstone helpers (capstone texts are in each `AbilityDef`) |
 | `Knock.cs` | 0.05k | pushes slide: `KnockEnemy(e, delta)` (every shove goes through it), `TickKnock` (from `TickEnemies`); a `FxKind.Knock` draws the streak and dust (`WorldEffects.DrawKnockFx`) |
@@ -140,6 +141,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `BuildPower.cs` | 0.1k | boss health that keeps up with strong builds (a build's power vs a typical build at that wave) |
 | `Duelist.cs`, `Lich.cs`, `Herald.cs`, `Devourer.cs` | 0.64-0.82k each | the three-stage Duelist (wave 30), Lich (35), Storm Herald (40) and Devourer (45): stage, turns, synced state |
 | `Stun.cs`, `QueenLoot.cs`, `ReaperLoot.cs` | 0.26-0.28k each | boss legendaries: the Warden's (Stun Gun, Warden's Guard), the Queen's (Hive Drones, Royal Dive, Bomber Escort), the Reapers' (Twin Scythes, Final Reap, Scythe Throw) |
+| `HolyCross.cs` | ~0.1k | the Healer Knight's Consecrate: a growing Holy Cross (heals + `SwiftT` speed for allies; damage, slow, knockback for enemies); `ZoneKind.Consecrate` is no longer cast (kept so numbers don't shift); look in `Game/HolyCrossLook.cs` |
 | `RadiantOrb.cs`, `Repulsion.cs`, `SoulGhost.cs` | <0.1k each | the Elementalist Healer's Radiant Orb, the Soldier Healer's Repulsion Cannon, Soul Link's ghost (retired: nothing casts it any more) |
 | `WorldTree.cs` | <0.1k | the Healer Summoner's World Tree: waves of `MinionKind.Butterfly` (one per ally, ally id in `Minion.LinkTo`, `Launch` = stagger delay, `Vel` = velocity) flutter to allies and heal on arrival; the zone (`ZoneKind.Grove`, 100 px, 15 s) is cast in `Ultimates.cs`; `Game/WorldTreeLook.cs` draws tree and butterflies |
 | `Hydra.cs` | <0.1k | the Summoner DPS's Hydra (replaced Sacrifice): a static `MinionKind.Hydra` that rises at the cursor, its heads spit venom at the 1st, 2nd, 3rd nearest enemies; head count rides in `Minion.LinkTo`; `Game/HydraLook.cs` draws it |

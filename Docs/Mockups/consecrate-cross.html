@@ -1,0 +1,266 @@
+<title>Consecrate Cross Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ability stage (canvas, Current/Proposed toggle, replay, slow-mo), then beats, numbers and open questions.
+   Colour: holy gold on a dark arena; speed boost shown in a cool cyan so the two effects read apart.
+   Type: Barlow Condensed display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#f1eee6; --fg:#241f14; --muted:#6a6150; --panel:#fbf9f3; --line:#d9d2c0;
+  --holy:#b7791f; --speed:#0e7f95; --chip:#e7e1d1; --chip-on:#241f14; --chip-on-fg:#f6f2e8;
+  --arena:#14171c;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12100c; --fg:#ece6d6; --muted:#a39a85; --panel:#1a1710; --line:#2f2a1d;
+  --holy:#f2c25a; --speed:#4fd0e6; --chip:#272216; --chip-on:#ece6d6; --chip-on-fg:#12100c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12100c; --fg:#ece6d6; --muted:#a39a85; --panel:#1a1710; --line:#2f2a1d;
+  --holy:#f2c25a; --speed:#4fd0e6; --chip:#272216; --chip-on:#ece6d6; --chip-on-fg:#12100c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 10px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+header p{margin:0;max-width:62ch;color:var(--muted)}
+.kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--holy);margin-bottom:8px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#d9d3c0;opacity:.9;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 20px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-size:14px}
+td.new{color:var(--holy);font-weight:600}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:70ch}
+li::marker{color:var(--holy)}
+@media (prefers-reduced-motion:reduce){canvas{cursor:default}}
+</style>
+
+<main>
+<header>
+  <div class="kicker">Healer Knight · Mockup</div>
+  <h1>Consecrate, reworked</h1>
+  <p>Instead of blessing the ground at your feet, you throw a Holy Cross. It leaves you in a straight line, grows as it travels, and heals and hastens every ally it passes through.</p>
+</header>
+
+<section class="stage" aria-labelledby="stage-h">
+  <h2 id="stage-h">See it in motion</h2>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Version">
+      <input type="radio" name="mode" id="m-new" value="new" checked><label for="m-new">Proposed: Holy Cross</label>
+      <input type="radio" name="mode" id="m-old" value="old"><label for="m-old">Current: blessed ground</label>
+    </div>
+    <button id="replay" type="button">Replay</button>
+    <button id="slow" type="button" aria-pressed="false">Slow-mo: off</button>
+  </div>
+  <div class="frame">
+    <canvas id="c" width="720" height="400" aria-label="Animated preview of the Consecrate ability"></canvas>
+    <div class="hud" id="hud"></div>
+  </div>
+  <div class="hint">Click or tap the arena to aim and recast. The cross flies toward where you click.</div>
+</section>
+
+<section aria-labelledby="beats-h">
+  <h2 id="beats-h">How it plays</h2>
+  <div class="grid">
+    <div class="card"><h3>1. Cast</h3><p>A short flash at your feet, then a small gold cross leaves you toward your cursor. It passes through allies and enemies without stopping.</p></div>
+    <div class="card"><h3>2. Grow</h3><p>The cross flies 480 px in 1.2 s. Its arms stretch from 36 px to 156 px and thicken as it goes, so it is easiest to catch an ally late in the flight.</p></div>
+    <div class="card"><h3>3. Bless</h3><p>Each ally the cross touches is healed once and gets <b>Swiftness</b> for 4 s: a cyan afterimage trail and faster movement. Hitting several allies at once is the point.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="num-h">
+  <h2 id="num-h">Proposed numbers</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Stat</th><th>Current</th><th>Proposed</th></tr></thead>
+    <tbody>
+      <tr><td>Shape</td><td>Circle of ground, 130 px radius</td><td class="new">Cross, grows from 36 to 156 px arms</td></tr>
+      <tr><td>Movement</td><td>Stays put (Follow for captain)</td><td class="new">Travels 480 px in a line</td></tr>
+      <tr><td>Heal</td><td class="n">12 HP/s for 6 s (72 total, if you stay)</td><td class="new n">35 HP once per ally</td></tr>
+      <tr><td>Buff</td><td>None</td><td class="new n">+30% move speed for 4 s</td></tr>
+      <tr><td>Enemies</td><td class="n">Burn for 20/s</td><td class="new">Not affected (see questions)</td></tr>
+      <tr><td>Cooldown</td><td class="n">14 s</td><td class="n">14 s</td></tr>
+      <tr><td>Hits per cast</td><td>Whoever stands inside</td><td class="new">Every ally the cross crosses, once each</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="q-h">
+  <h2 id="q-h">Open questions</h2>
+  <ul>
+    <li><b>Does it heal you?</b> Mockup says no, so Lay on Hands and your weapon stay your self-heals. Half heal for the caster is an easy change.</li>
+    <li><b>Should it hurt enemies?</b> The old zone burned them. A pure support cross is simpler, but a small 25 damage per enemy would keep some of that role.</li>
+    <li><b>Sacred Ground upgrade.</b> Today it makes the zone 40% bigger and 3 s longer. It could become 40% longer range and 2 s more Swiftness.</li>
+    <li><b>Hallowed Blade capstone.</b> The giant sword uses the same blessed ground. It should keep its own zone and not change.</li>
+    <li><b>Captain (Follow) version.</b> The cross could split into three at 20 degrees apart.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(function(){
+  var cv=document.getElementById('c'),ctx=cv.getContext('2d'),hud=document.getElementById('hud');
+  var W=720,H=400,P={x:110,y:200};
+  var mode='new',slow=false,aim=0,t=0,last=0,hold=0;
+  var RANGE=480,TRAVEL=1.2,ZONE_T=6,BUFF=4;
+  var allies,ens;
+  function reset(){
+    t=0;hold=0;
+    allies=[
+      {n:'Mira',x:330,y:182,hp:38,max:100,sh:38,b:0,c:'#6aa8ff',hit:false,ph:0,hx:330,hy:182},
+      {n:'Odo',x:520,y:226,hp:52,max:100,sh:52,b:0,c:'#7be08a',hit:false,ph:1.6,hx:520,hy:226},
+      {n:'Kes',x:400,y:48,hp:45,max:100,sh:45,b:0,c:'#c79bff',hit:false,ph:3.1,hx:400,hy:48},
+      {n:'Fen',x:196,y:286,hp:30,max:100,sh:30,b:0,c:'#ffb36b',hit:false,ph:4.4,hx:196,hy:286}
+    ];
+    ens=[{x:610,y:110},{x:640,y:300},{x:470,y:340}];
+    pops=[];trail=[];
+  }
+  var pops=[],trail=[];
+  function ease(x){x=Math.max(0,Math.min(1,x));return 1-Math.pow(1-x,2.2)}
+  function cross(){
+    var d=RANGE*ease(t/TRAVEL),g=d/RANGE;
+    return {x:P.x+Math.cos(aim)*d,y:P.y+Math.sin(aim)*d,arm:36+120*g,hw:7+9*g,a:t>TRAVEL-.25?Math.max(0,(TRAVEL-t)/.25):1,on:t<=TRAVEL};
+  }
+  function inCross(q,c){
+    var dx=q.x-c.x,dy=q.y-c.y,ca=Math.cos(aim),sa=Math.sin(aim);
+    var u=dx*ca+dy*sa,v=-dx*sa+dy*ca,r=13;
+    return (Math.abs(u)<=c.arm+r&&Math.abs(v)<=c.hw+r)||(Math.abs(v)<=c.arm+r&&Math.abs(u)<=c.hw+r);
+  }
+  function step(dt){
+    t+=dt;
+    allies.forEach(function(a){
+      a.ph+=dt;
+      if(a.b>0){
+        a.b-=dt;
+        var s=a.b>0?1:0;
+        a.x=a.hx+Math.cos(a.ph*3.4)*38*s;a.y=a.hy+Math.sin(a.ph*3.4)*22*s;
+        if(s)trail.push({x:a.x,y:a.y,c:a.c,l:.35});
+      }else{a.x=a.hx+Math.cos(a.ph*.9)*5;a.y=a.hy+Math.sin(a.ph*1.1)*4}
+      a.sh+=(a.hp-a.sh)*Math.min(1,dt*6);
+    });
+    if(mode==='new'){
+      var c=cross();
+      if(c.on){allies.forEach(function(a){
+        if(!a.hit&&inCross(a,c)){a.hit=true;a.hp=Math.min(a.max,a.hp+35);a.b=BUFF;pops.push({x:a.x,y:a.y-18,t:1.1,s:'+35'})}
+      })}
+    }else if(t<ZONE_T){
+      allies.forEach(function(a){
+        var dx=a.x-P.x,dy=a.y-P.y;
+        if(dx*dx+dy*dy<130*130)a.hp=Math.min(a.max,a.hp+12*dt);
+      });
+    }
+    for(var i=pops.length-1;i>=0;i--){pops[i].t-=dt;pops[i].y-=dt*22;if(pops[i].t<=0)pops.splice(i,1)}
+    for(i=trail.length-1;i>=0;i--){trail[i].l-=dt;if(trail[i].l<=0)trail.splice(i,1)}
+    var end=mode==='new'?TRAVEL+BUFF+.8:ZONE_T+.8;
+    if(t>end){hold+=dt;if(hold>1.2)reset()}
+  }
+  function bar(x,y,w,f,col){
+    ctx.fillStyle='#000a';ctx.fillRect(x,y,w,5);
+    ctx.fillStyle=col;ctx.fillRect(x,y,w*Math.max(0,Math.min(1,f)),5);
+  }
+  function drawCross(c){
+    ctx.save();ctx.translate(c.x,c.y);ctx.rotate(aim);ctx.globalAlpha=c.a;
+    ctx.shadowColor='#ffd266';ctx.shadowBlur=26;
+    var g=ctx.createLinearGradient(-c.arm,0,c.arm,0);
+    g.addColorStop(0,'rgba(255,210,102,.55)');g.addColorStop(.5,'rgba(255,236,170,.95)');g.addColorStop(1,'rgba(255,210,102,.55)');
+    ctx.fillStyle=g;ctx.fillRect(-c.arm,-c.hw,c.arm*2,c.hw*2);
+    var g2=ctx.createLinearGradient(0,-c.arm,0,c.arm);
+    g2.addColorStop(0,'rgba(255,210,102,.55)');g2.addColorStop(.5,'rgba(255,236,170,.95)');g2.addColorStop(1,'rgba(255,210,102,.55)');
+    ctx.fillStyle=g2;ctx.fillRect(-c.hw,-c.arm,c.hw*2,c.arm*2);
+    ctx.shadowBlur=0;ctx.fillStyle='#fffaf0';
+    ctx.fillRect(-c.arm*.9,-c.hw*.28,c.arm*1.8,c.hw*.56);
+    ctx.fillRect(-c.hw*.28,-c.arm*.9,c.hw*.56,c.arm*1.8);
+    ctx.restore();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#14171c';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#1d222a';ctx.lineWidth=1;
+    for(var x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.strokeStyle='#2a2f38';ctx.strokeRect(.5,.5,W-1,H-1);
+    // aim guide
+    if(mode==='new'){
+      ctx.setLineDash([5,7]);ctx.strokeStyle='rgba(242,194,90,.22)';ctx.beginPath();ctx.moveTo(P.x,P.y);
+      ctx.lineTo(P.x+Math.cos(aim)*RANGE,P.y+Math.sin(aim)*RANGE);ctx.stroke();ctx.setLineDash([]);
+    }
+    // current: blessed ground
+    if(mode==='old'&&t<ZONE_T){
+      var a=Math.min(1,(ZONE_T-t)/.6,t/.25+.2),R=130;
+      var rg=ctx.createRadialGradient(P.x,P.y,10,P.x,P.y,R);
+      rg.addColorStop(0,'rgba(255,217,115,'+.28*a+')');rg.addColorStop(1,'rgba(255,217,115,'+.08*a+')');
+      ctx.fillStyle=rg;ctx.beginPath();ctx.arc(P.x,P.y,R,0,7);ctx.fill();
+      ctx.strokeStyle='rgba(255,217,115,'+.7*a+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(P.x,P.y,R,0,7);ctx.stroke();
+      ctx.setLineDash([10,12]);ctx.lineDashOffset=-t*18;ctx.beginPath();ctx.arc(P.x,P.y,R*.8,0,7);ctx.stroke();ctx.setLineDash([]);
+    }
+    // enemies
+    ens.forEach(function(e){
+      ctx.fillStyle='#c44a3a';ctx.beginPath();ctx.moveTo(e.x,e.y-14);ctx.lineTo(e.x+13,e.y+10);ctx.lineTo(e.x-13,e.y+10);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='#ff9b8a';ctx.lineWidth=1.5;ctx.stroke();
+    });
+    // speed trails
+    trail.forEach(function(s){ctx.globalAlpha=Math.max(0,s.l/.35)*.45;ctx.fillStyle='#4fd0e6';ctx.beginPath();ctx.arc(s.x,s.y,12,0,7);ctx.fill()});
+    ctx.globalAlpha=1;
+    // allies
+    allies.forEach(function(a){
+      if(a.b>0){ctx.strokeStyle='rgba(79,208,230,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(a.x,a.y,19,0,7);ctx.stroke()}
+      ctx.fillStyle=a.c;ctx.beginPath();ctx.arc(a.x,a.y,13,0,7);ctx.fill();
+      ctx.strokeStyle='#0008';ctx.lineWidth=2;ctx.stroke();
+      bar(a.x-16,a.y-26,32,a.sh/a.max,'#5ee27a');
+      ctx.fillStyle='#d9d3c0';ctx.font='500 11px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.fillText(a.n,a.x,a.y+28);
+    });
+    // player (healer knight)
+    ctx.save();ctx.translate(P.x,P.y);ctx.rotate(aim);
+    ctx.fillStyle='#e9e2cf';ctx.beginPath();ctx.arc(0,0,15,0,7);ctx.fill();
+    ctx.strokeStyle='#f2c25a';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#f2c25a';ctx.fillRect(8,-3,14,6);
+    ctx.restore();
+    ctx.fillStyle='#d9d3c0';ctx.font='500 11px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.fillText('You',P.x,P.y+31);
+    // cast flash and cross
+    if(mode==='new'){
+      if(t<.3){ctx.strokeStyle='rgba(255,226,140,'+(1-t/.3)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(P.x,P.y,18+t*110,0,7);ctx.stroke()}
+      var c=cross();if(c.a>0&&t<=TRAVEL)drawCross(c);
+    }
+    // pops
+    ctx.font='700 16px Barlow,sans-serif';
+    pops.forEach(function(p){ctx.globalAlpha=Math.min(1,p.t*2);ctx.fillStyle='#7dff95';ctx.fillText(p.s,p.x,p.y);ctx.fillStyle='#4fd0e6';ctx.font='500 10px IBM Plex Mono,monospace';ctx.fillText('SWIFT',p.x,p.y+11);ctx.font='700 16px Barlow,sans-serif'});
+    ctx.globalAlpha=1;
+    var n=allies.filter(function(a){return a.hit}).length;
+    hud.textContent=mode==='new'?'Holy Cross · '+n+' / '+allies.length+' allies blessed':'Blessed ground · '+Math.max(0,ZONE_T-t).toFixed(1)+' s left · stand still to heal';
+  }
+  function loop(ts){
+    var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+    step(dt*(slow?.3:1));draw();requestAnimationFrame(loop);
+  }
+  function start(){reset();aim=0}
+  document.querySelectorAll('input[name=mode]').forEach(function(r){r.addEventListener('change',function(){mode=r.value;reset()})});
+  document.getElementById('replay').addEventListener('click',reset);
+  var sb=document.getElementById('slow');
+  sb.addEventListener('click',function(){slow=!slow;sb.textContent='Slow-mo: '+(slow?'on':'off');sb.setAttribute('aria-pressed',slow)});
+  function aimAt(e){
+    var r=cv.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
+    var x=(p.clientX-r.left)*W/r.width,y=(p.clientY-r.top)*H/r.height;
+    aim=Math.atan2(y-P.y,x-P.x);reset();
+  }
+  cv.addEventListener('pointerdown',aimAt);
+  start();requestAnimationFrame(loop);
+})();
+</script>

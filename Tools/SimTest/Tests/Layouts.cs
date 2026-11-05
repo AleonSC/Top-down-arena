@@ -84,11 +84,37 @@ static partial class Program
         g.LayoutsOn = false; g.Wave = 71; pick.Invoke(g, null);
         Check(g.Layout == LayoutId.Open, "with layouts off it's always the open arena");
         g.LayoutsOn = true;
+        // The lobby's Arena layouts setting: off means the open arena all run, and it survives a save and the network.
+        var offDiff = Difficulty.Of(DifficultyLevel.Hard);
+        offDiff.Set(DiffKnob.ArenaLayouts, 0f);
+        var back = Difficulty.Parse(offDiff.ToText());
+        var ms = new System.IO.MemoryStream();
+        offDiff.Write(new System.IO.BinaryWriter(ms));
+        ms.Position = 0;
+        var sent = Difficulty.Read(new System.IO.BinaryReader(ms));
+        Check(Difficulty.Of(DifficultyLevel.Nightmare)[DiffKnob.ArenaLayouts] >= 0.5f && offDiff.Level == DifficultyLevel.Hard && back[DiffKnob.ArenaLayouts] < 0.5f && sent[DiffKnob.ArenaLayouts] < 0.5f,
+            "the Arena layouts setting is on in every preset, doesn't make a Custom difficulty, and survives saving and sending");
+        var keep = g.Diff;
+        g.Diff = offDiff; g.Wave = 71; pick.Invoke(g, null);
+        Check(g.Layout == LayoutId.Open && !g.LayoutOn, "with Arena layouts off in the lobby, every wave is the open arena");
+        g.Diff = keep;
         g.Wave = 6;
 
         Quiet();
         g.Props.Clear();
         var me = g.Players.Values.First();
+
+        // More enemies on a floor plan than in the open arena.
+        var buildWave = typeof(Game).GetMethod("BuildWave", flags);
+        Func<int> queued = () => ((IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Count
+            + ((IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Cast<object>().Sum(q => ((SquadDef)q).Members.Length);
+        g.Wave = 3;
+        g.DevSetLayout(LayoutId.Open); buildWave.Invoke(g, new object[] { 3 }); int openCount = queued();
+        g.DevSetLayout(LayoutId.Cross); buildWave.Invoke(g, new object[] { 3 }); int laidCount = queued();
+        Console.WriteLine("  wave 3 enemies: {0} open, {1} on a floor plan", openCount, laidCount);
+        Check(laidCount >= openCount * 1.2f && laidCount <= openCount * 1.45f, "a floor plan brings about " + (int)((Game.LayoutEnemyMult - 1f) * 100f) + "% more enemies");
+        Quiet();
+        g.Wave = 6;
 
         // Walls and pillars: you can't walk into them, and no shot gets through (yours or theirs).
         g.DevSetLayout(LayoutId.TwinLanes);

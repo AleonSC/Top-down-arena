@@ -693,15 +693,15 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
-                Name = "Consecrate", Cooldown = 14f, Desc = "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second.",
-                Capstone = "The blessed ground follows you.",
+                Name = "Consecrate", Cooldown = 14f, Desc = "Throw a Holy Cross along your aim. It grows as it flies: allies it crosses heal 35 and run 30% faster for 4 s; enemies take 25, are slowed 40% for 3 s and are knocked back.",
+                Capstone = "Two more crosses fly out at 22 degrees either side (each target is hit once).",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
-                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Shield the ally nearest your cursor for 100 damage (and yourself for 50) for 6 s.",
-                Capstone = "Everyone within 300 px gets the full shield.",
+                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Charge to the player nearest your cursor (up to 600 px), downed or not, and drag them clear. A Ward of Light then cuts damage by half for everyone inside for 5 s, and downed allies in it revive twice as fast.",
+                Capstone = "Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
@@ -786,37 +786,11 @@ namespace Arena
                     return true;
                 case AbilityId.Consecrate:
                 {
-                    var z = AddZone(ZoneKind.Consecrate, p, p.Pos, 130f * s.ConsecrateRadiusMult, 6f + s.ConsecrateBonusTime);
-                    z.Follow = cap;
-                    BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.SpellHoly);
+                    CastHolyCross(p, target, cap, pw);  // HolyCross.cs
                     return true;
                 }
                 case AbilityId.GuardiansOath:
-                {
-                    float shield = 100f * s.OathMult * pw;
-                    Player best = null;
-                    foreach (var q in Players.Values)
-                        if (q.Id != p.Id && !q.Downed && (best == null || q.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
-                            best = q;
-                    foreach (var q in Players.Values)
-                    {
-                        if (q.Downed)
-                            continue;
-                        float amount = q == best || cap && q.Pos.DistanceTo(p.Pos) < 300f ? shield : q == p ? shield * 0.5f : 0f;
-                        if (best == null && q == p)
-                            amount = shield;  // alone: the full shield is yours
-                        if (amount <= 0f)
-                            continue;
-                        q.ShieldHp = Math.Max(q.ShieldHp, amount);
-                        q.ShieldT = 6f;
-                        castHits++;
-                        if (q != p)  // a beam of light to whoever it shields
-                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(1f, 0.9f, 0.5f), 0f, 0.45f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, q.Pos, new Rgba(1f, 0.9f, 0.5f), 45f, 0.4f, Sfx.None);
-                    }
-                    Sounds.Add(Sfx.SpellHoly);
-                    return true;
-                }
+                    return OathCast(p, target, cap);  // GuardiansOath.cs
                 case AbilityId.LayOnHands:
                 {
                     float range = 300f * (1f + 0.5f * (s.LayMult - 1f));
@@ -942,6 +916,7 @@ namespace Arena
         /// Host, every tick: Knight buffs run down, Whirlwind spins, Leap Slams land.
         void TickKnights(float dt)
         {
+            TickOath(dt);  // GuardiansOath.cs
             foreach (var p in Players.Values)
             {
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);

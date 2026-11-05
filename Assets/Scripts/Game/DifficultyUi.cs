@@ -95,6 +95,18 @@ namespace Arena
                     session.SetDifficultyKnob(DiffKnob.ApproachRamp, 0f);
                 }
             }
+            // Arena layouts (Layouts.cs): on or off for the whole run, beside the approach picks.
+            {
+                var slot = new Rect(x + colW + colGap, y + rows * rowH + 4f, colW, 24f);
+                bool on = diff[DiffKnob.ArenaLayouts] >= 0.5f;
+                float bw = (colW - 8f) / 2f;
+                if (slot.Contains(Event.current.mousePosition))
+                    hoverDesc = "Arena layouts: " + Difficulty.Knobs[(int)DiffKnob.ArenaLayouts].Desc;
+                if (Ui.Choice(new Rect(slot.x, slot.y, bw, slot.height), "Layouts on", on, ApproachColor, null, null, 12, glow: false) && canEdit && !on)
+                    session.SetDifficultyKnob(DiffKnob.ArenaLayouts, 1f);
+                if (Ui.Choice(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Layouts off", !on, ApproachColor, null, null, 12, glow: false) && canEdit && on)
+                    session.SetDifficultyKnob(DiffKnob.ArenaLayouts, 0f);
+            }
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? Ui.Text : Ui.Muted);
         }
 
