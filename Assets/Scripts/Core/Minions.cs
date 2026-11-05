@@ -161,8 +161,8 @@ namespace Arena
                 Companion = MinionKind.Wisp, CompanionCount = 3,
                 Sound = Sfx.SpellArcane, HomingDesc = "wisps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
             new WeaponDef { Id = WeaponId.ImpCaller, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2, BotRange = 380f, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f,
-                Desc = "An imp arrives every 3 s (up to 3) and waits by you. Tap fire to send them all charging at your cursor to explode (45 each); hold to merge them into one big imp whose blast is bigger than theirs put together.",
-                Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f,
+                Desc = "An imp arrives every second (up to 5) and waits by you. Tap fire to send one charging at your cursor to explode (45); hold to merge them all into one big imp whose blast is bigger than theirs put together.",
+                Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
                 HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
         };
 

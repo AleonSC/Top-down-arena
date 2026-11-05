@@ -422,8 +422,8 @@ namespace Arena
             p.Run.ShotsFired++;
         }
 
-        /// The Imp Caller: every imp waiting by you charges at what you're aiming at. Held to full charge (with two
-        /// or more waiting), they merge first into one big imp whose blast is all of theirs and then some.
+        /// The Imp Caller: a tap sends one imp waiting by you charging at what you're aiming at. Held to full charge
+        /// (with two or more waiting), they all merge first into one big imp whose blast is all of theirs and then some.
         void SendImps(Player p, float charge)
         {
             var idle = new List<Minion>();
@@ -441,6 +441,12 @@ namespace Arena
                     Minions.Remove(idle[i].Id);
                 BroadcastFx(FxKind.Ring, big.Pos, big.Def.Color, 30f * big.Scale, 0.3f, Sfx.Ability);
                 idle.RemoveRange(1, idle.Count - 1);
+            }
+            else
+            {
+                var one = idle[0];  // a tap sends the oldest waiting imp
+                idle.Clear();
+                idle.Add(one);
             }
             foreach (var m in idle)
                 PickGoal(p, m, ImpReach * PierceReach(p));
