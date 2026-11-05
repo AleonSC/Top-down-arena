@@ -165,9 +165,9 @@ static partial class Program
         // Sanctuary: 20% fewer enemies, healing pools, and the safe path's prize.
         g.CurrentPath = PathId.None; g.Wave = 7;
         build.Invoke(g, new object[] { 7 });
-        // Count spawn rolls, not heads: swarmers come in random pairs.
+        // Count spawn rolls, not heads: spikers come in pairs and swarmers in fours.
         var squadField = typeof(Game).GetField("squadQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        Func<int> Rolls = () => { var q = (List<EnemyType>)queueField.GetValue(g); return q.Count - q.Count(t => t == EnemyType.Swarmer) / 2 + ((List<SquadDef>)squadField.GetValue(g)).Sum(sq => sq.Members.Length); };  // and the squads (Variety.cs)
+        Func<int> Rolls = () => { var q = (List<EnemyType>)queueField.GetValue(g); return q.Count - q.Count(t => t == EnemyType.Spiker) / 2 - q.Count(t => t == EnemyType.Swarmer) * 3 / 4 + ((List<SquadDef>)squadField.GetValue(g)).Sum(sq => sq.Members.Length); };  // and the squads (Variety.cs)
         int plain = Rolls();
         g.CurrentPath = PathId.Sanctuary;
         build.Invoke(g, new object[] { 7 });

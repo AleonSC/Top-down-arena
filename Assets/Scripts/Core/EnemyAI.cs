@@ -157,7 +157,8 @@ namespace Arena
                 return;  // Zombie Infection: a horde instead (Zombies.cs)
             // The first waves are melee rushers; shooters take over a little more each wave until
             // the melee are gone by wave 13.
-            var melee = new List<EnemyType> { EnemyType.Swarmer };
+            var melee = new List<EnemyType> { EnemyType.Swarmer };  // the first waves: packs of plain Swarmers
+            if (n >= 2) melee.Add(EnemyType.Spiker);
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
             if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
@@ -175,8 +176,14 @@ namespace Arena
                 {
                     var type = melee[rng.Next(melee.Count)];
                     spawnQueue.Add(type);
-                    if (type == EnemyType.Swarmer)
-                        spawnQueue.Add(type);  // swarmers come in pairs
+                    if (type == EnemyType.Spiker)
+                        spawnQueue.Add(type);  // spikers come in pairs
+                    else if (type == EnemyType.Swarmer)
+                    {
+                        spawnQueue.Add(type);  // swarmers come in packs of four
+                        spawnQueue.Add(type);
+                        spawnQueue.Add(type);
+                    }
                 }
                 else
                     spawnQueue.Add(pool[rng.Next(pool.Count)]);
@@ -694,8 +701,8 @@ namespace Arena
                     else
                         v = e.Waypoint - e.Pos;
                     break;
-                case EnemyType.Swarmer:  // heads for you in a zig-zag (MeleeGrunts.cs)
-                    v = SwarmerMove(e, dir, dist, dt);
+                case EnemyType.Spiker:  // heads for you in a zig-zag (MeleeGrunts.cs)
+                    v = SpikerMove(e, dir, dist, dt);
                     break;
                 case EnemyType.Buzzsaw:  // swoops in on curves, steering with momentum
                     e.Vel += (dir - e.Vel) * Math.Min(1f, dt * SawTurn);
@@ -711,6 +718,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Brute:
+                case EnemyType.Swarmer:  // no tricks: straight at you
                     v = dir;
                     break;
                 case EnemyType.Lunger:

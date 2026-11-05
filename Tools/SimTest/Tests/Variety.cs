@@ -29,7 +29,7 @@ static partial class Program
             buildWave.Invoke(g, new object[] { w });
             var squads = (List<SquadDef>)squadField.GetValue(g);
             var singles = (List<EnemyType>)queueField.GetValue(g);
-            int members = squads.Sum(q => q.Members.Length), total = members + singles.Count(t => t != EnemyType.Swarmer) + singles.Count(t => t == EnemyType.Swarmer);
+            int members = squads.Sum(q => q.Members.Length), total = members + singles.Count(t => t != EnemyType.Spiker) + singles.Count(t => t == EnemyType.Spiker);
             float share = total > 0 ? members / (float)total : 0f;
             Console.WriteLine("  wave {0}: {1} squads ({2}), {3} of {4} enemies in squads", w, squads.Count, string.Join(", ", squads.Select(q => q.Name)), members, total);
             tried++;
