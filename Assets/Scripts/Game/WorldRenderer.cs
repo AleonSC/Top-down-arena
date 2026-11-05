@@ -310,6 +310,8 @@ namespace Arena
                 DrawBloodShellOn(p, t);
             else if (p.ShieldHp > 0f && !(fxOn && p.EnergyMax > 0f))  // Energy Ward, the plain ring (the bubble is EnergyWardLook.cs)
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
+            if (p.LegionT > 0f)  // Legion: the blood moon (LegionLook.cs)
+                DrawBloodMoon(p, t);
             if (p.FrenzyT > 0f)  // Alpha Call
                 Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
             if (p.ParryActive)

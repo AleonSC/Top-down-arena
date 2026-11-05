@@ -191,11 +191,14 @@ namespace Arena
                 float ca = 1f - Mathf.Clamp01(k1 * 2.5f);
                 if (ca > 0f)  // what was in the box fades out as the box closes up
                 {
-                    GUI.BeginGroup(r);
+                    // Draw it at full size, scaled down with the box so nothing gets cut off.
+                    var oldMatrix = GUI.matrix;
+                    GUI.matrix = Matrix4x4.TRS(new Vector3(offX + r.x * scale, offY + r.y * scale, 0f), Quaternion.identity,
+                        new Vector3(scale * r.width / R.width, scale * r.height / R.height, 1f));
                     var inner = new Rect(0f, 0f, R.width, R.height);
                     int ii = i;
                     WithAlpha(ca, () => DrawWhoBoxStatic(ii, inner, t));
-                    GUI.EndGroup();
+                    GUI.matrix = oldMatrix;
                 }
                 dotAt[i] = r.center;
                 dotCol[i] = col;

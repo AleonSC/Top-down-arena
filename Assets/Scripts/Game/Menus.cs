@@ -13,18 +13,19 @@ namespace Arena
         // button over Join game, Records and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect). The tip
         // box (DrawMenuTipBox, MenuTip, HowToTips) is parked: nothing draws it for now. Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
-        // under the box. Quit is a faint power icon at the bottom right of the screen. The port is in Settings (Gameplay).
+        // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
         const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
         static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra)
         static readonly Rect MenuPlayerRect = new Rect(W / 2f - 310f, MenuCard.yMax + 22f, 620f, 64f);  // your player card, under the box
-        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 40f, 620f, 156f);  // the Play button
-        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 212f, 194f, 64f);
-        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 212f, 194f, 64f);
-        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 212f, 194f, 64f);
+        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
+        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 194f, 64f);
+        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 224f, 194f, 64f);
+        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 224f, 194f, 64f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
-        static readonly Rect MenuQuitRect = new Rect(W - 72f, H - 66f, 48f, 48f);  // bottom right
+        static readonly Rect MenuHeaderRect = new Rect(MenuCard.x + 30f, MenuCard.y + 10f, 488f, 44f);  // the header screen (same spot as the picker's)
+        static readonly Rect MenuQuitKey = new Rect(MenuCard.xMax - 30f - 120f, MenuCard.y + 10f, 120f, 44f);  // the Quit key beside it
         bool menuJoinOpen;    // Join opened the address row
         bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
         float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between a scan line is sweeping across the box
@@ -269,6 +270,24 @@ namespace Arena
         /// The box's buttons: Play, Join game, Records and Settings (each rising in during the intro).
         void DrawMenuButtons(float t, bool live, float name, float host, float join, float cont)
         {
+            if (name > 0f)
+                MenuRise(name, 24f, () =>
+                {
+                    var hs = MenuHeaderRect;
+                    CrtUi.Begin(hs);
+                    bool cursor = !fxReduced && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
+                    CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), "MAIN MENU" + (cursor ? "_" : " "), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
+                    CrtUi.End(hs, Time.unscaledTime, fxReduced);
+                    var qr = MenuQuitKey;
+                    bool quit = MenuVhs.Draw(qr, "TRK 05", live, fxReduced, () =>
+                    {
+                        bool b = Ui.ActionButton(qr, "Quit", false, Ui.Primary, PixelArt.Get("ui_power"), null, 15);
+                        Ui.Fill(new Rect(qr.xMax - 14f, qr.center.y - 3f, 6f, 6f), CrtUi.Ink);   // the lamp
+                        return b;
+                    });
+                    if (live && quit)
+                        Application.Quit();
+                });
             if (host > 0f)
                 MenuRise(host, 60f, () =>
                 {
@@ -312,7 +331,7 @@ namespace Arena
         }
 
         /// What's left outside the box: the "Switch profile" tab under your player card (only while the mouse is over the
-        /// card or the tab), the faint Quit icon at the bottom centre, and the tooltip. live = false draws it only (Repaint),
+        /// card or the tab), and the tooltip. live = false draws it only (Repaint),
         /// for the intro and the move into the lobby.
         float switchProfA;  // 0 to 1: how visible the "Switch profile" button is
 
@@ -340,14 +359,6 @@ namespace Arena
                         StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
                 }
             }
-            // Quit: a see-through power icon that lights up red under the mouse.
-            var q = MenuQuitRect;
-            bool hot = live && q.Contains(Event.current.mousePosition);
-            Ui.Icon(new Rect(q.center.x - 16f, q.center.y - 16f, 32f, 32f), PixelArt.Get("ui_power"), hot ? new Color(1f, 0.45f, 0.5f, 1f) : new Color(0.8f, 0.85f, 1f, 0.6f));
-            if (hot)
-                Ui.Label(new Rect(q.x - 30f, q.y - 14f, q.width + 60f, 14f), "Quit", 12, new Color(1f, 0.6f, 0.65f), TextAnchor.MiddleCenter, true);
-            if (live && Ui.HitArea(q))
-                Application.Quit();
             if (live)
                 DrawTip();
             GUI.EndGroup();

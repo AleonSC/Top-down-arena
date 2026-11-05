@@ -138,6 +138,7 @@ static partial class Program
                     case AbilityId.Phoenix: abilityOk = minions.Contains(MinionKind.Phoenix); break;
                     case AbilityId.SoulLantern: abilityOk = minions.Contains(MinionKind.SoulLantern); break;
                     case AbilityId.BatSwarm: abilityOk = minions.Contains(MinionKind.Bat); break;
+                    case AbilityId.Hydra: abilityOk = minions.Contains(MinionKind.Hydra); break;
                     case AbilityId.AlphaCall: abilityOk = frenzy; break;
                 }
                 bool kitOk = p.Kit == kit && Math.Abs(host.Game.Players[id].MaxHp - p.Def.Hp * Defs.KitHpMult(kit)) < 0.5f
@@ -224,7 +225,7 @@ static partial class Program
                     case AbilityId.Sanctum: effect = Z(ZoneKind.Sanctum) > 0; break;
                     case AbilityId.WorldTree: effect = Z(ZoneKind.Grove) > 0 && M(MinionKind.Sprite) >= 4; break;
                     case AbilityId.BulletRain: effect = Z(ZoneKind.BulletRain) > 0; break;
-                    case AbilityId.Legion: effect = M(MinionKind.Wolf) >= 6 && M(MinionKind.Bat) >= 6; break;
+                    case AbilityId.Legion: effect = M(MinionKind.Wolf) >= 6 && M(MinionKind.Bat) >= 6 && client.Game.Players[id].LegionT > 0f; break;
                 }
                 bool synced = client.Game.Players[id].Slots[Upgrades.UltSlot].Id == ult && ult == Upgrades.Ultimate(hp.Role, kit);
                 Check(used && effect && synced, string.Format("{0} {1}: ultimate {2} works over the network", kit, hp.Def.Name, Upgrades.Ability(ult).Name));

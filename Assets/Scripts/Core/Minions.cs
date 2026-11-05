@@ -219,19 +219,23 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Sacrifice, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Instant = true,
-                Name = "Sacrifice", Cooldown = 10f, Desc = "All your minions explode; your companions return 3 s later.",
-                Capstone = "Double explosion damage, and your companions return at once.",
+                Id = AbilityId.Hydra, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1,
+                Name = "Hydra", Cooldown = 18f, Desc = "A three-headed hydra rises at your cursor for 8 s. Each head picks its own enemy and spits venom at it (10 damage, every 0.6 s per head).",
+                Capstone = "A fourth head.",
+                Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.AlphaCall, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2,
-                Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions frenzy for 6 s: faster, and they attack twice as often.",
+                Name = "Alpha Call", Cooldown = 14f, Desc = "Blood Scent for 6 s: your minions start at 2 stacks, and each bite adds one (up to 5): faster, and quicker bites. At 5 stacks the next bite lunges for triple damage and drops back to 2.",
                 Capstone = "Also summons 3 wolves for 6 s.",
             },
         };
 
         public const float FrostNovaFxTime = 3.3f;
+        // Alpha Call's Blood Scent: stacks per minion, and what each one adds to its speed and attack rate (2 stacks is about the old flat frenzy)
+        public const int ScentStart = 2, ScentMax = 5;
+        public const float ScentSpeedPer = 0.16f, ScentRatePer = 0.5f, ScentLunge = 3f;
 
         void KitAbility(Player p, AbilityId id, V2 target)
         {
@@ -371,19 +375,12 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.7f, 0.5f, 0.95f), 120f, 0.5f, Sfx.Summon);  // the bell toll
                     break;
                 }
-                case AbilityId.Sacrifice:
-                {
-                    var mine = new List<Minion>();
-                    foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id)
-                            mine.Add(m);
-                    foreach (var m in mine)
-                        ExplodeMinion(m, 60f * dmg * (cap ? 2f : 1f), 90f);
-                    p.CompanionCd = cap ? 0f : 3f;
+                case AbilityId.Hydra:
+                    CastHydra(p, target, pw);  // Hydra.cs (mastered: a fourth head)
                     break;
-                }
                 case AbilityId.AlphaCall:
                     p.FrenzyT = 6f * pw;
+                    p.ScentT = 6f * pw;  // Blood Scent: the minions' stacks build while it runs (ScentStart..ScentMax)
                     if (cap)
                         for (int i = 0; i < 3; i++)
                             SpawnMinion(MinionKind.Wolf, p, p.Pos + V2.FromAngle(MathX.Tau * i / 3f) * 30f, 6f);
@@ -529,8 +526,13 @@ namespace Arena
                         m.BlockHp = d.BlockCapacity * m.Scale;  // back on its feet
                 }
                 bool frenzy = owner.FrenzyT > 0f && !m.NoFrenzy;
-                float speed = d.Speed * (frenzy ? 1.6f : 1f);
-                float rate = owner.Stats.FireRateMult * (frenzy ? 2f : 1f);
+                bool scent = owner.ScentT > 0f && !m.NoFrenzy;  // Alpha Call: the frenzy builds with each bite
+                if (scent && m.Stacks < ScentStart)
+                    m.Stacks = ScentStart;
+                else if (!scent && m.Stacks != 0)
+                    m.Stacks = 0;
+                float speed = d.Speed * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
+                float rate = owner.Stats.FireRateMult * (scent ? 1f + ScentRatePer * m.Stacks : frenzy ? 2f : 1f);
                 float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
@@ -539,6 +541,11 @@ namespace Arena
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
                         expired.Add(m);
+                    continue;
+                }
+                if (m.Kind == MinionKind.Hydra)
+                {
+                    TickHydra(m, dmg);  // Hydra.cs
                     continue;
                 }
                 if (m.Kind == MinionKind.HiveDrone)
@@ -571,6 +578,15 @@ namespace Arena
                     if (MoveSent(m, owner, dt))  // sent at something by the Wisp Lantern or Imp Caller (they don't act on their own)
                         exploding.Add(m);
                     m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
+
+                if (m.Hold > 0f)  // Legion's pack circles its owner before it is let loose
+                {
+                    m.Hold -= dt;
+                    m.Ang += 7f * dt;
+                    float ring = m.Kind == MinionKind.Wolf ? LegionRing : LegionRing * 0.65f;
+                    m.Pos += (owner.Pos + V2.FromAngle(m.Ang) * ring - m.Pos).LimitLength(900f * dt);
                     continue;
                 }
 
@@ -677,6 +693,17 @@ namespace Arena
                             HurtEnemy(e, dmg, m.Owner);
                             if (m.Kind == MinionKind.Bat && m.BiteN++ % 2 == 0)  // a crescent slash across the prey (Game/BatLook.cs draws the bat)
                                 BroadcastFx(FxKind.Slash, m.Pos, e.Pos, new Rgba(0.85f, 0.7f, 1f), 0.9f, 0.2f, Sfx.None);
+                            if (scent)
+                            {
+                                if (m.Stacks >= ScentMax)  // a full stack lunges: triple damage in all, then back to 2
+                                {
+                                    HurtEnemy(e, dmg * (ScentLunge - 1f), m.Owner);
+                                    m.Stacks = ScentStart;
+                                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.95f, 0.15f, 0.2f), 48f, 0.35f, Sfx.None);
+                                }
+                                else
+                                    m.Stacks++;
+                            }
                             if (m.Kind == MinionKind.Wolf)
                                 PackBite(owner, m, e);
                             // Bear Totem's extra projectiles: the bear's bites also hit enemies around its target.

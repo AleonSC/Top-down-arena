@@ -416,6 +416,7 @@ namespace Arena
             s.Int(ref p.LinkTo);
             s.Float(ref p.AegisT);
             s.Float(ref p.FrenzyT);
+            s.Float(ref p.LegionT);
             s.Float(ref p.UltT);
             s.Float(ref p.DomeT);
             s.Vec(ref p.DomePos);
@@ -652,7 +653,7 @@ namespace Arena
         /// A minion; returns its id. Reading, a new id brings a new minion.
         int SyncMinion(NetSync s, Minion m)
         {
-            int id = 0, kind = 0, owner = 0, link = 0;
+            int id = 0, kind = 0, owner = 0, link = 0, stacks = 0;
             V2 pos = default(V2);
             float aim = 0f, t = 0f, duration = 0f, guard = 0f, scale = 0f;
             if (!s.Reading)
@@ -669,6 +670,7 @@ namespace Arena
                 guard = m.GuardFrac;
                 scale = m.Scale;
                 link = m.LinkTo;
+                stacks = m.Stacks;
             }
             s.Int(ref id);
             s.Byte(ref kind);
@@ -680,6 +682,7 @@ namespace Arena
             s.Float(ref guard);
             s.Float(ref scale);
             s.Int(ref link);
+            s.Byte(ref stacks);
             if (s.Reading)
             {
                 if (!Minions.TryGetValue(id, out m))
@@ -694,6 +697,7 @@ namespace Arena
                 m.GuardFrac = guard;
                 m.Scale = scale;
                 m.LinkTo = link;
+                m.Stacks = stacks;
             }
             return id;
         }

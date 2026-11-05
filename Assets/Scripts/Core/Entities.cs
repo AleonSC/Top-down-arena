@@ -81,6 +81,8 @@ namespace Arena
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, FrenzyT;  // Arcane Aegis, Alpha Call
+        public float LegionT;          // replicated: seconds of Legion's Blood Moon left (Ultimates.cs, Game/LegionLook.cs)
+        public float ScentT;           // host: Alpha Call's Blood Scent, which makes the frenzy build with each bite (Legion's frenzy stays flat)
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
@@ -396,6 +398,8 @@ namespace Arena
         public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's or Soul Ghost's health, and its contact-damage cooldown
         public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
+        public float Hold;               // host: Legion's pack circles its owner this many seconds before it is let loose
+        public int Stacks;               // replicated: Alpha Call's Blood Scent stacks, 0 when not in it (2..5)
         public bool NoFrenzy;            // host: Legion's pack, which doesn't frenzy (the frenzy is for your other minions)
         public MinionDef Def => Kits.Get(Kind);
         public bool Sent;                // host: a Wisp Lantern wisp or Imp Caller imp sent out at something
@@ -407,6 +411,7 @@ namespace Arena
         public int LinkTo;               // replicated: the player a Soul Lantern is linked to (SoulLantern.cs)
         public float Launch;             // host: a Bat Swarm bat circles its owner this long before it dives (BatSwarm in Minions.cs)
         public int BiteN;                // host: a Bat Swarm bat's bites so far (every other one shows a slash)
+        public int Head;                 // host: a Hydra's next head to spit (Hydra.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 
