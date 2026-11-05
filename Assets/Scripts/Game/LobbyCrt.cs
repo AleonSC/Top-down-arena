@@ -9,7 +9,7 @@ namespace Arena
     ///   Over everything (DrawLobbyCrtGlass): the dark corners, a glass highlight, a rounded bezel and now and then a flicker.
     /// New run (StartNewRun) plays about 3.6 s, and any key or click after half a second skips to the end:
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
-    ///   0.4 s   that screen grows from its own edges to the whole window, going from green to cyan
+    ///   0.4 s   that screen grows from its own edges to the whole window, going from blue to cyan
     ///   0.6 s   a link log types itself in the middle (player, loadout, opening lobby), fading out by 2.3 s
     ///   2.0 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
@@ -18,11 +18,11 @@ namespace Arena
     {
         public static readonly Color LobbyInk = new Color(0.36f, 0.88f, 1f);
         static readonly Color LobbyBg = new Color(0.008f, 0.063f, 0.10f);
-        const float EnterCrtLen = 3.6f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 2.0f, LobbyCrtBgAlpha = 0.88f;
+        const float EnterCrtLen = 3.6f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 2.0f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 26f, LobbyGlassBezel = 3f;
 
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
-        static Texture2D lobbyScanTex, lobbyGlassTex;
+        static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
         static GUIStyle lobbyGlassStyle;
 
         static void InitLobbyCrt()
@@ -36,6 +36,13 @@ namespace Arena
                 rows[y] = y % 3 == 0 ? new Color(0f, 0f, 0f, 1f) : new Color(0f, 0f, 0f, 0f);
             lobbyScanTex.SetPixels(rows);
             lobbyScanTex.Apply();
+            // Phosphor lines: a faint cyan row every four (stretched like the scanlines).
+            lobbyPhosTex = new Texture2D(1, 720, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
+            var phos = new Color[720];
+            for (int y = 0; y < phos.Length; y++)
+                phos[y] = y % 4 == 0 ? new Color(0.3f, 0.85f, 1f, 1f) : new Color(0.3f, 0.85f, 1f, 0f);
+            lobbyPhosTex.SetPixels(phos);
+            lobbyPhosTex.Apply();
             // The glass frame, meant to be 9-sliced: clear inside a rounded rectangle, dark bezel outside it, a thin rim on the edge.
             const int size = 64;
             lobbyGlassTex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
@@ -91,11 +98,15 @@ namespace Arena
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
             Ui.Fill(full, new Color(LobbyBg.r, LobbyBg.g, LobbyBg.b, LobbyCrtBgAlpha * a));
-            for (int i = 0; i < 6; i++)  // a glow in the middle: stacked, shrinking rects
+            for (int i = 0; i < 16; i++)  // a glow in the middle: stacked, shrinking rects, many and faint so it reads as smooth
             {
-                float m = 0.05f + i * 0.07f;
-                Ui.Fill(new Rect(W * m, H * m, W * (1f - 2f * m), H * (1f - 2f * m)), new Color(0.04f, 0.2f, 0.3f, 0.035f * a));
+                float m = 0.02f + i * 0.028f;
+                Ui.Fill(new Rect(W * m, H * m, W * (1f - 2f * m), H * (1f - 2f * m)), new Color(0.05f, 0.24f, 0.34f, 0.022f * a));
             }
+            var oldC = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.05f * a);
+            GUI.DrawTexture(full, lobbyPhosTex);
+            GUI.color = oldC;
             CrtScanlines(full, a);
             CrtRoll(full, t, a);
         }
@@ -118,7 +129,7 @@ namespace Arena
             {
                 float y0 = Mathf.Max(by + bh * i / 8f, r.y), y1 = Mathf.Min(by + bh * (i + 1) / 8f + 1f, r.yMax);
                 if (y1 > y0)
-                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(0.6f, 0.95f, 1f, Mathf.Sin((i + 0.5f) / 8f * Mathf.PI) * 0.05f * a));
+                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(0.6f, 0.95f, 1f, Mathf.Sin((i + 0.5f) / 8f * Mathf.PI) * 0.03f * a));
             }
         }
 
@@ -148,8 +159,6 @@ namespace Arena
             GUI.color = new Color(1f, 1f, 1f, a);
             GUI.Box(full, GUIContent.none, lobbyGlassStyle);
             GUI.color = old;
-            if (!fxReduced && Mathf.FloorToInt(t * 12f) % 41 == 0)
-                Ui.Fill(full, new Color(0f, 0f, 0f, 0.1f * a));
         }
 
         /// New run: start the host, and (with effects on) play the CRT boot into the lobby.
@@ -212,7 +221,7 @@ namespace Arena
             float flare = Seg(e, 0f, CrtGrowFrom);
             float grow = EaseInOut(Seg(e, CrtGrowFrom, CrtGrowTo));
             if (e < CrtGrowFrom)
-                Ui.Fill(scr, new Color(0.7f, 1f, 0.9f, 0.4f * flare * flare));
+                Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.4f * flare * flare));
             else if (grow < 1f)
             {
                 var r = LerpRect(scr, full, grow);

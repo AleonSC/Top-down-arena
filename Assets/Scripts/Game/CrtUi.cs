@@ -2,18 +2,18 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The green-phosphor CRT look for a run card (look A, "Phosphor", of Docs/Mockups/crt-run-card.html): a dark green screen,
+    /// The blue-phosphor CRT look for a run card (look A, "Phosphor", of Docs/Mockups/crt-run-card.html): a dark blue screen,
     /// glowing text, scanlines, a vignette, a slow rolling bar and a rare flicker. Draw Begin, then the content (Text, Button, Ui.Fill),
     /// then End, which lays the scanlines and glass over it. calm (Reduced effects) drops the glow, the rolling bar and the flicker
     /// and keeps the colours with static scanlines and vignette.
     public static class CrtUi
     {
-        public static readonly Color Ink = new Color(0.30f, 1f, 0.60f);
-        public static readonly Color Dim = new Color(0.18f, 0.65f, 0.42f);
-        public static readonly Color Bg = new Color(0.012f, 0.07f, 0.04f);
-        static readonly Color Bezel = new Color(0.05f, 0.11f, 0.08f);
+        public static readonly Color Ink = new Color(0.40f, 0.64f, 1f);
+        public static readonly Color Dim = new Color(0.25f, 0.42f, 0.72f);
+        public static readonly Color Bg = new Color(0.012f, 0.03f, 0.085f);
+        static readonly Color Bezel = new Color(0.05f, 0.07f, 0.14f);
 
-        /// The dark green screen, with its bezel and a thin phosphor rim.
+        /// The dark blue screen, with its bezel and a thin phosphor rim.
         public static void Begin(Rect r)
         {
             Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), Bezel);
@@ -50,7 +50,7 @@ namespace Arena
             Ui.Label(r, s, size, c, align, bold, wrap);
         }
 
-        /// An outlined button that flips to inverse video (green block, dark text) under the mouse. True when clicked.
+        /// An outlined button that flips to inverse video (blue block, dark text) under the mouse. True when clicked.
         public static bool Button(Rect r, string text, Texture2D icon, int size, bool calm)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
@@ -124,7 +124,7 @@ namespace Arena
             {
                 float y0 = Mathf.Max(by + bh * i / 8f, r.y), y1 = Mathf.Min(by + bh * (i + 1) / 8f + 1f, r.yMax);
                 if (y1 > y0)
-                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(0.7f, 1f, 0.8f, Mathf.Sin((i + 0.5f) / 8f * Mathf.PI) * 0.05f));
+                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(0.75f, 0.85f, 1f, Mathf.Sin((i + 0.5f) / 8f * Mathf.PI) * 0.05f));
             }
             if (Mathf.FloorToInt(t * 12f) % 41 == 0)  // a quick dip in brightness now and then
                 Ui.Fill(r, new Color(0f, 0f, 0f, 0.12f));
