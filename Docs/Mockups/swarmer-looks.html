@@ -1,0 +1,294 @@
+<title>Swarmer Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: header + shared controls, a short "renamed" strip for the Spiker, then four look cards (A to D), each with a big sprite, a live pack chasing a target, and stats. Single dark look, matches the other enemy mockups. */
+:root{--bg:#0a0d10;--panel:#11161b;--panel2:#161d24;--line:#242d36;--fg:#e7eef3;--muted:#92a1ad;--soft:#cfdae2;--teal:#4de0bd;--amber:#ffb547;
+--spiker:#ff994d;
+--fd:"Oxanium","Segoe UI",system-ui,sans-serif;--fb:"Barlow","Segoe UI",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.55 var(--fb);margin:0;
+ padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:26px}
+h1,h2,h3{font-family:var(--fd);margin:0}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+h2{font-size:22px;font-weight:700;letter-spacing:.03em}
+p{margin:0;max-width:72ch;color:var(--soft)}
+.eyebrow{font:600 11px var(--fd);letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+header{display:grid;gap:10px}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ctl span{font:600 12px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+button,select{font:600 13px var(--fd);letter-spacing:.06em;color:var(--fg);background:var(--panel2);border:1px solid #33414d;border-radius:8px;padding:8px 14px;cursor:pointer}
+button:hover,select:hover{border-color:var(--teal)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.rename{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--spiker);border-radius:10px;padding:14px}
+.rename canvas{width:96px;height:96px;background:#0c1116;border-radius:8px;border:1px solid var(--line)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+.card{min-width:0;display:grid;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;border-top:3px solid var(--c)}
+.head{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center}
+.head canvas{width:96px;height:96px;background:#0c1116;border-radius:8px;border:1px solid var(--line)}
+.tag{display:inline-block;font:700 10px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:#0a0d10;background:var(--c);border-radius:4px;padding:2px 7px;margin-bottom:6px}
+.sub{font-size:14px;color:var(--muted);line-height:1.4;margin-top:2px}
+.arena{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0c1116}
+.arena canvas{display:block;width:100%;aspect-ratio:400/240;touch-action:none}
+.hint{position:absolute;left:8px;top:7px;font:600 10px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:#0a0d10b3;padding:3px 7px;border-radius:4px;pointer-events:none}
+.read{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 12px var(--fd);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.read b{color:var(--c);font-size:16px;margin-left:4px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--panel2);border-radius:6px;padding:7px 8px;min-width:0}
+.stat i{display:block;font:600 10px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-style:normal}
+.stat b{font:700 15px var(--fd);font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:18px;display:grid;gap:5px;color:var(--soft);font-size:15px}
+li::marker{color:var(--c)}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+.note p{font-size:15px}
+@media (max-width:420px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; Melee enemies</div>
+  <h1>Swarmer Looks</h1>
+  <p>The current Swarmer becomes the Spiker. The new Swarmer is the simplest melee enemy: no spikes, no tricks, it walks straight at the nearest player and bites. It comes in big packs and each one is weak. Four looks below, each with a pack of seven chasing a target. Move your pointer over an arena to steer the target.</p>
+  <div class="ctl">
+    <span>Playback</span>
+    <button id="pp" type="button">Pause</button>
+    <button id="rs" type="button">Reset</button>
+    <label for="spd"><span>Speed</span></label>
+    <select id="spd"><option value="1">1x</option><option value="0.5">0.5x</option><option value="0.25">0.25x slow-mo</option></select>
+  </div>
+</header>
+
+<div class="rename">
+  <canvas id="pv-spiker" width="192" height="192" aria-label="Spiker sprite"></canvas>
+  <div>
+    <span class="tag" style="background:var(--spiker)">Renamed</span>
+    <h2>Spiker (was Swarmer)</h2>
+    <div class="sub">Nothing else changes: same orange triangle with a thin spike on each face, same zig-zag, 22 health, 135 speed, 10 contact. It keeps its wave slots (wave 1 pairs, Rush squads, Scorched earth); only the name moves.</div>
+  </div>
+</div>
+
+<div class="cards">
+  <article class="card" style="--c:#6fdc7a">
+    <div class="head"><canvas id="pv-blob" width="192" height="192" aria-label="Blob sprite"></canvas>
+      <div><span class="tag">Look A</span><h2>Blob</h2><div class="sub">A soft green ball with two eyes that wobbles as it walks.</div></div></div>
+    <div class="arena"><canvas id="cv-blob" aria-label="Pack of blobs chasing a target"></canvas><div class="hint">Live &middot; 7</div></div>
+    <div class="read"><span>Damage taken<b id="d-blob">0</b></span><span>Bites<b id="h-blob">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>14</b></div><div class="stat"><i>Speed</i><b>115</b></div>
+      <div class="stat"><i>Contact</i><b>6 / 0.6s</b></div><div class="stat"><i>Radius</i><b>9</b></div>
+    </div>
+    <ul>
+      <li>Friendliest read. Eyes look where it is heading, so you can tell which way a pack is turning.</li>
+      <li>Squash and stretch on every step makes a pack look like it is flowing, not marching.</li>
+      <li>Circle shape is new next to the polygon enemies, so it stands out in a crowd.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:#c8e24a">
+    <div class="head"><canvas id="pv-chomp" width="192" height="192" aria-label="Chomper sprite"></canvas>
+      <div><span class="tag">Look B</span><h2>Chomper</h2><div class="sub">A yellow disc with a mouth that snaps open and shut.</div></div></div>
+    <div class="arena"><canvas id="cv-chomp" aria-label="Pack of chompers chasing a target"></canvas><div class="hint">Live &middot; 7</div></div>
+    <div class="read"><span>Damage taken<b id="d-chomp">0</b></span><span>Bites<b id="h-chomp">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>14</b></div><div class="stat"><i>Speed</i><b>115</b></div>
+      <div class="stat"><i>Contact</i><b>6 / 0.6s</b></div><div class="stat"><i>Radius</i><b>9</b></div>
+    </div>
+    <ul>
+      <li>The mouth is the front, so facing is obvious, and it opens wide as it closes in on you.</li>
+      <li>Says "melee, bites" at a glance without any spikes, which keeps it apart from the Spiker.</li>
+      <li>Mouth snaps on each bite, so the damage ticks have a visible cause.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:#35c9a6">
+    <div class="head"><canvas id="pv-beetle" width="192" height="192" aria-label="Beetle sprite"></canvas>
+      <div><span class="tag">Look C</span><h2>Beetle</h2><div class="sub">A dark teal shell with six scurrying legs and short feelers.</div></div></div>
+    <div class="arena"><canvas id="cv-beetle" aria-label="Pack of beetles chasing a target"></canvas><div class="hint">Live &middot; 7</div></div>
+    <div class="read"><span>Damage taken<b id="d-beetle">0</b></span><span>Bites<b id="h-beetle">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>14</b></div><div class="stat"><i>Speed</i><b>115</b></div>
+      <div class="stat"><i>Contact</i><b>6 / 0.6s</b></div><div class="stat"><i>Radius</i><b>9</b></div>
+    </div>
+    <ul>
+      <li>Most "swarm" of the four: reads as a bug at once, and the legs make a pack look busy.</li>
+      <li>Longer than wide, so it points clearly at you. Legs run faster the closer it gets.</li>
+      <li>Most drawing work (legs and feelers), still a flat shape that is cheap to render.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:#d9d2c3">
+    <div class="head"><canvas id="pv-husk" width="192" height="192" aria-label="Husk sprite"></canvas>
+      <div><span class="tag">Look D</span><h2>Husk</h2><div class="sub">A pale pentagon with one big eye that follows the target.</div></div></div>
+    <div class="arena"><canvas id="cv-husk" aria-label="Pack of husks chasing a target"></canvas><div class="hint">Live &middot; 7</div></div>
+    <div class="read"><span>Damage taken<b id="d-husk">0</b></span><span>Bites<b id="h-husk">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>14</b></div><div class="stat"><i>Speed</i><b>115</b></div>
+      <div class="stat"><i>Contact</i><b>6 / 0.6s</b></div><div class="stat"><i>Radius</i><b>9</b></div>
+    </div>
+    <ul>
+      <li>Fits the game's polygon style best (a plain 5-sided enemy, like the others use <code>Sides</code>).</li>
+      <li>Pale body is the only light-coloured enemy, so a crowd of them is easy to pick out of the orange and red.</li>
+      <li>The eye does the facing: the pupil slides toward you, the body just bobs.</li>
+    </ul>
+  </article>
+</div>
+
+<div class="note">
+  <div class="eyebrow">Notes</div>
+  <p>Numbers are placeholders: the new Swarmer is weaker than the Spiker on purpose (14 health against 22, 6 contact against 10), with speed just under the Spiker's but a straight path, so it arrives sooner. All four have the same stats, so only the look differs. Colours avoid the existing orange, blue, red, pink and brown enemies.</p>
+  <p>Code side: rename <code>EnemyType.Swarmer</code> to <code>Spiker</code> (number kept, so saves and the protocol keep working) and add a new <code>Swarmer</code> at the end of the enum, with a protocol bump. It would take the Spiker's wave 1 slot as a pack of 4 to 6, so wave 1 gets simpler. Swarm Fields and Defend the Crystal would use it. Tell me which look (or a mix) and whether the pack should replace the Spiker at wave 1.</p>
+</div>
+</div>
+
+<script>
+(function(){
+var W=400,H=240,TAU=Math.PI*2;
+var C={blob:'#6fdc7a',chomp:'#c8e24a',beetle:'#35c9a6',husk:'#d9d2c3'};
+var N=7,SPEED=115,R=9;
+function rnd(a,b){return a+Math.random()*(b-a)}
+function wrap(a){while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+var timeScale=1,paused=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- drawing (e: x,y,ang,ph,near 0..1, bite 0..1; look: eye direction is e.ang) ---------- */
+function drawEnemy(ctx,kind,e,x,y,k){
+  ctx.save();ctx.translate(x,y);ctx.scale(k,k);
+  if(kind==='spiker'){
+    ctx.rotate(e.ang);
+    ctx.fillStyle='#ffd9b8';
+    [[2,-4.5,-1.147],[2,4.5,1.147],[-8,0,Math.PI]].forEach(function(f){
+      ctx.save();ctx.translate(f[0],f[1]);ctx.rotate(f[2]);ctx.beginPath();ctx.moveTo(0,-1.6);ctx.lineTo(13,0);ctx.lineTo(0,1.6);ctx.closePath();ctx.fill();ctx.restore();
+    });
+    ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-8,-9);ctx.lineTo(-8,9);ctx.closePath();
+    ctx.fillStyle='#ff994d';ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#5a2a0c';ctx.stroke();
+  }else if(kind==='blob'){
+    var w=Math.sin(e.ph*2),sx=1+.12*w,sy=1-.12*w;
+    ctx.rotate(e.ang);ctx.scale(sx,sy);
+    ctx.beginPath();ctx.arc(0,0,9.5,0,TAU);ctx.fillStyle='#6fdc7a';ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle='#1c4a24';ctx.stroke();
+    ctx.beginPath();ctx.arc(-2,-3,3.2,0,TAU);ctx.fillStyle='#ffffff40';ctx.fill();
+    [-3.4,3.4].forEach(function(ey){
+      ctx.beginPath();ctx.arc(3.6,ey,2.6,0,TAU);ctx.fillStyle='#fff';ctx.fill();
+      ctx.beginPath();ctx.arc(4.6,ey,1.3,0,TAU);ctx.fillStyle='#15341a';ctx.fill();
+    });
+  }else if(kind==='chomp'){
+    var open=.18+.5*(.5+.5*Math.sin(e.ph*1.4))*(.5+.5*e.near)+.5*e.bite;
+    ctx.rotate(e.ang);
+    ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,9.5,open,TAU-open);ctx.closePath();
+    ctx.fillStyle='#c8e24a';ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle='#4a5612';ctx.stroke();
+    ctx.beginPath();ctx.arc(-1,-5,1.6,0,TAU);ctx.fillStyle='#2a3009';ctx.fill();
+  }else if(kind==='beetle'){
+    ctx.rotate(e.ang);
+    var run=e.ph*(1.6+e.near);
+    ctx.strokeStyle='#145a4a';ctx.lineWidth=1.6;ctx.lineCap='round';
+    for(var i=0;i<3;i++){
+      var lx=3-i*5,sw=Math.sin(run+i*2.1)*2.6;
+      ctx.beginPath();ctx.moveTo(lx,-4);ctx.lineTo(lx+sw,-10);ctx.moveTo(lx,4);ctx.lineTo(lx-sw,10);ctx.stroke();
+    }
+    ctx.beginPath();ctx.moveTo(9,-1.5);ctx.lineTo(14,-4+Math.sin(run*.7)*1.2);ctx.moveTo(9,1.5);ctx.lineTo(14,4-Math.sin(run*.7)*1.2);ctx.stroke();
+    ctx.beginPath();ctx.ellipse(-1,0,11,7.6,0,0,TAU);ctx.fillStyle='#1f8a73';ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#0d3b30';ctx.stroke();
+    ctx.beginPath();ctx.arc(8,0,4,0,TAU);ctx.fillStyle='#35c9a6';ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(6,0);ctx.lineTo(-12,0);ctx.strokeStyle='#0d3b30';ctx.lineWidth=1.2;ctx.stroke();
+  }else if(kind==='husk'){
+    var bob=Math.sin(e.ph*2.4)*.7;
+    ctx.translate(0,bob);ctx.rotate(e.ang);
+    ctx.beginPath();
+    for(var j=0;j<5;j++){var a=j*TAU/5;ctx.lineTo(Math.cos(a)*10.5,Math.sin(a)*10.5)}
+    ctx.closePath();ctx.fillStyle='#d9d2c3';ctx.fill();ctx.lineWidth=1.6;ctx.strokeStyle='#4a4437';ctx.stroke();
+    ctx.rotate(-e.ang);
+    ctx.beginPath();ctx.arc(0,0,5,0,TAU);ctx.fillStyle='#2b2620';ctx.fill();
+    ctx.beginPath();ctx.arc(Math.cos(e.ang)*2,Math.sin(e.ang)*2,2.3,0,TAU);ctx.fillStyle='#ff5a4d';ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ---------- arena sim: a pack walking straight at the target ---------- */
+function spawn(){
+  var side=Math.floor(Math.random()*4),x,y;
+  if(side===0){x=-10;y=rnd(0,H)}else if(side===1){x=W+10;y=rnd(0,H)}else if(side===2){x=rnd(0,W);y=-10}else{x=rnd(0,W);y=H+10}
+  return {x:x,y:y,ang:0,ph:rnd(0,TAU),cd:rnd(0,.6),sp:SPEED*rnd(.92,1.08),bite:0,near:0};
+}
+function makeSim(kind){
+  var cv=document.getElementById('cv-'+kind),ctx=cv.getContext('2d');
+  cv.width=W*2;cv.height=H*2;
+  var dEl=document.getElementById('d-'+kind),hEl=document.getElementById('h-'+kind),mouse=null;
+  cv.addEventListener('pointermove',function(ev){var r=cv.getBoundingClientRect();mouse={x:(ev.clientX-r.left)/r.width*W,y:(ev.clientY-r.top)/r.height*H}});
+  cv.addEventListener('pointerleave',function(){mouse=null});
+  var s={};
+  function reset(){
+    s.t=0;s.p={x:W/2,y:H/2};s.es=[];for(var i=0;i<N;i++)s.es.push(spawn());
+    s.txt=[];s.dmg=0;s.hits=0;out();
+  }
+  function out(){dEl.textContent=s.dmg;hEl.textContent=s.hits}
+  function update(dt){
+    s.t+=dt;var p=s.p,es=s.es;
+    var tx,ty;
+    if(mouse){tx=mouse.x;ty=mouse.y}else{tx=W/2+135*Math.sin(s.t*.42);ty=H/2+70*Math.sin(s.t*.67+1)}
+    p.x+=(tx-p.x)*Math.min(1,dt*5);p.y+=(ty-p.y)*Math.min(1,dt*5);
+    es.forEach(function(e){
+      var dx=p.x-e.x,dy=p.y-e.y,d=Math.max(1,Math.hypot(dx,dy));
+      e.ang+=wrap(Math.atan2(dy,dx)-e.ang)*Math.min(1,dt*14);
+      var stop=d<R+10-3;
+      if(!stop){e.x+=dx/d*e.sp*dt;e.y+=dy/d*e.sp*dt}
+      e.ph+=dt*(stop?3:11);
+      e.near=clamp(1-d/120,0,1);
+      e.bite=Math.max(0,e.bite-dt*5);
+      e.cd-=dt;
+      if(d<R+10+2&&e.cd<=0){e.cd=.6;e.bite=1;s.dmg+=6;s.hits++;s.txt.push({x:p.x+rnd(-8,8),y:p.y-14,t:0,n:6});out()}
+    });
+    for(var i=0;i<es.length;i++)for(var j=i+1;j<es.length;j++){
+      var a=es[i],b=es[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),m=R*2;
+      if(d<m&&d>0){var push=(m-d)/2;dx/=d;dy/=d;a.x-=dx*push;a.y-=dy*push;b.x+=dx*push;b.y+=dy*push}
+    }
+    for(var k=s.txt.length-1;k>=0;k--){s.txt[k].t+=dt;if(s.txt[k].t>.9)s.txt.splice(k,1)}
+  }
+  function draw(){
+    ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0c1116';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#ffffff0a';ctx.lineWidth=1;ctx.beginPath();
+    for(var x=0;x<=W;x+=40){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+    for(var y=0;y<=H;y+=40){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+    ctx.stroke();
+    var p=s.p;
+    ctx.beginPath();ctx.arc(p.x,p.y,10,0,TAU);ctx.fillStyle='#14423a';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#4de0bd';ctx.stroke();
+    s.es.forEach(function(e){drawEnemy(ctx,kind,e,e.x,e.y,1)});
+    ctx.font='700 13px Oxanium,sans-serif';ctx.textAlign='center';
+    s.txt.forEach(function(t){ctx.globalAlpha=1-t.t/.9;ctx.fillStyle='#ffd479';ctx.fillText('-'+t.n,t.x,t.y-t.t*28)});
+    ctx.globalAlpha=1;
+  }
+  reset();
+  return {update:update,draw:draw,reset:reset};
+}
+
+/* ---------- sprite previews ---------- */
+function makePreview(kind){
+  var cv=document.getElementById('pv-'+kind),ctx=cv.getContext('2d');
+  return function(t){
+    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,192,192);
+    var e={ang:-.5+Math.sin(t*.8)*.4,ph:t*8,near:.5+.5*Math.sin(t*1.5),bite:Math.max(0,Math.sin(t*3.2))};
+    drawEnemy(ctx,kind,e,96,96,kind==='spiker'?3.8:4.2);
+  };
+}
+
+var kinds=['blob','chomp','beetle','husk'];
+var sims=kinds.map(makeSim);
+var prevs=['spiker'].concat(kinds).map(makePreview);
+var pt=0,last=0;
+function frame(ts){
+  var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!paused){
+    var d=dt*timeScale;pt+=dt;
+    for(var i=0;i<sims.length;i++)sims[i].update(d);
+  }
+  for(var j=0;j<sims.length;j++)sims[j].draw();
+  for(var k=0;k<prevs.length;k++)prevs[k](pt);
+  requestAnimationFrame(frame);
+}
+var pp=document.getElementById('pp');
+function label(){pp.textContent=paused?'Play':'Pause'}
+pp.addEventListener('click',function(){paused=!paused;label()});
+document.getElementById('rs').addEventListener('click',function(){sims.forEach(function(s){s.reset()})});
+document.getElementById('spd').addEventListener('change',function(ev){timeScale=parseFloat(ev.target.value)});
+label();requestAnimationFrame(frame);
+})();
+</script>
