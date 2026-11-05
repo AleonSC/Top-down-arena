@@ -1,0 +1,647 @@
+<title>Hallowed Blade Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one animated stage (look toggle, transport, scrubber, beat jumps), three look cards, then build notes.
+   Colour: steel and parchment neutrals; holy gold is the accent, mint is reserved for healing, red for damage numbers.
+   Type: Barlow Condensed display, Barlow body, Plex Mono for timings. Same system as the other Docs/Mockups pages. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#8a6200; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee;
+  --heal:#0f7a4a; --smite:#8a6200; --arena:#14161a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#ffd36b; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215;
+  --heal:#7dffb0; --smite:#ffd36b; --arena:#0b0c0f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#ffd36b; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215;
+  --heal:#7dffb0; --smite:#ffd36b; --arena:#0b0c0f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+h2{font:700 28px/1.05 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/440}
+.hud{position:absolute;left:10px;top:8px;right:10px;display:flex;justify-content:space-between;gap:10px;font:500 12px var(--mono);color:#d3d6da;opacity:.9;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:8px 14px;font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;background:var(--chip);cursor:pointer;border-right:1px solid var(--line)}
+.seg label:last-of-type{border-right:0}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--acc);outline-offset:-2px}
+button{font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+.scrub{display:flex;align-items:center;gap:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--acc)}
+.scrub output{font:500 13px var(--mono);color:var(--muted);min-width:7ch;text-align:right}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+.legend .g::before{background:var(--smite)}
+.legend .m::before{background:var(--heal)}
+.legend .r::before{background:#ff5a50}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h3{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;color:var(--acc)}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.card ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.card li{display:grid;grid-template-columns:5.2ch 1fr;gap:10px}
+.card li b{font:500 12px var(--mono);color:var(--acc);padding-top:2px}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.notes ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;max-width:76ch}
+.notes code{font:500 13px var(--mono);background:var(--chip);padding:1px 5px;border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<main>
+<header>
+  <h1>Hallowed Blade</h1>
+  <p>The Knight healer's ultimate, reworked. A giant sword drops into the arena and stays planted for the full 8 seconds, sending out a pulse every 2 seconds that burns enemies and heals allies. Three looks to compare against what ships today. Pick one and I'll build it.</p>
+</header>
+
+<section class="stage" aria-label="Hallowed Blade animation">
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Look">
+      <input type="radio" name="look" id="l-cur" value="cur"><label for="l-cur">Today</label>
+      <input type="radio" name="look" id="l-a" value="a" checked><label for="l-a">A · Planted Blade</label>
+      <input type="radio" name="look" id="l-b" value="b"><label for="l-b">B · Pillar of Light</label>
+      <input type="radio" name="look" id="l-c" value="c"><label for="l-c">C · Winged Seal</label>
+    </div>
+  </div>
+  <div class="frame">
+    <canvas id="cv" role="img" aria-label="Top-down arena where a giant holy sword lands and pulses golden light that heals allies and burns enemies"></canvas>
+    <div class="hud"><span id="hudLook"></span><span id="hudPhase"></span></div>
+  </div>
+  <div class="legend">
+    <span class="g">Gold edge: smite, enemies in the ring burn</span>
+    <span class="m">Mint wake: restore, allies in the ring heal</span>
+    <span class="r">Numbers are illustrative</span>
+  </div>
+  <div class="controls">
+    <button id="play" aria-pressed="true">Pause</button>
+    <button id="replay">Replay</button>
+    <button id="slow" aria-pressed="false">Slow-mo</button>
+    <span style="flex:1"></span>
+    <button data-jump="0">Telegraph</button>
+    <button data-jump="0.55">Impact</button>
+    <button data-jump="2.6">Pulse</button>
+    <button data-jump="8.6">Finale</button>
+  </div>
+  <div class="scrub"><input type="range" id="scrub" min="0" max="980" value="30" aria-label="Timeline"><output id="tlabel">0.30 s</output></div>
+</section>
+
+<section class="cards">
+  <article class="card">
+    <h3>A · Planted Blade</h3>
+    <p>Heavy and physical. The sword hits like a meteor, cracks the ground gold, and every pulse flares the cracks.</p>
+    <ol>
+      <li><b>0.0 s</b><span>Gold telegraph fills the circle; the sword's shadow grows under it.</span></li>
+      <li><b>0.6 s</b><span>Impact: screen shake, white flash, debris, 200 damage shockwave.</span></li>
+      <li><b>+2 s</b><span>Pulse ring with a mint wake. The cracks surge with each one.</span></li>
+      <li><b>8.6 s</b><span>Finale pulse, bigger than the rest. The sword dissolves into embers.</span></li>
+    </ol>
+  </article>
+  <article class="card">
+    <h3>B · Pillar of Light</h3>
+    <p>Clean and readable. The sword is made of light and a beam goes up to the sky. Triple ripples roll outward.</p>
+    <ol>
+      <li><b>0.0 s</b><span>A thin beam forms above the target while the sword falls down it.</span></li>
+      <li><b>0.6 s</b><span>Impact: the beam flares, ripples race out.</span></li>
+      <li><b>+2 s</b><span>Three rings (gold, white, mint) with diamond sparks on the front. The beam swells.</span></li>
+      <li><b>Between</b><span>Light motes spiral in toward the blade, which is the heal.</span></li>
+    </ol>
+  </article>
+  <article class="card">
+    <h3>C · Winged Seal</h3>
+    <p>Divine and ornate. A turning sigil on the floor, a halo and spectral wings on the hilt that flap with each pulse.</p>
+    <ol>
+      <li><b>0.0 s</b><span>The sigil's outer ring traces itself around the circle.</span></li>
+      <li><b>0.6 s</b><span>Impact: the sigil snaps in, wings unfurl.</span></li>
+      <li><b>+2 s</b><span>Sixteen light blades fire outward. Wings spread, sigil brightens.</span></li>
+      <li><b>8.6 s</b><span>Finale. Wings fold and the sigil fades out.</span></li>
+    </ol>
+  </article>
+</section>
+
+<section class="notes">
+  <h2>What building it would touch</h2>
+  <ul>
+    <li><b>The sword has to stay.</b> Today the <code>HolySword</code> zone lasts 0.6 s, then <code>Minions.cs</code> spawns a plain <code>Consecrate</code> zone and the sword vanishes. A planted sword needs either a longer-lived zone or a new <code>ZoneKind</code> at the end of the enum, so the renderer can tell the ultimate's ground from the ability's. A new kind changes the snapshot, so it bumps <code>Session.ProtocolVersion</code>.</li>
+    <li><b>Pulses are visual so far.</b> The sim heals 15 HP/s and burns continuously. If the pulses should carry the numbers (say 30 heal and 40 damage every 2 s), that is a small <code>Core</code> change and the mockup numbers show what it would feel like. Otherwise the rings are just rhythm over the existing ticks.</li>
+    <li><b>Mastered version.</b> The three-sword cast (<code>cap</code> in <code>Knight.cs</code>) would plant three smaller blades 220 units apart; the pulses overlap in the middle.</li>
+    <li><b>Reference pages.</b> The Armory and Bestiary are untouched. They will be out of date once this ships.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const W=720,H=440,DPR=Math.min(2,window.devicePixelRatio||1);
+cv.width=W*DPR;cv.height=H*DPR;
+const CX=360,CY=270,R=170;
+const TW=0.6,PERIOD=2,NP=5,DUR=0.95,TEND=TW+PERIOD*(NP-1),TOTAL=9.8;
+const PULSES=Array.from({length:NP},(_,k)=>TW+k*PERIOD);
+const TAU=Math.PI*2;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const fract=v=>v-Math.floor(v);
+const rnd=(i,k=0)=>fract(Math.sin(i*127.1+k*311.7)*43758.5453);
+const easeOut=q=>1-(1-q)*(1-q);
+const GOLD=[255,214,110],WHITE=[255,248,225],MINT=[120,255,176],EMBER=[255,140,60],RED=[255,90,80];
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${Math.max(0,Math.min(1,a))})`;
+
+/* ---------- actors ---------- */
+const allies=[
+ {x:-70,y:60,sp:.7,ph:0,ax:10,ay:8,hp0:.42,col:'#7fb4ff',name:'K'},
+ {x:90,y:-20,sp:.5,ph:2,ax:8,ay:12,hp0:.5,col:'#9fd0ff',name:'A'},
+ {x:-125,y:-55,sp:.6,ph:4,ax:8,ay:6,hp0:.6,col:'#b9a6ff',name:'A'},
+ {x:230,y:75,sp:.4,ph:1,ax:10,ay:6,hp0:.5,col:'#7fb4ff',name:'A'}
+];
+const enemies=[
+ {x:-30,y:-85,sp:.9,ph:1,ax:10,ay:6,rot:0},
+ {x:60,y:80,sp:.8,ph:3,ax:12,ay:8,rot:1},
+ {x:-110,y:35,sp:1.0,ph:5,ax:8,ay:10,rot:2},
+ {x:130,y:-85,sp:.7,ph:0,ax:9,ay:7,rot:3},
+ {x:-250,y:-70,sp:.5,ph:2,ax:8,ay:8,rot:4},
+ {x:20,y:10,sp:1.1,ph:6,ax:14,ay:10,rot:5}
+];
+const pos=(a,t)=>[CX+a.x+Math.sin(t*a.sp+a.ph)*a.ax,CY+a.y+Math.cos(t*a.sp*1.3+a.ph)*a.ay];
+const ringMax=k=>R*((k===0||k===NP-1)?1.12:1);
+/* when the leading edge of pulse k reaches an actor sitting dA from the sword */
+const hitTime=(dA,k)=>PULSES[k]+DUR*(1-Math.sqrt(Math.max(0,1-dA/ringMax(k))));
+function hitInfo(a,ally){
+  const dA=Math.hypot(a.x,a.y);
+  const inside=dA<R*.98;
+  let hp=ally?a.hp0:1,flash=0,ev=[];
+  if(!inside)return{hp,flash,ev,inside,dA};
+  for(let k=0;k<NP;k++){
+    const ht=hitTime(dA,k);
+    const age=(window.__t)-ht;
+    if(age<0)continue;
+    const amt=ally?(k===0?.06:.1):(k===0?.3:.1);
+    hp+=(ally?1:-1)*amt*clamp(age/.4,0,1);
+    flash=Math.max(flash,Math.exp(-age*5));
+    if(age<1)ev.push({age,k});
+  }
+  return{hp:clamp(hp,.06,1),flash,ev,inside,dA};
+}
+
+/* ---------- generic draw helpers ---------- */
+function glow(x,y,r,c,a,add=true){
+  const g=ctx.createRadialGradient(x,y,0,x,y,r);
+  g.addColorStop(0,rgba(c,a));g.addColorStop(1,rgba(c,0));
+  ctx.save();if(add)ctx.globalCompositeOperation='lighter';
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();ctx.restore();
+}
+function ring(r,w,c,a,add=false,dash=null,rot=0){
+  if(r<=0)return;
+  ctx.save();if(add)ctx.globalCompositeOperation='lighter';
+  ctx.strokeStyle=rgba(c,a);ctx.lineWidth=w;
+  if(dash)ctx.setLineDash(dash);
+  ctx.beginPath();ctx.arc(CX,CY,r,rot,rot+TAU);ctx.stroke();ctx.restore();
+}
+function lastPulse(t){let lp=-9;for(const p of PULSES)if(t>=p)lp=p;return lp;}
+const surge=t=>t<TW?0:Math.exp(-(t-lastPulse(t))*2.4);
+function zoneAlpha(t){
+  if(t<TW)return 0;
+  if(t<TEND)return Math.min(1,(t-TW)/.3);
+  return Math.max(0,1-(t-TEND)/.9);
+}
+
+/* ---------- sword ---------- */
+function drawSword(o){
+  const {x,tipY,s,alpha,t}=o;
+  ctx.save();ctx.translate(x,tipY);ctx.scale(s,s);ctx.globalAlpha=alpha;
+  if(o.glowAmt>0)glow(0,-95,150,o.glowCol||GOLD,.32*o.glowAmt);
+  if(o.back)o.back();
+  const blade=()=>{ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-5,-14);ctx.lineTo(-14,-46);ctx.lineTo(-14,-128);ctx.lineTo(14,-128);ctx.lineTo(14,-46);ctx.lineTo(5,-14);ctx.closePath();};
+  const g=ctx.createLinearGradient(-14,0,14,0);
+  g.addColorStop(0,o.bladeA);g.addColorStop(.5,o.bladeB);g.addColorStop(1,o.bladeA);
+  blade();ctx.fillStyle=g;ctx.fill();
+  ctx.lineWidth=1.5;ctx.strokeStyle=o.edge;ctx.stroke();
+  ctx.save();blade();ctx.clip();
+  const gy=-128+fract(t*.35)*150;
+  ctx.globalCompositeOperation='lighter';
+  const sg=ctx.createLinearGradient(0,gy-14,0,gy+14);
+  sg.addColorStop(0,'rgba(255,255,255,0)');sg.addColorStop(.5,`rgba(255,255,255,${.5*o.glint})`);sg.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=sg;ctx.fillRect(-14,gy-14,28,28);
+  ctx.restore();
+  ctx.strokeStyle=o.fuller;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-14);ctx.lineTo(0,-120);ctx.stroke();
+  /* guard */
+  const gg=ctx.createLinearGradient(0,-142,0,-126);gg.addColorStop(0,o.guardA);gg.addColorStop(1,o.guardB);
+  ctx.fillStyle=gg;
+  ctx.beginPath();ctx.roundRect(-38,-141,76,13,5);ctx.fill();
+  for(const sgn of[-1,1]){ctx.beginPath();ctx.moveTo(sgn*38,-141);ctx.lineTo(sgn*48,-155);ctx.lineTo(sgn*30,-141);ctx.closePath();ctx.fill();}
+  /* grip and pommel */
+  ctx.fillStyle='#5a3b1a';ctx.fillRect(-4.5,-170,9,30);
+  ctx.strokeStyle=rgba(GOLD,.7);ctx.lineWidth=1.2;
+  for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(-4.5,-166+i*6);ctx.lineTo(4.5,-162+i*6);ctx.stroke();}
+  ctx.fillStyle=o.guardA;ctx.beginPath();ctx.arc(0,-178,9,0,TAU);ctx.fill();
+  ctx.fillStyle=o.gem;ctx.beginPath();ctx.arc(0,-178,4.2,0,TAU);ctx.fill();
+  glow(0,-178,22,MINT,.35*(.6+.4*o.glowAmt));
+  if(o.front)o.front();
+  ctx.restore();
+}
+const STEEL={bladeA:'#aeb6c2',bladeB:'#fffaf0',edge:'#fff1c2',fuller:'rgba(120,100,50,.55)',guardA:'#e8bd55',guardB:'#9b6f1e',gem:'#7dffb0',glint:1};
+const LIGHT={bladeA:'rgba(255,228,150,.85)',bladeB:'#ffffff',edge:'rgba(255,255,255,.95)',fuller:'rgba(255,214,110,.8)',guardA:'#fff0b8',guardB:'#e6b64a',gem:'#bfffd9',glint:1.6};
+const ORNATE={bladeA:'#d7c18a',bladeB:'#fffdf2',edge:'#fff6d1',fuller:'rgba(150,110,30,.65)',guardA:'#ffe08a',guardB:'#b8801f',gem:'#8fffc4',glint:1.1};
+
+/* ---------- shared phases ---------- */
+function telegraph(t,look){
+  const p=clamp(t/TW,0,1);
+  glow(CX,CY,R,GOLD,.1*p,false);
+  ctx.fillStyle=rgba(GOLD,.16*p);ctx.beginPath();ctx.arc(CX,CY,R*p,0,TAU);ctx.fill();
+  ring(R,3,GOLD,(fract(t/.2)<.5)?.9:.5);
+  ctx.fillStyle=`rgba(0,0,0,${.35*p})`;ctx.beginPath();ctx.ellipse(CX,CY+2,10+34*p,5+10*p,0,0,TAU);ctx.fill();
+  if(look==='b'){
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    const g=ctx.createLinearGradient(CX-12,0,CX+12,0);
+    g.addColorStop(0,'rgba(255,230,160,0)');g.addColorStop(.5,rgba(WHITE,.5*p));g.addColorStop(1,'rgba(255,230,160,0)');
+    ctx.fillStyle=g;ctx.fillRect(CX-12,0,24,CY);ctx.restore();
+  }
+  if(look==='c'){
+    ring(R*.78,2,GOLD,.9,true,null,-Math.PI/2);
+    ctx.save();ctx.strokeStyle=rgba(GOLD,.95);ctx.lineWidth=3;ctx.beginPath();ctx.arc(CX,CY,R*.78,-Math.PI/2,-Math.PI/2+TAU*p);ctx.stroke();ctx.restore();
+  }
+}
+function fallingSword(t,look,style){
+  const p=clamp(t/TW,0,1),off=-(1-p*p*p)*560;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<7;i++){
+    const xx=CX-24+i*8,len=(60+rnd(i)*90)*(1-p)+10;
+    ctx.strokeStyle=rgba(WHITE,.35*(1-p*.6));ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(xx,CY+off-190);ctx.lineTo(xx,CY+off-190-len);ctx.stroke();
+  }
+  ctx.restore();
+  drawSword({x:CX,tipY:CY+off,s:1,alpha:1,t,glowAmt:.6,...style});
+}
+function impactFx(t,power){
+  const age=t-TW;if(age<0||age>1.4)return;
+  /* debris */
+  for(let i=0;i<18;i++){
+    const ang=rnd(i)*TAU,sp=60+rnd(i,2)*160*power,u=Math.min(age,.55);
+    const z=Math.max(0,(240*age*(.5+rnd(i,3)*.7)-430*age*age));
+    const px=CX+Math.cos(ang)*sp*u,py=CY+Math.sin(ang)*sp*.7*u-z;
+    const a=clamp(1-age/1.1,0,1),sz=(3+rnd(i,4)*4)*(1-age/1.6);
+    ctx.fillStyle=`rgba(${70+rnd(i,5)*60|0},${58+rnd(i,5)*40|0},40,${a})`;
+    ctx.save();ctx.translate(px,py);ctx.rotate(age*6*(rnd(i,6)-.5)*2);ctx.fillRect(-sz,-sz*.7,sz*2,sz*1.4);ctx.restore();
+  }
+  /* dust ring */
+  if(age<.7){const q=age/.7;ring(R*.35+R*.85*easeOut(q),12*(1-q)+1,[190,170,120],.28*(1-q));}
+}
+function flashOverlay(t,power){
+  const age=t-TW;if(age<0||age>.5)return;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  ctx.fillStyle=`rgba(255,246,210,${.55*power*Math.exp(-age*9)})`;ctx.fillRect(0,0,W,H);ctx.restore();
+}
+
+/* ---------- LOOK: today (reproduces WorldEnemies.cs) ---------- */
+const CUR=[255,242,166];
+function curDraw(t){
+  if(t<TW){
+    const tl=1-t/TW;
+    ctx.fillStyle=rgba(CUR,.2);ctx.beginPath();ctx.arc(CX,CY,R*(1-tl),0,TAU);ctx.fill();
+    ring(R,3,CUR,fract(t/.2)<.5?.9:.5);
+    const tip=CY-420*tl;
+    ctx.lineCap='butt';
+    ctx.strokeStyle=rgba(CUR,.9);ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(CX,tip);ctx.lineTo(CX,tip-90);ctx.stroke();
+    ctx.strokeStyle='rgb(204,166,77)';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(CX-22,tip-90);ctx.lineTo(CX+22,tip-90);ctx.stroke();
+    return;
+  }
+  if(t<TEND+.4){
+    ctx.fillStyle=rgba(CUR,.1+.04*Math.sin(t*4));ctx.beginPath();ctx.arc(CX,CY,R,0,TAU);ctx.fill();
+    ring(R-4,2,CUR,.6);
+    for(let k=0;k<6;k++){
+      const a=t*.4+TAU*k/6,x=CX+Math.cos(a)*(R-14),y=CY+Math.sin(a)*(R-14);
+      ctx.fillStyle=rgba(CUR,.8);ctx.save();ctx.translate(x,y);ctx.rotate(t);ctx.fillRect(-4,-4,8,8);ctx.restore();
+    }
+  }
+}
+
+/* ---------- LOOK A: planted blade ---------- */
+const CRACKS=Array.from({length:14},(_,i)=>{
+  const ang=TAU*i/14+(rnd(i)-.5)*.35,len=R*(.55+.42*rnd(i,1)),pts=[];
+  for(let j=0;j<=6;j++){const d=len*j/6,jit=(rnd(i*9+j,7)-.5)*16;pts.push([Math.cos(ang)*d-Math.sin(ang)*jit,Math.sin(ang)*d+Math.cos(ang)*jit]);}
+  return pts;
+});
+function groundA(t,za){
+  const gl=surge(t),pulse=.5+.5*Math.sin(t*3);
+  const sc=ctx.createRadialGradient(CX,CY,0,CX,CY,R);
+  sc.addColorStop(0,`rgba(40,24,6,${.6*za})`);sc.addColorStop(.7,`rgba(30,20,8,${.25*za})`);sc.addColorStop(1,'rgba(30,20,8,0)');
+  ctx.fillStyle=sc;ctx.beginPath();ctx.arc(CX,CY,R,0,TAU);ctx.fill();
+  ctx.fillStyle=rgba(GOLD,(.08+.03*pulse)*za);ctx.beginPath();ctx.arc(CX,CY,R,0,TAU);ctx.fill();
+  const grow=easeOut(clamp((t-TW)/.35,0,1));
+  ctx.save();ctx.translate(CX,CY);ctx.lineJoin='round';
+  for(const c of CRACKS){
+    const n=Math.max(1,Math.floor(c.length*grow));
+    for(const pass of[0,1]){
+      ctx.save();if(pass===0)ctx.globalCompositeOperation='lighter';
+      ctx.strokeStyle=rgba(pass?WHITE:GOLD,(pass?.7:.35)*za*(.45+.75*gl)*(pass?1:1.6));
+      ctx.lineWidth=pass?1.4:5;
+      ctx.beginPath();ctx.moveTo(c[0][0],c[0][1]);
+      for(let j=1;j<=n&&j<c.length;j++)ctx.lineTo(c[j][0],c[j][1]);
+      ctx.stroke();ctx.restore();
+    }
+  }
+  ctx.restore();
+  ring(R-4,2,GOLD,.65*za);
+  ring(R*.58,1.5,GOLD,.5*za,false,[10,8],t*.35);
+  for(let i=0;i<36;i++){const a=TAU*i/36+t*.15,l=i%3===0?9:5;
+    ctx.strokeStyle=rgba(GOLD,.55*za);ctx.lineWidth=1.4;ctx.beginPath();
+    ctx.moveTo(CX+Math.cos(a)*(R-10),CY+Math.sin(a)*(R-10));ctx.lineTo(CX+Math.cos(a)*(R-10-l),CY+Math.sin(a)*(R-10-l));ctx.stroke();}
+  /* embers */
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<30;i++){
+    const ph=fract(t*.22+rnd(i,3)),a=rnd(i)*TAU,rr=Math.sqrt(rnd(i,1))*R*.95;
+    const x=CX+Math.cos(a)*rr+Math.sin(t+i)*4,y=CY+Math.sin(a)*rr-ph*80;
+    ctx.fillStyle=rgba(i%4?GOLD:EMBER,Math.sin(ph*Math.PI)*.8*za);ctx.fillRect(x,y,2,2);
+  }
+  ctx.restore();
+}
+function pulseA(q,e,r,k,big){
+  const a=1-q;
+  const wake=ctx.createRadialGradient(CX,CY,r*.4,CX,CY,r);
+  wake.addColorStop(0,rgba(MINT,0));wake.addColorStop(1,rgba(MINT,.26*a));
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=wake;ctx.beginPath();ctx.arc(CX,CY,r,0,TAU);ctx.fill();ctx.restore();
+  ring(r,(big?14:9)*a+2,WHITE,.95*a,true);
+  ring(r,(big?26:16)*a+3,GOLD,.45*a,true);
+  ring(r-14,2,GOLD,.55*a,true);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<40;i++){const ang=TAU*i/40+rnd(i,k)*.2,d=r+rnd(i,2)*10-4;
+    ctx.fillStyle=rgba(WHITE,.9*a);ctx.fillRect(CX+Math.cos(ang)*d-1,CY+Math.sin(ang)*d-1-q*10*rnd(i,3),2.2,2.2);}
+  ctx.restore();
+}
+
+/* ---------- LOOK B: pillar of light ---------- */
+function groundB(t,za){
+  const gl=surge(t);
+  glow(CX,CY,R,WHITE,.22*za,false);
+  ctx.fillStyle=rgba(GOLD,.07*za);ctx.beginPath();ctx.arc(CX,CY,R,0,TAU);ctx.fill();
+  ring(R-3,2,GOLD,.7*za);
+  ring(R*.9,2,GOLD,.55*za,true,[3,9],t*.4);
+  ring(R*.62,2.5,WHITE,.5*za,true,[16,12],-t*.5);
+  for(let i=0;i<12;i++){const a=TAU*i/12+t*.12;
+    ctx.strokeStyle=rgba(GOLD,.22*za);ctx.lineWidth=1.2;ctx.beginPath();
+    ctx.moveTo(CX+Math.cos(a)*R*.18,CY+Math.sin(a)*R*.18);ctx.lineTo(CX+Math.cos(a)*R*.6,CY+Math.sin(a)*R*.6);ctx.stroke();}
+  /* motes drawn inward: the heal */
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<46;i++){
+    const ph=fract(t*.3+rnd(i,3)),ang=rnd(i)*TAU+ph*2.4,r=R*.92*(1-ph);
+    const x=CX+Math.cos(ang)*r,y=CY+Math.sin(ang)*r-ph*26;
+    ctx.fillStyle=rgba(i%3?MINT:WHITE,Math.sin(ph*Math.PI)*.85*za);ctx.beginPath();ctx.arc(x,y,1.8,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+function beamB(t,za){
+  const gl=surge(t),w=9+16*gl+Math.sin(t*5)*1.5;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const g=ctx.createLinearGradient(CX-w*2,0,CX+w*2,0);
+  g.addColorStop(0,'rgba(255,225,150,0)');g.addColorStop(.35,rgba(GOLD,.28*za));g.addColorStop(.5,rgba(WHITE,(.55+.35*gl)*za));g.addColorStop(.65,rgba(GOLD,.28*za));g.addColorStop(1,'rgba(255,225,150,0)');
+  ctx.fillStyle=g;
+  const v=ctx.createLinearGradient(0,0,0,CY);
+  ctx.fillRect(CX-w*2,0,w*4,CY-60);
+  ctx.restore();
+  glow(CX,CY-4,52+24*gl,WHITE,.5*za);
+}
+function pulseB(q,e,r,k,big){
+  const a=1-q;
+  const cols=[[GOLD,1],[WHITE,.9],[MINT,.8]];
+  cols.forEach(([c,m],i)=>{
+    const rr=r-i*16;if(rr<8)return;
+    ring(rr,(big?7:5)*a*(1-i*.2)+1.2,c,m*a,true);
+  });
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<48;i++){const ang=TAU*i/48+k*.3;
+    ctx.save();ctx.translate(CX+Math.cos(ang)*r,CY+Math.sin(ang)*r);ctx.rotate(Math.PI/4);
+    ctx.fillStyle=rgba(WHITE,.9*a);ctx.fillRect(-2.5,-2.5,5,5);ctx.restore();}
+  ctx.restore();
+}
+
+/* ---------- LOOK C: winged seal ---------- */
+function groundC(t,za){
+  const gl=surge(t),u=easeOut(clamp((t-TW)/.5,0,1)),sc=lerp(.6,1,u),rot=t*.18+(1-u)*2.5;
+  glow(CX,CY,R,GOLD,.16*za,false);
+  ctx.fillStyle=rgba(GOLD,.06*za);ctx.beginPath();ctx.arc(CX,CY,R,0,TAU);ctx.fill();
+  ctx.save();ctx.translate(CX,CY);ctx.scale(sc,sc);
+  const lw=1.6,al=(.6+.4*gl)*za;
+  const strokeC=(w,a)=>{ctx.strokeStyle=rgba(GOLD,a);ctx.lineWidth=w;};
+  for(const[w,a]of[[7,.18*al],[1.6,.85*al]]){
+    strokeC(w,a);ctx.save();ctx.globalCompositeOperation='lighter';
+    for(const rr of[R-3,R*.8,R*.3]){ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.stroke();}
+    for(const off of[0,Math.PI/4]){
+      ctx.beginPath();for(let i=0;i<=4;i++){const ang=rot+off+TAU*i/4,x=Math.cos(ang)*R*.8,y=Math.sin(ang)*R*.8;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+    ctx.beginPath();ctx.moveTo(0,-R*.92);ctx.lineTo(0,R*.92);ctx.moveTo(-R*.92,0);ctx.lineTo(R*.92,0);ctx.stroke();
+    ctx.restore();
+  }
+  for(let i=0;i<40;i++){const ang=-rot*.6+TAU*i/40;
+    ctx.strokeStyle=rgba(GOLD,.5*za);ctx.lineWidth=1.3;ctx.beginPath();
+    ctx.moveTo(Math.cos(ang)*(R*.8+4),Math.sin(ang)*(R*.8+4));ctx.lineTo(Math.cos(ang)*(R-9),Math.sin(ang)*(R-9));ctx.stroke();}
+  ctx.restore();
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<34;i++){
+    const ph=fract(t*.2+rnd(i,3)),a=rnd(i)*TAU,rr=Math.sqrt(rnd(i,1))*R*.9;
+    ctx.fillStyle=rgba(i%3?WHITE:MINT,Math.sin(ph*Math.PI)*.7*za);
+    ctx.beginPath();ctx.arc(CX+Math.cos(a)*rr,CY+Math.sin(a)*rr-ph*70,1.6,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+function wingsAndHalo(t,za){
+  const gl=surge(t),spread=1+.3*gl,open=easeOut(clamp((t-TW)/.5,0,1));
+  return{back(){
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    for(const s of[-1,1]){
+      for(let j=0;j<6;j++){
+        ctx.save();ctx.translate(s*20,-138);ctx.scale(s,1);
+        ctx.rotate(-Math.PI/2+.45+j*.3*spread*open);
+        const L=(78+j*22)*(.4+.6*open);
+        const g=ctx.createLinearGradient(0,0,L,0);
+        g.addColorStop(0,rgba(WHITE,.75*za));g.addColorStop(1,rgba(GOLD,.1*za));
+        ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(L*.5,-7,L,0);ctx.quadraticCurveTo(L*.5,5,0,0);ctx.fill();
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  },front(){
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    ctx.strokeStyle=rgba(GOLD,.9*za);ctx.lineWidth=2.2;
+    ctx.beginPath();ctx.ellipse(0,-204+Math.sin(t*2)*2,17,5,0,0,TAU);ctx.stroke();
+    ctx.strokeStyle=rgba(WHITE,.5*za);ctx.lineWidth=5;ctx.globalAlpha=.4;
+    ctx.beginPath();ctx.ellipse(0,-204+Math.sin(t*2)*2,17,5,0,0,TAU);ctx.stroke();
+    ctx.restore();
+  }};
+}
+function pulseC(q,e,r,k,big){
+  const a=1-q;
+  const wake=ctx.createRadialGradient(CX,CY,r*.5,CX,CY,r);
+  wake.addColorStop(0,rgba(MINT,0));wake.addColorStop(1,rgba(MINT,.2*a));
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=wake;ctx.beginPath();ctx.arc(CX,CY,r,0,TAU);ctx.fill();ctx.restore();
+  ring(r,2.5,WHITE,.8*a,true);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<16;i++){
+    const ang=TAU*i/16+k*.2,len=(i%2?18:32)*(big?1.3:1)*(.5+.5*a)+6;
+    ctx.save();ctx.translate(CX+Math.cos(ang)*(r-len*.3),CY+Math.sin(ang)*(r-len*.3));ctx.rotate(ang);
+    const g=ctx.createLinearGradient(-len,0,len*.4,0);
+    g.addColorStop(0,rgba(GOLD,0));g.addColorStop(1,rgba(WHITE,.95*a));
+    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(-len,0);ctx.lineTo(0,-3.2);ctx.lineTo(len*.4,0);ctx.lineTo(0,3.2);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ---------- actors ---------- */
+function drawActor(a,ally,t,burning,za){
+  const[x,y]=pos(a,t);
+  const h=hitInfo(a,ally);
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x,y+9,11,4,0,0,TAU);ctx.fill();
+  if(ally){
+    ctx.fillStyle=a.col;ctx.strokeStyle='#e8f2ff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(x,y,11,0,TAU);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#10202e';ctx.font='700 11px "Barlow Condensed",sans-serif';ctx.textAlign='center';ctx.fillText(a.name,x,y+4);
+    if(h.flash>0){glow(x,y,26,MINT,.8*h.flash);}
+    for(const e of h.ev){
+      const rr=11+e.age*34;ctx.strokeStyle=rgba(MINT,.8*(1-e.age));ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,rr,0,TAU);ctx.stroke();
+      for(let i=0;i<3;i++){const px=x+(i-1)*9,py=y-8-e.age*(26+i*6);ctx.strokeStyle=rgba(MINT,(1-e.age));ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px-3,py);ctx.lineTo(px+3,py);ctx.moveTo(px,py-3);ctx.lineTo(px,py+3);ctx.stroke();}
+    }
+  }else{
+    ctx.save();ctx.translate(x,y);ctx.rotate(a.rot*.7+t*.3);
+    ctx.fillStyle=h.flash>.05?`rgb(255,${200+55*h.flash|0},${180+75*h.flash|0})`:'#c64a40';ctx.strokeStyle='#ffb0a8';ctx.lineWidth=2;
+    ctx.fillRect(-10,-10,20,20);ctx.strokeRect(-10,-10,20,20);ctx.restore();
+    if(h.flash>0)glow(x,y,28,GOLD,.9*h.flash);
+    if(burning&&h.inside){
+      ctx.save();ctx.globalCompositeOperation='lighter';
+      for(let i=0;i<4;i++){const ph=fract(t*1.4+rnd(i,a.rot)),fx=x+(rnd(i,9)-.5)*14,fy=y-6-ph*22;
+        ctx.fillStyle=rgba(i%2?EMBER:GOLD,(1-ph)*.9*za);ctx.beginPath();ctx.arc(fx,fy,2.4*(1-ph)+.6,0,TAU);ctx.fill();}
+      ctx.restore();
+    }
+  }
+  /* hp bar */
+  const bw=26;ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x-bw/2,y-22,bw,4);
+  ctx.fillStyle=ally?'#5fe39a':'#ff6b5e';ctx.fillRect(x-bw/2,y-22,bw*h.hp,4);
+  return{x,y,h,ally};
+}
+function floaters(list){
+  ctx.textAlign='center';ctx.font='700 15px "Barlow Condensed",sans-serif';
+  for(const f of list)for(const e of f.h.ev){
+    const a=1-e.age;if(f.ally){ctx.fillStyle=rgba(MINT,a);ctx.fillText('+30',f.x,f.y-30-e.age*26);}
+    else{ctx.fillStyle=rgba(RED,a);ctx.fillText(e.k===0?'-200':'-40',f.x,f.y-30-e.age*26);}
+  }
+}
+
+/* ---------- compose ---------- */
+const LOOKS={
+  cur:{name:'Today',style:null},
+  a:{name:'A · Planted Blade',style:STEEL},
+  b:{name:'B · Pillar of Light',style:LIGHT},
+  c:{name:'C · Winged Seal',style:ORNATE}
+};
+let look='a',t=.3,playing=true,slow=false;
+
+function floor(){
+  ctx.fillStyle='#14161a';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1d2025';ctx.lineWidth=1;ctx.beginPath();
+  for(let x=0;x<=W;x+=40){ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,H);}
+  for(let y=0;y<=H;y+=40){ctx.moveTo(0,y+.5);ctx.lineTo(W,y+.5);}
+  ctx.stroke();
+  const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,W*.62);
+  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+function phaseLabel(t){
+  if(look==='cur')return t<TW?'telegraph':t<TEND?'blessed ground (no sword, no pulse)':'gone';
+  if(t<TW)return'telegraph';
+  for(let k=NP-1;k>=0;k--)if(t>=PULSES[k]&&t<PULSES[k]+DUR)return k===0?'impact':k===NP-1?'finale pulse':`pulse ${k+1} of ${NP}`;
+  return t<TEND?'blessed ground':'fading';
+}
+function render(){
+  window.__t=t;
+  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);
+  const za=zoneAlpha(t),isCur=look==='cur';
+  let sh=0;if(!isCur&&t>=TW)sh=7*Math.exp(-(t-TW)*9);
+  const fr=Math.floor(t*60);
+  ctx.save();ctx.translate((rnd(fr,1)-.5)*2*sh,(rnd(fr,2)-.5)*2*sh);
+  floor();
+  const style=LOOKS[look].style;
+  if(isCur)curDraw(t);
+  else if(t<TW)telegraph(t,look);
+  else{
+    (look==='a'?groundA:look==='b'?groundB:groundC)(t,za);
+  }
+  /* actors behind the sword */
+  const burning=!isCur&&t>=TW&&t<TEND+.4;
+  const all=[...allies.map(a=>[a,true]),...enemies.map(a=>[a,false])].sort((p,q)=>pos(p[0],t)[1]-pos(q[0],t)[1]);
+  const fl=[];
+  const behind=all.filter(([a])=>pos(a,t)[1]<=CY),front=all.filter(([a])=>pos(a,t)[1]>CY);
+  if(isCur){
+    for(const[a,al]of all)fl.push(drawActor(a,al,t,false,za));
+  }else{
+    if(look==='b')beamB(t,t<TW?0:za);
+    for(const[a,al]of behind)fl.push(drawActor(a,al,t,burning,za));
+    /* sword */
+    if(t<TW){
+      fallingSword(t,look,style);
+    }else{
+      const gl=surge(t);
+      const extra=look==='c'?wingsAndHalo(t,za):{};
+      const fade=t<TEND?1:za;
+      ctx.save();
+      drawSword({x:CX,tipY:CY+(t<TEND?0:(1-za)*10),s:1,alpha:fade,t,glowAmt:.4+.6*gl,glowCol:look==='b'?WHITE:GOLD,...style,...extra});
+      ctx.restore();
+      if(look==='a'&&t>=TEND){ /* dissolve into embers */
+        ctx.save();ctx.globalCompositeOperation='lighter';
+        for(let i=0;i<40;i++){const ph=clamp((t-TEND)/.9,0,1),x=CX+(rnd(i)-.5)*30,y=CY-rnd(i,1)*180-ph*(40+rnd(i,2)*80);
+          ctx.fillStyle=rgba(i%3?GOLD:WHITE,(1-ph)*.9);ctx.fillRect(x,y,2.4,2.4);}
+        ctx.restore();
+      }
+    }
+    for(const[a,al]of front)fl.push(drawActor(a,al,t,burning,za));
+    /* impact + pulses */
+    if(t>=TW){
+      impactFx(t,look==='a'?1.2:look==='b'?.6:.9);
+      PULSES.forEach((tp,k)=>{
+        const age=t-tp;if(age<0||age>=DUR)return;
+        const q=age/DUR,e=easeOut(q),big=k===0||k===NP-1,r=ringMax(k)*e;
+        (look==='a'?pulseA:look==='b'?pulseB:pulseC)(q,e,r,k,big);
+      });
+    }
+    floaters(fl);
+  }
+  if(isCur)floaters(fl);
+  ctx.restore();
+  if(!isCur)flashOverlay(t,look==='a'?1:.7);
+  document.getElementById('hudLook').textContent=LOOKS[look].name;
+  document.getElementById('hudPhase').textContent=`${t.toFixed(2)} s · ${phaseLabel(t)}`;
+  scrub.value=Math.round(t*100);tlabel.textContent=t.toFixed(2)+' s';
+}
+
+/* ---------- controls ---------- */
+const scrub=document.getElementById('scrub'),tlabel=document.getElementById('tlabel');
+const playBtn=document.getElementById('play'),slowBtn=document.getElementById('slow');
+function setPlay(p){playing=p;playBtn.textContent=p?'Pause':'Play';playBtn.setAttribute('aria-pressed',String(p));}
+document.querySelectorAll('input[name=look]').forEach(r=>r.addEventListener('change',e=>{look=e.target.value;if(t>TOTAL)t=0;render();}));
+playBtn.onclick=()=>setPlay(!playing);
+document.getElementById('replay').onclick=()=>{t=0;setPlay(true);render();};
+slowBtn.onclick=()=>{slow=!slow;slowBtn.setAttribute('aria-pressed',String(slow));};
+scrub.addEventListener('input',()=>{t=scrub.value/100;setPlay(false);render();});
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{t=parseFloat(b.dataset.jump);setPlay(true);render();});
+window.__set=(l,tt)=>{look=l;t=tt;setPlay(false);render();};
+
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){t=2.9;setPlay(false);}
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(playing){t+=dt*(slow?.25:1);if(t>TOTAL)t=0;}
+  render();requestAnimationFrame(loop);
+}
+render();
+requestAnimationFrame(loop);
+})();
+</script>
