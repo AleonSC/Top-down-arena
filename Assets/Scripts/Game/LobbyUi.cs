@@ -222,8 +222,11 @@ namespace Arena
 
         // --- Party ----------------------------------------------------------------
 
+        readonly PartyBots partyBots = new PartyBots();  // bots in the open slots (PartyBots.cs)
+
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
         {
+            var botSeat = session.IsHost ? partyBots.Find(e.Id) : null;
             var color = ToColor(Defs.Get(e.Role).Color);
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
@@ -254,7 +257,9 @@ namespace Arena
                 bx -= 44f;
             if (e.Id == 1)
                 bx -= 54f;
-            float badgesLeft = (mine || e.Id == 1) ? bx : r.xMax - 12f;
+            if (botSeat != null)
+                bx -= 136f;  // the bot's buttons (below)
+            float badgesLeft = (mine || e.Id == 1 || botSeat != null) ? bx : r.xMax - 12f;
             DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 26f), e.Name, 19, 13, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
             bx = r.xMax - 12f;
             if (mine)
@@ -271,10 +276,29 @@ namespace Arena
             DrawOneLine(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
                 Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, Ui.Muted, false);
             DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
+            if (botSeat != null)
+                DrawBotButtons(r, botSeat);
             var ready = new Rect(r.xMax - 98f, r.yMax - 30f, 86f, 20f);
             if (e.Ready)
                 Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + 0.1f * Mathf.Sin(t * 4f)));
             Ui.Badge(ready, e.Ready ? "READY" : "NOT READY", e.Ready ? new Color(0.2f, 0.62f, 0.32f) : Ui.Neutral);
+        }
+
+        /// A bot's controls on its party card (the host's): its skill (click to change), a new random loadout, and remove.
+        void DrawBotButtons(Rect r, PartyBots.PartyBot bot)
+        {
+            float x = r.xMax - 12f - 22f;
+            if (Ui.SmallButton(new Rect(x, r.y + 10f, 22f, 20f), "x", 12))
+            {
+                partyBots.Remove(bot);
+                return;
+            }
+            x -= 38f;
+            if (Ui.SmallButton(new Rect(x, r.y + 10f, 34f, 20f), "MIX", 10))
+                partyBots.Shuffle(bot);  // a new random loadout
+            x -= 68f;
+            if (Ui.SmallButton(new Rect(x, r.y + 10f, 64f, 20f), bot.Skill.ToString().ToUpper(), 11))
+                partyBots.SetSkill(bot, bot.Skill == BotSkill.Casual ? BotSkill.Good : bot.Skill == BotSkill.Good ? BotSkill.Expert : BotSkill.Casual);
         }
 
         void DrawOpenSlot(Rect r, int slot, float t)
@@ -294,7 +318,10 @@ namespace Arena
             }
             Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
             Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
-            Ui.Label(new Rect(r.x, r.y, r.width, r.height), "OPEN SLOT", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
+            bool canAdd = partyBots.CanAdd(session);
+            Ui.Label(new Rect(r.x, r.y, r.width, canAdd ? r.height - 30f : r.height), "OPEN SLOT", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
+            if (canAdd && Ui.Button(new Rect(r.center.x - 70f, r.yMax - 40f, 140f, 28f), "+ Add a bot", Ui.Primary))
+                partyBots.Add(session);  // a bot takes the slot and plays with you
         }
 
         string[] InviteAddresses() => (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);

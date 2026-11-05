@@ -1206,6 +1206,13 @@ One person **hosts**, the other **joins**. The host's game acts as the server, s
 4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host
    clicks **Start**.
 
+**Bots.** The host can fill the lobby's open slots with bots that play with them: click **+ Add a bot** on an OPEN SLOT (host only,
+in the lobby, not while continuing a saved run). A bot takes the first role nobody has, a random class, weapon and Space ability,
+and readies up by itself; it revives, heals, dodges and uses its abilities like the Boss Lab's bots (below), picks its own
+upgrades and carries on between waves. On its card, the skill button cycles **Casual, Good, Expert**, **MIX** deals it a
+new random loadout and **x** removes it. Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
+counted in Records, XP or ranks, like Boss Lab fights and the F1 bot.
+
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask
 the host to allow the game the first time they host; click **Allow**.
@@ -1338,7 +1345,7 @@ defensive abilities when things get tight, and use the rest on the boss.
 | Good | 0.24 s | 0.4 s | nearest 12 bullets | ~7 times a second |
 | Expert | 0.15 s | 0.5 s | nearest 25 bullets | ~12 times a second |
 
-Bots don't parry, pick up health orbs, or reroll upgrades.
+Bots don't parry, pick up health orbs, or reroll upgrades. (The same bots can join your own lobby: see **Bots** under Playing with a friend.)
 
 From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]` runs
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
