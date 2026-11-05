@@ -1,0 +1,283 @@
+<title>Guardian's Oath Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one ability stage (canvas + scenario/look toggles + replay/slow-mo), beat-by-beat card, numbers table, open questions.
+   Colour: Knight steel blue for the charge, holy gold for the ward (the game's Consecrate/Oath light). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#eef0ea; --fg:#1b2019; --muted:#5d665a; --panel:#f8faf5; --line:#cfd5c8;
+  --gold:#b87d00; --steel:#2a6fa8; --warn:#b4412a; --chip:#e0e5da; --chip-on:#1b2019; --chip-on-fg:#f3f6ef;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1210; --fg:#e7ece3; --muted:#93a091; --panel:#171c18; --line:#2b342d;
+  --gold:#ffd25a; --steel:#6cb4ee; --warn:#ff8466; --chip:#232b25; --chip-on:#e7ece3; --chip-on-fg:#0f1210; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1210; --fg:#e7ece3; --muted:#93a091; --panel:#171c18; --line:#2b342d;
+  --gold:#ffd25a; --steel:#6cb4ee; --warn:#ff8466; --chip:#232b25; --chip-on:#e7ece3; --chip-on-fg:#0f1210; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 10px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.tag{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.frame{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#101512}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/520}
+.cap{position:absolute;left:12px;top:10px;font:500 12px var(--mono);color:#cfd8cb;background:#0008;padding:4px 8px;border-radius:4px;letter-spacing:.03em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;min-width:0}
+ol.beats{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+ol.beats li{display:grid;grid-template-columns:78px 1fr;gap:12px}
+ol.beats b{font:500 12px var(--mono);color:var(--gold);padding-top:3px}
+ol.beats p{margin:0}
+ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:15px}
+th{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-size:13px}
+.new{color:var(--gold);font-weight:500}
+</style>
+
+<main>
+<header>
+  <div class="tag">KNIGHT · HEALER · CHOICE 2 · MOCKUP</div>
+  <h1>Guardian's Oath rework</h1>
+  <p>Today the Oath is a remote shield: you point at an ally and a beam of light gives them 100 damage of absorb. Downed allies are skipped. The rework turns it into a rescue. The Knight charges to the player nearest the cursor, living or downed, drags them out of the fire, and plants a Ward of Light that cuts the damage everyone inside takes.</p>
+</header>
+
+<section class="stage">
+  <div class="controls">
+    <div class="group" role="group" aria-label="Version"><span>Version</span>
+      <button id="vNew" aria-pressed="true">Proposed</button><button id="vOld" aria-pressed="false">Current</button></div>
+    <div class="group" role="group" aria-label="Ally state"><span>Ally</span>
+      <button id="aAlive" aria-pressed="true">Alive</button><button id="aDown" aria-pressed="false">Downed</button></div>
+    <div class="group"><button id="replay">Replay</button><button id="pause" aria-pressed="false">Pause</button><button id="slow" aria-pressed="false">Slow-mo</button></div>
+  </div>
+  <div class="frame"><canvas id="c" width="900" height="520" aria-label="Animated mockup of the Guardian's Oath rework"></canvas><div class="cap" id="cap"></div></div>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <h2>Beat by beat</h2>
+    <ol class="beats">
+      <li><b>0.0 s</b><p><strong>Aim.</strong> Hold the cursor near any player. The nearest one within 600 px of the cursor is marked with a gold bracket. Downed counts.</p></li>
+      <li><b>0.0–0.4 s</b><p><strong>Charge.</strong> The Knight dashes in a straight line to the target, shoving small bullets aside and taking no contact damage on the way.</p></li>
+      <li><b>0.4 s</b><p><strong>Grab.</strong> A light tether snaps on. Downed allies are lifted, living ones are held in place.</p></li>
+      <li><b>0.4–1.2 s</b><p><strong>Pull.</strong> Both retreat 360 px toward the arena side with the fewest enemies. The ally is invulnerable while dragged.</p></li>
+      <li><b>1.2 s</b><p><strong>Plant.</strong> The Ward of Light opens, 130 px wide. It stays for 5 s. Allies inside take 50% less damage.</p></li>
+      <li><b>1.2–6.2 s</b><p><strong>Hold.</strong> Incoming hits inside the ward show the reduced number. Downed allies inside bleed out at half speed.</p></li>
+    </ol>
+  </section>
+  <section class="card">
+    <h2>What changes</h2>
+    <ul>
+      <li>It reaches downed players, which no shield ability does now. It sits in the same slot as Lay on Hands but works without a heal.</li>
+      <li>It moves the Knight into danger and the ally out of it, so the cost is positional instead of a flat cooldown.</li>
+      <li>The effect covers an area, so it also protects the Knight and anyone who runs into it.</li>
+      <li>The shield pool is gone. Damage reduction scales with fight length, so the Bulwark upgrade becomes ward strength.</li>
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Numbers to start from</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Stat</th><th>Current</th><th>Proposed</th><th>Capstone</th></tr></thead>
+    <tbody>
+      <tr><td>Cooldown</td><td class="n">15 s</td><td class="n new">15 s</td><td class="n">unchanged</td></tr>
+      <tr><td>Target</td><td>Nearest living ally to cursor</td><td class="new">Nearest player to cursor, downed included</td><td>unchanged</td></tr>
+      <tr><td>Charge range</td><td class="n">none</td><td class="n new">600 px from the Knight</td><td class="n">800 px</td></tr>
+      <tr><td>Effect</td><td class="n">100 absorb ally, 50 absorb self, 6 s</td><td class="n new">Ward: −50% damage, 130 px, 5 s</td><td>Ward follows the Knight, 190 px</td></tr>
+      <tr><td>Downed</td><td>Skipped</td><td class="new">Pulled out, bleed-out at half speed in the ward</td><td>Revives at 25% on arrival</td></tr>
+      <tr><td>Bulwark upgrade</td><td class="n">+60% shield, 2 stacks</td><td class="n new">+15% reduction per stack, up to −65%</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card">
+  <h2>Open questions</h2>
+  <ul>
+    <li><strong>Range cap.</strong> 600 px keeps it from crossing the whole arena. Should a longer reach be the capstone, or should the capstone stay about the ward?</li>
+    <li><strong>Revive.</strong> Pulling a downed ally out is already a rescue. Reviving on arrival would overlap with Lay on Hands, so I left it to the capstone only.</li>
+    <li><strong>Boss attacks.</strong> Should the ward reduce telegraphed boss damage, or only bullets and contact hits? I assumed all damage.</li>
+    <li><strong>Solo.</strong> With no ally, the Knight charges to the cursor and plants the ward there. Keep that, or make the ability unusable?</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(function(){
+  var cv=document.getElementById('c'), g=cv.getContext('2d'), W=900, H=520;
+  var cap=document.getElementById('cap');
+  var proposed=true, downed=false, paused=false, slow=false;
+  var CAST=0.6, GRAB=1.0, PLANT=1.8, WARD_T=5, END=8.6, R=130;
+  var KS={x:150,y:400}, AS={x:660,y:190}, SAFE={x:300,y:350}, CUR={x:676,y:208};
+  var ENEMIES=[{x:600,y:48},{x:760,y:84},{x:820,y:210}];
+  var t=0, last=0, bullets, texts, hits, enemyT, ally, knight, fireN;
+
+  function reset(){
+    t=0; bullets=[]; texts=[]; fireN=0; enemyT=ENEMIES.map(function(_,i){return 0.35+i*0.37});
+    ally={x:AS.x,y:AS.y,hp:downed?0:46,shield:0,bleed:1,inv:false};
+    knight={x:KS.x,y:KS.y,hp:100,shield:0};
+  }
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function ease(x){x=clamp(x,0,1);return x*x*(3-2*x)}
+  function lerp(a,b,k){return a+(b-a)*k}
+  function wardOn(){return proposed&&t>=PLANT&&t<PLANT+WARD_T}
+  function inWard(p){var dx=p.x-SAFE.x,dy=p.y-SAFE.y;return wardOn()&&dx*dx+dy*dy<R*R}
+
+  function setPositions(){
+    if(!proposed){return}
+    var k;
+    if(t<CAST){return}
+    if(t<GRAB){k=ease((t-CAST)/(GRAB-CAST));knight.x=lerp(KS.x,AS.x-34,k);knight.y=lerp(KS.y,AS.y+10,k)}
+    else if(t<PLANT){k=ease((t-GRAB)/(PLANT-GRAB));
+      knight.x=lerp(AS.x-34,SAFE.x,k);knight.y=lerp(AS.y+10,SAFE.y,k);
+      ally.x=lerp(AS.x,SAFE.x+44,k);ally.y=lerp(AS.y,SAFE.y-18,k)}
+    else{knight.x=SAFE.x;knight.y=SAFE.y;ally.x=SAFE.x+44;ally.y=SAFE.y-18}
+  }
+  function hurt(p,amt,isAlly){
+    var dmg=amt, tag='';
+    if(inWard(p)){dmg=amt*0.5;tag='gold'}
+    if(isAlly&&proposed&&t>=GRAB&&t<PLANT)return;
+    if(isAlly&&downed){ally.bleed=Math.max(0,ally.bleed-dmg/60);texts.push({x:p.x,y:p.y-28,s:'−'+Math.round(dmg),a:1,c:tag?'gold':'red'});return}
+    if(p.shield>0&&(t<CAST+6)){var ab=Math.min(p.shield,dmg);p.shield-=ab;dmg-=ab;texts.push({x:p.x+10,y:p.y-30,s:ab?'absorbed '+Math.round(ab):'',a:1,c:'blue'})}
+    if(dmg>0){p.hp=Math.max(1,p.hp-dmg);texts.push({x:p.x-6,y:p.y-26,s:'−'+Math.round(dmg),a:1,c:tag?'gold':'red'})}
+  }
+  function step(dt){
+    t+=dt;
+    if(t>END){reset();return}
+    // old version: instant shields at cast
+    if(!proposed&&t>=CAST&&!step.done){step.done=true;
+      if(!downed){ally.shield=100}
+      knight.shield=downed?100:50}
+    if(proposed)setPositions();
+    // enemy fire
+    for(var i=0;i<ENEMIES.length;i++){
+      enemyT[i]-=dt;
+      if(enemyT[i]<=0){enemyT[i]=1.05+(i%2)*0.2;
+        var tgt=(fireN++%3===2&&t>PLANT)?knight:ally;
+        var a=Math.atan2(tgt.y-ENEMIES[i].y,tgt.x-ENEMIES[i].x)+(((fireN*37)%11)-5)*0.025;
+        bullets.push({x:ENEMIES[i].x,y:ENEMIES[i].y,vx:Math.cos(a)*250,vy:Math.sin(a)*250})}
+    }
+    for(var b=bullets.length-1;b>=0;b--){
+      var bl=bullets[b];bl.x+=bl.vx*dt;bl.y+=bl.vy*dt;
+      var dead=bl.x<-20||bl.x>W+20||bl.y<-20||bl.y>H+20;
+      [[ally,true],[knight,false]].forEach(function(pr){
+        var p=pr[0];if(!dead&&Math.hypot(bl.x-p.x,bl.y-p.y)<17){hurt(p,16,pr[1]);dead=true}});
+      if(dead)bullets.splice(b,1);
+    }
+    texts.forEach(function(x){x.y-=26*dt;x.a-=dt*0.9});
+    texts=texts.filter(function(x){return x.a>0});
+    if(downed&&!(proposed&&t>=GRAB)||downed){ally.bleed=Math.max(0.05,ally.bleed-dt*(inWard(ally)?0.045:0.09)*(proposed&&t>=GRAB&&t<PLANT?0:1))}
+  }
+
+  function glow(x,y,r,col,al){var gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba('+col+','+al+')');gr.addColorStop(1,'rgba('+col+',0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+  function bar(x,y,w,v,col){g.fillStyle='#0009';g.fillRect(x-w/2,y,w,5);g.fillStyle=col;g.fillRect(x-w/2,y,w*clamp(v,0,1),5)}
+
+  function drawPlayer(p,col,label,isDown){
+    if(isDown){
+      g.save();g.translate(p.x,p.y);g.rotate(-0.5);g.fillStyle='#5b6a60';g.beginPath();g.arc(0,0,15,0,7);g.fill();
+      g.fillStyle='#2a312d';g.fillRect(-15,-3,30,6);g.restore();
+      g.strokeStyle='#e56a50';g.lineWidth=3;g.beginPath();g.arc(p.x,p.y,24,-Math.PI/2,-Math.PI/2+Math.PI*2*ally.bleed);g.stroke();
+      g.fillStyle='#e8c9c2';g.font='500 11px "IBM Plex Mono",monospace';g.textAlign='center';g.fillText('DOWNED',p.x,p.y+42);return}
+    g.fillStyle=col;g.beginPath();g.arc(p.x,p.y,15,0,7);g.fill();
+    g.strokeStyle='#fff6';g.lineWidth=2;g.stroke();
+    g.fillStyle='#0b0f0d';g.font='700 12px "Barlow Condensed",sans-serif';g.textAlign='center';g.fillText(label,p.x,p.y+4);
+    bar(p.x,p.y+22,34,p.hp/100,'#6fd08a');
+    if(p.shield>0){g.strokeStyle='rgba(120,190,255,.9)';g.lineWidth=3;g.beginPath();g.arc(p.x,p.y,21,0,7);g.stroke()}
+  }
+
+  function draw(){
+    g.fillStyle='#101512';g.fillRect(0,0,W,H);
+    g.strokeStyle='#1b2420';g.lineWidth=1;
+    for(var x=0;x<W;x+=50){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+    for(var y=0;y<H;y+=50){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+
+    // safe spot hint during pull
+    if(proposed&&t>CAST&&t<PLANT){g.setLineDash([6,8]);g.strokeStyle='rgba(255,210,90,.35)';g.lineWidth=2;g.beginPath();g.arc(SAFE.x,SAFE.y,R,0,7);g.stroke();g.setLineDash([])}
+
+    // ward
+    if(wardOn()){
+      var wt=t-PLANT, grow=ease(wt/0.35), fade=wt>WARD_T-0.8?(WARD_T-wt)/0.8:1, r=R*grow;
+      glow(SAFE.x,SAFE.y,r*1.1,'255,210,90',0.30*fade);
+      g.fillStyle='rgba(255,215,110,'+(0.10*fade)+')';g.beginPath();g.arc(SAFE.x,SAFE.y,r,0,7);g.fill();
+      g.strokeStyle='rgba(255,220,120,'+(0.9*fade)+')';g.lineWidth=3;g.beginPath();g.arc(SAFE.x,SAFE.y,r,0,7);g.stroke();
+      g.strokeStyle='rgba(255,236,170,'+(0.5*fade)+')';g.lineWidth=1.5;
+      for(var i=0;i<12;i++){var a=i/12*Math.PI*2+wt*0.5;g.beginPath();g.moveTo(SAFE.x+Math.cos(a)*(r-12),SAFE.y+Math.sin(a)*(r-12));g.lineTo(SAFE.x+Math.cos(a)*(r-3),SAFE.y+Math.sin(a)*(r-3));g.stroke()}
+      g.fillStyle='rgba(255,226,140,'+fade+')';g.font='500 12px "IBM Plex Mono",monospace';g.textAlign='center';
+      g.fillText('WARD  −50% DAMAGE  '+Math.max(0,WARD_T-wt).toFixed(1)+'s',SAFE.x,SAFE.y+r+18);
+    }
+    // old ring burst
+    if(!proposed&&t>=CAST&&t<CAST+0.5){var k=(t-CAST)/0.5;g.strokeStyle='rgba(255,230,130,'+(1-k)+')';g.lineWidth=3;g.beginPath();g.arc(ally.x,ally.y,20+k*40,0,7);g.stroke()}
+
+    // enemies
+    ENEMIES.forEach(function(e){g.fillStyle='#8e3a2a';g.fillRect(e.x-14,e.y-14,28,28);g.fillStyle='#e8866c';g.fillRect(e.x-6,e.y-6,12,12)});
+
+    // tether and charge trail
+    if(proposed&&t>=CAST&&t<GRAB){var a0=(t-CAST)/(GRAB-CAST);g.strokeStyle='rgba(108,180,238,'+(0.7-a0*0.4)+')';g.lineWidth=10;g.lineCap='round';g.beginPath();g.moveTo(KS.x,KS.y);g.lineTo(knight.x,knight.y);g.stroke();g.lineCap='butt'}
+    if(proposed&&t>=GRAB&&t<PLANT+0.2){g.strokeStyle='rgba(255,226,140,.85)';g.lineWidth=3;g.beginPath();g.moveTo(knight.x,knight.y);g.lineTo(ally.x,ally.y);g.stroke()}
+    if(!proposed&&t>=CAST&&t<CAST+1.4&&!downed){g.strokeStyle='rgba(255,230,130,'+(1-(t-CAST)/1.4)+')';g.lineWidth=3;g.beginPath();g.moveTo(knight.x,knight.y);g.lineTo(ally.x,ally.y);g.stroke()}
+
+    // cursor and target bracket
+    var pre=t<CAST+(proposed?0:0.2);
+    if(pre||t<CAST+0.3){
+      g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(CUR.x,CUR.y,9,0,7);g.moveTo(CUR.x-14,CUR.y);g.lineTo(CUR.x+14,CUR.y);g.moveTo(CUR.x,CUR.y-14);g.lineTo(CUR.x,CUR.y+14);g.stroke();
+      if(proposed||!downed){var bx=ally.x,by=ally.y,s=26;g.strokeStyle='#ffd25a';g.lineWidth=2.5;
+        [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c){g.beginPath();g.moveTo(bx+c[0]*s,by+c[1]*(s-9));g.lineTo(bx+c[0]*s,by+c[1]*s);g.lineTo(bx+c[0]*(s-9),by+c[1]*s);g.stroke()})}
+      else{g.fillStyle='#ff8466';g.font='500 12px "IBM Plex Mono",monospace';g.textAlign='left';g.fillText('✕ downed allies are skipped',CUR.x+20,CUR.y-14)}
+    }
+
+    // bullets
+    bullets.forEach(function(b){var w=inWard(b);g.fillStyle=w?'#ffe28c':'#ff7a5c';g.beginPath();g.arc(b.x,b.y,w?4:5,0,7);g.fill();if(w){g.strokeStyle='rgba(255,226,140,.5)';g.lineWidth=1;g.beginPath();g.arc(b.x,b.y,8,0,7);g.stroke()}});
+
+    // players
+    drawPlayer(ally,'#7fd1c4','P2',downed);
+    drawPlayer(knight,'#9bbcf2','K');
+
+    // texts
+    g.font='700 15px "Barlow Condensed",sans-serif';g.textAlign='center';
+    texts.forEach(function(x){g.globalAlpha=clamp(x.a,0,1);g.fillStyle=x.c==='gold'?'#ffd25a':x.c==='blue'?'#8ac6ff':'#ff8f7a';g.fillText(x.s,x.x,x.y)});
+    g.globalAlpha=1;
+
+    // caption
+    var c;
+    if(!proposed){c=t<CAST?'Aiming…':(downed?'Current: no valid target, only the Knight is shielded (100)':'Current: beam gives ally 100 absorb, Knight 50. Nobody moves.')}
+    else if(t<CAST)c='Aim at nearest player to cursor';
+    else if(t<GRAB)c='Charge';
+    else if(t<PLANT)c=downed?'Grab and drag the downed ally to safety':'Grab and drag the ally out of the fire';
+    else if(wardOn())c='Ward of Light: hits inside deal half damage';
+    else c='Ward expired';
+    cap.textContent=c;
+  }
+
+  function frame(ts){
+    var dt=last?(ts-last)/1000:0;last=ts;dt=Math.min(dt,0.05);
+    if(!paused){step.done=step.done&&t>0;var sub=slow?0.3:1;step(dt*sub)}
+    draw();requestAnimationFrame(frame);
+  }
+  function restart(){step.done=false;reset()}
+  function setPress(ids,on){ids.forEach(function(i){document.getElementById(i).setAttribute('aria-pressed',String(i===on))})}
+  document.getElementById('vNew').onclick=function(){proposed=true;setPress(['vNew','vOld'],'vNew');restart()};
+  document.getElementById('vOld').onclick=function(){proposed=false;setPress(['vNew','vOld'],'vOld');restart()};
+  document.getElementById('aAlive').onclick=function(){downed=false;setPress(['aAlive','aDown'],'aAlive');restart()};
+  document.getElementById('aDown').onclick=function(){downed=true;setPress(['aAlive','aDown'],'aDown');restart()};
+  document.getElementById('replay').onclick=restart;
+  var pb=document.getElementById('pause'),sb=document.getElementById('slow');
+  pb.onclick=function(){paused=!paused;pb.setAttribute('aria-pressed',String(paused));pb.textContent=paused?'Resume':'Pause'};
+  sb.onclick=function(){slow=!slow;sb.setAttribute('aria-pressed',String(slow))};
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){paused=true;pb.setAttribute('aria-pressed','true');pb.textContent='Resume';reset();t=3.2;step.done=true;setPositions()}
+  else reset();
+  requestAnimationFrame(frame);
+})();
+</script>
