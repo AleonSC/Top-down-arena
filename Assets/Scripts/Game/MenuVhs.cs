@@ -7,7 +7,8 @@ namespace Arena
     /// The main menu buttons' old-tape look (look C, "Rewind", of Docs/Mockups/menu-vhs-hover.html). Wrap a button's draw call in
     /// MenuVhs.Draw: while the mouse is over it, it gets a blue cast, flicker, scanlines, a tracking band, sideways jitter and a
     /// tape counter. Clicking snaps it into focus (0.3 s: double image pulling together and a white flash) and it stays clean until
-    /// the mouse leaves and comes back. calm (Reduced effects) keeps only a tint and no snap.
+    /// the mouse leaves and comes back. calm (Reduced effects) keeps only a tint and no snap. The `tag` argument is no longer
+    /// drawn (the tape counter text was removed); callers still pass it.
     public static class MenuVhs
     {
         const float SnapLen = 0.3f;
@@ -103,13 +104,6 @@ namespace Arena
                 {
                     float f = (i + 0.5f) / 8f, a = Mathf.Sin(f * Mathf.PI) * 0.3f;
                     Ui.Fill(new Rect(0f, by + bh * i / 8f, r.width, bh / 8f + 1f), new Color(0.75f, 0.88f, 1f, a));
-                }
-                if (tag != null)
-                {
-                    int fr = Mathf.FloorToInt(now * 24f) % 24;
-                    string txt = tag + " ◂◂ 00:00:" + (Mathf.FloorToInt(now) % 60).ToString("00") + ":" + fr.ToString("00");
-                    Ui.Label(new Rect(9f, 4f, r.width - 12f, 14f), txt, 10, new Color(1f, 0.16f, 0.2f, 0.9f), TextAnchor.UpperLeft);
-                    Ui.Label(new Rect(8f, 4f, r.width - 12f, 14f), txt, 10, new Color(0.9f, 0.97f, 1f, 1f), TextAnchor.UpperLeft);
                 }
             }
             GUI.EndGroup();
