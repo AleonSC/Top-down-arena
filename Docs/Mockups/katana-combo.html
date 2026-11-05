@@ -51,6 +51,7 @@ button.hot{background:var(--crim);border-color:var(--crim);color:#fff}
 .meter .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .bar{flex:1 1 200px;min-width:0;height:14px;border:1px solid var(--line);border-radius:3px;background:var(--pip);overflow:hidden;position:relative}
 .bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--steel);transition:width .1s}
+.bar.drain i{background:var(--muted);opacity:.8}
 .bar.full i{background:var(--crim);animation:pulse .5s infinite alternate}
 @keyframes pulse{to{filter:brightness(1.35)}}
 @media (prefers-reduced-motion:reduce){.bar.full i{animation:none}}
@@ -112,7 +113,7 @@ h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:
   <div class="meter"><span class="lab">Strike meter</span><div class="bar" id="bar2"><i></i></div><span class="num" id="num2">0 / 100</span></div>
   <div class="controls">
     <button id="hit2" type="button">Land a hit (+20)</button>
-    <button id="fill2" type="button">Fill meter</button>
+    <button id="fill2" type="button">Fill meter (holds 3 s)</button>
     <button class="hot" id="hold2" type="button">Hold to target</button>
     <label class="chk"><input type="checkbox" id="auto2" checked> Auto-play</label>
     <span class="kbd">Alt</span><span class="msg" style="min-height:0">hold, move the mouse, release (click the stage first)</span>
@@ -133,6 +134,7 @@ h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:
       <h3>Rules in this mockup</h3>
       <ul>
         <li>Costs the whole meter (100). Charge it with swipes (+10) and lunges (+20) per enemy hit.</li>
+        <li>The meter drains at 25 per second once you have not hit anything for 1.2 s, so a full bar is gone in 4 s of standing still.</li>
         <li>No range limit and no line of sight. The route ignores walls and bullets.</li>
         <li>You always end 52 px behind the target, facing away from where you came from.</li>
         <li>Releasing Alt with less than a full meter does nothing, and the bar shakes.</li>
@@ -163,14 +165,14 @@ h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:
     <ul>
       <li>The 0.6 s sheathe and 220 px quick-draw (2.5× for 50) is replaced by the lunge as step 3.</li>
       <li>Slashes stop being a repeat of one animation. The two swipes alternate direction.</li>
-      <li>A new meter on the Ninja HUD, charged by hits, spent by the Alt strike.</li>
+      <li>A new meter on the Ninja HUD, charged by hits, drained when you stop hitting, spent by the Alt strike.</li>
       <li>Alt strike is a new input. Shadow Step and Kunai Mark already teleport, so this needs a different look and a different trigger from both.</li>
     </ul>
   </div>
   <div class="card">
     <h3>Open questions</h3>
     <ul>
-      <li>Should the meter drain when you stop attacking, or hold until spent?</li>
+      <li>Is 25 per second after a 1.2 s grace the right drain? Should taking damage drain it faster?</li>
       <li>Is Alt the right key? The weapon-action key is already used by Shuriken and Kunai. Katana could use either.</li>
       <li>Should the route cut other enemies for 60, or only the target?</li>
       <li>Do bosses take the full 120, or a capped share?</li>
@@ -201,18 +203,19 @@ function floats(x,list,dt){for(var i=list.length-1;i>=0;i--){var f=list[i];f.age
 
 /* ---------------- Stage 1: the chain ---------------- */
 var c1=$('c1'),x1=setup(c1);
-var S1={px:190,py:200,bx:190,step:0,phase:'idle',pt:0,gap:0,queued:false,hit:{},lx:190,meter:0,ready:0,auto:!rm,aT:0,
+var S1={px:190,py:200,bx:190,step:0,phase:'idle',pt:0,gap:0,queued:false,hit:{},lx:190,meter:0,idle:0,auto:!rm,aT:0,
   sw:{a0:0,a1:0,p:1,fade:1},streak:null,fl:[],ret:0,rx:0,
   dum:[{x:285,y:188,f:0,w:0},{x:365,y:214,f:0,w:0},{x:440,y:196,f:0,w:0}]};
+var DRAIN_GRACE=1.2,DRAIN_RATE=25;
 var DUR=[.26,.26,.56],DMG=[20,20,45],GAIN=[10,10,20],HALF=55*Math.PI/180;
 function atkStart(){S1.phase='atk';S1.pt=0;S1.hit={};if(S1.step===2){S1.lx=S1.px}else{var a=S1.step===0?-HALF:HALF;S1.sw={a0:a,a1:-a,p:0,fade:1}}}
 function press1(){if(S1.phase==='idle'||S1.phase==='gap')atkStart();else if(S1.phase==='atk'&&!S1.queued)S1.queued=true}
 function hitD(d,dmg,gain){d.f=1;d.w=1;S1.fl.push({x:d.x,y:d.y-24,text:String(dmg),age:0,life:.7});
-  S1.meter=Math.min(100,S1.meter+gain)}
+  S1.meter=Math.min(100,S1.meter+gain);S1.idle=0}
 function upd1(dt){
   var s=S1;
   if(s.auto){s.aT+=dt;
-    if(s.phase==='idle'&&s.aT>.9){press1();s.aT=0}
+    if(s.phase==='idle'&&s.aT>2.4){press1();s.aT=0}
     else if(s.phase==='atk'&&s.step<2&&s.pt/DUR[s.step]>.55&&!s.queued){press1()}}
   if(s.phase==='atk'){
     s.pt+=dt;var d=DUR[s.step],p=clamp(s.pt/d,0,1);
@@ -235,8 +238,8 @@ function upd1(dt){
   if(s.phase==='atk'&&s.step<2)s.sw.fade=1;
   if(s.streak){s.streak.age+=dt;if(s.streak.age>.28)s.streak=null}
   for(var j=0;j<s.dum.length;j++){var u=s.dum[j];u.f=Math.max(0,u.f-dt*4);u.w=Math.max(0,u.w-dt*3)}
-  if(s.meter>=100){s.ready+=dt;if(s.ready>1.4){s.meter=0;s.ready=0}}
-  var bar=$('bar1');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100);$('num1').textContent=Math.round(s.meter)+' / 100'+(s.meter>=100?' ★':'');
+  s.idle+=dt;var drain=s.idle>DRAIN_GRACE&&s.meter>0;if(drain)s.meter=Math.max(0,s.meter-DRAIN_RATE*dt);
+  var bar=$('bar1');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100&&!drain);bar.classList.toggle('drain',drain);$('num1').textContent=Math.round(s.meter)+' / 100'+(drain?' ▼':s.meter>=100?' ★':'');
   for(var i2=0;i2<3;i2++){var el=$('pip'+i2),cur=s.phase==='atk'&&s.step===i2,nxt=!cur&&((s.phase==='gap'||s.phase==='idle'||s.phase==='atk'&&s.queued)&&((s.phase==='atk'?(s.step+1)%3:s.step)===i2));
     el.classList.toggle('on',cur);el.classList.toggle('next',nxt);el.classList.toggle('queued',nxt&&s.queued)}
 }
@@ -271,7 +274,7 @@ function draw1(dt){
 /* ---------------- Stage 2: the Alt strike ---------------- */
 var c2=$('c2'),x2=setup(c2);
 var S2={px:90,py:320,face:0,meter:0,phase:'idle',pt:0,ts:1,clock:0,sel:-1,cur:{x:400,y:180},auto:!rm,aT:0,aS:0,aA:0,aB:0,
-  dim:0,lt:0,flash:0,shake:0,fl:[],stain:[],path:null,halves:null,en:[],shakeBar:0,ghost:[]};
+  idle:0,dim:0,lt:0,flash:0,shake:0,fl:[],stain:[],path:null,halves:null,en:[],shakeBar:0,ghost:[]};
 var SPAWNS=[[250,110],[430,260],[560,110],[640,300],[330,340],[500,190]];
 SPAWNS.forEach(function(p,i){S2.en.push({ox:p[0],oy:p[1],rad:14+i*3,spd:.5+i*.13,ph:i*1.7,alive:true,f:0,app:1})});
 function epos(e){return{x:e.ox+Math.cos(S2.clock*e.spd+e.ph)*e.rad,y:e.oy+Math.sin(S2.clock*e.spd+e.ph)*e.rad*.7}}
@@ -304,10 +307,11 @@ function upd2(dt){var s=S2;
   s.ts=tsT;s.clock+=dt*s.ts;s.dim=lerp(s.dim,dimT,clamp(dt*10,0,1));s.lt=lerp(s.lt,ltT,clamp(dt*9,0,1));
   s.flash=Math.max(0,s.flash-dt*1.6);s.shake=Math.max(0,s.shake-dt*18);s.shakeBar=Math.max(0,s.shakeBar-dt);
   s.en.forEach(function(e){e.f=Math.max(0,e.f-dt*3);if(e.app<1)e.app=Math.min(1,e.app+dt*2)});
+  s.idle+=dt;var drain2=s.phase==='idle'&&s.idle>DRAIN_GRACE&&s.meter>0;if(drain2)s.meter=Math.max(0,s.meter-DRAIN_RATE*dt);
   /* auto-play */
   if(s.auto){
     if(s.phase==='idle'){
-      if(s.meter<100){s.aT+=dt;if(s.aT>.5){s.aT=0;s.meter=Math.min(100,s.meter+20);var q=epos(alive()[0]||s.en[0]);s.fl.push({x:q.x,y:q.y-20,text:'+20',age:0,life:.6,col:'#7cc4e6'})}}
+      if(s.meter<100){s.aT+=dt;if(s.aT>.5){s.aT=0;s.meter=Math.min(100,s.meter+20);s.idle=0;var q=epos(alive()[0]||s.en[0]);s.fl.push({x:q.x,y:q.y-20,text:'+20',age:0,life:.6,col:'#7cc4e6'})}}
       else{s.aT+=dt;if(s.aT>.7){s.aT=0;s.aS=0;var al=s.en.map(function(e,i){return i}).filter(function(i){return s.en[i].alive});
         s.aA=al[Math.floor(Math.random()*al.length)];
         s.aB=al.slice().sort(function(a,b){var pa=epos(s.en[a]),pb=epos(s.en[b]);return Math.hypot(pb.x-s.px,pb.y-s.py)-Math.hypot(pa.x-s.px,pa.y-s.py)})[0];
@@ -322,7 +326,7 @@ function upd2(dt){var s=S2;
   else if(s.phase==='after'){s.pt+=dt;if(s.pt>=.9){s.phase='idle';s.pt=0;s.aT=0;respawn();s.halves=null;s.path=null}}
   if(s.halves)s.halves.age+=dt;
   for(var i=s.stain.length-1;i>=0;i--){s.stain[i].age+=dt;if(s.stain[i].age>2.2)s.stain.splice(i,1)}
-  var bar=$('bar2');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100);$('num2').textContent=Math.round(s.meter)+' / 100'+(s.meter>=100?' ★':'');
+  var bar=$('bar2');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100&&!drain2);bar.classList.toggle('drain',drain2);$('num2').textContent=Math.round(s.meter)+' / 100'+(drain2?' ▼':s.meter>=100?' ★':'');
   bar.style.transform=s.shakeBar>0?'translateX('+(Math.sin(s.shakeBar*60)*4).toFixed(1)+'px)':'none';
   var h=$('hold2');h.classList.toggle('hot',s.phase!=='target');h.classList.toggle('primary',s.phase==='target');h.textContent=s.phase==='target'?'Release to strike':'Hold to target';
 }
@@ -399,8 +403,8 @@ c1.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault(
 c2.addEventListener('keydown',function(e){if(e.key==='Alt'){e.preventDefault();if(!e.repeat){userTakeover(2);startTarget()}}});
 c2.addEventListener('keyup',function(e){if(e.key==='Alt'){e.preventDefault();release()}});
 c2.addEventListener('blur',function(){if(S2.phase==='target'&&!S2.auto)S2.phase='idle'});
-$('hit2').addEventListener('click',function(){userTakeover(2);if(S2.phase==='idle'){S2.meter=Math.min(100,S2.meter+20);S2.fl.push({x:S2.px,y:S2.py-24,text:'+20',age:0,life:.6,col:'#7cc4e6'});setMsg('')}});
-$('fill2').addEventListener('click',function(){userTakeover(2);if(S2.phase==='idle'){S2.meter=100;setMsg('')}});
+$('hit2').addEventListener('click',function(){userTakeover(2);if(S2.phase==='idle'){S2.meter=Math.min(100,S2.meter+20);S2.idle=0;S2.fl.push({x:S2.px,y:S2.py-24,text:'+20',age:0,life:.6,col:'#7cc4e6'});setMsg('')}});
+$('fill2').addEventListener('click',function(){userTakeover(2);if(S2.phase==='idle'){S2.meter=100;S2.idle=-3;setMsg('Filled. The meter holds for 3 s, then drains.')}});
 var hold=$('hold2');
 hold.addEventListener('pointerdown',function(e){e.preventDefault();userTakeover(2);startTarget()});
 ['pointerup','pointercancel'].forEach(function(n){hold.addEventListener(n,function(){release()})});
