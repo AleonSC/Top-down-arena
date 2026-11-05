@@ -85,6 +85,11 @@ namespace Arena
         public float ScentT;           // host: Alpha Call's Blood Scent, which makes the frenzy build with each bite (Legion's frenzy stays flat)
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
+        public V2 VanishFrom;                         // where enemies last saw you before you vanished (replicated since 158: the smoke bank is drawn there)
+        public float OrbitT;                          // Ninja: Blade Fan's kunai still orbiting you, seconds left (replicated)
+        public int OrbitN;                            // ...and how many there are (replicated)
+        public float OrbitClock;                      // host: counts up while they orbit, for each enemy's 0.5 s between cuts
+        public readonly Dictionary<int, float> OrbitCut = new Dictionary<int, float>();  // host: enemy id -> OrbitClock of its last cut
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
         public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
         public int Orbiters;                          // Arcane Missiles: missiles circling you, waiting for an enemy (replicated)
@@ -104,7 +109,6 @@ namespace Arena
         public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
         public float HookT;                           //   for this much longer (replicated)
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
-        public V2 VanishFrom;                         // host: where enemies last saw you before you vanished
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
