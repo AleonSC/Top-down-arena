@@ -1,0 +1,238 @@
+<title>Stacked Menu Layout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game's canvas) scaled to fit. Tactile buttons sit on the blue chassis, digital ones live on green screens. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --gold: #f2c14e; --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --danger: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 36px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .tac:focus-visible, .sm:focus-visible, .go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.log { font: 500 12px var(--f-mono); color: var(--ink); letter-spacing: .06em; margin-left: auto; min-height: 1em; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
+
+/* screens (digital) */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.roll { position: absolute; left: 0; right: 0; height: 34%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.05), transparent); animation: roll 7s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px var(--glow); }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; }
+.sm { font: 22px/1 var(--f-crt); letter-spacing: .05em; color: var(--ink); background: rgba(77,255,154,.07); border: 2px solid var(--ink); padding: 5px 12px 3px; cursor: pointer; text-shadow: inherit; white-space: nowrap; }
+.sm:hover, .sm:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; }
+.sm.big { font-size: 28px; padding: 10px 16px 8px; }
+.sm.del { color: var(--danger); border-color: var(--danger); background: rgba(255,107,122,.07); }
+.sm.del:hover, .sm.del:focus-visible, .sm.del.armed { background: var(--danger); color: #1a0508; }
+
+/* chassis (tactile) */
+.chassis { position: absolute; border-radius: 16px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 88%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.1); }
+.chassis::before, .chassis::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; letter-spacing: .02em; cursor: pointer; border-radius: 10px;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28);
+  transition: transform .06s, box-shadow .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); }
+.tac:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0f22, 0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+.tac .led { position: absolute; left: 13px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac:hover .led, .tac:focus-visible .led { background: #6cff9a; box-shadow: 0 0 9px #6cff9a; }
+.tac.play { font-size: 30px; letter-spacing: .06em; background: linear-gradient(#4a63b3, #26336a); }
+.h2 { position: absolute; margin: 0; font: 700 25px var(--f-ui); letter-spacing: .03em; color: #fff; text-shadow: 0 0 10px rgba(110,255,170,.45); }
+.state { position: absolute; inset: 0; }
+[hidden] { display: none !important; }
+
+
+/* runs list */
+#runs { left: 30px; top: 58px; width: 620px; height: 214px; }
+#runs .bar { position: absolute; left: 0; right: 0; top: 0; height: 24px; padding: 4px 14px 0; display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(77,255,154,.28); z-index: 2; background: var(--sbg); }
+#list { position: absolute; left: 0; right: 0; top: 25px; bottom: 0; overflow-y: auto; z-index: 1; padding: 0 0 22px; scrollbar-width: thin; scrollbar-color: var(--dim) transparent; }
+#list::-webkit-scrollbar { width: 8px; } #list::-webkit-scrollbar-thumb { background: var(--dim); } #list::-webkit-scrollbar-track { background: rgba(77,255,154,.08); }
+.row { display: grid; grid-template-columns: 50px 100px 54px 58px minmax(0,1fr) auto; column-gap: 10px; align-items: center; padding: 6px 14px; min-height: 52px; border-bottom: 1px dashed rgba(77,255,154,.22); }
+.row:hover { background: rgba(77,255,154,.06); }
+.row.armed { background: rgba(255,107,122,.09); }
+.row .w { font-size: 30px; line-height: 1; } .row .w small { font-size: 13px; color: var(--dim); text-shadow: none; margin-left: 3px; }
+.row .t { font-size: 18px; white-space: nowrap; }
+.pl { font-size: 16px; line-height: 1.05; white-space: nowrap; overflow: hidden; min-width: 0; } .pl div { overflow: hidden; text-overflow: ellipsis; } .pl b { font-weight: 400; display: inline-block; width: 3px; height: 11px; margin-right: 6px; } .pl em { font-style: normal; color: var(--dim); text-shadow: none; margin-left: 6px; font-size: 14px; }
+.acts { display: flex; gap: 6px; }
+.row.latest { grid-template-columns: 1fr 1fr auto; padding: 6px 14px 8px; min-height: 88px; background: rgba(77,255,154,.05); }
+.latest .tag { display: inline-block; font-size: 14px; background: var(--ink); color: var(--sbg); padding: 1px 6px 0; margin-left: 8px; vertical-align: 6px; text-shadow: none; letter-spacing: .1em; }
+.latest .big { font-size: 38px; line-height: 1; margin: 0 0 3px; }
+.latest .kv { font-size: 16px; color: var(--dim); text-shadow: none; line-height: 1.05; } .latest .kv b { font-weight: 400; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+.latest .sq { font-size: 19px; line-height: 1.18; } .sq em { font-style: normal; color: var(--dim); text-shadow: none; margin-left: 8px; font-size: 15px; } .sq b { font-weight: 400; display: inline-block; width: 3px; height: 12px; margin-right: 7px; } .latest .chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.chip { font: 700 10px var(--f-ui); letter-spacing: .08em; padding: 3px 8px; border: 1px solid rgba(77,255,154,.45); color: var(--ink); text-shadow: none; }
+.latest .acts { flex-direction: column; align-items: stretch; } .latest .sm.big { font-size: 24px; padding: 7px 14px 5px; } .latest .sm.del { font-size: 18px; padding: 3px 10px 1px; }
+#more { position: absolute; left: 0; right: 8px; bottom: 0; height: 22px; z-index: 3; text-align: center; font-size: 17px; letter-spacing: .1em; color: var(--ink); padding-top: 3px; background: linear-gradient(transparent, var(--sbg) 55%); pointer-events: none; }
+#empty { left: 30px; top: 58px; width: 620px; height: 214px; display: grid; place-items: center; text-align: center; }
+#empty div { font-size: 24px; line-height: 1.15; } #empty small { display: block; font-size: 18px; color: var(--dim); text-shadow: none; margin-top: 8px; }
+
+
+/* profile strip */
+.prof { left: 300px; top: 134px; width: 680px; height: 84px; }
+.pc { position: absolute; inset: 0; font-family: var(--f-ui); color: #fff; cursor: pointer; }
+.pc .av { background: radial-gradient(circle at 35% 30%, #86abff, #2b4bb0); display: grid; place-items: center; font-weight: 700; color: #fff; flex: none; }
+.rkb { white-space: nowrap; display: inline-block; background: var(--gold); color: #201400; font: 700 12px/1 var(--f-ui); padding: 3px 7px 2px; border-radius: 4px; letter-spacing: .06em; }
+.xp { height: 5px; background: #0a0e20; border-radius: 3px; overflow: hidden; flex: 1; } .xp i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, #d8a73a, #ffe08f); }
+.xpt { font: 500 11px var(--f-mono); color: #9aa7cf; white-space: nowrap; }
+.nm { font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+.keys { position: absolute; right: 12px; top: 12px; width: 178px; display: flex; flex-direction: column; gap: 8px; }
+.keys .tac.st { position: relative; height: 28px; font-size: 14px; padding-top: 5px; border-radius: 8px; box-shadow: 0 3px 0 #0b0f22, 0 5px 8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.28); }
+.keys .tac.st:active { transform: translateY(2px); }
+.keys .tac.st .led { left: 10px; width: 7px; height: 7px; margin-top: -3.5px; }
+.keys .tac.dim { background: linear-gradient(#323f6c, #1d2547); font-weight: 600; font-size: 13px; }
+/* look K: keycard along a reader slot */
+.k .slot { position: absolute; left: 12px; top: 10px; width: 470px; height: 26px; border-radius: 10px; background: #070a16; border: 1px solid #2a3560; box-shadow: inset 0 3px 8px #000; display: flex; align-items: center; gap: 8px; padding: 0 12px; font: 16px var(--f-crt); color: var(--ink); text-shadow: 0 0 6px var(--glow); z-index: 3; letter-spacing: .06em; }
+.led2 { width: 7px; height: 7px; border-radius: 50%; background: #6cff9a; box-shadow: 0 0 8px #6cff9a; flex: none; }
+.k .card { position: absolute; left: 22px; top: 22px; width: 450px; height: 54px; border-radius: 8px 8px 12px 12px; background: linear-gradient(#f1f4fd, #b9c5e8); color: #101734; z-index: 2; box-shadow: 0 6px 14px rgba(0,0,0,.5); transition: transform .15s; display: flex; align-items: center; gap: 12px; padding: 12px 14px 0; }
+.k .card .nm { color: #101734; font-size: 21px; line-height: 1; } .k .card .xpt { color: #4a5680; } .k .card .xp { background: #8f9cc8; }
+.k .av { width: 34px; height: 34px; border-radius: 50%; font-size: 16px; box-shadow: 0 0 0 2px #e9eefc, 0 0 0 4px var(--gold); }
+.k .xw { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.pc:hover .card { transform: translateY(4px); }
+/* look I: id badge */
+.i .body { position: absolute; inset: 0; border-radius: 16px; display: flex; align-items: center; gap: 14px; padding: 0 200px 0 14px; }
+.i .av { width: 58px; height: 58px; border-radius: 14px; font-size: 26px; box-shadow: 0 0 0 3px #12162c, 0 0 0 5px var(--gold); }
+.i .nm { font-size: 26px; line-height: 1; margin-bottom: 6px; } .i .who { flex: none; }
+.i .xw { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; } .i .xw .xp { flex: none; width: 100%; }
+.quit { position: absolute; left: 624px; top: 676px; width: 32px; height: 32px; opacity: .55; }
+
+/* tip */
+#tip { left: 300px; top: 460px; width: 680px; height: 92px; transition: top .2s; }
+#tipscr { left: 10px; top: 10px; width: 660px; height: 72px; padding: 8px 20px 0 92px; }
+#tipscr i { position: absolute; left: 14px; top: 10px; width: 52px; height: 52px; border: 2px solid var(--ink); background: rgba(77,255,154,.07); }
+#tipscr .t { font-size: 24px; line-height: 1; } #tipscr .m { font-size: 17px; color: var(--dim); text-shadow: none; margin-top: 3px; line-height: 1; }
+#tipscr .n { position: absolute; right: 18px; top: 8px; font-size: 16px; color: var(--dim); text-shadow: none; }
+.title { left: 112px; top: 24px; width: 1056px; height: 96px; display: grid; place-items: center; font-size: 80px; letter-spacing: .05em; position: absolute; border-radius: 8px; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 28px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.legend b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 3px; }
+@media (prefers-reduced-motion: reduce) { .roll, .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Stacked menu layout</h1>
+    <p>The player card gets its own strip above the action box, the same width as the box and the tip box. Check the heights on both pages: the stack ends at y 552 on the main menu and y 668 on the saved-runs page, out of 720. Switch the strip look and the page.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Show</span><button class="seg" type="button" data-s="menu" aria-pressed="true">Main menu</button><button class="seg" type="button" data-s="runs" aria-pressed="false">Saved runs</button><button class="seg" type="button" data-s="empty" aria-pressed="false">No saves</button></div>
+    <div class="grp"><span>Strip look</span><button class="seg" type="button" data-k="k" aria-pressed="true">Keycard</button><button class="seg" type="button" data-k="i" aria-pressed="false">ID badge</button></div>
+    <span class="log" id="log" aria-live="polite"></span>
+  </div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="scr title" id="sign"><div class="roll"></div><span style="position:relative;z-index:1">CARTESIAN COLOSSEUM</span></div>
+
+    <div class="chassis" id="card" style="left:300px;top:232px;width:680px;height:214px;transition:height .2s">
+      <div class="state" id="s-menu">
+                <button class="tac play" type="button" data-act="Play" style="left:30px;top:22px;width:620px;height:92px;padding-top:24px"><i class="led"></i>&#9654; PLAY</button>
+        <button class="tac" type="button" data-act="Join" style="left:30px;top:130px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Join</button>
+        <button class="tac" type="button" data-act="Records" style="left:238px;top:130px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Records</button>
+        <button class="tac" type="button" data-act="Settings" style="left:446px;top:130px;width:194px;height:52px;padding-top:13px"><i class="led"></i>Settings</button>
+      </div>
+      <div class="state" id="s-runs" hidden>
+        <h2 class="h2" id="runsTitle" style="left:30px;top:16px">YOUR RUNS</h2>
+        <button class="tac" type="button" data-act="Back" style="left:540px;top:16px;width:110px;height:34px;padding-top:6px;font-size:15px"><i class="led" style="left:10px"></i>&#8592; Back</button>
+        <div class="scr" id="runs"><div class="roll"></div>
+          <div class="bar"><span class="lab" id="cnt"></span><span class="lab">DEL ASKS TWICE</span></div>
+          <div id="list"></div><div id="more"></div></div>
+        <div class="scr" id="empty" hidden><div class="roll"></div><div style="position:relative;z-index:1">NO SAVED RUNS YET.<small>Start a run: it saves from its first wave on, until it is won or lost.</small></div></div>
+        <button class="tac play" type="button" data-act="New run" style="left:30px;top:282px;width:620px;height:38px;padding-top:7px;font-size:20px"><i class="led"></i>&#9654; New run</button>
+      </div>
+    </div>
+
+    <div class="chassis prof" id="prof"></div>
+    <svg class="quit" viewBox="0 0 32 32" fill="none" stroke="#c8d6ff" stroke-width="3" stroke-linecap="round"><path d="M16 4v11"/><path d="M9 9a10 10 0 1 0 14 0"/></svg>
+    <div class="chassis" id="tip"><div class="scr" id="tipscr"><div class="roll"></div><i></i><div class="n">8 / 14</div><div class="t">PERFECT PARRY</div><div class="m">Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.</div></div></div>
+  </div></div>
+
+  <div class="legend">
+    <div><b>Height budget</b><span id="qh">Stack ends at y 552 of 720.</span> The quit icon sits at y 676. The title moved up and shrank from 100 px to 80 px, and the gaps between boxes are 14 px.</div>
+    <div><b>Profile strip</b>Avatar, name, rank, XP and two keys: Cosmetics, and Switch profile (always visible here; today it only appears on hover). The strip is a card and a pair of tactile keys, so it follows the same rule as the box.</div>
+    <div><b>Still to decide</b>What the strip does when the menu box grows into the lobby: slide away, stay, or become the lobby's player card.</div>
+  </div>
+</div>
+
+<script>
+var view=document.getElementById('view'), stage=document.getElementById('stage'), $=function(i){return document.getElementById(i)};
+function fit(){ stage.style.transform='scale('+(view.clientWidth/1280)+')'; }
+fit(); new ResizeObserver(fit).observe(view);
+var B='#4f86ff', O='#f08a30', G='#47d6a0';
+var RUNS=[
+ {w:24,d:'Nov 4, 18:06',s:18450,p:'45 min',pl:[['Anthony','Knight Tank',B],['Aleon','Elementalist DPS',O]],chips:['BAZAAR','2 MODIFIERS']},
+ {w:17,d:'Nov 2, 21:40',s:12400,p:'38 min',pl:[['Anthony','Knight Tank',B],['Aleon','Elementalist DPS',O]]},
+ {w:9,d:'Oct 30, 18:12',s:5300,p:'21 min',end:1,pl:[['Anthony','Soldier Tank',B]]},
+ {w:8,d:'Oct 29, 20:01',s:3120,p:'11 min',pl:[['Anthony','Ninja Healer',B]]},
+ {w:5,d:'Oct 28, 09:03',s:1900,p:'11 min',pl:[['Anthony','Soldier Tank',B],['Sam','Medic Healer',G]]},
+ {w:4,d:'Oct 27, 19:30',s:900,p:'5 min',pl:[['Anthony','Ninja DPS',B]]}
+];
+var armed=-1;
+function pl(r){ return r.pl.map(function(p){return '<div><b style="background:'+p[2]+';box-shadow:0 0 6px '+p[2]+'"></b>'+p[0]+'<em>'+p[1]+'</em></div>'}).join(''); }
+function render(){
+  var h='';
+  RUNS.forEach(function(r,i){
+    var del='<button class="sm del'+(armed===i?' armed':'')+'" type="button" data-del="'+i+'">'+(armed===i?'REALLY?':'DEL')+'</button>';
+    if(i===0){
+      h+='<div class="row latest"><div><div class="lab">LATEST RUN<span class="tag">NEWEST</span></div><div class="big">Wave '+r.w+'</div><div class="kv">SAVED <b>'+r.d+'</b><br>SCORE <b>'+r.s+'</b> &nbsp; PLAYED <b>'+r.p+'</b></div></div>'
+       +'<div><div class="lab">SQUAD</div><div class="sq">'+pl(r)+'</div><div class="chips">'+(r.chips||[]).map(function(c){return '<span class="chip">'+c+'</span>'}).join('')+'</div></div>'
+       +'<div class="acts"><button class="sm big" type="button" data-cont="0">&#9654; CONTINUE</button>'+del+'</div></div>';
+    } else {
+      h+='<div class="row'+(armed===i?' armed':'')+'"><div class="w">'+r.w+(r.end?'<small>endless</small>':'')+'</div><div class="t">'+r.d+'</div><div class="t">'+r.s+'</div><div class="t">'+r.p+'</div><div class="pl">'+pl(r)+'</div><div class="acts"><button class="sm" type="button" data-cont="'+i+'">&#9654; CONTINUE</button>'+del+'</div></div>';
+    }
+  });
+  $('list').innerHTML=h; $('cnt').textContent='SAVED RUNS '+RUNS.length; more();
+}
+function more(){
+  var l=$('list'), rows=l.children, vis=l.getBoundingClientRect(), sc=vis.height/ l.offsetHeight, n=0;
+  for(var i=0;i<rows.length;i++){ if(rows[i].offsetTop + rows[i].offsetHeight*0.5 > l.scrollTop + l.clientHeight) n++; }
+  $('more').textContent=n>0?'▼ '+n+' MORE':''; $('more').hidden=n===0;
+}
+$('list').addEventListener('scroll',more);
+function log(t){ $('log').textContent=t; }
+function setState(s){
+  $('card').style.height=(s==='menu'?214:330)+'px'; $('tip').style.top=(s==='menu'?460:576)+'px'; $('qh').textContent=s==='menu'?'Stack ends at y 552 of 720.':'Stack ends at y 668 of 720.';
+  armed=-1; $('s-menu').hidden=s!=='menu'; $('s-runs').hidden=s==='menu';
+  var empty=s==='empty'; $('runs').hidden=empty; $('empty').hidden=!empty;
+  $('runsTitle').textContent=empty?'START A RUN':'YOUR RUNS';
+  document.querySelectorAll('[data-s]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.s===s)});
+  if(!empty){ render(); $('list').scrollTop=0; more(); }
+}
+document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){setState(b.dataset.s)}});
+stage.addEventListener('click',function(e){
+  if(e.target.closest('[data-sw]')){ log('Tactile: Switch profile'); return; }
+  if(e.target.closest('.pc')){ log('Tactile: opens cosmetics'); return; }
+  var t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.act==='Play'){ setState('runs'); return; }
+  if(t.dataset.act==='Back'){ setState('menu'); return; }
+  if(t.dataset.act){ log('Tactile: '+t.dataset.act); return; }
+  if(t.dataset.cont){ log('Digital: continue wave '+RUNS[+t.dataset.cont].w); return; }
+  if(t.dataset.del){ var i=+t.dataset.del; if(armed===i){ RUNS.splice(i,1); armed=-1; log('Digital: run deleted'); if(!RUNS.length){ setState('empty'); return; } } else { armed=i; } var st=$('list').scrollTop; render(); $('list').scrollTop=st; more(); }
+});
+setState('menu');
+
+var look='k';
+function strip(){
+  var av='<div class="av">A</div>', rk='<span class="rkb">RANK 8</span>', xp='<div class="xp"><i></i></div>', xpt='<span class="xpt">1,240 / 1,600 XP</span>';
+  var keys='<div class="keys"><button class="tac st" type="button" data-cos="1"><i class="led"></i>Cosmetics</button><button class="tac st dim" type="button" data-sw="1"><i class="led"></i>Switch profile</button></div>';
+  if(look==='k') return '<div class="pc k" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics"><div class="slot"><i class="led2"></i>PROFILE LOADED</div><div class="card">'+av+'<div class="nm">ANTHONY</div>'+rk+'<div class="xw">'+xp+xpt+'</div></div>'+keys+'</div>';
+  return '<div class="pc i" tabindex="0" role="button" aria-label="Player card: Anthony, rank 8. Opens cosmetics"><div class="body">'+av+'<div class="who"><div class="nm">ANTHONY</div>'+rk+'</div><div class="xw">'+xp+xpt+'</div></div>'+keys+'</div>';
+}
+function drawStrip(){ $('prof').innerHTML=strip(); document.querySelectorAll('[data-k]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.k===look)}); }
+document.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){look=b.dataset.k;drawStrip()}});
+drawStrip();
+</script>
