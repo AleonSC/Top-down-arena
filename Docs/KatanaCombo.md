@@ -127,9 +127,10 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 ## Built differently from the plan above
 - **No new message.** The strike reuses `Msg.WeaponDash` with a new kind, `DashKatana`, sending the target enemy's
   position (the host takes the nearest enemy within 90 px of it). `Msg.KatanaStrike` was not added. The protocol bump to
-  176 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
-- **The lunge does not step you forward 150 px** (a player's own game owns their position, so the host cannot move them).
-  It is a 260 px line from where you stand, landing 0.15 s after the press. A client-side step could follow later.
+  176 (177 with the lunge step) is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
+- **The lunge steps you forward 110 px, not 150.** A player's own game owns their position, so the host cannot move them:
+  it counts lunges in a replicated `Player.KatanaLunges`, and your own game steps you forward (`LocalKatana`, 0.12 s) as the
+  lunge lands, 0.15 s after the press. The line itself is 260 px from where you stood. Protocol 177.
 - **No time slow while aiming**, the recommendation in the co-op section. The arena dims and brackets appear on your
   screen only; the hold is capped at 1.5 s and a hold that runs out cancels.
 - **The meter shows as a rose arc round the swordsman** (a gauge like the Lightbringer's) instead of a HUD bar. Full, the

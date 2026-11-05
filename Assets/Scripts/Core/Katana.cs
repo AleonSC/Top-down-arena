@@ -27,6 +27,8 @@ namespace Arena
         public int KatanaMark;         // the enemy it would cut to (an id), 0 when there is none
         public float KatanaAimT;       // how long you have been aiming
         public float KatanaNoMeterT;   // > 0 for a moment after pressing the key without a full meter (the bar shakes)
+        byte katanaLungesSeen;         // the lunge count you last saw; a change means one was just thrown
+        float katanaLungeIn = -1f;     // > 0: seconds until you step forward with it
         float katanaStrikeT = -1f;     // >= 0 while you are in the strike, counting up from the release
         V2 katanaTo;
         bool katanaDashed;
@@ -99,6 +101,21 @@ namespace Arena
         bool LocalKatana(Player me, V2 aimAt, bool pressed, bool held, float dt)
         {
             KatanaNoMeterT = Math.Max(0f, KatanaNoMeterT - dt);
+            // A lunge thrown (the host counts them): as it lands you step forward with it, on your own screen like every move.
+            if (me.KatanaLunges != katanaLungesSeen)
+            {
+                katanaLungesSeen = me.KatanaLunges;
+                if (me.Weapon.Id == WeaponId.Katana)
+                    katanaLungeIn = KatanaLungeWind;
+            }
+            if (katanaLungeIn >= 0f && (katanaLungeIn -= dt) < 0f && !me.Downed && me.StunT <= 0f && DashT <= 0f && !KatanaStriking)
+            {
+                V2 dir = V2.FromAngle(me.Aim);
+                V2 to = ClampToArena(me.Pos + dir * KatanaLungeStep, me.Def.BodyR);
+                DashDir = dir;
+                DashT = to.DistanceTo(me.Pos) / (KatanaLungeStep / KatanaLungeStepTime);
+                dashSpeed = KatanaLungeStep / KatanaLungeStepTime;
+            }
             if (me.Downed || me.StunT > 0f)
             {
                 KatanaAiming = false;

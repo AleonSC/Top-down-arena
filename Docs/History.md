@@ -13,8 +13,7 @@ box Swing (`DrawCut`, drawn as the thrust look) landing 0.15 s after it starts. 
 cursor-nearest enemy, `Game.KatanaAiming/KatanaMark`), letting go sends the enemy's position, the host spends the meter,
 sets `InvulnT` and, `KatanaWind + KatanaCut` later, deals 120 to the target and 60 along the line
 (`TickKatanaStrikes`), broadcasting the new `FxKind.KatanaStrike` (`Game/KatanaLook.cs`). Your own game holds you still for the
-0.35 s stance, then slides you to 52 px behind the target in 0.14 s (`DashT`). Not built from the design doc: the lunge's
-150 px step forward, and a time slow while aiming (none, to keep co-op fair). Test: `lastfour` (chain, queue, reset, meter,
+0.35 s stance, then slides you to 52 px behind the target in 0.14 s (`DashT`). The lunge steps you 110 px forward (`Player.KatanaLunges`, protocol 177: your own game moves you when it changes). Not built from the design doc: a time slow while aiming (none, to keep co-op fair). Test: `lastfour` (chain, queue, reset, meter,
 drain, strike).
 
 **Tank gun animations (Nov 2026), protocol 145 (no change):** the owner's go-ahead on

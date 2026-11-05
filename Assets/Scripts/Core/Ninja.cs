@@ -9,6 +9,7 @@ namespace Arena
     public partial class Game
     {
         // The Katana (Docs/KatanaCombo.md): swipe, swipe, lunge, always in that order (each weapon's main reach, speed and damage are in Defs).
+        public const float KatanaLungeStep = 110f, KatanaLungeStepTime = 0.12f;  // you step this far forward as the lunge lands
         public const float KatanaChainWindow = 0.7f, KatanaLungeReach = 260f, KatanaLungeWidth = 26f, KatanaLungeMult = 2.25f, KatanaLungeWind = 0.15f;  // how long after a step ends the next one still follows; the lunge's line, its damage and the pull-back before it
         public static readonly float[] KatanaStepTime = { 0.26f, 0.26f, 0.56f };  // how long each step holds the next one off
         public const float KatanaMeterMax = 100f, KatanaSwipeMeter = 10f, KatanaLungeMeter = 20f, KatanaDrainDelay = 1.2f, KatanaDrain = 25f;  // the strike meter: full, gained per enemy hit, and how it drains once you stop hitting
@@ -136,6 +137,7 @@ namespace Arena
                         s.Heavy = true;
                         s.Delay = KatanaLungeWind;
                         s.Meter = KatanaLungeMeter;
+                        p.KatanaLunges++;  // (your own game steps you forward as it lands: LocalKatana)
                     }
                     else
                     {

@@ -113,7 +113,7 @@ namespace Arena
         public V2 LastIncense;                        // host: where the Censer last left incense
         public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
         public float ComboT;
-        public byte KatanaStep;                       // Katana: which of swipe, swipe, lunge comes next (0, 1, 2; replicated)
+        public byte KatanaStep, KatanaLunges;         // Katana: which of swipe, swipe, lunge comes next (0, 1, 2); how many lunges they have thrown (wraps; the player's own game steps them forward when it changes) (both replicated)
         public float KatanaMeter;                     // Katana: the strike meter, 0 to KatanaMeterMax (replicated); built by hits, drained when you stop hitting, spent by the Alt strike
         public float KatanaGap, KatanaIdle;           // host: time since the last step began (negative while it plays); time since the last hit
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite

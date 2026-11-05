@@ -902,6 +902,22 @@ static partial class Program
         Console.WriteLine("  katana queue: steps after two taps {0}", string.Join(",", tapSteps));
         Check(tapSteps.Count >= 2 && tapSteps[0] == 1 && tapSteps[1] == 2, "a tap during a step queues the next one, which starts as soon as the first ends");
 
+        // The lunge steps you forward as it lands (your own game moves you; nothing here pins the player).
+        reset();
+        me.KatanaStep = 2; me.KatanaGap = 0f; me.FireCd = 0f;
+        me.Pos = from;
+        byte lungesBefore = me.KatanaLunges;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        for (int f = 0; f < 0.6f * 60; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(300f, 0f) }); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+        }
+        float stepped = me.Pos.X - from.X;
+        Console.WriteLine("  katana lunge: stepped {0:0} px forward (lunge count {1} -> {2})", stepped, lungesBefore, me.KatanaLunges);
+        Check(me.KatanaLunges == (byte)(lungesBefore + 1) && Math.Abs(stepped - Game.KatanaLungeStep) < 20f, "the lunge steps you forward about 110 px (a dash moves in whole frames)");
+        me.Pos = from;
+
         // The Alt strike: hold the weapon-action key with a full meter to aim, let go to cut across the arena to the enemy and land behind it.
         reset();
         me.Hp = me.MaxHp;
