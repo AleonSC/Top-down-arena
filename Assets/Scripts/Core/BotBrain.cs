@@ -182,6 +182,13 @@ namespace Arena
             for (int slot = 0; slot < Upgrades.SlotCount; slot++)
             {
                 var s = me.Slots[slot];
+                if (s.Id == AbilityId.LastStand && me.StandOn)
+                {
+                    held[slot] = botHeldLast[slot] = false;
+                    if (me.StandT > 3f && BotDanger < 0.2f && !botHeldLast[slot])  // nothing coming for a moment: step out of it
+                        held[slot] = botHeldLast[slot] = true;
+                    continue;
+                }
                 if (s.Id == AbilityId.BloodShell && me.ShellOn)
                 {
                     held[slot] = botHeldLast[slot] = BotDanger > 0.3f;  // keep the shell up while shots are coming

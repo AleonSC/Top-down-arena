@@ -93,6 +93,9 @@ namespace Arena
                 case FxKind.ShellHit:
                     DrawShellHitFx(fx, f);  // BloodShellLook.cs
                     break;
+                case FxKind.StandHit:
+                    DrawStandHitFx(fx, f);  // LastStandLook.cs
+                    break;
                 case FxKind.HolyCross:
                     DrawHolyCrossFx(fx);  // HolyCrossLook.cs
                     break;

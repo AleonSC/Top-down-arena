@@ -409,7 +409,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.LastStand && p.StandOn)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -912,9 +912,9 @@ namespace Arena
                 me.Pos += HeraldWind(WindPush) * dt;  // the Storm Herald's Gale (Herald.cs)
             if (!me.Downed && DashT <= 0f)
                 me.Pos += DevourPull(me.Pos) * dt;  // the Devourer breathing in (Devourer.cs)
-            if (me.StunT > 0f && !me.Downed)
+            if ((me.StunT > 0f || me.StandOn) && !me.Downed)
             {
-                me.Pos = before;  // stunned by the Warden: stuck where you are
+                me.Pos = before;  // stunned by the Warden, or planted behind Last Stand: stuck where you are
                 DashT = 0f;
             }
             WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
@@ -956,8 +956,11 @@ namespace Arena
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
                     continue;  // nothing to mark: don't waste the cooldown
+                if (me.StandOn && MovesYou(me.Slots[slot].Id))
+                    continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
-                if (!orbitOut && !Consume(me, slot, false))
+                bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
+                if (!orbitOut && !standOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
