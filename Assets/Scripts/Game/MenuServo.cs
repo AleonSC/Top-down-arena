@@ -170,6 +170,8 @@ namespace Arena
             int tot = 0;
             float pad = Ui.TextWidth("", Size, true);
             float x0 = hs.x + 16f;
+            int lastLetter = to.TrimEnd().Length - 1;
+            float curX = x0;   // right edge of the last letter's cell, so the cursor follows what is drawn
             for (int i = 0; i < n; i++)
             {
                 int ai = ServoAbc.IndexOf(from[i]), bi = ServoAbc.IndexOf(to[i]);
@@ -187,6 +189,8 @@ namespace Arena
                 float cx = x0 + Ui.TextWidth(to.Substring(0, i), Size, true) - pad;
                 float cw = Mathf.Max(14f, Ui.TextWidth(to[i] == ' ' ? "A" : to[i].ToString(), Size, true) - pad);
                 var cell = new Rect(cx, hs.y + 8f, cw, 28f);
+                if (i == lastLetter)
+                    curX = cx + cw;
                 var oldM = GUI.matrix;
                 bool moving = tk > 0f && tk < 1f;
                 if (moving)
@@ -200,7 +204,7 @@ namespace Arena
                 GUI.matrix = oldM;
             }
             if (Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)   // the same blinking cursor the plain header has
-                CrtUi.Text(new Rect(x0 + Ui.TextWidth(to.TrimEnd(), Size, true) - pad, hs.y + 4f, 20f, 36f), "_", Size, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
+                CrtUi.Text(new Rect(curX, hs.y + 4f, 20f, 36f), "_", Size, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
             CrtUi.End(hs, Time.unscaledTime, fxReduced);
             servoFlapTot = tot;
 

@@ -198,15 +198,20 @@ static partial class Program
         float landHp = landing.Hp;
         cp.Slots[0].Id = dp.Slots[0].Id = AbilityId.LeapSlam;
         cp.Slots[0].Charges = 1;
+        bool leapFx = false;
         for (int f = 0; f < 60; f++)
         {
             host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800, 450) });
             client.Poll(); client.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(640f, 300f), Ability = f < 2 }); client.Game.Update(dt);
+            foreach (var fx in client.Game.Effects)
+                if (fx.Kind == FxKind.LeapSlam && fx.Pos2.DistanceTo(new V2(640f, 300f)) < 30f && (int)(fx.Radius / 1000f + 0.001f) == 2 && fx.Dur > Game.LeapTime + Game.LeapFxTail + 0.99f)
+                    leapFx = true;
             landing.FrozenT = 1f; landing.Pos = new V2(640f, 300f);
             Clear(); dummy.FrozenT = 1f;
         }
         Console.WriteLine("  leap slam: client moved to ({0:0},{1:0}), landing dummy took {2:0}", cp.Pos.X, cp.Pos.Y, landHp - landing.Hp);
         Check(cp.Pos.DistanceTo(new V2(640f, 300f)) < 30f && landing.Hp < landHp, "Leap Slam carries the player to the cursor and hits where they land");
+        Check(leapFx, "Leap Slam sends its look to every screen (FxKind.LeapSlam: landing spot, owner, radius, length)");
         landing.Hp = 0f;
 
         // Lunge: two charges, hits along the way.

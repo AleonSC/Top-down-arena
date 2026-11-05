@@ -12,9 +12,11 @@ namespace Arena
         {
             float r = p.Def.BodyR;
             Rgba col = p.Def.Color;
+            float leapH = 0f;
+            bool leaping = !p.Downed && LeapHeight(p, out leapH);  // the Knight's Leap Slam (LeapSlamLook.cs)
             if (p.Downed)
                 col = new Rgba(0.45f, 0.45f, 0.5f);
-            else if (p.InvulnT > 0f && MathX.Fmod(t, 0.12f) < 0.06f)
+            else if (!leaping && p.InvulnT > 0f && MathX.Fmod(t, 0.12f) < 0.06f)
                 col = col.WithAlpha(0.35f);
             if (p.Flash > 0f)
                 col = Rgba.White;
@@ -37,6 +39,14 @@ namespace Arena
             {
                 Circle(p.Disp, r, p.Flash > 0f ? Rgba.White.WithAlpha(0.25f * col.A) : role.WithAlpha(0.14f * col.A), 28);
                 Arc(p.Disp, r, 2.2f, p.Flash > 0f ? Rgba.White : role.WithAlpha(0.6f * col.A), 28);
+                V2 groundAt = p.Disp;
+                float modelR = r;
+                if (leaping)  // up in the air: bigger and higher, the shadow left on the floor
+                {
+                    GlowDisc(groundAt, r * (2.2f - 0.6f * leapH), new Rgba(0f, 0f, 0f), 0.4f - 0.18f * leapH);
+                    modelR = r * (1f + LeapSwell * leapH);
+                    p.Disp += new V2(0f, -LeapLiftPx * leapH);
+                }
                 V2 emoteOff;
                 float emoteSpin;
                 int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
@@ -46,16 +56,17 @@ namespace Arena
                     float keepAim = p.Aim;
                     p.Disp += emoteOff;
                     p.Aim += emoteSpin;
-                    DrawPlayerModel(p, r, t, col);
+                    DrawPlayerModel(p, modelR, t, col);
                     p.Disp = keepAt;
                     p.Aim = keepAim;
                 }
                 else
-                    DrawPlayerModel(p, r, t, col);
+                    DrawPlayerModel(p, modelR, t, col);
                 // The class's overlays on top: ability feedback, buffs and the like (ClassLooks.cs)
                 var look = LookOf(p.Kit).Body;
                 if (look != null)
-                    look(this, p, r, t, col);
+                    look(this, p, modelR, t, col);
+                p.Disp = groundAt;
             }
             // The real hitbox, drawn as a bright ring round a coloured core dot (a solid disc would hide the head).
             if (p.Downed)
