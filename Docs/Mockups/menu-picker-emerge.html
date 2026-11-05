@@ -82,6 +82,15 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 .pcard span { position: absolute; left: 70px; top: 33px; font: 700 15px var(--f-ui); color: #f2c14e; }
 .pcard em { position: absolute; right: 18px; top: 10px; width: 40px; height: 42px; border-radius: 8px 8px 20px 20px; background: #c9a13b; color: #2a1d00; font: 700 12px/42px var(--f-ui); text-align: center; font-style: normal; }
 
+/* mechanical details */
+.bolt { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8fa6e6, #2b3868 60%, #0c1126); box-shadow: 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px rgba(0,0,0,.45); z-index: 2; }
+.bolt::after { content: ""; position: absolute; left: 1px; right: 1px; top: 4px; height: 1px; background: rgba(0,0,0,.6); transform: rotate(35deg); }
+#bez { position: absolute; border-radius: 6px; opacity: 0; background: linear-gradient(#3a4a82, #1a2144); box-shadow: 0 0 0 1px #6c85cf, 0 4px 0 #0b0f22, 0 8px 14px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+#bez .bolt { width: 6px; height: 6px; } #bez .bolt::after { top: 2px; }
+.slot { position: absolute; width: 10px; border-radius: 5px; background: #05081a; box-shadow: inset 0 0 0 1px #243055, inset 0 2px 5px #000; visibility: hidden; }
+.shoe { position: absolute; width: 18px; height: 38px; border-radius: 4px; background: linear-gradient(90deg, #7d90c8, #3a4a82 50%, #1c2448); box-shadow: 0 0 0 1px #0b0f22, 0 2px 4px rgba(0,0,0,.6); visibility: hidden; }
+.fl { display: inline-block; width: .6em; margin-right: 2px; text-align: center; border-radius: 2px; position: relative; z-index: 1;
+  background: linear-gradient(#0a2a1a, #031109 48%, #000 48%, #000 52%, #04180e 52%, #031109); }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px 28px; }
 .cards > div { min-width: 0; }
 .cards p, .cards li { color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0 0 6px; }
@@ -100,15 +109,19 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     <div class="grp"><span>Look</span>
       <button class="seg" type="button" data-look="A" aria-pressed="true">A &middot; Morph</button>
       <button class="seg" type="button" data-look="B" aria-pressed="false">B &middot; Power-on</button>
-      <button class="seg" type="button" data-look="C" aria-pressed="false">C &middot; Hatch</button></div>
+      <button class="seg" type="button" data-look="C" aria-pressed="false">C &middot; Hatch</button>
+      <button class="seg" type="button" data-look="D" aria-pressed="false">D &middot; Bay doors</button>
+      <button class="seg" type="button" data-look="E" aria-pressed="false">E &middot; Piston lift</button></div>
     <div class="grp"><span>Header text</span>
       <button class="seg" type="button" data-hdr="1" aria-pressed="true">Backspace</button>
       <button class="seg" type="button" data-hdr="2" aria-pressed="false">Scramble</button>
-      <button class="seg" type="button" data-hdr="3" aria-pressed="false">Overwrite</button></div>
+      <button class="seg" type="button" data-hdr="3" aria-pressed="false">Overwrite</button>
+      <button class="seg" type="button" data-hdr="4" aria-pressed="false">Split-flap</button></div>
     <div class="grp"><span>Quit to Back</span>
       <button class="seg" type="button" data-key="1" aria-pressed="true">Morph</button>
       <button class="seg" type="button" data-key="2" aria-pressed="false">Flip</button>
-      <button class="seg" type="button" data-key="3" aria-pressed="false">Reel</button></div>
+      <button class="seg" type="button" data-key="3" aria-pressed="false">Reel</button>
+      <button class="seg" type="button" data-key="4" aria-pressed="false">Ratchet</button></div>
   </div>
   <div class="ctl">
     <div class="grp"><button class="seg" type="button" id="go">&#9654; Press Play</button><button class="seg" type="button" id="back">&#9664; Back</button></div>
@@ -131,6 +144,10 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
         <div class="face b" id="fb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg><span>Back</span><i class="lamp"></i></div>
       </div>
 
+      <i class="bolt" style="left:9px;top:9px"></i><i class="bolt" style="right:9px;top:9px"></i><i class="bolt" style="left:9px;bottom:9px"></i><i class="bolt" style="right:9px;bottom:9px"></i>
+      <div class="slot" id="rl" style="left:9px;top:60px;height:248px"></div><div class="slot" id="rr" style="left:657px;top:60px;height:248px"></div>
+      <div class="shoe" id="sl" style="left:5px"></div><div class="shoe" id="sr" style="left:653px"></div>
+      <div id="bez"><i class="bolt" style="left:3px;top:3px"></i><i class="bolt" style="right:3px;top:3px"></i><i class="bolt" style="left:3px;bottom:3px"></i><i class="bolt" style="right:3px;bottom:3px"></i></div>
       <div class="scr" id="pick"><div class="roll"></div><div class="flash" id="flash"></div>
         <div class="pk" id="pk1" style="left:20px;top:14px"><div class="lab">LATEST RUN</div><div class="big">Wave 1</div><div class="kv">SAVED <b>Nov 5, 07:06</b><br>SCORE <b>0</b> &nbsp; PLAYED <b>0 min</b></div></div>
         <div class="pk" id="pk2" style="left:212px;top:14px;width:200px"><div class="lab">SQUAD</div><div class="sq"><i></i>Anthony</div><div class="sq" style="margin-top:0"><em>Soldier Tank</em></div></div>
@@ -138,6 +155,7 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
       </div>
 
       <div class="tac play" id="play"><span class="lbl" id="playL">&#9654; PLAY</span><i class="led"></i></div>
+      <div class="tac play" id="play2" style="visibility:hidden"><span class="lbl">&#9654; PLAY</span><i class="led"></i></div>
       <div class="pole" id="pole"></div>
       <div class="tac" id="t0"><span class="lbl">Join game</span></div>
       <div class="tac" id="t1"><span class="lbl">Records</span></div>
@@ -161,17 +179,27 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
       <li>The Play key swings up on its top edge like a lid and the screen is already there underneath, opening as the lid goes.</li>
       <li>The three keys drop away and New run unfolds from the middle outwards.</li>
       <li>Most physical of the three. It reads as a compartment opening.</li></ul></div>
+    <div><h2>D &middot; Bay doors</h2><ul>
+      <li>The Play key splits down the middle and the halves slide apart into the chassis walls, showing the screen through the gap.</li>
+      <li>The screen opens up to full height in a riveted metal bezel (new: the bezel is only in D and E).</li>
+      <li>Join, Records and Settings turn edge-on like louvres and vanish. New run drops in from above, bounces once, and the whole box gives a small thunk.</li></ul></div>
+    <div><h2>E &middot; Piston lift</h2><ul>
+      <li>Play dips, then slides up into the header slot. The three small keys drop through the floor one after another.</li>
+      <li>The screen comes up from under the chassis on two rails, overshoots by a few pixels, and settles with a thunk. New run rises after it.</li>
+      <li>Heaviest of the five (1.5 s). Rails and the bezel are new for this look.</li></ul></div>
     <div><h2>Header text</h2><ul>
+      <li><b>Split-flap:</b> each letter is a flap cell that steps through the alphabet to the new letter, left to right, like a station board. Used by D and E.</li>
       <li><b>Backspace:</b> MAIN MENU is deleted letter by letter, then YOUR RUNS is typed. The caret stays, as it does on the picker today.</li>
       <li><b>Scramble:</b> every letter scrambles, then settles into the new text left to right.</li>
       <li><b>Overwrite:</b> a block cursor sweeps across and replaces each letter in place. Both titles are 9 characters, so this fits.</li></ul></div>
     <div><h2>Quit to Back</h2><ul>
       <li><b>Morph:</b> the key grows taller and wider, turns from dark to blue, and the power icon turns into the arrow.</li>
       <li><b>Flip:</b> the key turns over to show Back on its other side.</li>
-      <li><b>Reel:</b> Quit scrolls up out of the slot and Back scrolls in from below.</li></ul></div>
+      <li><b>Reel:</b> Quit scrolls up out of the slot and Back scrolls in from below.</li>
+      <li><b>Ratchet:</b> like Flip, but it turns in five separate clicks, each one snapping into place. Used by D.</li></ul></div>
     <div><h2>Building it</h2><ul>
       <li>One progress value drives everything, so Back is the same animation played backwards, and the header rewrites to MAIN MENU in the same style.</li>
-      <li>Same length as the existing Scan wipe (about 0.9 s). Clicks are ignored during it. With reduced effects it snaps.</li>
+      <li>A to C run about 1 s, D and E about 1.4 s (they have heavier parts to move, so trim them if that feels slow). Clicks are ignored during it. With reduced effects it snaps.</li>
       <li>Not built yet. Pick a look, a header style and a key style.</li></ul></div>
   </div>
 </div>
@@ -197,6 +225,16 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 
   var E = { play: $('play'), pplayL: $('playL'), pick: $('pick'), flash: $('flash'), pole: $('pole'), nr: $('nr'), kb: $('kb'), fq: $('fq'), fb: $('fb'),
     t: [$('t0'), $('t1'), $('t2')], pk: [$('pk1'), $('pk2'), $('pk3')] };
+  E.play2 = $('play2'); E.bez = $('bez'); E.card = $('card');
+  E.rails = [$('rl'), $('rr')]; E.shoes = [$('sl'), $('sr')];
+  function hideExtras() {
+    E.play2.style.visibility = 'hidden'; E.play2.style.clipPath = ''; E.play2.style.transform = '';
+    E.bez.style.opacity = 0; E.bez.style.clipPath = '';
+    E.rails.concat(E.shoes).forEach(function (x) { x.style.visibility = 'hidden'; x.style.clipPath = ''; });
+  }
+  function cb(y, h) { return Math.max(0, y + h - 308); }   // px to clip off the bottom at the chassis floor
+  function bk(x) { var c = 1.70158; x = x - 1; return 1 + (c + 1) * x * x * x + c * x * x; }    // overshoot, then settle
+  function bounce(x) { var n = 7.5625, d = 2.75; if (x < 1 / d) return n * x * x; if (x < 2 / d) return n * (x -= 1.5 / d) * x + .75; if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + .9375; return n * (x -= 2.625 / d) * x + .984375; }
   // Geometry in card coordinates, read off the game's two screens.
   var PLAY = [29, 68, 618, 138], PICK = [28, 63, 620, 189], NR = [29, 261, 616, 40];
   var TRIO = [[29, 224, 191, 61], [236, 224, 191, 61], [444, 224, 201, 61]];
@@ -282,8 +320,81 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     }
   };
 
+  looks.D = function (p) {
+    // bay doors: the key splits down its middle and the halves slide into the chassis walls
+    hideExtras();
+    var press = Math.sin(Math.PI * seg(p, 0, .1));
+    var dx = eio(seg(p, .1, .48)) * 330, lc = Math.max(0, dx - 17);
+    R(E.play, PLAY[0], PLAY[1], PLAY[2], PLAY[3]); R(E.play2, PLAY[0], PLAY[1], PLAY[2], PLAY[3]);
+    E.play2.style.visibility = 'visible'; E.play.style.visibility = dx > 345 ? 'hidden' : 'visible';
+    E.play.style.opacity = E.play2.style.opacity = 1;
+    E.play.style.clipPath = 'inset(0 50% 0 ' + lc + 'px)'; E.play.style.transform = 'translate(' + (-dx) + 'px,' + (4 * press) + 'px)';
+    E.play2.style.clipPath = 'inset(0 ' + lc + 'px 0 50%)'; E.play2.style.transform = 'translate(' + dx + 'px,' + (4 * press) + 'px)';
+    S($('playL'), 1, 0, 0);
+    var gap = Math.max(0, 310 - dx), v = eio(seg(p, .4, .72));
+    var top = (PLAY[1] - PICK[1]) * (1 - v), bot = (PICK[1] + PICK[3] - PLAY[1] - PLAY[3]) * (1 - v);
+    R(E.pick, PICK[0], PICK[1], PICK[2], PICK[3]); E.pick.style.filter = '';
+    E.pick.style.opacity = p > .1 ? 1 : 0; E.pick.style.visibility = p > .1 ? 'visible' : 'hidden'; E.pick.style.transform = '';
+    E.pick.style.clipPath = 'inset(' + top + 'px ' + gap + 'px ' + bot + 'px ' + gap + 'px)';
+    R(E.bez, PICK[0] + gap - 6, PICK[1] + top - 6, PICK[2] - 2 * gap + 12, PICK[3] - top - bot + 12);
+    E.bez.style.opacity = p > .1 ? 1 : 0;
+    E.flash.style.opacity = .3 * Math.sin(Math.PI * seg(p, .2, .6));
+    showContent(p, .62, .86, false);
+    E.pole.style.opacity = 0;
+    E.t.forEach(function (el, i) {
+      var s = eio(seg(p, .06 + i * .07, .34 + i * .07));
+      R(el, TRIO[i][0], TRIO[i][1], TRIO[i][2], TRIO[i][3]);
+      el.style.opacity = s > .985 ? 0 : 1; el.style.visibility = s > .985 ? 'hidden' : 'visible';
+      el.style.transform = 'perspective(260px) rotateX(' + (-90 * s) + 'deg)'; el.style.filter = 'brightness(' + (1 - .5 * s) + ')';
+      S(el.firstChild, 1, 0, 0);
+    });
+    var u = seg(p, .62, .86), nb = bounce(u);
+    R(E.nr, NR[0], NR[1], NR[2], NR[3]); E.nr.style.clipPath = '';
+    E.nr.style.opacity = u > 0 ? 1 : 0; E.nr.style.visibility = u > 0 ? 'visible' : 'hidden'; E.nr.style.transform = 'translateY(' + (-46 * (1 - nb)) + 'px)';
+  };
+  looks.E = function (p) {
+    // piston lift: Play slides up into the header slot, the trio drops through the floor, the screen rides up on rails
+    hideExtras();
+    var press = Math.sin(Math.PI * seg(p, 0, .07)), up = eio(seg(p, .06, .38));
+    var ty = 4 * press - (PLAY[3] + 22) * up, ct = Math.max(0, 60 - (PLAY[1] + ty));
+    R(E.play, PLAY[0], PLAY[1], PLAY[2], PLAY[3]);
+    E.play.style.clipPath = 'inset(' + ct + 'px 0 0 0)'; E.play.style.transform = 'translateY(' + ty + 'px)';
+    E.play.style.opacity = 1; E.play.style.visibility = up > .995 ? 'hidden' : 'visible';
+    S($('playL'), 1, 0, 0);
+    E.t.forEach(function (el, i) {
+      var d = eio(seg(p, .04 + i * .06, .34 + i * .06)), y = 100 * d;
+      R(el, TRIO[i][0], TRIO[i][1], TRIO[i][2], TRIO[i][3]);
+      el.style.clipPath = 'inset(0 0 ' + cb(TRIO[i][1] + y, TRIO[i][3]) + 'px 0)'; el.style.transform = 'translateY(' + y + 'px)';
+      el.style.opacity = d > .995 ? 0 : 1; el.style.visibility = d > .995 ? 'hidden' : 'visible'; S(el.firstChild, 1, 0, 0);
+    });
+    // rises, overshoots a few px, settles; the header's lower edge (y 56) is a hard stop it slides under
+    var r = seg(p, .3, .76), tyP = 250 * (1 - eo(seg(r, 0, .85))) - 7 * Math.sin(Math.PI * seg(r, .78, 1)), on = p > .28;
+    function topClip(y) { return Math.max(0, 56 - y); }
+    R(E.pick, PICK[0], PICK[1] + tyP, PICK[2], PICK[3]); E.pick.style.filter = '';
+    E.pick.style.opacity = on ? 1 : 0; E.pick.style.visibility = on ? 'visible' : 'hidden'; E.pick.style.transform = '';
+    E.pick.style.clipPath = 'inset(' + topClip(PICK[1] + tyP) + 'px 0 ' + cb(PICK[1] + tyP, PICK[3]) + 'px 0)';
+    R(E.bez, PICK[0] - 6, PICK[1] - 6 + tyP, PICK[2] + 12, PICK[3] + 12); E.bez.style.opacity = on ? 1 : 0;
+    E.bez.style.clipPath = 'inset(' + topClip(PICK[1] - 6 + tyP) + 'px 0 ' + cb(PICK[1] - 6 + tyP, PICK[3] + 12) + 'px 0)';
+    var ro = seg(p, .05, .2);
+    E.rails.forEach(function (x) { x.style.visibility = ro > 0 ? 'visible' : 'hidden'; x.style.opacity = ro; });
+    E.shoes.forEach(function (x) {
+      var y = PICK[1] + tyP + 75; x.style.top = y + 'px'; x.style.visibility = on ? 'visible' : 'hidden';
+      x.style.clipPath = 'inset(0 0 ' + cb(y, 38) + 'px 0)';
+    });
+    E.flash.style.opacity = 0;
+    showContent(p, .66, .88, false);
+    E.pole.style.opacity = 0;
+    var u = seg(p, .6, .86), nb = bk(u), ny = 50 * (1 - nb);
+    R(E.nr, NR[0], NR[1], NR[2], NR[3]); E.nr.style.transform = 'translateY(' + ny + 'px)';
+    E.nr.style.clipPath = 'inset(0 0 ' + cb(NR[1] + ny, NR[3]) + 'px 0)';
+    E.nr.style.opacity = u > 0 ? 1 : 0; E.nr.style.visibility = u > 0 ? 'visible' : 'hidden';
+  };
+  // settle-thunk when the heavy parts land: [time, strength in px]
+  var CLUNK = { A: null, B: [.64, 3], C: [.62, 3], D: [.86, 4], E: [.8, 5] };
+
   // clear leftovers when switching look
   function clean() {
+    hideExtras();
     [E.play, E.pick, E.nr].concat(E.t).forEach(function (el) { el.style.filter = ''; el.style.clipPath = ''; el.style.transformOrigin = ''; el.style.transform = ''; });
     E.pole.style.opacity = 0;
   }
@@ -315,6 +426,20 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
       return out;
     }
   };
+
+  // split-flap: each cell steps through the alphabet, one flap per step, left to right
+  var ABC = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function flapHtml(q, from, to) {
+    var h = '';
+    for (var i = 0; i < to.length; i++) {
+      var a = ABC.indexOf(from[i]), b = ABC.indexOf(to[i]), dist = (b - a + ABC.length) % ABC.length;
+      var t = seg(q, .04 + i * .04, .62 + i * .04), x = t * dist, n = Math.floor(x), f = x - n, c = t >= 1 ? to[i] : ABC[(a + n) % ABC.length];
+      var sy = (t > 0 && t < 1) ? 1 - .35 * Math.sin(Math.PI * f) : 1;
+      h += '<b class="fl" style="font-weight:400;transform:scaleY(' + sy + ')">' + (c === ' ' ? '&nbsp;' : c) + '</b>';
+    }
+    return h;
+  }
+  hdrStyles[4] = flapHtml;
 
   // ---- Quit -> Back key ----
   var keyStyles = {
@@ -349,8 +474,21 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     }
   };
 
+  keyStyles[4] = function (p) {
+    // ratchet: the key turns over in five clicks, each one snapping into place
+    var k = eio(seg(p, .15, .72)), n = 5, x = k * n, i = Math.floor(x), f = x - i;
+    var g = Math.min(1, (i + eo(cl(f * 2.6))) / n);
+    R(E.kb, lerp(QUIT[0], BACK[0], k), lerp(QUIT[1], BACK[1], k), lerp(QUIT[2], BACK[2], k), lerp(QUIT[3], BACK[3], k));
+    E.kb.style.boxShadow = '0 ' + lerp(1, 4, k) + 'px 0 #0b0f22, 0 ' + lerp(2, 7, k) + 'px 12px rgba(0,0,0,.5)';
+    E.kb.style.transformStyle = 'preserve-3d'; E.kb.style.overflow = '';
+    E.kb.style.transform = 'perspective(420px) rotateX(' + (-180 * g) + 'deg)';
+    E.fq.style.opacity = E.fb.style.opacity = 1; E.fq.style.top = E.fb.style.top = '0';
+    E.fq.style.transform = ''; E.fb.style.transform = 'rotateX(180deg)';
+    E.fq.firstChild.style.transform = E.fb.firstChild.style.transform = '';
+  };
+
   var st = { look: 'A', hdr: '1', key: '1', p: 0, dir: 1, playing: false, speed: 1, hold: 0 };
-  var DUR = { A: .95, B: 1.15, C: 1.05 };
+  var DUR = { A: .95, B: 1.15, C: 1.05, D: 1.35, E: 1.5 };
 
   function render() {
     var p = st.p;
@@ -359,9 +497,11 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     // header text, direction-aware so Back rewrites to MAIN MENU in the same style
     var A = 'MAIN MENU', B = 'YOUR RUNS', txt;
     if (st.dir > 0) txt = hdrStyles[st.hdr](p, A, B); else txt = hdrStyles[st.hdr](1 - p, B, A);
-    $('hdrT').textContent = txt;
-    $('hdrC').style.display = (st.hdr === '3' || p < .005) ? 'none' : (st.hdr === '3' ? 'none' : 'inline-block');
-    if (st.hdr === '3' && p > .995) $('hdrC').style.display = 'inline-block';
+    if (st.hdr === '4') $('hdrT').innerHTML = txt; else $('hdrT').textContent = txt;
+    var blockStyle = st.hdr === '3' || st.hdr === '4';
+    $('hdrC').style.display = (p < .005 || (blockStyle && p < .995)) ? 'none' : 'inline-block';
+    var ck = CLUNK[st.look], dtk = ck ? p - ck[0] : -1;
+    E.card.style.transform = dtk > 0 ? 'translateY(' + (ck[1] * Math.exp(-dtk * 26) * Math.sin(dtk * 95)).toFixed(2) + 'px)' : '';
     $('scrub').value = Math.round(p * 1000); $('pv').textContent = p.toFixed(2);
   }
 
@@ -395,7 +535,7 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
       b.onclick = function () {
         document.querySelectorAll('[data-' + attr + ']').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
         st[key] = b.dataset[attr]; clean();
-        if (attr === 'look') { var d = { A: ['1', '1'], B: ['2', '2'], C: ['3', '3'] }[st.look]; setPreset(d); }
+        if (attr === 'look') { var d = { A: ['1', '1'], B: ['2', '2'], C: ['3', '3'], D: ['4', '4'], E: ['4', '3'] }[st.look]; setPreset(d); }
         if (attr === 'sp') st.speed = parseFloat(st.sp = b.dataset.sp);
         if (attr !== 'sp') { st.p = 0; play(1); }
       };
