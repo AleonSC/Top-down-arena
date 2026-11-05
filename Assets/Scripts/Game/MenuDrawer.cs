@@ -303,18 +303,19 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "SETTINGS", "LEAVE TO LOBBY", "LEAVE GAME" };
-        const int PauseToLobby = 6;  // the host only: everyone back to the lobby
+        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "SETTINGS", "QUIT" };
+        const int PauseQuit = 6;  // asks "to lobby or desktop?" (DrawLobbyConfirm); the lobby is the host's: it takes everyone back
 
-        /// The pause menu's choices for this player (Leave to lobby is the host's: it takes everyone back).
+        /// The pause menu's choices for this player.
         List<int> PauseRows()
         {
             var rows = new List<int>();
             for (int i = 0; i < PauseChoices.Length; i++)
-                if (i != PauseToLobby || session.IsHost && !LabRunning)
-                    rows.Add(i);
+                rows.Add(i);
             return rows;
         }
+
+        bool CanQuitToLobby => session.IsHost && !LabRunning;
 
         /// The pause menu (DrawPauseMenu applies its opening): the drawer of choices and your party, and the run's card.
         void DrawPauseWindow()
@@ -351,12 +352,10 @@ namespace Arena
             else if (game.Players.Count > 1)
                 sub = "Nobody moves until someone resumes";
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_back", "ui_power" };
-            bool saved = session.IsHost && game.RunId != null;
+            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
+            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
             string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
-                "Audio, visual effects, aim line", (game.Players.Count > 1 ? "Everyone back to the lobby" : "Back to the lobby") + (saved ? ": the run stays saved" : ""),
-                saved ? "Saved as each wave starts: continue from the menu" : "Back to the main menu" };
+                "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
             var rows = PauseRows();
             pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
             float y = 128f;
@@ -373,6 +372,9 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
+            var tips = new Rect(28f, H - 52f, DrawerW - 56f, 24f);  // the controls hint, parked at the foot of the drawer
+            Ui.Pill(tips, new Color(0f, 0f, 0f, 0.35f));
+            Ui.Label(tips, "Hold TAB  ·  run stats & build      H  ·  hide HUD", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
             EndDrawer();
             BeginPanelAnim("runcard", true);  // it drops in with a bounce (WindowAnim.cs)
             DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t);  // down to near the bottom, the players in it
@@ -381,47 +383,60 @@ namespace Arena
 
         static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
 
-        /// The pause menu's Leave to lobby, asking first: back to the lobby (everyone beams out, Recall.cs) or keep
-        /// playing. ↑ ↓ and Enter, or Esc for no. The run's card stays on the right.
+        /// The pause menu's Quit, asking first: to the lobby (the host's: everyone beams out, Recall.cs), to the desktop, or
+        /// keep playing. ↑ ↓ and Enter, or Esc for no. The run's card stays on the right.
         void DrawLobbyConfirm(float t)
         {
             DrawerIn("pause-confirm", false);
             var e = Event.current;
+            bool lobby = CanQuitToLobby;
+            var names = new List<string>(); var lines = new List<string>(); var icons = new List<string>(); var cols = new List<Color>(); var ids = new List<int>();
+            bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
+            if (lobby)
+            {
+                names.Add("TO LOBBY"); lines.Add(many ? "Everyone beams out to the lobby" : "Beam out to the lobby"); icons.Add("ui_back"); cols.Add(LobbyConfirmColor); ids.Add(0);
+            }
+            names.Add("TO DESKTOP"); lines.Add(many && session.IsHost ? "Close the game (the party leaves)" : "Close the game"); icons.Add("ui_power"); cols.Add(new Color(1f, 0.45f, 0.5f)); ids.Add(1);
+            names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); icons.Add("ui_play"); cols.Add(Ui.Primary); ids.Add(2);
+            int n = names.Count;
+            confirmSel = Mathf.Clamp(confirmSel, 0, n - 1);
             if (e.type == EventType.KeyDown && GUIUtility.keyboardControl == 0)
             {
-                if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W || e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
+                if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
                 {
-                    confirmSel = 1 - confirmSel;
+                    confirmSel = (confirmSel + n - 1) % n;
+                    e.Use();
+                }
+                else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
+                {
+                    confirmSel = (confirmSel + 1) % n;
                     e.Use();
                 }
                 else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
                 {
-                    ConfirmLobby(confirmSel == 0);
+                    ConfirmQuit(ids[confirmSel]);
                     e.Use();
                 }
             }
-            bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
-            BeginDrawer("TO LOBBY?", LobbyConfirmColor, 1f);
-            string[] names = { "LEAVE", "KEEP PLAYING" };
-            string[] lines = { many ? "Everyone beams out to the lobby" : "Beam out to the lobby", "Back to the pause menu" };
-            string[] icons = { "ui_back", "ui_play" };
-            Color[] cols = { LobbyConfirmColor, Ui.Primary };
+            BeginDrawer(lobby ? "TO LOBBY OR DESKTOP?" : "TO DESKTOP?", LobbyConfirmColor, 1f, null, lobby ? 28 : 36);
             float y = 128f;
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < n; i++)
             {
                 bool on = i == confirmSel;
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
                 if (r.Contains(e.mousePosition) && e.type == EventType.Repaint && e.mousePosition != pauseMouse)
                     confirmSel = i;
-                if (DrawerRow(r, PixelArt.Get(icons[i]), names[i], lines[i], i == 1 ? "Esc" : "Enter", null, cols[i], on))
-                    ConfirmLobby(i == 0);
+                if (DrawerRow(r, PixelArt.Get(icons[i]), names[i], lines[i], ids[i] == 2 ? "Esc" : null, null, cols[i], on))
+                    ConfirmQuit(ids[i]);
                 y += r.height + 4f;
             }
             if (e.type == EventType.Repaint)
                 pauseMouse = e.mousePosition;
             y += 14f;
-            string note = saved ? "The run is saved from the last break between waves: pick it up again with Continue a run on the main menu."
-                : "This run isn't saved: it can't be continued.";
+            string note = lobby ? (saved ? "To lobby: the run is saved from the last break between waves; pick it up again with Continue a run on the main menu."
+                : "To lobby: this run isn't saved, so it can't be continued.") : "This run can't be continued once you quit.";
+            if (lobby && saved)
+                note += " Quitting to the desktop saves it the same way.";
             float nh = Ui.TextHeight(note, 13, DrawerW - 84f);
             Ui.Fill(new Rect(28f, y, 3f, nh + 4f), new Color(LobbyConfirmColor.r, LobbyConfirmColor.g, LobbyConfirmColor.b, 0.7f));
             Ui.Label(new Rect(42f, y, DrawerW - 84f, nh + 4f), note, 13, new Color(0.79f, 0.83f, 0.92f), TextAnchor.UpperLeft, false, true);
@@ -431,11 +446,17 @@ namespace Arena
             EndPanelAnim();
         }
 
-        void ConfirmLobby(bool yes)
+        void ConfirmQuit(int choice)
         {
             pauseConfirmLobby = false;
-            if (yes)
+            if (choice == 0)
                 RecallToLobby();  // everyone beams out, then the host takes them back (Recall.cs)
+            else if (choice == 1)
+            {
+                pauseMenuOpen = false;
+                session.Leave("");
+                Application.Quit();
+            }
         }
 
         /// ↑ ↓ to move through the pause menu, Enter to choose.
@@ -466,15 +487,9 @@ namespace Arena
                 case 3: pauseRecords = true; break;
                 case 4: pauseHowTo = true; break;
                 case 5: pauseSettings = true; break;
-                case PauseToLobby:
-                    if (!session.IsHost)
-                        break;
+                default:  // PauseQuit
                     pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
-                    confirmSel = 1;            // on "keep playing", so a stray Enter doesn't end the run
-                    break;
-                default:
-                    pauseMenuOpen = false;
-                    session.Leave("");
+                    confirmSel = 9;            // clamped onto "keep playing", so a stray Enter doesn't end the run
                     break;
             }
         }

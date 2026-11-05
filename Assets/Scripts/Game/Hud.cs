@@ -130,6 +130,7 @@ namespace Arena
                 DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
+                if (!pauseMenuOpen)  // (the pause menu carries this hint at the foot of its drawer)
                 HudGroup(3, new Vector2(0f, -60f), new Rect(W - 290f, 10f, 274f, 22f), () =>
                 {
                     var hint = new Rect(W - 290f, 10f, 274f, 22f);

@@ -1026,10 +1026,11 @@ right, and a new section's panel slides in; closing slides the drawer back out (
 window really close. That goes for the pause menu and for Settings from the lobby or the main menu alike.
 
 - **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together), **Field
-  guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Leave to lobby** (the
-  host only: it asks first, "TO LOBBY?" with Back to the lobby or Keep playing, Keep playing picked to start with;
-  then everyone beams out up a pillar of light, the screen goes dark and the lobby slides back in; the run stays saved
-  to continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the
+  guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Quit**, which asks first
+  ("TO LOBBY OR DESKTOP?", Keep playing picked to start with): **To lobby** (the host only: everyone beams out up a
+  pillar of light, the screen goes dark and the lobby slides back in; the run stays saved to continue later), **To
+  desktop** (closes the game), or **Keep playing** (Esc). The controls hint (Hold Tab, H) sits at the foot of the
+  drawer while paused. Choose with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the
   right with a **this run** card: the wave, time and score, chips for the path (and waves left), the run's modifiers
   and the difficulty, the next boss (moving), and this stretch's challenge room (won, lost, or when the next portal
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
