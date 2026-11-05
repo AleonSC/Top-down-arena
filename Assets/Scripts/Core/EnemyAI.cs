@@ -150,6 +150,8 @@ namespace Arena
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
             if (n <= 5)
                 count += 7 - n;  // the first waves get extra (12, 13, 14, 15, 16), so the opening isn't too quiet
+            if (LayoutOn)
+                count = (int)Math.Round(count * LayoutEnemyMult);  // a floor plan's walls and gates make the crowd easier to read: more of them (Balance.cs)
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
             count = Math.Max(1, (int)Math.Round(count * D(DiffKnob.EnemyCount)));  // the difficulty's enemy count

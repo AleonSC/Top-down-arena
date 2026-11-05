@@ -34,6 +34,9 @@ Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, 
   waypoint with the shortest way round, and keep it for 0.5 s. Bosses don't steer (they only appear on open waves).
 - **Narrow Pass, Tiny Arena, Solid Walls** (`Walled`): the edge wall and the gates drop away; inner walls stay.
 
+- **More enemies**: regular waves with a layout up have 30% more (`LayoutEnemyMult`, `Balance.cs`; applied in `BuildWave`
+  before the party-size and difficulty multipliers).
+
 ## Known limits and ideas
 
 - Bots don't path round walls; they can get stuck behind them.

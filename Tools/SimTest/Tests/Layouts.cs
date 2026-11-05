@@ -90,6 +90,18 @@ static partial class Program
         g.Props.Clear();
         var me = g.Players.Values.First();
 
+        // More enemies on a floor plan than in the open arena.
+        var buildWave = typeof(Game).GetMethod("BuildWave", flags);
+        Func<int> queued = () => ((IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Count
+            + ((IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Cast<object>().Sum(q => ((SquadDef)q).Members.Length);
+        g.Wave = 3;
+        g.DevSetLayout(LayoutId.Open); buildWave.Invoke(g, new object[] { 3 }); int openCount = queued();
+        g.DevSetLayout(LayoutId.Cross); buildWave.Invoke(g, new object[] { 3 }); int laidCount = queued();
+        Console.WriteLine("  wave 3 enemies: {0} open, {1} on a floor plan", openCount, laidCount);
+        Check(laidCount >= openCount * 1.2f && laidCount <= openCount * 1.45f, "a floor plan brings about " + (int)((Game.LayoutEnemyMult - 1f) * 100f) + "% more enemies");
+        Quiet();
+        g.Wave = 6;
+
         // Walls and pillars: you can't walk into them, and no shot gets through (yours or theirs).
         g.DevSetLayout(LayoutId.TwinLanes);
         V2 pushed = g.PushOutOfSolids(new V2(500f, 300f), 10f);
