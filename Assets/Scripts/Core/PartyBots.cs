@@ -7,8 +7,8 @@ namespace Arena
     /// Each one is a separate session that joins the host over the local network, exactly like a friend (and like the
     /// Boss Lab's bots), with the smart bot (BotBrain.cs) at the controls: it readies up by itself, picks its own
     /// upgrades and carries on between waves. The app steps them next to the host's own game (ArenaApp).
-    /// A run with bots in the party isn't saved and isn't counted in anyone's records (Game.Unrecorded), like the
-    /// Boss Lab and the F1 bot.
+    /// A run with bots in the party is saved (their seats are marked as bots, and Continue brings them back) but isn't
+    /// counted in anyone's records (Game.NoRecords).
     public class PartyBots
     {
         public class PartyBot
@@ -23,7 +23,7 @@ namespace Arena
         public readonly List<PartyBot> Bots = new List<PartyBot>();
         public BotSkill NewSkill = BotSkill.Good;  // the skill the next bot gets
         readonly Random rng = new Random();
-        bool marked;  // we set the host game's Unrecorded
+        bool marked;  // we set the host game's NoRecords
 
         public PartyBot Find(int lobbyId)
         {
@@ -44,17 +44,47 @@ namespace Arena
 
         /// Can the host add a bot right now? (In the lobby, with a free slot, and not continuing a saved run, whose seats are for people.)
         public bool CanAdd(Session host) =>
-            host != null && host.IsHost && host.Screen == AppScreen.Lobby && !host.Game.Running && host.Resume == null
+            host != null && host.IsHost && host.Screen == AppScreen.Lobby && !host.Game.Running && (host.Resume == null || ResumeBotSeat(host) >= 0)
             && host.Lobby.Count + Pending() < Session.MaxPlayers;
 
-        public bool Add(Session host)
+        /// Continuing a saved run: the first bot seat nobody has taken or been promised to a bot (-1: none).
+        int ResumeBotSeat(Session host)
         {
-            if (!CanAdd(host))
+            if (host.Resume == null)
+                return -1;
+            for (int i = 0; i < host.Resume.Seats.Count; i++)
+            {
+                var seat = host.Resume.Seats[i];
+                if (!seat.Bot || Bots.Exists(b => string.Equals(b.Name, seat.Name, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                bool taken = false;
+                foreach (var e in host.Lobby.Values)
+                    if (e.Seat == i)
+                        taken = true;
+                if (!taken)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// A saved run's bots come back by themselves: each joins under its old name and takes its seat.
+        void RestoreBots(Session host)
+        {
+            if (host.Resume == null || host.Screen != AppScreen.Lobby || host.Game.Running)
+                return;
+            int seat = ResumeBotSeat(host);
+            if (seat >= 0 && host.Lobby.Count + Pending() < Session.MaxPlayers)
+                Add(host, host.Resume.Seats[seat]);
+        }
+
+        public bool Add(Session host, SeatSave from = null)
+        {
+            if (from == null ? !CanAdd(host) : host == null || !host.IsHost || host.Game.Running || host.Lobby.Count + Pending() >= Session.MaxPlayers)
                 return false;
             int n = 1;
             while (Bots.Exists(b => b.Name == "Bot " + n))
                 n++;
-            var bot = new PartyBot { S = new Session(), Skill = NewSkill, Name = "Bot " + n };
+            var bot = new PartyBot { S = new Session(), Skill = from != null ? from.BotSkill : NewSkill, Name = from != null ? from.Name : "Bot " + n };
             var g = bot.S.Game;
             g.Unrecorded = true;
             g.Bot = true;
@@ -106,13 +136,18 @@ namespace Arena
         {
             if (Bots.Count == 0)
             {
+                if (host != null && host.IsHost)
+                    RestoreBots(host);
                 if (marked && host != null && !host.Game.Running)
                 {
-                    host.Game.Unrecorded = false;  // the last bot left: the run counts again
+                    host.Game.NoRecords = false;
+                    host.Game.PartyBotIds.Clear();  // the last bot left: the run counts again
                     marked = false;
                 }
                 return;
             }
+            if (host != null && host.IsHost)
+                RestoreBots(host);
             if (host == null || !host.IsHost || host.Screen == AppScreen.Menu)
             {
                 Clear();  // the host left (or is hosting something else): the bots go with it
@@ -145,9 +180,13 @@ namespace Arena
             }
             if (!host.Game.Running)
             {
-                host.Game.Unrecorded = true;  // (a run in progress keeps what it started with)
+                host.Game.NoRecords = true;  // (a run in progress keeps what it started with)
                 marked = true;
             }
+            host.Game.PartyBotIds.Clear();
+            foreach (var b in Bots)
+                if (b.S.Lobby.Count > 0)
+                    host.Game.PartyBotIds[b.Id] = b.Skill;
         }
 
         public void Update(float dt)

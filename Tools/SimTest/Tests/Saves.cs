@@ -106,6 +106,12 @@ static partial class Program
             host = new Session();
             var two = RunSave.Parse(made.ToText());
             two.Seats.Add(new SeatSave { Name = "Friend", Role = Role.Tank, Kit = Kit.Knight });
+            var botRound = RunSave.Parse(two.ToText());
+            Check(botRound.Seats.Count == 2 && !botRound.Seats[1].Bot, "a person's seat doesn't read back as a bot");
+            two.Seats[1].Bot = true; two.Seats[1].BotSkill = BotSkill.Expert;
+            botRound = RunSave.Parse(two.ToText());
+            Check(botRound.Seats[1].Bot && botRound.Seats[1].BotSkill == BotSkill.Expert && !botRound.Seats[0].Bot, "a bot's seat is saved as a bot with its skill");
+            two.Seats[1].Bot = false;
             two.Id = "seats";
             host.HostResume(two, port, "Friend");
             var c2 = new Session();

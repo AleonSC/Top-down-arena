@@ -57,7 +57,7 @@ static partial class Program
         Check(host.AllReady, "everyone's ready once the host is");
         host.StartMatch();
         run(2f, () => host.Game.Running && host.Game.Players.Count == 3);
-        Check(host.Game.Running && host.Game.Players.Count == 3 && host.Game.Unrecorded, "the match starts with both bots, unrecorded");
+        Check(host.Game.Running && host.Game.Players.Count == 3 && host.Game.NoRecords && !host.Game.Unrecorded && host.Game.RunId != null, "the match starts with both bots, saved but not counted in records");
         int shotsFar = 0, shotsAll = 0;
         run(40f, () =>
         {

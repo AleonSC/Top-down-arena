@@ -223,7 +223,7 @@ namespace Arena
                 {
                     var seat = s.Seats[i];
                     Ui.Fill(new Rect(sx, r.y + 28f + i * 23f, 4f, 16f), ToColor(Defs.Get(seat.Role).Color));
-                    CrtUi.Text(new Rect(sx + 12f, r.y + 26f + i * 23f, 100f, 20f), ClipName(seat.Name, 12), 13, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+                    CrtUi.Text(new Rect(sx + 12f, r.y + 26f + i * 23f, 100f, 20f), ClipName(seat.Name, 12) + (seat.Bot ? " [BOT]" : ""), 13, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                     CrtUi.Text(new Rect(sx + 114f, r.y + 26f + i * 23f, 110f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
                 }
                 Ui.Fill(new Rect(r.xMax - 188f, r.y + 12f, 1f, 86f), rule);
@@ -251,7 +251,7 @@ namespace Arena
             {
                 var seat = s.Seats[k];
                 Ui.Fill(new Rect(cx + colX[4], top + k * 15f + 2f, 3f, 11f), ToColor(Defs.Get(seat.Role).Color));
-                CrtUi.Text(new Rect(cx + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(cx + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10) + (seat.Bot ? " [BOT]" : ""), 11, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                 CrtUi.Text(new Rect(cx + colX[4] + 78f, top + k * 15f - 1f, 84f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
             }
             if (CrtUi.Small(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 13, calm))
@@ -359,7 +359,7 @@ namespace Arena
                 var seat = s.Seats[i];
                 var c = ToColor(Defs.Get(seat.Role).Color);
                 Ui.Fill(new Rect(sx, r.y + 12f + i * 24f, 4f, 18f), c);
-                Ui.Label(new Rect(sx + 10f, r.y + 10f + i * 24f, 290f, 22f), seat.Name + "  —  " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name + ", level " + seat.Level, 13, Ui.Text);
+                Ui.Label(new Rect(sx + 10f, r.y + 10f + i * 24f, 290f, 22f), seat.Name + (seat.Bot ? " (bot)" : "") + "  —  " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name + ", level " + seat.Level, 13, Ui.Text);
             }
             // What's special about it.
             float bx = r.xMax - 324f, by = r.y + 12f;
@@ -454,7 +454,7 @@ namespace Arena
                     EndUiGl();
                 }
                 float tx = face.xMax + 16f;
-                Ui.Label(new Rect(tx, r.y + 10f, 360f, 26f), seat.Name, 20, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(tx, r.y + 10f, 360f, 26f), seat.Name + (seat.Bot ? "  (bot)" : ""), 20, Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(tx, r.y + 38f, 420f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name + "  ·  level " + seat.Level, 14, Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(tx, r.y + 62f, 460f, 20f), Defs.Weapon(seat.Role, seat.Kit, seat.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(seat.Role, seat.Kit, seat.Ability)).Name, 12, Ui.Muted);
                 var who = new Rect(r.xMax - 210f, r.y + 16f, 196f, 24f);

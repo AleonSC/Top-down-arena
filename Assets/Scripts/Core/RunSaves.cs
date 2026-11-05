@@ -25,6 +25,8 @@ namespace Arena
         /// The rank XP this player's profile just earned from the run or hunt that ended (null until then; the results screen shows it).
         public RankGain LastGain;
         int runLastBossWave;              // the wave of the last boss this player's profile heard beaten this run (a boss down on wave 10 means wave 10 is cleared)
+        public bool NoRecords;            // party bots are playing: the run is saved, but nobody's records count it (PartyBots.cs)
+        public readonly Dictionary<int, BotSkill> PartyBotIds = new Dictionary<int, BotSkill>();  // host: player id -> skill, for the party bots in the run (their seats are saved as bots)
         public Profile ProfileOverride;   // tests: a profile per game instead of the computer's
         public bool Unrecorded;           // a Boss Lab fight: never saved, and not in anyone's records (BossLab.cs)
         public Profile Profile => ProfileOverride ?? Profile.Current;
@@ -34,8 +36,11 @@ namespace Arena
 
         bool Saveable => IsHost && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
 
+        /// A run this game may save at all (records are a separate question: RecordsRuns).
+        bool SavesRuns => Practice == null && !ShowcaseMode && !Unrecorded;
+
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
-        bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
+        bool RecordsRuns => SavesRuns && !NoRecords;
 
         /// A dev tool was used (god mode, stat edits, wave jumps...): recorded, and the run no longer counts.
         void DevUsed(string what)
@@ -63,6 +68,7 @@ namespace Arena
                 {
                     Name = p.Name, Role = p.Role, Kit = p.Kit, Weapon = e != null ? e.Weapon : 0, Ability = e != null ? e.Ability : 0,
                     Level = p.Level, Xp = p.Xp, Rerolls = p.Rerolls, Gold = p.Gold, ReviveToken = p.ReviveToken,
+                    Bot = PartyBotIds.ContainsKey(p.Id), BotSkill = PartyBotIds.ContainsKey(p.Id) ? PartyBotIds[p.Id] : BotSkill.Good,
                     HpFrac = p.Downed || p.MaxHp <= 0f ? 0.4f : p.Hp / p.MaxHp, Run = p.Run,
                 };
                 foreach (var pk in p.Perks)
@@ -164,7 +170,7 @@ namespace Arena
             if (IsHost)
             {
                 devTouched = false;
-                RunId = !RecordsRuns ? null : resumed && ResumeFrom != null ? ResumeFrom.Id : RunSave.NewId();
+                RunId = !SavesRuns ? null : resumed && ResumeFrom != null ? ResumeFrom.Id : RunSave.NewId();
             }
             if (!resumed && RecordsRuns && Me != null && Hunt == null)  // (a Boss Hunt isn't a run: its own records at the end)
             {

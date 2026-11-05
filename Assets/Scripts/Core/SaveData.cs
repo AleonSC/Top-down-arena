@@ -19,6 +19,8 @@ namespace Arena
         public int Level = 1, Rerolls, Gold;
         public float Xp, HpFrac = 1f;
         public bool ReviveToken;
+        public bool Bot;                  // a party bot sat here (Continue brings it back, at this skill)
+        public BotSkill BotSkill = BotSkill.Good;
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
         public RunStats Run = new RunStats();
 
@@ -72,6 +74,7 @@ namespace Arena
                 sb.Append("seat\n");
                 Line(sb, "name", s.Name);
                 Line(sb, "class", s.Role + " " + s.Kit + " " + s.Weapon + " " + s.Ability);
+                if (s.Bot) Line(sb, "bot", (int)s.BotSkill);
                 Line(sb, "level", s.Level);
                 Line(sb, "xp", s.Xp);
                 Line(sb, "rerolls", s.Rerolls);
@@ -161,6 +164,7 @@ namespace Arena
                     s.Ability = Math.Max(0, Math.Min(Upgrades.RoleAbilityChoices - 1, I(p[3])));
                     break;
                 }
+                case "bot": s.Bot = true; s.BotSkill = (BotSkill)Math.Max(1, Math.Min(3, I(val))); break;
                 case "level": s.Level = Math.Max(1, I(val)); break;
                 case "xp": s.Xp = Fl(val); break;
                 case "rerolls": s.Rerolls = Math.Max(0, I(val)); break;
