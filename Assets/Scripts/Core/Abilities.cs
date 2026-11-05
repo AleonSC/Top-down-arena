@@ -11,6 +11,12 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
+            if (OrbitRelease(p, slot))  // Blade Fan pressed again: the kunai fly out (no cooldown spent)
+            {
+                p.Run.AbilitiesUsed++;
+                ReleaseOrbit(p);
+                return;
+            }
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;

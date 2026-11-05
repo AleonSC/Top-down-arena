@@ -80,7 +80,7 @@ namespace Arena
         public string ExtraDesc;  // what each extra projectile (Multishot, Artillery Assault) does for this weapon
         public float FireInterval;
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one
-        // arrives every CompanionRespawn seconds; the others only die to Sacrifice.
+        // arrives every CompanionRespawn seconds; the others stay until they are lost.
         public MinionKind Companion = MinionKind.None;
         public int CompanionCount;
         public float CompanionRespawn = 3f;

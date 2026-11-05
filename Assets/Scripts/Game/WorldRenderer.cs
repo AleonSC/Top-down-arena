@@ -326,6 +326,9 @@ namespace Arena
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // Artillery Assault (ArtilleryLook.cs)
                 DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
+            DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
+            if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)
+                DrawBladeOrbit(p, t);
         }
 
         /// The parry shield: an arc toward the cursor, with its durability gauge around the outside.

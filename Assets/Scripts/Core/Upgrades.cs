@@ -12,7 +12,7 @@ namespace Arena
         // Mage
         ArcaneAegis, FrostNova, FlameWall, HealingRain, EnergyWard, Sanctify, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
         // Summoner
-        GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
+        GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
         // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, BulletRain, Legion,
         // Knight (Space), then the Knight ultimates

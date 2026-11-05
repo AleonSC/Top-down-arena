@@ -47,6 +47,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
 - `RadiantOrb.cs`: Healer's Radiant Orb
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
+- `Hydra.cs`, `Game/HydraLook.cs`: the Summoner DPS's Hydra ability (a stationary minion whose heads each spit at a different enemy) and its drawing
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
 
 ## Enemies and bosses (Core)
@@ -91,6 +92,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
 - `LumenWardLook.cs`: Lumen Ward's cone of light (look A, Cathedral, of `Docs/Mockups/sanctify-cone.html`: bands, god rays, dust) and the halo on bullets it holds
+- `DeathLotusLook.cs`: the Ninja's Death Lotus (Crimson Reaping: dark arena, three glowing cuts and a lotus stain per enemy struck, camera kick; `FxKind.DeathLotus`)
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
@@ -100,6 +102,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
 - `EnemyPresenceLook.cs`: regular enemies' soft shadow and quiet colour glow with Visual effects on (look D of `Docs/Mockups/enemy-prominence.html`)
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
+- `ShadowStepLook.cs` (Game): the Ninja's Shadow Step with Visual effects on (smoke bursts, splits round the enemy's sides behind two eyes, re-forms behind it; `FxKind.ShadowStep`, hides the body while it travels)
 - `AirTrailLooks.cs`: the air trail with Visual effects on (look A, Ribbons): two fading streamlines behind any player, enemy or minion, scaled by drawn speed (none under 110 px/s, full at 330)
 - `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on
 - `TankGunLooks.cs`: the Tank Soldier's Scattergun (recoil, pump, shell), Flak Cannon (recoil, heat, lifted shell, airburst) and Riot Repeater (bolt kick, brass, glowing rounds) with Visual effects on
@@ -114,6 +117,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
 - `LegionLook.cs`: Legion (Summoner DPS ultimate): the blood moon and red tint, drawn from `Player.LegionT`
 - `BulletRainLook.cs`: Bullet Rain (Elementalist DPS ultimate, `ZoneKind.BulletRain`): arena-wide rain, needles hardening in the zone
+- `NinjaLooks.cs`: Ninja DPS looks: Vanish's smoke (puffs, wisps, bank and ring on the vanish spot) and Blade Fan's circling kunai
 - `ArtilleryLook.cs`: Artillery Assault (DPS Soldier ultimate, once Bullet Storm): heat aura and ring, speed streaks, muzzle flash
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
 - `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: charge halo, sparks and dashed strip, the spine bolt (style A, Thunderhead)

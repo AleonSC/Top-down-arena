@@ -41,8 +41,14 @@ namespace Arena
         {
             int slot = r.ReadByte();
             V2 target = r.ReadV2();
+            V2 from = r.ReadV2();
             if (slot < Upgrades.SlotCount)
+            {
+                Player p;
+                StepFrom = Players.TryGetValue(peer, out p) ? KeepInArena(from, 0f) : (V2?)null;
                 HostAbility(peer, slot, target, false);
+                StepFrom = null;
+            }
         }
 
         /// Host: the exact position and course of every homing (or gravity-bent) bullet.
@@ -448,6 +454,9 @@ namespace Arena
             s.Float(ref p.WhirlT);
             s.Float(ref p.VanishT);
             s.Float(ref p.IronT);
+            s.Vec(ref p.VanishFrom);
+            s.Float(ref p.OrbitT);
+            s.Byte(ref p.OrbitN);
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
             s.Float(ref p.SpinUp);

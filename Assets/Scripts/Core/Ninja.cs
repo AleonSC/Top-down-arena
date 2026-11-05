@@ -12,12 +12,16 @@ namespace Arena
         public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
         public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
+        public const float ShadowStepFxTime = 1f;
+        V2? StepFrom;  // where the caster stood when they pressed Shadow Step (set around HostAbility; null: use their position)
         const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
         const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
         const float MistRadius = 130f, MistTime = 6f, SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
         const float VanishTime = 3f, AmbushGrace = 1f, FanDamage = 18f, KunaiBonus = 0.5f;
-        const float BlossomTime = 5f, BlossomHeal = 20f, BlossomClear = 100f, LotusRange = 350f, LotusDamage = 100f;
+        public const float OrbitTime = 4f, BladeOrbitR = 60f, OrbitTurns = 2.2f, OrbitSpin = 0.25f, OrbitCutGap = 0.5f, OrbitBladeR = 8f;  // Blade Fan: how long the kunai circle you, how far out, turns a second, how long they take to spiral out, the gap between cuts on one enemy, a kunai's reach
+        const float BlossomTime = 5f, BlossomHeal = 20f, BlossomClear = 100f, LotusRange = 350f, LotusDamage = 100f, LotusStagger = 0.11f, LotusStaggerCap = 0.07f, LotusStain = 2.2f;
+        public static readonly Rgba LotusCrimson = new Rgba(1f, 0.18f, 0.42f);
 
         // --- Weapons ------------------------------------------------------------------
 
@@ -167,6 +171,74 @@ namespace Arena
             return m;
         }
 
+        // --- Blade Fan: the orbit ---------------------------------------------------------
+
+        /// Where the i-th of a player's orbiting kunai is `el` seconds after the cast (the host, and every screen from the replicated timer).
+        public static V2 OrbitBladeAt(Player p, int i, float el)
+        {
+            float rad = BladeOrbitR * MathX.Clamp01(el / OrbitSpin);  // they spiral out from the body
+            return p.Pos + V2.FromAngle(MathX.Tau * (i / (float)Math.Max(1, p.OrbitN) + OrbitTurns * el)) * rad;
+        }
+
+        public static V2 OrbitBlade(Player p, int i) => OrbitBladeAt(p, i, OrbitTime - p.OrbitT);
+
+        /// Host, every tick: the circling kunai cut what they touch and erase enemy bullets they meet.
+        void TickOrbit(Player p, float dt)
+        {
+            if (p.OrbitT <= 0f)
+                return;
+            if (p.Downed)
+            {
+                p.OrbitT = 0f;
+                p.OrbitN = 0;
+                return;
+            }
+            p.OrbitT -= dt;
+            if (p.OrbitT <= 0f)
+            {
+                ReleaseOrbit(p);
+                return;
+            }
+            p.OrbitClock += dt;
+            for (int i = 0; i < p.OrbitN; i++)
+            {
+                V2 b = OrbitBlade(p, i);
+                EraseEnemyBullets(b, OrbitBladeR + 6f);
+                foreach (var e in Enemies.Values)
+                {
+                    float last;
+                    if (e.SpawnT > 0f || b.DistanceTo(e.Pos) > e.Radius + OrbitBladeR || (p.OrbitCut.TryGetValue(e.Id, out last) && p.OrbitClock - last < OrbitCutGap))
+                        continue;
+                    p.OrbitCut[e.Id] = p.OrbitClock;
+                    float dmg = FanDamage * p.Stats.DmgMult * NinjaHitMult(p.Id, Defs.KunaiShot, e);
+                    HurtEnemy(e, dmg, p.Id);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KunaiShot }, e);
+                }
+            }
+        }
+
+        /// Host: the orbit ends (time ran out, or Blade Fan was pressed again) and the kunai fly out from where they are, the old Blade Fan's ring.
+        void ReleaseOrbit(Player p)
+        {
+            int n = p.OrbitN;
+            float el = OrbitTime - Math.Max(0f, p.OrbitT);
+            p.OrbitT = 0f;
+            p.OrbitN = 0;
+            if (n <= 0)
+                return;
+            for (int i = 0; i < n; i++)
+            {
+                V2 from = OrbitBladeAt(p, i, el), d = (from - p.Pos).Normalized();
+                if (d.IsZero)
+                    d = V2.FromAngle(MathX.Tau * i / n);
+                SpawnBullet(Defs.KunaiShot, from, d * 600f, 0f, 0.7f, FanDamage * p.Stats.DmgMult, p.Id).Pierce += 1;
+            }
+            Sounds.Add(Sfx.Throw);
+        }
+
+        /// True if this slot is a Blade Fan that is circling you now: pressing it throws the kunai instead of casting again.
+        public bool OrbitRelease(Player p, int slot) => p.Slots[slot].Id == AbilityId.BladeFan && p.OrbitT > 0f;
+
         // --- Abilities ------------------------------------------------------------------
 
         /// The Ninja: FireNinjaWeapon, NinjaAbility, TickNinjas. See KitDef (Classes.cs) for what each hook does.
@@ -269,7 +341,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BladeFan, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2,
-                Name = "Blade Fan", Cooldown = 9f, Desc = "Throw 12 kunai in a ring around you, 18 damage each.",
+                Name = "Blade Fan", Cooldown = 12f, Desc = "12 kunai spin around you for 4 s, cutting enemies they touch for 18 (once every 0.5 s each) and erasing enemy bullets. Press again, or wait, and they fly out in a ring, 18 each.",
                 Capstone = "Throws twice as many kunai.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 260f,
             },
@@ -363,6 +435,8 @@ namespace Arena
                         OnBulletHit(new Bullet { Pos = best.Pos, Vel = (best.Pos - target).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, best);
                         BroadcastFx(FxKind.Slash, target, best.Pos + (best.Pos - target).Normalized() * best.Radius, new Rgba(0.75f, 0.6f, 1f), 0.12f, 0.2f, Sfx.SwingLight);
                     }
+                    // The smoke look (Game/ShadowStepLook.cs) starts where they stood; the plain ring and slash above stay for Visual effects off.
+                    BroadcastFx(FxKind.ShadowStep, StepFrom ?? p.Pos, target, new Rgba(0.72f, 0.58f, 1f), p.Id * 1000f + (best != null ? best.Radius : 0f), ShadowStepFxTime, Sfx.None);
                     return true;
                 }
                 case AbilityId.Vanish:
@@ -378,13 +452,11 @@ namespace Arena
                     return true;
                 case AbilityId.BladeFan:
                 {
-                    int n = (12 + s.FanExtraKunai) * (cap ? 2 : 1);
-                    for (int i = 0; i < n; i++)
-                    {
-                        V2 d = V2.FromAngle(p.Aim + MathX.Tau * i / n);
-                        SpawnBullet(Defs.KunaiShot, p.Pos + d * p.Def.BodyR, d * 600f, 0f, 0.7f, FanDamage * s.DmgMult, p.Id).Pierce += 1;
-                    }
-                    Sounds.Add(Sfx.Throw);
+                    p.OrbitN = (12 + s.FanExtraKunai) * (cap ? 2 : 1);
+                    p.OrbitT = OrbitTime;
+                    p.OrbitClock = 0f;
+                    p.OrbitCut.Clear();
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.75f, 0.65f, 1f), BladeOrbitR + 10f, 0.3f, Sfx.Throw);
                     return true;
                 }
 
@@ -411,17 +483,17 @@ namespace Arena
                     int most = cap ? 14 : 8;
                     if (marks.Count > most)
                         marks.RemoveRange(most, marks.Count - most);
-                    V2 from = p.Pos;
-                    foreach (var e in marks)
+                    float gap = cap ? LotusStaggerCap : LotusStagger;  // the cuts show one after another; the damage lands now
+                    BroadcastFx(FxKind.DeathLotus, p.Pos, new V2(-1f, p.Id), LotusCrimson, marks.Count, marks.Count * gap + 1.5f, Sfx.SwingHeavy);
+                    for (int i = 0; i < marks.Count; i++)
                     {
+                        var e = marks[i];
                         float dmg = LotusDamage * s.DmgMult;
                         HurtEnemy(e, dmg, p.Id);
-                        OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - from).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
-                        BroadcastFx(FxKind.Slash, from, e.Pos, new Rgba(1f, 0.55f, 0.75f), 0.12f, 0.35f, Sfx.None);
-                        from = e.Pos;
+                        OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                        BroadcastFx(FxKind.DeathLotus, e.Pos, new V2(i * gap, p.Id), LotusCrimson, e.Radius, i * gap + LotusStain, Sfx.None);
                     }
                     p.InvulnT = Math.Max(p.InvulnT, 1f);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.55f, 0.75f), 70f, 0.4f, Sfx.SwingHeavy);
                     return true;
                 }
             }
@@ -1063,6 +1135,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.VanishT = Math.Max(0f, p.VanishT - dt);
+                TickOrbit(p, dt);
                 p.AmbushT = Math.Max(0f, p.AmbushT - dt);
                 if (p.Downed)
                     p.VanishT = p.AmbushT = p.IronT = 0f;
