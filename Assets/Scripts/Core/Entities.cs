@@ -457,6 +457,7 @@ namespace Arena
         public bool AbilityShift;
         public bool Ultimate;
         public bool Parry;     // held: raise the parry shield toward the cursor
+        public bool Dodge;         // pressed: dodge (Ctrl or a double tap of a movement key; Dodge.cs); this machine only
         public bool WeaponAction;  // held: your weapon's secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel); this machine only
     }
 }
