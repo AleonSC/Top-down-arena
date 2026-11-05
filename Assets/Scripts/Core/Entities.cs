@@ -82,6 +82,7 @@ namespace Arena
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, FrenzyT;  // Arcane Aegis, Alpha Call
         public float LegionT;          // replicated: seconds of Legion's Blood Moon left (Ultimates.cs, Game/LegionLook.cs)
+        public float ScentT;           // host: Alpha Call's Blood Scent, which makes the frenzy build with each bite (Legion's frenzy stays flat)
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
@@ -398,6 +399,7 @@ namespace Arena
         public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public float Hold;               // host: Legion's pack circles its owner this many seconds before it is let loose
+        public int Stacks;               // replicated: Alpha Call's Blood Scent stacks, 0 when not in it (2..5)
         public bool NoFrenzy;            // host: Legion's pack, which doesn't frenzy (the frenzy is for your other minions)
         public MinionDef Def => Kits.Get(Kind);
         public bool Sent;                // host: a Wisp Lantern wisp or Imp Caller imp sent out at something

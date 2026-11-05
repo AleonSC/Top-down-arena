@@ -167,7 +167,8 @@ namespace Arena
             }
         }
 
-        /// Alpha Call: each of the caster's minions burns with a flickering ember ring and streaks behind it.
+        /// Alpha Call: each of the caster's minions burns with a flickering ember ring and streaks behind it. In Blood Scent
+        /// (Stacks > 0) the ring grows and goes from orange to red with each stack, with a pip per stack above the minion.
         void DrawFrenzyMinions(float t)
         {
             foreach (var p in game.Players.Values)
@@ -178,14 +179,21 @@ namespace Arena
                 {
                     if (m.Owner != p.Id)
                         continue;
-                    float rad = m.Def.Radius * m.Scale + 4f + 1.5f * Mathf.Sin(t * 18f + m.Id);
-                    Arc(m.Disp, rad, 2f, new Rgba(1f, 0.45f, 0.2f, 0.85f), 16);
-                    for (int k = 0; k < 3; k++)
+                    int st = m.Stacks;
+                    float heat = st > 0 ? (st - 2) / 3f : 0f;  // 0 at 2 stacks, 1 at 5
+                    var c = new Rgba(1f, 0.45f - 0.3f * heat, 0.2f - 0.05f * heat, 0.85f);
+                    float rad = m.Def.Radius * m.Scale + 4f + 1.5f * Mathf.Sin(t * 18f + m.Id) + 3f * heat;
+                    Arc(m.Disp, rad, 2f + heat, c, 16);
+                    int streaks = 3 + (int)(heat * 2f);
+                    for (int k = 0; k < streaks; k++)
                     {
-                        V2 d = V2.FromAngle(m.Aim + MathX.Pi + (k - 1) * 0.5f);
-                        float f = MathX.Fmod(t * 5f + k * 0.33f + m.Id * 0.1f, 1f);
-                        Line(m.Disp + d * (rad + 6f * f), m.Disp + d * (rad + 4f + 6f * f), 1.5f, new Rgba(1f, 0.55f, 0.25f, 1f - f));
+                        V2 d = V2.FromAngle(m.Aim + MathX.Pi + (k - (streaks - 1) * 0.5f) * 0.5f);
+                        float f = MathX.Fmod(t * (5f + 3f * heat) + k * 0.33f + m.Id * 0.1f, 1f);
+                        Line(m.Disp + d * (rad + 6f * f), m.Disp + d * (rad + 4f + (6f + 8f * heat) * f), 1.5f, new Rgba(c.R, c.G, c.B, 1f - f));
                     }
+                    if (st > 0)
+                        for (int k = 0; k < Game.ScentMax; k++)
+                            FillRect(m.Disp.X - 12f + k * 5.5f, m.Disp.Y - rad - 7f, 4f, 3f, k < st ? new Rgba(c.R, c.G, c.B, 1f) : new Rgba(1f, 1f, 1f, 0.2f));
                 }
             }
         }

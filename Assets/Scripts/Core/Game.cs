@@ -1164,6 +1164,7 @@ namespace Arena
                 p.AegisT = Math.Max(0f, p.AegisT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
                 p.LegionT = Math.Max(0f, p.LegionT - dt);
+                p.ScentT = Math.Max(0f, p.ScentT - dt);
                 p.BoltCd -= dt;  // Ricochet's bounce bolts (Combat.cs)
                 p.BroodCd -= dt;  // Brood Mother's boss turrets
                 for (int i = 0; i < p.BroodDue; i++)
