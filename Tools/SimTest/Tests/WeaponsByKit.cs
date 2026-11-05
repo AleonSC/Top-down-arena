@@ -139,7 +139,7 @@ static partial class Program
         Check(before > 0f && Math.Abs(crossed - before * Game.TwinCrossMult) < 0.5f, "the Twin Rifle's streams cross at your cursor's distance, and hits there do double");
         // Its barrels are set wide: up close, aiming past a small enemy, the streams go either side of it; and it reaches
         // about 575 px, no further.
-        float close = VolleyAt(from + new V2(70f, 0f), from + new V2(500f, 0f), EnemyType.Swarmer);
+        float close = VolleyAt(from + new V2(70f, 0f), from + new V2(500f, 0f), EnemyType.Spiker);
         float far = Volley(from + new V2(650f, 0f), from + new V2(650f, 0f));
         Console.WriteLine("  twin rifle: a small enemy 70 px away, aiming past it {0:0.0}; a big one 650 px away {1:0.0}", close, far);
         Check(close == 0f && far == 0f, "the Twin Rifle's wide barrels miss a small enemy up close unless you aim at it, and it reaches about 575 px");

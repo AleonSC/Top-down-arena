@@ -112,7 +112,7 @@ namespace Arena
             var w = new DesignWave { Level = 3 };
             var g = new DesignGroup { Name = "Opening rush", From = "B", At = 0f, Every = 0.4f };
             for (int i = 0; i < 6; i++)
-                g.Members.Add(EnemyType.Swarmer);
+                g.Members.Add(EnemyType.Spiker);
             w.Groups.Add(g);
             w.Groups.Add(new DesignGroup { Name = "Firing line", Squad = "Firing line", From = "A", At = 5f });
             w.Props.Add(new DesignProp { Kind = PropKind.Crate, Pos = new V2(620f, 330f) });
