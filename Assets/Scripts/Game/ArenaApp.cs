@@ -670,14 +670,21 @@ namespace Arena
                     break;
                 case AppScreen.Lobby:
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
+                    DrawLobbyCrtBack(Time.unscaledTime);  // the cyan CRT screen behind the panels (LobbyCrt.cs)
                     if (LobbyReturning)
                         DrawLobbyReturning();  // back from a run: the dark lifting, the sides sliding in (Recall.cs)
                     else if (LobbyLeaving)
                         DrawLobbyLeavingToMenu();  // Leave: the way in, backwards (LobbyEnter.cs)
                     else if (LobbyEntering)
-                        DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
+                    {
+                        if (crtEntry)
+                            DrawLobbyEnteringCrt();  // New run: the saved-runs screen opens into the lobby (LobbyCrt.cs)
+                        else
+                            DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
+                    }
                     else if (!settingsOpen && !lobbyMenuOpen || Event.current.type == EventType.Repaint)
                         DrawLobby();
+                    DrawLobbyCrtGlass(Time.unscaledTime);  // corners, highlight and bezel over it (LobbyCrt.cs)
                     if (lobbyMenuOpen)
                     {
                         if (fieldGuideOpen)
