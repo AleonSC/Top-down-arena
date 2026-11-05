@@ -31,6 +31,7 @@ namespace Arena
         Shooters,       // x: how many regular enemies may shoot at once (Readability.cs)
         ApproachShare,  // share: the themed share of the last wave before each boss (Approaches.cs); 0 = off
         ApproachRamp,   // on/off: the four approach waves rise to that share (on) or all use it (off)
+        ArenaLayouts,   // on/off: each boss cycle gets a fixed floor plan (Layouts.cs); off = always the open arena
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
@@ -276,6 +277,10 @@ namespace Arena
                 Unit = KnobUnit.Percent, Min = 0f, Max = 1f, Step = 0.05f, Presets = new[] { 0.85f, 0.85f, 0.85f, 0.85f } },
             new KnobDef { Knob = DiffKnob.ApproachRamp, Name = "Approach ramp", Flavour = true,
                 Desc = "On: the four waves before a boss build up to that share (40%, 60%, 80%, all). Off: every one of them uses it.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
+            // Arena layouts (Layouts.cs): flavour too. Off keeps the open arena (and the usual enemy count) all run.
+            new KnobDef { Knob = DiffKnob.ArenaLayouts, Name = "Arena layouts", Flavour = true,
+                Desc = "On: each boss cycle gets a fixed floor plan with walls, pillars and edge gates (and 30% more enemies). Off: always the open arena.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
         };
     }

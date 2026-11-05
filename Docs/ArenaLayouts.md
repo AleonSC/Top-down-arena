@@ -42,5 +42,5 @@ Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, 
 - Bots don't path round walls; they can get stuck behind them.
 - Enemy beams (Beam Sentry) and the Reaver's cone pass through walls.
 - Enemies standing behind a wall still fire (their shots stop at it).
-- No lobby switch to turn layouts off. A Difficulty-tab toggle and a "pick the layout" host option are easy to add.
+- The lobby's Difficulty tab has **Layouts on / off** (`DiffKnob.ArenaLayouts`, a flavour knob like the boss approach: same on every preset, doesn't make a Custom difficulty; protocol 173). A "pick the layout" host option would be easy to add.
 - Gate portals (a gate that leads to a different spot) are for later.

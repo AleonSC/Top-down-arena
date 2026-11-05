@@ -556,6 +556,7 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   wall) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
   and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
   gates drop away (the inner walls stay).
+- The host can turn layouts off for a run on the lobby's **Difficulty** tab (**Layouts off**, beside the boss approach picks).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it.
 - With a layout up, regular waves have **30% more enemies** (waves 1-4 on Normal: 16, 17, 18 and 20 instead of 12, 13, 14
   and 15), because the walls and gates make the crowd easier to read. Boss waves are unchanged. The number is
@@ -708,10 +709,13 @@ and green when it's easier. Hover a number for what it does.
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
 | Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
+| Arena layouts (a fixed floor plan each boss cycle) | On | **On** | On | On | On / Off |
 
 The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't
 make the difficulty Custom, and picking a preset keeps them. **Blend** and **Fully themed** buttons under them set
 both at once (60% with the ramp; 100% without).
+The **Arena layouts** setting is flavour too: **Layouts on / Layouts off** buttons beside them. Off keeps the open arena all run
+(and the usual enemy count); see Arena layouts above.
 
 Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack

@@ -84,6 +84,20 @@ static partial class Program
         g.LayoutsOn = false; g.Wave = 71; pick.Invoke(g, null);
         Check(g.Layout == LayoutId.Open, "with layouts off it's always the open arena");
         g.LayoutsOn = true;
+        // The lobby's Arena layouts setting: off means the open arena all run, and it survives a save and the network.
+        var offDiff = Difficulty.Of(DifficultyLevel.Hard);
+        offDiff.Set(DiffKnob.ArenaLayouts, 0f);
+        var back = Difficulty.Parse(offDiff.ToText());
+        var ms = new System.IO.MemoryStream();
+        offDiff.Write(new System.IO.BinaryWriter(ms));
+        ms.Position = 0;
+        var sent = Difficulty.Read(new System.IO.BinaryReader(ms));
+        Check(Difficulty.Of(DifficultyLevel.Nightmare)[DiffKnob.ArenaLayouts] >= 0.5f && offDiff.Level == DifficultyLevel.Hard && back[DiffKnob.ArenaLayouts] < 0.5f && sent[DiffKnob.ArenaLayouts] < 0.5f,
+            "the Arena layouts setting is on in every preset, doesn't make a Custom difficulty, and survives saving and sending");
+        var keep = g.Diff;
+        g.Diff = offDiff; g.Wave = 71; pick.Invoke(g, null);
+        Check(g.Layout == LayoutId.Open && !g.LayoutOn, "with Arena layouts off in the lobby, every wave is the open arena");
+        g.Diff = keep;
         g.Wave = 6;
 
         Quiet();
