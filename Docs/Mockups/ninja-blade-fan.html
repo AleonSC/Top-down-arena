@@ -1,0 +1,289 @@
+<title>Ninja Blade Fan Mechanics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one stage (canvas, mechanic toggle, play controls, "press again" button, scrub bar), then beat list and numbers for the chosen mechanic.
+   Colour: Ninja violet on a dark arena, steel for the kunai. Type: Barlow Condensed / Barlow / Plex Mono like the other mockups. */
+:root{
+  --bg:#edeef3; --fg:#1c1b27; --muted:#5d5c70; --panel:#f8f8fc; --line:#cfcfdd;
+  --vio:#6a49c8; --chip:#e0e0ea; --chip-on:#1c1b27; --chip-on-fg:#f3f2fa; --arena:#14131c;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f0e15; --fg:#e8e7f2; --muted:#9594aa; --panel:#181722; --line:#2d2b3d;
+  --vio:#b79cff; --chip:#242333; --chip-on:#e8e7f2; --chip-on-fg:#0f0e15; --arena:#0b0a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0e15; --fg:#e8e7f2; --muted:#9594aa; --panel:#181722; --line:#2d2b3d;
+  --vio:#b79cff; --chip:#242333; --chip-on:#e8e7f2; --chip-on-fg:#0f0e15; --arena:#0b0a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:700 clamp(36px,7vw,60px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+.kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--vio);margin:0 0 8px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/460}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grp>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+button.key{border-color:var(--vio);color:var(--vio)}
+.scrub{display:flex;align-items:center;gap:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--vio)}
+.scrub output{font:500 13px var(--mono);color:var(--muted);min-width:4.5em;text-align:right}
+.look-note{margin:0;max-width:72ch;color:var(--muted);min-height:4.5em}
+.look-note b{color:var(--fg)}
+.cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
+.card h2{font:700 24px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;margin:0 0 12px}
+.beats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.beats li{display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:10px}
+.beats time{font:500 13px var(--mono);color:var(--vio);padding-top:2px}
+dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px}
+dt{color:var(--muted)} dd{margin:0;font:500 14px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.ask{margin:14px 0 0;color:var(--muted);font-size:15px}
+</style>
+
+<main>
+<header>
+  <p class="kicker">Ninja · DPS · Ability</p>
+  <h1>Blade Fan</h1>
+  <p>Today it throws 12 kunai in a ring, 18 each, and that is the whole ability. The other ninja tools have a second step: Shuriken stick and come back on a key press, Kunai leave a mark you blink to. These three give Blade Fan a second step too. Each one reuses the same 12 kunai and the same 18 damage, and the ability key is pressed a second time to finish it.</p>
+</header>
+
+<section class="stage" aria-label="Blade Fan stage">
+  <div class="frame"><canvas id="cv" width="1440" height="920" aria-label="Blade Fan animation: kunai leave the ninja in a ring, then a second key press finishes the ability"></canvas></div>
+  <div class="controls">
+    <div class="grp"><span>Mechanic</span>
+      <div class="seg" role="radiogroup" aria-label="Mechanic">
+        <input type="radio" name="mode" id="mA" value="A" checked><label for="mA">A · Fan and recall</label>
+        <input type="radio" name="mode" id="mB" value="B"><label for="mB">B · Orbit guard</label>
+        <input type="radio" name="mode" id="mC" value="C"><label for="mC">C · Kunai cage</label>
+      </div></div>
+    <div class="grp">
+      <button id="again" type="button" class="key">Press ability key again</button>
+      <button id="replay" type="button">Replay</button>
+      <button id="pause" type="button" aria-pressed="false">Pause</button>
+      <button id="slow" type="button" aria-pressed="false">Slow-mo</button>
+    </div>
+  </div>
+  <div class="scrub"><label for="seek" class="grp"><span>Time</span></label><input id="seek" type="range" min="0" max="6.5" step="0.01" value="0"><output id="tt">0.00 s</output></div>
+  <p class="look-note" id="note"></p>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>Beat by beat</h2>
+    <ol class="beats" id="beats"></ol>
+    <p class="ask" id="ask"></p>
+  </section>
+  <section class="card">
+    <h2>Numbers</h2>
+    <dl id="nums"></dl>
+  </section>
+</div>
+</main>
+
+<script>
+(function(){
+var cv=document.getElementById('cv'),c=cv.getContext('2d'),TAU=Math.PI*2;
+var CAST=.5,TMAX=6.5,DT=.01,N=Math.round(TMAX/DT)+1,CX=360,CY=230,NK=12;
+var DEF={A:3.0,B:3.6,C:3.2};
+var st={t:0,paused:false,slow:false,mode:'A',P:DEF.A,manual:false,sim:null};
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,k){return a+(b-a)*k}
+function eo(k){k=clamp(k,0,1);return 1-(1-k)*(1-k)}
+function es(k){k=clamp(k,0,1);return k*k*(3-2*k)}
+function rgba(r,g,b,a){return 'rgba('+r+','+g+','+b+','+Math.max(0,a).toFixed(3)+')'}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+
+/* ---- enemies: six walk in from an oval, the same in every mechanic (Cage pulls the ones inside it) ---- */
+var EN=[];for(var i=0;i<6;i++){var a0=.35+i*TAU/6,dx=Math.cos(a0)*235,dy=Math.sin(a0)*170;EN.push({a:a0,d0:Math.hypot(dx,dy),ux:dx/Math.hypot(dx,dy),uy:dy/Math.hypot(dx,dy)})}
+function epos0(i,t){var e=EN[i],d=Math.max(36,e.d0-50*Math.max(t,0));return {x:CX+e.ux*d,y:CY+e.uy*d}}
+function epos(i,t,mode,P){
+  var p=epos0(i,t);
+  if(mode==='C'&&t>P){var q=epos0(i,P);if(Math.hypot(q.x-CX,q.y-CY)<=150){var k=.55*eo((t-P)/.5);p={x:lerp(p.x,CX,k),y:lerp(p.y,CY,k)}}}
+  return p;
+}
+
+/* ---- the simulation: every kunai's position per 0.01 s, every hit, every enemy bullet. Rebuilt when the key press moves. ---- */
+function sim(mode,P){
+  var kun=[],ev=[],bul=[],k,s,i;
+  for(k=0;k<NK;k++)kun.push({x:new Float32Array(N),y:new Float32Array(N),an:new Float32Array(N),vis:new Uint8Array(N),stuck:-1,off:null,hit:{},s0:null,hostRip:false});
+  var lastE=[-9,-9,-9,-9,-9,-9],prevR=[],pu=[];
+  for(i=0;i<6;i++){var e0=epos(i,-1,mode,P);prevR.push(Math.hypot(e0.x-CX,e0.y-CY))}
+  for(s=0;s<N;s++){
+    var t=s*DT,E=[];for(i=0;i<6;i++)E.push(epos(i,t,mode,P));
+    for(k=0;k<NK;k++){
+      var K=kun[k],th=k*TAU/NK+(mode==='C'?.26:0),dx=Math.cos(th),dy=Math.sin(th),x=0,y=0,v=0,px=s?K.x[s-1]:CX,py=s?K.y[s-1]:CY;
+      if(t>=CAST){
+        if(mode==='A'){
+          if(t<P){
+            if(K.stuck>=0){var h=E[K.stuck];x=h.x+K.off.x;y=h.y+K.off.y;v=1}
+            else{var r=Math.min(600*(t-CAST),330);x=CX+dx*r;y=CY+dy*r;v=1;
+              if(r<330)for(i=0;i<6;i++)if(Math.hypot(x-E[i].x,y-E[i].y)<20){K.stuck=i;K.off={x:x-E[i].x,y:y-E[i].y};ev.push({t:t,i:i,d:18,k:k});break}}
+          }else{
+            if(!K.s0){K.s0={x:px,y:py};if(K.stuck>=0)ev.push({t:t,i:K.stuck,d:18,k:k,rip:1})}
+            var u=(t-P)/.45;if(u<1){x=lerp(K.s0.x,CX,u);y=lerp(K.s0.y,CY,u);v=1;
+              for(i=0;i<6;i++)if(i!==K.stuck&&!K.hit[i]&&Math.hypot(x-E[i].x,y-E[i].y)<20){K.hit[i]=1;ev.push({t:t,i:i,d:18,k:k})}}
+          }
+        }else if(mode==='B'){
+          if(t<P){var an=th+TAU*2.2*(t-CAST),rd=60*es((t-CAST)/.25);x=CX+Math.cos(an)*rd;y=CY+Math.sin(an)*rd;v=1;
+            for(i=0;i<6;i++)if(Math.hypot(x-E[i].x,y-E[i].y)<22&&t-lastE[i]>=.5){lastE[i]=t;ev.push({t:t,i:i,d:18,k:k})}
+          }else{
+            if(!K.s0){K.s0={x:px,y:py};var ux=px-CX,uy=py-CY,ul=Math.hypot(ux,uy)||1;K.s0.ux=ux/ul;K.s0.uy=uy/ul}
+            var age=t-P,rr=Math.hypot(K.s0.x-CX,K.s0.y-CY)+600*age;
+            if(rr<330){x=CX+K.s0.ux*rr;y=CY+K.s0.uy*rr;v=1;
+              for(i=0;i<6;i++)if(!K.hit[i]&&Math.hypot(x-E[i].x,y-E[i].y)<22){K.hit[i]=1;ev.push({t:t,i:i,d:18,k:k})}}
+          }
+        }else{
+          if(t<P){var r2=Math.min(450*(t-CAST),150);x=CX+dx*r2;y=CY+dy*r2;v=1}
+          else{var u2=(t-P)/.5;if(u2<1){var r3=150*(1-u2*u2)+8;x=CX+dx*r3;y=CY+dy*r3;v=1;
+            for(i=0;i<6;i++)if(!K.hit[i]&&Math.hypot(x-E[i].x,y-E[i].y)<22){K.hit[i]=1;ev.push({t:t,i:i,d:18,k:k})}}}
+        }
+      }
+      K.x[s]=x;K.y[s]=y;K.vis[s]=v;
+      var mx=x-px,my=y-py;K.an[s]=(v&&s&&(mx||my))?Math.atan2(my,mx):(s?K.an[s-1]:th);
+    }
+    if(mode==='C'&&t>=CAST+.35&&t<P)for(i=0;i<6;i++){var rn=Math.hypot(E[i].x-CX,E[i].y-CY);if(prevR[i]>150&&rn<=150){ev.push({t:t,i:i,d:18,k:-1,wire:1})}}
+    for(i=0;i<6;i++)prevR[i]=Math.hypot(E[i].x-CX,E[i].y-CY);
+  }
+  // enemy bullets: aimed at the ninja, popped by orbiting blades in B
+  for(i=0;i<6;i++)for(var m=0;m<6;m++){
+    var ft=.9+1.3*m+.25*i;if(ft>5.6)continue;
+    var sp=epos(i,ft,mode,P),ddx=CX-sp.x,ddy=CY-sp.y,dl=Math.hypot(ddx,ddy),ux2=ddx/dl,uy2=ddy/dl,kill=null;
+    for(var q=Math.round(ft/DT);q<N;q++){
+      var tq=q*DT,ag=tq-ft,bx=sp.x+ux2*150*ag,by=sp.y+uy2*150*ag;
+      if(mode==='B'&&tq>=CAST&&tq<P){var hitb=false;for(k=0;k<NK;k++)if(kun[k].vis[q]&&Math.hypot(bx-kun[k].x[q],by-kun[k].y[q])<10){hitb=true;break}
+        if(hitb){kill={t:tq,x:bx,y:by,pop:1};break}}
+      if(Math.hypot(bx-CX,by-CY)<14){kill={t:tq,x:bx,y:by,pop:0};break}
+    }
+    bul.push({ft:ft,sx:sp.x,sy:sp.y,ux:ux2,uy:uy2,kill:kill});
+  }
+  ev.sort(function(a,b){return a.t-b.t});
+  return {kun:kun,ev:ev,bul:bul};
+}
+
+/* ---- per-mechanic text ---- */
+var INFO={
+A:{note:'<b>A · Fan and recall.</b> Works like the Shuriken: the 12 kunai fly out and stick in the first enemy they hit, or in the floor at 330 px. Press the ability key again and every kunai rips out and flies back to you, hitting what is in the way. A kunai that was stuck in an enemy hits it again as it is pulled free. Rewards throwing into a crowd and recalling through it.',
+ beats:[['0.5 s','Cast. 12 kunai leave in a ring at 600 px/s. Each sticks in the first enemy it hits (18) or plants in the floor at 330 px.'],
+  ['0.5 – 3.0 s','Planted kunai stay as violet-glowing markers. Kunai in enemies ride along with them. The ability slot shows a recall prompt.'],
+  ['3.0 s','Second press. Every kunai flies back in 0.45 s. A stuck kunai hits its host again (18), loose ones hit anything they cross (18, once each).'],
+  ['5.5 s','No second press: the kunai return by themselves with no damage on the way back, so the recall is the skill.']],
+ ask:'Pick the mechanic and say if the second step should cost anything (a short cooldown refund for recalling, for instance). Left out: the recall line from each kunai to the ninja when you move.',
+ nums:[['Cooldown','9 s (from the cast)'],['Kunai','12 (24 capstone)'],['Out hit','18, then sticks'],['Return hit','18 per enemy'],['Stuck bonus','+18 on its host'],['Recall window','5 s, then free return'],['Max per kunai','36 (today 18)'],['Network','new ability flag']]},
+B:{note:'<b>B · Orbit guard.</b> The kunai do not fly out. They spin around you at 60 px, cutting what touches them and popping enemy bullets that reach the ring. Press the key again, or wait 4 s, and they are thrown outward as the usual ring. Turns Blade Fan from a panic button into a defensive tool that finishes with the old attack. Lower burst up front, safer in melee.',
+ beats:[['0.5 s','Cast. The 12 kunai spiral in to a ring at 60 px and spin at 2.2 turns a second.'],
+  ['0.5 – 3.6 s','Enemies touching a blade take 18, at most once every 0.5 s each. Enemy bullets that reach a blade are erased with a small ring.'],
+  ['3.6 s','Second press. The ring is thrown outward at 600 px/s as in today\'s Blade Fan: 18 to each enemy it passes through (once each).'],
+  ['4.5 s','No second press: the ring is released by itself 4 s after the cast.']],
+ ask:'Pick the mechanic and say if the orbit should follow the ninja as it moves (the mockup keeps it still). The orbit would need the kunai positions on the network, so this one costs a protocol bump.',
+ nums:[['Cooldown','12 s'],['Kunai','12 (24 capstone)'],['Orbit radius','60 px'],['Orbit length','4 s'],['Contact hit','18, 0.5 s per enemy'],['Bullets','erased on contact'],['Release hit','18 per enemy passed'],['Network','blade positions replicated']]},
+C:{note:'<b>C · Kunai cage.</b> The kunai are thrown to a ring 150 px out and plant there, joined by glowing wire. An enemy that crosses the wire takes 18 and is slowed for 1.5 s. Press again and the kunai reel in to you, dragging the enemies inside the cage most of the way toward the middle and hitting any they pass. Area denial first, then a pull that sets up the next ability.',
+ beats:[['0.5 s','Cast. The kunai fly to a 150 px ring in 0.35 s and plant. Wire appears between neighbours.'],
+  ['0.9 – 3.2 s','Each enemy that crosses the wire takes 18 and a 40% slow for 1.5 s (the wire flashes where it was crossed).'],
+  ['3.2 s','Second press. The kunai accelerate back in 0.5 s. Enemies inside the cage are pulled 55% of the way to the middle, and every kunai hits each enemy it passes (18, once each).'],
+  ['5.5 s','No second press: the cage collapses by itself after 5 s with the pull but no damage.']],
+ ask:'Pick the mechanic and say if the cage should be fixed to the floor (as drawn) or follow the ninja. A fixed cage is simplest to send over the network: a centre point and a timer, like the Smoke Bomb zone.',
+ nums:[['Cooldown','14 s'],['Kunai','12 (24 capstone)'],['Cage radius','150 px'],['Planted for','up to 5 s'],['Wire hit','18 + 40% slow, 1.5 s'],['Pull','55% to the middle'],['Reel-in hit','18 per enemy passed'],['Network','zone: centre and timer']]}
+};
+
+/* ---- drawing ---- */
+function kunaiShape(x,y,a,al,col){c.save();c.translate(x,y);c.rotate(a);c.globalAlpha=al;c.fillStyle=col||'#d6dbea';c.strokeStyle='#8f7be0';c.lineWidth=1.2;
+  c.beginPath();c.moveTo(9,0);c.lineTo(-4,-3.2);c.lineTo(-7,0);c.lineTo(-4,3.2);c.closePath();c.fill();c.stroke();c.strokeStyle='#8f7be0';c.beginPath();c.arc(-9,0,2.4,0,TAU);c.stroke();c.restore()}
+function txt(s,x,y,size,col,al,font,al2){c.save();c.globalAlpha=al==null?1:al;c.fillStyle=col;c.font=(font||'600')+' '+size+'px Barlow, system-ui, sans-serif';c.textAlign=al2||'center';c.fillText(s,x,y);c.restore()}
+function ring(x,y,r,col,w){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.arc(x,y,r,0,TAU);c.stroke()}
+
+function draw(){
+  var S=st.sim,t=st.t,mode=st.mode,P=st.P,s=Math.min(N-1,Math.round(t/DT)),vio=css('--vio')||'#b79cff',i,k;
+  c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,720,460);
+  c.fillStyle=css('--arena')||'#0b0a10';c.fillRect(0,0,720,460);
+  c.strokeStyle='rgba(160,150,200,.07)';c.lineWidth=1;c.beginPath();for(var gx=0;gx<=720;gx+=40){c.moveTo(gx,0);c.lineTo(gx,460)}for(var gy=0;gy<=460;gy+=40){c.moveTo(0,gy);c.lineTo(720,gy)}c.stroke();
+  // totals
+  var total=0,dmg=[0,0,0,0,0,0],lastP=[];
+  for(var e=0;e<S.ev.length;e++){var ev=S.ev[e];if(ev.t<=t){total+=ev.d;dmg[ev.i]+=ev.d}}
+  // cage floor ring and wire
+  if(mode==='C'&&t>=CAST&&t<P+.5){
+    var planted=Math.min(1,(t-CAST)/.35),fa=t<P?1:Math.max(0,1-(t-P)/.5);
+    c.save();c.setLineDash([5,4]);var flash=0;
+    for(var w=0;w<S.ev.length;w++)if(S.ev[w].wire&&t-S.ev[w].t>=0&&t-S.ev[w].t<.4)flash=Math.max(flash,1-(t-S.ev[w].t)/.4);
+    c.strokeStyle=rgba(170,145,255,(.35+.5*flash)*fa);c.lineWidth=1.5+flash*2;
+    c.beginPath();var first=true;
+    for(k=0;k<=NK;k++){var kk=S.kun[k%NK];if(!kk.vis[s])continue;if(first){c.moveTo(kk.x[s],kk.y[s]);first=false}else c.lineTo(kk.x[s],kk.y[s])}
+    c.stroke();c.restore();
+    if(planted<1)ring(CX,CY,150*planted,rgba(170,145,255,.25*fa),1)}
+  if(mode==='B'&&t>=CAST&&t<P)ring(CX,CY,60,'rgba(170,145,255,.2)',1);
+  // bullets
+  for(var b=0;b<S.bul.length;b++){var bu=S.bul[b];if(bu.ft>t)continue;
+    if(bu.kill&&bu.kill.t<t){var ka=t-bu.kill.t;if(ka<.25){ring(bu.kill.x,bu.kill.y,4+ka*70,bu.kill.pop?rgba(200,180,255,1-ka/.25):rgba(255,170,130,1-ka/.25),bu.kill.pop?2:1.5)}continue}
+    var ag=t-bu.ft,bx=bu.sx+bu.ux*150*ag,by=bu.sy+bu.uy*150*ag;
+    c.strokeStyle='rgba(255,140,100,.5)';c.lineWidth=3;c.beginPath();c.moveTo(bx,by);c.lineTo(bx-bu.ux*12,by-bu.uy*12);c.stroke();c.fillStyle='#ffaf82';c.beginPath();c.arc(bx,by,4,0,TAU);c.fill()}
+  // enemies
+  for(i=0;i<6;i++){var p=epos(i,t,mode,P),hp=Math.max(0,100-dmg[i]),flash2=false;
+    for(e=0;e<S.ev.length;e++)if(S.ev[e].i===i&&t-S.ev[e].t>=0&&t-S.ev[e].t<.08)flash2=true;
+    c.save();c.translate(p.x,p.y);c.rotate(.2+i);c.fillStyle=hp<=0?'#6b6475':(flash2?'#fff':'#cf5548');c.fillRect(-14,-14,28,28);c.fillStyle='rgba(0,0,0,.25)';c.fillRect(-14,6,28,8);c.restore();
+    c.fillStyle='rgba(255,255,255,.15)';c.fillRect(p.x-18,p.y-26,36,4);c.fillStyle=hp>40?'#6fe39a':'#ffb35e';c.fillRect(p.x-18,p.y-26,36*hp/100,4);
+    if(mode==='C'){var slow=false;for(e=0;e<S.ev.length;e++)if(S.ev[e].wire&&S.ev[e].i===i&&t-S.ev[e].t>=0&&t-S.ev[e].t<1.5)slow=true;if(slow)txt('SLOW',p.x,p.y+32,9,'#8fd0ff',1,'500')}}
+  // recall streaks for A
+  // ninja
+  c.save();c.translate(CX,CY);c.fillStyle='#241f3d';c.strokeStyle='#a58cf0';c.lineWidth=2.2;c.beginPath();c.arc(0,0,14,0,TAU);c.fill();c.stroke();c.fillStyle='#f2eaff';c.fillRect(3,-4,9,3);c.restore();
+  // kunai
+  for(k=0;k<NK;k++){var K=S.kun[k];if(!K.vis[s])continue;
+    var stuck=mode==='A'&&t<P&&K.stuck>=0,tl=t<P||mode!=='A';
+    if(mode==='A'&&t>=P){for(var tr=1;tr<=4;tr++){var s2=Math.max(0,s-tr*3);if(K.vis[s2]){c.strokeStyle=rgba(190,170,255,.35*(1-tr/5));c.lineWidth=2;c.beginPath();c.moveTo(K.x[s2],K.y[s2]);c.lineTo(K.x[s2+1]||K.x[s],K.y[s2+1]||K.y[s]);c.stroke()}}}
+    if(mode==='B'&&t>=P){for(var tr2=1;tr2<=4;tr2++){var s3=Math.max(0,s-tr2*3);c.strokeStyle=rgba(190,170,255,.35*(1-tr2/5));c.lineWidth=2;c.beginPath();c.moveTo(K.x[s3],K.y[s3]);c.lineTo(K.x[s],K.y[s]);c.stroke()}}
+    var glow=(mode==='A'&&t<P&&(stuck||Math.hypot(K.x[s]-CX,K.y[s]-CY)>=329))||mode==='C'&&t<P;
+    if(glow){var g=c.createRadialGradient(K.x[s],K.y[s],0,K.x[s],K.y[s],14);g.addColorStop(0,'rgba(170,145,255,.55)');g.addColorStop(1,'rgba(170,145,255,0)');c.fillStyle=g;c.beginPath();c.arc(K.x[s],K.y[s],14,0,TAU);c.fill()}
+    kunaiShape(K.x[s],K.y[s],mode==='C'&&t<P?Math.atan2(K.y[s]-CY,K.x[s]-CX):K.an[s],1)}
+  // recall/auto markers and prompt
+  var pressed=t>=P,prompt=t>=CAST+.4&&t<P;
+  if(pressed&&t<P+.5){ring(CX,CY,20+(t-P)*140,rgba(210,190,255,1-(t-P)/.5),2.5)}
+  // hit numbers
+  for(e=0;e<S.ev.length;e++){var q=S.ev[e],ag2=t-q.t;if(ag2<0||ag2>.8)continue;var ep=epos(q.i,t,mode,P),kf=ag2/.8;
+    txt(q.rip?'18 ⟲':'18',ep.x+(q.k%3-1)*8,ep.y-34-kf*28,15,q.rip?'#ffd966':'#fff',1-kf*kf,'700')}
+  // HUD
+  c.textAlign='left';c.fillStyle='rgba(150,145,180,.95)';c.font='500 11px IBM Plex Mono, monospace';c.fillText('DAMAGE  '+total,18,432);
+  var keyOn=prompt||(t>=P&&t<P+.25);
+  c.save();c.translate(700,436);c.textAlign='right';c.font='600 12px Barlow, sans-serif';
+  var lab=prompt?(mode==='A'?'[ KEY ]  RECALL':mode==='B'?'[ KEY ]  RELEASE':'[ KEY ]  REEL IN'):(t>=P&&t<P+.6?'[ KEY ]  PRESSED':'');
+  if(lab){var wv=c.measureText(lab).width+20;c.fillStyle=keyOn?rgba(170,145,255,.25):'rgba(150,145,180,.15)';c.fillRect(-wv,-16,wv,24);c.strokeStyle=vio;c.lineWidth=1;c.strokeRect(-wv+.5,-15.5,wv-1,23);c.fillStyle=vio;c.fillText(lab,-10,1)}
+  c.restore();
+  document.getElementById('tt').textContent=t.toFixed(2)+' s';
+}
+
+/* ---- controls ---- */
+var seek=document.getElementById('seek'),last=0,pb=document.getElementById('pause'),sb=document.getElementById('slow');
+function rebuild(){st.sim=sim(st.mode,st.P)}
+function show(){var I=INFO[st.mode];
+  document.getElementById('note').innerHTML=I.note;
+  document.getElementById('ask').textContent=I.ask;
+  var ol=document.getElementById('beats');ol.innerHTML='';
+  I.beats.forEach(function(b){var li=document.createElement('li'),tm=document.createElement('time'),sp=document.createElement('span');tm.textContent=b[0];sp.textContent=b[1];li.appendChild(tm);li.appendChild(sp);ol.appendChild(li)});
+  var dl=document.getElementById('nums');dl.innerHTML='';
+  I.nums.forEach(function(n){var dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=n[0];dd.textContent=n[1];dl.appendChild(dt);dl.appendChild(dd)});}
+document.querySelectorAll('input[name=mode]').forEach(function(r){r.addEventListener('change',function(){st.mode=r.value;st.P=DEF[st.mode];st.t=0;rebuild();show();draw()})});
+document.getElementById('replay').onclick=function(){st.t=0;st.P=DEF[st.mode];rebuild();st.paused=false;pb.setAttribute('aria-pressed','false');pb.textContent='Pause'};
+pb.onclick=function(){st.paused=!st.paused;pb.setAttribute('aria-pressed',st.paused);pb.textContent=st.paused?'Play':'Pause'};
+sb.onclick=function(){st.slow=!st.slow;sb.setAttribute('aria-pressed',st.slow)};
+document.getElementById('again').onclick=function(){ // press the key now (between the cast and the scripted press)
+  var t=st.t;if(t<CAST+.5||t>=st.P)return;st.P=Math.round(t/DT)*DT;rebuild()};
+seek.addEventListener('input',function(){st.t=parseFloat(seek.value);draw()});
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){st.paused=true;st.t=3.4;pb.setAttribute('aria-pressed','true');pb.textContent='Play'}
+function frame(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!st.paused){st.t+=dt*(st.slow?.25:1);if(st.t>TMAX){st.t=0;st.P=DEF[st.mode];rebuild()}seek.value=st.t}
+  draw();requestAnimationFrame(frame)}
+rebuild();show();requestAnimationFrame(frame);
+})();
+</script>

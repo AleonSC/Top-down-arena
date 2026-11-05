@@ -1,0 +1,305 @@
+<title>Ninja Vanish Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one stage (canvas, look / screen toggles, play controls, scrub bar), then beat list and numbers.
+   Colour: Ninja violet (the game's Vanish buff colour is .6,.5,.85) on a dark arena. Type: Barlow Condensed / Barlow / Plex Mono like the other mockups. */
+:root{
+  --bg:#edeef3; --fg:#1c1b27; --muted:#5d5c70; --panel:#f8f8fc; --line:#cfcfdd;
+  --vio:#6a49c8; --red:#c0453a; --chip:#e0e0ea; --chip-on:#1c1b27; --chip-on-fg:#f3f2fa; --arena:#14131c;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f0e15; --fg:#e8e7f2; --muted:#9594aa; --panel:#181722; --line:#2d2b3d;
+  --vio:#b79cff; --red:#ff8b7e; --chip:#242333; --chip-on:#e8e7f2; --chip-on-fg:#0f0e15; --arena:#0b0a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0e15; --fg:#e8e7f2; --muted:#9594aa; --panel:#181722; --line:#2d2b3d;
+  --vio:#b79cff; --red:#ff8b7e; --chip:#242333; --chip-on:#e8e7f2; --chip-on-fg:#0f0e15; --arena:#0b0a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:700 clamp(36px,7vw,60px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--vio);margin:0 0 8px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/460}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grp>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+.scrub{display:flex;align-items:center;gap:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--vio)}
+.scrub output{font:500 13px var(--mono);color:var(--muted);min-width:4.5em;text-align:right}
+.look-note{margin:0;max-width:72ch;color:var(--muted);min-height:4.5em}
+.look-note b{color:var(--fg)}
+.cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
+.card h2{font:700 24px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;margin:0 0 12px}
+.beats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.beats li{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:10px}
+.beats time{font:500 13px var(--mono);color:var(--vio);padding-top:2px}
+.beats em{font-style:normal;color:var(--muted)}
+dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px}
+dt{color:var(--muted)} dd{margin:0;font:500 14px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.ask{margin:14px 0 0;color:var(--muted);font-size:15px}
+</style>
+
+<main>
+<header>
+  <p class="kicker">Ninja · DPS · Ability</p>
+  <h1>Vanish</h1>
+  <p>For 3 seconds enemies lose track of you and shoot at the spot where you vanished. Your next hit deals double. Today the ninja just turns see-through with a purple ring. These three looks give the cast, the invisible body, the decoy spot and the ambush hit their own treatment. Mechanics are unchanged.</p>
+</header>
+
+<section class="stage" aria-label="Vanish stage">
+  <div class="frame"><canvas id="cv" width="1440" height="920" aria-label="Vanish animation: the ninja disappears, enemies fire at the spot where it vanished, then it strikes from the shadows for double damage"></canvas></div>
+  <div class="controls">
+    <div class="grp"><span>Look</span>
+      <div class="seg" role="radiogroup" aria-label="Look">
+        <input type="radio" name="look" id="lkA" value="A" checked><label for="lkA">A · Smoke</label>
+        <input type="radio" name="look" id="lkB" value="B"><label for="lkB">B · Shadow melt</label>
+        <input type="radio" name="look" id="lkC" value="C"><label for="lkC">C · Glitch</label>
+      </div></div>
+    <div class="grp"><span>Screen</span>
+      <div class="seg" role="radiogroup" aria-label="Whose screen">
+        <input type="radio" name="scr" id="scO" value="own" checked><label for="scO">Yours</label>
+        <input type="radio" name="scr" id="scA" value="ally"><label for="scA">An ally's</label>
+      </div></div>
+    <div class="grp"><span>Capstone</span>
+      <div class="seg" role="radiogroup" aria-label="Capstone">
+        <input type="radio" name="cap" id="cpN" value="0" checked><label for="cpN">Off</label>
+        <input type="radio" name="cap" id="cpY" value="1"><label for="cpY">Bullet wipe</label>
+      </div></div>
+    <div class="grp">
+      <button id="replay" type="button">Replay</button>
+      <button id="pause" type="button" aria-pressed="false">Pause</button>
+      <button id="slow" type="button" aria-pressed="false">Slow-mo</button>
+    </div>
+  </div>
+  <div class="scrub"><label for="seek" class="grp"><span>Time</span></label><input id="seek" type="range" min="0" max="6.2" step="0.01" value="0"><output id="tt">0.00 s</output></div>
+  <p class="look-note" id="note"></p>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>Beat by beat</h2>
+    <ol class="beats">
+      <li><time>0.0 s</time><span>Enemies are shooting at the ninja. Dashed lines show who they are tracking.</span></li>
+      <li><time>0.4 s</time><span>Cast. The ninja goes out in 0.25 s and a marker is left on the spot, the position enemies now aim at. <em>(Today: an instant fade and a purple ring.)</em></span></li>
+      <li><time>0.4 – 3.4 s</time><span>Enemies show a "?" and keep firing at the marker. Shots in flight at the cast sail past. Your own screen shows the body clearer (45%) than an ally's (18%), as today.</span></li>
+      <li><time>0.4 s · capstone</time><span>A ring erases enemy bullets around the ninja as it vanishes.</span></li>
+      <li><time>2.3 s</time><span>Ambush. The ninja steps out for a moment, hits for double (36 instead of 18) and the ambush tag on the body is spent.</span></li>
+      <li><time>3.4 s</time><span>Vanish ends, the body is solid again and enemies switch to the real position with a "!".</span></li>
+    </ol>
+    <p class="ask">Pick a look (A, B or C). Left out of every look: the cooldown ring on the ability slot.</p>
+  </section>
+  <section class="card">
+    <h2>Numbers</h2>
+    <dl>
+      <dt>Cooldown</dt><dd>16 s</dd>
+      <dt>Hidden for</dt><dd>3 s (+1.5 s upgrade)</dd>
+      <dt>Ambush window</dt><dd>vanish + 1 s</dd>
+      <dt>Ambush damage</dt><dd>×2 (×3 upgrade)</dd>
+      <dt>Enemy aim</dt><dd>vanish spot</dd>
+      <dt>Alpha, you / ally</dt><dd>45% / 18%</dd>
+      <dt>Capstone</dt><dd>erase bullets</dd>
+      <dt>Network</dt><dd>unchanged</dd>
+    </dl>
+  </section>
+</div>
+</main>
+
+<script>
+(function(){
+var cv=document.getElementById('cv'),c=cv.getContext('2d'),TAU=Math.PI*2;
+var CAST=.4,END=3.4,HIT=2.3,T=6.2,P0={x:170,y:250};
+var BASE=[{x:470,y:205},{x:540,y:300},{x:470,y:365}];
+var st={t:0,paused:false,slow:false,look:'A',own:true,cap:false};
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,k){return a+(b-a)*k}
+function eo(k){k=clamp(k,0,1);return 1-(1-k)*(1-k)}
+function es(k){k=clamp(k,0,1);return k*k*(3-2*k)}
+function hash(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function rgba(r,g,b,a){return 'rgba('+r+','+g+','+b+','+Math.max(0,a).toFixed(3)+')'}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+
+/* ---- scene as pure functions of time ---- */
+function epos(i,t){
+  var b=BASE[i],tt=Math.max(t,0),dx=P0.x-b.x,dy=P0.y-b.y,d=Math.hypot(dx,dy),m=Math.min(24*tt,d-80);
+  var x=b.x+dx/d*m,y=b.y+dy/d*m;
+  if(t>END){var n=ninja(t),ex=n.x-x,ey=n.y-y,ed=Math.hypot(ex,ey)||1,k=Math.min(30*(t-END),Math.max(0,ed-60));x+=ex/ed*k;y+=ey/ed*k}
+  return {x:x,y:y};
+}
+function ninja(t){
+  var e=epos0(t),s=eo((t-CAST)/1.9),tx=e.x-38,ty=e.y+6;
+  return {x:lerp(P0.x,tx,s),y:lerp(P0.y,ty,s)};
+}
+function epos0(t){var b=BASE[0],tt=clamp(t,0,END),dx=P0.x-b.x,dy=P0.y-b.y,d=Math.hypot(dx,dy);return {x:b.x+dx/d*24*tt,y:b.y+dy/d*24*tt}}
+function ang(t){var n=ninja(t),e=epos0(t);return t>CAST+.1?Math.atan2(e.y-n.y,e.x-n.x):0}
+function bullets(t){
+  var out=[];
+  for(var i=0;i<3;i++)for(var k=-1;k<7;k++){
+    var ft=.23*i+.9*k; if(ft>t)continue;
+    var s=epos(i,ft),aim=(ft>=CAST&&ft<END)?P0:ninja(ft),dx=aim.x-s.x,dy=aim.y-s.y,d=Math.hypot(dx,dy),sp=170,age=t-ft;
+    if(age>2.4)continue;
+    var px=s.x+dx/d*sp*age,py=s.y+dy/d*sp*age,dead=false;
+    if(st.cap){ // erased the moment the ring reaches it
+      for(var q=CAST;q<=Math.min(t,CAST+.6);q+=.02){
+        var qa=q-ft; if(qa<0)continue;
+        var qx=s.x+dx/d*sp*qa,qy=s.y+dy/d*sp*qa;
+        if(Math.hypot(qx-P0.x,qy-P0.y)<=150*eo((q-CAST)/.35)){dead=true;if(q<t)out.push({pop:true,x:qx,y:qy,age:t-q});break}
+      }
+    }
+    if(dead)continue;
+    out.push({x:px,y:py,dx:dx/d,dy:dy/d,fade:clamp((2.4-age)/.4,0,1)});
+  }
+  return out;
+}
+function alphaFor(t){ // body alpha: 1 outside, own/ally inside, clearer for a moment on the ambush hit
+  var al=st.own?.45:.18, a;
+  if(t<CAST)a=1; else if(t<CAST+.25)a=lerp(1,al,(t-CAST)/.25); else if(t<END-.25)a=al; else if(t<END)a=lerp(al,1,(t-END+.25)/.25); else a=1;
+  var bump=Math.exp(-Math.pow((t-HIT)/.13,2)); return a+(1-a)*bump*.9;
+}
+
+/* ---- drawing helpers ---- */
+function ninjaBody(x,y,a,al,pal,sx,sy){
+  pal=pal||{fill:'#241f3d',stroke:'#a58cf0',eye:'#f2eaff'};
+  c.save();c.translate(x,y);c.rotate(a);c.scale(sx||1,sy||1);c.globalAlpha=clamp(al,0,1);
+  c.strokeStyle=pal.stroke;c.lineWidth=3;c.beginPath();
+  var w=Math.sin(st.t*14)*3;c.moveTo(-10,-2);c.quadraticCurveTo(-24,-6+w,-34,-2-w);c.moveTo(-10,3);c.quadraticCurveTo(-22,8-w,-30,6+w);c.stroke();
+  c.fillStyle=pal.fill;c.beginPath();c.arc(0,0,14,0,TAU);c.fill();c.lineWidth=2.2;c.stroke();
+  c.fillStyle=pal.eye;c.fillRect(3,-4,9,3);c.restore();
+}
+function blob(x,y,r,col,al){var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,rgba(col[0],col[1],col[2],al));g.addColorStop(1,rgba(col[0],col[1],col[2],0));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill()}
+function ring(x,y,r,col,w){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.arc(x,y,r,0,TAU);c.stroke()}
+function txt(s,x,y,size,col,al,font){c.save();c.globalAlpha=al==null?1:al;c.fillStyle=col;c.font=(font||'600')+' '+size+'px Barlow, system-ui, sans-serif';c.textAlign='center';c.fillText(s,x,y);c.restore()}
+
+/* ---- looks: cast burst, trailing fx, body, decoy ---- */
+var LOOK={
+A:{
+ note:'<b>A · Smoke.</b> A ring of smoke puffs on the cast, the body a faint violet ghost that sheds wisps as it moves, and a smoke bank left on the vanish spot for the enemies to shoot at. A small puff when it steps out for the ambush, and a second one when it returns. Reads as a classic ninja smoke bomb, which also makes it the closest cousin of the existing Smoke Bomb ability.',
+ cast:function(t){var v=t-CAST;if(v>=0&&v<1)puffs(P0.x,P0.y,v/.9,9,46,0);var r=t-END;if(r>=0&&r<.8){var n=ninja(t);puffs(n.x,n.y,r/.8,7,30,3)}
+  var h=t-HIT;if(h>=0&&h<.7){var e=epos0(HIT);puffs(e.x-30,e.y,h/.7,5,22,6)}},
+ trail:function(t){if(t<CAST||t>=END+.6)return;for(var k=0;k<14;k++){var te=t-.07*k;if(te<CAST||te>=END)continue;var n=ninja(te),age=t-te;
+   blob(n.x+(hash(k+Math.floor(te*9))-.5)*10,n.y-age*12+(hash(k)-.5)*8,9+age*16,[170,150,215],.2*(1-age/1.0))}},
+ body:function(x,y,a,t){ninjaBody(x,y,a,alphaFor(t))},
+ decoy:function(t){var v=t-CAST;if(v<0||t>END+.5)return;var f=t<END?1:1-(t-END)/.5;
+   for(var i=0;i<5;i++){var an=i*1.26+v*.5,rx=P0.x+Math.cos(an)*14,ry=P0.y+Math.sin(an)*10-eo(v/1.2)*10;blob(rx,ry,34+i*3,[150,130,200],.28*f*(.7+.3*Math.sin(v*3+i)))}}
+},
+B:{
+ note:'<b>B · Shadow melt.</b> The ninja sinks into its own shadow: the body squashes into a dark blot with two glowing eyes that slides along the floor, stretching in the direction it moves and leaving a dark smear. The spot it vanished from stays as a black puddle that slowly shrinks, which is what the enemies aim at. For the ambush the ninja rises out of the shadow for a moment. Fully dark, so it barely adds colour to a busy arena.',
+ cast:function(t){var v=t-CAST;if(v>=0&&v<.6){ring(P0.x,P0.y+4,10+v/.6*60,rgba(120,90,200,.7*(1-v/.6)),3)}
+   var h=t-HIT;if(h>=0&&h<.3){var e=epos0(HIT),k=1-h/.3;c.fillStyle=rgba(20,15,35,.9*k);for(var i=0;i<7;i++){var an=i*TAU/7+.3;c.beginPath();c.moveTo(e.x+Math.cos(an)*10,e.y+Math.sin(an)*10);c.lineTo(e.x+Math.cos(an+.12)*(26+h*80),e.y+Math.sin(an+.12)*(26+h*80));c.lineTo(e.x+Math.cos(an-.12)*(26+h*80),e.y+Math.sin(an-.12)*(26+h*80));c.fill()}}},
+ trail:function(t){if(t<CAST||t>=END)return;for(var k=1;k<=9;k++){var te=t-.06*k;if(te<CAST)break;var n=ninja(te);c.fillStyle=rgba(18,12,32,(st.own?.5:.25)*(1-k/10));c.beginPath();c.ellipse(n.x,n.y+5,14-k*.8,7-k*.4,0,0,TAU);c.fill()}},
+ body:function(x,y,a,t){
+   var m=(t>=CAST&&t<END)?1:0,k=0;
+   if(t<CAST)k=0;else if(t<CAST+.3)k=es((t-CAST)/.3);else if(t<END-.3)k=1;else if(t<END)k=1-es((t-END+.3)/.3);
+   k*=1-Math.exp(-Math.pow((t-HIT)/.14,2));
+   var n0=ninja(t-.03),n1=ninja(t+.03),vx=n1.x-n0.x,vy=n1.y-n0.y,sp=Math.hypot(vx,vy)*17,ra=Math.atan2(vy,vx);
+   ninjaBody(x,y,a,1-k,null,1+.25*k,1-.6*k);
+   if(k>0){var sa=(st.own?.9:.4)*k;c.save();c.translate(x,y+5);c.rotate(sp>8?ra:0);c.fillStyle=rgba(16,11,30,sa);c.beginPath();c.ellipse(0,0,15+Math.min(sp,40)*.25,8,0,0,TAU);c.fill();c.restore();
+     c.fillStyle=rgba(200,170,255,(st.own?1:.5)*k);c.beginPath();c.arc(x+Math.cos(a)*8-Math.sin(a)*4,y+Math.sin(a)*8+Math.cos(a)*4,2.4,0,TAU);c.arc(x+Math.cos(a)*8+Math.sin(a)*4,y+Math.sin(a)*8-Math.cos(a)*4,2.4,0,TAU);c.fill()}},
+ decoy:function(t){var v=t-CAST;if(v<0||t>END+.4)return;var f=t<END?1:1-(t-END)/.4,r=34*(1-.35*clamp(v/3,0,1));
+   var g=c.createRadialGradient(P0.x,P0.y+4,0,P0.x,P0.y+4,r);g.addColorStop(0,rgba(10,6,22,.95*f));g.addColorStop(.7,rgba(30,18,58,.7*f));g.addColorStop(1,rgba(60,40,110,0));c.fillStyle=g;c.beginPath();c.ellipse(P0.x,P0.y+4,r,r*.7,0,0,TAU);c.fill()}
+},
+C:{
+ note:'<b>C · Glitch.</b> The body tears into offset slices, flickers in cyan and magenta and drops out for frames at a time, like a bad signal. The vanish spot holds a frozen frame of the ninja with scanlines (the "last seen" image enemies chase). The ambush hit lands in a burst of square pixels. The least like a ninja and the most readable as "this player is hidden" at a glance, even on a screen full of fire.',
+ cast:function(t){var v=t-CAST;if(v>=0&&v<.3){for(var i=0;i<6;i++){var yy=P0.y-16+i*6,o=(hash(i+3)-.5)*60*(1-v/.3);c.fillStyle=rgba(220,200,255,.8*(1-v/.3));c.fillRect(P0.x-20+o,yy,40,3)}}
+   var h=t-HIT;if(h>=0&&h<.4){var e=epos0(HIT);for(var j=0;j<14;j++){var an=hash(j)*TAU,dd=12+h*140*(.5+hash(j+9));c.fillStyle=j%2?rgba(120,255,255,1-h/.4):rgba(255,120,230,1-h/.4);c.fillRect(e.x+Math.cos(an)*dd-3,e.y+Math.sin(an)*dd-3,6,6)}}},
+ trail:function(t){},
+ body:function(x,y,a,t){
+   var al=alphaFor(t),act=t>=CAST&&t<END+.0,f=Math.floor(t*14),on=hash(f)>.38||Math.exp(-Math.pow((t-HIT)/.13,2))>.4;
+   if(!act&&!(t>=END-.1&&t<END+.3)){ninjaBody(x,y,a,1);return}
+   var res=t>=END?Math.max(0,1-(t-END)/.3):1;
+   if(!on&&t<END)al*=.2;
+   var amp=14*res;
+   for(var b=0;b<4;b++){
+     c.save();c.beginPath();c.rect(x-40,y-18+b*9,80,9);c.clip();
+     var ox=(hash(Math.floor(t*20)+b*7)-.5)*amp;
+     ninjaBody(x+ox-3,y,a,al*.8,{fill:'rgba(0,255,255,.5)',stroke:'#4ff',eye:'#bff'});
+     ninjaBody(x+ox+3,y,a,al*.8,{fill:'rgba(255,0,200,.4)',stroke:'#f4c',eye:'#fbe'});
+     ninjaBody(x+ox,y,a,al);
+     c.restore();
+   }},
+ decoy:function(t){var v=t-CAST;if(v<0||t>END+.2)return;var f=hash(Math.floor(t*10))>.25?1:.35;
+   c.save();c.beginPath();for(var y=P0.y-24;y<P0.y+24;y+=6)c.rect(P0.x-44,y,88,3);c.clip();ninjaBody(P0.x,P0.y,0,.5*f,{fill:'#2d2a58',stroke:'#7ff',eye:'#bff'});c.restore();
+   c.fillStyle=rgba(120,255,255,.7*f);c.font='500 9px IBM Plex Mono, monospace';c.textAlign='center';c.fillText('NO SIGNAL',P0.x,P0.y+36)}
+}};
+function puffs(x,y,k,n,dist,seed){k=clamp(k,0,1);for(var i=0;i<n;i++){var an=i*TAU/n+hash(i+seed)*.6,d=dist*eo(k)*(.7+hash(i+seed+5)*.5);blob(x+Math.cos(an)*d,y+Math.sin(an)*d-k*8,16+k*22,[175,155,225],.55*Math.pow(1-k,1.3))}}
+
+/* ---- frame ---- */
+function draw(){
+  var t=st.t,L=LOOK[st.look],vio=css('--vio')||'#b79cff';
+  c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,720,460);
+  c.fillStyle=css('--arena')||'#0b0a10';c.fillRect(0,0,720,460);
+  c.strokeStyle='rgba(160,150,200,.07)';c.lineWidth=1;c.beginPath();for(var gx=0;gx<=720;gx+=40){c.moveTo(gx,0);c.lineTo(gx,460)}for(var gy=0;gy<=460;gy+=40){c.moveTo(0,gy);c.lineTo(720,gy)}c.stroke();
+  var act=t>=CAST&&t<END,n=ninja(t),a=ang(t);
+  L.decoy(t);
+  if(act){ // last-seen marker, the spot enemies aim at
+    c.save();c.setLineDash([4,4]);ring(P0.x,P0.y,26,'rgba(200,185,255,.55)',1.5);c.setLineDash([]);
+    c.strokeStyle='rgba(200,185,255,.7)';c.lineWidth=2;c.beginPath();c.moveTo(P0.x-6,P0.y-6);c.lineTo(P0.x+6,P0.y+6);c.moveTo(P0.x+6,P0.y-6);c.lineTo(P0.x-6,P0.y+6);c.stroke();c.restore();
+    txt('LAST SEEN',P0.x,P0.y-34,10,'rgba(200,185,255,.8)',1,'500');}
+  // aggro lines
+  c.save();c.setLineDash([3,5]);c.lineWidth=1.2;
+  for(var i=0;i<3;i++){var e=epos(i,t),tg=act?P0:n;c.strokeStyle=act?'rgba(190,175,235,.28)':'rgba(255,120,110,.35)';c.beginPath();c.moveTo(e.x,e.y);c.lineTo(tg.x,tg.y);c.stroke()}
+  c.restore();
+  // bullets
+  var bs=bullets(t);
+  for(var q=0;q<bs.length;q++){var b=bs[q];
+    if(b.pop){if(b.age<.25){ring(b.x,b.y,4+b.age*60,rgba(200,180,255,1-b.age/.25),2)}continue}
+    c.strokeStyle=rgba(255,140,100,.5*b.fade);c.lineWidth=3;c.beginPath();c.moveTo(b.x,b.y);c.lineTo(b.x-b.dx*12,b.y-b.dy*12);c.stroke();
+    c.fillStyle=rgba(255,175,130,b.fade);c.beginPath();c.arc(b.x,b.y,4,0,TAU);c.fill()}
+  // capstone ring
+  if(st.cap&&t>=CAST&&t<CAST+.5){var k=(t-CAST)/.5;ring(P0.x,P0.y,150*eo((t-CAST)/.35),rgba(210,190,255,.9*(1-k)),3)}
+  // enemies
+  for(var j=0;j<3;j++){var ep=epos(j,t),fl=j===0&&t>=HIT&&t<HIT+.1;
+    c.save();c.translate(ep.x,ep.y);c.rotate(.2+j);c.fillStyle=fl?'#fff':'#cf5548';c.fillRect(-14,-14,28,28);c.fillStyle='rgba(0,0,0,.25)';c.fillRect(-14,6,28,8);c.restore();
+    if(j===0){var hp=t>=HIT?lerp(100,64,clamp((t-HIT)/.2,0,1)):100;c.fillStyle='rgba(255,255,255,.15)';c.fillRect(ep.x-18,ep.y-26,36,4);c.fillStyle='#6fe39a';c.fillRect(ep.x-18,ep.y-26,36*hp/100,4)}
+    if(act)txt('?',ep.x,ep.y-34-Math.sin(t*5+j)*2,20,'#ffd966',1,'700');
+    else if(t>=END&&t<END+.6)txt('!',ep.x,ep.y-34,22,'#ff6b5e',1-(t-END)/.6,'700')}
+  L.trail(t);L.cast(t);
+  // slash
+  if(t>=HIT&&t<HIT+.22){var e0=epos(0,t),k2=(t-HIT)/.22;c.strokeStyle=rgba(235,220,255,1-k2);c.lineWidth=6-4*k2;c.beginPath();c.arc(n.x,n.y,38,a-.9,a+.9*eo(k2*1.5));c.stroke()}
+  L.body(n.x,n.y,a,t);
+  // vanish ring + ambush tag
+  if(act){var rem=1-(t-CAST)/(END-CAST);c.strokeStyle=vio;c.globalAlpha=.8;c.lineWidth=2.5;c.beginPath();c.arc(n.x,n.y,26,-Math.PI/2,-Math.PI/2+TAU*rem);c.stroke();c.globalAlpha=1}
+  if(t>=CAST&&t<HIT){var ga=t*5;c.save();c.translate(n.x+Math.cos(ga)*24,n.y+Math.sin(ga)*24);c.rotate(ga);c.strokeStyle='#f3ecff';c.lineWidth=1.5;c.beginPath();c.moveTo(-5,0);c.lineTo(5,0);c.moveTo(0,-5);c.lineTo(0,5);c.stroke();c.restore();txt('×2',n.x,n.y+40,12,vio,.9,'700')}
+  // hit number
+  if(t>=HIT&&t<HIT+.9){var h=(t-HIT)/.9,e1=epos(0,t);txt('36',e1.x,e1.y-36-h*30,26,'#fff',1-h*h,'700');txt('AMBUSH ×2',e1.x,e1.y-54-h*30,10,vio,1-h*h,'600')}
+  // HUD bars
+  hudBar(18,424,'VANISH',act?(END-t)/(END-CAST):0,act?((END-t).toFixed(1)+' s'):'—',vio);
+  var amb=t>=CAST&&t<HIT?1-(t-CAST)/(HIT-CAST)*0:0;
+  c.fillStyle=amb?vio:'rgba(150,145,180,.4)';c.font='600 11px Barlow, sans-serif';c.textAlign='left';c.fillText(amb?'AMBUSH READY':(t>=HIT&&t<HIT+1.2?'AMBUSH SPENT':''),170,433);
+  document.getElementById('tt').textContent=t.toFixed(2)+' s';
+}
+function hudBar(x,y,lab,f,val,col){c.fillStyle='rgba(150,145,180,.9)';c.font='500 10px IBM Plex Mono, monospace';c.textAlign='left';c.fillText(lab+'  '+val,x,y-5);c.fillStyle='rgba(150,145,180,.22)';c.fillRect(x,y,140,6);c.fillStyle=col;c.fillRect(x,y,140*clamp(f,0,1),6)}
+
+/* ---- controls and loop ---- */
+var seek=document.getElementById('seek'),note=document.getElementById('note'),last=0;
+function setNote(){note.innerHTML=LOOK[st.look].note}
+document.querySelectorAll('input[name=look]').forEach(function(r){r.addEventListener('change',function(){st.look=r.value;setNote();draw()})});
+document.querySelectorAll('input[name=scr]').forEach(function(r){r.addEventListener('change',function(){st.own=r.value==='own';draw()})});
+document.querySelectorAll('input[name=cap]').forEach(function(r){r.addEventListener('change',function(){st.cap=r.value==='1';st.t=0;draw()})});
+document.getElementById('replay').onclick=function(){st.t=0;st.paused=false;pb.setAttribute('aria-pressed','false');pb.textContent='Pause'};
+var pb=document.getElementById('pause'),sb=document.getElementById('slow');
+pb.onclick=function(){st.paused=!st.paused;pb.setAttribute('aria-pressed',st.paused);pb.textContent=st.paused?'Play':'Pause'};
+sb.onclick=function(){st.slow=!st.slow;sb.setAttribute('aria-pressed',st.slow)};
+seek.addEventListener('input',function(){st.t=parseFloat(seek.value);draw()});
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){st.paused=true;st.t=HIT+.05;pb.setAttribute('aria-pressed','true');pb.textContent='Play'}
+function frame(ts){var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!st.paused){st.t+=dt*(st.slow?.25:1);if(st.t>T)st.t=0;seek.value=st.t}
+  draw();requestAnimationFrame(frame)}
+setNote();requestAnimationFrame(frame);
+})();
+</script>
