@@ -174,6 +174,8 @@ namespace Arena
             V2 basePos = at.HasValue ? ClampToArena(at.Value, 50f)
                 : side == 0 ? new V2(Rand(lo.X + 150f, hi.X - 150f), lo.Y) : side == 1 ? new V2(Rand(lo.X + 150f, hi.X - 150f), hi.Y)
                 : side == 2 ? new V2(lo.X, Rand(lo.Y + 120f, hi.Y - 120f)) : new V2(hi.X, Rand(lo.Y + 120f, hi.Y - 120f));
+            if (LayoutOn && !at.HasValue)
+                basePos = LayoutSquadBase();  // in front of an enemy gate (LayoutRules.cs)
             V2 fwd = (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();
             Player target = null;
             var alive = AlivePlayersList();
@@ -189,7 +191,7 @@ namespace Arena
                     pos = ClampToArena(basePos + across * ((RiotLineSlot(s, i) - (RiotLineCount(s, type) - 1) / 2f) * (type == EnemyType.RiotShield ? RiotLineGap : RiotGuardGap))
                         - fwd * (type == EnemyType.RiotShield ? 0f : RiotGuardBehind), 40f);  // the wall in front, the guards behind
                 else if (s.Form == SquadForm.Pincer && i < 2)
-                    pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
+                    pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, LayoutOn ? LayoutSideY(i == 0 ? 2 : 3, 150f) : Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
                 {
                     bool behind = i > 0 && (type == EnemyType.Sniper || type == EnemyType.Medic || type == EnemyType.BeamSentry || type == EnemyType.Mortar || type == EnemyType.Warder);

@@ -190,13 +190,16 @@ namespace Arena
             float m = d.Radius + 30f;
             V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             V2 pos;
-            switch (rng.Next(4))
-            {
-                case 0: pos = new V2(Rand(lo.X, hi.X), lo.Y); break;
-                case 1: pos = new V2(Rand(lo.X, hi.X), hi.Y); break;
-                case 2: pos = new V2(lo.X, Rand(lo.Y, hi.Y)); break;
-                default: pos = new V2(hi.X, Rand(lo.Y, hi.Y)); break;
-            }
+            if (LayoutOn && !d.IsBoss)
+                pos = LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
+            else
+                switch (rng.Next(4))
+                {
+                    case 0: pos = new V2(Rand(lo.X, hi.X), lo.Y); break;
+                    case 1: pos = new V2(Rand(lo.X, hi.X), hi.Y); break;
+                    case 2: pos = new V2(lo.X, Rand(lo.Y, hi.Y)); break;
+                    default: pos = new V2(hi.X, Rand(lo.Y, hi.Y)); break;
+                }
             // Bosses appear in the middle of the arena (the Twin Reapers on either side of it, where their circle starts).
             if (type == EnemyType.TwinA)
                 pos = new V2(Width / 2f - Width * 0.26f, Height / 2f);
@@ -646,6 +649,8 @@ namespace Arena
             V2 to = tpos - e.Pos;
             float dist = to.Length;
             V2 dir = dist > 0.01f ? to / dist : V2.Zero;
+            if (dist > 0.01f && !e.Def.IsBoss && LayoutOn)
+                dir = LayoutDir(e, tpos, dir);  // round a wall that's in the way (LayoutRules.cs)
             V2 v = V2.Zero;
             float speed = e.Speed;
             switch (e.Type)
@@ -769,7 +774,7 @@ namespace Arena
                 speed *= e.SlowMult;
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
-            if (Props.Count > 0 && !e.Def.IsBoss)
+            if ((Props.Count > 0 || LayoutOn) && !e.Def.IsBoss)
                 e.Pos = PushOutOfProps(e.Pos, e.Radius * 0.8f);  // they walk round crates and barrels (Props.cs)
         }
 

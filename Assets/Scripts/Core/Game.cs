@@ -304,6 +304,7 @@ namespace Arena
             Hazards.Clear();
             Cages.Clear();
             ResetProps();  // Props.cs
+            ResetLayout();  // LayoutRules.cs
             awaitingPick = false;
             rerollsAtRequest = -1;
             tick = 0;
@@ -918,7 +919,7 @@ namespace Arena
             }
             WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
             ColossusPush(me, before);    // the Colossus's stomp rings, plates and pillars (Colossus.cs)
-            if (Props.Count > 0 && !me.Downed)
+            if ((Props.Count > 0 || LayoutOn) && !me.Downed)
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
             if (!me.Downed && shoveT <= 0f)
@@ -1117,6 +1118,7 @@ namespace Arena
             TickOrbs(dt);
             TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
+            TickLayout(dt);   // LayoutRules.cs
             MoveBullets(dt);
             Collide();
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it

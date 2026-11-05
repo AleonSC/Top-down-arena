@@ -92,6 +92,7 @@ namespace Arena
                         else
                         {
                             Wave++;
+                            PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)

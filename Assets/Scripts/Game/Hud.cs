@@ -199,6 +199,8 @@ namespace Arena
                 DrawPathChip(SideL, y);  // PathsUi.cs
                 y -= 24f;
             }
+            if (game.LayoutOn)
+                y -= DrawLayoutChip(SideL, y);  // LayoutLook.cs
             if (DrawGoldChip(SideL, y))  // ShopUi.cs
                 y -= 24f;
             DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs
