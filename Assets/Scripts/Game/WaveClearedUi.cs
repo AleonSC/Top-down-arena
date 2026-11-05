@@ -165,10 +165,13 @@ namespace Arena
             float ax = row.x + 284f, limit = row.x + 562f, side = 52f;
             foreach (var a in AwardList(line.Awards))
             {
-                float w = side;
+                int longest = 0;
+                foreach (var word in a.Item1.Split(' '))
+                    longest = Mathf.Max(longest, word.Length);
+                float w = longest > 7 ? 72f : side;  // a long single word (UNTOUCHED) gets a wider tag
                 if (ax + w > limit)
                     break;
-                var tag = new Rect(ax, row.y + (row.height - side) / 2f, side, side);
+                var tag = new Rect(ax, row.y + (row.height - side) / 2f, w, side);
                 Color tc = a.Item2 ? WcBlue : WcGold;
                 Ui.Pill(tag, new Color(tc.r * 0.16f, tc.g * 0.16f, tc.b * 0.16f, 0.95f));
                 Ui.Rim(tag, tc, 0.7f);
