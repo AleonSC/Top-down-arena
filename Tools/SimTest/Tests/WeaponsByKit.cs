@@ -942,18 +942,22 @@ static partial class Program
         Check(broke && Math.Abs(repaid - Game.WardSoakMax * Game.WardRepay) < 3f, "a broken Spirit Ward heals the allies near it for a quarter of what it took");
         g.Zones.Clear();
 
-        // Healing Mist: it follows you shedding dew; a hurt ally picks the drops up.
+        // Healing Dash: you sprint and leave footprints; a hurt ally standing in them heals, once, however many overlap.
         ally.Hp = ally.MaxHp * 0.3f;
         allyAt = from + new V2(30f, 0f);
+        play(1.0f);
+        float idle = ally.Hp - ally.MaxHp * 0.3f;  // what the ally regains with no footprints at all
+        ally.Hp = ally.MaxHp * 0.3f;
         float a0 = ally.Hp;
-        use(AbilityId.HealingMist, from);
-        play(1.6f);
-        int drops = g.Orbs.Values.Count(o => o.Dew) ;
-        bool clientDew = client.Game.Orbs.Values.Any(o => o.Dew);
-        float mistHealed = ally.Hp - a0;
-        Console.WriteLine("  healing mist: dew on the ground {0} (client saw some {1}); a hurt ally beside you healed {2:0.0} in 1.6 s", drops, clientDew, mistHealed);
-        Check(mistHealed >= Game.DewHeal * 2f - 0.5f, "Healing Mist sheds dew that heals the allies who pick it up");
-        Check(drops + (int)(mistHealed / Game.DewHeal) >= 3 && (clientDew || drops == 0), "Healing Mist's dew drops are synced");
+        use(AbilityId.HealingDash, from);
+        Check(g.Players[1].DashT > 0f, "Healing Dash starts the sprint");
+        play(1.0f);
+        int prints = g.Zones.Values.Count(z => z.Kind == ZoneKind.Mist);
+        bool clientPrints = client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Mist);
+        float dashHealed = ally.Hp - a0;
+        Console.WriteLine("  healing dash: footprints {0} (client saw some {1}); a hurt ally near the start healed {2:0.0} in 1 s (idle {3:0.0})", prints, clientPrints, dashHealed, idle);
+        Check(prints >= 1 && clientPrints, "Healing Dash leaves footprints that are synced");
+        Check(dashHealed - idle > Game.FootprintHeal * 0.5f && dashHealed - idle <= Game.FootprintHeal * g.Players[1].DashHeal + 0.5f, "Healing Dash heals an ally in its footprints, and overlapping ones don't stack");
         g.Zones.Clear(); g.Orbs.Clear();
         allyAt = new V2(500f, 450f);
         play(0.2f);

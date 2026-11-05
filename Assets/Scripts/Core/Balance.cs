@@ -95,6 +95,7 @@ namespace Arena
         const float RoarTime = 5f, RoarReduction = 0.4f;
         const float AdrenalineCooldown = 14f, AdrenalineTime = 8f, AdrenalineCut = 0.3f, AdrenalineFire = 1.4f, AdrenalineSplashRange = 250f, AdrenalineSplashTime = 0.5f;  // Adrenaline.cs
         public const float AdrenalineSpeed = 1.3f;
+        public const float HealDashSpeed = 1.7f;  // Healing Dash: the Ninja's sprint (Ninja.cs)
         const float LinkHeal = 8f;  // Soul Lantern's regeneration a second (SoulLantern.cs)
         const float MedkitCooldown = 14f, MedkitReach = 360f, MedkitFlight = 0.5f, MedkitLife = 6f;  // Medkit.cs
         const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeDamage = 80f;

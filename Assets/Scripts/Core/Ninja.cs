@@ -17,7 +17,7 @@ namespace Arena
         const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
         const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
-        const float MistRadius = 130f, MistTime = 6f, SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
+        const float SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
         const float VanishTime = 3f, AmbushGrace = 1f, FanDamage = 18f, KunaiBonus = 0.5f;
         public const float OrbitTime = 4f, BladeOrbitR = 60f, OrbitTurns = 2.2f, OrbitSpin = 0.25f, OrbitCutGap = 0.5f, OrbitBladeR = 8f;  // Blade Fan: how long the kunai circle you, how far out, turns a second, how long they take to spiral out, the gap between cuts on one enemy, a kunai's reach
         const float BlossomTime = 5f, BlossomHeal = 20f, BlossomClear = 100f, LotusRange = 350f, LotusDamage = 100f, LotusStagger = 0.11f, LotusStaggerCap = 0.07f, LotusStain = 2.2f;
@@ -305,9 +305,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.HealingMist, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0,
-                Name = "Healing Mist", Cooldown = 15f, Desc = "A mist follows you for 6 s, shedding drops of dew around you (two a second, 10 healing each, lasting 6 s) for you and your allies to pick up.",
-                Capstone = "Lasts 9 s.",
+                Id = AbilityId.HealingDash, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0,
+                Name = "Healing Dash", Cooldown = 15f, Desc = "Sprint 70% faster for 3 s, leaving glowing footprints that last 6 s. You and your allies heal 12 HP a second while standing near one (overlapping footprints don't stack).",
+                Capstone = "The sprint lasts 4.5 s.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
@@ -399,13 +399,14 @@ namespace Arena
                     p.IronMastered = cap;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.75f, 0.78f, 0.85f), 50f, 0.35f, Sfx.Clang);
                     return true;
-                case AbilityId.HealingMist:
+                case AbilityId.HealingDash:
                 {
-                    var z = AddZone(ZoneKind.Mist, p, p.Pos, MistRadius * s.MistRadiusMult, cap ? 9f : MistTime);
-                    z.Follow = true;
-                    z.HealMult *= s.MistHealMult;
-                    z.Charge = 0f;  // the first drop falls at once
-                    BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.45f, Sfx.SpellHoly);
+                    p.DashT = cap ? HealDashTimeMastered : HealDashTime;
+                    p.DashHeal = s.MistHealMult * pw;
+                    p.DashRadius = FootprintRadius * s.MistRadiusMult;
+                    p.DashLast = p.Pos;
+                    DropFootprint(p, p.Aim);
+                    BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Mist).Color, 80f, 0.45f, Sfx.SpellHoly);
                     return true;
                 }
                 case AbilityId.Substitution:
@@ -1059,21 +1060,38 @@ namespace Arena
 
         /// Host, every tick: Vanish and Iron Body run down (Iron Body ends in a shockwave), Blossom Storm heals
         /// and clears bullets, and Shadow Clones about to end burst.
-        public const float DewEvery = 0.5f, DewHeal = 10f, DewLife = 6f;  // Healing Mist: a drop of dew this often, healing this much, lasting this long
+        public const float HealDashTime = 3f, HealDashTimeMastered = 4.5f, FootprintLife = 6f, FootprintStep = 64f, FootprintRadius = 40f, FootprintHeal = 12f;  // Healing Dash: the sprint, how long a footprint lasts, the gap between them, their radius, healing a second
         public const float WardSoakMax = 150f, WardRepay = 0.25f;           // Spirit Ward: the damage it takes for allies; the share it heals back when it ends
 
-        /// Healing Mist sheds dew within it as it follows its caster.
+        /// A Healing Dash footprint goes down where the ninja stands, pointing the way it runs (Aim; the side is the zone's id).
+        void DropFootprint(Player p, float heading)
+        {
+            var z = AddZone(ZoneKind.Mist, p, p.Pos, p.DashRadius, FootprintLife);
+            z.HealMult = p.DashHeal;
+            z.Aim = heading;
+        }
+
+        /// Healing Dash: the sprinting ninja leaves a footprint every FootprintStep px, and whoever stands in any footprint heals
+        /// (once, however many overlap: the best one counts).
         void TickMists(float dt)
         {
-            foreach (var z in Zones.Values)
+            foreach (var p in Players.Values)
+                if (p.DashT > 0f && !p.Downed && p.Pos.DistanceTo(p.DashLast) >= FootprintStep)
+                {
+                    V2 d = p.Pos - p.DashLast;
+                    DropFootprint(p, (float)Math.Atan2(d.Y, d.X));
+                    p.DashLast = p.Pos;
+                }
+            foreach (var q in Players.Values)
             {
-                if (z.Kind != ZoneKind.Mist || (z.Charge -= dt) > 0f)
+                if (q.Downed)
                     continue;
-                z.Charge = DewEvery;
-                V2 at = z.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * (z.Radius * (float)Math.Sqrt(Rand(0.05f, 1f)) * 0.8f);
-                var o = new Orb { Id = nextOrbId++, Dew = true, DewHeal = DewHeal * z.HealMult, Pos = ClampToArena(at, 12f), Life = DewLife };
-                o.Disp = o.Pos;
-                Orbs[o.Id] = o;
+                Zone best = null;
+                foreach (var z in Zones.Values)
+                    if (z.Kind == ZoneKind.Mist && q.Pos.DistanceTo(z.Pos) <= z.Radius && (best == null || z.HealMult > best.HealMult))
+                        best = z;
+                if (best != null)
+                    Heal(q, FootprintHeal * best.HealMult * dt, PlayerOrNull(best.Owner));
             }
         }
 
