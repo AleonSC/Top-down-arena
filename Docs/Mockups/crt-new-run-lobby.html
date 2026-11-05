@@ -63,61 +63,93 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 #pcard .who { flex: 1; line-height: 1.1; } #pcard .who b { display: block; font-size: 17px; color: #fff; } #pcard .who span { font-size: 12px; font-weight: 700; color: #f0b030; }
 #pcard .bdg { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(#f6cf60, #b27a12); color: #3a2400; font: 700 12px/34px var(--f-ui); text-align: center; box-shadow: 0 0 10px rgba(240,176,48,.5); }
 
-/* lobby window (CRT) */
-#winframe { left: 80px; top: 26px; width: 800px; height: 488px; opacity: 0; z-index: 9; }
-#win { left: 90px; top: 36px; width: 780px; height: 468px; z-index: 10; opacity: 0; border-radius: 0; font-family: var(--f-ui); text-shadow: 0 0 5px rgba(120,255,190,.22); color: #cfdcff; font-size: 11px; }
-#opening { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 2; display: grid; place-items: center; font: 34px/1 var(--f-crt); letter-spacing: .1em; color: var(--ink); text-shadow: 0 0 8px var(--glow), 0 0 18px var(--glow); opacity: 0; pointer-events: none; }
-.roll { position: absolute; left: 0; right: 0; top: 0; height: 110px; z-index: 2; pointer-events: none; background: linear-gradient(transparent, rgba(120,255,180,.07) 55%, rgba(150,255,200,.11) 98%, transparent); animation: roll 7s linear infinite; }
-@keyframes roll { from { transform: translateY(-120px); } to { transform: translateY(520px); } }
-.c { position: absolute; inset: 0; padding: 16px; display: flex; gap: 14px; animation: flick 6s steps(1) infinite; }
+/* lobby window (CRT): the whole game screen, laid out like the real lobby */
+#win { left: 0; top: 0; width: 960px; height: 540px; z-index: 10; opacity: 0; border-radius: 0; box-shadow: none; font-family: var(--f-ui); text-shadow: 0 0 5px rgba(120,255,190,.2); color: #cfdcff; font-size: 11px; }
+#opening { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; font: 34px/1 var(--f-crt); letter-spacing: .1em; color: var(--ink); text-shadow: 0 0 8px var(--glow), 0 0 18px var(--glow); opacity: 0; pointer-events: none; }
+.roll { position: absolute; left: 0; right: 0; top: 0; height: 120px; z-index: 2; pointer-events: none; background: linear-gradient(transparent, rgba(120,255,180,.07) 55%, rgba(150,255,200,.11) 98%, transparent); animation: roll 7s linear infinite; }
+@keyframes roll { from { transform: translateY(-130px); } to { transform: translateY(560px); } }
+.c { position: absolute; inset: 0; animation: flick 6s steps(1) infinite; }
 @keyframes flick { 0%, 100% { opacity: 1; } 31% { opacity: .96; } 32% { opacity: 1; } 71% { opacity: .94; } 72% { opacity: 1; } }
-#wsweep { position: absolute; left: 0; right: 0; top: 0; height: 90px; z-index: 2; opacity: 0; pointer-events: none;
+#wsweep { position: absolute; left: 0; right: 0; top: 0; height: 100px; z-index: 2; opacity: 0; pointer-events: none;
   background: linear-gradient(to bottom, transparent, rgba(77,255,154,.12) 70%, rgba(150,255,200,.6) 99%, #eafff2 100%); box-shadow: 0 0 20px 3px var(--glow); }
 .it { opacity: 0; }
-.left { width: 196px; flex: none; display: flex; flex-direction: column; gap: 8px; }
-.right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
-.lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-.lab b { font: 400 19px/1 var(--f-crt); letter-spacing: .08em; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
-.lab span { font-weight: 600; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #7f93c8; }
-.row { display: grid; gap: 6px; } .r4 { grid-template-columns: repeat(4, 1fr); } .r2 { grid-template-columns: 1fr 1fr; }
-.opt { height: 25px; border-radius: 6px; border: 1px solid #34457a; background: rgba(18,28,62,.78); color: #cfdcff; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.c > .it, #main > .it { position: absolute; }
+.dk { background: rgba(12,18,42,.8); border: 1px solid #34457a; }
+
+/* left column */
+#hdr { left: 31px; top: 10px; width: 300px; height: 42px; }
+#hdr .bk { position: absolute; left: 0; top: 2px; width: 38px; height: 38px; border-radius: 8px; display: grid; place-items: center; font: 700 20px/1 var(--f-ui); color: #ff6b8a; border-bottom: 2px solid #4f78e0; }
+#hdr h2 { position: absolute; left: 47px; top: -3px; margin: 0; font: 700 36px/1.1 var(--f-ui); letter-spacing: .02em; color: #fff; text-shadow: 0 0 10px rgba(150,190,255,.5); }
+#hdr .bg { position: absolute; left: 166px; top: 14px; width: 20px; height: 22px; border-radius: 5px; background: #1a2348; border: 1px solid #34457a; font-weight: 700; font-size: 12px; text-align: center; line-height: 20px; color: #aebbe0; }
+#modes { left: 31px; top: 59px; width: 284px; height: 38px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+#modes div { border-radius: 5px; text-align: center; padding-top: 4px; font-weight: 700; font-size: 13.5px; letter-spacing: .02em; line-height: 1.1; }
+#modes small { display: block; font-size: 7.5px; font-weight: 600; letter-spacing: 0; opacity: .8; margin-top: 3px; }
+#modes .on { background: #4b78e0; color: #fff; box-shadow: 0 0 12px rgba(90,140,255,.5); }
+#party { left: 31px; top: 111px; width: 281px; height: 236px; }
+#party .pl { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: #aebbe0; }
+#party .hg { position: absolute; right: 3px; top: -1px; width: 62px; height: 15px; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-align: center; line-height: 14px; color: #8fa0d0; border-radius: 3px; }
+.pc { position: absolute; left: 0; width: 281px; height: 64px; top: 28px; border-radius: 8px; border: 2px solid #9b5cff; box-shadow: 0 0 14px rgba(155,92,255,.4);
+  background: linear-gradient(transparent 50%, rgba(155,92,255,.22)), repeating-linear-gradient(90deg, rgba(155,92,255,.18) 0 1px, transparent 1px 16px), #0e1226; }
+.pc .av { position: absolute; left: 7px; top: 9px; width: 40px; height: 40px; background: #151b36; border-radius: 4px; display: grid; place-items: center; }
+.pc .av i { width: 22px; height: 22px; border-radius: 50%; border: 3px solid #4f8bff; background: #dce6ff; box-shadow: 0 0 8px #4f8bff; }
+.pc .bd { position: absolute; left: 34px; top: 42px; width: 14px; height: 16px; border-radius: 4px 4px 7px 7px; background: radial-gradient(#f6cf60, #b27a12); font: 700 6px/16px var(--f-ui); color: #3a2400; text-align: center; }
+.pc b { position: absolute; left: 58px; top: 5px; font-size: 15px; color: #e6d2ff; }
+.pc em { position: absolute; left: 58px; top: 23px; font-style: normal; font-weight: 700; font-size: 11px; color: #7fa6ff; }
+.pc span { position: absolute; left: 58px; top: 39px; font-size: 9px; color: #aebbe0; }
+.pc u { position: absolute; top: 6px; height: 14px; border-radius: 7px; font-size: 8px; font-weight: 700; text-decoration: none; line-height: 14px; text-align: center; letter-spacing: .05em; }
+.pc .nr { position: absolute; right: 10px; bottom: 7px; font-size: 9px; font-weight: 700; color: #fff; letter-spacing: .04em; }
+.slot { position: absolute; left: 0; width: 281px; height: 63px; border: 1px dashed #2b3560; border-radius: 3px; background: rgba(10,16,36,.45); display: grid; place-items: center; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: #55608a; }
+#btns { left: 31px; top: 427px; width: 281px; height: 85px; }
+#btns div { position: absolute; left: 0; width: 281px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; background: linear-gradient(#232c52, #121830); border: 1px solid #34457a; border-bottom: 2px solid #4f78e0; }
+
+/* right column */
+#tabs { left: 330px; top: 19px; display: flex; gap: 6px; }
+#tabs div { height: 24px; padding: 0 12px; border-radius: 4px; background: #151c3c; border: 1px solid #2c3b70; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; line-height: 22px; color: #aebbe0; }
+#tabs .on { background: #4b78e0; border-color: #4b78e0; color: #fff; box-shadow: 0 0 10px rgba(90,140,255,.5); }
+#main { left: 330px; top: 51px; width: 600px; height: 460px; border-radius: 12px; border: 1px solid #4a68b8; background: rgba(14,20,48,.82); box-shadow: 0 0 30px rgba(80,120,255,.16); }
+#mleft { left: 11px; top: 11px; width: 175px; height: 438px; padding: 8px; display: flex; flex-direction: column; gap: 5px; background: rgba(4,8,20,.82); border: 1px solid #1f2b57; }
+#mright { position: absolute; left: 196px; top: 11px; width: 393px; height: 438px; display: flex; flex-direction: column; gap: 8px; }
+.lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+.lab b { font: 400 17px/1 var(--f-crt); letter-spacing: .08em; color: var(--ink); text-shadow: 0 0 6px var(--glow); }
+.lab span { font-weight: 600; font-size: 8px; letter-spacing: .05em; text-transform: uppercase; color: #7f93c8; }
+.row { display: grid; gap: 5px; } .r4 { grid-template-columns: repeat(4, 1fr); } .r2 { grid-template-columns: 1fr 1fr; }
+.opt { height: 24px; border-radius: 6px; border: 1px solid #34457a; background: rgba(18,28,62,.78); color: #cfdcff; font-weight: 700; font-size: 10.5px; display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; overflow: hidden; }
 .opt.sel { border-color: #6aa0ff; background: rgba(54,92,200,.5); color: #fff; box-shadow: 0 0 10px rgba(90,140,255,.45), inset 0 0 8px rgba(120,170,255,.25); }
-.opt.lock { border-style: dashed; border-color: #2b3560; background: rgba(10,16,36,.5); color: #55608a; font-size: 11px; }
-.opt i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.role .opt { height: 34px; font-size: 15px; }
-.role .opt svg { flex: none; }
-svg.lk { width: 9px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.4; }
-.asc { display: flex; align-items: center; gap: 8px; height: 26px; }
-.asc > b { font-size: 10px; letter-spacing: .06em; color: #aebbe0; line-height: 1.05; white-space: nowrap; } .asc > b em { display: block; font-style: normal; color: #7f93c8; font-weight: 600; }
-.chip { flex: 1; height: 24px; border: 1px dashed #2b3560; border-radius: 5px; background: rgba(10,16,36,.5); font-size: 9.5px; font-weight: 700; color: #f0b030; line-height: 1; padding: 3px 6px; opacity: .85; }
-.chip em { display: block; font-style: normal; color: #55608a; font-weight: 600; }
-.arr { color: #34457a; font-size: 14px; }
+.opt.lock { border-style: dashed; border-color: #2b3560; background: rgba(10,16,36,.5); color: #55608a; font-size: 9.5px; }
+.opt i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.role .opt { height: 32px; font-size: 13px; }
+svg.lk { width: 8px; height: 9px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.asc { display: flex; align-items: center; gap: 5px; height: 26px; }
+.asc > b { font-size: 8.5px; letter-spacing: .05em; color: #aebbe0; line-height: 1.05; white-space: nowrap; } .asc > b em { display: block; font-style: normal; color: #7f93c8; font-weight: 600; }
+.chip { flex: 1; height: 24px; border: 1px dashed #2b3560; border-radius: 5px; background: rgba(10,16,36,.5); font-size: 8.5px; font-weight: 700; color: #f0b030; line-height: 1.05; padding: 4px 5px; white-space: nowrap; }
+.chip em { display: block; font-style: normal; color: #55608a; font-weight: 600; font-size: 7.5px; }
+.arr { color: #34457a; font-size: 12px; }
 .detail { position: relative; flex: 1; min-height: 0; border: 1px solid #2c3b70; background: rgba(8,16,36,.62); display: grid; grid-template-columns: 1fr 1fr; }
-.detail::before, .detail::after { content: ""; position: absolute; width: 16px; height: 16px; border: 2px solid rgba(110,165,255,.8); pointer-events: none; }
-.detail::before { left: -3px; top: -3px; border-right: 0; border-bottom: 0; } .detail::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
-.col { padding: 10px 14px 0; display: flex; flex-direction: column; min-height: 0; } .col + .col { border-left: 1px solid #1f2b57; }
-.col small { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #7f93c8; }
-.col h4 { margin: 1px 0 4px; font-size: 20px; color: #fff; line-height: 1.05; }
-.col p { margin: 0 0 5px; font-size: 10.5px; line-height: 1.25; color: #aebbe0; }
+.detail::before, .detail::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid rgba(110,165,255,.8); pointer-events: none; }
+.detail::before { right: -3px; top: -3px; border-left: 0; border-bottom: 0; } .detail::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
+.col { padding: 9px 11px 8px; display: flex; flex-direction: column; min-height: 0; } .col + .col { border-left: 1px solid #1f2b57; }
+.col small { font-size: 8px; font-weight: 700; letter-spacing: .1em; color: #7f93c8; }
+.col h4 { margin: 1px 0 4px; font-size: 17px; color: #fff; line-height: 1.05; }
+.col p { margin: 0 0 5px; font-size: 9.5px; line-height: 1.25; color: #aebbe0; }
 .col p.m { color: #f0b030; }
-.chips { margin-top: auto; display: flex; gap: 6px; margin-bottom: 0; }
-.cs { flex: 1; height: 34px; background: #151e45; display: flex; align-items: center; gap: 6px; padding: 0 8px; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: #8fa0d0; }
-.cs b { font-size: 19px; color: #fff; letter-spacing: 0; }
-.ring { width: 22px; height: 22px; border-radius: 50%; flex: none; background: conic-gradient(#f0b030 0 100%, #2a3050 0); display: grid; place-items: center; }
-.ring::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: #121a3a; }
-.prev { height: 116px; border: 1px solid #34457a; position: relative; background: linear-gradient(rgba(90,130,255,.08) 1px, transparent 1px) 0 0 / 100% 14px, rgba(4,14,12,.6); }
-.tri { position: absolute; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 11px solid #ef4d52; filter: drop-shadow(0 0 4px #ef4d52); }
-.pl { position: absolute; left: 90px; top: 78px; width: 16px; height: 16px; border-radius: 50%; background: #dce6ff; box-shadow: 0 0 10px #8fb0ff; }
-.pl::after { content: ""; position: absolute; left: 4px; top: -22px; width: 8px; height: 18px; background: linear-gradient(#ffe27a, transparent); }
-.pname { text-align: center; font-size: 18px; font-weight: 700; color: #fff; margin: 2px 0 0; }
-.stat { display: grid; grid-template-columns: 1fr auto; font-size: 10.5px; font-weight: 600; color: #aebbe0; row-gap: 2px; margin-bottom: 7px; }
+.chips { margin-top: auto; display: flex; gap: 5px; }
+.cs { flex: 1; height: 30px; background: #151e45; display: flex; align-items: center; gap: 5px; padding: 0 7px; font-size: 7.5px; font-weight: 700; letter-spacing: .06em; color: #8fa0d0; white-space: nowrap; }
+.cs b { font-size: 16px; color: #fff; letter-spacing: 0; }
+.ring { width: 20px; height: 20px; border-radius: 50%; flex: none; background: conic-gradient(#f0b030 0 100%, #2a3050 0); display: grid; place-items: center; }
+.ring::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: #121a3a; }
+.prev { height: 112px; flex: none; border: 1px solid #1f2b57; position: relative; background: linear-gradient(rgba(90,130,255,.08) 1px, transparent 1px) 0 0 / 100% 14px, rgba(4,14,12,.6); }
+.tri { position: absolute; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #ef4d52; filter: drop-shadow(0 0 4px #ef4d52); }
+.pp { position: absolute; left: 78px; top: 72px; width: 14px; height: 14px; border-radius: 50%; background: #dce6ff; box-shadow: 0 0 10px #8fb0ff; }
+.pp::after { content: ""; position: absolute; left: 3px; top: -20px; width: 8px; height: 16px; background: linear-gradient(#ffe27a, transparent); }
+.pname { text-align: center; font-size: 16px; font-weight: 700; color: #fff; line-height: 1.1; }
+.stat { display: grid; grid-template-columns: 1fr auto; font-size: 9.5px; font-weight: 600; color: #aebbe0; row-gap: 2px; margin-bottom: 6px; }
 .stat b { color: #fff; } .stat .bar { grid-column: 1 / -1; height: 4px; background: #1a2347; } .stat .bar i { display: block; height: 100%; }
-.abil { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: center; margin-top: 2px; }
-.abring { width: 44px; height: 44px; border-radius: 50%; background: conic-gradient(#f0b030 0 70%, #2a3050 0); display: grid; place-items: center; }
-.abring span { width: 34px; height: 34px; border-radius: 50%; background: #0a1226; display: grid; place-items: center; font-size: 18px; font-weight: 700; color: #fff; }
-.abil h5 { margin: 0; font-size: 16px; color: #f0b030; line-height: 1; } .abil div div { font-size: 9.5px; color: #8fa0d0; line-height: 1.2; font-weight: 600; }
-.atxt { font-size: 10px; line-height: 1.25; color: #aebbe0; margin: 6px 0 0; } .atxt em { display: block; font-style: normal; color: #f0b030; margin-top: 4px; }
-.hint { margin-top: auto; text-align: center; font-size: 8.5px; letter-spacing: .08em; color: #55608a; font-weight: 700; }
+.abil { display: grid; grid-template-columns: 40px 1fr; gap: 7px; align-items: center; }
+.abring { width: 40px; height: 40px; border-radius: 50%; background: conic-gradient(#f0b030 0 70%, #2a3050 0); display: grid; place-items: center; }
+.abring span { width: 31px; height: 31px; border-radius: 50%; background: #0a1226; display: grid; place-items: center; font-size: 16px; font-weight: 700; color: #fff; }
+.abil h5 { margin: 0; font-size: 14px; color: #f0b030; line-height: 1; } .abil div div { font-size: 8.5px; color: #8fa0d0; line-height: 1.2; font-weight: 600; }
+.atxt { font-size: 9px; line-height: 1.25; color: #aebbe0; margin: 2px 0 0; } .atxt em { display: block; font-style: normal; color: #f0b030; margin-top: 3px; }
+.hint { margin-top: auto; text-align: center; font-size: 7.5px; letter-spacing: .08em; color: #55608a; font-weight: 700; }
 
 .cap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 22px; color: var(--muted); font-size: 15px; line-height: 1.45; }
 .cap b { color: var(--fg); display: block; font-size: 16px; margin-bottom: 2px; }
@@ -127,7 +159,7 @@ svg.lk { width: 9px; height: 10px; fill: none; stroke: currentColor; stroke-widt
 <div class="wrap">
   <header>
     <h1>New run to lobby</h1>
-    <p>Pressing New run on the Start a Run panel powers up the green console. The console opens outward until it is the lobby window, and the lobby is drawn on a CRT screen: phosphor glow, scanlines, a slow roll bar and a faint flicker. The lobby controls keep their usual colours on top. The menu elements around it step aside as it opens.</p>
+    <p>Pressing New run on the Start a Run panel powers up the green console. The console opens outward until it fills the whole screen as the lobby, laid out like the game: back button and title, mode tabs, party list, Ready and Start on the left, and the loadout panel on the right. The background is a CRT screen with phosphor glow, scanlines, a slow roll bar and a faint flicker. The lobby controls keep their usual colours on top.</p>
   </header>
   <div class="ctl">
     <div class="grp"><span>CRT</span><button class="seg" type="button" data-c="" aria-pressed="true">Subtle</button><button class="seg" type="button" data-c="strong" aria-pressed="false">Strong</button></div>
@@ -149,52 +181,49 @@ svg.lk { width: 9px; height: 10px; fill: none; stroke: currentColor; stroke-widt
     <div class="scr" id="console"><div id="ctext"><b>NO SAVED RUNS YET.</b><span>Start a run: it's saved from its first wave on, until it's won or lost.</span></div></div>
     <div id="pcard"><div class="av"><i></i></div><div class="who"><b>Anthony</b><span>Legend &middot; Rank 999</span></div><div class="bdg">999</div></div>
 
-    <div class="panel" id="winframe"></div>
     <div class="scr" id="win">
       <div class="roll"></div><div id="wsweep"></div>
       <div id="opening"><span id="o1"></span><span class="cur"></span></div>
       <div class="c">
-        <div class="left it">
-          <div class="prev"><i class="tri" style="left:36px;top:22px"></i><i class="tri" style="left:90px;top:14px"></i><i class="tri" style="left:146px;top:22px"></i><i class="pl"></i></div>
-          <div class="pname">Soldier Tank</div>
-          <div>
-            <div class="stat"><span>HEALTH</span><b>240 HP</b><div class="bar"><i style="width:82%;background:#4ade80"></i></div></div>
-            <div class="stat"><span>SPEED</span><b>185</b><div class="bar"><i style="width:62%;background:#4f8bff"></i></div></div>
-            <div class="stat"><span>RANGE</span><b>278 px</b><div class="bar"><i style="width:44%;background:#f0b030"></i></div></div>
-            <div class="stat"><span>DAMAGE</span><b>154 / s</b><div class="bar"><i style="width:70%;background:#ef4d52"></i></div></div>
+        <div class="it" id="hdr"><div class="bk dk">&#8592;</div><h2>LOBBY</h2><div class="bg">!</div></div>
+        <div class="it" id="modes"><div class="on">GAUNTLET<small>50 waves, a boss every 5</small></div><div style="color:#ff9a8a">BOSS HUNT<small>10 waves to one boss</small></div><div style="color:#7ee8b0">PRACTICE<small>Build your own waves</small></div></div>
+        <div class="it" id="party"><div class="pl">PARTY (1/3)</div><div class="hg dk">HANGOUT &gt;</div>
+          <div class="pc"><div class="av"><i></i></div><div class="bd">999</div><b>Anthony</b><em>Soldier Tank</em><span>Scattergun &nbsp;&middot;&nbsp; Barrier</span>
+            <u style="right:50px;width:36px;background:#7a5410;color:#ffd27a">HOST</u><u style="right:8px;width:34px;background:#3556b0;color:#fff">YOU</u><div class="nr">NOT READY</div></div>
+          <div class="slot" style="top:99px">OPEN SLOT</div><div class="slot" style="top:171px">OPEN SLOT</div></div>
+        <div class="it" id="btns"><div style="top:0">&#10004; Ready</div><div style="top:46px;color:#aebbe0"><span style="font-size:12px">&#9654;</span> Start</div></div>
+        <div class="it" id="tabs"><div class="on">LOADOUT</div><div>PERKS</div><div>DIFFICULTY</div><div>MODIFIERS</div></div>
+        <div class="it" id="main">
+          <div class="it" id="mleft">
+            <div class="prev"><i class="tri" style="left:30px;top:24px"></i><i class="tri" style="left:78px;top:16px"></i><i class="tri" style="left:128px;top:24px"></i><i class="pp"></i></div>
+            <div class="pname">Soldier Tank</div>
+            <div>
+              <div class="stat"><span>HEALTH</span><b>240 HP</b><div class="bar"><i style="width:82%;background:#4ade80"></i></div></div>
+              <div class="stat"><span>SPEED</span><b>185</b><div class="bar"><i style="width:62%;background:#4f8bff"></i></div></div>
+              <div class="stat"><span>RANGE</span><b>278 px</b><div class="bar"><i style="width:44%;background:#f0b030"></i></div></div>
+              <div class="stat"><span>DAMAGE</span><b>154 / s</b><div class="bar"><i style="width:70%;background:#ef4d52"></i></div></div>
+            </div>
+            <div class="abil"><div class="abring"><span>F</span></div><div><h5>Fortress</h5><div>70 s to charge<br>starts each match half full</div></div></div>
+            <p class="atxt">Raises a fixed, impenetrable dome here for 10 s. Only players and player bullets can cross it: enemies and their shots can't get in or shoot through.<em>&#9733; Mastered (Lv 5): Lasts 14 s.</em></p>
+            <div class="hint">CLICK THE RING TO PREVIEW</div>
           </div>
-          <div class="abil"><div class="abring"><span>F</span></div><div><h5>Fortress</h5><div>70 s to charge<br>starts each match half full</div></div></div>
-          <p class="atxt">Raises a fixed, impenetrable dome for 10 s. Only players and player bullets can get in or shoot through: enemies and their shots can't.<em>&#9733; Mastered (Lv 5): Lasts 14 s.</em></p>
-          <div class="hint">CLICK THE RING TO PREVIEW</div>
-        </div>
-
-        <div class="right">
-          <div class="it role"><div class="lab"><b>ROLE</b><span>Big HP pool. Enemies prefer to target you.</span></div>
-            <div class="row r4">
-              <div class="opt sel"><svg width="11" height="12" viewBox="0 0 10 12"><path d="M5 0L10 2V6Q10 10 5 12Q0 10 0 6V2Z" fill="#8fb4ff"/></svg>Tank</div>
-              <div class="opt"><b style="color:#4ade80;font-size:17px">+</b>Healer</div>
-              <div class="opt"><b style="color:#f0883a;font-size:15px">/</b>DPS</div>
-              <div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
-
-          <div class="it"><div class="lab"><b>CLASS</b><span>Guns and gear. Full health.</span></div>
-            <div class="row r4" style="margin-bottom:6px">
-              <div class="opt sel"><i style="background:#4ade80"></i>Soldier</div><div class="opt"><i style="background:#f0883a"></i>Elementalist</div><div class="opt"><i style="background:#47d6e8"></i>Summoner</div><div class="opt"><i style="background:#dfe8ff"></i>Knight</div></div>
-            <div class="row r4">
-              <div class="opt"><i style="background:#ef4d52"></i>Ninja</div><div class="opt"><i style="background:#ef4d52"></i>Hemomancer</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
-
-          <div class="it" style="display:grid;grid-template-columns:1.12fr 1fr;gap:16px">
-            <div><div class="lab"><b>WEAPON</b></div><div class="row r2" style="margin-bottom:6px"><div class="opt sel">Scattergun</div><div class="opt">Flak Cannon</div></div><div class="row r2"><div class="opt">Riot Repeater</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
-            <div><div class="lab"><b>ABILITY</b></div><div class="row r2" style="margin-bottom:6px"><div class="opt sel">Barrier</div><div class="opt">Roar</div></div><div class="row r2"><div class="opt">Bulldoze</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
-          </div>
-
-          <div class="it asc"><b>SCATTERGUN<em>ASCENSIONS 0/3</em></b>
-            <div class="chip">Ascension I<em>Locked</em></div><span class="arr">&#8250;</span><div class="chip">Ascension II<em>Locked</em></div><span class="arr">&#8250;</span><div class="chip">Ascension III<em>Locked</em></div></div>
-
-          <div class="it detail">
-            <div class="col"><small>WEAPON</small><h4>Scattergun</h4><p>A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back.</p>
-              <div class="chips"><div class="cs"><b>7</b>PER HIT</div><div class="cs"><b>2</b>SHOTS / S</div></div></div>
-            <div class="col"><small>ABILITY</small><h4>Barrier</h4><p>A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage).</p><p class="m">&#9733; Mastered (Lv 5): Bullets that hit the barrier are reflected back as your own.</p>
-              <div class="chips"><div class="cs"><span class="ring"></span><b>12 s</b>COOLDOWN</div></div></div>
+          <div id="mright">
+            <div class="it role"><div class="lab"><b>ROLE</b><span>Big HP pool. Enemies prefer to target you.</span></div>
+              <div class="row r4"><div class="opt sel"><svg width="10" height="11" viewBox="0 0 10 12"><path d="M5 0L10 2V6Q10 10 5 12Q0 10 0 6V2Z" fill="#8fb4ff"/></svg>Tank</div><div class="opt"><b style="color:#4ade80;font-size:15px">+</b>Healer</div><div class="opt"><b style="color:#f0883a;font-size:14px">/</b>DPS</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+            <div class="it"><div class="lab"><b>CLASS</b><span>Guns and gear. Full health.</span></div>
+              <div class="row r4" style="margin-bottom:5px"><div class="opt sel"><i style="background:#4ade80"></i>Soldier</div><div class="opt"><i style="background:#f0883a"></i>Elementalist</div><div class="opt"><i style="background:#47d6e8"></i>Summoner</div><div class="opt"><i style="background:#dfe8ff"></i>Knight</div></div>
+              <div class="row r4"><div class="opt"><i style="background:#ef4d52"></i>Ninja</div><div class="opt"><i style="background:#ef4d52"></i>Hemomancer</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+            <div class="it" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div><div class="lab"><b>WEAPON</b></div><div class="row r2" style="margin-bottom:5px"><div class="opt sel">Scattergun</div><div class="opt">Flak Cannon</div></div><div class="row r2"><div class="opt">Riot Repeater</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+              <div><div class="lab"><b>ABILITY</b></div><div class="row r2" style="margin-bottom:5px"><div class="opt sel">Barrier</div><div class="opt">Roar</div></div><div class="row r2"><div class="opt">Bulldoze</div><div class="opt lock"><svg class="lk"><use href="#lock"/></svg>Locked</div></div></div>
+            </div>
+            <div class="it asc"><b>SCATTERGUN<em>ASCENSIONS 0/3</em></b><div class="chip">Ascension I<em>Locked</em></div><span class="arr">&#8250;</span><div class="chip">Ascension II<em>Locked</em></div><span class="arr">&#8250;</span><div class="chip">Ascension III<em>Locked</em></div></div>
+            <div class="it detail">
+              <div class="col"><small>WEAPON</small><h4>Scattergun</h4><p>A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back.</p>
+                <div class="chips"><div class="cs"><b>7</b>PER HIT</div><div class="cs"><b>2</b>SHOTS / S</div></div></div>
+              <div class="col"><small>ABILITY</small><h4>Barrier</h4><p>A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage).</p><p class="m">&#9733; Mastered (Lv 5): Bullets that hit the barrier are reflected back as your own.</p>
+                <div class="chips"><div class="cs"><span class="ring"></span><b>12 s</b>COOLDOWN</div></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -203,8 +232,8 @@ svg.lk { width: 9px; height: 10px; fill: none; stroke: currentColor; stroke-widt
 
   <div class="cap">
     <div><b>1. Press New run</b>The button lights, the "No saved runs" text clears and the green console flares. The title, panel frame and player card slide away.</div>
-    <div><b>2. Console opens</b>The console grows from its own edges to the full lobby window, with OPENING LOBBY typed in the middle. A bright scanline sweeps down it as it settles.</div>
-    <div><b>3. CRT lobby</b>The lobby fades in section by section on the CRT background, then the blue frame closes around it. The roll bar and flicker keep running. About 2.4 s in total.</div>
+    <div><b>2. Console opens</b>The console grows from its own edges to the full screen, with OPENING LOBBY typed in the middle. A bright scanline sweeps down it as it settles.</div>
+    <div><b>3. CRT lobby</b>The lobby fades in piece by piece on the CRT background: title and modes, party, buttons, then the loadout panel and its sections. The roll bar and flicker keep running. About 2.4 s in total.</div>
     <div><b>Reduced effects</b>The menu crossfades to the lobby. The roll bar and flicker are off.</div>
   </div>
 </div>
@@ -221,8 +250,8 @@ function later(fn,t){ timers.push(setTimeout(fn,t*K*1000)); }
 function type(el,txt,t,per){ for(let i=1;i<=txt.length;i++) later(function(){el.textContent=txt.slice(0,i)}, t+i*per); }
 function reset(){ anims.forEach(function(a){a.cancel()}); anims=[]; timers.forEach(clearTimeout); timers=[]; $('o1').textContent=''; running=false; inLobby=false; $('state').textContent='MENU'; $('play').textContent='Press New run'; }
 function done(){ running=false; inLobby=true; $('state').textContent='LOBBY'; $('play').textContent='Back to menu'; }
-var items=document.querySelectorAll('.it');
-var CLIP0='inset(130px 182px 148px 182px round 3px)', CLIP1='inset(0px 0px 0px 0px round 0px)';
+var items=document.querySelectorAll('#win .it');
+var CLIP0='inset(166px 272px 184px 272px round 3px)', CLIP1='inset(0px 0px 0px 0px round 0px)';
 function run(){
   /* press */
   an($('newrun'),[{filter:'brightness(1)'},{filter:'brightness(1.7)',offset:.4},{filter:'brightness(1.2)'}],0,.3);
@@ -237,14 +266,13 @@ function run(){
   an($('win'),[{opacity:1,filter:'brightness(2.1)',clipPath:CLIP0},{opacity:1,filter:'brightness(1)',clipPath:CLIP1}],.4,.8,'cubic-bezier(.65,0,.25,1)');
   an($('opening'),[{opacity:0,offset:0},{opacity:1,offset:.1},{opacity:1,offset:.78},{opacity:0,offset:1}],.5,.7);
   type($('o1'),'OPENING LOBBY',.5,.03);
-  an($('wsweep'),[{opacity:1,transform:'translateY(-90px)',offset:0},{opacity:1,transform:'translateY(468px)',offset:.92},{opacity:0,transform:'translateY(500px)',offset:1}],1.05,1.0);
-  an($('winframe'),[{opacity:0},{opacity:1}],1.15,.4);
-  items.forEach(function(it,i){ an(it,[{opacity:0,transform:'translateY(6px)',offset:0},{opacity:.9,offset:.2},{opacity:.3,offset:.34},{opacity:1,offset:.5},{opacity:.7,offset:.62},{opacity:1,transform:'none',offset:1}],1.05+i*.13,.4); });
-  later(done,2.4);
+  an($('wsweep'),[{opacity:1,transform:'translateY(-100px)',offset:0},{opacity:1,transform:'translateY(540px)',offset:.92},{opacity:0,transform:'translateY(570px)',offset:1}],1.05,1.0);
+  items.forEach(function(it,i){ an(it,[{opacity:0,transform:'translateY(6px)',offset:0},{opacity:.9,offset:.2},{opacity:.3,offset:.34},{opacity:1,offset:.5},{opacity:.7,offset:.62},{opacity:1,transform:'none',offset:1}],1.05+i*.08,.4); });
+  later(done,2.5);
 }
 function runReduced(){
   ['sign','card','pcard','console'].forEach(function(id){ an($(id),[{opacity:1},{opacity:0}],0,.3); });
-  an($('win'),[{opacity:0},{opacity:1}],0,.3); an($('winframe'),[{opacity:0},{opacity:1}],0,.3);
+  an($('win'),[{opacity:0},{opacity:1}],0,.3);
   items.forEach(function(it){ an(it,[{opacity:0},{opacity:1}],.1,.3); });
   later(done,.4);
 }
