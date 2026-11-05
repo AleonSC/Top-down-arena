@@ -158,6 +158,7 @@ namespace Arena
             Resumed = resumed;
             botTouched = Bot;
             runRecorded = false;
+            ResetTimeline();  // RunTimeline.cs
             LastGain = null;
             runLastBossWave = 0;
             if (IsHost)
@@ -304,6 +305,13 @@ namespace Arena
                     AddUnlockToasts(Profile.RunEnded(won, wave, score, endless, Mods, me.Role, me.Kit, me.Run, time));
                     int wavesCleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
                     LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), wave, won ? 1 : 0);
+                    var logged = Profile.Recent[0];  // (the run just added by AwardXp)
+                    logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
+                    logged.Mode = Endless ? "Endless" : "Campaign";
+                    logged.Seconds = time;
+                    logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
+                    logged.Players = Players.Count;
+                    logged.File = FinishTimeline(won, wave, Endless, time, logged.Class, logged.Mods);  // RunTimeline.cs
                     SaveProfile();
                     return;
                 }

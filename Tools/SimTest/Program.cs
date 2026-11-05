@@ -306,6 +306,7 @@ static partial class Program
         Test("eclipse", "the Eclipse's five stages and Totality", () => EclipseTest(Dt)),
         Test("variety", "the new late enemies, elite traits and squads", () => VarietyTest(Dt)),
         Test("devourer", "the Devourer's three stages and last meal", () => DevourerTest(Dt)),
+        Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("saves", "saved runs (continuing them, in co-op) and the profile", () => SavesTest(Dt), () => ProfileTest(Dt)),
         Test("colossus", "the Colossus's three stages, stomp rings, plates and last stand", () => ColossusTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),

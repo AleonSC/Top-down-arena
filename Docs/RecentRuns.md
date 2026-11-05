@@ -1,6 +1,6 @@
 # Recent runs (Records tab with graphs)
 
-Status: **plan, nothing built.** Mockup: [`Mockups/recent-runs.html`](Mockups/recent-runs.html)
+Status: **phase 1 built (Nov 2026, protocol unchanged, 167)**; phases 2 to 4 are still plans. Mockup: [`Mockups/recent-runs.html`](Mockups/recent-runs.html)
 (https://claude.ai/artifact/UE1ttduAmFgTuTaE7ZLeGr). Protocol version when written: 167.
 
 A fifth Records row, **Recent runs**: a strip of your last runs, and for the one you pick, stat tiles and graphs of
@@ -120,3 +120,18 @@ Each phase ships on its own (code, tests, README, commit, push). Phase 1 is the 
 4. Which charts matter most? The proposal for phase 1 is damage per second, health over time, accuracy per wave
    and the trend; everything in Tier 2 waits on your answer.
 5. Is the extra damage-source accounting in `Combat.cs` worth a protocol bump now, or only after phase 1 is tried?
+
+## Phase 1 as built
+
+- `Core/RunTimeline.cs`, `Game/RunGraphs.cs`; test suite `Tools/SimTest/run.sh 1 30 recentruns`
+  (`Tests/RecentRuns.cs`); preview `SECTION=4 [RTAB=1] [RSEL=n] [MOUSE=x,y] Tools/Preview/shot.sh x records`.
+- The page: run strip (four cards, arrows for the rest), six tiles, **Overview** (damage per second with team line,
+  health per player, accuracy per wave) and **Trends** (wave reached and damage dealt by run, click to open one).
+- Kept 20 runs (`Profile.RecentKept`, was 6); the Rank page still lists the newest 6 (`Profile.RankPageRuns`).
+- `rlog` lines grew five-plus fields at the end (class, mode, seconds, dealt, taken, healing, players, file); older
+  lines load with blanks, and older builds ignore the extra fields.
+- Left out for now (decided without waiting for the answers above, easy to change): hunts and challenge rooms have no
+  graphs; a client's and a host's profile each keep the whole party's lines; no player filter on the charts; "kept"
+  means 20 runs, oldest files deleted. Not tried in Unity: line thickness, the hover tooltip, the strip's arrow
+  buttons, and how it looks with the window-open animation. The preview does not draw panel fills, so the real
+  panel background is missing from the screenshots.

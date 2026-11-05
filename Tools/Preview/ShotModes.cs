@@ -313,7 +313,9 @@ static partial class Shot {
       GL.ToUi = true;
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
-      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("howToTopic", sec); set("panelKey", (mode == "howto" ? "howto" : mode) + sec); set("panelAt", -10f); }
+      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("howToTopic", sec); set("panelKey", mode == "records" ? "profile2_" + sec : (mode == "howto" ? "howto" : mode) + sec); set("panelAt", -10f); }
+      if (Environment.GetEnvironmentVariable("RTAB") != null) set("recentTab", int.Parse(Environment.GetEnvironmentVariable("RTAB")));  // Recent runs: 0 Overview, 1 Trends (SECTION=4 opens the page)
+      if (Environment.GetEnvironmentVariable("RSEL") != null) set("recentSel", int.Parse(Environment.GetEnvironmentVariable("RSEL")));
       set("drawerKey", mode == "howto" ? "howto" : (mode == "records" || mode == "cosmetics" || mode == "profile") ? "profile" : mode);
       // The profile (ProfileUi.cs): records opens its Records tab, cosmetics the Look tab, profile the tab in TAB (0 Look, 1 Rank, 2 Records, 3 Unlocks; default Look).
       if (mode == "records") set("profileTab", 2); else if (mode == "cosmetics") set("profileTab", 0); else if (mode == "profile") set("profileTab", Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 0); set("drawerAt", -10f);

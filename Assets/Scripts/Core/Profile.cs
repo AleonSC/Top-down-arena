@@ -19,6 +19,10 @@ namespace Arena
     {
         public int Wave, Result, Xp, MultPct;   // Result: 0 lost, 1 won, 2 hunt lost, 3 hunt won
         public string Mods = "";               // modifier names, '|' between
+        // Recent runs (RecentRuns.md): what the strip shows. Older log lines have none of these.
+        public string Class = "", Mode = "", File = "";  // File: the run's curve in Folder/runs (RunTimeline.cs), "" if none was kept
+        public float Seconds, Dealt, Taken, Heal;
+        public int Players;
     }
 
     public static class Unlocks
@@ -80,7 +84,8 @@ namespace Arena
         public long Xp;
         public string Frame = "", Trail = "", Background = "", CardBg = "", NameFx = "", AimLine = "", Cursor = "";
         public readonly List<RankLog> Recent = new List<RankLog>();
-        public const int RecentKept = 6;
+        public const int RecentKept = 20;  // (the Rank page lists the newest RankPageRuns)
+        public const int RankPageRuns = 6;
 
         // The main menu's "your profile" nudge beside the player card: shown until the profile has been opened once, for at most HintMaxLaunches launches.
         public int HintLaunches;
@@ -263,7 +268,7 @@ namespace Arena
             if (HintLaunches > 0 || ProfileOpened) RunSave.Line(sb, "hint", HintLaunches + " " + (ProfileOpened ? 1 : 0));
             RunSave.Line(sb, "xp", Xp);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine) + " " + Dash(Cursor));
-            foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')));
+            foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')) + " " + Dash(l.Class.Replace(' ', '_')) + " " + Dash(l.Mode) + " " + RunSave.F(l.Seconds) + " " + RunSave.F(l.Dealt) + " " + RunSave.F(l.Taken) + " " + RunSave.F(l.Heal) + " " + l.Players + " " + Dash(l.File));
             RunSave.Line(sb, "end", 1);
             return sb.ToString();
         }
@@ -314,7 +319,16 @@ namespace Arena
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); if (f.Length > 6) p.Cursor = UnDash(f[6]); break;
                         case "rlog":
                             if (p.Recent.Count < RecentKept)
-                                p.Recent.Add(new RankLog { Wave = RunSave.I(f[0]), Result = RunSave.I(f[1]), Xp = RunSave.I(f[2]), MultPct = RunSave.I(f[3]), Mods = f.Length > 4 ? UnDash(f[4]).Replace('_', ' ') : "" });
+                            {
+                                var log = new RankLog { Wave = RunSave.I(f[0]), Result = RunSave.I(f[1]), Xp = RunSave.I(f[2]), MultPct = RunSave.I(f[3]), Mods = f.Length > 4 ? UnDash(f[4]).Replace('_', ' ') : "" };
+                                if (f.Length > 11)  // (the Recent runs fields; older lines stop after the modifiers)
+                                {
+                                    log.Class = UnDash(f[5]).Replace('_', ' '); log.Mode = UnDash(f[6]); log.Seconds = RunSave.Fl(f[7]);
+                                    log.Dealt = RunSave.Fl(f[8]); log.Taken = RunSave.Fl(f[9]); log.Heal = RunSave.Fl(f[10]); log.Players = RunSave.I(f[11]);
+                                    log.File = f.Length > 12 ? UnDash(f[12]) : "";
+                                }
+                                p.Recent.Add(log);
+                            }
                             break;
                     }
                 }
