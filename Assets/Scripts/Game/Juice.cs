@@ -230,7 +230,7 @@ namespace Arena
                     FragBurst(fx);  // a grenade's shards and smoke (SoldierLooks.cs)
                 else if (IsFlakBoom(fx))
                     FlakBurstParts(fx);  // a Flak airburst's shrapnel and smoke (TankGunLooks.cs)
-                else
+                else if (!IsLeapBoom(fx))  // (the Leap Slam's landing draws its own: LeapSlamLook.cs)
                     Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
                 if (fx.Radius >= 80f)
                 {
@@ -730,7 +730,7 @@ namespace Arena
                     GlowDisc(p.Pos, p.Size * (1.6f - f), p.Kind == PFlash ? Rgba.White : p.Col, 0.5f * f);
             }
             foreach (var fx in game.Effects)
-                if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx))
+                if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx) && !IsLeapBoom(fx))
                 {
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
                     GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) || IsFlakBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));

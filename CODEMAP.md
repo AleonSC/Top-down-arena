@@ -102,6 +102,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
 - `EnemyPresenceLook.cs`: regular enemies' soft shadow and quiet colour glow with Visual effects on (look D of `Docs/Mockups/enemy-prominence.html`)
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
+- `LeapSlamLook.cs` (Game): the Knight's Leap Slam with Visual effects on (look C, Bulwark: the leap swells and lifts the knight, a closing hex landing marker, hex pressure rings, plates and sparks, a hex rune, a hex cage with a draining ring on each stunned enemy; `FxKind.LeapSlam`)
 - `ShadowStepLook.cs` (Game): the Ninja's Shadow Step with Visual effects on (smoke bursts, splits round the enemy's sides behind two eyes, re-forms behind it; `FxKind.ShadowStep`, hides the body while it travels)
 - `AirTrailLooks.cs`: the air trail with Visual effects on (look A, Ribbons): two fading streamlines behind any player, enemy or minion, scaled by drawn speed (none under 110 px/s, full at 330)
 - `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on

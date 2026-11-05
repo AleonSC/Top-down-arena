@@ -43,7 +43,9 @@ namespace Arena
     {
         readonly List<Swing> pendingSwings = new List<Swing>();
 
-        const float LeapRange = 320f, LeapTime = 0.45f, SlamRadius = 130f, SlamDamage = 50f;
+        const float LeapRange = 320f, SlamRadius = 130f, SlamDamage = 50f;
+        public const float LeapTime = 0.45f, LeapFxTail = 0.5f;  // the leap's length, and how long its look outlasts the stun (Game/LeapSlamLook.cs)
+        public static readonly Rgba LeapBoomColor = new Rgba(0.6f, 0.78f, 1f);  // the landing's Boom: the Bulwark look draws its own impact
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
@@ -771,6 +773,8 @@ namespace Arena
                     p.InvulnT = Math.Max(p.InvulnT, LeapTime + 0.1f);
                     slams.Add(new Slam { Owner = p.Id, Pos = target, T = LeapTime, Power = pw, Mastered = cap,
                         Radius = SlamRadius * s.SlamRadiusMult, Stun = 1f + s.SlamStunBonus });
+                    // The Bulwark look (Game/LeapSlamLook.cs) covers the whole leap, landing and stun from this one effect.
+                    BroadcastFx(FxKind.LeapSlam, p.Pos, target, LeapBoomColor.WithAlpha(cap ? 1f : 0.5f), p.Id * 1000f + SlamRadius * s.SlamRadiusMult, LeapTime + LeapFxTail + 1f + s.SlamStunBonus, Sfx.None);
                     return true;
                 case AbilityId.Unbreakable:
                     p.UnbreakT = cap ? 8f : 5f;
@@ -979,7 +983,7 @@ namespace Arena
                 }
                 if (sl.Mastered)
                     EraseEnemyBullets(sl.Pos, 160f);
-                BroadcastFx(FxKind.Boom, sl.Pos, new Rgba(0.85f, 0.8f, 0.65f), sl.Radius, 0.4f, Sfx.Explode);
+                BroadcastFx(FxKind.Boom, sl.Pos, LeapBoomColor, sl.Radius, 0.4f, Sfx.Explode);
             }
         }
 

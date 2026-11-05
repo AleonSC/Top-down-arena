@@ -426,7 +426,7 @@ namespace Arena
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
-            if (e.Frozen)
+            if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)
             {
                 if (fxOn)
                     DrawIceBlockFacets(e, pos, r, t);  // FrostNovaLook.cs
@@ -664,7 +664,7 @@ namespace Arena
         /// adds a reticle; icons above it say which ones (see DrawStatusIcons). Returns the tinted colour.
         Rgba DrawEnemyStatus(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            if (e.Frozen)
+            if (e.Frozen && !LeapCaged(e))
                 col = col.Mix(new Rgba(0.75f, 0.92f, 1f), 0.85f);  // frosted almost white-blue
             else if (e.Chilled)
                 col = col.Mix(IceColor, 0.35f);
@@ -899,13 +899,14 @@ namespace Arena
         /// slowed, flame = burning, blood drop = bleeding, green bubbles = poisoned, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
-            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0);
+            bool iced = e.Frozen && !LeapCaged(e);
+            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
             float x = center.X - (n - 1) * step / 2f;
             var bg = new Rgba(0f, 0f, 0f, 0.55f);
-            if (e.Frozen)
+            if (iced)
             {
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);

@@ -241,6 +241,26 @@ static partial class Shot {
       me.Pos = me.Disp = land; me.Aim = 0f; me.AimAt = foe;
       gm.Effects.Add(new Effect { Kind = FxKind.ShadowStep, Pos = from, Pos2 = land, Color = new Rgba(0.72f, 0.58f, 1f), Radius = me.Id * 1000f + er, Dur = Game.ShadowStepFxTime, T = float.Parse(Environment.GetEnvironmentVariable("SHADOWSTEP")) });
     }
+    if (Environment.GetEnvironmentVariable("LEAPSLAM") != null) {
+      // A Tank Knight's Leap Slam look (LeapSlamLook.cs): LEAPSLAM=<seconds after the press> (the leap is 0.45 s, the stun 1 s after it), LEAPMASTERED=1 for the capstone ring. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank);
+      float lt = float.Parse(Environment.GetEnvironmentVariable("LEAPSLAM"));
+      V2 from = new V2(520f, 620f), land = new V2(860f, 400f);
+      float f = System.Math.Min(1f, lt / Game.LeapTime);
+      me.Pos = me.Disp = from + (land - from) * f; me.Aim = -0.57f; me.AimAt = land;
+      gm.Effects.Add(new Effect { Kind = FxKind.LeapSlam, Pos = from, Pos2 = land, Color = Game.LeapBoomColor.WithAlpha(Environment.GetEnvironmentVariable("LEAPMASTERED") != null ? 1f : 0.5f), Radius = me.Id * 1000f + 130f, Dur = Game.LeapTime + Game.LeapFxTail + 1f, T = lt });
+      float[,] spots = { { 0.3f, 60f }, { 1.3f, 90f }, { 2.2f, 112f }, { 3.2f, 75f }, { 4.2f, 108f }, { 5.3f, 50f }, { 0.9f, 190f }, { 3.8f, 215f } };
+      for (int i = 0; i < 8; i++) {
+        V2 at = land + V2.FromAngle(spots[i, 0]) * spots[i, 1];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 2 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at;
+        bool stunned = lt >= Game.LeapTime && spots[i, 1] < 150f;
+        en.FrozenT = stunned ? 99f : 0f; en.Frozen = stunned;
+      }
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
