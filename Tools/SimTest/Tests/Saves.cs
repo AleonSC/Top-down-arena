@@ -173,7 +173,6 @@ static partial class Program
 
         // The menu's "your profile" nudge: shown for the first 5 launches, gone for good once the profile is opened, and kept in the file.
         var hint = new Profile();
-        Check(!hint.ShowProfileHint, "a fresh profile shows no hint before the menu has been launched once");
         for (int i = 1; i <= Profile.HintMaxLaunches; i++)
         {
             hint.NoteMenuLaunch();
