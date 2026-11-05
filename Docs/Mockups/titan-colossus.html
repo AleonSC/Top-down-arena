@@ -1,0 +1,489 @@
+<title>Titan Colossus Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ability stage (canvas, look / size toggles, replay / pause / slow-mo / scrubber), a beat-by-beat timeline and numbers card,
+   then an artefact sheet: every visual piece the ability needs (icon, three sprite poses, summon sigil, slam decal, debris, scar, HUD, scale).
+   Colour: stone amber for UI accents (the game's own Titan colour is .8, .7, .45); each look re-tints the titan itself. */
+:root{
+  --bg:#ecebe6; --fg:#211f1a; --muted:#645f55; --panel:#f8f6f1; --line:#d3cfc4;
+  --stone:#9a6f12; --chip:#e1ded4; --chip-on:#211f1a; --chip-on-fg:#f4f2ec; --arena:#14130f; --sheet:#1b1914;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#100f0c; --fg:#ebe8df; --muted:#9a9487; --panel:#191712; --line:#2e2b23; --stone:#e8b94e;
+  --chip:#26231c; --chip-on:#ebe8df; --chip-on-fg:#100f0c; --arena:#0c0b09; --sheet:#0c0b09; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#100f0c; --fg:#ebe8df; --muted:#9a9487; --panel:#191712; --line:#2e2b23; --stone:#e8b94e;
+  --chip:#26231c; --chip-on:#ebe8df; --chip-on-fg:#100f0c; --arena:#0c0b09; --sheet:#0c0b09; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(36px,7vw,60px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+.kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--stone);margin:0 0 8px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto}
+#cv{aspect-ratio:720/460}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grp>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+.scrub{display:flex;align-items:center;gap:10px;flex:1 1 220px;min-width:0}
+.scrub input{flex:1;min-width:0;accent-color:var(--stone)}
+.scrub output{font:500 13px var(--mono);min-width:5.5em;text-align:right;color:var(--muted)}
+.look-note{margin:0;max-width:72ch;color:var(--muted);min-height:3.2em}
+.look-note b{color:var(--fg)}
+.cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
+.card h2,.sheet h2{font:700 24px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;margin:0 0 12px}
+.beats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.beats li{display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:10px}
+.beats time{font:500 13px var(--mono);color:var(--stone);padding-top:2px}
+.beats em{font-style:normal;color:var(--muted)}
+dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px}
+dt{color:var(--muted)} dd{margin:0;font:500 14px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.ask{margin:14px 0 0;color:var(--muted);font-size:15px}
+.sheet>p{margin:0 0 16px;max-width:70ch;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.art{display:flex;flex-direction:column;gap:8px;min-width:0}
+.art.wide{grid-column:span 2}
+@media (max-width:520px){.art.wide{grid-column:span 1}}
+.art .pic{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--sheet)}
+.art h3{font:600 15px/1.2 var(--body);margin:0}
+.art p{margin:0;font-size:13px;color:var(--muted)}
+.art code{font:500 12px var(--mono);color:var(--stone)}
+</style>
+
+<main>
+<header>
+  <p class="kicker">Tank · Summoner · Ultimate</p>
+  <h1>Titan: Colossus</h1>
+  <p>Today's Titan is a 32 px stone minion that slams in a plain ring. This version calls up a colossus more than four times as wide. Rubble flies in from the ground and stacks into a titan, it stomps after the nearest enemy, winds up before every slam, and its body walls off every bullet. When the time runs out it falls apart into a rubble pile.</p>
+</header>
+
+<section class="stage" aria-label="Titan stage">
+  <div class="frame"><canvas id="cv" width="1440" height="920" aria-label="Animation: rubble gathers into a huge stone titan that slams enemies and blocks bullets, then crumbles"></canvas></div>
+  <div class="controls">
+    <div class="grp"><span>Look</span>
+      <div class="seg" role="radiogroup" aria-label="Look">
+        <input type="radio" name="look" id="lkA" value="A" checked><label for="lkA">A · Granite</label>
+        <input type="radio" name="look" id="lkB" value="B"><label for="lkB">B · Basalt ember</label>
+        <input type="radio" name="look" id="lkC" value="C"><label for="lkC">C · Runestone</label>
+      </div></div>
+    <div class="grp"><span>Size</span>
+      <div class="seg" role="radiogroup" aria-label="Size">
+        <input type="radio" name="size" id="sz1" value="1" checked><label for="sz1">Standard · 15 s</label>
+        <input type="radio" name="size" id="sz2" value="1.3"><label for="sz2">Capstone · 25 s</label>
+      </div></div>
+  </div>
+  <div class="controls">
+    <button id="replay" type="button">Replay</button>
+    <button id="pause" type="button" aria-pressed="false">Pause</button>
+    <button id="slow" type="button" aria-pressed="false">Slow-mo</button>
+    <div class="scrub"><input type="range" id="scrub" min="-1" max="16" step="0.1" value="-1" aria-label="Scrub through the ability"><output id="scrubOut" for="scrub">-1.0 s</output></div>
+  </div>
+  <p class="look-note" id="note"></p>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>Beat by beat</h2>
+    <ol class="beats">
+      <li><time>0.0 s</time><span>Cast. A rune circle burns into the ground 60 px ahead of you. Twelve chunks of stone lift off the arena floor around its rim. <em>(Today: a small hexagon pops in with a ring.)</em></span></li>
+      <li><time>0.0 – 1.4 s</time><span>The chunks spiral in and stack into legs, torso, shoulders and a head. Dust rolls out. Bullets that cross the circle early still hit the ground, not the titan.</span></li>
+      <li><time>1.4 s</time><span>Stands up. A thud, a short screen shake, and a dust ring knocks small enemies back. It now blocks bullets with its whole body.</span></li>
+      <li><time>1.8 s on</time><span>Chases the nearest enemy at a walking pace. Both fists rise in a 0.4 s wind-up before each slam, so players can see the hit coming and keep enemies where it will land.</span></li>
+      <li><time>every 1.4 s</time><span>Slam: a shockwave ring, cracks that stay on the floor for a few seconds, flying debris, and 90 damage to everything in reach with a short shove outward.</span></li>
+      <li><time>last 1.2 s</time><span>Eyes flicker, the body shakes, and the titan falls apart. The chunks burst outward, settle as a rubble pile, and fade after 3 s.</span></li>
+    </ol>
+    <p class="ask">Pick a look (A, B or C). Say if the wind-up before each slam is a fair trade for the bigger hit, and if the colossus is too big for the arena.</p>
+  </section>
+  <section class="card">
+    <h2>Numbers</h2>
+    <dl>
+      <dt>Body radius</dt><dd>140 px (was 32)</dd>
+      <dt>Capstone</dt><dd>182 px (×1.3)</dd>
+      <dt>Duration</dt><dd>15 s (capstone 25 s)</dd>
+      <dt>Cooldown</dt><dd>80 s (same)</dd>
+      <dt>Speed</dt><dd>75 px/s (was 110)</dd>
+      <dt>Slam damage</dt><dd>90 (was 70)</dd>
+      <dt>Slam interval</dt><dd>1.4 s (was 1.1)</dd>
+      <dt>Slam reach</dt><dd>190 px (was 100)</dd>
+      <dt>Wind-up</dt><dd>0.4 s, new</dd>
+      <dt>Knock-back</dt><dd>60 px; bosses none</dd>
+      <dt>Bullet block</dt><dd>whole body, 140 px</dd>
+      <dt>Soak</dt><dd>1000 (capstone ×1.3)</dd>
+      <dt>Rise time</dt><dd>1.4 s, not hit-able</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="sheet" aria-label="Artefacts">
+  <h2>Artefacts</h2>
+  <p>Everything the ability needs drawn, in the selected look. The sprites use the same drawing as the stage. The sizes beside each one are what I would build in game pixels.</p>
+  <div class="grid" id="art"></div>
+</section>
+</main>
+
+<script>
+(function(){
+var cv=document.getElementById('cv'),c=cv.getContext('2d');
+var W=720,H=460,CX=W/2,CY=H/2,TAU=Math.PI*2,SC=.5,PW=.4,INT=1.4,RISE=1.4,CRUM=1.2;
+c.scale(2,2);
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,k){return a+(b-a)*k}
+function ease(k){return 1-Math.pow(1-k,3)}
+function rgba(a,al){return 'rgba('+a[0]+','+a[1]+','+a[2]+','+clamp(al,0,1).toFixed(3)+')'}
+function hash(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function mix(a,b,k){return [lerp(a[0],b[0],k)|0,lerp(a[1],b[1],k)|0,lerp(a[2],b[2],k)|0]}
+function glow(x,y,r,c0,c1){var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,c0);g.addColorStop(1,c1);c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill()}
+function arcs(x,y,r,a0,a1,col,w){c.lineWidth=w;c.strokeStyle=col;c.beginPath();c.arc(x,y,r,a0,a1);c.stroke()}
+function on(ctx,fn){var o=c;c=ctx;try{fn()}finally{c=o}}
+
+/* ---- looks: stone colours and the glow that shows through the cracks ---- */
+var PAL={
+ A:{base:[140,136,126],lite:[192,186,170],dark:[74,72,66],glow:[255,214,120],moss:[98,132,80],rune:.5},
+ B:{base:[78,68,66],lite:[122,108,100],dark:[36,32,32],glow:[255,128,52],moss:null,rune:1},
+ C:{base:[112,128,140],lite:[168,188,202],dark:[54,66,78],glow:[110,226,255],moss:null,rune:1}
+};
+var look='A',P=PAL.A;
+
+/* ---- stone drawing ---- */
+function blobPath(r,seed,n,jit){c.beginPath();for(var k=0;k<n;k++){var a=k/n*TAU,rr=r*(1-jit+hash(seed+k*3.1)*jit*2);k?c.lineTo(Math.cos(a)*rr,Math.sin(a)*rr):c.moveTo(Math.cos(a)*rr,Math.sin(a)*rr)}c.closePath()}
+function stone(x,y,r,seed,n,o){
+  o=o||{};c.save();c.translate(x,y);c.rotate(hash(seed)*TAU);
+  blobPath(r,seed,n||7,.14);
+  var g=c.createRadialGradient(-r*.35,-r*.4,r*.1,0,0,r*1.15);g.addColorStop(0,rgba(P.lite,1));g.addColorStop(.55,rgba(P.base,1));g.addColorStop(1,rgba(P.dark,1));
+  c.fillStyle=g;c.fill();c.lineWidth=Math.max(1,r*.07);c.strokeStyle=rgba(P.dark,.95);c.stroke();
+  c.save();blobPath(r,seed,n||7,.14);c.clip();
+  c.lineWidth=Math.max(.8,r*.035);c.strokeStyle=rgba(P.lite,.35);
+  for(var k=0;k<3;k++){var a=hash(seed+k*9)*TAU;c.beginPath();c.moveTo(Math.cos(a)*r*.2,Math.sin(a)*r*.2);c.lineTo(Math.cos(a+.5)*r*1.1,Math.sin(a+.5)*r*1.1);c.stroke()}
+  c.strokeStyle=rgba(P.dark,.5);c.beginPath();c.moveTo(-r*.7,r*.25);c.lineTo(r*.1,r*.5);c.lineTo(r*.6,r*.2);c.stroke();
+  if(P.moss&&!o.nomoss){c.fillStyle=rgba(P.moss,.55);for(k=0;k<3;k++){c.beginPath();c.ellipse((hash(seed+k)-.5)*r*1.2,(hash(seed+k+5)-.3)*r*.9,r*.22,r*.12,hash(seed+k+2)*3,0,TAU);c.fill()}}
+  if(o.glow>0){c.lineWidth=Math.max(1.2,r*.05);c.lineCap='round';c.strokeStyle=rgba(P.glow,.9*o.glow);c.shadowColor=rgba(P.glow,1);c.shadowBlur=r*.35*o.glow;
+    c.beginPath();c.moveTo(-r*.6,-r*.1);c.lineTo(-r*.15,r*.1);c.lineTo(r*.1,-r*.3);c.lineTo(r*.55,-r*.05);c.stroke();c.shadowBlur=0}
+  c.restore();c.restore()}
+function ringRune(r,a,col,w,v){c.save();c.rotate(a);c.lineWidth=w;c.lineCap='round';c.strokeStyle=col;v=(v||0)%5;c.beginPath();
+  if(v===0){c.moveTo(0,-r*.5);c.lineTo(0,r*.5);c.moveTo(-r*.35,-r*.2);c.lineTo(r*.35,-r*.2)}
+  else if(v===1){c.moveTo(-r*.35,-r*.5);c.lineTo(r*.35,0);c.lineTo(-r*.35,r*.5)}
+  else if(v===2){c.moveTo(-r*.35,r*.5);c.lineTo(0,-r*.5);c.lineTo(r*.35,r*.5);c.moveTo(-r*.2,r*.1);c.lineTo(r*.2,r*.1)}
+  else if(v===3){c.arc(0,0,r*.35,0,TAU);c.moveTo(0,-r*.55);c.lineTo(0,r*.55)}
+  else{c.moveTo(-r*.35,-r*.4);c.lineTo(r*.35,-r*.4);c.moveTo(0,-r*.4);c.lineTo(0,r*.5);c.moveTo(-r*.3,r*.5);c.lineTo(r*.3,r*.5)}
+  c.stroke();c.restore()}
+
+/* ---- the titan, top down, facing +x. s=1 is a 74 px footprint (140 game px at the stage's 0.5 scale). o: step, slam 0..1, glow 0..1, alpha, tint ---- */
+function titan(x,y,s,ang,o){
+  var wk=Math.sin(o.step||0),sl=o.slam||0,gl=o.glow==null?1:o.glow,al=o.alpha==null?1:o.alpha;
+  var reach,lift;if(sl<.5){reach=lift=ease(sl/.5)}else{reach=1-(sl-.5)/.5*.6;lift=Math.max(0,1-(sl-.5)/.12)}
+  c.save();c.globalAlpha=al;c.translate(x,y);c.scale(s,s);
+  c.fillStyle='rgba(0,0,0,.4)';c.beginPath();c.ellipse(4,8,66,58,0,0,TAU);c.fill();
+  c.rotate(ang);
+  /* feet: two slabs that swing */
+  stone(-14+wk*10,-24,16,11,5,{nomoss:1});stone(-14-wk*10,24,16,12,5,{nomoss:1});
+  /* arms: shoulder to fist; both fists swing forward and rise on a slam */
+  for(var sd=-1;sd<=1;sd+=2){
+    var sx=-8,sy=sd*44,rx=40+wk*sd*5,ry=sd*68,ux=76,uy=sd*26,fx=lerp(rx,ux,reach),fy=lerp(ry,uy,reach),fs=1+.4*lift;
+    c.lineCap='round';c.lineWidth=19;c.strokeStyle=rgba(P.dark,1);c.beginPath();c.moveTo(sx,sy);c.lineTo(fx,fy);c.stroke();
+    c.lineWidth=13;c.strokeStyle=rgba(P.base,1);c.beginPath();c.moveTo(sx,sy);c.lineTo(fx,fy);c.stroke();
+    c.lineWidth=3;c.strokeStyle=rgba(P.lite,.5);c.beginPath();c.moveTo(sx,sy-sd*3);c.lineTo(fx,fy-sd*3);c.stroke();
+    if(lift>.05){c.fillStyle='rgba(0,0,0,'+(.32*lift).toFixed(2)+')';c.beginPath();c.ellipse(fx+12*lift,fy+12*lift,21*fs,17*fs,0,0,TAU);c.fill()}
+    stone(fx,fy,18*fs,sd>0?21:22,6,{glow:gl*(.35+.65*lift),nomoss:1});
+  }
+  /* torso, shoulders, chest rune, head */
+  stone(-8,0,40,31,9,{glow:gl,nomoss:1});
+  stone(-8,-44,22,32,7,{glow:gl*.4});stone(-8,44,22,33,7,{glow:gl*.4});
+  c.save();c.translate(-12,0);ringRune(24,0,rgba(P.glow,(.25+.6*gl)*P.rune),2.6,3);c.restore();
+  c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(16,0,15,20,0,0,TAU);c.fill();
+  stone(24,0,17,41,6,{nomoss:1});
+  c.fillStyle=rgba(P.dark,1);c.beginPath();c.moveTo(30,-14);c.lineTo(40,-12);c.lineTo(40,12);c.lineTo(30,14);c.closePath();c.fill();
+  var ey=.55+.45*gl;
+  for(sd=-1;sd<=1;sd+=2){glow(36,sd*7,10,rgba(P.glow,.9*ey),rgba(P.glow,0));c.fillStyle=rgba(mix(P.glow,[255,255,255],.5),ey);c.beginPath();c.arc(36,sd*7,3,0,TAU);c.fill()}
+  c.restore()}
+
+/* ---- scene state ---- */
+var turrets=[[40,40],[680,40],[40,420],[680,420],[360,18],[360,442]];
+var size=1,DUR=15,speed=1,paused=false,st;
+function rnd(){st.seed=(st.seed*16807)%2147483647;return st.seed/2147483647}
+function R(){return 70*size}            /* stage radius of the body */
+function SR(){return 95*size}           /* slam reach */
+function newEnemy(){var e=Math.floor(rnd()*4),x,y;if(e===0){x=-10;y=rnd()*H}else if(e===1){x=W+10;y=rnd()*H}else if(e===2){x=rnd()*W;y=-10}else{x=rnd()*W;y=H+10}
+  return {x:x,y:y,hp:100,flash:0,r:11,ph:rnd()*TAU,kx:0,ky:0}}
+function reset(ff){
+  st={t:-1,seed:7,pl:{x:CX-150,y:CY+95,hp:.85},T:{x:CX+30,y:CY-10,ang:0,step:0,cd:0,sl:-1,gl:1,alpha:0,sc:.6,soak:1},
+    en:[],bul:[],spk:[],deb:[],dust:[],ring:[],crk:[],flo:[],chk:[],pile:[],shake:0,spawn:0,tur:0,kills:0,hits:0,blocked:0,cast:false,stood:false,crumbled:false,scarT:null};
+  for(var i=0;i<6;i++){var e=newEnemy();e.x=100+rnd()*520;e.y=40+rnd()*380;if(Math.hypot(e.x-st.T.x,e.y-st.T.y)<110){e.x+=220}st.en.push(e)}
+  if(ff!=null&&ff>st.t)while(st.t<ff)step(1/60)}
+function soakMax(){return 1000*size}
+function active(t){return t>=RISE+.4&&t<DUR-CRUM}
+function bodyUp(t){return t>=RISE&&t<DUR-CRUM}
+function spark(x,y,n,col,sp,L){for(var i=0;i<n;i++){var a=rnd()*TAU,s=(.4+rnd())*sp;st.spk.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:0,L:(L||.35)+rnd()*.3,col:col})}}
+function debris(x,y,n,sp,big){for(var i=0;i<n;i++){var a=rnd()*TAU,s=(.3+rnd())*sp;st.deb.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:(big?4:2)+rnd()*(big?6:3),rot:rnd()*TAU,vr:(rnd()-.5)*8,l:0,L:.7+rnd()*.5,seed:rnd()*99})}}
+function puff(x,y,n,sp,sz,col){for(var i=0;i<n;i++){var a=rnd()*TAU,s=(.2+rnd())*sp;st.dust.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:sz*(.6+rnd()*.6),l:0,L:.7+rnd()*.6,col:col||[150,140,120]})}}
+function cracks(x,y,rad,n){var a0=rnd()*TAU,ls=[];for(var i=0;i<n;i++){var a=a0+i/n*TAU+(rnd()-.5)*.4,L=rad*(.55+rnd()*.5),pts=[[0,0]],px=0,py=0,k;
+  for(k=1;k<=4;k++){var aa=a+(rnd()-.5)*.55;px+=Math.cos(aa)*L/4;py+=Math.sin(aa)*L/4;pts.push([px,py])}ls.push(pts)}
+  st.crk.push({x:x,y:y,ls:ls,t0:st.t,L:4.5})}
+function slam(T,t){
+  var fx=T.x+Math.cos(T.ang)*50*size,fy=T.y+Math.sin(T.ang)*50*size,sr=SR(),i;
+  st.ring.push({x:fx,y:fy,t0:t,R:sr,big:false});cracks(fx,fy,sr,9);debris(fx,fy,14,170*size,true);puff(fx,fy,10,90,16*size);st.shake=Math.max(st.shake,5);
+  for(i=0;i<st.en.length;i++){var e=st.en[i],d=Math.hypot(e.x-fx,e.y-fy);
+    if(d<sr+e.r){e.hp-=90;e.flash=.25;var a=Math.atan2(e.y-fy,e.x-fx);e.kx=Math.cos(a)*30;e.ky=Math.sin(a)*30;st.hits++;st.flo.push({x:e.x,y:e.y-16,t0:t,txt:'90'});spark(e.x,e.y,6,[255,200,120],90)}}}
+function step(dt){
+  var t=(st.t+=dt),i,j,T=st.T,pl=st.pl;
+  /* cast */
+  if(!st.cast&&t>=0){st.cast=true;st.rise0=0;
+    for(i=0;i<12;i++){var a=i/12*TAU+rnd()*.4,d=(150+rnd()*40)*size;st.chk.push({a:a,d0:d,x0:T.x+Math.cos(a)*d,y0:T.y+Math.sin(a)*d,seed:rnd()*99,r:6+rnd()*6,rot:rnd()*TAU,dly:rnd()*.4,sw:(rnd()<.5?-1:1)*(1.2+rnd())})}
+    st.ring.push({x:T.x,y:T.y,t0:0,R:120*size,big:false,rune:true});puff(T.x,T.y,8,40,10*size)}
+  if(st.cast&&!st.stood&&t>=RISE){st.stood=true;st.shake=Math.max(st.shake,8);
+    st.ring.push({x:T.x,y:T.y,t0:t,R:SR()*1.15,big:true});cracks(T.x,T.y,SR()*1.2,12);puff(T.x,T.y,18,110,20*size);debris(T.x,T.y,16,200*size,true);
+    for(i=0;i<st.en.length;i++){var e=st.en[i],d=Math.hypot(e.x-T.x,e.y-T.y);if(d<SR()*1.15&&d>0){e.kx+=(e.x-T.x)/d*40;e.ky+=(e.y-T.y)/d*40}}}
+  if(st.stood&&!st.crumbled&&t>=DUR-CRUM){st.crumbled=true}
+  if(st.crumbled&&st.scarT==null&&t>=DUR){st.scarT=t;st.shake=Math.max(st.shake,7);
+    for(i=0;i<26;i++){var ag=rnd()*TAU,dd=Math.sqrt(rnd())*R()*.95;st.pile.push({x:T.x+Math.cos(ag)*dd,y:T.y+Math.sin(ag)*dd,r:(3+rnd()*7)*size,seed:rnd()*99})}
+    puff(T.x,T.y,22,120,22*size);debris(T.x,T.y,24,230*size,true);st.ring.push({x:T.x,y:T.y,t0:t,R:SR()*.9,big:true})}
+  /* titan */
+  var rs=clamp((t-.0)/RISE,0,1);
+  if(t<RISE){T.alpha=clamp(rs*1.8-.3,0,1);T.sc=.55+.45*ease(rs);T.gl=rs*.6;T.slam=0}
+  else if(t<DUR-CRUM){T.alpha=1;T.sc=1;T.gl=1;}
+  else{var cr=clamp((t-(DUR-CRUM))/CRUM,0,1);T.alpha=1-cr*cr;T.gl=(.7+.3*Math.sin(t*40))*(1-cr);T.sc=1-.12*cr}
+  if(t>=DUR){T.alpha=0}
+  if(active(t)){
+    var tgt=null,bd=1e9;for(i=0;i<st.en.length;i++){var e2=st.en[i],d2=Math.hypot(e2.x-T.x,e2.y-T.y);if(d2<bd){bd=d2;tgt=e2}}
+    if(tgt){var ta=Math.atan2(tgt.y-T.y,tgt.x-T.x),da=Math.atan2(Math.sin(ta-T.ang),Math.cos(ta-T.ang));T.ang+=clamp(da,-2.2*dt,2.2*dt)}
+    if(T.sl>=0){T.sl+=dt;T.slam=clamp(T.sl/(PW+.25),0,1);
+      if(!T.hit&&T.sl>=PW){T.hit=true;slam(T,t)}
+      if(T.sl>=PW+.25){T.sl=-1;T.slam=0;T.hit=false;T.cd=INT}}
+    else{T.cd-=dt;
+      if(tgt&&bd<SR()+R()*.2&&T.cd<=0){T.sl=0;T.hit=false}
+      else if(tgt&&bd>SR()*.75){var sp=75*SC*size/1.3*dt*1.3;T.x+=Math.cos(T.ang)*sp;T.y+=Math.sin(T.ang)*sp;T.step+=dt*4.2}
+      T.slam=0}
+  }else if(t>=RISE&&t<DUR){T.slam=0}
+  /* summon chunks */
+  for(i=st.chk.length-1;i>=0;i--){var ch=st.chk[i],k=clamp((t-ch.dly)/(RISE-ch.dly),0,1),ek=ease(k);
+    var an=ch.a+ch.sw*(1-ek),dd=lerp(ch.d0,22*size,ek);ch.x=T.x+Math.cos(an)*dd;ch.y=T.y+Math.sin(an)*dd-Math.sin(k*Math.PI)*26;ch.k=k;
+    if(k>=1){puff(ch.x,ch.y,2,50,8);st.chk.splice(i,1)}}
+  /* enemies */
+  for(i=st.en.length-1;i>=0;i--){var e3=st.en[i];
+    if(e3.hp<=0){spark(e3.x,e3.y,10,[255,120,90],110);st.kills++;st.en[i]=newEnemy();continue}
+    var tx=pl.x,ty=pl.y,ad=Math.atan2(ty-e3.y,tx-e3.x),spd=26;
+    var dT=Math.hypot(e3.x-T.x,e3.y-T.y);if(bodyUp(t)&&dT<R()+e3.r){var pa=Math.atan2(e3.y-T.y,e3.x-T.x);e3.x=T.x+Math.cos(pa)*(R()+e3.r);e3.y=T.y+Math.sin(pa)*(R()+e3.r)}
+    e3.x+=Math.cos(ad)*spd*dt+e3.kx*dt*6;e3.y+=Math.sin(ad)*spd*dt+e3.ky*dt*6;e3.kx*=1-dt*6;e3.ky*=1-dt*6;e3.flash=Math.max(0,e3.flash-dt);
+    if(Math.hypot(e3.x-pl.x,e3.y-pl.y)<18){e3.x-=Math.cos(ad)*30;e3.y-=Math.sin(ad)*30}}
+  /* bullets */
+  st.tur-=dt;
+  if(st.tur<=0){st.tur=.28;var tu=turrets[Math.floor(rnd()*turrets.length)],an2=Math.atan2(pl.y-tu[1],pl.x-tu[0])+(rnd()-.5)*.25;st.bul.push({x:tu[0],y:tu[1],vx:Math.cos(an2)*230,vy:Math.sin(an2)*230})}
+  for(i=st.bul.length-1;i>=0;i--){var b=st.bul[i];b.x+=b.vx*dt;b.y+=b.vy*dt;var dead=false;
+    if(bodyUp(t)&&Math.hypot(b.x-T.x,b.y-T.y)<R()+3){spark(b.x,b.y,5,mix(P.glow,[255,255,255],.3),70);st.blocked++;T.soak=Math.max(0,T.soak-20/soakMax());dead=true;st.hitF={x:b.x,y:b.y,t:t}}
+    else if(Math.hypot(b.x-pl.x,b.y-pl.y)<12){spark(b.x,b.y,4,[255,120,90],60);dead=true;pl.flash=.25}
+    if(b.x<-10||b.x>W+10||b.y<-10||b.y>H+10)dead=true;
+    if(dead)st.bul.splice(i,1)}
+  /* particles */
+  for(i=st.spk.length-1;i>=0;i--){var s=st.spk[i];s.l+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;if(s.l>s.L)st.spk.splice(i,1)}
+  for(i=st.deb.length-1;i>=0;i--){var d=st.deb[i];d.l+=dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.vx*=1-dt*2.2;d.vy*=1-dt*2.2;d.rot+=d.vr*dt;if(d.l>d.L)st.deb.splice(i,1)}
+  for(i=st.dust.length-1;i>=0;i--){var u=st.dust[i];u.l+=dt;u.x+=u.vx*dt;u.y+=u.vy*dt;u.vx*=1-dt*1.5;u.vy*=1-dt*1.5;if(u.l>u.L)st.dust.splice(i,1)}
+  for(i=st.ring.length-1;i>=0;i--)if(t-st.ring[i].t0>(st.ring[i].rune?DUR:.75))st.ring.splice(i,1);
+  for(i=st.crk.length-1;i>=0;i--)if(t-st.crk[i].t0>st.crk[i].L)st.crk.splice(i,1);
+  for(i=st.flo.length-1;i>=0;i--)if(t-st.flo[i].t0>.9)st.flo.splice(i,1);
+  st.shake=Math.max(0,st.shake-dt*18);pl.flash=Math.max(0,(pl.flash||0)-dt);
+  if(st.scarT!=null&&t>st.scarT+3.2&&t>DUR+3.2){reset(null)}
+}
+
+/* ---- drawing the stage ---- */
+function ground(){
+  c.fillStyle='#14130f';c.fillRect(-20,-20,W+40,H+40);c.strokeStyle='#1f1d17';c.lineWidth=1;
+  for(var x=0;x<=W;x+=40){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,H);c.stroke()}
+  for(var y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y+.5);c.lineTo(W,y+.5);c.stroke()}}
+function sigil(x,y,r,k,t,col,al){
+  c.save();c.translate(x,y);
+  var g=c.createRadialGradient(0,0,r*.2,0,0,r);g.addColorStop(0,rgba(col,.0));g.addColorStop(1,rgba(col,.16*al));c.fillStyle=g;c.beginPath();c.arc(0,0,r,0,TAU);c.fill();
+  c.setLineDash([12,7]);c.lineDashOffset=-t*16;arcs(0,0,r,0,TAU,rgba(col,.8*al),2.5);c.lineDashOffset=t*12;arcs(0,0,r*.78,0,TAU,rgba(col,.45*al),1.6);c.setLineDash([]);
+  c.strokeStyle=rgba(col,.5*al);c.lineWidth=1.6;c.beginPath();for(var i=0;i<6;i++){var a=i/6*TAU+t*.1;i?c.lineTo(Math.cos(a)*r*.62,Math.sin(a)*r*.62):c.moveTo(Math.cos(a)*r*.62,Math.sin(a)*r*.62)}c.closePath();c.stroke();
+  for(i=0;i<12;i++){var ga=i/12*TAU-t*.14;c.save();c.translate(Math.cos(ga)*r*.9,Math.sin(ga)*r*.9);ringRune(r*.1,ga+Math.PI/2,rgba(col,.75*al),1.8,i);c.restore()}
+  c.restore()}
+function drawRing(rg,t){
+  if(rg.rune)return;var a=(t-rg.t0)/.75,rr=ease(a)*rg.R;
+  glow(rg.x,rg.y,rr,rgba(P.glow,0),rgba(P.glow,0));
+  var g=c.createRadialGradient(rg.x,rg.y,Math.max(0,rr-34),rg.x,rg.y,rr+2);g.addColorStop(0,rgba([200,185,150],0));g.addColorStop(1,rgba([220,205,170],.35*(1-a)));c.fillStyle=g;c.beginPath();c.arc(rg.x,rg.y,rr+2,0,TAU);c.fill();
+  arcs(rg.x,rg.y,rr,0,TAU,rgba([255,246,220],(1-a)*(rg.big?1:.85)),(rg.big?7:5)*(1-a)+1);
+  arcs(rg.x,rg.y,rr*.93,0,TAU,rgba(P.glow,(1-a)*.5),2)}
+function drawCracks(k,t){
+  var a=clamp(1-(t-k.t0-k.L*.45)/(k.L*.55),0,1),grow=clamp((t-k.t0)/.18,0,1);
+  c.save();c.translate(k.x,k.y);c.lineCap='round';c.lineJoin='round';
+  for(var i=0;i<k.ls.length;i++){var pts=k.ls[i],n=Math.max(2,Math.ceil(pts.length*grow));
+    c.beginPath();for(var j=0;j<n;j++)j?c.lineTo(pts[j][0],pts[j][1]):c.moveTo(pts[j][0],pts[j][1]);
+    c.strokeStyle=rgba([0,0,0],.7*a);c.lineWidth=5;c.stroke();
+    var hot=clamp(1-(t-k.t0)/1.2,0,1);c.strokeStyle=rgba(mix(P.dark,P.glow,hot),(.35+.6*hot)*a);c.lineWidth=2;c.stroke()}
+  c.restore()}
+function pileDraw(t){
+  if(st.scarT==null)return;var a=clamp(1-(t-st.scarT-1)/2.4,0,1),T=st.T;
+  c.save();c.globalAlpha=a;c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(T.x,T.y,R()*1.05,R()*.95,0,0,TAU);c.fill();
+  for(var i=0;i<st.pile.length;i++){var p=st.pile[i];stone(p.x,p.y,p.r,p.seed,6,{nomoss:1})}c.restore()}
+function drawEnemy(e){
+  c.save();c.translate(e.x,e.y);c.rotate(Math.PI/4+e.ph*.1);c.fillStyle=e.flash>0?'#fff':'#3a1f1f';c.strokeStyle='#d6584a';c.lineWidth=2;c.fillRect(-8,-8,16,16);c.strokeRect(-8,-8,16,16);c.restore();
+  if(e.hp<100){c.fillStyle='rgba(0,0,0,.6)';c.fillRect(e.x-12,e.y-20,24,4);c.fillStyle='#d6584a';c.fillRect(e.x-11,e.y-19,22*clamp(e.hp/100,0,1),2)}}
+function drawPlayer(p){
+  var x=p.x,y=p.y;c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(x,y+10,11,4,0,0,TAU);c.fill();
+  c.fillStyle='rgb(150,170,255)';c.beginPath();c.arc(x,y,11,0,TAU);c.fill();c.lineWidth=2;c.strokeStyle='rgba(255,255,255,.55)';c.stroke();
+  if(p.flash>0){c.fillStyle='rgba(255,255,255,'+(p.flash/.25*.8).toFixed(2)+')';c.beginPath();c.arc(x,y,11,0,TAU);c.fill()}
+  c.fillStyle='rgba(0,0,0,.6)';c.fillRect(x-16,y-24,32,5);c.fillStyle='rgb(110,230,150)';c.fillRect(x-15,y-23,30*clamp(p.hp,0,1),3);
+  c.font='600 11px Barlow, sans-serif';c.textAlign='center';c.fillStyle='rgba(205,215,225,.75)';c.fillText('you',x,y+27)}
+function hudBar(x,y,w,h,k,col,lab,val){
+  c.fillStyle='rgba(255,255,255,.12)';c.fillRect(x,y,w,h);c.fillStyle=rgba(col,.95);c.fillRect(x,y,w*clamp(k,0,1),h);
+  c.font='500 11px "IBM Plex Mono", monospace';c.textAlign='left';c.fillStyle='rgba(222,218,205,.9)';c.fillText(lab,x,y-4);c.textAlign='right';c.fillText(val,x+w,y-4);c.textAlign='left'}
+function draw(){
+  var t=st.t,T=st.T,i,sx=0,sy=0;
+  if(st.shake>0){sx=(Math.random()-.5)*st.shake;sy=(Math.random()-.5)*st.shake}
+  c.save();c.translate(sx,sy);ground();
+  for(i=0;i<st.crk.length;i++)drawCracks(st.crk[i],t);
+  pileDraw(t);
+  for(i=0;i<turrets.length;i++){var tu=turrets[i];c.save();c.translate(tu[0],tu[1]);c.rotate(Math.PI/4);c.fillStyle='#3a1f1f';c.strokeStyle='#d6584a';c.lineWidth=2;c.fillRect(-8,-8,16,16);c.strokeRect(-8,-8,16,16);c.restore()}
+  if(st.cast&&t<DUR-CRUM){var sa=t<RISE?clamp(t/.25,0,1):clamp(1-(t-(DUR-CRUM))/CRUM,0,1)*.55;sigil(T.x,T.y,120*size,1,t,P.glow,sa)}
+  for(i=0;i<st.en.length;i++)drawEnemy(st.en[i]);
+  drawPlayer(st.pl);
+  for(i=0;i<st.dust.length;i++){var u=st.dust[i],ua=1-u.l/u.L;glow(u.x,u.y,u.r*(1+u.l*1.6),rgba(u.col,.3*ua),rgba(u.col,0))}
+  if(st.cast&&T.alpha>0){
+    var sc=T.sc*size*1.18;
+    if(t<RISE){var ra=clamp(t/RISE,0,1);glow(T.x,T.y,60*size,rgba(P.glow,.25*ra),rgba(P.glow,0))}
+    titan(T.x,T.y,sc,T.ang,{step:T.step,slam:T.slam,glow:T.gl,alpha:T.alpha});
+    if(bodyUp(t)){var fl=st.hitF&&t-st.hitF.t<.2?1-(t-st.hitF.t)/.2:0;arcs(T.x,T.y,R(),0,TAU,rgba(mix(P.lite,P.glow,.4+.4*fl),.25+.55*fl),1.5+2*fl)}
+    if(T.sl>=0&&T.sl<PW){var wk=T.sl/PW,fx=T.x+Math.cos(T.ang)*50*size,fy=T.y+Math.sin(T.ang)*50*size;
+      c.setLineDash([6,6]);arcs(fx,fy,SR(),0,TAU,rgba(P.glow,.25+.5*wk),1.5+wk*2);c.setLineDash([]);arcs(fx,fy,SR()*(1-wk),0,TAU,rgba([255,246,220],.5*wk),2)}
+  }
+  for(i=0;i<st.chk.length;i++){var ch=st.chk[i];if(ch.k<=0)continue;c.globalAlpha=clamp(ch.k*3,0,1);stone(ch.x,ch.y,ch.r*size,ch.seed,6,{nomoss:1});c.globalAlpha=1}
+  for(i=0;i<st.ring.length;i++)drawRing(st.ring[i],t);
+  for(i=0;i<st.deb.length;i++){var d=st.deb[i];c.save();c.globalAlpha=1-d.l/d.L;c.translate(d.x,d.y);c.rotate(d.rot);stone(0,0,d.r,d.seed,5,{nomoss:1});c.restore()}
+  for(i=0;i<st.spk.length;i++){var s=st.spk[i];c.fillStyle=rgba(s.col,1-s.l/s.L);c.fillRect(s.x-1,s.y-1,2.5,2.5)}
+  for(i=0;i<st.bul.length;i++){var b=st.bul[i];glow(b.x,b.y,8,'rgba(255,130,80,.55)','rgba(255,130,80,0)');c.fillStyle='#ffb27a';c.beginPath();c.arc(b.x,b.y,3,0,TAU);c.fill()}
+  c.font='700 15px Barlow, sans-serif';c.textAlign='center';
+  for(i=0;i<st.flo.length;i++){var f=st.flo[i],a=t-f.t0;c.fillStyle=rgba(P.glow,1-a/.9);c.fillText(f.txt,f.x,f.y-a*24)}
+  /* soak bar over the titan */
+  if(bodyUp(t)){var bw=70*size,by=T.y-R()-16;c.fillStyle='rgba(0,0,0,.6)';c.fillRect(T.x-bw/2-1,by-1,bw+2,6);c.fillStyle=rgba(mix(P.lite,P.glow,.3),1);c.fillRect(T.x-bw/2,by,bw*T.soak,4)}
+  c.restore();
+  /* HUD */
+  c.textAlign='left';c.font='500 12px "IBM Plex Mono", monospace';c.fillStyle='rgba(222,218,205,.9)';
+  var left=Math.max(0,DUR-Math.max(0,t));
+  c.fillText(t<0?'enemies closing in':t<RISE?'rising  '+left.toFixed(1)+' s':t<DUR?'titan  '+left.toFixed(1)+' s':'titan gone',12,20);
+  c.fillText('slams '+st.hits+' hits · killed '+st.kills+' · bullets stopped '+st.blocked,12,36);
+  if(t>=0&&t<DUR){c.fillStyle='rgba(255,255,255,.12)';c.fillRect(12,44,120,3);c.fillStyle=rgba(mix(P.lite,P.glow,.5),.95);c.fillRect(12,44,120*left/DUR,3)}
+  if(T.sl>=0&&T.sl<PW){c.fillStyle=rgba(P.glow,.95);c.font='600 12px "IBM Plex Mono", monospace';c.fillText('WIND-UP',12,64)}
+  var so=document.getElementById('scrub');if(!so.matches(':active')){so.value=clamp(t,-1,16);document.getElementById('scrubOut').textContent=t.toFixed(1)+' s'}
+}
+
+/* ---- artefact sheet ---- */
+var arts=[
+ {id:'icon',t:'Ability icon',w:1,sub:'128 px tile, shown again at the 40 px HUD size. <code>ui_titan</code>',draw:function(g,w,h){iconAt(g,w,h)}},
+ {id:'idle',t:'Titan sprite: walking',w:1,sub:'Top-down, 280 px across at game scale. <code>TitanLook.cs</code>',draw:function(g,w,h){spriteAt(g,w,h,{step:.9,slam:0,glow:1})}},
+ {id:'wind',t:'Titan sprite: wind-up',w:1,sub:'Both fists up and 1.4x larger with a drop shadow. Held for 0.4 s.',draw:function(g,w,h){spriteAt(g,w,h,{step:0,slam:.5,glow:1},1)}},
+ {id:'hit',t:'Titan sprite: impact',w:1,sub:'Fists land. The shockwave ring comes in on this frame.',draw:function(g,w,h){spriteAt(g,w,h,{step:0,slam:.62,glow:1},2)}},
+ {id:'sig',t:'Summon sigil',w:1,sub:'Ground decal at the cast. 240 px across, six-sided like the Titan minion. <code>FxKind.TitanSummon</code>',draw:function(g,w,h){flat(g,w,h);g.translate(w/2,h/2);g.scale(w/260,w/260);on(g,function(){sigil(0,0,118,1,1.3,P.glow,1)})}},
+ {id:'slam',t:'Slam decal',w:1,sub:'Shockwave, cracks and flying chunks, frozen 0.2 s in. Cracks stay 4.5 s. <code>FxKind.TitanSlam</code>',draw:function(g,w,h){slamAt(g,w,h)}},
+ {id:'deb',t:'Debris chunks',w:1,sub:'Eight stone shapes used for the rise, the slam and the crumble.',draw:function(g,w,h){debAt(g,w,h)}},
+ {id:'scar',t:'Rubble pile',w:1,sub:'What is left when it crumbles. Fades after 3 s.',draw:function(g,w,h){scarAt(g,w,h)}},
+ {id:'hud',t:'HUD strip',w:2,sub:'Timer and soak bar beside the ultimate icon while the titan stands. Soak turns red under 25%.',draw:function(g,w,h){hudAt(g,w,h)}},
+ {id:'scale',t:'Scale reference',w:2,sub:'Footprints in game pixels. Capstone is 1.3x.',draw:function(g,w,h){scaleAt(g,w,h)}}
+];
+function flat(g,w,h){g.fillStyle='#14130f';g.fillRect(0,0,w,h);g.strokeStyle='#1f1d17';g.lineWidth=1;for(var x=0;x<w;x+=30){g.beginPath();g.moveTo(x+.5,0);g.lineTo(x+.5,h);g.stroke()}for(var y=0;y<h;y+=30){g.beginPath();g.moveTo(0,y+.5);g.lineTo(w,y+.5);g.stroke()}}
+function spriteAt(g,w,h,o,ph){flat(g,w,h);on(g,function(){
+  if(ph===1){c.fillStyle='rgba(0,0,0,.001)'}
+  var sc=w/210;titan(w/2,h/2,sc,-.35,{step:o.step,slam:o.slam,glow:o.glow,alpha:1})})}
+function slamAt(g,w,h){flat(g,w,h);on(g,function(){
+  var cx=w/2,cy=h/2,k=w/210,rr=ease(.55)*92*k;
+  c.save();c.translate(cx,cy);c.lineCap='round';
+  for(var i=0;i<9;i++){var a=i/9*TAU+.3,L=(.6+hash(i)*.45)*92*k;c.beginPath();c.moveTo(0,0);var px=0,py=0;for(var j=1;j<=4;j++){var aa=a+(hash(i*5+j)-.5)*.55;px+=Math.cos(aa)*L/4;py+=Math.sin(aa)*L/4;c.lineTo(px,py)}
+    c.strokeStyle='rgba(0,0,0,.7)';c.lineWidth=5*k;c.stroke();c.strokeStyle=rgba(P.glow,.85);c.lineWidth=2*k;c.stroke()}
+  c.restore();
+  var gr=c.createRadialGradient(cx,cy,rr-34*k,cx,cy,rr+2);gr.addColorStop(0,rgba([200,185,150],0));gr.addColorStop(1,rgba([220,205,170],.4));c.fillStyle=gr;c.beginPath();c.arc(cx,cy,rr+2,0,TAU);c.fill();
+  arcs(cx,cy,rr,0,TAU,'rgba(255,246,220,.9)',6*k);arcs(cx,cy,rr*.93,0,TAU,rgba(P.glow,.5),2*k);
+  for(i=0;i<12;i++){var da=hash(i+40)*TAU,dd=(.35+hash(i+3)*.65)*rr;c.save();c.translate(cx+Math.cos(da)*dd,cy+Math.sin(da)*dd);c.rotate(hash(i)*TAU);stone(0,0,(3+hash(i+9)*6)*k,i*3.7,5,{nomoss:1});c.restore()}})}
+function debAt(g,w,h){flat(g,w,h);on(g,function(){for(var i=0;i<8;i++){var col=i%4,row=(i/4)|0,x=(col+.5)*w/4,y=(row+.5)*h/2;stone(x,y,w/12*(.7+hash(i+2)*.5),i*5.3+1,5+(i%3),{nomoss:i%2===0,glow:i===3||i===6?.8:0})}})}
+function scarAt(g,w,h){flat(g,w,h);on(g,function(){
+  c.fillStyle='rgba(0,0,0,.4)';c.beginPath();c.ellipse(w/2,h/2,w*.4,h*.38,0,0,TAU);c.fill();
+  for(var i=0;i<26;i++){var a=hash(i)*TAU,d=Math.sqrt(hash(i+31))*w*.36;stone(w/2+Math.cos(a)*d,h/2+Math.sin(a)*d,(3+hash(i+7)*8)*w/210,i*2.9,6,{nomoss:1})}})}
+function iconAt(g,w,h){
+  var box=document.createElement('canvas');
+  function one(x,y,s){on(g,function(){
+    c.save();c.translate(x,y);c.scale(s/128,s/128);
+    var bg=c.createLinearGradient(0,0,0,128);bg.addColorStop(0,rgba(mix(P.dark,P.base,.35),1));bg.addColorStop(1,rgba(mix(P.dark,[0,0,0],.5),1));
+    c.fillStyle=bg;c.beginPath();if(c.roundRect)c.roundRect(4,4,120,120,16);else c.rect(4,4,120,120);c.fill();c.lineWidth=3;c.strokeStyle=rgba(P.glow,.8);c.stroke();
+    glow(64,66,60,rgba(P.glow,.25),rgba(P.glow,0));
+    /* front view of the head: slab skull, brow, glowing eyes, jaw, cracks */
+    c.beginPath();c.moveTo(34,30);c.lineTo(94,30);c.lineTo(104,52);c.lineTo(98,92);c.lineTo(82,108);c.lineTo(46,108);c.lineTo(30,92);c.lineTo(24,52);c.closePath();
+    var hg=c.createLinearGradient(30,30,98,108);hg.addColorStop(0,rgba(P.lite,1));hg.addColorStop(.6,rgba(P.base,1));hg.addColorStop(1,rgba(P.dark,1));c.fillStyle=hg;c.fill();c.lineWidth=4;c.strokeStyle=rgba(P.dark,1);c.stroke();
+    c.fillStyle=rgba(P.dark,1);c.beginPath();c.moveTo(30,54);c.lineTo(98,54);c.lineTo(94,62);c.lineTo(34,62);c.closePath();c.fill();
+    c.shadowColor=rgba(P.glow,1);c.shadowBlur=10;c.fillStyle=rgba(mix(P.glow,[255,255,255],.45),1);c.fillRect(40,62,16,8);c.fillRect(72,62,16,8);c.shadowBlur=0;
+    c.fillStyle=rgba(P.dark,1);c.fillRect(48,92,32,8);c.lineWidth=3;c.strokeStyle=rgba(P.glow,.9);c.lineCap='round';c.beginPath();c.moveTo(64,32);c.lineTo(60,42);c.lineTo(66,50);c.lineTo(62,54);c.stroke();
+    c.beginPath();c.moveTo(90,80);c.lineTo(84,88);c.lineTo(88,94);c.stroke();
+    c.restore()})}
+  g.fillStyle='#14130f';g.fillRect(0,0,w,h);
+  one(w*.1,h*.06,h*.88);one(w*.1+h*.88+14,h*.06+h*.88-40,40);
+  on(g,function(){c.font='500 11px "IBM Plex Mono", monospace';c.fillStyle='rgba(222,218,205,.75)';c.textAlign='left';c.fillText('40 px',w*.1+h*.88+14,h*.06+h*.88-46)})}
+function hudAt(g,w,h){
+  g.fillStyle='#14130f';g.fillRect(0,0,w,h);
+  on(g,function(){
+    var s=h*.7,x=14,y=(h-s)/2;
+    var sub=document.createElement('canvas');
+    (function(){c.save();c.translate(x,y);c.scale(s/128,s/128);
+      var bg=c.createLinearGradient(0,0,0,128);bg.addColorStop(0,rgba(mix(P.dark,P.base,.35),1));bg.addColorStop(1,rgba(mix(P.dark,[0,0,0],.5),1));c.fillStyle=bg;c.beginPath();if(c.roundRect)c.roundRect(4,4,120,120,16);else c.rect(4,4,120,120);c.fill();c.lineWidth=4;c.strokeStyle=rgba(P.glow,.9);c.stroke();
+      stone(64,64,40,5,7,{glow:1});c.restore()})();
+    var bx=x+s+18,bw=w-bx-16,sc=w/480;
+    c.font='700 '+Math.round(22*sc*1.15)+'px Barlow Condensed, sans-serif';c.textAlign='left';c.fillStyle='rgba(235,230,215,1)';c.fillText('TITAN',bx,y+20*sc);
+    c.font='500 '+Math.round(11*sc*1.15)+'px "IBM Plex Mono", monospace';
+    hudBar2(bx,y+s*.46,bw,8*sc,.62,mix(P.lite,P.glow,.5),'9.3 s',sc);
+    hudBar2(bx,y+s*.86,bw,8*sc,.72,mix(P.lite,P.glow,.2),'soak 720 / 1000',sc)})}
+function hudBar2(x,y,w,h,k,col,lab,sc){c.fillStyle='rgba(255,255,255,.12)';c.fillRect(x,y,w,h);c.fillStyle=rgba(col,.95);c.fillRect(x,y,w*k,h);c.fillStyle='rgba(222,218,205,.9)';c.fillText(lab,x,y-6*sc)}
+function scaleAt(g,w,h){
+  g.fillStyle='#14130f';g.fillRect(0,0,w,h);
+  on(g,function(){
+    var sc=.6,ground=h*.44,fs=Math.round(13*w/480),ms=Math.round(11*w/480);
+    var items=[['Titan today',32,[150,140,110],.17],['Colossus',140,P.base,.43],['Capstone',182,P.lite,.73]];
+    for(var i=0;i<items.length;i++){var it=items[i],r=it[1]*sc,x=w*it[3];
+      c.fillStyle=rgba(it[2],.18);c.beginPath();c.arc(x,ground,r,0,TAU);c.fill();c.lineWidth=2;c.strokeStyle=rgba(i?P.glow:[200,190,160],.85);c.stroke();
+      if(i){c.save();c.translate(x,ground);c.scale(r/74,r/74);titan(0,0,1,0,{step:.3,slam:0,glow:1,alpha:.95});c.restore()}
+      else{stone(x,ground,r*.8,3,6,{nomoss:1})}
+      c.font='600 '+fs+'px Barlow, sans-serif';c.textAlign='center';c.fillStyle='rgba(235,230,215,.95)';c.fillText(it[0],x,h*.84);
+      c.font='500 '+ms+'px "IBM Plex Mono", monospace';c.fillStyle='rgba(180,174,156,.9)';c.fillText('radius '+it[1]+' px',x,h*.94)}
+    c.fillStyle='rgb(150,170,255)';c.beginPath();c.arc(w*.93,ground,7,0,TAU);c.fill();c.font='500 '+ms+'px "IBM Plex Mono", monospace';c.fillStyle='rgba(180,174,156,.9)';c.textAlign='center';c.fillText('you',w*.93,h*.84)})}
+var artHost=document.getElementById('art'),artCv=[];
+arts.forEach(function(a){
+  var d=document.createElement('div');d.className='art'+(a.w===2?' wide':'');
+  var pic=document.createElement('div');pic.className='pic';var cvn=document.createElement('canvas');var W2=a.w===2?960:420,H2=a.w===2?300:420;cvn.width=W2*2;cvn.height=H2*2;cvn.style.aspectRatio=W2+'/'+H2;cvn.setAttribute('role','img');cvn.setAttribute('aria-label',a.t);
+  pic.appendChild(cvn);d.appendChild(pic);
+  var h3=document.createElement('h3');h3.textContent=a.t;d.appendChild(h3);var p=document.createElement('p');p.innerHTML=a.sub;d.appendChild(p);artHost.appendChild(d);
+  artCv.push({a:a,cv:cvn,W:W2,H:H2})});
+function drawArts(){
+  artCv.forEach(function(o){var g=o.cv.getContext('2d');g.setTransform(2,0,0,2,0,0);g.clearRect(0,0,o.W,o.H);o.a.draw(g,o.W,o.H)})}
+
+/* ---- loop & controls ---- */
+var notes={
+ A:'<b>A · Granite.</b> Grey-brown stone with patches of moss and pale gold light in the cracks. Reads as plain, ancient rock. Calmest on screen, so bullets and enemies stay easy to see around it.',
+ B:'<b>B · Basalt ember.</b> Dark volcanic stone with orange glowing seams that flare on every slam. Strongest contrast against the arena floor, and the slam wind-up is the easiest to see.',
+ C:'<b>C · Runestone.</b> Blue-grey carved stone with cyan runes down the chest and fists. Looks most like a summon and ties in with the sigil on the floor.'
+};
+var noteEl=document.getElementById('note');
+function setLook(v){look=v;P=PAL[v];noteEl.innerHTML=notes[v];drawArts()}
+var prev=0,acc=0;
+function frame(ts){
+  var dt=Math.min(.05,(ts-prev)/1000||0);prev=ts;
+  if(!paused){acc+=dt*speed;while(acc>=1/60){step(1/60);acc-=1/60}}
+  draw();requestAnimationFrame(frame)}
+Array.prototype.forEach.call(document.querySelectorAll('input[name=look]'),function(r){r.addEventListener('change',function(){if(r.checked)setLook(r.value)})});
+Array.prototype.forEach.call(document.querySelectorAll('input[name=size]'),function(r){r.addEventListener('change',function(){if(r.checked){size=+r.value;DUR=size>1?25:15;document.getElementById('scrub').max=DUR+1;reset(null)}})});
+var pb=document.getElementById('pause'),sb=document.getElementById('slow');
+document.getElementById('replay').addEventListener('click',function(){reset(null);paused=false;pb.setAttribute('aria-pressed','false');pb.textContent='Pause'});
+pb.addEventListener('click',function(){paused=!paused;pb.setAttribute('aria-pressed',paused);pb.textContent=paused?'Resume':'Pause'});
+sb.addEventListener('click',function(){var on2=sb.getAttribute('aria-pressed')!=='true';sb.setAttribute('aria-pressed',on2);speed=on2?.25:1});
+document.getElementById('scrub').addEventListener('input',function(e){reset(+e.target.value);document.getElementById('scrubOut').textContent=(+e.target.value).toFixed(1)+' s'});
+setLook('A');reset(5);
+requestAnimationFrame(frame);
+})();
+</script>
