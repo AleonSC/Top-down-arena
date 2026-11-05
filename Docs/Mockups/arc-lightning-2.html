@@ -63,7 +63,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
       one after another, <b>F Lichtenberg</b> grows a fractal tree of lightning along the strip, <b>G Circuit</b> runs
       right-angle pulses and lights a pixel matrix (it matches the CRT menus), and <b>H Ion Wave</b> sends a ringing
       sine wave down the strip. Each covers <b>charge</b>, <b>release</b>, <b>aftermath</b>. Same numbers as the game
-      (90 px wide, 160 to 800 px long, 0.9 s to full, 40 damage, 0.4 s stun).</p>
+      (now a slight cone, 36 px wide at the staff to 90 px at the far end, 160 to 800 px long, 0.9 s to full, 40 damage, 0.4 s stun).</p>
   </header>
 
   <section class="stage" aria-label="Live preview">
@@ -115,6 +115,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   const SPOTS = [[170, -10], [300, 30], [420, -35], [540, 5], [650, 38], [760, -20], [230, 120], [480, -130], [700, 110]];
   const lenFor = c => LMIN + (LMAX - LMIN) * c;
   const relT = c => MIN_DRAW + (FULL_DRAW - MIN_DRAW) * c + 0.3;
+  const TF = (a, len) => 0.4 + 0.6 * clamp01(a / len);   // the strip is a slight cone: 40% as wide at the staff, full width at the far end
   const X = a => P.x + a * S, Y = a => P.y + a * S;
 
   function cast(c, barrage) {
@@ -151,7 +152,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   function bolt(ctx, pts, w, a, col = BOLT) { stroke(ctx, pts, w * 2.6, rgba(col, 0.35 * a)); stroke(ctx, pts, w, rgba(WHITE, a)); }
   function outline(ctx, len, a, col) {   // your own strip, dashed
     ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 1.2;
-    ctx.strokeRect(X(0), Y(-HW), len * S, 2 * HW * S); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(X(0), Y(-HW * 0.4)); ctx.lineTo(X(len), Y(-HW)); ctx.lineTo(X(len), Y(HW)); ctx.lineTo(X(0), Y(HW * 0.4)); ctx.closePath(); ctx.stroke(); ctx.restore();
   }
   function floor(ctx) {
     ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, 960, 420);
@@ -210,7 +211,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   }
   function hitBranch(h) {   // a bright branch from the trunk to an enemy, as extra segments
     const R = rnd(31 + Math.round(h.along)), pts = jagged(h.along, 0, h.along, h.across, 5, 7, R), out = [];
-    for (let i = 1; i < pts.length; i++) out.push({ ax: pts[i - 1][0], ay: pts[i - 1][1], bx: pts[i][0], by: pts[i][1], d: h.along + 14 * i, w: 1.3 });
+    for (let i = 1; i < pts.length; i++) out.push({ ax: pts[i - 1][0], ay: pts[i - 1][1], bx: pts[i][0], by: pts[i][1], d: h.along + 14 * i, w: 1.3, hit: true });
     return out;
   }
   function drawSegs(ctx, segs, reach, maxX, col, wScale, a) {
@@ -218,7 +219,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
     for (const s of segs) {
       if (s.d > reach || s.bx > maxX) continue;
       ctx.strokeStyle = rgba(col, a); ctx.lineWidth = Math.max(0.7, s.w * wScale);
-      ctx.beginPath(); ctx.moveTo(X(s.ax), Y(s.ay)); ctx.lineTo(X(s.bx), Y(s.by)); ctx.stroke();
+      const fa = s.hit ? 1 : TF(s.ax, maxX), fb = s.hit ? 1 : TF(s.bx, maxX); ctx.beginPath(); ctx.moveTo(X(s.ax), Y(s.ay * fa)); ctx.lineTo(X(s.bx), Y(s.by * fb)); ctx.stroke();
     }
   }
 
@@ -226,7 +227,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
   function trace(k, len) {
     const R = rnd(100 + k * 17), base = (k - 1) * 28, pts = [[0, base]]; let x = 0, y = base;
     while (x < len) { x = Math.min(len, x + 40 + R() * 50); pts.push([x, y]); if (x < len) { y = Math.max(-HW * 0.85, Math.min(HW * 0.85, y + (R() < 0.5 ? -1 : 1) * 16)); pts.push([x, y]); } }
-    return pts.map(p => [X(p[0]), Y(p[1])]);
+    return pts.map(p => [X(p[0]), Y(p[1] * TF(p[0], len))]);
   }
   const CELL = 16;
   function bracket(ctx, x, y, r, col, a) {
@@ -244,9 +245,9 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
         for (let i = 1; i <= n; i++) {   // a ground marker where each strike will land
           const x = X(i * o.len / n), y = Y(0), last = i === n;
           ctx.strokeStyle = rgba(col, last ? 0.5 + 0.4 * p : 0.3); ctx.lineWidth = 1.2;
-          ctx.beginPath(); ctx.arc(x, y, HW * S * (last ? 0.9 + 0.1 * p : 0.55), 0, TAU); ctx.stroke();
+          ctx.beginPath(); ctx.arc(x, y, HW * S * TF(i * o.len / n, o.len) * (last ? 0.9 + 0.1 * p : 0.55), 0, TAU); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y); ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5); ctx.stroke();
-          if (last) { ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(x, y, HW * S * 1.35, o.t * 2, o.t * 2 + TAU * 0.75); ctx.stroke(); ctx.setLineDash([]); glow(ctx, x, y, 26, col, 0.25 + 0.25 * p); }
+          if (last) { ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(x, y, HW * S * 1.35 * TF(o.len, o.len), o.t * 2, o.t * 2 + TAU * 0.75); ctx.stroke(); ctx.setLineDash([]); glow(ctx, x, y, 26, col, 0.25 + 0.25 * p); }
         }
         for (let i = 0; i < 5; i++) { const R = rnd(50 + i + Math.floor(o.t * 12) * 9); glow(ctx, P.x + 16 + (R() - 0.3) * 40 * o.c, P.y + (R() - 0.5) * 30 * o.c, 4, BOLT, 0.9); }
       },
@@ -254,24 +255,24 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
         const n = strikes(o.len);
         for (let i = 1; i <= n; i++) {
           const along = i * o.len / n, k = o.since - (i - 1) / (n - 1) * 0.28; if (k < 0) continue;
-          const R = rnd(900 + i * 13 + o.seed * 5), x = X(along), y = Y(0), sa = Math.max(0, 0.55 * (1 - k / 1.35));
+          const tf = TF(along, o.len), R = rnd(900 + i * 13 + o.seed * 5), x = X(along), y = Y(0), sa = Math.max(0, 0.55 * (1 - k / 1.35));
           if (sa > 0) {   // scorch mark with cracks
             ctx.fillStyle = `rgba(0,0,0,${sa})`; ctx.beginPath();
-            for (let a = 0; a < 12; a++) { const ang = a / 12 * TAU, r = HW * S * (0.85 + 0.35 * R()); ctx[a ? "lineTo" : "moveTo"](x + Math.cos(ang) * r, y + Math.sin(ang) * r * 0.85); }
+            for (let a = 0; a < 12; a++) { const ang = a / 12 * TAU, r = HW * S * tf * (0.85 + 0.35 * R()); ctx[a ? "lineTo" : "moveTo"](x + Math.cos(ang) * r, y + Math.sin(ang) * r * 0.85); }
             ctx.fill();
-            for (let a = 0; a < 5; a++) { const ang = R() * TAU, r = HW * S * (0.6 + 0.7 * R()); stroke(ctx, jagged(x, y, x + Math.cos(ang) * r, y + Math.sin(ang) * r, 3, 3, R), 1, rgba(BOLT, sa * 1.2)); }
+            for (let a = 0; a < 5; a++) { const ang = R() * TAU, r = HW * S * tf * (0.6 + 0.7 * R()); stroke(ctx, jagged(x, y, x + Math.cos(ang) * r, y + Math.sin(ang) * r, 3, 3, R), 1, rgba(BOLT, sa * 1.2)); }
           }
           if (k < 0.16) {   // the bolt dropping from above
             const a = 1 - k / 0.16, bx = x + (R() - 0.5) * 40;
             bolt(ctx, jagged(bx, y - 200, x, y, 8, 14, R), 2.4, a);
             stroke(ctx, jagged(bx + 4, y - 120, x + 26, y - 40, 4, 8, R), 1, rgba(WHITE, a * 0.7));
           }
-          glow(ctx, x, y, HW * S * 2.8, BOLT, 1 - k / 0.3);
-          glow(ctx, x, y, HW * S * 1.3, WHITE, 1 - k / 0.12);
+          glow(ctx, x, y, HW * S * tf * 2.8, BOLT, 1 - k / 0.3);
+          glow(ctx, x, y, HW * S * tf * 1.3, WHITE, 1 - k / 0.12);
           const kk = k / 0.4;
-          if (kk < 1) { ctx.strokeStyle = rgba(BOLT, 0.85 * (1 - kk)); ctx.lineWidth = 3 * (1 - kk) + 0.6; ctx.beginPath(); ctx.arc(x, y, HW * S * (0.4 + 1.9 * easeOut(kk)), 0, TAU); ctx.stroke(); }
+          if (kk < 1) { ctx.strokeStyle = rgba(BOLT, 0.85 * (1 - kk)); ctx.lineWidth = 3 * (1 - kk) + 0.6; ctx.beginPath(); ctx.arc(x, y, HW * S * tf * (0.4 + 1.9 * easeOut(kk)), 0, TAU); ctx.stroke(); }
           for (let s = 0; s < 7; s++) {   // sparks
-            const ang = R() * TAU, d = easeOut(k / 0.4) * HW * S * 2.6 * (0.4 + R()), a = 1 - k / 0.4; if (a <= 0) continue;
+            const ang = R() * TAU, d = easeOut(k / 0.4) * HW * S * tf * 2.6 * (0.4 + R()), a = 1 - k / 0.4; if (a <= 0) continue;
             stroke(ctx, [[x + Math.cos(ang) * d, y + Math.sin(ang) * d * 0.8], [x + Math.cos(ang) * (d + 5), y + Math.sin(ang) * (d + 5) * 0.8]], 1.4, rgba(GOLD, a));
           }
         }
@@ -318,7 +319,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
           const end = pts[pts.length - 1], p = Math.floor(o.t * 8) % 2; ctx.fillStyle = rgba(WHITE, p ? 1 : 0.5); ctx.fillRect(end[0] - 3, end[1] - 3, 6, 6);
         }
         for (const [sx, sy] of [[0, -1], [0, 1], [1, -1], [1, 1]]) {   // corner marks of the strip
-          const x = X(sx ? o.len : 0), y = Y(sy * HW), dx = sx ? -1 : 1; ctx.strokeStyle = rgba(CYAN, 0.8); ctx.lineWidth = 1.6;
+          const x = X(sx ? o.len : 0), y = Y(sy * HW * TF(sx ? o.len : 0, o.len)), dx = sx ? -1 : 1; ctx.strokeStyle = rgba(CYAN, 0.8); ctx.lineWidth = 1.6;
           ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - sy * 8); ctx.moveTo(x, y); ctx.lineTo(x + dx * 8, y); ctx.stroke();
         }
         glow(ctx, P.x + 16, P.y, 8 + 14 * o.c, CYAN, 0.6);
@@ -338,7 +339,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
           const R = rnd(cx * 97 + ry * 13 + o.seed * 7 + 5), delay = cx / cols * 0.25 + R() * 0.07, k = o.since - delay; if (k < 0) continue;
           const life = 0.25 + R() * 0.5, a = clamp01(1 - k / life); if (a <= 0) continue;
           ctx.fillStyle = rgba(k < 0.05 ? WHITE : CYAN, a * (0.35 + 0.5 * R()));
-          ctx.fillRect(X(cx * CELL) + 0.5, Y(-HW + ry * CELL) + 0.5, cs - 1.5, cs - 1.5);
+          const tf = TF(cx * CELL, o.len); ctx.fillRect(X(cx * CELL) + 0.5, Y((-HW + ry * CELL) * tf) + 0.5, cs - 1.5, cs * tf - 1.5);
         }
         for (const h of o.hits) { const k = o.since - (h.along / o.len * 0.25 + 0.02); if (k > 0 && k < 0.7) bracket(ctx, X(h.along), Y(h.across), 15 + 10 * (1 - easeOut(k / 0.15)), k < STUN ? WHITE : CYAN, 1 - k / 0.7); }
       },
@@ -351,11 +352,11 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
         const amp = HW * S * (0.25 + 0.55 * o.c), k = 0.11 + 0.1 * o.c, full = o.c > 0.95;
         for (const sg of [-1, 1]) {
           ctx.strokeStyle = rgba(sg > 0 ? ION : (full ? GOLD : AMBER), 0.75); ctx.lineWidth = 1.8; ctx.beginPath();
-          for (let a = 0; a <= o.len; a += 4) { const e = Math.min(1, a / 60), y = P.y + sg * amp * e * Math.sin(k * a - o.t * 14); a ? ctx.lineTo(X(a), y) : ctx.moveTo(X(a), y); }
+          for (let a = 0; a <= o.len; a += 4) { const e = Math.min(1, a / 60) * TF(a, o.len), y = P.y + sg * amp * e * Math.sin(k * a - o.t * 14); a ? ctx.lineTo(X(a), y) : ctx.moveTo(X(a), y); }
           ctx.stroke();
         }
         ctx.save(); ctx.setLineDash([2, 6]); ctx.strokeStyle = rgba(ION, 0.4); ctx.lineWidth = 1.2;
-        for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(0), Y(sg * HW)); ctx.lineTo(X(o.len), Y(sg * HW)); ctx.stroke(); } ctx.restore();
+        for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(0), Y(sg * HW * 0.4)); ctx.lineTo(X(o.len), Y(sg * HW)); ctx.stroke(); } ctx.restore();
         glow(ctx, X(o.len), P.y, 10 + 10 * o.c, ION, 0.5); glow(ctx, P.x + 16, P.y, 8 + 14 * o.c, ION, 0.6);
       },
       release(ctx, o) {
@@ -364,7 +365,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
           ctx.strokeStyle = rgba(col, a * (col === WHITE ? clamp01(ring * 1.2) : ring)); ctx.lineWidth = w * (sg > 0 ? 1 : 0.7); ctx.beginPath();
           let first = true;
           for (let ax = 0; ax <= Math.min(head, o.len); ax += 3) {
-            const behind = head - ax, env = o.since < 0.18 ? Math.exp(-behind / 170) : 1, e = Math.min(1, ax / 40);
+            const behind = head - ax, env = o.since < 0.18 ? Math.exp(-behind / 170) : 1, e = Math.min(1, ax / 40) * TF(ax, o.len);
             const y = P.y + sg * HW * S * 0.85 * env * e * Math.sin(0.13 * ax - o.since * 60) * ring;
             first ? ctx.moveTo(X(ax), y) : ctx.lineTo(X(ax), y); first = false;
           }
@@ -372,7 +373,7 @@ button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right
         }
         if (o.since < 0.2) glow(ctx, X(head), P.y, 34, ION, 1);
         ctx.strokeStyle = rgba(ION, 0.6 * Math.max(0, 1 - o.since / 0.7)); ctx.lineWidth = 1.5;   // rails flash along the edges
-        for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(0), Y(sg * HW)); ctx.lineTo(X(Math.min(head, o.len)), Y(sg * HW)); ctx.stroke(); }
+        for (const sg of [-1, 1]) { const hm = Math.min(head, o.len); ctx.beginPath(); ctx.moveTo(X(0), Y(sg * HW * 0.4)); ctx.lineTo(X(hm), Y(sg * HW * TF(hm, o.len))); ctx.stroke(); }
         for (const h of o.hits) {   // a ripple where the wave passes an enemy
           const k = o.since - (h.along / o.len * 0.18 + 0.02); if (k < 0 || k > 0.6) continue;
           ctx.strokeStyle = rgba(ION, 0.9 * (1 - k / 0.6)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X(h.along), Y(h.across), 8 + 34 * easeOut(k / 0.6), 0, TAU); ctx.stroke();
