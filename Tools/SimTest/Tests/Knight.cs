@@ -237,16 +237,30 @@ static partial class Program
         Run(s, dt, 0.3f, null, () => Clear());
         Check(dp.Slots[0].MaxCharges == 2 && cp.Slots[0].MaxCharges == 2, "Lunge has two charges");
 
-        // Healer: Consecrate heals, Lay on Hands revives, Guardian's Oath shields.
+        // Healer: Consecrate heals, Lay on Hands revives, Guardian's Oath pulls allies clear and plants a ward.
         dp.Hp = dp.MaxHp * 0.3f;
         dp.Pos = cp.Pos = me.Pos + new V2(40f, 0f);
         Cast(1, AbilityId.Consecrate, me.Pos);
         float hp0 = dp.Hp;
         Run(s, dt, 1f, null, () => { Clear(); dp.Pos = me.Pos + new V2(40f, 0f); });
         Check(g.Effects.Any(e => e.Kind == FxKind.HolyCross) && dp.Hp > hp0 + 5f && dp.SwiftT > 0f, "Consecrate throws a Holy Cross that heals and hastens the ally it crosses");
-        Cast(1, AbilityId.GuardiansOath, dp.Pos);
-        Check(dp.ShieldHp >= 99f && me.ShieldHp >= 49f, "Guardian's Oath shields the ally near your cursor (and you)");
-        dp.Downed = true; dp.Hp = 0f;
+        // Guardian's Oath: the charge is the Knight's own game (here we start at the grab point), then both are pulled clear and a ward is planted.
+        foreach (bool downedAlly in new[] { false, true })
+        {
+            g.Zones.Clear(); Clear();
+            dp.Downed = downedAlly; dp.Hp = downedAlly ? 0f : dp.MaxHp;
+            dp.Pos = cp.Pos = new V2(900f, 300f); me.Pos = client.Game.Players[1].Pos = new V2(860f, 320f);
+            V2 grab = dp.Pos;
+            Cast(1, AbilityId.GuardiansOath, me.Pos);
+            Run(s, dt, 2f, null, () => Clear());
+            var ward = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.OathWard);
+            Console.WriteLine("  oath ({0}): ally pulled {1:0} px, ward at ({2:0},{3:0})", downedAlly ? "downed" : "alive", dp.Pos.DistanceTo(grab), ward?.Pos.X ?? -1f, ward?.Pos.Y ?? -1f);
+            Check(dp.Pos.DistanceTo(grab) > 200f, "Guardian's Oath drags " + (downedAlly ? "a downed" : "a living") + " ally out of the fire");
+            Check(ward != null && ward.DamageCut >= 0.49f && ward.ExtraRevive > 0f && ward.Pos.DistanceTo(dp.Pos) < ward.Radius && ward.Pos.DistanceTo(me.Pos) < ward.Radius,
+                "Guardian's Oath plants a damage-cutting Ward of Light around both of them");
+        }
+        g.Zones.Clear();
+        dp.Downed = true; dp.Hp = 0f; dp.Pos = cp.Pos = me.Pos + new V2(40f, 0f);
         Cast(1, AbilityId.LayOnHands, me.Pos);
         Check(!dp.Downed && dp.Hp > dp.MaxHp * 0.4f, "Lay on Hands revives a downed ally nearby");
 

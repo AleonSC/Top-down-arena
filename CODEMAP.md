@@ -43,6 +43,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
 - `Knight.cs`: melee swings, sword waves, Knight abilities
+- `GuardiansOath.cs`: the Healer Knight's Guardian's Oath: charge to the player nearest the cursor, pull them clear, plant a damage-cutting Ward of Light (`ZoneKind.OathWard`, `Zone.DamageCut`); the ward is drawn in `Game/WorldEnemies.cs`; mockup in `Docs/Mockups/guardians-oath.html`
 - `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, Thousand Clones' clones, Vanish, Healing Dash (`TickMists`: footprints and their healing; sprint speed is `Player.DashT` in `Entities.cs`; looks in `Game/NinjaLooks.cs` `DrawFootprint`, `DrawDashWake`)
 - `CloneWall.cs`: Shadow Clone as a wall of 9 `MinionKind.CloneWall` that soak bullets (wearing from every shot) and get shoved by players
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)

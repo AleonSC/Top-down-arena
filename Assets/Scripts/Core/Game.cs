@@ -977,6 +977,9 @@ namespace Arena
                         dashSpeed = dist / LeapTime;
                         break;
                     }
+                    case AbilityId.GuardiansOath:
+                        target = LocalOathCharge(me, aimAt);  // GuardiansOath.cs: charge to the player nearest your cursor
+                        break;
                     case AbilityId.RoyalDive:
                     {
                         // The Hive Queen's dive: carried to the cursor (up to 380 px); the host lands the crash there.
