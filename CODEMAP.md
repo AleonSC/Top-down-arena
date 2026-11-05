@@ -141,6 +141,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
 - `Ui.cs`: IMGUI style kit (panels, buttons, bars)
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/settings/records drawers, animations
+- `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
 - `CrtUi.cs`: the green-phosphor CRT look of the latest-run card, the older-runs page and the tip box (`Begin`, glowing `Text`, inverse-video `Button`/`Small`/`Tile`, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
 - `KeyUi.cs`: the menu's mechanical keycap buttons (`KeyUi.Key`: a keycap in a dark well with a corner lamp and a few pixels of travel; `KeyUi.Well` for rings). Used by the main menu's Play / Join game / Records / Settings (`Menus.cs`) and the Play screen's New run and Back (`SavesUi.cs`)

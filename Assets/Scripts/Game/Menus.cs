@@ -28,8 +28,8 @@ namespace Arena
         static readonly Rect MenuQuitKey = new Rect(MenuCard.xMax - 30f - 120f, MenuCard.y + 10f, 120f, 44f);  // the Quit key beside it
         bool menuJoinOpen;    // Join opened the address row
         bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
-        float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between a scan line is sweeping across the box
-        const float MenuPlayLen = 0.85f;  // seconds for that sweep, in either direction
+        float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between the bay doors are moving (MenuServo.cs)
+        const float MenuPlayLen = 1.0f;  // seconds for that move (MenuServo.cs), in either direction
         static readonly Color ScanColor = new Color(0.44f, 0.89f, 0.77f);
 
         void DrawMenu()
@@ -195,21 +195,13 @@ namespace Arena
             bool sweeping = menuPlayK != (menuPlayOpen ? 1f : 0f);  // also true on the first frame of a move, so no stray click lands
             if (sweeping)
             {
-                // The picker shows left of the scan line and the menu's buttons right of it; neither takes a click until it lands.
-                float x = MenuCard.x - 10f + EaseInOut(menuPlayK) * (MenuCard.width + 20f);
-                GUI.BeginGroup(new Rect(0f, 0f, x, H));
-                DrawPlayPicker(t, false);
-                GUI.EndGroup();
-                GUI.BeginGroup(new Rect(x, 0f, W - x, H));
-                GUI.BeginGroup(new Rect(-x, 0f, W, H));
-                menuGlClipX = x;
-                DrawMenuButtons(t, false, name, host, join, cont);
-                menuGlClipX = -1f;
-                GUI.EndGroup();
-                GUI.EndGroup();
-                float edge = Mathf.Sin(menuPlayK * Mathf.PI);
-                for (int g = 3; g >= 0; g--)  // the line, with a soft glow either side
-                    Ui.Fill(new Rect(x - 1.5f - g * 5f, MenuCard.y + 2f, 3f + g * 10f, MenuCard.height - 4f), new Color(ScanColor.r, ScanColor.g, ScanColor.b, (g == 0 ? 0.95f : 0.07f) * edge));
+                // The bay-doors move (MenuServo.cs): no clicks until it lands.
+                if (Event.current.type == EventType.Repaint)
+                {
+                    PlayServoCues(servoPrevK, menuPlayK);
+                    servoPrevK = menuPlayK;
+                }
+                DrawMenuServo(t, menuPlayK);
             }
             else if (menuPlayOpen)
                 DrawPlayPicker(t, live);
@@ -278,13 +270,8 @@ namespace Arena
                     bool cursor = !fxReduced && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
                     CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), "MAIN MENU" + (cursor ? "_" : " "), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, fxReduced);
                     CrtUi.End(hs, Time.unscaledTime, fxReduced);
-                    var qr = MenuQuitKey;
-                    bool quit = MenuVhs.Draw(qr, "TRK 05", live, fxReduced, () =>
-                    {
-                        bool b = Ui.ActionButton(qr, "Quit", false, Ui.Primary, PixelArt.Get("ui_power"), null, 15);
-                        Ui.Fill(new Rect(qr.xMax - 14f, qr.center.y - 3f, 6f, 6f), CrtUi.Ink);   // the lamp
-                        return b;
-                    });
+                    var qr = MenuQuitKey;  // the same keycap as the picker's Back (MenuServo.cs swaps the legend between them)
+                    bool quit = MenuVhs.Draw(qr, "TRK 05", live, fxReduced, () => KeyUi.Key(qr, "Quit", PixelArt.Get("ui_power"), 15));
                     if (live && quit)
                         Application.Quit();
                 });

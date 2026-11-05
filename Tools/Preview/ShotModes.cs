@@ -290,6 +290,8 @@ static partial class Shot {
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = DateTime.UtcNow.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
         typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
+        // PLAYK=<0..1>: that far through the Play move (MenuServo.cs); PLAYBACK=1: going back to the menu instead.
+        if (Environment.GetEnvironmentVariable("PLAYK") != null) { set("menuPlayK", float.Parse(Environment.GetEnvironmentVariable("PLAYK"), System.Globalization.CultureInfo.InvariantCulture)); if (Environment.GetEnvironmentVariable("PLAYBACK") != null) set("menuPlayOpen", false); }
         if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>());
         if (Environment.GetEnvironmentVariable("SCROLL") != null) { float sc = float.Parse(Environment.GetEnvironmentVariable("SCROLL"), System.Globalization.CultureInfo.InvariantCulture); set("menuListScroll", sc); set("menuListShown", sc); }
       }

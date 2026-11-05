@@ -43,6 +43,9 @@ namespace Arena
         TitleKey, TitleSpace, TitleEnter,
         // A main menu button being hovered (MenuVhs.cs, look A of Docs/Mockups/menu-hover-sounds.html): a tape-head tick. Never sent.
         MenuHover,
+        // The menu's Play transition (MenuServo.cs, version 2 of Docs/Mockups/menu-bay-doors.html): beeps, the doors' servo whine (and backwards),
+        // a clamp, the screen's power-on zap, the keys' whirr and tick, the box's lift, its seating thud, and a flap click per header letter. Never sent.
+        BayBeep, BayServo, BayServoBack, BayClamp, BayZap, BayWhirr, BayTick, BayLift, BaySeat, BayClack,
     }
 
     public struct SoundCue
