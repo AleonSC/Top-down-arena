@@ -8,20 +8,21 @@ namespace Arena
     /// The main menu, How to play, and the pause menu and audio settings.
     public partial class ArenaApp
     {
-        // The main menu ("Big play", Docs/Mockups/menu-d.html): the title on its x-axis with a shot arcing over it and a
-        // tip box under it (DrawMenuTipBox); in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) your name
-        // card over one big Play button over Join game, Records and Settings. Play swaps the box's insides for the saved-runs
+        // The main menu ("Big play", Docs/Mockups/menu-d.html, player card below: Docs/Mockups/menu-card-bottom.html): the title on its
+        // x-axis with a shot arcing over it; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big Play
+        // button over Join game, Records and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect). The tip
+        // box (DrawMenuTipBox, MenuTip, HowToTips) is parked: nothing draws it for now. Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
         // under the box. Quit is a faint power icon at the bottom centre of the screen. The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
         const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
-        static readonly Rect MenuCard = new Rect(W / 2f - 340f, 250f, 680f, 280f);
-        static readonly Rect MenuNameRect = new Rect(MenuCard.x + 30f, MenuCard.y + 22f, 620f, 64f);
-        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 98f, 620f, 92f);  // the Play button
-        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 202f, 194f, 52f);
-        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 202f, 194f, 52f);
-        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 202f, 194f, 52f);
+        static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 280f);  // the saved-runs picker needs this height, so the menu's buttons grow to fill it
+        static readonly Rect MenuPlayerRect = new Rect(W / 2f - 310f, MenuCard.yMax + 22f, 620f, 64f);  // your player card, under the box
+        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 36f, 620f, 132f);  // the Play button
+        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 184f, 194f, 60f);
+        static readonly Rect MenuRecordsRect = new Rect(MenuCard.x + 238f, MenuCard.y + 184f, 194f, 60f);
+        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 446f, MenuCard.y + 184f, 194f, 60f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
         static readonly Rect MenuQuitRect = new Rect(W / 2f - 24f, H - 66f, 48f, 48f);
         bool menuJoinOpen;    // Join opened the address row
@@ -53,16 +54,9 @@ namespace Arena
             bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
             DrawMenuCardInside(t, live);
             DrawMenuSecondary(t, live);
-            float tipK = MenuIntroK(2.2f, 2.55f);
-            if (tipK > 0f)
-            {
-                DrawMenuTipBox(t, 1f, tipK, live);
-                if (BeginUiGl())
-                {
-                    DrawMenuTipGl(t, 1f, tipK);
-                    EndUiGl();
-                }
-            }
+            float cardK = MenuIntroK(2.2f, 2.55f);
+            if (cardK > 0f)
+                DrawMenuPlayerCard(t, 1f, cardK, live);
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
         }
 
@@ -259,30 +253,41 @@ namespace Arena
                 Ui.Label(new Rect(row.x - 40f, (menuJoinOpen ? row.yMax : row.y) + 6f, row.width + 80f, 40f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
         }
 
-        /// The box's buttons: your name card, Play, Join game, Records and Settings (each rising in during the intro).
+        /// Your player card under the box, where the tip box used to be (Docs/Mockups/menu-card-bottom.html). It fades out while Join's
+        /// address row is open, since the two share the spot (the same fade the tip box had), and rises in with the intro.
+        void DrawMenuPlayerCard(float t, float alpha, float intro, bool live)
+        {
+            float show = MenuTipShow(intro);
+            float a = alpha * show;
+            if (a <= 0f)
+                return;
+            var r = MenuPlayerRect;
+            r.y += 12f * (1f - show);  // rises into place
+            WithAlpha(a, () => DrawNameCard(r, 0f, live && show >= 1f, t));
+        }
+
+        /// The box's buttons: Play, Join game, Records and Settings (each rising in during the intro).
         void DrawMenuButtons(float t, bool live, float name, float host, float join, float cont)
         {
-            if (name > 0f)
-                MenuRise(name, 24f, () => DrawNameCard(MenuNameRect, 0f, live, t));
             if (host > 0f)
                 MenuRise(host, 60f, () =>
                 {
                     Ui.PulseRing(MenuHostRect, Ui.Primary, t);
-                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 30)) && live)
+                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => Ui.ActionButton(MenuHostRect, "PLAY", true, Ui.Primary, PixelArt.Get("ui_play"), null, 34)) && live)
                         OpenPlayPicker();
                 });
             if (join > 0f)
                 MenuRise(join, 24f, () =>
                 {
-                    if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 18)) && live)
+                    if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => Ui.ActionButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", menuJoinOpen, Ui.Primary, PixelArt.Get("ui_arrow"), null, 20)) && live)
                         menuJoinOpen = !menuJoinOpen;
                 });
             if (cont > 0f)
                 MenuRise(cont, 24f, () =>
                 {
-                    if (MenuVhs.Draw(MenuRecordsRect, "TRK 03", live, fxReduced, () => Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 18)) && live)
+                    if (MenuVhs.Draw(MenuRecordsRect, "TRK 03", live, fxReduced, () => Ui.ActionButton(MenuRecordsRect, "Records", false, Ui.Primary, PixelArt.Get("ui_trophy"), null, 20)) && live)
                         recordsOpen = true;
-                    if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 18)) && live)
+                    if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => Ui.ActionButton(MenuSettingsRect, "Settings", false, Ui.Primary, PixelArt.Get("ui_gear"), null, 20)) && live)
                         settingsOpen = true;
                 });
         }
@@ -306,7 +311,7 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// What's left outside the box: the "Switch profile" tab on the box's top edge (only while the mouse is over your name
+        /// What's left outside the box: the "Switch profile" tab on your player card's top edge (only while the mouse is over the
         /// card or the tab), the faint Quit icon at the bottom centre, and the tooltip. live = false draws it only (Repaint),
         /// for the intro and the move into the lobby.
         float switchProfA;  // 0 to 1: how visible the "Switch profile" button is
@@ -323,8 +328,8 @@ namespace Arena
                 TipClear();  // the rank badge's hover card (RankUi.cs)
             if (live && ProfileStore.Root != null && !menuPlayOpen)
             {
-                var sw = new Rect(MenuNameRect.center.x - 70f, MenuCard.y - 12f, 140f, 24f);
-                bool near = MenuNameRect.Contains(Event.current.mousePosition) || sw.Contains(Event.current.mousePosition);
+                var sw = new Rect(MenuPlayerRect.center.x - 70f, MenuPlayerRect.y - 14f, 140f, 24f);
+                bool near = MenuPlayerRect.Contains(Event.current.mousePosition) || sw.Contains(Event.current.mousePosition);
                 if (Event.current.type == EventType.Repaint)
                     switchProfA = Mathf.MoveTowards(switchProfA, near ? 1f : 0f, Time.unscaledDeltaTime * 5f);
                 if (switchProfA > 0.01f)
