@@ -448,7 +448,8 @@ namespace Arena
                 if (s.Reading)
                     p.Grasp.Add(held);
             }
-            s.Float(ref p.WallT);
+            for (int k = 0; k < Player.WallPlates; k++)
+                s.Byte(ref p.WallPlate[k]);
             s.Float(ref p.UnbreakT);
             s.Float(ref p.FuryT);
             s.Float(ref p.WhirlT);

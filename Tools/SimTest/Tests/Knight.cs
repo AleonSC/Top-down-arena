@@ -175,7 +175,24 @@ static partial class Program
         for (int f = 0; f < 10; f++) { Thread.Sleep(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); }
         Console.WriteLine("  shield wall: front shot gone {0}, damage from front {1:0}, from behind {2:0}", !g.Bullets.ContainsKey(front.Id), tookFront, me.Run.DamageTaken - tookFront);
         Check(!g.Bullets.ContainsKey(front.Id) && tookFront == 0f && me.Run.DamageTaken > tookFront, "Shield Wall stops bullets from the front but not from behind");
-        Check(client.Game.Players[1].WallT > 0f, "the other player sees the Shield Wall go up");
+        Check(client.Game.Players[1].WallUp, "the other player sees the Shield Wall go up");
+        // The plates wear out one by one: six shots into the centre plate break it, the plates either side stand, a shot through
+        // the gap lands, and the wall has no timer.
+        Cast(1, AbilityId.ShieldWall, me.Pos);  // a fresh wall
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); }
+        for (int n = 0; n < 6; n++)
+        {
+            shoot.Invoke(g, new object[] { Defs.BigShot, new V2(470f, 450f), new V2(-300f, 0f), 0f, 5f, 10f, 0, false, 0f });
+            for (int f = 0; f < 20; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        }
+        Console.WriteLine("  shield wall plates: {0}", string.Join(" ", me.WallPlate.Select(b => b.ToString())));
+        Check(me.WallPlate[3] == 0 && me.WallPlate[2] > 0 && me.WallPlate[4] > 0 && me.WallUp, "six shots break the plate they hit and leave the rest standing");
+        me.InvulnT = 0f; float beforeGap = me.Run.DamageTaken;
+        shoot.Invoke(g, new object[] { Defs.BigShot, new V2(470f, 450f), new V2(-300f, 0f), 0f, 5f, 10f, 0, false, 0f });
+        for (int f = 0; f < 30; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(me.Run.DamageTaken > beforeGap, "a shot through a broken plate's gap hits the knight");
+        for (int f = 0; f < 270; f++) { me.InvulnT = 1f; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(me.WallUp, "the Shield Wall has no timer: it is still up after 4.5 s");
         // Unbreakable halves damage.
         var damage = typeof(Game).GetMethod("Damage", flags);
         me.InvulnT = 0f; float t0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 40f, "test" }); float plain = me.Run.DamageTaken - t0;

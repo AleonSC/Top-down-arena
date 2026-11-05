@@ -47,7 +47,7 @@ namespace Arena
         public const float LeapTime = 0.45f, LeapFxTail = 0.5f;  // the leap's length, and how long its look outlasts the stun (Game/LeapSlamLook.cs)
         public static readonly Rgba LeapBoomColor = new Rgba(0.6f, 0.78f, 1f);  // the landing's Boom: the Bulwark look draws its own impact
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
-        const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
+        const float WallCapacity = 400f, WallHalfArc = 1.05f;  // 120 degrees across; the capacity is shared out between the plates
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
         public const float LanceHalfWidth = 44f, LanceStun = 1f;
         public const float RootHalfWidth = 22f, RootHeal = 10f, RootFxTime = 0.5f;  // the Treant Rod's root lash (KitWeapons.cs)
@@ -672,7 +672,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShieldWall, Kit = Kit.Knight, Role = Role.Tank, Choice = 0,
-                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), even red aimed shots. Bosses can break it (it soaks 400 of their damage).",
+                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise a wall of 7 steel plates: it stops every enemy bullet coming at your front (120°), even red aimed shots. Every shot wears down the plate it hits (400 damage in all, shared between the plates) and a broken plate leaves a gap. The wall stays up until every plate is gone.",
                 Capstone = "Bullets that hit the shield are reflected back as your own.",
                 Bot = b => b.Danger,
             },
@@ -763,8 +763,12 @@ namespace Arena
             switch (id)
             {
                 case AbilityId.ShieldWall:
-                    p.WallT = WallTime + s.WallBonusTime;
-                    p.WallHp = WallCapacity * s.WallCapMult * pw;
+                    p.WallPlateMax = WallCapacity * s.WallCapMult * pw / Player.WallPlates;
+                    for (int k = 0; k < Player.WallPlates; k++)
+                    {
+                        p.WallPlateHp[k] = p.WallPlateMax;
+                        p.WallPlate[k] = 255;
+                    }
                     p.WallReflect = cap;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.75f, 0.85f, 1f), 50f, 0.35f, Sfx.Clang);
                     return true;
@@ -940,12 +944,14 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                p.WallT = Math.Max(0f, p.WallT - dt);
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
                 p.FuryT = Math.Max(0f, p.FuryT - dt);
                 p.BossContactT = Math.Max(0f, p.BossContactT - dt);
                 if (p.Downed)
-                    p.WallT = p.WhirlT = p.UnbreakT = p.FuryT = 0f;
+                {
+                    Array.Clear(p.WallPlate, 0, Player.WallPlates);
+                    p.WhirlT = p.UnbreakT = p.FuryT = 0f;
+                }
                 if (p.WhirlT > 0f)
                 {
                     p.WhirlT -= dt;
@@ -987,14 +993,34 @@ namespace Arena
             }
         }
 
-        /// Does a raised Shield Wall cover this point (in front of the knight)?
-        bool WallCovers(Player p, V2 pos, float radius)
+        /// Does a raised Shield Wall cover this point (in front of the knight)? `plate` is the one it would hit; a
+        /// broken plate leaves a gap, so only a plate that is still standing covers.
+        bool WallCovers(Player p, V2 pos, float radius, out int plate)
         {
+            plate = -1;
             V2 d = pos - p.Pos;
             float reach = p.Def.BodyR + 34f + radius;
             if (d.LengthSq > reach * reach)
                 return false;
-            return AngleTo(p.Pos, pos, p.Aim) < WallHalfArc * p.Stats.WallArcMult;
+            float half = WallHalfArc * p.Stats.WallArcMult;
+            float off = MathX.Fmod(d.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;  // -pi..pi, signed
+            if (Math.Abs(off) >= half)
+                return false;
+            plate = Math.Min(Player.WallPlates - 1, (int)((off + half) / (2f * half) * Player.WallPlates));
+            return p.WallPlate[plate] > 0;
+        }
+
+        /// A blocked shot wears its plate down; at zero the plate breaks and the wall has a hole there.
+        void WearWall(Player p, int plate, float wear, V2 at)
+        {
+            p.WallPlateHp[plate] -= wear;
+            if (p.WallPlateHp[plate] <= 0f)
+            {
+                p.WallPlate[plate] = 0;
+                BroadcastFx(FxKind.Boom, at, new Rgba(0.75f, 0.85f, 1f), 26f, 0.3f, Sfx.Clang);
+            }
+            else
+                p.WallPlate[plate] = (byte)Math.Max(1, (int)Math.Ceiling(255f * p.WallPlateHp[plate] / p.WallPlateMax));
         }
     }
 }

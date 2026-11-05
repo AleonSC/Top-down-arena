@@ -480,7 +480,7 @@ namespace Arena
                 if (p.Downed)
                     continue;
                 float d = p.Disp.DistanceTo(pos);
-                if (p.ParryActive && d < p.Def.BodyR + 46f || p.BarrierT > 0f && d < p.BarrierRadius + radius + 10f || p.WallT > 0f && d < p.Def.BodyR + 60f)
+                if (p.ParryActive && d < p.Def.BodyR + 46f || p.BarrierT > 0f && d < p.BarrierRadius + radius + 10f || p.WallUp && d < p.Def.BodyR + 60f)
                     return Ending.Blocked;
                 if (d < p.Def.HitR + radius + 14f)
                     return Ending.HitPlayer;

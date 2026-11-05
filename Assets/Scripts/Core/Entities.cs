@@ -86,7 +86,10 @@ namespace Arena
         public float AegisT, FrenzyT;  // Arcane Aegis, Alpha Call
         public float LegionT;          // replicated: seconds of Legion's Blood Moon left (Ultimates.cs, Game/LegionLook.cs)
         public float ScentT;           // host: Alpha Call's Blood Scent, which makes the frenzy build with each bite (Legion's frenzy stays flat)
-        public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
+        public float UnbreakT, FuryT, WhirlT;  // Knight: Unbreakable, Battle Fury, Whirlwind (replicated)
+        public const int WallPlates = 7;  // Shield Wall: plates across the arc, slot 3 is dead ahead
+        public readonly byte[] WallPlate = new byte[WallPlates];  // Shield Wall (replicated): each plate's health, 0 = broken; the wall is up while any plate is left
+        public bool WallUp { get { for (int i = 0; i < WallPlates; i++) if (WallPlate[i] > 0) return true; return false; } }
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
         public V2 VanishFrom;                         // where enemies last saw you before you vanished (replicated since 158: the smoke bank is drawn there)
         public float OrbitT;                          // Ninja: Blade Fan's kunai still orbiting you, seconds left (replicated)
@@ -126,7 +129,9 @@ namespace Arena
         public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // damage stored by the Pact and its burst's reach (replicated, to draw them); dealt during Crimson Apotheosis (host)
         public bool PactMastered, RushMastered, ApoUp;
         public readonly List<int> Grasp = new List<int>();  // Leech Tendrils: the enemies held right now (replicated)
-        public float WallHp, WhirlTick, WhirlPower = 1f;  // host
+        public float WhirlTick, WhirlPower = 1f;  // host
+        public readonly float[] WallPlateHp = new float[WallPlates];  // host: Shield Wall plate health
+        public float WallPlateMax;                                    // host: what each plate started with
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
         public float BossContactT;  // host: a boss's body can only hurt you once a second

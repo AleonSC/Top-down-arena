@@ -514,17 +514,12 @@ namespace Arena
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot });
                             break;
                         }
-                        if (p.WallT > 0f && WallCovers(p, b.Pos, b.Radius))
+                        if (p.WallUp && WallCovers(p, b.Pos, b.Radius, out int plate))
                         {
                             scratchIds.Add(b.Id);  // Shield Wall: stops everything from the front, red aimed shots included
                             if (p.WallReflect)
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
-                            p.WallHp -= BlockerWear(b);
-                            if (p.WallHp <= 0f)
-                            {
-                                p.WallT = 0f;
-                                BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.75f, 0.85f, 1f), 50f, 0.4f, Sfx.Clang);
-                            }
+                            WearWall(p, plate, b.Dmg, b.Pos);  // every shot wears a plate, not only a boss's
                             break;
                         }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))

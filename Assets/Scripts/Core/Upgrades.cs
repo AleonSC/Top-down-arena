@@ -65,7 +65,7 @@ namespace Arena
         public float AdrenalineBonusTime, LinkHealMult = 1f;
         public float GrenadeRadiusMult = 1f, MarkBonus;
         // Knight abilities
-        public float WallCapMult = 1f, WallArcMult = 1f, WallBonusTime;
+        public float WallCapMult = 1f, WallArcMult = 1f;
         public float SlamRadiusMult = 1f, SlamStunBonus;
         public float UnbreakBonus, UnbreakHealBonus;
         public float ConsecrateRadiusMult = 1f, ConsecrateBonusTime, OathMult = 1f, LayMult = 1f;
@@ -243,8 +243,8 @@ namespace Arena
                 Apply = s => { s.GrenadeRadiusMult += 0.5f; s.GrenadeExtraShrapnel += 6; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
             // Knight abilities
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShieldWall, MaxStacks = 2, Name = "Tower Shield", Desc = "Shield Wall covers 160°, lasts 1.5 s longer and soaks 50% more",
-                Apply = s => { s.WallArcMult += 0.33f; s.WallBonusTime += 1.5f; s.WallCapMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShieldWall, MaxStacks = 2, Name = "Tower Shield", Desc = "Shield Wall covers 160° and its plates take 50% more before they break",
+                Apply = s => { s.WallArcMult += 0.33f; s.WallCapMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LeapSlam, MaxStacks = 2, Name = "Earthshaker", Desc = "Leap Slam hits 40% wider and stuns for 1 s longer",
                 Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Unbreakable, MaxStacks = 2, Name = "Iron Will", Desc = "Unbreakable blocks 15% more damage and heals you for 10% more of what you deal",
