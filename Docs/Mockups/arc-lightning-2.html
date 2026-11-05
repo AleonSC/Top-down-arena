@@ -1,0 +1,454 @@
+<title>Arc Lightning Looks 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Round two of Arc Lightning looks: four NEW directions (E-H), none of them Thunderhead (built), Storm Front, Tesla Rails or Whip Arc. Same field-manual look as the other mockups. Top: the Elementalist DPS charging and loosing Arc Lightning on a loop
+   (hold, release, aftermath), drawn at 0.55 of the game's scale so a full 800 px strip fits. Under it: controls and
+   still frames. Then a card per look, then build notes. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --bolt: #bfd9ff; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--bolt); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 420; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #16233a; border-color: var(--bolt); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 4 / 3; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--bolt); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--bolt); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } .now { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Elementalist DPS · Arc Lightning · round two</div>
+    <h1>Arc <span>Lightning</span> 2</h1>
+    <p class="lead">Style A "Thunderhead" is built. Here are four <b>different</b> directions, none of them a jagged line
+      with forks (A, B, C and D in the first round were all variations on that): <b>E Skyfall</b> drops strikes from above
+      one after another, <b>F Lichtenberg</b> grows a fractal tree of lightning along the strip, <b>G Circuit</b> runs
+      right-angle pulses and lights a pixel matrix (it matches the CRT menus), and <b>H Ion Wave</b> sends a ringing
+      sine wave down the strip. Each covers <b>charge</b>, <b>release</b>, <b>aftermath</b>. Same numbers as the game
+      (90 px wide, 160 to 800 px long, 0.9 s to full, 40 damage, 0.4 s stun).</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="420"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group"><span class="label">Charge</span>
+        <button id="c0" aria-pressed="false">Tap</button><button id="c5" aria-pressed="false">Half</button><button id="c10" aria-pressed="true">Full</button>
+      </div>
+      <div class="group"><span class="label">Barrage</span>
+        <button id="bar0" aria-pressed="true">Off</button><button id="bar1" aria-pressed="false">+2 strips</button>
+      </div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip" aria-label="Still frames through one cast"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The styles</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>Same hooks as style A: charge in <code>DrawArcCharge</code>, release in <code>FxKind.ArcField</code> (<code>DrawArcFieldFx</code>), which already carries the strip's start, end, half width and colour. <b>No protocol change</b>: every pattern below is seeded by where the strip went off, so all screens draw the same thing.</li>
+      <li>Only your own charge shows the strip preview (outline and markers), like today. Allies see the build-up at the caster only.</li>
+      <li>E needs the strike times (<code>since = i * 0.28 / (n-1)</code>), F a cached tree per cast (about 350 segments, built once), G a 16 px cell grid snapped to the strip, H nothing but a sine. All of them are cheap next to the glow pass.</li>
+      <li>The 0.4 s stun mark is a timer on each enemy hit, as in round one: scorch ring (E), violet crackle (F), square brackets (G), ripple (H).</li>
+      <li>Glows go in the additive glow pass; with Visual effects off the strip draws exactly as now.</li>
+      <li>Drawn at 0.55 of the game's scale so a full 800 px strip fits. If one is picked, the lobby preview gets the same look (as for style A).</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, S = 0.55;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const BOLT = [0.75, 0.85, 1], GOLD = [1, 0.82, 0.3], WHITE = [1, 1, 1], VIO = [0.72, 0.6, 1], CYAN = [0.4, 1, 0.9], ION = [0.55, 0.78, 1], AMBER = [1, 0.7, 0.3];
+  const rgba = (c, a) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${Math.max(0, Math.min(1, a))})`;
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const LMIN = 160, LMAX = 800, HW = 45, STUN = 0.4, MIN_DRAW = 0.15, FULL_DRAW = 0.9, BODY = 16;
+  const P = { x: 70, y: 210 };
+  const SPOTS = [[170, -10], [300, 30], [420, -35], [540, 5], [650, 38], [760, -20], [230, 120], [480, -130], [700, 110]];
+  const lenFor = c => LMIN + (LMAX - LMIN) * c;
+  const relT = c => MIN_DRAW + (FULL_DRAW - MIN_DRAW) * c + 0.3;
+  const X = a => P.x + a * S, Y = a => P.y + a * S;
+
+  function cast(c, barrage) {
+    const len = lenFor(c), n = barrage ? 3 : 1, shifts = [];
+    for (let v = 0; v < n; v++) shifts.push(v === 0 ? 0 : (v % 2 ? 1 : -1) * 2 * HW * Math.ceil(v / 2));
+    const enemies = SPOTS.map(([along, across]) => {
+      let strip = -1;
+      for (let v = 0; v < n && strip < 0; v++) if (along <= len + 13 && Math.abs(across - shifts[v]) <= HW + 13) strip = v;
+      return { along, across, strip };
+    });
+    return { len, shifts, enemies };
+  }
+
+  // ---------- helpers ----------
+  const sprites = {};
+  function sprite(c) {
+    const k = c.join(); if (sprites[k]) return sprites[k];
+    const s = document.createElement("canvas"); s.width = s.height = 64;
+    const x = s.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, rgba(c, 0.9)); g.addColorStop(0.28, rgba(c, 0.32)); g.addColorStop(1, rgba(c, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64); return sprites[k] = s;
+  }
+  function glow(ctx, x, y, r, c, a) {
+    if (a <= 0.01 || r <= 0) return;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = Math.min(1, a);
+    ctx.drawImage(sprite(c), x - r, y - r, r * 2, r * 2); ctx.restore();
+  }
+  function jagged(ax, ay, bx, by, segs, amp, R) {
+    const pts = [[ax, ay]], nx = -(by - ay), ny = bx - ax, len = Math.hypot(nx, ny) || 1;
+    for (let i = 1; i < segs; i++) { const f = i / segs, j = (R() - 0.5) * 2 * amp * Math.sin(f * Math.PI); pts.push([ax + (bx - ax) * f + nx / len * j, ay + (by - ay) * f + ny / len * j]); }
+    pts.push([bx, by]); return pts;
+  }
+  function stroke(ctx, pts, w, col) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); }
+  function bolt(ctx, pts, w, a, col = BOLT) { stroke(ctx, pts, w * 2.6, rgba(col, 0.35 * a)); stroke(ctx, pts, w, rgba(WHITE, a)); }
+  function outline(ctx, len, a, col) {   // your own strip, dashed
+    ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 1.2;
+    ctx.strokeRect(X(0), Y(-HW), len * S, 2 * HW * S); ctx.restore();
+  }
+  function floor(ctx) {
+    ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, 960, 420);
+    ctx.strokeStyle = "rgba(110,140,220,0.07)"; ctx.lineWidth = 1;
+    for (let x = 0; x < 960; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, 420); ctx.stroke(); }
+    for (let y = 0; y < 420; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(960, y + 0.5); ctx.stroke(); }
+  }
+  function caster(ctx, charge, col) {
+    const { x, y } = P, r = BODY * S * 1.4;
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 9, r, r * 0.45, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#1a2236"; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "#ffb04a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = "#cfd8e3"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 4, y - 3); ctx.lineTo(x + 16, y - 3); ctx.moveTo(x + 4, y + 3); ctx.lineTo(x + 16, y + 3); ctx.stroke();
+    glow(ctx, x + 16, y, 6 + 14 * charge, col, 0.5 + 0.5 * charge);
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 1.8, 0, TAU); ctx.fill();
+  }
+  function enemy(ctx, e, flash) {
+    const x = X(e.along), y = Y(e.across), r = 13 * S * 1.4 * (1 + 0.16 * flash);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI);
+    ctx.fillStyle = flash > 0 ? `rgba(255,255,255,${0.5 + 0.5 * flash})` : "#5a1f24";
+    ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(-r * 0.7, r * 0.8); ctx.lineTo(-r * 0.7, -r * 0.8); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#ff5a5f"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+  }
+  // polyline helpers for G: cumulative length, and the part of it between two distances
+  function partial(pts, from, to) {
+    const out = []; let d = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i], l = Math.hypot(bx - ax, by - ay), s = d, e = d + l; d = e;
+      if (e < from || s > to || l === 0) continue;
+      const f0 = Math.max(0, (from - s) / l), f1 = Math.min(1, (to - s) / l);
+      if (!out.length) out.push([ax + (bx - ax) * f0, ay + (by - ay) * f0]);
+      out.push([ax + (bx - ax) * f1, ay + (by - ay) * f1]);
+    }
+    return out;
+  }
+
+  // ---------- E: Skyfall ----------
+  const strikes = len => Math.max(2, Math.round(len / 110));
+  // ---------- F: Lichtenberg tree (built once, for the longest strip; clipped to the real length) ----------
+  let TREE = null;
+  function buildTree() {
+    const segs = [], trunk = [[0, 0]]; let x = 0, y = 0; const R0 = rnd(4242);
+    while (x < LMAX + 20) { x += 16; y = Math.max(-HW * 0.45, Math.min(HW * 0.45, y + (R0() - 0.5) * 15 - y * 0.15)); trunk.push([x, y]); }
+    for (let i = 1; i < trunk.length; i++) segs.push({ ax: trunk[i - 1][0], ay: trunk[i - 1][1], bx: trunk[i][0], by: trunk[i][1], d: trunk[i][0], w: 1 });
+    function grow(R, px, py, ang, L, depth, d0) {
+      let x = px, y = py, d = d0;
+      for (let s = 0; s < Math.ceil(L / 9); s++) {
+        ang += (R() - 0.5) * 0.7; const nx = x + Math.cos(ang) * 9, ny = y + Math.sin(ang) * 9;
+        if (Math.abs(ny) > HW * 1.08) break;
+        d += 9; segs.push({ ax: x, ay: y, bx: nx, by: ny, d, w: depth === 1 ? 0.6 : 0.4 }); x = nx; y = ny;
+        if (depth < 3 && R() < 0.2) grow(R, x, y, ang + (R() < 0.5 ? 1 : -1) * (0.5 + R() * 0.6), L * 0.55, depth + 1, d);
+      }
+    }
+    for (let i = 2; i < trunk.length - 2; i++) { const R = rnd(777 + i * 31); if (R() < 0.6) grow(R, trunk[i][0], trunk[i][1], (R() < 0.5 ? -1 : 1) * (0.55 + R() * 0.75), 36 + R() * 70, 1, trunk[i][0]); }
+    return segs;
+  }
+  function hitBranch(h) {   // a bright branch from the trunk to an enemy, as extra segments
+    const R = rnd(31 + Math.round(h.along)), pts = jagged(h.along, 0, h.along, h.across, 5, 7, R), out = [];
+    for (let i = 1; i < pts.length; i++) out.push({ ax: pts[i - 1][0], ay: pts[i - 1][1], bx: pts[i][0], by: pts[i][1], d: h.along + 14 * i, w: 1.3 });
+    return out;
+  }
+  function drawSegs(ctx, segs, reach, maxX, col, wScale, a) {
+    ctx.lineCap = "round";
+    for (const s of segs) {
+      if (s.d > reach || s.bx > maxX) continue;
+      ctx.strokeStyle = rgba(col, a); ctx.lineWidth = Math.max(0.7, s.w * wScale);
+      ctx.beginPath(); ctx.moveTo(X(s.ax), Y(s.ay)); ctx.lineTo(X(s.bx), Y(s.by)); ctx.stroke();
+    }
+  }
+
+  // ---------- G: Circuit ----------
+  function trace(k, len) {
+    const R = rnd(100 + k * 17), base = (k - 1) * 28, pts = [[0, base]]; let x = 0, y = base;
+    while (x < len) { x = Math.min(len, x + 40 + R() * 50); pts.push([x, y]); if (x < len) { y = Math.max(-HW * 0.85, Math.min(HW * 0.85, y + (R() < 0.5 ? -1 : 1) * 16)); pts.push([x, y]); } }
+    return pts.map(p => [X(p[0]), Y(p[1])]);
+  }
+  const CELL = 16;
+  function bracket(ctx, x, y, r, col, a) {
+    ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 1.8; const l = r * 0.55;
+    for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { ctx.beginPath(); ctx.moveTo(x + sx * r, y + sy * (r - l)); ctx.lineTo(x + sx * r, y + sy * r); ctx.lineTo(x + sx * (r - l), y + sy * r); ctx.stroke(); }
+  }
+
+  // ---------- The styles ----------
+  const STYLES = {
+    sky: { key: "E", name: "Skyfall", col: BOLT, travel: 0.28,
+      hitT: (along, len) => { const n = strikes(len); return (Math.round(along / (len / n)) - 1 + 0.0) / (n - 1) * 0.28 + 0.02; },
+      charge(ctx, o) {
+        const n = strikes(o.len), full = o.c > 0.95, col = full ? GOLD : BOLT, p = 0.5 + 0.5 * Math.sin(o.t * 10);
+        outline(ctx, o.len, 0.25, col);
+        for (let i = 1; i <= n; i++) {   // a ground marker where each strike will land
+          const x = X(i * o.len / n), y = Y(0), last = i === n;
+          ctx.strokeStyle = rgba(col, last ? 0.5 + 0.4 * p : 0.3); ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(x, y, HW * S * (last ? 0.9 + 0.1 * p : 0.55), 0, TAU); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y); ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5); ctx.stroke();
+          if (last) { ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(x, y, HW * S * 1.35, o.t * 2, o.t * 2 + TAU * 0.75); ctx.stroke(); ctx.setLineDash([]); glow(ctx, x, y, 26, col, 0.25 + 0.25 * p); }
+        }
+        for (let i = 0; i < 5; i++) { const R = rnd(50 + i + Math.floor(o.t * 12) * 9); glow(ctx, P.x + 16 + (R() - 0.3) * 40 * o.c, P.y + (R() - 0.5) * 30 * o.c, 4, BOLT, 0.9); }
+      },
+      release(ctx, o) {
+        const n = strikes(o.len);
+        for (let i = 1; i <= n; i++) {
+          const along = i * o.len / n, k = o.since - (i - 1) / (n - 1) * 0.28; if (k < 0) continue;
+          const R = rnd(900 + i * 13 + o.seed * 5), x = X(along), y = Y(0), sa = Math.max(0, 0.55 * (1 - k / 1.35));
+          if (sa > 0) {   // scorch mark with cracks
+            ctx.fillStyle = `rgba(0,0,0,${sa})`; ctx.beginPath();
+            for (let a = 0; a < 12; a++) { const ang = a / 12 * TAU, r = HW * S * (0.85 + 0.35 * R()); ctx[a ? "lineTo" : "moveTo"](x + Math.cos(ang) * r, y + Math.sin(ang) * r * 0.85); }
+            ctx.fill();
+            for (let a = 0; a < 5; a++) { const ang = R() * TAU, r = HW * S * (0.6 + 0.7 * R()); stroke(ctx, jagged(x, y, x + Math.cos(ang) * r, y + Math.sin(ang) * r, 3, 3, R), 1, rgba(BOLT, sa * 1.2)); }
+          }
+          if (k < 0.16) {   // the bolt dropping from above
+            const a = 1 - k / 0.16, bx = x + (R() - 0.5) * 40;
+            bolt(ctx, jagged(bx, y - 200, x, y, 8, 14, R), 2.4, a);
+            stroke(ctx, jagged(bx + 4, y - 120, x + 26, y - 40, 4, 8, R), 1, rgba(WHITE, a * 0.7));
+          }
+          glow(ctx, x, y, HW * S * 2.8, BOLT, 1 - k / 0.3);
+          glow(ctx, x, y, HW * S * 1.3, WHITE, 1 - k / 0.12);
+          const kk = k / 0.4;
+          if (kk < 1) { ctx.strokeStyle = rgba(BOLT, 0.85 * (1 - kk)); ctx.lineWidth = 3 * (1 - kk) + 0.6; ctx.beginPath(); ctx.arc(x, y, HW * S * (0.4 + 1.9 * easeOut(kk)), 0, TAU); ctx.stroke(); }
+          for (let s = 0; s < 7; s++) {   // sparks
+            const ang = R() * TAU, d = easeOut(k / 0.4) * HW * S * 2.6 * (0.4 + R()), a = 1 - k / 0.4; if (a <= 0) continue;
+            stroke(ctx, [[x + Math.cos(ang) * d, y + Math.sin(ang) * d * 0.8], [x + Math.cos(ang) * (d + 5), y + Math.sin(ang) * (d + 5) * 0.8]], 1.4, rgba(GOLD, a));
+          }
+        }
+      },
+      stun(ctx, x, y, r, t) { ctx.strokeStyle = rgba(GOLD, 0.8); ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(x, y, r * 1.7, t * 5, t * 5 + TAU * 0.8); ctx.stroke(); ctx.setLineDash([]); }
+    },
+
+    tree: { key: "F", name: "Lichtenberg", col: VIO, travel: 0.26,
+      hitT: along => along / 800 * 0.26 + 0.03,
+      charge(ctx, o) {
+        TREE = TREE || buildTree();
+        const flick = 0.6 + 0.4 * Math.sin(o.t * 40), reach = o.len * 0.92;
+        outline(ctx, o.len, 0.22, VIO);
+        drawSegs(ctx, TREE, reach, o.len, VIO, 1.2, 0.28 * flick + 0.12);
+        const tx = reach, ty = 0; glow(ctx, X(tx), Y(ty), 14 + 10 * o.c, VIO, 0.5 + 0.3 * flick);
+        glow(ctx, P.x + 16, P.y, 10 + 20 * o.c, VIO, 0.7);
+      },
+      release(ctx, o) {
+        TREE = TREE || buildTree();
+        const segs = TREE.concat(...o.hits.map(hitBranch)), g = easeOut(o.since / 0.26), reach = g * (o.len + 160);
+        const live = o.since < 0.4 ? 1 : Math.max(0, 1 - (o.since - 0.4) / 0.5);   // white-hot, then it cools to violet and stays as a scar
+        if (live > 0) {
+          drawSegs(ctx, segs, reach, o.len + 10, VIO, 5.5, 0.4 * live);
+          drawSegs(ctx, segs, reach, o.len + 10, WHITE, 2.2, live);
+          glow(ctx, X(Math.min(o.len, reach)), Y(0), 30, VIO, live * (o.since < 0.3 ? 1 : 0));
+        }
+        const scar = Math.max(0, 0.4 * (1 - Math.max(0, o.since - 0.3) / 1.1));
+        if (scar > 0) drawSegs(ctx, segs, reach, o.len + 10, VIO, 2.2, scar);
+        for (const h of o.hits) { const k = o.since - (h.along / 800 * 0.26 + 0.03); if (k > 0) glow(ctx, X(h.along), Y(h.across), 22, VIO, Math.max(0, 1 - k / 0.5)); }
+      },
+      stun(ctx, x, y, r, t) {
+        const R = rnd(11 + Math.floor(t * 20) * 7 + Math.round(x));
+        for (let k = 0; k < 3; k++) { const a = R() * TAU; stroke(ctx, jagged(x + Math.cos(a) * r * 0.5, y + Math.sin(a) * r * 0.5, x + Math.cos(a + 0.3) * r * 2.2, y + Math.sin(a + 0.3) * r * 2.2, 3, 3, R), 1.2, rgba(VIO, 0.9)); }
+      }
+    },
+
+    circ: { key: "G", name: "Circuit", col: CYAN, travel: 0.25,
+      hitT: (along, len) => along / len * 0.25 + 0.02,
+      charge(ctx, o) {
+        outline(ctx, o.len, 0.22, CYAN);
+        for (let k = 0; k < 3; k++) {
+          const pts = trace(k, o.len); stroke(ctx, pts, 1.4, rgba(CYAN, 0.35));
+          for (let i = 0; i < pts.length; i += 2) { ctx.fillStyle = rgba(CYAN, 0.6); ctx.fillRect(pts[i][0] - 2, pts[i][1] - 2, 4, 4); }
+          const end = pts[pts.length - 1], p = Math.floor(o.t * 8) % 2; ctx.fillStyle = rgba(WHITE, p ? 1 : 0.5); ctx.fillRect(end[0] - 3, end[1] - 3, 6, 6);
+        }
+        for (const [sx, sy] of [[0, -1], [0, 1], [1, -1], [1, 1]]) {   // corner marks of the strip
+          const x = X(sx ? o.len : 0), y = Y(sy * HW), dx = sx ? -1 : 1; ctx.strokeStyle = rgba(CYAN, 0.8); ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - sy * 8); ctx.moveTo(x, y); ctx.lineTo(x + dx * 8, y); ctx.stroke();
+        }
+        glow(ctx, P.x + 16, P.y, 8 + 14 * o.c, CYAN, 0.6);
+      },
+      release(ctx, o) {
+        const head = o.since / 0.25 * o.len;
+        for (let k = 0; k < 3; k++) {   // pulses racing down the traces
+          const pts = trace(k, o.len), tail = Math.max(0, head - 160);
+          if (head > 0 && tail < o.len * 2.2) {
+            const seg = partial(pts, tail, Math.min(head, o.len * 2.2)), fade = clamp01(1 - (o.since - 0.25) / 0.5);
+            if (seg.length > 1) { stroke(ctx, seg, 5, rgba(CYAN, 0.3 * fade)); stroke(ctx, seg, 1.8, rgba(WHITE, fade)); }
+            const hd = partial(pts, Math.max(0, head - 3), head); if (hd.length > 1 && o.since < 0.3) glow(ctx, hd[hd.length - 1][0], hd[hd.length - 1][1], 14, CYAN, 1);
+          }
+        }
+        const cols = Math.ceil(o.len / CELL), rows = Math.ceil(2 * HW / CELL), cs = CELL * S;   // the pixel matrix
+        for (let cx = 0; cx < cols; cx++) for (let ry = 0; ry < rows; ry++) {
+          const R = rnd(cx * 97 + ry * 13 + o.seed * 7 + 5), delay = cx / cols * 0.25 + R() * 0.07, k = o.since - delay; if (k < 0) continue;
+          const life = 0.25 + R() * 0.5, a = clamp01(1 - k / life); if (a <= 0) continue;
+          ctx.fillStyle = rgba(k < 0.05 ? WHITE : CYAN, a * (0.35 + 0.5 * R()));
+          ctx.fillRect(X(cx * CELL) + 0.5, Y(-HW + ry * CELL) + 0.5, cs - 1.5, cs - 1.5);
+        }
+        for (const h of o.hits) { const k = o.since - (h.along / o.len * 0.25 + 0.02); if (k > 0 && k < 0.7) bracket(ctx, X(h.along), Y(h.across), 15 + 10 * (1 - easeOut(k / 0.15)), k < STUN ? WHITE : CYAN, 1 - k / 0.7); }
+      },
+      stun(ctx, x, y, r, t) { bracket(ctx, x, y, r * 1.9, CYAN, 0.9); }
+    },
+
+    wave: { key: "H", name: "Ion Wave", col: ION, travel: 0.18,
+      hitT: (along, len) => along / len * 0.18 + 0.02,
+      charge(ctx, o) {
+        const amp = HW * S * (0.25 + 0.55 * o.c), k = 0.11 + 0.1 * o.c, full = o.c > 0.95;
+        for (const sg of [-1, 1]) {
+          ctx.strokeStyle = rgba(sg > 0 ? ION : (full ? GOLD : AMBER), 0.75); ctx.lineWidth = 1.8; ctx.beginPath();
+          for (let a = 0; a <= o.len; a += 4) { const e = Math.min(1, a / 60), y = P.y + sg * amp * e * Math.sin(k * a - o.t * 14); a ? ctx.lineTo(X(a), y) : ctx.moveTo(X(a), y); }
+          ctx.stroke();
+        }
+        ctx.save(); ctx.setLineDash([2, 6]); ctx.strokeStyle = rgba(ION, 0.4); ctx.lineWidth = 1.2;
+        for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(0), Y(sg * HW)); ctx.lineTo(X(o.len), Y(sg * HW)); ctx.stroke(); } ctx.restore();
+        glow(ctx, X(o.len), P.y, 10 + 10 * o.c, ION, 0.5); glow(ctx, P.x + 16, P.y, 8 + 14 * o.c, ION, 0.6);
+      },
+      release(ctx, o) {
+        const head = clamp01(o.since / 0.18) * o.len, ring = Math.exp(-Math.max(0, o.since - 0.18) * 2.4), k0 = 0.2;
+        for (const sg of [-1, 1]) for (const [w, a, col] of [[7, 0.25, ION], [2.4, 1, WHITE]]) {
+          ctx.strokeStyle = rgba(col, a * (col === WHITE ? clamp01(ring * 1.2) : ring)); ctx.lineWidth = w * (sg > 0 ? 1 : 0.7); ctx.beginPath();
+          let first = true;
+          for (let ax = 0; ax <= Math.min(head, o.len); ax += 3) {
+            const behind = head - ax, env = o.since < 0.18 ? Math.exp(-behind / 170) : 1, e = Math.min(1, ax / 40);
+            const y = P.y + sg * HW * S * 0.85 * env * e * Math.sin(0.13 * ax - o.since * 60) * ring;
+            first ? ctx.moveTo(X(ax), y) : ctx.lineTo(X(ax), y); first = false;
+          }
+          ctx.stroke();
+        }
+        if (o.since < 0.2) glow(ctx, X(head), P.y, 34, ION, 1);
+        ctx.strokeStyle = rgba(ION, 0.6 * Math.max(0, 1 - o.since / 0.7)); ctx.lineWidth = 1.5;   // rails flash along the edges
+        for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(0), Y(sg * HW)); ctx.lineTo(X(Math.min(head, o.len)), Y(sg * HW)); ctx.stroke(); }
+        for (const h of o.hits) {   // a ripple where the wave passes an enemy
+          const k = o.since - (h.along / o.len * 0.18 + 0.02); if (k < 0 || k > 0.6) continue;
+          ctx.strokeStyle = rgba(ION, 0.9 * (1 - k / 0.6)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X(h.along), Y(h.across), 8 + 34 * easeOut(k / 0.6), 0, TAU); ctx.stroke();
+          ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(X(h.along), Y(h.across), 4 + 20 * easeOut(k / 0.5), 0, TAU); ctx.stroke();
+        }
+      },
+      stun(ctx, x, y, r, t) { ctx.strokeStyle = rgba(ION, 0.8); ctx.lineWidth = 1.4; for (let i = 0; i < 2; i++) { ctx.beginPath(); ctx.arc(x, y, r * (1.4 + ((t * 3 + i * 0.5) % 1)), 0, TAU); ctx.globalAlpha = 1 - ((t * 3 + i * 0.5) % 1); ctx.stroke(); ctx.globalAlpha = 1; } }
+    }
+  };
+
+  // ---------- one frame of one style ----------
+  function scene(ctx, key, c, barrage, clock) {
+    const st = STYLES[key], L = cast(c, barrage), rel = relT(c), since = clock - rel;
+    floor(ctx);
+    const chargeC = Math.min(clamp01((clock - MIN_DRAW) / (FULL_DRAW - MIN_DRAW)), c);
+    L.enemies.forEach(e => {
+      const k = e.strip >= 0 ? since - st.hitT(e.along, L.len) : -1, flash = k >= 0 && k < 0.15 ? 1 - k / 0.15 : 0;
+      enemy(ctx, e, flash);
+      if (k >= 0 && k < STUN) st.stun(ctx, X(e.along), Y(e.across), 13 * S * 1.4, clock);
+    });
+    L.shifts.forEach((sh, v) => {
+      ctx.save(); ctx.translate(0, sh * S);
+      if (since < 0) st.charge(ctx, { len: lenFor(chargeC), c: chargeC, t: clock, seed: v });
+      else st.release(ctx, { len: L.len, c, since, t: clock, seed: v, hits: L.enemies.filter(e => e.strip === v).map(e => ({ along: e.along, across: e.across - sh })) });
+      ctx.restore();
+    });
+    caster(ctx, since < 0 ? chargeC : Math.max(0, 1 - since / 0.25) * c, st.col);
+    return since;
+  }
+
+  // ---------- UI ----------
+  const cv = document.getElementById("arena"), ctx = cv.getContext("2d");
+  let style = "sky", charge = 1, barrage = false, speed = 1, clock = 0, last = 0;
+  const keys = Object.keys(STYLES), FXLEN = 1.5;
+  const loopLen = () => relT(charge) + FXLEN;
+  function pressed(id, on) { document.getElementById(id).setAttribute("aria-pressed", on ? "true" : "false"); }
+  const sb = document.getElementById("styleBtns");
+  keys.forEach(k => { const b = document.createElement("button"); b.id = "s_" + k; b.innerHTML = `<span class="k">${STYLES[k].key}</span>${STYLES[k].name}`; b.onclick = () => pick(k); sb.appendChild(b); });
+  function pick(k) {
+    style = k; clock = 0; keys.forEach(x => { document.getElementById("s_" + x).setAttribute("aria-pressed", x === k); });
+    document.querySelectorAll(".card").forEach(c => c.setAttribute("aria-current", c.dataset.k === k ? "true" : "false")); stills();
+  }
+  const setC = (c, id) => { charge = c; ["c0", "c5", "c10"].forEach(i => pressed(i, i === id)); clock = 0; stills(); };
+  document.getElementById("c0").onclick = () => setC(0, "c0"); document.getElementById("c5").onclick = () => setC(0.5, "c5"); document.getElementById("c10").onclick = () => setC(1, "c10");
+  document.getElementById("bar0").onclick = () => { barrage = false; pressed("bar0", 1); pressed("bar1", 0); clock = 0; stills(); };
+  document.getElementById("bar1").onclick = () => { barrage = true; pressed("bar0", 0); pressed("bar1", 1); clock = 0; stills(); };
+  document.getElementById("spd1").onclick = () => { speed = 1; pressed("spd1", 1); pressed("spd4", 0); };
+  document.getElementById("spd4").onclick = () => { speed = 0.25; pressed("spd1", 0); pressed("spd4", 1); };
+
+  const strip = document.getElementById("strip"), frames = [];
+  const MARKS = [["charge 35%", r => MIN_DRAW + (FULL_DRAW - MIN_DRAW) * charge * 0.35 + 0.05], ["full charge", r => relT(charge) - 0.05], ["+0.05 s", r => relT(charge) + 0.05], ["+0.15 s", r => relT(charge) + 0.15], ["+0.4 s", r => relT(charge) + 0.4], ["+1.0 s", r => relT(charge) + 1.0]];
+  MARKS.forEach(([label]) => { const f = document.createElement("div"), c = document.createElement("canvas"); f.className = "frame"; c.width = 480; c.height = 210; f.appendChild(c); const s = document.createElement("span"); s.textContent = label; f.appendChild(s); strip.appendChild(f); frames.push(c); });
+  function stills() { frames.forEach((c, i) => { const g = c.getContext("2d"); g.save(); g.scale(0.5, 0.5); scene(g, style, charge, barrage, MARKS[i][1]()); g.restore(); }); }
+
+  const cards = document.getElementById("cards");
+  const INFO = {
+    sky: ["Ground markers show where each strike will land; the far one pulses and goes gold at full charge.", "Strikes drop from above one after another along the strip (one per 110 px, 0.28 s in total): white flash, a ring, sparks.", "Each strike leaves a scorch with cracks that fades over 1.3 s.", "Gold dashed ring on the enemy for 0.4 s.", "Heavy, a storm falling on the arena."],
+    tree: ["Pale violet tendrils creep out of the staff and branch, as far as the strip will reach.", "A fractal tree whips down the strip in 0.26 s: white-hot trunk, three levels of branches, and an extra branch to each enemy.", "It cools from white to violet and stays as a scar for a second.", "Violet crackle on the enemy.", "Organic and eerie, like a Lichtenberg figure burned into the floor."],
+    circ: ["Three right-angle traces run out of the staff to the strip's far end, with corner marks.", "Pulses race down the traces and a 16 px pixel matrix lights up in a wave across the whole strip; brackets lock onto enemies.", "Pixels fade out one by one (about 0.7 s).", "Square brackets round the enemy for 0.4 s.", "Digital, matches the CRT menus. The only look with a hard grid."],
+    wave: ["A two-line sine (a double helix) shivers inside the strip and grows in height and pitch with the charge.", "A bright wave packet runs down the strip in 0.18 s; ripples spread where it passes an enemy.", "The wave keeps ringing along the whole strip and dies away over about a second.", "Two repeating ripple rings round the enemy.", "Clean and readable: the shape of the strip is the shape of the wave."]
+  };
+  keys.forEach(k => {
+    const s = STYLES[k], i = INFO[k], d = document.createElement("div"); d.className = "card"; d.dataset.k = k; d.setAttribute("aria-current", "false");
+    d.innerHTML = `<div class="tag">${s.key} · ${s.name.toUpperCase()}</div><dl><dt>Charge</dt><dd>${i[0]}</dd><dt>Release</dt><dd>${i[1]}</dd><dt>After</dt><dd>${i[2]}</dd><dt>Stun</dt><dd>${i[3]}</dd><dt>Feel</dt><dd>${i[4]}</dd></dl>`;
+    d.onclick = () => pick(k); cards.appendChild(d);
+  });
+
+  const now = document.getElementById("now");
+  function tick(t) {
+    const dt = Math.min(0.05, (t - last) / 1000) * speed; last = t;
+    if (!window.__freeze) { clock += dt; if (clock > loopLen()) clock = 0; }
+    const since = scene(ctx, style, charge, barrage, clock);
+    now.textContent = since < 0 ? `holding ${clock.toFixed(2)} s` : `released +${since.toFixed(2)} s`;
+    requestAnimationFrame(tick);
+  }
+  window.__scene = (k, c, b, ck) => { style = k; charge = c; barrage = b; clock = ck; window.__freeze = true; scene(ctx, k, c, b, ck); };
+  pick("sky"); requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>
