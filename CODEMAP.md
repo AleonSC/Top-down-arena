@@ -47,6 +47,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
 - `RadiantOrb.cs`: Healer's Radiant Orb
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
+- `WorldTree.cs`, `Game/WorldTreeLook.cs`: the Healer Summoner's World Tree ultimate: a 100 px zone for 15 s plus waves of healing butterflies (`MinionKind.Butterfly`, one per ally, target in `LinkTo`) and the tree's and butterflies' drawing
 - `Hydra.cs`, `Game/HydraLook.cs`: the Summoner DPS's Hydra ability (a stationary minion whose heads each spit at a different enemy) and its drawing
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
 

@@ -223,7 +223,7 @@ static partial class Program
                     case AbilityId.Titan: effect = M(MinionKind.Titan) > 0; break;
                     case AbilityId.Lifeline: effect = fullHp.Count == 2; break;
                     case AbilityId.Sanctum: effect = Z(ZoneKind.Sanctum) > 0; break;
-                    case AbilityId.WorldTree: effect = Z(ZoneKind.Grove) > 0 && M(MinionKind.Sprite) >= 4; break;
+                    case AbilityId.WorldTree: effect = Z(ZoneKind.Grove) > 0 && M(MinionKind.Butterfly) >= 1; break;
                     case AbilityId.BulletRain: effect = Z(ZoneKind.BulletRain) > 0; break;
                     case AbilityId.Legion: effect = M(MinionKind.Wolf) >= 6 && M(MinionKind.Bat) >= 6 && client.Game.Players[id].LegionT > 0f; break;
                 }

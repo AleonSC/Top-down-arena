@@ -543,6 +543,13 @@ namespace Arena
                         expired.Add(m);
                     continue;
                 }
+                if (m.Kind == MinionKind.Butterfly)
+                {
+                    if (MoveButterfly(m, owner, dt))  // WorldTree.cs
+                        expired.Add(m);
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
                 if (m.Kind == MinionKind.Hydra)
                 {
                     TickHydra(m, dmg);  // Hydra.cs
@@ -880,6 +887,8 @@ namespace Arena
                 }
                 if (z.Kind == ZoneKind.Sanctum)
                     SanctumPulse(z, dt);  // Sanctum.cs
+                if (z.Kind == ZoneKind.Grove)
+                    WorldTreeWave(z, dt);  // WorldTree.cs
                 if (z.Kind == ZoneKind.BloodPool && !z.Congealed && z.Duration - z.T >= PoolCongeal)
                     CongealPool(z);  // BloodMage.cs
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)

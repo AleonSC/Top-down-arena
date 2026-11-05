@@ -416,6 +416,7 @@ namespace Arena
         public float Launch;             // host: a Bat Swarm bat circles its owner this long before it dives (BatSwarm in Minions.cs)
         public int BiteN;                // host: a Bat Swarm bat's bites so far (every other one shows a slash)
         public int Head;                 // host: a Hydra's next head to spit (Hydra.cs)
+        public V2 Vel;                   // host: a World Tree butterfly's velocity (WorldTree.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 

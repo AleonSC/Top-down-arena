@@ -184,6 +184,11 @@ namespace Arena
                     return;
                 }
                 case ZoneKind.Grove:  // a great tree with roots spreading out
+                    if (fxOn)
+                    {
+                        DrawWorldTree(z, t);  // WorldTreeLook.cs
+                        return;
+                    }
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f), 48);
                     for (int k = 0; k < 7; k++)
                     {
@@ -316,6 +321,11 @@ namespace Arena
             if (m.Kind == MinionKind.Bear)
             {
                 DrawBear(m, t);  // BearLooks.cs
+                return;
+            }
+            if (m.Kind == MinionKind.Butterfly)
+            {
+                DrawButterfly(m, t);  // WorldTreeLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Bat)

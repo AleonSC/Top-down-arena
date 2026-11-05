@@ -71,7 +71,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.WorldTree, Kit = Kit.Summoner, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites.",
+                Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 15 s that heals and slows around it and sends a wave of healing butterflies to every ally every 1.9 s.",
                 Capstone = "Lasts 16 s with 8 sprites.",
                 Bot = b => b.AllyHurt,
             },
@@ -99,7 +99,6 @@ namespace Arena
         {
             float dmg = p.Stats.DmgMult;
             bool cap = castMastered;
-            float pw = castPower;
             switch (id)
             {
                 case AbilityId.Fortress:  // Tank: Soldier
@@ -173,12 +172,8 @@ namespace Arena
 
                 case AbilityId.WorldTree:  // Healer: Summoner
                 {
-                    float time = cap ? 16f : 10f;
-                    int sprites = cap ? 8 : 4;
-                    AddZone(ZoneKind.Grove, p, p.Pos, 170f, time);
-                    for (int i = 0; i < sprites; i++)
-                        SpawnMinion(MinionKind.Sprite, p, p.Pos + V2.FromAngle(MathX.Tau * i / sprites) * 30f, time).HealRate = 10f * pw;
-                    BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Grove).Color, 170f, 0.6f, Sfx.Summon);
+                    AddZone(ZoneKind.Grove, p, p.Pos, WorldTreeRadius, cap ? WorldTreeTimeMastered : WorldTreeTime);  // butterflies leave it in waves (WorldTree.cs)
+                    BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Grove).Color, WorldTreeRadius, 0.6f, Sfx.Summon);
                     break;
                 }
 

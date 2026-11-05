@@ -255,6 +255,7 @@ static partial class Shot {
       }
       me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f; me.ShieldHp = 0f; me.Hp = me.MaxHp;
       gm.Bullets.Clear();
+      if (Environment.GetEnvironmentVariable("CASTCLEAN") != null) { gm.Enemies.Clear(); gm.Props.Clear(); }  // CASTCLEAN=1: an empty arena (the caster, the allies, the ability)
       int k = 0;
       foreach (var e in gm.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(k * 1.3f + 0.4f) * (130f + 45f * (k % 3)); k++; }
       foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-260f, 120f); q.Hp = q.MaxHp * 0.5f; }

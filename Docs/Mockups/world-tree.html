@@ -1,0 +1,272 @@
+<title>World Tree Heartwood</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600;700&display=swap">
+<style>
+/* Layout: one stage canvas on top, spec strip below. Single dark look chosen to match the game's arena. */
+:root{--bg:#0c140e;--panel:#131f16;--fg:#e8f3e2;--mut:#8fa88b;--accent:#9be87a;--line:rgba(255,255,255,.09);
+--display:'Marcellus',Georgia,serif;--body:'Figtree',system-ui,sans-serif;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);padding-block:20px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:18px}
+header{display:grid;gap:4px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font:400 clamp(28px,5vw,40px)/1.1 var(--display);margin:0;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:65ch}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:10px}
+canvas{width:100%;height:auto;aspect-ratio:800/480;border-radius:8px;display:block;background:var(--bg)}
+.hud{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:0 4px}
+.hud b{font-variant-numeric:tabular-nums;min-width:4.5ch;display:inline-block}
+.track{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+#bar{height:100%;width:100%;background:linear-gradient(90deg,var(--accent),#fff8);border-radius:99px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button,select{font:600 14px var(--body);color:var(--fg);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+button#recast{background:var(--accent);color:#10150f;border-color:transparent}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{display:flex;gap:6px;align-items:center;color:var(--mut);font-size:14px}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.specs section{min-width:0}
+h2{font:400 20px var(--display);margin:0 0 6px}
+ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.specs p{margin:0;color:var(--mut)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--mut);font-size:13px;padding:0 4px}
+</style>
+<main>
+<header><div class="eyebrow">Healer · Summoner · Ultimate</div><h1>World Tree <span style="color:var(--accent)">A · Heartwood</span></h1><p>A golden-green heartwood tree. Every 1.9 s it releases a wave of three butterflies, one per ally, and the lowest-health ally is served first.</p></header>
+<div class="stage">
+<canvas id="cv" role="img" aria-label="Animated mockup of the World Tree ultimate healing three allies with butterflies"></canvas>
+<div class="hud"><span>Time left <b id="clock">15.0 s</b></span><div class="track"><div id="bar"></div></div><span>Butterflies <b id="nfly">0</b></span></div>
+<div class="ctl"><button id="recast">Recast</button><button id="pause">Pause</button>
+<label>Speed <select id="spd"><option value="1">1×</option><option value="0.5">0.5×</option><option value="2">2×</option></select></label>
+<label><input type="checkbox" id="old"> Show old 170 px radius</label></div>
+<div class="legend"><span>Healer in the middle, three allies move around the arena, red dots are enemies (slowed inside the aura).</span></div>
+</div>
+<div class="specs"><section><h2>What changes</h2><ul><li>Aura radius 170 → 100 px</li><li>Lasts 15 s (was 10 s, 16 s with the upgrade)</li><li>Butterflies replace sprites: 3 per wave, every 1.9 s</li><li>Each butterfly heals 14 on arrival, aura heals 18/s inside</li></ul></section><section><h2>Design note</h2><p>Closest to the current tree. Easy to read: one wave, one heal tick per ally.</p></section></div>
+</main>
+<script>window.CFG={"mode": "waves", "arrive": 14, "hops": 0, "runes": "leaves", "blooms": 26, "leafRate": 5, "pal": {"bg": "#0b130d", "grid": "rgba(160,230,140,.05)", "aura": [120, 230, 110], "glow": [190, 255, 150], "root": [70, 52, 34], "canopyLo": [28, 92, 48], "canopyMid": [52, 140, 64], "canopyHi": [110, 196, 86], "bloom": [255, 236, 150], "leaf": [160, 230, 110], "heal": [190, 255, 150], "hp": [120, 220, 120], "wings": [[255, 214, 110], [170, 255, 150], [255, 255, 200]], "wingB": [255, 160, 70]}};</script>
+<script>(function(){
+const C = window.CFG;
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const W = 800, H = 480, DPR = Math.min(2, window.devicePixelRatio || 1);
+cv.width = W*DPR; cv.height = H*DPR; g.scale(DPR, DPR);
+const DUR = 15, R = 100, OLD_R = 170, GROW = 1.4, FADE = 1.2;
+const TAU = Math.PI*2, rnd = (a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ease = t=>1-Math.pow(1-clamp(t,0,1),3);
+const rgb=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const P = C.pal;
+const heal = {x:W/2, y:H/2+10};
+let allies, enemies, flies, texts, motes, t, running=true, cast=false, idle=0, showOld=false, speed=1, last=performance.now();
+const names=['Ranger','Knight','Mage'], cols=[[255,190,110],[150,190,255],[210,150,255]];
+
+function reset(){
+  t=0; cast=true; idle=0; flies=[]; texts=[]; motes=[]; spawnT=0; tick=0;
+  allies = cols.map((c,i)=>({c, n:names[i], hp:[46,62,38][i], max:100, ph:i*2.1, x:0,y:0, dmgT:rnd(.5,2), guard:[]}));
+  enemies = Array.from({length:7},(_,i)=>({x:rnd(40,W-40), y:rnd(30,H-30), a:rnd(0,TAU), s:rnd(14,26)}));
+  placeAllies(0);
+}
+let spawnT=0, tick=0;
+function placeAllies(tt){
+  allies.forEach((a,i)=>{
+    a.x = W/2 + Math.cos(tt*.23+a.ph)*(250+i*28) ;
+    a.y = H/2 + 10 + Math.sin(tt*.31+a.ph*1.3)*(150-i*14);
+  });
+}
+function inAura(o){ return Math.hypot(o.x-heal.x,o.y-heal.y) < R*ease(t/GROW); }
+function lowest(excl){ return allies.filter(a=>!excl||!excl.includes(a)).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0]; }
+function crown(){ return {x:heal.x+rnd(-18,18), y:heal.y+rnd(-18,18)}; }
+
+function newFly(target, opts){
+  const s=crown(); const f = Object.assign({x:s.x,y:s.y,vx:rnd(-60,60),vy:rnd(-60,60),target,ph:rnd(0,TAU),hue:rnd(0,1),
+    trail:[],life:0,state:'seek',hops:C.hops||0,seed:rnd(0,1000),size:rnd(.85,1.2),orb:rnd(0,TAU),delivered:false},opts||{});
+  flies.push(f); return f;
+}
+function floatText(x,y,s,c){ texts.push({x,y,s,c,l:0}); }
+function sparkle(x,y,c,n){ for(let i=0;i<n;i++){ const a=rnd(0,TAU), v=rnd(25,80); motes.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:0,m:rnd(.5,1),c,r:rnd(1,2.4)}); } }
+function giveHeal(a,n){ a.hp=Math.min(a.max,a.hp+n); floatText(a.x,a.y-22,'+'+Math.round(n),P.heal); sparkle(a.x,a.y,P.glow,10); }
+
+function step(dt){
+  t+=dt;
+  placeAllies(t);
+  const alive = t<DUR;
+  const grown = ease(t/GROW);
+  // damage to allies
+  allies.forEach(a=>{ a.dmgT-=dt; if(a.dmgT<=0){ a.dmgT=rnd(1.1,2.3); a.hp=Math.max(8,a.hp-rnd(8,15)); }
+    if(alive && inAura(a)) a.hp=Math.min(a.max,a.hp+18*dt); });
+  enemies.forEach(e=>{ const sl = alive&&inAura(e)?.4:1; e.a+=rnd(-.8,.8)*dt;
+    const ta=Math.atan2(heal.y-e.y,heal.x-e.x); e.a += Math.sin(ta-e.a)*.4*dt;
+    e.x+=Math.cos(e.a)*e.s*sl*dt; e.y+=Math.sin(e.a)*e.s*sl*dt;
+    if(e.x<10||e.x>W-10||e.y<10||e.y>H-10){ e.a+=Math.PI; e.x=clamp(e.x,10,W-10); e.y=clamp(e.y,10,H-10);} });
+
+  // butterfly spawning
+  if(alive && t>GROW*.7){
+    spawnT-=dt;
+    if(C.mode==='waves' && spawnT<=0){ spawnT=1.9; const pick=allies.slice().sort((a,b)=>a.hp-b.hp); pick.forEach((a,i)=>newFly(a,{hold:i*.16})); }
+    if(C.mode==='swarm' && spawnT<=0){ spawnT=.34; newFly(lowest()); }
+    if(C.mode==='relay' && spawnT<=0){ spawnT=2.4; newFly(lowest(),{hops:3}); newFly(lowest(),{hops:3}); }
+    if(C.mode==='guardians' && tick<allies.length*2){ allies.forEach((a,i)=>{ if(a.guard.length<2 && t>GROW*.7+i*.35 + a.guard.length*1.2){ const f=newFly(a,{state:'seek',guardian:true,orb:a.guard.length*Math.PI}); a.guard.push(f); tick++; } }); }
+  }
+  // end of life: guardians fly home / everyone fades
+  if(!alive){ flies.forEach(f=>{ if(f.state!=='fade'){ f.state='fade'; f.fadeT=0; }}); }
+
+  flies.forEach(f=>{
+    if(f.hold>0){ f.hold-=dt; f.x=heal.x+rnd(-14,14); f.y=heal.y+rnd(-14,14); f.vx=f.vy=0; return; }
+    f.life+=dt; f.ph+=dt*(18+f.hue*6);
+    const tg=f.target;
+    if(f.state==='seek'){
+      const dx=tg.x-f.x, dy=tg.y-f.y, d=Math.hypot(dx,dy)||1;
+      const sp = (C.mode==='swarm'?190:215)*(f.guardian?.9:1);
+      // curved pursuit with a lateral wobble so paths read as flutter
+      const nx=-dy/d, ny=dx/d, wob=Math.sin(f.life*5+f.seed)*(C.mode==='swarm'?110:85)*Math.min(1,d/90);
+      const ax=(dx/d*sp+nx*wob-f.vx)*3.2, ay=(dy/d*sp+ny*wob-f.vy)*3.2;
+      f.vx+=ax*dt; f.vy+=ay*dt;
+      if(d<16){
+        if(f.guardian){ f.state='orbit'; }
+        else{
+          giveHeal(tg, C.arrive); f.delivered=true;
+          if(f.hops>0){ f.hops--; const nxt=lowest([tg]); f.target=nxt; f.hopsDone=(f.hopsDone||0)+1; }
+          else { f.state='fade'; f.fadeT=0; }
+        }
+      }
+    } else if(f.state==='orbit'){
+      f.orb+=dt*2.6; const rr=26+Math.sin(f.life*2+f.seed)*4;
+      const tx=tg.x+Math.cos(f.orb)*rr, ty=tg.y+Math.sin(f.orb)*rr*.8;
+      f.vx+=(tx-f.x)*14*dt - f.vx*5*dt; f.vy+=(ty-f.y)*14*dt - f.vy*5*dt;
+      f.pulse=(f.pulse||rnd(0,1.5))-dt;
+      if(f.pulse<=0){ f.pulse=1.5; tg.hp=Math.min(tg.max,tg.hp+C.arrive*.45); floatText(tg.x+rnd(-8,8),tg.y-24,'+'+Math.round(C.arrive*.45),P.heal); sparkle(tg.x,tg.y,P.glow,5); tg.ring=0.001; }
+    } else if(f.state==='fade'){
+      f.fadeT+=dt; f.vy-=14*dt; if(f.fadeT>.7) f.dead=true;
+    }
+    f.x+=f.vx*dt; f.y+=f.vy*dt;
+    f.trail.push({x:f.x,y:f.y}); if(f.trail.length>(C.mode==='swarm'?20:14)) f.trail.shift();
+  });
+  flies=flies.filter(f=>!f.dead);
+  allies.forEach(a=>{ a.guard=a.guard.filter(f=>!f.dead); if(a.ring){ a.ring+=dt*1.6; if(a.ring>1) a.ring=0; } });
+  texts.forEach(x=>{x.l+=dt; x.y-=22*dt;}); texts=texts.filter(x=>x.l<1);
+  motes.forEach(m=>{m.l+=dt; m.x+=m.vx*dt; m.y+=m.vy*dt; m.vx*=.94; m.vy*=.94;}); motes=motes.filter(m=>m.l<m.m);
+  // falling leaves/petals from canopy
+  if(alive && Math.random()<dt*C.leafRate){ const a=rnd(0,TAU), r=rnd(10,R*.8)*grown; motes.push({x:heal.x+Math.cos(a)*r,y:heal.y+Math.sin(a)*r-6,vx:rnd(-14,14),vy:rnd(6,22),l:0,m:rnd(1.6,2.8),c:P.leaf,r:rnd(1.6,2.8),leaf:true,rot:rnd(0,TAU)}); }
+  if(t>DUR+2.2){ if(running) reset(); }
+}
+
+// ---- drawing ----
+function glow(x,y,r,c,a){ const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,rgb(c,a)); gr.addColorStop(1,rgb(c,0)); g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,TAU); g.fill(); }
+function drawGround(){
+  g.fillStyle=P.bg; g.fillRect(0,0,W,H);
+  g.strokeStyle=P.grid; g.lineWidth=1; g.beginPath();
+  for(let x=0;x<=W;x+=40){ g.moveTo(x,0); g.lineTo(x,H);} for(let y=0;y<=H;y+=40){ g.moveTo(0,y); g.lineTo(W,y);} g.stroke();
+  const v=g.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.65); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.45)'); g.fillStyle=v; g.fillRect(0,0,W,H);
+}
+function drawAura(){
+  const gr=ease(t/GROW), fade = t>DUR-FADE ? clamp((DUR-t)/FADE,0,1) : 1, r=R*gr, a=fade;
+  if(showOld){ g.save(); g.setLineDash([6,6]); g.strokeStyle='rgba(255,255,255,.28)'; g.lineWidth=1.5; g.beginPath(); g.arc(heal.x,heal.y,OLD_R,0,TAU); g.stroke(); g.setLineDash([]); g.fillStyle='rgba(255,255,255,.5)'; g.font='11px Figtree, sans-serif'; g.fillText('old: 170 px',heal.x+OLD_R*.7+4,heal.y-OLD_R*.7); g.restore(); }
+  if(r<1) return;
+  g.save(); g.globalCompositeOperation='lighter';
+  glow(heal.x,heal.y,r*1.35,P.aura,.34*a);
+  g.restore();
+  // ground disc
+  const d=g.createRadialGradient(heal.x,heal.y,r*.1,heal.x,heal.y,r); d.addColorStop(0,rgb(P.aura,.20*a)); d.addColorStop(.8,rgb(P.aura,.10*a)); d.addColorStop(1,rgb(P.aura,.0));
+  g.fillStyle=d; g.beginPath(); g.arc(heal.x,heal.y,r,0,TAU); g.fill();
+  // rune rings
+  g.save(); g.translate(heal.x,heal.y);
+  g.strokeStyle=rgb(P.glow,.75*a); g.lineWidth=1.6; g.beginPath(); g.arc(0,0,r,0,TAU); g.stroke();
+  g.rotate(t*.35); g.strokeStyle=rgb(P.glow,.35*a); g.lineWidth=1; g.setLineDash([2,7]); g.beginPath(); g.arc(0,0,r*.86,0,TAU); g.stroke(); g.setLineDash([]);
+  if(C.runes==='petals'){ for(let i=0;i<12;i++){ g.rotate(TAU/12); g.fillStyle=rgb(P.glow,.5*a); g.beginPath(); g.ellipse(r*.74,0,7,2.6,0,0,TAU); g.fill(); } }
+  else if(C.runes==='stars'){ for(let i=0;i<10;i++){ g.rotate(TAU/10); g.fillStyle=rgb(P.glow,.7*a); g.beginPath(); g.arc(r*.74,0,1.8+((i%2)*1.2),0,TAU); g.fill(); } }
+  else if(C.runes==='leaves'){ for(let i=0;i<8;i++){ g.rotate(TAU/8); g.strokeStyle=rgb(P.glow,.55*a); g.beginPath(); g.moveTo(r*.66,0); g.quadraticCurveTo(r*.76,6,r*.86,0); g.quadraticCurveTo(r*.76,-6,r*.66,0); g.stroke(); } }
+  else { for(let i=0;i<6;i++){ g.rotate(TAU/6); g.strokeStyle=rgb(P.glow,.5*a); g.beginPath(); g.moveTo(r*.62,-5); g.lineTo(r*.8,0); g.lineTo(r*.62,5); g.stroke(); } }
+  g.restore();
+  // pulse ring every 2s (the aura heal tick)
+  const pr=((t%2)/2); g.strokeStyle=rgb(P.glow,(1-pr)*.45*a); g.lineWidth=2; g.beginPath(); g.arc(heal.x,heal.y,r*pr,0,TAU); g.stroke();
+}
+function drawTree(){
+  const gr=ease(t/GROW), fade = t>DUR-FADE ? clamp((DUR-t)/FADE,0,1) : 1;
+  if(gr<=0.01) return;
+  const sc=gr*(.85+.15*fade), cx=heal.x, cy=heal.y;
+  g.save(); g.globalAlpha=fade; g.translate(cx,cy); g.scale(sc,sc);
+  // roots
+  g.lineCap='round';
+  for(let i=0;i<9;i++){ const a=i/9*TAU+.3, l=34+((i*37)%17); g.strokeStyle=rgb(P.root,.9); g.lineWidth=5-(i%3); g.beginPath(); g.moveTo(0,0); g.quadraticCurveTo(Math.cos(a+.5)*l*.6,Math.sin(a+.5)*l*.6,Math.cos(a)*l,Math.sin(a)*l); g.stroke();
+    g.strokeStyle=rgb(P.glow,.5); g.lineWidth=1; g.stroke(); }
+  // canopy: layered lobes, gently swaying
+  const lobes=[]; for(let i=0;i<14;i++){ const a=i/14*TAU, rr=i%2?30:36; lobes.push([Math.cos(a)*rr*.9+Math.sin(t*.8+i)*1.6, Math.sin(a)*rr*.9+Math.cos(t*.7+i)*1.6, 20+(i%3)*4]); }
+  [[1.0,0],[.78,-3],[.52,-6]].forEach(([s,oy],layer)=>{
+    lobes.forEach(([x,y,r],i)=>{ const gg=g.createRadialGradient(x*s-3,y*s+oy-4,2,x*s,y*s+oy,r*s);
+      gg.addColorStop(0,rgb(layer===2?P.canopyHi:P.canopyMid,1)); gg.addColorStop(1,rgb(layer===0?P.canopyLo:P.canopyMid,1));
+      g.fillStyle=gg; g.beginPath(); g.arc(x*s,y*s+oy,r*s,0,TAU); g.fill(); });
+  });
+  g.fillStyle=rgb(P.canopyHi,1); g.beginPath(); g.arc(0,-6,17,0,TAU); g.fill();
+  // blossoms / fruit / lights dotted on canopy
+  g.globalCompositeOperation='lighter';
+  for(let i=0;i<C.blooms;i++){ const a=i*2.399, rr=Math.sqrt(i/C.blooms)*50; const tw=.55+.45*Math.sin(t*2.2+i*1.7);
+    g.fillStyle=rgb(P.bloom,.85*tw); g.beginPath(); g.arc(Math.cos(a)*rr,Math.sin(a)*rr-4,2.1+tw,0,TAU); g.fill(); }
+  glow(0,-6,46,P.glow,.28);
+  g.restore();
+}
+function wing(x,y,ang,flap,s,c,a){
+  g.save(); g.translate(x,y); g.rotate(ang+Math.PI/2); g.scale(s,s);
+  const f=.25+.75*Math.abs(Math.sin(flap));
+  for(const side of [-1,1]){
+    g.save(); g.scale(side*f,1);
+    g.fillStyle=rgb(c,.9*a); g.beginPath(); g.ellipse(5,-3,6.2,8,.5,0,TAU); g.fill();
+    g.fillStyle=rgb(P.wingB,.8*a); g.beginPath(); g.ellipse(4,5,4,5.4,-.3,0,TAU); g.fill();
+    g.fillStyle=`rgba(255,255,255,${.65*a})`; g.beginPath(); g.arc(6,-4,1.2,0,TAU); g.fill();
+    g.restore();
+  }
+  g.fillStyle=`rgba(255,255,255,${.95*a})`; g.fillRect(-.8,-6,1.6,12);
+  g.restore();
+}
+function drawFlies(){
+  flies.forEach(f=>{
+    const a = f.state==='fade' ? 1-f.fadeT/.7 : Math.min(1,f.life*3);
+    const c = P.wings[Math.floor(f.hue*P.wings.length)%P.wings.length];
+    g.save(); g.globalCompositeOperation='lighter';
+    // trail ribbon
+    if(f.trail.length>2){ for(let i=1;i<f.trail.length;i++){ const k=i/f.trail.length; g.strokeStyle=rgb(c,k*.45*a); g.lineWidth=k*3.2; g.beginPath(); g.moveTo(f.trail[i-1].x,f.trail[i-1].y); g.lineTo(f.trail[i].x,f.trail[i].y); g.stroke(); } }
+    // thread to tree for guardians
+    if(f.guardian && f.state==='orbit'){ g.strokeStyle=rgb(P.glow,.22*a); g.lineWidth=1; g.setLineDash([3,5]); g.beginPath(); g.moveTo(heal.x,heal.y); g.lineTo(f.x,f.y); g.stroke(); g.setLineDash([]); }
+    glow(f.x,f.y,16*f.size,c,.5*a);
+    g.restore();
+    wing(f.x,f.y,Math.atan2(f.vy,f.vx),f.ph,f.size,c,a);
+  });
+}
+function drawActors(){
+  enemies.forEach(e=>{ const sl=t<DUR&&inAura(e); g.fillStyle=sl?'#e8697a':'#c0394f'; g.beginPath(); g.arc(e.x,e.y,7,0,TAU); g.fill();
+    if(sl){ g.strokeStyle=rgb(P.glow,.55); g.lineWidth=1.2; g.beginPath(); g.arc(e.x,e.y,11,0,TAU); g.stroke(); } });
+  allies.forEach(a=>{
+    if(a.ring){ g.strokeStyle=rgb(P.glow,(1-a.ring)*.7); g.lineWidth=2; g.beginPath(); g.arc(a.x,a.y,12+a.ring*20,0,TAU); g.stroke(); }
+    const recv = a.guard.length>0 || (t<DUR && inAura(a));
+    if(recv){ g.save(); g.globalCompositeOperation='lighter'; glow(a.x,a.y,26,P.glow,.28); g.restore(); }
+    g.fillStyle=rgb(a.c,1); g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=2; g.beginPath(); g.arc(a.x,a.y,11,0,TAU); g.fill(); g.stroke();
+    const w=34, p=a.hp/a.max; g.fillStyle='rgba(0,0,0,.6)'; g.fillRect(a.x-w/2,a.y+16,w,5);
+    g.fillStyle=p<.35?'#e8697a':rgb(P.hp,1); g.fillRect(a.x-w/2,a.y+16,w*p,5);
+  });
+  // healer
+  g.fillStyle='#8be9a8'; g.strokeStyle='#fff'; g.lineWidth=2; g.beginPath(); g.arc(heal.x,heal.y+(t<GROW?0:0),9,0,TAU);
+  if(t>GROW){ /* tree covers healer; draw small marker on top of canopy */ g.fill(); g.stroke(); }
+  else { g.fill(); g.stroke(); }
+}
+function drawFx(){
+  motes.forEach(m=>{ const k=1-m.l/m.m; if(m.leaf){ g.save(); g.translate(m.x,m.y); g.rotate(m.rot+m.l*2.5); g.fillStyle=rgb(m.c,k*.9); g.beginPath(); g.ellipse(0,0,m.r*1.5,m.r*.8,0,0,TAU); g.fill(); g.restore(); }
+    else { g.save(); g.globalCompositeOperation='lighter'; g.fillStyle=rgb(m.c,k); g.beginPath(); g.arc(m.x,m.y,m.r,0,TAU); g.fill(); g.restore(); } });
+  g.font='700 12px Figtree, sans-serif'; g.textAlign='center';
+  texts.forEach(x=>{ g.fillStyle=rgb(x.c,1-x.l); g.fillText(x.s,x.x,x.y); });
+}
+function hud(){
+  const left=Math.max(0,DUR-t), p=left/DUR;
+  document.getElementById('bar').style.width=(p*100)+'%';
+  document.getElementById('clock').textContent = t<DUR ? left.toFixed(1)+' s' : 'ended';
+  document.getElementById('nfly').textContent = flies.length;
+}
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000)*speed; last=now;
+  if(running) step(dt);
+  drawGround(); drawAura(); drawTree(); drawFlies(); drawActors(); drawFx(); hud();
+  requestAnimationFrame(frame);
+}
+document.getElementById('recast').onclick=()=>{ reset(); running=true; document.getElementById('pause').textContent='Pause'; };
+document.getElementById('pause').onclick=e=>{ running=!running; e.target.textContent=running?'Pause':'Resume'; last=performance.now(); };
+document.getElementById('old').onchange=e=>{ showOld=e.target.checked; };
+document.getElementById('spd').onchange=e=>{ speed=parseFloat(e.target.value); };
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ speed=.6; }
+reset(); for(let i=0;i<170;i++) step(1/30); // open on a mid-cast frame
+requestAnimationFrame(frame);
+})();
+</script>
