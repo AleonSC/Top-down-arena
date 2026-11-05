@@ -59,7 +59,7 @@ input[type=range] { accent-color: var(--shadow); width: 100%; min-width: 0; }
   <header>
     <div class="eyebrow">Ninja · DPS · Shadow Step</div>
     <h1>Shadow Step <span>looks</span></h1>
-    <p class="lead">Today the step is an instant hop plus a violet slash. These five looks dress the same move: the same 450 px reach, the same landing behind the target, the same 80 damage strike. Only the way you travel changes. Pick one on the stage or click a card.</p>
+    <p class="lead">Today the step is an instant hop plus a violet slash. These six looks dress the same move: the same 450 px reach, the same landing behind the target, the same 80 damage strike. Only the way you travel changes. Pick one on the stage or click a card.</p>
     <div class="facts">
       <span>Reach <b>450 px</b></span><span>Damage <b>80</b></span><span>Cooldown <b>7 s</b></span>
       <span>Lands <b>enemy radius + body radius + 8 px</b> behind</span><span>No target: <b>300 px</b> step toward cursor</span>
@@ -87,7 +87,7 @@ input[type=range] { accent-color: var(--shadow); width: 100%; min-width: 0; }
   </section>
 
   <section>
-    <h2>All five at once</h2>
+    <h2>All six at once</h2>
     <div class="cards" id="cards"></div>
   </section>
 </div>
@@ -395,6 +395,64 @@ input[type=range] { accent-color: var(--shadow); width: 100%; min-width: 0; }
       if (tt >= ARR) { const a = tt - ARR; glow(g, S.arr.x, S.arr.y, 60 * clamp(1 - a / 0.25), [235, 220, 255], 0.6 * clamp(1 - a / 0.25)); ring(g, S.arr.x, S.arr.y, a, 0.3, 10, 48, VIOLET, 3); }
       if (tt >= ARR + 0.16) drawNinja(g, S.arr.x, S.arr.y, S.ang, { alpha: clamp((tt - ARR - 0.16) / 0.07) });
     },
+    // 6 · like Pixel Shatter, but the body is smoke: it dissolves into puffs, the puffs stream along the route behind
+    // two glowing eyes, and the cloud pulls back together into the ninja behind the target.
+    smokeform(g, S, tt) {
+      const N = 32, px = Math.cos(perp(S)), py = Math.sin(perp(S));
+      const wisp = (x, y, rx, ry, rot, a) => {
+        if (a <= 0.01 || rx <= 0.5) return;
+        g.save(); g.translate(x, y); g.rotate(rot); g.scale(1, ry / rx);
+        const gr = g.createRadialGradient(-rx * 0.25, -rx * 0.25, rx * 0.1, 0, 0, rx);
+        gr.addColorStop(0, rgba([132, 112, 190], 0.9 * a)); gr.addColorStop(0.6, rgba([60, 44, 108], 0.8 * a)); gr.addColorStop(1, rgba([30, 20, 60], 0));
+        g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, 7); g.fill(); g.restore();
+      };
+      const dissolve = clamp(tt / (WIND + 0.05));
+      if (tt < WIND + 0.06) drawNinja(g, S.dep.x, S.dep.y, S.ang, { alpha: 1 - out(dissolve), scale: 1 + 0.05 * dissolve });
+      const eyeA = tt >= 0 ? 1 : 0;
+      // the smoke left behind at the start
+      for (let i = 0; i < 5; i++) {
+        const age = tt - WIND - 0.02 * i; if (age < 0) continue; const life = clamp(1 - age / 0.8);
+        wisp(S.dep.x + (hash(i) - 0.5) * 30, S.dep.y - age * 16 + (hash(i * 3) - 0.5) * 14, 12 + 20 * out(age / 0.6), 12 + 18 * out(age / 0.6), 0, 0.55 * life);
+      }
+      for (let i = 0; i < N; i++) {
+        const a0 = hash(i * 2.3) * 6.28, rr = Math.sqrt(hash(i * 5.1)) * (BR - 3), ox = Math.cos(a0) * rr, oy = Math.sin(a0) * rr;
+        const j = hash(i * 3.1), sp = (hash(i * 7.7) - 0.5) * 96, delay = WIND * 0.7 + j * 0.05, dur = TRAVEL + 0.06 + j * 0.1, r0 = 6 + 5 * hash(i * 9.1);
+        const at = (f) => {                                                                // where this puff is at route fraction f
+          const base = pathPos(S, f), s = Math.sin(Math.PI * f) * sp, sc = 1 + 1.3 * (1 - f * f) * (1 - Math.max(0, f - 0.8) * 3);
+          return [base.x + ox * sc + px * s, base.y + oy * sc + py * s];
+        };
+        const f = ease((tt - delay) / dur);
+        if (tt < delay) {
+          const k = out(clamp(tt / WIND)), sw = k * 0.8 * (hash(i) - 0.5);
+          const x = S.dep.x + (ox * Math.cos(sw) - oy * Math.sin(sw)) * (1 + k * 0.7), y = S.dep.y + (ox * Math.sin(sw) + oy * Math.cos(sw)) * (1 + k * 0.7) - k * 4;
+          wisp(x, y, r0 * (0.7 + 0.5 * k), r0 * (0.7 + 0.5 * k), 0, clamp(dissolve * 1.6) * 0.95);
+        } else if (f < 1) {
+          const sh = Math.sin(Math.PI * f), [x, y] = at(f);
+          for (let k = 6; k >= 1; k--) {                                                     // wispy tail
+            const [bx, by] = at(Math.max(0, f - k * 0.045)), t = 1 - k / 7;
+            wisp(bx, by, r0 * (0.4 + 0.5 * t), r0 * (0.3 + 0.4 * t), S.ang, 0.4 * t * sh);
+          }
+          wisp(x, y, r0 * (1 + 0.9 * sh), r0 * (1 - 0.2 * sh), S.ang, 0.95);
+        } else {
+          const k = clamp((tt - delay - dur) / 0.2), [x, y] = at(1), pull = 1 - out(k);
+          wisp(S.arr.x + (x - S.arr.x) * (0.4 + 0.6 * pull), S.arr.y + (y - S.arr.y) * (0.4 + 0.6 * pull), r0 * (1 + 0.5 * pull), r0 * (1 + 0.5 * pull), 0, 0.95 * (1 - k * k));
+        }
+      }
+      // two eyes lead the cloud
+      if (tt >= WIND * 0.3 && tt < ARR + 0.2) {
+        const f = tt < WIND ? 0 : ease((tt - WIND) / TRAVEL), p = pathPos(S, f), fx = Math.cos(S.ang) * 5.5, fy = Math.sin(S.ang) * 5.5, fade = tt > ARR + 0.1 ? clamp(1 - (tt - ARR - 0.1) / 0.1) : 1;
+        for (const sd of [-3.2, 3.2]) {
+          const ex = p.x + fx + px * sd, ey = p.y + fy + py * sd;
+          if (f > 0 && f < 1) { g.save(); g.globalCompositeOperation = 'lighter'; const gr = g.createLinearGradient(ex - Math.cos(S.ang) * 46, ey - Math.sin(S.ang) * 46, ex, ey); gr.addColorStop(0, rgba(VIOLET, 0)); gr.addColorStop(1, rgba([240, 230, 255], 0.75)); g.strokeStyle = gr; g.lineWidth = 2; g.beginPath(); g.moveTo(ex - Math.cos(S.ang) * 46, ey - Math.sin(S.ang) * 46); g.lineTo(ex, ey); g.stroke(); g.restore(); }
+          glow(g, ex, ey, 10, [220, 200, 255], 0.9 * fade);
+          g.fillStyle = rgba([250, 244, 255], fade); g.beginPath(); g.ellipse(ex, ey, 3, 1.6, S.ang, 0, 7); g.fill();
+        }
+      }
+      if (tt >= ARR) {
+        const a = tt - ARR; glow(g, S.arr.x, S.arr.y, 55 * clamp(1 - a / 0.3), VIOLET, 0.35 * clamp(1 - a / 0.3)); ring(g, S.arr.x, S.arr.y, a, 0.32, 12, 54, [150, 120, 220], 3);
+      }
+      if (tt >= ARR + 0.1) { const k = out((tt - ARR - 0.1) / 0.16); drawNinja(g, S.arr.x, S.arr.y, S.ang, { alpha: k, scale: 0.9 + 0.1 * k }); }
+    },
   };
   const lerp = (a, b, k) => a + (b - a) * k;
 
@@ -403,6 +461,7 @@ input[type=range] { accent-color: var(--shadow); width: 100%; min-width: 0; }
     smoke: { name: 'Smoke Drop', tag: 'Disappear, reappear', text: 'A smoke ball swallows you at the start and a second one opens behind the target. Nothing draws the route, so the jump feels like a cut.', read: 'Hides the trip. 21 puffs.' },
     ink: { name: 'Ink Stroke', tag: 'Brush on the floor', text: 'A calligraphy line is painted from your feet to the landing spot, thick in the middle, thin at the ends, with dry bristles and a splatter at the end.', read: 'Shows the route. Fits the Ninja theme.' },
     rift: { name: 'Shadow Rift', tag: 'Door to door', text: 'A black tear opens at your feet and pulls you in. Another opens behind the target and you step out of it. The tears sit across the route.', read: 'Clear start and end. Name matches.' },
+    smokeform: { name: 'Smoke Reform', tag: 'Dissolve and gather', text: 'Pixel Shatter, made of smoke. The body dissolves into 32 soft puffs that stream along the route in curling tails behind two glowing eyes, then pull back together into the ninja behind the target.', read: 'Softer than Shatter. Busy: ~200 gradient circles.' },
     shatter: { name: 'Pixel Shatter', tag: 'Break and reform', text: 'The body splits into squares that stream along the route with violet streaks and lock back into a ninja behind the target.', read: 'Busiest. Matches the pixel-art style.' },
   };
 
@@ -454,7 +513,7 @@ input[type=range] { accent-color: var(--shadow); width: 100%; min-width: 0; }
     frame(mg, state.look, tt, 1, S);
     const sf = 480 / 960;
     for (const id of Object.keys(META)) {
-      // The cards always run at 0.6× so all five can be compared at the same pace.
+      // The cards always run at 0.6× so all six can be compared at the same pace.
       const ct = ((now / 1000) * 0.6) % CYCLE - LEAD;
       cardCtx[id].save(); cardCtx[id].scale(1, 1); cardCtx[id].restore();
       frame(cardCtx[id], id, ct, sf, S);
