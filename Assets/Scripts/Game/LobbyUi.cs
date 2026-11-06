@@ -21,17 +21,9 @@ namespace Arena
         Showcase showcase;
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
-        /// The lobby's content sits 14 px higher than its layout numbers say, so it's centred in the screen (the layout runs 28..710 of 720).
-        const float LobbyLift = 14f;
-
         void DrawLobby()
         {
-            GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
-            var oldShift = uiShift;
-            uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
             DrawLobbyContent();
-            uiShift = oldShift;
-            GUI.EndGroup();
         }
 
         void DrawLobbyContent()
