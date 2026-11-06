@@ -20,19 +20,21 @@ Status: **decided, not built** (Nov 2026). The lobby already has a locked 4th ro
 - Ability cooldowns x1.25 (25% slower).
 - Both as named constants so they're one-line changes.
 
-## Open questions
+## Answers to the first round (owner, Nov 2026)
 
-1. **"+1 bonus slot"** was in the option text I offered, but I never said what it is. Candidates: a third loadout
-   slot (a second ability), an extra upgrade-card choice per level-up, or nothing (drop it, the freedom of mixing is
-   the bonus). Which?
-2. **What counts as a win?** Surviving the final wave of a run, or any "victory" end screen? Does it have to be solo,
-   or does a co-op win count? Needs a per-role win record in the profile (check what `Records` already stores).
-3. **Hemomancer abilities without the Hemomancer class.** Every Hemomancer Space ability costs health and hits harder at
-   low health. With no class passive, either they keep their health cost (the cost is part of the ability) and lose the
-   low-health bonus, or they become free and flat. Same question for Knight/Ninja gear that reads class state.
-4. **Mastery and XP.** Does borrowed gear earn ability mastery under its original class? Suggest yes.
-5. **Bots and Practice.** Bots fill roles by name; simplest is that bots never pick Wildcard. Practice Range: unlocked
-   regardless?
+1. **Bonus slot:** the Wildcard starts with a **second ability** (two Space abilities, both from the DPS pool).
+   Open detail: a second key, or Space cycles / both fire? Needs a pick.
+2. **Win:** co-op wins count toward the "win once with each role" unlock.
+3. **Hemomancer abilities:** they deal their damage but get **no low-health bonus**. (Whether the health cost stays
+   wasn't said; assumed it stays, since it is part of the ability. Confirm.)
+4. **Mastery:** borrowed gear earns mastery under its original class.
+5. **Bots:** they keep their current three role choices by default; the player can assign a bot Wildcard by hand.
+
+## Still open
+
+- How the second ability is triggered (second key vs. both on Space).
+- Does the Hemomancer health cost stay?
+- Practice Range: Wildcard unlocked regardless? (assumed yes)
 
 ## Implementation sketch (when approved)
 
