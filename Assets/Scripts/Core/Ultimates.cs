@@ -14,6 +14,10 @@ namespace Arena
 
         bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm;
 
+        /// How long the Glacial Tomb's Ring effect lives: its freeze (4 s, 6 s mastered) and a second for the thaw. The look tells it by this.
+        public const float TombFxTail = 1f;
+        public static float TombFxTime(bool mastered) => (mastered ? 6f : 4f) + TombFxTail;
+
         /// Returns how many it erased; during a cast, every 5 count as a hit for mastery.
         int EraseEnemyBullets(V2 center, float range)
         {
@@ -128,7 +132,7 @@ namespace Arena
                             e.SlowT = Math.Max(e.SlowT, e.FrozenT);
                         }
                     }
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 900f, 0.8f, Sfx.Freeze);
+                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 900f, TombFxTime(cap), Sfx.Freeze);  // lasts the freeze plus the thaw; Game/GlacialTombLook.cs draws it
                     break;
 
                 case AbilityId.Titan:  // Tank: Summoner

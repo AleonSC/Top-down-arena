@@ -133,6 +133,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CloneWallLook.cs` (Game): the Ninja's Shadow Clone wall as the Afterimage Phalanx (dash-out afterimages, landing ring, energy fence, glitch hits, shatter; `Docs/Mockups/shadow-clone-wall.html`)
 - `ShieldWallLook.cs`: the Knight's Shield Wall as seven steel plates that slam down, kick, crack and break one by one (`Docs/Mockups/shield-wall.html`).
 - `SmokeBombLook.cs`: the Ninja's Smoke Bomb cloud, crack and seal ring, with Visual effects on (`Docs/Mockups/ninja-smoke-bomb.html`).
+- `GlacialTombLook.cs`: the Glacial Tomb in look C (Crystal Reliquary) of `Docs/Mockups/glacial-tomb.html`: frost hex lattice, spire cages on frozen enemies, boss spears, sprouts where shots were erased
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
 - `LegionLook.cs`: Legion (Summoner DPS ultimate): the blood moon and red tint, drawn from `Player.LegionT`

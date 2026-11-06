@@ -48,6 +48,11 @@ namespace Arena
                         DrawFrostNova(fx);  // FrostNovaLook.cs
                         break;
                     }
+                    if (IsGlacialTomb(fx))
+                    {
+                        DrawGlacialTomb(fx);  // GlacialTombLook.cs
+                        break;
+                    }
                     if (IsLifelinePlain(fx))
                         break;  // Lifeline's plain ring: its look draws from FxKind.Lifeline (LifelineLook.cs)
                     if (IsShadowStepPlain(fx))
