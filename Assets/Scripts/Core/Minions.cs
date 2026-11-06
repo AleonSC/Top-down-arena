@@ -512,6 +512,8 @@ namespace Arena
                     m.T -= dt;
                     if (m.T <= 0f)
                     {
+                        if (m.Kind == MinionKind.Titan)
+                            TitanFallen(m);  // Titan.cs
                         expired.Add(m);
                         continue;
                     }
@@ -553,6 +555,11 @@ namespace Arena
                 if (m.Kind == MinionKind.Hydra)
                 {
                     TickHydra(m, dmg);  // Hydra.cs
+                    continue;
+                }
+                if (m.Kind == MinionKind.Titan)
+                {
+                    TickTitan(m, owner, dt, speed, dmg, reach);  // Titan.cs
                     continue;
                 }
                 if (m.Kind == MinionKind.HiveDrone)
@@ -792,7 +799,7 @@ namespace Arena
         {
             foreach (var m in Minions.Values)
             {
-                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
+                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (m.Kind == MinionKind.Titan && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
                 m.BlockHp -= m.Kind == MinionKind.CloneWall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)

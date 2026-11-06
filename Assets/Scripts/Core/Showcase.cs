@@ -24,6 +24,7 @@ namespace Arena
         bool demoAbility, ultimate;
         float t, castT;
         bool castHeld;
+        float ultEvery = UltimateEvery;    // the Titan stays 17 s, so its demo waits for it to crumble
         bool allies, reviveDemo, prepped;  // teammates present; a downed one is part of the demo; they're hurt for the next cast
         int castCount, aimTicks;
         const float PrepBefore = 0.9f;     // teammates get hurt this long before a cast, so the heal is seen
@@ -81,6 +82,7 @@ namespace Arena
                 this.ability = ability;
                 this.ultimate = ultimate;
                 var shown = ultimate ? Upgrades.Ultimate(role, kit) : ability;
+                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltimateEvery;
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
@@ -93,7 +95,7 @@ namespace Arena
                 float reach = Game.WeaponRange(Me);
                 Distance = Me.Weapon.Melee ? reach * 0.75f : Math.Min(reach * 0.8f, Math.Max(200f, Math.Min(320f, reach * 0.55f)));
                 Game.ShowcaseDummies(Home, Distance);
-                Extent = Distance;
+                Extent = shown == AbilityId.Titan ? Math.Max(Distance, 340f) : Distance;  // zoomed out for a 140 px titan
                 t = 0f;
                 castT = FirstCast;
             }
@@ -139,7 +141,7 @@ namespace Arena
                 {
                     Game.ShowcaseRefill(ultimate ? Upgrades.UltSlot : 0);
                     castHeld = true;
-                    castT = ultimate ? UltimateEvery : AbilityEvery;
+                    castT = ultimate ? ultEvery : AbilityEvery;
                     prepped = false;
                     castCount++;
                     aimTicks = 4;  // (held abilities cast on release, so the cursor stays put a few ticks)

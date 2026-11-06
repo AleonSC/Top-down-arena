@@ -36,7 +36,10 @@ namespace Arena
             if (p.ParryActive)
             {
                 if (p.ParryHeld <= 0f)
+                {
                     p.ParryPerfect = p.ParryDown >= PerfectRearm;  // just raised
+                    ResetAttackChains(p);  // raising it cancels an attack chain mid-way (Katana.cs)
+                }
                 p.ParryHeld += dt;
                 p.ParryDown = 0f;
             }
