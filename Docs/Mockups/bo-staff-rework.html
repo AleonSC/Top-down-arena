@@ -245,7 +245,8 @@ function drawTrail(a){
     ctx.strokeStyle='rgba(235,250,215,'+k+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(Pp.x,Pp.y,105,ps.a-.03,ps.a+.03);ctx.stroke();
   }
   if(a.t==='spin'&&pp>.2&&look==='clean'){
-    wedges(Pp,Math.max(rad(-30),ps.a-rad(220)),ps.a,100,44,col,.5*k);
+    wedges(Pp,rad(-30),ps.a,100,30,col,.55*k);
+    if(pp>=.98){ctx.strokeStyle='rgba(235,250,215,'+(.9*k)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(Pp.x,Pp.y,100,0,7);ctx.stroke();}
     ctx.strokeStyle='rgba(235,250,215,'+k+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(Pp.x,Pp.y,100,ps.a-.04,ps.a+.04);ctx.stroke();
   }
   if(a.t==='jab'&&pp>.3&&look==='clean'){
