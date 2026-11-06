@@ -260,7 +260,7 @@ namespace Arena
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
         {
             var botSeat = session.IsHost ? partyBots.Find(e.Id) : null;
-            var color = LobbyKit.ClassTint(e.Kit);  // the card takes its class's colour (look A)
+            var color = ToColor(Defs.Get(e.Role).Color);
             bool mine = e.Id == session.MyId;
             if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
             {
@@ -481,7 +481,7 @@ namespace Arena
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
             // The role / class title (look B: the role small over the class), then the stats.
-            DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, LobbyKit.RoleTint(me.Role), LobbyKit.ClassTint(me.Kit), calm);
+            DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, roleColor, calm);
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
             previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)
@@ -504,7 +504,7 @@ namespace Arena
             float x = r.x + 292f, w = 454f, y = r.y + 16f;
             const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
-            LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm, 15, LobbyKit.RoleTint(me.Role));
+            LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm, 15);
             // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
@@ -520,7 +520,7 @@ namespace Arena
                     LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
                     continue;
                 }
-                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: LobbyKit.RoleTint((Role)i), tint: true))
+                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11))
                 {
                     tgt.RequestRole((Role)i);
                     if (self)
@@ -545,7 +545,7 @@ namespace Arena
             else
             {
                 // Classes: rows of 4, the icon above the name so long names fit.
-                LobbyKit.Heading(x, y, w, "Class", KitBlurb(me.Kit), calm, 15, LobbyKit.ClassTint(me.Kit));
+                LobbyKit.Heading(x, y, w, "Class", KitBlurb(me.Kit), calm, 15);
                 int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
                 for (int i = 0; i < classSlots; i++)
                 {
@@ -555,7 +555,7 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9, accent: LobbyKit.ClassTint((Kit)i), tint: true))
+                    if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
                     {
                         tgt.RequestKit((Kit)i);
                         if (self)
@@ -583,7 +583,7 @@ namespace Arena
                         continue;
                     }
                     var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.74f), b.height);
-                    if (LobbyKit.Key(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), me.Weapon == i, calm, size: 14, minSize: 9, accent: LobbyKit.ClassTint(me.Kit), tint: true))
+                    if (LobbyKit.Key(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), me.Weapon == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestWeapon(i);
                         if (self)
@@ -602,7 +602,7 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9, accent: LobbyKit.ClassTint(me.Kit), tint: true))
+                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestAbility(i);
                         if (self)
@@ -615,7 +615,7 @@ namespace Arena
             }
 
             // The ultimate: its key, then locked slots for ultimates still to come. Click it to watch it in the preview.
-            LobbyKit.Heading(x, ultY, w, "Ultimate", ult.Cooldown.ToString("0") + " s to charge  ·  starts half full  ·  click to preview", calm, 15, LobbyKit.Gold);
+            LobbyKit.Heading(x, ultY, w, "Ultimate", ult.Cooldown.ToString("0") + " s to charge  ·  starts half full  ·  click to preview", calm, 15);
             for (int i = 0; i < 4; i++)
             {
                 var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
@@ -643,7 +643,7 @@ namespace Arena
 
         /// The role and class under the preview, look B of the mockup: the role small in its colour with a fading rule, the class
         /// name big under it, a short glowing rule below. A Wildcard has no class: its name is the big line.
-        void DrawRoleClassTitle(Rect r, LobbyEntry me, Color roleColor, Color classColor, bool calm)
+        void DrawRoleClassTitle(Rect r, LobbyEntry me, Color roleColor, bool calm)
         {
             string role = Defs.Get(me.Role).Name.ToUpperInvariant();
             bool wild = me.Role == Role.Wildcard;
@@ -659,9 +659,9 @@ namespace Arena
             LobbyKit.Fit(new Rect(r.x, r.y + 14f, r.width, 36f), name, 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
             float ry = r.y + 52f;
             if (!calm)
-                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), new Color(classColor.r, classColor.g, classColor.b, 0.18f));
-            for (int i = 0; i < 6; i++)  // a short rule in the class colour, fading out
-                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), new Color(classColor.r, classColor.g, classColor.b, 1f - i * 0.16f));
+                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.18f));
+            for (int i = 0; i < 6; i++)  // a short rule in the role colour, fading out
+                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), new Color(roleColor.r, roleColor.g, roleColor.b, 1f - i * 0.16f));
         }
 
         /// The ascension button on the right quarter of a weapon key: a rank mark over "0/3". True on a click (it opens the ascension window).
@@ -1125,7 +1125,7 @@ namespace Arena
             bool host = session.IsHost, calm = fxReduced;
             bool ready = me != null && me.Ready;
             var readyRect = host ? new Rect(lx, LobbyReadyY, lw, LobbyReadyH) : new Rect(lx, LobbyStartY, lw, LobbyStartH);
-            if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 28, minSize: 16, accent: ready ? LobbyKit.Go : (Color?)null))
+            if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 28, minSize: 16))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -1140,7 +1140,7 @@ namespace Arena
             if (host)
             {
                 bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 28, minSize: 16, locked: !startOn, accent: LobbyKit.Go))
+                if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 28, minSize: 16, locked: !startOn))
                     session.StartMatch();
             }
         }
