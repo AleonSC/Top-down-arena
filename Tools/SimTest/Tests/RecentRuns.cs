@@ -113,6 +113,22 @@ static partial class Program
             var hl = hp.Recent.Count > 0 ? RunTimelineStore.Load(hp.Recent[0].File) : null;
             Check(hl != null && hl.Players[hl.Mine].Name == "Host" && hl.Samples.Count >= 3, "the host keeps its own curve too");
             host.Leave(""); client.Leave("");
+
+            // Quitting mid-run still lands in Recent runs (result 4, no XP, with its curve).
+            var qh = new Session { AutoStart = 2, StartWave = 1 };
+            qh.Host(nextPort++, "Host", Role.Tank);
+            var qc = new Session();
+            var qp = qc.Game.ProfileOverride = new Profile();
+            qc.Join("127.0.0.1", qh.Port, "Quitter", Role.Dps);
+            var qs = new[] { qh, qc };
+            WaitForGame(qh, qc, dt);
+            Run(qs, dt, 25f, () => false, () => { foreach (var pl in qh.Game.Players.Values) pl.InvulnT = 1f; });
+            var xpBefore = qp.Xp;
+            qc.Leave(""); qh.Leave("");
+            var ql = qp.Recent.Count > 0 ? qp.Recent[0] : null;
+            Check(ql != null && ql.Result == 4 && ql.Xp == 0 && qp.Xp == xpBefore && ql.Seconds > 20f && ql.Class.Length > 0, "a run you quit is logged as quit, with no XP");
+            Check(ql != null && RunTimelineStore.Load(ql.File) != null, "a run you quit keeps its curve");
+            Check(Profile.Parse(qp.ToText()).Recent[0].Result == 4, "a quit run's log line reads back");
         }
         finally
         {

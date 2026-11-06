@@ -194,6 +194,23 @@ namespace Arena
             ReadRecordFrom(msg);
         }
 
+        /// This game is being stopped mid-run (quit or left): the run still goes in Recent runs, as "quit", with no XP.
+        /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
+        void LogQuitRun()
+        {
+            if (runRecorded || timeline == null || Me == null || !TimelineOn)
+                return;
+            runRecorded = true;
+            var logged = Profile.AddQuitLog(Wave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
+            logged.Class = Arena.Profile.ClassKey(Me.Role, Me.Kit);
+            logged.Mode = Endless ? "Endless" : "Campaign";
+            logged.Seconds = RunTime;
+            logged.Dealt = Me.Run.DamageDealt; logged.Taken = Me.Run.DamageTaken; logged.Heal = Me.Run.HealingDone;
+            logged.Players = Players.Count;
+            logged.File = FinishTimeline(false, Wave, Endless, RunTime, logged.Class, logged.Mods);
+            SaveProfile();
+        }
+
         /// Host: a boss was beaten (the Twin Reapers count once, as TwinA).
         void BossRecord(Enemy e)
         {

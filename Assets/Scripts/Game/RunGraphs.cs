@@ -27,7 +27,7 @@ namespace Arena
         static V2 P2(float x, float y) => new V2(x, y);
 
         static bool RunWon(RankLog l) => l.Result == 1 || l.Result == 3;
-        static string RunTitle(RankLog l) => l.Result >= 2 ? "Boss hunt" : l.Mode.Length > 0 ? l.Mode : "Run";
+        static string RunTitle(RankLog l) => (l.Result == 2 || l.Result == 3) ? "Boss hunt" : l.Mode.Length > 0 ? l.Mode : "Run";
 
         static string RunClock(float s)
         {
@@ -99,7 +99,7 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 10f, r.y + 4f, r.width - 20f, 20f), RunTitle(l), 14, on ? Ui.Gold : Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(r.x + 10f, r.y + 24f, r.width - 20f, 16f), l.Class.Length > 0 ? l.Class : (ri == 0 ? "latest" : ""), 11, Ui.Muted);
                 Ui.Label(new Rect(r.x + 10f, r.y + 42f, r.width * 0.55f, 16f), "Wave " + l.Wave, 11, Ui.Muted);
-                Ui.Label(new Rect(r.x + r.width * 0.5f, r.y + 42f, r.width * 0.5f - 10f, 16f), won ? "WON" : (l.Result >= 2 ? "LOST" : "DIED"), 11, won ? Ui.Good : new Color(1f, 0.42f, 0.46f), TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(r.x + r.width * 0.5f, r.y + 42f, r.width * 0.5f - 10f, 16f), won ? "WON" : l.Result == 4 ? "QUIT" : (l.Result >= 2 ? "LOST" : "DIED"), 11, won ? Ui.Good : new Color(1f, 0.42f, 0.46f), TextAnchor.MiddleRight, true);
                 if (Ui.HitArea(r))
                     recentSel = ri;
             }
@@ -107,7 +107,7 @@ namespace Arena
             // The open run's numbers.
             string[,] tiles =
             {
-                { "RESULT", RunWon(cur) ? "Won" : cur.Result >= 2 ? "Lost" : "Died" }, { "TIME", cur.Seconds > 0f ? RunClock(cur.Seconds) : "—" }, { "WAVE", cur.Wave.ToString() },
+                { "RESULT", RunWon(cur) ? "Won" : cur.Result == 4 ? "Quit" : cur.Result >= 2 ? "Lost" : "Died" }, { "TIME", cur.Seconds > 0f ? RunClock(cur.Seconds) : "—" }, { "WAVE", cur.Wave.ToString() },
                 { "DAMAGE", cur.Dealt > 0f ? ShortNumber(cur.Dealt) : "—" }, { "TAKEN", cur.Class.Length > 0 ? ShortNumber(cur.Taken) : "—" }, { "XP", "+" + cur.Xp.ToString("N0") } };
             float ty = sy + 76f, tw = (w - 5f * 8f) / 6f;
             for (int i = 0; i < 6; i++)
