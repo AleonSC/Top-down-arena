@@ -865,38 +865,6 @@ namespace Arena
         const int AscensionsPerWeapon = 3;
         static readonly string[] Numerals = { "I", "II", "III", "IV", "V" };
 
-        /// The picked weapon's ascensions in one row: its name over "ASCENSIONS 0/3" on the left, then a locked key per ascension
-        /// (its name, the padlock and "LOCKED"). Hovering one shows "Coming soon".
-        void DrawAscensionStrip(Rect r, WeaponDef wdef)
-        {
-            const float labelW = 118f;
-            string name = wdef.Name.ToUpperInvariant();
-            LobbyKit.Fit(new Rect(r.x, r.y - 2f, labelW, 24f), name, 19, 11, CrtUi.Ink, TextAnchor.MiddleLeft, fxReduced);
-            Ui.Label(new Rect(r.x, r.y + 21f, labelW + 6f, 18f), "ASCENSIONS 0/" + AscensionsPerWeapon, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
-            float cx = r.x + labelW + 6f, cw = (r.xMax - cx - 6f * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
-            var dim = CrtUi.Dim;
-            for (int i = 0; i < AscensionsPerWeapon; i++)
-            {
-                var c = new Rect(cx + i * (cw + 6f), r.y, cw, r.height);
-                bool hover = c.Contains(Event.current.mousePosition);
-                Ui.NoteHover(c);
-                Ui.Fill(c, new Color(dim.r, dim.g, dim.b, 0.03f));
-                CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, hover ? 0.95f : 0.7f));
-                string label = "ASCENSION " + Numerals[i];
-                int s = LobbyKit.FitSize(label, 14, 9, c.width - 8f);
-                Ui.Label(new Rect(c.x + 4f, c.y + 3f, c.width - 8f, 20f), LobbyKit.Truncate(label, s, c.width - 8f), s, dim, TextAnchor.MiddleCenter, true);
-                float lw2 = Ui.TextWidth("LOCKED", 11, true) - 6f, gx = c.center.x - (12f + 5f + lw2) / 2f;
-                Ui.Icon(new Rect(gx, c.y + 24f, 12f, 12f), PixelArt.Get("ui_lock"), new Color(1f, 1f, 1f, hover ? 0.7f : 0.5f));
-                Ui.Label(new Rect(gx + 17f - 2f, c.y + 22f, lw2 + 14f, 16f), "LOCKED", 11, dim, TextAnchor.MiddleLeft, true);
-                if (hover)
-                {
-                    lockedTip = c;
-                    lockedTipOn = true;
-                    lockedTipText = "Coming soon";
-                }
-            }
-        }
-
         /// The "Coming soon" tooltip over the hovered locked slot (call after everything else is drawn).
         void DrawLockedTip()
         {
@@ -911,90 +879,6 @@ namespace Arena
             Ui.Fill(tip, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
             CrtKit.Frame(tip, 2f, CrtUi.Ink);
             CrtUi.Text(tip, text, 14, CrtUi.Ink, TextAnchor.MiddleCenter, true, fxReduced);
-        }
-
-        /// The detail card under the keys: the picked weapon (left) and ability (right), each with its name and description, and a
-        /// row of number tiles at the bottom. The ability's cooldown (and charges or health cost) sits at the bottom of its half,
-        /// beside the weapon's tiles.
-        void DrawSpecSheet(Rect r, WeaponDef wdef, AbilityDef ability, float t)
-        {
-            if (r.height < 120f)
-                return;
-            bool calm = fxReduced;
-            Ui.Fill(r, LobbyKit.Ink(0.04f));
-            CrtKit.Frame(r, 1f, LobbyKit.Ink(0.35f));
-            const float tileH = 38f, leftW = 172f, rightW = 236f;
-            var left = new Rect(r.x + 14f, r.y + 8f, leftW, r.height - 16f);
-            var right = new Rect(r.xMax - 14f - rightW, r.y + 8f, rightW, r.height - 16f);
-            Ui.Fill(new Rect(left.xMax + (right.x - left.xMax) / 2f, r.y + 10f, 1f, r.height - 20f), LobbyKit.Ink(0.2f));
-            var body = new Color(0.8f, 0.84f, 0.94f);
-
-            // Weapon.
-            SpecHeader(left, "WEAPON", wdef.Name, calm);
-            var wTiles = new System.Collections.Generic.List<string[]>();
-            if (wdef.Companion != MinionKind.None && wdef.CompanionCount > 0)
-                wTiles.Add(new[] { wdef.CompanionCount.ToString(), "COMPANIONS" });
-            if (wdef.Damage > 0f)
-                wTiles.Add(new[] { Mathf.RoundToInt(wdef.Damage).ToString(), wdef.Melee ? "PER SWING" : "PER HIT" });
-            if (wdef.FireInterval > 0f)
-                wTiles.Add(new[] { (1f / wdef.FireInterval).ToString(wdef.FireInterval >= 0.5f ? "0.0" : "0"), wdef.Melee ? "SWINGS / S" : "SHOTS / S" });
-            FitText(new Rect(left.x, left.y + 44f, left.width, left.yMax - tileH - 6f - (left.y + 44f)), wdef.Desc, 13, body);
-            SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, calm);
-
-            // Ability: what it does, then what Lv 5 adds; then the cooldown, and charges or a health cost.
-            SpecHeader(right, "ABILITY", ability.Name, calm);
-            DrawDescAndMastery(new Rect(right.x, right.y + 44f, right.width, right.yMax - tileH - 6f - (right.y + 44f)), ability.Desc, ability.Id, 13, body);
-            var aTiles = new System.Collections.Generic.List<string[]>();
-            aTiles.Add(new[] { ability.Cooldown.ToString("0.#") + " s", "COOLDOWN" });
-            if (ability.ExtraCharges > 0)
-                aTiles.Add(new[] { (1 + ability.ExtraCharges).ToString(), "CHARGES" });
-            if (ability.HealthCost > 0f)
-                aTiles.Add(new[] { Mathf.RoundToInt(ability.HealthCost * 100f) + "%", ability.CostsCurrent ? "OF CURRENT HP" : "OF MAX HP" });
-            SpecTiles(new Rect(right.x, right.yMax - tileH, right.width, tileH), aTiles, calm);
-        }
-
-        /// The passive at the bottom of the left column (the ultimate, as the game calls it): a charge ring (half full, as every
-        /// ultimate starts a match) with its key, the name and charge time beside it, then what it does and what mastering it
-        /// adds. Click it to watch it in the preview above; while that plays, the ring fills.
-        void DrawUltBox(AbilityDef ult, Rect area)
-        {
-            float t = Time.unscaledTime;
-            bool calm = fxReduced;
-            bool on = t < ultDemoUntil, hover = area.Contains(Event.current.mousePosition);
-            if (on || hover)
-            {
-                Ui.Fill(area, LobbyKit.Ink(on ? 0.12f : 0.06f));
-                CrtKit.Frame(area, 1f, LobbyKit.Ink(on ? 0.7f : 0.4f));
-            }
-            if (Ui.HitArea(area))
-            {
-                ultDemoUntil = on ? 0f : t + UltDemoLen(ult.Id);  // a second click stops it
-                abilityDemoUntil = 0f;
-            }
-            float x = area.x + 2f, w = area.width - 4f, y = area.y + 2f;
-            // The ring: half full, or filling up while the preview plays.
-            const float rr = 23f;
-            var c = new V2(x + rr + 4f, y + rr + 4f);
-            float fill = on ? 0.5f + 0.5f * Mathf.Clamp01(1f - (ultDemoUntil - t) / UltDemoLen(ult.Id)) : 0.5f;
-            if (BeginUiGl())
-            {
-                UiModelAt(V2.Zero, 1f);
-                Circle(c, rr - 4f, new Rgba(0.06f, 0.08f, 0.15f), 32);
-                Arc(c, rr, 6f, new Rgba(0.14f, 0.16f, 0.24f), 48);
-                Arc(c, rr, 6f, new Rgba(0.95f, 0.76f, 0.31f, 1f), 48, -MathX.Pi / 2f, MathX.Tau * fill);
-                EndUiGl();
-            }
-            Ui.Label(new Rect(c.X - 19f, c.Y - 14f, 40f, 28f), "F", 24, Color.white, TextAnchor.MiddleCenter, true);
-            float tx = x + rr * 2f + 18f, tw = area.xMax - 4f - tx;
-            LobbyKit.Fit(new Rect(tx, y, tw, 26f), ult.Name, 22, 13, LobbyKit.Gold, TextAnchor.MiddleLeft, calm, false);
-            Ui.Label(new Rect(tx, y + 25f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 12, new Color(0.62f, 0.69f, 0.85f), TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(tx, y + 40f, tw, 16f), "starts each match half full", 12, new Color(0.62f, 0.69f, 0.85f), TextAnchor.MiddleLeft);
-            y += rr * 2f + 12f;
-            // What it does, then what mastering it adds; the click hint stays at the bottom.
-            float bottom = area.yMax - 18f;
-            DrawDescAndMastery(new Rect(x, y, w, bottom - y), ult.Desc, ult.Id, 12, new Color(0.8f, 0.84f, 0.94f));
-            Ui.Label(new Rect(area.x, area.yMax - 17f, area.width, 14f), on ? "PREVIEWING  ·  CLICK TO STOP" : "CLICK THE RING TO PREVIEW", 10,
-                on || hover ? LobbyKit.Gold : CrtUi.Dim, TextAnchor.MiddleCenter, true);
         }
 
         /// An ability's description with what mastering it (level 5) adds under it in gold, both always shown in r: when
