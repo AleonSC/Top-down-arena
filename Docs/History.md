@@ -3,6 +3,13 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Katana chain streak (Nov 2026), protocol 181:** `Docs/KatanaCombo.md` (last section), mockups `katana-chain.html` and
+`katana-streak-examples.html`. `Player.KatanaChain` (replicated): an Alt strike that kills its target keeps the meter full and adds
+a chain; a survived target ends the streak; no drain while the chain is above 0; at `KatanaChainNeed` 5 the next strike is empowered
+(`KatanaEmpDmg` 240 / `KatanaEmpRoute` 120). The strike gained a `KatanaHold` 0.4 s held frame; its look is now one age-driven
+`FxKind.KatanaStrike` plus a `FxKind.KatanaCut` per enemy cut (`Game/KatanaLook.cs`: stance, dim, beam, afterimages, flash, letterbox,
+halves, shake). Counter: blade notches. Test: `lastfour` (chain, survived target, no drain on a streak, empowered).
+
 **Katana combo rework (Nov 2026), protocol 179:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
 `katana-look-glow.html`. The sheathe and quick-draw (`SheathT`, `KatanaSheath`, `KatanaDraw*`) are gone. The Katana is
 swipe, swipe, lunge (`Player.KatanaStep`, replicated; `Core/Katana.cs`): each step sets its own `FireCd`, a tap during a

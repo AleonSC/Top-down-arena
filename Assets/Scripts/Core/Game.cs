@@ -878,9 +878,9 @@ namespace Arena
                 DashT = 0f;
                 iceVel = V2.Zero;
             }
-            if (KatanaStriking && !katanaDashed)
+            if (KatanaStriking && DashT <= 0f)
             {
-                move = V2.Zero;  // the Katana's stance before the cut: you hold still and can't swing (Ninja.cs)
+                move = V2.Zero;  // the Katana's stance before the cut and the held frame after it: you hold still and can't swing (Katana.cs)
                 firing = false;
             }
             float bowRelease = LocalBow(me, firing, dt);

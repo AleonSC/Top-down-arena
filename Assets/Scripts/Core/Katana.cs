@@ -17,6 +17,7 @@ namespace Arena
         {
             public int Owner, Target;
             public V2 From, To;
+            public bool Emp;   // empowered: the chain was full when it began
             public float T;  // seconds until the cuts land
         }
 
@@ -31,7 +32,7 @@ namespace Arena
         float katanaLungeIn = -1f;     // > 0: seconds until you step forward with it
         float katanaStrikeT = -1f;     // >= 0 while you are in the strike, counting up from the release
         V2 katanaTo;
-        bool katanaDashed;
+        bool katanaDashed, katanaLanded;
         public bool KatanaStriking => katanaStrikeT >= 0f;
         public float KatanaStrikeTime => katanaStrikeT;
 
@@ -45,8 +46,11 @@ namespace Arena
                 p.KatanaStep = 0;  // too long since the last step: back to the first swipe
             p.KatanaIdle = Math.Min(p.KatanaIdle + dt, 5f);
             if (p.Downed)
+            {
                 p.KatanaMeter = 0f;
-            else if (p.KatanaMeter > 0f && p.KatanaIdle > KatanaDrainDelay)
+                p.KatanaChain = 0;
+            }
+            else if (p.KatanaMeter > 0f && p.KatanaChain == 0 && p.KatanaIdle > KatanaDrainDelay)  // (on a streak the meter holds)
                 p.KatanaMeter = Math.Max(0f, p.KatanaMeter - KatanaDrain * dt);
         }
 
@@ -138,12 +142,14 @@ namespace Arena
                     DashT = KatanaCut;
                     dashSpeed = len / KatanaCut;
                 }
-                if (katanaStrikeT >= KatanaWind + KatanaCut)
+                if (katanaDashed && !katanaLanded && katanaStrikeT >= KatanaWind + KatanaCut)
                 {
                     me.Pos = katanaTo;
                     DashT = 0f;
-                    katanaStrikeT = -1f;
+                    katanaLanded = true;  // (you stand where you landed through the held frame)
                 }
+                if (katanaStrikeT >= KatanaWind + KatanaCut + KatanaHold)
+                    katanaStrikeT = -1f;
                 return true;
             }
             if (me.Weapon.Id != WeaponId.Katana)
@@ -187,7 +193,7 @@ namespace Arena
         {
             katanaTo = KatanaStrikeEnd(me.Pos, target.Pos, me.Def.BodyR);
             katanaStrikeT = 0f;
-            katanaDashed = false;
+            katanaDashed = katanaLanded = false;
             if (IsHost)
                 HostWeaponDash(MyId, DashKatana, target.Pos);
             else
@@ -214,12 +220,18 @@ namespace Arena
             p.KatanaMeter = 0f;
             p.KatanaIdle = 0f;
             p.KatanaStep = 0;
-            p.InvulnT = Math.Max(p.InvulnT, KatanaWind + KatanaCut + 0.15f);
-            katanaStrikes.Add(new KatanaStrikeRun { Owner = p.Id, Target = e.Id, From = p.Pos, To = KatanaStrikeEnd(p.Pos, e.Pos, p.Def.BodyR), T = KatanaWind + KatanaCut });
-            BroadcastFx(FxKind.Ring, p.Pos, KatanaRose, 30f, 0.3f, Sfx.None);  // the stance
+            bool emp = p.KatanaChain >= KatanaChainNeed;
+            float total = KatanaWind + KatanaCut + KatanaHold;
+            p.InvulnT = Math.Max(p.InvulnT, total + 0.15f);
+            V2 to = KatanaStrikeEnd(p.Pos, e.Pos, p.Def.BodyR);
+            katanaStrikes.Add(new KatanaStrikeRun { Owner = p.Id, Target = e.Id, From = p.Pos, To = to, Emp = emp, T = total });
+            // The whole show (stance, cut, held frame, fading line) is one effect, drawn from its age (Game/KatanaLook.cs).
+            BroadcastFx(FxKind.KatanaStrike, p.Pos, to, KatanaRose.WithAlpha(emp ? 1f : 0.5f), p.Id, total + 1.2f, Sfx.None);
         }
 
-        /// Host: land the strikes that are due: the target takes the full cut, and everything the line crossed takes half.
+        /// Host: land the strikes that are due. The target takes the full cut (240 when empowered) and everything the line
+        /// crossed half of it (120 when empowered). A kill sets the meter back to full and adds a chain; a target that lives
+        /// spends the meter for nothing and ends the streak. An empowered strike that kills starts the chain again.
         void TickKatanaStrikes(float dt)
         {
             for (int i = katanaStrikes.Count - 1; i >= 0; i--)
@@ -234,7 +246,7 @@ namespace Arena
                 V2 path = k.To - k.From;
                 float len = Math.Max(1f, path.Length);
                 V2 dir = path / len;
-                BroadcastFx(FxKind.KatanaStrike, k.From, k.To, KatanaRose, 0f, 1.2f, Sfx.SwingHeavy);
+                bool killedTarget = !Enemies.ContainsKey(k.Target);  // (already gone: it counts)
                 foreach (var e in new List<Enemy>(Enemies.Values))
                 {
                     if (IsSpawning(e) || e.Hp <= 0f)
@@ -243,11 +255,23 @@ namespace Arena
                     float along = Math.Max(0f, Math.Min(len, Dot(e.Pos - k.From, dir)));
                     if (!target && e.Pos.DistanceTo(k.From + dir * along) > e.Radius + KatanaRouteWidth)
                         continue;
-                    float hit = (target ? KatanaStrikeDmg : KatanaRouteDmg) * p.Stats.DmgMult;
+                    float hit = (target ? (k.Emp ? KatanaEmpDmg : KatanaStrikeDmg) : (k.Emp ? KatanaEmpRoute : KatanaRouteDmg)) * p.Stats.DmgMult;
                     hit *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                     HurtEnemy(e, hit, p.Id);
                     OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = hit, Kind = Defs.KnightSlash }, e);
+                    bool dead = e.Hp <= 0f;
+                    if (target)
+                        killedTarget = dead;
+                    BroadcastFx(FxKind.KatanaCut, e.Pos, dir, KatanaRose.WithAlpha(dead ? 1f : 0.5f), e.Radius, 0.9f, target ? Sfx.SwingHeavy : Sfx.None);
                 }
+                if (killedTarget)
+                {
+                    p.KatanaMeter = KatanaMeterMax;  // the meter stays full: strike again at once
+                    p.KatanaIdle = 0f;
+                    p.KatanaChain = k.Emp ? (byte)0 : (byte)Math.Min(250, p.KatanaChain + 1);  // (only the target's kill counts)
+                }
+                else
+                    p.KatanaChain = 0;  // it lived: the meter stays spent and the streak is over
             }
         }
     }
