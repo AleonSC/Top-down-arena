@@ -153,6 +153,18 @@ namespace Arena
                 pref = 0f;
             }
 
+            // --- Shelter: a Tank's Last Stand stops every shot from the front, so stand in the lee of its plates: just behind
+            // the tank, on the side away from where the barrier faces (nobody to revive first). Teammates' shots pass out through it.
+            Player stander = null;
+            foreach (var q in Players.Values)
+                if (q.Id != me.Id && q.StandOn && !q.Downed && (stander == null || q.Pos.DistanceSq(me.Pos) < stander.Pos.DistanceSq(me.Pos)))
+                    stander = q;
+            if (stander != null && downed == null && !me.StandOn)
+            {
+                anchor = stander.Pos - V2.FromAngle(stander.StandAim) * (StandRadius * 0.4f);
+                pref = 0f;
+            }
+
             // --- Dodge: score each way we could move over the next fraction of a second.
             botThinkT -= dt;
             if (botThinkT <= 0f)

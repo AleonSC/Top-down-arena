@@ -17,6 +17,10 @@ namespace Arena
             public BotSkill Skill;
             public string Name;
             public float ReadyT;  // seconds until it asks to be ready again
+            public V2 Goal;       // the Hangout: where it's strolling to
+            public float Idle;    // ...and how long it stands about once it gets there
+            public float EmoteT;  // seconds until it next emotes
+            public bool HasGoal;
             public int Id => S.MyId;
         }
 
@@ -60,6 +64,8 @@ namespace Arena
             g.Bot = true;
             g.BotLevel = bot.Skill;
             g.BotRerolls = false;
+            bot.S.AnyEmote = true;
+            bot.EmoteT = 2f + (float)rng.NextDouble() * 4f;
             var kit = (Kit)rng.Next(Defs.KitCount);
             // role null: it takes the first role nobody has (Tank, then Healer, then DPS)
             bot.S.Join("127.0.0.1", host.Port, bot.Name, null, rng.Next(Defs.WeaponsPerRole), rng.Next(Upgrades.RoleAbilityChoices), kit);
@@ -106,6 +112,8 @@ namespace Arena
         {
             if (Bots.Count == 0)
             {
+                if (host != null)
+                    host.BotSeats.Clear();
                 if (marked && host != null && !host.Game.Running)
                 {
                     host.Game.Unrecorded = false;  // the last bot left: the run counts again
@@ -118,6 +126,10 @@ namespace Arena
                 Clear();  // the host left (or is hosting something else): the bots go with it
                 return;
             }
+            host.BotSeats.Clear();
+            foreach (var b in Bots)
+                if (b.S.Lobby.Count > 0)
+                    host.BotSeats.Add(b.Id);  // (they may play any emote)
             for (int i = Bots.Count - 1; i >= 0; i--)
             {
                 var b = Bots[i];
@@ -132,6 +144,7 @@ namespace Arena
                     continue;
                 if (b.S.Screen == AppScreen.Lobby)
                 {
+                    Wander(b, dt);
                     LobbyEntry me;
                     b.ReadyT -= dt;
                     if (b.S.Lobby.TryGetValue(b.Id, out me) && !me.Ready && b.ReadyT <= 0f)
@@ -148,6 +161,44 @@ namespace Arena
                 host.Game.Unrecorded = true;  // (a run in progress keeps what it started with)
                 marked = true;
             }
+        }
+
+        /// In the lobby's Hangout room a bot strolls about like a person: walks to a spot, stands a while, then picks another,
+        /// and now and then plays an emote. (It moves its character the way a player does; everyone sees it whichever tab they're on.)
+        void Wander(PartyBot b, float dt)
+        {
+            Avatar a;
+            if (!b.S.Avatars.TryGetValue(b.Id, out a) || a.Hp <= 0f)
+                return;
+            b.EmoteT -= dt;
+            if (b.EmoteT <= 0f)
+            {
+                b.EmoteT = 4f + (float)rng.NextDouble() * 8f;
+                b.S.SendEmote(1 + rng.Next(Arena.Rank.EmoteCount));
+            }
+            if (b.Idle > 0f)
+            {
+                b.Idle -= dt;
+                return;
+            }
+            if (!b.HasGoal)
+            {
+                // somewhere in the middle of the room most of the time, anywhere now and then
+                float cx = Session.RoomW / 2f, cy = Session.RoomH / 2f;
+                float spread = rng.NextDouble() < 0.7 ? 0.35f : 0.9f;
+                b.Goal = new V2(cx + ((float)rng.NextDouble() * 2f - 1f) * cx * spread, cy + ((float)rng.NextDouble() * 2f - 1f) * cy * spread);
+                b.HasGoal = true;
+            }
+            V2 to = b.Goal - a.Pos;
+            float step = Session.AvatarSpeed * 0.55f * dt;
+            if (to.Length <= step)
+            {
+                b.S.MoveMyAvatar(b.Goal, a.Aim);
+                b.HasGoal = false;
+                b.Idle = 1f + (float)rng.NextDouble() * 4f;
+                return;
+            }
+            b.S.MoveMyAvatar(a.Pos + to.Normalized() * step, to.Angle);
         }
 
         public void Update(float dt)

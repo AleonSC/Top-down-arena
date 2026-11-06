@@ -1052,6 +1052,7 @@ namespace Arena
                 }
             }
 
+            LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
