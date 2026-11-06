@@ -254,7 +254,8 @@ namespace Arena
                 else if (e.type == EventType.MouseUp && pressed && r.Contains(e.mousePosition))
                 {
                     var o = GUIUtility.GUIToScreenPoint(new Vector2(r.x, r.y));
-                    if (new Rect(o.x, o.y, r.width, r.height).Contains(pressPoint))
+                    var far = GUIUtility.GUIToScreenPoint(new Vector2(r.xMax, r.yMax));
+                    if (pressPoint.x >= Mathf.Min(o.x, far.x) && pressPoint.x <= Mathf.Max(o.x, far.x) && pressPoint.y >= Mathf.Min(o.y, far.y) && pressPoint.y <= Mathf.Max(o.y, far.y))
                     {
                         pressed = false;
                         clicked = true;
@@ -268,6 +269,9 @@ namespace Arena
 
         static bool pressed;
         static Vector2 pressPoint;
+
+        /// Forget the press: called when any mouse press arrives, so a press that some other control took can't be turned into a click by the next release.
+        public static void ForgetPress() { pressed = false; }
 
         static bool clickedThisEvent;
 

@@ -696,6 +696,8 @@ namespace Arena
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
             ClickLogBegin();  // ClickLog.cs (F9)
+            if (Event.current.type == EventType.MouseDown)
+                Ui.ForgetPress();
             TextEditBeginGui();
             Ui.BeginHoverFrame();
             bool modal = labSetupOpen || devMenuOpen || textEditOpen || waveEdOpen;
