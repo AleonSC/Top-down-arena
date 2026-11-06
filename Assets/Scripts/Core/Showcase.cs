@@ -120,9 +120,10 @@ namespace Arena
                 }
                 Game.ShowcaseHoldAllies();
             }
-            // Walk back home after a dash or leap.
-            if (me.Pos.DistanceTo(Home) > 10f && Game.DashT <= 0f)
-                input.Move = (Home - me.Pos).Normalized();
+            // Stroll around home (and walk back after a dash or leap).
+            V2 stroll = Home + Game.Sway(t, 7, 26f);
+            if (me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
+                input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
             // The Bo Staff: fire runs the slash, jab, spin chain; every few seconds the weapon-action key shoves, partway into a chain so the
@@ -180,7 +181,7 @@ namespace Arena
         float showT;  // the preview's clock: the dummies and teammates drift around their spots with it
 
         /// A slow figure-eight-ish wander around a spot (radius px), each one out of step with the others by `k`.
-        static V2 Sway(float t, int k, float radius) =>
+        public static V2 Sway(float t, int k, float radius) =>
             new V2((float)Math.Sin(t * 0.9f + k * 2.1f), (float)Math.Sin(t * 1.3f + k * 1.7f + 1f)) * radius;
 
         public void ShowcaseStart(AbilityId ability)
