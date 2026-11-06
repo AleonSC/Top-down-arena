@@ -27,6 +27,7 @@ namespace Arena
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawKatanaLetterbox();  // the bars over your own Katana strike (KatanaLook.cs)
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
@@ -421,6 +422,8 @@ namespace Arena
                     Ui.Fancy(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 11, Fade(hi, rin), Fade(lo, rin), TextAnchor.MiddleRight,
                         new Color(lo.r, lo.g, lo.b, (ultimate ? 0.6f + 0.4f * pulse : 0.8f) * rin));
             }
+            else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 11, Color.white, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
                 Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 12, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
             else

@@ -414,13 +414,6 @@ static partial class Program
         Check(Math.Abs(moonTaken - 40f) < 1f && Math.Abs(cp.Hp - c1 - moonTaken) < 1f, "Blood Rite: you take 60% less and your allies heal what you take");
         hp.UltT = 0f;
 
-        // Crimson Apotheosis: can't drop below 1 HP.
-        hp.Slots[Upgrades.UltSlot].Id = AbilityId.CrimsonApotheosis;
-        hp.UltT = 6f; hp.ApoUp = true;
-        hp.DevGod = false; hp.Hp = 10f;
-        damage.Invoke(g, new object[] { hp, 500f, "test" });
-        hp.DevGod = true;
-        Check(hp.Hp == 1f && !hp.Downed, "during Crimson Apotheosis you can't drop below 1 HP");
         s[0].Leave(""); s[1].Leave("");
     }
 }

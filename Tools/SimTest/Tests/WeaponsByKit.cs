@@ -902,6 +902,22 @@ static partial class Program
         Console.WriteLine("  katana queue: steps after two taps {0}", string.Join(",", tapSteps));
         Check(tapSteps.Count >= 2 && tapSteps[0] == 1 && tapSteps[1] == 2, "a tap during a step queues the next one, which starts as soon as the first ends");
 
+        // The lunge steps you forward as it lands (your own game moves you; nothing here pins the player).
+        reset();
+        me.KatanaStep = 2; me.KatanaGap = 0f; me.FireCd = 0f;
+        me.Pos = from;
+        byte lungesBefore = me.KatanaLunges;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        for (int f = 0; f < 0.6f * 60; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(300f, 0f) }); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+        }
+        float stepped = me.Pos.X - from.X;
+        Console.WriteLine("  katana lunge: stepped {0:0} px forward (lunge count {1} -> {2})", stepped, lungesBefore, me.KatanaLunges);
+        Check(me.KatanaLunges == (byte)(lungesBefore + 1) && Math.Abs(stepped - Game.KatanaLungeStep) < 20f, "the lunge steps you forward about 110 px (a dash moves in whole frames)");
+        me.Pos = from;
+
         // The Alt strike: hold the weapon-action key with a full meter to aim, let go to cut across the arena to the enemy and land behind it.
         reset();
         me.Hp = me.MaxHp;
@@ -918,7 +934,7 @@ static partial class Program
         bool aiming = g.KatanaAiming && g.KatanaMark == kTarget.Id;
         play(0.05f, new PlayerInput { AimAt = kTarget.Pos });  // let go (the cursor stays where it was)
         bool started = g.KatanaStriking && me.KatanaMeter == 0f && me.InvulnT > 0f;
-        play(Game.KatanaWind + Game.KatanaCut + 0.2f, new PlayerInput());
+        play(Game.KatanaWind + Game.KatanaCut + Game.KatanaHold + 0.2f, new PlayerInput());
         float hitT = kTarget.MaxHp - kTarget.Hp, hitR = kRoute.MaxHp - kRoute.Hp, hitO = kOff.MaxHp - kOff.Hp;
         Console.WriteLine("  katana strike: aiming {0}, started {1}; target took {2:0}, enemy on the route {3:0}, one off it {4:0}; striking after {5}", aiming, started, hitT, hitR, hitO, g.KatanaStriking);
         Check(aiming, "holding the key with a full meter aims at the enemy nearest the cursor");
@@ -926,6 +942,92 @@ static partial class Program
         Check(Math.Abs(hitT - kNear[0] * Game.KatanaStrikeDmg / Defs.Weapons.First(w => w.Id == WeaponId.Katana).Damage) < 1.5f, "the target takes the full 120");
         Check(Math.Abs(hitR - hitT / 2f) < 1.5f && hitO == 0f, "an enemy on the route takes half, one off it nothing");
         Check(Math.Abs(g.KatanaStrikeEnd(from, kTarget.Pos, 10f).X - (kTarget.Pos.X + Game.KatanaBehind)) < 1f, "the strike lands you behind the target, on the far side");
+
+        // The chain streak: a kill keeps the meter full and adds a chain; a target that lives spends it and ends the streak; the route's kills
+        // don't count; the meter doesn't drain on a streak; at five the next strike is empowered (240 to the target, 120 on the route).
+        float strikeWait = Game.KatanaWind + Game.KatanaCut + Game.KatanaHold + 0.25f;
+        Action<Enemy> strikeAt = t => { me.KatanaMeter = 100f; me.KatanaIdle = 0f; hostDash.Invoke(g, new object[] { 1, 5, t.Pos }); play(strikeWait, new PlayerInput()); };
+        reset();
+        var kill1 = dummy(from + new V2(400f, 0f), 100f);
+        var routeKill = dummy(from + new V2(200f, 6f), 50f);
+        me.KatanaChain = 0;
+        strikeAt(kill1);
+        Console.WriteLine("  katana chain: target dead {0}, route dead {1}, chain {2}, meter {3:0}", kill1.Hp <= 0f, routeKill.Hp <= 0f, me.KatanaChain, me.KatanaMeter);
+        Check(kill1.Hp <= 0f && me.KatanaMeter == 100f && me.KatanaChain == 1, "a strike that kills its target keeps the meter full and adds a chain");
+        Check(routeKill.Hp <= 0f && me.KatanaChain == 1, "kills along the route do not add to the chain");
+        reset();
+        var tough = dummy(from + new V2(400f, 0f), 500f);
+        me.KatanaChain = 3;
+        strikeAt(tough);
+        Check(tough.Hp > 0f && me.KatanaMeter == 0f && me.KatanaChain == 0, "a target that survives spends the meter and ends the streak");
+        reset();
+        me.KatanaChain = 2; me.KatanaMeter = 80f; me.KatanaIdle = 0f;
+        play(Game.KatanaDrainDelay + 1.5f, new PlayerInput());
+        bool held80 = me.KatanaMeter == 80f;
+        me.KatanaChain = 0; me.KatanaIdle = 0f;
+        play(Game.KatanaDrainDelay + 1.0f, new PlayerInput());
+        Check(held80 && me.KatanaMeter < 70f, "on a streak the meter does not drain; with no streak it does");
+        reset();
+        var big = dummy(from + new V2(400f, 0f), 230f);
+        var mid = dummy(from + new V2(200f, 6f), 110f);
+        me.KatanaChain = Game.KatanaChainNeed;
+        strikeAt(big);
+        Console.WriteLine("  katana empowered: target dead {0}, route dead {1}, chain {2}, meter {3:0}", big.Hp <= 0f, mid.Hp <= 0f, me.KatanaChain, me.KatanaMeter);
+        Check(big.Hp <= 0f && mid.Hp <= 0f, "an empowered strike deals 240 to the target and 120 to everything it crossed");
+        Check(me.KatanaChain == 0 && me.KatanaMeter == 100f, "an empowered kill starts the chain again and the meter stays full");
+
+        // Bo Staff (Docs/Mockups/bo-staff-rework.html): slash, jab, spin in that order with no timer; the shove (weapon-action key) starts it over.
+        reset();
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoStaff);
+        me.Hp = me.MaxHp;
+        var bNear = dummy(from + new V2(70f, 0f), 1e5f);   // inside every swing's reach, on the aim line
+        var bFar = dummy(from + new V2(130f, 0f), 1e5f);   // past the slash and the spin; the jab's line reaches it
+        var bSide = dummy(from + new V2(0f, 80f), 1e5f);   // beside you: only the spin goes round to it
+        Func<float[]> bo = () => new[] { bNear.MaxHp - bNear.Hp, bFar.MaxHp - bFar.Hp, bSide.MaxHp - bSide.Hp };
+        var boHit = new float[3][]; var boOrder = new int[3];
+        me.BoStep = 0;
+        for (int step = 0; step < 3; step++)
+        {
+            bNear.Hp = bNear.MaxHp; bFar.Hp = bFar.MaxHp; bSide.Hp = bSide.MaxHp;
+            boOrder[step] = me.BoStep;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            play(0.3f, new PlayerInput());
+            boHit[step] = bo();
+        }
+        Console.WriteLine("  bo staff: steps {0},{1},{2}; near {3:0.0}/{4:0.0}/{5:0.0}, far {6:0.0}/{7:0.0}/{8:0.0}, side {9:0.0}/{10:0.0}/{11:0.0}; next step {12}",
+            boOrder[0], boOrder[1], boOrder[2], boHit[0][0], boHit[1][0], boHit[2][0], boHit[0][1], boHit[1][1], boHit[2][1], boHit[0][2], boHit[1][2], boHit[2][2], me.BoStep);
+        Check(boOrder[0] == 0 && boOrder[1] == 1 && boOrder[2] == 2 && me.BoStep == 0, "the Bo Staff goes slash, jab, spin, then starts over");
+        Check(boHit[0][0] > 0f && boHit[0][1] == 0f && boHit[0][2] == 0f, "the slash reaches what's ahead in its cone, not the far one or the one beside you");
+        Check(Math.Abs(boHit[1][0] - boHit[0][0] * Game.BoJabMult) < 0.6f && Math.Abs(boHit[1][1] - boHit[1][0]) < 0.6f && boHit[1][2] == 0f, "the jab hits a line straight ahead, near and far, for 22");
+        Check(Math.Abs(boHit[2][0] - boHit[0][0] * Game.BoSpinMult) < 0.6f && boHit[2][1] == 0f && Math.Abs(boHit[2][2] - boHit[2][0]) < 0.6f, "the spin goes all the way round for 30");
+        me.BoStep = 0; me.FireCd = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(4f, new PlayerInput());
+        Check(me.BoStep == 1 && client.Game.Players[1].BoStep == 1, "there is no timer: after a long pause the next click is the jab (and the client sees the step)");
+        // Clicks held down carry on through the chain by themselves, with each step's own hold between them.
+        me.BoStep = 0; me.FireCd = 0f;
+        var holdSteps = new List<int>();
+        int boLast = me.BoStep;
+        for (int f = 0; f < 60; f++)
+        {
+            play(1f / 60f, new PlayerInput { Fire = true, AimAt = from + new V2(100f, 0f) });
+            if (me.BoStep != boLast) { holdSteps.Add(me.BoStep); boLast = me.BoStep; }
+        }
+        Console.WriteLine("  bo staff held: steps over 1 s {0}", string.Join(",", holdSteps));
+        Check(holdSteps.Count == 3 && holdSteps[0] == 1 && holdSteps[1] == 2 && holdSteps[2] == 0, "holding the button plays slash, jab, spin, then slash again as each step ends");
+        // The shove: starts the chain over, once a second; its damage is 6/16 of a slash.
+        reset();
+        me.BoStep = 2; me.ShoveCd = 0f; me.FireCd = 0f;
+        var shoveT = dummy(from + new V2(60f, 0f), 1e5f);
+        hostDash.Invoke(g, new object[] { 1, 6, from + new V2(100f, 0f) });
+        play(0.3f, new PlayerInput { AimAt = from + new V2(100f, 0f) });
+        float shoveDmg = shoveT.MaxHp - shoveT.Hp;
+        Console.WriteLine("  bo staff shove: chain step {0}, hit for {1:0.0}", me.BoStep, shoveDmg);
+        Check(me.BoStep == 0 && Math.Abs(shoveDmg - boHit[0][0] * Game.BoShoveMult) < 0.6f, "the shove starts the chain over and deals 6 for a 16 slash");
+        me.BoStep = 2;
+        hostDash.Invoke(g, new object[] { 1, 6, from + new V2(100f, 0f) });
+        play(0.3f, new PlayerInput { AimAt = from + new V2(100f, 0f) });
+        Check(me.BoStep == 2 && Math.Abs((shoveT.MaxHp - shoveT.Hp) - shoveDmg) < 0.1f, "a second shove inside its cooldown does nothing");
         host.Leave(""); client.Leave("");
     }
 

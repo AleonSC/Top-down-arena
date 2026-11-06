@@ -617,13 +617,13 @@ namespace Arena
         }
 
         /// Blood Price: a Blood Mage deals up to 40% more damage the more health it's missing (full bonus at 10%
-        /// health); during Crimson Apotheosis up to 100% more. Applied in HurtEnemy.
+        /// health). Applied in HurtEnemy.
         float BloodDamageMult(Player p)
         {
             if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
                 return 1f;
             float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / 0.9f));
-            return 1f + (Exalted(p) ? 1f : BloodPriceMax) * missing;
+            return 1f + BloodPriceMax * missing;
         }
 
         float rainSteal;  // the strongest Sanguine Rain up right now (0 if none)
@@ -640,14 +640,11 @@ namespace Arena
                 frac += RushSteal;
             if (frac > 0f)
                 Heal(p, dealt * frac, p);
-            if (Exalted(p))
-                p.ApoDealt += dealt;
         }
 
         /// Faster firing during Frenzy Pact (FireRate).
         static float BloodFireRate(Player p) => p.RushT > 0f ? 1f + RushRate + p.Stats.RushRate : 1f;
 
-        bool Exalted(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.CrimsonApotheosis;
         bool BloodRiteUp(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BloodRite;
 
         /// Enemies all go for a Blood Mage under Crimson Pact or Blood Rite (PickTarget).
@@ -844,8 +841,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.CrimsonApotheosis, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Crimson Apotheosis", Cooldown = 65f, Desc = "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt.",
-                Capstone = "Lasts 9 s.",
+                Name = "Crimson Harvest", Cooldown = 65f, Desc = "Rip blood from every enemy in the arena (20 damage each) into a floating ball, bigger the more enemies fed it. Press again to throw it at your cursor for a huge blast; it throws itself after 5 s.",
+                Capstone = "Hold 8 s, and 25% more blood.",
                 Bot = b => b.HaveTarget && b.TargetD < 500f,
             },
         };
@@ -1021,10 +1018,7 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, blood, 200f, 0.6f, Sfx.SpellHoly);
                     return true;
                 case AbilityId.CrimsonApotheosis:
-                    p.UltT = cap ? 9f : 6f;
-                    p.ApoDealt = 0f;
-                    p.ApoUp = true;
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, 120f, 0.5f, Sfx.Roar);
+                    CastHarvest(p, cap);  // CrimsonHarvest.cs
                     return true;
             }
             return false;
@@ -1032,7 +1026,7 @@ namespace Arena
 
         // --- Timed effects ---------------------------------------------------------------
 
-        /// Host, every tick: Crimson Pact runs down and bursts, Frenzy Pact drains, Crimson Apotheosis pays out
+        /// Host, every tick: Crimson Pact runs down and bursts, Frenzy Pact drains,
         /// when it ends, Blood Boils go off, and Sanguine Rain's strength is noted for HurtEnemy.
         void TickBloodMages(float dt)
         {
@@ -1047,7 +1041,6 @@ namespace Arena
                 if (p.Downed)
                 {
                     p.PactT = p.RushT = 0f;
-                    p.ApoUp = false;
                     p.Clot = 0;
                     continue;
                 }
@@ -1077,12 +1070,6 @@ namespace Arena
                     p.RushT = Math.Max(0f, p.RushT - dt);
                     if (!p.RushMastered)
                         PayHealth(p, RushDrain * dt);
-                }
-                if (p.ApoUp && !Exalted(p))
-                {
-                    p.ApoUp = false;
-                    Heal(p, p.ApoDealt * 0.5f, p);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), 70f, 0.4f, Sfx.SpellHoly);
                 }
             }
             for (int i = boils.Count - 1; i >= 0; i--)

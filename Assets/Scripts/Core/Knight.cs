@@ -370,6 +370,8 @@ namespace Arena
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
                 BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
+            else if (box && p.Weapon.Id == WeaponId.BoStaff)  // the Bo Staff's jab: a thrust, drawn like the Rapier's (MeleeLooks.cs)
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), -0.3f, 0.24f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
@@ -688,10 +690,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Unbreakable, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
-                Name = "Unbreakable", Cooldown = 16f, Desc = "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal.",
-                Capstone = "Lasts 8 s.",
-                Bot = b => b.Danger,
+                Id = AbilityId.CavalryCall, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
+                Name = "Cavalry Call", Cooldown = 18f, Desc = "Two lancers ride in at your sides and charge across the map along your aim. Each enemy they meet takes 35, is shoved out of the lane and slowed 45% for 3 s (Heavy enemies and bosses barely move and are slowed less). You take 20% less damage for 3 s.",
+                Capstone = "Two more lancers ride outside the first pair, and the guard lasts 5 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
@@ -738,9 +740,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Last Stand", Cooldown = 70f, Desc = "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage.",
-                Capstone = "Lasts 12 s.",
-                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 220f,
+                Name = "Last Stand", Cooldown = 70f, Desc = "You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down.",
+                Capstone = "You take 5% of the damage instead of 10%.",
+                Bot = b => b.Danger,
             },
             new AbilityDef
             {
@@ -783,9 +785,8 @@ namespace Arena
                     // The Bulwark look (Game/LeapSlamLook.cs) covers the whole leap, landing and stun from this one effect.
                     BroadcastFx(FxKind.LeapSlam, p.Pos, target, LeapBoomColor.WithAlpha(cap ? 1f : 0.5f), p.Id * 1000f + SlamRadius * s.SlamRadiusMult, LeapTime + LeapFxTail + 1f + s.SlamStunBonus, Sfx.None);
                     return true;
-                case AbilityId.Unbreakable:
-                    p.UnbreakT = cap ? 8f : 5f;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.85f, 0.75f, 0.5f), 60f, 0.4f, Sfx.Clang);
+                case AbilityId.CavalryCall:
+                    CastCavalryCall(p, target, cap, pw);  // CavalryCall.cs
                     return true;
                 case AbilityId.Consecrate:
                 {
@@ -856,17 +857,8 @@ namespace Arena
 
                 // Ultimates
                 case AbilityId.LastStand:
-                {
-                    float time = cap ? 12f : 8f;
-                    p.UltT = time;
-                    foreach (var e in Enemies.Values)
-                    {
-                        e.TargetId = p.Id;
-                        e.RetargetT = time;
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 160f, 0.6f, Sfx.Roar);
+                    PlantStand(p, cap);  // LastStand.cs
                     return true;
-                }
                 case AbilityId.HallowedBlade:
                 {
                     var spots = new List<V2> { target };
@@ -891,15 +883,13 @@ namespace Arena
             return false;
         }
 
-        bool LastStanding(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.LastStand;
-
         /// Damage multiplier from Knight buffs on whoever dealt the hit (applied in HurtEnemy).
-        float KnightDamageMult(Player p) => (p.FuryT > 0f ? 1.25f : 1f) * (LastStanding(p) ? 1.5f : 1f);
+        float KnightDamageMult(Player p) => p.FuryT > 0f ? 1.25f : 1f;
 
-        /// Unbreakable and Battle Fury (with Bloodlust) heal you for part of what you deal.
+        /// Battle Fury (with Bloodlust) heals you for part of what you deal.
         void KnightLifesteal(Player p, float dealt)
         {
-            float frac = (p.UnbreakT > 0f ? 0.15f + p.Stats.UnbreakHealBonus : 0f) + (p.FuryT > 0f ? p.Stats.FuryLifesteal : 0f);
+            float frac = (p.FuryT > 0f ? p.Stats.FuryLifesteal : 0f);
             if (frac > 0f && !p.Downed && dealt > 0f)
                 Heal(p, dealt * frac, p);
         }
@@ -925,6 +915,7 @@ namespace Arena
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
                 p.FuryT = Math.Max(0f, p.FuryT - dt);
                 p.BossContactT = Math.Max(0f, p.BossContactT - dt);
+                TickStand(p, dt);  // LastStand.cs
                 if (p.Downed)
                 {
                     Array.Clear(p.WallPlate, 0, Player.WallPlates);

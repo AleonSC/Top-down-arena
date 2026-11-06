@@ -911,6 +911,10 @@ namespace Arena
         /// Punch: a quick scale pulse with the split and nothing else (the main menu's title).
         public static void Glitch(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null, GlitchKind kind = GlitchKind.Rotate)
         {
+            // Drawing only. Its tear bands open a changing number of GUI groups, and each group takes a control id, so on a
+            // mouse event it would shift the ids of every button drawn after it (a click lost between MouseDown and MouseUp).
+            if (Event.current.type != EventType.Repaint)
+                return;
             float t = Time.unscaledTime, a = color.a;
             float off = Mathf.Max(1f, size * 0.045f);
             const float cycle = 3.6f, pre = 0.6f, len = 0.55f;

@@ -40,7 +40,7 @@ namespace Arena
             if (p.AdrenalineT > 0f)
                 amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
-                amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
+                amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
@@ -64,10 +64,6 @@ namespace Arena
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
-            if (p.Hp <= 0f && LastStanding(p))
-                p.Hp = 1f;  // Last Stand
-            if (p.Hp <= 0f && Exalted(p))
-                p.Hp = 1f;  // Crimson Apotheosis
             if (p.Hp <= 0f && InLantern(p))
                 p.Hp = 1f;  // a Soul Lantern keeps you standing
             if (p.Hp <= 0f && p.WardT > 0f)
@@ -527,6 +523,12 @@ namespace Arena
                             WearWall(p, plate, b.Dmg, b.Pos);  // every shot wears a plate, not only a boss's
                             break;
                         }
+                        if (p.StandOn && StandBlocks(p, b))
+                        {
+                            scratchIds.Add(b.Id);  // Last Stand: stops everything from the front, red aimed shots too, and you take a tenth of it (LastStand.cs)
+                            StandHit(p, b);
+                            break;
+                        }
                         if (p.ShellOn && Enters(b, p.Pos, ShellRadius))
                         {
                             scratchIds.Add(b.Id);  // Blood Shell: stops everything, red aimed shots too, and bills its owner (BloodShell.cs)
@@ -802,7 +804,7 @@ namespace Arena
             if (Players.TryGetValue(attacker, out p))
             {
                 var s = p.Stats;
-                dmg *= KnightDamageMult(p);  // Battle Fury, Last Stand
+                dmg *= KnightDamageMult(p);  // Battle Fury
                 if (IsHunted(p))
                     dmg *= Modifiers.HuntedDamage;  // Hunted: the quarry hits twice as hard (Modifiers.cs)
                 dmg *= BloodDamageMult(p);   // Blood Price

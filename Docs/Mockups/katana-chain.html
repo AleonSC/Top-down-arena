@@ -1,0 +1,350 @@
+<title>Katana Chain Streak</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one playable stage (enemies that die, chain counter in three styles), meter and chain readouts, controls, rules and open questions.
+   Colour: the Katana's rose; empowered is a warm gold-white so it reads as a step up without a new hue family. Type as the other Katana mockups. */
+
+/* Layout: header, then two playable stages (combo chain, then the Alt strike), each a canvas + controls + beat list; numbers table and open questions last.
+   Colour: steel blade, crimson for the strike (matches Death Lotus). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --steel:#2f6f8f; --crim:#c4163f; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --arena:#12171b; --pip:#d3dacf;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:66ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:68ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.hot{background:var(--crim);border-color:var(--crim);color:#fff}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--panel);color:var(--fg)}
+.pips{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.pip{flex:1 1 120px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--panel);display:flex;flex-direction:column;gap:2px;transition:background .08s,border-color .08s}
+.pip b{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase}
+.pip span{font:500 12px var(--mono);color:var(--muted)}
+.pip.next{border-color:var(--steel)}
+.pip.on{background:var(--steel);border-color:var(--steel)} .pip.on b,.pip.on span{color:#fff}
+.pip.lunge.on{background:var(--crim);border-color:var(--crim)}
+.pip.queued::after{content:"QUEUED";font:600 11px var(--mono);letter-spacing:.08em;color:var(--steel)}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bar{flex:1 1 200px;min-width:0;height:14px;border:1px solid var(--line);border-radius:3px;background:var(--pip);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--steel);transition:width .1s}
+.bar.drain i{background:var(--muted);opacity:.8}
+.bar.full i{background:var(--crim);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.bar.full i{animation:none}}
+.meter .num{font:500 13px var(--mono);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.msg{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 14px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.cpips{display:flex;gap:6px}
+.cpip{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);background:var(--pip);transition:background .1s,border-color .1s}
+.cpip.on{background:var(--crim);border-color:var(--crim)}
+.cpip.on.emp{background:#f3c969;border-color:#f3c969}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.row .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.row .num{font:500 13px var(--mono);min-width:64px;font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+.state{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+</style>
+
+<main>
+<header>
+  <h1>Katana chain streak</h1>
+  <p>An Alt strike that <strong>kills its target keeps the meter full</strong>, so you can strike again at once. Each kill is one chain. While the chain is above zero, the meter <strong>does not drain</strong>. At <strong>five chains</strong> the next strike is <strong>empowered</strong>.</p>
+  <p>Playable. Enemies have different health on purpose: swarmers (50) and grunts (100) die to a strike (120), brutes (220) survive it and break your streak, unless the strike is empowered (240).</p>
+</header>
+
+<section class="stage" id="s">
+  <h2>The streak <small>kill, kill, kill, kill, kill, empowered</small></h2>
+  <div class="frame">
+    <canvas id="c" width="720" height="400" aria-label="Chain streak stage"></canvas>
+    <div class="hud" id="hud">AUTO-PLAY</div>
+  </div>
+  <div class="row"><span class="lab">Strike meter</span><div class="bar" id="bar" style="flex:1 1 200px"><i></i></div><span class="num" id="num">0 / 100</span></div>
+  <div class="row"><span class="lab">Chain</span><div class="cpips"><span class="cpip"></span><span class="cpip"></span><span class="cpip"></span><span class="cpip"></span><span class="cpip"></span></div><span class="num" id="chain" style="min-width:140px">0</span></div>
+  <p class="state" id="state"></p>
+  <div class="controls">
+    <button id="hit" type="button">Land a hit (+20)</button>
+    <button id="fill" type="button">Fill meter (holds 3 s)</button>
+    <button id="chain5" type="button">Jump to chain 5</button>
+    <button id="reset" type="button">Reset</button>
+    <button class="hot" id="hold" type="button">Hold to target</button>
+    <label class="chk"><input type="checkbox" id="auto" checked> Auto-play</label>
+  </div>
+  <div class="controls">
+    <span class="lab" style="font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Counter style</span>
+    <div class="seg" role="radiogroup" aria-label="Counter style">
+      <input type="radio" name="style" id="st1" value="arc" checked><label for="st1">Arc pips</label>
+      <input type="radio" name="style" id="st2" value="blade"><label for="st2">Blade notches</label>
+      <input type="radio" name="style" id="st3" value="count"><label for="st3">Big number</label>
+    </div>
+    <label class="chk"><input type="checkbox" id="optroute" checked> Route kills add chain</label>
+    <label class="chk"><input type="checkbox" id="optkeep"> Stay empowered after the empowered strike</label>
+  </div>
+  <p class="state" id="msg"></p>
+  <p class="state">Desktop: click the stage, hold <span class="kbd">Alt</span>, move the mouse, release. The label over each enemy shows what the cut does to it.</p>
+</section>
+
+<section class="cols">
+  <div class="card">
+    <h3>Rules in this mockup</h3>
+    <ul>
+      <li>A strike spends the meter as before. If the <strong>target dies</strong>, the meter is set back to 100 and the chain goes up.</li>
+      <li>If the target <strong>survives</strong>, the meter stays spent and the chain resets to 0 (streak lost).</li>
+      <li><strong>1 kill = 1 chain.</strong> By default the enemies the line cuts through also count when they die (switch off "Route kills add chain" to count only the target).</li>
+      <li>While the chain is above 0 the meter never drains. At 0 it drains at 25 per second after 1.2 s without a hit, as now.</li>
+      <li>At <strong>5 chains</strong> the next strike is empowered: <strong>120</strong> to everything on the line (up from 60) and <strong>240</strong> to the target (up from 120). The cut is wider and white-gold.</li>
+      <li>After an empowered strike that kills, the meter stays full and the chain starts again from 0 (or stays at 5+ with the option on).</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Open questions</h3>
+    <ul>
+      <li>Should a streak time out (for example after 5 s without striking)? As built here, a full meter with a streak can wait forever.</li>
+      <li>Does taking damage end the streak, or only a survived target?</li>
+      <li>After the empowered strike, reset the chain or stay empowered for as long as the streak lasts? The last checkbox shows the second option, which is much stronger.</li>
+      <li>Should route kills count? They make the chain climb faster in a crowd, so 5 comes quickly.</li>
+      <li>Bosses survive 120 and 240 for a long time. Should a boss hit count as a kill never, or after a big percentage of its health?</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var W=720,H=400,TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var easeOut=function(t){return 1-Math.pow(1-clamp(t,0,1),3)};
+var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $=function(id){return document.getElementById(id)};
+function setup(c){var d=Math.min(window.devicePixelRatio||1,2);c.width=W*d;c.height=H*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+function toLocal(c,e){var r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function grid(x){x.fillStyle='#12171b';x.fillRect(0,0,W,H);x.strokeStyle='rgba(255,255,255,.045)';x.lineWidth=1;x.beginPath();
+  for(var i=0;i<=W;i+=40){x.moveTo(i+.5,0);x.lineTo(i+.5,H)}for(var j=0;j<=H;j+=40){x.moveTo(0,j+.5);x.lineTo(W,j+.5)}x.stroke()}
+function drawPlayer(x,px,py,face,alpha){x.save();x.globalAlpha=alpha==null?1:alpha;x.translate(px,py);x.rotate(face);
+  x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(14,0);x.lineTo(5,-6);x.lineTo(5,6);x.closePath();x.fill();x.restore()}
+function floats(x,list,dt){for(var i=list.length-1;i>=0;i--){var f=list[i];f.age+=dt;if(f.age>f.life){list.splice(i,1);continue}
+  var a=1-f.age/f.life;x.save();x.globalAlpha=a;x.font='700 '+(f.big?30:18)+'px Barlow Condensed, sans-serif';x.textAlign='center';
+  x.fillStyle=f.col||'#fff';x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;var y=f.y-f.age*(f.big?30:40);x.strokeText(f.text,f.x,y);x.fillText(f.text,f.x,y);x.restore()}}
+
+/* The game's own melee look (MeleeLooks.cs, style E: weapon + energy), in the Katana's rose. */
+var ROSE='255,143,168';
+function gameBlade(x,ox,oy,ang,reach,alpha,bright){if(alpha<=0)return;x.save();x.translate(ox,oy);x.rotate(ang);
+  var r0=18,r1=reach*.98,hilt=r0+(r1-r0)*.3,wd=5;
+  x.lineCap='butt';x.strokeStyle='rgba(107,87,64,'+alpha+')';x.lineWidth=4;x.beginPath();x.moveTo(r0-6,0);x.lineTo(hilt,0);x.stroke();
+  x.strokeStyle='rgba(217,191,122,'+alpha+')';x.lineWidth=3;x.beginPath();x.moveTo(hilt,7);x.lineTo(hilt,-7);x.stroke();
+  x.fillStyle=(bright?'rgba(255,255,255,':'rgba(230,237,252,')+alpha+')';x.beginPath();x.moveTo(hilt,wd);x.lineTo(r1-10,wd*.8);x.lineTo(r1,0);x.lineTo(r1-10,-wd*.6);x.lineTo(hilt,-wd*.6);x.closePath();x.fill();
+  x.strokeStyle='rgba('+ROSE+','+(.9*alpha)+')';x.lineWidth=1.2;x.beginPath();x.moveTo(hilt,wd);x.lineTo(r1-10,wd*.8);x.lineTo(r1,0);x.lineTo(r1-10,-wd*.6);x.lineTo(hilt,-wd*.6);x.stroke();x.restore()}
+function glowBand(x,cx,cy,r0,r1,from,to,al0,al1,steps){x.save();x.globalCompositeOperation='lighter';x.shadowColor='rgb('+ROSE+')';x.shadowBlur=18;
+  for(var i=0;i<steps;i++){var t0=lerp(from,to,i/steps),t1=lerp(from,to,(i+1)/steps);x.fillStyle='rgba('+ROSE+','+lerp(al0,al1,(i+.5)/steps)+')';
+    x.beginPath();x.arc(cx,cy,r1,t0,t1,t1<t0);x.arc(cx,cy,r0,t1,t0,t1>=t0);x.closePath();x.fill()}x.restore()}
+function softLine(x,ax,ay,bx,by,w,a){var dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,nx=-dy/L*w/2,ny=dx/L*w/2,mx=(ax+bx)/2,my=(ay+by)/2;
+  var g=x.createLinearGradient(mx+nx,my+ny,mx-nx,my-ny);g.addColorStop(0,'rgba('+ROSE+',0)');g.addColorStop(.5,'rgba('+ROSE+','+a+')');g.addColorStop(1,'rgba('+ROSE+',0)');
+  x.strokeStyle=g;x.lineWidth=w;x.lineCap='butt';x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke()}
+function beam(x,ax,ay,bx,by,fade,wide){x.save();x.globalCompositeOperation='lighter';softLine(x,ax,ay,bx,by,(wide||26)*fade+4,.5*fade);softLine(x,ax,ay,bx,by,(wide?12:10)*fade+2,.6*fade);
+  x.strokeStyle='rgba(255,255,255,'+(.9*fade)+')';x.lineWidth=2.5;x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();x.restore()}
+function sparks(x,cx,cy,R,a0,a1,t,active,seed,line,count){var sg=a1>a0?1:-1;
+  for(var i=0;i<(count||22);i++){var born=active*rnd(seed+i*3.1),spd=120+160*rnd(seed+i*5.7+1),spread=(rnd(seed+i*7.3+2)-.5)*.9,age=t-born;if(age<0||age>.5)continue;
+    var bx,by,oa;if(line){bx=cx+Math.cos(a0)*(30+R*born/active);by=cy+Math.sin(a0)*(30+R*born/active);oa=a0+spread*1.4}
+    else{var ba=lerp(a0,a1,easeOut(born/active));bx=cx+Math.cos(ba)*R;by=cy+Math.sin(ba)*R;oa=ba+sg*.9+spread}
+    var dd=spd*age*(1-age);x.fillStyle=(i%3?'rgba('+ROSE+',':'rgba(255,255,255,')+(.9*(1-age/.5))+')';x.fillRect(bx+Math.cos(oa)*dd-1.5,by+Math.sin(oa)*dd-1.5,3,3)}}
+function rnd(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)}
+
+function rnd(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)}
+var GOLD='255,226,160';
+function softLineC(x,ax,ay,bx,by,w,a,col){var dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,nx=-dy/L*w/2,ny=dx/L*w/2,mx=(ax+bx)/2,my=(ay+by)/2;
+  var g=x.createLinearGradient(mx+nx,my+ny,mx-nx,my-ny);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');
+  x.strokeStyle=g;x.lineWidth=w;x.lineCap='butt';x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke()}
+function beamC(x,ax,ay,bx,by,fade,wide,col){x.save();x.globalCompositeOperation='lighter';softLineC(x,ax,ay,bx,by,wide*fade+6,.5*fade,col);softLineC(x,ax,ay,bx,by,wide*.36*fade+2,.6*fade,col);
+  x.strokeStyle='rgba(255,255,255,'+(.9*fade)+')';x.lineWidth=2.5;x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();x.restore()}
+
+var NEED=5,GRACE=1.2,DRAIN=25,DMG=120,ROUTE=60,EDMG=240,EROUTE=120,BEHIND=52;
+var TYPES={swarmer:{hp:50,r:10,col:'#e8906f'},grunt:{hp:100,r:14,col:'#d8503f'},brute:{hp:220,r:19,col:'#8f2f2a'}};
+var SPAWNS=[[250,110,'grunt'],[430,260,'swarmer'],[560,110,'brute'],[640,300,'swarmer'],[330,340,'grunt'],[500,190,'swarmer'],[190,60,'swarmer'],[420,70,'grunt'],[660,190,'brute']];
+var S={px:90,py:320,face:0,meter:0,idle:0,chain:0,phase:'idle',pt:0,clock:0,ts:1,dim:0,lt:0,flash:0,shake:0,sel:-1,cur:{x:400,y:180},auto:!rm,aT:0,aS:0,aA:0,aB:0,
+  en:[],fl:[],stain:[],halves:[],path:null,opt:{route:true,keep:false},style:'arc',lost:0,keepT:0,pop:0,shakeBar:0,lastMsg:'',emp:false,best:0};
+SPAWNS.forEach(function(p,i){S.en.push(mk(p[2],p[0],p[1],i))});
+function mk(type,x,y,i){return{type:type,hp:TYPES[type].hp,ox:x,oy:y,rad:12+(i%4)*4,spd:.45+(i%5)*.12,ph:i*1.7,alive:true,f:0,app:1,rt:0}}
+function epos(e){return{x:e.ox+Math.cos(S.clock*e.spd+e.ph)*e.rad,y:e.oy+Math.sin(S.clock*e.spd+e.ph)*e.rad*.7}}
+function alive(){var l=[];S.en.forEach(function(e,i){if(e.alive)l.push(i)});return l}
+function empowered(){return S.chain>=NEED}
+function setMsg(t){$('msg').textContent=t}
+function pickSel(){var best=-1,bd=1e9;S.en.forEach(function(e,i){if(!e.alive)return;var p=epos(e),d=Math.hypot(p.x-S.cur.x,p.y-S.cur.y);if(d<bd){bd=d;best=i}});S.sel=best}
+function segDist(px,py,a,b,c,d){var vx=c-a,vy=d-b,t=clamp(((px-a)*vx+(py-b)*vy)/(vx*vx+vy*vy||1),0,1);return Math.hypot(px-(a+vx*t),py-(b+vy*t))}
+function route(i){var e=S.en[i],p=epos(e),dx=p.x-S.px,dy=p.y-S.py,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
+  return{x0:S.px,y0:S.py,x1:clamp(p.x+ux*BEHIND,24,W-24),y1:clamp(p.y+uy*BEHIND,24,H-24),tx:p.x,ty:p.y,ux:ux,uy:uy,idx:i}}
+function onRoute(path,i){var e=S.en[i];if(!e.alive||i===path.idx)return false;var q=epos(e);return segDist(q.x,q.y,path.x0,path.y0,path.x1,path.y1)<TYPES[e.type].r+24}
+function startTarget(){if(S.phase!=='idle')return;if(S.meter<100){S.shakeBar=.4;setMsg('Meter '+Math.round(S.meter)+' / 100. Land more hits first.');return}
+  S.phase='target';S.pt=0;pickSel();setMsg('Aim with the mouse, then release Alt. The label shows whether the cut kills.')}
+function release(){if(S.phase!=='target')return;if(S.sel<0){S.phase='idle';return}fire(S.sel)}
+function fire(i){S.path=route(i);S.emp=empowered();S.meter=0;S.phase='wind';S.pt=0;S.face=Math.atan2(S.path.uy,S.path.ux);setMsg('')}
+function cutNow(){var s=S,pa=s.path,emp=s.emp,kills=0,tk=false;
+  s.en.forEach(function(e,i){if(!e.alive)return;var isT=i===pa.idx;if(!isT&&!onRoute(pa,i))return;
+    var q=epos(e),dmg=isT?(emp?EDMG:DMG):(emp?EROUTE:ROUTE);e.hp-=dmg;e.f=1;
+    s.fl.push({x:q.x,y:q.y-26,text:String(dmg),age:0,life:1,big:isT,col:isT?(emp?'rgb('+GOLD+')':'#ff8fa8'):'#fff'});
+    if(e.hp<=0){e.alive=false;e.rt=1.4;if(isT)tk=true;if(isT||s.opt.route){kills++;s.fl.push({x:q.x+14,y:q.y-8,text:'+1',age:0,life:1.1,col:'#7cf0b8'})}
+      s.halves.push({x:q.x,y:q.y,ux:pa.ux,uy:pa.uy,age:0,r:TYPES[e.type].r})}});
+  s.stain.push({x0:pa.x0,y0:pa.y0,x1:pa.x1,y1:pa.y1,age:0});s.flash=.35;s.shake=emp?10:7;
+  if(tk){s.meter=100;s.keepT=1.2;s.idle=0;
+    if(emp&&!s.opt.keep){s.chain=0;s.lastMsg='Empowered strike spent. The meter stayed full; the chain starts again.'}
+    else{s.chain+=kills;s.pop=.4;s.best=Math.max(s.best,s.chain);s.lastMsg=kills>1?kills+' kills. Chain '+s.chain+', meter stays full.':'Kill. Chain '+s.chain+', meter stays full.'}}
+  else{s.chain=0;s.meter=0;s.lost=1.4;s.lastMsg='The target survived: meter spent, streak lost.'}
+  setMsg(s.lastMsg)}
+function respawn(e,i){var t=Math.random(),type=t<.4?'swarmer':t<.8?'grunt':'brute',x,y,k=0;
+  do{x=80+Math.random()*(W-160);y=50+Math.random()*(H-100);k++}while(Math.hypot(x-S.px,y-S.py)<170&&k<20);
+  var n=mk(type,x,y,i);n.app=0;S.en[i]=n}
+function upd(dt){var s=S,tsT=1,dimT=0,ltT=0;
+  if(s.phase==='target'){tsT=.12;dimT=1}
+  if(s.phase==='wind'||s.phase==='dash'||s.phase==='freeze'){tsT=0;dimT=.6;ltT=1}
+  if(s.phase==='cut'){tsT=.5;dimT=.2;ltT=1}
+  s.ts=tsT;s.clock+=dt*s.ts;s.dim=lerp(s.dim,dimT,clamp(dt*10,0,1));s.lt=lerp(s.lt,ltT,clamp(dt*9,0,1));
+  s.flash=Math.max(0,s.flash-dt*1.6);s.shake=Math.max(0,s.shake-dt*18);s.shakeBar=Math.max(0,s.shakeBar-dt);s.lost=Math.max(0,s.lost-dt);s.keepT=Math.max(0,s.keepT-dt);s.pop=Math.max(0,s.pop-dt);
+  s.en.forEach(function(e,i){e.f=Math.max(0,e.f-dt*3);if(e.app<1)e.app=Math.min(1,e.app+dt*2);if(!e.alive&&(e.rt-=dt)<=0)respawn(e,i)});
+  var drain=s.phase==='idle'&&s.chain===0&&s.idle>GRACE&&s.meter>0;
+  s.idle+=dt;if(drain)s.meter=Math.max(0,s.meter-DRAIN*dt);
+  if(s.auto){
+    if(s.phase==='idle'){
+      if(s.meter<100){s.aT+=dt;if(s.aT>.4){s.aT=0;s.meter=Math.min(100,s.meter+20);s.idle=0}}
+      else{s.aT+=dt;if(s.aT>.8){s.aT=0;s.aS=0;var al=alive();var pool=al.filter(function(i){return s.en[i].type!=='brute'});
+        if(!pool.length)pool=al;if(Math.random()<.2||empowered())pool=al;
+        s.aA=al[Math.floor(Math.random()*al.length)];s.aB=pool[Math.floor(Math.random()*pool.length)];startTarget()}}}
+    else if(s.phase==='target'){s.aS+=dt;var ti=s.aS>.8?s.aB:s.aA,tp=epos(s.en[ti]);s.cur.x=lerp(s.cur.x,tp.x,clamp(dt*9,0,1));s.cur.y=lerp(s.cur.y,tp.y,clamp(dt*9,0,1));if(s.aS>1.6)release()}}
+  if(s.phase==='target'){pickSel();if(s.sel<0)s.phase='idle'}
+  var pa=s.path;
+  if(s.phase==='wind'){s.pt+=dt;if(s.pt>=.35){s.phase='dash';s.pt=0}}
+  else if(s.phase==='dash'){s.pt+=dt;if(s.pt>=.14){s.phase='freeze';s.pt=0;s.px=pa.x1;s.py=pa.y1;s.flash=.8;s.shake=5}}
+  else if(s.phase==='freeze'){s.pt+=dt;if(s.pt>=.5){s.phase='cut';s.pt=0;cutNow()}}
+  else if(s.phase==='cut'){s.pt+=dt;if(s.pt>=.7){s.phase='idle';s.pt=0;s.aT=0;s.path=null}}
+  for(var i=s.halves.length-1;i>=0;i--){s.halves[i].age+=dt;if(s.halves[i].age>.9)s.halves.splice(i,1)}
+  for(i=s.stain.length-1;i>=0;i--){s.stain[i].age+=dt;if(s.stain[i].age>2)s.stain.splice(i,1)}
+  var bar=$('bar');bar.firstElementChild.style.width=s.meter+'%';bar.classList.toggle('full',s.meter>=100&&!drain);bar.classList.toggle('drain',drain);
+  bar.style.transform=s.shakeBar>0?'translateX('+(Math.sin(s.shakeBar*60)*4).toFixed(1)+'px)':'none';
+  $('num').textContent=Math.round(s.meter)+' / 100'+(drain?' ▼':s.meter>=100?' ★':'');
+  var pips=document.querySelectorAll('.cpip');for(var k=0;k<pips.length;k++){pips[k].classList.toggle('on',k<Math.min(s.chain,NEED));pips[k].classList.toggle('emp',empowered())}
+  $('chain').textContent=s.chain+(empowered()?' · EMPOWERED':'');
+  $('state').textContent=empowered()?'Empowered: the next strike cuts everything it crosses for 120 and the target for 240.':s.chain>0?'On a streak: the meter will not drain.':'No streak: the meter drains after 1.2 s without a hit.';
+  var h=$('hold');h.classList.toggle('hot',s.phase!=='target');h.classList.toggle('primary',s.phase==='target');h.textContent=s.phase==='target'?'Release to strike':'Hold to target'}
+function brackets(x,px,py,r,col,w){x.save();x.strokeStyle=col;x.lineWidth=w;x.beginPath();
+  [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(c){var cx=px+c[0]*r,cy=py+c[1]*r;x.moveTo(cx-c[0]*6,cy);x.lineTo(cx,cy);x.lineTo(cx,cy-c[1]*6)});x.stroke();x.restore()}
+function drawEnemy(x,e,flash){var p=epos(e),T=TYPES[e.type];x.save();x.translate(p.x,p.y);x.globalAlpha=e.app;
+  var ang=Math.atan2(S.py-p.y,S.px-p.x);x.rotate(ang);x.fillStyle=e.f>0?'#fff':T.col;x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,T.r,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(T.r,0);x.lineTo(T.r-8,-5);x.lineTo(T.r-8,5);x.closePath();x.fill();x.restore();
+  var full=T.hp,w=T.r*2+6;x.fillStyle='rgba(0,0,0,.55)';x.fillRect(p.x-w/2,p.y+T.r+5,w,3);x.fillStyle=e.hp/full>.5?'#7cf0b8':'#ffcf6a';x.fillRect(p.x-w/2,p.y+T.r+5,w*clamp(e.hp/full,0,1),3);return p}
+function label(x,px,py,text,col){x.save();x.font='700 15px Barlow Condensed, sans-serif';x.textAlign='center';x.fillStyle=col;x.strokeStyle='rgba(0,0,0,.75)';x.lineWidth=3;x.strokeText(text,px,py);x.fillText(text,px,py);x.restore()}
+function drawChain(x){var s=S,emp=empowered(),px=s.px,py=s.py,pulse=.5+.5*Math.sin(performance.now()/120);
+  var f=clamp(s.meter/100,0,1),r=26;
+  x.save();x.lineCap='butt';x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=2;x.beginPath();x.arc(px,py,r,0,TAU);x.stroke();
+  if(f>0){x.strokeStyle=emp?'rgba('+GOLD+','+(.7+.3*pulse)+')':'rgba(255,143,168,'+(f>=1?.7+.3*pulse:.85)+')';x.lineWidth=f>=1?3.5:2.5;x.beginPath();x.arc(px,py,r,-Math.PI/2,-Math.PI/2+TAU*f);x.stroke()}
+  if(s.keepT>0){x.strokeStyle='rgba(124,240,184,'+clamp(s.keepT,0,1)+')';x.lineWidth=2;x.beginPath();x.arc(px,py,r+5+(1.2-s.keepT)*8,0,TAU);x.stroke()}
+  x.restore();
+  if(s.style==='arc'){for(var i=0;i<NEED;i++){var a=-Math.PI/2+(i-(NEED-1)/2)*.42,cx=px+Math.cos(a)*(r+13),cy=py+Math.sin(a)*(r+13),on=i<s.chain;
+      x.save();if(emp){x.shadowColor='rgb('+GOLD+')';x.shadowBlur=10}x.fillStyle=on?(emp?'rgb('+GOLD+')':'#ff8fa8'):'rgba(255,255,255,.12)';x.strokeStyle=on?'#fff':'rgba(255,255,255,.35)';x.lineWidth=1.2;
+      x.beginPath();x.arc(cx,cy,on?4.5+(s.pop>0&&i===s.chain-1?3:0):3.5,0,TAU);x.fill();x.stroke();x.restore()}}
+  else if(s.style==='blade'){var bx=px-40,by=py-52,len=80;x.save();x.translate(bx,by);
+    x.fillStyle='rgba(0,0,0,.45)';x.fillRect(-4,-5,len+14,10);x.strokeStyle='rgba(255,255,255,.2)';x.strokeRect(-4.5,-5.5,len+14,10);
+    x.fillStyle='#6b5740';x.fillRect(0,-2,14,4);x.fillStyle='#d9bf7a';x.fillRect(14,-4,3,8);
+    for(var j=0;j<NEED;j++){var nx=22+j*12,on2=j<s.chain;x.save();if(on2){x.shadowColor=emp?'rgb('+GOLD+')':'rgb(255,143,168)';x.shadowBlur=emp?12:8}
+      x.fillStyle=on2?(emp?'rgb('+GOLD+')':'#ff8fa8'):'rgba(230,237,252,.28)';x.beginPath();x.moveTo(nx,-3);x.lineTo(nx+9,-3);x.lineTo(nx+11,0);x.lineTo(nx+9,3);x.lineTo(nx,3);x.closePath();x.fill();x.restore()}
+    x.restore()}
+  else{var n=Math.min(s.chain,99);if(n>0||emp){x.save();var sc=1+(s.pop>0?s.pop*1.2:0);x.translate(px,py-48);x.scale(sc,sc);x.textAlign='center';
+      x.font='700 34px Barlow Condensed, sans-serif';x.fillStyle=emp?'rgb('+GOLD+')':'#ff8fa8';x.strokeStyle='rgba(0,0,0,.75)';x.lineWidth=4;if(emp){x.shadowColor='rgb('+GOLD+')';x.shadowBlur=14}
+      x.strokeText('×'+n,0,0);x.fillText('×'+n,0,0);x.shadowBlur=0;x.font='600 11px IBM Plex Mono, monospace';x.fillStyle='rgba(255,255,255,'+(emp?.6+.4*pulse:.8)+')';x.fillText(emp?'EMPOWERED':'CHAIN',0,14);x.restore()}}
+  if(s.lost>0){label(x,px,py-48,'STREAK LOST','rgba(255,120,120,'+clamp(s.lost,0,1)+')')}}
+function draw(dt){var x=x2,s=S;x.save();if(s.shake>0)x.translate((Math.random()-.5)*s.shake,(Math.random()-.5)*s.shake);grid(x);
+  s.stain.forEach(function(st){var a=Math.max(0,1-st.age/2);beamC(x,st.x0,st.y0,st.x1,st.y1,a*.4,12,'255,143,168')});
+  var tgtEmp=empowered(),dm=tgtEmp?EDMG:DMG,rm2=tgtEmp?EROUTE:ROUTE,tPath=null;
+  if(s.phase==='target'&&s.sel>=0)tPath=route(s.sel);
+  s.en.forEach(function(e,i){if(e.alive)drawEnemy(x,e)});
+  s.halves.forEach(function(h){var q=clamp(h.age/.8,0,1),off=easeOut(q)*22,a=1-clamp((q-.45)/.55,0,1),an=Math.atan2(h.uy,h.ux),nx=-h.uy,ny=h.ux;
+    [[1,0],[-1,Math.PI]].forEach(function(hv){x.save();x.globalAlpha=a;x.translate(h.x+nx*off*hv[0],h.y+ny*off*hv[0]);x.fillStyle='#d8503f';x.strokeStyle='#ff8fa8';x.lineWidth=2;
+      x.beginPath();x.arc(0,0,h.r,an+hv[1],an+hv[1]+Math.PI);x.closePath();x.fill();x.stroke();x.restore()})});
+  if(s.dim>.01){x.fillStyle='rgba(4,6,10,'+(.5*s.dim)+')';x.fillRect(0,0,W,H);s.en.forEach(function(e){if(e.alive)drawEnemy(x,e)})}
+  if(s.phase==='target'&&tPath){
+    s.en.forEach(function(e,i){if(!e.alive)return;var p=epos(e),T=TYPES[e.type],isT=i===s.sel;brackets(x,p.x,p.y,T.r+(isT?9:5),isT?'#ff8fa8':'rgba(255,255,255,.5)',isT?2.5:1.3);
+      if(isT){var kill=dm>=e.hp;label(x,p.x,p.y-T.r-14,dm+(kill?'  KILL':'  HOLDS'),kill?'#7cf0b8':'#ff7a7a')}
+      else if(onRoute(tPath,i)){var k2=rm2>=e.hp;label(x,p.x,p.y-T.r-10,rm2+(k2?(s.opt.route?'  kill':'  kill (no chain)'):''),k2?'#b8f5d6':'#ffffff')}});
+    x.save();x.setLineDash([9,7]);x.lineDashOffset=-performance.now()/40;x.strokeStyle=tgtEmp?'rgb('+GOLD+')':'#ff8fa8';x.lineWidth=2;x.beginPath();x.moveTo(s.px,s.py);x.lineTo(tPath.x1,tPath.y1);x.stroke();x.setLineDash([]);
+    x.strokeStyle='rgba(95,208,196,.9)';x.beginPath();x.arc(tPath.x1,tPath.y1,14,0,TAU);x.stroke();x.restore();
+    x.strokeStyle='rgba(255,255,255,.8)';x.lineWidth=1.3;x.beginPath();x.moveTo(s.cur.x-8,s.cur.y);x.lineTo(s.cur.x+8,s.cur.y);x.moveTo(s.cur.x,s.cur.y-8);x.lineTo(s.cur.x,s.cur.y+8);x.stroke()}
+  var pa=s.path,col=s.emp?GOLD:'255,143,168',wide=s.emp?60:34;
+  if(s.phase==='wind'){drawPlayer(x,s.px,s.py,s.face)}
+  else if(s.phase==='dash'){var q=clamp(s.pt/.14,0,1);beamC(x,pa.x0,pa.y0,lerp(pa.x0,pa.x1,q),lerp(pa.y0,pa.y1,q),1,wide,col);
+    [.2,.45,.7].forEach(function(f){if(q>f)drawPlayer(x,lerp(pa.x0,pa.x1,f*q),lerp(pa.y0,pa.y1,f*q),s.face,.25*(1-f))})}
+  else if(s.phase==='freeze'){beamC(x,pa.x0,pa.y0,pa.x1,pa.y1,lerp(1,.45,s.pt/.5),wide,col);drawPlayer(x,s.px,s.py,s.face)}
+  else{if(pa&&s.phase==='cut')beamC(x,pa.x0,pa.y0,pa.x1,pa.y1,Math.max(0,.4-s.pt*.5),wide,col);drawPlayer(x,s.px,s.py,s.face)}
+  drawChain(x);floats(x,s.fl,dt);
+  if(s.flash>0){x.fillStyle='rgba(255,'+(s.emp?248:255)+',255,'+Math.min(.85,s.flash)+')';x.fillRect(0,0,W,H)}
+  x.restore();var bh=48*s.lt;x.fillStyle='#000';x.fillRect(0,0,W,bh);x.fillRect(0,H-bh,W,bh);
+  x.font='500 12px IBM Plex Mono, monospace';x.textAlign='center';x.fillStyle='rgba(255,255,255,.85)';if(s.phase==='target')x.fillText('RELEASE ALT TO STRIKE',W/2,H-14);
+  $('hud').textContent=(s.auto?'AUTO-PLAY · ':'')+({idle:'READY',target:'TARGETING',wind:'STANCE',dash:'CUT',freeze:'HELD FRAME',cut:'FALLS'}[s.phase]||'')+(s.emp&&s.phase!=='idle'?' · EMPOWERED':'')}
+function takeover(){if(S.auto){S.auto=false;$('auto').checked=false;if(S.phase==='target')S.phase='idle'}}
+var c2=$('c'),x2=setup(c2);c2.tabIndex=0;
+$('auto').checked=!rm;
+$('auto').addEventListener('change',function(e){S.auto=e.target.checked;S.aT=0});
+c2.addEventListener('pointerdown',function(e){c2.focus();if(S.phase==='target'&&!S.auto)S.cur=toLocal(c2,e)});
+c2.addEventListener('pointermove',function(e){if(!S.auto)S.cur=toLocal(c2,e)});
+c2.addEventListener('keydown',function(e){if(e.key==='Alt'){e.preventDefault();if(!e.repeat){takeover();startTarget()}}});
+c2.addEventListener('keyup',function(e){if(e.key==='Alt'){e.preventDefault();release()}});
+c2.addEventListener('blur',function(){if(S.phase==='target'&&!S.auto)S.phase='idle'});
+$('hit').addEventListener('click',function(){takeover();if(S.phase==='idle'){S.meter=Math.min(100,S.meter+20);S.idle=0}});
+$('fill').addEventListener('click',function(){takeover();if(S.phase==='idle'){S.meter=100;S.idle=-3}});
+$('chain5').addEventListener('click',function(){takeover();S.chain=NEED;S.meter=100;S.idle=0;setMsg('Chain set to 5. Your next strike is empowered.')});
+$('reset').addEventListener('click',function(){takeover();S.chain=0;S.meter=0;S.best=0;setMsg('')});
+var hold=$('hold');hold.addEventListener('pointerdown',function(e){e.preventDefault();takeover();startTarget()});
+['pointerup','pointercancel'].forEach(function(n){hold.addEventListener(n,function(){release()})});
+hold.addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();takeover();if(S.phase==='target')release();else startTarget()}});
+$('optroute').addEventListener('change',function(e){S.opt.route=e.target.checked});
+$('optkeep').addEventListener('change',function(e){S.opt.keep=e.target.checked});
+document.querySelectorAll('input[name=style]').forEach(function(r){r.addEventListener('change',function(){S.style=r.value})});
+var last=performance.now();
+function frame(t){var dt=Math.min(.05,(t-last)/1000);last=t;upd(dt);draw(dt);requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>

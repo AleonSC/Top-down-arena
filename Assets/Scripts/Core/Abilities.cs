@@ -17,6 +17,23 @@ namespace Arena
                 ReleaseOrbit(p);
                 return;
             }
+            if (HarvestPress(p, slot))  // Crimson Harvest pressed again: throw the ball once the rip is over (no cooldown spent)
+            {
+                if (HarvestHolding(p))
+                {
+                    p.Run.AbilitiesUsed++;
+                    ThrowHarvest(p);
+                }
+                return;
+            }
+            if (StandRelease(p, slot))  // Last Stand pressed again: it comes down (no cooldown spent for the press)
+            {
+                p.Run.AbilitiesUsed++;
+                EndStand(p, true);
+                return;
+            }
+            if (p.StandOn && MovesYou(p.Slots[slot].Id))
+                return;  // planted: nothing that would carry you off
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;

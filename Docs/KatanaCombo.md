@@ -1,6 +1,6 @@
 # Katana combo rework (design)
 
-Status: **built** (Nov 2026, protocol 176), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
+Status: **built** (Nov 2026, protocol 179), with the changes listed under "Built differently" below. Mockups: `Docs/Mockups/katana-combo.html` (playable chain, meter and Alt strike) and
 `Docs/Mockups/katana-look-glow.html` (the chosen look). Three other looks were mocked and not picked:
 `katana-look-ink.html`, `-neon.html`, `-steel.html` (all from `katana-look.template.html`).
 
@@ -83,7 +83,7 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 - **New message** `Msg.KatanaStrike` (added at the **end** of `Msg`, before `None`): client to host, carrying the target
   enemy id. The host checks the meter, the weapon and that the enemy is alive, then runs the strike. The marking while
   holding is local to the player's own screen and is not sent.
-- **Bump `Session.ProtocolVersion`** from 175 to **176**.
+- **Bump `Session.ProtocolVersion`** from 178 to **179**.
 - **Time in co-op:** the mockup slows time to 12% while targeting. That is fine in solo, but in a shared simulation
   it would slow other players. Recommendation: targeting never slows the simulation. Instead the striker's own screen
   dims and its UI runs a slow-motion style highlight, and the hold lasts at most **1.5 s** before it cancels.
@@ -127,11 +127,31 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 ## Built differently from the plan above
 - **No new message.** The strike reuses `Msg.WeaponDash` with a new kind, `DashKatana`, sending the target enemy's
   position (the host takes the nearest enemy within 90 px of it). `Msg.KatanaStrike` was not added. The protocol bump to
-  176 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
-- **The lunge does not step you forward 150 px** (a player's own game owns their position, so the host cannot move them).
-  It is a 260 px line from where you stand, landing 0.15 s after the press. A client-side step could follow later.
+  179 is for the new `Player.KatanaStep` and `KatanaMeter` snapshot fields and `FxKind.KatanaStrike`.
+- **The lunge steps you forward 110 px, not 150.** A player's own game owns their position, so the host cannot move them:
+  it counts lunges in a replicated `Player.KatanaLunges`, and your own game steps you forward (`LocalKatana`, 0.12 s) as the
+  lunge lands, 0.15 s after the press. The line itself is 260 px from where you stood. Protocol 179.
 - **No time slow while aiming**, the recommendation in the co-op section. The arena dims and brackets appear on your
   screen only; the hold is capped at 1.5 s and a hold that runs out cancels.
 - **The meter shows as a rose arc round the swordsman** (a gauge like the Lightbringer's) instead of a HUD bar. Full, the
   blade is drawn sheathed with a glint.
 - The meter's drain pause and bosses (full 120 for now) are as in the open questions.
+
+## Chain streak and the richer strike (built Nov 2026, protocol 181)
+Mockups: `Docs/Mockups/katana-chain.html` (playable) and `katana-streak-examples.html`. The owner's picks: blade notches for
+the counter, and route kills do not count.
+- **Kill = chain.** A strike whose **target dies** sets the meter back to full (strike again at once) and adds one chain
+  (`Player.KatanaChain`, replicated). Kills along the line do not count. A target that survives leaves the meter spent and
+  ends the streak (chain 0).
+- **No drain on a streak.** `TickKatana` skips the drain while the chain is above 0. At 0 it drains as before (25/s after 1.2 s).
+- **Empowered at 5** (`KatanaChainNeed`): the next strike deals `KatanaEmpDmg` 240 to the target and `KatanaEmpRoute` 120 to
+  everything on the line (normal: 120 and 60). It is gold-white and wider. After an empowered strike that kills, the chain
+  starts again from 0 and the meter stays full.
+- **Not decided, built the simple way:** no streak timeout; taking damage does not end it (only a survived target, or going
+  down); bosses count as a kill only if they die. A target already dead when the blow lands counts as a kill.
+- **Held frame.** The strike is now stance 0.35 s, cut 0.14 s, a held frame `KatanaHold` 0.4 s, then the blow. You stand where you
+  landed through the held frame; the untouchable window covers all of it.
+- **Look** (`Game/KatanaLook.cs`): one `FxKind.KatanaStrike` effect drawn from its age (stance rings and motes, arena dimming,
+  the beam crossing, afterimages, a white flash, the held line, a sheathing ring) with letterbox bars on the striker's own
+  screen, plus a `FxKind.KatanaCut` per enemy cut (a bright line across it, sparks, and its two halves sliding apart if it
+  died) and a camera shake. The chain is a blade of five notches over the swordsman.

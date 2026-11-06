@@ -38,6 +38,7 @@ namespace Arena
         LobbyFire,    // client -> host: this player fired in the Hangout, aimed at this angle (LobbyCombat.cs)
         LobbyShot,    // host -> all: (owner id, position, angle) of a shot fired in the Hangout, for everyone to draw (LobbyCombat.cs)
         LobbyAbility, // client -> host: cast your Hangout ability (a dash, barrier or burst heal by role) toward this angle; host -> all: (owner id, kind, position, angle) to show and apply (LobbyCombat.cs)
+        Dodge,        // client -> host: this player dodged from this spot; the host gives them a moment of invulnerability (Dodge.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -93,7 +94,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 177;
+        public const int ProtocolVersion = 184;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -275,6 +276,9 @@ namespace Arena
         static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
         public static double Clock => clock.Elapsed.TotalSeconds;
 
+        public bool AnyEmote;  // a lobby bot (PartyBots.cs): every emote is its own, whatever its rank
+        public readonly HashSet<int> BotSeats = new HashSet<int>();  // host: the lobby seats that belong to lobby bots (they may play any emote)
+
         public float EmotePause => Screen == AppScreen.Game ? EmoteCooldown : EmoteHangoutCooldown;
         /// Seconds until you can play another (0 = ready).
         public float EmoteWait => (float)Math.Max(0.0, emoteReadyAt - Clock);
@@ -297,7 +301,7 @@ namespace Arena
         /// Play emote number `index` (Rank.EmoteIndex) as this player. False: not yours yet, or still pausing.
         public bool SendEmote(int index)
         {
-            if (Net == null || index < 1 || index > Arena.Rank.EmoteCount || EmoteWait > 0f || !Arena.Rank.Owns(Game.Profile.RankNow, Arena.Rank.EmoteId(index)))
+            if (Net == null || index < 1 || index > Arena.Rank.EmoteCount || EmoteWait > 0f || !AnyEmote && !Arena.Rank.Owns(Game.Profile.RankNow, Arena.Rank.EmoteId(index)))
                 return false;
             emoteReadyAt = Clock + EmotePause;
             if (IsHost)
@@ -314,7 +318,7 @@ namespace Arena
         void HostEmote(int id, int index)
         {
             LobbyEntry e;
-            if (!Lobby.TryGetValue(id, out e) || index < 1 || index > Arena.Rank.EmoteCount || !Arena.Rank.Owns(e.Rank, Arena.Rank.EmoteId(index)))
+            if (!Lobby.TryGetValue(id, out e) || index < 1 || index > Arena.Rank.EmoteCount || !BotSeats.Contains(id) && !Arena.Rank.Owns(e.Rank, Arena.Rank.EmoteId(index)))
                 return;
             double last;
             if (emoteLast.TryGetValue(id, out last) && Clock - last < EmotePause * 0.8)  // (a little slack for the trip)
@@ -543,6 +547,9 @@ namespace Arena
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);
+                    break;
+                case Msg.Dodge:
+                    Game.OnDodge(peer, r);
                     break;
                 case Msg.WeaponDash:
                     Game.OnWeaponDash(peer, r);
@@ -875,6 +882,16 @@ namespace Arena
             if (Resume == null)
                 return e.ChosenPerks;
             return e.Seat >= 0 && e.Seat < Resume.Seats.Count ? Perks.FromNames(Resume.Seats[e.Seat].Perks) : Perks.Empty;
+        }
+
+        /// Host: change the name on a seat (the lobby's bots).
+        public void RenameSeat(int id, string name)
+        {
+            LobbyEntry e;
+            if (!IsHost || !Lobby.TryGetValue(id, out e))
+                return;
+            e.Name = CleanName(name);
+            BroadcastLobby();
         }
 
         void BroadcastLobby()

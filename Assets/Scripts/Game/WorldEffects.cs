@@ -93,11 +93,27 @@ namespace Arena
                 case FxKind.ShellHit:
                     DrawShellHitFx(fx, f);  // BloodShellLook.cs
                     break;
+                case FxKind.StandHit:
+                    DrawStandHitFx(fx, f);  // LastStandLook.cs
+                    break;
                 case FxKind.HolyCross:
                     DrawHolyCrossFx(fx);  // HolyCrossLook.cs
                     break;
                 case FxKind.KatanaStrike:
                     DrawKatanaStrikeFx(fx);  // KatanaLook.cs
+                    break;
+                case FxKind.KatanaCut:
+                    DrawKatanaCutFx(fx);
+                    break;
+                case FxKind.StaffShove:
+                    if (!fxOn || !DrawStaffShoveLayer(fx, false))
+                        DrawStaffShovePlain(fx, f);  // BoStaffLook.cs
+                    break;
+                case FxKind.CavalryCall:
+                    DrawCavalryCallFx(fx);  // CavalryCallLook.cs
+                    break;
+                case FxKind.HarvestThrow:
+                    DrawHarvestThrowFx(fx);  // CrimsonHarvestLook.cs
                     break;
                 case FxKind.TitanSlam:
                     DrawTitanFx(fx);  // TitanLook.cs

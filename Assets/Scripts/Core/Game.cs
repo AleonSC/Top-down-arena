@@ -409,7 +409,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.LastStand && p.StandOn)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -878,9 +878,9 @@ namespace Arena
                 DashT = 0f;
                 iceVel = V2.Zero;
             }
-            if (KatanaStriking && !katanaDashed)
+            if (KatanaStriking && DashT <= 0f)
             {
-                move = V2.Zero;  // the Katana's stance before the cut: you hold still and can't swing (Ninja.cs)
+                move = V2.Zero;  // the Katana's stance before the cut and the held frame after it: you hold still and can't swing (Katana.cs)
                 firing = false;
             }
             float bowRelease = LocalBow(me, firing, dt);
@@ -917,9 +917,9 @@ namespace Arena
                 me.Pos += HeraldWind(WindPush) * dt;  // the Storm Herald's Gale (Herald.cs)
             if (!me.Downed && DashT <= 0f)
                 me.Pos += DevourPull(me.Pos) * dt;  // the Devourer breathing in (Devourer.cs)
-            if (me.StunT > 0f && !me.Downed)
+            if ((me.StunT > 0f || me.StandOn) && !me.Downed)
             {
-                me.Pos = before;  // stunned by the Warden: stuck where you are
+                me.Pos = before;  // stunned by the Warden, or planted behind Last Stand: stuck where you are
                 DashT = 0f;
             }
             WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
@@ -961,8 +961,12 @@ namespace Arena
                     continue;
                 if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
                     continue;  // nothing to mark: don't waste the cooldown
+                if (me.StandOn && MovesYou(me.Slots[slot].Id))
+                    continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
-                if (!orbitOut && !Consume(me, slot, false))
+                bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
+                bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
+                if (!orbitOut && !standOut && !harvestOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
@@ -1049,6 +1053,7 @@ namespace Arena
                 }
             }
 
+            LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
@@ -1103,12 +1108,15 @@ namespace Arena
                 tick(this, dt);
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
+            TickCavalry(dt);    // CavalryCall.cs: lancers riding
+            TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
+            TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
@@ -1236,8 +1244,8 @@ namespace Arena
                 }
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
-                else if (p.Weapon.Id == WeaponId.Katana)
-                    TickKatanaFire(p);  // swipe, swipe, lunge, with the next step queued if you tap ahead (Ninja.cs)
+                else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
+                    TickKatanaFire(p);  // swipe, swipe, lunge (Katana) or slash, jab, spin (Bo Staff), with the next step queued if you tap ahead (Katana.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);

@@ -344,6 +344,25 @@ namespace Arena
 
             if (!menuUp)
             {
+                // Dodge: its key, or a double tap of a movement key (also remembered between fixed steps).
+                if (Keybinds.Down(KeyAction.Dodge))
+                    wantDodge = true;
+                for (int mi = 0; mi < 4; mi++)
+                {
+                    var ma = (KeyAction)mi;  // MoveUp..MoveRight
+                    if (!MoveDown(ma))
+                        continue;
+                    if (lastTapAction == mi && Time.unscaledTime - lastTapTime <= DoubleTapWindow)
+                    {
+                        wantDodge = true;
+                        lastTapAction = -1;
+                    }
+                    else
+                    {
+                        lastTapAction = mi;
+                        lastTapTime = Time.unscaledTime;
+                    }
+                }
                 // Remember ability presses between fixed steps so quick taps aren't lost.
                 if (Keybinds.Down(KeyAction.Ability))
                 {
@@ -545,7 +564,9 @@ namespace Arena
                 Ultimate = wantAbility[Upgrades.UltSlot] || Keybinds.Held(KeyAction.Ultimate),
                 Parry = Keybinds.Held(KeyAction.Parry) && !parryBlocked,
                 WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
+                Dodge = wantDodge,
             };
+            wantDodge = false;
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
             if (pauseMenuOpen || game.Paused)
@@ -587,6 +608,18 @@ namespace Arena
                 key = pickKey;
             game.PickUpgrade(selectedCard, key);
             selectedCard = -1;
+        }
+
+        bool wantDodge;
+        int lastTapAction = -1;
+        float lastTapTime;
+        const float DoubleTapWindow = 0.25f;
+
+        /// A movement key (or its arrow) went down this frame.
+        static bool MoveDown(KeyAction a)
+        {
+            KeyCode arrow = a == KeyAction.MoveUp ? KeyCode.UpArrow : a == KeyAction.MoveDown ? KeyCode.DownArrow : a == KeyAction.MoveLeft ? KeyCode.LeftArrow : KeyCode.RightArrow;
+            return Keybinds.Down(a) || (!Keybinds.Busy && Input.GetKeyDown(arrow));
         }
 
         static float Axis(KeyAction a) => Keybinds.MoveHeld(a) ? 1f : 0f;

@@ -103,7 +103,7 @@ namespace Arena
                 }
             if (p.FuryT > 0f)
                 Arc(p.Disp, r + 6f, 3f, new Rgba(1f, 0.3f, 0.2f, 0.5f + 0.4f * Mathf.Sin(t * 12f)), 24);
-            if (p.UnbreakT > 0f)  // Unbreakable: a golden octagon of plates, its edges bright
+            if (p.UnbreakT > 0f)  // Cavalry Call's guard: a golden octagon of plates, its edges bright
             {
                 Polygon(p.Disp, r + 9f, 8, t * 0.5f, new Rgba(0.9f, 0.8f, 0.5f, 0.3f));
                 for (int k = 0; k < 8; k++)
@@ -112,9 +112,7 @@ namespace Arena
             }
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BladeTempest)  // three spectral blades wheeling round
                 DrawBladeTempest(p, r, t);  // AbilityLooks.cs
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.LastStand)
-                for (int k = 0; k < 8; k++)  // flames licking up around them
-                    Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 8f + t) * (r + 10f), 4f + 2f * Mathf.Sin(t * 15f + k), new Rgba(1f, 0.5f, 0.2f, 0.7f), 6);
+            DrawLastStand(p, r, t);  // LastStandLook.cs (also runs when it's down, for the collapse)
         }
 
         static readonly Rgba NinjaCloth = new Rgba(0.1f, 0.1f, 0.14f);

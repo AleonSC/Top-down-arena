@@ -437,6 +437,9 @@ namespace Arena
             s.Float(ref p.ParryBroken);
             bool shellOn = p.ShellOn;
             s.Bool(ref shellOn);  // Blood Shell (BloodShell.cs)
+            bool standOn = p.StandOn;
+            s.Bool(ref standOn);  // Last Stand (LastStand.cs)
+            s.Float(ref p.StandAim);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
             s.Float(ref p.EnergyMax);
@@ -465,6 +468,9 @@ namespace Arena
             s.Float(ref p.OrbitT);
             s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)
             s.Byte(ref p.OrbitN);
+            s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
+            s.Float(ref p.HarvestBlood);
+            s.Float(ref p.HarvestHold);
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
             s.Float(ref p.SpinUp);
@@ -472,6 +478,9 @@ namespace Arena
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
             s.Byte(ref p.KatanaStep);
+            s.Byte(ref p.KatanaLunges);
+            s.Byte(ref p.KatanaChain);
+            s.Byte(ref p.BoStep);
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.DoseT);
@@ -540,6 +549,7 @@ namespace Arena
                 p.DrawT = drawT;        // your own draw is measured here
             }
             p.ShellOn = shellOn;
+            p.StandOn = standOn;
             if (hp < p.Hp)
                 p.Flash = 0.1f;
             p.Hp = hp;

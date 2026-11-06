@@ -193,17 +193,50 @@ static partial class Program
         Check(me.Run.DamageTaken > beforeGap, "a shot through a broken plate's gap hits the knight");
         for (int f = 0; f < 270; f++) { me.InvulnT = 1f; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
         Check(me.WallUp, "the Shield Wall has no timer: it is still up after 4.5 s");
-        // Unbreakable halves damage.
+        // Cavalry Call: 20% less damage while the lancers ride.
         var damage = typeof(Game).GetMethod("Damage", flags);
         me.InvulnT = 0f; float t0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 40f, "test" }); float plain = me.Run.DamageTaken - t0;
-        Cast(1, AbilityId.Unbreakable, me.Pos);
+        Cast(1, AbilityId.CavalryCall, me.Pos);
         me.InvulnT = 0f; t0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 40f, "test" }); float tough = me.Run.DamageTaken - t0;
-        Check(Math.Abs(tough - plain * 0.5f) < 0.5f, "Unbreakable halves the damage you take");
-        // Last Stand: can't be downed.
-        me.Slots[Upgrades.UltSlot].Id = AbilityId.LastStand;
+        Check(Math.Abs(tough - plain * 0.8f) < 0.5f, "Cavalry Call takes 20% off the damage you take");
+        // Last Stand: you plant, the plates stop shots from the front and you take a tenth of them, teammates' shots pass out
+        // through, you can't move, pressing it again brings it down, and going down ends it.
+        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
+        var ult = me.Slots[Upgrades.UltSlot];
+        ult.Id = AbilityId.LastStand;
+        me.Pos = s[0].Game.Players[1].Pos = new V2(400f, 450f);
+        me.Hp = me.MaxHp; me.InvulnT = 0f;
+        float plainT0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 10f, "test" }); float plainTen = me.Run.DamageTaken - plainT0;
+        me.Hp = me.MaxHp; me.InvulnT = 0f;
         cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, true });
+        for (int f = 0; f < 10; f++) { Thread.Sleep(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(me.StandOn && client.Game.Players[1].StandOn, "Last Stand plants you, and the other player sees it");
+        for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        me.InvulnT = 0f; float standT0 = me.Run.DamageTaken;
+        var standFront = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, new V2(560f, 450f), new V2(-300f, 0f), 0f, 5f, 10f, 0, false, 0f });
+        for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        float tookStand = me.Run.DamageTaken - standT0;
+        Console.WriteLine("  last stand: a 10 damage shot costs {0:0.00} behind the plates ({1:0.00} unprotected), grace {2:0.00}", tookStand, plainTen, me.InvulnT);
+        Check(!g.Bullets.ContainsKey(standFront.Id) && Math.Abs(tookStand - plainTen * Game.StandShare) < 0.02f * plainTen + 0.01f, "the plates stop a shot from the front and you take a tenth of its damage");
+        Check(me.InvulnT <= 0f, "a stopped shot gives you no hit grace (a stream must not make you untouchable)");
+        me.InvulnT = 0f; float standT1 = me.Run.DamageTaken;
+        shoot.Invoke(g, new object[] { Defs.BigShot, new V2(240f, 450f), new V2(300f, 0f), 0f, 5f, 10f, 0, false, 0f });
+        for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(me.Run.DamageTaken - standT1 > plainTen * 0.9f, "a shot from behind is not covered and hurts in full");
+        var mine = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, new V2(420f, 450f), new V2(400f, 0f), 0f, 5f, 10f, 1, false, 0f });
+        for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(g.Bullets.ContainsKey(mine.Id) && g.Bullets[mine.Id].Pos.X > 560f, "your own and your teammates' shots pass out through the plates");
+        for (int f = 0; f < 30; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Move = new V2(1f, 0f), AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(me.Pos.DistanceTo(new V2(400f, 450f)) < 1f, "you can't move while planted");
+        ult.Charges = 0;
+        cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, false });
+        Check(!me.StandOn && ult.Timer > 60f, "pressing it again brings it down and starts the cooldown");
+        cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, true });
+        Check(me.StandOn, "it can be raised again");
         me.InvulnT = 0f; damage.Invoke(g, new object[] { me, 5000f, "test" });
-        Check(!me.Downed && me.Hp >= 1f, "Last Stand keeps you from going down");
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        Check(me.Downed && !me.StandOn, "going down brings Last Stand down (it no longer keeps you up)");
+        me.Downed = false; me.Hp = me.MaxHp; ult.Charges = 1;
         g.DevSetGod(1, true);
         me.UltT = 0f;
 
@@ -248,6 +281,7 @@ static partial class Program
         foreach (bool downedAlly in new[] { false, true })
         {
             g.Zones.Clear(); Clear();
+            foreach (var e in g.Enemies.Values) { e.Pos = new V2(60f, 860f); e.FrozenT = 5f; }  // the pull runs away from nearby enemies: keep them well out of it so where it ends is the same every time
             dp.Downed = downedAlly; dp.Hp = downedAlly ? 0f : dp.MaxHp;
             dp.Pos = cp.Pos = new V2(900f, 300f); me.Pos = client.Game.Players[1].Pos = new V2(860f, 320f);
             V2 grab = dp.Pos;

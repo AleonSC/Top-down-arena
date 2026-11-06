@@ -70,6 +70,13 @@ namespace Arena
             }
         }
 
+        /// Is this enemy close enough to shoot: within the weapon's reach (to its edge), or where the bot likes to stand, and a little over.
+        bool InReach(Player me, Enemy e, float pref)
+        {
+            float reach = Math.Max(WeaponRange(me), 150f) + e.Radius;
+            return me.Pos.DistanceTo(e.Pos) <= Math.Max(reach, pref) + 40f;
+        }
+
         void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held)
         {
             var sk = Skill(BotLevel);
@@ -146,6 +153,18 @@ namespace Arena
                 pref = 0f;
             }
 
+            // --- Shelter: a Tank's Last Stand stops every shot from the front, so stand in the lee of its plates: just behind
+            // the tank, on the side away from where the barrier faces (nobody to revive first). Teammates' shots pass out through it.
+            Player stander = null;
+            foreach (var q in Players.Values)
+                if (q.Id != me.Id && q.StandOn && !q.Downed && (stander == null || q.Pos.DistanceSq(me.Pos) < stander.Pos.DistanceSq(me.Pos)))
+                    stander = q;
+            if (stander != null && downed == null && !me.StandOn)
+            {
+                anchor = stander.Pos - V2.FromAngle(stander.StandAim) * (StandRadius * 0.4f);
+                pref = 0f;
+            }
+
             // --- Dodge: score each way we could move over the next fraction of a second.
             botThinkT -= dt;
             if (botThinkT <= 0f)
@@ -167,8 +186,28 @@ namespace Arena
                 me.Aim = (aimAt - me.Pos).Angle;
             }
 
+            // --- Reach: don't shoot from across the arena. Only fire once the target is within the weapon's reach
+            // (or where the bot likes to stand with it); until then keep closing in, and use anything already in reach.
+            if (shootAt != null && !InReach(me, shootAt, pref))
+            {
+                Enemy inReach = null;
+                foreach (var e in Enemies.Values)
+                    if (!IsSpawning(e) && !SoulBound(e) && e.Hp > 0f && InReach(me, e, pref)
+                        && (inReach == null || e.Pos.DistanceSq(me.Pos) < inReach.Pos.DistanceSq(me.Pos)))
+                        inReach = e;
+                if (inReach != null)
+                {
+                    shootAt = inReach;
+                    V2 vel;
+                    botEnemyVel.TryGetValue(shootAt.Id, out vel);
+                    V2 lead = shootAt.Pos + vel * Math.Min(0.8f, shootAt.Pos.DistanceTo(me.Pos) / ShotSpeedFor(me.Weapon.Id));
+                    aimAt = lead;
+                    me.Aim = (aimAt - me.Pos).Angle;
+                }
+            }
+
             // --- Fire: hold the trigger; the bow draws to full, then lets go. Not into a hungry Devourer, or its Maw.
-            firing = shootAt != null && !(shootAt.Type == EnemyType.Devourer && (Hungry(shootAt) || DevourImmune(shootAt)
+            firing = shootAt != null && InReach(me, shootAt, pref) && !(shootAt.Type == EnemyType.Devourer && (Hungry(shootAt) || DevourImmune(shootAt)
                 || shootAt.Devour != null && shootAt.Devour.Stage == DevourStage.Ravenous && InMaw(shootAt, me.Pos)));
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
@@ -182,6 +221,13 @@ namespace Arena
             for (int slot = 0; slot < Upgrades.SlotCount; slot++)
             {
                 var s = me.Slots[slot];
+                if (s.Id == AbilityId.LastStand && me.StandOn)
+                {
+                    held[slot] = botHeldLast[slot] = false;
+                    if (me.StandT > 3f && BotDanger < 0.2f && !botHeldLast[slot])  // nothing coming for a moment: step out of it
+                        held[slot] = botHeldLast[slot] = true;
+                    continue;
+                }
                 if (s.Id == AbilityId.BloodShell && me.ShellOn)
                 {
                     held[slot] = botHeldLast[slot] = BotDanger > 0.3f;  // keep the shell up while shots are coming

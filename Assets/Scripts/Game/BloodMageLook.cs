@@ -46,10 +46,6 @@ namespace Arena
                     float f = MathX.Fmod(t * 4f + k * 0.27f, 1f);
                     Line(p.Disp + d * (r + 4f + 10f * f), p.Disp + d * (r + 10f + 10f * f), 2f, BloodRed.WithAlpha((1f - f) * a));
                 }
-            var ult = p.UltT > 0f ? p.Slots[Upgrades.UltSlot].Id : AbilityId.None;
-            if (ult == AbilityId.CrimsonApotheosis)  // a crimson halo of flame
-                for (int k = 0; k < 9; k++)
-                    Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 9f - t) * (r + 11f), 3.5f + 1.5f * Mathf.Sin(t * 14f + k), BloodRed.WithAlpha(0.75f), 6);
         }
 
         /// Blood Bolts stuck in an enemy: a drop for each, circling it and drawing in closer as they build toward the

@@ -3,7 +3,14 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
-**Katana combo rework (Nov 2026), protocol 176:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
+**Katana chain streak (Nov 2026), protocol 181:** `Docs/KatanaCombo.md` (last section), mockups `katana-chain.html` and
+`katana-streak-examples.html`. `Player.KatanaChain` (replicated): an Alt strike that kills its target keeps the meter full and adds
+a chain; a survived target ends the streak; no drain while the chain is above 0; at `KatanaChainNeed` 5 the next strike is empowered
+(`KatanaEmpDmg` 240 / `KatanaEmpRoute` 120). The strike gained a `KatanaHold` 0.4 s held frame; its look is now one age-driven
+`FxKind.KatanaStrike` plus a `FxKind.KatanaCut` per enemy cut (`Game/KatanaLook.cs`: stance, dim, beam, afterimages, flash, letterbox,
+halves, shake). Counter: blade notches. Test: `lastfour` (chain, survived target, no drain on a streak, empowered).
+
+**Katana combo rework (Nov 2026), protocol 179:** `Docs/KatanaCombo.md`, mockups `Docs/Mockups/katana-combo.html` and
 `katana-look-glow.html`. The sheathe and quick-draw (`SheathT`, `KatanaSheath`, `KatanaDraw*`) are gone. The Katana is
 swipe, swipe, lunge (`Player.KatanaStep`, replicated; `Core/Katana.cs`): each step sets its own `FireCd`, a tap during a
 step is queued (`TickKatanaFire`), and `KatanaChainWindow` 0.7 s without the next step starts over. The lunge is a 260 px
@@ -13,8 +20,7 @@ box Swing (`DrawCut`, drawn as the thrust look) landing 0.15 s after it starts. 
 cursor-nearest enemy, `Game.KatanaAiming/KatanaMark`), letting go sends the enemy's position, the host spends the meter,
 sets `InvulnT` and, `KatanaWind + KatanaCut` later, deals 120 to the target and 60 along the line
 (`TickKatanaStrikes`), broadcasting the new `FxKind.KatanaStrike` (`Game/KatanaLook.cs`). Your own game holds you still for the
-0.35 s stance, then slides you to 52 px behind the target in 0.14 s (`DashT`). Not built from the design doc: the lunge's
-150 px step forward, and a time slow while aiming (none, to keep co-op fair). Test: `lastfour` (chain, queue, reset, meter,
+0.35 s stance, then slides you to 52 px behind the target in 0.14 s (`DashT`). The lunge steps you 110 px forward (`Player.KatanaLunges`, protocol 179: your own game moves you when it changes). Not built from the design doc: a time slow while aiming (none, to keep co-op fair). Test: `lastfour` (chain, queue, reset, meter,
 drain, strike).
 
 **Tank gun animations (Nov 2026), protocol 145 (no change):** the owner's go-ahead on

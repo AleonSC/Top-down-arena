@@ -261,6 +261,51 @@ static partial class Shot {
         en.FrozenT = stunned ? 99f : 0f; en.Frozen = stunned;
       }
     }
+    if (Environment.GetEnvironmentVariable("CAVALRY") != null) {
+      // A Tank Knight's Cavalry Call look (CavalryCallLook.cs): CAVALRY=<seconds after the cast> (lancers appear 0.45 s, ride 0.85 s to 2.75 s), CAVMASTERED=1 for four lancers, CAVAIM=<radians>. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Knight; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank);
+      float ct = float.Parse(Environment.GetEnvironmentVariable("CAVALRY"));
+      float aimA = float.Parse(Environment.GetEnvironmentVariable("CAVAIM") ?? "0.14");
+      V2 from = new V2(300f, 450f), dirC = V2.FromAngle(aimA);
+      me.Pos = me.Disp = from; me.Aim = aimA; me.AimAt = from + dirC * 300f;
+      bool capC = Environment.GetEnvironmentVariable("CAVMASTERED") != null;
+      gm.Effects.Add(new Effect { Kind = FxKind.CavalryCall, Pos = from, Pos2 = from + dirC * Game.CavRange, Color = new Rgba(1f, 0.82f, 0.36f, capC ? 1f : 0.5f), Radius = capC ? 4f : 2f, Dur = Game.CavEndT + Game.CavFadeT + 0.6f, T = ct });
+      float[,] spotsC = { { 380f, 10f }, { 520f, -40f }, { 560f, 60f }, { 700f, 0f }, { 860f, -90f }, { 900f, 110f }, { 1050f, 20f }, { 640f, 200f }, { 780f, -230f } };
+      for (int i = 0; i < 9; i++) {
+        V2 at = from + dirC * spotsC[i, 0] + dirC.Orthogonal() * spotsC[i, 1];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i % 4 == 3 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+      }
+    }
+    if (Environment.GetEnvironmentVariable("HARVEST") != null || Environment.GetEnvironmentVariable("HARVESTTHROW") != null) {
+      // A Hemomancer's Crimson Harvest (CrimsonHarvestLook.cs): HARVEST=<seconds since the cast> (rip to 2.2 s, then the hold; HARVESTBLOOD=<blood> sets the ball's size, default 26),
+      // or HARVESTTHROW=<seconds since the throw> for the flight (to 0.65 s), blast and stain. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps);
+      V2 from = new V2(420f, 520f), aimH = new V2(1020f, 400f);
+      me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = aimH;
+      float blood = float.Parse(Environment.GetEnvironmentVariable("HARVESTBLOOD") ?? "26");
+      string ht = Environment.GetEnvironmentVariable("HARVESTTHROW");
+      if (ht != null)
+        gm.Effects.Add(new Effect { Kind = FxKind.HarvestThrow, Pos = from, Pos2 = aimH, Color = new Rgba(0.85f, 0.12f, 0.2f), Radius = blood, Dur = Game.HarvestThrowT + Game.HarvestTail, T = float.Parse(ht) });
+      else {
+        float hv = float.Parse(Environment.GetEnvironmentVariable("HARVEST"));
+        me.HarvestClock = hv; me.HarvestHold = Game.HarvestHoldTime;
+        me.HarvestBlood = hv >= Game.HarvestRip ? blood : blood * hv / Game.HarvestRip;
+      }
+      var rnd = new System.Random(5);
+      for (int i = 0; i < 24; i++) {
+        V2 at = new V2(80f + (float)rnd.NextDouble() * 1400f, 110f + (float)rnd.NextDouble() * 780f);
+        if (at.DistanceTo(from) < 90f) continue;
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i % 6 == 5 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+      }
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
@@ -283,6 +328,11 @@ static partial class Shot {
       if (aid == AbilityId.Bulldoze) {  // three enemies in the lane (a light one off-centre), the rest well clear of it
         V2 ld = V2.FromAngle(me.Aim), ln = ld.Orthogonal(); int li = 0;
         foreach (var e in gm.Enemies.Values) { if (li < 3) e.Pos = e.Disp = me.Pos + ld * (80f + 55f * li) + ln * (li == 1 ? 26f : -10f * li); else e.Pos = e.Disp = me.Pos + ln * (140f + 40f * (li % 3)) * (li % 2 == 0 ? 1f : -1f) + ld * (40f * li); li++; }
+      }
+      if (aid == AbilityId.LastStand) {  // it only stands while fighting; a volley from the front (CASTHP shows the wear, CASTT how long it has stood)
+        gm.State = MatchState.Fighting; me.Aim = 0f; me.AimAt = me.Pos + new V2(200f, 0f);
+        var shootM = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+        for (int b = 0; b < 14; b++) shootM.Invoke(gm, new object[] { Defs.BigShot, me.Pos + new V2(330f + 28f * b, -150f + 24f * b), new V2(-240f, 0f), 0f, 5f, 8f, 0, false, 0f });
       }
       me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
@@ -372,6 +422,16 @@ static partial class Shot {
         }
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
         case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
+        case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)
+        {
+          int bs = int.Parse(Environment.GetEnvironmentVariable("BOSTEP") ?? "0");
+          V2 bdir = V2.FromAngle(me.Aim);
+          if (bs == 0) fx(FxKind.Slash, to, Game.BoSlashArc * MathX.Pi / 360f, 0f, 0.16f);
+          else if (bs == 1) fx(FxKind.Slash, me.Pos + bdir * Game.MeleeReach(me, Game.BoJabReach), -0.3f, 0f, 0.24f);
+          else if (bs == 2) fx(FxKind.Slash, me.Pos + bdir * Game.MeleeReach(me, Game.BoSpinReach), MathX.Pi, 0f, 0.24f);
+          else fx(FxKind.StaffShove, me.Pos + bdir * Game.BoShoveReach, Game.BoShoveHalf, 0f, Game.BoShoveTime + 0.45f);
+          break;
+        }
         default: fx(FxKind.Slash, to, 1.31f, 0f, 0.24f); break;
       }
       gm.Effects.RemoveAll(e => e.T < 0f);

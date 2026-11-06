@@ -220,6 +220,8 @@ namespace Arena
                 fx.Juiced = true;
                 if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
                     Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
+                if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
+                    Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
                 if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X < 2f && me.Pos.DistanceTo(fx.Pos) < 1100f)
@@ -740,6 +742,7 @@ namespace Arena
                 }
             DrawWeatherGlow();  // Ambience.cs
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
+            DrawKatanaGlow();   // the Katana's Alt strike: the beam, the flash (KatanaLook.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             DrawArcLightningGlow();  // Arc Lightning's Thunderhead (ArcLightningLooks.cs)
