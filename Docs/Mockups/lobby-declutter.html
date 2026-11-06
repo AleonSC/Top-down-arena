@@ -181,6 +181,21 @@ h1 span { color: var(--blue-hi); }
 .info.one .nums { margin-top: .8em; }
 .info .kind { display:flex; gap:.8em; align-items:baseline; }
 .wb.on .main, .pb.on { cursor: default; } .wb .main, .pb:not(.lock) { cursor: pointer; }
+.ult-sec { margin-top: 1em; }
+#ults { grid-auto-rows: 4.6em; }
+#ults > * { height: 100%; min-height: 0; }
+.info.one { flex: 1; margin-top: 1em; align-content: start; }
+.info.one p { font-size: 1.2em; line-height: 1.5; }
+.info.one .ih h6 { font-size: 3em; }
+.stage:not(.after) .ult-sec { display: none; }
+.stage.after .ult { display: none; }
+.stage.after .prev { flex: 1; height: auto; min-height: 14.6em; }
+.pb.ultb { color: #ffe9b0; border-color: #c8921f; background: #2a2208; }
+.pb.ultb.on { background: #b8821a; border-color: #ffd27a; color: #fff; }
+.info.one .ih { display: flex; justify-content: space-between; align-items: flex-end; gap: 1em; border-bottom: 1px solid #1d4372; padding-bottom: .6em; margin-bottom: .5em; }
+.info.one .ih .nums { margin: 0; }
+.info.one .ih h6 { margin: .1em 0 0; }
+.info.one p { max-width: none; }
 .col-r { display: flex; flex-direction: column; min-height: 0; }
 
 /* ascension window */
@@ -283,6 +298,10 @@ h1 span { color: var(--blue-hi); }
                 <div class="row2" id="abilities"></div>
               </div>
             </div>
+            <div class="ult-sec">
+              <div class="sec"><h5>ULTIMATE</h5><span>65 S TO CHARGE. STARTS EACH MATCH HALF FULL.</span></div>
+              <div class="row4" id="ults"></div>
+            </div>
             <div class="old-asc">
               <div class="t">KATANA <small>ASCENSIONS 0/3</small></div>
               <div class="row3"><div class="pb">ASCENSION I<br>LOCKED</div><div class="pb">ASCENSION II<br>LOCKED</div><div class="pb">ASCENSION III<br>LOCKED</div></div>
@@ -331,14 +350,16 @@ h1 span { color: var(--blue-hi); }
     'BLADE FAN': ['WEAPON','Placeholder description for Blade Fan.',[['12','PER BLADE'],['2','FANS / S']],''],
     'SHADOW STEP': ['ABILITY','Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80.',[['7 s','COOLDOWN']],'★ Mastered (Lv 5): +1 charge.'],
     'VANISH': ['ABILITY','Placeholder description for Vanish.',[['12 s','COOLDOWN']],''],
+    'DEATH LOTUS': ['ULTIMATE','Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each.',[['65 s','TO CHARGE'],['8','TARGETS'],['100','DAMAGE EACH']],'★ Mastered (Lv 5): Strikes up to 14 enemies.'],
     'BLADE FAN AB': ['ABILITY','Placeholder description for Blade Fan.',[['9 s','COOLDOWN']],'']
   };
-  var selW = 'KATANA', selA = 'SHADOW STEP', last = 'KATANA';
+  var selW = 'KATANA', selA = 'SHADOW STEP', selU = 'DEATH LOTUS', last = 'KATANA';
   function nums(n) { return '<div class="nums">' + n.map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>'; }
   function box(k, n) { var d = DATA[k]; return '<div><div class="lbl">' + d[0] + '</div><h6>' + n + '</h6><p>' + d[1] + '</p>' + (d[3] ? '<p style="color:var(--gold);margin-top:.6em">' + d[3] + '</p>' : '') + nums(d[2]) + '</div>'; }
   function drawInfo() {
     var el = document.getElementById('info');
-    if (after) { el.className = 'info one'; el.innerHTML = box(last, last.replace(' AB', '')); }
+    if (after) { var d = DATA[last]; el.className = 'info one';
+      el.innerHTML = '<div class="ih"><div><div class="lbl">' + d[0] + '</div><h6>' + last.replace(' AB', '') + '</h6></div>' + nums(d[2]) + '</div><p>' + d[1] + '</p>' + (d[3] ? '<p style="color:var(--gold);margin-top:.4em">' + d[3] + '</p>' : ''); }
     else { el.className = 'info'; el.innerHTML = box('KATANA', 'Katana') + box('SHADOW STEP', 'Shadow Step'); }
   }
   function drawWeapons() {
@@ -354,6 +375,10 @@ h1 span { color: var(--blue-hi); }
     });
     a += '<div class="pb lock">LOCKED</div>';
     document.getElementById('abilities').innerHTML = a;
+    document.getElementById('ults').innerHTML = '<button class="pb ultb' + (selU === 'DEATH LOTUS' ? ' on' : '') + '" type="button" data-u="DEATH LOTUS">DEATH LOTUS</button><div class="pb lock sm">LOCKED</div><div class="pb lock sm">LOCKED</div><div class="pb lock sm">LOCKED</div>';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-u]'), function (b) {
+      b.addEventListener('click', function () { last = b.getAttribute('data-u'); drawWeapons(); });
+    });
     Array.prototype.forEach.call(document.querySelectorAll('[data-asc]'), function (b) {
       b.addEventListener('click', function () { setModal(true); });
     });
