@@ -17,15 +17,9 @@ namespace Arena
         readonly Player previewPlayer = new Player { Id = -100 };
 
         // The hero card's live mini-arena (Showcase.cs): the real game, offline, using your weapon on target
-        // dummies; it casts an ability while you hover one, and for a few seconds after you pick one.
+        // dummies; it casts the ability or ultimate you last clicked (`detailSel`) until you click something else. Hovering shows nothing.
         Showcase showcase;
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
-        int abilityHover = -1;     // the ability button under the mouse last frame
-        float abilityDemoUntil;
-        const float AbilityDemoTime = 5f;
-        float ultDemoUntil;        // clicking the ultimate on the hero card shows it for a while
-        const float UltDemoTime = 12f;
-        static float UltDemoLen(AbilityId id) => id == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltDemoTime;  // the Titan stays 17 s; the demo must outlast it
 
         void DrawLobby()
         {
@@ -591,7 +585,6 @@ namespace Arena
                     if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), me.Weapon == i, calm))
                         ascOpen = i;
                 }
-                int hovered = -1;
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
                 for (int i = 0; i < abilitySlots; i++)
                 {
@@ -601,27 +594,20 @@ namespace Arena
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    if (b.Contains(Event.current.mousePosition))
-                        hovered = i;
                     if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestAbility(i);
                         if (self)
                             abilityChoice = i;
-                        abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
-                        ultDemoUntil = 0f;
                         detailSel = 1;
                     }
                 }
-                if (Event.current.type == EventType.Repaint)
-                    abilityHover = hovered;
                 y += 32f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 40f - 6f + 10f;
                 ultY = y;
             }
 
             // The ultimate: its key, then locked slots for ultimates still to come. Click it to watch it in the preview.
             LobbyKit.Heading(x, ultY, w, "Ultimate", ult.Cooldown.ToString("0") + " s to charge  ·  starts half full  ·  click to preview", calm, 15);
-            bool ultOn = Time.unscaledTime < ultDemoUntil;
             for (int i = 0; i < 4; i++)
             {
                 var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
@@ -632,9 +618,7 @@ namespace Arena
                 }
                 if (LobbyKit.Key(b, ult.Name.ToUpperInvariant(), true, calm, size: 15, minSize: 9, accent: LobbyKit.Gold))
                 {
-                    ultDemoUntil = ultOn ? 0f : Time.unscaledTime + UltDemoLen(ult.Id);  // a second click stops it
-                    abilityDemoUntil = 0f;
-                    detailSel = 2;
+                    detailSel = 2;  // (the preview then casts it until you click something else)
                 }
             }
 
@@ -823,7 +807,6 @@ namespace Arena
             const float gutter = 26f;  // each row starts with its class's icon
             float rowH = Mathf.Min(27f, (yEnd - y) / Defs.KitCount);
             float cellW = (col - gutter) / 3f;
-            int hovered = -1;
             for (int kit = 0; kit < Defs.KitCount; kit++)
             {
                 float ry = y + kit * rowH;
@@ -837,10 +820,9 @@ namespace Arena
                         tgt.RequestWildcard(idx, me.Ability, second, key);
                         if (self)
                             weaponChoice = idx;
+                        detailSel = 0;
                     }
                     var ab = new Rect(ax + c * (col / 3f), ry, col / 3f - 3f, rowH - 3f);
-                    if (ab.Contains(Event.current.mousePosition))
-                        hovered = idx;
                     bool shownAsPicked = wildTab == 0 ? me.Ability == idx : second == idx;
                     bool takenByOther = wildTab == 0 ? second == idx : me.Ability == idx;
                     if (LobbyKit.Key(ab, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name, shownAsPicked, calm, size: 12, minSize: 8, accent: takenByOther ? CrtUi.Dim : (Color?)null)
@@ -853,13 +835,10 @@ namespace Arena
                             abilityChoice = a1;
                             wildSecond = a2;
                         }
-                        abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
-                        ultDemoUntil = 0f;
+                        detailSel = 1;
                     }
                 }
             }
-            if (Event.current.type == EventType.Repaint)
-                abilityHover = hovered;
         }
 
         /// A dark card with a dashed rim: the look of everything locked (the Perks tab's empty slots).
@@ -1029,9 +1008,9 @@ namespace Arena
             if (uiGlBlocked || hangoutAnim > 0f)
                 return;  // (hangoutAnim: the window is turning into the Hangout, which draws its own floor and ship)
             // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
-            int shown = abilityHover >= 0 ? abilityHover : me.Ability;
-            bool ult = abilityHover < 0 && Time.unscaledTime < ultDemoUntil;  // hovering an ability shows that instead
-            bool demo = ult || abilityHover >= 0 || Time.unscaledTime < abilityDemoUntil;
+            int shown = me.Ability;
+            bool ult = detailSel == 2;  // what you last clicked (a weapon, an ability or the ultimate) is what it shows
+            bool demo = detailSel != 0;
             if (showcase == null)
                 showcase = new Showcase();
             showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo, ult);
