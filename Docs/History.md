@@ -3,6 +3,10 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Parry cancels attack chains (Nov 2026), protocol 183 (no change):** raising the parry calls `ResetAttackChains` (`Core/Katana.cs`,
+from `TickParry`): the Katana goes back to swipe 1, its wait is cleared, and a lunge still pulling back never lands (`KatanaLunges`
+is taken back by one; `LocalKatana` reads that as a cancel). Earned builds are untouched. Test: `lastfour`.
+
 **Katana chain streak (Nov 2026), protocol 181:** `Docs/KatanaCombo.md` (last section), mockups `katana-chain.html` and
 `katana-streak-examples.html`. `Player.KatanaChain` (replicated): an Alt strike that kills its target keeps the meter full and adds
 a chain; a survived target ends the streak; no drain while the chain is above 0; at `KatanaChainNeed` 5 the next strike is empowered
