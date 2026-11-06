@@ -650,25 +650,25 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Warhammer, Kit = Kit.Knight, Role = Role.Tank, Choice = 0, Damage = 80f, Reach = 130f, Grow = 40f, Melee = true, ExtraDesc = "+1 aftershock: another slam 0.2 s later, 40 px further out, at 60% damage", Name = "Warhammer", FireInterval = 0.75f,
-                Desc = "Hold to charge, let go to slam the ground in front of you (a circle 160 px across, always the same size). The longer the charge, the harder it hits (up to 80) and the longer it stuns (up to 0.9 s)." },
+                Desc = "Hold to charge, let go to slam the ground in front of you. The longer the charge, the harder it hits and the longer it stuns." },
             new WeaponDef { Id = WeaponId.Lance, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 36f, Reach = 180f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.6f,
-                Desc = "A heavy jab in front of you that shoves enemies far back and stuns them for 1 s." },
+                Desc = "A heavy jab in front of you that shoves enemies far back and stuns them." },
             new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
-                Desc = "Sweeps a long, thin blade across in front of you (200 px, 80°), hitting each enemy once a sweep." },
+                Desc = "Sweeps a long, thin blade across in front of you, hitting each enemy once per sweep." },
             // Healer
             new WeaponDef { Id = WeaponId.HolyMace, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 105f, Melee = true, ExtraDesc = "+1 strike with the other end of the staff (60% damage)", Name = "Quarterstaff", FireInterval = 0.5f,
-                Desc = "Wide staff sweeps that knock enemies back and bat enemy bullets in the arc back at them (all but red aimed shots). Every enemy hit heals you and allies near you for 2 (up to 8 a swing)." },
+                Desc = "Wide staff sweeps that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies." },
             new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light, fanned out", Name = "Lightbringer", FireInterval = 0.5f,
-                Desc = "Sword swings that also send a short crescent of light, which heals allies it passes. Every enemy you hit fills a light gauge; at 12, your next swing's crescents heal three times as much." },
+                Desc = "Sword swings that also send out a crescent of light, which heals allies it passes. Hitting enemies fills a light gauge, and when it is full your next swing heals far more." },
             new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
-                Desc = "A flail whirled all the way around you. Each spin heals allies near you for 3. As you move it leaves a trail of incense (3 s) that heals allies in it, and enemy shots fired from inside it stray." },
+                Desc = "A flail whirled all the way around you. Each spin heals nearby allies. As you move it leaves a trail of incense that heals allies in it and makes enemy shots fired from inside it stray." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 15f, Reach = 75f, Melee = true, ExtraDesc = "+1 cut: each swing strikes once more (60% damage)", Name = "Twin Blades", FireInterval = 0.16f,
-                Desc = "Very fast alternating slashes. Land 10 in a row to prime a dash-strike: press your weapon-action key (Left Alt by default) to lunge 140 px through enemies for triple damage." },
+                Desc = "Very fast alternating slashes. Land enough in a row to prime a dash-strike: press your weapon-action key to lunge through enemies for big damage." },
             new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 60f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword beam: each sweep launches a piercing crescent (40% damage)", Name = "Greatsword", FireInterval = 0.7f,
-                Desc = "Huge sweeping cuts with long reach. Each sweep's edge hangs in the air for 0.5 s, a crescent of steel that stops enemy bullets." },
+                Desc = "Huge sweeping cuts with long reach. The edge of each sweep hangs in the air for a moment as a crescent of steel that stops enemy bullets." },
             new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
-                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%). Each thrust skewers up to 3 enemy bullets along its line (not red aimed shots), and each adds to the streak." },
+                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals more. Thrusts also skewer enemy bullets along their line, and each one adds to the streak." },
         };
 
         /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
