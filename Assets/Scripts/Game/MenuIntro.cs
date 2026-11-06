@@ -62,7 +62,7 @@ namespace Arena
             }
         }
 
-        const string CrtTitleText = "CARTESIAN COLOSSEUM";
+        const string CrtTitleText = "VECTOR COLOSSEUM";
         int menuTypedSnd;  // letters whose typing sound has played
 
         /// Plays a key sound for each new letter of the title as it types (look B of Docs/Mockups/menu-typing-sounds.html): the space bar for
@@ -121,7 +121,7 @@ namespace Arena
             crtDy = dy;
             crtFlash = Mathf.Max(0f, 1f - Mathf.Abs(bt - fall) / 0.12f);
             float typeK = Seg(T, CrtTypeAt, CrtTypeAt + CrtTypeLen);
-            crtTyped = typeK >= 1f ? -1 : Mathf.FloorToInt(typeK * "CARTESIAN COLOSSEUM".Length);
+            crtTyped = typeK >= 1f ? -1 : Mathf.FloorToInt(typeK * "VECTOR COLOSSEUM".Length);
             DrawCrtBack();
             if (crtTyped != 0)
                 DrawCrtTitle(r);
@@ -166,7 +166,7 @@ namespace Arena
             if (crtTyped >= 0)
             {
                 // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
-                const string full = "CARTESIAN COLOSSEUM";
+                const string full = "VECTOR COLOSSEUM";
                 float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), cx = W / 2f - fw / 2f + Ui.TextWidth(full.Substring(0, crtTyped), (int)MenuTitleSize, true);
                 // The cursor is as wide as the letter it sits under (the next one to type; an M once the line is done).
                 string under = crtTyped < full.Length && full[crtTyped] != ' ' ? full[crtTyped].ToString() : "M";
@@ -189,10 +189,10 @@ namespace Arena
             r.y += crtDy;
             if (crtTyped < 0)
             {
-                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
+                Ui.Glitch(r, "VECTOR COLOSSEUM", (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
                 return;
             }
-            const string full = "CARTESIAN COLOSSEUM";
+            const string full = "VECTOR COLOSSEUM";
             float fw = Ui.TextWidth(full, (int)MenuTitleSize, true);
             Ui.Glitch(new Rect(W / 2f - fw / 2f, r.y, fw + 60f, r.height), full.Substring(0, crtTyped), (int)MenuTitleSize, c, TextAnchor.MiddleLeft, CrtGlow);
         }

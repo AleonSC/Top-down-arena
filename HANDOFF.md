@@ -589,7 +589,7 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    16).
 
 Side requests done along the way (Oct 2026): lobby "!" connection popup, arena shows your lobby background,
-live mini-arena loadout preview, aim line capped at range, background picker card, Cartesian Colosseum
+live mini-arena loadout preview, aim line capped at range, background picker card, Vector Colosseum
 main menu and How to play, Practice Range editor redesign, dev menu tabs, Field guide, button style F, Frost
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.

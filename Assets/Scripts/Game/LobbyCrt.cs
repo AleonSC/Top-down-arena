@@ -249,7 +249,7 @@ namespace Arena
                     DrawMenuSecondary(t, false);
                     DrawMenuPlayerCard(t, 1f, 1f, false);
                     float lift = away * away * 30f;
-                    Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize - lift, W, MenuTitleSize * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(MenuTitleSize), Color.white, TextAnchor.MiddleCenter, Ui.Accent);
+                    Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize - lift, W, MenuTitleSize * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(MenuTitleSize), Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                 });
                 if (BeginUiGl())
                 {
