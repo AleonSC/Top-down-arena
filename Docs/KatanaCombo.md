@@ -163,3 +163,11 @@ lands, meter full, no charge, aim begins, target changes, stance, the cut, sheat
 empowered cut, streak lost. Building them needs one `Sfx` value each (at the end of the enum), a `Set(...)` line each in
 `SoundBank.Build()`, and two helpers (`Delay`, `Room`). The chain, hit, lunge and strike sounds go through `BroadcastFx`'s existing
 `Sfx` argument; aim, switch, no-charge and meter-full play on your own screen only. Waiting on a pick of set.
+
+## Parry cancels the chain (built Nov 2026, no protocol change)
+Raising the parry (`TickParry`, the tick it goes up) calls `ResetAttackChains` (Katana.cs): the Katana returns to swipe 1,
+`FireCd` is cleared, a queued tap is dropped, and a lunge still in its 0.15 s pull-back is removed from `pendingSwings`. The host
+takes `KatanaLunges` back by one so the player's own game cancels the step forward (`LocalKatana` reads a drop of one as a
+cancel; raising the parry locally also cancels a step not yet started). Only the Katana has a fixed sequence today; builds you
+earned (strike meter, chain streak, Twin Blades' combo, the Rapier's streak, Lightbringer's gauge, Clot) are not reset. A
+broken parry cannot be raised, so it cannot cancel. A step forward already under way is not stopped.
