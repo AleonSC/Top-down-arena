@@ -176,7 +176,7 @@ namespace Arena
         void DrawLobbyTitle(Rect r, float a, bool calm, float t)
         {
             var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
-            var plate = new Rect(r.x, r.y + 4f, Mathf.Min(r.width, 214f), r.height - 8f);
+            var plate = new Rect(r.x, r.y + 8f, Mathf.Min(r.width, 214f), r.height - 8f);
             Ui.Fill(plate, LobbyKit.Ink(0.08f * a));
             CrtKit.Frame(plate, 2f, LobbyKit.Ink(0.55f * a));
             Ui.Fill(new Rect(plate.x, plate.y, 6f, plate.height), ink);
