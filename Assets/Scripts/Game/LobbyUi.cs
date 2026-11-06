@@ -27,7 +27,20 @@ namespace Arena
         const float UltDemoTime = 12f;
         static float UltDemoLen(AbilityId id) => id == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltDemoTime;  // the Titan stays 17 s; the demo must outlast it
 
+        /// The lobby's content sits 14 px higher than its layout numbers say, so it's centred in the screen (the layout runs 28..710 of 720).
+        const float LobbyLift = 14f;
+
         void DrawLobby()
+        {
+            GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
+            var oldShift = uiShift;
+            uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
+            DrawLobbyContent();
+            uiShift = oldShift;
+            GUI.EndGroup();
+        }
+
+        void DrawLobbyContent()
         {
             float t = Time.unscaledTime;
             bool calm = fxReduced;
