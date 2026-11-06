@@ -91,6 +91,7 @@ namespace Arena
         const float PulseRange = 260f;
         const float PulseHeal = 60f;
         public const float DashTime = 0.18f;
+        public const float DashKillRefund = 0.35f, DashKillRefundBoss = 2f;  // Soldier DPS Dash: seconds of cooldown each kill takes off (bosses more)
         const float DashSpeed = 1200f;
         const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
         const float RoarTime = 5f, RoarReduction = 0.4f;

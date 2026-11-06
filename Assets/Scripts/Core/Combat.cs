@@ -1041,6 +1041,10 @@ namespace Arena
                 p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
             }
             DroneOnKill(p, e);  // Hive Drones (QueenLoot.cs)
+            if (!p.Downed)  // Dash recharges a little on every kill (Soldier DPS)
+                foreach (var slot in p.Slots)
+                    if (slot.Id == AbilityId.Dash && slot.Charges < slot.MaxCharges)
+                        slot.Timer = Math.Max(0f, slot.Timer - (e.Def.IsBoss ? DashKillRefundBoss : DashKillRefund));
             for (float c = s.BroodChance; c > 0f; c -= 1f)  // over 100% (three stacks): a sure turret, and a chance at another
                 if (rng.NextDouble() < c)
                     SpawnMinion(MinionKind.Turret, p, e.Pos, BroodTurretTime);

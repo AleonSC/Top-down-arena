@@ -61,7 +61,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Dash, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
-                Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability.",
+                Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability. Every kill shaves 0.35 s off its cooldown (bosses 2 s).",
                 Capstone = "+1 charge.",
                 Bot = b => b.BotDanger > 2.5f,
             },
