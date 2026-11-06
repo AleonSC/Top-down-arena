@@ -1,0 +1,355 @@
+<title>Bo Staff Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one looping arena stage (mode, look and speed chips above it), then four move cards, a current-vs-proposed table and open questions.
+   Colour: staff sage green (the game's own Bo Staff colour), enemies brick red, bullets amber. Type: Barlow Condensed display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --accent:#4d7a1f; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --accent:#b4e07a; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --accent:#b4e07a; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0f1512}
+canvas{display:block;width:100%;aspect-ratio:720/420;max-width:100%}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.card .tag{font:500 12px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:400 13px var(--mono)}
+.card dt{color:var(--muted)}
+.card dd{margin:0;text-align:right}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-weight:500;white-space:nowrap}
+ul.q{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:column;gap:8px}
+.note{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+</style>
+
+<main>
+<header>
+  <h1>Bo Staff Rework</h1>
+  <p>The Ninja tank's staff becomes a three-beat combo: a cone slash, a jab, then a full spin. The weapon-action key (Left Alt) swaps the vault for a shove. The stage below loops both on dummy enemies. All numbers are proposed starting values; none of this is in code yet.</p>
+</header>
+
+<section class="stage" aria-labelledby="stage-h">
+  <h2 id="stage-h">In the arena</h2>
+  <div class="controls">
+    <div class="group" role="group" aria-label="Move"><span>Show</span>
+      <button type="button" data-mode="combo" aria-pressed="false">Combo</button>
+      <button type="button" data-mode="shove" aria-pressed="false">Shove</button>
+      <button type="button" data-mode="both" aria-pressed="true">Both</button>
+    </div>
+    <div class="group" role="group" aria-label="Look"><span>Look</span>
+      <button type="button" data-look="clean" aria-pressed="true">Sweep fill</button>
+      <button type="button" data-look="wind" aria-pressed="false">Afterimages</button>
+    </div>
+    <div class="group" role="group" aria-label="Speed"><span>Speed</span>
+      <button type="button" data-speed="1" aria-pressed="true">1x</button>
+      <button type="button" data-speed="0.35" aria-pressed="false">Slow-mo</button>
+    </div>
+    <div class="group">
+      <button type="button" id="pause" aria-pressed="false">Pause</button>
+      <button type="button" id="replay">Replay</button>
+    </div>
+  </div>
+  <div class="frame"><canvas id="cv" role="img" aria-label="Top-down animation of the Bo Staff cone slash, jab, full spin and shove hitting dummy enemies"></canvas></div>
+  <p class="hint">Amber dots are small enemy bullets; the spin cuts them. The two dashed dummies in the shove are outside the staff's width and stay put.</p>
+</section>
+
+<section aria-labelledby="moves-h">
+  <h2 id="moves-h">The four moves</h2>
+  <div class="cards">
+    <article class="card">
+      <span class="tag">Primary · beat 1</span>
+      <h3>Cone slash</h3>
+      <p>The staff swings from low behind your aim to the far side in one sweep.</p>
+      <dl><dt>Shape</dt><dd>130° cone</dd><dt>Reach</dt><dd>105 px</dd><dt>Damage</dt><dd>16</dd><dt>Swing</dt><dd>0.32 s</dd><dt>Knockback</dt><dd>14 px</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Primary · beat 2</span>
+      <h3>Jab</h3>
+      <p>A short pull-back, then the staff stabs straight ahead and you step into it.</p>
+      <dl><dt>Shape</dt><dd>line, 28 px wide</dd><dt>Reach</dt><dd>140 px</dd><dt>Damage</dt><dd>22</dd><dt>Swing</dt><dd>0.28 s</dd><dt>Step</dt><dd>12 px</dd><dt>Knockback</dt><dd>22 px</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Primary · beat 3</span>
+      <h3>Full spin</h3>
+      <p>The finisher: the staff goes all the way round you and cuts small bullets, then a short recovery.</p>
+      <dl><dt>Shape</dt><dd>360° ring</dd><dt>Reach</dt><dd>100 px</dd><dt>Damage</dt><dd>30</dd><dt>Swing</dt><dd>0.60 s</dd><dt>Recovery</dt><dd>0.35 s</dd><dt>Knockback</dt><dd>20 px</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Secondary · Left Alt</span>
+      <h3>Shove</h3>
+      <p>The staff turns sideways and you drive it forward as a wall. It works standing still.</p>
+      <dl><dt>Shape</dt><dd>100 px wide bar</dd><dt>Reach</dt><dd>78 px</dd><dt>Damage</dt><dd>6</dd><dt>Push</dt><dd>0.36 s</dd><dt>Knockback</dt><dd>70 px</dd><dt>Cooldown</dt><dd>1.0 s</dd></dl>
+    </article>
+  </div>
+  <p class="note" style="margin-top:14px">Combo rule: each beat opens a 0.6 s window for the next click. Let it lapse and the next click starts at the slash again. Damage totals 68 per full combo, against 16 per 0.4 s spin today.</p>
+</section>
+
+<section aria-labelledby="diff-h">
+  <h2 id="diff-h">Current against proposed</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Part</th><th>Today</th><th>Proposed</th></tr></thead>
+      <tbody>
+        <tr><td>Primary</td><td>A spin all the way round you every 0.4 s: 16 damage, 90 px, cuts small bullets.</td><td>Slash, jab, spin, in that order. Spin is the finisher and keeps the bullet cutting.</td></tr>
+        <tr><td>Secondary</td><td>Vault 150 px while moving, hitting everything you pass for 24, every 1.2 s.</td><td>Shove: a 100 px wide bar pushes enemies back 70 px. No movement needed.</td></tr>
+        <tr><td>Upgrade</td><td>+20 px reach and a 30 px longer vault.</td><td>+20 px reach on all three swings and +20 px on the shove's push.</td></tr>
+        <tr><td>Role</td><td>Mobility tool with a spin.</td><td>Crowd control: the shove makes space, the combo punishes what's inside it.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <h2 id="q-h">Open questions</h2>
+  <ul class="q">
+    <li>Should the slash and jab also cut small bullets, or only the spin? Only the spin keeps the finisher special.</li>
+    <li>Should bosses and heavy enemies shrug off the shove's knockback, or take a shorter push?</li>
+    <li>Is losing the vault acceptable? The Ninja still has Shadow Step and Healing Dash for movement.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const W=720,H=420,P0={x:210,y:210},R=12,L=50,STAFF='#c7e69e';
+let mode='both',look='clean',speed=1,paused=false;
+let T=0,kind='combo',enemies=[],bullets=[],floats=[],sparks=[],poses=[],acts=[],spawns=[],period=3.4,lunge=0;
+
+const rad=d=>d*Math.PI/180;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const eo=t=>1-Math.pow(1-t,3);
+const eio=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const adiff=(a,b)=>{let d=(a-b)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d};
+const mk=(x,y,tag)=>({x,y,vx:0,vy:0,flash:0,hit:{},tag:tag||''});
+
+function setup(k){
+  kind=k;T=0;floats=[];sparks=[];poses=[];bullets=[];lunge=0;
+  const pol=(a,d)=>mk(P0.x+Math.cos(rad(a))*d,P0.y+Math.sin(rad(a))*d);
+  if(k==='combo'){
+    enemies=[pol(-38,84),pol(34,86),pol(0,128),pol(90,72),pol(-105,74),pol(180,74)];
+    acts=[{t:'slash',t0:.45,dur:.32,label:'1  CONE SLASH'},{t:'jab',t0:.95,dur:.28,label:'2  JAB'},{t:'spin',t0:1.45,dur:.6,label:'3  FULL SPIN'}];
+    spawns=[{t:1.21,a:162},{t:1.36,a:200},{t:1.48,a:248}];period=3.4;
+  }else{
+    enemies=[mk(P0.x+70,P0.y-44),mk(P0.x+70,P0.y),mk(P0.x+70,P0.y+44),mk(P0.x+70,P0.y-104,'out'),mk(P0.x+70,P0.y+104,'out')];
+    acts=[{t:'shove',t0:.5,dur:.36,label:'ALT  SHOVE'}];spawns=[];period=2.4;
+  }
+}
+const lungeAt=p=>p<.3?0:p<.6?12*eo((p-.3)/.3):lerp(12,0,eio((p-.6)/.4));
+const ray=(a,r,off)=>({cx:P0.x+(off||0)+Math.cos(a)*r,cy:P0.y+Math.sin(a)*r,a});
+function poseOf(a,p){
+  if(a.t==='slash'){const ang=p<.25?lerp(rad(-20),rad(-65),eo(p/.25)):lerp(rad(-65),rad(65),eo((p-.25)/.75));return ray(ang,55);}
+  if(a.t==='jab'){const e=p<.3?lerp(0,-14,eo(p/.3)):p<.6?lerp(-14,36,eo((p-.3)/.3)):lerp(36,0,eio((p-.6)/.4));return ray(0,55+e,lungeAt(p));}
+  if(a.t==='spin'){const ang=p<.2?lerp(0,rad(-30),eo(p/.2)):lerp(rad(-30),rad(330),eio((p-.2)/.8));return ray(ang,50);}
+  const d=p<.3?lerp(18,6,eo(p/.3)):p<.55?lerp(6,60,eo((p-.3)/.25)):p<.8?60:lerp(60,18,eio((p-.8)/.2));
+  return {cx:P0.x+d,cy:P0.y,a:rad(90)};
+}
+function curAct(){for(const a of acts){if(T>=a.t0&&T<=a.t0+a.dur)return a;}return null;}
+function pose(){
+  const a=curAct();
+  if(a)return poseOf(a,clamp((T-a.t0)/a.dur,0,1));
+  if(T<acts[0].t0)return poseOf(acts[0],0);
+  for(let i=0;i<acts.length;i++){
+    const end=acts[i].t0+acts[i].dur,nx=acts[i+1];
+    if(nx&&T>end&&T<nx.t0){
+      const u=eo((T-end)/(nx.t0-end)),p0=poseOf(acts[i],1),p1=poseOf(nx,0);
+      return {cx:lerp(p0.cx,p1.cx,u),cy:lerp(p0.cy,p1.cy,u),a:p0.a+adiff(p1.a,p0.a)*u};
+    }
+  }
+  return poseOf(acts[acts.length-1],1);
+}
+const playerPos=()=>({x:P0.x+lunge,y:P0.y});
+
+function hitFx(e,dmg,kn,kx,ky){
+  e.flash=.18;e.vx+=kx*kn*9;e.vy+=ky*kn*9;
+  floats.push({x:e.x,y:e.y-18,t:T,txt:String(dmg)});
+  sparks.push({x:e.x,y:e.y,t:T,c:'255,240,200'});
+}
+function checkHits(){
+  const a=curAct();if(!a)return;
+  const p=clamp((T-a.t0)/a.dur,0,1),Pp=playerPos(),idx=acts.indexOf(a),ps=poseOf(a,p);
+  for(const e of enemies){
+    if(e.hit[idx])continue;
+    const dx=e.x-Pp.x,dy=e.y-Pp.y,dist=Math.hypot(dx,dy)||1,ang=Math.atan2(dy,dx);
+    if(a.t==='slash'&&p>=.25&&Math.abs(adiff(ang,ps.a))<.28&&dist-R<=105){e.hit[idx]=1;hitFx(e,16,14,dx/dist,dy/dist);}
+    else if(a.t==='spin'&&p>=.2&&Math.abs(adiff(ang,ps.a))<.28&&dist-R<=100){e.hit[idx]=1;hitFx(e,30,20,dx/dist,dy/dist);}
+    else if(a.t==='jab'&&p>=.3&&dx>0&&dx-R<=ps.cx+L-Pp.x&&Math.abs(dy)<=14+R){e.hit[idx]=1;hitFx(e,22,22,1,0);}
+    else if(a.t==='shove'&&p>=.3&&dx>0&&dx-R<=ps.cx-Pp.x+3&&Math.abs(dy)<=L+R){e.hit[idx]=1;hitFx(e,6,70,1,0);}
+  }
+}
+function step(dt){
+  T+=dt;
+  for(const s of spawns){
+    if(!s.done&&T>=s.t){s.done=true;const a=rad(s.a),Pp=playerPos();
+      bullets.push({x:Pp.x+Math.cos(a)*215,y:Pp.y+Math.sin(a)*215,vx:-Math.cos(a)*330,vy:-Math.sin(a)*330});}
+  }
+  const act=curAct();
+  lunge=act&&act.t==='jab'?lungeAt(clamp((T-act.t0)/act.dur,0,1)):0;
+  if(act)poses.push({...pose(),t:T});
+  checkHits();
+  const Pp=playerPos();
+  for(let i=bullets.length-1;i>=0;i--){
+    const b=bullets[i];b.x+=b.vx*dt;b.y+=b.vy*dt;
+    const d=Math.hypot(b.x-Pp.x,b.y-Pp.y);
+    const spinning=act&&act.t==='spin'&&(T-act.t0)/act.dur>=.2;
+    if(spinning&&d<=100){sparks.push({x:b.x,y:b.y,t:T,c:'199,230,158'});bullets.splice(i,1);}
+    else if(d<14){sparks.push({x:b.x,y:b.y,t:T,c:'255,120,100'});bullets.splice(i,1);}
+  }
+  for(const e of enemies){e.x+=e.vx*dt;e.y+=e.vy*dt;const f=Math.exp(-9*dt);e.vx*=f;e.vy*=f;e.flash=Math.max(0,e.flash-dt);}
+  poses=poses.filter(q=>T-q.t<.3);
+  if(T>=period)setup(mode==='both'?(kind==='combo'?'shove':'combo'):mode);
+}
+
+function wedges(Pp,a0,a1,rOut,rIn,col,alpha){
+  const n=26;if(Math.abs(a1-a0)<.01)return;
+  for(let i=0;i<n;i++){
+    const u0=a0+(a1-a0)*i/n,u1=a0+(a1-a0)*(i+1)/n+.012,ccw=u1<u0;
+    ctx.fillStyle='rgba('+col+','+(alpha*(i+1)/n).toFixed(3)+')';
+    ctx.beginPath();ctx.arc(Pp.x,Pp.y,rOut,u0,u1,ccw);ctx.arc(Pp.x,Pp.y,rIn,u1,u0,!ccw);ctx.closePath();ctx.fill();
+  }
+}
+function drawTrail(a){
+  const p=(T-a.t0)/a.dur;if(p<0)return;
+  const pp=clamp(p,0,1),k=p>1?clamp(1-(T-a.t0-a.dur)/.3,0,1):1;if(k<=0)return;
+  const Pp=playerPos(),ps=poseOf(a,pp),col='199,230,158';
+  if(a.t==='slash'&&pp>.25&&look==='clean'){
+    wedges(Pp,rad(-65),ps.a,105,16,col,.5*k);
+    ctx.strokeStyle='rgba(235,250,215,'+k+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(Pp.x,Pp.y,105,ps.a-.03,ps.a+.03);ctx.stroke();
+  }
+  if(a.t==='spin'&&pp>.2&&look==='clean'){
+    wedges(Pp,Math.max(rad(-30),ps.a-rad(220)),ps.a,100,44,col,.5*k);
+    ctx.strokeStyle='rgba(235,250,215,'+k+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(Pp.x,Pp.y,100,ps.a-.04,ps.a+.04);ctx.stroke();
+  }
+  if(a.t==='jab'&&pp>.3&&look==='clean'){
+    const tip=ps.cx+L;ctx.fillStyle='rgba('+col+','+(.35*k)+')';
+    ctx.fillRect(Pp.x+20,Pp.y-11,tip-Pp.x-20,22);
+    ctx.strokeStyle='rgba(235,250,215,'+k+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(tip,Pp.y,9,0,7);ctx.stroke();
+  }
+  if(a.t==='shove'&&pp>.3){
+    const f=ps.cx+4;ctx.lineWidth=3;ctx.lineCap='round';
+    for(let i=0;i<3;i++){
+      ctx.strokeStyle='rgba(235,250,215,'+((.7-.2*i)*k)+')';
+      ctx.beginPath();ctx.moveTo(f+8+i*13,Pp.y-52+i*8);ctx.quadraticCurveTo(f+30+i*13,Pp.y,f+8+i*13,Pp.y+52-i*8);ctx.stroke();
+    }
+  }
+}
+function drawStaff(ps,alpha){
+  const dx=Math.cos(ps.a)*L,dy=Math.sin(ps.a)*L,x0=ps.cx-dx,y0=ps.cy-dy,x1=ps.cx+dx,y1=ps.cy+dy;
+  ctx.lineCap='round';ctx.globalAlpha=alpha;
+  ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(x0,y0+2);ctx.lineTo(x1,y1+2);ctx.stroke();
+  ctx.strokeStyle=STAFF;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+  ctx.strokeStyle='#8c9aa2';ctx.lineWidth=6;
+  const ux=Math.cos(ps.a),uy=Math.sin(ps.a);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+ux*9,y0+uy*9);ctx.moveTo(x1,y1);ctx.lineTo(x1-ux*9,y1-uy*9);ctx.stroke();
+  ctx.strokeStyle='#5d7a3c';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(ps.cx-ux*7,ps.cy-uy*7);ctx.lineTo(ps.cx+ux*7,ps.cy+uy*7);ctx.stroke();
+  ctx.globalAlpha=1;
+}
+function draw(){
+  const s=cv.width/W;ctx.setTransform(s,0,0,s,0,0);
+  ctx.fillStyle='#0f1512';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#18211c';ctx.lineWidth=1;ctx.beginPath();
+  for(let x=0;x<=W;x+=40){ctx.moveTo(x,0);ctx.lineTo(x,H);}
+  for(let y=0;y<=H;y+=40){ctx.moveTo(0,y);ctx.lineTo(W,y);}
+  ctx.stroke();
+  const Pp=playerPos();
+  acts.forEach(drawTrail);
+  if(look==='wind'){
+    ctx.lineCap='round';
+    for(const q of poses){
+      const f=clamp(1-(T-q.t)/.3,0,1);
+      drawStaff(q,.4*f);
+      if(q.a!==rad(90)){ctx.fillStyle='rgba(235,250,215,'+f+')';ctx.beginPath();ctx.arc(q.cx+Math.cos(q.a)*L,q.cy+Math.sin(q.a)*L,2.5,0,7);ctx.fill();}
+    }
+  }
+  ctx.font='500 11px "IBM Plex Mono",monospace';ctx.textAlign='center';
+  for(const e of enemies){
+    ctx.fillStyle=e.flash>0?'#fff4e0':'#b9473f';ctx.beginPath();ctx.arc(e.x,e.y,R,0,7);ctx.fill();
+    ctx.strokeStyle=e.tag==='out'?'rgba(255,255,255,.4)':'#e0827a';ctx.lineWidth=2;
+    ctx.setLineDash(e.tag==='out'?[4,4]:[]);ctx.beginPath();ctx.arc(e.x,e.y,R,0,7);ctx.stroke();ctx.setLineDash([]);
+    if(e.tag==='out'){ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillText('out of width',e.x+(e.y<P0.y?0:0),e.y+(e.y<P0.y?-20:28));}
+  }
+  for(const b of bullets){ctx.fillStyle='#ffb347';ctx.beginPath();ctx.arc(b.x,b.y,4,0,7);ctx.fill();}
+  ctx.fillStyle='#202a26';ctx.strokeStyle='#b6e08a';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(Pp.x,Pp.y,14,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#b6e08a';ctx.beginPath();ctx.moveTo(Pp.x+8,Pp.y-5);ctx.lineTo(Pp.x+17,Pp.y);ctx.lineTo(Pp.x+8,Pp.y+5);ctx.closePath();ctx.fill();
+  if(look!=='wind'||!curAct())drawStaff(pose(),1);else drawStaff(pose(),1);
+  for(const sp of sparks){
+    const u=(T-sp.t)/.25;if(u<0||u>1)continue;
+    ctx.strokeStyle='rgba('+sp.c+','+(1-u)+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sp.x,sp.y,6+u*14,0,7);ctx.stroke();
+  }
+  ctx.font='700 15px "IBM Plex Mono",monospace';
+  for(const f of floats){
+    const u=(T-f.t)/.7;if(u<0||u>1)continue;
+    ctx.fillStyle='rgba(255,236,170,'+(1-u*u)+')';ctx.fillText(f.txt,f.x,f.y-u*22);
+  }
+  // HUD
+  const shown=acts.filter(a=>T>=a.t0-.05);const last=shown[shown.length-1];
+  ctx.textAlign='left';ctx.font='700 26px "Barlow Condensed","Arial Narrow",sans-serif';
+  ctx.fillStyle='rgba(235,250,215,'+(last?1:.35)+')';
+  ctx.fillText(last?last.label:(kind==='combo'?'COMBO':'SHOVE'),18,36);
+  if(kind==='combo'){
+    for(let i=0;i<3;i++){
+      ctx.fillStyle=last&&acts.indexOf(last)>=i?'#c7e69e':'#2a3530';
+      ctx.beginPath();ctx.arc(24+i*22,54,6,0,7);ctx.fill();
+    }
+  }
+  ctx.textAlign='right';ctx.font='500 11px "IBM Plex Mono",monospace';ctx.fillStyle='rgba(255,255,255,.4)';
+  ctx.fillText(kind==='combo'?'PRIMARY  (click, click, click)':'SECONDARY  (Left Alt)',W-16,28);
+}
+function resize(){
+  const w=cv.clientWidth,d=Math.min(window.devicePixelRatio||1,2);
+  cv.width=Math.round(w*d);cv.height=Math.round(w*d*H/W);
+}
+let lastTs=0;
+function frame(ts){
+  const dt=Math.min(.05,(ts-lastTs)/1000||0);lastTs=ts;
+  if(!paused){let r=dt*speed;while(r>0){const d=Math.min(r,1/120);step(d);r-=d;}}
+  draw();requestAnimationFrame(frame);
+}
+function pick(attr,val,fn){
+  document.querySelectorAll('['+attr+']').forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute(attr)===String(val))));fn&&fn();
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;pick('data-mode',mode,()=>setup(mode==='shove'?'shove':'combo'));}));
+document.querySelectorAll('[data-look]').forEach(b=>b.addEventListener('click',()=>{look=b.dataset.look;pick('data-look',look);}));
+document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{speed=parseFloat(b.dataset.speed);pick('data-speed',b.dataset.speed);}));
+const pauseBtn=document.getElementById('pause');
+pauseBtn.addEventListener('click',()=>{paused=!paused;pauseBtn.textContent=paused?'Play':'Pause';pauseBtn.setAttribute('aria-pressed',String(paused));});
+document.getElementById('replay').addEventListener('click',()=>setup(mode==='shove'?'shove':'combo'));
+window.addEventListener('resize',resize);
+
+setup('combo');resize();
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){
+  paused=true;pauseBtn.textContent='Play';pauseBtn.setAttribute('aria-pressed','true');
+  while(T<1.7)step(1/120);
+}
+requestAnimationFrame(frame);
+</script>
