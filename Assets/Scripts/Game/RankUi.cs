@@ -419,8 +419,8 @@ namespace Arena
                 var l = p.Recent[li];
                 var rr = new Rect(rx, y, rw, 70f);
                 Ui.Pill(rr, new Color(1f, 1f, 1f, 0.04f));
-                bool hunt = l.Result >= 2, won = l.Result == 1 || l.Result == 3;
-                Ui.Label(new Rect(rr.x + 10f, rr.y + 4f, rr.width - 90f, 20f), (hunt ? "Hunt" : "Wave " + l.Wave) + (won ? "  ·  won" : ""), 13, won ? Ui.Gold : Color.white, TextAnchor.MiddleLeft, true);
+                bool hunt = l.Result == 2 || l.Result == 3, won = l.Result == 1 || l.Result == 3;
+                Ui.Label(new Rect(rr.x + 10f, rr.y + 4f, rr.width - 90f, 20f), (hunt ? "Hunt" : "Wave " + l.Wave) + (won ? "  ·  won" : l.Result == 4 ? "  ·  quit" : ""), 13, won ? Ui.Gold : Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(rr.xMax - 90f, rr.y + 4f, 80f, 20f), "+" + l.Xp.ToString("N0"), 13, Ui.Gold, TextAnchor.MiddleRight, true);
                 string mods = l.Mods.Replace("|", ", ");
                 Ui.Label(new Rect(rr.x + 10f, rr.y + 26f, rr.width - 20f, 40f), l.MultPct != 100 ? "×" + (l.MultPct / 100f).ToString("0.##") + (mods.Length > 0 ? "  " + mods : "") : "No modifiers", 11,

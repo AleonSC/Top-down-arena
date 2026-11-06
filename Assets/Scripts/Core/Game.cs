@@ -262,6 +262,8 @@ namespace Arena
                 Replay = null;
             }
             if (Running)
+                LogQuitRun();  // RunSaves.cs (the run you walk away from still shows in Recent runs)
+            if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (Recorder != null && Running)
                 Recorder.End(this, how);

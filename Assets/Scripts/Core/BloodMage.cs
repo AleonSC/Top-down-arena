@@ -24,7 +24,6 @@ namespace Arena
         const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
         const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
         const float NovaDamage = 20f, NovaHeal = 3f;
-        const float MoonCut = 0.6f;
         public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
         public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks
         public const int ClotMaxBase = 5;
@@ -643,13 +642,11 @@ namespace Arena
         /// Faster firing during Frenzy Pact (FireRate).
         static float BloodFireRate(Player p) => p.RushT > 0f ? 1f + RushRate + p.Stats.RushRate : 1f;
 
-        bool BloodRiteUp(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BloodRite;
+        /// Enemies all go for a Blood Mage under Crimson Pact (PickTarget).
+        bool BloodTaunting(Player p) => p.PactT > 0f;
 
-        /// Enemies all go for a Blood Mage under Crimson Pact or Blood Rite (PickTarget).
-        bool BloodTaunting(Player p) => p.PactT > 0f || BloodRiteUp(p);
-
-        /// Damage cut from Blood Rite and a mastered Crimson Pact (Damage).
-        float BloodCut(Player p) => Math.Max(BloodRiteUp(p) ? MoonCut : 0f, p.PactT > 0f && p.PactMastered ? PactMasteredCut : 0f);
+        /// Damage cut from a mastered Crimson Pact (Damage).
+        float BloodCut(Player p) => p.PactT > 0f && p.PactMastered ? PactMasteredCut : 0f;
 
         /// Blood Lash's Clot: each stack takes 4% off the damage you take.
         public static float ClotCut(Player p) => Math.Min(0.5f, ClotCutEach * p.Clot);
@@ -685,18 +682,13 @@ namespace Arena
             e.RetargetT = Math.Max(e.RetargetT, time);
         }
 
-        /// Damage about to come off a player's health (after shields): Crimson Pact stores it, Blood Rite turns it
-        /// into healing for everyone else.
+        /// Damage about to come off a player's health (after shields): Crimson Pact stores it.
         void BloodTookHit(Player p, float amount)
         {
             if (amount <= 0f)
                 return;
             if (p.PactT > 0f)
                 p.PactStore += amount;
-            if (BloodRiteUp(p))
-                foreach (var q in Players.Values)
-                    if (q != p && !q.Downed)
-                        Heal(q, amount, p);
         }
 
         // --- Abilities ------------------------------------------------------------------
@@ -825,9 +817,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BloodRite, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Blood Rite", Cooldown = 75f, Desc = "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies.",
-                Capstone = "Lasts 12 s.",
-                Bot = b => b.Danger || b.HaveTarget && b.Players > 1,
+                Name = "Vein Tithe", Cooldown = 75f, Desc = "Blood tendrils bind every enemy on screen for 30 s: they can't move or shoot. You pay 0.25% of your max health a second for each one held (a boss costs four times that), and deal 40% less damage. It ends when the time runs out or you go down.",
+                Capstone = "Lasts 40 s and costs 25% less.",
+                Bot = b => b.Danger && b.HaveTarget && b.Me.Hp > b.Me.MaxHp * 0.6f,
             },
             new AbilityDef
             {
@@ -1001,14 +993,7 @@ namespace Arena
                 // Ultimates
                 case AbilityId.BloodRite:
                 {
-                    float time = cap ? 12f : 8f;
-                    p.UltT = time;
-                    foreach (var e in Enemies.Values)
-                    {
-                        e.TargetId = p.Id;
-                        e.RetargetT = time;
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, 240f, 0.6f, Sfx.Roar);
+                    CastTithe(p, cap);  // VeinTithe.cs
                     return true;
                 }
                 case AbilityId.SanguineRain:
@@ -1029,6 +1014,7 @@ namespace Arena
         {
             TickCoatings(dt);
             TickRain(dt);  // SanguineRain.cs
+            TickTithe(dt);  // VeinTithe.cs
             foreach (var p in Players.Values)
             {
                 if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))

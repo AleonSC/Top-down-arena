@@ -95,7 +95,7 @@ namespace Arena
             }
         }
 
-        /// Under a blood mage: Blood Rite's great red moon and Sanguine Rain's falling drops (DrawPlayerAuras).
+        /// Under a blood mage: Crimson Pact's closing ring (DrawPlayerAuras). Vein Tithe, Sanguine Rain and Crimson Harvest draw their own (VeinTitheLook.cs, SanguineRainLook.cs, CrimsonHarvestLook.cs).
         void DrawBloodAuras(Player p, float t)
         {
             if (p.Downed)
@@ -110,35 +110,6 @@ namespace Arena
                 {
                     V2 d = V2.FromAngle(MathX.Tau * k / 12f - t * 0.4f);
                     Line(p.Disp + d * (p.PactRadius - 6f), p.Disp + d * (p.PactRadius + 6f + 6f * PactFill(p)), 2f, BloodRed.WithAlpha(0.45f + 0.3f * soon));
-                }
-            }
-            if (p.UltT <= 0f)
-                return;
-            var ult = p.Slots[Upgrades.UltSlot].Id;
-            if (ult == AbilityId.BloodRite)
-            {
-                Circle(p.Disp, 120f, BloodRed.WithAlpha(0.08f + 0.03f * Mathf.Sin(t * 3f)), 48);
-                Arc(p.Disp, 120f, 3f, BloodRed.WithAlpha(0.6f), 48);
-                Circle(p.Disp, p.Def.BodyR + 14f, BloodDark.WithAlpha(0.45f), 24);
-                // Lifelines: what you take flows out to your allies as healing, drops riding each line to them.
-                foreach (var q in game.Players.Values)
-                {
-                    if (q == p || q.Downed)
-                        continue;
-                    V2 a0 = p.Disp, b0 = q.Disp, side = (b0 - a0).Normalized().Orthogonal();
-                    V2 prev = a0;
-                    for (int k = 1; k <= 14; k++)
-                    {
-                        float u = k / 14f;
-                        V2 pt = V2.Lerp(a0, b0, u) + side * (4f * Mathf.Sin(u * 10f - t * 6f) * Mathf.Sin(u * MathX.Pi));
-                        Line(prev, pt, 2f, BloodRed.WithAlpha(0.45f));
-                        prev = pt;
-                    }
-                    for (int k = 0; k < 3; k++)
-                    {
-                        float u = MathX.Fmod(t * 0.8f + k / 3f + q.Id * 0.21f, 1f);
-                        DrawDrop(V2.Lerp(a0, b0, u), 2.6f, (b0 - a0).Normalized(), new Rgba(1f, 0.4f, 0.5f, 0.9f * Mathf.Sin(u * MathX.Pi)));
-                    }
                 }
             }
         }

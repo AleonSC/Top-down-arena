@@ -344,6 +344,8 @@ namespace Arena
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
                 DrawDashWake(p, t);
+            if (p.TitheClock > 0f)  // Vein Tithe: heart, arteries, cuffs (VeinTitheLook.cs)
+                DrawTithe(p, t);
             if (p.RainClock > 0f)  // Sanguine Rain: siphon, seeds, rings, tether (SanguineRainLook.cs)
                 DrawRain(p, t);
             if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)

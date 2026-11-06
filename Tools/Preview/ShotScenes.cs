@@ -306,6 +306,28 @@ static partial class Shot {
         en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
       }
     }
+    if (Environment.GetEnvironmentVariable("TITHE") != null) {
+      // A tank Hemomancer's Vein Tithe (VeinTitheLook.cs): TITHE=<seconds since the cast> (the arteries grow to 1.2 s, then beat once a second; use 0.6 or 4.3),
+      // with nine enemies held around. TITHESNAP=<seconds since it ended> shows the arteries letting go instead. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.BloodRite;
+      V2 from = new V2(700f, 480f);
+      me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.8f;
+      float tt = float.Parse(Environment.GetEnvironmentVariable("TITHE"));
+      string snap = Environment.GetEnvironmentVariable("TITHESNAP");
+      var rnd = new System.Random(5);
+      for (int i = 0; i < 9; i++) {
+        V2 at = new V2(120f + (float)rnd.NextDouble() * 1300f, 130f + (float)rnd.NextDouble() * 740f);
+        if (at.DistanceTo(from) < 120f) { i--; continue; }
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 4 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+        if (snap != null) gm.Effects.Add(new Effect { Kind = FxKind.TitheSnap, Pos = from, Pos2 = at, Color = new Rgba(0.85f, 0.12f, 0.2f, 0.5f), Radius = en.Radius, Dur = Game.TitheReachTime + 0.2f, T = float.Parse(snap) });
+        else me.Tithed.Add(en.Id);
+      }
+      if (snap == null) { me.TitheClock = Math.Max(0.001f, tt); me.UltT = Math.Max(0.1f, Game.TitheLen - tt); }
+    }
     if (Environment.GetEnvironmentVariable("RAIN") != null) {
       // A Hemomancer's Sanguine Rain (SanguineRainLook.cs): RAIN=<seconds since the cast> (siphon to 1.8 s, seeds to 2.4 s, then rain; use 4 or 6), with the allies
       // standing near. RAINEND=<seconds since it ended> shows the rings splashing away instead. Use with mode hud.

@@ -42,7 +42,7 @@ namespace Arena
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
-            amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
+            amount *= 1f - BloodCut(p);     // a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
@@ -60,7 +60,7 @@ namespace Arena
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
-            BloodTookHit(p, amount);  // Crimson Pact stores it; Blood Rite heals allies with it
+            BloodTookHit(p, amount);  // Crimson Pact stores it
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -74,18 +74,23 @@ namespace Arena
                 p.InvulnT = Math.Max(p.InvulnT, p.WardInvuln);
                 BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.9f, 0.15f, 0.25f), 90f, 0.6f, Sfx.Revive);
             }
-            if (p.Hp <= 0f)
-            {
-                p.Hp = 0f;
-                p.Downed = true;
-                p.Run.Downs++;
-                Recorder?.Downed(this, p, source);
-                p.Revive = 0f;
-                p.BarrierT = 0f;
-                p.OverdriveT = 0f;
-                p.AdrenalineT = 0f;
-                p.Firing = false;
-            }
+            DownIfDead(p, source);
+        }
+
+        /// A player at 0 health goes down (Damage, and Vein Tithe's drain, which isn't a hit and gives no grace).
+        void DownIfDead(Player p, string source)
+        {
+            if (p.Hp > 0f || p.Downed)
+                return;
+            p.Hp = 0f;
+            p.Downed = true;
+            p.Run.Downs++;
+            Recorder?.Downed(this, p, source);
+            p.Revive = 0f;
+            p.BarrierT = 0f;
+            p.OverdriveT = 0f;
+            p.AdrenalineT = 0f;
+            p.Firing = false;
         }
 
         void RevivePlayer(Player p, float fraction, Player by = null)
@@ -808,6 +813,7 @@ namespace Arena
                 if (IsHunted(p))
                     dmg *= Modifiers.HuntedDamage;  // Hunted: the quarry hits twice as hard (Modifiers.cs)
                 dmg *= BloodDamageMult(p);   // Blood Price
+                dmg *= TitheOutput(p);       // Vein Tithe: 40% less while you hold the arena (VeinTithe.cs)
                 if (s.ExecuteBonus > 0f && e.Hp < e.MaxHp * ExecuteBelow)
                     dmg *= 1f + s.ExecuteBonus;
                 if (s.SlowedBonus > 0f && e.SlowT > 0f && e.SlowMult < 1f)  // Graviton Rounds: slowed enemies take more

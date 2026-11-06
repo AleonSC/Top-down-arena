@@ -1,0 +1,337 @@
+<title>Sanguine Marionette</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead, one animated stage with controls, then the relic card (icon, lore, rules), a timeline, palette and open questions.
+   Single dark look: each rework commits to its own relic palette, set below. */
+:root{
+  --bg:#0d0509; --panel:#1a0b11; --fg:#f1e4e4; --muted:#b8979b; --line:#3a1a22;
+  --acc:#e8b04a; --acc2:#7a1024; --arena:#0a0507;
+  --display:'Playfair Display',Georgia,serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+h1{font:700 clamp(36px,6.5vw,64px)/1.02 var(--display);margin:0 0 14px;text-wrap:balance;color:var(--fg)}
+header p.lede{margin:0;max-width:62ch;color:var(--muted);font-size:17px}
+h2{font:600 italic 26px/1.1 var(--display);margin:0 0 12px;color:var(--acc);text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 18px 50px -20px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--panel);color:var(--fg)}
+.seg input:checked+label{background:var(--acc);color:#12060a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--acc);color:#12060a;border-color:var(--acc)}
+.slider{display:flex;align-items:center;gap:10px;font:500 13px var(--mono);color:var(--muted)}
+.slider output{color:var(--fg);min-width:2.5ch;text-align:right}
+input[type=range]{accent-color:var(--acc);width:120px}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+.relic{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:28px;align-items:start}
+.tile{border:1px solid var(--acc);border-radius:10px;padding:14px;background:var(--panel);box-shadow:0 0 40px -12px var(--acc2),inset 0 0 0 1px #ffffff10}
+.tile canvas{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1/1;border-radius:4px}
+.tile figcaption{font:700 13px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-align:center;margin-top:10px}
+.tile{margin:0}
+.relic p{margin:0 0 12px;max-width:62ch}
+.relic .lore{font-style:italic;color:var(--muted)}
+dl.rules{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:0;margin:20px 0 0;border-top:1px solid var(--line)}
+dl.rules dt,dl.rules dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+dl.rules dt{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);padding-right:22px}
+dl.rules dd{font-size:15px}
+.tl{display:flex;height:34px;border:1px solid var(--line);border-radius:6px;overflow:hidden;font:500 12px var(--mono)}
+.tl div{display:flex;align-items:center;padding:0 10px;white-space:nowrap;overflow:hidden}
+.tl .a{flex:0 0 14%;background:var(--acc2);color:#fff}.tl .b{flex:1;background:var(--panel);color:var(--muted)}.tl .c{flex:0 0 14%;background:var(--acc);color:#12060a}
+.tlabels{display:flex;justify-content:space-between;font:500 12px var(--mono);color:var(--muted);margin-top:6px}
+ul.pal{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+ul.pal li{border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px}
+ul.pal li i{display:block;height:44px}
+ul.pal li span{display:flex;flex-direction:column;padding:6px 8px;background:var(--panel)}
+ul.pal code{font:400 12px var(--mono);color:var(--muted)}
+ul.q{margin:0;padding-left:20px;max-width:68ch;display:flex;flex-direction:column;gap:8px}
+@media (max-width:640px){.relic{grid-template-columns:1fr}.tile{max-width:240px}dl.rules{grid-template-columns:1fr}dl.rules dt{border-bottom:0;padding-bottom:0}.tl div{font-size:11px;padding:0 6px}}
+</style>
+<main>
+<header>
+  <p class="eyebrow">Hemotank ultimate rework · replaces Blood Rite (75 s)</p>
+  <h1>Sanguine Marionette</h1>
+  <p class="lede">The Hemotank opens a vein and ties a thread of blood to every enemy in the arena. Each thread runs back to a crossbar floating over the Hemotank, who becomes the puppeteer. Strung up, the enemies hang from the strings with their legs dangling, and they cannot move or shoot.</p>
+</header>
+
+<section class="stage" aria-labelledby="st">
+  <h2 id="st">Live preview</h2>
+  <p class="hint">Starts on its own and loops. Move the mouse over the arena to walk the Hemotank; it wanders by itself otherwise. Bound enemies freeze where they stand, shooters keep their bullets hanging in the air.</p>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Sanguine Marionette animation preview"></canvas></div>
+  <div class="controls">
+    <button id="replay" class="primary" type="button">Replay</button>
+    <button id="pause" type="button">Pause</button>
+    <div class="seg" role="radiogroup" aria-label="Playback speed">
+      <input type="radio" name="spd" id="s1" value="1"><label for="s1">1×</label>
+      <input type="radio" name="spd" id="s3" value="3" checked><label for="s3">3×</label>
+      <input type="radio" name="spd" id="s6" value="6"><label for="s6">6×</label>
+    </div>
+    <label class="slider" for="nrange">Enemies <input id="nrange" type="range" min="3" max="14" step="1" value="8"><output id="nval">8</output></label>
+    <label class="slider" for="crange">HP per enemy per second <input id="crange" type="range" min="0.5" max="6" step="0.5" value="1.5"><output id="cval">1.5</output></label>
+    <button id="die" type="button">Bleed out now</button>
+  </div>
+</section>
+
+<section aria-labelledby="rl">
+  <h2 id="rl">The relic</h2>
+  <div class="relic">
+    <figure class="tile"><canvas id="ic" width="192" height="192" aria-label="Sanguine Marionette ability icon"></canvas><figcaption>Sanguine Marionette</figcaption></figure>
+    <div>
+      <p class="lore">"Every string is a pulse. Every pulse is a bill."</p>
+      <p>Theatre look: a lit stage with velvet curtains and footlights, brass hooks at the enemies and a lacquered control cross. Threads are thin and taut, so the field stays readable even with fourteen enemies up.</p>
+      <dl class="rules">
+        <dt>Cast</dt><dd>The tendrils reach every enemy on screen in about 1.2 s, nearest first.</dd>
+        <dt>Duration</dt><dd>30 s, or until the Hemotank dies.</dd>
+        <dt>Cost</dt><dd>A fixed amount of HP per second for each enemy held. The preview uses 1.5, so 8 enemies cost 12 HP/s and 360 HP over the full 30 s. The preview Hemotank has 600 HP.</dd>
+        <dt>Output</dt><dd>The Hemotank can still move and attack, but deals 60% damage (placeholder).</dd>
+        <dt>Held enemies</dt><dd>Cannot move or fire. Bullets already in the air stop where they are.</dd>
+        <dt>Ends</dt><dd>At 30 s every tendril lets go and the enemies resume. If the Hemotank dies first, they are freed at once.</dd>
+        <dt>Cooldown</dt><dd>Starts when it ends. Kept at 75 s for now; tune after the drain is settled.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="tm">
+  <h2 id="tm">Timeline</h2>
+  <div class="tl"><div class="a">Cast</div><div class="b">Held · drain every second · reduced output</div><div class="c">Release</div></div>
+  <div class="tlabels"><span>0 s</span><span>1.2 s</span><span>30 s</span></div>
+</section>
+
+<section aria-labelledby="pl">
+  <h2 id="pl">Palette</h2>
+  <ul class="pal"><li><i style="background:#5a0b1b"></i><span>Velvet<code>#5a0b1b</code></span></li><li><i style="background:#ff4d63"></i><span>Thread<code>#ff4d63</code></span></li><li><i style="background:#e8b04a"></i><span>Brass<code>#e8b04a</code></span></li><li><i style="background:#3a1a14"></i><span>Lacquer<code>#3a1a14</code></span></li><li><i style="background:#0d0509"></i><span>Stage black<code>#0d0509</code></span></li></ul>
+</section>
+
+<section aria-labelledby="oq">
+  <h2 id="oq">Open questions</h2>
+  <ul class="q">
+    <li>Do bosses get held? If they do, they could cost several times a normal enemy, or be held for a shorter time.</li>
+    <li>Do enemies that spawn after the cast get a tendril, or only the ones on screen at the start?</li>
+    <li>Should an ally be able to cut a tendril, freeing one enemy and refunding its drain?</li>
+  </ul>
+</section>
+</main>
+<script>
+window.LOOK=(function(){
+const TAU=Math.PI*2,GOLD='#e8b04a',THREAD='#ff4d63';
+const line=(c,p)=>{c.beginPath();p.forEach((q,i)=>i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y))};
+function bar(c,cx,cy,t,s){
+  c.save();c.translate(cx,cy);c.rotate(Math.sin(t*.8)*.08);
+  c.fillStyle='#3a1a14';c.strokeStyle=GOLD;c.lineWidth=.9*s;
+  c.beginPath();c.roundRect(-23*s,-2.6*s,46*s,5.2*s,2.6*s);c.fill();c.stroke();
+  c.beginPath();c.roundRect(-2.6*s,-7*s,5.2*s,19*s,2.6*s);c.fill();c.stroke();
+  c.fillStyle=GOLD;for(const x of[-23,23]){c.beginPath();c.arc(x*s,0,2.4*s,0,TAU);c.fill()}
+  c.beginPath();c.arc(0,-8*s,2.6*s,0,TAU);c.stroke();
+  c.restore();
+}
+return{
+name:'Sanguine Marionette',font:"'Playfair Display',Georgia,serif",acc:GOLD,eye:'#ff4d63',drop:'#ff5a70',sway:.12,lift:9,top:1.35,bob:2,
+banner:['The strings go slack','The puppeteer falls'],
+anchor(px,py,i,n,t){const u=n>1?i/(n-1)-.5:0,tl=Math.sin(t*.8)*.08;return{x:px+Math.cos(tl)*u*44,y:py-40+Math.sin(tl)*u*44}},
+bg(c,S,W,H){
+  let g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1c0b12');g.addColorStop(.65,'#0d0509');g.addColorStop(1,'#0d0509');c.fillStyle=g;c.fillRect(0,0,W,H);
+  g=c.createLinearGradient(0,270,0,H);g.addColorStop(0,'#150a0a');g.addColorStop(1,'#2b1610');c.fillStyle=g;c.fillRect(0,270,W,H-270);
+  c.strokeStyle='rgba(120,70,40,.16)';c.lineWidth=1;
+  for(let x=-360;x<=1080;x+=64){c.beginPath();c.moveTo(360+(x-360)*.3,270);c.lineTo(x,H);c.stroke()}
+  for(const y of[290,318,352]){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+  g=c.createRadialGradient(S.px,S.py+14,6,S.px,S.py+14,150);g.addColorStop(0,'rgba(255,214,140,.2)');g.addColorStop(1,'rgba(255,214,140,0)');c.fillStyle=g;c.fillRect(0,0,W,H);
+  for(const side of[0,1]){for(let k=0;k<7;k++){
+    const w=11,x=side?W-(k+1)*w:k*w,gg=c.createLinearGradient(x,0,x+w,0);
+    gg.addColorStop(0,'#2a0510');gg.addColorStop(.5,k%2?'#7a1024':'#5a0b1b');gg.addColorStop(1,'#2a0510');c.fillStyle=gg;c.fillRect(x,0,w,H)}
+    c.fillStyle='rgba(232,176,74,.5)';c.fillRect(side?W-78:77,0,1.5,H)}
+  for(let x=30;x<W;x+=44){const f=c.createRadialGradient(x,H+2,0,x,H+2,22);f.addColorStop(0,'rgba(255,190,100,.35)');f.addColorStop(1,'rgba(255,190,100,0)');c.fillStyle=f;c.fillRect(x-22,H-24,44,26)}
+},
+tendril(c,pts,e,S,k){
+  c.save();c.lineCap='round';c.lineJoin='round';
+  line(c,pts);c.strokeStyle='rgba(255,60,90,.22)';c.lineWidth=6;c.stroke();
+  line(c,pts);c.strokeStyle=THREAD;c.lineWidth=1.5;c.stroke();
+  line(c,pts);c.strokeStyle='rgba(255,225,230,.6)';c.lineWidth=.6;c.stroke();
+  const p=pts[Math.floor(((S.clock*.45+e.i*.17)%1)*(pts.length-1))];
+  if(p){c.fillStyle='#ffb0bb';c.beginPath();c.arc(p.x,p.y,2.2,0,TAU);c.fill()}
+  c.restore();
+},
+enemyUnder(c,e,S){c.fillStyle='rgba(0,0,0,.45)';c.beginPath();c.ellipse(e.cx,e.y+e.r+10,e.r*(1.15-e.k*.25),4,0,0,TAU);c.fill()},
+enemyOver(c,e,S){
+  c.save();c.globalAlpha=e.k;
+  c.strokeStyle=GOLD;c.lineWidth=1.4;c.beginPath();c.arc(e.cx,e.cy-e.r-5,3.4,0,TAU);c.stroke();
+  c.strokeStyle='rgba(232,176,74,.7)';c.lineWidth=2;
+  for(const s of[-1,1]){const a=Math.sin(S.clock*1.4+e.seed+s)*.2,x0=e.cx+s*e.r*.4,y0=e.cy+e.r*.8,x1=x0+Math.sin(a)*e.r*1.1,y1=y0+Math.cos(a)*e.r*1.1;
+    c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();c.fillStyle='#3a1a14';c.beginPath();c.arc(x1,y1,2.2,0,TAU);c.fill()}
+  c.restore();
+},
+over(c,S){
+  bar(c,S.px,S.py-40,S.clock,1);
+  c.strokeStyle='rgba(232,176,74,.55)';c.lineWidth=.8;
+  for(const s of[-1,1]){c.beginPath();c.moveTo(S.px,S.py-38);c.lineTo(S.px+s*9,S.py-8);c.stroke()}
+},
+icon(c,t,s){
+  const g=c.createRadialGradient(s/2,s*.4,4,s/2,s/2,s*.7);g.addColorStop(0,'#3a1220');g.addColorStop(1,'#0d0509');c.fillStyle=g;c.fillRect(0,0,s,s);
+  const cx=s/2,cy=s*.2,k=s/96;
+  for(let i=0;i<5;i++){const x=cx+(i-2)*8*k,ex=cx+(i-2)*30*k,ey=s*.78+Math.sin(t*1.3+i)*2;
+    c.strokeStyle=THREAD;c.lineWidth=1.3*k;c.beginPath();c.moveTo(x,cy);c.quadraticCurveTo((x+ex)/2+Math.sin(t+i)*3,s*.5,ex,ey-8*k);c.stroke();
+    c.strokeStyle=GOLD;c.beginPath();c.arc(ex,ey-5*k,3.2*k,0,TAU);c.stroke();
+    c.fillStyle='#6c7384';c.beginPath();c.arc(ex,ey+4*k,6*k,0,TAU);c.fill()}
+  bar(c,cx,cy,t,1.5*k);
+  c.strokeStyle=GOLD;c.lineWidth=1.5;c.strokeRect(5,5,s-10,s-10);
+}};
+})();
+
+(function(){
+const TAU=Math.PI*2,W=720,H=400,DUR=30,CAST=1.2,MAXHP=600,OUT=60;
+const cv=document.getElementById('cv'),c=cv.getContext('2d');
+const ic=document.getElementById('ic'),ci=ic.getContext('2d');
+const L=window.LOOK;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t,ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const S={t:0,state:'cast',speed:3,n:8,drain:1.5,hp:MAXHP,endT:0,doneT:0,reason:'',dead:false,paused:false,px:360,py:235,mx:null,my:null,enemies:[],bullets:[],pops:[],parts:[],fireT:0,tickT:0,clock:0,beat:0,aim:0,W,H,DUR,MAXHP};
+window.ARENA_S=S;
+function build(){
+  const r=rng(11),es=[];let g=0;
+  while(es.length<S.n&&g++<6000){
+    const x=50+r()*620,y=84+r()*280;
+    if(Math.hypot(x-360,y-235)<95)continue;
+    if(es.some(e=>Math.hypot(e.x-x,e.y-y)<(g>3000?46:62)))continue;
+    const i=es.length,type=i%5===4?'heavy':i%3===2?'shooter':'grunt';
+    es.push({x,y,type,r:type==='heavy'?17:11,seed:r()*100,flash:0,i,k:0,cx:x,cy:y});
+  }
+  S.enemies=es;
+}
+function reset(){S.t=0;S.hp=MAXHP;S.state='cast';S.endT=0;S.doneT=0;S.reason='';S.dead=false;S.bullets=[];S.pops=[];S.parts=[];S.fireT=0;S.tickT=0;S.px=360;S.py=235;build()}
+function end(reason,dead){
+  if(S.state==='end'||S.state==='done')return;
+  S.state='end';S.endT=0;S.reason=reason;S.dead=!!dead;
+  const n=S.enemies.length;
+  S.enemies.forEach(e=>{const A=L.anchor(S.px,S.py,e.i,n,S.clock);for(let j=0;j<6;j++){const u=Math.random();S.parts.push({x:lerp(A.x,e.cx,u),y:lerp(A.y,e.cy,u),vx:(Math.random()-.5)*120,vy:-30-Math.random()*70,life:1,col:L.drop})}});
+}
+function reach(e){
+  if(S.state==='done')return 0;
+  if(S.state==='end')return 1-ease(clamp(S.endT/.55,0,1));
+  return ease(clamp((S.t-e.i*.05)/.55,0,1));
+}
+function update(dt){
+  if(S.paused)return;
+  S.clock+=dt;
+  let tx,ty;
+  if(S.mx!==null){tx=S.mx;ty=S.my}else{tx=360+210*Math.sin(S.clock*.4);ty=235+95*Math.sin(S.clock*.63+1)}
+  S.px+=(clamp(tx,30,W-30)-S.px)*Math.min(1,dt*3);S.py+=(clamp(ty,70,H-40)-S.py)*Math.min(1,dt*3);
+  S.pops.forEach(p=>p.age+=dt);S.pops=S.pops.filter(p=>p.age<1.3);
+  S.parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=160*dt;p.life-=dt*.9});S.parts=S.parts.filter(p=>p.life>0);
+  S.enemies.forEach(e=>{e.flash=Math.max(0,e.flash-dt*5)});
+  if(S.state==='end'){S.endT+=dt;if(S.endT>1.7){S.state='done'}return}
+  if(S.state==='done'){S.doneT+=dt;if(S.doneT>2.4&&!reduce)reset();return}
+  const sdt=dt*S.speed,n=S.enemies.length;
+  S.t+=sdt;S.state=S.t<CAST?'cast':'hold';
+  S.beat=Math.exp(-(S.t%1)*5);
+  S.hp-=S.drain*n*sdt*(S.t<CAST?0:1);
+  S.tickT+=sdt;if(S.tickT>=1&&S.t>=CAST){S.tickT-=1;if(!S.pops.some(q=>q.big&&q.age<.6))S.pops.push({x:S.px,y:S.py-22,txt:'−'+(S.drain*n).toFixed(1),age:0,col:'#ff7686',big:1})}
+  if(S.hp<=0){S.hp=0;end('The Hemotank bled out',true);return}
+  if(S.t>=DUR){end('30 s elapsed',false);return}
+  let best=null,bd=1e9;S.enemies.forEach(e=>{const d=Math.hypot(e.cx-S.px,e.cy-S.py);if(d<bd){bd=d;best=e}});
+  if(best){S.aim=Math.atan2(best.cy-S.py,best.cx-S.px);
+    S.fireT+=sdt;if(S.fireT>.5&&S.t>.4){S.fireT=0;S.bullets.push({x:S.px,y:S.py,vx:Math.cos(S.aim)*320,vy:Math.sin(S.aim)*320,life:2})}}
+  S.bullets.forEach(b=>{b.x+=b.vx*sdt;b.y+=b.vy*sdt;b.life-=sdt;
+    for(const e of S.enemies){if(Math.hypot(e.cx-b.x,e.cy-b.y)<e.r+3){b.life=0;e.flash=1;S.pops.push({x:e.cx,y:e.cy-e.r-6,txt:'−6',age:.2,col:'#e8d8da',big:0});for(let j=0;j<4;j++)S.parts.push({x:b.x,y:b.y,vx:(Math.random()-.5)*110,vy:(Math.random()-.5)*110,life:.5,col:'#ffd6dc'});break}}});
+  S.bullets=S.bullets.filter(b=>b.life>0&&b.x>0&&b.x<W&&b.y>0&&b.y<H);
+}
+function curve(A,T,i,sway){
+  const N=36,dx=T.x-A.x,dy=T.y-A.y,d=Math.hypot(dx,dy)||1,nx=-dy/d,ny=dx/d;
+  const s1=(Math.sin(S.clock*1.7+i*1.3)*.6+(i%2?.9:-.9))*sway*d*.14,s2=(Math.sin(S.clock*2.1+i*.7+2)*.6+(i%2?-.7:.7))*sway*d*.14;
+  const x1=A.x+dx*.33+nx*s1,y1=A.y+dy*.33+ny*s1,x2=A.x+dx*.66+nx*s2,y2=A.y+dy*.66+ny*s2,pts=[];
+  for(let j=0;j<=N;j++){const u=j/N,v=1-u;pts.push({x:v*v*v*A.x+3*v*v*u*x1+3*v*u*u*x2+u*u*u*T.x,y:v*v*v*A.y+3*v*v*u*y1+3*v*u*u*y2+u*u*u*T.y})}
+  return pts;
+}
+function body(e){
+  const k=e.k;c.save();c.translate(e.cx+(k>.5?Math.sin(S.clock*47+e.seed)*.7:0),e.cy);
+  const r=e.r;
+  if(e.type==='shooter'){
+    const a=Math.atan2(S.py-e.cy,S.px-e.cx);
+    for(let j=0;j<3;j++){const f=lerp(1.6+j*.9,(1.6+j*.9)+3.2,1-k);const bx=Math.cos(a)*(r+f*9)+Math.cos(a+1.57)*(j-1)*5,by=Math.sin(a)*(r+f*9)+Math.sin(a+1.57)*(j-1)*5;
+      c.fillStyle='rgba(255,170,60,.25)';c.beginPath();c.arc(bx,by,6,0,TAU);c.fill();c.fillStyle='#ffb347';c.beginPath();c.arc(bx,by,3,0,TAU);c.fill()}
+  }
+  const rc=Math.round(lerp(112,76,k)),gc=Math.round(lerp(120,70,k)),bc=Math.round(lerp(140,86,k));
+  c.fillStyle='rgb('+rc+','+gc+','+bc+')';c.strokeStyle='#1b1520';c.lineWidth=2;c.beginPath();
+  if(e.type==='heavy'){for(let j=0;j<6;j++){const a=j/6*TAU+.52;j?c.lineTo(Math.cos(a)*r,Math.sin(a)*r):c.moveTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath()}
+  else if(e.type==='shooter'){c.moveTo(0,-r*1.2);c.lineTo(r*1.1,0);c.lineTo(0,r*1.2);c.lineTo(-r*1.1,0);c.closePath()}
+  else c.arc(0,0,r,0,TAU);
+  c.fill();c.stroke();
+  if(e.flash>0){c.fillStyle='rgba(255,255,255,'+e.flash*.7+')';c.fill()}
+  c.lineWidth=1.5;
+  for(const sx of[-1,1]){const x=sx*r*.38,y=-r*.12;
+    if(k>.6){c.strokeStyle=L.eye||L.acc;c.beginPath();c.moveTo(x-2.2,y-2.2);c.lineTo(x+2.2,y+2.2);c.moveTo(x+2.2,y-2.2);c.lineTo(x-2.2,y+2.2);c.stroke()}
+    else{c.fillStyle='#eef1f7';c.beginPath();c.arc(x,y,2,0,TAU);c.fill()}}
+  c.restore();
+}
+function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+const MONO="500 12px 'IBM Plex Mono',ui-monospace,monospace";
+function hud(){
+  const fr=1-clamp(S.t/DUR,0,1),n=S.enemies.length;
+  c.fillStyle='rgba(0,0,0,.5)';rr(14,10,W-28,8,4);c.fill();
+  if(fr>0){c.fillStyle=L.acc;rr(14,10,Math.max(8,(W-28)*fr),8,4);c.fill()}
+  c.textBaseline='alphabetic';c.fillStyle='#f1e4e4';c.font='700 15px '+L.font;c.textAlign='left';c.fillText(L.name.toUpperCase(),16,38);
+  c.font=MONO;c.textAlign='right';c.fillStyle='#f1e4e4';c.fillText(Math.max(0,DUR-S.t).toFixed(1)+' s',W-16,38);
+  c.fillStyle='rgba(0,0,0,.55)';rr(14,H-26,230,10,5);c.fill();
+  c.fillStyle=S.hp/MAXHP<.25?'#ff3b4e':'#d8dde8';rr(14,H-26,Math.max(0,230*S.hp/MAXHP),10,5);c.fill();
+  c.textAlign='left';c.font=MONO;c.fillStyle='#f1e4e4';c.fillText('HP '+Math.ceil(S.hp)+' / '+MAXHP+'   −'+(S.drain*n).toFixed(1)+'/s',14,H-32);
+  c.textAlign='right';c.fillText('BOUND '+(S.state==='done'?0:n)+'   OUTPUT '+OUT+'%',W-16,H-16);
+  if(L.hudx)L.hudx(c,S,W,H);
+  if(S.state==='end'||S.state==='done'){
+    const a=S.state==='done'?1:clamp(S.endT/.4,0,1);
+    c.fillStyle='rgba(0,0,0,'+(.38*a)+')';c.fillRect(0,0,W,H);
+    c.globalAlpha=a;c.textAlign='center';c.fillStyle=L.acc;c.font='700 30px '+L.font;c.fillText(L.banner[S.dead?1:0],W/2,H/2-4);
+    c.fillStyle='#f1e4e4';c.font=MONO;c.fillText(S.reason,W/2,H/2+20);c.globalAlpha=1;
+  }
+}
+function draw(){
+  const n=S.enemies.length;
+  c.clearRect(0,0,W,H);
+  L.bg(c,S,W,H);
+  S.enemies.forEach(e=>{const k=reach(e);e.k=k;
+    e.cx=e.x+Math.cos(S.clock*.9+e.seed)*12*(1-k);
+    e.cy=e.y+Math.sin(S.clock*.7+e.seed*1.3)*10*(1-k)-(L.lift||0)*k+(k>.9?Math.sin(S.clock*2+e.seed)*(L.bob||0):0)});
+  if(L.under)L.under(c,S);
+  S.enemies.forEach(e=>{if(L.enemyUnder)L.enemyUnder(c,e,S);body(e)});
+  S.enemies.forEach(e=>{if(e.k<.01)return;
+    const A=L.anchor(S.px,S.py,e.i,n,S.clock),T={x:e.cx,y:e.cy-(L.top||0)*e.r};
+    const pts=curve(A,T,e.i,L.sway),cut=Math.max(2,Math.round(e.k*36)+1);
+    L.tendril(c,pts.slice(0,cut),e,S,e.k)});
+  if(L.enemyOver)S.enemies.forEach(e=>{if(e.k>.01)L.enemyOver(c,e,S)});
+  c.fillStyle='#ffd0d6';S.bullets.forEach(b=>{c.globalAlpha=.9;c.beginPath();c.arc(b.x,b.y,2.4,0,TAU);c.fill();c.globalAlpha=.25;c.beginPath();c.arc(b.x,b.y,5,0,TAU);c.fill();c.globalAlpha=1});
+  c.save();c.globalAlpha=S.state==='done'&&S.dead?.35:1;
+  c.translate(S.px,S.py);c.rotate(S.aim);c.fillStyle='#3a0b17';c.fillRect(6,-3,12,6);c.rotate(-S.aim);
+  const g=c.createRadialGradient(-4,-4,2,0,0,14);g.addColorStop(0,'#b01f3b');g.addColorStop(1,'#6a0f22');
+  c.fillStyle=g;c.strokeStyle='#240810';c.lineWidth=2;c.beginPath();c.arc(0,0,13,0,TAU);c.fill();c.stroke();c.restore();
+  if(L.over)L.over(c,S);
+  S.parts.forEach(p=>{c.globalAlpha=clamp(p.life,0,1);c.fillStyle=p.col;c.beginPath();c.arc(p.x,p.y,2,0,TAU);c.fill()});c.globalAlpha=1;
+  S.pops.forEach(p=>{const u=p.age/1.3;c.globalAlpha=1-u*u;c.fillStyle=p.col;c.font=(p.big?'700 17px ':'600 12px ')+"'IBM Plex Mono',monospace";c.textAlign='center';c.fillText(p.txt,p.x,p.y-u*28)});c.globalAlpha=1;
+  hud();
+  ci.clearRect(0,0,192,192);L.icon(ci,S.clock,192);
+}
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop)}
+const $=id=>document.getElementById(id);
+function sync(){$('nval').textContent=S.n;$('cval').textContent=S.drain.toFixed(1)}
+$('replay').onclick=()=>{reset();S.paused=false;$('pause').textContent='Pause'};
+$('pause').onclick=()=>{S.paused=!S.paused;$('pause').textContent=S.paused?'Play':'Pause'};
+$('die').onclick=()=>{if(S.state==='cast'||S.state==='hold'){S.hp=0}};
+document.querySelectorAll('input[name=spd]').forEach(r=>r.onchange=()=>{S.speed=+r.value});
+$('nrange').oninput=e=>{S.n=+e.target.value;sync();reset()};
+$('crange').oninput=e=>{S.drain=+e.target.value;sync()};
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();S.mx=(e.clientX-r.left)*W/r.width;S.my=(e.clientY-r.top)*H/r.height});
+cv.addEventListener('pointerleave',()=>{S.mx=null;S.my=null});
+sync();reset();
+if(reduce){S.t=12;S.state='hold';S.hp=MAXHP-12*S.n*S.drain;S.paused=true;$('pause').textContent='Play';update(0);}
+requestAnimationFrame(loop);
+})();
+
+</script>

@@ -112,7 +112,7 @@ namespace Arena
 
         // --- Taunts ---------------------------------------------------------------------------------------------------
 
-        /// The player every enemy is going for right now (Roar, Crimson Pact, Blood Rite), or null.
+        /// The player every enemy is going for right now (Roar, Crimson Pact), or null.
         Player Taunter()
         {
             Player best = null;
@@ -120,8 +120,7 @@ namespace Arena
             {
                 if (p.Downed)
                     continue;
-                var ult = p.UltT > 0f ? p.Slots[Upgrades.UltSlot].Id : AbilityId.None;
-                if (p.TauntT > 0f || p.PactT > 0f || ult == AbilityId.BloodRite)
+                if (p.TauntT > 0f || p.PactT > 0f)
                     best = p;
             }
             return best;
