@@ -155,3 +155,19 @@ the counter, and route kills do not count.
   the beam crossing, afterimages, a white flash, the held line, a sheathing ring) with letterbox bars on the striker's own
   screen, plus a `FxKind.KatanaCut` per enemy cut (a bright line across it, sparks, and its two halves sliding apart if it
   died) and a camera shake. The chain is a blade of five notches over the swordsman.
+
+## Sound effects (mocked, not built)
+Mockups: `Docs/Mockups/katana-sounds.html` (every sound, three sets: Steel, Silk, Arcade, each with its `SoundBank` recipe) and the
+playable `katana-combo.html` and `katana-chain.html`, which now play them. Sounds: swipe 1, swipe 2, lunge wind-up, lunge, cut
+lands, meter full, no charge, aim begins, target changes, stance, the cut, sheathe, the blow, chains 1 to 5, empowered ready,
+empowered cut, streak lost. Building them needs one `Sfx` value each (at the end of the enum), a `Set(...)` line each in
+`SoundBank.Build()`, and two helpers (`Delay`, `Room`). The chain, hit, lunge and strike sounds go through `BroadcastFx`'s existing
+`Sfx` argument; aim, switch, no-charge and meter-full play on your own screen only. Waiting on a pick of set.
+
+## Parry cancels the chain (built Nov 2026, no protocol change)
+Raising the parry (`TickParry`, the tick it goes up) calls `ResetAttackChains` (Katana.cs): the Katana returns to swipe 1,
+`FireCd` is cleared, a queued tap is dropped, and a lunge still in its 0.15 s pull-back is removed from `pendingSwings`. The host
+takes `KatanaLunges` back by one so the player's own game cancels the step forward (`LocalKatana` reads a drop of one as a
+cancel; raising the parry locally also cancels a step not yet started). Only the Katana has a fixed sequence today; builds you
+earned (strike meter, chain streak, Twin Blades' combo, the Rapier's streak, Lightbringer's gauge, Clot) are not reset. A
+broken parry cannot be raised, so it cannot cancel. A step forward already under way is not stopped.

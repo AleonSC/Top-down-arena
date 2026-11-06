@@ -51,8 +51,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Titan, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Titan", Cooldown = 80f, Desc = "Summon a stone titan for 15 s that smashes enemies and blocks bullets (it soaks 1000 boss damage).",
-                Capstone = "The titan is bigger and stays for 25 s.",
+                Name = "Titan", Cooldown = 80f, Desc = "Summon a huge stone titan for 17 s. It rises from rubble, stomps after enemies, slams them after a short wind-up and blocks bullets with its whole body (it soaks 1000 boss damage).",
+                Capstone = "The titan is 30% bigger and stays for 27 s.",
             },
             new AbilityDef
             {
@@ -132,17 +132,8 @@ namespace Arena
                     break;
 
                 case AbilityId.Titan:  // Tank: Summoner
-                {
-                    var titan = SpawnMinion(MinionKind.Titan, p, p.Pos + V2.FromAngle(p.Aim) * 60f, cap ? 25f : 15f);
-                    if (cap)
-                    {
-                        titan.Scale = 1.3f;
-                        titan.BlockHp *= 1.3f;
-                    }
-                    BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(p.Aim) * 60f, Kits.Get(MinionKind.Titan).Color, 90f, 0.5f, Sfx.Explode);
-                    Sounds.Add(Sfx.Summon);
+                    CastTitan(p, cap);  // Titan.cs
                     break;
-                }
 
                 case AbilityId.Lifeline:  // Healer: Soldier
                     foreach (var q in Players.Values)

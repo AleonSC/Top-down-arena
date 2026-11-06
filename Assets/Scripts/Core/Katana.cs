@@ -74,6 +74,35 @@ namespace Arena
             }
         }
 
+        /// Raising the parry is an animation cancel for weapons that attack in a fixed order: the chain goes back to its first
+        /// step, the wait for the next step is cleared, and an attack that hasn't landed yet never does. Builds you have earned
+        /// (the strike meter and its chain, Twin Blades' combo, the Rapier's streak) are left alone. Called on the host.
+        void ResetAttackChains(Player p)
+        {
+            if (p.Weapon.Id == WeaponId.BoStaff)
+            {
+                p.BoStep = 0;  // back to the slash
+                p.FireCd = 0f;
+                p.TapQueued = false;
+                if (boShoves.RemoveAll(sh => sh.Owner == p.Id) > 0)  // a shove still drawing back never lands (and costs no cooldown)
+                    p.ShoveCd = 0f;
+                return;
+            }
+            if (p.Weapon.Id != WeaponId.Katana)
+                return;
+            p.KatanaStep = 0;
+            p.KatanaGap = 5f;
+            p.FireCd = 0f;
+            p.TapQueued = false;
+            foreach (var s in pendingSwings)
+                if (s.Owner == p.Id && s.DrawCut && s.Delay > 0f)  // a lunge still pulling back
+                {
+                    pendingSwings.Remove(s);
+                    p.KatanaLunges--;  // (your own game cancels the step forward that came with it)
+                    break;
+                }
+        }
+
         void KatanaGain(Player p, float amount)
         {
             p.KatanaMeter = Math.Min(KatanaMeterMax, p.KatanaMeter + amount);
@@ -108,10 +137,15 @@ namespace Arena
             // A lunge thrown (the host counts them): as it lands you step forward with it, on your own screen like every move.
             if (me.KatanaLunges != katanaLungesSeen)
             {
+                bool cancelled = (byte)(me.KatanaLunges + 1) == katanaLungesSeen;  // the host took a lunge back (a parry raised before it landed)
                 katanaLungesSeen = me.KatanaLunges;
-                if (me.Weapon.Id == WeaponId.Katana)
+                if (cancelled)
+                    katanaLungeIn = -1f;
+                else if (me.Weapon.Id == WeaponId.Katana)
                     katanaLungeIn = KatanaLungeWind;
             }
+            if (me.Parrying)
+                katanaLungeIn = -1f;  // raising the parry before the step starts cancels it
             if (katanaLungeIn >= 0f && (katanaLungeIn -= dt) < 0f && !me.Downed && me.StunT <= 0f && DashT <= 0f && !KatanaStriking)
             {
                 V2 dir = V2.FromAngle(me.Aim);

@@ -918,6 +918,41 @@ static partial class Program
         Check(me.KatanaLunges == (byte)(lungesBefore + 1) && Math.Abs(stepped - Game.KatanaLungeStep) < 20f, "the lunge steps you forward about 110 px (a dash moves in whole frames)");
         me.Pos = from;
 
+        // Raising the parry cancels the chain: back to swipe 1, no wait for the next step, and a lunge that hasn't landed never does.
+        reset();
+        var parryDummy = dummy(from + new V2(150f, 0f), 1e5f);
+        me.KatanaStep = 2; me.KatanaGap = 0f; me.FireCd = 0f; me.KatanaMeter = 40f; me.KatanaIdle = 0f;
+        byte lungesP = me.KatanaLunges;
+        volley.Invoke(g, new object[] { me, 0f, 0 });  // the lunge starts pulling back
+        bool pending = me.KatanaLunges == (byte)(lungesP + 1) && me.FireCd > 0.3f;
+        play(0.05f, new PlayerInput { Parry = true });
+        play(Game.KatanaLungeWind + 0.3f, new PlayerInput { Parry = true });
+        Console.WriteLine("  katana parry cancel: pending {0}; step {1}, fire wait {2:0.00}, lunge never landed {3}, count back {4}, meter kept {5:0}", pending, me.KatanaStep, me.FireCd, parryDummy.Hp == parryDummy.MaxHp, me.KatanaLunges == lungesP, me.KatanaMeter);
+        Check(pending && me.KatanaStep == 0 && me.FireCd <= 0f, "raising the parry sends the Katana back to swipe 1 and clears its wait");
+        Check(parryDummy.Hp == parryDummy.MaxHp && me.KatanaLunges == lungesP, "a lunge that has not landed yet never does (and the step forward is taken back)");
+        Check(me.KatanaMeter >= 40f, "the strike meter is not touched by the parry");
+        play(0.7f, new PlayerInput());
+        me.KatanaStep = 1; me.FireCd = 0.2f;
+        play(0.05f, new PlayerInput { Parry = true });
+        Check(me.KatanaStep == 0 && me.FireCd <= 0f, "it cancels after a swipe too");
+        play(0.6f, new PlayerInput());
+
+        // The same for the Bo Staff: back to the slash with no wait, and a shove still drawing back never lands (no cooldown spent).
+        reset();
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoStaff);
+        var parryBo = dummy(from + new V2(60f, 0f), 1e5f);
+        me.BoStep = 2; me.ShoveCd = 0f; me.FireCd = 0f;
+        typeof(Game).GetMethod("HostWeaponDash", flags).Invoke(g, new object[] { 1, 6, from + new V2(100f, 0f) });  // the shove starts drawing back
+        play(0.04f, new PlayerInput { Parry = true, AimAt = from + new V2(100f, 0f) });
+        play(0.4f, new PlayerInput { Parry = true, AimAt = from + new V2(100f, 0f) });
+        Check(me.BoStep == 0 && me.FireCd <= 0f && parryBo.Hp == parryBo.MaxHp && me.ShoveCd <= 0f, "raising the parry cancels a Bo Staff shove that has not landed and clears its wait");
+        play(0.6f, new PlayerInput());
+        me.BoStep = 2; me.FireCd = 0.5f;
+        play(0.05f, new PlayerInput { Parry = true });
+        Check(me.BoStep == 0 && me.FireCd <= 0f, "and sends the Bo Staff chain back to the slash");
+        play(0.6f, new PlayerInput());
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);  // (the Katana's Alt strike tests follow)
+
         // The Alt strike: hold the weapon-action key with a full meter to aim, let go to cut across the arena to the enemy and land behind it.
         reset();
         me.Hp = me.MaxHp;

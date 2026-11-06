@@ -90,6 +90,10 @@ h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:
 .seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
 .seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
 .state{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+
+.ctl{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.ctl label.sl{display:flex;align-items:center;gap:10px;font:500 13px var(--mono);color:var(--muted)}
+.ctl input[type=range]{accent-color:var(--crim);width:130px}
 </style>
 
 <main>
@@ -100,6 +104,16 @@ h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:
 </header>
 
 <section class="stage" id="s">
+  <div class="ctl" id="sndctl">
+    <label class="chk"><input type="checkbox" id="sndon" checked> Sound</label>
+    <div class="seg" role="radiogroup" aria-label="Sound set">
+      <input type="radio" name="sndset" id="ss1" value="steel" checked><label for="ss1">Steel</label>
+      <input type="radio" name="sndset" id="ss2" value="silk"><label for="ss2">Silk</label>
+      <input type="radio" name="sndset" id="ss3" value="arcade"><label for="ss3">Arcade</label>
+    </div>
+    <label class="sl">Volume <input type="range" id="sndvol" min="0" max="1" step="0.05" value="0.7"></label>
+    <span class="msg" style="min-height:0">Sounds start after your first click or key press on the page.</span>
+  </div>
   <h2>The streak <small>kill, kill, kill, kill, kill, empowered</small></h2>
   <div class="frame">
     <canvas id="c" width="720" height="400" aria-label="Chain streak stage"></canvas>
@@ -156,6 +170,156 @@ h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:
 </main>
 
 <script>
+/* ---- Katana sounds: a JS port of the game's SoundBank primitives (Tone, Mix, Notes, Bell, Crackle, Tremolo, Reverse, Reverb, Finish),
+   so each recipe below reads like the C# line it would become. Every buffer remembers the C# text that built it (.src). ---- */
+var KS=(function(){
+var RATE=44100,TAU=Math.PI*2;
+var seed=7;function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+var OSC={Sine:'Osc.Sine',Square:'Osc.Square',Triangle:'Osc.Triangle',Saw:'Osc.Saw'};
+function f(n){var s=(Math.round(n*10000)/10000).toString();if(s.indexOf('.')<0)s+='.0';return s+'f'}
+function mk(a,src){a.src=src;return a}
+function Tone(dur,osc,f0,f1,vol,o){o=o||{};var noise=o.noise||0,lp=o.lowpass==null?1:o.lowpass,att=o.attack||0.003,dec=o.decay==null?2:o.decay;
+  var n=Math.floor(dur*RATE),d=new Float32Array(n),ph=0,y=0;
+  for(var i=0;i<n;i++){var t=i/RATE,u=i/n,fr=f0*Math.pow(f1/f0,u);ph+=fr/RATE;var p=ph-Math.floor(ph),x;
+    if(osc==='Square')x=p<.5?1:-1;else if(osc==='Triangle')x=4*Math.abs(p-.5)-1;else if(osc==='Saw')x=2*p-1;else x=Math.sin(TAU*p);
+    if(noise>0)x=x*(1-noise)+(rnd()*2-1)*noise;
+    y+=lp*(x-y);d[i]=y*Math.min(1,t/att)*Math.pow(1-u,dec)*vol}
+  var parts=[f(dur),OSC[osc],f(f0),f(f1),f(vol)];['noise','lowpass','attack','decay'].forEach(function(k){if(o[k]!=null)parts.push(k+': '+f(o[k]))});
+  return mk(d,'Tone('+parts.join(', ')+')')}
+function Mix(){var L=[].slice.call(arguments),n=0;L.forEach(function(l){n=Math.max(n,l.length)});var o=new Float32Array(n);
+  L.forEach(function(l){for(var i=0;i<l.length;i++)o[i]+=l[i]});return mk(o,'Mix(\n    '+L.map(function(l){return l.src}).join(',\n    ')+')')}
+function Delay(a,sec){var k=Math.floor(sec*RATE),o=new Float32Array(a.length+k);o.set(a,k);return mk(o,'Delay('+a.src+', '+f(sec)+')')}
+function Reverse(a){var o=Float32Array.from(a).reverse();return mk(o,'Reverse('+a.src+')')}
+function Tremolo(a,hz,depth){var o=Float32Array.from(a);for(var i=0;i<o.length;i++)o[i]*=1-depth*(.5+.5*Math.sin(TAU*hz*i/RATE));return mk(o,'Tremolo('+a.src+', '+f(hz)+', '+f(depth)+')')}
+function Bell(dur,fq,vol){var ra=[1,2.76,5.4,8.93],am=[1,.5,.25,.12],li=[1,.6,.35,.2],n=Math.floor(dur*RATE),d=new Float32Array(n);
+  for(var i=0;i<n;i++){var t=i/RATE,u=i/n,x=0;for(var k=0;k<4;k++)x+=am[k]*Math.sin(TAU*fq*ra[k]*t)*Math.pow(Math.max(0,1-u/li[k]),2);d[i]=x*vol*Math.min(1,t/.004)}
+  return mk(d,'Bell('+f(dur)+', '+f(fq)+', '+f(vol)+')')}
+function Crackle(dur,clicks){var n=Math.floor(dur*RATE),d=new Float32Array(n);
+  for(var c=0;c<clicks;c++){var at=Math.floor(n*Math.pow(rnd(),1.6)),amp=.5+.5*rnd();for(var i=0;i<RATE/200&&at+i<n;i++)d[at+i]+=(rnd()*2-1)*amp*(1-i/(RATE/200))}
+  return mk(d,'Crackle('+f(dur)+', '+clicks+')')}
+function Notes(fr,nd,osc,vol,lp){var per=Math.floor(nd*RATE),d=new Float32Array(per*fr.length);
+  fr.forEach(function(q,k){var t=Tone(nd,osc,q,q,vol,{lowpass:lp,decay:1});for(var i=0;i<Math.min(t.length,per);i++)d[k*per+i]=t[i]});
+  return mk(d,'Notes(new[] { '+fr.map(f).join(', ')+' }, '+f(nd)+', '+OSC[osc]+', '+f(vol)+', '+f(lp)+')')}
+function Reverb(inp){var n=inp.length,out=new Float32Array(n);
+  [29.7,37.1,41.1,43.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d),store=0;
+    for(var i=0;i<n;i++){var y=buf[i%d];store=y*.7+store*.3;buf[i%d]=inp[i]+store*.72;out[i]+=y*.25}});
+  [5,1.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d);
+    for(var i=0;i<n;i++){var b=buf[i%d],x=out[i];buf[i%d]=x+b*.5;out[i]=b-x*.5}});return out}
+function Room(a,wet){var tail=Math.floor(.35*RATE),inp=new Float32Array(a.length+tail);inp.set(a);var r=Reverb(inp),o=new Float32Array(inp.length);
+  for(var i=0;i<o.length;i++)o[i]=inp[i]+r[i]*wet;return mk(o,'Room('+a.src+', '+f(wet)+')')}
+function Finish(a,peak){var o=Float32Array.from(a),n=o.length,fade=Math.min(n,RATE/100|0);for(var i=0;i<fade;i++)o[n-1-i]*=i/fade;
+  var m=0;for(i=0;i<n;i++)m=Math.max(m,Math.abs(o[i]));if(m>0)for(i=0;i<n;i++)o[i]*=peak/m;return mk(o,'Finish('+a.src+', '+f(peak)+')')}
+
+/* ---- the three sets: the same moves, three characters ---- */
+var SETS={
+ steel:{name:'Steel',note:'Real-blade character: airy whooshes with a metallic ring on top, hard cracks, bell tails. Closest to the game\'s Knight swings (SwingLight and SwingHeavy) but sharper.',
+  osc:'Sine',ring:2600,ringVol:.07,whLP:.55,whN:.85,crack:1,room:.25,chime:'Sine',chimeVol:.2,bell:1,sub:1},
+ silk:{name:'Silk',note:'Soft and airy: low-passed whooshes, a quiet ring, no hard cracks, a long room tail. Sits low under the bullets.',
+  osc:'Triangle',ring:1500,ringVol:.045,whLP:.3,whN:.9,crack:.35,room:.5,chime:'Triangle',chimeVol:.16,bell:.6,sub:.8},
+ arcade:{name:'Arcade',note:'Synth blips: square and saw sweeps instead of noise, chirp chimes. Plays well with the game\'s Blink and Pick sounds, least like a real blade.',
+  osc:'Square',ring:1800,ringVol:.05,whLP:.5,whN:.12,crack:.8,room:.1,chime:'Square',chimeVol:.14,bell:.3,sub:1.1,synth:true}};
+var CHAIN_PITCH=[523.25,587.33,659.25,783.99,880];
+/* each sound: [id, group, title, when it plays, gap, builder(P)] */
+var DEFS=[
+ ['swipe1','The chain','Swipe 1','A 110° slash, left to right. Plays when the swing starts.',.05,function(P){
+   return Finish(Mix(
+    Tone(.18,P.synth?'Saw':'Sine',700,260,.16,{noise:P.whN,lowpass:P.whLP,attack:.02,decay:1.6}),
+    Tone(.22,P.osc,P.ring,P.ring*.92,P.ringVol,{lowpass:.6,decay:4})),.45)}],
+ ['swipe2','The chain','Swipe 2','The same arc back, right to left: the whoosh sweeps up first, the ring is a little higher.',.05,function(P){
+   return Finish(Mix(
+    Tone(.18,P.synth?'Saw':'Sine',300,820,.16,{noise:P.whN,lowpass:P.whLP,attack:.02,decay:1.6}),
+    Tone(.22,P.osc,P.ring*1.12,P.ring*1.03,P.ringVol,{lowpass:.6,decay:4})),.45)}],
+ ['windup','The chain','Lunge wind-up','You draw the blade back for the lunge (0.15 s before it lands).',.1,function(P){
+   return Finish(Mix(
+    Tone(.15,'Triangle',180,120,.1,{noise:P.synth?0:.3,lowpass:.25,attack:.06}),
+    Delay(Tone(.025,'Square',1800,1500,.07,{lowpass:.5,decay:3}),.12)),.35)}],
+ ['lunge','The chain','Lunge','The thrust: a sharp rising rush, a crack at the front, a low thump as you push off.',.1,function(P){
+   return Finish(Room(Mix(
+    Tone(.24,P.synth?'Saw':'Sine',500,2300,.2,{noise:P.whN*.85,lowpass:.65,attack:.004,decay:1.2}),
+    Tone(.05,'Sine',3000,1500,.2*P.crack,{noise:1,lowpass:.9,decay:3}),
+    Tone(.14,'Sine',150,55,.3*P.sub,{lowpass:.3,decay:2.5}),
+    Delay(Bell(.35,P.ring*.9,.05*P.bell),.04)),P.room*.5),.6)}],
+ ['hit','The chain','Cut lands','Once per enemy a swipe or the lunge cuts: a slice, a thud and a thin ring.',.04,function(P){
+   return Finish(Mix(
+    Tone(.07,'Sine',1900,650,.2,{noise:P.synth?.1:.9,lowpass:.8,decay:3}),
+    Tone(.13,'Sine',230,90,.26*P.sub,{noise:.3,lowpass:.3,decay:3}),
+    Bell(.28,P.ring*.75,.045*P.bell)),.4)}],
+ ['ready','The meter','Meter full','The strike meter reaches 100: a bright three-note rise with a ring, and the blade is sheathed.',.2,function(P){
+   return Finish(Room(Mix(
+    Notes([1319,1760,2349],.05,P.chime,P.chimeVol,1),
+    Delay(Bell(.55,1568,.1*P.bell),.05)),P.room),.4)}],
+ ['empty','The meter','No charge','You press the weapon-action key without a full meter: a dull tick as the bar shakes.',.15,function(P){
+   return Finish(Tone(.07,'Square',230,190,.18,{lowpass:.35,decay:3}),.3)}],
+ ['aim','Alt strike','Aim begins','You hold the key at full meter: a breath in, a heartbeat, the world slows.',.3,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.38,'Sine',520,160,.12,{noise:P.synth?.2:.9,lowpass:.3,decay:1.2})),
+    Tone(.14,'Sine',72,44,.4*P.sub,{lowpass:.2,decay:2}),
+    Delay(Tone(.14,'Sine',68,42,.3*P.sub,{lowpass:.2,decay:2}),.2),
+    Tone(.5,'Sine',240,110,.06,{lowpass:.4,attack:.1,decay:1.5})),P.room*.6),.5)}],
+ ['switch','Alt strike','Target changes','The reticle jumps to another enemy: a short tick.',.06,function(P){
+   return Finish(Tone(.045,P.synth?'Square':'Triangle',1900,1500,.12,{lowpass:.6,decay:3}),.3)}],
+ ['stance','Alt strike','Stance (release)','You let go: the arena stops, the blade slides half out. Tension rising for 0.35 s.',.3,function(P){
+   return Finish(Room(Mix(
+    Tremolo(Tone(.36,'Saw',300,950,.08,{lowpass:.3,attack:.25,decay:.6}),14,.4),
+    Tone(.3,P.osc,2100,3600,.05,{noise:P.synth?.1:.5,lowpass:.8,attack:.1,decay:.8}),
+    Delay(Bell(.3,P.ring*1.6,.04*P.bell),.2)),P.room*.5),.5)}],
+ ['cut','Alt strike','The cut','One cut across the whole arena: a tearing rush, a boom underneath, a ring that outlasts it.',.3,function(P){
+   return Finish(Room(Mix(
+    Tone(.32,P.synth?'Saw':'Sine',3300,320,.35,{noise:P.whN,lowpass:.9,attack:.001,decay:2}),
+    Tone(.55,'Sine',95,30,.5*P.sub,{noise:.2,lowpass:.15,decay:1.5}),
+    Tone(.06,'Sine',3500,1800,.3*P.crack,{noise:1,lowpass:.95,decay:3}),
+    Delay(Bell(.9,P.ring*1.5,.1*P.bell),.05)),P.room),.75)}],
+ ['sheathe','Alt strike','Sheathe','The held frame: a click as the blade goes home, then quiet until the blow.',.3,function(P){
+   return Finish(Mix(
+    Tone(.03,'Square',900,700,.3,{lowpass:.7,decay:3}),
+    Delay(Tone(.05,'Sine',1400,1200,.15,{decay:4}),.02),
+    Delay(Bell(.45,2200,.06*P.bell),.03)),.4)}],
+ ['blow','Alt strike','The blow','0.4 s later the enemies fall: a heavy slice, a body thud, stone-crack tail.',.3,function(P){
+   return Finish(Room(Mix(
+    Tone(.1,'Sine',2300,600,.3,{noise:P.synth?.15:.9,lowpass:.85,decay:3}),
+    Tone(.38,'Sine',100,34,.5*P.sub,{noise:.4,lowpass:.15,decay:2}),
+    Crackle(.22,14*P.crack),
+    Delay(Tone(.16,'Sine',200,70,.3*P.sub,{noise:.3,lowpass:.25,decay:3}),.05)),P.room*.8),.7)}],
+ ['empcut','Streak','Empowered cut','Same cut with a gold layer: a lower boom, a big bell and a rising swell before it.',.3,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.3,'Saw',110,330,.1,{lowpass:.3,decay:1})),
+    Delay(Tone(.34,P.synth?'Saw':'Sine',3600,300,.38,{noise:P.whN,lowpass:.92,attack:.001,decay:2}),.28),
+    Delay(Tone(.7,'Sine',80,24,.6*P.sub,{noise:.2,lowpass:.15,decay:1.4}),.28),
+    Delay(Tone(.06,'Sine',3600,1900,.3*P.crack,{noise:1,lowpass:.95,decay:3}),.28),
+    Delay(Bell(1.2,P.ring*.7,.16*P.bell),.3),
+    Delay(Bell(1.2,P.ring*1.4,.1*P.bell),.32)),P.room*1.2),.85)}],
+ ['lost','Streak','Streak lost','The target lived: the meter is spent and the chain is gone. A dull drop.',.3,function(P){
+   return Finish(Mix(
+    Tone(.4,'Sine',330,110,.2,{lowpass:.4,decay:2}),
+    Delay(Tone(.1,'Square',160,90,.12,{lowpass:.3,decay:3}),.05)),.4)}]
+];
+for(var i=0;i<5;i++)(function(i){DEFS.push(['chain'+(i+1),'Streak','Chain '+(i+1),'A kill adds a chain; each step rises up a pentatonic line.',.1,function(P){
+   var q=CHAIN_PITCH[i];return Finish(Room(Mix(
+    Notes([q,q*2],.07,P.chime,P.chimeVol,1),
+    Bell(.5,q*2,.08*P.bell),
+    Tone(.12,'Sine',q/4,q/5,.2*P.sub,{lowpass:.3,decay:3})),P.room*.8),.4)}])})(i);
+DEFS.push(['empready','Streak','Empowered','The fifth chain: the blade burns gold. A four-note rise, a bell and a swell under it.',.4,function(P){
+   return Finish(Room(Mix(
+    Notes([784,988,1175,1568],.07,P.chime,P.chimeVol*1.2,1),
+    Delay(Bell(1,784,.14*P.bell),.05),
+    Reverse(Tone(.45,'Saw',110,230,.09,{lowpass:.3,decay:1}))),P.room*1.1),.5)}]);
+var cache={},ctx=null,master=null,cur='steel',vol=.8,enabled=true;
+function ensure(){if(!ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return false;ctx=new C();master=ctx.createGain();master.gain.value=vol;master.connect(ctx.destination)}
+  if(ctx.state==='suspended')ctx.resume();return true}
+function unlock(){ensure()}
+['pointerdown','keydown','touchstart'].forEach(function(n){document.addEventListener(n,unlock,{capture:true})});
+function build(id,set){var key=set+':'+id;if(cache[key])return cache[key];var d=DEFS.filter(function(x){return x[0]===id})[0];if(!d)return null;
+  seed=7+id.length*13;var b=d[5](SETS[set]);cache[key]=b;return b}
+var lastAt={};
+function play(id,opts){if(!enabled||!ctx)return;var set=(opts&&opts.set)||cur,d=DEFS.filter(function(x){return x[0]===id})[0];if(!d)return;
+  var go=function(){var now=ctx.currentTime;if(!(opts&&opts.force)){if(lastAt[id]&&now-lastAt[id]<d[4])return;lastAt[id]=now}
+    var b=build(id,set);if(!b)return;var buf=ctx.createBuffer(1,b.length,RATE);buf.copyToChannel(b,0);var s=ctx.createBufferSource();s.buffer=buf;
+    var g=ctx.createGain();g.gain.value=(opts&&opts.gain)||1;s.connect(g);g.connect(master);s.start(now+((opts&&opts.delay)||0))};
+  if(ctx.state==='running')go();else if(ctx.state==='suspended')ctx.resume().then(go)}
+return{SETS:SETS,DEFS:DEFS,build:build,play:play,
+  setSet:function(s){cur=s},getSet:function(){return cur},setVol:function(v){vol=v;if(master)master.gain.value=v},setEnabled:function(e){enabled=e},ensure:ensure,RATE:RATE}
+})();
+
 (function(){
 'use strict';
 var W=720,H=400,TAU=Math.PI*2;
@@ -221,21 +385,21 @@ function segDist(px,py,a,b,c,d){var vx=c-a,vy=d-b,t=clamp(((px-a)*vx+(py-b)*vy)/
 function route(i){var e=S.en[i],p=epos(e),dx=p.x-S.px,dy=p.y-S.py,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
   return{x0:S.px,y0:S.py,x1:clamp(p.x+ux*BEHIND,24,W-24),y1:clamp(p.y+uy*BEHIND,24,H-24),tx:p.x,ty:p.y,ux:ux,uy:uy,idx:i}}
 function onRoute(path,i){var e=S.en[i];if(!e.alive||i===path.idx)return false;var q=epos(e);return segDist(q.x,q.y,path.x0,path.y0,path.x1,path.y1)<TYPES[e.type].r+24}
-function startTarget(){if(S.phase!=='idle')return;if(S.meter<100){S.shakeBar=.4;setMsg('Meter '+Math.round(S.meter)+' / 100. Land more hits first.');return}
-  S.phase='target';S.pt=0;pickSel();setMsg('Aim with the mouse, then release Alt. The label shows whether the cut kills.')}
+function startTarget(){if(S.phase!=='idle')return;if(S.meter<100){KS.play('empty');S.shakeBar=.4;setMsg('Meter '+Math.round(S.meter)+' / 100. Land more hits first.');return}
+  KS.play('aim');S.phase='target';S.pt=0;pickSel();S.lastSel=S.sel;setMsg('Aim with the mouse, then release Alt. The label shows whether the cut kills.')}
 function release(){if(S.phase!=='target')return;if(S.sel<0){S.phase='idle';return}fire(S.sel)}
-function fire(i){S.path=route(i);S.emp=empowered();S.meter=0;S.phase='wind';S.pt=0;S.face=Math.atan2(S.path.uy,S.path.ux);setMsg('')}
-function cutNow(){var s=S,pa=s.path,emp=s.emp,kills=0,tk=false;
+function fire(i){S.path=route(i);S.emp=empowered();KS.play('stance',{force:true});if(S.emp)KS.play('empcut',{delay:.07,force:true});S.meter=0;S.phase='wind';S.pt=0;S.face=Math.atan2(S.path.uy,S.path.ux);setMsg('')}
+function cutNow(){var s=S,pa=s.path,emp=s.emp,kills=0,tk=false;KS.play('blow',{force:true});
   s.en.forEach(function(e,i){if(!e.alive)return;var isT=i===pa.idx;if(!isT&&!onRoute(pa,i))return;
-    var q=epos(e),dmg=isT?(emp?EDMG:DMG):(emp?EROUTE:ROUTE);e.hp-=dmg;e.f=1;
+    var q=epos(e),dmg=isT?(emp?EDMG:DMG):(emp?EROUTE:ROUTE);e.hp-=dmg;e.f=1;KS.play('hit',{force:true,delay:Math.random()*.06});
     s.fl.push({x:q.x,y:q.y-26,text:String(dmg),age:0,life:1,big:isT,col:isT?(emp?'rgb('+GOLD+')':'#ff8fa8'):'#fff'});
     if(e.hp<=0){e.alive=false;e.rt=1.4;if(isT)tk=true;if(isT||s.opt.route){kills++;s.fl.push({x:q.x+14,y:q.y-8,text:'+1',age:0,life:1.1,col:'#7cf0b8'})}
       s.halves.push({x:q.x,y:q.y,ux:pa.ux,uy:pa.uy,age:0,r:TYPES[e.type].r})}});
   s.stain.push({x0:pa.x0,y0:pa.y0,x1:pa.x1,y1:pa.y1,age:0});s.flash=.35;s.shake=emp?10:7;
   if(tk){s.meter=100;s.keepT=1.2;s.idle=0;
     if(emp&&!s.opt.keep){s.chain=0;s.lastMsg='Empowered strike spent. The meter stayed full; the chain starts again.'}
-    else{s.chain+=kills;s.pop=.4;s.best=Math.max(s.best,s.chain);s.lastMsg=kills>1?kills+' kills. Chain '+s.chain+', meter stays full.':'Kill. Chain '+s.chain+', meter stays full.'}}
-  else{s.chain=0;s.meter=0;s.lost=1.4;s.lastMsg='The target survived: meter spent, streak lost.'}
+    else{s.chain+=kills;KS.play('chain'+Math.min(5,s.chain),{delay:.25,force:true});if(s.chain>=NEED&&s.chain-kills<NEED)KS.play('empready',{delay:.35,force:true});s.pop=.4;s.best=Math.max(s.best,s.chain);s.lastMsg=kills>1?kills+' kills. Chain '+s.chain+', meter stays full.':'Kill. Chain '+s.chain+', meter stays full.'}}
+  else{KS.play('lost',{delay:.2,force:true});s.chain=0;s.meter=0;s.lost=1.4;s.lastMsg='The target survived: meter spent, streak lost.'}
   setMsg(s.lastMsg)}
 function respawn(e,i){var t=Math.random(),type=t<.4?'swarmer':t<.8?'grunt':'brute',x,y,k=0;
   do{x=80+Math.random()*(W-160);y=50+Math.random()*(H-100);k++}while(Math.hypot(x-S.px,y-S.py)<170&&k<20);
@@ -256,10 +420,11 @@ function upd(dt){var s=S,tsT=1,dimT=0,ltT=0;
         if(!pool.length)pool=al;if(Math.random()<.2||empowered())pool=al;
         s.aA=al[Math.floor(Math.random()*al.length)];s.aB=pool[Math.floor(Math.random()*pool.length)];startTarget()}}}
     else if(s.phase==='target'){s.aS+=dt;var ti=s.aS>.8?s.aB:s.aA,tp=epos(s.en[ti]);s.cur.x=lerp(s.cur.x,tp.x,clamp(dt*9,0,1));s.cur.y=lerp(s.cur.y,tp.y,clamp(dt*9,0,1));if(s.aS>1.6)release()}}
-  if(s.phase==='target'){pickSel();if(s.sel<0)s.phase='idle'}
+  if(s.phase==='target'){pickSel();if(s.sel<0)s.phase='idle';else if(s.sel!==s.lastSel){KS.play('switch');s.lastSel=s.sel}}
+  var full=s.meter>=100;if(full&&!s.wasFull&&s.phase==='idle')KS.play('ready');s.wasFull=full;
   var pa=s.path;
-  if(s.phase==='wind'){s.pt+=dt;if(s.pt>=.35){s.phase='dash';s.pt=0}}
-  else if(s.phase==='dash'){s.pt+=dt;if(s.pt>=.14){s.phase='freeze';s.pt=0;s.px=pa.x1;s.py=pa.y1;s.flash=.8;s.shake=5}}
+  if(s.phase==='wind'){s.pt+=dt;if(s.pt>=.35){s.phase='dash';s.pt=0;if(!s.emp)KS.play('cut',{force:true})}}
+  else if(s.phase==='dash'){s.pt+=dt;if(s.pt>=.14){s.phase='freeze';s.pt=0;KS.play('sheathe',{delay:.1,force:true});s.px=pa.x1;s.py=pa.y1;s.flash=.8;s.shake=5}}
   else if(s.phase==='freeze'){s.pt+=dt;if(s.pt>=.5){s.phase='cut';s.pt=0;cutNow()}}
   else if(s.phase==='cut'){s.pt+=dt;if(s.pt>=.7){s.phase='idle';s.pt=0;s.aT=0;s.path=null}}
   for(var i=s.halves.length-1;i>=0;i--){s.halves[i].age+=dt;if(s.halves[i].age>.9)s.halves.splice(i,1)}
@@ -325,7 +490,11 @@ function draw(dt){var x=x2,s=S;x.save();if(s.shake>0)x.translate((Math.random()-
   x.font='500 12px IBM Plex Mono, monospace';x.textAlign='center';x.fillStyle='rgba(255,255,255,.85)';if(s.phase==='target')x.fillText('RELEASE ALT TO STRIKE',W/2,H-14);
   $('hud').textContent=(s.auto?'AUTO-PLAY · ':'')+({idle:'READY',target:'TARGETING',wind:'STANCE',dash:'CUT',freeze:'HELD FRAME',cut:'FALLS'}[s.phase]||'')+(s.emp&&s.phase!=='idle'?' · EMPOWERED':'')}
 function takeover(){if(S.auto){S.auto=false;$('auto').checked=false;if(S.phase==='target')S.phase='idle'}}
-var c2=$('c'),x2=setup(c2);c2.tabIndex=0;
+var c2=$('c'),x2=setup(c2);
+$('sndon').addEventListener('change',function(e){KS.setEnabled(e.target.checked)});
+document.querySelectorAll('input[name=sndset]').forEach(function(r){r.addEventListener('change',function(){KS.setSet(r.value)})});
+$('sndvol').addEventListener('input',function(e){KS.setVol(+e.target.value)});KS.setVol(.7);
+c2.tabIndex=0;
 $('auto').checked=!rm;
 $('auto').addEventListener('change',function(e){S.auto=e.target.checked;S.aT=0});
 c2.addEventListener('pointerdown',function(e){c2.focus();if(S.phase==='target'&&!S.auto)S.cur=toLocal(c2,e)});

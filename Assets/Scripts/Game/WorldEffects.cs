@@ -118,6 +118,9 @@ namespace Arena
                 case FxKind.HarvestThrow:
                     DrawHarvestThrowFx(fx);  // CrimsonHarvestLook.cs
                     break;
+                case FxKind.TitanSlam:
+                    DrawTitanFx(fx);  // TitanLook.cs
+                    break;
                 case FxKind.ShellPop:
                     DrawShellPopFx(fx, f);
                     break;
