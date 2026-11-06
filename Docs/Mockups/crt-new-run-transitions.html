@@ -1,0 +1,396 @@
+<title>New Run Transitions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: controls on top, one 16:9 player (optionally a second synced one for the current look), notes under it.
+   Single dark look on purpose: it mocks a game screen. */
+:root {
+  --page: #080b14; --panel: #11172c; --line: #243055; --fg: #dfe8ff; --muted: #8e9cc4;
+  --blue: #66a3ff; --cyan: #5ce1ff; --warn: #ffb347;
+  --f-ui: "Rajdhani", system-ui, sans-serif; --f-crt: "VT323", "Courier New", monospace; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--fg); font-family: var(--f-ui); padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 17px; line-height: 1.45; max-width: 68ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.seg { font: 700 15px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 9px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--cyan); color: #04141c; border-color: var(--cyan); }
+.seg.base[aria-pressed="true"] { background: var(--warn); border-color: var(--warn); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.go { font: 700 15px var(--f-ui); color: #04141c; background: var(--blue); border: 0; border-radius: 8px; padding: 10px 20px; cursor: pointer; }
+.row2 { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; color: var(--muted); font: 500 13px var(--f-mono); }
+.row2 label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.row2 select { font: 500 13px var(--f-mono); background: #1a2242; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+#scrub { flex: 1 1 240px; min-width: 0; accent-color: var(--cyan); }
+#tread { min-width: 7ch; text-align: right; color: var(--cyan); font-variant-numeric: tabular-nums; }
+.players { display: grid; gap: 14px; grid-template-columns: 1fr; }
+.players.two { grid-template-columns: 1fr 1fr; }
+@media (max-width: 760px) { .players.two { grid-template-columns: 1fr; } }
+.cap { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.notes { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 760px) { .notes { grid-template-columns: 1fr; } }
+.note { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.note h2 { margin: 0 0 8px; font: 600 13px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--cyan); }
+.note p, .note li { margin: 0; font-size: 16px; line-height: 1.5; color: #c9d4f2; }
+.note ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+
+/* ---------- the 960x540 stage ---------- */
+.stage { --ink: #66a3ff; --bg: #04081a; --pg: #0a1a3d; --rim: #1d3566; --glow: rgba(102,163,255,.55); --scanA: .22; --bloom: 0px; --hot: 0;
+  position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+.stage > * { position: absolute; }
+.zoom { inset: 0; }
+.zoom > *, .scr { position: absolute; }
+
+.m-title { left: 0; right: 0; top: 92px; text-align: center; font: 700 44px var(--f-ui); letter-spacing: .14em; color: #fff; text-shadow: 0 0 18px rgba(91,140,255,.8); }
+.m-box { left: 322px; top: 190px; width: 316px; height: 218px; border-radius: 14px; border: 1px solid #4a68b8; background: linear-gradient(#2f3d68, #12162c 85%); box-shadow: 0 0 30px rgba(80,120,255,.18); }
+.m-key { left: 0; right: 0; bottom: 10px; margin: auto; width: 150px; height: 26px; border-radius: 5px; background: #0d1222; border: 1px solid #5877c6; color: #cfe0ff; font: 700 14px/24px var(--f-ui); letter-spacing: .12em; text-align: center; position: absolute; }
+.m-card { left: 36px; bottom: 30px; width: 210px; height: 74px; border-radius: 10px; border: 1px solid #4a68b8; background: linear-gradient(#2a365c, #12162c); padding: 12px 14px; font: 600 15px/1.3 var(--f-ui); color: #cfe0ff; }
+.m-card b { display: block; font-size: 12px; letter-spacing: .12em; color: #8fa6dd; font-weight: 600; }
+
+/* CRT screen: phosphor background, scanlines, vignette. .flat is the current build's plain fill. */
+.scr { background: radial-gradient(70% 80% at 50% 45%, var(--pg) 0%, transparent 100%), var(--bg); color: var(--ink); font-family: var(--f-crt);
+  text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 30px rgba(0,0,0,.8), 0 0 0 2px var(--rim), 0 0 var(--bloom) calc(var(--bloom) / 4) rgba(120,230,255,.85); }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,var(--scanA)) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.6) 100%); }
+.scr.flat { background: var(--bg); text-shadow: none; box-shadow: none; }
+.scr.flat::before, .scr.flat::after { display: none; }
+.scr.open { background: transparent; box-shadow: 0 -2px 14px 2px rgba(120,230,255,.8), 0 2px 14px 2px rgba(120,230,255,.8); border-top: 2px solid #eaffff; border-bottom: 2px solid #eaffff; }
+.scr.open::before, .scr.open::after { display: none; }
+.scr-txt { position: absolute; left: 0; top: 0; width: 270px; height: 150px; padding: 12px 16px; z-index: 1; font-size: 22px; line-height: 1.12; white-space: pre; font-size: 20px; }
+.scr-txt .sel { background: var(--ink); color: var(--bg); text-shadow: none; padding: 0 6px; }
+.hot { position: absolute; inset: 0; z-index: 5; background: #eaffff; opacity: var(--hot); pointer-events: none; }
+.noise { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; image-rendering: pixelated; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
+.tear { position: absolute; left: -10%; width: 120%; z-index: 2; opacity: 0; pointer-events: none; background: linear-gradient(90deg, transparent, rgba(180,240,255,.55) 20%, rgba(255,255,255,.35) 50%, rgba(180,240,255,.55) 80%, transparent); mix-blend-mode: screen; }
+
+/* The lobby: cyan screen, faint lines, scanlines behind the panels */
+.lobby { inset: 0; display: none; background: radial-gradient(70% 80% at 50% 45%, #0a2a3d 0%, transparent 100%), linear-gradient(rgba(80,200,255,.05) 1px, transparent 1px) 0 0 / 100% 4px, #02101a; color: #5ce1ff; overflow: hidden; }
+.lb-scan, .gscan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.34) 0 1px, transparent 1px 3px); pointer-events: none; }
+.gscan { z-index: 20; opacity: 0; }
+.panel { position: absolute; border-radius: 10px; border: 1px solid rgba(92,225,255,.45); background: rgba(4,26,40,.82); padding: 10px 14px; opacity: 0; box-shadow: 0 0 22px rgba(60,190,255,.12); }
+.panel h3 { margin: 0 0 8px; font: 400 26px var(--f-crt); letter-spacing: .06em; color: #5ce1ff; text-shadow: 0 0 6px rgba(70,200,255,.7), 0 0 14px rgba(70,200,255,.5); }
+.chip { height: 18px; border-radius: 4px; background: rgba(92,225,255,.14); border: 1px solid rgba(92,225,255,.3); margin-bottom: 7px; }
+.chip.on { background: rgba(92,225,255,.5); }
+.chip.w1 { width: 62%; } .chip.w2 { width: 80%; } .chip.w3 { width: 46%; }
+.ready { font: 400 28px/44px var(--f-crt); text-align: center; letter-spacing: .18em; color: #5ce1ff; text-shadow: 0 0 8px rgba(70,200,255,.7); padding: 0; }
+
+.bar { left: 0; width: 960px; height: 130px; display: none; z-index: 12; background: linear-gradient(rgba(150,240,255,0), rgba(150,240,255,.5)); border-bottom: 3px solid #eaffff; box-shadow: 0 6px 22px rgba(90,220,255,.75); }
+.log { left: 315px; top: 190px; width: 520px; z-index: 13; font: 400 34px/48px var(--f-crt); white-space: pre; color: #5ce1ff; text-shadow: 0 0 8px rgba(70,200,255,.8), 0 0 18px rgba(70,200,255,.5); }
+.glass { inset: 0; z-index: 25; border-radius: 26px; opacity: 0; pointer-events: none; box-shadow: inset 0 0 90px 10px rgba(0,0,0,.65), inset 0 0 0 3px #26407a, 0 0 0 40px #0b0e1c; }
+.glass::before { content: ""; position: absolute; left: 0; top: 0; width: 55%; height: 130px; border-radius: 26px 0 0 0; background: linear-gradient(135deg, rgba(255,255,255,.06), transparent 70%); }
+@media (prefers-reduced-motion: reduce) { .go { outline: 1px dashed var(--muted); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>New Run Transitions</h1>
+    <p>Pressing New run turns the blue saved-runs screen into the cyan lobby. In the current build the growing screen is a flat colour until the lobby's scanlines and glass pop in at the end. Pick a look below and press play, or drag the bar to freeze any frame. Turn on Compare to see the current build beside it.</p>
+  </header>
+
+  <div class="ctl" id="picker" role="group" aria-label="Transition look"></div>
+
+  <div class="ctl">
+    <button class="go" id="play" type="button">Replay</button>
+    <div class="row2">
+      <label>Speed
+        <select id="speed"><option value="1">1x (3.6 s)</option><option value="0.5">0.5x</option><option value="0.25">0.25x</option></select>
+      </label>
+      <label><input type="checkbox" id="cmp"> Compare with current build</label>
+    </div>
+    <div class="row2" style="flex:1 1 280px">
+      <input type="range" id="scrub" min="0" max="3.6" step="0.01" value="0" aria-label="Time">
+      <span id="tread">0.00 s</span>
+    </div>
+  </div>
+
+  <div class="players" id="players">
+    <div id="cmpWrap" hidden><div class="cap">Current build</div><div class="view" id="viewB"></div></div>
+    <div><div class="cap" id="capA">&nbsp;</div><div class="view" id="viewA"></div></div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><h2>What you see</h2><p id="nSee"></p></div>
+    <div class="note"><h2>What changes in the game</h2><ul id="nGame"></ul></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var T = 3.6, W = 960, H = 540;
+  var S = { x: 345, y: 212, w: 270, h: 150 }, F = { x: 0, y: 0, w: 960, h: 540 };
+  var BLUE = { ink: [102,163,255], bg: [4,8,26], pg: [10,26,61], rim: [29,53,102], glow: [102,163,255] };
+  var CYAN = { ink: [92,225,255], bg: [2,16,26], pg: [10,42,61], rim: [38,64,122], glow: [70,200,255] };
+
+  var VARS = [
+    { id: 0, name: "Current build", base: true,
+      see: "The blue screen flares, grows to the window as a flat blue-to-cyan fill, and only when the lobby starts to light up do the scanlines, vignette and glass appear. That late switch is the jolt.",
+      game: ["This is what LobbyCrt.cs draws today: the grow rectangle uses Ui.Fill and CrtScanlines only."] },
+    { id: 1, name: "A  Glass first",
+      see: "Same timeline as today, but the growing screen already has its glow, scanlines, vignette and rounded bezel from the first frame. Its corners and bezel end exactly where the lobby's glass begins, so nothing pops.",
+      game: ["Draw the grow rectangle with the lobby glass (vignette, bezel 9-slice) scaled to its size instead of a flat fill.", "Cross-fade ink and background earlier (0.3 s to 1.2 s) so the blue never reads as a solid.", "Hand over to DrawLobbyCrtBack when the rectangle is full; they already match.", "Smallest change, no new assets."] },
+    { id: 2, name: "B  Power-on line",
+      see: "An old television switching on. The screen collapses to a bright line, the line stretches across the window and blooms, then the lobby opens out of it from the middle, scanlines and all.",
+      game: ["Three phases on the same rectangle: height to 3 px, width to the window, height to the window.", "The lobby is drawn clipped to the rectangle with its CRT already on, so there is never a flat fill.", "Add a short rising tone and a thunk on the line stretch (Sfx slot)."] },
+    { id: 3, name: "C  Refresh sweep",
+      see: "The menu stays put. The blue screen flares, then a bright scan bar travels from the top of the window to the bottom. Above the bar is the finished cyan lobby, below it is the old menu. Panels slide in as the bar passes them.",
+      game: ["Reuses the sweep bar you already have and moves it earlier and slower.", "Draw the lobby clipped to y above the bar and the menu below it.", "No growing rectangle at all, so no solid colour stage exists."] },
+    { id: 4, name: "D  Static lock",
+      see: "The window opens as a picture full of video noise with tearing bands. The status reads NO SIGNAL, TRACKING, then LOCKED while the noise drains out and the cyan lobby settles in. The panels flicker on.",
+      game: ["Needs a small noise texture (96x54, redrawn each frame at 24 fps) and three tear bands.", "Draws the lobby through the rectangle as it opens, so the picture underneath is always real.", "Reduced effects keeps the old entrance."] },
+    { id: 5, name: "E  Dive in",
+      see: "The camera pushes into the blue screen. Title, box and player card scale past the edges, the screen fills the window while its scanlines hand over to the window-sized ones, then the cyan lobby cross-fades in from inside the glass.",
+      game: ["Scale the menu draw around the screen's centre (GUI matrix) from 1x to 3.6x over 1.5 s.", "Fade the full-window scanlines and glass in during the push.", "The blue and cyan screens cross-fade while both are glass, never flat."] }
+  ];
+
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function seg(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+  function ease(x) { return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+  function lerpRect(a, b, k) { return { x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), w: lerp(a.w, b.w, k), h: lerp(a.h, b.h, k) }; }
+  function mix(a, b, k) { return 'rgb(' + Math.round(lerp(a[0], b[0], k)) + ',' + Math.round(lerp(a[1], b[1], k)) + ',' + Math.round(lerp(a[2], b[2], k)) + ')'; }
+  function mixA(a, b, k, al) { return 'rgba(' + Math.round(lerp(a[0], b[0], k)) + ',' + Math.round(lerp(a[1], b[1], k)) + ',' + Math.round(lerp(a[2], b[2], k)) + ',' + al + ')'; }
+
+  var PANELS = [
+    { x: 40, y: 50, w: 260, h: 190, t: "PARTY", rows: ["on w2", "w1", "w3"], dx: -50, dy: 0 },
+    { x: 320, y: 50, w: 300, h: 110, t: "ROLE", rows: ["on w2", "w1"], dx: 0, dy: -30 },
+    { x: 320, y: 172, w: 300, h: 110, t: "CLASS", rows: ["w2", "on w1"], dx: 0, dy: -30 },
+    { x: 640, y: 50, w: 280, h: 150, t: "WEAPON", rows: ["on w2", "w3", "w1"], dx: 50, dy: 0 },
+    { x: 640, y: 212, w: 280, h: 130, t: "ABILITY", rows: ["w1", "on w2"], dx: 50, dy: 0 },
+    { x: 40, y: 254, w: 260, h: 110, t: "INVITE FRIENDS", rows: ["w2", "w3"], dx: -50, dy: 0 },
+    { x: 40, y: 450, w: 880, h: 46, t: "", rows: [], dx: 0, dy: 40, ready: true }
+  ];
+
+  function Stage(root) {
+    root.innerHTML =
+      '<div class="stage">' +
+      '<div class="zoom zA"><div class="m-title">CARTESIAN COLOSSEUM</div><div class="m-box"><div class="m-key">NEW RUN</div></div>' +
+      '<div class="m-card"><b>PLAYER</b>ANTHONY &middot; KNIGHT</div></div>' +
+      '<div class="lobby"><div class="lb-scan"></div>' + PANELS.map(function (p) {
+        return '<div class="panel' + (p.ready ? ' ready' : '') + '" style="left:' + p.x + 'px;top:' + p.y + 'px;width:' + p.w + 'px;height:' + p.h + 'px">' +
+          (p.ready ? 'READY - PRESS START' : '<h3>' + p.t + '</h3>' + p.rows.map(function (r) { return '<div class="chip ' + r + '"></div>'; }).join('')) + '</div>';
+      }).join('') + '</div>' +
+      '<div class="zoom zB"><div class="scr" style="left:' + S.x + 'px;top:' + S.y + 'px;width:' + S.w + 'px;height:' + S.h + 'px">' +
+      '<div class="scr-txt">SAVED RUNS\nRUN 07   WAVE 12\nRUN 06   WAVE 09\nRUN 05   WAVE 14\n<span class="sel"> + NEW RUN       </span></div>' +
+      '<canvas class="noise" width="96" height="54"></canvas><div class="tear"></div><div class="tear"></div><div class="tear"></div><div class="hot"></div></div></div>' +
+      '<div class="bar"></div><div class="log"></div><div class="gscan"></div><div class="glass"></div></div>';
+    var st = root.firstChild, q = function (s) { return st.querySelector(s); };
+    var el = { st: st, zA: q('.zA'), zB: q('.zB'), lobby: q('.lobby'), scr: q('.scr'), txt: q('.scr-txt'), noise: q('.noise'), tears: st.querySelectorAll('.tear'),
+      bar: q('.bar'), log: q('.log'), gscan: q('.gscan'), glass: q('.glass'), menu: q('.zA'), panels: st.querySelectorAll('.panel') };
+    var nctx = el.noise.getContext('2d'), nimg = nctx.createImageData(96, 54);
+
+    function fit() { var s = root.clientWidth / W; st.style.transform = 'scale(' + s + ')'; }
+    fit();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(root); else window.addEventListener('resize', fit);
+
+    function scr(rect, k, o) {
+      o = o || {};
+      var s = el.scr, a = BLUE, b = CYAN, ink = mix(a.ink, b.ink, k);
+      s.style.left = rect.x + 'px'; s.style.top = rect.y + 'px'; s.style.width = rect.w + 'px'; s.style.height = rect.h + 'px';
+      s.style.borderRadius = (o.r == null ? 14 : o.r) + 'px';
+      s.style.opacity = o.a == null ? 1 : o.a;
+      s.style.display = o.hide ? 'none' : 'block';
+      s.style.filter = o.b ? 'brightness(' + o.b + ')' : 'none';
+      s.style.clipPath = o.clip || 'none';
+      s.classList.toggle('flat', !!o.flat); s.classList.toggle('open', !!o.open);
+      var bgc = mix(a.bg, b.bg, k), bga = o.bgA == null ? 1 : o.bgA;
+      s.style.setProperty('--ink', ink);
+      s.style.setProperty('--bg', bga < 1 ? mixA(a.bg, b.bg, k, bga) : bgc);
+      s.style.setProperty('--pg', mixA(a.pg, b.pg, k, bga));
+      s.style.setProperty('--rim', mix(a.rim, b.rim, k));
+      s.style.setProperty('--glow', mixA(a.glow, b.glow, k, .55));
+      s.style.setProperty('--scanA', o.scanA == null ? .22 : o.scanA);
+      s.style.setProperty('--bloom', (o.bloom || 0) + 'px');
+      s.style.setProperty('--hot', o.hot || 0);
+      el.txt.style.opacity = o.txt == null ? 1 : o.txt;
+      el.noise.style.opacity = o.noise || 0;
+      var amp = o.tear || 0;
+      for (var i = 0; i < el.tears.length; i++) {
+        var tr = el.tears[i], ph = (o.t || 0) * (7 + i * 3) + i * 2.1;
+        tr.style.opacity = amp > 0 ? Math.min(1, amp) * (0.5 + 0.5 * Math.sin(ph * 1.7)) : 0;
+        tr.style.top = ((i * 0.31 + (o.t || 0) * (0.15 + i * 0.07)) % 1) * rect.h + 'px';
+        tr.style.height = (4 + i * 5) + 'px';
+        tr.style.transform = 'translateX(' + (Math.sin(ph) * 40 * amp) + 'px)';
+      }
+      if (o.noise) {
+        var d = nimg.data, seed = Math.floor((o.t || 0) * 24);
+        for (var p = 0; p < d.length; p += 4) {
+          seed = (seed * 1664525 + 1013904223 + p) >>> 0;
+          var v = (seed >>> 24) & 255;
+          d[p] = v * .18; d[p + 1] = v * .42; d[p + 2] = v * .5; d[p + 3] = 255;
+        }
+        nctx.putImageData(nimg, 0, 0);
+      }
+    }
+    function lobbyShow(op, clipRect, round) {
+      el.lobby.style.display = op > 0 ? 'block' : 'none';
+      el.lobby.style.opacity = op;
+      el.lobby.style.clipPath = clipRect ? 'inset(' + clipRect.y + 'px ' + (W - clipRect.x - clipRect.w) + 'px ' + (H - clipRect.y - clipRect.h) + 'px ' + clipRect.x + 'px round ' + (round || 0) + 'px)' : 'none';
+    }
+    function panelsAt(fn) {
+      for (var i = 0; i < el.panels.length; i++) {
+        var p = fn(i), d = PANELS[i], s = el.panels[i].style;
+        s.opacity = p; s.transform = 'translate(' + ((1 - p) * d.dx) + 'px,' + ((1 - p) * d.dy) + 'px)';
+      }
+    }
+    function panelsTimed(t, t0) { panelsAt(function (i) { return ease(seg(t, t0 + i * 0.1, t0 + i * 0.1 + 0.45)); }); }
+    function sweep(t, a, b) {
+      var k = seg(t, a, b);
+      if (k <= 0 || k >= 1) { el.bar.style.display = 'none'; return; }
+      var by = lerp(-130, H + 20, k);
+      el.bar.style.display = 'block'; el.bar.style.top = by + 'px';
+    }
+    function bar(y) { el.bar.style.display = 'block'; el.bar.style.top = (y - 130) + 'px'; }
+    function typeLog(t, t0, fadeOut, lines, speed) {
+      var a = seg(t, t0, t0 + .15) * (1 - seg(t, fadeOut, fadeOut + .3));
+      if (a <= 0) { el.log.textContent = ''; return; }
+      var left = Math.floor((t - t0) / (speed || .028)), out = [];
+      for (var i = 0; i < lines.length && left > 0; i++) { out.push(lines[i].slice(0, left)); left -= lines[i].length; }
+      var cur = (Math.floor(t * 2) % 2 === 0) ? '_' : '';
+      el.log.textContent = out.join('\n') + cur; el.log.style.opacity = a;
+    }
+    function reset() {
+      el.menu.style.opacity = 1; el.menu.style.transform = 'none'; el.zB.style.transform = 'none';
+      el.zA.style.transform = 'none'; el.zA.style.opacity = 1;
+      lobbyShow(0); panelsAt(function () { return 0; });
+      el.bar.style.display = 'none'; el.log.textContent = ''; el.log.style.opacity = 1;
+      el.glass.style.opacity = 0; el.gscan.style.opacity = 0;
+      scr(S, 0, { t: 0 });
+    }
+    var LOG = ["> LINK ESTABLISHED", "> PLAYER   ANTHONY", "> LOADOUT  KNIGHT BRUISER .... OK", "> OPENING LOBBY"];
+
+    function render(v, t) {
+      reset();
+      var away = seg(t, .25, .75);
+      if (v === 0 || v === 1) {
+        el.menu.style.opacity = 1 - away;
+        var flare = seg(t, 0, .4), grow = ease(seg(t, .4, 1.2));
+        var rect = t < .4 ? S : lerpRect(S, F, grow);
+        if (v === 0) {
+          scr(rect, grow, { t: t, flat: true, r: 0, b: 1 + .5 * flare * flare * (t < .4 ? 1 : 0), txt: 1 - seg(t, .4, .7), scanA: 0 });
+          typeLog(t, .6, 2.0, LOG);
+          var pop = seg(t, 2.0, 2.5);
+          lobbyShow(pop > 0 ? 1 : 0); el.glass.style.opacity = pop;
+          if (t >= 1.2) scr(F, 1, { t: t, flat: true, r: 0, a: 1 - pop, txt: 0 });
+          panelsTimed(t, 1.6); sweep(t, 2.0, 3.0);
+          el.lobby.querySelector('.lb-scan').style.opacity = pop;
+        } else {
+          var kk = ease(seg(t, .3, 1.2));
+          scr(rect, kk, { t: t, r: lerp(14, 26, grow), b: 1 + .5 * flare * flare * (t < .4 ? 1 : 0), txt: 1 - seg(t, .4, .7), hide: t >= 1.2, bloom: 18 * Math.sin(Math.PI * grow) });
+          if (t >= 1.2) { lobbyShow(1); el.glass.style.opacity = 1; }
+          else if (t >= .4) { el.glass.style.opacity = 0; }
+          typeLog(t, .6, 2.0, LOG);
+          panelsTimed(t, 1.6); sweep(t, 2.0, 3.0);
+        }
+      } else if (v === 2) {
+        el.menu.style.opacity = 1 - seg(t, 0, .5);
+        var p1 = ease(seg(t, 0, .45)), p2 = ease(seg(t, .45, 1.0)), p3 = ease(seg(t, 1.0, 1.8));
+        var cy = S.y + S.h / 2, rect2;
+        if (t < 1.0) {
+          var h1 = lerp(S.h, 3, p1), w1 = lerp(S.w, W, p2);
+          rect2 = { x: 480 - w1 / 2, y: cy - h1 / 2, w: w1, h: h1 };
+          scr(rect2, p2, { t: t, r: lerp(14, 2, p1), b: 1 + p1 * .8, txt: 1 - seg(t, 0, .25), hot: p1 * (1 - p2 * .35), bloom: 26 * p1 });
+        } else if (t < 1.8) {
+          var hh = lerp(3, H, p3), cyy = lerp(cy, 270, p3);
+          rect2 = { x: 0, y: cyy - hh / 2, w: W, h: hh };
+          scr(rect2, 1, { t: t, open: true, r: 0, txt: 0, hot: 0 });
+          lobbyShow(1, rect2);
+        } else { scr(F, 1, { hide: true }); lobbyShow(1); }
+        el.glass.style.opacity = seg(t, 1.3, 1.9);
+        panelsTimed(t, 1.45);
+        if (t < 1.0) typeLog(t, .0, .0, []);
+      } else if (v === 3) {
+        var fl = seg(t, 0, .5), by = lerp(-20, H + 10, ease(seg(t, .5, 2.1)));
+        el.menu.style.opacity = 1 - .5 * seg(t, .5, 2.1);
+        scr(S, 0, { t: t, b: 1 + .7 * fl * fl, bloom: 22 * fl, clip: 'inset(' + clamp(by - S.y, 0, S.h) + 'px 0 0 0)', hide: by > S.y + S.h });
+        if (t >= .5) {
+          lobbyShow(1, { x: 0, y: 0, w: W, h: clamp(by, 0, H) });
+          el.glass.style.opacity = seg(t, .5, 1.0);
+          if (by < H) bar(by);
+        }
+        panelsAt(function (i) { return t < .5 ? 0 : ease(clamp((by - PANELS[i].y - 10) / 140, 0, 1)); });
+        typeLog(t, 2.0, 2.7, ["> LINK ESTABLISHED"]);
+        el.log.style.left = '50px'; el.log.style.top = '470px'; el.log.style.display = 'none';
+      } else if (v === 4) {
+        el.menu.style.opacity = 1 - away;
+        var g4 = ease(seg(t, 0, 1.1)), r4 = lerpRect(S, F, g4), full = seg(t, 1.0, 1.3);
+        var k4 = ease(seg(t, .3, 2.0)), dr = 1 - seg(t, 1.0, 2.3), flick = (t > 1.0 && t < 2.3) ? (0.78 + .22 * Math.sin(t * 61)) : 1;
+        lobbyShow(1, r4, lerp(14, 0, g4));
+        scr(r4, k4, { t: t, r: lerp(14, 0, g4), bgA: lerp(.88, 0, seg(t, .9, 2.4)), noise: (.15 + .75 * dr) * flick * (1 - seg(t, 2.2, 2.9)), tear: 1.1 * dr * (1 - seg(t, 2.2, 2.6)), txt: 1 - seg(t, .1, .45), hide: t > 2.9, a: 1 - seg(t, 2.4, 2.9), scanA: .3 });
+        el.glass.style.opacity = full;
+        var msg = t < .9 ? ["> NO SIGNAL"] : t < 1.5 ? ["> TRACKING ..."] : ["> SIGNAL LOCKED"];
+        typeLog(t, .15, 2.1, msg, .03);
+        panelsAt(function (i) { var p = ease(seg(t, 1.3 + i * .09, 1.3 + i * .09 + .5)); return p * (p < 1 ? (0.6 + .4 * Math.sin(t * 70 + i)) : 1); });
+        el.log.style.left = '315px'; el.log.style.top = '215px';
+      } else if (v === 5) {
+        var z = ease(seg(t, .1, 1.6)), s = 1 + 2.6 * z, ox = S.x + S.w / 2, oy = S.y + S.h / 2;
+        el.zA.style.transformOrigin = el.zB.style.transformOrigin = ox + 'px ' + oy + 'px';
+        el.zA.style.transform = el.zB.style.transform = 'scale(' + s + ')';
+        el.zA.style.opacity = 1 - seg(t, .9, 1.5);
+        var k5 = ease(seg(t, .6, 1.6));
+        scr(S, k5, { t: t, scanA: .22 * (1 - seg(t, .3, 1.2)), a: 1 - seg(t, 1.4, 1.9), hide: t > 1.9, txt: 1 - seg(t, .3, .9), bloom: 14 * Math.sin(Math.PI * seg(t, 0, 1.6)) });
+        el.gscan.style.opacity = seg(t, .3, 1.3); el.glass.style.opacity = seg(t, .6, 1.5);
+        lobbyShow(seg(t, 1.3, 1.9));
+        el.lobby.style.display = t >= 1.3 ? 'block' : 'none';
+        panelsTimed(t, 1.7);
+        el.log.style.left = '315px'; el.log.style.top = '190px';
+      }
+      if (v !== 3) { el.log.style.display = 'block'; }
+    }
+    return { render: render };
+  }
+
+  /* ---------- page ---------- */
+  var cur = 1, time = 0, playing = false, last = 0, speed = 1;
+  var A = Stage(document.getElementById('viewA')), B = Stage(document.getElementById('viewB'));
+  var picker = document.getElementById('picker'), scrub = document.getElementById('scrub'), tread = document.getElementById('tread');
+  var playBtn = document.getElementById('play'), cmp = document.getElementById('cmp'), speedSel = document.getElementById('speed');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  VARS.forEach(function (v) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'seg' + (v.base ? ' base' : ''); b.textContent = v.name; b.setAttribute('aria-pressed', v.id === cur);
+    b.addEventListener('click', function () { cur = v.id; sync(); start(); });
+    picker.appendChild(b);
+  });
+
+  function draw() {
+    A.render(cur, time);
+    if (cmp.checked) B.render(0, time);
+    scrub.value = time; tread.textContent = time.toFixed(2) + ' s';
+  }
+  function sync() {
+    var v = VARS[cur];
+    Array.prototype.forEach.call(picker.children, function (b, i) { b.setAttribute('aria-pressed', i === cur); });
+    document.getElementById('capA').textContent = v.name;
+    document.getElementById('nSee').textContent = v.see;
+    document.getElementById('nGame').innerHTML = v.game.map(function (g) { return '<li>' + g + '</li>'; }).join('');
+    var two = cmp.checked && cur !== 0;
+    document.getElementById('cmpWrap').hidden = !two;
+    document.getElementById('players').classList.toggle('two', two);
+    draw();
+  }
+  function frame(now) {
+    if (!playing) return;
+    time += (now - last) / 1000 * speed; last = now;
+    if (time >= T) { time = T; playing = false; }
+    draw();
+    if (playing) requestAnimationFrame(frame);
+  }
+  function start() { time = 0; last = performance.now(); playing = true; requestAnimationFrame(frame); }
+
+  playBtn.addEventListener('click', start);
+  speedSel.addEventListener('change', function () { speed = parseFloat(speedSel.value); });
+  cmp.addEventListener('change', sync);
+  scrub.addEventListener('input', function () { playing = false; time = parseFloat(scrub.value); draw(); });
+
+  sync();
+  if (reduce) { time = 1.0; draw(); } else { start(); }
+})();
+</script>
