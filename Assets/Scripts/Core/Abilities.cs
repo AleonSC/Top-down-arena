@@ -26,6 +26,11 @@ namespace Arena
                 }
                 return;
             }
+            if (RainPress(p, slot))  // Sanguine Rain pressed again: the healer cancels it (no cooldown spent)
+            {
+                EndRain(p, true);
+                return;
+            }
             if (StandRelease(p, slot))  // Last Stand pressed again: it comes down (no cooldown spent for the press)
             {
                 p.Run.AbilitiesUsed++;

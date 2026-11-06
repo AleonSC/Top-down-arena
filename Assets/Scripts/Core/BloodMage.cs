@@ -24,7 +24,7 @@ namespace Arena
         const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
         const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
         const float NovaDamage = 20f, NovaHeal = 3f;
-        const float MoonCut = 0.6f, RainSteal = 0.2f;
+        const float MoonCut = 0.6f;
         public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
         public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks
         public const int ClotMaxBase = 5;
@@ -626,14 +626,12 @@ namespace Arena
             return 1f + BloodPriceMax * missing;
         }
 
-        float rainSteal;  // the strongest Sanguine Rain up right now (0 if none)
-
-        /// Healing from damage dealt (HurtEnemy): a Blood Mage's 3% and Frenzy Pact's 10%, and Sanguine Rain for everyone.
+        /// Healing from damage dealt (HurtEnemy): a Blood Mage's 3% and Frenzy Pact's 10%.
         void BloodLifesteal(Player p, float dealt)
         {
             if (p.Downed || dealt <= 0f)
                 return;
-            float frac = rainSteal;
+            float frac = 0f;
             if (p.Kit == Kit.Hemomancer)
                 frac += BloodSteal;
             if (p.RushT > 0f)
@@ -834,8 +832,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SanguineRain, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = AbilityDef.Ult,
-                Name = "Sanguine Rain", Cooldown = 80f, Desc = "For 6 s, every hit any ally lands heals them for 20% of its damage.",
-                Capstone = "Lasts 9 s and heals 30%.",
+                Name = "Sanguine Rain", Cooldown = 80f, Desc = "Draw 12% of your health into a blood orb (1.8 s), then rain circles follow your allies for 10 s, trickling 3% of their health every 0.5 s. It drains you 3% a second and ends when you press it again or fall to 15%.",
+                Capstone = "Lasts 14 s and heals 4% a tick.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
@@ -1014,8 +1012,7 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.SanguineRain:
-                    p.UltT = cap ? 9f : 6f;
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, 200f, 0.6f, Sfx.SpellHoly);
+                    CastRain(p, cap);  // SanguineRain.cs
                     return true;
                 case AbilityId.CrimsonApotheosis:
                     CastHarvest(p, cap);  // CrimsonHarvest.cs
@@ -1027,15 +1024,13 @@ namespace Arena
         // --- Timed effects ---------------------------------------------------------------
 
         /// Host, every tick: Crimson Pact runs down and bursts, Frenzy Pact drains,
-        /// when it ends, Blood Boils go off, and Sanguine Rain's strength is noted for HurtEnemy.
+        /// when it ends, Blood Boils go off.
         void TickBloodMages(float dt)
         {
-            rainSteal = 0f;
             TickCoatings(dt);
+            TickRain(dt);  // SanguineRain.cs
             foreach (var p in Players.Values)
             {
-                if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.SanguineRain)
-                    rainSteal = Math.Max(rainSteal, Mastered(p, AbilityId.SanguineRain) ? 0.3f : RainSteal);
                 if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))
                     p.Grasp.Clear();  // let go of fire and the tendrils let go too
                 if (p.Downed)

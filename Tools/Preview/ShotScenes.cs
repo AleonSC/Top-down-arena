@@ -306,6 +306,22 @@ static partial class Shot {
         en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
       }
     }
+    if (Environment.GetEnvironmentVariable("RAIN") != null) {
+      // A Hemomancer's Sanguine Rain (SanguineRainLook.cs): RAIN=<seconds since the cast> (siphon to 1.8 s, seeds to 2.4 s, then rain; use 4 or 6), with the allies
+      // standing near. RAINEND=<seconds since it ended> shows the rings splashing away instead. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Healer; me.Def = Defs.Get(Role.Healer); me.Slots[Upgrades.UltSlot].Id = AbilityId.SanguineRain;
+      V2 from = new V2(700f, 480f);
+      me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.8f;
+      float rt = float.Parse(Environment.GetEnvironmentVariable("RAIN"));
+      me.RainClock = Math.Max(0.001f, rt); me.UltT = Math.Max(0.1f, Game.RainCast + Game.RainLen - rt);
+      int ai = 0;
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = from + new V2(ai == 0 ? -300f : 280f, ai == 0 ? -120f : 90f); q.Hp = q.MaxHp * 0.55f; ai++; }
+      if (Environment.GetEnvironmentVariable("RAINEND") != null)
+        foreach (var q in gm.Players.Values) if (q != me) { me.RainClock = 0f; gm.Effects.Add(new Effect { Kind = FxKind.RainRelease, Pos = q.Pos, Pos2 = q.Pos, Color = new Rgba(0.88f, 0.13f, 0.25f), Radius = Game.RainRingR, Dur = 0.9f, T = float.Parse(Environment.GetEnvironmentVariable("RAINEND")) }); }
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
