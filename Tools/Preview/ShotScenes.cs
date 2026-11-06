@@ -396,6 +396,16 @@ static partial class Shot {
         }
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
         case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
+        case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)
+        {
+          int bs = int.Parse(Environment.GetEnvironmentVariable("BOSTEP") ?? "0");
+          V2 bdir = V2.FromAngle(me.Aim);
+          if (bs == 0) fx(FxKind.Slash, to, Game.BoSlashArc * MathX.Pi / 360f, 0f, 0.16f);
+          else if (bs == 1) fx(FxKind.Slash, me.Pos + bdir * Game.MeleeReach(me, Game.BoJabReach), -0.3f, 0f, 0.24f);
+          else if (bs == 2) fx(FxKind.Slash, me.Pos + bdir * Game.MeleeReach(me, Game.BoSpinReach), MathX.Pi, 0f, 0.24f);
+          else fx(FxKind.StaffShove, me.Pos + bdir * Game.BoShoveReach, Game.BoShoveHalf, 0f, Game.BoShoveTime + 0.45f);
+          break;
+        }
         default: fx(FxKind.Slash, to, 1.31f, 0f, 0.24f); break;
       }
       gm.Effects.RemoveAll(e => e.T < 0f);

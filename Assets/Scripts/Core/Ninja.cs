@@ -17,6 +17,14 @@ namespace Arena
         public const int KatanaChainNeed = 5;  // kills in a row that empower the next strike
         public const float KatanaWind = 0.35f, KatanaCut = 0.14f, KatanaBehind = 52f, KatanaAimMax = 1.5f;  // the Alt strike: the stance before it, the cut across the arena, how far behind the target you land, the longest you can hold to aim
         public const float KatanaStrikeDmg = 120f, KatanaRouteDmg = 60f, KatanaRouteWidth = 24f, KatanaTargetSlack = 90f;  // what it deals to the target and to what it cut through; how far from where you aimed the host will take the target
+        // The Bo Staff (Docs/Mockups/bo-staff-rework.html): slash, jab, spin, then round again. There is no timer: a click always carries
+        // on from where you left off. The weapon-action key shoves and starts the chain over.
+        public const float BoSlashArc = 130f, BoJabReach = 140f, BoJabWidth = 14f, BoSpinReach = 100f;  // the slash's cone (degrees), the jab's reach and half width, the spin's reach (the slash uses the weapon's own Reach)
+        public const float BoJabMult = 22f / 16f, BoSpinMult = 30f / 16f;  // damage against the slash's
+        public const float BoSlashKnock = 14f, BoJabKnock = 22f, BoSpinKnock = 20f;
+        public static readonly float[] BoStepTime = { 0.32f, 0.30f, 0.80f };  // how long each step holds the next one off (the spin's includes its recovery)
+        public const float BoShoveReach = 78f, BoShoveHalf = 50f, BoShoveMult = 6f / 16f, BoShoveKnock = 70f, BoShoveWind = 0.1f, BoShoveTime = 0.36f, BoShoveCd = 1f;  // the shove's bar: how far out, half its width, damage against the slash's, the push, the pull-back before it lands, how long it holds you, its cooldown
+        public static readonly Rgba BoStaffSage = new Rgba(0.78f, 0.9f, 0.62f);
         public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
         public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
@@ -45,8 +53,34 @@ namespace Arena
                         ThrowKusarigama(p, aim, w.Reach + w.Grow * extra, w.Damage * dmg);  // hooked: the weapon-action key reels you in instead (LocalWeaponDash)
                     break;
                 case WeaponId.BoStaff:
-                    pendingSwings.Add(NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg));
+                {
+                    // Slash, jab, spin, then round again, with no timer (the weapon-action key shoves and starts it over).
+                    int step = p.BoStep;
+                    p.BoStep = (byte)((step + 1) % 3);
+                    p.FireCd = BoStepTime[step] / FireRate(p);
+                    float grow = w.Grow * extra;
+                    Swing s;
+                    if (step == 0)
+                    {
+                        s = NewSwing(p, aim, w.Reach + grow, BoSlashArc, w.Damage * dmg);  // a cone slash
+                        s.Knock = BoSlashKnock;
+                    }
+                    else if (step == 1)
+                    {
+                        s = NewSwing(p, aim, BoJabReach + grow, 0f, w.Damage * BoJabMult * dmg);  // a jab: a line straight ahead
+                        s.HalfWidth = BoJabWidth;
+                        s.Thrust = true;
+                        s.Knock = BoJabKnock;
+                    }
+                    else
+                    {
+                        s = NewSwing(p, aim, BoSpinReach + grow, 360f, w.Damage * BoSpinMult * dmg);  // the full spin
+                        s.Heavy = true;
+                        s.Knock = BoSpinKnock;
+                    }
+                    pendingSwings.Add(s);
                     break;
+                }
                 case WeaponId.FumaShuriken:
                 {
                     // A giant star thrown in an oval loop out in front of you and back, cutting through everything.
@@ -276,8 +310,8 @@ namespace Arena
             // Tank
             new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +30% slash damage", Name = "Kusarigama", FireInterval = 0.55f,
                 Desc = "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun)." },
-            new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 90f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and a 30 px longer vault", Name = "Bo Staff", FireInterval = 0.4f,
-                Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air. Click while moving to vault 150 px, striking everything you pass (24); once every 1.2 s." },
+            new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach on every swing and the shove's push", Name = "Bo Staff", FireInterval = 0.4f,
+                Desc = "Click for a chain that never times out: a cone slash (16, 105 px), a jab (22, 140 px), then a full spin (30, 100 px) that starts it over; every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you (6, knocks back 70 px; once a second) and starts the chain over." },
             new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
                 Desc = "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways." },
             // Healer
@@ -617,8 +651,7 @@ namespace Arena
 
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
-        public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
-        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5;
+        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -874,16 +907,15 @@ namespace Arena
         static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
 
         // Local: this machine's player's weapon dashes.
-        float vaultCd, reelCd;
+        float reelCd;
         bool wasWeaponAction;
 
         /// Your own game, every tick: weapon secondaries go on the weapon-action key (Keybinds, Left Alt by default;
-        /// PlayerInput.WeaponAction). The Bo Staff vaults when you press it while moving; the Kusarigama reels you in to
+        /// PlayerInput.WeaponAction). The Bo Staff shoves; the Kusarigama reels you in to
         /// the enemy it's hooked in; Twin Blades lunge when the combo is full; the Kunai blinks to its mark; the Shuriken
         /// stars come back.
         void LocalWeaponDash(Player me, V2 move, V2 aimAt, bool weaponAction, float dt)
         {
-            vaultCd -= dt;
             reelCd -= dt;
             bool pressed = weaponAction && !wasWeaponAction;
             wasWeaponAction = weaponAction;
@@ -922,17 +954,22 @@ namespace Arena
                 me.KunaiMarkT = 0f;  // used (the host's next snapshot agrees)
                 return;
             }
+            if (me.Weapon.Id == WeaponId.BoStaff && pressed)
+            {
+                if (IsHost)
+                    HostWeaponDash(MyId, DashShove, aimAt);  // no move: the shove lands where you stand, along your aim (the host checks its cooldown)
+                else
+                {
+                    var sw = Proto.Begin(Msg.WeaponDash);
+                    sw.Write(DashShove);
+                    sw.Write(aimAt);
+                    session.SendToHost(Proto.End(sw));
+                }
+                return;
+            }
             V2 target;
             byte kind;
-            if (me.Weapon.Id == WeaponId.BoStaff && pressed && !move.IsZero && vaultCd <= 0f)
-            {
-                DashDir = move.Normalized();
-                target = ClampToArena(me.Pos + DashDir * (VaultDist + VaultGrow * ExtraShots(me)), me.Def.BodyR);
-                dashSpeed = VaultSpeed;
-                vaultCd = VaultCd;
-                kind = DashVault;
-            }
-            else if (me.Weapon.Id == WeaponId.TwinBlades && pressed && me.Combo >= ComboMax && reelCd <= 0f)
+            if (me.Weapon.Id == WeaponId.TwinBlades && pressed && me.Combo >= ComboMax && reelCd <= 0f)
             {
                 DashDir = V2.FromAngle(me.Aim);
                 target = ClampToArena(me.Pos + DashDir * DashStrikeDist, me.Def.BodyR);
@@ -970,7 +1007,7 @@ namespace Arena
             }
         }
 
-        /// Host: a player's weapon moved them to `target`. A vault strikes everything along the way; a reel lands a
+        /// Host: a player's weapon moved them to `target`. A Twin Blades strike cuts everything along the way; a reel lands a
         /// heavy slash on the hooked enemy when you arrive (and lets go of it).
         void HostWeaponDash(int id, int kind, V2 target)
         {
@@ -981,6 +1018,11 @@ namespace Arena
             if (kind == DashKatana)
             {
                 HostKatanaStrike(p, target);
+                return;
+            }
+            if (kind == DashShove)
+            {
+                HostBoShove(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashRecall)
@@ -1003,11 +1045,10 @@ namespace Arena
             V2 from = p.Pos, path = target - from;
             float len = Math.Max(1f, path.Length);
             V2 dir = path / len;
-            if (kind == DashVault && w.Id == WeaponId.BoStaff || kind == DashStrike && w.Id == WeaponId.TwinBlades && p.Combo >= ComboMax)
+            if (kind == DashStrike && w.Id == WeaponId.TwinBlades && p.Combo >= ComboMax)
             {
-                bool strike = kind == DashStrike;
-                float time = len / (strike ? DashStrikeSpeed : VaultSpeed), mult = strike ? DashStrikeMult : VaultMult, width = strike ? DashStrikeWidth : VaultWidth;
-                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // springing over them, or cutting through
+                float time = len / DashStrikeSpeed, mult = DashStrikeMult, width = DashStrikeWidth;
+                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // cutting through
                 foreach (var e in Enemies.Values)
                 {
                     if (e.SpawnT > 0f || e.Hp <= 0f)
@@ -1018,8 +1059,7 @@ namespace Arena
                     HurtEnemy(e, dmg * mult, p.Id);
                     OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg * mult, Kind = Defs.KnightSlash }, e);
                 }
-                if (strike)
-                    p.Combo = 0;
+                p.Combo = 0;
                 BroadcastFx(FxKind.Slash, from, target, Defs.BulletColor(Defs.KnightSlash), 0.12f, 0.2f, Sfx.SwingHeavy);
             }
             else if (kind == DashReel && w.Id == WeaponId.Kusarigama && Hooked(p))
@@ -1160,6 +1200,9 @@ namespace Arena
                 }
                 p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
                 TickKatana(p, dt);
+                p.ShoveCd = Math.Max(0f, p.ShoveCd - dt);
+                if (p.Downed || p.Weapon.Id != WeaponId.BoStaff)
+                    p.BoStep = 0;  // (a downed or re-armed Ninja starts the chain over)
             }
             foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
                 if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))
