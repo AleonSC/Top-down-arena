@@ -570,12 +570,8 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
   looks[0].hidesBody = looks[2].hidesBody = true;  // those two draw the enemy inside the ice
   var secs = document.querySelectorAll("section.look");
   Array.prototype.forEach.call(secs, function (s, i) { var sc = new Scene($("canvas", s), looks[i]); scenes.push(sc); });
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(function (es) { es.forEach(function (en) { var i = Array.prototype.indexOf.call(secs, en.target.closest("section.look")); scenes[i].visible(en.isIntersecting); }); }, { threshold: 0.05 });
-    Array.prototype.forEach.call(document.querySelectorAll("canvas.arena"), function (cv) { io.observe(cv); });
-  }
   var last = performance.now();
-  function loop(now) { var dt = (now - last) / 1000; last = now; scenes.forEach(function (s) { s.frame(dt); }); requestAnimationFrame(loop); }
+  function loop(now) { requestAnimationFrame(loop); var dt = (now - last) / 1000; last = now; scenes.forEach(function (s) { try { s.frame(dt); } catch (e) { if (window.console) console.error(e); } }); }
   requestAnimationFrame(loop);
 
   var pb = $("#pause"), sb = $("#slow"), rb = $("#reduced");
