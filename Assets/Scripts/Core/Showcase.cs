@@ -24,6 +24,7 @@ namespace Arena
         bool demoAbility, ultimate;
         float t, castT;
         bool castHeld;
+        float ultEvery = UltimateEvery;    // the Titan stays 17 s, so its demo waits for it to crumble
         bool allies, reviveDemo, prepped;  // teammates present; a downed one is part of the demo; they're hurt for the next cast
         int castCount, aimTicks;
         const float PrepBefore = 0.9f;     // teammates get hurt this long before a cast, so the heal is seen
@@ -61,6 +62,7 @@ namespace Arena
 
         /// Where your character stands; the dummies are straight ahead (up), Distance away.
         public static readonly V2 Home = new V2(Game.Width / 2f, Game.Height / 2f + 150f);
+        const float BoStaffDemoEvery = 5.2f, BoStaffDemoShove = 3.3f;  // the Bo Staff demo: two full chains and a third cut short by the shove
         public float Distance { get; private set; } = 250f;
 
         /// How far ahead the view should reach: the dummies' distance, growing to fit when a weapon
@@ -80,6 +82,7 @@ namespace Arena
                 this.ability = ability;
                 this.ultimate = ultimate;
                 var shown = ultimate ? Upgrades.Ultimate(role, kit) : ability;
+                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltimateEvery;
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
@@ -92,7 +95,7 @@ namespace Arena
                 float reach = Game.WeaponRange(Me);
                 Distance = Me.Weapon.Melee ? reach * 0.75f : Math.Min(reach * 0.8f, Math.Max(200f, Math.Min(320f, reach * 0.55f)));
                 Game.ShowcaseDummies(Home, Distance);
-                Extent = Distance;
+                Extent = shown == AbilityId.Titan ? Math.Max(Distance, 340f) : Distance;  // zoomed out for a 140 px titan
                 t = 0f;
                 castT = FirstCast;
             }
@@ -122,6 +125,13 @@ namespace Arena
                 input.Move = (Home - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
+            // The Bo Staff: fire runs the slash, jab, spin chain; every few seconds the weapon-action key shoves, partway into a chain so the
+            // reset shows (BoStaff.cs).
+            if (me.Weapon.Id == WeaponId.BoStaff)
+            {
+                float phase = MathX.Fmod(t, BoStaffDemoEvery);
+                input.WeaponAction = phase >= BoStaffDemoShove && phase - dt < BoStaffDemoShove;
+            }
             if (demoAbility)
             {
                 castT -= dt;
@@ -131,7 +141,7 @@ namespace Arena
                 {
                     Game.ShowcaseRefill(ultimate ? Upgrades.UltSlot : 0);
                     castHeld = true;
-                    castT = ultimate ? UltimateEvery : AbilityEvery;
+                    castT = ultimate ? ultEvery : AbilityEvery;
                     prepped = false;
                     castCount++;
                     aimTicks = 4;  // (held abilities cast on release, so the cursor stays put a few ticks)

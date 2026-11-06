@@ -17,6 +17,20 @@ namespace Arena
                 ReleaseOrbit(p);
                 return;
             }
+            if (HarvestPress(p, slot))  // Crimson Harvest pressed again: throw the ball once the rip is over (no cooldown spent)
+            {
+                if (HarvestHolding(p))
+                {
+                    p.Run.AbilitiesUsed++;
+                    ThrowHarvest(p);
+                }
+                return;
+            }
+            if (RainPress(p, slot))  // Sanguine Rain pressed again: the healer cancels it (no cooldown spent)
+            {
+                EndRain(p, true);
+                return;
+            }
             if (StandRelease(p, slot))  // Last Stand pressed again: it comes down (no cooldown spent for the press)
             {
                 p.Run.AbilitiesUsed++;

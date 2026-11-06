@@ -168,8 +168,11 @@ namespace Arena
                 // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
                 const string full = "CARTESIAN COLOSSEUM";
                 float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), cx = W / 2f - fw / 2f + Ui.TextWidth(full.Substring(0, crtTyped), (int)MenuTitleSize, true);
+                // The cursor is as wide as the letter it sits under (the next one to type; an M once the line is done).
+                string under = crtTyped < full.Length && full[crtTyped] != ' ' ? full[crtTyped].ToString() : "M";
+                float cw = Ui.TextWidth(under, (int)MenuTitleSize, true);
                 if ((int)(t * 8f) % 2 == 0)
-                    Ui.Fill(new Rect(cx + 6f, MenuTitleY + 14f + crtDy, 34f, 8f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.9f));
+                    Ui.Fill(new Rect(cx, MenuTitleY + 14f + crtDy, cw, 8f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.9f));
             }
             else if ((int)(t * 1.2f) % 2 == 0)
             {
