@@ -60,9 +60,10 @@ ul.q{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:colum
   <h2 id="stage-h">In the arena</h2>
   <div class="controls">
     <div class="group" role="group" aria-label="Move"><span>Show</span>
+      <button type="button" data-mode="chain" aria-pressed="true">Build-up</button>
       <button type="button" data-mode="combo" aria-pressed="false">Combo</button>
       <button type="button" data-mode="shove" aria-pressed="false">Shove</button>
-      <button type="button" data-mode="both" aria-pressed="true">Both</button>
+      <button type="button" data-mode="both" aria-pressed="false">Both</button>
     </div>
     <div class="group" role="group" aria-label="Look"><span>Look</span>
       <button type="button" data-look="clean" aria-pressed="true">Sweep fill</button>
@@ -72,13 +73,18 @@ ul.q{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:colum
       <button type="button" data-speed="1" aria-pressed="true">1x</button>
       <button type="button" data-speed="0.35" aria-pressed="false">Slow-mo</button>
     </div>
+    <div class="group" id="chainctl" role="group" aria-label="Play it"><span>Play it</span>
+      <button type="button" id="btnC">Click (Z)</button>
+      <button type="button" id="btnA">Alt (X)</button>
+      <button type="button" id="auto" aria-pressed="true">Auto demo</button>
+    </div>
     <div class="group">
       <button type="button" id="pause" aria-pressed="false">Pause</button>
       <button type="button" id="replay">Replay</button>
     </div>
   </div>
   <div class="frame"><canvas id="cv" role="img" aria-label="Top-down animation of the Bo Staff cone slash, jab, full spin and shove hitting dummy enemies"></canvas></div>
-  <p class="hint">Amber dots are small enemy bullets; the spin cuts them. The two dashed dummies in the shove are outside the staff's width and stay put.</p>
+  <p class="hint">Build-up shows the chain rule: clicks stack up with no timer, and Alt wipes the stack. Switch Auto demo off and play it yourself with the buttons, a click on the stage, or the Z and X keys. In Combo and Shove, amber dots are enemy bullets the spin cuts, and the dashed dummies are outside the shove's width.</p>
 </section>
 
 <section aria-labelledby="moves-h">
@@ -105,11 +111,11 @@ ul.q{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:colum
     <article class="card">
       <span class="tag">Secondary · Left Alt</span>
       <h3>Shove</h3>
-      <p>The staff turns sideways and you drive it forward as a wall. It works standing still.</p>
+      <p>The staff turns sideways and you drive it forward as a wall. It works standing still, and it clears your combo build-up.</p>
       <dl><dt>Shape</dt><dd>100 px wide bar</dd><dt>Reach</dt><dd>78 px</dd><dt>Damage</dt><dd>6</dd><dt>Push</dt><dd>0.36 s</dd><dt>Knockback</dt><dd>70 px</dd><dt>Cooldown</dt><dd>1.0 s</dd></dl>
     </article>
   </div>
-  <p class="note" style="margin-top:14px">Combo rule: each beat opens a 0.6 s window for the next click. Let it lapse and the next click starts at the slash again. Damage totals 68 per full combo, against 16 per 0.4 s spin today.</p>
+  <p class="note" style="margin-top:14px">Build-up rule: every click adds one step (slash, then jab, then spin) and the next click always continues from there, however long you wait. The spin ends the chain and starts it over. Alt, at any point, clears the build-up so the next click is a slash again. So click, Alt, click is slash, shove, slash. Damage totals 68 per full combo, against 16 per 0.4 s spin today.</p>
 </section>
 
 <section aria-labelledby="diff-h">
@@ -140,8 +146,8 @@ ul.q{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:colum
 <script>
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const W=720,H=420,P0={x:210,y:210},R=12,L=50,STAFF='#c7e69e';
-let mode='both',look='clean',speed=1,paused=false;
-let T=0,kind='combo',enemies=[],bullets=[],floats=[],sparks=[],poses=[],acts=[],spawns=[],period=3.4,lunge=0;
+let mode='chain',look='clean',speed=1,paused=false;
+let T=0,kind='combo',enemies=[],bullets=[],floats=[],sparks=[],poses=[],acts=[],spawns=[],period=3.4,lunge=0,chainS=null;
 
 const rad=d=>d*Math.PI/180;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -149,7 +155,7 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const eo=t=>1-Math.pow(1-t,3);
 const eio=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const adiff=(a,b)=>{let d=(a-b)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d};
-const mk=(x,y,tag)=>({x,y,vx:0,vy:0,flash:0,hit:{},tag:tag||''});
+const mk=(x,y,tag)=>({x,y,vx:0,vy:0,flash:0,hit:{},tag:tag||'',hx:x,hy:y});
 
 function setup(k){
   kind=k;T=0;floats=[];sparks=[];poses=[];bullets=[];lunge=0;
@@ -158,10 +164,16 @@ function setup(k){
     enemies=[pol(-38,84),pol(34,86),pol(0,128),pol(90,72),pol(-105,74),pol(180,74)];
     acts=[{t:'slash',t0:.45,dur:.32,label:'1  CONE SLASH'},{t:'jab',t0:.95,dur:.28,label:'2  JAB'},{t:'spin',t0:1.45,dur:.6,label:'3  FULL SPIN'}];
     spawns=[{t:1.21,a:162},{t:1.36,a:200},{t:1.48,a:248}];period=3.4;
-  }else{
+  }else if(k==='shove'){
     enemies=[mk(P0.x+70,P0.y-44),mk(P0.x+70,P0.y),mk(P0.x+70,P0.y+44),mk(P0.x+70,P0.y-104,'out'),mk(P0.x+70,P0.y+104,'out')];
     acts=[{t:'shove',t0:.5,dur:.36,label:'ALT  SHOVE'}];spawns=[];period=2.4;
+  }else{
+    enemies=[];for(let i=0;i<8;i++)enemies.push(pol(i*45,72));
+    acts=[];spawns=[];period=Infinity;
+    chainS={n:0,hist:[],buf:null,lock:0,auto:chainS?chainS.auto:true,t0:0,si:0,uid:0};
+    syncAuto();
   }
+  acts.forEach((a,i)=>{a.id=i;});
 }
 const lungeAt=p=>p<.3?0:p<.6?12*eo((p-.3)/.3):lerp(12,0,eio((p-.6)/.4));
 const ray=(a,r,off)=>({cx:P0.x+(off||0)+Math.cos(a)*r,cy:P0.y+Math.sin(a)*r,a});
@@ -175,7 +187,12 @@ function poseOf(a,p){
 function curAct(){for(const a of acts){if(T>=a.t0&&T<=a.t0+a.dur)return a;}return null;}
 function pose(){
   const a=curAct();
-  if(a)return poseOf(a,clamp((T-a.t0)/a.dur,0,1));
+  if(a){
+    const ps=poseOf(a,clamp((T-a.t0)/a.dur,0,1));
+    if(a.from){const u=clamp((T-a.t0)/.07,0,1);if(u<1)return {cx:lerp(a.from.cx,ps.cx,u),cy:lerp(a.from.cy,ps.cy,u),a:a.from.a+adiff(ps.a,a.from.a)*u};}
+    return ps;
+  }
+  if(kind==='chain')return acts.length?poseOf(acts[acts.length-1],1):poseOf({t:'slash'},0);
   if(T<acts[0].t0)return poseOf(acts[0],0);
   for(let i=0;i<acts.length;i++){
     const end=acts[i].t0+acts[i].dur,nx=acts[i+1];
@@ -195,7 +212,7 @@ function hitFx(e,dmg,kn,kx,ky){
 }
 function checkHits(){
   const a=curAct();if(!a)return;
-  const p=clamp((T-a.t0)/a.dur,0,1),Pp=playerPos(),idx=acts.indexOf(a),ps=poseOf(a,p);
+  const p=clamp((T-a.t0)/a.dur,0,1),Pp=playerPos(),idx=a.id,ps=poseOf(a,p);
   for(const e of enemies){
     if(e.hit[idx])continue;
     const dx=e.x-Pp.x,dy=e.y-Pp.y,dist=Math.hypot(dx,dy)||1,ang=Math.atan2(dy,dx);
@@ -205,8 +222,31 @@ function checkHits(){
     else if(a.t==='shove'&&p>=.3&&dx>0&&dx-R<=ps.cx-Pp.x+3&&Math.abs(dy)<=L+R){e.hit[idx]=1;hitFx(e,6,70,1,0);}
   }
 }
+const CH_SEQ=['slash','jab','spin'],CH_DUR={slash:.32,jab:.28,spin:.6,shove:.36},CH_LBL={slash:'1  CONE SLASH',jab:'2  JAB',spin:'3  FULL SPIN',shove:'ALT  SHOVE'};
+const SCRIPT=[[.4,'c'],[1,'c'],[3.4,'c'],[5.6,'c'],[6.2,'a'],[6.9,'c'],[7.5,'c'],[8.1,'c'],[10.4,'c'],[11,'c'],[11.6,'a'],[12.4,'c'],[13,'a'],[13.8,'c'],[14.4,'c'],[15,'c']],SP=16.6;
+const CAPS=[[0,'2 clicks, wait as long as you like, click = spin'],[5.2,'click, ALT, and the build-up starts over'],[10.2,'every ALT wipes the build-up']];
+function syncAuto(){const b=document.getElementById('auto');if(b&&chainS)b.setAttribute('aria-pressed',String(chainS.auto));}
+function chainStart(k){
+  const s=chainS,from=pose();let t;
+  if(k==='a'){t='shove';s.n=0;}else{t=CH_SEQ[s.n];s.n=(s.n+1)%3;}
+  acts.push({t,t0:T,dur:CH_DUR[t],label:CH_LBL[t],id:++s.uid,from});
+  s.lock=T+CH_DUR[t]+(t==='spin'?.35:0);
+  s.hist.push({k,t});if(s.hist.length>6)s.hist.shift();
+  if(acts.length>12)acts.shift();
+}
+function chainPress(k){if(kind!=='chain')return;if(T<chainS.lock)chainS.buf=k;else chainStart(k);}
+function manual(k){if(kind!=='chain')return;chainS.auto=false;syncAuto();chainPress(k);}
 function step(dt){
   T+=dt;
+  if(kind==='chain'){
+    const s=chainS;
+    if(s.auto){
+      const st=T-s.t0;
+      while(s.si<SCRIPT.length&&st>=SCRIPT[s.si][0]){chainPress(SCRIPT[s.si][1]);s.si++;}
+      if(st>=SP){s.t0+=SP;s.si=0;s.n=0;s.hist=[];}
+    }
+    if(s.buf&&T>=s.lock){const k=s.buf;s.buf=null;chainStart(k);}
+  }
   for(const s of spawns){
     if(!s.done&&T>=s.t){s.done=true;const a=rad(s.a),Pp=playerPos();
       bullets.push({x:Pp.x+Math.cos(a)*215,y:Pp.y+Math.sin(a)*215,vx:-Math.cos(a)*330,vy:-Math.sin(a)*330});}
@@ -223,7 +263,7 @@ function step(dt){
     if(spinning&&d<=100){sparks.push({x:b.x,y:b.y,t:T,c:'199,230,158'});bullets.splice(i,1);}
     else if(d<14){sparks.push({x:b.x,y:b.y,t:T,c:'255,120,100'});bullets.splice(i,1);}
   }
-  for(const e of enemies){e.x+=e.vx*dt;e.y+=e.vy*dt;const f=Math.exp(-9*dt);e.vx*=f;e.vy*=f;e.flash=Math.max(0,e.flash-dt);}
+  for(const e of enemies){if(kind==='chain'){e.vx+=(e.hx-e.x)*14*dt;e.vy+=(e.hy-e.y)*14*dt;}e.x+=e.vx*dt;e.y+=e.vy*dt;const f=Math.exp(-9*dt);e.vx*=f;e.vy*=f;e.flash=Math.max(0,e.flash-dt);}
   poses=poses.filter(q=>T-q.t<.3);
   if(T>=period)setup(mode==='both'?(kind==='combo'?'shove':'combo'):mode);
 }
@@ -313,6 +353,7 @@ function draw(){
     ctx.fillStyle='rgba(255,236,170,'+(1-u*u)+')';ctx.fillText(f.txt,f.x,f.y-u*22);
   }
   // HUD
+  if(kind==='chain'){drawChainHud();return;}
   const shown=acts.filter(a=>T>=a.t0-.05);const last=shown[shown.length-1];
   ctx.textAlign='left';ctx.font='700 26px "Barlow Condensed","Arial Narrow",sans-serif';
   ctx.fillStyle='rgba(235,250,215,'+(last?1:.35)+')';
@@ -325,6 +366,24 @@ function draw(){
   }
   ctx.textAlign='right';ctx.font='500 11px "IBM Plex Mono",monospace';ctx.fillStyle='rgba(255,255,255,.4)';
   ctx.fillText(kind==='combo'?'PRIMARY  (click, click, click)':'SECONDARY  (Left Alt)',W-16,28);
+}
+function drawChainHud(){
+  const s=chainS,names=['SLASH','JAB','SPIN'];
+  ctx.textAlign='left';ctx.font='700 26px "Barlow Condensed","Arial Narrow",sans-serif';ctx.fillStyle='#ebfad7';
+  ctx.fillText('NEXT CLICK: '+names[s.n],18,36);
+  for(let i=0;i<3;i++){ctx.fillStyle=i<s.n?'#c7e69e':'#2a3530';ctx.beginPath();ctx.arc(24+i*22,54,6,0,7);ctx.fill();}
+  ctx.textAlign='right';ctx.font='500 11px "IBM Plex Mono",monospace';ctx.fillStyle='rgba(255,255,255,.4)';
+  ctx.fillText('CLICK = next step   ALT = shove + reset',W-16,28);
+  ctx.textAlign='left';
+  let cap='Your turn: click a few times, then try Alt.';
+  if(s.auto){const st=T-s.t0;for(const c of CAPS)if(st>=c[0])cap=c[1];}
+  ctx.font='500 13px "IBM Plex Mono",monospace';ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText(cap,18,H-54);
+  ctx.font='500 11px "IBM Plex Mono",monospace';let x=18;
+  for(const h of s.hist){
+    const lab=(h.k==='a'?'ALT > ':'CLICK > ')+h.t.toUpperCase(),w=ctx.measureText(lab).width+14;
+    ctx.fillStyle=h.k==='a'?'rgba(255,179,71,.18)':'rgba(199,230,158,.16)';ctx.fillRect(x,H-40,w,22);
+    ctx.fillStyle=h.k==='a'?'#ffb347':'#c7e69e';ctx.fillText(lab,x+7,H-25);x+=w+6;
+  }
 }
 function resize(){
   const w=cv.clientWidth,d=Math.min(window.devicePixelRatio||1,2);
@@ -339,15 +398,22 @@ function frame(ts){
 function pick(attr,val,fn){
   document.querySelectorAll('['+attr+']').forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute(attr)===String(val))));fn&&fn();
 }
-document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;pick('data-mode',mode,()=>setup(mode==='shove'?'shove':'combo'));}));
+function startKind(){return mode==='chain'?'chain':mode==='shove'?'shove':'combo';}
+function showCtl(){document.getElementById('chainctl').hidden=mode!=='chain';}
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;pick('data-mode',mode,()=>{showCtl();setup(startKind());});}));
 document.querySelectorAll('[data-look]').forEach(b=>b.addEventListener('click',()=>{look=b.dataset.look;pick('data-look',look);}));
 document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{speed=parseFloat(b.dataset.speed);pick('data-speed',b.dataset.speed);}));
 const pauseBtn=document.getElementById('pause');
 pauseBtn.addEventListener('click',()=>{paused=!paused;pauseBtn.textContent=paused?'Play':'Pause';pauseBtn.setAttribute('aria-pressed',String(paused));});
-document.getElementById('replay').addEventListener('click',()=>setup(mode==='shove'?'shove':'combo'));
+document.getElementById('replay').addEventListener('click',()=>setup(startKind()));
+document.getElementById('btnC').addEventListener('click',()=>manual('c'));
+document.getElementById('btnA').addEventListener('click',()=>manual('a'));
+document.getElementById('auto').addEventListener('click',()=>{if(kind!=='chain')return;const s=chainS;s.auto=!s.auto;if(s.auto){s.t0=T;s.si=0;s.n=0;s.hist=[];}syncAuto();});
+cv.addEventListener('pointerdown',()=>manual('c'));
+window.addEventListener('keydown',e=>{if(e.repeat)return;const k=e.key.toLowerCase();if(k==='z')manual('c');else if(k==='x')manual('a');});
 window.addEventListener('resize',resize);
 
-setup('combo');resize();
+showCtl();setup(startKind());resize();
 if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){
   paused=true;pauseBtn.textContent='Play';pauseBtn.setAttribute('aria-pressed','true');
   while(T<1.7)step(1/120);
