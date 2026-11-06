@@ -1074,25 +1074,30 @@ everyone the run's numbers about once a second, and again the moment the game pa
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The pause menu, **Settings**, **Profile** and **How to play**
-share one look, a **side drawer**: a tall panel on the left with the title and a list, and the open section in a panel
-on the right. Every one of them moves the same way: opening, the drawer **slides in** from the left, its rows follow
-one after another, the line under the title draws across, your party rises and the run card (or the open section)
-drops in with a small bounce; a new list in the drawer (the pause menu's Settings, How to play) comes in from the
-right, and a new section's panel slides in; closing slides the drawer back out (Back or Esc), and only then does the
-window really close. That goes for the pause menu and for Settings from the lobby or the main menu alike.
+share one look, a **CRT cabinet** (`Docs/Mockups/crt-pause-menu.html`): a tall blue cabinet on the left with a header screen
+("PAUSED_", "SETTINGS_", "MENU_") over one screen of digital option keys (inverse video under the mouse or when selected).
+What an option opens appears as its own **CRT window** to the right: it slides out from behind the cabinet and powers on
+the first time you pick something; picking another option while it is open only backspaces and retypes its text. Esc
+(or the window's X key) slides it back in; Esc again goes back. Window controls are digital: ON/OFF keys, segment keys,
+blocky bar sliders with - / + keys, and keybind keys that read "PRESS KEY_" while listening. Opening plays once: the
+cabinet slides out, the header screen powers on and types, its sub-line types a boot log (`> LINK OK > SAVE OK > WAVE n`)
+and then the real line, the option screen powers on under a scan bar and its keys type in one by one; then nothing
+animates. With Reduced effects or Visual effects off there is no animation at all. Closing slides the cabinet and window
+out (Back or Esc), and only then does the window really close.
 
 - **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together), **Field
-  guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Quit**, which asks first
-  ("TO LOBBY OR DESKTOP?", Keep playing picked to start with): **To lobby** (the host only: everyone beams out up a
+  guide**, **How to play** (a window beside the list, its topics as keys along the top), **Settings** (the list switches to Audio, Visual
+  effects, Gameplay, Keybinds and a Back key; each is a window), **Quit**, which asks first
+  ("QUIT?", Keep playing picked to start with): **To lobby** (the host only: everyone beams out up a
   pillar of light, the screen goes dark and the lobby slides back in; the run stays saved to continue later), **To
   desktop** (closes the game), or **Keep playing** (Esc). The controls hint (Hold Tab, H) sits at the foot of the
-  drawer while paused. Choose with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the
-  right with a **this run** card: the wave, time and score, chips for the path (and waves left), the run's modifiers
+  cabinet while paused. Choose with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the
+  right with a **this run** screen (it fades while a window is out): the wave, time and score, chips for the path (and waves left), the run's modifiers
   and the difficulty, the next boss (moving), and this stretch's challenge room (won, lost, or when the next portal
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
-- **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (in the drawer, like the
-  pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
+- **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (the cabinet's list
+  switches, like the pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is

@@ -691,14 +691,24 @@ namespace Arena
         // Leave game, the party, and the run's card. DrawPauseMenu (WindowAnim.cs) slides it in and out.
 
         /// Settings (main menu, lobby; the pause menu's opens from its drawer), as the side drawer (MenuDrawer.cs).
-        void DrawSettings() { if (!SkipWhileClosing) DrawSettingsWindow(false); }
+        void DrawSettings() { if (!SkipWhileClosing) DrawSettingsWindow(); }
 
+        /// One volume in Settings > Audio: its name and a small line on the left, a blocky bar slider with - / + keys on the
+        /// right (CrtWindows.cs). "Weapons  (your shots and spells)" splits into the name and the line.
         bool VolumeSlider(float x, ref float y, float w, string label, ref float value, Color tint)
         {
-            Ui.Label(new Rect(x, y, w - 60f, 20f), label, 14, Ui.Text);
-            Ui.Label(new Rect(x + w - 60f, y, 60f, 20f), Mathf.RoundToInt(value * 100f) + "%", 14, Ui.Muted, TextAnchor.MiddleRight, true);
-            float v = Ui.MeterSlider(new Rect(x, y + 22f, w, 36f), value, tint);
-            y += 66f;
+            string title = label, desc = null;
+            int p = label.IndexOf("  (");
+            if (p > 0 && label.EndsWith(")"))
+            {
+                title = label.Substring(0, p);
+                desc = label.Substring(p + 3, label.Length - p - 4);
+                desc = char.ToUpperInvariant(desc[0]) + desc.Substring(1);
+            }
+            WinLabel(new Rect(x, y + 6f, w - 396f, 48f), title, desc);
+            float v = WinSlider(new Rect(x + w - 376f, y + 6f, 376f, 48f), value);
+            DashLine(x, y + 60f, w);
+            y += 64f;
             if (Mathf.Abs(v - value) < 0.0001f)
                 return false;
             value = v;

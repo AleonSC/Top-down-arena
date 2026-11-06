@@ -457,15 +457,25 @@ namespace Arena
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
                 else if (lobbyMenuOpen && (pauseSettings || pauseHowTo || pauseRecords))
-                    pauseSettings = pauseHowTo = pauseRecords = false;  // the lobby menu's Settings: back to its list
+                    MenuBack();  // a window closes first; then the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)
-                    CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
+                {
+                    if (CabWindowOpen)
+                        CloseCabWindow();  // the section's window slides back in first (CrtWindows.cs)
+                    else
+                        CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
+                }
                 else if (howToOpen)
-                    CloseWindow(() => howToOpen = false);
+                {
+                    if (CabWindowOpen)
+                        CloseCabWindow();
+                    else
+                        CloseWindow(() => howToOpen = false);
+                }
                 else if (profileOpen)
                     CloseWindow(() => profileOpen = false);  // ProfileUi.cs
                 else if (menuPlayOpen && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
@@ -484,7 +494,7 @@ namespace Arena
                 else if (EscPressed && pauseConfirmLobby && menuUp)
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
                 else if (EscPressed && (pauseSettings || pauseHowTo || pauseRecords) && menuUp)
-                    pauseSettings = pauseHowTo = pauseRecords = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
+                    MenuBack();  // a window closes first; then the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (EscPressed)
                 {
                     if (menuUp)

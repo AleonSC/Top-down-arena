@@ -142,14 +142,14 @@ namespace Arena
             float now = Time.unscaledTime;
             var mouse = Event.current.mousePosition;
             var accent = BackgroundAccents[menuBg];
-            Ui.Card(r, accent, 0.4f + 0.15f * Mathf.Sin(now * 2f));
+            CabCard(r, 0.03f);
             var thumb = new Rect(r.x + 10f, r.y + 10f, (r.height - 20f) * W / H, r.height - 20f);
-            bool thumbHover = thumb.Contains(mouse);
+            bool thumbHover = thumb.Contains(mouse) && GUI.enabled;
             float x = thumb.xMax + 14f, w = r.xMax - 12f - x;
-            var big = new Rect(r.xMax - 12f - 74f, r.y + 7f, 74f, 20f);
-            var live = new Rect(big.x - 6f - 58f, r.y + 7f, 58f, 20f);
-            var prev = new Rect(x, r.y + 32f, 26f, 26f);
-            var next = new Rect(x + w - 26f, r.y + 32f, 26f, 26f);
+            var big = new Rect(r.xMax - 12f - 84f, r.y + 6f, 84f, 26f);
+            var live = new Rect(big.x - 6f - 76f, r.y + 6f, 76f, 26f);
+            var prev = new Rect(x, r.y + 38f, 32f, 28f);
+            var next = new Rect(x + w - 32f, r.y + 38f, 32f, 28f);
             float gap = BackgroundNames.Length > 12 ? 2f : 4f;
             float sw = (w - gap * (BackgroundNames.Length - 1)) / BackgroundNames.Length, sy = r.yMax - 15f;
 
@@ -158,63 +158,41 @@ namespace Arena
                 BackgroundThumb(thumb, accent, thumbHover ? 0.95f : 0.55f);
                 EndUiGl();
             }
+            CrtKit.Frame(thumb, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
             if (thumbHover)
                 Ui.Fill(thumb, new Color(0f, 0f, 0f, 0.35f));
 
-            bool liveHover = live.Contains(mouse);
-            Ui.Pill(live, menuBgAnimate ? new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, liveHover ? 1f : 0.85f) : new Color(1f, 1f, 1f, liveHover ? 0.14f : 0.07f));
-            Ui.Label(new Rect(live.x + 20f, live.y, live.width - 22f, live.height), menuBgAnimate ? "LIVE" : "STILL", 10, menuBgAnimate ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-            // Ui.Button takes the click itself, so act on what it returns (the chevrons are drawn on it below).
-            bool clickBig = Ui.Button(big, "BIGGER", Ui.Neutral);
-            bool clickPrev = Ui.Button(prev, "", Ui.Neutral);
-            bool clickNext = Ui.Button(next, "", Ui.Neutral);
+            bool clickBig = WinKey(big, "BIGGER", false, 14);
+            bool clickLive = WinKey(live, menuBgAnimate ? "LIVE" : "STILL", false, 14, menuBgAnimate ? CrtUi.Ink : CrtUi.Dim, true, menuBgAnimate);
+            bool clickPrev = WinKey(prev, "<", false, 18);
+            bool clickNext = WinKey(next, ">", false, 18);
             BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 16, 1f);
 
             int swatchHover = -1;
             for (int i = 0; i < BackgroundNames.Length; i++)
             {
                 var hit = new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f);
-                if (hit.Contains(mouse))
+                if (GUI.enabled && hit.Contains(mouse))
                     swatchHover = i;
                 var c = BackgroundAccents[i];
                 if (BackgroundLocked(i))
                     c = new Color(0.5f, 0.52f, 0.6f);
                 if (i == menuBg)
                 {
-                    Ui.Pill(new Rect(x + i * (sw + gap) - 3f, sy - 5f, sw + 6f, 14f), new Color(c.r, c.g, c.b, 0.22f + 0.1f * Mathf.Sin(now * 3f)));
-                    Ui.Pill(new Rect(x + i * (sw + gap), sy - 2f, sw, 8f), c);
+                    Ui.Fill(new Rect(x + i * (sw + gap) - 2f, sy - 5f, sw + 4f, 14f), new Color(c.r, c.g, c.b, 0.22f + 0.1f * Mathf.Sin(now * 3f)));
+                    Ui.Fill(new Rect(x + i * (sw + gap), sy - 2f, sw, 8f), c);
                 }
                 else
-                    Ui.Pill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
+                    Ui.Fill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
             }
             if (swatchHover >= 0 && swatchHover != menuBg)
-                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), BackgroundNames[swatchHover].ToUpperInvariant() + (BackgroundLocked(swatchHover) ? "  ·  LOCKED: RANK 15" : ""), 10, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 22f), BackgroundNames[swatchHover].ToUpperInvariant() + (BackgroundLocked(swatchHover) ? "  ·  LOCKED: RANK 15" : ""), 11, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
             else
-                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), "MENU BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-
-            if (BeginUiGl())
-            {
-                var ink = new Rgba(0.85f, 0.9f, 1f, 0.9f);
-                Chevron(new V2(prev.center.x + 1f, prev.center.y), new V2(-1f, 0f), 10f, 2.5f, ink);
-                Chevron(new V2(next.center.x - 1f, next.center.y), new V2(1f, 0f), 10f, 2.5f, ink);
-                var dot = new V2(live.x + 11f, live.center.y);
-                if (menuBgAnimate)
-                {
-                    float pulse = 0.5f + 0.5f * Mathf.Sin(now * 4f);
-                    Circle(dot, 5.5f, ToRgba(accent, 0.25f * pulse), 14);
-                    Circle(dot, 3f, ToRgba(Color.Lerp(accent, Color.white, 0.3f), 1f), 12);
-                }
-                else
-                {
-                    FillRect(dot.X - 3.5f, dot.Y - 3.5f, 2.5f, 7f, new Rgba(0.75f, 0.8f, 0.9f, 0.9f));
-                    FillRect(dot.X + 1f, dot.Y - 3.5f, 2.5f, 7f, new Rgba(0.75f, 0.8f, 0.9f, 0.9f));
-                }
-                EndUiGl();
-            }
+                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 22f), "MENU BACKGROUND", 11, CabSoft, TextAnchor.MiddleLeft, true);
 
             if (clickBig)
                 bgBig = true;
-            if (Ui.HitArea(live))
+            if (clickLive)
             {
                 menuBgAnimate = !menuBgAnimate;
                 SaveBackgroundSettings();

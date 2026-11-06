@@ -91,12 +91,26 @@ static partial class Shot {
     {
       set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
-      // PAUSEANIM=0..1: how far the menu has opened (PauseGlitch.cs; default fully open). The torn slices need the
-      // grabbed frame, so the preview shows the rest: the dim, scanlines, the flickering panel and the typed title.
+      // The CRT cabinet (CrtWindows.cs). PAUSEAGE=<s>: that far into the opening (typing, power-on, scan bar; default settled);
+      // PAUSEANIM=0..1: how far the cabinet has slid in (0.3 s) or, with PAUSECLOSE, out. PAUSESET=<0-3>: Settings with that section's
+      // window out (PAUSESET=list: the four sections, no window); PAUSEHOW=<topic>: How to play's window beside the list;
+      // PAUSERECORDS=1: the profile's cabinet; PAUSECONFIRM=1: Quit's question; PAUSEWIN=<s>: that long since its window began to slide out.
       set("pauseMenuOpen", true);
+      set("cabInstant", true);
+      var inv = System.Globalization.CultureInfo.InvariantCulture;
+      float pAnim = float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1", inv);
+      float pAge = Environment.GetEnvironmentVariable("PAUSEAGE") != null ? float.Parse(Environment.GetEnvironmentVariable("PAUSEAGE"), inv) : Environment.GetEnvironmentVariable("PAUSEANIM") != null ? pAnim * 0.3f : 10f;
+      set("pauseOpenedAt", Time.unscaledTime - pAge);
+      set("drawerKey", "pause");
+      float pWin = Environment.GetEnvironmentVariable("PAUSEWIN") != null ? float.Parse(Environment.GetEnvironmentVariable("PAUSEWIN"), inv) : 10f;
       if (Environment.GetEnvironmentVariable("PAUSECONFIRM") != null) set("pauseConfirmLobby", true);  // Leave to lobby's "are you sure" (MenuDrawer.cs)
-      if (Environment.GetEnvironmentVariable("PAUSESET") != null) { set("pauseSettings", true); set("settingsGroup", int.Parse(Environment.GetEnvironmentVariable("PAUSESET"))); set("drawerKey", "pause-settings"); }
-      set("pauseAnim", float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1"));
+      if (Environment.GetEnvironmentVariable("PAUSERECORDS") != null) { set("pauseRecords", true); set("drawerKey", "pause-profile"); set("cabWin", true); set("cabKind", 0); set("cabWinInAt", Time.unscaledTime - 10f); set("profileTab", 2); PreviewSaves(); }
+      if (Environment.GetEnvironmentVariable("PAUSESET") != null) {
+        set("pauseSettings", true); string ps = Environment.GetEnvironmentVariable("PAUSESET");
+        if (ps != "list") { set("settingsGroup", int.Parse(ps)); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 1 }); set("cabWinInAt", Time.unscaledTime - pWin); }
+      }
+      if (Environment.GetEnvironmentVariable("PAUSEHOW") != null) { set("pauseHowTo", true); set("howToTopic", int.Parse(Environment.GetEnvironmentVariable("PAUSEHOW"))); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - pWin); }
+      set("pauseAnim", Environment.GetEnvironmentVariable("PAUSECLOSE") != null || pAge < 0.3f ? pAnim : 1f);
       host.Screen = Environment.GetEnvironmentVariable("PAUSECLOSE") != null ? AppScreen.Menu : AppScreen.Game;  // in a match (PAUSECLOSE: closing, at PAUSEANIM)
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
@@ -281,7 +295,7 @@ static partial class Shot {
       else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
       else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       crtDraw("DrawLobbyCrtGlass");
-      if (Environment.GetEnvironmentVariable("LOBBYMENU") != null) { set("lobbyMenuOpen", true); set("winOpenAt", -10f); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "settings") set("pauseSettings", true); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "howto") set("pauseHowTo", true); Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawLobbyMenu", f2).Invoke(app, null); }  // Esc's menu (MenuDrawer.cs)
+      if (Environment.GetEnvironmentVariable("LOBBYMENU") != null) { set("lobbyMenuOpen", true); set("cabInstant", true); set("drawerKey", "pause"); set("winOpenAt", Time.unscaledTime - (Environment.GetEnvironmentVariable("PAUSEAGE") != null ? float.Parse(Environment.GetEnvironmentVariable("PAUSEAGE"), System.Globalization.CultureInfo.InvariantCulture) : 10f)); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "settings") set("pauseSettings", true); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "howto") { set("pauseHowTo", true); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - 10f); } Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawLobbyMenu", f2).Invoke(app, null); }  // Esc's menu (MenuDrawer.cs)
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
@@ -321,7 +335,18 @@ static partial class Shot {
       GL.ToUi = true;
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
-      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("howToTopic", sec); set("panelKey", mode == "records" ? "profile2_" + sec : (mode == "howto" ? "howto" : mode) + sec); set("panelAt", -10f); }
+      var secEnv = Environment.GetEnvironmentVariable("SECTION");
+      if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("howToTopic", sec); }
+      // The window beside the cabinet (CrtWindows.cs): settings and howto open one (NOWIN=1: just the cabinet's list); WINWIN=<s>: that long since it began to slide out.
+      float winWin = Environment.GetEnvironmentVariable("WINWIN") != null ? float.Parse(Environment.GetEnvironmentVariable("WINWIN"), System.Globalization.CultureInfo.InvariantCulture) : 10f;
+      set("cabInstant", true);
+      if (mode == "howto") set("howToOpen", true);
+      if (mode == "settings") set("settingsOpen", true);
+      if (Environment.GetEnvironmentVariable("NOWIN") == null) {
+        if (mode == "settings") { if (secEnv == null) set("settingsGroup", 1); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 1 }); set("cabWinInAt", Time.unscaledTime - winWin); }
+        else if (mode == "howto") { typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - winWin); }
+        else if (mode == "records" || mode == "cosmetics" || mode == "profile") { set("cabWin", true); set("cabKind", 0); set("cabWinInAt", Time.unscaledTime - winWin); }
+      }
       if (Environment.GetEnvironmentVariable("RTAB") != null) set("recentTab", int.Parse(Environment.GetEnvironmentVariable("RTAB")));  // Recent runs: 0 Overview, 1 Trends (SECTION=4 opens the page)
       if (Environment.GetEnvironmentVariable("RSEL") != null) set("recentSel", int.Parse(Environment.GetEnvironmentVariable("RSEL")));
       set("drawerKey", mode == "howto" ? "howto" : (mode == "records" || mode == "cosmetics" || mode == "profile") ? "profile" : mode);
