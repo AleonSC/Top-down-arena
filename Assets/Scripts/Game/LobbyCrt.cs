@@ -183,7 +183,7 @@ namespace Arena
             {
                 new[] { "> LINK", " ... ESTABLISHED." },
                 new[] { "> PLAYER", " ... " + who + "." },
-                new[] { "> CAT", " ... PET." },
+                new[] { "> CAT", " ... PETTED." },
                 new[] { "> OPENING LOBBY" },
             };
         }
