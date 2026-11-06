@@ -238,10 +238,36 @@ namespace Arena
             if (NoHit)
                 return false;
             NoteHover(r);
-            bool clicked = GUI.Button(r, GUIContent.none, GUIStyle.none);
+            // Not GUI.Button: that matches the press and the release by a control id counted in draw order, and a screen whose
+            // controls change between two events (a fast second click, a layout that just changed) loses the click. This keeps
+            // where the press landed (in screen space) and clicks the area that holds both the press and the release.
+            var e = Event.current;
+            bool clicked = false;
+            if (GUI.enabled && e.button == 0)
+            {
+                if (e.type == EventType.MouseDown && r.Contains(e.mousePosition))
+                {
+                    pressPoint = GUIUtility.GUIToScreenPoint(e.mousePosition);
+                    pressed = true;
+                    e.Use();
+                }
+                else if (e.type == EventType.MouseUp && pressed && r.Contains(e.mousePosition))
+                {
+                    var o = GUIUtility.GUIToScreenPoint(new Vector2(r.x, r.y));
+                    if (new Rect(o.x, o.y, r.width, r.height).Contains(pressPoint))
+                    {
+                        pressed = false;
+                        clicked = true;
+                        e.Use();
+                    }
+                }
+            }
             clickedThisEvent |= clicked;
             return clicked;
         }
+
+        static bool pressed;
+        static Vector2 pressPoint;
 
         static bool clickedThisEvent;
 
