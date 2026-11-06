@@ -1,0 +1,321 @@
+<title>Katana Sounds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, controls (set, volume, four sequences), then every sound in its group as a card with a waveform and its SoundBank recipe.
+   Sounds are made in the page the way SoundBank.cs makes them (Tone, Mix, Notes, Bell, Crackle, Reverse, Reverb, Finish). */
+
+/* Layout: header, then two playable stages (combo chain, then the Alt strike), each a canvas + controls + beat list; numbers table and open questions last.
+   Colour: steel blade, crimson for the strike (matches Death Lotus). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --steel:#2f6f8f; --crim:#c4163f; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --arena:#12171b; --pip:#d3dacf;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:66ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:68ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.hot{background:var(--crim);border-color:var(--crim);color:#fff}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--panel);color:var(--fg)}
+.pips{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.pip{flex:1 1 120px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--panel);display:flex;flex-direction:column;gap:2px;transition:background .08s,border-color .08s}
+.pip b{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase}
+.pip span{font:500 12px var(--mono);color:var(--muted)}
+.pip.next{border-color:var(--steel)}
+.pip.on{background:var(--steel);border-color:var(--steel)} .pip.on b,.pip.on span{color:#fff}
+.pip.lunge.on{background:var(--crim);border-color:var(--crim)}
+.pip.queued::after{content:"QUEUED";font:600 11px var(--mono);letter-spacing:.08em;color:var(--steel)}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bar{flex:1 1 200px;min-width:0;height:14px;border:1px solid var(--line);border-radius:3px;background:var(--pip);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--steel);transition:width .1s}
+.bar.drain i{background:var(--muted);opacity:.8}
+.bar.full i{background:var(--crim);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.bar.full i{animation:none}}
+.meter .num{font:500 13px var(--mono);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.msg{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 14px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.ctl{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+.ctl label.sl{display:flex;align-items:center;gap:10px;font:500 13px var(--mono);color:var(--muted)}
+.ctl input[type=range]{accent-color:var(--crim);width:140px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+.group{display:flex;flex-direction:column;gap:12px}
+.group h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.snds{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.snd{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.snd h3{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.snd h3 button{padding:5px 12px}
+.snd p{margin:0;font-size:14px;color:var(--muted)}
+.snd canvas{width:100%;height:56px;display:block;background:#12171b;border-radius:4px}
+.snd .meta{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.snd details{font-size:12px}.snd summary{cursor:pointer;color:var(--muted);font:500 12px var(--mono)}
+.snd pre{margin:6px 0 0;padding:8px;background:var(--chip);border-radius:4px;overflow-x:auto;font:400 11.5px/1.45 var(--mono);color:var(--fg);white-space:pre}
+.seqs{display:flex;flex-wrap:wrap;gap:10px}
+.note{font-size:14.5px;color:var(--muted);max-width:72ch;margin:0}
+</style>
+
+<main>
+<header>
+  <h1>Katana sounds</h1>
+  <p>Sound effects for the whole moveset: the chain, the meter, the Alt strike and the streak. Three sets of the same sounds, so you can pick a character. They are built in this page from the same pieces the game's <strong>SoundBank</strong> uses, and each card shows the recipe that would go into it.</p>
+</header>
+
+<section class="group">
+  <div class="ctl">
+    <div class="seg" role="radiogroup" aria-label="Sound set">
+      <input type="radio" name="set" id="s1" value="steel" checked><label for="s1">Steel</label>
+      <input type="radio" name="set" id="s2" value="silk"><label for="s2">Silk</label>
+      <input type="radio" name="set" id="s3" value="arcade"><label for="s3">Arcade</label>
+    </div>
+    <label class="sl">Volume <input type="range" id="vol" min="0" max="1" step="0.05" value="0.8"></label>
+  </div>
+  <p class="note" id="setnote"></p>
+  <div class="seqs">
+    <button type="button" id="seqChain">Play the chain</button>
+    <button type="button" id="seqStrike">Play an Alt strike</button>
+    <button type="button" id="seqStreak">Play a streak to empowered</button>
+    <button type="button" id="seqLost">Play a lost streak</button>
+  </div>
+</section>
+
+<div id="groups" style="display:flex;flex-direction:column;gap:36px"></div>
+
+<section class="card">
+  <h3>Putting them in the game</h3>
+  <ul>
+    <li>One new <code>Sfx</code> value per sound, added at the end of the enum (before the other end-of-list groups), each with a <code>Set(...)</code> line in <code>SoundBank.Build()</code>. Names are in the recipe boxes.</li>
+    <li>Two small helpers join the existing ones: <code>Delay</code> (shift a layer later) and <code>Room</code> (the existing <code>Reverb</code> mixed back in at a set amount).</li>
+    <li>The chain, hit, lunge and Alt strike sounds are raised by the host through the existing fx path (<code>BroadcastFx</code> already takes an <code>Sfx</code>), so everyone hears them, quieter with distance as other swings are. The aim, switch, no-charge and meter cues play on your own screen only, like the pick and menu sounds, and are never sent.</li>
+    <li>The Katana's existing <code>SwingLight</code> and <code>SwingHeavy</code> are replaced for the Katana only.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+/* ---- Katana sounds: a JS port of the game's SoundBank primitives (Tone, Mix, Notes, Bell, Crackle, Tremolo, Reverse, Reverb, Finish),
+   so each recipe below reads like the C# line it would become. Every buffer remembers the C# text that built it (.src). ---- */
+var KS=(function(){
+var RATE=44100,TAU=Math.PI*2;
+var seed=7;function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+var OSC={Sine:'Osc.Sine',Square:'Osc.Square',Triangle:'Osc.Triangle',Saw:'Osc.Saw'};
+function f(n){var s=(Math.round(n*10000)/10000).toString();if(s.indexOf('.')<0)s+='.0';return s+'f'}
+function mk(a,src){a.src=src;return a}
+function Tone(dur,osc,f0,f1,vol,o){o=o||{};var noise=o.noise||0,lp=o.lowpass==null?1:o.lowpass,att=o.attack||0.003,dec=o.decay==null?2:o.decay;
+  var n=Math.floor(dur*RATE),d=new Float32Array(n),ph=0,y=0;
+  for(var i=0;i<n;i++){var t=i/RATE,u=i/n,fr=f0*Math.pow(f1/f0,u);ph+=fr/RATE;var p=ph-Math.floor(ph),x;
+    if(osc==='Square')x=p<.5?1:-1;else if(osc==='Triangle')x=4*Math.abs(p-.5)-1;else if(osc==='Saw')x=2*p-1;else x=Math.sin(TAU*p);
+    if(noise>0)x=x*(1-noise)+(rnd()*2-1)*noise;
+    y+=lp*(x-y);d[i]=y*Math.min(1,t/att)*Math.pow(1-u,dec)*vol}
+  var parts=[f(dur),OSC[osc],f(f0),f(f1),f(vol)];['noise','lowpass','attack','decay'].forEach(function(k){if(o[k]!=null)parts.push(k+': '+f(o[k]))});
+  return mk(d,'Tone('+parts.join(', ')+')')}
+function Mix(){var L=[].slice.call(arguments),n=0;L.forEach(function(l){n=Math.max(n,l.length)});var o=new Float32Array(n);
+  L.forEach(function(l){for(var i=0;i<l.length;i++)o[i]+=l[i]});return mk(o,'Mix(\n    '+L.map(function(l){return l.src}).join(',\n    ')+')')}
+function Delay(a,sec){var k=Math.floor(sec*RATE),o=new Float32Array(a.length+k);o.set(a,k);return mk(o,'Delay('+a.src+', '+f(sec)+')')}
+function Reverse(a){var o=Float32Array.from(a).reverse();return mk(o,'Reverse('+a.src+')')}
+function Tremolo(a,hz,depth){var o=Float32Array.from(a);for(var i=0;i<o.length;i++)o[i]*=1-depth*(.5+.5*Math.sin(TAU*hz*i/RATE));return mk(o,'Tremolo('+a.src+', '+f(hz)+', '+f(depth)+')')}
+function Bell(dur,fq,vol){var ra=[1,2.76,5.4,8.93],am=[1,.5,.25,.12],li=[1,.6,.35,.2],n=Math.floor(dur*RATE),d=new Float32Array(n);
+  for(var i=0;i<n;i++){var t=i/RATE,u=i/n,x=0;for(var k=0;k<4;k++)x+=am[k]*Math.sin(TAU*fq*ra[k]*t)*Math.pow(Math.max(0,1-u/li[k]),2);d[i]=x*vol*Math.min(1,t/.004)}
+  return mk(d,'Bell('+f(dur)+', '+f(fq)+', '+f(vol)+')')}
+function Crackle(dur,clicks){var n=Math.floor(dur*RATE),d=new Float32Array(n);
+  for(var c=0;c<clicks;c++){var at=Math.floor(n*Math.pow(rnd(),1.6)),amp=.5+.5*rnd();for(var i=0;i<RATE/200&&at+i<n;i++)d[at+i]+=(rnd()*2-1)*amp*(1-i/(RATE/200))}
+  return mk(d,'Crackle('+f(dur)+', '+clicks+')')}
+function Notes(fr,nd,osc,vol,lp){var per=Math.floor(nd*RATE),d=new Float32Array(per*fr.length);
+  fr.forEach(function(q,k){var t=Tone(nd,osc,q,q,vol,{lowpass:lp,decay:1});for(var i=0;i<Math.min(t.length,per);i++)d[k*per+i]=t[i]});
+  return mk(d,'Notes(new[] { '+fr.map(f).join(', ')+' }, '+f(nd)+', '+OSC[osc]+', '+f(vol)+', '+f(lp)+')')}
+function Reverb(inp){var n=inp.length,out=new Float32Array(n);
+  [29.7,37.1,41.1,43.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d),store=0;
+    for(var i=0;i<n;i++){var y=buf[i%d];store=y*.7+store*.3;buf[i%d]=inp[i]+store*.72;out[i]+=y*.25}});
+  [5,1.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d);
+    for(var i=0;i<n;i++){var b=buf[i%d],x=out[i];buf[i%d]=x+b*.5;out[i]=b-x*.5}});return out}
+function Room(a,wet){var tail=Math.floor(.35*RATE),inp=new Float32Array(a.length+tail);inp.set(a);var r=Reverb(inp),o=new Float32Array(inp.length);
+  for(var i=0;i<o.length;i++)o[i]=inp[i]+r[i]*wet;return mk(o,'Room('+a.src+', '+f(wet)+')')}
+function Finish(a,peak){var o=Float32Array.from(a),n=o.length,fade=Math.min(n,RATE/100|0);for(var i=0;i<fade;i++)o[n-1-i]*=i/fade;
+  var m=0;for(i=0;i<n;i++)m=Math.max(m,Math.abs(o[i]));if(m>0)for(i=0;i<n;i++)o[i]*=peak/m;return mk(o,'Finish('+a.src+', '+f(peak)+')')}
+
+/* ---- the three sets: the same moves, three characters ---- */
+var SETS={
+ steel:{name:'Steel',note:'Real-blade character: airy whooshes with a metallic ring on top, hard cracks, bell tails. Closest to the game\'s Knight swings (SwingLight and SwingHeavy) but sharper.',
+  osc:'Sine',ring:2600,ringVol:.07,whLP:.55,whN:.85,crack:1,room:.25,chime:'Sine',chimeVol:.2,bell:1,sub:1},
+ silk:{name:'Silk',note:'Soft and airy: low-passed whooshes, a quiet ring, no hard cracks, a long room tail. Sits low under the bullets.',
+  osc:'Triangle',ring:1500,ringVol:.045,whLP:.3,whN:.9,crack:.35,room:.5,chime:'Triangle',chimeVol:.16,bell:.6,sub:.8},
+ arcade:{name:'Arcade',note:'Synth blips: square and saw sweeps instead of noise, chirp chimes. Plays well with the game\'s Blink and Pick sounds, least like a real blade.',
+  osc:'Square',ring:1800,ringVol:.05,whLP:.5,whN:.12,crack:.8,room:.1,chime:'Square',chimeVol:.14,bell:.3,sub:1.1,synth:true}};
+var CHAIN_PITCH=[523.25,587.33,659.25,783.99,880];
+/* each sound: [id, group, title, when it plays, gap, builder(P)] */
+var DEFS=[
+ ['swipe1','The chain','Swipe 1','A 110° slash, left to right. Plays when the swing starts.',.05,function(P){
+   return Finish(Mix(
+    Tone(.18,P.synth?'Saw':'Sine',700,260,.16,{noise:P.whN,lowpass:P.whLP,attack:.02,decay:1.6}),
+    Tone(.22,P.osc,P.ring,P.ring*.92,P.ringVol,{lowpass:.6,decay:4})),.45)}],
+ ['swipe2','The chain','Swipe 2','The same arc back, right to left: the whoosh sweeps up first, the ring is a little higher.',.05,function(P){
+   return Finish(Mix(
+    Tone(.18,P.synth?'Saw':'Sine',300,820,.16,{noise:P.whN,lowpass:P.whLP,attack:.02,decay:1.6}),
+    Tone(.22,P.osc,P.ring*1.12,P.ring*1.03,P.ringVol,{lowpass:.6,decay:4})),.45)}],
+ ['windup','The chain','Lunge wind-up','You draw the blade back for the lunge (0.15 s before it lands).',.1,function(P){
+   return Finish(Mix(
+    Tone(.15,'Triangle',180,120,.1,{noise:P.synth?0:.3,lowpass:.25,attack:.06}),
+    Delay(Tone(.025,'Square',1800,1500,.07,{lowpass:.5,decay:3}),.12)),.35)}],
+ ['lunge','The chain','Lunge','The thrust: a sharp rising rush, a crack at the front, a low thump as you push off.',.1,function(P){
+   return Finish(Room(Mix(
+    Tone(.24,P.synth?'Saw':'Sine',500,2300,.2,{noise:P.whN*.85,lowpass:.65,attack:.004,decay:1.2}),
+    Tone(.05,'Sine',3000,1500,.2*P.crack,{noise:1,lowpass:.9,decay:3}),
+    Tone(.14,'Sine',150,55,.3*P.sub,{lowpass:.3,decay:2.5}),
+    Delay(Bell(.35,P.ring*.9,.05*P.bell),.04)),P.room*.5),.6)}],
+ ['hit','The chain','Cut lands','Once per enemy a swipe or the lunge cuts: a slice, a thud and a thin ring.',.04,function(P){
+   return Finish(Mix(
+    Tone(.07,'Sine',1900,650,.2,{noise:P.synth?.1:.9,lowpass:.8,decay:3}),
+    Tone(.13,'Sine',230,90,.26*P.sub,{noise:.3,lowpass:.3,decay:3}),
+    Bell(.28,P.ring*.75,.045*P.bell)),.4)}],
+ ['ready','The meter','Meter full','The strike meter reaches 100: a bright three-note rise with a ring, and the blade is sheathed.',.2,function(P){
+   return Finish(Room(Mix(
+    Notes([1319,1760,2349],.05,P.chime,P.chimeVol,1),
+    Delay(Bell(.55,1568,.1*P.bell),.05)),P.room),.4)}],
+ ['empty','The meter','No charge','You press the weapon-action key without a full meter: a dull tick as the bar shakes.',.15,function(P){
+   return Finish(Tone(.07,'Square',230,190,.18,{lowpass:.35,decay:3}),.3)}],
+ ['aim','Alt strike','Aim begins','You hold the key at full meter: a breath in, a heartbeat, the world slows.',.3,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.38,'Sine',520,160,.12,{noise:P.synth?.2:.9,lowpass:.3,decay:1.2})),
+    Tone(.14,'Sine',72,44,.4*P.sub,{lowpass:.2,decay:2}),
+    Delay(Tone(.14,'Sine',68,42,.3*P.sub,{lowpass:.2,decay:2}),.2),
+    Tone(.5,'Sine',240,110,.06,{lowpass:.4,attack:.1,decay:1.5})),P.room*.6),.5)}],
+ ['switch','Alt strike','Target changes','The reticle jumps to another enemy: a short tick.',.06,function(P){
+   return Finish(Tone(.045,P.synth?'Square':'Triangle',1900,1500,.12,{lowpass:.6,decay:3}),.3)}],
+ ['stance','Alt strike','Stance (release)','You let go: the arena stops, the blade slides half out. Tension rising for 0.35 s.',.3,function(P){
+   return Finish(Room(Mix(
+    Tremolo(Tone(.36,'Saw',300,950,.08,{lowpass:.3,attack:.25,decay:.6}),14,.4),
+    Tone(.3,P.osc,2100,3600,.05,{noise:P.synth?.1:.5,lowpass:.8,attack:.1,decay:.8}),
+    Delay(Bell(.3,P.ring*1.6,.04*P.bell),.2)),P.room*.5),.5)}],
+ ['cut','Alt strike','The cut','One cut across the whole arena: a tearing rush, a boom underneath, a ring that outlasts it.',.3,function(P){
+   return Finish(Room(Mix(
+    Tone(.32,P.synth?'Saw':'Sine',3300,320,.35,{noise:P.whN,lowpass:.9,attack:.001,decay:2}),
+    Tone(.55,'Sine',95,30,.5*P.sub,{noise:.2,lowpass:.15,decay:1.5}),
+    Tone(.06,'Sine',3500,1800,.3*P.crack,{noise:1,lowpass:.95,decay:3}),
+    Delay(Bell(.9,P.ring*1.5,.1*P.bell),.05)),P.room),.75)}],
+ ['sheathe','Alt strike','Sheathe','The held frame: a click as the blade goes home, then quiet until the blow.',.3,function(P){
+   return Finish(Mix(
+    Tone(.03,'Square',900,700,.3,{lowpass:.7,decay:3}),
+    Delay(Tone(.05,'Sine',1400,1200,.15,{decay:4}),.02),
+    Delay(Bell(.45,2200,.06*P.bell),.03)),.4)}],
+ ['blow','Alt strike','The blow','0.4 s later the enemies fall: a heavy slice, a body thud, stone-crack tail.',.3,function(P){
+   return Finish(Room(Mix(
+    Tone(.1,'Sine',2300,600,.3,{noise:P.synth?.15:.9,lowpass:.85,decay:3}),
+    Tone(.38,'Sine',100,34,.5*P.sub,{noise:.4,lowpass:.15,decay:2}),
+    Crackle(.22,14*P.crack),
+    Delay(Tone(.16,'Sine',200,70,.3*P.sub,{noise:.3,lowpass:.25,decay:3}),.05)),P.room*.8),.7)}],
+ ['empcut','Streak','Empowered cut','Same cut with a gold layer: a lower boom, a big bell and a rising swell before it.',.3,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.3,'Saw',110,330,.1,{lowpass:.3,decay:1})),
+    Delay(Tone(.34,P.synth?'Saw':'Sine',3600,300,.38,{noise:P.whN,lowpass:.92,attack:.001,decay:2}),.28),
+    Delay(Tone(.7,'Sine',80,24,.6*P.sub,{noise:.2,lowpass:.15,decay:1.4}),.28),
+    Delay(Tone(.06,'Sine',3600,1900,.3*P.crack,{noise:1,lowpass:.95,decay:3}),.28),
+    Delay(Bell(1.2,P.ring*.7,.16*P.bell),.3),
+    Delay(Bell(1.2,P.ring*1.4,.1*P.bell),.32)),P.room*1.2),.85)}],
+ ['lost','Streak','Streak lost','The target lived: the meter is spent and the chain is gone. A dull drop.',.3,function(P){
+   return Finish(Mix(
+    Tone(.4,'Sine',330,110,.2,{lowpass:.4,decay:2}),
+    Delay(Tone(.1,'Square',160,90,.12,{lowpass:.3,decay:3}),.05)),.4)}]
+];
+for(var i=0;i<5;i++)(function(i){DEFS.push(['chain'+(i+1),'Streak','Chain '+(i+1),'A kill adds a chain; each step rises up a pentatonic line.',.1,function(P){
+   var q=CHAIN_PITCH[i];return Finish(Room(Mix(
+    Notes([q,q*2],.07,P.chime,P.chimeVol,1),
+    Bell(.5,q*2,.08*P.bell),
+    Tone(.12,'Sine',q/4,q/5,.2*P.sub,{lowpass:.3,decay:3})),P.room*.8),.4)}])})(i);
+DEFS.push(['empready','Streak','Empowered','The fifth chain: the blade burns gold. A four-note rise, a bell and a swell under it.',.4,function(P){
+   return Finish(Room(Mix(
+    Notes([784,988,1175,1568],.07,P.chime,P.chimeVol*1.2,1),
+    Delay(Bell(1,784,.14*P.bell),.05),
+    Reverse(Tone(.45,'Saw',110,230,.09,{lowpass:.3,decay:1}))),P.room*1.1),.5)}]);
+var cache={},ctx=null,master=null,cur='steel',vol=.8,enabled=true;
+function ensure(){if(!ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return false;ctx=new C();master=ctx.createGain();master.gain.value=vol;master.connect(ctx.destination)}
+  if(ctx.state==='suspended')ctx.resume();return true}
+function unlock(){ensure()}
+['pointerdown','keydown','touchstart'].forEach(function(n){document.addEventListener(n,unlock,{capture:true})});
+function build(id,set){var key=set+':'+id;if(cache[key])return cache[key];var d=DEFS.filter(function(x){return x[0]===id})[0];if(!d)return null;
+  seed=7+id.length*13;var b=d[5](SETS[set]);cache[key]=b;return b}
+var lastAt={};
+function play(id,opts){if(!enabled||!ctx)return;var set=(opts&&opts.set)||cur,d=DEFS.filter(function(x){return x[0]===id})[0];if(!d)return;
+  var go=function(){var now=ctx.currentTime;if(!(opts&&opts.force)){if(lastAt[id]&&now-lastAt[id]<d[4])return;lastAt[id]=now}
+    var b=build(id,set);if(!b)return;var buf=ctx.createBuffer(1,b.length,RATE);buf.copyToChannel(b,0);var s=ctx.createBufferSource();s.buffer=buf;
+    var g=ctx.createGain();g.gain.value=(opts&&opts.gain)||1;s.connect(g);g.connect(master);s.start(now+((opts&&opts.delay)||0))};
+  if(ctx.state==='running')go();else if(ctx.state==='suspended')ctx.resume().then(go)}
+return{SETS:SETS,DEFS:DEFS,build:build,play:play,
+  setSet:function(s){cur=s},getSet:function(){return cur},setVol:function(v){vol=v;if(master)master.gain.value=v},setEnabled:function(e){enabled=e},ensure:ensure,RATE:RATE}
+})();
+
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i)};
+var cards={};
+function drawWave(cv,b){var d=Math.min(window.devicePixelRatio||1,2),w=cv.clientWidth||300,h=56;cv.width=w*d;cv.height=h*d;var x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);
+  x.fillStyle='#12171b';x.fillRect(0,0,w,h);x.strokeStyle='rgba(255,255,255,.08)';x.beginPath();x.moveTo(0,h/2);x.lineTo(w,h/2);x.stroke();
+  var per=b.length/w;x.fillStyle='#ff8fa8';for(var i=0;i<w;i++){var mx=0,mn=0;for(var j=Math.floor(i*per);j<Math.floor((i+1)*per);j++){var v=b[j];if(v>mx)mx=v;if(v<mn)mn=v}
+    x.fillRect(i,h/2-mx*h*.46,1,Math.max(1,(mx-mn)*h*.46))}}
+function refresh(){var set=KS.getSet();$('setnote').textContent=KS.SETS[set].note;
+  KS.DEFS.forEach(function(d){var c=cards[d[0]],b=KS.build(d[0],set);drawWave(c.cv,b);var pk=0;for(var i=0;i<b.length;i++)pk=Math.max(pk,Math.abs(b[i]));
+    c.meta.textContent=(b.length/KS.RATE).toFixed(2)+' s · peak '+pk.toFixed(2)+' · min gap '+d[4].toFixed(2)+' s';
+    c.pre.textContent='Set(Sfx.Katana'+d[2].replace(/[^A-Za-z0-9]/g,'')+', '+b.src+', '+d[4].toFixed(2)+'f);'})}
+var groups={};KS.DEFS.forEach(function(d){(groups[d[1]]=groups[d[1]]||[]).push(d)});
+var host=$('groups');
+Object.keys(groups).forEach(function(g){var sec=document.createElement('section');sec.className='group';sec.innerHTML='<h2>'+g+'</h2><div class="snds"></div>';host.appendChild(sec);var grid=sec.lastChild;
+  groups[g].forEach(function(d){var el=document.createElement('div');el.className='snd';
+    el.innerHTML='<h3><span>'+d[2]+'</span><button type="button" class="primary">Play</button></h3><p>'+d[3]+'</p><canvas aria-hidden="true"></canvas><div class="meta"></div><details><summary>Recipe (SoundBank.cs)</summary><pre></pre></details>';
+    grid.appendChild(el);cards[d[0]]={cv:el.querySelector('canvas'),meta:el.querySelector('.meta'),pre:el.querySelector('pre')};
+    el.querySelector('button').addEventListener('click',function(){KS.play(d[0],{force:true})})})});
+function seq(list){return function(){list.forEach(function(s){KS.play(s[1],{delay:s[0],force:true})})}}
+var SEQ={
+ chain:[[0,'swipe1'],[.05,'hit'],[.32,'swipe2'],[.37,'hit'],[.62,'windup'],[.77,'lunge'],[.8,'hit'],[.84,'hit'],[1.3,'ready']],
+ strike:[[0,'aim'],[.75,'switch'],[1.3,'stance'],[1.65,'cut'],[1.95,'sheathe'],[2.35,'blow'],[2.4,'hit']],
+ streak:[[0,'chain1'],[.55,'chain2'],[1.1,'chain3'],[1.65,'chain4'],[2.2,'chain5'],[2.25,'empready'],[3.3,'stance'],[3.65,'empcut'],[4.2,'sheathe'],[4.6,'blow'],[4.65,'hit'],[5.1,'ready']],
+ lost:[[0,'stance'],[.35,'cut'],[.65,'sheathe'],[1.05,'blow'],[1.5,'lost']]};
+$('seqChain').addEventListener('click',seq(SEQ.chain));$('seqStrike').addEventListener('click',seq(SEQ.strike));$('seqStreak').addEventListener('click',seq(SEQ.streak));$('seqLost').addEventListener('click',seq(SEQ.lost));
+document.querySelectorAll('input[name=set]').forEach(function(r){r.addEventListener('change',function(){KS.setSet(r.value);refresh()})});
+$('vol').addEventListener('input',function(e){KS.setVol(+e.target.value)});
+refresh();
+})();
+</script>
