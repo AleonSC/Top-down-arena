@@ -7,20 +7,20 @@ namespace Arena
     ///   Behind the panels (DrawLobbyCrtBack): a dark cyan screen (a little see-through, so the chosen menu background still shows
     ///   faintly), a glow in the middle, scanlines and, unless Reduced effects, a slow rolling bar.
     ///   Over everything (DrawLobbyCrtGlass): the dark corners, a glass highlight, a rounded bezel and now and then a flicker.
-    /// New run (StartNewRun) plays about 4.4 s, and any key or click after half a second skips to the end:
+    /// New run (StartNewRun) plays about 7.1 s, and any key or click after half a second skips to the end:
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
     ///   0.4 s   that screen grows from its own edges to the whole window, going from blue to cyan. It is a CRT the whole way
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
-    ///   0.7 s   a link log types itself in the middle (player, petting cat, opening lobby), fading out between 2.7 and 3.0 s
-    ///   2.8 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
+    ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
+    ///   5.5 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
     {
         public static readonly Color LobbyInk = new Color(0.36f, 0.88f, 1f);
         static readonly Color LobbyBg = new Color(0.008f, 0.063f, 0.10f);
-        const float EnterCrtLen = 4.4f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 2.8f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, LobbyCrtBgAlpha = 1f;
+        const float EnterCrtLen = 7.1f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 5.5f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, CrtLogPause = 1.0f, CrtLogFadeAt = 5.6f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 26f, LobbyGlassBezel = 3f;
 
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
@@ -172,11 +172,55 @@ namespace Arena
                 crtEntry = false;
         }
 
-        /// The link log for the middle of the screen, from your own seat.
-        string[] CrtLogLines()
+        /// The link log for the middle of the screen, from your own seat. Each line is typed in parts: the first part, a pause
+        /// with the cursor blinking (CrtLogPause), then the rest ("> LINK" ... " ... ESTABLISHED.").
+        string[][] CrtLogLines()
         {
             string who = string.IsNullOrEmpty(nameText) ? "PLAYER" : nameText.ToUpperInvariant();
-            return new[] { "> LINK ESTABLISHED", "> PLAYER   " + who, "> PETTING CAT .... OK", "> OPENING LOBBY" };
+            if (who.Length > 16)
+                who = who.Substring(0, 16);
+            return new[]
+            {
+                new[] { "> LINK", " ... ESTABLISHED." },
+                new[] { "> PLAYER", " ... " + who + "." },
+                new[] { "> CAT", " ... PET." },
+                new[] { "> OPENING LOBBY" },
+            };
+        }
+
+        /// What the log shows e seconds into the boot: the lines typed so far, the last one carrying the cursor.
+        string[] CrtLogShown(float e)
+        {
+            var lines = CrtLogLines();
+            var shown = new System.Collections.Generic.List<string>();
+            float at = CrtLogAt;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string text = "";
+                for (int j = 0; j < lines[i].Length; j++)
+                {
+                    float dur = lines[i][j].Length * CrtLogCharS;
+                    if (e < at + dur)
+                    {
+                        text += lines[i][j].Substring(0, Mathf.Max(0, Mathf.FloorToInt((e - at) / CrtLogCharS)));
+                        shown.Add(text);
+                        return shown.ToArray();
+                    }
+                    text += lines[i][j];
+                    at += dur;
+                    if (j < lines[i].Length - 1)
+                    {
+                        if (e < at + CrtLogPause)  // waiting, cursor blinking
+                        {
+                            shown.Add(text);
+                            return shown.ToArray();
+                        }
+                        at += CrtLogPause;
+                    }
+                }
+                shown.Add(text);
+            }
+            return shown.ToArray();
         }
 
         /// Instead of DrawLobby while New run is opening it (see the timeline at the top).
@@ -225,19 +269,16 @@ namespace Arena
                 DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e);
 
             // The link log, typed in the middle of the screen and fading out.
-            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - Seg(e, 2.7f, 3.0f));
+            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f));
             if (logA > 0f)
             {
-                var lines = CrtLogLines();
-                int left = Mathf.FloorToInt((e - CrtLogAt) / CrtLogCharS);
-                float y = H / 2f - lines.Length * 24f;
-                for (int i = 0; i < lines.Length && left > 0; i++)
+                var shown = CrtLogShown(e);
+                float y = H / 2f - CrtLogLines().Length * 24f;  // (placed for the whole log, so lines don't shift as it types)
+                for (int i = 0; i < shown.Length; i++)
                 {
-                    int n = Mathf.Min(left, lines[i].Length);
-                    left -= lines[i].Length;
-                    bool current = left <= 0;  // the line being typed carries the cursor
-                    string s = lines[i].Substring(0, n) + (current && !fxReduced && Mathf.FloorToInt(t * 2f) % 2 == 0 ? "_" : "");
-                    CrtUi.Text(new Rect(W / 2f - 330f, y + i * 48f, 700f, 48f), s, 36, new Color(LobbyInk.r, LobbyInk.g, LobbyInk.b, logA), TextAnchor.MiddleLeft, true, false);
+                    bool current = i == shown.Length - 1;  // the last line carries the cursor
+                    string line = shown[i] + (current && !fxReduced && Mathf.FloorToInt(t * 2f) % 2 == 0 ? "_" : "");
+                    CrtUi.Text(new Rect(W / 2f - 330f, y + i * 48f, 700f, 48f), line, 36, new Color(LobbyInk.r, LobbyInk.g, LobbyInk.b, logA), TextAnchor.MiddleLeft, true, false);
                 }
             }
 
