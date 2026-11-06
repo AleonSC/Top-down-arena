@@ -695,6 +695,7 @@ namespace Arena
             // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
+            ClickLogBegin();  // ClickLog.cs (F9)
             TextEditBeginGui();
             Ui.BeginHoverFrame();
             bool modal = labSetupOpen || devMenuOpen || textEditOpen || waveEdOpen;
@@ -794,6 +795,7 @@ namespace Arena
             TextEditEndGui();
             DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)
             bool clicked = Ui.TakeClick();
+            ClickLogEnd(clicked);
             if (Ui.EndHoverFrame() && sounds != null && !clicked)
                 sounds.PlayUiHover(Time.unscaledTime);  // a soft tick when the mouse moves onto a button
             if (clicked && sounds != null)
