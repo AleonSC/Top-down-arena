@@ -79,6 +79,15 @@ namespace Arena
         /// (the strike meter and its chain, Twin Blades' combo, the Rapier's streak) are left alone. Called on the host.
         void ResetAttackChains(Player p)
         {
+            if (p.Weapon.Id == WeaponId.BoStaff)
+            {
+                p.BoStep = 0;  // back to the slash
+                p.FireCd = 0f;
+                p.TapQueued = false;
+                if (boShoves.RemoveAll(sh => sh.Owner == p.Id) > 0)  // a shove still drawing back never lands (and costs no cooldown)
+                    p.ShoveCd = 0f;
+                return;
+            }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
             p.KatanaStep = 0;

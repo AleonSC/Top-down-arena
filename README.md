@@ -209,7 +209,7 @@ you can't spam it). A thin blue bar curving around the shield shows how much it 
 it wears and blinking red when it's nearly gone; when it breaks it cracks and shatters, and while it's lowered a faint
 bar shows it refilling. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
 
-**Animation cancel:** raising the parry sends an attack chain back to its first step, clears the wait for the next step and cancels an attack that hasn't landed yet. Today that is the Katana's swipe, swipe, lunge (a lunge still pulling back never lands). Meters and streaks you have built (the Katana's strike meter and chain, Twin Blades' combo, the Rapier's streak) are kept.
+**Animation cancel:** raising the parry sends an attack chain back to its first step, clears the wait for the next step and cancels an attack that hasn't landed yet. Today that is the Katana's swipe, swipe, lunge (a lunge still pulling back never lands) and the Bo Staff's slash, jab, spin (a shove still drawing back never lands and costs no cooldown). Meters and streaks you have built (the Katana's strike meter and chain, Twin Blades' combo, the Rapier's streak) are kept.
 
 Parry upgrades show up like any other card:
 
