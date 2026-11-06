@@ -125,7 +125,7 @@ namespace Arena
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
-                WithAlpha(newA, () => DrawLobbyTitle(new Rect(118f + (cx - 199f), 30f + (cy - 61f), 260f, 62f), 1f, fxReduced, t));  // (the lobby's own LOBBY_, so the hand-over at the end shows no change)
+                WithAlpha(newA, () => DrawLobbyTitle(new Rect(118f + (cx - 199f), 30f + (cy - 61f), 260f, 62f), 1f, fxReduced, t));  // (the lobby's own title plate, so the hand-over at the end shows no change)
 
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())
