@@ -457,6 +457,18 @@ namespace Arena
                 if (s.Reading)
                     p.Grasp.Add(held);
             }
+            s.Float(ref p.TitheClock);  // Vein Tithe (VeinTithe.cs)
+            int tithed = Math.Min(255, p.Tithed.Count);
+            s.Byte(ref tithed);
+            if (s.Reading)
+                p.Tithed.Clear();
+            for (int k = 0; k < tithed; k++)
+            {
+                int held = s.Reading ? 0 : p.Tithed[k];
+                s.Int(ref held);
+                if (s.Reading)
+                    p.Tithed.Add(held);
+            }
             for (int k = 0; k < Player.WallPlates; k++)
                 s.Byte(ref p.WallPlate[k]);
             s.Float(ref p.UnbreakT);

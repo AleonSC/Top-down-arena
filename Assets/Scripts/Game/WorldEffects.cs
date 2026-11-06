@@ -112,6 +112,9 @@ namespace Arena
                 case FxKind.CavalryCall:
                     DrawCavalryCallFx(fx);  // CavalryCallLook.cs
                     break;
+                case FxKind.TitheSnap:
+                    DrawTitheSnapFx(fx, f);  // VeinTitheLook.cs
+                    break;
                 case FxKind.RainRelease:
                     DrawRainReleaseFx(fx, f);  // SanguineRainLook.cs
                     break;

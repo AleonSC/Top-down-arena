@@ -401,18 +401,7 @@ static partial class Program
         foreach (var e in new[] { close, far, behind }) { keep.Remove(e); e.Hp = 0f; }
         hp.Clot = 0;
 
-        // Blood Rite: 60% less damage, and the damage you take heals your allies.
-        hp.Hp = hp.MaxHp; cp.Hp = cp.MaxHp * 0.3f;
-        hp.Slots[Upgrades.UltSlot].Charges = 1;
-        cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, hp.Pos, true });
-        float c1 = cp.Hp;
-        hp.DevGod = false;
-        damage.Invoke(g, new object[] { hp, 100f / g.EnemyDamageScale(g.Wave), "test" });
-        hp.DevGod = true;
-        float moonTaken = hp.MaxHp - hp.Hp;
-        Console.WriteLine("  blood rite: took {0:0} of 100; ally healed {1:0}", moonTaken, cp.Hp - c1);
-        Check(Math.Abs(moonTaken - 40f) < 1f && Math.Abs(cp.Hp - c1 - moonTaken) < 1f, "Blood Rite: you take 60% less and your allies heal what you take");
-        hp.UltT = 0f;
+        // (Blood Rite became Vein Tithe: tests in Tithe.cs.)
 
         s[0].Leave(""); s[1].Leave("");
     }
