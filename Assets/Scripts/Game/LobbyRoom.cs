@@ -32,8 +32,7 @@ namespace Arena
         /// The Loadout's preview window (the live mini-arena on the hero card): the Hangout grows out of it. DrawLoadout uses this too.
         static Rect ShowcaseRect(Rect body)
         {
-            var hero = new Rect(body.x + 14f, body.y + 14f, 232f, body.height - 28f);
-            return new Rect(hero.x + 8f, hero.y + 8f, hero.width - 16f, 180f);
+            return new Rect(body.x + 16f, body.y + 16f, 262f, 210f);
         }
 
         static Rect HangoutView(Rect body) => new Rect(body.x + 4f, body.y + 30f, body.width - 8f, body.height - 34f);

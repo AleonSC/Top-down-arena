@@ -420,12 +420,10 @@ namespace Arena
         void DrawResumeBanner(Rect r, float t)
         {
             var s = session.Resume;
-            Ui.Pill(r, new Color(0.04f, 0.05f, 0.08f, 0.9f));
-            var inner = new Rect(r.x + 4f, r.y + 4f, r.width - 8f, r.height - 8f);
-            Ui.Pill(inner, new Color(SaveColor.r * 0.45f, SaveColor.g * 0.45f, SaveColor.b * 0.45f, 0.9f));
-            Ui.Fill(new Rect(inner.x + 10f, inner.yMax - 3f, inner.width - 20f, 2f), new Color(1f, 1f, 1f, 0.35f + 0.15f * Mathf.Sin(t * 3f)));
-            Ui.Fancy(new Rect(inner.x, inner.y + 4f, inner.width, 24f), "CONTINUING A SAVED RUN", 17, Color.white, new Color(0.85f, 1f, 0.9f), TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(inner.x, inner.y + 27f, inner.width, 16f), "Starts at wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat", 11, new Color(1f, 1f, 1f, 0.85f), TextAnchor.MiddleCenter);
+            Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f));  // a lit key that does nothing: which run this is
+            CrtKit.Frame(r, 2f, CrtUi.Ink);
+            Ui.Label(new Rect(r.x + 6f, r.y + 8f, r.width - 12f, 26f), "CONTINUING A SAVED RUN", 21, CrtUi.Bg, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(r.x + 6f, r.y + 33f, r.width - 12f, 18f), "Starts at wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat", 12, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.85f), TextAnchor.MiddleCenter);
         }
 
         /// Instead of your loadout: the run's seats, who's in each, and a button to move to a free one.
@@ -463,7 +461,7 @@ namespace Arena
                 else
                 {
                     Ui.Badge(who, "FREE SEAT", new Color(0.3f, 0.34f, 0.42f));
-                    if (Ui.ActionButton(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "Take this seat", true, Ui.Primary, null, null, 16))
+                    if (LobbyKit.Key(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "TAKE THIS SEAT", false, fxReduced, size: 18, minSize: 12))
                         session.RequestSeat(i);
                 }
                 y += 112f;

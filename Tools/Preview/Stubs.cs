@@ -25,7 +25,21 @@ namespace UnityEngine {
   public class GUIStyleState { public Color textColor; public Texture2D background; }
   public class RectOffset { public int left,right,top,bottom; public int horizontal { get { return left + right; } } public RectOffset(int l,int r,int t,int b){left=l;right=r;top=t;bottom=b;} }
   public enum TextureFormat { RGBA32, RGB24 } public enum FilterMode { Point, Bilinear } public enum TextureWrapMode { Clamp, Repeat }
-  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2((c.text ?? "").Length * fontSize * 0.55f + 20f, fontSize + 8f); } public float CalcHeight(GUIContent c, float w){ float cw = (c.text ?? "").Length * fontSize * 0.5f; int lines = 1 + (int)(cw / System.Math.Max(1f, w - 8f)); return lines * fontSize * 1.18f + 4f; } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
+  // Text widths like Arial (the game's default font; the preview draws with Liberation Sans, which has the same metrics), so TextWidth / TextHeight in the preview match what Unity measures.
+  public static class TextW {
+    static readonly short[] reg = { 278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278, 556,556,556,556,556,556,556,556,556,556, 278,278,584,584,584,556, 1015, 667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611, 278,278,278,469,556,333, 556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500, 334,260,334,584 };
+    static readonly short[] bold = { 278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278, 556,556,556,556,556,556,556,556,556,556, 333,333,584,584,584,611, 975, 722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611, 333,278,333,584,556,333, 556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500, 389,280,389,584 };
+    public static float Width(string t, int size, bool b) { var w = b ? bold : reg; float x = 0; foreach (char ch in t) { int i = ch - 32; x += (i >= 0 && i < w.Length ? w[i] : 600) * size / 1000f; } return x; }
+    public static int Lines(string t, int size, bool b, float width) {
+      int lines = 0;
+      foreach (var para in t.Split('\n')) {
+        lines++; float x = 0, sp = Width(" ", size, b);
+        foreach (var word in para.Split(' ')) { float ww = Width(word, size, b); if (x > 0 && x + ww > width) { lines++; x = 0; } x += ww + sp; }
+      }
+      return lines;
+    }
+  }
+  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2(TextW.Width(c.text ?? "", fontSize, fontStyle == FontStyle.Bold) + 6f, fontSize + 8f); } public float CalcHeight(GUIContent c, float w){ int lines = TextW.Lines(c.text ?? "", fontSize, fontStyle == FontStyle.Bold, System.Math.Max(1f, w - 6f)); return lines * fontSize * 1.18f + 4f; } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
   public sealed class GUILayoutOption {}
   public class GUISkin { public GUIStyle label = new GUIStyle(); }
   public class GUI { public static void DrawTextureWithTexCoords(Rect r, Texture t, Rect uv){} public static void SetNextControlName(string n){} public static void FocusControl(string n){} public static string TextArea(Rect r, string t, GUIStyle s){return t;} public static string GetNameOfFocusedControl(){return "";}

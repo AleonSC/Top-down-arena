@@ -28,7 +28,7 @@ namespace Arena
 
         void DrawDifficulty(Rect r, float t)
         {
-            Ui.BodyBox(r);
+            LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
             bool host = session.IsHost, locked = session.Resume != null;
             bool canEdit = host && !locked;
             var diff = session.Diff;

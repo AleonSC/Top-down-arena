@@ -30,6 +30,7 @@ namespace Arena
         void DrawLobby()
         {
             float t = Time.unscaledTime;
+            bool calm = fxReduced;
             lockedTipOn = false;
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
@@ -52,64 +53,56 @@ namespace Arena
                 lobbyTab = 0;
             if (practice && lobbyTab == PerkTab)
                 lobbyTab = 0;  // perks are off in the Practice Range
-            var infoButton = new Rect(260f, 28f, 28f, 28f);
+            var infoButton = new Rect(396f, 40f, 56f, 50f);
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
             {
-                // The popup is drawn last, so eat clicks on it before the buttons under it see them; a click outside closes it.
+                // The popup is drawn last, so eat clicks on it before the keys under it see them; a click outside closes it.
                 if (!infoPanel.Contains(Event.current.mousePosition))
                     connInfoOpen = false;
                 Event.current.Use();
             }
 
-            // --- Left column, top: the title, then the mode switch (a choice for the whole lobby, so it sits with the party).
-            // Back: a small red button beside the title (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs).
-            // Same card as the loadout's tiles (Ui.ActionButton), with a red arrow.
-            var backR = new Rect(40f, 15f, LobbyActionH, LobbyActionH);
-            if (MenuVhs.Draw(backR, null, true, fxReduced, () => Ui.ActionButton(backR, "", false, Ui.Primary, PixelArt.Get("ui_back"), new Color(1f, 0.6f, 0.64f))))
+            // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
+            // then the mode keys (a choice for the whole lobby, so they sit with the party).
+            if (LobbyKit.Key(new Rect(34f, 32f, 66f, 66f), "", false, calm, PixelArt.Get("ui_back"), size: 26))
                 StartLobbyLeave();  // LobbyEnter.cs
-            Ui.Glitch(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent);
-            if (MenuVhs.Draw(infoButton, null, true, fxReduced, () => Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral)))
+            DrawLobbyTitle(new Rect(118f, 30f, 260f, 62f), 1f, calm, t);
+            if (LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 30))
                 connInfoOpen = !connInfoOpen;
+            Ui.Fill(new Rect(24f, 108f, 446f, 1f), LobbyKit.Ink(0.4f));
+            var modeR = new Rect(24f, 118f, 446f, 62f);
             if (session.Resume != null)
-                DrawResumeBanner(new Rect(40f, 76f, 376f, 58f), t);  // continuing a saved run (SavesUi.cs)
+                DrawResumeBanner(modeR, t);  // continuing a saved run (SavesUi.cs)
             else
-                DrawModeSwitch(new Rect(40f, 76f, 376f, 58f), t);
+                DrawModeSwitch(modeR, t);
 
-            // --- Left: the party, under the mode switch.
-            float lx = 40f, lw = 376f, y = 150f;
-            LobbyHeading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
-            // The way into the Hangout (LobbyRoom.cs): a button on the Party heading, which flips to "Loadout" while you're in the room.
+            // --- Left: the party, under the mode keys.
+            const float lx = 24f, lw = 446f;
+            CrtUi.Text(new Rect(lx, 190f, 300f, 34f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            // Small and see-through until you point at it (or are in the room, where it's the way back).
-            var hb = new Rect(lx + lw - 88f, y - 3f, 88f, 22f);
-            bool hot = inRoom || hb.Contains(Event.current.mousePosition);
-            var oldCol = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, hot ? 1f : 0.5f);
-            bool go = MenuVhs.Draw(hb, "TRK 02", true, fxReduced, () => Ui.ActionButton(hb, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, HangoutColor, null, null, 11, true));  // the lobby's tile style, small and square
-            GUI.color = oldCol;
-            if (go)
+            if (LobbyKit.Key(new Rect(lx + lw - 120f, 190f, 120f, 32f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 16, minSize: 12))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
-            y = PartyTop;
+            float y = PartyTop;
             TipClear();  // hovering a rank badge shows the title (RankUi.cs)
             int slot = 0;
             foreach (var e in session.Lobby.Values)
             {
-                DrawPartyCard(new Rect(lx, y, lw, 88f), e, t, slot++);
-                y += 96f;
+                DrawPartyCard(new Rect(lx, y, lw, PartyCardH), e, t, slot++);
+                y += PartyStep;
             }
             for (; slot < Session.MaxPlayers; slot++)
             {
-                DrawOpenSlot(new Rect(lx, y, lw, 88f), slot, t);
-                y += 96f;
+                DrawOpenSlot(new Rect(lx, y, lw, PartyCardH), slot, t);
+                y += PartyStep;
             }
             if (session.Status.Length > 0)
-                Ui.Label(new Rect(lx, y + 4f, lw, LobbyNoteY - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
+                Ui.Label(new Rect(lx, y - 4f, lw, LobbyNoteY - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
-            // --- Right: tabs level with the title, then your loadout or the practice waves.
-            var area = new Rect(440f, 24f, W - 480f, H - LobbyBottomPad - 24f);
-            DrawLobbyTabs(new Rect(area.x, area.y, area.width, 34f), practice);
-            var body = new Rect(area.x, LobbyBodyTop, area.width, area.yMax - LobbyBodyTop);
+            // --- Right: the tab keys, then your loadout or the practice waves.
+            DrawLobbyTabs(new Rect(502f, 28f, 740f, 48f), practice);
+            var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
                 DrawHangoutTransition(me, body, t);  // the preview window growing into the Hangout (or shrinking back)
@@ -147,13 +140,24 @@ namespace Arena
                 DrawConnInfo(infoPanel);
         }
 
-        const float LobbyBodyTop = 68f;   // the top of the loadout box (under the tabs)
-        const float LobbyBottomPad = 36f; // the gap under the loadout box and the action buttons
-        const float LobbyActionH = 52f;   // Back, Ready and Start are all this tall
-        const float LobbyStartY = 720f - LobbyBottomPad - LobbyActionH;  // Start (host) or Ready (guest) sits on the box's bottom edge
-        const float LobbyReadyY = LobbyStartY - 10f - LobbyActionH;
-        const float LobbyNoteY = LobbyReadyY - 30f;  // who we're waiting for, just above Ready
-        const float PartyTop = 184f;      // the top of the first party card (under the mode switch)
+        // The screen's layout (Docs/Mockups/crt-lobby-digital.html, 1280 x 720): the party column on the left, the big loadout screen on the right.
+        const float LobbyBodyTop = 92f;   // the top of the big screen (under the tab keys)
+        static readonly Rect LobbyBodyRectConst = new Rect(494f, 92f, 762f, 618f);
+        const float PartyTop = 230f;      // the top of the first party card (under the mode keys and the Party line)
+        const float PartyCardH = 96f, PartyStep = 104f;
+        const float LobbyReadyY = 600f, LobbyReadyH = 54f, LobbyStartY = 662f, LobbyStartH = 48f;  // Ready over Start (a guest's Ready takes the Start slot)
+        const float LobbyNoteY = 566f;    // who we're waiting for, just above Ready
+        const float LobbySplit = 482f;    // where the party column ends and the tabs begin (the entrance, leave and return slide the two sides apart)
+
+        /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout).
+        static Rect LobbyBodyRect => LobbyBodyRectConst;
+
+        /// LOBBY_ in big phosphor letters, the underscore blinking (still with Reduced effects). `a` fades it (the entrance).
+        void DrawLobbyTitle(Rect r, float a, bool calm, float t)
+        {
+            var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
+            CrtUi.Text(r, calm || Mathf.FloorToInt(t * 2f) % 2 == 0 ? "LOBBY_" : "LOBBY", 54, ink, TextAnchor.MiddleLeft, true, calm);
+        }
 
         string HostName()
         {
@@ -161,58 +165,44 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        /// Three parts: a normal run, a Boss Hunt, or the Practice Range. Only the host can switch.
+        /// Three keys: a normal run, a Boss Hunt, or the Practice Range, each with its small description. Only the host can switch.
         void DrawModeSwitch(Rect r, float t)
         {
             bool practice = session.PracticeMode;
             int mode = practice ? 2 : session.HuntMode ? 1 : 0;
-            Ui.Pill(r, new Color(0.04f, 0.05f, 0.08f, 0.9f));
-            float half = (r.width - 8f) / 3f;
+            float kw = (r.width - 12f) / 3f;
             for (int i = 0; i < 3; i++)
             {
-                bool on = i == mode;
-                var c = i == 0 ? Ui.Primary : i == 1 ? HuntColor : PracticeColor;
-                var h = new Rect(r.x + 4f + i * half, r.y + 4f, half, r.height - 8f);
-                bool hover = session.IsHost && h.Contains(Event.current.mousePosition);
-                if (on)
-                {
-                    Ui.Pill(h, new Color(c.r, c.g, c.b, 0.85f));
-                    Ui.Fill(new Rect(h.x + 10f, h.yMax - 3f, h.width - 20f, 2f), new Color(1f, 1f, 1f, 0.35f + 0.15f * Mathf.Sin(t * 3f)));
-                }
-                else if (hover)
-                    Ui.Pill(h, new Color(c.r, c.g, c.b, 0.22f));
+                var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                Ui.Glitch(new Rect(h.x, h.y + 4f, h.width, 24f), title, 16, on ? Color.white : Color.Lerp(c, Color.white, 0.55f), TextAnchor.MiddleCenter);
-                Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 10, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
-                if (session.IsHost && !on && Ui.HitArea(h))
+                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 22, minSize: 14, enabled: session.IsHost, sub: sub) && session.IsHost && i != mode)
                     session.SetMode(i == 2, i == 1);
             }
         }
 
+        /// The tab keys across the top of the big screen: the same order in every mode (the shared tabs, then the mode's own at the end).
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
             bool hunt = session.HuntMode && !practice && session.Resume == null;
             // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout); null = not shown.
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null };  // Hangout has its own button on the Party heading
-            // The same order in every mode: the shared tabs, then the mode's own tab at the end.
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null };  // Hangout has its own key on the Party line
             int[] order = { 0, PerkTab, 3, 2, 1, 4 };
-            float x = r.x;
+            int n = 0;
+            foreach (int i in order)
+                if (names[i] != null)
+                    n++;
+            float w = (r.width - 6f * (n - 1)) / n, x = r.x;
             foreach (int i in order)
             {
                 if (names[i] == null)
                     continue;
-                float w = 30f + names[i].Length * 8.2f;
-                var tab = new Rect(x, r.y, w, r.height);
                 bool on = lobbyTab == i;
-                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : i == 4 ? HuntColor : i == PerkTab ? Ui.Gold : i == HangoutTab ? HangoutColor : Ui.Accent;
-                Ui.Pill(tab, on ? new Color(c.r, c.g, c.b, 0.9f) : new Color(1f, 1f, 1f, tab.Contains(Event.current.mousePosition) ? 0.1f : 0.05f));
-                Ui.Label(tab, names[i].ToUpperInvariant(), 12, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
-                if (!on && Ui.HitArea(tab))
+                if (LobbyKit.Key(new Rect(x, r.y, w, r.height), names[i].ToUpperInvariant(), on, fxReduced, size: 22, minSize: 12) && !on)
                     lobbyTab = i;
-                x += w + 8f;
+                x += w + 6f;
             }
         }
 
@@ -238,6 +228,8 @@ namespace Arena
         int botNameFor = -1;
         int editBotId = -1;  // the bot whose loadout the host is choosing (click its card); -1 = your own
 
+        /// A player's card on the screen: today's card art (the role's rim or their earned frame, the synthwave or chosen background,
+        /// the live portrait, the Host / You / Ready tags) framed on the phosphor screen.
         void DrawPartyCard(Rect r, LobbyEntry e, float t, int slot)
         {
             var botSeat = session.IsHost ? partyBots.Find(e.Id) : null;
@@ -253,11 +245,11 @@ namespace Arena
                 DrawCardBackground(r, e.CardBg, t);  // CardBackgrounds.cs
             }
             // Portrait: their character, aiming around.
-            var face = new Rect(r.x + 8f, r.y + 8f, 72f, 72f);
+            var face = new Rect(r.x + 8f, r.y + 8f, r.height - 16f, r.height - 16f);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
             if (BeginUiGl())
             {
-                UiModelAt(new V2(face.center.x, face.center.y), 0.95f);
+                UiModelAt(new V2(face.center.x, face.center.y), 1.05f);
                 DrawPreviewPlayer(e.Role, e.Kit, e.Weapon, t + slot * 1.7f);
                 EndUiGl();
             }
@@ -268,96 +260,86 @@ namespace Arena
             // The badges sit at the top right; work out where they start so the name stops short of them.
             float bx = r.xMax - 12f;
             if (mine)
-                bx -= 44f;
+                bx -= 48f;
             if (e.Id == 1)
-                bx -= 54f;
+                bx -= 58f;
             if (botSeat != null)
-                bx -= 136f;  // the bot's buttons (below)
+                bx -= 150f;  // the bot's keys (below)
             float badgesLeft = (mine || e.Id == 1 || botSeat != null) ? bx : r.xMax - 12f;
-            DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 26f), e.Name, 19, 13, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
+            DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 30f), e.Name, 24, 14, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
             bx = r.xMax - 12f;
             if (mine)
             {
-                bx -= 44f;
-                Ui.Badge(new Rect(bx, r.y + 10f, 44f, 20f), "YOU", Ui.Accent);
+                bx -= 48f;
+                Ui.Badge(new Rect(bx, r.y + 10f, 48f, 22f), "YOU", Ui.Accent);
             }
             if (e.Id == 1)
             {
-                bx -= 54f;
-                Ui.Badge(new Rect(bx, r.y + 10f, 50f, 20f), "HOST", Ui.GoldButton);
+                bx -= 58f;
+                Ui.Badge(new Rect(bx, r.y + 10f, 54f, 22f), "HOST", Ui.GoldButton);
             }
-            DrawOneLine(new Rect(tx, r.y + 34f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 11, Color.Lerp(color, Color.white, 0.15f), true);
-            DrawOneLine(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
-                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, Ui.Muted, false);
+            DrawOneLine(new Rect(tx, r.y + 42f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 17, 11, Color.Lerp(color, Color.white, 0.15f), true);
+            DrawOneLine(new Rect(tx, r.y + 66f, r.xMax - tx - 112f, 20f),
+                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 13, 10, new Color(0.78f, 0.82f, 0.94f), false);
             DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
             if (session.IsHost && (botSeat != null || mine))  // click a card to choose that player's loadout: yours, or a bot's
             {
                 bool picked = botSeat != null ? editBotId == e.Id : editBotId < 0;
                 if (picked && partyBots.Bots.Count > 0)
                     Ui.Rim(r, Ui.Gold, 0.9f);
-                float room = botSeat != null ? 136f : 0f;
+                float room = botSeat != null ? 150f : 0f;
                 if (Ui.HitArea(new Rect(r.x, r.y, r.width - 12f - room, r.height)))
                     editBotId = botSeat != null ? e.Id : -1;
             }
             if (botSeat != null)
                 DrawBotButtons(r, botSeat);
-            var ready = new Rect(r.xMax - 98f, r.yMax - 30f, 86f, 20f);
+            var ready = new Rect(r.xMax - 100f, r.yMax - 30f, 88f, 20f);
             if (e.Ready)
-                Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + 0.1f * Mathf.Sin(t * 4f)));
+                Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + (fxReduced ? 0f : 0.1f * Mathf.Sin(t * 4f))));
             Ui.Badge(ready, e.Ready ? "READY" : "NOT READY", e.Ready ? new Color(0.2f, 0.62f, 0.32f) : Ui.Neutral);
         }
 
-        /// A bot's controls on its party card (the host's): its skill (click to change), a new random loadout, and remove.
+        /// A bot's keys on its party card (the host's): its skill (click to change), a new random loadout, and remove.
         void DrawBotButtons(Rect r, PartyBots.PartyBot bot)
         {
-            float x = r.xMax - 12f - 22f;
-            if (Ui.SmallButton(new Rect(x, r.y + 10f, 22f, 20f), "x", 12))
+            bool calm = fxReduced;
+            float x = r.xMax - 12f - 26f;
+            if (LobbyKit.Key(new Rect(x, r.y + 9f, 26f, 24f), "x", false, calm, size: 14, minSize: 10, danger: true))
             {
                 if (editBotId == bot.Id)
                     editBotId = -1;
                 partyBots.Remove(bot);
                 return;
             }
-            x -= 38f;
-            if (Ui.SmallButton(new Rect(x, r.y + 10f, 34f, 20f), "MIX", 10))
+            x -= 42f;
+            if (LobbyKit.Key(new Rect(x, r.y + 9f, 38f, 24f), "MIX", false, calm, size: 13, minSize: 9))
                 partyBots.Shuffle(bot);  // a new random loadout
-            x -= 68f;
-            if (Ui.SmallButton(new Rect(x, r.y + 10f, 64f, 20f), bot.Skill.ToString().ToUpper(), 11))
+            x -= 72f;
+            if (LobbyKit.Key(new Rect(x, r.y + 9f, 68f, 24f), bot.Skill.ToString().ToUpper(), false, calm, size: 13, minSize: 9))
                 partyBots.SetSkill(bot, bot.Skill == BotSkill.Casual ? BotSkill.Good : bot.Skill == BotSkill.Good ? BotSkill.Expert : BotSkill.Casual);
         }
 
+        /// An empty seat: a dashed frame, "OPEN SLOT" and (for the host, while there is room) the "+ ADD A BOT" key.
         void DrawOpenSlot(Rect r, int slot, float t)
         {
-            Ui.Fill(r, new Color(1f, 1f, 1f, 0.025f));
-            // A dashed outline that slowly crawls.
-            var c = new Color(1f, 1f, 1f, 0.12f);
-            float off = (t * 18f) % 16f;
-            for (float x = r.x - 16f + off; x < r.xMax; x += 16f)
-            {
-                float x0 = Mathf.Max(r.x, x), x1 = Mathf.Min(r.xMax, x + 8f);
-                if (x1 > x0)
-                {
-                    Ui.Fill(new Rect(x0, r.y, x1 - x0, 1f), c);
-                    Ui.Fill(new Rect(r.xMax - (x1 - r.x), r.yMax - 1f, x1 - x0, 1f), c);
-                }
-            }
-            Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
-            Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
+            bool calm = fxReduced;
+            Ui.Fill(r, LobbyKit.Ink(0.03f));
+            CrtKit.Dashed(r, 2f, LobbyKit.Ink(0.4f));
             bool canAdd = partyBots.CanAdd(session);
-            Ui.Label(new Rect(r.x, r.y, r.width, canAdd ? r.height - 30f : r.height), "OPEN SLOT", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
-            if (canAdd && Ui.Button(new Rect(r.center.x - 70f, r.yMax - 40f, 140f, 28f), "+ Add a bot", Ui.Primary))
+            CrtUi.Text(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 34f : r.height), "OPEN SLOT", 24, CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
+            if (canAdd && LobbyKit.Key(new Rect(r.center.x - 90f, r.y + 46f, 180f, 38f), "+ ADD A BOT", false, calm, size: 20, minSize: 13))
                 partyBots.Add(session);  // a bot takes the slot and plays with you
         }
 
         string[] InviteAddresses() => (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
 
-        static float AddressWidth(string addr) => 14f + addr.Length * 8.5f;
+        static float AddressWidth(string addr) => 18f + addr.Length * 9f;
 
-        /// Where the "!" popup goes: just under its button, as tall as its contents.
+        /// Where the "!" popup goes: just under its key, as tall as its contents.
         Rect ConnInfoRect(Rect button)
         {
-            const float w = 376f, pad = 14f;
-            float h = pad + 30f + 22f;
+            const float w = 446f, pad = 14f;
+            float h = pad + 34f + 24f;
             if (session.IsHost)
             {
                 int rows = 1;
@@ -371,27 +353,29 @@ namespace Arena
                     }
                     bx += AddressWidth(addr) + 6f;
                 }
-                h += 22f + rows * 28f + 16f;
+                h += 24f + rows * 32f + 20f;
             }
             else
-                h += 20f;
-            return new Rect(40f, button.yMax + 8f, w, h + pad);
+                h += 22f;
+            return new Rect(24f, button.yMax + 8f, w, h + pad);
         }
 
         /// The "!" popup: who's hosting and on which port, and the addresses friends join with.
         void DrawConnInfo(Rect r)
         {
-            Ui.Fill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, r.height - 6f), new Color(0.05f, 0.06f, 0.09f, 0.97f));  // solid backing over the party
-            Ui.Panel(r, true);
-            float x = r.x + 14f, w = r.width - 28f, y = r.y + 14f;
-            LobbyHeading(x, y, w, session.IsHost ? "Invite friends" : "Connection");
-            y += 30f;
-            Ui.Label(new Rect(x, y, w, 18f), session.IsHost ? "You're hosting  ·  port " + session.Port : "Connected to " + HostName(), 12, Ui.Text);
-            y += 22f;
+            bool calm = fxReduced;
+            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));  // solid backing over the party
+            LobbyKit.Panel(r, false);
+            CrtKit.Frame(r, 2f, CrtUi.Ink);
+            float x = r.x + 14f, w = r.width - 28f, y = r.y + 12f;
+            LobbyKit.Heading(x, y, w, session.IsHost ? "Invite friends" : "Connection", null, calm);
+            y += 38f;
+            Ui.Label(new Rect(x, y, w, 20f), session.IsHost ? "You're hosting  ·  port " + session.Port : "Connected to " + HostName(), 14, new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleLeft, true);
+            y += 24f;
             if (session.IsHost)
             {
-                Ui.Label(new Rect(x, y, w, 18f), "They join with port " + session.Port + " and one of:", 12, Ui.Muted);
-                y += 22f;
+                Ui.Label(new Rect(x, y, w, 20f), "They join with port " + session.Port + " and one of:", 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                y += 26f;
                 float bx = x;
                 foreach (var addr in InviteAddresses())
                 {
@@ -399,16 +383,20 @@ namespace Arena
                     if (bx > x && bx + bw > x + w)
                     {
                         bx = x;
-                        y += 28f;
+                        y += 32f;
                     }
-                    Ui.Badge(new Rect(bx, y, bw, 22f), addr, addr.StartsWith("100.") ? Ui.Accent : Ui.Neutral);
+                    var tag = new Rect(bx, y, bw, 26f);
+                    bool ts = addr.StartsWith("100.");  // a Tailscale address: lit
+                    Ui.Fill(tag, ts ? new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f) : LobbyKit.Ink(0.08f));
+                    CrtKit.Frame(tag, 1f, CrtUi.Ink);
+                    Ui.Label(tag, addr, 13, ts ? CrtUi.Bg : CrtUi.Ink, TextAnchor.MiddleCenter, true);
                     bx += bw + 6f;
                 }
-                y += 28f;
-                Ui.Label(new Rect(x, y, w, 16f), "Blue = Tailscale address", 11, Ui.Muted);
+                y += 32f;
+                Ui.Label(new Rect(x, y, w, 16f), "Filled = Tailscale address", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             }
             else
-                Ui.Label(new Rect(x, y, w, 20f), "Connected. Pick your loadout and click Ready.", 13, Ui.Good);
+                Ui.Label(new Rect(x, y, w, 20f), "Connected. Pick your loadout and press Ready.", 14, CrtUi.Ink, TextAnchor.MiddleLeft, true);
         }
 
         // --- Loadout --------------------------------------------------------------
@@ -430,35 +418,40 @@ namespace Arena
 
         static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps", "role_dps" };  // (Wildcard borrows the DPS icon for now)  // PixelArt.cs
 
+        /// The big loadout screen. Left: the live preview, the name, the stat bars and the passive. Right: Role, Class, Weapon and
+        /// Ability keys, the ascension row and the weapon / ability detail card (Docs/Mockups/crt-lobby-digital.html).
         void DrawLoadout(LobbyEntry me, Rect r, float t, PartyBots.PartyBot bot = null)
         {
-            Session tgt = bot != null ? bot.S : session;  // whose loadout the buttons change: yours, or a bot's (its own session asks the host)
+            Session tgt = bot != null ? bot.S : session;  // whose loadout the keys change: yours, or a bot's (its own session asks the host)
             bool self = bot == null;
-            Ui.BodyBox(r);
+            bool calm = fxReduced;
+            LobbyKit.Panel(r);
             var roleColor = ToColor(Defs.Get(me.Role).Color);
 
-            // Hero card: your character on a glowing pedestal, with the numbers that matter.
-            var hero = new Rect(r.x + 14f, r.y + 14f, 232f, r.height - 28f);
-            Ui.Pill(hero, new Color(0.03f, 0.035f, 0.06f, 0.85f));
-            DrawShowcase(me, ShowcaseRect(r), roleColor);
+            // Left column: the live mini-arena (your weapon on target dummies; it casts an ability while you hover one).
+            float lx = r.x + 16f, ty = r.y + 16f;
+            const float lw = 262f;
+            var view = ShowcaseRect(r);
+            DrawShowcase(me, view, roleColor);
             if (!self)
             {
                 // The bot's name: type to rename it (up to 16 letters).
-                Ui.Label(new Rect(hero.x, hero.y + 2f, 62f, 20f), "BOT NAME", 10, Ui.Gold, TextAnchor.MiddleRight, true);
-                var nameBox = new Rect(hero.x + 68f, hero.y + 2f, hero.width - 76f, 20f);
-                Ui.Fill(nameBox, new Color(0f, 0f, 0f, 0.55f));
+                var nameBox = new Rect(view.x + 70f, view.y + 4f, view.width - 78f, 22f);
+                Ui.Fill(new Rect(view.x + 4f, view.y + 4f, view.width - 8f, 22f), new Color(0f, 0f, 0f, 0.6f));
+                Ui.Label(new Rect(view.x + 6f, view.y + 4f, 62f, 22f), "BOT NAME", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Fill(nameBox, new Color(1f, 1f, 1f, 0.08f));
                 if (botNameFor != bot.Id)
                 {
                     botNameFor = bot.Id;
                     botNameText = bot.Name;
                 }
-                botNameText = Ui.BareField(new Rect(nameBox.x + 4f, nameBox.y, nameBox.width - 8f, nameBox.height), botNameText, 16, 13);
+                botNameText = Ui.BareField(new Rect(nameBox.x + 4f, nameBox.y, nameBox.width - 8f, nameBox.height), botNameText, 16, 14);
                 if (botNameText.Trim().Length > 0 && Session.CleanName(botNameText) != bot.Name)
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
-            float hy = hero.y + 196f;
-            Ui.Glitch(new Rect(hero.x, hy, hero.width, 26f), (me.Role == Role.Wildcard ? "" : Defs.KitName(me.Kit) + " ") + Defs.Get(me.Role).Name, 20, Color.white, TextAnchor.MiddleCenter, roleColor);
-            hy += 32f;
+            // The name shrinks to fit ("Hemomancer Healer"), then the stats.
+            string title = (me.Role == Role.Wildcard ? "" : Defs.KitName(me.Kit) + " ") + Defs.Get(me.Role).Name;
+            LobbyKit.Fit(new Rect(lx, ty + 220f, lw, 48f), title, 40, 15, Color.white, TextAnchor.MiddleLeft, calm);
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
             previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)
@@ -466,32 +459,29 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            HeroStat(hero, ref hy, "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.35f, 0.95f, 0.45f));
+            float sy = ty + 276f;
+            LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
-            HeroStat(hero, ref hy, "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.45f, 0.75f, 1f));
-            HeroStat(hero, ref hy, wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), Ui.Gold);
+            LobbyKit.StatBar(new Rect(lx, sy + 30f, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + 60f, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
             // The weapon's damage a second with no upgrades (measured in the sim: Defs.WeaponDps), against the strongest weapon.
             float dps = Defs.WeaponDps(wdef.Id);
-            HeroStat(hero, ref hy, "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
-                dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.45f, 0.4f));
-            hy += 8f;
+            LobbyKit.StatBar(new Rect(lx, sy + 90f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
+                dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.36f, 0.36f), calm);
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit));
-            Ui.Fill(new Rect(hero.x + 14f, hy, hero.width - 28f, 1f), new Color(1f, 1f, 1f, 0.08f));
-            hy += 8f;
-            DrawUltBox(ult, new Rect(hero.x + 6f, hy - 4f, hero.width - 12f, hero.yMax - hy - 2f));
+            DrawUltBox(ult, new Rect(lx, ty + 392f, lw, r.yMax - 12f - (ty + 392f)));
 
-            // Choices: role and class rows (their blurbs sit in the heading line), then weapon and ability side by
-            // side, then a spec sheet for the picked weapon and ability.
-            float x = hero.xMax + 20f, w = r.xMax - 18f - x, y = r.y + 16f;
-            const float gap = 8f;
-
-            // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
+            // Right column: role and class rows (their blurbs sit in the heading line), then weapon and ability side by
+            // side, then the ascensions and a detail card for the picked weapon and ability.
+            float x = r.x + 292f, w = 454f, y = ty;
+            const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles and classes: 4 per row
-            HeadingWithBlurb(x, y, w, "Role", Defs.Get(me.Role).Desc);
+            LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm);
+            // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
             {
-                var b = new Rect(x + i * (quarter + gap), y + 28f, quarter, 46f);
+                var b = new Rect(x + i * (quarter + gap), y + 32f, quarter, 42f);
                 if (i >= Defs.Roles.Length)
                 {
                     LockedSlot(b);
@@ -502,8 +492,7 @@ namespace Arena
                     LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
                     continue;
                 }
-                var rc = ToColor(Defs.Roles[i].Color);
-                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), null, textSize: 17, glow: false, iconLeft: true, glitch: true))
+                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 21, minSize: 12))
                 {
                     tgt.RequestRole((Role)i);
                     if (self)
@@ -518,89 +507,87 @@ namespace Arena
                     }
                 }
             }
-            y += 84f;
+            y += 82f;
+            float ascY = ty + 338f;  // the ascension row sits here (the mockup's place); a long class list pushes it down
             if (me.Role == Role.Wildcard)
-                y = DrawWildcardPicks(me, tgt, self, x, y, w, roleColor);
+                DrawWildcardPicks(me, tgt, self, x, y, w, ascY - 8f);
             else
             {
-
-            // Classes: rows of 4, the icon beside the name.
-            HeadingWithBlurb(x, y, w, "Class", KitBlurb(me.Kit));
-            int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
-            int kitSize = 14;  // one size for every class name, small enough for the longest beside its icon
-            for (int i = 0; i < Defs.KitCount; i++)
-                while (kitSize > 10 && Ui.TextWidth(Defs.KitName((Kit)i), kitSize, true) > quarter - 16f - 20f)
-                    kitSize--;
-            for (int i = 0; i < classSlots; i++)
-            {
-                var b = new Rect(x + (i % 4) * (quarter + gap), y + 28f + (i / 4) * 38f, quarter, 32f);
-                if (i >= Defs.KitCount)
+                // Classes: rows of 4, the icon above the name so long names fit.
+                LobbyKit.Heading(x, y, w, "Class", KitBlurb(me.Kit), calm);
+                int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
+                for (int i = 0; i < classSlots; i++)
                 {
-                    LockedSlot(b);
-                    continue;
-                }
-                if (Ui.Choice(b, Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, PixelArt.Get(Classes.Get((Kit)i).Icon), null, kitSize, glow: false, iconLeft: true))
-                {
-                    tgt.RequestKit((Kit)i);
-                    if (self)
+                    var b = new Rect(x + (i % 4) * (quarter + gap), y + 32f + (i / 4) * 47f, quarter, 41f);
+                    if (i >= Defs.KitCount)
                     {
-                        kitChoice = (Kit)i;
-                        weaponChoice = 0;
-                        abilityChoice = 0;
+                        LockedSlot(b, null, true);
+                        continue;
+                    }
+                    if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 15, minSize: 9))
+                    {
+                        tgt.RequestKit((Kit)i);
+                        if (self)
+                        {
+                            kitChoice = (Kit)i;
+                            weaponChoice = 0;
+                            abilityChoice = 0;
+                        }
                     }
                 }
-            }
-            y += 28f + ((classSlots + 3) / 4) * 38f + 4f;
+                y += 32f + ((classSlots + 3) / 4) * 47f - 6f + 10f;
 
-            // Weapon and ability: side by side, each a 2 x 2 grid.
-            float col = (w - 16f) / 2f, ax = x + col + 16f, cell = (col - 6f) / 2f;
-            LobbyHeading(x, y, col, "Weapon");
-            LobbyHeading(ax, y, col, "Ability");
-            int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
-            for (int i = 0; i < weaponSlots; i++)
-            {
-                var b = new Rect(x + (i % 2) * (cell + 6f), y + 28f + (i / 2) * 36f, cell, 30f);
-                if (i >= Defs.WeaponsPerRole)
-                    LockedSlot(b);
-                else if (Ui.Choice(b, Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
+                // Weapon and ability: side by side, each a 2 x 2 grid.
+                const float col = 220f;
+                float ax = x + w - col, cell = (col - gap) / 2f;
+                LobbyKit.Heading(x, y, col, "Weapon", null, calm);
+                LobbyKit.Heading(ax, y, col, "Ability", null, calm);
+                int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
+                for (int i = 0; i < weaponSlots; i++)
                 {
-                    tgt.RequestWeapon(i);
-                    if (self)
-                        weaponChoice = i;
+                    var b = new Rect(x + (i % 2) * (cell + gap), y + 34f + (i / 2) * 45f, cell, 39f);
+                    if (i >= Defs.WeaponsPerRole)
+                        LockedSlot(b, null, true);
+                    else if (LobbyKit.Key(b, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), me.Weapon == i, calm, size: 17, minSize: 11))
+                    {
+                        tgt.RequestWeapon(i);
+                        if (self)
+                            weaponChoice = i;
+                    }
                 }
-            }
-            int hovered = -1;
-            int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
-            for (int i = 0; i < abilitySlots; i++)
-            {
-                var b = new Rect(ax + (i % 2) * (cell + 6f), y + 28f + (i / 2) * 36f, cell, 30f);
-                if (i >= Upgrades.RoleAbilityChoices)
+                int hovered = -1;
+                int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
+                for (int i = 0; i < abilitySlots; i++)
                 {
-                    LockedSlot(b);
-                    continue;
+                    var b = new Rect(ax + (i % 2) * (cell + gap), y + 34f + (i / 2) * 45f, cell, 39f);
+                    if (i >= Upgrades.RoleAbilityChoices)
+                    {
+                        LockedSlot(b, null, true);
+                        continue;
+                    }
+                    if (b.Contains(Event.current.mousePosition))
+                        hovered = i;
+                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 17, minSize: 11))
+                    {
+                        tgt.RequestAbility(i);
+                        if (self)
+                            abilityChoice = i;
+                        abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
+                        ultDemoUntil = 0f;
+                    }
                 }
-                if (b.Contains(Event.current.mousePosition))
-                    hovered = i;
-                if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor, glow: false))
-                {
-                    tgt.RequestAbility(i);
-                    if (self)
-                        abilityChoice = i;
-                    abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
-                    ultDemoUntil = 0f;
-                }
-            }
-            if (Event.current.type == EventType.Repaint)
-                abilityHover = hovered;
-            y += 28f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 36f + 4f;
+                if (Event.current.type == EventType.Repaint)
+                    abilityHover = hovered;
+                y += 34f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 45f - 6f + 8f;
+                ascY = Mathf.Max(ascY, y);
             }
 
             // The picked weapon's ascensions: all locked for now (hover one: "Coming soon").
-            DrawAscensionStrip(new Rect(x, y, w, 32f), wdef);
-            y += 42f;
+            DrawAscensionStrip(new Rect(x, ascY, w, 42f), wdef);
+            ascY += 48f;
 
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
-            DrawSpecSheet(new Rect(x, y, w, r.yMax - 16f - y), wdef, ability, roleColor, t);
+            DrawSpecSheet(new Rect(x, ascY, w, r.yMax - 12f - ascY), wdef, ability, t);
         }
 
         // How many slots each loadout row shows; the ones past the real content are locked ("Coming soon").
@@ -613,19 +600,10 @@ namespace Arena
         Rect lockedTip;          // the locked slot under the mouse, if any (its tooltip is drawn last, on top)
         bool lockedTipOn;
 
-        /// A slot for content still to come: dark, a dashed rim, a padlock and "Locked". Hovering shows "Coming soon".
-        void LockedSlot(Rect r, string tip = null)
+        /// A slot for content still to come: dim, dashed, the real padlock and "LOCKED". Hovering shows "Coming soon" (or `tip`).
+        void LockedSlot(Rect r, string tip = null, bool stack = false)
         {
-
-            DashedCard(r);
-            bool hover = r.Contains(Event.current.mousePosition);
-            Ui.NoteHover(r);
-            var ink = new Color(0.55f, 0.6f, 0.72f, hover ? 0.95f : 0.7f);
-            float isz = Mathf.Min(14f, r.height - 12f), tw = Ui.TextWidth("Locked", 12, true) - 6f;
-            float gx = r.center.x - (isz + 6f + tw) / 2f;
-            Ui.Icon(new Rect(gx, r.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_lock"), ink);
-            Ui.Label(new Rect(gx + isz + 6f, r.y, tw + 10f, r.height), "Locked", 12, ink, TextAnchor.MiddleLeft, true);
-            if (hover)
+            if (LobbyKit.Locked(r, fxReduced, stack || r.width < 100f))
             {
                 lockedTip = r;
                 lockedTipOn = true;
@@ -634,44 +612,46 @@ namespace Arena
         }
 
         /// A Wildcard's picks (Docs/Wildcard.md): every class's three DPS weapons on the left and three DPS abilities on the right,
-        /// one row a class. The tabs choose whether a click sets the first ability or the second; the second sits on the key chosen below it.
-        /// Returns the y under the picker.
-        float DrawWildcardPicks(LobbyEntry me, Session tgt, bool self, float x, float y, float w, Color roleColor)
+        /// one row a class (its icon at the start). The tabs choose whether a click sets the first ability or the second; the second sits on the key chosen below it.
+        /// Fills y to yEnd.
+        void DrawWildcardPicks(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
         {
+            bool calm = fxReduced;
             float col = (w - 16f) / 2f, ax = x + col + 16f;
             int second = Defs.WildSecond(me.Wild), key = Defs.WildKey(me.Wild);
-            HeadingWithBlurb(x, y, w, "Gear", "Any class's DPS weapon and two abilities");
-            y += 28f;
+            LobbyKit.Heading(x, y, w, "Gear", "Any class's DPS weapon and two abilities", calm);
+            y += 34f;
             // Left: which key the second ability sits on. Right: which ability a click sets.
-            Ui.Label(new Rect(x, y, 90f, 24f), "2nd ability key", 11, Ui.Muted, TextAnchor.MiddleLeft);
-            string[] keyNames = { "Q", "E", "Shift" };
-            float kw = (col - 96f - 8f) / 3f;
+            Ui.Label(new Rect(x, y, 96f, 24f), "2ND ABILITY KEY", 11, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            string[] keyNames = { "Q", "E", "SHIFT" };
+            float kw = (col - 100f - 8f) / 3f;
             for (int k = 1; k <= 3; k++)
-                if (Ui.Choice(new Rect(x + 96f + (k - 1) * (kw + 4f), y, kw, 24f), keyNames[k - 1], key == k, roleColor, glow: false) && key != k)
+                if (LobbyKit.Key(new Rect(x + 100f + (k - 1) * (kw + 4f), y, kw, 24f), keyNames[k - 1], key == k, calm, size: 14, minSize: 10) && key != k)
                 {
                     tgt.RequestWildcard(me.Weapon, me.Ability, second, k);
                     if (self)
                         wildKey = k;
                 }
             float tw = (col - 4f) / 2f;
-            if (Ui.Choice(new Rect(ax, y, tw, 24f), "1st ability", wildTab == 0, roleColor, glow: false))
+            if (LobbyKit.Key(new Rect(ax, y, tw, 24f), "1ST ABILITY", wildTab == 0, calm, size: 14, minSize: 9))
                 wildTab = 0;
-            if (Ui.Choice(new Rect(ax + tw + 4f, y, tw, 24f), "2nd ability", wildTab == 1, roleColor, glow: false))
+            if (LobbyKit.Key(new Rect(ax + tw + 4f, y, tw, 24f), "2ND ABILITY", wildTab == 1, calm, size: 14, minSize: 9))
                 wildTab = 1;
             y += 30f;
 
-            const float gutter = 50f, rowH = 27f;
+            const float gutter = 26f;  // each row starts with its class's icon
+            float rowH = Mathf.Min(27f, (yEnd - y) / Defs.KitCount);
             float cellW = (col - gutter) / 3f;
             int hovered = -1;
             for (int kit = 0; kit < Defs.KitCount; kit++)
             {
                 float ry = y + kit * rowH;
-                Ui.Label(new Rect(x, ry, gutter, rowH - 3f), Defs.KitName((Kit)kit), 10, Ui.Muted, TextAnchor.MiddleLeft);
+                Ui.Icon(new Rect(x + 2f, ry + (rowH - 3f - 18f) / 2f, 18f, 18f), PixelArt.Get(Classes.Get((Kit)kit).Icon), Color.white);
                 for (int c = 0; c < Defs.WeaponsPerRole; c++)
                 {
                     int idx = kit * Defs.WeaponsPerRole + c;
                     var wb = new Rect(x + gutter + c * cellW, ry, cellW - 3f, rowH - 3f);
-                    if (Ui.Choice(wb, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name, me.Weapon == idx, roleColor, textSize: 10, glow: false) && me.Weapon != idx)
+                    if (LobbyKit.Key(wb, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name, me.Weapon == idx, calm, size: 12, minSize: 8) && me.Weapon != idx)
                     {
                         tgt.RequestWildcard(idx, me.Ability, second, key);
                         if (self)
@@ -682,7 +662,7 @@ namespace Arena
                         hovered = idx;
                     bool shownAsPicked = wildTab == 0 ? me.Ability == idx : second == idx;
                     bool takenByOther = wildTab == 0 ? second == idx : me.Ability == idx;
-                    if (Ui.Choice(ab, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name, shownAsPicked, takenByOther ? Ui.Muted : roleColor, textSize: 10, glow: false)
+                    if (LobbyKit.Key(ab, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name, shownAsPicked, calm, size: 12, minSize: 8, accent: takenByOther ? CrtUi.Dim : (Color?)null)
                         && !takenByOther && !shownAsPicked)
                     {
                         int a1 = wildTab == 0 ? idx : me.Ability, a2 = wildTab == 0 ? second : idx;
@@ -699,11 +679,9 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 abilityHover = hovered;
-            y += Defs.KitCount * rowH + 4f;
-            return y;
         }
 
-        /// A dark card with a dashed rim: the look of everything locked.
+        /// A dark card with a dashed rim: the look of everything locked (the Perks tab's empty slots).
         static void DashedCard(Rect r)
         {
             Ui.Pill(r, new Color(0.05f, 0.06f, 0.1f, 0.85f));
@@ -725,34 +703,34 @@ namespace Arena
         const int AscensionsPerWeapon = 3;
         static readonly string[] Numerals = { "I", "II", "III", "IV", "V" };
 
-        /// The picked weapon's ascensions in one row: its name over "ASCENSIONS" on the left, then a locked card per
-        /// ascension (padlock, "Ascension II", "Locked") with a chevron between them. Hovering one shows "Coming soon".
+        /// The picked weapon's ascensions in one row: its name over "ASCENSIONS 0/3" on the left, then a locked key per ascension
+        /// (its name, the padlock and "LOCKED"). Hovering one shows "Coming soon".
         void DrawAscensionStrip(Rect r, WeaponDef wdef)
         {
-            const float labelW = 92f;
-            int nameSize = 11;
-            while (nameSize > 8 && Ui.TextWidth(wdef.Name.ToUpperInvariant(), nameSize, true) > labelW + 4f)
-                nameSize--;
-            Ui.Label(new Rect(r.x, r.y + 1f, labelW + 10f, 15f), wdef.Name.ToUpperInvariant(), nameSize, Ui.Text, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x, r.y + 16f, labelW + 10f, 14f), "ASCENSIONS  0/" + AscensionsPerWeapon, 9, Ui.Muted, TextAnchor.MiddleLeft, true);
-            const float arrowW = 14f;
-            float cx = r.x + labelW, cw = (r.xMax - cx - arrowW * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
+            const float labelW = 118f;
+            string name = wdef.Name.ToUpperInvariant();
+            LobbyKit.Fit(new Rect(r.x, r.y - 2f, labelW, 24f), name, 19, 11, CrtUi.Ink, TextAnchor.MiddleLeft, fxReduced);
+            Ui.Label(new Rect(r.x, r.y + 21f, labelW + 6f, 18f), "ASCENSIONS 0/" + AscensionsPerWeapon, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            float cx = r.x + labelW + 6f, cw = (r.xMax - cx - 6f * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
+            var dim = CrtUi.Dim;
             for (int i = 0; i < AscensionsPerWeapon; i++)
             {
-                var c = new Rect(cx + i * (cw + arrowW), r.y, cw, r.height);
-                if (i > 0)
-                    Ui.Label(new Rect(c.x - arrowW, c.y, arrowW, c.height), "›", 16, new Color(1f, 1f, 1f, 0.25f), TextAnchor.MiddleCenter, true);
-                DashedCard(c);
+                var c = new Rect(cx + i * (cw + 6f), r.y, cw, r.height);
                 bool hover = c.Contains(Event.current.mousePosition);
                 Ui.NoteHover(c);
-                var ink = new Color(0.55f, 0.6f, 0.72f, hover ? 0.95f : 0.7f);
-                Ui.Icon(new Rect(c.x + 10f, c.center.y - 7f, 14f, 14f), PixelArt.Get("ui_lock"), ink);
-                Ui.Label(new Rect(c.x + 30f, c.y + 2f, c.width - 34f, 15f), "Ascension " + Numerals[i], 11, new Color(0.8f, 0.68f, 0.35f, hover ? 1f : 0.75f), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(c.x + 30f, c.y + 16f, c.width - 34f, 13f), "Locked", 9, ink, TextAnchor.MiddleLeft, true);
+                Ui.Fill(c, new Color(dim.r, dim.g, dim.b, 0.03f));
+                CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, hover ? 0.95f : 0.7f));
+                string label = "ASCENSION " + Numerals[i];
+                int s = LobbyKit.FitSize(label, 14, 9, c.width - 8f);
+                Ui.Label(new Rect(c.x + 4f, c.y + 3f, c.width - 8f, 20f), LobbyKit.Truncate(label, s, c.width - 8f), s, dim, TextAnchor.MiddleCenter, true);
+                float lw2 = Ui.TextWidth("LOCKED", 11, true) - 6f, gx = c.center.x - (12f + 5f + lw2) / 2f;
+                Ui.Icon(new Rect(gx, c.y + 24f, 12f, 12f), PixelArt.Get("ui_lock"), new Color(1f, 1f, 1f, hover ? 0.7f : 0.5f));
+                Ui.Label(new Rect(gx + 17f - 2f, c.y + 22f, lw2 + 14f, 16f), "LOCKED", 11, dim, TextAnchor.MiddleLeft, true);
                 if (hover)
                 {
                     lockedTip = c;
                     lockedTipOn = true;
+                    lockedTipText = "Coming soon";
                 }
             }
         }
@@ -763,53 +741,34 @@ namespace Arena
             if (!lockedTipOn)
                 return;
             string text = lockedTipText;
-            float w = Ui.TextWidth(text, 12, true) + 14f, h = 26f;
+            float w = Ui.TextWidth(text, 14, true) + 22f, h = 30f;
             var tip = new Rect(lockedTip.center.x - w / 2f, lockedTip.y - h - 6f, w, h);
             if (tip.y < 4f)
                 tip.y = lockedTip.yMax + 6f;
             tip.x = Mathf.Clamp(tip.x, 4f, W - w - 4f);
-            Ui.Fill(new Rect(tip.x + 2f, tip.y + 3f, tip.width, tip.height), new Color(0f, 0f, 0f, 0.35f));  // a soft drop shadow
-            Ui.Pill(tip, new Color(0.11f, 0.13f, 0.21f, 0.98f));
-            Ui.Fill(new Rect(tip.x + 8f, tip.y + 1f, tip.width - 16f, 1f), new Color(1f, 0.8f, 0.35f, 0.6f));
-            Ui.Label(tip, text, 12, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Fill(tip, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
+            CrtKit.Frame(tip, 2f, CrtUi.Ink);
+            CrtUi.Text(tip, text, 14, CrtUi.Ink, TextAnchor.MiddleCenter, true, fxReduced);
         }
 
-        /// A lobby section heading: Ui.Heading in the CRT's cyan, glowing, with a cyan rule (LobbyCrt.cs).
-        void LobbyHeading(float x, float y, float w, string text)
-        {
-            var r = new Rect(x, y, w, 20f);
-            CrtUi.Text(r, Ui.Shown(r, text).ToUpperInvariant(), 12, LobbyInk, TextAnchor.MiddleLeft, true, fxReduced);
-            Ui.Fill(new Rect(x, y + 21f, w, 1f), new Color(LobbyInk.r, LobbyInk.g, LobbyInk.b, 0.22f));
-        }
-
-        /// A section heading with a short blurb right-aligned in the same line (shrunk to fit).
-        void HeadingWithBlurb(float x, float y, float w, string title, string blurb)
-        {
-            LobbyHeading(x, y, w, title);
-            float left = Ui.TextWidth(title.ToUpperInvariant(), 12, true) + 24f;
-            // All caps, bold and slightly smaller, so it reads as a quiet caption beside the heading.
-            blurb = blurb.ToUpperInvariant();
-            int size = 11;
-            while (size > 8 && Ui.TextWidth(blurb, size, true) > w - left)
-                size--;
-            Ui.Label(new Rect(x + left, y, w - left, 20f), blurb, size, new Color(0.62f, 0.70f, 0.88f), TextAnchor.MiddleRight, true);
-        }
-
-        /// The loadout's spec sheet: the picked weapon (left) and ability (right), each with its name, description
-        /// and a few number tiles, in a dark panel with plot-style corner brackets in the role's colour.
-        void DrawSpecSheet(Rect r, WeaponDef wdef, AbilityDef ability, Color accent, float t)
+        /// The detail card under the keys: the picked weapon (left) and ability (right), each with its name and description, and a
+        /// row of number tiles at the bottom. The ability's cooldown (and charges or health cost) sits at the bottom of its half,
+        /// beside the weapon's tiles.
+        void DrawSpecSheet(Rect r, WeaponDef wdef, AbilityDef ability, float t)
         {
             if (r.height < 120f)
                 return;
-            Ui.Pill(r, new Color(0.025f, 0.03f, 0.06f, 0.85f));
-            float half = r.width / 2f;
-            Ui.Fill(new Rect(r.x + half, r.y + 12f, 1f, r.height - 24f), new Color(1f, 1f, 1f, 0.07f));
-            var left = new Rect(r.x + 14f, r.y + 12f, half - 28f, r.height - 24f);
-            var right = new Rect(r.x + half + 14f, r.y + 12f, half - 28f, r.height - 24f);
-            const float tileH = 38f;
+            bool calm = fxReduced;
+            Ui.Fill(r, LobbyKit.Ink(0.04f));
+            CrtKit.Frame(r, 1f, LobbyKit.Ink(0.35f));
+            const float tileH = 38f, leftW = 172f, rightW = 236f;
+            var left = new Rect(r.x + 14f, r.y + 8f, leftW, r.height - 16f);
+            var right = new Rect(r.xMax - 14f - rightW, r.y + 8f, rightW, r.height - 16f);
+            Ui.Fill(new Rect(left.xMax + (right.x - left.xMax) / 2f, r.y + 10f, 1f, r.height - 20f), LobbyKit.Ink(0.2f));
+            var body = new Color(0.8f, 0.84f, 0.94f);
 
             // Weapon.
-            SpecHeader(left, "WEAPON", wdef.Name, accent);
+            SpecHeader(left, "WEAPON", wdef.Name, calm);
             var wTiles = new System.Collections.Generic.List<string[]>();
             if (wdef.Companion != MinionKind.None && wdef.CompanionCount > 0)
                 wTiles.Add(new[] { wdef.CompanionCount.ToString(), "COMPANIONS" });
@@ -817,49 +776,40 @@ namespace Arena
                 wTiles.Add(new[] { Mathf.RoundToInt(wdef.Damage).ToString(), wdef.Melee ? "PER SWING" : "PER HIT" });
             if (wdef.FireInterval > 0f)
                 wTiles.Add(new[] { (1f / wdef.FireInterval).ToString(wdef.FireInterval >= 0.5f ? "0.0" : "0"), wdef.Melee ? "SWINGS / S" : "SHOTS / S" });
-            FitText(new Rect(left.x, left.y + 46f, left.width, left.yMax - tileH - 4f - (left.y + 46f)), wdef.Desc, 12, new Color(0.82f, 0.85f, 0.93f));
-            SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, 0);
+            FitText(new Rect(left.x, left.y + 44f, left.width, left.yMax - tileH - 6f - (left.y + 44f)), wdef.Desc, 13, body);
+            SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, calm);
 
-            // Ability: a cooldown ring tile (it fills over the cooldown, on a loop), then charges or a health cost.
-            SpecHeader(right, "ABILITY", ability.Name, accent);
-            // What it does, then what Lv 5 adds.
-            DrawDescAndMastery(new Rect(right.x, right.y + 46f, right.width, right.yMax - tileH - 4f - (right.y + 46f)), ability.Desc, ability.Id, 12, new Color(0.82f, 0.85f, 0.93f));
+            // Ability: what it does, then what Lv 5 adds; then the cooldown, and charges or a health cost.
+            SpecHeader(right, "ABILITY", ability.Name, calm);
+            DrawDescAndMastery(new Rect(right.x, right.y + 44f, right.width, right.yMax - tileH - 6f - (right.y + 44f)), ability.Desc, ability.Id, 13, body);
             var aTiles = new System.Collections.Generic.List<string[]>();
             aTiles.Add(new[] { ability.Cooldown.ToString("0.#") + " s", "COOLDOWN" });
             if (ability.ExtraCharges > 0)
                 aTiles.Add(new[] { (1 + ability.ExtraCharges).ToString(), "CHARGES" });
             if (ability.HealthCost > 0f)
                 aTiles.Add(new[] { Mathf.RoundToInt(ability.HealthCost * 100f) + "%", ability.CostsCurrent ? "OF CURRENT HP" : "OF MAX HP" });
-            var aRow = new Rect(right.x, right.yMax - tileH, right.width, tileH);
-            SpecTiles(aRow, aTiles, 34f);  // the first tile leaves room for the ring
-
-            if (BeginUiGl())
-            {
-                UiModelAt(V2.Zero, 1f);
-                DrawPlotCorners(r, 0f, 14f, new Rgba(accent.r, accent.g, accent.b, 0.85f));
-                var ring = new V2(aRow.x + 22f, aRow.center.y);
-                float f = ability.Cooldown > 0f ? (t % ability.Cooldown) / ability.Cooldown : 1f;
-                Arc(ring, 12f, 3.5f, new Rgba(1f, 1f, 1f, 0.1f), 40);
-                Arc(ring, 12f, 3.5f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.95f), 40, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, f));
-                EndUiGl();
-            }
+            SpecTiles(new Rect(right.x, right.yMax - tileH, right.width, tileH), aTiles, calm);
         }
 
-        /// The hero card's ultimate (style D): a charge ring (half full, as every ultimate starts a match) with its key, the
-        /// name and charge time beside it, then what it does and what mastering it adds. Click it to watch it in the
-        /// preview above; while that plays, the ring fills.
+        /// The passive at the bottom of the left column (the ultimate, as the game calls it): a charge ring (half full, as every
+        /// ultimate starts a match) with its key, the name and charge time beside it, then what it does and what mastering it
+        /// adds. Click it to watch it in the preview above; while that plays, the ring fills.
         void DrawUltBox(AbilityDef ult, Rect area)
         {
             float t = Time.unscaledTime;
+            bool calm = fxReduced;
             bool on = t < ultDemoUntil, hover = area.Contains(Event.current.mousePosition);
             if (on || hover)
-                Ui.Pill(area, new Color(1f, 0.8f, 0.35f, on ? 0.12f : 0.06f));
+            {
+                Ui.Fill(area, LobbyKit.Ink(on ? 0.12f : 0.06f));
+                CrtKit.Frame(area, 1f, LobbyKit.Ink(on ? 0.7f : 0.4f));
+            }
             if (Ui.HitArea(area))
             {
                 ultDemoUntil = on ? 0f : t + UltDemoLen(ult.Id);  // a second click stops it
                 abilityDemoUntil = 0f;
             }
-            float x = area.x + 8f, w = area.width - 16f, y = area.y + 8f;
+            float x = area.x + 2f, w = area.width - 4f, y = area.y + 2f;
             // The ring: half full, or filling up while the preview plays.
             const float rr = 23f;
             var c = new V2(x + rr + 4f, y + rr + 4f);
@@ -869,20 +819,20 @@ namespace Arena
                 UiModelAt(V2.Zero, 1f);
                 Circle(c, rr - 4f, new Rgba(0.06f, 0.08f, 0.15f), 32);
                 Arc(c, rr, 6f, new Rgba(0.14f, 0.16f, 0.24f), 48);
-                Arc(c, rr, 6f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 1f), 48, -MathX.Pi / 2f, MathX.Tau * fill);
+                Arc(c, rr, 6f, new Rgba(0.95f, 0.76f, 0.31f, 1f), 48, -MathX.Pi / 2f, MathX.Tau * fill);
                 EndUiGl();
             }
-            Ui.Glitch(new Rect(c.X - 19f, c.Y - 13f, 40f, 28f), "F", 22, Color.white, TextAnchor.MiddleCenter, Ui.Gold);
-            float tx = x + rr * 2f + 18f, tw = area.xMax - 8f - tx;
-            Ui.Glitch(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(tx, y + 23f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);
-            Ui.Label(new Rect(tx, y + 37f, tw, 16f), "starts each match half full", 11, Ui.Muted);
-            y += rr * 2f + 14f;
+            Ui.Label(new Rect(c.X - 19f, c.Y - 14f, 40f, 28f), "F", 24, Color.white, TextAnchor.MiddleCenter, true);
+            float tx = x + rr * 2f + 18f, tw = area.xMax - 4f - tx;
+            LobbyKit.Fit(new Rect(tx, y, tw, 26f), ult.Name, 22, 13, LobbyKit.Gold, TextAnchor.MiddleLeft, calm, false);
+            Ui.Label(new Rect(tx, y + 25f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 12, new Color(0.62f, 0.69f, 0.85f), TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(tx, y + 40f, tw, 16f), "starts each match half full", 12, new Color(0.62f, 0.69f, 0.85f), TextAnchor.MiddleLeft);
+            y += rr * 2f + 12f;
             // What it does, then what mastering it adds; the click hint stays at the bottom.
-            float bottom = area.yMax - 20f;
-            DrawDescAndMastery(new Rect(x, y, w, bottom - y), ult.Desc, ult.Id, 11, new Color(0.79f, 0.82f, 0.91f));
-            Ui.Label(new Rect(area.x, area.yMax - 18f, area.width, 14f), on ? "PREVIEWING  ·  CLICK TO STOP" : "CLICK THE RING TO PREVIEW", 9,
-                on || hover ? Ui.Gold : new Color(0.44f, 0.47f, 0.58f), TextAnchor.MiddleCenter, true);
+            float bottom = area.yMax - 18f;
+            DrawDescAndMastery(new Rect(x, y, w, bottom - y), ult.Desc, ult.Id, 12, new Color(0.8f, 0.84f, 0.94f));
+            Ui.Label(new Rect(area.x, area.yMax - 17f, area.width, 14f), on ? "PREVIEWING  ·  CLICK TO STOP" : "CLICK THE RING TO PREVIEW", 10,
+                on || hover ? LobbyKit.Gold : CrtUi.Dim, TextAnchor.MiddleCenter, true);
         }
 
         /// An ability's description with what mastering it (level 5) adds under it in gold, both always shown in r: when
@@ -992,32 +942,20 @@ namespace Arena
             return "";
         }
 
-        void SpecHeader(Rect col, string eyebrow, string name, Color accent)
+        void SpecHeader(Rect col, string eyebrow, string name, bool calm)
         {
-            Ui.Label(new Rect(col.x, col.y, col.width, 14f), eyebrow, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            int size = 20;
-            while (size > 13 && Ui.TextWidth(name, size, true) > col.width)
-                size--;
-            Ui.Glitch(new Rect(col.x, col.y + 15f, col.width + 10f, 28f), name, size, Color.white, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(col.x, col.y - 1f, col.width, 16f), eyebrow, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            LobbyKit.Fit(new Rect(col.x, col.y + 12f, col.width, 28f), name, 26, 14, Color.white, TextAnchor.MiddleLeft, calm);
         }
 
-        static float SpecTileWidth(Rect row, int n) => n <= 0 ? 0f : (row.width - 6f * (n - 1)) / n;
-
-        /// A row of number tiles: a big gold value over a small caption. pad = room left free at the first tile's left.
-        void SpecTiles(Rect row, System.Collections.Generic.List<string[]> tiles, float pad)
+        /// A row of number tiles, a gold value over a small caption, sharing the row's width.
+        static void SpecTiles(Rect row, System.Collections.Generic.List<string[]> tiles, bool calm)
         {
-            float tw = SpecTileWidth(row, tiles.Count);
+            if (tiles.Count == 0)
+                return;
+            float tw = (row.width - 6f * (tiles.Count - 1)) / tiles.Count;
             for (int i = 0; i < tiles.Count; i++)
-            {
-                var tile = new Rect(row.x + i * (tw + 6f), row.y, tw, row.height);
-                Ui.Pill(tile, new Color(0.1f, 0.13f, 0.25f, 0.9f));
-                float tx = tile.x + 9f + (i == 0 ? pad : 0f);
-                int vs = 16;
-                while (vs > 11 && Ui.TextWidth(tiles[i][0], vs, true) > tile.xMax - 6f - tx)
-                    vs--;
-                Ui.Label(new Rect(tx, tile.y + 3f, tile.xMax - 6f - tx, 22f), tiles[i][0], vs, Ui.Gold, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(tx, tile.y + 23f, tile.xMax - 4f - tx, 14f), tiles[i][1], 9, Ui.Muted, TextAnchor.MiddleLeft, true);
-            }
+                LobbyKit.Tile(new Rect(row.x + i * (tw + 6f), row.y, tw, row.height), tiles[i][0], tiles[i][1], calm);
         }
 
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
@@ -1125,27 +1063,17 @@ namespace Arena
             }
         }
 
-        void HeroStat(Rect hero, ref float y, string name, string value, float frac, Color c)
-        {
-            Ui.Label(new Rect(hero.x + 14f, y, 90f, 16f), name.ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(hero.x + 14f, y, hero.width - 28f, 16f), value, 12, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Bar(new Rect(hero.x + 14f, y + 18f, hero.width - 28f, 5f), frac, c);
-            y += 27f;
-        }
-
         // --- Actions under the party -------------------------------------------------
 
+        /// Ready and Start, the two big keys at the bottom of the party column (a guest's Ready takes the Start slot). Ready is lit
+        /// once you are ready; Start is dim and dashed until everyone is.
         void DrawLobbyActions(LobbyEntry me, bool practice)
         {
-            const float lx = 40f, lw = 376f;
-            bool host = session.IsHost;
+            const float lx = 24f, lw = 446f;
+            bool host = session.IsHost, calm = fxReduced;
             bool ready = me != null && me.Ready;
-            // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be. Lit = you're ready / Start can start.
-            float readyY = host ? LobbyReadyY : LobbyStartY;
-            var readyRect = new Rect(lx, readyY, lw, LobbyActionH);
-            if (ready)
-                Ui.PulseRing(readyRect, Ui.Primary, Time.unscaledTime);  // drawn first, so Start sits over it
-            if (MenuVhs.Draw(readyRect, "TRK 03", true, fxReduced, () => Ui.ActionButton(readyRect, ready ? "Ready!" : "Ready?", ready, Ui.Primary, PixelArt.Get("ui_check"), glitch: true)))
+            var readyRect = host ? new Rect(lx, LobbyReadyY, lw, LobbyReadyH) : new Rect(lx, LobbyStartY, lw, LobbyStartH);
+            if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 28, minSize: 16))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -1155,16 +1083,13 @@ namespace Arena
             string note = session.Lobby.Count < 2 ? ""
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
                 : !ready ? "" : host ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
-            Ui.Label(new Rect(lx, readyY - 30f, lw, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleCenter);
+            if (note.Length > 0)
+                CrtUi.Text(new Rect(lx, readyRect.y - 32f, lw, 26f), note, 16, waiting == 0 ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
-                bool wasEnabled = GUI.enabled;
-                GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                var startR = new Rect(lx, LobbyStartY, lw, LobbyActionH);
-                bool startOn = GUI.enabled;
-                if (MenuVhs.Draw(startR, "TRK 04", true, fxReduced, () => Ui.ActionButton(startR, "Start", startOn, practice ? PracticeColor : Ui.Primary, PixelArt.Get("ui_play"), glitch: true)))
+                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
+                if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 28, minSize: 16, locked: !startOn))
                     session.StartMatch();
-                GUI.enabled = wasEnabled;
             }
         }
     }

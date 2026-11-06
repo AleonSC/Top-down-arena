@@ -13,7 +13,7 @@ namespace Arena
 
         void DrawModifiers(Rect r, float t)
         {
-            Ui.BodyBox(r);
+            LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
             bool host = session.IsHost;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             int n = Modifiers.Count(session.Modifiers);

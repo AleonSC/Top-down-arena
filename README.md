@@ -28,7 +28,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
+The lobby is one calm blue CRT screen: every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons and three Space abilities. Weapons and abilities are
 unique to their role and class.
 
@@ -294,7 +294,7 @@ fills as it earns XP). What level 5 unlocks is always written in gold under each
 level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
 with "…"; hover a Tab tile to read it in full.
 
-In the lobby, your **ultimate** sits at the bottom of your character card: a gold charge ring (half full, as every
+In the lobby, your **ultimate** sits at the bottom of the left column of the loadout screen, under the stat bars: a gold charge ring (half full, as every
 ultimate starts a match half charged) with its key, its charge time, what it does and what mastering it adds. Click
 it to watch it in the preview above; the ring fills while it plays.
 Mastery resets each run.
@@ -519,7 +519,7 @@ where the bosses come back around, tougher each time.
 
 ## Loadout preview
 
-The hero card in the lobby shows your loadout in a small live arena: your character uses the chosen weapon
+The lobby's loadout screen shows your loadout in a small live arena (top left): your character uses the chosen weapon
 on three target dummies, so you can see how it attacks. Hover an ability button (or pick one) and it casts
 that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
 the other players), so it always matches how weapons and abilities really behave.
@@ -908,7 +908,7 @@ again, go back to the lobby, or keep going after a victory.
 
 ## Lobby Hangout
 
-The lobby's **Hangout** (a button on the Party heading, which becomes **< Loadout** while you are in the room) is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
+The lobby's **Hangout** (a key on the Party line, which becomes **< Loadout** while you are in the room) is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
 or your rebound movement keys); the others in the lobby move theirs, and everyone sees everyone. Each character is
 your real class and weapon model, with the **trail** you have equipped behind it, your **rank badge** and a name plate
 with your **frame's** colour (and a green dot once you've readied up). Works in every lobby mode. Design: [`Docs/Hangout.md`](Docs/Hangout.md).

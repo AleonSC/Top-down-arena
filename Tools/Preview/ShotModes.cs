@@ -146,6 +146,14 @@ static partial class Shot {
       // TANKGUN=0|1|2: your card is a Soldier Tank with that weapon (0 Scattergun, 1 Flak Cannon, 2 Riot Repeater).
       if (Environment.GetEnvironmentVariable("TANKGUN") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = byte.Parse(Environment.GetEnvironmentVariable("TANKGUN")); host.Lobby[1].Ability = 0; }
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
+      // BOTS=1: Aleon's seat is a bot (the host's skill, MIX and remove keys on its card); BOTS=edit: the host is also choosing that bot's loadout (its name box over the preview).
+      if (Environment.GetEnvironmentVariable("BOTS") != null) {
+        host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Bot 1", Role = Role.Healer, Kit = Kit.Hemomancer, Weapon = 0, Ability = 0, Ready = true, Rank = 3 };
+        var pbs = (PartyBots)typeof(ArenaApp).GetField("partyBots", f2).GetValue(app);
+        var bs = new Session(); bs.MyId = 2; bs.Lobby[2] = host.Lobby[2];
+        pbs.Bots.Add(new PartyBots.PartyBot { S = bs, Skill = BotSkill.Good, Name = "Bot 1" });
+        if (Environment.GetEnvironmentVariable("BOTS") == "edit") set("editBotId", 2);
+      }
       // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).
       if (Environment.GetEnvironmentVariable("RESUME") != null) {
         PreviewSaves(); host.Resume = SaveStore.List()[0];

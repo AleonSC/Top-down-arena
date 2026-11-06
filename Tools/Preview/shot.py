@@ -108,12 +108,12 @@ for line in open(base+'.ui',encoding='utf-8'):
                     else: cur=t2
                 outl.append(cur)
             text='\n'.join(outl)
-        bb=ld.multiline_textbbox((0,0),text,font=f)
+        bb=ld.multiline_textbbox((0,0),text,font=f,spacing=0)
         tw,th=bb[2]-bb[0],bb[3]-bb[1]
         hx=[0,1,2,0,1,2][align]; vy=[0,0,0,1,1,1][align]
         tx = x+2 if hx==0 else (x+(w-tw)/2 if hx==1 else x+w-tw-2)
         ty = y+2 if vy==0 else y+(h-th)/2-bb[1]
-        ld.multiline_text((tx,ty),text,font=f,fill=c8(*col),align=['left','center','right'][hx])
+        ld.multiline_text((tx,ty),text,font=f,fill=c8(*col),align=["left","center","right"][hx],spacing=0)
     # clip (an empty clip area shows nothing; newer Pillow rejects drawing it)
     if cw<1 or ch<1: continue
     m=Image.new('L',(W,H),0); ImageDraw.Draw(m).rectangle([cx,cy,cx+cw-1,cy+ch-1],fill=255)

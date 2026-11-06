@@ -186,7 +186,7 @@ namespace Arena
             if (!LaunchActive || !launchFromLobby || launchT >= LobbyOutTime || session.Lobby.Count == 0)
                 return;
             float k = Seg(launchT, 0f, LobbyOutTime), e = k * k * (3f - 2f * k), a = 1f - Seg(launchT, 0.3f, LobbyOutTime);
-            const float split = 430f;  // where the lobby's party column ends and its tabs begin
+            const float split = LobbySplit;  // where the lobby's party column ends and its tabs begin
             var oldColor = GUI.color;
             bool oldEnabled = GUI.enabled;
             GUI.enabled = false;

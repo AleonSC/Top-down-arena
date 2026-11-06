@@ -2,14 +2,14 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The lobby as a cyan CRT screen, and New run opening into it (Docs/Mockups/crt-new-run-lobby.html: opening D "Terminal boot",
-    /// cyan phosphor, curved glass, scanlines behind panels).
-    ///   Behind the panels (DrawLobbyCrtBack): a dark cyan screen (a little see-through, so the chosen menu background still shows
+    /// The lobby as a blue CRT screen (the lobby's ink is CrtUi.Ink), and New run opening into it (Docs/Mockups/crt-new-run-lobby.html: opening D "Terminal boot",
+    /// blue phosphor, curved glass, scanlines behind panels).
+    ///   Behind the panels (DrawLobbyCrtBack): a dark blue screen (a little see-through, so the chosen menu background still shows
     ///   faintly), a glow in the middle, scanlines and, unless Reduced effects, a slow rolling bar.
     ///   Over everything (DrawLobbyCrtGlass): the dark corners, a glass highlight, a rounded bezel and now and then a flicker.
     /// New run (StartNewRun) plays about 7.1 s, and any key or click after half a second skips to the end:
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
-    ///   0.4 s   that screen grows from its own edges to the whole window, going from blue to cyan. It is a CRT the whole way
+    ///   0.4 s   that screen grows from its own edges to the whole window, going from the runs screen's blue to the lobby's. It is a CRT the whole way
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
     ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
@@ -18,8 +18,8 @@ namespace Arena
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
     {
-        public static readonly Color LobbyInk = new Color(0.36f, 0.88f, 1f);
-        static readonly Color LobbyBg = new Color(0.008f, 0.063f, 0.10f);
+        public static readonly Color LobbyInk = CrtUi.Ink;
+        static readonly Color LobbyBg = CrtUi.Bg;
         const float EnterCrtLen = 7.1f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 5.5f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, CrtLogPause = 1.0f, CrtLogFadeAt = 5.6f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 26f, LobbyGlassBezel = 3f;
 
@@ -42,7 +42,7 @@ namespace Arena
             lobbyPhosTex = new Texture2D(1, 720, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var phos = new Color[720];
             for (int y = 0; y < phos.Length; y++)
-                phos[y] = y % 4 == 0 ? new Color(0.3f, 0.85f, 1f, 1f) : new Color(0.3f, 0.85f, 1f, 0f);
+                phos[y] = y % 4 == 0 ? new Color(0.4f, 0.64f, 1f, 1f) : new Color(0.4f, 0.64f, 1f, 0f);
             lobbyPhosTex.SetPixels(phos);
             lobbyPhosTex.Apply();
             // The glass frame, meant to be 9-sliced: clear inside a rounded rectangle, dark bezel outside it, a thin rim on the edge.
@@ -103,7 +103,7 @@ namespace Arena
             for (int i = 0; i < 16; i++)  // a glow in the middle: stacked, shrinking rects, many and faint so it reads as smooth
             {
                 float m = 0.02f + i * 0.028f;
-                Ui.Fill(new Rect(W * m, H * m, W * (1f - 2f * m), H * (1f - 2f * m)), new Color(0.05f, 0.24f, 0.34f, 0.022f * a));
+                Ui.Fill(new Rect(W * m, H * m, W * (1f - 2f * m), H * (1f - 2f * m)), new Color(0.05f, 0.13f, 0.32f, 0.026f * a));
             }
             var oldC = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.05f * a);
@@ -131,7 +131,7 @@ namespace Arena
             {
                 float y0 = Mathf.Max(by + bh * i / 8f, r.y), y1 = Mathf.Min(by + bh * (i + 1) / 8f + 1f, r.yMax);
                 if (y1 > y0)
-                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(0.6f, 0.95f, 1f, Mathf.Sin((i + 0.5f) / 8f * Mathf.PI) * 0.03f * a));
+                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(0.75f, 0.85f, 1f, Mathf.Sin((i + 0.5f) / 8f * Mathf.PI) * 0.03f * a));
             }
         }
 
@@ -288,8 +288,8 @@ namespace Arena
             {
                 float by = Mathf.Lerp(-130f, H + 20f, sw);
                 for (int i = 0; i < 8; i++)
-                    Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.6f, 0.95f, 1f, 0.07f + 0.5f * Mathf.Pow((i + 1f) / 8f, 3f)));
-                Ui.Fill(new Rect(0f, by + 128f, W, 3f), new Color(0.9f, 1f, 1f, 0.9f));
+                    Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.07f + 0.5f * Mathf.Pow((i + 1f) / 8f, 3f)));
+                Ui.Fill(new Rect(0f, by + 128f, W, 3f), new Color(0.9f, 0.95f, 1f, 0.9f));
             }
             DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
         }
@@ -304,7 +304,7 @@ namespace Arena
             for (int i = 0; i < 16; i++)  // the glow in the middle, as in DrawLobbyCrtBack
             {
                 float m = 0.02f + i * 0.028f;
-                Ui.Fill(new Rect(r.x + r.width * m, r.y + r.height * m, r.width * (1f - 2f * m), r.height * (1f - 2f * m)), Color.Lerp(new Color(0.08f, 0.16f, 0.36f, 0.022f), new Color(0.05f, 0.24f, 0.34f, 0.022f), k));
+                Ui.Fill(new Rect(r.x + r.width * m, r.y + r.height * m, r.width * (1f - 2f * m), r.height * (1f - 2f * m)), Color.Lerp(new Color(0.08f, 0.16f, 0.36f, 0.022f), new Color(0.05f, 0.13f, 0.32f, 0.026f), k));
             }
             GUI.BeginGroup(r);
             CrtScanlines(new Rect(0f, 0f, W, H), 1f);
@@ -325,7 +325,7 @@ namespace Arena
             }
             GUI.EndGroup();
             float flare = (1f - grow) * (1f - grow);  // its brightness settling
-            Ui.Fill(r, new Color(0.5f, 0.95f, 1f, 0.16f * flare));
+            Ui.Fill(r, new Color(0.55f, 0.75f, 1f, 0.16f * flare));
             GUI.Box(r, GUIContent.none, lobbyGlassStyle);  // the rounded bezel
         }
 

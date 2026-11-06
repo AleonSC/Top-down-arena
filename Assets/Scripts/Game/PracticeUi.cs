@@ -49,7 +49,7 @@ namespace Arena
             practiceSel = Mathf.Clamp(practiceSel, 0, plan.Waves.Count - 1);
             var sel = plan.Waves[practiceSel];
 
-            Ui.BodyBox(r);
+            LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
             DrawPracticeHeader(r, t, canEdit);
 
             // --- Waves (left): a numbered list, then what you can do to the selected wave.

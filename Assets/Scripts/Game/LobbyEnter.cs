@@ -74,9 +74,6 @@ namespace Arena
         static Rect LerpRect(Rect a, Rect b, float k) =>
             new Rect(Lerp(a.x, b.x, k), Lerp(a.y, b.y, k), Lerp(a.width, b.width, k), Lerp(a.height, b.height, k));
 
-        /// The loadout panel the menu card grows into (DrawLobby's body).
-        static Rect LobbyBodyRect => new Rect(440f, LobbyBodyTop, W - 480f, H - LobbyBottomPad - LobbyBodyTop);
-
         /// Instead of DrawLobby while leaving: the entrance, backwards.
         void DrawLobbyLeavingToMenu() => DrawLobbyEntering(LeaveFrom * (1f - Mathf.Clamp01(leaveT / LeaveLen)), true);
 
@@ -123,12 +120,12 @@ namespace Arena
 
             // The title flies to the top left, shrinking, and turns into LOBBY on the way.
             float tk = EaseInOut(Seg(e, 0f, 0.6f));
-            float cx = Lerp(W / 2f, 199f, tk), cy = Lerp(MenuTitleY, 41f, tk), size = Lerp(MenuTitleSize, 40f, tk);
+            float cx = Lerp(W / 2f, 199f, tk), cy = Lerp(MenuTitleY, 61f, tk), size = Lerp(MenuTitleSize, 54f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
-                WithAlpha(newA, () => Ui.Glitch(new Rect(104f + (cx - 199f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft, Ui.Accent));
+                WithAlpha(newA, () => DrawLobbyTitle(new Rect(118f + (cx - 199f), 30f + (cy - 61f), 260f, 62f), 1f, fxReduced, t));  // (the lobby's own LOBBY_, so the hand-over at the end shows no change)
 
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())
@@ -156,18 +153,18 @@ namespace Arena
             // Repaint only, so nothing in them takes a click (GUI.enabled = false would also draw them half see-through).
             // Its live models wait.
             uiGlBlocked = true;
-            const float split = 430f;
-            LobbyPiece(new Rect(0f, 0f, 100f, 68f), e, 0.5f, 0.8f, -60f, 0f);                      // the back button
+            const float split = LobbySplit;
+            LobbyPiece(new Rect(0f, 0f, 116f, 112f), e, 0.5f, 0.8f, -60f, 0f);                     // the Back key
             if (title)
-                LobbyPiece(new Rect(100f, 0f, 140f, 68f), e, 0.45f, 0.8f, 0f, -20f);                  // the LOBBY title (the menu's entrance flies it in instead)
-            LobbyPiece(new Rect(240f, 0f, split - 240f, 68f), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
-            LobbyPiece(new Rect(0f, 68f, split, 80f), e, 0.45f, 0.85f, -60f, 0f);                  // the mode switch
-            LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
-            LobbyPiece(new Rect(0f, PartyTop + 96f, split, LobbyNoteY - 4f - (PartyTop + 96f)), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
-            LobbyPiece(new Rect(0f, LobbyNoteY - 4f, split, H - LobbyNoteY + 4f), e, 0.7f, 1.1f, -60f, 0f);  // Ready and Start
-            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f, true);       // your party card, last
-            LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
-            LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - LobbyBottomPad - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
+                LobbyPiece(new Rect(116f, 0f, 260f, 112f), e, 0.45f, 0.8f, 0f, -20f);                 // the LOBBY title (the menu's entrance flies it in instead)
+            LobbyPiece(new Rect(376f, 0f, split - 376f, 112f), e, 0.55f, 0.8f, 0f, -20f);         // the "!" by the title (the title itself flies in)
+            LobbyPiece(new Rect(0f, 112f, split, 76f), e, 0.45f, 0.85f, -60f, 0f);                 // the mode keys
+            LobbyPiece(new Rect(0f, 188f, split, PartyTop - 188f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)" and Hangout
+            LobbyPiece(new Rect(0f, PartyTop + PartyStep - 4f, split, LobbyNoteY - (PartyTop + PartyStep - 4f)), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
+            LobbyPiece(new Rect(0f, LobbyNoteY, split, H - LobbyNoteY), e, 0.7f, 1.1f, -60f, 0f);  // Ready and Start
+            LobbyPiece(new Rect(0f, PartyTop - 2f, split, PartyStep - 2f), e, 0.8f, 1.15f, -60f, 0f, true);       // your party card, last
+            LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tab keys
+            LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - LobbyBodyTop + 2f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
             uiGlBlocked = false;
         }
 
@@ -177,7 +174,7 @@ namespace Arena
             UiModelAt(V2.Zero, 1f);
             var c = new Rgba(0.35f, 0.59f, 1f, 1f - ring);
             float g = 10f * ring;
-            V2 a0 = new V2(40f - g, PartyTop - g), a1 = new V2(416f + g, PartyTop - g), a2 = new V2(416f + g, PartyTop + 88f + g), a3 = new V2(40f - g, PartyTop + 88f + g);
+            V2 a0 = new V2(24f - g, PartyTop - g), a1 = new V2(470f + g, PartyTop - g), a2 = new V2(470f + g, PartyTop + PartyCardH + g), a3 = new V2(24f - g, PartyTop + PartyCardH + g);
             Line(a0, a1, 3f, c); Line(a1, a2, 3f, c); Line(a2, a3, 3f, c); Line(a3, a0, 3f, c);
         }
 

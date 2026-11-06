@@ -35,7 +35,7 @@ namespace Arena
                 equipped.AddRange(mine.PerkIds);
                 slots = Mathf.Max(1, equipped.Count);
             }
-            Ui.BodyBox(r);
+            LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
 
             // --- Left: the slots
             float lx = r.x + 18f, lw = 236f;
