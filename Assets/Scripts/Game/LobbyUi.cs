@@ -78,6 +78,7 @@ namespace Arena
                 connInfoOpen = !connInfoOpen;
             Ui.Fill(new Rect(24f, 108f, 446f, 1f), LobbyKit.Ink(0.4f));
             var modeR = new Rect(24f, 118f, 446f, 62f);
+            TipClear();  // the mode keys' hover tips (below) and a rank badge's title (RankUi.cs)
             if (session.Resume != null)
                 DrawResumeBanner(modeR, t);  // continuing a saved run (SavesUi.cs)
             else
@@ -91,7 +92,6 @@ namespace Arena
             if (LobbyKit.Key(new Rect(lx + lw - 120f, 190f, 120f, 32f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 14, minSize: 11))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
-            TipClear();  // hovering a rank badge shows the title (RankUi.cs)
             int slot = 0;
             foreach (var e in session.Lobby.Values)
             {
@@ -158,11 +158,18 @@ namespace Arena
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout).
         static Rect LobbyBodyRect => LobbyBodyRectConst;
 
-        /// LOBBY_ in big phosphor letters, the underscore blinking (still with Reduced effects). `a` fades it (the entrance).
+        /// The lobby's title plate: a framed readout with a lit bar on its left, LOBBY in phosphor letters and a blinking status lamp
+        /// (still, but lit, with Reduced effects). `a` fades it (the entrance).
         void DrawLobbyTitle(Rect r, float a, bool calm, float t)
         {
             var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
-            CrtUi.Text(r, calm || Mathf.FloorToInt(t * 2f) % 2 == 0 ? "LOBBY_" : "LOBBY", 44, ink, TextAnchor.MiddleLeft, true, calm);
+            var plate = new Rect(r.x, r.y + 4f, Mathf.Min(r.width, 214f), r.height - 8f);
+            Ui.Fill(plate, LobbyKit.Ink(0.08f * a));
+            CrtKit.Frame(plate, 2f, LobbyKit.Ink(0.55f * a));
+            Ui.Fill(new Rect(plate.x, plate.y, 6f, plate.height), ink);
+            CrtUi.Text(new Rect(plate.x + 20f, plate.y, plate.width - 56f, plate.height), "LOBBY", 30, ink, TextAnchor.MiddleLeft, true, calm);
+            bool lit = calm || Mathf.FloorToInt(t * 2f) % 2 == 0;
+            Ui.Fill(new Rect(plate.xMax - 26f, plate.center.y - 6f, 12f, 12f), lit ? ink : LobbyKit.Ink(0.2f * a));
         }
 
         string HostName()
@@ -182,8 +189,15 @@ namespace Arena
                 var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 18, minSize: 12, enabled: session.IsHost, sub: sub) && session.IsHost && i != mode)
+                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 20, minSize: 12, enabled: session.IsHost) && session.IsHost && i != mode)
                     session.SetMode(i == 2, i == 1);
+                if (k.Contains(Event.current.mousePosition))  // the description is a hover tip
+                {
+                    TipStart(k, title, CrtUi.Ink);
+                    TipAdd(sub, 13, Ui.Text);
+                    if (!session.IsHost)
+                        TipAdd("Only the host can switch the mode.", 11, Ui.Muted);
+                }
             }
         }
 
