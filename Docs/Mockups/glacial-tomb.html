@@ -1,0 +1,593 @@
+<title>Glacial Tomb Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Field-manual look shared with the other mockups. Three looping scenes at game scale (1 canvas px = 1 arena px).
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547;
+  --a: #9fe3ff; --b: #b9c6ff; --c: #7dffe0;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 48px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--a); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 12px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1b2430; border-color: var(--amber); color: var(--fg); }
+section.look { display: grid; gap: 12px; }
+.lookhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.tag { font: 800 13px var(--font-display); letter-spacing: 0.14em; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+.stage[data-picked="true"] { border-color: var(--amber); }
+canvas.arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 420; background: #070910; }
+.bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px 24px; padding: 14px 16px; border-top: 1px solid var(--line); align-items: start; }
+.bar div { min-width: 0; display: grid; gap: 3px; }
+.bar .k { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.bar p { font-size: 14px; color: var(--soft); }
+.bar .pick { align-self: center; justify-self: start; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 12px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 92ch; color: var(--soft); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 14px; min-width: 620px; width: 100%; }
+th, td { text-align: left; padding: 7px 14px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
+#pickline { font: 500 13px var(--font-data); color: var(--amber); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Tank Elementalist · ultimate · Glacial Tomb · pick a look</div>
+    <h1>Glacial <span>Tomb</span></h1>
+    <p class="lead">Today the cast is a bare ring. These three versions turn it into a moment: every enemy bullet is erased, every enemy freezes solid for 4 s, and the
+      boss takes 250 instead. All three run the same scene on a loop: the cast, the wave, the 4 s hold, then the thaw. Frost Nova already uses small faceted ice blocks
+      with a countdown ring, so none of these reuse that. Nothing here is in the game yet.</p>
+    <div class="group">
+      <span class="label">All previews</span>
+      <button id="pause" aria-pressed="false">Pause</button>
+      <button id="slow" aria-pressed="false">¼× speed</button>
+      <button id="reduced" aria-pressed="false">Reduced effects</button>
+      <span id="pickline">No look picked yet</span>
+    </div>
+  </header>
+
+  <section class="look" data-look="0">
+    <div class="lookhead"><span class="tag" style="color:var(--a)">LOOK A</span><h2>Sarcophagus</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look A: each enemy is sealed in a carved ice monolith"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>A rune circle spins up at your feet. On the cast, cracks race across the floor and a carved ice slab thrusts up around every enemy, lid seam and glyph on its face.
+          Bullets burst into snow glints. The boss is not entombed: ice lances punch through it.</p></div>
+        <div><span class="k">Timer and thaw</span><p>A cyan band along the slab's foot drains as the freeze runs out. In the last second the slab cracks, then bursts into slabs of ice and mist.</p></div>
+        <div><span class="k">Feel</span><p>The literal reading of "tomb". Heavy, ceremonial, easy to read from far away. The slab hides the enemy a little, so it is drawn glassy.</p></div>
+        <button class="pick" data-pick="0" aria-pressed="false">Pick Look A</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="look" data-look="1">
+    <div class="lookhead"><span class="tag" style="color:var(--b)">LOOK B</span><h2>Absolute Zero</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look B: time stops and the world turns to blue monochrome"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>A clock dial winds up at your feet, then stops dead. The wave drains the colour out of the arena behind it, split into red and cyan at its edge. Bullets lock in mid-air as ice beads
+          and shatter a beat later, in wave order. Frost creeps in from the screen edges.</p></div>
+        <div><span class="k">Timer and thaw</span><p>A ring of 24 ticks around each frozen enemy goes dark one tick at a time. The colour returns as a second wave, in the same order the enemies froze.</p></div>
+        <div><span class="k">Feel</span><p>The most dramatic. It sells "everything stopped" better than the others, and it changes the whole screen for 4 s, so it needs the Reduced effects fallback.</p></div>
+        <button class="pick" data-pick="1" aria-pressed="false">Pick Look B</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="look" data-look="2">
+    <div class="lookhead"><span class="tag" style="color:var(--c)">LOOK C</span><h2>Crystal Reliquary</h2></div>
+    <div class="stage">
+      <canvas class="arena" aria-label="Look C: a hex lattice of frost spreads and crystal spires cage each enemy"></canvas>
+      <div class="bar">
+        <div><span class="k">What you see</span><p>A hex lattice of frost spreads outward from a turning mandala, cell by cell, like a crystal growing. Each enemy is caged by a cluster of tall spires with a glowing core.
+          Bullets are replaced by tiny crystal sprouts that bloom and fade.</p></div>
+        <div><span class="k">Timer and thaw</span><p>The spires pale and pulse faster as the freeze runs out, then crack and fall in a shower of shards. The lattice recedes with them.</p></div>
+        <div><span class="k">Feel</span><p>The most magical and the most ornate. It reads as a relic or an altar. The spires are the biggest silhouettes of the three, so a crowd can get busy.</p></div>
+        <button class="pick" data-pick="2" aria-pressed="false">Pick Look C</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>Numbers and notes</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th></th><th>Today</th><th>A Sarcophagus</th><th>B Absolute Zero</th><th>C Crystal Reliquary</th></tr></thead>
+        <tbody>
+          <tr><th>Cast</th><td class="n">Ring, 900 px, 0.8 s</td><td class="n">Cracks + slabs, 0.8 s</td><td class="n">Colour wave, 0.8 s</td><td class="n">Hex lattice, 0.8 s</td></tr>
+          <tr><th>Frozen enemy</th><td class="n">Nothing drawn</td><td class="n">Ice slab, 1.1 to 1.6 enemy widths tall</td><td class="n">Rime crust + 24-tick clock</td><td class="n">Spire cluster, 7 crystals</td></tr>
+          <tr><th>Bullets</th><td class="n">Vanish</td><td class="n">Snow glint</td><td class="n">Freeze, then shatter</td><td class="n">Crystal sprout</td></tr>
+          <tr><th>Boss</th><td class="n">Nothing drawn</td><td class="n">5 ice lances</td><td class="n">Cracks + flash</td><td class="n">Ring of 8 spears</td></tr>
+          <tr><th>Whole-screen change</th><td class="n">No</td><td class="n">No</td><td class="n">Yes</td><td class="n">Floor only</td></tr>
+          <tr><th>Cost</th><td class="n">Lowest</td><td class="n">Medium</td><td class="n">Medium, one blend pass</td><td class="n">Highest, many polygons</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>All three draw from the existing <code>Frozen</code> status bit on each enemy, the same way Frost Nova does, and from the cast's <code>Ring</code> effect, so none of them needs a new network field.</li>
+      <li>Look B's colour wave needs a blend pass over the whole world. If that is too costly on low-end machines, fall back to a tinted ring.</li>
+      <li>Rising slabs (A) and spires (C) are drawn over the enemy, so the enemy stays visible through them. The numbers over each enemy still sit on top.</li>
+      <li><b>Reduced effects</b> turns off the flashes, the screen-edge frost, the chromatic edge on the wave and the colour wash.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var W = 960, H = 420, LOOP = 8.0, CAST = 0.9, SPD = 1100, FREEZE = 4;
+  var P = { x: 280, y: 235 };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var easeOut3 = function (t) { t = clamp(t, 0, 1); return 1 - Math.pow(1 - t, 3); };
+  var easeBack = function (t) { t = clamp(t, 0, 1); var c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+  var TAU = Math.PI * 2;
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function mix(a, b, t) { return "rgb(" + Math.round(lerp(a[0], b[0], t)) + "," + Math.round(lerp(a[1], b[1], t)) + "," + Math.round(lerp(a[2], b[2], t)) + ")"; }
+  var DEEP = [24, 78, 160], PALE = [196, 238, 255];
+
+  /* ---- the scene every look plays: the same enemies and bullets ---- */
+  var ENEMIES = [
+    { x: 150, y: 95, r: 15 }, { x: 130, y: 345, r: 15 }, { x: 440, y: 60, r: 24, heavy: 1 }, { x: 520, y: 335, r: 15 },
+    { x: 590, y: 190, r: 15 }, { x: 650, y: 330, r: 24, heavy: 1 }, { x: 905, y: 360, r: 15 }, { x: 905, y: 50, r: 15 },
+    { x: 700, y: 85, r: 15 }
+  ];
+  var BOSS = { x: 790, y: 205, r: 46, boss: 1 };
+  var R0 = rng(7);
+  ENEMIES.forEach(function (e, i) { e.ph = R0() * 6; e.f = CAST + Math.hypot(e.x - P.x, e.y - P.y) / SPD; });
+  BOSS.ph = 1.3; BOSS.f = CAST + Math.hypot(BOSS.x - P.x, BOSS.y - P.y) / SPD;
+  var BULLETS = [];
+  (function () {
+    var r = rng(21), src = ENEMIES.concat([BOSS]);
+    src.forEach(function (s) {
+      var n = s.boss ? 28 : s.heavy ? 8 : 5, base = r() * TAU, sp = s.boss ? 105 : 125;
+      for (var i = 0; i < n; i++)
+        BULLETS.push({ ox: s.x, oy: s.y, a: base + i * TAU / n + (s.boss ? 0 : r() * 0.5), sp: sp * (0.85 + r() * 0.3), life: 3.1 + r() * 0.8, off: r() * 3, sz: s.boss ? 5 : 4 });
+    });
+    BULLETS.forEach(function (b) {
+      var ph = ((CAST + b.off) % b.life);
+      b.at = function (t) { var s = t < CAST ? (t + b.off) % b.life : ph + (t - CAST); return { x: b.ox + Math.cos(b.a) * b.sp * s, y: b.oy + Math.sin(b.a) * b.sp * s }; };
+      for (var t = CAST; t < CAST + 2; t += 0.005) { var p = b.at(t); if ((t - CAST) * SPD >= Math.hypot(p.x - P.x, p.y - P.y)) { b.f = t; break; } }
+      if (b.f == null) b.f = CAST + 1.5;
+    });
+  })();
+  function waveR(t) { return clamp(t - CAST, 0, 1.6) * SPD; }
+  function motionT(e, t) { return t < e.f ? t : t < e.f + FREEZE ? e.f : t - FREEZE; }
+  function epos(e, t) { var m = motionT(e, t); return { x: e.x + Math.sin(m * 0.9 + e.ph) * 14, y: e.y + Math.cos(m * 0.7 + e.ph) * 10 }; }
+  function frozenFrac(e, t) { return t >= e.f && t < e.f + FREEZE ? (t - e.f) / FREEZE : -1; }
+
+  var FLOOR = (function () {
+    var c = document.createElement("canvas"); c.width = W; c.height = H; var x = c.getContext("2d");
+    var g = x.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, 620); g.addColorStop(0, "#161d26"); g.addColorStop(1, "#0a0e14");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "rgba(120,150,180,0.07)"; x.lineWidth = 1;
+    for (var i = 0; i <= W; i += 60) { x.beginPath(); x.moveTo(i + 0.5, 0); x.lineTo(i + 0.5, H); x.stroke(); }
+    for (var j = 0; j <= H; j += 60) { x.beginPath(); x.moveTo(0, j + 0.5); x.lineTo(W, j + 0.5); x.stroke(); }
+    x.strokeStyle = "rgba(120,150,180,0.12)"; x.lineWidth = 2; x.strokeRect(6, 6, W - 12, H - 12);
+    return c;
+  })();
+
+  /* ---- drawing helpers ---- */
+  function poly(c, pts) { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (var i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); }
+  function hex(c, x, y, r, rot) { c.beginPath(); for (var i = 0; i < 6; i++) { var a = rot + i * Math.PI / 3; c[i ? "lineTo" : "moveTo"](x + Math.cos(a) * r, y + Math.sin(a) * r); } c.closePath(); }
+  function glow(c, x, y, r, col, a) { var g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(" + col + "," + a + ")"); g.addColorStop(1, "rgba(" + col + ",0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); }
+  function star4(c, x, y, r, rot, col) { c.fillStyle = col; c.beginPath(); for (var i = 0; i < 8; i++) { var a = rot + i * Math.PI / 4, rr = i % 2 ? r * 0.28 : r; c[i ? "lineTo" : "moveTo"](x + Math.cos(a) * rr, y + Math.sin(a) * rr); } c.closePath(); c.fill(); }
+  function snowflake(c, x, y, r, rot) { c.beginPath(); for (var i = 0; i < 6; i++) { var a = rot + i * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a); c.moveTo(x, y); c.lineTo(x + ca * r, y + sa * r); var bx = x + ca * r * 0.6, by = y + sa * r * 0.6; for (var s = -1; s <= 1; s += 2) { var b = a + s * 0.7; c.moveTo(bx, by); c.lineTo(bx + Math.cos(b) * r * 0.3, by + Math.sin(b) * r * 0.3); } } c.stroke(); }
+
+  function drawBody(c, e, x, y, tint) {
+    var r = e.r;
+    c.save(); c.translate(x, y);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(0, r * 0.7, r * 1.05, r * 0.45, 0, 0, TAU); c.fill();
+    c.fillStyle = e.boss ? "#4a1530" : "#55202b"; c.strokeStyle = e.boss ? "#e0577f" : "#c4455a"; c.lineWidth = e.boss ? 4 : 2.5;
+    var n = e.boss ? 10 : e.heavy ? 8 : 6;
+    c.beginPath(); for (var i = 0; i < n * 2; i++) { var a = i * Math.PI / n, rr = i % 2 ? r * 0.82 : r * 1.12; c[i ? "lineTo" : "moveTo"](Math.cos(a) * rr, Math.sin(a) * rr); } c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = e.boss ? "#2a0b1e" : "#341018"; c.beginPath(); c.arc(0, 0, r * 0.6, 0, TAU); c.fill();
+    c.fillStyle = "#ffb547"; var er = e.boss ? 5 : 3; c.beginPath(); c.arc(-r * 0.22, -2, er, 0, TAU); c.arc(r * 0.22, -2, er, 0, TAU); c.fill();
+    if (tint > 0) { c.fillStyle = "rgba(140,200,255," + (0.45 * tint) + ")"; c.beginPath(); c.arc(0, 0, r * 1.1, 0, TAU); c.fill(); }
+    c.restore();
+  }
+  function drawPlayer(c, t, charge) {
+    c.save(); c.translate(P.x, P.y);
+    if (charge > 0) glow(c, 0, 0, 70 + charge * 40, "159,227,255", 0.25 + 0.4 * charge);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(0, 12, 20, 9, 0, 0, TAU); c.fill();
+    c.fillStyle = "#26364d"; c.strokeStyle = "#82beff"; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, 17, 0, TAU); c.fill(); c.stroke();
+    c.fillStyle = "#3a5272"; c.beginPath(); c.arc(0, 0, 10, 0, TAU); c.fill();
+    c.strokeStyle = "#cfdae2"; c.lineWidth = 3; c.beginPath(); c.moveTo(8, -4); c.lineTo(34, -14); c.stroke();
+    c.fillStyle = "#bfeaff"; c.beginPath(); c.arc(36, -15, 4 + charge * 2, 0, TAU); c.fill();
+    c.restore();
+  }
+  function drawBullet(c, x, y, sz, a) {
+    c.globalAlpha = a; glow(c, x, y, sz * 3.2, "255,106,77", 0.55); c.fillStyle = "#ff8a63"; c.beginPath(); c.arc(x, y, sz, 0, TAU); c.fill();
+    c.fillStyle = "#ffe3c9"; c.beginPath(); c.arc(x, y, sz * 0.45, 0, TAU); c.fill(); c.globalAlpha = 1;
+  }
+  function dmgText(c, x, y, txt, age, big) {
+    var a = clamp(1 - (age - 0.9) / 0.5, 0, 1), up = easeOut3(age / 0.6) * 24;
+    c.globalAlpha = a; c.font = "800 " + (big ? 26 : 16) + "px Oxanium, sans-serif"; c.textAlign = "center"; c.lineWidth = 4; c.strokeStyle = "rgba(5,10,20,0.9)";
+    c.strokeText(txt, x, y - up); c.fillStyle = big ? "#ffd27a" : "#dff4ff"; c.fillText(txt, x, y - up); c.globalAlpha = 1;
+  }
+
+  /* ---- particle bag: shards, dots, stars, mist, rings ---- */
+  function Parts() { this.a = []; }
+  Parts.prototype.add = function (p) { p.t = 0; this.a.push(p); };
+  Parts.prototype.step = function (dt) {
+    for (var i = this.a.length - 1; i >= 0; i--) { var p = this.a[i]; p.t += dt; if (p.t >= p.life) { this.a.splice(i, 1); continue; }
+      p.x += (p.vx || 0) * dt; p.y += (p.vy || 0) * dt; p.vy = (p.vy || 0) + (p.g || 0) * dt; p.rot = (p.rot || 0) + (p.vr || 0) * dt; if (p.drag) { p.vx *= 1 - p.drag * dt; p.vy *= 1 - p.drag * dt; } }
+  };
+  Parts.prototype.draw = function (c) {
+    for (var i = 0; i < this.a.length; i++) { var p = this.a[i], k = p.t / p.life, al = (1 - k) * (p.al == null ? 1 : p.al);
+      c.save(); c.translate(p.x, p.y); c.rotate(p.rot || 0); c.globalAlpha = clamp(al, 0, 1);
+      if (p.k === "shard") { c.fillStyle = p.col; c.beginPath(); c.moveTo(p.s, 0); c.lineTo(-p.s * 0.5, p.s * 0.55); c.lineTo(-p.s * 0.4, -p.s * 0.5); c.closePath(); c.fill(); c.strokeStyle = "rgba(235,250,255,0.7)"; c.lineWidth = 1; c.stroke(); }
+      else if (p.k === "dot") { c.fillStyle = p.col; c.beginPath(); c.arc(0, 0, p.s * (1 - k * 0.4), 0, TAU); c.fill(); }
+      else if (p.k === "star") { star4(c, 0, 0, p.s * (1 - k * 0.6), 0, p.col); }
+      else if (p.k === "mist") { c.globalAlpha = clamp(al, 0, 1) * 0.5; glow(c, 0, 0, p.s * (0.6 + k), "190,225,255", 0.5); }
+      else if (p.k === "ring") { c.strokeStyle = p.col; c.lineWidth = p.w * (1 - k); c.beginPath(); c.ellipse(0, 0, p.s * easeOut3(k), p.s * easeOut3(k) * (p.flat || 1), 0, 0, TAU); c.stroke(); }
+      c.restore(); }
+  };
+  function shardBurst(ps, x, y, n, speed, col, up) {
+    for (var i = 0; i < n; i++) { var a = Math.random() * TAU, s = speed * (0.4 + Math.random() * 0.8);
+      ps.add({ k: "shard", x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (up || 0), g: 260, rot: Math.random() * TAU, vr: (Math.random() - 0.5) * 14, s: 5 + Math.random() * 6, life: 0.7 + Math.random() * 0.5, col: col || "#bfe8ff" }); }
+  }
+
+  /* ==================== LOOK A: Sarcophagus ==================== */
+  var CRACKS = (function () {
+    var r = rng(5), out = [], tgt = ENEMIES.concat([BOSS]).map(function (e) { return { x: e.x, y: e.y }; });
+    for (var i = 0; i < 14; i++) tgt.push({ x: P.x + Math.cos(i * 0.45 + 0.2) * (420 + r() * 300), y: P.y + Math.sin(i * 0.45 + 0.2) * (320 + r() * 120) });
+    tgt.forEach(function (t) {
+      var d = Math.hypot(t.x - P.x, t.y - P.y), n = Math.max(6, Math.round(d / 36)), pts = [[P.x, P.y]], a = Math.atan2(t.y - P.y, t.x - P.x);
+      for (var i = 1; i <= n; i++) { var f = i / n, nx = -Math.sin(a), ny = Math.cos(a), j = (r() - 0.5) * 26 * (i < n ? 1 : 0); pts.push([P.x + (t.x - P.x) * f + nx * j, P.y + (t.y - P.y) * f + ny * j]); }
+      out.push({ pts: pts, d: d });
+    });
+    return out;
+  })();
+  function slab(c, x, y, w, d, h, tone) {
+    var top = y - h - d / 2, bot = y + d / 2;
+    c.save();
+    var gf = c.createLinearGradient(x - w / 2, 0, x + w / 2, 0); gf.addColorStop(0, "rgba(54,128,205," + 0.62 * tone + ")"); gf.addColorStop(0.5, "rgba(116,196,244," + 0.5 * tone + ")"); gf.addColorStop(1, "rgba(34,92,170," + 0.66 * tone + ")");
+    c.fillStyle = gf; c.fillRect(x - w / 2, top + d, w, h); // front face
+    c.fillStyle = "rgba(200,240,255," + 0.2 * tone + ")"; c.beginPath(); c.moveTo(x - w / 2 + 6, bot); c.lineTo(x - w / 2 + 6 + w * 0.22, bot); c.lineTo(x - w / 2 + 6 + w * 0.05 + w * 0.22, top + d); c.lineTo(x - w / 2 + 6 + w * 0.05, top + d); c.closePath(); c.fill(); // sheen
+    c.strokeStyle = "rgba(225,247,255,0.7)"; c.lineWidth = 1.5; c.strokeRect(x - w / 2, top + d, w, h);
+    c.fillStyle = "rgba(192,236,255," + 0.78 * tone + ")"; c.fillRect(x - w / 2, top, w, d); c.strokeRect(x - w / 2, top, w, d); // lid
+    c.fillStyle = "rgba(245,252,255," + 0.5 * tone + ")"; c.fillRect(x - w / 2 + 5, top + 4, w - 10, d - 8);
+    c.strokeStyle = "rgba(60,130,200,0.8)"; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x - w / 2, top + d + h * 0.2); c.lineTo(x + w / 2, top + d + h * 0.2); c.stroke(); // lid seam
+    c.strokeStyle = "rgba(235,252,255,0.9)"; c.lineWidth = 1.6; snowflake(c, x, top + d + h * 0.6, Math.min(w, h) * 0.2, 0.3); // carved glyph
+    c.restore();
+  }
+  function lookA() {
+    var L = { ps: new Parts(), st: {} };
+    L.reset = function () { L.ps = new Parts(); L.st = {}; };
+    L.ground = function (c, t) {
+      var charge = clamp(t / CAST, 0, 1), fade = t > CAST ? clamp(1 - (t - CAST - 1.5) / 3, 0.25, 1) : 1;
+      c.save(); c.translate(P.x, P.y); c.scale(1, 0.55);
+      c.globalAlpha = (0.15 + 0.7 * charge) * fade; c.strokeStyle = "#9fe3ff"; c.lineWidth = 2;
+      var spin = t * (t < CAST ? 1 + charge * 3 : 0.5);
+      c.beginPath(); c.arc(0, 0, 62, 0, TAU); c.stroke(); c.lineWidth = 1; c.beginPath(); c.arc(0, 0, 50, 0, TAU); c.stroke();
+      c.save(); c.rotate(spin); for (var i = 0; i < 24; i++) { var a = i * TAU / 24; c.beginPath(); c.moveTo(Math.cos(a) * 62, Math.sin(a) * 62); c.lineTo(Math.cos(a) * (i % 2 ? 68 : 74), Math.sin(a) * (i % 2 ? 68 : 74)); c.stroke(); } c.restore();
+      c.save(); c.rotate(-spin * 0.7); c.lineWidth = 1.6; c.beginPath(); for (var k = 0; k < 6; k++) { var b = k * TAU / 6; c[k ? "lineTo" : "moveTo"](Math.cos(b) * 50, Math.sin(b) * 50); } c.closePath(); c.stroke();
+      c.rotate(Math.PI / 6); c.beginPath(); for (var m = 0; m < 6; m++) { var d = m * TAU / 6; c[m ? "lineTo" : "moveTo"](Math.cos(d) * 50, Math.sin(d) * 50); } c.closePath(); c.stroke(); c.restore();
+      c.restore(); c.globalAlpha = 1;
+      var R = waveR(t); if (R <= 0) return;
+      var endA = t > CAST + FREEZE ? clamp(1 - (t - CAST - FREEZE) / 0.8, 0, 1) : 1;
+      c.save(); c.lineCap = "round";
+      CRACKS.forEach(function (cr) {
+        var reach = clamp(R / cr.d, 0, 1), n = Math.floor(reach * (cr.pts.length - 1));
+        if (n < 1) return;
+        c.beginPath(); c.moveTo(cr.pts[0][0], cr.pts[0][1]); for (var i = 1; i <= n; i++) c.lineTo(cr.pts[i][0], cr.pts[i][1]);
+        var f = reach * (cr.pts.length - 1) - n; if (n < cr.pts.length - 1) c.lineTo(lerp(cr.pts[n][0], cr.pts[n + 1][0], f), lerp(cr.pts[n][1], cr.pts[n + 1][1], f));
+        c.globalAlpha = 0.28 * endA; c.strokeStyle = "#5cc4ff"; c.lineWidth = 6; c.stroke();
+        c.globalAlpha = 0.85 * endA; c.strokeStyle = "#e8fbff"; c.lineWidth = 1.4; c.stroke();
+      });
+      c.restore(); c.globalAlpha = 1;
+    };
+    L.bullets = function (c, t, dt, bl) {
+      var vis = clamp(t / 0.3, 0, 1);
+      bl.forEach(function (b, i) {
+        if (t >= b.f) { if (!L.st["b" + i]) { L.st["b" + i] = 1; var p = b.at(b.f); L.ps.add({ k: "star", x: p.x, y: p.y, s: 13, rot: 0, vr: 3, col: "rgba(200,240,255,0.95)", life: 0.4 }); for (var q = 0; q < 3; q++) L.ps.add({ k: "dot", x: p.x, y: p.y, vx: (Math.random() - 0.5) * 80, vy: 20 + Math.random() * 40, g: 60, s: 2, col: "#e8fbff", life: 0.5 }); } return; }
+        var p2 = b.at(t); drawBullet(c, p2.x, p2.y, b.sz, vis);
+      });
+    };
+    L.enemy = function (c, e, t, pos) {
+      var f = e.f, st = L.st, age = t - f;
+      if (e.boss) {
+        c.save(); c.translate(pos.x, pos.y);
+        if (age > 0 && age < 1.1) { var k = age < 0.25 ? easeOut3(age / 0.25) : clamp(1 - (age - 0.55) / 0.55, 0, 1);
+          c.fillStyle = "rgba(220,245,255," + (0.55 * clamp(1 - age / 0.4, 0, 1)) + ")"; c.beginPath(); c.arc(0, 0, e.r * 1.15, 0, TAU); c.fill();
+          for (var i = 0; i < 5; i++) { var a = -Math.PI / 2 + (i - 2) * 0.62, bx = Math.cos(a) * e.r * 0.4, by = Math.sin(a) * e.r * 0.4, len = (70 + (i % 2) * 24) * k, w = 11;
+            var tx = bx + Math.cos(a) * len, ty = by + Math.sin(a) * len * 1.0;
+            c.fillStyle = "rgba(150,215,255,0.85)"; c.strokeStyle = "rgba(235,252,255,0.9)"; c.lineWidth = 1.5;
+            c.beginPath(); c.moveTo(bx - Math.sin(a) * w, by + Math.cos(a) * w); c.lineTo(tx, ty); c.lineTo(bx + Math.sin(a) * w, by - Math.cos(a) * w); c.closePath(); c.fill(); c.stroke();
+            c.fillStyle = "rgba(230,250,255,0.6)"; c.beginPath(); c.moveTo(bx, by); c.lineTo(tx, ty); c.lineTo(bx + Math.sin(a) * w, by - Math.cos(a) * w); c.closePath(); c.fill(); } }
+        c.restore();
+        if (age >= 0 && !st.boss) { st.boss = 1; shardBurst(L.ps, pos.x, pos.y, 12, 190, "#bfe8ff"); }
+        if (age >= 0) dmgText(c, pos.x, pos.y - e.r - 14, "-250", age, true);
+        return;
+      }
+      if (age < 0) return;
+      var thawAt = f + FREEZE, left = thawAt - t;
+      if (age >= 0 && !st["rise" + e.ph]) { st["rise" + e.ph] = 1; L.ps.add({ k: "ring", x: pos.x, y: pos.y + e.r * 0.5, s: e.r * 3.2, w: 5, col: "rgba(200,240,255,0.9)", flat: 0.5, life: 0.5 }); shardBurst(L.ps, pos.x, pos.y + 6, 7, 150, "#cdeeff", 60); }
+      if (t < thawAt) {
+        var H0 = e.heavy ? 78 : 56, h = H0 * easeBack(age / 0.32), w = e.r * 2 + 12, d = e.r * 1.1;
+        var ph = clamp(1 - left / 1.1, 0, 1), shake = ph > 0 ? Math.sin(t * 70) * ph * 1.6 : 0;
+        // the enemy hangs inside the ice
+        c.save(); c.translate(shake, 0); c.globalAlpha = 0.85; drawBody(c, e, pos.x, pos.y - h * 0.45, 0.7); c.globalAlpha = 1; c.restore();
+        c.save(); c.translate(shake, 0); slab(c, pos.x, pos.y + e.r * 0.45, w, d, h, 1);
+        if (ph > 0) { c.strokeStyle = "rgba(255,255,255," + (0.5 + 0.5 * ph) + ")"; c.lineWidth = 1.5; var by = pos.y + e.r * 0.45 + d / 2;
+          for (var k2 = 0; k2 < 4; k2++) { var cx = pos.x - w / 2 + w * (0.2 + k2 * 0.22); c.beginPath(); c.moveTo(cx, by); c.lineTo(cx + 5, by - h * 0.3 * ph); c.lineTo(cx - 3, by - h * 0.55 * ph); c.lineTo(cx + 6, by - h * 0.8 * ph); c.stroke(); } }
+        c.restore();
+        // melt band along the foot
+        var fy = pos.y + e.r * 0.45 + d / 2 + 5;
+        c.fillStyle = "rgba(10,20,34,0.7)"; c.fillRect(pos.x - w / 2, fy, w, 4);
+        c.fillStyle = "#7fe0ff"; c.fillRect(pos.x - w / 2, fy, w * clamp(left / FREEZE, 0, 1), 4);
+        dmgText(c, pos.x, pos.y - h - e.r - 8, "-40", age, false);
+      } else if (!st["br" + e.ph]) {
+        st["br" + e.ph] = 1; shardBurst(L.ps, pos.x, pos.y - 10, 22, 280, "#cdeeff", 120);
+        for (var q = 0; q < 8; q++) L.ps.add({ k: "mist", x: pos.x + (Math.random() - 0.5) * 40, y: pos.y + (Math.random() - 0.5) * 20, vx: (Math.random() - 0.5) * 40, vy: -20 - Math.random() * 20, s: 34, life: 0.9, al: 0.9 });
+        L.ps.add({ k: "ring", x: pos.x, y: pos.y + 8, s: e.r * 4, w: 4, col: "rgba(220,245,255,0.9)", flat: 0.5, life: 0.5 });
+      }
+    };
+    L.top = function (c, t, reduced) {
+      if (!reduced && t > CAST - 0.02 && t < CAST + 0.16) { c.fillStyle = "rgba(230,248,255," + 0.5 * (1 - (t - CAST) / 0.16) + ")"; c.fillRect(0, 0, W, H); }
+      var R = waveR(t); if (R > 0 && R < 1150) { var a = clamp(1 - R / 1150, 0, 1);
+        c.strokeStyle = "rgba(220,247,255," + a + ")"; c.lineWidth = 5; c.beginPath(); c.arc(P.x, P.y, R, 0, TAU); c.stroke();
+        c.strokeStyle = "rgba(100,200,255," + 0.35 * a + ")"; c.lineWidth = 22; c.beginPath(); c.arc(P.x, P.y, R - 8, 0, TAU); c.stroke(); }
+    };
+    return L;
+  }
+
+  /* ==================== LOOK B: Absolute Zero ==================== */
+  var EDGE = (function () {
+    var c = document.createElement("canvas"); c.width = W; c.height = H; var x = c.getContext("2d");
+    var g = x.createRadialGradient(W / 2, H / 2, 160, W / 2, H / 2, 560); g.addColorStop(0, "rgba(190,230,255,0)"); g.addColorStop(1, "rgba(190,230,255,0.62)");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    var r = rng(11); x.strokeStyle = "rgba(235,250,255,0.75)"; x.lineWidth = 1.2;
+    for (var i = 0; i < 260; i++) {
+      var side = Math.floor(r() * 4), p = r(), sx = side < 2 ? p * W : side === 2 ? 0 : W, sy = side < 2 ? (side === 0 ? 0 : H) : p * H;
+      var ang = Math.atan2(H / 2 - sy, W / 2 - sx) + (r() - 0.5) * 0.9, len = 16 + r() * 60, px = sx, py = sy;
+      x.beginPath(); x.moveTo(px, py);
+      for (var s = 0; s < 3; s++) { px += Math.cos(ang) * len / 3; py += Math.sin(ang) * len / 3; ang += (r() - 0.5) * 0.9; x.lineTo(px, py); }
+      x.stroke();
+    }
+    return c;
+  })();
+  function rime(c, x, y, r, seed) {
+    var rr = rng(seed * 100 | 0), n = 15; c.beginPath();
+    for (var i = 0; i < n * 2; i++) { var a = i * Math.PI / n, d = i % 2 ? r + 3 : r + 7 + rr() * 8; c[i ? "lineTo" : "moveTo"](x + Math.cos(a) * d, y + Math.sin(a) * d); }
+    c.closePath(); c.fillStyle = "rgba(215,242,255,0.88)"; c.fill(); c.strokeStyle = "rgba(255,255,255,0.95)"; c.lineWidth = 1.2; c.stroke();
+  }
+  function lookB() {
+    var L = { ps: new Parts(), st: {} };
+    L.reset = function () { L.ps = new Parts(); L.st = {}; };
+    L.ground = function (c, t) {
+      var charge = clamp(t / CAST, 0, 1), stopped = t >= CAST;
+      var hand = stopped ? -2.2 - 0.0 : -t * t * 5.5 - 2.2 + (CAST * CAST * 5.5 * 0);
+      var fade = stopped ? clamp(1 - (t - CAST - FREEZE) / 0.8, 0.0, 1) : 1;
+      c.save(); c.translate(P.x, P.y); c.scale(1, 0.58); c.globalAlpha = (0.2 + 0.7 * charge) * fade;
+      c.strokeStyle = stopped ? "#e8fbff" : "#b9c6ff"; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, 66, 0, TAU); c.stroke(); c.beginPath(); c.arc(0, 0, 54, 0, TAU); c.stroke();
+      for (var i = 0; i < 12; i++) { var a = i * TAU / 12; c.lineWidth = i % 3 ? 1.5 : 3; c.beginPath(); c.moveTo(Math.cos(a) * 54, Math.sin(a) * 54); c.lineTo(Math.cos(a) * (i % 3 ? 62 : 70), Math.sin(a) * (i % 3 ? 62 : 70)); c.stroke(); }
+      c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(hand) * 50, Math.sin(hand) * 50); c.stroke(); c.lineWidth = 2; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(hand * 0.08 + 1) * 32, Math.sin(hand * 0.08 + 1) * 32); c.stroke();
+      c.restore(); c.globalAlpha = 1;
+    };
+    L.bullets = function (c, t, dt, bl) {
+      var vis = clamp(t / 0.3, 0, 1);
+      bl.forEach(function (b, i) {
+        var sh = b.f + 0.55;
+        if (t >= sh) { if (!L.st["b" + i]) { L.st["b" + i] = 1; var p = b.at(b.f); for (var q = 0; q < 5; q++) L.ps.add({ k: "dot", x: p.x, y: p.y, vx: (Math.random() - 0.5) * 110, vy: -20 + Math.random() * 60, g: 90, s: 1.8 + Math.random() * 1.6, col: "#eefaff", life: 0.7 + Math.random() * 0.4 }); L.ps.add({ k: "star", x: p.x, y: p.y, s: 11, vr: 4, col: "rgba(210,240,255,0.95)", life: 0.3 }); } return; }
+        var p2 = b.at(t);
+        if (t >= b.f) { var a = clamp((t - b.f) / 0.2, 0, 1); c.globalAlpha = 1; glow(c, p2.x, p2.y, b.sz * 3.6, "150,215,255", 0.55); c.fillStyle = mix([120, 190, 255], PALE, a); c.beginPath(); c.arc(p2.x, p2.y, b.sz * 1.05, 0, TAU); c.fill(); c.fillStyle = "#fff"; c.beginPath(); c.arc(p2.x - 1, p2.y - 1, b.sz * 0.4, 0, TAU); c.fill(); star4(c, p2.x, p2.y, b.sz * 2.6, 0, "rgba(235,250,255,0.55)"); }
+        else drawBullet(c, p2.x, p2.y, b.sz, vis);
+      });
+    };
+    // colour wash goes between the world and the frost drawn on top of it
+    L.wash = function (c, t, reduced) {
+      var R = waveR(t); if (R <= 0) return;
+      var inner = Math.max(0, (t - CAST - FREEZE) * SPD), a = reduced ? 0.45 : 0.9;
+      if (inner > R + 40) return;
+      c.save(); c.beginPath(); c.arc(P.x, P.y, R, 0, TAU); if (inner > 0) c.arc(P.x, P.y, inner, 0, TAU); c.clip("evenodd");
+      c.globalCompositeOperation = "color"; c.fillStyle = "rgba(70,150,255," + a + ")"; c.fillRect(0, 0, W, H);
+      c.globalCompositeOperation = "source-over"; c.restore();
+    };
+    L.enemy = function (c, e, t, pos) {
+      var st = L.st, age = t - e.f;
+      if (age < 0) return;
+      if (e.boss) {
+        if (age < 1.3) { var k = clamp(age / 0.18, 0, 1), fo = clamp(1 - (age - 0.3) / 1, 0, 1);
+          c.save(); c.translate(pos.x, pos.y); c.fillStyle = "rgba(235,250,255," + 0.6 * clamp(1 - age / 0.35, 0, 1) + ")"; c.beginPath(); c.arc(0, 0, e.r * 1.15, 0, TAU); c.fill();
+          c.strokeStyle = "rgba(240,252,255," + fo + ")"; c.lineWidth = 2;
+          var r = rng(3); for (var i = 0; i < 7; i++) { var a = i * TAU / 7 + 0.3, x = 0, y = 0, ln = e.r * 1.3 * k; c.beginPath(); c.moveTo(0, 0); for (var s = 1; s <= 4; s++) { x = Math.cos(a + (r() - 0.5) * 0.7) * ln * s / 4; y = Math.sin(a + (r() - 0.5) * 0.7) * ln * s / 4; c.lineTo(x, y); } c.stroke(); }
+          for (var q = 0; q < 3; q++) { var rk = clamp((age - q * 0.14) / 0.6, 0, 1); if (rk > 0 && rk < 1) { c.strokeStyle = "rgba(190,230,255," + (1 - rk) + ")"; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, e.r * (1.1 + rk * 1.1), 0, TAU); c.stroke(); } }
+          c.restore(); }
+        dmgText(c, pos.x, pos.y - e.r - 14, "-250", age, true); return;
+      }
+      var thawAt = e.f + FREEZE, left = thawAt - t;
+      if (t < thawAt) {
+        rime(c, pos.x, pos.y, e.r, e.ph);
+        var g = c.createLinearGradient(pos.x - e.r, pos.y - e.r, pos.x + e.r, pos.y + e.r); g.addColorStop(0, "rgba(255,255,255,0.7)"); g.addColorStop(0.5, "rgba(170,220,255,0.35)"); g.addColorStop(1, "rgba(120,190,255,0.5)");
+        c.fillStyle = g; c.beginPath(); c.arc(pos.x, pos.y, e.r * 1.05, 0, TAU); c.fill();
+        c.strokeStyle = "rgba(255,255,255,0.85)"; c.lineWidth = 2; c.beginPath(); c.arc(pos.x, pos.y, e.r * 0.7, 3.6, 4.5); c.stroke();
+        var rr = e.r + 20, lit = Math.ceil(clamp(left / FREEZE, 0, 1) * 24);
+        for (var i = 0; i < 24; i++) { var a = -Math.PI / 2 + i * TAU / 24, on = i < lit, pulse = on && i === lit - 1 ? 1 + 0.5 * Math.sin(t * 14) : 1;
+          c.strokeStyle = on ? "rgba(225,248,255,0.95)" : "rgba(120,160,200,0.25)"; c.lineWidth = on ? 2.4 : 1.2;
+          c.beginPath(); c.moveTo(pos.x + Math.cos(a) * rr, pos.y + Math.sin(a) * rr); c.lineTo(pos.x + Math.cos(a) * (rr + 5 * pulse), pos.y + Math.sin(a) * (rr + 5 * pulse)); c.stroke(); }
+        dmgText(c, pos.x, pos.y - e.r - 26, "-40", age, false);
+      } else if (!st["br" + e.ph]) {
+        st["br" + e.ph] = 1; shardBurst(L.ps, pos.x, pos.y, 18, 220, "#d8f1ff", 40);
+        L.ps.add({ k: "ring", x: pos.x, y: pos.y, s: e.r * 3.4, w: 4, col: "rgba(230,248,255,0.9)", life: 0.5 });
+      }
+    };
+    L.top = function (c, t, reduced, dt) {
+      var R = waveR(t);
+      if (!reduced && t > CAST - 0.02 && t < CAST + 0.2) { c.fillStyle = "rgba(240,250,255," + 0.62 * (1 - (t - CAST) / 0.2) + ")"; c.fillRect(0, 0, W, H); }
+      if (R > 0 && R < 1150) { var a = clamp(1 - R / 1150, 0, 1);
+        if (!reduced) { c.strokeStyle = "rgba(255,70,90," + 0.75 * a + ")"; c.lineWidth = 4; c.beginPath(); c.arc(P.x, P.y, R + 4, 0, TAU); c.stroke(); c.strokeStyle = "rgba(60,230,255," + 0.75 * a + ")"; c.beginPath(); c.arc(P.x, P.y, R - 4, 0, TAU); c.stroke(); }
+        c.strokeStyle = "rgba(240,252,255," + a + ")"; c.lineWidth = 3; c.beginPath(); c.arc(P.x, P.y, R, 0, TAU); c.stroke(); }
+      var inn = (t - CAST - FREEZE) * SPD; if (inn > 0 && inn < 1150) { c.strokeStyle = "rgba(255,230,190," + clamp(1 - inn / 1150, 0, 1) * 0.8 + ")"; c.lineWidth = 3; c.beginPath(); c.arc(P.x, P.y, inn, 0, TAU); c.stroke(); }
+      if (!reduced) { var v = clamp((t - CAST - 0.5) / 0.8, 0, 1) * clamp(1 - (t - CAST - FREEZE - 0.3) / 1.0, 0, 1); if (v > 0) { c.globalAlpha = v; c.drawImage(EDGE, 0, 0); c.globalAlpha = 1; } }
+      if (t > CAST && t < CAST + FREEZE + 1.2 && Math.random() < dt * 60) L.ps.add({ k: "dot", x: Math.random() * W, y: -4, vx: (Math.random() - 0.5) * 14, vy: 24 + Math.random() * 26, s: 1.4 + Math.random() * 1.4, col: "#eaf8ff", life: 6, al: 0.8 });
+    };
+    return L;
+  }
+
+  /* ==================== LOOK C: Crystal Reliquary ==================== */
+  var HEXR = 30, CELLS = (function () {
+    var out = [], r = rng(13), dx = HEXR * 1.5, dy = HEXR * Math.sqrt(3);
+    for (var i = -1; i * dx < W + HEXR; i++) for (var j = -1; j * dy < H + HEXR; j++) {
+      var x = i * dx, y = j * dy + (i & 1 ? dy / 2 : 0); out.push({ x: x, y: y, d: Math.hypot(x - P.x, y - P.y), r: r() });
+    }
+    return out;
+  })();
+  function crystal(c, x, y, r, h, lean, tip, tone, al) {
+    var V = [], T = [], i;
+    for (i = 0; i < 6; i++) { var a = i * Math.PI / 3 + Math.PI / 6, ca = Math.cos(a), sa = Math.sin(a);
+      V.push([x + ca * r, y + sa * r * 0.55]); T.push([x + lean + ca * r * 0.78, y - h + sa * r * 0.55 * 0.78]); }
+    var tp = [x + lean, y - h - tip], light = -0.9, col = function (sh) { return mix(DEEP, PALE, clamp(sh * tone, 0, 1)); };
+    c.globalAlpha = al; c.lineJoin = "round";
+    for (i = 0; i < 6; i++) { var j = (i + 1) % 6, ma = i * Math.PI / 3 + Math.PI / 6 + Math.PI / 6; if (Math.sin(ma) < -0.25) continue;
+      poly(c, [V[i], V[j], T[j], T[i]]); c.fillStyle = col(0.3 + 0.35 * (0.5 + 0.5 * Math.cos(ma - light))); c.fill(); c.strokeStyle = "rgba(225,247,255,0.55)"; c.lineWidth = 1; c.stroke(); }
+    var order = [0, 1, 2, 3, 4, 5].sort(function (p, q) { return Math.sin(p * Math.PI / 3 + Math.PI / 3) - Math.sin(q * Math.PI / 3 + Math.PI / 3); });
+    order.forEach(function (i) { var j = (i + 1) % 6, ma = i * Math.PI / 3 + Math.PI / 3; poly(c, [T[i], T[j], tp]); c.fillStyle = col(0.5 + 0.5 * (0.5 + 0.5 * Math.cos(ma - light))); c.fill(); c.strokeStyle = "rgba(235,250,255,0.7)"; c.lineWidth = 1; c.stroke(); });
+    c.globalAlpha = 1;
+  }
+  var CLUSTER = (function () {
+    var r = rng(17), mk = function (n, k) { var out = [{ dx: 0, dy: 0, rs: 0.5, hs: 1, lean: 0, tip: 18 * k, dl: 0 }]; for (var i = 0; i < n; i++) { var a = i * TAU / n + 0.4; out.push({ dx: Math.cos(a) * 0.95, dy: Math.sin(a) * 0.95, rs: 0.3 + r() * 0.08, hs: 0.45 + r() * 0.3, lean: Math.cos(a) * (6 + r() * 6), tip: (10 + r() * 6) * k, dl: 0.05 + r() * 0.1 }); } return out; };
+    return mk(6, 1);
+  })();
+  function lookC() {
+    var L = { ps: new Parts(), st: {} };
+    L.reset = function () { L.ps = new Parts(); L.st = {}; };
+    L.ground = function (c, t) {
+      var charge = clamp(t / CAST, 0, 1), R = waveR(t), inner = Math.max(0, (t - CAST - FREEZE) * SPD);
+      CELLS.forEach(function (q) {
+        if (q.d > R || q.d < inner - 10) return;
+        var grow = clamp((R - q.d) / 140, 0, 1), edge = clamp(1 - (R - q.d) / 70, 0, 1), rec = inner > 0 ? clamp((q.d - inner) / 60, 0, 1) : 1;
+        hex(c, q.x, q.y, HEXR - 2, Math.PI / 6 * 0); // flat-top
+        c.fillStyle = "rgba(120,210,255," + (0.05 + 0.09 * q.r) * grow * rec + (edge > 0 ? edge * 0.0 : 0) + ")"; c.fillStyle = "rgba(" + (edge > 0.2 ? "220,250,255" : "120,210,255") + "," + clamp(((0.05 + 0.1 * q.r) * grow + 0.28 * edge) * rec, 0, 1) + ")"; c.fill();
+        c.strokeStyle = "rgba(190,240,255," + (0.18 + 0.45 * edge) * grow * rec + ")"; c.lineWidth = 1; c.stroke();
+      });
+      // mandala under the caster
+      var fade = t > CAST ? clamp(1 - (t - CAST - 2.4) / 2, 0.3, 1) : 1, spin = t * (t < CAST ? 1.2 + charge * 4 : 0.35);
+      c.save(); c.translate(P.x, P.y); c.scale(1, 0.55); c.globalAlpha = (0.15 + 0.75 * charge) * fade; c.strokeStyle = "#7dffe0"; c.lineWidth = 1.8;
+      [[60, spin], [60, -spin * 0.8 + 0.5], [44, spin * 1.3]].forEach(function (s) { c.save(); c.rotate(s[1]); hex(c, 0, 0, s[0], 0); c.stroke(); c.restore(); });
+      c.beginPath(); c.arc(0, 0, 72, 0, TAU); c.stroke(); c.save(); c.rotate(-spin * 0.5); c.lineWidth = 1.2; snowflake(c, 0, 0, 38, 0); c.restore();
+      c.restore(); c.globalAlpha = 1;
+    };
+    L.bullets = function (c, t, dt, bl) {
+      var vis = clamp(t / 0.3, 0, 1);
+      bl.forEach(function (b, i) {
+        if (t >= b.f) { var p = b.at(b.f), age = t - b.f;
+          if (!L.st["b" + i]) { L.st["b" + i] = 1; L.ps.add({ k: "ring", x: p.x, y: p.y, s: 16, w: 2, col: "rgba(200,245,255,0.9)", flat: 0.55, life: 0.4 }); }
+          if (age < 0.7) { var g = age < 0.25 ? easeBack(age / 0.25) : clamp(1 - (age - 0.25) / 0.45, 0, 1);
+            if (b.at && (i % 2 === 0)) crystal(c, p.x, p.y + 4, 3.5, 13 * g, 0, 5 * g, 1, 0.95); else { c.globalAlpha = 1 - age / 0.7; star4(c, p.x, p.y, 8 * g, age * 3, "rgba(190,250,240,0.9)"); c.globalAlpha = 1; } }
+          return; }
+        var p2 = b.at(t); drawBullet(c, p2.x, p2.y, b.sz, vis);
+      });
+    };
+    L.enemy = function (c, e, t, pos) {
+      var st = L.st, age = t - e.f;
+      if (age < 0) return;
+      if (e.boss) {
+        if (age < 1.2) { var k = age < 0.25 ? easeBack(age / 0.25) : clamp(1 - (age - 0.5) / 0.7, 0, 1);
+          for (var i = 0; i < 8; i++) { var a = i * TAU / 8 + 0.2, rad = 78 * (1 - 0.3 * (1 - clamp(k, 0, 1))); crystal(c, pos.x + Math.cos(a) * rad, pos.y + Math.sin(a) * rad * 0.6 + 8, 9, 64 * k, -Math.cos(a) * 10 * k, 18 * k, 1, 0.92); } }
+        if (!st.boss) { st.boss = 1; shardBurst(L.ps, pos.x, pos.y, 12, 200, "#bffff2"); }
+        dmgText(c, pos.x, pos.y - e.r - 14, "-250", age, true); return;
+      }
+      var thawAt = e.f + FREEZE, left = thawAt - t, key = "k" + e.ph;
+      if (!st[key]) { st[key] = 1; L.ps.add({ k: "ring", x: pos.x, y: pos.y + e.r * 0.4, s: e.r * 3.6, w: 5, col: "rgba(190,255,240,0.9)", flat: 0.55, life: 0.5 }); }
+      if (t < thawAt) {
+        var sc = e.r / 15, tone = 1 + clamp(1 - left / 1, 0, 1) * 0.5, pulse = 0.5 + 0.5 * Math.sin(t * (4 + clamp(1 - left / 1.2, 0, 1) * 18));
+        glow(c, pos.x, pos.y + 6, e.r * 3.2, "125,255,224", 0.22 + 0.12 * pulse);
+        drawBody(c, e, pos.x, pos.y - 6 * sc, 0.6);
+        var parts = CLUSTER.map(function (q) { return { q: q, y: pos.y + q.dy * e.r * 0.75 }; }).sort(function (a, b) { return a.y - b.y; });
+        var shake = left < 0.9 ? Math.sin(t * 80) * (1 - left / 0.9) * 1.6 : 0;
+        parts.forEach(function (o) { var q = o.q, g = easeBack((age - q.dl) / 0.3); if (g <= 0) return;
+          crystal(c, pos.x + q.dx * e.r * 0.95 + shake, o.y + e.r * 0.45, e.r * q.rs * 1.2, (e.heavy ? 110 : 80) * q.hs * g * (q.dx === 0 ? 1.25 : 1) * 0.62, q.lean * g, q.tip * sc * g, tone, q.dx === 0 ? 0.74 : 0.88); });
+        dmgText(c, pos.x, pos.y - 74 * sc - e.r, "-40", age, false);
+      } else if (!st["br" + e.ph]) {
+        st["br" + e.ph] = 1; shardBurst(L.ps, pos.x, pos.y - 20, 26, 300, "#cdf6ff", 140);
+        for (var q2 = 0; q2 < 6; q2++) L.ps.add({ k: "mist", x: pos.x + (Math.random() - 0.5) * 44, y: pos.y + 6, vx: (Math.random() - 0.5) * 50, vy: -30 - Math.random() * 20, s: 38, life: 1, al: 0.9 });
+      }
+    };
+    L.top = function (c, t, reduced) {
+      if (!reduced && t > CAST - 0.02 && t < CAST + 0.16) { c.fillStyle = "rgba(210,255,246," + 0.4 * (1 - (t - CAST) / 0.16) + ")"; c.fillRect(0, 0, W, H); }
+      var R = waveR(t); if (R > 0 && R < 1150) { var a = clamp(1 - R / 1150, 0, 1); c.strokeStyle = "rgba(200,255,244," + a + ")"; c.lineWidth = 4; c.beginPath(); c.arc(P.x, P.y, R, 0, TAU); c.stroke(); }
+    };
+    return L;
+  }
+
+  /* ---- the player for each canvas ---- */
+  var scenes = [], flags = { paused: false, slow: false, reduced: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches };
+  function Scene(canvas, look) {
+    var dpr = Math.min(2, window.devicePixelRatio || 1); canvas.width = W * dpr; canvas.height = H * dpr;
+    var c = canvas.getContext("2d"), t = 0, vis = true, L = look;
+    this.visible = function (v) { vis = v; };
+    this.visibleNow = function () { return vis; };
+    this.frame = function (dt) {
+      if (flags.paused || !vis) return;
+      dt = Math.min(dt, 0.05) * (flags.slow ? 0.25 : 1); t += dt; if (t >= LOOP) { t = 0; L.reset(); }
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); c.drawImage(FLOOR, 0, 0);
+      L.ground(c, t);
+      var charge = t < CAST ? t / CAST : 0;
+      L.bullets(c, t, dt, BULLETS);
+      var all = ENEMIES.concat([BOSS]);
+      var pos = all.map(function (e) { return epos(e, t); });
+      var order = all.map(function (e, i) { return i; }).sort(function (a, b) { return pos[a].y - pos[b].y; });
+      order.forEach(function (i) { var e = all[i]; if (!(L.hidesBody && !e.boss && frozenFrac(e, t) >= 0)) drawBody(c, e, pos[i].x, pos[i].y, 0); });
+      if (L.wash) L.wash(c, t, flags.reduced);
+      order.forEach(function (i) { L.enemy(c, all[i], t, pos[i]); });
+      drawPlayer(c, t, charge);
+      L.ps.step(dt); L.ps.draw(c);
+      L.top(c, t, flags.reduced, dt);
+      // boss hp chip
+      var hp = 1 - 0.25 * easeOut3((t - BOSS.f) / 0.4) * (t > BOSS.f ? 1 : 0), bx = BOSS.x - 55, by = BOSS.y - BOSS.r - 28 + (t > BOSS.f ? 0 : 0);
+      c.fillStyle = "rgba(8,12,18,0.8)"; c.fillRect(bx, by, 110, 6); c.fillStyle = "#e0577f"; c.fillRect(bx, by, 110 * hp, 6);
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.textAlign = "left"; c.fillStyle = "rgba(207,218,226,0.9)";
+      var fr = t < CAST ? "charging" : "+" + (t - CAST).toFixed(1) + " s after the cast";
+      c.fillText(fr, 14, H - 14);
+    };
+  }
+  var looks = [lookA(), lookB(), lookC()];
+  looks[0].hidesBody = looks[2].hidesBody = true;  // those two draw the enemy inside the ice
+  var secs = document.querySelectorAll("section.look");
+  Array.prototype.forEach.call(secs, function (s, i) { var sc = new Scene($("canvas", s), looks[i]); scenes.push(sc); });
+  var last = performance.now();
+  function loop(now) { requestAnimationFrame(loop); var dt = (now - last) / 1000; last = now; scenes.forEach(function (s) { try { s.frame(dt); } catch (e) { if (window.console) console.error(e); } }); }
+  requestAnimationFrame(loop);
+
+  var pb = $("#pause"), sb = $("#slow"), rb = $("#reduced");
+  rb.setAttribute("aria-pressed", flags.reduced ? "true" : "false");
+  pb.onclick = function () { flags.paused = !flags.paused; pb.setAttribute("aria-pressed", flags.paused); pb.textContent = flags.paused ? "Play" : "Pause"; };
+  sb.onclick = function () { flags.slow = !flags.slow; sb.setAttribute("aria-pressed", flags.slow); };
+  rb.onclick = function () { flags.reduced = !flags.reduced; rb.setAttribute("aria-pressed", flags.reduced); };
+  var names = ["Look A, Sarcophagus", "Look B, Absolute Zero", "Look C, Crystal Reliquary"];
+  Array.prototype.forEach.call(document.querySelectorAll(".pick"), function (b) {
+    b.onclick = function () {
+      var n = +b.getAttribute("data-pick");
+      Array.prototype.forEach.call(document.querySelectorAll(".pick"), function (o) { o.setAttribute("aria-pressed", o === b && o.getAttribute("aria-pressed") !== "true" ? "true" : "false"); });
+      var on = b.getAttribute("aria-pressed") === "true";
+      Array.prototype.forEach.call(document.querySelectorAll(".stage"), function (s, i) { s.setAttribute("data-picked", on && i === n ? "true" : "false"); });
+      $("#pickline").textContent = on ? "Picked: " + names[n] : "No look picked yet";
+    };
+  });
+})();
+</script>

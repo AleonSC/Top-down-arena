@@ -3,6 +3,8 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Glacial Tomb look (Nov 2026), protocol 184 (no change):** look C (Crystal Reliquary) of `Docs/Mockups/glacial-tomb.html` is in the game as `Game/GlacialTombLook.cs` (see `HANDOFF.md`). The cast's Ring effect now lasts `Game.TombFxTime` (freeze + 1 s) instead of 0.8 s so the look can tell it and run the thaw; nothing else in `Core/` changed. Mockups A and B were not built.
+
 **Parry cancels attack chains (Nov 2026), protocol 183 (no change):** raising the parry calls `ResetAttackChains` (`Core/Katana.cs`,
 from `TickParry`): the Katana goes back to swipe 1, its wait is cleared, and a lunge still pulling back never lands (`KatanaLunges`
 is taken back by one; `LocalKatana` reads that as a cancel). Earned builds are untouched. Test: `lastfour`.

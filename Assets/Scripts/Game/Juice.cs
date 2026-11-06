@@ -126,6 +126,7 @@ namespace Arena
             ClearSoldierLooks();  // SoldierLooks.cs
             ClearCloneWallLook();  // CloneWallLook.cs
             ClearTankLooks();  // TankLooks.cs
+            ClearTombLook();  // GlacialTombLook.cs
             ClearTankGunLooks();  // TankGunLooks.cs
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
@@ -209,6 +210,8 @@ namespace Arena
             float t = game.AnimT;
             UpdateTankLooks(t);  // Roar and Bulldoze kick the camera (TankLooks.cs)
             var me = game.Me;
+
+            UpdateTombLook(t);  // GlacialTombLook.cs: remembers the enemy shots a Glacial Tomb is about to erase
 
             // New effects: blasts shake, spark, scorch and ripple.
             newBooms.Clear();
