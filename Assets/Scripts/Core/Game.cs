@@ -964,8 +964,9 @@ namespace Arena
                 if (me.StandOn && MovesYou(me.Slots[slot].Id))
                     continue;  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
+                bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
-                if (!orbitOut && !standOut && !Consume(me, slot, false))
+                if (!orbitOut && !standOut && !harvestOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
@@ -1108,6 +1109,7 @@ namespace Arena
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
+            TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey

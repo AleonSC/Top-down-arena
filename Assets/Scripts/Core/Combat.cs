@@ -64,8 +64,6 @@ namespace Arena
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
-            if (p.Hp <= 0f && Exalted(p))
-                p.Hp = 1f;  // Crimson Apotheosis
             if (p.Hp <= 0f && InLantern(p))
                 p.Hp = 1f;  // a Soul Lantern keeps you standing
             if (p.Hp <= 0f && p.WardT > 0f)
