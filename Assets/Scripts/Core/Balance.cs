@@ -95,6 +95,8 @@ namespace Arena
         const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
         const float RoarTime = 5f, RoarReduction = 0.4f;
         const float AdrenalineCooldown = 14f, AdrenalineTime = 8f, AdrenalineCut = 0.3f, AdrenalineFire = 1.4f, AdrenalineSplashRange = 250f, AdrenalineSplashTime = 0.5f;  // Adrenaline.cs
+        /// Wildcard (Docs/Wildcard.md): damage and ability cooldowns of a role that borrows gear from every class. First guesses.
+        public const float WildcardDmgMult = 0.9f, WildcardCdMult = 1.25f;
         public const float AdrenalineSpeed = 1.3f;
         public const float HealDashSpeed = 1.7f;  // Healing Dash: the Ninja's sprint (Ninja.cs)
         const float LinkHeal = 8f;  // Soul Lantern's regeneration a second (SoulLantern.cs)

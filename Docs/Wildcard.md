@@ -1,6 +1,6 @@
 # Wildcard (4th role): design
 
-Status: **decided, not built** (Nov 2026). The lobby already has a locked 4th role slot (`RoleSlots = 4`, `LobbyUi.cs`);
+Status: **built** (Nov 2026, protocol 186); see `Docs/AfterReset.md`. Final choices: second ability on a bonus key (Q/E/Shift) chosen in the lobby, same 5 slots; Hemomancer abilities keep their health cost; Wildcard is locked out of the lobby and Practice Range until unlocked; bots only get it by hand. The lobby already has a locked 4th role slot (`RoleSlots = 4`, `LobbyUi.cs`);
 `History.md` notes a Wildcard "pick any class's weapon/ability" was discussed for it.
 
 ## Decisions (owner, Nov 2026)

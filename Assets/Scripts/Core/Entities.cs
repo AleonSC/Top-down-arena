@@ -71,6 +71,9 @@ namespace Arena
         public Kit Kit;
         public WeaponDef Weapon;
         public AbilityId RoleAbility;
+        public AbilityId StartBonus = AbilityId.None;  // a Wildcard's second starting ability: it sits on a bonus key (Q, E or Shift) from the start (Game.Recalc)
+        public Kit WildKit;                            // a Wildcard's ultimate comes from the class of its first ability
+        public Kit UltKit => Role == Role.Wildcard ? WildKit : Kit;
         public float BaseHp;
         public string Name;
         public V2 Pos, Disp;

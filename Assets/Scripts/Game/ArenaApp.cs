@@ -27,6 +27,8 @@ namespace Arena
         Role hostRole = Role.Tank;
         Role? joinRole;
         int weaponChoice, abilityChoice;
+        int wildSecond = 1, wildKey = 1;  // a Wildcard's second ability (0-17) and its key (1 Q, 2 E, 3 Shift); see Defs.MakeWild
+        int wildTab;                      // the lobby's Wildcard picker: 0 edits the first ability, 1 the second
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the match (released, it resumes)
@@ -186,7 +188,7 @@ namespace Arena
             else if (opts.TryGetValue("join", out v))
             {
                 addressText = v;
-                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
+                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond, wildKey));
             }
         }
 

@@ -1,7 +1,9 @@
 using System;
 namespace Arena
 {
-    public enum Role : byte { Tank = 0, Healer = 1, Dps = 2 }
+    /// Wildcard (Nov 2026, Docs/Wildcard.md) is a fourth role that borrows DPS gear from any class: it is unlocked by winning a run
+    /// with each of the other three (Profile.WildcardUnlocked). Its lobby picks are encoded as kit * 3 + choice (see Defs.WildcardChoices).
+    public enum Role : byte { Tank = 0, Healer = 1, Dps = 2, Wildcard = 3 }
 
     public enum EnemyType : byte
     {
@@ -140,6 +142,14 @@ namespace Arena
                 Hp = 95f, Speed = 240f, HitR = 6f, BodyR = 12f, FireInterval = 0.1f, AbilityCd = 3.5f,
                 Desc = "Fragile, but deals the most damage.",
             },
+            new RoleDef
+            {
+                // Wildcard (Docs/Wildcard.md): middle health and no role passive; DPS gear from any class, a second starting ability,
+                // and the price is WildcardDmgMult / WildcardCdMult (Game.cs).
+                Name = "Wildcard", Ability = "Any DPS ability", Color = new Rgba(0.78f, 0.45f, 1f),
+                Hp = 130f, Speed = 225f, HitR = 6.5f, BodyR = 14f, FireInterval = 0.1f, AbilityCd = 3.5f,
+                Desc = "Mix any class's DPS weapon and two DPS abilities. Weaker shots and slower cooldowns.",
+            },
         };
 
         // Indexed by EnemyType.
@@ -272,7 +282,23 @@ namespace Arena
         /// (Tools/SimTest/run.sh 1 1 weapondps write, which writes WeaponDps.Generated.cs); 0 if not measured.
         public static float WeaponDps(WeaponId id) => MeasuredDps.TryGetValue(id, out float v) ? v : 0f;
 
-        public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
+        /// How many weapons (or Space abilities) a Wildcard can pick from: every class's three DPS ones, numbered kit * 3 + choice.
+        public const int WildcardChoices = KitCount * WeaponsPerRole;
+
+        /// A Wildcard's lobby "wild" byte: its second ability (0-17, same numbering as the first) and the key it sits on (1 Q, 2 E, 3 Shift).
+        public static int WildSecond(int wild) => wild % WildcardChoices;
+        public static int WildKey(int wild) => 1 + Math.Min(2, wild / WildcardChoices);
+        public static byte MakeWild(int second, int key) => (byte)(Math.Max(0, Math.Min(WildcardChoices - 1, second)) + WildcardChoices * (Math.Max(1, Math.Min(3, key)) - 1));
+
+        public static WeaponDef Weapon(Role role, Kit kit, int index)
+        {
+            if (role == Role.Wildcard)  // index = kit * 3 + choice, DPS gear of any class
+            {
+                index = index >= 0 && index < WildcardChoices ? index : 0;
+                return Weapons[((int)Role.Dps * KitCount + index / WeaponsPerRole) * WeaponsPerRole + index % WeaponsPerRole];
+            }
+            return Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
+        }
 
         /// Puts every class's weapons in lobby order. The game refuses to start if a place is empty or doubled, or a weapon id is missing.
         static WeaponDef[] WeaponRegistry(params WeaponDef[][] lists)
