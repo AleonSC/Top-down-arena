@@ -45,7 +45,7 @@ namespace Arena
             { WeaponId.Greatsword, 90f },
             { WeaponId.Rapier, 101f },
             { WeaponId.Kusarigama, 10f },
-            { WeaponId.BoStaff, 40f },
+            { WeaponId.BoStaff, 48f },
             { WeaponId.FumaShuriken, 84f },
             { WeaponId.MedicineDarts, 50f },
             { WeaponId.SpiritFan, 75f },

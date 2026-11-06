@@ -61,6 +61,7 @@ namespace Arena
 
         /// Where your character stands; the dummies are straight ahead (up), Distance away.
         public static readonly V2 Home = new V2(Game.Width / 2f, Game.Height / 2f + 150f);
+        const float BoStaffDemoEvery = 5.2f, BoStaffDemoShove = 3.3f;  // the Bo Staff demo: two full chains and a third cut short by the shove
         public float Distance { get; private set; } = 250f;
 
         /// How far ahead the view should reach: the dummies' distance, growing to fit when a weapon
@@ -122,6 +123,13 @@ namespace Arena
                 input.Move = (Home - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
+            // The Bo Staff: fire runs the slash, jab, spin chain; every few seconds the weapon-action key shoves, partway into a chain so the
+            // reset shows (BoStaff.cs).
+            if (me.Weapon.Id == WeaponId.BoStaff)
+            {
+                float phase = MathX.Fmod(t, BoStaffDemoEvery);
+                input.WeaponAction = phase >= BoStaffDemoShove && phase - dt < BoStaffDemoShove;
+            }
             if (demoAbility)
             {
                 castT -= dt;
