@@ -25,6 +25,7 @@ namespace Arena
         const float AbilityDemoTime = 5f;
         float ultDemoUntil;        // clicking the ultimate on the hero card shows it for a while
         const float UltDemoTime = 12f;
+        static float UltDemoLen(AbilityId id) => id == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltDemoTime;  // the Titan stays 17 s; the demo must outlast it
 
         void DrawLobby()
         {
@@ -766,14 +767,14 @@ namespace Arena
                 Ui.Pill(area, new Color(1f, 0.8f, 0.35f, on ? 0.12f : 0.06f));
             if (Ui.HitArea(area))
             {
-                ultDemoUntil = on ? 0f : t + UltDemoTime;  // a second click stops it
+                ultDemoUntil = on ? 0f : t + UltDemoLen(ult.Id);  // a second click stops it
                 abilityDemoUntil = 0f;
             }
             float x = area.x + 8f, w = area.width - 16f, y = area.y + 8f;
             // The ring: half full, or filling up while the preview plays.
             const float rr = 23f;
             var c = new V2(x + rr + 4f, y + rr + 4f);
-            float fill = on ? 0.5f + 0.5f * Mathf.Clamp01(1f - (ultDemoUntil - t) / UltDemoTime) : 0.5f;
+            float fill = on ? 0.5f + 0.5f * Mathf.Clamp01(1f - (ultDemoUntil - t) / UltDemoLen(ult.Id)) : 0.5f;
             if (BeginUiGl())
             {
                 UiModelAt(V2.Zero, 1f);
