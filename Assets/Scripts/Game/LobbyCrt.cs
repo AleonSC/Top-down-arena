@@ -12,7 +12,7 @@ namespace Arena
     ///   0.4 s   that screen grows from its own edges to the whole window, going from blue to cyan. It is a CRT the whole way
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
-    ///   0.7 s   a link log types itself in the middle (player, loadout, opening lobby), fading out between 2.7 and 3.0 s
+    ///   0.7 s   a link log types itself in the middle (player, petting cat, opening lobby), fading out between 2.7 and 3.0 s
     ///   2.8 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
@@ -175,11 +175,8 @@ namespace Arena
         /// The link log for the middle of the screen, from your own seat.
         string[] CrtLogLines()
         {
-            string who = string.IsNullOrEmpty(nameText) ? "PLAYER" : nameText.ToUpperInvariant(), load = "LOADOUT";
-            LobbyEntry me;
-            if (session.Lobby.TryGetValue(session.MyId, out me))
-                load = (me.Kit + " " + me.Role).ToUpperInvariant();
-            return new[] { "> LINK ESTABLISHED", "> PLAYER   " + who, "> LOADOUT  " + load + " .... OK", "> OPENING LOBBY" };
+            string who = string.IsNullOrEmpty(nameText) ? "PLAYER" : nameText.ToUpperInvariant();
+            return new[] { "> LINK ESTABLISHED", "> PLAYER   " + who, "> PETTING CAT .... OK", "> OPENING LOBBY" };
         }
 
         /// Instead of DrawLobby while New run is opening it (see the timeline at the top).
