@@ -141,18 +141,6 @@ namespace Arena
                     }
                 }
             }
-            else if (ult == AbilityId.SanguineRain)
-                foreach (var q in game.Players.Values)
-                {
-                    if (q.Downed)
-                        continue;
-                    for (int k = 0; k < 6; k++)
-                    {
-                        float f = MathX.Fmod(t * 1.3f + k * 0.37f, 1f);
-                        V2 at = q.Disp + new V2(Mathf.Sin(k * 2.3f) * 26f, -40f + 50f * f);
-                        DrawDrop(at, 2.2f, new V2(0f, 1f), BloodRed.WithAlpha(0.8f * (1f - f)));
-                    }
-                }
         }
 
         /// Implosion: the enemy your click would hit gets four blood ticks pointing in at it.
