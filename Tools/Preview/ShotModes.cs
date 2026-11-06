@@ -95,7 +95,7 @@ static partial class Shot {
       // PAUSEANIM=0..1: how far the cabinet has slid in (0.3 s) or, with PAUSECLOSE, out. PAUSESET=<0-3>: Settings with that section's
       // window out (PAUSESET=list: the four sections, no window); PAUSEHOW=<topic>: How to play's window beside the list;
       // PAUSERECORDS=1: the profile's cabinet; PAUSECONFIRM=1: Quit's question; PAUSEWIN=<s>: that long since its window began to slide out.
-      set("pauseMenuOpen", true);
+      set("pauseMenuOpen", true); if (Environment.GetEnvironmentVariable("REDUCED") != null) set("fxReduced", true);
       set("cabInstant", true);
       var inv = System.Globalization.CultureInfo.InvariantCulture;
       float pAnim = float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1", inv);
@@ -104,7 +104,7 @@ static partial class Shot {
       set("drawerKey", "pause");
       float pWin = Environment.GetEnvironmentVariable("PAUSEWIN") != null ? float.Parse(Environment.GetEnvironmentVariable("PAUSEWIN"), inv) : 10f;
       if (Environment.GetEnvironmentVariable("PAUSECONFIRM") != null) set("pauseConfirmLobby", true);  // Leave to lobby's "are you sure" (MenuDrawer.cs)
-      if (Environment.GetEnvironmentVariable("PAUSERECORDS") != null) { set("pauseRecords", true); set("drawerKey", "pause-profile"); set("cabWin", true); set("cabKind", 0); set("cabWinInAt", Time.unscaledTime - 10f); set("profileTab", 2); PreviewSaves(); }
+      if (Environment.GetEnvironmentVariable("PAUSERECORDS") != null) { set("pauseRecords", true); set("drawerKey", "pause-profile"); set("profileTab", Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 2); PreviewSaves(); if (Environment.GetEnvironmentVariable("SECTION") != null) { int sc = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("rankSection", sc); set("recordsSection", sc); set("unlocksSection", sc); } if (Environment.GetEnvironmentVariable("NOWIN") == null) { typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 3 }); set("cabWinInAt", Time.unscaledTime - pWin); } }
       if (Environment.GetEnvironmentVariable("PAUSESET") != null) {
         set("pauseSettings", true); string ps = Environment.GetEnvironmentVariable("PAUSESET");
         if (ps != "list") { set("settingsGroup", int.Parse(ps)); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 1 }); set("cabWinInAt", Time.unscaledTime - pWin); }
@@ -336,7 +336,8 @@ static partial class Shot {
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
       var secEnv = Environment.GetEnvironmentVariable("SECTION");
-      if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("howToTopic", sec); }
+      if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("rankSection", sec); set("unlocksSection", sec); set("howToTopic", sec); }
+      if (Environment.GetEnvironmentVariable("REDUCED") != null) set("fxReduced", true);  // Reduced effects (calm CRT)
       // The window beside the cabinet (CrtWindows.cs): settings and howto open one (NOWIN=1: just the cabinet's list); WINWIN=<s>: that long since it began to slide out.
       float winWin = Environment.GetEnvironmentVariable("WINWIN") != null ? float.Parse(Environment.GetEnvironmentVariable("WINWIN"), System.Globalization.CultureInfo.InvariantCulture) : 10f;
       set("cabInstant", true);
@@ -345,7 +346,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("NOWIN") == null) {
         if (mode == "settings") { if (secEnv == null) set("settingsGroup", 1); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 1 }); set("cabWinInAt", Time.unscaledTime - winWin); }
         else if (mode == "howto") { typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - winWin); }
-        else if (mode == "records" || mode == "cosmetics" || mode == "profile") { set("cabWin", true); set("cabKind", 0); set("cabWinInAt", Time.unscaledTime - winWin); }
+        else if (mode == "records" || mode == "cosmetics" || mode == "profile") { set("profileTab", mode == "records" ? 2 : mode == "cosmetics" ? 0 : (Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 0)); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 3 }); set("cabWinInAt", Time.unscaledTime - winWin); }
       }
       if (Environment.GetEnvironmentVariable("RTAB") != null) set("recentTab", int.Parse(Environment.GetEnvironmentVariable("RTAB")));  // Recent runs: 0 Overview, 1 Trends (SECTION=4 opens the page)
       if (Environment.GetEnvironmentVariable("RSEL") != null) set("recentSel", int.Parse(Environment.GetEnvironmentVariable("RSEL")));
