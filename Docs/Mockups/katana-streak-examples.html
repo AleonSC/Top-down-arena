@@ -1,0 +1,219 @@
+<title>Katana Streak Examples</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, the meter over time with and without a streak, normal vs empowered strike, then the three chain counter styles at each count.
+   Same tokens as the other Katana mockups; the empowered colour is a warm gold-white. */
+
+/* Layout: header, then two playable stages (combo chain, then the Alt strike), each a canvas + controls + beat list; numbers table and open questions last.
+   Colour: steel blade, crimson for the strike (matches Death Lotus). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --steel:#2f6f8f; --crim:#c4163f; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --arena:#12171b; --pip:#d3dacf;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:66ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:68ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.hot{background:var(--crim);border-color:var(--crim);color:#fff}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--panel);color:var(--fg)}
+.pips{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.pip{flex:1 1 120px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--panel);display:flex;flex-direction:column;gap:2px;transition:background .08s,border-color .08s}
+.pip b{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase}
+.pip span{font:500 12px var(--mono);color:var(--muted)}
+.pip.next{border-color:var(--steel)}
+.pip.on{background:var(--steel);border-color:var(--steel)} .pip.on b,.pip.on span{color:#fff}
+.pip.lunge.on{background:var(--crim);border-color:var(--crim)}
+.pip.queued::after{content:"QUEUED";font:600 11px var(--mono);letter-spacing:.08em;color:var(--steel)}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bar{flex:1 1 200px;min-width:0;height:14px;border:1px solid var(--line);border-radius:3px;background:var(--pip);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--steel);transition:width .1s}
+.bar.drain i{background:var(--muted);opacity:.8}
+.bar.full i{background:var(--crim);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.bar.full i{animation:none}}
+.meter .num{font:500 13px var(--mono);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.msg{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 14px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.stylerow{display:flex;flex-direction:column;gap:6px}
+.stylerow h3{font:700 22px var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0}
+.stylerow p{margin:0;color:var(--muted);font-size:14.5px;max-width:70ch}
+.strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.strip figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.strip canvas{width:100%;height:auto;aspect-ratio:150/130;border:1px solid var(--line);border-radius:6px;display:block}
+.strip figcaption{font:500 12px var(--mono);color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.two figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.two canvas,#tl{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:6px}
+.two canvas{aspect-ratio:360/230}#tl{aspect-ratio:720/210}
+.two figcaption{font-size:14.5px;color:var(--muted)}
+section.blk{display:flex;flex-direction:column;gap:12px}
+@media (max-width:720px){.strip{grid-template-columns:repeat(3,minmax(0,1fr))}.two{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<main>
+<header>
+  <h1>Katana streak examples</h1>
+  <p>Stills and loops for the chain streak: how the meter behaves, what the empowered strike looks like next to a normal one, and three ways to show the count. The playable version is in the Chain Streak artifact.</p>
+</header>
+
+<section class="blk">
+  <h2 class="plain">The meter with a streak</h2>
+  <canvas id="tl" width="720" height="210" aria-label="Meter over time with and without a streak"></canvas>
+  <p class="state">Grey: no streak, the full meter drains 1.2 s after the last hit. Rose: each strike kills, the meter goes back to full and the chain climbs. The fifth kill makes the next strike empowered.</p>
+</section>
+
+<section class="blk">
+  <h2 class="plain">Normal and empowered strike</h2>
+  <div class="two">
+    <figure><canvas id="cmpN" width="360" height="230" aria-label="A normal strike"></canvas><figcaption>Normal: 120 on the target, 60 on everything crossed. The brute survives, so the streak would break.</figcaption></figure>
+    <figure><canvas id="cmpE" width="360" height="230" aria-label="An empowered strike"></canvas><figcaption>Empowered: 240 on the target, 120 on everything crossed, a wider white-gold cut. The brute dies and the swarmer and grunt in the way die too.</figcaption></figure>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="plain">Counter styles, 0 to 5</h2>
+  <div id="rows" style="display:flex;flex-direction:column;gap:22px"></div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var W=720,H=400,TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var easeOut=function(t){return 1-Math.pow(1-clamp(t,0,1),3)};
+var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $=function(id){return document.getElementById(id)};
+function setup_unused(c){var d=Math.min(window.devicePixelRatio||1,2);c.width=W*d;c.height=H*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+function toLocal(c,e){var r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function grid(x){x.fillStyle='#12171b';x.fillRect(0,0,W,H);x.strokeStyle='rgba(255,255,255,.045)';x.lineWidth=1;x.beginPath();
+  for(var i=0;i<=W;i+=40){x.moveTo(i+.5,0);x.lineTo(i+.5,H)}for(var j=0;j<=H;j+=40){x.moveTo(0,j+.5);x.lineTo(W,j+.5)}x.stroke()}
+function drawPlayer(x,px,py,face,alpha){x.save();x.globalAlpha=alpha==null?1:alpha;x.translate(px,py);x.rotate(face);
+  x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(14,0);x.lineTo(5,-6);x.lineTo(5,6);x.closePath();x.fill();x.restore()}
+function floats(x,list,dt){for(var i=list.length-1;i>=0;i--){var f=list[i];f.age+=dt;if(f.age>f.life){list.splice(i,1);continue}
+  var a=1-f.age/f.life;x.save();x.globalAlpha=a;x.font='700 '+(f.big?30:18)+'px Barlow Condensed, sans-serif';x.textAlign='center';
+  x.fillStyle=f.col||'#fff';x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;var y=f.y-f.age*(f.big?30:40);x.strokeText(f.text,f.x,y);x.fillText(f.text,f.x,y);x.restore()}}
+
+function rnd(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)}
+var GOLD='255,226,160',NEED=5;
+function softLineC(x,ax,ay,bx,by,w,a,col){var dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,nx=-dy/L*w/2,ny=dx/L*w/2,mx=(ax+bx)/2,my=(ay+by)/2;
+  var g=x.createLinearGradient(mx+nx,my+ny,mx-nx,my-ny);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(.5,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');
+  x.strokeStyle=g;x.lineWidth=w;x.lineCap='butt';x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke()}
+function beamC(x,ax,ay,bx,by,fade,wide,col){x.save();x.globalCompositeOperation='lighter';softLineC(x,ax,ay,bx,by,wide*fade+6,.5*fade,col);softLineC(x,ax,ay,bx,by,wide*.36*fade+2,.6*fade,col);
+  x.strokeStyle='rgba(255,255,255,'+(.9*fade)+')';x.lineWidth=2.5;x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();x.restore()}
+var TYPES={swarmer:{hp:50,r:10,col:'#e8906f'},grunt:{hp:100,r:14,col:'#d8503f'},brute:{hp:220,r:19,col:'#8f2f2a'}};
+function mini(c,w,h){var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+function bgc(x,w,h){x.fillStyle='#12171b';x.fillRect(0,0,w,h);x.strokeStyle='rgba(255,255,255,.045)';x.lineWidth=1;x.beginPath();
+  for(var i=0;i<=w;i+=30){x.moveTo(i+.5,0);x.lineTo(i+.5,h)}for(var j=0;j<=h;j+=30){x.moveTo(0,j+.5);x.lineTo(w,j+.5)}x.stroke()}
+function pl(x,px,py,face,a){x.save();x.globalAlpha=a==null?1:a;x.translate(px,py);x.rotate(face||0);x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(14,0);x.lineTo(5,-6);x.lineTo(5,6);x.closePath();x.fill();x.restore()}
+function en(x,px,py,type,flash,hp){var T=TYPES[type];x.save();x.translate(px,py);x.rotate(Math.PI);x.fillStyle=flash?'#fff':T.col;x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,T.r,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(T.r,0);x.lineTo(T.r-8,-5);x.lineTo(T.r-8,5);x.closePath();x.fill();x.restore();
+  if(hp!=null){var w=T.r*2+6;x.fillStyle='rgba(0,0,0,.55)';x.fillRect(px-w/2,py+T.r+5,w,3);x.fillStyle='#7cf0b8';x.fillRect(px-w/2,py+T.r+5,w*clamp(hp,0,1),3)}}
+function label(x,px,py,text,col,size){x.save();x.font='700 '+(size||15)+'px Barlow Condensed, sans-serif';x.textAlign='center';x.fillStyle=col;x.strokeStyle='rgba(0,0,0,.75)';x.lineWidth=3;x.strokeText(text,px,py);x.fillText(text,px,py);x.restore()}
+/* the three counter styles, for a given chain count and meter */
+function counter(x,style,chain,meter,px,py,t,pop){var emp=chain>=NEED,pulse=.5+.5*Math.sin(t*8),f=clamp(meter/100,0,1),r=26;
+  x.save();x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=2;x.beginPath();x.arc(px,py,r,0,TAU);x.stroke();
+  if(f>0){x.strokeStyle=emp?'rgba('+GOLD+','+(.7+.3*pulse)+')':'rgba(255,143,168,'+(f>=1?.7+.3*pulse:.85)+')';x.lineWidth=f>=1?3.5:2.5;x.beginPath();x.arc(px,py,r,-Math.PI/2,-Math.PI/2+TAU*f);x.stroke()}x.restore();
+  if(style==='arc'){for(var i=0;i<NEED;i++){var a=-Math.PI/2+(i-(NEED-1)/2)*.42,cx=px+Math.cos(a)*(r+13),cy=py+Math.sin(a)*(r+13),on=i<chain;
+      x.save();if(emp){x.shadowColor='rgb('+GOLD+')';x.shadowBlur=10}x.fillStyle=on?(emp?'rgb('+GOLD+')':'#ff8fa8'):'rgba(255,255,255,.12)';x.strokeStyle=on?'#fff':'rgba(255,255,255,.35)';x.lineWidth=1.2;
+      x.beginPath();x.arc(cx,cy,on?4.5:3.5,0,TAU);x.fill();x.stroke();x.restore()}}
+  else if(style==='blade'){var bx=px-40,by=py-52,len=80;x.save();x.translate(bx,by);
+    x.fillStyle='rgba(0,0,0,.45)';x.fillRect(-4,-5,len+14,10);x.strokeStyle='rgba(255,255,255,.2)';x.strokeRect(-4.5,-5.5,len+14,10);
+    x.fillStyle='#6b5740';x.fillRect(0,-2,14,4);x.fillStyle='#d9bf7a';x.fillRect(14,-4,3,8);
+    for(var j=0;j<NEED;j++){var nx=22+j*12,on2=j<chain;x.save();if(on2){x.shadowColor=emp?'rgb('+GOLD+')':'rgb(255,143,168)';x.shadowBlur=emp?12:8}
+      x.fillStyle=on2?(emp?'rgb('+GOLD+')':'#ff8fa8'):'rgba(230,237,252,.28)';x.beginPath();x.moveTo(nx,-3);x.lineTo(nx+9,-3);x.lineTo(nx+11,0);x.lineTo(nx+9,3);x.lineTo(nx,3);x.closePath();x.fill();x.restore()}
+    x.restore()}
+  else if(chain>0){x.save();var sc=1+(pop||0);x.translate(px,py-48);x.scale(sc,sc);x.textAlign='center';
+    x.font='700 34px Barlow Condensed, sans-serif';x.fillStyle=emp?'rgb('+GOLD+')':'#ff8fa8';x.strokeStyle='rgba(0,0,0,.75)';x.lineWidth=4;if(emp){x.shadowColor='rgb('+GOLD+')';x.shadowBlur=14}
+    x.strokeText('×'+chain,0,0);x.fillText('×'+chain,0,0);x.shadowBlur=0;x.font='600 11px IBM Plex Mono, monospace';x.fillStyle='rgba(255,255,255,'+(emp?.6+.4*pulse:.8)+')';x.fillText(emp?'EMPOWERED':'CHAIN',0,14);x.restore()}}
+
+/* row of states for each style */
+var STYLES=[['arc','Arc pips','Five pips over the meter arc, filling left to right. Gold at five.'],['blade','Blade notches','A small blade over the player, one notch lit per kill. The whole blade burns gold at five.'],['count','Big number','A number over the player that pops on every kill and says EMPOWERED at five.']];
+var states=[[0,0],[1,100],[2,100],[3,100],[4,100],[5,100]];
+var cells=[];
+var host=$('rows');
+STYLES.forEach(function(st){var sec=document.createElement('div');sec.className='stylerow';
+  sec.innerHTML='<h3>'+st[1]+'</h3><p>'+st[2]+'</p><div class="strip"></div>';host.appendChild(sec);var strip=sec.querySelector('.strip');
+  states.forEach(function(s){var f=document.createElement('figure');f.innerHTML='<canvas></canvas><figcaption>'+(s[0]===5?'5 · empowered':s[0]===0?'0 · no streak':s[0]+' kills')+'</figcaption>';strip.appendChild(f);
+    var c=f.firstChild;cells.push({x:mini(c,150,130),style:st[0],chain:s[0],meter:s[1]})})});
+/* strike comparison */
+var cmpN=$('cmpN'),cmpE=$('cmpE');var xn=mini(cmpN,360,230),xe=mini(cmpE,360,230);
+function strikeFrame(x,emp,t){bgc(x,360,230);var P={x:36,y:190},E={x:290,y:56},ux=(E.x-P.x),uy=(E.y-P.y),L=Math.hypot(ux,uy),dx=ux/L,dy=uy/L,end={x:E.x+dx*40,y:E.y+dy*40};
+  var mids=[[.34,'grunt'],[.62,'swarmer']];
+  var col=emp?GOLD:'255,143,168',wide=emp?60:34,a=.75+.25*Math.sin(t*3);
+  beamC(x,P.x,P.y,end.x,end.y,a,wide,col);
+  mids.forEach(function(m,i){var mx=lerp(P.x,end.x,m[0])+(i?16:-14),my=lerp(P.y,end.y,m[0])+(i?10:-4),T=TYPES[m[1]],dmg=emp?120:60,kill=dmg>=T.hp;
+    if(kill){x.save();x.globalAlpha=.5;en(x,mx,my,m[1],true);x.restore();label(x,mx,my-T.r-8,dmg+' KILL','#7cf0b8',14)}else{en(x,mx,my,m[1],true,(T.hp-dmg)/T.hp);label(x,mx,my-T.r-8,String(dmg),'#fff',14)}});
+  var brute=TYPES.brute,dmgT=emp?240:120,kill=dmgT>=brute.hp;
+  if(kill){x.save();x.globalAlpha=.5;en(x,E.x,E.y,'brute',true);x.restore()}else en(x,E.x,E.y,'brute',true,(brute.hp-dmgT)/brute.hp);
+  label(x,E.x,E.y-brute.r-10,dmgT+(kill?' KILL':' HOLDS'),kill?'#7cf0b8':'#ff7a7a',17);
+  pl(x,P.x,P.y,Math.atan2(dy,dx));counter(x,'arc',emp?5:2,100,P.x,P.y,t,0);
+  x.font='500 11px IBM Plex Mono, monospace';x.textAlign='left';x.fillStyle='rgba(255,255,255,.75)';x.fillText(emp?'EMPOWERED STRIKE (chain 5)':'NORMAL STRIKE (chain 2)',10,18)}
+/* streak timeline: meter over time with and without a streak */
+var tl=$('tl'),xt=mini(tl,720,210);
+function timeline(x,t){x.fillStyle='#12171b';x.fillRect(0,0,720,210);var L=48,R=708,T=22,B=178;
+  x.strokeStyle='rgba(255,255,255,.08)';x.lineWidth=1;for(var g=0;g<=4;g++){var gy=lerp(B,T,g/4);x.beginPath();x.moveTo(L,gy);x.lineTo(R,gy);x.stroke()}
+  x.font='500 11px IBM Plex Mono, monospace';x.fillStyle='rgba(255,255,255,.6)';x.textAlign='right';[0,50,100].forEach(function(v){x.fillText(String(v),L-8,lerp(B,T,v/100)+4)});
+  x.textAlign='center';for(var s=0;s<=12;s+=2){x.fillText(s+'s',lerp(L,R,s/12),B+18)}
+  var X=function(s){return lerp(L,R,s/12)},Y=function(v){return lerp(B,T,v/100)};
+  /* without streak: charge to 100 at 1, strike misses kill at 3 -> 0; later hit builds 0 -> 60 and drains */
+  var A=[[0,0],[1,100],[3,100],[3,0],[4,0],[5.2,60],[6.2,60],[8.3,8],[9,0],[12,0]];
+  /* wait: show plain drain on first segment */
+  A=[[0,0],[1,100],[2.2,100],[6.2,0],[12,0]];
+  var Bp=[[0,0],[1,100],[2.2,100],[3.2,100],[4.4,100],[5.6,100],[7.2,100],[12,100]];
+  x.lineWidth=2.5;x.strokeStyle='#7f8a90';x.beginPath();A.forEach(function(p,i){x[i?'lineTo':'moveTo'](X(p[0]),Y(p[1]))});x.stroke();
+  x.strokeStyle='#ff8fa8';x.beginPath();Bp.forEach(function(p,i){x[i?'lineTo':'moveTo'](X(p[0]),Y(p[1]))});x.stroke();
+  [[3.2,1],[4.4,2],[5.6,3],[7.2,5]].forEach(function(k,i){var kx=X(k[0]);x.save();x.setLineDash([3,4]);x.strokeStyle='rgba(255,226,160,.5)';x.beginPath();x.moveTo(kx,T);x.lineTo(kx,B);x.stroke();x.restore();
+    x.fillStyle=k[1]===5?'rgb('+GOLD+')':'#ff8fa8';x.beginPath();x.arc(kx,Y(100),5,0,TAU);x.fill();label(x,kx,Y(100)+22,k[1]===5?'chain 5':'kill '+k[1],'#fff',13)});
+  label(x,X(4.4),Y(50)+4,'meter drains after 1.2 s','#9aa5ab',14);label(x,X(8.2),Y(100)-12,'streak: meter holds, empowered next','rgb('+GOLD+')',14)}
+var t0=performance.now();var rmq=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now){var t=rmq?1.2:(now-t0)/1000;cells.forEach(function(c,i){bgc(c.x,150,130);var px=75,py=88;pl(c.x,px,py,0);counter(c.x,c.style,c.chain,c.meter,px,py,t,0)});
+  strikeFrame(xn,false,t);strikeFrame(xe,true,t);timeline(xt,t);if(!rmq)requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>
