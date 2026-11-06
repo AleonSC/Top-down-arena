@@ -103,7 +103,7 @@ namespace Arena
                 Id = AbilityId.Roar, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Instant = true,
                 Name = "Roar", Cooldown = 14f, Desc = "Every enemy targets you for 5 s, and you take 40% less damage meanwhile.",
                 Capstone = "Also knocks enemies within 250 px back and slows them for 2 s.",
-                Bot = b => b.HaveTarget && b.Players > 1,
+                Bot = b => b.HaveTarget && b.Players > 1 && (b.AllyThreatened || b.Me.Hp < b.Me.MaxHp * 0.5f),  // draw the enemies off a teammate in trouble
             },
             new AbilityDef
             {
@@ -136,6 +136,7 @@ namespace Arena
                 Id = AbilityId.Mark, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Instant = true,
                 Name = "Mark for Death", Cooldown = 12f, Desc = "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s.",
                 Capstone = "Marks the three enemies nearest your cursor.",
+                Bot = b => b.HaveTarget && !b.TargetMarked && b.TargetD < 700f,  // on the boss (or the team's focus), and not again while it's marked
             },
         };
 

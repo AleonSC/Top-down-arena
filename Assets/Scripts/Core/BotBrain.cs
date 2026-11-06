@@ -22,6 +22,9 @@ namespace Arena
         public float TargetD;    // distance to its target (9999 without one)
         public int Players;      // players in the match
         public float BotDanger;  // how dangerous its best spot looked (above 2.5: get out)
+        public bool AllyThreatened;  // a hurt or downed ally has enemies close on them (Roar draws those enemies off)
+        public float DownedD;    // distance to the nearest downed ally (9999 with none)
+        public bool TargetMarked;  // its target already carries a Mark for Death
     }
 
     public partial class Game
@@ -77,6 +80,8 @@ namespace Arena
             return me.Pos.DistanceTo(e.Pos) <= Math.Max(reach, pref) + 40f;
         }
 
+        const float MarkFocus = 220f;  // how much a marked enemy is preferred as the target (a boss scores 0 to 300)
+
         void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held)
         {
             var sk = Skill(BotLevel);
@@ -100,6 +105,8 @@ namespace Arena
                     continue;
                 float d = e.Pos.DistanceTo(me.Pos);
                 float score = e.Def.IsBoss ? d * 0.25f + e.Hp / Math.Max(1f, e.MaxHp) * 200f : d;
+                if (e.Marked || e.MarkT > 0f)
+                    score -= MarkFocus;  // the team's Mark for Death: everyone piles onto it
                 if (score < bestScore)
                 {
                     bestScore = score;
@@ -209,6 +216,23 @@ namespace Arena
             // --- Fire: hold the trigger; the bow draws to full, then lets go. Not into a hungry Devourer, or its Maw.
             firing = shootAt != null && InReach(me, shootAt, pref) && !(shootAt.Type == EnemyType.Devourer && (Hungry(shootAt) || DevourImmune(shootAt)
                 || shootAt.Devour != null && shootAt.Devour.Stage == DevourStage.Ravenous && InMaw(shootAt, me.Pos)));
+            // --- Healing shots: an arrow heals the ally it passes and a dart heals the one it reaches, so a healer lines
+            // the shot up on a hurt teammate close by (and sends it on toward the boss from there).
+            if (me.Role == Role.Healer && (me.Weapon.Id == WeaponId.MendersBow || me.Weapon.Id == WeaponId.TransfusionDarts)
+                && (me.Weapon.Id == WeaponId.MendersBow || me.Hp > me.MaxHp * 0.4f))  // a dart costs the healer health
+            {
+                Player healTo = null;
+                foreach (var q in Players.Values)
+                    if (q.Id != me.Id && !q.Downed && q.Hp < q.MaxHp * 0.7f && q.Pos.DistanceTo(me.Pos) < 420f
+                        && (healTo == null || q.Hp / q.MaxHp < healTo.Hp / healTo.MaxHp))
+                        healTo = q;
+                if (healTo != null)
+                {
+                    aimAt = healTo.Pos;
+                    me.Aim = (aimAt - me.Pos).Angle;
+                    firing = true;
+                }
+            }
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
 
@@ -218,13 +242,18 @@ namespace Arena
             bool inDanger = BotDanger > 1.5f || me.Hp < me.MaxHp * 0.35f;
             bool allyHurt = me.Hp < me.MaxHp * 0.55f || downed != null || lowest != null && lowest.Hp < lowest.MaxHp * 0.55f;
             float targetD = target != null ? target.Pos.DistanceTo(me.Pos) : 9999f;
+            float downedD = downed != null ? downed.Pos.DistanceTo(me.Pos) : 9999f;
+            bool targetMarked = target != null && (target.Marked || target.MarkT > 0f);
+            bool allyThreatened = AllyInTrouble(me);
+            Player healSpot = downed ?? (lowest != null && lowest.Hp < lowest.MaxHp * 0.85f ? lowest : null);
             for (int slot = 0; slot < Upgrades.SlotCount; slot++)
             {
                 var s = me.Slots[slot];
                 if (s.Id == AbilityId.LastStand && me.StandOn)
                 {
                     held[slot] = botHeldLast[slot] = false;
-                    if (me.StandT > 3f && BotDanger < 0.2f && !botHeldLast[slot])  // nothing coming for a moment: step out of it
+                    bool guarding = downed != null && downed.Pos.DistanceTo(me.Pos) < StandRadius;  // someone is being stood back up in its lee
+                    if (me.StandT > 3f && BotDanger < 0.2f && !guarding && !botHeldLast[slot])  // nothing coming for a moment: step out of it
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
@@ -238,20 +267,23 @@ namespace Arena
                     botHeldLast[slot] = false;  // release so the next press counts
                     continue;
                 }
-                if (!WantAbility(s.Id, me, inDanger, allyHurt, downed != null, targetD, target != null))
+                if (!WantAbility(s.Id, me, inDanger, allyHurt, downed != null, targetD, target != null, allyThreatened, downedD, targetMarked))
                     continue;
                 held[slot] = botHeldLast[slot] = true;
                 if (s.Id == AbilityId.Blink)
                     aimAt = me.Pos + (botMove.IsZero ? V2.FromAngle(me.Aim) : botMove.Normalized()) * 220f;  // blink toward safety
                 else if (s.Id == AbilityId.Adrenaline)
                     aimAt = (lowest != null && lowest != me ? lowest : me).Pos;  // the hurt ally, or itself
-                else if (target != null && s.Id != AbilityId.Mark)
-                    aimAt = target.Pos;
+                else if (HealsWhereAimed(s.Id) && healSpot != null)
+                    aimAt = healSpot.Pos;  // a medkit, rain, lantern, cross or cone lands where the hurt ally is
+                else if (target != null)
+                    aimAt = target.Pos;  // (a Mark goes on the target too: the boss, not the add that happens to be nearest)
                 break;  // one ability per frame
             }
         }
 
-        bool WantAbility(AbilityId id, Player me, bool danger, bool allyHurt, bool allyDown, float targetD, bool haveTarget)
+        bool WantAbility(AbilityId id, Player me, bool danger, bool allyHurt, bool allyDown, float targetD, bool haveTarget,
+            bool allyThreatened = false, float downedD = 9999f, bool targetMarked = false)
         {
             var rule = Upgrades.Ability(id).Bot;
             if (rule == null)
@@ -260,7 +292,37 @@ namespace Arena
             {
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
+                AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked,
             });
+        }
+
+        /// Abilities that heal where you aim them: a bot casts these at the ally who needs it, not at the boss.
+        static bool HealsWhereAimed(AbilityId id)
+        {
+            switch (id)
+            {
+                case AbilityId.Medkit:
+                case AbilityId.HealingRain:
+                case AbilityId.SoulLantern:
+                case AbilityId.Consecrate:
+                case AbilityId.Sanctify:
+                    return true;
+            }
+            return false;
+        }
+
+        /// Is a teammate hurt or down with enemies right on top of them? (Roar draws those enemies off.)
+        bool AllyInTrouble(Player me)
+        {
+            foreach (var q in Players.Values)
+            {
+                if (q.Id == me.Id || !q.Downed && q.Hp >= q.MaxHp * 0.5f)
+                    continue;
+                foreach (var e in Enemies.Values)
+                    if (e.Hp > 0f && !IsSpawning(e) && e.Pos.DistanceSq(q.Pos) < 220f * 220f)
+                        return true;
+            }
+            return false;
         }
 
         /// Enemy velocities, from how far each moved since last frame (smoothed).
@@ -403,6 +465,26 @@ namespace Arena
                 foreach (var spot in es.Spots)
                     if (spot.Pos.DistanceSq(me.Pos) < sunspot.DistanceSq(me.Pos))
                         sunspot = spot.Pos;
+            }
+
+            // Hurt: healing orbs and the team's healing zones (Haven, rain, lantern, tree, ...) are worth walking to.
+            bool lure = false;
+            V2 lurePos = V2.Zero;
+            float lureR = 0f, lureD = 450f;
+            if (me.Hp < me.MaxHp * 0.7f)
+            {
+                foreach (var o in Orbs.Values)
+                {
+                    float od = o.Pos.DistanceTo(me.Pos) - 30f;
+                    if (od < lureD) { lureD = od; lurePos = o.Pos; lureR = 30f; lure = true; }
+                }
+                foreach (var z in Zones.Values)
+                {
+                    if (z.Kind == ZoneKind.LumenWard || z.Def.HealRate <= 0f && z.Kind != ZoneKind.Sanctum)
+                        continue;
+                    float zd = z.Pos.DistanceTo(me.Pos) - (z.Radius - 10f);
+                    if (zd < lureD) { lureD = zd; lurePos = z.Pos; lureR = z.Radius - 10f; lure = true; }
+                }
             }
 
             V2 best = V2.Zero;
@@ -623,6 +705,8 @@ namespace Arena
                     position += 1.2f * Math.Min(4f, p.DistanceTo(shadowSpot) / 150f);  // get into the moon's shadow
                 else if (seekLight && !InSunlight(es, p, hitR + 15f))
                     position += 0.6f * Math.Min(3f, p.DistanceTo(sunspot) / 150f);  // back into the light
+                if (lure)
+                    position += 0.3f * Math.Min(3f, Math.Max(0f, p.DistanceTo(lurePos) - lureR) / 150f);
                 float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
                 if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)
                     foreach (var pt in Patches.Values)

@@ -1333,6 +1333,13 @@ boss plays out and what to change.
   player's boss damage, damage taken, downs and ability casts, and what hit them most. **Restart** reruns the
   same setup; **Setup** changes it.
 - When the boss dies, the party wipes, or 5 minutes pass, a result card shows the summary with **Run again**.
+- **Bot team play** (the Boss Lab's bots, lobby bots and the F1 bot): a hurt bot walks to healing orbs and the team's
+  healing zones (Haven, Healing Rain, Soul Lantern, World Tree, Consecrated Ground, and so on). Everyone focuses an
+  enemy carrying a **Mark for Death**, and a Soldier DPS bot marks the boss (once, not again while it's marked). Healer
+  bots cast a Medkit, Healing Rain, Soul Lantern, Holy Cross or Lumen Ward at the downed or most hurt ally, and aim a
+  Mender's Bow arrow or Transfusion Dart through a hurt teammate within 420 px. A Roar tank roars when a teammate is
+  hurt or down with enemies on top of them (or when it is under half health); a Knight tank plants **Last Stand** over
+  a downed ally and keeps it up while they're being stood back up. Tests: `Tools/SimTest/run.sh 1 30 botteam`.
 - Lab fights aren't saved as session recordings. Starting the lab leaves any match you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where

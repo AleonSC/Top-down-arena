@@ -740,7 +740,7 @@ namespace Arena
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Last Stand", Cooldown = 70f, Desc = "You plant yourself and brace a wall of steel plates 120 px out, 178° wide, facing your cursor (it turns slowly). It stops every enemy bullet from the front; your teammates' shots pass out through it. You take 10% of the damage it stops. You can't move while it stands, and it has no timer: it stays until you go down or press the ability again, and the cooldown starts when it comes down.",
                 Capstone = "You take 5% of the damage instead of 10%.",
-                Bot = b => b.Danger,
+                Bot = b => b.Danger || b.AllyDown && b.DownedD < 70f,  // planted over a downed ally, the reviver stands in the lee
             },
             new AbilityDef
             {
