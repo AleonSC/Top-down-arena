@@ -136,3 +136,22 @@ Everything gameplay-relevant is host-authoritative, like every other weapon.
 - **The meter shows as a rose arc round the swordsman** (a gauge like the Lightbringer's) instead of a HUD bar. Full, the
   blade is drawn sheathed with a glint.
 - The meter's drain pause and bosses (full 120 for now) are as in the open questions.
+
+## Chain streak and the richer strike (built Nov 2026, protocol 181)
+Mockups: `Docs/Mockups/katana-chain.html` (playable) and `katana-streak-examples.html`. The owner's picks: blade notches for
+the counter, and route kills do not count.
+- **Kill = chain.** A strike whose **target dies** sets the meter back to full (strike again at once) and adds one chain
+  (`Player.KatanaChain`, replicated). Kills along the line do not count. A target that survives leaves the meter spent and
+  ends the streak (chain 0).
+- **No drain on a streak.** `TickKatana` skips the drain while the chain is above 0. At 0 it drains as before (25/s after 1.2 s).
+- **Empowered at 5** (`KatanaChainNeed`): the next strike deals `KatanaEmpDmg` 240 to the target and `KatanaEmpRoute` 120 to
+  everything on the line (normal: 120 and 60). It is gold-white and wider. After an empowered strike that kills, the chain
+  starts again from 0 and the meter stays full.
+- **Not decided, built the simple way:** no streak timeout; taking damage does not end it (only a survived target, or going
+  down); bosses count as a kill only if they die. A target already dead when the blow lands counts as a kill.
+- **Held frame.** The strike is now stance 0.35 s, cut 0.14 s, a held frame `KatanaHold` 0.4 s, then the blow. You stand where you
+  landed through the held frame; the untouchable window covers all of it.
+- **Look** (`Game/KatanaLook.cs`): one `FxKind.KatanaStrike` effect drawn from its age (stance rings and motes, arena dimming,
+  the beam crossing, afterimages, a white flash, the held line, a sheathing ring) with letterbox bars on the striker's own
+  screen, plus a `FxKind.KatanaCut` per enemy cut (a bright line across it, sparks, and its two halves sliding apart if it
+  died) and a camera shake. The chain is a blade of five notches over the swordsman.
