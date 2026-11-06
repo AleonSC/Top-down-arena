@@ -133,6 +133,8 @@ namespace Arena
             float sway = Mathf.Sin(t * 2.4f) * 1.2f, u = mU, wk = (0.8f + 0.2f * u) / u;
             int hold; float offX;
             HoldOf(p.Weapon.Id, out hold, out offX);
+            if (p.Weapon.Id == WeaponId.MendersBow)
+                wk *= 1.7f;  // the Mender's Bow is drawn much bigger than other weapons (limbs, string and arrow scale together)
             float rhx, rhy, lhx, lhy;
             switch (hold)
             {
