@@ -280,6 +280,32 @@ static partial class Shot {
         en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
       }
     }
+    if (Environment.GetEnvironmentVariable("HARVEST") != null || Environment.GetEnvironmentVariable("HARVESTTHROW") != null) {
+      // A Hemomancer's Crimson Harvest (CrimsonHarvestLook.cs): HARVEST=<seconds since the cast> (rip to 2.2 s, then the hold; HARVESTBLOOD=<blood> sets the ball's size, default 26),
+      // or HARVESTTHROW=<seconds since the throw> for the flight (to 0.65 s), blast and stain. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps);
+      V2 from = new V2(420f, 520f), aimH = new V2(1020f, 400f);
+      me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = aimH;
+      float blood = float.Parse(Environment.GetEnvironmentVariable("HARVESTBLOOD") ?? "26");
+      string ht = Environment.GetEnvironmentVariable("HARVESTTHROW");
+      if (ht != null)
+        gm.Effects.Add(new Effect { Kind = FxKind.HarvestThrow, Pos = from, Pos2 = aimH, Color = new Rgba(0.85f, 0.12f, 0.2f), Radius = blood, Dur = Game.HarvestThrowT + Game.HarvestTail, T = float.Parse(ht) });
+      else {
+        float hv = float.Parse(Environment.GetEnvironmentVariable("HARVEST"));
+        me.HarvestClock = hv; me.HarvestHold = Game.HarvestHoldTime;
+        me.HarvestBlood = hv >= Game.HarvestRip ? blood : blood * hv / Game.HarvestRip;
+      }
+      var rnd = new System.Random(5);
+      for (int i = 0; i < 24; i++) {
+        V2 at = new V2(80f + (float)rnd.NextDouble() * 1400f, 110f + (float)rnd.NextDouble() * 780f);
+        if (at.DistanceTo(from) < 90f) continue;
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i % 6 == 5 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+      }
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
