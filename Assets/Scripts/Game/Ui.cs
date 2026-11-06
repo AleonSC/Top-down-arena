@@ -641,6 +641,33 @@ namespace Arena
             return GUI.HorizontalSlider(r, value, 0f, 1f, track, thumb);
         }
 
+        static GUIStyle crtThumb;
+
+        /// A phosphor slider (the lobby's Difficulty tab): a thin ink track, filled to the value, with a square block for the thumb
+        /// (inverse video while dragged or hovered). r should be 18 px tall. Same input as Slider.
+        public static float CrtSlider(Rect r, float value)
+        {
+            if (crtThumb == null)
+                crtThumb = new GUIStyle { fixedWidth = 10f, fixedHeight = 18f };  // no background: drawn below
+            float v = GUI.HorizontalSlider(r, value, 0f, 1f, track, crtThumb);
+            CrtSliderDraw(r, v, true);
+            return v;
+        }
+
+        /// The same look, read-only (guests).
+        public static void CrtSliderDraw(Rect r, float value, bool live)
+        {
+            var ink = CrtUi.Ink;
+            var bar = new Rect(r.x, r.y + r.height / 2f - 2f, r.width, 4f);
+            Fill(bar, new Color(ink.r, ink.g, ink.b, 0.16f));
+            float tx = r.x + (r.width - 10f) * Mathf.Clamp01(value);
+            Fill(new Rect(bar.x, bar.y, tx - bar.x + 5f, bar.height), live ? ink : new Color(ink.r, ink.g, ink.b, 0.55f));
+            var th = new Rect(tx, r.y + 1f, 10f, r.height - 2f);
+            bool hot = live && th.Contains(Event.current.mousePosition);
+            Fill(th, hot ? Color.Lerp(ink, Color.white, 0.5f) : ink);
+            Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtUi.Bg);
+        }
+
         static readonly System.Collections.Generic.Dictionary<int, float> meterKick = new System.Collections.Generic.Dictionary<int, float>();
 
         /// Level-meter slider (Settings > Audio): 100 thin bars that light up to the value, amber then red at the top, in `tint`.

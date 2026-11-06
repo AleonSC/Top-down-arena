@@ -34,7 +34,7 @@ namespace Arena
             var diff = session.Diff;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
 
-            // The five cards.
+            // The five keys.
             const float gap = 8f, ch = 62f;
             int n = Difficulty.Names.Length;
             float cw = (w - gap * (n - 1)) / n;
@@ -84,12 +84,12 @@ namespace Arena
                 float bw = (colW - 8f) / 2f;
                 if (slot.Contains(Event.current.mousePosition))
                     hoverDesc = "Boss approach: Blend is 85% building up over the four waves (34%, 51%, 68%, 85%); Fully themed makes all four waves the boss's own enemies.";
-                if (Ui.Choice(new Rect(slot.x, slot.y, bw, slot.height), "Blend", blend, ApproachColor, null, null, 12, glow: false) && canEdit && !blend)
+                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Blend", blend, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !blend)
                 {
                     session.SetDifficultyKnob(DiffKnob.ApproachShare, 0.85f);
                     session.SetDifficultyKnob(DiffKnob.ApproachRamp, 1f);
                 }
-                if (Ui.Choice(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Fully themed", full, ApproachColor, null, null, 12, glow: false) && canEdit && !full)
+                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Fully themed", full, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !full)
                 {
                     session.SetDifficultyKnob(DiffKnob.ApproachShare, 1f);
                     session.SetDifficultyKnob(DiffKnob.ApproachRamp, 0f);
@@ -102,33 +102,41 @@ namespace Arena
                 float bw = (colW - 8f) / 2f;
                 if (slot.Contains(Event.current.mousePosition))
                     hoverDesc = "Arena layouts: " + Difficulty.Knobs[(int)DiffKnob.ArenaLayouts].Desc;
-                if (Ui.Choice(new Rect(slot.x, slot.y, bw, slot.height), "Layouts on", on, ApproachColor, null, null, 12, glow: false) && canEdit && !on)
+                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Layouts on", on, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !on)
                     session.SetDifficultyKnob(DiffKnob.ArenaLayouts, 1f);
-                if (Ui.Choice(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Layouts off", !on, ApproachColor, null, null, 12, glow: false) && canEdit && on)
+                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Layouts off", !on, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && on)
                     session.SetDifficultyKnob(DiffKnob.ArenaLayouts, 0f);
             }
-            Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? Ui.Text : Ui.Muted);
+            Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);
         }
 
         bool DrawDiffCard(Rect c, DifficultyLevel level, bool on, bool canClick, float t)
         {
             var col = DiffColor(level);
             bool hover = canClick && c.Contains(Event.current.mousePosition);
-            Ui.Card(c, col, on ? 0.9f : hover ? 0.5f : 0.2f);
-            if (on)
-                Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(col.r, col.g, col.b, 0.14f + 0.05f * Mathf.Sin(t * 3f)));
-            Ui.Glitch(new Rect(c.x, c.y + 8f, c.width, 24f), Difficulty.Names[(int)level], 16,
-                on ? Color.Lerp(col, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleCenter);
-            // Danger: one skull for Easy up to four for Nightmare; a gear for Custom.
+            bool fill = on || hover;
+            var ink = CrtUi.Ink;
+            // A digital key: inverse video when picked or under the mouse, the ink outline and a faint wash otherwise.
+            float pulse = on && !fxReduced ? 0.04f * Mathf.Sin(t * 3f) : 0f;
+            Ui.Fill(c, fill ? new Color(ink.r, ink.g, ink.b, (on ? 0.95f : 0.7f) + pulse) : new Color(ink.r, ink.g, ink.b, 0.08f));
+            CrtKit.Frame(c, 2f, ink);
+            var tc = fill ? CrtUi.Bg : ink;
+            var nr = new Rect(c.x + 4f, c.y + 6f, c.width - 8f, 24f);
+            if (fill)
+                Ui.Label(nr, Difficulty.Names[(int)level].ToUpperInvariant(), 16, tc, TextAnchor.MiddleCenter, true);
+            else
+                CrtUi.Text(nr, Difficulty.Names[(int)level].ToUpperInvariant(), 16, tc, TextAnchor.MiddleCenter, true, fxReduced);
+            // Danger: one skull for Easy up to four for Nightmare; a gear for Custom. The icons keep the level's own colour.
             float iy = c.y + 36f;
+            var ic = fill ? new Color(col.r * 0.45f, col.g * 0.45f, col.b * 0.45f) : new Color(col.r, col.g, col.b, 0.9f);
             if (level == DifficultyLevel.Custom)
-                Ui.Icon(new Rect(c.center.x - 8f, iy, 16f, 16f), PixelArt.Get("ui_gear"), on ? Color.white : new Color(col.r, col.g, col.b, 0.8f));
+                Ui.Icon(new Rect(c.center.x - 8f, iy, 16f, 16f), PixelArt.Get("ui_gear"), ic);
             else
             {
                 int skulls = (int)level + 1;
                 float sx = c.center.x - skulls * 9f;
                 for (int s = 0; s < skulls; s++)
-                    Ui.Icon(new Rect(sx + s * 18f + 1f, iy, 16f, 16f), PixelArt.Get("ui_skull"), on ? Color.white : new Color(col.r, col.g, col.b, 0.75f));
+                    Ui.Icon(new Rect(sx + s * 18f + 1f, iy, 16f, 16f), PixelArt.Get("ui_skull"), ic);
             }
             return canClick && !on && Ui.HitArea(c);
         }
@@ -140,19 +148,20 @@ namespace Arena
             float normal = k.Normal;
             bool harder = !k.Flavour && (k.HarderUp ? value > normal + 1e-5f : value < normal - 1e-5f);
             bool easier = !k.Flavour && (k.HarderUp ? value < normal - 1e-5f : value > normal + 1e-5f);
-            var vc = harder ? HarderColor : easier ? EasierColor : Ui.Text;
+            var vc = harder ? HarderColor : easier ? EasierColor : LobbyKit.Soft;
             const float boxW = 64f;
-            Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Name, 12, Ui.Text, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Name.ToUpperInvariant(), 11, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Format(value), 12, vc, TextAnchor.MiddleRight, true);
 
             var sr = new Rect(r.x, r.y + 18f, r.width - boxW - 8f, 18f);
             float frac = k.ToSlider(value);
             // Normal's place on the track.
-            float nx = sr.x + 4f + (sr.width - 8f) * k.ToSlider(normal);
+            float nx = sr.x + 5f + (sr.width - 10f) * k.ToSlider(normal);
             if (canEdit)
             {
-                float s = Ui.Slider(sr, frac);
-                Ui.Fill(new Rect(nx - 1f, sr.y + 2f, 2f, sr.height - 4f), new Color(1f, 1f, 1f, 0.45f));
+                float s = Ui.CrtSlider(sr, frac);
+                Ui.Fill(new Rect(nx - 1f, sr.y + 1f, 2f, 3f), LobbyKit.Gold);
+                Ui.Fill(new Rect(nx - 1f, sr.yMax - 4f, 2f, 3f), LobbyKit.Gold);
                 if (Mathf.Abs(s - frac) > 1e-4f)
                 {
                     float v = k.FromSlider(s);
@@ -162,11 +171,9 @@ namespace Arena
             }
             else
             {
-                var bar = new Rect(sr.x + 4f, sr.y + sr.height / 2f - 3f, sr.width - 8f, 6f);
-                Ui.Fill(bar, new Color(0.18f, 0.2f, 0.28f));
-                Ui.Fill(new Rect(bar.x, bar.y, bar.width * frac, bar.height), new Color(Ui.Accent.r, Ui.Accent.g, Ui.Accent.b, 0.6f));
-                Ui.Fill(new Rect(nx - 1f, sr.y + 2f, 2f, sr.height - 4f), new Color(1f, 1f, 1f, 0.45f));
-                Ui.Pill(new Rect(bar.x + bar.width * frac - 6f, sr.y + 3f, 12f, 12f), new Color(0.85f, 0.88f, 0.95f));
+                Ui.CrtSliderDraw(sr, frac, false);
+                Ui.Fill(new Rect(nx - 1f, sr.y + 1f, 2f, 3f), LobbyKit.Gold);
+                Ui.Fill(new Rect(nx - 1f, sr.yMax - 4f, 2f, 3f), LobbyKit.Gold);
             }
 
             // The text box: keeps what you type while it has focus, and applies it whenever it's a number.
@@ -174,8 +181,9 @@ namespace Arena
             string shown = k.Edit(value);
             if (!canEdit)
             {
-                Ui.Pill(box, new Color(1f, 1f, 1f, 0.05f));
-                Ui.Label(box, shown, 12, Ui.Muted, TextAnchor.MiddleCenter);
+                Ui.Fill(box, LobbyKit.Ink(0.05f));
+                CrtKit.Frame(box, 1f, LobbyKit.Ink(0.35f));
+                Ui.Label(box, shown, 12, CrtUi.Dim, TextAnchor.MiddleCenter, true);
                 return;
             }
             string name = "diffknob" + (int)k.Knob;
@@ -190,7 +198,9 @@ namespace Arena
             }
             string text = focused && diffFocus == name ? diffBuffer : shown;
             GUI.SetNextControlName(name);
-            string typed = Ui.Field(box, text, 8);
+            Ui.Fill(box, LobbyKit.Ink(focused ? 0.16f : 0.08f));
+            CrtKit.Frame(box, 1f, focused ? CrtUi.Ink : LobbyKit.Ink(0.6f));
+            string typed = Ui.BareField(box, text, 8, 12);
             if (focused)
             {
                 diffFocus = name;
