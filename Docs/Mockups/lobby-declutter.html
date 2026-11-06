@@ -1,0 +1,413 @@
+<title>Lobby Declutter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a scale-to-fit copy of the 1497x933 Loadout lobby. A strip on top flips Before / After, picks one of three
+   title treatments and turns the bar glow on or off. The stage uses em units, so "After" is the same layout at a
+   smaller font-size. Click the ascension chip on a weapon to open the ascension window.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --page: #05070b; --ink: #e8f0f8; --muted: #8fa0b2; --line: #243040;
+  --bg: #06121f; --panel: #0a1a2c; --edge: #1f4f86; --blue: #2f86e6; --blue-hi: #5fb0ff; --blue-deep: #12365f;
+  --gold: #ffc247; --green: #3df08a; --cyan: #35d0ff; --red: #ff4d5e; --violet: #a068ff;
+  --f-d: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --f-b: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --f-m: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--page); color: var(--ink); font: 400 16px/1.5 var(--f-b); }
+.wrap { max-width: 1560px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 16px; }
+h1 { font: 800 clamp(24px, 4vw, 34px)/1.1 var(--f-d); letter-spacing: .05em; text-transform: uppercase; margin: 0; }
+h1 span { color: var(--blue-hi); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 12px 14px; background: #0c121a; border: 1px solid var(--line); }
+.grp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.grp > b { font: 600 11px var(--f-d); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.bar button { font: 600 13px var(--f-d); letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: #131c27; border: 1px solid var(--line); padding: 7px 12px; cursor: pointer; }
+.bar button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue-hi); color: #fff; }
+.bar button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.notes div { background: #0c121a; border: 1px solid var(--line); padding: 12px 14px; font-size: 14px; color: #c3cfda; }
+.notes h2 { font: 700 13px var(--f-d); letter-spacing: .12em; text-transform: uppercase; color: var(--blue-hi); margin: 0 0 6px; }
+.notes p { margin: 0; }
+
+/* ---------- stage ---------- */
+.fit { position: relative; width: 100%; overflow: hidden; }
+.stage { position: absolute; left: 0; top: 0; width: 1497px; height: 933px; transform-origin: 0 0; background: var(--bg);
+  border: 2px solid #0e2a4a; font-family: var(--f-b); font-size: 16px; color: #dbe8f6; display: grid; grid-template-columns: 36% 1fr; gap: 1.6em; padding: 2.2em 2.2em 1.6em; }
+.stage.after { font-size: 12.5px; gap: 1.8em; }
+.stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 70% 40%, #0d2a4a55, transparent 60%); }
+.stage > * { position: relative; min-width: 0; }
+.stage * { box-sizing: border-box; }
+.f-d { font-family: var(--f-d); }
+
+/* left */
+.left { display: flex; flex-direction: column; gap: 1em; min-height: 0; }
+.head { display: flex; align-items: center; gap: 1em; }
+.sqb { width: 3.1em; height: 3.1em; display: grid; place-items: center; border: 2px solid var(--blue); background: #0b2a4e; font: 800 1.6em var(--f-d); color: #cfe6ff; }
+.title { font: 800 4.1em/1 var(--f-d); color: var(--blue-hi); letter-spacing: .02em; flex: 1; }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6em; }
+.mode { border: 2px solid var(--blue); background: #0b2447; padding: .5em .6em; text-align: center; font: 700 1.9em/1 var(--f-d); color: #cfe3ff; }
+.mode small { display: block; font: 500 .42em/1.3 var(--f-b); margin-top: .4em; color: #9cc0ea; letter-spacing: .02em; }
+.mode.on { background: var(--blue); color: #fff; }
+.party-h { display: flex; justify-content: space-between; align-items: center; }
+.party-h h3 { margin: 0; font: 700 2.1em var(--f-d); color: var(--blue-hi); }
+.hang { border: 2px solid var(--blue); padding: .5em 1em; font: 700 1.1em var(--f-d); color: #cfe3ff; background: #0b2447; }
+.pm { display: grid; grid-template-columns: 4.4em 1fr auto; gap: .9em; align-items: center; padding: .55em .7em; border: 2px solid #8a4fd6; background: linear-gradient(90deg, #1a1236aa, #0b1530); }
+.pm.host { border-color: #e0a25a; }
+.pm .pic { height: 4.4em; background: #1a1020; border: 1px solid #ffffff22; display: grid; place-items: center; }
+.pm .pic i { width: 1.9em; height: 1.9em; border-radius: 50%; border: 3px solid #e8e8f0; box-shadow: 0 0 0 3px #ff5a6a55 inset; }
+.pm .n { font: 700 2em/1.1 var(--f-d); color: #fff; }
+.pm .r { font: 700 1.45em/1.2 var(--f-d); color: var(--gold); }
+.pm .w { font-size: 1.05em; color: #b9c8da; }
+.pm .st { align-self: end; font: 700 .95em var(--f-d); padding: .2em .8em; background: #2c6a3a; color: #c9f5d2; justify-self: end; }
+.pm .st.no { background: transparent; color: #b6bdc8; }
+.pm .tags { display: flex; gap: .4em; justify-content: flex-end; }
+.pm .tags span { font: 700 .95em var(--f-d); padding: .15em .7em; border: 1px solid var(--blue-hi); color: #cfe3ff; }
+.pm .tags .you { background: var(--blue); } .pm .tags .host-t { background: #b8832a; border-color: #ffd58a; }
+.pm .right { display: grid; gap: .5em; }
+.grow { flex: 1; }
+.ready { border: 2px solid var(--blue); background: #0b2447; padding: .55em; text-align: center; font: 700 2.4em var(--f-d); color: #dcebff; }
+.start { border: 2px dashed #2a4a76; padding: .55em; text-align: center; font: 700 2.4em var(--f-d); color: #4a6c9a; }
+
+/* right */
+.right-col { display: flex; flex-direction: column; gap: 1em; min-height: 0; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7em; }
+.tab { border: 2px solid var(--blue); padding: .55em; text-align: center; font: 700 2em var(--f-d); background: #0b2447; color: #cfe3ff; }
+.tab.on { background: var(--blue); color: #fff; }
+.card { flex: 1; min-height: 0; border: 1px solid #1d4372; background: #081727; padding: 1.3em; display: grid; grid-template-columns: 38% 1fr; gap: 1.4em; position: relative; }
+.col-l { display: flex; flex-direction: column; gap: .9em; min-height: 0; }
+.prev { height: 14.6em; border: 1px solid #3a2530; background: radial-gradient(circle at 50% 55%, #6a2b3a66, #0a0c18 70%); display: grid; place-items: center; position: relative; }
+.prev .ring { width: 3.6em; height: 3.6em; border-radius: 50%; border: 3px solid #ff7a6a; box-shadow: 0 0 1.4em #ff4d5e88, inset 0 0 .8em #ff4d5e66; }
+.prev .arc { position: absolute; width: 8em; height: 8em; border-radius: 50%; border: 3px solid transparent; border-top-color: #ff8aa0; border-left-color: #ff8aa066; transform: rotate(-30deg); filter: drop-shadow(0 0 .5em #ff4d5e); }
+
+/* role / class title (3 treatments) */
+.rt { display: block; }
+.rt .nm { font-family: var(--f-d); font-weight: 800; line-height: 1; color: #fff; }
+.rt .role { font-family: var(--f-d); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+/* before */
+.rt.t0 .nm { font-size: 3.4em; } .rt.t0 .role { display: none; }
+/* A: class name big, role tag */
+.rt.tA { display: flex; align-items: center; gap: .7em; }
+.rt.tA .badge { width: 2.7em; height: 2.7em; flex: none; display: grid; place-items: center; border: 2px solid #ff6a7a; background: linear-gradient(160deg, #ff4d5e33, #1a0b14); box-shadow: 0 0 1em #ff4d5e55, inset 0 0 .6em #ff4d5e44; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.rt.tA .badge svg { width: 1.4em; height: 1.4em; }
+.rt.tA .nm { font-size: 2.3em; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 0 .5em #7fc0ff55; }
+.rt.tA .txt { display: grid; gap: .35em; }
+.rt.tA .role { justify-self: start; font-size: .95em; color: #ffd9de; background: linear-gradient(90deg, #ff4d5e55, #ff4d5e11); border-left: 3px solid var(--red); padding: .25em .9em .25em .6em; }
+/* B: eyebrow over name, rule below */
+.rt.tB .eyebrow { font: 700 .95em var(--f-d); letter-spacing: .24em; text-transform: uppercase; color: var(--red); display: flex; align-items: center; gap: .7em; }
+.rt.tB .eyebrow::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #ff4d5e99, transparent); }
+.rt.tB .nm { font-size: 2.9em; letter-spacing: .03em; text-transform: uppercase; margin-top: .12em; }
+.rt.tB .role { display: none; }
+.rt.tB .rule { height: 3px; margin-top: .35em; width: 5em; background: linear-gradient(90deg, var(--red), #ff4d5e00); box-shadow: 0 0 .7em #ff4d5e; }
+/* C: split slab */
+.rt.tC { display: flex; align-items: stretch; height: 3.2em; box-shadow: 0 0 1.4em #2f86e633; }
+.rt.tC .role { display: grid; place-items: center; padding: 0 1.1em; font-size: 1.5em; letter-spacing: .1em; background: linear-gradient(180deg, #ff5a6a, #c42a3e); color: #fff; clip-path: polygon(0 0, 100% 0, calc(100% - .7em) 100%, 0 100%); padding-right: 1.4em; text-shadow: 0 0 .4em #0008; }
+.rt.tC .nm { display: grid; align-items: center; padding: 0 1em 0 .6em; font-size: 2.1em; letter-spacing: .06em; text-transform: uppercase; background: linear-gradient(90deg, #12365f, #0a1a2c00); margin-left: -.5em; padding-left: 1.1em; flex: 1; border-top: 1px solid #2f86e6; border-bottom: 1px solid #2f86e6; }
+.rt .eyebrow, .rt .rule, .rt .badge { display: none; } .rt.tB .eyebrow, .rt.tB .rule, .rt.tA .badge { display: flex; } .rt.tB .rule { display: block; } .rt.tA .badge { display: grid; }
+
+/* stat bars */
+.stats { display: grid; gap: .5em; }
+.stat { display: grid; grid-template-columns: 5.2em 1fr 4.6em; align-items: center; gap: .8em; font-size: 1.15em; }
+.stat .k { font: 600 .95em var(--f-d); letter-spacing: .1em; text-transform: uppercase; color: #5fa4e8; }
+.stat .v { text-align: right; font: 700 1em var(--f-d); color: #eaf3ff; }
+.track { height: .6em; background: #1a2636; position: relative; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--c); }
+.glow .track { background: #0a1220; box-shadow: inset 0 0 0 1px #ffffff12, inset 0 1px 3px #000a; overflow: visible; }
+.glow .fill { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff) 0%, var(--c) 45%, color-mix(in srgb, var(--c) 70%, #000) 100%);
+  box-shadow: 0 0 .5em var(--c), 0 0 1.2em color-mix(in srgb, var(--c) 70%, transparent), 0 0 2.4em color-mix(in srgb, var(--c) 40%, transparent); }
+.glow .fill::after { content: ""; position: absolute; right: -2px; top: -35%; bottom: -35%; width: 4px; background: #fff; border-radius: 2px; box-shadow: 0 0 .6em 2px var(--c), 0 0 1.4em var(--c); }
+@media (prefers-reduced-motion: no-preference) { .glow .fill { animation: pulse 2.6s ease-in-out infinite; } }
+@keyframes pulse { 50% { filter: brightness(1.18) saturate(1.1); } }
+
+.ult { display: grid; grid-template-columns: 3.6em 1fr; gap: .9em; align-items: center; margin-top: .2em; }
+.ult .ic { width: 3.6em; height: 3.6em; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; font: 800 1.5em var(--f-d); color: #fff; }
+.ult h4 { margin: 0; font: 700 1.7em var(--f-d); color: var(--gold); }
+.ult .m { font-size: .95em; color: #a9bfd8; }
+.ult p { margin: .4em 0 0; font-size: .95em; color: #c8d8ea; grid-column: 1 / -1; }
+.ult .gl { color: var(--gold); font-size: .9em; grid-column: 1 / -1; }
+
+/* pickers */
+.sec { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1d4372; padding-bottom: .3em; margin-bottom: .6em; }
+.sec h5 { margin: 0; font: 700 1.55em var(--f-d); letter-spacing: .12em; color: var(--blue-hi); }
+.sec span { font: 600 .8em var(--f-d); letter-spacing: .08em; color: #5fa4e8; }
+.row2, .row4 { display: grid; gap: .6em; }
+.row2 { grid-template-columns: 1fr 1fr; } .row4 { grid-template-columns: repeat(4, 1fr); }
+.pb { border: 2px solid #1d6cc4; background: #0a2a4f; color: #bcdcff; text-align: center; padding: .5em .3em; font: 700 1.3em var(--f-d); letter-spacing: .02em; min-height: 2.5em; display: grid; place-items: center; }
+.pb.on { background: var(--blue); color: #fff; border-color: #8ac4ff; }
+.pb.lock { border: 2px dashed #20456f; color: #4d6d92; background: transparent; }
+.pb.sm { font-size: 1.1em; }
+.role-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6em; margin-bottom: 1em; }
+.role-row .pb.on { background: var(--blue); }
+
+/* weapon button split: ~3/4 label + 1/4 ascension button */
+.wb { display: grid; grid-template-columns: 1fr 26%; border: 2px solid #1d6cc4; background: #0a2a4f; min-height: 2.5em; }
+.wb.on { border-color: #8ac4ff; }
+.wb .main { display: grid; place-items: center; font: 700 1.3em var(--f-d); color: #bcdcff; background: transparent; border: 0; padding: .5em .2em; }
+.wb.on .main { background: var(--blue); color: #fff; }
+.wb .asc { border: 0; border-left: 2px solid #1d6cc4; background: #0c1f3a; color: #8fb8e6; cursor: pointer; display: grid; place-items: center; gap: 0; padding: .15em 0; font: 700 .72em/1 var(--f-d); position: relative; }
+.wb.on .asc { background: #0d3566; border-left-color: #8ac4ff; color: #ffe39a; }
+.wb .asc:hover, .wb .asc:focus-visible { background: #17518f; color: #fff; outline: none; box-shadow: inset 0 0 0 2px var(--gold); }
+.wb .asc svg { width: 1.7em; height: 1.7em; display: block; margin-bottom: -.1em; }
+.wb .asc em { font-style: normal; letter-spacing: .04em; }
+.wb.lock { border: 2px dashed #20456f; background: transparent; grid-template-columns: 1fr; }
+.wb.lock .main { color: #4d6d92; }
+.wb .main, .wb .asc { font-family: var(--f-d); }
+.wb .main.l1 { font-size: 1.3em; }
+.old-asc { margin-top: .9em; }
+.old-asc .t { font: 700 1.55em var(--f-d); color: var(--blue-hi); letter-spacing: .06em; }
+.old-asc .t small { font-size: .6em; color: #5fa4e8; margin-left: .6em; letter-spacing: .1em; }
+.old-asc .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6em; margin-top: .4em; }
+.old-asc .pb { border: 2px dashed #20456f; color: #4d6d92; background: transparent; font-size: 1.05em; }
+.after .old-asc { display: none; }
+
+.info { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; border: 1px solid #1d4372; background: #091b30; padding: 1em; margin-top: auto; }
+.info .lbl { font: 600 .85em var(--f-d); letter-spacing: .14em; color: #5fa4e8; }
+.info h6 { margin: 0 0 .3em; font: 700 2.1em var(--f-d); color: #fff; }
+.info p { margin: 0; font-size: .95em; color: #c3d3e6; line-height: 1.4; }
+.nums { display: flex; gap: 1.6em; margin-top: .7em; }
+.nums b { display: block; font: 700 1.9em/1 var(--f-d); color: var(--gold); }
+.nums span { font: 600 .75em var(--f-d); letter-spacing: .08em; color: #8fa8c4; }
+.hint { text-align: center; font: 600 .8em var(--f-d); letter-spacing: .12em; color: #3f6c9d; margin-top: auto; }
+.info.one { grid-template-columns: 1fr; padding: 1.2em 1.4em; gap: .3em; }
+.info.one h6 { font-size: 2.6em; }
+.info.one p { font-size: 1.1em; max-width: 60ch; }
+.info.one .nums { margin-top: .8em; }
+.info .kind { display:flex; gap:.8em; align-items:baseline; }
+.wb.on .main, .pb.on { cursor: default; } .wb .main, .pb:not(.lock) { cursor: pointer; }
+.col-r { display: flex; flex-direction: column; min-height: 0; }
+
+/* ascension window */
+.modal { position: absolute; inset: 0; z-index: 5; display: none; place-items: center; background: #02080fd0; backdrop-filter: blur(2px); }
+.modal.open { display: grid; }
+.win { width: 78%; border: 2px solid var(--blue-hi); background: #071a2e; box-shadow: 0 0 3em #2f86e655; padding: 1.4em 1.6em 1.6em; }
+.win header { display: flex; justify-content: space-between; align-items: center; gap: 1em; }
+.win h2 { margin: 0; font: 800 2.4em var(--f-d); color: #fff; letter-spacing: .04em; text-transform: uppercase; }
+.win h2 small { display: block; font: 600 .38em var(--f-d); letter-spacing: .2em; color: var(--gold); margin-bottom: .3em; }
+.win .x { width: 2.6em; height: 2.6em; border: 2px solid var(--blue); background: #0b2447; color: #cfe3ff; font: 800 1.3em var(--f-d); cursor: pointer; }
+.win .cnt { font: 700 1.1em var(--f-d); color: #8fb8e6; letter-spacing: .1em; margin: .3em 0 1em; }
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9em; }
+.tier { border: 2px dashed #20456f; padding: 1em; background: #0a1a2c; min-height: 11em; display: grid; align-content: start; gap: .5em; }
+.tier .roman { font: 800 2em var(--f-d); color: #4d6d92; }
+.tier .st { font: 700 .85em var(--f-d); letter-spacing: .12em; color: #7f9cc0; }
+.tier p { margin: 0; font-size: 1em; color: #7f98b6; }
+.win footer { margin-top: 1em; font-size: .95em; color: #7f98b6; }
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Lobby <span>declutter</span></h1>
+    <p style="margin:.4em 0 0;color:var(--muted);max-width:70ch">Smaller text across the lobby, a stronger role and class title, an ascension button built into each weapon button, stat bars that glow, and one detail box that shows whichever weapon or ability you clicked last. Flip Before / After, try the three title styles, and click an ascension chip on a weapon.</p>
+  </div>
+
+  <div class="bar" role="toolbar" aria-label="Mockup controls">
+    <div class="grp"><b>View</b>
+      <button id="bBefore" aria-pressed="false">Before</button>
+      <button id="bAfter" aria-pressed="true">After</button>
+    </div>
+    <div class="grp"><b>Title style</b>
+      <button data-t="A" aria-pressed="true">A · Badge + tag</button>
+      <button data-t="B" aria-pressed="false">B · Eyebrow</button>
+      <button data-t="C" aria-pressed="false">C · Split slab</button>
+    </div>
+    <div class="grp"><b>Bar glow</b>
+      <button id="bGlow" aria-pressed="true">On</button>
+    </div>
+    <div class="grp"><b>Ascension window</b>
+      <button id="bModal" aria-pressed="false">Open</button>
+    </div>
+  </div>
+
+  <div class="fit" id="fit">
+    <div class="stage after" id="stage">
+      <!-- LEFT -->
+      <div class="left">
+        <div class="head"><div class="sqb">←</div><div class="title">LOBBY</div><div class="sqb">!</div></div>
+        <div class="modes">
+          <div class="mode on">GAUNTLET<small>50 waves, a boss every 5</small></div>
+          <div class="mode">BOSS HUNT<small>10 waves to one boss</small></div>
+          <div class="mode">PRACTICE<small>Build your own waves</small></div>
+        </div>
+        <div class="party-h"><h3>PARTY (3/3)</h3><div class="hang">HANGOUT &gt;</div></div>
+        <div class="pm host"><div class="pic"><i></i></div><div><div class="n">Anthony</div><div class="r">Ninja DPS</div><div class="w">Katana · Shadow Step</div></div><div class="right"><div class="tags"><span class="host-t">HOST</span><span class="you">YOU</span></div><div class="st no">NOT READY</div></div></div>
+        <div class="pm"><div class="pic"><i></i></div><div><div class="n">Bot 1</div><div class="r">Hemomancer Tank</div><div class="w">Leech Tendrils · Blood Shell</div></div><div class="right"><div class="tags"><span>GOOD</span><span>MIX</span></div><div class="st">READY</div></div></div>
+        <div class="pm"><div class="pic"><i></i></div><div><div class="n">Bot 2</div><div class="r">Elementalist Healer</div><div class="w">Nimbus · Lumen Ward</div></div><div class="right"><div class="tags"><span>GOOD</span><span>MIX</span></div><div class="st">READY</div></div></div>
+        <div class="grow"></div>
+        <div class="ready">✔ READY?</div>
+        <div class="start">▶ START</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-col">
+        <div class="tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div>
+        <div class="card">
+          <div class="col-l">
+            <div class="prev"><div class="arc"></div><div class="ring"></div></div>
+            <div id="title" class="rt tA"></div>
+            <div class="stats glow" id="stats">
+              <div class="stat" style="--c:#3df08a"><span class="k">Health</span><div class="track"><div class="fill" style="width:22%"></div></div><span class="v">80 HP</span></div>
+              <div class="stat" style="--c:#35a8ff"><span class="k">Speed</span><div class="track"><div class="fill" style="width:78%"></div></div><span class="v">269</span></div>
+              <div class="stat" style="--c:#ffc247"><span class="k">Reach</span><div class="track"><div class="fill" style="width:9%"></div></div><span class="v">95 px</span></div>
+              <div class="stat" style="--c:#ff4d5e"><span class="k">Damage</span><div class="track"><div class="fill" style="width:25%"></div></div><span class="v">66 / s</span></div>
+            </div>
+            <div class="ult">
+              <div class="ic">F</div>
+              <div><h4>Death Lotus</h4><div class="m">65 s to charge · starts each match half full</div></div>
+              <p>Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each.</p>
+              <div class="gl">★ Mastered (Lv 5): Strikes up to 14 enemies.</div>
+            </div>
+            <div class="hint">CLICK THE RING TO PREVIEW</div>
+          </div>
+
+          <div class="col-r">
+            <div class="sec"><h5>ROLE</h5><span>FRAGILE, BUT DEALS THE MOST DAMAGE.</span></div>
+            <div class="role-row"><div class="pb">TANK</div><div class="pb">HEALER</div><div class="pb on">DPS</div><div class="pb lock">LOCKED</div></div>
+            <div class="sec"><h5>CLASS</h5><span>TACTICAL DECEPTION. +12% SPEED, 85% HEALTH.</span></div>
+            <div class="row4" style="margin-bottom:1em">
+              <div class="pb sm">SOLDIER</div><div class="pb sm">ELEMENTALIST</div><div class="pb sm">SUMMONER</div><div class="pb sm">KNIGHT</div>
+              <div class="pb sm on">NINJA</div><div class="pb sm">HEMOMANCER</div><div class="pb sm lock">LOCKED</div><div class="pb sm lock">LOCKED</div>
+            </div>
+            <div class="row2" style="gap:1.2em">
+              <div>
+                <div class="sec"><h5>WEAPON</h5></div>
+                <div class="row2" id="weapons"></div>
+              </div>
+              <div>
+                <div class="sec"><h5>ABILITY</h5></div>
+                <div class="row2" id="abilities"></div>
+              </div>
+            </div>
+            <div class="old-asc">
+              <div class="t">KATANA <small>ASCENSIONS 0/3</small></div>
+              <div class="row3"><div class="pb">ASCENSION I<br>LOCKED</div><div class="pb">ASCENSION II<br>LOCKED</div><div class="pb">ASCENSION III<br>LOCKED</div></div>
+            </div>
+            <div class="info" id="info"></div>
+          </div>
+
+          <div class="modal" id="modal" role="dialog" aria-label="Katana ascensions">
+            <div class="win">
+              <header><h2><small>WEAPON ASCENSIONS</small>Katana</h2><button class="x" id="xClose" aria-label="Close">✕</button></header>
+              <div class="cnt">ASCENSIONS 0 / 3 UNLOCKED</div>
+              <div class="tiers">
+                <div class="tier"><div class="roman">I</div><div class="st">🔒 LOCKED</div><p>Placeholder: unlock requirement and effect shown here.</p></div>
+                <div class="tier"><div class="roman">II</div><div class="st">🔒 LOCKED</div><p>Placeholder: unlock requirement and effect shown here.</p></div>
+                <div class="tier"><div class="roman">III</div><div class="st">🔒 LOCKED</div><p>Placeholder: unlock requirement and effect shown here.</p></div>
+              </div>
+              <footer>Opens from the ascension button on the weapon. Esc or ✕ closes it.</footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div><h2>One detail box</h2><p>The separate Weapon and Ability boxes merge into one full-width box. Click any weapon or ability and it shows that item's text and numbers. Only Katana and Shadow Step have real copy; the rest is placeholder.</p></div>
+    <div><h2>Smaller text</h2><p>Lobby text drops to about 80% of today's size. Panels keep their size, so the loadout card gets room to breathe. Title bar, mode tabs, party rows and picker buttons all shrink together.</p></div>
+    <div><h2>Role and class title</h2><p>Three options for "Ninja DPS". A puts a class badge and a red DPS tag beside the name. B sets a small role line above the class name. C joins a solid role slab to the class name.</p></div>
+    <div><h2>Ascension button</h2><p>The right quarter of every unlocked weapon button is its own button with a rank icon and 0/3 count. It opens the ascension window. The old Ascensions row is gone, which frees a row of height.</p></div>
+    <div><h2>Glowing bars</h2><p>Bars get a lit gradient, a soft halo, a bright end cap and a slow pulse. The pulse stops when reduced motion is set. Turn glow off above to compare.</p></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage'), fit = document.getElementById('fit');
+  var titleEl = document.getElementById('title'), tStyle = 'A', after = true;
+  var ASC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10l6-6 6 6"/><path d="M6 16l6-6 6 6"/><path d="M6 22l6-6 6 6"/></svg>';
+  var SWORD = '<svg viewBox="0 0 24 24" fill="none" stroke="#ffd9de" stroke-width="2.2" stroke-linecap="round"><path d="M4 20L16 8M14 4h6v6M7 17l-3 3"/></svg>';
+  var weapons = [['SHURIKEN', 0], ['KATANA', 1], ['KUNAI', 0], ['BLADE FAN', 0]];
+
+  var DATA = {
+    'SHURIKEN': ['WEAPON','Placeholder description for Shuriken.',[['10','PER STAR'],['5','THROWS / S']],''],
+    'KATANA': ['WEAPON','Three quick melee attacks. Every enemy hit builds the strike meter, which drains if you stop hitting. At full, hold your weapon-action key, aim at any enemy and let go to cut across the arena and land behind it. A kill keeps the meter full, allowing for five chained actions. The fifth chain resets the meter.',[['20','PER SWING'],['3','SWINGS / S']],''],
+    'KUNAI': ['WEAPON','Placeholder description for Kunai.',[['15','PER HIT'],['4','THROWS / S']],''],
+    'BLADE FAN': ['WEAPON','Placeholder description for Blade Fan.',[['12','PER BLADE'],['2','FANS / S']],''],
+    'SHADOW STEP': ['ABILITY','Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80.',[['7 s','COOLDOWN']],'★ Mastered (Lv 5): +1 charge.'],
+    'VANISH': ['ABILITY','Placeholder description for Vanish.',[['12 s','COOLDOWN']],''],
+    'BLADE FAN AB': ['ABILITY','Placeholder description for Blade Fan.',[['9 s','COOLDOWN']],'']
+  };
+  var selW = 'KATANA', selA = 'SHADOW STEP', last = 'KATANA';
+  function nums(n) { return '<div class="nums">' + n.map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>'; }
+  function box(k, n) { var d = DATA[k]; return '<div><div class="lbl">' + d[0] + '</div><h6>' + n + '</h6><p>' + d[1] + '</p>' + (d[3] ? '<p style="color:var(--gold);margin-top:.6em">' + d[3] + '</p>' : '') + nums(d[2]) + '</div>'; }
+  function drawInfo() {
+    var el = document.getElementById('info');
+    if (after) { el.className = 'info one'; el.innerHTML = box(last, last.replace(' AB', '')); }
+    else { el.className = 'info'; el.innerHTML = box('KATANA', 'Katana') + box('SHADOW STEP', 'Shadow Step'); }
+  }
+  function drawWeapons() {
+    var h = '';
+    ['SHURIKEN', 'KATANA', 'KUNAI', 'BLADE FAN'].forEach(function (w) {
+      h += '<div class="wb' + (w === selW ? ' on' : '') + '"><button class="main" type="button" data-w="' + w + '">' + w + '</button>' +
+        (after ? '<button class="asc" type="button" data-asc="' + w + '" aria-label="' + w + ' ascensions" title="Ascensions 0/3">' + ASC + '<em>0/3</em></button>' : '') + '</div>';
+    });
+    document.getElementById('weapons').innerHTML = h;
+    var a = '';
+    [['SHADOW STEP', 'SHADOW STEP'], ['VANISH', 'VANISH'], ['BLADE FAN AB', 'BLADE FAN']].forEach(function (x) {
+      a += '<button class="pb' + (x[0] === selA ? ' on' : '') + '" type="button" data-a="' + x[0] + '">' + x[1] + '</button>';
+    });
+    a += '<div class="pb lock">LOCKED</div>';
+    document.getElementById('abilities').innerHTML = a;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-asc]'), function (b) {
+      b.addEventListener('click', function () { setModal(true); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-w]'), function (b) {
+      b.addEventListener('click', function () { selW = last = b.getAttribute('data-w'); drawWeapons(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-a]'), function (b) {
+      b.addEventListener('click', function () { selA = last = b.getAttribute('data-a'); drawWeapons(); });
+    });
+    drawInfo();
+  }
+  function drawTitle() {
+    var cls = after ? tStyle : '0';
+    var html = '';
+    if (cls === 'A') html = '<div class="badge">' + SWORD + '</div><div class="txt"><div class="nm">Ninja</div><div class="role">DPS</div></div>';
+    else if (cls === 'B') html = '<div class="eyebrow">DPS · Class</div><div class="nm">Ninja</div><div class="rule"></div>';
+    else if (cls === 'C') html = '<div class="role">DPS</div><div class="nm">Ninja</div>';
+    else html = '<div class="nm">Ninja DPS</div>';
+    titleEl.className = 'rt t' + cls;
+    titleEl.innerHTML = html;
+  }
+  function setModal(on) {
+    document.getElementById('modal').classList.toggle('open', on);
+    document.getElementById('bModal').setAttribute('aria-pressed', on);
+    document.getElementById('bModal').textContent = on ? 'Close' : 'Open';
+  }
+  function setView(a) {
+    after = a;
+    stage.classList.toggle('after', a);
+    document.getElementById('bBefore').setAttribute('aria-pressed', !a);
+    document.getElementById('bAfter').setAttribute('aria-pressed', a);
+    if (!a) { setModal(false); document.getElementById('stats').classList.remove('glow'); }
+    else document.getElementById('stats').classList.toggle('glow', glowOn);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.disabled = !a; b.style.opacity = a ? 1 : .4; });
+    document.getElementById('bGlow').disabled = !a; document.getElementById('bModal').disabled = !a;
+    drawWeapons(); drawTitle();
+  }
+  var glowOn = true;
+  document.getElementById('bBefore').onclick = function () { setView(false); };
+  document.getElementById('bAfter').onclick = function () { setView(true); };
+  document.getElementById('bGlow').onclick = function () {
+    glowOn = !glowOn; this.setAttribute('aria-pressed', glowOn); this.textContent = glowOn ? 'On' : 'Off';
+    document.getElementById('stats').classList.toggle('glow', glowOn);
+  };
+  document.getElementById('bModal').onclick = function () { setModal(!document.getElementById('modal').classList.contains('open')); };
+  document.getElementById('xClose').onclick = function () { setModal(false); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setModal(false); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (b) {
+    b.onclick = function () {
+      tStyle = b.getAttribute('data-t');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      drawTitle();
+    };
+  });
+  function resize() {
+    var s = Math.min(1, fit.clientWidth / 1497);
+    stage.style.transform = 'scale(' + s + ')';
+    fit.style.height = (933 * s) + 'px';
+  }
+  window.addEventListener('resize', resize);
+  setView(true); resize();
+})();
+</script>
