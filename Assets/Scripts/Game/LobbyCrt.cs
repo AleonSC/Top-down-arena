@@ -7,18 +7,20 @@ namespace Arena
     ///   Behind the panels (DrawLobbyCrtBack): a dark cyan screen (a little see-through, so the chosen menu background still shows
     ///   faintly), a glow in the middle, scanlines and, unless Reduced effects, a slow rolling bar.
     ///   Over everything (DrawLobbyCrtGlass): the dark corners, a glass highlight, a rounded bezel and now and then a flicker.
-    /// New run (StartNewRun) plays about 3.6 s, and any key or click after half a second skips to the end:
+    /// New run (StartNewRun) plays about 4.4 s, and any key or click after half a second skips to the end:
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
-    ///   0.4 s   that screen grows from its own edges to the whole window, going from blue to cyan
-    ///   0.6 s   a link log types itself in the middle (player, loadout, opening lobby), fading out by 2.3 s
-    ///   2.0 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
+    ///   0.4 s   that screen grows from its own edges to the whole window, going from blue to cyan. It is a CRT the whole way
+    ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
+    ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
+    ///   0.7 s   a link log types itself in the middle (player, loadout, opening lobby), fading out between 2.7 and 3.0 s
+    ///   2.8 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
     {
         public static readonly Color LobbyInk = new Color(0.36f, 0.88f, 1f);
         static readonly Color LobbyBg = new Color(0.008f, 0.063f, 0.10f);
-        const float EnterCrtLen = 3.6f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 2.0f, LobbyCrtBgAlpha = 1f;
+        const float EnterCrtLen = 4.4f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 2.8f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 26f, LobbyGlassBezel = 3f;
 
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
@@ -85,7 +87,7 @@ namespace Arena
             if (LobbyLeaving)
                 return 1f - Seg(leaveT, 0f, LeaveLen * 0.8f);
             if (LobbyEntering)
-                return crtEntry ? Seg(enterT, CrtGrowTo, CrtGrowTo + 0.4f) : Seg(enterT, 0.5f, 1.3f);
+                return crtEntry ? (enterT >= CrtGrowTo ? 1f : 0f) : Seg(enterT, 0.5f, 1.3f);  // (the growing screen already wears its own glass)
             return 1f;
         }
 
@@ -223,28 +225,14 @@ namespace Arena
             if (e < CrtGrowFrom)
                 Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.4f * flare * flare));
             else if (grow < 1f)
-            {
-                var r = LerpRect(scr, full, grow);
-                var fill = Color.Lerp(CrtUi.Bg, LobbyBg, grow);
-                Ui.Fill(r, new Color(fill.r, fill.g, fill.b, Mathf.Lerp(1f, LobbyCrtBgAlpha, grow)));
-                var rimC = Color.Lerp(CrtUi.Ink, LobbyInk, grow);
-                var rim = new Color(rimC.r, rimC.g, rimC.b, 0.5f * (1f - grow));
-                Ui.Fill(new Rect(r.x, r.y, r.width, 2f), rim);
-                Ui.Fill(new Rect(r.x, r.yMax - 2f, r.width, 2f), rim);
-                Ui.Fill(new Rect(r.x, r.y, 2f, r.height), rim);
-                Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), rim);
-                GUI.BeginGroup(r);
-                CrtScanlines(new Rect(0f, 0f, W, H), 1f);
-                GUI.EndGroup();
-                Ui.Fill(r, new Color(0.5f, 0.95f, 1f, 0.16f * (1f - grow) * (1f - grow)));  // its brightness settling
-            }
+                DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e);
 
             // The link log, typed in the middle of the screen and fading out.
-            float logA = Seg(e, 0.6f, 0.75f) * (1f - Seg(e, 2.0f, 2.3f));
+            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - Seg(e, 2.7f, 3.0f));
             if (logA > 0f)
             {
                 var lines = CrtLogLines();
-                int left = Mathf.FloorToInt((e - 0.6f) / 0.028f);
+                int left = Mathf.FloorToInt((e - CrtLogAt) / CrtLogCharS);
                 float y = H / 2f - lines.Length * 24f;
                 for (int i = 0; i < lines.Length && left > 0; i++)
                 {
@@ -266,6 +254,41 @@ namespace Arena
                 Ui.Fill(new Rect(0f, by + 128f, W, 3f), new Color(0.9f, 1f, 1f, 0.9f));
             }
             DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
+        }
+
+        /// The saved-runs screen while it grows: the lobby's CRT scaled to the rectangle (glow, scanlines, dark corners, glass highlight,
+        /// rounded bezel), with ink and background going blue to cyan. At grow = 1 it is the lobby's screen and glass exactly.
+        void DrawCrtGrowScreen(Rect r, float grow, float e)
+        {
+            float k = EaseInOut(Seg(e, 0.3f, CrtGrowTo));  // the colour change, a little ahead of the size
+            var bg = Color.Lerp(CrtUi.Bg, LobbyBg, k);
+            Ui.Fill(r, bg);
+            for (int i = 0; i < 16; i++)  // the glow in the middle, as in DrawLobbyCrtBack
+            {
+                float m = 0.02f + i * 0.028f;
+                Ui.Fill(new Rect(r.x + r.width * m, r.y + r.height * m, r.width * (1f - 2f * m), r.height * (1f - 2f * m)), Color.Lerp(new Color(0.08f, 0.16f, 0.36f, 0.022f), new Color(0.05f, 0.24f, 0.34f, 0.022f), k));
+            }
+            GUI.BeginGroup(r);
+            CrtScanlines(new Rect(0f, 0f, W, H), 1f);
+            float s = Mathf.Lerp(3f, 9f, grow);
+            for (int i = 0; i < 10; i++)  // dark edges: strips fading inward
+            {
+                float f = 1f - i / 10f, d = i * s;
+                var v = new Color(0f, 0f, 0f, 0.32f * f * f);
+                Ui.Fill(new Rect(0f, d, r.width, s), v);
+                Ui.Fill(new Rect(0f, r.height - d - s, r.width, s), v);
+                Ui.Fill(new Rect(d, 0f, s, r.height), v);
+                Ui.Fill(new Rect(r.width - d - s, 0f, s, r.height), v);
+            }
+            for (int i = 0; i < 14; i++)  // the glass catching light, top left
+            {
+                float f = 1f - i / 14f;
+                Ui.Fill(new Rect(0f, i * s, r.width * 0.55f * f, s), new Color(1f, 1f, 1f, 0.045f * f));
+            }
+            GUI.EndGroup();
+            float flare = (1f - grow) * (1f - grow);  // its brightness settling
+            Ui.Fill(r, new Color(0.5f, 0.95f, 1f, 0.16f * flare));
+            GUI.Box(r, GUIContent.none, lobbyGlassStyle);  // the rounded bezel
         }
 
         /// Any key or click, after half a second, jumps the boot to its end.
