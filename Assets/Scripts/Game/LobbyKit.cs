@@ -161,11 +161,11 @@ namespace Arena
         }
 
         /// A section heading: the name on the left, a short caption on the right (shrunk to fit), a thin rule under both.
-        public static void Heading(float x, float y, float w, string title, string caption, bool calm)
+        public static void Heading(float x, float y, float w, string title, string caption, bool calm, int size = 18)
         {
             string t = title.ToUpperInvariant();
-            float tw = Ui.TextWidth(t, 18, true) - 4f;
-            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, 18, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            float tw = Ui.TextWidth(t, size, true) - 4f;
+            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
             if (!string.IsNullOrEmpty(caption))
             {
                 float left = tw + 16f;
@@ -222,19 +222,35 @@ namespace Arena
             Ui.Label(cr, Truncate(caption, s, cr.width), s, CrtUi.Dim, TextAnchor.UpperLeft, true);
         }
 
-        /// A stat row: dim name, a thin bar in the stat's own colour (it glows), the value on the right.
+        /// A stat row: dim name, a lit bar in the stat's own colour (a bright top, a deeper bottom, a soft halo, a bright end cap and a slow
+        /// pulse), the value on the right. Reduced effects: the flat bar, no halo or pulse.
         public static void StatBar(Rect r, string name, string value, float frac, Color c, bool calm)
         {
-            const float nameW = 78f, valW = 72f;
-            Ui.Label(new Rect(r.x, r.y, nameW, r.height), name.ToUpperInvariant(), 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
-            var tr = new Rect(r.x + nameW + 8f, r.center.y - 4f, r.width - nameW - valW - 16f, 8f);
-            Ui.Fill(tr, new Color(1f, 1f, 1f, 0.1f));
-            var fr = new Rect(tr.x, tr.y, tr.width * Mathf.Clamp01(frac), tr.height);
-            if (!calm)
-                Ui.Fill(new Rect(fr.x, fr.y - 2f, fr.width, fr.height + 4f), new Color(c.r, c.g, c.b, 0.18f));
-            Ui.Fill(fr, c);
+            const float nameW = 70f, valW = 64f;
+            Ui.Label(new Rect(r.x, r.y, nameW, r.height), name.ToUpperInvariant(), 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            var tr = new Rect(r.x + nameW + 8f, r.center.y - 4f, r.width - nameW - valW - 16f, 9f);
+            Ui.Fill(new Rect(tr.x - 1f, tr.y - 1f, tr.width + 2f, tr.height + 2f), new Color(1f, 1f, 1f, 0.06f));
+            Ui.Fill(tr, new Color(0.02f, 0.04f, 0.08f, 0.9f));
+            var fr = new Rect(tr.x, tr.y, Mathf.Max(2f, tr.width * Mathf.Clamp01(frac)), tr.height);
+            if (calm)
+            {
+                Ui.Fill(fr, c);
+            }
+            else
+            {
+                float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.4f);
+                float k = 0.85f + 0.3f * pulse;  // a slow brightness pulse
+                for (int i = 4; i >= 1; i--)  // the halo: wider and fainter each step
+                    Ui.Fill(new Rect(fr.x - i, fr.y - i * 1.4f, fr.width + i * 1.5f, fr.height + i * 2.8f), new Color(c.r, c.g, c.b, 0.07f * k));
+                Ui.Fill(fr, Color.Lerp(c, new Color(0f, 0f, 0f), 0.3f));                                              // deeper lower half
+                Ui.Fill(new Rect(fr.x, fr.y, fr.width, fr.height * 0.6f), Color.Lerp(c, Color.white, 0.12f * k));  // main body
+                Ui.Fill(new Rect(fr.x, fr.y + 1f, fr.width, 2f), Color.Lerp(c, Color.white, 0.55f));         // the lit top edge
+                var cap = new Rect(fr.xMax - 2f, fr.y - 3f, 3f, fr.height + 6f);                              // the bright end cap
+                Ui.Fill(new Rect(cap.x - 2f, cap.y - 2f, cap.width + 4f, cap.height + 4f), new Color(c.r, c.g, c.b, 0.3f * k));
+                Ui.Fill(cap, Color.white);
+            }
             var vr = new Rect(r.xMax - valW, r.y, valW, r.height);
-            int s = FitSize(value, 14, 10, vr.width);
+            int s = FitSize(value, 13, 10, vr.width);
             Ui.Label(vr, value, s, new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleRight, true);
         }
     }

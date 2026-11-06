@@ -63,6 +63,12 @@ namespace Arena
                 Event.current.Use();
             }
 
+            if (ascOpen >= 0 && Event.current.type == EventType.MouseDown)
+            {
+                ascOpen = -1;  // the ascension window closes on any click (and the click goes no further)
+                Event.current.Use();
+            }
+
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
             if (LobbyKit.Key(new Rect(34f, 32f, 66f, 66f), "", false, calm, PixelArt.Get("ui_back"), size: 26))
@@ -79,10 +85,10 @@ namespace Arena
 
             // --- Left: the party, under the mode keys.
             const float lx = 24f, lw = 446f;
-            CrtUi.Text(new Rect(lx, 190f, 300f, 34f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(lx, 190f, 300f, 34f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
             // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            if (LobbyKit.Key(new Rect(lx + lw - 120f, 190f, 120f, 32f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 16, minSize: 12))
+            if (LobbyKit.Key(new Rect(lx + lw - 120f, 190f, 120f, 32f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 14, minSize: 11))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
             TipClear();  // hovering a rank badge shows the title (RankUi.cs)
@@ -156,7 +162,7 @@ namespace Arena
         void DrawLobbyTitle(Rect r, float a, bool calm, float t)
         {
             var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
-            CrtUi.Text(r, calm || Mathf.FloorToInt(t * 2f) % 2 == 0 ? "LOBBY_" : "LOBBY", 54, ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(r, calm || Mathf.FloorToInt(t * 2f) % 2 == 0 ? "LOBBY_" : "LOBBY", 44, ink, TextAnchor.MiddleLeft, true, calm);
         }
 
         string HostName()
@@ -176,7 +182,7 @@ namespace Arena
                 var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 22, minSize: 14, enabled: session.IsHost, sub: sub) && session.IsHost && i != mode)
+                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 18, minSize: 12, enabled: session.IsHost, sub: sub) && session.IsHost && i != mode)
                     session.SetMode(i == 2, i == 1);
             }
         }
@@ -200,7 +206,7 @@ namespace Arena
                 if (names[i] == null)
                     continue;
                 bool on = lobbyTab == i;
-                if (LobbyKit.Key(new Rect(x, r.y, w, r.height), names[i].ToUpperInvariant(), on, fxReduced, size: 22, minSize: 12) && !on)
+                if (LobbyKit.Key(new Rect(x, r.y, w, r.height), names[i].ToUpperInvariant(), on, fxReduced, size: 18, minSize: 11) && !on)
                     lobbyTab = i;
                 x += w + 6f;
             }
@@ -266,7 +272,7 @@ namespace Arena
             if (botSeat != null)
                 bx -= 150f;  // the bot's keys (below)
             float badgesLeft = (mine || e.Id == 1 || botSeat != null) ? bx : r.xMax - 12f;
-            DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 30f), e.Name, 24, 14, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
+            DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 30f), e.Name, 20, 13, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
             bx = r.xMax - 12f;
             if (mine)
             {
@@ -278,9 +284,9 @@ namespace Arena
                 bx -= 58f;
                 Ui.Badge(new Rect(bx, r.y + 10f, 54f, 22f), "HOST", Ui.GoldButton);
             }
-            DrawOneLine(new Rect(tx, r.y + 42f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 17, 11, Color.Lerp(color, Color.white, 0.15f), true);
+            DrawOneLine(new Rect(tx, r.y + 42f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 10, Color.Lerp(color, Color.white, 0.15f), true);
             DrawOneLine(new Rect(tx, r.y + 66f, r.xMax - tx - 112f, 20f),
-                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 13, 10, new Color(0.78f, 0.82f, 0.94f), false);
+                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, new Color(0.78f, 0.82f, 0.94f), false);
             DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
             if (session.IsHost && (botSeat != null || mine))  // click a card to choose that player's loadout: yours, or a bot's
             {
@@ -418,8 +424,12 @@ namespace Arena
 
         static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps", "role_dps" };  // (Wildcard borrows the DPS icon for now)  // PixelArt.cs
 
-        /// The big loadout screen. Left: the live preview, the name, the stat bars and the passive. Right: Role, Class, Weapon and
-        /// Ability keys, the ascension row and the weapon / ability detail card (Docs/Mockups/crt-lobby-digital.html).
+        int ascOpen = -1;   // the weapon slot whose ascension window is open (-1 = closed; any click closes it)
+        int detailSel;      // what the detail box shows: 0 = weapon, 1 = ability, 2 = ultimate (whichever was clicked last)
+
+        /// The big loadout screen (Docs/Mockups/lobby-declutter.html). Left: the live preview filling the column, the role / class
+        /// title and the glowing stat bars. Right: Role, Class, Weapon (each with its ascension button), Ability and Ultimate keys,
+        /// then one detail box for whichever weapon, ability or ultimate was clicked last.
         void DrawLoadout(LobbyEntry me, Rect r, float t, PartyBots.PartyBot bot = null)
         {
             Session tgt = bot != null ? bot.S : session;  // whose loadout the keys change: yours, or a bot's (its own session asks the host)
@@ -429,7 +439,7 @@ namespace Arena
             var roleColor = ToColor(Defs.Get(me.Role).Color);
 
             // Left column: the live mini-arena (your weapon on target dummies; it casts an ability while you hover one).
-            float lx = r.x + 16f, ty = r.y + 16f;
+            float lx = r.x + 16f;
             const float lw = 262f;
             var view = ShowcaseRect(r);
             DrawShowcase(me, view, roleColor);
@@ -449,9 +459,8 @@ namespace Arena
                 if (botNameText.Trim().Length > 0 && Session.CleanName(botNameText) != bot.Name)
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
-            // The name shrinks to fit ("Hemomancer Healer"), then the stats.
-            string title = (me.Role == Role.Wildcard ? "" : Defs.KitName(me.Kit) + " ") + Defs.Get(me.Role).Name;
-            LobbyKit.Fit(new Rect(lx, ty + 220f, lw, 48f), title, 40, 15, Color.white, TextAnchor.MiddleLeft, calm);
+            // The role / class title (look B: the role small over the class), then the stats.
+            DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, roleColor, calm);
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
             previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)
@@ -459,29 +468,27 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            float sy = ty + 276f;
+            float sy = view.yMax + 72f;
             LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
-            LobbyKit.StatBar(new Rect(lx, sy + 30f, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
-            LobbyKit.StatBar(new Rect(lx, sy + 60f, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + 26f, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
+            LobbyKit.StatBar(new Rect(lx, sy + 52f, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
             // The weapon's damage a second with no upgrades (measured in the sim: Defs.WeaponDps), against the strongest weapon.
             float dps = Defs.WeaponDps(wdef.Id);
-            LobbyKit.StatBar(new Rect(lx, sy + 90f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
+            LobbyKit.StatBar(new Rect(lx, sy + 78f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
                 dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.36f, 0.36f), calm);
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit));
-            DrawUltBox(ult, new Rect(lx, ty + 392f, lw, r.yMax - 12f - (ty + 392f)));
 
-            // Right column: role and class rows (their blurbs sit in the heading line), then weapon and ability side by
-            // side, then the ascensions and a detail card for the picked weapon and ability.
-            float x = r.x + 292f, w = 454f, y = ty;
+            // Right column: role, class, weapon and ability, the ultimate, then one detail box.
+            float x = r.x + 292f, w = 454f, y = r.y + 16f;
             const float gap = 6f;
-            float quarter = (w - gap * 3f) / 4f;  // roles and classes: 4 per row
-            LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm);
+            float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
+            LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm, 15);
             // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
             {
-                var b = new Rect(x + i * (quarter + gap), y + 32f, quarter, 42f);
+                var b = new Rect(x + i * (quarter + gap), y + 32f, quarter, 34f);
                 if (i >= Defs.Roles.Length)
                 {
                     LockedSlot(b);
@@ -492,7 +499,7 @@ namespace Arena
                     LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
                     continue;
                 }
-                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 21, minSize: 12))
+                if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11))
                 {
                     tgt.RequestRole((Role)i);
                     if (self)
@@ -507,24 +514,27 @@ namespace Arena
                     }
                 }
             }
-            y += 82f;
-            float ascY = ty + 338f;  // the ascension row sits here (the mockup's place); a long class list pushes it down
+            y += 76f;
+            float ultY;
             if (me.Role == Role.Wildcard)
-                DrawWildcardPicks(me, tgt, self, x, y, w, ascY - 8f);
+            {
+                ultY = r.y + 16f + 322f;
+                DrawWildcardPicks(me, tgt, self, x, y, w, ultY - 6f);
+            }
             else
             {
                 // Classes: rows of 4, the icon above the name so long names fit.
-                LobbyKit.Heading(x, y, w, "Class", KitBlurb(me.Kit), calm);
+                LobbyKit.Heading(x, y, w, "Class", KitBlurb(me.Kit), calm, 15);
                 int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
                 for (int i = 0; i < classSlots; i++)
                 {
-                    var b = new Rect(x + (i % 4) * (quarter + gap), y + 32f + (i / 4) * 47f, quarter, 41f);
+                    var b = new Rect(x + (i % 4) * (quarter + gap), y + 32f + (i / 4) * 40f, quarter, 36f);
                     if (i >= Defs.KitCount)
                     {
                         LockedSlot(b, null, true);
                         continue;
                     }
-                    if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 15, minSize: 9))
+                    if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
                     {
                         tgt.RequestKit((Kit)i);
                         if (self)
@@ -535,31 +545,38 @@ namespace Arena
                         }
                     }
                 }
-                y += 32f + ((classSlots + 3) / 4) * 47f - 6f + 10f;
+                y += 32f + ((classSlots + 3) / 4) * 40f - 4f + 10f;
 
-                // Weapon and ability: side by side, each a 2 x 2 grid.
+                // Weapon and ability: side by side, each a 2 x 2 grid. Each weapon key gives its right quarter to an ascension button.
                 const float col = 220f;
                 float ax = x + w - col, cell = (col - gap) / 2f;
-                LobbyKit.Heading(x, y, col, "Weapon", null, calm);
-                LobbyKit.Heading(ax, y, col, "Ability", null, calm);
+                LobbyKit.Heading(x, y, col, "Weapon", null, calm, 15);
+                LobbyKit.Heading(ax, y, col, "Ability", null, calm, 15);
                 int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
                 for (int i = 0; i < weaponSlots; i++)
                 {
-                    var b = new Rect(x + (i % 2) * (cell + gap), y + 34f + (i / 2) * 45f, cell, 39f);
+                    var b = new Rect(x + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
                     if (i >= Defs.WeaponsPerRole)
+                    {
                         LockedSlot(b, null, true);
-                    else if (LobbyKit.Key(b, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), me.Weapon == i, calm, size: 17, minSize: 11))
+                        continue;
+                    }
+                    var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.74f), b.height);
+                    if (LobbyKit.Key(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), me.Weapon == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestWeapon(i);
                         if (self)
                             weaponChoice = i;
+                        detailSel = 0;
                     }
+                    if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), me.Weapon == i, calm))
+                        ascOpen = i;
                 }
                 int hovered = -1;
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
                 for (int i = 0; i < abilitySlots; i++)
                 {
-                    var b = new Rect(ax + (i % 2) * (cell + gap), y + 34f + (i / 2) * 45f, cell, 39f);
+                    var b = new Rect(ax + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
                     if (i >= Upgrades.RoleAbilityChoices)
                     {
                         LockedSlot(b, null, true);
@@ -567,27 +584,172 @@ namespace Arena
                     }
                     if (b.Contains(Event.current.mousePosition))
                         hovered = i;
-                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 17, minSize: 11))
+                    if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name.ToUpperInvariant(), me.Ability == i, calm, size: 14, minSize: 9))
                     {
                         tgt.RequestAbility(i);
                         if (self)
                             abilityChoice = i;
                         abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
                         ultDemoUntil = 0f;
+                        detailSel = 1;
                     }
                 }
                 if (Event.current.type == EventType.Repaint)
                     abilityHover = hovered;
-                y += 34f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 45f - 6f + 8f;
-                ascY = Mathf.Max(ascY, y);
+                y += 32f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 40f - 6f + 10f;
+                ultY = y;
             }
 
-            // The picked weapon's ascensions: all locked for now (hover one: "Coming soon").
-            DrawAscensionStrip(new Rect(x, ascY, w, 42f), wdef);
-            ascY += 48f;
+            // The ultimate: its key, then locked slots for ultimates still to come. Click it to watch it in the preview.
+            LobbyKit.Heading(x, ultY, w, "Ultimate", ult.Cooldown.ToString("0") + " s to charge  ·  starts half full  ·  click to preview", calm, 15);
+            bool ultOn = Time.unscaledTime < ultDemoUntil;
+            for (int i = 0; i < 4; i++)
+            {
+                var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
+                if (i > 0)
+                {
+                    LockedSlot(b);
+                    continue;
+                }
+                if (LobbyKit.Key(b, ult.Name.ToUpperInvariant(), true, calm, size: 15, minSize: 9, accent: LobbyKit.Gold))
+                {
+                    ultDemoUntil = ultOn ? 0f : Time.unscaledTime + UltDemoLen(ult.Id);  // a second click stops it
+                    abilityDemoUntil = 0f;
+                    detailSel = 2;
+                }
+            }
 
+            float dy = ultY + 82f;
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
-            DrawSpecSheet(new Rect(x, ascY, w, r.yMax - 12f - ascY), wdef, ability, t);
+            DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
+
+            if (ascOpen >= 0)
+            {
+                lockedTipOn = false;  // (the keys under the window must not show their tips)
+                DrawAscensionWindow(r, Defs.Weapon(me.Role, me.Kit, ascOpen).Name, calm);
+            }
+        }
+
+        /// The role and class under the preview, look B of the mockup: the role small in its colour with a fading rule, the class
+        /// name big under it, a short glowing rule below. A Wildcard has no class: its name is the big line.
+        void DrawRoleClassTitle(Rect r, LobbyEntry me, Color roleColor, bool calm)
+        {
+            string role = Defs.Get(me.Role).Name.ToUpperInvariant();
+            bool wild = me.Role == Role.Wildcard;
+            string eyebrow = wild ? "ROLE" : role + "  ·  CLASS";
+            string name = wild ? role : Defs.KitName(me.Kit).ToUpperInvariant();
+            var rc = Color.Lerp(roleColor, Color.white, 0.2f);
+            float ew = Ui.TextWidth(eyebrow, 12, true);
+            Ui.Label(new Rect(r.x, r.y, ew + 6f, 16f), eyebrow, 12, rc, TextAnchor.MiddleLeft, true);
+            float rx = r.x + ew + 12f, rw = Mathf.Max(0f, r.xMax - rx);
+            const int steps = 24;
+            for (int i = 0; i < steps; i++)  // a rule that fades out to the right
+                Ui.Fill(new Rect(rx + rw * i / steps, r.y + 8f, rw / steps + 1f, 1f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.7f * (1f - i / (float)steps)));
+            LobbyKit.Fit(new Rect(r.x, r.y + 14f, r.width, 36f), name, 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
+            float ry = r.y + 52f;
+            if (!calm)
+                Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.18f));
+            for (int i = 0; i < 6; i++)  // a short rule in the role colour, fading out
+                Ui.Fill(new Rect(r.x + i * 12f, ry, 12f, 3f), new Color(roleColor.r, roleColor.g, roleColor.b, 1f - i * 0.16f));
+        }
+
+        /// The ascension button on the right quarter of a weapon key: a rank mark over "0/3". True on a click (it opens the ascension window).
+        bool AscensionKey(Rect r, bool on, bool calm)
+        {
+            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
+            var c = CrtUi.Ink;
+            Ui.Fill(r, hover ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, on ? 0.28f : 0.08f));
+            CrtKit.Frame(r, 2f, c);
+            Color ic = hover ? CrtUi.Bg : on ? LobbyKit.Gold : new Color(c.r, c.g, c.b, 0.85f);
+            float cx = Mathf.Round(r.center.x), top = r.y + 5f;
+            for (int n = 0; n < 3; n++)  // three stacked chevrons
+                for (int k = 0; k < 3; k++)
+                {
+                    float py = top + n * 3f + k * 2f;
+                    Ui.Fill(new Rect(cx - 2f * (k + 1), py, 2f, 2f), ic);
+                    Ui.Fill(new Rect(cx + 2f * k, py, 2f, 2f), ic);
+                }
+            Ui.Label(new Rect(r.x, r.y + 18f, r.width, r.height - 20f), "0/" + AscensionsPerWeapon, 10, ic, TextAnchor.MiddleCenter, true);
+            if (hover)
+            {
+                lockedTip = r;
+                lockedTipOn = true;
+                lockedTipText = "Ascensions  0/" + AscensionsPerWeapon;
+            }
+            return Ui.HitArea(r);
+        }
+
+        /// The ascension window over the loadout panel: the weapon's name and three locked ascensions. Any click closes it (DrawLobby).
+        void DrawAscensionWindow(Rect r, string weapon, bool calm)
+        {
+            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.86f));
+            float ww = r.width * 0.78f, wh = 250f;
+            var win = new Rect(r.center.x - ww / 2f, r.center.y - wh / 2f, ww, wh);
+            Ui.Fill(win, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f));
+            Ui.Fill(win, LobbyKit.Ink(0.05f));
+            CrtKit.Frame(win, 2f, CrtUi.Ink);
+            float px = win.x + 18f;
+            Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON ASCENSIONS", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+            LobbyKit.Fit(new Rect(px, win.y + 26f, win.width - 36f, 40f), weapon.ToUpperInvariant(), 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
+            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "ASCENSIONS 0 / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            float tw = (win.width - 36f - 10f * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
+            var dim = CrtUi.Dim;
+            for (int i = 0; i < AscensionsPerWeapon; i++)
+            {
+                var c = new Rect(px + i * (tw + 10f), win.y + 96f, tw, 112f);
+                Ui.Fill(c, new Color(dim.r, dim.g, dim.b, 0.03f));
+                CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, 0.7f));
+                Ui.Label(new Rect(c.x + 10f, c.y + 6f, c.width - 20f, 34f), Numerals[i], 28, dim, TextAnchor.MiddleLeft, true);
+                float lw2 = Ui.TextWidth("LOCKED", 11, true) - 6f;
+                Ui.Icon(new Rect(c.x + 10f, c.y + 44f, 12f, 12f), PixelArt.Get("ui_lock"), new Color(1f, 1f, 1f, 0.5f));
+                Ui.Label(new Rect(c.x + 26f, c.y + 42f, lw2 + 14f, 16f), "LOCKED", 11, dim, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 44f), "Coming soon", 12, dim, TextAnchor.UpperLeft, false, true);
+            }
+            Ui.Label(new Rect(win.x, win.yMax - 26f, win.width, 18f), "CLICK ANYWHERE TO CLOSE", 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
+        }
+
+        /// One detail box for whichever weapon, ability or ultimate was clicked last: the kind and name on the left, the number tiles on
+        /// the right, a rule, then the description (and what mastering it adds, for an ability or ultimate).
+        void DrawDetailBox(Rect r, WeaponDef wdef, AbilityDef ability, AbilityDef ult)
+        {
+            if (r.height < 90f)
+                return;
+            bool calm = fxReduced;
+            Ui.Fill(r, LobbyKit.Ink(0.04f));
+            CrtKit.Frame(r, 1f, LobbyKit.Ink(0.35f));
+            var inner = new Rect(r.x + 14f, r.y + 8f, r.width - 28f, r.height - 16f);
+            string kind = detailSel == 1 ? "ABILITY" : detailSel == 2 ? "ULTIMATE" : "WEAPON";
+            string name = detailSel == 1 ? ability.Name : detailSel == 2 ? ult.Name : wdef.Name;
+            var tiles = new System.Collections.Generic.List<string[]>();
+            if (detailSel == 0)
+            {
+                if (wdef.Companion != MinionKind.None && wdef.CompanionCount > 0)
+                    tiles.Add(new[] { wdef.CompanionCount.ToString(), "COMPANIONS" });
+                if (wdef.Damage > 0f)
+                    tiles.Add(new[] { Mathf.RoundToInt(wdef.Damage).ToString(), wdef.Melee ? "PER SWING" : "PER HIT" });
+                if (wdef.FireInterval > 0f)
+                    tiles.Add(new[] { (1f / wdef.FireInterval).ToString(wdef.FireInterval >= 0.5f ? "0.0" : "0"), wdef.Melee ? "SWINGS / S" : "SHOTS / S" });
+            }
+            else
+            {
+                var a = detailSel == 1 ? ability : ult;
+                tiles.Add(new[] { a.Cooldown.ToString("0.#") + " s", detailSel == 2 ? "TO CHARGE" : "COOLDOWN" });
+                if (a.ExtraCharges > 0)
+                    tiles.Add(new[] { (1 + a.ExtraCharges).ToString(), "CHARGES" });
+                if (a.HealthCost > 0f)
+                    tiles.Add(new[] { Mathf.RoundToInt(a.HealthCost * 100f) + "%", a.CostsCurrent ? "OF CURRENT HP" : "OF MAX HP" });
+            }
+            float tileW = 92f, tw = tiles.Count * tileW + Mathf.Max(0, tiles.Count - 1) * 6f;
+            SpecTiles(new Rect(inner.xMax - tw, inner.y, tw, 38f), tiles, calm);
+            var head = new Rect(inner.x, inner.y, inner.width - tw - 12f, 40f);
+            SpecHeader(head, kind, name, calm);
+            Ui.Fill(new Rect(inner.x, inner.y + 46f, inner.width, 1f), LobbyKit.Ink(0.25f));
+            var body = new Rect(inner.x, inner.y + 54f, inner.width, inner.height - 54f);
+            var text = new Color(0.8f, 0.84f, 0.94f);
+            if (detailSel == 0)
+                FitText(body, wdef.Desc, 13, text);
+            else
+                DrawDescAndMastery(body, detailSel == 1 ? ability.Desc : ult.Desc, detailSel == 1 ? ability.Id : ult.Id, 13, text);
         }
 
         // How many slots each loadout row shows; the ones past the real content are locked ("Coming soon").
