@@ -22,6 +22,7 @@ namespace Arena
         public const float BoSlashArc = 130f, BoJabReach = 140f, BoJabWidth = 14f, BoSpinReach = 100f;  // the slash's cone (degrees), the jab's reach and half width, the spin's reach (the slash uses the weapon's own Reach)
         public const float BoJabMult = 22f / 16f, BoSpinMult = 30f / 16f;  // damage against the slash's
         public const float BoSlashKnock = 14f, BoJabKnock = 22f, BoSpinKnock = 20f;
+        public const float BoExtraDmg = 0.15f;  // each extra projectile (upgrade): +15% damage on every swing and the shove, on top of +20 px reach
         public static readonly float[] BoStepTime = { 0.32f, 0.30f, 0.80f };  // how long each step holds the next one off (the spin's includes its recovery)
         public const float BoShoveReach = 78f, BoShoveHalf = 50f, BoShoveMult = 6f / 16f, BoShoveKnock = 70f, BoShoveWind = 0.1f, BoShoveTime = 0.36f, BoShoveCd = 1f;  // the shove's bar: how far out, half its width, damage against the slash's, the push, the pull-back before it lands, how long it holds you, its cooldown
         public static readonly Rgba BoStaffSage = new Rgba(0.78f, 0.9f, 0.62f);
@@ -59,6 +60,7 @@ namespace Arena
                     p.BoStep = (byte)((step + 1) % 3);
                     p.FireCd = BoStepTime[step] / FireRate(p);
                     float grow = w.Grow * extra;
+                    dmg *= 1f + BoExtraDmg * extra;
                     Swing s;
                     if (step == 0)
                     {
@@ -310,7 +312,7 @@ namespace Arena
             // Tank
             new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +30% slash damage", Name = "Kusarigama", FireInterval = 0.55f,
                 Desc = "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun)." },
-            new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach on every swing and the shove's push", Name = "Bo Staff", FireInterval = 0.4f,
+            new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +15% damage on every swing and the shove, and +20 px on the shove's push", Name = "Bo Staff", FireInterval = 0.4f,
                 Desc = "Click for a chain that never times out: a cone slash (16, 105 px), a jab (22, 140 px), then a full spin (30, 100 px) that starts it over; every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you (6, knocks back 70 px; once a second) and starts the chain over." },
             new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
                 Desc = "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways." },

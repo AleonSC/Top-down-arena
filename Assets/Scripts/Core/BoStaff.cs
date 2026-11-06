@@ -51,7 +51,7 @@ namespace Arena
                 if (!Players.TryGetValue(sh.Owner, out p) || p.Downed || p.Weapon.Id != WeaponId.BoStaff)
                     continue;
                 V2 origin = p.Pos, dir = V2.FromAngle(sh.Aim), side = dir.Orthogonal();
-                float reach = BoShoveReachOf(p), dmg = p.Weapon.Damage * BoShoveMult * p.Stats.DmgMult;
+                float reach = BoShoveReachOf(p), dmg = p.Weapon.Damage * BoShoveMult * p.Stats.DmgMult * (1f + BoExtraDmg * ExtraShots(p));
                 float push = BoShoveKnock + p.Weapon.Grow * ExtraShots(p);
                 p.Run.ShotsFired++;
                 bool any = false;
