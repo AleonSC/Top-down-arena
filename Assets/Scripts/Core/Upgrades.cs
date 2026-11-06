@@ -146,13 +146,21 @@ namespace Arena
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
 
-        public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * Defs.KitCount + (int)kit];
+        /// A Wildcard's ultimate is the DPS one of the class its first ability comes from (pass that class as kit).
+        public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)(r == Role.Wildcard ? Role.Dps : r) * Defs.KitCount + (int)kit];
 
         /// The three Space abilities for each role and kit, picked in the lobby.
         static readonly AbilityId[] RoleAbilities = LobbyTable(false);
 
-        public static AbilityId RoleAbility(Role r, Kit kit, int choice) =>
-            RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
+        public static AbilityId RoleAbility(Role r, Kit kit, int choice)
+        {
+            if (r == Role.Wildcard)  // choice = kit * 3 + choice: any class's DPS Space ability
+            {
+                choice = choice >= 0 && choice < Defs.WildcardChoices ? choice : 0;
+                return RoleAbilities[((int)Role.Dps * Defs.KitCount + choice / RoleAbilityChoices) * RoleAbilityChoices + choice % RoleAbilityChoices];
+            }
+            return RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
+        }
 
         public const int RoleAbilityChoices = 3;
 
@@ -559,9 +567,10 @@ namespace Arena
             foreach (int t in taken)
                 if (All[t].Grants != AbilityId.None)
                     grants++;
-            if (u.Grants != AbilityId.None && grants >= BonusSlots)
+            int own = role == Role.Wildcard ? 1 : 0;  // a Wildcard's second ability already sits on one of the bonus keys
+            if (u.Grants != AbilityId.None && grants + own >= BonusSlots)
                 return false;
-            if (u.NeedsExtraAbility && grants == 0)
+            if (u.NeedsExtraAbility && grants + own == 0)
                 return false;
             return true;
         }

@@ -81,7 +81,7 @@ namespace Arena
                 this.weapon = weapon;
                 this.ability = ability;
                 this.ultimate = ultimate;
-                var shown = ultimate ? Upgrades.Ultimate(role, kit) : ability;
+                var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit) : ability;
                 ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltimateEvery;
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
@@ -250,6 +250,8 @@ namespace Arena
             if (me == null)
                 return;
             me.RoleAbility = ability;
+            if (me.Role == Role.Wildcard)
+                me.WildKit = Upgrades.Ability(ability).Kit;  // (the ultimate follows the first ability's class)
             Recalc(me);
         }
 

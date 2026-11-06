@@ -65,6 +65,8 @@ namespace Arena
             var bonus = new List<string>();
             var legendary = new Dictionary<string, int>();
             var mods = new Dictionary<string, int>();
+            if (p.StartBonus != AbilityId.None)
+                bonus.Add(Upgrades.Ability(p.StartBonus).Name);  // a Wildcard's second ability is on a bonus key from the start
             foreach (int id in taken)
             {
                 var u = Upgrades.All[id];

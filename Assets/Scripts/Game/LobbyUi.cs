@@ -428,7 +428,7 @@ namespace Arena
             DrawPlayer(p, t, true);
         }
 
-        static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps" };  // PixelArt.cs
+        static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps", "role_dps" };  // (Wildcard borrows the DPS icon for now)  // PixelArt.cs
 
         void DrawLoadout(LobbyEntry me, Rect r, float t, PartyBots.PartyBot bot = null)
         {
@@ -457,7 +457,7 @@ namespace Arena
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
             float hy = hero.y + 196f;
-            Ui.Glitch(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, TextAnchor.MiddleCenter, roleColor);
+            Ui.Glitch(new Rect(hero.x, hy, hero.width, 26f), (me.Role == Role.Wildcard ? "" : Defs.KitName(me.Kit) + " ") + Defs.Get(me.Role).Name, 20, Color.white, TextAnchor.MiddleCenter, roleColor);
             hy += 32f;
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
@@ -475,7 +475,7 @@ namespace Arena
             HeroStat(hero, ref hy, "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
                 dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.45f, 0.4f));
             hy += 8f;
-            var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
+            var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit));
             Ui.Fill(new Rect(hero.x + 14f, hy, hero.width - 28f, 1f), new Color(1f, 1f, 1f, 0.08f));
             hy += 8f;
             DrawUltBox(ult, new Rect(hero.x + 6f, hy - 4f, hero.width - 12f, hero.yMax - hy - 2f));
@@ -497,6 +497,11 @@ namespace Arena
                     LockedSlot(b);
                     continue;
                 }
+                if ((Role)i == Role.Wildcard && !WildcardOpen)
+                {
+                    LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
+                    continue;
+                }
                 var rc = ToColor(Defs.Roles[i].Color);
                 if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), null, textSize: 17, glow: false, iconLeft: true, glitch: true))
                 {
@@ -507,10 +512,17 @@ namespace Arena
                         joinRole = (Role)i;
                         weaponChoice = 0;
                         abilityChoice = 0;
+                        wildSecond = 1;
+                        wildKey = 1;
+                        wildTab = 0;
                     }
                 }
             }
             y += 84f;
+            if (me.Role == Role.Wildcard)
+                y = DrawWildcardPicks(me, tgt, self, x, y, w, roleColor);
+            else
+            {
 
             // Classes: rows of 4, the icon beside the name.
             HeadingWithBlurb(x, y, w, "Class", KitBlurb(me.Kit));
@@ -581,6 +593,7 @@ namespace Arena
             if (Event.current.type == EventType.Repaint)
                 abilityHover = hovered;
             y += 28f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 36f + 4f;
+            }
 
             // The picked weapon's ascensions: all locked for now (hover one: "Coming soon").
             DrawAscensionStrip(new Rect(x, y, w, 32f), wdef);
@@ -593,12 +606,17 @@ namespace Arena
         // How many slots each loadout row shows; the ones past the real content are locked ("Coming soon").
         const int RoleSlots = 4, ClassSlots = 8, WeaponSlots = 4, AbilitySlots = 4;
 
+        string lockedTipText = "Coming soon";
+        const string WildcardLockText = "Win a run as a Tank, a Healer and a DPS to unlock";
+        bool WildcardOpen => game.Profile == null || game.Profile.WildcardUnlocked;
+
         Rect lockedTip;          // the locked slot under the mouse, if any (its tooltip is drawn last, on top)
         bool lockedTipOn;
 
         /// A slot for content still to come: dark, a dashed rim, a padlock and "Locked". Hovering shows "Coming soon".
-        void LockedSlot(Rect r)
+        void LockedSlot(Rect r, string tip = null)
         {
+
             DashedCard(r);
             bool hover = r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
@@ -611,7 +629,78 @@ namespace Arena
             {
                 lockedTip = r;
                 lockedTipOn = true;
+                lockedTipText = tip ?? "Coming soon";
             }
+        }
+
+        /// A Wildcard's picks (Docs/Wildcard.md): every class's three DPS weapons on the left and three DPS abilities on the right,
+        /// one row a class. The tabs choose whether a click sets the first ability or the second; the second sits on the key chosen below it.
+        /// Returns the y under the picker.
+        float DrawWildcardPicks(LobbyEntry me, Session tgt, bool self, float x, float y, float w, Color roleColor)
+        {
+            float col = (w - 16f) / 2f, ax = x + col + 16f;
+            int second = Defs.WildSecond(me.Wild), key = Defs.WildKey(me.Wild);
+            HeadingWithBlurb(x, y, w, "Gear", "Any class's DPS weapon and two abilities");
+            y += 28f;
+            // Left: which key the second ability sits on. Right: which ability a click sets.
+            Ui.Label(new Rect(x, y, 90f, 24f), "2nd ability key", 11, Ui.Muted, TextAnchor.MiddleLeft);
+            string[] keyNames = { "Q", "E", "Shift" };
+            float kw = (col - 96f - 8f) / 3f;
+            for (int k = 1; k <= 3; k++)
+                if (Ui.Choice(new Rect(x + 96f + (k - 1) * (kw + 4f), y, kw, 24f), keyNames[k - 1], key == k, roleColor, glow: false) && key != k)
+                {
+                    tgt.RequestWildcard(me.Weapon, me.Ability, second, k);
+                    if (self)
+                        wildKey = k;
+                }
+            float tw = (col - 4f) / 2f;
+            if (Ui.Choice(new Rect(ax, y, tw, 24f), "1st ability", wildTab == 0, roleColor, glow: false))
+                wildTab = 0;
+            if (Ui.Choice(new Rect(ax + tw + 4f, y, tw, 24f), "2nd ability", wildTab == 1, roleColor, glow: false))
+                wildTab = 1;
+            y += 30f;
+
+            const float gutter = 50f, rowH = 27f;
+            float cellW = (col - gutter) / 3f;
+            int hovered = -1;
+            for (int kit = 0; kit < Defs.KitCount; kit++)
+            {
+                float ry = y + kit * rowH;
+                Ui.Label(new Rect(x, ry, gutter, rowH - 3f), Defs.KitName((Kit)kit), 10, Ui.Muted, TextAnchor.MiddleLeft);
+                for (int c = 0; c < Defs.WeaponsPerRole; c++)
+                {
+                    int idx = kit * Defs.WeaponsPerRole + c;
+                    var wb = new Rect(x + gutter + c * cellW, ry, cellW - 3f, rowH - 3f);
+                    if (Ui.Choice(wb, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name, me.Weapon == idx, roleColor, textSize: 10, glow: false) && me.Weapon != idx)
+                    {
+                        tgt.RequestWildcard(idx, me.Ability, second, key);
+                        if (self)
+                            weaponChoice = idx;
+                    }
+                    var ab = new Rect(ax + c * (col / 3f), ry, col / 3f - 3f, rowH - 3f);
+                    if (ab.Contains(Event.current.mousePosition))
+                        hovered = idx;
+                    bool shownAsPicked = wildTab == 0 ? me.Ability == idx : second == idx;
+                    bool takenByOther = wildTab == 0 ? second == idx : me.Ability == idx;
+                    if (Ui.Choice(ab, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name, shownAsPicked, takenByOther ? Ui.Muted : roleColor, textSize: 10, glow: false)
+                        && !takenByOther && !shownAsPicked)
+                    {
+                        int a1 = wildTab == 0 ? idx : me.Ability, a2 = wildTab == 0 ? second : idx;
+                        tgt.RequestWildcard(me.Weapon, a1, a2, key);
+                        if (self)
+                        {
+                            abilityChoice = a1;
+                            wildSecond = a2;
+                        }
+                        abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
+                        ultDemoUntil = 0f;
+                    }
+                }
+            }
+            if (Event.current.type == EventType.Repaint)
+                abilityHover = hovered;
+            y += Defs.KitCount * rowH + 4f;
+            return y;
         }
 
         /// A dark card with a dashed rim: the look of everything locked.
@@ -673,7 +762,7 @@ namespace Arena
         {
             if (!lockedTipOn)
                 return;
-            const string text = "Coming soon";
+            string text = lockedTipText;
             float w = Ui.TextWidth(text, 12, true) + 14f, h = 26f;
             var tip = new Rect(lockedTip.center.x - w / 2f, lockedTip.y - h - 6f, w, h);
             if (tip.y < 4f)
@@ -1004,7 +1093,7 @@ namespace Arena
             EndUiGl();
             if (demo)
             {
-                var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.Kit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));
+                var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));
                 Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), (ult ? "ULTIMATE  ·  " : Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)).ToUpperInvariant() + "  ·  ") + ab.Name.ToUpperInvariant(), 10,
                     ult ? Ui.Gold : Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);
             }

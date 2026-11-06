@@ -155,6 +155,7 @@ namespace Arena
                 w.Write((byte)e.Kit);
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
+                w.Write(e.Wild);
                 var perks = PerksFor(e);
                 w.Write((byte)perks.Length);
                 foreach (var id in perks)
@@ -195,14 +196,21 @@ namespace Arena
                 var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
+                int wild = r.ReadByte();  // a Wildcard's second ability and its key (Defs.WildSecond / WildKey)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
                     perkBytes.Add(r.ReadByte());
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
                 p.Kit = kit;
-                p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponsPerRole ? weapon : 0);
+                p.Weapon = Defs.Weapon(role, kit, weapon < (role == Role.Wildcard ? Defs.WildcardChoices : Defs.WeaponsPerRole) ? weapon : 0);
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
+                if (role == Role.Wildcard)
+                {
+                    p.WildKit = (Kit)(Math.Min(ability, Defs.WildcardChoices - 1) / Defs.WeaponsPerRole);
+                    p.StartBonus = Upgrades.RoleAbility(role, kit, Defs.WildSecond(wild));
+                    p.BonusKeys[Defs.WildKey(wild) - 1] = p.StartBonus;
+                }
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
                 for (int k = 0; k < p.HpHistory.Length; k++)
@@ -324,6 +332,11 @@ namespace Arena
         void Recalc(Player p)
         {
             p.Stats = Upgrades.Compute(p.Taken);
+            if (p.Role == Role.Wildcard)
+            {
+                p.Stats.DmgMult *= WildcardDmgMult;  // the price of mixing classes
+                p.Stats.CdMult *= WildcardCdMult;
+            }
             ApplyStatOverrides(p);
             float oldMax = p.MaxHp;
             p.MaxHp = p.BaseHp + p.Stats.BonusHp;
@@ -334,9 +347,11 @@ namespace Arena
             ids[0] = p.RoleAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
-            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.Kit);
+            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit);
             // Bonus abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
+            if (p.StartBonus != AbilityId.None)
+                granted.Add(p.StartBonus);  // a Wildcard's second ability counts as granted from the start
             foreach (int t in p.Taken)
                 if (Upgrades.All[t].Grants != AbilityId.None && granted.Count < Upgrades.BonusSlots && !granted.Contains(Upgrades.All[t].Grants))
                     granted.Add(Upgrades.All[t].Grants);
@@ -399,7 +414,7 @@ namespace Arena
             if (id == AbilityId.None)
                 return 1f;
             if (slot == Upgrades.UltSlot)
-                return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id);  // ultimates ignore cooldown upgrades
+                return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
             float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id);
             if (id == AbilityId.Dash)
                 cd *= p.Stats.DashCdMult;

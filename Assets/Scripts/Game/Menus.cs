@@ -301,7 +301,7 @@ namespace Arena
         void JoinGame()
         {
             SaveMenuFields();
-            session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
+            session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond, wildKey));
         }
 
         /// A piece of the menu rising into place as the intro brings it in (k 0 to 1; 1 = in place).

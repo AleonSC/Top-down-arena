@@ -204,6 +204,20 @@ namespace Arena
 
         public void RunStarted() => RunsStarted++;
 
+        /// Wins (wave 50) with a role, over every class.
+        public int WinsWithRole(Role role)
+        {
+            int n = 0;
+            foreach (var kv in WinsAs)
+                if (kv.Key.EndsWith(" " + Defs.Get(role).Name, StringComparison.Ordinal))  // (keys read "Knight Tank", ClassKey)
+                    n += kv.Value;
+            return n;
+        }
+
+        /// Wildcard unlocks once you have won a run as a Tank, a Healer and a DPS (a co-op win counts). It stays out of the lobby, the
+        /// Practice Range and the loadout pickers until then (Docs/Wildcard.md).
+        public bool WildcardUnlocked => WinsWithRole(Role.Tank) > 0 && WinsWithRole(Role.Healer) > 0 && WinsWithRole(Role.Dps) > 0;
+
         public void BossBeaten(EnemyType boss, int wave)
         {
             Bump(BossesBeaten, boss.ToString());

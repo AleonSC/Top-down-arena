@@ -357,6 +357,7 @@ static partial class Program
         Test("labtest", "the Boss Lab", () => BossLabTest(Dt)),
         Test("botteam", "the smart bot's team play: Roar, Last Stand, Mark, healing orbs and zones", () => BotTeamplayTest(Dt)),
         Test("partybots", "bots in the lobby's open slots", () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); }),
+        Test("wildcard", "Wildcard: DPS gear from any class, a second ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
         Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back", () => DodgeTest(Dt)),
         Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>
