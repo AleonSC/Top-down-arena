@@ -51,8 +51,8 @@ namespace Arena
                 editingName = false;
             var info = Rank.Of(p.Xp);
             var tc = RankLook.TierColor(info.Rank);
-            BeginDrawer("PROFILE", Ui.Gold, k, "Your look, rank and records");
-            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));
+            BeginDrawer("PROFILE", Ui.Gold, k, "Your look, rank and records", 44, new Rect(26f, 134f, 358f, H - 134f - 26f));
+            bool closeChip = CabCloseKey();
 
             // The card: the badge, your name and title, the XP towards the next rank.
             RankLook.Draw(new Rect(40f, 130f, 72f, 72f), info.Rank);

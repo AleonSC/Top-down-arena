@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The menu windows as a side drawer (Docs/Mockups/menu-windows.html option C): the pause menu, Settings, Records
-    /// and How to play. A tall drawer on the left holds the title and a vertical list (the pause menu's choices, or the
-    /// window's sections) with your party or quick switches under it; the open section fills a panel on the right.
-    /// The pause menu leaves the frozen arena in view, with a "this run" card over it. Opening a window slides the
-    /// drawer in, its rows following one after another, and closing slides it out (WindowAnim.cs).
+    /// The menu windows as a CRT cabinet (Docs/Mockups/crt-pause-menu.html; the cabinet and window machinery is CrtWindows.cs):
+    /// the pause menu, the lobby's Esc menu, Settings, How to play and the Records pages. A tall cabinet on the left holds a
+    /// header screen and one screen of digital keys (the pause menu's choices, or Settings' four sections); what a key opens
+    /// is a CRT window to its right, which slides out of the cabinet the first time and only retypes after that. The pause
+    /// menu leaves the frozen arena in view, with a "this run" screen over it when no window is out.
     public partial class ArenaApp
     {
         const float DrawerW = 420f;
@@ -26,7 +26,7 @@ namespace Arena
         float drawerAt = -10f;
 
         /// A window is drawn: when it's a different one, it opens (its clock starts; the pause menu runs its own,
-        /// WindowAnim.cs). Returns 1 (kept for the callers' panel fades, which WindowAnim now does).
+        /// WindowAnim.cs). Returns 1 (kept for the callers).
         float DrawerIn(string key, bool opens)
         {
             if (key != drawerKey)
@@ -35,116 +35,18 @@ namespace Arena
                 drawerAt = Time.unscaledTime;
                 if (opens)
                     winOpenAt = drawerAt;
-                listKey = panelKey = null;
+                ResetCabWindow();
+                CrtKit.Forget("cab.");
             }
             return 1f;
-        }
-
-        /// The drawer's box and title; what follows is drawn in drawer coordinates until EndDrawer.
-        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44)
-        {
-            float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
-            NoteList(title);
-            rowIndex = 0;
-            GUI.BeginGroup(new Rect(dx, 0f, DrawerW + 30f, H));
-            for (int i = 0; i < 6; i++)  // its shadow on the arena
-                Ui.Fill(new Rect(DrawerW + i * 4f, 0f, 4f, H), new Color(0f, 0f, 0f, 0.22f * (1f - i / 6f)));
-            Ui.Fill(new Rect(0f, 0f, DrawerW, H), new Color(0.07f, 0.085f, 0.14f, 0.97f));
-            Ui.Fill(new Rect(DrawerW - 1f, 0f, 1f, H), new Color(0.47f, 0.59f, 1f, 0.3f));
-            float ti = TitleIn;  // a new list's title rises in
-            var oc = GUI.color;
-            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * ti);
-            Ui.Alpha = ti;
-            Ui.Glitch(new Rect(40f, 30f + 14f * (1f - ti), DrawerW - 60f, 60f), title, titleSize, Color.white, TextAnchor.MiddleLeft,
-                new Color(accent.r, accent.g, accent.b, 0.5f));
-            if (!string.IsNullOrEmpty(sub))
-                Ui.Label(new Rect(42f, 98f, DrawerW - 60f, 18f), sub, 12, Ui.Muted);
-            Ui.Alpha = 1f;
-            GUI.color = oc;
-            int segs = Mathf.RoundToInt(12f * UnderlineIn);  // the line under it, drawing across and fading out to the right
-            for (int i = 0; i < segs; i++)
-                Ui.Fill(new Rect(42f + i * 28f, 92f, 28f, 2f), new Color(accent.r, accent.g, accent.b, 0.9f * (1f - i / 12f)));
-        }
-
-        void EndDrawer() => GUI.EndGroup();
-
-        /// A row in the drawer: an icon, the name (big and lit when it's the open one, with a line under it), and a key
-        /// or a tag on the right. Returns true when clicked.
-        bool DrawerRow(Rect r, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor = null)
-        {
-            var anim = NextRowAnim();  // one after another as the list arrives (WindowAnim.cs)
-            if (anim.y <= 0.001f)
-                return false;
-            var oc = GUI.color;
-            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * anim.y);
-            Ui.Alpha = anim.y;
-            r.x += anim.x;
-            bool clicked = DrawRowBody(r, icon, name, line, key, tag, col, on, tagColor);
-            Ui.Alpha = 1f;
-            GUI.color = oc;
-            return clicked;
-        }
-
-        bool DrawRowBody(Rect r, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor)
-        {
-            bool hover = r.Contains(Event.current.mousePosition);
-            if (on)
-            {
-                const int steps = 24;  // a fade to the right, in strips that meet exactly (no doubled seams)
-                for (int i = 0; i < steps; i++)
-                {
-                    float x0 = Mathf.Round(r.x + r.width * i / steps), x1 = Mathf.Round(r.x + r.width * (i + 1) / steps);
-                    Ui.Fill(new Rect(x0, r.y, x1 - x0, r.height), new Color(col.r, col.g, col.b, 0.26f * (1f - (float)i / steps)));
-                }
-                Ui.Fill(new Rect(r.x, r.y, 3f, r.height), col);
-            }
-            else if (hover)
-                Ui.Pill(r, new Color(1f, 1f, 1f, 0.04f));
-            if (icon != null)
-                Ui.Icon(new Rect(r.x + 18f, r.center.y - 12f, 24f, 24f), icon);
-            bool twoLines = on && !string.IsNullOrEmpty(line);
-            if (on)
-                Ui.Glitch(new Rect(r.x + 62f, twoLines ? r.y + 6f : r.y, r.width - 150f, twoLines ? 28f : r.height), name, 21, Color.white, TextAnchor.MiddleLeft);
-            else
-                Ui.Label(new Rect(r.x + 62f, r.y, r.width - 150f, r.height), name, 18, new Color(0.79f, 0.83f, 0.92f), TextAnchor.MiddleLeft, true);
-            if (twoLines)
-                Ui.Label(new Rect(r.x + 62f, r.y + 34f, r.width - 80f, 16f), line, 12, Ui.Muted);
-            if (!string.IsNullOrEmpty(key))
-            {
-                float kw = Mathf.Max(26f, 12f + key.Length * 7.5f);
-                KeyCap(r.xMax - 14f - kw, r.center.y - 12f, key);
-            }
-            else if (!string.IsNullOrEmpty(tag))
-                Ui.Label(new Rect(r.xMax - 120f, r.y, 106f, r.height), tag, 14, tagColor ?? Ui.Muted, TextAnchor.MiddleRight, true);
-            return Ui.HitArea(r);
-        }
-
-        /// A setting with a switch on the right (its title, a key, a line under it). Returns the new value.
-        bool SwitchRow(Rect r, bool value, string title, string desc = null, string key = null)
-        {
-            bool two = !string.IsNullOrEmpty(desc);
-            Ui.Label(new Rect(r.x, two ? r.y + 3f : r.y, r.width - 60f, two ? 20f : r.height), title, 15, Ui.Text, TextAnchor.MiddleLeft, true);
-            if (!string.IsNullOrEmpty(key))
-                KeyCap(r.x + Ui.TextWidth(title, 15, true) + 10f, (two ? r.y + 3f : r.center.y - 10f) - 1f, key);
-            if (two)
-                Ui.Label(new Rect(r.x, r.y + 24f, r.width - 60f, 16f), desc, 12, Ui.Muted);
-            var sw = new Rect(r.xMax - 46f, r.center.y - 12f, 46f, 24f);
-            Ui.Pill(sw, value ? Ui.Primary : new Color(0.17f, 0.19f, 0.27f));
-            Ui.Pill(new Rect(value ? sw.xMax - 21f : sw.x + 3f, sw.y + 3f, 18f, 18f), value ? Color.white : new Color(0.55f, 0.59f, 0.7f));
-            return Ui.HitArea(r) ? !value : value;
         }
 
         /// The pause menu's players, in the run card: compact cards stacked up from its bottom (the Tab screen has more).
         void DrawPartyStack(Rect card)
         {
             var players = new List<Player>(game.Players.Values);
-            var rise = PartyAnim;  // they rise in after the card (WindowAnim.cs)
-            var pc = GUI.color;
-            float oldAlpha = Ui.Alpha;
-            GUI.color = new Color(pc.r, pc.g, pc.b, pc.a * rise.y);
-            Ui.Alpha = oldAlpha * rise.y;
             const float h = 46f, gap = 6f;
-            float x = card.x + 20f, w = card.width - 40f, y = card.yMax - 16f - h + rise.x;
+            float x = card.x + 20f, w = card.width - 40f, y = card.yMax - 16f - h;
             foreach (var p in players)  // the first at the bottom, each next one above it
             {
                 PartyCompact(new Rect(x, y, w, h), p);
@@ -152,8 +54,6 @@ namespace Arena
             }
             Ui.Label(new Rect(x + 2f, y + h - 16f, 200f, 14f), "PLAYERS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Fill(new Rect(x, y + h - 26f, w, 1f), new Color(1f, 1f, 1f, 0.08f));
-            Ui.Alpha = oldAlpha;
-            GUI.color = pc;
         }
 
         /// A one-line player card: class icon, name, class and weapon, level, and a thin health bar along the bottom.
@@ -185,22 +85,13 @@ namespace Arena
             return w;
         }
 
-        /// A hatched icon tile, tinted.
+        /// An icon tile on a screen: a faint tint of its colour in a frame of that colour.
         void IconTile(Rect r, Texture2D icon, Color col, float iconSize)
         {
-            Ui.Pill(r, new Color(col.r * 0.18f, col.g * 0.18f, col.b * 0.18f, 0.95f));
-            Ui.Icon(r, Hatch(), new Color(col.r, col.g, col.b, 0.1f));
+            Ui.Fill(r, new Color(col.r * 0.18f, col.g * 0.18f, col.b * 0.18f, 0.95f));
+            CrtKit.Frame(r, 2f, new Color(col.r, col.g, col.b, 0.75f));
             if (icon != null)
                 Ui.Icon(new Rect(r.center.x - iconSize / 2f, r.center.y - iconSize / 2f, iconSize, iconSize), icon);
-        }
-
-        void OpenSectionPanel(string title, Color col, string sub, float k)
-        {
-            Ui.Panel(DrawerPanel, false);
-            Ui.Glitch(new Rect(DrawerPanel.x + 26f, DrawerPanel.y + 18f, DrawerPanel.width - 52f, 46f), title, 32, Color.white, TextAnchor.MiddleLeft,
-                new Color(col.r, col.g, col.b, 0.5f));
-            if (!string.IsNullOrEmpty(sub))
-                Ui.Label(new Rect(DrawerPanel.x + 28f, DrawerPanel.y + 64f, DrawerPanel.width - 56f, 34f), sub, 13, new Color(0.79f, 0.83f, 0.92f), TextAnchor.UpperLeft, false, true);
         }
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
@@ -216,54 +107,57 @@ namespace Arena
             lobbySel = 0;
             pauseSettings = pauseHowTo = pauseRecords = false;
             drawerKey = null;
+            ResetCabWindow();
             winOpenAt = Time.unscaledTime;
             GUIUtility.keyboardControl = 0;
         }
 
         void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; });
 
-        /// The lobby's menu: back to the lobby, Settings (in the drawer, like the pause menu's), the Field guide, leaving
+        /// The lobby's menu: back to the lobby, Settings (the cabinet's list switches to its sections), the Field guide, leaving
         /// for the main menu, or quitting. The lobby stays behind it, dimmed.
         void DrawLobbyMenu()
         {
             if (SkipWhileClosing)
                 return;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.6f * WindowVis));
-            if (pauseSettings)
-            {
-                DrawSettingsWindow(true);  // its Back returns to this list
-                return;
-            }
             if (pauseRecords)
             {
                 DrawProfileWindow(true);  // its Back returns to this list
                 return;
             }
-            if (pauseHowTo)
+            DrawerIn("pause", false);
+            if (bgBig && pauseSettings && settingsGroup == 1 && cabWin)
             {
-                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, () => pauseHowTo = false);
+                DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
                 return;
             }
-            DrawerIn("pause", false);
+            bgBig = false;
+            DrawCabWindow();
+            if (pauseSettings)
+            {
+                DrawSettingsCabinet(true);
+                return;
+            }
             LobbyMenuKeys();
-            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : null);
-            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
+            cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
+            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "Esc closes this menu");
             string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your rank, records and unlocks", "Controls and tips",
-                session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
-            float y = 128f;
+                session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
+            float y = cabScreen.y + 10f;
             for (int i = 0; i < LobbyChoices.Length; i++)
             {
-                bool on = i == lobbySel;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                if (r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
+                var r = new Rect(34f, y, 342f, 58f);
+                if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     lobbySel = i;
-                if (DrawerRow(r, PixelArt.Get(icons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on))
+                if (DrawerRow(r, null, LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, Ui.Accent, i == lobbySel, null, i == LobbyChoices.Length - 1))
                     LobbyChoose(i);
-                y += r.height + 4f;
+                y += 62f;
             }
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
+            EndDrawerScreen();
+            CabFoot("ESC CLOSE / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
         }
 
@@ -288,7 +182,7 @@ namespace Arena
             switch (i)
             {
                 case 0: CloseLobbyMenu(); break;
-                case 1: pauseSettings = true; break;
+                case 1: pauseSettings = true; CloseCabWindow(); break;
                 case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
                 case 4: pauseHowTo = true; break;
@@ -317,22 +211,13 @@ namespace Arena
 
         bool CanQuitToLobby => session.IsHost && !LabRunning;
 
-        /// The pause menu (DrawPauseMenu applies its opening): the drawer of choices and your party, and the run's card.
+        /// The pause menu (DrawPauseMenu applies its opening): the cabinet of choices, a window to its right for what you pick,
+        /// and the run's screen over the arena while no window is out.
         void DrawPauseWindow()
         {
-            if (pauseSettings)
-            {
-                DrawSettingsWindow(true);
-                return;
-            }
             if (pauseRecords)
             {
                 DrawProfileWindow(true);  // its Back returns to the choices
-                return;
-            }
-            if (pauseHowTo)
-            {
-                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, () => pauseHowTo = false);
                 return;
             }
             float t = Time.unscaledTime;
@@ -342,6 +227,18 @@ namespace Arena
                 return;
             }
             DrawerIn("pause", false);
+            if (bgBig && pauseSettings && settingsGroup == 1 && cabWin)
+            {
+                DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
+                return;
+            }
+            bgBig = false;
+            DrawCabWindow();  // (first: it comes out from behind the cabinet)
+            if (pauseSettings)
+            {
+                DrawSettingsCabinet(true);
+                return;
+            }
             PauseKeys();
             Player by;
             string sub = "";
@@ -351,53 +248,62 @@ namespace Arena
                 sub = "Pausing…";
             else if (game.Players.Count > 1)
                 sub = "Nobody moves until someone resumes";
+            else
+                sub = "The arena is waiting";
+            cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.Wave);
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
-            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
             string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
             var rows = PauseRows();
             pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
-            float y = 128f;
+            float y = cabScreen.y + 10f;
             for (int k = 0; k < rows.Count; k++)
             {
                 int i = rows[k];
-                bool on = k == pauseSel;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                if (r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
+                var r = new Rect(34f, y, 342f, 58f);
+                if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
-                if (DrawerRow(r, PixelArt.Get(icons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on))
+                if (DrawerRow(r, null, PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, Ui.Accent, k == pauseSel, null, i == PauseQuit))
                     PauseChoose(i);
-                y += r.height + 4f;
+                y += 62f;
             }
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
-            var tips = new Rect(28f, H - 52f, DrawerW - 56f, 24f);  // the controls hint, parked at the foot of the drawer
-            Ui.Pill(tips, new Color(0f, 0f, 0f, 0.35f));
-            Ui.Label(tips, "Hold TAB  ·  run stats & build      H  ·  hide HUD", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+            EndDrawerScreen();
+            CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
-            BeginPanelAnim("runcard", true);  // it drops in with a bounce (WindowAnim.cs)
-            DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t);  // down to near the bottom, the players in it
-            EndPanelAnim();
+            DrawRunScreen(t);
+        }
+
+        /// The run's screen on the right, fading as a window comes out over it.
+        void DrawRunScreen(float t)
+        {
+            float a = 1f - CabWinSlideK();
+            if (a <= 0.01f)
+                return;
+            if (a < 0.99f)
+                PushShift(0f, 0f, a);
+            DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t, a >= 0.99f);
+            PopShift();
         }
 
         static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
 
         /// The pause menu's Quit, asking first: to the lobby (the host's: everyone beams out, Recall.cs), to the desktop, or
-        /// keep playing. ↑ ↓ and Enter, or Esc for no. The run's card stays on the right.
+        /// keep playing. ↑ ↓ and Enter, or Esc for no. The run's screen stays on the right.
         void DrawLobbyConfirm(float t)
         {
-            DrawerIn("pause-confirm", false);
+            DrawerIn("pause", false);
             var e = Event.current;
             bool lobby = CanQuitToLobby;
-            var names = new List<string>(); var lines = new List<string>(); var icons = new List<string>(); var cols = new List<Color>(); var ids = new List<int>();
+            var names = new List<string>(); var lines = new List<string>(); var ids = new List<int>();
             bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
             if (lobby)
             {
-                names.Add("TO LOBBY"); lines.Add(many ? "Everyone beams out to the lobby" : "Beam out to the lobby"); icons.Add("ui_back"); cols.Add(LobbyConfirmColor); ids.Add(0);
+                names.Add("TO LOBBY"); lines.Add(many ? "Everyone beams out to the lobby" : "Beam out to the lobby"); ids.Add(0);
             }
-            names.Add("TO DESKTOP"); lines.Add(many && session.IsHost ? "Close the game (the party leaves)" : "Close the game"); icons.Add("ui_power"); cols.Add(new Color(1f, 0.45f, 0.5f)); ids.Add(1);
-            names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); icons.Add("ui_play"); cols.Add(Ui.Primary); ids.Add(2);
+            names.Add("TO DESKTOP"); lines.Add(many && session.IsHost ? "Close the game (the party leaves)" : "Close the game"); ids.Add(1);
+            names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); ids.Add(2);
             int n = names.Count;
             confirmSel = Mathf.Clamp(confirmSel, 0, n - 1);
             if (e.type == EventType.KeyDown && GUIUtility.keyboardControl == 0)
@@ -418,32 +324,35 @@ namespace Arena
                     e.Use();
                 }
             }
-            BeginDrawer(lobby ? "TO LOBBY OR DESKTOP?" : "TO DESKTOP?", LobbyConfirmColor, 1f, null, lobby ? 28 : 36);
-            float y = 128f;
+            cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.Wave);
+            BeginDrawer("QUIT?", LobbyConfirmColor, 1f, lobby ? "To the lobby, or out to the desktop" : "Out to the desktop");
+            float y = cabScreen.y + 10f;
             for (int i = 0; i < n; i++)
             {
-                bool on = i == confirmSel;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                if (r.Contains(e.mousePosition) && e.type == EventType.Repaint && e.mousePosition != pauseMouse)
+                var r = new Rect(34f, y, 342f, 58f);
+                if (cabScreenOn && r.Contains(e.mousePosition) && e.type == EventType.Repaint && e.mousePosition != pauseMouse)
                     confirmSel = i;
-                if (DrawerRow(r, PixelArt.Get(icons[i]), names[i], lines[i], ids[i] == 2 ? "Esc" : null, null, cols[i], on))
+                if (DrawerRow(r, null, names[i], lines[i], ids[i] == 2 ? "Esc" : null, null, Ui.Accent, i == confirmSel, null, ids[i] == 1))
                     ConfirmQuit(ids[i]);
-                y += r.height + 4f;
+                y += 62f;
             }
             if (e.type == EventType.Repaint)
                 pauseMouse = e.mousePosition;
-            y += 14f;
+            y += 10f;
             string note = lobby ? (saved ? "To lobby: the run is saved from the last break between waves; pick it up again with Continue a run on the main menu."
                 : "To lobby: this run isn't saved, so it can't be continued.") : "This run can't be continued once you quit.";
             if (lobby && saved)
                 note += " Quitting to the desktop saves it the same way.";
-            float nh = Ui.TextHeight(note, 13, DrawerW - 84f);
-            Ui.Fill(new Rect(28f, y, 3f, nh + 4f), new Color(LobbyConfirmColor.r, LobbyConfirmColor.g, LobbyConfirmColor.b, 0.7f));
-            Ui.Label(new Rect(42f, y, DrawerW - 84f, nh + 4f), note, 13, new Color(0.79f, 0.83f, 0.92f), TextAnchor.UpperLeft, false, true);
+            if (cabScreenOn)
+            {
+                float nw = cabScreen.width - 52f, nh = Ui.TextHeight(note, 12, nw);
+                Ui.Fill(new Rect(34f, y, 2f, nh + 4f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.7f));
+                Ui.Label(new Rect(46f, y, nw, nh + 4f), note, 12, CabSoft, TextAnchor.UpperLeft, false, true);
+            }
+            EndDrawerScreen();
+            CabFoot("ESC KEEP PLAYING / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
-            BeginPanelAnim("runcard", true);
-            DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t);
-            EndPanelAnim();
+            DrawRunScreen(t);
         }
 
         void ConfirmQuit(int choice)
@@ -477,6 +386,23 @@ namespace Arena
             e.Use();
         }
 
+        /// Esc in the pause or lobby menu's Settings, How to play or profile: an open window slides back in first, then the
+        /// cabinet returns to its list.
+        void MenuBack()
+        {
+            if (pauseRecords)
+            {
+                pauseRecords = false;
+                return;
+            }
+            if (CabWindowOpen)
+            {
+                CloseCabWindow();
+                return;
+            }
+            pauseSettings = pauseHowTo = false;
+        }
+
         void PauseChoose(int i)
         {
             switch (i)
@@ -485,8 +411,8 @@ namespace Arena
                 case 1: runStatsOpen = true; break;
                 case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; break;
-                case 5: pauseSettings = true; break;
+                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
+                case 5: pauseSettings = true; CloseCabWindow(); break;  // the list switches to the sections
                 default:  // PauseQuit
                     pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
                     confirmSel = 9;            // clamped onto "keep playing", so a stray Enter doesn't end the run
@@ -496,7 +422,7 @@ namespace Arena
 
         /// The run's card over the arena: the wave, time and score, the path, modifiers and difficulty, the next boss
         /// (moving) and this stretch's challenge room.
-        void DrawRunCard(Rect at, float t)
+        void DrawRunCard(Rect at, float t, bool gl = true)
         {
             // The chips: the path, the modifiers, the difficulty.
             var chips = new List<KeyValuePair<string, Color>>();
@@ -511,9 +437,10 @@ namespace Arena
                     chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
-            Ui.Panel(r, false);
+            float powerAge = CabAge - 1.3f;  // a CRT screen that powers on after the cabinet's opening
+            if (!CrtKit.PowerOn(r, powerAge, CabCalm))
+                return;
             DrawPartyStack(r);  // the players, stacked up from its bottom
-            DrawCorners(r, Ui.Gold);
             float x = r.x + 20f, y = r.y + 16f;
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
@@ -577,7 +504,9 @@ namespace Arena
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, Color.white, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No challenge rooms on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A portal opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
-            if (BeginUiGl())
+            CrtUi.End(r, t, CabCalm);
+            CrtKit.PowerFlash(r, powerAge, CabCalm);
+            if (gl && BeginUiGl())
             {
                 UiClip(tile);
                 DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, bossAt, 52f, t, true);
@@ -589,70 +518,77 @@ namespace Arena
             k == ChallengeKind.Defend ? "shield" : k == ChallengeKind.MiniBoss ? "ui_skull" : k == ChallengeKind.KillRush ? "bolt"
             : k == ChallengeKind.HoldZones ? "pulse" : k == ChallengeKind.Mirror ? "mirror" : "blink";
 
-        /// The lobby's corner brackets round a rect.
-        static void DrawCorners(Rect r, Color c)
-        {
-            const float len = 20f, th = 3f, g = 6f;
-            float x0 = r.x - g, y0 = r.y - g, x1 = r.xMax + g, y1 = r.yMax + g;
-            Ui.Fill(new Rect(x0, y0, len, th), c); Ui.Fill(new Rect(x0, y0, th, len), c);
-            Ui.Fill(new Rect(x1 - len, y0, len, th), c); Ui.Fill(new Rect(x1 - th, y0, th, len), c);
-            Ui.Fill(new Rect(x0, y1 - th, len, th), c); Ui.Fill(new Rect(x0, y1 - len, th, len), c);
-            Ui.Fill(new Rect(x1 - len, y1 - th, len, th), c); Ui.Fill(new Rect(x1 - th, y1 - len, th, len), c);
-        }
-
         // --- Settings ---------------------------------------------------------------------------------------------------
 
         static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay", "Keybinds" };
 
-        /// Settings (main menu, lobby, and the pause menu's Settings): the groups and quick switches in the drawer, the
-        /// open group on the right. Visual effects shows a live preview of what they do.
-        void DrawSettingsWindow(bool paused)
+        /// Settings from the main menu or the lobby's button: the cabinet with its four sections, each opening a window.
+        /// (The pause and lobby menus switch their own cabinet to the same list, DrawSettingsCabinet.)
+        void DrawSettingsWindow()
         {
-            float t = Time.unscaledTime;
-            if (bgBig && settingsGroup == 1)
+            if (bgBig && settingsGroup == 1 && cabWin)
             {
                 DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
                 return;
             }
             bgBig = false;
-            float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
+            DrawerIn("settings", true);
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
-            BeginDrawer("SETTINGS", Ui.Accent, k);
-            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));  // round X beside the title; Esc does the same
-            string[] icons = { "pulse", "nova", "crosshair", "ui_pencil" };
-            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", null };
-            if (settingsGroup != 3)
-                Keybinds.Listening = -1;  // (leaving the page ends a rebind)
-            float y = 128f;
+            DrawCabWindow();  // (first: it comes out from behind the cabinet)
+            DrawSettingsCabinet(false);
+        }
+
+        /// The cabinet's list as Audio / Visual effects / Gameplay / Keybinds with a physical Back key. `paused`: in the pause or
+        /// lobby menu, where Back returns to that menu's list (the text retypes); else it slides the whole cabinet out.
+        void DrawSettingsCabinet(bool paused)
+        {
+            cabBootLog = paused ? "> LINK OK   > SAVE OK   > SETTINGS" : "> LINK OK   > SAVE OK";
+            BeginDrawer("SETTINGS", Ui.Accent, 1f, "Pick one to open it");
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change your controls" };
+            float y = cabScreen.y + 10f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
-                bool on = i == settingsGroup;
-                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                if (DrawerRow(r, PixelArt.Get(icons[i]), SettingsGroups[i], lines[i], null, null, cols[i], on))
+                bool on = cabWin && cabKind == 1 && cabWinOutAt < 0f && settingsGroup == i;
+                if (DrawerRow(new Rect(34f, y, 342f, 76f), null, SettingsGroups[i], lines[i], null, null, Ui.Accent, on))
+                {
                     settingsGroup = i;
-                y += r.height + 4f;
+                    OpenCabWindow(1);  // (the first pick slides it out; later ones only retype it)
+                }
+                y += 80f;
             }
-            if (closeChip)
+            EndDrawerScreen();
+            if (CabBackKey())
             {
                 Keybinds.Listening = -1;
                 if (paused)
-                    pauseSettings = false;
+                {
+                    pauseSettings = false;  // the list retypes to the menu's
+                    CloseCabWindow();
+                }
                 else
                     CloseWindow(() => settingsOpen = false);  // it slides out first (WindowAnim.cs)
             }
             EndDrawer();
+        }
 
-            var col = cols[settingsGroup];
+        /// The open Settings section, in the window.
+        void DrawSettingsSection(float t)
+        {
+            settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
+            if (settingsGroup != 3)
+                Keybinds.Listening = -1;  // (leaving the page ends a rebind)
+            var col = CrtUi.Ink;
             BeginPanelAnim("settings" + settingsGroup);
+            float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y + 102f;
             switch (settingsGroup)
             {
                 case 0:
                 {
-                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a match.", k);
-                    string[] audioTabs = { "Volume", "Music player" };
+                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a match.", 1f);
+                    string[] audioTabs = { "VOLUME", "MUSIC PLAYER" };
+                    float tx = DrawerPanel.xMax - 28f - 46f - 14f - 290f;
                     for (int ti = 0; ti < 2; ti++)
-                        if (Ui.SmallButton(new Rect(DrawerPanel.xMax - 28f - 270f + ti * 138f, DrawerPanel.y + 24f, 132f, 34f), audioTabs[ti], audioTab == ti ? Ui.Primary : Ui.Neutral, 14))
+                        if (WinKey(new Rect(tx + ti * 136f, DrawerPanel.y + 18f, ti == 0 ? 130f : 154f, 34f), audioTabs[ti], audioTab == ti, 16))
                         {
                             audioTab = ti;
                             jukeScroll = 0f;
@@ -664,15 +600,13 @@ namespace Arena
                         DrawMusicPlayer(t);
                         break;
                     }
-                    float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
-                    y = DrawerPanel.y + 104f;
                     bool changed = false;
-                    changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master, new Color(0.31f, 0.42f, 1f));
-                    changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music, new Color(0.69f, 0.42f, 1f));
-                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons, new Color(0.31f, 0.76f, 1f));
-                    changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies, new Color(1f, 0.42f, 0.53f));
-                    changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects, new Color(0.43f, 0.89f, 0.77f));
-                    bool m2 = SwitchRow(new Rect(x, y + 6f, w, 44f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
+                    changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master, col);
+                    changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music, col);
+                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons, col);
+                    changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies, col);
+                    changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects, col);
+                    bool m2 = SwitchRow(new Rect(x, y + 4f, w, 54f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
                     if (m2 != sounds.Muted)
                     {
                         sounds.Muted = m2;
@@ -683,37 +617,38 @@ namespace Arena
                     break;
                 }
                 case 1:
-                    DrawFxSection(col, t, k);
+                    DrawFxSection(col, t);
                     break;
                 case 3:
-                    DrawKeybindsSection(col, t, k);
+                    DrawKeybindsSection(col, t, 1f);
                     break;
                 default:
                 {
-                    OpenSectionPanel("GAMEPLAY", col, null, k);
-                    float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
-                    y = DrawerPanel.y + 84f;
-                    bool l2 = SwitchRow(new Rect(x, y, w, 48f), aimLine, "Aim line", "A line from you toward the cursor, as long as your weapon reaches", Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
+                    OpenSectionPanel("GAMEPLAY", col, "Aim, the HUD, the view and the network", 1f);
+                    bool l2 = SwitchRow(new Rect(x, y, w, 54f), aimLine, "Aim line", "A line from you toward the cursor, as long as your weapon reaches", Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
                     if (l2 != aimLine)
                         SetAimLine(l2);
-                    y += 58f;
-                    bool hud = SwitchRow(new Rect(x, y, w, 48f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)));
+                    y += 66f;
+                    bool hud = SwitchRow(new Rect(x, y, w, 54f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)));
                     if (hud != hudShown)
                         hudShown = hud;
-                    y += 58f;
-                    bool lean2 = SwitchRow(new Rect(x, y, w, 48f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
+                    y += 66f;
+                    bool lean2 = SwitchRow(new Rect(x, y, w, 54f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
                     if (lean2 != camLean)
                         SetCamLean(lean2);
-                    y += 70f;
+                    y += 66f;
                     // The network port (it used to sit on the main menu): hosting and joining both use it.
-                    Ui.Label(new Rect(x, y, w - 130f, 20f), "Network port", 15, Ui.Text, TextAnchor.MiddleLeft, true);
-                    Ui.Label(new Rect(x, y + 20f, w - 130f, 36f), "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-                    string port = Ui.Field(new Rect(x + w - 110f, y + 2f, 110f, 36f), portText, 5);
+                    WinLabel(new Rect(x, y, w - 150f, 54f), "Network port", "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.");
+                    var pr = new Rect(x + w - 120f, y + 9f, 120f, 36f);
+                    Ui.Fill(pr, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.08f));
+                    CrtKit.Frame(pr, 2f, CrtUi.Ink);
+                    string port = Ui.BareField(new Rect(pr.x + 8f, pr.y, pr.width - 16f, pr.height), portText, 5, 22);
                     if (port != portText)
                     {
                         portText = port;
                         SaveMenuFields();
                     }
+                    DashLine(x, y + 54f, w);
                     break;
                 }
             }
@@ -721,44 +656,38 @@ namespace Arena
         }
 
         /// Visual effects: a live preview, then the switches and the screen shake choice.
-        void DrawFxSection(Color col, float t, float k)
+        void DrawFxSection(Color col, float t)
         {
-            OpenSectionPanel("VISUAL EFFECTS", col, null, k);
-            float x = DrawerPanel.x + 26f, w = DrawerPanel.width - 52f, y = DrawerPanel.y + 76f;
-            var prev = new Rect(x, y, w, 170f);
-            DrawFxPreview(prev, t);
-            y += 184f;
-            float half = (w - 30f) / 2f;
+            OpenSectionPanel("VISUAL EFFECTS", col, "What the fight looks like", 1f);
+            float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y + 102f;
+            DrawFxPreview(new Rect(x, y, w, 128f), t);
+            y += 142f;
+            float half = (w - 36f) / 2f;
             bool changed = false;
-            bool on = SwitchRow(new Rect(x, y, half, 46f), fxOn, "Visual effects", "Glow, sparks, shattering enemies, lighting");
+            bool on = SwitchRow(new Rect(x, y, half, 54f), fxOn, "Visual effects", "Glow, sparks, shattering enemies, lighting");
             if (on != fxOn) { fxOn = on; changed = true; }
-            bool nums = SwitchRow(new Rect(x + half + 30f, y, half, 46f), fxNumbers, "Damage numbers", "Small numbers rising off what's hit");
+            bool nums = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxNumbers, "Damage numbers", "Small numbers rising off what's hit");
             if (nums != fxNumbers) { fxNumbers = nums; changed = true; }
-            y += 58f;
-            Ui.Label(new Rect(x, y, w, 20f), "Screen shake", 15, fxOn ? Ui.Text : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[] shakes = { "Off", "Low", "Full" };
-            float bw = (w - 8f) / 3f;
-            for (int i = 0; i < 3; i++)
-                if (Ui.Choice(new Rect(x + i * (bw + 4f), y + 24f, bw, 32f), shakes[i], fxShake == i, Ui.Accent, null, null, 13, glow: false) && fxShake != i)
-                {
-                    fxShake = i;
-                    changed = true;
-                }
-            y += 72f;
-            bool names = SwitchRow(new Rect(x, y, half, 46f), fxCallouts, "Ability names", "Each ability's name over whoever casts it");
+            y += 64f;
+            WinLabel(new Rect(x, y, w, 24f), "Screen shake", null, !fxOn);
+            int shake = WinChoices(new Rect(x, y + 28f, w, 34f), new[] { "Off", "Low", "Full" }, fxShake, !fxOn);
+            if (shake != fxShake) { fxShake = shake; changed = true; }
+            y += 74f;
+            bool names = SwitchRow(new Rect(x, y, half, 54f), fxCallouts, "Ability names", "Each ability's name over whoever casts it");
             if (names != fxCallouts) { fxCallouts = names; changed = true; }
-            bool calm = SwitchRow(new Rect(x + half + 30f, y, half, 46f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
+            bool calm = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
             if (changed)
                 SaveFxSettings();
-            DrawBackgroundRow(new Rect(x, DrawerPanel.yMax - 34f - 90f, w, 84f));  // MenuBackgrounds.cs
+            DrawBackgroundRow(new Rect(x, y + 70f, w, 92f));  // MenuBackgrounds.cs
         }
 
         /// A tiny fight that follows the visual settings: shots into a target (it flashes and shows numbers), an
         /// ability's name now and then, a blast that shakes the box.
         void DrawFxPreview(Rect r, float t)
         {
-            Ui.Pill(r, new Color(0.04f, 0.05f, 0.08f, 1f));
+            Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
+            CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
             float cyc = MathX.Fmod(t, 3f), boom = Mathf.Max(0f, 1f - Mathf.Abs(cyc - 2.2f) * 4f);
             bool shake = fxOn && !fxReduced && fxShake > 0;
             float amp = shake ? (fxShake == 2 ? 6f : 3f) * boom : 0f;
@@ -842,7 +771,7 @@ namespace Arena
                     for (int i = 0; i < tiles.GetLength(0); i++)
                     {
                         var tr = new Rect(x + (i % 4) * (tw + 10f), DrawerPanel.y + 84f + (i / 4) * (th + 12f), tw, th);
-                        Ui.Pill(tr, new Color(1f, 1f, 1f, 0.035f));
+                        CabCard(tr, 0.035f);
                         Ui.Fancy(new Rect(tr.x + 14f, tr.y + 10f, tr.width - 20f, 34f), tiles[i, 1], 24, Color.white, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
                         Ui.Label(new Rect(tr.x + 14f, tr.y + 48f, tr.width - 20f, 16f), tiles[i, 0].ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
                     }
@@ -859,7 +788,7 @@ namespace Arena
                         var b = RecordBosses[i];
                         int n = p.Beaten(b);
                         var rr = new Rect(x + (i % 2) * (cw + 16f), DrawerPanel.y + 104f + (i / 2) * (rh * 0.53f + 4f), cw, rh * 0.53f);
-                        Ui.Pill(rr, new Color(1f, 1f, 1f, n > 0 ? 0.045f : 0.02f));
+                        CabCard(rr, n > 0 ? 0.045f : 0.02f);
                         Ui.Label(new Rect(rr.x + 58f, rr.y, rr.width - 120f, rr.height), BossName(b), 15, n > 0 ? Ui.Text : Ui.Muted, TextAnchor.MiddleLeft, true);
                         Ui.Label(new Rect(rr.xMax - 90f, rr.y, 76f, rr.height), n > 0 ? "× " + n : "—", 15, n > 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight, true);
                         spots.Add(new KeyValuePair<EnemyType, V2>(b, new V2(rr.x + 28f, rr.center.y)));
@@ -884,7 +813,7 @@ namespace Arena
                         int wins;
                         p.WinsAs.TryGetValue(classes[i].Key, out wins);
                         var rr = new Rect(x, DrawerPanel.y + 104f + i * 62f, w, 54f);
-                        Ui.Pill(rr, new Color(1f, 1f, 1f, 0.035f));
+                        CabCard(rr, 0.035f);
                         string kit = classes[i].Key.Split(' ')[0].ToLowerInvariant();
                         IconTile(new Rect(rr.x + 6f, rr.y + 6f, 42f, 42f), PixelArt.Get("class_" + kit), col, 30f);
                         Ui.Label(new Rect(rr.x + 62f, rr.y + 6f, 300f, 22f), classes[i].Key, 15, Ui.Text, TextAnchor.MiddleLeft, true);
@@ -905,7 +834,7 @@ namespace Arena
                         int won = p.RoomWon(c), pl = p.RoomPlayed(c);
                         var cc = ToColor(Challenges.Accent(c));
                         var rr = new Rect(x, DrawerPanel.y + 104f + i * 86f, w, 76f);
-                        Ui.Pill(rr, new Color(1f, 1f, 1f, 0.035f));
+                        CabCard(rr, 0.035f);
                         IconTile(new Rect(rr.x + 12f, rr.y + 12f, 52f, 52f), PixelArt.Get(RoomIcon(c)), cc, 34f);
                         Ui.Fancy(new Rect(rr.x + 80f, rr.y + 8f, 340f, 30f), Challenges.Name(c), 20, Color.white, cc, TextAnchor.MiddleLeft);
                         Ui.Label(new Rect(rr.xMax - 140f, rr.y + 8f, 126f, 30f), pl > 0 ? won + " of " + pl : "not yet", 17, pl > 0 ? Ui.Text : Ui.Muted, TextAnchor.MiddleRight, true);
@@ -923,7 +852,7 @@ namespace Arena
                     {
                         bool on = p.IsUnlocked(u.Id);
                         var rr = new Rect(x, uy, w, 56f);
-                        Ui.Pill(rr, new Color(1f, 1f, 1f, on ? 0.06f : 0.025f));
+                        CabCard(rr, on ? 0.06f : 0.025f);
                         IconTile(new Rect(rr.x + 6f, rr.y + 6f, 44f, 44f), PixelArt.Get(on ? "ui_star" : "ui_lock"), on ? Ui.Gold : Ui.Muted, 26f);
                         Ui.Label(new Rect(rr.x + 62f, rr.y + 6f, w - 180f, 20f), u.Name, 15, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
                         Ui.Label(new Rect(rr.x + 62f, rr.y + 28f, w - 80f, 18f), u.Desc, 12, Ui.Muted);
@@ -984,64 +913,91 @@ namespace Arena
 
         static readonly Color HowToColor = new Color(0.3f, 0.45f, 0.75f);  // the How to play button, as on the main menu
 
+        /// How to play from the main menu: the cabinet lists the topics, the open one is in the window.
         void DrawHowToWindow()
         {
-            float t = Time.unscaledTime;
-            DrawHowToContent(DrawerIn("howto", true), t, () => CloseWindow(() => howToOpen = false));
-        }
-
-        /// How to play (from the main menu): its topics in the drawer, the open
-        /// topic on the right. `back` is what its close button does.
-        void DrawHowToContent(float k, float t, System.Action back)
-        {
-            BeginDrawer("HOW TO PLAY", Ui.Accent, k, null, 34);  // smaller, so the close chip fits beside it
-            bool closeChip = Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f));
-            float y = 120f;
+            DrawerIn("howto", true);
+            howToTopic = Mathf.Clamp(howToTopic, 0, HowToTopics.Length - 1);
+            DrawCabWindow();  // (first: it comes out from behind the cabinet)
+            BeginDrawer("HOW TO PLAY", Ui.Accent, 1f, "Pick a topic to open it");
+            float y = cabScreen.y + 10f;
             for (int i = 0; i < HowToTopics.Length; i++)
             {
-                var tp = HowToTopics[i];
-                bool on = i == howToTopic;
-                var r = new Rect(28f, y, DrawerW - 56f, 52f);
-                if (DrawerRow(r, PixelArt.Get(tp.Icon), tp.Name, null, null, null, tp.Color, on))
+                bool on = cabWin && cabKind == 2 && cabWinOutAt < 0f && howToTopic == i;
+                if (DrawerRow(new Rect(34f, y, 342f, 52f), null, HowToTopics[i].Name, null, null, null, Ui.Accent, on))
+                {
                     howToTopic = i;
+                    OpenCabWindow(2);
+                }
                 y += 56f;
             }
-            if (closeChip)
-                back();
+            EndDrawerScreen();
+            if (CabBackKey())
+                CloseWindow(() => howToOpen = false);
             EndDrawer();
+        }
 
+        /// The open How to play topic, in the window. From the pause and lobby menus (where the cabinet's list stays) the topics
+        /// are keys along the top of the window.
+        void DrawHowToBody(float t)
+        {
+            howToTopic = Mathf.Clamp(howToTopic, 0, HowToTopics.Length - 1);
+            BeginPanelAnim("howto" + howToTopic);
             var topic = HowToTopics[howToTopic];
-            BeginPanelAnim("howto" + howToTopic);  // (WindowAnim.cs)
-            DrawHowToTopic(topic, t, k);
+            OpenSectionPanel(topic.Name.ToUpperInvariant(), topic.Color, topic.Intro, 1f);
+            float top = DrawerPanel.y + 112f;
+            if (!howToOpen)
+            {
+                float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, cx = x, ty = DrawerPanel.y + 98f;
+                for (int i = 0; i < HowToTopics.Length; i++)
+                {
+                    string n = HowToTopics[i].Name.ToUpperInvariant();
+                    float bw = Ui.TextWidth(n, 15, true) + 24f;
+                    if (cx + bw > x + w && cx > x)
+                    {
+                        cx = x;
+                        ty += 38f;
+                    }
+                    if (WinKey(new Rect(cx, ty, bw, 32f), n, i == howToTopic, 15))
+                        howToTopic = i;
+                    cx += bw + 6f;
+                }
+                top = ty + 48f;
+            }
+            DrawHowToTopic(HowToTopics[howToTopic], t, top);
             EndPanelAnim();
         }
 
-        void DrawHowToTopic(HowTo topic, float t, float k)
+        void DrawHowToTopic(HowTo topic, float t, float top)
         {
-            OpenSectionPanel(topic.Name.ToUpperInvariant(), topic.Color, topic.Intro, k);
-            float x = DrawerPanel.x + 26f, w = DrawerPanel.width - 52f, top = DrawerPanel.y + 110f;
+            float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
             if (topic.Keys)
             {
-                float colW = (w - 30f) / 2f, rowH = 52f;
                 int rows = (HowToKeys.Length + 1) / 2;
+                float colW = (w - 36f) / 2f, rowH = Mathf.Min(62f, (DrawerPanel.yMax - 24f - top) / rows);
                 var keysW = new float[2];
                 for (int i = 0; i < HowToKeys.Length; i++)
                 {
                     float kw = 0f;
                     foreach (var key in HowToKeys[i])
-                        kw += Mathf.Max(26f, 12f + key.Length * 7.5f) + 4f;
+                        kw += Mathf.Max(36f, 18f + key.Length * 9f) + 4f;
                     keysW[i / rows] = Mathf.Max(keysW[i / rows], kw);
                 }
                 for (int i = 0; i < HowToKeys.Length; i++)
                 {
                     int c = i / rows;
-                    float kx = x + c * (colW + 30f), ky = top + (i % rows) * rowH, cx = kx, lx = kx + keysW[c] + 10f;
+                    float kx = x + c * (colW + 36f), ky = top + (i % rows) * rowH, cx = kx, lx = kx + keysW[c] + 12f;
                     foreach (var key in HowToKeys[i])
-                        cx += KeyCap(cx, ky + 3f, key) + 4f;
+                    {
+                        float kw = Mathf.Max(36f, 18f + key.Length * 9f);
+                        WinKey(new Rect(cx, ky + 4f, kw, 30f), key.ToUpperInvariant(), false, 14, null, false, true, true);
+                        cx += kw + 4f;
+                    }
                     string note = HowToActions[i, 1];
-                    Ui.Label(new Rect(lx, ky, kx + colW - lx, note.Length > 0 ? 17f : 30f), HowToActions[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
+                    CrtUi.Text(new Rect(lx, ky, kx + colW - lx, note.Length > 0 ? 20f : 38f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
                     if (note.Length > 0)
-                        Ui.Label(new Rect(lx, ky + 16f, kx + colW - lx, 30f), note, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                        Ui.Label(new Rect(lx, ky + 19f, kx + colW - lx, 30f), WinText("win.n" + i, note), 11, CabSoft, TextAnchor.UpperLeft, false, true);
+                    DashLine(kx, ky + rowH - 4f, colW);
                 }
                 return;
             }
@@ -1059,7 +1015,7 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 var r = new Rect(x + (i % cols) * (tw + 12f), top + (i / cols) * (th + 10f), tw, th);
-                Ui.Pill(r, new Color(1f, 1f, 1f, 0.035f));
+                CabCard(r, 0.03f);
                 string g = topic.Tips[i, 2];
                 var tile = new Rect(r.x + 10f, r.y + 10f, 44f, 44f);
                 if (g.StartsWith("icon:"))
@@ -1069,8 +1025,8 @@ namespace Arena
                     IconTile(tile, null, topic.Color, 0f);
                     glyphs.Add(new KeyValuePair<int, V2>(int.Parse(g), new V2(tile.center.x, tile.center.y)));
                 }
-                Ui.Label(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), topic.Tips[i, 0], 15, Ui.Text, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 64f, r.y + 30f, r.width - 74f, r.height - 36f), topic.Tips[i, 1], 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                CrtUi.Text(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), WinText("win.t" + i, topic.Tips[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+                Ui.Label(new Rect(r.x + 64f, r.y + 30f, r.width - 74f, r.height - 36f), WinText("win.d" + i, topic.Tips[i, 1]), 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             if (glyphs.Count > 0 && BeginUiGl())
             {
@@ -1084,7 +1040,8 @@ namespace Arena
         /// How to play's challenge rooms: two players walk into a portal and it fills.
         void DrawPortalDiagram(Rect r, float t)
         {
-            Ui.Pill(r, new Color(0.04f, 0.05f, 0.08f, 1f));
+            Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
+            CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
             float k = MathX.Fmod(t, 5f) / 5f, walk = Mathf.Clamp01(k / 0.35f), fill = Mathf.Clamp01((k - 0.35f) / 0.45f);
             V2 portal = new V2(r.x + r.width * 0.62f, r.center.y);
             var green = new Rgba(0.55f, 1f, 0.55f);
