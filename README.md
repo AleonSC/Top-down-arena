@@ -663,10 +663,10 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 17 switches (four to a row, grouped under **Easier**, **Risky** and **Harder**
-headings, each card marked with its tier's colour) that change the whole run, for everyone (Practice
+The lobby's **Modifiers** tab lists 17 switches (a list of digital OFF | ON toggles with an LED, grouped under **Easier**, **Risky** and **Harder**
+headings, each row marked with its tier's colour) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
-ones show as chips above the wave panel during the match, and session recordings list them. Each tier starts on its own row;
+ones show as chips above the wave panel during the match, and session recordings list them. Each tier has its own heading;
 click its heading to fold it away (folded, it says how many are hidden and how many are on; remembered on your
 computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
 
