@@ -33,7 +33,7 @@ h1 span { color: var(--blue-hi); }
 
 /* ---------- stage ---------- */
 .fit { position: relative; width: 100%; overflow: hidden; }
-.stage { position: absolute; left: 0; top: 0; width: 1497px; height: 933px; transform-origin: 0 0; background: var(--bg);
+.stage { box-sizing: border-box; position: absolute; left: 0; top: 0; width: 1497px; height: 933px; transform-origin: 0 0; background: var(--bg);
   border: 2px solid #0e2a4a; font-family: var(--f-b); font-size: 16px; color: #dbe8f6; display: grid; grid-template-columns: 36% 1fr; gap: 1.6em; padding: 2.2em 2.2em 1.6em; }
 .stage.after { font-size: 12.5px; gap: 1.8em; }
 .stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 70% 40%, #0d2a4a55, transparent 60%); }
@@ -120,8 +120,8 @@ h1 span { color: var(--blue-hi); }
 @media (prefers-reduced-motion: no-preference) { .glow .fill { animation: pulse 2.6s ease-in-out infinite; } }
 @keyframes pulse { 50% { filter: brightness(1.18) saturate(1.1); } }
 
-.ult { display: grid; grid-template-columns: 3.6em 1fr; gap: .9em; align-items: center; margin-top: .2em; }
-.ult .ic { width: 3.6em; height: 3.6em; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; font: 800 1.5em var(--f-d); color: #fff; }
+.ult { display: grid; grid-template-columns: 3.7em 1fr; gap: .9em; align-items: center; margin-top: .2em; }
+.ult .ic { width: 2.6em; height: 2.6em; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; font: 800 1.4em var(--f-d); color: #fff; }
 .ult h4 { margin: 0; font: 700 1.7em var(--f-d); color: var(--gold); }
 .ult .m { font-size: .95em; color: #a9bfd8; }
 .ult p { margin: .4em 0 0; font-size: .95em; color: #c8d8ea; grid-column: 1 / -1; }
@@ -141,6 +141,12 @@ h1 span { color: var(--blue-hi); }
 .role-row .pb.on { background: var(--blue); }
 
 /* weapon button split: ~3/4 label + 1/4 ascension button */
+#weapons, #abilities { grid-auto-rows: 3.4em; }
+#weapons .main, #abilities .pb { font-size: 1.05em; white-space: nowrap; padding: 0 .2em; }
+.wb { overflow: hidden; }
+.wb .asc { padding: 0; align-content: center; line-height: 1; }
+.wb .asc svg { width: 1.3em; height: 1.3em; margin: 0; }
+#weapons > *, #abilities > * { min-height: 0; height: 100%; }
 .wb { display: grid; grid-template-columns: 1fr 26%; border: 2px solid #1d6cc4; background: #0a2a4f; min-height: 2.5em; }
 .wb.on { border-color: #8ac4ff; }
 .wb .main { display: grid; place-items: center; font: 700 1.3em var(--f-d); color: #bcdcff; background: transparent; border: 0; padding: .5em .2em; }
