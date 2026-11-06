@@ -17,7 +17,7 @@ namespace Arena
     /// One finished run's XP, kept for the Records screen (Profile.Recent, newest first).
     public class RankLog
     {
-        public int Wave, Result, Xp, MultPct;   // Result: 0 lost, 1 won, 2 hunt lost, 3 hunt won
+        public int Wave, Result, Xp, MultPct;   // Result: 0 lost, 1 won, 2 hunt lost, 3 hunt won, 4 left (quit) before it ended
         public string Mods = "";               // modifier names, '|' between
         // Recent runs (RecentRuns.md): what the strip shows. Older log lines have none of these.
         public string Class = "", Mode = "", File = "";  // File: the run's curve in Folder/runs (RunTimeline.cs), "" if none was kept
@@ -121,6 +121,16 @@ namespace Arena
             if (Recent.Count > RecentKept)
                 Recent.RemoveRange(RecentKept, Recent.Count - RecentKept);
             return gain;
+        }
+
+        /// A run you left before it ended (no XP): it still shows in Recent runs, result 4. Returns the log line to fill in.
+        public RankLog AddQuitLog(int wave, string mods)
+        {
+            var log = new RankLog { Wave = wave, Result = 4, MultPct = 100, Mods = mods ?? "" };
+            Recent.Insert(0, log);
+            if (Recent.Count > RecentKept)
+                Recent.RemoveRange(RecentKept, Recent.Count - RecentKept);
+            return log;
         }
 
         /// Equips a cosmetic you've reached the rank for (id "" takes the slot off). False: not yours yet, or not that kind.

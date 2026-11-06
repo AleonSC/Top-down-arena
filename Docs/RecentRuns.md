@@ -135,3 +135,11 @@ Each phase ships on its own (code, tests, README, commit, push). Phase 1 is the 
   means 20 runs, oldest files deleted. Not tried in Unity: line thickness, the hover tooltip, the strip's arrow
   buttons, and how it looks with the window-open animation. The preview does not draw panel fills, so the real
   panel background is missing from the screenshots.
+
+## Runs you quit
+
+A run you leave before it ends (pause menu > quit, back to menu, closing the game) is now logged too: `Game.Stop` calls
+`LogQuitRun` (`Core/RunSaves.cs`), which adds a `RankLog` with `Result = 4`, no XP, and keeps the curve like a normal
+run. The strip and tiles say "QUIT" / "Quit"; the Rank page lists it as "Wave N · quit" with +0 XP. Same gate as the
+End record (not dev, bot, hunt, practice), and only if a curve had started. No protocol change. A quit run that you
+resume from its save later logs again when that run ends or is quit, so it can appear twice.
