@@ -719,33 +719,33 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
-                Desc = "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. "
+                Desc = "A whip of blood. Its tip cracks for double damage and taunts, and enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
             new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
-                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s. After 1 s the pool congeals: enemies still in it are stuck for 1 s. You take 15% less damage standing in your own pool.",
+                Desc = "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it. After a moment the pool congeals and holds enemies still. You take less damage standing in your own pool.",
                 Sound = Sfx.SpellArcane, AreaDesc = "blood pools 25% wider" },
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
-                Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on.",
+                Desc = "Hold to lash out blood tendrils that grasp nearby enemies while you hold on. They are stunned and drained, and part of the damage heals you.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
             // Healer
             new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
-                Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5)." },
+                Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back." },
             new WeaponDef { Id = WeaponId.SanguineOrb, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f, BotRange = 380f,
-                Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. "
+                Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it, making it bleed and charging your heal reserve. "
                     + "With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s).",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.VeinTether, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
-                Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.",
+                Desc = "A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.BloodBolts, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
-                Desc = "Fast bolts of blood (9) that stick in enemies: the fifth within 2 s makes it hemorrhage, bursting for 36 to it and every enemy within 80 px.",
+                Desc = "Fast bolts of blood that stick in enemies. Enough bolts in one enemy make it hemorrhage, bursting for damage to it and the enemies around it.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
-                Desc = "Click an enemy: its blood collapses inward (34), hurting enemies pressed against it (15) and pulling them in.",
+                Desc = "Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
             new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
-                Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health; the spear stays stuck where it stops (8 s), and walking over it gives the 2 back." },
+                Desc = "A heavy spear that pierces enemies. Each throw costs a little health, but the spear stays stuck where it stops, and walking over it gives the health back." },
         };
 
         /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)

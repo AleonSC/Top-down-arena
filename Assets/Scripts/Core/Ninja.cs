@@ -311,26 +311,26 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +30% slash damage", Name = "Kusarigama", FireInterval = 0.55f,
-                Desc = "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun)." },
+                Desc = "Throw the chain-sickle straight out to hook the first enemy it hits. Fire again to reel yourself in and land a heavy, stunning slash." },
             new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +15% damage on every swing and the shove, and +20 px on the shove's push", Name = "Bo Staff", FireInterval = 0.47f,
-                Desc = "Click for a chain that never times out: a cone slash (16, 105 px), a jab (22, 140 px), then a full spin (30, 100 px) that starts it over; every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you (6, knocks back 70 px; once a second) and starts the chain over." },
+                Desc = "Click for a never-ending chain of three swings: a cone slash, a jab, then a full spin that starts it over. Every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you and restarts the chain." },
             new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
-                Desc = "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways." },
+                Desc = "A giant spinning star thrown in a wide loop out in front of you and back, cutting through everything both ways." },
             // Healer
             new WeaponDef { Id = WeaponId.MedicineDarts, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
-                Desc = "Fast needles that dose what they hit. Enemies: a stack of poison (2 a second for 3 s). Hurt allies: a stack of healing (2 a second for 3 s). Up to 5 stacks each." },
+                Desc = "Fast needles that dose what they hit. Enemies get poisoned and hurt allies get healed, and doses stack." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
-                Desc = "A short gust that heals allies in it for 3 and pushes small enemy bullets back. Shots alternate: one blows enemies in front away, the next draws them in." },
+                Desc = "A short gust that heals allies and pushes small enemy bullets back. Shots alternate between blowing enemies away and drawing them in." },
             new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
-                Desc = "Paper charms fly to your cursor and lie there as wards (up to 5, for 10 s). An enemy that steps on one sets it off: 25 to enemies round it and 12 healing to allies near it.",
+                Desc = "Paper charms fly to your cursor and lie there as wards. An enemy that steps on one sets it off, hurting enemies around it and healing allies near it.",
                 AreaDesc = "bursts 25% wider, for damage and healing" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
-                Desc = "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; press your weapon-action key (Left Alt by default) to recall them sooner." },
+                Desc = "Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Press your weapon-action key to recall them sooner." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
-                Desc = "Swipe, swipe, lunge, always in that order (tap ahead to queue the next): two 110° slashes, then a 260 px lunge through every enemy in its line for 2.25× damage. Every enemy a step hits builds the strike meter, which drains if you stop hitting. At full, hold your weapon-action key (Left Alt by default), aim at any enemy and let go to cut across the arena and land behind it: 120 to it, 60 to everything on the way. If it kills, the meter stays full (strike again at once) and the kill is a chain: the meter never drains on a streak, and at five chains the next strike is empowered (240 to the target, 120 to everything on the way)." },
+                Desc = "Three quick melee attacks. Every enemy hit builds the strike meter, which drains if you stop hitting. At full, hold your weapon-action key, aim at any enemy and let go to cut across the arena and land behind it. A kill keeps the meter full, allowing for five chained actions. The fifth chain resets the meter and is empowered." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 30f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f,
-                Desc = "Slow, heavy throwing knives, +50% damage to enemies that aren't targeting you. Every throw is a shadow kunai that leaves a mark where it lands: press your weapon-action key (Left Alt by default) to blink there, and your next hit lands double." },
+                Desc = "Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double." },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
