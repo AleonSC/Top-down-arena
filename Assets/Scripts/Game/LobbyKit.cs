@@ -11,6 +11,35 @@ namespace Arena
         public static readonly Color Gold = new Color(1f, 0.83f, 0.42f);
         public static readonly Color Soft = new Color(0.76f, 0.80f, 0.91f);  // body text on the screen
 
+        /// The lobby's role and class colours (look A in Docs/Mockups/): each role and class has its own hue on its key, its heading, the
+        /// party card and the preview. Lobby-only; the in-game role colours (Defs) are unchanged. The chrome stays CrtUi's blue.
+        public static Color RoleTint(Role r)
+        {
+            switch (r)
+            {
+                case Role.Tank: return new Color(0.94f, 0.71f, 0.16f);
+                case Role.Healer: return new Color(0.24f, 0.86f, 0.52f);
+                case Role.Dps: return new Color(1f, 0.36f, 0.30f);
+                default: return new Color(0.78f, 0.45f, 1f);  // Wildcard
+            }
+        }
+
+        public static Color ClassTint(Kit k)
+        {
+            switch (k)
+            {
+                case Kit.Soldier: return new Color(0.61f, 0.88f, 0.36f);
+                case Kit.Elementalist: return new Color(1f, 0.54f, 0.24f);
+                case Kit.Summoner: return new Color(0.71f, 0.55f, 1f);
+                case Kit.Knight: return new Color(0.84f, 0.88f, 0.93f);
+                case Kit.Ninja: return new Color(1f, 0.31f, 0.64f);
+                default: return new Color(1f, 0.25f, 0.33f);  // Hemomancer
+            }
+        }
+
+        /// Ready and an enabled Start.
+        public static readonly Color Go = new Color(0.24f, 0.86f, 0.52f);
+
         public static Color Ink(float a) => new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
 
         /// The text cut short with "…" so it fits `width` at this size.
@@ -48,7 +77,7 @@ namespace Arena
         /// the key is tall enough, then are cut. enabled = false: shown (lit when `on`) but never hot and never clicked
         /// (guests looking at the host's choices). Returns true on a click.
         public static bool Key(Rect r, string text, bool on, bool calm, Texture2D icon = null, bool stack = false, bool colorIcon = false,
-            int size = 18, int minSize = 11, bool danger = false, bool enabled = true, Color? accent = null, string sub = null, bool locked = false)
+            int size = 18, int minSize = 11, bool danger = false, bool enabled = true, Color? accent = null, string sub = null, bool locked = false, bool tint = false)
         {
             if (locked)
             {
@@ -62,10 +91,22 @@ namespace Arena
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
             Color c = danger ? new Color(1f, 0.42f, 0.48f) : accent ?? CrtUi.Ink;
             Color dark = danger ? new Color(0.1f, 0.02f, 0.03f) : CrtUi.Bg;
+            if (tint && on && !hover)
+            {
+                // Chosen, in its own colour: a tinted fill, a bright rim with a soft glow, white text (the lit keys of look A).
+                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.30f));
+                if (!calm)
+                    CrtKit.Frame(new Rect(r.x - 2f, r.y - 2f, r.width + 4f, r.height + 4f), 2f, new Color(c.r, c.g, c.b, 0.28f));
+                CrtKit.Frame(r, 2f, c);
+                Draw(r, text, icon, stack, colorIcon, size, minSize, Color.white, false, calm, sub, false);
+                return enabled && Ui.HitArea(r);
+            }
             bool fill = hover || on;
             Ui.Fill(r, fill ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, 0.08f));
             CrtKit.Frame(r, 2f, c);
-            Color tc = fill ? dark : c;
+            if (tint && !fill)  // a small dot in its colour on a key that isn't chosen
+                Ui.Fill(new Rect(r.xMax - 11f, r.y + 5f, 6f, 6f), c);
+            Color tc = fill ? dark : (tint ? CrtUi.Ink : c);
             Draw(r, text, icon, stack, colorIcon, size, minSize, tc, fill, calm, sub, false);
             if (!enabled)
                 return false;
@@ -161,11 +202,11 @@ namespace Arena
         }
 
         /// A section heading: the name on the left, a short caption on the right (shrunk to fit), a thin rule under both.
-        public static void Heading(float x, float y, float w, string title, string caption, bool calm, int size = 18)
+        public static void Heading(float x, float y, float w, string title, string caption, bool calm, int size = 18, Color? titleColor = null)
         {
             string t = title.ToUpperInvariant();
             float tw = Ui.TextWidth(t, size, true) - 4f;
-            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, titleColor ?? CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
             if (!string.IsNullOrEmpty(caption))
             {
                 float left = tw + 16f;

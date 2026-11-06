@@ -28,7 +28,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-The lobby is one calm blue CRT screen: every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
+The lobby is a blue CRT screen: every option is a digital key (outlined, inverse video under the mouse; locked ones are dashed with a padlock). Roles and classes have their own colours: the chosen role or class key lights in its colour with a glow, the Role and Class headings, the class name's underline and the party card take the colour too, Ready turns green once you're ready, and Start turns green when everyone is. The party cards, the live preview, the stat bars and the pixel icons carry the rest of the colour. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons and three Space abilities. Weapons and abilities are
 unique to their role and class.
 
