@@ -82,9 +82,9 @@ namespace Arena
             float sy = top + 96f, arrow = 24f, cw = (w - arrow * 2f - 8f * (RecentCards + 1)) / RecentCards;
             if (runs.Count > RecentCards)
             {
-                if (recentFirst > 0 && Ui.SmallButton(new Rect(x, sy, arrow, 66f), "‹", 16))
+                if (recentFirst > 0 && WinKey(new Rect(x, sy, arrow, 66f), "<", false, 22))
                     recentFirst--;
-                if (recentFirst + RecentCards < runs.Count && Ui.SmallButton(new Rect(x + w - arrow, sy, arrow, 66f), "›", 16))
+                if (recentFirst + RecentCards < runs.Count && WinKey(new Rect(x + w - arrow, sy, arrow, 66f), ">", false, 22))
                     recentFirst++;
             }
             for (int i = 0; i < RecentCards && recentFirst + i < runs.Count; i++)
@@ -123,7 +123,7 @@ namespace Arena
             float tby = ty + 58f;
             string[] tabs = { "Overview", "Trends" };
             for (int i = 0; i < tabs.Length; i++)
-                if (Ui.SmallButton(new Rect(x + i * 98f, tby, 90f, 28f), tabs[i], i == recentTab ? Ui.Primary : Ui.Neutral, 13))
+                if (WinKey(new Rect(x + i * 108f, tby, 100f, 30f), tabs[i].ToUpperInvariant(), i == recentTab, 15))
                     recentTab = i;
             string line = RunTitle(cur) + (cur.Class.Length > 0 ? "  ·  " + cur.Class : "") + (cur.Players > 1 ? "  ·  " + cur.Players + " players" : "") + (cur.Mods.Length > 0 ? "  ·  " + cur.Mods.Replace("|", ", ") : "");
             Ui.Label(new Rect(x + 200f, tby, w - 200f, 28f), line, 11, Ui.Muted, TextAnchor.MiddleRight);

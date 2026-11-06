@@ -7,7 +7,7 @@ namespace Arena
     /// to equip from. What's here is what Rank.cs unlocks. Equipping saves the profile and tells the lobby (Session.ShareCosmetics).
     public partial class ArenaApp
     {
-        float ladderScroll;  // the reward ladder's scroll, in px
+        float ladderScroll = -1f;  // the reward ladder's scroll, in px (-1: it opens at your rank)
         bool editingName;  // the name in your profile is a text field while the pencil is on
         int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Cursor (7: the Reward ladder, which has its own panel)
 
@@ -22,72 +22,206 @@ namespace Arena
             return c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
         }
 
-        // --- A category: the preview, and what to choose ---------------------------------------------------------
 
-        void DrawCosmeticPanel(Profile p, float t, float k)
+        // --- A Look option: its window (Docs/Mockups/crt-profile.html) ----------------------------------------------
+        // On the left "TRY IT ON" (a live preview) and "HOW OTHERS SEE YOU" (your party card); on the right every cosmetic of the kind,
+        // each with its picture, name, status and an EQUIP key. Hovering a row tries it on in the preview and the card.
+
+        static readonly string[] LookSubs =
         {
-            var kind = KindOfSection(cosmeticsSection);
-            string[] subs =
-            {
-                "A rim on your lobby party card and your menu chip.",
-                "Drawn behind you in the match, for everyone to see.",
-                "Your menu background. Dusk Grid is a rank reward; the others are in Settings > Visual effects.",
-                "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
-                "How your name looks to everyone: the lobby, the Hangout, and over your head in a match.",
-                "The line from your weapon to the crosshair in a match. Only you see it. Classic is the default.",
-                "Your crosshair in a match. Only you see it. Classic is the default.",
-            };
-            OpenSectionPanel(CosmeticSections[cosmeticsSection].ToUpperInvariant(), Ui.Gold, subs[cosmeticsSection], k);
-            float x = DrawerPanel.x + 26f, top = DrawerPanel.y + 112f;
+            "A rim on your lobby party card and your menu chip.",
+            "Drawn behind you in the match, for everyone to see.",
+            "Your menu background. Dusk Grid is a rank reward; the others are in Settings > Visual effects.",
+            "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
+            "How your name looks to everyone: the lobby, the Hangout, and over your head in a match.",
+            "The line from your weapon to the crosshair in a match. Only you see it. Classic is the default.",
+            "Your crosshair in a match. Only you see it. Classic is the default.",
+        };
+
+        int lookScroll;          // the list's first visible row
+        int lookScrollFor = -1;  // the section lookScroll belongs to
+        bool lookBarDrag;        // the scroll bar is being dragged
+
+        static string NoneName(CosmeticKind kind) => kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
+
+        void DrawLookWindow(Profile p, float t, int section)
+        {
+            var kind = KindOfSection(section);
+            OpenSectionPanel(CosmeticSections[section].ToUpperInvariant(), CrtUi.Ink, LookSubs[section], 1f);
+            float px = DrawerPanel.x + 28f, top = DrawerPanel.y + 102f;
             int rank = p.RankNow;
-
-            // The preview: you, moving, with your trail and background (the frame shows on the card below).
-            var look = new Rect(x, top, 340f, 200f);
-            if (BeginUiGl())
-            {
-                BackgroundThumb(look, Ui.Gold, 0.4f);
-                UiModelAt(new V2(look.center.x + 10f, look.center.y), 1.6f);
-                DrawTrailSample(Rank.TrailIndex(p.Trail), 90f, t, 14f);
-                if (kind == CosmeticKind.AimLine)
-                    DrawAimLook(AimLook(), new V2(18f, 0f), new V2(1f, 0f), 100f, t, AimSampleColor, true);  // AimLineLooks.cs
-                DrawGenericPlayer(t);
-                if (kind == CosmeticKind.Cursor)
-                    DrawCursorSample(CursorLook(), new V2(look.center.x + 120f, look.center.y), t);  // CursorLooks.cs
-                EndUiGl();
-            }
-            Ui.Label(new Rect(x, look.yMax + 8f, 340f, 16f), "HOW OTHERS SEE YOU", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            DrawLookCard(new Rect(x, look.yMax + 28f, 340f, 88f), p, t);
-
-            // The list: none, then each cosmetic of this kind, with what it needs.
-            float lx = x + 364f;
-            Ui.Label(new Rect(lx, top - 4f, 352f, 16f), "CHOOSE", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             var items = Rank.OfKind(kind);
             items.Insert(0, null);  // null: none
-            float y = top + 16f;
-            // The longer the list, the tighter the rows (the panel is a fixed height).
-            float step = items.Count > 9 ? Mathf.Min(46f, (DrawerPanel.height - 128f) / items.Count) : 66f, rh = items.Count > 9 ? step - 2f : 58f;
-            bool tiny = rh < 42f;
-            foreach (var c in items)
+            const int fit = 9;
+            const float rowH = 52f, step = 56f;
+            int maxScroll = Mathf.Max(0, items.Count - fit);
+            float lx = px + 364f, lw = DrawerPanel.xMax - 28f - lx, rw = lw - (maxScroll > 0 ? 14f : 0f);
+            var view = new Rect(lx, top + 22f, lw, fit * step - 4f);
+            var ev = Event.current;
+            var m = ev.mousePosition;
+            string equipped = p.Equipped(kind);
+
+            // The list's scroll: the equipped row is in view when the section opens; wheel and bar.
+            if (lookScrollFor != section)
             {
-                string id = c == null ? "" : c.Id;
-                bool ok = c == null || rank >= c.Rank, on = p.Equipped(kind) == id;
-                var rr = new Rect(lx, y, 352f, rh);
-                Ui.Pill(rr, on ? new Color(1f, 0.8f, 0.35f, 0.12f) : new Color(1f, 1f, 1f, ok ? 0.05f : 0.025f));
-                float th = Mathf.Min(42f, rh - 6f);
-                RowThumb(new Rect(rr.x + 8f, rr.y + (rh - th) / 2f, 64f, th), kind, c, p, t, ok);
-                string name = c != null ? c.Name : kind == CosmeticKind.Background ? "Your pick" : kind == CosmeticKind.AimLine || kind == CosmeticKind.Cursor ? "Classic" : "None";
-                float ty = (rh - (tiny ? 32f : 40f)) / 2f;
-                Ui.Label(new Rect(rr.x + 84f, rr.y + ty, rr.width - 180f, tiny ? 18f : 20f), name, tiny ? 14 : 15, ok ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                string sub = c == null ? (kind == CosmeticKind.Background ? "what you chose in Settings" : kind == CosmeticKind.AimLine ? "the default line" : kind == CosmeticKind.Cursor ? "the default crosshair" : "nothing equipped") : ok ? "unlocked" : "needs rank " + c.Rank;
-                Ui.Label(new Rect(rr.x + 84f, rr.y + ty + (tiny ? 15f : 22f), rr.width - 180f, tiny ? 16f : 18f), sub, tiny ? 10 : 11, ok ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
-                if (ok)
+                lookScrollFor = section;
+                int eq = 0;
+                for (int i = 0; i < items.Count; i++)
+                    if (equipped == (items[i] == null ? "" : items[i].Id))
+                        eq = i;
+                lookScroll = Mathf.Clamp(eq - fit + 1, 0, maxScroll);
+            }
+            var track = new Rect(view.xMax - 8f, view.y, 8f, view.height);
+            float thumbH = Mathf.Max(30f, track.height * fit / Mathf.Max(1, items.Count));
+            if (GUI.enabled && maxScroll > 0)
+            {
+                if (ev.type == EventType.ScrollWheel && new Rect(px, top, lx + lw - px, view.yMax - top).Contains(m))
                 {
-                    if (Ui.SmallButton(new Rect(rr.xMax - 88f, rr.y + (rh - 24f) / 2f, 78f, 24f), on ? (c == null ? "In use" : "Equipped") : "Equip", on ? Ui.GoldButton : Ui.Neutral, 12) && !on)
-                        EquipCosmetic(p, kind, id);
+                    lookScroll += ev.delta.y > 0f ? 1 : -1;
+                    ev.Use();
                 }
+                else if (ev.type == EventType.MouseDown && ev.button == 0 && new Rect(track.x - 8f, track.y, track.width + 8f, track.height).Contains(m))
+                {
+                    lookBarDrag = true;
+                    ev.Use();
+                }
+                if (lookBarDrag && (ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag))
+                {
+                    lookScroll = Mathf.RoundToInt(Mathf.Clamp01((m.y - track.y - thumbH / 2f) / (track.height - thumbH)) * maxScroll);
+                    if (ev.type == EventType.MouseDrag)
+                        ev.Use();
+                }
+            }
+            if (ev.type == EventType.MouseUp)
+                lookBarDrag = false;
+            lookScroll = Mathf.Clamp(lookScroll, 0, maxScroll);
+
+            // The row under the mouse is tried on.
+            int tryIdx = -1;
+            string tryId = null;
+            if (GUI.enabled && !lookBarDrag && m.x >= view.x && m.x < view.x + rw && m.y >= view.y && m.y < view.yMax)
+            {
+                int i = lookScroll + (int)((m.y - view.y) / step);
+                if (i < items.Count && (m.y - view.y) - (i - lookScroll) * step < rowH)
+                {
+                    tryIdx = i;
+                    tryId = items[i] == null ? "" : items[i].Id;
+                }
+            }
+
+            // Left: the preview.
+            var tryKind = tryId != null ? kind : (CosmeticKind?)null;
+            Ui.Label(new Rect(px, top, 340f, 18f), "TRY IT ON", 12, CabSoft, TextAnchor.MiddleLeft, true);
+            if (tryIdx >= 0)
+            {
+                var tc = items[tryIdx];
+                Ui.Label(new Rect(px + 80f, top, 260f, 18f), (tc == null ? NoneName(kind) : tc.Name) + (tc != null && rank < tc.Rank ? "  (rank " + tc.Rank + ")" : ""), 12, Ui.Gold, TextAnchor.MiddleRight, true);
+            }
+            var pv = new Rect(px, top + 22f, 340f, 250f);
+            Ui.Fill(pv, new Color(0.04f, 0.02f, 0.07f, 1f));
+            int keepBg = menuBg;
+            if (kind == CosmeticKind.Background && tryId != null)
+                menuBg = tryId == "" ? PreviousBackground() : DuskGridIndex;  // (only for the draw: nothing is saved)
+            int trail = Rank.TrailIndex(tryKind == CosmeticKind.Trail ? tryId : p.Trail);
+            int aim = tryKind == CosmeticKind.AimLine ? Rank.AimLineIndex(tryId) : AimLook();
+            int cursor = tryKind == CosmeticKind.Cursor ? Rank.CursorIndex(tryId) : CursorLook();
+            int fx = tryKind == CosmeticKind.NameEffect ? Rank.NameFxIndex(tryId) : Rank.Owns(rank, p.NameFx) ? Rank.NameFxIndex(p.NameFx) : 0;
+            int cardBg = tryKind == CosmeticKind.CardBackground ? Rank.CardBgIndex(tryId) : Rank.Owns(rank, p.CardBg) ? Rank.CardBgIndex(p.CardBg) : 0;
+            if (kind == CosmeticKind.CardBackground)
+                DrawCardBackground(new Rect(pv.x + 10f, pv.center.y - 62f, pv.width - 20f, 124f), cardBg, t);  // CardBackgrounds.cs
+            if (BeginUiGl())
+            {
+                if (kind != CosmeticKind.CardBackground)
+                    BackgroundThumb(pv, CrtUi.Ink, 0.4f);
+                UiClip(pv);  // (what is drawn stays on the glass; EndUiGl lifts the clip)
+                if (kind == CosmeticKind.CardBackground)
+                    UiModelAt(new V2(pv.x + 70f, pv.center.y), 1.4f);
+                else if (kind != CosmeticKind.NameEffect)
+                    UiModelAt(new V2(pv.center.x + 10f, pv.center.y), 1.6f);
+                if (kind != CosmeticKind.NameEffect)
+                {
+                    if (kind != CosmeticKind.CardBackground)
+                        DrawTrailSample(trail, 90f, t, 14f);
+                    if (kind == CosmeticKind.AimLine)
+                        DrawAimLook(aim, new V2(18f, 0f), new V2(1f, 0f), 100f, t, AimSampleColor, true);  // AimLineLooks.cs
+                    DrawGenericPlayer(t);
+                }
+                if (kind == CosmeticKind.Cursor)
+                    DrawCursorSample(cursor, new V2(pv.center.x + 120f, pv.center.y), t);  // CursorLooks.cs
+                EndUiGl();
+            }
+            menuBg = keepBg;
+            if (kind == CosmeticKind.NameEffect || kind == CosmeticKind.CardBackground)
+            {
+                int size = kind == CosmeticKind.NameEffect ? 44 : 26;
+                float nx = kind == CosmeticKind.NameEffect ? pv.x + 10f : pv.x + 120f, nw = kind == CosmeticKind.NameEffect ? pv.width - 20f : pv.width - 140f;
+                while (size > 18 && Ui.TextWidth(nameText, size, true) + 8f > nw)
+                    size--;
+                var tcol = RankLook.TierColor(rank);
+                DrawName(new Rect(nx, pv.center.y - 30f, nw, 56f), nameText, size, fx, t, Color.white, kind == CosmeticKind.NameEffect ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft);  // NameEffects.cs
+                Ui.Label(new Rect(nx, pv.center.y + 24f, nw, 22f), Rank.Title(rank) + "  ·  Rank " + rank, 14, tcol, kind == CosmeticKind.NameEffect ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft, true);
+            }
+            if (kind == CosmeticKind.Frame)
+            {
+                int fi = tryKind == CosmeticKind.Frame ? Rank.FrameIndex(tryId) : Rank.Owns(rank, p.Frame) ? Rank.FrameIndex(p.Frame) : 0;
+                if (fi > 0)
+                    FrameOutline(pv, FrameTint(fi, t));
                 else
-                    Ui.Icon(new Rect(rr.xMax - 34f, rr.y + (rh - 22f) / 2f, 22f, 22f), PixelArt.Get("ui_lock"), Ui.Muted);
-                y += step;
+                    CrtKit.Frame(pv, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+            }
+            else
+                CrtKit.Frame(pv, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f));
+            Ui.Label(new Rect(px, pv.yMax + 10f, 340f, 18f), "HOW OTHERS SEE YOU", 12, CabSoft, TextAnchor.MiddleLeft, true);
+            DrawLookCard(new Rect(px, pv.yMax + 32f, 340f, 88f), p, t, tryKind, tryId);
+            Ui.Label(new Rect(px, pv.yMax + 132f, 340f, 36f), "Hover a row to try it on. Press Equip to keep it.", 13, CabSoft, TextAnchor.UpperLeft, false, true);
+
+            // Right: what to choose.
+            Ui.Label(new Rect(lx, top, 200f, 18f), "CHOOSE", 12, CabSoft, TextAnchor.MiddleLeft, true);
+            var ink = CrtUi.Ink;
+            for (int i = lookScroll; i < Mathf.Min(items.Count, lookScroll + fit); i++)
+            {
+                var c = items[i];
+                string id = c == null ? "" : c.Id;
+                bool ok = c == null || rank >= c.Rank, on = equipped == id;
+                var rr = new Rect(lx, view.y + (i - lookScroll) * step, rw, rowH);
+                Ui.Fill(rr, on ? new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.08f) : new Color(ink.r, ink.g, ink.b, i == tryIdx ? 0.12f : 0.04f));
+                CrtKit.Frame(rr, 1f, on ? Ui.Gold : new Color(ink.r, ink.g, ink.b, 0.25f));
+                var th = new Rect(rr.x + 8f, rr.y + (rowH - 40f) / 2f, 64f, 40f);
+                RowThumb(th, kind, c, p, t, ok);
+                CrtKit.Frame(th, 1f, new Color(ink.r, ink.g, ink.b, ok ? 0.5f : 0.25f));
+                string name = c != null ? c.Name : NoneName(kind);
+                float nx = rr.x + 82f, nw = rr.width - 82f - 106f;
+                int size;
+                bool wrap;
+                name = FitCosmeticName(name, nw, 15, out size, out wrap);
+                string shown = WinText("win.n" + section + "." + id, name);
+                if (wrap)
+                    CrtUi.Text(new Rect(nx, rr.y + 3f, nw, 32f), shown, 14, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.UpperLeft, true, CabCalm, true);
+                else
+                    CrtUi.Text(new Rect(nx, rr.y + 5f, nw, 24f), shown, size, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true, CabCalm);
+                string sub = c == null ? (kind == CosmeticKind.Background ? "default: what you chose in Settings" : "default") : ok ? "unlocked" : "locked: rank " + c.Rank;
+                Ui.Label(new Rect(nx, rr.y + 31f, nw, 18f), sub, 13, c != null && ok ? Ui.Good : CrtUi.Dim, TextAnchor.MiddleLeft);
+                var kr = new Rect(rr.xMax - 8f - 92f, rr.y + (rowH - 32f) / 2f, 92f, 32f);
+                if (!ok)
+                {
+                    CrtKit.Dashed(kr, 2f, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.8f));
+                    Ui.Icon(new Rect(kr.x + 7f, kr.center.y - 8f, 16f, 16f), PixelArt.Get("ui_lock"), CrtUi.Dim);
+                    Ui.Label(new Rect(kr.x + 26f, kr.y, kr.width - 28f, kr.height), "RANK " + c.Rank, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                }
+                else if (on)
+                {
+                    Ui.Fill(kr, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.95f));
+                    Ui.Label(kr, "EQUIPPED", 14, new Color(0.1f, 0.07f, 0.01f), TextAnchor.MiddleCenter, true);
+                }
+                else if (WinKey(kr, "EQUIP", false, 16))
+                    EquipCosmetic(p, kind, id);
+            }
+            if (maxScroll > 0)
+            {
+                Ui.Fill(track, new Color(ink.r, ink.g, ink.b, 0.1f));
+                float ty = track.y + (track.height - thumbH) * lookScroll / maxScroll;
+                Ui.Fill(new Rect(track.x, ty, track.width, thumbH), new Color(ink.r, ink.g, ink.b, lookBarDrag ? 0.95f : 0.6f));
+                Ui.Label(new Rect(view.x, view.yMax + 3f, view.width, 14f), "WHEEL OR DRAG TO SCROLL  ·  " + (lookScroll + 1) + " TO " + Mathf.Min(items.Count, lookScroll + fit) + " OF " + items.Count, 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
             }
         }
 
@@ -117,12 +251,15 @@ namespace Arena
 
         /// How your lobby party card looks to others: your figure, name, title and badge in your frame. The role and class
         /// aren't part of your look (they're picked in the lobby).
-        void DrawLookCard(Rect r, Profile p, float t)
+        void DrawLookCard(Rect r, Profile p, float t, CosmeticKind? tryKind = null, string tryId = null)
         {
+            // (tryKind, tryId: a cosmetic being tried on, locked or not; it stands in for what is equipped)
             int rank = p.RankNow;
-            int bg = Rank.Owns(rank, p.CardBg) ? Rank.CardBgIndex(p.CardBg) : 0;
-            if (Rank.Owns(rank, p.Frame))
-                DrawFrameCard(r, Rank.FrameIndex(p.Frame), t, true, bg);  // FrameLooks.cs
+            int bg = tryKind == CosmeticKind.CardBackground ? Rank.CardBgIndex(tryId) : Rank.Owns(rank, p.CardBg) ? Rank.CardBgIndex(p.CardBg) : 0;
+            int frame = tryKind == CosmeticKind.Frame ? Rank.FrameIndex(tryId) : Rank.Owns(rank, p.Frame) ? Rank.FrameIndex(p.Frame) : 0;
+            int fx = tryKind == CosmeticKind.NameEffect ? Rank.NameFxIndex(tryId) : Rank.Owns(rank, p.NameFx) ? Rank.NameFxIndex(p.NameFx) : 0;
+            if (frame > 0)
+                DrawFrameCard(r, frame, t, true, bg);  // FrameLooks.cs
             else
             {
                 Ui.Card(r, Ui.Accent, 0.85f);
@@ -137,7 +274,7 @@ namespace Arena
                 EndUiGl();
             }
             RankLook.Draw(new Rect(face.xMax - 22f, face.yMax - 22f, 30f, 30f), rank);
-            DrawName(new Rect(r.x + 96f, r.y + 8f, r.width - 106f, 26f), nameText, 19, Rank.Owns(rank, p.NameFx) ? Rank.NameFxIndex(p.NameFx) : 0, t, Color.white);  // NameEffects.cs
+            DrawName(new Rect(r.x + 96f, r.y + 8f, r.width - 106f, 26f), nameText, 19, fx, t, Color.white);  // NameEffects.cs
             Ui.Label(new Rect(r.x + 96f, r.y + 34f, r.width - 106f, 20f), Rank.Title(rank) + "  ·  Rank " + rank, 14, RankLook.TierColor(rank), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 96f, r.y + 56f, r.width - 106f, 20f), "Role and class: picked in the lobby", 11, Ui.Muted, TextAnchor.MiddleLeft);
         }
@@ -274,8 +411,8 @@ namespace Arena
 
             // Left: the next reward.
             var box = new Rect(DrawerPanel.x + 26f, top, 280f, Mathf.Min(viewH, 360f));
-            Ui.Pill(box, new Color(1f, 0.82f, 0.31f, 0.07f));
-            Ui.Rim(box, Ui.Gold, 0.35f);
+            Ui.Fill(box, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.05f));
+            CrtKit.Frame(box, 1f, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.45f));
             if (next == null)
             {
                 Ui.Label(new Rect(box.x + 16f, box.y + 16f, box.width - 32f, 18f), "ALL DONE", 11, Ui.Gold, TextAnchor.MiddleCenter, true);
@@ -291,7 +428,7 @@ namespace Arena
                 Ui.Label(new Rect(box.x + 12f, box.y + 208f, box.width - 24f, 18f), next.Kind.ToUpper(), 11, kc, TextAnchor.MiddleCenter, true);
                 long have = p.Xp, from = Rank.XpAt(rank), to = Rank.XpAt(next.Rank);
                 float frac = to > from ? Mathf.Clamp01((float)(have - from) / (to - from)) : 1f;
-                Ui.Bar(new Rect(box.x + 16f, box.y + 242f, box.width - 32f, 10f), frac, Ui.Gold);
+                BlockBar(new Rect(box.x + 16f, box.y + 242f, box.width - 32f, 12f), frac, Ui.Gold, 24);
                 Ui.Label(new Rect(box.x + 12f, box.y + 258f, box.width - 24f, 18f), Mathf.Max(0L, to - have).ToString("N0") + " XP to go", 12, Ui.Muted, TextAnchor.MiddleCenter);
             }
 
@@ -371,7 +508,7 @@ namespace Arena
                     long from = Rank.XpAt(rank), to = nx != null ? Rank.XpAt(nx.Rank) : from + 1;
                     Ui.Label(new Rect(cx + 40f, iy + 4f, 260f, 16f), "YOU  ·  RANK " + rank, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
                     Ui.Label(new Rect(rw - 270f, iy + 4f, 262f, 16f), nx != null ? Mathf.Max(0L, to - have).ToString("N0") + " XP to rank " + nx.Rank : "Every reward unlocked", 12, Ui.Text, TextAnchor.MiddleRight);
-                    Ui.Bar(new Rect(cx + 40f, iy + 24f, rw - cx - 48f, 8f), nx != null ? Mathf.Clamp01((float)(have - from) / (to - from)) : 1f, Ui.Gold);
+                    BlockBar(new Rect(cx + 40f, iy + 24f, rw - cx - 48f, 10f), nx != null ? Mathf.Clamp01((float)(have - from) / (to - from)) : 1f, Ui.Gold, 32);
                 }
                 else
                 {
@@ -385,9 +522,9 @@ namespace Arena
                         var rr = new Rect(cx + 40f, iy + 8f + n * (LadderRowH + LadderRowGap), rw - cx - 48f, LadderRowH);
                         bool isNext = row == next;
                         var kc = LadderKindColor(row.Kind);
-                        Ui.Pill(rr, isNext ? new Color(1f, 0.82f, 0.31f, 0.09f) : new Color(1f, 1f, 1f, got ? 0.05f : 0.025f));
+                        Ui.Fill(rr, isNext ? new Color(1f, 0.82f, 0.31f, 0.09f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, got ? 0.05f : 0.025f));
                         if (isNext)
-                            Ui.Rim(rr, Ui.Gold, 0.6f);
+                            CrtKit.Frame(rr, 1f, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.7f));
                         Ui.Icon(new Rect(rr.x + 12f, rr.center.y - 11f, 22f, 22f), PixelArt.Get(LadderKindIcon(row.Kind)), got ? kc : new Color(kc.r, kc.g, kc.b, 0.4f));
                         // Two lines (Docs/Mockups/reward-ladder-text.html, A): the name gets the width, the kind sits under it.
                         float nameW = rr.width - 46f - 100f;

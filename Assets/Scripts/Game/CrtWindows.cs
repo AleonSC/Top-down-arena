@@ -173,7 +173,7 @@ namespace Arena
         // --- The window to the right ------------------------------------------------------------------------------------
 
         bool cabWin;           // a window is out (or sliding)
-        int cabKind;           // 0 a panel drawn by its own screen (the profile), 1 a Settings section, 2 How to play
+        int cabKind;           // 0 a panel drawn by its own screen, 1 a Settings section, 2 How to play, 3 a profile option
         float cabWinInAt, cabWinOutAt = -1f;
         Action cabWinAfter;
         Rect cabWinRect;
@@ -181,7 +181,7 @@ namespace Arena
         float cabWinPower;
         int cabWinRow;         // labels in the window so far (their typing slots)
 
-        /// Open the window with content kind 1 (a Settings section) or 2 (How to play). The first time it slides out from behind
+        /// Open the window with content kind 1 (a Settings section), 2 (How to play) or 3 (a profile option). The first time it slides out from behind
         /// the cabinet and powers on; when one is already out, only its text retypes.
         void OpenCabWindow(int kind)
         {
@@ -265,6 +265,8 @@ namespace Arena
                 return;
             if (cabKind == 1)
                 DrawSettingsSection(Time.unscaledTime);
+            else if (cabKind == 3)
+                DrawProfileSection(Time.unscaledTime);  // ProfileWindows.cs
             else
                 DrawHowToBody(Time.unscaledTime);
         }

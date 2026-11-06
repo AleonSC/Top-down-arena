@@ -1,24 +1,28 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
 {
-    /// Your profile (Docs/Mockups/profile-merge.html, layout 1: card plus tabs). One drawer for what used to be two windows, "Your look"
-    /// and Records. On the left of the drawer: your card (badge, name, title, XP) and four tabs. Under the tabs, the rows of the open tab:
-    ///   Look     the cosmetics (CosmeticsUi.cs: Frame, Trail, Background, Card background, Name effect, Aim line, Cursor)
-    ///   Rank     the Reward ladder (CosmeticsUi.cs) and Rank and runs (RankUi.cs)
+    /// Your profile as a CRT cabinet (Docs/Mockups/crt-profile.html), the same cabinet, opening and side windows as the pause menu
+    /// and Settings (CrtWindows.cs). The cabinet on the left: a "PROFILE_" header screen, a profile screen (rank badge, your name with
+    /// a pencil key to rename, title and rank, XP bar), four tab keys and the open tab's options as digital keys, and a physical Back
+    /// key. An option opens in a CRT window to the right (it slides out and powers on the first time, later picks only retype it):
+    ///   Look     Frame, Trail, Background, Card background, Name effect, Aim line, Cursor (CosmeticsUi.cs: try it on, equip)
+    ///   Rank     Progress, Reward ladder, Tiers, XP sources (ProfileWindows.cs, CosmeticsUi.cs)
     ///   Records  Overview, Bosses, Classes, Challenge rooms, Recent runs (MenuDrawer.cs, DrawRecordsSection; RunGraphs.cs)
-    ///   Unlocks  the unlock list
-    /// The open row fills the panel on the right. It opens from your player card on the main menu (OpenProfile). In the lobby and pause
-    /// menus it opens without the Look tab (nothing is renamed or equipped mid-run; Rank > Rank and runs still has Equip).
+    ///   Unlocks  every cosmetic kind with checks and padlocks (ProfileWindows.cs)
+    /// It opens from your player card on the main menu (OpenProfile). In the lobby and pause menus it opens without the Look tab
+    /// (nothing is renamed or equipped mid-run).
     public partial class ArenaApp
     {
         bool profileOpen;
         int profileTab;      // 0 Look, 1 Rank, 2 Records, 3 Unlocks
-        int rankSection;     // in the Rank tab: 0 Reward ladder, 1 Rank and runs
+        int rankSection;     // in the Rank tab: 0 Progress, 1 Reward ladder, 2 Tiers, 3 XP sources
+        int unlocksSection;  // in the Unlocks tab: 0..6 the Look kinds, 7 Emotes, 8 Other unlocks
 
         static readonly string[] ProfileTabs = { "Look", "Rank", "Records", "Unlocks" };
-        static readonly string[] RankRows = { "Reward ladder", "Rank and runs" };
-        static readonly string[] RecordRows = { "Overview", "Bosses", "Classes", "Challenge rooms", "Recent runs" };
+        const int RecordRowCount = 5;  // Overview, Bosses, Classes, Challenge rooms, Recent runs
 
         /// Open the profile on a tab (0 Look, 1 Rank, 2 Records, 3 Unlocks). Opening it ends the main menu's "your profile" nudge for good.
         void OpenProfile(int tab = 0)
@@ -27,7 +31,8 @@ namespace Arena
             profileTab = Mathf.Clamp(tab, 0, ProfileTabs.Length - 1);
             cosmeticsSection = 0;
             rankSection = 0;
-            recordsSection = Mathf.Clamp(recordsSection, 0, RecordRows.Length - 1);
+            unlocksSection = 0;
+            recordsSection = Mathf.Clamp(recordsSection, 0, RecordRowCount - 1);
             ladderScroll = -1f;  // the ladder opens at your rank
             editingName = false;
             var p = Profile.Current;
@@ -40,48 +45,204 @@ namespace Arena
 
         void DrawProfile() { if (!SkipWhileClosing) DrawProfileWindow(); }
 
+        /// The profile: the window (first, so it comes out from behind the cabinet) and the cabinet.
         void DrawProfileWindow(bool inMenu = false)
         {
-            var p = Profile.Current;
-            float t = Time.unscaledTime;
-            float k = DrawerIn(inMenu ? "pause-profile" : "profile", !inMenu);
+            DrawerIn(inMenu ? "pause-profile" : "profile", !inMenu);
             if (inMenu && profileTab == 0)
                 profileTab = 1;
             if (inMenu)
                 editingName = false;
-            var info = Rank.Of(p.Xp);
-            var tc = RankLook.TierColor(info.Rank);
-            BeginDrawer("PROFILE", Ui.Gold, k, "Your look, rank and records", 44, new Rect(26f, 134f, 358f, H - 134f - 26f));
-            bool closeChip = CabCloseKey();
+            DrawCabWindow();  // CrtWindows.cs: DrawProfileSection (ProfileWindows.cs) when an option is open
+            DrawProfileCabinet(inMenu);
+        }
 
-            // The card: the badge, your name and title, the XP towards the next rank.
-            RankLook.Draw(new Rect(40f, 130f, 72f, 72f), info.Rank);
-            int nsize = 22;
-            while (nsize > 12 && Ui.TextWidth(nameText, nsize, true) + 10f > DrawerW - 210f)
-                nsize--;
-            var nameBox = new Rect(128f, 134f, DrawerW - 210f, 30f);
-            if (editingName)
+        /// One key of the cabinet's option list.
+        struct ProfOpt
+        {
+            public string Name, Icon, Line, Tag;
+        }
+
+        int ProfSel
+        {
+            get { return profileTab == 0 ? cosmeticsSection : profileTab == 1 ? rankSection : profileTab == 2 ? recordsSection : unlocksSection; }
+            set
             {
-                string before = nameText;
-                GUI.SetNextControlName("look_name");
-                nameText = Ui.BareField(nameBox, nameText, 16, nsize);
-                if (nameText != before)
-                    SaveMenuFields();
-                if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
-                {
-                    editingName = false;
-                    GUI.FocusControl(null);
-                    Event.current.Use();
-                }
+                if (profileTab == 0) cosmeticsSection = value;
+                else if (profileTab == 1) rankSection = value;
+                else if (profileTab == 2) recordsSection = value;
+                else unlocksSection = value;
+            }
+        }
+
+        /// The Unlocks tab's kinds: the seven Look kinds, then Emotes.
+        static readonly string[] UnlockKinds = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Cursor", "Emotes" };
+
+        /// How many of this kind's cosmetics the rank has reached, and how many there are.
+        static void UnlockCount(int rank, CosmeticKind kind, out int got, out int all)
+        {
+            got = all = 0;
+            foreach (var c in Rank.OfKind(kind))
+            {
+                all++;
+                if (rank >= c.Rank)
+                    got++;
+            }
+        }
+
+        /// The open tab's option keys.
+        List<ProfOpt> ProfileOptions(Profile p, int tab)
+        {
+            var l = new List<ProfOpt>();
+            if (tab == 0)
+            {
+                for (int i = 0; i < 7; i++)
+                    l.Add(new ProfOpt { Name = CosmeticSections[i], Icon = CosmeticIcons[i], Line = EquippedShort(p, KindOfSection(i)) });
+            }
+            else if (tab == 1)
+            {
+                l.Add(new ProfOpt { Name = "Progress", Icon = "ui_star", Line = "Rank, XP and what is next" });
+                l.Add(new ProfOpt { Name = "Reward ladder", Icon = "ui_trophy", Line = "What each rank unlocks" });
+                l.Add(new ProfOpt { Name = "Tiers", Icon = "ui_card", Line = "Five titles, five colours" });
+                l.Add(new ProfOpt { Name = "XP sources", Icon = "ui_book", Line = "What earns XP" });
+            }
+            else if (tab == 2)
+            {
+                int bossesBeaten = 0, classWins = 0, roomsWon = 0;
+                foreach (var b in RecordBosses)
+                    if (p.Beaten(b) > 0)
+                        bossesBeaten++;
+                foreach (var kv in p.WinsAs)
+                    if (kv.Value > 0)
+                        classWins++;
+                foreach (var c in Challenges.All)
+                    roomsWon += p.RoomWon(c);
+                l.Add(new ProfOpt { Name = "Overview", Icon = "ui_star", Line = p.RunsStarted + " runs started" });
+                l.Add(new ProfOpt { Name = "Bosses", Icon = "ui_skull", Line = bossesBeaten + " of " + RecordBosses.Length + " beaten" });
+                l.Add(new ProfOpt { Name = "Classes", Icon = "class_knight", Line = classWins + " won" });
+                l.Add(new ProfOpt { Name = "Challenge rooms", Icon = "blink", Line = roomsWon + " won" });
+                l.Add(new ProfOpt { Name = "Recent runs", Icon = "ui_book", Line = p.Recent.Count == 0 ? "none yet" : "graphs of the last " + p.Recent.Count });
             }
             else
-                Ui.Label(nameBox, nameText, nsize, Color.white, TextAnchor.MiddleLeft, true);
-            if (!inMenu)
             {
-                // The pencil: rename yourself here (the main menu's card only opens this window).
-                float nw = editingName ? Ui.TextWidth(nameText, nsize, true) + 10f : Ui.TextWidth(nameText, nsize, true);
-                var pencil = new Rect(Mathf.Min(128f + nw + 4f, DrawerW - 72f), 138f, 24f, 24f);
-                if (Ui.HitArea(pencil))
+                int rank = p.RankNow;
+                for (int i = 0; i < UnlockKinds.Length; i++)
+                {
+                    int got, all;
+                    UnlockCount(rank, i == 7 ? CosmeticKind.Emote : KindOfSection(i), out got, out all);
+                    l.Add(new ProfOpt { Name = UnlockKinds[i], Icon = i == 7 ? "ui_emote" : CosmeticIcons[i], Tag = got + " of " + all });
+                }
+                if (Unlocks.All.Count > 0)
+                {
+                    int got = 0;
+                    foreach (var u in Unlocks.All)
+                        if (p.IsUnlocked(u.Id))
+                            got++;
+                    l.Add(new ProfOpt { Name = "Other unlocks", Icon = "ui_lock", Tag = got + " of " + Unlocks.All.Count });
+                }
+            }
+            return l;
+        }
+
+        /// What you have equipped, in a few words (the kind's name left off: "Ember" for "Ember trail").
+        static string EquippedShort(Profile p, CosmeticKind kind)
+        {
+            var c = Rank.Cosmetic(p.Equipped(kind));
+            return c == null ? EquippedName(p, kind) : StripKind(c.Name);
+        }
+
+        /// A cosmetic's name without the kind's word at the end ("Ember" for "Ember trail").
+        static string StripKind(string n)
+        {
+            foreach (var suffix in new[] { " frame", " trail", " card", " name", " aim line", " cursor" })
+                if (n.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) && n.Length > suffix.Length + 2)
+                    return n.Substring(0, n.Length - suffix.Length);
+            return n;
+        }
+
+        /// A cosmetic's name for a list row `width` wide: in full at 18, smaller down to `minSize`, then without the kind's word,
+        /// and only then wrapped onto two lines.
+        static string FitCosmeticName(string name, float width, int minSize, out int size, out bool wrap)
+        {
+            string n = name;
+            if (Ui.TextWidth(n, minSize, true) - 6f > width)
+                n = StripKind(name);
+            size = 18;
+            while (size > minSize && Ui.TextWidth(n, size, true) - 6f > width)
+                size--;
+            wrap = Ui.TextWidth(n, size, true) - 6f > width;
+            return n;
+        }
+
+        // --- A screen on the cabinet beside the header and the option list ---------------------------------------------------
+
+        bool CabScreenBegin(Rect r, float delay) => CrtKit.PowerOn(r, CabAge - delay, CabCalm);
+
+        void CabScreenEnd(Rect r, float delay)
+        {
+            CrtUi.End(r, WinNow, CabCalm);
+            CrtKit.PowerFlash(r, CabAge - delay, CabCalm);
+        }
+
+        /// A small square digital key with a pixel icon (the profile's pencil). True when pressed.
+        bool IconKey(Rect r, string icon, bool sel)
+        {
+            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            var c = CrtUi.Ink;
+            bool fill = hover || sel;
+            Ui.Fill(r, fill ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, 0.08f));
+            CrtKit.Frame(r, 2f, c);
+            Ui.Icon(new Rect(r.center.x - 10f, r.center.y - 10f, 20f, 20f), PixelArt.Get(icon), fill ? CrtUi.Bg : c);
+            return Ui.HitArea(r);
+        }
+
+        // --- The cabinet ------------------------------------------------------------------------------------------------------
+
+        void DrawProfileCabinet(bool inMenu)
+        {
+            var p = Profile.Current;
+            bool calm = CabCalm;
+            var info = Rank.Of(p.Xp);
+            var tc = RankLook.TierColor(info.Rank);
+            cabBootLog = "> LINK OK   > PROFILE OK   > RANK " + info.Rank;
+            var opts = ProfileOptions(p, profileTab);
+            int n = opts.Count;
+            ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
+            bool oneLine = n > 7;
+            float rowH = oneLine ? 29f : 40f, step = rowH + (oneLine ? 3f : 2f);
+            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 314f, 358f, 302f));
+
+            // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
+            var ps = new Rect(26f, 136f, 358f, 120f);
+            if (CabScreenBegin(ps, 0.9f))
+            {
+                var badge = new Rect(ps.x + 12f, ps.y + 8f, 76f, 76f);
+                if (!calm)
+                    Ui.Pill(new Rect(badge.x - 4f, badge.y + 2f, badge.width + 8f, badge.height - 4f), new Color(tc.r, tc.g, tc.b, 0.07f + 0.07f * (0.5f + 0.5f * Mathf.Sin(WinNow * 2f))));
+                RankLook.Draw(badge, info.Rank);
+                int nsize = 28;
+                float nameW = 190f;
+                while (nsize > 14 && Ui.TextWidth(nameText, nsize, true) + 10f > nameW)
+                    nsize--;
+                var nameBox = new Rect(ps.x + 100f, ps.y + 8f, nameW, 36f);
+                if (editingName && !inMenu)
+                {
+                    string before = nameText;
+                    GUI.SetNextControlName("look_name");
+                    nameText = Ui.BareField(nameBox, nameText, 16, nsize);
+                    if (nameText != before)
+                        SaveMenuFields();
+                    if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
+                    {
+                        editingName = false;
+                        GUI.FocusControl(null);
+                        Event.current.Use();
+                    }
+                }
+                else
+                    CrtUi.Text(nameBox, CabText("cab.pname", nameText, 1.2f), nsize, Color.white, TextAnchor.MiddleLeft, true, calm);
+                if (!inMenu && IconKey(new Rect(ps.xMax - 14f - 46f, ps.y + 8f, 46f, 34f), "ui_pencil", editingName))
                 {
                     editingName = !editingName;
                     if (editingName)
@@ -92,112 +253,63 @@ namespace Arena
                         SaveMenuFields();
                     }
                 }
-                Ui.Icon(new Rect(pencil.x + 3f, pencil.y + 3f, 18f, 18f), PixelArt.Get("ui_pencil"), pencil.Contains(Event.current.mousePosition) || editingName ? Ui.Gold : Ui.Muted);
+                CrtUi.Text(new Rect(ps.x + 100f, ps.y + 50f, 250f, 28f), CabText("cab.ptitle", Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 1.3f), 22, tc, TextAnchor.MiddleLeft, true, calm);
+                var bar = new Rect(ps.x + 14f, ps.y + 94f, ps.width - 28f, 8f);
+                Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
+                if (!calm)
+                    Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), new Color(tc.r, tc.g, tc.b, 0.18f));
+                Ui.Fill(new Rect(bar.x, bar.y, bar.width * info.Fraction, bar.height), tc);
+                Ui.Label(new Rect(ps.x + 14f, ps.y + 102f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtUi.Dim, TextAnchor.MiddleRight, true);
+                CabScreenEnd(ps, 0.9f);
             }
-            Ui.Label(new Rect(128f, 164f, DrawerW - 160f, 20f), Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 14, tc, TextAnchor.MiddleLeft, true);
-            Ui.Bar(new Rect(42f, 218f, DrawerW - 84f, 9f), info.Fraction, tc);
-            Ui.Label(new Rect(42f, 230f, DrawerW - 84f, 18f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 11, Ui.Muted, TextAnchor.MiddleRight);
 
-            // The tabs.
-            int first = inMenu ? 1 : 0, n = ProfileTabs.Length - first;
-            float gap = 6f, tw = (DrawerW - 56f - gap * (n - 1)) / n;
+            // The tab keys.
+            var ts = new Rect(26f, 264f, 358f, 42f);
+            if (CabScreenBegin(ts, 0.9f))
+            {
+                int first = inMenu ? 1 : 0, nt = ProfileTabs.Length - first;
+                float gap = 5f, tw = (ts.width - 12f - gap * (nt - 1)) / nt;
+                for (int i = 0; i < nt; i++)
+                {
+                    int id = first + i;
+                    string label = CabText("cab.tab" + id, ProfileTabs[id].ToUpperInvariant(), 1.15f + i * 0.06f);
+                    if (WinKey(new Rect(ts.x + 6f + i * (tw + gap), ts.y + 6f, tw, 30f), label, profileTab == id, 14) && profileTab != id)
+                    {
+                        profileTab = id;
+                        if (CabWindowOpen)
+                        {
+                            ProfSel = 0;  // the open window swaps to the new tab's first option (its text retypes)
+                            OpenCabWindow(3);
+                        }
+                    }
+                }
+                CabScreenEnd(ts, 0.9f);
+            }
+
+            // The options of the open tab.
+            float y = cabScreen.y + 5f;
             for (int i = 0; i < n; i++)
             {
-                int id = first + i;
-                if (Ui.SmallButton(new Rect(28f + i * (tw + gap), 262f, tw, 34f), ProfileTabs[id], profileTab == id ? Ui.GoldButton : Ui.Neutral, 14) && profileTab != id)
+                bool on = cabWin && cabKind == 3 && cabWinOutAt < 0f && ProfSel == i;
+                var o = opts[i];
+                if (DrawerRow(new Rect(34f, y, 342f, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Gold, on))
                 {
-                    profileTab = id;
-                    if (id == 2)
-                        recordsSection = Mathf.Clamp(recordsSection, 0, RecordRows.Length - 1);
+                    ProfSel = i;
+                    OpenCabWindow(3);  // (the first pick slides it out; later ones only retype it)
                 }
+                y += step;
             }
-
-            // The rows of the open tab.
-            int bossesBeaten = 0, classWins = 0, roomsWon = 0;
-            foreach (var b in RecordBosses)
-                if (p.Beaten(b) > 0)
-                    bossesBeaten++;
-            foreach (var kv in p.WinsAs)
-                if (kv.Value > 0)
-                    classWins++;
-            foreach (var c in Challenges.All)
-                roomsWon += p.RoomWon(c);
-            Color[] cols = { Ui.Gold, Ui.Gold, new Color(1f, 0.6f, 0.3f), new Color(0.45f, 0.9f, 1f), Ui.Gold, tc, new Color(0.45f, 0.9f, 1f) };  // (4 Unlocks, 5 the Rank page, 6 Recent runs: sections past the row list)
-            float y = 312f;
-            if (profileTab == 0)
+            EndDrawerScreen();
+            if (cabScreenOn && CrtKit.PhysicalKey(new Rect(40f, 628f, 330f, 52f), "BACK", calm))
             {
-                for (int i = 0; i < 7; i++)  // (the Reward ladder is in the Rank tab)
-                {
-                    bool on = i == cosmeticsSection;
-                    var r = new Rect(28f, y, DrawerW - 56f, on ? 56f : 46f);
-                    if (DrawerRow(r, PixelArt.Get(CosmeticIcons[i]), CosmeticSections[i], EquippedName(p, KindOfSection(i)), null, null, Ui.Gold, on))
-                        cosmeticsSection = i;
-                    y += r.height + 4f;
-                }
-            }
-            else if (profileTab == 1)
-            {
-                string[] icons = { "ui_trophy", "ui_star" };
-                string[] lines = { "What each rank unlocks", "Your XP and the last runs" };
-                string[] tags = { null, "Rank " + p.RankNow };
-                Color[] rc = { Ui.Gold, tc };
-                for (int i = 0; i < RankRows.Length; i++)
-                {
-                    bool on = i == rankSection;
-                    var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                    if (DrawerRow(r, PixelArt.Get(icons[i]), RankRows[i], lines[i], null, tags[i], rc[i], on))
-                        rankSection = i;
-                    y += r.height + 4f;
-                }
-            }
-            else if (profileTab == 2)
-            {
-                string[] icons = { "ui_star", "ui_skull", "class_knight", "blink", "ui_book" };
-                string[] tags = { p.RunsStarted + " runs", bossesBeaten + " / " + RecordBosses.Length, classWins + " won", roomsWon + " won", p.Recent.Count == 0 ? "none yet" : "last " + p.Recent.Count };
-                for (int i = 0; i < RecordRows.Length; i++)
-                {
-                    bool on = i == recordsSection;
-                    var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
-                    if (DrawerRow(r, PixelArt.Get(icons[i]), RecordRows[i], i == 0 ? "Practice and dev-tool runs don't count" : i == 4 ? "Graphs of how each run went" : null, null, tags[i], cols[i], on,
-                        i == 1 && bossesBeaten > 0 ? Ui.Good : (Color?)null))
-                        recordsSection = i;
-                    y += r.height + 4f;
-                }
-            }
-            else
-            {
-                int got = 0;
-                foreach (var u in Unlocks.All)
-                    if (p.IsUnlocked(u.Id))
-                        got++;
-                Ui.Label(new Rect(42f, y + 4f, DrawerW - 84f, 20f), Unlocks.All.Count == 0 ? "Unlocks are on their way" : got + " of " + Unlocks.All.Count + " unlocked", 15, Ui.Text, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(42f, y + 30f, DrawerW - 84f, 40f), "Each unlock opens up when its condition is met. Locked ones show what they need.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            }
-            if (closeChip)
-            {
-                if (inMenu)
+                if (CabWindowOpen)
+                    CloseCabWindow();  // the window slides back in first
+                else if (inMenu)
                     pauseRecords = false;
                 else
                     CloseWindow(() => profileOpen = false);
             }
             EndDrawer();
-
-            // The open row, in the panel on the right.
-            int sub = profileTab == 0 ? cosmeticsSection : profileTab == 1 ? rankSection : profileTab == 2 ? recordsSection : 0;
-            BeginPanelAnim("profile" + profileTab + "_" + sub);
-            switch (profileTab)
-            {
-                case 0: DrawCosmeticPanel(p, t, k); break;  // CosmeticsUi.cs
-                case 1:
-                    if (rankSection == 0)
-                        DrawLadderPanel(p, k);  // CosmeticsUi.cs
-                    else
-                        DrawRecordsSection(5, p, t, bossesBeaten, roomsWon, cols);  // the Rank page (RankUi.cs)
-                    break;
-                case 2: DrawRecordsSection(recordsSection == 4 ? 6 : recordsSection, p, t, bossesBeaten, roomsWon, cols); break;  // (row 4 is Recent runs, page 6)
-                default: DrawRecordsSection(4, p, t, bossesBeaten, roomsWon, cols); break;  // Unlocks
-            }
-            EndPanelAnim();
         }
 
         // --- The nudge on the main menu ----------------------------------------------------------------------------------------

@@ -392,7 +392,10 @@ namespace Arena
         {
             if (pauseRecords)
             {
-                pauseRecords = false;
+                if (CabWindowOpen)
+                    CloseCabWindow();  // the profile's window first
+                else
+                    pauseRecords = false;
                 return;
             }
             if (CabWindowOpen)
@@ -746,8 +749,7 @@ namespace Arena
 
         // --- Records -----------------------------------------------------------------------------------------------------
 
-        // The Records pages are tabs of the profile now (ProfileUi.cs): Overview, Bosses, Classes, Challenge rooms (Records tab), Unlocks
-        // (Unlocks tab) and Rank (Rank tab, "Rank and runs"). `sec` is 0 to 5 in that order.
+        // The Records pages are the Records tab of the profile (ProfileUi.cs): `sec` 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 6 Recent runs.
 
         void DrawRecordsSection(int sec, Profile p, float t, int bossesBeaten, int roomsWon, Color[] cols)
         {
@@ -759,7 +761,7 @@ namespace Arena
             {
                 case 0:
                 {
-                    OpenSectionPanel("OVERVIEW", col, null, k);
+                    OpenSectionPanel("OVERVIEW", col, "Practice and dev-tool runs do not count.", k);
                     var span = TimeSpan.FromSeconds(p.PlayTime);
                     string played = span.TotalHours >= 1 ? (int)span.TotalHours + " h " + span.Minutes + " m" : (int)(p.PlayTime / 60f) + " min";
                     string[,] tiles = {
@@ -770,12 +772,12 @@ namespace Arena
                     float tw = (w - 30f) / 4f, th = 78f;
                     for (int i = 0; i < tiles.GetLength(0); i++)
                     {
-                        var tr = new Rect(x + (i % 4) * (tw + 10f), DrawerPanel.y + 84f + (i / 4) * (th + 12f), tw, th);
+                        var tr = new Rect(x + (i % 4) * (tw + 10f), DrawerPanel.y + 104f + (i / 4) * (th + 12f), tw, th);
                         CabCard(tr, 0.035f);
                         Ui.Fancy(new Rect(tr.x + 14f, tr.y + 10f, tr.width - 20f, 34f), tiles[i, 1], 24, Color.white, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
                         Ui.Label(new Rect(tr.x + 14f, tr.y + 48f, tr.width - 20f, 16f), tiles[i, 0].ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
                     }
-                    Ui.Label(new Rect(x, DrawerPanel.y + 84f + 3 * (th + 12f) + 8f, w, 18f), "Times downed: " + p.Downs + "  ·  boss kills: " + p.BossKills, 12, Ui.Muted);
+                    Ui.Label(new Rect(x, DrawerPanel.y + 104f + 3 * (th + 12f) + 8f, w, 18f), "Times downed: " + p.Downs + "  ·  boss kills: " + p.BossKills, 12, Ui.Muted);
                     break;
                 }
                 case 1:
@@ -842,31 +844,8 @@ namespace Arena
                     }
                     break;
                 }
-                case 4:
-                {
-                    OpenSectionPanel("UNLOCKS", col, null, k);
-                    float uy = DrawerPanel.y + 84f;
-                    if (Unlocks.All.Count == 0)
-                        Ui.Label(new Rect(x, uy, w, 60f), "Unlocks are on their way. Your records are already being kept, so anything you've done will count.", 14, Ui.Muted, TextAnchor.UpperLeft, false, true);
-                    foreach (var u in Unlocks.All)
-                    {
-                        bool on = p.IsUnlocked(u.Id);
-                        var rr = new Rect(x, uy, w, 56f);
-                        CabCard(rr, on ? 0.06f : 0.025f);
-                        IconTile(new Rect(rr.x + 6f, rr.y + 6f, 44f, 44f), PixelArt.Get(on ? "ui_star" : "ui_lock"), on ? Ui.Gold : Ui.Muted, 26f);
-                        Ui.Label(new Rect(rr.x + 62f, rr.y + 6f, w - 180f, 20f), u.Name, 15, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-                        Ui.Label(new Rect(rr.x + 62f, rr.y + 28f, w - 80f, 18f), u.Desc, 12, Ui.Muted);
-                        if (on)
-                            Ui.Badge(new Rect(rr.xMax - 100f, rr.y + 8f, 86f, 18f), "UNLOCKED", Ui.GoldButton);
-                        uy += 64f;
-                    }
-                    break;
-                }
-                case 6:
-                    DrawRecentRuns(p, t, col, k);  // RunGraphs.cs
-                    break;
                 default:
-                    DrawRankRecords(p, t, col, k);  // RankUi.cs
+                    DrawRecentRuns(p, t, col, k);  // RunGraphs.cs (page 6)
                     break;
             }
         }

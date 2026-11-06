@@ -477,7 +477,18 @@ namespace Arena
                         CloseWindow(() => howToOpen = false);
                 }
                 else if (profileOpen)
-                    CloseWindow(() => profileOpen = false);  // ProfileUi.cs
+                {
+                    if (editingName)
+                    {
+                        editingName = false;  // Esc ends renaming first
+                        GUI.FocusControl(null);
+                        SaveMenuFields();
+                    }
+                    else if (CabWindowOpen)
+                        CloseCabWindow();  // the option's window slides back in first
+                    else
+                        CloseWindow(() => profileOpen = false);  // ProfileUi.cs
+                }
                 else if (menuPlayOpen && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
                     PlayPickerBack();  // the saved-runs picker: back to the older runs' first page, or to the menu (SavesUi.cs)
             }
