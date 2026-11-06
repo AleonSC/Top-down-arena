@@ -1116,6 +1116,7 @@ namespace Arena
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
+            TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
@@ -1243,8 +1244,8 @@ namespace Arena
                 }
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
-                else if (p.Weapon.Id == WeaponId.Katana)
-                    TickKatanaFire(p);  // swipe, swipe, lunge, with the next step queued if you tap ahead (Ninja.cs)
+                else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
+                    TickKatanaFire(p);  // swipe, swipe, lunge (Katana) or slash, jab, spin (Bo Staff), with the next step queued if you tap ahead (Katana.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);

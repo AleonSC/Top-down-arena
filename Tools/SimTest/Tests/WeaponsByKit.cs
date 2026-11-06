@@ -975,6 +975,59 @@ static partial class Program
         Console.WriteLine("  katana empowered: target dead {0}, route dead {1}, chain {2}, meter {3:0}", big.Hp <= 0f, mid.Hp <= 0f, me.KatanaChain, me.KatanaMeter);
         Check(big.Hp <= 0f && mid.Hp <= 0f, "an empowered strike deals 240 to the target and 120 to everything it crossed");
         Check(me.KatanaChain == 0 && me.KatanaMeter == 100f, "an empowered kill starts the chain again and the meter stays full");
+
+        // Bo Staff (Docs/Mockups/bo-staff-rework.html): slash, jab, spin in that order with no timer; the shove (weapon-action key) starts it over.
+        reset();
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoStaff);
+        me.Hp = me.MaxHp;
+        var bNear = dummy(from + new V2(70f, 0f), 1e5f);   // inside every swing's reach, on the aim line
+        var bFar = dummy(from + new V2(130f, 0f), 1e5f);   // past the slash and the spin; the jab's line reaches it
+        var bSide = dummy(from + new V2(0f, 80f), 1e5f);   // beside you: only the spin goes round to it
+        Func<float[]> bo = () => new[] { bNear.MaxHp - bNear.Hp, bFar.MaxHp - bFar.Hp, bSide.MaxHp - bSide.Hp };
+        var boHit = new float[3][]; var boOrder = new int[3];
+        me.BoStep = 0;
+        for (int step = 0; step < 3; step++)
+        {
+            bNear.Hp = bNear.MaxHp; bFar.Hp = bFar.MaxHp; bSide.Hp = bSide.MaxHp;
+            boOrder[step] = me.BoStep;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            play(0.3f, new PlayerInput());
+            boHit[step] = bo();
+        }
+        Console.WriteLine("  bo staff: steps {0},{1},{2}; near {3:0.0}/{4:0.0}/{5:0.0}, far {6:0.0}/{7:0.0}/{8:0.0}, side {9:0.0}/{10:0.0}/{11:0.0}; next step {12}",
+            boOrder[0], boOrder[1], boOrder[2], boHit[0][0], boHit[1][0], boHit[2][0], boHit[0][1], boHit[1][1], boHit[2][1], boHit[0][2], boHit[1][2], boHit[2][2], me.BoStep);
+        Check(boOrder[0] == 0 && boOrder[1] == 1 && boOrder[2] == 2 && me.BoStep == 0, "the Bo Staff goes slash, jab, spin, then starts over");
+        Check(boHit[0][0] > 0f && boHit[0][1] == 0f && boHit[0][2] == 0f, "the slash reaches what's ahead in its cone, not the far one or the one beside you");
+        Check(Math.Abs(boHit[1][0] - boHit[0][0] * Game.BoJabMult) < 0.6f && Math.Abs(boHit[1][1] - boHit[1][0]) < 0.6f && boHit[1][2] == 0f, "the jab hits a line straight ahead, near and far, for 22");
+        Check(Math.Abs(boHit[2][0] - boHit[0][0] * Game.BoSpinMult) < 0.6f && boHit[2][1] == 0f && Math.Abs(boHit[2][2] - boHit[2][0]) < 0.6f, "the spin goes all the way round for 30");
+        me.BoStep = 0; me.FireCd = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(4f, new PlayerInput());
+        Check(me.BoStep == 1 && client.Game.Players[1].BoStep == 1, "there is no timer: after a long pause the next click is the jab (and the client sees the step)");
+        // Clicks held down carry on through the chain by themselves, with each step's own hold between them.
+        me.BoStep = 0; me.FireCd = 0f;
+        var holdSteps = new List<int>();
+        int boLast = me.BoStep;
+        for (int f = 0; f < 60; f++)
+        {
+            play(1f / 60f, new PlayerInput { Fire = true, AimAt = from + new V2(100f, 0f) });
+            if (me.BoStep != boLast) { holdSteps.Add(me.BoStep); boLast = me.BoStep; }
+        }
+        Console.WriteLine("  bo staff held: steps over 1 s {0}", string.Join(",", holdSteps));
+        Check(holdSteps.Count == 3 && holdSteps[0] == 1 && holdSteps[1] == 2 && holdSteps[2] == 0, "holding the button plays slash, jab, spin, then slash again as each step ends");
+        // The shove: starts the chain over, once a second; its damage is 6/16 of a slash.
+        reset();
+        me.BoStep = 2; me.ShoveCd = 0f; me.FireCd = 0f;
+        var shoveT = dummy(from + new V2(60f, 0f), 1e5f);
+        hostDash.Invoke(g, new object[] { 1, 6, from + new V2(100f, 0f) });
+        play(0.3f, new PlayerInput { AimAt = from + new V2(100f, 0f) });
+        float shoveDmg = shoveT.MaxHp - shoveT.Hp;
+        Console.WriteLine("  bo staff shove: chain step {0}, hit for {1:0.0}", me.BoStep, shoveDmg);
+        Check(me.BoStep == 0 && Math.Abs(shoveDmg - boHit[0][0] * Game.BoShoveMult) < 0.6f, "the shove starts the chain over and deals 6 for a 16 slash");
+        me.BoStep = 2;
+        hostDash.Invoke(g, new object[] { 1, 6, from + new V2(100f, 0f) });
+        play(0.3f, new PlayerInput { AimAt = from + new V2(100f, 0f) });
+        Check(me.BoStep == 2 && Math.Abs((shoveT.MaxHp - shoveT.Hp) - shoveDmg) < 0.1f, "a second shove inside its cooldown does nothing");
         host.Leave(""); client.Leave("");
     }
 

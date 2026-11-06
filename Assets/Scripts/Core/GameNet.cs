@@ -480,6 +480,7 @@ namespace Arena
             s.Byte(ref p.KatanaStep);
             s.Byte(ref p.KatanaLunges);
             s.Byte(ref p.KatanaChain);
+            s.Byte(ref p.BoStep);
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.DoseT);
