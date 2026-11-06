@@ -468,6 +468,9 @@ namespace Arena
             s.Float(ref p.OrbitT);
             s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)
             s.Byte(ref p.OrbitN);
+            s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
+            s.Float(ref p.HarvestBlood);
+            s.Float(ref p.HarvestHold);
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
             s.Float(ref p.SpinUp);
@@ -477,6 +480,7 @@ namespace Arena
             s.Byte(ref p.KatanaStep);
             s.Byte(ref p.KatanaLunges);
             s.Byte(ref p.KatanaChain);
+            s.Byte(ref p.BoStep);
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.DoseT);

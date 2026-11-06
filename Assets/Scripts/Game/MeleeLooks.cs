@@ -167,6 +167,8 @@ namespace Arena
                     DrawSlashLayer(fx, true);
                 else if (fx.Kind == FxKind.Jab)
                     DrawJabLayer(fx, true);
+                else if (fx.Kind == FxKind.StaffShove)
+                    DrawStaffShoveLayer(fx, true);  // BoStaffLook.cs
             }
         }
 

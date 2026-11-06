@@ -219,6 +219,8 @@ namespace Arena
                 if (p.Id == game.MyId)
                     DrawKatanaAim(p, t);
             }
+            if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)
+                DrawBoStaffPips(p, t);
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);
@@ -341,6 +343,8 @@ namespace Arena
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
                 DrawDashWake(p, t);
+            if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)
+                DrawHarvest(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)
                 DrawBladeOrbit(p, t);
         }

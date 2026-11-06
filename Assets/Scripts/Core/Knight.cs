@@ -370,6 +370,8 @@ namespace Arena
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
                 BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
+            else if (box && p.Weapon.Id == WeaponId.BoStaff)  // the Bo Staff's jab: a thrust, drawn like the Rapier's (MeleeLooks.cs)
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), -0.3f, 0.24f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);

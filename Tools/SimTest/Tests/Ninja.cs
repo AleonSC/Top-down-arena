@@ -73,49 +73,58 @@ static partial class Program
         front.Hp = behind.Hp = 0f; keep.Remove(front); keep.Remove(behind);
         var d1 = dummy(new V2(770f, 450f));
 
-        // Bo Staff: press the weapon-action key while moving to vault, striking what you pass; holding or standing still doesn't.
+        // Bo Staff: the weapon-action key shoves a bar of staff out ahead of you: what's in it is pushed straight ahead 70 px for a little
+        // damage, what's outside it isn't touched, and it cools down for a second. Standing still or moving makes no difference.
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
         place(1, 300f); run(0.3f);
-        d1.Pos = new V2(380f, 450f);
-        var aside = dummy(new V2(380f, 600f));
-        float d1hp = d1.Hp;
-        Func<int, bool, V2, float> stepFor = (frames, fire, mv) =>
+        d1.Pos = new V2(360f, 450f);
+        var aside = dummy(new V2(360f, 600f));
+        float d1hp = d1.Hp, d1x0 = d1.Pos.X, asideY0 = aside.Pos.Y;
+        Action<int, bool, V2> shoveFor = (frames, key, mv) =>
         {
-            float x0 = hp.Pos.X;
             for (int f = 0; f < frames; f++)
             {
-                host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = fire, Move = mv, AimAt = hp.Pos + new V2(100f, 0f) }); g.Update(dt);
+                host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = key, Move = mv, AimAt = hp.Pos + new V2(100f, 0f) }); g.Update(dt);
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
-                clear(); d1.Pos = new V2(380f, 450f); aside.Pos = new V2(380f, 600f); d1.FireT = aside.FireT = 99f;
+                clear(); d1.FireT = aside.FireT = 99f; d1.FrozenT = aside.FrozenT = 5f;
             }
-            return hp.Pos.X - x0;
         };
-        float vaulted = stepFor(11, true, new V2(1f, 0f));
-        float vaultHit = d1hp - d1.Hp;
-        float held = stepFor(90, true, new V2(1f, 0f)) / 90f * 11f;  // holding: walking pace only
-        stepFor(10, false, V2.Zero);
-        float still = stepFor(11, true, V2.Zero);
-        Console.WriteLine("  bo staff: vaulted {0:0} px in 11 ticks (walking pace {1:0}), struck the one in its path for {2:0.0}, the one aside {3:0.0}; standing still moved {4:0}",
-            vaulted, held, vaultHit, aside.MaxHp - aside.Hp, still);
-        Check(vaulted > Game.VaultDist * 0.9f && vaultHit >= hp.Weapon.Damage * Game.VaultMult && aside.Hp == aside.MaxHp,
-            "the weapon-action key while moving vaults the Bo Staff 150 px, striking everything it passes");
-        Check(held < vaulted * 0.6f && Math.Abs(still) < 2f, "holding the key or standing still doesn't vault");
-        // The same vault by a joined player: their game moves them and tells the host, which lands the strike.
+        hp.BoStep = 2;
+        shoveFor(30, true, V2.Zero);
+        float shoveHit = d1hp - d1.Hp, pushed = d1.Pos.X - d1x0;
+        float expect = hp.Weapon.Damage * Game.BoShoveMult * hp.Stats.DmgMult;
+        Console.WriteLine("  bo staff shove: hit for {0:0.0} (expected {1:0.0}), pushed {2:0} px; the one off to the side moved {3:0} and took {4:0.0}; chain step now {5}",
+            shoveHit, expect, pushed, Math.Abs(aside.Pos.Y - asideY0), aside.MaxHp - aside.Hp, hp.BoStep);
+        Check(Math.Abs(shoveHit - expect) < 0.6f && Math.Abs(pushed - Game.BoShoveKnock) < 12f, "the weapon-action key shoves what's in front of the Bo Staff back 70 px for a little damage");
+        Check(aside.Hp == aside.MaxHp && Math.Abs(aside.Pos.Y - asideY0) < 2f, "an enemy outside the bar's width is left alone");
+        Check(hp.BoStep == 0, "the shove starts the slash, jab, spin chain over");
+        d1.Pos = new V2(360f, 450f); d1hp = d1.Hp; hp.BoStep = 2;
+        shoveFor(1, false, V2.Zero);
+        shoveFor(20, true, new V2(0f, 1f));  // pressed again 0.3 s later, walking: the cooldown holds it back
+        Check(d1.Hp == d1hp && hp.BoStep == 2, "the shove cools down for a second");
+        shoveFor(1, false, V2.Zero);
+        shoveFor(60, false, V2.Zero);
+        d1.Pos = new V2(360f, 450f); hp.Pos = hp.Disp = new V2(300f, 450f);
+        shoveFor(1, false, V2.Zero);
+        shoveFor(30, true, V2.Zero);
+        Check(d1.Hp < d1hp && hp.BoStep == 0, "and works again after that");
+        // The same by a joined player: their game sends the press and the host lands the shove.
         var cme = client.Game.Me;
         cp.Weapon = cme.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
         place(2, 900f); run(0.3f);
-        aside.Pos = new V2(980f, 450f);
-        float asideHp = aside.Hp, cx0 = cme.Pos.X;
+        aside.Pos = new V2(960f, 450f);
+        float asideHp = aside.Hp, ax0 = aside.Pos.X;
+        cp.BoStep = 2;
         for (int f = 0; f < 15; f++)
         {
             host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
-            client.Poll(); client.Game.FixedStep(dt, new PlayerInput { WeaponAction = true, Move = new V2(1f, 0f), AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput { WeaponAction = true, AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
             Thread.Sleep(1);
-            clear(); aside.Pos = new V2(980f, 450f); aside.FireT = 99f;
+            clear(); aside.FireT = 99f; aside.FrozenT = 5f;
         }
-        for (int f = 0; f < 10; f++) { Thread.Sleep(2); host.Poll(); g.FixedStep(dt, new PlayerInput()); client.Poll(); }
-        Console.WriteLine("  bo staff (joined player): vaulted {0:0} px; struck the one in its path for {1:0.0}", cme.Pos.X - cx0, asideHp - aside.Hp);
-        Check(cme.Pos.X - cx0 > Game.VaultDist * 0.9f && asideHp - aside.Hp >= cp.Weapon.Damage * Game.VaultMult, "a joined player's vault moves them and the host lands its strike");
+        for (int f = 0; f < 25; f++) { Thread.Sleep(2); host.Poll(); g.FixedStep(dt, new PlayerInput()); client.Poll(); clear(); aside.FireT = 99f; aside.FrozenT = 5f; }
+        Console.WriteLine("  bo staff (joined player): hit for {0:0.0}, pushed {1:0} px, chain step {2} (host sees them at {3:0},{4:0}, weapon {5}, cooldown {6:0.00})", asideHp - aside.Hp, aside.Pos.X - ax0, cp.BoStep, cp.Pos.X, cp.Pos.Y, cp.Weapon.Id, cp.ShoveCd);
+        Check(asideHp - aside.Hp > 0f && aside.Pos.X - ax0 > 30f && cp.BoStep == 0, "a joined player's shove reaches the host, which lands it and starts their chain over");
         cp.Weapon = cme.Weapon = Defs.Weapon(Role.Healer, Kit.Ninja, 0);
         aside.Hp = 0f; keep.Remove(aside);
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);

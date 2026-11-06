@@ -105,8 +105,15 @@ namespace Arena
                 case FxKind.KatanaCut:
                     DrawKatanaCutFx(fx);
                     break;
+                case FxKind.StaffShove:
+                    if (!fxOn || !DrawStaffShoveLayer(fx, false))
+                        DrawStaffShovePlain(fx, f);  // BoStaffLook.cs
+                    break;
                 case FxKind.CavalryCall:
                     DrawCavalryCallFx(fx);  // CavalryCallLook.cs
+                    break;
+                case FxKind.HarvestThrow:
+                    DrawHarvestThrowFx(fx);  // CrimsonHarvestLook.cs
                     break;
                 case FxKind.ShellPop:
                     DrawShellPopFx(fx, f);

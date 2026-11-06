@@ -522,6 +522,8 @@ namespace Arena
                     return MeleeReach(p, w.Reach + w.Grow * x);
                 case WeaponId.Katana:  // the lunge reaches much further than the swipes (Ninja.cs)
                     return MeleeReach(p, p.KatanaStep == 2 ? KatanaLungeReach : w.Reach);
+                case WeaponId.BoStaff:  // each step of the chain has its own reach (Ninja.cs)
+                    return MeleeReach(p, (p.BoStep == 1 ? BoJabReach : p.BoStep == 2 ? BoSpinReach : w.Reach) + w.Grow * x);
                 case WeaponId.Greatsword:  // extra projectiles add sword beams
                     return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, w.Reach);
             }
