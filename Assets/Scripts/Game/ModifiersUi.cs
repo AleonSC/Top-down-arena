@@ -21,23 +21,20 @@ namespace Arena
             if (n > 0 && host && Ui.Button(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off"))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
-            Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Click a card to switch it on or off. They last the whole run, for everyone (Practice Range too)."
+            Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Click a switch to turn it on or off. They last the whole run, for everyone (Practice Range too)."
                 : "The host picks these. They last the whole run, for everyone.", 12, Ui.Muted);
             y += 54f;
 
             // Grouped by tier (Easier, Risky, Harder): each group starts on its own row under a heading that spans the panel.
             // Click a heading to fold its group away (remembered on this computer); folded, it says how many are on.
             // Cards are as tall as the panel allows (84 to 104); when the open groups don't fit, the list scrolls.
-            const int cols = 4;
-            const float gap = 8f, head = 22f;
+            const float gap = 4f, head = 22f, rowH = 42f;
             int rows = 0;
             foreach (var lean in LeanOrder)
                 if (!ModTierFolded(lean))
-                    rows += (ModsIn(lean).Count + cols - 1) / cols;
+                    rows += ModsIn(lean).Count;
             var area = new Rect(x - 4f, y, w + 8f, r.yMax - 10f - y);
-            float ch = rows == 0 ? 104f : Mathf.Clamp((area.height - LeanOrder.Length * head) / rows - gap, 84f, 104f);
-            float cw = (w - gap * (cols - 1)) / cols;
-            float content = LeanOrder.Length * head + rows * (ch + gap);
+            float content = LeanOrder.Length * head + rows * (rowH + gap);
             float maxScroll = Mathf.Max(0f, content - area.height);
             var ev = Event.current;
             if (ev.type == EventType.ScrollWheel && area.Contains(ev.mousePosition))
@@ -86,12 +83,12 @@ namespace Arena
                 for (int i = 0; i < mods.Count; i++)
                 {
                     var d = mods[i];
-                    var c = new Rect(x + (i % cols) * (cw + gap), y + (i / cols) * (ch + gap), cw, ch);
+                    var c = new Rect(x, y + i * (rowH + gap), w - (maxScroll > 0f ? 8f : 0f), rowH);
                     bool on = (session.Modifiers & d.Mod) != 0;
-                    if (DrawModCard(c, d, on, host, t))
+                    if (DrawModRow(c, d, on, host, t))
                         session.SetModifier(d.Mod, !on);
                 }
-                y += ((mods.Count + cols - 1) / cols) * (ch + gap);
+                y += mods.Count * (rowH + gap);
             }
             GUI.EndGroup();
         }
@@ -124,27 +121,43 @@ namespace Arena
 
         static string LeanBlurb(ModLean l) => l == ModLean.Harder ? "a tougher run" : l == ModLean.Easier ? "a helping hand" : "a trade: something gained, something lost";
 
-        bool DrawModCard(Rect c, ModDef d, bool on, bool canClick, float t)
+        /// One modifier as a row of the list: a digital toggle (an OFF | ON slide with an LED), the name, what it does.
+        bool DrawModRow(Rect c, ModDef d, bool on, bool canClick, float t)
         {
             var lean = LeanColor(d.Lean);
             bool hover = canClick && c.Contains(Event.current.mousePosition);
-            Ui.Card(c, on ? ModColor : lean, on ? 0.9f : hover ? 0.5f : 0.2f);
+            Ui.Fill(c, new Color(0.02f, 0.06f, 0.12f, on ? 0.75f : 0.5f));
             if (on)
-                Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(ModColor.r, ModColor.g, ModColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
-            Ui.Fill(new Rect(c.x + 3f, c.y + 8f, 3f, c.height - 16f), new Color(lean.r, lean.g, lean.b, on ? 0.9f : 0.6f));  // its tier
-            // Name and the switch, then what it does.
-            bool narrow = c.width < 220f;
-            float swW = narrow ? 40f : 50f;
-            Ui.Glitch(new Rect(c.x + 12f, c.y + 8f, c.width - swW - 30f, 24f), d.Name, narrow ? 14 : 16, on ? Color.Lerp(ModColor, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(c.x + 12f, c.y + 32f, c.width - 22f, c.height - 38f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
-            // The switch (ON / OFF beside it when there's room). The tier is the group's heading and the card's colour.
-            var sw = new Rect(c.xMax - swW - 12f, c.y + 10f, swW, narrow ? 20f : 22f);
-            Ui.Pill(sw, on ? new Color(ModColor.r * 0.85f, ModColor.g * 0.85f, ModColor.b * 0.85f) : new Color(1f, 1f, 1f, 0.1f));
-            float kn = sw.height - 4f;
-            var knob = new Rect(on ? sw.xMax - kn - 2f : sw.x + 2f, sw.y + 2f, kn, kn);
-            Ui.Pill(knob, on ? Color.white : new Color(1f, 1f, 1f, 0.45f));
-            if (!narrow)
-                Ui.Label(new Rect(sw.x - 44f, sw.y, 40f, sw.height), on ? "ON" : "OFF", 11, on ? Color.white : Ui.Muted, TextAnchor.MiddleRight, true);
+                Ui.Fill(c, new Color(ModColor.r, ModColor.g, ModColor.b, 0.08f + 0.03f * Mathf.Sin(t * 3f)));
+            else if (hover)
+                Ui.Fill(c, new Color(1f, 1f, 1f, 0.05f));
+            var edge = on ? new Color(ModColor.r, ModColor.g, ModColor.b, 0.7f) : new Color(lean.r, lean.g, lean.b, hover ? 0.5f : 0.22f);
+            Ui.Fill(new Rect(c.x, c.y, c.width, 1f), edge);
+            Ui.Fill(new Rect(c.x, c.yMax - 1f, c.width, 1f), edge);
+            Ui.Fill(new Rect(c.x, c.y, 3f, c.height), new Color(lean.r, lean.g, lean.b, on ? 0.95f : 0.55f));  // its tier
+
+            // The toggle: two segments, the lit one shows the state; a square LED over the lit half.
+            var sw = new Rect(c.x + 16f, c.y + (c.height - 24f) / 2f, 76f, 24f);
+            var line = on ? ModColor : new Color(0.45f, 0.55f, 0.7f, 0.6f);
+            Ui.Fill(sw, new Color(0f, 0f, 0f, 0.55f));
+            Ui.Fill(new Rect(sw.x, sw.y, sw.width, 1f), line);
+            Ui.Fill(new Rect(sw.x, sw.yMax - 1f, sw.width, 1f), line);
+            Ui.Fill(new Rect(sw.x, sw.y, 1f, sw.height), line);
+            Ui.Fill(new Rect(sw.xMax - 1f, sw.y, 1f, sw.height), line);
+            var half = new Rect(on ? sw.x + sw.width / 2f : sw.x + 2f, sw.y + 2f, sw.width / 2f - 2f, sw.height - 4f);
+            Ui.Fill(half, on ? new Color(ModColor.r * 0.9f, ModColor.g * 0.9f, ModColor.b * 0.9f, 0.95f) : new Color(1f, 1f, 1f, 0.14f));
+            Ui.Fill(new Rect(half.x, half.y, half.width, 1f), new Color(1f, 1f, 1f, on ? 0.5f : 0.2f));
+            Ui.Label(new Rect(sw.x + 2f, sw.y, sw.width / 2f - 2f, sw.height), "OFF", 10, on ? Ui.Muted : Ui.Text, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(sw.x + sw.width / 2f, sw.y, sw.width / 2f - 2f, sw.height), "ON", 10, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
+            var led = new Rect(sw.xMax + 8f, c.y + c.height / 2f - 3f, 6f, 6f);
+            if (on)
+                Ui.Fill(new Rect(led.x - 3f, led.y - 3f, 12f, 12f), new Color(ModColor.r, ModColor.g, ModColor.b, 0.25f + 0.1f * Mathf.Sin(t * 4f)));
+            Ui.Fill(led, on ? Color.Lerp(ModColor, Color.white, 0.6f) : new Color(1f, 1f, 1f, 0.15f));
+
+            float nx = led.xMax + 14f, nw = 170f;
+            Ui.Glitch(new Rect(nx, c.y, nw, c.height), d.Name, 14, on ? Color.Lerp(ModColor, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleLeft);
+            float dx = nx + nw + 8f;
+            Ui.Label(new Rect(dx, c.y + 2f, c.xMax - dx - 10f, c.height - 4f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.MiddleLeft, false, true);
             return canClick && Ui.HitArea(c);
         }
 
