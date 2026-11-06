@@ -177,6 +177,11 @@ namespace Arena
         readonly List<int> dummyIds = new List<int>();
         readonly List<float> dummyRespawn = new List<float>();
         const float DummyHp = 260f, DummyRespawn = 1f, DummyReturn = 320f;
+        float showT;  // the preview's clock: the dummies and teammates drift around their spots with it
+
+        /// A slow figure-eight-ish wander around a spot (radius px), each one out of step with the others by `k`.
+        static V2 Sway(float t, int k, float radius) =>
+            new V2((float)Math.Sin(t * 0.9f + k * 2.1f), (float)Math.Sin(t * 1.3f + k * 1.7f + 1f)) * radius;
 
         public void ShowcaseStart(AbilityId ability)
         {
@@ -197,6 +202,7 @@ namespace Arena
         }
 
         static V2 AllySpot(int k) => Showcase.Home + new V2(k == 0 ? -130f : 130f, 35f);
+        V2 AllyNow(int k) => AllySpot(k) + Sway(showT, k + 3, 28f);
 
         List<Player> ShowcaseAllies()
         {
@@ -238,7 +244,8 @@ namespace Arena
             int k = 0;
             foreach (var p in ShowcaseAllies())
             {
-                p.Pos = p.Disp = AllySpot(k++);
+                p.Pos = p.Disp = p.Downed ? AllySpot(k) : AllyNow(k);  // (a downed one stays put)
+                k++;
                 if (p.Downed)
                     p.Revive = 0f;
             }
@@ -283,15 +290,17 @@ namespace Arena
         void TickShowcase(float dt)
         {
             State = MatchState.Fighting;
+            showT += dt;
             for (int i = 0; i < dummySpots.Count; i++)
             {
                 Enemy alive;
                 if (dummyIds[i] != 0 && Enemies.TryGetValue(dummyIds[i], out alive))
                 {
                     // Knocked back (Lance, Bulldoze...): walk back to its spot.
-                    V2 back = dummySpots[i] - alive.Pos;
+                    V2 goal = dummySpots[i] + Sway(showT, i, 22f);
+                    V2 back = goal - alive.Pos;
                     float step = DummyReturn * dt;
-                    alive.Pos = back.Length <= step ? dummySpots[i] : alive.Pos + back.Normalized() * step;
+                    alive.Pos = back.Length <= step ? goal : alive.Pos + back.Normalized() * step;
                     continue;
                 }
                 dummyIds[i] = 0;
