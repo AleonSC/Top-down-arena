@@ -11,7 +11,9 @@ namespace Arena
     /// menu leaves the frozen arena in view, with a "this run" screen over it when no window is out.
     public partial class ArenaApp
     {
-        const float DrawerW = 420f;
+        // The floating cabinet: 24 px in from the left, top and bottom; CabW x CabH is the inside of its 1 px outline.
+        const float CabX = 24f, CabY = 24f, CabW = 408f, CabH = 670f;
+        const float DrawerSlideW = CabX + CabW + 2f + 40f;  // how far it slides to be out of sight, its glow included
         static readonly Rect DrawerPanel = new Rect(470f, 40f, 770f, 640f);  // the open section, right of the drawer
 
         int pauseSel;            // the pause menu's highlighted choice (↑ ↓, Enter)

@@ -799,6 +799,7 @@ namespace Arena
                     DrawDevMenu();
             }
             TextEditEndGui();
+            DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)
             DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)
             bool clicked = Ui.TakeClick();
             ClickLogEnd(clicked);

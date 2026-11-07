@@ -184,16 +184,34 @@ namespace Arena
             CrtKit.PowerFlash(r, CabAge - delay, CabCalm);
         }
 
-        /// A small square digital key with a pixel icon (the profile's pencil). True when pressed.
+        /// A small square soft key with a pixel icon (the profile's pencil). True when pressed.
         bool IconKey(Rect r, string icon, bool sel)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
             var c = CrtUi.Ink;
-            bool fill = hover || sel;
-            Ui.Fill(r, fill ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, 0.08f));
-            CrtKit.Frame(r, 2f, c);
-            Ui.Icon(new Rect(r.center.x - 10f, r.center.y - 10f, 20f, 20f), PixelArt.Get(icon), fill ? CrtUi.Bg : c);
+            CrtKit.SoftBox(r, c, sel, hover, false);
+            Ui.Icon(new Rect(r.center.x - 10f, r.center.y - 10f, 20f, 20f), PixelArt.Get(icon), CrtKit.SoftText(c, hover || sel));
+            return Ui.HitArea(r);
+        }
+
+        /// One of the profile's tab keys, quiet like the mockup's `.quiet .g4 .key`: small bold caps at about half the ink and no box,
+        /// brighter under the mouse; the open tab is a small lit pill (a 30% ink fill, a 75% outline, white text). True when pressed.
+        bool QuietTab(Rect r, string text, bool open)
+        {
+            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            var ink = CrtUi.Ink;
+            Color tc;
+            if (open)
+            {
+                Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.3f));
+                CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.75f));
+                tc = Color.white;
+            }
+            else
+                tc = hover ? Color.Lerp(ink, Color.white, 0.15f) : new Color(ink.r, ink.g, ink.b, 0.48f);
+            Ui.Label(r, text, 12, tc, TextAnchor.MiddleCenter, true);
             return Ui.HitArea(r);
         }
 
@@ -210,11 +228,11 @@ namespace Arena
             int n = opts.Count;
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
-            float rowH = oneLine ? 29f : 40f, step = rowH + (oneLine ? 3f : 2f);
-            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 314f, 358f, 302f));
+            float rowH = oneLine ? 29f : 40f, step = rowH + 3f;
+            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, 358f, 312f), new Rect(26f, 22f, 358f, 78f));
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
-            var ps = new Rect(26f, 136f, 358f, 120f);
+            var ps = new Rect(26f, 112f, 358f, 126f);
             if (CabScreenBegin(ps, 0.9f))
             {
                 var badge = new Rect(ps.x + 12f, ps.y + 8f, 76f, 76f);
@@ -254,18 +272,18 @@ namespace Arena
                     }
                 }
                 CrtUi.Text(new Rect(ps.x + 100f, ps.y + 50f, 250f, 28f), CabText("cab.ptitle", Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 1.3f), 22, tc, TextAnchor.MiddleLeft, true, calm);
-                var bar = new Rect(ps.x + 14f, ps.y + 94f, ps.width - 28f, 8f);
+                var bar = new Rect(ps.x + 14f, ps.y + 98f, ps.width - 28f, 8f);
                 Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
                 if (!calm)
                     Ui.Fill(new Rect(bar.x - 1f, bar.y - 2f, bar.width * info.Fraction + 2f, bar.height + 4f), new Color(tc.r, tc.g, tc.b, 0.18f));
                 Ui.Fill(new Rect(bar.x, bar.y, bar.width * info.Fraction, bar.height), tc);
-                Ui.Label(new Rect(ps.x + 14f, ps.y + 102f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtUi.Dim, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(ps.x + 14f, ps.y + 106f, ps.width - 28f, 16f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, CrtUi.Dim, TextAnchor.MiddleRight, true);
                 CabScreenEnd(ps, 0.9f);
             }
 
-            // The tab keys.
-            var ts = new Rect(26f, 264f, 358f, 42f);
-            if (CabScreenBegin(ts, 0.9f))
+            // The tab keys: quiet, on the cabinet itself (no screen), once its screens are up.
+            var ts = new Rect(26f, 250f, 358f, 54f);
+            if (calm || CabAge >= 0.9f)
             {
                 int first = inMenu ? 1 : 0, nt = ProfileTabs.Length - first;
                 float gap = 5f, tw = (ts.width - 12f - gap * (nt - 1)) / nt;
@@ -273,7 +291,7 @@ namespace Arena
                 {
                     int id = first + i;
                     string label = CabText("cab.tab" + id, ProfileTabs[id].ToUpperInvariant(), 1.15f + i * 0.06f);
-                    if (WinKey(new Rect(ts.x + 6f + i * (tw + gap), ts.y + 6f, tw, 30f), label, profileTab == id, 14) && profileTab != id)
+                    if (QuietTab(new Rect(ts.x + 6f + i * (tw + gap), ts.y + 11f, tw, 32f), label, profileTab == id) && profileTab != id)
                     {
                         profileTab = id;
                         if (CabWindowOpen)
@@ -283,11 +301,10 @@ namespace Arena
                         }
                     }
                 }
-                CabScreenEnd(ts, 0.9f);
             }
 
             // The options of the open tab.
-            float y = cabScreen.y + 5f;
+            float y = cabScreen.y + 6f;
             for (int i = 0; i < n; i++)
             {
                 bool on = cabWin && cabKind == 3 && cabWinOutAt < 0f && ProfSel == i;
@@ -300,7 +317,7 @@ namespace Arena
                 y += step;
             }
             EndDrawerScreen();
-            if (cabScreenOn && CrtKit.PhysicalKey(new Rect(40f, 628f, 330f, 52f), "BACK", calm))
+            if (cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 634f, 358f, 36f), "BACK"))
             {
                 if (CabWindowOpen)
                     CloseCabWindow();  // the window slides back in first

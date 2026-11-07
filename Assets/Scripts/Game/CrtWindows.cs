@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The CRT cabinet the in-game menus are made of (Docs/Mockups/crt-pause-menu.html): the pause menu, the lobby's Esc menu,
     /// Settings, How to play and the profile. Pieces:
-    ///   BeginDrawer / DrawerRow / EndDrawerScreen / EndDrawer   the cabinet on the left: a header screen ("PAUSED_"), one
+    ///   BeginDrawer / DrawerRow / EndDrawerScreen / EndDrawer   the floating cabinet on the left: a header screen ("PAUSED_"), one
     ///       screen of digital option keys, and (drawn by the caller) a physical Back key. Its OPENING plays once, from the
     ///       window's clock (WinT, `CabAge`): the cabinet slides out, the header screen powers on, its text types and its
     ///       sub-line types a boot log and then the real line, the options screen powers on, a scan bar sweeps it and the
@@ -53,24 +53,28 @@ namespace Arena
         Rect cabScreen;
         int rowIndex;  // DrawerRow's count in the list being drawn (its typing slot and opening delay)
         bool cabScreenOn, cabScreenOpen;
+        float cabEdgeVis;  // how visible the soft edges are this frame (0: no cabinet menu was drawn)
         float cabScreenAge;
 
         /// The cabinet: its chassis, the header screen and the options screen (rows go in it until EndDrawerScreen). What
-        /// follows is drawn in cabinet coordinates until EndDrawer. `screen` is the options screen's rect (default 26,150,
-        /// 358 x 456).
-        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null)
+        /// follows is drawn in cabinet coordinates (the inside of its outline, CabW x CabH) until EndDrawer. `screen` is the options
+        /// screen's rect (default 26,150, 358 x 456); `header` the header screen's (default 26,26, 358 x 100; a shorter one gets a
+        /// tighter title and sub-line).
+        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null, Rect? header = null)
         {
             float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
             bool calm = CabCalm;
             float age = CabAge, now = WinNow;
             rowIndex = 0;
-            GUI.BeginGroup(new Rect(dx, 0f, DrawerW + 30f, H));
-            for (int i = 0; i < 6; i++)  // its shadow on the arena
-                Ui.Fill(new Rect(DrawerW + i * 4f, 0f, 4f, H), new Color(0f, 0f, 0f, 0.22f * (1f - i / 6f)));
-            CrtKit.Cabinet(new Rect(0f, 0f, DrawerW, H), age, calm);
+            cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
+            GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, H));
+            CrtKit.Cabinet(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
+            GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
-            var hr = new Rect(26f, 26f, 358f, 100f);
+            var hr = header ?? new Rect(26f, 26f, 358f, 100f);
+            bool tight = hr.height < 90f;
+            float ty = tight ? 2f : 6f, th = tight ? 46f : 56f, sy = tight ? 50f : 64f;
             float ha = age - 0.5f;
             if (CrtKit.PowerOn(hr, ha, calm))
             {
@@ -78,17 +82,17 @@ namespace Arena
                 while (size > 16 && CrtUi.TitleWidth(title, size) > hr.width - 60f)
                     size--;
                 string t = CabText("cab.title", title, 0.8f);
-                CrtUi.Title(new Rect(hr.x + 18f, hr.y + 6f, hr.width - 36f, 56f), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
+                CrtUi.Title(new Rect(hr.x + 18f, hr.y + ty, hr.width - 36f, th), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
                 if (calm || Mathf.FloorToInt(now * 2f) % 2 == 0)  // the blinking block after the text
                 {
                     float tw = t.Length == 0 ? 0f : CrtUi.TitleWidth(t, size);
-                    Ui.Fill(new Rect(hr.x + 22f + tw, hr.y + 34f - size * 0.36f, Mathf.Max(8f, size * 0.36f), size * 0.72f), CrtUi.Ink);
+                    Ui.Fill(new Rect(hr.x + 22f + tw, hr.y + ty + th / 2f - size * 0.36f, Mathf.Max(8f, size * 0.36f), size * 0.72f), CrtUi.Ink);
                 }
                 string subFull = string.IsNullOrEmpty(sub) ? "" : sub.ToUpperInvariant();
                 string subShown = CrtKit.Typed("cab.sub", subFull, now, calm, -10f);
                 if (!calm && age < CabOpenEnd && CrtKit.Settled("cab.sub", now))
                     subShown = CrtKit.BootLine(cabBootLog, subFull, age - 0.98f, false);  // the opening: a boot log first
-                Ui.Label(new Rect(hr.x + 20f, hr.y + 64f, hr.width - 40f, 20f), subShown, 12, CabSoft, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(hr.x + 20f, hr.y + sy, hr.width - 40f, 20f), subShown, 12, CabSoft, TextAnchor.MiddleLeft, true);
                 CrtUi.End(hr, now, calm);
                 CrtKit.PowerFlash(hr, ha, calm);
             }
@@ -117,6 +121,15 @@ namespace Arena
         {
             EndDrawerScreen();
             GUI.EndGroup();
+            GUI.EndGroup();
+        }
+
+        /// Each frame a cabinet menu was drawn, over it and under the cursor: the screen's soft edges (CrtKit.SoftEdges).
+        void DrawCabEdges()
+        {
+            if (cabEdgeVis > 0f)
+                CrtKit.SoftEdges(new Rect(0f, 0f, W, H), cabEdgeVis);
+            cabEdgeVis = 0f;
         }
 
         /// A digital key in the cabinet's options screen: its name and a small line, inverse video under the mouse or when
@@ -151,22 +164,19 @@ namespace Arena
             return clicked;
         }
 
-        /// A small digital X in the cabinet's header (the profile's close key; Esc does the same). True when pressed.
-        bool CabCloseKey() => CabAge > 1.2f - (CabCalm ? 2f : 0f) && WinKey(new Rect(DrawerW - 40f - 44f, 40f, 44f, 36f), "X", false, 18);
-
         /// The small hint lines at the cabinet's foot.
         void CabFoot(string a, string b = null)
         {
             var c = new Color(0.49f, 0.56f, 0.78f);
-            Ui.Label(new Rect(30f, H - 64f, DrawerW - 50f, 16f), a, 11, c, TextAnchor.MiddleLeft, false);
+            Ui.Label(new Rect(30f, CabH - 44f, CabW - 50f, 16f), a, 11, c, TextAnchor.MiddleLeft, false);
             if (b != null)
-                Ui.Label(new Rect(30f, H - 48f, DrawerW - 50f, 16f), b, 11, c, TextAnchor.MiddleLeft, false);
+                Ui.Label(new Rect(30f, CabH - 28f, CabW - 50f, 16f), b, 11, c, TextAnchor.MiddleLeft, false);
         }
 
         /// The physical Back key under the options screen (Settings, How to play from the main menu). True when pressed.
         bool CabBackKey()
         {
-            return cabScreenOn && CrtKit.PhysicalKey(new Rect(40f, 626f, 330f, 56f), "BACK", CabCalm);
+            return cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 616f, 358f, 44f), "BACK");
         }
 
         // --- The window to the right ------------------------------------------------------------------------------------
@@ -340,7 +350,7 @@ namespace Arena
 
         // --- Digital controls -------------------------------------------------------------------------------------------
 
-        /// A digital key in a window: outlined and faintly lit, filled with the ink under the mouse or when `sel`. A lamp
+        /// A soft digital key in a window (CrtKit.SoftBox): a faint tint, brighter under the mouse, outlined 2 px when `sel`. A lamp
         /// before the text (lit, or dim when `lampLit` is false) makes it a switch. isStatic: a label that looks like a key.
         bool WinKey(Rect r, string text, bool sel, int size = 18, Color? accent = null, bool lamp = false, bool lampLit = true, bool isStatic = false)
         {
@@ -349,7 +359,6 @@ namespace Arena
                 Ui.NoteHover(r);
             size = CrtKit.Sz(size);
             Color c = accent ?? CrtUi.Ink;
-            bool fill = false;  // soft keys: light text on a faint tint (CrtKit.SoftBox)
             bool lit = (hover || sel) && !isStatic;
             if (isStatic)
             {
@@ -364,15 +373,12 @@ namespace Arena
             if (lamp)
             {
                 var lr = new Rect(x, r.center.y - 4.5f, 9f, 9f);
-                if (lampLit && !fill && !CabCalm)
+                if (lampLit && !CabCalm)
                     Ui.Fill(new Rect(lr.x - 3f, lr.y - 3f, 15f, 15f), new Color(c.r, c.g, c.b, 0.25f));
                 Ui.Fill(lr, new Color(tc.r, tc.g, tc.b, lampLit ? 1f : 0.4f));
             }
             var tr = new Rect(x + lw, r.y, tw + 14f, r.height);
-            if (fill)
-                Ui.Label(tr, text, size, tc, TextAnchor.MiddleLeft, true);
-            else
-                CrtUi.Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, CabCalm);
+            CrtUi.Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, CabCalm);
             return !isStatic && Ui.HitArea(r);
         }
 

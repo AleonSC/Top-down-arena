@@ -210,8 +210,8 @@ namespace Arena
                 }
                 else if (on)
                 {
-                    Ui.Fill(kr, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.95f));
-                    Ui.Label(kr, "EQUIPPED", 14, new Color(0.1f, 0.07f, 0.01f), TextAnchor.MiddleCenter, true);
+                    CrtKit.SoftBox(kr, Ui.Gold, true, false, false);
+                    Ui.Label(kr, "EQUIPPED", 13, CrtKit.SoftText(Ui.Gold, true), TextAnchor.MiddleCenter, true);
                 }
                 else if (WinKey(kr, "EQUIP", false, 16))
                     EquipCosmetic(p, kind, id);

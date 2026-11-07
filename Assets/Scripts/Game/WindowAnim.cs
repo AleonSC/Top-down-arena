@@ -73,7 +73,7 @@ namespace Arena
         }
 
         /// The drawer's slide (BeginDrawer): in from the left as it opens, out as it closes.
-        float DrawerSlide => -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * (DrawerW + 30f) - EaseIn3(winCloseK) * (DrawerW + 30f);
+        float DrawerSlide => -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW - EaseIn3(winCloseK) * DrawerSlideW;
 
         /// Move everything drawn (IMGUI and the canvas's GL) by (dx, dy) and fade it, until PopShift.
         void PushShift(float dx, float dy, float alpha)
