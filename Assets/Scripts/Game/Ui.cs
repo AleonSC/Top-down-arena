@@ -190,6 +190,9 @@ namespace Arena
             GUI.Label(r, Shown(r, text), label);
         }
 
+        /// The label style's left padding (a Label's text starts this far in from its rect).
+        public static float LabelPadLeft => label.padding != null ? label.padding.left : 0f;
+
         /// How wide a label of this text would be.
         public static float TextWidth(string text, int size, bool bold = false)
         {
