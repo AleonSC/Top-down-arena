@@ -1,6 +1,6 @@
 # Top-Down Arena
 
-A 1-3 player co-op top-down bullet hell in **Unity 6** (`6000.0.23f1`). The game logic is plain C# in
+A 1-3 player co-op top-down bullet hell in **Unity 6** (`6000.6.7f1`, Unity 6.6). The game logic is plain C# in
 `Assets/Scripts/Core/` (namespace `Arena`, no Unity), and the Unity front end is in `Assets/Scripts/Game/`. There's
 no Unity in the cloud container: check changes with the tools below.
 

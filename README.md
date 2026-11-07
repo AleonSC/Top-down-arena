@@ -17,7 +17,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Opening the project
 
-1. Install [Unity Hub](https://unity.com/download) and a **Unity 6** editor (6000.0 LTS).
+1. Install [Unity Hub](https://unity.com/download) and the **Unity 6.6** editor (6000.6.7f1; the exact version is pinned in `ProjectSettings/ProjectVersion.txt`).
    When installing, tick **Windows Build Support** so you can make a `.exe`.
 2. In Unity Hub: **Add → Add project from disk** and pick this folder. If Hub says the exact
    editor version isn't installed, pick any Unity 6 version you have.
