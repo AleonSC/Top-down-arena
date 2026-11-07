@@ -90,7 +90,7 @@ namespace Arena
         {
             switch (t)
             {
-                case EnemyType.Swarmer: every = 0.2f; return Sfx.SwarmerPatter;
+                case EnemyType.Swarmer: every = 0.28f; return Sfx.SwarmerPatter;
                 case EnemyType.Spiker: every = 0.16f; return Sfx.SpikerSkitter;
                 case EnemyType.Brute: every = 0.3f; return Sfx.BruteStep;
                 case EnemyType.Lunger: every = 0.3f; return Sfx.LungerPad;

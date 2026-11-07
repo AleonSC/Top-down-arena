@@ -13,16 +13,19 @@ namespace Arena
         float bandShownAt = -10f, bandLastDraw = -10f, bandMax = 1f;
         int bandWave = -1;
 
-        /// The strip. open 0-1 grows it from a line; inverse flips it to a solid block with dark text (the start of a wave);
+        /// The strip. open 0-1 fades it in; inverse flips it to a solid block with dark text (the start of a wave);
         /// bar 0-1 fills the countdown bar along the foot, below 0 hides it.
         void DrawScanBand(string title, string sub, string left, string right, float bar, Color ink, float open, bool inverse)
         {
             if (open <= 0f)
                 return;
+            var oldCol = GUI.color;
+            float oa = Mathf.Clamp01(open);
+            float oldAlpha = Ui.Alpha;
+            Ui.Alpha *= oa;
+            GUI.color = new Color(oldCol.r, oldCol.g, oldCol.b, oldCol.a * oa);
             bool calm = CabCalm;
-            float oh = Mathf.Ceil(open * 8f) / 8f;  // opens in eight steps, like a tube warming up
-            float h = BandRect.height * oh;
-            var r = new Rect(BandRect.x, BandRect.center.y - h / 2f, BandRect.width, h);
+            var r = BandRect;  // (fixed size and place: it only fades in)
             var dark = CrtUi.Bg;
 
             // the strip: solid in the middle, fading out toward both screen edges
@@ -39,16 +42,6 @@ namespace Arena
             var rim = new Color(ink.r, ink.g, ink.b, 0.55f);
             Ui.Fill(new Rect(edge * 0.4f, r.y, W - edge * 0.8f, 1f), rim);
             Ui.Fill(new Rect(edge * 0.4f, r.yMax - 1f, W - edge * 0.8f, 1f), rim);
-            if (oh < 1f)
-                return;  // (text waits until it's fully open)
-
-            // the sweep: a faint bright line falling through the strip
-            if (!calm && !inverse)
-            {
-                float y = r.y + (Time.unscaledTime / 1.6f % 1f) * r.height;
-                Ui.Fill(new Rect(edge, y - 3f, W - 2f * edge, 6f), new Color(ink.r, ink.g, ink.b, 0.10f));
-                Ui.Fill(new Rect(edge, y - 1f, W - 2f * edge, 2f), new Color(ink.r, ink.g, ink.b, 0.22f));
-            }
 
             bool was = Ui.CrtFont;
             Ui.CrtFont = true;
@@ -83,7 +76,9 @@ namespace Arena
                 Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, tk.width - 2f, tk.height - 2f), dark);
                 Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, (tk.width - 2f) * Mathf.Clamp01(bar), tk.height - 2f), ink);
             }
-            CrtUi.End(new Rect(edge, r.y, W - 2f * edge, r.height), Time.unscaledTime, calm);
+            CrtUi.End(new Rect(edge, r.y, W - 2f * edge, r.height), Time.unscaledTime, true);  // (true: scanlines and glass only, no rolling bar)
+            Ui.Alpha = oldAlpha;
+            GUI.color = oldCol;
         }
     }
 }

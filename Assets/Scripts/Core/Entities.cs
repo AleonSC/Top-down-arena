@@ -57,6 +57,9 @@ namespace Arena
         LungerTell, LungerLeap, LungerLand, LungerDie, SawWhirr, SawDie,
         SpikeBlockRock, SpikeBlockShake, SpikeBlockLunge, SpikeBlockRest, SpikeBlockDie,
         SwarmerPatter, SpikerSkitter, LungerPad,  // their footsteps
+        // The Ninja DPS (NinjaSoundBank.cs, the Shinobi set of Docs/Mockups/ninja-dps-sounds.html): the Kunai's whoosh (named Shot so it uses the Weapons
+        // volume), its blink, Shadow Step's smoke and its strike, Vanish, Blade Fan opening and flying out, and Death Lotus darkening the arena. Sent, so quieter for allies.
+        ShotKunai, NinjaBlink, NinjaStepCast, NinjaStepStrike, NinjaVanish, NinjaFanOpen, NinjaFanBurst, NinjaLotusCast,
     }
 
     public struct SoundCue

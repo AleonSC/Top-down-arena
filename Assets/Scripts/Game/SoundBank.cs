@@ -246,6 +246,7 @@ namespace Arena
             }
             Build();
             BuildMelee(owner);  // MeleeSoundBank.cs
+            BuildNinja();  // NinjaSoundBank.cs
         }
 
         void Build()
