@@ -1,0 +1,252 @@
+<title>Hologram Bazaar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game canvas) scaled to fit. The Bazaar as the Tab screen's hologram panels (TabHolo.cs): your stats down
+   the left, then a header with your wallet, the shelf of six holo cards (the level-up cards' Projection glass in each rarity colour), the
+   services, and a bottom panel with Done shopping and your teammates. Colours follow the CRT colour; gold stays the Bazaar's. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #7499da; --scr: #030814; --glow: rgba(102,163,255,.5); --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a; --body: #e6edff; --desc: #b9cbf0;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --f-game: Arial, "Liberation Sans", Helvetica, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p, .desc { margin: 0; color: var(--muted); font: 500 16px/1.45 var(--f-ui); max-width: 80ch; }
+.desc b { color: var(--fg); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .k:focus-visible, .card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 12px/1.5 var(--f-mono); color: var(--muted); margin: 0; }
+.view { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-game); color: var(--ink); }
+.arena { position: absolute; inset: 0; background: #0d1020; background-image: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px); background-size: 40px 40px; }
+.wall { position: absolute; background: #5d6a86; }
+.dark { position: absolute; inset: 0; background: rgba(3,4,10,.42); }
+.cone { position: absolute; left: 0; right: 0; top: 0; height: 706px; pointer-events: none; clip-path: polygon(11% 100%, 89% 100%, 100% 0, 0 0);
+  background: linear-gradient(to top, rgba(102,163,255,.16), rgba(102,163,255,.05) 45%, transparent 85%); }
+.cone::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(150,190,255,.05) 0 1px, transparent 1px 22px); }
+.emit { position: absolute; left: 140px; width: 1000px; top: 704px; height: 5px; border-radius: 3px; background: linear-gradient(to right, transparent, var(--ink) 12%, #cfe2ff 50%, var(--ink) 88%, transparent);
+  box-shadow: 0 0 16px var(--ink), 0 -4px 30px rgba(102,163,255,.5); }
+
+/* hologram panel (TabHolo.cs HoloPanel) */
+.hp { position: absolute; overflow: hidden; isolation: isolate; background: linear-gradient(to bottom, rgba(20,38,78,.82) 0%, rgba(7,16,36,.9) 70%, rgba(3,8,20,.93) 100%);
+  box-shadow: inset 0 0 19px color-mix(in srgb, var(--ink) 42%, transparent), 0 0 22px rgba(102,163,255,.1); animation: holoflick 5s steps(1) infinite; }
+.hp::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: repeating-linear-gradient(to top, color-mix(in srgb, var(--ink) 11%, transparent) 0 1px, transparent 1px 4px); }
+.hp::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(to right, rgba(255,60,200,.35) 0 2px, transparent 2px calc(100% - 2px), rgba(60,240,255,.35) calc(100% - 2px)); }
+.band { position: absolute; left: 0; right: 0; height: 28%; z-index: 2; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(160,200,255,.07), transparent); animation: band 3.4s linear infinite; }
+/* a popup over the panels: the same glass, nearly solid so what is under it does not show through */
+.hp.pop { background: linear-gradient(to bottom, rgba(16,32,68,.98), rgba(5,12,28,.985)); box-shadow: inset 0 0 19px color-mix(in srgb, var(--ink) 42%, transparent), 0 0 0 1px color-mix(in srgb, var(--ink) 60%, transparent), 0 10px 40px rgba(0,0,0,.6); }
+.hp > .in { position: absolute; inset: 0; padding: 12px 16px; z-index: 5; }
+@keyframes band { from { top: -28.8%; } to { top: 115.2%; } }
+@keyframes holoflick { 0%, 93.9% { opacity: 1; } 94%, 95.9% { opacity: .9; } 96%, 97.9% { opacity: 1; } 98%, 100% { opacity: .92; } }
+@keyframes holoboot { from { transform: scaleY(.015); filter: brightness(2.2); } 60% { filter: brightness(1.4); } to { transform: none; filter: none; } }
+@keyframes blink { 50% { opacity: 0; } }
+.boot { animation: holoboot .38s cubic-bezier(.2,.8,.3,1) both, holoflick 5s steps(1) .38s infinite; }
+.calm .hp, .calm .card, .calm .band, .calm .cur, .calm .boot { animation: none !important; } .calm .band, .calm .cone::after { display: none; }
+@media (prefers-reduced-motion: reduce) { .hp, .card, .band, .cur, .boot, .card .holo, .card .holo::before { animation: none !important; } }
+.cur { display: inline-block; width: .42em; height: .7em; background: currentColor; margin-left: 5px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+
+/* type */
+.title { font: 400 38px/1 var(--f-crt); letter-spacing: .04em; white-space: nowrap; text-shadow: -1px 0 rgba(255,60,200,.28), 1px 0 rgba(60,240,255,.28), 0 0 8px color-mix(in srgb, currentColor 40%, transparent); }
+.eyebrow { font: 400 17px/1 var(--f-crt); letter-spacing: .14em; color: var(--gold); text-shadow: 0 0 6px rgba(242,193,78,.4); }
+.sub { font: 700 12px var(--f-game); color: var(--dim); margin-top: 5px; white-space: nowrap; letter-spacing: .02em; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font: 400 17px/1 var(--f-crt); letter-spacing: .14em; color: #59e0e8; text-transform: uppercase;
+  border-bottom: 1px solid rgba(89,224,232,.4); padding-bottom: 4px; margin-bottom: 8px; white-space: nowrap; }
+.head small { font: 400 15px var(--f-crt); letter-spacing: .08em; color: rgba(89,224,232,.55); }
+.row { display: flex; justify-content: space-between; align-items: center; height: 26px; padding: 0 8px; font: 13px var(--f-game); color: var(--body); }
+.row:nth-child(odd) { background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.row b { font: 400 21px var(--f-crt); color: #fff; font-variant-numeric: tabular-nums; }
+.row.chg span { color: var(--good); } .row.chg b { color: var(--good); text-shadow: 0 0 6px rgba(77,255,154,.5); } .row.chg b s { text-decoration: none; color: rgba(77,255,154,.55); font-size: 17px; margin-right: 6px; }
+.crt { font-family: var(--f-crt); letter-spacing: .04em; }
+.coin { display: inline-block; width: 13px; height: 13px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe9a0, var(--gold) 55%, #a87a16); box-shadow: 0 0 6px rgba(242,193,78,.6); vertical-align: -1px; }
+
+/* keys (CrtKit.SoftBox) */
+.k { --c: var(--ink); position: absolute; display: flex; align-items: center; justify-content: center; gap: 8px; font: 700 14px var(--f-game); cursor: pointer; white-space: nowrap; user-select: none;
+  background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); color: color-mix(in srgb, var(--c) 70%, #fff); text-shadow: 0 0 5px color-mix(in srgb, var(--c) 40%, transparent); }
+.k:hover { background: color-mix(in srgb, var(--c) 14%, transparent); border-color: color-mix(in srgb, var(--c) 90%, transparent); color: color-mix(in srgb, var(--c) 25%, #fff); }
+.k.on { background: color-mix(in srgb, var(--c) 20%, transparent); border: 2px solid var(--c); color: color-mix(in srgb, var(--c) 25%, #fff); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 28%, transparent); }
+.k.gold { --c: var(--gold); } .k.good { --c: var(--good); } .k.danger { --c: var(--hot); }
+.k.off { --c: var(--dim); border-style: dashed; cursor: default; opacity: .75; }
+.k.st { position: relative; }
+
+/* shelf cards: the Projection glass in the rarity colour (CardArt.Holo + DrawHolo) */
+.card { --c: #5b9cff; position: absolute; top: 166px; width: 152px; height: 262px; cursor: pointer; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 34%, transparent), color-mix(in srgb, var(--c) 10%, #030814 90%) 70%, #030814);
+  border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 22%, transparent); transition: box-shadow .1s, border-color .1s; }
+.card .holo { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(0deg, color-mix(in srgb, var(--c) 40%, transparent) 0 1px, transparent 1px 4px); opacity: .5; animation: flick 5s steps(1) infinite; }
+.card .holo::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--c) 70%, #fff), transparent) 0 -40% / 100% 28% no-repeat; opacity: .5; animation: drift 3.4s linear infinite; mix-blend-mode: screen; }
+.card .holo::after { content: ""; position: absolute; inset: 0; box-shadow: inset 2px 0 0 rgba(255,60,200,.35), inset -2px 0 0 rgba(60,240,255,.35), inset 0 0 19px color-mix(in srgb, var(--c) 40%, transparent); }
+@keyframes drift { to { background-position: 0 160%; } }
+@keyframes flick { 0%, 92%, 96% { opacity: .5; } 94%, 98% { opacity: .32; } }
+.card:hover { border-color: color-mix(in srgb, var(--c) 90%, transparent); box-shadow: 0 0 16px color-mix(in srgb, var(--c) 35%, transparent); }
+.card.sel { border: 2px solid color-mix(in srgb, var(--c) 45%, #fff); box-shadow: 0 0 8px var(--c), 0 0 26px color-mix(in srgb, var(--c) 60%, transparent); }
+.card.dim > .ci { opacity: .5; }
+.card .ci { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; padding: 10px 8px; text-align: center; }
+.card .rar { font: 400 15px/16px var(--f-crt); letter-spacing: .08em; padding: 0 7px; background: var(--c); color: #04070f; }
+.card .ic { width: 72px; height: 72px; margin-top: 10px; border: 1px solid color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 16%, #030814); display: flex; align-items: center; justify-content: center; }
+.card .ic svg { width: 46px; height: 46px; }
+.card .nm { font: 700 15px var(--f-game); color: #fff; margin-top: 9px; min-height: 18px; }
+.card .rule { width: 70%; height: 1px; background: color-mix(in srgb, var(--c) 50%, transparent); margin: 6px 0; }
+.card .ds { font: 11px/1.3 var(--f-game); color: var(--desc); }
+.card .pr { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; }
+.card .pr span { font: 400 21px/24px var(--f-crt); color: var(--gold); padding: 0 10px; border: 1px solid rgba(242,193,78,.45); background: rgba(242,193,78,.1); display: flex; gap: 6px; align-items: center; text-shadow: 0 0 6px rgba(242,193,78,.4); }
+.card.sel .pr span { background: rgba(242,193,78,.25); border: 2px solid var(--gold); }
+.card .pr span.dear { color: var(--hot); border-color: rgba(255,107,122,.45); background: rgba(255,107,122,.08); text-shadow: none; }
+.card .stamp { position: absolute; z-index: 4; left: 50%; top: 52%; transform: translate(-50%, -50%) rotate(-6deg); font: 400 30px/1 var(--f-crt); letter-spacing: .1em; color: var(--good); border: 2px solid var(--good); padding: 4px 10px 1px; background: rgba(3,20,10,.85); text-shadow: 0 0 8px rgba(77,255,154,.6); }
+.toast { position: absolute; right: 24px; font: 400 18px/26px var(--f-crt); letter-spacing: .06em; color: #1d1300; background: var(--gold); padding: 0 12px; display: flex; gap: 8px; align-items: center; box-shadow: 0 0 14px rgba(242,193,78,.4); }
+.toast .coin { background: #1d1300; box-shadow: none; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.legend > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #0c1122; min-width: 0; }
+.legend b { font: 700 16px var(--f-ui); display: block; margin-bottom: 4px; }
+.legend p { margin: 0; color: var(--muted); font: 500 14px/1.45 var(--f-ui); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>The Bazaar as hologram panels</h1>
+    <p>The shop before a boss, in the Tab screen's hologram look: panels projected over the arena from the beam along the bottom. The shelf keeps its holo cards; the header, wallet, services, Done shopping, your teammates and the popups move onto the glass. Gold stays the Bazaar's colour.</p>
+  </header>
+  <div class="bar">
+    <div class="grp"><span>You are</span><button class="seg" id="host" aria-pressed="true">Host</button></div>
+    <div class="grp"><span>Effects</span><button class="seg" id="calm" aria-pressed="false">Reduced</button><button class="seg" id="reboot">Open again</button></div>
+  </div>
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="arena"><div class="wall" style="left:64px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:880px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:630px;top:20px;width:18px;height:200px"></div></div>
+    <div class="dark"></div><div class="cone"></div><div class="emit"></div>
+    <div id="ui"></div>
+  </div></div>
+  <p class="note">Click a card to see what it changes (your stats, left), click it again to buy. Try Restock, Remove upgrade, Give and Done shopping. 1280 x 720, scaled to fit.</p>
+  <div class="legend">
+    <div><b>Shelf</b><p>The same six holo cards in their rarity colour. The rarity is an inverse-video tag; the price a gold tag (red when you can't afford it, BUY · n on the picked card); a bought card gets a green BOUGHT stamp.</p></div>
+    <div><b>Services and wallet</b><p>The four services are soft keys with their price; one that does nothing (full health, a token already) is dashed. Your gold sits in the header as a tile; gifts arrive as a gold toast under it.</p></div>
+    <div><b>Done and teammates</b><p>Done shopping is the lobby's green key. Each teammate is a key with their state and gold and a GIVE key that opens a small panel. The host also gets Close the shop for everyone, in red.</p></div>
+  </div>
+  <p class="desc"><b>Building it:</b> the panels, beam and text helpers are TabHolo.cs's and the cards already use DrawHolo, so this is mostly ShopUi.cs moving its pieces onto them; YOUR STATS would be the Tab screen's panel with the shop's green preview lines.</p>
+</div>
+
+<script>
+const ICON = {
+  bullets: '<path d="M6 8h4v26H6zM14 4h4v30h-4zM22 8h4v26h-4z" fill="#f2c14e"/><path d="M6 8l2-4 2 4zM14 4l2-4 2 4zM22 8l2-4 2 4z" fill="#fff6c8"/>',
+  boot: '<path d="M10 4h10v18h10v8H6v-6l4-2z" fill="#a86a3c"/><path d="M6 28h24v4H6z" fill="#5a3a22"/>',
+  fork: '<path d="M16 6h4v14h-4z M8 14h20v4H8z M8 18h4v8H8z M24 18h4v8h-4z M16 22h4v10h-4z" fill="#b8c4d8"/>',
+  glass: '<path d="M8 4h20v4l-8 10 8 10v4H8v-4l8-10-8-10z" fill="#c9b07a"/><path d="M12 26h12v2H12z" fill="#f2c14e"/>',
+  bomb: '<circle cx="16" cy="22" r="10" fill="#a8603a"/><path d="M22 10l6-6" stroke="#f2c14e" stroke-width="3"/>',
+  flame: '<path d="M18 2c4 8 12 10 10 20a10 10 0 0 1-20 0c0-6 4-8 4-12 3 2 4 4 4 6 2-4 2-8 2-14z" fill="#ff7a2e"/><path d="M18 14c2 4 6 6 5 10a5 5 0 0 1-10 0c0-3 3-5 5-10z" fill="#ffd24d"/>',
+};
+const RAR = { rare: ["RARE", "#5b9cff"], common: ["COMMON", "#9aa6bf"], legendary: ["LEGENDARY", "#ff9a3d"], mod: ["WEAPON MOD", "#3fd6c8"] };
+const SHELF = [
+  { n: "Multishot", r: "rare", ic: "bullets", d: "Flamethrower: +1 flame a burst and 25% more reach", p: 100, chg: { "Extra projectiles": ["+1", "+2"] } },
+  { n: "Light Boots", r: "common", ic: "boot", d: "+6% move speed", p: 40, chg: { "Move speed": ["100%", "106%"] } },
+  { n: "Barrage", r: "rare", ic: "fork", d: "Every shot also fires a copy fanned out to the side, at 60% damage. Stack it into a wall of bullets", p: 120, bought: true, chg: {} },
+  { n: "Focus", r: "common", ic: "glass", d: "-6% ability cooldowns", p: 40, chg: { "Ability cooldowns": ["100%", "94%"] } },
+  { n: "Bomber Escort", r: "legendary", ic: "bomb", d: "Every 5 s one of the Queen's bombers flies from you to the toughest enemy and bursts on it", p: 280, chg: {} },
+  { n: "Incendiary Rounds", r: "mod", ic: "flame", d: "Hits set enemies on fire: each burns for another 40% of the hit's damage over 3 s", p: 200, chg: {} },
+];
+const STATS = [["Max HP", "244"], ["Damage", "120%"], ["Fire rate", "100%"], ["Move speed", "100%"], ["Ability cooldowns", "100%"], ["Damage taken", "90%"], ["Regeneration", "0.25 HP/s"],
+  ["Extra projectiles", "+1"], ["Barrage (fanned copies)", "+1"], ["Pierce", "+0"], ["Parry durability", "150"], ["Aeroaegis charges", "1"]];
+const TAKEN = ["Hollow Points", "Fortitude", "Multishot", "Thick Skin", "Riposte", "Barrage", "Vitality", "Clarity"];
+const S = { gold: 252, sel: 1, done: false, give: 0, remove: false, calm: false, host: true, boot: true, toast: "SAM GAVE YOU 40 GOLD", hp: [197, 244], token: false,
+  mates: [{ n: "Aleon", col: "#ff8a3d", gold: 112, done: false }, { n: "Sam", col: "#4dff9a", gold: 162, done: true }] };
+const panel = (x, y, w, h, inner, extra, cls) => `<div class="hp${cls ? " " + cls : ""}${S.boot ? " boot" : ""}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;${extra || ""}"><div class="band"></div><div class="in">${inner}</div></div>`;
+const cur = '<span class="cur"></span>';
+function stats() {
+  const chg = S.sel >= 0 && !SHELF[S.sel].bought ? SHELF[S.sel].chg : {};
+  return `<div class="title" style="font-size:30px;color:var(--ink)">YOUR STATS${cur}</div><div class="sub" style="color:#8fb0ff">FLAMETHROWER · AEROAEGIS</div>
+    <div class="head" style="margin-top:14px">${Object.keys(chg).length ? "IF YOU BUY " + SHELF[S.sel].n.toUpperCase() : "NOW"}</div>` +
+    STATS.map(r => chg[r[0]] ? `<div class="row chg"><span>${r[0]}</span><b><s>${chg[r[0]][0]} →</s>${chg[r[0]][1]}</b></div>` : `<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
+}
+function card(c, i) {
+  const [rn, rc] = RAR[c.r], afford = S.gold >= c.p, sel = i === S.sel && !c.bought;
+  const price = c.bought ? "" : `<div class="pr"><span class="${afford ? "" : "dear"}"><i class="coin"></i>${sel && afford ? "BUY · " : ""}${c.p}</span></div>`;
+  return `<div class="card${sel ? " sel" : ""}${c.bought || !afford ? " dim" : ""}" data-card="${i}" tabindex="0" style="--c:${rc};left:${290 + i * 162.8}px"><div class="holo"></div>
+    <div class="ci"><span class="rar">${rn}</span><div class="ic"><svg viewBox="0 0 36 36">${ICON[c.ic]}</svg></div><div class="nm">${c.n}</div><div class="rule"></div><div class="ds">${c.d}</div></div>${price}${c.bought ? '<div class="stamp">BOUGHT</div>' : ""}</div>`;
+}
+function services() {
+  const sv = [["Restock", "Six new items", 25, false], ["Remove upgrade", "Drop one you regret", 75, false], ["Full heal", S.hp[0] >= S.hp[1] ? "You're at full health" : "Back to full HP", 40, S.hp[0] >= S.hp[1]], ["Revive token", S.token ? "You have one" : "Revive yourself once", 120, S.token]];
+  const w = (966 - 32 - 24) / 4;
+  return `<div class="head">SERVICES</div>` + sv.map((s, i) => `<div class="k${s[3] ? " off" : ""}" data-svc="${i}" style="left:${16 + i * (w + 8)}px;top:38px;width:${w}px;height:40px;justify-content:space-between;padding:0 12px">
+      <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.1"><span style="color:#fff">${s[0]}</span><span style="font:11px var(--f-game);color:var(--desc);text-shadow:none">${s[1]}</span></span>
+      <span class="crt" style="font-size:20px;color:var(--gold)"><i class="coin"></i> ${s[2]}</span></div>`).join("");
+}
+function bottom() {
+  const doneN = S.mates.filter(m => m.done).length + (S.done ? 1 : 0), waiting = [!S.done ? "YOU" : null, ...S.mates.filter(m => !m.done).map(m => m.n.toUpperCase())].filter(Boolean);
+  let h = `<div class="crt" style="position:absolute;left:16px;top:12px;font-size:19px;color:var(--dim)">${doneN} OF 3 DONE SHOPPING${waiting.length ? " · WAITING FOR " + waiting.join(", ") : ""}</div>
+    <div class="crt" style="position:absolute;right:16px;top:12px;font-size:19px;color:var(--dim)">LEFTOVER GOLD BECOMES XP WHEN EVERYONE IS DONE</div>
+    <div class="k good${S.done ? " on" : ""}" id="done" style="left:16px;top:44px;width:340px;height:48px;font-size:17px">${S.done ? "✓ DONE · CLICK TO KEEP SHOPPING" : `DONE SHOPPING · ${S.gold} GOLD → +${S.gold} XP`}</div>`;
+  let x = 372;
+  S.mates.forEach((m, i) => {
+    h += `<div class="k${m.done ? " good" : ""}" style="left:${x}px;top:44px;width:236px;height:48px;justify-content:flex-start;padding:0 8px 0 12px;cursor:default">
+      <i class="dot" style="background:${m.col};box-shadow:0 0 6px ${m.col}"></i><span style="color:#fff">${m.n}</span><span class="crt" style="font-size:17px;color:${m.done ? "var(--good)" : "var(--dim)"}">${m.done ? "DONE" : "SHOPPING"}</span>
+      <span class="crt" style="margin-left:auto;font-size:20px;color:var(--gold)"><i class="coin"></i> ${m.gold}</span><span class="k gold st${S.give === i + 1 ? " on" : ""}" data-give="${i + 1}" style="height:28px;padding:0 10px;font-size:12px">GIVE</span></div>`;
+    x += 248;
+  });
+  if (S.host) h += `<div class="k danger" id="close" style="right:16px;top:100px;width:280px;height:30px;font-size:12px">CLOSE THE SHOP FOR EVERYONE</div>`;
+  return h;
+}
+function givePanel() {
+  if (!S.give) return "";
+  const m = S.mates[S.give - 1], x = 290 + 372 + (S.give - 1) * 248 + 16;
+  const amts = [10, 25, 50].filter(a => a <= S.gold).map(a => [a, String(a)]); if (S.gold > 0) amts.push([S.gold, "ALL " + S.gold]);
+  return panel(x, 468, 300, 108, `<div class="crt" style="font-size:20px;color:var(--gold)">GIVE ${m.n.toUpperCase()} GOLD</div>` +
+    amts.map((a, i) => `<div class="k gold" data-amt="${a[0]}" style="left:${16 + i * 66}px;top:40px;width:${i === amts.length - 1 && a[1].startsWith("ALL") ? 80 : 58}px;height:30px;font-size:13px">${a[1]}</div>`).join("") +
+    `<div style="position:absolute;left:16px;top:80px;font:11px var(--f-game);color:var(--desc)">${m.done ? m.n + " is done: this reopens their shop." : "It goes straight into their wallet."}</div>`, "z-index:20", "pop");
+}
+function removePanel() {
+  if (!S.remove) return "";
+  const bw = 180, gap = 8, rows = Math.ceil(TAKEN.length / 4), pw = 4 * bw + 3 * gap + 40, ph = 112 + rows * (34 + gap);
+  return panel(290 + 966 / 2 - pw / 2, 360 - ph / 2, pw, ph, `<div class="title" style="font-size:28px;color:var(--gold)">REMOVE AN UPGRADE · 75 GOLD${cur}</div>
+    <div style="font:12px var(--f-game);color:var(--desc);margin-top:4px">Takes away one stack. Abilities it gave you go too.</div>` +
+    TAKEN.map((t, i) => `<div class="k" data-rm="${i}" style="left:${20 + (i % 4) * (bw + gap)}px;top:${66 + Math.floor(i / 4) * (34 + gap)}px;width:${bw}px;height:34px">${t}</div>`).join("") +
+    `<div class="k" id="rmcancel" style="right:20px;bottom:14px;width:100px;height:28px;font-size:12px">CANCEL</div>`, "z-index:20", "pop");
+}
+function render() {
+  const st = document.getElementById("stage"); st.classList.toggle("calm", S.calm);
+  let h = panel(24, 56, 250, 640, stats());
+  h += panel(290, 56, 966, 92, `<div class="eyebrow">BAZAAR · BEFORE THE WAVE 15 BOSS</div><div class="title" style="color:var(--gold);margin-top:6px">THE BAZAAR${cur}</div>
+    <div class="sub" style="color:var(--dim)">SPEND YOUR GOLD BEFORE THE BOSS. WHATEVER'S LEFT BECOMES XP.</div>
+    <div style="position:absolute;right:16px;top:16px;width:230px;height:58px;border:1px solid rgba(242,193,78,.5);background:rgba(242,193,78,.1);display:flex;align-items:center;gap:12px;padding:0 14px">
+      <i class="coin" style="width:24px;height:24px"></i><div><div class="crt" style="font-size:36px;line-height:1;color:var(--gold);text-shadow:0 0 8px rgba(242,193,78,.55)">${S.gold}</div><div style="font:700 10px var(--f-game);color:var(--dim);letter-spacing:.03em;white-space:nowrap">YOUR GOLD · LEFTOVER → XP</div></div></div>`);
+  if (S.toast) h += `<div class="toast" style="top:96px;right:286px;z-index:10"><i class="coin"></i>${S.toast}</div>`;
+  h += SHELF.map(card).join("");
+  h += panel(290, 444, 966, 88, services());
+  h += panel(290, 548, 966, 148, bottom());
+  h += givePanel() + removePanel();
+  document.getElementById("ui").innerHTML = h;
+  S.boot = false;
+  wire();
+}
+function wire() {
+  document.querySelectorAll("[data-card]").forEach(el => el.onclick = () => {
+    const i = +el.dataset.card, c = SHELF[i];
+    if (c.bought) return;
+    if (S.sel === i && S.gold >= c.p) { c.bought = true; S.gold -= c.p; S.toast = "BOUGHT " + c.n.toUpperCase(); S.sel = -1; } else S.sel = i;
+    render();
+  });
+  document.querySelectorAll("[data-svc]").forEach(el => el.onclick = () => {
+    const i = +el.dataset.svc;
+    if (i === 0 && S.gold >= 25) { S.gold -= 25; S.toast = "RESTOCKED: SIX NEW ITEMS"; }
+    if (i === 1) S.remove = true;
+    if (i === 2 && S.hp[0] < S.hp[1] && S.gold >= 40) { S.gold -= 40; S.hp[0] = S.hp[1]; }
+    if (i === 3 && !S.token && S.gold >= 120) { S.gold -= 120; S.token = true; S.toast = "REVIVE TOKEN BOUGHT"; }
+    render();
+  });
+  document.querySelectorAll("[data-give]").forEach(el => el.onclick = e => { e.stopPropagation(); S.give = S.give === +el.dataset.give ? 0 : +el.dataset.give; render(); });
+  document.querySelectorAll("[data-amt]").forEach(el => el.onclick = () => { const a = +el.dataset.amt, m = S.mates[S.give - 1]; S.gold -= a; m.gold += a; if (m.done) m.done = false; S.toast = "YOU GAVE " + m.n.toUpperCase() + " " + a + " GOLD"; S.give = 0; render(); });
+  document.querySelectorAll("[data-rm]").forEach(el => el.onclick = () => { if (S.gold >= 75) { S.gold -= 75; S.toast = "REMOVED " + TAKEN[+el.dataset.rm].toUpperCase(); TAKEN.splice(+el.dataset.rm, 1); } S.remove = false; render(); });
+  const rc = document.getElementById("rmcancel"); if (rc) rc.onclick = () => { S.remove = false; render(); };
+  document.getElementById("done").onclick = () => { S.done = !S.done; render(); };
+  const cl = document.getElementById("close"); if (cl) cl.onclick = () => { S.toast = "THE SHOP CLOSES FOR EVERYONE"; render(); };
+}
+document.getElementById("calm").onclick = e => { S.calm = !S.calm; e.currentTarget.setAttribute("aria-pressed", String(S.calm)); render(); };
+document.getElementById("host").onclick = e => { S.host = !S.host; e.currentTarget.setAttribute("aria-pressed", String(S.host)); render(); };
+document.getElementById("reboot").onclick = () => { S.boot = !S.calm; render(); };
+function fit() { const v = document.getElementById("view"); document.getElementById("stage").style.transform = `scale(${v.clientWidth / 1280})`; }
+new ResizeObserver(fit).observe(document.getElementById("view")); fit(); render();
+</script>
