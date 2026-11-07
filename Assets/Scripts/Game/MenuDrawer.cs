@@ -25,6 +25,8 @@ namespace Arena
         bool pauseHowTo;         // the pause (or lobby) menu showing How to play
         bool pauseRecords;       // the lobby or pause menu showing the profile (ProfileUi.cs, without the Look tab)
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
+        int howToShown;
+        int settingsShown = 1;   // the section on screen (follows settingsGroup once the old one has erased)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
         int recordsSection;      // the Records tab's open row: 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Recent runs (ProfileUi.cs)
         int howToTopic;          // HowToTopics
@@ -589,12 +591,13 @@ namespace Arena
         void DrawSettingsSection(float t)
         {
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
-            if (settingsGroup != 3)
+            int group = PanelShown(ref settingsShown, settingsGroup);  // (the old section erases first, CrtWindows.cs)
+            if (group != 3)
                 Keybinds.Listening = -1;  // (leaving the page ends a rebind)
             var col = CrtUi.Ink;
-            BeginPanelAnim("settings" + settingsGroup);
+            BeginPanelAnim("settings" + group);
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y + 102f;
-            switch (settingsGroup)
+            switch (group)
             {
                 case 0:
                 {
@@ -913,8 +916,9 @@ namespace Arena
         void DrawHowToBody(float t)
         {
             howToTopic = Mathf.Clamp(howToTopic, 0, HowToTopics.Length - 1);
-            BeginPanelAnim("howto" + howToTopic);
-            var topic = HowToTopics[howToTopic];
+            int shownTopic = PanelShown(ref howToShown, howToTopic);
+            BeginPanelAnim("howto" + shownTopic);
+            var topic = HowToTopics[shownTopic];
             OpenSectionPanel(topic.Name.ToUpperInvariant(), topic.Color, topic.Intro, 1f);
             // The topics as keys along the top of the window (the cabinet's list stays on the pause or lobby menu).
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, cx = x, ty = DrawerPanel.y + 98f;
@@ -931,7 +935,7 @@ namespace Arena
                     howToTopic = i;
                 cx += bw + 6f;
             }
-            DrawHowToTopic(HowToTopics[howToTopic], t, ty + 48f);
+            DrawHowToTopic(HowToTopics[shownTopic], t, ty + 48f);
             EndPanelAnim();
         }
 

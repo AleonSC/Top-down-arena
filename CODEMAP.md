@@ -97,6 +97,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
 - `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`)
 - `ProfileTransition.cs`, `DriveSlot.cs`: the move between that screen and the main menu (your disk flies up and slides into the disk drive under the title, which reads it, then the menu draws in), with its sounds; `DriveSlot.cs` is the drive itself (replaces the x-axis on the picker and menu)
+- `DiskEject.cs`: the eject key right of the menu's disk drive (`DrawDriveEject`) and its 2.9 s spring-pop move back to the picker (`StartProfEject`, `TickProfEj`, `DrawProfEj`, `DriveEjectAt`); rides on `profTr` with `profEj`; replaced the "Switch profile" tab (`Docs/Mockups/disk-eject.html`)
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
 - `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
@@ -229,7 +230,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Recent runs graphs | `RunTimeline.cs` (data, sampler, files), `RunGraphs.cs` (page), Tests `RecentRuns.cs` |
-| Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs`, `DriveSlot.cs` (`Docs/Profiles.md`) |
+| Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs`, `DriveSlot.cs`, `DiskEject.cs` (`Docs/Profiles.md`) |
 | Account rank, XP, cosmetics | `Rank.cs`, `Profile.cs`, `RankLook.cs`, `RankUi.cs`, `RankTrails.cs` (`Docs/Rank.md`) |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
 | Arena layouts (walls, edge gates) | `Layouts.cs` (floor plans), `LayoutRules.cs` (pick per cycle, `PushOutOfSolids`, `SolidStops`, spawn through gates, `LayoutDir` steering), `LayoutLook.cs`, `Tools/SimTest/Tests/Layouts.cs` |
