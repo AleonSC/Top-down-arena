@@ -210,7 +210,7 @@ namespace Arena
                 if (can)
                 {
                     float rx = x2;
-                    foreach (var rule in new[] { "NO PATHS", "NO CHALLENGE ROOMS", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" })
+                    foreach (var rule in new[] { "NO PATHS", "NO DATA GATES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" })
                     {
                         float rw = LobbyKit.SpacedWidth(rule, 10, 1f) + 12f;
                         if (rx + rw > x2 + w2) { rx = x2; y2 += 22f; }

@@ -119,38 +119,80 @@ namespace Arena
                 DrawAltar(game.AltarPos, t);
         }
 
-        /// The portal: a swirl of arcs in the challenge's colour round a dark heart, motes spiralling in, and a ring
-        /// that fills as the party stands in it. It flickers as its time runs out.
+        /// A Data Gate (Docs/Mockups/challenge-portals-digital.html, "Data Gate"): rows of data scrolling round a dark core
+        /// in the challenge's colour, dashed rings turning, bytes streaming in, and a ring of pips that lights as the party
+        /// stands in it. It flickers as its time runs out. Reduced effects stops the scrolling, the streaming and the flicker.
         void DrawPortal(V2 pos, float t)
         {
             var acc = Challenges.Accent(game.RoomKind);
             float open = Mathf.Clamp01(PhaseAge / 0.7f), e = 1f - (1f - open) * (1f - open) * (1f - open);
-            float fade = game.RoomT < 3f ? 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(t * 9f)) : 1f;
-            float R = Challenges.PortalR * e;
+            float fade = game.RoomT < 3f && !fxReduced ? 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(t * 9f)) : 1f;
+            float R = Challenges.PortalR * e, tt = fxReduced ? 0f : t;
             GlowDisc(pos, R * 2.4f, acc, 0.3f * fade);
-            Circle(pos, R * 0.95f, new Rgba(0.03f, 0.02f, 0.07f, 0.9f), 40);
-            for (int i = 0; i < 6; i++)  // the swirl
+            Circle(pos, R * 0.95f, new Rgba(0.012f, 0.02f, 0.06f, 0.93f), 40);
+            // The data: rows of bars sliding the opposite way to their neighbours, brighter toward the rim.
+            const int rows = 15;
+            float rh = R * 1.9f / rows, cell = 6.4f;
+            for (int i = 0; i < rows; i++)
             {
-                float r = R * (0.25f + 0.13f * i), spin = t * (2.4f - 0.25f * i) + i * 1.1f;
-                Arc(pos, r, 3f - 0.3f * i, acc.WithAlpha((0.85f - 0.1f * i) * fade), 24, spin, 2.2f);
-                Arc(pos, r, 2f, Rgba.White.WithAlpha(0.35f * fade * (1f - i / 6f)), 12, spin + 1.9f, 0.4f);
+                float y = -R * 0.95f + rh * (i + 0.5f), dir = i % 2 == 0 ? -1f : 1f, off = tt * (7f + (i * 7 % 11) * 3f) * dir;
+                int baseCell = Mathf.FloorToInt(off / cell);
+                float fx = off - baseCell * cell;
+                for (int k = -16; k <= 16; k++)
+                {
+                    float x = k * cell - fx, d = Mathf.Sqrt(x * x + y * y) / Mathf.Max(1f, R);
+                    if (d > 0.97f || d < 0.3f)
+                        continue;
+                    int idx = baseCell + k;
+                    float hv = GateHash(i, idx + (GateHash(i, idx, 0) > 0.82f ? Mathf.FloorToInt(tt * 3f) : 0), 1);
+                    bool hot = GateHash(i, idx, 9) > 0.93f;
+                    float h = 2f + hv * (rh * 0.7f);
+                    var c = hot ? Rgba.White.WithAlpha(0.85f * fade) : acc.WithAlpha((0.12f + 0.6f * d) * fade);
+                    FillRect(pos.X + x - 1.2f, pos.Y + y - h / 2f, 2.4f, h, c);
+                }
             }
-            for (int i = 0; i < 16; i++)  // motes drawn in
+            Circle(pos, R * 0.34f, new Rgba(0.012f, 0.02f, 0.06f, 0.95f), 24);  // the dark core
+            float sq = R * 0.2f, sp = tt * 0.6f;
+            Polygon(pos, sq * 1.4142f, 4, sp + 0.785f, acc.WithAlpha(0.2f * fade));
+            Arc(pos, sq * 1.4142f, 1.6f, acc.WithAlpha(0.9f * fade), 4, sp + 0.785f, MathX.Tau);
+            Arc(pos, sq * 1.4142f * 1.4142f, 1.6f, acc.WithAlpha(0.5f * fade), 4, sp, MathX.Tau);
+            FillRect(pos.X - 3f, pos.Y - 3f, 6f, 6f, Rgba.White.WithAlpha(0.85f * fade));
+            for (int k = 0; k < 24; k++)  // the dashed rim, turning
             {
-                float f = MathX.Fmod(t * 0.55f + i / 16f, 1f);
-                float a = i * 2.4f + f * 4f;
-                V2 at = pos + V2.FromAngle(a) * (R * 2.2f * (1f - f) + R * 0.2f);
-                Circle(at, 2.5f * (1f - f) + 1f, acc.WithAlpha(fade * Mathf.Min(1f, f * 3f)), 6);
+                float a0 = k * MathX.Tau / 24f - tt * 0.6f;
+                Arc(pos, R * 0.98f, 2.6f, acc.WithAlpha(0.9f * fade), 4, a0, MathX.Tau / 24f * 0.58f);
             }
-            Circle(pos, R * 0.18f, Rgba.White.WithAlpha(0.8f * fade), 16);
-            // The fill: everyone in, and it's full.
-            Arc(pos, Challenges.PortalR + 12f, 5f, new Rgba(1f, 1f, 1f, 0.12f * e), 64);
-            if (game.PortalFill > 0f)
-                Arc(pos, Challenges.PortalR + 12f, 6f, acc.WithAlpha(0.95f), 64, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(game.PortalFill));
+            for (int k = 0; k < 16; k++)  // a fainter outer ring, turning the other way
+                Arc(pos, R * 1.1f, 1.2f, acc.WithAlpha(0.5f * fade), 3, k * MathX.Tau / 16f + tt * 0.5f, MathX.Tau / 16f * 0.22f);
+            if (!fxReduced)
+                for (int i = 0; i < 14; i++)  // bytes streaming in along eight lanes
+                {
+                    float f = MathX.Fmod(t * 0.55f + i / 14f, 1f);
+                    float a = Mathf.Round(i * 2.4f / (MathX.Pi / 4f)) * (MathX.Pi / 4f);
+                    V2 at = pos + V2.FromAngle(a) * (R * 2.2f * (1f - f) + R * 0.2f);
+                    float sz = 3.2f * (1f - f) + 1.4f;
+                    FillRect(at.X - sz / 2f, at.Y - sz / 2f, sz, sz, acc.WithAlpha(fade * Mathf.Min(1f, f * 3f)));
+                }
+            // The fill: 48 pips, lit up to the party's share. Everyone in, and it's full.
+            const int pips = 48;
+            float ring = Challenges.PortalR + 12f;
+            for (int k = 0; k < pips; k++)
+            {
+                float a = -MathX.Pi / 2f + k * MathX.Tau / pips;
+                bool lit = (k + 1f) / pips <= game.PortalFill + 1e-4f;
+                V2 dir = V2.FromAngle(a);
+                Line(pos + dir * (ring - 3.5f), pos + dir * (ring + 3.5f), 2.6f, lit ? acc.WithAlpha(0.95f) : new Rgba(1f, 1f, 1f, 0.12f * e));
+            }
             // A thread from each player standing in it.
             foreach (var p in game.Players.Values)
                 if (!p.Downed && p.Disp.DistanceTo(pos) < Challenges.PortalR)
                     Line(pos, p.Disp, 2f, acc.WithAlpha(0.5f));
+        }
+
+        static float GateHash(int a, int b, int c)
+        {
+            float x = Mathf.Sin(a * 127.1f + b * 311.7f + c * 74.7f) * 43758.5453f;
+            return x - Mathf.FloorToInt(x);
         }
 
         /// A zone: the one being held glows and fills; the ones to come are dashed outlines; the ones done are faint.
@@ -363,7 +405,7 @@ namespace Arena
             float y = at.Y - Challenges.PortalR * WorldToUi - 78f;
             var card = new Rect(at.X - 130f, y, 260f, 58f);
             Ui.HudPanel(card, acc);
-            Ui.Label(new Rect(card.x, card.y + 5f, card.width, 14f), "CHALLENGE ROOM", 10, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(card.x, card.y + 5f, card.width, 14f), "DATA GATE", 10, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleCenter, true);
             Ui.Fancy(new Rect(card.x, card.y + 18f, card.width, 24f), Challenges.Name(game.RoomKind).ToUpperInvariant(), 18, Color.white, acc, TextAnchor.MiddleCenter);
             string sub = alive > 1 ? inside + " of " + alive + " in  ·  closes in " + Mathf.CeilToInt(Mathf.Max(0f, game.RoomT)) + " s"
                 : "Step in  ·  closes in " + Mathf.CeilToInt(Mathf.Max(0f, game.RoomT)) + " s";
@@ -381,7 +423,7 @@ namespace Arena
             var oldColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
-            Ui.Label(new Rect(0f, H / 2f - 108f, W, 20f), "CHALLENGE ROOM", 14, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0f, H / 2f - 108f, W, 20f), "DATA GATE", 14, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, true);
             Ui.Fancy(new Rect(W / 2f - 400f * s, H / 2f - 90f - 6f * s, 800f * s, 70f * s), Challenges.Name(game.RoomKind).ToUpperInvariant(), Mathf.RoundToInt(54f * s), Color.white, acc,
                 TextAnchor.MiddleCenter, new Color(acc.r, acc.g, acc.b, 0.6f));
             Ui.Label(new Rect(0f, H / 2f - 14f, W, 22f), Challenges.Goal(game.RoomKind, game.Players.Count), 17, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter, true);
@@ -489,7 +531,7 @@ namespace Arena
                 col = new Color(1f, 0.45f, 0.35f);
                 return "ENRAGED — faster, and it rings twice";
             }
-            return "CHALLENGE ROOM MINI-BOSS";
+            return "DATA GATE MINI-BOSS";
         }
     }
 }

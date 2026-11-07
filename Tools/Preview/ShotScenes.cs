@@ -567,7 +567,7 @@ static partial class Shot {
       var rps = new System.Collections.Generic.List<Player>(gg.Players.Values);
       for (int i = 0; i < rps.Count; i++) rps[i].Pos = rps[i].Disp = new V2(700f + i * 160f, 640f);
       if (room == "portal") {
-        gg.State = MatchState.Intermission; gg.Room = RoomPhase.Portal; gg.RoomKind = ChallengeKind.HoldZones; gg.RoomT = 11.4f; gg.PortalPos = new V2(1050f, 360f); gg.PortalFill = 0.55f;
+        gg.State = MatchState.Intermission; gg.Room = RoomPhase.Portal; gg.RoomKind = ChallengeKind.HoldZones; gg.RoomT = 11.4f; gg.PortalPos = new V2(1150f, 200f); gg.PortalFill = 0.55f;
         rps[0].Pos = rps[0].Disp = new V2(1030f, 380f);
       } else {
         gg.State = MatchState.Fighting;

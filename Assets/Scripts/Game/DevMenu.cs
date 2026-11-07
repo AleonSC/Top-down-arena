@@ -191,7 +191,7 @@ namespace Arena
                     }
             // Challenge rooms: straight into one (Challenges.cs).
             var rooms = new Rect(body.x, quick.yMax + 14f, body.width, 110f);
-            y = DevCard(rooms, "Challenge rooms", "Between waves: takes everyone straight into that room.", DevTabColors[0]);
+            y = DevCard(rooms, "Data Gates", "Between waves: takes everyone straight through that gate.", DevTabColors[0]);
             bool canRoom = host && game.State == MatchState.Intermission && game.Room == RoomPhase.None;
             GUI.enabled = canRoom;
             float rw = (rooms.width - 32f - 32f) / 5f;
