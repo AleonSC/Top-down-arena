@@ -42,10 +42,11 @@ code{font:400 15px var(--f-crt);color:var(--ink-hi);letter-spacing:.04em}
 <header>
   <div>
     <h1>DOWNED &amp; REVIVED</h1>
-    <p>Messages and digital animations for going down and getting back up, in the CRT look of the lobby and wave banners. Every tube loops the same story: a hit, down, an ally revives you for 3 s, back online. Drag a slider to step through it.</p>
+    <p>Messages and digital animations for going down and getting back up, using the game's real player models, in the CRT look of the lobby and wave banners. Every tube loops the same story: a hit, down, an ally revives you for 3 s, back online. Drag a slider to step through it.</p>
   </div>
   <div class="ctl">
     <button id="reduced" aria-pressed="false">REDUCED EFFECTS</button>
+    <button id="screenFx" aria-pressed="true">SCREEN GLITCH</button>
     <button id="pauseAll" aria-pressed="false">PAUSE ALL</button>
   </div>
 </header>
@@ -63,14 +64,14 @@ code{font:400 15px var(--f-crt);color:var(--ink-hi);letter-spacing:.04em}
 </section>
 
 <section>
-  <h2>ANIMATIONS <small>The player sprite itself, built from pixels. Any of these pairs with any message above.</small></h2>
+  <h2>ANIMATIONS <small>The game's real player models (Knight Tank, Summoner Healer, Ninja DPS), using only effects the game can draw. Any of these pairs with any message above.</small></h2>
   <div class="grid">
     <figure data-stage="D"><div class="tube"><canvas width="1280" height="720"></canvas></div><div class="bar"></div>
-      <figcaption><b>D · SIGNAL LOST</b>Rows tear sideways with a red/cyan split, pixels shed and fall like digital rain, and a dim wireframe husk with an X stays behind, pinging.</figcaption></figure>
+      <figcaption><b>D · SIGNAL LOST</b>The model jitters, splits into red and cyan copies and flickers out while square flecks of its own costume colours shed and fall. What stays is the game's grey downed disc, restyled dim red with an X and a slow ping.</figcaption></figure>
     <figure data-stage="E"><div class="tube"><canvas width="1280" height="720"></canvas></div><div class="bar"></div>
-      <figcaption><b>E · REBOOT</b>Scattered pixels snap home, a mint scan line sweeps down and colours the sprite in, then a shockwave, a flash and a burst of plus marks.</figcaption></figure>
+      <figcaption><b>E · REBOOT</b>Flecks in the costume colours fly in from all sides, the model flickers back mint-tinted with a reverse split while a scan line sweeps over it, then comes a shockwave, a flash and a burst of plus marks. Each model starts a beat after the last.</figcaption></figure>
     <figure data-stage="F" class="wide"><div class="tube"><canvas width="1280" height="720"></canvas></div><div class="bar"></div>
-      <figcaption><b>F · REVIVE LINK</b>A data link runs from the rescuer to the husk and a 36-segment ring charges around it. The ring is the same over the world sprite in A, B and C.</figcaption></figure>
+      <figcaption><b>F · REVIVE LINK</b>A data link runs from the healer to the downed Tank and a 36-segment ring charges around the husk. This is the ring that replaces the plain green arc, sized to each role's body.</figcaption></figure>
   </div>
 </section>
 
@@ -79,12 +80,292 @@ code{font:400 15px var(--f-crt);color:var(--ink-hi);letter-spacing:.04em}
   <div class="notes">
     <div><b>NO NETWORK CHANGE</b>The snapshot already carries <code>Downed</code> and <code>Revive</code> per player (<code>GameNet.cs</code>), so this is client drawing only and the protocol version stays.</div>
     <div><b>COLOURS</b>Red is the existing <code>CrtStyle.Danger</code>. Mint is a new revive colour; the blue ink and cyan tags come from the current CRT palette.</div>
-    <div><b>REDUCED EFFECTS</b>Use the toggle at the top: glitch slices, noise, shake and glow drop out, the messages and the ring stay. It follows the setting the CRT screens already have.</div>
+    <div><b>WHAT THE GAME CAN DRAW</b>The model code already has a tint mix (the hit flash, <code>mWhite</code>), an alpha (<code>mAlpha</code>) and a movable origin. Ghost copies, flecks, rings and lines are plain GL draws. The tear-and-static look across the whole screen needs a render-texture pass I couldn't find in the game; toggle <b style="font:inherit;color:inherit">SCREEN GLITCH</b> off to see the in-game version without it.</div>
+    <div><b>REDUCED EFFECTS</b>The top toggle drops glitch, ghost copies, glow and flicker; the messages, flecks and ring stay.</div>
     <div><b>PICK ONE</b>Tell me which message (A, B or C) and which animation set you want, and whether C should ship alongside A or B.</div>
   </div>
 </section>
 </div>
 
+<script>
+"use strict";
+/* ---------- drawing helpers (global ctx `c`) ---------- */
+let c, T = 0, FIRE = 0;
+const TAU = Math.PI * 2;
+const ln = (x1, y1, x2, y2, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); };
+const ci = (x, y, r, col) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); };
+const rc = (x, y, w, h, col, rad = 0) => { c.fillStyle = col; c.beginPath(); c.roundRect(x, y, w, h, rad); c.fill(); };
+const pg = (p, col, stroke) => { c.fillStyle = col; c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill(); if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1; c.stroke(); } };
+const ar = (x, y, r, a0, a1, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.beginPath(); c.arc(x, y, r, a0, a1); c.stroke(); };
+const el = (x, y, rx, ry, col, rot = 0) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx, ry, rot, 0, TAU); c.fill(); };
+const star = (x, y, R, r, n, rot, col) => { const p = []; for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n, q = i % 2 ? r : R; p.push([x + Math.cos(a) * q, y + Math.sin(a) * q]); } pg(p, col); };
+const ST = "#cfd8e6", DK = "#3a4250", WD = "#8a6a45", GD = "#e8c25a", BONE = "#efe9d8", BLOOD = "#c4122e";
+
+/* ---------- roles and classes ---------- */
+const ROLES = {
+  Tank:   { r: 18, hit: 9, col: "#5999ff", dim: "#17233a", d: "Broad shoulders, plate pauldrons and a chest plate: the widest silhouette, trim in blue." },
+  Healer: { r: 14, hit: 7, col: "#59ff8c", dim: "#14291d", d: "Medium frame, a white stole over the shoulders and a thin halo ring round the head, trim in green." },
+  DPS:    { r: 12, hit: 6, col: "#ff8c40", dim: "#33210f", d: "Narrow and leaning forward, a sash across the chest and a speed streak behind, trim in orange." },
+};
+const KITS = {
+  Soldier:      { base: "#5b6b52", dark: "#2d3829", sleeve: "#46543e", glove: "#20242a", d: "Helmet with a glowing visor, a backpack. Tank wears side guards, Healer a cross on the helmet and a med-pack, DPS goggles and a headband." },
+  Elementalist: { base: "#6b4fb0", dark: "#33235c", sleeve: "#573f95", glove: "#e6dcff", d: "A wide pointed hat and a flaring robe. Seen from above the hat is a brim with a gem on its tip; the hem sways." },
+  Summoner:     { base: "#3f7a4a", dark: "#1d3b25", sleeve: "#2f6039", glove: "#cfe9b8", d: "A hood with a trailing point, a mantle of leaves and glowing eyes. Three motes circle the body, as today." },
+  Knight:       { base: "#aab6c8", dark: "#5d6a7c", sleeve: "#8795ab", glove: "#cfd8e6", d: "A steel helm with a crest and plume, and a cape in the role's colour. The visor and held weapon stay as today." },
+  Ninja:        { base: "#2a2a38", dark: "#13131a", sleeve: "#1d1d28", glove: "#0e0e14", d: "A dark wrap with an eye slit, a headband knot and two scarf ribbons in the role colour streaming behind." },
+  Hemomancer:   { base: "#8c1626", dark: "#3a0a12", sleeve: "#6a101c", glove: "#2a0a10", d: "A crimson hood with a blood-drop gem, a tattered cloak and three drops circling that glow as health falls." },
+};
+const KIT_ORDER = Object.keys(KITS), ROLE_ORDER = Object.keys(ROLES);
+
+/* ---------- weapons: 54 sockets. Origin = main grip, +x = aim, +y = right. ---------- */
+const WEAPONS = [];
+function W(kit, role, name, hold, off, mz, len, why, draw, col = "#fff") { WEAPONS.push({ kit, role, name, hold, off, mz, len, why, draw, col }); }
+const S_ = Math.sin, C_ = Math.cos;
+/* Soldier */
+W("Soldier","Tank","Scattergun","two",[14,0],[30,0],30,"Stock, twin barrels, a pump grip.",()=>{ rc(-12,-2.6,12,5.2,WD,2); rc(0,-3.2,16,6.4,DK,1.5); ln(2,-1.7,29,-1.7,2.4,ST); ln(2,1.7,29,1.7,2.4,ST); rc(12,-4,9,8,"#6a4b2e",2); },"#ffd27a");
+W("Soldier","Tank","Flak Cannon","two",[10,0],[32,0],32,"A fat flared tube with a drum, orange bands.",()=>{ rc(-6,-4,12,8,DK,2); pg([[6,-5],[26,-6],[32,-9],[32,9],[26,6],[6,5]],"#55606e"); ln(14,-6,14,6,2,"#ff9d3a"); ln(22,-7,22,7,2,"#ff9d3a"); ci(9,-7,4.5,"#3b4350"); },"#ff9d3a");
+W("Soldier","Tank","Riot Repeater","two",[14,0],[28,0],28,"A slotted shroud round the barrel.",()=>{ rc(-8,-2.5,8,5,WD,2); rc(0,-3.5,26,7,DK,2); rc(6,-5.5,14,11,"#4c5a68",3); for(let i=0;i<4;i++) ln(8+i*3.2,-4,8+i*3.2,4,1,"#1b2026"); ln(24,-1.5,31,-1.5,2.2,ST); },"#ffe08a");
+W("Soldier","Healer","Repulsion Cannon","two",[8,0],[26,0],26,"A bell-mouthed emitter with rings.",()=>{ rc(-4,-3,10,6,DK,2); pg([[6,-4],[22,-11],[22,11],[6,4]],"#3d6b5a"); [6,10,14].forEach(r=>ar(10,0,r,-0.85,0.85,1.5,"#9dffcf")); },"#9dffcf");
+W("Soldier","Healer","Revolver","one",null,[17,0],17,"Short barrel, big cylinder, wooden grip.",()=>{ rc(-5,-2.2,7,8,WD,2); rc(0,-2.6,10,5.2,DK,1.5); ln(8,0,17,0,3,ST); ci(5,0,3.6,"#6a7685"); ci(5,0,1.4,"#1b2026"); },"#ffe08a");
+W("Soldier","Healer","Mender's Bow","two",[18,0],[26,0],34,"A recurve with a green leaf charm; the drawn arrow glows.",()=>{ ar(2,0,16,-1.05,1.05,2.6,"#7a5a3a"); ln(10,-13.9,-2,0,0.8,"#eaeaea"); ln(-2,0,10,13.9,0.8,"#eaeaea"); ln(-2,0,26,0,1.4,"#cfe9d6"); pg([[26,-2],[31,0],[26,2]],"#59ff8c"); ci(18,0,2,"#59ff8c"); },"#59ff8c");
+W("Soldier","DPS","Twin Rifle","dual",null,[26,0],26,"Two compact rifles with blue scopes.",()=>{ rc(-6,-2,8,4,WD,1.5); rc(0,-2.6,14,5.2,DK,1.5); ln(12,0,26,0,2.4,ST); rc(5,-5,8,2.6,"#7bd0ff",1); },"#ffd27a");
+W("Soldier","DPS","Railgun","two",[18,0],[40,0],40,"Twin rails and glowing coils.",()=>{ rc(-8,-3,10,6,DK,2); ln(2,-3,38,-3,2.2,ST); ln(2,3,38,3,2.2,ST); [10,18,26].forEach(x=>rc(x,-4.6,3,9.2,"#52c9ff",1)); ln(4,0,36,0,1.5,"#bff3ff"); },"#52c9ff");
+W("Soldier","DPS","Burst SMG","two",[8,0],[25,0],25,"A boxy body; its barrel cluster spins up.",()=>{ rc(-6,-2.5,8,5,DK,1.5); rc(0,-3.4,14,6.8,"#4a5560",2); rc(4,2,5,8,"#22272e",1); for(let i=0;i<3;i++){ const y=S_(T*9+i*2.09)*2.2; ln(14,y,24,y,1.8,ST);} },"#ffe08a");
+/* Elementalist */
+W("Elementalist","Tank","Flamethrower","two",[12,0],[28,0],28,"A nozzle with a pilot flame, a fuel canister on the hip.",()=>{ rc(-6,-3,10,6,DK,2); rc(2,-2.2,22,4.4,"#7a3b22",2); ci(26,0,3.2,"#2a2a2a"); pg([[28,-2],[36+S_(T*20)*2,0],[28,2]],"rgba(255,150,40,.85)"); rc(0,5,14,6,"#b8442a",3); ln(6,5,6,11,1.4,"#ffd24a"); },"#ff9a30");
+W("Elementalist","Tank","Frost Lance","two",[14,0],[42,0],44,"A long icicle spear with side shards.",()=>{ ln(-8,0,30,0,2.6,"#9ab9d6"); pg([[30,-4],[44,0],[30,4],[34,0]],"#bff1ff"); pg([[22,-3],[27,-7],[29,-3]],"#9fe6ff"); pg([[22,3],[27,7],[29,3]],"#9fe6ff"); ci(16,0,2,"#e8fbff"); },"#9fe6ff");
+W("Elementalist","Tank","Storm Hammer","one",null,[34,0],34,"A hammer head wrapped in lightning.",()=>{ ln(-6,0,22,0,3,WD); rc(20,-8,12,16,"#7d8796",2); rc(26,-8,3,16,"#ffe04a",1); ln(32,-4,36,-1,1.2,"#ffe04a"); ln(36,-1,33,3,1.2,"#ffe04a"); },"#ffe04a");
+W("Elementalist","Healer","Radiant Orb","float",null,[12,0],24,"An open palm under a gold orb with an orbiting ring.",()=>{ ci(12,0,10,"rgba(255,224,120,.25)"); ci(12,0,6.5,"#ffe9a0"); ci(12,0,3.5,"#fff"); ar(12,0,9.5,T*2,T*2+2.5,1.5,"#ffd24a"); },"#ffe9a0");
+W("Elementalist","Healer","Chain Light","one",null,[20,0],22,"A rod with a three-pronged crown and a live arc.",()=>{ rc(-6,-2,12,4,ST,2); [[18,-5],[20,0],[18,5]].forEach(p=>ln(6,0,p[0],p[1],1.8,"#8fd8ff")); ln(18,-5,21,-2+S_(T*30),1.2,"#fff"); ln(21,-2+S_(T*30),20,0,1.2,"#fff"); ln(20,0,21,2+C_(T*30),1.2,"#fff"); ln(21,2+C_(T*30),18,5,1.2,"#fff"); },"#bfe9ff");
+W("Elementalist","Healer","Prism Beam","two",[6,0],[28,0],28,"A glass prism in a cradle, splitting light.",()=>{ ar(8,0,9,-2,2,2,"#9aa6b8"); pg([[6,-8],[22,0],[6,8]],"rgba(200,230,255,.6)","#e8f4ff"); ln(0,0,8,0,1.2,"#fff"); ln(18,-1,29,-6,1,"#ff7a7a"); ln(18,0,31,0,1,"#8cff8c"); ln(18,1,29,6,1,"#7aa8ff"); },"#e8f4ff");
+W("Elementalist","DPS","Fireball","float",null,[12,0],24,"An open palm and a rolling ball of fire.",()=>{ ci(12,0,9,"rgba(255,120,30,.3)"); ci(12,0,6,"#ff7a1c"); ci(12,0,3.2,"#ffd35a"); for(let i=0;i<5;i++){ const a=T*5+i*1.26; ln(12+C_(a)*5,S_(a)*5,12+C_(a)*10.5,S_(a)*10.5,2.2,"rgba(255,150,40,.8)"); } },"#ff9a30");
+W("Elementalist","DPS","Arc Lightning","one",null,[16,0],20,"Two electrodes with an arc jumping between them.",()=>{ ln(0,-4,16,-4,2.2,ST); ln(0,4,16,4,2.2,ST); ci(16,-4,1.8,"#bfe9ff"); ci(16,4,1.8,"#bfe9ff"); const j=S_(T*35)*1.5; ln(16,-4,20,-1+j,1.3,"#fff"); ln(20,-1+j,14,1-j,1.3,"#fff"); ln(14,1-j,16,4,1.3,"#fff"); },"#bfe9ff");
+W("Elementalist","DPS","Arcane Missiles","float",null,[12,0],24,"Three missiles banked in orbit over the palm.",()=>{ ar(12,0,11,0,TAU,0.8,"rgba(197,139,255,.4)"); for(let i=0;i<3;i++){ const a=T*2+i*2.09, x=12+C_(a)*11, y=S_(a)*11; ln(x,y,x-C_(a+1.57)*5,y-S_(a+1.57)*5,1.4,"rgba(197,139,255,.6)"); ci(x,y,2.8,"#c58bff"); } },"#c58bff");
+/* Summoner */
+W("Summoner","Tank","Golem Staff","staff",[10,0],[32,0],36,"A pole topped with a rough stone and an amber rune.",()=>{ ln(-12,0,28,0,3.2,WD); pg([[26,-6],[34,-4],[36,3],[30,7],[24,3]],"#8d8a82","#5a5750"); ci(30,0,5,"rgba(255,176,58,.3)"); ci(30,0,2.5,"#ffb03a"); },"#ffb03a");
+W("Summoner","Tank","Bone Guard","one",null,[30,0],36,"A skull-topped staff, two bone chips circling.",()=>{ ln(-10,0,26,0,3,BONE); ci(30,0,5.5,BONE); ci(31,-2,1.2,"#1b2026"); ci(31,2,1.2,"#1b2026"); rc(28,3.5,6,2.2,BONE,1); for(let i=0;i<2;i++){ const a=T*2.5+i*Math.PI; ci(30+C_(a)*10,S_(a)*10,1.8,BONE); } },"#e8ffd0");
+W("Summoner","Tank","Bear Totem","one",null,[14,0],16,"A fur cuff and a fist of three claws.",()=>{ rc(-4,-5,6,10,"#8a5a36",3); ci(2,0,4.5,"#6b4a2e"); [-0.35,0,0.35].forEach(a=>ln(5,a*8,14,a*14,1.8,"#f0e6c8")); },"#ffb078");
+W("Summoner","Healer","Sprite Staff","staff",[8,0],[28,0],34,"A leaf loop holding a sprite; two more circle it.",()=>{ ln(-10,0,24,0,2.6,WD); ar(28,0,5.5,0,TAU,2,"#59d36a"); ci(28,0,3,"#b8ffc4"); for(let i=0;i<2;i++){ const a=T*3+i*Math.PI; ci(28+C_(a)*9,S_(a)*9,1.8,"#9dffb0"); } },"#9dffb0");
+W("Summoner","Healer","Treant Rod","one",null,[30,0],34,"A twisting branch with fresh leaves.",()=>{ let px=-8, py=0; for(let i=1;i<=9;i++){ const x=-8+i*4, y=S_(i*0.9)*1.6; ln(px,py,x,y,3.2-i*0.12,"#7a5a38"); px=x; py=y; } ci(27,-3.5,2.8,"#59d36a"); ci(28,3.5,2.8,"#59d36a"); ci(31,0,3,"#cfffb0"); },"#cfffb0");
+W("Summoner","Healer","Totem Staff","staff",[8,0],[28,0],34,"A carved block with feathers.",()=>{ ln(-10,0,24,0,2.6,WD); rc(22,-6,10,12,"#9a6b3a",2); ci(26,-2.5,1,"#1b2026"); ci(26,2.5,1,"#1b2026"); ln(29,-2,29,2,1,"#1b2026"); ln(22,-6,17,-11,1.4,"#59ff8c"); ln(22,6,17,11,1.4,GD); },"#59ff8c");
+W("Summoner","DPS","Wolf Whistle","one",null,[19,0],20,"A blowpipe with a bone whistle on a cord.",()=>{ ln(-2,0,18,0,2.2,"#7a6a55"); ci(19,0,1.6,"#e85a5a"); ln(-6,6,-2,1,0.8,"#cfcfcf"); ci(-6,6,3,BONE); ci(-6,6,1,"#3a3a3a"); },"#e85a5a");
+W("Summoner","DPS","Wisp Lantern","one",null,[16,0],24,"A hooked lantern with three wisps orbiting.",()=>{ ln(-8,0,10,0,2.4,"#6b5a45"); rc(10,-5,10,10,"#2c3a46",2); rc(12,-3,6,6,"#aaf0ff",1); for(let i=0;i<3;i++){ const a=T*2.5+i*2.09; ci(15+C_(a)*11,S_(a)*11,2.2,"#cffaff"); } },"#cffaff");
+W("Summoner","DPS","Imp Caller","one",null,[22,0],26,"A crook with a horned imp head; two embers hover.",()=>{ ln(-8,0,18,0,2.6,"#5a2a2a"); ci(20,0,4,"#c0392b"); pg([[19,-3],[16,-8],[22,-4]],"#ff6a3a"); pg([[19,3],[16,8],[22,4]],"#ff6a3a"); ci(22,-1.5,0.9,"#ffe04a"); ci(22,1.5,0.9,"#ffe04a"); for(let i=0;i<2;i++) pg([[8,-9+i*18+S_(T*4+i)*1.5],[13,-7+i*18],[8,-5+i*18]],"#ff7a3a"); },"#ff7a3a");
+/* Knight */
+W("Knight","Tank","Warhammer","two",[12,0],[40,0],44,"A long haft with a steel head and spike.",()=>{ ln(-8,0,30,0,3.2,WD); rc(28,-9,10,18,"#b9c4d4",2); pg([[38,-2],[45,0],[38,2]],ST); pg([[28,-2],[23,0],[28,2]],ST); ln(28,-5,38,-5,1,DK); ln(28,5,38,5,1,DK); },"#ffe08a");
+W("Knight","Tank","Lance","two",[-4,0],[56,0],70,"A very long lance with a round guard.",()=>{ ln(-12,0,40,0,3.6,"#c9a35e"); pg([[40,-3.5],[56,0],[40,3.5]],ST); ci(8,0,7,"#aeb9c9"); ci(8,0,3,"#7c8797"); },"#ffe08a");
+W("Knight","Tank","Halberd","two",[10,0],[52,0],62,"An axe blade, a spike and a hook.",()=>{ ln(-10,0,40,0,3,WD); pg([[28,0],[30,-11],[40,-8],[36,-2]],ST); pg([[40,-1.5],[52,0],[40,1.5]],ST); pg([[30,2],[36,7],[34,1]],ST); },"#ffe08a");
+W("Knight","Healer","Quarterstaff","two",[8,0],[30,0],46,"A plain pole capped in gold.",()=>{ ln(-16,0,30,0,3.4,"#9a7648"); ci(-16,0,3.4,GD); ci(30,0,3.8,GD); ln(0,-2,0,2,1.6,GD); ln(14,-2,14,2,1.6,GD); },"#fff3b0");
+W("Knight","Healer","Lightbringer","one",null,[34,0],38,"A glowing longsword with a gold guard.",()=>{ ln(2,0,34,0,7,"rgba(255,240,170,.25)"); ln(2,0,34,0,3.6,"#fff3c0"); pg([[33,-2],[40,0],[33,2]],"#fff3c0"); ln(2,-6,2,6,3,GD); ln(-6,0,2,0,3,"#6b4a2e"); ci(-7,0,2.6,GD); },"#fff3b0");
+W("Knight","Healer","Censer","one",null,[16,0],22,"A gold censer on a chain; smoke trails behind.",()=>{ const y=S_(T*2)*4; ln(0,0,12,y,1.2,"#c9b26b"); ci(14,y,5,GD); ci(13,y-1.5,1,"#2a1d08"); ci(15,y+1.5,1,"#2a1d08"); ar(14,y,8,T,T+1.4,1.2,"rgba(255,240,200,.35)"); },"#fff3b0");
+W("Knight","DPS","Twin Blades","dual",null,[22,0],24,"Two short swords with gold guards.",()=>{ ln(-4,0,0,0,3,"#6b4a2e"); ln(0,-4,0,4,2.6,GD); ln(1,0,22,0,3,ST); pg([[21,-1.6],[26,0],[21,1.6]],ST); },"#ffffff");
+W("Knight","DPS","Greatsword","two",[-8,0],[46,0],60,"A broad blade with a fuller and big guard.",()=>{ pg([[3,-3.5],[40,-3.5],[46,0],[40,3.5],[3,3.5]],"#d7e0ee"); ln(10,0,40,0,0.8,"#8fa0b8"); rc(-1,-9,4,18,GD,1.5); ln(-12,0,-1,0,3.4,"#6b4a2e"); ci(-14,0,3,GD); },"#ffffff");
+W("Knight","DPS","Rapier","one",null,[38,0],42,"A thin blade and a swept cup hilt.",()=>{ ln(2,0,38,0,1.6,"#eef4ff"); ar(2,0,6,-1.6,1.6,2,GD); ln(-8,0,0,0,2.4,"#5a3a2a"); ln(-1,-6,-1,6,1.4,GD); },"#ffffff");
+/* Ninja */
+W("Ninja","Tank","Kusarigama","one",null,[22,0],24,"A sickle with its chain looped at the hip.",()=>{ ln(-4,0,12,0,2.6,WD); ar(14,-6,8,0.2,1.9,2.6,ST); for(let i=0;i<9;i++){ const a=T*1.5+i*0.7; ci(-4+C_(a)*6,8+S_(a)*4,1,"#b8c2d0"); } },"#ffffff");
+W("Ninja","Tank","Bo Staff","two",[10,0],[26,0],48,"A long staff with dark caps and grip bands.",()=>{ ln(-22,0,26,0,3.2,"#8a6a45"); ci(26,0,2.2,"#1d1d26"); ci(-22,0,2.2,"#1d1d26"); ln(-2,-2,-2,2,1.4,"#1d1d26"); ln(14,-2,14,2,1.4,"#1d1d26"); },"#ffffff");
+W("Ninja","Tank","Fuma Shuriken","one",null,[20,0],22,"A giant four-point star, spinning in hand.",()=>{ star(12,0,11,3.5,4,T*2,ST); ci(12,0,2.4,"#1b2026"); },"#ffffff");
+W("Ninja","Healer","Medicine Darts","one",null,[12,0],14,"Three green-tipped needles between the fingers.",()=>{ [-0.3,0,0.3].forEach(a=>{ ln(0,0,12*C_(a),12*S_(a),1.3,"#cfd8e6"); ci(12*C_(a),12*S_(a),1.3,"#7fffa3"); }); },"#7fffa3");
+W("Ninja","Healer","Spirit Fan","one",null,[16,0],18,"An open fan in pale green with ribs.",()=>{ c.fillStyle="rgba(190,255,215,.85)"; c.beginPath(); c.moveTo(0,0); c.arc(0,0,16,-1,1); c.closePath(); c.fill(); for(let i=-2;i<=2;i++) ln(0,0,16*C_(i*0.5),16*S_(i*0.5),0.8,"#4a8a66"); ar(0,0,16,-1,1,1.4,"#7ad0a0"); },"#bfffd8");
+W("Ninja","Healer","Ofuda","one",null,[16,0],18,"A paper charm with a red seal; two more flutter.",()=>{ c.save(); c.rotate(S_(T*3)*0.1); rc(4,-4.5,13,9,"#fff0cf",1); rc(8,-1.5,6,3,"#d93b3b",.5); c.restore(); rc(14,-13+S_(T*2),8,5,"rgba(255,240,207,.6)",1); rc(18,9+S_(T*2.4),8,5,"rgba(255,240,207,.6)",1); },"#ffe9b0");
+W("Ninja","DPS","Shuriken","one",null,[12,0],14,"A four-point star held ready.",()=>{ star(6,0,6.5,2,4,T*4,ST); },"#ffffff");
+W("Ninja","DPS","Katana","one",null,[36,0],38,"A long curved blade, gold tsuba, dark grip.",()=>{ ln(-6,0,0,0,3,"#1d1d26"); ci(1,0,3.4,GD); ci(1,0,1.4,"#1d1d26"); ln(1,0,36,0,2.4,"#dfe7f2"); ln(2,-0.9,35,-0.9,0.7,"#fff"); pg([[35,-1.2],[40,0],[35,1.2]],"#dfe7f2"); },"#ffffff");
+W("Ninja","DPS","Kunai","one",null,[18,0],20,"A leaf-bladed knife with a ring pommel.",()=>{ ln(-1,0,5,0,2.2,"#2a2a2a"); ar(-4,0,3,0,TAU,1.2,ST); pg([[5,0],[10,-3],[18,0],[10,3]],ST); },"#ffffff");
+/* Hemomancer */
+W("Hemomancer","Tank","Blood Lash","one",null,[40,0],42,"A handle and a whip of living blood.",()=>{ ln(-4,0,6,0,3,"#3a0a10"); let px=6,py=0; for(let i=1;i<=9;i++){ const x=6+i*3.6, y=S_(T*8+i*0.9)*2.8*i/9; ln(px,py,x,y,3-i*0.25,"#e0203a"); px=x; py=y; } ci(px,py,1.5,"#ff9aa6"); },"#ff6b7e");
+W("Hemomancer","Tank","Clot Bolt","float",null,[12,0],22,"A dark clot with a red core, dripping.",()=>{ ci(12,0,7,"#3a0710"); ci(11,-2,3,"#a8182b"); ci(14,2,2,"#e0203a"); ci(12,8+((T*8)%4),1.4,"#c4122e"); },"#e0203a");
+W("Hemomancer","Tank","Leech Tendrils","one",null,[18,0],20,"Three tendrils curling from a dark palm.",()=>{ ci(2,0,3.4,"#3a0710"); for(let k=-1;k<=1;k++){ let px=3,py=0; for(let i=1;i<=7;i++){ const x=3+i*2.6, y=k*i*1.4+S_(T*7+i*1.1+k*2)*1.3*i/7; ln(px,py,x,y,2.4-i*0.22,"#e0203a"); px=x; py=y; } } },"#e0203a");
+W("Hemomancer","Healer","Transfusion Darts","one",null,[26,0],28,"A syringe dart with red fluid and a plus mark.",()=>{ ln(-4,0,0,0,2,"#999"); rc(0,-2.6,16,5.2,"#dddddd",2); rc(2,-1.6,10,3.2,"#d71f3b",1); ln(16,0,26,0,1.2,ST); ln(13,-1.6,13,1.6,1,"#59ff8c"); ln(11.4,0,14.6,0,1,"#59ff8c"); },"#ff6b7e");
+W("Hemomancer","Healer","Sanguine Orb","float",null,[12,0],24,"A deep red orb with a swirl and three drops.",()=>{ ci(12,0,10,"rgba(200,20,40,.25)"); ci(12,0,7,"#8e0f22"); ar(12,0,4.5,T*3,T*3+3.5,1.6,"#ff6b7e"); for(let i=0;i<3;i++){ const a=-T*2+i*2.09; ci(12+C_(a)*10,S_(a)*10,1.6,"#e0203a"); } },"#ff6b7e");
+W("Hemomancer","Healer","Vein Tether","one",null,[14,0],18,"Two bone fangs round a ruby, a vein leading back.",()=>{ ar(6,0,10,-1.3,-0.2,2.8,BONE); ar(6,0,10,0.2,1.3,2.8,BONE); ci(8,0,3.8,BLOOD); ci(7,-1,1.2,"#ff9aa6"); ln(-6,0,5,0,1.4,"#e0203a"); },"#ff6b7e");
+W("Hemomancer","DPS","Blood Bolts","one",null,[22,0],24,"A crimson shard flanked by two smaller ones.",()=>{ pg([[2,0],[10,-3],[22,0],[10,3]],"#b3122a"); pg([[4,3],[10,8],[14,4]],"#7a0c1d"); pg([[4,-3],[10,-8],[14,-4]],"#7a0c1d"); ln(4,0,20,0,1,"#ff8896"); },"#ff6b7e");
+W("Hemomancer","DPS","Implosion","float",null,[14,0],24,"A fist and a ring of blood collapsing inward.",()=>{ ci(2,0,4.2,"#3a0710"); for(let i=0;i<3;i++){ const r=14-((T*10+i*4.7)%14); ar(14,0,Math.max(r,1),0,TAU,1.4,"rgba(224,32,58,"+(0.2+0.6*(1-r/14))+")"); } ci(14,0,2.4,"#12020a"); },"#e0203a");
+W("Hemomancer","DPS","Bone Spear","two",[10,0],[48,0],62,"A notched bone spear, its barbed head stained red.",()=>{ ln(-14,0,34,0,3,BONE); ln(0,-1.6,0,1.6,1,"#b9b09a"); ln(12,-1.6,12,1.6,1,"#b9b09a"); pg([[34,-4.5],[48,0],[34,4.5]],BONE); pg([[36,-4.5],[34,-8],[39,-4]],BONE); pg([[36,4.5],[34,8],[39,4]],BONE); ln(34,0,46,0,1.4,"#b3122a"); },"#ff6b7e");
+const wpnsOf = (kit, role) => WEAPONS.filter(w => w.kit === kit && w.role === role);
+
+/* ---------- the body ---------- */
+const SH = { Tank: { rx: 11, ry: 17, hr: 9, hx: 0.5 }, Healer: { rx: 10, ry: 14.5, hr: 9, hx: 0 }, DPS: { rx: 9, ry: 12.5, hr: 9.5, hx: 2.5 } };
+
+function backLayer(o, K, sh) {
+  const rl = o.role, RC = ROLES[rl].col, w = S_(T * 3) * 1.6;
+  switch (o.kit) {
+    case "Soldier": {
+      const b = rl === "Tank" ? 1 : rl === "Healer" ? 0.85 : 0.7;
+      rc(-18, -7 * b - 1, 11, 14 * b + 2, K.dark, 2.5); rc(-17, -6 * b, 9, 12 * b, K.base, 2);
+      if (rl === "Healer") { rc(-14.6, -1.2, 4.6, 2.4, "#fff", 0.6); rc(-13.5, -2.3, 2.4, 4.6, "#fff", 0.6); }
+      else if (rl === "Tank") rc(-19, -9, 3, 18, RC, 1.2);
+      else { ln(-13, -5, -13, 5, 1.6, RC); rc(-15, -sh.ry + 1, 5, 3, "#333b44", 1); rc(-15, sh.ry - 4, 5, 3, "#333b44", 1); }
+      break; }
+    case "Elementalist": {
+      const rr = sh.ry;
+      pg([[-2, -rr - 1], [-13, -rr - 5 + w], [-22, -9 + w], [-27, 0], [-22, 9 - w], [-13, rr + 5 - w], [-2, rr + 1]], K.dark);
+      pg([[-2, -rr + 2], [-12, -rr - 1 + w], [-20, -6 + w], [-24, 0], [-20, 6 - w], [-12, rr + 1 - w], [-2, rr - 2]], K.base);
+      ln(-24, 0, -10, 0, 1.2, RC);
+      break; }
+    case "Summoner": {
+      for (let i = 0; i < 7; i++) {
+        const a = Math.PI * 0.62 + i * (Math.PI * 0.76 / 6), x = C_(a) * (sh.ry + 1), y = S_(a) * (sh.ry + 1);
+        el(x * 0.85 - 2, y * 0.95, 6.5, 3.4, i % 2 ? K.base : "#52965c", a + 1.57);
+      }
+      break; }
+    case "Knight": {
+      const cc = rl === "Tank" ? "#2c4f99" : rl === "Healer" ? "#f1efe6" : "#a8222e";
+      pg([[-1, -sh.ry * 0.85], [-19 - w, -sh.ry * 0.9 - 1], [-23 - w, 0], [-19 - w, sh.ry * 0.9 + 1], [-1, sh.ry * 0.85]], cc);
+      ln(-3, 0, -21 - w, 0, 1.1, "rgba(0,0,0,.25)");
+      if (rl === "Healer") ln(-3, 0, -22 - w, 0, 2, GD);
+      break; }
+    case "Ninja": {
+      for (let k = 0; k < 2; k++) {
+        let px = -8, py = k ? 4 : -4;
+        for (let i = 1; i <= 7; i++) {
+          const f = i / 7, x = -8 - f * (18 + 5 * k), y = (k ? 4 : -4) + S_(T * 8 + i * 0.9 + k) * 4.5 * f;
+          ln(px, py, x, y, 4 - 2.4 * f, RC); px = x; py = y;
+        }
+      }
+      break; }
+    case "Hemomancer": {
+      const j = [[-2, -sh.ry]]; const n = 6;
+      for (let i = 0; i <= n; i++) { const y = -sh.ry + (2 * sh.ry) * i / n; j.push([-16 - (i % 2 ? 0 : 6) - w * (i % 2), y]); }
+      j.push([-2, sh.ry]);
+      pg(j, K.dark);
+      ln(-4, 0, -17, 0, 1, "rgba(224,32,58,.5)");
+      const d = (T * 6) % 8; ci(-18, 2, 1.3, "rgba(224,32,58,.8)"); ci(-20 - d, -3, 1.1, "rgba(224,32,58,.6)");
+      break; }
+  }
+}
+
+function roleBody(o, K, sh) {
+  const rl = o.role, RC = ROLES[rl].col;
+  if (rl === "Tank") {
+    [-1, 1].forEach(s => { ci(0, s * (sh.ry - 1), 7.2, K.dark); ci(0, s * (sh.ry - 1), 6, K.base); ar(0, s * (sh.ry - 1), 6, 0, TAU, 1.6, RC); });
+    rc(-4, -8, 13, 16, "rgba(255,255,255,.14)", 4); c.strokeStyle = RC; c.lineWidth = 1.4; c.beginPath(); c.roundRect(-4, -8, 13, 16, 4); c.stroke();
+  } else if (rl === "Healer") {
+    [-1, 1].forEach(s => ln(5, s * sh.ry * 0.55, -14, s * 2.6, 3.2, "#f4fff6"));
+    [-1, 1].forEach(s => ln(-2, s * sh.ry * 0.4, -14, s * 2.6, 1.2, RC));
+    ln(-13, -3, -13, 3, 2.4, RC);
+  } else {
+    [-1, 1].forEach(s => ci(0, s * (sh.ry - 1), 4.4, K.dark));
+    ln(5, -sh.ry * 0.65, -6, sh.ry * 0.65, 3.4, RC);
+    ln(-sh.rx - 2, -3, -sh.rx - 9 - S_(T * 6), -3, 1.3, RC); ln(-sh.rx - 2, 3, -sh.rx - 11 - S_(T * 6), 3, 1.3, RC);
+  }
+}
+
+function head(o, K, sh) {
+  const x = sh.hx, r = sh.hr, rl = o.role, RC = ROLES[rl].col, w = S_(T * 3) * 1.4;
+  if (rl === "Healer") ar(x, 0, r + 3.4, 0, TAU, 1.3, "rgba(89,255,140,.75)");
+  switch (o.kit) {
+    case "Soldier": {
+      ci(x, 0, r, K.dark); ci(x, 0, r - 1.2, K.base);
+      rc(x + r * 0.15, -r * 0.55, r * 0.75, r * 1.1, "#10161c", 2); ln(x + r * 0.55, -r * 0.4, x + r * 0.55, r * 0.4, 1.2, "#7bd0ff");
+      if (rl === "Tank") { rc(x - 4, -r - 1.5, 8, 2.8, K.dark, 1); rc(x - 4, r - 1.3, 8, 2.8, K.dark, 1); ln(x - r + 1, 0, x - 1, 0, 1.8, RC); }
+      if (rl === "Healer") { rc(x - 7, -1.1, 8, 2.2, "#fff", 0.6); rc(x - 4.1, -4, 2.2, 8, "#fff", 0.6); }
+      if (rl === "DPS") { ln(x - r + 1, -3, x - r - 8 - w, -4, 2, RC); ln(x - r + 1, 3, x - r - 10 - w, 4, 2, RC); ci(x + 3, -3.2, 2.1, "#7bd0ff"); ci(x + 3, 3.2, 2.1, "#7bd0ff"); }
+      break; }
+    case "Elementalist": {
+      const br = r + (rl === "Tank" ? 5 : 4);
+      ci(x, 0, br, K.dark); ci(x, 0, br - 1.4, K.base); ar(x, 0, br - 2.6, 0, TAU, 1, "rgba(255,255,255,.18)");
+      ci(x - 1.5, 0, r * 0.62, "#463375"); ci(x - 1.5, 0, r * 0.62 - 1.6, K.base);
+      ar(x, 0, br - 4.4, 0, TAU, 1.6, RC);
+      const gem = rl === "Tank" ? "#ff8a3a" : rl === "Healer" ? "#ffe9a0" : "#bfe9ff";
+      ci(x - 1.5, 0, 2.6, gem); ci(x - 2, -0.6, 1, "#fff");
+      break; }
+    case "Summoner": {
+      pg([[x - r + 1, -5.5], [x - r - 10 - w, 0], [x - r + 1, 5.5]], K.dark);
+      ci(x, 0, r + 1.2, K.dark); ci(x, 0, r - 0.4, K.base);
+      ar(x, 0, r - 2, -0.9, 0.9, 1.4, "#8fdc98");
+      ci(x + r * 0.55, -3, 1.3, "#c8ffd0"); ci(x + r * 0.55, 3, 1.3, "#c8ffd0");
+      if (rl === "Tank") { ln(x - 1, -r + 1, x - 4, -r - 5, 1.8, BONE); ln(x - 1, r - 1, x - 4, r + 5, 1.8, BONE); }
+      if (rl === "Healer") ar(x, 0, r - 3.4, 2.2, 4.1, 1.6, "#ffe9a0");
+      if (rl === "DPS") ln(x - r, 0, x - r - 5, 0, 2, RC);
+      for (let k = 0; k < 3; k++) ci(S_(T * 2 + TAU * k / 3 + 1.57) * 0 + C_(T * 2 + TAU * k / 3) * (sh.ry + 5), S_(T * 2 + TAU * k / 3) * (sh.ry + 5), 2.4, "rgba(153,255,179,.9)");
+      break; }
+    case "Knight": {
+      const cc = rl === "Tank" ? "#7fa6ff" : rl === "Healer" ? "#fffbe8" : "#ff5a66";
+      ci(x, 0, r, K.dark); ci(x, 0, r - 1.2, K.base);
+      ar(x, 0, r * 0.62, -0.9, 0.9, 2.6, "rgba(0,0,0,.55)");
+      ln(x - r, 0, x + r * 0.2, 0, rl === "Tank" ? 3.4 : 2.4, cc);
+      for (let i = 0; i < 4; i++) ln(x - r - 1 - i * 3, 0, x - r - 4 - i * 3, S_(T * 6 + i) * (1.6 + i * 0.5), 3 - i * 0.5, cc);
+      if (rl === "Healer") ar(x, 0, r - 2.4, 0, TAU, 1.2, GD);
+      if (rl === "DPS") ci(x + r * 0.45, 0, 2.4, K.glove);
+      if (rl === "Tank") { rc(x - 2, -r - 2, 6, 3, K.dark, 1); rc(x - 2, r - 1, 6, 3, K.dark, 1); }
+      break; }
+    case "Ninja": {
+      ci(x, 0, r, K.dark); ci(x, 0, r - 1.2, K.base);
+      ar(x, 0, r - 2.6, -1.2, 1.2, 3.2, RC);
+      ln(x - r + 2, 0, x - r - 5, S_(T * 6) * 1.5, 2.4, RC);
+      rc(x + r * 0.4, -r * 0.4, 1.6, r * 0.8, "#fff", 0.6);
+      if (rl === "Tank") rc(x + 1, -3, 4, 6, "#8795ab", 1);
+      if (rl === "Healer") rc(x - 1, -3.5, 4, 7, "#fff0cf", 1);
+      if (rl === "DPS") { ln(x - 1, 0, x - r - 8, 0, 2, K.base); }
+      break; }
+    case "Hemomancer": {
+      pg([[x - r + 2, -5], [x - r - 8, 0], [x - r + 2, 5]], K.dark);
+      ci(x, 0, r + 0.6, K.dark); ci(x, 0, r - 1, K.base);
+      ar(x, 0, r - 2.4, -1.0, 1.0, 1.4, "#e0203a");
+      ci(x + r * 0.5, -2.6, 1.2, "#ffd0d6"); ci(x + r * 0.5, 2.6, 1.2, "#ffd0d6");
+      pg([[x + 1, 0], [x - 1.4, -2.2], [x - 3.2, 0], [x - 1.4, 2.2]], BLOOD);
+      if (rl === "Tank") for (let i = -3; i <= 3; i++) { const a = Math.PI + i * 0.38; pg([[x + C_(a) * (r - 1), S_(a) * (r - 1)], [x + C_(a - .15) * (r + 3), S_(a - .15) * (r + 3)], [x + C_(a + .15) * (r + 3), S_(a + .15) * (r + 3)]], BONE); }
+      if (rl === "Healer") ar(x, 0, r - 3.8, 2.2, 4.1, 1.4, BONE);
+      const miss = o.miss == null ? 0.3 : o.miss;
+      for (let k = 0; k < 3; k++) { const a = T * 1.6 + TAU * k / 3; ci(C_(a) * (sh.ry + 5), S_(a) * (sh.ry + 5), 2.4, "rgba(224,32,58," + (0.5 + 0.5 * miss) + ")"); }
+      break; }
+  }
+}
+
+function drawCharacter(ctx, x, y, S, o) {
+  c = ctx; const RL = ROLES[o.role], u = RL.r / 18, K = KITS[o.kit], sh = SH[o.role];
+  const wp = o.wp || wpnsOf(o.kit, o.role)[0];
+  c.save(); c.translate(x, y); c.scale(S, S);
+  if (o.ring) { ci(0, 0, RL.r, RL.col + "1c"); ar(0, 0, RL.r, 0, TAU, 1.2, RL.col + "99"); }
+  c.rotate(o.aim); c.scale(u, u);
+  el(1, 2, sh.rx + 2, sh.ry + 1, "rgba(0,0,0,.28)");
+  backLayer(o, K, sh);
+  el(-1, 0, sh.rx, sh.ry, K.dark); el(-1, 0, sh.rx - 1.6, sh.ry - 1.6, K.base);
+  roleBody(o, K, sh);
+  // arms, weapon, hands
+  const sway = S_(T * 2.4) * 1.2, wk = (0.8 + 0.2 * u) / u, kick = (o.fire || 0) * 3;
+  let rh, lh;
+  switch (wp.hold) {
+    case "one": rh = [15, 10.5]; lh = [8, -13.5 + sway]; break;
+    case "two": rh = [13, 4.5]; lh = [13 + wp.off[0] * wk, 4.5 + wp.off[1] * wk]; break;
+    case "dual": rh = [14, 11]; lh = [14, -11]; break;
+    default: rh = [11, 3.5]; lh = [7, -13 + sway];
+  }
+  const shr = [1, sh.ry * 0.72], shl = [1, -sh.ry * 0.72];
+  const arm = (s, h) => { ln(s[0], s[1], h[0], h[1], 6, K.dark); ln(s[0], s[1], h[0], h[1], 4.4, K.sleeve); };
+  arm(shr, rh); arm(shl, lh);
+  const place = (hx, hy, mirror) => {
+    c.save(); c.translate(hx - kick, hy); c.scale(wk, mirror ? -wk : wk); T = o.t; FIRE = o.fire || 0; wp.draw();
+    if (o.fire > 0.05) { const m = wp.mz; const g = c.createRadialGradient(m[0], m[1], 0, m[0], m[1], 9 * o.fire + 2); g.addColorStop(0, "#fff"); g.addColorStop(0.4, wp.col); g.addColorStop(1, "rgba(255,255,255,0)"); c.fillStyle = g; c.beginPath(); c.arc(m[0], m[1], 9 * o.fire + 2, 0, TAU); c.fill(); }
+    c.restore();
+  };
+  place(rh[0], rh[1], false); if (wp.hold === "dual") place(lh[0], lh[1], true);
+  ci(rh[0] - kick, rh[1], 3.3, K.glove); ci(lh[0] - (wp.hold === "dual" ? kick : 0), lh[1], 3.3, K.glove);
+  head(o, K, sh);
+  c.restore();
+  if (o.hit) { c.save(); c.translate(x, y); c.scale(S, S); ci(0, 0, RL.hit, "rgba(255,255,255,.85)"); ci(0, 0, RL.hit * 0.5, RL.col); c.restore(); }
+  return { u, rh, lh, wk, wp, S, x, y };
+}
+
+/* "Today": the circle, the aim stub, the role mark and the small class overlay, as DrawPlayer draws them now. */
+function drawToday(ctx, x, y, S, o) {
+  c = ctx; const RL = ROLES[o.role], r = RL.r, col = RL.col, wp = o.wp || wpnsOf(o.kit, o.role)[0];
+  c.save(); c.translate(x, y); c.scale(S, S);
+  ci(0, 0, r, shade(col, 0.45)); ar(0, 0, r, 0, TAU, 3, col);
+  const ca = C_(o.aim), sa = S_(o.aim);
+  ln(ca * r * 0.5, sa * r * 0.5, ca * (r + 10), sa * (r + 10), 5, col);
+  if (o.role === "Tank") { const h = r * 0.55; c.strokeStyle = col + "80"; c.lineWidth = 2; c.strokeRect(-h, -h, 2 * h, 2 * h); }
+  if (o.role === "Healer") { ln(-r * 0.6, 0, r * 0.6, 0, 3, col + "99"); ln(0, -r * 0.6, 0, r * 0.6, 3, col + "99"); }
+  if (o.kit === "Elementalist") for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2; ln(C_(a) * r * 0.35, S_(a) * r * 0.35, C_(a) * (r + 6), S_(a) * (r + 6), 2, "rgba(204,140,255,.8)"); }
+  if (o.kit === "Summoner") for (let k = 0; k < 3; k++) { const a = T * 2 + TAU * k / 3; ci(C_(a) * (r + 7), S_(a) * (r + 7), 2.5, "rgba(153,255,179,.9)"); }
+  if (o.kit === "Knight") { ar(0, 0, r * 0.62, o.aim - 0.9, o.aim + 0.9, 2.5, "rgba(210,224,255,.75)"); const s = { x: -sa, y: ca }; ln(s.x * r * 0.7, s.y * r * 0.7, s.x * r * 0.7 + ca * (r + 16), s.y * r * 0.7 + sa * (r + 16), 3.5, "#d2e0ff"); }
+  if (o.kit === "Ninja") { ar(0, 0, r * 0.62, o.aim - 1.1, o.aim + 1.1, 4, "rgba(26,26,36,.9)"); ln(ca * r * 0.55 - sa * 4, sa * r * 0.55 + ca * 4, ca * r * 0.55 + sa * 4, sa * r * 0.55 - ca * 4, 1.5, "#fff"); }
+  if (o.kit === "Hemomancer") { ar(0, 0, r * 0.7, o.aim + Math.PI - 1.3, o.aim + Math.PI + 1.3, 5, "rgba(90,8,20,.95)"); for (let k = 0; k < 3; k++) { const a = T * 1.6 + TAU * k / 3; ci(C_(a) * (r + 8), S_(a) * (r + 8), 2.6, "rgba(217,26,46,.8)"); } }
+  c.restore();
+  if (o.hit) { c.save(); c.translate(x, y); c.scale(S, S); ci(0, 0, RL.hit, "rgba(255,255,255,.85)"); ci(0, 0, RL.hit * 0.5, col); c.restore(); }
+}
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); return "rgb(" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => Math.round(v * f)).join(",") + ")"; }
+</script>
 <script>
 (function(){
 const W=1280,H=720,TAU=Math.PI*2;
@@ -94,13 +375,12 @@ const eo3=t=>1-Math.pow(1-t,3);
 const eio=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hash(n){const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)}
-const FX={reduced:false};
+const FX={reduced:false,screen:true};
 const K={ink:[102,163,255],inkHi:[214,230,255],dim:[64,104,184],bg:[3,8,20],red:[255,107,122],redHi:[255,214,218],redDim:[168,64,76],mint:[109,255,184],mintHi:[224,255,240],mintDim:[47,154,112],gold:[242,193,78],goldHi:[255,240,200],cyan:[89,217,232]};
 const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
 const css=(c,a=1)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
 const RED={ink:K.red,hi:K.redHi,dim:K.redDim,bg:[16,4,9]};
 const MINT={ink:K.mint,hi:K.mintHi,dim:K.mintDim,bg:[3,16,13]};
-const PAL={p1:{0:[18,40,96],1:K.ink,2:K.inkHi,3:[158,195,255]},p2:{0:[64,48,12],1:K.gold,2:K.goldHi,3:[255,224,138]}};
 
 /* ---------- text ---------- */
 function glowText(c,s,x,y,o){
@@ -147,68 +427,83 @@ function arena(c,T,dark){
   if(dark){c.fillStyle='rgba(3,8,20,.62)';c.fillRect(0,0,W,H)}
 }
 
-/* ---------- pixel avatar ---------- */
-function makeCells(n){const r=n/2,rand=rng(7),cells=[];
-  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const dx=x+.5-r,dy=y+.5-r,d=Math.hypot(dx,dy);if(d>r)continue;cells.push({x:dx,y:dy,k:d>r-1.25?1:d<2.3?2:0,s1:rand(),s2:rand(),s3:rand()})}
-  for(let i=0;i<3;i++)for(const dy of[-.5,.5])cells.push({x:r+.5+i,y:dy,k:3,s1:rand(),s2:rand(),s3:rand()});
-  return cells}
-const CELLS=makeCells(15);
-const isStay=c=>c.k===1&&c.s1>.45;
-function halo(c,cx,cy,r,col,a){const g=c.createRadialGradient(cx,cy,r*.15,cx,cy,r);g.addColorStop(0,css(col,a));g.addColorStop(1,css(col,0));c.fillStyle=g;c.fillRect(cx-r,cy-r,r*2,r*2)}
-function cell(c,cx,cy,cp,x,y,col,a){c.fillStyle=css(col,a);c.fillRect(Math.round(cx+x*cp-cp/2),Math.round(cy+y*cp-cp/2),cp-1,cp-1)}
-function husk(c,cx,cy,cp,T,a){
-  const step=Math.floor(T*14);
-  CELLS.forEach((k,i)=>{if(!isStay(k))return;const fl=hash(i+step*3)>.9?.25:1;cell(c,cx,cy,cp,k.x,k.y,K.redDim,.5*a*fl)});
-  c.save();c.strokeStyle=css(K.red,.8*a);c.lineWidth=Math.max(3,cp*.5);c.lineCap='square';const m=cp*1.6;c.beginPath();c.moveTo(cx-m,cy-m);c.lineTo(cx+m,cy+m);c.moveTo(cx+m,cy-m);c.lineTo(cx-m,cy+m);c.stroke();c.restore();
-  const u=(T%2.4)/2.4;c.strokeStyle=css(K.red,.32*(1-u)*a);c.lineWidth=2;c.beginPath();c.arc(cx,cy,cp*(8+u*7),0,TAU);c.stroke();
+/* ---------- real player models ---------- */
+/* The models are the game's own (drawCharacter from character-models.html). Effects use only what the game can do: tint mix like the hit flash (mWhite), alpha (mAlpha), an offset origin, extra copies, square particles, rings and lines. */
+const rgbOf=hex=>{const n=parseInt(hex.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]};
+const TS=480,tmp=document.createElement('canvas');tmp.width=tmp.height=TS;const tctx=tmp.getContext('2d');
+function model(c,x,y,S,spec,aim,t,o){
+  o=o||{};
+  tctx.clearRect(0,0,TS,TS);
+  drawCharacter(tctx,TS/2,TS/2,S,{kit:spec.kit,role:spec.role,aim,t,fire:0,hit:!!o.hit,ring:false});
+  if(o.tint&&o.tintA>0){tctx.globalCompositeOperation='source-atop';tctx.fillStyle=css(o.tint,o.tintA);tctx.fillRect(0,0,TS,TS);tctx.globalCompositeOperation='source-over'}
+  c.save();c.globalAlpha=o.alpha==null?1:o.alpha;c.drawImage(tmp,Math.round(x-TS/2),Math.round(y-TS/2));c.restore();
 }
-function shock(c,cx,cy,cp,p,pal){
+const PART=(()=>{const r=rng(11),a=[];for(let i=0;i<110;i++){const ang=r()*TAU,d=Math.sqrt(r());a.push({x:Math.cos(ang)*d,y:Math.sin(ang)*d,s1:r(),s2:r(),s3:r(),ci:Math.floor(r()*5),sz:r()})}return a})();
+function partCols(spec){const k=KITS[spec.kit];return[rgbOf(k.base),rgbOf(k.sleeve),rgbOf(k.dark),rgbOf(k.glove),rgbOf(ROLES[spec.role].col)]}
+function sq(c,x,y,sz,col,a){c.fillStyle=css(col,a);c.fillRect(Math.round(x-sz/2),Math.round(y-sz/2),Math.ceil(sz),Math.ceil(sz))}
+function footprint(c,cx,cy,rad,rc,a){c.fillStyle=css(rc,.14*a);c.beginPath();c.arc(cx,cy,rad,0,TAU);c.fill();c.strokeStyle=css(rc,.6*a);c.lineWidth=2.2;c.beginPath();c.arc(cx,cy,rad,0,TAU);c.stroke()}
+function hitMark(c,cx,cy,hitR,col,a){c.fillStyle=css([255,255,255],.85*a);c.beginPath();c.arc(cx,cy,hitR,0,TAU);c.fill();c.fillStyle=css(col,a);c.beginPath();c.arc(cx,cy,hitR*.5,0,TAU);c.fill()}
+/* The downed husk: the game's grey disc, restyled dim red with an X and a slow ping. The white hit ring and grey core stay. */
+function husk(c,cx,cy,rad,hitR,t,a){
+  c.save();c.fillStyle=css([30,20,26],.92*a);c.beginPath();c.arc(cx,cy,rad,0,TAU);c.fill();
+  const step=Math.floor(t*14);c.strokeStyle=css(K.redDim,(hash(step*3)>.9?.35:.9)*a);c.lineWidth=Math.max(3,rad*.07);c.beginPath();c.arc(cx,cy,rad,0,TAU);c.stroke();
+  const u=(t%2.4)/2.4;c.strokeStyle=css(K.red,.35*(1-u)*a);c.lineWidth=2;c.beginPath();c.arc(cx,cy,rad*(1.05+u*.9),0,TAU);c.stroke();
+  c.restore();hitMark(c,cx,cy,hitR,[115,115,128],a);
+  const m=Math.max(hitR*.55,rad*.3);c.save();c.strokeStyle=css(K.red,.95*a);c.lineWidth=Math.max(3,rad*.07);c.lineCap='square';c.beginPath();c.moveTo(cx-m,cy-m);c.lineTo(cx+m,cy+m);c.moveTo(cx+m,cy-m);c.lineTo(cx-m,cy+m);c.stroke();c.restore();
+}
+function shock(c,cx,cy,rad,p){
   const v=(p-.78)/.45;if(v<=0||v>=1)return;
-  c.save();c.strokeStyle=css(K.mint,1-v);c.lineWidth=2+5*(1-v);c.beginPath();c.arc(cx,cy,cp*(8+v*24),0,TAU);c.stroke();
-  c.strokeStyle=css(K.mintHi,.7*(1-v));c.lineWidth=2;c.beginPath();c.arc(cx,cy,cp*(6+v*15),0,TAU);c.stroke();
-  halo(c,cx,cy,cp*16,K.mint,.5*(1-v)*(1-v));
-  c.strokeStyle=css(K.mintHi,1-v);c.lineWidth=Math.max(2,cp*.3);
-  for(let i=0;i<14;i++){const a=hash(i*3.1)*TAU,d=cp*(6+v*(10+hash(i)*14)),x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,s=cp*.45*(1-v*.5);c.beginPath();c.moveTo(x-s,y);c.lineTo(x+s,y);c.moveTo(x,y-s);c.lineTo(x,y+s);c.stroke()}
+  c.save();c.strokeStyle=css(K.mint,1-v);c.lineWidth=2+5*(1-v);c.beginPath();c.arc(cx,cy,rad*(1.1+v*3.4),0,TAU);c.stroke();
+  c.strokeStyle=css(K.mintHi,.7*(1-v));c.lineWidth=2;c.beginPath();c.arc(cx,cy,rad*(.9+v*2),0,TAU);c.stroke();
+  halo(c,cx,cy,rad*2.4,K.mint,.45*(1-v)*(1-v));
+  c.strokeStyle=css(K.mintHi,1-v);c.lineWidth=Math.max(2,rad*.05);
+  for(let i=0;i<14;i++){const a=hash(i*3.1)*TAU,d=rad*(.9+v*(1.4+hash(i)*1.8)),x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,s=rad*.07*(1-v*.5)+2;c.beginPath();c.moveTo(x-s,y);c.lineTo(x+s,y);c.moveTo(x,y-s);c.lineTo(x,y+s);c.stroke()}
   c.restore();
 }
+function halo(c,cx,cy,r,col,a){const g=c.createRadialGradient(cx,cy,r*.15,cx,cy,r);g.addColorStop(0,css(col,a));g.addColorStop(1,css(col,0));c.fillStyle=g;c.fillRect(cx-r,cy-r,r*2,r*2)}
 function avatar(c,o){
-  const {cx,cy,cp,pal,mode,p=0,t=0}=o,al=o.alpha==null?1:o.alpha;
-  c.save();c.globalAlpha=al;
+  const {cx,cy,S,spec,mode,p=0,t=0}=o,al=o.alpha==null?1:o.alpha,aim=o.aim==null?0:o.aim;
+  const RL=ROLES[spec.role],rad=RL.r*S,hr=RL.hit*S,rc=rgbOf(RL.col),cols=partCols(spec),step=Math.floor(t*30);
+  c.save();
   if(mode==='alive'){
-    halo(c,cx,cy,cp*11,pal[1],.22);
-    const step=Math.floor(t*30);
-    CELLS.forEach((k,i)=>cell(c,cx,cy,cp,k.x,k.y,pal[k.k],hash(i+step*5)>.992?.6:1));
+    footprint(c,cx,cy,rad,rc,al);model(c,cx,cy,S,spec,aim,t,{alpha:al,hit:true});
   }else if(mode==='down'){
-    const step=Math.floor(t*30),red=clamp(p*3);
-    halo(c,cx,cy,cp*11,K.red,.18*(1-p));
-    if(p<.5&&!FX.reduced){const d=cp*.9*(1-p*2);CELLS.forEach(k=>{cell(c,cx,cy,cp,k.x+d/cp,k.y,K.red,.38);cell(c,cx,cy,cp,k.x-d/cp,k.y,K.cyan,.3)})}
-    CELLS.forEach(k=>{
-      const stays=isStay(k),td=.12+.6*k.s1;
-      let x=k.x,y=k.y,a=1,col=mix(pal[k.k],K.red,red*.85);
-      if(stays&&p>.3){const q=clamp((p-.3)/.5);a=lerp(1,.5,q);col=mix(col,K.redDim,q)}
-      else if(!stays&&p>td){const u=(p-td)/(1-td);x+=(k.s2-.5)*14*u;y+=u*u*10+k.s3*6*u;a=1-clamp(u*1.15);col=mix(col,K.redDim,u)}
-      else if(p<.7&&!FX.reduced){const g=hash(Math.floor(k.y*2)+step*13.7);if(g>.8-p*.5)x+=(hash(Math.floor(k.y)*3+step)-.5)*8*(p<.5?1:.5)}
-      if(a>.02)cell(c,cx,cy,cp,x,y,col,a);
+    const red=clamp(p*2.5),fade=clamp((p-.15)/.5);
+    footprint(c,cx,cy,rad,rc,(1-clamp(p*3))*al);
+    if(p>.35)husk(c,cx,cy,rad,hr,t,clamp((p-.35)/.4));
+    let ma=al*(1-fade);if(hash(step*3.3)>.75-p*.4)ma*=.45;
+    const jx=p<.6&&!FX.reduced?(hash(step)-.5)*rad*.14:0;
+    if(p<.5&&!FX.reduced){const d=rad*.25*(1-p*2);model(c,cx+d,cy,S,spec,aim,t,{alpha:.4*al,tint:K.red,tintA:1});model(c,cx-d,cy,S,spec,aim,t,{alpha:.34*al,tint:K.cyan,tintA:1})}
+    if(ma>.02)model(c,cx+jx,cy,S,spec,aim,t,{alpha:ma,tint:K.red,tintA:red*.7});
+    PART.forEach(k=>{
+      const td=.12+.55*k.s1;if(p<=td)return;const u=(p-td)/(1-td);
+      const x=cx+k.x*rad*.9+(k.s2-.5)*rad*1.8*u,y=cy+k.y*rad*.9+u*u*rad*1.5+k.s3*rad*.9*u;
+      sq(c,x,y,rad*.12*(.6+k.sz*.8)+2,mix(cols[k.ci],K.redDim,u*.7),1-clamp(u*1.1));
     });
-    if(p>.55)husk(c,cx,cy,cp,t,clamp((p-.55)/.4)*.0+clamp((p-.55)/.4));
   }else if(mode==='husk'){
-    halo(c,cx,cy,cp*11,K.red,.1);husk(c,cx,cy,cp,t,1);
+    halo(c,cx,cy,rad*2,K.red,.1);husk(c,cx,cy,rad,hr,t,1);
   }else if(mode==='up'){
-    const sweepY=lerp(-9,9,clamp((p-.3)/.5));
-    if(p<.3)husk(c,cx,cy,cp,t,1-p/.3);
-    halo(c,cx,cy,cp*11,K.mint,.18*clamp(p*2));
-    CELLS.forEach(k=>{
+    const m=clamp((p-.35)/.4),sweep=clamp((p-.3)/.5);
+    if(p<.3)husk(c,cx,cy,rad,hr,t,1-p/.3);
+    halo(c,cx,cy,rad*2.2,K.mint,.2*clamp(p*2));
+    footprint(c,cx,cy,rad,rc,m*al);
+    PART.forEach(k=>{
       const a0=.05+.5*k.s1,u=clamp((p-a0)/.32);if(u<=0)return;
-      const e=eo3(u),ang=k.s2*TAU,dist=5+k.s3*13;
-      const x=k.x+Math.cos(ang)*dist*(1-e),y=k.y+Math.sin(ang)*dist*(1-e)-(1-e)*3;
-      const settled=u>=1&&k.y<sweepY&&p>.3;
-      let col=settled?pal[k.k]:mix(pal[k.k],K.mint,.8);
-      if(u>=1&&Math.abs(k.y-sweepY)<1.4&&p>.3&&p<.85)col=K.mintHi;
-      if(u<1&&!FX.reduced)cell(c,cx,cy,cp,k.x+(x-k.x)*.6,k.y+(y-k.y)*.6,K.mint,.2);
-      cell(c,cx,cy,cp,x,y,col,u<1?.35+.65*u:1);
+      const e=eo3(u),ang=k.s2*TAU,dist=rad*(1.2+k.s3*2.4);
+      const x=cx+k.x*rad*.9+Math.cos(ang)*dist*(1-e),y=cy+k.y*rad*.9+Math.sin(ang)*dist*(1-e)-(1-e)*rad*.4;
+      const keep=1-clamp((p-.55)/.25);
+      if(u<1&&!FX.reduced)sq(c,cx+k.x*rad*.9+(x-cx-k.x*rad*.9)*.6,cy+k.y*rad*.9+(y-cy-k.y*rad*.9)*.6,rad*.08,K.mint,.2);
+      sq(c,x,y,rad*.12*(.6+k.sz*.8)+2,mix(cols[k.ci],K.mint,.7*(1-u)),(u<1?.4+.6*u:1)*keep);
     });
-    if(p>.3&&p<.85){const yy=cy+sweepY*cp;c.save();if(!FX.reduced){c.shadowColor=css(K.mint,1);c.shadowBlur=14}c.fillStyle=css(K.mintHi,.95);c.fillRect(cx-cp*11,yy,cp*22,2);c.restore()}
-    shock(c,cx,cy,cp,p,pal);
+    if(m>0){
+      let ma=al*eo3(m);if(m<1&&hash(step*2.1)>.7)ma*=.5;
+      const d=rad*.2*(1-m);
+      if(m<.9&&!FX.reduced){model(c,cx+d,cy,S,spec,aim,t,{alpha:.35*al*m,tint:K.mint,tintA:1});model(c,cx-d,cy,S,spec,aim,t,{alpha:.3*al*m,tint:K.cyan,tintA:1})}
+      model(c,cx,cy,S,spec,aim,t,{alpha:ma,tint:K.mint,tintA:(1-clamp((p-.4)/.5))*.85,hit:m>.5});
+    }
+    if(p>.3&&p<.85){const yy=cy+lerp(-rad,rad,sweep);c.save();if(!FX.reduced){c.shadowColor=css(K.mint,1);c.shadowBlur=14}c.fillStyle=css(K.mintHi,.95);c.fillRect(cx-rad*1.3,yy,rad*2.6,2.5);
+      const g=c.createLinearGradient(0,yy-rad*.5,0,yy);g.addColorStop(0,css(K.mint,0));g.addColorStop(1,css(K.mint,.18));c.shadowBlur=0;c.fillStyle=g;c.fillRect(cx-rad*1.3,yy-rad*.5,rad*2.6,rad*.5);c.restore()}
+    shock(c,cx,cy,rad,p);
   }
   c.restore();
 }
@@ -324,9 +619,9 @@ function logFeed(c,T,F,prog){
   if(T>=OUT-.3)return;
   rows.slice(-4).forEach((q,i)=>{glowText(c,typed(q[1],(T-q[0])*40),x,y+i*28,{font:'ui',size:19,track:2,col:q[2],glow:0,a:.9})});
 }
-function reticle(c,x,y,T,col,label,sub,a){
+function reticle(c,x,y,T,col,label,sub,a,e0){
   c.save();c.globalAlpha=a;c.strokeStyle=css(col,.9);c.lineWidth=3;
-  const e=96+Math.sin(T*5)*3,L=30;[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(q=>{c.beginPath();c.moveTo(x+q[0]*e,y+q[1]*(e-L));c.lineTo(x+q[0]*e,y+q[1]*e);c.lineTo(x+q[0]*(e-L),y+q[1]*e);c.stroke()});
+  const e=e0+Math.sin(T*5)*3,L=30;[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(q=>{c.beginPath();c.moveTo(x+q[0]*e,y+q[1]*(e-L));c.lineTo(x+q[0]*e,y+q[1]*e);c.lineTo(x+q[0]*(e-L),y+q[1]*e);c.stroke()});
   c.restore();
   glowText(c,label,x,y-e-16,{font:'ui',size:22,track:8,col,align:'center',glow:0,a,fullStr:label});
   if(sub)glowText(c,sub,x,y+e+30,{font:'ui',size:17,track:6,col:K.dim,align:'center',glow:0,a,fullStr:sub});
@@ -335,11 +630,12 @@ function reticle(c,x,y,T,col,label,sub,a){
 /* ---------- hud strip ---------- */
 function hud(c,T,F,hp,sdown){
   c.fillStyle='rgba(3,8,20,.9)';c.fillRect(0,H-92,W,92);c.fillStyle='rgba(102,163,255,.2)';c.fillRect(0,H-92,W,1);
-  [{n:'P1',pal:PAL.p1,x:36},{n:'P2',pal:PAL.p2,x:W-36-350}].forEach(cd=>{
-    const isS=cd.n===F.names.s,fr=isS?hp:1,dn=isS&&sdown,N=24;
-    glowText(c,cd.n,cd.x,H-38,{size:46,col:cd.pal[1],hi:cd.pal[2],blur:12});
-    for(let i=0;i<N;i++){const lit=(i+.5)/N<=fr;c.fillStyle=lit?css(cd.pal[1],.9):dn?css(K.red,Math.floor(T*3)%2?.5:.15):css(cd.pal[1],.12);c.fillRect(cd.x+70+i*11,H-58,8,22)}
-    glowText(c,dn?'DOWNED':`HP ${Math.round(fr*100)}`,cd.x+350,H-18,{font:'ui',size:18,track:5,col:dn?K.red:cd.pal[1],align:'right',glow:0,a:dn&&Math.floor(T*2)%2?.5:1});
+  [{n:'P1',spec:F.p1,x:36},{n:'P2',spec:F.p2,x:W-36-350}].forEach(cd=>{
+    const rc=rgbOf(ROLES[cd.spec.role].col),hi=mix(rc,[255,255,255],.6),isS=cd.n===F.names.s,fr=isS?hp:1,dn=isS&&sdown,N=24;
+    glowText(c,cd.n,cd.x,H-38,{size:46,col:rc,hi,blur:12});
+    glowText(c,`${cd.spec.kit} · ${cd.spec.role}`.toUpperCase(),cd.x+70,H-66,{font:'ui',size:14,track:4,col:K.dim,glow:0});
+    for(let i=0;i<N;i++){const lit=(i+.5)/N<=fr;c.fillStyle=lit?css(rc,.9):dn?css(K.red,Math.floor(T*3)%2?.5:.15):css(rc,.12);c.fillRect(cd.x+70,H-58,0,0);c.fillRect(cd.x+70+i*11,H-58,8,22)}
+    glowText(c,dn?'DOWNED':`HP ${Math.round(fr*100)}`,cd.x+350,H-18,{font:'ui',size:18,track:5,col:dn?K.red:rc,align:'right',glow:0,a:dn&&Math.floor(T*2)%2?.5:1});
   });
 }
 
@@ -352,7 +648,7 @@ function lifePhase(T){
 }
 function lifecycle(c,T,F){
   arena(c,T);
-  const subj=PAL[F.subj],res=PAL[F.subj==='p1'?'p2':'p1'],cp=F.cp||7,sx=F.sx,sy=F.sy;
+  const sSpec=F.subj==='p1'?F.p1:F.p2,rSpec=F.subj==='p1'?F.p2:F.p1,S=F.S,sx=F.sx,sy=F.sy,sRad=ROLES[sSpec.role].r*S,rRad=ROLES[rSpec.role].r*S,ringR=sRad*1.75+8;
   const downNow=T>=HIT&&T<UP0;
   if(downNow){const q=clamp((T-HIT)/.4)*(1-clamp((T-UP0)/.3)),g=c.createRadialGradient(W/2,H/2,H*.25,W/2,H/2,W*.62);g.addColorStop(0,'rgba(255,107,122,0)');g.addColorStop(1,css(K.red,.2*q*(.75+.25*Math.sin(T*2))));c.fillStyle=g;c.fillRect(0,0,W,H);
     const by=((T*70)%(H+160))-80;c.fillStyle='rgba(255,107,122,.05)';c.fillRect(0,by,W,60)}
@@ -365,20 +661,20 @@ function lifecycle(c,T,F){
     c.save();c.strokeStyle=css(K.red,.9);c.lineWidth=5;c.lineCap='round';if(!FX.reduced){c.shadowColor=css(K.red,1);c.shadowBlur=14}c.beginPath();c.moveTo(tx,ty);c.lineTo(hx,hy);c.stroke();c.fillStyle=css(K.redHi);c.fillRect(hx-5,hy-5,10,10);c.restore()}
   // avatars
   const sPos=[sx,sy];
-  avatar(c,{cx:pos[0],cy:pos[1],cp,pal:res,mode:'alive',t:T});
+  avatar(c,{cx:pos[0],cy:pos[1],S,spec:rSpec,mode:'alive',t:T,aim:0});
   const upEnd=UP0+UPDUR*1.35;let mode='alive',p=0,alpha=1;
   if(T>=HIT&&T<HIT+DOWNDUR){mode='down';p=(T-HIT)/DOWNDUR}else if(T>=HIT+DOWNDUR&&T<UP0)mode='husk';
   else if(T>=UP0&&T<upEnd){mode='up';p=(T-UP0)/UPDUR}
   else if(T>=upEnd&&T<upEnd+.6)alpha=Math.floor(T*14)%2?.35:1;
-  avatar(c,{cx:sx,cy:sy,cp,pal:subj,mode,p,t:T,alpha});
+  avatar(c,{cx:sx,cy:sy,S,spec:sSpec,mode,p,t:T,alpha,aim:-.2});
   if(T>=HIT&&T<HIT+.45){const q=(T-HIT)/.45;c.save();c.strokeStyle=css(K.red,1-q);c.lineWidth=5*(1-q)+1;c.beginPath();c.arc(sx,sy,20+q*120,0,TAU);c.stroke();c.fillStyle=css(K.redHi,1-q);for(let i=0;i<16;i++){const a=hash(i)*TAU,d=q*(50+hash(i+3)*90),s=7*(1-q);c.fillRect(sx+Math.cos(a)*d-s/2,sy+Math.sin(a)*d-s/2,s,s)}c.restore()}
   // link and ring
   const prog=clamp((T-REV0)/(REV1-REV0));
-  if(T>=REV0-.25&&T<UP0+.15){const ra=clamp((T-(REV0-.25))/.25)*(1-clamp((T-UP0)/.15));link(c,pos[0]+cp*5,pos[1],sx-cp*6.5,sy,T,ra);reviveRing(c,sx,sy,cp*13,prog,T,ra)}
+  if(T>=REV0-.25&&T<UP0+.15){const ra=clamp((T-(REV0-.25))/.25)*(1-clamp((T-UP0)/.15));link(c,pos[0]+rRad,pos[1],sx-sRad-6,sy,T,ra);reviveRing(c,sx,sy,ringR,prog,T,ra)}
   // reticle (C)
   if(F.style==='team'){
-    if(T>=HIT+.6&&T<UP0)reticle(c,sx,sy,T,K.red,`${F.names.s} · DOWNED`,T<REV0?'STAND CLOSE TO REVIVE':'',clamp((T-HIT-.6)/.3)*(T<REV0?1:.0));
-    if(T>=UP0+UPDUR*.8&&T<UP0+UPDUR*.8+1.1)reticle(c,sx,sy,T,K.mint,`${F.names.s} · BACK UP`,'',1-clamp((T-UP0-UPDUR*.8-.6)/.5));
+    if(T>=HIT+.6&&T<UP0)reticle(c,sx,sy,T,K.red,`${F.names.s} · DOWNED`,T<REV0?'STAND CLOSE TO REVIVE':'',clamp((T-HIT-.6)/.3)*(T<REV0?1:.0),ringR+16);
+    if(T>=UP0+UPDUR*.8&&T<UP0+UPDUR*.8+1.1)reticle(c,sx,sy,T,K.mint,`${F.names.s} · BACK UP`,'',1-clamp((T-UP0-UPDUR*.8-.6)/.5),ringR+16);
   }
   hud(c,T,F,hpAt(T),downNow);
   // messages
@@ -405,37 +701,47 @@ function integrity(c,v,col){
   glowText(c,`${Math.round(clamp(v)*100)}%`,48,128,{size:64,col,hi:mix(col,[255,255,255],.6)});
   const N=20;for(let i=0;i<N;i++){c.fillStyle=(i+.5)/N<=v?css(col,.9):css(col,.12);c.fillRect(48+i*12,144,9,14)}
 }
+const TRI=[{kit:'Knight',role:'Tank'},{kit:'Summoner',role:'Healer'},{kit:'Ninja',role:'DPS'}],TRIX=[W*.2,W*.5,W*.8],TRIAIM=[-.35,.2,-.1],STAG=.18;
+function trioLabel(c,i,col){const sp=TRI[i];glowText(c,`${sp.kit} · ${sp.role}`.toUpperCase(),TRIX[i],H-208,{font:'ui',size:17,track:6,col:K.dim,align:'center',glow:0,fullStr:`${sp.kit} · ${sp.role}`.toUpperCase()})}
 const CL=4.4;
 function closeD(c,T){
-  arena(c,T,true);const cx=W/2,cy=H/2-24,cp=17,t0=.5,dur=1.6;
-  const p=clamp((T-t0)/dur),mode=T<t0?'alive':p<1?'down':'husk';
-  avatar(c,{cx,cy,cp,pal:PAL.p1,mode,p,t:T});
-  const col=T<t0?K.ink:K.red;integrity(c,T<t0?1:1-p,col);
-  ecg(c,W/2-300,H-150,600,60,T,{col,amp:T<t0?.9:Math.max(0,1-p*1.4),speed:.8,noise:p>.9?.05:0,cycles:2.5});
-  chips(c,['GLITCH','SHED','FLATLINE'],T<t0?-1:p<.35?0:p<1?1:2,K.red);
-  const q=T-t0;return{gl:q>=0&&q<.9?Math.pow(1-q/.9,1.5):0,col:K.red};
+  arena(c,T,true);const t0=.5,dur=1.6,S=4.2,cy=H/2-60;let avg=0;
+  TRI.forEach((sp,i)=>{
+    const q=T-t0-i*STAG,p=clamp(q/dur),mode=q<0?'alive':p<1?'down':'husk';avg+=p;
+    avatar(c,{cx:TRIX[i],cy,S,spec:sp,mode,p,t:T,aim:TRIAIM[i]});
+    trioLabel(c,i);
+    ecg(c,TRIX[i]-130,H-192,260,46,T,{col:q<0?K.ink:K.red,amp:q<0?.9:Math.max(0,1-p*1.4),speed:.8,noise:p>.9?.05:0,cycles:1.6,lw:2.5});
+  });
+  integrity(c,1-avg/3,avg>0?K.red:K.ink);
+  const lead=clamp((T-t0)/dur);
+  chips(c,['GLITCH','SHED','FLATLINE'],T<t0?-1:lead<.35?0:avg<2.99?1:2,K.red);
+  const q=T-t0;return{gl:q>=0&&q<.9?Math.pow(1-q/.9,1.5)*.8:0,col:K.red};
 }
 function closeE(c,T){
-  arena(c,T,true);const cx=W/2,cy=H/2-24,cp=17,t0=.5,dur=1.5;
-  const p=(T-t0)/dur,mode=T<t0?'husk':p<1.4?'up':'alive';
-  avatar(c,{cx,cy,cp,pal:PAL.p1,mode,p:clamp(p,0,1.4),t:T});
-  const col=T<t0?K.red:K.mint;integrity(c,T<t0?0:clamp(p),col);
-  ecg(c,W/2-300,H-150,600,60,T,{col,amp:T<t0?0:clamp((p-.5)*2),speed:1,noise:T<t0?.05:0,cycles:2.5});
-  chips(c,['REASSEMBLE','SCAN','ONLINE'],T<t0?-1:p<.3?0:p<.8?1:2,K.mint);
+  arena(c,T,true);const t0=.5,dur=1.5,S=4.2,cy=H/2-60;let avg=0;
+  TRI.forEach((sp,i)=>{
+    const q=T-t0-i*STAG,p=q/dur,mode=q<0?'husk':p<1.4?'up':'alive';avg+=clamp(p);
+    avatar(c,{cx:TRIX[i],cy,S,spec:sp,mode,p:clamp(p,0,1.4),t:T,aim:TRIAIM[i]});
+    trioLabel(c,i);
+    ecg(c,TRIX[i]-130,H-192,260,46,T,{col:q<0?K.red:K.mint,amp:q<0?0:clamp((p-.5)*2),speed:1,noise:q<0?.05:0,cycles:1.6,lw:2.5});
+  });
+  integrity(c,avg/3,avg>0?K.mint:K.red);
+  const lead=(T-t0)/dur;
+  chips(c,['REASSEMBLE','SCAN','ONLINE'],T<t0?-1:lead<.3?0:lead<.8?1:2,K.mint);
   const q=T-t0-dur*.78;return{gl:q>=0&&q<.5?Math.pow(1-q/.5,1.5)*.5:0,col:K.mint};
 }
 function closeF(c,T){
-  arena(c,T,true);const cp=14,sx=W/2+120,sy=H/2-30,t0=.5,t1=4.0;
-  const prog=clamp((T-t0)/(t1-t0)),done=T>=t1;
-  const up=(T-t1)/1.2;
-  avatar(c,{cx:sx,cy:sy,cp,pal:PAL.p1,mode:done?(up<1.4?'up':'alive'):'husk',p:clamp(up,0,1.4),t:T});
-  const rx=sx-290+Math.sin(T*2)*3;
-  avatar(c,{cx:rx,cy:sy+10,cp,pal:PAL.p2,mode:'alive',t:T});
-  if(!done||up<.2){const ra=T<t0?clamp(T/t0):done?1-clamp(up/.2):1;link(c,rx+cp*5,sy+10,sx-cp*13,sy,T,ra);reviveRing(c,sx,sy,cp*13,prog,T,ra)}
-  glowText(c,'P2',rx,sy+cp*10+20,{size:34,col:K.gold,align:'center',blur:10});
-  glowText(c,'P1',sx,sy+cp*14+36,{size:34,col:done?K.ink:K.redDim,align:'center',blur:10});
+  arena(c,T,true);const S=4.2,sx=W/2+190,sy=H/2-50,t0=.5,t1=4.0,spec=TRI[0],res=TRI[1];
+  const sRad=ROLES[spec.role].r*S,rRad=ROLES[res.role].r*S,R=sRad*1.75+8;
+  const prog=clamp((T-t0)/(t1-t0)),done=T>=t1,up=(T-t1)/1.2;
+  avatar(c,{cx:sx,cy:sy,S,spec,mode:done?(up<1.4?'up':'alive'):'husk',p:clamp(up,0,1.4),t:T,aim:-.2});
+  const rx=sx-sRad-R-120+Math.sin(T*2)*3;
+  avatar(c,{cx:rx,cy:sy+10,S,spec:res,mode:'alive',t:T,aim:0});
+  if(!done||up<.2){const ra=T<t0?clamp(T/t0):done?1-clamp(up/.2):1;link(c,rx+rRad,sy+10,sx-sRad-6,sy,T,ra);reviveRing(c,sx,sy,R,prog,T,ra)}
+  glowText(c,'P2 · HEALER',rx,sy+rRad+44,{font:'ui',size:18,track:6,col:K.dim,align:'center',glow:0,fullStr:'P2 · HEALER'});
+  glowText(c,'P1 · TANK',sx,sy+R+44,{font:'ui',size:18,track:6,col:done?K.ink:K.redDim,align:'center',glow:0,fullStr:'P1 · TANK'});
   const readout=done?'REVIVED':`P2 REVIVING  ${Math.max(0,3*(1-prog)).toFixed(1)} s`;
-  glowText(c,readout,W/2,92,{font:'ui',size:26,track:10,col:done?K.mint:K.mint,align:'center',glow:0,fullStr:readout});
+  glowText(c,readout,W/2,92,{font:'ui',size:26,track:10,col:K.mint,align:'center',glow:0,fullStr:readout});
   chips(c,['LINK','CHARGE','REVIVED'],T<t0?0:done?2:1,K.mint);
   const q=T-t1-.78*1.2;return{gl:q>=0&&q<.5?Math.pow(1-q/.5,1.5)*.45:0,col:K.mint};
 }
@@ -445,9 +751,9 @@ const closePhase={D:T=>T<.5?'ALIVE':T<1.1?'GLITCH':T<2.1?'SHED':'FLATLINE',E:T=>
 const noise=document.createElement('canvas');noise.width=160;noise.height=90;const nctx=noise.getContext('2d');const nimg=nctx.createImageData(160,90);
 function noiseFrame(){const d=nimg.data;for(let i=0;i<d.length;i+=4){const v=Math.random()*255|0;d[i]=d[i+1]=d[i+2]=v;d[i+3]=Math.random()<.5?0:90}nctx.putImageData(nimg,0,0)}
 const CFG={
-  A:{subj:'p1',style:'box',sx:W/2,sy:520,gap:190,rx0:W/2-420,ry0:480,bf:[240,180],names:{s:'P1',r:'P2'}},
-  B:{subj:'p1',style:'band',sx:W/2,sy:520,gap:190,rx0:W/2-420,ry0:480,bf:[1050,200],names:{s:'P1',r:'P2'}},
-  C:{subj:'p2',style:'team',sx:W*.66,sy:420,gap:200,rx0:W*.3,ry0:440,bf:[1150,150],names:{s:'P2',r:'P1'}}
+  A:{subj:'p1',p1:{kit:'Knight',role:'Tank'},p2:{kit:'Elementalist',role:'Healer'},style:'box',S:2.5,sx:W/2,sy:520,gap:215,rx0:W/2-420,ry0:480,bf:[240,180],names:{s:'P1',r:'P2'}},
+  B:{subj:'p1',p1:{kit:'Ninja',role:'DPS'},p2:{kit:'Knight',role:'Healer'},style:'band',S:3.2,sx:W/2,sy:525,gap:200,rx0:W/2-420,ry0:480,bf:[1050,200],names:{s:'P1',r:'P2'}},
+  C:{subj:'p2',p1:{kit:'Knight',role:'Tank'},p2:{kit:'Soldier',role:'DPS'},style:'team',S:3,sx:W*.66,sy:420,gap:210,rx0:W*.3,ry0:440,bf:[1150,150],names:{s:'P2',r:'P1'}}
 };
 const STAGES={
   A:{loop:LOOP,start:4.6,draw:(c,T)=>lifecycle(c,T,CFG.A),phase:lifePhase},
@@ -473,7 +779,7 @@ document.querySelectorAll('figure[data-stage]').forEach(fig=>{
   rg.oninput=()=>{st.t=parseFloat(rg.value);setPause(true);render()};
   function render(){
     octx.clearRect(0,0,W,H);
-    const r=cfg.draw(octx,st.t)||{},gl=FX.reduced?0:(r.gl||0),step=Math.floor(st.t*24);
+    const r=cfg.draw(octx,st.t)||{},gl=FX.reduced||!FX.screen?0:(r.gl||0),step=Math.floor(st.t*24);
     ctx.save();ctx.clearRect(0,0,W,H);
     if(gl>.55)ctx.translate((hash(step)-.5)*10*gl,(hash(step+9)-.5)*4*gl);
     ctx.drawImage(off,0,0);
@@ -502,6 +808,7 @@ function frame(now){
 requestAnimationFrame(frame);
 document.fonts&&document.fonts.ready.then(()=>live.forEach(s=>s.render()));
 document.getElementById('reduced').onclick=e=>{FX.reduced=!FX.reduced;e.currentTarget.setAttribute('aria-pressed',FX.reduced);live.forEach(s=>s.render())};
+document.getElementById('screenFx').onclick=e=>{FX.screen=!FX.screen;e.currentTarget.setAttribute('aria-pressed',FX.screen);live.forEach(s=>s.render())};
 document.getElementById('pauseAll').onclick=e=>{allPaused=!allPaused;e.currentTarget.setAttribute('aria-pressed',allPaused);e.currentTarget.textContent=allPaused?'PLAY ALL':'PAUSE ALL'};
 window.__live=live;
 })();
