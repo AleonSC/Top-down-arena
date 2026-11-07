@@ -306,7 +306,7 @@ namespace Arena
             timelineNext = 0f;
         }
 
-        bool TimelineOn => Running && RecordsRuns && Hunt == null && Me != null && !Replaying && !botTouched && !devTouched
+        bool TimelineOn => Running && RecordsRuns && Me != null && !Replaying && !botTouched && !devTouched
             && (State == MatchState.Fighting || State == MatchState.Intermission);
 
         void TickRunTimeline(float dt)
@@ -333,7 +333,7 @@ namespace Arena
         }
 
         /// The run ended: closes the curve with a last sample and keeps it. Returns the file's name ("" if none was kept).
-        string FinishTimeline(bool won, int wave, bool endless, float time, string cls, string mods)
+        string FinishTimeline(bool won, int wave, bool endless, float time, string cls, string mods, string mode = null)
         {
             if (timeline == null)
                 return "";
@@ -342,7 +342,7 @@ namespace Arena
             timeline.Won = won;
             timeline.Wave = wave;
             timeline.Seconds = Math.Max(time, timelineT);
-            timeline.Mode = endless ? "Endless" : "Campaign";
+            timeline.Mode = mode ?? (endless ? "Endless" : "Campaign");
             timeline.Class = cls;
             timeline.Diff = Diff.Level.ToString();
             timeline.Mods = mods ?? "";

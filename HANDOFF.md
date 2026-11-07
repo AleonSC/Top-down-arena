@@ -183,7 +183,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `HudTab.cs` | 0.24k | the Tab menu (`DrawTabMenu`, stats, abilities, upgrades pages) |
 | `HudBossBars.cs` | 0.43k | `DrawBossBars` and each boss's stage names and notes |
 | `HudPicker.cs` | 0.45k | `DrawUpgradePicker`, trophy and upgrade cards, the stat panel and sidebar |
-| `HudSummary.cs` | 0.25k | the end-of-run summary (`DrawRunSummary`, `DrawPlayerSummary`, `SummaryRows`), with the rank strip under the cards |
+| `HudSummary.cs` | 0.25k | the end-of-run summary as CRT tubes (`DrawRunSummary`, `RackTube`, `DrawPlayerSummary`, `SummaryTimeline`, `SummaryRows`): the run's DPS and health charts from `RunGraphs.cs` on the right, the rank strip under the players, `KeyUi` keys along the bottom |
 | `ProfileUi.cs` | 0.3k | your profile as a CRT cabinet (`Docs/Mockups/crt-profile.html`): header, profile screen (badge, name + pencil, XP), four tab keys, option keys, Back; each option is a cab window of kind 3 (`OpenCabWindow(3)`, `DrawCabWindow` calls `DrawProfileSection`); `OpenProfile` from the player card, or the pause/lobby menu's Profile row without Look; the "YOUR PROFILE" nudge (`DrawProfileHint`) |
 | `ProfileWindows.cs` | 0.2k | the profile's windows: Rank (Progress, Tiers, XP sources), the Unlocks tab, `InfoRow`, `BlockBar` |
 | `CosmeticsUi.cs` | 0.3k | the Look windows (`DrawLookWindow`: live preview with try-on on hover, how others see you, Equip list) and the Reward ladder |
