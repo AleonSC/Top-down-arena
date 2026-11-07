@@ -209,7 +209,7 @@ namespace Arena
             var c = new Color(0.36f, 0.6f, 1f);
             float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
             // A faint halo along each arm only (a halo round the whole corner square read as a bright spot).
-            const float hs = 0.1f;
+            const float hs = 0.05f;
             Ui.Glow(new Rect(x0, y0, arm, th), c, hs); Ui.Glow(new Rect(x0, y0, th, arm), c, hs);                       // top left
             Ui.Glow(new Rect(x1 - arm, y0, arm, th), c, hs); Ui.Glow(new Rect(x1 - th, y0, th, arm), c, hs);            // top right
             Ui.Glow(new Rect(x0, y1 - th, arm, th), c, hs); Ui.Glow(new Rect(x0, y1 - arm, th, arm), c, hs);            // bottom left
@@ -311,6 +311,21 @@ namespace Arena
         }
 
         /// Text with letter-spacing (IMGUI has none): each letter placed by hand, the row aligned left, centre or right in `r`.
+        static readonly System.Collections.Generic.Dictionary<string, float> advCache = new System.Collections.Generic.Dictionary<string, float>();
+
+        /// One letter's advance at this size, measured between two bars so the label style's padding cancels out.
+        static float Adv(char ch, int size, bool bold)
+        {
+            string key = ch + "|" + size + (bold ? "b" : "n") + (Ui.MenuFont ? "m" : "d");
+            float v;
+            if (advCache.TryGetValue(key, out v))
+                return v;
+            string mid = ch == ' ' ? "n" : ch.ToString();
+            v = Mathf.Max(1f, Ui.TextWidth("|" + mid + "|", size, bold) - Ui.TextWidth("||", size, bold));
+            advCache[key] = v;
+            return v;
+        }
+
         public static void Spaced(Rect r, string text, int size, Color c, TextAnchor align, float spacing, bool bold = true)
         {
             if (string.IsNullOrEmpty(text))
@@ -319,7 +334,7 @@ namespace Arena
             float total = 0f;
             for (int i = 0; i < text.Length; i++)
             {
-                adv[i] = text[i] == ' ' ? Ui.TextWidth("n", size, bold) - 6f : Ui.TextWidth(text[i].ToString(), size, bold) - 6f;
+                adv[i] = Adv(text[i], size, bold);
                 total += adv[i] + (i < text.Length - 1 ? spacing : 0f);
             }
             float x = align == TextAnchor.MiddleCenter || align == TextAnchor.UpperCenter || align == TextAnchor.LowerCenter ? r.center.x - total / 2f
@@ -337,7 +352,7 @@ namespace Arena
         {
             float total = 0f;
             for (int i = 0; i < text.Length; i++)
-                total += (text[i] == ' ' ? Ui.TextWidth("n", size, bold) : Ui.TextWidth(text[i].ToString(), size, bold)) - 6f + (i < text.Length - 1 ? spacing : 0f);
+                total += Adv(text[i], size, bold) + (i < text.Length - 1 ? spacing : 0f);
             return total;
         }
 
@@ -385,6 +400,34 @@ namespace Arena
 
         /// A stat row: dim name, a lit bar in the stat's own colour (a bright top, a deeper bottom, a soft halo, a bright end cap and a slow
         /// pulse), the value on the right. Reduced effects: the flat bar, no halo or pulse.
+        static readonly System.Collections.Generic.Dictionary<string, float> barShown = new System.Collections.Generic.Dictionary<string, float>();
+        static readonly System.Collections.Generic.Dictionary<string, float> barAt = new System.Collections.Generic.Dictionary<string, float>();
+        static readonly System.Collections.Generic.Dictionary<string, int> barFrame = new System.Collections.Generic.Dictionary<string, int>();
+
+        /// The fill a stat bar shows: it eases up or down to the new value (about a third of a second), once per frame however many times the
+        /// lobby draws. A bar that was away for a moment, and Reduced effects, jump straight there.
+        static float BarShown(string name, float target, bool calm)
+        {
+            float now = Time.unscaledTime, cur;
+            float last;
+            bool seen = barShown.TryGetValue(name, out cur) && barAt.TryGetValue(name, out last) && now - last < 0.5f;
+            barAt[name] = now;
+            if (!seen || calm)
+            {
+                barShown[name] = target;
+                return target;
+            }
+            int fr;
+            if (barFrame.TryGetValue(name, out fr) && fr == Time.frameCount)
+                return cur;
+            barFrame[name] = Time.frameCount;
+            cur = Mathf.Lerp(cur, target, 1f - Mathf.Exp(-Mathf.Min(0.1f, Time.unscaledDeltaTime) * 9f));
+            if (Mathf.Abs(cur - target) < 0.002f)
+                cur = target;
+            barShown[name] = cur;
+            return cur;
+        }
+
         public static void StatBar(Rect r, string name, string value, float frac, Color c, bool calm)
         {
             const float nameW = 70f, valW = 64f;
@@ -392,7 +435,7 @@ namespace Arena
             var tr = new Rect(r.x + nameW + 8f, r.center.y - 4f, r.width - nameW - valW - 16f, 9f);
             Ui.Fill(new Rect(tr.x - 1f, tr.y - 1f, tr.width + 2f, tr.height + 2f), new Color(1f, 1f, 1f, 0.06f));
             Ui.Fill(tr, new Color(0.02f, 0.04f, 0.08f, 0.9f));
-            var fr = new Rect(tr.x, tr.y, Mathf.Max(2f, tr.width * Mathf.Clamp01(frac)), tr.height);
+            var fr = new Rect(tr.x, tr.y, Mathf.Max(2f, tr.width * Mathf.Clamp01(BarShown(name, frac, calm))), tr.height);
             if (calm)
             {
                 Ui.Fill(fr, c);
@@ -401,12 +444,12 @@ namespace Arena
             {
                 float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.4f);
                 float k = 0.85f + 0.3f * pulse;  // a slow brightness pulse
-                Ui.Glow(fr, c, 0.32f * k);  // the halo
+                Ui.Glow(fr, c, 0.06f * k);  // a faint halo
                 Ui.Fill(fr, Color.Lerp(c, new Color(0f, 0f, 0f), 0.3f));                                              // deeper lower half
                 Ui.Fill(new Rect(fr.x, fr.y, fr.width, fr.height * 0.6f), Color.Lerp(c, Color.white, 0.12f * k));  // main body
                 Ui.Fill(new Rect(fr.x, fr.y + 1f, fr.width, 2f), Color.Lerp(c, Color.white, 0.55f));         // the lit top edge
                 var cap = new Rect(fr.xMax - 2f, fr.y - 3f, 3f, fr.height + 6f);                              // the bright end cap
-                Ui.Glow(cap, c, 0.5f * k);
+                Ui.Glow(cap, c, 0.1f * k);
                 Ui.Fill(cap, Color.white);
             }
             var vr = new Rect(r.xMax - valW, r.y, valW, r.height);
