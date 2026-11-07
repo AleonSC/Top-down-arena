@@ -1147,8 +1147,8 @@ namespace Arena
             if (demo)
             {
                 var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));
-                Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), (ult ? "ULTIMATE  ·  " : Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)).ToUpperInvariant() + "  ·  ") + ab.Name.ToUpperInvariant(), 10,
-                    ult ? Ui.Gold : Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), ab.Name.ToUpperInvariant(), 10,
+                    Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);  // just the name (no key or "ultimate" prefix)
             }
         }
 
