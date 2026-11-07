@@ -1105,8 +1105,8 @@ namespace Arena
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
         void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
         {
-            if (uiGlBlocked || hangoutAnim > 0f)
-                return;  // (hangoutAnim: the window is turning into the Hangout, which draws its own floor and ship)
+            if ((uiGlBlocked && !pieceGlOn) || hangoutAnim > 0f)
+                return;  // (hangoutAnim: the window is turning into the Hangout, which draws its own floor and ship; pieceGlOn: the lobby's entrance fades the preview in with the loadout)
             // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
             int shown = me.Ability;
             bool ult = detailSel == 2;  // what you last clicked (a weapon, an ability or the ultimate) is what it shows
@@ -1193,6 +1193,10 @@ namespace Arena
                 return;
             }
             showcase.Step(dt);
+            // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
+            foreach (var sfx in showcase.Game.Sounds)
+                sounds.PlayMuffled(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
+            showcase.Game.Sounds.Clear();
         }
 
         static float maxWeaponDps;

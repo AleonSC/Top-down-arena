@@ -692,6 +692,60 @@ namespace Arena
             voice.PlayOneShot(clip, volume);
         }
 
+        // --- Muffled playback (the lobby's loadout preview) ------------------------
+        // A copy of each clip run through a low-pass filter, built the first time it's needed.
+        const float MuffleHz = 650f, MuffleVolume = 0.55f;
+        AudioClip[][] muffled;
+        float[] lastMuffled;
+
+        /// Like Play, but dull and quieter: the sound as heard through a wall.
+        public void PlayMuffled(Sfx s, float volume, float now)
+        {
+            int i = (int)s;
+            if (Muted || i <= 0 || i >= count || clips[i] == null)
+                return;
+            if (muffled == null)
+            {
+                muffled = new AudioClip[count][];
+                lastMuffled = new float[count];
+                for (int k = 0; k < count; k++)
+                    lastMuffled[k] = -10f;
+            }
+            if (now - lastMuffled[i] < minGap[i])
+                return;
+            volume *= Master * CategoryVolume(s) * MuffleVolume;
+            if (volume <= 0.001f)
+                return;
+            if (muffled[i] == null)
+            {
+                var src = clips[i];
+                var list = new AudioClip[src.Length];
+                double a = 1.0 - Math.Exp(-2.0 * Math.PI * MuffleHz / Rate);  // one-pole coefficient, applied twice
+                for (int v = 0; v < src.Length; v++)
+                {
+                    var data = new float[src[v].samples * src[v].channels];
+                    src[v].GetData(data, 0);
+                    double y1 = 0, y2 = 0;
+                    for (int n = 0; n < data.Length; n++)
+                    {
+                        y1 += a * (data[n] - y1);
+                        y2 += a * (y1 - y2);
+                        data[n] = (float)y2 * 1.6f;  // (what the filter takes off the top, partly given back)
+                    }
+                    list[v] = AudioClip.Create(src[v].name + "_muffled", data.Length / src[v].channels, src[v].channels, Rate, false);
+                    list[v].SetData(data, 0);
+                }
+                muffled[i] = list;
+            }
+            lastMuffled[i] = now;
+            var takes = muffled[i];
+            var clip = takes[nextVariant[i]++ % takes.Length];
+            var voice = voices[nextVoice];
+            nextVoice = (nextVoice + 1) % voices.Length;
+            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.08f;
+            voice.PlayOneShot(clip, volume);
+        }
+
         // --- Synthesis ---------------------------------------------------------
 
         /// Second-order filter (RBJ cookbook), used for the gunshot layers.

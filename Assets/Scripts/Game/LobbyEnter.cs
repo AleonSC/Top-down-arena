@@ -169,7 +169,7 @@ namespace Arena
             LobbyPiece(new Rect(0f, LobbyNoteY, split, H - LobbyNoteY), e, 0.7f, 1.1f, -60f, 0f);   // Ready and Start
             LobbyPiece(new Rect(0f, cardsY, split, cardsEnd - cardsY), e, 0.8f, 1.15f, -60f, 0f, true);  // your party card, last
             LobbyPiece(new Rect(split, 0f, W - split, bodyCut), e, 0.55f, 0.9f, 0f, -30f);          // the tab keys
-            LobbyPiece(new Rect(split, bodyCut, W - split, H - bodyCut), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
+            LobbyPiece(new Rect(split, bodyCut, W - split, H - bodyCut), e, 0.65f, 1.05f, 0f, 0f, true);  // the loadout, filling in (its live preview fades up with it instead of popping in after)
             uiGlBlocked = false;
         }
 
