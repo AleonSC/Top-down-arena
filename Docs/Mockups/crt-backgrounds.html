@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRT Backgrounds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=VT323&display=swap">
+<style>
+/* Mockup: six CRT-themed animated menu backgrounds that REACT. Each is drawn at the game's pixel-art scale (320 x 200,
+   scaled up crisp) and gets the same glass: scanlines, a slow roll bar, vignette and a faint flicker. What they react to:
+   the pointer (stands in for the menu cursor / the nearest player), and four events you can fire with the buttons
+   (stand-ins for: a menu click, a player being hit, a wave clear, a boss warning). "Auto demo" fires them for you.
+   Single dark look by choice, like the other mockups. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --red: #ff6b5e;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+
+.bar { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+  display: flex; flex-wrap: wrap; gap: 12px 26px; align-items: center; position: sticky; top: 8px; z-index: 5; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge);
+  border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+button.ev:active { transform: translateY(1px); }
+button.ev.red { border-color: #6b3a35; }
+.sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 10px; min-width: 0; }
+.tile.big { grid-column: 1 / -1; }
+.tile .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.tile .top button { padding: 3px 10px; font-size: 12px; }
+.tile .note { color: var(--muted); font-size: 14px; }
+.tile .note b { color: var(--soft); font-weight: 600; }
+
+/* The CRT glass. The canvas is 320 x 200 and scaled up with crisp pixels. */
+.screen { position: relative; aspect-ratio: 8 / 5; overflow: hidden; background: #000; border-radius: 16px / 20px;
+  box-shadow: 0 0 0 3px #070a0c, 0 0 0 4px var(--edge), inset 0 0 50px #000; touch-action: pan-y; cursor: crosshair; }
+.screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; animation: flick 6s steps(1) infinite; }
+.screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.30) 0 1px, transparent 1px 3px); }
+.screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(0,0,0,.62) 100%),
+              linear-gradient(155deg, rgba(255,255,255,.07), transparent 28%); }
+.roll { position: absolute; left: 0; right: 0; height: 22%; top: -25%; pointer-events: none; z-index: 2;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.045), transparent); animation: roll 7s linear infinite; }
+@keyframes roll { to { top: 105%; } }
+@keyframes flick { 0%, 100% { opacity: 1; } 47% { opacity: .96; } 48% { opacity: 1; } 83% { opacity: .97; } 84% { opacity: 1; } }
+.reduced .roll { display: none; }
+.reduced .screen canvas { animation: none; }
+.reduced .screen::after { background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(0,0,0,.45) 100%); }
+
+.mapping { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; }
+.mapping ul { margin: 0; padding-left: 20px; color: var(--soft); display: grid; gap: 4px; }
+.mapping li b { color: var(--fg); font-weight: 600; }
+code { font: 500 13px ui-monospace, Menlo, monospace; color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header>
+    <div class="eyebrow">Mockup · menu backgrounds</div>
+    <h1>CRT <span>Backgrounds</span></h1>
+    <p class="lead">Six animated backgrounds in the cabinet's phosphor look. Each one reacts: <b>move over a screen</b> and it follows you, <b>click</b> a screen and it answers, or fire the events below at all six at once to compare. Pick a colour to see them retint (the game gives each background its own).</p>
+  </header>
+
+  <div class="bar" role="toolbar" aria-label="Controls">
+    <div class="group"><span class="label">Fire</span>
+      <button class="ev" data-ev="click">Menu click</button>
+      <button class="ev" data-ev="hit">Player hit</button>
+      <button class="ev" data-ev="clear">Wave clear</button>
+      <button class="ev red" data-ev="alarm">Boss warning</button>
+    </div>
+    <div class="group"><span class="label">Colour</span>
+      <button data-hue="auto" aria-pressed="true">Each its own</button>
+      <button data-hue="140" aria-pressed="false"><i class="sw" style="background:#4dff91"></i>Green</button>
+      <button data-hue="38" aria-pressed="false"><i class="sw" style="background:#ffb547"></i>Amber</button>
+      <button data-hue="200" aria-pressed="false"><i class="sw" style="background:#4db8ff"></i>Blue</button>
+    </div>
+    <div class="group"><span class="label">Options</span>
+      <button id="demo" aria-pressed="true">Auto demo</button>
+      <button id="reduced" aria-pressed="false">Reduced effects</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="mapping">
+    <h3>What the events stand for</h3>
+    <ul>
+      <li><b>Menu click</b>: pressing a key on the menu or lobby. Also what clicking a screen here does, at the cursor.</li>
+      <li><b>Player hit</b>: a player takes damage. Shake, a short white flash, the background gets rough for a moment. Behind the arena this could be the only reaction, kept small.</li>
+      <li><b>Wave clear</b>: a calm, bright release. Things settle, lock in or open up.</li>
+      <li><b>Boss warning</b>: the whole screen goes red and pulses for a couple of seconds, whatever its own colour is.</li>
+      <li><b>Pointer</b>: the menu cursor, or in a match the nearest player. Speed of movement also feeds the energy.</li>
+    </ul>
+    <p class="lead" style="color:var(--muted);font-size:14px">Reduced effects drops glow, the roll bar, flicker, shake and flash, like the other CRT screens do. If you like any of these they'd slot in as extra choices on the Menu background card.</p>
+  </section>
+</div>
+
+<script>
+"use strict";
+const W = 320, H = 200;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const hsl = (h, l, a = 1, s = 100) => `hsla(${h},${s}%,${l}%,${a})`;
+const opt = { hue: "auto", demo: true, reduced: false };
+
+/* ---------- shared helpers ---------- */
+function poke(d, gx, gy, amp, r) {
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) {
+    const X = gx + x, Y = gy + y;
+    if (X < 1 || Y < 1 || X >= d.w - 1 || Y >= d.h - 1) continue;
+    const f = 1 - Math.hypot(x, y) / (r + 0.5);
+    if (f > 0) d.a[Y * d.w + X] += amp * f;
+  }
+}
+function glow(c, hue, px) { if (opt.reduced) { c.shadowBlur = 0; return; } c.shadowBlur = px; c.shadowColor = hsl(hue, 60, 1); }
+
+/* ---------- 1. Phosphor Pond: a dot grid that ripples ---------- */
+const pond = {
+  name: "Phosphor Pond", hue: 140,
+  note: "<b>Follows:</b> your pointer drags a wake through the dots. <b>Click:</b> a big ring. <b>Hit:</b> three sharp splashes. <b>Clear:</b> one slow wave from the middle. <b>Boss:</b> red heartbeat.",
+  init(t) { const w = 80, h = 50; t.d = { w, h, a: new Float32Array(w * h), b: new Float32Array(w * h), lastBeat: 0, lx: 0, ly: 0 }; },
+  event(t, k, x, y) {
+    const d = t.d;
+    if (k === "click") poke(d, x / 4 | 0, y / 4 | 0, 2.4, 6);
+    if (k === "hit") for (let i = 0; i < 3; i++) poke(d, rnd(8, 72) | 0, rnd(6, 44) | 0, 3, 4);
+    if (k === "clear") for (let a = 0; a < 6.28; a += 0.15) poke(d, 40 + Math.cos(a) * 5 | 0, 25 + Math.sin(a) * 4 | 0, 1.1, 2);
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, { w, h, a, b } = d;
+    const gx = clamp(st.px / 4 | 0, 1, w - 2), gy = clamp(st.py / 4 | 0, 1, h - 2);
+    if (st.inside || opt.demo) poke(d, gx, gy, 0.22 + st.energy * 0.2, 2);
+    if (st.alarm > 0 && time - d.lastBeat > 0.55) { d.lastBeat = time; poke(d, 40, 25, 3.4, 7); }
+    if (Math.random() < dt * 0.9) poke(d, rnd(6, 74) | 0, rnd(5, 45) | 0, 1.6, 3);
+    for (let s = 0; s < 2; s++) {
+      for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x;
+        b[i] += ((a[i - 1] + a[i + 1] + a[i - w] + a[i + w]) * 0.25 - a[i]) * 0.9;
+      }
+      for (let i = 0; i < a.length; i++) { b[i] *= 0.988; a[i] += b[i]; }
+    }
+    c.fillStyle = "#010503"; c.fillRect(0, 0, W, H);
+    const lv = [];
+    for (let i = 0; i < 28; i++) lv.push(hsl(hue, 22 + i * 2.2, 0.4 + i * 0.022));
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = a[y * w + x], m = Math.min(27, (Math.abs(v) * 34) | 0);
+      c.fillStyle = lv[m];
+      c.fillRect(x * 4 + 1, y * 4 + 1 - clamp(v, -1.5, 1.5) * 1.5, v > 0.35 ? 3 : 2, v > 0.35 ? 3 : 2);
+    }
+  }
+};
+
+/* ---------- 2. Vector Tunnel: neon gates rushing past ---------- */
+const tunnel = {
+  name: "Vector Tunnel", hue: 188,
+  note: "<b>Follows:</b> the vanishing point leans toward your pointer. <b>Click:</b> a speed burst. <b>Hit:</b> the gates stutter and shake. <b>Clear:</b> a hard boost, every gate lights up. <b>Boss:</b> red, slow, heavy.",
+  init(t) { t.d = { z: 0, n: 0, vx: W / 2, vy: H / 2, boost: 0, lit: 0 }; },
+  event(t, k) { const d = t.d; if (k === "click") d.boost = 1.3; if (k === "clear") { d.boost = 2.6; d.lit = 1.6; } if (k === "hit") d.lit = 0.5; },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, N = 14;
+    d.boost *= Math.exp(-dt * 1.8); d.lit *= Math.exp(-dt * 1.4);
+    d.vx += ((W / 2 + (st.px - W / 2) * 0.45) - d.vx) * Math.min(1, dt * 4);
+    d.vy += ((H / 2 + (st.py - H / 2) * 0.45) - d.vy) * Math.min(1, dt * 4);
+    const speed = (st.alarm > 0 ? 0.3 : 0.55) + d.boost * 1.8 + st.energy * 0.6;
+    d.z += dt * speed;
+    while (d.z >= 1) { d.z -= 1; d.n++; }
+    c.fillStyle = "rgba(0,4,6,0.38)"; c.fillRect(0, 0, W, H);
+    c.lineWidth = 1; glow(c, hue, 7);
+    for (let i = 0; i < N; i++) {
+      const f = (i + d.z) / N, s = Math.pow(f, 2.3), size = 6 + s * W * 1.7, half = size / 2;
+      const gate = ((i - d.n) % 5 + 5) % 5 === 0;
+      const l = 28 + f * 38 + (gate ? 22 : 0) + d.lit * 25 * (gate ? 1 : 0.5);
+      c.strokeStyle = hsl(hue, clamp(l, 0, 88), clamp(0.2 + f * 0.8 + d.lit * 0.3, 0, 1));
+      c.lineWidth = gate ? 2 : 1;
+      c.strokeRect(d.vx - half + (st.shake ? rnd(-1, 1) : 0), d.vy - half * 0.7, size, size * 0.7);
+    }
+    c.lineWidth = 1; c.strokeStyle = hsl(hue, 40, 0.4);
+    c.beginPath();
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1], [-1, 0], [1, 0]]) {
+      c.moveTo(d.vx, d.vy); c.lineTo(d.vx + sx * W * 0.95, d.vy + sy * W * 0.7 * 0.95);
+    }
+    c.stroke();
+    c.shadowBlur = 0;
+    c.strokeStyle = hsl(hue, 75, 0.85); c.beginPath(); c.moveTo(d.vx - 5, d.vy); c.lineTo(d.vx + 5, d.vy); c.moveTo(d.vx, d.vy - 4); c.lineTo(d.vx, d.vy + 4); c.stroke();
+  }
+};
+
+/* ---------- 3. Signal Lost: a phosphor test card that tears ---------- */
+let barsCache = {};
+function testCard(hue) {
+  if (barsCache[hue]) return barsCache[hue];
+  const o = document.createElement("canvas"); o.width = W; o.height = H; const c = o.getContext("2d");
+  const lv = [92, 70, 54, 40, 28, 18, 9];
+  for (let i = 0; i < 7; i++) { c.fillStyle = hsl(hue, lv[i], 1, 90); c.fillRect(i * (W / 7), 0, W / 7 + 1, H * 0.7); }
+  for (let i = 0; i < 7; i++) { c.fillStyle = hsl(hue, lv[6 - i] * 0.8, 1, 90); c.fillRect(i * (W / 7), H * 0.7, W / 7 + 1, H * 0.1); }
+  c.fillStyle = hsl(hue, 6, 1, 60); c.fillRect(0, H * 0.8, W, H * 0.2);
+  c.fillStyle = hsl(hue, 80, 1); for (let i = 0; i < 8; i++) c.fillRect(W * 0.12 + i * 14, H * 0.84, 7, H * 0.12);
+  c.strokeStyle = "#000"; c.lineWidth = 2; c.beginPath(); c.arc(W / 2, H * 0.38, 38, 0, 6.3); c.moveTo(W / 2 - 50, H * 0.38); c.lineTo(W / 2 + 50, H * 0.38); c.moveTo(W / 2, H * 0.38 - 50); c.lineTo(W / 2, H * 0.38 + 50); c.stroke();
+  return (barsCache[hue] = o);
+}
+const signal = {
+  name: "Signal Lost", hue: 36,
+  note: "<b>Follows:</b> a tracking tear rides your pointer's height. <b>Click:</b> the picture rolls. <b>Hit:</b> blocks of the frame slip sideways. <b>Clear:</b> SIGNAL LOCKED, the tearing stops and the card brightens. <b>Boss:</b> red, WARNING.",
+  init(t) { t.d = { roll: 0, rv: 0, blocks: [], lock: 0, msg: "NO SIGNAL", msgT: 0 }; },
+  event(t, k) {
+    const d = t.d;
+    if (k === "click") d.rv = (Math.random() < 0.5 ? -1 : 1) * 420;
+    if (k === "hit") for (let i = 0; i < 6; i++) d.blocks.push({ y: rnd(0, H - 20), h: rnd(8, 30), dx: rnd(-60, 60), life: rnd(0.15, 0.4) });
+    if (k === "clear") { d.lock = 2.4; d.msg = "SIGNAL LOCKED"; d.msgT = 2.4; }
+    if (k === "alarm") { d.msg = "WARNING"; d.msgT = 2.2; }
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, off = testCard(hue);
+    d.roll += d.rv * dt; d.rv *= Math.exp(-dt * 3.2); d.roll *= Math.exp(-dt * 2.2);
+    d.lock = Math.max(0, d.lock - dt); d.msgT = Math.max(0, d.msgT - dt);
+    const calm = d.lock > 0 ? 0.08 : 1, g = (0.25 + st.energy * 0.9) * calm;
+    c.fillStyle = "#000"; c.fillRect(0, 0, W, H);
+    c.globalAlpha = d.lock > 0 ? 0.62 : 0.3 + st.energy * 0.12;
+    for (let y = 0; y < H; y += 2) {
+      let dx = (Math.random() - 0.5) * 6 * g + Math.sin(y * 0.09 + time * 2) * 1.5 * calm;
+      if (st.inside || opt.demo) dx += 26 * Math.exp(-Math.pow((y - st.py) / 12, 2)) * Math.sin(y * 0.6 + time * 26) * calm;
+      const sy = ((y - d.roll) % H + H) % H;
+      c.drawImage(off, 0, sy, W, 2, dx, y, W, 2);
+    }
+    for (const b of d.blocks) { c.drawImage(c.canvas, 0, b.y, W, b.h, b.dx, b.y, W, b.h); b.life -= dt; }
+    d.blocks = d.blocks.filter(b => b.life > 0);
+    c.globalAlpha = 1;
+    c.fillStyle = hsl(hue, 85, 0.8, 70);
+    for (let i = 0, n = 25 + g * 220 | 0; i < n; i++) c.fillRect(Math.random() * W | 0, Math.random() * H | 0, 1 + (Math.random() * 2 | 0), 1);
+    c.font = "26px VT323, monospace"; c.textAlign = "center"; c.textBaseline = "middle";
+    const on = d.msgT > 0 || (time * 1.6 % 2) < 1.35;
+    if (on) { c.fillStyle = "rgba(0,0,0,.72)"; const m = c.measureText(d.msg).width + 16; c.fillRect(W / 2 - m / 2, H * 0.38 - 13, m, 26); c.fillStyle = hsl(hue, 86, 1); glow(c, hue, 6); c.fillText(d.msg, W / 2, H * 0.38 + 1); c.shadowBlur = 0; }
+    c.font = "14px VT323, monospace"; c.textAlign = "left"; c.fillStyle = hsl(hue, 86, 1);
+    const f = time * 25 | 0; c.fillText(`CH 03   ${String(f / 1500 | 0).padStart(2, "0")}:${String(f / 25 % 60 | 0).padStart(2, "0")}:${String(f % 25).padStart(2, "0")}`, 8, 12);
+  }
+};
+
+/* ---------- 4. Oscilloscope: traces that breathe ---------- */
+const scope = {
+  name: "Oscilloscope", hue: 120,
+  note: "<b>Follows:</b> pointer left/right sets the wave's pitch, up/down morphs the Lissajous. <b>Click:</b> a blip travels along the trace. <b>Hit:</b> the trace goes noisy. <b>Clear:</b> the figure collapses to a clean circle. <b>Boss:</b> red, amplitude pumping.",
+  init(t) { t.d = { spikes: [], settle: 0, ph: 0 }; },
+  event(t, k, x) {
+    const d = t.d;
+    if (k === "click") d.spikes.push({ x, v: 120 });
+    if (k === "clear") d.settle = 2.8;
+    if (k === "hit") for (let i = 0; i < 4; i++) d.spikes.push({ x: rnd(0, W), v: rnd(-260, 260) });
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st;
+    d.settle *= Math.exp(-dt * 0.9);
+    c.fillStyle = "rgba(0,5,2,0.3)"; c.fillRect(0, 0, W, H);
+    c.lineWidth = 1; c.strokeStyle = hsl(hue, 40, 0.16); c.beginPath();
+    for (let i = 0; i <= 10; i++) { c.moveTo(i * W / 10 + .5, 0); c.lineTo(i * W / 10 + .5, H); }
+    for (let i = 0; i <= 8; i++) { c.moveTo(0, i * H / 8 + .5); c.lineTo(W, i * H / 8 + .5); }
+    c.stroke();
+    c.strokeStyle = hsl(hue, 40, 0.3); c.beginPath();
+    for (let i = 0; i < 50; i++) { const x = i * W / 50; c.moveTo(x + .5, H / 2 - 2); c.lineTo(x + .5, H / 2 + 3); }
+    for (let i = 0; i < 40; i++) { const y = i * H / 40; c.moveTo(W / 2 - 2, y + .5); c.lineTo(W / 2 + 3, y + .5); }
+    c.stroke();
+    const amp = (st.alarm > 0 ? 34 + Math.sin(time * 9) * 12 : 16) + st.energy * 34;
+    const freq = 0.02 + (st.px / W) * 0.1;
+    for (const s of d.spikes) s.x += s.v * dt;
+    d.spikes = d.spikes.filter(s => s.x > -30 && s.x < W + 30 && Math.abs(s.v) > 8);
+    glow(c, hue, 8); c.lineWidth = 1.5; c.strokeStyle = hsl(hue, 62, 1); c.beginPath();
+    for (let x = 0; x <= W; x += 2) {
+      let y = H * 0.27 + Math.sin(x * freq + time * 3) * amp * 0.55 + Math.sin(x * freq * 2.7 - time * 5) * amp * 0.12 * (1 - d.settle * 0.2);
+      y += (Math.random() - 0.5) * st.energy * 14;
+      for (const s of d.spikes) y -= 46 * Math.exp(-Math.pow((x - s.x) / 6, 2));
+      x === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+    }
+    c.stroke();
+    const a = 3, b = lerp(2 + (st.py / H) * 3, a, clamp(d.settle, 0, 1)), ph = lerp(time * 0.4, Math.PI / 2, clamp(d.settle, 0, 1));
+    const R = 62 + st.energy * 16;
+    c.strokeStyle = hsl(hue, 70, 1); c.lineWidth = 1.3; c.beginPath();
+    for (let i = 0; i < 360; i++) {
+      const u = time * 1.2 + i * 0.0175;
+      const x = W / 2 + Math.sin(a * u + ph) * R * 1.35, y = H * 0.66 + Math.sin(b * u) * R * 0.55 + (Math.random() - 0.5) * st.energy * 6;
+      i === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+    }
+    c.stroke(); c.shadowBlur = 0;
+    c.font = "13px VT323, monospace"; c.fillStyle = hsl(hue, 70, 0.8); c.textAlign = "left"; c.textBaseline = "alphabetic";
+    c.fillText(`CH1 ${(freq * 1000).toFixed(0)}Hz  CH2 X-Y   TRIG ${st.alarm > 0 ? "ALERT" : "AUTO"}`, 6, H - 6);
+  }
+};
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+/* ---------- 5. Static Lens: snow with a tuned window ---------- */
+const lens = {
+  name: "Static Lens", hue: 205,
+  note: "<b>Follows:</b> a clear patch of picture opens under your pointer (it wanders by itself when you leave). <b>Click:</b> tunes in wider. <b>Hit:</b> the snow surges and a sync bar sweeps. <b>Clear:</b> the whole screen tunes in. <b>Boss:</b> red snow.",
+  init(t) {
+    const n = document.createElement("canvas"); n.width = 80; n.height = 50;
+    const ov = document.createElement("canvas"); ov.width = W; ov.height = H;
+    t.d = { n, nc: n.getContext("2d"), img: n.getContext("2d").createImageData(80, 50), ov, oc: ov.getContext("2d"), tune: 0, bar: -40, barV: 0 };
+  },
+  event(t, k) { const d = t.d; if (k === "click") d.tune = Math.max(d.tune, 1); if (k === "clear") d.tune = 3.2; if (k === "hit") { d.bar = -20; d.barV = 420; } },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st;
+    d.tune *= Math.exp(-dt * 1.1); d.bar += d.barV * dt; if (d.bar > H + 20) d.barV = 0;
+    c.fillStyle = "#01060a"; c.fillRect(0, 0, W, H);
+    c.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+      const r = ((time * 18 + i * 28) % 168) + 4;
+      c.strokeStyle = hsl(hue, 70, 0.9 - r / 200 * 0.5 + 0.1 * 0); c.globalAlpha = clamp(1 - r / 172, 0, 1) * 0.9;
+      c.beginPath(); c.arc(W / 2, H / 2, r, 0, 6.3); c.stroke();
+    }
+    c.globalAlpha = 1;
+    c.strokeStyle = hsl(hue, 70, 0.55); c.beginPath(); c.moveTo(W / 2 - 14, H / 2); c.lineTo(W / 2 + 14, H / 2); c.moveTo(W / 2, H / 2 - 14); c.lineTo(W / 2, H / 2 + 14); c.stroke();
+    c.font = "22px VT323, monospace"; c.fillStyle = hsl(hue, 80, 1); c.textAlign = "center"; c.textBaseline = "middle"; glow(c, hue, 6);
+    c.fillText(d.tune > 0.6 ? "TUNED IN" : "ARENA 07 // STANDBY", W / 2, H / 2 + 26); c.shadowBlur = 0;
+    const [r, g, b] = hslToRgb(hue / 360, 1, 0.62);
+    for (let i = 0; i < d.img.data.length; i += 4) {
+      const v = 0.18 + Math.random() * 0.82;
+      d.img.data[i] = r * v; d.img.data[i + 1] = g * v; d.img.data[i + 2] = b * v; d.img.data[i + 3] = 255;
+    }
+    d.nc.putImageData(d.img, 0, 0);
+    const oc = d.oc; oc.globalCompositeOperation = "source-over"; oc.imageSmoothingEnabled = false; oc.clearRect(0, 0, W, H);
+    oc.drawImage(d.n, 0, 0, W, H);
+    if (d.barV) { oc.fillStyle = hsl(hue, 90, 0.8); oc.fillRect(0, d.bar, W, 18); }
+    const R = 34 + st.energy * 26 + d.tune * 72;
+    const gr = oc.createRadialGradient(st.px, st.py, R * 0.25, st.px, st.py, R);
+    gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+    oc.globalCompositeOperation = "destination-out"; oc.fillStyle = gr; oc.fillRect(0, 0, W, H);
+    c.globalAlpha = clamp(0.5 + st.energy * 0.3, 0, 0.92); c.drawImage(d.ov, 0, 0); c.globalAlpha = 1;
+  }
+};
+function hslToRgb(h, s, l) {
+  const f = (n) => { const k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+  return [f(0), f(8), f(4)];
+}
+
+/* ---------- 6. Raster Bars: copper bars and a wavy scroller ---------- */
+const MSG = "   TOP-DOWN ARENA  ///  1-3 PLAYERS  ///  PRESS ANY KEY  ///  DON'T GET HIT   ";
+const raster = {
+  name: "Raster Bars", hue: 320,
+  note: "<b>Follows:</b> pointer left/right slides the bars' phase. <b>Click:</b> the bars get kicked and spring back. <b>Hit:</b> they flash and the scroller jitters. <b>Clear:</b> they fan out wide and shine. <b>Boss:</b> red, tight and fast.",
+  init(t) { t.d = { off: [], vel: [], scroll: 0, fan: 0 }; for (let i = 0; i < 7; i++) { t.d.off.push(0); t.d.vel.push(0); } },
+  event(t, k) {
+    const d = t.d;
+    if (k === "click") for (let i = 0; i < 7; i++) d.vel[i] += rnd(-260, 260);
+    if (k === "clear") d.fan = 1.8;
+    if (k === "hit") for (let i = 0; i < 7; i++) d.vel[i] += (i % 2 ? 1 : -1) * 180;
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st;
+    d.fan *= Math.exp(-dt * 0.9);
+    c.fillStyle = "#06020a"; c.fillRect(0, 0, W, H);
+    c.fillStyle = hsl(hue, 30, 0.07); for (let y = 0; y < H; y += 4) c.fillRect(0, y, W, 1);
+    const amp = (st.alarm > 0 ? 22 : 38) + st.energy * 22 + d.fan * 30, spd = st.alarm > 0 ? 2.6 : 1.1;
+    const ph = (st.px / W) * 3;
+    for (let i = 0; i < 7; i++) {
+      d.vel[i] += -d.off[i] * 38 * dt - d.vel[i] * 4.5 * dt; d.off[i] += d.vel[i] * dt;
+      const y = H * 0.42 + Math.sin(time * spd + i * 0.5 + ph) * amp + d.off[i], hh = 15 + d.fan * 5;
+      const h = hue + i * 7;
+      const g = c.createLinearGradient(0, y - hh, 0, y + hh);
+      g.addColorStop(0, hsl(h, 12, 1)); g.addColorStop(0.5, hsl(h, 82 + d.fan * 6, 1)); g.addColorStop(1, hsl(h, 12, 1));
+      c.fillStyle = g; c.fillRect(0, y - hh, W, hh * 2);
+      c.fillStyle = hsl(h, 94, 0.6 + st.energy * 0.2); c.fillRect(0, y - 1, W, 2);
+    }
+    d.scroll += dt * (44 + st.energy * 70);
+    c.font = "20px VT323, monospace"; c.textAlign = "left"; c.textBaseline = "middle"; glow(c, hue, 6);
+    const cw = 9.2, total = MSG.length * cw;
+    for (let i = 0; i < MSG.length * 2; i++) {
+      const x = ((i * cw - d.scroll) % (total * 2) + total * 2) % (total * 2) - total * 0.5 + 0; if (x < -12 || x > W) continue;
+      const y = H - 28 + Math.sin(x * 0.05 + time * 3) * (6 + st.energy * 10) + (st.shake ? rnd(-2, 2) : 0);
+      c.fillStyle = hsl(hue + (x / W) * 60, 86, 1);
+      c.fillText(MSG[i % MSG.length], x, y);
+    }
+    c.shadowBlur = 0;
+  }
+};
+
+/* ---------- tiles, events, loop ---------- */
+const BGS = [pond, tunnel, signal, scope, lens, raster];
+const tiles = [];
+const grid = document.getElementById("grid");
+const reducedMQ = matchMedia("(prefers-reduced-motion: reduce)");
+
+BGS.forEach((bg, idx) => {
+  const el = document.createElement("div"); el.className = "tile";
+  el.innerHTML = `<div class="top"><h3>${idx + 1}. ${bg.name}</h3><button type="button" aria-pressed="false">Bigger</button></div>
+    <div class="screen"><canvas width="${W}" height="${H}"></canvas><div class="roll"></div></div><p class="note">${bg.note}</p>`;
+  grid.appendChild(el);
+  const cv = el.querySelector("canvas"), screen = el.querySelector(".screen");
+  const t = { bg, el, cv, c: cv.getContext("2d"), screen, visible: false, seed: idx * 1.7,
+    st: { px: W / 2, py: H / 2, inside: false, energy: 0, flash: 0, shake: 0, alarm: 0 }, last: { x: 0, y: 0 } };
+  bg.init(t); tiles.push(t);
+  new IntersectionObserver(es => { t.visible = es[0].isIntersecting; }, { threshold: 0.05 }).observe(el);
+  const pos = e => { const r = screen.getBoundingClientRect(); return [clamp((e.clientX - r.left) / r.width * W, 0, W), clamp((e.clientY - r.top) / r.height * H, 0, H)]; };
+  screen.addEventListener("pointermove", e => {
+    const [x, y] = pos(e), s = t.st; s.inside = true;
+    s.energy = clamp(s.energy + Math.min(0.09, Math.hypot(x - s.px, y - s.py) / 300), 0, 1.5);
+    s.px = x; s.py = y;
+  });
+  screen.addEventListener("pointerleave", () => { t.st.inside = false; });
+  screen.addEventListener("pointerdown", e => { const [x, y] = pos(e); t.st.px = x; t.st.py = y; fire(t, "click", x, y); });
+  const btn = el.querySelector("button");
+  btn.addEventListener("click", () => { const on = !el.classList.contains("big"); el.classList.toggle("big", on); btn.setAttribute("aria-pressed", on); btn.textContent = on ? "Smaller" : "Bigger"; });
+});
+
+function fire(t, k, x, y) {
+  const s = t.st;
+  if (x === undefined) { x = s.px; y = s.py; }
+  if (k === "click") s.energy = clamp(s.energy + 0.6, 0, 1.5);
+  if (k === "hit") { s.energy = clamp(s.energy + 0.8, 0, 1.5); if (!opt.reduced) { s.shake = 1; s.flash = 0.3; } }
+  if (k === "clear") { s.energy = clamp(s.energy + 1, 0, 1.5); if (!opt.reduced) s.flash = 0.5; }
+  if (k === "alarm") { s.alarm = 2.4; s.energy = clamp(s.energy + 0.5, 0, 1.5); if (!opt.reduced) s.shake = 0.4; }
+  t.bg.event(t, k, x, y);
+}
+document.querySelectorAll("[data-ev]").forEach(b => b.addEventListener("click", () => tiles.forEach(t => fire(t, b.dataset.ev))));
+document.querySelectorAll("[data-hue]").forEach(b => b.addEventListener("click", () => {
+  opt.hue = b.dataset.hue;
+  document.querySelectorAll("[data-hue]").forEach(o => o.setAttribute("aria-pressed", o === b));
+}));
+const demoBtn = document.getElementById("demo"), redBtn = document.getElementById("reduced");
+demoBtn.addEventListener("click", () => { opt.demo = !opt.demo; demoBtn.setAttribute("aria-pressed", opt.demo); });
+function setReduced(on) { opt.reduced = on; redBtn.setAttribute("aria-pressed", on); document.getElementById("wrap").classList.toggle("reduced", on); }
+redBtn.addEventListener("click", () => setReduced(!opt.reduced));
+if (reducedMQ.matches) setReduced(true);
+
+let last = performance.now(), time = 0, nextDemo = 2.5;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+  if (opt.demo) {
+    nextDemo -= dt;
+    if (nextDemo < 0) { nextDemo = rnd(2.4, 4.2); const k = ["click", "hit", "clear", "alarm", "click", "hit"][Math.random() * 6 | 0]; tiles.forEach(t => { if (!t.st.inside) fire(t, k, rnd(40, 280), rnd(30, 170)); }); }
+  }
+  for (const t of tiles) {
+    if (!t.visible) continue;
+    const s = t.st;
+    s.energy *= Math.exp(-dt * 1.6); s.flash *= Math.exp(-dt * 5); s.shake *= Math.exp(-dt * 6); s.alarm = Math.max(0, s.alarm - dt);
+    if (!s.inside && opt.demo) { s.px = W / 2 + Math.cos(time * 0.55 + t.seed) * W * 0.34; s.py = H / 2 + Math.sin(time * 0.8 + t.seed * 2) * H * 0.3; }
+    const hue = s.alarm > 0 ? 2 : opt.hue === "auto" ? t.bg.hue : +opt.hue;
+    const c = t.c; c.save();
+    if (s.shake > 0.02) c.translate(rnd(-3, 3) * s.shake, rnd(-2, 2) * s.shake);
+    t.bg.frame(t, c, time, dt, hue);
+    c.restore(); c.shadowBlur = 0;
+    if (s.flash > 0.01) { c.fillStyle = `rgba(255,255,255,${s.flash})`; c.fillRect(0, 0, W, H); }
+    if (s.alarm > 0) { c.fillStyle = `rgba(255,20,10,${0.08 + 0.1 * Math.max(0, Math.sin(time * 9))})`; c.fillRect(0, 0, W, H); }
+  }
+  requestAnimationFrame(loop);
+}
+(document.fonts && document.fonts.load("20px VT323") ? document.fonts.load("20px VT323").catch(() => {}) : Promise.resolve()).then(() => requestAnimationFrame(loop));
+</script>
+</body>
+</html>
