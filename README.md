@@ -397,7 +397,7 @@ With **Visual effects** on, regular enemies stand out from the floor: a soft dar
 
 With **Visual effects** on, anything that moves fast leaves an **air trail**: two thin streamlines off its shoulders that wobble and fade. It follows speed: none at or below 110 px/s (Grunts, Brutes, bosses), light for mid speeds (a Tank or Healer walking is about 10-25%), and full at 330 px/s and up (Hive Bombers, dashes, hard knockback). Players, enemies and minions all get it. Not sent over the network.
 
-**CRT colour** (Settings > Visual effects, saved on this machine): tints the CRT screens (menus, lobby, profile, run summary) Blue (default), Green, Amber, Red, Violet or White. A few screens with their own hand-picked colours stay blue.
+**CRT colour** (Settings > Visual effects, saved on this machine): tints the CRT screens (menus, lobby, profile, run summary) Blue (default), Green, Amber, Red, Violet or White. The role, class and rarity colours keep their own meaning and stay as they are.
 
 With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into puffs that split into two halves, each following a pale eye round one side of the enemy, and meet again behind it to re-form as you strike (you aren't drawn for the first third of a second; the step and its damage are instant as before). Off, it's the plain ring and slash. The two ends of the step are sent over the network (`FxKind.ShadowStep`).
 

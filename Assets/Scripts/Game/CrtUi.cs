@@ -24,6 +24,18 @@ namespace Arena
         public static Color Bg => theme == 0 ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);
         static Color Bezel => theme == 0 ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);
 
+        /// A colour drawn for the blue theme, moved to the chosen phosphor: same brightness and alpha, the theme's hue.
+        public static Color T(Color c)
+        {
+            if (theme == 0)
+                return c;
+            Color.RGBToHSV(c, out _, out float s, out float v);
+            Color.RGBToHSV(Ink, out float ih, out float isat, out _);
+            var o = Color.HSVToRGB(ih, Mathf.Clamp01(s * isat / 0.6f), v);
+            o.a = c.a;
+            return o;
+        }
+
         /// A very dark screen with a breath of the phosphor colour in it.
         static Color Tinted(float darkness, float tint)
         {

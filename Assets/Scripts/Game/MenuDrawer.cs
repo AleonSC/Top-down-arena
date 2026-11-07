@@ -704,7 +704,7 @@ namespace Arena
         /// ability's name now and then, a blast that shakes the box.
         void DrawFxPreview(Rect r, float t)
         {
-            Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
+            Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
             CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
             float cyc = MathX.Fmod(t, 3f), boom = Mathf.Max(0f, 1f - Mathf.Abs(cyc - 2.2f) * 4f);
             bool shake = fxOn && !fxReduced && fxShake > 0;
@@ -1034,7 +1034,7 @@ namespace Arena
         /// How to play's challenge rooms: two players walk into a portal and it fills.
         void DrawPortalDiagram(Rect r, float t)
         {
-            Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
+            Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
             CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
             float k = MathX.Fmod(t, 5f) / 5f, walk = Mathf.Clamp01(k / 0.35f), fill = Mathf.Clamp01((k - 0.35f) / 0.45f);
             V2 portal = new V2(r.x + r.width * 0.62f, r.center.y);
