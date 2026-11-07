@@ -56,6 +56,14 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
   <section class="cards" id="cards"></section>
 
+  <section class="card" id="round2">
+    <canvas id="r2" width="1440" height="500" aria-label="Look A on barrels and the treasure chest"></canvas>
+    <div class="body"><div class="tag">LOOK A · ROUND TWO</div><h3>Barrels and the chest</h3>
+      <p>The red barrel is a red ring with a hoop, an inner band and an amber hazard triangle; lit, it shakes, flashes and spits sparks as before
+        (the fuse here loops slowly so you can watch it). The boss-fight health barrel is green with a glowing white cross. The treasure chest is a
+        gold wireframe with brackets, bands and a diamond lock; opened, its lid lifts away as an outline and light pours up out of it.</p></div>
+  </section>
+
   <section class="stage">
     <canvas id="arena" width="1920" height="640" aria-label="Props at game scale"></canvas>
     <div class="bar">
@@ -77,7 +85,7 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
       the drawing inside <code>DrawCrate</code> and <code>DrawPot</code> in <code>PropsLook.cs</code> would change.
       Crates wear through damage in all four looks (the three crack stages become dropouts, dead cells or missing glyphs).</p>
     <p><b>Readability.</b> Enemy shots stop at crates and yours fly over, so cover has to stay obvious against bright bullets. A and D are
-      the lightest on the eye; B and C are the most solid. Barrels and chest are not part of this mockup.</p>
+      the lightest on the eye; B and C are the most solid. Barrels and the chest follow look A in round two.</p>
     <p><b>Visual effects setting.</b> Reduced would drop the scanlines, glitch slices and blinking. Off would keep the current wood and clay.</p>
   </section>
 </div>
@@ -364,6 +372,131 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     }
   };
 
+
+  // ---------- Look A, round two: barrels and the chest ----------
+  function holoDisc(c, r, fill, scan) {
+    c.fillStyle = fill; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fill();
+    if (reduce) return;
+    c.fillStyle = scan;
+    for (var y = -r + 1; y < r; y += 3) { var hw = Math.sqrt(r * r - y * y); c.fillRect(-hw, y, 2 * hw, 1); }
+  }
+  function ringAt(c, r, lw, col, dash) {
+    c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.stroke();
+  }
+  A.barrel = function (c, o) {
+    var r = 17, t = o.t, col = '#ff5a5a', lit = o.rate >= 0, i;
+    c.save();
+    if (lit) c.translate(Math.sin(t * 90) * 1.5, Math.cos(t * 77) * 1.5);
+    holoDisc(c, r, 'rgba(255,90,90,0.08)', 'rgba(255,140,140,0.10)');
+    glow(c, col, 8);
+    ringAt(c, r, 1.8, col); ringAt(c, r - 4, 1, 'rgba(255,90,90,0.7)'); ringAt(c, r * 0.5, 1, 'rgba(255,90,90,0.6)');
+    glow(c, '#ffd23a', 6);
+    c.strokeStyle = '#ffd23a'; c.lineWidth = 1.4; c.lineJoin = 'miter';
+    c.beginPath(); c.moveTo(0, -6); c.lineTo(5.5, 4); c.lineTo(-5.5, 4); c.closePath(); c.stroke();
+    c.lineWidth = 1.6; c.beginPath(); c.moveTo(0, -2.5); c.lineTo(0, 0.8); c.stroke();
+    c.fillStyle = '#ffd23a'; c.beginPath(); c.arc(0, 2.4, 0.9, 0, 6.283); c.fill();
+    noGlow(c);
+    if (lit) {
+      var rate = o.rate;
+      if (Math.sin(t * (25 + 40 * rate)) > 0) { c.fillStyle = 'rgba(255,242,153,0.55)'; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fill(); }
+      c.strokeStyle = 'rgba(255,153,51,0.8)'; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, r + 4 + 8 * rate, 0, 6.283); c.stroke();
+      for (i = 0; i < 4; i++) {
+        var a = t * 13 + i * 1.7, dx = Math.cos(a), dy = Math.sin(a);
+        c.strokeStyle = 'rgba(255,217,102,0.9)'; c.lineWidth = 1.5; c.beginPath();
+        c.moveTo(dx * 2, -r + dy * 2); c.lineTo(dx * 7, -r + dy * 7); c.stroke();
+      }
+    }
+    c.restore();
+  };
+  A.health = function (c, o) {
+    var r = 17, t = o.t, col = '#5bff8a', pulse = 0.5 + 0.5 * Math.sin(t * 3.5 + 2);
+    c.save();
+    c.fillStyle = 'rgba(102,255,128,' + (0.08 + 0.07 * pulse) + ')'; c.beginPath(); c.arc(0, 0, r + 8 + 3 * pulse, 0, 6.283); c.fill();
+    holoDisc(c, r, 'rgba(91,255,138,0.09)', 'rgba(150,255,180,0.10)');
+    glow(c, col, 8);
+    ringAt(c, r, 1.8, col); ringAt(c, r - 4, 1, 'rgba(91,255,138,0.7)');
+    glow(c, '#ffffff', 6);
+    c.fillStyle = '#fff'; c.fillRect(-2.5, -7.5, 5, 15); c.fillRect(-7.5, -2.5, 15, 5);
+    noGlow(c);
+    c.restore();
+  };
+  A.chest = function (c, o) {
+    var hw = 24, hh = 17, t = o.t, k = o.open ? Math.min(1, o.k) : 0, col = '#ffcf5a', i;
+    c.save();
+    if (!o.open) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 3);
+      c.fillStyle = 'rgba(255,204,77,' + (0.08 + 0.06 * pulse) + ')'; c.beginPath(); c.arc(0, 0, hw + 14 + 4 * pulse, 0, 6.283); c.fill();
+      for (i = 0; i < 4; i++) {
+        var f = (t * 0.7 + i * 0.25) % 1, sx = Math.cos(i * 1.9) * (hw + 6), sy = Math.sin(i * 1.9) * (hw + 6) - 18 * f, sz = 4 * Math.sin(f * Math.PI);
+        c.strokeStyle = 'rgba(255,242,179,' + 0.9 * Math.sin(f * Math.PI) + ')'; c.lineWidth = 1.4;
+        c.beginPath(); c.moveTo(sx - sz, sy); c.lineTo(sx + sz, sy); c.moveTo(sx, sy - sz); c.lineTo(sx, sy + sz); c.stroke();
+      }
+    }
+    function body() {
+      c.fillStyle = 'rgba(255,207,90,0.08)'; c.fillRect(-hw, -hh, 2 * hw, 2 * hh);
+      if (!reduce) { c.fillStyle = 'rgba(255,207,90,0.10)'; for (var y = -hh + 1; y < hh; y += 3) c.fillRect(-hw, y, 2 * hw, 1); }
+    }
+    if (o.open) {
+      c.fillStyle = 'rgba(255,224,115,0.10)';
+      for (i = 0; i < 4; i++) {
+        var w = hw * (1.1 - i * 0.22), up = 70 + i * 20;
+        c.beginPath(); c.moveTo(-hw * 0.8, -hh + 4); c.lineTo(hw * 0.8, -hh + 4); c.lineTo(w, -hh - up); c.lineTo(-w, -hh - up); c.closePath(); c.fill();
+      }
+      body();
+      c.fillStyle = 'rgba(255,226,120,0.55)'; c.fillRect(-hw + 5, -hh + 4, 2 * hw - 10, hh - 2);
+      glow(c, col, 8); c.strokeStyle = col; c.lineWidth = 1.2; c.globalAlpha = 0.7;
+      c.strokeRect(-hw, -hh - 18 * k, 2 * hw, hh * 0.9);
+      c.globalAlpha = 1;
+    } else {
+      body(); glow(c, col, 8);
+      c.strokeStyle = col; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(-hw, -hh * 0.15); c.lineTo(hw, -hh * 0.15); c.stroke();
+    }
+    glow(c, col, 8);
+    c.strokeStyle = col; c.lineWidth = 1.5; c.strokeRect(-hw, -hh, 2 * hw, 2 * hh);
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(-hw * 0.55, -hh); c.lineTo(-hw * 0.55, hh); c.moveTo(hw * 0.55, -hh); c.lineTo(hw * 0.55, hh); c.stroke();
+    c.lineWidth = 2.8; var L = 9;
+    c.beginPath();
+    c.moveTo(-hw, -hh + L); c.lineTo(-hw, -hh); c.lineTo(-hw + L, -hh);
+    c.moveTo(hw - L, -hh); c.lineTo(hw, -hh); c.lineTo(hw, -hh + L);
+    c.moveTo(hw, hh - L); c.lineTo(hw, hh); c.lineTo(hw - L, hh);
+    c.moveTo(-hw + L, hh); c.lineTo(-hw, hh); c.lineTo(-hw, hh - L);
+    c.stroke();
+    if (!o.open) {
+      c.lineWidth = 1.4; c.fillStyle = 'rgba(255,207,90,0.2)';
+      c.beginPath(); c.moveTo(0, -6); c.lineTo(6, 0); c.lineTo(0, 6); c.lineTo(-6, 0); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#fff3c4'; c.beginPath(); c.arc(0, -0.5, 1.6, 0, 6.283); c.fill();
+      c.lineWidth = 1.2; c.beginPath(); c.moveTo(0, 0.5); c.lineTo(0, 3.5); c.stroke();
+    }
+    noGlow(c);
+    c.restore();
+  };
+  var R2 = [
+    { label: 'BARREL', f: function (c, t) { A.barrel(c, { t: t, rate: -1 }); } },
+    { label: 'LIT (LOOPS)', f: function (c, t) { A.barrel(c, { t: t, rate: reduce ? 0.5 : (t % 1.6) / 1.6 }); } },
+    { label: 'HEALTH BARREL', f: function (c, t) { A.health(c, { t: t }); } },
+    { label: 'CHEST', f: function (c, t) { A.chest(c, { t: t, open: false }); } },
+    { label: 'OPENED', f: function (c, t) { A.chest(c, { t: t, open: true, k: 1 }); } }
+  ];
+  var r2 = document.getElementById('r2');
+  function drawR2(t) {
+    var c = r2.getContext('2d'); c.setTransform(2, 0, 0, 2, 0, 0);
+    c.fillStyle = '#070910'; c.fillRect(0, 0, 720, 250);
+    c.strokeStyle = '#10161d'; c.lineWidth = 1;
+    for (var gx = 0; gx <= 720; gx += 40) { c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, 250); c.stroke(); }
+    for (var gy = 0; gy <= 250; gy += 40) { c.beginPath(); c.moveTo(0, gy); c.lineTo(720, gy); c.stroke(); }
+    R2.forEach(function (s, i) {
+      c.save(); c.translate(72 + i * 144, 120); c.scale(2, 2);
+      c.fillStyle = 'rgba(0,0,0,0.3)';
+      if (i >= 3) c.fillRect(-24 + 4, -17 + 6, 48, 34); else { c.beginPath(); c.arc(3, 5, 17, 0, 6.283); c.fill(); }
+      s.f(c, t);
+      c.restore();
+      c.fillStyle = '#92a1ad'; c.font = '600 11px Oxanium, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.fillText(s.label, 72 + i * 144, 232);
+    });
+  }
+
   var LOOKS = [A, B, C, D];
   var INFO = [
     ['A', 'Hologram', 'Vector wireframes with a cyan glow and scanlines. Damage drops edge segments out and flickers them, then turns the crate pink at low health. The pot is a projected ring with a spinning inner band and a scan line.'],
@@ -484,7 +617,7 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
   function frame(now) {
     var t = reduce ? 1.3 : (now - t0) / 1000;
     for (var i = 0; i < 4; i++) drawCard(cards[i], LOOKS[i], t);
-    drawArena(t);
+    drawArena(t); drawR2(t);
     if (!reduce) requestAnimationFrame(frame);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { requestAnimationFrame(frame); });

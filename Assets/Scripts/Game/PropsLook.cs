@@ -45,7 +45,7 @@ namespace Arena
                             DrawPot(p, at, a, t);
                         break;
                     case PropKind.Barrel:
-                        DrawBarrel(p, at, a, t);
+                        DrawBarrel(p, at, a, t);  // looks A (Hologram) when Visual effects are on
                         break;
                     case PropKind.HealthBarrel:
                         DrawHealthBarrel(p, at, a, t);
@@ -71,7 +71,7 @@ namespace Arena
         // ring with a turning dashed band, a pulsing diamond and a scan line. With Visual effects off the wood and clay
         // below draw as before; Reduced effects drops the scanlines, flicker, glitch slice and the pot's motion.
 
-        static readonly Rgba HoloCyan = new Rgba(0.31f, 0.89f, 1f), HoloBlue = new Rgba(0.56f, 0.82f, 1f), HoloPink = new Rgba(1f, 0.42f, 0.6f);
+        static readonly Rgba PropHoloCyan = new Rgba(0.31f, 0.89f, 1f), PropHoloBlue = new Rgba(0.56f, 0.82f, 1f), PropHoloPink = new Rgba(1f, 0.42f, 0.6f);
 
         /// The mockup's hash (so the dropouts fall exactly where the mockup's do), 0..1.
         static float PropHash(int n)
@@ -100,12 +100,12 @@ namespace Arena
             bool heavy = p.Kind == PropKind.HeavyCrate;
             float h = Game.HalfW(p), hp = p.MaxHp > 0f ? p.Hp / p.MaxHp : 1f, dmg = 1f - hp;
             int seed = p.Seed;
-            var col = (hp < 0.34f ? HoloPink : heavy ? HoloBlue : HoloCyan).WithAlpha(al);
+            var col = (hp < 0.34f ? PropHoloPink : heavy ? PropHoloBlue : PropHoloCyan).WithAlpha(al);
             // The projected pane and its scanlines.
-            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, (heavy ? HoloBlue : HoloCyan).WithAlpha((heavy ? 0.09f : 0.07f) * al));
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, (heavy ? PropHoloBlue : PropHoloCyan).WithAlpha((heavy ? 0.09f : 0.07f) * al));
             if (!fxReduced)
                 for (float y = -h + 1f; y < h; y += 3f)
-                    FillRect(c.X - h, c.Y + y, h * 2f, 1f, HoloCyan.WithAlpha(0.10f * al));
+                    FillRect(c.X - h, c.Y + y, h * 2f, 1f, PropHoloCyan.WithAlpha(0.10f * al));
             // The frame: 6 segments a side; worn crates lose some and the lost ones flicker back now and then.
             float lw = heavy ? 2f : 1.5f;
             int id = 0, n = 6;
@@ -167,17 +167,17 @@ namespace Arena
         void DrawPotHolo(Prop p, V2 c, float al, float t)
         {
             float r = Game.PotR;
-            Circle(c, r, HoloCyan.WithAlpha(0.10f * al), 24);
-            GlowArc(c, r, 1.8f, HoloCyan.WithAlpha(al), 32);
+            Circle(c, r, PropHoloCyan.WithAlpha(0.10f * al), 24);
+            GlowArc(c, r, 1.8f, PropHoloCyan.WithAlpha(al), 32);
             // The dashed inner band turns (dashes 3 long, gaps 3, creeping 18 px a second).
             float rb = r * 0.72f, step = 6f / rb, phase = fxReduced ? 0f : t * 18f / rb;
             int dashes = Mathf.FloorToInt(MathX.Tau / step);
             for (int i = 0; i < dashes; i++)
-                Arc(c, rb, 1f, HoloCyan.WithAlpha(al), 4, phase + i * step, 3f / rb);
+                Arc(c, rb, 1f, PropHoloCyan.WithAlpha(al), 4, phase + i * step, 3f / rb);
             // The diamond core, pulsing.
             float s = r * 0.3f * (1f + (fxReduced ? 0f : 0.15f * Mathf.Sin(t * 4f)));
             var core = new Rgba(0.73f, 0.96f, 1f, al);
-            Circle(c, s * 1.8f, HoloCyan.WithAlpha(0.10f * al), 16);
+            Circle(c, s * 1.8f, PropHoloCyan.WithAlpha(0.10f * al), 16);
             SetColor(core);
             Quad(c + new V2(0f, -s), c + new V2(s, 0f), c + new V2(0f, s), c + new V2(-s, 0f));
             // A scan line sweeping down the ring.
@@ -198,7 +198,7 @@ namespace Arena
         void DrawHoloBreakFx(Effect fx, float k, bool pot)
         {
             float al = 1f - k, r = pot ? Game.PotR : fx.Radius / 1.6f;
-            var col = HoloCyan.WithAlpha(al);
+            var col = PropHoloCyan.WithAlpha(al);
             GlowArc(fx.Pos, r * (1f + k * 1.3f), 1.5f, col, 32);
             for (int i = 0; i < 8; i++)
             {
@@ -213,6 +213,102 @@ namespace Arena
         /// Was this Debris a crate or a pot (not the boss fight's green health barrel)? Props.BreakProp sends their colours.
         static bool IsPotDebris(Effect fx) => fx.Color.R > 0.8f && fx.Color.G < 0.5f;
         static bool IsCrateDebris(Effect fx) => fx.Color.R > 0.55f && fx.Color.R < 0.8f && fx.Color.B < 0.45f && fx.Color.G >= 0.49f;
+
+        // --- Look A, round two: barrels and the chest (Docs/Mockups/digital-props.html, "Barrels and the chest") -------
+
+        static readonly Rgba PropHoloRed = new Rgba(1f, 0.35f, 0.35f), PropHoloAmber = new Rgba(1f, 0.82f, 0.23f), PropHoloGold = new Rgba(1f, 0.81f, 0.35f);
+
+        /// A projected disc: a faint fill and (unless Reduced) scanlines across it.
+        void HoloDisc(V2 c, float r, Rgba fill, Rgba scan)
+        {
+            Circle(c, r, fill, 24);
+            if (fxReduced)
+                return;
+            for (float y = -r + 1f; y < r; y += 3f)
+            {
+                float hw = Mathf.Sqrt(r * r - y * y);
+                FillRect(c.X - hw, c.Y + y, 2f * hw, 1f, scan);
+            }
+        }
+
+        void DrawBarrelHolo(V2 c, float r, float a)
+        {
+            HoloDisc(c, r, new Rgba(1f, 0.35f, 0.35f, 0.08f * a), new Rgba(1f, 0.55f, 0.55f, 0.10f * a));
+            var red = PropHoloRed.WithAlpha(a);
+            GlowArc(c, r, 1.8f, red, 32);
+            Arc(c, r - 4f, 1f, red.WithAlpha(0.7f * a), 28);
+            Arc(c, r * 0.5f, 1f, red.WithAlpha(0.6f * a), 20);
+            // The hazard triangle, outlined in amber.
+            var am = PropHoloAmber.WithAlpha(a);
+            V2 top = c + new V2(0f, -6f), bl = c + new V2(-5.5f, 4f), br = c + new V2(5.5f, 4f);
+            GlowLine(top, br, 1.4f, am);
+            GlowLine(br, bl, 1.4f, am);
+            GlowLine(bl, top, 1.4f, am);
+            GlowLine(c + new V2(0f, -2.5f), c + new V2(0f, 0.8f), 1.6f, am);
+            Circle(c + new V2(0f, 2.4f), 0.9f, am, 6);
+        }
+
+        void DrawChestHolo(Prop p, V2 c, float a, float hw, float hh)
+        {
+            var col = PropHoloGold.WithAlpha(a);
+            var fill = new Rgba(1f, 0.81f, 0.35f, 0.08f * a);
+            float lift = 0f;
+            if (p.Open)
+            {
+                lift = 18f * Mathf.Clamp01(p.OpenT / 0.25f);
+                // Light pours up out of it.
+                for (int i = 0; i < 4; i++)
+                {
+                    float w = hw * (1.1f - i * 0.22f), up = 70f + i * 20f;
+                    SetColor(new Rgba(1f, 0.88f, 0.45f, 0.1f * a));
+                    Quad(new V2(c.X - hw * 0.8f, c.Y - hh + 4f), new V2(c.X + hw * 0.8f, c.Y - hh + 4f), new V2(c.X + w, c.Y - hh - up), new V2(c.X - w, c.Y - hh - up));
+                }
+            }
+            FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, fill);
+            if (!fxReduced)
+                for (float y = -hh + 1f; y < hh; y += 3f)
+                    FillRect(c.X - hw, c.Y + y, hw * 2f, 1f, fill.WithAlpha(0.10f * a));
+            if (p.Open)
+            {
+                FillRect(c.X - hw + 5f, c.Y - hh + 4f, hw * 2f - 10f, hh - 2f, new Rgba(1f, 0.89f, 0.47f, 0.55f * a));
+                // The lid, lifted away as an outline.
+                var lid = col.WithAlpha(0.7f * a);
+                float ly = c.Y - hh - lift, lh = hh * 0.9f;
+                GlowLine(new V2(c.X - hw, ly), new V2(c.X + hw, ly), 1.2f, lid);
+                GlowLine(new V2(c.X + hw, ly), new V2(c.X + hw, ly + lh), 1.2f, lid);
+                GlowLine(new V2(c.X + hw, ly + lh), new V2(c.X - hw, ly + lh), 1.2f, lid);
+                GlowLine(new V2(c.X - hw, ly + lh), new V2(c.X - hw, ly), 1.2f, lid);
+            }
+            else
+                GlowLine(new V2(c.X - hw, c.Y - hh * 0.15f), new V2(c.X + hw, c.Y - hh * 0.15f), 1.5f, col);  // the lid's seam
+            // The frame, the two bands and the corner brackets.
+            GlowLine(new V2(c.X - hw, c.Y - hh), new V2(c.X + hw, c.Y - hh), 1.5f, col);
+            GlowLine(new V2(c.X + hw, c.Y - hh), new V2(c.X + hw, c.Y + hh), 1.5f, col);
+            GlowLine(new V2(c.X + hw, c.Y + hh), new V2(c.X - hw, c.Y + hh), 1.5f, col);
+            GlowLine(new V2(c.X - hw, c.Y + hh), new V2(c.X - hw, c.Y - hh), 1.5f, col);
+            GlowLine(new V2(c.X - hw * 0.55f, c.Y - hh), new V2(c.X - hw * 0.55f, c.Y + hh), 1f, col);
+            GlowLine(new V2(c.X + hw * 0.55f, c.Y - hh), new V2(c.X + hw * 0.55f, c.Y + hh), 1f, col);
+            const float L = 9f, e = 1.4f;
+            for (int i = 0; i < 4; i++)
+            {
+                float sx = (i & 1) != 0 ? 1f : -1f, sy = (i & 2) != 0 ? 1f : -1f;
+                V2 corner = c + new V2(sx * hw, sy * hh);
+                GlowLine(corner + new V2(sx * e, 0f), corner + new V2(-sx * L, 0f), 2.8f, col);
+                GlowLine(corner + new V2(0f, sy * e), corner + new V2(0f, -sy * L), 2.8f, col);
+            }
+            if (!p.Open)
+            {
+                // The lock: a diamond with a keyhole.
+                SetColor(col.WithAlpha(0.2f * a));
+                Quad(c + new V2(0f, -6f), c + new V2(6f, 0f), c + new V2(0f, 6f), c + new V2(-6f, 0f));
+                GlowLine(c + new V2(0f, -6f), c + new V2(6f, 0f), 1.4f, col);
+                GlowLine(c + new V2(6f, 0f), c + new V2(0f, 6f), 1.4f, col);
+                GlowLine(c + new V2(0f, 6f), c + new V2(-6f, 0f), 1.4f, col);
+                GlowLine(c + new V2(-6f, 0f), c + new V2(0f, -6f), 1.4f, col);
+                Circle(c + new V2(0f, -0.5f), 1.6f, new Rgba(1f, 0.95f, 0.77f, a), 8);
+                GlowLine(c + new V2(0f, 0.5f), c + new V2(0f, 3.5f), 1.2f, new Rgba(1f, 0.95f, 0.77f, a));
+            }
+        }
 
         void DrawCrate(Prop p, V2 c, float a)
         {
@@ -283,6 +379,10 @@ namespace Arena
             // Lit: it shakes and flashes faster and faster.
             if (lit)
                 c += new V2(Mathf.Sin(t * 90f), Mathf.Cos(t * 77f)) * 1.5f;
+            if (fxOn)
+                DrawBarrelHolo(c, r, a);
+            else
+            {
             Circle(c, r, BarrelRed.Darkened(0.4f).WithAlpha(a), 22);
             Circle(c, r - 2f, BarrelRed.WithAlpha(a), 22);
             Arc(c, r - 4f, 2f, PropIron.WithAlpha(a), 22);
@@ -294,6 +394,7 @@ namespace Arena
             Tri(top, br, bl);
             Line(c + new V2(0f, -2.5f), c + new V2(0f, 0.8f), 1.6f, new Rgba(0.1f, 0.08f, 0.05f, a));
             Circle(c + new V2(0f, 2.4f), 0.9f, new Rgba(0.1f, 0.08f, 0.05f, a), 6);
+            }
             if (lit)
             {
                 float rate = 1f - Mathf.Clamp01(p.Fuse / Game.BarrelFuse);
@@ -316,6 +417,19 @@ namespace Arena
             float r = Game.BarrelR, pulse = 0.5f + 0.5f * Mathf.Sin(t * 3.5f + p.Id);
             var green = new Rgba(0.25f, 0.68f, 0.35f);
             Circle(c, r + 8f + 3f * pulse, new Rgba(0.4f, 1f, 0.5f, (0.08f + 0.07f * pulse) * a), 24);
+            if (fxOn)
+            {
+                var hg = new Rgba(0.36f, 1f, 0.54f, a);
+                HoloDisc(c, r, hg.WithAlpha(0.09f * a), new Rgba(0.59f, 1f, 0.7f, 0.10f * a));
+                GlowArc(c, r, 1.8f, hg, 32);
+                GlowArc(c, r - 4f, 1f, hg.WithAlpha(0.7f * a), 28);
+                var wh = new Rgba(1f, 1f, 1f, a);
+                FillRect(c.X - 5.5f, c.Y - 10.5f, 11f, 21f, wh.WithAlpha(0.12f * a));
+                FillRect(c.X - 10.5f, c.Y - 5.5f, 21f, 11f, wh.WithAlpha(0.12f * a));
+                FillRect(c.X - 2.5f, c.Y - 7.5f, 5f, 15f, wh);
+                FillRect(c.X - 7.5f, c.Y - 2.5f, 15f, 5f, wh);
+                return;
+            }
             Circle(c, r, green.Darkened(0.45f).WithAlpha(a), 22);
             Circle(c, r - 2f, green.WithAlpha(a), 22);
             Arc(c, r - 4f, 2f, PropIron.WithAlpha(a), 22);
@@ -346,6 +460,11 @@ namespace Arena
                     Line(s - new V2(sz, 0f), s + new V2(sz, 0f), 1.4f, tw);
                     Line(s - new V2(0f, sz), s + new V2(0f, sz), 1.4f, tw);
                 }
+            }
+            if (fxOn)
+            {
+                DrawChestHolo(p, c, a, hw, hh);
+                return;
             }
             var wood = new Rgba(0.5f, 0.28f, 0.14f, a);
             var gold = PropGold.WithAlpha(a);
