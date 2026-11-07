@@ -18,12 +18,18 @@ namespace Arena
             bool host = session.IsHost;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             int n = Modifiers.Count(session.Modifiers);
-            Ui.Label(new Rect(x, y, w, 28f), n == 0 ? "None on: a normal run" : n + " on", 12, n == 0 ? Ui.Muted : ModLit, TextAnchor.MiddleLeft, true);
+            // Terminal-style readout: a prompt, the status in caps, a blinking block cursor; the hint underneath is a "//" comment.
+            string status = (n == 0 ? "NONE ON: A NORMAL RUN" : n.ToString("00") + " ON");
+            var sc = n == 0 ? Ui.Muted : ModLit;
+            Ui.Label(new Rect(x, y, 16f, 28f), ">", 12, ModLit, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 16f, y, w, 28f), status, 12, sc, TextAnchor.MiddleLeft, true);
+            if (fxReduced || Mathf.Repeat(t * 1.6f, 1f) < 0.6f)
+                Ui.Fill(new Rect(x + 16f + Ui.TextWidth(status, 12, true) + 5f, y + 8f, 7f, 12f), new Color(ModLit.r, ModLit.g, ModLit.b, 0.8f));
             if (n > 0 && host && Ui.Button(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off"))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
-            Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Click a tile to turn it on or off. They last the whole run, for everyone (Practice Range too)."
-                : "The host picks these. They last the whole run, for everyone.", 12, Ui.Muted);
+            Ui.Label(new Rect(x, y + 28f, w, 18f), "// " + (host ? "click a tile to turn it on or off. they last the whole run, for everyone (Practice Range too)."
+                : "the host picks these. they last the whole run, for everyone."), 11, Ui.Muted);
             y += 54f;
 
             // Grouped by tier (Easier, Risky, Harder): each group starts on its own row under a heading that spans the panel.
@@ -64,19 +70,27 @@ namespace Arena
                 bool hover = hr.Contains(Event.current.mousePosition);
                 if (hover)
                     Ui.Pill(hr, new Color(lc.r, lc.g, lc.b, 0.08f));
-                Ui.Label(new Rect(x + 2f, y, 16f, head - 4f), folded ? "+" : "−", 14, lc, TextAnchor.MiddleCenter, true);
-                string tag = LeanTag(lean), blurb = LeanBlurb(lean);
-                float tx = x + 22f, tw = Ui.TextWidth(tag, 11, true) + 10f, bw = Ui.TextWidth(blurb, 11);
-                Ui.Label(new Rect(tx, y, tw, head - 4f), tag, 11, lc, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(tx + tw, y, bw + 4f, head - 4f), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
+                float hh = head - 4f;
+                Ui.Fill(new Rect(x, y, 2f, hh), lc);  // a tier-coloured edge, like a console row
+                Ui.Label(new Rect(x + 6f, y, 28f, hh), folded ? "[+]" : "[−]", 11, lc, TextAnchor.MiddleLeft, true);
+                string tag = LeanTag(lean), blurb = "// " + LeanBlurb(lean);
+                float tx = x + 38f, tw = Ui.TextWidth(tag, 11, true) + 14f, bw = Ui.TextWidth(blurb, 11);
+                Ui.Fill(new Rect(tx, y + 2f, tw, hh - 4f), new Color(lc.r, lc.g, lc.b, 0.16f));  // the tag as a lit chip
+                ModEdge(new Rect(tx, y + 2f, tw, hh - 4f), new Color(lc.r, lc.g, lc.b, 0.55f));
+                Ui.Label(new Rect(tx, y, tw, hh), tag, 11, lc, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(tx + tw + 8f, y, bw + 4f, hh), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
                 int onCount = mods.FindAll(d => (session.Modifiers & d.Mod) != 0).Count;
-                string count = folded ? mods.Count + " hidden" + (onCount > 0 ? "  ·  " + onCount + " on" : "") : onCount > 0 ? onCount + " on" : "";
+                string count = folded ? "[" + mods.Count.ToString("00") + " HIDDEN" + (onCount > 0 ? " · " + onCount.ToString("00") + " ON" : "") + "]" : onCount > 0 ? "[" + onCount.ToString("00") + " ON]" : "";
                 float cwid = count.Length > 0 ? Ui.TextWidth(count, 11, true) + 8f : 0f;
                 if (count.Length > 0)
-                    Ui.Label(new Rect(x + w - cwid, y, cwid, head - 4f), count, 11, onCount > 0 ? ModLit : Ui.Muted, TextAnchor.MiddleRight, true);
-                float lx = tx + tw + bw + 12f, lend = x + w - cwid - 10f;
+                    Ui.Label(new Rect(x + w - cwid, y, cwid, hh), count, 11, onCount > 0 ? ModLit : Ui.Muted, TextAnchor.MiddleRight, true);
+                float lx = tx + tw + 8f + bw + 12f, lend = x + w - cwid - 10f;
+                // A dashed rule of small segments with an end tick, instead of a solid hairline.
+                float ly = y + hh / 2f;
+                for (float sx = lx; sx + 4f <= lend; sx += 7f)
+                    Ui.Fill(new Rect(sx, ly, 4f, 1f), new Color(lc.r, lc.g, lc.b, 0.3f));
                 if (lend - lx > 10f)
-                    Ui.Fill(new Rect(lx, y + (head - 4f) / 2f, lend - lx, 1f), new Color(lc.r, lc.g, lc.b, 0.2f));
+                    Ui.Fill(new Rect(lend - 1f, ly - 3f, 1f, 7f), new Color(lc.r, lc.g, lc.b, 0.5f));
                 if (Ui.HitArea(hr))
                     FoldModTier(lean, !folded);
                 y += head;
