@@ -158,7 +158,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `WaveClearedUi.cs`: the "Wave n cleared" box between waves (squad tally, awards, next wave, Ready and Auto-ready bar)
 - `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
-- `CardArt.cs`: the picker cards' shaded gradient bodies (one texture per colour; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
+- `CardArt.cs`: the picker cards' holographic bodies (`Holo`, one baked texture per rarity colour, plus the scan `Band`; `HudPicker.DrawHolo` adds scanlines, the drifting band and the colour fringe; look: `Docs/Mockups/holo-level-up-cards.html`; `Body` is the older shaded gradient; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
 - `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker (CRT look: lobby keys, boxed cards, `Docs/Mockups/crt-level-up-blue.html`), run summary (the "Rack" of `Docs/Mockups/crt-run-failed.html`: blue CRT tubes for title, totals, each player and the run's damage and health charts, the main menu's keycaps along the bottom), Tab menu, ability tile animations
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
