@@ -44,6 +44,7 @@ Tools/SimTest/run.sh 1 30 features     # feature suite; run core + features befo
 Tools/SimTest/run.sh list              # every suite (single systems: parry, knight, bosses, warden, ...)
 Tools/RenderCheck/check.sh [git-ref]   # IDENTICAL = drawing unchanged (use for render refactors)
 Tools/Preview/shot.sh <name> <mode>    # PNG screenshot without Unity, to Tools/Preview/out/
+Tools/Preview/uishots.sh [-r git-ref]  # every UI screen + contact sheet; -r: what changed since that commit
 Tools/WaveGen/build.sh                 # after adding or changing Data/Waves/*.waves (builds them into the game)
 ```
 

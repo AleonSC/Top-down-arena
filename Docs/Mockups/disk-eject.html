@@ -1,0 +1,460 @@
+<title>Disk Eject Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Permanent+Marker&display=swap">
+<style>
+/* Layout: the 1280 x 720 game screen on top, playing "hover, click Eject, the disk comes out and goes back to the shelf".
+   Under it the switches for the button look and the animation, then one card per option, then build notes.
+   Single dark look on purpose: it mirrors the game, like the other mockups in Docs/Mockups. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --blue: #73a6ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #05070d; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 30px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 32px; padding: 0 14px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 15px; height: 15px; margin: 0; }
+input[type=range] { accent-color: var(--teal); flex: 1 1 200px; min-width: 120px; }
+.clock { font: 500 12.5px var(--font-data); color: var(--soft); font-variant-numeric: tabular-nums; min-width: 76px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c, var(--blue)); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 9px; align-content: start; min-width: 0; background: var(--panel-2); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c, var(--blue)); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card h3 { margin: 4px 0 0; font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 13px; color: var(--soft); }
+.card ul li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
+.card ul li span { font: 500 11.5px var(--font-data); color: var(--muted); padding-top: 1px; }
+.notes { display: grid; gap: 8px; font-size: 14px; color: var(--soft); }
+.notes code { font: 500 12.5px var(--font-data); color: var(--teal); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; max-width: 80ch; }
+.q { border-left: 2px solid var(--amber); padding-left: 12px; }
+.q b { color: var(--fg); }
+@media (max-width: 520px) { .seg button { padding: 0 9px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Main menu, disk drive</div>
+    <h1>Disk <span>eject</span> button</h1>
+    <p class="lead">Your disk sits in the drive under the title. An eject button on the drive pops it out and sends it back to its cradle on the "Who's playing?" shelf, so you can pick another profile. Pick a button look and an animation below. The cursor, hover, press and sounds are part of the mock.</p>
+  </header>
+
+  <section class="stage" aria-label="Animation">
+    <canvas id="cv" width="1280" height="720" role="img" aria-label="Animated mockup of the main menu: the cursor moves to an eject button on the disk drive, clicks it, the floppy disk comes out of the slot and flies back to its cradle on the Who's playing shelf."></canvas>
+    <div class="bar">
+      <span class="lbl">Button</span>
+      <span class="seg" id="look">
+        <button type="button" data-v="A" class="on">A Keycap</button>
+        <button type="button" data-v="B">B Labelled pill</button>
+        <button type="button" data-v="C">C Round button</button>
+      </span>
+      <span class="lbl">Animation</span>
+      <span class="seg" id="anim">
+        <button type="button" data-v="A" class="on">A Slide out</button>
+        <button type="button" data-v="B">B Spring pop</button>
+      </span>
+    </div>
+    <div class="bar">
+      <button class="act" id="replay" type="button">Replay</button>
+      <button class="act" id="pp" type="button">Pause</button>
+      <input type="range" id="scrub" min="0" max="5000" value="0" aria-label="Timeline">
+      <span class="clock" id="clock">0.00 s</span>
+      <span class="lbl">Speed</span>
+      <span class="seg" id="speed"><button type="button" data-v="0.4">0.4x</button><button type="button" data-v="1" class="on">1x</button></span>
+      <label class="tog"><input type="checkbox" id="loop" checked> Loop</label>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Button looks</h2>
+    <div class="cards">
+      <div class="card" style="--c: var(--teal)">
+        <div class="hd"><b class="n">A Keycap</b><span class="tag">outside the housing</span></div>
+        <p class="sum">A small raised key just right of the drive with the eject symbol. Hover lights its edge and shows an EJECT DISK tooltip. The drive itself stays exactly as it is today.</p>
+        <h3>Good for</h3>
+        <ul><li><span>clean</span>Nothing added inside the drive bay</li><li><span>hover</span>Reads as a key, like the lobby's Ready key</li></ul>
+      </div>
+      <div class="card" style="--c: var(--amber)">
+        <div class="hd"><b class="n">B Labelled pill</b><span class="tag">under the readout</span></div>
+        <p class="sum">A small pill reading EJECT DISK under the status line, shown while a disk is loaded. The most obvious of the three, since it says what it does without a hover.</p>
+        <h3>Good for</h3>
+        <ul><li><span>clear</span>No guessing what the symbol means</li><li><span>cost</span>One more element in a busy spot under the title</li></ul>
+      </div>
+      <div class="card" style="--c: var(--blue)">
+        <div class="hd"><b class="n">C Round button</b><span class="tag">built into the drive</span></div>
+        <p class="sum">The housing grows by one end cap with a round push button, like the eject button on a real drive. The button ring takes your rank colour while a disk is loaded.</p>
+        <h3>Good for</h3>
+        <ul><li><span>feel</span>Looks like part of the machine</li><li><span>cost</span>The housing is wider than on the picker, so it changes shape between screens</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Animations</h2>
+    <div class="cards">
+      <div class="card" style="--c: var(--teal)">
+        <div class="hd"><b class="n">A Slide out</b><span class="tag">about 4.0 s</span></div>
+        <p class="sum">The existing move played backwards, started by the button. The cells drain, the latch clicks, your disk slides out of the slit flat, tips upright and flies down to its cradle. The menu fades and the shelf returns.</p>
+        <h3>Beats</h3>
+        <ul>
+          <li><span>0.6 s</span>Click. The key sinks, the light goes amber</li>
+          <li><span>0.8 s</span>EJECTING. The four cells drain right to left</li>
+          <li><span>1.3 s</span>Latch click, slit flash, disk slides out</li>
+          <li><span>2.3 s</span>Flies to the shelf, clamps close at 3.4 s</li>
+        </ul>
+      </div>
+      <div class="card" style="--c: var(--amber)">
+        <div class="hd"><b class="n">B Spring pop</b><span class="tag">about 3.4 s</span></div>
+        <p class="sum">A spring eject. The disk kicks out of the slit face-on with a bounce, hangs there while the readout says TAKE DISK, then drops out and flies to its cradle. It has a clear moment of its own that the old move lacks.</p>
+        <h3>Beats</h3>
+        <ul>
+          <li><span>0.6 s</span>Click</li>
+          <li><span>1.1 s</span>Thunk. The disk kicks out about 40% and bounces</li>
+          <li><span>1.5 s</span>Hangs, TAKE DISK blinks amber</li>
+          <li><span>2.0 s</span>Drops fully out and flies to the shelf</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li>Art and animation only. No network message or snapshot change, so no <code>Session.ProtocolVersion</code> bump.</li>
+      <li>The button calls the same <code>StartProfTrOut()</code> that "Switch profile" does today, so the move to the picker, its cues (<code>Sfx.DiskEject</code>, <code>DiskClick</code>, <code>DiskFly</code>) and the skip-on-any-key stay. The new part is the first second: button press, the drive draining, and for B the spring.</li>
+      <li><code>DriveSlot.cs</code> gets an eject-button draw and a hit rect. <code>DriveAt</code> gets an "ejecting" phase before the disk leaves, and <code>ProfileTransition.cs</code> gets a short lead-in clock for it.</li>
+      <li>Reduced effects or Visual effects off: no animation, the picker just opens, as it does now.</li>
+      <li>The button is disabled during a move, in the lobby, and when no profile is loaded (a command-line start).</li>
+    </ul>
+    <p class="q"><b>Open question.</b> Keep the hover-only "Switch profile" tab under the player card as well, or replace it with the drive's eject button? I would replace it, so there is one way to do it. The mock above shows the tab gone.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  const cv = document.getElementById('cv'), c = cv.getContext('2d');
+  const W = 1280, H = 720, CX = 640, DY = 206, DW = 330, DH = 32, SLIT = 190, DISK = 166;
+  const NOVA = '#5fe3c2', KAI = '#73a6ff', AMBER = '#ffb547', DIM = '#46598f';
+  const SLOT = i => ({ x: 150 + i * 260, y: 400, s: 200 });
+  const ACTIVE = 1;
+  let look = 'A', anim = 'A', speed = 1, playing = true, loop = true, T = 0, last = performance.now();
+
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const seg = (t, a, b) => clamp((t - a) / (b - a));
+  const eio = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  const eo = x => 1 - Math.pow(1 - x, 3);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const dur = () => (anim === 'A' ? 4.4 : 3.8) + 0.6;
+
+  function rr(x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+  function fillRR(x, y, w, h, r, f, a) { c.save(); if (a !== undefined) c.globalAlpha *= a; rr(x, y, w, h, r); c.fillStyle = f; c.fill(); c.restore(); }
+  function strokeRR(x, y, w, h, r, s, lw, a) { c.save(); if (a !== undefined) c.globalAlpha *= a; rr(x, y, w, h, r); c.strokeStyle = s; c.lineWidth = lw || 1; c.stroke(); c.restore(); }
+  function dot(x, y, r, f) { c.beginPath(); c.arc(x, y, r, 0, 6.2832); c.fillStyle = f; c.fill(); }
+  function txt(s, x, y, size, color, align, font, ls) {
+    c.save(); c.font = size + 'px ' + (font || 'Oxanium, sans-serif'); c.fillStyle = color; c.textAlign = align || 'left'; c.textBaseline = 'middle';
+    if (ls && 'letterSpacing' in c) c.letterSpacing = ls + 'px';
+    c.fillText(s, x, y); c.restore();
+  }
+  function ejectGlyph(x, y, color, k) {
+    c.save(); c.translate(x, y); c.scale(k || 1, k || 1); c.fillStyle = color;
+    c.beginPath(); c.moveTo(-7, 1); c.lineTo(7, 1); c.lineTo(0, -7); c.closePath(); c.fill();
+    c.fillRect(-7, 4, 14, 3); c.restore();
+  }
+
+  // ---- the disk, drawn in a 200 x 200 box ----
+  function disk(x, y, s, color, name, sx, sy, a, clipTop) {
+    c.save();
+    if (clipTop !== undefined) { c.beginPath(); c.rect(0, clipTop, W, H); c.clip(); }
+    c.globalAlpha *= a;
+    c.translate(x + s * (1 - sx) / 2, y); c.scale(sx * s / 200, sy * s / 200);
+    fillRR(3, 6, 200, 200, 14, 'rgba(0,0,0,0.35)');
+    fillRR(0, 0, 200, 200, 12, '#1a2338');
+    strokeRR(0.5, 0.5, 199, 199, 12, color, 2, 0.85);
+    fillRR(50, 0, 100, 62, 3, '#c9d3e6');
+    fillRR(114, 9, 22, 44, 2, '#2a3350');
+    fillRR(26, 104, 148, 86, 4, '#f2efe6');
+    fillRR(26, 104, 148, 14, 4, color);
+    txt(name, 100, 154, 31, '#1b2236', 'center', '"Permanent Marker", cursive');
+    c.restore();
+  }
+
+  // ---- drive state for the clock T ----
+  function driveAt(T) {
+    const s = { led: NOVA, ledA: 1, text: 'NOVA  READY', cells: 4, glow: 0.4, flash: 0, press: 0, hover: 0, ejecting: false, empty: false };
+    s.hover = seg(T, 0.15, 0.55) * (1 - seg(T, 1.4, 1.8));
+    s.press = T >= 0.6 && T < 0.85 ? 1 : 0;
+    const tEnd = anim === 'A' ? 2.3 : 2.3;
+    if (T >= 0.8) {
+      s.ejecting = true;
+      const endDrain = anim === 'A' ? 1.3 : 1.1;
+      s.cells = 4 * (1 - seg(T, 0.8, endDrain));
+      s.led = AMBER; s.ledA = 0.65 + 0.35 * Math.sin(T * 16);
+      s.text = 'EJECTING NOVA'; s.glow = 0.4 * (1 - seg(T, 0.8, endDrain));
+    }
+    if (anim === 'A') {
+      if (T >= 1.3) { s.text = 'DISK EJECTED'; s.led = AMBER; s.ledA = 1; s.cells = 0; s.glow = 0.9 * (1 - seg(T, 1.3, 1.8)); }
+      if (T >= 1.3 && T < 1.65) s.flash = 1 - seg(T, 1.3, 1.65);
+    } else {
+      if (T >= 1.1) { s.text = Math.floor(T * 4) % 2 ? 'TAKE DISK' : 'TAKE DISK  >'; s.led = AMBER; s.ledA = 1; s.cells = 0; s.glow = 0.7 * (1 - seg(T, 1.1, 1.6)); }
+      if (T >= 1.1 && T < 1.4) s.flash = 1 - seg(T, 1.1, 1.4);
+    }
+    if (T >= tEnd) { s.text = 'DRIVE A: EMPTY'; s.led = DIM; s.ledA = 0.6; s.glow = 0; s.empty = true; s.ejecting = false; }
+    return s;
+  }
+
+  // ---- where the disk is ----
+  function diskAt(T) {
+    const R = SLOT(ACTIVE);
+    const o = { x: CX - DISK / 2, y: DY + 8, s: DISK, sx: 1, sy: 1, a: 1, clip: undefined, vis: true };
+    const fly = (t0, t1) => { const f = eio(seg(T, t0, t1)); o.s = lerp(DISK, 200, f); o.x = lerp(CX - DISK / 2, R.x, f); o.y = lerp(DY + 8, R.y, f); };
+    if (anim === 'A') {
+      if (T < 1.3) o.vis = false;
+      else if (T < 1.8) { const k = eio(seg(T, 1.3, 1.8)); o.sy = 0.06; o.sx = lerp(0.9, 1, k); o.y = DY - 4; o.a = k; }
+      else if (T < 2.3) { const k = eio(seg(T, 1.8, 2.3)); o.sy = lerp(0.06, 1, k); o.y = lerp(DY - 4, DY + 8, k); }
+      else fly(2.3, 3.4);
+    } else {
+      if (T < 1.1) o.vis = false;
+      else if (T < 2.0) {
+        const tau = T - 1.1, out = 0.4 * (1 - Math.exp(-9 * tau) * Math.cos(16 * tau));
+        o.y = DY - 4 - DISK + out * DISK; o.clip = DY + 4;
+      } else if (T < 2.3) {
+        const k = eio(seg(T, 2.0, 2.3)), out = lerp(0.4, 1, k);
+        o.y = DY - 4 - DISK + out * DISK; o.clip = DY + 4;
+        if (k >= 1) o.clip = undefined;
+      } else fly(2.3, 3.2);
+    }
+    const land = anim === 'A' ? 3.4 : 3.2;
+    if (T >= land) { o.x = R.x; o.y = R.y; o.s = 200; o.clip = undefined; }
+    return o;
+  }
+
+  // ---- scene pieces ----
+  function bg() {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0a1030'); g.addColorStop(1, '#04060f');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.save(); c.globalAlpha = 0.05; c.fillStyle = '#9fb4ff';
+    for (let y = 0; y < H; y += 4) c.fillRect(0, y, W, 1);
+    c.restore();
+  }
+  function title(text, a, color) {
+    c.save(); c.globalAlpha *= a;
+    fillRR(300, 52, 680, 134, 14, 'rgba(8,12,34,0.8)');
+    strokeRR(300.5, 52.5, 679, 133, 14, 'rgba(110,150,255,0.45)', 1);
+    txt(text, CX, 118, text.length > 15 ? 58 : 66, color || '#e8eeff', 'center', 'Oxanium, sans-serif', 3);
+    c.restore();
+  }
+  function menu(a) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a;
+    fillRR(320, 262, 640, 330, 14, 'rgba(8,12,34,0.82)');
+    strokeRR(320.5, 262.5, 639, 329, 14, 'rgba(110,150,255,0.4)', 1);
+    // name card
+    fillRR(344, 280, 260, 66, 10, '#101a3d'); strokeRR(344.5, 280.5, 259, 65, 10, NOVA, 1, 0.7);
+    dot(378, 313, 18, '#1b2a5c'); dot(378, 307, 6, NOVA); fillRR(367, 316, 22, 12, 6, NOVA);
+    txt('NOVA', 408, 303, 22, '#fff', 'left', 'Oxanium, sans-serif', 1);
+    txt('RANK 12  GOLD', 408, 326, 12, '#9fb4ff', 'left', '"IBM Plex Mono", monospace');
+    ['HOST', 'JOIN', 'CONTINUE'].forEach((t, i) => {
+      const y = 372 + i * 66;
+      fillRR(344, y, 592, 54, 10, '#101a3d'); strokeRR(344.5, y + 0.5, 591, 53, 10, 'rgba(110,150,255,0.4)', 1);
+      txt(t, CX, y + 27, 22, '#e8eeff', 'center', 'Oxanium, sans-serif', 4);
+    });
+    c.restore();
+  }
+  function cradle(i, a, open) {
+    const r = SLOT(i), g = 14 * open;
+    c.save(); c.globalAlpha *= a;
+    strokeRR(r.x - 8, r.y - 8, 216, 216, 14, 'rgba(110,150,255,0.25)', 1);
+    [[-6 - g, 70], [196 + g, 70], [-6 - g, 130], [196 + g, 130]].forEach(p => fillRR(r.x + p[0], r.y + p[1], 10, 22, 3, '#3a4a7a'));
+    c.restore();
+  }
+  function who(a, T) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a;
+    fillRR(110, 618, 1060, 12, 6, '#1a2650'); fillRR(110, 618, 1060, 3, 2, 'rgba(160,190,255,0.35)');
+    const open = ACTIVE !== undefined ? (T < (anim === 'A' ? 3.4 : 3.2) ? 1 : 1 - seg(T, anim === 'A' ? 3.4 : 3.2, (anim === 'A' ? 3.4 : 3.2) + 0.3)) : 0;
+    for (let i = 0; i < 4; i++) cradle(i, 1, i === ACTIVE ? open : 0);
+    disk(SLOT(0).x, SLOT(0).y, 200, KAI, 'KAI', 1, 1, 0.9);
+    const r2 = SLOT(2), r3 = SLOT(3);
+    strokeRR(r2.x, r2.y, 200, 200, 12, 'rgba(110,150,255,0.35)', 1.5); txt('EMPTY', r2.x + 100, r2.y + 100, 20, '#6f82c4', 'center', 'Oxanium, sans-serif', 4);
+    strokeRR(r3.x, r3.y, 200, 200, 12, 'rgba(110,150,255,0.35)', 1.5); txt('+', r3.x + 100, r3.y + 90, 60, '#6f82c4', 'center'); txt('NEW PROFILE', r3.x + 100, r3.y + 140, 14, '#6f82c4', 'center', 'Oxanium, sans-serif', 3);
+    c.restore();
+  }
+
+  function btnRect() {
+    if (look === 'A') return { x: CX + DW / 2 + 12, y: DY - 15, w: 38, h: 30 };
+    if (look === 'B') return { x: CX - 62, y: DY + 46, w: 124, h: 26 };
+    return { x: CX + (DW + 44) / 2 - 36, y: DY - 13, w: 26, h: 26 };
+  }
+
+  function drive(a, S, T, loadedHere) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a;
+    const hw = look === 'C' ? DW + 44 : DW, x0 = CX - hw / 2, y0 = DY - DH / 2;
+    const sx = look === 'C' ? -22 : 0;  // the read cells and the light stay where they are in the housing
+    fillRR(x0, y0 + 4, hw, DH, 16, 'rgba(0,0,0,0.35)');
+    fillRR(x0, y0, hw, DH, 16, 'rgba(115,166,255,0.5)');
+    fillRR(x0 + 1, y0 + 1, hw - 2, DH - 2, 15, '#121634');
+    c.fillStyle = 'rgba(155,180,255,0.25)'; c.fillRect(x0 + 12, y0 + 2, hw - 24, 1);
+    const slit = { x: CX - SLIT / 2 + sx / 2, y: DY - 4, w: SLIT, h: 8 };
+    const gc = NOVA;
+    if (S.glow > 0) fillRR(slit.x - 3, slit.y - 3, slit.w + 6, slit.h + 6, 7, gc, 0.3 * S.glow);
+    fillRR(slit.x, slit.y, slit.w, slit.h, 4, '#01020a');
+    if (S.glow > 0) fillRR(slit.x, slit.y, slit.w, slit.h, 4, gc, 0.55 * S.glow);
+    c.restore();
+  }
+  function driveParts(a, S) {
+    // light, letter, cells, readout: drawn after the housing
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a;
+    const sx = look === 'C' ? -22 : 0;
+    const lc = { x: CX - 143 + sx, y: DY };
+    c.globalAlpha *= 1; dot(lc.x, lc.y, 9.5, hexA(S.led, 0.25 * S.ledA)); dot(lc.x, lc.y, 4.5, hexA(S.led, S.ledA)); dot(lc.x - 1.5, lc.y - 1.5, 1.5, 'rgba(255,255,255,0.55)');
+    txt('A:', CX - 130 + sx, DY, 11, 'rgba(160,190,255,0.7)', 'left', '"IBM Plex Mono", monospace');
+    for (let i = 0; i < 4; i++) {
+      const on = S.cells > i + 0.5 - 0.0001 && S.cells >= i + 0.5 ? true : S.cells > i;
+      fillRR(CX + 112 + sx + i * 12, DY - 4, 8, 8, 4, on ? hexA(S.ejecting ? AMBER : NOVA, 0.95) : '#0f1638');
+    }
+    txt(S.text, CX + sx / 2, DY + 30, 11, 'rgba(160,190,255,' + (S.empty ? 0.6 : 0.9) + ')', 'center', '"IBM Plex Mono", monospace', 1);
+    c.restore();
+  }
+  function hexA(h, a) { const n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+  function lip(S) {
+    c.fillStyle = 'rgba(190,210,255,0.5)'; c.fillRect(CX - SLIT / 2 + 2 + (look === 'C' ? -22 : 0) / 2, DY + 4, SLIT - 4, 1);
+    if (S.flash > 0) { c.fillStyle = 'rgba(255,255,255,' + S.flash + ')'; c.fillRect(CX - SLIT / 2 + (look === 'C' ? -22 : 0) / 2, DY - 3, SLIT, 2); }
+  }
+
+  function button(S, T) {
+    const r = btnRect(), enabled = !S.empty && !(T >= 2.3);
+    const hov = S.hover, pr = S.press, dim = S.empty ? 0.35 : 1;
+    c.save();
+    if (look === 'A') {
+      const dy = pr ? 2 : 0;
+      fillRR(r.x, r.y + 3, r.w, r.h, 7, 'rgba(0,0,0,0.4)');
+      fillRR(r.x, r.y + dy, r.w, r.h, 7, hov ? '#2a3a78' : '#1b2656');
+      strokeRR(r.x + 0.5, r.y + dy + 0.5, r.w - 1, r.h - 1, 7, hov ? NOVA : 'rgba(115,166,255,0.5)', 1.5);
+      c.fillStyle = 'rgba(190,210,255,0.3)'; if (!pr) c.fillRect(r.x + 6, r.y + 2, r.w - 12, 1);
+      ejectGlyph(r.x + r.w / 2, r.y + r.h / 2 + dy, hov ? '#fff' : 'rgba(190,210,255,' + 0.85 * dim + ')');
+      if (hov > 0.3) {
+        c.globalAlpha = hov; fillRR(r.x - 24, r.y + r.h + 8, 86, 22, 6, '#0b1130'); strokeRR(r.x - 23.5, r.y + r.h + 8.5, 85, 21, 6, 'rgba(115,166,255,0.5)', 1);
+        txt('EJECT DISK', r.x + 19, r.y + r.h + 19, 11, '#cfe0ff', 'center', '"IBM Plex Mono", monospace', 1);
+      }
+    } else if (look === 'B') {
+      const a = S.empty ? 0 : 1 - seg(T, 0.85, 1.05);
+      c.globalAlpha *= a;
+      const dy = pr ? 1 : 0;
+      fillRR(r.x, r.y + dy, r.w, r.h, 13, hov ? '#2a3a78' : '#161f4a');
+      strokeRR(r.x + 0.5, r.y + dy + 0.5, r.w - 1, r.h - 1, 13, hov ? NOVA : 'rgba(115,166,255,0.5)', 1.5);
+      ejectGlyph(r.x + 22, r.y + 13 + dy, hov ? '#fff' : '#a9c0ff', 0.8);
+      txt('EJECT DISK', r.x + 38, r.y + 13 + dy, 12, hov ? '#fff' : '#cfe0ff', 'left', '"IBM Plex Mono", monospace', 1);
+    } else {
+      const cx = r.x + r.w / 2, cy = r.y + r.h / 2, dy = pr ? 1.5 : 0;
+      dot(cx, cy + 2, 14, 'rgba(0,0,0,0.4)');
+      dot(cx, cy, 14, hexA(S.empty ? DIM : NOVA, 0.35 + 0.4 * hov));
+      dot(cx, cy, 11.5, '#121634');
+      dot(cx, cy + dy, 10, pr ? '#1d2a62' : hov ? '#2e3f86' : '#223070');
+      ejectGlyph(cx, cy + dy, hov ? '#fff' : 'rgba(190,210,255,' + 0.85 * dim + ')', 0.8);
+      if (hov > 0.3) {
+        c.globalAlpha = hov; fillRR(cx - 43, r.y + r.h + 8, 86, 22, 6, '#0b1130'); strokeRR(cx - 42.5, r.y + r.h + 8.5, 85, 21, 6, 'rgba(115,166,255,0.5)', 1);
+        txt('EJECT DISK', cx, r.y + r.h + 19, 11, '#cfe0ff', 'center', '"IBM Plex Mono", monospace', 1);
+      }
+    }
+    c.restore();
+  }
+
+  function cursor(T) {
+    const r = btnRect(), tx = r.x + r.w / 2 + 3, ty = r.y + r.h / 2 + 4;
+    const k = eo(seg(T, 0.0, 0.55)), x = lerp(CX + 330, tx, k), y = lerp(DY + 150, ty, k);
+    const a = 1 - seg(T, 1.3, 1.7);
+    if (a <= 0) return;
+    const p = T >= 0.6 && T < 0.8 ? 1.0 : 0;
+    c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(p ? 0.92 : 1, p ? 0.92 : 1);
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(0, 20); c.lineTo(5, 15.5); c.lineTo(9, 24); c.lineTo(12.5, 22.5); c.lineTo(8.5, 14); c.lineTo(15, 14); c.closePath();
+    c.fillStyle = '#fff'; c.fill(); c.strokeStyle = '#000'; c.lineWidth = 1.2; c.stroke();
+    if (T >= 0.6 && T < 0.95) { const q = seg(T, 0.6, 0.95); c.globalAlpha = a * (1 - q); c.beginPath(); c.arc(0, 0, 6 + 22 * q, 0, 6.2832); c.strokeStyle = NOVA; c.lineWidth = 2; c.stroke(); }
+    c.restore();
+  }
+
+  function render() {
+    bg();
+    const S = driveAt(T);
+    const menuA = anim === 'A' ? 1 - seg(T, 2.0, 2.8) : 1 - seg(T, 2.0, 2.7);
+    const whoA = anim === 'A' ? seg(T, 2.6, 3.4) : seg(T, 2.5, 3.2);
+    title('TOP-DOWN ARENA', menuA, '#e8eeff');
+    title("WHO'S PLAYING?", whoA, '#e8eeff');
+    menu(menuA);
+    who(whoA, T);
+    drive(1, S, T);
+    driveParts(1, S);
+    lip(S);
+    const o = diskAt(T);
+    if (o.vis) {
+      // the face-on pop in B sits behind the lip: draw the lip once more after the disk
+      disk(o.x, o.y, o.s, NOVA, 'NOVA', o.sx, o.sy, o.a, o.clip);
+      lip(S);
+    }
+    button(S, T);
+    cursor(T);
+  }
+
+  // ---- controls ----
+  const clockEl = document.getElementById('clock'), scrub = document.getElementById('scrub');
+  function setSeg(id, fn) {
+    const box = document.getElementById(id);
+    box.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      box.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); fn(b.dataset.v);
+    });
+  }
+  setSeg('look', v => { look = v; T = 0; });
+  setSeg('anim', v => { anim = v; T = 0; scrub.max = Math.round(dur() * 1000); });
+  setSeg('speed', v => { speed = parseFloat(v); });
+  document.getElementById('replay').onclick = () => { T = 0; playing = true; pp.textContent = 'Pause'; };
+  const pp = document.getElementById('pp');
+  pp.onclick = () => { playing = !playing; pp.textContent = playing ? 'Pause' : 'Play'; };
+  document.getElementById('loop').onchange = e => { loop = e.target.checked; };
+  scrub.oninput = () => { T = scrub.value / 1000; playing = false; pp.textContent = 'Play'; };
+  scrub.max = Math.round(dur() * 1000);
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (playing) {
+      T += dt * speed;
+      if (T >= dur()) { if (loop) T = 0; else { T = dur(); playing = false; pp.textContent = 'Play'; } }
+    }
+    scrub.value = Math.round(T * 1000); clockEl.textContent = T.toFixed(2) + ' s';
+    render();
+    requestAnimationFrame(frame);
+  }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { playing = false; T = 2.0; pp.textContent = 'Play'; }
+  window.__setT = t => { T = t; playing = false; };
+  window.__set = (l, a) => { look = l; anim = a; };
+  requestAnimationFrame(frame);
+  if (document.fonts) document.fonts.ready.then(render);
+})();
+</script>

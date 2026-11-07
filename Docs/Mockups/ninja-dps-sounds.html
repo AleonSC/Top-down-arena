@@ -1,0 +1,378 @@
+<title>Ninja DPS Sounds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, controls (set, volume, four sequences), then every sound in its group as a card with a waveform and its SoundBank recipe.
+   Sounds are made in the page the way SoundBank.cs makes them (Tone, Mix, Notes, Bell, Crackle, Reverse, Reverb, Finish). */
+
+/* Layout: header, then two playable stages (combo chain, then the Alt strike), each a canvas + controls + beat list; numbers table and open questions last.
+   Colour: steel blade, crimson for the strike (matches Death Lotus). Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --steel:#2f6f8f; --crim:#c4163f; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --arena:#12171b; --pip:#d3dacf;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --steel:#7cc4e6; --crim:#ff4d78; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --arena:#0b0f12; --pip:#2b352e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:66ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:68ch;color:var(--muted)}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/400;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#cfd8cc;opacity:.85;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.hot{background:var(--crim);border-color:var(--crim);color:#fff}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--panel);color:var(--fg)}
+.pips{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.pip{flex:1 1 120px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--panel);display:flex;flex-direction:column;gap:2px;transition:background .08s,border-color .08s}
+.pip b{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase}
+.pip span{font:500 12px var(--mono);color:var(--muted)}
+.pip.next{border-color:var(--steel)}
+.pip.on{background:var(--steel);border-color:var(--steel)} .pip.on b,.pip.on span{color:#fff}
+.pip.lunge.on{background:var(--crim);border-color:var(--crim)}
+.pip.queued::after{content:"QUEUED";font:600 11px var(--mono);letter-spacing:.08em;color:var(--steel)}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bar{flex:1 1 200px;min-width:0;height:14px;border:1px solid var(--line);border-radius:3px;background:var(--pip);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--steel);transition:width .1s}
+.bar.drain i{background:var(--muted);opacity:.8}
+.bar.full i{background:var(--crim);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.bar.full i{animation:none}}
+.meter .num{font:500 13px var(--mono);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.msg{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 14px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+h2.plain{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.ctl{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+.ctl label.sl{display:flex;align-items:center;gap:10px;font:500 13px var(--mono);color:var(--muted)}
+.ctl input[type=range]{accent-color:var(--crim);width:140px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+.group{display:flex;flex-direction:column;gap:12px}
+.group h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.snds{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.snd{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.snd h3{font:700 18px var(--display);letter-spacing:.05em;text-transform:uppercase;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.snd h3 button{padding:5px 12px}
+.snd p{margin:0;font-size:14px;color:var(--muted)}
+.snd canvas{width:100%;height:56px;display:block;background:#12171b;border-radius:4px}
+.snd .meta{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.snd details{font-size:12px}.snd summary{cursor:pointer;color:var(--muted);font:500 12px var(--mono)}
+.snd pre{margin:6px 0 0;padding:8px;background:var(--chip);border-radius:4px;overflow-x:auto;font:400 11.5px/1.45 var(--mono);color:var(--fg);white-space:pre}
+.seqs{display:flex;flex-wrap:wrap;gap:10px}
+.note{font-size:14.5px;color:var(--muted);max-width:72ch;margin:0}
+</style>
+
+<main>
+<header>
+  <h1>Ninja DPS sounds</h1>
+  <p>Sound effects for the Ninja DPS: the <strong>Kunai</strong> weapon, its three abilities (<strong>Shadow Step</strong>, <strong>Vanish</strong>, <strong>Blade Fan</strong>) and the ultimate, <strong>Death Lotus</strong>. Two sets of the same sounds so you can pick a character. They are built in this page from the pieces the game's <strong>SoundBank</strong> uses, and each card shows the recipe that would go into it.</p>
+</header>
+<section class="group">
+  <div class="ctl">
+    <div class="seg" role="radiogroup" aria-label="Sound set">
+      <input type="radio" name="set" id="s1" value="shinobi" checked><label for="s1">Shinobi</label>
+      <input type="radio" name="set" id="s2" value="arcade"><label for="s2">Arcade</label>
+    </div>
+    <label class="sl">Volume <input type="range" id="vol" min="0" max="1" step="0.05" value="0.8"></label>
+  </div>
+  <p class="note" id="setnote"></p>
+  <div class="seqs">
+    <button type="button" id="seqKunai">Kunai volley + blink</button>
+    <button type="button" id="seqStep">Shadow Step</button>
+    <button type="button" id="seqVanish">Vanish + double hit</button>
+    <button type="button" id="seqFan">Blade Fan, full cycle</button>
+    <button type="button" id="seqLotus">Death Lotus</button>
+  </div>
+</section>
+<div id="groups" style="display:flex;flex-direction:column;gap:36px"></div>
+<section class="card">
+  <h3>Putting them in the game</h3>
+  <ul>
+    <li>One new <code>Sfx</code> value per sound, added at the end of the enum, each with a <code>Set(...)</code> line in <code>SoundBank.Build()</code>. Names are in the recipe boxes. Two helpers join the existing ones: <code>Delay</code> and <code>Room</code>.</li>
+    <li>Throws, hits, the Blade Fan and the Death Lotus are raised by the host through the existing fx path, so every player hears them, quieter with distance. The mark fade and the "empty" tick play on your own screen only.</li>
+    <li>The Blade Fan whirl is a short looping sound that restarts while the fan is active (4 s), not one long buffer.</li>
+    <li>Nothing here changes the network format, so <code>Session.ProtocolVersion</code> stays as it is.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+/* ---- Katana sounds: a JS port of the game's SoundBank primitives (Tone, Mix, Notes, Bell, Crackle, Tremolo, Reverse, Reverb, Finish),
+   so each recipe below reads like the C# line it would become. Every buffer remembers the C# text that built it (.src). ---- */
+var KS=(function(){
+var RATE=44100,TAU=Math.PI*2;
+var seed=7;function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+var OSC={Sine:'Osc.Sine',Square:'Osc.Square',Triangle:'Osc.Triangle',Saw:'Osc.Saw'};
+function f(n){var s=(Math.round(n*10000)/10000).toString();if(s.indexOf('.')<0)s+='.0';return s+'f'}
+function mk(a,src){a.src=src;return a}
+function Tone(dur,osc,f0,f1,vol,o){o=o||{};var noise=o.noise||0,lp=o.lowpass==null?1:o.lowpass,att=o.attack||0.003,dec=o.decay==null?2:o.decay;
+  var n=Math.floor(dur*RATE),d=new Float32Array(n),ph=0,y=0;
+  for(var i=0;i<n;i++){var t=i/RATE,u=i/n,fr=f0*Math.pow(f1/f0,u);ph+=fr/RATE;var p=ph-Math.floor(ph),x;
+    if(osc==='Square')x=p<.5?1:-1;else if(osc==='Triangle')x=4*Math.abs(p-.5)-1;else if(osc==='Saw')x=2*p-1;else x=Math.sin(TAU*p);
+    if(noise>0)x=x*(1-noise)+(rnd()*2-1)*noise;
+    y+=lp*(x-y);d[i]=y*Math.min(1,t/att)*Math.pow(1-u,dec)*vol}
+  var parts=[f(dur),OSC[osc],f(f0),f(f1),f(vol)];['noise','lowpass','attack','decay'].forEach(function(k){if(o[k]!=null)parts.push(k+': '+f(o[k]))});
+  return mk(d,'Tone('+parts.join(', ')+')')}
+function Mix(){var L=[].slice.call(arguments),n=0;L.forEach(function(l){n=Math.max(n,l.length)});var o=new Float32Array(n);
+  L.forEach(function(l){for(var i=0;i<l.length;i++)o[i]+=l[i]});return mk(o,'Mix(\n    '+L.map(function(l){return l.src}).join(',\n    ')+')')}
+function Delay(a,sec){var k=Math.floor(sec*RATE),o=new Float32Array(a.length+k);o.set(a,k);return mk(o,'Delay('+a.src+', '+f(sec)+')')}
+function Reverse(a){var o=Float32Array.from(a).reverse();return mk(o,'Reverse('+a.src+')')}
+function Tremolo(a,hz,depth){var o=Float32Array.from(a);for(var i=0;i<o.length;i++)o[i]*=1-depth*(.5+.5*Math.sin(TAU*hz*i/RATE));return mk(o,'Tremolo('+a.src+', '+f(hz)+', '+f(depth)+')')}
+function Bell(dur,fq,vol){var ra=[1,2.76,5.4,8.93],am=[1,.5,.25,.12],li=[1,.6,.35,.2],n=Math.floor(dur*RATE),d=new Float32Array(n);
+  for(var i=0;i<n;i++){var t=i/RATE,u=i/n,x=0;for(var k=0;k<4;k++)x+=am[k]*Math.sin(TAU*fq*ra[k]*t)*Math.pow(Math.max(0,1-u/li[k]),2);d[i]=x*vol*Math.min(1,t/.004)}
+  return mk(d,'Bell('+f(dur)+', '+f(fq)+', '+f(vol)+')')}
+function Crackle(dur,clicks){var n=Math.floor(dur*RATE),d=new Float32Array(n);
+  for(var c=0;c<clicks;c++){var at=Math.floor(n*Math.pow(rnd(),1.6)),amp=.5+.5*rnd();for(var i=0;i<RATE/200&&at+i<n;i++)d[at+i]+=(rnd()*2-1)*amp*(1-i/(RATE/200))}
+  return mk(d,'Crackle('+f(dur)+', '+clicks+')')}
+function Notes(fr,nd,osc,vol,lp){var per=Math.floor(nd*RATE),d=new Float32Array(per*fr.length);
+  fr.forEach(function(q,k){var t=Tone(nd,osc,q,q,vol,{lowpass:lp,decay:1});for(var i=0;i<Math.min(t.length,per);i++)d[k*per+i]=t[i]});
+  return mk(d,'Notes(new[] { '+fr.map(f).join(', ')+' }, '+f(nd)+', '+OSC[osc]+', '+f(vol)+', '+f(lp)+')')}
+function Reverb(inp){var n=inp.length,out=new Float32Array(n);
+  [29.7,37.1,41.1,43.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d),store=0;
+    for(var i=0;i<n;i++){var y=buf[i%d];store=y*.7+store*.3;buf[i%d]=inp[i]+store*.72;out[i]+=y*.25}});
+  [5,1.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d);
+    for(var i=0;i<n;i++){var b=buf[i%d],x=out[i];buf[i%d]=x+b*.5;out[i]=b-x*.5}});return out}
+function Room(a,wet){var tail=Math.floor(.35*RATE),inp=new Float32Array(a.length+tail);inp.set(a);var r=Reverb(inp),o=new Float32Array(inp.length);
+  for(var i=0;i<o.length;i++)o[i]=inp[i]+r[i]*wet;return mk(o,'Room('+a.src+', '+f(wet)+')')}
+function Finish(a,peak){var o=Float32Array.from(a),n=o.length,fade=Math.min(n,RATE/100|0);for(var i=0;i<fade;i++)o[n-1-i]*=i/fade;
+  var m=0;for(i=0;i<n;i++)m=Math.max(m,Math.abs(o[i]));if(m>0)for(i=0;i<n;i++)o[i]*=peak/m;return mk(o,'Finish('+a.src+', '+f(peak)+')')}
+
+/* ---- two sets: the same moves, two characters ---- */
+var SETS={
+ shinobi:{name:'Shinobi',note:'Quiet and airy: breathy whooshes, short metal ticks, soft smoke puffs and bell tails. Sits under the bullets, like a blade you barely hear until it lands.',
+  osc:'Sine',ring:2800,ringVol:.07,whLP:.5,whN:.9,crack:1,room:.3,chime:'Sine',chimeVol:.18,bell:1,sub:1},
+ arcade:{name:'Arcade',note:'Synth blips: square and saw sweeps instead of noise, chirpy marks and rising arps. Matches the game\'s Blink and Pick sounds, least like real steel.',
+  osc:'Square',ring:2000,ringVol:.05,whLP:.5,whN:.12,crack:.8,room:.12,chime:'Square',chimeVol:.13,bell:.3,sub:1.1,synth:true}};
+var W=function(P){return P.synth?'Saw':'Sine'};
+var DEFS=[
+ ['kthrow','Kunai','Throw','A slow, heavy knife leaves your hand (one every 0.7 s): a quick whoosh: the knife slices past, dark air first, then brighter as it passes, and it falls away fast.',.12,function(P){
+   return Finish(Mix(
+    Tone(.22,'Sine',500,300,.22,{noise:P.synth?.7:1,lowpass:.14,attack:.045,decay:1.8}),
+    Delay(Tone(.2,'Sine',500,300,.2,{noise:P.synth?.7:1,lowpass:.4,attack:.03,decay:2.2}),.04),
+    Delay(Tone(.14,'Sine',500,300,.14,{noise:P.synth?.7:1,lowpass:.8,attack:.02,decay:3}),.08),
+    Delay(Tone(.12,'Sine',900,350,.05,{lowpass:.5,attack:.02,decay:2}),.04)),.5)}],
+ ['kthrow2','Kunai','Throw, fanned (capstone)','The +1 knife is thrown with the first: a second, slightly brighter whoosh a hair behind the first.',.12,function(P){
+   return Finish(Mix(
+    Tone(.22,'Sine',500,300,.2,{noise:P.synth?.7:1,lowpass:.14,attack:.045,decay:1.8}),
+    Delay(Tone(.2,'Sine',500,300,.18,{noise:P.synth?.7:1,lowpass:.4,attack:.03,decay:2.2}),.04),
+    Delay(Tone(.14,'Sine',500,300,.12,{noise:P.synth?.7:1,lowpass:.8,attack:.02,decay:3}),.08),
+    Delay(Tone(.22,'Sine',500,300,.14,{noise:P.synth?.7:1,lowpass:.2,attack:.045,decay:1.8}),.035),
+    Delay(Tone(.2,'Sine',500,300,.13,{noise:P.synth?.7:1,lowpass:.55,attack:.03,decay:2.2}),.075)),.5)}],
+ ['khit','Kunai','Hit','The knife bites: a short slice, a dull thud and a thin ring.',.04,function(P){
+   return Finish(Mix(
+    Tone(.06,'Sine',2000,700,.2,{noise:P.synth?.1:.9,lowpass:.8,decay:3}),
+    Tone(.12,'Sine',240,95,.28*P.sub,{noise:.3,lowpass:.3,decay:3}),
+    Bell(.22,P.ring*.8,.04*P.bell)),.42)}],
+ ['kflank','Kunai','Hit, +50% (not targeting you)','The flank bonus: the same bite with a bright second tick and a longer ring, so you can hear the bonus land.',.04,function(P){
+   return Finish(Room(Mix(
+    Tone(.06,'Sine',2200,700,.22,{noise:P.synth?.1:.9,lowpass:.85,decay:3}),
+    Tone(.14,'Sine',250,90,.3*P.sub,{noise:.3,lowpass:.3,decay:3}),
+    Delay(Tone(.04,'Square',3400,2600,.1*P.crack,{lowpass:.8,decay:3}),.035),
+    Bell(.5,P.ring*1.1,.08*P.bell)),P.room*.5),.5)}],
+ ['kmark','Kunai','Mark planted','The knife sticks where it lands and leaves a mark: a tiny thunk and a soft rising two-note chime.',.1,function(P){
+   return Finish(Mix(
+    Tone(.05,'Sine',420,200,.22*P.sub,{noise:.3,lowpass:.4,decay:3}),
+    Delay(Notes([1320,1760],.05,P.chime,P.chimeVol*.7,1),.03),
+    Delay(Bell(.4,1760,.05*P.bell),.05)),.35)}],
+ ['kfade','Kunai','Mark fades','The mark runs out after 3 s: a soft falling tone, almost nothing. Plays on your screen only.',.3,function(P){
+   return Finish(Tone(.3,'Sine',1500,700,.07,{lowpass:.4,attack:.04,decay:1.5}),.2)}],
+ ['kblink','Kunai','Blink to mark','You press the weapon-action key: a reversed breath pulls in, a pop as you leave, a soft ring where you land.',.15,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.14,W(P),600,1800,.14,{noise:P.synth?.15:.8,lowpass:.6,decay:1.2})),
+    Delay(Tone(.05,'Sine',2600,900,.2*P.crack,{noise:1,lowpass:.9,decay:3}),.13),
+    Delay(Tone(.12,'Sine',140,60,.28*P.sub,{lowpass:.3,decay:2.5}),.13),
+    Delay(Bell(.4,P.ring*1.3,.06*P.bell),.15)),P.room*.5),.5)}],
+ ['kdouble','Kunai','Double hit','The next hit after a blink lands double: two quick bites, the second heavier.',.08,function(P){
+   return Finish(Mix(
+    Tone(.06,'Sine',2000,700,.2,{noise:P.synth?.1:.9,lowpass:.8,decay:3}),
+    Tone(.1,'Sine',240,95,.24*P.sub,{noise:.3,lowpass:.3,decay:3}),
+    Delay(Tone(.07,'Sine',2300,600,.26,{noise:P.synth?.1:.9,lowpass:.85,decay:3}),.07),
+    Delay(Tone(.16,'Sine',200,70,.34*P.sub,{noise:.3,lowpass:.25,decay:2.5}),.07),
+    Delay(Bell(.35,P.ring*.9,.07*P.bell),.08)),.55)}],
+ ['kempty','Kunai','No mark','You press the weapon-action key with no mark: a dull tick. Your screen only.',.15,function(P){
+   return Finish(Tone(.07,'Square',230,190,.18,{lowpass:.35,decay:3}),.3)}],
+
+ ['stepcast','Shadow Step','Smoke burst','You burst into puffs: a soft cloud of smoke and a faint rising shimmer as you split.',.3,function(P){
+   return Finish(Room(Mix(
+    Tone(.3,'Sine',400,150,.18,{noise:P.synth?.3:1,lowpass:.25,attack:.02,decay:1.4}),
+    Tone(.3,P.osc,1200,2400,.04,{noise:P.synth?.1:.4,lowpass:.7,attack:.1,decay:1}),
+    Tone(.14,'Sine',110,50,.3*P.sub,{lowpass:.2,decay:2})),P.room*.7),.5)}],
+ ['stepsplit','Shadow Step','Splits in two','The two halves race round the enemy\'s sides: two whooshes panning past each other, one rising, one falling.',.3,function(P){
+   return Finish(Mix(
+    Tone(.3,W(P),350,1500,.12,{noise:P.whN,lowpass:P.whLP,attack:.04,decay:1}),
+    Delay(Tone(.3,W(P),1500,350,.1,{noise:P.whN,lowpass:P.whLP,attack:.04,decay:1}),.05),
+    Tone(.3,'Sine',2200,2600,.025,{lowpass:.7,attack:.1,decay:1})),.4)}],
+ ['stepstrike','Shadow Step','Re-form and strike','You meet behind the enemy and strike for 80: a pop of air, a sharp slice, a clean ring.',.3,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.1,'Sine',500,2000,.12,{noise:.8,lowpass:.5,decay:1})),
+    Delay(Tone(.07,'Sine',2400,700,.26,{noise:P.synth?.1:.9,lowpass:.85,decay:3}),.09),
+    Delay(Tone(.2,'Sine',200,70,.36*P.sub,{noise:.3,lowpass:.25,decay:2.5}),.09),
+    Delay(Tone(.04,'Sine',3400,1800,.22*P.crack,{noise:1,lowpass:.95,decay:3}),.09),
+    Delay(Bell(.6,P.ring*1.2,.09*P.bell),.1)),P.room*.5),.6)}],
+
+ ['vanish','Vanish','Vanish','A smoke bomb pops under you: a dull crack, a puff of smoke and a fading breath as you slip from view.',.3,function(P){
+   return Finish(Room(Mix(
+    Tone(.05,'Sine',1500,500,.22*P.crack,{noise:1,lowpass:.8,decay:3}),
+    Tone(.45,'Sine',500,120,.2,{noise:P.synth?.3:1,lowpass:.2,attack:.015,decay:1.3}),
+    Tone(.2,'Sine',130,48,.34*P.sub,{lowpass:.2,decay:2.2}),
+    Reverse(Tone(.3,'Sine',900,200,.06,{noise:.9,lowpass:.4,decay:1}))),P.room*.8),.5)}],
+ ['vanishbank','Vanish','Smoke bank is shot at','An enemy bullet hits the decoy smoke: a muffled puff, no metal. Rate-limited, since this will happen a lot.',.12,function(P){
+   return Finish(Tone(.12,'Sine',380,170,.14,{noise:P.synth?.3:1,lowpass:.25,attack:.005,decay:2.5}),.25)}],
+ ['vanishready','Vanish','Next hit is double','Armed: a thin glassy ring, like a blade clearing a sheath. Marks that your next hit deals double.',.3,function(P){
+   return Finish(Mix(
+    Notes([1568,2349],.05,P.chime,P.chimeVol*.8,1),
+    Delay(Bell(.5,2349,.08*P.bell),.04)),.35)}],
+ ['vanishend','Vanish','Reappear','Vanish ends or you strike: a soft re-form puff with a short rising tone.',.2,function(P){
+   return Finish(Room(Mix(
+    Tone(.18,'Sine',250,600,.14,{noise:P.synth?.3:.9,lowpass:.3,attack:.02,decay:1.5}),
+    Tone(.1,'Sine',120,70,.22*P.sub,{lowpass:.2,decay:2.5})),P.room*.5),.4)}],
+
+ ['fanstart','Blade Fan','Fan opens','12 kunai fly out into orbit: a bright splay of ticks rising in pitch, then the hum begins.',.3,function(P){
+   var t=[];for(var i=0;i<6;i++)t.push(Delay(Tone(.05,'Sine',1500+i*260,1300+i*220,.12*P.crack+.04,{noise:.5,lowpass:.8,decay:3}),i*.025));
+   return Finish(Room(Mix(t[0],t[1],t[2],t[3],t[4],t[5],
+    Tone(.25,W(P),500,1100,.1,{noise:P.whN,lowpass:P.whLP,attack:.03,decay:1.2}),
+    Tone(.14,'Sine',130,60,.26*P.sub,{lowpass:.25,decay:2.5})),P.room*.4),.5)}],
+ ['fanspin','Blade Fan','Orbit hum (loops)','The 4 s whirl while the fan is out: a steady airy whir with a fast flutter, as 12 blades pass. Loops.',.3,function(P){
+   return Finish(Tremolo(Mix(
+    Tone(.5,W(P),420,430,.1,{noise:P.whN,lowpass:P.whLP*.7,attack:.08,decay:0}),
+    Tone(.5,P.osc,P.ring*.6,P.ring*.6,P.ringVol*.7,{lowpass:.5,attack:.08,decay:0})),18,.55),.3)}],
+ ['fancut','Blade Fan','Cut (18)','A spinning kunai nicks an enemy, once per 0.5 s each: a tiny quick slice, quieter than a Kunai hit so a crowd does not blur.',.05,function(P){
+   return Finish(Mix(
+    Tone(.04,'Sine',2300,900,.14,{noise:P.synth?.1:.9,lowpass:.85,decay:3}),
+    Tone(.07,'Sine',230,120,.14*P.sub,{noise:.3,lowpass:.3,decay:3}),
+    Bell(.15,P.ring*1.4,.03*P.bell)),.3)}],
+ ['fanblock','Blade Fan','Bullet erased','A kunai swats an enemy bullet: a bright metal tink, very short. Rate-limited.',.05,function(P){
+   return Finish(Mix(
+    Bell(.12,P.ring*1.7,.12*P.bell+.03),
+    Tone(.025,'Square',3200,2800,.08,{lowpass:.8,decay:3})),.3)}],
+ ['fanburst','Blade Fan','Fan flies out','Pressed again or timed out: the blades fly out in a ring, 18 each: a rising rush, a bright burst, ticks as they scatter.',.3,function(P){
+   var t=[];for(var i=0;i<5;i++)t.push(Delay(Tone(.04,'Sine',2600-i*200,1800-i*150,.1*P.crack+.03,{noise:.7,lowpass:.85,decay:3}),.1+i*.02));
+   return Finish(Room(Mix(t[0],t[1],t[2],t[3],t[4],
+    Reverse(Tone(.16,W(P),400,1800,.14,{noise:P.synth?.15:.8,lowpass:.6,decay:1})),
+    Delay(Tone(.3,W(P),2400,500,.28,{noise:P.whN,lowpass:.9,attack:.002,decay:2}),.14),
+    Delay(Tone(.2,'Sine',150,50,.4*P.sub,{lowpass:.2,decay:2}),.14),
+    Delay(Bell(.7,P.ring*1.2,.1*P.bell),.15)),P.room*.6),.65)}],
+
+ ['lotuscast','Death Lotus','Dark falls','You mark the targets and the arena darkens: a low swell that pulls in, a held breath and a deep note under it.',.5,function(P){
+   return Finish(Room(Mix(
+    Reverse(Tone(.7,'Sine',320,90,.12,{noise:P.synth?.2:.8,lowpass:.25,decay:1.2})),
+    Tone(.9,'Sine',70,48,.34*P.sub,{lowpass:.15,attack:.3,decay:1.2}),
+    Tone(.7,P.osc,110,150,.05,{lowpass:.2,attack:.3,decay:1}),
+    Delay(Bell(.9,880,.05*P.bell),.5)),P.room*.8),.5)}],
+ ['lotuscut','Death Lotus','Cut','One white-hot crimson cut (three per enemy, 100 each): a hard tearing slice with a crack and a short ring. Pitch varies per cut.',.04,function(P){
+   return Finish(Mix(
+    Tone(.09,W(P),3000,500,.28,{noise:P.whN,lowpass:.9,attack:.001,decay:2}),
+    Tone(.04,'Sine',3600,1900,.26*P.crack,{noise:1,lowpass:.95,decay:3}),
+    Tone(.1,'Sine',170,60,.3*P.sub,{lowpass:.25,decay:2.5}),
+    Bell(.25,P.ring*1.3,.06*P.bell)),.55)}],
+ ['lotuscut2','Death Lotus','Cut, second','The second cut of an enemy: a little higher.',.04,function(P){
+   return Finish(Mix(
+    Tone(.09,W(P),3300,600,.28,{noise:P.whN,lowpass:.9,attack:.001,decay:2}),
+    Tone(.04,'Sine',3900,2100,.26*P.crack,{noise:1,lowpass:.95,decay:3}),
+    Tone(.1,'Sine',190,70,.28*P.sub,{lowpass:.25,decay:2.5}),
+    Bell(.25,P.ring*1.45,.06*P.bell)),.55)}],
+ ['lotuscut3','Death Lotus','Cut, third (kill)','The third cut of an enemy finishes it: the heaviest, with a boom under it.',.04,function(P){
+   return Finish(Room(Mix(
+    Tone(.1,W(P),3600,500,.32,{noise:P.whN,lowpass:.92,attack:.001,decay:2}),
+    Tone(.05,'Sine',4000,2200,.3*P.crack,{noise:1,lowpass:.95,decay:3}),
+    Tone(.3,'Sine',110,36,.5*P.sub,{noise:.2,lowpass:.18,decay:2}),
+    Bell(.5,P.ring*1.6,.09*P.bell)),P.room*.5),.7)}],
+ ['lotusbloom','Death Lotus','Lotus stain blooms','A crimson lotus stains the spot where an enemy fell: a soft opening of petals as a bell cluster, with a low breath.',.15,function(P){
+   return Finish(Room(Mix(
+    Notes([784,988,1175],.06,P.chime,P.chimeVol*.8,1),
+    Delay(Bell(.9,784,.09*P.bell),.04),
+    Delay(Bell(.9,1175,.06*P.bell),.1),
+    Tone(.4,'Sine',200,120,.08,{noise:.7,lowpass:.25,attack:.1,decay:1.2})),P.room*1.1),.4)}],
+ ['lotusend','Death Lotus','Light returns','The flurry ends and the arena brightens: a falling tone and a slow bell as the stains fade.',.5,function(P){
+   return Finish(Room(Mix(
+    Tone(.5,'Sine',500,160,.14,{noise:P.synth?.2:.6,lowpass:.3,decay:1.5}),
+    Delay(Bell(1.3,P.ring*.45,.12*P.bell),.05),
+    Tone(.5,'Sine',90,40,.25*P.sub,{lowpass:.15,decay:1.8})),P.room*1.2),.5)}]
+];
+var cache={},ctx=null,master=null,cur='shinobi',vol=.8,enabled=true;
+function ensure(){if(!ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return false;ctx=new C();master=ctx.createGain();master.gain.value=vol;master.connect(ctx.destination)}
+  if(ctx.state==='suspended')ctx.resume();return true}
+function unlock(){ensure()}
+['pointerdown','keydown','touchstart'].forEach(function(n){document.addEventListener(n,unlock,{capture:true})});
+function build(id,set){var key=set+':'+id;if(cache[key])return cache[key];var d=DEFS.filter(function(x){return x[0]===id})[0];if(!d)return null;
+  seed=7+id.length*13;var b=d[5](SETS[set]);cache[key]=b;return b}
+var lastAt={};
+function play(id,opts){if(!enabled||!ctx)return;var set=(opts&&opts.set)||cur,d=DEFS.filter(function(x){return x[0]===id})[0];if(!d)return;
+  var go=function(){var now=ctx.currentTime;if(!(opts&&opts.force)){if(lastAt[id]&&now-lastAt[id]<d[4])return;lastAt[id]=now}
+    var b=build(id,set);if(!b)return;var buf=ctx.createBuffer(1,b.length,RATE);buf.copyToChannel(b,0);var s=ctx.createBufferSource();s.buffer=buf;
+    var g=ctx.createGain();g.gain.value=(opts&&opts.gain)||1;s.connect(g);g.connect(master);s.start(now+((opts&&opts.delay)||0))};
+  if(ctx.state==='running')go();else if(ctx.state==='suspended')ctx.resume().then(go)}
+return{SETS:SETS,DEFS:DEFS,build:build,play:play,
+  setSet:function(s){cur=s},getSet:function(){return cur},setVol:function(v){vol=v;if(master)master.gain.value=v},setEnabled:function(e){enabled=e},ensure:ensure,RATE:RATE}
+})();
+
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i)};
+var cards={};
+function drawWave(cv,b){var d=Math.min(window.devicePixelRatio||1,2),w=cv.clientWidth||300,h=56;cv.width=w*d;cv.height=h*d;var x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);
+  x.fillStyle='#12171b';x.fillRect(0,0,w,h);x.strokeStyle='rgba(255,255,255,.08)';x.beginPath();x.moveTo(0,h/2);x.lineTo(w,h/2);x.stroke();
+  var per=b.length/w;x.fillStyle='#ff8fa8';for(var i=0;i<w;i++){var mx=0,mn=0;for(var j=Math.floor(i*per);j<Math.floor((i+1)*per);j++){var v=b[j];if(v>mx)mx=v;if(v<mn)mn=v}
+    x.fillRect(i,h/2-mx*h*.46,1,Math.max(1,(mx-mn)*h*.46))}}
+function refresh(){var set=KS.getSet();$('setnote').textContent=KS.SETS[set].note;
+  KS.DEFS.forEach(function(d){var c=cards[d[0]],b=KS.build(d[0],set);drawWave(c.cv,b);var pk=0;for(var i=0;i<b.length;i++)pk=Math.max(pk,Math.abs(b[i]));
+    c.meta.textContent=(b.length/KS.RATE).toFixed(2)+' s · peak '+pk.toFixed(2)+' · min gap '+d[4].toFixed(2)+' s';
+    c.pre.textContent='Set(Sfx.Ninja'+d[2].replace(/[^A-Za-z0-9]/g,'')+', '+b.src+', '+d[4].toFixed(2)+'f);'})}
+var groups={};KS.DEFS.forEach(function(d){(groups[d[1]]=groups[d[1]]||[]).push(d)});
+var host=$('groups');
+Object.keys(groups).forEach(function(g){var sec=document.createElement('section');sec.className='group';sec.innerHTML='<h2>'+g+'</h2><div class="snds"></div>';host.appendChild(sec);var grid=sec.lastChild;
+  groups[g].forEach(function(d){var el=document.createElement('div');el.className='snd';
+    el.innerHTML='<h3><span>'+d[2]+'</span><button type="button" class="primary">Play</button></h3><p>'+d[3]+'</p><canvas aria-hidden="true"></canvas><div class="meta"></div><details><summary>Recipe (SoundBank.cs)</summary><pre></pre></details>';
+    grid.appendChild(el);cards[d[0]]={cv:el.querySelector('canvas'),meta:el.querySelector('.meta'),pre:el.querySelector('pre')};
+    el.querySelector('button').addEventListener('click',function(){KS.play(d[0],{force:true})})})});
+function seq(list){return function(){list.forEach(function(s){KS.play(s[1],{delay:s[0],force:true})})}}
+var SEQ={
+ kunai:[[0,'kthrow'],[.7,'kthrow'],[.78,'khit'],[1.4,'kthrow'],[1.5,'kflank'],[1.5,'kmark'],[2.2,'kblink'],[2.3,'kdouble'],[5.2,'kfade']],
+ step:[[0,'stepcast'],[.1,'stepsplit'],[.4,'stepstrike']],
+ vanish:[[0,'vanish'],[.2,'vanishready'],[.9,'vanishbank'],[1.1,'vanishbank'],[1.9,'vanishend'],[1.95,'kdouble']],
+ fan:[[0,'fanstart'],[.25,'fanspin'],[.65,'fanspin'],[1.05,'fanspin'],[.8,'fancut'],[1.1,'fanblock'],[1.3,'fancut'],[1.45,'fanblock'],[1.45,'fanspin'],[1.85,'fanspin'],[2.1,'fancut'],[2.6,'fanburst'],[2.75,'khit']],
+ lotus:[[0,'lotuscast'],[.9,'lotuscut'],[1.0,'lotuscut2'],[1.12,'lotuscut3'],[1.2,'lotusbloom'],[1.35,'lotuscut'],[1.45,'lotuscut2'],[1.55,'lotuscut3'],[1.65,'lotusbloom'],[2.4,'lotusend']]};
+$('seqKunai').addEventListener('click',seq(SEQ.kunai));$('seqStep').addEventListener('click',seq(SEQ.step));$('seqVanish').addEventListener('click',seq(SEQ.vanish));$('seqFan').addEventListener('click',seq(SEQ.fan));$('seqLotus').addEventListener('click',seq(SEQ.lotus));
+document.querySelectorAll('input[name=set]').forEach(function(r){r.addEventListener('change',function(){KS.setSet(r.value);refresh()})});
+$('vol').addEventListener('input',function(e){KS.setVol(+e.target.value)});
+refresh();
+})();
+</script>

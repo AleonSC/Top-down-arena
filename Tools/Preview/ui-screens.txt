@@ -1,0 +1,57 @@
+# The UI screens Tools/Preview/uishots.sh renders, one per line:
+#   <name> <mode> [wave seconds players] [FLAG=value ...]
+# mode and flags are shot.sh's (ShotModes.cs, ShotScenes.cs); wave/seconds/players default to 6 12.2 1.
+# NOISY=1: the shot differs a little from run to run (more than one player: real network timing), so a compare
+# lists it apart instead of as changed.
+# Main menu and profile
+menu              menu
+menu-play         menu      PLAY=1
+who               who
+profile           profile
+cosmetics         cosmetics
+records           records
+records-recent    records   SECTION=4
+howto             lobby     LOBBYMENU=howto
+guide             guide
+# Settings (main menu); SECTION = group: 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
+settings-audio    settings  SECTION=0
+settings-fx       settings  SECTION=1
+settings-gameplay settings  SECTION=2
+settings-keys     settings  SECTION=3
+# Lobby; LOBBYTAB: 0 loadout, 2 modifiers, 3 difficulty, 5 perks (practice and boss hunt need their mode: lobbypr, HUNT=1)
+lobby             lobby
+lobby-practice    lobbypr
+lobby-mods        lobby     LOBBYTAB=2
+lobby-diff        lobby     LOBBYTAB=3
+lobby-hunt        lobby     HUNT=1
+lobby-perks       lobby     LOBBYTAB=5 PERKS=1
+lobby-menu        lobby     LOBBYMENU=1
+# The lobby's entrances and exits, mid-way (they cut the lobby into pieces by LobbyLayout.cs's bands)
+lobby-enter       lobby     LOBBYIN=0.75
+lobby-enter-late  lobby     LOBBYIN=1.0
+lobby-leave       lobby     LOBBYOUT=0.5
+lobby-return      lobby     RETURN=0.5
+lobby-newrun      lobby     CRT=6.0
+lobby-launch      hud       LAUNCH=0.25
+# In a run
+hud               hud       6 12.2 3 NOISY=1
+hud-solo          hud
+hud-sliding       hud       6 12.2 1 HUDT=0.5
+hud-riot          hud       RIOT=ready
+hud-emotes        hud       EMOTEBAR=1
+hud-chips         hud       GOLD=120 MODS=5 APPROACH=1
+hud-boss          hud       5 12.2 1 WARDEN=0.6 NOISY=1
+tab               tab
+pause             pause
+pause-settings    pause     PAUSESET=2
+pause-confirm     pause     PAUSECONFIRM=1
+# Between rounds and the end
+wave-cleared      hud       4 12.2 3 WAVECLEARED=1 NOISY=1
+wave-cleared-solo hud       4 12.2 1 WAVECLEARED=1
+wave-cleared-boss hud       4 12.2 1 WAVECLEARED=boss
+wave-cleared-in   hud       4 12.2 1 WAVECLEARED=1 WCT=0.15
+picker            picker
+path              hud       PATHOFFER=bazaar
+shop              shop
+gameover          gameover
+victory           victory

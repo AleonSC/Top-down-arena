@@ -23,6 +23,9 @@ namespace Arena
                     Arc(p.Pos, Game.HalfW(p) + 6f + 22f * k, 3f, new Rgba(0.8f, 0.75f, 0.65f, 0.4f * (1f - k)), 24);
                 }
                 V2 at = p.Pos - new V2(0f, lift);
+                // Pushed: two drag lines scratched into the floor behind it, fading over a few seconds (look B of Docs/Mockups/pushable-props.html).
+                foreach (var sc in p.Scuffs)
+                    Line(sc.A, sc.B, 2f, new Rgba(0.57f, 0.63f, 0.68f, 0.35f * (1f - sc.Age / Game.ScuffLife)));
                 // Its shadow stays on the ground.
                 float hw = Game.HalfW(p), hh = Game.HalfH(p);
                 if (Game.Round(p))
@@ -649,7 +652,7 @@ namespace Arena
             if (hint == null)
                 return;
             float pulse = holding ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 3f) : 0.7f;
-            var r = new Rect(W / 2f - 280f, H - 132f, 560f, 26f);
+            var r = HudChestHint;  // over the XP strip (HudLayout.cs)
             Ui.Pill(r, new Color(0.12f, 0.09f, 0.03f, 0.7f));
             Ui.Label(r, hint, 13, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, pulse), TextAnchor.MiddleCenter, true);
         }

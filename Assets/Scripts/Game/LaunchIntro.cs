@@ -186,18 +186,18 @@ namespace Arena
             if (!LaunchActive || !launchFromLobby || launchT >= LobbyOutTime || session.Lobby.Count == 0)
                 return;
             float k = Seg(launchT, 0f, LobbyOutTime), e = k * k * (3f - 2f * k), a = 1f - Seg(launchT, 0.3f, LobbyOutTime);
-            const float split = LobbySplit;  // where the lobby's party column ends and its tabs begin
             var oldColor = GUI.color;
             bool oldEnabled = GUI.enabled;
             GUI.enabled = false;
             uiGlBlocked = true;  // its live models (GL) don't follow the slide: they wait
             Ui.Alpha = a;
             GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
-            GUI.BeginGroup(new Rect(-e * 520f, 0f, split, H));
+            Rect left = LobbyLeftSide, right = LobbyRightSide;  // the lobby's two sides (LobbyLayout.cs) sliding apart
+            GUI.BeginGroup(new Rect(left.x - e * 520f, left.y, left.width, left.height));
             DrawLobby();
             GUI.EndGroup();
-            GUI.BeginGroup(new Rect(split + e * 880f, 0f, W - split, H));
-            GUI.BeginGroup(new Rect(-split, 0f, W, H));
+            GUI.BeginGroup(new Rect(right.x + e * 880f, right.y, right.width, right.height));
+            GUI.BeginGroup(new Rect(-right.x, -right.y, W, H));
             DrawLobby();
             GUI.EndGroup();
             GUI.EndGroup();

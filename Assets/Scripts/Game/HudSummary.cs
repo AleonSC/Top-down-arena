@@ -38,17 +38,6 @@ namespace Arena
         const float RackL = 40f, RackLW = 740f, RackR = 800f, RackRW = 440f, RackFull = 1200f;
         const float RackPlayersY = 180f, RackPlayersH = 362f, RackRankY = 554f, RackRankH = 72f;
 
-        /// A CRT tube that comes in (faded, rising a little unless `slide` is off); `draw` runs between the screen and its glass.
-        void RackTube(Rect r, float k, bool slide, System.Action draw)
-        {
-            EndPart(k, slide ? new Vector2(0f, 30f * (1f - Ease(k))) : Vector2.zero, () =>
-            {
-                CrtUi.Begin(r);
-                draw();
-                CrtUi.End(r, Time.unscaledTime, fxReduced);
-            });
-        }
-
         /// The end of a run: a big outlined title (GAME OVER in red, VICTORY! in gold) in its own tube, the totals, a tube per player
         /// (their class icon big on a hatched island in their colour, then their numbers with dot leaders and bars), the run's charts,
         /// the rank strip, and the main menu's keycaps.
@@ -58,7 +47,7 @@ namespace Arena
             float now = Time.unscaledTime;
             // Everything comes in as the run's ending plays out (RunEnding.cs): the dark layer, the title stamped in the
             // middle and gliding up, then the totals, the tubes and the keys.
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.84f * EndBg));
+            RoundBackdrop(ResultsDark * EndBg);  // (RoundWindows.cs)
             Color theme = won ? Ui.Gold : new Color(1f, 0.36f, 0.38f);
             string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : game.Hunt != null ? (won ? "HUNT COMPLETE!" : "HUNT FAILED") : won ? "VICTORY!" : "GAME OVER";
             string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
@@ -79,14 +68,14 @@ namespace Arena
                     int baseSize = game.Practice != null ? 50 : 60;
                     var shake = EndTitleShake();
                     var tr = new Rect(shake.x + tx0 - tw0 * (ts - 1f) / 2f, ty + shake.y - 33f * (ts - 1f), tw0 * ts, 66f * ts);
-                    EndPart(titleIn, Vector2.zero, () =>
+                    RoundPart(titleIn, Vector2.zero, () =>
                         Ui.Glitch(tr, title, Mathf.RoundToInt(baseSize * ts), Color.white, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f)));
                 }
-                EndPart(EndSubIn, Vector2.zero, () =>
+                RoundPart(EndSubIn, Vector2.zero, () =>
                     LobbyKit.Spaced(new Rect(titleBox.x, titleBox.y + 88f, titleBox.width, 30f), sub, 14, CrtUi.Ink, TextAnchor.MiddleCenter, 3f));
             };
             if (EndLift > 0f)
-                RackTube(titleBox, EndLift, false, drawTitle);
+                RoundTube(titleBox, EndLift, false, drawTitle);
             else
                 drawTitle();
 
@@ -101,7 +90,7 @@ namespace Arena
             {
                 var c = new Rect(RackR + (i % 2) * (tileW + 16f), 24f + (i / 2) * (tileH + 16f), tileW, tileH);
                 int ti = i;
-                RackTube(c, EndTileIn(i), true, () =>  // each drops in (RunEnding.cs)
+                RoundTube(c, EndTileIn(i), true, () =>  // each drops in (RunEnding.cs)
                 {
                     CrtUi.Title(new Rect(c.x, c.y + 3f, c.width, 38f), tiles[ti, 1], 36, LobbyKit.Gold, TextAnchor.MiddleCenter, fxReduced);
                     Ui.Label(new Rect(c.x, c.yMax - 20f, c.width, 14f), tiles[ti, 0], 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
@@ -119,7 +108,7 @@ namespace Arena
             if (rankPage)
             {
                 float rk = EndCardIn(0);
-                EndPart(rk, new Vector2(0f, 60f * (1f - Ease(rk))), () => DrawRankReport(new Rect(70f, 176f, W - 140f, 448f), now - rankPageAt));
+                RoundPart(rk, new Vector2(0f, 60f * (1f - Ease(rk))), () => DrawRankReport(new Rect(70f, 176f, W - 140f, 448f), now - rankPageAt));
             }
             else if (!game.RunStatsReady)
                 Ui.Label(new Rect(0f, RackPlayersY + 160f, W, 30f), "Collecting results…", 18, Ui.Muted, TextAnchor.MiddleCenter);
@@ -132,7 +121,7 @@ namespace Arena
                 {
                     var pr = new Rect(RackL + i * (pw + pgap), RackPlayersY, pw, RackPlayersH);
                     int pi = i;
-                    RackTube(pr, EndCardIn(i), true, () => DrawPlayerSummary(players[pi], players, pr, now));
+                    RoundTube(pr, EndCardIn(i), true, () => DrawPlayerSummary(players[pi], players, pr, now));
                 }
 
                 // The run's charts, from its timeline (RunTimeline.cs): damage per second over health, as the Recent runs page draws them.
@@ -143,7 +132,7 @@ namespace Arena
                 {
                     var cr = new Rect(RackR, RackPlayersY + c * (ch + 8f), cw, ch);
                     int ci = c;
-                    RackTube(cr, chartsIn, false, () =>
+                    RoundTube(cr, chartsIn, false, () =>
                     {
                         if (tl == null)
                         {
@@ -168,7 +157,7 @@ namespace Arena
             {
                 float sk = EndingOn ? Seg(endT, EndButtonsAt, EndButtonsAt + 1.8f) : 1f;
                 var strip = new Rect(RackL, RackRankY, RackLW, RackRankH);
-                EndPart(EndCardIn(0), new Vector2(0f, 40f * (1f - Ease(EndCardIn(0)))), () =>
+                RoundPart(EndCardIn(0), new Vector2(0f, 40f * (1f - Ease(EndCardIn(0)))), () =>
                 {
                     DrawRankStrip(strip, sk, now);
                     if (Ui.HitArea(strip))
@@ -179,7 +168,7 @@ namespace Arena
             // The keys along the bottom, the main menu's keycaps: Leave and the rank report on the left, the host's choices after them.
             float buttonsIn = EndButtonsIn;
             bool endless = won && game.Hunt == null && session.IsHost;  // (a Boss Hunt is over once its boss is: no endless)
-            EndPart(buttonsIn, new Vector2(0f, 30f * (1f - Ease(buttonsIn))), () =>  // they come up last (RunEnding.cs)
+            RoundPart(buttonsIn, new Vector2(0f, 30f * (1f - Ease(buttonsIn))), () =>  // they come up last (RunEnding.cs)
             {
                 float by = H - 82f, bh = 58f, gap = 22f;
                 bool ranked = game.RunStatsReady && game.LastGain != null, host = session.IsHost;

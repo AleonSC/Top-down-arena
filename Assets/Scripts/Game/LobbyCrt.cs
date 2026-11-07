@@ -59,9 +59,9 @@ namespace Arena
             lobbyGlassTex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var px = new Color[size * size];
             float half = size / 2f;
-            var surround = new Color(0.02f, 0.03f, 0.07f, 1f);
-            var band = CrtUi.T(new Color(0.055f, 0.085f, 0.17f, 1f));
-            var line = CrtUi.T(new Color(0.17f, 0.27f, 0.50f, 1f));
+            var surround = CrtStyle.GlassSurround;  // (CrtStyle.cs; T moves the blue-theme colours to the chosen phosphor)
+            var band = CrtUi.T(CrtStyle.GlassBand);
+            var line = CrtUi.T(CrtStyle.GlassLine);
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
                 {
@@ -113,7 +113,7 @@ namespace Arena
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
             Ui.Fill(full, new Color(LobbyBg.r, LobbyBg.g, LobbyBg.b, LobbyCrtBgAlpha * a));
-            Ui.RadialGlow(new Rect(-W * 0.1f, -H * 0.1f, W * 1.2f, H * 1.2f), CrtUi.T(new Color(0.05f, 0.13f, 0.32f, 0.38f * a)));  // the glow in the middle
+            Ui.RadialGlow(new Rect(-W * 0.1f, -H * 0.1f, W * 1.2f, H * 1.2f), CrtUi.T(new Color(CrtStyle.ScreenGlow.r, CrtStyle.ScreenGlow.g, CrtStyle.ScreenGlow.b, 0.38f * a)));  // the glow in the middle
             var oldC = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.05f * a);
             GUI.DrawTexture(full, lobbyPhosTex);
@@ -195,7 +195,7 @@ namespace Arena
             // The rounded frame sits 7 px in from the screen's edge, with a thin square line 4 px in, round the outside of it (the mockup's layout).
             GUI.Box(new Rect(7f, 7f, W - 14f, H - 14f), GUIContent.none, lobbyGlassStyle);
             GUI.color = old;
-            CrtKit.Frame(new Rect(4f, 4f, W - 8f, H - 8f), 1f, CrtUi.T(new Color(0.15f, 0.21f, 0.37f, a)));
+            CrtKit.Frame(new Rect(4f, 4f, W - 8f, H - 8f), 1f, CrtUi.T(new Color(CrtStyle.ScreenFrame.r, CrtStyle.ScreenFrame.g, CrtStyle.ScreenFrame.b, a)));
         }
 
         /// New run: start the host, and (with effects on) play the CRT boot into the lobby.

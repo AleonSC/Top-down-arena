@@ -15,12 +15,12 @@ namespace Arena
 
         /// Key text is drawn at this fraction of the size asked for: the game's font is much bigger than the mockups' pixel font,
         /// and the original menus used small, light text.
-        public const float KeyScale = 0.74f;
+        public const float KeyScale = CrtStyle.KeyScale;
 
         public static int Sz(int s) => Mathf.Max(9, Mathf.RoundToInt(s * KeyScale));
 
         /// Text colour on a soft key: the accent mixed toward white (more when lit).
-        public static Color SoftText(Color c, bool lit) => Color.Lerp(c, Color.white, lit ? 0.75f : 0.3f);
+        public static Color SoftText(Color c, bool lit) => Color.Lerp(c, Color.white, lit ? CrtStyle.KeyTextMixLit : CrtStyle.KeyTextMix);
 
         /// The soft key box: a faint tint of the accent and a thin outline; hover brightens it; `on` gets a 2 px outline, a
         /// stronger tint and a glowing underline (no solid fill). locked: dim and dashed.
@@ -28,14 +28,15 @@ namespace Arena
         {
             if (locked)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.03f));
-                Dashed(r, 2f, new Color(c.r, c.g, c.b, 0.7f));
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedTint));
+                Dashed(r, CrtStyle.KeyLockedDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedDash));
                 return;
             }
-            Ui.Fill(r, new Color(c.r, c.g, c.b, on ? 0.2f : hover ? 0.14f : 0.06f));
-            Frame(r, on ? 2f : 1f, new Color(c.r, c.g, c.b, on ? 1f : hover ? 0.9f : 0.5f));
+            // (the strengths and widths: CrtStyle.cs)
+            Ui.Fill(r, new Color(c.r, c.g, c.b, on ? CrtStyle.KeyTintOn : hover ? CrtStyle.KeyTintHover : CrtStyle.KeyTint));
+            Frame(r, on ? CrtStyle.KeyRimOnW : CrtStyle.KeyRimW, new Color(c.r, c.g, c.b, on ? CrtStyle.KeyRimOn : hover ? CrtStyle.KeyRimHover : CrtStyle.KeyRim));
             if (on)
-                Ui.Glow(r, c, 0.1f);  // the selected key glows a little (no underline)
+                Ui.Glow(r, c, CrtStyle.KeyGlowOn);  // the selected key glows a little (no underline)
         }
 
         // --- Typed text -----------------------------------------------------------------------------------------------
@@ -46,6 +47,34 @@ namespace Arena
             public float T0;
         }
 
+        /// While true, `Typed` leaves existing slots alone (the old section keeps drawing its text while it backspaces away).
+        public static bool Hold;
+
+        /// Start every slot whose name starts with `prefix` backspacing to nothing.
+        public static void EraseAll(string prefix, float now)
+        {
+            foreach (var kv in slots)
+                if (kv.Key.StartsWith(prefix) && kv.Value.Target.Length > 0)
+                {
+                    kv.Value.From = Visible(kv.Value, now);
+                    kv.Value.Target = "";
+                    kv.Value.T0 = now;
+                }
+        }
+
+        /// Make sure the first `count` rows of the cabinet's list have slots, empty, so a list that switches types them all
+        /// (a row never drawn before would otherwise just appear).
+        public static void SeedRows(int count, float now)
+        {
+            for (int i = 0; i < count; i++)
+                foreach (var sfx in new[] { ".n", ".s" })
+                {
+                    string k = "cab.r" + i + sfx;
+                    if (!slots.ContainsKey(k))
+                        slots[k] = new Slot { T0 = now };
+                }
+        }
+
         static readonly Dictionary<string, Slot> slots = new Dictionary<string, Slot>();
 
         /// What to show now for a label that retypes when its text changes: the old text backspaces away over EraseLen,
@@ -53,6 +82,9 @@ namespace Arena
         /// seconds). `slot` names the label (any unique string); calm shows the text as it is.
         public static string Typed(string slot, string target, float now, bool calm, float delay = 0f)
         {
+            Slot held;
+            if (Hold && !calm && slots.TryGetValue(slot ?? "", out held))
+                return Visible(held, now);  // (a section is erasing: show what the slot is doing, whatever it is asked for)
             if (calm || string.IsNullOrEmpty(slot) || string.IsNullOrEmpty(target) && !slots.ContainsKey(slot))
                 return target ?? "";
             target = target ?? "";
@@ -212,7 +244,7 @@ namespace Arena
             bool hover = GUI.enabled && !locked && r.Contains(Event.current.mousePosition);
             if (!locked)
                 Ui.NoteHover(r);
-            Color c = locked ? CrtUi.Dim : danger ? new Color(1f, 0.42f, 0.48f) : accent ?? CrtUi.Ink;
+            Color c = CrtStyle.KeyColor(accent, danger, locked);
             bool lit = (hover || on) && !locked;
             SoftBox(r, c, on && !locked, hover && !locked, locked);
             Color tc = locked ? c : SoftText(c, lit);
@@ -248,9 +280,9 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            Ui.Fill(r, CrtUi.T(new Color(0.027f, 0.051f, 0.118f, 0.98f)));
-            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), CrtUi.T(new Color(0.06f, 0.1f, 0.22f, 0.22f)));  // a lighter top, like the lobby's wash
-            Frame(r, 1f, CrtUi.T(new Color(0.19f, 0.32f, 0.55f)));
+            Ui.Fill(r, CrtUi.T(CrtStyle.BoxFill));  // (the blue-theme colours: CrtStyle.cs; T moves them to the chosen phosphor)
+            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), CrtUi.T(CrtStyle.BoxTop));  // a lighter top, like the lobby's wash
+            Frame(r, 1f, CrtUi.T(CrtStyle.BoxRim));
             LobbyKit.Corners(r);
         }
 

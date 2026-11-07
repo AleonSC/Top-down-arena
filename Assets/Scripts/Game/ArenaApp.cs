@@ -30,7 +30,7 @@ namespace Arena
         int wildSecond = 1, wildKey = 1;  // a Wildcard's second ability (0-17) and its key (1 Q, 2 E, 3 Shift); see Defs.MakeWild
         int wildTab;                      // the lobby's Wildcard picker: 0 edits the first ability, 1 the second
         Kit kitChoice = Kit.Soldier;
-        bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
+        bool pauseMenuOpen, settingsOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the match (released, it resumes)
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked, mouseBlocked;  // a mouse press that belongs to a menu, not the game
@@ -129,6 +129,7 @@ namespace Arena
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadCamLean();     // CameraLean.cs
+            SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
@@ -234,8 +235,9 @@ namespace Arena
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
             WaveEditorUpdate(Time.unscaledDeltaTime);  // the wave editor's playhead and keys (WaveEditorUi.cs)
             foreach (var sfx in game.Sounds)
-                sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
+                sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
+            sounds.SetSawLoop(game.SawWhirrLevel);  // the Buzzsaw's contact whirr (MeleeSounds.cs)
             UpdateMusic();
             UpdateLayout();
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
@@ -470,13 +472,6 @@ namespace Arena
                         CloseCabWindow();  // the section's window slides back in first (CrtWindows.cs)
                     else
                         CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
-                }
-                else if (howToOpen)
-                {
-                    if (CabWindowOpen)
-                        CloseCabWindow();
-                    else
-                        CloseWindow(() => howToOpen = false);
                 }
                 else if (profileOpen)
                 {
@@ -719,13 +714,6 @@ namespace Arena
                         DrawMenuUnderDrawer(bgBig);
                         DrawSettings();
                     }
-                    else if (howToOpen)
-                    {
-                        DrawMenuUnderDrawer(false);
-                        DrawHowToPlay();
-                    }
-                    else if (continueOpen)
-                        DrawContinue();  // SavesUi.cs
                     else if (profileOpen)
                     {
                         DrawMenuUnderDrawer(false);

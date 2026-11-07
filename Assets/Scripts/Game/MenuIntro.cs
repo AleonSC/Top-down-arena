@@ -44,7 +44,7 @@ namespace Arena
                 TickTitleTyping();  // which types the title too
                 return;
             }
-            if (onMenu && !menuIntroDone && !whoOpen && !settingsOpen && !profileOpen && !continueOpen)
+            if (onMenu && !menuIntroDone && !whoOpen && !settingsOpen && !profileOpen)
             {
                 menuIntroDone = true;
                 menuIntroT = 0f;

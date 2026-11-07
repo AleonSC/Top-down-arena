@@ -20,8 +20,8 @@ namespace Arena
     public partial class ArenaApp
     {
         const float CabOpenEnd = 3.5f;  // seconds after opening: the opening is over, nothing animates any more
-        static readonly Color CabSoft = new Color(0.55f, 0.7f, 0.97f);       // small descriptions on a screen
-        static readonly Color CabDanger = new Color(1f, 0.42f, 0.48f);
+        static readonly Color CabSoft = CrtStyle.Desc;       // small descriptions on a screen (CrtStyle.cs)
+        static readonly Color CabDanger = CrtStyle.Danger;
         static readonly Color CabWarm = new Color(1f, 0.82f, 0.45f);         // a changed key
 
         bool CabCalm => fxReduced || !fxOn;
@@ -68,6 +68,8 @@ namespace Arena
             bool calm = CabCalm;
             float age = CabAge, now = WinNow;
             rowIndex = 0;
+            if (age >= CabOpenEnd && !calm)
+                CrtKit.SeedRows(16, now);
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, H));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
@@ -311,8 +313,17 @@ namespace Arena
         /// The window's frame: a CRT screen in the drawer panel's place. Its content (drawn in the same coordinates, moving
         /// with it) is hidden until it has powered on. A panel drawn without OpenCabWindow (the profile) powers on in place
         /// after the cabinet instead of sliding.
+        string panelKeyDrawn;  // the panel last drawn (a different one types in from nothing)
+
         void BeginPanelAnim(string key)
         {
+            if (key != panelKeyDrawn)
+            {
+                // A new section's layout shows at once, so its labels must not erase the last section's text first
+                // (that read as the window switching, then rewriting itself): they type in from nothing.
+                panelKeyDrawn = key;
+                CrtKit.Forget("win.");
+            }
             if (!cabWin)
             {
                 cabWin = true;
@@ -335,8 +346,36 @@ namespace Arena
             cabWinRow = 0;
         }
 
+        float panelSwitchAt = -1f;
+
+        /// Which section a window draws: when the pick changes, the section on screen first backspaces its text away
+        /// (CrtKit.EraseAll, held by CrtKit.Hold), then the new one is shown and types in. Not while the window is opening.
+        int PanelShown(ref int shown, int want)
+        {
+            if (CabCalm || !cabWin || WinNow - cabWinInAt < 0.8f || shown == want)
+            {
+                shown = want;
+                panelSwitchAt = -1f;
+                return shown;
+            }
+            if (panelSwitchAt < 0f)
+            {
+                panelSwitchAt = WinNow;
+                CrtKit.EraseAll("win.", WinNow);
+            }
+            if (WinNow - panelSwitchAt >= CrtKit.EraseLen)
+            {
+                shown = want;
+                panelSwitchAt = -1f;
+            }
+            else
+                CrtKit.Hold = true;
+            return shown;
+        }
+
         void EndPanelAnim()
         {
+            CrtKit.Hold = false;
             PopShift();
             GUI.enabled = cabWinEnabledWas;
         }
@@ -384,12 +423,12 @@ namespace Arena
             if (!isStatic)
                 Ui.NoteHover(r);
             size = CrtKit.Sz(size);
-            Color c = accent ?? CrtUi.Ink;
+            Color c = CrtStyle.KeyColor(accent);
             bool lit = (hover || sel) && !isStatic;
             if (isStatic)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.06f));
-                CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, 0.5f));
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyStaticTint));
+                CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, CrtStyle.KeyStaticRim));
             }
             else
                 CrtKit.SoftBox(r, c, sel, hover, false);

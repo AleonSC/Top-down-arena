@@ -12,10 +12,15 @@ namespace Arena
         int hudMode;          // 0 full, 1 corner text, 2 on the player, 3 hidden
         float miniT;          // 0..1: the partial HUD easing in and out
 
-        void SetHudMode(int mode)
+        void SetHudMode(int mode, bool save = true)
         {
             hudMode = ((mode % HudModeCount) + HudModeCount) % HudModeCount;
             hudShown = hudMode == 0;  // the full console only shows in mode 0 (Hud.cs)
+            if (save)
+            {
+                PlayerPrefs.SetInt("hud_mode", hudMode);  // remembered between launches
+                PlayerPrefs.Save();
+            }
         }
 
         /// Eases the partial HUD in or out (called every frame from Update).

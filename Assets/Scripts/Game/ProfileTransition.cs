@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The move between "Who's playing?" and the main menu (Docs/Mockups/floppy-slot.html: the drive bay, B): about 5.4 s. Picking a profile plays
-    /// it forward; the menu's "Switch profile" plays it backwards (the disk comes back out of the drive). Its clock `profTrT` runs in seconds:
+    /// it forward; the menu's eject key (DiskEject.cs) has its own move back. Its clock `profTrT` runs in seconds:
     ///   0.1 s   your disk lifts and the clamps open; 0.5 s a ring on click
     ///   0.8 s   WHO'S PLAYING?, the shelf and the other disks fade; yours flies up to the drive under the title (0.9 to 2.0 s)
     ///   2.0 s   it tips flat from its top edge onto the slit, then slides in (2.5 s); the lip flashes and the latch clicks (2.95 s)
@@ -49,33 +49,14 @@ namespace Arena
             menuIntroT = ProfTrToIntro(0f);
         }
 
-        /// The menu's "Switch profile": play the move backwards, or just show the picker.
-        void StartProfTrOut()
-        {
-            WhoRefresh();
-            int slot = whoList.FindIndex(p => p.Id == ProfileStore.ActiveId);
-            if (!ProfTrFull || slot < 0 || slot >= WhoSlots)
-            {
-                OpenWho();
-                return;
-            }
-            whoManage = false;
-            whoEdit = null;
-            whoError = "";
-            whoArmed = null;
-            profTr = true;
-            profTrFwd = false;
-            profTrT = ProfTrLen;
-            profTrPrev = ProfTrLen + 0.0001f;
-            profTrAge = 0f;
-            profTrSlot = slot;
-            menuIntroT = MenuIntroLen - 0.001f;
-            sounds.Play(Sfx.ProfSelect, 0.7f, Time.unscaledTime);
-        }
-
         /// Update (from TickMenuIntro): run the clock and its sounds, and hand the menu its place in its intro.
         void TickProfTr(float dt)
         {
+            if (profEj)
+            {
+                TickProfEj(dt);  // the eject key's move (DiskEject.cs)
+                return;
+            }
             profTrAge += dt;
             if (Input.anyKeyDown && profTrAge > 0.25f)
                 profTrT = profTrFwd ? ProfTrLen : 0f;  // skipped: straight to the end, silently
@@ -145,6 +126,11 @@ namespace Arena
         /// picker's title and boxes on top.
         void DrawProfTr()
         {
+            if (profEj)
+            {
+                DrawProfEj();  // DiskEject.cs
+                return;
+            }
             DrawMenu();
             DrawProfTrWho(profTrT);
         }

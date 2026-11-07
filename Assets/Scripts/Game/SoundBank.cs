@@ -6,7 +6,7 @@ namespace Arena
     /// Sound effects synthesized at startup, so the project needs no audio files.
     /// Gunshots are built from layers (muzzle crack, body blast, low thump, room
     /// tail and a small reverb); tweak the recipes in Build() to change them.
-    public class SoundBank
+    public partial class SoundBank
     {
         const int Rate = 44100;
         const int Variants = 3;  // slightly different takes of each gunshot, played in turn
@@ -212,7 +212,7 @@ namespace Arena
             if (s == Sfx.EnemyShot)
                 return Category.Enemies;
             string name = s.ToString();
-            if (name.StartsWith("Boss") || name.StartsWith("Zombie"))
+            if (name.StartsWith("Boss") || name.StartsWith("Zombie") || IsMeleeEnemySfx(name))
                 return Category.Enemies;
             if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit)
                 return Category.Weapons;
@@ -245,6 +245,8 @@ namespace Arena
                 voices[i].spatialBlend = 0f;
             }
             Build();
+            BuildMelee(owner);  // MeleeSoundBank.cs
+            BuildNinja();  // NinjaSoundBank.cs
         }
 
         void Build()

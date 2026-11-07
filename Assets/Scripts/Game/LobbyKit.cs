@@ -8,9 +8,10 @@ namespace Arena
     /// stat bars and the tiles' gold. CrtKit has the shared key; this adds the variants the loadout needs.
     public static class LobbyKit
     {
-        public static readonly Color Gold = new Color(1f, 0.83f, 0.42f);
-        public static readonly Color Soft = new Color(0.76f, 0.80f, 0.91f);  // body text on the screen
-        public static readonly Color HeadCol = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)
+        // (the colours: CrtStyle.cs)
+        public static readonly Color Gold = CrtStyle.Gold;
+        public static readonly Color Soft = CrtStyle.Body;     // body text on the screen
+        public static readonly Color HeadCol = CrtStyle.Head;  // section headings (the mockup's teal)
 
         public static Color Ink(float a) => new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
 
@@ -57,13 +58,13 @@ namespace Arena
             {
                 // A key that can't be used yet (Start before everyone is ready): dim and dashed, with its text.
                 var d = CrtUi.Dim;
-                Ui.Fill(r, new Color(d.r, d.g, d.b, 0.015f));
-                CrtKit.Dashed(r, 1f, new Color(d.r, d.g, d.b, 0.3f));  // faded: nothing to press yet
-                Draw(r, text, icon, stack, colorIcon, size, minSize, new Color(d.r, d.g, d.b, 0.5f), false, calm, sub, true);
+                Ui.Fill(r, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitTint));
+                CrtKit.Dashed(r, 1f, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitDash));  // faded: nothing to press yet
+                Draw(r, text, icon, stack, colorIcon, size, minSize, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitText), false, calm, sub, true);
                 return false;
             }
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
-            Color c = danger ? new Color(1f, 0.42f, 0.48f) : accent ?? CrtUi.Ink;
+            Color c = CrtStyle.KeyColor(accent, danger);
             CrtKit.SoftBox(r, c, on, hover, false);  // a faint tint and a thin outline; the open key gets an underline glow, not a solid fill
             Color tc = CrtKit.SoftText(c, hover || on);
             Draw(r, text, icon, stack, colorIcon, size, minSize, tc, false, calm, sub, false);
@@ -206,7 +207,7 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var c = CrtUi.T(new Color(0.36f, 0.6f, 1f));
+            var c = CrtUi.T(CrtStyle.Corner);
             float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
             // A faint halo along each arm only (a halo round the whole corner square read as a bright spot).
             const float hs = 0.05f;

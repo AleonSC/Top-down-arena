@@ -41,6 +41,7 @@ namespace Arena
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
             DrawMenuTitle(t);
             DrawDriveSlot(EaseOut(MenuAxisK), DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
+            DrawDriveEject(EaseOut(MenuAxisK), !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
             if (box > 0f)
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyBox(MenuCard)));
             if (BeginUiGl())
@@ -367,11 +368,8 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// What's left outside the box: the "Switch profile" tab under your player card (only while the mouse is over the
-        /// card or the tab), and the tooltip. live = false draws it only (Repaint),
+        /// What's left outside the box: the tooltip (the profile switch is the drive's eject key now, DiskEject.cs). live = false draws it only (Repaint),
         /// for the intro and the move into the lobby.
-        float switchProfA;  // 0 to 1: how visible the "Switch profile" button is
-
         void DrawMenuSecondary(float t, bool live)
         {
             if (!live && Event.current.type != EventType.Repaint)
@@ -382,20 +380,6 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, 100f * (1f - EaseOut(k)), W, H));
             if (live)
                 TipClear();  // the rank badge's hover card (RankUi.cs)
-            if (live && ProfileStore.Root != null && !menuPlayOpen)
-            {
-                var sw = new Rect(MenuPlayerRect.center.x - 70f, MenuPlayerRect.yMax + 6f, 140f, 24f);  // under the card
-                bool near = MenuPlayerRect.Contains(Event.current.mousePosition) || sw.Contains(Event.current.mousePosition);
-                if (Event.current.type == EventType.Repaint)
-                    switchProfA = Mathf.MoveTowards(switchProfA, near ? 1f : 0f, Time.unscaledDeltaTime * 5f);
-                if (switchProfA > 0.01f)
-                {
-                    bool clicked = false;
-                    WithAlpha(switchProfA, () => clicked = Ui.ActionButton(sw, "Switch profile", false, Ui.Primary, null, null, 14));
-                    if (clicked && switchProfA > 0.5f)
-                        StartProfTrOut();  // the move back to the picker (ProfileTransition.cs)
-                }
-            }
             if (live)
                 DrawTip();
             GUI.EndGroup();
@@ -598,7 +582,6 @@ namespace Arena
         };
 
         /// How to play, as the side drawer (MenuDrawer.cs).
-        void DrawHowToPlay() { if (!SkipWhileClosing) DrawHowToWindow(); }  // (a closing window takes no clicks, WindowAnim.cs)
 
         /// A keyboard key: a raised cap with its label. Returns its width.
         float KeyCap(float x, float y, string key)
