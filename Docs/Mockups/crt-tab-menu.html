@@ -106,13 +106,20 @@ h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var
    every 3.4 s, a magenta / cyan fringe on the left / right edge, two short dips every 5 s. Plus the projector: a beam strip along the
    bottom, a faint cone of light rising behind the panels, and each panel switching on from a line when the page changes. */
 .stage[data-look="B"] .dark { background: rgba(3,4,10,.42); }
-.stage[data-look="B"] .tube { background: linear-gradient(to bottom, rgba(32,58,110,.62) 0%, rgba(9,22,48,.74) 70%, rgba(3,8,20,.82) 100%);
+.stage[data-look="B"] .tube { background: linear-gradient(to bottom, rgba(20,38,78,.82) 0%, rgba(7,16,36,.9) 70%, rgba(3,8,20,.93) 100%);
   box-shadow: inset 0 0 19px color-mix(in srgb, var(--ink) 42%, transparent), 0 0 22px rgba(102,163,255,.1); animation: holoflick 5s steps(1) infinite; }
-.stage[data-look="B"] .tube::before { background: repeating-linear-gradient(to top, color-mix(in srgb, var(--ink) 20%, transparent) 0 1px, transparent 1px 4px); }
+.stage[data-look="B"] .tube::before { background: repeating-linear-gradient(to top, color-mix(in srgb, var(--ink) 11%, transparent) 0 1px, transparent 1px 4px); }
+/* the text sits above the glass effects (scanlines, band, fringe), so it stays sharp */
+.stage[data-look="B"] .tube > .in { z-index: 8; }
+.stage[data-look="B"] { --dim: #7499da; }
+.stage[data-look="B"] .row, .stage[data-look="B"] .rt, .stage[data-look="B"] .up { color: #e6edff; }
+.wd { color: #8fa6d6; }
+.stage[data-look="B"] .abil .ds, .stage[data-look="B"] .wd { color: #b9cbf0; }
+.stage[data-look="B"] .t, .stage[data-look="B"] .k { text-shadow: 0 0 4px color-mix(in srgb, var(--ink) 35%, transparent); }
 .stage[data-look="B"] .tube::after { background: linear-gradient(to right, rgba(255,60,200,.35) 0 2px, transparent 2px calc(100% - 2px), rgba(60,240,255,.35) calc(100% - 2px)); }
-.stage[data-look="B"] .roll { height: 28%; background: linear-gradient(to bottom, transparent, rgba(160,200,255,.13), transparent); animation: band 3.4s linear infinite; }
+.stage[data-look="B"] .roll { height: 28%; background: linear-gradient(to bottom, transparent, rgba(160,200,255,.07), transparent); animation: band 3.4s linear infinite; }
 .stage[data-look="B"] .tube.boot { animation: holoboot .38s cubic-bezier(.2,.8,.3,1) both, holoflick 5s steps(1) .38s infinite; }
-.stage[data-look="B"] h3, .stage[data-look="B"] .big { text-shadow: -1.5px 0 rgba(255,60,200,.45), 1.5px 0 rgba(60,240,255,.45), 0 0 10px var(--glow); }
+.stage[data-look="B"] h3, .stage[data-look="B"] .big { text-shadow: -1px 0 rgba(255,60,200,.28), 1px 0 rgba(60,240,255,.28), 0 0 8px color-mix(in srgb, var(--ink) 40%, transparent); }
 .stage[data-look="B"] .row:nth-child(odd) { background: color-mix(in srgb, var(--ink) 9%, transparent); }
 .emit { position: absolute; left: 140px; width: 1000px; top: 704px; height: 5px; background: linear-gradient(to right, transparent, var(--ink) 12%, #cfe2ff 50%, var(--ink) 88%, transparent);
   box-shadow: 0 0 16px var(--ink), 0 -4px 30px rgba(102,163,255,.5); border-radius: 3px; }
@@ -120,7 +127,7 @@ h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var
   background: linear-gradient(to top, rgba(102,163,255,.16), rgba(102,163,255,.05) 45%, transparent 85%); }
 .cone::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(150,190,255,.05) 0 1px, transparent 1px 22px); }
 @keyframes band { from { top: -28.8%; } to { top: 115.2%; } }
-@keyframes holoflick { 0%, 93.9% { opacity: 1; } 94%, 95.9% { opacity: .78; } 96%, 97.9% { opacity: 1; } 98%, 100% { opacity: .82; } }
+@keyframes holoflick { 0%, 93.9% { opacity: 1; } 94%, 95.9% { opacity: .9; } 96%, 97.9% { opacity: 1; } 98%, 100% { opacity: .92; } }
 @keyframes holoboot { from { transform: scaleY(.015); filter: brightness(2.2); } 60% { filter: brightness(1.4); } to { transform: none; filter: none; } }
 .calm .tube, .calm .tube.boot { animation: none !important; } .calm .cone::after { display: none; }
 @media (prefers-reduced-motion: reduce) { .tube, .tube.boot, .roll { animation: none !important; } }
@@ -188,7 +195,7 @@ function stats() {
     STATS.map(g => `<div class="head" style="margin-top:6px">${g[0]}</div>` + g[1].map(r => `<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("")).join("");
 }
 function abilities(compact) {
-  return `<div class="head">WEAPON</div><div style="font:700 17px var(--f-game);color:#fff">Flamethrower</div><div style="font:11px/1.3 var(--f-game);color:#8fa6d6;margin-bottom:10px">A short-range stream of fire. Each flame hits the first enemy hard and carries on through the rest.</div>
+  return `<div class="head">WEAPON</div><div style="font:700 17px var(--f-game);color:#fff">Flamethrower</div><div class="wd" style="font:11px/1.3 var(--f-game);margin-bottom:10px">A short-range stream of fire. Each flame hits the first enemy hard and carries on through the rest.</div>
     <div class="head">ABILITIES <small>CLICK A KEY TO MOVE IT</small></div><div style="display:grid;grid-template-columns:minmax(0,1fr);gap:6px">` +
     ABIL.map(a => `<div class="abil${a[6] ? " mov" : ""}" data-ms="★ MASTERED (LV 5): ${a[5].toUpperCase()}"><div class="top"><span class="cap${a[0].startsWith("ULT") ? " ult" : ""}">${a[0]}</span><span class="pips"><i class="on"></i><i></i><i></i><i></i><i></i></span>LV ${a[2]}<span class="r${a[3].includes("0/") || a[3].match(/^\d+s$/) ? " cd" : ""}">${a[3].toUpperCase()}</span></div>
       <div class="nm">${a[1]}</div><div class="ds">${a[4]}</div>${compact ? "" : `<div class="ms">★ MASTERED (LV 5): ${a[5].toUpperCase()}</div>`}
@@ -210,7 +217,7 @@ function mate(m) {
   return `<div style="min-width:0"><div style="display:flex;gap:14px"><div class="island" style="position:static;--c:${m.col};flex:none"><b></b></div><div style="flex:1;min-width:0"><div style="font:700 22px var(--f-game);color:${m.col}">${m.n}</div><div class="sub" style="color:${m.col};opacity:.85">${m.c.toUpperCase()} · LEVEL 1</div>
     <div style="display:flex;justify-content:space-between;font:400 16px var(--f-crt);color:var(--dim);margin:6px 0 3px"><span>HEALTH</span><span style="color:#fff">${m.hp[0]} / ${m.hp[1]}</span></div><div class="hp"><s style="width:${m.hp[0] / m.hp[1] * 100}%"></s></div>
     <div style="font:400 17px var(--f-crt);color:var(--ink);margin-top:6px">${m.st.toUpperCase()}</div></div></div>
-    <div class="head" style="margin-top:12px">WEAPON</div><div style="font:700 15px var(--f-game);color:#fff">${m.w}</div><div style="font:11px var(--f-game);color:#8fa6d6;margin-bottom:8px">${m.wd}</div>
+    <div class="head" style="margin-top:12px">WEAPON</div><div style="font:700 15px var(--f-game);color:#fff">${m.w}</div><div class="wd" style="font:11px var(--f-game);margin-bottom:8px">${m.wd}</div>
     <div class="head">ABILITIES</div>` + m.ab.map(a => `<div style="display:flex;align-items:center;gap:10px;height:21px;font:${a[1] === "—" ? "13px" : "700 13px"} var(--f-game);color:${a[1] === "—" ? "var(--dim)" : "#fff"}"><span class="cap${a[0].startsWith("ULT") ? " ult" : ""}" style="width:62px;text-align:center">${a[0]}</span>${a[1]}${a[1] !== "—" ? '<span style="margin-left:auto;font:400 15px var(--f-crt);color:var(--dim)">LV 1</span>' : ""}</div>`).join("") +
     `<div class="head" style="margin-top:10px">UPGRADES <small>9</small></div><div style="columns:2;column-gap:14px">` + TEAMUPS.map(u => `<div class="up"><i style="background:${RAR[u[1]][1]}"></i>${u[0]}${u[2] ? `<em>×${u[2]}</em>` : ""}</div>`).join("") + `</div></div>`;
 }
