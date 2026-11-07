@@ -79,7 +79,7 @@ namespace Arena
             float ty = tight ? 2f : 6f, th = tight ? 46f : 56f, sy = tight ? 50f : 64f;
             float ha = age - 0.5f;
             if (ha > 0f || calm)  // a thin rule under the title and its line
-                Ui.Fill(new Rect(hr.x, hr.yMax + 4f, hr.width, 1f), new Color(0.12f, 0.23f, 0.4f));
+                Ui.Fill(new Rect(hr.x, hr.yMax + 4f, hr.width, 1f), CrtUi.T(new Color(0.12f, 0.23f, 0.4f)));
             if (calm || ha >= 0f)
             {
                 int size = Mathf.Min(titleSize, 40);

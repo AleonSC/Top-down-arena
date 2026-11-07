@@ -691,16 +691,20 @@ namespace Arena
             if (names != fxCallouts) { fxCallouts = names; changed = true; }
             bool calm = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
+            DrawBackgroundRow(new Rect(x, y + 70f, w, 92f));  // MenuBackgrounds.cs
+            float cy = y + 172f;
+            WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);
+            int theme = WinChoices(new Rect(x, cy + 26f, w, 34f), CrtUi.ThemeNames, CrtUi.Theme);
+            if (theme != CrtUi.Theme) { CrtUi.Theme = theme; changed = true; }
             if (changed)
                 SaveFxSettings();
-            DrawBackgroundRow(new Rect(x, y + 70f, w, 92f));  // MenuBackgrounds.cs
         }
 
         /// A tiny fight that follows the visual settings: shots into a target (it flashes and shows numbers), an
         /// ability's name now and then, a blast that shakes the box.
         void DrawFxPreview(Rect r, float t)
         {
-            Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
+            Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
             CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
             float cyc = MathX.Fmod(t, 3f), boom = Mathf.Max(0f, 1f - Mathf.Abs(cyc - 2.2f) * 4f);
             bool shake = fxOn && !fxReduced && fxShake > 0;
@@ -1030,7 +1034,7 @@ namespace Arena
         /// How to play's challenge rooms: two players walk into a portal and it fills.
         void DrawPortalDiagram(Rect r, float t)
         {
-            Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
+            Ui.Fill(r, CrtUi.T(new Color(0.01f, 0.02f, 0.05f, 1f)));
             CrtKit.Frame(r, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
             float k = MathX.Fmod(t, 5f) / 5f, walk = Mathf.Clamp01(k / 0.35f), fill = Mathf.Clamp01((k - 0.35f) / 0.45f);
             V2 portal = new V2(r.x + r.width * 0.62f, r.center.y);

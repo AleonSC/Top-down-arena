@@ -248,9 +248,9 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            Ui.Fill(r, new Color(0.027f, 0.051f, 0.118f, 0.98f));
-            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), new Color(0.06f, 0.1f, 0.22f, 0.22f));  // a lighter top, like the lobby's wash
-            Frame(r, 1f, new Color(0.19f, 0.32f, 0.55f));
+            Ui.Fill(r, CrtUi.T(new Color(0.027f, 0.051f, 0.118f, 0.98f)));
+            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), CrtUi.T(new Color(0.06f, 0.1f, 0.22f, 0.22f)));  // a lighter top, like the lobby's wash
+            Frame(r, 1f, CrtUi.T(new Color(0.19f, 0.32f, 0.55f)));
             LobbyKit.Corners(r);
         }
 
@@ -271,7 +271,7 @@ namespace Arena
                 Ui.Fill(new Rect(screen.x + d, screen.y + d + step, step, screen.height - 2f * (d + step)), c);
                 Ui.Fill(new Rect(screen.xMax - d - step, screen.y + d + step, step, screen.height - 2f * (d + step)), c);
             }
-            Frame(screen, rim, new Color(0.07f, 0.125f, 0.247f, vis));
+            Frame(screen, rim, CrtUi.T(new Color(0.07f, 0.125f, 0.247f, vis)));
             Frame(new Rect(screen.x + rim, screen.y + rim, screen.width - 2f * rim, screen.height - 2f * rim), line, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, vis));
         }
 

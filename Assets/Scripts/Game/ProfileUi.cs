@@ -181,8 +181,8 @@ namespace Arena
         {
             if (!CabCalm && CabAge < delay)
                 return false;
-            Ui.Fill(r, new Color(0.02f, 0.04f, 0.1f, 0.9f));
-            CrtKit.Frame(r, 1f, new Color(0.14f, 0.24f, 0.4f));
+            Ui.Fill(r, CrtUi.T(new Color(0.02f, 0.04f, 0.1f, 0.9f)));
+            CrtKit.Frame(r, 1f, CrtUi.T(new Color(0.14f, 0.24f, 0.4f)));
             return true;
         }
 

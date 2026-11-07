@@ -33,6 +33,7 @@ namespace Arena
             fxNumbers = PlayerPrefs.GetInt("fx_numbers", 1) == 1;
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
+            CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
         }
 
         void SaveFxSettings()
@@ -42,6 +43,7 @@ namespace Arena
             PlayerPrefs.SetInt("fx_numbers", fxNumbers ? 1 : 0);
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
             PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
+            PlayerPrefs.SetInt("crt_theme", CrtUi.Theme);
             PlayerPrefs.Save();
             if (!fxOn)
                 ClearJuice();
