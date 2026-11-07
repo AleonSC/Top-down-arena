@@ -400,13 +400,14 @@ namespace Arena
             DpsMeterKeys();  // F2: the DPS meter (DpsMeterUi.cs)
             TextEditKeys();  // F4: the dev text editor
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
-                hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
+                SetHudMode(hudMode + 1);  // H: full > corner text > on the player > hidden (HudModes.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
             TickRecall(Time.unscaledDeltaTime);      // back to the lobby from a run: the beam-out (Recall.cs)
             TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
+            TickMiniHud();  // the partial HUD easing in and out (HudModes.cs)
             hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud && !BossIntroHoldsHud && !RecallActive ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);  // (a boss's entrance card hides it: Juice.cs)
             if (BossIntroHoldsHud)
                 introHidHud = true;

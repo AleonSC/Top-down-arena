@@ -643,10 +643,11 @@ namespace Arena
                     if (l2 != aimLine)
                         SetAimLine(l2);
                     y += 66f;
-                    bool hud = SwitchRow(new Rect(x, y, w, 54f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)));
-                    if (hud != hudShown)
-                        hudShown = hud;
-                    y += 66f;
+                    WinLabel(new Rect(x, y, w, 24f), "HUD", "H cycles it; a slim boss bar stays when it's hidden");
+                    int hudPick = WinChoices(new Rect(x, y + 28f, w, 34f), HudModeNames, hudMode);
+                    if (hudPick != hudMode)
+                        SetHudMode(hudPick);
+                    y += 74f;
                     bool lean2 = SwitchRow(new Rect(x, y, w, 54f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
                     if (lean2 != camLean)
                         SetCamLean(lean2);

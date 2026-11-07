@@ -53,7 +53,8 @@ namespace Arena
                 if (LaunchHides(p))
                     continue;  // not landed yet (LaunchIntro.cs)
                 DrawLaunchIcon(p, at, r);
-                DrawName(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
+                if (!(hudMode == 2 && p.Id == game.MyId))  // (the "on the player" HUD puts your health there instead)
+                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
                     ToColor(p.Def.Color.WithAlpha(0.95f)), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {
@@ -76,6 +77,7 @@ namespace Arena
                 HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
                 HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleGlass);  // scanlines and glass over all of it
             }
+            DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
             if (me != null && !me.Downed)
                 DrawEmoteBar(W / 2f, H - 112f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
@@ -142,10 +144,10 @@ namespace Arena
                 {
                     var hint = new Rect(W - 290f, 10f, 274f, 22f);
                     Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
-                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  hide HUD", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
                 });
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
-                float back = Mathf.Clamp01((0.35f - hudT) / 0.35f);
+                float back = hudMode == 3 ? Mathf.Clamp01((0.35f - hudT) / 0.35f) : 0f;  // (only when fully hidden: the partial HUDs are their own reminder)
                 if (back > 0f && !LaunchActive && !RecallActive)  // (not while a run launches, the HUD on its way in, or beams out: Recall.cs)
                 {
                     float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
