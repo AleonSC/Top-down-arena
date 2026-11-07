@@ -252,6 +252,43 @@ namespace Arena
             return shown.ToArray();
         }
 
+        /// The boot's sounds for the span a..b seconds in: a power-on thump as the screen flares, a key per typed log character and a beep as each
+        /// line starts, the scan line's sweep with a tick per piece lighting up, and a chime at the end. A skip (the clock jumping) plays only the chime.
+        void PlayCrtEntryCues(float a, float b)
+        {
+            if (sounds == null)  // the preview tool has no sound bank
+                return;
+            float now = Time.unscaledTime;
+            bool skipped = b - a > 0.5f;
+            if (!skipped)
+            {
+                if (a <= 0f && b > 0f)
+                    sounds.Play(Sfx.CrtPower, 0.6f, now);
+                var before = CrtLogShown(a);
+                var after = CrtLogShown(b);
+                int ca = 0, cb = 0;
+                foreach (var l in before) ca += l.Length;
+                foreach (var l in after) cb += l.Length;
+                if (a < CrtLogFadeAt)
+                {
+                    for (int i = 0, n = Mathf.Min(3, cb - ca); i < n; i++)
+                        sounds.Play(Sfx.CrtType, 0.5f, now);
+                    if (after.Length > before.Length && b > CrtLogAt && before.Length > 0)
+                        sounds.Play(Sfx.CrtLine, 0.5f, now);
+                }
+                if (a < CrtPiecesAt && b >= CrtPiecesAt)
+                    sounds.Play(Sfx.CrtSweep, 0.5f, now);
+                for (int i = 0; i < 6; i++)  // the lobby's pieces lighting up, one by one
+                {
+                    float at = CrtPiecesAt + 0.2f + 0.14f * i;
+                    if (a < at && b >= at)
+                        sounds.Play(Sfx.BayTick, 0.5f, now);
+                }
+            }
+            if (a < EnterCrtLen - 0.9f && b >= EnterCrtLen - 0.9f || skipped && b >= EnterCrtLen)
+                sounds.Play(Sfx.CrtReady, 0.55f, now);
+        }
+
         /// Instead of DrawLobby while New run is opening it (see the timeline at the top).
         void DrawLobbyEnteringCrt()
         {

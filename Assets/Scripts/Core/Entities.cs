@@ -46,6 +46,8 @@ namespace Arena
         // The menu's Play transition (MenuServo.cs, version 2 of Docs/Mockups/menu-bay-doors.html): beeps, the doors' servo whine (and backwards),
         // a clamp, the screen's power-on zap, the keys' whirr and tick, the box's lift, its seating thud, and a flap click per header letter. Never sent.
         BayBeep, BayServo, BayServoBack, BayClamp, BayZap, BayWhirr, BayTick, BayLift, BaySeat, BayClack,
+        // New run's CRT boot into the lobby (LobbyCrt.cs, PlayCrtEntryCues): power-on thump, a key per typed character, a beep per log line, the scan line's sweep, and the ready chime. Never sent.
+        CrtPower, CrtType, CrtLine, CrtSweep, CrtReady,
     }
 
     public struct SoundCue

@@ -573,6 +573,23 @@ namespace Arena
                     Tone(0.01f, Osc.Square, 700f * clackHz[k], 700f * clackHz[k], 0.05f, attack: 0.001f, decay: 3f)), 0.16f);
             Set(Sfx.BayClack, clacks, 0.015f);
 
+            // New run's CRT boot (LobbyCrt.cs): a degauss thump with a rising whine, a soft key per typed character (takes rotated), a two-tone beep per log line,
+            // the scan line's rising sweep, and a short ready chime.
+            Set(Sfx.CrtPower, Finish(Mix(Tone(0.35f, Osc.Sine, 70f, 38f, 0.5f, attack: 0.003f, decay: 2.5f),
+                Tone(0.9f, Osc.Saw, 120f, 1800f, 0.07f, lowpass: 0.2f, attack: 0.15f, decay: 1.6f),
+                Tone(0.2f, Osc.Sine, 3000f, 3000f, 0.08f, noise: 1f, lowpass: 0.8f, attack: 0.002f, decay: 3f)), 0.4f), 0.05f);
+            var ctype = new float[3][];
+            float[] ctypeHz = { 0.94f, 1f, 1.08f };
+            for (int k = 0; k < 3; k++)
+                ctype[k] = Finish(Mix(Tone(0.01f, Osc.Sine, 2800f * ctypeHz[k], 2800f * ctypeHz[k], 0.18f, noise: 0.9f, lowpass: 0.6f, attack: 0.001f, decay: 3f),
+                    Tone(0.025f, Osc.Square, 900f * ctypeHz[k], 900f * ctypeHz[k], 0.05f, attack: 0.001f, decay: 3f)), 0.14f);
+            Set(Sfx.CrtType, ctype, 0.01f);
+            Set(Sfx.CrtLine, Finish(Concat(Tone(0.06f, Osc.Square, 880f, 880f, 0.1f, lowpass: 0.4f, attack: 0.003f, decay: 2.5f),
+                Tone(0.09f, Osc.Square, 1320f, 1320f, 0.1f, lowpass: 0.4f, attack: 0.003f, decay: 2.5f)), 0.2f), 0.04f);
+            Set(Sfx.CrtSweep, Finish(Mix(Tone(1.0f, Osc.Saw, 200f, 1400f, 0.08f, lowpass: 0.25f, attack: 0.1f, decay: 1.2f),
+                Tone(1.0f, Osc.Sine, 3200f, 5200f, 0.04f, noise: 0.6f, lowpass: 0.8f, attack: 0.2f, decay: 1.5f)), 0.22f), 0.05f);
+            Set(Sfx.CrtReady, Finish(Notes(new[] { 784f, 1047f, 1568f }, 0.09f, Osc.Sine, 0.22f, 1f), 0.3f), 0.05f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
