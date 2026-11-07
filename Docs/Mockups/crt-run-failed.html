@@ -1,0 +1,271 @@
+<title>CRT Run Failed</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game canvas) scaled to fit. Four run-failed screens built from the lobby's CRT parts: VT323 text in one phosphor colour, digital keys, scanlines and glass. Colour stays in the player card, the XP bars and the pixel icons. Phosphor defaults to red because the run failed; Blue is the lobby's own. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 74ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .k:focus-visible, .tac:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 12px var(--f-mono); color: var(--muted); letter-spacing: .04em; line-height: 1.5; }
+.desc2 { font: 500 14px/1.45 var(--f-ui); color: var(--muted); max-width: 90ch; margin: 0; }
+.desc2 b { color: var(--fg); }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-ui);
+  --ink: #ff7a86; --dim: #b4505b; --sbg: #14050a; --glow: rgba(255,90,110,.55); --rim: #2e0c14; --gold: #f2c14e; --hot: #ff3b4e; }
+.stage[data-pal="blue"] { --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.55); --rim: #12203f; --hot: #ff6b7a; }
+.stage[data-pal="green"] { --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --rim: #0d2417; --hot: #ff6b7a; }
+.stage[data-pal="amber"] { --ink: #ffb347; --dim: #b5762a; --sbg: #130b02; --glow: rgba(255,179,71,.5); --rim: #2a1a08; --hot: #ff6b4a; }
+.box { position: absolute; color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow); overflow: hidden; isolation: isolate; background: var(--sbg); }
+.box > .in { position: absolute; inset: 0; z-index: 1; }
+.at { position: absolute; }
+.lab { font: 18px/1 var(--f-crt); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); text-shadow: none; }
+.g { position: absolute; display: grid; gap: 8px; } .g > * { min-width: 0; }
+/* digital keys, same as the lobby */
+.k { --c: var(--ink); font: 26px/1 var(--f-crt); letter-spacing: .05em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 2px solid var(--c); padding: 3px 10px 0; height: 100%; width: 100%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); white-space: nowrap; transition: background .08s, color .08s; }
+.k:hover, .k.sel { background: var(--c); color: var(--sbg); text-shadow: none; }
+.k.pri { font-size: 32px; } .k.pri:not(:hover) { background: color-mix(in srgb, var(--c) 18%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 40%, transparent); }
+.k kbd { font: 20px var(--f-crt); border: 1px solid currentColor; padding: 1px 6px 0; opacity: .85; }
+.k .gl { font-size: 24px; margin-top: -2px; }
+.tac { font: 700 22px var(--f-ui); color: #e9efff; letter-spacing: .05em; cursor: pointer; border-radius: 10px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); transition: transform .06s, box-shadow .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); } .tac:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0f22, 0 2px 4px rgba(0,0,0,.5); }
+.tac.pri { background: linear-gradient(#5a74c8, #2f4496); border-color: #8aa3ee; }
+.tac kbd { font: 700 14px var(--f-mono); background: rgba(0,0,0,.35); border-radius: 4px; padding: 2px 6px; }
+/* scanlines, vignette, roll bar */
+.box::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.24) 0 1px, transparent 1px 3px); }
+.box::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.5) 100%); }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.045), transparent); animation: roll 8s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes jit { 0%, 92%, 100% { transform: translate(0,0); } 93% { transform: translate(-6px,1px); } 95% { transform: translate(5px,-1px); } 97% { transform: translate(-2px,0); } }
+.cur { display: inline-block; width: .45em; height: .72em; background: currentColor; margin-left: 6px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+.rec { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--hot); box-shadow: 0 0 10px var(--hot); margin-right: 8px; animation: blink 1.2s steps(1) infinite; }
+.title { font-family: var(--f-crt); color: #fff; line-height: .8; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; text-shadow: 5px 0 rgba(255,59,138,.65), -5px 0 rgba(59,240,255,.5), 0 0 26px var(--glow); animation: jit 5s steps(1) infinite; }
+.stage.calm .roll { display: none; } .stage.calm .box, .stage.calm .k { text-shadow: none; } .stage.calm .cur, .stage.calm .rec, .stage.calm .title { animation: none; } .stage.calm .title { text-shadow: 0 0 18px var(--glow); }
+.deco, .glass { position: absolute; inset: 0; pointer-events: none; } .glass { z-index: 30; }
+.glassroll { position: absolute; left: 0; right: 0; height: 26%; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.04), transparent); animation: roll 9s linear infinite; }
+.stage.calm .glassroll { display: none; }
+/* parts */
+.tile { background: color-mix(in srgb, var(--ink) 9%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 45%, transparent); height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.tile b { font: 400 38px/1 var(--f-crt); color: var(--gold); text-shadow: 0 0 8px rgba(242,193,78,.6); } .tile span { font: 12px var(--f-ui); letter-spacing: .12em; color: var(--dim); text-shadow: none; text-transform: uppercase; margin-top: 2px; }
+.tile.row { flex-direction: row; justify-content: space-between; padding: 0 12px; } .tile.row b { font-size: 30px; }
+.card { position: absolute; border: 2px solid #4dff9a; box-shadow: 0 0 18px rgba(77,255,154,.4), inset 0 0 18px rgba(77,255,154,.18); overflow: hidden; background: #05150d; }
+.card .hatch { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(77,255,154,.09) 0 6px, transparent 6px 12px); }
+.card canvas { position: absolute; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255,160,60,.5)); }
+.card .tg { position: absolute; font: 700 13px/1 var(--f-ui); letter-spacing: .1em; padding: 5px 8px 4px; text-shadow: none; }
+.tg.role { background: #135c34; color: #b7ffd3; } .tg.lv { background: #d9b04a; color: #2b1f00; text-align: center; }
+.card .nm { position: absolute; font: 700 30px/1 var(--f-ui); color: #7dffb4; text-shadow: 0 0 10px rgba(77,255,154,.5); }
+.card .cl { position: absolute; font: 700 17px/1 var(--f-ui); color: #7dffb4; opacity: .85; text-shadow: none; }
+.st { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 12px; font: 24px/1 var(--f-crt); letter-spacing: .04em; color: var(--ink); }
+.st i { font-style: normal; color: var(--dim); text-shadow: none; } .st b { font-weight: 400; color: #fff; text-shadow: none; }
+.st.lead { grid-template-columns: auto 1fr auto; } .st.lead u { text-decoration: none; border-bottom: 2px dotted color-mix(in srgb, var(--ink) 45%, transparent); height: 12px; }
+.sbar { height: 5px; background: rgba(255,255,255,.09); margin-top: 6px; position: relative; } .sbar s { position: absolute; inset: 0 auto 0 0; background: var(--ink); box-shadow: 0 0 8px var(--glow); }
+.sbar.safe s { background: #4dff9a; box-shadow: 0 0 8px rgba(77,255,154,.6); }
+.badge { width: 50px; height: 56px; background: linear-gradient(#f6d77a, #b8861f); clip-path: polygon(50% 0, 100% 14%, 100% 66%, 50% 100%, 0 66%, 0 14%); display: flex; align-items: center; justify-content: center; font: 700 17px var(--f-ui); color: #2b1f00; text-shadow: none; padding-bottom: 6px; flex: none; }
+.rank { display: flex; align-items: center; gap: 14px; height: 100%; padding: 0 14px; }
+.rank .nm { font: 26px/1 var(--f-crt); color: var(--gold); letter-spacing: .05em; text-shadow: 0 0 8px rgba(242,193,78,.5); } .rank .nm small { font: 22px var(--f-crt); margin-left: 12px; color: #ffe08a; }
+.xpbar { height: 8px; background: rgba(255,255,255,.1); } .xpbar s { display: block; width: 1%; height: 100%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.xpn { text-align: right; font: 21px/1 var(--f-crt); color: #e9efff; text-shadow: none; }
+.seg10 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; height: 100%; }
+.seg10 i { border: 2px solid color-mix(in srgb, var(--ink) 40%, transparent); } .seg10 i.on { background: var(--ink); border-color: var(--ink); box-shadow: 0 0 12px var(--glow); animation: blink 1s steps(1) infinite; } .seg10 i.x { border-style: dashed; }
+.stage.calm .seg10 i.on { animation: none; }
+.log { font: 22px/1.28 var(--f-crt); color: var(--ink); } .log em { font-style: normal; color: var(--dim); text-shadow: none; margin-right: 10px; } .log .bad { color: #fff; background: var(--hot); text-shadow: none; padding: 0 6px; }
+.tl { position: absolute; left: 18px; right: 18px; top: 44px; height: 6px; background: color-mix(in srgb, var(--ink) 18%, transparent); }
+.tl s { position: absolute; inset: 0 auto 0 0; background: var(--ink); box-shadow: 0 0 10px var(--glow); }
+.tl .t { position: absolute; top: -9px; width: 2px; height: 24px; background: var(--dim); } .tl .t.bad { background: var(--hot); width: 4px; top: -12px; height: 30px; box-shadow: 0 0 10px var(--hot); }
+.tlab { position: absolute; font: 18px/1 var(--f-crt); color: var(--dim); text-shadow: none; white-space: nowrap; }
+.sub { font: 26px/1 var(--f-crt); letter-spacing: .22em; text-transform: uppercase; color: var(--ink); }
+/* per layout chrome */
+.sA .deco, .sC .deco, .sD .deco { background: radial-gradient(70% 60% at 30% 15%, color-mix(in srgb, var(--ink) 11%, transparent), transparent), var(--sbg); }
+.sA .glass, .sC .glass, .sD .glass { border-radius: 36px; box-shadow: inset 0 0 130px rgba(0,0,0,.7), inset 0 0 0 7px var(--rim), inset 0 0 0 9px var(--dim); background: repeating-linear-gradient(to bottom, rgba(0,0,0,.2) 0 1px, transparent 1px 3px); overflow: hidden; }
+.sA .box, .sC .box, .sD .box { background: transparent; } .sA .box::before, .sA .box::after, .sC .box::before, .sC .box::after, .sD .box::before, .sD .box::after { display: none; }
+.frame { border: 1px solid color-mix(in srgb, var(--ink) 50%, transparent); background: color-mix(in srgb, var(--ink) 4%, transparent) !important; overflow: visible !important; }
+.frame::before, .frame::after { display: block !important; content: ""; position: absolute; width: 20px; height: 20px; border: 2px solid var(--ink); z-index: 2; background: none !important; inset: auto; }
+.frame::before { left: -6px; top: -6px; border-right: 0; border-bottom: 0; } .frame::after { right: -6px; bottom: -6px; border-left: 0; border-top: 0; }
+.sB .deco { background: radial-gradient(60% 70% at 72% 18%, #2a1222, transparent), radial-gradient(60% 60% at 20% 95%, #1c1226, transparent), #0a0d1c; }
+.sB .deco::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,120,150,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,120,150,.05) 1px, transparent 1px); background-size: 44px 44px; }
+.sB .box { border-radius: 8px; box-shadow: inset 0 0 40px rgba(0,0,0,.85), 0 0 0 3px var(--rim), 0 0 0 4px var(--dim); }
+.sB .card { border-radius: 6px; }
+.sB[data-pal="blue"] .deco { background: radial-gradient(60% 70% at 72% 18%, #1c2656, transparent), radial-gradient(60% 60% at 20% 95%, #2a1226, transparent), #0a0d1c; }
+.vcr .rail { position: absolute; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--ink) 30%, transparent); }
+
+/* main-menu buttons: bevelled blue slabs with an inset frame, a corner screw lamp and a dark base lip, inside a bracketed panel */
+.mmpanel { position: absolute; border: 2px solid #4a66c8; background: linear-gradient(#0c1330, #080d22); box-shadow: 0 0 22px rgba(80,120,255,.3), inset 0 0 0 1px #1b2a63; }
+.mmpanel::before, .mmpanel::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid #7fa0ff; }
+.mmpanel::before { left: -7px; top: -7px; border-right: 0; border-bottom: 0; } .mmpanel::after { right: -7px; bottom: -7px; border-left: 0; border-top: 0; }
+.mm { position: relative; width: 100%; height: 100%; cursor: pointer; font: 700 24px var(--f-ui); letter-spacing: .02em; color: #eef2ff; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 6px;
+  background: linear-gradient(#4a62c4 0%, #3a4fa6 45%, #2e3f8c 100%); border: 1px solid #7f9aee; border-bottom: 0; box-shadow: 0 5px 0 #17214f, 0 8px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35); transition: transform .06s, box-shadow .06s, filter .1s; }
+.mm::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(190,205,255,.5); border-radius: 3px; background: linear-gradient(rgba(255,255,255,.08), transparent 55%); pointer-events: none; }
+.mm::after { content: ""; position: absolute; right: 9px; top: 8px; width: 6px; height: 6px; border-radius: 1px; background: #0b1230; box-shadow: 0 0 0 1px rgba(150,170,255,.35); }
+.mm:hover { filter: brightness(1.15); } .mm:active { transform: translateY(4px); box-shadow: 0 1px 0 #17214f, 0 2px 5px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); }
+.mm:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.mm.big { font-size: 40px; letter-spacing: .04em; } .mm.big .gl { font-size: 34px; }
+.mm.sm { font-size: 22px; }
+.mm kbd { font: 700 14px var(--f-mono); background: rgba(5,10,40,.5); border: 1px solid rgba(190,205,255,.4); border-radius: 4px; padding: 2px 6px; }
+.mm .gl { font-size: 22px; line-height: 1; }
+@media (prefers-reduced-motion: reduce) { .roll, .cur, .rec, .title, .glassroll, .seg10 i.on { animation: none !important; } }
+</style>
+<div class="wrap">
+<header><h1>CRT Run Failed</h1><p>Four layouts for the end-of-run screen when the run is lost, all built from the lobby's CRT kit: VT323 type in a single phosphor colour, digital keys with the same hover and press, scanlines, vignette and glass. Colour stays where the lobby keeps it: the player card, the XP bar and the pixel icons. The numbers are the ones in the current Hunt Failed screenshot. Pick a layout, a mode (the title and subtitle change like the game's), and a phosphor.</p></header>
+<div class="bar">
+<div class="grp"><span>Layout</span><button class="seg" data-lay="A" aria-pressed="false">A Terminal</button><button class="seg" data-lay="B" aria-pressed="true">B Rack</button><button class="seg" data-lay="C" aria-pressed="false">C Post-mortem</button><button class="seg" data-lay="D" aria-pressed="false">D Tape</button></div>
+<div class="grp"><span>Mode</span><button class="seg" data-mode="gauntlet" aria-pressed="false">Gauntlet</button><button class="seg" data-mode="hunt" aria-pressed="true">Boss Hunt</button><button class="seg" data-mode="practice" aria-pressed="false">Practice</button></div>
+<div class="grp"><span>Phosphor</span><button class="seg" data-pal="red" aria-pressed="false">Red</button><button class="seg" data-pal="blue" aria-pressed="true">Blue</button><button class="seg" data-pal="amber" aria-pressed="false">Amber</button><button class="seg" data-pal="green" aria-pressed="false">Green</button></div>
+<div class="grp"><span>Effects</span><button class="seg" id="bfx" aria-pressed="false">Reduced effects</button></div></div>
+<div class="view" id="view"><div class="stage sB" id="stage" data-pal="blue"></div></div>
+<p class="desc2" id="lay-desc"></p>
+<p class="note">Mockup only. Hover the keys to see the inverse-video press. The pixel flame is the Elementalist class icon from the game, enlarged.</p>
+</div>
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); }, $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+  var PAL = { k: [20, 20, 30], w: [255, 255, 255], y: [255, 215, 80], o: [255, 140, 40], n: [100, 230, 100], N: [40, 140, 65] };
+  var FLAME = [".....k......", "....kok.....", "....kok..k..", "...koyok.kk.", "..koyyok.kok", "..koyyyokkok", ".koyywyyokok", ".koywwyyyok.", ".koywwwyyok.", "..koyyyyok..", "...kooook...", "....kkkk...."];
+  function pix(canvas, rows, size) {
+    canvas.width = canvas.height = 12; canvas.style.width = canvas.style.height = size + 'px'; var g = canvas.getContext('2d');
+    rows.forEach(function (r, y) { for (var x = 0; x < 12; x++) { var c = PAL[r[x]]; if (c) { g.fillStyle = 'rgb(' + c.join(',') + ')'; g.fillRect(x, y, 1, 1); } } });
+  }
+  var MODES = {
+    gauntlet: { title: 'GAME OVER', sub: 'YOU MADE IT TO WAVE 1', where: 'WAVE 1', cause: 'Overrun on wave 1', left: '7 enemies left', track: 50, trackLabel: 'WAVE 1 OF 50' },
+    hunt: { title: 'HUNT FAILED', sub: 'YOU MADE IT TO HUNT WAVE 1 OF 10', where: 'HUNT WAVE 1/10', cause: 'Hunt lost on wave 1', left: '7 enemies left', track: 10, trackLabel: 'HUNT WAVE 1 OF 10' },
+    practice: { title: 'PRACTICE OVER', sub: 'YOU MADE IT TO PRACTICE WAVE 1 OF 6', where: 'PRACTICE WAVE 1/6', cause: 'Practice ended on wave 1', left: '7 enemies left', track: 6, trackLabel: 'PRACTICE WAVE 1 OF 6' }
+  };
+  var DESC = {
+    A: '<b>A, Terminal.</b> One calm phosphor screen under glass, like the lobby\'s look A. The title is stamped big with the same glitch the game uses; totals, player card and rank sit in framed panels with corner brackets. Closest to the current layout, so the easiest to build.',
+    B: '<b>B, Rack.</b> Separate screens bolted to a dark chassis, like the lobby\'s look B. Each block (title, totals, player, rank, run log) is its own tube, and the four actions are physical keys. Reads as a control room that just lost signal.',
+    C: '<b>C, Post-mortem.</b> A two-column fault report. The title is stacked huge on the left with a segmented wave track showing how far you got; the right column is the player card over a dot-leader stats sheet with a cause-of-failure line. Best for a run you want to learn from.',
+    D: '<b>D, Tape.</b> The run as a recording. A REC bar, a scrub timeline with the first kill and the moment you went down, and the actions as transport keys. Uses the "Session recorded" file the game already writes, so it adds a story to the screen.'
+  };
+  var S = { lay: 'B', mode: 'hunt', pal: 'blue', calm: false };
+  var stage = $('#stage'), view = $('#view');
+
+  function box(id, x, y, w, h, inner, cls) { return '<div class="box ' + (cls || '') + '" id="' + id + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px"><div class="in">' + inner + '</div><i class="roll"></i></div>'; }
+  function at(x, y, w, h, inner, cls, extra) { return '<div class="at ' + (cls || '') + '" style="left:' + x + 'px;top:' + y + 'px;' + (w ? 'width:' + w + 'px;' : '') + (h ? 'height:' + h + 'px;' : '') + (extra || '') + '">' + inner + '</div>'; }
+  function grid(x, y, w, h, cols, rows, items, gap) { return '<div class="g" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;grid-template-columns:repeat(' + cols + ',1fr);grid-template-rows:repeat(' + rows + ',1fr);' + (gap != null ? 'gap:' + gap + 'px' : '') + '">' + items.join('') + '</div>'; }
+  function key(inner, cls, act) { return '<button class="k ' + (cls || '') + '" data-act="' + (act || '') + '">' + inner + '</button>'; }
+  function tac(inner, cls, act) { return '<button class="tac ' + (cls || '') + '" data-act="' + (act || '') + '">' + inner + '</button>'; }
+  function tile(v, l, cls) { return '<div class="tile ' + (cls || '') + '"><b>' + v + '</b><span>' + l + '</span></div>'; }
+  function totals(m) { return [tile('1', 'Wave'), tile('0:30', 'Time'), tile('30', 'Score'), tile('9', 'Kills')]; }
+  function card(x, y, w, h, big) {
+    var ps = big ? 104 : 84, px = big ? (w - ps) / 2 : 14, py = big ? 26 : (h - ps) / 2 - 4;
+    var h1 = '<div class="card" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px"><div class="hatch"></div>';
+    h1 += '<canvas data-flame="' + ps + '" style="left:' + px + 'px;top:' + py + 'px"></canvas>';
+    if (big) {
+      h1 += '<div class="tg role" style="left:12px;top:' + (h - 76) + 'px;width:' + (w - 24) + 'px;text-align:center">+ HEALER</div><div class="tg lv" style="left:12px;top:' + (h - 40) + 'px;width:' + (w - 24) + 'px">LEVEL 1</div>';
+      h1 += '<div class="nm" style="left:12px;top:' + (py + ps + 6) + 'px;width:' + (w - 24) + 'px;text-align:center;font-size:28px">Anthony</div><div class="cl" style="left:12px;top:' + (py + ps + 40) + 'px;width:' + (w - 24) + 'px;text-align:center;font-size:15px">Elementalist Healer</div>';
+    } else {
+      var tx = 14 + ps + 16;
+      h1 += '<div class="nm" style="left:' + tx + 'px;top:' + (h / 2 - 44) + 'px">Anthony</div><div class="cl" style="left:' + tx + 'px;top:' + (h / 2 - 6) + 'px">Elementalist Healer · Radiant Orb</div>';
+      h1 += '<div class="tg role" style="left:' + tx + 'px;top:' + (h / 2 + 22) + 'px">+ HEALER</div><div class="tg lv" style="left:' + (tx + 92) + 'px;top:' + (h / 2 + 22) + 'px;width:92px">LEVEL 1</div>';
+    }
+    return h1 + '</div>';
+  }
+  var STATS = [['Damage dealt', '428', .85], ['Kills', '9', .6], ['Biggest hit', '8', .3], ['Accuracy', '61%', .61], ['Healing done', '8', .12], ['Allies revived', '0'], ['Damage taken', '129', .5], ['Times downed', '1'], ['Abilities used', '1']];
+  function statRow(s, lead) {
+    var inner = lead ? '<div class="st lead"><i>' + s[0] + '</i><u></u><b>' + s[1] + '</b></div>' : '<div class="st"><i>' + s[0] + '</i><b>' + s[1] + '</b></div>';
+    return inner + (s[2] != null && !lead ? '<div class="sbar safe"><s style="width:' + Math.round(s[2] * 100) + '%"></s></div>' : '');
+  }
+  function stats(x, y, w, cols, rowH, list) {
+    var out = '', per = Math.ceil(list.length / cols), cw = (w - 28 * (cols - 1)) / cols;
+    list.forEach(function (s, i) { var c = Math.floor(i / per), r = i % per; out += at(x + c * (cw + 28), y + r * rowH, cw, 0, statRow(s), '', ''); });
+    return out;
+  }
+  function rank(w, h) {
+    return '<div class="rank" style="height:' + h + 'px"><div class="badge">999</div><div style="flex:1;min-width:0"><div class="nm">RANK 999<small>Legend</small></div><div class="xpbar" style="margin-top:9px"><s></s></div><div class="lab" style="margin-top:7px;font-size:16px">Waves 0</div></div><div style="width:210px"><div class="xpn">865 / 199,800 XP</div></div><div style="width:1px;align-self:stretch;margin:10px 0;background:color-mix(in srgb,var(--ink) 40%,transparent)"></div><div style="width:150px;text-align:center"><div style="font:36px/1 var(--f-crt);color:#fff;text-shadow:none">+0</div><div class="lab" style="font-size:15px;margin-top:3px">XP earned</div></div></div>';
+  }
+  function actions4(cls) { return [key('<span class="gl">&#9211;</span>LEAVE', cls, 'leave'), key('<span class="gl">&#9733;</span>RANK REPORT', cls, 'rank'), key('PLAY AGAIN <kbd>R</kbd>', cls + ' pri', 'again'), key('<span class="gl">&larr;</span>BACK TO LOBBY <kbd>L</kbd>', cls, 'lobby')]; }
+  function titleHtml(m, size) { return '<div class="title" style="font-size:' + size + 'px">' + m.title + '</div>'; }
+
+  function layA(m) {
+    var h = '<div class="deco"></div>';
+    h += at(0, 22, 1280, 0, '<div style="text-align:center">' + titleHtml(m, 112) + '</div>');
+    h += at(0, 138, 1280, 0, '<div class="sub" style="text-align:center">' + m.sub + '</div>');
+    h += box('tot', 140, 182, 1000, 64, grid(0, 0, 1000, 64, 4, 1, totals(m), 16));
+    h += box('main', 140, 266, 1000, 296, card(12, 12, 236, 272, true) + stats(272, 16, 340, 1, 52, STATS.slice(0, 5)) + stats(640, 16, 340, 1, 52, STATS.slice(5)) + at(640, 16 + 4 * 52 + 8, 340, 0, '<div class="lab">Upgrades</div><div class="st" style="margin-top:6px"><i>none picked</i></div>'), 'frame');
+    h += box('rk', 140, 580, 1000, 64, rank(1000, 64), 'frame');
+    h += box('keys', 140, 656, 1000, 48, grid(0, 0, 1000, 48, 4, 1, actions4('sm'), 12));
+    h += '<div class="glass"><i class="glassroll"></i></div>';
+    return h;
+  }
+  function layB(m) {
+    var h = '<div class="deco"></div>';
+    h += box('t', 40, 26, 740, 150, at(30, 20, 0, 0, titleHtml(m, 104)) + at(32, 118, 0, 0, '<div class="sub" style="font-size:22px">' + m.sub + '</div>'));
+    var tl = totals(m);
+    h += grid(800, 26, 440, 150, 2, 2, tl.map(function (t) { return '<div class="box" style="position:relative;height:100%"><div class="in">' + t.replace('class="tile "', 'class="tile" style="border:0;background:none"') + '</div><i class="roll"></i></div>'; }), 16);
+    h += box('p', 40, 196, 740, 336, card(14, 14, 214, 308, true) + stats(250, 18, 480, 1, 33, STATS.slice(0, 9).map(function (s) { return [s[0], s[1]]; })).replace(/class="st"/g, 'class="st lead"').replace(/<i>([^<]*)<\/i><b>/g, '<i>$1</i><u></u><b>') );
+    h += box('r', 800, 196, 440, 150, rank(440, 150).replace('width:210px', 'width:0;display:none').replace(/<div style="width:1px[^>]*><\/div>/, '').replace('width:150px;text-align:center', 'width:90px;text-align:center'));
+    h += box('log', 800, 362, 440, 170, at(18, 12, 400, 0, '<div class="lab" style="margin-bottom:8px">Run log</div><div class="log"><em>0:00</em>Hunt begins<br><em>0:12</em>First kill<br><em>0:30</em><span class="bad">DOWNED</span> 7 left<br><em>0:30</em>Party wiped<i class="cur"></i></div>'));
+    h += grid(40, 560, 1200, 72, 4, 1, ['<button class="mm" data-act="leave"><span class="gl">&#9211;</span>Leave</button>', '<button class="mm" data-act="rank"><span class="gl">&#9733;</span>Rank report</button>', '<button class="mm" data-act="again"><span class="gl">&#9654;</span>Play again <kbd>R</kbd></button>', '<button class="mm" data-act="lobby"><span class="gl">&larr;</span>Back to lobby <kbd>L</kbd></button>'], 18);
+    h += at(40, 656, 1200, 0, '<div class="note" style="text-align:center;color:#8f9bc0">Session recorded: ...\\Top-Down Arena\\sessions\\session-20261107-061659.json</div>');
+    return h;
+  }
+  function layC(m) {
+    var h = '<div class="deco"></div>';
+    h += at(60, 40, 0, 0, '<div class="title" style="font-size:150px;line-height:.78;white-space:normal">' + m.title.split(' ').join('<br>') + '</div>');
+    var t = m.title.split(' '); if (t.length < 2) h = h;
+    h += at(62, 322, 560, 0, '<div class="sub" style="font-size:22px;letter-spacing:.14em;white-space:normal;line-height:1.1">' + m.sub + '</div>');
+    var segs = ''; for (var i = 0; i < 10; i++) segs += '<i class="' + (i === 0 ? 'on' : 'x') + '"></i>';
+    h += box('wt', 60, 364, 560, 62, at(14, 8, 0, 0, '<span class="lab" style="font-size:16px">Wave track · ' + m.trackLabel + '</span>') + '<div style="position:absolute;left:14px;right:14px;top:30px;height:22px"><div class="seg10">' + segs + '</div></div>', 'frame');
+    h += box('rk', 60, 448, 560, 72, rank(560, 72).replace('width:210px', 'width:0;display:none').replace(/<div style="width:1px[^>]*><\/div>/, '').replace('width:150px', 'width:100px'), 'frame');
+    h += grid(60, 536, 560, 60, 4, 1, totals(m), 8);
+    h += grid(60, 612, 560, 84, 2, 2, actions4('sm'), 8);
+    h += box('c', 660, 40, 560, 126, card(0, 0, 560, 126, false).replace('class="card" style="left:0px;top:0px;', 'class="card" style="left:0px;top:0px;position:absolute;'));
+    h += box('s', 660, 184, 560, 512, at(20, 14, 520, 0, '<div class="hd2" style="display:flex;justify-content:space-between;border-bottom:1px solid color-mix(in srgb,var(--ink) 40%,transparent);padding-bottom:4px"><span style="font-size:25px;letter-spacing:.08em">RUN REPORT</span><span class="lab" style="align-self:end">1 player</span></div>') +
+      stats(20, 62, 520, 1, 33, STATS.map(function (s) { return [s[0], s[1]]; })).replace(/class="st"/g, 'class="st lead"').replace(/<i>([^<]*)<\/i><b>/g, '<i>$1</i><u></u><b>') +
+      at(20, 378, 520, 0, '<div class="lab" style="margin-bottom:8px">Cause of failure</div><div class="log"><span class="bad">DOWNED</span> at 0:30, ' + m.where + '<br><em>&gt;</em>' + m.left + '<br><em>&gt;</em>Damage taken 129 against 8 healed<i class="cur"></i></div>'), 'frame');
+    h += '<div class="glass"><i class="glassroll"></i></div>';
+    return h;
+  }
+  function layD(m) {
+    var h = '<div class="deco"></div>';
+    h += at(90, 28, 0, 0, '<span class="rec"></span><span class="lab" style="font-size:22px;color:var(--ink)">REC &nbsp; session-20261107-061659</span>');
+    h += at(780, 28, 410, 0, '<span class="lab" style="font-size:22px;color:var(--ink);float:right">SP &nbsp; 0:30</span>');
+    h += at(0, 66, 1280, 0, '<div style="text-align:center">' + titleHtml(m, 104) + '</div>');
+    h += at(0, 162, 1280, 0, '<div class="sub" style="text-align:center;font-size:24px">' + m.sub + '</div>');
+    h += box('tl', 90, 204, 1100, 86, '<div class="tl"><s style="width:100%"></s>' +
+      '<i class="t" style="left:0%"></i><i class="t" style="left:40%"></i><i class="t" style="left:72%"></i><i class="t bad" style="left:calc(100% - 4px)"></i></div>' +
+      '<div class="tlab" style="left:18px;top:12px">0:00 START</div><div class="tlab" style="left:calc(18px + 40% * 1064 / 100);top:12px;transform:translateX(-50%)">0:12 FIRST KILL</div><div class="tlab" style="left:calc(18px + 72% * 1064 / 100);top:12px;transform:translateX(-50%)">0:22 ABILITY</div><div class="tlab" style="right:18px;top:12px;color:var(--hot);text-shadow:0 0 8px var(--hot)">0:30 DOWNED</div>' +
+      '<div class="tlab" style="left:18px;top:62px">PLAYBACK</div><div class="tlab" style="right:18px;top:62px">LENGTH 0:30 &nbsp; 9 KILLS</div>', 'frame vcr');
+    h += box('c', 90, 312, 300, 266, card(0, 0, 300, 266, true));
+    var off = STATS.slice(0, 4), sup = [STATS[4], STATS[5]], sur = STATS.slice(6);
+    function grp(x, y, name, list) { return at(x, y, 236, 0, '<div class="lab" style="margin-bottom:6px;font-size:17px">' + name + '</div><div style="border-top:1px solid color-mix(in srgb,var(--ink) 40%,transparent);padding-top:6px"></div>') + stats(x, y + 34, 236, 1, 34, list).replace(/class="st"/g, 'class="st lead"').replace(/<i>([^<]*)<\/i><b>/g, '<i>$1</i><u></u><b>').replace(/<div class="sbar[^>]*><s[^>]*><\/s><\/div>/g, ''); }
+    h += box('st', 410, 312, 520, 266, grp(14, 12, 'Offence', off) + grp(268, 12, 'Support', sup) + grp(268, 132, 'Survival', sur) + at(14, 196, 236, 0, '<div class="lab">Upgrades</div><div class="st" style="margin-top:6px"><i>none picked</i></div>'), 'frame');
+    h += grid(950, 312, 240, 266, 1, 4, totals(m).map(function (t) { return t.replace('class="tile "', 'class="tile row"'); }), 8);
+    h += box('rk', 90, 596, 1100, 56, rank(1100, 56).replace('<div class="lab" style="margin-top:7px;font-size:16px">Waves 0</div>', ''), 'frame');
+    h += grid(90, 664, 1100, 44, 4, 1, [key('<span class="gl">&#9209;</span>LEAVE', 'sm', 'leave'), key('<span class="gl">&#9211;</span>RANK REPORT', 'sm', 'rank'), key('<span class="gl">&#9654;</span>PLAY AGAIN <kbd>R</kbd>', 'sm pri', 'again'), key('<span class="gl">&#9198;</span>BACK TO LOBBY <kbd>L</kbd>', 'sm', 'lobby')], 12);
+    h += '<div class="glass"><i class="glassroll"></i></div>';
+    return h;
+  }
+  var LAY = { A: layA, B: layB, C: layC, D: layD };
+
+  function render() {
+    stage.className = 'stage s' + S.lay + (S.calm ? ' calm' : '');
+    stage.setAttribute('data-pal', S.pal);
+    stage.innerHTML = LAY[S.lay](MODES[S.mode]);
+    $$('canvas[data-flame]', stage).forEach(function (c) { pix(c, FLAME, +c.getAttribute('data-flame')); });
+    $('#lay-desc').innerHTML = DESC[S.lay];
+    $$('.k, .tac, .mm', stage).forEach(function (b) { b.addEventListener('click', function () { var a = b.getAttribute('data-act'); toast(a === 'again' ? 'Play again' : a === 'lobby' ? 'Back to lobby' : a === 'rank' ? 'Rank report' : 'Leave'); }); });
+    fit();
+  }
+  function toast(t) { var old = $('.ttoast', stage); if (old) old.remove(); var d = document.createElement('div'); d.className = 'ttoast'; d.style.cssText = 'position:absolute;right:30px;bottom:6px;z-index:40;font:24px var(--f-crt);color:var(--ink);background:var(--sbg);border:2px solid var(--ink);padding:6px 14px 3px'; d.textContent = '> ' + t; stage.appendChild(d); setTimeout(function () { d.remove(); }, 1100); }
+  function fit() { var s = view.clientWidth / 1280; stage.style.transform = 'scale(' + s + ')'; }
+  function pick(sel, attr, key) { $$(sel).forEach(function (b) { b.addEventListener('click', function () { S[key] = b.getAttribute(attr); $$(sel).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); render(); }); }); }
+  pick('[data-lay]', 'data-lay', 'lay'); pick('[data-mode]', 'data-mode', 'mode'); pick('[data-pal]', 'data-pal', 'pal');
+  $('#bfx').addEventListener('click', function () { S.calm = !S.calm; this.setAttribute('aria-pressed', S.calm ? 'true' : 'false'); render(); });
+  window.addEventListener('resize', fit);
+  render();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

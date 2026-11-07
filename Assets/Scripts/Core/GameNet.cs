@@ -512,6 +512,7 @@ namespace Arena
             s.Float(ref p.CoatT);
             s.Byte(ref p.AmmoUsed);
             s.Byte(ref p.StunShots);
+            s.Byte(ref p.PactRez);
             s.Vec(ref p.LightPos);
             s.Bool(ref p.RadiantOn);
             s.Vec(ref p.RadiantPos);
@@ -698,6 +699,7 @@ namespace Arena
             int id = 0, kind = 0, owner = 0, link = 0, stacks = 0;
             V2 pos = default(V2);
             float aim = 0f, t = 0f, duration = 0f, guard = 0f, scale = 0f, wind = 0f;
+            int pact = 255;
             if (!s.Reading)
             {
                 id = m.Id;
@@ -715,6 +717,7 @@ namespace Arena
                 link = m.LinkTo;
                 stacks = m.Stacks;
                 wind = m.Wind;
+                pact = m.Pact;
             }
             s.Int(ref id);
             s.Byte(ref kind);
@@ -728,6 +731,7 @@ namespace Arena
             s.Int(ref link);
             s.Byte(ref stacks);
             s.Float(ref wind);
+            s.Byte(ref pact);
             if (s.Reading)
             {
                 if (!Minions.TryGetValue(id, out m))
@@ -744,6 +748,7 @@ namespace Arena
                 m.LinkTo = link;
                 m.Stacks = stacks;
                 m.Wind = wind;
+                m.Pact = (byte)pact;
             }
             return id;
         }

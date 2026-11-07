@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ static partial class Program
 
         // The hunt itself, in co-op: the friend's lobby and game know it's a hunt.
         port = nextPort++;
+        string wasFolder = Profile.Folder, huntDir = Path.Combine(Path.GetTempPath(), "arena-hunt-" + Guid.NewGuid().ToString("N"));
+        Profile.Folder = huntDir;  // (so the hunt's curve is written)
         var host = new Session();
         var hp = host.Game.ProfileOverride = new Profile();
         hp.BossBeaten(EnemyType.Boss, 5);
@@ -93,7 +96,13 @@ static partial class Program
         var back = Profile.Parse(hp.ToText());
         Check(back.HuntWon(EnemyType.Boss) == 1 && back.HuntPlayed(EnemyType.Boss) == 1 && Math.Abs(back.HuntBestTime(EnemyType.Boss) - hp.HuntBestTime(EnemyType.Boss)) < 0.01f,
             "hunt records read back from the profile's text");
+        var huntLog = hp.Recent.Count > 0 ? hp.Recent[0] : null;
+        var huntTl = huntLog == null ? null : RunTimelineStore.Load(huntLog.File);
+        Check(huntLog != null && huntLog.Result == 3 && huntLog.Mode == "Hunt" && huntLog.Class.Length > 0 && huntTl != null && huntTl.Won && huntTl.Samples.Count >= 3 && huntTl.Mode == "Hunt",
+            "a finished hunt keeps its curve too (the results screen graphs it)");
         host.Leave(""); client.Leave("");
+        Profile.Folder = wasFolder;
+        try { Directory.Delete(huntDir, true); } catch (IOException) { }
     }
 
     static void ZombieTest(float dt)

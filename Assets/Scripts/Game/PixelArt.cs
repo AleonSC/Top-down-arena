@@ -140,7 +140,7 @@ namespace Arena
             { "Tsunami", "cyclone" },
             { "Golem Wall", "guard_wide" },
             { "Earthquake", "earthshaker" },
-            { "Guardian Spirit", "guard_reinforced" },
+            { "Force Pact", "guard_reinforced" },
             { "Spirit Swarm", "regen2" },
             { "Phoenix", "flame" },
             { "Soul Lantern", "halo" },

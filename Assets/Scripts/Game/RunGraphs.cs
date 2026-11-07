@@ -15,6 +15,7 @@ namespace Arena
         int recentSelSeen = -1;
         string recentTlFile = "";
         RunTimeline recentTl;
+        Rect? chartTipBounds;   // where ChartTip may draw (the drawer panel unless set; the results screen sets the whole canvas)
 
         const int RecentCards = 4;
         const int TrendRuns = 12;
@@ -213,14 +214,15 @@ namespace Arena
         void ChartTip(string head, List<KeyValuePair<string, Color>> rows)
         {
             var m = Event.current.mousePosition;
+            var lim = chartTipBounds ?? DrawerPanel;
             float w = Mathf.Max(head.Length, 12) * 6.6f + 20f;
             foreach (var r in rows)
                 w = Mathf.Max(w, r.Key.Length * 6.6f + 20f);
             float h = 22f + rows.Count * 16f;
             float x = m.x + 16f, y = m.y - h - 6f;
-            if (x + w > DrawerPanel.xMax - 6f)
+            if (x + w > lim.xMax - 6f)
                 x = m.x - w - 12f;
-            if (y < DrawerPanel.y + 4f)
+            if (y < lim.y + 4f)
                 y = m.y + 18f;
             var box = new Rect(x, y, w, h);
             Ui.Pill(box, new Color(0.03f, 0.04f, 0.08f, 0.96f));

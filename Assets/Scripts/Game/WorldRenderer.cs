@@ -156,9 +156,12 @@ namespace Arena
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerLinks(p, t);
+            foreach (var p in game.Players.Values)
+                DrawPactTimer(p, t);  // ForcePactLook.cs
             foreach (var minion in game.Minions.Values)
                 DrawMinion(minion, t);
             SweepCloneWalls();  // CloneWallLook.cs
+            SweepGolemWalls(t);  // GolemWallLook.cs
             DrawFrenzyMinions(t);  // Alpha Call's frenzied minions (AbilityLooks.cs)
             foreach (var o in game.Orbs.Values)
                 DrawOrb(o, t);
