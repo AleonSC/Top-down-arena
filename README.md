@@ -1070,15 +1070,13 @@ everyone the run's numbers about once a second, and again the moment the game pa
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The pause menu, **Settings**, **Profile** and **How to play**
-share one look, a **CRT cabinet** (`Docs/Mockups/crt-pause-menu.html`): a blue cabinet floating on the left (24 px in from the left, top and bottom, rounded, with a soft glow and bracket
-corners) with a header screen ("PAUSED_", "SETTINGS_", "MENU_") over one screen of soft option keys (a faint tint, brighter
-under the mouse, outlined and underlined when selected). The whole screen darkens softly toward its edges while one of these menus is up.
-What an option opens appears as its own **CRT window** to the right: it slides out from behind the cabinet and powers on
+share one look, the **lobby loadout's box** (`Docs/Mockups/pause-settings-loadout-box.html`): a navy panel with a thin blue rim and bracket corners that slides out from the left (24 px in from the left, top and bottom). The title ("PAUSED_", "SETTINGS_", "MENU_") and its sub-line sit straight on it over a thin rule, with the soft option keys below (a faint tint, brighter under the mouse, outlined when selected). The whole screen darkens softly toward its edges while one of these menus is up. The **Profile** menu still uses the older CRT cabinet.
+What an option opens appears as a second loadout box to the right (the pause menu's run summary sits there until you pick something): it slides out from behind the left box
 the first time you pick something; picking another option while it is open only backspaces and retypes its text. Esc
 (or the window's X key) slides it back in; Esc again goes back. Window controls are digital: ON/OFF keys, segment keys,
 blocky bar sliders with - / + keys, and keybind keys that read "PRESS KEY_" while listening. Opening plays once: the
-cabinet slides out, the header screen powers on and types, its sub-line types a boot log (`> LINK OK > SAVE OK > WAVE n`)
-and then the real line, the option screen powers on under a scan bar and its keys type in one by one; then nothing
+box slides out, the title types, its sub-line types a boot log (`> LINK OK > SAVE OK > WAVE n`)
+and then the real line, a scan bar sweeps the keys and they type in one by one; then nothing
 animates. With Reduced effects or Visual effects off there is no animation at all. Closing slides the cabinet and window
 out (Back or Esc), and only then does the window really close.
 
