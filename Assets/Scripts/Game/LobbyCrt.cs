@@ -23,7 +23,7 @@ namespace Arena
         static readonly Color LobbyBg = CrtUi.Bg;
         const float EnterCrtLen = 7.1f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 5.5f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, CrtLogPause = 1.0f, CrtLogFadeAt = 5.6f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
-        const float LobbyRimBand = 7f, LobbyRimLine = 2f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
+        const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
 
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
@@ -54,8 +54,8 @@ namespace Arena
             var px = new Color[size * size];
             float half = size / 2f;
             var surround = new Color(0.02f, 0.03f, 0.07f, 1f);
-            var band = new Color(0.075f, 0.12f, 0.235f, 1f);
-            var line = new Color(0.20f, 0.32f, 0.58f, 1f);
+            var band = new Color(0.055f, 0.085f, 0.17f, 1f);
+            var line = new Color(0.17f, 0.27f, 0.50f, 1f);
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
                 {
