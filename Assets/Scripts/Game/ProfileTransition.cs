@@ -76,6 +76,11 @@ namespace Arena
         /// Update (from TickMenuIntro): run the clock and its sounds, and hand the menu its place in its intro.
         void TickProfTr(float dt)
         {
+            if (profEj)
+            {
+                TickProfEj(dt);  // the eject key's move (DiskEject.cs)
+                return;
+            }
             profTrAge += dt;
             if (Input.anyKeyDown && profTrAge > 0.25f)
                 profTrT = profTrFwd ? ProfTrLen : 0f;  // skipped: straight to the end, silently
@@ -145,6 +150,11 @@ namespace Arena
         /// picker's title and boxes on top.
         void DrawProfTr()
         {
+            if (profEj)
+            {
+                DrawProfEj();  // DiskEject.cs
+                return;
+            }
             DrawMenu();
             DrawProfTrWho(profTrT);
         }

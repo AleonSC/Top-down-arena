@@ -1,7 +1,7 @@
 # Multiple profiles
 
 Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch (profiles as floppy disks in clamp cradles on a mechanical shelf, names in Permanent Marker (`Resources/Fonts`, Apache 2.0): "Shelf 4" and `whos-playing-mechanical.html`, of
-`Docs/Mockups/whos-playing-shelves.html`, first round `whos-playing-floppy.html`; `ProfilesUi.cs`), plus a "Switch profile" button above the main menu's name card.
+`Docs/Mockups/whos-playing-shelves.html`, first round `whos-playing-floppy.html`; `ProfilesUi.cs`), plus an eject key on the main menu's disk drive (it replaced a "Switch profile" button above the name card).
 Code: `Core/ProfileStore.cs`, `Profile.Name` (format 3), `Game/ProfilesUi.cs`; tests in the `saves` suite
 (`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`TWO=1 MANAGE=1 EMPTY=1`; the move: `shot.sh whotr whotr` with `PROFTR=<0..2.26>,<slot>[,back]`). At most **3 profiles** and always **four boxes** (three slots, an empty one says "Empty", and New profile, grayed out when all three are used), so the move to and from the menu is the same every time; a
 command-line start (`--host`, `--join`, `--autostart`) skips the screen. Profiles are listed by name.
@@ -86,3 +86,13 @@ menu's thunk and key ticks. Any key skips it; nothing can be clicked meanwhile. 
 The lobby's own axis is unchanged except where it was drawn at the menu's place (the move into the lobby and back): there the drive fades.
 Audio and drawing only, no protocol bump. Preview: `PROFTR=<0..5.4>,<slot>[,back] Tools/Preview/shot.sh x whotr`.
 Profiles made before the limit (more than 3) stay on disk; the picker shows the first three until some are deleted.
+
+## The eject key (built, Nov 2026)
+
+A small key right of the drive on the main menu (`Docs/Mockups/disk-eject.html`: key A, animation B; `Game/DiskEject.cs`). Hover lights it and shows EJECT DISK.
+Clicking plays 2.9 s: the key sinks (0 s), the drive's light turns amber and the cells drain, EJECTING <NAME> (0.2 s), the latch clicks and the disk
+kicks out of the slit about 40 % on a spring, TAKE DISK blinking (0.5 s), it slides fully out (1.4 s) and the menu fades, it flies to its cradle
+(1.7 to 2.6 s) as the picker fades in, the clamps close (2.9 s), then the picker is live. Any key skips it; nothing can be clicked meanwhile. Reduced
+effects or Visual effects off: the picker just opens. The key is hidden without a loaded profile (a command-line start). It replaced the hover-only
+"Switch profile" tab (`StartProfTrOut` in `ProfileTransition.cs`, the 5.4 s backwards move, is no longer called). Drawing and sound only, no protocol bump.
+Preview: `PROFEJ=<0..2.9>,<slot> Tools/Preview/shot.sh x whotr`.
