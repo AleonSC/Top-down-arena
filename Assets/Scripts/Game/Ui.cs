@@ -905,7 +905,7 @@ namespace Arena
             GUI.color = old;
         }
 
-        /// 128 px, white, alpha 1 in the middle falling to 0 at the edge (a smooth curve, not a straight ramp).
+        /// 128 px, white, alpha 1 in the middle falling to 0 at the edge (a straight ramp).
         static Texture2D RadialTexture()
         {
             const int size = 128;
@@ -917,7 +917,7 @@ namespace Arena
                     float dx = (x + 0.5f - size / 2f) / (size / 2f), dy = (y + 0.5f - size / 2f) / (size / 2f);
                     float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
                     float f = 1f - d;
-                    px[y * size + x] = new Color(1f, 1f, 1f, f * f * (3f - 2f * f) * 0.5f + f * 0.5f);  // half smoothstep, half straight: soft but full in the middle
+                    px[y * size + x] = new Color(1f, 1f, 1f, f);  // a straight ramp, like a CSS radial gradient
                 }
             tex.SetPixels(px);
             tex.Apply();

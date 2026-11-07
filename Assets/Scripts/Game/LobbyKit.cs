@@ -205,10 +205,12 @@ namespace Arena
                 return;
             var c = new Color(0.36f, 0.6f, 1f);
             float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
-            Ui.Glow(new Rect(x0, y0, arm, arm), c, 0.3f);              // the soft glow behind each corner
-            Ui.Glow(new Rect(x1 - arm, y0, arm, arm), c, 0.3f);
-            Ui.Glow(new Rect(x0, y1 - arm, arm, arm), c, 0.3f);
-            Ui.Glow(new Rect(x1 - arm, y1 - arm, arm, arm), c, 0.3f);
+            // A faint halo along each arm only (a halo round the whole corner square read as a bright spot).
+            const float hs = 0.1f;
+            Ui.Glow(new Rect(x0, y0, arm, th), c, hs); Ui.Glow(new Rect(x0, y0, th, arm), c, hs);                       // top left
+            Ui.Glow(new Rect(x1 - arm, y0, arm, th), c, hs); Ui.Glow(new Rect(x1 - th, y0, th, arm), c, hs);            // top right
+            Ui.Glow(new Rect(x0, y1 - th, arm, th), c, hs); Ui.Glow(new Rect(x0, y1 - arm, th, arm), c, hs);            // bottom left
+            Ui.Glow(new Rect(x1 - arm, y1 - th, arm, th), c, hs); Ui.Glow(new Rect(x1 - th, y1 - arm, th, arm), c, hs);  // bottom right
             Ui.Fill(new Rect(x0, y0, arm, th), c);                      // top left
             Ui.Fill(new Rect(x0, y0, th, arm), c);
             Ui.Fill(new Rect(x1 - arm, y0, arm, th), c);                // top right
