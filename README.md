@@ -547,7 +547,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 
 | Prop | What it does |
 |---|---|
-| **Crate** | Cover. Enemy shots stop at it, red aimed shots included, and each one wears it down (8 hits + 1 per 3 waves); your shots fly over it. You and enemies can't walk through it. Two often stand side by side as a little wall. 2 crates at wave 1, one more about every 3 waves, up to 10 |
+| **Crate** | (With Visual effects on, crates and pots draw as cyan holograms: glowing wireframes that drop out, flicker and turn pink as they wear; off keeps the wood and clay.) Cover. Enemy shots stop at it, red aimed shots included, and each one wears it down (8 hits + 1 per 3 waves); your shots fly over it. You and enemies can't walk through it. Two often stand side by side as a little wall. 2 crates at wave 1, one more about every 3 waves, up to 10 |
 | **Iron-bound crate** | From wave 12, about a third of the crates: twice as tough |
 | **Pot** | Shoot it or walk through it: it smashes into a health orb (35%) or a little XP for everyone. 1 at first, up to 5 |
 | **Barrel** | Rare (from wave 3, a 25-45% chance of one a wave, sometimes two from wave 20). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per wave damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and pots and setting off other barrels |

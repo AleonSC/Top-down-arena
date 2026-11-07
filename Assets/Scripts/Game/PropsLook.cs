@@ -33,10 +33,16 @@ namespace Arena
                 {
                     case PropKind.Crate:
                     case PropKind.HeavyCrate:
-                        DrawCrate(p, at, a);
+                        if (fxOn)
+                            DrawCrateHolo(p, at, a, t);  // PropsLook.cs: look A "Hologram" of Docs/Mockups/digital-props.html
+                        else
+                            DrawCrate(p, at, a);
                         break;
                     case PropKind.Pot:
-                        DrawPot(p, at, a, t);
+                        if (fxOn)
+                            DrawPotHolo(p, at, a, t);
+                        else
+                            DrawPot(p, at, a, t);
                         break;
                     case PropKind.Barrel:
                         DrawBarrel(p, at, a, t);
@@ -58,6 +64,155 @@ namespace Arena
                 }
             }
         }
+
+        // --- Look A "Hologram" (Docs/Mockups/digital-props.html), used while Visual effects are on ---------------------
+        // Crates and pots are projected wireframes: a cyan glow, scanlines, edge segments that drop out and flicker as a crate
+        // is worn down (pink below a third health), a heavy crate with an inner frame and corner nodes, and a pot that is a
+        // ring with a turning dashed band, a pulsing diamond and a scan line. With Visual effects off the wood and clay
+        // below draw as before; Reduced effects drops the scanlines, flicker, glitch slice and the pot's motion.
+
+        static readonly Rgba HoloCyan = new Rgba(0.31f, 0.89f, 1f), HoloBlue = new Rgba(0.56f, 0.82f, 1f), HoloPink = new Rgba(1f, 0.42f, 0.6f);
+
+        /// The mockup's hash (so the dropouts fall exactly where the mockup's do), 0..1.
+        static float PropHash(int n)
+        {
+            unchecked
+            {
+                uint x = (uint)(n ^ (int)0x9e3779b9);
+                x *= 0x85ebca6bu;
+                x ^= x >> 13;
+                x *= 0xc2b2ae35u;
+                x ^= x >> 16;
+                return x / 4294967296f;
+            }
+        }
+
+        /// A glowing line: two wide faint passes under the core.
+        void GlowLine(V2 a, V2 b, float w, Rgba col)
+        {
+            Line(a, b, w + 5f, col.WithAlpha(col.A * 0.06f));
+            Line(a, b, w + 2.5f, col.WithAlpha(col.A * 0.14f));
+            Line(a, b, w, col);
+        }
+
+        void DrawCrateHolo(Prop p, V2 c, float al, float t)
+        {
+            bool heavy = p.Kind == PropKind.HeavyCrate;
+            float h = Game.HalfW(p), hp = p.MaxHp > 0f ? p.Hp / p.MaxHp : 1f, dmg = 1f - hp;
+            int seed = p.Seed;
+            var col = (hp < 0.34f ? HoloPink : heavy ? HoloBlue : HoloCyan).WithAlpha(al);
+            // The projected pane and its scanlines.
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, (heavy ? HoloBlue : HoloCyan).WithAlpha((heavy ? 0.09f : 0.07f) * al));
+            if (!fxReduced)
+                for (float y = -h + 1f; y < h; y += 3f)
+                    FillRect(c.X - h, c.Y + y, h * 2f, 1f, HoloCyan.WithAlpha(0.10f * al));
+            // The frame: 6 segments a side; worn crates lose some and the lost ones flicker back now and then.
+            float lw = heavy ? 2f : 1.5f;
+            int id = 0, n = 6;
+            for (int i = 0; i < n; i++)
+            {
+                float a = -h + 2f * h * i / n, b = -h + 2f * h * (i + 1) / n;
+                HoloSeg(c, a, -h, b, -h, id++, seed, dmg, t, lw, col);
+                HoloSeg(c, h, a, h, b, id++, seed, dmg, t, lw, col);
+                HoloSeg(c, b, h, a, h, id++, seed, dmg, t, lw, col);
+                HoloSeg(c, -h, b, -h, a, id++, seed, dmg, t, lw, col);
+            }
+            // The brace across, in five pieces.
+            float inset = heavy ? 9f : 6f, span = 2f * h - 2f * inset, flip = (seed & 8) != 0 ? -1f : 1f;
+            for (int i = 0; i < 5; i++)
+            {
+                float f1 = i / 5f, f2 = (i + 1) / 5f;
+                HoloSeg(c, -h + inset + span * f1, flip * (-h + inset + span * f1), -h + inset + span * f2, flip * (-h + inset + span * f2), id++, seed, dmg, t, 1f, col);
+            }
+            if (heavy)
+            {
+                float x0 = -h + 7f, s2 = 2f * h - 14f;
+                GlowLine(c + new V2(x0, x0), c + new V2(x0 + s2, x0), 1f, col);
+                GlowLine(c + new V2(x0 + s2, x0), c + new V2(x0 + s2, x0 + s2), 1f, col);
+                GlowLine(c + new V2(x0 + s2, x0 + s2), c + new V2(x0, x0 + s2), 1f, col);
+                GlowLine(c + new V2(x0, x0 + s2), c + new V2(x0, x0), 1f, col);
+                for (int i = 0; i < 4; i++)
+                {
+                    float nx = (i & 1) != 0 ? h - 9f : -h + 5f, ny = (i & 2) != 0 ? h - 9f : -h + 5f;
+                    FillRect(nx - 2f, c.Y + ny - 2f, 8f, 8f, col.WithAlpha(col.A * 0.12f));
+                    FillRect(c.X + nx, c.Y + ny, 4f, 4f, col);
+                }
+                GlowLine(c + new V2(-4f, 0f), c + new V2(4f, 0f), 1f, col);
+                GlowLine(c + new V2(0f, -4f), c + new V2(0f, 4f), 1f, col);
+            }
+            // Corner brackets, always whole, so the crate stays readable however worn.
+            float L = heavy ? 11f : 9f, bw = 2.8f, e = bw / 2f;
+            for (int i = 0; i < 4; i++)
+            {
+                float sx = (i & 1) != 0 ? 1f : -1f, sy = (i & 2) != 0 ? 1f : -1f;
+                V2 corner = c + new V2(sx * h, sy * h);
+                GlowLine(corner + new V2(sx * e, 0f), corner + new V2(-sx * L, 0f), bw, col);
+                GlowLine(corner + new V2(0f, sy * e), corner + new V2(0f, -sy * L), bw, col);
+            }
+            // A worn crate glitches: now and then a bright slice jumps across it.
+            if (dmg > 0f && !fxReduced && MathX.Fmod(t * 0.7f + seed * 0.13f, 1f) < 0.07f)
+            {
+                float gy = -h + PropHash(Mathf.FloorToInt(t * 9f) + seed) * (2f * h - 5f);
+                FillRect(c.X - h + 4f, c.Y + gy, 2f * h - 2f, 3f, col.WithAlpha(col.A * 0.4f));
+            }
+        }
+
+        void HoloSeg(V2 c, float x1, float y1, float x2, float y2, int id, int seed, float dmg, float t, float w, Rgba col)
+        {
+            bool on = PropHash(seed * 31 + id) > dmg * 0.8f || (!fxReduced && Mathf.Sin(t * 14f + id * 2.3f) > 0.9f);
+            if (on)
+                GlowLine(c + new V2(x1, y1), c + new V2(x2, y2), w, col);
+        }
+
+        void DrawPotHolo(Prop p, V2 c, float al, float t)
+        {
+            float r = Game.PotR;
+            Circle(c, r, HoloCyan.WithAlpha(0.10f * al), 24);
+            GlowArc(c, r, 1.8f, HoloCyan.WithAlpha(al), 32);
+            // The dashed inner band turns (dashes 3 long, gaps 3, creeping 18 px a second).
+            float rb = r * 0.72f, step = 6f / rb, phase = fxReduced ? 0f : t * 18f / rb;
+            int dashes = Mathf.FloorToInt(MathX.Tau / step);
+            for (int i = 0; i < dashes; i++)
+                Arc(c, rb, 1f, HoloCyan.WithAlpha(al), 4, phase + i * step, 3f / rb);
+            // The diamond core, pulsing.
+            float s = r * 0.3f * (1f + (fxReduced ? 0f : 0.15f * Mathf.Sin(t * 4f)));
+            var core = new Rgba(0.73f, 0.96f, 1f, al);
+            Circle(c, s * 1.8f, HoloCyan.WithAlpha(0.10f * al), 16);
+            SetColor(core);
+            Quad(c + new V2(0f, -s), c + new V2(s, 0f), c + new V2(0f, s), c + new V2(-s, 0f));
+            // A scan line sweeping down the ring.
+            float sy = -r + MathX.Fmod((fxReduced ? 0.5f : t * 0.8f) + p.Seed * 0.1f, 1f) * 2f * r, hw = Mathf.Sqrt(Mathf.Max(0f, r * r - sy * sy));
+            FillRect(c.X - hw, c.Y + sy, 2f * hw, 1.5f, new Rgba(0.75f, 0.96f, 1f, 0.55f * al));
+        }
+
+        /// A glowing ring.
+        void GlowArc(V2 c, float r, float w, Rgba col, int segs)
+        {
+            Arc(c, r, w + 5f, col.WithAlpha(col.A * 0.06f), segs);
+            Arc(c, r, w + 2.5f, col.WithAlpha(col.A * 0.14f), segs);
+            Arc(c, r, w, col, segs);
+        }
+
+        /// A crate or pot smashing with Visual effects on: the hologram's ring bursts and its edges fly apart in
+        /// shards (a pot's lasts 1.3 s, the mockup's loop, a crate's the usual 0.5 s).
+        void DrawHoloBreakFx(Effect fx, float k, bool pot)
+        {
+            float al = 1f - k, r = pot ? Game.PotR : fx.Radius / 1.6f;
+            var col = HoloCyan.WithAlpha(al);
+            GlowArc(fx.Pos, r * (1f + k * 1.3f), 1.5f, col, 32);
+            for (int i = 0; i < 8; i++)
+            {
+                float a = i * 0.785f + 0.3f, d = r * (0.4f + k * 2.4f);
+                V2 from = fx.Pos + V2.FromAngle(a) * d, to = fx.Pos + V2.FromAngle(a + 0.5f) * (d + 5f);
+                GlowLine(from, to, 1.5f, col);
+            }
+            if (k < 0.25f)
+                Circle(fx.Pos, 4f, new Rgba(1f, 1f, 1f, 1f - k * 4f), 12);
+        }
+
+        /// Was this Debris a crate or a pot (not the boss fight's green health barrel)? Props.BreakProp sends their colours.
+        static bool IsPotDebris(Effect fx) => fx.Color.R > 0.8f && fx.Color.G < 0.5f;
+        static bool IsCrateDebris(Effect fx) => fx.Color.R > 0.55f && fx.Color.R < 0.8f && fx.Color.B < 0.45f && fx.Color.G >= 0.49f;
 
         void DrawCrate(Prop p, V2 c, float a)
         {
@@ -312,7 +467,19 @@ namespace Arena
         /// A crate or pot smashed: splinters or shards flying out and a puff of dust.
         void DrawDebrisFx(Effect fx, float f)
         {
+            if (fxOn && IsPotDebris(fx))
+            {
+                DrawHoloBreakFx(fx, f, true);
+                return;
+            }
+            if (fxOn && IsCrateDebris(fx))
+            {
+                DrawHoloBreakFx(fx, f, false);
+                return;
+            }
             int seed = (int)(fx.Pos.X * 7f + fx.Pos.Y * 13f);
+            if (IsPotDebris(fx))
+                f = Mathf.Min(1f, fx.T / 0.4f);  // a pot's effect lasts 1.3 s for the hologram's burst; the clay chips keep their 0.4 s
             float ease = 1f - (1f - f) * (1f - f);
             Arc(fx.Pos, fx.Radius * (0.3f + 0.7f * ease), 4f * (1f - f), new Rgba(0.8f, 0.75f, 0.65f, 0.35f * (1f - f)), 24);
             for (int i = 0; i < 10; i++)
