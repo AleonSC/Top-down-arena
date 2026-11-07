@@ -229,7 +229,7 @@ namespace Arena
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
             float rowH = oneLine ? 29f : 40f, step = rowH + 3f;
-            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, 358f, 312f), new Rect(26f, 22f, 358f, 78f));
+            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, 358f, 312f), new Rect(26f, 22f, 358f, 78f), false);
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
             var ps = new Rect(26f, 112f, 358f, 126f);

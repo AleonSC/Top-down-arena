@@ -1,0 +1,101 @@
+<title>Golem Staff Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;800&family=Barlow:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Field-manual look like the other mockups. Three golem designs drawn top-down at game scale (a player is 18 px wide),
+   each with the way the Golem Staff would summon and run it. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --line: #242d36; --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4;
+  --display: "Oxanium", system-ui, sans-serif; --body: "Barlow", system-ui, sans-serif; --data: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+h2 { font-size: 20px; font-weight: 800; letter-spacing: .03em; }
+p { margin: 0; max-width: 70ch; color: var(--soft); }
+.eyebrow { font: 600 11px var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+canvas { width: 100%; max-width: 100%; aspect-ratio: 1 / 1; background: #070910; border: 1px solid var(--line); border-radius: 8px; display: block; }
+.tag { font: 800 13px var(--display); letter-spacing: .12em; color: var(--teal); }
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; font-size: 14px; }
+dt { font: 600 11px var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--soft); max-width: 85ch; }
+code { font: 500 13px var(--data); color: var(--soft); }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tank Summoner · Golem Staff</div>
+    <h1>A golem you actually summon</h1>
+    <p>Today the staff lobs a boulder and a small 36 px pentagon follows you. These three options turn the staff into a summon: hold to call a golem up out of the ground, and the golem is the weapon. Pick a look and a behaviour; the drawings animate at game scale.</p>
+  </header>
+  <div class="cards" id="cards"></div>
+  <section class="notes">
+    <h2>What stays the same in every option</h2>
+    <ul>
+      <li>The boulder lob goes. The staff's shot becomes a short stone bolt that the golem copies (so the weapon still fires when you click).</li>
+      <li>Up to 3 golems with extra projectiles, as today. A new summon past the cap replaces the oldest.</li>
+      <li>Golems block enemy bullets and soak boss damage like the Treant. The Titan ultimate is untouched.</li>
+      <li>Needs a protocol bump (new minion fields for the rise and slam draw). Tests: a new <code>golem</code> suite replaces the boulder test.</li>
+    </ul>
+  </section>
+</div>
+<script>
+const OPTS = [
+ {tag:'A · STONE BRUTE', hue:[150,140,128], glow:null, size:34,
+  summon:'Hold to channel 1 s; stone gathers, then the golem stands up where you aim.',
+  fight:'Walks at enemies, 2-hit slam with a short wind-up and a shockwave (60 px).',
+  hp:'400 bullet soak, re-summon free once it crumbles.', look:'Big blocky fists, round head, grey stone.'},
+ {tag:'B · RUNE GOLEM', hue:[120,125,140], glow:[111,227,196], size:30,
+  summon:'Tap to draw a rune circle at the cursor; the golem rises from it in 0.8 s.',
+  fight:'Slower, guards you in a bubble of 120 px and slams anything inside it. Core glows red when hurt.',
+  hp:'Glowing core is the weak point: 300 soak, heals 10/s near you.', look:'Rune lines and a teal core.'},
+ {tag:'C · MOSSY ANCIENT', hue:[112,128,98], glow:[255,181,71], size:38,
+  summon:'Hold to channel; the longer, the bigger and slower it comes out (like today\'s charge).',
+  fight:'Stomps in a ring, 3 stomps then it crumbles into 4 small rock pets that keep biting.',
+  hp:'520 soak at full charge, 260 at a tap.', look:'Moss, cracks, amber eyes.'}
+];
+const cards = document.getElementById('cards');
+OPTS.forEach((o,i)=>{
+  const c=document.createElement('div'); c.className='card';
+  c.innerHTML=`<div class="tag">${o.tag}</div><canvas width="360" height="360" id="c${i}"></canvas>
+   <dl><dt>Summon</dt><dd>${o.summon}</dd><dt>Fights</dt><dd>${o.fight}</dd><dt>Toughness</dt><dd>${o.hp}</dd><dt>Look</dt><dd>${o.look}</dd></dl>`;
+  cards.appendChild(c);
+});
+function rgb(a,k=1){return `rgb(${a.map(v=>Math.min(255,v*k|0)).join(',')})`}
+function draw(i,t){
+  const o=OPTS[i], cv=document.getElementById('c'+i), g=cv.getContext('2d'); g.clearRect(0,0,360,360);
+  g.fillStyle='#0c1118'; g.fillRect(0,0,360,360);
+  g.strokeStyle='#161e27'; for(let k=0;k<360;k+=30){g.beginPath();g.moveTo(k,0);g.lineTo(k,360);g.moveTo(0,k);g.lineTo(360,k);g.stroke();}
+  const ph=(t%6)/6; // 0..1 loop: rise, walk, slam, rest
+  const rise=Math.min(1,ph/0.25), slam=ph>0.55&&ph<0.8?(ph-0.55)/0.25:0, cx=180, cy=190;
+  // player
+  g.fillStyle='#e7eef3'; g.beginPath(); g.arc(90,260,9,0,7); g.fill();
+  // summon ring
+  g.strokeStyle=o.glow?rgb(o.glow):'#8a8478'; g.globalAlpha=.7*(1-rise*.6); g.lineWidth=2; g.beginPath(); g.arc(cx,cy,o.size*1.5*(0.4+rise*.6),0,7); g.stroke(); g.globalAlpha=1;
+  const R=o.size*rise*(1.8), s=slam<.4?slam/.4:1-(slam-.4)/.6, wob=Math.sin(t*4)*1.5;
+  // body
+  g.save(); g.translate(cx+wob,cy); g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(4,8,R*1.1,R*.8,0,0,7); g.fill();
+  g.fillStyle=rgb(o.hue); g.strokeStyle=rgb(o.hue,.6); g.lineWidth=3;
+  g.beginPath(); for(let k=0;k<6;k++){const a=k/6*6.283+.3,r=R*(k%2?1:1.1);g.lineTo(Math.cos(a)*r,Math.sin(a)*r);} g.closePath(); g.fill(); g.stroke();
+  // fists
+  const fy=-R*.2-s*R*.7;
+  [-1,1].forEach(d=>{g.fillStyle=rgb(o.hue,1.1);g.beginPath();g.arc(d*R*1.15,fy,R*.38,0,7);g.fill();g.stroke();});
+  // head
+  g.fillStyle=rgb(o.hue,1.15); g.beginPath(); g.arc(0,-R*.15,R*.42,0,7); g.fill(); g.stroke();
+  const eye=o.glow||[255,120,80]; g.fillStyle=rgb(eye); g.globalAlpha=.4+.6*rise;
+  g.fillRect(-R*.2,-R*.22,R*.12,R*.07); g.fillRect(R*.08,-R*.22,R*.12,R*.07); g.globalAlpha=1;
+  if(i==1){g.fillStyle=rgb(o.glow); g.globalAlpha=.5+.5*Math.sin(t*3); g.beginPath(); g.arc(0,R*.3,R*.16,0,7); g.fill(); g.globalAlpha=1;}
+  if(i==2){g.strokeStyle='#2c3a24'; g.lineWidth=2; g.beginPath(); g.moveTo(-R*.5,R*.1); g.lineTo(-R*.2,R*.4); g.lineTo(0,R*.25); g.stroke();}
+  g.restore();
+  // slam shockwave
+  if(slam>.4){g.strokeStyle='rgba(255,220,160,'+(1-(slam-.4)/.6)+')'; g.lineWidth=4; g.beginPath(); g.arc(cx,cy,R*(1.2+(slam-.4)*3),0,7); g.stroke();}
+  // enemy dummy
+  g.fillStyle='#c44'; g.beginPath(); g.arc(285,120,8,0,7); g.fill();
+}
+let T=0; function loop(){T+=1/60; for(let i=0;i<3;i++)draw(i,T); requestAnimationFrame(loop)} loop();
+</script>

@@ -125,6 +125,7 @@ namespace Arena
             ClearGunBowLooks();  // GunBowLooks.cs
             ClearSoldierLooks();  // SoldierLooks.cs
             ClearCloneWallLook();  // CloneWallLook.cs
+            ClearGolemWallLook();  // GolemWallLook.cs
             ClearTankLooks();  // TankLooks.cs
             ClearTombLook();  // GlacialTombLook.cs
             ClearTankGunLooks();  // TankGunLooks.cs
