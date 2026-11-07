@@ -269,8 +269,9 @@ namespace Arena
                 if (BeginUiGl())
                 {
                     int keep = menuBg;
-                    menuBg = DuskGridIndex;
-                    BackgroundThumb(b, BackgroundAccents[DuskGridIndex], 0.4f);
+                    int idx = BackgroundIndexOfCosmetic(row.Cosmetic.Id);
+                    menuBg = idx;
+                    BackgroundThumb(b, BackgroundAccents[idx], 0.4f);
                     menuBg = keep;
                     EndUiGl();
                 }
@@ -311,7 +312,7 @@ namespace Arena
                 if (!Rank.Owns(p.RankNow, p.Equipped(kind)))
                 {
                     if (kind == CosmeticKind.Background)
-                        SetDuskGridEquipped(false);  // back to your own pick (MenuBackgrounds.cs)
+                        SetRewardBackgroundEquipped("");  // back to your own pick (MenuBackgrounds.cs)
                     else
                         p.Equip(kind, "");
                 }

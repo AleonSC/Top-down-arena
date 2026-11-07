@@ -31,7 +31,7 @@ namespace Arena
         {
             "A rim on your lobby party card and your menu chip.",
             "Drawn behind you in the match, for everyone to see.",
-            "Your menu background. Dusk Grid is a rank reward; the others are in Settings > Visual effects.",
+            "Your menu background. The ones here are rank rewards, and the reactive ones follow your pointer. The others are in Settings > Visual effects.",
             "The fill of your lobby party card, behind your name. Everyone in the lobby sees it.",
             "How your name looks to everyone: the lobby, the Hangout, and over your head in a match.",
             "The line from your weapon to the crosshair in a match. Only you see it. Classic is the default.",
@@ -121,7 +121,7 @@ namespace Arena
             Ui.Fill(pv, new Color(0.04f, 0.02f, 0.07f, 1f));
             int keepBg = menuBg;
             if (kind == CosmeticKind.Background && tryId != null)
-                menuBg = tryId == "" ? PreviousBackground() : DuskGridIndex;  // (only for the draw: nothing is saved)
+                menuBg = tryId == "" ? PreviousBackground() : BackgroundIndexOfCosmetic(tryId);  // (only for the draw: nothing is saved)
             int trail = Rank.TrailIndex(tryKind == CosmeticKind.Trail ? tryId : p.Trail);
             int aim = tryKind == CosmeticKind.AimLine ? Rank.AimLineIndex(tryId) : AimLook();
             int cursor = tryKind == CosmeticKind.Cursor ? Rank.CursorIndex(tryId) : CursorLook();
@@ -199,7 +199,7 @@ namespace Arena
                     CrtUi.Text(new Rect(nx, rr.y + 3f, nw, 32f), shown, 14, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.UpperLeft, true, CabCalm, true);
                 else
                     CrtUi.Text(new Rect(nx, rr.y + 5f, nw, 24f), shown, size, ok ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true, CabCalm);
-                string sub = c == null ? (kind == CosmeticKind.Background ? "default: what you chose in Settings" : "default") : ok ? "unlocked" : "locked: rank " + c.Rank;
+                string sub = c == null ? (kind == CosmeticKind.Background ? "default: what you chose in Settings" : "default") : ok ? (Rank.IsReactiveBackground(c.Id) ? "reactive · unlocked" : "unlocked") : (Rank.IsReactiveBackground(c.Id) ? "reactive · " : "") + "locked: rank " + c.Rank;
                 Ui.Label(new Rect(nx, rr.y + 31f, nw, 18f), sub, 13, c != null && ok ? Ui.Good : CrtUi.Dim, TextAnchor.MiddleLeft);
                 var kr = new Rect(rr.xMax - 8f - 92f, rr.y + (rowH - 32f) / 2f, 92f, 32f);
                 if (!ok)
@@ -230,7 +230,7 @@ namespace Arena
         {
             if (kind == CosmeticKind.Background)
             {
-                SetDuskGridEquipped(id == "bg-dusk");  // MenuBackgrounds.cs: it keeps the profile too
+                SetRewardBackgroundEquipped(id);  // MenuBackgrounds.cs: it keeps the profile too
                 return;
             }
             p.Equip(kind, id);
@@ -286,7 +286,7 @@ namespace Arena
             {
                 if (BeginUiGl())
                 {
-                    int idx = c != null ? DuskGridIndex : PreviousBackground();
+                    int idx = c != null ? BackgroundIndexOfCosmetic(c.Id) : PreviousBackground();
                     int keep = menuBg;
                     menuBg = idx;  // (only for the draw: nothing is saved)
                     BackgroundThumb(r, BackgroundAccents[idx], 0.3f);
@@ -563,24 +563,24 @@ namespace Arena
             }
         }
 
-        /// The menu background you had before Dusk Grid (what "Your pick" goes back to).
+        /// The menu background you had before a reward one (what "Your pick" goes back to).
         int PreviousBackground()
         {
-            int i = menuBg != DuskGridIndex ? menuBg : PlayerPrefs.GetInt("menu_bg_prev", 0);
-            return Mathf.Clamp(i, 0, DuskGridIndex - 1);
+            int i = menuBg >= FirstRewardBg ? PlayerPrefs.GetInt("menu_bg_prev", 0) : menuBg;
+            return Mathf.Clamp(i, 0, FirstRewardBg - 1);
         }
 
-        /// Equip Dusk Grid (remembering your pick), or go back to your pick.
-        void SetDuskGridEquipped(bool on)
+        /// Equip a reward background by cosmetic id (remembering your pick), or with "" go back to your pick.
+        void SetRewardBackgroundEquipped(string id)
         {
-            if (on)
+            if (id != "")
             {
-                if (menuBg != DuskGridIndex)
+                if (menuBg < FirstRewardBg)
                 {
                     PlayerPrefs.SetInt("menu_bg_prev", menuBg);
                     PlayerPrefs.Save();
                 }
-                SetBackground(DuskGridIndex);
+                SetBackground(BackgroundIndexOfCosmetic(id));
             }
             else
                 SetBackground(PreviousBackground());

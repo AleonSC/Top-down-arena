@@ -10,11 +10,23 @@ namespace Arena
             {
                 "Spiral", "Warp", "Aurora", "Synthwave", "Bokeh", "Hex Pulse", "Orbits", "Digital Rain", "Nebula", "Tides",
                 "Ember Storm", "Constellations", "Radar", "Blueprint", "Bullet Curtain", "Frost Peaks", "Circuit", "Event Horizon", "Firefly Wood", "Plotter",
-                "Dusk Grid",  // a rank reward (Rank.cs: rank 15); locked until then
+                // Rank rewards (Rank.cs, Kind Background): locked until the rank. Each needs a row in RewardBackgrounds below.
+                "Dusk Grid", "Ripples",
             };
 
-        const int DuskGridIndex = 20;
-        static bool BackgroundLocked(int i) => i == DuskGridIndex && !Rank.Owns(Profile.Current.RankNow, "bg-dusk");
+        /// Where the rank-reward backgrounds start in BackgroundNames. Everything from here on is a Background cosmetic in Rank.cs.
+        const int FirstRewardBg = 20;
+
+        /// The cosmetic id of each reward background, in BackgroundNames order from FirstRewardBg. The reactive ones (ids "bg-react-...")
+        /// are drawn with the pointer and click input in BackgroundReact.cs. To add one: a name here and in BackgroundNames, an accent,
+        /// a `case` in DrawMenuBackground, a CosmeticDef in Rank.cs.
+        static readonly string[] RewardBackgrounds = { "bg-dusk", "bg-react-ripples" };
+
+        static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
+        static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? 0 : FirstRewardBg + k; }
+        static bool BackgroundReactive(int i) => Rank.IsReactiveBackground(BackgroundCosmeticId(i));
+        static bool BackgroundLocked(int i) { var id = BackgroundCosmeticId(i); return id != null && !Rank.Owns(Profile.Current.RankNow, id); }
+        static int BackgroundRank(int i) { var c = Rank.Cosmetic(BackgroundCosmeticId(i)); return c != null ? c.Rank : 0; }
 
         int menuBg;
         bool menuBgAnimate = true;
@@ -38,6 +50,7 @@ namespace Arena
         void DrawMenuBackground(float time)
         {
             float t = menuBgAnimate ? time : 20f;
+            ReactTick(time);  // BackgroundReact.cs: pointer and clicks for the reactive backgrounds
             switch (menuBg)
             {
                 case 1: BgWarp(t); break;
@@ -60,6 +73,7 @@ namespace Arena
                 case 18: BgFireflies(t); break;
                 case 19: BgPlotter(t); break;
                 case 20: BgDuskGrid(t); break;
+                case 21: BgRipples(t); break;
                 default: BgSpiral(t); break;
             }
         }
@@ -88,6 +102,7 @@ namespace Arena
             new Color(0.75f, 1f, 0.38f),  // Firefly Wood
             new Color(1f, 0.82f, 0.4f),   // Plotter
             new Color(1f, 0.55f, 0.45f),  // Dusk Grid
+            new Color(0.35f, 0.85f, 0.9f), // Ripples
         };
 
         float bgChangedAt = -100f;   // when the background last changed (the name slides in)
@@ -109,7 +124,13 @@ namespace Arena
         {
             UiModelAt(new V2(thumb.x, thumb.y), thumb.width / W);
             UiClip(thumb);
+            bgViewOrigin = new V2(thumb.x, thumb.y);  // (BackgroundReact.cs: the pointer is only over this view if it is in the thumbnail)
+            bgViewScale = thumb.width / W;
+            bgViewRect = thumb;
             DrawMenuBackground(Time.time);
+            bgViewOrigin = V2.Zero;
+            bgViewScale = 1f;
+            bgViewRect = new Rect(0f, 0f, W, H);
             UiNoClip();
             UiModelAt(V2.Zero, 1f);
             var edge = ToRgba(accent, rimAlpha);
@@ -186,7 +207,7 @@ namespace Arena
                     Ui.Fill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
             }
             if (swatchHover >= 0 && swatchHover != menuBg)
-                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 22f), BackgroundNames[swatchHover].ToUpperInvariant() + (BackgroundLocked(swatchHover) ? "  ·  LOCKED: RANK 15" : ""), 11, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 22f), BackgroundNames[swatchHover].ToUpperInvariant() + (BackgroundLocked(swatchHover) ? "  ·  LOCKED: RANK " + BackgroundRank(swatchHover) : BackgroundReactive(swatchHover) ? "  ·  REACTIVE" : ""), 11, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
             else
                 Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 22f), "MENU BACKGROUND", 11, CabSoft, TextAnchor.MiddleLeft, true);
 
@@ -252,7 +273,7 @@ namespace Arena
                 i = ((i + dir) % n + n) % n;
             menuBg = i;
             var prof = Profile.Current;
-            prof.Background = menuBg == DuskGridIndex ? "bg-dusk" : "";  // what Records shows as equipped
+            prof.Background = BackgroundCosmeticId(menuBg) ?? "";  // what Records shows as equipped
             prof.Save();
             bgChangedAt = Time.unscaledTime;
             bgChangeDir = dir;

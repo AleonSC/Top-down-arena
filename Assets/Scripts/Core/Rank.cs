@@ -103,6 +103,7 @@ namespace Arena
             new CosmeticDef { Id = "frame-circuit", Name = "Circuit frame", Kind = CosmeticKind.Frame, Rank = 16 },
             new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 14 },
             new CosmeticDef { Id = "bg-dusk", Name = "Dusk grid", Kind = CosmeticKind.Background, Rank = 15 },
+            new CosmeticDef { Id = "bg-react-ripples", Name = "Ripples", Kind = CosmeticKind.Background, Rank = 25 },  // the first reactive background (a reference for the rest)
             new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 20 },
             new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 18 },
             new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 24 },
@@ -229,6 +230,8 @@ namespace Arena
         public static string FrameId(int index) => IdOf(CosmeticKind.Frame, index);
         public static byte TrailIndex(string id) => IndexOf(CosmeticKind.Trail, id);
         public static string TrailId(int index) => IdOf(CosmeticKind.Trail, index);
+        /// Reactive menu backgrounds (Game/BackgroundReact.cs) react to the pointer and clicks. They are Background cosmetics whose id starts with "bg-react-".
+        public static bool IsReactiveBackground(string id) => id != null && id.StartsWith("bg-react-", StringComparison.Ordinal);
         public static byte CardBgIndex(string id) => IndexOf(CosmeticKind.CardBackground, id);
         /// Emotes (Game/EmoteLooks.cs): not equipped, every one your rank has is on the emote bar. Their number on the wire is 1.. in table order.
         public static byte EmoteIndex(string id) => IndexOf(CosmeticKind.Emote, id);

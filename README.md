@@ -531,10 +531,11 @@ the other players), so it always matches how weapons and abilities really behave
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
-lobby. There are 21:
+lobby. There are 22:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
-Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter and **Dusk Grid** (a
-rank-15 reward: greyed and skipped until you have it). Each has its own
+Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter, **Dusk Grid** (a
+rank-15 reward) and **Ripples** (a rank-25 reward, and the first **reactive** background: rings spread from your clicks and a
+soft light follows the pointer; frozen with STILL). The reward ones are greyed and skipped until you have them. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
 **LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
@@ -956,6 +957,7 @@ each kind at a time:
 | 14 | **Frost trail**: a pale chill line with ice crystals that stay where they formed, glint and melt |
 | 16 | **Circuit frame**: a teal rim with bracketed corners and a pulse of light running round the edge |
 | 15 | **Dusk Grid**: a 21st menu background (also pickable in Settings > Visual effects once unlocked) |
+| 25 | **Ripples**: a reactive menu background (rings from your clicks, a light that follows the pointer; also pickable in Settings > Visual effects) |
 | 18 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
 | 20 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
 | 22 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
