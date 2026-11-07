@@ -305,8 +305,8 @@ namespace Arena
             return parts.Count == 0 ? null : parts;
         }
 
-        /// The colour a card is drawn in: the lobby's phosphor blue for Common, the rarity colour for the rest.
-        static Color CrtCol(UpgradeDef u) => u.Rarity == Rarity.Common ? CrtUi.Ink : ToColor(Upgrades.RarityColor(u.Rarity));
+        /// The colour a card is drawn in: its rarity colour (Common is gray and never takes the CRT colour setting).
+        static Color CrtCol(UpgradeDef u) => ToColor(Upgrades.RarityColor(u.Rarity));
 
         /// A thin outline, w px thick.
         static void CrtEdge(Rect r, float w, Color c)
