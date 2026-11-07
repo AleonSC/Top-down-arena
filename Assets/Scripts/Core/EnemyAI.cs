@@ -660,6 +660,8 @@ namespace Arena
             V2 dir = dist > 0.01f ? to / dist : V2.Zero;
             if (dist > 0.01f && !e.Def.IsBoss && LayoutOn)
                 dir = LayoutDir(e, tpos, dir);  // round a wall that's in the way (LayoutRules.cs)
+            if (IsHost && dist > 0.01f && !e.Def.IsBoss && Props.Count > 0)
+                dir = PropDir(e, dir);  // round crates and barrels if there's a way; shove them if not (Props.cs)
             V2 v = V2.Zero;
             float speed = e.Speed;
             switch (e.Type)
@@ -784,6 +786,8 @@ namespace Arena
                 speed *= e.SlowMult;
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
+            if (IsHost && Props.Count > 0 && !e.Def.IsBoss)
+                ShoveProps(e.Pos, e.Radius * 0.8f, PushEnemy, dt, 0f, V2.Zero);  // they shove crates and barrels, very slowly (Props.cs)
             if ((Props.Count > 0 || LayoutOn) && !e.Def.IsBoss)
                 e.Pos = PushOutOfProps(e.Pos, e.Radius * 0.8f);  // they walk round crates and barrels (Props.cs)
         }
