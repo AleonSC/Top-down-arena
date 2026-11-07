@@ -24,7 +24,7 @@ namespace Arena
             }
             bool popup = shopGiveTo != 0 || shopRemoveOpen;
             bool shopping = !me.ShopDone;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.8f));
+            RoundBackdrop(ShopDark);  // (RoundWindows.cs)
 
             // Which card the stats preview: the one under the mouse, else the selected one.
             const float x0 = StatsSidebarW + 20f, areaW = W - StatsSidebarW - 40f;

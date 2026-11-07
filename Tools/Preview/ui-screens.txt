@@ -47,6 +47,9 @@ pause-settings    pause     PAUSESET=2
 pause-confirm     pause     PAUSECONFIRM=1
 # Between rounds and the end
 wave-cleared      hud       4 12.2 3 WAVECLEARED=1 NOISY=1
+wave-cleared-solo hud       4 12.2 1 WAVECLEARED=1
+wave-cleared-boss hud       4 12.2 1 WAVECLEARED=boss
+wave-cleared-in   hud       4 12.2 1 WAVECLEARED=1 WCT=0.15
 picker            picker
 path              hud       PATHOFFER=bazaar
 shop              shop

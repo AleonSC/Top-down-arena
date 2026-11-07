@@ -13,7 +13,7 @@ namespace Arena
             var offer = game.PathOffer;
             if (offer == null)
                 return;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.72f));
+            Ui.Fill(new Rect(0, 0, W, H), PathDark);  // (RoundWindows.cs)
             Ui.Fancy(new Rect(0, 26f, W, 44f), "CHOOSE YOUR PATH", 34, Color.white, new Color(0.75f, 0.85f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
             int from = game.Wave + 1, to = game.Wave + Paths.Length, boss = to + 1;
             Ui.Label(new Rect(0, 70f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss at wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);

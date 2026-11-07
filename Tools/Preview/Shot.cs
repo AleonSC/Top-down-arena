@@ -250,6 +250,10 @@ static partial class Shot {
       var rep = new WaveSummary { Wave = wg.Wave, ClearTime = 42f, ScoreGain = 120 };
       int wi = 0; foreach (var wp in wg.Players.Values) { rep.Lines.Add(new WaveLine { Id = wp.Id, Kills = new[] { 18, 21, 13 }[wi % 3], Damage = new[] { 2140f, 2880f, 1310f }[wi % 3], Taken = new[] { 0f, 96f, 22f }[wi % 3], Awards = new[] { WaveAward.Untouched, WaveAward.MostDamage | WaveAward.MostKills, WaveAward.Reviver }[wi % 3] }); wp.AutoReady = wc == "auto"; wp.Ready = wi == 1; wi++; }
       wg.WaveReport = rep;
+      // WCT=<seconds>: that long since the box appeared (its 0.35 s drop-in); settled by default (the preview's clock doesn't move).
+      float wct = Environment.GetEnvironmentVariable("WCT") != null ? float.Parse(Environment.GetEnvironmentVariable("WCT"), System.Globalization.CultureInfo.InvariantCulture) : 1f;
+      if (Time.unscaledTime < 5f) Time.unscaledTime = 5f;  // (a negative birth time reads as "not up yet")
+      set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }

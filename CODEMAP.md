@@ -155,6 +155,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PixelArt.cs`: 16x16 icons as text grids
 
 ## HUD and in-run UI (Game)
+- `RoundWindows.cs`: the between-round windows' shared frame: the dark layer over the arena (`RoundBackdrop`, each window's strength), a part fading and sliding in (`RoundPart`, fades `Ui.Alpha` too), the CRT tube a window sits in (`RoundTube`); used by the results, picker, shop, path choice and Wave cleared box
 - `WaveClearedUi.cs`: the "Wave n cleared" box between waves (squad tally, awards, next wave, Ready and Auto-ready bar)
 - `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners

@@ -28,7 +28,7 @@ namespace Arena
             else
                 milestoneParts = null;
             bool opening = PickIntroPlaying(me);  // the cards are still flying out of you: nothing can be chosen yet
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.82f * (introFull ? Seg(IntroElapsed, 0f, 0.3f) : 1f)));
+            RoundBackdrop(PickerDark * (introFull ? Seg(IntroElapsed, 0f, 0.3f) : 1f));  // (RoundWindows.cs)
             const float cardW = 270f, cardH = 384f, gap = 30f;
             float mid = W / 2f;
 
