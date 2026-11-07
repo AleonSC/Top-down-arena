@@ -1,0 +1,99 @@
+<title>Lobby Header Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: five arrangements of the lobby header (back key, title, connection key) drawn at game size, each with the mode keys and party line under it for context. */
+:root { --bg:#070a14; --fg:#dfe8ff; --muted:#8190b6; --line:#243055; --accent:#5b8cff; --rc:#5c9bff;
+  --f-crt:"VT323","Courier New",monospace; --f-ui:"Rajdhani",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--fg); font-family:var(--f-ui); padding-block:32px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
+.wrap { max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:20px; }
+h1 { font-size:28px; margin:0 0 6px; text-wrap:balance; }
+p.lead { margin:0; color:var(--muted); font-size:16px; line-height:1.45; max-width:68ch; }
+.bar { display:flex; flex-wrap:wrap; gap:10px 24px; align-items:center; }
+.grp { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.grp > span { font:500 12px var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-right:4px; }
+.seg { font:700 14px var(--f-ui); color:var(--fg); background:#1a2242; border:1px solid var(--line); border-radius:8px; padding:7px 13px; cursor:pointer; }
+.seg[aria-pressed="true"] { background:var(--accent); color:#05102c; border-color:var(--accent); }
+.seg:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(440px,1fr)); gap:18px; }
+.card { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.card h2 { margin:0; font:600 13px var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.card p { margin:0; font-size:14px; color:var(--muted); line-height:1.4; }
+.ground { position:relative; padding:34px 28px 26px; border:1px solid var(--line); overflow:hidden;
+  background:radial-gradient(90% 120% at 0% 0%, color-mix(in srgb,var(--rc) 14%,transparent), transparent 70%), #050916; }
+.ground::after { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(to bottom,rgba(0,0,0,.2) 0 1px,transparent 1px 3px); }
+.col { position:relative; z-index:1; width:376px; max-width:100%; }
+.k { display:flex; align-items:center; justify-content:center; border:1px solid color-mix(in srgb,var(--rc) 50%,transparent); background:color-mix(in srgb,var(--rc) 7%,transparent);
+  color:color-mix(in srgb,var(--rc) 70%,#fff); font:700 13px var(--f-ui); letter-spacing:.04em; }
+.k.sel { background:color-mix(in srgb,var(--rc) 22%,transparent); border:2px solid var(--rc); color:#fff; box-shadow:inset 0 -3px 0 -1px var(--rc); }
+.modes { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; height:52px; margin-top:12px; }
+.modes .k { flex-direction:column; gap:2px; font-size:14px; } .modes small { font:500 9px var(--f-ui); opacity:.8; letter-spacing:0; }
+.party { margin-top:14px; font:600 11px var(--f-ui); letter-spacing:.14em; color:#5ad8e8; display:flex; justify-content:space-between; align-items:center; }
+.party .k { width:104px; height:26px; font-size:11px; }
+.rule { height:1px; background:color-mix(in srgb,var(--rc) 40%,transparent); margin-top:10px; }
+.t { font:700 38px/1 var(--f-ui); letter-spacing:.16em; color:#fff; text-shadow:0 0 10px color-mix(in srgb,var(--rc) 70%,transparent); }
+.tag { font:600 10px var(--f-mono); letter-spacing:.2em; color:color-mix(in srgb,var(--rc) 70%,#8a94b0); }
+.back { width:52px; height:52px; font-size:20px; } .info { width:44px; height:42px; font-size:18px; }
+@keyframes blink { 50% { opacity:0; } } .blk { display:inline-block; animation:blink 1s steps(1) infinite; }
+@media (prefers-reduced-motion:reduce) { .blk { animation:none !important; } }
+/* 1: one plate */
+.h1 .plate { height:64px; display:flex; align-items:center; gap:12px; padding:0 10px; border:1px solid color-mix(in srgb,var(--rc) 55%,transparent); background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 18%,transparent),color-mix(in srgb,var(--rc) 4%,transparent) 70%); position:relative; }
+.h1 .plate::before,.h1 .plate::after { content:""; position:absolute; width:12px; height:12px; border:2px solid var(--rc); }
+.h1 .plate::before { left:-4px; top:-4px; border-right:0; border-bottom:0; } .h1 .plate::after { right:-4px; bottom:-4px; border-left:0; border-top:0; }
+.h1 .back,.h1 .info { background:rgba(0,0,0,.25); }
+.h1 .t { flex:1; text-align:center; font-size:34px; padding-left:.16em; }
+/* 2: slim strip, small title */
+.h2 .strip { display:flex; align-items:center; gap:10px; height:40px; }
+.h2 .back { width:40px; height:40px; } .h2 .info { width:40px; height:40px; margin-left:auto; }
+.h2 .t { font-size:16px; letter-spacing:.3em; color:#8fb6ff; text-shadow:none; }
+.h2 .gap { flex:1; height:1px; background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,transparent),transparent); }
+/* 3: back key carries the title */
+.h3 .strip { display:flex; align-items:center; gap:8px; height:52px; }
+.h3 .backt { flex:1; height:52px; justify-content:flex-start; gap:14px; padding:0 14px; }
+.h3 .backt .arrow { font:700 20px var(--f-ui); opacity:.8; }
+.h3 .t { font-size:28px; letter-spacing:.18em; }
+.h3 .info { width:52px; height:52px; }
+/* 4: title as its own CRT screen, back as a separate key beside it */
+.h4 .strip { display:flex; gap:8px; align-items:stretch; height:60px; }
+.h4 .back { height:60px; width:52px; }
+.h4 .scr { flex:1; position:relative; border:1px solid color-mix(in srgb,var(--rc) 55%,transparent); background:#030814; box-shadow:inset 0 0 22px rgba(0,0,0,.8); display:flex; align-items:center; padding:0 14px; gap:10px; overflow:hidden; }
+.h4 .scr::after { content:""; position:absolute; inset:0; background:repeating-linear-gradient(to bottom,rgba(0,0,0,.28) 0 1px,transparent 1px 3px); pointer-events:none; }
+.h4 .t { font:400 40px/1 var(--f-crt); letter-spacing:.08em; color:var(--rc); text-shadow:0 0 8px color-mix(in srgb,var(--rc) 60%,transparent); }
+.h4 .s { margin-left:auto; text-align:right; font:500 10px var(--f-mono); letter-spacing:.1em; color:color-mix(in srgb,var(--rc) 55%,#6b7592); line-height:1.5; }
+/* 5: title is a heading over the whole screen, keys tucked right */
+.h5 .strip { display:flex; align-items:center; gap:8px; height:54px; }
+.h5 .t { font-size:40px; letter-spacing:.2em; margin-right:auto; text-shadow:0 0 12px color-mix(in srgb,var(--rc) 55%,transparent); }
+.h5 .back { width:46px; height:46px; } .h5 .info { width:46px; height:46px; }
+</style>
+<div class="wrap">
+<header><h1>Lobby Header Layouts</h1>
+<p class="lead">Five ways to arrange the back key, the title and the connection key so the title stops floating between them. Each is drawn at the game's size with the mode keys under it. Switch the role to see the colour.</p></header>
+<div class="bar"><div class="grp"><span>Role</span>
+<button class="seg" data-rc="#5c9bff" aria-pressed="true">Tank</button><button class="seg" data-rc="#4dff9a" aria-pressed="false">Healer</button><button class="seg" data-rc="#ff9a4a" aria-pressed="false">DPS</button></div></div>
+<div class="grid">
+<div class="card"><h2>1 · One plate</h2><div class="ground h1"><div class="col"><div class="plate"><div class="k back">&larr;</div><div class="t">LOBBY</div><div class="k info">!</div></div>
+<div class="modes"><div class="k sel">GAUNTLET<small>50 waves, a boss every 5</small></div><div class="k">BOSS HUNT<small>10 waves to one boss</small></div><div class="k">PRACTICE<small>Build your own waves</small></div></div>
+<div class="party"><span>PARTY (2/3)</span><div class="k">HANGOUT &gt;</div></div></div></div><p>Back, title and info key sit inside one framed plate with the lobby's bracket corners. The title is centred, so it belongs to the plate, not to the keys.</p></div>
+<div class="card"><h2>2 · Slim strip</h2><div class="ground h2"><div class="col"><div class="strip"><div class="k back">&larr;</div><span class="t">LOBBY</span><span class="gap"></span><div class="k info">!</div></div>
+<div class="modes"><div class="k sel">GAUNTLET<small>50 waves, a boss every 5</small></div><div class="k">BOSS HUNT<small>10 waves to one boss</small></div><div class="k">PRACTICE<small>Build your own waves</small></div></div>
+<div class="party"><span>PARTY (2/3)</span><div class="k">HANGOUT &gt;</div></div></div></div><p>The title shrinks to a small spaced label like the section headings. The header is slimmer, which gives the party column about 24 px back.</p></div>
+<div class="card"><h2>3 · Title on the back key</h2><div class="ground h3"><div class="col"><div class="strip"><div class="k backt"><span class="arrow">&larr;</span><span class="t">LOBBY</span></div><div class="k info">!</div></div>
+<div class="modes"><div class="k sel">GAUNTLET<small>50 waves, a boss every 5</small></div><div class="k">BOSS HUNT<small>10 waves to one boss</small></div><div class="k">PRACTICE<small>Build your own waves</small></div></div>
+<div class="party"><span>PARTY (2/3)</span><div class="k">HANGOUT &gt;</div></div></div></div><p>The back key and the title become one wide key, so "LOBBY" reads as the way back. Only the info key stays separate.</p></div>
+<div class="card"><h2>4 · Header screen</h2><div class="ground h4"><div class="col"><div class="strip"><div class="k back">&larr;</div><div class="scr"><span class="t">LOBBY<span class="blk">_</span></span><span class="s">2/3 PLAYERS<br>&gt; LINK OK</span></div><div class="k info" style="height:60px">!</div></div>
+<div class="modes"><div class="k sel">GAUNTLET<small>50 waves, a boss every 5</small></div><div class="k">BOSS HUNT<small>10 waves to one boss</small></div><div class="k">PRACTICE<small>Build your own waves</small></div></div>
+<div class="party"><span>PARTY (2/3)</span><div class="k">HANGOUT &gt;</div></div></div></div><p>The title is a small CRT screen with a status readout, as in the pause, settings and profile menus. The keys sit outside it.</p></div>
+<div class="card"><h2>5 · Title left, keys right</h2><div class="ground h5"><div class="col"><div class="strip"><span class="t">LOBBY</span><div class="k back">&larr;</div><div class="k info">!</div></div>
+<div class="modes"><div class="k sel">GAUNTLET<small>50 waves, a boss every 5</small></div><div class="k">BOSS HUNT<small>10 waves to one boss</small></div><div class="k">PRACTICE<small>Build your own waves</small></div></div>
+<div class="party"><span>PARTY (2/3)</span><div class="k">HANGOUT &gt;</div></div></div></div><p>The title sits flush left like a page heading, and both keys move together on the right. Nothing is between the keys any more.</p></div>
+</div></div>
+<script>
+document.querySelectorAll('button[data-rc]').forEach(function (b) {
+  b.onclick = function () {
+    document.querySelectorAll('button[data-rc]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+    document.documentElement.style.setProperty('--rc', b.dataset.rc);
+  };
+});
+</script>

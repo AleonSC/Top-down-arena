@@ -69,7 +69,7 @@ namespace Arena
                 washFor = washBotEntry;
             if (washFor != null)
                 LobbyKit.WashTo(ToColor(Defs.Get(washFor.Role).Color), calm);
-            var infoButton = new Rect(364f, 38f, 44f, 42f);
+            var infoButton = new Rect(PartyX + PartyW - 40f, 30f, 40f, 40f);  // the connection key: hidden until the mouse is over it (or its popup is open)
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
             {
@@ -87,13 +87,13 @@ namespace Arena
 
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
-            if (LobbyKit.Key(new Rect(40f, 34f, 52f, 52f), "", false, calm, PixelArt.Get("ui_back"), size: 26))
+            if (LobbyKit.Key(new Rect(PartyX, 30f, 40f, 40f), "", false, calm, PixelArt.Get("ui_back"), size: 22))
                 StartLobbyLeave();  // LobbyEnter.cs
-            DrawLobbyTitle(new Rect(106f, 36f, 250f, 54f), 1f, calm, t);
-            if (LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 26))
+            DrawLobbyTitle(new Rect(PartyX + 54f, 30f, 250f, 40f), 1f, calm, t);
+            bool infoShown = connInfoOpen || (GUI.enabled && infoButton.Contains(Event.current.mousePosition));
+            if (infoShown && LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 22))
                 connInfoOpen = !connInfoOpen;
-            Ui.Fill(new Rect(PartyX, 91f, PartyW, 1f), LobbyKit.Ink(0.4f));
-            var modeR = new Rect(PartyX, 102f, PartyW, 52f);
+            var modeR = new Rect(PartyX, 82f, PartyW, 52f);
             TipClear();  // the mode keys' hover tips (below) and a rank badge's title (RankUi.cs)
             if (session.Resume != null)
                 DrawResumeBanner(modeR, t);  // continuing a saved run (SavesUi.cs)
@@ -102,10 +102,10 @@ namespace Arena
 
             // --- Left: the party, under the mode keys.
             const float lx = PartyX, lw = PartyW;
-            LobbyKit.Spaced(new Rect(lx, 166f, 220f, 22f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, LobbyKit.HeadCol, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
+            LobbyKit.Spaced(new Rect(lx, 146f, 220f, 22f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, LobbyKit.HeadCol, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
             // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            if (LobbyKit.Key(new Rect(lx + lw - 104f, 162f, 104f, 26f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
+            if (LobbyKit.Key(new Rect(lx + lw - 104f, 142f, 104f, 26f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
             int slot = 0;
@@ -169,7 +169,7 @@ namespace Arena
         const float LobbyBodyTop = 70f;   // the top of the big screen (under the tab keys)
         static readonly Rect LobbyBodyRectConst = new Rect(440f, 70f, 804f, 614f);
         const float PartyX = 36f, PartyW = 376f;
-        const float PartyTop = 196f;      // the top of the first party card (under the mode keys and the Party line)
+        const float PartyTop = 176f;      // the top of the first party card (under the mode keys and the Party line)
         const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
         const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
         const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
@@ -178,24 +178,19 @@ namespace Arena
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout).
         static Rect LobbyBodyRect => LobbyBodyRectConst;
 
-        /// The lobby's title: LOBBY in 46 px letter-spaced caps with a blinking block after it (solid, but lit, with Reduced effects). `a` fades it (the entrance).
+        /// The lobby's title: a small letter-spaced label (16 px, .3 em) with a faint rule trailing off to the right (the mockup's slim header,
+        /// Docs/Mockups/crt-lobby-headers.html option 2). `a` fades it (the entrance).
         void DrawLobbyTitle(Rect r, float a, bool calm, float t)
         {
-            var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
-            const int size = 46;
-            const float sp = 2.8f;  // .06em
+            var ink = new Color(0.56f, 0.71f, 1f, a);
+            const int size = 16;
+            const float sp = 4.8f;
             float tw = LobbyKit.SpacedWidth("LOBBY", size, sp);
-            var tr = new Rect(r.x, r.y, tw + 10f, r.height);
-            if (!calm && Event.current.type == EventType.Repaint)  // the glow: two faint copies a pixel to each side
-            {
-                var g = new Color(ink.r, ink.g, ink.b, 0.16f * a);
-                LobbyKit.Spaced(new Rect(tr.x - 1f, tr.y, tr.width, tr.height), "LOBBY", size, g, TextAnchor.MiddleLeft, sp);
-                LobbyKit.Spaced(new Rect(tr.x + 1f, tr.y, tr.width, tr.height), "LOBBY", size, g, TextAnchor.MiddleLeft, sp);
-            }
-            LobbyKit.Spaced(tr, "LOBBY", size, ink, TextAnchor.MiddleLeft, sp);
-            bool lit = calm || Mathf.FloorToInt(t * 2f) % 2 == 0;
-            if (lit)
-                Ui.Fill(new Rect(r.x + tw + 6f, r.center.y - 13f, 23f, 34f), ink);
+            LobbyKit.Spaced(new Rect(r.x, r.y, tw + 10f, r.height), "LOBBY", size, ink, TextAnchor.MiddleLeft, sp);
+            float x0 = r.x + tw + 16f, x1 = PartyX + PartyW - 50f;  // the rule runs on to the connection key's place, fading out
+            const int steps = 14;
+            for (int i = 0; i < steps && x1 > x0; i++)
+                Ui.Fill(new Rect(x0 + (x1 - x0) * i / steps, Mathf.Round(r.center.y), (x1 - x0) / steps + 1f, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.5f * (1f - i / (float)steps) * a));
         }
 
         string HostName()
