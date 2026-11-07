@@ -303,13 +303,13 @@ static partial class Shot {
     else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr")
     {
       // who: the "Who's playing?" screen with made-up profiles (TWO=1: two of them, so one slot says Empty; MANAGE=1: Rename and Delete showing; EMPTY=1: none yet).
-      // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..2.26>,<slot 0..2>[,back].
+      // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..5.4>,<slot 0..2>[,back].
       if (mode == "whotr") {
         PreviewWho();
         var pt = Environment.GetEnvironmentVariable("PROFTR").Split(',');
         float ptT = float.Parse(pt[0], System.Globalization.CultureInfo.InvariantCulture);
         set("profTr", true); set("profTrT", ptT); set("profTrSlot", int.Parse(pt[1])); set("profTrFwd", pt.Length < 3);
-        set("menuIntroDone", true); set("menuIntroT", Mathf.Min(2.749f, 0.35f + Mathf.Max(0f, ptT - 0.7f) / 0.65f));
+        set("menuIntroDone", true); set("menuIntroT", Mathf.Min(2.749f, 0.35f + Mathf.Max(0f, ptT - 3.0f)));
         typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
       }
       if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }

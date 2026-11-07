@@ -48,6 +48,9 @@ namespace Arena
         BayBeep, BayServo, BayServoBack, BayClamp, BayZap, BayWhirr, BayTick, BayLift, BaySeat, BayClack,
         // New run's CRT boot into the lobby (LobbyCrt.cs, PlayCrtEntryCues): power-on thump, a key per typed character, a beep per log line, the scan line's sweep, and the ready chime. Never sent.
         CrtPower, CrtType, CrtLine, CrtSweep, CrtReady,
+        // Picking a profile disk (ProfileTransition.cs, DriveSlot.cs): the clamps unlatching, the disk's whoosh, its clack as it tips flat, the slide into
+        // the drive slot (and the eject going back), the latch click, the drive reading, and a ready chime. Your own screen only, never sent.
+        DiskLift, DiskFly, DiskTip, DiskSlide, DiskEject, DiskClick, DiskRead, DiskReady,
     }
 
     public struct SoundCue

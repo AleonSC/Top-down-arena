@@ -75,10 +75,14 @@ of scope.
 
 ## The move to and from the menu (built, Nov 2026)
 
-Look C ("Plot points") of `Docs/Mockups/profile-transitions.html`, at half speed (~4.5 s), `Game/ProfileTransition.cs`.
-Picking a profile plays it forward; the menu's "Switch profile" plays it backwards. Each box shrinks into a point on the axis
-(a ping each), the points you didn't pick shoot off the ends, yours slides to the origin and opens into the menu box; the
-menu's own intro (`MenuIntro.cs`) runs from a remapped clock. Sounds are `Sfx.Prof*` (SoundBank.cs) plus the pause menu's
-thunk and key ticks. Any key skips it; nothing can be clicked meanwhile. Reduced effects or Visual effects off: no move.
-Audio and drawing only, no protocol bump. Preview: `PROFTR=<0..2.26>,<slot>[,back] Tools/Preview/shot.sh x whotr`.
+Slot B ("Drive bay") with the Tapered stroke arc of `Docs/Mockups/floppy-slot.html`, 5.4 s, `Game/ProfileTransition.cs` and `Game/DriveSlot.cs`
+(this replaced look C, "Plot points", of `Docs/Mockups/profile-transitions.html`). The x-axis line is gone from the picker and the menu; a disk
+drive sits under the title instead. Picking a profile plays it forward; the menu's "Switch profile" plays it backwards. Your disk lifts out of
+its clamps, the rest of the picker fades, the disk flies to the drive, tips flat from its top edge onto the slit and slides in (the slit's lip is
+drawn over it); the drive's light pulses amber, then blinks in your rank colour while four cells fill and the readout goes DISK DETECTED,
+READING <NAME>, <NAME> READY. The menu's own intro (`MenuIntro.cs`) runs from a remapped clock (title types at 3.6 s, the arc at 4.05 s). Sounds:
+`Sfx.Disk*` (lift, fly, tip, slide / eject, click, read, ready) and `Sfx.Prof*` (select, the pen on the arc, box sweep, bar, chord), plus the pause
+menu's thunk and key ticks. Any key skips it; nothing can be clicked meanwhile. Reduced effects or Visual effects off: no move.
+The lobby's own axis is unchanged except where it was drawn at the menu's place (the move into the lobby and back): there the drive fades.
+Audio and drawing only, no protocol bump. Preview: `PROFTR=<0..5.4>,<slot>[,back] Tools/Preview/shot.sh x whotr`.
 Profiles made before the limit (more than 3) stay on disk; the picker shows the first three until some are deleted.

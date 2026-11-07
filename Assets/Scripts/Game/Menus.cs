@@ -40,11 +40,11 @@ namespace Arena
             if (box > 0f)  // the card's glow first, so it sits under the title, the tip box and everything else
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyGlow(MenuCard)));
             DrawMenuTitle(t);
+            DrawDriveSlot(EaseOut(MenuAxisK), DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
             if (box > 0f)
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyBox(MenuCard)));
             if (BeginUiGl())
             {
-                DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf * EaseOut(MenuAxisK), t);  // the title sits on an x-axis
                 DrawMenuArc(t, 1f);
                 float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
                 if (snap > 0f)
@@ -154,27 +154,77 @@ namespace Arena
         }
 
         /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.
+        /// The shot's arc over the title as a vector path (look 3, "Tapered stroke", of Docs/Mockups/floppy-slot.html): a filled shape thin at the
+        /// ends and fuller at the peak with a soft glow under it, small dots at the ends, and the shot as a pointed comet. Drawn on as the pen traces it.
         void DrawMenuArc(float t, float alpha)
         {
             UiModelAt(V2.Zero, 1f);
             float upTo = MenuIntroK(1.4f, 1.9f);
             if (upTo <= 0f || alpha <= 0f)
                 return;
-            var c = new Rgba(0.45f, 0.65f, 1f, 0.35f * alpha);
-            const int Segs = 60;
-            int n = Mathf.CeilToInt(Segs * upTo);
-            for (int i = 0; i < n; i += 2)  // dashes: every other step
-                Line(ArcAt(Mathf.Min(upTo, (float)i / Segs)), ArcAt(Mathf.Min(upTo, (float)(i + 1) / Segs)), 1.5f, c);
+            var blue = new Rgba(0.45f, 0.65f, 1f);
+            const int Segs = 90;
+            int n = Mathf.Max(1, Mathf.CeilToInt(Segs * upTo));
+            for (int i = 0; i < n; i++)  // the glow
+            {
+                float u0 = upTo * i / n, u1 = upTo * (i + 1) / n;
+                Line(ArcAt(u0), ArcAt(u1), 12f, blue.WithAlpha(0.05f * alpha));
+                Line(ArcAt(u0), ArcAt(u1), 6f, blue.WithAlpha(0.08f * alpha));
+            }
+            V2 prevUp = default, prevDn = default;
+            for (int i = 0; i <= n; i++)  // the body: a strip of quads along the curve, widest at the peak
+            {
+                float u = upTo * i / n;
+                ArcEdge(u, ArcWidth(u) / 2f, out V2 up, out V2 dn);
+                if (i > 0)
+                {
+                    float mid = Mathf.Sin(Mathf.PI * (u - 0.5f * upTo / n));
+                    SetColor(new Rgba(Mathf.Lerp(0.59f, 0.75f, mid), Mathf.Lerp(0.75f, 0.84f, mid), 1f, Mathf.Lerp(0.55f, 0.98f, mid) * alpha));
+                    Tri(prevUp, prevDn, up);
+                    Tri(prevDn, dn, up);
+                }
+                prevUp = up;
+                prevDn = dn;
+            }
+            float ends = Seg(upTo, 0.05f, 0.2f);
+            Circle(ArcAt(0f), 2.6f * ends, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha), 10);
+            if (upTo >= 1f)
+                Circle(ArcAt(1f), 2.6f, new Rgba(0.75f, 0.84f, 1f, 0.9f * alpha), 10);
             float shotIn = MenuIntroK(1.9f, 2.2f) * alpha;
             if (shotIn > 0f)
             {
                 float u = MathX.Fmod(t * 0.22f, 1f);
-                for (int i = 6; i >= 0; i--)  // the shot and its fading tail
+                const int Tail = 22;
+                const float Len = 0.16f;
+                V2 pl = default, pr = default;
+                for (int i = 0; i <= Tail; i++)  // the comet's tail: a pointed strip behind the shot
                 {
-                    float uu = Mathf.Max(0f, u - i * 0.008f);
-                    Circle(ArcAt(uu), 5f - i * 0.5f, new Rgba(1f, 0.47f, 0.59f, (0.12f + 0.5f * (1f - i / 6f)) * shotIn), 10);
+                    float uu = Mathf.Max(0f, u - Len * i / Tail);
+                    ArcEdge(uu, (1f - (float)i / Tail) * 3.2f + 0.1f, out V2 l, out V2 r);
+                    if (i > 0)
+                    {
+                        SetColor(new Rgba(1f, 0.47f, 0.59f, 0.85f * shotIn));
+                        Tri(pl, pr, l);
+                        Tri(pr, r, l);
+                    }
+                    pl = l;
+                    pr = r;
                 }
+                Circle(ArcAt(u), 10f, new Rgba(1f, 0.47f, 0.59f, 0.2f * shotIn), 14);
+                Circle(ArcAt(u), 2.2f, new Rgba(1f, 1f, 1f, 0.95f * shotIn), 8);
             }
+        }
+
+        static float ArcWidth(float u) => 0.6f + 3.2f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * u)), 1.1f);
+
+        /// The two edges of the arc's stroke at u, half a width either side of the curve.
+        static void ArcEdge(float u, float half, out V2 up, out V2 dn)
+        {
+            V2 p = ArcAt(u);
+            float dx = ArcX1 - ArcX0, dy = -(ArcBase - ArcTop) * 4f * (1f - 2f * u), l = Mathf.Sqrt(dx * dx + dy * dy);
+            float nx = -dy / l * half, ny = dx / l * half;
+            up = new V2(p.X + nx, p.Y + ny);
+            dn = new V2(p.X - nx, p.Y - ny);
         }
 
         static V2 ArcAt(float u) => new V2(Mathf.Lerp(ArcX0, ArcX1, u), ArcBase - (ArcBase - ArcTop) * 4f * u * (1f - u));
