@@ -24,6 +24,7 @@ namespace Arena
             {
                 if (game.Recorder != null)  // this match is being recorded (hosts only)
                     Ui.Label(new Rect(W - 70f, 34f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
+                DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs)
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
@@ -194,14 +195,11 @@ namespace Arena
         {
             DrawWavePlate(new Rect(SideL, SideY, SideW, SideH));
             float y = SideY - 28f;
-            y -= DrawApproachChip(SideL, y);  // ApproachUi.cs
             if (game.CurrentPath != PathId.None)
             {
                 DrawPathChip(SideL, y);  // PathsUi.cs
                 y -= 24f;
             }
-            if (game.LayoutOn)
-                y -= DrawLayoutChip(SideL, y);  // LayoutLook.cs
             if (DrawGoldChip(SideL, y))  // ShopUi.cs
                 y -= 24f;
             DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs
@@ -216,6 +214,13 @@ namespace Arena
             // Yours in full; teammates as slim rows above it. (A spectator-less game always has you first.)
             DrawPlayerHudCard(game.Players[ids[0]], new Rect(SideR, SideY, SideW, SideH), ids[0] == game.MyId);
             float y = SideY - 6f;
+            var mine = game.Me;
+            if (mine != null && Game.HasPerk(mine, PerkId.RiotGear))  // status chips sit over your card (RiotGearLook.cs)
+            {
+                y -= 38f;
+                DrawRiotChip(new Rect(SideR, y, 112f, 38f), mine);
+                y -= 6f;
+            }
             for (int i = 1; i < ids.Count; i++)
             {
                 y -= 30f;
@@ -359,11 +364,14 @@ namespace Arena
             float total = tileW * Upgrades.SlotCount + gap * (Upgrades.SlotCount - 1);
             float x0 = (W - total) / 2f, y = H - tileH - 12f;
 
-            // XP strip with the level badge.
-            var lv = new Rect(x0, y - 22f, 52f, 16f);
-            Ui.Pill(lv, new Color(1f, 0.8f, 0.35f, 0.25f));
-            Ui.Label(lv, "LV " + me.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
-            Ui.Bar(new Rect(x0 + 58f, y - 17f, total - 58f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.5f));
+            // XP strip with the level inside it (the CRT console look: a segmented gold bar, "LV 3 · 48%" at its left end).
+            var xp = new Rect(x0, y - 20f, total, 14f);
+            float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
+            Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
+            Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
+            for (float sx = 0f; sx < xp.width * xpFrac; sx += 8f)
+                Ui.Fill(new Rect(xp.x + sx, xp.y, Mathf.Min(6f, xp.width * xpFrac - sx), xp.height), new Color(1f, 0.82f, 0.3f, 0.95f));
+            Ui.Label(new Rect(xp.x + 7f, xp.y, 120f, xp.height), "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%", 10, new Color(0.03f, 0.04f, 0.1f), TextAnchor.MiddleLeft, true);
 
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
@@ -372,8 +380,6 @@ namespace Arena
                 int slotIndex = i;
                 TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
             }
-            if (Game.HasPerk(me, PerkId.RiotGear))
-                DrawRiotChip(new Rect(x0, y - 66f, 112f, 38f), me);  // RiotGearLook.cs
             DrawMasteryToasts(x0 + total / 2f, y - 64f);
         }
 
