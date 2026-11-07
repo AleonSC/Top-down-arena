@@ -62,11 +62,19 @@ namespace Arena
                 var c = new Rect(x, bodyY + i * (rh + gap), listW, rh);
                 rows[i] = c;
                 bool hover = host && open && c.Contains(Event.current.mousePosition);
-                Ui.Card(c, picked ? HuntColor : open ? Ui.Gold : FadedBlue(0.55f), picked ? 0.9f : hover ? 0.5f : open ? 0.25f : 0.06f);
-                if (picked)
-                    Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(HuntColor.r, HuntColor.g, HuntColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
-                Ui.Label(new Rect(c.x + 8f, c.y, 20f, c.height), (i + 1).ToString("00"), 10, open || picked ? Ui.Muted : FadedBlue(0.4f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), BossName(boss), 14, open || picked ? Color.white : FadedBlue(0.5f), TextAnchor.MiddleLeft, true);
+                // A digital key like the lobby's Ready button: soft tint and outline (coral and glowing when picked); a dashed dim one when not open yet.
+                Color acc = picked ? HuntColor : CrtUi.Ink;
+                if (open || picked)
+                    CrtKit.SoftBox(c, acc, picked, hover, false);
+                else
+                {
+                    var d = CrtUi.Dim;
+                    Ui.Fill(c, new Color(d.r, d.g, d.b, 0.015f));
+                    CrtKit.Dashed(c, 1f, new Color(d.r, d.g, d.b, 0.3f));
+                }
+                Color tc = open || picked ? CrtKit.SoftText(acc, hover || picked) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.6f);
+                Ui.Label(new Rect(c.x + 8f, c.y, 20f, c.height), (i + 1).ToString("00"), 10, new Color(tc.r, tc.g, tc.b, 0.6f), TextAnchor.MiddleLeft);
+                CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), BossName(boss), 14, tc, TextAnchor.MiddleLeft, true, false);
                 string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss) > 0 ? "WON x" + profile.HuntWon(boss) : "OPEN";
                 Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
                 HuntChip(c.xMax - 8f, c.center.y, chip, cc);
