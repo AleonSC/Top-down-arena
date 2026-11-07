@@ -168,11 +168,11 @@ namespace Arena
             size = CrtKit.Sz(size);  // small caps, like the mockup's 12 px headings
             float sp = size * 0.14f;  // .14em, as in the mockup
             float tw = SpacedWidth(t, size, sp);
-            Spaced(new Rect(x, y, tw + 12f, 26f), t, size, HeadCol, TextAnchor.MiddleLeft, sp);
+            Spaced(new Rect(x, y + 8f, tw + 12f, 24f), t, size, HeadCol, TextAnchor.MiddleLeft, sp);  // sits just above the rule, flush with its left end
             if (!string.IsNullOrEmpty(caption))
             {
                 float left = tw + 16f;
-                var cr = new Rect(x + left, y + 2f, w - left, 24f);
+                var cr = new Rect(x + left, y + 9f, w - left, 24f);
                 string cap = caption.ToUpperInvariant();
                 int s = FitSize(cap, 10, 9, cr.width);
                 var dimCap = new Color(HeadCol.r * 0.55f, HeadCol.g * 0.55f, HeadCol.b * 0.6f, 0.65f);  // very dim, like the mockup's captions
@@ -182,7 +182,7 @@ namespace Arena
                     var words = cap.Split(' ');
                     for (int n = words.Length; n > 0 && Ui.TextHeight(cap, 10, cr.width, true) > 30f; n--)
                         cap = string.Join(" ", words, 0, n - 1).TrimEnd(',', '.', ';', ':') + "…";
-                    Ui.Label(new Rect(cr.x, y + 1f, cr.width, 26f), cap, 9, dimCap, TextAnchor.MiddleRight, true, true);
+                    Ui.Label(new Rect(cr.x, y + 8f, cr.width, 26f), cap, 9, dimCap, TextAnchor.MiddleRight, true, true);
                 }
                 else
                 {
@@ -342,7 +342,7 @@ namespace Arena
             for (int i = 0; i < text.Length; i++)
             {
                 if (text[i] != ' ')
-                    Ui.Label(new Rect(x - 3f, r.y, adv[i] + 12f, r.height), text[i].ToString(), size, c, TextAnchor.MiddleLeft, bold);
+                    Ui.Label(new Rect(x - Ui.LabelPadLeft - 1f, r.y, adv[i] + 12f, r.height), text[i].ToString(), size, c, TextAnchor.MiddleLeft, bold);  // (the first letter sits flush at r.x)
                 x += adv[i] + spacing;
             }
         }
