@@ -736,6 +736,7 @@ namespace Arena
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
             AgePatches(dt);  // Paths.cs (every game, so the floors look the same everywhere)
+            TickLayout(dt);  // LayoutRules.cs (every game: a joiner's walls fade in off this clock, or they stay invisible)
             TickRunTimeline(dt);  // RunTimeline.cs (every game: the Recent runs graphs)
             TickArenaRules(dt);
             foreach (var e in Enemies.Values)
@@ -1158,7 +1159,6 @@ namespace Arena
             TickOrbs(dt);
             TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
-            TickLayout(dt);   // LayoutRules.cs
             MoveBullets(dt);
             Collide();
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it

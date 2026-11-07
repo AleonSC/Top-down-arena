@@ -227,6 +227,8 @@ static partial class Program
         g.DevSetLayout(LayoutId.Cross);
         Run(s, dt, 0.5f);
         Check(cg.Layout == LayoutId.Cross, "a layout change reaches the client");
+        Run(s, dt, 0.6f);
+        Check(cg.LayoutAge > 0.5f, "the client's layout clock runs, so its walls fade in and are drawn (" + cg.LayoutAge.ToString("0.00") + " s)");
         // Nobody's open arena has walls.
         g.DevSetLayout(LayoutId.Open);
         Check(!g.LayoutOn && g.PushOutOfSolids(new V2(500f, 300f), 10f).DistanceTo(new V2(500f, 300f)) < 0.01f, "the open arena has no walls");
