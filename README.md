@@ -1065,8 +1065,9 @@ Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins 
 
 ## Run stats (Tab)
 
-Hold **Tab** during a match for the **Run stats** screen, with three tabs (click to switch; it remembers the last
-one):
+Hold **Tab** during a match for the **Run stats** screen: hologram panels projected over the arena (in your CRT
+colour, lit by a beam along the bottom of the screen), your stats down the left, and three tabs (click to switch; it
+remembers the last one):
 
 - **Run so far:** the wave and where you are (path and wave of it, enemies left), time played, score, the next boss
   and the run's modifiers; your totals (damage, kills, healing, accuracy, biggest hit, level, times downed, allies
@@ -1078,9 +1079,9 @@ one):
 - **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and
   upgrades.
 
-Switching tabs **zooms through**: the old page grows a little and fades while the new one rises in from just
-behind (about a quarter of a second; teammates' live models appear once it settles). With **Reduced effects** it's a
-plain crossfade, and with **Visual effects** off it switches instantly.
+The panels **switch on** from a thin line when the screen opens and when you change tab (about a third of a
+second; teammates' live models appear once it settles). With **Reduced effects** or **Visual effects** off they're
+simply there, without the drifting band and flicker.
 
 **Solo, holding Tab pauses the match** (letting go resumes it). **With friends it doesn't pause** (you can still move
 and shoot while it's up); to look together, pause (**Esc**) and press **Run stats** in the pause menu. The host sends

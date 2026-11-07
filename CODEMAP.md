@@ -168,7 +168,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
 - `WaveBand.cs`: the CRT scan band for GET READY / WAVE N CLEARED (`Hud.DrawBanner`) and WAVE N STARTED (`LaunchIntro.DrawLaunchWave`); mockup `Docs/Mockups/crt-wave-banners.html` option B
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
-- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen, hunt tab
+- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen (the Tab screen, as hologram panels), hunt tab
+- `TabHolo.cs`: the Tab screen's hologram panels (glass, scanlines, band, fringe, flicker, switch-on), the projector beam, and its layout and text helpers
 
 ## Menus and lobby (Game)
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch

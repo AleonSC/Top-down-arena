@@ -479,13 +479,10 @@ static partial class Shot {
         }
         set("statsTab", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
         if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);
-        // STATSFROM=n: caught mid switch from tab n, STATSAT seconds in (the zoom-through; the stub ignores GUI.matrix, so it shows the fade only).
-        if (Environment.GetEnvironmentVariable("STATSFROM") != null)
-        {
-          set("statsShown", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
-          set("statsFrom", int.Parse(Environment.GetEnvironmentVariable("STATSFROM")));
-          set("statsSwitchAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("STATSAT") ?? "0.12"));
-        }
+        // The screen as if already open (its panels settled); HOLOAT=<s>: that far into the page's panels switching on (TabHolo.cs).
+        set("statsLastFrame", Time.frameCount); set("statsShown", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
+        set("holoOpenAt", -10f);
+        set("holoPageAt", Environment.GetEnvironmentVariable("HOLOAT") != null ? Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("HOLOAT"), System.Globalization.CultureInfo.InvariantCulture) : -10f);
         Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
         typeof(ArenaApp).GetMethod("DrawRunStatsScreen", f2).Invoke(app, new object[] { me, Environment.GetEnvironmentVariable("PAUSE") != null });
         GL.ToUi = false;
