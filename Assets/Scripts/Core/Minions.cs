@@ -172,8 +172,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GolemWall, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0,
-                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three stone walls in front of you for 6 s that block bullets.",
-                Capstone = "Raises five walls.",
+                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three basalt golems in front of you. They block every enemy bullet and stay until they are broken (200 health each); casting again replaces them.",
+                Capstone = "Raises five golems.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
@@ -313,8 +313,14 @@ namespace Arena
                 {
                     V2 fwd = V2.FromAngle(p.Aim), side = fwd.Orthogonal();
                     int half = cap ? 2 : 1;
+                    var old = new List<int>();  // a new wall replaces the caster's old one
+                    foreach (var m in Minions.Values)
+                        if (m.Kind == MinionKind.Wall && m.Owner == p.Id)
+                            old.Add(m.Id);
+                    foreach (int oldId in old)
+                        Minions.Remove(oldId);
                     for (int i = -half; i <= half; i++)
-                        SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * 90f + side * (i * 55f), 6f);
+                        SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * GolemWallAhead + side * (i * GolemWallGap), -1f);  // -1: no timer, it stands until broken
                     Sounds.Add(Sfx.Summon);
                     break;
                 }
@@ -398,6 +404,8 @@ namespace Arena
         // --- Minions -----------------------------------------------------------
 
         const float BatGuardTime = 0.6f, BatPeelSpan = 0.6f, BatRingNear = 34f, BatRingGrow = 18f;  // Bat Swarm: circle the owner 0.6 s, then each bat peels off in turn over 0.6 s
+
+        public const float GolemWallAhead = 112f, GolemWallGap = 76f;  // Golem Wall: golems touch (radius 38), their backs clear the caster
 
         Minion SpawnMinion(MinionKind kind, Player owner, V2 pos, float life, bool companion = false)
         {
@@ -801,7 +809,7 @@ namespace Arena
             {
                 if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (m.Kind == MinionKind.Titan && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= m.Kind == MinionKind.CloneWall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone wears from every shot, not just a boss's
+                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Wall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)

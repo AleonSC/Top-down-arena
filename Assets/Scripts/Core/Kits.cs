@@ -83,8 +83,8 @@ namespace Arena
                 Attack = MinionAttack.Shoot, Interval = 0.35f, Damage = 12f, Range = 450f },
             new MinionDef { Name = "Guardian Spirit", Radius = 22f, Sides = 8, Color = new Rgba(0.55f, 0.75f, 1f), Move = MinionMove.FollowOwner, Speed = 400f,
                 BlockRadius = 75f, BlockCapacity = 400f },
-            new MinionDef { Name = "Stone Wall", Radius = 22f, Sides = 4, Color = new Rgba(0.6f, 0.55f, 0.5f), Move = MinionMove.Static,
-                BlockRadius = 30f, BlockCapacity = 200f },
+            new MinionDef { Name = "Basalt Golem", Radius = 38f, Sides = 8, Color = new Rgba(0.26f, 0.25f, 0.3f), Move = MinionMove.Static,
+                BlockRadius = 46f, BlockCapacity = 200f },  // Golem Wall: stays until its health is gone (BlockedBySummons); look in Game/GolemWallLook.cs
             new MinionDef { Name = "Titan", Radius = 140f, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f), Move = MinionMove.Chase, Speed = 75f,
                 Attack = MinionAttack.Slam, Interval = 1.4f, Damage = 90f, Range = 190f, BlockRadius = 140f, BlockCapacity = 1000f },  // the Colossus: Titan.cs does its walking and slamming
             new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
