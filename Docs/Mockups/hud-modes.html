@@ -1,0 +1,226 @@
+<title>HUD Modes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. A match screen (960 x 540, scaled to fit) in three HUD modes: Full, Partial, Hidden.
+   Press H (or the buttons) to cycle. Four candidate looks for Partial. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 span { color: var(--teal); }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.holder { width: 100%; overflow: hidden; position: relative; background: #080b11; }
+.screen { position: relative; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden; background: #080b11; }
+.screen > canvas { position: absolute; inset: 0; display: block; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+.notes { display: grid; gap: 10px; color: var(--soft); font-size: 15px; }
+.notes b { font-family: var(--font-display); color: var(--fg); }
+.keep { display: flex; flex-wrap: wrap; gap: 6px; }
+.keep span { font: 500 12px var(--font-data); color: var(--soft); background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; HUD</div>
+  <h1>HUD <span>modes</span></h1>
+  <p class="lead">Three modes on <code>H</code>: <b>Full</b> (today's HUD), <b>Partial</b> and <b>Hidden</b>. Partial keeps only what you act on mid-fight: your health, ability cooldown numbers, enemies left. Pick a look for Partial below, then press <code>H</code> to see all three.</p>
+</header>
+
+<section class="stage" aria-label="Preview">
+  <div class="holder" id="holder"><div class="screen" id="screen"><canvas id="game" width="960" height="540"></canvas></div></div>
+  <div class="bar">
+    <div class="group"><span class="label">Mode (H)</span>
+      <button data-mode="0" aria-pressed="false">Full</button>
+      <button data-mode="1" aria-pressed="true">Partial</button>
+      <button data-mode="2" aria-pressed="false">Hidden</button></div>
+    <div class="group"><span class="label">Partial look</span>
+      <button data-look="0" aria-pressed="true">A &middot; Corner text</button>
+      <button data-look="1" aria-pressed="false">B &middot; Key row</button>
+      <button data-look="2" aria-pressed="false">C &middot; On the player</button>
+      <button data-look="3" aria-pressed="false">D &middot; One line</button></div>
+    <div class="group"><button id="boss" aria-pressed="false">Boss fight</button></div>
+  </div>
+</section>
+
+<section class="notes">
+  <p><b>What Partial keeps in every look.</b></p>
+  <div class="keep"><span>HP number</span><span>cooldown numbers (ready = key only)</span><span>enemies left</span><span>boss bar when a boss is up</span><span>DOWNED / revive</span></div>
+  <p><b>Dropped in Partial.</b> The console and its CRT glass, wave plate and score, XP strip, level chip, class names, teammate rows, path/gold/modifier chips, tile art and ability icons. Names over heads stay off. Hidden is today's H: only slim boss bars remain.</p>
+  <p><b>A &middot; Corner text.</b> Plain text in the corners with a shadow, no boxes. HP bottom left, cooldowns in a row bottom centre, enemies left top right. The calmest; reads fine on busy backgrounds.</p>
+  <p><b>B &middot; Key row.</b> A compact row of four small keycaps with the number inside; a dimmed cap with a cooldown fill while recharging, lit when ready. Thin HP bar above it, enemies left centre top.</p>
+  <p><b>C &middot; On the player.</b> The info rides on your character: a health arc, tiny cooldown numbers orbiting. Nothing at the screen edges but a top-centre enemy count. Least eye travel, but busiest near you.</p>
+  <p><b>D &middot; One line.</b> A single thin strip at the bottom: <code>W12 &middot; 14 LEFT &middot; HP 180/240 &middot; Q 3.2 E &middot; &#x21E7; 1.1 &#x2423; &middot;</code> Smallest footprint; denser to read.</p>
+  <p><b>Wiring (if picked).</b> <code>hudShown</code> becomes a three-step <code>hudMode</code> (saved in Settings, no protocol change as the HUD is local). Partial draws the chosen look in <code>DrawHud</code> in place of the console groups; mini boss bars and the boss bar group stay as they are.</p>
+</section>
+</div>
+<script>
+"use strict";
+const TAU = Math.PI * 2;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const holder = document.getElementById("holder"), screen = document.getElementById("screen");
+const fit = () => { const s = Math.min(1, holder.clientWidth / 960); screen.style.transform = `translateX(${(holder.clientWidth - 960 * s) / 2}px) scale(${s})`; holder.style.height = (540 * s) + "px"; };
+addEventListener("resize", fit); fit();
+
+const D = "Oxanium, 'Segoe UI', sans-serif", M = "'IBM Plex Mono', monospace";
+const INK = "#66a3ff", DIM = "#4a76b8", GOLD = "#ffc94d";
+let mode = 1, look = 0, boss = false;
+const me = { x: 380, y: 290, c: "#6a9bff" };
+const mates = [ {x:600,y:220,c:"#5be0a0"}, {x:690,y:350,c:"#e0a0ff"} ];
+const abil = [ {k:"Q", n:"Barrier", c:"#6a9bff", cd:3.2, max:8}, {k:"E", n:"Mend", c:"#5be0a0", cd:0, max:6}, {k:"⇧", n:"Dash", c:"#ffb547", cd:1.1, max:4}, {k:"␣", n:"Slam", c:"#ff7a7a", cd:0, max:12} ];
+const st = { hp: 180, max: 240, level: 14, xp: .55, wave: 12, left: 14, score: 48210 };
+
+const gc = document.getElementById("game").getContext("2d");
+const rr = (c, x, y, w, h, r) => { c.beginPath(); c.roundRect(x, y, w, h, r); };
+function txt(c, s, x, y, size, col, align, font, weight) {
+  c.font = `${weight || 700} ${size}px ${font || D}`; c.textAlign = align || "left"; c.textBaseline = "alphabetic";
+  c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.75)"; c.lineJoin = "round"; c.strokeText(s, x, y);
+  c.fillStyle = col; c.fillText(s, x, y);
+}
+const cdText = a => a.cd > 0 ? a.cd.toFixed(1) : "";
+const hpCol = f => f > .5 ? "#4fe07a" : f > .25 ? "#ffd04a" : "#ff5a5a";
+
+/* ---- FULL: a stand-in for today's console ---- */
+function full(c) {
+  c.fillStyle = "rgba(10,16,30,.9)"; c.fillRect(10, 540 - 86, 940, 80);
+  c.strokeStyle = "rgba(102,163,255,.5)"; c.lineWidth = 1; c.strokeRect(10.5, 540 - 85.5, 939, 79);
+  c.fillStyle = "rgba(102,163,255,.04)"; for (let y = 540 - 85; y < 540 - 6; y += 3) c.fillRect(11, y, 938, 1);
+  // wave plate
+  txt(c, "WAVE", 28, 540 - 68, 14, DIM); txt(c, "12", 24, 540 - 30, 46, INK); txt(c, "/ ENDLESS", 78, 540 - 34, 18, DIM);
+  txt(c, "LEFT", 226, 540 - 68, 14, DIM, "right"); txt(c, String(st.left), 226, 540 - 42, 28, INK, "right");
+  txt(c, "SCORE " + st.score.toLocaleString("en-US"), 226, 540 - 24, 13, GOLD, "right");
+  c.fillStyle = "rgba(255,255,255,.1)"; c.fillRect(26, 540 - 16, 200, 4); c.fillStyle = INK; for (let x = 0; x < 120; x += 8) c.fillRect(26 + x, 540 - 16, 6, 4);
+  // tiles
+  abil.forEach((a, i) => {
+    const x = 300 + i * 90, y = 540 - 78;
+    c.fillStyle = "rgba(255,255,255,.06)"; c.strokeStyle = a.c; c.lineWidth = 2; rr(c, x, y, 80, 64, 6); c.fill(); c.stroke();
+    txt(c, a.k, x + 8, y + 18, 15, a.c, "left"); txt(c, a.n, x + 40, y + 38, 12, "#cfdae2", "center", D, 600);
+    if (a.cd > 0) { c.fillStyle = "rgba(0,0,0,.5)"; rr(c, x, y, 80, 64, 6); c.fill(); txt(c, cdText(a), x + 40, y + 56, 18, "#fff", "center"); }
+    else txt(c, "READY", x + 40, y + 56, 11, a.c, "center");
+  });
+  // player card
+  const x = 700, y = 540 - 78;
+  c.fillStyle = "rgba(14,22,40,1)"; c.fillRect(x, y, 240, 72); c.strokeStyle = "rgba(106,155,255,.85)"; c.strokeRect(x + .5, y + .5, 239, 71); c.fillStyle = me.c; c.fillRect(x, y, 6, 72);
+  txt(c, "You", x + 18, y + 20, 13, "#fff"); txt(c, "Shield Tank", x + 18, y + 34, 10, me.c); txt(c, "LV 14", x + 198, y + 20, 10, GOLD, "center");
+  c.fillStyle = "#2f2f3a"; rr(c, x + 18, y + 39, 212, 12, 4); c.fill(); c.fillStyle = hpCol(st.hp / st.max); rr(c, x + 18, y + 39, 212 * st.hp / st.max, 12, 4); c.fill();
+  txt(c, `${st.hp} / ${st.max}`, x + 124, y + 49, 10, "#fff", "center");
+  c.fillStyle = "rgba(0,0,0,.4)"; c.fillRect(x + 18, y + 55, 212, 4); c.fillStyle = "#ffd24d"; c.fillRect(x + 18, y + 55, 212 * st.xp, 4);
+  // teammates
+  mates.forEach((m, i) => {
+    const ty = y - 36 - i * 35; c.fillStyle = "rgba(10,14,24,.85)"; c.fillRect(x, ty, 240, 30); c.fillStyle = m.c; c.fillRect(x + 6, ty + 6, 4, 18);
+    txt(c, i ? "Quill" : "Moss", x + 18, ty + 19, 12, "#fff"); c.fillStyle = "#2f2f3a"; c.fillRect(x + 100, ty + 10, 120, 10); c.fillStyle = "#4fe07a"; c.fillRect(x + 100, ty + 10, 120 * (i ? .6 : .9), 10);
+  });
+  txt(c, "● Mastery", 18, 540 - 104, 12, GOLD);
+}
+
+/* ---- PARTIAL looks ---- */
+function partialA(c) {
+  txt(c, "HP", 22, 540 - 44, 13, "#9fb0bd");
+  txt(c, String(st.hp), 44, 540 - 38, 30, hpCol(st.hp / st.max), "left");
+  txt(c, "/ " + st.max, 44 + c.measureText(String(st.hp)).width + 6, 540 - 38, 14, "#9fb0bd");
+  abil.forEach((a, i) => {
+    const x = 400 + i * 54, ready = a.cd <= 0;
+    txt(c, a.k, x, 540 - 40, 13, ready ? a.c : "#6c7782", "center");
+    txt(c, ready ? "·" : cdText(a), x, 540 - 20, 20, ready ? a.c : "#fff", "center");
+  });
+  txt(c, String(st.left), 938, 52, 38, "#fff", "right");
+  txt(c, "ENEMIES LEFT", 938, 68, 11, "#9fb0bd", "right");
+  txt(c, "WAVE " + st.wave, 938, 84, 11, "#6c7782", "right");
+}
+function partialB(c) {
+  // slim HP bar over the key row
+  const bw = 4 * 52 + 3 * 8, bx = 480 - bw / 2;
+  c.fillStyle = "rgba(0,0,0,.55)"; rr(c, bx, 540 - 66, bw, 8, 4); c.fill();
+  c.fillStyle = hpCol(st.hp / st.max); rr(c, bx, 540 - 66, bw * st.hp / st.max, 8, 4); c.fill();
+  txt(c, `${st.hp}`, bx - 8, 540 - 58, 15, "#fff", "right");
+  abil.forEach((a, i) => {
+    const x = bx + i * 60, y = 540 - 50, ready = a.cd <= 0;
+    c.fillStyle = "rgba(8,12,20,.8)"; rr(c, x, y, 52, 38, 8); c.fill();
+    if (!ready) { c.fillStyle = a.c + "55"; rr(c, x, y + 38 * (a.cd / a.max), 52, 38 * (1 - a.cd / a.max), 8); c.save(); rr(c, x, y, 52, 38, 8); c.clip(); c.fillRect(x, y + 38 * (1 - (1 - a.cd / a.max)), 52, 38 * (1 - a.cd / a.max)); c.restore(); }
+    c.strokeStyle = ready ? a.c : "rgba(255,255,255,.18)"; c.lineWidth = ready ? 2 : 1; rr(c, x, y, 52, 38, 8); c.stroke();
+    if (ready) txt(c, a.k, x + 26, y + 25, 18, a.c, "center");
+    else { txt(c, a.k, x + 7, y + 13, 10, "#9fb0bd", "left"); txt(c, cdText(a), x + 26, y + 29, 17, "#fff", "center"); }
+  });
+  c.fillStyle = "rgba(8,12,20,.8)"; rr(c, 480 - 56, 14, 112, 30, 15); c.fill();
+  txt(c, String(st.left), 480 - 6, 36, 20, "#fff", "right"); txt(c, "left", 480 + 2, 35, 12, "#9fb0bd", "left", D, 600);
+}
+function partialC(c) {
+  const px = me.x, py = me.y + Math.sin(performance.now() / 600) * 1.5, r = 16;
+  // health arc around the player
+  c.lineCap = "round"; c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.5)"; c.beginPath(); c.arc(px, py, r + 11, Math.PI * .75, Math.PI * 2.25); c.stroke();
+  c.strokeStyle = hpCol(st.hp / st.max); c.beginPath(); c.arc(px, py, r + 11, Math.PI * .75, Math.PI * .75 + Math.PI * 1.5 * st.hp / st.max); c.stroke();
+  txt(c, String(st.hp), px, py - r - 20, 13, "#fff", "center");
+  // cooldown numbers orbiting below
+  abil.forEach((a, i) => {
+    const x = px + (i - 1.5) * 28, y = py + r + 36, ready = a.cd <= 0;
+    txt(c, ready ? a.k : cdText(a), x, y, ready ? 13 : 15, ready ? a.c : "#fff", "center");
+    c.fillStyle = ready ? a.c : "rgba(255,255,255,.25)"; c.fillRect(x - 8, y + 4, 16 * (ready ? 1 : 1 - a.cd / a.max), 2);
+  });
+  c.lineCap = "butt";
+  txt(c, String(st.left), 480, 40, 30, "#fff", "center"); txt(c, "LEFT", 480, 56, 11, "#9fb0bd", "center");
+}
+function partialD(c) {
+  const h = 26, y = 540 - h;
+  const g = c.createLinearGradient(0, y - 18, 0, 540); g.addColorStop(0, "rgba(6,9,16,0)"); g.addColorStop(1, "rgba(6,9,16,.82)"); c.fillStyle = g; c.fillRect(0, y - 18, 960, h + 18);
+  let x = 16; const base = 540 - 9;
+  const put = (s, col, size, font, w) => { c.font = `${w || 700} ${size || 13}px ${font || D}`; c.textAlign = "left"; c.fillStyle = col; c.fillText(s, x, base); x += c.measureText(s).width; };
+  const sep = () => { x += 10; put("·", "#4b5560"); x += 10; };
+  put("W" + st.wave, "#9fb0bd"); sep();
+  put(String(st.left), "#fff", 15); put(" left", "#9fb0bd", 12, D, 600); sep();
+  put("HP ", "#9fb0bd", 12, D, 600); put(`${st.hp}`, hpCol(st.hp / st.max), 15); put(`/${st.max}`, "#9fb0bd", 12);
+  x = 960 - 16 - 4 * 76;
+  abil.forEach(a => { const ready = a.cd <= 0; put(a.k + " ", ready ? a.c : "#6c7782", 12); put(ready ? "ok" : cdText(a), ready ? a.c : "#fff", 14, M, 500); x += 22 - (ready ? 8 : 0); });
+}
+
+function bossBar(c) {
+  const w = 440, x = 480 - w / 2, y = 14;
+  txt(c, "THE WARDEN", 480, y + 12, 13, "#ffb4b4", "center");
+  c.fillStyle = "rgba(0,0,0,.6)"; c.fillRect(x, y + 18, w, 8); c.fillStyle = "#e0505a"; c.fillRect(x, y + 18, w * .62, 8);
+}
+
+function frame(ms) {
+  const now = ms / 1000, c = gc;
+  const g = c.createLinearGradient(0, 0, 0, 540); g.addColorStop(0, "#0f1626"); g.addColorStop(1, "#0a0e18"); c.fillStyle = g; c.fillRect(0, 0, 960, 540);
+  c.strokeStyle = "rgba(120,150,220,.07)"; c.lineWidth = 1; for (let x = 0; x < 960; x += 48) { c.beginPath(); c.moveTo(x + .5, 0); c.lineTo(x + .5, 540); c.stroke(); } for (let y = 0; y < 540; y += 48) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(960, y + .5); c.stroke(); }
+  for (let i = 0; i < 10; i++) { const ex = 120 + hash(i) * 720 + Math.sin(now * .6 + i) * 30, ey = 80 + hash(i + 5) * 330 + Math.cos(now * .5 + i) * 20; c.fillStyle = "#d06a6a"; c.beginPath(); c.arc(ex, ey, 11, 0, TAU); c.fill(); c.strokeStyle = "rgba(255,255,255,.35)"; c.lineWidth = 1.5; c.stroke(); }
+  if (boss) { c.fillStyle = "#a33a48"; c.beginPath(); c.arc(700, 140, 38, 0, TAU); c.fill(); c.strokeStyle = "rgba(255,255,255,.4)"; c.lineWidth = 2; c.stroke(); }
+  [me, ...mates].forEach((p, i) => { const y = p.y + Math.sin(now * 1.6 + i) * 1.5; c.fillStyle = "rgba(0,0,0,.35)"; c.beginPath(); c.ellipse(p.x, y + 19, 16, 5, 0, 0, TAU); c.fill(); c.fillStyle = p.c; c.beginPath(); c.arc(p.x, y, 16, 0, TAU); c.fill(); c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = 2; c.stroke(); });
+  // cooldown clocks tick
+  abil.forEach(a => { if (a.cd > 0) { a.cd = Math.max(0, a.cd - 1 / 60); } else if (Math.random() < .0015) a.cd = a.max; });
+  if (mode === 0) { full(c); if (boss) bossBar(c); }
+  else if (mode === 1) { [partialA, partialB, partialC, partialD][look](c); if (boss) bossBar(c); }
+  else if (boss) { c.globalAlpha = .9; c.fillStyle = "rgba(0,0,0,.6)"; c.fillRect(480 - 220, 6, 440, 4); c.fillStyle = "#e0505a"; c.fillRect(480 - 220, 6, 440 * .62, 4); c.globalAlpha = 1; }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+const sync = () => {
+  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.mode === mode)));
+  document.querySelectorAll("[data-look]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.look === look)));
+  document.getElementById("boss").setAttribute("aria-pressed", String(boss));
+};
+document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { mode = +b.dataset.mode; sync(); });
+document.querySelectorAll("[data-look]").forEach(b => b.onclick = () => { look = +b.dataset.look; mode = 1; sync(); });
+document.getElementById("boss").onclick = () => { boss = !boss; sync(); };
+addEventListener("keydown", e => { if ((e.key === "h" || e.key === "H") && !e.target.matches("input")) { mode = (mode + 1) % 3; sync(); } });
+document.fonts && document.fonts.load("700 14px Oxanium");
+</script>
