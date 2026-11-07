@@ -279,7 +279,7 @@ namespace Arena
                 Circle(m.Disp, block, c.WithAlpha(0.04f + 0.1f * g), 40);
                 Arc(m.Disp, block, 1f + 2f * g, c.WithAlpha(0.25f + 0.45f * g), 40);
             }
-            if (m.Kind == MinionKind.Titan)
+            if (Game.IsTitanLike(m.Kind))
             {
                 DrawTitan(m, t);  // TitanLook.cs
                 return;

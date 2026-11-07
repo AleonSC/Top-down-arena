@@ -61,8 +61,8 @@ namespace Arena
         {
             new MinionDef { Name = "Turret", Radius = 13f, Sides = 6, Color = new Rgba(0.6f, 0.95f, 1f), Move = MinionMove.Static,
                 Attack = MinionAttack.Shoot, Interval = 0.25f, Damage = 9f, Range = 520f },
-            new MinionDef { Name = "Golem", Radius = 18f, Sides = 5, Color = new Rgba(0.65f, 0.6f, 0.55f), Move = MinionMove.Chase, Speed = 110f,
-                Attack = MinionAttack.Slam, Interval = 1f, Damage = 25f, Range = 60f, BlockRadius = 24f, BlockCapacity = 220f },
+            new MinionDef { Name = "Golem", Radius = 18f, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f), Move = MinionMove.Chase, Speed = 110f,
+                Attack = MinionAttack.Slam, Interval = 1.2f, Damage = 130f, Range = 190f, BlockRadius = 140f, BlockCapacity = 1250f },  // a small Titan (Game.GolemScale): Titan.cs walks, slams and soaks for it; the numbers are for Scale 1
             new MinionDef { Name = "Skeleton Guard", Radius = 10f, Sides = 4, Color = new Rgba(0.92f, 0.9f, 0.8f), Move = MinionMove.Orbit, Speed = 1.6f, OrbitRadius = 55f,
                 Attack = MinionAttack.Bite, Interval = 0.5f, Damage = 8f, BlockRadius = 16f, BlockCapacity = 90f },
             new MinionDef { Name = "Bear", Radius = 15f, Sides = 7, Color = new Rgba(0.6f, 0.4f, 0.25f), Move = MinionMove.Chase, Speed = 200f,
