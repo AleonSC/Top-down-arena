@@ -501,9 +501,9 @@ namespace Arena
             var room = new Rect(x, y, 64f, 64f);
             var rc = lastRoomKind != ChallengeKind.None && (lastRoomWave - 1) / 5 == (Mathf.Max(1, game.Wave) - 1) / 5 ? lastRoomKind : ChallengeKind.None;
             IconTile(room, PixelArt.Get(RoomIcon(rc)), rc != ChallengeKind.None ? ToColor(Challenges.Accent(rc)) : new Color(0.7f, 0.6f, 1f), 36f);
-            Ui.Label(new Rect(x + 78f, y + 4f, 320f, 14f), "CHALLENGE ROOM · THIS STRETCH", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 78f, y + 4f, 320f, 14f), "DATA GATE · THIS STRETCH", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             int block = (Mathf.Max(1, game.Wave) - 1) / 5;
-            string nextPortal = "Next portal after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
+            string nextPortal = "Next Data Gate after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
             if (rc != ChallengeKind.None)
             {
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, Color.white, lastRoomWon ? ToColor(Challenges.Accent(rc)) : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
@@ -512,13 +512,13 @@ namespace Arena
             else if (game.Room == RoomPhase.Portal || game.InRoom)
             {
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.RoomKind), 19, Color.white, ToColor(Challenges.Accent(game.RoomKind)), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.InRoom ? "You're in it now" : "Its portal is open", 12, Ui.Muted);
+                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.InRoom ? "You're in it now" : "Its Data Gate is open", 12, Ui.Muted);
             }
             else
             {
-                int k = game.Hunt != null ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no portals in a Boss Hunt)
+                int k = game.Hunt != null ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, Color.white, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No challenge rooms on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A portal opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
+                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No Data Gates on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
             if (gl && BeginUiGl())
             {
@@ -786,7 +786,7 @@ namespace Arena
                     string[,] tiles = {
                         { "Runs started", p.RunsStarted.ToString() }, { "Won", p.RunsWon.ToString() }, { "Lost", p.RunsLost.ToString() }, { "Time played", played },
                         { "Best wave", p.BestWave > 0 ? p.BestWave.ToString() : "—" }, { "Best endless", p.BestEndlessWave > 0 ? p.BestEndlessWave.ToString() : "—" },
-                        { "Best score", p.BestScore > 0 ? p.BestScore.ToString("N0") : "—" }, { "Challenge rooms", roomsWon + " won" },
+                        { "Best score", p.BestScore > 0 ? p.BestScore.ToString("N0") : "—" }, { "Data Gates", roomsWon + " won" },
                         { "Enemies killed", p.Kills.ToString("N0") }, { "Damage dealt", ShortNumber(p.DamageDealt) }, { "Healing done", ShortNumber(p.HealingDone) }, { "Allies revived", p.Revives.ToString() } };
                     float tw = (w - 30f) / 4f, th = 78f;
                     for (int i = 0; i < tiles.GetLength(0); i++)
@@ -848,7 +848,7 @@ namespace Arena
                     int played = 0;
                     foreach (var c in Challenges.All)
                         played += p.RoomPlayed(c);
-                    OpenSectionPanel("CHALLENGE ROOMS", col, played > 0 ? roomsWon + " of " + played + " won" : "A portal opens once every five waves. Win a room for a prize pick.", k);
+                    OpenSectionPanel("DATA GATES", col, played > 0 ? roomsWon + " of " + played + " won" : "A Data Gate opens once every five waves. Win its challenge for a prize pick.", k);
                     for (int i = 0; i < Challenges.All.Length; i++)
                     {
                         var c = Challenges.All[i];
@@ -897,7 +897,7 @@ namespace Arena
             new HowTo { Name = "Between waves", Icon = "ui_star", Color = Ui.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
                 Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it once the wave is clear and everyone gets an item.", "icon:ui_coin" },
                     { "Rerolls", "Don't like the cards? Reroll them: you start with 2 and get 2 more for every boss.", "icon:ui_arrow" }, { "Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.", "3" } } },
-            new HowTo { Name = "Challenge rooms", Icon = "blink", Color = new Color(0.45f, 0.9f, 1f), Portal = true, Intro = "Once every five waves a portal opens in the break. Everyone alive stands in it to go through. Win the room for a prize pick; lose it and you're simply sent back.",
+            new HowTo { Name = "Data Gates", Icon = "blink", Color = new Color(0.45f, 0.9f, 1f), Portal = true, Intro = "Once every five waves a Data Gate opens in the break. Everyone alive stands in it to go through. Win the challenge for a prize pick; lose it and you're simply sent back.",
                 Tips = new[,] { { "Defend the Crystal", "Keep it alive for 40 s. Most enemies go for it.", "icon:shield" }, { "The Gatekeeper", "A mini-boss: slip the ring's gap, step off its charge line.", "icon:ui_skull" },
                     { "Kill Rush", "40 kills in 40 s, weak enemies from every side.", "icon:bolt" }, { "Hold the Zones", "Stand in each zone until it fills. An enemy in it slows you.", "icon:pulse" },
                     { "Mirror Match", "A shadow of each of you, fighting your way. Beat your own.", "icon:mirror" }, { "The prize", "Touch the altar: a rare-or-better pick, sometimes a legendary.", "icon:ui_star" } } },
@@ -1039,7 +1039,7 @@ namespace Arena
                 Arc(pb, 11f, 3f, Defs.Roles[2].Color, 20);
                 EndUiGl();
             }
-            Ui.Label(new Rect(r.x + 16f, r.y + 10f, 300f, 18f), fill >= 1f ? "Through you go!" : walk < 1f ? "A portal opens in the break" : "Everyone in: it fills", 13, Ui.Text, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 16f, r.y + 10f, 300f, 18f), fill >= 1f ? "Through you go!" : walk < 1f ? "A Data Gate opens in the break" : "Everyone in: it fills", 13, Ui.Text, TextAnchor.MiddleLeft, true);
         }
     }
 }

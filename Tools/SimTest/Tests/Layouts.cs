@@ -65,6 +65,25 @@ static partial class Program
         Check(g.Layout != LayoutId.Open && cg.Layout == g.Layout, "wave 6 has a floor plan (" + g.Layout + ") and the client sees it");
         Check(g.Props.Values.Count(p => Game.IsCrate(p)) >= Layouts.Get(g.Layout).Crates.Length, "its cover is down: " + g.Props.Values.Count(p => Game.IsCrate(p)) + " crates");
 
+        // A Data Gate never opens under a wall, pillar or crate (the whole disc and its ring are clear).
+        {
+            var state0 = g.State;
+            g.State = MatchState.Intermission;
+            int bad = 0;
+            for (int i = 0; i < 60; i++)
+            {
+                g.Room = RoomPhase.None;
+                g.DevOpenPortal(ChallengeKind.Defend);
+                var at = g.PortalPos;
+                foreach (var sol in Layouts.Get(g.Layout).Solids)
+                    if (!(sol.Edge && g.Walled) && Layouts.Inside(sol, at, Challenges.PortalR + 12f)) bad++;
+                foreach (var pr in g.Props.Values)
+                    if (Game.Solid(pr) && pr.Hp > 0f && Game.PropCovers(pr, at, Challenges.PortalR + 12f)) bad++;
+            }
+            g.Room = RoomPhase.None; g.RoomKind = ChallengeKind.None; g.State = state0;
+            Check(bad == 0, "a Data Gate never opens under walls, pillars or crates (" + g.Layout + ", 60 tries, " + bad + " overlaps)");
+        }
+
         // One per cycle: waves 6-9 keep it, the boss wave is open, the next cycle is a different one.
         LayoutId first = g.Layout;
         g.Wave = 8; pick.Invoke(g, null);

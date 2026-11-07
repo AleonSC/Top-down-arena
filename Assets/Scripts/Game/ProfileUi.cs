@@ -120,7 +120,7 @@ namespace Arena
                 l.Add(new ProfOpt { Name = "Overview", Icon = "ui_star", Line = p.RunsStarted + " runs started" });
                 l.Add(new ProfOpt { Name = "Bosses", Icon = "ui_skull", Line = bossesBeaten + " of " + RecordBosses.Length + " beaten" });
                 l.Add(new ProfOpt { Name = "Classes", Icon = "class_knight", Line = classWins + " won" });
-                l.Add(new ProfOpt { Name = "Challenge rooms", Icon = "blink", Line = roomsWon + " won" });
+                l.Add(new ProfOpt { Name = "Data Gates", Icon = "blink", Line = roomsWon + " won" });
                 l.Add(new ProfOpt { Name = "Recent runs", Icon = "ui_book", Line = p.Recent.Count == 0 ? "none yet" : "graphs of the last " + p.Recent.Count });
             }
             else
