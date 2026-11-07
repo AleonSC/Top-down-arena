@@ -35,11 +35,7 @@ namespace Arena
             Ui.Fill(r, new Color(c.r, c.g, c.b, on ? 0.2f : hover ? 0.14f : 0.06f));
             Frame(r, on ? 2f : 1f, new Color(c.r, c.g, c.b, on ? 1f : hover ? 0.9f : 0.5f));
             if (on)
-            {
-                var line = new Rect(r.x + 8f, r.yMax - 5f, r.width - 16f, 2f);
-                Ui.Glow(line, c, 0.4f);  // a soft glow under the underline
-                Ui.Fill(line, c);
-            }
+                Ui.Glow(r, c, 0.1f);  // the selected key glows a little (no underline)
         }
 
         // --- Typed text -----------------------------------------------------------------------------------------------
