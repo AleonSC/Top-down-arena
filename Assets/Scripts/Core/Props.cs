@@ -39,6 +39,8 @@ namespace Arena
 
     public partial class Game
     {
+        /// How long a smashed pot's effect lasts: the hologram's burst (Game/PropsLook.cs); the clay chips still play in 0.4 s.
+        public const float PotFxTime = 1.3f;
         public const float CrateSize = 44f, HeavyCrateSize = 54f, PotR = 13f, BarrelR = 17f, ChestW = 48f, ChestH = 34f;
         public const float BarrelBlast = 120f, BarrelFuse = 0.4f, BarrelChainFuse = 0.15f;
         public const float LootReach = 30f;   // how close (plus your body) you must stand to an item to take it
@@ -409,7 +411,7 @@ namespace Arena
                         SpawnOrb(p.Pos, false);
                     break;
                 case PropKind.Pot:
-                    BroadcastFx(FxKind.Debris, p.Pos, new Rgba(0.82f, 0.48f, 0.32f), 26f, 0.4f, Sfx.Hit);
+                    BroadcastFx(FxKind.Debris, p.Pos, new Rgba(0.82f, 0.48f, 0.32f), 26f, PotFxTime, Sfx.Hit);
                     if (rng.NextDouble() < 0.35)
                         SpawnOrb(p.Pos, false);
                     else
