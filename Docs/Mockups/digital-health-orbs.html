@@ -1,0 +1,160 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Digital Health Orbs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, current orb for reference, four digital looks as cards (each shows small / big / tiny / fading at 5x),
+   then an arena strip at true game scale (1 canvas px = 1 arena px) with orbs lying around and a player walking through.
+   Colour: the orb stays green (0.35,1,0.5) with a white plus, big orbs keep their gold ring, tiny ones are paler. Single dark look by choice. */
+:root{
+  --bg:#080b0a; --panel:#0f1512; --line:#22302a; --fg:#e4f2ea; --muted:#8aa196;
+  --green:#59ff80; --pale:#8cffbf; --gold:#fff280; --f-d:"Oxanium","Segoe UI",system-ui,sans-serif; --f-m:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.5 var(--f-d);margin:0;
+  padding-block:30px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:24px}
+h1{font:800 clamp(28px,5vw,42px)/1.05 var(--f-d);letter-spacing:.04em;text-transform:uppercase;margin:0 0 8px;text-wrap:balance}
+h2{font:500 12px var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+header p{margin:0;color:var(--muted);max-width:68ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;min-width:0}
+.card[aria-pressed="true"]{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
+.card:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.card canvas{width:100%;height:auto;display:block;background:#050807;border-radius:4px}
+.card b{font:700 17px var(--f-d);letter-spacing:.05em;text-transform:uppercase}
+.card small{font:400 12px/1.45 var(--f-m);color:var(--muted)}
+.cap{display:flex;justify-content:space-between;font:400 11px var(--f-m);color:var(--muted);padding:0 4px}
+.view{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
+.view canvas{display:block;width:100%;height:auto}
+.note{font:400 13px/1.55 var(--f-m);color:var(--muted);margin:10px 0 0;max-width:90ch}
+ul{margin:0;padding-left:20px;color:var(--muted);font:400 14px/1.6 var(--f-m)}
+</style>
+<div class="wrap">
+<header>
+  <h1>Digital Health Orbs</h1>
+  <p>Four ways to make the health orb read as part of the digital arena. Click a card to see it in the arena strip. Shapes, sizes (radius 6, big 11, tiny 4), the pulse, the gold ring on big orbs and the blink in the last 3 seconds all match the game.</p>
+</header>
+<section>
+  <h2>Looks (each card: normal, big, tiny, last 3 s)</h2>
+  <div class="grid" id="cards"></div>
+</section>
+<section>
+  <h2>Arena strip at game scale</h2>
+  <div class="view"><canvas id="arena" width="1100" height="260"></canvas></div>
+  <p class="note" id="desc"></p>
+</section>
+<section>
+  <h2>Open questions</h2>
+  <ul>
+    <li>Pickup: a short burst (pixels / a glitch flash) when collected, or keep the current instant vanish?</li>
+    <li>Should the look follow the floor style (blue phosphor on CRT floors) or always stay green so it reads as health?</li>
+  </ul>
+</section>
+</div>
+<script>
+const G=[0.35,1,0.5], P=[0.55,1,0.75];
+const rgba=(c,a)=>`rgba(${c[0]*255|0},${c[1]*255|0},${c[2]*255|0},${a})`;
+const fr=(x,m)=>x-Math.floor(x/m)*m;
+
+/* o = {x,y,r (base radius),big,tiny,id,life,t,k (px per arena px)} drawn on ctx at scale k */
+function hash(n){const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s);}
+
+const LOOKS=[
+{name:'Current',desc:'Reference: the orb as drawn today (green disc, soft halo, white cross, gold ring for big).',
+ draw(c,o){const pulse=1+.12*Math.sin(o.t*(o.big?6:o.tiny?11:8)+o.id),r=o.r*pulse*o.k,col=o.tiny?P:G;
+  c.fillStyle=rgba(col,o.big?.18:.12);c.beginPath();c.arc(o.x,o.y,r*2.2,0,7);c.fill();
+  c.fillStyle=rgba(col,1);c.beginPath();c.arc(o.x,o.y,r,0,7);c.fill();
+  c.strokeStyle='#fff';c.lineWidth=(o.big?3:2)*o.k;c.beginPath();c.moveTo(o.x-r*.55,o.y);c.lineTo(o.x+r*.55,o.y);c.moveTo(o.x,o.y-r*.55);c.lineTo(o.x,o.y+r*.55);c.stroke();
+  if(o.big){c.strokeStyle=rgba([1,.95,.5],.8);c.lineWidth=2*o.k;c.beginPath();c.arc(o.x,o.y,r+5*o.k,0,7);c.stroke();}}},
+
+{name:'A  Data cell',desc:'A hexagonal cell: dark core with scanlines, a bright hex frame, a blocky pixel plus and a little rotating bracket. Reads as a battery cell.',
+ draw(c,o){const col=o.tiny?P:G,pulse=1+.08*Math.sin(o.t*(o.big?6:8)+o.id),r=o.r*1.15*pulse*o.k;
+  const hex=(rr,rot)=>{c.beginPath();for(let i=0;i<6;i++){const a=rot+i*Math.PI/3;c.lineTo(o.x+Math.cos(a)*rr,o.y+Math.sin(a)*rr);}c.closePath();};
+  c.fillStyle=rgba(col,.1);hex(r*2,0);c.fill();
+  c.fillStyle='rgba(4,24,12,.92)';hex(r,0);c.fill();
+  c.save();hex(r,0);c.clip();c.fillStyle=rgba(col,.35);const st=Math.max(1,o.k*1.4);
+  for(let y=-r;y<r;y+=st*2){c.fillRect(o.x-r,o.y+y+fr(o.t*10*o.k,st*2),r*2,st*.6);}c.restore();
+  c.strokeStyle=rgba(col,1);c.lineWidth=Math.max(1,1.4*o.k);hex(r,0);c.stroke();
+  const u=r*.22;c.fillStyle='#fff';c.fillRect(o.x-u*.7,o.y-u*2.2,u*1.4,u*4.4);c.fillRect(o.x-u*2.2,o.y-u*.7,u*4.4,u*1.4);
+  if(!o.tiny){c.strokeStyle=rgba(col,.9);c.lineWidth=Math.max(1,1.2*o.k);const a=o.t*1.5,rr=r*1.55,L=.35;
+   for(let q=0;q<2;q++){c.beginPath();c.arc(o.x,o.y,rr,a+q*Math.PI,a+q*Math.PI+L*2);c.stroke();}}
+  if(o.big){c.strokeStyle=rgba([1,.95,.5],.85);c.lineWidth=Math.max(1,1.6*o.k);c.setLineDash([3*o.k,3*o.k]);c.lineDashOffset=-o.t*12*o.k;hex(r+5*o.k,0);c.stroke();c.setLineDash([]);}}},
+
+{name:'B  Pixel sprite',desc:'Chunky pixel art snapped to a grid, like an old arcade pickup: stepped circle, pixel plus, two pixels drifting up. Frame-stepped bob instead of a smooth pulse.',
+ draw(c,o){const col=o.tiny?P:G,px=Math.max(1,(o.big?2.2:o.tiny?1.1:1.6)*o.k),n=o.big?5:o.tiny?2:3;
+  const bob=Math.round(Math.sin(o.t*5+o.id)*0.6)*px,cx=Math.round(o.x/px)*px,cy=Math.round(o.y/px)*px+bob;
+  c.fillStyle=rgba(col,.12);for(let y=-n-2;y<=n+2;y++)for(let x=-n-2;x<=n+2;x++){const d=Math.hypot(x,y);if(d<=n+2.2&&d>n+.4&&((x+y)&1)==0)c.fillRect(cx+x*px,cy+y*px,px,px);}
+  for(let y=-n;y<=n;y++)for(let x=-n;x<=n;x++){const d=Math.hypot(x,y);if(d<=n+.35){const e=d>n-1;c.fillStyle=e?rgba(col,.75):rgba(col,1);c.fillRect(cx+x*px,cy+y*px,px,px);}}
+  c.fillStyle='#fff';const a=Math.max(1,n-2);
+  for(let i=-a;i<=a;i++){c.fillRect(cx+i*px,cy,px,px);c.fillRect(cx,cy+i*px,px,px);}
+  if(!o.tiny){for(let i=0;i<2;i++){const f=fr(o.t*.8+i*.5+o.id*.13,1);c.fillStyle=rgba(col,1-f);c.fillRect(cx+(i?n+2:-n-3)*px,cy-Math.round(f*(n+5))*px,px,px);}}
+  if(o.big){c.fillStyle=rgba([1,.95,.5],.9);const rr=n+3;for(let a2=0;a2<24;a2++){const an=a2/24*Math.PI*2;if(a2%2==0)c.fillRect(Math.round((cx+Math.cos(an)*rr*px)/px)*px,Math.round((cy+Math.sin(an)*rr*px)/px)*px,px,px);}}}},
+
+{name:'C  Hologram',desc:'A projected wireframe sphere: scrolling latitude lines, a flat plus glyph inside, a base ring that ticks, and a rare glitch slice. Lighter, more see-through.',
+ draw(c,o){const col=o.tiny?P:G,r=o.r*1.1*o.k*(1+.05*Math.sin(o.t*8+o.id)),lw=Math.max(1,1.1*o.k);
+  c.fillStyle=rgba(col,.08);c.beginPath();c.arc(o.x,o.y,r*2,0,7);c.fill();
+  c.fillStyle=rgba(col,.18);c.beginPath();c.arc(o.x,o.y,r,0,7);c.fill();
+  c.save();c.beginPath();c.arc(o.x,o.y,r,0,7);c.clip();c.strokeStyle=rgba(col,.75);c.lineWidth=lw;
+  const ph=fr(o.t*.6,1);for(let i=-3;i<=3;i++){const f=(i+ph)/3.5,yy=f*r,w=Math.sqrt(Math.max(0,1-f*f))*r;if(w>0){c.beginPath();c.ellipse(o.x,o.y+yy,w,w*.28,0,0,7);c.stroke();}}
+  c.strokeStyle=rgba(col,.55);c.beginPath();c.ellipse(o.x,o.y,r*Math.abs(Math.cos(o.t*1.4)),r,0,0,7);c.stroke();c.restore();
+  c.strokeStyle=rgba(col,1);c.lineWidth=lw*1.2;c.beginPath();c.arc(o.x,o.y,r,0,7);c.stroke();
+  const gl=hash(Math.floor(o.t*6)+o.id)>.9,sh=gl?(hash(o.id+o.t)*4-2)*o.k:0;
+  c.fillStyle='#fff';const u=r*.2;c.fillRect(o.x-u*.6+sh,o.y-u*2,u*1.2,u*4);c.fillRect(o.x-u*2+sh,o.y-u*.6,u*4,u*1.2);
+  if(!o.tiny){c.strokeStyle=rgba(col,.8);c.lineWidth=lw;const rr=r*1.6;c.beginPath();for(let i=0;i<12;i++){const a=i/12*Math.PI*2+o.t*.8,l=i%3==0?.18:.1;c.moveTo(o.x+Math.cos(a)*rr,o.y+Math.sin(a)*rr);c.lineTo(o.x+Math.cos(a)*rr*(1+l),o.y+Math.sin(a)*rr*(1+l));}c.stroke();}
+  if(o.big){c.strokeStyle=rgba([1,.95,.5],.85);c.lineWidth=lw*1.4;c.beginPath();c.arc(o.x,o.y,r+5*o.k,0,7);c.stroke();}}},
+
+{name:'D  Data packet',desc:'A spinning diamond packet with a tiny "HP" read-out and 1/0 bits orbiting it. Most "data" of the four; busiest at small size.',
+ draw(c,o){const col=o.tiny?P:G,r=o.r*1.2*o.k*(1+.06*Math.sin(o.t*7+o.id)),rot=Math.PI/4+Math.sin(o.t*1.3+o.id)*.25;
+  const sq=(rr,a)=>{c.beginPath();for(let i=0;i<4;i++){const q=a+i*Math.PI/2;c.lineTo(o.x+Math.cos(q)*rr,o.y+Math.sin(q)*rr);}c.closePath();};
+  c.fillStyle=rgba(col,.1);c.beginPath();c.arc(o.x,o.y,r*2,0,7);c.fill();
+  c.fillStyle='rgba(3,26,12,.95)';sq(r*1.25,rot);c.fill();
+  c.strokeStyle=rgba(col,1);c.lineWidth=Math.max(1,1.5*o.k);sq(r*1.25,rot);c.stroke();
+  c.strokeStyle=rgba(col,.45);c.lineWidth=Math.max(1,o.k);sq(r*.85,rot);c.stroke();
+  c.fillStyle='#fff';c.font=`700 ${Math.max(5,r*.95)}px "IBM Plex Mono",monospace`;c.textAlign='center';c.textBaseline='middle';c.fillText('+',o.x,o.y+r*.05);
+  if(!o.tiny){const n=o.big?6:4;c.font=`500 ${Math.max(4,r*.55)}px "IBM Plex Mono",monospace`;for(let i=0;i<n;i++){const a=o.t*1.6+i/n*Math.PI*2,rr=r*1.9;c.fillStyle=rgba(col,.5+.5*Math.sin(o.t*3+i));c.fillText(hash(i+Math.floor(o.t*2+i))>.5?'1':'0',o.x+Math.cos(a)*rr,o.y+Math.sin(a)*rr);}}
+  if(o.big){c.strokeStyle=rgba([1,.95,.5],.85);c.lineWidth=Math.max(1,1.6*o.k);c.setLineDash([4*o.k,2*o.k]);c.lineDashOffset=-o.t*10*o.k;c.beginPath();c.arc(o.x,o.y,r*2.35,0,7);c.stroke();c.setLineDash([]);}}}
+];
+
+let sel=1;
+const cards=document.getElementById('cards'),cv=[];
+LOOKS.forEach((L,i)=>{
+  const b=document.createElement('button');b.className='card';b.setAttribute('aria-pressed',i==sel);
+  b.innerHTML=`<canvas width="440" height="140"></canvas><b>${L.name}</b><div class="cap"><span>normal</span><span>big</span><span>tiny</span><span>last 3 s</span></div>`;
+  b.onclick=()=>{sel=i;cards.querySelectorAll('.card').forEach((x,j)=>x.setAttribute('aria-pressed',j==i));desc();};
+  cards.appendChild(b);cv.push(b.querySelector('canvas'));
+});
+function desc(){document.getElementById('desc').textContent=LOOKS[sel].desc;}desc();
+
+const arena=document.getElementById('arena'),ac=arena.getContext('2d');
+const orbs=[];for(let i=0;i<14;i++)orbs.push({x:60+hash(i*3)*980,y:40+hash(i*3+1)*180,big:i%5==0,tiny:i%4==3,id:i,age:hash(i*7)*9});
+
+function tick(ms){
+  const t=ms/1000;
+  LOOKS.forEach((L,i)=>{
+    const c=cv[i].getContext('2d'),W=440,H=140;c.clearRect(0,0,W,H);
+    const spec=[{r:6},{r:11,big:true},{r:4,tiny:true},{r:6,life:true}];
+    spec.forEach((s,j)=>{
+      if(s.life&&fr(t,.25)<.1)return;
+      L.draw(c,{x:W/8+j*W/4,y:H/2,r:s.r,big:s.big,tiny:s.tiny,id:j+1,t,k:j==2?5:5});
+    });
+  });
+  // arena
+  const W=arena.width,H=arena.height;
+  ac.fillStyle='#07100c';ac.fillRect(0,0,W,H);
+  ac.strokeStyle='rgba(60,120,90,.12)';ac.lineWidth=1;for(let x=0;x<W;x+=50){ac.beginPath();ac.moveTo(x,0);ac.lineTo(x,H);ac.stroke();}for(let y=0;y<H;y+=50){ac.beginPath();ac.moveTo(0,y);ac.lineTo(W,y);ac.stroke();}
+  const px=60+fr(t*90,W-120),py=H/2+Math.sin(t*1.3)*70;
+  orbs.forEach(o=>{
+    const d=Math.hypot(px-o.x,py-o.y);
+    if(d<18){o.x=40+hash(Math.floor(t*10)+o.id)*(W-80);o.y=30+hash(Math.floor(t*10)+o.id+9)*(H-60);o.age=0;}
+    o.age=fr(o.age+.016,12);
+    const life=12-o.age;if(life<3&&fr(t,.25)<.1)return;
+    LOOKS[sel].draw(ac,{x:o.x,y:o.y,r:o.big?11:o.tiny?4:6,big:o.big,tiny:o.tiny,id:o.id,t,k:1});
+  });
+  ac.fillStyle='#4aa8ff';ac.beginPath();ac.arc(px,py,14,0,7);ac.fill();ac.strokeStyle='#cfe8ff';ac.lineWidth=2;ac.stroke();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

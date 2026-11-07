@@ -1,0 +1,337 @@
+<title>Challenge Portals</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: header, one control bar (challenge colour, fill, closing, players, replay), a 2x2 grid of four portal styles (click to pick), the picked style across all five challenge colours, then wiring notes and open questions.
+   Colour: the real challenge accents from Challenges.Accent (Defend cyan, Mini-boss orange, Kill rush red, Hold zones green, Mirror violet) on the dark digital floor.
+   Type: VT323 for anything that sits on the screen, Rajdhani for UI, Plex Mono for labels. Single dark theme on purpose (it is a screen). */
+:root{
+  --bg:#070a14; --fg:#dfe8ff; --muted:#8190b6; --line:#243055; --panel:#0d1226; --accent:#5b8cff; --on-accent:#05102c;
+  --f-crt:"VT323","Courier New",monospace; --f-ui:"Rajdhani",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:17px;line-height:1.45;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1{font:700 34px/1.05 var(--f-ui);margin:0 0 8px;text-wrap:balance;letter-spacing:.01em}
+h2{font:500 12px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+header p{margin:0;color:var(--muted);max-width:70ch}
+.bar{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
+.grp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.grp>span,.grp>label.l{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.key{font:700 14px var(--f-ui);color:var(--fg);background:#1a2242;border:1px solid var(--line);border-radius:8px;padding:7px 13px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.key i{width:10px;height:10px;border-radius:2px;display:block}
+.key[aria-pressed="true"]{background:var(--fg);color:#05102c;border-color:var(--fg)}
+.key:focus-visible,.card:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.tog{display:inline-flex;gap:8px;align-items:center;font:500 13px var(--f-mono);color:var(--muted);cursor:pointer}
+.tog input{width:17px;height:17px;accent-color:var(--accent)}
+input[type=range]{width:150px;accent-color:var(--accent)}
+.out{font:500 13px var(--f-mono);color:var(--fg);min-width:3.2em}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;min-width:0}
+.card canvas{width:100%;height:auto;aspect-ratio:1/1;display:block;border-radius:4px;background:#000}
+.card b{font:700 18px var(--f-ui);letter-spacing:.05em;text-transform:uppercase}
+.card small{font:400 13px/1.45 var(--f-mono);color:var(--muted)}
+.card[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 2px var(--fg)}
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.strip figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.strip canvas{width:100%;height:auto;aspect-ratio:1/1;display:block;border-radius:4px;background:#000;border:1px solid var(--line)}
+.strip figcaption{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.notes div{font-size:15px;color:var(--muted)}
+.notes b{display:block;color:var(--fg);font-weight:700;font-size:17px}
+ol.q{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;max-width:78ch;color:var(--muted)}
+ol.q li::marker{font-family:var(--f-mono);color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.9em;color:var(--fg)}
+@media (max-width:640px){.cards{grid-template-columns:minmax(0,1fr)}.strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Challenge portals</h1>
+  <p>Four ways to redraw the portal that opens during a break, so it reads as a gate in the screen instead of a magic swirl. Each is drawn at the game's true scale (portal radius 70, fill ring just outside it) in the colour of the challenge behind it. Pick a style to see it across all five challenges. Nothing here is wired into the game yet.</p>
+</header>
+
+<div class="bar">
+  <div class="grp" id="chKeys"><span>Challenge</span></div>
+  <div class="grp"><label class="l" for="fill">Party in it</label><input type="range" id="fill" min="0" max="100" value="45"><span class="out" id="fillOut">45%</span></div>
+  <label class="tog"><input type="checkbox" id="closing"> About to close</label>
+  <label class="tog"><input type="checkbox" id="players"> Players inside</label>
+  <label class="tog"><input type="checkbox" id="anim" checked> Animate</label>
+  <button class="key" id="replay" type="button">Replay opening</button>
+</div>
+
+<section>
+  <h2>Styles (click to pick)</h2>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section>
+  <h2 id="stripTitle">Across the five challenges</h2>
+  <div class="strip" id="strip"></div>
+</section>
+
+<section>
+  <h2>Putting it in the game</h2>
+  <div class="notes">
+    <div><b>Same behaviour, new look</b>Only <code>DrawPortal</code> in <code>ChallengeLook.cs</code> changes. Radius, fill and the 15 s life stay as they are.</div>
+    <div><b>Closing</b>Under 3 s the portal flickers, as now. In Glitch Rift that becomes signal loss and the bands slip harder.</div>
+    <div><b>Reduced effects</b>Scrolling hex, tear flashes and pixel snap stop. The rings and the fill stay.</div>
+    <div><b>Fill</b>Data Gate and Circuit Seal fill in pips, Wire Tunnel in an arc with ticks, Glitch Rift in square pips. The ring is still the thing to watch.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <ol class="q">
+    <li>Which style should the portal use, and should the warp flash and the room's rune border follow it?</li>
+    <li>Should the portal take the CRT palette the player picked, or always keep the challenge colour?</li>
+    <li>Should the label over the portal (<code>DrawPortalLabel</code>) become a terminal plate to match?</li>
+  </ol>
+</section>
+</div>
+
+<script>
+(function(){
+var TAU=Math.PI*2, PR=70, RING=PR+12;
+var CH=[{n:'Defend',c:[115,230,255]},{n:'Mini-boss',c:[255,158,77]},{n:'Kill rush',c:[255,97,107]},{n:'Hold zones',c:[140,255,140]},{n:'Mirror',c:[184,128,255]}];
+var STYLES=[
+ {n:'Data Gate',d:'Rows of hex scroll round a dark core while dashed rings turn and bytes stream in. Closest to the CRT terminal menus.',f:dataGate},
+ {n:'Wire Tunnel',d:'A vector tunnel of turning squares falls away into the dark. Reads as depth from across the arena.',f:wireTunnel},
+ {n:'Glitch Rift',d:'A torn screen: scanline bands slip sideways, the rim splits into colour fringes and pixels snap in. Loudest of the four.',f:glitchRift},
+ {n:'Circuit Seal',d:'Traces run from an outer ring into a chip core and pulses travel inward. Sits best on the circuit floor.',f:circuitSeal}
+];
+var S={ch:0,style:0,fill:.45,closing:false,players:false,anim:true,t0:-99,clock:0};
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){S.anim=false;S.clock=2.6;}
+
+function rgba(c,a){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+Math.max(0,Math.min(1,a)).toFixed(3)+')';}
+function hash(a,b,c){var x=Math.sin(a*127.1+b*311.7+(c||0)*74.7)*43758.5453;return x-Math.floor(x);}
+function fr(x){return x-Math.floor(x);}
+function disc(ctx,r){ctx.beginPath();ctx.arc(0,0,Math.max(0.01,r),0,TAU);}
+function glow(ctx,r,c,a){var g=ctx.createRadialGradient(0,0,0,0,0,Math.max(1,r));g.addColorStop(0,rgba(c,a));g.addColorStop(1,rgba(c,0));ctx.fillStyle=g;disc(ctx,r);ctx.fill();}
+
+/* the fill ring: n pips round r, lit up to the fill */
+function pipRing(ctx,o,n,pw,ph){
+  for(var k=0;k<n;k++){
+    var a=-Math.PI/2+k*TAU/n, lit=(k+1)/n<=o.fill+1e-6;
+    ctx.save();ctx.rotate(a);ctx.translate(RING,0);
+    ctx.fillStyle=lit?rgba(o.acc,.95):'rgba(255,255,255,'+(.12*o.e)+')';
+    ctx.fillRect(-pw/2,-ph/2,pw,ph);
+    ctx.restore();
+  }
+}
+
+/* ---------- 1. Data Gate ---------- */
+function dataGate(ctx,t,o){
+  var R=PR*o.e,A=o.acc,f=o.fade;
+  glow(ctx,R*2.4,A,.3*f);
+  ctx.fillStyle='rgba(3,5,15,.93)';disc(ctx,R*.95);ctx.fill();
+  ctx.save();disc(ctx,R*.95);ctx.clip();
+  ctx.font='9px VT323, monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  var rows=15,rh=R*1.9/rows,cell=6.4;
+  for(var i=0;i<rows;i++){
+    var y=-R*.95+rh*(i+.5),dir=i%2?1:-1,sp=7+((i*7)%11)*3,off=t*sp*dir,base=Math.floor(off/cell),fx=off-base*cell;
+    for(var k=-16;k<=16;k++){
+      var x=k*cell-fx,d=Math.hypot(x,y)/R;
+      if(d>.97||d<.3)continue;
+      var idx=base+k,hv=hash(i,idx,hash(i,idx)>.82?Math.floor(t*3):0);
+      var ch='0123456789ABCDEF'.charAt(Math.floor(hv*16));
+      var hot=hash(i,idx,9)>.93;
+      ctx.fillStyle=hot?'rgba(255,255,255,'+(.85*f)+')':rgba(A,(.12+.6*d)*f);
+      ctx.fillText(ch,x,y);
+    }
+  }
+  var g=ctx.createRadialGradient(0,0,0,0,0,R*.5);g.addColorStop(0,'rgba(3,5,15,.95)');g.addColorStop(1,'rgba(3,5,15,0)');
+  ctx.fillStyle=g;disc(ctx,R*.5);ctx.fill();
+  ctx.restore();
+  ctx.save();ctx.rotate(t*.6);ctx.strokeStyle=rgba(A,.9*f);ctx.lineWidth=1.6;
+  var s=R*.2;ctx.strokeRect(-s,-s,2*s,2*s);ctx.rotate(Math.PI/4);ctx.strokeStyle=rgba(A,.5*f);ctx.strokeRect(-s,-s,2*s,2*s);ctx.restore();
+  ctx.fillStyle='rgba(255,255,255,'+(.85*f)+')';ctx.fillRect(-3,-3,6,6);
+  ctx.lineWidth=2.6;ctx.strokeStyle=rgba(A,.9*f);ctx.setLineDash([7,5]);ctx.lineDashOffset=-t*18;disc(ctx,R*.98);ctx.stroke();
+  ctx.lineWidth=1.2;ctx.strokeStyle=rgba(A,.5*f);ctx.setLineDash([2,7]);ctx.lineDashOffset=t*14;disc(ctx,R*1.1);ctx.stroke();ctx.setLineDash([]);
+  for(var m=0;m<14;m++){
+    var q=fr(t*.55+m/14),ang=Math.round(m*2.4/(Math.PI/4))*(Math.PI/4),dist=R*2.2*(1-q)+R*.2,sz=3.2*(1-q)+1.4;
+    ctx.fillStyle=rgba(A,f*Math.min(1,q*3));ctx.fillRect(Math.cos(ang)*dist-sz/2,Math.sin(ang)*dist-sz/2,sz,sz);
+  }
+  pipRing(ctx,o,48,2.6,7);
+}
+
+/* ---------- 2. Wire Tunnel ---------- */
+function wireTunnel(ctx,t,o){
+  var R=PR*o.e,A=o.acc,f=o.fade;
+  glow(ctx,R*2.4,A,.28*f);
+  ctx.fillStyle='rgba(2,4,12,.95)';disc(ctx,R*.95);ctx.fill();
+  ctx.save();disc(ctx,R*.95);ctx.clip();
+  var N=9;
+  for(var i=0;i<N;i++){
+    var z=fr(t*.45+i/N),s=R*1.5*Math.pow(1-z,1.7)+R*.04,rot=t*.35+z*1.4;
+    var a=.1+.85*Math.sin(Math.min(1,z*1.15)*Math.PI*.9);
+    ctx.save();ctx.rotate(rot);ctx.lineWidth=1.2+1.4*(1-z);ctx.strokeStyle=rgba(A,a*f);ctx.strokeRect(-s,-s,2*s,2*s);ctx.restore();
+  }
+  ctx.save();ctx.rotate(t*.35);ctx.lineWidth=1;ctx.strokeStyle=rgba(A,.28*f);
+  for(var r=0;r<8;r++){ctx.save();ctx.rotate(r*Math.PI/4+Math.PI/4);ctx.beginPath();ctx.moveTo(R*.1,0);ctx.lineTo(R*1.5,0);ctx.stroke();ctx.restore();}
+  ctx.restore();
+  var g=ctx.createRadialGradient(0,0,0,0,0,R*.3);g.addColorStop(0,'rgba(255,255,255,'+(.9*f)+')');g.addColorStop(.4,rgba(A,.6*f));g.addColorStop(1,rgba(A,0));
+  ctx.fillStyle=g;disc(ctx,R*.3);ctx.fill();
+  ctx.restore();
+  ctx.lineWidth=3;ctx.strokeStyle=rgba(A,.95*f);disc(ctx,R*.95);ctx.stroke();
+  ctx.lineWidth=2;ctx.strokeStyle='rgba(255,255,255,'+(.5*f)+')';
+  for(var k=0;k<4;k++){ctx.beginPath();ctx.arc(0,0,Math.max(.01,R*1.1),t*.9+k*Math.PI/2,t*.9+k*Math.PI/2+.5);ctx.stroke();}
+  for(var m=0;m<12;m++){
+    var q=fr(t*.6+m/12),ang=m*2.4,d0=R*2.2*(1-q)+R*.2,len=2+9*(1-q);
+    ctx.strokeStyle=rgba(A,f*Math.min(1,q*3));ctx.lineWidth=1.6;ctx.beginPath();
+    ctx.moveTo(Math.cos(ang)*d0,Math.sin(ang)*d0);ctx.lineTo(Math.cos(ang)*(d0+len),Math.sin(ang)*(d0+len));ctx.stroke();
+  }
+  ctx.lineWidth=5;ctx.strokeStyle='rgba(255,255,255,'+(.12*o.e)+')';disc(ctx,RING);ctx.stroke();
+  if(o.fill>0){ctx.lineWidth=6;ctx.strokeStyle=rgba(A,.95);ctx.beginPath();ctx.arc(0,0,RING,-Math.PI/2,-Math.PI/2+TAU*o.fill);ctx.stroke();}
+  for(var p=0;p<24;p++){
+    var a2=-Math.PI/2+p*TAU/24,lit=(p+1)/24<=o.fill+1e-6;
+    ctx.strokeStyle=lit?rgba(A,.9):'rgba(255,255,255,'+(.15*o.e)+')';ctx.lineWidth=1.6;ctx.beginPath();
+    ctx.moveTo(Math.cos(a2)*(RING+6),Math.sin(a2)*(RING+6));ctx.lineTo(Math.cos(a2)*(RING+11),Math.sin(a2)*(RING+11));ctx.stroke();
+  }
+}
+
+/* ---------- 3. Glitch Rift ---------- */
+function glitchRift(ctx,t,o){
+  var R=PR*o.e,A=o.acc,f=o.fade;
+  var step=Math.floor(t*9),tear=(t%1.9)<.18||(o.closing&&hash(step,1)>.55),tearY=(hash(step,5)-.5)*R*1.6;
+  var jit=(hash(step,2)-.5)*5;
+  glow(ctx,R*2.4,A,.26*f);
+  ctx.lineWidth=2.6;
+  ctx.save();ctx.translate(-3+jit,0);ctx.strokeStyle='rgba(60,235,255,'+(.45*f)+')';disc(ctx,R*.95);ctx.stroke();ctx.restore();
+  ctx.save();ctx.translate(3-jit,0);ctx.strokeStyle='rgba(255,60,120,'+(.45*f)+')';disc(ctx,R*.95);ctx.stroke();ctx.restore();
+  ctx.fillStyle='rgba(3,4,12,.94)';disc(ctx,R*.95);ctx.fill();
+  ctx.save();disc(ctx,R*.95);ctx.clip();
+  var bh=4;
+  for(var y=-R,j=0;y<R;y+=bh,j++){
+    var hw=Math.sqrt(Math.max(0,R*R*.9025-y*y)),v=hash(j,step),off=0;
+    if(hash(j,step,2)>.88)off=(hash(j,step,3)-.5)*40;
+    if(tear&&Math.abs(y-tearY)<18)off+=(hash(j,step,4)-.5)*90;
+    var a=(.05+.3*v*v)*(.25+.75*Math.min(1,Math.abs(y)/R*1.6));
+    ctx.fillStyle=rgba(A,a*f);ctx.fillRect(-hw+off,y,2*hw,bh-1);
+    if(hash(j,step,6)>.96){ctx.fillStyle='rgba(255,255,255,'+(.5*f)+')';ctx.fillRect(-hw*.4+off,y,hw*.8,1.5);}
+  }
+  for(var i=0;i<18;i++){
+    var q=fr(t*.7+i/18),ang=i*2.4+q*5,dist=R*2.1*(1-q)+R*.15;
+    if(hash(i,step)<.25)continue;
+    var x=Math.round(Math.cos(ang)*dist/4)*4,y2=Math.round(Math.sin(ang)*dist/4)*4;
+    ctx.fillStyle=hash(i,step,3)>.8?'rgba(255,255,255,'+f+')':rgba(A,f*Math.min(1,q*3));ctx.fillRect(x-2,y2-2,4,4);
+  }
+  ctx.restore();
+  ctx.fillStyle='rgba(255,255,255,'+(.9*f)+')';ctx.fillRect(-4,-4,8,8);
+  if(hash(step,7)>.5){ctx.fillRect(-14,-1,28,2);ctx.fillRect(-1,-14,2,28);}
+  ctx.lineWidth=3;ctx.strokeStyle=rgba(A,.95*f);ctx.setLineDash([4,4]);ctx.lineDashOffset=-t*12;disc(ctx,R*.98);ctx.stroke();ctx.setLineDash([]);
+  pipRing(ctx,o,24,6,6);
+}
+
+/* ---------- 4. Circuit Seal ---------- */
+function circuitSeal(ctx,t,o){
+  var R=PR*o.e,A=o.acc,f=o.fade;
+  glow(ctx,R*2.4,A,.3*f);
+  ctx.fillStyle='rgba(3,5,15,.93)';disc(ctx,R*.95);ctx.fill();
+  ctx.lineWidth=2.6;ctx.strokeStyle=rgba(A,.9*f);disc(ctx,R*.95);ctx.stroke();
+  ctx.lineWidth=1.4;ctx.strokeStyle=rgba(A,.5*f);disc(ctx,R*.5);ctx.stroke();
+  function P(r,a){return [Math.cos(a)*R*r,Math.sin(a)*R*r];}
+  for(var i=0;i<12;i++){
+    var a=i*TAU/12,s=i%2?1:-1,pts=[P(.5,a),P(.68,a),P(.8,a+s*.13),P(.95,a+s*.13)];
+    ctx.lineWidth=1.5;ctx.strokeStyle=rgba(A,.55*f);ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+    for(var k=1;k<4;k++)ctx.lineTo(pts[k][0],pts[k][1]);ctx.stroke();
+    ctx.fillStyle=rgba(A,.9*f);ctx.fillRect(pts[3][0]-2,pts[3][1]-2,4,4);ctx.fillRect(pts[0][0]-1.5,pts[0][1]-1.5,3,3);
+    var L=[],tot=0;for(k=0;k<3;k++){var l=Math.hypot(pts[k+1][0]-pts[k][0],pts[k+1][1]-pts[k][1]);L.push(l);tot+=l;}
+    for(var pl=0;pl<2;pl++){
+      var d=(1-fr(t*.55+i*.37+pl*.5))*tot,seg=0;
+      while(seg<2&&d>L[seg]){d-=L[seg];seg++;}
+      var u=L[seg]?d/L[seg]:0,px=pts[seg][0]+(pts[seg+1][0]-pts[seg][0])*u,py=pts[seg][1]+(pts[seg+1][1]-pts[seg][1])*u;
+      ctx.fillStyle='rgba(255,255,255,'+(.9*f)+')';ctx.beginPath();ctx.arc(px,py,2.1,0,TAU);ctx.fill();
+    }
+  }
+  var cs=R*.3,pulse=.5+.5*Math.sin(t*6);
+  ctx.fillStyle='rgba(3,5,15,.98)';ctx.fillRect(-cs,-cs,2*cs,2*cs);
+  ctx.fillStyle=rgba(A,(.2+.25*pulse)*f);ctx.fillRect(-cs,-cs,2*cs,2*cs);
+  ctx.lineWidth=2;ctx.strokeStyle=rgba(A,.95*f);ctx.strokeRect(-cs,-cs,2*cs,2*cs);
+  ctx.lineWidth=1.5;ctx.strokeStyle=rgba(A,.8*f);
+  for(var pn=0;pn<3;pn++){
+    var pp=(pn-1)*cs*.6;
+    ctx.beginPath();ctx.moveTo(pp,-cs);ctx.lineTo(pp,-cs-5);ctx.moveTo(pp,cs);ctx.lineTo(pp,cs+5);ctx.moveTo(-cs,pp);ctx.lineTo(-cs-5,pp);ctx.moveTo(cs,pp);ctx.lineTo(cs+5,pp);ctx.stroke();
+  }
+  ctx.fillStyle='rgba(255,255,255,'+(.9*f)+')';ctx.fillRect(-3.5,-3.5,7,7);
+  pipRing(ctx,o,36,7,5);
+}
+
+/* ---------- shared stage ---------- */
+function stage(ctx,view,sc,w){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#04070f';ctx.fillRect(0,0,w,w);
+  ctx.setTransform(sc,0,0,sc,w/2,w/2);
+  ctx.lineWidth=1.2/sc;ctx.strokeStyle='rgba(70,100,190,.14)';
+  ctx.beginPath();
+  for(var g=-Math.floor(view/24)*24;g<=view;g+=24){ctx.moveTo(g,-view);ctx.lineTo(g,view);ctx.moveTo(-view,g);ctx.lineTo(view,g);}
+  ctx.stroke();
+  var v=ctx.createRadialGradient(0,0,view*.5,0,0,view*1.4);v.addColorStop(0,'rgba(4,7,15,0)');v.addColorStop(1,'rgba(4,7,15,.85)');
+  ctx.fillStyle=v;ctx.fillRect(-view,-view,2*view,2*view);
+}
+function playersLayer(ctx,o){
+  var pts=[[-38,30],[34,-26],[10,44]];
+  for(var i=0;i<pts.length;i++){
+    ctx.strokeStyle=rgba(o.acc,.5);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillRect(pts[i][0]-5,pts[i][1]-5,10,10);
+    ctx.strokeStyle=rgba(o.acc,.9);ctx.lineWidth=1.5;ctx.strokeRect(pts[i][0]-7,pts[i][1]-7,14,14);
+  }
+}
+var dpr=Math.min(2,window.devicePixelRatio||1);
+function sizeCanvas(c){var w=Math.round((c.clientWidth||300)*dpr);if(c.width!==w){c.width=w;c.height=w;}}
+function render(c,style,chIdx,view){
+  sizeCanvas(c);var ctx=c.getContext('2d'),w=c.width,sc=w/(2*view);
+  stage(ctx,view,sc,w);
+  var t=S.clock,open=Math.max(0,Math.min(1,(t-S.t0)/.7)),e=1-Math.pow(1-open,3);
+  var fade=S.closing?.55+.45*Math.abs(Math.sin(t*9)):1;
+  var o={acc:CH[chIdx].c,fill:S.fill,fade:fade,e:e,closing:S.closing,players:S.players};
+  STYLES[style].f(ctx,t,o);
+  if(S.players)playersLayer(ctx,o);
+  ctx.setTransform(1,0,0,1,0,0);
+}
+
+/* ---------- page ---------- */
+var chKeys=document.getElementById('chKeys'),cards=document.getElementById('cards'),strip=document.getElementById('strip');
+CH.forEach(function(c,i){
+  var b=document.createElement('button');b.type='button';b.className='key';b.setAttribute('aria-pressed',i===S.ch);
+  b.innerHTML='<i style="background:'+rgba(c.c,1)+'"></i>'+c.n;
+  b.onclick=function(){S.ch=i;sync();};chKeys.appendChild(b);
+});
+var cardEls=[],cardCv=[];
+STYLES.forEach(function(s,i){
+  var d=document.createElement('button');d.type='button';d.className='card';
+  d.innerHTML='<canvas aria-hidden="true"></canvas><b>'+s.n+'</b><small>'+s.d+'</small>';
+  d.onclick=function(){S.style=i;sync();};cards.appendChild(d);cardEls.push(d);cardCv.push(d.querySelector('canvas'));
+});
+var stripCv=[];
+CH.forEach(function(c){
+  var f=document.createElement('figure');f.innerHTML='<canvas aria-hidden="true"></canvas><figcaption>'+c.n+'</figcaption>';
+  strip.appendChild(f);stripCv.push(f.querySelector('canvas'));
+});
+function sync(){
+  [].forEach.call(chKeys.querySelectorAll('.key'),function(b,i){b.setAttribute('aria-pressed',i===S.ch);});
+  cardEls.forEach(function(d,i){d.setAttribute('aria-pressed',i===S.style);});
+  document.getElementById('stripTitle').textContent=STYLES[S.style].n+' across the five challenges';
+}
+var fillEl=document.getElementById('fill');
+fillEl.oninput=function(){S.fill=fillEl.value/100;document.getElementById('fillOut').textContent=fillEl.value+'%';};
+document.getElementById('closing').onchange=function(e){S.closing=e.target.checked;};
+document.getElementById('players').onchange=function(e){S.players=e.target.checked;};
+var animEl=document.getElementById('anim');animEl.checked=S.anim;
+animEl.onchange=function(e){S.anim=e.target.checked;};
+document.getElementById('replay').onclick=function(){S.t0=S.clock;S.anim=true;animEl.checked=true;};
+sync();
+var last=performance.now();
+function frame(now){
+  var dt=Math.min(.1,(now-last)/1000);last=now;
+  if(S.anim)S.clock+=dt;
+  for(var i=0;i<cardCv.length;i++)render(cardCv[i],i,S.ch,165);
+  for(var j=0;j<stripCv.length;j++)render(stripCv[j],S.style,j,150);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
