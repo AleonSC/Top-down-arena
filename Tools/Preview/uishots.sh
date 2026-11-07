@@ -39,8 +39,9 @@ render() {
   list | xargs -P "$JOBS" -L 1 bash -c '
     out="$0"; tool="$1"; name="$2"; mode="$3"; wave="$4"; secs="$5"; pl="$6"; shift 6
     mkdir -p "$out/tmp-$name"
-    if ( cd "$out" && env TMPDIR="$out/tmp-$name" "$@" mono shot.exe "$name" "$wave" "$secs" "$pl" "$mode" >/dev/null 2>"$out/$name.err" \
-         && python3 "$tool/shot.py" "$name" "$name.png" >/dev/null 2>>"$out/$name.err" ); then
+    shoot() { ( cd "$out" && env TMPDIR="$out/tmp-$name" "$@" mono shot.exe "$name" "$wave" "$secs" "$pl" "$mode" >/dev/null 2>"$out/$name.err" \
+         && python3 "$tool/shot.py" "$name" "$name.png" >/dev/null 2>>"$out/$name.err" ); }
+    if shoot "$@" || shoot "$@"; then  # (once more on a failure: under load the preview match can miss its start)
       rm -f "$out/$name.err" "$out/$name.tris" "$out/$name.ui"; echo "  $name"
     else echo "  $name FAILED (see $out/$name.err)"; fi
     rm -rf "$out/tmp-$name"' "$out" "$tool"

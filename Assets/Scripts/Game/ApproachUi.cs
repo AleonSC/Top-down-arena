@@ -34,7 +34,7 @@ namespace Arena
             const int size = 15;
             float hw = head != null ? CrtUi.TitleWidth(head, size) + 8f : 0f, cw = count != null ? CrtUi.TitleWidth(count, size) + 14f : 0f;
             float tw = tag != null ? CrtUi.TitleWidth(tag, 12) + 16f : 0f, gap = head != null && tag != null ? 10f : 0f;
-            float x = W / 2f - (hw + cw + gap + tw) / 2f, y = BossUp() ? 92f : 14f;
+            float x = W / 2f - (hw + cw + gap + tw) / 2f, y = BossUp() ? HudObjectiveUnderBossY : HudObjectiveY;  // (HudLayout.cs)
             if (head != null)
             {
                 CrtUi.Text(new Rect(x, y, hw, 20f), head, size, Ui.Gold, TextAnchor.MiddleLeft, true, calm);

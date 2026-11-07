@@ -35,6 +35,12 @@ lobby-newrun      lobby     CRT=6.0
 lobby-launch      hud       LAUNCH=0.25
 # In a run
 hud               hud       6 12.2 3 NOISY=1
+hud-solo          hud
+hud-sliding       hud       6 12.2 1 HUDT=0.5
+hud-riot          hud       RIOT=ready
+hud-emotes        hud       EMOTEBAR=1
+hud-chips         hud       GOLD=120 MODS=5 APPROACH=1
+hud-boss          hud       5 12.2 1 WARDEN=0.6 NOISY=1
 tab               tab
 pause             pause
 pause-settings    pause     PAUSESET=2
