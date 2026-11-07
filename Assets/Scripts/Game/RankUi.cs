@@ -19,21 +19,36 @@ namespace Arena
             var info = Rank.Of(g.Before + (long)(g.Award.Total * Ease(k)));
             bool up = info.Rank > g.RankBefore;
             var col = RankLook.TierColor(info.Rank);
-            Ui.Card(r, up ? Ui.Gold : col, up ? 0.9f : 0.55f);
+            CrtUi.Begin(r);  // a CRT tube like the rest of the results (HudSummary.cs); gold rim on a rank up
+            if (up)
+            {
+                var rim = new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f);
+                Ui.Fill(new Rect(r.x, r.y, r.width, 2f), rim); Ui.Fill(new Rect(r.x, r.yMax - 2f, r.width, 2f), rim);
+                Ui.Fill(new Rect(r.x, r.y, 2f, r.height), rim); Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), rim);
+            }
 
             // Badge on the left, then RANK n · title over the XP bar over the "how it was worked out" line, and the +XP at the right.
             float pop = up ? 1f + 0.18f * Mathf.Max(0f, Mathf.Sin(now * 6f)) * Mathf.Clamp01(1f - (k - 0.9f) * 6f) : 1f;
             float bs = 52f * pop;
             RankLook.Draw(new Rect(r.x + 16f + (52f - bs) / 2f, r.y + 11f + (52f - bs) / 2f, bs, bs), info.Rank);
             float bx = r.x + 84f, rightW = 150f, bw = r.width - 84f - rightW - 14f;
-            Ui.Label(new Rect(bx, r.y + 6f, 220f, 22f), "RANK " + info.Rank, 17, Color.Lerp(col, Color.white, 0.4f), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(bx + 110f, r.y + 6f, 200f, 22f), Rank.Title(info.Rank), 15, col, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(bx + bw - 200f, r.y + 6f, 200f, 22f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 13, Ui.Text, TextAnchor.MiddleRight, true);
-            Ui.Bar(new Rect(bx, r.y + 31f, bw, 14f), info.Fraction, col);
+            Color tier = Color.Lerp(col, Color.white, 0.4f);
+            CrtUi.Title(new Rect(bx, r.y + 4f, 130f, 26f), "RANK " + info.Rank, 26, tier, TextAnchor.MiddleLeft, fxReduced);
+            CrtUi.Title(new Rect(bx + 118f, r.y + 6f, 200f, 24f), Rank.Title(info.Rank), 22, col, TextAnchor.MiddleLeft, fxReduced);
+            CrtUi.Title(new Rect(bx + bw - 200f, r.y + 6f, 200f, 24f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 21, Color.white, TextAnchor.MiddleRight, true);
+            var track = new Rect(bx, r.y + 33f, bw, 10f);  // the XP bar: a dark track, a lit phosphor fill with a bright end cap
+            Ui.Fill(new Rect(track.x - 1f, track.y - 1f, track.width + 2f, track.height + 2f), new Color(1f, 1f, 1f, 0.07f));
+            Ui.Fill(track, new Color(0.02f, 0.04f, 0.08f, 0.95f));
+            var fill = new Rect(track.x, track.y, Mathf.Max(2f, track.width * Mathf.Clamp01(info.Fraction)), track.height);
+            if (!fxReduced)
+                Ui.Glow(fill, col, 0.06f);
+            Ui.Fill(fill, Color.Lerp(col, new Color(0f, 0f, 0f), 0.3f));
+            Ui.Fill(new Rect(fill.x, fill.y, fill.width, fill.height * 0.6f), Color.Lerp(col, Color.white, 0.12f));
+            Ui.Fill(new Rect(fill.xMax - 2f, fill.y - 2f, 2f, fill.height + 4f), Color.white);
 
-            Ui.Fill(new Rect(r.xMax - rightW, r.y + 12f, 1f, r.height - 24f), new Color(1f, 1f, 1f, 0.1f));
-            Ui.Fancy(new Rect(r.xMax - rightW, r.y + 10f, rightW, 36f), "+" + g.Award.Total.ToString("N0"), 26, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(r.xMax - rightW, r.y + 46f, rightW, 16f), "XP EARNED", 10, Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Fill(new Rect(r.xMax - rightW, r.y + 12f, 1f, r.height - 24f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.35f));
+            CrtUi.Title(new Rect(r.xMax - rightW, r.y + 6f, rightW, 38f), "+" + g.Award.Total.ToString("N0"), 36, LobbyKit.Gold, TextAnchor.MiddleCenter, fxReduced);
+            Ui.Label(new Rect(r.xMax - rightW, r.y + 46f, rightW, 16f), "XP EARNED", 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
 
             // How it was worked out, then the modifiers behind the multiplier, or on a rank up what it unlocked.
             var parts = new List<string>();
@@ -44,7 +59,7 @@ namespace Arena
             if (Mathf.Abs(mult - 1f) > 0.001f)
                 how += "  ×" + mult.ToString("0.##");
             float hw = bw * 0.52f;
-            DrawOneLine(new Rect(bx, r.y + 50f, hw, 18f), how, 12, 10, Ui.Muted, false);
+            DrawOneLine(new Rect(bx, r.y + 50f, hw, 18f), how, 12, 10, CrtUi.Dim, false);
             float tx = bx + hw + 8f, tw = bw - hw - 8f;
             if (up)
             {
@@ -62,6 +77,7 @@ namespace Arena
             }
             else if (g.Award.ModNotes.Count > 0)
                 DrawOneLine(new Rect(tx, r.y + 50f, tw, 18f), string.Join(", ", g.Award.ModNotes.ToArray()), 11, 9, new Color(0.78f, 0.65f, 1f), false);
+            CrtUi.End(r, now, fxReduced);
         }
 
         /// A player's rank for the results cards: yours from the profile (it's just been paid out), the others' as the lobby knew it.
