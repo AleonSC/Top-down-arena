@@ -311,8 +311,17 @@ namespace Arena
         /// The window's frame: a CRT screen in the drawer panel's place. Its content (drawn in the same coordinates, moving
         /// with it) is hidden until it has powered on. A panel drawn without OpenCabWindow (the profile) powers on in place
         /// after the cabinet instead of sliding.
+        string panelKeyDrawn;  // the panel last drawn (a different one types in from nothing)
+
         void BeginPanelAnim(string key)
         {
+            if (key != panelKeyDrawn)
+            {
+                // A new section's layout shows at once, so its labels must not erase the last section's text first
+                // (that read as the window switching, then rewriting itself): they type in from nothing.
+                panelKeyDrawn = key;
+                CrtKit.Forget("win.");
+            }
             if (!cabWin)
             {
                 cabWin = true;
