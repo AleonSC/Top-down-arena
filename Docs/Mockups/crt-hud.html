@@ -1,0 +1,236 @@
+<title>CRT HUD Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: four in-run HUD proposals, each a 1280x720 stage (the game canvas) scaled to fit, over the same arena backdrop. They reuse the lobby's digital CRT look: VT323 phosphor text, scanlines, glass vignette, inverse-video keys, with the player card kept as a full-colour island. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+h2 { font-size: 21px; margin: 0; }
+header p, .blurb { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 74ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.sec { display: flex; flex-direction: column; gap: 8px; }
+.sec .tags { font: 500 12px var(--f-mono); letter-spacing: .04em; color: var(--muted); }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-ui);
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.55); --rim: #12203f; --danger: #ff6b7a; --gold: #f2c14e; }
+.stage[data-pal="green"] { --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --rim: #0d2417; }
+.stage[data-pal="cyan"] { --ink: #5ff0ff; --dim: #2f9fb0; --sbg: #021015; --glow: rgba(95,240,255,.55); --rim: #0a2630; }
+.stage[data-pal="amber"] { --ink: #ffb347; --dim: #b5762a; --sbg: #130b02; --glow: rgba(255,179,71,.5); --rim: #2a1a08; }
+.abs { position: absolute; }
+
+/* arena backdrop */
+.arena { position: absolute; inset: 0; background: radial-gradient(90% 90% at 50% 45%, #14142a 0%, #0a0a1a 70%, #1a0a14 100%); }
+.arena::before { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px) 0 0/40px 40px, linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px) 0 0/40px 40px; }
+.wall { position: absolute; width: 20px; background: linear-gradient(90deg, #3a4a63, #52627d); border: 1px solid #6c7f9c; }
+.crate { position: absolute; width: 70px; height: 38px; background: linear-gradient(#a8743c, #8b5a2b); border: 2px solid #6b4220; }
+.crate::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #6b4220; }
+.pad { position: absolute; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(#243046 0 28%, #6f87a3 30% 36%, #2b3a52 38%); border: 2px solid #8aa0bb; }
+.ring { position: absolute; border-radius: 50%; border: 1px solid rgba(80,200,140,.45); background: radial-gradient(rgba(80,200,140,.06), rgba(80,200,140,.1)); }
+.foe { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #e0802a; border: 2px solid #ffc46b; box-shadow: 0 0 10px #ff8a2a; }
+.me { position: absolute; width: 26px; height: 26px; border-radius: 50%; background: #4a8cff; border: 2px solid #bcd6ff; box-shadow: 0 0 14px #4a8cff; }
+.nameplate { position: absolute; font: 700 13px var(--f-ui); color: #fff; text-shadow: 0 0 4px #000; }
+.xhair { position: absolute; width: 16px; height: 16px; border: 2px solid #ff8a2a; border-radius: 50%; }
+
+/* CRT pieces shared by every variant */
+.box { position: absolute; color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow); overflow: hidden; isolation: isolate; background: color-mix(in srgb, var(--sbg) 94%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent); box-shadow: 0 0 0 3px var(--rim), 0 0 18px color-mix(in srgb, var(--ink) 22%, transparent); }
+.box > .in { position: absolute; inset: 0; z-index: 1; }
+.box::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.24) 0 1px, transparent 1px 3px); }
+.box::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.5) 100%); }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.045), transparent); animation: roll 8s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .75em; background: currentColor; margin-left: 4px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+.stage.calm .roll { display: none; } .stage.calm .box, .stage.calm .k { text-shadow: none; } .stage.calm .cur, .stage.calm .pulse { animation: none; }
+.lab { font: 17px/1 var(--f-crt); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); text-shadow: none; }
+.big { font: 54px/.85 var(--f-crt); color: var(--ink); }
+.gold { color: var(--gold); text-shadow: 0 0 8px rgba(242,193,78,.6); }
+.hd { font: 22px/1 var(--f-crt); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid color-mix(in srgb, var(--ink) 40%, transparent); padding-bottom: 3px; }
+.hd small { font: 500 12px var(--f-ui); color: var(--dim); text-shadow: none; letter-spacing: .04em; }
+
+/* digital ability keys */
+.k { min-width: 0; --c: var(--ink); position: relative; font: 22px/1 var(--f-crt); letter-spacing: .05em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 2px solid var(--c); padding: 3px 8px 0; height: 100%; width: 100%;
+  display: flex; flex-direction: column; justify-content: space-between; text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); overflow: hidden; }
+.k .top { display: flex; justify-content: space-between; align-items: center; font-size: 16px; letter-spacing: .1em; }
+.k .keycap { background: var(--c); color: var(--sbg); padding: 1px 6px 0; text-shadow: none; }
+.k .nm { font-size: 22px; line-height: .95; white-space: nowrap; }
+.k small { font: 500 10px var(--f-ui); letter-spacing: .02em; opacity: .75; text-shadow: none; white-space: nowrap; }
+.k .meter { height: 5px; background: rgba(255,255,255,.1); position: relative; margin: 0 -2px 3px; }
+.k .meter i { position: absolute; inset: 0 auto 0 0; background: var(--c); box-shadow: 0 0 8px var(--c); }
+.k.ready { --c: #6cff9a; background: color-mix(in srgb, #6cff9a 10%, transparent); }
+.k.ult { --c: var(--gold); }
+.k.empty { --c: var(--dim); border-style: dashed; background: transparent; text-shadow: none; opacity: .8; }
+.k.empty .nm { font-size: 20px; }
+.pulse { animation: pulse 1.6s ease-in-out infinite; } @keyframes pulse { 50% { opacity: .55; } }
+
+/* segmented digital bars */
+.seg-bar { height: 12px; position: relative; background: repeating-linear-gradient(90deg, rgba(255,255,255,.1) 0 6px, transparent 6px 8px); }
+.seg-bar i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(90deg, var(--bc) 0 6px, transparent 6px 8px); filter: drop-shadow(0 0 4px var(--bc)); }
+
+/* full-colour player card island */
+.card { position: absolute; border: 2px solid #3ddc84; box-shadow: 0 0 16px rgba(61,220,132,.4), inset 0 0 16px rgba(61,220,132,.15); background: linear-gradient(90deg, #0e3a24, #0b1f26 70%); overflow: hidden; font-family: var(--f-ui); color: #e6fff0; }
+.card .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: #3ddc84; }
+.card .nm { position: absolute; left: 16px; top: 7px; font: 700 21px/1 var(--f-ui); }
+.card .cl { position: absolute; left: 16px; top: 31px; font: 700 13px/1 var(--f-ui); color: #6cff9a; }
+.card .lv { position: absolute; right: 8px; top: 8px; font: 700 12px/1 var(--f-ui); background: #7a6a22; color: #ffe08a; padding: 3px 7px; border: 1px solid #c8b24a; }
+.card .hp { position: absolute; left: 16px; right: 10px; top: 52px; height: 15px; background: rgba(0,0,0,.45); border: 1px solid #5d6f66; }
+.card .hp i { position: absolute; inset: 0 auto 0 0; width: 22%; background: linear-gradient(#ff9a5a, #d9642a); }
+.card .hp b { position: absolute; inset: 0; text-align: center; font: 700 12px/15px var(--f-ui); }
+.card .xp { position: absolute; left: 16px; right: 10px; top: 72px; height: 5px; background: rgba(0,0,0,.45); }
+.card .xp i { position: absolute; inset: 0 auto 0 0; width: 48%; background: #f2c14e; }
+
+.xpstrip { position: absolute; height: 12px; background: rgba(3,8,20,.85); border: 1px solid color-mix(in srgb, var(--ink) 45%, transparent); }
+.xpstrip i { position: absolute; inset: 0 auto 0 0; width: 48%; background: repeating-linear-gradient(90deg, var(--gold) 0 6px, transparent 6px 8px); filter: drop-shadow(0 0 4px var(--gold)); }
+.lvtag { position: absolute; font: 18px/1 var(--f-crt); color: var(--gold); background: var(--sbg); border: 1px solid var(--gold); padding: 3px 8px 0; letter-spacing: .08em; text-shadow: 0 0 6px rgba(242,193,78,.6); }
+.chip { position: absolute; display: flex; gap: 8px; align-items: center; font: 20px/1 var(--f-crt); }
+.chip em { font-style: normal; color: var(--dim); text-shadow: none; }
+.hint { position: absolute; right: 22px; top: 14px; font: 16px/1 var(--f-crt); color: var(--dim); letter-spacing: .08em; text-shadow: none; }
+.hint b { color: var(--ink); font-weight: 400; }
+.rec { position: absolute; right: 24px; top: 40px; font: 16px/1 var(--f-crt); color: #ff6b7a; letter-spacing: .1em; }
+
+/* variant C terminal text */
+.term { font: 22px/1.18 var(--f-crt); letter-spacing: .04em; white-space: pre; padding: 8px 12px; }
+.term .d { color: var(--dim); text-shadow: none; }
+.term .g { color: #6cff9a; } .term .y { color: var(--gold); } .term .r { color: #ff6b7a; }
+
+@media (max-width: 700px) { h1 { font-size: 22px; } }
+</style>
+<body>
+<div class="wrap">
+  <header>
+    <h1>CRT HUD Mockups</h1>
+    <p>Four in-run HUD directions in the lobby's digital CRT language: VT323 phosphor text, scanlines, glass vignette, inverse-video keys. Your player card stays a full-colour island, as on the lobby party cards. Pick a layout, then a screen colour. Hover a key to see the inverse-video press state.</p>
+  </header>
+  <div class="bar">
+    <div class="grp" id="pal"><span>Screen</span>
+      <button class="seg" data-v="blue" aria-pressed="true">Blue</button><button class="seg" data-v="green" aria-pressed="false">Green</button><button class="seg" data-v="cyan" aria-pressed="false">Cyan</button><button class="seg" data-v="amber" aria-pressed="false">Amber</button></div>
+    <div class="grp" id="fx"><span>Effects</span>
+      <button class="seg" data-v="full" aria-pressed="true">Full</button><button class="seg" data-v="calm" aria-pressed="false">Reduced</button></div>
+  </div>
+  <div id="views" class="wrap" style="gap:34px"></div>
+</div>
+
+<script>
+const arena = `
+<div class="arena">
+  <div class="wall" style="left:188px;top:148px;height:175px"></div><div class="wall" style="left:188px;top:420px;height:140px"></div><div class="wall" style="left:188px;top:660px;height:80px"></div>
+  <div class="wall" style="left:1050px;top:148px;height:175px"></div><div class="wall" style="left:1050px;top:420px;height:140px"></div><div class="wall" style="left:1050px;top:660px;height:80px"></div>
+  <div class="crate" style="left:403px;top:268px"></div><div class="crate" style="left:785px;top:268px"></div><div class="crate" style="left:403px;top:560px"></div><div class="crate" style="left:785px;top:560px"></div>
+  <div class="pad" style="left:600px;top:420px"></div>
+  <div class="ring" style="left:590px;top:380px;width:274px;height:274px"></div>
+  <div class="foe" style="left:565px;top:330px"></div><div class="foe" style="left:620px;top:440px"></div><div class="foe" style="left:705px;top:500px"></div><div class="foe" style="left:740px;top:520px"></div><div class="foe" style="left:722px;top:470px"></div>
+  <div class="me" style="left:712px;top:508px"></div><div class="nameplate" style="left:682px;top:476px">Anthony /you</div>
+  <div class="xhair" style="left:760px;top:600px"></div>
+</div>`;
+
+const hp = (w, bc) => `<div class="seg-bar" style="--bc:${bc}"><i style="width:${w}%"></i></div>`;
+const key = (cap, name, cls, sub, meter, tag) => `<div class="k ${cls}"><div class="top"><span class="keycap">${cap}</span><span class="${cls==='ready'?'pulse':''}">${tag||''}</span></div><div class="nm">${name}</div>${meter!=null?`<div class="meter"><i style="width:${meter}%"></i></div>`:`<small>${sub||''}</small>`}</div>`;
+const empty = cap => key(cap, 'Empty', 'empty', 'from a very rare upgrade');
+const ward = key('SPACE', 'Energy Ward', 'ready', '', 100, 'READY');
+const ult = key('ULT · F', 'Sanctum', 'ult', '', 86, '86%');
+const card = (style) => `<div class="card" style="${style}"><div class="stripe"></div><div class="nm">Anthony</div><div class="cl">Elementalist Healer</div><div class="lv">LV 1</div><div class="hp"><i></i><b>26 / 119</b></div><div class="xp"><i></i></div></div>`;
+const hint = `<div class="hint"><b>HOLD TAB</b> run stats &amp; build &nbsp;·&nbsp; <b>H</b> hide HUD</div><div class="rec">● REC</div>`;
+const riot = (x,y) => `<div class="chip" style="left:${x}px;top:${y}px"><span>▣ RIOT GEAR</span><em>10s</em></div>`;
+
+const variants = [
+{
+  name: 'A · Console Strip',
+  tags: 'one long CRT console · wave plate, four keys, ult key and card share a single glass · closest to the lobby loadout screen',
+  blurb: 'The whole HUD lives on one bottom console, like the lobby loadout screen. The wave readout, ability keys and ultimate sit under a single piece of glass with a segmented XP strip riding the top edge. Lowest visual noise, but the widest footprint.',
+  html: () => `
+    <div class="xpstrip" style="left:16px;right:16px;top:604px"></div>
+    <div class="lvtag" style="left:16px;top:578px">LV 1</div>
+    ${riot(88,583)}
+    <div class="chip" style="left:16px;top:550px;color:var(--ink)"><span style="border:1px solid var(--ink);padding:3px 8px 0">FUNNELS</span><span class="gold">HUNT · THE WARDEN'S OWN</span><em>1/9</em></div>
+    <div class="xpstrip" style="left:16px;right:16px;top:604px"><i></i></div>
+    <div class="box" style="left:16px;top:624px;width:1248px;height:84px"><div class="roll"></div><div class="in" style="display:grid;grid-template-columns:200px repeat(4,1fr) 1fr 340px;gap:8px;padding:8px 8px 8px 12px">
+      <div style="display:flex;flex-direction:column;justify-content:space-between"><div class="lab">Hunt · wave</div><div style="display:flex;align-items:baseline;gap:6px"><span class="big">1</span><span class="lab" style="font-size:22px">/ 10</span><span style="flex:1"></span><span class="lab">left</span><span class="big" style="font-size:32px">7</span></div></div>
+      ${ward}${empty('Q')}${empty('E')}${empty('SHIFT')}${ult}
+      <div style="position:relative">${card('position:absolute;inset:0;border-width:1px')}</div>
+    </div></div>
+    <div class="lab" style="position:absolute;left:30px;top:692px;display:none"></div>`
+},
+{
+  name: 'B · Floating Monitors',
+  tags: 'separate small CRT screens with their own bezels · corners stay open · each screen reads on its own',
+  blurb: 'Each readout is its own little monitor with a bezel and glass, so the HUD breaks into pieces that hug the corners. The wave monitor sits bottom-left, the card bottom-right, and the ability keys sit as four small monitors in between. Most "physical cabinet" feel of the four.',
+  html: () => `
+    <div class="xpstrip" style="left:276px;right:276px;top:600px"><i></i></div>
+    <div class="lvtag" style="left:276px;top:572px">LV 1</div>
+    ${riot(344,579)}
+    <div class="chip" style="left:16px;top:516px"><span style="border:1px solid var(--ink);padding:3px 8px 0">FUNNELS</span></div>
+    <div class="box" style="left:16px;top:548px;width:236px;height:160px"><div class="roll"></div><div class="in" style="padding:6px 12px;display:flex;flex-direction:column;gap:5px">
+      <div class="hd">Hunt<small>Wave</small></div>
+      <div style="display:flex;align-items:baseline;gap:8px"><span class="big" style="font-size:44px">1</span><span class="lab" style="font-size:24px">/ 10</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lab">Enemies left</span><span class="big gold" style="font-size:28px">7</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lab">Score</span><span class="gold" style="font-size:24px">30</span></div>
+    </div></div>
+    <div class="box" style="left:16px;top:536px;width:0;height:0;display:none"></div>
+    ${[ward, empty('Q'), empty('E'), empty('SHIFT'), ult].map((k,i)=>`<div class="box" style="left:${268+i*140}px;top:624px;width:132px;height:84px"><div class="roll"></div><div class="in" style="padding:5px">${k}</div></div>`).join('')}
+    ${card('left:976px;top:612px;width:288px;height:96px')}
+    <div class="lab" style="position:absolute;left:276px;top:540px"></div>
+    <div class="chip" style="left:16px;top:20px;color:var(--gold)"><span>HUNT · THE WARDEN'S OWN</span><em>1/9</em></div>`
+},
+{
+  name: 'C · Terminal Readout',
+  tags: 'text-first · one status line along the bottom, mission feed top-left · smallest footprint',
+  blurb: 'Information as terminal text: segmented ASCII bars and a mission feed that types itself. Takes the least screen, keeps the arena clear, and gives the CRT feel through type and glow alone. Best for reading at a glance, weakest for telling the ability keys apart.',
+  html: () => `
+    <div class="box" style="left:16px;top:16px;width:430px;height:106px"><div class="roll"></div><div class="in term"><span class="d">C:\\ARENA&gt;</span> HUNT_01 <span class="d">WAVE</span> 01<span class="d">/10</span>
+<span class="d">HOSTILES</span> <span class="y">07</span>   <span class="d">SCORE</span> <span class="y">00030</span>
+<span class="d">OBJ</span> THE WARDEN'S OWN <span class="y">[1/9]</span>
+<span class="d">MOD</span> FUNNELS<span class="cur"></span></div></div>
+    ${riot(16,136)}
+    <div class="xpstrip" style="left:16px;right:16px;top:624px;height:8px"><i></i></div>
+    <div class="box" style="left:16px;top:640px;width:1248px;height:68px"><div class="roll"></div><div class="in term" style="padding:6px 12px;display:grid;grid-template-columns:1fr;gap:2px">
+<span><span class="d">ANTHONY</span> ELEMENTALIST/HEALER <span class="y">LV01</span>   <span class="d">HP</span> <span class="r">[████░░░░░░░░░░░░░░░░]</span> 026/119   <span class="d">XP</span> <span class="y">[██████████░░░░░░░░░░]</span> 48%</span>
+<span><span class="g">[SPC] ENERGY WARD READY</span>  <span class="d">[Q] ----</span>  <span class="d">[E] ----</span>  <span class="d">[SHF] ----</span>  <span class="y">[F] SANCTUM ████████▒░ 86%</span></span>
+    </div></div>
+    ${hint}`
+},
+{
+  name: 'D · Corner Racks',
+  tags: 'two stacked racks in the bottom corners · centre of the screen fully clear · keys in a 2×2 grid',
+  blurb: 'Two vertical racks pushed into the bottom corners leave the whole centre strip free for the XP bar and the fight. The left rack holds the hunt, wave and objective; the right rack holds your card over a 2×2 grid of ability keys and the ult. Big touch targets for the keys, more vertical height used.',
+  html: () => `
+    <div class="xpstrip" style="left:296px;right:296px;top:696px"><i></i></div>
+    <div class="lvtag" style="left:296px;top:668px">LV 1</div>
+    ${riot(366,676)}
+    <div class="box" style="left:16px;top:470px;width:262px;height:238px"><div class="roll"></div><div class="in" style="padding:10px 14px;display:flex;flex-direction:column;gap:9px">
+      <div class="hd">Hunt<small>FUNNELS</small></div>
+      <div style="display:flex;align-items:baseline;gap:8px"><span class="lab">Wave</span><span class="big" style="font-size:64px">1</span><span class="lab" style="font-size:26px">/ 10</span></div>
+      ${hp(10,'var(--ink)')}
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lab">Enemies left</span><span class="big gold" style="font-size:36px">7</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lab">Score</span><span class="gold" style="font-size:26px">30</span></div>
+      <div style="border-top:1px solid color-mix(in srgb,var(--ink) 40%,transparent);padding-top:6px;font-size:19px;line-height:1.1"><span class="lab" style="font-size:14px">Objective</span><br>THE WARDEN'S OWN <span class="gold">1/9</span></div>
+    </div></div>
+    <div class="box" style="left:964px;top:392px;width:300px;height:316px"><div class="roll"></div><div class="in" style="padding:8px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr 1fr 1fr;gap:6px"><style>.in>div{min-width:0}</style>
+      <div style="grid-column:1/3;position:relative;height:84px">${card('left:0;top:0;right:0;bottom:0;border-width:1px')}</div>
+      <div>${ward}</div><div>${ult}</div><div>${empty('Q')}</div><div>${empty('E')}</div><div>${empty('SHIFT')}</div><div class="lab" style="align-self:center;text-align:center;font-size:13px">Hold TAB<br>run stats</div>
+    </div></div>`
+}
+];
+
+const views = document.getElementById('views');
+const stages = [];
+variants.forEach((v, i) => {
+  const s = document.createElement('section'); s.className = 'sec';
+  s.innerHTML = `<h2>${v.name}</h2><p class="blurb">${v.blurb}</p><div class="tags">${v.tags}</div><div class="view"><div class="stage" data-pal="blue">${arena}${v.html()}</div></div>`;
+  views.appendChild(s); stages.push(s.querySelector('.stage'));
+});
+function fit() { document.querySelectorAll('.view').forEach(v => { const st = v.firstElementChild; st.style.transform = `scale(${v.clientWidth / 1280})`; }); }
+new ResizeObserver(fit).observe(document.body); fit();
+document.getElementById('pal').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#pal .seg').forEach(x => x.setAttribute('aria-pressed', x === b)); stages.forEach(st => st.dataset.pal = b.dataset.v); });
+document.getElementById('fx').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#fx .seg').forEach(x => x.setAttribute('aria-pressed', x === b)); stages.forEach(st => st.classList.toggle('calm', b.dataset.v === 'calm')); });
+</script>
