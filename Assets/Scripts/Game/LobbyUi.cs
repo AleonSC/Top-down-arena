@@ -22,6 +22,7 @@ namespace Arena
         float showcaseZoomA;       // the zoom meter's fade (0 hidden .. 1 shown)
         bool showcaseZoomDrag;
         float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
+        bool showcaseMute;         // the preview's MUTE key (next to the zoom slider)
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
         /// The lobby's content used to sit 14 px higher than its layout numbers said. The softer layout (Docs/Mockups/crt-lobby-softer.html) runs 28..684
@@ -1084,7 +1085,8 @@ namespace Arena
             if (e.type == EventType.MouseUp)
                 showcaseZoomDrag = false;
             var bar = new Rect(view.x, view.y, view.width, 18f);  // flush with the top of the window
-            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f, bar.height);
+            var muteKey = new Rect(bar.xMax - 50f, bar.y + 1f, 46f, bar.height - 2f);
+            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 50f, bar.height);
             if (e.type == EventType.MouseDown && track.Contains(e.mousePosition))
                 showcaseZoomDrag = true;
             float oa = Ui.Alpha;
@@ -1098,6 +1100,8 @@ namespace Arena
             float nt = Ui.Slider(track, t);
             if (nt != t)
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
+            if (showcaseZoomA > 0.3f && Ui.Button(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral))
+                showcaseMute = !showcaseMute;
             GUI.color = oc;
             Ui.Alpha = oa;
         }
@@ -1195,7 +1199,8 @@ namespace Arena
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)
-                sounds.PlayMuffled(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
+                if (!showcaseMute)
+                    sounds.PlayMuffled(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             showcase.Game.Sounds.Clear();
         }
 

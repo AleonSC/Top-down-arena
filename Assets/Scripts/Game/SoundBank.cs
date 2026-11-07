@@ -694,7 +694,7 @@ namespace Arena
 
         // --- Muffled playback (the lobby's loadout preview) ------------------------
         // A copy of each clip run through a low-pass filter, built the first time it's needed.
-        const float MuffleHz = 650f, MuffleVolume = 0.55f;
+        const float MuffleHz = 450f, MuffleVolume = 0.4f;
         AudioClip[][] muffled;
         float[] lastMuffled;
 
