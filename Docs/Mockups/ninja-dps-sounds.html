@@ -183,19 +183,19 @@ var SETS={
   osc:'Square',ring:2000,ringVol:.05,whLP:.5,whN:.12,crack:.8,room:.12,chime:'Square',chimeVol:.13,bell:.3,sub:1.1,synth:true}};
 var W=function(P){return P.synth?'Saw':'Sine'};
 var DEFS=[
- ['kthrow','Kunai','Throw','A slow, heavy knife leaves your hand (one every 0.7 s): a long windy rush that swells and trails off, with a light low note under it.',.12,function(P){
+ ['kthrow','Kunai','Throw','A slow, heavy knife leaves your hand (one every 0.7 s): a quick whoosh: the knife slices past, dark air first, then brighter as it passes, and it falls away fast.',.12,function(P){
    return Finish(Mix(
-    Tone(.34,'Sine',500,1400,.2,{noise:P.synth?.55:1,lowpass:P.synth?.4:.32,attack:.07,decay:1.1}),
-    Delay(Tone(.3,'Sine',1400,420,.14,{noise:P.synth?.55:1,lowpass:P.synth?.35:.22,attack:.02,decay:1.6}),.1),
-    Tone(.1,'Sine',190,95,.14*P.sub,{lowpass:.3,decay:2.5}),
-    Tone(.2,P.osc,P.ring,P.ring*.85,P.ringVol*.5,{lowpass:.5,attack:.05,decay:3})),.45)}],
- ['kthrow2','Kunai','Throw, fanned (capstone)','The +1 knife is thrown with the first: a second, higher windy rush a hair later.',.12,function(P){
+    Tone(.22,'Sine',500,300,.22,{noise:P.synth?.7:1,lowpass:.14,attack:.045,decay:1.8}),
+    Delay(Tone(.2,'Sine',500,300,.2,{noise:P.synth?.7:1,lowpass:.4,attack:.03,decay:2.2}),.04),
+    Delay(Tone(.14,'Sine',500,300,.14,{noise:P.synth?.7:1,lowpass:.8,attack:.02,decay:3}),.08),
+    Delay(Tone(.12,'Sine',900,350,.05,{lowpass:.5,attack:.02,decay:2}),.04)),.5)}],
+ ['kthrow2','Kunai','Throw, fanned (capstone)','The +1 knife is thrown with the first: a second, slightly brighter whoosh a hair behind the first.',.12,function(P){
    return Finish(Mix(
-    Tone(.34,'Sine',500,1400,.18,{noise:P.synth?.55:1,lowpass:P.synth?.4:.32,attack:.07,decay:1.1}),
-    Delay(Tone(.3,'Sine',1400,420,.12,{noise:P.synth?.55:1,lowpass:P.synth?.35:.22,attack:.02,decay:1.6}),.1),
-    Delay(Tone(.32,'Sine',700,1900,.14,{noise:P.synth?.55:1,lowpass:P.synth?.45:.38,attack:.07,decay:1.1}),.04),
-    Tone(.1,'Sine',190,95,.14*P.sub,{lowpass:.3,decay:2.5}),
-    Tone(.2,P.osc,P.ring,P.ring*.85,P.ringVol*.5,{lowpass:.5,attack:.05,decay:3})),.45)}],
+    Tone(.22,'Sine',500,300,.2,{noise:P.synth?.7:1,lowpass:.14,attack:.045,decay:1.8}),
+    Delay(Tone(.2,'Sine',500,300,.18,{noise:P.synth?.7:1,lowpass:.4,attack:.03,decay:2.2}),.04),
+    Delay(Tone(.14,'Sine',500,300,.12,{noise:P.synth?.7:1,lowpass:.8,attack:.02,decay:3}),.08),
+    Delay(Tone(.22,'Sine',500,300,.14,{noise:P.synth?.7:1,lowpass:.2,attack:.045,decay:1.8}),.035),
+    Delay(Tone(.2,'Sine',500,300,.13,{noise:P.synth?.7:1,lowpass:.55,attack:.03,decay:2.2}),.075)),.5)}],
  ['khit','Kunai','Hit','The knife bites: a short slice, a dull thud and a thin ring.',.04,function(P){
    return Finish(Mix(
     Tone(.06,'Sine',2000,700,.2,{noise:P.synth?.1:.9,lowpass:.8,decay:3}),
