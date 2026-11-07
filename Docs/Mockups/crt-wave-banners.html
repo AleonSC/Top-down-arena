@@ -1,0 +1,140 @@
+<title>CRT Wave Banners</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Two takes on GET READY and WAVE STARTED in the blue CRT look of the level-up picker and lobby. Single dark look by choice. */
+:root{--f-crt:"VT323","Courier New",monospace;--f-ui:"Rajdhani",system-ui,sans-serif;--page:#02040c;--sbg:#030814;--ink:#66a3ff;--ink-hi:#d6e6ff;--dim:#4068b8;--rim:#12203f;--grid:rgba(102,163,255,.06);
+--glow:rgba(102,163,255,.6);--glow2:rgba(102,163,255,.3);--glow3:rgba(102,163,255,.12);--head:#59d9e8;--soft:#c2ccea;color-scheme:dark}
+.stage.boss{--ink:#f2c14e;--ink-hi:#fff0c8;--dim:#a88434;--rim:#3a2e10;--grid:rgba(242,193,78,.06);--glow:rgba(242,193,78,.6);--glow2:rgba(242,193,78,.3);--glow3:rgba(242,193,78,.12);--head:#f2c14e;--soft:#e8d9ae}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--page)}
+body{padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-family:var(--f-ui);color:var(--soft)}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
+h1{font:400 38px/1 var(--f-crt);letter-spacing:.06em;color:var(--ink-hi);text-shadow:0 0 10px var(--glow)}
+header p{font:500 15px/1.4 var(--f-ui);color:var(--dim);max-width:60ch;margin-top:6px}
+.ctl{display:flex;gap:8px;flex-wrap:wrap}
+.ctl button{font:400 18px/1 var(--f-crt);letter-spacing:.06em;color:var(--ink);background:transparent;border:1px solid var(--dim);padding:7px 12px 5px;cursor:pointer}
+.ctl button:hover,.ctl button[aria-pressed="true"]{background:var(--ink);color:var(--sbg)}
+.ctl button:focus-visible{outline:2px solid var(--ink-hi);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:18px}
+figure{display:flex;flex-direction:column;gap:8px;min-width:0}
+figcaption{font:500 14px/1.4 var(--f-ui);color:var(--dim)}
+figcaption b{font:400 22px/1 var(--f-crt);letter-spacing:.06em;color:var(--head);margin-right:8px}
+.stage{--ink:#66a3ff;--ink-hi:#d6e6ff;--dim:#4068b8;container-type:inline-size;position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--sbg);isolation:isolate;border:1px solid var(--rim)}
+.arena{position:absolute;inset:0;background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/4cqw 4cqw,linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/4cqw 4cqw,var(--sbg)}
+.pil{position:absolute;width:3.6cqw;height:3.6cqw;border-radius:50%;border:1px solid var(--rim)}
+.foe{position:absolute;width:1.4cqw;height:1.4cqw;background:var(--rim);transform:rotate(45deg)}
+.me{position:absolute;left:48%;top:70%;width:2cqw;height:2cqw;border-radius:50%;border:2px solid var(--dim);box-shadow:0 0 1cqw var(--glow3)}
+.hud{position:absolute;left:0;right:0;bottom:0;height:5cqw;border-top:1px solid var(--rim);display:flex;gap:.8cqw;padding:.7cqw 1cqw}
+.hud i{flex:1;border:1px solid var(--rim)}
+.ban{position:absolute;inset:0;z-index:3;pointer-events:none}
+.glass{position:absolute;inset:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.18) 2px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45))}
+/* ---------- A: console box ---------- */
+.pa{position:absolute;left:50%;top:13%;transform:translateX(-50%);width:36cqw;padding:2cqw 2cqw 1.7cqw;text-align:center;background:linear-gradient(color-mix(in srgb,var(--ink) 7%,#030814),#030814);border:2px solid color-mix(in srgb,var(--ink) 55%,transparent);box-shadow:0 0 1.4cqw var(--glow2),inset 0 0 1.8cqw var(--glow3);animation:boxIn .5s cubic-bezier(.2,1.5,.4,1) both}
+.pa::before,.pa::after{content:"";position:absolute;width:1.5cqw;height:1.5cqw;border:3px solid var(--ink)}
+.pa::before{left:-2px;top:-2px;border-right:0;border-bottom:0}.pa::after{right:-2px;bottom:-2px;border-left:0;border-top:0}
+.pa .tt{display:inline-block;font:400 6cqw/1 var(--f-crt);letter-spacing:.08em;color:var(--ink-hi);text-shadow:0 0 .8cqw var(--glow),0 0 2.2cqw var(--glow);white-space:nowrap;overflow:hidden;vertical-align:bottom;animation:type .55s steps(var(--n)) both}
+.pa .tt+.cur{display:inline-block;width:.9cqw;height:4.6cqw;margin-left:.5cqw;background:var(--ink);box-shadow:0 0 .8cqw var(--glow);animation:blink 1s steps(1) infinite}
+.pa .sb{margin-top:1.1cqw;font:700 1.25cqw/1 var(--f-ui);letter-spacing:.24em;color:var(--head);animation:fade .4s .35s both}
+.pa .sb b{font:400 2.4cqw/0 var(--f-crt);color:var(--ink-hi);margin-left:.5cqw;text-shadow:0 0 .6cqw var(--glow)}
+.segs{margin:1.5cqw auto 0;display:flex;gap:.7cqw;justify-content:center}
+.segs i{width:6cqw;height:1cqw;border:1px solid var(--dim)}
+.segs i.on{background:var(--ink);border-color:var(--ink);box-shadow:0 0 .8cqw var(--glow)}
+.pa.go{animation:slam .5s cubic-bezier(.2,1.6,.4,1) both,flash .5s both}
+.pa.go .tt{font-size:7.4cqw}
+.tag{display:inline-block;margin-top:1.4cqw;font:400 1.6cqw/1 var(--f-crt);letter-spacing:.18em;padding:.4cqw 1.1cqw .2cqw;background:var(--ink);color:var(--sbg);animation:fade .3s .3s both}
+/* ---------- B: scan band ---------- */
+.pb{position:absolute;left:0;right:0;top:34%;height:15cqw;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(90deg,transparent,rgba(3,8,20,.94) 12%,rgba(3,8,20,.94) 88%,transparent);border-block:1px solid color-mix(in srgb,var(--ink) 55%,transparent);box-shadow:0 0 2cqw var(--glow3);animation:bandIn .45s steps(8) both}
+.pb::before{content:"";position:absolute;left:0;right:0;height:.5cqw;background:linear-gradient(transparent,var(--glow),transparent);opacity:.7;animation:sweep 1.6s linear infinite}
+.pb .lg{position:absolute;left:6cqw;top:1.4cqw;font:400 1.2cqw/1.3 var(--f-crt);letter-spacing:.12em;color:var(--dim)}
+.pb .rt{position:absolute;right:6cqw;top:1.4cqw;font:400 1.2cqw/1.3 var(--f-crt);letter-spacing:.12em;color:var(--dim);text-align:right}
+.pb .tt{font:400 7.4cqw/1 var(--f-crt);letter-spacing:.22em;padding-left:.22em;color:var(--ink-hi);text-shadow:0 0 .8cqw var(--glow),0 0 2.2cqw var(--glow);animation:fade .2s both,jit .12s 2}
+.pb .sb{margin-top:.8cqw;font:700 1.2cqw/1 var(--f-ui);letter-spacing:.3em;color:var(--head)}
+.pb .sb b{font:400 2.2cqw/0 var(--f-crt);color:var(--ink-hi);margin:0 .4cqw}
+.pb .tk{position:absolute;left:6cqw;right:6cqw;bottom:1.3cqw;height:.7cqw;border:1px solid var(--dim)}
+.pb .tk i{display:block;height:100%;background:var(--ink);box-shadow:0 0 .8cqw var(--glow);transition:width 1s linear}
+.pb.go{background:var(--ink);box-shadow:0 0 3cqw var(--glow);animation:bandIn .3s steps(6) both}
+.pb.go::before{display:none}
+.pb.go .tt{color:var(--sbg);text-shadow:none}
+.pb.go .sb,.pb.go .sb b,.pb.go .lg,.pb.go .rt{color:var(--sbg)}
+.pb.go.settle{background:linear-gradient(90deg,transparent,rgba(3,8,20,.94) 12%,rgba(3,8,20,.94) 88%,transparent);transition:background .4s}
+.pb.go.settle .tt{color:var(--ink-hi);text-shadow:0 0 .8cqw var(--glow),0 0 2.2cqw var(--glow)}
+.pb.go.settle .sb,.pb.go.settle .sb b{color:var(--head)}
+.pb.go.settle .lg,.pb.go.settle .rt{color:var(--dim)}
+.out{animation:out .35s both}
+@keyframes boxIn{from{opacity:0;transform:translateX(-50%) scale(1.2)}to{opacity:1;transform:translateX(-50%)}}
+@keyframes slam{0%{transform:translateX(-50%) scale(1.35);opacity:0}100%{transform:translateX(-50%);opacity:1}}
+@keyframes flash{0%{background:var(--ink)}40%{background:var(--ink)}100%{background:#030814}}
+@keyframes type{from{width:0}to{width:calc(var(--n)*1ch)}}
+@keyframes blink{50%{opacity:0}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes bandIn{from{clip-path:inset(48% 0 48% 0)}to{clip-path:inset(0)}}
+@keyframes sweep{from{top:-1cqw}to{top:100%}}
+@keyframes jit{50%{transform:translateX(.5cqw)}}
+@keyframes out{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){.pa,.pa *,.pb,.pb *{animation-duration:.01s!important;animation-iteration-count:1!important}}
+</style>
+<div class="wrap">
+ <header>
+  <div>
+   <h1>GET READY / WAVE STARTED</h1>
+   <p>Both banners in the blue CRT look of the level-up picker and lobby: VT323 readout, glowing phosphor, corner brackets, scanlines and glass. Each loop plays the 3-2-1 countdown, then the wave starting. Boss waves swap blue for gold.</p>
+  </div>
+  <div class="ctl">
+   <button id="bossBtn" aria-pressed="false">BOSS WAVE</button>
+   <button id="replay">REPLAY</button>
+  </div>
+ </header>
+ <div class="grid">
+  <figure>
+   <div class="stage" id="sa"><div class="arena"></div><div class="me"></div><div class="hud"><i></i><i></i><i></i><i></i><i></i></div><div class="ban"></div><div class="glass"></div></div>
+   <figcaption><b>A</b>Console box. Typed title in a bracketed panel, segmented countdown. At wave start the panel flashes to inverse video and slams in bigger.</figcaption>
+  </figure>
+  <figure>
+   <div class="stage" id="sb"><div class="arena"></div><div class="me"></div><div class="hud"><i></i><i></i><i></i><i></i><i></i></div><div class="ban"></div><div class="glass"></div></div>
+   <figcaption><b>B</b>Scan band. A full-width strip opens like a CRT line, with a countdown bar and a log line. At wave start it flips to inverse video, then settles back.</figcaption>
+  </figure>
+ </div>
+</div>
+<script>
+(function(){
+  var boss=false, gen=0, wave=1;
+  var stages=[document.getElementById('sa'),document.getElementById('sb')];
+  [[0,'6%','18%'],[1,'80%','30%'],[2,'14%','62%'],[3,'86%','58%']].forEach(function(p){
+    stages.forEach(function(s){var e=document.createElement('div');e.className=p[0]%2?'foe':'pil';e.style.left=p[1];e.style.top=p[2];s.querySelector('.arena').appendChild(e);});
+  });
+  function pad(n){return n<10?'0'+n:''+n}
+  function segs(n){var h='';for(var i=0;i<3;i++)h+='<i'+(i<3-n+1?' on':'')+'></i>';return '<div class="segs">'+h+'</div>'}
+  function readyA(n){return '<div class="pa"><span class="tt" style="--n:9">GET READY</span><span class="cur"></span><div class="sb">WAVE '+wave+' STARTS IN<b>'+n+'</b></div>'+segs(n)+'</div>'}
+  function goA(){return '<div class="pa go"><span class="tt" style="--n:'+(5+String(wave).length)+'">WAVE '+wave+'</span><br><span class="tag">'+(boss?'> BOSS ENGAGED <':'> ENGAGE <')+'</span></div>'}
+  function readyB(n,first){var w=Math.round((4-n)/3*100);return '<div class="pb"><span class="lg">SYS&gt; ARENA LINK OK<br>SYS&gt; SQUAD ALIVE</span><span class="rt">T-MINUS '+pad(n)+'<br>WAVE '+pad(wave)+(boss?' / BOSS':'')+'</span><div class="tt">GET READY</div><div class="sb">WAVE '+wave+' STARTS IN<b>'+n+'</b></div><div class="tk"><i style="width:'+(first?0:w)+'%"></i></div></div>'}
+  function goB(){return '<div class="pb go"><span class="lg">SYS&gt; WAVE '+pad(wave)+' LOADED</span><span class="rt">'+(boss?'BOSS DETECTED':'HOSTILES INBOUND')+'</span><div class="tt">WAVE '+wave+' STARTED</div><div class="sb">'+(boss?'HOLD THE LINE':'FIGHT')+'</div></div>'}
+  function wait(ms,g){return new Promise(function(r){setTimeout(function(){r(g===gen)},ms)})}
+  async function loop(){
+    var g=++gen;
+    var A=stages[0].querySelector('.ban'),B=stages[1].querySelector('.ban');
+    while(g===gen){
+      A.innerHTML='';B.innerHTML='';
+      if(!await wait(500,g))return;
+      for(var n=3;n>=1;n--){
+        A.innerHTML=readyA(n);
+        if(n===3){B.innerHTML=readyB(n,true);var bar=B.querySelector('.tk i');requestAnimationFrame(function(){requestAnimationFrame(function(){bar.style.width='33%'})})}
+        else{B.innerHTML=readyB(n,false)}
+        if(!await wait(1000,g))return;
+      }
+      A.innerHTML=goA();B.innerHTML=goB();
+      if(!await wait(900,g))return;
+      var pb=B.querySelector('.pb');if(pb)pb.classList.add('settle');
+      if(!await wait(1500,g))return;
+      A.firstChild.classList.add('out');B.firstChild.classList.add('out');
+      if(!await wait(500,g))return;
+      wave=wave>=9?1:wave+1;
+    }
+  }
+  var bb=document.getElementById('bossBtn');
+  bb.addEventListener('click',function(){boss=!boss;bb.setAttribute('aria-pressed',boss);stages.forEach(function(s){s.classList.toggle('boss',boss)});wave=boss?5:1;loop()});
+  document.getElementById('replay').addEventListener('click',function(){wave=boss?5:1;loop()});
+  loop();
+})();
+</script>

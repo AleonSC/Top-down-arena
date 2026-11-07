@@ -60,8 +60,9 @@ namespace Arena
 
         // --- In the middle ------------------------------------------------------------------------------------------------------------
 
-        /// The between-waves banner (GET READY, WAVE n CLEARED when the Wave cleared box isn't up); 70 tall without a sub-line.
-        static readonly Rect BannerRect = new Rect(W / 2f - 280f, H / 2f - 92f, 560f, 96f);
+        /// The between-waves banner (GET READY, WAVE n CLEARED when the Wave cleared box isn't up): the scan band's middle (WaveBand.cs);
+        /// names over players under it are hidden.
+        static readonly Rect BannerRect = new Rect(W / 2f - 520f, H / 2f - 130f, 1040f, 170f);
         /// Unlock toasts (SavesUi.cs) are centred on this line.
         const float HudUnlockToastY = 150f;
         /// "Press H to show the HUD" while it's hidden.

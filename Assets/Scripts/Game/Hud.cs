@@ -399,15 +399,24 @@ namespace Arena
                 session.IsHost || game.PingMs < 60f ? Ui.Good : game.PingMs < 120f ? Ui.Warn : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleRight, true);
         }
 
-        /// A centered announcement between waves (at BannerRect, HudLayout.cs).
+        /// GET READY / WAVE N CLEARED as the scan band (WaveBand.cs; at BannerRect, HudLayout.cs): log lines each side, the title, the sub line and a bar that fills as the countdown runs out.
         void DrawBanner(string title, string sub, Color accent)
         {
-            var r = new Rect(BannerRect.x, BannerRect.y, BannerRect.width, sub.Length > 0 ? 96f : 70f);
-            Ui.Card(r, accent, 0.8f);  // solid, so nothing in the arena shows through
-            Ui.Fill(new Rect(r.x + 40f, r.y + 14f, r.width - 80f, 1f), new Color(accent.r, accent.g, accent.b, 0.35f));
-            Ui.Title(new Rect(r.x, r.y + 16f, r.width, 40f), title, 30, Color.white);
-            if (sub.Length > 0)
-                Ui.Label(new Rect(r.x, r.y + 60f, r.width, 22f), sub, 15, Ui.Muted, TextAnchor.MiddleCenter, true);
+            float now = Time.unscaledTime;
+            if (now - bandLastDraw > 0.25f)
+                bandShownAt = now;  // not shown last frame: opening again
+            bandLastDraw = now;
+            float tm = game.StateTimer;
+            if (tm > bandMax || game.Wave != bandWave)
+            {
+                bandMax = Mathf.Max(0.01f, tm);
+                bandWave = game.Wave;
+            }
+            bool boss = accent.r > accent.b;  // (gold, for a boss wave)
+            int n = Mathf.Max(0, Mathf.CeilToInt(tm));
+            string left = "SYS> ARENA LINK OK\nSYS> SQUAD ALIVE";
+            string right = (game.Wave == 0 && game.Practice == null ? "T-MINUS " + n.ToString("00") + "\n" : "") + "WAVE " + (game.Wave + 1).ToString("00") + (boss ? " / BOSS" : "");
+            DrawScanBand(title, sub, left, right, game.Practice != null ? -1f : 1f - tm / bandMax, boss ? Ui.Gold : CrtUi.Ink, (now - bandShownAt) / 0.25f, false);
         }
 
         /// XP bar plus the ability tiles (Space / Q / E / Shift / ultimate) along the bottom.

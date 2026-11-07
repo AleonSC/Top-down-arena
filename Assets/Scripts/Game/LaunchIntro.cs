@@ -207,22 +207,23 @@ namespace Arena
             uiGlBlocked = false;
         }
 
-        /// As the fight starts after a launch: WAVE 1 (or whichever) pops in, gold, then fades.
+        /// As the fight starts after a launch: WAVE 1 (or whichever) STARTED, as the scan band (WaveBand.cs) flashing to
+        /// inverse video, then settling back to the dark strip, then fading.
         void DrawLaunchWave()
         {
             if (!LaunchActive || game.State != MatchState.Fighting)
                 return;
-            float start = 3f, k = Seg(launchT, start, start + 0.35f), o = Seg(launchT, LaunchLen - 0.4f, LaunchLen);
+            float start = 3f, k = Seg(launchT, start, start + 0.3f), o = Seg(launchT, LaunchLen - 0.4f, LaunchLen);
             if (k <= 0f)
                 return;
-            float q = k - 1f, back = 1f + 2.70158f * q * q * q + 1.70158f * q * q, s = 1.5f + (1f - 1.5f) * back, a = k * (1f - o);
-            var r = new Rect(W / 2f - 300f * s, H / 2f - 90f - 40f * s, 600f * s, 80f * s);
-            Ui.Fill(new Rect(0f, H / 2f - 150f, W, 120f), new Color(0f, 0f, 0f, 0.35f * a));
+            float a = 1f - o;
+            bool boss = game.IsBossWave(game.Wave);
+            int w = Mathf.Max(1, game.Wave);
             var oldColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
-            Ui.Fancy(r, "WAVE " + Mathf.Max(1, game.Wave), Mathf.RoundToInt(64f * s), Color.white, Ui.Gold, TextAnchor.MiddleCenter, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.6f));
-            Ui.Label(new Rect(0f, H / 2f - 50f, W, 20f), game.Practice != null ? "PRACTICE" : "50 WAVES  ·  A BOSS EVERY 5", 14, new Color(0.8f, 0.84f, 0.92f, a), TextAnchor.MiddleCenter, true);
+            DrawScanBand("WAVE " + w + " STARTED", game.Practice != null ? "PRACTICE" : boss ? "HOLD THE LINE" : "FIGHT",
+                "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? Ui.Gold : CrtUi.Ink, k, launchT < start + 0.9f);
             Ui.Alpha = 1f;
             GUI.color = oldColor;
         }
