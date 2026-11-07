@@ -306,10 +306,12 @@ static partial class Shot {
       // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..5.4>,<slot 0..2>[,back].
       if (mode == "whotr") {
         PreviewWho();
-        var pt = Environment.GetEnvironmentVariable("PROFTR").Split(',');
+        var pt = (Environment.GetEnvironmentVariable("PROFTR") ?? "0,0,back").Split(',');
         float ptT = float.Parse(pt[0], System.Globalization.CultureInfo.InvariantCulture);
         set("profTr", true); set("profTrT", ptT); set("profTrSlot", int.Parse(pt[1])); set("profTrFwd", pt.Length < 3);
         set("menuIntroDone", true); set("menuIntroT", Mathf.Min(2.749f, 0.35f + Mathf.Max(0f, ptT - 3.0f)));
+        // PROFEJ=<0..2.9>,<slot>: the eject key's move instead (DiskEject.cs); the menu stays fully drawn.
+        if (Environment.GetEnvironmentVariable("PROFEJ") != null) { var pe = Environment.GetEnvironmentVariable("PROFEJ").Split(','); set("profEj", true); set("profEjT", float.Parse(pe[0], System.Globalization.CultureInfo.InvariantCulture)); set("profTrSlot", pe.Length > 1 ? int.Parse(pe[1]) : 0); set("profTrFwd", false); set("menuIntroT", 2.749f); }
         typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
       }
       if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }

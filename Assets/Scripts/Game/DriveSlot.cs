@@ -71,6 +71,8 @@ namespace Arena
             if (!profTr)
                 return DriveIdle();
             var info = WhoInSlot(profTrSlot);
+            if (profEj)
+                return DriveEjectAt(profEjT, info != null ? info.Name : Profile.Current.Name, WhoColor(info));
             return DriveAt(profTrT, info != null ? info.Name : Profile.Current.Name, WhoColor(info));
         }
 
