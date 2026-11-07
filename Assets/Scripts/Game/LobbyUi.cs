@@ -162,7 +162,7 @@ namespace Arena
 
             DrawLobbyActions(me, practice);
             DrawLockedTip();  // on top of the loadout
-            DrawTip();
+            DrawTip(true);
             if (connInfoOpen)
                 DrawConnInfo(infoPanel);
         }
@@ -938,7 +938,8 @@ namespace Arena
                 tip.y = lockedTip.yMax + 6f;
             tip.x = Mathf.Clamp(tip.x, 4f, W - w - 4f);
             Ui.Fill(tip, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
-            CrtKit.Frame(tip, 2f, CrtUi.Ink);
+            Ui.Fill(tip, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.09f));
+            CrtKit.Frame(tip, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.75f));
             CrtUi.Text(tip, text, 14, CrtUi.Ink, TextAnchor.MiddleCenter, true, fxReduced);
         }
 
