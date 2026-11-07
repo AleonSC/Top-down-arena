@@ -72,7 +72,7 @@ namespace Arena
                 washFor = washBotEntry;
             if (washFor != null)
                 LobbyKit.WashTo(ToColor(Defs.Get(washFor.Role).Color), calm);
-            var infoButton = new Rect(PartyX + PartyW - 40f, 30f, 40f, 40f);  // the connection key: hidden until the mouse is over it (or its popup is open)
+            var infoButton = LobbyInfoKey;  // the connection key: hidden until the mouse is over it (or its popup is open)
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
             {
@@ -90,13 +90,13 @@ namespace Arena
 
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
-            if (LobbyKit.Key(new Rect(PartyX, 30f, 40f, 40f), "", false, calm, PixelArt.Get("ui_back"), size: 22))
+            if (LobbyKit.Key(LobbyBackKey, "", false, calm, PixelArt.Get("ui_back"), size: 22))
                 StartLobbyLeave();  // LobbyEnter.cs
-            DrawLobbyTitle(new Rect(PartyX + 54f, 30f, 250f, 40f), 1f, calm, t);
+            DrawLobbyTitle(LobbyTitleRect, 1f, calm, t);
             bool infoShown = connInfoOpen || (GUI.enabled && infoButton.Contains(Event.current.mousePosition));
             if (infoShown && LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 22))
                 connInfoOpen = !connInfoOpen;
-            var modeR = new Rect(PartyX, 82f, PartyW, 52f);
+            var modeR = LobbyModeRect;
             TipClear();  // the mode keys' hover tips (below) and a rank badge's title (RankUi.cs)
             if (session.Resume != null)
                 DrawResumeBanner(modeR, t);  // continuing a saved run (SavesUi.cs)
@@ -105,10 +105,10 @@ namespace Arena
 
             // --- Left: the party, under the mode keys.
             const float lx = PartyX, lw = PartyW;
-            LobbyKit.Spaced(new Rect(lx, 146f, 220f, 22f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, LobbyKit.HeadCol, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
+            LobbyKit.Spaced(LobbyPartyLabel, "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, LobbyKit.HeadCol, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
             // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            if (LobbyKit.Key(new Rect(lx + lw - 104f, 142f, 104f, 26f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
+            if (LobbyKit.Key(LobbyHangoutKey, inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
             int slot = 0;
@@ -127,7 +127,7 @@ namespace Arena
                 Ui.Label(new Rect(lx, y - 4f, lw, LobbyNoteY - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: the tab keys, then your loadout or the practice waves.
-            DrawLobbyTabs(new Rect(LobbyBodyRect.center.x - 370f, 32f, 740f, 30f), practice);  // centred over the loadout box
+            DrawLobbyTabs(LobbyTabsRect, practice);  // centred over the loadout box (LobbyLayout.cs)
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
@@ -166,20 +166,7 @@ namespace Arena
                 DrawConnInfo(infoPanel);
         }
 
-        // The screen's layout (Docs/Mockups/crt-lobby-softer.html, 1280 x 720; its make_fix boxes): a 36 px margin all round. The party column is 376 wide at
-        // x=36 (header 28..92, mode keys 102..154, the Party line 162..188, cards from 196, Ready 586..634 over Start 640..684); the big screen runs
-        // 440..1244 by 70..684, the tab row above it at y=32 (30 tall).
-        const float LobbyBodyTop = 70f;   // the top of the big screen (under the tab keys)
-        static readonly Rect LobbyBodyRectConst = new Rect(440f, 70f, 804f, 614f);
-        const float PartyX = 36f, PartyW = 376f;
-        const float PartyTop = 176f;      // the top of the first party card (under the mode keys and the Party line)
-        const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
-        const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
-        const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
-        const float LobbySplit = 426f;    // where the party column ends and the tabs begin (the entrance, leave and return slide the two sides apart)
-
-        /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout).
-        static Rect LobbyBodyRect => LobbyBodyRectConst;
+        // The screen's layout (every box round the edges, and the bands the entrances cut it into) is in LobbyLayout.cs.
 
         /// The lobby's title: a small letter-spaced label (16 px, .3 em) with a faint rule trailing off to the right (the mockup's slim header,
         /// Docs/Mockups/crt-lobby-headers.html option 2). `a` fades it (the entrance).

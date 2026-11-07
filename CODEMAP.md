@@ -177,6 +177,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CosmeticsUi.cs`: the Look windows (`DrawLookWindow`: try it on, how others see you, equip list for Frame, Trail, Background, Card background, Name effect, Aim line, Cursor) and the Reward ladder
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
+- `LobbyLayout.cs`: **the lobby's layout**: every box round the lobby's edges (header keys, mode keys, party column, Ready/Start, tab keys, the big screen) and the bands the entrance, leave, New run boot, return and launch cut it into; move a box here and those animations follow
 - `LobbyKit.cs`: lobby-only digital CRT keys, headings, panel, tiles and stat bars (`LobbyUi.cs` draws the lobby with them)
 - `LobbyCrt.cs`: the lobby's blue CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`; `LobbyEnter.cs` has the other entrances)
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
@@ -213,7 +214,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Damage numbers, hit effects, shake | `Juice.cs`, `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`) |
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
 | HUD layout | `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
-| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs` |
+| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs`; move lobby boxes in `LobbyLayout.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Recent runs graphs | `RunTimeline.cs` (data, sampler, files), `RunGraphs.cs` (page), Tests `RecentRuns.cs` |

@@ -26,6 +26,13 @@ lobby-diff        lobby     LOBBYTAB=3
 lobby-hunt        lobby     HUNT=1
 lobby-perks       lobby     LOBBYTAB=5 PERKS=1
 lobby-menu        lobby     LOBBYMENU=1
+# The lobby's entrances and exits, mid-way (they cut the lobby into pieces by LobbyLayout.cs's bands)
+lobby-enter       lobby     LOBBYIN=0.75
+lobby-enter-late  lobby     LOBBYIN=1.0
+lobby-leave       lobby     LOBBYOUT=0.5
+lobby-return      lobby     RETURN=0.5
+lobby-newrun      lobby     CRT=6.0
+lobby-launch      hud       LAUNCH=0.25
 # In a run
 hud               hud       6 12.2 3 NOISY=1
 tab               tab

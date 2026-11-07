@@ -179,10 +179,9 @@ namespace Arena
         void DrawLobbyReturning()
         {
             float e = returnT;
-            const float split = LobbySplit;  // where the party column ends and the tabs begin (as LaunchIntro's DrawLobbyLeaving)
             uiGlBlocked = true;  // its live models wait
-            LobbyPiece(new Rect(0f, 0f, split, H), e, 0.15f, 0.75f, -520f, 0f);
-            LobbyPiece(new Rect(split, 0f, W - split, H), e, 0.25f, 0.85f, 880f, 0f);
+            LobbyPiece(LobbyLeftSide, e, 0.15f, 0.75f, -520f, 0f);   // the two sides (LobbyLayout.cs), as LaunchIntro's DrawLobbyLeaving
+            LobbyPiece(LobbyRightSide, e, 0.25f, 0.85f, 880f, 0f);
             uiGlBlocked = false;
             float dark = 1f - Seg(e, 0f, 0.45f);
             if (dark > 0f)
