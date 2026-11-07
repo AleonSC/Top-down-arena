@@ -29,6 +29,25 @@ namespace Arena
             Ui.Fill(new Rect(r.xMax - w, r.y, w, r.height), c);
         }
 
+        /// A big screen title (the cabinet's header, a window's heading) in the CRT font, glowing. `size` is in pixels, as in the mockups.
+        public static void Title(Rect r, string s, int size, Color c, TextAnchor align, bool calm)
+        {
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;
+            Text(r, s, size, c, align, false, calm);
+            Ui.CrtFont = was;
+        }
+
+        /// How wide Title draws this text.
+        public static float TitleWidth(string s, int size)
+        {
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;
+            float w = Ui.TextWidth(s, size, false);
+            Ui.CrtFont = was;
+            return w;
+        }
+
         /// An outlined, faintly lit square for a picture to sit in.
         public static void Tile(Rect r)
         {

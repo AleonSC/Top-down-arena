@@ -22,6 +22,7 @@ namespace UnityEngine {
   public class GUIContent { public string text; public GUIContent(){} public GUIContent(string t){ text = t; } public static GUIContent none; }
   public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
   public enum FontStyle { Normal, Bold }
+  public class Font : Object { }
   public class GUIStyleState { public Color textColor; public Texture2D background; }
   public class RectOffset { public int left,right,top,bottom; public int horizontal { get { return left + right; } } public RectOffset(int l,int r,int t,int b){left=l;right=r;top=t;bottom=b;} }
   public enum TextureFormat { RGBA32, RGB24 } public enum FilterMode { Point, Bilinear } public enum TextureWrapMode { Clamp, Repeat }
@@ -39,7 +40,7 @@ namespace UnityEngine {
       return lines;
     }
   }
-  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2(TextW.Width(c.text ?? "", fontSize, fontStyle == FontStyle.Bold) + 6f, fontSize + 8f); } public float CalcHeight(GUIContent c, float w){ int lines = TextW.Lines(c.text ?? "", fontSize, fontStyle == FontStyle.Bold, System.Math.Max(1f, w - 6f)); return lines * fontSize * 1.18f + 4f; } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
+  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2(TextW.Width(c.text ?? "", fontSize, fontStyle == FontStyle.Bold) + 6f, fontSize + 8f); } public float CalcHeight(GUIContent c, float w){ int lines = TextW.Lines(c.text ?? "", fontSize, fontStyle == FontStyle.Bold, System.Math.Max(1f, w - 6f)); return lines * fontSize * 1.18f + 4f; } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public Font font; public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
   public sealed class GUILayoutOption {}
   public class GUISkin { public GUIStyle label = new GUIStyle(); }
   public class GUI { public static void DrawTextureWithTexCoords(Rect r, Texture t, Rect uv){} public static void SetNextControlName(string n){} public static void FocusControl(string n){} public static string TextArea(Rect r, string t, GUIStyle s){return t;} public static string GetNameOfFocusedControl(){return "";}

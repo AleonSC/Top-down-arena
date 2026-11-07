@@ -630,7 +630,7 @@ namespace Arena
                 }
             }
 
-            float dy = ultY + 82f;
+            float dy = Mathf.Max(ultY + 82f, view.yMax);  // the detail box starts on the line the preview ends on (their corners meet)
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
 

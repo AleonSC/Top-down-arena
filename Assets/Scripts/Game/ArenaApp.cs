@@ -695,6 +695,7 @@ namespace Arena
             // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
+            Ui.MenuFont = session.Screen != AppScreen.Game;  // the menus use the mockup fonts; the HUD keeps the default (Ui.cs)
             ClickLogBegin();  // ClickLog.cs (F9)
             if (Event.current.type == EventType.MouseDown)
                 Ui.ForgetPress();
@@ -765,6 +766,7 @@ namespace Arena
                     }
                     break;
                 case AppScreen.Game:
+                    Ui.MenuFont = false;
                     DrawHud();
                     DrawLaunchWave();    // WAVE 1 popping in as a launched run's fight starts (LaunchIntro.cs)
                     DrawLobbyLeaving();  // the lobby sliding away as the run launches (LaunchIntro.cs)
@@ -773,6 +775,7 @@ namespace Arena
                         DrawLabPanel();
                     if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen && !waveEdOpen)
                     {
+                        Ui.MenuFont = true;
                         if (fieldGuideOpen && PauseMenuWanted)
                             DrawFieldGuideScreen();  // FieldGuide.cs
                         else if (runStatsOpen && PauseMenuWanted)
@@ -780,6 +783,7 @@ namespace Arena
                         else
                             DrawPauseMenu();  // with its opening and closing (WindowAnim.cs)
                     }
+                    Ui.MenuFont = false;
                     DrawRecallFade();  // back to the lobby: the screen going dark (Recall.cs)
                     break;
             }

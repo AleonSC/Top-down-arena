@@ -32,6 +32,52 @@ namespace Arena
         public const float GlowSpread = 34f;
         static Texture2D checkOn, checkOff;
 
+        // --- Menu fonts (Assets/Resources/Fonts, the fonts of the CRT mockups) ------------------------------------------
+        // Rajdhani for the text of the menus, VT323 for the big screen titles. The HUD keeps Unity's default font: the game
+        // turns MenuFont on for the menu screens and the pause menu only (ArenaApp.OnGUI). Missing files: the default font.
+
+        /// True while a menu is drawn: Label, TextWidth and TextHeight use Rajdhani (a little bigger, it runs small).
+        public static bool MenuFont;
+        /// True for a moment while a big screen title is drawn (CrtUi.Title): VT323, at the size asked for.
+        public static bool CrtFont;
+        const float MenuFontScale = 1.08f;
+        static Font fontMedium, fontBold, fontCrt;
+        static bool fontsLoaded;
+
+        static void LoadFonts()
+        {
+            if (fontsLoaded)
+                return;
+            fontsLoaded = true;
+            fontMedium = Resources.Load<Font>("Fonts/Rajdhani-Medium");
+            fontBold = Resources.Load<Font>("Fonts/Rajdhani-Bold");
+            fontCrt = Resources.Load<Font>("Fonts/VT323-Regular");
+        }
+
+        /// Set a label style's font and size for this text. (Bold is the Bold file, not a faked bold.)
+        static void UseFont(GUIStyle st, int size, bool bold)
+        {
+            LoadFonts();
+            if (CrtFont && fontCrt != null)
+            {
+                st.font = fontCrt;
+                st.fontSize = size;
+                st.fontStyle = FontStyle.Normal;
+            }
+            else if (MenuFont && fontMedium != null)
+            {
+                st.font = bold && fontBold != null ? fontBold : fontMedium;
+                st.fontSize = Mathf.RoundToInt(size * MenuFontScale);
+                st.fontStyle = FontStyle.Normal;
+            }
+            else
+            {
+                st.font = null;
+                st.fontSize = size;
+                st.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            }
+        }
+
         public static void Init()
         {
             if (panel != null)
@@ -135,9 +181,8 @@ namespace Arena
 
         public static void Label(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, bool bold = false, bool wrap = false)
         {
-            label.fontSize = size;
+            UseFont(label, size, bold);
             label.alignment = align;
-            label.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
             label.wordWrap = wrap;
             // Every state gets the same color: the default skin's hover color would otherwise light up
             // the dark shadow copy under titles when the mouse is over them (it looked like doubled text).
@@ -148,8 +193,7 @@ namespace Arena
         /// How wide a label of this text would be.
         public static float TextWidth(string text, int size, bool bold = false)
         {
-            label.fontSize = size;
-            label.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            UseFont(label, size, bold);
             label.wordWrap = false;
             return label.CalcSize(new GUIContent(text)).x;
         }
@@ -157,8 +201,7 @@ namespace Arena
         /// How tall a word-wrapped label of this text would be at this width.
         public static float TextHeight(string text, int size, float width, bool bold = false)
         {
-            label.fontSize = size;
-            label.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            UseFont(label, size, bold);
             label.wordWrap = true;
             return label.CalcHeight(new GUIContent(text), width);
         }

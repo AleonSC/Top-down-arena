@@ -74,14 +74,14 @@ namespace Arena
             float ha = age - 0.5f;
             if (CrtKit.PowerOn(hr, ha, calm))
             {
-                int size = Mathf.Min(titleSize, 42);
-                while (size > 16 && Ui.TextWidth(title, size, true) - 6f > hr.width - 60f)
+                int size = Mathf.Min(titleSize, 40);
+                while (size > 16 && CrtUi.TitleWidth(title, size) > hr.width - 60f)
                     size--;
                 string t = CabText("cab.title", title, 0.8f);
-                CrtUi.Text(new Rect(hr.x + 18f, hr.y + 6f, hr.width - 36f, 56f), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Title(new Rect(hr.x + 18f, hr.y + 6f, hr.width - 36f, 56f), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
                 if (calm || Mathf.FloorToInt(now * 2f) % 2 == 0)  // the blinking block after the text
                 {
-                    float tw = t.Length == 0 ? 0f : Ui.TextWidth(t, size, true) - 6f;
+                    float tw = t.Length == 0 ? 0f : CrtUi.TitleWidth(t, size);
                     Ui.Fill(new Rect(hr.x + 22f + tw, hr.y + 34f - size * 0.36f, Mathf.Max(8f, size * 0.36f), size * 0.72f), CrtUi.Ink);
                 }
                 string subFull = string.IsNullOrEmpty(sub) ? "" : sub.ToUpperInvariant();
@@ -311,10 +311,10 @@ namespace Arena
         {
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y;
             string t = WinText("win.title", title);
-            CrtUi.Text(new Rect(x, y + 12f, w - 90f, 44f), t, 36, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+            CrtUi.Title(new Rect(x, y + 12f, w - 90f, 44f), t, 34, CrtUi.Ink, TextAnchor.MiddleLeft, CabCalm);
             if (CabCalm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
             {
-                float tw = t.Length == 0 ? 0f : Ui.TextWidth(t, 36, true) - 6f;
+                float tw = t.Length == 0 ? 0f : CrtUi.TitleWidth(t, 34);
                 Ui.Fill(new Rect(x + 4f + tw, y + 24f, 14f, 22f), CrtUi.Ink);
             }
             if (!string.IsNullOrEmpty(sub))
