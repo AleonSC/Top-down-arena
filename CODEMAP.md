@@ -108,6 +108,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `MeleeSounds.cs`, `Game/MeleeSoundBank.cs`: the melee rushers' cues (made from replicated state on every machine, never sent), `QuietAt` (sounds fade with distance, enemy shots too), the Buzzsaw's contact whirr loop (`SawWhirrLevel`, `SoundBank.SetSawLoop`), deaths that merge when a kind dies together
 
 ## World rendering (Game)
+- `OrbLook.cs`: health orbs as hologram spheres (`DrawHoloOrb`)
 - `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
 - `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`
