@@ -113,7 +113,9 @@ namespace Arena
         }
 
         /// The remembered tip, beside what it's for (right of it if there's room, else left; kept on screen).
-        void DrawTip()
+        /// crt: the lobby's "soft glass" look (Docs/Mockups/crt-lobby-tooltips.html, style B): the CRT screen colour, a faint tint
+        /// of the tip's accent, a thin outline and an underline under the title. Otherwise the plain panel the in-run screens use.
+        void DrawTip(bool crt = false)
         {
             if (!tipOn)
                 return;
@@ -128,9 +130,20 @@ namespace Arena
             if (x < 8f)
                 x = Mathf.Clamp(Event.current.mousePosition.x + 16f, 8f, W - 8f - pw);
             var pop = new Rect(x, Mathf.Clamp(tipAnchor.y - 6f, 8f, H - 8f - h), pw, h);
-            Ui.Panel(pop, true);
             float y = pop.y + pad;
-            Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, 16, tipColor, TextAnchor.MiddleLeft, true);
+            if (crt)
+            {
+                Ui.Fill(pop, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
+                Ui.Fill(pop, new Color(tipColor.r, tipColor.g, tipColor.b, 0.09f));
+                CrtKit.Frame(pop, 1f, new Color(tipColor.r, tipColor.g, tipColor.b, 0.75f));
+                Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle.ToUpperInvariant(), 16, tipColor, TextAnchor.MiddleLeft, true);
+                Ui.Fill(new Rect(pop.x + pad, y + 21f, pw - pad * 2f, 1f), new Color(tipColor.r, tipColor.g, tipColor.b, 0.45f));
+                y += 3f;
+            }
+            else
+                Ui.Panel(pop, true);
+            if (!crt)
+                Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, 16, tipColor, TextAnchor.MiddleLeft, true);
             y += 24f;
             foreach (var l in tipLines)
             {

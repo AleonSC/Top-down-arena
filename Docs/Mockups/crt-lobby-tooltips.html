@@ -1,0 +1,231 @@
+<title>CRT Lobby Tooltips</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: controls bar (style A/B/C, palette), a live strip of real lobby things you can hover, then a gallery with every lobby tooltip pinned open in the chosen style. Single dark CRT look by choice, like the lobby itself. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --panel: #0b0e1c;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark;
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.55); --gold: #f2c14e; }
+[data-pal="green"] { --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); }
+[data-pal="cyan"] { --ink: #5ff0ff; --dim: #2f9fb0; --sbg: #021015; --glow: rgba(95,240,255,.55); }
+[data-pal="amber"] { --ink: #ffb347; --dim: #b5762a; --sbg: #130b02; --glow: rgba(255,179,71,.5); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+h2 { font: 500 12px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 72ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: #5b8cff; color: #05102c; border-color: #5b8cff; }
+.seg:focus-visible, .a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 12px var(--f-mono); color: var(--muted); letter-spacing: .04em; line-height: 1.5; margin: 0; }
+
+/* the screen the tooltips live on */
+.screen { background: var(--sbg); border: 1px solid var(--line); padding: 20px; position: relative; color: var(--ink); font-family: var(--f-crt); isolation: isolate; }
+.live { min-height: 250px; display: grid; gap: 22px 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-content: start; }
+.live h3 { font: 18px/1 var(--f-crt); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); padding-bottom: 4px; }
+
+/* anchors: the real lobby things */
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.a { --c: var(--ink); font: 24px/1 var(--f-crt); letter-spacing: .05em; color: var(--c); background: color-mix(in srgb, var(--c) 7%, transparent); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
+  padding: 7px 12px 5px; cursor: default; text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); white-space: nowrap; }
+.a:hover, .a.hot { background: color-mix(in srgb, var(--c) 16%, transparent); border-color: var(--c); }
+.a.lock { --c: var(--dim); border-style: dashed; opacity: .8; text-shadow: none; font-size: 20px; }
+.a.sq { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; font-size: 20px; }
+.a.card { white-space: normal; display: block; width: 100%; padding: 8px 12px 6px; }
+.a.card small { display: block; font: 500 13px var(--f-ui); letter-spacing: 0; color: var(--dim); text-shadow: none; margin-top: 2px; }
+.badge { --c: #c79bff; font: 22px/1 var(--f-crt); }
+
+/* ---- the tooltip itself ---- */
+.tip { --c: var(--ink); width: 300px; max-width: 100%; position: relative; background: color-mix(in srgb, var(--sbg) 97%, transparent); color: var(--ink); font-family: var(--f-crt);
+  text-shadow: 0 0 6px var(--glow); isolation: isolate; overflow: hidden; animation: warm .22s steps(4, end); }
+.tip::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.tip::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0,0,0,.4) 100%); }
+.tip > * { position: relative; z-index: 1; }
+.tip .t { font-size: 27px; line-height: 1; letter-spacing: .06em; text-transform: uppercase; color: var(--c); text-shadow: 0 0 7px color-mix(in srgb, var(--c) 60%, transparent); }
+.tip .s { font: 500 11px/1.2 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--c2, var(--c)) 85%, white 0%); text-shadow: none; }
+.tip p { margin: 0; font-size: 20px; line-height: 1.12; letter-spacing: .02em; color: color-mix(in srgb, var(--ink) 55%, white); }
+.tip p.m { color: var(--dim); font-size: 18px; text-shadow: none; }
+.tip p.g { color: var(--gold); font-size: 18px; text-shadow: 0 0 5px rgba(242,193,78,.4); }
+.tip p.x { color: #ff8b97; font-size: 18px; }
+.tip.tiny { width: auto; display: inline-block; white-space: nowrap; }
+.tip.tiny p { font-size: 21px; }
+@keyframes warm { 0% { opacity: .2; filter: brightness(2.2); } 40% { opacity: 1; filter: brightness(.7); } 70% { opacity: .75; filter: brightness(1.5); } 100% { opacity: 1; filter: none; } }
+
+/* A: solid key. Inverted title bar, hard 2px frame, like a lit key. */
+.v-A { border: 2px solid var(--c); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 28%, transparent), 0 6px 0 rgba(0,0,0,.45); }
+.v-A .hd { background: var(--c); color: var(--sbg); padding: 6px 10px 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.v-A .hd .t { color: var(--sbg); text-shadow: none; }
+.v-A .hd .s { color: var(--sbg); opacity: .8; }
+.v-A .bd { padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 7px; }
+.v-A.tiny { padding: 6px 12px 4px; }
+
+/* B: soft glass. Faint tint, thin outline, underline under the title; the lobby's softer keys. */
+.v-B { border: 1px solid color-mix(in srgb, var(--c) 75%, transparent); background: linear-gradient(color-mix(in srgb, var(--c) 9%, var(--sbg)), var(--sbg) 60%);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 8px 22px rgba(0,0,0,.55); }
+.v-B .hd { padding: 9px 12px 0; display: flex; flex-direction: column; gap: 4px; }
+.v-B .hd .t { padding-bottom: 5px; border-bottom: 1px solid color-mix(in srgb, var(--c) 45%, transparent); }
+.v-B .bd { padding: 9px 12px 11px; display: flex; flex-direction: column; gap: 7px; }
+.v-B.tiny { padding: 6px 12px 4px; }
+
+/* C: readout. Corner brackets, no fill frame, prompt marks, blinking block at the end. */
+.v-C { background: color-mix(in srgb, var(--sbg) 94%, transparent); box-shadow: 0 8px 22px rgba(0,0,0,.6); outline: 1px solid color-mix(in srgb, var(--c) 18%, transparent); outline-offset: -5px; }
+.v-C .br { position: absolute; width: 14px; height: 14px; z-index: 2; border: 0 solid var(--c); filter: drop-shadow(0 0 4px var(--glow)); }
+.v-C .br.tl { left: 3px; top: 3px; border-width: 2px 0 0 2px; } .v-C .br.tr { right: 3px; top: 3px; border-width: 2px 2px 0 0; }
+.v-C .br.bl { left: 3px; bottom: 3px; border-width: 0 0 2px 2px; } .v-C .br.br2 { right: 3px; bottom: 3px; border-width: 0 2px 2px 0; }
+.v-C .hd { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 3px; }
+.v-C .hd .t::before { content: "> "; color: var(--dim); text-shadow: none; }
+.v-C .bd { padding: 8px 16px 15px; display: flex; flex-direction: column; gap: 7px; }
+.v-C .bd p:last-child::after { content: "\2588"; margin-left: 4px; color: var(--ink); animation: blink 1s steps(2, start) infinite; }
+.v-C.tiny { padding: 8px 16px 6px; }
+.v-C.tiny::after { background: none; }
+@keyframes blink { to { visibility: hidden; } }
+
+/* live tooltip floats above everything */
+#float { position: fixed; z-index: 50; pointer-events: none; display: none; left: 0; top: 0; }
+#float.on { display: block; }
+
+/* gallery */
+.gal { display: grid; gap: 28px 22px; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+.case { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.case .cap { font: 500 12px/1.4 var(--f-mono); letter-spacing: .04em; color: var(--muted); }
+.case .cap b { color: var(--fg); font-weight: 500; }
+.case .pin { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.case .pin::before { content: ""; }
+.notch { width: 0; height: 0; margin-left: 22px; border: 7px solid transparent; border-bottom: 0; border-top-color: var(--ink); filter: drop-shadow(0 0 4px var(--glow)); }
+@media (prefers-reduced-motion: reduce) { .tip, .v-C .bd p:last-child::after { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>CRT Lobby Tooltips</h1>
+    <p>Every hover tip in the lobby, redrawn in the CRT look of the lobby keys. Three styles to pick from. Hover the things in the strip to see a live tip, or scroll to the gallery to see every tip pinned open.</p>
+  </header>
+
+  <div class="bar">
+    <div class="grp" id="styleBar"><span>Style</span>
+      <button class="seg" data-v="A" aria-pressed="true">A · Solid key</button>
+      <button class="seg" data-v="B" aria-pressed="false">B · Soft glass</button>
+      <button class="seg" data-v="C" aria-pressed="false">C · Readout</button>
+    </div>
+    <div class="grp" id="palBar"><span>Screen</span>
+      <button class="seg" data-p="blue" aria-pressed="true">Blue</button>
+      <button class="seg" data-p="green" aria-pressed="false">Green</button>
+      <button class="seg" data-p="cyan" aria-pressed="false">Cyan</button>
+      <button class="seg" data-p="amber" aria-pressed="false">Amber</button>
+    </div>
+  </div>
+  <p class="note" id="styleNote"></p>
+
+  <section>
+    <h2>Live: hover these</h2>
+    <div class="screen live" id="live">
+      <div><h3>Mode</h3><div class="row" id="liveMode"></div></div>
+      <div><h3>Role</h3><div class="row" id="liveRole"></div></div>
+      <div><h3>Party card</h3><div class="row" id="livePerks"></div></div>
+      <div><h3>Perks tab</h3><div class="row" id="livePerkCards" style="flex-direction:column;align-items:stretch"></div></div>
+      <div><h3>Locked</h3><div class="row" id="liveLock"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Gallery: every tip pinned open</h2>
+    <div class="screen"><div class="gal" id="gal"></div></div>
+  </section>
+</div>
+<div id="float"></div>
+
+<script>
+// Every tooltip the lobby has, with the real text from the code (Tooltips.cs, LobbyUi.cs, PerksUi.cs, RankUi.cs).
+const GOLD = "#f2c14e";
+const CASES = [
+  { id: "mode-gauntlet", group: "Mode", src: "LobbyUi.DrawModeSwitch", label: "GAUNTLET", anchor: "key", color: null,
+    title: "Gauntlet", lines: [["p", "50 waves, a boss every 5"]] },
+  { id: "mode-hunt", group: "Mode", src: "LobbyUi.DrawModeSwitch (non-host)", label: "BOSS HUNT", anchor: "key", color: "#ff9e94",
+    title: "Boss Hunt", lines: [["p", "10 waves to one boss"], ["m", "Only the host can switch the mode."]] },
+  { id: "role-tank", group: "Role", src: "LobbyUi role keys", label: "TANK", anchor: "key", color: "#59a0ff",
+    title: "Tank", lines: [["p", "Big HP pool. Enemies prefer to target you."]] },
+  { id: "role-wild", group: "Role", src: "LobbyUi role keys", label: "WILDCARD", anchor: "key", color: "#c773ff",
+    title: "Wildcard", lines: [["p", "Mix any class's DPS weapon and two DPS abilities. Weaker shots and slower cooldowns."]] },
+  { id: "seat-perk", group: "Party card", src: "PerksUi.DrawSeatPerks", label: "◆", anchor: "icon", color: GOLD,
+    title: "Riot Gear", sub: "Riot Boss perk", lines: [["p", "Blocks a hit every 30 s"]] },
+  { id: "perk-owned", group: "Perks tab", src: "PerksUi.DrawPerkCard", label: "Contraband", anchor: "card", color: GOLD, cardSub: "FREE CHEST EACH CYCLE",
+    title: "Contraband", lines: [["p", "A treasure chest turns up on the first wave after each boss, and your item from any chest is rare or better. Teammates still get their own item from the same chest."]] },
+  { id: "perk-locked", group: "Perks tab", src: "PerksUi.DrawPerkCard (locked)", label: "Riot Gear", anchor: "card", color: null, lockedCard: true, cardSub: "WIN A FULL RUN",
+    title: "Riot Gear", lines: [["p", "You start every run with a shield that blocks the next hit that would hurt you. A block gives half a second of invulnerability, then the shield takes 30 seconds to come back."], ["x", "Locked: Win a full run"]] },
+  { id: "rank", group: "Rank badge", src: "RankUi.RankBadgeTip", label: "RANK 12", anchor: "badge", color: "#c79bff",
+    title: "Gladiator", sub: "Rank 12", lines: [["p", "1,240 / 2,000 XP to rank 13"]] },
+  { id: "lock-soon", group: "Locked slot", src: "LobbyUi.DrawLockedTip", label: "LOCKED", anchor: "lock", tiny: true, text: "Coming soon" },
+  { id: "lock-wild", group: "Locked slot", src: "LobbyUi.DrawLockedTip (Wildcard)", label: "WILDCARD", anchor: "lock", tiny: true, text: "Win a run as a Tank, a Healer and a DPS to unlock" },
+];
+const NOTES = {
+  A: "A · Solid key. A hard 2 px frame and an inverted title bar, like a lit lobby key. Loudest, easiest to spot over a busy screen.",
+  B: "B · Soft glass. A thin outline and a faint tint, the same weight as the softer lobby keys. Quietest of the three.",
+  C: "C · Readout. Corner brackets, a prompt mark and a blinking block, like a terminal printing a line. Most personality."
+};
+let variant = "A";
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+function tipHTML(c) {
+  const col = c.color || "var(--ink)";
+  const br = variant === "C" ? '<i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br br2"></i>' : "";
+  if (c.tiny) return `<div class="tip tiny v-${variant}" style="--c:var(--ink)">${br}<p>${esc(c.text)}</p></div>`;
+  const sub = c.sub ? `<span class="s">${esc(c.sub)}</span>` : "";
+  const body = c.lines.map(([k, t]) => `<p class="${k === "p" ? "" : k}">${esc(t)}</p>`).join("");
+  const sc = c.color ? `--c:${col};--c2:${col}` : "";
+  return `<div class="tip v-${variant}" style="${sc}">${br}<div class="hd"><span class="t">${esc(c.title)}</span>${sub}</div><div class="bd">${body}</div></div>`;
+}
+function anchorHTML(c) {
+  const st = c.color ? ` style="--c:${c.color}"` : "";
+  const cls = c.anchor === "key" ? "a" : c.anchor === "icon" ? "a sq" : c.anchor === "card" ? "a card" + (c.lockedCard ? " lock" : "")
+    : c.anchor === "badge" ? "a badge" : "a lock";
+  if (c.anchor === "card") return `<div class="${cls}" tabindex="0" data-id="${c.id}"${st}>${esc(c.label)}<small>${esc(c.cardSub)}</small></div>`;
+  return `<div class="${cls}" tabindex="0" data-id="${c.id}"${st}>${esc(c.label)}</div>`;
+}
+function renderLive() {
+  const put = (id, ids) => { $(id).innerHTML = ids.map(i => anchorHTML(CASES.find(c => c.id === i))).join(""); };
+  put("#liveMode", ["mode-gauntlet", "mode-hunt"]);
+  put("#liveRole", ["role-tank", "role-wild"]);
+  put("#livePerks", ["seat-perk", "rank"]);
+  put("#livePerkCards", ["perk-owned", "perk-locked"]);
+  put("#liveLock", ["lock-soon", "lock-wild"]);
+}
+function renderGallery() {
+  $("#gal").innerHTML = CASES.map(c => `<div class="case"><div class="pin">${anchorHTML({ ...c })}<div class="notch"></div>${tipHTML(c)}</div><div class="cap"><b>${esc(c.group)}</b> · ${esc(c.src)}</div></div>`).join("");
+  $("#gal .a[data-id]") && document.querySelectorAll("#gal .a").forEach(a => a.classList.add("hot"));
+}
+const fl = $("#float");
+function show(el) {
+  const c = CASES.find(x => x.id === el.dataset.id); if (!c) return;
+  fl.innerHTML = tipHTML(c); fl.classList.add("on");
+  const r = el.getBoundingClientRect(), w = fl.offsetWidth, h = fl.offsetHeight;
+  let x = r.right + 10; if (x + w > innerWidth - 8) x = Math.max(8, r.left - 10 - w);
+  let y = Math.min(Math.max(8, r.top - 6), innerHeight - h - 8);
+  if (innerWidth < 600) { x = Math.max(8, Math.min(r.left, innerWidth - w - 8)); y = r.bottom + 8; if (y + h > innerHeight - 8) y = r.top - h - 8; }
+  fl.style.left = x + "px"; fl.style.top = y + "px";
+  fl.dataset.pal = document.body.dataset.pal || "blue";
+}
+const hide = () => fl.classList.remove("on");
+$("#live").addEventListener("mouseover", e => { const a = e.target.closest(".a[data-id]"); a ? show(a) : hide(); });
+$("#live").addEventListener("mouseleave", hide);
+$("#live").addEventListener("focusin", e => { const a = e.target.closest(".a[data-id]"); if (a) show(a); });
+$("#live").addEventListener("focusout", hide);
+
+function setVariant(v) {
+  variant = v;
+  document.querySelectorAll("#styleBar .seg").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+  $("#styleNote").textContent = NOTES[v]; hide(); renderGallery();
+}
+function setPal(p) {
+  document.documentElement.dataset.pal = p; document.body.dataset.pal = p;
+  document.querySelectorAll("#palBar .seg").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p === p)));
+}
+$("#styleBar").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) setVariant(b.dataset.v); });
+$("#palBar").addEventListener("click", e => { const b = e.target.closest("[data-p]"); if (b) setPal(b.dataset.p); });
+renderLive(); setPal("blue"); setVariant("A");
+</script>
