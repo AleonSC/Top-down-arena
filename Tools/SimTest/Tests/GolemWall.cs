@@ -44,6 +44,7 @@ static partial class Program
         Check(walls().Count == 3 && walls().All(m => m.BlockHp == m.Def.BlockCapacity), "after 25 s untouched, all three still stand at full health");
 
         // Every enemy shot wears one down (not just a boss's), until it breaks.
+        foreach (int id in g.Minions.Values.Where(m => m.Kind != MinionKind.Wall).Select(m => m.Id).ToList()) g.Minions.Remove(id);  // the weapon's own Golem would catch the shots first
         var target = walls()[1];
         float before = target.BlockHp;
         Func<Minion, bool> shoot = m => (bool)block.Invoke(g, new object[] { new Bullet { Pos = m.Pos + new V2(48f, 0f), Vel = new V2(-900f, 0f), Radius = 4f, Dmg = 10f } });
