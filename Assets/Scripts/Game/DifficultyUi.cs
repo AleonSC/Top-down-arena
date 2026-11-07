@@ -116,11 +116,10 @@ namespace Arena
             bool hover = canClick && c.Contains(Event.current.mousePosition);
             bool fill = on || hover;
             var ink = CrtUi.Ink;
-            // A digital key: inverse video when picked or under the mouse, the ink outline and a faint wash otherwise.
-            float pulse = on && !fxReduced ? 0.04f * Mathf.Sin(t * 3f) : 0f;
-            Ui.Fill(c, fill ? new Color(ink.r, ink.g, ink.b, (on ? 0.95f : 0.7f) + pulse) : new Color(ink.r, ink.g, ink.b, 0.08f));
-            CrtKit.Frame(c, 2f, ink);
-            var tc = fill ? CrtUi.Bg : ink;
+            // A soft key like the lobby's others: a faint tint and a thin outline, a little brighter when picked or under the mouse
+            // (a 2 px outline and an underline glow for the picked one), never a solid block.
+            CrtKit.SoftBox(c, ink, on, hover, false);
+            var tc = CrtKit.SoftText(ink, fill);
             var nr = new Rect(c.x + 4f, c.y + 6f, c.width - 8f, 24f);
             if (fill)
                 Ui.Label(nr, Difficulty.Names[(int)level].ToUpperInvariant(), 16, tc, TextAnchor.MiddleCenter, true);
@@ -128,7 +127,7 @@ namespace Arena
                 CrtUi.Text(nr, Difficulty.Names[(int)level].ToUpperInvariant(), 16, tc, TextAnchor.MiddleCenter, true, fxReduced);
             // Danger: one skull for Easy up to four for Nightmare; a gear for Custom. The icons keep the level's own colour.
             float iy = c.y + 36f;
-            var ic = fill ? new Color(col.r * 0.45f, col.g * 0.45f, col.b * 0.45f) : new Color(col.r, col.g, col.b, 0.9f);
+            var ic = new Color(col.r, col.g, col.b, fill ? 1f : 0.9f);
             if (level == DifficultyLevel.Custom)
                 Ui.Icon(new Rect(c.center.x - 8f, iy, 16f, 16f), PixelArt.Get("ui_gear"), ic);
             else

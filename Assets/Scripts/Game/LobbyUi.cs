@@ -715,9 +715,8 @@ namespace Arena
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             var c = CrtUi.Ink;
-            Ui.Fill(r, hover ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, on ? 0.28f : 0.08f));
-            CrtKit.Frame(r, 2f, c);
-            Color ic = hover ? CrtUi.Bg : on ? LobbyKit.Gold : new Color(c.r, c.g, c.b, 0.85f);
+            CrtKit.SoftBox(r, c, on, hover, false);
+            Color ic = hover ? CrtKit.SoftText(c, true) : on ? LobbyKit.Gold : new Color(c.r, c.g, c.b, 0.85f);
             float cx = Mathf.Round(r.center.x), top = r.y + 5f;
             for (int n = 0; n < 3; n++)  // three stacked chevrons
                 for (int k = 0; k < 3; k++)
