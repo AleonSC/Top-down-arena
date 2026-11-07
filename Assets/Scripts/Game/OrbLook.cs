@@ -4,6 +4,8 @@ namespace Arena
 {
     public partial class ArenaApp
     {
+        const byte PBit = 12, PHexRing = 13, PPlusUp = 14;  // particle kinds (Juice.cs draws them through DrawOrbPart)
+
         static float OrbHash(float n) { float s = Mathf.Sin(n * 127.1f + 311.7f) * 43758.5453f; return s - (float)System.Math.Floor(s); }
 
         /// A thin ellipse outline (rx, ry), drawn as short lines.
@@ -57,6 +59,58 @@ namespace Arena
             }
             if (o.Big)
                 Arc(c, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.85f), 24);
+        }
+
+        /// A picked-up orb: the sphere pops into square data bits that fly out and flicker away, a hex ring spreads
+        /// from the spot, and a small plus rises off the player.
+        void DataBurst(V2 at, V2 player, float bodyR, bool big)
+        {
+            int n = big ? 16 : 9;
+            for (int i = 0; i < n; i++)
+            {
+                float a = Rnd(0f, MathX.Tau), sp = Rnd(50f, big ? 190f : 140f);
+                AddPart(new Part { Kind = PBit, Pos = at, Vel = V2.FromAngle(a) * sp, Life = Rnd(0.35f, 0.6f), Max = 0.6f,
+                    Size = Rnd(1.6f, big ? 4f : 3f), Col = i % 4 == 0 ? Rgba.White : OrbGreen });
+            }
+            Ring(at, (big ? 40f : 26f), 0.35f, OrbGreen, PHexRing);
+            if (big)
+                Ring(at, 58f, 0.45f, new Rgba(1f, 0.95f, 0.5f), PHexRing);
+            AddPart(new Part { Kind = PPlusUp, Pos = player + new V2(0f, -bodyR), Vel = new V2(0f, -60f), Life = 0.6f, Max = 0.6f, Size = big ? 5f : 3.5f, Col = Rgba.White });
+        }
+
+        void DrawOrbPart(Part p, float f)
+        {
+            switch (p.Kind)
+            {
+                case PBit:  // a square that flickers off in its last half
+                {
+                    if (f < 0.5f && MathX.Fmod(f * 30f, 1f) < 0.5f)
+                        return;
+                    float s = p.Size;
+                    FillRect(p.Pos.X - s / 2f, p.Pos.Y - s / 2f, s, s, p.Col);
+                    break;
+                }
+                case PHexRing:
+                {
+                    float r = p.Size * (1f - f * f);
+                    V2 prev = p.Pos + new V2(r, 0f);
+                    for (int i = 1; i <= 6; i++)
+                    {
+                        V2 next = p.Pos + V2.FromAngle(MathX.Tau * i / 6f) * r;
+                        Line(prev, next, 1.5f + 2f * f, p.Col.WithAlpha(f));
+                        prev = next;
+                    }
+                    break;
+                }
+                case PPlusUp:
+                {
+                    float u = p.Size, w = u * 0.3f;
+                    var c = p.Col.WithAlpha(Mathf.Min(1f, f * 1.6f));
+                    FillRect(p.Pos.X - w, p.Pos.Y - u, w * 2f, u * 2f, c);
+                    FillRect(p.Pos.X - u, p.Pos.Y - w, u * 2f, w * 2f, c);
+                    break;
+                }
+            }
         }
     }
 }
