@@ -158,10 +158,12 @@ namespace Arena
             int price = Game.Price(me.Shelf[index]);
             bool afford = me.Gold >= price;
             float dim = sold || !afford ? 0.5f : 1f;
-            if (selected)
-                Ui.Pill(new Rect(r.x - 5f, r.y - 5f, r.width + 10f, r.height + 10f), new Color(rc.r, rc.g, rc.b, 0.18f + 0.06f * Mathf.Sin(t * 4f)));
-            Ui.Card(r, rc, selected ? 1f : hover ? 0.75f : 0.45f * dim);
-            Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 110f), new Color(rc.r, rc.g, rc.b, 0.08f));
+            // The picker's holographic screen (HudPicker.DrawHolo) in the rarity colour, with the same glow and outline.
+            Ui.Glow(r, rc, selected ? 0.55f + 0.1f * Mathf.Sin(t * 4f) : hover ? 0.32f : 0.2f * dim);
+            DrawHolo(r, rc, t);
+            if (dim < 1f)  // sold or too dear: the screen dims
+                Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.5f));
+            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.55f) : new Color(rc.r, rc.g, rc.b, hover ? 0.9f : 0.5f * dim + 0.1f));
             string rarity = Upgrades.RarityName(u.Rarity);
             float rw = 20f + rarity.Length * 7f;
             var ribbon = new Rect(r.center.x - rw / 2f, r.y + 10f, rw, 18f);
