@@ -6,7 +6,7 @@ namespace Arena
     /// 12x12 pixel-art icons for every upgrade, drawn as text so they live in code like the
     /// rest of the art. Each character is a palette color ('.' is transparent). Textures are
     /// built on first use with point filtering, so they stay crisp when scaled up.
-    public static class PixelArt
+    public static partial class PixelArt
     {
         public const int Size = 12;
 
@@ -2203,7 +2203,7 @@ namespace Arena
             if (cache.TryGetValue(key, out tex))
                 return tex;
             string[] rows;
-            if (!Icons.TryGetValue(key, out rows))
+            if (!Icons.TryGetValue(key, out rows) && !ModIcons.TryGetValue(key, out rows))
                 return null;
             tex = new Texture2D(Size, Size, TextureFormat.RGBA32, false)
             {

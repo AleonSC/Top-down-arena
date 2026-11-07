@@ -1,0 +1,169 @@
+<title>Holo Level Up Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Rajdhani:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 16:9 level-up stage with two switches (This Pick look, Holo look) and a rarity strip underneath. */
+:root{--f-crt:"VT323","Courier New",monospace;--f-ui:"Rajdhani",system-ui,sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+--page:#02040c;--sbg:#030814;--ink:#66a3ff;--ink-hi:#d6e6ff;--dim:#4068b8;--rim:#12203f;--grid:rgba(102,163,255,.06);--go:#7dffa0;--go-d:#3ddc6a;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--page)}
+body{padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-family:var(--f-ui);color:var(--ink)}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;font:12px/1.4 var(--f-mono);color:var(--dim)}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp>span{margin-right:4px;letter-spacing:.08em}
+.bar button{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--dim);padding:5px 10px;cursor:pointer}
+.bar button:hover,.bar button[aria-pressed=true]{background:var(--ink);color:var(--sbg)}
+.bar button:focus-visible{outline:2px solid var(--ink-hi);outline-offset:2px}
+.note{font:12px/1.5 var(--f-mono);color:var(--dim);max-width:90ch}
+
+.stage{container-type:inline-size;position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--sbg);isolation:isolate;border:1px solid var(--rim)}
+.arena{position:absolute;inset:0;background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/4cqw 4cqw,linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/4cqw 4cqw,var(--sbg)}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:1}
+.menu{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:3cqw}
+h1{font:400 6cqw/1 var(--f-crt);letter-spacing:.06em;color:var(--ink-hi);text-shadow:0 0 .8cqw rgba(102,163,255,.7),0 0 2.2cqw rgba(102,163,255,.7)}
+.sub{font:700 1.1cqw var(--f-ui);letter-spacing:.3em;color:#59d9e8;margin-top:.4cqw}
+.cards{display:flex;gap:3.4cqw;margin-top:3.2cqw}
+
+/* ---------- card ---------- */
+.card{--c:#66a3ff;--mx:.5;--my:.5;position:relative;width:21cqw;height:30cqw;border:1px solid color-mix(in srgb,var(--c) 60%,transparent);display:flex;flex-direction:column;align-items:center;padding:1.3cqw 1.2cqw;overflow:hidden;isolation:isolate;
+background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,#030814),color-mix(in srgb,var(--c) 9%,#030814) 55%,#030814);box-shadow:0 0 2cqw color-mix(in srgb,var(--c) 28%,transparent)}
+.card.sel{border-color:var(--c);transform:translateY(-1cqw);box-shadow:0 0 1cqw var(--c),0 0 3.4cqw color-mix(in srgb,var(--c) 60%,transparent)}
+.card>*{position:relative;z-index:3}
+.card .chip{font:700 .85cqw var(--f-ui);letter-spacing:.08em;padding:.15cqw .7cqw;background:var(--c);color:#030814}
+.card .ico{width:7cqw;height:7cqw;margin-top:1.2cqw;border:.16cqw solid var(--c);background:rgba(2,4,10,.72);display:grid;place-items:center}
+.card .ico i{display:block;width:3.2cqw;height:3.2cqw;background:var(--c);clip-path:polygon(50% 0,100% 20%,85% 80%,50% 100%,15% 80%,0 20%)}
+.card h2{font:400 2.2cqw/1 var(--f-crt);letter-spacing:.08em;color:var(--ink-hi);margin-top:1.1cqw;text-shadow:0 0 .6cqw color-mix(in srgb,var(--c) 70%,transparent)}
+.card p{font:500 1.05cqw var(--f-ui);color:#c2ccea;margin-top:.5cqw}
+.card .key{position:absolute;bottom:1cqw;left:50%;transform:translateX(-50%);font:500 .8cqw var(--f-mono);color:var(--dim);border:1px solid var(--rim);padding:0 .5cqw;background:#050b1c}
+.pick{position:absolute;left:1.2cqw;right:1.2cqw;bottom:3.4cqw;z-index:4}
+
+/* ---------- THIS PICK: A readout ---------- */
+.pA{display:none}.pickA .pA{display:block}
+.pA{background:rgba(2,10,8,.82);border:1px solid color-mix(in srgb,var(--go) 55%,transparent);padding:.5cqw .7cqw .6cqw;box-shadow:inset 0 0 1cqw rgba(125,255,160,.1);position:relative}
+.pA::before,.pA::after{content:"";position:absolute;width:.5cqw;height:.5cqw;border:2px solid var(--go)}
+.pA::before{left:-1px;top:-1px;border-right:0;border-bottom:0}.pA::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.pA .lab{display:flex;justify-content:space-between;font:500 .7cqw var(--f-mono);letter-spacing:.16em;color:#4fa66a}
+.pA .lab b{font-weight:500;animation:blink 1.1s steps(2) infinite;color:var(--go)}
+.pA .row{display:flex;justify-content:space-between;align-items:baseline;margin-top:.25cqw;font:400 1.35cqw/1 var(--f-crt);letter-spacing:.06em;color:var(--go);text-shadow:0 0 .5cqw rgba(125,255,160,.7)}
+.pA .row s{color:#3f7a52;text-decoration:none}
+.pA .seg{display:flex;gap:.2cqw;margin-top:.4cqw}
+.pA .seg i{flex:1;height:.5cqw;background:#10301c}.pA .seg i.on{background:var(--go);box-shadow:0 0 .4cqw var(--go)}.pA .seg i.new{background:var(--go);animation:blink .8s steps(2) infinite}
+
+/* ---------- THIS PICK: B scan chip ---------- */
+.pB{display:none}.pickB .pB{display:flex}
+.pB{align-items:stretch;height:3.7cqw;clip-path:polygon(.7cqw 0,100% 0,100% calc(100% - .7cqw),calc(100% - .7cqw) 100%,0 100%,0 .7cqw);background:linear-gradient(90deg,rgba(125,255,160,.28),rgba(125,255,160,.08) 40%,rgba(2,10,8,.85));position:relative}
+.pB::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%) -150%/250%;animation:scan 3.2s linear infinite;pointer-events:none}
+.pB .tag{width:3.4cqw;display:grid;place-items:center;background:var(--go);color:#03140a;font:700 .75cqw var(--f-mono);letter-spacing:.05em;text-align:center;line-height:1.1}
+.pB .body{flex:1;padding:.4cqw .8cqw;display:flex;flex-direction:column;justify-content:center;gap:.15cqw}
+.pB .nm{font:500 .72cqw var(--f-mono);letter-spacing:.14em;color:#6fcf8c}
+.pB .vals{display:flex;align-items:center;gap:.6cqw;font:500 1.2cqw var(--f-mono);color:#3f7a52}
+.pB .vals em{font-style:normal;color:var(--go);text-shadow:0 0 .5cqw var(--go);position:relative}
+.pB .vals em::after{content:"_";animation:blink 1s steps(2) infinite}
+.pB .vals u{text-decoration:none;color:#4fa66a}
+.pB .d{display:grid;place-items:center;padding:0 .8cqw;font:400 1.7cqw var(--f-crt);color:var(--go);text-shadow:0 0 .5cqw var(--go);border-left:1px dashed rgba(125,255,160,.4)}
+
+/* ---------- THIS PICK: C LED matrix ---------- */
+.pC{display:none}.pickC .pC{display:block}
+.pC{background:#020806;border:1px solid #1c4a2c;padding:.4cqw .6cqw .5cqw;position:relative}
+.pC .lab{font:500 .62cqw var(--f-mono);letter-spacing:.2em;color:#3f7a52;display:flex;justify-content:space-between}
+.pC .lab span:last-child{color:var(--go)}
+.pC .led{margin-top:.25cqw;text-align:center;font:400 1.9cqw/1 var(--f-crt);letter-spacing:.1em;color:transparent;background:radial-gradient(circle at 50% 50%,var(--go) 0 38%,transparent 42%) 0 0/.22cqw .22cqw;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 .35cqw rgba(125,255,160,.8))}
+.pC .led small{font-size:1.05cqw;letter-spacing:.06em}
+.pC .bars{display:flex;align-items:flex-end;gap:.2cqw;height:.9cqw;margin-top:.3cqw}
+.pC .bars i{flex:1;background:#0f2e1b}.pC .bars i.on{background:var(--go)}.pC .bars i:nth-child(1){height:30%}.pC .bars i:nth-child(2){height:45%}.pC .bars i:nth-child(3){height:60%}.pC .bars i:nth-child(4){height:75%}.pC .bars i:nth-child(5){height:100%;animation:blink .8s steps(2) infinite;background:var(--go)}
+
+/* ---------- HOLO backgrounds ---------- */
+.card .holo,.card .holo::before,.card .holo::after{position:absolute;inset:0;pointer-events:none;z-index:1}
+/* 1 Foil: hue-shifting gradient inside the rarity colour, tilts with the pointer */
+.hFoil .holo{background:linear-gradient(calc(105deg + var(--mx)*40deg),transparent 15%,color-mix(in srgb,var(--c) 70%,#fff) 30%,color-mix(in srgb,var(--c) 50%,#ff7ad9) 42%,color-mix(in srgb,var(--c) 50%,#7af0ff) 54%,color-mix(in srgb,var(--c) 70%,#fff) 66%,transparent 82%) calc(var(--mx)*100%) 0/260% 100%;mix-blend-mode:screen;opacity:.34;animation:hue 6s ease-in-out infinite alternate}
+.hFoil .holo::before{content:"";background:radial-gradient(circle at calc(var(--mx)*100%) calc(var(--my)*100%),rgba(255,255,255,.35),transparent 38%);mix-blend-mode:overlay}
+.hFoil .holo::after{content:"";background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 5px);mix-blend-mode:overlay}
+/* 2 Prism: faceted triangles, light band sweeping across, grid lines */
+.hPrism .holo{background:conic-gradient(from calc(var(--mx)*90deg) at 50% 40%,color-mix(in srgb,var(--c) 85%,#fff),color-mix(in srgb,var(--c) 40%,#ff6bd6),color-mix(in srgb,var(--c) 45%,#6bf0ff),color-mix(in srgb,var(--c) 85%,#fff));opacity:.26;mix-blend-mode:screen;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);filter:saturate(1.2);animation:hue 8s ease-in-out infinite alternate}
+.hPrism .holo::before{content:"";background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.4) 50%,transparent 58%) -120%/260% 100%;animation:scan 4.5s ease-in-out infinite;mix-blend-mode:overlay}
+.hPrism .holo::after{content:"";background:linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px) 0 0/1.4cqw 1.4cqw,linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px) 0 0/1.4cqw 1.4cqw;mask:linear-gradient(180deg,#000,transparent 85%)}
+/* 3 Projection: see-through glass, drifting scan band, flicker, chromatic edge */
+.hProj{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 34%,transparent),color-mix(in srgb,var(--c) 10%,#030814 90%) 70%,#030814)}
+.hProj .holo{background:repeating-linear-gradient(0deg,color-mix(in srgb,var(--c) 40%,transparent) 0 1px,transparent 1px 4px);opacity:.5;animation:flick 5s steps(1) infinite}
+.hProj .holo::before{content:"";background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--c) 70%,#fff),transparent) 0 -40%/100% 28%;background-repeat:no-repeat;opacity:.5;animation:drift 3.4s linear infinite;mix-blend-mode:screen}
+.hProj .holo::after{content:"";box-shadow:inset .15cqw 0 0 rgba(255,60,200,.35),inset -.15cqw 0 0 rgba(60,240,255,.35),inset 0 0 3cqw color-mix(in srgb,var(--c) 40%,transparent)}
+.hProj.sel{box-shadow:0 0 1cqw var(--c),0 0 4cqw color-mix(in srgb,var(--c) 70%,transparent)}
+.hNone .holo{display:none}
+.stage.hFoil .card:not(.sel) .holo{opacity:.2}
+
+@keyframes blink{50%{opacity:.15}}
+@keyframes scan{to{background-position:260% 0}}
+@keyframes hue{from{filter:hue-rotate(-30deg)}to{filter:hue-rotate(35deg)}}
+@keyframes drift{to{background-position:0 160%}}
+@keyframes flick{0%,92%,96%{opacity:.5}94%,98%{opacity:.32}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+.btns{position:absolute;z-index:2;left:0;right:0;bottom:4cqw;display:flex;justify-content:center;gap:1cqw}
+.btns div{width:21cqw;border:1px solid var(--dim);background:rgba(3,8,20,.9);font:700 1.2cqw var(--f-ui);letter-spacing:.08em;color:var(--ink);text-align:center;padding:.9cqw 0}
+.hintx{position:absolute;bottom:1.4cqw;width:100%;text-align:center;font:500 .85cqw var(--f-ui);color:var(--dim)}
+
+/* rarity strip */
+.rar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.rar .card{width:auto;height:auto;aspect-ratio:7/9;transform:none;padding:12px 10px;--u:1}
+.rar .card .chip{font-size:11px}.rar .card .ico{width:56px;height:56px;margin-top:12px}.rar .card .ico i{width:26px;height:26px}.rar .card h2{font-size:22px;margin-top:10px}.rar .card p{font-size:12px}
+</style>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="grp" id="gp"><span>THIS PICK</span>
+      <button data-p="pickA" aria-pressed="true">A readout</button><button data-p="pickB" aria-pressed="false">B scan chip</button><button data-p="pickC" aria-pressed="false">C LED matrix</button></div>
+    <div class="grp" id="gh"><span>HOLO</span>
+      <button data-h="hFoil" aria-pressed="true">1 Foil</button><button data-h="hPrism" aria-pressed="false">2 Prism</button><button data-h="hProj" aria-pressed="false">3 Projection</button><button data-h="hNone" aria-pressed="false">Current</button></div>
+  </div>
+  <p class="note">Move the pointer over the cards: Foil and Prism tilt with it. Each card background takes its own upgrade colour (rarity), then the holo effect is layered on top. In the game the pointer tilt would follow the cursor too; with Reduced effects the shimmer and flicker stop and the cards keep a static tint.</p>
+
+  <div class="stage pickA hFoil" id="stage">
+    <div class="arena"></div><div class="dim"></div>
+    <div class="menu">
+      <h1>LEVEL UP!</h1><div class="sub">LEVEL 2 · PICK ONE</div>
+      <div class="cards">
+        <div class="card" style="--c:#59e66b"><div class="holo"></div><span class="chip">UNCOMMON</span><div class="ico"><i></i></div><h2>Thick Skin</h2><p>Take 10% less damage</p><span class="key">1</span></div>
+        <div class="card sel" style="--c:#66a3ff"><div class="holo"></div><span class="chip">COMMON</span><div class="ico"><i></i></div><h2>Light Boots</h2><p>+6% move speed</p>
+          <div class="pick">
+            <div class="pA"><div class="lab"><span>▸ THIS PICK</span><b>■</b></div><div class="row"><span>MOVE SPEED</span><span><s>100%</s> ▸▸ 106%</span></div><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="new"></i><i></i><i></i></div></div>
+            <div class="pB"><div class="tag">Δ<br>+6</div><div class="body"><span class="nm">MOVE SPEED</span><span class="vals">100% <u>»</u> <em>106%</em></span></div><div class="d">+6%</div></div>
+            <div class="pC"><div class="lab"><span>THIS PICK</span><span>+6%</span></div><div class="led">100 ▸ 106<small>%</small></div><div class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+          </div><span class="key">2</span></div>
+        <div class="card" style="--c:#66a3ff"><div class="holo"></div><span class="chip">COMMON</span><div class="ico"><i></i></div><h2>Sharpened Rounds</h2><p>+10% damage</p><span class="key">3</span></div>
+      </div>
+    </div>
+    <div class="btns"><div>➜ REROLL ×2</div><div>✔ CHOOSE UPGRADE</div></div>
+    <div class="hintx">Press H to show the HUD</div>
+  </div>
+
+  <p class="note">Every rarity under the same holo look (Common, Uncommon, Rare, Very Rare, Legendary, Mod, Milestone):</p>
+  <div class="rar hFoil" id="rar">
+    <div class="card" style="--c:#66a3ff"><div class="holo"></div><span class="chip">COMMON</span><div class="ico"><i></i></div><h2>Light Boots</h2><p>+6% move speed</p></div>
+    <div class="card" style="--c:#59e66b"><div class="holo"></div><span class="chip">UNCOMMON</span><div class="ico"><i></i></div><h2>Thick Skin</h2><p>Take 10% less damage</p></div>
+    <div class="card" style="--c:#5999ff"><div class="holo"></div><span class="chip">RARE</span><div class="ico"><i></i></div><h2>Quick Hands</h2><p>+12% fire rate</p></div>
+    <div class="card" style="--c:#cc66ff"><div class="holo"></div><span class="chip">VERY RARE</span><div class="ico"><i></i></div><h2>Overclock</h2><p>+20% damage</p></div>
+    <div class="card" style="--c:#ff9926"><div class="holo"></div><span class="chip">LEGENDARY</span><div class="ico"><i></i></div><h2>Second Wind</h2><p>Revive once per wave</p></div>
+    <div class="card" style="--c:#40f2d9"><div class="holo"></div><span class="chip">MOD</span><div class="ico"><i></i></div><h2>Ricochet</h2><p>Shots bounce once</p></div>
+    <div class="card" style="--c:#ffcc59"><div class="holo"></div><span class="chip">MILESTONE</span><div class="ico"><i></i></div><h2>Ascension</h2><p>Level 10 reward</p></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage'),rar=document.getElementById('rar');
+  function sw(g,attr,cls){
+    var bs=document.querySelectorAll('#'+g+' button');
+    bs.forEach(function(b){b.addEventListener('click',function(){
+      bs.forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+      bs.forEach(function(x){stage.classList.remove(x.dataset[attr]);if(cls)rar.classList.remove(x.dataset[attr])});
+      stage.classList.add(b.dataset[attr]);if(cls)rar.classList.add(b.dataset[attr]);
+    })});
+  }
+  sw('gp','p',false);sw('gh','h',true);
+  document.querySelectorAll('.card').forEach(function(c){
+    c.addEventListener('pointermove',function(e){var r=c.getBoundingClientRect();c.style.setProperty('--mx',((e.clientX-r.left)/r.width).toFixed(3));c.style.setProperty('--my',((e.clientY-r.top)/r.height).toFixed(3))});
+    c.addEventListener('pointerleave',function(){c.style.setProperty('--mx',.5);c.style.setProperty('--my',.5)});
+  });
+})();
+</script>

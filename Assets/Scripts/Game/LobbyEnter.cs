@@ -168,7 +168,7 @@ namespace Arena
             LobbyPiece(LobbyActionsBand, e, 0.7f, 1.1f, -60f, 0f);         // Ready and Start
             LobbyPiece(LobbyYourCardBand, e, 0.8f, 1.15f, -60f, 0f, true); // your party card, last
             LobbyPiece(LobbyTabsBand, e, 0.55f, 0.9f, 0f, -30f);           // the tab keys
-            LobbyPiece(LobbyBodyBand, e, 0.65f, 1.05f, 0f, 0f);            // the loadout, filling in
+            LobbyPiece(LobbyBodyBand, e, 0.65f, 1.05f, 0f, 0f, true);      // the loadout, filling in (its live preview fades up with it instead of popping in after)
             uiGlBlocked = false;
         }
 

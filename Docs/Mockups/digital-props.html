@@ -1,0 +1,626 @@
+<title>Digital Crates And Jars</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Four "digital" reworks of the crate, heavy crate and pot (the jar).
+   Each card shows the props at 2x in six states; the arena strip shows the chosen look at game scale (1 canvas px =
+   1 arena px). Sizes match Props.cs: crate 44, heavy crate 54, pot radius 13. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --cyan: #4fe3ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--cyan); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+.card canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 720 / 250; background: #070910; }
+.card .body { padding: 14px 16px 16px; display: grid; gap: 6px; border-top: 1px solid var(--line); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.14em; color: var(--amber); }
+.card h3 { font-size: 19px; letter-spacing: 0.03em; }
+.card p { color: var(--muted); font-size: 15px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 320; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.bar .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+button { font: 600 13px var(--font-display); letter-spacing: 0.06em; color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+button:hover { border-color: var(--cyan); }
+button[aria-pressed="true"] { background: var(--cyan); color: #04141a; border-color: var(--cyan); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.notes { display: grid; gap: 8px; color: var(--muted); font-size: 15px; }
+.notes b { color: var(--soft); font-weight: 600; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · props</div>
+    <h1>Digital <span>crates</span> and jars</h1>
+    <p class="lead">Four ways to move the crate, heavy crate and clay pot away from wood and clay and toward something that reads as a
+      construct. Each card shows the same six states: a crate at full, half and low health, a heavy crate, a pot, and the pot smashing
+      (looping). The strip underneath draws the look you pick at game scale, with bullets, so you can judge it as it will actually be seen.</p>
+  </header>
+
+  <section class="cards" id="cards"></section>
+
+  <section class="card" id="round2">
+    <canvas id="r2" width="1440" height="500" aria-label="Look A on barrels and the treasure chest"></canvas>
+    <div class="body"><div class="tag">LOOK A · ROUND TWO</div><h3>Barrels and the chest</h3>
+      <p>The red barrel is a red ring with a hoop, an inner band and an amber hazard triangle; lit, it shakes, flashes and spits sparks as before
+        (the fuse here loops slowly so you can watch it). The boss-fight health barrel is green with a glowing white cross. The treasure chest is a
+        gold wireframe with brackets, bands and a diamond lock; opened, its lid lifts away as an outline and light pours up out of it.</p></div>
+  </section>
+
+  <section class="stage">
+    <canvas id="arena" width="1920" height="640" aria-label="Props at game scale"></canvas>
+    <div class="bar">
+      <div class="group"><span class="label">Look</span>
+        <button data-look="0" aria-pressed="true">A Hologram</button>
+        <button data-look="1" aria-pressed="false">B Data Cache</button>
+        <button data-look="2" aria-pressed="false">C Glitch Pixel</button>
+        <button data-look="3" aria-pressed="false">D Terminal</button>
+      </div>
+      <div class="group"><span class="label">Scale</span>
+        <button data-zoom="1" aria-pressed="true">1x game</button>
+        <button data-zoom="2" aria-pressed="false">2x</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <p><b>What stays the same.</b> Footprints, hit boxes, the drop-in and dust puff, the white hit flash and the shadow are untouched. Only
+      the drawing inside <code>DrawCrate</code> and <code>DrawPot</code> in <code>PropsLook.cs</code> would change.
+      Crates wear through damage in all four looks (the three crack stages become dropouts, dead cells or missing glyphs).</p>
+    <p><b>Readability.</b> Enemy shots stop at crates and yours fly over, so cover has to stay obvious against bright bullets. A and D are
+      the lightest on the eye; B and C are the most solid. Barrels and the chest follow look A in round two.</p>
+    <p><b>Visual effects setting.</b> Reduced would drop the scanlines, glitch slices and blinking. Off would keep the current wood and clay.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  // ---------- helpers ----------
+  function hash(n) { n = Math.imul((n | 0) ^ 0x9e3779b9, 0x85ebca6b); n ^= n >>> 13; n = Math.imul(n, 0xc2b2ae35); n ^= n >>> 16; return (n >>> 0) / 4294967296; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function glow(c, col, b) { c.shadowColor = col; c.shadowBlur = b; }
+  function noGlow(c) { c.shadowBlur = 0; c.shadowColor = 'transparent'; }
+  var MONO = '"IBM Plex Mono", ui-monospace, Menlo, monospace';
+
+  // ---------- A: Hologram ----------
+  var A = {
+    crate: function (c, o) {
+      var h = o.h, t = o.t, dmg = 1 - o.hp, heavy = o.heavy, seed = o.seed;
+      var col = o.hp < 0.34 ? '#ff6b9a' : heavy ? '#8fd0ff' : '#4fe3ff';
+      c.save();
+      c.fillStyle = heavy ? 'rgba(143,208,255,0.09)' : 'rgba(79,227,255,0.07)';
+      c.fillRect(-h, -h, 2 * h, 2 * h);
+      c.fillStyle = 'rgba(79,227,255,0.10)';
+      for (var y = -h + 1; y < h; y += 3) c.fillRect(-h, y, 2 * h, 1);
+      glow(c, col, 8);
+      c.strokeStyle = col; c.lineWidth = heavy ? 2 : 1.5;
+      function seg(x1, y1, x2, y2, id) {
+        var hv = hash(seed * 31 + id), on = hv > dmg * 0.8 || Math.sin(t * 14 + id * 2.3) > 0.9;
+        if (!on) return;
+        c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+      }
+      var n = 6, id = 0, i;
+      for (i = 0; i < n; i++) {
+        var a = -h + (2 * h) * i / n, b = -h + (2 * h) * (i + 1) / n;
+        seg(a, -h, b, -h, id++); seg(h, a, h, b, id++); seg(b, h, a, h, id++); seg(-h, b, -h, a, id++);
+      }
+      var inset = heavy ? 9 : 6, flip = (seed & 8) ? -1 : 1;
+      c.lineWidth = 1;
+      for (i = 0; i < 5; i++) {
+        var f1 = i / 5, f2 = (i + 1) / 5, x1 = -h + inset + (2 * h - 2 * inset) * f1, x2 = -h + inset + (2 * h - 2 * inset) * f2;
+        seg(x1, flip * (-h + inset + (2 * h - 2 * inset) * f1), x2, flip * (-h + inset + (2 * h - 2 * inset) * f2), id++);
+      }
+      if (heavy) {
+        c.strokeRect(-h + 7, -h + 7, 2 * h - 14, 2 * h - 14);
+        c.fillStyle = col;
+        for (i = 0; i < 4; i++) c.fillRect((i & 1 ? h - 9 : -h + 5), (i & 2 ? h - 9 : -h + 5), 4, 4);
+        c.beginPath(); c.moveTo(-4, 0); c.lineTo(4, 0); c.moveTo(0, -4); c.lineTo(0, 4); c.stroke();
+      }
+      c.lineWidth = 2.8; c.strokeStyle = col;
+      var L = heavy ? 11 : 9;
+      c.beginPath();
+      c.moveTo(-h, -h + L); c.lineTo(-h, -h); c.lineTo(-h + L, -h);
+      c.moveTo(h - L, -h); c.lineTo(h, -h); c.lineTo(h, -h + L);
+      c.moveTo(h, h - L); c.lineTo(h, h); c.lineTo(h - L, h);
+      c.moveTo(-h + L, h); c.lineTo(-h, h); c.lineTo(-h, h - L);
+      c.stroke();
+      noGlow(c);
+      if (dmg > 0 && ((t * 0.7 + seed * 0.13) % 1) < 0.07) {
+        c.fillStyle = col; c.globalAlpha = 0.4;
+        var gy = -h + hash(Math.floor(t * 9) + seed) * (2 * h - 5);
+        c.fillRect(-h + 4, gy, 2 * h - 2, 3);
+      }
+      c.restore();
+    },
+    jar: function (c, o) {
+      var r = o.r, t = o.t, k = o.k, seed = o.seed, col = '#4fe3ff', i;
+      c.save();
+      if (k > 0) {
+        glow(c, col, 8);
+        c.globalAlpha = 1 - k; c.strokeStyle = col; c.lineWidth = 1.5;
+        c.beginPath(); c.arc(0, 0, r * (1 + k * 1.3), 0, 6.283); c.stroke();
+        for (i = 0; i < 8; i++) {
+          var a = i * 0.785 + 0.3, d = r * (0.4 + k * 2.4);
+          c.beginPath();
+          c.moveTo(Math.cos(a) * d, Math.sin(a) * d);
+          c.lineTo(Math.cos(a + 0.5) * (d + 5), Math.sin(a + 0.5) * (d + 5));
+          c.stroke();
+        }
+        if (k < 0.25) { c.fillStyle = '#fff'; c.globalAlpha = 1 - k * 4; c.beginPath(); c.arc(0, 0, 4, 0, 6.283); c.fill(); }
+        c.restore(); return;
+      }
+      c.fillStyle = 'rgba(79,227,255,0.10)';
+      c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fill();
+      glow(c, col, 8);
+      c.strokeStyle = col; c.lineWidth = 1.8;
+      c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.stroke();
+      c.lineWidth = 1; c.setLineDash([3, 3]); c.lineDashOffset = -t * 18;
+      c.beginPath(); c.arc(0, 0, r * 0.72, 0, 6.283); c.stroke();
+      c.setLineDash([]);
+      var s = r * 0.3 * (1 + 0.15 * Math.sin(t * 4));
+      c.fillStyle = '#baf4ff';
+      c.beginPath(); c.moveTo(0, -s); c.lineTo(s, 0); c.lineTo(0, s); c.lineTo(-s, 0); c.closePath(); c.fill();
+      noGlow(c);
+      var sy = -r + (((t * 0.8 + seed * 0.1) % 1) * 2 * r), hw = Math.sqrt(Math.max(0, r * r - sy * sy));
+      c.fillStyle = 'rgba(190,245,255,0.55)'; c.fillRect(-hw, sy, 2 * hw, 1.5);
+      c.restore();
+    }
+  };
+
+  // ---------- B: Data Cache ----------
+  var B = {
+    crate: function (c, o) {
+      var h = o.h, t = o.t, dmg = 1 - o.hp, heavy = o.heavy, seed = o.seed;
+      var on = heavy ? '#ffb547' : '#3dff9a', off = heavy ? '#4a3510' : '#14402e';
+      c.save();
+      c.fillStyle = '#0f151c'; c.fillRect(-h, -h, 2 * h, 2 * h);
+      c.strokeStyle = heavy ? '#5a6878' : '#2b3a4b'; c.lineWidth = heavy ? 5 : 3;
+      c.strokeRect(-h + c.lineWidth / 2, -h + c.lineWidth / 2, 2 * h - c.lineWidth, 2 * h - c.lineWidth);
+      var n = heavy ? 6 : 5, inset = heavy ? 8 : 6, cell = (2 * h - 2 * inset) / n, gx, gy;
+      for (gy = 0; gy < n; gy++) for (gx = 0; gx < n; gx++) {
+        var idx = gy * n + gx, hv = hash(seed * 7 + idx), hv2 = hash(seed * 11 + idx + 99), colr;
+        if (hv < dmg * 0.9) colr = (hv < dmg * 0.9 * 0.35 && Math.sin(t * 9 + idx) > 0) ? '#ff4f5e' : '#161b22';
+        else if (hv2 > 0.35) colr = (hv2 > 0.8 && Math.sin(t * 3 + idx * 1.7) < 0) ? off : on;
+        else colr = off;
+        c.fillStyle = colr;
+        c.fillRect(-h + inset + gx * cell + 0.75, -h + inset + gy * cell + 0.75, cell - 1.5, cell - 1.5);
+      }
+      var fl = (seed & 8) ? -1 : 1;
+      c.strokeStyle = 'rgba(111,200,255,0.4)'; c.lineWidth = 1.2;
+      c.beginPath(); c.moveTo(-h + inset, fl * (-h + inset)); c.lineTo(h - inset, fl * (h - inset)); c.stroke();
+      c.fillStyle = '#6fc8ff';
+      c.fillRect(-h + inset - 1.5, fl * (-h + inset) - 1.5, 3, 3); c.fillRect(h - inset - 1.5, fl * (h - inset) - 1.5, 3, 3);
+      if (heavy) {
+        c.fillStyle = '#7d8a99';
+        for (var i = 0; i < 4; i++) { var cx = i & 1 ? h - 6 : -h + 6, cy = i & 2 ? h - 6 : -h + 6; c.beginPath(); c.arc(cx, cy, 1.8, 0, 6.283); c.fill(); }
+        c.fillStyle = '#ffb547'; c.fillRect(-4, h - 4, 8, 2.5);
+      }
+      c.restore();
+    },
+    jar: function (c, o) {
+      var r = o.r, t = o.t, k = o.k, seed = o.seed, i, j;
+      c.save();
+      if (k > 0) {
+        for (i = 0; i < 28; i++) {
+          var a = hash(i + 3) * 6.283, d = r * (0.2 + hash(i + 40) * 0.8) + k * r * (1.2 + hash(i + 80) * 1.8), sz = 2.2 * (1 - k);
+          c.fillStyle = hash(i) > 0.5 ? '#3de6d0' : '#1d8f86'; c.globalAlpha = 1 - k * 0.8;
+          c.fillRect(Math.cos(a) * d - sz / 2, Math.sin(a) * d - sz / 2, sz, sz);
+        }
+        c.globalAlpha = (1 - k) * 0.8; c.strokeStyle = '#7d8a99'; c.lineWidth = 2;
+        c.beginPath(); c.arc(0, 0, r * (1 + k * 0.8), 0.3, 1.6); c.stroke();
+        c.restore(); return;
+      }
+      c.fillStyle = '#0d1a1f'; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fill();
+      c.save(); c.beginPath(); c.arc(0, 0, r - 2, 0, 6.283); c.clip();
+      var level = r * 0.45 + Math.sin(t * 2 + seed) * 1.2;
+      for (j = 0; j < 14; j++) for (i = 0; i < 14; i++) {
+        var x = -r + i * 2 + 0.5, y = -r + j * 2 + 0.5;
+        if (y < r - level * 2) continue;
+        var hv = hash(seed * 5 + i * 17 + j), tw = 0.5 + 0.5 * Math.sin(t * 2.5 + hv * 6.28);
+        c.fillStyle = 'rgba(61,230,208,' + (0.35 + 0.6 * tw * (hv > 0.5 ? 1 : 0.5)) + ')';
+        c.fillRect(x, y, 1.6, 1.6);
+      }
+      c.restore();
+      c.strokeStyle = '#5a6878'; c.lineWidth = 2.2; c.beginPath(); c.arc(0, 0, r - 1, 0, 6.283); c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,0.4)'; c.lineWidth = 1.4;
+      c.beginPath(); c.arc(0, 0, r - 4, 3.6, 4.5); c.stroke();
+      c.fillStyle = Math.sin(t * 4) > 0 ? '#3dff9a' : '#14402e';
+      c.fillRect(-1.5, -r + 1.5, 3, 2);
+      c.restore();
+    }
+  };
+
+  // ---------- C: Glitch Pixel ----------
+  var C = {
+    crate: function (c, o) {
+      var h = o.h, t = o.t, dmg = 1 - o.hp, heavy = o.heavy, seed = o.seed;
+      var n = heavy ? 13 : 11, P = 2 * h / n, gx, gy, fl = (seed & 8) != 0;
+      var band = Math.floor(t * 5), bandRow = Math.floor(hash(band + seed) * n), shifting = hash(band * 3 + seed) < 0.18 && dmg >= 0;
+      c.save();
+      function cell(gx, gy, col, extra) {
+        var sx = (shifting && (gy === bandRow || gy === bandRow + 1)) ? P * (hash(band) > 0.5 ? 1 : -1) : 0;
+        c.fillStyle = col; c.fillRect(-h + gx * P + sx + (extra || 0), -h + gy * P, P, P);
+      }
+      function dropped(gx, gy) { return hash(seed * 13 + gx * 19 + gy * 7) < dmg * 0.55; }
+      c.globalAlpha = 0.55;
+      for (gy = 0; gy < n; gy++) for (gx = 0; gx < n; gx++) {
+        var edge = gx === 0 || gy === 0 || gx === n - 1 || gy === n - 1;
+        if (edge && !dropped(gx, gy)) { cell(gx, gy, '#ff2fa0', -1); cell(gx, gy, '#27e6ff', 1); }
+      }
+      c.globalAlpha = 1;
+      for (gy = 0; gy < n; gy++) for (gx = 0; gx < n; gx++) {
+        if (dropped(gx, gy)) continue;
+        var edge2 = gx === 0 || gy === 0 || gx === n - 1 || gy === n - 1, col;
+        var diag = (fl ? (gx + gy === n - 1) : (gx === gy)) && !edge2;
+        if (edge2) col = '#0b0f2a';
+        else if (diag) col = heavy ? '#ffcf3a' : '#27e0c4';
+        else {
+          var chk = (gx + gy) % 2 === 0;
+          col = heavy ? (chk ? '#7a2fb5' : '#612496') : (chk ? '#5b3fd9' : '#4a31b8');
+          if (gy === 1) col = heavy ? '#9a52d6' : '#7a62ee';
+          if (gy === n - 2) col = heavy ? '#4a1a72' : '#392794';
+        }
+        cell(gx, gy, col);
+      }
+      if (heavy) {
+        for (var i = 0; i < 4; i++) {
+          var cx = i & 1 ? n - 3 : 1, cy = i & 2 ? n - 3 : 1;
+          if (!dropped(cx, cy)) { cell(cx, cy, '#ffcf3a'); cell(cx + 1, cy, '#c99a14'); cell(cx, cy + 1, '#c99a14'); }
+        }
+      }
+      c.restore();
+    },
+    jar: function (c, o) {
+      var r = o.r, t = o.t, k = o.k, seed = o.seed, P = 2, x, y, idx = 0;
+      c.save();
+      for (y = -r; y < r; y += P) for (x = -r; x < r; x += P) {
+        var cx = x + P / 2, cy = y + P / 2, d = Math.hypot(cx, cy);
+        if (d > r) continue;
+        idx++;
+        var col, gxi = Math.round(x / P), gyi = Math.round(y / P), chk = ((gxi + gyi) & 1) === 0;
+        if (d > r - 2.4) col = '#2a0b3a';
+        else if (d < r * 0.3) col = '#120514';
+        else if (d < r * 0.46) col = '#8e2a78';
+        else {
+          var l = (-cx - cy) / (2 * r);
+          col = l > 0.25 ? (chk ? '#ff8fd0' : '#ff6fba') : l > -0.1 ? (chk ? '#ff4fa3' : '#e8408f') : (chk ? '#c4307a' : '#a8286a');
+        }
+        if (k > 0) {
+          var a = Math.atan2(cy, cx) + (hash(idx) - 0.5) * 0.6, dist = k * r * (1.2 + hash(idx + 7) * 2.2), s = P * (1 - k);
+          c.globalAlpha = 1 - k * 0.7; c.fillStyle = col;
+          c.fillRect(cx + Math.cos(a) * dist - s / 2, cy + Math.sin(a) * dist - s / 2, s, s);
+        } else {
+          var jit = (hash(Math.floor(t * 6) + idx) < 0.012) ? 1 : 0;
+          c.fillStyle = col; c.fillRect(x + jit, y, P, P);
+        }
+      }
+      if (k === 0) { c.fillStyle = '#fff'; c.fillRect(-r * 0.5, -r * 0.5, 2, 2); c.fillRect(-r * 0.5 + 2, -r * 0.5 + 2, 2, 2); }
+      c.restore();
+    }
+  };
+
+  // ---------- D: Terminal ----------
+  var D = {
+    crate: function (c, o) {
+      var h = o.h, t = o.t, dmg = 1 - o.hp, heavy = o.heavy, seed = o.seed;
+      var cols = heavy ? 10 : 8, rows = heavy ? 7 : 6, cw = 2 * h / cols, ch = 2 * h / rows, gx, gy, fl = (seed & 8) !== 0;
+      var base = o.hp < 0.34 ? '#ff5a5a' : heavy ? '#ffd24a' : '#39ff88';
+      c.save();
+      c.fillStyle = heavy ? 'rgba(255,210,74,0.07)' : 'rgba(57,255,136,0.06)';
+      c.fillRect(-h, -h, 2 * h, 2 * h);
+      c.font = '600 8px ' + MONO; c.textAlign = 'center'; c.textBaseline = 'middle';
+      for (gy = 0; gy < rows; gy++) for (gx = 0; gx < cols; gx++) {
+        var idx = gy * rows + gx, hv = hash(seed * 17 + idx), edge = gx === 0 || gy === 0 || gx === cols - 1 || gy === rows - 1;
+        var diagMatch = Math.round((fl ? (cols - 1 - gx) : gx) * (rows - 1) / (cols - 1)) === gy;
+        var chr, alpha = 1;
+        if (edge) {
+          var corner = (gx === 0 || gx === cols - 1) && (gy === 0 || gy === rows - 1);
+          chr = heavy ? '█' : corner ? '+' : (gy === 0 || gy === rows - 1) ? '=' : '|';
+        } else if (diagMatch) chr = fl ? '/' : '\\';
+        else { chr = hash(Math.floor(t * 3 + hv * 9) + idx) > 0.5 ? '1' : '0'; alpha = 0.32; }
+        if (hv < dmg * 0.65) { chr = (hv < dmg * 0.2 && Math.sin(t * 8 + idx) > 0) ? '?' : ''; alpha = 0.9; }
+        if (!chr) continue;
+        c.globalAlpha = alpha; c.fillStyle = base;
+        c.fillText(chr, -h + (gx + 0.5) * cw, -h + (gy + 0.5) * ch + 0.5);
+      }
+      c.globalAlpha = 1;
+      if (Math.floor(t * 2) % 2 === 0) { c.fillStyle = base; c.fillRect(h - cw - 1, h - ch - 1, cw * 0.7, ch * 0.8); }
+      c.restore();
+    },
+    jar: function (c, o) {
+      var r = o.r, t = o.t, k = o.k, seed = o.seed, cw = 4.6, ch = 6.2, y, x, idx = 0;
+      c.save();
+      c.font = '600 7.5px ' + MONO; c.textAlign = 'center'; c.textBaseline = 'middle';
+      for (y = -r + ch / 2; y <= r; y += ch) {
+        var w = Math.sqrt(Math.max(0, r * r - y * y)), n = Math.max(1, Math.round(w * 2 / cw));
+        for (var i = 0; i < n; i++) {
+          idx++;
+          var xx = -w + (i + 0.5) * (2 * w / n), chr, a = 0.5, col = '#39ff88';
+          if (i === 0) { chr = '('; a = 1; } else if (i === n - 1) { chr = ')'; a = 1; }
+          else if (Math.abs(y) < ch * 0.6 && Math.abs(xx) < cw) { chr = '@'; a = 1; col = '#b8ffd6'; }
+          else chr = hash(Math.floor(t * 4 + y * 0.3) * 13 + i + seed) > 0.5 ? '1' : '0';
+          if (y < -r + ch) { chr = '='; a = 0.9; }
+          if (k > 0) {
+            var ang = Math.atan2(y, xx) + (hash(idx) - 0.5), d = k * r * (1 + hash(idx + 5) * 2);
+            xx += Math.cos(ang) * d; y += 0; a *= 1 - k;
+            c.globalAlpha = Math.max(0, a); c.fillStyle = col;
+            c.fillText(hash(idx + 2) > 0.7 ? '*' : chr, xx, y + Math.sin(ang) * d);
+          } else { c.globalAlpha = a; c.fillStyle = col; c.fillText(chr, xx, y); }
+        }
+      }
+      c.restore();
+    }
+  };
+
+
+  // ---------- Look A, round two: barrels and the chest ----------
+  function holoDisc(c, r, fill, scan) {
+    c.fillStyle = fill; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fill();
+    if (reduce) return;
+    c.fillStyle = scan;
+    for (var y = -r + 1; y < r; y += 3) { var hw = Math.sqrt(r * r - y * y); c.fillRect(-hw, y, 2 * hw, 1); }
+  }
+  function ringAt(c, r, lw, col, dash) {
+    c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.stroke();
+  }
+  A.barrel = function (c, o) {
+    var r = 17, t = o.t, col = '#ff5a5a', lit = o.rate >= 0, i;
+    c.save();
+    if (lit) c.translate(Math.sin(t * 90) * 1.5, Math.cos(t * 77) * 1.5);
+    holoDisc(c, r, 'rgba(255,90,90,0.08)', 'rgba(255,140,140,0.10)');
+    glow(c, col, 8);
+    ringAt(c, r, 1.8, col); ringAt(c, r - 4, 1, 'rgba(255,90,90,0.7)'); ringAt(c, r * 0.5, 1, 'rgba(255,90,90,0.6)');
+    glow(c, '#ffd23a', 6);
+    c.strokeStyle = '#ffd23a'; c.lineWidth = 1.4; c.lineJoin = 'miter';
+    c.beginPath(); c.moveTo(0, -6); c.lineTo(5.5, 4); c.lineTo(-5.5, 4); c.closePath(); c.stroke();
+    c.lineWidth = 1.6; c.beginPath(); c.moveTo(0, -2.5); c.lineTo(0, 0.8); c.stroke();
+    c.fillStyle = '#ffd23a'; c.beginPath(); c.arc(0, 2.4, 0.9, 0, 6.283); c.fill();
+    noGlow(c);
+    if (lit) {
+      var rate = o.rate;
+      if (Math.sin(t * (25 + 40 * rate)) > 0) { c.fillStyle = 'rgba(255,242,153,0.55)'; c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fill(); }
+      c.strokeStyle = 'rgba(255,153,51,0.8)'; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, r + 4 + 8 * rate, 0, 6.283); c.stroke();
+      for (i = 0; i < 4; i++) {
+        var a = t * 13 + i * 1.7, dx = Math.cos(a), dy = Math.sin(a);
+        c.strokeStyle = 'rgba(255,217,102,0.9)'; c.lineWidth = 1.5; c.beginPath();
+        c.moveTo(dx * 2, -r + dy * 2); c.lineTo(dx * 7, -r + dy * 7); c.stroke();
+      }
+    }
+    c.restore();
+  };
+  A.health = function (c, o) {
+    var r = 17, t = o.t, col = '#5bff8a', pulse = 0.5 + 0.5 * Math.sin(t * 3.5 + 2);
+    c.save();
+    c.fillStyle = 'rgba(102,255,128,' + (0.08 + 0.07 * pulse) + ')'; c.beginPath(); c.arc(0, 0, r + 8 + 3 * pulse, 0, 6.283); c.fill();
+    holoDisc(c, r, 'rgba(91,255,138,0.09)', 'rgba(150,255,180,0.10)');
+    glow(c, col, 8);
+    ringAt(c, r, 1.8, col); ringAt(c, r - 4, 1, 'rgba(91,255,138,0.7)');
+    glow(c, '#ffffff', 6);
+    c.fillStyle = '#fff'; c.fillRect(-2.5, -7.5, 5, 15); c.fillRect(-7.5, -2.5, 15, 5);
+    noGlow(c);
+    c.restore();
+  };
+  A.chest = function (c, o) {
+    var hw = 24, hh = 17, t = o.t, k = o.open ? Math.min(1, o.k) : 0, col = '#ffcf5a', i;
+    c.save();
+    if (!o.open) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 3);
+      c.fillStyle = 'rgba(255,204,77,' + (0.08 + 0.06 * pulse) + ')'; c.beginPath(); c.arc(0, 0, hw + 14 + 4 * pulse, 0, 6.283); c.fill();
+      for (i = 0; i < 4; i++) {
+        var f = (t * 0.7 + i * 0.25) % 1, sx = Math.cos(i * 1.9) * (hw + 6), sy = Math.sin(i * 1.9) * (hw + 6) - 18 * f, sz = 4 * Math.sin(f * Math.PI);
+        c.strokeStyle = 'rgba(255,242,179,' + 0.9 * Math.sin(f * Math.PI) + ')'; c.lineWidth = 1.4;
+        c.beginPath(); c.moveTo(sx - sz, sy); c.lineTo(sx + sz, sy); c.moveTo(sx, sy - sz); c.lineTo(sx, sy + sz); c.stroke();
+      }
+    }
+    function body() {
+      c.fillStyle = 'rgba(255,207,90,0.08)'; c.fillRect(-hw, -hh, 2 * hw, 2 * hh);
+      if (!reduce) { c.fillStyle = 'rgba(255,207,90,0.10)'; for (var y = -hh + 1; y < hh; y += 3) c.fillRect(-hw, y, 2 * hw, 1); }
+    }
+    if (o.open) {
+      c.fillStyle = 'rgba(255,224,115,0.10)';
+      for (i = 0; i < 4; i++) {
+        var w = hw * (1.1 - i * 0.22), up = 70 + i * 20;
+        c.beginPath(); c.moveTo(-hw * 0.8, -hh + 4); c.lineTo(hw * 0.8, -hh + 4); c.lineTo(w, -hh - up); c.lineTo(-w, -hh - up); c.closePath(); c.fill();
+      }
+      body();
+      c.fillStyle = 'rgba(255,226,120,0.55)'; c.fillRect(-hw + 5, -hh + 4, 2 * hw - 10, hh - 2);
+      glow(c, col, 8); c.strokeStyle = col; c.lineWidth = 1.2; c.globalAlpha = 0.7;
+      c.strokeRect(-hw, -hh - 18 * k, 2 * hw, hh * 0.9);
+      c.globalAlpha = 1;
+    } else {
+      body(); glow(c, col, 8);
+      c.strokeStyle = col; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(-hw, -hh * 0.15); c.lineTo(hw, -hh * 0.15); c.stroke();
+    }
+    glow(c, col, 8);
+    c.strokeStyle = col; c.lineWidth = 1.5; c.strokeRect(-hw, -hh, 2 * hw, 2 * hh);
+    c.lineWidth = 1;
+    c.beginPath(); c.moveTo(-hw * 0.55, -hh); c.lineTo(-hw * 0.55, hh); c.moveTo(hw * 0.55, -hh); c.lineTo(hw * 0.55, hh); c.stroke();
+    c.lineWidth = 2.8; var L = 9;
+    c.beginPath();
+    c.moveTo(-hw, -hh + L); c.lineTo(-hw, -hh); c.lineTo(-hw + L, -hh);
+    c.moveTo(hw - L, -hh); c.lineTo(hw, -hh); c.lineTo(hw, -hh + L);
+    c.moveTo(hw, hh - L); c.lineTo(hw, hh); c.lineTo(hw - L, hh);
+    c.moveTo(-hw + L, hh); c.lineTo(-hw, hh); c.lineTo(-hw, hh - L);
+    c.stroke();
+    if (!o.open) {
+      c.lineWidth = 1.4; c.fillStyle = 'rgba(255,207,90,0.2)';
+      c.beginPath(); c.moveTo(0, -6); c.lineTo(6, 0); c.lineTo(0, 6); c.lineTo(-6, 0); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#fff3c4'; c.beginPath(); c.arc(0, -0.5, 1.6, 0, 6.283); c.fill();
+      c.lineWidth = 1.2; c.beginPath(); c.moveTo(0, 0.5); c.lineTo(0, 3.5); c.stroke();
+    }
+    noGlow(c);
+    c.restore();
+  };
+  var R2 = [
+    { label: 'BARREL', f: function (c, t) { A.barrel(c, { t: t, rate: -1 }); } },
+    { label: 'LIT (LOOPS)', f: function (c, t) { A.barrel(c, { t: t, rate: reduce ? 0.5 : (t % 1.6) / 1.6 }); } },
+    { label: 'HEALTH BARREL', f: function (c, t) { A.health(c, { t: t }); } },
+    { label: 'CHEST', f: function (c, t) { A.chest(c, { t: t, open: false }); } },
+    { label: 'OPENED', f: function (c, t) { A.chest(c, { t: t, open: true, k: 1 }); } }
+  ];
+  var r2 = document.getElementById('r2');
+  function drawR2(t) {
+    var c = r2.getContext('2d'); c.setTransform(2, 0, 0, 2, 0, 0);
+    c.fillStyle = '#070910'; c.fillRect(0, 0, 720, 250);
+    c.strokeStyle = '#10161d'; c.lineWidth = 1;
+    for (var gx = 0; gx <= 720; gx += 40) { c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, 250); c.stroke(); }
+    for (var gy = 0; gy <= 250; gy += 40) { c.beginPath(); c.moveTo(0, gy); c.lineTo(720, gy); c.stroke(); }
+    R2.forEach(function (s, i) {
+      c.save(); c.translate(72 + i * 144, 120); c.scale(2, 2);
+      c.fillStyle = 'rgba(0,0,0,0.3)';
+      if (i >= 3) c.fillRect(-24 + 4, -17 + 6, 48, 34); else { c.beginPath(); c.arc(3, 5, 17, 0, 6.283); c.fill(); }
+      s.f(c, t);
+      c.restore();
+      c.fillStyle = '#92a1ad'; c.font = '600 11px Oxanium, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.fillText(s.label, 72 + i * 144, 232);
+    });
+  }
+
+  var LOOKS = [A, B, C, D];
+  var INFO = [
+    ['A', 'Hologram', 'Vector wireframes with a cyan glow and scanlines. Damage drops edge segments out and flickers them, then turns the crate pink at low health. The pot is a projected ring with a spinning inner band and a scan line.'],
+    ['B', 'Data Cache', 'Solid storage modules: a grid of LED cells, green for crates and amber for the heavy one. Hits kill cells and flash red errors. The pot is a glass capsule of data that shatters into pixels.'],
+    ['C', 'Glitch Pixel', 'Chunky block art in violet and teal with a magenta and cyan split on the edges and an occasional row that slips sideways. Damage deletes blocks. The pot is a pink pixel sphere.'],
+    ['D', 'Terminal', 'Everything built from monospace glyphs. Crates are boxes of drifting 0s and 1s with a cursor, wear shows as missing characters and ? marks. The pot is a ( ) capsule of scrolling bits.']
+  ];
+
+  // ---------- cards ----------
+  var cardsEl = document.getElementById('cards'), cards = [];
+  INFO.forEach(function (inf, li) {
+    var card = document.createElement('article'); card.className = 'card';
+    card.innerHTML = '<canvas width="1440" height="500" aria-label="Look ' + inf[0] + ': ' + inf[1] + '"></canvas>' +
+      '<div class="body"><div class="tag">LOOK ' + inf[0] + '</div><h3>' + inf[1] + '</h3><p>' + inf[2] + '</p></div>';
+    cardsEl.appendChild(card);
+    cards.push(card.querySelector('canvas'));
+  });
+
+  var SLOTS = [
+    { label: 'CRATE', kind: 'crate', hp: 1, heavy: false },
+    { label: 'HALF', kind: 'crate', hp: 0.5, heavy: false },
+    { label: 'LOW', kind: 'crate', hp: 0.2, heavy: false },
+    { label: 'HEAVY', kind: 'crate', hp: 1, heavy: true },
+    { label: 'POT', kind: 'jar', k: 0 },
+    { label: 'SMASH', kind: 'jar', k: -1 }
+  ];
+
+  function breakK(t) { if (reduce) return 0.35; var p = (t % 3.4) / 1.3; return p > 1 ? 0 : Math.max(0.0001, p); }
+
+  function drawCard(cv, look, t) {
+    var c = cv.getContext('2d'); c.setTransform(2, 0, 0, 2, 0, 0);
+    c.clearRect(0, 0, 720, 250);
+    c.fillStyle = '#070910'; c.fillRect(0, 0, 720, 250);
+    c.strokeStyle = '#10161d'; c.lineWidth = 1;
+    for (var gx = 0; gx <= 720; gx += 40) { c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, 250); c.stroke(); }
+    for (var gy = 0; gy <= 250; gy += 40) { c.beginPath(); c.moveTo(0, gy); c.lineTo(720, gy); c.stroke(); }
+    SLOTS.forEach(function (s, i) {
+      c.save(); c.translate(60 + i * 120, 108); c.scale(2, 2);
+      if (s.kind === 'crate') {
+        var h = s.heavy ? 27 : 22;
+        c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(-h + 4, -h + 6, 2 * h, 2 * h);
+        look.crate(c, { h: h, heavy: s.heavy, hp: s.hp, t: t, seed: 3 + i });
+      } else {
+        var k = s.k < 0 ? breakK(t) : 0;
+        if (k === 0) { c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.arc(3, 5, 13, 0, 6.283); c.fill(); }
+        look.jar(c, { r: 13, t: t, k: k, seed: 5 });
+      }
+      c.restore();
+      c.fillStyle = '#92a1ad'; c.font = '600 11px Oxanium, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.fillText(s.label, 60 + i * 120, 232);
+    });
+  }
+
+  // ---------- arena strip ----------
+  var arena = document.getElementById('arena'), actx = arena.getContext('2d');
+  var sel = 0, zoom = 1;
+  var layout = [
+    { x: 120, y: 90, kind: 'crate', hp: 1, seed: 1 }, { x: 166, y: 90, kind: 'crate', hp: 0.5, seed: 2 },
+    { x: 143, y: 134, kind: 'crate', hp: 0.2, seed: 3 }, { x: 330, y: 200, kind: 'heavy', hp: 1, seed: 4 },
+    { x: 380, y: 200, kind: 'heavy', hp: 0.6, seed: 5 }, { x: 560, y: 80, kind: 'crate', hp: 1, seed: 6 },
+    { x: 250, y: 70, kind: 'jar', seed: 1 }, { x: 600, y: 215, kind: 'jar', seed: 2 }, { x: 70, y: 220, kind: 'jar', seed: 3 },
+    { x: 760, y: 130, kind: 'crate', hp: 0.8, seed: 7 }, { x: 800, y: 175, kind: 'heavy', hp: 1, seed: 8 }, { x: 700, y: 240, kind: 'jar', seed: 4 }
+  ];
+
+  function drawArena(t) {
+    var c = actx, W = 960, H = 320;
+    c.setTransform(2, 0, 0, 2, 0, 0);
+    c.fillStyle = '#0a0f15'; c.fillRect(0, 0, W, H);
+    c.save(); c.scale(zoom, zoom);
+    var vw = W / zoom, vh = H / zoom;
+    c.strokeStyle = '#121a22'; c.lineWidth = 1;
+    for (var gx = 0; gx <= vw; gx += 40) { c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, vh); c.stroke(); }
+    for (var gy = 0; gy <= vh; gy += 40) { c.beginPath(); c.moveTo(0, gy); c.lineTo(vw, gy); c.stroke(); }
+    var ox = zoom === 2 ? -60 : 0, oy = zoom === 2 ? -30 : 0;
+    c.translate(ox, oy);
+    var look = LOOKS[sel];
+    layout.forEach(function (p) {
+      c.save(); c.translate(p.x, p.y);
+      if (p.kind === 'jar') {
+        c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.arc(3, 5, 13, 0, 6.283); c.fill();
+        look.jar(c, { r: 13, t: t, k: 0, seed: p.seed });
+      } else {
+        var heavy = p.kind === 'heavy', h = heavy ? 27 : 22;
+        c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(-h + 4, -h + 6, 2 * h, 2 * h);
+        look.crate(c, { h: h, heavy: heavy, hp: p.hp, t: t, seed: p.seed });
+      }
+      c.restore();
+    });
+    // bullets, a player, and one bullet breaking on a crate
+    for (var i = 0; i < 7; i++) {
+      var f = ((reduce ? 0.3 : t * 0.16) + i / 7) % 1, bx = 40 + f * 880, by = 40 + ((i * 53) % 220) + Math.sin(f * 9 + i) * 10;
+      c.strokeStyle = 'rgba(255,150,70,0.35)'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(bx - 14, by); c.lineTo(bx, by); c.stroke();
+      c.fillStyle = '#ff9d4a'; c.beginPath(); c.arc(bx, by, 4, 0, 6.283); c.fill();
+    }
+    c.fillStyle = '#6fb4ff'; c.beginPath(); c.arc(470, 150, 11, 0, 6.283); c.fill();
+    c.strokeStyle = '#cfe6ff'; c.lineWidth = 2; c.beginPath(); c.moveTo(470, 150); c.lineTo(500, 140); c.stroke();
+    c.restore();
+  }
+
+  // ---------- controls ----------
+  document.querySelectorAll('button[data-look]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      sel = +b.dataset.look;
+      document.querySelectorAll('button[data-look]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if (reduce) frame(0);
+    });
+  });
+  document.querySelectorAll('button[data-zoom]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      zoom = +b.dataset.zoom;
+      document.querySelectorAll('button[data-zoom]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if (reduce) frame(0);
+    });
+  });
+
+  var t0 = performance.now();
+  function frame(now) {
+    var t = reduce ? 1.3 : (now - t0) / 1000;
+    for (var i = 0; i < 4; i++) drawCard(cards[i], LOOKS[i], t);
+    drawArena(t); drawR2(t);
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { requestAnimationFrame(frame); });
+  else requestAnimationFrame(frame);
+})();
+</script>

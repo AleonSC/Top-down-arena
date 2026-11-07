@@ -1,0 +1,218 @@
+<title>Modifiers Tab Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Oxanium:wght@600;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Lobby Modifiers tab, CRT look. Three layouts for the right-hand panel; every one puts the switch on the right as a
+   key-style button (same family as the lobby's READY? key) and drops the OFF|ON slider and LED. Single dark look by choice. */
+:root {
+  --bg: #04070f; --ink: #0a1530; --line: #1f3566; --line-hi: #4f78c8; --fg: #d3def5; --muted: #7e90b6; --dim: #51618a;
+  --easier: #56e890; --risky: #ffc860; --harder: #ff7272; --lit: #6fb8ff;
+  --f-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --f-crt: "Rajdhani", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--f-body); margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+h1, h2 { font-family: var(--f-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: .05em; text-transform: uppercase; line-height: 1.05; }
+h2 { font-size: 20px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+p { margin: 0; max-width: 72ch; }
+.eyebrow { font: 600 11px var(--f-crt); letter-spacing: .2em; text-transform: uppercase; color: var(--risky); }
+.lead { color: #b6c4e2; }
+.opt { display: grid; gap: 12px; min-width: 0; }
+.opt .tag { font: 700 12px var(--f-crt); letter-spacing: .18em; color: var(--lit); }
+.pros { display: flex; flex-wrap: wrap; gap: 2px 20px; color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: #c1cdea; font-weight: 600; }
+.rec { color: var(--risky); }
+
+/* ---- the CRT screen ---- */
+.crt { position: relative; border-radius: 22px; padding: 14px; background: #02050c; border: 1px solid #16264d; box-shadow: 0 0 0 4px #070d1f, 0 0 60px rgba(40,90,200,.12); overflow: hidden; }
+.crt::before { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: 22px;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px), radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%); }
+.screen { position: relative; border-radius: 14px; background: radial-gradient(ellipse at 30% 0%, #0d1f4a 0%, #07112a 55%, #050a1b 100%); border: 1px solid var(--line); padding: 14px; min-width: 0; }
+.tabs { display: flex; gap: 6px; justify-content: space-between; padding: 0 6px 12px; font: 600 12px var(--f-crt); letter-spacing: .26em; color: var(--dim); overflow: hidden; }
+.tabs span { padding: 6px 10px; white-space: nowrap; }
+.tabs .cur { color: #fff; border: 1px solid var(--line-hi); background: rgba(80,130,230,.18); box-shadow: 0 0 14px rgba(80,140,255,.3); }
+.panel { position: relative; border: 1px solid var(--line); background: rgba(3,9,24,.6); padding: 16px 18px 14px; min-width: 0; }
+.panel i { position: absolute; width: 14px; height: 14px; border: 2px solid var(--line-hi); }
+.panel i:nth-of-type(1) { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+.panel i:nth-of-type(2) { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+.panel i:nth-of-type(3) { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+.panel i:nth-of-type(4) { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.top .state { font: 700 14px var(--f-crt); letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+.top .state b { color: var(--lit); text-shadow: 0 0 10px rgba(111,184,255,.6); font-weight: 700; }
+.top .hint { font: 500 14px var(--f-crt); color: var(--dim); letter-spacing: .04em; margin-top: 2px; }
+.small { font: 700 12px var(--f-crt); letter-spacing: .14em; color: var(--muted); background: transparent; border: 1px solid var(--line); padding: 6px 12px; cursor: pointer; text-transform: uppercase; }
+.small:hover { color: #fff; border-color: var(--line-hi); }
+.small[disabled] { opacity: .35; cursor: default; }
+.small:focus-visible, .key:focus-visible, .grp:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---- group heading (click to fold) ---- */
+.grp { all: unset; display: flex; align-items: center; gap: 10px; width: 100%; cursor: pointer; padding: 10px 2px 8px; font: 700 13px var(--f-crt); letter-spacing: .2em; text-transform: uppercase; color: var(--c); }
+.grp .blurb { font: 500 14px var(--f-crt); letter-spacing: .04em; text-transform: none; color: var(--dim); }
+.grp .rule { flex: 1; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, transparent), transparent); }
+.grp .n { color: var(--muted); letter-spacing: .12em; }
+.grp .n.on { color: var(--lit); }
+.grp .chev { width: 10px; text-align: center; }
+.easier { --c: var(--easier); } .risky { --c: var(--risky); } .harder { --c: var(--harder); }
+
+/* ---- the key button (sibling of READY?) ---- */
+.key { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 104px; height: 40px; flex: none;
+  font: 700 16px var(--f-crt); letter-spacing: .14em; color: #7f9bd6; background: rgba(8,18,44,.9); border: 1px solid #2c4585; position: relative; transition: background .12s, box-shadow .12s, color .12s, border-color .12s; }
+.key::before, .key::after { content: ""; position: absolute; width: 6px; height: 6px; border: 1px solid #4f78c8; opacity: .7; }
+.key::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.key::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.key svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: square; opacity: 0; width: 0; transition: width .12s, opacity .12s; }
+.key:hover { color: #cfe0ff; border-color: #5b84d6; background: rgba(20,40,90,.9); }
+.key.on { color: #fff; background: linear-gradient(#27549f, #1c3d7c); border-color: #8dbaff; box-shadow: 0 0 18px rgba(90,150,255,.5), inset 0 0 12px rgba(150,200,255,.25); text-shadow: 0 0 8px rgba(190,220,255,.9); }
+.key.on svg { opacity: 1; width: 16px; }
+.key.on::before, .key.on::after { border-color: #cfe4ff; opacity: 1; }
+.key.locked { cursor: default; }
+.key.locked:not(.on):hover { color: #7f9bd6; border-color: #2c4585; background: rgba(8,18,44,.9); }
+.key.wide { width: 100%; height: 36px; }
+
+.mname { font: 700 19px var(--f-crt); letter-spacing: .04em; color: #e4ecfb; line-height: 1.1; transition: color .12s, text-shadow .12s; }
+.mdesc { font: 500 15px/1.25 var(--f-crt); color: var(--muted); }
+.is-on .mname { color: #fff; text-shadow: 0 0 10px rgba(130,190,255,.55); }
+.is-on .mdesc { color: #aebfe2; }
+
+/* ---- A: stacked list ---- */
+.A .row { display: grid; grid-template-columns: 3px 1fr auto; gap: 14px; align-items: center; padding: 9px 4px 9px 0; border-bottom: 1px solid rgba(60,90,160,.22); }
+.A .row:last-child { border-bottom: 0; }
+.A .row .bar { align-self: stretch; background: var(--c); opacity: .5; }
+.A .row.is-on .bar { opacity: 1; box-shadow: 0 0 10px var(--c); }
+.A .row .txt { display: grid; gap: 2px; min-width: 0; }
+.A .row:hover { background: rgba(70,110,200,.06); }
+
+/* ---- B: columns ---- */
+.B .row { display: grid; grid-template-columns: 8px minmax(130px, 190px) 1fr auto; gap: 16px; align-items: center; padding: 7px 0; border-bottom: 1px dotted rgba(80,110,180,.28); }
+.B .row:last-child { border-bottom: 0; }
+.B .row .dot { width: 8px; height: 8px; background: var(--c); opacity: .55; }
+.B .row.is-on .dot { opacity: 1; box-shadow: 0 0 8px var(--c); }
+.B .row .mdesc { font-size: 15px; }
+.B .row:hover { background: rgba(70,110,200,.06); }
+.B .key { height: 34px; width: 92px; font-size: 15px; }
+.B .head { display: grid; grid-template-columns: 8px minmax(130px, 190px) 1fr auto; gap: 16px; font: 600 11px var(--f-crt); letter-spacing: .22em; color: var(--dim); padding: 0 0 6px; border-bottom: 1px solid var(--line); }
+.B .head span:last-child { width: 92px; text-align: center; }
+
+/* ---- C: tiles ---- */
+.C .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-bottom: 6px; }
+.C .tile { display: grid; grid-template-rows: auto 1fr auto; gap: 6px; padding: 12px 14px 12px; border: 1px solid rgba(70,105,185,.4); background: rgba(8,18,44,.55); position: relative; }
+.C .tile::before { content: ""; position: absolute; left: -1px; top: -1px; width: 28px; height: 2px; background: var(--c); }
+.C .tile.is-on { border-color: #6fa2f0; background: rgba(30,70,150,.25); box-shadow: 0 0 20px rgba(80,140,255,.2), inset 0 0 24px rgba(80,140,255,.08); }
+.C .tile .mdesc { min-height: 38px; }
+
+.foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font: 500 13px var(--f-crt); color: var(--dim); letter-spacing: .08em; padding-top: 12px; text-transform: uppercase; }
+
+@media (max-width: 700px) {
+  .A .row { grid-template-columns: 3px 1fr auto; }
+  .B .head { display: none; }
+  .B .row { grid-template-columns: 8px 1fr auto; }
+  .B .row .mdesc { grid-column: 2 / 3; grid-row: 2; }
+  .B .row .key { grid-row: 1 / 3; grid-column: 3; }
+  .C .tiles { grid-template-columns: 1fr; }
+  .tabs span:not(.cur) { display: none; }
+  .tabs { justify-content: center; }
+  .key { width: 88px; }
+}
+@media (prefers-reduced-motion: reduce) { .key, .key svg { transition: none; } }
+</style>
+
+<div class="wrap">
+<header style="display:grid;gap:10px">
+  <div class="eyebrow">Lobby &middot; Modifiers tab &middot; CRT layouts</div>
+  <h1>Modifiers, <span style="color:var(--lit)">tidied</span></h1>
+  <p class="lead">The current tab puts a wide OFF | ON slider and an LED on the left, so the eye has to jump across to the description. In all three layouts below the switch sits on the right as a key button, the same family as READY?, with a check mark and glow when it is on. Names and descriptions get a clean left edge and the tier is a thin colour tick. Everything is clickable: toggle keys, fold a group by clicking its heading, and try Turn all off. The Harder group is open here so you can see a full list.</p>
+</header>
+
+<section class="opt">
+  <div class="tag">OPTION A</div>
+  <h2>Stacked list</h2>
+  <p class="pros"><span><b>Easiest to scan.</b> Name over description, key hard right.</span> <span><b>Cost:</b> two lines per row, so fewer fit before scrolling.</span> <span class="rec"><b>Closest to the current tab.</b></span></p>
+  <div id="A"></div>
+</section>
+
+<section class="opt">
+  <div class="tag">OPTION B</div>
+  <h2>Aligned columns</h2>
+  <p class="pros"><span><b>Densest.</b> One line per row; name column and description column line up like a readout.</span> <span><b>Cost:</b> long descriptions wrap to two lines; needs the wide panel.</span></p>
+  <div id="B"></div>
+</section>
+
+<section class="opt">
+  <div class="tag">OPTION C</div>
+  <h2>Tile grid</h2>
+  <p class="pros"><span><b>Biggest targets.</b> Each modifier is its own card with a full-width key; reads like picking cartridges.</span> <span><b>Cost:</b> taller overall, scrolls sooner; two columns need the full panel width.</span></p>
+  <div id="C"></div>
+</section>
+</div>
+
+<script>
+const MODS = [
+  ["Lucky","Everyone starts with 3 extra upgrade rerolls.","easier"],
+  ["Head Start","Everyone starts at level 3 with a free legendary pick.","easier"],
+  ["Practiced","Abilities gain mastery twice as fast.","easier"],
+  ["Gold Rush","Every kill drops gold, and a shop opens before each boss. Unspent gold is kept.","easier"],
+  ["Second Wind","Once between bosses, each player gets back up by themselves at half health.","easier"],
+  ["Glass Cannon","Everyone deals 50% more damage, and takes 50% more.","risky"],
+  ["Bloodlust","Every kill heals its killer, but no health orbs drop and nobody regenerates.","risky"],
+  ["Hunted","Each wave one player is hunted by every enemy, and deals double damage.","risky"],
+  ["Tough Crowd","Enemies and bosses have 50% more health.","harder"],
+  ["Frenzy","Enemies and bosses shoot 30% faster.","harder"],
+  ["Swift Foes","Enemies move 30% faster.","harder"],
+  ["Famine","Enemies never drop health orbs.","harder"],
+  ["Tiny Arena","After each boss, walls take a quarter of the room (down to 40%).","harder"],
+  ["Nightfall","It's dark: you see a short way round each player, plus where you aim.","harder"],
+  ["Death Throes","Every regular enemy bursts into a ring of 6 shots a moment after it dies.","harder"],
+  ["Solid Walls","No wrapping round the edges: the arena's sides are walls.","harder"],
+  ["Zombie Infection","Every wave is a growing horde of melee zombies, and some of the dead get back up.","harder"],
+  ["Cluttered","Every wave piles a lot more crates into the arena. Wind your way through the maze; boss fights clear it.","harder"]
+];
+const TIERS = [["easier","EASIER","a helping hand"],["risky","RISKY","a trade: something gained, something lost"],["harder","HARDER","a tougher run"]];
+const CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8.5 6 12.5 14 3.5"/></svg>';
+
+function mount(id, kind) {
+  const root = document.getElementById(id);
+  const on = new Set(id === "A" ? ["Lucky","Glass Cannon"] : id === "B" ? ["Head Start","Gold Rush","Hunted"] : ["Practiced","Frenzy"]);
+  const folded = new Set();
+  function key(name, wide) {
+    const o = on.has(name);
+    return `<button class="key${o ? " on" : ""}${wide ? " wide" : ""}" data-m="${name}" role="switch" aria-checked="${o}" aria-label="${name}">${CHECK}<span>${o ? "ON" : "OFF"}</span></button>`;
+  }
+  function rows(t) {
+    const list = MODS.filter(m => m[2] === t);
+    if (kind === "C") return `<div class="tiles">${list.map(m => `<div class="tile ${t}${on.has(m[0]) ? " is-on" : ""}"><div class="mname">${m[0]}</div><div class="mdesc">${m[1]}</div>${key(m[0], true)}</div>`).join("")}</div>`;
+    if (kind === "B") return list.map(m => `<div class="row ${t}${on.has(m[0]) ? " is-on" : ""}"><span class="dot"></span><span class="mname">${m[0]}</span><span class="mdesc">${m[1]}</span>${key(m[0])}</div>`).join("");
+    return list.map(m => `<div class="row ${t}${on.has(m[0]) ? " is-on" : ""}"><span class="bar"></span><span class="txt"><span class="mname">${m[0]}</span><span class="mdesc">${m[1]}</span></span>${key(m[0])}</div>`).join("");
+  }
+  function render() {
+    const total = on.size;
+    let body = kind === "B" ? `<div class="head"><span></span><span>MODIFIER</span><span>EFFECT</span><span>SWITCH</span></div>` : "";
+    for (const [t, tag, blurb] of TIERS) {
+      const list = MODS.filter(m => m[2] === t), n = list.filter(m => on.has(m[0])).length, f = folded.has(t);
+      const count = f ? `${list.length} hidden${n ? " · " + n + " on" : ""}` : n ? n + " on" : "";
+      body += `<button class="grp ${t}" data-g="${t}" aria-expanded="${!f}"><span class="chev">${f ? "+" : "−"}</span><span>${tag}</span><span class="blurb">${blurb}</span><span class="rule"></span><span class="n${n ? " on" : ""}">${count}</span></button>`;
+      if (!f) body += `<div class="${kind}-body ${kind === "B" ? "" : ""}">${rows(t)}</div>`;
+    }
+    root.innerHTML = `<div class="crt ${kind}"><div class="screen"><div class="tabs"><span>LOADOUT</span><span>PERKS</span><span>DIFFICULTY</span><span class="cur">MODIFIERS</span><span>BOSS HUNT</span></div>
+      <div class="panel"><i></i><i></i><i></i><i></i>
+      <div class="top"><div><div class="state">${total ? `<b>${total} ON</b> · custom run` : "None on · a normal run"}</div><div class="hint">Press a key to turn a modifier on or off. They last the whole run, for everyone (Practice Range too).</div></div>
+      <button class="small" data-off ${total ? "" : "disabled"}>Turn all off</button></div>${body}</div></div></div>`;
+  }
+  root.addEventListener("click", e => {
+    const k = e.target.closest("[data-m]"), g = e.target.closest("[data-g]"), o = e.target.closest("[data-off]");
+    if (k) { const m = k.dataset.m; on.has(m) ? on.delete(m) : on.add(m); }
+    else if (g) { const t = g.dataset.g; folded.has(t) ? folded.delete(t) : folded.add(t); }
+    else if (o) on.clear();
+    else return;
+    render();
+  });
+  render();
+}
+mount("A", "A"); mount("B", "B"); mount("C", "C");
+</script>

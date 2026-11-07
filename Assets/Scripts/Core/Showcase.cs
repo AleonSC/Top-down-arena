@@ -164,7 +164,7 @@ namespace Arena
                 far = Math.Max(far, Home.DistanceTo(e.Pos) + e.Radius);
             if (far > Extent)
                 Extent += (far - Extent) * Math.Min(1f, dt * 4f);
-            Game.Sounds.Clear();  // the preview is silent
+            // (Game.Sounds is left for the lobby to play muffled and clear: LobbyUi.ShowcaseFixedStep)
         }
 
         public void Stop() => session.Leave("");

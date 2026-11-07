@@ -303,10 +303,12 @@ Mastery resets each run.
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when the wave is
 cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to select a card, then
-**Choose Upgrade** (or Enter). Each card has its rarity centered on top, the icon in a cutout tile, and a soft glow in the
-rarity's color (whitish common, green uncommon, blue rare, purple very rare, orange legendary) while it bobs slowly (rare and
-better ones also shine); the one you pick lifts and glows stronger. Upgrades with a stack cap show circles that fill with how
-many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
+**Choose Upgrade** (or Enter). The screen wears the lobby's blue CRT look: a glowing VT323 title, boxed cards with corner
+brackets, and the lobby's digital keys for **Reroll** and **Choose Upgrade** (Choose is the dashed, locked key until you pick a
+card, then it lights up with a green lamp). Each card has its rarity in a small key-like label on top, the icon (in its own
+colours) in an outlined tile, and a soft glow (blue common, green uncommon, blue rare, purple very rare, orange legendary)
+while it bobs slowly (rare and better ones also shine); the one you pick lifts, glows stronger and outlines in white-blue.
+Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendaries)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
@@ -394,6 +396,8 @@ comes back in squads, and with the Reaver from wave 28).
 With **Visual effects** on, regular enemies stand out from the floor: a soft dark shadow under each body and a faint glow in their own colour, much quieter than a player's halo. Bosses, spawning enemies and zombies don't get it.
 
 With **Visual effects** on, anything that moves fast leaves an **air trail**: two thin streamlines off its shoulders that wobble and fade. It follows speed: none at or below 110 px/s (Grunts, Brutes, bosses), light for mid speeds (a Tank or Healer walking is about 10-25%), and full at 330 px/s and up (Hive Bombers, dashes, hard knockback). Players, enemies and minions all get it. Not sent over the network.
+
+**CRT colour** (Settings > Visual effects, saved on this machine): tints the CRT screens (menus, lobby, profile, run summary) Blue (default), Green, Amber, Red, Violet or White. The role, class and rarity colours keep their own meaning and stay as they are.
 
 With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into puffs that split into two halves, each following a pale eye round one side of the enemy, and meet again behind it to re-form as you strike (you aren't drawn for the first third of a second; the step and its damage are instant as before). Off, it's the plain ring and slash. The two ends of the step are sent over the network (`FxKind.ShadowStep`).
 
@@ -545,7 +549,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 
 | Prop | What it does |
 |---|---|
-| **Crate** | Cover. Enemy shots stop at it, red aimed shots included, and each one wears it down (8 hits + 1 per 3 waves); your shots fly over it. You and enemies can't walk through it. Two often stand side by side as a little wall. 2 crates at wave 1, one more about every 3 waves, up to 10 |
+| **Crate** | (With Visual effects on, crates, pots, barrels and the chest draw as glowing holograms: glowing wireframes that drop out, flicker and turn pink as they wear; off keeps the wood and clay.) Cover. Enemy shots stop at it, red aimed shots included, and each one wears it down (8 hits + 1 per 3 waves); your shots fly over it. You and enemies can't walk through it. Two often stand side by side as a little wall. 2 crates at wave 1, one more about every 3 waves, up to 10 |
 | **Iron-bound crate** | From wave 12, about a third of the crates: twice as tough |
 | **Pot** | Shoot it or walk through it: it smashes into a health orb (35%) or a little XP for everyone. 1 at first, up to 5 |
 | **Barrel** | Rare (from wave 3, a 25-45% chance of one a wave, sometimes two from wave 20). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per wave damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and pots and setting off other barrels |
@@ -559,11 +563,11 @@ the same one twice running. Boss waves, the Practice Range, challenge rooms and 
 arena. A teal chip above the wave plate names the layout. Mockups: [`Docs/Mockups/arena-layouts.html`](Docs/Mockups/arena-layouts.html);
 design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 
-- **Walls and pillars** (steel) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
+- **Walls and pillars** (glowing cyan outlines with diagonal hatching, the phosphor vector look of [`Docs/Mockups/arena-layouts-digital.html`](Docs/Mockups/arena-layouts-digital.html)) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
   and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
   starts the cycle with its own crates; random crates, pots and barrels still turn up, clear of the walls.
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
-  through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (red holograms, part of the
+  through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (flickering red holograms with a dashed rim, part of the
   wall) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
   and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
   gates drop away (the inner walls stay).
@@ -663,8 +667,8 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 17 switches (a list of digital OFF | ON toggles with an LED, grouped under **Easier**, **Risky** and **Harder**
-headings, each row marked with its tier's colour) that change the whole run, for everyone (Practice
+The lobby's **Modifiers** tab lists 18 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
+headings, each tile marked with its tier's colour; click anywhere on a tile to switch it) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the match, and session recordings list them. Each tier has its own heading;
 click its heading to fold it away (folded, it says how many are hidden and how many are on; remembered on your

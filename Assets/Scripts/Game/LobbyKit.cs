@@ -207,7 +207,7 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var c = CrtStyle.Corner;
+            var c = CrtUi.T(CrtStyle.Corner);
             float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
             // A faint halo along each arm only (a halo round the whole corner square read as a bright spot).
             const float hs = 0.05f;
@@ -261,7 +261,7 @@ namespace Arena
             if (Event.current.type != EventType.Repaint)
                 return;
             var rc = washCol;
-            Color d0 = new Color(0.031f, 0.063f, 0.157f), d1 = new Color(0.0196f, 0.039f, 0.110f), d2 = new Color(0.0157f, 0.031f, 0.082f);
+            Color d0 = CrtUi.T(new Color(0.031f, 0.063f, 0.157f)), d1 = CrtUi.T(new Color(0.0196f, 0.039f, 0.110f)), d2 = CrtUi.T(new Color(0.0157f, 0.031f, 0.082f));
             Color c0 = Mix(rc, 0.11f, d0), c1 = Mix(rc, 0.03f, d1), c2 = d2;
             // 165 degrees: t runs down and a little to the right. Strips take t along the left edge; the ramp below darkens toward the right.
             const float sin = 0.2588f, cos = 0.9659f;

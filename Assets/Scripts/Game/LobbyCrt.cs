@@ -19,8 +19,8 @@ namespace Arena
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
     {
-        public static readonly Color LobbyInk = CrtUi.Ink;
-        static readonly Color LobbyBg = CrtUi.Bg;
+        public static Color LobbyInk => CrtUi.Ink;
+        static Color LobbyBg => CrtUi.Bg;
         const float EnterCrtLen = 7.1f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 5.5f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, CrtLogPause = 1.0f, CrtLogFadeAt = 5.6f, LobbyCrtBgAlpha = 1f;
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
         const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
@@ -29,10 +29,16 @@ namespace Arena
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
         static GUIStyle lobbyGlassStyle;
 
+        static int lobbyTexTheme = -1;
+
         static void InitLobbyCrt()
         {
-            if (lobbyScanTex != null)
+            if (lobbyScanTex != null && lobbyTexTheme == CrtUi.Theme)
                 return;
+            lobbyTexTheme = CrtUi.Theme;  // the CRT colour changed: build the textures again
+            if (lobbyScanTex != null) Object.Destroy(lobbyScanTex);
+            if (lobbyPhosTex != null) Object.Destroy(lobbyPhosTex);
+            if (lobbyGlassTex != null) Object.Destroy(lobbyGlassTex);
             // Scanlines: one dark row in three, stretched over the window (the same 1 px lines as CrtUi.End).
             lobbyScanTex = new Texture2D(1, 720, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var rows = new Color[720];
@@ -44,7 +50,7 @@ namespace Arena
             lobbyPhosTex = new Texture2D(1, 720, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var phos = new Color[720];
             for (int y = 0; y < phos.Length; y++)
-                phos[y] = y % 4 == 0 ? new Color(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, 1f) : new Color(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, 0f);
+                phos[y] = y % 4 == 0 ? CrtUi.Ink : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0f);
             lobbyPhosTex.SetPixels(phos);
             lobbyPhosTex.Apply();
             // The glass frame, meant to be 9-sliced: a rounded rectangle filling the whole texture; outside its curve the dark screen surround, then a
@@ -53,9 +59,9 @@ namespace Arena
             lobbyGlassTex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var px = new Color[size * size];
             float half = size / 2f;
-            var surround = CrtStyle.GlassSurround;  // (CrtStyle.cs)
-            var band = CrtStyle.GlassBand;
-            var line = CrtStyle.GlassLine;
+            var surround = CrtStyle.GlassSurround;  // (CrtStyle.cs; T moves the blue-theme colours to the chosen phosphor)
+            var band = CrtUi.T(CrtStyle.GlassBand);
+            var line = CrtUi.T(CrtStyle.GlassLine);
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
                 {
@@ -107,7 +113,7 @@ namespace Arena
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
             Ui.Fill(full, new Color(LobbyBg.r, LobbyBg.g, LobbyBg.b, LobbyCrtBgAlpha * a));
-            Ui.RadialGlow(new Rect(-W * 0.1f, -H * 0.1f, W * 1.2f, H * 1.2f), new Color(CrtStyle.ScreenGlow.r, CrtStyle.ScreenGlow.g, CrtStyle.ScreenGlow.b, 0.38f * a));  // the glow in the middle
+            Ui.RadialGlow(new Rect(-W * 0.1f, -H * 0.1f, W * 1.2f, H * 1.2f), CrtUi.T(new Color(CrtStyle.ScreenGlow.r, CrtStyle.ScreenGlow.g, CrtStyle.ScreenGlow.b, 0.38f * a)));  // the glow in the middle
             var oldC = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.05f * a);
             GUI.DrawTexture(full, lobbyPhosTex);
@@ -189,7 +195,7 @@ namespace Arena
             // The rounded frame sits 7 px in from the screen's edge, with a thin square line 4 px in, round the outside of it (the mockup's layout).
             GUI.Box(new Rect(7f, 7f, W - 14f, H - 14f), GUIContent.none, lobbyGlassStyle);
             GUI.color = old;
-            CrtKit.Frame(new Rect(4f, 4f, W - 8f, H - 8f), 1f, new Color(CrtStyle.ScreenFrame.r, CrtStyle.ScreenFrame.g, CrtStyle.ScreenFrame.b, a));
+            CrtKit.Frame(new Rect(4f, 4f, W - 8f, H - 8f), 1f, CrtUi.T(new Color(CrtStyle.ScreenFrame.r, CrtStyle.ScreenFrame.g, CrtStyle.ScreenFrame.b, a)));
         }
 
         /// New run: start the host, and (with effects on) play the CRT boot into the lobby.
@@ -390,7 +396,7 @@ namespace Arena
             float k = EaseInOut(Seg(e, 0.3f, CrtGrowTo));  // the colour change, a little ahead of the size
             var bg = Color.Lerp(CrtUi.Bg, LobbyBg, k);
             Ui.Fill(r, bg);
-            Ui.RadialGlow(new Rect(r.x - r.width * 0.1f, r.y - r.height * 0.1f, r.width * 1.2f, r.height * 1.2f), Color.Lerp(new Color(0.08f, 0.16f, 0.36f, 0.34f), new Color(0.05f, 0.13f, 0.32f, 0.38f), k));  // the glow in the middle, as in DrawLobbyCrtBack
+            Ui.RadialGlow(new Rect(r.x - r.width * 0.1f, r.y - r.height * 0.1f, r.width * 1.2f, r.height * 1.2f), Color.Lerp(CrtUi.T(new Color(0.08f, 0.16f, 0.36f, 0.34f)), CrtUi.T(new Color(0.05f, 0.13f, 0.32f, 0.38f)), k));  // the glow in the middle, as in DrawLobbyCrtBack
             GUI.BeginGroup(r);
             CrtScanlines(new Rect(0f, 0f, W, H), 1f);
             float s = Mathf.Lerp(3f, 9f, grow);

@@ -20,7 +20,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Challenges.cs`: challenge rooms (portal, crystal, gatekeeper, kill rush, altar)
 - `Paths.cs`: choose-your-path offers, path enemy mixes, hazards, arena rules
 - `Props.cs`: crates, pots, barrels, treasure chests
-- `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look
+- `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look (phosphor vector, Docs/Mockups/arena-layouts-digital.html)
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
 - `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game (with stand-in teammates for ally abilities)
@@ -152,7 +152,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
   `QueenLootLook.cs`, `ReaperLootLook.cs`
-- `PixelArt.cs`: 16x16 icons as text grids
+- `PixelArt.cs`, `ModIcons.cs`: pixel icons as text grids (`ModIcons.cs`: the Modifiers tab's)
 
 ## HUD and in-run UI (Game)
 - `RoundWindows.cs`: the between-round windows' shared frame: the dark layer over the arena (`RoundBackdrop`, each window's strength), a part fading and sliding in (`RoundPart`, fades `Ui.Alpha` too), the CRT tube a window sits in (`RoundTube`); used by the results, picker, shop, path choice and Wave cleared box
@@ -160,8 +160,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
 - `HudLayout.cs`: **the HUD's layout**: the console (wave plate, the five keys and XP strip, your card), what stacks above it (chips, Riot Gear chip, teammate rows, chat, emote bar, mastery toasts, chest hint), the top row (boss bars, objective line, hint pill), the banner; the hide/show slides pivot on these rects
-- `CardArt.cs`: the picker cards' shaded gradient bodies (one texture per colour; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
-- `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker, run summary (the "Rack" of `Docs/Mockups/crt-run-failed.html`: blue CRT tubes for title, totals, each player and the run's damage and health charts, the main menu's keycaps along the bottom), Tab menu, ability tile animations
+- `CardArt.cs`: the picker cards' holographic bodies (`Holo`, one baked texture per rarity colour, plus the scan `Band`; `HudPicker.DrawHolo` adds scanlines, the drifting band and the colour fringe; look: `Docs/Mockups/holo-level-up-cards.html`; `Body` is the older shaded gradient; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
+- `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker (CRT look: lobby keys, boxed cards, `Docs/Mockups/crt-level-up-blue.html`), run summary (the "Rack" of `Docs/Mockups/crt-run-failed.html`: blue CRT tubes for title, totals, each player and the run's damage and health charts, the main menu's keycaps along the bottom), Tab menu, ability tile animations
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
 - `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen, hunt tab

@@ -8,11 +8,21 @@ namespace Arena
     /// and keeps the colours with static scanlines and vignette.
     public static class CrtUi
     {
-        // The colours live in CrtStyle.cs (these names are kept for the many screens that use them).
-        public static readonly Color Ink = CrtStyle.Ink;
-        public static readonly Color Dim = CrtStyle.Dim;
-        public static readonly Color Bg = CrtStyle.Bg;
-        static readonly Color Bezel = CrtStyle.Bezel;
+        // The colours and the CRT colour setting (Settings > Visual effects) live in CrtStyle.cs; these names are kept for the many
+        // screens that use them.
+        public static string[] ThemeNames => CrtStyle.ThemeNames;
+        public static int Theme
+        {
+            get => CrtStyle.Theme;
+            set => CrtStyle.Theme = value;
+        }
+        public static Color Ink => CrtStyle.Ink;
+        public static Color Dim => CrtStyle.Dim;
+        public static Color Bg => CrtStyle.Bg;
+        static Color Bezel => CrtStyle.Bezel;
+
+        /// A colour drawn for the blue theme, moved to the chosen phosphor (CrtStyle.T).
+        public static Color T(Color c) => CrtStyle.T(c);
 
         /// The dark blue screen, with its bezel and a thin phosphor rim.
         public static void Begin(Rect r)

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The blue-phosphor CRT look in one place: its colours and how its keys are drawn. The lobby, the drawer menus (pause, Settings,
+    /// The CRT look in one place: its colours (and the CRT colour setting) and how its keys are drawn. The lobby, the drawer menus (pause, Settings,
     /// How to play, the profile), the HUD's console and the Play picker all read these, so changing a value here restyles every CRT
     /// screen at once. The older names (CrtUi.Ink / Dim / Bg, LobbyKit.Soft / HeadCol / Gold) are kept as aliases.
     /// Check a change with `Tools/Preview/uishots.sh` (the contact sheet shows every screen).
@@ -10,10 +10,43 @@ namespace Arena
     {
         // --- Colours ----------------------------------------------------------------------------------------------------------------
 
-        public static readonly Color Ink = new Color(0.40f, 0.64f, 1f);     // the phosphor: text, outlines, lit keys
-        public static readonly Color Dim = new Color(0.25f, 0.42f, 0.72f);  // dim text, locked keys, off switches
-        public static readonly Color Bg = new Color(0.012f, 0.03f, 0.085f);  // the screen
-        public static readonly Color Bezel = new Color(0.05f, 0.07f, 0.14f); // the rim round a screen (CrtUi.Begin)
+        // The phosphor colour is a setting (Settings > Visual effects > CRT colour); 0 is the original blue. Ink, Dim, Bg and Bezel follow it.
+        // The other colours below are drawn for the blue theme: where they should follow the setting too, the screen passes them
+        // through T (CrtUi.T), which keeps their brightness and moves them to the chosen hue.
+        public static readonly string[] ThemeNames = { "Blue", "Green", "Amber", "Red", "Violet", "White" };
+        static readonly Color[] ThemeInk = { new Color(0.40f, 0.64f, 1f), new Color(0.35f, 0.95f, 0.5f), new Color(1f, 0.72f, 0.25f), new Color(1f, 0.42f, 0.42f), new Color(0.72f, 0.5f, 1f), new Color(0.88f, 0.92f, 0.96f) };
+        static int theme;
+
+        public static int Theme
+        {
+            get => theme;
+            set => theme = Mathf.Clamp(value, 0, ThemeInk.Length - 1);
+        }
+
+        public static Color Ink => ThemeInk[theme];                                           // the phosphor: text, outlines, lit keys
+        public static Color Dim => Color.Lerp(Ink, new Color(0.05f, 0.08f, 0.14f), 0.38f);   // dim text, locked keys, off switches
+        public static Color Bg => theme == 0 ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);  // the screen
+        public static Color Bezel => theme == 0 ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);    // the rim round a screen (CrtUi.Begin)
+
+        /// A colour drawn for the blue theme, moved to the chosen phosphor: same brightness and alpha, the theme's hue.
+        public static Color T(Color c)
+        {
+            if (theme == 0)
+                return c;
+            Color.RGBToHSV(c, out _, out float s, out float v);
+            Color.RGBToHSV(Ink, out float ih, out float isat, out _);
+            var o = Color.HSVToRGB(ih, Mathf.Clamp01(s * isat / 0.6f), v);
+            o.a = c.a;
+            return o;
+        }
+
+        /// A very dark screen with a breath of the phosphor colour in it.
+        static Color Tinted(float darkness, float tint)
+        {
+            var i = Ink;
+            return new Color(darkness * 0.3f + i.r * tint * 0.25f, darkness * 0.3f + i.g * tint * 0.25f, darkness * 0.3f + i.b * tint * 0.25f);
+        }
+
         public static readonly Color Danger = new Color(1f, 0.42f, 0.48f);   // Quit, delete, leave
         public static readonly Color DangerDark = new Color(0.1f, 0.02f, 0.03f);  // text on a lit danger key (inverse video)
         public static readonly Color Body = new Color(0.76f, 0.80f, 0.91f);  // body text on a screen (the lobby)

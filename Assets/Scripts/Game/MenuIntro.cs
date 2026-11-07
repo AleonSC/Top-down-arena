@@ -145,7 +145,7 @@ namespace Arena
             for (int i = 0; i < 6; i++)  // glass: dark at the edges, lighter towards the middle
             {
                 float k = i / 5f;
-                Ui.Pill(new Rect(box.x + i * 20f, box.y + i * 6f, box.width - i * 40f, box.height - i * 12f), Color.Lerp(new Color(0.004f, 0.01f, 0.03f), new Color(0.05f, 0.1f, 0.22f), k));
+                Ui.Pill(new Rect(box.x + i * 20f, box.y + i * 6f, box.width - i * 40f, box.height - i * 12f), Color.Lerp(CrtUi.T(new Color(0.004f, 0.01f, 0.03f)), CrtUi.T(new Color(0.05f, 0.1f, 0.22f)), k));
             }
         }
 
