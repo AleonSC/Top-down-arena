@@ -1,7 +1,7 @@
 # Multiple profiles
 
-Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch (look C of
-`Docs/Mockups/whos-playing.html`, `ProfilesUi.cs`), plus a "Switch profile" button above the main menu's name card.
+Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch (profiles as floppy disks on a display shelf: "Shelf 4" of
+`Docs/Mockups/whos-playing-shelves.html`, first round `whos-playing-floppy.html`; `ProfilesUi.cs`), plus a "Switch profile" button above the main menu's name card.
 Code: `Core/ProfileStore.cs`, `Profile.Name` (format 3), `Game/ProfilesUi.cs`; tests in the `saves` suite
 (`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`TWO=1 MANAGE=1 EMPTY=1`; the move: `shot.sh whotr whotr` with `PROFTR=<0..2.26>,<slot>[,back]`). At most **3 profiles** and always **four boxes** (three slots, an empty one says "Empty", and New profile, grayed out when all three are used), so the move to and from the menu is the same every time; a
 command-line start (`--host`, `--join`, `--autostart`) skips the screen. Profiles are listed by name.
