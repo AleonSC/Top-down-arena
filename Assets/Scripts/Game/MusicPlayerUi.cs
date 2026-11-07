@@ -32,8 +32,11 @@ namespace Arena
                 if (pack != null)
                     Debug.Log("Music Pack found as '" + pack.name + "' (name it MusicPack to be safe)");
             }
-            if (pack != null)
+            if (pack == null)
+                Debug.LogWarning("Music Pack: none found. It must be inside a folder named Resources (e.g. Assets/Resources/MusicPack).");
+            else
             {
+                Debug.Log("Music Pack loaded: '" + pack.name + "', " + pack.Bosses.Count + " boss slot(s), " + pack.Tracks.Count + " track(s)");
                 foreach (var t in pack.Tracks)
                     if (t != null)
                         AddProjectClip(entries, ids, used, t.Title, t.Clip, t.Mood.ToString(), t.Volume);
@@ -41,7 +44,10 @@ namespace Arena
                 ReplaceTrack(MusicLibrary.Battle, pack.WaveBattle);
                 foreach (var bs in pack.Bosses)
                     if (bs != null)
+                    {
+                        Debug.Log("Music Pack: boss " + bs.Boss + " -> " + (bs.Music.Clip == null ? "(no clip)" : bs.Music.Clip.name));
                         ReplaceTrack(SoundBank.BossTrackId(bs.Boss == EnemyType.TwinB ? EnemyType.TwinA : bs.Boss), bs.Music);
+                    }
             }
             foreach (var clip in Resources.LoadAll<AudioClip>("Music"))
                 AddProjectClip(entries, ids, used, null, clip, "Custom", 0.6f);
