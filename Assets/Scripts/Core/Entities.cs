@@ -48,12 +48,21 @@ namespace Arena
         BayBeep, BayServo, BayServoBack, BayClamp, BayZap, BayWhirr, BayTick, BayLift, BaySeat, BayClack,
         // New run's CRT boot into the lobby (LobbyCrt.cs, PlayCrtEntryCues): power-on thump, a key per typed character, a beep per log line, the scan line's sweep, and the ready chime. Never sent.
         CrtPower, CrtType, CrtLine, CrtSweep, CrtReady,
+        // The melee rushers (MeleeSounds.cs, from Docs/Mockups/melee-enemy-sounds.html): made on every machine from the enemies' replicated state, never sent.
+        // Quieter the further they are from you. SawWhirr is a loop while a Buzzsaw touches someone (played by SoundBank.SetSawLoop, not as a cue).
+        SwarmerChomp, SwarmerDie, SpikerFlip, SpikerStab, SpikerDie, BruteStep, BruteGrunt, BruteBash, BruteDie,
+        LungerTell, LungerLeap, LungerLand, LungerDie, SawWhirr, SawDie,
+        SpikeBlockRock, SpikeBlockShake, SpikeBlockLunge, SpikeBlockRest, SpikeBlockDie,
     }
 
     public struct SoundCue
     {
         public Sfx Sfx;
         public bool Ally;  // your friend's shot: played quieter
+        public float Quiet;  // 0..1, how much quieter for being far from you (0 = full volume; Game.QuietAt)
+
+        /// The volume to play at, before the player's own sliders.
+        public float Volume => (Ally ? 0.45f : 1f) * (1f - Quiet);
 
         public static implicit operator SoundCue(Sfx s) => new SoundCue { Sfx = s };
     }

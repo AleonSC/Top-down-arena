@@ -233,8 +233,9 @@ namespace Arena
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
             WaveEditorUpdate(Time.unscaledDeltaTime);  // the wave editor's playhead and keys (WaveEditorUi.cs)
             foreach (var sfx in game.Sounds)
-                sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
+                sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
+            sounds.SetSawLoop(game.SawWhirrLevel);  // the Buzzsaw's contact whirr (MeleeSounds.cs)
             UpdateMusic();
             UpdateLayout();
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)

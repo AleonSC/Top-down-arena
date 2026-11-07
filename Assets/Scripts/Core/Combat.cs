@@ -156,7 +156,7 @@ namespace Arena
             if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot && kind != Defs.MedkitShot)
                 NoteShot(b);
             if (owner == 0)
-                Sounds.Add(Sfx.EnemyShot);
+                Sounds.Add(new SoundCue { Sfx = Sfx.EnemyShot, Quiet = QuietAt(pos) });  // quieter from across the arena (MeleeSounds.cs)
             else
                 Sounds.Add(new SoundCue { Sfx = ShotSound(kind, owner), Ally = owner != MyId });
             return b;

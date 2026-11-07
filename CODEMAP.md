@@ -103,6 +103,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
 - `BossSounds.cs`: audio cues for boss attacks
+- `MeleeSounds.cs`, `Game/MeleeSoundBank.cs`: the melee rushers' cues (made from replicated state on every machine, never sent), `QuietAt` (sounds fade with distance, enemy shots too), the Buzzsaw's contact whirr loop (`SawWhirrLevel`, `SoundBank.SetSawLoop`), deaths that merge when a kind dies together
 
 ## World rendering (Game)
 - `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
