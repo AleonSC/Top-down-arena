@@ -287,7 +287,7 @@ namespace Arena
                     d = V2.FromAngle(MathX.Tau * i / n);
                 SpawnBullet(Defs.KunaiShot, from, d * 600f, 0f, 0.7f, FanDamage * p.Stats.DmgMult, p.Id).Pierce += 1;
             }
-            Sounds.Add(Sfx.Throw);
+            Sounds.Add(Sfx.NinjaFanBurst);
         }
 
         /// True if this slot is a Blade Fan that is circling you now: pressing it throws the kunai instead of casting again.
@@ -329,7 +329,7 @@ namespace Arena
                 Desc = "Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Press your weapon-action key to recall them sooner." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Three quick melee attacks. Every enemy hit builds the strike meter, which drains if you stop hitting. At full, hold your weapon-action key, aim at any enemy and let go to cut across the arena and land behind it. A kill keeps the meter full, allowing for five chained actions. The fifth chain resets the meter and is empowered." },
-            new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 30f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f,
+            new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 30f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
                 Desc = "Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double." },
         };
 
@@ -485,10 +485,10 @@ namespace Arena
                         float dmg = StepDamage * s.DmgMult * s.StepDmgMult * NinjaHitMult(p.Id, Defs.KnightSlash, best);
                         HurtEnemy(best, dmg, p.Id);
                         OnBulletHit(new Bullet { Pos = best.Pos, Vel = (best.Pos - target).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, best);
-                        BroadcastFx(FxKind.Slash, target, best.Pos + (best.Pos - target).Normalized() * best.Radius, new Rgba(0.75f, 0.6f, 1f), 0.12f, 0.2f, Sfx.SwingLight);
+                        BroadcastFx(FxKind.Slash, target, best.Pos + (best.Pos - target).Normalized() * best.Radius, new Rgba(0.75f, 0.6f, 1f), 0.12f, 0.2f, Sfx.NinjaStepStrike);
                     }
                     // The smoke look (Game/ShadowStepLook.cs) starts where they stood; the plain ring and slash above stay for Visual effects off.
-                    BroadcastFx(FxKind.ShadowStep, StepFrom ?? p.Pos, target, new Rgba(0.72f, 0.58f, 1f), p.Id * 1000f + (best != null ? best.Radius : 0f), ShadowStepFxTime, Sfx.None);
+                    BroadcastFx(FxKind.ShadowStep, StepFrom ?? p.Pos, target, new Rgba(0.72f, 0.58f, 1f), p.Id * 1000f + (best != null ? best.Radius : 0f), ShadowStepFxTime, Sfx.NinjaStepCast);
                     return true;
                 }
                 case AbilityId.Vanish:
@@ -500,7 +500,7 @@ namespace Arena
                             e.RetargetT = 0f;  // they look for someone else
                     if (cap)
                         EraseEnemyBullets(p.Pos, 160f);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.45f, 0.4f, 0.65f), 45f, 0.35f, Sfx.Blink);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.45f, 0.4f, 0.65f), 45f, 0.35f, Sfx.NinjaVanish);
                     return true;
                 case AbilityId.BladeFan:
                 {
@@ -508,7 +508,7 @@ namespace Arena
                     p.OrbitT = OrbitTime;
                     p.OrbitClock = 0f;
                     p.OrbitCut.Clear();
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.75f, 0.65f, 1f), BladeOrbitR + 10f, 0.3f, Sfx.Throw);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.75f, 0.65f, 1f), BladeOrbitR + 10f, 0.3f, Sfx.NinjaFanOpen);
                     return true;
                 }
 
@@ -536,7 +536,7 @@ namespace Arena
                     if (marks.Count > most)
                         marks.RemoveRange(most, marks.Count - most);
                     float gap = cap ? LotusStaggerCap : LotusStagger;  // the cuts show one after another; the damage lands now
-                    BroadcastFx(FxKind.DeathLotus, p.Pos, new V2(-1f, p.Id), LotusCrimson, marks.Count, marks.Count * gap + 1.5f, Sfx.SwingHeavy);
+                    BroadcastFx(FxKind.DeathLotus, p.Pos, new V2(-1f, p.Id), LotusCrimson, marks.Count, marks.Count * gap + 1.5f, Sfx.NinjaLotusCast);
                     for (int i = 0; i < marks.Count; i++)
                     {
                         var e = marks[i];
@@ -1040,7 +1040,7 @@ namespace Arena
                 p.KunaiMarkT = 0f;
                 p.AmbushT = Math.Max(p.AmbushT, KunaiAmbush);  // the next hit lands double (NinjaHitMult)
                 p.InvulnT = Math.Max(p.InvulnT, 0.2f);
-                BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.Blink);
+                BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.NinjaBlink);
                 return;
             }
             float dmg = w.Damage * p.Stats.DmgMult;
