@@ -117,7 +117,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bgrow .th { width: 120px; height: 66px; flex: none; border: 1px solid #3a5aa0; background: radial-gradient(circle at 30% 40%, #1a2a5a, transparent 55%), radial-gradient(circle at 70% 65%, #4a1a3a, transparent 50%), #060a18; }
 .bgrow .nm { flex: 1; text-align: center; font: 700 20px var(--f-ui); color: #dbe5ff; letter-spacing: .06em; }
 .arr { width: 34px; height: 30px; border: 1px solid #2c4478; background: rgba(60,100,180,.12); color: #8fb0f0; font: 700 16px var(--f-ui); }
-@media (prefers-reduced-motion: reduce) { .ttl .cur { animation: none; } }
+.slideL { animation: slideL .55s cubic-bezier(.2,.85,.25,1) both; }
+.openR { animation: openR .5s .3s cubic-bezier(.2,.85,.25,1) both; }
+@keyframes slideL { from { transform: translateX(-110%); } to { transform: none; } }
+@keyframes openR { from { clip-path: inset(-12px 100% -12px -12px); opacity: .2; } to { clip-path: inset(-12px -12px -12px -12px); opacity: 1; } }
+.x { width: 38px; height: 38px; border: 1px solid var(--edge); background: #0d1a36; color: #8fb0f0; font: 700 16px var(--f-ui); margin-left: 8px; flex: none; }
+.x:hover { background: #162a55; }
+.ttl.sm { font-size: 32px; }
+@media (prefers-reduced-motion: reduce) { .ttl .cur { animation: none; } .slideL, .openR { animation: none; } }
 </style>
 
 <div class="wrap">
@@ -127,7 +134,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   </header>
   <div class="bar">
     <div class="grp" id="gScreen"><span>Screen</span></div>
-    <div class="grp" id="gLayout"><span>Layout</span></div>
+    <div class="grp" id="gLayout"><span>Animation</span></div>
   </div>
   <div class="view" id="view"><div class="stage" id="stage"></div></div>
   <p class="note" id="note"></p>
@@ -149,7 +156,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   var svg = function (n) { return '<svg viewBox="0 0 24 24">' + ICON[n] + '</svg>'; };
   var brackets = '<i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i>';
   var key = function (cls, icon, name, sub, tag, sel) { return '<button class="k ' + cls + (sel ? ' sel' : '') + '">' + svg(icon) + '<span class="tx"><b>' + name + '</b><small>' + sub + '</small></span>' + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</button>'; };
-  var panel = function (x, y, w, h, inner) { return '<div class="pn" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px">' + brackets + '<div class="in">' + inner + '</div></div>'; };
+  var panel = function (x, y, w, h, inner, cls) { return '<div class="pn ' + (cls || '') + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px">' + brackets + '<div class="in">' + inner + '</div></div>'; };
 
   function backdrop() {
     return '<div class="arena"><i class="grid"></i><i class="wall" style="left:440px;top:250px;width:90px;height:14px"></i><i class="wall" style="left:440px;top:250px;width:14px;height:70px"></i>' +
@@ -164,17 +171,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
   ];
   var list = function (items) { return '<div class="list">' + items.map(function (i) { return key(i[0], i[1], i[2], i[3], i[4], i[5]); }).join('') + '</div>'; };
 
+  var animL = '', animR = '';
   function pause() {
-    var title = '<div class="hd"><div class="ttl">PAUSED<span class="cur"></span></div><div class="hdrule"></div>';
-    if (st.layout === 'A') {
-      var run = '<div class="sec"><div class="sh">This run<small>Normal difficulty</small></div><div class="wave"><strong>WAVE 6</strong><div class="tiles"><div class="tile"><b>0:12</b><span>Time</span></div><div class="tile"><b>12</b><span>Score</span></div><div class="tile"><b>4</b><span>Kills</span></div></div></div></div>' +
-        '<div class="sec"><div class="sh">Coming up</div><div class="info"><div class="ico" style="border-color:#c9a13c;background:#1b1507"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3l7 4v10l-7 4-7-4V7z" fill="#c9a13c" stroke="#f2c14e" stroke-width="1.5"/></svg></div><div><em>Next boss · wave 10</em><b>Hive Queen</b><small>3 waves before it</small></div></div>' +
-        '<div class="info"><div class="ico" style="border-color:#7a4cc4;background:#130a24"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="5" fill="#b36bff"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="#b36bff" stroke-width="2"/></svg></div><div><em>Challenge room · this stretch</em><b style="color:#dbe5ff">Not yet</b><small>A portal opens after one of the next few waves</small></div></div></div>' +
-        '<div class="sec"><div class="sh">Players<small>1 / 3</small></div><div class="pl"><b>Anthony</b><i>Elementalist Tank</i><div class="hp"></div><span class="lv">LV 1</span></div></div>';
-      return panel(150, 56, 980, 608, title + '</div><div class="cols"><div class="col-l">' + list(pauseItems) + '</div><div class="col-r stack">' + run + '</div></div><div class="foot">Esc resume · Arrows select · Enter choose · Hold Tab run stats and build · H hide HUD</div>');
-    }
-    var strip = '<div class="chips" style="margin:0"><span class="chip">Wave <b>6</b></span><span class="chip">Time <b>0:12</b></span><span class="chip">Score <b>12</b></span><span class="chip">Normal</span></div>';
-    return panel(420, 70, 440, 580, '<div class="hd"><div class="ttl">PAUSED<span class="cur"></span></div><div class="hdrule"></div></div>' + strip + '<div class="sec"><div class="sh">Menu</div>' + list(pauseItems) + '</div><div class="foot">Esc resume · Arrows select · Enter choose<br>Hold Tab run stats and build · H hide HUD</div>');
+    var left = panel(24, 24, 410, 672, '<div class="hd"><div class="ttl">PAUSED<span class="cur"></span></div><div class="hdrule"></div></div>' +
+      '<div class="chips" style="margin:0"><span class="chip">Wave <b>6</b></span><span class="chip">Normal</span><span class="chip">1 / 3 players</span></div>' +
+      '<div class="sec"><div class="sh">Menu</div>' + list(pauseItems) + '</div><div class="foot">Esc resume · Arrows select · Enter choose<br>Hold Tab run stats and build · H hide HUD</div>', animL);
+    var run = '<div class="hd"><div class="ttl sm">THIS RUN</div><div class="hdrule"></div></div>' +
+      '<div class="wave"><strong>WAVE 6</strong><div class="tiles"><div class="tile"><b>0:12</b><span>Time</span></div><div class="tile"><b>12</b><span>Score</span></div><div class="tile"><b>4</b><span>Kills</span></div></div></div>' +
+      '<div class="sec"><div class="sh">Coming up</div><div class="info"><div class="ico" style="border-color:#c9a13c;background:#1b1507"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3l7 4v10l-7 4-7-4V7z" fill="#c9a13c" stroke="#f2c14e" stroke-width="1.5"/></svg></div><div><em>Next boss · wave 10</em><b>Hive Queen</b><small>3 waves before it</small></div></div>' +
+      '<div class="info"><div class="ico" style="border-color:#7a4cc4;background:#130a24"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="5" fill="#b36bff"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="#b36bff" stroke-width="2"/></svg></div><div><em>Challenge room · this stretch</em><b style="color:#dbe5ff">Not yet</b><small>A portal opens after one of the next few waves</small></div></div></div>' +
+      '<div class="sec"><div class="sh">Players<small>1 / 3</small></div><div class="pl"><b>Anthony (you)</b><i>Elementalist Tank</i><div class="hp"></div><span class="lv">LV 1</span></div></div>';
+    return left + panel(458, 40, 790, 640, run, animR);
   }
 
   var tabs = [['audio', 'Audio', 'audio', 'Volume for each kind of sound', 'c-green'], ['visual', 'Visual effects', 'fx', 'What the fight looks like', 'c-gold'], ['gameplay', 'Gameplay', 'aim', 'Aim line, the HUD, the network port', 'c-green'], ['keys', 'Keybinds', 'keys', 'Change your controls', 'c-red']];
@@ -199,26 +206,20 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   function settings() {
     var cur = tabs.filter(function (t) { return t[0] === st.tab; })[0];
-    if (st.layout === 'A') {
-      var t = tabs.map(function (x) { return '<button class="tab' + (x[0] === st.tab ? ' sel' : '') + '" data-tab="' + x[0] + '">' + x[1] + '</button>'; }).join('');
-      return panel(110, 56, 1060, 608, '<div class="hd"><button class="back" aria-label="Back"><svg viewBox="0 0 24 24">' + ICON.back + '</svg></button><div class="ttl">SETTINGS<span class="cur"></span></div><div class="hdrule"></div><div class="tabs">' + t + '</div></div>' +
-        '<div class="stack" style="flex:1">' + content() + '</div><div class="foot">Esc back · Click a setting to change it · Settings save as you go</div>');
-    }
     var l = tabs.map(function (x) { return key(x[4], x[2], x[1], x[3], '', x[0] === st.tab).replace('<button class="k', '<button data-tab="' + x[0] + '" class="k'); }).join('');
     var back = '<button class="k c-blue">' + svg('back') + '<span class="tx"><b>Back</b><small>Return to the menu</small></span><span class="tag">ESC</span></button>';
-    return panel(110, 56, 1060, 608, '<div class="hd"><div class="ttl">SETTINGS<span class="cur"></span></div><div class="hdrule"></div><div class="chips"><span class="chip">' + cur[1] + '</span></div></div>' +
-      '<div class="cols"><div class="col-l"><div class="sec"><div class="sh">Category</div><div class="list">' + l + '</div></div><div style="margin-top:auto">' + back + '</div></div><div class="col-r stack">' + content() + '</div></div><div class="foot">Arrows select · Enter choose · Settings save as you go</div>');
+    var left = panel(24, 24, 410, 672, '<div class="hd"><div class="ttl">SETTINGS<span class="cur"></span></div><div class="hdrule"></div></div>' +
+      '<div class="chips" style="margin:0"><span class="chip">Pick one to open it</span></div>' +
+      '<div class="sec"><div class="sh">Category</div><div class="list">' + l + '</div></div><div style="margin-top:auto">' + back + '</div>', animL);
+    var right = panel(458, 40, 790, 640, '<div class="hd"><div class="ttl sm">' + cur[1].toUpperCase() + '<span class="cur"></span></div><div class="hdrule"></div><button class="x" aria-label="Close">X</button></div>' +
+      '<div class="stack" style="flex:1">' + content() + '</div>', animR);
+    return left + right;
   }
 
-  function render() {
+  function render(anim) {
+    animL = anim && anim.l ? 'slideL' : ''; animR = anim && anim.r ? 'openR' : '';
     $('stage').innerHTML = backdrop() + (st.screen === 'pause' ? pause() : settings());
-    var note = {
-      'pause-A': 'Pause A: one wide box like the loadout. Menu keys on the left, this run on the right, with the same ruled section headers. The big wave number keeps the old gold.',
-      'pause-B': 'Pause B: a narrow box that leaves the arena visible. The run summary shrinks to one row of chips and Hold Tab still opens run stats.',
-      'settings-A': 'Settings A: tab keys across the top, exactly like the lobby tabs. The whole box is used for the controls.',
-      'settings-B': 'Settings B: a category rail on the left, using the same keys as the pause menu, so Pause to Settings feels like one box changing contents.'
-    };
-    $('note').textContent = note[st.screen + '-' + st.layout] + ' Toggles, tabs and sliders work in this preview.';
+    $('note').textContent = st.screen === 'pause' ? 'The menu slides out from the left in the lobby loadout box. The run summary opens to its right, as it does now.' : 'Settings keeps the same left box. Picking a category opens its window to the right, closed with X. Toggles, tabs and sliders work in this preview.';
     document.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { st.tab = b.getAttribute('data-tab'); render(); }; });
     document.querySelectorAll('[data-tg]').forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-tg'); st.tg[k] = !st.tg[k]; render(); }; });
     document.querySelectorAll('[data-shake]').forEach(function (b) { b.onclick = function () { st.shake = b.getAttribute('data-shake'); render(); }; });
@@ -227,17 +228,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
       s.onclick = function (e) { var tr = s.querySelector('.tr').getBoundingClientRect(); var v = Math.max(0, Math.min(100, Math.round((e.clientX - tr.left) / tr.width * 100))); var id = s.getAttribute('data-sl'); if (id === 'lean') st.lean = v; else st.vol[id] = v; render(); };
     });
     document.querySelectorAll('.pn .k:not([data-tab])').forEach(function (b) {
-      b.onclick = function () { var n = b.querySelector('b').textContent; if (n === 'Settings') { st.screen = 'settings'; sync(); } if (n === 'Back') { st.screen = 'pause'; sync(); } };
+      b.onclick = function () { var n = b.querySelector('b').textContent; if (n === 'Settings') { st.screen = 'settings'; sync({ r: 1 }); } if (n === 'Back') { st.screen = 'pause'; sync({ r: 1 }); } };
     });
-    var bk = document.querySelector('.back'); if (bk) bk.onclick = function () { st.screen = 'pause'; sync(); };
+    var bk = document.querySelector('.x'); if (bk) bk.onclick = function () { st.screen = 'pause'; sync({ r: 1 }); };
     fit();
   }
   function fit() { var v = $('view'), s = v.clientWidth / 1280; $('stage').style.transform = 'scale(' + s + ')'; }
-  function group(el, opts, prop) { opts.forEach(function (o) { var b = document.createElement('button'); b.className = 'seg'; b.textContent = o[1]; b.setAttribute('data-v', o[0]); b.onclick = function () { st[prop] = o[0]; sync(); }; el.appendChild(b); }); }
-  function sync() { document.querySelectorAll('#gScreen .seg').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-v') === st.screen); }); document.querySelectorAll('#gLayout .seg').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-v') === st.layout); }); render(); }
-  group($('gScreen'), [['pause', 'Pause menu'], ['settings', 'Settings']], 'screen');
-  group($('gLayout'), [['A', 'A: Wide'], ['B', 'B: Narrow / Rail']], 'layout');
+  function sync(anim) { document.querySelectorAll('#gScreen .seg').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-v') === st.screen); }); render(anim); }
+  [['pause', 'Pause menu'], ['settings', 'Settings']].forEach(function (o) { var b = document.createElement('button'); b.className = 'seg'; b.textContent = o[1]; b.setAttribute('data-v', o[0]); b.onclick = function () { st.screen = o[0]; sync({ r: 1 }); }; $('gScreen').appendChild(b); });
+  var rp = document.createElement('button'); rp.className = 'seg'; rp.textContent = 'Replay slide-in'; rp.onclick = function () { sync({ l: 1, r: 1 }); }; $('gLayout').appendChild(rp);
   window.addEventListener('resize', fit);
-  sync();
+  sync({ l: 1, r: 1 });
 })();
 </script>
