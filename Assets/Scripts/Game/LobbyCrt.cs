@@ -5,8 +5,9 @@ namespace Arena
     /// The lobby as a blue CRT screen (the lobby's ink is CrtUi.Ink), and New run opening into it (Docs/Mockups/crt-new-run-lobby.html: opening D "Terminal boot",
     /// blue phosphor, curved glass, scanlines behind panels).
     ///   Behind the panels (DrawLobbyCrtBack): a dark blue screen (a little see-through, so the chosen menu background still shows
-    ///   faintly), a glow in the middle, scanlines and, unless Reduced effects, a slow rolling bar.
-    ///   Over everything (DrawLobbyCrtGlass): the dark corners, a glass highlight, a rounded bezel and now and then a flicker.
+    ///   faintly) and a glow in the middle.
+    ///   Over everything (DrawLobbyCrtGlass): faint scanlines, unless Reduced effects a slow rolling bar, the dark corners, a glass highlight,
+    ///   a rounded bezel and now and then a flicker.
     /// New run (StartNewRun) plays about 7.1 s, and any key or click after half a second skips to the end:
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
     ///   0.4 s   that screen grows from its own edges to the whole window, going from the runs screen's blue to the lobby's. It is a CRT the whole way
@@ -91,7 +92,7 @@ namespace Arena
             return 1f;
         }
 
-        /// Behind the lobby's panels: the screen, its glow, scanlines and the rolling bar.
+        /// Behind the lobby's panels: the screen and its glow (the scanlines and rolling bar are on the glass, over the panels).
         void DrawLobbyCrtBack(float t)
         {
             float a = LobbyCrtBackA();
@@ -109,14 +110,15 @@ namespace Arena
             GUI.color = new Color(1f, 1f, 1f, 0.05f * a);
             GUI.DrawTexture(full, lobbyPhosTex);
             GUI.color = oldC;
-            CrtScanlines(full, a);
-            CrtRoll(full, t, a);
         }
+
+        /// Over the panels the lines are fainter than they were behind them, so small text stays readable.
+        const float ScanOver = 0.65f;
 
         void CrtScanlines(Rect r, float a)
         {
             var old = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, (fxReduced ? 0.14f : 0.24f) * a);
+            GUI.color = new Color(1f, 1f, 1f, (fxReduced ? 0.14f : 0.24f) * ScanOver * a);
             GUI.DrawTexture(r, lobbyScanTex);
             GUI.color = old;
         }
@@ -172,6 +174,8 @@ namespace Arena
                 return;
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
+            CrtScanlines(full, a);  // scanlines and the rolling bar sit over the panels, like a screen's glass (the mockup's .glass)
+            CrtRoll(full, t, a);
             CrtEdgeShade(W, H, EdgeStep, a);
             for (int i = 0; i < 14; i++)  // the glass catching light, top left
             {
