@@ -22,7 +22,8 @@ namespace Arena
         public static readonly Color LobbyInk = CrtUi.Ink;
         static readonly Color LobbyBg = CrtUi.Bg;
         const float EnterCrtLen = 7.1f, CrtGrowFrom = 0.4f, CrtGrowTo = 1.2f, CrtPiecesAt = 5.5f, CrtLogAt = 0.7f, CrtLogCharS = 0.02f, CrtLogPause = 1.0f, CrtLogFadeAt = 5.6f, LobbyCrtBgAlpha = 1f;
-        const float LobbyGlassR = 26f, LobbyGlassBezel = 3f;
+        const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
+        const float LobbyRimBand = 7f, LobbyRimLine = 2f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
 
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
@@ -46,31 +47,36 @@ namespace Arena
                 phos[y] = y % 4 == 0 ? new Color(0.4f, 0.64f, 1f, 1f) : new Color(0.4f, 0.64f, 1f, 0f);
             lobbyPhosTex.SetPixels(phos);
             lobbyPhosTex.Apply();
-            // The glass frame, meant to be 9-sliced: clear inside a rounded rectangle, dark bezel outside it, a thin rim on the edge.
-            const int size = 64;
+            // The glass frame, meant to be 9-sliced: a rounded rectangle filling the whole texture; outside its curve the dark screen surround, then a
+            // 7 px navy band and a 2 px blue line just inside the edge, and clear glass inside that (the mockup's `inset 0 0 0 7px / 9px` rim).
+            const int size = 128;
             lobbyGlassTex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var px = new Color[size * size];
-            float half = size / 2f, inner = half - LobbyGlassBezel;
-            var bezel = new Color(0.03f, 0.045f, 0.09f, 1f);
-            var rim = new Color(0.15f, 0.23f, 0.40f, 1f);
+            float half = size / 2f;
+            var surround = new Color(0.02f, 0.03f, 0.07f, 1f);
+            var band = new Color(0.06f, 0.10f, 0.21f, 1f);
+            var line = new Color(0.21f, 0.34f, 0.62f, 1f);
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
                 {
-                    float qx = Mathf.Abs(x + 0.5f - half) - (inner - LobbyGlassR);
-                    float qy = Mathf.Abs(y + 0.5f - half) - (inner - LobbyGlassR);
+                    float qx = Mathf.Abs(x + 0.5f - half) - (half - LobbyGlassR);
+                    float qy = Mathf.Abs(y + 0.5f - half) - (half - LobbyGlassR);
                     float outside = Mathf.Sqrt(Mathf.Max(qx, 0f) * Mathf.Max(qx, 0f) + Mathf.Max(qy, 0f) * Mathf.Max(qy, 0f));
-                    float d = outside + Mathf.Min(Mathf.Max(qx, qy), 0f) - LobbyGlassR;  // negative inside the screen
-                    float solid = Mathf.Clamp01(d + 0.5f);
-                    float rimK = Mathf.Clamp01(1f - Mathf.Abs(d + 0.6f) / 0.9f);
-                    Color c = Color.Lerp(bezel, rim, rimK);
-                    c.a = Mathf.Max(solid, rimK * 0.9f);
+                    float depth = -(outside + Mathf.Min(Mathf.Max(qx, qy), 0f) - LobbyGlassR);  // px inside the curve (negative outside it)
+                    float inCurve = Mathf.Clamp01(depth + 0.5f);
+                    float inBand = Mathf.Clamp01(LobbyRimBand - depth + 0.5f);                      // 1 in the first 7 px
+                    float inLine = Mathf.Clamp01(LobbyRimBand + LobbyRimLine - depth + 0.5f);       // 1 until the line ends
+                    Color c = Color.Lerp(surround, line, inCurve);   // surround, then the line colour at the curve...
+                    c = Color.Lerp(c, band, inCurve * inBand);        // ...the navy band over its first 7 px
+                    c.a = Mathf.Max(1f - inCurve, inLine);            // opaque outside the curve and through the line; clear glass inside
+                    c.a = Mathf.Max(c.a, inCurve * inBand);
                     px[y * size + x] = c;
                 }
             lobbyGlassTex.SetPixels(px);
             lobbyGlassTex.Apply();
             lobbyGlassStyle = new GUIStyle();
             lobbyGlassStyle.normal.background = lobbyGlassTex;
-            lobbyGlassStyle.border = new RectOffset(32, 32, 32, 32);
+            lobbyGlassStyle.border = new RectOffset(48, 48, 48, 48);
         }
 
         /// How much of the CRT shows (back, then glass) right now: all of it in the lobby, fading in or out around the entrance and leave.
