@@ -1,0 +1,216 @@
+<title>Pushable Props</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one race stage (four lanes at true arena speed), three look cards for the shove feedback, one rules strip.
+   Palette follows the other field-manual mockups; single dark look by choice. Speeds match Props.cs (PushTank etc.). */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --cyan: #4fe3ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--cyan); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 12px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #070910; }
+#race { aspect-ratio: 960 / 400; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; }
+.card canvas { aspect-ratio: 360 / 200; }
+.card .body { padding: 12px 16px 16px; display: grid; gap: 4px; border-top: 1px solid var(--line); }
+.tag { font: 700 12px var(--font-display); letter-spacing: 0.14em; color: var(--amber); }
+.card p { color: var(--muted); font-size: 15px; }
+#rules { aspect-ratio: 960 / 220; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 13px var(--font-display); letter-spacing: 0.06em; color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+button[aria-pressed="true"] { color: #05080a; background: var(--cyan); border-color: var(--cyan); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.group { display: flex; gap: 6px; flex-wrap: wrap; }
+.readout { font: 500 13px var(--font-data); color: var(--muted); }
+table { border-collapse: collapse; font: 500 13px var(--font-data); }
+td, th { padding: 4px 14px 4px 0; text-align: left; color: var(--soft); }
+th { color: var(--muted); font-weight: 500; }
+.scroll { overflow-x: auto; }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · animation study</div>
+    <h1>Pushable <span>props</span></h1>
+    <p class="lead">Lean on a crate or barrel and it slides. Tanks shove it fastest, Dps second, Healers slowest, and enemies move it at a crawl. Even the Healer is more than ten times faster than an enemy.</p>
+  </header>
+
+  <section>
+    <h2>The race</h2>
+    <p>One crate per lane, pushed for ten seconds at the real speeds (1 canvas pixel = 1 arena pixel). Use the speed buttons to watch the enemy move at all.</p>
+    <div class="stage">
+      <canvas id="race" width="960" height="400" aria-label="Four lanes: tank, dps, healer and enemy each pushing a crate"></canvas>
+      <div class="bar">
+        <span class="label">Playback</span>
+        <div class="group" id="speeds">
+          <button data-s="1" aria-pressed="false">1x</button><button data-s="4" aria-pressed="true">4x</button><button data-s="10" aria-pressed="false">10x</button>
+        </div>
+        <button id="restart">Restart</button>
+        <span class="readout" id="clock"></span>
+      </div>
+      <div class="bar scroll">
+        <table>
+          <tr><th>Pusher</th><th>px/s</th><th>Iron-bound crate</th><th>Barrel</th></tr>
+          <tr><td>Tank</td><td>70</td><td>42</td><td>70</td></tr>
+          <tr><td>Dps (and Wildcard)</td><td>50</td><td>30</td><td>50</td></tr>
+          <tr><td>Healer</td><td>34</td><td>20</td><td>34</td></tr>
+          <tr><td>Enemy (not bosses)</td><td>3</td><td>1.8</td><td>3</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How a shove looks</h2>
+    <p>Look B (scuff trail) was chosen and is built. A and C are shown for reference.</p>
+    <div class="cards">
+      <div class="card"><canvas data-look="A" width="360" height="200"></canvas><div class="body"><div class="tag">LOOK A · NOT USED</div><h3>Dust and shudder</h3><p>Three puffs of dust trail behind and the prop trembles.</p></div></div>
+      <div class="card"><canvas data-look="B" width="360" height="200"></canvas><div class="body"><div class="tag">LOOK B · BUILT</div><h3>Scuff trail</h3><p>Two drag lines are scratched into the floor behind it and fade over a few seconds.</p></div></div>
+      <div class="card"><canvas data-look="C" width="360" height="200"></canvas><div class="body"><div class="tag">LOOK C</div><h3>Hologram echo</h3><p>Cyan afterimages of the outline follow the prop, matching the digital crate look.</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where it stops</h2>
+    <div class="stage">
+      <canvas id="rules" width="960" height="220" aria-label="A crate stops at a wall, a crate cannot pass another, an enemy pushes a barrel very slowly"></canvas>
+    </div>
+    <p>A pushed prop stops at walls, pillars, the arena edge and other solid props. The pusher is held to the prop's pace, so pushing a blocked crate just stops you. Enemies path around crates and barrels when any way past exists, and only shove one when boxed in. Pots still smash, health barrels still break, chests never move. Bosses do not push.</p>
+  </section>
+</div>
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var CY = '#4fe3ff', AM = '#ffb547';
+  function fit(c) { var d = Math.min(window.devicePixelRatio || 1, 2), w = c.width, h = c.height; c.width = w * d; c.height = h * d; var x = c.getContext('2d'); x.scale(d, d); return x; }
+
+  function crate(x, cx, cy, s, shake, glow) {
+    x.save(); x.translate(cx + shake, cy);
+    x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(-s + 4, -s + 6, s * 2, s * 2);
+    x.fillStyle = '#1a2a30'; x.strokeStyle = glow || CY; x.lineWidth = 2;
+    x.fillRect(-s, -s, s * 2, s * 2); x.strokeRect(-s, -s, s * 2, s * 2);
+    x.beginPath(); x.moveTo(-s, -s); x.lineTo(s, s); x.moveTo(s, -s); x.lineTo(-s, s); x.globalAlpha = .45; x.stroke();
+    x.restore();
+  }
+  function barrel(x, cx, cy, r, shake) {
+    x.save(); x.translate(cx + shake, cy);
+    x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.arc(3, 5, r, 0, 7); x.fill();
+    x.fillStyle = '#3a1512'; x.strokeStyle = '#ff5a4a'; x.lineWidth = 2; x.beginPath(); x.arc(0, 0, r, 0, 7); x.fill(); x.stroke();
+    x.beginPath(); x.arc(0, 0, r * .55, 0, 7); x.stroke();
+    x.restore();
+  }
+  function actor(x, kind, cx, cy) {
+    x.save(); x.translate(cx, cy); x.lineWidth = 2;
+    if (kind === 'tank') { x.fillStyle = '#16384a'; x.strokeStyle = CY; x.beginPath(); x.arc(0, 0, 14, 0, 7); x.fill(); x.stroke(); x.fillStyle = CY; x.fillRect(8, -10, 4, 20); }
+    if (kind === 'dps') { x.fillStyle = '#3a2d10'; x.strokeStyle = AM; x.beginPath(); x.arc(0, 0, 10, 0, 7); x.fill(); x.stroke(); x.fillStyle = AM; x.fillRect(8, -2, 10, 4); }
+    if (kind === 'healer') { x.fillStyle = '#123a22'; x.strokeStyle = '#5dff9a'; x.beginPath(); x.arc(0, 0, 11, 0, 7); x.fill(); x.stroke(); x.fillStyle = '#5dff9a'; x.fillRect(-2, -6, 4, 12); x.fillRect(-6, -2, 12, 4); }
+    if (kind === 'enemy') { x.fillStyle = '#4a1a1a'; x.strokeStyle = '#ff5a5a'; x.beginPath(); x.moveTo(13, 0); x.lineTo(-9, -11); x.lineTo(-9, 11); x.closePath(); x.fill(); x.stroke(); }
+    x.restore();
+  }
+  function dust(x, px, py, dx, t, k) {
+    for (var i = 0; i < 3; i++) {
+      var f = (t * 3 + i / 3) % 1;
+      x.fillStyle = 'rgba(205,190,165,' + (0.4 * k * (1 - f)).toFixed(3) + ')';
+      x.beginPath(); x.arc(px - dx * (26 + f * 14), py + (i - 1) * 8, 2.5 + f * 4, 0, 7); x.fill();
+    }
+  }
+
+  // --- The race -----------------------------------------------------------------
+  var rc = document.getElementById('race'), rx = fit(rc), lanes = [
+    { n: 'TANK', k: 'tank', v: 70 }, { n: 'DPS', k: 'dps', v: 50 }, { n: 'HEALER', k: 'healer', v: 34 }, { n: 'ENEMY', k: 'enemy', v: 3 }];
+  var scale = 4, simT = 0, lastR = 0, RUN = 10;
+  function race() {
+    rx.clearRect(0, 0, 960, 400);
+    lanes.forEach(function (l, i) {
+      var y = 52 + i * 94, d = l.v * Math.min(simT, RUN), body = 22, startX = 130;
+      rx.fillStyle = '#0d1217'; rx.fillRect(0, y - 40, 960, 80);
+      rx.strokeStyle = '#1b242c'; rx.lineWidth = 1;
+      for (var m = 0; m <= 700; m += 100) { rx.beginPath(); rx.moveTo(startX + m + 40, y - 40); rx.lineTo(startX + m + 40, y + 40); rx.stroke(); }
+      rx.fillStyle = '#92a1ad'; rx.font = '600 12px Oxanium, sans-serif'; rx.fillText(l.n, 14, y + 4);
+      var cx = startX + 40 + d, pushing = simT < RUN;
+      var shake = pushing ? Math.sin(simT * 90) * (l.k === 'enemy' ? .3 : .9) : 0;
+      crate(rx, cx, y, 22, shake, CY);
+      if (pushing && l.v > 10) dust(rx, cx, y, 1, simT, 1);
+      actor(rx, l.k, cx - 22 - 14 + 2, y);
+      rx.fillStyle = '#cfdae2'; rx.font = '500 13px "IBM Plex Mono", monospace';
+      rx.fillText(d.toFixed(0) + ' px', 14, y + 22);
+    });
+    rx.fillStyle = '#92a1ad'; rx.font = '500 11px "IBM Plex Mono", monospace'; rx.fillText('start', 150, 392);
+    document.getElementById('clock').textContent = Math.min(simT, RUN).toFixed(1) + ' s of ' + RUN + ' s (real time)';
+  }
+  function restart() { simT = 0; }
+  document.getElementById('restart').onclick = restart;
+  Array.prototype.forEach.call(document.querySelectorAll('#speeds button'), function (b) {
+    b.onclick = function () { scale = +b.dataset.s; Array.prototype.forEach.call(document.querySelectorAll('#speeds button'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); }); };
+  });
+
+  // --- The looks ----------------------------------------------------------------
+  var cards = Array.prototype.map.call(document.querySelectorAll('canvas[data-look]'), function (c) { return { c: c, x: fit(c), look: c.dataset.look, trail: [] }; });
+  function looks(t) {
+    cards.forEach(function (o) {
+      var x = o.x, ph = (t % 6) / 6, cx = 150 + ph * 100, by = 70, cy = 128, moving = ph < .85;
+      x.clearRect(0, 0, 360, 200);
+      x.fillStyle = '#0d1217'; x.fillRect(0, 0, 360, 200);
+      var sh = moving && o.look === 'A' ? Math.sin(t * 70) * .9 : 0;
+      if (o.look === 'B') {
+        x.strokeStyle = 'rgba(146,161,173,.3)'; x.lineWidth = 2;
+        [-9, 9].forEach(function (off) { x.beginPath(); x.moveTo(150 - 30, by + off); x.lineTo(cx - 20, by + off); x.stroke(); x.beginPath(); x.moveTo(150 - 30, cy + off); x.lineTo(cx - 20, cy + off); x.stroke(); });
+      }
+      if (o.look === 'C' && moving) for (var i = 4; i >= 1; i--) { x.globalAlpha = .12 * (5 - i); crate(x, cx - i * 7, by, 20, 0, CY); barrel(x, cx - i * 7, cy, 17, 0); }
+      x.globalAlpha = 1;
+      crate(x, cx, by, 20, sh, CY); barrel(x, cx, cy, 17, sh);
+      if (o.look === 'A' && moving) { dust(x, cx, by, 1, t, 1); dust(x, cx, cy, 1, t + .3, 1); }
+      actor(x, 'tank', cx - 42, by); actor(x, 'tank', cx - 38, cy);
+    });
+  }
+
+  // --- Rules --------------------------------------------------------------------
+  var ux = fit(document.getElementById('rules'));
+  function rules(t) {
+    ux.clearRect(0, 0, 960, 220);
+    var p = (t % 5) / 5, w = 320;
+    [0, 1, 2].forEach(function (i) { ux.fillStyle = '#0d1217'; ux.fillRect(i * w + 8, 10, w - 16, 180); });
+    ux.fillStyle = '#92a1ad'; ux.font = '600 12px Oxanium, sans-serif';
+    ['WALL STOPS IT', 'ONE CRATE CAN\'T PASS ANOTHER', 'ENEMY PUSHES A BARREL, SLOWLY'].forEach(function (s, i) { ux.fillText(s, i * w + 20, 208); });
+    // 1: wall
+    var wallX = 290, c1 = Math.min(80 + p * 260, wallX - 22);
+    ux.fillStyle = '#36424e'; ux.fillRect(wallX, 10, 24, 180);
+    var stuck = c1 >= wallX - 22 - .5;
+    crate(ux, c1, 100, 22, stuck ? 0 : Math.sin(t * 70), CY); actor(ux, 'tank', c1 - 38, 100);
+    if (stuck) { ux.fillStyle = AM; ux.font = '600 12px Oxanium, sans-serif'; ux.fillText('blocked', c1 - 60, 150); }
+    // 2: crate into crate
+    var o = w, other = o + 230, c2 = Math.min(o + 80 + p * 260, other - 44);
+    crate(ux, other, 100, 22, 0, '#7a8a96'); crate(ux, c2, 100, 22, c2 < other - 44 - .5 ? Math.sin(t * 70) : 0, CY); actor(ux, 'dps', c2 - 36, 100);
+    // 3: enemy and barrel (shown at 20x so it is visible)
+    var o3 = 2 * w, b3 = o3 + 140 + p * 3 * 5 * 20 * 0.2;
+    barrel(ux, b3, 100, 17, 0); actor(ux, 'enemy', b3 - 34, 100);
+    ux.fillStyle = '#92a1ad'; ux.font = '500 11px "IBM Plex Mono", monospace'; ux.fillText('shown at 20x speed', o3 + 20, 34);
+  }
+
+  function frame(ms) {
+    var t = ms / 1000, dt = Math.min(.05, t - lastR); lastR = t;
+    simT += dt * scale;
+    if (simT > RUN + 2) simT = 0;
+    race(); looks(t); rules(t);
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  if (reduce) { simT = 6; race(); looks(1); rules(2); } else requestAnimationFrame(frame);
+})();
+</script>

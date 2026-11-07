@@ -23,6 +23,9 @@ namespace Arena
                     Arc(p.Pos, Game.HalfW(p) + 6f + 22f * k, 3f, new Rgba(0.8f, 0.75f, 0.65f, 0.4f * (1f - k)), 24);
                 }
                 V2 at = p.Pos - new V2(0f, lift);
+                // Pushed: two drag lines scratched into the floor behind it, fading over a few seconds (look B of Docs/Mockups/pushable-props.html).
+                foreach (var sc in p.Scuffs)
+                    Line(sc.A, sc.B, 2f, new Rgba(0.57f, 0.63f, 0.68f, 0.35f * (1f - sc.Age / Game.ScuffLife)));
                 // Its shadow stays on the ground.
                 float hw = Game.HalfW(p), hh = Game.HalfH(p);
                 if (Game.Round(p))
