@@ -531,14 +531,17 @@ the other players), so it always matches how weapons and abilities really behave
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
-lobby. There are 25:
+lobby. There are 28:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter, **Dusk Grid** (a
-rank-15 reward) and four **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
+rank-15 reward) and seven **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
 **Ripples** (25: rings spread from your clicks and a soft light follows the pointer), **Boot Log** (28: a green BIOS terminal
 that logs faster as you move, lights the line under the pointer and logs each click with its position), **Vector Rocks** (39:
 neon asteroids drift away from a little ship on your pointer; a click fires a ring of shots that splits them) and **Life Grid**
-(43: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders). The reward ones are greyed and skipped until you have them. Each has its own
+(43: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders), **Phosphor Pond** (47: a dot
+grid that ripples where the pointer goes, a click makes a big ring), **Vector Tunnel** (49: neon gates rushing past, the
+vanishing point leaning toward the pointer, a click is a speed burst) and **Signal Lost** (53: a phosphor test card that
+tears at the pointer's height and rolls on a click). The reward ones are greyed and skipped until you have them. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
 **LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
@@ -964,6 +967,9 @@ each kind at a time:
 | 28 | **Boot Log**: a reactive menu background (a BIOS terminal that logs your pointer and clicks) |
 | 39 | **Vector Rocks**: a reactive menu background (an asteroid field with a ship on your pointer; click to fire) |
 | 43 | **Life Grid**: a reactive menu background (Conway's Life in phosphor, seeded where you go; click for gliders) |
+| 47 | **Phosphor Pond**: a reactive menu background (a dot grid that ripples where you go and click) |
+| 49 | **Vector Tunnel**: a reactive menu background (neon gates rushing past, steered by the pointer) |
+| 53 | **Signal Lost**: a reactive menu background (a test card that tears at the pointer and rolls on a click) |
 | 18 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
 | 20 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
 | 22 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
