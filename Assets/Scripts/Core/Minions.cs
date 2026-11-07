@@ -186,9 +186,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GuardianSpirit, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2,
-                Name = "Guardian Spirit", Cooldown = 18f, Desc = "A guardian follows you for 8 s and absorbs every bullet near it.",
-                Capstone = "The guardian also heals you 6 HP/s.",
-                Bot = b => b.Danger,
+                Name = "Force Pact", Cooldown = 12f, Desc = "Take the regular enemy nearest your cursor (not bosses) and make it fight for you. It stays near you with its own attack and comes back 15 s after it falls. Cast again on another enemy to switch the pact to that type.",
+                Capstone = "A second thrall: the pact keeps the last two types you chose.",
+                Bot = b => b.HaveTarget,  // it takes whatever is nearest the cursor, so any target will do
             },
             new AbilityDef
             {
@@ -328,8 +328,7 @@ namespace Arena
                     CastEarthquake(p, target, cap, dmg);  // Burrower.cs
                     break;
                 case AbilityId.GuardianSpirit:
-                    SpawnMinion(MinionKind.Guardian, p, p.Pos, 8f);  // mastered: also heals you (TickMinions)
-                    Sounds.Add(Sfx.Summon);
+                    ForcePactCast(p, target, cap);  // ForcePact.cs
                     break;
                 case AbilityId.SpiritSwarm:
                 {
@@ -444,6 +443,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 TickGuards(p, dt);  // Warden's Guard (Stun.cs)
+                TickPact(p, dt);  // Force Pact's thralls (ForcePact.cs)
                 TickHiveDrones(p, dt);  // the Hive Queen's Hive Drones and Bomber Escort (QueenLoot.cs)
                 TickBombers(p, dt);
                 TickTwinScythes(p, dt);  // the Twin Reapers' Twin Scythes (ReaperLoot.cs)
@@ -455,7 +455,7 @@ namespace Arena
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
                     foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard && m.Kind != MinionKind.HiveDrone && m.Kind != MinionKind.Scythe)
+                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard && m.Kind != MinionKind.Thrall && m.Kind != MinionKind.HiveDrone && m.Kind != MinionKind.Scythe)
                         {
                             have++;
                             surplus = m;
@@ -524,6 +524,11 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if (m.Kind == MinionKind.Thrall)
+                {
+                    TickThrall(m, owner, dt);  // ForcePact.cs
+                    continue;
+                }
                 if (m.Kind == MinionKind.SoulLantern)
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
@@ -749,8 +754,6 @@ namespace Arena
 
                 // The phoenix trades itself to bring back a downed ally.
                 // Mastered, it revives them at full health and keeps fighting.
-                if (m.Kind == MinionKind.Guardian && m.Mastered)
-                    Heal(owner, 6f * m.Power * dt, owner);
                 if (m.Kind == MinionKind.Phoenix)
                     foreach (var q in Players.Values)
                         if (q.Downed)

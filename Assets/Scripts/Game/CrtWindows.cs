@@ -79,7 +79,7 @@ namespace Arena
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
-            var hr = header ?? new Rect(26f, 26f, 358f, 100f);
+            var hr = header ?? new Rect(26f, 26f, CabInW, 100f);
             bool tight = hr.height < 90f;
             float ty = tight ? 2f : 6f, th = tight ? 46f : 56f, sy = tight ? 50f : 64f;
             float ha = age - 0.5f;
@@ -114,7 +114,7 @@ namespace Arena
             }
 
             // The options screen.
-            cabScreen = screen ?? new Rect(26f, 150f, 358f, 456f);
+            cabScreen = screen ?? new Rect(26f, 150f, CabInW, 456f);
             cabScreenAge = age - 0.9f;
             cabScreenOpen = true;
             cabScreenOn = loadout ? calm || cabScreenAge >= 0f : CrtKit.PowerOn(cabScreen, cabScreenAge, calm);
@@ -194,7 +194,7 @@ namespace Arena
         /// The physical Back key under the options screen (Settings, How to play from the main menu). True when pressed.
         bool CabBackKey()
         {
-            return cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 616f, 358f, 44f), "BACK");
+            return cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 616f, CabInW, 44f), "BACK");
         }
 
         // --- The window to the right ------------------------------------------------------------------------------------

@@ -117,6 +117,18 @@ namespace Arena
                 case FxKind.CavalryCall:
                     DrawCavalryCallFx(fx);  // CavalryCallLook.cs
                     break;
+                case FxKind.PactBind:
+                    DrawPactBindFx(fx, f, t);  // ForcePactLook.cs, like the three below
+                    break;
+                case FxKind.PactSnap:
+                    DrawPactSnapFx(fx, f);
+                    break;
+                case FxKind.PactDissolve:
+                    DrawPactDissolveFx(fx, f);
+                    break;
+                case FxKind.PactRise:
+                    DrawPactRiseFx(fx, f);
+                    break;
                 case FxKind.TitheSnap:
                     DrawTitheSnapFx(fx, f);  // VeinTitheLook.cs
                     break;

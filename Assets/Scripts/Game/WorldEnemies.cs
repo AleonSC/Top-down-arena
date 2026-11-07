@@ -319,6 +319,11 @@ namespace Arena
                 DrawTreant(m, t, staggered);  // RootLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Thrall)
+            {
+                DrawThrall(m, t);  // ForcePactLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.WardenGuard)
             {
                 DrawWardenGuard(m, t);  // WardenLook.cs
