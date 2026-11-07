@@ -59,7 +59,7 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Mockup · Tank Summoner · Space ability · replaces Guardian Spirit · pick a look</div>
+    <div class="eyebrow">Built: Look A (Soul Chains) is in the game; B and C were not used · Mockup · Tank Summoner · Space ability · replaces Guardian Spirit · pick a look</div>
     <h1>Force <span>Pact</span></h1>
     <p class="lead">Guardian Spirit is a bullet-eating ghost that follows you for 8 seconds. Force Pact takes a <b>regular enemy</b> and makes it fight
       for you. It behaves like the Warden's Guard: it stays at your side, fights what comes near you, and when it falls it comes back after a while.
@@ -137,7 +137,7 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
         <tbody>
           <tr><th>Cooldown</th><td class="n">18 s</td><td class="n">12 s (a recast has the same cooldown)</td></tr>
           <tr><th>Lasts</th><td class="n">8 s</td><td class="n">until it falls; it comes back 15 s later</td></tr>
-          <tr><th>Cast</th><td class="n">on you</td><td class="n">nearest regular enemy to your cursor, within 420 px of you; about 1 s to bind</td></tr>
+          <tr><th>Cast</th><td class="n">on you</td><td class="n">nearest regular enemy to your cursor, any distance; 0.9 s to bind. If there is none, it fizzles and the cooldown is refunded</td></tr>
           <tr><th>Health</th><td class="n">none (soaks 400 bullet damage)</td><td class="n">the type's health × 2.5 + 15 per wave</td></tr>
           <tr><th>Damage</th><td class="n">none</td><td class="n">the type's own attack at 75%, so it never beats a player with the same weapon</td></tr>
           <tr><th>Leash</th><td class="n">follows you</td><td class="n">fights within 240 px of you, like the Warden's Guard</td></tr>
@@ -146,7 +146,7 @@ td.n { font-family: var(--font-data); font-size: 13px; color: var(--soft); }
       </table>
     </div>
     <ul>
-      <li><b>Not allowed:</b> bosses, boss adds (drones, rioters, shards and the like), eggs, wells, pillars and the Phylactery. They get a short red flash and the key press is refunded.</li>
+      <li><b>Not allowed:</b> bosses, boss adds (drones, rioters, shards and the like), eggs, wells, pillars and the Phylactery. Nothing happens and the cooldown is refunded.</li>
       <li>The target is removed from the wave the moment it is bound. Whether it still counts toward wave clear is a choice for you: I would say it does not, so you cannot stall a wave by pacting the last enemy.</li>
       <li>Code: the display name changes, <code>AbilityId.GuardianSpirit</code> stays in place so saves keep working, and a new <code>MinionKind.Thrall</code> goes at the end of the enum (carrying an <code>EnemyType</code>), reusing the Warden's Guard respawn logic in <code>Stun.cs</code>. <code>Session.ProtocolVersion</code> goes up because the snapshot gains the thrall's type.</li>
       <li>The mastery text in the README ("the guardian also heals you") and the Armory and Bestiary pages are not touched until you say.</li>
