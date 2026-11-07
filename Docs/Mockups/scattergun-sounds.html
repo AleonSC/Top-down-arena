@@ -1,0 +1,183 @@
+<title>Scattergun Sounds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, controls (volume, fire-rate loop), then one card per option: waveform, play, SoundBank recipe.
+   Colour: gunmetal neutrals leaning blue-green, brass for the sound being auditioned. Type: Barlow Condensed display, Barlow body, Plex Mono for recipes. */
+:root{
+  --bg:#ecefed; --fg:#1a2022; --muted:#5a666a; --panel:#f8faf9; --line:#cbd3d4;
+  --brass:#a8741a; --chip:#dde3e3; --chip-on:#1a2022; --chip-on-fg:#f2f6f5; --wave:#2d6a7a; --wave-bg:#e3e9e9;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1214; --fg:#e4ebea; --muted:#8e9c9f; --panel:#161c1e; --line:#2a3437;
+  --brass:#e0a23c; --chip:#212a2c; --chip-on:#e4ebea; --chip-on-fg:#0e1214; --wave:#6fc0d2; --wave-bg:#0f1517; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1214; --fg:#e4ebea; --muted:#8e9c9f; --panel:#161c1e; --line:#2a3437;
+  --brass:#e0a23c; --chip:#212a2c; --chip-on:#e4ebea; --chip-on-fg:#0e1214; --wave:#6fc0d2; --wave-bg:#0f1517; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:66ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+.controls{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.controls label{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.controls input[type=range]{width:160px;accent-color:var(--brass)}
+.controls output{font:500 13px var(--mono);min-width:3ch;color:var(--fg)}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.card.playing{border-color:var(--brass)}
+.card h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card h2 small{font:500 12px var(--mono);letter-spacing:.02em;color:var(--muted);text-transform:none}
+.card p{margin:0;color:var(--muted);font-size:15px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:600/110;border-radius:4px;background:var(--wave-bg);max-width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row .stat{font:500 12px var(--mono);color:var(--muted);margin-left:auto}
+details summary{cursor:pointer;font:600 13px var(--body);color:var(--muted)}
+pre{margin:8px 0 0;padding:10px 12px;background:var(--wave-bg);border-radius:4px;font:400 12px/1.5 var(--mono);overflow-x:auto;max-width:100%}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.notes h2{font:700 20px var(--display);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;color:var(--muted)}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;max-width:72ch}
+@media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<main>
+<header>
+  <h1>Scattergun Sounds</h1>
+  <p>The Scattergun shot is the loudest thing in a Soldier's kit and it fires every 0.45 s. These four options keep the same synth recipe as <strong>SoundBank</strong> (<code>Sfx.ShotShotgun</code>) but turn down the crack, shorten the tail and lower the peak.</p>
+  <p>Press <strong>Fire loop</strong> to hear each one at the real fire rate. Peaks are shown against the current shot, so you can compare how much quieter each one is.</p>
+</header>
+
+<div class="controls">
+  <label for="vol">Volume <input id="vol" type="range" min="0" max="100" value="70"><output id="volOut">70</output></label>
+  <button id="loop" aria-pressed="false">Fire loop (0.45 s)</button>
+  <button id="stop">Stop</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<section class="notes">
+  <h2>Notes</h2>
+  <ul>
+    <li>All four options are drop-in: they only change the numbers passed to <code>SetGun(Sfx.ShotShotgun, ...)</code>. No new code, no protocol change.</li>
+    <li>Each shot plays 4 takes with a little pitch variation, as in the game. Press a card's Play repeatedly to hear them cycle.</li>
+    <li><code>Sfx.ShotShotgun</code> is also the sound for any other weapon that points at it, so the change applies to all of them.</li>
+    <li>Browser playback here is a close port of the C# synth, not the game's own audio. Final levels depend on the game's Weapons volume slider.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+/* JS port of SoundBank.Gunshot (Biquad, layers, tanh, Reverb, Finish). Same maths as the C#. */
+var RATE=44100, VARIANTS=4;
+function lcg(seed){var s=(seed>>>0)||1;return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function biquad(hz,high){
+  var w=2*Math.PI*Math.min(hz,RATE*.45)/RATE,cos=Math.cos(w),alpha=Math.sin(w)/(2*.7071),a0=1+alpha;
+  var b0=(high?(1+cos):(1-cos))/2/a0,b1=(high?-(1+cos):(1-cos))/a0,b2=b0,a1=-2*cos/a0,a2=(1-alpha)/a0,x1=0,x2=0,y1=0,y2=0;
+  return function(x){var y=b0*x+b1*x1+b2*x2-a1*y1-a2*y2;x2=x1;x1=x;y2=y1;y1=y;return y}}
+function reverb(inp){
+  var n=inp.length,out=new Float32Array(n);
+  [29.7,37.1,41.1,43.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d),store=0;
+    for(var i=0;i<n;i++){var y=buf[i%d];store=y*.7+store*.3;buf[i%d]=inp[i]+store*.72;out[i]+=y*.25}});
+  [5,1.7].forEach(function(ms){var d=Math.floor(ms*RATE/1000),buf=new Float32Array(d);
+    for(var i=0;i<n;i++){var b=buf[i%d],x=out[i];buf[i%d]=x+b*.5;out[i]=b-x*.5}});
+  return out}
+function finish(a,peak){
+  var n=a.length,fade=Math.min(n,Math.floor(RATE/100));
+  for(var i=0;i<fade;i++)a[n-1-i]*=i/fade;
+  var m=0;for(i=0;i<n;i++)m=Math.max(m,Math.abs(a[i]));
+  if(m>0)for(i=0;i<n;i++)a[i]*=peak/m;
+  return a}
+function gunshot(g,seed){
+  var rnd=lcg(seed),n=Math.floor(g.Duration*RATE),dry=new Float32Array(n);
+  var crackHp=biquad(g.CrackHighpass,true),bodyLp=biquad(g.BodyLowpass*(.9+.2*rnd()),false),t1=biquad(g.TailLowpass,false),t2=biquad(g.TailLowpass,false),phase=0;
+  for(var i=0;i<n;i++){
+    var t=i/RATE,white=rnd()*2-1;
+    var crack=crackHp(white)*Math.exp(-t/g.CrackDecay);
+    var body=bodyLp(white)*Math.min(1,t/.0005)*Math.exp(-t/g.BodyDecay);
+    var sweep=Math.min(1,t/(g.ThumpDecay*2));
+    phase+=g.ThumpFrom*Math.pow(g.ThumpTo/g.ThumpFrom,sweep)/RATE;
+    var thump=Math.sin(2*Math.PI*phase)*Math.exp(-t/g.ThumpDecay);
+    var tail=t2(t1(white))*(1-Math.exp(-t/.01))*Math.exp(-t/g.TailDecay);
+    var mix=g.Crack*crack+g.Body*body*2+g.Thump*thump+g.Tail*tail*3;
+    dry[i]=Math.tanh(mix*1.5)}
+  var wet=reverb(dry);for(i=0;i<n;i++)dry[i]+=wet[i]*g.Reverb;
+  return finish(dry,g.Peak)}
+
+var OPTIONS=[
+ {id:'current',name:'Current',tag:'today',note:'The shot as it is now: a hard crack on top, a heavy thump and a long boomy tail. Reference for comparing.',
+  g:{Crack:.7,CrackDecay:.004,CrackHighpass:2000,Body:1,BodyDecay:.09,BodyLowpass:2500,Thump:.9,ThumpFrom:140,ThumpTo:45,ThumpDecay:.12,Tail:.35,TailDecay:.4,TailLowpass:900,Reverb:.25,Duration:.7,Peak:.85}},
+ {id:'softthud',name:'Soft Thud',tag:'A',note:'Keeps the low punch but the crack is nearly gone and the tail is a third as long. Reads as a muffled shotgun.',
+  g:{Crack:.12,CrackDecay:.003,CrackHighpass:1800,Body:.9,BodyDecay:.06,BodyLowpass:1400,Thump:.8,ThumpFrom:120,ThumpTo:50,ThumpDecay:.09,Tail:.15,TailDecay:.2,TailLowpass:700,Reverb:.15,Duration:.35,Peak:.45}},
+ {id:'mufflepop',name:'Muffled Pop',tag:'B',note:'No crack at all and everything low-passed around 900 Hz, like a shot heard through a wall. The quietest to sit under music.',
+  g:{Crack:0,CrackDecay:.003,CrackHighpass:1800,Body:1,BodyDecay:.05,BodyLowpass:900,Thump:.7,ThumpFrom:100,ThumpTo:45,ThumpDecay:.08,Tail:.2,TailDecay:.25,TailLowpass:600,Reverb:.2,Duration:.4,Peak:.4}},
+ {id:'airypuff',name:'Airy Puff',tag:'C',note:'A short breathy burst with a light thump. The brightest option, closest to a pellet spray rather than a boom.',
+  g:{Crack:.25,CrackDecay:.006,CrackHighpass:1200,Body:1,BodyDecay:.045,BodyLowpass:3500,Thump:.3,ThumpFrom:160,ThumpTo:80,ThumpDecay:.04,Tail:.25,TailDecay:.18,TailLowpass:1800,Reverb:.12,Duration:.3,Peak:.38}},
+ {id:'lowknock',name:'Low Knock',tag:'D',note:'Mostly a short low thump with a dull body. Very short and tidy, so rapid fire never smears together.',
+  g:{Crack:.05,CrackDecay:.003,CrackHighpass:1500,Body:.5,BodyDecay:.03,BodyLowpass:700,Thump:1,ThumpFrom:110,ThumpTo:55,ThumpDecay:.07,Tail:.1,TailDecay:.15,TailLowpass:500,Reverb:.1,Duration:.25,Peak:.4}}
+];
+
+function f(x){var s=String(Math.round(x*10000)/10000);if(s.indexOf('.')<0)s+='.0';return s+'f'}
+function recipe(o){var g=o.g;return 'SetGun(Sfx.ShotShotgun, 0.1f, new Gun\n{\n'+
+ '    Crack = '+f(g.Crack)+', CrackDecay = '+f(g.CrackDecay)+', CrackHighpass = '+f(g.CrackHighpass)+',\n'+
+ '    Body = '+f(g.Body)+', BodyDecay = '+f(g.BodyDecay)+', BodyLowpass = '+f(g.BodyLowpass)+',\n'+
+ '    Thump = '+f(g.Thump)+', ThumpFrom = '+f(g.ThumpFrom)+', ThumpTo = '+f(g.ThumpTo)+', ThumpDecay = '+f(g.ThumpDecay)+',\n'+
+ '    Tail = '+f(g.Tail)+', TailDecay = '+f(g.TailDecay)+', TailLowpass = '+f(g.TailLowpass)+',\n'+
+ '    Reverb = '+f(g.Reverb)+', Duration = '+f(g.Duration)+', Peak = '+f(g.Peak)+',\n});'}
+
+var ctx=null,master=null,buffers={},playing=null,loopTimer=null,loopId=null,take={},cardEls={};
+function ensureCtx(){
+  if(ctx)return;
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+  master=ctx.createGain();master.connect(ctx.destination);setVol()}
+function setVol(){if(master)master.gain.value=Math.pow(document.getElementById('vol').value/100,2)}
+function build(o){
+  if(buffers[o.id])return buffers[o.id];
+  var list=[];
+  for(var v=0;v<VARIANTS;v++){
+    var data=gunshot(o.g,31*7+v+o.id.length*13),b=ctx.createBuffer(1,data.length,RATE);b.copyToChannel(data,0);list.push(b)}
+  buffers[o.id]=list;return list}
+function shoot(o){
+  ensureCtx();if(ctx.state==='suspended')ctx.resume();
+  var list=build(o),i=(take[o.id]=(take[o.id]||0)+1)%list.length,src=ctx.createBufferSource();
+  src.buffer=list[i];src.playbackRate.value=1+(Math.random()-.5)*.08;src.connect(master);src.start();
+  var el=cardEls[o.id];el.classList.add('playing');setTimeout(function(){el.classList.remove('playing')},180)}
+function stopLoop(){clearInterval(loopTimer);loopTimer=null;loopId=null;document.getElementById('loop').setAttribute('aria-pressed','false');
+  document.querySelectorAll('.loopbtn').forEach(function(b){b.textContent='Fire loop'})}
+function startLoop(o,btn){
+  stopLoop();loopId=o.id;shoot(o);loopTimer=setInterval(function(){shoot(o)},450);
+  document.getElementById('loop').setAttribute('aria-pressed','true');btn.textContent='Looping...'}
+
+var grid=document.getElementById('grid'),ref=null;
+OPTIONS.forEach(function(o){
+  var data=gunshot(o.g,31*7+o.id.length*13);o.wave=data;
+  var peak=o.g.Peak;
+  var card=document.createElement('div');card.className='card';cardEls[o.id]=card;
+  card.innerHTML='<h2><span>'+o.name+'</span><small>'+(o.tag==='today'?'current':'option '+o.tag)+'</small></h2><p>'+o.note+'</p><canvas width="600" height="110" aria-label="Waveform of '+o.name+'"></canvas>'+
+   '<div class="row"><button class="primary play">Play</button><button class="loopbtn">Fire loop</button><span class="stat">peak '+peak.toFixed(2)+' / '+Math.round(o.g.Duration*1000)+' ms</span></div>'+
+   '<details><summary>SoundBank recipe</summary><pre></pre></details>';
+  card.querySelector('pre').textContent=recipe(o);
+  card.querySelector('.play').onclick=function(){stopLoop();shoot(o)};
+  card.querySelector('.loopbtn').onclick=function(e){loopId===o.id?stopLoop():startLoop(o,e.target)};
+  grid.appendChild(card);
+  drawWave(card.querySelector('canvas'),data)});
+function drawWave(cv,d){
+  var c=cv.getContext('2d'),W=cv.width,H=cv.height,st=getComputedStyle(document.documentElement),col=st.getPropertyValue('--wave').trim()||'#2d6a7a',mut=st.getPropertyValue('--line').trim()||'#888';
+  c.clearRect(0,0,W,H);c.strokeStyle=mut;c.lineWidth=1;c.beginPath();c.moveTo(0,H/2);c.lineTo(W,H/2);c.stroke();
+  var span=Math.floor(.7*RATE),per=span/W;c.fillStyle=col;
+  for(var x=0;x<W;x++){var m=0;for(var i=Math.floor(x*per);i<Math.min(d.length,Math.floor((x+1)*per));i++)m=Math.max(m,Math.abs(d[i]));
+    var h=m*(H/2-3);c.fillRect(x,H/2-h,1,Math.max(1,h*2))}}
+function redraw(){OPTIONS.forEach(function(o){drawWave(cardEls[o.id].querySelector('canvas'),o.wave)})}
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){setTimeout(redraw,50)});
+new MutationObserver(function(){setTimeout(redraw,50)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+document.getElementById('vol').oninput=function(e){document.getElementById('volOut').textContent=e.target.value;setVol()};
+document.getElementById('stop').onclick=stopLoop;
+document.getElementById('loop').onclick=function(){if(loopId)stopLoop();else{var o=OPTIONS[1];startLoop(o,cardEls[o.id].querySelector('.loopbtn'))}};
+</script>
