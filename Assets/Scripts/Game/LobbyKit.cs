@@ -57,9 +57,9 @@ namespace Arena
             {
                 // A key that can't be used yet (Start before everyone is ready): dim and dashed, with its text.
                 var d = CrtUi.Dim;
-                Ui.Fill(r, new Color(d.r, d.g, d.b, 0.03f));
-                CrtKit.Dashed(r, 2f, new Color(d.r, d.g, d.b, 0.7f));
-                Draw(r, text, icon, stack, colorIcon, size, minSize, d, false, calm, sub, true);
+                Ui.Fill(r, new Color(d.r, d.g, d.b, 0.015f));
+                CrtKit.Dashed(r, 1f, new Color(d.r, d.g, d.b, 0.3f));  // faded: nothing to press yet
+                Draw(r, text, icon, stack, colorIcon, size, minSize, new Color(d.r, d.g, d.b, 0.5f), false, calm, sub, true);
                 return false;
             }
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
