@@ -691,9 +691,13 @@ namespace Arena
             if (names != fxCallouts) { fxCallouts = names; changed = true; }
             bool calm = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
+            DrawBackgroundRow(new Rect(x, y + 70f, w, 92f));  // MenuBackgrounds.cs
+            float cy = y + 172f;
+            WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);
+            int theme = WinChoices(new Rect(x, cy + 26f, w, 34f), CrtUi.ThemeNames, CrtUi.Theme);
+            if (theme != CrtUi.Theme) { CrtUi.Theme = theme; changed = true; }
             if (changed)
                 SaveFxSettings();
-            DrawBackgroundRow(new Rect(x, y + 70f, w, 92f));  // MenuBackgrounds.cs
         }
 
         /// A tiny fight that follows the visual settings: shots into a target (it flashes and shows numbers), an

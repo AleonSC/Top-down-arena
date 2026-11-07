@@ -8,10 +8,28 @@ namespace Arena
     /// and keeps the colours with static scanlines and vignette.
     public static class CrtUi
     {
-        public static readonly Color Ink = new Color(0.40f, 0.64f, 1f);
-        public static readonly Color Dim = new Color(0.25f, 0.42f, 0.72f);
-        public static readonly Color Bg = new Color(0.012f, 0.03f, 0.085f);
-        static readonly Color Bezel = new Color(0.05f, 0.07f, 0.14f);
+        /// The phosphor colour (Settings > Visual effects > CRT colour). 0 is the original blue.
+        public static readonly string[] ThemeNames = { "Blue", "Green", "Amber", "Red", "Violet", "White" };
+        static readonly Color[] ThemeInk = { new Color(0.40f, 0.64f, 1f), new Color(0.35f, 0.95f, 0.5f), new Color(1f, 0.72f, 0.25f), new Color(1f, 0.42f, 0.42f), new Color(0.72f, 0.5f, 1f), new Color(0.88f, 0.92f, 0.96f) };
+        static int theme;
+
+        public static int Theme
+        {
+            get => theme;
+            set => theme = Mathf.Clamp(value, 0, ThemeInk.Length - 1);
+        }
+
+        public static Color Ink => ThemeInk[theme];
+        public static Color Dim => Color.Lerp(Ink, new Color(0.05f, 0.08f, 0.14f), 0.38f);
+        public static Color Bg => theme == 0 ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);
+        static Color Bezel => theme == 0 ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);
+
+        /// A very dark screen with a breath of the phosphor colour in it.
+        static Color Tinted(float darkness, float tint)
+        {
+            var i = Ink;
+            return new Color(darkness * 0.3f + i.r * tint * 0.25f, darkness * 0.3f + i.g * tint * 0.25f, darkness * 0.3f + i.b * tint * 0.25f);
+        }
 
         /// The dark blue screen, with its bezel and a thin phosphor rim.
         public static void Begin(Rect r)
