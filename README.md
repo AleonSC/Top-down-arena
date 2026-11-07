@@ -303,10 +303,12 @@ Mastery resets each run.
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when the wave is
 cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to select a card, then
-**Choose Upgrade** (or Enter). Each card has its rarity centered on top, the icon in a cutout tile, and a soft glow in the
-rarity's color (whitish common, green uncommon, blue rare, purple very rare, orange legendary) while it bobs slowly (rare and
-better ones also shine); the one you pick lifts and glows stronger. Upgrades with a stack cap show circles that fill with how
-many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
+**Choose Upgrade** (or Enter). The screen wears the lobby's blue CRT look: a glowing VT323 title, boxed cards with corner
+brackets, and the lobby's digital keys for **Reroll** and **Choose Upgrade** (Choose is the dashed, locked key until you pick a
+card, then it lights up with a green lamp). Each card has its rarity in a small key-like label on top, the icon (in its own
+colours) in an outlined tile, and a soft glow (blue common, green uncommon, blue rare, purple very rare, orange legendary)
+while it bobs slowly (rare and better ones also shine); the one you pick lifts, glows stronger and outlines in white-blue.
+Upgrades with a stack cap show squares that fill with how many you hold (the next one is ringed on the picked card). What the pick changes ("Regeneration 0.25 → 3.25 HP/s", or a new
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendaries)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
