@@ -161,6 +161,7 @@ namespace Arena
             foreach (var minion in game.Minions.Values)
                 DrawMinion(minion, t);
             SweepCloneWalls();  // CloneWallLook.cs
+            SweepGolemWalls(t);  // GolemWallLook.cs
             DrawFrenzyMinions(t);  // Alpha Call's frenzied minions (AbilityLooks.cs)
             foreach (var o in game.Orbs.Values)
                 DrawOrb(o, t);

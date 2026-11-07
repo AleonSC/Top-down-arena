@@ -53,6 +53,7 @@ namespace Arena
         Rect cabScreen;
         int rowIndex;  // DrawerRow's count in the list being drawn (its typing slot and opening delay)
         bool cabScreenOn, cabScreenOpen;
+        bool cabFlat = true;   // the menus sit on the loadout's box (BeginDrawer's `loadout`); the window to the right follows
         float cabEdgeVis;  // how visible the soft edges are this frame (0: no cabinet menu was drawn)
         float cabScreenAge;
 
@@ -60,15 +61,21 @@ namespace Arena
         /// follows is drawn in cabinet coordinates (the inside of its outline, CabW x CabH) until EndDrawer. `screen` is the options
         /// screen's rect (default 26,150, 358 x 456); `header` the header screen's (default 26,26, 358 x 100; a shorter one gets a
         /// tighter title and sub-line).
-        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null, Rect? header = null)
+        /// `loadout` (the default): the cabinet is the lobby loadout's box (CrtKit.LoadoutBox) with the title and keys straight on it, no
+        /// screens inside. false keeps the CRT cabinet and its screens (the profile's, which draws screens of its own).
+        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null, Rect? header = null, bool loadout = true)
         {
             float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
             bool calm = CabCalm;
             float age = CabAge, now = WinNow;
             rowIndex = 0;
+            cabFlat = loadout;
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, H));
-            CrtKit.Cabinet(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
+            if (loadout)
+                CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
+            else
+                CrtKit.Cabinet(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
@@ -76,7 +83,13 @@ namespace Arena
             bool tight = hr.height < 90f;
             float ty = tight ? 2f : 6f, th = tight ? 46f : 56f, sy = tight ? 50f : 64f;
             float ha = age - 0.5f;
-            if (CrtKit.PowerOn(hr, ha, calm))
+            if (loadout)
+            {
+                // No screen: a thin rule under the title and its line, and a ruled "MENU" heading over the keys.
+                if (ha > 0f || calm)
+                    Ui.Fill(new Rect(hr.x, hr.yMax + 4f, hr.width, 1f), new Color(0.12f, 0.23f, 0.4f));
+            }
+            if (loadout ? (calm || ha >= 0f) : CrtKit.PowerOn(hr, ha, calm))
             {
                 int size = Mathf.Min(titleSize, 40);
                 while (size > 16 && CrtUi.TitleWidth(title, size) > hr.width - 60f)
@@ -93,15 +106,18 @@ namespace Arena
                 if (!calm && age < CabOpenEnd && CrtKit.Settled("cab.sub", now))
                     subShown = CrtKit.BootLine(cabBootLog, subFull, age - 0.98f, false);  // the opening: a boot log first
                 Ui.Label(new Rect(hr.x + 20f, hr.y + sy, hr.width - 40f, 20f), subShown, 12, CabSoft, TextAnchor.MiddleLeft, true);
-                CrtUi.End(hr, now, calm);
-                CrtKit.PowerFlash(hr, ha, calm);
+                if (!loadout)
+                {
+                    CrtUi.End(hr, now, calm);
+                    CrtKit.PowerFlash(hr, ha, calm);
+                }
             }
 
             // The options screen.
             cabScreen = screen ?? new Rect(26f, 150f, 358f, 456f);
             cabScreenAge = age - 0.9f;
             cabScreenOpen = true;
-            cabScreenOn = CrtKit.PowerOn(cabScreen, cabScreenAge, calm);
+            cabScreenOn = loadout ? calm || cabScreenAge >= 0f : CrtKit.PowerOn(cabScreen, cabScreenAge, calm);
         }
 
         /// The options screen's glass: the scan bar of the opening, scanlines, and the power-on flash.
@@ -113,6 +129,8 @@ namespace Arena
             if (!cabScreenOn)
                 return;
             CrtKit.ScanBar(cabScreen, CabAge - 1.2f, CabCalm);
+            if (cabFlat)
+                return;  // (the loadout box has no glass over its keys)
             CrtUi.End(cabScreen, WinNow, CabCalm);
             CrtKit.PowerFlash(cabScreen, cabScreenAge, CabCalm);
         }
@@ -186,7 +204,7 @@ namespace Arena
         float cabWinInAt, cabWinOutAt = -1f;
         Action cabWinAfter;
         Rect cabWinRect;
-        bool cabWinOn, cabWinEnabledWas;
+        bool cabWinOn, cabWinEnabledWas, cabWinFlat;
         float cabWinPower;
         int cabWinRow;         // labels in the window so far (their typing slots)
 
@@ -297,7 +315,15 @@ namespace Arena
             float dx = -(DrawerPanel.xMax + 20f) * (1f - k);
             cabWinPower = cabKind == 0 ? WinNow - cabWinInAt : WinNow - cabWinInAt - 0.2f;
             cabWinRect = new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height);
-            cabWinOn = CrtKit.PowerOn(cabWinRect, cabWinPower, CabCalm);  // (draws the line it opens from)
+            cabWinFlat = cabFlat;
+            if (cabWinFlat)
+            {
+                cabWinOn = CabCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
+                if (cabWinOn)
+                    CrtKit.LoadoutBox(cabWinRect);
+            }
+            else
+                cabWinOn = CrtKit.PowerOn(cabWinRect, cabWinPower, CabCalm);  // (draws the line it opens from)
             cabWinEnabledWas = GUI.enabled;
             if (!cabWinOn || cabWinOutAt >= 0f)
                 GUI.enabled = false;
@@ -309,7 +335,7 @@ namespace Arena
         {
             PopShift();
             GUI.enabled = cabWinEnabledWas;
-            if (!cabWinOn)
+            if (!cabWinOn || cabWinFlat)
                 return;
             CrtUi.End(cabWinRect, Time.unscaledTime, CabCalm);
             CrtKit.PowerFlash(cabWinRect, cabWinPower, CabCalm);

@@ -282,6 +282,18 @@ namespace Arena
             Ui.Fill(new Rect(bx + 18f, by, 2f, 18f), ink);
         }
 
+        /// The lobby loadout's box (Docs/Mockups/pause-settings-loadout-box.html): a navy fill, a thin blue rim and the blue bracket corners.
+        /// The pause, lobby, Settings and How to play menus sit on it, the cabinet's left box and the window to its right alike. Static.
+        public static void LoadoutBox(Rect r)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            Ui.Fill(r, new Color(0.027f, 0.051f, 0.118f, 0.98f));
+            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), new Color(0.06f, 0.1f, 0.22f, 0.22f));  // a lighter top, like the lobby's wash
+            Frame(r, 1f, new Color(0.19f, 0.32f, 0.55f));
+            LobbyKit.Corners(r);
+        }
+
         static readonly Color CabinetFill = new Color(0.05f, 0.0725f, 0.195f, 0.98f);
         static readonly Color CabinetLine = new Color(0.227f, 0.333f, 0.647f, 1f);
 

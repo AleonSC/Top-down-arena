@@ -202,7 +202,7 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        /// Three keys: a normal run, a Boss Hunt, or the Practice Range, each with its small description. Only the host can switch.
+        /// Three keys: a normal run, a Boss Hunt, or the Practice Range, each with its description as a hover tip. Only the host can switch.
         void DrawModeSwitch(Rect r, float t)
         {
             bool practice = session.PracticeMode;
@@ -213,7 +213,7 @@ namespace Arena
                 var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 15, minSize: 11, enabled: session.IsHost, accent: i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.55f, 0.95f, 0.8f) : (Color?)null, sub: sub) && session.IsHost && i != mode)
+                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 15, minSize: 11, enabled: session.IsHost, accent: i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.55f, 0.95f, 0.8f) : (Color?)null) && session.IsHost && i != mode)
                     session.SetMode(i == 2, i == 1);
                 if (k.Contains(Event.current.mousePosition))  // the description is a hover tip
                 {
@@ -548,7 +548,7 @@ namespace Arena
             float x = r.x + 334f, w = 454f, y = r.y + 16f;
             const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
-            LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm, 15);
+            LobbyKit.Heading(x, y, w, "Role", null, calm, 15);
             // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
@@ -563,6 +563,11 @@ namespace Arena
                 {
                     LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
                     continue;
+                }
+                if (b.Contains(Event.current.mousePosition))  // the description is a hover tip
+                {
+                    TipStart(b, Defs.Roles[i].Name, ToColor(Defs.Roles[i].Color));
+                    TipAdd(Defs.Roles[i].Desc, 13, Ui.Text);
                 }
                 if (LobbyKit.Key(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: ToColor(Defs.Roles[i].Color)))
                 {
@@ -589,7 +594,7 @@ namespace Arena
             else
             {
                 // Classes: rows of 4, the icon above the name so long names fit.
-                LobbyKit.Heading(x, y, w, "Class", KitBlurb(me.Kit), calm, 15);
+                LobbyKit.Heading(x, y, w, "Class", null, calm, 15);
                 int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
                 for (int i = 0; i < classSlots; i++)
                 {
@@ -598,6 +603,11 @@ namespace Arena
                     {
                         LockedSlot(b, null, true);
                         continue;
+                    }
+                    if (b.Contains(Event.current.mousePosition))
+                    {
+                        TipStart(b, Defs.KitName((Kit)i), Ui.Text);
+                        TipAdd(KitBlurb((Kit)i), 13, Ui.Text);
                     }
                     if (LobbyKit.Key(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
                     {

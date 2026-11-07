@@ -289,7 +289,7 @@ namespace Arena
                 return;
             if (a < 0.99f)
                 PushShift(0f, 0f, a);
-            DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t, a >= 0.99f);
+            DrawRunCard(DrawerPanel, t, a >= 0.99f);  // in the window's place, right of the box
             PopShift();
         }
 
@@ -446,8 +446,14 @@ namespace Arena
                     chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
-            float powerAge = CabAge - 1.3f;  // a CRT screen that powers on after the cabinet's opening
-            if (!CrtKit.PowerOn(r, powerAge, CabCalm))
+            float powerAge = CabAge - 1.3f;  // the box fades in after the cabinet's opening
+            if (cabFlat)
+            {
+                if (!CabCalm && powerAge < 0f)
+                    return;
+                CrtKit.LoadoutBox(r);
+            }
+            else if (!CrtKit.PowerOn(r, powerAge, CabCalm))
                 return;
             DrawPartyStack(r);  // the players, stacked up from its bottom
             float x = r.x + 20f, y = r.y + 16f;
@@ -513,8 +519,11 @@ namespace Arena
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, Color.white, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No challenge rooms on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A portal opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
-            CrtUi.End(r, t, CabCalm);
-            CrtKit.PowerFlash(r, powerAge, CabCalm);
+            if (!cabFlat)
+            {
+                CrtUi.End(r, t, CabCalm);
+                CrtKit.PowerFlash(r, powerAge, CabCalm);
+            }
             if (gl && BeginUiGl())
             {
                 UiClip(tile);

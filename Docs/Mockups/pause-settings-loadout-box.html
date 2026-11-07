@@ -1,0 +1,243 @@
+<title>Pause and Settings Box</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game canvas) scaled to fit. The pause and settings menus sit on the lobby loadout's box: navy fill, thin blue border, bracket corners, scanlines, ruled section headers, tinted keys. Two layouts per screen. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 72ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .stage button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 12px var(--f-mono); color: var(--muted); letter-spacing: .04em; line-height: 1.55; max-width: 90ch; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #03060f; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-ui);
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #070d1e; --rule: #1f3a66; --edge: #30528d; --brk: #3962a6; --teal: #4aa3c8; --text: #dbe5ff; --sub: #8a9cc8;
+  --gold: #e0b04a; --green: #4dd080; --red: #e0607a; --purple: #b36bff; --steel: #8fa0c8; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* backdrop: the paused arena, dimmed */
+.arena { position: absolute; inset: 0; background: #05070f; }
+.arena i { position: absolute; display: block; }
+.grid { inset: 0; background-image: linear-gradient(rgba(60,90,150,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(60,90,150,.12) 1px, transparent 1px); background-size: 40px 40px; }
+.wall { background: #2a3442; border: 1px solid #3a4658; }
+.foe { width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 18px solid #c2406e; filter: drop-shadow(0 0 6px #c2406e); }
+.dim { position: absolute; inset: 0; background: rgba(2,4,12,.62); }
+.frame { position: absolute; inset: 8px; border: 2px solid #1b2f63; border-radius: 22px; pointer-events: none; }
+
+/* the loadout box */
+.pn { position: absolute; background: linear-gradient(#0a1227, #070d1e 55%, #060b19); border: 1px solid var(--edge); box-shadow: inset 0 0 0 1px rgba(60,100,180,.10), inset 0 0 50px rgba(0,0,0,.45), 0 0 40px rgba(0,0,0,.6); color: var(--text); }
+.pn::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); z-index: 5; }
+.br { position: absolute; width: 16px; height: 16px; border: 0 solid var(--brk); z-index: 6; pointer-events: none; }
+.br.tl { left: -7px; top: -7px; border-width: 3px 0 0 3px; } .br.tr { right: -7px; top: -7px; border-width: 3px 3px 0 0; }
+.br.bl { left: -7px; bottom: -7px; border-width: 0 0 3px 3px; } .br.brr { right: -7px; bottom: -7px; border-width: 0 3px 3px 0; }
+.in { position: absolute; inset: 0; padding: 22px 26px; display: flex; flex-direction: column; gap: 14px; z-index: 2; }
+.hd { display: flex; align-items: center; gap: 18px; min-height: 44px; flex: none; }
+.ttl { font: 38px/1 var(--f-crt); letter-spacing: .2em; color: var(--ink); text-shadow: 0 0 8px rgba(102,163,255,.5); white-space: nowrap; }
+.ttl .cur { display: inline-block; width: .5em; height: .72em; background: currentColor; margin-left: 6px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.hdrule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent); }
+.chips { display: flex; gap: 8px; margin-left: auto; }
+.chip { font: 700 12px var(--f-ui); letter-spacing: .08em; padding: 5px 10px 4px; border: 1px solid var(--rule); color: var(--sub); background: rgba(40,70,130,.12); text-transform: uppercase; }
+.chip b { color: var(--text); font-weight: 700; }
+.sh { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 4px; margin-bottom: 8px; font: 700 12px var(--f-ui); letter-spacing: .2em; color: var(--teal); text-transform: uppercase; }
+.sh small { font: 500 11px var(--f-ui); letter-spacing: .04em; color: var(--dim); text-transform: none; }
+.sec { min-width: 0; }
+
+/* keys: tinted, thin border, like the role / class keys */
+.k { --c: var(--steel); position: relative; display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 7px 12px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 9%, transparent); color: var(--c); }
+.k:hover { background: color-mix(in srgb, var(--c) 20%, transparent); }
+.k.sel { border-color: var(--c); background: color-mix(in srgb, var(--c) 20%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent), inset 0 0 14px color-mix(in srgb, var(--c) 18%, transparent); }
+.k svg { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.k .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.k b { font: 700 16px/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; }
+.k small { font: 500 11.5px/1.15 var(--f-ui); color: color-mix(in srgb, var(--c) 62%, #8a9cc8); letter-spacing: .02em; }
+.k .tag { margin-left: auto; font: 700 11px var(--f-ui); letter-spacing: .06em; color: var(--text); border: 1px solid #5a6a98; padding: 2px 6px 1px; }
+.k.c-blue { --c: #66a3ff; } .k.c-gold { --c: var(--gold); } .k.c-green { --c: var(--green); } .k.c-red { --c: var(--red); } .k.c-purple { --c: var(--purple); }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.list .k { padding-block: 9px; }
+.foot { margin-top: auto; font: 600 11px/1.5 var(--f-ui); letter-spacing: .1em; color: var(--dim); text-transform: uppercase; flex: none; }
+
+/* small keys (tabs, segments) */
+.tabs { display: flex; gap: 8px; margin-left: auto; }
+.tab { font: 700 13px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: #3e5a98; background: transparent; border: 1px solid transparent; padding: 8px 20px; }
+.tab:hover { color: #7fa5f0; }
+.tab.sel { color: var(--text); background: #1a2b4a; border-color: #3a62a8; }
+.back { width: 38px; height: 38px; border: 1px solid var(--edge); background: #0d1a36; color: #8fb0f0; display: grid; place-items: center; flex: none; }
+.back svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: square; }
+.back:hover { background: #162a55; }
+.segs { display: flex; gap: 6px; }
+.sg { flex: 1; font: 700 13px var(--f-ui); letter-spacing: .1em; text-transform: uppercase; padding: 8px 10px 7px; color: #6f8ccc; border: 1px solid #2c4478; background: rgba(60,100,180,.08); text-align: center; }
+.sg:hover { background: rgba(60,100,180,.2); }
+.sg.sel { color: var(--text); border-color: #5b8cff; background: rgba(91,140,255,.2); box-shadow: inset 0 0 12px rgba(91,140,255,.18); }
+
+/* rows: label + hint on the left, a control on the right */
+.rows { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 26px; }
+.row { display: flex; align-items: center; gap: 14px; padding: 7px 0; border-bottom: 1px dashed #14264a; min-width: 0; }
+.row .lb { flex: 1; min-width: 0; } .row .lb b { display: block; font: 700 16px var(--f-ui); color: #7fb0ff; letter-spacing: .02em; } .row .lb small { font: 500 12px var(--f-ui); color: var(--sub); }
+.tg { width: 86px; flex: none; display: flex; align-items: center; gap: 8px; justify-content: center; font: 700 13px var(--f-ui); letter-spacing: .1em; padding: 7px 0 6px; border: 1px solid #2c4478; color: #55689a; background: rgba(40,70,130,.1); }
+.tg i { width: 10px; height: 10px; background: #1b2a52; border: 1px solid #3a5aa0; }
+.tg.on { color: #9dc0ff; border-color: #4a78d0; background: rgba(91,140,255,.14); } .tg.on i { background: #7fb0ff; box-shadow: 0 0 8px #7fb0ff; border-color: #7fb0ff; }
+.sl { display: flex; align-items: center; gap: 12px; width: 250px; flex: none; }
+.sl .tr { flex: 1; height: 8px; background: rgba(255,255,255,.08); position: relative; cursor: pointer; }
+.sl .fl { position: absolute; inset: 0 auto 0 0; background: #4a8cff; box-shadow: 0 0 10px rgba(74,140,255,.7); }
+.sl .kn { position: absolute; top: -4px; width: 4px; height: 16px; background: #dbe5ff; margin-left: -2px; }
+.sl output { width: 38px; text-align: right; font: 700 15px var(--f-ui); color: var(--text); font-variant-numeric: tabular-nums; }
+.full { grid-column: 1 / -1; }
+.kb { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border: 1px solid #2c4478; background: rgba(60,100,180,.08); font: 600 14px var(--f-ui); color: var(--sub); letter-spacing: .04em; }
+.kb kbd { font: 700 12px var(--f-ui); letter-spacing: .08em; color: var(--text); border: 1px solid #5a6a98; padding: 3px 8px 2px; background: rgba(10,16,40,.7); }
+
+/* run info (pause) */
+.wave { display: flex; align-items: baseline; gap: 16px; }
+.wave strong { font: 56px/.9 var(--f-crt); letter-spacing: .1em; color: var(--gold); text-shadow: 0 0 10px rgba(224,176,74,.45); }
+.tiles { display: flex; gap: 8px; margin-left: auto; }
+.tile { min-width: 92px; padding: 5px 10px; border: 1px solid #243c64; background: rgba(224,176,74,.06); display: flex; flex-direction: column; }
+.tile b { font: 700 24px/1.05 var(--f-ui); color: #f2c14e; font-variant-numeric: tabular-nums; } .tile span { font: 600 10px var(--f-ui); letter-spacing: .12em; color: #6f8ccc; text-transform: uppercase; }
+.info { display: flex; gap: 14px; align-items: center; padding: 8px 10px; border: 1px solid #1c2f58; background: rgba(40,70,130,.08); }
+.info + .info { margin-top: 8px; }
+.ico { width: 46px; height: 46px; flex: none; border: 2px solid; display: grid; place-items: center; }
+.info em { display: block; font: 700 10px var(--f-ui); letter-spacing: .14em; color: #7488b8; font-style: normal; text-transform: uppercase; }
+.info b { display: block; font: 700 20px/1.15 var(--f-ui); color: #f0dfae; } .info small { font: 500 13px var(--f-ui); color: var(--sub); }
+.pl { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 2px solid #3d66b0; background: linear-gradient(90deg, rgba(40,70,140,.25), rgba(10,16,40,.4)); }
+.pl b { font: 700 18px var(--f-ui); color: #eef3ff; } .pl i { font: 700 13px var(--f-ui); color: #6f9bff; font-style: normal; }
+.hp { flex: 1; height: 8px; background: rgba(255,255,255,.1); position: relative; } .hp::after { content: ""; position: absolute; inset: 0 30% 0 0; background: #3fcf6c; box-shadow: 0 0 10px rgba(63,207,108,.6); }
+.lv { font: 700 12px var(--f-ui); color: #1a1204; background: #d2a640; padding: 3px 8px 2px; }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cols { display: flex; gap: 26px; flex: 1; min-height: 0; }
+.col-l { width: 300px; flex: none; display: flex; flex-direction: column; gap: 12px; } .col-r { flex: 1; min-width: 0; }
+.bgrow { display: flex; gap: 14px; align-items: center; padding: 8px; border: 1px solid #1c2f58; background: rgba(40,70,130,.08); }
+.bgrow .th { width: 120px; height: 66px; flex: none; border: 1px solid #3a5aa0; background: radial-gradient(circle at 30% 40%, #1a2a5a, transparent 55%), radial-gradient(circle at 70% 65%, #4a1a3a, transparent 50%), #060a18; }
+.bgrow .nm { flex: 1; text-align: center; font: 700 20px var(--f-ui); color: #dbe5ff; letter-spacing: .06em; }
+.arr { width: 34px; height: 30px; border: 1px solid #2c4478; background: rgba(60,100,180,.12); color: #8fb0f0; font: 700 16px var(--f-ui); }
+.slideL { animation: slideL .55s cubic-bezier(.2,.85,.25,1) both; }
+.openR { animation: openR .5s .3s cubic-bezier(.2,.85,.25,1) both; }
+@keyframes slideL { from { transform: translateX(-110%); } to { transform: none; } }
+@keyframes openR { from { clip-path: inset(-12px 100% -12px -12px); opacity: .2; } to { clip-path: inset(-12px -12px -12px -12px); opacity: 1; } }
+.x { width: 38px; height: 38px; border: 1px solid var(--edge); background: #0d1a36; color: #8fb0f0; font: 700 16px var(--f-ui); margin-left: 8px; flex: none; }
+.x:hover { background: #162a55; }
+.ttl.sm { font-size: 32px; }
+@media (prefers-reduced-motion: reduce) { .ttl .cur { animation: none; } .slideL, .openR { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Pause and Settings Box</h1>
+    <p>The pause menu and settings drawn on the lobby loadout's box: the same navy panel, thin blue border, bracket corners, ruled section headers and tinted keys, instead of the CRT cabinet.</p>
+  </header>
+  <div class="bar">
+    <div class="grp" id="gScreen"><span>Screen</span></div>
+    <div class="grp" id="gLayout"><span>Animation</span></div>
+  </div>
+  <div class="view" id="view"><div class="stage" id="stage"></div></div>
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var st = { screen: 'pause', layout: 'A', tab: 'visual',
+    tg: { fx: true, dmg: true, names: true, reduced: false, aim: true, hud: true, lean: true, menuMusic: true },
+    shake: 'LOW', hudSize: 'M', vol: { Master: 80, Music: 55, Effects: 90, Interface: 70 }, lean: 50 };
+  var ICON = {
+    play: '<path d="M7 4v16l12-8z"/>', trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H3v2a4 4 0 0 0 4 4M17 6h4v2a4 4 0 0 1-4 4M12 14v4M8 20h8"/>',
+    book: '<path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/>', star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    help: '<path d="M9 9a3 3 0 1 1 4.5 2.6c-1 .7-1.5 1.2-1.5 2.4M12 18v.5"/>', gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+    power: '<path d="M12 3v8M6.5 6.5a8 8 0 1 0 11 0"/>', audio: '<path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6"/>', fx: '<path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/>',
+    aim: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>', keys: '<path d="M4 7h16v10H4zM8 11h.5M12 11h.5M16 11h.5M8 14h8"/>', back: '<path d="M20 12H5M11 6l-6 6 6 6"/>', exit: '<path d="M10 4H4v16h6M20 12H9M16 8l4 4-4 4"/>'
+  };
+  var svg = function (n) { return '<svg viewBox="0 0 24 24">' + ICON[n] + '</svg>'; };
+  var brackets = '<i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i>';
+  var key = function (cls, icon, name, sub, tag, sel) { return '<button class="k ' + cls + (sel ? ' sel' : '') + '">' + svg(icon) + '<span class="tx"><b>' + name + '</b><small>' + sub + '</small></span>' + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</button>'; };
+  var panel = function (x, y, w, h, inner, cls) { return '<div class="pn ' + (cls || '') + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px">' + brackets + '<div class="in">' + inner + '</div></div>'; };
+
+  function backdrop() {
+    return '<div class="arena"><i class="grid"></i><i class="wall" style="left:440px;top:250px;width:90px;height:14px"></i><i class="wall" style="left:440px;top:250px;width:14px;height:70px"></i>' +
+      '<i class="wall" style="left:750px;top:250px;width:90px;height:14px"></i><i class="wall" style="left:826px;top:250px;width:14px;height:70px"></i><i class="wall" style="left:440px;top:420px;width:14px;height:70px"></i><i class="wall" style="left:440px;top:476px;width:90px;height:14px"></i>' +
+      '<i class="wall" style="left:826px;top:420px;width:14px;height:70px"></i><i class="wall" style="left:750px;top:476px;width:90px;height:14px"></i>' +
+      '<i class="foe" style="left:700px;top:370px"></i><i class="foe" style="left:610px;top:430px;transform:rotate(40deg)"></i><i class="foe" style="left:330px;top:560px;transform:rotate(-30deg)"></i><i class="foe" style="left:960px;top:200px;transform:rotate(90deg)"></i></div><div class="dim"></div><div class="frame"></div>';
+  }
+
+  var pauseItems = [
+    ['c-blue', 'play', 'Resume', 'Back into wave 6', 'ESC', true], ['c-gold', 'trophy', 'Run stats', 'Your build, damage and kills so far'], ['c-blue', 'book', 'Field guide', 'Every enemy, weapon and upgrade'],
+    ['c-gold', 'star', 'Profile', 'Your rank, records and unlocks'], ['c-blue', 'help', 'How to play', 'Controls and tips'], ['', 'gear', 'Settings', 'Audio, visual effects, aim line'], ['c-red', 'power', 'Quit', 'Back to the lobby, or out to the desktop']
+  ];
+  var list = function (items) { return '<div class="list">' + items.map(function (i) { return key(i[0], i[1], i[2], i[3], i[4], i[5]); }).join('') + '</div>'; };
+
+  var animL = '', animR = '';
+  function pause() {
+    var left = panel(24, 24, 410, 672, '<div class="hd"><div class="ttl">PAUSED<span class="cur"></span></div><div class="hdrule"></div></div>' +
+      '<div class="chips" style="margin:0"><span class="chip">Wave <b>6</b></span><span class="chip">Normal</span><span class="chip">1 / 3 players</span></div>' +
+      '<div class="sec"><div class="sh">Menu</div>' + list(pauseItems) + '</div><div class="foot">Esc resume · Arrows select · Enter choose<br>Hold Tab run stats and build · H hide HUD</div>', animL);
+    var run = '<div class="hd"><div class="ttl sm">THIS RUN</div><div class="hdrule"></div></div>' +
+      '<div class="wave"><strong>WAVE 6</strong><div class="tiles"><div class="tile"><b>0:12</b><span>Time</span></div><div class="tile"><b>12</b><span>Score</span></div><div class="tile"><b>4</b><span>Kills</span></div></div></div>' +
+      '<div class="sec"><div class="sh">Coming up</div><div class="info"><div class="ico" style="border-color:#c9a13c;background:#1b1507"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3l7 4v10l-7 4-7-4V7z" fill="#c9a13c" stroke="#f2c14e" stroke-width="1.5"/></svg></div><div><em>Next boss · wave 10</em><b>Hive Queen</b><small>3 waves before it</small></div></div>' +
+      '<div class="info"><div class="ico" style="border-color:#7a4cc4;background:#130a24"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="5" fill="#b36bff"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="#b36bff" stroke-width="2"/></svg></div><div><em>Challenge room · this stretch</em><b style="color:#dbe5ff">Not yet</b><small>A portal opens after one of the next few waves</small></div></div></div>' +
+      '<div class="sec"><div class="sh">Players<small>1 / 3</small></div><div class="pl"><b>Anthony (you)</b><i>Elementalist Tank</i><div class="hp"></div><span class="lv">LV 1</span></div></div>';
+    return left + panel(458, 40, 790, 640, run, animR);
+  }
+
+  var tabs = [['audio', 'Audio', 'audio', 'Volume for each kind of sound', 'c-green'], ['visual', 'Visual effects', 'fx', 'What the fight looks like', 'c-gold'], ['gameplay', 'Gameplay', 'aim', 'Aim line, the HUD, the network port', 'c-green'], ['keys', 'Keybinds', 'keys', 'Change your controls', 'c-red']];
+  var tg = function (id, name, hint) { return '<div class="row"><div class="lb"><b>' + name + '</b><small>' + hint + '</small></div><button class="tg' + (st.tg[id] ? ' on' : '') + '" data-tg="' + id + '"><i></i>' + (st.tg[id] ? 'ON' : 'OFF') + '</button></div>'; };
+  var seg = function (name, opts, cur, attr) { return '<div class="sec full"><div class="sh">' + name + '</div><div class="segs">' + opts.map(function (o) { return '<button class="sg' + (o === cur ? ' sel' : '') + '" data-' + attr + '="' + o + '">' + o + '</button>'; }).join('') + '</div></div>'; };
+  var slider = function (name, hint, id, v) { return '<div class="row"><div class="lb"><b>' + name + '</b><small>' + hint + '</small></div><div class="sl" data-sl="' + id + '"><div class="tr"><div class="fl" style="width:' + v + '%"></div><div class="kn" style="left:' + v + '%"></div></div><output>' + v + '</output></div></div>'; };
+
+  function content() {
+    if (st.tab === 'audio') return '<div class="sec"><div class="sh">Volume<small>Drag a bar or click it</small></div><div class="rows" style="grid-template-columns:1fr">' +
+      slider('Master', 'Everything at once', 'Master', st.vol.Master) + slider('Music', 'Menu, battle and boss tracks', 'Music', st.vol.Music) + slider('Effects', 'Weapons, hits and abilities', 'Effects', st.vol.Effects) + slider('Interface', 'Clicks, pings and menu sounds', 'Interface', st.vol.Interface) + '</div></div>' +
+      '<div class="sec"><div class="sh">Music player</div><div class="rows">' + tg('menuMusic', 'Menu music', 'Plays on the title and lobby screens') + '<div class="row"><div class="lb"><b>Now playing</b><small>Spiral Descent · menu</small></div><button class="tg on" style="width:110px"><i></i>CHANGE</button></div></div></div>';
+    if (st.tab === 'visual') return '<div class="sec"><div class="sh">Effects<small>Applies in the lobby too</small></div><div class="rows">' +
+      tg('fx', 'Visual effects', 'Glow, sparks, shattering enemies, lighting') + tg('dmg', 'Damage numbers', 'Small numbers rising off what is hit') + tg('names', 'Ability names', 'Each ability\'s name over whoever casts it') + tg('reduced', 'Reduced effects', 'No screen shake, hit-pause or white flashes') + '</div></div>' +
+      '<div class="rows">' + seg('Screen shake', ['OFF', 'LOW', 'FULL'], st.shake, 'shake') + '</div>' +
+      '<div class="sec"><div class="sh">Menu background<small>Live preview</small></div><div class="bgrow"><div class="th"></div><button class="arr">&lt;</button><div class="nm">Spiral</div><button class="arr">&gt;</button><button class="tg on" style="width:86px"><i></i>LIVE</button></div></div>';
+    if (st.tab === 'gameplay') return '<div class="sec"><div class="sh">In a run</div><div class="rows">' + tg('aim', 'Aim line', 'A line from you to where you shoot') + tg('hud', 'Show HUD', 'Health, abilities and the wave bar') + tg('lean', 'Camera lean', 'The view eases toward your aim') + slider('Lean strength', '5% of the arena at 100', 'lean', st.lean) + '</div></div>' +
+      '<div class="rows">' + seg('HUD size', ['S', 'M', 'L'], st.hudSize, 'hud') + '</div>' +
+      '<div class="sec"><div class="sh">Network</div><div class="rows"><div class="row"><div class="lb"><b>Host port</b><small>Friends join through this port</small></div><span class="kb" style="width:110px;justify-content:center"><kbd>7777</kbd></span></div></div></div>';
+    var binds = [['Move up', 'W'], ['Move left', 'A'], ['Move down', 'S'], ['Move right', 'D'], ['Ability', 'SPACE'], ['Ultimate', 'Q'], ['Weapon secondary', 'L ALT'], ['Ping', 'MIDDLE MOUSE'], ['Emote bar', 'T'], ['Hide HUD', 'H']];
+    return '<div class="sec"><div class="sh">Controls<small>Click a key, then press the new one</small></div><div class="rows" style="gap:8px 26px">' + binds.map(function (b) { return '<div class="kb"><span>' + b[0] + '</span><kbd>' + b[1] + '</kbd></div>'; }).join('') + '</div></div>';
+  }
+
+  function settings() {
+    var cur = tabs.filter(function (t) { return t[0] === st.tab; })[0];
+    var l = tabs.map(function (x) { return key(x[4], x[2], x[1], x[3], '', x[0] === st.tab).replace('<button class="k', '<button data-tab="' + x[0] + '" class="k'); }).join('');
+    var back = '<button class="k c-blue">' + svg('back') + '<span class="tx"><b>Back</b><small>Return to the menu</small></span><span class="tag">ESC</span></button>';
+    var left = panel(24, 24, 410, 672, '<div class="hd"><div class="ttl">SETTINGS<span class="cur"></span></div><div class="hdrule"></div></div>' +
+      '<div class="chips" style="margin:0"><span class="chip">Pick one to open it</span></div>' +
+      '<div class="sec"><div class="sh">Category</div><div class="list">' + l + '</div></div><div style="margin-top:auto">' + back + '</div>', animL);
+    var right = panel(458, 40, 790, 640, '<div class="hd"><div class="ttl sm">' + cur[1].toUpperCase() + '<span class="cur"></span></div><div class="hdrule"></div><button class="x" aria-label="Close">X</button></div>' +
+      '<div class="stack" style="flex:1">' + content() + '</div>', animR);
+    return left + right;
+  }
+
+  function render(anim) {
+    animL = anim && anim.l ? 'slideL' : ''; animR = anim && anim.r ? 'openR' : '';
+    $('stage').innerHTML = backdrop() + (st.screen === 'pause' ? pause() : settings());
+    $('note').textContent = st.screen === 'pause' ? 'The menu slides out from the left in the lobby loadout box. The run summary opens to its right, as it does now.' : 'Settings keeps the same left box. Picking a category opens its window to the right, closed with X. Toggles, tabs and sliders work in this preview.';
+    document.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { st.tab = b.getAttribute('data-tab'); render(); }; });
+    document.querySelectorAll('[data-tg]').forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-tg'); st.tg[k] = !st.tg[k]; render(); }; });
+    document.querySelectorAll('[data-shake]').forEach(function (b) { b.onclick = function () { st.shake = b.getAttribute('data-shake'); render(); }; });
+    document.querySelectorAll('[data-hud]').forEach(function (b) { b.onclick = function () { st.hudSize = b.getAttribute('data-hud'); render(); }; });
+    document.querySelectorAll('[data-sl]').forEach(function (s) {
+      s.onclick = function (e) { var tr = s.querySelector('.tr').getBoundingClientRect(); var v = Math.max(0, Math.min(100, Math.round((e.clientX - tr.left) / tr.width * 100))); var id = s.getAttribute('data-sl'); if (id === 'lean') st.lean = v; else st.vol[id] = v; render(); };
+    });
+    document.querySelectorAll('.pn .k:not([data-tab])').forEach(function (b) {
+      b.onclick = function () { var n = b.querySelector('b').textContent; if (n === 'Settings') { st.screen = 'settings'; sync({ r: 1 }); } if (n === 'Back') { st.screen = 'pause'; sync({ r: 1 }); } };
+    });
+    var bk = document.querySelector('.x'); if (bk) bk.onclick = function () { st.screen = 'pause'; sync({ r: 1 }); };
+    fit();
+  }
+  function fit() { var v = $('view'), s = v.clientWidth / 1280; $('stage').style.transform = 'scale(' + s + ')'; }
+  function sync(anim) { document.querySelectorAll('#gScreen .seg').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-v') === st.screen); }); render(anim); }
+  [['pause', 'Pause menu'], ['settings', 'Settings']].forEach(function (o) { var b = document.createElement('button'); b.className = 'seg'; b.textContent = o[1]; b.setAttribute('data-v', o[0]); b.onclick = function () { st.screen = o[0]; sync({ r: 1 }); }; $('gScreen').appendChild(b); });
+  var rp = document.createElement('button'); rp.className = 'seg'; rp.textContent = 'Replay slide-in'; rp.onclick = function () { sync({ l: 1, r: 1 }); }; $('gLayout').appendChild(rp);
+  window.addEventListener('resize', fit);
+  sync({ l: 1, r: 1 });
+})();
+</script>

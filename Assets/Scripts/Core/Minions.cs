@@ -132,7 +132,7 @@ namespace Arena
         internal static readonly WeaponDef[] SummonerWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.GolemStaff, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0, Damage = 40f, BotRange = 380f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A stone Golem fights beside you and blocks bullets.",
+            new WeaponDef { Id = WeaponId.GolemStaff, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0, Damage = 40f, BotRange = 380f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A rune-carved stone Golem (a small Titan) rises beside you, slams enemies and blocks bullets.",
                 Companion = MinionKind.Golem, CompanionCount = 1,
                 AreaDesc = "the boulder crushes 25% wider" },
             new WeaponDef { Id = WeaponId.BoneGuard, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f,
@@ -172,8 +172,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GolemWall, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0,
-                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three stone walls in front of you for 6 s that block bullets.",
-                Capstone = "Raises five walls.",
+                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three basalt golems in front of you. They block every enemy bullet and stay until they are broken (200 health each); casting again replaces them.",
+                Capstone = "Raises five golems.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
@@ -313,8 +313,14 @@ namespace Arena
                 {
                     V2 fwd = V2.FromAngle(p.Aim), side = fwd.Orthogonal();
                     int half = cap ? 2 : 1;
+                    var old = new List<int>();  // a new wall replaces the caster's old one
+                    foreach (var m in Minions.Values)
+                        if (m.Kind == MinionKind.Wall && m.Owner == p.Id)
+                            old.Add(m.Id);
+                    foreach (int oldId in old)
+                        Minions.Remove(oldId);
                     for (int i = -half; i <= half; i++)
-                        SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * 90f + side * (i * 55f), 6f);
+                        SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * GolemWallAhead + side * (i * GolemWallGap), -1f);  // -1: no timer, it stands until broken
                     Sounds.Add(Sfx.Summon);
                     break;
                 }
@@ -398,6 +404,8 @@ namespace Arena
 
         const float BatGuardTime = 0.6f, BatPeelSpan = 0.6f, BatRingNear = 34f, BatRingGrow = 18f;  // Bat Swarm: circle the owner 0.6 s, then each bat peels off in turn over 0.6 s
 
+        public const float GolemWallAhead = 112f, GolemWallGap = 76f;  // Golem Wall: golems touch (radius 38), their backs clear the caster
+
         Minion SpawnMinion(MinionKind kind, Player owner, V2 pos, float life, bool companion = false)
         {
             var m = new Minion
@@ -474,7 +482,7 @@ namespace Arena
                         {
                             have++;
                             surplus = m;
-                            float scale = m.Kind == MinionKind.Treant ? 1f + 0.3f * extra : 1f;
+                            float scale = m.Kind == MinionKind.Treant ? 1f + 0.3f * extra : m.Kind == MinionKind.Golem ? GolemScale : 1f;
                             if (scale != m.Scale)
                             {
                                 if (m.StaggerT <= 0f)
@@ -487,7 +495,7 @@ namespace Arena
                     p.CompanionCd -= dt;
                     if (have < want && p.CompanionCd <= 0f)
                     {
-                        var m = SpawnMinion(kind, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, -1f, true);
+                        var m = SpawnMinion(kind, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, kind == MinionKind.Golem ? GolemLife : -1f, true);
                         if (kind == MinionKind.LightOrb)
                             m.Ang = MathX.Tau * have / Math.Max(1, want);
                         p.CompanionCd = kind == MinionKind.Imp ? w.CompanionRespawn / (1f + 0.5f * extra) : 0.3f;
@@ -562,7 +570,7 @@ namespace Arena
                     TickHydra(m, dmg);  // Hydra.cs
                     continue;
                 }
-                if (m.Kind == MinionKind.Titan)
+                if (IsTitanLike(m.Kind))
                 {
                     TickTitan(m, owner, dt, speed, dmg, reach);  // Titan.cs
                     continue;
@@ -802,9 +810,9 @@ namespace Arena
         {
             foreach (var m in Minions.Values)
             {
-                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (m.Kind == MinionKind.Titan && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
+                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (IsTitanLike(m.Kind) && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= m.Kind == MinionKind.CloneWall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone wears from every shot, not just a boss's
+                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Wall ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)
