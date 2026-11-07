@@ -422,14 +422,18 @@ namespace Arena
             var s = session.Resume;
             Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f));  // a lit key that does nothing: which run this is
             CrtKit.Frame(r, 2f, CrtUi.Ink);
-            Ui.Label(new Rect(r.x + 6f, r.y + 8f, r.width - 12f, 26f), "CONTINUING A SAVED RUN", 21, CrtUi.Bg, TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x + 6f, r.y + 33f, r.width - 12f, 18f), "Starts at wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat", 12, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.85f), TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(r.x + 6f, r.y + 4f, r.width - 12f, 26f), "CONTINUING A SAVED RUN", 17, CrtUi.Bg, TextAnchor.MiddleCenter, true);
+            string line = "Starts at wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat";
+            int ls = LobbyKit.FitSize(line, 12, 9, r.width - 12f, false);
+            Ui.Label(new Rect(r.x + 6f, r.y + 29f, r.width - 12f, 18f), line, ls, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.85f), TextAnchor.MiddleCenter);
         }
 
         /// Instead of your loadout: the run's seats, who's in each, and a button to move to a free one.
-        void DrawResumeSeats(Rect body, float t)
+        void DrawResumeSeats(Rect panel, float t)
         {
             var s = session.Resume;
+            LobbyKit.Panel(panel);  // the lobby screen with its role wash (LobbyKit.cs); the seats sit inside it
+            var body = new Rect(panel.x + 16f, panel.y + 14f, panel.width - 32f, panel.height - 28f);
             Ui.Label(new Rect(body.x, body.y, body.width, 20f), "Everyone plays the character they had. Players take back the seat with their name; move to a free seat if yours isn't picked.", 12, Ui.Muted, TextAnchor.MiddleLeft, false, true);
             float y = body.y + 34f;
             for (int i = 0; i < s.Seats.Count; i++)

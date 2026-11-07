@@ -182,7 +182,7 @@ namespace Arena
                 var d = Perks.Get(e.PerkIds[i]);
                 if (d == null)
                     continue;
-                var ir = new Rect(r.xMax - 12f - (e.PerkIds.Length - i) * 22f + 4f, r.y + 35f, 18f, 18f);
+                var ir = new Rect(r.xMax - 9f - (e.PerkIds.Length - i) * 19f + 3f, r.y + 31f, 16f, 16f);
                 Ui.Icon(ir, PerkIcon(d.Id), 1f);
                 if (ir.Contains(Event.current.mousePosition))
                 {
