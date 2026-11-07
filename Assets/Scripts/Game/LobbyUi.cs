@@ -670,7 +670,7 @@ namespace Arena
                     LockedSlot(b);
                     continue;
                 }
-                if (LobbyKit.Key(b, ult.Name.ToUpperInvariant(), true, calm, size: 15, minSize: 9, accent: LobbyKit.Gold))
+                if (LobbyKit.Key(b, ult.Name.ToUpperInvariant(), true, calm, size: 15, minSize: 9))
                 {
                     detailSel = 2;  // (the preview then casts it until you click something else)
                 }
