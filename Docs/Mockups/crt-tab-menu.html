@@ -1,0 +1,223 @@
+<title>CRT Tab Menu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game canvas) scaled to fit, the arena dimmed behind. The Tab screen's three pages (Run so far, Your build,
+   Team) in two CRT looks: A sits like the lobby (stats column left, page right, tab keys over it), B is a rack of tubes like the results.
+   Colours and key strengths are CrtStyle.cs's; colour stays in rarity marks, role colours and bars. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #446dac; --scr: #030816; --glow: rgba(102,163,255,.5); --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --f-game: Arial, "Liberation Sans", Helvetica, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p, .desc { margin: 0; color: var(--muted); font: 500 16px/1.45 var(--f-ui); max-width: 80ch; }
+.desc b { color: var(--fg); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .k:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 12px/1.5 var(--f-mono); color: var(--muted); margin: 0; }
+.view { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-game); color: var(--ink); }
+.arena { position: absolute; inset: 0; background: #0d1020; background-image: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px); background-size: 40px 40px; }
+.wall { position: absolute; background: #5d6a86; }
+.dark { position: absolute; inset: 0; background: rgba(3,4,10,.62); }
+.stage[data-look="A"] .dark { background: rgba(3,4,10,.0); }
+.lobbyscr { position: absolute; inset: 0; background: radial-gradient(70% 70% at 50% 45%, #0b1a3d, #030816 75%); display: none; }
+.stage[data-look="A"] .lobbyscr { display: block; }
+.lobbyscr::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.25) 0 1px, transparent 1px 4px); }
+.lobbyscr::after { content: ""; position: absolute; inset: 6px; border: 5px solid #0d1530; border-radius: 30px; box-shadow: inset 0 0 0 1px #2b4580, 0 0 0 1px #16244a; }
+
+/* CRT tube and panel */
+.tube { position: absolute; background: var(--scr); box-shadow: 0 0 0 3px #0c1224, inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent); overflow: hidden; isolation: isolate; }
+.tube::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.24) 0 1px, transparent 1px 3px); }
+.tube::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.45) 100%); }
+.panel { position: absolute; background: rgba(7,13,30,.96); border: 1px solid #30528c; }
+.panel::before, .panel::after { content: ""; position: absolute; width: 26px; height: 26px; border: 3px solid #5c99ff; pointer-events: none; }
+.panel::before { left: -5px; top: -5px; border-right: 0; border-bottom: 0; } .panel::after { right: -5px; bottom: -5px; border-left: 0; border-top: 0; }
+.in { position: absolute; inset: 0; padding: 14px 16px; z-index: 1; }
+.calm .roll { display: none; } .calm .t, .calm .k, .calm h3, .calm .big { text-shadow: none !important; }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.04), transparent); animation: roll 8s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .roll, .cur { animation: none; } }
+.cur { display: inline-block; width: .42em; height: .7em; background: currentColor; margin-left: 5px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+.calm .cur { animation: none; }
+
+/* type */
+.t { text-shadow: 0 0 5px var(--glow); }
+h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var(--ink); text-shadow: 0 0 8px var(--glow); white-space: nowrap; }
+.sub { font: 700 13px var(--f-game); color: var(--dim); margin-top: 4px; white-space: nowrap; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font: 400 18px/1 var(--f-crt); letter-spacing: .14em; color: #59e0e8; text-transform: uppercase;
+  border-bottom: 1px solid rgba(89,224,232,.4); padding-bottom: 4px; margin-bottom: 8px; white-space: nowrap; }
+.head small { font: 400 15px var(--f-crt); letter-spacing: .08em; color: rgba(89,224,232,.5); }
+.big { font: 400 38px/1 var(--f-crt); color: var(--gold); text-shadow: 0 0 8px rgba(242,193,78,.55); font-variant-numeric: tabular-nums; }
+.lab { font: 400 15px/1 var(--f-crt); letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
+.row { display: flex; justify-content: space-between; align-items: center; height: 26px; padding: 0 8px; font: 13px var(--f-game); color: #c6d4f3; }
+.row:nth-child(odd) { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.row b { font: 400 22px var(--f-crt); color: #fff; font-variant-numeric: tabular-nums; }
+.row b.good { color: var(--good); }
+/* keys (soft, CrtKit.SoftBox) */
+.k { --c: var(--ink); position: absolute; display: flex; align-items: center; justify-content: center; gap: 8px; font: 700 14px var(--f-game); cursor: pointer; white-space: nowrap;
+  background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); color: color-mix(in srgb, var(--c) 70%, #fff); text-shadow: 0 0 6px color-mix(in srgb, var(--c) 45%, transparent); }
+.k:hover { background: color-mix(in srgb, var(--c) 14%, transparent); border-color: color-mix(in srgb, var(--c) 90%, transparent); color: color-mix(in srgb, var(--c) 25%, #fff); }
+.k.on { background: color-mix(in srgb, var(--c) 20%, transparent); border: 2px solid var(--c); color: color-mix(in srgb, var(--c) 25%, #fff); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 28%, transparent); }
+.k.sm { position: static; height: 22px; padding: 0 8px; font-size: 11px; }
+.cap { display: inline-block; white-space: nowrap; font: 400 15px/16px var(--f-crt); background: var(--ink); color: var(--scr); padding: 0 6px; letter-spacing: .04em; text-shadow: none; }
+.cap.ult { background: var(--gold); color: #1d1300; }
+.pips { display: inline-flex; gap: 3px; vertical-align: 1px; } .pips i { width: 12px; height: 5px; background: rgba(255,255,255,.12); } .pips i.on { background: var(--ink); box-shadow: 0 0 4px var(--glow); }
+/* ability tiles */
+.abil { position: relative; border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent); background: color-mix(in srgb, var(--ink) 5%, transparent); padding: 6px 10px 6px; }
+.abil .top { display: flex; align-items: center; gap: 8px; font: 400 15px var(--f-crt); color: var(--dim); }
+.abil .top .r { margin-left: auto; color: var(--good); font-size: 17px; } .abil .top .r.cd { color: var(--dim); }
+.abil .nm { font: 700 15px var(--f-game); color: #fff; margin-top: 2px; }
+.abil .ds { font: 11px var(--f-game); color: #8fa6d6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abil.mov .ds { padding-right: 132px; }
+.abil .ms { font: 400 15px var(--f-crt); color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abil[data-ms]:hover::after { content: attr(data-ms); position: absolute; left: 100%; top: 0; margin-left: 10px; width: 260px; z-index: 20; padding: 8px 10px; background: #071024; border: 1px solid var(--ink); font: 400 16px/1.2 var(--f-crt); color: var(--gold); box-shadow: 0 0 14px rgba(102,163,255,.3); }
+.abil .mv { position: absolute; right: 8px; bottom: 6px; display: flex; gap: 4px; align-items: center; } .abil .mv span { font: 400 13px var(--f-crt); color: var(--dim); margin-right: 2px; }
+/* upgrades */
+.ups { columns: 2; column-gap: 20px; }
+.rg { break-inside: avoid; margin-bottom: 8px; }
+.rg h4 { margin: 0 0 3px; font: 400 16px/1 var(--f-crt); letter-spacing: .12em; display: flex; align-items: center; gap: 6px; }
+.rg h4::before { content: ""; width: 3px; height: 12px; background: currentColor; }
+.up { display: flex; align-items: center; gap: 8px; height: 21px; font: 13px var(--f-game); color: #dbe5ff; }
+.up i { width: 10px; height: 10px; flex: none; }
+.up em { margin-left: auto; font: 400 17px var(--f-crt); font-style: normal; color: var(--gold); }
+/* route */
+.rt { display: grid; grid-template-columns: 14px 1fr 84px 92px; align-items: center; height: 22px; font: 13px var(--f-game); color: #c6d4f3; gap: 6px; }
+.rt i { width: 9px; height: 9px; border-radius: 50%; }
+.rt span:nth-child(3) { color: var(--dim); font: 400 16px var(--f-crt); } .rt span:nth-child(4) { text-align: right; font: 400 16px var(--f-crt); color: var(--dim); }
+.rt.now { background: color-mix(in srgb, var(--ink) 16%, transparent); outline: 1px solid var(--ink); color: #fff; } .rt.now span:nth-child(4) { color: var(--ink); }
+.share { height: 8px; background: rgba(255,255,255,.08); } .share s { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 8px); }
+.hp { height: 8px; background: rgba(255,255,255,.08); } .hp s { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--good) 0 6px, transparent 6px 8px); }
+.island { position: absolute; width: 90px; height: 90px; border: 2px solid var(--c); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 40%, transparent); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 14%, #050a16) 0 6px, #050a16 6px 12px); display: flex; align-items: center; justify-content: center; }
+.island b { width: 38px; height: 38px; border-radius: 50%; border: 6px solid var(--c); box-shadow: 0 0 10px var(--c); }
+.hint { position: absolute; right: 26px; top: 18px; font: 400 17px var(--f-crt); color: var(--dim); letter-spacing: .06em; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.legend > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #0c1122; min-width: 0; }
+.legend b { font: 700 16px var(--f-ui); display: block; margin-bottom: 4px; }
+.legend p { margin: 0; color: var(--muted); font: 500 14px/1.45 var(--f-ui); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>The Tab screen in the CRT style</h1>
+    <p>Hold Tab during a run: Run so far, Your build and Team. Same pages and numbers as today, rebuilt from the lobby's CRT parts: soft keys, phosphor text, scanlines, corner brackets. Colour stays where it means something: rarity, roles, health and bars.</p>
+  </header>
+  <div class="bar">
+    <div class="grp" role="group" aria-label="Look"><span>Look</span>
+      <button class="seg" id="lA" data-look="A" aria-pressed="true">A · Like the lobby</button>
+      <button class="seg" id="lB" data-look="B" aria-pressed="false">B · Rack of tubes</button></div>
+    <div class="grp" role="group" aria-label="Page"><span>Page</span>
+      <button class="seg" id="p0" data-page="0" aria-pressed="false">Run so far</button>
+      <button class="seg" id="p1" data-page="1" aria-pressed="true">Your build</button>
+      <button class="seg" id="p2" data-page="2" aria-pressed="false">Team</button></div>
+    <div class="grp"><span>Effects</span><button class="seg" id="calm" aria-pressed="false">Reduced</button></div>
+  </div>
+  <div class="view" id="view"><div class="stage" id="stage" data-look="A">
+    <div class="arena"><div class="wall" style="left:64px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:880px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:630px;top:20px;width:18px;height:200px"></div></div>
+    <div class="dark"></div><div class="lobbyscr"></div>
+    <div id="ui"></div>
+  </div></div>
+  <p class="note">The tab keys on the screen switch pages too (in the game: click them, or Q / E while holding Tab). 1280 x 720, scaled to fit.</p>
+  <div class="legend">
+    <div><b>A · Like the lobby</b><p>One full CRT screen with the lobby's glass frame: your stats in the left column where the party sits, the page in the big screen on the right, the three tab keys above it. Reads as the same place as the lobby's loadout.</p></div>
+    <div><b>B · Rack of tubes</b><p>Separate CRT tubes over the dimmed arena, like the run results: a stats tube, then one tube per part of the page (abilities, upgrades; totals, route, your fight; one per teammate). The arena shows between them.</p></div>
+  </div>
+  <p class="desc"><b>Building it:</b> both use pieces that exist: RoundTube and RoundBackdrop (RoundWindows.cs), LobbyKit keys, headings and corners, CrtKit.LoadoutBox, the colours in CrtStyle.cs, so the CRT colour setting carries over. The tooltips already have their CRT look.</p>
+</div>
+
+<script>
+const S = { look: "A", page: 1, calm: false };
+const RAR = { mod: ["WEAPON MOD", "#3fd6c8"], leg: ["LEGENDARY", "#ff9a3d"], vr: ["VERY RARE", "#b56bff"], rare: ["RARE", "#5b9cff"], unc: ["UNCOMMON", "#4dff9a"], com: ["COMMON", "#9aa6bf"] };
+const UPS = [["mod", [["Homing Rounds", 2], ["Incendiary Rounds"], ["Shock Rounds"], ["Velocity Rounds"]]],
+  ["leg", [["Collapse Rounds"], ["Executioner"], ["Royal Jelly"], ["Stun Gun"], ["Swarm Rounds"], ["Twin Fang"], ["Warden's Guard"]]],
+  ["vr", [["Blink"], ["Nova"], ["Shockwave"]]], ["rare", [["Multishot", 2], ["Overcharge"], ["Piercing Rounds"], ["Second Charge"]]],
+  ["unc", [["Clarity"], ["Fortitude"], ["Hair Trigger"], ["Hollow Points", 2], ["Regeneration"], ["Sprinter"], ["Thick Skin"]]],
+  ["com", [["Focus"], ["Light Boots"], ["Mending"], ["Quick Trigger"], ["Sharpened Rounds"], ["Vitality", 2]]]];
+const ABIL = [["SPACE", "Aeroaegis", 1, "1/2 charges · 11s", "A wind vortex wraps the player your cursor is nearest", "Lasts 4.5 s and reflects bullets"],
+  ["Q", "Shockwave", 1, "2/2 charges", "Erase enemy bullets around you and knock enemies back", "Also knocks", true],
+  ["E", "Blink", 1, "0/2 charges · 7s", "Teleport toward your cursor", "Erases enemy bullets where you land", true, true],
+  ["SHIFT", "Nova", 1, "2/2 charges", "Fire a ring of 24 heavy shots", "Fires 48 shots", true],
+  ["ULT · F", "Glacial Tomb", 1, "26s", "Erase every enemy bullet and freeze every enemy solid for 4 s", "Enemies stay frozen for 6 s"]];
+const STATS = [["OFFENSE", [["Damage", "158%"], ["Fire rate", "130%"], ["Extra projectiles", "+2"], ["Pierce", "+2"]]],
+  ["DEFENSE", [["Health", "197 / 274"], ["Damage taken", "90%"], ["Regeneration", "4.25 HP/s"], ["Parry durability", "150"]]],
+  ["UTILITY", [["Move speed", "118%"], ["Ability cooldowns", "80%"], ["Space charges", "2"]]]];
+const ROUTE = [["Standard", "#9aa6bf", "waves 1-4", "cleared"], ["The Warden", "#ff4fa8", "wave 5", "beaten"], ["Sniper Ridge", "#ff6b7a", "waves 6-9", "cleared"], ["Hive Queen", "#ffb347", "wave 10", "beaten"],
+  ["Bazaar", "#f2c14e", "waves 11-14", "cleared"], ["Twin Reapers", "#ff6b7a", "wave 15", "beaten"], ["Swarm Fields", "#4dff9a", "waves 16-19", "cleared"], ["The Singularity", "#b56bff", "wave 20", "beaten"],
+  ["Frozen Lake", "#8fd8ff", "waves 21-24", "now · 3 of 4", 1], ["The Colossus", "#c9a27a", "wave 25", "next"]];
+const TEAM = [{ n: "Aleon", c: "Soldier DPS", col: "#ff8a3d", hp: [165, 165], st: "251,172 damage · 640 kills · down 1", w: "Twin Rifle", wd: "Two streams from wide-set barrels, angled to cross at your cursor.", ab: [["SPACE", "Dash"], ["Q", "—"], ["E", "—"], ["SHIFT", "—"], ["ULT · F", "Artillery Assault"]] },
+  { n: "Sam", c: "Summoner Healer", col: "#4dff9a", hp: [196, 196], st: "107,207 damage · 273 kills · down 0", w: "Sprite Staff", wd: "A firefly that seeds the enemy it hits, then hops to nearby enemies.", ab: [["SPACE", "Spirit Swarm"], ["Q", "—"], ["E", "—"], ["SHIFT", "—"], ["ULT · F", "World Tree"]] }];
+const TEAMUPS = [["Executioner", "leg"], ["Multishot", "rare"], ["Piercing Rounds", "rare"], ["Hollow Points", "unc"], ["Sprinter", "unc"], ["Fortitude", "unc"], ["Quick Trigger", "com"], ["Vitality", "com", 2]];
+
+const box = (cls, x, y, w, h, inner) => `<div class="${cls}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${cls === "tube" ? '<div class="roll"></div>' : ""}<div class="in">${inner}</div></div>`;
+const cur = '<span class="cur"></span>';
+function stats() {
+  return `<h3 style="font-size:30px">YOUR STATS${cur}</h3><div class="sub" style="margin-bottom:12px">Flamethrower · Aeroaegis</div>` +
+    STATS.map(g => `<div class="head" style="margin-top:6px">${g[0]}</div>` + g[1].map(r => `<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("")).join("");
+}
+function abilities(compact) {
+  return `<div class="head">WEAPON</div><div style="font:700 17px var(--f-game);color:#fff">Flamethrower</div><div style="font:11px/1.3 var(--f-game);color:#8fa6d6;margin-bottom:10px">A short-range stream of fire. Each flame hits the first enemy hard and carries on through the rest.</div>
+    <div class="head">ABILITIES <small>CLICK A KEY TO MOVE AN ABILITY</small></div><div style="display:grid;gap:6px">` +
+    ABIL.map(a => `<div class="abil${a[6] ? " mov" : ""}" data-ms="★ MASTERED (LV 5): ${a[5].toUpperCase()}"><div class="top"><span class="cap${a[0].startsWith("ULT") ? " ult" : ""}">${a[0]}</span><span class="pips"><i class="on"></i><i></i><i></i><i></i><i></i></span>LV ${a[2]}<span class="r${a[3].includes("0/") || a[3].match(/^\d+s$/) ? " cd" : ""}">${a[3].toUpperCase()}</span></div>
+      <div class="nm">${a[1]}</div><div class="ds">${a[4]}</div>${compact ? "" : `<div class="ms">★ MASTERED (LV 5): ${a[5].toUpperCase()}</div>`}
+      ${a[6] ? `<div class="mv"><span>MOVE TO</span>${["Q", "E", "SHIFT"].filter(k => k !== a[0]).map(k => `<span class="k sm">${k}</span>`).join("")}</div>` : ""}</div>`).join("") + `</div>`;
+}
+function upgrades() {
+  return `<div class="head">UPGRADES <small>35 PICKS</small></div><div class="ups">` +
+    UPS.map(g => `<div class="rg"><h4 style="color:${RAR[g[0]][1]}">${RAR[g[0]][0]}</h4>` + g[1].map(u => `<div class="up"><i style="background:${RAR[g[0]][1]}"></i>${u[0]}${u[1] ? `<em>×${u[1]}</em>` : ""}</div>`).join("") + `</div>`).join("") + `</div>`;
+}
+function buildHead() { return `<h3>YOUR LOADOUT${cur}</h3><div class="sub" style="color:#79a0ff">ELEMENTALIST TANK · LEVEL 31 · 2 REROLLS LEFT</div>`; }
+const TILES = [["306,307", "Damage dealt"], ["781", "Kills"], ["2,227", "Healing done"], ["64%", "Accuracy"], ["1,240", "Biggest hit"], ["31", "Level"], ["2", "Downed"], ["1", "Allies revived"]];
+function runHead() { return `<h3>WAVE 23 <span style="font-size:24px;color:var(--dim)">/ 50</span>${cur}</h3><div class="sub">FROZEN LAKE PATH · WAVE 3 OF 4 · 23 ENEMIES LEFT</div>`; }
+function runChips() { return `<div style="position:absolute;right:16px;top:16px;display:flex;gap:6px">` + [["31:42", "played"], ["18,450", "score"], ["The Colossus", "next boss · wave 25"]].map((c, i) => `<div style="border:1px solid color-mix(in srgb,var(--ink) 45%,transparent);background:color-mix(in srgb,var(--ink) 9%,transparent);padding:4px 10px;text-align:center"><div style="font:400 22px var(--f-crt);color:${i === 2 ? "var(--hot)" : "var(--gold)"}">${c[0]}</div><div class="lab" style="font-size:12px">${c[1]}</div></div>`).join("") + `</div>`; }
+function tiles(cols) { return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px">` + TILES.map(t => `<div style="border:1px solid color-mix(in srgb,var(--ink) 40%,transparent);background:color-mix(in srgb,var(--ink) 7%,transparent);padding:8px 10px"><div class="big" style="font-size:32px">${t[0]}</div><div class="lab" style="font-size:13px;margin-top:2px">${t[1]}</div></div>`).join("") + `</div>`; }
+function route() { return `<div class="head">ROUTE <small>4 OF 10 BOSSES BEATEN</small></div>` + ROUTE.map(r => `<div class="rt${r[4] ? " now" : ""}"><i style="background:${r[1]}"></i><span>${r[0]}</span><span>${r[2]}</span><span>${r[3]}</span></div>`).join(""); }
+function fight() { return `<div class="head">YOUR FIGHT</div>` + [["Damage taken", "4,210"], ["Elite kills", "31"], ["Boss kills", "4"], ["Shots that hit", "5,800 of 9,000"], ["Abilities used", "212"]].map(r => `<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("") +
+  `<div class="head" style="margin-top:14px">PARTY SHARE OF DAMAGE <small>SOLO</small></div><div style="display:flex;justify-content:space-between;font:13px var(--f-game);color:#c6d4f3;margin-bottom:5px"><span><b style="color:#5b8cff">●</b> Anthony · Elementalist Tank</span><span style="font:400 18px var(--f-crt);color:#fff">100%</span></div><div class="share"><s style="width:100%"></s></div>`; }
+function mate(m) {
+  return `<div style="min-width:0"><div style="display:flex;gap:14px"><div class="island" style="position:static;--c:${m.col};flex:none"><b></b></div><div style="flex:1;min-width:0"><div style="font:700 22px var(--f-game);color:${m.col}">${m.n}</div><div class="sub" style="color:${m.col};opacity:.85">${m.c.toUpperCase()} · LEVEL 1</div>
+    <div style="display:flex;justify-content:space-between;font:400 16px var(--f-crt);color:var(--dim);margin:6px 0 3px"><span>HEALTH</span><span style="color:#fff">${m.hp[0]} / ${m.hp[1]}</span></div><div class="hp"><s style="width:${m.hp[0] / m.hp[1] * 100}%"></s></div>
+    <div style="font:400 17px var(--f-crt);color:var(--ink);margin-top:6px">${m.st.toUpperCase()}</div></div></div>
+    <div class="head" style="margin-top:12px">WEAPON</div><div style="font:700 15px var(--f-game);color:#fff">${m.w}</div><div style="font:11px var(--f-game);color:#8fa6d6;margin-bottom:8px">${m.wd}</div>
+    <div class="head">ABILITIES</div>` + m.ab.map(a => `<div style="display:flex;align-items:center;gap:10px;height:21px;font:${a[1] === "—" ? "13px" : "700 13px"} var(--f-game);color:${a[1] === "—" ? "var(--dim)" : "#fff"}"><span class="cap${a[0].startsWith("ULT") ? " ult" : ""}" style="width:62px;text-align:center">${a[0]}</span>${a[1]}${a[1] !== "—" ? '<span style="margin-left:auto;font:400 15px var(--f-crt);color:var(--dim)">LV 1</span>' : ""}</div>`).join("") +
+    `<div class="head" style="margin-top:10px">UPGRADES <small>9</small></div><div style="columns:2;column-gap:14px">` + TEAMUPS.map(u => `<div class="up"><i style="background:${RAR[u[1]][1]}"></i>${u[0]}${u[2] ? `<em>×${u[2]}</em>` : ""}</div>`).join("") + `</div></div>`;
+}
+function tabs(x, y, w) {
+  const names = ["RUN SO FAR", "YOUR BUILD", "TEAM (2)"]; const tw = (w - 16) / 3;
+  return names.map((n, i) => `<div class="k${i === S.page ? " on" : ""}" data-tab="${i}" style="left:${x + i * (tw + 8)}px;top:${y}px;width:${tw}px;height:32px;font-size:13px;letter-spacing:.08em">${n}</div>`).join("");
+}
+function render() {
+  const st = document.getElementById("stage"); st.dataset.look = S.look; st.classList.toggle("calm", S.calm);
+  let h = "";
+  if (S.look === "A") {
+    h += box("panel", 36, 30, 376, 654, stats());
+    h += tabs(470, 30, 744) + `<div class="hint" style="top:690px;right:36px">LET GO OF TAB TO CLOSE</div>`;
+    const B = [440, 76, 804, 608];
+    if (S.page === 1) h += box("panel", ...B, `${buildHead()}<div style="position:absolute;left:16px;top:84px;width:330px">${abilities(true)}</div><div style="position:absolute;left:366px;top:84px;right:16px">${upgrades()}</div>`);
+    else if (S.page === 0) h += box("panel", ...B, `${runHead()}${runChips()}<div style="margin-top:22px">${tiles(4)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:18px"><div>${route()}</div><div>${fight()}</div></div>`);
+    else h += box("panel", ...B, `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">${TEAM.map(mate).join("")}</div>`);
+  } else {
+    h += box("tube", 24, 56, 250, 640, stats());
+    h += tabs(420, 12, 520) + `<div class="hint" style="top:22px">LET GO OF TAB TO CLOSE</div>`;
+    if (S.page === 1) h += box("tube", 290, 56, 966, 92, buildHead()) + box("tube", 290, 164, 360, 532, abilities(true)) + box("tube", 666, 164, 590, 532, upgrades());
+    else if (S.page === 0) h += box("tube", 290, 56, 966, 92, runHead() + runChips()) + box("tube", 290, 164, 966, 170, tiles(4)) + box("tube", 290, 350, 476, 346, route()) + box("tube", 782, 350, 474, 346, fight());
+    else h += TEAM.map((m, i) => box("tube", 290 + i * 491, 56, 475, 640, mate(m))).join("");
+  }
+  document.getElementById("ui").innerHTML = h;
+  document.querySelectorAll("[data-tab]").forEach(k => k.onclick = () => setPage(+k.dataset.tab));
+}
+function setPage(p) { S.page = p; document.querySelectorAll("[data-page]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.page === p))); render(); }
+document.querySelectorAll("[data-look]").forEach(b => b.onclick = () => { S.look = b.dataset.look; document.querySelectorAll("[data-look]").forEach(o => o.setAttribute("aria-pressed", String(o === b))); render(); });
+document.querySelectorAll("[data-page]").forEach(b => b.onclick = () => setPage(+b.dataset.page));
+document.getElementById("calm").onclick = e => { S.calm = !S.calm; e.currentTarget.setAttribute("aria-pressed", String(S.calm)); render(); };
+function fit() { const v = document.getElementById("view"); document.getElementById("stage").style.transform = `scale(${v.clientWidth / 1280})`; }
+new ResizeObserver(fit).observe(document.getElementById("view")); fit(); render();
+</script>
