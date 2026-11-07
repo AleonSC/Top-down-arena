@@ -21,8 +21,9 @@ namespace Arena
         Showcase showcase;
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
-        /// The lobby's content sits 14 px higher than its layout numbers say, so it's centred in the screen (the layout runs 28..710 of 720).
-        const float LobbyLift = 14f;
+        /// The lobby's content used to sit 14 px higher than its layout numbers said. The softer layout (Docs/Mockups/crt-lobby-softer.html) runs 28..684
+        /// with a 36 px margin and needs no lift; the group stays so DrawLobby's click handling is unchanged.
+        const float LobbyLift = 0f;
 
         void DrawLobby()
         {
@@ -60,7 +61,15 @@ namespace Arena
                 lobbyTab = 0;
             if (practice && lobbyTab == PerkTab)
                 lobbyTab = 0;  // perks are off in the Practice Range
-            var infoButton = new Rect(396f, 40f, 56f, 50f);
+            // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
+            LobbyEntry washFor = me;
+            var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
+            LobbyEntry washBotEntry;
+            if (washBot != null && session.Lobby.TryGetValue(washBot.Id, out washBotEntry))
+                washFor = washBotEntry;
+            if (washFor != null)
+                LobbyKit.WashTo(ToColor(Defs.Get(washFor.Role).Color), calm);
+            var infoButton = new Rect(364f, 38f, 44f, 42f);
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
             {
@@ -78,13 +87,13 @@ namespace Arena
 
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
-            if (LobbyKit.Key(new Rect(34f, 32f, 66f, 66f), "", false, calm, PixelArt.Get("ui_back"), size: 26))
+            if (LobbyKit.Key(new Rect(40f, 34f, 52f, 52f), "", false, calm, PixelArt.Get("ui_back"), size: 26))
                 StartLobbyLeave();  // LobbyEnter.cs
-            DrawLobbyTitle(new Rect(118f, 30f, 260f, 62f), 1f, calm, t);
-            if (LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 30))
+            DrawLobbyTitle(new Rect(106f, 36f, 250f, 54f), 1f, calm, t);
+            if (LobbyKit.Key(infoButton, "!", connInfoOpen, calm, size: 26))
                 connInfoOpen = !connInfoOpen;
-            Ui.Fill(new Rect(24f, 108f, 446f, 1f), LobbyKit.Ink(0.4f));
-            var modeR = new Rect(24f, 118f, 446f, 62f);
+            Ui.Fill(new Rect(PartyX, 91f, PartyW, 1f), LobbyKit.Ink(0.4f));
+            var modeR = new Rect(PartyX, 102f, PartyW, 52f);
             TipClear();  // the mode keys' hover tips (below) and a rank badge's title (RankUi.cs)
             if (session.Resume != null)
                 DrawResumeBanner(modeR, t);  // continuing a saved run (SavesUi.cs)
@@ -92,29 +101,30 @@ namespace Arena
                 DrawModeSwitch(modeR, t);
 
             // --- Left: the party, under the mode keys.
-            const float lx = 24f, lw = 446f;
-            CrtUi.Text(new Rect(lx, 190f, 300f, 34f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            const float lx = PartyX, lw = PartyW;
+            LobbyKit.Spaced(new Rect(lx, 166f, 220f, 22f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 13, CrtUi.Ink, TextAnchor.MiddleLeft, 1.56f);
             // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
-            if (LobbyKit.Key(new Rect(lx + lw - 120f, 190f, 120f, 32f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 14, minSize: 11))
+            if (LobbyKit.Key(new Rect(lx + lw - 104f, 162f, 104f, 26f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))
                 lobbyTab = inRoom ? (practice ? 1 : 0) : HangoutTab;
             float y = PartyTop;
             int slot = 0;
             foreach (var e in session.Lobby.Values)
             {
-                DrawPartyCard(new Rect(lx, y, lw, PartyCardH), e, t, slot++);
-                y += PartyStep;
+                float ch = slot == 0 ? PartyCardH : PartySlotH;  // the first card is a little taller (the mockup's 84 and 80)
+                DrawPartyCard(new Rect(lx, y, lw, ch), e, t, slot++);
+                y += ch + PartyGap;
             }
             for (; slot < Session.MaxPlayers; slot++)
             {
-                DrawOpenSlot(new Rect(lx, y, lw, PartyCardH), slot, t);
-                y += PartyStep;
+                DrawOpenSlot(new Rect(lx, y, lw, PartySlotH), slot, t);
+                y += PartySlotH + PartyGap;
             }
             if (session.Status.Length > 0)
                 Ui.Label(new Rect(lx, y - 4f, lw, LobbyNoteY - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: the tab keys, then your loadout or the practice waves.
-            DrawLobbyTabs(new Rect(LobbyBodyRect.center.x - 370f, 28f, 740f, 48f), practice);  // centred over the loadout box
+            DrawLobbyTabs(new Rect(LobbyBodyRect.center.x - 370f, 32f, 740f, 30f), practice);  // centred over the loadout box
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
@@ -153,30 +163,39 @@ namespace Arena
                 DrawConnInfo(infoPanel);
         }
 
-        // The screen's layout (Docs/Mockups/crt-lobby-digital.html, 1280 x 720): the party column on the left, the big loadout screen on the right.
-        const float LobbyBodyTop = 92f;   // the top of the big screen (under the tab keys)
-        static readonly Rect LobbyBodyRectConst = new Rect(494f, 92f, 762f, 618f);
-        const float PartyTop = 230f;      // the top of the first party card (under the mode keys and the Party line)
-        const float PartyCardH = 96f, PartyStep = 104f;
-        const float LobbyReadyY = 600f, LobbyReadyH = 54f, LobbyStartY = 662f, LobbyStartH = 48f;  // Ready over Start (a guest's Ready takes the Start slot)
-        const float LobbyNoteY = 566f;    // who we're waiting for, just above Ready
-        const float LobbySplit = 482f;    // where the party column ends and the tabs begin (the entrance, leave and return slide the two sides apart)
+        // The screen's layout (Docs/Mockups/crt-lobby-softer.html, 1280 x 720; its make_fix boxes): a 36 px margin all round. The party column is 376 wide at
+        // x=36 (header 28..92, mode keys 102..154, the Party line 162..188, cards from 196, Ready 586..634 over Start 640..684); the big screen runs
+        // 440..1244 by 70..684, the tab row above it at y=32 (30 tall).
+        const float LobbyBodyTop = 70f;   // the top of the big screen (under the tab keys)
+        static readonly Rect LobbyBodyRectConst = new Rect(440f, 70f, 804f, 614f);
+        const float PartyX = 36f, PartyW = 376f;
+        const float PartyTop = 196f;      // the top of the first party card (under the mode keys and the Party line)
+        const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
+        const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
+        const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
+        const float LobbySplit = 426f;    // where the party column ends and the tabs begin (the entrance, leave and return slide the two sides apart)
 
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout).
         static Rect LobbyBodyRect => LobbyBodyRectConst;
 
-        /// The lobby's title plate: a framed readout with a lit bar on its left, LOBBY in phosphor letters and a blinking status lamp
-        /// (still, but lit, with Reduced effects). `a` fades it (the entrance).
+        /// The lobby's title: LOBBY in 46 px letter-spaced caps with a blinking block after it (solid, but lit, with Reduced effects). `a` fades it (the entrance).
         void DrawLobbyTitle(Rect r, float a, bool calm, float t)
         {
             var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
-            var plate = new Rect(r.x, r.y + 8f, Mathf.Min(r.width, 214f), r.height - 8f);
-            Ui.Fill(plate, LobbyKit.Ink(0.08f * a));
-            CrtKit.Frame(plate, 2f, LobbyKit.Ink(0.55f * a));
-            Ui.Fill(new Rect(plate.x, plate.y, 6f, plate.height), ink);
-            CrtUi.Text(new Rect(plate.x + 20f, plate.y, plate.width - 56f, plate.height), "LOBBY", 30, ink, TextAnchor.MiddleLeft, true, calm);
+            const int size = 46;
+            const float sp = 2.8f;  // .06em
+            float tw = LobbyKit.SpacedWidth("LOBBY", size, sp);
+            var tr = new Rect(r.x, r.y, tw + 10f, r.height);
+            if (!calm && Event.current.type == EventType.Repaint)  // the glow: two faint copies a pixel to each side
+            {
+                var g = new Color(ink.r, ink.g, ink.b, 0.16f * a);
+                LobbyKit.Spaced(new Rect(tr.x - 1f, tr.y, tr.width, tr.height), "LOBBY", size, g, TextAnchor.MiddleLeft, sp);
+                LobbyKit.Spaced(new Rect(tr.x + 1f, tr.y, tr.width, tr.height), "LOBBY", size, g, TextAnchor.MiddleLeft, sp);
+            }
+            LobbyKit.Spaced(tr, "LOBBY", size, ink, TextAnchor.MiddleLeft, sp);
             bool lit = calm || Mathf.FloorToInt(t * 2f) % 2 == 0;
-            Ui.Fill(new Rect(plate.xMax - 26f, plate.center.y - 6f, 12f, 12f), lit ? ink : LobbyKit.Ink(0.2f * a));
+            if (lit)
+                Ui.Fill(new Rect(r.x + tw + 6f, r.center.y - 13f, 23f, 34f), ink);
         }
 
         string HostName()
@@ -196,7 +215,7 @@ namespace Arena
                 var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 20, minSize: 12, enabled: session.IsHost) && session.IsHost && i != mode)
+                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 15, minSize: 11, enabled: session.IsHost, sub: sub) && session.IsHost && i != mode)
                     session.SetMode(i == 2, i == 1);
                 if (k.Contains(Event.current.mousePosition))  // the description is a hover tip
                 {
@@ -217,19 +236,26 @@ namespace Arena
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null };  // Hangout has its own key on the Party line
             int[] order = { 0, PerkTab, 3, 2, 1, 4 };
-            int n = 0;
-            foreach (int i in order)
-                if (names[i] != null)
-                    n++;
-            float w = (r.width - 6f * (n - 1)) / n, x = r.x;
-            foreach (int i in order)
+            // Quiet tabs (the mockup's): about 135 px each (wider for a long name), the row centred in r (over the loadout box); too many squeeze together.
+            var ws = new float[order.Length];
+            float total = -6f;
+            for (int k = 0; k < order.Length; k++)
             {
+                if (names[order[k]] == null)
+                    continue;
+                ws[k] = Mathf.Max(135.5f, LobbyKit.SpacedWidth(names[order[k]].ToUpperInvariant(), 12, 1.44f) + 32f);
+                total += ws[k] + 6f;
+            }
+            float shrink = Mathf.Min(1f, r.width / total), x = r.center.x - total * shrink / 2f;
+            for (int k = 0; k < order.Length; k++)
+            {
+                int i = order[k];
                 if (names[i] == null)
                     continue;
                 bool on = lobbyTab == i;
-                if (LobbyKit.Key(new Rect(x, r.y, w, r.height), names[i].ToUpperInvariant(), on, fxReduced, size: 18, minSize: 11) && !on)
+                if (LobbyKit.QuietTab(new Rect(x, r.y, ws[k] * shrink, r.height), names[i].ToUpperInvariant(), on) && !on)
                     lobbyTab = i;
-                x += w + 6f;
+                x += (ws[k] + 6f) * shrink;
             }
         }
 
@@ -272,77 +298,96 @@ namespace Arena
                 DrawCardBackground(r, e.CardBg, t);  // CardBackgrounds.cs
             }
             // Portrait: their character, aiming around.
-            var face = new Rect(r.x + 8f, r.y + 8f, r.height - 16f, r.height - 16f);
+            float fs = r.height >= PartyCardH ? 64f : 62f;
+            var face = new Rect(r.x + 8f, r.y + (r.height - fs) / 2f, fs, fs);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
             if (BeginUiGl())
             {
-                UiModelAt(new V2(face.center.x, face.center.y), 1.05f);
+                UiModelAt(new V2(face.center.x, face.center.y), 0.76f);
                 DrawPreviewPlayer(e.Role, e.Kit, e.Weapon, t + slot * 1.7f);
                 EndUiGl();
             }
-            var rankRect = new Rect(face.xMax - 22f, face.yMax - 22f, 30f, 30f);
+            var rankRect = new Rect(face.xMax - 17f, face.yMax - 17f, 24f, 24f);
             RankLook.Draw(rankRect, e.Rank);
             RankBadgeTip(rankRect, e.Rank, mine);
-            float tx = face.xMax + 14f;
-            // The badges sit at the top right; work out where they start so the name stops short of them.
-            float bx = r.xMax - 12f;
-            if (mine)
-                bx -= 48f;
-            if (e.Id == 1)
-                bx -= 58f;
+            float tx = r.x + 84f;
+            // The tags sit at the top right (10 px caps); work out where they start so the name stops short of them.
+            const float tagH = 16f, tagPad = 14f;
+            float youW = Ui.TextWidth("YOU", 10, true) - 6f + tagPad, hostW = Ui.TextWidth("HOST", 10, true) - 6f + tagPad;
+            float bx = r.xMax - 9f;
             if (botSeat != null)
-                bx -= 150f;  // the bot's keys (below)
-            float badgesLeft = (mine || e.Id == 1 || botSeat != null) ? bx : r.xMax - 12f;
-            DrawNameLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 30f), e.Name, 20, 13, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
-            bx = r.xMax - 12f;
+                bx -= 118f;  // the bot's keys (below)
+            float badgesLeft = bx;
+            if (mine)
+                badgesLeft -= youW + 6f;
+            if (e.Id == 1)
+                badgesLeft -= hostW + 6f;
+            DrawNameLine(new Rect(tx, r.y + 6f, badgesLeft - 4f - tx, 24f), e.Name, 18, 12, e.NameFx, t);  // (the name effect, if they have one: NameEffects.cs)
+            float gx = r.xMax - 9f;
             if (mine)
             {
-                bx -= 48f;
-                Ui.Badge(new Rect(bx, r.y + 10f, 48f, 22f), "YOU", Ui.Accent);
+                gx -= youW;
+                LobbyTag(new Rect(gx, r.y + 9f, youW, tagH), "YOU", new Color(0.184f, 0.29f, 0.65f), new Color(0.81f, 0.88f, 1f));
+                gx -= 6f;
             }
             if (e.Id == 1)
             {
-                bx -= 58f;
-                Ui.Badge(new Rect(bx, r.y + 10f, 54f, 22f), "HOST", Ui.GoldButton);
+                gx -= hostW;
+                LobbyTag(new Rect(gx, r.y + 9f, hostW, tagH), "HOST", new Color(0.54f, 0.416f, 0.122f), new Color(1f, 0.88f, 0.54f));
             }
-            DrawOneLine(new Rect(tx, r.y + 42f, r.xMax - tx - 10f - e.PerkIds.Length * 22f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 10, Color.Lerp(color, Color.white, 0.15f), true);
-            DrawOneLine(new Rect(tx, r.y + 66f, r.xMax - tx - 112f, 20f),
-                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, new Color(0.78f, 0.82f, 0.94f), false);
+            DrawOneLine(new Rect(tx, r.y + 30f, r.xMax - tx - 9f - e.PerkIds.Length * 19f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 10, Color.Lerp(color, Color.white, 0.15f), true);
+            DrawOneLine(new Rect(tx, r.y + 52f, r.xMax - tx - 84f, 16f),
+                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 9, new Color(0.78f, 0.82f, 0.94f), false);
             DrawSeatPerks(r, e);  // their perks (PerksUi.cs)
             if (session.IsHost && (botSeat != null || mine))  // click a card to choose that player's loadout: yours, or a bot's
             {
                 bool picked = botSeat != null ? editBotId == e.Id : editBotId < 0;
                 if (picked && partyBots.Bots.Count > 0)
                     Ui.Rim(r, Ui.Gold, 0.9f);
-                float room = botSeat != null ? 150f : 0f;
-                if (Ui.HitArea(new Rect(r.x, r.y, r.width - 12f - room, r.height)))
+                float room = botSeat != null ? 118f : 0f;
+                if (Ui.HitArea(new Rect(r.x, r.y, r.width - 9f - room, r.height)))
                     editBotId = botSeat != null ? e.Id : -1;
             }
             if (botSeat != null)
                 DrawBotButtons(r, botSeat);
-            var ready = new Rect(r.xMax - 100f, r.yMax - 30f, 88f, 20f);
+            // READY / NOT READY, bottom right.
+            string rt = e.Ready ? "READY" : "NOT READY";
+            float rw = Ui.TextWidth(rt, 10, true) - 6f + tagPad;
+            var ready = new Rect(r.xMax - 9f - rw, r.yMax - 7f - tagH, rw, tagH);
             if (e.Ready)
                 Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + (fxReduced ? 0f : 0.1f * Mathf.Sin(t * 4f))));
-            Ui.Badge(ready, e.Ready ? "READY" : "NOT READY", e.Ready ? new Color(0.2f, 0.62f, 0.32f) : Ui.Neutral);
+            LobbyTag(ready, rt, e.Ready ? new Color(0.075f, 0.36f, 0.204f) : new Color(0.04f, 0.04f, 0.12f, 0.75f), e.Ready ? new Color(0.72f, 1f, 0.83f) : new Color(0.81f, 0.84f, 0.96f),
+                e.Ready ? new Color(0.24f, 0.86f, 0.52f) : new Color(0.353f, 0.373f, 0.541f));
         }
+
+        /// A party card's small tag (10 px bold caps on a flat fill, with an optional 1 px rim).
+        static void LobbyTag(Rect r, string text, Color fill, Color ink, Color? rim = null)
+        {
+            Ui.Fill(r, fill);
+            if (rim.HasValue)
+                CrtKit.Frame(r, 1f, rim.Value);
+            LobbyLabel(r, text, ink);
+        }
+
+        static void LobbyLabel(Rect r, string text, Color ink) => Ui.Label(new Rect(r.x, r.y, r.width, r.height), text, 10, ink, TextAnchor.MiddleCenter, true);
 
         /// A bot's keys on its party card (the host's): its skill (click to change), a new random loadout, and remove.
         void DrawBotButtons(Rect r, PartyBots.PartyBot bot)
         {
             bool calm = fxReduced;
-            float x = r.xMax - 12f - 26f;
-            if (LobbyKit.Key(new Rect(x, r.y + 9f, 26f, 24f), "x", false, calm, size: 14, minSize: 10, danger: true))
+            float x = r.xMax - 9f - 22f;
+            if (LobbyKit.Key(new Rect(x, r.y + 8f, 22f, 20f), "x", false, calm, size: 13, minSize: 9, danger: true))
             {
                 if (editBotId == bot.Id)
                     editBotId = -1;
                 partyBots.Remove(bot);
                 return;
             }
-            x -= 42f;
-            if (LobbyKit.Key(new Rect(x, r.y + 9f, 38f, 24f), "MIX", false, calm, size: 13, minSize: 9))
+            x -= 38f;
+            if (LobbyKit.Key(new Rect(x, r.y + 8f, 34f, 20f), "MIX", false, calm, size: 11, minSize: 8))
                 partyBots.Shuffle(bot);  // a new random loadout
-            x -= 72f;
-            if (LobbyKit.Key(new Rect(x, r.y + 9f, 68f, 24f), bot.Skill.ToString().ToUpper(), false, calm, size: 13, minSize: 9))
+            x -= 62f;
+            if (LobbyKit.Key(new Rect(x, r.y + 8f, 58f, 20f), bot.Skill.ToString().ToUpper(), false, calm, size: 11, minSize: 8))
                 partyBots.SetSkill(bot, bot.Skill == BotSkill.Casual ? BotSkill.Good : bot.Skill == BotSkill.Good ? BotSkill.Expert : BotSkill.Casual);
         }
 
@@ -353,8 +398,8 @@ namespace Arena
             Ui.Fill(r, LobbyKit.Ink(0.03f));
             CrtKit.Dashed(r, 2f, LobbyKit.Ink(0.4f));
             bool canAdd = partyBots.CanAdd(session);
-            CrtUi.Text(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 34f : r.height), "OPEN SLOT", 24, CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
-            if (canAdd && LobbyKit.Key(new Rect(r.center.x - 90f, r.y + 46f, 180f, 38f), "+ ADD A BOT", false, calm, size: 20, minSize: 13))
+            LobbyKit.Spaced(new Rect(r.x, r.y + (canAdd ? 8f : 0f), r.width, canAdd ? 26f : r.height), "OPEN SLOT", 14, CrtUi.Dim, TextAnchor.MiddleCenter, 1.7f);
+            if (canAdd && LobbyKit.Key(new Rect(r.center.x - 75f, r.y + 40f, 150f, 30f), "+ ADD A BOT", false, calm, size: 13, minSize: 10))
                 partyBots.Add(session);  // a bot takes the slot and plays with you
         }
 
@@ -365,7 +410,7 @@ namespace Arena
         /// Where the "!" popup goes: just under its key, as tall as its contents.
         Rect ConnInfoRect(Rect button)
         {
-            const float w = 446f, pad = 14f;
+            const float w = PartyW, pad = 14f;
             float h = pad + 34f + 24f;
             if (session.IsHost)
             {
@@ -384,7 +429,7 @@ namespace Arena
             }
             else
                 h += 22f;
-            return new Rect(24f, button.yMax + 8f, w, h + pad);
+            return new Rect(PartyX, button.yMax + 8f, w, h + pad);
         }
 
         /// The "!" popup: who's hosting and on which port, and the addresses friends join with.
@@ -392,7 +437,7 @@ namespace Arena
         {
             bool calm = fxReduced;
             Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));  // solid backing over the party
-            LobbyKit.Panel(r, false);
+            LobbyKit.Panel(r, false, false);
             CrtKit.Frame(r, 2f, CrtUi.Ink);
             float x = r.x + 14f, w = r.width - 28f, y = r.y + 12f;
             LobbyKit.Heading(x, y, w, session.IsHost ? "Invite friends" : "Connection", null, calm);
@@ -456,12 +501,12 @@ namespace Arena
             Session tgt = bot != null ? bot.S : session;  // whose loadout the keys change: yours, or a bot's (its own session asks the host)
             bool self = bot == null;
             bool calm = fxReduced;
-            LobbyKit.Panel(r);
+            LobbyKit.Panel(r);  // (the role wash)
             var roleColor = ToColor(Defs.Get(me.Role).Color);
 
             // Left column: the live mini-arena (your weapon on target dummies; it casts an ability while you hover one).
             float lx = r.x + 16f;
-            const float lw = 262f;
+            const float lw = 300f;
             var view = ShowcaseRect(r);
             DrawShowcase(me, view, roleColor);
             if (!self)
@@ -501,7 +546,7 @@ namespace Arena
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit));
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
-            float x = r.x + 292f, w = 454f, y = r.y + 16f;
+            float x = r.x + 334f, w = 454f, y = r.y + 16f;
             const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
             LobbyKit.Heading(x, y, w, "Role", Defs.Get(me.Role).Desc, calm, 15);
@@ -1122,11 +1167,11 @@ namespace Arena
         /// once you are ready; Start is dim and dashed until everyone is.
         void DrawLobbyActions(LobbyEntry me, bool practice)
         {
-            const float lx = 24f, lw = 446f;
+            const float lx = PartyX, lw = PartyW;
             bool host = session.IsHost, calm = fxReduced;
             bool ready = me != null && me.Ready;
             var readyRect = host ? new Rect(lx, LobbyReadyY, lw, LobbyReadyH) : new Rect(lx, LobbyStartY, lw, LobbyStartH);
-            if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 28, minSize: 16))
+            if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 22, minSize: 14))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -1137,11 +1182,11 @@ namespace Arena
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
                 : !ready ? "" : host ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
             if (note.Length > 0)
-                CrtUi.Text(new Rect(lx, readyRect.y - 32f, lw, 26f), note, 16, waiting == 0 ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
+                CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
                 bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 28, minSize: 16, locked: !startOn))
+                if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }
         }

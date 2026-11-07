@@ -135,6 +135,35 @@ namespace Arena
             }
         }
 
+        /// The soft edge of the glass: black fading inward over about 190 px, so what sits near the edge dims a little (the mockup's `.edges .glass`, an inset
+        /// shadow of 170 px blur and 20 px spread at 78% black: 0.78 * (1 - the normal curve at (d - 20) / 85)). Strips of `step` px a side, four rows of
+        /// EdgeSteps, overlapping in the corners the way an inset shadow darkens them. `step` shrinks while the saved-runs screen grows.
+        const int EdgeSteps = 16;
+        const float EdgeStep = 12f;
+        static float[] edgeAlpha;
+
+        static void CrtEdgeShade(float w, float h, float step, float a)
+        {
+            if (edgeAlpha == null)
+            {
+                edgeAlpha = new float[EdgeSteps];
+                for (int i = 0; i < EdgeSteps; i++)
+                {
+                    float d = (i + 0.5f) * EdgeStep, z = (d - 20f) / 85f;
+                    edgeAlpha[i] = 0.78f * (1f - 1f / (1f + Mathf.Exp(-1.702f * z)));  // (the logistic curve stands in for the normal one)
+                }
+            }
+            for (int i = 0; i < EdgeSteps; i++)
+            {
+                float d = i * step;
+                var v = new Color(0f, 0f, 0f, edgeAlpha[i] * a);
+                Ui.Fill(new Rect(0f, d, w, step), v);
+                Ui.Fill(new Rect(0f, h - d - step, w, step), v);
+                Ui.Fill(new Rect(d, 0f, step, h), v);
+                Ui.Fill(new Rect(w - d - step, 0f, step, h), v);
+            }
+        }
+
         /// Over the lobby: dark corners, a glass highlight, the rounded bezel and a quick dip in brightness now and then.
         void DrawLobbyCrtGlass(float t)
         {
@@ -143,15 +172,7 @@ namespace Arena
                 return;
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
-            for (int i = 0; i < 10; i++)  // dark edges: strips fading inward
-            {
-                float k = 1f - i / 10f, d = i * 9f, s = 9f;
-                var v = new Color(0f, 0f, 0f, 0.32f * k * k * a);
-                Ui.Fill(new Rect(0f, d, W, s), v);
-                Ui.Fill(new Rect(0f, H - d - s, W, s), v);
-                Ui.Fill(new Rect(d, 0f, s, H), v);
-                Ui.Fill(new Rect(W - d - s, 0f, s, H), v);
-            }
+            CrtEdgeShade(W, H, EdgeStep, a);
             for (int i = 0; i < 14; i++)  // the glass catching light, top left
             {
                 float k = 1f - i / 14f;
@@ -309,15 +330,7 @@ namespace Arena
             GUI.BeginGroup(r);
             CrtScanlines(new Rect(0f, 0f, W, H), 1f);
             float s = Mathf.Lerp(3f, 9f, grow);
-            for (int i = 0; i < 10; i++)  // dark edges: strips fading inward
-            {
-                float f = 1f - i / 10f, d = i * s;
-                var v = new Color(0f, 0f, 0f, 0.32f * f * f);
-                Ui.Fill(new Rect(0f, d, r.width, s), v);
-                Ui.Fill(new Rect(0f, r.height - d - s, r.width, s), v);
-                Ui.Fill(new Rect(d, 0f, s, r.height), v);
-                Ui.Fill(new Rect(r.width - d - s, 0f, s, r.height), v);
-            }
+            CrtEdgeShade(r.width, r.height, Mathf.Lerp(4f, EdgeStep, grow), 1f);
             for (int i = 0; i < 14; i++)  // the glass catching light, top left
             {
                 float f = 1f - i / 14f;

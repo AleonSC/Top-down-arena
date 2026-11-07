@@ -220,14 +220,157 @@ namespace Arena
             }
         }
 
-        /// A screen panel: a faint wash, a thin rim and bracket corners that stick out at the top left and bottom right.
-        public static void Panel(Rect r, bool brackets = true)
+        // --- The role wash: the big boxes' gradient in the picked role's colour -------------------------------------------------
+
+        static Color washCol = new Color(0.36f, 0.64f, 1f);
+        static float washAt = -10f;
+        static int washFrame = -1;
+
+        /// The role colour the boxes are washed with right now (it eases to a new role's colour).
+        public static Color WashColor => washCol;
+
+        /// Once a frame (the lobby draws several times a frame while it slides): ease the wash colour to the shown role's colour over
+        /// about 0.7 s. `snap` (Reduced effects) and a lobby that was away for a moment jump straight to it.
+        public static void WashTo(Color target, bool snap)
         {
-            Ui.Fill(r, Ink(0.04f));
-            CrtKit.Frame(r, 1f, Ink(0.5f));
+            float now = Time.unscaledTime;
+            bool away = now - washAt > 0.5f;
+            washAt = now;
+            if (washFrame == Time.frameCount)
+                return;
+            washFrame = Time.frameCount;
+            if (snap || away)
+            {
+                washCol = target;
+                return;
+            }
+            float k = 1f - Mathf.Exp(-Mathf.Min(0.1f, Time.unscaledDeltaTime) * 4.5f);
+            washCol = Color.Lerp(washCol, target, k);
+        }
+
+        /// The mockup's `.grad #main` (Docs/Mockups/crt-lobby-softer.html), in strips that meet exactly: a dark diagonal wash running from about 20% of the
+        /// role colour to near black (horizontal strips, with the slight lean to the right as a faint dark ramp), and over it a glow from the top left
+        /// corner that is 32% of the role colour and fades out by 64% of the way (nested rectangles that stack to the right alpha). 36 fills.
+        public static void Wash(Rect r)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            var rc = washCol;
+            Color d0 = new Color(0.031f, 0.063f, 0.157f), d1 = new Color(0.0196f, 0.039f, 0.110f), d2 = new Color(0.0157f, 0.031f, 0.082f);
+            Color c0 = Mix(rc, 0.2f, d0), c1 = Mix(rc, 0.06f, d1), c2 = d2;
+            // 165 degrees: t runs down and a little to the right. Strips take t along the left edge; the ramp below darkens toward the right.
+            const float sin = 0.2588f, cos = 0.9659f;
+            float len = r.width * sin + r.height * cos;
+            const int rows = 14;
+            for (int i = 0; i < rows; i++)
+            {
+                float y0 = Mathf.Round(r.y + r.height * i / rows), y1 = Mathf.Round(r.y + r.height * (i + 1) / rows);
+                float yc = (y0 + y1) / 2f - r.center.y;
+                float t = Mathf.Clamp01(((-r.width / 2f) * sin + yc * cos) / len + 0.5f);
+                Color c = t < 0.58f ? Color.Lerp(c0, c1, t / 0.58f) : Color.Lerp(c1, c2, (t - 0.58f) / 0.42f);
+                Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), new Color(c.r, c.g, c.b, 1f));
+            }
+            const int cols = 6;
+            for (int i = 1; i < cols; i++)
+            {
+                float x0 = Mathf.Round(r.x + r.width * i / cols), x1 = Mathf.Round(r.x + r.width * (i + 1) / cols);
+                Ui.Fill(new Rect(x0, r.y, x1 - x0, r.height), new Color(0f, 0f, 0f, 0.07f * i / (cols - 1f)));
+            }
+            // The glow: an ellipse 120% x 80% of the box from the top left corner, 32% to 0 at 64%. Nested rectangles (a touch smaller than the ellipse's
+            // box, as the corners reach further than the ellipse does), each adding what the stack still needs.
+            const int steps = 16;
+            float prev = 0f;
+            for (int k = 0; k < steps; k++)
+            {
+                float s = 0.64f * (1f - k / (float)steps) * 0.88f;
+                float target = 0.32f * (k + 0.5f) / steps;
+                float a = 1f - (1f - target) / (1f - prev);
+                prev = target;
+                Ui.Fill(new Rect(r.x, r.y, Mathf.Min(r.width, r.width * 1.2f * s), Mathf.Min(r.height, r.height * 0.8f * s)), new Color(rc.r, rc.g, rc.b, a));
+            }
+        }
+
+        /// share of colour `c` mixed with `rest` (CSS color-mix(in srgb, c share, rest)).
+        static Color Mix(Color c, float share, Color rest) => new Color(c.r * share + rest.r * (1f - share), c.g * share + rest.g * (1f - share), c.b * share + rest.b * (1f - share), 1f);
+
+        /// A screen panel: the role wash (or, without it, a faint blue one), a thin rim that leans toward the role colour and bracket corners
+        /// that stick out at the top left and bottom right.
+        public static void Panel(Rect r, bool brackets = true, bool wash = true)
+        {
+            if (wash)
+            {
+                Wash(r);
+                CrtKit.Frame(r, 1f, new Color(washCol.r, washCol.g, washCol.b, 0.55f));
+            }
+            else
+            {
+                Ui.Fill(r, Ink(0.04f));
+                CrtKit.Frame(r, 1f, Ink(0.5f));
+            }
             if (!brackets)
                 return;
             Corners(r);
+        }
+
+        /// Text with letter-spacing (IMGUI has none): each letter placed by hand, the row aligned left, centre or right in `r`.
+        public static void Spaced(Rect r, string text, int size, Color c, TextAnchor align, float spacing, bool bold = true)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+            var adv = new float[text.Length];
+            float total = 0f;
+            for (int i = 0; i < text.Length; i++)
+            {
+                adv[i] = text[i] == ' ' ? Ui.TextWidth("n", size, bold) - 6f : Ui.TextWidth(text[i].ToString(), size, bold) - 6f;
+                total += adv[i] + (i < text.Length - 1 ? spacing : 0f);
+            }
+            float x = align == TextAnchor.MiddleCenter || align == TextAnchor.UpperCenter || align == TextAnchor.LowerCenter ? r.center.x - total / 2f
+                : align == TextAnchor.MiddleRight || align == TextAnchor.UpperRight || align == TextAnchor.LowerRight ? r.xMax - total : r.x;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] != ' ')
+                    Ui.Label(new Rect(x - 3f, r.y, adv[i] + 12f, r.height), text[i].ToString(), size, c, TextAnchor.MiddleLeft, bold);
+                x += adv[i] + spacing;
+            }
+        }
+
+        /// The width Spaced gives this text.
+        public static float SpacedWidth(string text, int size, float spacing, bool bold = true)
+        {
+            float total = 0f;
+            for (int i = 0; i < text.Length; i++)
+                total += (text[i] == ' ' ? Ui.TextWidth("n", size, bold) : Ui.TextWidth(text[i].ToString(), size, bold)) - 6f + (i < text.Length - 1 ? spacing : 0f);
+            return total;
+        }
+
+        /// A quiet tab (the mockup's `.quiet [data-tab]`): no box, 12 px bold letter-spaced caps at 48% of the ink, 85% (a touch of white) under the
+        /// mouse; the open one is a small lit pill (30% ink, a 1 px outline at 75%, white text). True on a click. Text shrinks to fit.
+        public static bool QuietTab(Rect r, string text, bool on, bool enabled = true)
+        {
+            bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
+            var ink = CrtUi.Ink;
+            if (on)
+            {
+                var fill = new Color(ink.r, ink.g, ink.b, 0.3f);
+                Ui.Fill(new Rect(r.x + 1f, r.y, r.width - 2f, r.height), fill);  // (corners cut by a pixel: the 3 px radius)
+                Ui.Fill(new Rect(r.x, r.y + 1f, 1f, r.height - 2f), fill);
+                Ui.Fill(new Rect(r.xMax - 1f, r.y + 1f, 1f, r.height - 2f), fill);
+                var line = new Color(ink.r, ink.g, ink.b, 0.75f);
+                Ui.Fill(new Rect(r.x + 1f, r.y, r.width - 2f, 1f), line);
+                Ui.Fill(new Rect(r.x + 1f, r.yMax - 1f, r.width - 2f, 1f), line);
+                Ui.Fill(new Rect(r.x, r.y + 1f, 1f, r.height - 2f), line);
+                Ui.Fill(new Rect(r.xMax - 1f, r.y + 1f, 1f, r.height - 2f), line);
+            }
+            Color tc = on ? Color.white : hover ? Color.Lerp(ink, Color.white, 0.15f) : new Color(ink.r, ink.g, ink.b, 0.48f);
+            const float sp = 1.44f;  // .12em at 12 px
+            int s = 12;
+            while (s > 9 && SpacedWidth(text, s, sp) > r.width - 8f)
+                s--;
+            string shown = text;
+            while (shown.Length > 3 && SpacedWidth(shown, s, sp) > r.width - 8f)
+                shown = shown.Substring(0, shown.Length - 2).TrimEnd() + "…";
+            Spaced(r, shown, s, tc, TextAnchor.MiddleCenter, sp);
+            return enabled && Ui.HitArea(r);
         }
 
         /// A number tile: a gold value over a small dim caption, the value shrinking to fit the tile.

@@ -32,7 +32,7 @@ for line in open(base+'.ui',encoding='utf-8'):
     layer=Image.new('RGBA',(W,H),(0,0,0,0)); ld=ImageDraw.Draw(layer,'RGBA')
     if kind=='fill' and (w<1 or h<1): continue
     if kind=='fill':
-        ld.rectangle([x,y,x+w-1,y+h-1],fill=c8(*floats(p[3])))
+        ld.rectangle([x,y,max(x,x+w-1),max(y,y+h-1)],fill=c8(*floats(p[3])))  # (a sliver a pixel wide, from a sliding piece, must not stop the render)
     elif kind=='box9':
         tint=floats(p[3]); n=int(p[4]); hn=int(p[5]); b=int(p[6]); hexs=p[7]; gc=floats(p[8])
         if w<1 or h<1: continue
