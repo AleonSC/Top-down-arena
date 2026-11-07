@@ -139,23 +139,24 @@ namespace Arena
             bool hover = r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
             var c = CrtUi.Dim;
-            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.03f));
-            CrtKit.Dashed(r, 2f, new Color(c.r, c.g, c.b, hover ? 0.95f : 0.7f));
+            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.02f));
+            CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, hover ? 0.6f : 0.32f));  // faint, like the mockup's locked keys
             var ic = PixelArt.Get("ui_lock");
-            var tint = new Color(1f, 1f, 1f, hover ? 0.7f : 0.5f);
+            var tint = new Color(1f, 1f, 1f, hover ? 0.55f : 0.35f);
             string label = "LOCKED";
+            size = Mathf.Min(size, 10);  // small and dim
             if (stack)
             {
                 float isz = Mathf.Min(r.height * 0.42f, 18f);
                 Ui.Icon(new Rect(r.center.x - isz / 2f, r.y + 4f, isz, isz), ic, tint);
-                Ui.Label(new Rect(r.x, r.y + 4f + isz, r.width, r.yMax - (r.y + 4f + isz) - 1f), label, Mathf.Min(size, 13), c, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(r.x, r.y + 4f + isz, r.width, r.yMax - (r.y + 4f + isz) - 1f), label, size, new Color(c.r, c.g, c.b, 0.75f), TextAnchor.MiddleCenter, true);
             }
             else
             {
-                float isz = Mathf.Min(r.height - 12f, size + 6f), tw = Ui.TextWidth(label, size, true) - 6f;
+                float isz = Mathf.Min(r.height - 12f, 14f), tw = Ui.TextWidth(label, size, true) - 6f;
                 float x = r.center.x - (isz + 8f + tw) / 2f;
                 Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), ic, tint);
-                Ui.Label(new Rect(x + isz + 8f - 2f, r.y, tw + 12f, r.height), label, size, c, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x + isz + 8f - 2f, r.y, tw + 12f, r.height), label, size, new Color(c.r, c.g, c.b, 0.75f), TextAnchor.MiddleLeft, true);
             }
             return hover;
         }
@@ -165,26 +166,28 @@ namespace Arena
         {
             string t = title.ToUpperInvariant();
             size = CrtKit.Sz(size);  // small caps, like the mockup's 12 px headings
-            float tw = Ui.TextWidth(t, size, true) - 4f;
-            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, HeadCol, TextAnchor.MiddleLeft, true, calm);
+            float sp = size * 0.14f;  // .14em, as in the mockup
+            float tw = SpacedWidth(t, size, sp);
+            Spaced(new Rect(x, y, tw + 12f, 26f), t, size, HeadCol, TextAnchor.MiddleLeft, sp);
             if (!string.IsNullOrEmpty(caption))
             {
                 float left = tw + 16f;
                 var cr = new Rect(x + left, y + 2f, w - left, 24f);
                 string cap = caption.ToUpperInvariant();
-                int s = FitSize(cap, 12, 10, cr.width);
+                int s = FitSize(cap, 10, 9, cr.width);
+                var dimCap = new Color(HeadCol.r * 0.55f, HeadCol.g * 0.55f, HeadCol.b * 0.6f, 0.65f);  // very dim, like the mockup's captions
                 if (Ui.TextWidth(cap, s, true) > cr.width)
                 {
                     // Too long for one line: two small lines, cut at a word with "…" if even that is too much.
                     var words = cap.Split(' ');
                     for (int n = words.Length; n > 0 && Ui.TextHeight(cap, 10, cr.width, true) > 30f; n--)
                         cap = string.Join(" ", words, 0, n - 1).TrimEnd(',', '.', ';', ':') + "…";
-                    Ui.Label(new Rect(cr.x, y + 1f, cr.width, 26f), cap, 10, CrtUi.Dim, TextAnchor.MiddleRight, true, true);
+                    Ui.Label(new Rect(cr.x, y + 1f, cr.width, 26f), cap, 9, dimCap, TextAnchor.MiddleRight, true, true);
                 }
                 else
                 {
-                    s = FitSize(cap, 12, 9, cr.width);
-                    Ui.Label(cr, Truncate(cap, s, cr.width), s, CrtUi.Dim, TextAnchor.MiddleRight, true);
+                    s = FitSize(cap, 10, 9, cr.width);
+                    Ui.Label(cr, Truncate(cap, s, cr.width), s, dimCap, TextAnchor.MiddleRight, true);
                 }
             }
             Ui.Fill(new Rect(x, y + 27f, w, 1f), new Color(HeadCol.r, HeadCol.g, HeadCol.b, 0.4f));

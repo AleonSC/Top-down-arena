@@ -102,7 +102,7 @@ namespace Arena
 
             // --- Left: the party, under the mode keys.
             const float lx = PartyX, lw = PartyW;
-            LobbyKit.Spaced(new Rect(lx, 166f, 220f, 22f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 13, CrtUi.Ink, TextAnchor.MiddleLeft, 1.56f);
+            LobbyKit.Spaced(new Rect(lx, 166f, 220f, 22f), "PARTY (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")", 11, LobbyKit.HeadCol, TextAnchor.MiddleLeft, 1.56f);  // small teal caps, like the other headings
             // The way into the Hangout (LobbyRoom.cs): a key on the Party line, which flips to "Loadout" while you're in the room.
             bool inRoom = lobbyTab == HangoutTab;
             if (LobbyKit.Key(new Rect(lx + lw - 104f, 162f, 104f, 26f), inRoom ? "< LOADOUT" : "HANGOUT >", inRoom, calm, size: 13, minSize: 10))

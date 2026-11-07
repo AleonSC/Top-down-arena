@@ -93,7 +93,7 @@ for line in open(base+'.ui',encoding='utf-8'):
             px.append((int(int(hx_[0:2],16)*tint[0]),int(int(hx_[2:4],16)*tint[1]),int(int(hx_[4:6],16)*tint[2]),int(int(hx_[6:8],16)*tint[3])))  # GUI.color multiplies the texture
         tile.putdata(px)
         tile=tile.transpose(Image.FLIP_TOP_BOTTOM).resize((max(1,int(w)),max(1,int(h))),Image.BILINEAR if hn==1 or (len(p)>6 and p[6]=='1') else Image.NEAREST)
-        layer.paste(tile,(int(x),int(y)),tile)
+        layer.paste(tile,(int(x),int(y)))  # (the layer is empty: the tile keeps its own alpha. Masking by the tile squared it, so soft glows and faint scanlines nearly vanished)
     elif kind=='label':
         col=floats(p[3]); size=int(p[4]); align=int(p[5]); bold=p[6]=='1'; text=p[8].replace('\\n','\n')
         f=font(size,bold)
