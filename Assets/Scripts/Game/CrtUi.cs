@@ -8,25 +8,18 @@ namespace Arena
     /// and keeps the colours with static scanlines and vignette.
     public static class CrtUi
     {
-        public static readonly Color Ink = new Color(0.40f, 0.64f, 1f);
-        public static readonly Color Dim = new Color(0.25f, 0.42f, 0.72f);
-        public static readonly Color Bg = new Color(0.012f, 0.03f, 0.085f);
-        static readonly Color Bezel = new Color(0.05f, 0.07f, 0.14f);
+        // The colours live in CrtStyle.cs (these names are kept for the many screens that use them).
+        public static readonly Color Ink = CrtStyle.Ink;
+        public static readonly Color Dim = CrtStyle.Dim;
+        public static readonly Color Bg = CrtStyle.Bg;
+        static readonly Color Bezel = CrtStyle.Bezel;
 
         /// The dark blue screen, with its bezel and a thin phosphor rim.
         public static void Begin(Rect r)
         {
             Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), Bezel);
             Ui.Fill(r, Bg);
-            Edge(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
-        }
-
-        static void Edge(Rect r, float w, Color c)
-        {
-            Ui.Fill(new Rect(r.x, r.y, r.width, w), c);
-            Ui.Fill(new Rect(r.x, r.yMax - w, r.width, w), c);
-            Ui.Fill(new Rect(r.x, r.y, w, r.height), c);
-            Ui.Fill(new Rect(r.xMax - w, r.y, w, r.height), c);
+            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
         }
 
         /// A big screen title (the cabinet's header, a window's heading) in the CRT font, glowing. `size` is in pixels, as in the mockups.
@@ -52,7 +45,7 @@ namespace Arena
         public static void Tile(Rect r)
         {
             Ui.Fill(r, new Color(Ink.r, Ink.g, Ink.b, 0.07f));
-            Edge(r, 2f, Ink);
+            CrtKit.Frame(r, 2f, Ink);
         }
 
         /// A label that glows: four faint copies a pixel around it, then the text.
@@ -60,7 +53,7 @@ namespace Arena
         {
             if (!calm && Event.current.type == EventType.Repaint)
             {
-                var g = new Color(c.r, c.g, c.b, c.a * 0.16f);
+                var g = new Color(c.r, c.g, c.b, c.a * CrtStyle.TextGlow);
                 Ui.Label(new Rect(r.x - 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x + 1f, r.y, r.width, r.height), s, size, g, align, bold, wrap);
                 Ui.Label(new Rect(r.x, r.y - 1f, r.width, r.height), s, size, g, align, bold, wrap);
@@ -74,8 +67,8 @@ namespace Arena
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            Ui.Fill(r, hover ? new Color(Ink.r, Ink.g, Ink.b, 0.95f) : new Color(Ink.r, Ink.g, Ink.b, 0.07f));
-            Edge(r, 2f, Ink);
+            Ui.Fill(r, hover ? new Color(Ink.r, Ink.g, Ink.b, CrtStyle.InvLit) : new Color(Ink.r, Ink.g, Ink.b, CrtStyle.InvTint));
+            CrtKit.Frame(r, CrtStyle.InvRimW, Ink);
             Color tc = hover ? Bg : Ink;
             float isz = Mathf.Min(size * 1.0f, r.height * 0.45f);
             float tw = Ui.TextWidth(text, size, true) - 6f, gap = icon != null ? 10f : 0f, ic = icon != null ? isz : 0f;
@@ -90,17 +83,15 @@ namespace Arena
             return Ui.HitArea(r);
         }
 
-        static readonly Color Danger = new Color(1f, 0.42f, 0.48f);
-
         /// A small outlined button (pager arrows, Back, row buttons). danger: red, for delete; lit: already filled (a delete waiting for its second click).
         public static bool Small(Rect r, string text, Texture2D icon, int size, bool calm, bool danger = false, bool lit = false)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            Color col = danger ? Danger : Ink, dark = danger ? new Color(0.1f, 0.02f, 0.03f) : Bg;
+            Color col = CrtStyle.KeyColor(null, danger), dark = danger ? CrtStyle.DangerDark : Bg;
             bool fill = hover || lit;
-            Ui.Fill(r, fill ? new Color(col.r, col.g, col.b, 0.95f) : new Color(col.r, col.g, col.b, 0.07f));
-            Edge(r, 2f, col);
+            Ui.Fill(r, fill ? new Color(col.r, col.g, col.b, CrtStyle.InvLit) : new Color(col.r, col.g, col.b, CrtStyle.InvTint));
+            CrtKit.Frame(r, CrtStyle.InvRimW, col);
             Color tc = fill ? dark : col;
             float isz = Mathf.Min(size * 1.0f, r.height * 0.5f);
             float tw = text.Length == 0 ? 0f : Ui.TextWidth(text, size, true) - 6f, gap = icon != null && text.Length > 0 ? 6f : 0f, ic = icon != null ? isz : 0f;

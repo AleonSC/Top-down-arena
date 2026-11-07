@@ -298,12 +298,12 @@ namespace Arena
         {
             if (dashed)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.02f));
-                CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, 0.55f));
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.HudKeyEmptyTint));
+                CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, CrtStyle.HudKeyEmptyDash));
                 return;
             }
-            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.09f));
-            CrtKit.Frame(r, 2f, c);
+            Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.HudKeyTint));  // (CrtStyle.cs)
+            CrtKit.Frame(r, CrtStyle.HudKeyRimW, c);
         }
 
         int plateWave = -1, plateMax = 1;

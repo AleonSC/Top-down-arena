@@ -20,8 +20,8 @@ namespace Arena
     public partial class ArenaApp
     {
         const float CabOpenEnd = 3.5f;  // seconds after opening: the opening is over, nothing animates any more
-        static readonly Color CabSoft = new Color(0.55f, 0.7f, 0.97f);       // small descriptions on a screen
-        static readonly Color CabDanger = new Color(1f, 0.42f, 0.48f);
+        static readonly Color CabSoft = CrtStyle.Desc;       // small descriptions on a screen (CrtStyle.cs)
+        static readonly Color CabDanger = CrtStyle.Danger;
         static readonly Color CabWarm = new Color(1f, 0.82f, 0.45f);         // a changed key
 
         bool CabCalm => fxReduced || !fxOn;
@@ -384,12 +384,12 @@ namespace Arena
             if (!isStatic)
                 Ui.NoteHover(r);
             size = CrtKit.Sz(size);
-            Color c = accent ?? CrtUi.Ink;
+            Color c = CrtStyle.KeyColor(accent);
             bool lit = (hover || sel) && !isStatic;
             if (isStatic)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.06f));
-                CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, 0.5f));
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyStaticTint));
+                CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, CrtStyle.KeyStaticRim));
             }
             else
                 CrtKit.SoftBox(r, c, sel, hover, false);
