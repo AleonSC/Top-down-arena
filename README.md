@@ -826,7 +826,7 @@ as usual.
 | Kill every enemy on the field (dev, host) | X, once the F1 Match tab's kill-all key is on |
 | Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
+| Hide / show the HUD | H, or Settings > Gameplay, remembered between launches (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
 | Freeze time with no menu (dev) | P, once the F1 Tools tab's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |

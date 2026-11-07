@@ -2,6 +2,8 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // Renders one screen to GL triangles and an IMGUI log (shot.sh turns them into a PNG). Main sets up a match and
 // runs it; ShotScenes.cs poses it (the environment flags), ShotModes.cs draws the chosen screen.
 static partial class Shot {
+  // The preview's "now" for made-up saves and replays: fixed, so their dates (and uishots.sh -r compares) don't change.
+  public static readonly DateTime Now = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
   static bool heraldOn, eclipseOn;
   static bool devourOn;
@@ -10,10 +12,10 @@ static partial class Shot {
     string dir = Path.Combine(Path.GetTempPath(), "arena-preview-saves");
     if (Directory.Exists(dir)) Directory.Delete(dir, true);
     SaveStore.Folder = dir; Profile.Folder = dir; Profile.Reload();
-    var a = new RunSave { Id = "a", SavedAt = DateTime.UtcNow.AddMinutes(-40), Wave = 23, Score = 18450, RunTime = 2710f, Mods = RunMod.Lucky | RunMod.Frenzy, CurrentPath = PathId.Bazaar, PathFrom = 21, PathTo = 24 };
+    var a = new RunSave { Id = "a", SavedAt = Shot.Now.AddMinutes(-40), Wave = 23, Score = 18450, RunTime = 2710f, Mods = RunMod.Lucky | RunMod.Frenzy, CurrentPath = PathId.Bazaar, PathFrom = 21, PathTo = 24 };
     a.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Level = 17 });
     a.Seats.Add(new SeatSave { Name = "Aleon", Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1, Level = 16 });
-    var b = new RunSave { Id = "b", SavedAt = DateTime.UtcNow.AddDays(-2), Wave = 7, Score = 3120, RunTime = 690f };
+    var b = new RunSave { Id = "b", SavedAt = Shot.Now.AddDays(-2), Wave = 7, Score = 3120, RunTime = 690f };
     b.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Healer, Kit = Kit.Ninja, Weapon = 2, Ability = 0, Level = 6 });
     SaveStore.Write(a); SaveStore.Write(b);
     var pr = new Profile { RunsStarted = 14, RunsWon = 1, RunsLost = 9, BestWave = 50, BestScore = 41200, BestEndlessWave = 0, PlayTime = 41000f, Kills = 6812, BossKills = 52, Downs = 37, Revives = 21, DamageDealt = 2.3e6f, HealingDone = 81000f };
@@ -86,6 +88,7 @@ static partial class Shot {
   static Action<string, object> set;
   static float launchAt, recallAt, endingAt;
   static void Main(string[] args) {
+    if (Environment.GetEnvironmentVariable("RANDOM") == null) Game.SeedForTests(1);  // the same rolls every run, so uishots.sh -r can compare pixels (RANDOM=1: as random as the game)
     Shot.args = args; wave = int.Parse(args[1]); seconds = float.Parse(args[2]); players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
@@ -204,6 +207,7 @@ static partial class Shot {
     f2 = BindingFlags.NonPublic | BindingFlags.Instance;
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
+    if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     ArenaScenes();
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).

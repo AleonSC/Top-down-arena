@@ -128,6 +128,7 @@ namespace Arena
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadCamLean();     // CameraLean.cs
+            hudShown = PlayerPrefs.GetInt("hud_shown", 1) == 1;  // Hud.cs
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
@@ -400,7 +401,7 @@ namespace Arena
             DpsMeterKeys();  // F2: the DPS meter (DpsMeterUi.cs)
             TextEditKeys();  // F4: the dev text editor
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
-                hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
+                SetHudShown(!hudShown);  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)

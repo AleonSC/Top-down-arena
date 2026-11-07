@@ -642,7 +642,7 @@ namespace Arena
                     y += 66f;
                     bool hud = SwitchRow(new Rect(x, y, w, 54f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)));
                     if (hud != hudShown)
-                        hudShown = hud;
+                        SetHudShown(hud);
                     y += 66f;
                     bool lean2 = SwitchRow(new Rect(x, y, w, 54f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
                     if (lean2 != camLean)

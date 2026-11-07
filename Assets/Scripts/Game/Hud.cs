@@ -156,7 +156,14 @@ namespace Arena
 
         // --- Hiding the HUD (H) ---------------------------------------------------------
 
-        bool hudShown = true;
+        bool hudShown = true;  // saved as hud_shown (SetHudShown)
+
+        void SetHudShown(bool on)
+        {
+            hudShown = on;
+            PlayerPrefs.SetInt("hud_shown", on ? 1 : 0);
+            PlayerPrefs.Save();
+        }
         float hudT = 1f;               // 0 hidden .. 1 shown, eased in Update
         const float HudFadeTime = 0.55f, HudStagger = 0.14f;
         const int HudGroups = 4;       // 0 ability bar, 1 wave panel, 2 player cards, 3 top row (boss bars, hints)
@@ -562,6 +569,7 @@ namespace Arena
         void DrawMasteryToasts(float cx, float y)
         {
             var toasts = game.MasteryToasts;
+            if (Event.current.type == EventType.Repaint)  // (OnGUI runs once per event: tick once a frame, or toasts ran out early)
             for (int i = toasts.Count - 1; i >= 0; i--)
             {
                 toasts[i].T -= Time.unscaledDeltaTime;

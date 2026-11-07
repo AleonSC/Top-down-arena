@@ -383,6 +383,17 @@ The lobby fits about 8 class cards in a row before they get too small.
   drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default
   `HEAD`), and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering
   refactor.
+- **Every UI screen at once:** `Tools/Preview/uishots.sh` builds the preview once and renders each screen listed in
+  `Tools/Preview/ui-screens.txt` (main menu, Play picker, Who's playing, profile, Look, Records, settings sections,
+  lobby tabs, lobby Esc menu, HUD, Tab, pause, wave cleared, picker, paths, shop, game over, victory; about 30) in
+  parallel to `Tools/Preview/out/ui/<name>.png`, plus `sheet.png` (all of them, labelled). Names after it render only
+  screens starting with those (`uishots.sh lobby- menu`). `-r <git-ref>` also renders the same screens at that commit
+  and prints which are unchanged (pixel-identical) and which changed, with `compare.png` showing the changed ones side
+  by side (ref left, now right). Shots are repeatable: the preview seeds the game's and Juice's random rolls
+  (`Game.SeedForTests(1)`; `RANDOM=1` turns it off) and dates its made-up saves from `Shot.Now`, a fixed time. Screens with
+  several players differ a little from run to run (real network timing); they're marked `NOISY=1` in the list and
+  reported apart, to check by eye. Use it for UI redesigns: `-r HEAD` before committing a refactor that should look the
+  same. About 80 s for all, about 3 min with `-r`.
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`. The arena's
   triangles are drawn like the GPU (`Tools/Preview/raster.py`: colour blended across each triangle, alpha blending, the
   glow pass adding light, 2x supersampled; about 7 s); `FAST=1` gives the old quick look (each triangle flat in its

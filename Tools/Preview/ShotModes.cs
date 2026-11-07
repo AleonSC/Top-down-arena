@@ -5,7 +5,7 @@ static partial class Shot {
   // A made-up replay for the Replays tab and the timeline bar: n waves over `frames` frames, a boss every fifth, a couple of downs.
   static ReplayFile SampleReplay(string name, int frames, int waves, string mode, string party)
   {
-    var f = new ReplayFile { Created = DateTime.UtcNow.AddHours(-3), Mode = mode, Party = party, MaxWave = waves, Players = 1 };
+    var f = new ReplayFile { Created = Shot.Now.AddHours(-3), Mode = mode, Party = party, MaxWave = waves, Players = 1 };
     for (int i = 0; i < frames; i++) f.Dts.Add(1f / 60f);
     for (int w = 1; w <= waves; w++) f.Marks.Add(new ReplayMark { Frame = (w - 1) * frames / waves, Kind = w % 5 == 0 ? ReplayMark.Boss : ReplayMark.Wave, Value = w });
     f.Marks.Add(new ReplayMark { Frame = frames * 3 / 10, Kind = ReplayMark.Down, Value = 1 });
@@ -318,7 +318,7 @@ static partial class Shot {
       if (mode == "continue") { typeof(ArenaApp).GetMethod("OpenContinue", f2).Invoke(app, null); if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>()); }
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
-        if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = DateTime.UtcNow.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
+        if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = Shot.Now.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
         typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
         // PLAYK=<0..1>: that far through the Play move (MenuServo.cs); PLAYBACK=1: going back to the menu instead.
         if (Environment.GetEnvironmentVariable("PLAYK") != null) { set("menuPlayK", float.Parse(Environment.GetEnvironmentVariable("PLAYK"), System.Globalization.CultureInfo.InvariantCulture)); if (Environment.GetEnvironmentVariable("PLAYBACK") != null) set("menuPlayOpen", false); }

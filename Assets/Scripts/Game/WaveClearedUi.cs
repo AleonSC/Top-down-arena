@@ -75,7 +75,9 @@ namespace Arena
             float ease = 1f - (1f - t) * (1f - t);
             var r = new Rect(W / 2f - WcW / 2f, WcY - 26f * (1f - ease), WcW, WcH);
             var oldCol = GUI.color;
+            float oldAlpha = Ui.Alpha;
             GUI.color = new Color(1f, 1f, 1f, ease);
+            Ui.Alpha = oldAlpha * ease;  // Fill and Dot set GUI.color themselves: they fade by Ui.Alpha
 
             Ui.GlowPanel(r, accent, 0.22f, 0.9f);  // the upgrade cards' shaded body, a slight glow and a rim
             float x = r.x, y = r.y;
@@ -118,6 +120,7 @@ namespace Arena
             // The bottom bar: Ready, Auto-ready, the status.
             DrawReadyBar(me, new Rect(x + 20f, y + WcH - 76f, WcW - 40f, 62f), accent, waiting);
             GUI.color = oldCol;
+            Ui.Alpha = oldAlpha;
             return true;
         }
 
