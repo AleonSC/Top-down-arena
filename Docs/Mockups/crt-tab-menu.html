@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
 <style>
 /* Layout: a 1280x720 stage (the game canvas) scaled to fit, the arena dimmed behind. The Tab screen's three pages (Run so far, Your build,
-   Team) in two CRT looks: A sits like the lobby (stats column left, page right, tab keys over it), B is a rack of tubes like the results.
+   Team) in two looks: A sits like the lobby (stats column left, page right, tab keys over it), B is a rack of projected hologram panels.
    Colours and key strengths are CrtStyle.cs's; colour stays in rarity marks, role colours and bars. */
 :root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
   --ink: #66a3ff; --dim: #446dac; --scr: #030816; --glow: rgba(102,163,255,.5); --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a;
@@ -73,7 +73,7 @@ h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var
 .cap.ult { background: var(--gold); color: #1d1300; }
 .pips { display: inline-flex; gap: 3px; vertical-align: 1px; } .pips i { width: 12px; height: 5px; background: rgba(255,255,255,.12); } .pips i.on { background: var(--ink); box-shadow: 0 0 4px var(--glow); }
 /* ability tiles */
-.abil { position: relative; border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent); background: color-mix(in srgb, var(--ink) 5%, transparent); padding: 6px 10px 6px; }
+.abil { min-width: 0; position: relative; border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent); background: color-mix(in srgb, var(--ink) 5%, transparent); padding: 6px 10px 6px; }
 .abil .top { display: flex; align-items: center; gap: 8px; font: 400 15px var(--f-crt); color: var(--dim); }
 .abil .top .r { margin-left: auto; color: var(--good); font-size: 17px; } .abil .top .r.cd { color: var(--dim); }
 .abil .nm { font: 700 15px var(--f-game); color: #fff; margin-top: 2px; }
@@ -100,6 +100,30 @@ h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var
 .island { position: absolute; width: 90px; height: 90px; border: 2px solid var(--c); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 40%, transparent); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 14%, #050a16) 0 6px, #050a16 6px 12px); display: flex; align-items: center; justify-content: center; }
 .island b { width: 38px; height: 38px; border-radius: 50%; border: 6px solid var(--c); box-shadow: 0 0 10px var(--c); }
 .hint { position: absolute; right: 26px; top: 18px; font: 400 17px var(--f-crt); color: var(--dim); letter-spacing: .06em; }
+
+/* B: projected holograms (the level-up cards' "Projection" look, CardArt.Holo + HudPicker.DrawHolo): see-through glass in the ink at the
+   top fading to the screen by 70%, the colour glowing in from the edges, scanlines every 4 px counted from the bottom, a band drifting down
+   every 3.4 s, a magenta / cyan fringe on the left / right edge, two short dips every 5 s. Plus the projector: a beam strip along the
+   bottom, a faint cone of light rising behind the panels, and each panel switching on from a line when the page changes. */
+.stage[data-look="B"] .dark { background: rgba(3,4,10,.42); }
+.stage[data-look="B"] .tube { background: linear-gradient(to bottom, rgba(32,58,110,.62) 0%, rgba(9,22,48,.74) 70%, rgba(3,8,20,.82) 100%);
+  box-shadow: inset 0 0 19px color-mix(in srgb, var(--ink) 42%, transparent), 0 0 22px rgba(102,163,255,.1); animation: holoflick 5s steps(1) infinite; }
+.stage[data-look="B"] .tube::before { background: repeating-linear-gradient(to top, color-mix(in srgb, var(--ink) 20%, transparent) 0 1px, transparent 1px 4px); }
+.stage[data-look="B"] .tube::after { background: linear-gradient(to right, rgba(255,60,200,.35) 0 2px, transparent 2px calc(100% - 2px), rgba(60,240,255,.35) calc(100% - 2px)); }
+.stage[data-look="B"] .roll { height: 28%; background: linear-gradient(to bottom, transparent, rgba(160,200,255,.13), transparent); animation: band 3.4s linear infinite; }
+.stage[data-look="B"] .tube.boot { animation: holoboot .38s cubic-bezier(.2,.8,.3,1) both, holoflick 5s steps(1) .38s infinite; }
+.stage[data-look="B"] h3, .stage[data-look="B"] .big { text-shadow: -1.5px 0 rgba(255,60,200,.45), 1.5px 0 rgba(60,240,255,.45), 0 0 10px var(--glow); }
+.stage[data-look="B"] .row:nth-child(odd) { background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.emit { position: absolute; left: 140px; width: 1000px; top: 704px; height: 5px; background: linear-gradient(to right, transparent, var(--ink) 12%, #cfe2ff 50%, var(--ink) 88%, transparent);
+  box-shadow: 0 0 16px var(--ink), 0 -4px 30px rgba(102,163,255,.5); border-radius: 3px; }
+.cone { position: absolute; left: 0; right: 0; top: 0; height: 706px; pointer-events: none; clip-path: polygon(11% 100%, 89% 100%, 100% 0, 0 0);
+  background: linear-gradient(to top, rgba(102,163,255,.16), rgba(102,163,255,.05) 45%, transparent 85%); }
+.cone::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(150,190,255,.05) 0 1px, transparent 1px 22px); }
+@keyframes band { from { top: -28.8%; } to { top: 115.2%; } }
+@keyframes holoflick { 0%, 93.9% { opacity: 1; } 94%, 95.9% { opacity: .78; } 96%, 97.9% { opacity: 1; } 98%, 100% { opacity: .82; } }
+@keyframes holoboot { from { transform: scaleY(.015); filter: brightness(2.2); } 60% { filter: brightness(1.4); } to { transform: none; filter: none; } }
+.calm .tube, .calm .tube.boot { animation: none !important; } .calm .cone::after { display: none; }
+@media (prefers-reduced-motion: reduce) { .tube, .tube.boot, .roll { animation: none !important; } }
 .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
 .legend > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #0c1122; min-width: 0; }
 .legend b { font: 700 16px var(--f-ui); display: block; margin-bottom: 4px; }
@@ -114,7 +138,7 @@ h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var
   <div class="bar">
     <div class="grp" role="group" aria-label="Look"><span>Look</span>
       <button class="seg" id="lA" data-look="A" aria-pressed="true">A · Like the lobby</button>
-      <button class="seg" id="lB" data-look="B" aria-pressed="false">B · Rack of tubes</button></div>
+      <button class="seg" id="lB" data-look="B" aria-pressed="false">B · Hologram</button></div>
     <div class="grp" role="group" aria-label="Page"><span>Page</span>
       <button class="seg" id="p0" data-page="0" aria-pressed="false">Run so far</button>
       <button class="seg" id="p1" data-page="1" aria-pressed="true">Your build</button>
@@ -129,13 +153,13 @@ h3 { margin: 0; font: 400 34px/1 var(--f-crt); letter-spacing: .04em; color: var
   <p class="note">The tab keys on the screen switch pages too (in the game: click them, or Q / E while holding Tab). 1280 x 720, scaled to fit.</p>
   <div class="legend">
     <div><b>A · Like the lobby</b><p>One full CRT screen with the lobby's glass frame: your stats in the left column where the party sits, the page in the big screen on the right, the three tab keys above it. Reads as the same place as the lobby's loadout.</p></div>
-    <div><b>B · Rack of tubes</b><p>Separate CRT tubes over the dimmed arena, like the run results: a stats tube, then one tube per part of the page (abilities, upgrades; totals, route, your fight; one per teammate). The arena shows between them.</p></div>
+    <div><b>B · Hologram</b><p>The same rack of panels, projected: see-through glass in the phosphor colour (the level-up cards' Projection look) with scanlines, a drifting band, a magenta / cyan edge fringe and a faint flicker, lit by a beam strip along the bottom of the screen. Panels switch on from a line when you change page. The arena shows through.</p></div>
   </div>
-  <p class="desc"><b>Building it:</b> both use pieces that exist: RoundTube and RoundBackdrop (RoundWindows.cs), LobbyKit keys, headings and corners, CrtKit.LoadoutBox, the colours in CrtStyle.cs, so the CRT colour setting carries over. The tooltips already have their CRT look.</p>
+  <p class="desc"><b>Building it:</b> both use pieces that exist: RoundTube and RoundBackdrop (RoundWindows.cs), B's glass is CardArt.Holo + DrawHolo from the level-up cards, LobbyKit keys, headings and corners, CrtKit.LoadoutBox, the colours in CrtStyle.cs, so the CRT colour setting carries over. The tooltips already have their CRT look.</p>
 </div>
 
 <script>
-const S = { look: "A", page: 1, calm: false };
+const S = { look: "A", page: 1, calm: false, boot: false };
 const RAR = { mod: ["WEAPON MOD", "#3fd6c8"], leg: ["LEGENDARY", "#ff9a3d"], vr: ["VERY RARE", "#b56bff"], rare: ["RARE", "#5b9cff"], unc: ["UNCOMMON", "#4dff9a"], com: ["COMMON", "#9aa6bf"] };
 const UPS = [["mod", [["Homing Rounds", 2], ["Incendiary Rounds"], ["Shock Rounds"], ["Velocity Rounds"]]],
   ["leg", [["Collapse Rounds"], ["Executioner"], ["Royal Jelly"], ["Stun Gun"], ["Swarm Rounds"], ["Twin Fang"], ["Warden's Guard"]]],
@@ -157,7 +181,7 @@ const TEAM = [{ n: "Aleon", c: "Soldier DPS", col: "#ff8a3d", hp: [165, 165], st
   { n: "Sam", c: "Summoner Healer", col: "#4dff9a", hp: [196, 196], st: "107,207 damage · 273 kills · down 0", w: "Sprite Staff", wd: "A firefly that seeds the enemy it hits, then hops to nearby enemies.", ab: [["SPACE", "Spirit Swarm"], ["Q", "—"], ["E", "—"], ["SHIFT", "—"], ["ULT · F", "World Tree"]] }];
 const TEAMUPS = [["Executioner", "leg"], ["Multishot", "rare"], ["Piercing Rounds", "rare"], ["Hollow Points", "unc"], ["Sprinter", "unc"], ["Fortitude", "unc"], ["Quick Trigger", "com"], ["Vitality", "com", 2]];
 
-const box = (cls, x, y, w, h, inner) => `<div class="${cls}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${cls === "tube" ? '<div class="roll"></div>' : ""}<div class="in">${inner}</div></div>`;
+const box = (cls, x, y, w, h, inner) => `<div class="${cls}${cls === "tube" && S.boot ? " boot" : ""}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${cls === "tube" ? '<div class="roll"></div>' : ""}<div class="in">${inner}</div></div>`;
 const cur = '<span class="cur"></span>';
 function stats() {
   return `<h3 style="font-size:30px">YOUR STATS${cur}</h3><div class="sub" style="margin-bottom:12px">Flamethrower · Aeroaegis</div>` +
@@ -165,7 +189,7 @@ function stats() {
 }
 function abilities(compact) {
   return `<div class="head">WEAPON</div><div style="font:700 17px var(--f-game);color:#fff">Flamethrower</div><div style="font:11px/1.3 var(--f-game);color:#8fa6d6;margin-bottom:10px">A short-range stream of fire. Each flame hits the first enemy hard and carries on through the rest.</div>
-    <div class="head">ABILITIES <small>CLICK A KEY TO MOVE AN ABILITY</small></div><div style="display:grid;gap:6px">` +
+    <div class="head">ABILITIES <small>CLICK A KEY TO MOVE IT</small></div><div style="display:grid;grid-template-columns:minmax(0,1fr);gap:6px">` +
     ABIL.map(a => `<div class="abil${a[6] ? " mov" : ""}" data-ms="★ MASTERED (LV 5): ${a[5].toUpperCase()}"><div class="top"><span class="cap${a[0].startsWith("ULT") ? " ult" : ""}">${a[0]}</span><span class="pips"><i class="on"></i><i></i><i></i><i></i><i></i></span>LV ${a[2]}<span class="r${a[3].includes("0/") || a[3].match(/^\d+s$/) ? " cd" : ""}">${a[3].toUpperCase()}</span></div>
       <div class="nm">${a[1]}</div><div class="ds">${a[4]}</div>${compact ? "" : `<div class="ms">★ MASTERED (LV 5): ${a[5].toUpperCase()}</div>`}
       ${a[6] ? `<div class="mv"><span>MOVE TO</span>${["Q", "E", "SHIFT"].filter(k => k !== a[0]).map(k => `<span class="k sm">${k}</span>`).join("")}</div>` : ""}</div>`).join("") + `</div>`;
@@ -205,6 +229,7 @@ function render() {
     else if (S.page === 0) h += box("panel", ...B, `${runHead()}${runChips()}<div style="margin-top:22px">${tiles(4)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:18px"><div>${route()}</div><div>${fight()}</div></div>`);
     else h += box("panel", ...B, `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">${TEAM.map(mate).join("")}</div>`);
   } else {
+    h += `<div class="cone"></div><div class="emit"></div>`;
     h += box("tube", 24, 56, 250, 640, stats());
     h += tabs(420, 12, 520) + `<div class="hint" style="top:22px">LET GO OF TAB TO CLOSE</div>`;
     if (S.page === 1) h += box("tube", 290, 56, 966, 92, buildHead()) + box("tube", 290, 164, 360, 532, abilities(true)) + box("tube", 666, 164, 590, 532, upgrades());
@@ -214,7 +239,7 @@ function render() {
   document.getElementById("ui").innerHTML = h;
   document.querySelectorAll("[data-tab]").forEach(k => k.onclick = () => setPage(+k.dataset.tab));
 }
-function setPage(p) { S.page = p; document.querySelectorAll("[data-page]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.page === p))); render(); }
+function setPage(p) { S.boot = S.look === "B" && !S.calm; S.page = p; document.querySelectorAll("[data-page]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.page === p))); render(); S.boot = false; }
 document.querySelectorAll("[data-look]").forEach(b => b.onclick = () => { S.look = b.dataset.look; document.querySelectorAll("[data-look]").forEach(o => o.setAttribute("aria-pressed", String(o === b))); render(); });
 document.querySelectorAll("[data-page]").forEach(b => b.onclick = () => setPage(+b.dataset.page));
 document.getElementById("calm").onclick = e => { S.calm = !S.calm; e.currentTarget.setAttribute("aria-pressed", String(S.calm)); render(); };
