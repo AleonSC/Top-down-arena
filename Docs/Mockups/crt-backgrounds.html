@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRT Backgrounds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=VT323&display=swap">
+<style>
+/* Mockup: six CRT-themed animated menu backgrounds that REACT. Each is drawn at the game's pixel-art scale (320 x 200,
+   scaled up crisp) and gets the same glass: scanlines, a slow roll bar, vignette and a faint flicker. What they react to:
+   the pointer (stands in for the menu cursor / the nearest player), and four events you can fire with the buttons
+   (stand-ins for: a menu click, a player being hit, a wave clear, a boss warning). "Auto demo" fires them for you.
+   Single dark look by choice, like the other mockups. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --red: #ff6b5e;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+
+.bar { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+  display: flex; flex-wrap: wrap; gap: 12px 26px; align-items: center; position: sticky; top: 8px; z-index: 5; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge);
+  border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+button.ev:active { transform: translateY(1px); }
+button.ev.red { border-color: #6b3a35; }
+.sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 10px; min-width: 0; }
+.tile.big { grid-column: 1 / -1; }
+.tile .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.tile .top button { padding: 3px 10px; font-size: 12px; }
+.tile .note { color: var(--muted); font-size: 14px; }
+.tile .note b { color: var(--soft); font-weight: 600; }
+
+/* The CRT glass. The canvas is 320 x 200 and scaled up with crisp pixels. */
+.screen { position: relative; aspect-ratio: 8 / 5; overflow: hidden; background: #000; border-radius: 16px / 20px;
+  box-shadow: 0 0 0 3px #070a0c, 0 0 0 4px var(--edge), inset 0 0 50px #000; touch-action: pan-y; cursor: crosshair; }
+.screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; animation: flick 6s steps(1) infinite; }
+.screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.30) 0 1px, transparent 1px 3px); }
+.screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(0,0,0,.62) 100%),
+              linear-gradient(155deg, rgba(255,255,255,.07), transparent 28%); }
+.roll { position: absolute; left: 0; right: 0; height: 22%; top: -25%; pointer-events: none; z-index: 2;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.045), transparent); animation: roll 7s linear infinite; }
+@keyframes roll { to { top: 105%; } }
+@keyframes flick { 0%, 100% { opacity: 1; } 47% { opacity: .96; } 48% { opacity: 1; } 83% { opacity: .97; } 84% { opacity: 1; } }
+.reduced .roll { display: none; }
+.reduced .screen canvas { animation: none; }
+.reduced .screen::after { background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(0,0,0,.45) 100%); }
+
+.mapping { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; }
+.mapping ul { margin: 0; padding-left: 20px; color: var(--soft); display: grid; gap: 4px; }
+.mapping li b { color: var(--fg); font-weight: 600; }
+code { font: 500 13px ui-monospace, Menlo, monospace; color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header>
+    <div class="eyebrow">Mockup · menu backgrounds</div>
+    <h1>CRT <span>Backgrounds</span></h1>
+    <p class="lead">Six animated backgrounds in the cabinet's phosphor look. Each one reacts: <b>move over a screen</b> and it follows you, <b>click</b> a screen and it answers, or fire the events below at all six at once to compare. Pick a colour to see them retint (the game gives each background its own).</p>
+  </header>
+
+  <div class="bar" role="toolbar" aria-label="Controls">
+    <div class="group"><span class="label">Fire</span>
+      <button class="ev" data-ev="click">Menu click</button>
+      <button class="ev" data-ev="hit">Player hit</button>
+      <button class="ev" data-ev="clear">Wave clear</button>
+      <button class="ev red" data-ev="alarm">Boss warning</button>
+    </div>
+    <div class="group"><span class="label">Colour</span>
+      <button data-hue="auto" aria-pressed="true">Each its own</button>
+      <button data-hue="140" aria-pressed="false"><i class="sw" style="background:#4dff91"></i>Green</button>
+      <button data-hue="38" aria-pressed="false"><i class="sw" style="background:#ffb547"></i>Amber</button>
+      <button data-hue="200" aria-pressed="false"><i class="sw" style="background:#4db8ff"></i>Blue</button>
+    </div>
+    <div class="group"><span class="label">Options</span>
+      <button id="demo" aria-pressed="true">Auto demo</button>
+      <button id="reduced" aria-pressed="false">Reduced effects</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="mapping">
+    <h3>What the events stand for</h3>
+    <ul>
+      <li><b>Menu click</b>: pressing a key on the menu or lobby. Also what clicking a screen here does, at the cursor.</li>
+      <li><b>Player hit</b>: a player takes damage. Shake, a short white flash, the background gets rough for a moment. Behind the arena this could be the only reaction, kept small.</li>
+      <li><b>Wave clear</b>: a calm, bright release. Things settle, lock in or open up.</li>
+      <li><b>Boss warning</b>: the whole screen goes red and pulses for a couple of seconds, whatever its own colour is.</li>
+      <li><b>Pointer</b>: the menu cursor, or in a match the nearest player. Speed of movement also feeds the energy.</li>
+    </ul>
+    <p class="lead" style="color:var(--muted);font-size:14px">Reduced effects drops glow, the roll bar, flicker, shake and flash, like the other CRT screens do. If you like any of these they'd slot in as extra choices on the Menu background card.</p>
+  </section>
+</div>
+
+<script>
+"use strict";
+const W = 320, H = 200;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const hsl = (h, l, a = 1, s = 100) => `hsla(${h},${s}%,${l}%,${a})`;
+const opt = { hue: "auto", demo: true, reduced: false };
+
+/* ---------- shared helpers ---------- */
+function poke(d, gx, gy, amp, r) {
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) {
+    const X = gx + x, Y = gy + y;
+    if (X < 1 || Y < 1 || X >= d.w - 1 || Y >= d.h - 1) continue;
+    const f = 1 - Math.hypot(x, y) / (r + 0.5);
+    if (f > 0) d.a[Y * d.w + X] += amp * f;
+  }
+}
+function glow(c, hue, px) { if (opt.reduced) { c.shadowBlur = 0; return; } c.shadowBlur = px; c.shadowColor = hsl(hue, 60, 1); }
+
+/* ---------- 1. Phosphor Pond: a dot grid that ripples ---------- */
+const pond = {
+  name: "Phosphor Pond", hue: 140,
+  note: "<b>Follows:</b> your pointer drags a wake through the dots. <b>Click:</b> a big ring. <b>Hit:</b> three sharp splashes. <b>Clear:</b> one slow wave from the middle. <b>Boss:</b> red heartbeat.",
+  init(t) { const w = 80, h = 50; t.d = { w, h, a: new Float32Array(w * h), b: new Float32Array(w * h), lastBeat: 0, lx: 0, ly: 0 }; },
+  event(t, k, x, y) {
+    const d = t.d;
+    if (k === "click") poke(d, x / 4 | 0, y / 4 | 0, 2.4, 6);
+    if (k === "hit") for (let i = 0; i < 3; i++) poke(d, rnd(8, 72) | 0, rnd(6, 44) | 0, 3, 4);
+    if (k === "clear") for (let a = 0; a < 6.28; a += 0.15) poke(d, 40 + Math.cos(a) * 5 | 0, 25 + Math.sin(a) * 4 | 0, 1.1, 2);
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, { w, h, a, b } = d;
+    const gx = clamp(st.px / 4 | 0, 1, w - 2), gy = clamp(st.py / 4 | 0, 1, h - 2);
+    if (st.inside || opt.demo) poke(d, gx, gy, 0.22 + st.energy * 0.2, 2);
+    if (st.alarm > 0 && time - d.lastBeat > 0.55) { d.lastBeat = time; poke(d, 40, 25, 3.4, 7); }
+    if (Math.random() < dt * 0.9) poke(d, rnd(6, 74) | 0, rnd(5, 45) | 0, 1.6, 3);
+    for (let s = 0; s < 2; s++) {
+      for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x;
+        b[i] += ((a[i - 1] + a[i + 1] + a[i - w] + a[i + w]) * 0.25 - a[i]) * 0.9;
+      }
+      for (let i = 0; i < a.length; i++) { b[i] *= 0.988; a[i] += b[i]; }
+    }
+    c.fillStyle = "#010503"; c.fillRect(0, 0, W, H);
+    const lv = [];
+    for (let i = 0; i < 28; i++) lv.push(hsl(hue, 22 + i * 2.2, 0.4 + i * 0.022));
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = a[y * w + x], m = Math.min(27, (Math.abs(v) * 34) | 0);
+      c.fillStyle = lv[m];
+      c.fillRect(x * 4 + 1, y * 4 + 1 - clamp(v, -1.5, 1.5) * 1.5, v > 0.35 ? 3 : 2, v > 0.35 ? 3 : 2);
+    }
+  }
+};
+
+/* ---------- 2. Vector Tunnel: neon gates rushing past ---------- */
+const tunnel = {
+  name: "Vector Tunnel", hue: 188,
+  note: "<b>Follows:</b> the vanishing point leans toward your pointer. <b>Click:</b> a speed burst. <b>Hit:</b> the gates stutter and shake. <b>Clear:</b> a hard boost, every gate lights up. <b>Boss:</b> red, slow, heavy.",
+  init(t) { t.d = { z: 0, n: 0, vx: W / 2, vy: H / 2, boost: 0, lit: 0 }; },
+  event(t, k) { const d = t.d; if (k === "click") d.boost = 1.3; if (k === "clear") { d.boost = 2.6; d.lit = 1.6; } if (k === "hit") d.lit = 0.5; },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, N = 14;
+    d.boost *= Math.exp(-dt * 1.8); d.lit *= Math.exp(-dt * 1.4);
+    d.vx += ((W / 2 + (st.px - W / 2) * 0.45) - d.vx) * Math.min(1, dt * 4);
+    d.vy += ((H / 2 + (st.py - H / 2) * 0.45) - d.vy) * Math.min(1, dt * 4);
+    const speed = (st.alarm > 0 ? 0.3 : 0.55) + d.boost * 1.8 + st.energy * 0.6;
+    d.z += dt * speed;
+    while (d.z >= 1) { d.z -= 1; d.n++; }
+    c.fillStyle = "rgba(0,4,6,0.38)"; c.fillRect(0, 0, W, H);
+    c.lineWidth = 1; glow(c, hue, 7);
+    for (let i = 0; i < N; i++) {
+      const f = (i + d.z) / N, s = Math.pow(f, 2.3), size = 6 + s * W * 1.7, half = size / 2;
+      const gate = ((i - d.n) % 5 + 5) % 5 === 0;
+      const l = 28 + f * 38 + (gate ? 22 : 0) + d.lit * 25 * (gate ? 1 : 0.5);
+      c.strokeStyle = hsl(hue, clamp(l, 0, 88), clamp(0.2 + f * 0.8 + d.lit * 0.3, 0, 1));
+      c.lineWidth = gate ? 2 : 1;
+      c.strokeRect(d.vx - half + (st.shake ? rnd(-1, 1) : 0), d.vy - half * 0.7, size, size * 0.7);
+    }
+    c.lineWidth = 1; c.strokeStyle = hsl(hue, 40, 0.4);
+    c.beginPath();
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1], [-1, 0], [1, 0]]) {
+      c.moveTo(d.vx, d.vy); c.lineTo(d.vx + sx * W * 0.95, d.vy + sy * W * 0.7 * 0.95);
+    }
+    c.stroke();
+    c.shadowBlur = 0;
+    c.strokeStyle = hsl(hue, 75, 0.85); c.beginPath(); c.moveTo(d.vx - 5, d.vy); c.lineTo(d.vx + 5, d.vy); c.moveTo(d.vx, d.vy - 4); c.lineTo(d.vx, d.vy + 4); c.stroke();
+  }
+};
+
+/* ---------- 3. Signal Lost: a phosphor test card that tears ---------- */
+let barsCache = {};
+function testCard(hue) {
+  if (barsCache[hue]) return barsCache[hue];
+  const o = document.createElement("canvas"); o.width = W; o.height = H; const c = o.getContext("2d");
+  const lv = [92, 70, 54, 40, 28, 18, 9];
+  for (let i = 0; i < 7; i++) { c.fillStyle = hsl(hue, lv[i], 1, 90); c.fillRect(i * (W / 7), 0, W / 7 + 1, H * 0.7); }
+  for (let i = 0; i < 7; i++) { c.fillStyle = hsl(hue, lv[6 - i] * 0.8, 1, 90); c.fillRect(i * (W / 7), H * 0.7, W / 7 + 1, H * 0.1); }
+  c.fillStyle = hsl(hue, 6, 1, 60); c.fillRect(0, H * 0.8, W, H * 0.2);
+  c.fillStyle = hsl(hue, 80, 1); for (let i = 0; i < 8; i++) c.fillRect(W * 0.12 + i * 14, H * 0.84, 7, H * 0.12);
+  c.strokeStyle = "#000"; c.lineWidth = 2; c.beginPath(); c.arc(W / 2, H * 0.38, 38, 0, 6.3); c.moveTo(W / 2 - 50, H * 0.38); c.lineTo(W / 2 + 50, H * 0.38); c.moveTo(W / 2, H * 0.38 - 50); c.lineTo(W / 2, H * 0.38 + 50); c.stroke();
+  return (barsCache[hue] = o);
+}
+const signal = {
+  name: "Signal Lost", hue: 36,
+  note: "<b>Follows:</b> a tracking tear rides your pointer's height. <b>Click:</b> the picture rolls. <b>Hit:</b> blocks of the frame slip sideways. <b>Clear:</b> SIGNAL LOCKED, the tearing stops and the card brightens. <b>Boss:</b> red, WARNING.",
+  init(t) { t.d = { roll: 0, rv: 0, blocks: [], lock: 0, msg: "NO SIGNAL", msgT: 0 }; },
+  event(t, k) {
+    const d = t.d;
+    if (k === "click") d.rv = (Math.random() < 0.5 ? -1 : 1) * 420;
+    if (k === "hit") for (let i = 0; i < 6; i++) d.blocks.push({ y: rnd(0, H - 20), h: rnd(8, 30), dx: rnd(-60, 60), life: rnd(0.15, 0.4) });
+    if (k === "clear") { d.lock = 2.4; d.msg = "SIGNAL LOCKED"; d.msgT = 2.4; }
+    if (k === "alarm") { d.msg = "WARNING"; d.msgT = 2.2; }
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, off = testCard(hue);
+    d.roll += d.rv * dt; d.rv *= Math.exp(-dt * 3.2); d.roll *= Math.exp(-dt * 2.2);
+    d.lock = Math.max(0, d.lock - dt); d.msgT = Math.max(0, d.msgT - dt);
+    const calm = d.lock > 0 ? 0.08 : 1, g = (0.25 + st.energy * 0.9) * calm;
+    c.fillStyle = "#000"; c.fillRect(0, 0, W, H);
+    c.globalAlpha = d.lock > 0 ? 0.62 : 0.3 + st.energy * 0.12;
+    for (let y = 0; y < H; y += 2) {
+      let dx = (Math.random() - 0.5) * 6 * g + Math.sin(y * 0.09 + time * 2) * 1.5 * calm;
+      if (st.inside || opt.demo) dx += 26 * Math.exp(-Math.pow((y - st.py) / 12, 2)) * Math.sin(y * 0.6 + time * 26) * calm;
+      const sy = ((y - d.roll) % H + H) % H;
+      c.drawImage(off, 0, sy, W, 2, dx, y, W, 2);
+    }
+    for (const b of d.blocks) { c.drawImage(c.canvas, 0, b.y, W, b.h, b.dx, b.y, W, b.h); b.life -= dt; }
+    d.blocks = d.blocks.filter(b => b.life > 0);
+    c.globalAlpha = 1;
+    c.fillStyle = hsl(hue, 85, 0.8, 70);
+    for (let i = 0, n = 25 + g * 220 | 0; i < n; i++) c.fillRect(Math.random() * W | 0, Math.random() * H | 0, 1 + (Math.random() * 2 | 0), 1);
+    c.font = "26px VT323, monospace"; c.textAlign = "center"; c.textBaseline = "middle";
+    const on = d.msgT > 0 || (time * 1.6 % 2) < 1.35;
+    if (on) { c.fillStyle = "rgba(0,0,0,.72)"; const m = c.measureText(d.msg).width + 16; c.fillRect(W / 2 - m / 2, H * 0.38 - 13, m, 26); c.fillStyle = hsl(hue, 86, 1); glow(c, hue, 6); c.fillText(d.msg, W / 2, H * 0.38 + 1); c.shadowBlur = 0; }
+    c.font = "14px VT323, monospace"; c.textAlign = "left"; c.fillStyle = hsl(hue, 86, 1);
+    const f = time * 25 | 0; c.fillText(`CH 03   ${String(f / 1500 | 0).padStart(2, "0")}:${String(f / 25 % 60 | 0).padStart(2, "0")}:${String(f % 25).padStart(2, "0")}`, 8, 12);
+  }
+};
+
+/* ---------- 4. Boot Log: a BIOS terminal that talks back ---------- */
+const BOOT = ["MEM CHECK", "LOAD SPRITES", "AUDIO INIT", "NET LINK", "HUD MOUNT", "WAVE TABLE", "SHADER BAKE", "PAD DETECT", "SEED RNG", "MOUNT ARENA", "TICK SYNC", "CRT DEGAUSS"];
+const bootLine = () => ({ k: 0, t: `[ OK ] ${BOOT[Math.random() * BOOT.length | 0]} `.padEnd(27, ".") + " 0x" + (Math.random() * 65536 | 0).toString(16).toUpperCase().padStart(4, "0") });
+function bootPush(d, line) { d.lines.push(line); if (d.lines.length > 14) d.lines.shift(); d.yoff = 12; }
+const boot = {
+  name: "Boot Log", hue: 140,
+  note: "<b>Follows:</b> the line under your pointer lights up in inverse video. <b>Click:</b> logs your input with its coordinates. <b>Hit:</b> FAIL lines in inverse. <b>Clear:</b> WAVE CLEARED and a full progress bar. <b>Boss:</b> red, log floods with warnings.",
+  init(t) { t.d = { lines: [], acc: 0, yoff: 0 }; for (let i = 0; i < 14; i++) t.d.lines.push(bootLine()); },
+  event(t, k, x, y) {
+    const d = t.d;
+    if (k === "click") bootPush(d, { k: 1, t: `> INPUT ACCEPTED   X=${x | 0} Y=${y | 0}` });
+    if (k === "hit") for (let i = 0; i < 3; i++) bootPush(d, { k: 2, t: `[FAIL] SHIELD INTEGRITY ${rnd(40, 90) | 0}%` });
+    if (k === "clear") { bootPush(d, { k: 1, t: "[ OK ] WAVE CLEARED" }); bootPush(d, { k: 1, t: "[##########] 100%" }); }
+    if (k === "alarm") { bootPush(d, { k: 2, t: "!! BOSS SIGNAL DETECTED !!" }); bootPush(d, { k: 2, t: "!! ALL HANDS TO STATIONS !!" }); }
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, rowH = 12, top = 20;
+    d.acc += dt * (5 + st.energy * 22 + (st.alarm > 0 ? 12 : 0));
+    while (d.acc >= 1) { d.acc -= 1; bootPush(d, st.alarm > 0 ? { k: 2, t: "!! WARNING !! " + (Math.random() * 65536 | 0).toString(16).toUpperCase() } : bootLine()); }
+    d.yoff *= Math.exp(-dt * 14);
+    c.fillStyle = "#010503"; c.fillRect(0, 0, W, H);
+    c.font = "15px VT323, monospace"; c.textAlign = "left"; c.textBaseline = "top";
+    const hov = (st.inside || opt.demo) ? Math.floor((st.py - top - d.yoff) / rowH) : -1, n = d.lines.length;
+    glow(c, hue, 5);
+    d.lines.forEach((ln, i) => {
+      const y = top + i * rowH + d.yoff, dim = 0.3 + 0.7 * i / (n - 1);
+      if (i === hov || ln.k === 2) { c.shadowBlur = 0; c.fillStyle = hsl(hue, 95, 0.6, ln.k === 2 ? 1 : 0.9); c.fillRect(2, y, W - 4, rowH); c.fillStyle = "#020805"; c.fillText(ln.t, 6, y - 1); glow(c, hue, 5); }
+      else { c.fillStyle = hsl(hue, 100, ln.k ? 0.74 : 0.56, ln.k ? 1 : dim); c.fillText(ln.t, 6, y - 1); }
+    });
+    c.shadowBlur = 0;
+    c.fillStyle = "#010503"; c.fillRect(0, 0, W, top - 2);
+    c.fillStyle = hsl(hue, 80, 0.8); c.fillText("TOP-DOWN ARENA BIOS v1.07", 6, 2); c.fillRect(4, top - 4, W - 8, 1);
+    if ((time * 2 | 0) % 2 === 0) { const last = d.lines[n - 1], wd = c.measureText(last.t).width; c.fillStyle = hsl(hue, 90, 0.85); c.fillRect(8 + wd, top + (n - 1) * rowH + 1, 6, 9); }
+  }
+};
+
+/* ---------- 5. Vector Rocks: an attract-mode asteroid field ---------- */
+function mkRock(r, x, y) {
+  const v = []; for (let i = 0; i < 9; i++) v.push(r * rnd(0.72, 1.15));
+  const a = rnd(0, 6.28), s = rnd(12, 30) * (r > 12 ? 1 : 1.5);
+  return { x: x === undefined ? rnd(0, W) : x, y: y === undefined ? rnd(0, H) : y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r, a: rnd(0, 6.28), va: rnd(-1, 1), v };
+}
+function sparks(d, x, y, n, sp) { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), s = rnd(0.3, 1) * sp; d.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rnd(0.3, 0.8) }); } }
+const rocks = {
+  name: "Vector Rocks", hue: 188,
+  note: "<b>Follows:</b> a small ship tracks your pointer and the rocks drift away from it. <b>Click:</b> a ring of shots splits the rocks. <b>Hit:</b> the ship flickers and new rocks drop in. <b>Clear:</b> every rock shatters. <b>Boss:</b> red, rocks speed up.",
+  init(t) { t.d = { rocks: [mkRock(18), mkRock(18), mkRock(14), mkRock(14), mkRock(10), mkRock(10), mkRock(18)], bullets: [], parts: [], sx: W / 2, sy: H / 2, ang: -Math.PI / 2, hurt: 0, wait: 0, px: W / 2, py: H / 2 }; },
+  event(t, k, x, y) {
+    const d = t.d;
+    if (k === "click") for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283 + d.ang; d.bullets.push({ x: d.sx, y: d.sy, vx: Math.cos(a) * 170, vy: Math.sin(a) * 170, life: 0.9 }); }
+    if (k === "hit") { d.hurt = 0.7; for (let i = 0; i < 2; i++) { const e = mkRock(14, Math.random() < 0.5 ? 0 : W, rnd(0, H)); e.vx = (d.sx - e.x) * 0.25; e.vy = (d.sy - e.y) * 0.25; d.rocks.push(e); } }
+    if (k === "clear") { for (const r of d.rocks) sparks(d, r.x, r.y, 12, 70); d.rocks = []; d.wait = 1.4; }
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, sp = 1 + (st.alarm > 0 ? 1.3 : 0) + st.energy * 0.5;
+    d.hurt = Math.max(0, d.hurt - dt); d.wait -= dt;
+    const ox = d.sx, oy = d.sy;
+    d.sx += (st.px - d.sx) * Math.min(1, dt * 6); d.sy += (st.py - d.sy) * Math.min(1, dt * 6);
+    const vx = d.sx - ox, vy = d.sy - oy, moving = Math.hypot(vx, vy) > 0.4;
+    if (moving) { let df = Math.atan2(vy, vx) - d.ang; df = Math.atan2(Math.sin(df), Math.cos(df)); d.ang += df * Math.min(1, dt * 10); }
+    if (d.rocks.length < 5 && d.wait <= 0) { d.rocks.push(mkRock(16, Math.random() < 0.5 ? 0 : W, rnd(0, H))); d.wait = 0.9; }
+    for (const r of d.rocks) {
+      const dx = r.x - d.sx, dy = r.y - d.sy, dist = Math.hypot(dx, dy) || 1;
+      if (dist < r.r + 40) { r.vx += dx / dist * 140 * dt; r.vy += dy / dist * 140 * dt; }
+      const s = Math.hypot(r.vx, r.vy); if (s > 70) { r.vx *= 70 / s; r.vy *= 70 / s; }
+      r.x = (r.x + r.vx * dt * sp + W) % W; r.y = (r.y + r.vy * dt * sp + H) % H; r.a += r.va * dt;
+    }
+    for (const b of d.bullets) {
+      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      for (const r of d.rocks) if (!r.dead && Math.hypot(b.x - r.x, b.y - r.y) < r.r) {
+        r.dead = true; b.life = 0; sparks(d, r.x, r.y, 7, 60);
+        if (r.r > 9) for (let i = 0; i < 2; i++) { const n = mkRock(r.r * 0.6, r.x, r.y); n.vx += r.vx; n.vy += r.vy; d.rocks.push(n); }
+        break;
+      }
+    }
+    d.rocks = d.rocks.filter(r => !r.dead).slice(0, 16); d.bullets = d.bullets.filter(b => b.life > 0);
+    for (const p of d.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; } d.parts = d.parts.filter(p => p.life > 0);
+    c.fillStyle = "rgba(0,4,6,0.34)"; c.fillRect(0, 0, W, H);
+    glow(c, hue, 6); c.lineWidth = 1.2; c.strokeStyle = hsl(hue, 66, 1);
+    for (const r of d.rocks) {
+      c.beginPath();
+      r.v.forEach((rv, i) => { const a = r.a + i / r.v.length * 6.283, x = r.x + Math.cos(a) * rv, y = r.y + Math.sin(a) * rv; i ? c.lineTo(x, y) : c.moveTo(x, y); });
+      c.closePath(); c.stroke();
+    }
+    c.strokeStyle = hsl(hue, 80, 1);
+    c.beginPath(); for (const p of d.parts) { c.moveTo(p.x, p.y); c.lineTo(p.x - p.vx * 0.05, p.y - p.vy * 0.05); } c.stroke();
+    c.fillStyle = hsl(hue, 90, 1); for (const b of d.bullets) c.fillRect(b.x - 1, b.y - 1, 2, 2);
+    if (!(d.hurt > 0 && (time * 22 | 0) % 2)) {
+      const a = d.ang, p = (r, da) => [d.sx + Math.cos(a + da) * r, d.sy + Math.sin(a + da) * r];
+      c.strokeStyle = hsl(hue, 85, 1); c.beginPath();
+      let q = p(8, 0); c.moveTo(q[0], q[1]); q = p(7, 2.55); c.lineTo(q[0], q[1]); q = p(3.5, Math.PI); c.lineTo(q[0], q[1]); q = p(7, -2.55); c.lineTo(q[0], q[1]); c.closePath();
+      if (moving) { q = p(5, Math.PI + 0.3); c.moveTo(q[0], q[1]); q = p(11 + Math.random() * 3, Math.PI); c.lineTo(q[0], q[1]); q = p(5, Math.PI - 0.3); c.lineTo(q[0], q[1]); }
+      c.stroke();
+    }
+    c.shadowBlur = 0;
+  }
+};
+
+/* ---------- 6. Life Grid: Conway's Life in phosphor ---------- */
+function glider(d, gx, gy) {
+  const sx = Math.random() < 0.5 ? 1 : -1, sy = Math.random() < 0.5 ? 1 : -1;
+  for (const [x, y] of [[1, 0], [2, 1], [0, 2], [1, 2], [2, 2]]) { const X = (gx + x * sx + d.w) % d.w, Y = (gy + y * sy + d.h) % d.h; d.a[Y * d.w + X] = 1; }
+}
+function seedBlob(d, gx, gy, r, p) {
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r && Math.random() < p) d.a[((gy + y + d.h) % d.h) * d.w + (gx + x + d.w) % d.w] = 1;
+}
+const life = {
+  name: "Life Grid", hue: 150,
+  note: "<b>Follows:</b> your pointer seeds new cells, so the colony grows where you go. <b>Click:</b> gliders fly out. <b>Hit:</b> a band of the grid is wiped. <b>Clear:</b> a ring of life blooms from the middle. <b>Boss:</b> red, edges keep seeding and it runs fast.",
+  init(t) { const w = 80, h = 50, n = w * h; t.d = { w, h, a: new Uint8Array(n), b: new Uint8Array(n), g: new Float32Array(n), acc: 0 }; for (let i = 0; i < n; i++) t.d.a[i] = Math.random() < 0.2 ? 1 : 0; },
+  event(t, k, x, y) {
+    const d = t.d, gx = x / 4 | 0, gy = y / 4 | 0;
+    if (k === "click") { for (let i = 0; i < 3; i++) glider(d, gx + rnd(-5, 5) | 0, gy + rnd(-5, 5) | 0); seedBlob(d, gx, gy, 5, 0.5); }
+    if (k === "hit") { const y0 = rnd(4, 38) | 0; for (let yy = y0; yy < y0 + 9; yy++) for (let xx = 0; xx < d.w; xx++) d.a[yy * d.w + xx] = 0; }
+    if (k === "clear") for (let a = 0; a < 6.283; a += 0.05) for (let r = 12; r < 15; r++) if (Math.random() < 0.7) d.a[((25 + Math.sin(a) * r * 0.8 | 0) + d.h) % d.h * d.w + ((40 + Math.cos(a) * r | 0) + d.w) % d.w] = 1;
+  },
+  frame(t, c, time, dt, hue) {
+    const d = t.d, st = t.st, { w, h } = d, iv = Math.max(0.035, 0.11 - st.energy * 0.05 - (st.alarm > 0 ? 0.03 : 0));
+    if ((st.inside || opt.demo) && Math.random() < dt * 9) seedBlob(d, st.px / 4 | 0, st.py / 4 | 0, 2, 0.6);
+    d.acc += dt;
+    while (d.acc > iv) {
+      d.acc -= iv;
+      const a = d.a, b = d.b; let pop = 0;
+      for (let y = 0; y < h; y++) {
+        const ym = ((y + h - 1) % h) * w, y0 = y * w, yp = ((y + 1) % h) * w;
+        for (let x = 0; x < w; x++) {
+          const xm = (x + w - 1) % w, xp = (x + 1) % w;
+          const n = a[ym + xm] + a[ym + x] + a[ym + xp] + a[y0 + xm] + a[y0 + xp] + a[yp + xm] + a[yp + x] + a[yp + xp];
+          const v = a[y0 + x] ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0); b[y0 + x] = v; pop += v;
+        }
+      }
+      d.a = b; d.b = a;
+      if (pop < 160) { seedBlob(d, rnd(0, w) | 0, rnd(0, h) | 0, 5, 0.45); glider(d, rnd(0, w) | 0, rnd(0, h) | 0); }
+      if (st.alarm > 0) { seedBlob(d, Math.random() < 0.5 ? 2 : w - 3, rnd(0, h) | 0, 3, 0.6); }
+    }
+    c.fillStyle = "#010503"; c.fillRect(0, 0, W, H);
+    const lv = []; for (let i = 0; i < 16; i++) lv.push(hsl(hue, 90, 8 + i * 3.8, 0.3 + i * 0.045));
+    const fall = Math.exp(-dt * 4.5);
+    for (let i = 0; i < d.g.length; i++) {
+      const g = d.a[i] ? 1 : d.g[i] * fall; d.g[i] = g;
+      if (g < 0.05) continue;
+      c.fillStyle = lv[Math.min(15, g * 16 | 0)];
+      c.fillRect((i % w) * 4, (i / w | 0) * 4, 3, 3);
+    }
+  }
+};
+
+/* ---------- tiles, events, loop ---------- */
+const BGS = [pond, tunnel, signal, boot, rocks, life];
+const tiles = [];
+const grid = document.getElementById("grid");
+const reducedMQ = matchMedia("(prefers-reduced-motion: reduce)");
+
+BGS.forEach((bg, idx) => {
+  const el = document.createElement("div"); el.className = "tile";
+  el.innerHTML = `<div class="top"><h3>${idx + 1}. ${bg.name}</h3><button type="button" aria-pressed="false">Bigger</button></div>
+    <div class="screen"><canvas width="${W}" height="${H}"></canvas><div class="roll"></div></div><p class="note">${bg.note}</p>`;
+  grid.appendChild(el);
+  const cv = el.querySelector("canvas"), screen = el.querySelector(".screen");
+  const t = { bg, el, cv, c: cv.getContext("2d"), screen, visible: false, seed: idx * 1.7,
+    st: { px: W / 2, py: H / 2, inside: false, energy: 0, flash: 0, shake: 0, alarm: 0 }, last: { x: 0, y: 0 } };
+  bg.init(t); tiles.push(t);
+  new IntersectionObserver(es => { t.visible = es[0].isIntersecting; }, { threshold: 0.05 }).observe(el);
+  const pos = e => { const r = screen.getBoundingClientRect(); return [clamp((e.clientX - r.left) / r.width * W, 0, W), clamp((e.clientY - r.top) / r.height * H, 0, H)]; };
+  screen.addEventListener("pointermove", e => {
+    const [x, y] = pos(e), s = t.st; s.inside = true;
+    s.energy = clamp(s.energy + Math.min(0.09, Math.hypot(x - s.px, y - s.py) / 300), 0, 1.5);
+    s.px = x; s.py = y;
+  });
+  screen.addEventListener("pointerleave", () => { t.st.inside = false; });
+  screen.addEventListener("pointerdown", e => { const [x, y] = pos(e); t.st.px = x; t.st.py = y; fire(t, "click", x, y); });
+  const btn = el.querySelector("button");
+  btn.addEventListener("click", () => { const on = !el.classList.contains("big"); el.classList.toggle("big", on); btn.setAttribute("aria-pressed", on); btn.textContent = on ? "Smaller" : "Bigger"; });
+});
+
+function fire(t, k, x, y) {
+  const s = t.st;
+  if (x === undefined) { x = s.px; y = s.py; }
+  if (k === "click") s.energy = clamp(s.energy + 0.6, 0, 1.5);
+  if (k === "hit") { s.energy = clamp(s.energy + 0.8, 0, 1.5); if (!opt.reduced) { s.shake = 1; s.flash = 0.3; } }
+  if (k === "clear") { s.energy = clamp(s.energy + 1, 0, 1.5); if (!opt.reduced) s.flash = 0.5; }
+  if (k === "alarm") { s.alarm = 2.4; s.energy = clamp(s.energy + 0.5, 0, 1.5); if (!opt.reduced) s.shake = 0.4; }
+  t.bg.event(t, k, x, y);
+}
+document.querySelectorAll("[data-ev]").forEach(b => b.addEventListener("click", () => tiles.forEach(t => fire(t, b.dataset.ev))));
+document.querySelectorAll("[data-hue]").forEach(b => b.addEventListener("click", () => {
+  opt.hue = b.dataset.hue;
+  document.querySelectorAll("[data-hue]").forEach(o => o.setAttribute("aria-pressed", o === b));
+}));
+const demoBtn = document.getElementById("demo"), redBtn = document.getElementById("reduced");
+demoBtn.addEventListener("click", () => { opt.demo = !opt.demo; demoBtn.setAttribute("aria-pressed", opt.demo); });
+function setReduced(on) { opt.reduced = on; redBtn.setAttribute("aria-pressed", on); document.getElementById("wrap").classList.toggle("reduced", on); }
+redBtn.addEventListener("click", () => setReduced(!opt.reduced));
+if (reducedMQ.matches) setReduced(true);
+
+let last = performance.now(), time = 0, nextDemo = 2.5;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+  if (opt.demo) {
+    nextDemo -= dt;
+    if (nextDemo < 0) { nextDemo = rnd(2.4, 4.2); const k = ["click", "hit", "clear", "alarm", "click", "hit"][Math.random() * 6 | 0]; tiles.forEach(t => { if (!t.st.inside) fire(t, k, rnd(40, 280), rnd(30, 170)); }); }
+  }
+  for (const t of tiles) {
+    if (!t.visible) continue;
+    const s = t.st;
+    s.energy *= Math.exp(-dt * 1.6); s.flash *= Math.exp(-dt * 5); s.shake *= Math.exp(-dt * 6); s.alarm = Math.max(0, s.alarm - dt);
+    if (!s.inside && opt.demo) { s.px = W / 2 + Math.cos(time * 0.55 + t.seed) * W * 0.34; s.py = H / 2 + Math.sin(time * 0.8 + t.seed * 2) * H * 0.3; }
+    const hue = s.alarm > 0 ? 2 : opt.hue === "auto" ? t.bg.hue : +opt.hue;
+    const c = t.c; c.save();
+    if (s.shake > 0.02) c.translate(rnd(-3, 3) * s.shake, rnd(-2, 2) * s.shake);
+    t.bg.frame(t, c, time, dt, hue);
+    c.restore(); c.shadowBlur = 0;
+    if (s.flash > 0.01) { c.fillStyle = `rgba(255,255,255,${s.flash})`; c.fillRect(0, 0, W, H); }
+    if (s.alarm > 0) { c.fillStyle = `rgba(255,20,10,${0.08 + 0.1 * Math.max(0, Math.sin(time * 9))})`; c.fillRect(0, 0, W, H); }
+  }
+  requestAnimationFrame(loop);
+}
+(document.fonts && document.fonts.load("20px VT323") ? document.fonts.load("20px VT323").catch(() => {}) : Promise.resolve()).then(() => requestAnimationFrame(loop));
+</script>
+</body>
+</html>

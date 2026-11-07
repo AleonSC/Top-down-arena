@@ -95,7 +95,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Saving, stats and text data (Core)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
-- `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks standing on a wall shelf, always four boxes (`Docs/Profiles.md`)
+- `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`)
 - `ProfileTransition.cs`: the half-speed move between that screen and the main menu (plot points), with its sounds
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
@@ -177,6 +177,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PerksUi.cs`: the lobby's Perks tab (look A: your slots left, perk cards right; click to equip, hover for the rules) and the perk icons on party cards (`DrawSeatPerks`); see `Docs/RiotGear.md`
 - `ProfileUi.cs`: your profile as a CRT cabinet (header, profile screen with badge/name/XP, four tab keys, option keys, Back; opened by the main menu's player card, also the pause and lobby menus' Profile row without Look) and the "YOUR PROFILE" nudge beside the card (`DrawProfileHint`)
 - `ProfileWindows.cs`: the profile's CRT windows (cab window kind 3): Rank > Progress / Tiers / XP sources, the Unlocks tab
+- `BackgroundReactSet.cs`: the three reactive backgrounds after Ripples, with state (Boot Log, Vector Rocks, Life Grid; mockup `Docs/Mockups/crt-backgrounds.html`)
 - `BackgroundReact.cs`: groundwork for reactive menu backgrounds (pointer, pointer speed, click ripples, `ReactKick`; thumbnails map the pointer into their own view) and the reference one, `BgRipples`; the unlock table is `RewardBackgrounds` in `MenuBackgrounds.cs`
 - `CosmeticsUi.cs`: the Look windows (`DrawLookWindow`: try it on, how others see you, equip list for Frame, Trail, Background, Card background, Name effect, Aim line, Cursor) and the Reward ladder
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players

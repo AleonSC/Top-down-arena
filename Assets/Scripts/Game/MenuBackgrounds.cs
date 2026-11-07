@@ -11,7 +11,7 @@ namespace Arena
                 "Spiral", "Warp", "Aurora", "Synthwave", "Bokeh", "Hex Pulse", "Orbits", "Digital Rain", "Nebula", "Tides",
                 "Ember Storm", "Constellations", "Radar", "Blueprint", "Bullet Curtain", "Frost Peaks", "Circuit", "Event Horizon", "Firefly Wood", "Plotter",
                 // Rank rewards (Rank.cs, Kind Background): locked until the rank. Each needs a row in RewardBackgrounds below.
-                "Dusk Grid", "Ripples",
+                "Dusk Grid", "Ripples", "Boot Log", "Vector Rocks", "Life Grid",
             };
 
         /// Where the rank-reward backgrounds start in BackgroundNames. Everything from here on is a Background cosmetic in Rank.cs.
@@ -20,7 +20,7 @@ namespace Arena
         /// The cosmetic id of each reward background, in BackgroundNames order from FirstRewardBg. The reactive ones (ids "bg-react-...")
         /// are drawn with the pointer and click input in BackgroundReact.cs. To add one: a name here and in BackgroundNames, an accent,
         /// a `case` in DrawMenuBackground, a CosmeticDef in Rank.cs.
-        static readonly string[] RewardBackgrounds = { "bg-dusk", "bg-react-ripples" };
+        static readonly string[] RewardBackgrounds = { "bg-dusk", "bg-react-ripples", "bg-react-bootlog", "bg-react-rocks", "bg-react-life" };
 
         static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
         static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? 0 : FirstRewardBg + k; }
@@ -74,6 +74,9 @@ namespace Arena
                 case 19: BgPlotter(t); break;
                 case 20: BgDuskGrid(t); break;
                 case 21: BgRipples(t); break;
+                case 22: BgBootLog(t); break;
+                case 23: BgVectorRocks(t); break;
+                case 24: BgLifeGrid(t); break;
                 default: BgSpiral(t); break;
             }
         }
@@ -103,6 +106,9 @@ namespace Arena
             new Color(1f, 0.82f, 0.4f),   // Plotter
             new Color(1f, 0.55f, 0.45f),  // Dusk Grid
             new Color(0.35f, 0.85f, 0.9f), // Ripples
+            new Color(0.35f, 1f, 0.6f),    // Boot Log
+            new Color(0.55f, 0.8f, 1f),    // Vector Rocks
+            new Color(1f, 0.72f, 0.28f),   // Life Grid
         };
 
         float bgChangedAt = -100f;   // when the background last changed (the name slides in)

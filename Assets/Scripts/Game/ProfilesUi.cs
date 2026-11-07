@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// "Who's playing?" (Docs/Profiles.md, "Shelf 4" of Docs/Mockups/whos-playing-shelves.html): a screen of its own before the main
+    /// "Who's playing?" (Docs/Profiles.md, "Shelf 4" of Docs/Mockups/whos-playing-shelves.html, mechanical clamp cradles and a marker-pen name from Docs/Mockups/whos-playing-mechanical.html): a screen of its own before the main
     /// menu on every launch, a floppy disk per profile standing on a wall shelf under the menu's title axis. Click one to play as it; Manage shows Rename and
     /// Delete (Delete asks twice); the + card makes a new one. The main menu's "Switch profile" opens it again.
     /// There are at most ProfileStore.MaxProfiles (3) profiles, and always four boxes: three slots (an empty one says
@@ -19,7 +19,7 @@ namespace Arena
         List<ProfileInfo> whoList = new List<ProfileInfo>();
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
-        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 40f, WhoCardTop = 262f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
+        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f, WhoCardTop = 252f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
         const int WhoSlots = ProfileStore.MaxProfiles;  // profile slots; the New profile box is the box after them
 
         /// Where box i sits (0 to 2: the slots; 3: New profile). Always four, so the layout never changes.
@@ -150,7 +150,7 @@ namespace Arena
                     DrawWhoEmptyCard(r);
             }
 
-            float y = WhoCardTop + WhoCardH + 70f;  // (under the shelf)
+            float y = WhoShelfTop + 54f + 40f;  // (under the shelf)
             if (editing)
                 DrawWhoEditor(new Rect(W / 2f - 250f, Mathf.Min(y, H - 160f), 500f, 118f));
             else if (whoError.Length > 0)
@@ -170,28 +170,10 @@ namespace Arena
 
         // ---- the shelf and the disks (look of "Shelf 4, Display shelf" of Docs/Mockups/whos-playing-shelves.html) ----
 
-        static Texture2D whoPeg;
-        readonly float[] whoLift = new float[WhoSlots + 1];  // how far each disk is lifted by the mouse (0..1, eased)
+        readonly float[] whoLift = new float[WhoSlots + 1];  // how far each disk is lifted by the mouse (0..1, eased; opens its clamps)
 
-        /// One tile of the pegboard: a dim hole in a dark field (tiled over the wall behind the shelf).
-        static Texture2D WhoPegTex()
-        {
-            if (whoPeg != null)
-                return whoPeg;
-            const int n = 26;
-            var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear, hideFlags = HideFlags.HideAndDontSave };
-            var px = new Color32[n * n];
-            for (int y = 0; y < n; y++)
-                for (int x = 0; x < n; x++)
-                {
-                    float d = Mathf.Sqrt((x - n / 2f + 0.5f) * (x - n / 2f + 0.5f) + (y - n / 2f + 0.5f) * (y - n / 2f + 0.5f));
-                    px[y * n + x] = new Color32(41, 56, 107, (byte)(255f * Mathf.Clamp01(1.9f - d)));
-                }
-            tex.SetPixels32(px);
-            tex.Apply();
-            whoPeg = tex;
-            return tex;
-        }
+        /// Where the shelf's top edge is: the disks stand on their pedestals just above it.
+        const float WhoShelfTop = WhoCardTop + WhoCardH + 16f;
 
         /// A vertical gradient drawn as thin strips (the game's boxes are flat, so depth is built from strips).
         static void WhoBand(Rect r, Color top, Color bottom, float step = 3f)
@@ -202,46 +184,79 @@ namespace Arena
                 Ui.Fill(new Rect(r.x, r.y + i * h, r.width, h + 0.5f), Color.Lerp(top, bottom, (i + 0.5f) / n));
         }
 
-        /// The wall, the shelf and its slot plates, drawn under the disks. The disks stand on the shelf's top.
+        /// A louvred vent: a dark recess with slits.
+        static void WhoVent(Rect r)
+        {
+            Ui.Pill(r, new Color(0.1f, 0.13f, 0.31f));
+            Ui.Pill(new Rect(r.x + 1f, r.y + 2f, r.width - 2f, r.height - 3f), new Color(0.02f, 0.03f, 0.09f));
+            for (float x = r.x + 5f; x < r.xMax - 9f; x += 12f)
+                Ui.Fill(new Rect(x, r.y + 4f, 6f, r.height - 8f), new Color(0.1f, 0.14f, 0.32f));
+        }
+
+        /// One cradle's clamp post: a metal post with a lamp at its top and a bolt at its foot. open (0..1) slides it outwards.
+        static void WhoClamp(Rect r, bool lit)
+        {
+            Ui.Pill(new Rect(r.x + 1f, r.y + 4f, r.width, r.height), new Color(0f, 0f, 0f, 0.4f));
+            Ui.Pill(r, new Color(0.47f, 0.58f, 0.88f));
+            var inner = new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f);
+            Ui.Pill(inner, new Color(0.15f, 0.2f, 0.44f));
+            Ui.Fill(new Rect(inner.x + inner.width * 0.28f, inner.y + 3f, inner.width * 0.34f, inner.height - 6f), new Color(0.45f, 0.55f, 0.82f, 0.75f));
+            var lamp = new Rect(r.center.x - 5f, r.y + 9f, 10f, 10f);
+            if (lit)
+            {
+                Ui.Dot(new Rect(lamp.x - 4f, lamp.y - 4f, 18f, 18f), new Color(0.42f, 1f, 0.6f, 0.22f));
+                Ui.Dot(lamp, new Color(0.42f, 1f, 0.6f));
+            }
+            else
+                Ui.Dot(lamp, new Color(0.07f, 0.1f, 0.25f));
+            KeyUi.Bolt(new Vector2(r.center.x, r.yMax - 12f), 8f);
+        }
+
+        /// The wall, the shelf, and under every disk its cradle: a pedestal with a clamp post either side, which open as the
+        /// disk lifts (look "Mechanical 2, Clamp cradles" of Docs/Mockups/whos-playing-mechanical.html). Drawn under the disks.
         void DrawWhoShelf()
         {
-            float top = WhoCardTop + WhoCardH, left = 80f, w = W - 160f;
-            var peg = new Rect(left + 20f, WhoCardTop - 42f, w - 40f, WhoCardH + 92f);
-            Ui.Pill(peg, new Color(0.03f, 0.045f, 0.12f, 0.9f));
-            var old = GUI.color;
-            GUI.color = Ui.Faded(Color.white);
-            var inner = new Rect(peg.x + 4f, peg.y + 4f, peg.width - 8f, peg.height - 8f);
-            GUI.DrawTextureWithTexCoords(inner, WhoPegTex(), new Rect(0f, 0f, inner.width / 26f, inner.height / 26f));
-            GUI.color = old;
-            Ui.Rim(peg, new Color(0.14f, 0.2f, 0.45f), 0.7f);
-            // brackets under the shelf
-            foreach (float bx in new[] { left + 70f, left + w - 98f })
-                for (int i = 0; i < 16; i++)
-                    Ui.Fill(new Rect(bx, top + 46f + i * 3f, 28f, 3.5f), Color.Lerp(new Color(0.17f, 0.22f, 0.43f), new Color(0.08f, 0.1f, 0.25f), i / 15f));
-            // the shelf: a lit top edge, then the front face
-            Ui.Pill(new Rect(left, top + 14f, w, 40f), new Color(0f, 0f, 0f, 0.35f));
-            WhoBand(new Rect(left, top - 1f, w, 12f), new Color(0.5f, 0.59f, 0.89f), new Color(0.26f, 0.35f, 0.6f), 2f);
-            WhoBand(new Rect(left, top + 11f, w, 34f), new Color(0.23f, 0.29f, 0.53f), new Color(0.1f, 0.14f, 0.31f), 3f);
-            Ui.Fill(new Rect(left, top + 11f, w, 1f), new Color(1f, 1f, 1f, 0.22f));
-            Ui.Rim(new Rect(left, top - 1f, w, 46f), new Color(0.36f, 0.47f, 0.78f), 0.6f);
+            float top = WhoShelfTop, left = 70f, w = W - 140f;
+            var wall = new Rect(left + 20f, WhoCardTop - 30f, w - 40f, top - WhoCardTop + 30f + 54f);
+            Ui.Pill(new Rect(wall.x, wall.y + 4f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.35f));
+            Ui.Pill(wall, new Color(0.17f, 0.23f, 0.5f));
+            WhoBand(new Rect(wall.x + 1f, wall.y + 1f, wall.width - 2f, wall.height - 2f), new Color(0.06f, 0.08f, 0.2f), new Color(0.03f, 0.04f, 0.1f), 6f);
+            Ui.Rim(new Rect(wall.x + 5f, wall.y + 5f, wall.width - 10f, wall.height - 10f), new Color(0.11f, 0.16f, 0.35f), 0.7f);
+            foreach (var c in new[] { new Vector2(wall.x + 12f, wall.y + 12f), new Vector2(wall.xMax - 12f, wall.y + 12f), new Vector2(wall.x + 12f, wall.yMax - 12f), new Vector2(wall.xMax - 12f, wall.yMax - 12f) })
+                KeyUi.Bolt(c, 9f);
+
+            // the shelf: a lit top edge, then the front face with a vent at each end and a plate for each slot
+            Ui.Pill(new Rect(left, top + 12f, w, 48f), new Color(0f, 0f, 0f, 0.35f));
+            WhoBand(new Rect(left, top, w, 14f), new Color(0.53f, 0.63f, 0.93f), new Color(0.27f, 0.35f, 0.6f), 2f);
+            Ui.Fill(new Rect(left + 3f, top, w - 6f, 1f), new Color(1f, 1f, 1f, 0.45f));
+            WhoBand(new Rect(left, top + 14f, w, 40f), new Color(0.24f, 0.3f, 0.55f), new Color(0.1f, 0.14f, 0.32f), 3f);
+            Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
+            WhoVent(new Rect(left + 20f, top + 22f, 100f, 24f));
+            WhoVent(new Rect(left + w - 120f, top + 22f, 100f, 24f));
+
             for (int i = 0; i <= WhoSlots; i++)
             {
                 var r = WhoBox(i);
-                var plate = new Rect(r.center.x - 35f, top + 17f, 70f, 22f);
+                var info = i < WhoSlots ? WhoInSlot(i) : null;
+                bool lit = info != null && info.Id == ProfileStore.ActiveId;
+                float open = whoManage ? 0f : whoLift[i] * 9f, k = r.width / 200f;
+                // the pedestal under the disk
+                var ped = new Rect(r.x - 18f * k, r.yMax - 4f * k, r.width + 36f * k, 20f * k);
+                Ui.Pill(new Rect(ped.x + 2f, ped.y + 6f, ped.width - 4f, ped.height), new Color(0f, 0f, 0f, 0.45f));
+                Ui.Pill(ped, new Color(0.47f, 0.58f, 0.88f));
+                WhoBand(new Rect(ped.x + 1.5f, ped.y + 1.5f, ped.width - 3f, ped.height - 3f), new Color(0.32f, 0.41f, 0.71f), new Color(0.1f, 0.14f, 0.31f), 2f);
+                Ui.Fill(new Rect(ped.x + 4f, ped.y + 1f, ped.width - 8f, 1f), new Color(1f, 1f, 1f, 0.3f));
+                for (float gx = ped.x + 14f * k; gx < ped.xMax - 24f * k; gx += 16f * k)
+                    Ui.Fill(new Rect(gx, ped.y + 8f * k, 10f * k, 3f), new Color(0.04f, 0.055f, 0.13f));
+                // the clamps, either side of the disk
+                float ch = 84f * k, cw = 22f * k;
+                WhoClamp(new Rect(r.x - 28f * k - open, r.yMax - ch + 6f * k, cw, ch), lit);
+                WhoClamp(new Rect(r.xMax + 6f * k + open, r.yMax - ch + 6f * k, cw, ch), lit);
+                // the slot's plate on the shelf face
+                var plate = new Rect(r.center.x - 46f, top + 20f, 92f, 28f);
                 Ui.Pill(plate, new Color(0.03f, 0.045f, 0.12f));
                 if (!whoManage)
-                    Ui.Label(plate, i == WhoSlots ? "NEW" : "SLOT " + (i + 1), 12, new Color(0.62f, 0.7f, 0.92f), TextAnchor.MiddleCenter, true);
-            }
-        }
-
-        /// A spotlight on a disk: a cone from above that brightens when the mouse is on it.
-        static void DrawWhoCone(Rect disk, Color tier, float a)
-        {
-            float y0 = disk.y - 40f, y1 = disk.yMax;
-            for (float y = y0; y < y1; y += 4f)
-            {
-                float f = (y - y0) / (y1 - y0), half = Mathf.Lerp(18f, disk.width * 0.68f, f);
-                Ui.Fill(new Rect(disk.center.x - half, y, half * 2f, 4.5f), new Color(tier.r, tier.g, tier.b, a * (1f - f * 0.8f)));
+                    Ui.Label(plate, i == WhoSlots ? "NEW" : "SLOT " + (i + 1), 14, new Color(0.66f, 0.73f, 0.94f), TextAnchor.MiddleCenter, true);
             }
         }
 
@@ -303,11 +318,13 @@ namespace Arena
             Ui.Label(new Rect(lb.x + 8f * k, lb.y, 80f * k, 17f * k), "SLOT " + (slot + 1), Mathf.Max(8, Mathf.RoundToInt(10f * k)), new Color(0.04f, 0.055f, 0.12f, 0.85f), TextAnchor.MiddleLeft, true);
             var ink = new Color(0.1f, 0.14f, 0.28f);
             string name = p.Name;
-            int size = Mathf.RoundToInt(22f * k);
+            int size = Mathf.RoundToInt(23f * k);
             float nameW = lb.width - 52f * k;
+            Ui.HandFont = true;   // Permanent Marker, as if written on the label
             while (size > 11 && Ui.TextWidth(name, size, true) + 8f > nameW)
                 size--;
             Ui.Label(new Rect(lb.x + 6f * k, lb.y + 19f * k, nameW + 4f, 30f * k), name, size, ink, TextAnchor.MiddleLeft, true);
+            Ui.HandFont = false;
             RankLook.Draw(new Rect(lb.xMax - 46f * k, lb.y + 20f * k, 42f * k, 42f * k), p.Rank);
             Ui.Label(new Rect(lb.x + 6f * k, lb.y + 58f * k, lb.width - 8f * k, 20f * k), Rank.Title(p.Rank) + "  ·  Rank " + p.Rank, Mathf.RoundToInt(13f * k), new Color(0.16f, 0.21f, 0.4f), TextAnchor.MiddleLeft, true);
             if (!whoManage)
@@ -333,14 +350,13 @@ namespace Arena
             if (Event.current.type == EventType.Repaint)
                 whoLift[slot] = Mathf.MoveTowards(whoLift[slot], hover ? 1f : 0f, Time.unscaledDeltaTime * 7f);
             float lift = live && !whoManage ? whoLift[slot] : 0f;
-            DrawWhoCone(r, tier, 0.05f + (current ? 0.06f : 0f) + 0.2f * lift);
             var d = new Rect(r.x, r.y - 12f * lift, r.width, r.height);
             DrawWhoDisk(d, p, current);
             if (current || hover)  // a soft glow of the tier colour round the disk
                 Ui.Rim(new Rect(d.x - 4f, d.y - 4f, d.width + 8f, d.height + 8f), tier, hover ? 0.28f : 0.14f);
             if (whoManage && live)
             {
-                float by = r.yMax + 46f + 14f, bx = r.center.x - 78f;
+                float by = WhoShelfTop + 54f + 22f, bx = r.center.x - 78f;
                 if (Ui.SmallButton(new Rect(bx, by, 74f, 26f), "Rename", Ui.Neutral, 13))
                 {
                     whoEdit = p.Id;

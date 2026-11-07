@@ -33,15 +33,17 @@ namespace Arena
         static Texture2D checkOn, checkOff;
 
         // --- Menu fonts (Assets/Resources/Fonts, the fonts of the CRT mockups) ------------------------------------------
-        // Rajdhani for the text of the menus, VT323 for the big screen titles. The HUD keeps Unity's default font: the game
+        // Rajdhani for the text of the menus, VT323 for the big screen titles, Permanent Marker for the names on the profile disks. The HUD keeps Unity's default font: the game
         // turns MenuFont on for the menu screens and the pause menu only (ArenaApp.OnGUI). Missing files: the default font.
 
         /// True while a menu is drawn: Label, TextWidth and TextHeight use Rajdhani (a little bigger, it runs small).
         public static bool MenuFont;
         /// True for a moment while a big screen title is drawn (CrtUi.Title): VT323, at the size asked for.
         public static bool CrtFont;
+        /// True for a moment while handwriting is drawn (the names on the profile disks): Permanent Marker, at the size asked for.
+        public static bool HandFont;
         const float MenuFontScale = 1.08f;
-        static Font fontMedium, fontBold, fontCrt;
+        static Font fontMedium, fontBold, fontCrt, fontHand;
         static bool fontsLoaded;
 
         static void LoadFonts()
@@ -52,13 +54,20 @@ namespace Arena
             fontMedium = Resources.Load<Font>("Fonts/Rajdhani-Medium");
             fontBold = Resources.Load<Font>("Fonts/Rajdhani-Bold");
             fontCrt = Resources.Load<Font>("Fonts/VT323-Regular");
+            fontHand = Resources.Load<Font>("Fonts/PermanentMarker-Regular");
         }
 
         /// Set a label style's font and size for this text. (Bold is the Bold file, not a faked bold.)
         static void UseFont(GUIStyle st, int size, bool bold)
         {
             LoadFonts();
-            if (CrtFont && fontCrt != null)
+            if (HandFont && fontHand != null)
+            {
+                st.font = fontHand;
+                st.fontSize = size;
+                st.fontStyle = FontStyle.Normal;
+            }
+            else if (CrtFont && fontCrt != null)
             {
                 st.font = fontCrt;
                 st.fontSize = size;

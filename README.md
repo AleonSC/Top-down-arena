@@ -531,11 +531,14 @@ the other players), so it always matches how weapons and abilities really behave
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
-lobby. There are 22:
+lobby. There are 25:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter, **Dusk Grid** (a
-rank-15 reward) and **Ripples** (a rank-25 reward, and the first **reactive** background: rings spread from your clicks and a
-soft light follows the pointer; frozen with STILL). The reward ones are greyed and skipped until you have them. Each has its own
+rank-15 reward) and four **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
+**Ripples** (25: rings spread from your clicks and a soft light follows the pointer), **Boot Log** (28: a green BIOS terminal
+that logs faster as you move, lights the line under the pointer and logs each click with its position), **Vector Rocks** (39:
+neon asteroids drift away from a little ship on your pointer; a click fires a ring of shots that splits them) and **Life Grid**
+(43: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders). The reward ones are greyed and skipped until you have them. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
 **LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
@@ -958,6 +961,9 @@ each kind at a time:
 | 16 | **Circuit frame**: a teal rim with bracketed corners and a pulse of light running round the edge |
 | 15 | **Dusk Grid**: a 21st menu background (also pickable in Settings > Visual effects once unlocked) |
 | 25 | **Ripples**: a reactive menu background (rings from your clicks, a light that follows the pointer; also pickable in Settings > Visual effects) |
+| 28 | **Boot Log**: a reactive menu background (a BIOS terminal that logs your pointer and clicks) |
+| 39 | **Vector Rocks**: a reactive menu background (an asteroid field with a ship on your pointer; click to fire) |
+| 43 | **Life Grid**: a reactive menu background (Conway's Life in phosphor, seeded where you go; click for gliders) |
 | 18 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
 | 20 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
 | 22 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
@@ -1043,7 +1049,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
-**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 3: there are always four boxes, an unused slot says Empty, and New profile is grayed out when all three are used), **Manage profiles** (a keycap like the main menu's Play; each profile is a floppy disk on a shelf, and an unused slot or New profile is a dashed disk outline) to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Picking one plays a slow move into the menu (each box shrinks to a point on the axis, yours opens into the menu), and Switch profile plays it backwards, with sounds; any key skips it. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Profile > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
+**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 3: there are always four boxes, an unused slot says Empty, and New profile is grayed out when all three are used), **Manage profiles** (a keycap like the main menu's Play; each profile is a floppy disk held in a clamp cradle on a shelf, its name written in marker pen, and an unused slot or New profile is a dashed disk outline) to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Picking one plays a slow move into the menu (each box shrinks to a point on the axis, yours opens into the menu), and Switch profile plays it backwards, with sounds; any key skips it. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Profile > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
 
 **Unlocks**: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the records; it's earned the
 moment the condition holds (an **Unlocked** toast in the match, listed in Profile > Unlocks). So far: **Warden Hunt** (beat the

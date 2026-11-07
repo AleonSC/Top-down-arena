@@ -10,6 +10,7 @@ namespace Arena
     ///   ReactEnergy              0..1, how fast the pointer has been moving lately (eased)
     ///   bgRipples                clicks, in screen UI coordinates; use ReactRipple(i, t, out at, out age) to read them in background coordinates
     ///   ReactKick(at, ...)       add a ripple from code (e.g. a future "something happened" hook), at in background coordinates
+    ///   ReactStepOnce / ReactClick / ReactRand   for ones that keep state: step a simulation once a frame, read this frame's click
     /// BgRipples below is the reference one: copy its shape for the next. Nothing here goes on the wire or into a save.
     public partial class ArenaApp
     {
@@ -23,6 +24,9 @@ namespace Arena
         int bgReactFrame = -1;
         V2 bgPointerUi, bgPointerPrev;
         float bgEnergy;
+        int bgClickFrame = -1;  // the frame a click happened, and where (screen UI coordinates)
+        V2 bgClickUi;
+        uint bgRng = 2463534242u;
 
         // What the thumbnail being drawn maps to (BackgroundThumb sets these; the full screen is the identity).
         V2 bgViewOrigin = V2.Zero;
@@ -41,7 +45,11 @@ namespace Arena
             bgPointerPrev = bgPointerUi;
             bgEnergy = Mathf.Lerp(bgEnergy, Mathf.Clamp01(speed), 1f - Mathf.Exp(-6f * Time.unscaledDeltaTime));
             if (menuBgAnimate && Input.GetMouseButtonDown(0))
+            {
                 AddRipple(bgPointerUi, time);
+                bgClickFrame = Time.frameCount;
+                bgClickUi = bgPointerUi;
+            }
         }
 
         void AddRipple(V2 uiAt, float time)
@@ -62,6 +70,39 @@ namespace Arena
             at = (bgPointerUi - bgViewOrigin) / bgViewScale;
             return true;
         }
+
+        /// For backgrounds that keep state (a simulation): true once per frame while animating, however many views draw it, with the
+        /// frame's dt. Keep `lastFrame` as a field of your own. Not while frozen to STILL, so the picture holds.
+        bool ReactStepOnce(ref int lastFrame, out float dt)
+        {
+            dt = Mathf.Min(0.05f, Time.unscaledDeltaTime);
+            if (!menuBgAnimate || lastFrame == Time.frameCount)
+                return false;
+            lastFrame = Time.frameCount;
+            return true;
+        }
+
+        /// True on the frame a click happened, with where, in the background's own coordinates (kept on the screen).
+        bool ReactClick(out V2 at)
+        {
+            at = V2.Zero;
+            if (!menuBgAnimate || bgClickFrame != Time.frameCount)
+                return false;
+            at = (bgClickUi - bgViewOrigin) / bgViewScale;
+            at = new V2(Mathf.Clamp(at.X, 0f, W), Mathf.Clamp(at.Y, 0f, H));
+            return true;
+        }
+
+        /// A quick random number for backgrounds' own use (0..1), so they don't touch the game's random state.
+        float ReactRand()
+        {
+            bgRng ^= bgRng << 13;
+            bgRng ^= bgRng >> 17;
+            bgRng ^= bgRng << 5;
+            return (bgRng & 0xFFFFFF) / (float)0x1000000;
+        }
+
+        float ReactRange(float a, float b) => a + (b - a) * ReactRand();
 
         float ReactEnergy => menuBgAnimate ? bgEnergy : 0f;
 
