@@ -114,7 +114,7 @@ namespace Arena
                 Ui.Label(new Rect(lx, y - 4f, lw, LobbyNoteY - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: the tab keys, then your loadout or the practice waves.
-            DrawLobbyTabs(new Rect(502f, 28f, 740f, 48f), practice);
+            DrawLobbyTabs(new Rect(LobbyBodyRect.center.x - 370f, 28f, 740f, 48f), practice);  // centred over the loadout box
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
