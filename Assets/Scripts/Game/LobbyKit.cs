@@ -10,6 +10,7 @@ namespace Arena
     {
         public static readonly Color Gold = new Color(1f, 0.83f, 0.42f);
         public static readonly Color Soft = new Color(0.76f, 0.80f, 0.91f);  // body text on the screen
+        public static readonly Color HeadCol = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)
 
         public static Color Ink(float a) => new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
 
@@ -50,6 +51,8 @@ namespace Arena
         public static bool Key(Rect r, string text, bool on, bool calm, Texture2D icon = null, bool stack = false, bool colorIcon = false,
             int size = 18, int minSize = 11, bool danger = false, bool enabled = true, Color? accent = null, string sub = null, bool locked = false)
         {
+            size = CrtKit.Sz(size);
+            minSize = Mathf.Min(size, CrtKit.Sz(minSize));
             if (locked)
             {
                 // A key that can't be used yet (Start before everyone is ready): dim and dashed, with its text.
@@ -61,12 +64,9 @@ namespace Arena
             }
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
             Color c = danger ? new Color(1f, 0.42f, 0.48f) : accent ?? CrtUi.Ink;
-            Color dark = danger ? new Color(0.1f, 0.02f, 0.03f) : CrtUi.Bg;
-            bool fill = hover || on;
-            Ui.Fill(r, fill ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, 0.08f));
-            CrtKit.Frame(r, 2f, c);
-            Color tc = fill ? dark : c;
-            Draw(r, text, icon, stack, colorIcon, size, minSize, tc, fill, calm, sub, false);
+            CrtKit.SoftBox(r, c, on, hover, false);  // a faint tint and a thin outline; the open key gets an underline glow, not a solid fill
+            Color tc = CrtKit.SoftText(c, hover || on);
+            Draw(r, text, icon, stack, colorIcon, size, minSize, tc, false, calm, sub, false);
             if (!enabled)
                 return false;
             return Ui.HitArea(r);
@@ -165,7 +165,7 @@ namespace Arena
         {
             string t = title.ToUpperInvariant();
             float tw = Ui.TextWidth(t, size, true) - 4f;
-            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, HeadCol, TextAnchor.MiddleLeft, true, calm);
             if (!string.IsNullOrEmpty(caption))
             {
                 float left = tw + 16f;
@@ -186,7 +186,7 @@ namespace Arena
                     Ui.Label(cr, Truncate(cap, s, cr.width), s, CrtUi.Dim, TextAnchor.MiddleRight, true);
                 }
             }
-            Ui.Fill(new Rect(x, y + 27f, w, 1f), Ink(0.4f));
+            Ui.Fill(new Rect(x, y + 27f, w, 1f), new Color(HeadCol.r, HeadCol.g, HeadCol.b, 0.4f));
         }
 
         /// A small label in the dim ink (the mockup's .lab).
