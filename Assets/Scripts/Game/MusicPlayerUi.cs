@@ -25,6 +25,13 @@ namespace Arena
             var ids = new HashSet<string>();
             var used = new HashSet<AudioClip>();
             var pack = Resources.Load<MusicPack>("MusicPack");
+            if (pack == null)  // saved under another name ("Music Pack", ...): take the first one in any Resources folder
+            {
+                var all = Resources.LoadAll<MusicPack>("");
+                pack = all.Length > 0 ? all[0] : null;
+                if (pack != null)
+                    Debug.Log("Music Pack found as '" + pack.name + "' (name it MusicPack to be safe)");
+            }
             if (pack != null)
             {
                 foreach (var t in pack.Tracks)

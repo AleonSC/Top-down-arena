@@ -6,8 +6,8 @@ namespace Arena
 {
     public enum MusicMood { Chill, Action, Dark, Epic, Custom }
 
-    /// Your own music, assigned in the Unity Inspector. Make one with Assets > Create > Arena > Music Pack and save it as
-    /// Assets/Resources/MusicPack (that exact name and folder). Everything here is optional:
+    /// Your own music, assigned in the Unity Inspector. Make one with Assets > Create > Arena > Music Pack and save it in
+    /// any Resources folder (Assets/Resources/MusicPack is the usual name). Everything here is optional:
     ///  - Main Menu / Wave Battle / Bosses: play your clip instead of the generated track.
     ///  - Tracks: extra songs for the music player (Settings > Audio > Music player), with your own title and mood.
     /// Even simpler: drop audio files into Assets/Resources/Music and they appear in the music player on their own.
