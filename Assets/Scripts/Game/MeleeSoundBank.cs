@@ -71,8 +71,8 @@ namespace Arena
                 Tone(0.06f, Osc.Sine, 1200f, 400f, 0.2f, noise: 1f, lowpass: 0.5f, decay: 3f)), 0.55f)), 0.2f);
             // The small ones: a Swarmer's quick soft patter, a Spiker's dry skitter, a Lunger's padding step.
             Set(Sfx.SwarmerPatter, Takes(3, () => Finish(Mix(
-                Tone(0.035f, Osc.Triangle, 900f, 450f, 0.2f, noise: 0.6f, lowpass: 0.5f, decay: 3f),
-                Delay(Tone(0.035f, Osc.Triangle, 1100f, 500f, 0.14f, noise: 0.6f, lowpass: 0.5f, decay: 3f), 0.06f)), 0.26f)), 0.12f);
+                Tone(0.03f, Osc.Triangle, 700f, 380f, 0.2f, noise: 0.6f, lowpass: 0.3f, decay: 3f),
+                Delay(Tone(0.03f, Osc.Triangle, 800f, 400f, 0.14f, noise: 0.6f, lowpass: 0.3f, decay: 3f), 0.06f)), 0.07f)), 0.15f);
             Set(Sfx.SpikerSkitter, Takes(3, () => Finish(Mix(
                 Tone(0.025f, Osc.Square, 2300f, 1500f, 0.1f, noise: 0.5f, lowpass: 0.6f, decay: 3f),
                 Delay(Tone(0.025f, Osc.Square, 2600f, 1700f, 0.08f, noise: 0.5f, lowpass: 0.6f, decay: 3f), 0.04f)), 0.2f)), 0.1f);
