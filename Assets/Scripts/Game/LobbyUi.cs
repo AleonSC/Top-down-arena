@@ -656,7 +656,7 @@ namespace Arena
 
             ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
             // The ultimate: its key, then locked slots for ultimates still to come. Click it to watch it in the preview.
-            LobbyKit.Heading(x, ultY, w, "Ultimate", ult.Cooldown.ToString("0") + " s to charge  ·  starts half full  ·  click to preview", calm, 15);
+            LobbyKit.Heading(x, ultY, w, "Ultimate", null, calm, 15);
             for (int i = 0; i < 4; i++)
             {
                 var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
