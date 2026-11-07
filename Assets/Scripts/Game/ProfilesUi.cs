@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// "Who's playing?" (Docs/Profiles.md, "Shelf 4" of Docs/Mockups/whos-playing-shelves.html, mechanical clamp cradles and a marker-pen name from Docs/Mockups/whos-playing-mechanical.html): a screen of its own before the main
-    /// menu on every launch, a floppy disk per profile standing on a wall shelf under the menu's title axis. Click one to play as it; Manage shows Rename and
+    /// menu on every launch, a floppy disk per profile standing on a wall shelf under the disk drive. Click one to play as it; Manage shows Rename and
     /// Delete (Delete asks twice); the + card makes a new one. The main menu's "Switch profile" opens it again.
     /// There are at most ProfileStore.MaxProfiles (3) profiles, and always four boxes: three slots (an empty one says
     /// "Empty") and the New profile box, which is grayed out while all three slots are full. That keeps the move to and
@@ -132,11 +132,7 @@ namespace Arena
                 editing = false;
             }
             Ui.Glitch(new Rect(0f, MenuTitleY - 56f, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
-            if (BeginUiGl())
-            {
-                DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf, t);
-                EndUiGl();
-            }
+            DrawDriveSlot(1f, DriveEmpty());  // the drive your disk goes into (DriveSlot.cs)
 
             DrawWhoShelf();
             for (int i = 0; i <= WhoSlots; i++)
@@ -217,7 +213,7 @@ namespace Arena
         void DrawWhoShelf()
         {
             float top = WhoShelfTop, left = 70f, w = W - 140f;
-            var wall = new Rect(left + 20f, WhoCardTop - 30f, w - 40f, top - WhoCardTop + 30f + 54f);
+            var wall = new Rect(left + 20f, WhoCardTop - 8f, w - 40f, top - WhoCardTop + 8f + 54f);
             Ui.Pill(new Rect(wall.x, wall.y + 4f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.35f));
             Ui.Pill(wall, new Color(0.17f, 0.23f, 0.5f));
             WhoBand(new Rect(wall.x + 1f, wall.y + 1f, wall.width - 2f, wall.height - 2f), new Color(0.06f, 0.08f, 0.2f), new Color(0.03f, 0.04f, 0.1f), 6f);

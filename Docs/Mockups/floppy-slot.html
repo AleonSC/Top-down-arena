@@ -347,6 +347,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
     g.strokeStyle = rgba([190, 210, 255], 0.5); g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, y + h + 0.5); g.lineTo(x + w - 2, y + h + 0.5); g.stroke();
     if (S.flash > 0) { g.strokeStyle = `rgba(255,255,255,${S.flash})`; g.lineWidth = 2; g.beginPath(); g.moveTo(x, y + h / 2); g.lineTo(x + w, y + h / 2); g.stroke(); }
   }
+  // The slit's lower lip, drawn over the disk so it reads as going in through the opening.
+  function lipOver(S) {
+    const v = st.slot, sl = v === 'A' ? [AX - 85, 170] : v === 'B' ? [AX - 95, 190] : [AX - 17, 34], y = v === 'C' ? AY - 1 : AY + 4;
+    g.strokeStyle = rgba([190, 215, 255], 0.55); g.lineWidth = 1.2; g.beginPath(); g.moveTo(sl[0] + 2, y + 0.5); g.lineTo(sl[0] + sl[1] - 2, y + 0.5); g.stroke();
+    g.fillStyle = 'rgba(2,3,10,.9)'; g.fillRect(sl[0] - 1, y + 1, sl[1] + 2, 0.01);
+    if (S.flash > 0) { g.strokeStyle = `rgba(255,255,255,${S.flash})`; g.lineWidth = 2; g.beginPath(); g.moveTo(sl[0], y - 3); g.lineTo(sl[0] + sl[1], y - 3); g.stroke(); }
+  }
   function mono(text, x, y, a, size = 11.5) {
     g.font = `500 ${size}px "IBM Plex Mono", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = rgba([160, 190, 255], a);
     try { g.letterSpacing = '1.6px'; } catch (e) { } g.fillText(text, x, y); try { g.letterSpacing = '0px'; } catch (e) { }
@@ -553,6 +560,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
 
     if (old) oldAxis(T);
 
+    if (!old) drawSlot(S, T);
     // the picked disk
     if (T < 2.95 + 0.001) {
       if (old) {
@@ -564,8 +572,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
       } else {
         const sd = SD[st.slot];
         let x = lerp(R.x, AX - sd / 2, flight), y = lerp(R.y - 12 * hover, AY + 8, flight), s = lerp(184, sd, flight), opt = { shadow: 18 * (1 - seg(T, 1.9, 2.1)) };
-        if (T >= 2.0) { const k = eio(seg(T, 2.0, 2.5)); opt.sy = lerp(1, 0.06, k); y = lerp(AY + 8, AY + 3, k); opt.shadow = 0; }
-        if (T >= 2.5) { const k = eio(seg(T, 2.5, 2.95)); opt.sx = lerp(1, 0.88, k); y = AY + 3 - 4 * k; g.globalAlpha = 1 - k; }
+        if (T >= 2.0) { const k = eio(seg(T, 2.0, 2.5)); opt.sy = lerp(1, 0.06, k); y = lerp(AY + 8, AY - 4, k); opt.shadow = 0; }
+        if (T >= 2.5) { const k = eio(seg(T, 2.5, 2.95)); opt.sx = lerp(1, 0.9, k); y = AY - 4; g.globalAlpha = 1 - k; }
         if (T < 0.55 && flight === 0) { const c = seg(T, 0.5, 0.8); }
         disk(x, y, s, P, slotNo, opt); g.globalAlpha = 1;
       }
@@ -573,7 +581,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
         const c = seg(T, 0.5, 0.9); g.strokeStyle = rgba(P.col, 0.8 * (1 - c)); g.lineWidth = 3; rr(R.x - 4 - 14 * c, R.y - 16 - 14 * c, R.w + 8 + 28 * c, R.h + 8 + 28 * c, 8 + 8 * c); g.stroke();
       }
     }
-    if (!old) drawSlot(S, T);
+    if (!old) lipOver(S);
     drawArc(T);
     drawCard(T, P);
   }

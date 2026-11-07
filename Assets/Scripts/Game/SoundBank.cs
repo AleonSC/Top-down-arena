@@ -590,6 +590,27 @@ namespace Arena
                 Tone(1.0f, Osc.Sine, 3200f, 5200f, 0.04f, noise: 0.6f, lowpass: 0.8f, attack: 0.2f, decay: 1.5f)), 0.22f), 0.05f);
             Set(Sfx.CrtReady, Finish(Notes(new[] { 784f, 1047f, 1568f }, 0.09f, Osc.Sine, 0.22f, 1f), 0.3f), 0.05f);
 
+            // Picking a profile disk (ProfileTransition.cs): the clamps let go (a clunk and a rising servo), a whoosh as the disk flies up, a plastic
+            // clack as it tips flat, a hissing slide into the slot (backwards, with a pop, for the eject), a latch click, the drive's read chatter
+            // (two ticking noises at different rates) and a two-note chime when the profile is loaded.
+            Set(Sfx.DiskLift, Finish(Mix(Tone(0.09f, Osc.Sine, 130f, 70f, 0.3f, noise: 0.5f, lowpass: 0.25f, attack: 0.002f, decay: 3f),
+                Tone(0.14f, Osc.Triangle, 900f, 1500f, 0.06f, attack: 0.01f, decay: 3f)), 0.3f), 0.1f);
+            Set(Sfx.DiskFly, Finish(Mix(Tone(1.0f, Osc.Sine, 300f, 1100f, 0.12f, noise: 1f, lowpass: 0.5f, attack: 0.35f, decay: 2f),
+                Tone(1.0f, Osc.Sine, 200f, 520f, 0.06f, attack: 0.35f, decay: 2f)), 0.2f), 0.3f);
+            Set(Sfx.DiskTip, Finish(Mix(Tone(0.05f, Osc.Square, 700f, 420f, 0.12f, noise: 0.5f, lowpass: 0.5f, attack: 0.001f, decay: 5f),
+                Tone(0.08f, Osc.Sine, 260f, 150f, 0.22f, attack: 0.001f, decay: 4f)), 0.3f), 0.1f);
+            Set(Sfx.DiskSlide, Finish(Mix(Tremolo(Tone(0.42f, Osc.Sine, 500f, 900f, 0.1f, noise: 0.9f, lowpass: 0.35f, attack: 0.03f, decay: 1.2f), 40f, 0.5f),
+                Tone(0.4f, Osc.Sine, 160f, 260f, 0.08f, attack: 0.04f, decay: 1.2f)), 0.25f), 0.1f);
+            Set(Sfx.DiskEject, Finish(Concat(Reverse(Mix(Tremolo(Tone(0.42f, Osc.Sine, 500f, 900f, 0.1f, noise: 0.9f, lowpass: 0.35f, attack: 0.03f, decay: 1.2f), 40f, 0.5f),
+                Tone(0.4f, Osc.Sine, 160f, 260f, 0.08f, attack: 0.04f, decay: 1.2f))),
+                Mix(Tone(0.05f, Osc.Square, 1400f, 700f, 0.1f, noise: 0.4f, lowpass: 0.5f, attack: 0.001f, decay: 5f), Tone(0.08f, Osc.Sine, 220f, 120f, 0.2f, attack: 0.001f, decay: 4f))), 0.25f), 0.1f);
+            Set(Sfx.DiskClick, Finish(Mix(Tone(0.03f, Osc.Square, 2200f, 1200f, 0.15f, noise: 0.4f, attack: 0.0005f, decay: 6f),
+                Tone(0.1f, Osc.Sine, 150f, 80f, 0.35f, attack: 0.001f, decay: 4f)), 0.3f), 0.1f);
+            Set(Sfx.DiskRead, Finish(Mix(Tremolo(Tone(0.9f, Osc.Sine, 1900f, 2300f, 0.07f, noise: 0.9f, lowpass: 0.45f, attack: 0.02f, decay: 0.6f), 22f, 0.9f),
+                Tremolo(Tone(0.9f, Osc.Sine, 3100f, 2600f, 0.05f, noise: 0.6f, lowpass: 0.5f, attack: 0.02f, decay: 0.6f), 9f, 0.9f),
+                Tone(0.9f, Osc.Sine, 120f, 120f, 0.04f, attack: 0.05f, decay: 0.8f)), 0.18f), 0.4f);
+            Set(Sfx.DiskReady, Finish(Reverb(Notes(new[] { 784f, 1175f }, 0.1f, Osc.Triangle, 0.2f, 0.45f)), 0.25f), 0.3f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
