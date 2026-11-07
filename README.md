@@ -479,6 +479,8 @@ Devourer's inhale, the Colossus's rumbles and breaking stone, cages slamming, th
 thunder and a deep gong for rites, last stands and the Eclipse's totality. They follow the Enemies volume.
 (`Tools/SoundCheck/render.sh` writes them to WAV files.)
 
+**Melee rushers have sounds, and far sounds are quieter.** Swarmers chomp and pop, Spikers tick as they flip and shatter, Brutes thud, grunt and bash, Lungers zip when their pink line shows and again at the leap and the landing, and Spike Blocks clunk, rattle (the tell), lunge and give a tired hiss when they rest, which is your window to shoot. Every kind dies with its own sound, but a pack of one kind dying together makes one. A Buzzsaw has no tick per touch: a quiet whirr fades in while one touches someone. Enemy sounds and enemy shots get quieter with distance from you: full volume within 260 px, down to about an eighth at 1100 px or more. They follow the Enemies volume. (Mockup: `Docs/Mockups/melee-enemy-sounds.html`.)
+
 **Bosses keep up with strong builds.** When a boss arrives, each player's upgrades are scored (damage x fire rate
 x projectiles x crits, plus boss legendaries and companions) and compared with a typical build at that wave (one
 picked sensibly from the same offers). A party far above typical meets a boss with more health: (how far above)

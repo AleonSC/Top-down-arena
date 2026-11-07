@@ -290,6 +290,7 @@ namespace Arena
             Zones.Clear();
             Effects.Clear();
             Sounds.Clear();
+            ResetMeleeSounds();  // MeleeSounds.cs
             spawnQueue.Clear();
             squadQueue.Clear();
             ClearRisers();
@@ -778,6 +779,7 @@ namespace Arena
                     ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
             foreach (var e in Enemies.Values)
                 e.Disp = V2.Lerp(e.Disp, e.Pos, k);
+            UpdateMeleeSounds(dt);  // the melee rushers' cues, quieter with distance (MeleeSounds.cs)
             foreach (var o in Orbs.Values)
                 o.Disp = IsHost ? o.Pos : V2.Lerp(o.Disp, o.Pos, k);
             foreach (var m in Minions.Values)

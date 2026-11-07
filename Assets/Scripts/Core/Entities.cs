@@ -51,12 +51,21 @@ namespace Arena
         // Picking a profile disk (ProfileTransition.cs, DriveSlot.cs): the clamps unlatching, the disk's whoosh, its clack as it tips flat, the slide into
         // the drive slot (and the eject going back), the latch click, the drive reading, and a ready chime. Your own screen only, never sent.
         DiskLift, DiskFly, DiskTip, DiskSlide, DiskEject, DiskClick, DiskRead, DiskReady,
+        // The melee rushers (MeleeSounds.cs, from Docs/Mockups/melee-enemy-sounds.html): made on every machine from the enemies' replicated state, never sent.
+        // Quieter the further they are from you. SawWhirr is a loop while a Buzzsaw touches someone (played by SoundBank.SetSawLoop, not as a cue).
+        SwarmerChomp, SwarmerDie, SpikerFlip, SpikerStab, SpikerDie, BruteStep, BruteGrunt, BruteBash, BruteDie,
+        LungerTell, LungerLeap, LungerLand, LungerDie, SawWhirr, SawDie,
+        SpikeBlockRock, SpikeBlockShake, SpikeBlockLunge, SpikeBlockRest, SpikeBlockDie,
     }
 
     public struct SoundCue
     {
         public Sfx Sfx;
         public bool Ally;  // your friend's shot: played quieter
+        public float Quiet;  // 0..1, how much quieter for being far from you (0 = full volume; Game.QuietAt)
+
+        /// The volume to play at, before the player's own sliders.
+        public float Volume => (Ally ? 0.45f : 1f) * (1f - Quiet);
 
         public static implicit operator SoundCue(Sfx s) => new SoundCue { Sfx = s };
     }
