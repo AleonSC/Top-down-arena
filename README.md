@@ -741,7 +741,7 @@ Guards, then Riot Shields and Gas Grenadiers, its Breakout and Cell block squads
 path offer, no challenge portal, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).
 
-The **Boss hunt** tab is a dossier: a list of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN) and, for the picked one, a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
+The **Boss hunt** tab is a dossier: a looping drum of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN; mouse wheel, PREV / NEXT or a click rolls one to the top, and the list never ends). The boss on top is the picked one: the host can scroll onto a locked or coming-soon boss to look at it, but START stays off until the top boss's hunt is open. For the top boss it shows a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
 locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need the boss's faction (only the
 Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
