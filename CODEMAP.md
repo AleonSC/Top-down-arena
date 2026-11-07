@@ -226,4 +226,5 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Pixel icons | `PixelArt.cs` |
 | Bots, Boss Lab, lobby bots | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs`, `PartyBots.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
+| See every UI screen, or what a UI change changed | `Tools/Preview/uishots.sh [-r git-ref]` (list in `Tools/Preview/ui-screens.txt`; `HANDOFF.md` §3) |
 | A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/CompileCheck/UnityStubs.cs` and `Tools/Preview/Stubs.cs` |
