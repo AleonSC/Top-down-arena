@@ -311,7 +311,9 @@ namespace Arena
                 }
             }
 
-            // A scan line sweeps down; the lobby lights up in pieces behind and under it.
+            DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
+
+            // A scan line sweeps down; it is drawn over the lobby's pieces as they light up.
             float sw = Seg(e, CrtPiecesAt, CrtPiecesAt + 1.0f);
             if (sw > 0f && sw < 1f)
             {
@@ -320,7 +322,6 @@ namespace Arena
                     Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.07f + 0.5f * Mathf.Pow((i + 1f) / 8f, 3f)));
                 Ui.Fill(new Rect(0f, by + 128f, W, 3f), new Color(0.9f, 0.95f, 1f, 0.9f));
             }
-            DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
         }
 
         /// The saved-runs screen while it grows: the lobby's CRT scaled to the rectangle (glow, scanlines, dark corners, glass highlight,
