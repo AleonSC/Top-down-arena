@@ -19,6 +19,8 @@ namespace Arena
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)
+            if (me != null)
+                HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleBack);  // the CRT screen under the wave plate, keys and card (below)
             HudGroup(1, new Vector2(-150f, 30f), new Rect(SideL, SideY, SideW, SideH), DrawWaveCorner);
             HudGroup(3, new Vector2(0f, -80f), new Rect(W / 2f - 320f, 0f, 640f, 60f), () =>
             {
@@ -70,9 +72,12 @@ namespace Arena
 
             HudGroup(2, new Vector2(150f, 30f), new Rect(SideR, SideY, SideW, SideH), DrawPlayerCorner);
             if (me != null)
+            {
                 HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
+                HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleGlass);  // scanlines and glass over all of it
+            }
             if (me != null && !me.Downed)
-                DrawEmoteBar(W / 2f, H - 98f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
+                DrawEmoteBar(W / 2f, H - 112f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
             DrawChat();  // the chat box, bottom right above the player cards (ChatBox.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
@@ -217,7 +222,7 @@ namespace Arena
             var mine = game.Me;
             if (mine != null && Game.HasPerk(mine, PerkId.RiotGear))  // status chips sit over your card (RiotGearLook.cs)
             {
-                y -= 38f;
+                y -= 42f;
                 DrawRiotChip(new Rect(SideR, y, 112f, 38f), mine);
                 y -= 6f;
             }
@@ -259,9 +264,46 @@ namespace Arena
 
         // --- HUD pieces -----------------------------------------------------------
 
+        // --- The CRT console (Docs/Mockups/crt-hud-a-variants.html, A1): one blue phosphor screen under the wave plate, the five keys and your card.
+
+        static readonly Rect ConsoleR = new Rect(10f, SideY - 4f, W - 20f, SideH + 8f);
+        static readonly Color KeyGreen = new Color(0.42f, 1f, 0.6f);
+
+        void DrawConsoleBack()
+        {
+            CrtUi.Begin(ConsoleR);
+        }
+
+        void DrawConsoleGlass()
+        {
+            CrtUi.End(ConsoleR, Time.unscaledTime, CabCalm);
+        }
+
+        /// Glowing text in the CRT font (the HUD's screen text).
+        void HudCrt(Rect r, string text, int size, Color c, TextAnchor align = TextAnchor.MiddleLeft)
+        {
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;
+            CrtUi.Text(r, text, size, c, align, false, CabCalm);
+            Ui.CrtFont = was;
+        }
+
+        /// A digital key: a faint fill and a 2 px outline in the key's colour, or a dashed dim outline when it's empty.
+        static void CrtKeyBox(Rect r, Color c, bool dashed)
+        {
+            if (dashed)
+            {
+                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.02f));
+                CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, 0.55f));
+                return;
+            }
+            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.09f));
+            CrtKit.Frame(r, 2f, c);
+        }
+
         int plateWave = -1, plateMax = 1;
 
-        /// Left of the ability bar: the wave number, how many enemies are left (with a progress bar) and the score.
+        /// Left of the ability keys, on the console: the wave number, how many enemies are left (with a segmented progress bar) and the score.
         void DrawWavePlate(Rect r)
         {
             if (game.Wave != plateWave)
@@ -272,19 +314,22 @@ namespace Arena
             plateMax = Math.Max(plateMax, game.Remaining);
             var practice = game.Practice;
             bool bossWave = practice != null ? BossUp() : game.IsBossWave(game.Wave);
-            Ui.HudPanel(r, bossWave ? Ui.Gold : (Color?)null);
+            Color ink = bossWave ? Ui.Gold : CrtUi.Ink, dim = bossWave ? new Color(Ui.Gold.r * 0.7f, Ui.Gold.g * 0.7f, Ui.Gold.b * 0.5f) : CrtUi.Dim;
             string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS WAVE" : "WAVE";
-            Ui.Label(new Rect(r.x + 16f, r.y + 8f, 120f, 14f), head, 10, bossWave ? Ui.Gold : practice != null ? Ui.Accent : Ui.Muted, TextAnchor.MiddleLeft, true);
+            HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), head, 17, dim);
             string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.Wave.ToString();
-            Ui.Label(new Rect(r.x + 14f, r.y + 20f, 120f, 40f), num, 34, Color.white, TextAnchor.MiddleLeft, true);
+            HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);
+            float nw = CrtUi.TitleWidth(num, 54);
             string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + Hunts.Length : "/ " + Game.MaxWave;
-            Ui.Label(new Rect(r.x + 18f + num.Length * 20f, r.y + 31f, 100f, 24f), of, 13,
-                game.Endless || practice != null && practice.Loop ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.xMax - 140f, r.y + 8f, 124f, 14f), "ENEMIES LEFT", 10, Ui.Muted, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.xMax - 140f, r.y + 20f, 124f, 26f), game.Remaining.ToString(), 20, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.xMax - 140f, r.y + 44f, 124f, 14f), "SCORE " + game.Score.ToString("N0"), 10, Ui.Gold, TextAnchor.MiddleRight, true);
+            HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless || practice != null && practice.Loop ? Ui.Gold : dim);
+            HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, Ui.Gold, TextAnchor.MiddleRight);
             float progress = game.State == MatchState.Fighting ? 1f - (float)game.Remaining / Math.Max(1, plateMax) : 1f;
-            Ui.Bar(new Rect(r.x + 14f, r.yMax - 12f, r.width - 28f, 5f), progress, bossWave ? Ui.Gold : Ui.Accent);
+            var bar = new Rect(r.x + 14f, r.yMax - 9f, r.width - 28f, 5f);
+            Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
+            for (float sx = 0f; sx < bar.width * progress; sx += 8f)
+                Ui.Fill(new Rect(bar.x + sx, bar.y, Mathf.Min(6f, bar.width * progress - sx), bar.height), ink);
         }
 
         bool BossUp()
@@ -299,8 +344,18 @@ namespace Arena
         void DrawPlayerHudCard(Player p, Rect r, bool mine)
         {
             var role = ToColor(p.Def.Color);
-            Ui.HudPanel(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : mine ? role : (Color?)null);
-            Ui.Pill(new Rect(r.x + 6f, r.y + 9f, 4f, r.height - 18f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
+            if (mine)  // on the console: a full-colour island, like the lobby's party cards
+            {
+                Color edge = p.Downed ? new Color(1f, 0.3f, 0.3f) : role;
+                Ui.Fill(r, new Color(0.03f + edge.r * 0.1f, 0.05f + edge.g * 0.1f, 0.07f + edge.b * 0.1f, 1f));
+                CrtKit.Frame(r, 1f, new Color(edge.r, edge.g, edge.b, 0.85f));
+                Ui.Fill(new Rect(r.x, r.y, 6f, r.height), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
+            }
+            else
+            {
+                Ui.HudPanel(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
+                Ui.Pill(new Rect(r.x + 6f, r.y + 9f, 4f, r.height - 18f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
+            }
             Ui.Label(new Rect(r.x + 18f, r.y + 6f, r.width - 70f, 18f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 18f, r.y + 22f, r.width - 70f, 14f), Defs.KitName(p.Kit) + " " + p.Def.Name, 10, role, TextAnchor.MiddleLeft, true);
             var lv = new Rect(r.xMax - 52f, r.y + 8f, 42f, 18f);
@@ -362,10 +417,10 @@ namespace Arena
         {
             const float tileW = 150f, tileH = 58f, gap = 8f;
             float total = tileW * Upgrades.SlotCount + gap * (Upgrades.SlotCount - 1);
-            float x0 = (W - total) / 2f, y = H - tileH - 12f;
+            float x0 = (W - total) / 2f, y = SideY + (SideH - tileH) / 2f;
 
             // XP strip with the level inside it (the CRT console look: a segmented gold bar, "LV 3 · 48%" at its left end).
-            var xp = new Rect(x0, y - 20f, total, 14f);
+            var xp = new Rect(x0, y - 30f, total, 14f);
             float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
             Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
@@ -380,21 +435,41 @@ namespace Arena
                 int slotIndex = i;
                 TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
             }
-            DrawMasteryToasts(x0 + total / 2f, y - 64f);
+            DrawMasteryToasts(x0 + total / 2f, y - 74f);
         }
 
         /// One ability tile: key, name, READY or the timer, mastery and recharge lines, charge pips; `look` adds the
         /// tile's reactions (rim flashes, READY sliding in, a pip popping).
         void DrawAbilityTile(Player me, int i, Rect r, TileLook look)
         {
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;  // the CRT screen font for the whole key
+            DrawAbilityTileBody(me, i, r, look);
+            Ui.CrtFont = was;
+        }
+
+        /// An inverse-video key cap: the key's name, dark on a block of the key's colour.
+        void DrawCrtCap(Rect at, string key, Color c)
+        {
+            float w = 12f + key.Length * 7f;
+            var cap = new Rect(at.x, at.y, w, 16f);
+            Ui.Fill(cap, c);
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;
+            Ui.Label(cap, key, 15, new Color(0.01f, 0.03f, 0.08f), TextAnchor.MiddleCenter, false);
+            Ui.CrtFont = was;
+        }
+
+        void DrawAbilityTileBody(Player me, int i, Rect r, TileLook look)
+        {
             var slot = me.Slots[i];
             bool ultimate = i == Upgrades.UltSlot;
             if (slot.Id == AbilityId.None)
             {
-                Ui.HudPanel(r);
-                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), SlotKeys[i], new Color(1f, 1f, 1f, 0.45f));
-                Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), "Empty", 12, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 8f, r.y + 40f, r.width - 16f, 14f), "from a very rare upgrade", 9, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
+                CrtKeyBox(r, CrtUi.Dim, true);
+                DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), SlotKeys[i], CrtUi.Dim);
+                Ui.Label(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 18f), "Empty", 19, CrtUi.Dim, TextAnchor.MiddleLeft, false);
+                Ui.Label(new Rect(r.x + 8f, r.y + 41f, r.width - 16f, 14f), "from a very rare upgrade", 9, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.8f), TextAnchor.MiddleLeft);
                 return;
             }
             bool ready = slot.Charges > 0;
@@ -402,42 +477,40 @@ namespace Arena
             float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
             Color accent = ultimate ? Ui.Gold : ToColor(me.Def.Color);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
-            Ui.HudPanel(r, ready ? new Color(accent.r, accent.g, accent.b, ultimate ? 0.6f + 0.4f * pulse : 1f) : (Color?)null);
+            Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ult, green when ready, blue while it recharges
+            CrtKeyBox(r, new Color(keyCol.r, keyCol.g, keyCol.b, ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
             if (look.White > 0f)
-                Ui.HudRim(r, new Color(1f, 1f, 1f, 0.9f * look.White));
-            if (fxOn)
-                DrawTileRim(r, i, accent, slot.Charges > 0, slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, game.Cooldown(me, i)), tileUse[i], fxReduced);
+                CrtKit.Frame(r, 2f, new Color(1f, 1f, 1f, 0.9f * look.White));
 
             // Cooldown: a dark shade over the tile that drains downward as it recharges.
             if (!ready)
             {
                 GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * (1f - fill)));
-                Ui.Pill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
+                Ui.Fill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
                 GUI.EndGroup();
             }
-            DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · " + SlotKeys[4] : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
+            DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · " + SlotKeys[4] : SlotKeys[i], keyCol);
             // Name: bright with a sheen when ready, dimmer while recharging.
             Color nameBottom = ready ? Color.Lerp(accent, Color.white, 0.25f) : new Color(0.62f, 0.66f, 0.78f, 0.9f);
-            Ui.Fancy(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, 15, ready ? Color.white : new Color(0.9f, 0.92f, 1f, 0.9f), nameBottom,
-                TextAnchor.MiddleLeft, ready ? accent : (Color?)null);
+            Ui.Label(new Rect(r.x + 8f, r.y + 22f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, Upgrades.Ability(slot.Id).Name.Length > 12 ? 18 : 22, ready ? keyCol : new Color(0.62f, 0.7f, 0.9f), TextAnchor.MiddleLeft, false);
             if (ready)
             {
                 Color hi = ultimate ? new Color(1f, 0.95f, 0.7f) : new Color(0.8f, 1f, 0.85f), lo = ultimate ? Ui.Gold : Ui.Good;
                 float rin = look.ReadyIn;  // sliding in from the right as the tile pops
                 if (rin > 0f)
-                    Ui.Fancy(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 11, Fade(hi, rin), Fade(lo, rin), TextAnchor.MiddleRight,
+                    Ui.Fancy(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, Fade(hi, rin), Fade(lo, rin), TextAnchor.MiddleRight,
                         new Color(lo.r, lo.g, lo.b, (ultimate ? 0.6f + 0.4f * pulse : 0.8f) * rin));
             }
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 11, Color.white, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, Color.white, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 12, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
             else
             {
                 // Pressed too early: the timer flashes red.
                 float red = look.Red;
                 Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
-                    14, Color.Lerp(Color.white, new Color(1f, 0.55f, 0.55f), red), Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight,
+                    19, Color.Lerp(Color.white, new Color(1f, 0.55f, 0.55f), red), Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight,
                     red > 0f ? new Color(1f, 0.3f, 0.3f, 0.7f * red) : (Color?)null);
             }
             // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
@@ -446,13 +519,9 @@ namespace Arena
             me.MasteryXp.TryGetValue(slot.Id, out mxp);
             var strip = new Rect(r.x + 8f, r.yMax - 13f, r.width - 16f, 7f);
             const float xpH = 3f;
-            Ui.Pill(strip, new Color(0f, 0f, 0f, 0.45f));
-            GUI.BeginGroup(new Rect(strip.x, strip.y, strip.width * Game.MasteryProgress(mxp), xpH));
-            Ui.Pill(new Rect(0f, 0f, strip.width, strip.height), new Color(0.35f, 0.9f, 0.45f));
-            GUI.EndGroup();
-            GUI.BeginGroup(new Rect(strip.x, strip.y + xpH, strip.width * Mathf.Clamp01(fill), strip.height - xpH));
-            Ui.Pill(new Rect(0f, -xpH, strip.width, strip.height), ready ? accent : new Color(0.5f, 0.6f, 0.8f));
-            GUI.EndGroup();
+            Ui.Fill(strip, new Color(1f, 1f, 1f, 0.1f));
+            Ui.Fill(new Rect(strip.x, strip.y, strip.width * Game.MasteryProgress(mxp), xpH), new Color(0.35f, 0.9f, 0.45f));
+            Ui.Fill(new Rect(strip.x, strip.y + xpH, strip.width * Mathf.Clamp01(fill), strip.height - xpH), keyCol);
             if (slot.MaxCharges > 1)
                 for (int k = 0; k < slot.MaxCharges; k++)
                 {
@@ -465,7 +534,7 @@ namespace Arena
                         float e = 3f * look.PipPop;
                         pip = new Rect(pip.x - e, pip.y - e, pip.width + 2f * e, pip.height + 2f * e);
                     }
-                    Ui.Pill(pip, k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));
+                    Ui.Fill(pip, k < slot.Charges ? keyCol : new Color(1f, 1f, 1f, 0.15f));
                 }
             if (look.Red > 0f)
                 Ui.HudRim(r, new Color(1f, 0.35f, 0.35f, 0.85f * look.Red));
