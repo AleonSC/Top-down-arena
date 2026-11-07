@@ -133,7 +133,7 @@ static partial class Program
                     case AbilityId.Blizzard: abilityOk = zones.Contains(ZoneKind.Blizzard); break;
                     case AbilityId.Tsunami: abilityOk = wave; break;
                     case AbilityId.GolemWall: abilityOk = minions.Contains(MinionKind.Wall); break;
-                    case AbilityId.GuardianSpirit: abilityOk = minions.Contains(MinionKind.Guardian); break;
+                    case AbilityId.GuardianSpirit: abilityOk = minions.Contains(MinionKind.Thrall); break;
                     case AbilityId.SpiritSwarm: abilityOk = minions.Contains(MinionKind.Sprite); break;
                     case AbilityId.Phoenix: abilityOk = minions.Contains(MinionKind.Phoenix); break;
                     case AbilityId.SoulLantern: abilityOk = minions.Contains(MinionKind.SoulLantern); break;

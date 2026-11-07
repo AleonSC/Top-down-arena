@@ -37,6 +37,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `HallowedBlade.cs`: the Healer Knight's Hallowed Blade ultimate once it lands: a planted `ZoneKind.HallowedBlade` zone (ring heals allies and burns enemies) plus an arena-wide pulse every 2 s at a third of the ring's strength (`HallowedPulse`, called from `TickZones`; `HallowedBladeLook.cs` draws the sword, beam and ripples, and the falling sword)
 - `Aegis.cs`: the Elementalist tank's Aeroaegis vortex (goes to the player the cursor is nearest, enemies held out; `AeroaegisLook.cs` draws it)
 - `Dome.cs`: the Tank Soldier's Fortress dome (enemies and their shots held out, `DomeLook.cs` draws it)
+- `ForcePact.cs`, `Game/ForcePactLook.cs`: Force Pact (Tank Summoner ability, `AbilityId.GuardianSpirit`): binds the enemy nearest the cursor, the thrall (`MinionKind.Thrall`: type, health, fights near you, respawns via `Player.PactCd`), the pact slots; the Soul Chains look and the `FxKind.Pact*` effects
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs`: parry shield, stun, knockback slides, repulsion cannon
 - `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards and ability registry (the milestone pool is added last, `WithMilestones`), stat panel numbers, boss health scaling
 

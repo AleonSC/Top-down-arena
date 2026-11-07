@@ -18,6 +18,7 @@ namespace Arena
         Hydra,        // Hydra (the DPS Summoner's ability): stays where it was called, its heads each spit venom at a different enemy (Hydra.cs)
         Butterfly,    // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
         CloneWall,    // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
+        Thrall,       // Force Pact (the Tank Summoner's ability): an enemy turned to your side; it fights near you, and comes back after it falls (ForcePact.cs)
         None = 255,
     }
 
@@ -108,6 +109,7 @@ namespace Arena
                 Interval = 0.6f, Damage = 10f, Range = 520f },  // shoots by Hydra.cs
             new MinionDef { Name = "Butterfly", Radius = 6f, Sides = 4, Color = new Rgba(1f, 0.84f, 0.43f), Move = MinionMove.Static },  // flown by WorldTree.cs
             new MinionDef { Name = "Shadow Clone", Radius = 16f, Sides = 8, Color = new Rgba(0.22f, 0.8f, 0.9f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 50f },  // shoved by CloneWall.cs
+            new MinionDef { Name = "Thrall", Radius = 14f, Sides = 6, Color = new Rgba(0.75f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 180f },  // ForcePact.cs: its shape, speed and attack come from the enemy type it was
         };
 
         // Indexed by ZoneKind.
