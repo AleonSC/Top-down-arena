@@ -10,7 +10,7 @@ namespace Arena
     ///   a rounded bezel and now and then a flicker.
     /// New run (StartNewRun) plays about 7.1 s, and any key or click after half a second skips to the end:
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
-    ///   0.4 s   that screen grows from its own edges to the whole window, going from the runs screen's blue to the lobby's. It is a CRT the whole way
+    ///   0.25-0.45 s the screen fades in over the flare (no pop); 0.4 s   that screen grows from its own edges to the whole window, going from the runs screen's blue to the lobby's. It is a CRT the whole way
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
     ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
@@ -290,12 +290,14 @@ namespace Arena
             }
 
             // The saved-runs screen flares, then grows to the whole window and turns from green to cyan.
+            // The screen fades in over the flare (0.25-0.45 s) instead of cutting in, so the menu card and the flare don't pop out at 0.4 s.
             float flare = Seg(e, 0f, CrtGrowFrom);
+            float growIn = Seg(e, CrtGrowFrom - 0.15f, CrtGrowFrom + 0.1f);
             float grow = EaseInOut(Seg(e, CrtGrowFrom, CrtGrowTo));
-            if (e < CrtGrowFrom)
-                Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.4f * flare * flare));
-            else if (grow < 1f)
-                DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e);
+            if (growIn < 1f)
+                Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.4f * flare * flare * (1f - growIn)));
+            if (growIn > 0f && grow < 1f)
+                WithAlpha(growIn, () => DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e));
 
             // The link log, typed in the middle of the screen and fading out.
             float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f));
@@ -307,7 +309,7 @@ namespace Arena
                 {
                     bool current = i == shown.Length - 1;  // the last line carries the cursor
                     string line = shown[i] + (current && !fxReduced && Mathf.FloorToInt(t * 2f) % 2 == 0 ? "_" : "");
-                    CrtUi.Text(new Rect(W / 2f - 330f, y + i * 48f, 700f, 48f), line, 36, new Color(LobbyInk.r, LobbyInk.g, LobbyInk.b, logA), TextAnchor.MiddleLeft, true, false);
+                    CrtFuzzyText(new Rect(W / 2f - 330f, y + i * 48f, 700f, 48f), line, 36, logA, t, i);
                 }
             }
 
@@ -322,6 +324,26 @@ namespace Arena
                     Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.07f + 0.5f * Mathf.Pow((i + 1f) / 8f, 3f)));
                 Ui.Fill(new Rect(0f, by + 128f, W, 3f), new Color(0.9f, 0.95f, 1f, 0.9f));
             }
+        }
+
+        /// Text as it looks on a worn CRT: a wide soft bloom, red and cyan fringes that drift, a ghost copy, and a slight horizontal wobble
+        /// that shimmers per line. Reduced effects keeps the bloom and fringes still.
+        void CrtFuzzyText(Rect r, string s, int size, float a, float t, int row)
+        {
+            float wob = fxReduced ? 0f : Mathf.Sin(t * 23f + row * 1.7f) * 0.7f + (Mathf.Sin(t * 5f + row) > 0.96f ? 2f : 0f);
+            r.x += wob;
+            float drift = fxReduced ? 0f : Mathf.Sin(t * 3.1f + row) * 0.6f;
+            var ink = LobbyInk;
+            for (int k = 0; k < 8; k++)  // bloom
+            {
+                float ang = k * Mathf.PI / 4f;
+                Ui.Label(new Rect(r.x + Mathf.Cos(ang) * 3.5f, r.y + Mathf.Sin(ang) * 3f, r.width, r.height), s, size, new Color(ink.r, ink.g, ink.b, 0.07f * a), TextAnchor.MiddleLeft, true, false);
+            }
+            Ui.Label(new Rect(r.x - 2.2f - drift, r.y, r.width, r.height), s, size, new Color(1f, 0.25f, 0.3f, 0.22f * a), TextAnchor.MiddleLeft, true, false);   // red fringe
+            Ui.Label(new Rect(r.x + 2.2f + drift, r.y, r.width, r.height), s, size, new Color(0.2f, 0.9f, 1f, 0.22f * a), TextAnchor.MiddleLeft, true, false);   // cyan fringe
+            Ui.Label(new Rect(r.x + 6f, r.y + 1f, r.width, r.height), s, size, new Color(ink.r, ink.g, ink.b, 0.12f * a), TextAnchor.MiddleLeft, true, false);   // ghost
+            float flick = fxReduced ? 1f : 0.88f + 0.12f * Mathf.Sin(t * 41f + row * 2.3f);
+            Ui.Label(r, s, size, new Color(ink.r, ink.g, ink.b, a * 0.85f * flick), TextAnchor.MiddleLeft, true, false);
         }
 
         /// The saved-runs screen while it grows: the lobby's CRT scaled to the rectangle (glow, scanlines, dark corners, glass highlight,
