@@ -698,6 +698,9 @@ namespace Arena
                         Quad(p.Pos + across * w, p.Pos + along * h, p.Pos - across * w, p.Pos - along * h);
                         break;
                     }
+                    case PBit: case PHexRing: case PPlusUp:  // a picked-up orb's data burst (OrbLook.cs)
+                        DrawOrbPart(p, f);
+                        break;
                     case PFrag:  // a grenade's shrapnel streak (SoldierLooks.cs)
                         DrawFragPart(p, f);
                         break;

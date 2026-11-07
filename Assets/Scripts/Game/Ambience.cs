@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// More visual effects (Juice.cs), on this screen only:
-    ///   orbs     a health orb flying to you leaves a trail and a faint link to you; picking one up pulses green on you
+    ///   orbs     a health orb flying to you leaves a trail and a faint link to you; picking one up bursts into data bits and a hex ring on you (OrbLook.cs)
     ///   dust     a puff at your feet when you set off, turn hard or dash
     ///   weather  each path has its own: embers rising on Burning Grounds, snow on Frozen Lake, petals on Sanctuary,
     ///            red ash under the Blood Moon, mist motes in Fogbound, grit on Narrow Pass, pollen on Swarm Fields,
@@ -58,14 +58,11 @@ namespace Arena
             {
                 var s = seenOrbs[id];
                 seenOrbs.Remove(id);
-                // Picked up (gone right by a player, not faded out): a green pulse on them.
+                // Picked up (gone right by a player, not faded out): a data burst on them.
                 foreach (var p in game.Players.Values)
                     if (!p.Downed && p.Disp.DistanceTo(s.Pos) < p.Def.BodyR + 30f)
                     {
-                        Ring(p.Disp, p.Def.BodyR + (s.Big ? 46f : 30f), 0.45f, OrbGreen);
-                        for (int i = 0; i < (s.Big ? 18 : 10); i++)
-                            AddPart(new Part { Kind = PSpark, Pos = p.Disp + new V2(Rnd(-12f, 12f), Rnd(-8f, 8f)), Vel = new V2(Rnd(-30f, 30f), Rnd(-170f, -60f)),
-                                Life = Rnd(0.4f, 0.7f), Max = 0.7f, Size = 2.2f, Col = OrbGreen });
+                        DataBurst(s.Pos, p.Disp, p.Def.BodyR, s.Big);  // OrbLook.cs
                         break;
                     }
                 orbPool.Push(s);
