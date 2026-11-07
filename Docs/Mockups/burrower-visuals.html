@@ -1,0 +1,311 @@
+<title>Burrower Visuals</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. The Burrower from Earthquake version B, with three visual treatments,
+   played at game scale (1 canvas px = 1 arena px). Scrub the timeline to step through it. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 12px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2313; border-color: var(--amber); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--amber); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
+.fr { display: grid; gap: 4px; min-width: 0; }
+.fr canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.fr span { font: 500 11px var(--font-data); color: var(--muted); }
+input[type=range] { accent-color: var(--amber); width: min(320px, 100%); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+td { color: var(--soft); }
+.tw { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.styles .card { cursor: pointer; }
+.styles .card:hover { border-color: var(--edge); }
+.styles .card[aria-current="true"] { border-color: var(--amber); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--amber); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.pick { border-color: var(--amber); }
+
+.ideas { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+.idea canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 320 / 180; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.idea .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.chip { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
+.cd { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.idea p { font-size: 14.5px; color: var(--soft); }
+.idea p b { color: var(--fg); font-weight: 600; }
+
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 560px) { .now { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tank · Summoner · Earthquake · version B</div>
+    <h1>The <span>Burrower</span></h1>
+    <p class="lead">Your slam opens the ground, a Burrower breaks out at the cursor, dives, tunnels through the pack for about 2.7 s and sinks again. Same numbers as before (25 slam, then 30 to each enemy it passes under). What changes here is how it looks and moves: a moving ridge of soil, a scar that fades behind it, a snap-up under each enemy it hits, and screen shake on the big moments. Pick a look, then scrub the timeline.</p>
+  </header>
+
+  <section>
+    <div class="stage">
+      <canvas id="arena" width="960" height="380" aria-label="Burrower preview"></canvas>
+      <div class="bar">
+        <div class="group" id="tabs"><span class="label">Look</span></div>
+        <div class="group"><button id="pause" type="button">Pause</button><button id="replay" type="button">Replay</button></div>
+        <div class="group"><span class="label">Time</span><input id="scrub" type="range" min="0" max="650" value="0" aria-label="Timeline"></div>
+        <div class="now" id="now"></div>
+      </div>
+    </div>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>Five beats</h2>
+    <p class="lead">Still frames of the picked look.</p>
+    <div class="frames" id="frames"></div>
+  </section>
+
+  <section>
+    <h2>Animation sheet</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Beat</th><th>Time</th><th>What you see</th><th>Sound</th></tr></thead>
+      <tbody>
+        <tr><td>Telegraph</td><td>0.7 - 1.2 s</td><td>A pulsing ring and six cracks creep out from the cursor. Enemies have half a second to step off.</td><td>Low rumble, rising</td></tr>
+        <tr><td>Breach</td><td>1.2 - 1.7 s</td><td>The ground bursts: 16 chunks of rock fly up and fall back, a dust ring, the head rises with its mandibles open, the screen shakes.</td><td>Crack, then roar</td></tr>
+        <tr><td>Dive</td><td>1.55 - 1.8 s</td><td>The head drops back in a cone of dirt and the body turns into a moving ridge.</td><td>Thud</td></tr>
+        <tr><td>Tunnel</td><td>1.8 - 4.5 s</td><td>A ridge of soil with cracks fanning out ahead, dust puffs behind and a dark scar that fades over 2 s. It steers toward the nearest enemy.</td><td>Continuous grinding, panned with the Burrower</td></tr>
+        <tr><td>Snap-up</td><td>per enemy</td><td>The head pops up under the enemy for 0.3 s, mandibles snap, the enemy is thrown 30 px up and a damage number shows. 30 damage, once per enemy.</td><td>Crunch</td></tr>
+        <tr><td>Sink</td><td>4.5 - 5.0 s</td><td>The ridge shrinks into the ground, one more burst of chunks, a small shake.</td><td>Low thump</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li>The Burrower is a minion that cannot be targeted while tunnelling. Only the cursor telegraph, the breach and each snap-up need to be sent to clients as effects. The ridge and the scar can be drawn client-side from the minion's position and a short history of it.</li>
+      <li>The soil scar is a fading line of dark blobs, so it is cheap: about 70 blobs at the longest. Dust puffs are drawn from the same history. Reduced effects should drop the puffs, the chunks and the shake, and keep the ridge.</li>
+      <li>All three looks use the same hit logic. The looks differ only in how the ridge is drawn, so choosing one is a pure art decision.</li>
+      <li>Adds a <code>MinionKind</code> and effect kinds at the end of their enums, so <code>Session.ProtocolVersion</code> needs a bump when built. The Bestiary and Armory are untouched.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const rnd = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function disc(c, x, y, r, f, a = 1) { c.globalAlpha = clamp(a); c.fillStyle = f; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.globalAlpha = 1; }
+  function ring(c, x, y, r, col, a = 1, w = 3) { if (r <= 0) return; c.globalAlpha = clamp(a); c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); c.globalAlpha = 1; }
+  function ln(c, x1, y1, x2, y2, col, w = 2, a = 1) { c.globalAlpha = clamp(a); c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.globalAlpha = 1; }
+  function txt(c, s, x, y, col, size = 12, a = 1, align = 'center') { c.globalAlpha = clamp(a); c.fillStyle = col; c.font = '600 ' + size + 'px Oxanium, system-ui, sans-serif'; c.textAlign = align; c.fillText(s, x, y); c.globalAlpha = 1; }
+  function rrect(c, x, y, w, h, r, f) { c.fillStyle = f; c.beginPath(); c.roundRect(x, y, w, h, r); c.fill(); }
+  function grid(c, w, h, step) {
+    c.fillStyle = '#070910'; c.fillRect(-20, -20, w + 40, h + 40);
+    c.strokeStyle = 'rgba(120,150,170,0.07)'; c.lineWidth = 1; c.beginPath();
+    for (let x = 0; x <= w; x += step) { c.moveTo(x + .5, 0); c.lineTo(x + .5, h); }
+    for (let y = 0; y <= h; y += step) { c.moveTo(0, y + .5); c.lineTo(w, y + .5); }
+    c.stroke();
+  }
+  function player(c, x, y) { disc(c, x, y, 14, '#2c8fd6'); disc(c, x, y, 9, '#6cc4ff'); ring(c, x, y, 14, '#bfe6ff', .8, 2); }
+  function golem(c, x, y) { rrect(c, x - 14, y - 14, 28, 28, 6, '#8a7a62'); rrect(c, x - 8, y - 8, 16, 16, 4, '#b3a283'); }
+  function bear(c, x, y) { disc(c, x - 9, y - 11, 5, '#7a4a2b'); disc(c, x + 9, y - 11, 5, '#7a4a2b'); disc(c, x, y, 14, '#9a6238'); disc(c, x, y + 3, 6, '#d6a878'); }
+
+  const P = { x: 260, y: 190 }, G0 = { x: 360, y: 110 }, B0 = { x: 350, y: 275 };
+  const EN = [{ x: 390, y: 205 }, { x: 500, y: 120 }, { x: 540, y: 215 }, { x: 610, y: 150 }, { x: 620, y: 285 }, { x: 700, y: 205 }, { x: 780, y: 120 }, { x: 800, y: 265 }];
+  const PERIOD = 6.5, SPEED = 190, TS = 1.8, SLAM = '#b39d73', DAMAGE = '#ffd27a';
+  const CUR = { x: 520, y: 190 };
+
+  // path: Catmull-Rom through waypoints, sampled every ~4 px
+  const WP = [[520, 190], [600, 150], [690, 215], [760, 270], [830, 170], [780, 110]];
+  const PATH = []; (() => {
+    const pts = [WP[0], ...WP, WP[WP.length - 1]]; let acc = 0, prev = null;
+    for (let i = 1; i < pts.length - 2; i++) for (let k = 0; k < 24; k++) {
+      const u = k / 24, p0 = pts[i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2];
+      const f = j => .5 * ((2 * p1[j]) + (-p0[j] + p2[j]) * u + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * u * u + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * u * u * u);
+      const q = { x: f(0), y: f(1) }; if (prev) acc += dist(prev, q); PATH.push({ x: q.x, y: q.y, d: acc }); prev = q;
+    }
+  })();
+  const LEN = PATH[PATH.length - 1].d, TEND = TS + LEN / SPEED;
+  function pathAt(d) {
+    d = clamp(d, 0, LEN); let lo = 0, hi = PATH.length - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (PATH[m].d < d) lo = m; else hi = m; }
+    const a = PATH[lo], b = PATH[hi], k = b.d === a.d ? 0 : (d - a.d) / (b.d - a.d);
+    return { x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), a: Math.atan2(b.y - a.y, b.x - a.x) };
+  }
+  const headAt = t => pathAt((t - TS) * SPEED);
+
+  // hits
+  const hitsOf = e => {
+    const out = []; const d0 = dist(P, e);
+    if (d0 < 152) out.push({ t: .3 + .4 * d0 / 140, v: 25, slam: true });
+    for (let t = TS; t <= TEND; t += .03) if (dist(headAt(t), e) < 42) { out.push({ t, v: 30 }); break; }
+    return out;
+  };
+  const HITS = EN.map(hitsOf);
+  const BURSTS = [1.2, TEND, ...HITS.flatMap(h => h.filter(x => !x.slam).map(x => x.t))];
+
+  function debris(c, ox, oy, te, t, n, seed, speed, life) {
+    const age = t - te; if (age < 0 || age > life) return;
+    for (let i = 0; i < n; i++) {
+      const ang = rnd(seed + i) * TAU, sp = speed * (.45 + rnd(seed + i + 50) * .7), v0 = 110 + rnd(seed + i + 99) * 150;
+      const x = ox + Math.cos(ang) * sp * age, y = oy + Math.sin(ang) * sp * age * .55, z = Math.max(0, v0 * age - 380 * age * age / 2);
+      if (v0 * age - 380 * age * age / 2 < 0 && age > .15) { disc(c, x, y, 2 + rnd(seed + i + 7) * 2, '#3a2f20', 1 - age / life); continue; }
+      const r = 2 + rnd(seed + i + 7) * 3;
+      disc(c, x, y + 2, r, '#000', .3 * (1 - age / life)); disc(c, x, y - z, r, rnd(seed + i + 3) > .5 ? '#8a7352' : '#5d4b33', 1 - age / life); disc(c, x - r * .3, y - z - r * .3, r * .45, '#b39d73', .7 * (1 - age / life));
+    }
+  }
+  function dustRing(c, ox, oy, te, t, R) { const a = t - te; if (a > 0 && a < .7) { ring(c, ox, oy, R * ease(a / .5), '#b9a37a', .5 * (1 - a / .7), 6 * (1 - a / .7) + 1); ring(c, ox, oy, R * .7 * ease(a / .5), '#8a7352', .35 * (1 - a / .7), 2); } }
+  function mandibles(c, x, y, a, o, scale = 1) {
+    c.save(); c.translate(x, y); c.rotate(a); c.scale(scale, scale);
+    [-1, 1].forEach(s => { c.fillStyle = '#26252b'; c.strokeStyle = '#9a96a3'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(8, s * 5); c.quadraticCurveTo(26, s * (11 + o * 9), 36, s * (3 + o * 12)); c.quadraticCurveTo(24, s * (7 + o * 4), 8, s * 2); c.closePath(); c.fill(); c.stroke(); });
+    c.restore();
+  }
+  function headUp(c, x, y, a, u, o, style) {
+    if (u < .03) return;
+    const h = u * 14; disc(c, x, y + 6, 22 * u, '#000', .35);
+    c.save(); c.translate(x, y - h); c.rotate(a);
+    const g = c.createRadialGradient(-6, -8, 2, 0, 0, 24); g.addColorStop(0, style === 'B' ? '#7a7a86' : '#a38a62'); g.addColorStop(1, style === 'B' ? '#33323a' : '#5a4830');
+    c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, 22 * Math.min(1, u + .3), 17 * Math.min(1, u + .3), 0, 0, TAU); c.fill();
+    if (style === 'B') for (let i = -1; i <= 1; i++) { c.fillStyle = '#9b97a6'; c.beginPath(); c.moveTo(-8 + i * 0, i * 8 - 3); c.lineTo(-20, i * 8); c.lineTo(-8, i * 8 + 3); c.closePath(); c.fill(); }
+    if (style === 'C') { c.strokeStyle = 'rgba(0,0,0,.3)'; c.lineWidth = 1.5; for (let i = -1; i <= 1; i++) { c.beginPath(); c.arc(-4 + i * 7, 0, 15, -1.2, 1.2); c.stroke(); } }
+    c.restore();
+    disc(c, x + Math.cos(a) * 9 - Math.sin(a) * 6, y - h + Math.sin(a) * 9 + Math.cos(a) * 6, 2.2, '#ffd27a'); disc(c, x + Math.cos(a) * 9 + Math.sin(a) * 6, y - h + Math.sin(a) * 9 - Math.cos(a) * 6, 2.2, '#ffd27a');
+    mandibles(c, x, y - h, a, o, .45 + .55 * u);
+  }
+  function mound(c, x, y, a, sc, style, t) {
+    c.save(); c.translate(x, y); c.rotate(a); c.scale(sc, sc);
+    c.fillStyle = 'rgba(0,0,0,.38)'; c.beginPath(); c.ellipse(1, 7, 31, 17, 0, 0, TAU); c.fill();
+    const g = c.createRadialGradient(-6, -9, 2, 0, 0, 30); g.addColorStop(0, '#a38a62'); g.addColorStop(.6, '#7a6444'); g.addColorStop(1, '#473a28');
+    c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, 28, 16, 0, 0, TAU); c.fill();
+    c.strokeStyle = 'rgba(255,230,170,.25)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(-2, -3, 21, 9, 0, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
+    for (let i = 0; i < 5; i++) { const k = i - 2; ln(c, 26, k * 5, 40 + (rnd(i + 3) * 10), k * 11, '#1d160d', 1.6, .8); }
+    if (style === 'B') for (let i = 0; i < 3; i++) { const out = .35 + .65 * Math.max(0, Math.sin(t * 9 - i * 1.4)); const px = -4 - i * 11; c.fillStyle = '#3a3942'; c.beginPath(); c.moveTo(px + 6, -3); c.lineTo(px - 4, -2 - 10 * out); c.lineTo(px - 2, 4); c.closePath(); c.fill(); c.fillStyle = '#b3afc0'; c.beginPath(); c.moveTo(px + 1, -3); c.lineTo(px - 4, -2 - 10 * out); c.lineTo(px - 3, -2); c.closePath(); c.fill(); }
+    c.restore();
+  }
+  function segments(c, d, t, sc) {
+    for (let i = 7; i >= 1; i--) {
+      const p = pathAt(d - i * 24); const h = .5 + .5 * Math.sin(t * 7 - i * 1.15); const r = (15 - i * .9) * sc * (.5 + .5 * h);
+      disc(c, p.x + 1, p.y + 5, r * 1.1, '#000', .3 * (.4 + h));
+      if (h > .2) { const g = c.createRadialGradient(p.x - 3, p.y - 5, 1, p.x, p.y, r); g.addColorStop(0, '#b29868'); g.addColorStop(1, '#4d3e2a'); c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y - h * 4, r, 0, TAU); c.fill(); ring(c, p.x, p.y - h * 4, r, '#2a2113', .6, 1.5); }
+      else ln(c, p.x - 9, p.y, p.x + 9, p.y, '#1d160d', 2, .7);
+    }
+  }
+
+  function render(c, t, style, W = 960, H = 380) {
+    c.save();
+    let sx = 0, sy = 0; BURSTS.forEach((b, i) => { const a = t - b; if (a > 0 && a < .28) { const amp = (i < 2 ? 4 : 2) * (1 - a / .28); sx += (rnd(Math.floor(t * 60) + i) - .5) * 2 * amp; sy += (rnd(Math.floor(t * 60) + i + 9) - .5) * 2 * amp; } });
+    c.translate(sx, sy); grid(c, W, H, 40);
+
+    // slam
+    const k0 = (t - .3) / .4; if (k0 > 0) ring(c, P.x, P.y, 140 * ease(k0), SLAM, 1 - clamp((t - .7) / .5), 4);
+
+    // telegraph
+    if (t > .7 && t < 1.25) { const k = (t - .7) / .5; ring(c, CUR.x, CUR.y, 34 - 14 * k + 2 * Math.sin(t * 24), '#ffd27a', .35 + .4 * k, 2);
+      for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + .3, L = 10 + 26 * k * (.7 + rnd(i) * .6); ln(c, CUR.x, CUR.y, CUR.x + Math.cos(a) * L, CUR.y + Math.sin(a) * L, '#1d160d', 2.5, .9); } }
+
+    // scar left behind
+    if (t > TS) { const upto = Math.min((t - TS) * SPEED, LEN);
+      for (let s = 0; s <= upto; s += 7) { const p = pathAt(s), ts = TS + s / SPEED, age = t - ts, a = .8 * (1 - clamp(age / 2.4));
+        if (a > 0) { disc(c, p.x, p.y, Math.max(6, 14 - age * 2), '#1f1810', a); if (rnd(s) > .5) disc(c, p.x + (rnd(s + 1) - .5) * 22, p.y + (rnd(s + 2) - .5) * 22, 2, '#5d4b33', a * 1.2); } } }
+
+    // dust puffs
+    if (t > TS) for (let e = TS; e <= Math.min(t, TEND); e += .045) { const age = t - e; if (age > .9) continue; const p = headAt(e), k = age / .9;
+      disc(c, p.x + (rnd(e * 100) - .5) * 30 * k, p.y + (rnd(e * 100 + 4) - .5) * 14 * k - 10 * k, 6 + 20 * k, '#b9a37a', .3 * (1 - k)); }
+
+    // breach at the cursor
+    dustRing(c, CUR.x, CUR.y, 1.2, t, 70); debris(c, CUR.x, CUR.y, 1.2, t, 16, 11, 90, .9);
+    const bu = t < 1.2 ? 0 : t < 1.55 ? ease((t - 1.2) / .3) : 1 - ease((t - 1.55) / .25);
+    if (t >= 1.2 && t < 1.85) { const sa = pathAt(0).a; headUp(c, CUR.x, CUR.y, sa, bu, bu > .6 ? 1 : .3, style); if (t > 1.5) disc(c, CUR.x, CUR.y, 20 * (t - 1.5) / .3 > 24 ? 24 : 20 * (t - 1.5) / .3, '#5d4b33', .4); }
+
+    // tunnelling body
+    if (t >= TS && t < TEND + .5) {
+      const d = (t - TS) * SPEED, sc = t < TEND ? clamp((t - TS) / .2) : 1 - clamp((t - TEND) / .5), h = headAt(t);
+      if (style === 'C') segments(c, Math.min(d, LEN), t, sc);
+      else for (let j = 8; j >= 1; j--) { const p = pathAt(d - j * 8); const r = (1 - j / 10) * 13 * sc; c.fillStyle = 'rgba(94,76,50,' + (.55 * (1 - j / 10)) + ')'; c.beginPath(); c.ellipse(p.x, p.y, r * 1.5, r, p.a, 0, TAU); c.fill(); }
+      mound(c, h.x, h.y, h.a, sc * (style === 'C' ? .75 : 1), style === 'B' ? 'B' : 'A', t);
+      let u2 = 0; HITS.forEach(hs => hs.forEach(x => { if (!x.slam) { const a = t - x.t; if (a > -.12 && a < .3) u2 = Math.max(u2, Math.sin(Math.PI * (a + .12) / .42)); } }));
+      headUp(c, h.x, h.y, h.a, u2 * sc, u2 > .5 ? 1 : .2, style);
+      if (t > TEND - .05) { dustRing(c, h.x, h.y, TEND, t, 50); }
+    }
+    BURSTS.slice(1).forEach((b, i) => { if (b === TEND) debris(c, headAt(TEND).x, headAt(TEND).y, b, t, 9, 40, 60, .8); else { const p = headAt(b); debris(c, p.x, p.y, b, t, 8, 60 + i * 13, 70, .8); dustRing(c, p.x, p.y, b, t, 46); } });
+
+    // enemies
+    EN.forEach((e, i) => {
+      const hs = HITS[i]; let flash = false, lift = 0, slow = false; const first = hs[0];
+      hs.forEach(h => { const a = t - h.t; if (a >= 0 && a < .12) flash = true; if (!h.slam && a > 0 && a < .55) lift = 30 * Math.sin(Math.PI * a / .55); });
+      if (first && t > first.t && t < first.t + 2) slow = true;
+      disc(c, e.x, e.y + 4, 12, '#000', .35); disc(c, e.x, e.y - lift, 12, flash ? '#fff' : '#c8484f'); if (!flash) disc(c, e.x, e.y - lift, 6, '#ff8a8a');
+      if (slow) ring(c, e.x, e.y - lift, 17, '#7fd0ff', .85, 2);
+      hs.forEach(h => { const k = (t - h.t) / .8; if (k > 0 && k < 1) txt(c, String(h.v), e.x, e.y - 26 - 22 * k, DAMAGE, 14, 1 - k); });
+    });
+    player(c, P.x, P.y); golem(c, G0.x, G0.y); bear(c, B0.x, B0.y);
+    txt(c, 'YOU', P.x, P.y + 32, '#92a1ad', 10);
+    c.restore();
+  }
+  const caption = t => t < .3 ? 'Ready' : t < .7 ? 'You slam' : t < 1.2 ? 'Telegraph: cracks creep out from the cursor' : t < 1.8 ? 'Breach: chunks fly, the Burrower rises, the screen shakes' : t < TEND ? 'Tunnelling: a ridge of soil, a fading scar, a snap-up under each enemy' : t < TEND + .5 ? 'Sinks back into the ground' : 'Done';
+
+  const cv = document.getElementById('arena'), cx = cv.getContext('2d');
+  const STY = { A: ['Dirt mound', 'The Burrower is never seen. You see a ridge of soil shoving through the ground, cracks fanning out ahead of it, and a dark scar behind. Only the snap-up shows the head.', 'Simplest to draw. Most mysterious. Reads the best with Reduced effects on.'],
+    B: ['Armored ridge', 'The same mound, with three grey back plates that jut out of the soil in a wave. They give the player a hint of what is underneath and a reason to feel it is a creature.', 'Plates are three small triangles, so cheap. Adds a bit of menace.'],
+    C: ['Segmented worm', 'Seven dome-shaped segments arch out of the ground in a wave behind a smaller head mound, like a sandworm swimming. It looks the most alive.', 'Needs the position history of the minion. The longest on screen, up to 170 px of body.'] };
+  let cur = 'A', t0 = performance.now(), paused = false, frozen = 0, scrubbing = false;
+  const tabs = document.getElementById('tabs'), cards = document.getElementById('cards'), scrub = document.getElementById('scrub'), frames = document.getElementById('frames');
+  const FR = [['Telegraph', .95], ['Breach', 1.4], ['Tunnel', 2.5], ['Snap-up', 3.1], ['Sink', 4.7]];
+  const frameCtx = FR.map(([n, t]) => { const f = document.createElement('div'); f.className = 'fr'; f.innerHTML = '<canvas width="960" height="380"></canvas><span>' + n + ' · ' + t.toFixed(1) + ' s</span>'; frames.appendChild(f); return f.querySelector('canvas').getContext('2d'); });
+  function drawFrames() { FR.forEach(([n, t], i) => render(frameCtx[i], t, cur)); }
+  Object.keys(STY).forEach(k => {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', k === cur); b.innerHTML = '<span class="k">' + k + '</span>' + STY[k][0]; b.onclick = () => pick(k); tabs.appendChild(b);
+    const d = document.createElement('div'); d.className = 'card' + (k === 'C' ? ' pick' : ''); d.dataset.k = k; d.setAttribute('aria-current', k === cur);
+    d.innerHTML = '<div class="tag">' + k + (k === 'C' ? ' · MY PICK' : '') + '</div><h3>' + STY[k][0] + '</h3><p>' + STY[k][1] + '</p><dl><dt>Cost</dt><dd>' + STY[k][2] + '</dd></dl>'; d.onclick = () => pick(k); cards.appendChild(d);
+  });
+  function pick(k) { cur = k; tabs.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', Object.keys(STY)[i] === k)); cards.querySelectorAll('.card').forEach(d => d.setAttribute('aria-current', d.dataset.k === k)); t0 = performance.now(); paused = false; document.getElementById('pause').textContent = 'Pause'; drawFrames(); if (reduced) show(1.9); }
+  const label = document.getElementById('pause');
+  document.getElementById('replay').onclick = () => { t0 = performance.now(); paused = false; label.textContent = 'Pause'; };
+  label.onclick = () => { if (paused) { t0 = performance.now() - frozen * 1000; paused = false; label.textContent = 'Pause'; } else { frozen = ((performance.now() - t0) / 1000) % PERIOD; paused = true; label.textContent = 'Resume'; } };
+  scrub.oninput = () => { frozen = scrub.value / 100; paused = true; label.textContent = 'Resume'; show(frozen); };
+  function show(t) { render(cx, t, cur); txt(cx, 'BURROWER · ' + STY[cur][0].toUpperCase(), 20, 28, '#ffb547', 15, 1, 'left'); txt(cx, caption(t), 20, 48, '#cfdae2', 12, 1, 'left'); txt(cx, 'Scale: 140 px radius = 3.5 grid squares', 940, 366, '#5d6b77', 10, 1, 'right'); document.getElementById('now').textContent = t.toFixed(1) + ' s / ' + PERIOD + ' s'; }
+  function frame(now) { const t = paused ? frozen : ((now - t0) / 1000) % PERIOD; show(t); if (!paused) scrub.value = Math.round(t * 100); requestAnimationFrame(frame); }
+  drawFrames(); document.fonts && document.fonts.ready.then(drawFrames);
+  if (reduced) show(1.9); else requestAnimationFrame(frame);
+})();
+</script>

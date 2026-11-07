@@ -1,0 +1,252 @@
+<title>Earthquake Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. The Tank Summoner's Earthquake reworked as four summoning abilities,
+   played on a patch of arena at game scale (1 canvas px = 1 arena px) with a Golem and a Bear as the minions.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 12px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2313; border-color: var(--amber); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--amber); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.styles .card { cursor: pointer; }
+.styles .card:hover { border-color: var(--edge); }
+.styles .card[aria-current="true"] { border-color: var(--amber); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--amber); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.pick { border-color: var(--amber); }
+
+.ideas { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+.idea canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 320 / 180; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.idea .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.chip { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
+.cd { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.idea p { font-size: 14.5px; color: var(--soft); }
+.idea p b { color: var(--fg); font-weight: 600; }
+
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 560px) { .now { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tank · Summoner · ability choice 2</div>
+    <h1>Earthquake <span>summons</span></h1>
+    <p class="lead">Today Earthquake is a flat slam: you and each minion hit everything within 140 px for 40 and slow it by half for 2 s. In each rework below the ground slam stays as the opener, then <b>the quake calls something up out of the earth</b>. Pick a tab to replay it.</p>
+  </header>
+
+  <section>
+    <div class="stage">
+      <canvas id="arena" width="960" height="380" aria-label="Earthquake preview"></canvas>
+      <div class="bar">
+        <div class="group" id="tabs"><span class="label">Version</span></div>
+        <div class="group"><button id="pause" type="button">Pause</button><button id="replay" type="button">Replay</button></div>
+        <div class="now" id="now"></div>
+      </div>
+    </div>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li>Each version adds a <code>MinionKind</code> (Crawler, Burrower, Seismic Totem, Titan) and an effect or two, all at the end of their enums before <code>None</code>, so <code>Session.ProtocolVersion</code> needs a bump.</li>
+      <li>A: crawlers reuse the Wolf Whistle "run at a target" logic. B: the Burrower is mostly an invisible mover with dust fx. C and D reuse the stationary-minion path that Golem Wall and the totems use.</li>
+      <li>The Bestiary and Armory pages are not touched and would be out of date once any of these ships.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function disc(c, x, y, r, f, a = 1) { c.globalAlpha = clamp(a); c.fillStyle = f; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.globalAlpha = 1; }
+  function ring(c, x, y, r, col, a = 1, w = 3) { if (r <= 0) return; c.globalAlpha = clamp(a); c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); c.globalAlpha = 1; }
+  function ln(c, x1, y1, x2, y2, col, w = 2, a = 1) { c.globalAlpha = clamp(a); c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.globalAlpha = 1; }
+  function txt(c, s, x, y, col, size = 12, a = 1, align = 'center') { c.globalAlpha = clamp(a); c.fillStyle = col; c.font = '600 ' + size + 'px Oxanium, system-ui, sans-serif'; c.textAlign = align; c.fillText(s, x, y); c.globalAlpha = 1; }
+  function rrect(c, x, y, w, h, r, f, a = 1) { c.globalAlpha = clamp(a); c.fillStyle = f; c.beginPath(); c.roundRect(x, y, w, h, r); c.fill(); c.globalAlpha = 1; }
+  function grid(c, w, h, step) {
+    c.fillStyle = '#070910'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(120,150,170,0.07)'; c.lineWidth = 1; c.beginPath();
+    for (let x = 0; x <= w; x += step) { c.moveTo(x + .5, 0); c.lineTo(x + .5, h); }
+    for (let y = 0; y <= h; y += step) { c.moveTo(0, y + .5); c.lineTo(w, y + .5); }
+    c.stroke();
+  }
+  function player(c, x, y) { disc(c, x, y, 14, '#2c8fd6'); disc(c, x, y, 9, '#6cc4ff'); ring(c, x, y, 14, '#bfe6ff', .8, 2); }
+  function golem(c, x, y) { rrect(c, x - 14, y - 14, 28, 28, 6, '#8a7a62'); rrect(c, x - 8, y - 8, 16, 16, 4, '#b3a283'); }
+  function bear(c, x, y) { disc(c, x - 9, y - 11, 5, '#7a4a2b'); disc(c, x + 9, y - 11, 5, '#7a4a2b'); disc(c, x, y, 14, '#9a6238'); disc(c, x, y + 3, 6, '#d6a878'); }
+  function enemy(c, x, y, o) {
+    const lift = o.lift || 0;
+    disc(c, x, y + 4, 12, '#000', .35);
+    disc(c, x, y - lift, 12, o.flash ? '#ffffff' : '#c8484f');
+    if (!o.flash) disc(c, x, y - lift, 6, '#ff8a8a');
+    if (o.slow) ring(c, x, y - lift, 17, '#7fd0ff', .85, 2);
+  }
+  function rock(c, x, y, r, a = 1) { disc(c, x, y, r, '#7b6c55', a); disc(c, x - r * .25, y - r * .25, r * .55, '#a39378', a); }
+
+  const cv = document.getElementById('arena'), cx = cv.getContext('2d');
+  const P = { x: 260, y: 190 }, G0 = { x: 360, y: 110 }, B0 = { x: 350, y: 275 };
+  const EN = [{ x: 390, y: 205 }, { x: 500, y: 120 }, { x: 540, y: 215 }, { x: 610, y: 150 }, { x: 620, y: 285 }, { x: 700, y: 205 }, { x: 780, y: 120 }, { x: 800, y: 265 }];
+  const PERIOD = 5, DAMAGE = '#ffd27a', SLAM = '#b39d73';
+
+  // opener shared by all four: your own 140 px slam, 25 damage, 50% slow for 2 s
+  const opener = e => { const d = dist(P, e); return d < 152 ? [{ t: .3 + .4 * d / 140, v: 25 }] : []; };
+  const openerDraw = (c, t) => { const k = (t - .3) / .4; if (k > 0) ring(c, P.x, P.y, 140 * ease(k), SLAM, 1 - clamp((t - .7) / .5), 4); };
+  const at = (p, r, e) => dist(p, e) < r + 12;
+
+  const V = {
+    A: {
+      name: 'A · Rubble Brood', slow: 2,
+      tg: [0, 1, 2, 3, 5, 6], srcs: [P, P, G0, G0, B0, B0],
+      cr(i) { const s = this.srcs[i], e = EN[this.tg[i]], t1 = .6 + i * .05; return { s, e, t1, arr: t1 + dist(s, e) / 260 }; },
+      hits(e) { const out = opener(e); for (let i = 0; i < 6; i++) { const k = this.cr(i); if (at(k.e, 70, e)) out.push({ t: k.arr, v: 20 }); } return out; },
+      draw(c, t) {
+        openerDraw(c, t);
+        for (let i = 0; i < 6; i++) {
+          const k = this.cr(i);
+          if (t > k.t1 - .3 && t < k.t1) rock(c, k.s.x + (i % 2 ? 14 : -14), k.s.y + 10, 8 * ease((t - k.t1 + .3) / .3));
+          if (t >= k.t1 && t < k.arr) { const m = (t - k.t1) / (k.arr - k.t1); const x = lerp(k.s.x, k.e.x, m), y = lerp(k.s.y, k.e.y, m);
+            ln(c, k.s.x, k.s.y, x, y, '#a39378', 1, .15); rock(c, x, y, 7); disc(c, x + 2, y - 2, 1.4, '#ffd27a'); }
+          if (t >= k.arr) ring(c, k.e.x, k.e.y, 70 * ease((t - k.arr) / .22), '#d9b36a', 1 - clamp((t - k.arr) / .5), 3);
+        }
+      },
+      caption: t => t < .3 ? 'Ready' : t < .7 ? 'You slam' : t < 1.4 ? 'Two Rubble Crawlers rise at you and at each minion' : 'They scramble to enemies and burst, 70 px'
+    },
+    B: {
+      name: 'B · Burrower', slow: 2,
+      path: [[520, 190], [610, 160], [700, 205], [790, 265], [800, 130]],
+      head(t) { let d = Math.max(0, t - .9) * 170; const p = this.path; for (let i = 1; i < p.length; i++) { const l = Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); if (d <= l) return { x: lerp(p[i - 1][0], p[i][0], d / l), y: lerp(p[i - 1][1], p[i][1], d / l) }; d -= l; } return { x: p[p.length - 1][0], y: p[p.length - 1][1] }; },
+      hits(e) { const out = opener(e); for (let t = .9; t < 4.4; t += .04) if (dist(this.head(t), e) < 42) { out.push({ t, v: 30 }); break; } return out; },
+      draw(c, t) {
+        openerDraw(c, t);
+        if (t > .55 && t < 4.4) {
+          const a = t < .9 ? ease((t - .55) / .35) : 1 - clamp((t - 4.0) / .4);
+          for (let s = 8; s >= 0; s--) { const h = this.head(t - s * .09); disc(c, h.x, h.y + 3, 15 - s * .8, '#3a3022', a * (1 - s / 11)); disc(c, h.x, h.y, 13 - s * .8, '#6e5b3f', a * (1 - s / 11)); }
+          const h = this.head(t); disc(c, h.x, h.y, 16, '#8a7050', a); disc(c, h.x + 5, h.y - 4, 2, '#ffd27a', a); disc(c, h.x + 5, h.y + 4, 2, '#ffd27a', a);
+          ring(c, h.x, h.y, 42, '#ffd27a', .18 * a, 1.5);
+        }
+      },
+      caption: t => t < .3 ? 'Ready' : t < .9 ? 'You slam, and a Burrower breaks the ground at the cursor' : t < 4 ? 'It tunnels through the pack: 30 to everything it passes under' : 'It sinks back (4 s)'
+    },
+    C: {
+      name: 'C · Seismic Totem', slow: 3,
+      T: { x: 640, y: 200 }, pulses: [1.5, 2.4, 3.3, 4.2],
+      hits(e) { const out = opener(e); this.pulses.forEach(p => { if (at(this.T, 160, e)) out.push({ t: p + .3 * dist(this.T, e) / 160, v: 12 }); }); return out; },
+      draw(c, t) {
+        openerDraw(c, t); const T = this.T;
+        if (t > .8) { const k = ease((t - .8) / .5), a = 1 - clamp((t - 4.5) / .4);
+          ring(c, T.x, T.y, 160, '#ffd27a', .12 * a, 1.5);
+          disc(c, T.x, T.y + 10, 20 * k, '#000', .35 * a);
+          rrect(c, T.x - 10, T.y + 8 - 56 * k, 20, 56 * k, 4, '#7b6c55', a); rrect(c, T.x - 15, T.y - 52 * k, 30, 14, 3, '#a39378', a);
+          if (k > .9) { disc(c, T.x, T.y - 28, 4, '#ffd27a', a * (.6 + .4 * Math.sin(t * 8))); }
+          this.pulses.forEach(p => { const m = (t - p) / .3; if (m > 0) ring(c, T.x, T.y, 160 * ease(m), SLAM, (1 - clamp((t - p - .3) / .4)) * a, 3); }); }
+      },
+      caption: t => t < .3 ? 'Ready' : t < .8 ? 'You slam' : 'A Seismic Totem rises at the cursor and pulses 4 times, 160 px, 12 each'
+    },
+    D: {
+      name: 'D · Quake Titan', slow: 2,
+      T: { x: 630, y: 195 }, stomps: [1.9, 2.8, 3.7],
+      hits(e) { const out = opener(e); this.stomps.forEach(p => { if (at(this.T, 150, e)) out.push({ t: p + .25 * dist(this.T, e) / 150, v: 35 }); }); return out; },
+      draw(c, t) {
+        openerDraw(c, t); const T = this.T;
+        if (t > .8 && t < 4.5) {
+          const up = ease((t - .8) / .9), a = 1 - clamp((t - 4.1) / .4), sink = 40 * (1 - up);
+          let lift = 0; this.stomps.forEach(p => { const m = t - p; if (m > -.3 && m < 0) lift = Math.max(lift, 14 * (1 + m / .3)); });
+          disc(c, T.x, T.y + 34, 44 * up, '#000', .35 * a);
+          const y = T.y - lift + sink;
+          rrect(c, T.x - 52, y - 10, 24, 56, 8, '#6f6350', a); rrect(c, T.x + 28, y - 10, 24, 56, 8, '#6f6350', a);
+          rrect(c, T.x - 30, y - 30, 60, 62, 10, '#8a7a62', a); rrect(c, T.x - 14, y - 52, 28, 26, 8, '#a39378', a);
+          disc(c, T.x - 5, y - 40, 2.5, '#ffd27a', a); disc(c, T.x + 5, y - 40, 2.5, '#ffd27a', a);
+          this.stomps.forEach(p => { const m = (t - p) / .25; if (m > 0) ring(c, T.x, T.y + 30, 150 * ease(m), SLAM, 1 - clamp((t - p - .25) / .5), 4); });
+        }
+      },
+      caption: t => t < .3 ? 'Ready' : t < .8 ? 'You slam' : t < 1.8 ? 'A stone Titan rises at the cursor' : 'It stomps 3 times, 150 px, 35 each, then crumbles (3.5 s)'
+    }
+  };
+  let cur = 'A', t0 = performance.now(), paused = false, frozenT = null;
+
+  function drawStage(t) {
+    const c = cx, v = V[cur];
+    grid(c, 960, 380, 40);
+    if (cur !== 'A') ring(c, cur === 'B' ? 520 : (cur === 'C' ? 640 : 630), cur === 'B' ? 190 : 200, 7, 'rgba(255,255,255,.25)', 1, 1);
+    v.draw(c, t);
+    EN.forEach(e => {
+      const hs = v.hits(e).sort((a, b) => a.t - b.t); let flash = false, slowed = false, lift = 0; const first = hs[0];
+      hs.forEach(h => { if (t - h.t >= 0 && t - h.t < .12) flash = true; });
+      if (first && t > first.t && t < first.t + v.slow) slowed = true;
+      enemy(c, e.x, e.y, { flash, slow: slowed, lift });
+      hs.forEach(h => { const k = (t - h.t) / .8; if (k > 0 && k < 1) txt(c, String(h.v), e.x, e.y - 24 - 22 * k, DAMAGE, 14, 1 - k); });
+    });
+    player(c, P.x, P.y); golem(c, G0.x, G0.y); bear(c, B0.x, B0.y);
+    txt(c, 'YOU', P.x, P.y + 32, '#92a1ad', 10); txt(c, 'GOLEM', G0.x, G0.y - 22, '#92a1ad', 10); txt(c, 'BEAR', B0.x, B0.y + 32, '#92a1ad', 10);
+    txt(c, v.name.toUpperCase(), 20, 28, '#ffb547', 15, 1, 'left');
+    txt(c, v.caption(t), 20, 48, '#cfdae2', 12, 1, 'left');
+    txt(c, 'Scale: 140 px radius = 3.5 grid squares', 940, 366, '#5d6b77', 10, 1, 'right');
+    document.getElementById('now').textContent = t.toFixed(1) + ' s / ' + PERIOD + ' s';
+  }
+
+  const tabs = document.getElementById('tabs'), cards = document.getElementById('cards');
+  const INFO = {
+    A: ['Rubble Brood', 'After your slam, two <b>Rubble Crawlers</b> rise at you and at each minion (six with two minions, eight with three). Each one runs at a separate enemy and bursts on it. The more minions you keep, the bigger the brood.', 'Slam 25 and slow 2 s. Crawlers: 15 HP, 260 px/s, 20 damage in a 70 px burst. 2 per summoner or minion.', 'The bursts freeze for 1 s (not bosses).', 'Keeps "you and every minion" from the old ability and gives each minion something to show for it.', 'Many small objects on screen. Needs a crawler cap.'],
+    B: ['Burrower', 'The quake calls up a <b>Burrower</b> at your cursor. It tunnels for 3.5 s, steering toward the nearest enemy, and hurts everything it passes under. You can see it as a moving mound of dirt.', 'Slam 25 and slow 2 s. Burrower: 170 px/s, 30 to each enemy it passes under (once each), cannot be hit while tunnelling.', 'It leaves a fissure that slows 40% for 3 s.', 'Gives you a pack-cutter you place, and it ignores bullets.', 'Steering is a new behaviour. It could wander off from the fight.'],
+    C: ['Seismic Totem', 'The quake plants a <b>Seismic Totem</b> at your cursor. It pulses four times, a second apart, each pulse a 160 px shockwave that hurts and slows. It is a stationary area you hold, like Golem Wall is.', 'Slam 25 and slow 2 s. Totem: 80 HP, 4 pulses of 12 in 160 px, slow renewed each pulse, lasts 4 s.', 'Every second pulse also pulls enemies 40 px toward the totem.', 'Easy to read and easy to build. Pairs with a Healer who stands near it.', 'The most like a plain damage zone. Enemies may attack it instead of you, which is also good for a Tank.'],
+    D: ['Quake Titan', 'The quake raises a <b>Quake Titan</b> at your cursor. It stomps three times, 0.9 s apart, each stomp a heavy 150 px shockwave, then crumbles. The biggest summon of the four.', 'Slam 25 and slow 2 s. Titan: 3 stomps of 35 in 150 px (105 in total), 1.5 s to rise, lasts 3.5 s. Bosses take half.', 'A fourth stomp, and each stomp stuns for 0.5 s.', 'The most dramatic payoff and a clear thing to point at.', 'Highest damage, so it needs a long cooldown, and the Titan needs good art.']
+  };
+  Object.keys(V).forEach(k => {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', k === cur); b.innerHTML = '<span class="k">' + k + '</span>' + INFO[k][0]; b.onclick = () => pick(k); tabs.appendChild(b);
+    const [n, how, num, cap, fit, risk] = INFO[k];
+    const d = document.createElement('div'); d.className = 'card' + (k === 'A' ? ' pick' : ''); d.dataset.k = k; d.setAttribute('aria-current', k === cur);
+    d.innerHTML = '<div class="tag">' + k + (k === 'A' ? ' · MY PICK' : '') + '</div><h3>' + n + '</h3><p>' + how + '</p><dl><dt>Numbers</dt><dd>' + num + '</dd><dt>Capstone</dt><dd>' + cap + '</dd><dt>Why</dt><dd>' + fit + '</dd><dt>Risk</dt><dd>' + risk + '</dd></dl>';
+    d.onclick = () => pick(k); cards.appendChild(d);
+  });
+  function pick(k) { cur = k; t0 = performance.now(); frozenT = null; paused = false; document.getElementById('pause').textContent = 'Pause';
+    tabs.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', Object.keys(V)[i] === k));
+    cards.querySelectorAll('.card').forEach(d => d.setAttribute('aria-current', d.dataset.k === k)); if (reduced) drawStage(2); }
+  document.getElementById('replay').onclick = () => { t0 = performance.now(); frozenT = null; paused = false; document.getElementById('pause').textContent = 'Pause'; };
+  document.getElementById('pause').onclick = e => { if (paused) { t0 = performance.now() - frozenT * 1000; paused = false; e.target.textContent = 'Pause'; } else { frozenT = ((performance.now() - t0) / 1000) % PERIOD; paused = true; e.target.textContent = 'Resume'; } };
+
+  function frame(now) { drawStage(paused ? frozenT : ((now - t0) / 1000) % PERIOD); requestAnimationFrame(frame); }
+  if (reduced) drawStage(2); else requestAnimationFrame(frame);
+})();
+</script>

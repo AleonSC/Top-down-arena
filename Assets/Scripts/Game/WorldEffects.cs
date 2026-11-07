@@ -141,6 +141,9 @@ namespace Arena
                 case FxKind.TitanSlam:
                     DrawTitanFx(fx);  // TitanLook.cs
                     break;
+                case FxKind.BurrowSnap:
+                    DrawBurrowSnapFx(fx);  // BurrowerLook.cs
+                    break;
                 case FxKind.ShellPop:
                     DrawShellPopFx(fx, f);
                     break;

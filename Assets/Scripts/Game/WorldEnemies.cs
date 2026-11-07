@@ -289,6 +289,11 @@ namespace Arena
                 DrawHydra(m, t);  // HydraLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Burrower)
+            {
+                DrawBurrower(m, t);  // BurrowerLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Wall)
             {
                 DrawGolemWall(m, t);  // GolemWallLook.cs

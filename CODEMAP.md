@@ -63,6 +63,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
 - `WorldTree.cs`, `Game/WorldTreeLook.cs`: the Healer Summoner's World Tree ultimate: a 100 px zone for 15 s plus waves of healing butterflies (`MinionKind.Butterfly`, one per ally, target in `LinkTo`) and the tree's and butterflies' drawing
 - `Titan.cs`, `Game/TitanLook.cs`: the Tank Summoner's Titan ultimate (a 140 px colossus: rise, chase, 0.4 s wind-up slam, bullet block, crumble; `FxKind.TitanSlam` for the slam, stand-up thud and rubble; `Minion.Wind` is replicated for the wind-up)
+- `Burrower.cs`, `Game/BurrowerLook.cs`: the Tank Summoner's Earthquake (a 25-damage slam round you, then a `MinionKind.Burrower` that breaks out at the cursor and tunnels 3 s, biting each enemy it passes under once for 30; `FxKind.BurrowSnap` for the head popping up under a bite) and its drawing (mound, scar, dust, rock)
 - `Hydra.cs`, `Game/HydraLook.cs`: the Summoner DPS's Hydra ability (a stationary minion whose heads each spit at a different enemy) and its drawing
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
 
