@@ -702,7 +702,7 @@ namespace Arena
             const int steps = 24;
             for (int i = 0; i < steps; i++)  // a rule that fades out to the right
                 Ui.Fill(new Rect(rx + rw * i / steps, r.y + 8f, rw / steps + 1f, 1f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.7f * (1f - i / (float)steps)));
-            LobbyKit.Fit(new Rect(r.x, r.y + 14f, r.width, 36f), name, 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
+            LobbyKit.Fit(new Rect(r.x, r.y + 14f, r.width, 36f), name, 22, 14, Color.white, TextAnchor.MiddleLeft, calm);
             float ry = r.y + 52f;
             if (!calm)
                 Ui.Fill(new Rect(r.x, ry - 2f, 76f, 7f), new Color(roleColor.r, roleColor.g, roleColor.b, 0.18f));
@@ -1042,7 +1042,7 @@ namespace Arena
         void SpecHeader(Rect col, string eyebrow, string name, bool calm)
         {
             Ui.Label(new Rect(col.x, col.y - 1f, col.width, 16f), eyebrow, 13, CrtUi.Dim, TextAnchor.MiddleLeft, true);
-            LobbyKit.Fit(new Rect(col.x, col.y + 12f, col.width, 28f), name, 26, 14, Color.white, TextAnchor.MiddleLeft, calm);
+            LobbyKit.Fit(new Rect(col.x, col.y + 12f, col.width, 28f), name, 20, 13, Color.white, TextAnchor.MiddleLeft, calm);
         }
 
         /// A row of number tiles, a gold value over a small caption, sharing the row's width.

@@ -164,6 +164,7 @@ namespace Arena
         public static void Heading(float x, float y, float w, string title, string caption, bool calm, int size = 18)
         {
             string t = title.ToUpperInvariant();
+            size = CrtKit.Sz(size);  // small caps, like the mockup's 12 px headings
             float tw = Ui.TextWidth(t, size, true) - 4f;
             CrtUi.Text(new Rect(x, y, tw + 12f, 26f), t, size, HeadCol, TextAnchor.MiddleLeft, true, calm);
             if (!string.IsNullOrEmpty(caption))
@@ -255,7 +256,7 @@ namespace Arena
                 return;
             var rc = washCol;
             Color d0 = new Color(0.031f, 0.063f, 0.157f), d1 = new Color(0.0196f, 0.039f, 0.110f), d2 = new Color(0.0157f, 0.031f, 0.082f);
-            Color c0 = Mix(rc, 0.2f, d0), c1 = Mix(rc, 0.06f, d1), c2 = d2;
+            Color c0 = Mix(rc, 0.11f, d0), c1 = Mix(rc, 0.03f, d1), c2 = d2;
             // 165 degrees: t runs down and a little to the right. Strips take t along the left edge; the ramp below darkens toward the right.
             const float sin = 0.2588f, cos = 0.9659f;
             float len = r.width * sin + r.height * cos;
@@ -278,7 +279,7 @@ namespace Arena
             // One soft radial texture, clipped to the box.
             float rx = r.width * 1.2f * 0.64f, ry = r.height * 0.8f * 0.64f;
             GUI.BeginGroup(r);
-            Ui.RadialGlow(new Rect(-rx, -ry, rx * 2f, ry * 2f), new Color(rc.r, rc.g, rc.b, 0.32f));
+            Ui.RadialGlow(new Rect(-rx, -ry, rx * 2f, ry * 2f), new Color(rc.r, rc.g, rc.b, 0.3f));
             GUI.EndGroup();
         }
 
