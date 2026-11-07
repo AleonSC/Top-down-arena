@@ -29,6 +29,14 @@ namespace Arena
         public float Age, HitT, OpenT;
         public float PushT;      // seconds left of "it's being pushed" (dust, a shudder)
         public V2 PushDir, SeenAt;  // the way it last slid, and where we last saw it
+        public readonly List<Scuff> Scuffs = new List<Scuff>();  // drag lines left on the floor behind it (Game/PropsLook.cs)
+    }
+
+    /// One short drag line scratched into the floor by a pushed prop; it fades over ScuffLife seconds.
+    public struct Scuff
+    {
+        public V2 A, B;
+        public float Age;
     }
 
     /// A chest's item for one player. Everyone's game has every item, but only its owner's draws it.
@@ -119,6 +127,7 @@ namespace Arena
         /// How fast (px/s) each kind of player shoves a crate or barrel along: Tanks fastest, Dps next, Healers slowest.
         /// Enemies barely move them. Even the Healer is ten times the enemies. A heavy crate gives at 60%.
         public const float PushTank = 70f, PushDps = 50f, PushHealer = 34f, PushEnemy = 3f, HeavyPushMult = 0.6f;
+        public const float ScuffLife = 3f;  // seconds a drag line stays on the floor
         const float PushContact = 2f;      // a remote player counts as leaning on a prop this close (their own game already holds them out)
         const float PushLeanSpeed = 15f;   // ...if they're moving toward it at least this fast (px/s)
 
@@ -751,10 +760,25 @@ namespace Arena
                 p.Age += dt;
                 p.HitT = Math.Max(0f, p.HitT - dt);
                 V2 slid = p.Pos - p.SeenAt;
+                for (int i = p.Scuffs.Count - 1; i >= 0; i--)
+                {
+                    var sc = p.Scuffs[i];
+                    sc.Age += dt;
+                    if (sc.Age >= ScuffLife)
+                        p.Scuffs.RemoveAt(i);
+                    else
+                        p.Scuffs[i] = sc;
+                }
                 if (p.Age > dt && slid.Length > 0.02f && slid.Length < 30f)
                 {
                     p.PushT = 0.25f;
                     p.PushDir = slid.Normalized();
+                    V2 side = new V2(-p.PushDir.Y, p.PushDir.X) * ((Round(p) ? PropRadius(p) : Math.Min(HalfW(p), HalfH(p))) * 0.5f);
+                    if (p.Scuffs.Count < 80)
+                    {
+                        p.Scuffs.Add(new Scuff { A = p.SeenAt + side, B = p.Pos + side });
+                        p.Scuffs.Add(new Scuff { A = p.SeenAt - side, B = p.Pos - side });
+                    }
                 }
                 else
                     p.PushT = Math.Max(0f, p.PushT - dt);
