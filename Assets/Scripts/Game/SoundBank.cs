@@ -252,11 +252,11 @@ namespace Arena
             // --- Gunshots (gap = shortest time between two plays of the same sound) ---
             SetGun(Sfx.ShotShotgun, 0.1f, new Gun
             {
-                Crack = 0.7f, CrackDecay = 0.004f, CrackHighpass = 2000f,
-                Body = 1f, BodyDecay = 0.09f, BodyLowpass = 2500f,
-                Thump = 0.9f, ThumpFrom = 140f, ThumpTo = 45f, ThumpDecay = 0.12f,
-                Tail = 0.35f, TailDecay = 0.4f, TailLowpass = 900f,
-                Reverb = 0.25f, Duration = 0.7f, Peak = 0.85f,
+                Crack = 0f, CrackDecay = 0.003f, CrackHighpass = 1800f,
+                Body = 1f, BodyDecay = 0.05f, BodyLowpass = 900f,
+                Thump = 0.7f, ThumpFrom = 100f, ThumpTo = 45f, ThumpDecay = 0.08f,
+                Tail = 0.2f, TailDecay = 0.25f, TailLowpass = 600f,
+                Reverb = 0.2f, Duration = 0.4f, Peak = 0.4f,
             });
             SetGun(Sfx.ShotCannon, 0.2f, new Gun
             {
