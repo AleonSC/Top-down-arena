@@ -614,6 +614,7 @@ namespace Arena
                 ultY = y;
             }
 
+            ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
             // The ultimate: its key, then locked slots for ultimates still to come. Click it to watch it in the preview.
             LobbyKit.Heading(x, ultY, w, "Ultimate", ult.Cooldown.ToString("0") + " s to charge  ·  starts half full  ·  click to preview", calm, 15);
             for (int i = 0; i < 4; i++)
@@ -630,7 +631,7 @@ namespace Arena
                 }
             }
 
-            float dy = Mathf.Max(ultY + 82f, view.yMax);  // the detail box starts on the line the preview ends on (their corners meet)
+            float dy = ultY + 82f;
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
 
