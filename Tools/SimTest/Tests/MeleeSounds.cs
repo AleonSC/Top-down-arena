@@ -56,6 +56,25 @@ static partial class Program
         Check(heard(Sfx.SpikeBlockShake).Count == 1 && heard(Sfx.SpikeBlockLunge).Count == 1 && heard(Sfx.SpikeBlockRest).Count == 1, "a Spike Block's shake, lunge and rest each sound once");
         clear();
 
+        // Footsteps: every walker has a step sound; a crowd makes one a frame, at the nearest one's volume; standing still is silent.
+        {
+            var walkers = new Dictionary<EnemyType, Sfx> { { EnemyType.Swarmer, Sfx.SwarmerPatter }, { EnemyType.Spiker, Sfx.SpikerSkitter }, { EnemyType.Brute, Sfx.BruteStep }, { EnemyType.Lunger, Sfx.LungerPad }, { EnemyType.SpikeBlock, Sfx.SpikeBlockRock } };
+            foreach (var w in walkers)
+            {
+                var a = put(w.Key, p.Pos + new V2(200f, 0f));
+                var b = put(w.Key, new V2(1500f, 800f));
+                var c = put(w.Key, p.Pos + new V2(0f, 400f));
+                tick(dt); g.Sounds.Clear();
+                tick(0.5f);
+                Check(heard(w.Value).Count == 0, w.Key + ": standing still makes no steps");
+                a.Pos += new V2(3f, 0f); b.Pos += new V2(3f, 0f); c.Pos += new V2(0f, 3f);
+                tick(0.5f);
+                var steps = heard(w.Value);
+                Check(steps.Count == 1 && steps[0].Quiet == 0f, w.Key + ": three walking make one step, at the nearest one's volume (" + steps.Count + ")");
+                clear();
+            }
+        }
+
         // Buzzsaw: no tick per touch. One whirr that rises while it touches you and fades after.
         var saw = put(EnemyType.Buzzsaw, p.Pos + new V2(300f, 0f));
         tick(dt);

@@ -56,6 +56,7 @@ namespace Arena
         SwarmerChomp, SwarmerDie, SpikerFlip, SpikerStab, SpikerDie, BruteStep, BruteGrunt, BruteBash, BruteDie,
         LungerTell, LungerLeap, LungerLand, LungerDie, SawWhirr, SawDie,
         SpikeBlockRock, SpikeBlockShake, SpikeBlockLunge, SpikeBlockRest, SpikeBlockDie,
+        SwarmerPatter, SpikerSkitter, LungerPad,  // their footsteps
     }
 
     public struct SoundCue

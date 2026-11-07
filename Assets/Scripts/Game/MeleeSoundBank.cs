@@ -64,9 +64,21 @@ namespace Arena
                 Bell(0.35f, 2400f, 0.06f)), 0.32f), 0.05f);
 
             // Brute: low and slow; you feel it before you see it.
+            // A stomp with a scuff on top: the low thump alone is lost on small speakers.
             Set(Sfx.BruteStep, Takes(2, () => Finish(Mix(
-                Tone(0.12f, Osc.Sine, 110f, 48f, 0.5f, lowpass: 0.25f, decay: 2.2f),
-                Tone(0.05f, Osc.Sine, 500f, 180f, 0.14f, noise: 0.9f, lowpass: 0.35f, decay: 3f)), 0.4f)), 0.25f);
+                Tone(0.14f, Osc.Sine, 120f, 50f, 0.5f, lowpass: 0.25f, decay: 2.2f),
+                Tone(0.1f, Osc.Triangle, 320f, 140f, 0.3f, noise: 0.5f, lowpass: 0.4f, decay: 2.5f),
+                Tone(0.06f, Osc.Sine, 1200f, 400f, 0.2f, noise: 1f, lowpass: 0.5f, decay: 3f)), 0.55f)), 0.2f);
+            // The small ones: a Swarmer's quick soft patter, a Spiker's dry skitter, a Lunger's padding step.
+            Set(Sfx.SwarmerPatter, Takes(3, () => Finish(Mix(
+                Tone(0.035f, Osc.Triangle, 900f, 450f, 0.2f, noise: 0.6f, lowpass: 0.5f, decay: 3f),
+                Delay(Tone(0.035f, Osc.Triangle, 1100f, 500f, 0.14f, noise: 0.6f, lowpass: 0.5f, decay: 3f), 0.06f)), 0.26f)), 0.12f);
+            Set(Sfx.SpikerSkitter, Takes(3, () => Finish(Mix(
+                Tone(0.025f, Osc.Square, 2300f, 1500f, 0.1f, noise: 0.5f, lowpass: 0.6f, decay: 3f),
+                Delay(Tone(0.025f, Osc.Square, 2600f, 1700f, 0.08f, noise: 0.5f, lowpass: 0.6f, decay: 3f), 0.04f)), 0.2f)), 0.1f);
+            Set(Sfx.LungerPad, Takes(2, () => Finish(Mix(
+                Tone(0.08f, Osc.Sine, 260f, 110f, 0.3f, noise: 0.4f, lowpass: 0.3f, decay: 2.5f),
+                Tone(0.04f, Osc.Sine, 900f, 400f, 0.1f, noise: 1f, lowpass: 0.5f, decay: 3f)), 0.3f)), 0.2f);
             Set(Sfx.BruteGrunt, Finish(Mix(
                 Tone(0.22f, Osc.Saw, 100f, 70f, 0.3f, noise: 0.12f, lowpass: 0.18f, attack: 0.02f, decay: 1.4f),
                 Tone(0.22f, Osc.Saw, 104f, 74f, 0.2f, lowpass: 0.25f, attack: 0.03f, decay: 1.6f)), 0.4f), 0.5f);
