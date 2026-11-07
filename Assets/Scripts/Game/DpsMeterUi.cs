@@ -13,12 +13,30 @@ namespace Arena
 
         void DpsMeterKeys()
         {
-            if (!Input.GetKeyDown(KeyCode.F2) || session.Screen != AppScreen.Game)
+            if (!Input.GetKeyDown(KeyCode.F2))
                 return;
+            if (session.Screen != AppScreen.Game)
+            {
+                OpenLogFolder();  // outside a run F2 opens the folder holding Player.log
+                return;
+            }
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                 game.DevResetDps();
             else
                 dpsMeter = !dpsMeter;
+        }
+
+        /// Opens the folder with Player.log (Application.consoleLogPath), for sending it in when something looks wrong on one machine.
+        static void OpenLogFolder()
+        {
+            try
+            {
+                string log = Application.consoleLogPath, dir = string.IsNullOrEmpty(log) ? null : System.IO.Path.GetDirectoryName(log);
+                if (string.IsNullOrEmpty(dir) || !System.IO.Directory.Exists(dir))
+                    dir = Application.persistentDataPath;  // no log path (editor, some platforms): the save folder is next to it
+                Application.OpenURL("file:///" + dir.Replace('\\', '/'));
+            }
+            catch (System.Exception) { }
         }
 
         static string Whole(float v) => Mathf.RoundToInt(v).ToString("N0");

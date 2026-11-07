@@ -848,6 +848,7 @@ as usual.
 | Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (health, cooldown numbers and enemies left as plain text in the corners), On the player (a health arc, cooldown numbers under you, enemy count at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
 | Aim debug overlay | F3 |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
+| Open the folder with `Player.log` (menus, lobby, results; in a run F2 is the DPS meter) | F2 |
 | Freeze time with no menu (dev) | P, once the F1 Tools tab's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
