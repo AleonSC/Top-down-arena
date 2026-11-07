@@ -194,21 +194,34 @@ namespace Arena
         readonly System.Collections.Generic.Dictionary<int, V2> titanStep = new System.Collections.Generic.Dictionary<int, V2>();
         readonly System.Collections.Generic.Dictionary<int, float> titanStepPhase = new System.Collections.Generic.Dictionary<int, float>();
 
+        /// The Titan's floor marks (cracks, rubble), drawn under everything on the floor (DrawArenaContents).
+        void DrawTitanFloor()
+        {
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.TitanSlam)
+                    DrawTitanFx(fx, true);
+        }
+
         /// FxKind.TitanSlam: Pos2.X 0 = a slam (ring, cracks, chunks), 1 = standing up (bigger), 2 = the rubble it leaves.
-        void DrawTitanFx(Effect fx)
+        /// floor true: the cracks and rubble (under everything); false: the ring, flying chunks and dust (over everything).
+        void DrawTitanFx(Effect fx, bool floor)
         {
             float age = fx.T;
             int kind = (int)(fx.Pos2.X + 0.5f);
             float seed = fx.Pos.X * 0.013f + fx.Pos.Y * 0.029f + kind * 7f;
             if (kind == 2)
             {
-                float fade = 1f - Mathf.Clamp01((age - 1f) / (fx.Dur - 1f));
-                Circle(fx.Pos, fx.Radius * 1.05f, new Rgba(0f, 0f, 0f, 0.3f * fade), 28);
-                for (int i = 0; i < 26; i++)
+                if (floor)
                 {
-                    float a = TH(seed + i) * MathX.Tau, d = Mathf.Sqrt(TH(seed + i + 31f)) * fx.Radius * 0.95f;
-                    float burst = TEase(age / 0.5f);
-                    TitanStone(fx.Pos + V2.FromAngle(a) * d * burst, (6f + TH(seed + i + 7f) * 14f), seed + i * 2.9f, 6, 0f, fade);
+                    float fade = 1f - Mathf.Clamp01((age - 1f) / (fx.Dur - 1f));
+                    Circle(fx.Pos, fx.Radius * 1.05f, new Rgba(0f, 0f, 0f, 0.3f * fade), 28);
+                    for (int i = 0; i < 26; i++)
+                    {
+                        float a = TH(seed + i) * MathX.Tau, d = Mathf.Sqrt(TH(seed + i + 31f)) * fx.Radius * 0.95f;
+                        float burst = TEase(age / 0.5f);
+                        TitanStone(fx.Pos + V2.FromAngle(a) * d * burst, (6f + TH(seed + i + 7f) * 14f), seed + i * 2.9f, 6, 0f, fade);
+                    }
+                    return;
                 }
                 if (age < 0.8f)
                     for (int i = 0; i < 10; i++)
@@ -219,7 +232,7 @@ namespace Arena
                 return;
             }
             float big = kind == 1 ? 1f : 0f, ra = age / 0.75f;
-            if (ra < 1f)
+            if (!floor && ra < 1f)
             {
                 float rr = TEase(ra) * fx.Radius;
                 Arc(fx.Pos, rr, 14f * (1f - ra) + 2f, new Rgba(1f, 1f, 0.97f, (1f - ra) * (0.85f + 0.15f * big)), 56);
@@ -233,6 +246,8 @@ namespace Arena
                 }
             }
             // cracks stay on the floor, hot at first
+            if (!floor)
+                return;
             int n = kind == 1 ? 12 : 9;
             float fade2 = Mathf.Clamp01(1f - (age - fx.Dur * 0.45f) / (fx.Dur * 0.55f)), grow = Mathf.Clamp01(age / 0.18f), hot = Mathf.Clamp01(1f - age / 1.2f);
             for (int i = 0; i < n; i++)
