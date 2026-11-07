@@ -19,6 +19,7 @@ namespace Arena
         // The hero card's live mini-arena (Showcase.cs): the real game, offline, using your weapon on target
         // dummies; it casts the ability or ultimate you last clicked (`detailSel`) until you click something else. Hovering shows nothing.
         Showcase showcase;
+        float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
         /// The lobby's content used to sit 14 px higher than its layout numbers said. The softer layout (Docs/Mockups/crt-lobby-softer.html) runs 28..684
@@ -1050,6 +1051,27 @@ namespace Arena
                 LobbyKit.Tile(new Rect(row.x + i * (tw + 6f), row.y, tw, row.height), tiles[i][0], tiles[i][1], calm);
         }
 
+        /// The zoom meter along the preview's lower edge (a slider, "-" and "+" steps, and the mouse wheel over the window).
+        void DrawShowcaseZoom(Rect view, Color roleColor)
+        {
+            const float Min = 0.5f, Max = 2f;
+            var e = Event.current;
+            if (e.type == EventType.ScrollWheel && view.Contains(e.mousePosition))
+            {
+                showcaseZoom = Mathf.Clamp(showcaseZoom * (e.delta.y > 0f ? 0.9f : 1.1f), Min, Max);
+                e.Use();
+            }
+            var bar = new Rect(view.x + 6f, view.yMax - 42f, view.width - 12f, 18f);
+            Ui.Fill(new Rect(bar.x - 2f, bar.y - 2f, bar.width + 4f, bar.height + 4f), new Color(0f, 0f, 0f, 0.55f));
+            Ui.Label(new Rect(bar.x + 2f, bar.y, 54f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+            var track = new Rect(bar.x + 62f, bar.y, bar.width - 62f, bar.height);
+            float lo = (float)System.Math.Log(Min), hi = (float)System.Math.Log(Max);
+            float t = Mathf.Clamp01(((float)System.Math.Log(showcaseZoom) - lo) / (hi - lo));  // log scale: out and in feel even
+            float nt = Ui.Slider(track, t);
+            if (nt != t)
+                showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
+        }
+
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
         void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
         {
@@ -1067,7 +1089,7 @@ namespace Arena
                 return;
             var rc = new Rgba(roleColor.r, roleColor.g, roleColor.b);
             var sg = showcase.Game;
-            float zoom = Mathf.Min(1.1f, view.height / (showcase.Extent + 190f));
+            float zoom = Mathf.Min(1.1f, view.height / (showcase.Extent + 190f)) * showcaseZoom;
             V2 focus = Showcase.Home + new V2(0f, -showcase.Extent / 2f);
             V2 centre = new V2(view.center.x, view.center.y);
             UiModelAt(centre - focus * zoom, zoom);
@@ -1121,6 +1143,7 @@ namespace Arena
             Line(new V2(view.x, view.y), new V2(view.x, view.yMax), 1.5f, edge);
             Line(new V2(view.xMax, view.y), new V2(view.xMax, view.yMax), 1.5f, edge);
             EndUiGl();
+            DrawShowcaseZoom(view, roleColor);
             if (demo)
             {
                 var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));

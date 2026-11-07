@@ -520,7 +520,7 @@ where the bosses come back around, tougher each time.
 ## Loadout preview
 
 The lobby's loadout screen shows your loadout in a small live arena (top left): your character uses the chosen weapon
-on three target dummies, so you can see how it attacks. Hover an ability button (or pick one) and it casts
+on three target dummies, so you can see how it attacks. A **zoom meter** along the bottom of the window (or the mouse wheel over it) zooms the view from 50% to 200%. Hover an ability button (or pick one) and it casts
 that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
 the other players), so it always matches how weapons and abilities really behave.
 
