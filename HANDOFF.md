@@ -642,4 +642,4 @@ ring closes on the centre as `DrawRecallFade` darkens the screen. At the end the
 stays dark until ToLobby lands. In the lobby `returnT` (1.3 s) drives `DrawLobbyReturning`: the dark lifts, the party
 column slides in from the left and the rest from the right (`LobbyPiece`, Repaint only), then `DrawPartyCardRing`
 (split out of LobbyEnter). Sounds reuse the launch's (beam, land, ripple, sweep, HUD swish). Previews: `PAUSECONFIRM=1
-shot.sh <n> pause 3`, `RECALL=<s> shot.sh <n> hud 3 0 2`, `RETURN=<s> shot.sh <n> lobby 1 2 2`.
+shot.sh <n> pause 3`, `RECALL=<s> shot.sh <n> hud 3 0 2`, `DOWNED=down:0.8|revive:0.6|up:0.3 shot.sh <n> hud 6 12.2 2` (you going down, being revived, standing back up; DownedLooks.cs), `RETURN=<s> shot.sh <n> lobby 1 2 2`.

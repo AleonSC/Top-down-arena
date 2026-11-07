@@ -40,6 +40,7 @@ namespace Arena
         void DrawWorld()
         {
             UpdateJuice();  // visual effects catch up with this frame (Juice.cs)
+            UpdateDownedLooks();  // who went down or stood back up (DownedLooks.cs)
             if (ReplayHeldFrame())
                 return;  // hit-pause: last frame again
             BeginJuiceFrame();

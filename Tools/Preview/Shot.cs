@@ -232,6 +232,28 @@ static partial class Shot {
       else foreach (var pl in host.Game.Players.Values) pl.Downed = true;
       set("endT", endingAt); set("endWin", win); set("endFocus", focus); set("endWasOver", true); set("endStamped", endingAt > 1.3f);
     }
+    // DOWNED=<phase>:<value>: you going down or getting back up (DownedLooks.cs). down:<seconds since the hit>, revive:<0-1 revive progress with an ally standing by>, up:<seconds since you stood back up>. Use with mode hud and 2 players.
+    string dwn = Environment.GetEnvironmentVariable("DOWNED");
+    if (dwn != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      string[] dp = dwn.Split(':'); float dv = float.Parse(dp[1], ci);
+      var trk = typeof(ArenaApp).GetMethod("UpdateDownedLooks", f2);
+      host.Game.State = MatchState.Fighting; host.Game.Enemies.Clear(); host.Game.Bullets.Clear();
+      Time.unscaledTime = 100f; trk.Invoke(app, null);                       // everyone seen standing
+      me.Downed = true; me.Hp = 0f; Time.unscaledTime = 101f; trk.Invoke(app, null);  // the hit: down at 101 s
+      if (dp[0] == "down") Time.unscaledTime = 101f + dv;
+      else if (dp[0] == "revive") {
+        foreach (var o in host.Game.Players.Values) if (o != me) { o.Disp = o.Pos = me.Pos + new V2(-60f, 6f); o.Downed = false; }
+        me.Revive = 0.05f; Time.unscaledTime = 104f; trk.Invoke(app, null);
+        me.Revive = dv; Time.unscaledTime = 104.1f; trk.Invoke(app, null);
+      }
+      else if (dp[0] == "up") {
+        foreach (var o in host.Game.Players.Values) if (o != me) { o.Disp = o.Pos = me.Pos + new V2(-60f, 6f); o.Downed = false; }
+        me.Revive = 0.9f; Time.unscaledTime = 104.9f; trk.Invoke(app, null);
+        me.Downed = false; me.Hp = me.MaxHp * 0.35f; me.Revive = 0f; Time.unscaledTime = 105f; trk.Invoke(app, null);
+        Time.unscaledTime = 105f + dv;
+      }
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

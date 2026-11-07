@@ -78,6 +78,7 @@ namespace Arena
                 HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleGlass);  // scanlines and glass over all of it
             }
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
+            DrawDownedBand(me);  // the DOWNED and REVIVED scan band (DownedLooks.cs)
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)

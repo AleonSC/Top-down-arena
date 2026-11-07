@@ -365,7 +365,13 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding
   (drops fall off it), **red crosshair** = marked (takes extra damage).
 - At 0 HP you're **downed**. Stand next to a downed ally for 4 seconds (Normal difficulty) to revive them (or the
-  healer can pulse them back).
+  healer can pulse them back). Going down plays out on screen: your model glitches into red and cyan copies and
+  flickers out while flecks of its costume colours shed and fall, leaving a dim red disc with an X. A red **DOWNED** scan
+  band with a vitals trace that goes flat opens near the top (it gains a mint revive bar and "<ally> is reviving you" once
+  someone is on you). A 36-segment ring charges round whoever is down, with a dashed link from the ally reviving them.
+  Standing back up reverses it: flecks fly in, the model returns mint-tinted under a scan line with a shockwave, and a
+  **REVIVED** band flashes mint. Visual effects off keeps the old grey disc and green arc; Reduced effects drops the split
+  copies, flicker and glow but keeps the fades, flecks and ring.
 - After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large
   ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.

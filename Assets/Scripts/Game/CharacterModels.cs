@@ -20,6 +20,7 @@ namespace Arena
         float mOx, mOy, mAng, mWs = 1f;  // the current sub-frame (a weapon): where its origin is in the body frame, its turn and size
         bool mMir;                   // mirrored (the second gun of a pair)
         float mAlpha = 1f, mWhite;   // the player's alpha (i-frames, Vanish) and hit flash
+        float mTintA; Rgba mTintCol; // the model mixed toward a colour, like the hit flash (going down and standing back up: DownedLooks.cs)
 
         static Rgba Hx(int rgb, float a = 1f) => new Rgba(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, a);
 
@@ -34,6 +35,7 @@ namespace Arena
         Rgba Mc(Rgba c)
         {
             if (mWhite > 0f) c = c.Mix(Rgba.White, mWhite);
+            if (mTintA > 0f) c = c.Mix(mTintCol, mTintA);
             return c.WithAlpha(c.A * mAlpha);
         }
 

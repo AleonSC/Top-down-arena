@@ -15,7 +15,7 @@ namespace Arena
 
         /// The strip. open 0-1 fades it in; inverse flips it to a solid block with dark text (the start of a wave);
         /// bar 0-1 fills the countdown bar along the foot, below 0 hides it.
-        void DrawScanBand(string title, string sub, string left, string right, float bar, Color ink, float open, bool inverse)
+        void DrawScanBand(string title, string sub, string left, string right, float bar, Color ink, float open, bool inverse, float top = -1f, System.Action<Rect> behind = null, Color? tint = null, Color? barInk = null)
         {
             if (open <= 0f)
                 return;
@@ -25,7 +25,7 @@ namespace Arena
             Ui.Alpha *= oa;
             GUI.color = new Color(oldCol.r, oldCol.g, oldCol.b, oldCol.a * oa);
             bool calm = CabCalm;
-            var r = BandRect;  // (fixed size and place: it only fades in)
+            var r = top >= 0f ? new Rect(BandRect.x, top, BandRect.width, BandRect.height) : BandRect;  // (fixed size and place: it only fades in; `top` sits it higher, as the DOWNED band does: DownedLooks.cs)
             var dark = CrtUi.Bg;
 
             // the strip: solid in the middle, fading out toward both screen edges
@@ -43,11 +43,17 @@ namespace Arena
             Ui.Fill(new Rect(edge * 0.4f, r.y, W - edge * 0.8f, 1f), rim);
             Ui.Fill(new Rect(edge * 0.4f, r.yMax - 1f, W - edge * 0.8f, 1f), rim);
 
+            behind?.Invoke(r);  // drawn under the text (the DOWNED band's vitals trace)
             bool was = Ui.CrtFont;
             Ui.CrtFont = true;
             Color tc = inverse ? dark : CrtUi.T(new Color(0.84f, 0.9f, 1f)), dim = inverse ? dark : CrtUi.Dim;
             if (ink.r > ink.b)  // a gold (boss) strip keeps a warm white rather than the blue one
                 tc = inverse ? dark : new Color(1f, 0.94f, 0.78f);
+            if (tint.HasValue && !inverse)  // (the DOWNED and REVIVED bands: DownedLooks.cs)
+            {
+                tc = tint.Value;
+                dim = new Color(ink.r * 0.7f, ink.g * 0.7f, ink.b * 0.7f);
+            }
             float side = 90f;
             if (left.Length > 0)
                 Ui.Label(new Rect(side, r.y + 14f, 380f, 44f), left, 15, dim, TextAnchor.UpperLeft, false);
@@ -68,13 +74,13 @@ namespace Arena
             }
             Ui.CrtFont = was;
             if (sub.Length > 0)
-                Ui.Label(new Rect(0f, r.y + 118f, W, 20f), sub, 15, inverse ? dark : CrtUi.T(new Color(0.35f, 0.85f, 0.91f)), TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(0f, r.y + 118f, W, 20f), sub, 15, inverse ? dark : tint ?? CrtUi.T(new Color(0.35f, 0.85f, 0.91f)), TextAnchor.MiddleCenter, true);
             if (bar >= 0f)
             {
                 var tk = new Rect(side, r.yMax - 16f, W - 2f * side, 8f);
                 Ui.Fill(tk, new Color(dim.r, dim.g, dim.b, 0.9f));
                 Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, tk.width - 2f, tk.height - 2f), dark);
-                Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, (tk.width - 2f) * Mathf.Clamp01(bar), tk.height - 2f), ink);
+                Ui.Fill(new Rect(tk.x + 1f, tk.y + 1f, (tk.width - 2f) * Mathf.Clamp01(bar), tk.height - 2f), barInk ?? ink);
             }
             CrtUi.End(new Rect(edge, r.y, W - 2f * edge, r.height), Time.unscaledTime, true);  // (true: scanlines and glass only, no rolling bar)
             Ui.Alpha = oldAlpha;

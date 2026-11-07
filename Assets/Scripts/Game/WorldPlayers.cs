@@ -30,10 +30,17 @@ namespace Arena
             // The footprint: a faint disc and a ring in the role's colour, the size of what the body can be hit by.
             // The model (CharacterModels.cs) is drawn over it in the class's own colours, and a downed player is a grey disc.
             Rgba role = p.Def.Color.WithAlpha(col.A);
+            var ds = DownStateOf(p);  // the going-down and getting-up looks (DownedLooks.cs); null with Visual effects off
+            float rebuild = RebuildK(ds);
             if (p.Downed)
             {
-                Circle(p.Disp, r, col.Darkened(0.55f), 28);
-                Arc(p.Disp, r, 3f, col, 28);
+                if (ds != null)
+                    DrawDownedBody(p, r, t, ds);
+                else
+                {
+                    Circle(p.Disp, r, col.Darkened(0.55f), 28);
+                    Arc(p.Disp, r, 3f, col, 28);
+                }
             }
             else
             {
@@ -50,7 +57,9 @@ namespace Arena
                 V2 emoteOff;
                 float emoteSpin;
                 int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
-                if (emoteId >= 0 && EmoteBody(emoteId, out emoteOff, out emoteSpin))  // an emote moves the model only (EmoteLooks.cs)
+                if (rebuild >= 0f && !preview)
+                    DrawRebuild(p, modelR, t, col.A, rebuild);  // standing back up: flecks, a scan line, a shockwave
+                else if (emoteId >= 0 && EmoteBody(emoteId, out emoteOff, out emoteSpin))  // an emote moves the model only (EmoteLooks.cs)
                 {
                     V2 keepAt = p.Disp;
                     float keepAim = p.Aim;
@@ -64,7 +73,7 @@ namespace Arena
                     DrawPlayerModel(p, modelR, t, col);
                 // The class's overlays on top: ability feedback, buffs and the like (ClassLooks.cs)
                 var look = LookOf(p.Kit).Body;
-                if (look != null)
+                if (look != null && rebuild < 0f)
                     look(this, p, modelR, t, col);
                 p.Disp = groundAt;
             }
@@ -73,6 +82,8 @@ namespace Arena
             {
                 Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
                 Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);
+                if (ds != null)
+                    DrawHuskMark(p, ds);
             }
             else
             {
@@ -83,7 +94,12 @@ namespace Arena
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
                 GhostBar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
             if (p.Downed)
-                Arc(p.Disp, r + 8f, 4f, new Rgba(0.4f, 1f, 0.5f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(p.Revive, 0.01f));
+            {
+                if (ds != null)
+                    DrawReviveRing(p, r, t, ds);  // the 36-segment ring and the link from whoever is reviving
+                else
+                    Arc(p.Disp, r + 8f, 4f, new Rgba(0.4f, 1f, 0.5f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(p.Revive, 0.01f));
+            }
         }
 
         static readonly Rgba Steel = new Rgba(0.82f, 0.88f, 1f);
