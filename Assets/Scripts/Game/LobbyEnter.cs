@@ -131,12 +131,10 @@ namespace Arena
             if (newA > 0f)
                 WithAlpha(newA, () => DrawLobbyTitle(new Rect(LobbyTitleRect.x + (cx - to.X), LobbyTitleRect.y + (cy - to.Y), LobbyTitleRect.width, LobbyTitleRect.height), 1f, fxReduced, t));  // (the lobby's own title, so the hand-over at the end shows no change)
 
-            // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
+            DrawDriveSlot(1f - Seg(e, 0.5f, 0.8f), DriveIdle());  // the disk drive fades out under the title as it leaves
+            // GL: the card's plot corners and the ring off your party card.
             if (BeginUiGl())
             {
-                float axisA = 1f - Seg(e, 0.5f, 0.8f);
-                if (axisA > 0f)
-                    DrawAxis(new V2(cx, Lerp(MenuAxisY, 96f, tk)), Lerp(MenuAxisHalf, 100f, tk), t, axisA);
                 float arcA = 1f - Seg(e, 0f, 0.3f);  // the shot's arc over the title fades
                 if (arcA > 0f)
                     DrawMenuArc(t, arcA);

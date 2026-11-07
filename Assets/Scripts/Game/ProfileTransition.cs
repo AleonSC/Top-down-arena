@@ -2,20 +2,21 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The move between "Who's playing?" and the main menu (look C, "Plot points", of Docs/Mockups/profile-transitions.html),
-    /// at half speed: about 4.5 s. Picking a profile plays it forward; the menu's "Switch profile" plays it backwards.
-    /// Its clock `profTrT` runs in the mockup's seconds (0 to ProfTrLen) at ProfTrSpeed of real time:
-    ///   0.1 s   WHO'S PLAYING? falls into the axis; each box shrinks into a point on it (one after another, with a ping each)
-    ///   0.8 s   the points you didn't pick shoot off the ends of the axis; yours slides to the origin
-    ///   0.7 s   the menu's CRT screen drops in and the title types onto it (the menu's own intro, MenuIntro.cs, run from a remapped clock: ProfTrToIntro)
-    ///   1.1 s   a sweep as your point opens into the menu's box; the buttons drop in; the bar slides up
+    /// The move between "Who's playing?" and the main menu (Docs/Mockups/floppy-slot.html: the drive bay, B): about 5.4 s. Picking a profile plays
+    /// it forward; the menu's "Switch profile" plays it backwards (the disk comes back out of the drive). Its clock `profTrT` runs in seconds:
+    ///   0.1 s   your disk lifts and the clamps open; 0.5 s a ring on click
+    ///   0.8 s   WHO'S PLAYING?, the shelf and the other disks fade; yours flies up to the drive under the title (0.9 to 2.0 s)
+    ///   2.0 s   it tips flat from its top edge onto the slit, then slides in (2.5 s); the lip flashes and the latch clicks (2.95 s)
+    ///   2.95 s  the drive reads it (four cells fill, readout) until 3.9 s: READY
+    ///   3.0 s   the menu's CRT screen drops in and the title types onto it (the menu's own intro, MenuIntro.cs, run from a remapped clock: ProfTrToIntro)
+    ///   4.05 s  the pen draws the arc over the title; 4.25 s the box opens; the buttons drop in; the bar slides up
     /// There are always four boxes (three slots and New profile, ProfilesUi.cs), so every move is the same. Nothing can be
     /// clicked meanwhile (the menu counts as still in its intro), and any key skips to the end. Reduced effects or Visual
     /// effects off: no move, the screens just change (and the menu's short fade plays).
     public partial class ArenaApp
     {
-        const float ProfTrLen = 2.26f, ProfTrSpeed = 0.5f;
-        const float ProfTrPenAt = 0.7f, ProfTrPenRate = 0.65f;  // menu intro second 0.35 happens at 0.7; each intro second takes 0.65 of the clock
+        const float ProfTrLen = 5.4f, ProfTrSpeed = 1f;
+        const float ProfTrPenAt = 3.0f, ProfTrPenRate = 1f;  // menu intro second 0.35 happens at 3.0 s; each intro second takes 1 s of the clock
 
         bool profTr;               // the move is playing
         bool profTrFwd;            // true: picker to menu; false: menu to picker
@@ -109,20 +110,22 @@ namespace Arena
 
         static readonly ProfCue[] ProfCues =
         {
-            new ProfCue(0.00f, 0.15f, Sfx.ProfSelect, Sfx.None, 0.7f),     // the click on your box
-            new ProfCue(0.46f, 0.30f, Sfx.ProfPing, Sfx.ProfPing, 0.7f),   // the four boxes become points, a ping each (rising)
-            new ProfCue(0.53f, 0.30f, Sfx.ProfPing, Sfx.ProfPing, 0.7f),
-            new ProfCue(0.60f, 0.30f, Sfx.ProfPing, Sfx.ProfPing, 0.7f),
-            new ProfCue(0.67f, 0.30f, Sfx.ProfPing, Sfx.ProfPing, 0.7f),
-            new ProfCue(0.70f, 0.60f, Sfx.ProfScratch, Sfx.ProfScratch, 0.7f),  // the pen writes the title
-            new ProfCue(0.85f, 0.25f, Sfx.ProfZip, Sfx.ProfZip, 0.8f),     // the others shoot off the ends
-            new ProfCue(1.10f, 0.45f, Sfx.ProfSweep, Sfx.ProfSweepBack, 0.7f),  // your point opens into the box
-            new ProfCue(1.66f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),  // Host, Join and Continue drop in
-            new ProfCue(1.70f, 0.30f, Sfx.PauseSettle, Sfx.PauseClose, 0.5f),  // the box settles
-            new ProfCue(1.78f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),
-            new ProfCue(1.84f, 0.26f, Sfx.ProfBar, Sfx.ProfBar, 0.8f),     // the bar slides up
-            new ProfCue(1.86f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),
-            new ProfCue(1.95f, 0.20f, Sfx.ProfChord, Sfx.ProfChord, 0.6f), // a low chord as the menu settles
+            new ProfCue(0.00f, 0.15f, Sfx.ProfSelect, Sfx.None, 0.7f),      // the click on your disk
+            new ProfCue(0.55f, 0.30f, Sfx.DiskLift, Sfx.DiskLift, 0.7f),    // the clamps let go
+            new ProfCue(0.90f, 1.10f, Sfx.DiskFly, Sfx.DiskFly, 0.6f),      // it flies up to the drive
+            new ProfCue(2.00f, 0.15f, Sfx.DiskTip, Sfx.DiskTip, 0.7f),      // it tips flat onto the slit
+            new ProfCue(2.50f, 0.45f, Sfx.DiskSlide, Sfx.DiskEject, 0.7f),  // it slides in (backwards: it pops out)
+            new ProfCue(2.95f, 0.10f, Sfx.DiskClick, Sfx.DiskClick, 0.8f),  // the latch
+            new ProfCue(3.00f, 0.90f, Sfx.DiskRead, Sfx.None, 0.6f),        // the drive reads it
+            new ProfCue(3.90f, 0.40f, Sfx.DiskReady, Sfx.None, 0.6f),       // ready
+            new ProfCue(4.05f, 0.60f, Sfx.ProfScratch, Sfx.ProfScratch, 0.5f),  // the pen draws the arc
+            new ProfCue(4.25f, 0.45f, Sfx.ProfSweep, Sfx.ProfSweepBack, 0.7f),  // the box opens
+            new ProfCue(4.48f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),  // Host, Join and Continue drop in
+            new ProfCue(4.54f, 0.30f, Sfx.PauseSettle, Sfx.PauseClose, 0.5f),  // the box settles
+            new ProfCue(4.66f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),
+            new ProfCue(4.75f, 0.26f, Sfx.ProfBar, Sfx.ProfBar, 0.8f),      // the bar slides up
+            new ProfCue(4.78f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),
+            new ProfCue(4.92f, 0.20f, Sfx.ProfChord, Sfx.ProfChord, 0.6f),  // a low chord as the menu settles
         };
 
         /// Plays each cue the clock passed between a and b (forward: its start; backwards: its end).
@@ -157,97 +160,55 @@ namespace Arena
                 DrawWhoEmptyCard(r);
         }
 
+        /// The picker's side of the move, drawn over the menu: the picker fades out while your disk lifts, flies to the drive, tips in and slides into it.
         void DrawProfTrWho(float T)
         {
             float t = Time.unscaledTime;
-            float tk = Seg(T, 0.1f, 0.5f);
-            if (tk < 1f)
-                WithAlpha(1f - tk, () => Ui.Glitch(new Rect(0f, MenuTitleY - 56f + 78f * tk * tk, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent));
-
-            if (tk < 1f)  // the shelf and its wall fade as the disks close up
-                WithAlpha(1f - tk, DrawWhoShelf);
-
-            int boxes = WhoSlots + 1;
-            var dotAt = new Vector2[boxes];
-            var dotCol = new Color[boxes];
-            var solid = new float[boxes];
-            var trail = new float[boxes];   // 0 none; else its length, signed by the way it flies
-            var label = new float[boxes];
-            for (int i = 0; i < boxes; i++)
+            var info = WhoInSlot(profTrSlot);
+            var R = WhoBox(profTrSlot);
+            float hover = EaseOut(Seg(T, 0.1f, 0.5f)), flight = EaseInOut(Seg(T, 0.9f, 2.0f)), fade = 1f - Seg(T, 0.8f, 1.5f);
+            whoLift[profTrSlot] = hover * (1f - flight);  // the clamps open as it lifts
+            if (fade > 0f)
+                WithAlpha(fade, () =>
+                {
+                    Ui.Glitch(new Rect(0f, MenuTitleY - 56f, W, 80f), "WHO'S PLAYING?", 58, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
+                    DrawWhoShelf();
+                    for (int i = 0; i <= WhoSlots; i++)
+                        if (i != profTrSlot)
+                            DrawWhoBoxStatic(i, WhoBox(i), t);
+                });
+            if (info == null || T >= 2.95f)
             {
-                var R = WhoBox(i);
-                var info = i < WhoSlots ? WhoInSlot(i) : null;
-                var col = i == WhoSlots ? Ui.Muted : WhoColor(info);
-                float k1 = Seg(T, 0.1f + 0.07f * i, 0.5f + 0.07f * i), e1 = EaseOut(k1), k2 = Seg(T, 0.85f, 1.15f);
-                bool pick = i == profTrSlot;
-                float cx = R.center.x, side = cx >= W / 2f ? 1f : -1f;
-                float dx = pick ? (W / 2f - cx) * EaseOut(Seg(T, 0.8f, 1.1f)) : side * 1000f * k2 * k2;
-                if (pick ? T >= 1.1f : k2 >= 1f)
-                    continue;
-                var r = new Rect(Mathf.Lerp(R.x, cx - 7f, e1) + dx, Mathf.Lerp(R.y, MenuAxisY - 7f, e1), Mathf.Lerp(R.width, 14f, e1), Mathf.Lerp(R.height, 14f, e1));
-                if (k1 <= 0f)
-                {
-                    DrawWhoBoxStatic(i, R, t);
-                    continue;
-                }
-                Ui.Card(r, col, 0.9f);
-                float ca = 1f - Mathf.Clamp01(k1 * 2.5f);
-                if (ca > 0f)  // what was in the box fades out as the box closes up
-                {
-                    // Draw it at full size, scaled down with the box so nothing gets cut off.
-                    var oldMatrix = GUI.matrix;
-                    GUI.matrix = Matrix4x4.TRS(new Vector3(offX + r.x * scale, offY + r.y * scale, 0f), Quaternion.identity,
-                        new Vector3(scale * r.width / R.width, scale * r.height / R.height, 1f));
-                    var inner = new Rect(0f, 0f, R.width, R.height);
-                    int ii = i;
-                    WithAlpha(ca, () => DrawWhoBoxStatic(ii, inner, t));
-                    GUI.matrix = oldMatrix;
-                }
-                dotAt[i] = r.center;
-                dotCol[i] = col;
-                solid[i] = Mathf.Clamp01((k1 - 0.6f) / 0.4f);
-                trail[i] = pick ? 0f : side * (30f + 140f * k2) * (k2 > 0f ? 1f : 0f);
-                label[i] = Seg(k1, 0.7f, 1f) * (1f - Seg(T, pick ? 0.9f : 0.8f, pick ? 1.1f : 1.0f));
+                DrawDriveLip(1f, DriveForMenu());
+                return;
             }
-
-            if (BeginUiGl())
+            float s = Mathf.Lerp(R.width, DriveDiskSize, flight);
+            float x = Mathf.Lerp(R.x, W / 2f - DriveDiskSize / 2f, flight), y = Mathf.Lerp(R.y - 12f * hover, DriveY + 8f, flight);
+            float sx = 1f, sy = 1f, a = 1f;
+            if (T >= 2.0f)  // it tips flat from its top edge, which sits on the slit
             {
-                UiModelAt(V2.Zero, 1f);
-                for (int i = 0; i < boxes; i++)
-                {
-                    if (solid[i] <= 0f && trail[i] == 0f)
-                        continue;
-                    var c = dotCol[i];
-                    var p = new V2(dotAt[i].x, dotAt[i].y);
-                    if (trail[i] != 0f)
-                        for (int s = 0; s < 8; s++)
-                            Line(new V2(p.X - trail[i] * s / 8f, p.Y), new V2(p.X - trail[i] * (s + 1) / 8f, p.Y), 3f, new Rgba(c.r, c.g, c.b, 0.8f * (1f - s / 8f)));
-                    if (solid[i] > 0f)
-                    {
-                        Circle(p, 11f, new Rgba(c.r, c.g, c.b, 0.22f * solid[i]), 18);
-                        Circle(p, 7f, new Rgba(c.r, c.g, c.b, solid[i]), 16);
-                    }
-                }
-                var pickInfo = WhoInSlot(profTrSlot);
-                float kk = Seg(T, 1.1f, 1.55f);
-                if (T >= 1.1f && kk < 1f)  // yours, at the origin, giving way to the box
-                {
-                    var c = WhoColor(pickInfo);
-                    var o = new V2(W / 2f, MenuAxisY);
-                    Circle(o, 7f + 16f * kk, new Rgba(c.r, c.g, c.b, 0.25f * (1f - kk)), 20);
-                    Circle(o, 7f * (1f - kk), new Rgba(c.r, c.g, c.b, 1f), 16);
-                }
-                EndUiGl();
+                float k = EaseInOut(Seg(T, 2.0f, 2.5f));
+                sy = Mathf.Lerp(1f, 0.06f, k);
+                y = Mathf.Lerp(DriveY + 8f, DriveY - 4f, k);
             }
-            for (int i = 0; i < boxes; i++)
+            if (T >= 2.5f)  // then slides in: narrower, and fading into the slit's dark
             {
-                if (label[i] <= 0f)
-                    continue;
-                var info = i < WhoSlots ? WhoInSlot(i) : null;
-                string text = i == WhoSlots ? "New" : info != null ? info.Name : "Empty";
-                var c = Color.Lerp(dotCol[i], Color.white, 0.4f);
-                Ui.Label(new Rect(dotAt[i].x - 60f, MenuAxisY + 14f, 120f, 18f), text, 12, new Color(c.r, c.g, c.b, label[i]), TextAnchor.MiddleCenter);
+                float k = EaseInOut(Seg(T, 2.5f, 2.95f));
+                sx = Mathf.Lerp(1f, 0.9f, k);
+                y = DriveY - 4f;
+                a = 1f - k;
             }
+            if (T >= 0.5f && T < 0.9f)  // the ring on the click
+            {
+                float c = Seg(T, 0.5f, 0.9f);
+                Ui.Rim(new Rect(R.x - 4f - 14f * c, R.y - 16f - 14f * c, R.width + 8f + 28f * c, R.height + 8f + 28f * c), WhoColor(info), 0.8f * (1f - c));
+            }
+            var oldMatrix = GUI.matrix;
+            GUI.matrix = Matrix4x4.TRS(new Vector3(offX + (x + s * (1f - sx) / 2f) * scale, offY + y * scale, 0f), Quaternion.identity,
+                new Vector3(scale * sx * s / 200f, scale * sy * s / 200f, 1f));
+            WithAlpha(a, () => DrawWhoDisk(new Rect(0f, 0f, 200f, 200f), info, info.Id == ProfileStore.ActiveId));
+            GUI.matrix = oldMatrix;
+            DrawDriveLip(1f, DriveForMenu());
         }
     }
 }
