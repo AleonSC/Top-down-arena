@@ -54,8 +54,8 @@ namespace Arena
             var px = new Color[size * size];
             float half = size / 2f;
             var surround = new Color(0.02f, 0.03f, 0.07f, 1f);
-            var band = new Color(0.06f, 0.10f, 0.21f, 1f);
-            var line = new Color(0.21f, 0.34f, 0.62f, 1f);
+            var band = new Color(0.075f, 0.12f, 0.235f, 1f);
+            var line = new Color(0.20f, 0.32f, 0.58f, 1f);
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
                 {
@@ -154,7 +154,7 @@ namespace Arena
                 for (int i = 0; i < EdgeSteps; i++)
                 {
                     float d = (i + 0.5f) * EdgeStep, z = (d - 20f) / 85f;
-                    edgeAlpha[i] = 0.78f * (1f - 1f / (1f + Mathf.Exp(-1.702f * z)));  // (the logistic curve stands in for the normal one)
+                    edgeAlpha[i] = 0.58f * (1f - 1f / (1f + Mathf.Exp(-1.702f * z)));  // (the mockup's 0.78 measured darker than the mockup looks; its background is a little lighter)  // (the logistic curve stands in for the normal one)
                 }
             }
             for (int i = 0; i < EdgeSteps; i++)
