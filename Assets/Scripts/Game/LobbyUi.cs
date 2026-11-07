@@ -19,6 +19,8 @@ namespace Arena
         // The hero card's live mini-arena (Showcase.cs): the real game, offline, using your weapon on target
         // dummies; it casts the ability or ultimate you last clicked (`detailSel`) until you click something else. Hovering shows nothing.
         Showcase showcase;
+        float showcaseZoomA;       // the zoom meter's fade (0 hidden .. 1 shown)
+        bool showcaseZoomDrag;
         float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
@@ -505,12 +507,13 @@ namespace Arena
             const float lw = 300f;
             var view = ShowcaseRect(r);
             DrawShowcase(me, view, roleColor);
+            DrawShowcaseZoom(view);  // (outside DrawShowcase: that returns early on every event but Repaint, and the slider needs the mouse events)
             if (!self)
             {
                 // The bot's name: type to rename it (up to 16 letters).
-                var nameBox = new Rect(view.x + 70f, view.y + 4f, view.width - 78f, 22f);
-                Ui.Fill(new Rect(view.x + 4f, view.y + 4f, view.width - 8f, 22f), new Color(0f, 0f, 0f, 0.6f));
-                Ui.Label(new Rect(view.x + 6f, view.y + 4f, 62f, 22f), "BOT NAME", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+                var nameBox = new Rect(view.x + 70f, view.y + 24f, view.width - 78f, 22f);
+                Ui.Fill(new Rect(view.x + 4f, view.y + 24f, view.width - 8f, 22f), new Color(0f, 0f, 0f, 0.6f));
+                Ui.Label(new Rect(view.x + 6f, view.y + 24f, 62f, 22f), "BOT NAME", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
                 Ui.Fill(nameBox, new Color(1f, 1f, 1f, 0.08f));
                 if (botNameFor != bot.Id)
                 {
@@ -1052,24 +1055,41 @@ namespace Arena
         }
 
         /// The zoom meter along the preview's lower edge (a slider, "-" and "+" steps, and the mouse wheel over the window).
-        void DrawShowcaseZoom(Rect view, Color roleColor)
+        void DrawShowcaseZoom(Rect view)
         {
+            if (uiGlBlocked || hangoutAnim > 0f)
+                return;
             const float Min = 0.5f, Max = 2f;
             var e = Event.current;
-            if (e.type == EventType.ScrollWheel && view.Contains(e.mousePosition))
+            bool over = view.Contains(e.mousePosition);
+            if (e.type == EventType.ScrollWheel && over)
             {
                 showcaseZoom = Mathf.Clamp(showcaseZoom * (e.delta.y > 0f ? 0.9f : 1.1f), Min, Max);
                 e.Use();
             }
-            var bar = new Rect(view.x + 6f, view.yMax - 42f, view.width - 12f, 18f);
-            Ui.Fill(new Rect(bar.x - 2f, bar.y - 2f, bar.width + 4f, bar.height + 4f), new Color(0f, 0f, 0f, 0.55f));
-            Ui.Label(new Rect(bar.x + 2f, bar.y, 54f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
-            var track = new Rect(bar.x + 62f, bar.y, bar.width - 62f, bar.height);
-            float lo = (float)System.Math.Log(Min), hi = (float)System.Math.Log(Max);
-            float t = Mathf.Clamp01(((float)System.Math.Log(showcaseZoom) - lo) / (hi - lo));  // log scale: out and in feel even
+            // Fades out until the mouse is over the window (it stays up while the slider is being dragged).
+            bool drag = showcaseZoomDrag;
+            if (e.type == EventType.Repaint)
+                showcaseZoomA = Mathf.MoveTowards(showcaseZoomA, over || drag ? 1f : 0f, Time.unscaledDeltaTime * (over || drag ? 8f : 2.5f));
+            if (e.type == EventType.MouseUp)
+                showcaseZoomDrag = false;
+            var bar = new Rect(view.x, view.y, view.width, 18f);  // flush with the top of the window
+            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f, bar.height);
+            if (e.type == EventType.MouseDown && track.Contains(e.mousePosition))
+                showcaseZoomDrag = true;
+            float oa = Ui.Alpha;
+            Ui.Alpha = oa * showcaseZoomA;
+            var oc = GUI.color;
+            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * showcaseZoomA);
+            Ui.Fill(bar, new Color(0f, 0f, 0f, 0.6f));
+            Ui.Label(new Rect(bar.x + 6f, bar.y, 62f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+            float lo = (float)System.Math.Log(Min), hi = (float)System.Math.Log(Max);  // log scale: out and in feel even
+            float t = Mathf.Clamp01(((float)System.Math.Log(showcaseZoom) - lo) / (hi - lo));
             float nt = Ui.Slider(track, t);
             if (nt != t)
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
+            GUI.color = oc;
+            Ui.Alpha = oa;
         }
 
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
@@ -1143,7 +1163,6 @@ namespace Arena
             Line(new V2(view.x, view.y), new V2(view.x, view.yMax), 1.5f, edge);
             Line(new V2(view.xMax, view.y), new V2(view.xMax, view.yMax), 1.5f, edge);
             EndUiGl();
-            DrawShowcaseZoom(view, roleColor);
             if (demo)
             {
                 var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));
