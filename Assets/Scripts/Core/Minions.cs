@@ -179,8 +179,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Earthquake, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Instant = true,
-                Name = "Earthquake", Cooldown = 10f, Desc = "You and every minion you have slam the ground, damaging and slowing enemies.",
-                Capstone = "Also freezes the enemies it hits for 1 s (not bosses).",
+                Name = "Earthquake", Cooldown = 10f, Desc = "You slam the ground (25 damage, slows), then a Burrower breaks out at your cursor and tunnels through the enemies for 3 s, hurting each one it passes under (30 damage).",
+                Capstone = "Also freezes everything it hurts for 1 s (not bosses).",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
             new AbilityDef
@@ -325,31 +325,8 @@ namespace Arena
                     break;
                 }
                 case AbilityId.Earthquake:
-                {
-                    var centers = new List<V2> { p.Pos };
-                    foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id)
-                            centers.Add(m.Pos);
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (e.SpawnT > 0f)
-                            continue;
-                        foreach (var c in centers)
-                            if (e.Pos.DistanceTo(c) < 140f + e.Radius)
-                            {
-                                HurtEnemy(e, 40f * dmg, p.Id);
-                                e.SlowT = Math.Max(e.SlowT, 2f);
-                                e.SlowMult = Math.Min(e.SlowMult, 0.5f);
-                                if (cap)
-                                    Freeze(e.Pos, 0f, 1f);
-                                break;
-                            }
-                    }
-                    foreach (var c in centers)
-                        BroadcastFx(FxKind.Boom, c, new Rgba(0.7f, 0.6f, 0.45f), 140f, 0.4f, Sfx.None);
-                    Sounds.Add(Sfx.Explode);
+                    CastEarthquake(p, target, cap, dmg);  // Burrower.cs
                     break;
-                }
                 case AbilityId.GuardianSpirit:
                     ForcePactCast(p, target, cap);  // ForcePact.cs
                     break;
@@ -568,6 +545,11 @@ namespace Arena
                 if (m.Kind == MinionKind.Hydra)
                 {
                     TickHydra(m, dmg);  // Hydra.cs
+                    continue;
+                }
+                if (m.Kind == MinionKind.Burrower)
+                {
+                    TickBurrower(m, owner, dt, dmg);  // Burrower.cs
                     continue;
                 }
                 if (IsTitanLike(m.Kind))

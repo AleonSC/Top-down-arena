@@ -63,6 +63,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
 - `WorldTree.cs`, `Game/WorldTreeLook.cs`: the Healer Summoner's World Tree ultimate: a 100 px zone for 15 s plus waves of healing butterflies (`MinionKind.Butterfly`, one per ally, target in `LinkTo`) and the tree's and butterflies' drawing
 - `Titan.cs`, `Game/TitanLook.cs`: the Tank Summoner's Titan ultimate (a 140 px colossus: rise, chase, 0.4 s wind-up slam, bullet block, crumble; `FxKind.TitanSlam` for the slam, stand-up thud and rubble; `Minion.Wind` is replicated for the wind-up)
+- `Burrower.cs`, `Game/BurrowerLook.cs`: the Tank Summoner's Earthquake (a 25-damage slam round you, then a `MinionKind.Burrower` that breaks out at the cursor and tunnels 3 s, biting each enemy it passes under once for 30; `FxKind.BurrowSnap` for the head popping up under a bite) and its drawing (mound, scar, dust, rock)
 - `Hydra.cs`, `Game/HydraLook.cs`: the Summoner DPS's Hydra ability (a stationary minion whose heads each spit at a different enemy) and its drawing
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
 
@@ -168,7 +169,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
 - `Ui.cs`: IMGUI style kit (panels, buttons, bars)
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks
-- `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`; the profile keeps the old CRT cabinet) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
+- `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
 - `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
 - `CrtUi.cs`: the green-phosphor CRT look of the latest-run card, the older-runs page and the tip box (`Begin`, glowing `Text`, inverse-video `Button`/`Small`/`Tile`, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
@@ -182,7 +183,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
 - `LobbyLayout.cs`: **the lobby's layout**: every box round the lobby's edges (header keys, mode keys, party column, Ready/Start, tab keys, the big screen) and the bands the entrance, leave, New run boot, return and launch cut it into; move a box here and those animations follow
 - `LobbyKit.cs`: lobby-only digital CRT keys, headings, panel, tiles and stat bars (`LobbyUi.cs` draws the lobby with them)
-- `LobbyCrt.cs`: the lobby's blue CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`; `LobbyEnter.cs` has the other entrances)
+- `LobbyCrt.cs`: the lobby's blue CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`, its sounds `PlayCrtEntryCues` with the `Sfx.Crt*` cues: power-on thump, typing keys, line beeps, scan sweep, ready chime; `LobbyEnter.cs` has the other entrances)
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages

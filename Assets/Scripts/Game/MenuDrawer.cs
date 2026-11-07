@@ -12,9 +12,13 @@ namespace Arena
     public partial class ArenaApp
     {
         // The floating cabinet: 24 px in from the left, top and bottom; CabW x CabH is the inside of its 1 px outline.
-        const float CabX = 24f, CabY = 24f, CabW = 408f, CabH = 670f;
+        const float CabX = 24f, CabY = 24f, CabW = 378f, CabH = 670f;
+        // The drawer stops short of whatever sits to its right by the margin that box has to the screen's other edge: the lobby's loadout box
+        // is LobbyBodyRect (440 to 1244 of 1280), so a 36 px gap, and the window the drawer opens takes the same place (DrawerPanel). This is the
+        // standard placement for every drawer menu; the drawer's contents are CabInW wide (rows CabRowW) inside it.
+        const float CabInW = CabW - 50f, CabRowW = CabW - 66f;
         const float DrawerSlideW = CabX + CabW + 2f + 40f;  // how far it slides to be out of sight, its glow included
-        static readonly Rect DrawerPanel = new Rect(470f, 40f, 770f, 640f);  // the open section, right of the drawer
+        static readonly Rect DrawerPanel = new Rect(440f, 40f, 804f, 640f);  // the open section, right of the drawer: where the lobby's loadout box is
 
         int pauseSel;            // the pause menu's highlighted choice (↑ ↓, Enter)
         bool pauseSettings;      // the pause menu showing Settings
@@ -144,14 +148,14 @@ namespace Arena
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "Esc closes this menu");
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your rank, records and unlocks", "Controls and tips",
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
             Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
             string[] licons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
             float y = cabScreen.y + 10f;
             for (int i = 0; i < LobbyChoices.Length; i++)
             {
-                var r = new Rect(34f, y, 342f, 58f);
+                var r = new Rect(34f, y, CabRowW, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     lobbySel = i;
                 if (DrawerRow(r, PixelArt.Get(licons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, lcols[i], i == lobbySel, null, i == LobbyChoices.Length - 1))
@@ -266,7 +270,7 @@ namespace Arena
             for (int k = 0; k < rows.Count; k++)
             {
                 int i = rows[k];
-                var r = new Rect(34f, y, 342f, 58f);
+                var r = new Rect(34f, y, CabRowW, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
                 if (DrawerRow(r, PixelArt.Get(picons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, pcols[i], k == pauseSel, null, i == PauseQuit))
@@ -335,7 +339,7 @@ namespace Arena
             float y = cabScreen.y + 10f;
             for (int i = 0; i < n; i++)
             {
-                var r = new Rect(34f, y, 342f, 58f);
+                var r = new Rect(34f, y, CabRowW, 58f);
                 if (cabScreenOn && r.Contains(e.mousePosition) && e.type == EventType.Repaint && e.mousePosition != pauseMouse)
                     confirmSel = i;
                 if (DrawerRow(r, null, names[i], lines[i], ids[i] == 2 ? "Esc" : null, null, Ui.Accent, i == confirmSel, null, ids[i] == 1))
@@ -447,14 +451,9 @@ namespace Arena
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
             float powerAge = CabAge - 1.3f;  // the box fades in after the cabinet's opening
-            if (cabFlat)
-            {
-                if (!CabCalm && powerAge < 0f)
-                    return;
-                CrtKit.LoadoutBox(r);
-            }
-            else if (!CrtKit.PowerOn(r, powerAge, CabCalm))
+            if (!CabCalm && powerAge < 0f)
                 return;
+            CrtKit.LoadoutBox(r);
             DrawPartyStack(r);  // the players, stacked up from its bottom
             float x = r.x + 20f, y = r.y + 16f;
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -519,11 +518,6 @@ namespace Arena
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, Color.white, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No challenge rooms on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A portal opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
-            if (!cabFlat)
-            {
-                CrtUi.End(r, t, CabCalm);
-                CrtKit.PowerFlash(r, powerAge, CabCalm);
-            }
             if (gl && BeginUiGl())
             {
                 UiClip(tile);
@@ -569,7 +563,7 @@ namespace Arena
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
                 bool on = cabWin && cabKind == 1 && cabWinOutAt < 0f && settingsGroup == i;
-                if (DrawerRow(new Rect(34f, y, 342f, 76f), PixelArt.Get(gicons[i]), SettingsGroups[i], lines[i], null, null, gcols[i], on))
+                if (DrawerRow(new Rect(34f, y, CabRowW, 76f), PixelArt.Get(gicons[i]), SettingsGroups[i], lines[i], null, null, gcols[i], on))
                 {
                     settingsGroup = i;
                     OpenCabWindow(1);  // (the first pick slides it out; later ones only retype it)
@@ -577,7 +571,7 @@ namespace Arena
                 y += 80f;
             }
             EndDrawerScreen();
-            if (CabBackKey())
+            if (CabBackKey(y + 6f))
             {
                 Keybinds.Listening = -1;
                 if (paused)
@@ -920,7 +914,7 @@ namespace Arena
             for (int i = 0; i < HowToTopics.Length; i++)
             {
                 bool on = cabWin && cabKind == 2 && cabWinOutAt < 0f && howToTopic == i;
-                if (DrawerRow(new Rect(34f, y, 342f, 52f), null, HowToTopics[i].Name, null, null, null, Ui.Accent, on))
+                if (DrawerRow(new Rect(34f, y, CabRowW, 52f), null, HowToTopics[i].Name, null, null, null, Ui.Accent, on))
                 {
                     howToTopic = i;
                     OpenCabWindow(2);
@@ -928,7 +922,7 @@ namespace Arena
                 y += 56f;
             }
             EndDrawerScreen();
-            if (CabBackKey())
+            if (CabBackKey(y + 6f))
                 CloseWindow(() => howToOpen = false);
             EndDrawer();
         }

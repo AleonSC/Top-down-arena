@@ -3,18 +3,19 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The CRT cabinet the in-game menus are made of (Docs/Mockups/crt-pause-menu.html): the pause menu, the lobby's Esc menu,
+    /// The drawer the in-game menus are made of (the lobby loadout's box, Docs/Mockups/pause-settings-loadout-box.html): the pause menu, the lobby's Esc menu,
     /// Settings, How to play and the profile. Pieces:
-    ///   BeginDrawer / DrawerRow / EndDrawerScreen / EndDrawer   the floating cabinet on the left: a header screen ("PAUSED_"), one
-    ///       screen of digital option keys, and (drawn by the caller) a physical Back key. Its OPENING plays once, from the
-    ///       window's clock (WinT, `CabAge`): the cabinet slides out, the header screen powers on, its text types and its
-    ///       sub-line types a boot log and then the real line, the options screen powers on, a scan bar sweeps it and the
-    ///       keys type in one after another. After CabOpenEnd seconds nothing here animates (a list that changes retypes
-    ///       its texts, CrtKit.Typed, and that is all). Reduced effects (fxReduced) or Visual effects off: no animation.
-    ///   OpenCabWindow / CloseCabWindow / DrawCabWindow          the CRT window to the right of the cabinet. It slides out from
-    ///       behind the cabinet and powers on the FIRST time something is picked; later picks only retype its text; closing
-    ///       slides it back in. BeginPanelAnim / OpenSectionPanel / EndPanelAnim are the window's frame, title and glass
-    ///       (a panel drawn without OpenCabWindow, like the profile's, powers on in place after the cabinet).
+    ///   BeginDrawer / DrawerRow / EndDrawerScreen / EndDrawer   the box on the left: a title ("PAUSED_") and a line under it, then
+    ///       the option keys, and (drawn by the caller, CabBackKey) a physical Back key right under the last one. Its OPENING plays
+    ///       once, from the window's clock (WinT, `CabAge`): the box slides out, the title types, its sub-line types a boot log and
+    ///       then the real line, a scan bar sweeps the list and the keys open one after another (KeyOpening: a bright line that
+    ///       opens to the key, then a flash) with their texts typing in. After CabOpenEnd seconds nothing here animates (a list
+    ///       that changes retypes its texts, CrtKit.Typed, and that is all). Reduced effects (fxReduced) or Visual effects off:
+    ///       no animation.
+    ///   OpenCabWindow / CloseCabWindow / DrawCabWindow          the window to the right of the box (a second loadout box). It slides
+    ///       out from behind the box the FIRST time something is picked; later picks only retype its text; closing slides it back
+    ///       in. BeginPanelAnim / OpenSectionPanel / EndPanelAnim are the window's frame and title (a panel drawn without
+    ///       OpenCabWindow, like the pause menu's run summary, comes in after the box).
     ///   WinKey / WinChoices / WinSlider / SwitchRow / WinLabel   the digital controls the windows are filled with.
     public partial class ArenaApp
     {
@@ -53,7 +54,6 @@ namespace Arena
         Rect cabScreen;
         int rowIndex;  // DrawerRow's count in the list being drawn (its typing slot and opening delay)
         bool cabScreenOn, cabScreenOpen;
-        bool cabFlat = true;   // the menus sit on the loadout's box (BeginDrawer's `loadout`); the window to the right follows
         float cabEdgeVis;  // how visible the soft edges are this frame (0: no cabinet menu was drawn)
         float cabScreenAge;
 
@@ -61,35 +61,26 @@ namespace Arena
         /// follows is drawn in cabinet coordinates (the inside of its outline, CabW x CabH) until EndDrawer. `screen` is the options
         /// screen's rect (default 26,150, 358 x 456); `header` the header screen's (default 26,26, 358 x 100; a shorter one gets a
         /// tighter title and sub-line).
-        /// `loadout` (the default): the cabinet is the lobby loadout's box (CrtKit.LoadoutBox) with the title and keys straight on it, no
-        /// screens inside. false keeps the CRT cabinet and its screens (the profile's, which draws screens of its own).
-        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null, Rect? header = null, bool loadout = true)
+        /// The drawer is the lobby loadout's box (CrtKit.LoadoutBox) with the title and keys straight on it, no screens inside.
+        void BeginDrawer(string title, Color accent, float k, string sub = null, int titleSize = 44, Rect? screen = null, Rect? header = null)
         {
             float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
             bool calm = CabCalm;
             float age = CabAge, now = WinNow;
             rowIndex = 0;
-            cabFlat = loadout;
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, H));
-            if (loadout)
-                CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
-            else
-                CrtKit.Cabinet(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
+            CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
-            var hr = header ?? new Rect(26f, 26f, 358f, 100f);
+            var hr = header ?? new Rect(26f, 26f, CabInW, 100f);
             bool tight = hr.height < 90f;
             float ty = tight ? 2f : 6f, th = tight ? 46f : 56f, sy = tight ? 50f : 64f;
             float ha = age - 0.5f;
-            if (loadout)
-            {
-                // No screen: a thin rule under the title and its line, and a ruled "MENU" heading over the keys.
-                if (ha > 0f || calm)
-                    Ui.Fill(new Rect(hr.x, hr.yMax + 4f, hr.width, 1f), new Color(0.12f, 0.23f, 0.4f));
-            }
-            if (loadout ? (calm || ha >= 0f) : CrtKit.PowerOn(hr, ha, calm))
+            if (ha > 0f || calm)  // a thin rule under the title and its line
+                Ui.Fill(new Rect(hr.x, hr.yMax + 4f, hr.width, 1f), new Color(0.12f, 0.23f, 0.4f));
+            if (calm || ha >= 0f)
             {
                 int size = Mathf.Min(titleSize, 40);
                 while (size > 16 && CrtUi.TitleWidth(title, size) > hr.width - 60f)
@@ -106,21 +97,16 @@ namespace Arena
                 if (!calm && age < CabOpenEnd && CrtKit.Settled("cab.sub", now))
                     subShown = CrtKit.BootLine(cabBootLog, subFull, age - 0.98f, false);  // the opening: a boot log first
                 Ui.Label(new Rect(hr.x + 20f, hr.y + sy, hr.width - 40f, 20f), subShown, 12, CabSoft, TextAnchor.MiddleLeft, true);
-                if (!loadout)
-                {
-                    CrtUi.End(hr, now, calm);
-                    CrtKit.PowerFlash(hr, ha, calm);
-                }
             }
 
             // The options screen.
-            cabScreen = screen ?? new Rect(26f, 150f, 358f, 456f);
+            cabScreen = screen ?? new Rect(26f, 150f, CabInW, 456f);
             cabScreenAge = age - 0.9f;
             cabScreenOpen = true;
-            cabScreenOn = loadout ? calm || cabScreenAge >= 0f : CrtKit.PowerOn(cabScreen, cabScreenAge, calm);
+            cabScreenOn = calm || cabScreenAge >= 0f;
         }
 
-        /// The options screen's glass: the scan bar of the opening, scanlines, and the power-on flash.
+        /// The scan bar that sweeps the options list in the opening.
         void EndDrawerScreen()
         {
             if (!cabScreenOpen)
@@ -129,10 +115,6 @@ namespace Arena
             if (!cabScreenOn)
                 return;
             CrtKit.ScanBar(cabScreen, CabAge - 1.2f, CabCalm);
-            if (cabFlat)
-                return;  // (the loadout box has no glass over its keys)
-            CrtUi.End(cabScreen, WinNow, CabCalm);
-            CrtKit.PowerFlash(cabScreen, cabScreenAge, CabCalm);
         }
 
         void EndDrawer()
@@ -160,6 +142,9 @@ namespace Arena
                 return false;
             float x0 = Mathf.Max(r.x, cabScreen.x + 8f), x1 = Mathf.Min(r.xMax, cabScreen.xMax - 8f);
             r = new Rect(x0, r.y, x1 - x0, r.height);
+            float ka;
+            if (!KeyOpening(r, i, out ka))
+                return false;
             string slot = "cab.r" + i;
             float d = 1.25f + i * 0.095f;
             string n = CabText(slot + ".n", name, d);
@@ -179,6 +164,7 @@ namespace Arena
             }
             else if (!string.IsNullOrEmpty(tag))
                 Ui.Label(new Rect(r.xMax - 126f, r.y, 114f, r.height), tag, 12, inv ? CrtKit.SoftText(col, true) : (tagColor ?? CabSoft), TextAnchor.MiddleRight, true);
+            CrtKit.PowerFlash(r, ka, CabCalm);
             return clicked;
         }
 
@@ -191,10 +177,34 @@ namespace Arena
                 Ui.Label(new Rect(30f, CabH - 28f, CabW - 50f, 16f), b, 11, c, TextAnchor.MiddleLeft, false);
         }
 
-        /// The physical Back key under the options screen (Settings, How to play from the main menu). True when pressed.
-        bool CabBackKey()
+        /// A key of the options list as the drawer opens: nothing until its turn (they come one after another down the list), then a
+        /// bright line that opens to the whole key (the screens' power-on, CrtKit.PowerRect), then the key with a flash fading over it
+        /// (DrawerRow). `age` is seconds since its turn. False while it isn't a whole key yet. After the opening, and with Reduced
+        /// effects, every key is simply there.
+        bool KeyOpening(Rect r, int i, out float age)
         {
-            return cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 616f, 358f, 44f), "BACK");
+            age = CabAge - (1.0f + i * 0.095f);
+            if (CabCalm || CabAge >= CabOpenEnd)
+                return true;
+            int st = CrtKit.PowerState(age, false);
+            if (st == 1)
+                Ui.Fill(CrtKit.PowerRect(r, age), new Color(0.8f, 0.9f, 1f, 0.55f));
+            return st == 2;
+        }
+
+        /// The physical Back key at `y` in the drawer, right under the options list (Settings, How to play, the profile). It comes in
+        /// after the last key. True when pressed.
+        bool CabBackKey(float y)
+        {
+            if (!cabScreenOn)
+                return false;
+            var r = new Rect(26f, Mathf.Min(y, CabH - 54f), CabInW, 44f);
+            float ka;
+            if (!KeyOpening(r, rowIndex, out ka))
+                return false;
+            bool pressed = CrtKit.PhysicalKey(r, "BACK");
+            CrtKit.PowerFlash(r, ka, CabCalm);
+            return pressed;
         }
 
         // --- The window to the right ------------------------------------------------------------------------------------
@@ -204,7 +214,7 @@ namespace Arena
         float cabWinInAt, cabWinOutAt = -1f;
         Action cabWinAfter;
         Rect cabWinRect;
-        bool cabWinOn, cabWinEnabledWas, cabWinFlat;
+        bool cabWinOn, cabWinEnabledWas;
         float cabWinPower;
         int cabWinRow;         // labels in the window so far (their typing slots)
 
@@ -315,15 +325,9 @@ namespace Arena
             float dx = -(DrawerPanel.xMax + 20f) * (1f - k);
             cabWinPower = cabKind == 0 ? WinNow - cabWinInAt : WinNow - cabWinInAt - 0.2f;
             cabWinRect = new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height);
-            cabWinFlat = cabFlat;
-            if (cabWinFlat)
-            {
-                cabWinOn = CabCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
-                if (cabWinOn)
-                    CrtKit.LoadoutBox(cabWinRect);
-            }
-            else
-                cabWinOn = CrtKit.PowerOn(cabWinRect, cabWinPower, CabCalm);  // (draws the line it opens from)
+            cabWinOn = CabCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
+            if (cabWinOn)
+                CrtKit.LoadoutBox(cabWinRect);
             cabWinEnabledWas = GUI.enabled;
             if (!cabWinOn || cabWinOutAt >= 0f)
                 GUI.enabled = false;
@@ -335,10 +339,6 @@ namespace Arena
         {
             PopShift();
             GUI.enabled = cabWinEnabledWas;
-            if (!cabWinOn || cabWinFlat)
-                return;
-            CrtUi.End(cabWinRect, Time.unscaledTime, CabCalm);
-            CrtKit.PowerFlash(cabWinRect, cabWinPower, CabCalm);
         }
 
         /// The window's heading: its title (big, typed, with the cursor), a small line under it and a rule; an X key at the
