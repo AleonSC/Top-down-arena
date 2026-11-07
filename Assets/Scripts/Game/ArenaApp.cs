@@ -30,7 +30,7 @@ namespace Arena
         int wildSecond = 1, wildKey = 1;  // a Wildcard's second ability (0-17) and its key (1 Q, 2 E, 3 Shift); see Defs.MakeWild
         int wildTab;                      // the lobby's Wildcard picker: 0 edits the first ability, 1 the second
         Kit kitChoice = Kit.Soldier;
-        bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
+        bool pauseMenuOpen, settingsOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the match (released, it resumes)
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked, mouseBlocked;  // a mouse press that belongs to a menu, not the game
@@ -472,13 +472,6 @@ namespace Arena
                     else
                         CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
                 }
-                else if (howToOpen)
-                {
-                    if (CabWindowOpen)
-                        CloseCabWindow();
-                    else
-                        CloseWindow(() => howToOpen = false);
-                }
                 else if (profileOpen)
                 {
                     if (editingName)
@@ -720,13 +713,6 @@ namespace Arena
                         DrawMenuUnderDrawer(bgBig);
                         DrawSettings();
                     }
-                    else if (howToOpen)
-                    {
-                        DrawMenuUnderDrawer(false);
-                        DrawHowToPlay();
-                    }
-                    else if (continueOpen)
-                        DrawContinue();  // SavesUi.cs
                     else if (profileOpen)
                     {
                         DrawMenuUnderDrawer(false);

@@ -25,6 +25,8 @@ namespace Arena
         bool pauseHowTo;         // the pause (or lobby) menu showing How to play
         bool pauseRecords;       // the lobby or pause menu showing the profile (ProfileUi.cs, without the Look tab)
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
+        int howToShown;
+        int settingsShown = 1;   // the section on screen (follows settingsGroup once the old one has erased)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
         int recordsSection;      // the Records tab's open row: 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Recent runs (ProfileUi.cs)
         int howToTopic;          // HowToTopics
@@ -589,12 +591,13 @@ namespace Arena
         void DrawSettingsSection(float t)
         {
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
-            if (settingsGroup != 3)
+            int group = PanelShown(ref settingsShown, settingsGroup);  // (the old section erases first, CrtWindows.cs)
+            if (group != 3)
                 Keybinds.Listening = -1;  // (leaving the page ends a rebind)
             var col = CrtUi.Ink;
-            BeginPanelAnim("settings" + settingsGroup);
+            BeginPanelAnim("settings" + group);
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, y = DrawerPanel.y + 102f;
-            switch (settingsGroup)
+            switch (group)
             {
                 case 0:
                 {
@@ -908,58 +911,31 @@ namespace Arena
 
         static readonly Color HowToColor = new Color(0.3f, 0.45f, 0.75f);  // the How to play button, as on the main menu
 
-        /// How to play from the main menu: the cabinet lists the topics, the open one is in the window.
-        void DrawHowToWindow()
-        {
-            DrawerIn("howto", true);
-            howToTopic = Mathf.Clamp(howToTopic, 0, HowToTopics.Length - 1);
-            DrawCabWindow();  // (first: it comes out from behind the cabinet)
-            BeginDrawer("HOW TO PLAY", Ui.Accent, 1f, "Pick a topic to open it");
-            float y = cabScreen.y + 10f;
-            for (int i = 0; i < HowToTopics.Length; i++)
-            {
-                bool on = cabWin && cabKind == 2 && cabWinOutAt < 0f && howToTopic == i;
-                if (DrawerRow(new Rect(34f, y, CabRowW, 52f), null, HowToTopics[i].Name, null, null, null, Ui.Accent, on))
-                {
-                    howToTopic = i;
-                    OpenCabWindow(2);
-                }
-                y += 56f;
-            }
-            EndDrawerScreen();
-            if (CabBackKey(y + 6f))
-                CloseWindow(() => howToOpen = false);
-            EndDrawer();
-        }
-
         /// The open How to play topic, in the window. From the pause and lobby menus (where the cabinet's list stays) the topics
         /// are keys along the top of the window.
         void DrawHowToBody(float t)
         {
             howToTopic = Mathf.Clamp(howToTopic, 0, HowToTopics.Length - 1);
-            BeginPanelAnim("howto" + howToTopic);
-            var topic = HowToTopics[howToTopic];
+            int shownTopic = PanelShown(ref howToShown, howToTopic);
+            BeginPanelAnim("howto" + shownTopic);
+            var topic = HowToTopics[shownTopic];
             OpenSectionPanel(topic.Name.ToUpperInvariant(), topic.Color, topic.Intro, 1f);
-            float top = DrawerPanel.y + 112f;
-            if (!howToOpen)
+            // The topics as keys along the top of the window (the cabinet's list stays on the pause or lobby menu).
+            float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, cx = x, ty = DrawerPanel.y + 98f;
+            for (int i = 0; i < HowToTopics.Length; i++)
             {
-                float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f, cx = x, ty = DrawerPanel.y + 98f;
-                for (int i = 0; i < HowToTopics.Length; i++)
+                string n = HowToTopics[i].Name.ToUpperInvariant();
+                float bw = Ui.TextWidth(n, 15, true) + 24f;
+                if (cx + bw > x + w && cx > x)
                 {
-                    string n = HowToTopics[i].Name.ToUpperInvariant();
-                    float bw = Ui.TextWidth(n, 15, true) + 24f;
-                    if (cx + bw > x + w && cx > x)
-                    {
-                        cx = x;
-                        ty += 38f;
-                    }
-                    if (WinKey(new Rect(cx, ty, bw, 32f), n, i == howToTopic, 15))
-                        howToTopic = i;
-                    cx += bw + 6f;
+                    cx = x;
+                    ty += 38f;
                 }
-                top = ty + 48f;
+                if (WinKey(new Rect(cx, ty, bw, 32f), n, i == howToTopic, 15))
+                    howToTopic = i;
+                cx += bw + 6f;
             }
-            DrawHowToTopic(HowToTopics[howToTopic], t, top);
+            DrawHowToTopic(HowToTopics[shownTopic], t, ty + 48f);
             EndPanelAnim();
         }
 

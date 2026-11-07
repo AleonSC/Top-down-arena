@@ -11,7 +11,7 @@ profile           profile
 cosmetics         cosmetics
 records           records
 records-recent    records   SECTION=4
-howto             howto
+howto             lobby     LOBBYMENU=howto
 guide             guide
 # Settings (main menu); SECTION = group: 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
 settings-audio    settings  SECTION=0

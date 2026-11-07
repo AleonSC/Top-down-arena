@@ -47,6 +47,34 @@ namespace Arena
             public float T0;
         }
 
+        /// While true, `Typed` leaves existing slots alone (the old section keeps drawing its text while it backspaces away).
+        public static bool Hold;
+
+        /// Start every slot whose name starts with `prefix` backspacing to nothing.
+        public static void EraseAll(string prefix, float now)
+        {
+            foreach (var kv in slots)
+                if (kv.Key.StartsWith(prefix) && kv.Value.Target.Length > 0)
+                {
+                    kv.Value.From = Visible(kv.Value, now);
+                    kv.Value.Target = "";
+                    kv.Value.T0 = now;
+                }
+        }
+
+        /// Make sure the first `count` rows of the cabinet's list have slots, empty, so a list that switches types them all
+        /// (a row never drawn before would otherwise just appear).
+        public static void SeedRows(int count, float now)
+        {
+            for (int i = 0; i < count; i++)
+                foreach (var sfx in new[] { ".n", ".s" })
+                {
+                    string k = "cab.r" + i + sfx;
+                    if (!slots.ContainsKey(k))
+                        slots[k] = new Slot { T0 = now };
+                }
+        }
+
         static readonly Dictionary<string, Slot> slots = new Dictionary<string, Slot>();
 
         /// What to show now for a label that retypes when its text changes: the old text backspaces away over EraseLen,
@@ -54,6 +82,9 @@ namespace Arena
         /// seconds). `slot` names the label (any unique string); calm shows the text as it is.
         public static string Typed(string slot, string target, float now, bool calm, float delay = 0f)
         {
+            Slot held;
+            if (Hold && !calm && slots.TryGetValue(slot ?? "", out held))
+                return Visible(held, now);  // (a section is erasing: show what the slot is doing, whatever it is asked for)
             if (calm || string.IsNullOrEmpty(slot) || string.IsNullOrEmpty(target) && !slots.ContainsKey(slot))
                 return target ?? "";
             target = target ?? "";

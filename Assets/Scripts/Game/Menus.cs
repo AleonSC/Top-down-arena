@@ -598,7 +598,6 @@ namespace Arena
         };
 
         /// How to play, as the side drawer (MenuDrawer.cs).
-        void DrawHowToPlay() { if (!SkipWhileClosing) DrawHowToWindow(); }  // (a closing window takes no clicks, WindowAnim.cs)
 
         /// A keyboard key: a raised cap with its label. Returns its width.
         float KeyCap(float x, float y, string key)

@@ -300,7 +300,7 @@ static partial class Shot {
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr")
+    else if (mode == "menu" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr")
     {
       // who: the "Who's playing?" screen with made-up profiles (TWO=1: two of them, so one slot says Empty; MANAGE=1: Rename and Delete showing; EMPTY=1: none yet).
       // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..5.4>,<slot 0..2>[,back].
@@ -313,9 +313,8 @@ static partial class Shot {
         typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
       }
       if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }
-      // continue / records: the saved-runs list and the Records page, with made-up saves and a profile (SavesUi.cs).
-      if (mode == "continue" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "menu") PreviewSaves();
-      if (mode == "continue") { typeof(ArenaApp).GetMethod("OpenContinue", f2).Invoke(app, null); if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>()); }
+      // records: the Records page, with made-up saves and a profile (SavesUi.cs).
+      if (mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "menu") PreviewSaves();
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = Shot.Now.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
@@ -338,19 +337,17 @@ static partial class Shot {
       var secEnv = Environment.GetEnvironmentVariable("SECTION");
       if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("rankSection", sec); set("unlocksSection", sec); set("howToTopic", sec); }
       if (Environment.GetEnvironmentVariable("REDUCED") != null) set("fxReduced", true);  // Reduced effects (calm CRT)
-      // The window beside the cabinet (CrtWindows.cs): settings and howto open one (NOWIN=1: just the cabinet's list); WINWIN=<s>: that long since it began to slide out.
+      // The window beside the cabinet (CrtWindows.cs): settings opens one (NOWIN=1: just the cabinet's list); WINWIN=<s>: that long since it began to slide out.
       float winWin = Environment.GetEnvironmentVariable("WINWIN") != null ? float.Parse(Environment.GetEnvironmentVariable("WINWIN"), System.Globalization.CultureInfo.InvariantCulture) : 10f;
       set("cabInstant", true);
-      if (mode == "howto") set("howToOpen", true);
       if (mode == "settings") set("settingsOpen", true);
       if (Environment.GetEnvironmentVariable("NOWIN") == null) {
         if (mode == "settings") { if (secEnv == null) set("settingsGroup", 1); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 1 }); set("cabWinInAt", Time.unscaledTime - winWin); }
-        else if (mode == "howto") { typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - winWin); }
         else if (mode == "records" || mode == "cosmetics" || mode == "profile") { set("profileTab", mode == "records" ? 2 : mode == "cosmetics" ? 0 : (Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 0)); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 3 }); set("cabWinInAt", Time.unscaledTime - winWin); }
       }
       if (Environment.GetEnvironmentVariable("RTAB") != null) set("recentTab", int.Parse(Environment.GetEnvironmentVariable("RTAB")));  // Recent runs: 0 Overview, 1 Trends (SECTION=4 opens the page)
       if (Environment.GetEnvironmentVariable("RSEL") != null) set("recentSel", int.Parse(Environment.GetEnvironmentVariable("RSEL")));
-      set("drawerKey", mode == "howto" ? "howto" : (mode == "records" || mode == "cosmetics" || mode == "profile") ? "profile" : mode);
+      set("drawerKey", (mode == "records" || mode == "cosmetics" || mode == "profile") ? "profile" : mode);
       // The profile (ProfileUi.cs): records opens its Records tab, cosmetics the Look tab, profile the tab in TAB (0 Look, 1 Rank, 2 Records, 3 Unlocks; default Look).
       if (mode == "records") set("profileTab", 2); else if (mode == "cosmetics") set("profileTab", 0); else if (mode == "profile") set("profileTab", Environment.GetEnvironmentVariable("TAB") != null ? int.Parse(Environment.GetEnvironmentVariable("TAB")) : 0); set("drawerAt", -10f);
       // WINT=<s>: that far into the window's opening; WINCLOSE=0..1: that far through closing (WindowAnim.cs).
@@ -361,7 +358,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuTipHide", 1f); }
       if (Environment.GetEnvironmentVariable("MENUTIPAT") != null) { Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUTIPAT"), System.Globalization.CultureInfo.InvariantCulture); set("menuTipAt", Time.unscaledTime - 1f); }  // sets the clock; the tip box shows its tip fully from 0.25 s on
       if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipIdx", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which tip the box shows (0-13)
-      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "whotr" ? "DrawProfTr" : "DrawHowToPlay", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "kitgrid")

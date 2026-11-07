@@ -22,7 +22,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, meterThumb, check, hud, hudGrad, hudLit, hudRim, pill, rim;
+        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, check, hud, hudGrad, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
@@ -148,7 +148,6 @@ namespace Arena
             thumb = new GUIStyle();
             thumb.normal.background = thumb.hover.background = thumb.active.background = Circle(18, Color.white, Accent);
             thumb.fixedWidth = thumb.fixedHeight = 18f;
-            meterThumb = new GUIStyle { fixedWidth = 1f, fixedHeight = 1f };  // invisible: the meter draws the value
 
             checkOff = Rounded(5, new Color(0.06f, 0.07f, 0.1f), new Color(0.07f, 0.08f, 0.12f), new Color(0.4f, 0.45f, 0.6f), 1.5f, 22);
             checkOn = Rounded(5, Accent, new Color(0.25f, 0.45f, 0.85f), new Color(0.6f, 0.75f, 1f), 1.5f, 22);
@@ -751,47 +750,6 @@ namespace Arena
             bool hot = live && th.Contains(Event.current.mousePosition);
             Fill(th, hot ? Color.Lerp(ink, Color.white, 0.5f) : ink);
             Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtUi.Bg);
-        }
-
-        static readonly System.Collections.Generic.Dictionary<int, float> meterKick = new System.Collections.Generic.Dictionary<int, float>();
-
-        /// Level-meter slider (Settings > Audio): 100 thin bars that light up to the value, amber then red at the top, in `tint`.
-        /// Drag or click anywhere on it; r should be about 36 px tall. Lit bars ripple like a live meter (faster and
-        /// livelier the higher the value), glow, and the bars at the value kick up when it changes, then settle.
-        public static float MeterSlider(Rect r, float value, Color tint)
-        {
-            const int Segs = 100;
-            float v = GUI.HorizontalSlider(r, value, 0f, 1f, track, meterThumb);
-            float t = Time.unscaledTime;
-            int id = Mathf.RoundToInt(r.y * 7f + r.x);
-            float kick;
-            meterKick.TryGetValue(id, out kick);
-            if (v != value)
-                kick = 1f;
-            else
-                kick = Mathf.Max(0f, kick - Time.unscaledDeltaTime * 2.2f);
-            meterKick[id] = kick;
-            float gap = 2f, bw = (r.width - gap * (Segs - 1)) / Segs;
-            int peak = Mathf.RoundToInt(v * Segs) - 1;
-            for (int i = 0; i < Segs; i++)
-            {
-                float h = r.height * (0.5f + 0.3f * Mathf.Abs(Mathf.Sin(i * 0.12f)));
-                bool on = (i + 0.5f) / Segs <= v;
-                Color c = !on ? new Color(0.17f, 0.2f, 0.28f) : i >= Segs * 0.85f ? new Color(1f, 0.33f, 0.44f) : i >= Segs * 0.7f ? new Color(1f, 0.71f, 0.28f) : tint;
-                if (on)
-                {
-                    // only while moving: a wave runs back from the value and dies out as the kick fades
-                    float near = Mathf.Clamp01(1f - Mathf.Abs(i - peak) / 20f);
-                    float wave = 0.5f + 0.5f * Mathf.Sin(t * 18f - i * 0.3f);
-                    h += r.height * 0.45f * kick * near * wave;
-                }
-                h = Mathf.Min(r.height, h);
-                var bar = new Rect(r.x + i * (bw + gap), r.yMax - h, bw, h);
-                if (on)
-                    Fill(new Rect(bar.x - 1f, bar.y - 1f, bar.width + 2f, bar.height + 1f), new Color(c.r, c.g, c.b, 0.18f));
-                Fill(bar, c);
-            }
-            return v;
         }
 
         public static bool Toggle(Rect r, bool value, string text)

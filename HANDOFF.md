@@ -268,7 +268,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Keybinds.cs`, `KeybindsUi.cs` | 0.3k, 0.1k | the rebindable controls (Fire and Parry too; they default to the mouse buttons and `ArenaApp` blocks each while a menu is up): `KeyAction` enum, defaults (weapon secondary = Left Alt), PlayerPrefs save (`key_<Action>`), `Keybinds.Tick` captures the next key while rebinding (`Busy` swallows Esc and gameplay keys that frame), `Down`/`Held` for the game, `SlotLabels` for the ability bar; Settings → Keybinds draws the page. `PlayerInput.WeaponAction` is local (not networked, no protocol bump); `Ninja.cs` `LocalWeaponDash` uses it for the Kunai blink, Twin Blades dash-strike, Shuriken recall, Bo Staff shove and Kusarigama reel |
 | `MenuDrawer.cs`, `WindowAnim.cs` | 1.1k, 0.2k | the menu windows as a side drawer (pause menu, Settings, Profile, How to play; `DrawRecordsSection` draws the Records, Unlocks and Rank pages) and their slide-and-stagger animation |
 | `RunEnding.cs`, `Recall.cs` | 0.25k, 0.2k | the run ending ("last breath") and going back to the lobby ("beam out") |
-| `SavesUi.cs`, `HuntUi.cs` | 0.4k, 0.1k | Play picker in the menu box (`DrawPlayPicker`; the old Continue window `DrawContinue` is no longer reachable), the boss list the Records tab reads, unlock toasts; the lobby's Boss Hunt tab |
+| `SavesUi.cs`, `HuntUi.cs` | 0.4k, 0.1k | Play picker in the menu box (`DrawPlayPicker`), the boss list the Records tab reads, unlock toasts; the lobby's Boss Hunt tab |
 
 ### Key mechanisms worth knowing
 
@@ -409,7 +409,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   first vertex's colour, no glow), which can't show gradients or glows, so don't judge effects with it. `SHOTW=<WeaponId>` fires that weapon three times (shots at 0.06 / 0.18 / 0.3 s) for comparing shot looks with
   `Docs/Mockups/projectiles.html`. `LINEAR=1` shows
   how a Linear-colour-space project would draw it (washed out); the game is meant for **Gamma** (see below). Modes: `hud`,
-  `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `howto`, `bg` (with
+  `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `bg` (with
   `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with each pair
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
   fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit
