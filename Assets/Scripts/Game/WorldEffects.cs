@@ -139,7 +139,7 @@ namespace Arena
                     DrawHarvestThrowFx(fx);  // CrimsonHarvestLook.cs
                     break;
                 case FxKind.TitanSlam:
-                    DrawTitanFx(fx);  // TitanLook.cs
+                    DrawTitanFx(fx, false);  // TitanLook.cs (its cracks and rubble are the floor pass: DrawTitanFloor)
                     break;
                 case FxKind.BurrowSnap:
                     DrawBurrowSnapFx(fx);  // BurrowerLook.cs

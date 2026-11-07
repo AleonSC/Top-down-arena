@@ -146,6 +146,7 @@ namespace Arena
             DrawRecallWorld(t);      // back to the lobby: everyone beamed out (Recall.cs)
             DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
+            DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
