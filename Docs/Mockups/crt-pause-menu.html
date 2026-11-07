@@ -210,6 +210,53 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 .stage.intro-decode .hdr .t { animation: tear .7s steps(1) .5s both; }
 .stage.intro-decode:not(.closed):not(.calm):not(.noanim) .pwr, .stage.intro-decode:not(.closed):not(.calm):not(.noanim) .tac { animation: pwrD .5s steps(5) both; animation-delay: var(--d, .5s); }
 
+/* ---- the lobby's fixes, for the cabinet menus: a floating cabinet with soft edges, light keys, quiet tabs ---- */
+.stage { --hdc: #5ad8e8; }
+.po { height: 40px; }
+/* a floating cabinet with a margin and soft edges */
+.float .dA { left: 24px; top: 24px; height: 672px; border: 1px solid #3a55a5; border-radius: 14px; box-shadow: 0 0 40px rgba(40,80,255,.22), inset 0 0 40px rgba(0,0,0,.35); overflow: hidden; }
+.float .dA::after { display: none; }
+.float .ledstrip { right: 8px; }
+.edges::after { content: ""; position: absolute; inset: 0; z-index: 40; pointer-events: none; border-radius: 30px; box-shadow: inset 0 0 160px 24px rgba(0,0,0,.74), inset 0 0 0 7px var(--rim), inset 0 0 0 9px var(--dim); }
+/* light keys: a faint tint, a thin outline, smaller text; the open one gets an underline glow, not a fill */
+.soft .key { font: 700 13px var(--f-ui); letter-spacing: .04em; text-shadow: none; border-width: 1px; border-color: color-mix(in srgb, var(--ink) 50%, transparent); background: color-mix(in srgb, var(--ink) 7%, transparent); color: color-mix(in srgb, var(--ink) 68%, #fff); }
+.soft .key:hover { background: color-mix(in srgb, var(--ink) 16%, transparent); border-color: color-mix(in srgb, var(--ink) 90%, transparent); color: #fff; }
+.soft .key.sel { background: color-mix(in srgb, var(--ink) 22%, transparent); border: 2px solid var(--ink); color: #fff; box-shadow: inset 0 -3px 0 -1px var(--ink), 0 0 12px color-mix(in srgb, var(--ink) 30%, transparent); }
+.soft .key.off { color: var(--dim); }
+.soft .key.danger { color: #ff9aa6; border-color: rgba(255,107,122,.55); background: rgba(255,107,122,.07); }
+.soft .key.danger:hover, .soft .key.danger.sel { background: rgba(255,107,122,.2); color: #fff; border-color: #ff6b7a; box-shadow: inset 0 -3px 0 -1px #ff6b7a; }
+.soft .opt .n, .soft .po .n { font: 700 16px var(--f-ui); letter-spacing: .06em; }
+.soft .opt small, .soft .po small { font-size: 11px; opacity: .8; }
+.soft .opt .hk { font: 700 10px var(--f-ui); }
+.soft .opt { height: 54px; }
+.soft .key.sm { font-size: 12px; } .soft .keybind { font-size: 12px; }
+.soft .t { font-size: 40px; }
+.soft .wh h2 { font-size: 34px; } .soft .pane h2 { font-size: 30px; }
+.soft .rowc b { font: 700 16px var(--f-ui); letter-spacing: .02em; } .soft .rowc small { font-size: 12px; }
+.soft .val { font: 700 22px var(--f-ui); letter-spacing: .04em; }
+.soft .crow .nm { font: 700 16px var(--f-ui); letter-spacing: .02em; } .soft .crow small.st { font-size: 11px; }
+.soft .ck .key { height: 28px; min-width: 76px; font-size: 12px; }
+.soft .ck .key.gold { background: rgba(255,204,89,.22); border: 2px solid #ffcc59; color: #ffe9b0; box-shadow: inset 0 -3px 0 -1px #ffcc59; }
+.soft .lab { font-family: var(--f-ui); font-weight: 600; font-size: 12px; }
+.soft .sum .at span { font-size: 30px !important; }
+.soft .txt p { font: 500 17px/1.25 var(--f-ui); letter-spacing: .01em; }
+/* the pause list keeps the original's soft colour on each row's icon and name */
+.soft .opts .key.opt:nth-child(1) { --ink: #6fa0ff; } .soft .opts .key.opt:nth-child(2) { --ink: #ffcc59; } .soft .opts .key.opt:nth-child(3) { --ink: #7a9bff; }
+.soft .opts .key.opt:nth-child(4) { --ink: #ffcc59; } .soft .opts .key.opt:nth-child(5) { --ink: #8ea6e8; } .soft .opts .key.opt:nth-child(6) { --ink: #b0b8d0; }
+.soft .opts .key.opt:nth-child(7) { --ink: #ff9a8a; }
+/* quiet tabs on the profile: small, faded, no boxes; the open one is a small lit pill */
+.quiet .tabsb { background: transparent; box-shadow: none; }
+.quiet .tabsb::before, .quiet .tabsb::after { display: none; }
+.quiet .g4 .key { background: transparent; border: 0; box-shadow: none; font: 700 12px var(--f-ui); letter-spacing: .12em; color: color-mix(in srgb, var(--ink) 48%, transparent); }
+.quiet .g4 .key:hover { color: color-mix(in srgb, var(--ink) 85%, #fff); background: transparent; }
+.quiet .g4 .key.sel { background: color-mix(in srgb, var(--ink) 30%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 75%, transparent); border-radius: 3px; color: #fff; box-shadow: none; }
+/* no edge dots or comb: the cabinet takes the lobby's own bracket corners instead */
+.float .ledstrip { display: none; }
+.float .dA::before, .float .dA::after { display: block; content: ""; position: absolute; width: 20px; height: 20px; border: 2px solid var(--ink); background: none; opacity: .9; left: auto; right: auto; top: auto; bottom: auto; }
+.float .dA::before { left: 8px; top: 8px; border-right: 0; border-bottom: 0; }
+.float .dA::after { right: 8px; bottom: 8px; border-left: 0; border-top: 0; }
+.float .wnd::before { z-index: 8; }
+
 </style>
 <div class="wrap">
 <header><h1>CRT Cabinet Menu</h1><p>One cabinet with a header screen and an option screen, for both Pause and Settings. The cabinet stays on the left. Each option opens its own CRT window to its right; the window slides out on the first pick, and later picks rewrite its text. Settings is a menu like Pause, with each section in a window. Pick an opening under Opening and press Replay. Esc slides the menu away and back; arrow keys and Enter work on the pause list. Reduced effects (under Visual effects) really turns the glow, roll bar and flicker off.</p></header>
@@ -217,9 +264,10 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 <div class="grp"><span>View</span><button class="seg" id="bv-pause" aria-pressed="true">Pause menu</button><button class="seg" id="bv-set" aria-pressed="false">Settings</button><button class="seg" id="bv-how" aria-pressed="false">How to play</button><button class="seg" id="bv-stats" aria-pressed="false">Run stats</button></div>
 <div class="grp"><span>Slide</span><button class="seg" id="bv-replay" aria-pressed="false">Replay</button><button class="seg" id="bv-close" aria-pressed="false">Out / in</button></div>
 <div class="grp"><span>Opening</span><button class="seg" data-intro="plain" aria-pressed="false">Plain</button><button class="seg" data-intro="boot" aria-pressed="true">Boot log + power-up</button><button class="seg" data-intro="rack" aria-pressed="false">Rack flicker</button><button class="seg" data-intro="decode" aria-pressed="false">Decode glitch</button></div>
+<div class="grp"><span>Fixes</span><button class="seg" data-opt="float" aria-pressed="true">Floating cabinet</button><button class="seg" data-opt="edges" aria-pressed="true">Soft edges</button><button class="seg" data-opt="soft" aria-pressed="true">Light keys</button></div>
 <div class="grp"><span>Phosphor</span><button class="seg" data-pal="blue" aria-pressed="true">Blue</button><button class="seg" data-pal="green" aria-pressed="false">Green</button><button class="seg" data-pal="cyan" aria-pressed="false">Cyan</button><button class="seg" data-pal="amber" aria-pressed="false">Amber</button></div>
 </div>
-<div class="view" id="view"><div class="stage" id="stage" data-pal="blue"></div></div>
+<div class="view" id="view"><div class="stage float edges soft" id="stage" data-pal="blue"></div></div>
 <p class="note">Blue matches the main menu's screens today (CrtUi.Ink). Digital keys flip to inverse video on hover, like Continue on the runs list. Physical Back and the rack's keys are the tactile chassis style.</p>
 </div>
 <script>
@@ -291,7 +339,7 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     }
     h = head('SETTINGS', 'Pick one to open it', 'left:26px;top:26px;width:358px;height:100px;padding:14px 20px;--d:.35s');
     GROUPS.forEach(function (x, i) { keys += '<button class="key opt ' + (S.win && S.win.kind === 'settings' && S.win.g === i ? 'sel' : '') + '" data-sg="' + i + '" style="height:76px"><span class="n">' + x[0] + '</span><small>' + x[1] + '</small></button>'; });
-    return h + '<div class="scr pwr opts" style="left:26px;top:150px;width:358px;height:456px;--d:.5s">' + keys + '<div class="roll"></div></div>' + back('left:26px;top:626px;width:358px') + '<div class="foot">ESC BACK</div>' + leds();
+    return h + '<div class="scr pwr opts" style="left:26px;top:150px;width:358px;height:456px;--d:.5s">' + keys + '<div class="roll"></div></div>' + back('left:26px;top:614px;width:358px;height:44px;padding:0 18px 0 34px;display:flex;align-items:center;justify-content:center') + leds();
   }
   function winData() {
     var w = S.win, g = w.g;
@@ -452,4 +500,13 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
   render(true);
 })();
 
+</script>
+<script>
+document.querySelectorAll('button[data-opt]').forEach(function (b) {
+  b.onclick = function () {
+    var on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', on);
+    document.getElementById('stage').classList.toggle(b.dataset.opt, on);
+  };
+});
 </script>
