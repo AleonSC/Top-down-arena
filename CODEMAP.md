@@ -133,6 +133,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `MendPulseLook.cs`: the Healer Soldier's Mend Pulse with Visual effects on: a swelling fill, a double-beat ring and a heart on each ally reached (style B, Heartbeat)
 - `TankLooks.cs`: the Tank Soldier's Roar (wave, enemy "!" pops, orbiting plates, draining rim, tethers) and Bulldoze (lane, afterimages, bow wave, hit sparks, landing stomp) with Visual effects on, timed from the cast's `FxKind.Callout`
 - `SanctumLook.cs`: Sanctum's Bubble look (shimmering shell, pulse discs and sparkles, rim flare, flicker at the end); the old plain dome with Visual effects off
+- `GolemWallLook.cs` (Game): the Summoner Tank's Golem Wall as the Basalt look (golems with no timer, ember veins and cracks that grow with wear, ground seam, rise dust, rubble when broken; `Docs/Mockups/golem-wall-rework.html`)
 - `CloneWallLook.cs` (Game): the Ninja's Shadow Clone wall as the Afterimage Phalanx (dash-out afterimages, landing ring, energy fence, glitch hits, shatter; `Docs/Mockups/shadow-clone-wall.html`)
 - `ShieldWallLook.cs`: the Knight's Shield Wall as seven steel plates that slam down, kick, crack and break one by one (`Docs/Mockups/shield-wall.html`).
 - `SmokeBombLook.cs`: the Ninja's Smoke Bomb cloud, crack and seal ring, with Visual effects on (`Docs/Mockups/ninja-smoke-bomb.html`).
@@ -156,7 +157,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
 - `CardArt.cs`: the picker cards' shaded gradient bodies (one texture per colour; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
-- `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker, run summary, Tab menu, ability tile animations
+- `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker, run summary (the "Rack" of `Docs/Mockups/crt-run-failed.html`: blue CRT tubes for title, totals, each player and the run's damage and health charts, the main menu's keycaps along the bottom), Tab menu, ability tile animations
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
 - `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen, hunt tab

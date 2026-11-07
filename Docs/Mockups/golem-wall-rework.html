@@ -1,0 +1,521 @@
+<title>Golem Wall Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a live arena patch on top (the Tank Summoner, three golems, three shooters), an HP timeline under it that shows how
+   long each wall lasts, still frames (rising, cracking, crumbling), one card per style, then build notes. Same field-manual
+   look as the other mockups, single dark look by choice because it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+.chip b { color: var(--amber); font-weight: 500; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+#tl { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 150; background: #0c1015; border-top: 1px solid var(--line); }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2418; border-color: var(--amber); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--amber); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.strips { display: grid; gap: 14px; padding: 0 16px 16px; }
+.strips h3 { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 1 / 1; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--amber); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--amber); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+
+@media (max-width: 700px) {
+  .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .now { margin-left: 0; width: 100%; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Summoner · Tank · Golem Wall · pick a style</div>
+    <h1>Golem Wall <span>rework</span></h1>
+    <p class="lead">Today the Golem Wall is three small grey blocks (22 px radius) that stand in front of you for 6 seconds and
+      then vanish, however much they have left. This rework makes them real golems: bigger, heavier, and they stay until they
+      are broken. Each golem soaks 200 damage, shows its wear as cracks, and crumbles when it is spent. Nothing times out, so a
+      wall nobody shoots at stays up. The arena below replays the same barrage against each style. Watch the timeline under it:
+      the wall lasts as long as its golems do, not as long as a timer says.</p>
+    <div class="chips">
+      <span class="chip">radius <b>22 → 38 px</b></span>
+      <span class="chip">spacing <b>55 → 76 px</b> (they touch)</span>
+      <span class="chip">lifetime <b>6 s → until broken</b></span>
+      <span class="chip">health <b>200 each</b> (unchanged)</span>
+      <span class="chip">cooldown <b>13 s</b> (unchanged)</span>
+    </div>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <canvas id="tl" width="960" height="150" aria-label="Golem health over time"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="pause" aria-pressed="false">Pause</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strips">
+      <div><h3>Rising from the ground</h3><div class="strip" id="stripRise"></div></div>
+      <div><h3>Wearing down: full, 75%, 50%, 25%, broken, rubble</h3><div class="strip" id="stripHurt"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The styles</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li><b>Size and spacing</b> are in <code>Core/Kits.cs</code> (<code>Stone Wall</code>: <code>Radius</code> 22 → 38, <code>BlockRadius</code> 30 → 46) and the spawn spacing in <code>Core/Minions.cs</code> (<code>AbilityId.GolemWall</code>: <code>side * (i * 55f)</code> → <code>76f</code>, and 90 px ahead → about 110 so the back of the golem clears the caster). The capstone's five golems then span 380 px.</li>
+      <li><b>Lifetime:</b> the cast passes <code>6f</code> as the minion's life. Companions use <code>T = -1</code> for "stays", so the walls would pass that instead. The Wall also needs to die at 0 block health. Companions only stagger and get back up (<code>Minions.cs</code> around line 528), so the Wall kind gets its own rule: remove it and play the crumble.</li>
+      <li><b>Damage:</b> the block loop in <code>Minions.cs</code> (around line 802) already soaks a bullet against <code>BlockHp</code>. The HP fraction already travels in the snapshot (<code>GameNet.cs</code> line 712), so the cracks and the HP bar can be drawn on every game. I don't expect a protocol change, but I would confirm it when building.</li>
+      <li><b>Drawing:</b> a new <code>Game/GolemWallLook.cs</code>, called for <code>MinionKind.Wall</code> from <code>DrawMinion</code>, the same way <code>CloneWallLook.cs</code> is. Rise and rubble need the minion's age and the time it died. Rise is its age, and the crumble can run as an <code>FxKind</code> sent when it dies.</li>
+      <li><b>Open question:</b> if you cast again while a wall is still up, should the old golems stay, or be replaced? These previews assume they stay. A cap of one wall per caster keeps the arena from filling with stone.</li>
+      <li><b>Reduced effects</b> removes the glow, dust and ember passes. Each style falls back to its stone shape, the cracks and the HP bar.</li>
+      <li>README's Golem Wall line ("for 6 s") and the ability description in <code>Minions.cs</code> change with it. The Armory and Bestiary pages are not touched by this mockup and will be out of date.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const TAU = Math.PI * 2;
+  const $ = s => document.querySelector(s);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const ease = t => t * t * (3 - 2 * t);
+  const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const L = 19.5, CAST = 0.5, RISE = 0.7, HPMAX = 200, DMG = 20, BV = 380;
+  const PL = { x: 150, y: 190, r: 18 };
+  const SH = [{ x: 900, y: 120 }, { x: 900, y: 190 }, { x: 900, y: 260 }];
+  const STYLES = {
+    now: { key: "Now", name: "Today", R: 22, gap: 55, cx: 240, expire: CAST + 6 },
+    A: { key: "A", name: "Runestone", R: 38, gap: 76, cx: 262, expire: null },
+    B: { key: "B", name: "Basalt", R: 38, gap: 76, cx: 262, expire: null },
+    C: { key: "C", name: "Crystal Core", R: 38, gap: 76, cx: 262, expire: null },
+  };
+  const ORDER = ["now", "A", "B", "C"];
+  const CARDS = {
+    now: ["Today", "Three plain grey squares that disappear on a timer. Shown so you can compare.", ["Shape", "Small rough block"], ["Lifetime", "6 s, whatever its health"], ["Reads as", "A placeholder"]],
+    A: ["Runestone", "Weathered grey stone with moss on its back. Teal runes light up its chest and fists, and a line of light joins neighbouring golems into one wall. Cracks run through the runes as it wears.", ["Palette", "Grey stone, moss green, teal glow"], ["Wear", "Cracks cut the runes; the runes flicker out"], ["Wall link", "Teal light between living neighbours"]],
+    B: ["Basalt", "Dark volcanic plates with a few faint ember veins. The veins glow harder as it takes damage, so a hurt golem looks hotter and closer to breaking. Fits the tank's heavy feel.", ["Palette", "Black basalt, ember orange"], ["Wear", "Veins widen and brighten, embers drift off"], ["Wall link", "A hot seam on the ground"]],
+    C: ["Crystal Core", "Warm sandstone body with an amber crystal in the chest and shards on the shoulders. The core is the health bar: it dims as the golem wears and bursts when it breaks.", ["Palette", "Sandstone, amber crystal"], ["Wear", "Core dims and shrinks, shards fall off"], ["Wall link", "Thin amber beam between cores"]],
+  };
+  let style = "A", speed = 1, paused = false, clock = 0, last = performance.now();
+
+  // ---------- The barrage: the same shots at every style ----------
+  const EVENTS = [];
+  for (let k = 0; k < 46; k++) {
+    const g = rnd(k * 3 + 1) < 0.36 ? 1 : rnd(k * 3 + 2) < 0.5 ? 0 : 2;
+    EVENTS.push({ T: 1.7 + k * 0.36, g, off: (rnd(k + 40) - 0.5) * 0.9 });
+  }
+  const sims = {};
+  function simulate(key) {
+    const S = STYLES[key], hp = [HPMAX, HPMAX, HPMAX], death = [null, null, null], hits = [[], [], []], bullets = [], through = [];
+    const gy = g => PL.y + (g - 1) * S.gap;
+    for (const ev of EVENTS) {
+      const alive = hp[ev.g] > 0 && (S.expire == null || ev.T < S.expire);
+      const ly = gy(ev.g) + ev.off * S.R, xf = S.cx + Math.sqrt(Math.max(1, S.R * S.R - (ev.off * S.R) ** 2));
+      const p0 = SH[ev.g];
+      let end, blocked = alive;
+      if (alive) {
+        end = { x: xf, y: ly };
+        hp[ev.g] -= DMG; hits[ev.g].push({ t: ev.T, hp: Math.max(0, hp[ev.g]) });
+        if (hp[ev.g] <= 0) death[ev.g] = ev.T;
+      } else {
+        end = { x: PL.x + PL.r + 2, y: PL.y + (rnd(ev.T * 9) - 0.5) * 14 };
+        through.push(ev.T);
+      }
+      const d = Math.hypot(p0.x - end.x, p0.y - end.y);
+      bullets.push({ t0: ev.T - d / BV, T: ev.T, p0, end, blocked, g: ev.g, d });
+    }
+    return { hits, death, bullets, through };
+  }
+  for (const k of ORDER) sims[k] = simulate(k);
+  const hpAt = (sim, g, t, key) => {
+    let v = HPMAX;
+    for (const h of sim.hits[g]) if (h.t <= t) v = h.hp;
+    if (key === "now" && t >= STYLES.now.expire) return 0;
+    return v;
+  };
+
+  // ---------- Golem drawing ----------
+  // o: { hp 0..1, rise 0..1, flash 0..1, t seconds, seed, crumble: null | seconds since it broke }
+  const CRACKS = [];
+  for (let i = 0; i < 4; i++) {
+    const row = [];
+    for (let j = 0; j < 8; j++) {
+      const a = rnd(i * 31 + j * 7) * TAU, r0 = 0.1 + rnd(i * 5 + j) * 0.35;
+      row.push([Math.cos(a) * r0, Math.sin(a) * r0, Math.cos(a + (rnd(j + i * 13) - 0.5) * 1.6) * (r0 + 0.35), Math.sin(a + (rnd(j + i * 17) - 0.5) * 1.6) * (r0 + 0.35)]);
+    }
+    CRACKS.push(row);
+  }
+  function poly(c, pts) { c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); }
+  function chunky(c, cx, cy, rx, ry, seed, n = 9) {
+    const pts = [];
+    for (let i = 0; i < n; i++) { const a = i / n * TAU, w = 0.86 + rnd(seed + i * 3.1) * 0.22; pts.push([cx + Math.cos(a) * rx * w, cy + Math.sin(a) * ry * w]); }
+    poly(c, pts);
+  }
+  function glow(c, color, blur) { if (!reduced) { c.shadowColor = color; c.shadowBlur = blur; } }
+  function noGlow(c) { c.shadowBlur = 0; }
+
+  function drawGolem(c, key, x, y, R, o) {
+    if (key === "now") return drawBlock(c, x, y, R, o);
+    const s = ease(o.rise);
+    // ground shadow and rise dust
+    c.save(); c.translate(x, y);
+    c.fillStyle = "rgba(0,0,0,0.38)"; c.beginPath(); c.ellipse(4, 6, R * 1.02 * s, R * 0.95 * s, 0, 0, TAU); c.fill();
+    if (o.rise < 1 && !reduced) {
+      const q = o.rise;
+      c.strokeStyle = "rgba(190,175,150," + (0.5 * (1 - q)).toFixed(3) + ")"; c.lineWidth = 3;
+      c.beginPath(); c.arc(0, 0, R * (0.7 + q * 1.1), 0, TAU); c.stroke();
+      for (let i = 0; i < 9; i++) {
+        const a = i / 9 * TAU + rnd(i) * 0.5, d = R * (0.8 + q * (0.9 + rnd(i + 9) * 0.6));
+        c.fillStyle = "rgba(170,155,130," + (0.45 * (1 - q)).toFixed(3) + ")";
+        c.beginPath(); c.arc(Math.cos(a) * d, Math.sin(a) * d, 4 + 7 * q, 0, TAU); c.fill();
+      }
+    }
+    c.globalAlpha = clamp(o.rise * 1.6);
+    c.scale(0.55 + 0.45 * s, 0.55 + 0.45 * s);
+    const P = PAL[key], dmg = 1 - o.hp, pulse = 0.65 + 0.35 * Math.sin(o.t * 3 + o.seed);
+    // arms and fists (top-down, facing right)
+    for (const sd of [-1, 1]) {
+      c.fillStyle = P.dark; chunky(c, R * 0.15, sd * R * 0.7, R * 0.42, R * 0.26, o.seed + sd * 11); c.fill();
+      c.fillStyle = P.mid; chunky(c, R * 0.55, sd * R * 0.8, R * 0.3, R * 0.3, o.seed + sd * 21, 8); c.fill();
+      c.strokeStyle = P.edge; c.lineWidth = 1.5; c.stroke();
+      if (key === "A" && o.hp > 0.25) { glow(c, P.glow, 8); c.strokeStyle = P.glow; c.globalAlpha *= pulse; c.lineWidth = 2; c.beginPath(); c.moveTo(R * 0.45, sd * R * 0.7); c.lineTo(R * 0.65, sd * R * 0.9); c.stroke(); c.globalAlpha /= pulse; noGlow(c); }
+    }
+    // torso
+    const g = c.createRadialGradient(-R * 0.2, -R * 0.2, R * 0.1, 0, 0, R);
+    g.addColorStop(0, P.light); g.addColorStop(1, P.mid);
+    c.fillStyle = g; chunky(c, -R * 0.08, 0, R * 0.78, R * 0.74, o.seed, 10); c.fill();
+    c.strokeStyle = P.edge; c.lineWidth = 2; c.stroke();
+    // plates / texture
+    c.strokeStyle = P.seam; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(-R * 0.55, -R * 0.35); c.lineTo(R * 0.1, -R * 0.45); c.moveTo(-R * 0.6, R * 0.3); c.lineTo(R * 0.05, R * 0.42); c.stroke();
+    if (key === "A") { // moss on the back
+      c.fillStyle = "rgba(96,140,72,0.75)";
+      for (let i = 0; i < 4; i++) { c.beginPath(); c.ellipse(-R * 0.5 + rnd(i + o.seed) * 0.2 * R, -R * 0.3 + i * R * 0.22, R * 0.14, R * 0.1, 0.4, 0, TAU); c.fill(); }
+    }
+    if (key === "C") { // shoulder shards
+      for (const sd of [-1, 1]) for (let i = 0; i < 2; i++) {
+        c.fillStyle = i ? "#e8b25a" : "#f6cf85"; c.beginPath();
+        const bx = -R * 0.3 + i * R * 0.26, by = sd * R * 0.62;
+        c.moveTo(bx - 5, by); c.lineTo(bx, by + sd * (13 - i * 3) * o.hp - sd * 2); c.lineTo(bx + 5, by); c.closePath(); c.fill();
+      }
+    }
+    // head
+    c.fillStyle = P.mid; chunky(c, R * 0.42, 0, R * 0.3, R * 0.28, o.seed + 5, 7); c.fill(); c.strokeStyle = P.edge; c.lineWidth = 1.5; c.stroke();
+    const eyeCol = key === "A" ? P.glow : key === "B" ? "#ffae50" : "#ffd27a";
+    glow(c, eyeCol, 8); c.fillStyle = eyeCol; c.globalAlpha *= (0.5 + 0.5 * o.hp);
+    c.fillRect(R * 0.5, -R * 0.2, R * 0.12, R * 0.1); c.fillRect(R * 0.5, R * 0.1, R * 0.12, R * 0.1); c.globalAlpha /= (0.5 + 0.5 * o.hp); noGlow(c);
+    // style centrepiece
+    if (key === "A") {
+      const a = o.hp > 0.12 ? pulse * clamp(o.hp * 1.6) : 0;
+      glow(c, P.glow, 10); c.strokeStyle = P.glow; c.globalAlpha *= a; c.lineWidth = 2.2; c.lineCap = "round";
+      c.beginPath(); c.arc(-R * 0.15, 0, R * 0.26, 0, TAU); c.moveTo(-R * 0.15, -R * 0.26); c.lineTo(-R * 0.15, R * 0.26); c.moveTo(-R * 0.4, 0); c.lineTo(R * 0.1, 0); c.stroke();
+      c.globalAlpha /= (a || 1); noGlow(c);
+    } else if (key === "B") {
+      const heat = 0.28 + dmg * 0.9;
+      glow(c, "#ff7a1a", 10 + dmg * 10); c.strokeStyle = "rgba(255," + Math.round(150 - dmg * 70) + ",40," + clamp(heat).toFixed(2) + ")"; c.lineWidth = 1.6 + dmg * 2.4; c.lineCap = "round";
+      for (let i = 0; i < 3; i++) { const q = CRACKS[0][i]; c.beginPath(); c.moveTo(q[0] * R, q[1] * R); c.lineTo(q[2] * R * 0.9, q[3] * R * 0.9); c.stroke(); }
+      noGlow(c);
+    } else {
+      const sz = R * (0.12 + 0.2 * o.hp);
+      glow(c, "#ffb547", 14 * o.hp + 2); c.fillStyle = "rgba(255," + Math.round(150 + 60 * o.hp) + "," + Math.round(40 + 60 * o.hp) + ",1)"; c.globalAlpha *= (0.45 + 0.55 * o.hp);
+      poly(c, [[-R * 0.15 + sz * 1.3, 0], [-R * 0.15, sz * 1.1], [-R * 0.15 - sz * 1.3, 0], [-R * 0.15, -sz * 1.1]]); c.fill();
+      c.globalAlpha /= (0.45 + 0.55 * o.hp); noGlow(c);
+      c.strokeStyle = "#f6cf85"; c.lineWidth = 1.5; poly(c, [[-R * 0.15 + sz * 1.3, 0], [-R * 0.15, sz * 1.1], [-R * 0.15 - sz * 1.3, 0], [-R * 0.15, -sz * 1.1]]); c.stroke();
+    }
+    // cracks from wear
+    const n = Math.floor(dmg * 8 + 0.0001);
+    c.strokeStyle = key === "B" ? "rgba(255,170,70,0.9)" : "rgba(14,16,20,0.85)"; c.lineWidth = key === "B" ? 2 : 1.8; c.lineCap = "round";
+    for (let i = 0; i < Math.min(n, 8); i++) { const q = CRACKS[1][i]; c.beginPath(); c.moveTo(q[0] * R, q[1] * R); c.lineTo(q[2] * R, q[3] * R); c.stroke(); }
+    // hit flash
+    if (o.flash > 0) { c.globalAlpha = o.flash * 0.55; c.fillStyle = "#fff"; chunky(c, -R * 0.08, 0, R * 0.8, R * 0.76, o.seed, 10); c.fill(); }
+    c.restore();
+  }
+  function drawRubble(c, key, x, y, R, since, seed) {
+    const P = PAL[key];
+    const fade = since < 1.2 ? 1 : clamp(1 - (since - 1.2) / 1.2);
+    if (fade <= 0) return;
+    c.save(); c.translate(x, y); c.globalAlpha = fade;
+    for (let i = 0; i < 12; i++) {
+      const a = rnd(seed + i) * TAU, far = (0.3 + rnd(seed + i + 50) * 0.7) * R * 0.95, q = clamp(since / 0.35), d = far * ease(q);
+      const sz = R * (0.12 + rnd(seed + i + 7) * 0.14);
+      c.save(); c.translate(Math.cos(a) * d, Math.sin(a) * d); c.rotate(a * 3 + q * 2);
+      c.fillStyle = i % 3 ? P.mid : P.dark; c.strokeStyle = P.edge; c.lineWidth = 1;
+      poly(c, [[-sz, -sz * 0.7], [sz * 0.9, -sz * 0.4], [sz * 0.6, sz * 0.8], [-sz * 0.8, sz * 0.5]]); c.fill(); c.stroke(); c.restore();
+    }
+    if (key === "C" && since < 0.5) { glow(c, "#ffb547", 18); c.strokeStyle = "rgba(255,200,110," + (1 - since / 0.5).toFixed(2) + ")"; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, R * (0.3 + since * 2.2), 0, TAU); c.stroke(); noGlow(c); }
+    if (key === "B" && since < 1) { for (let i = 0; i < 6; i++) { c.fillStyle = "rgba(255,150,50," + (0.8 - since * 0.8).toFixed(2) + ")"; c.beginPath(); c.arc(Math.cos(i * 1.1) * R * 0.4, Math.sin(i * 1.1) * R * 0.4 - since * 40, 2.2, 0, TAU); c.fill(); } }
+    if (since < 0.9 && !reduced) { c.fillStyle = "rgba(170,155,130," + (0.4 * (1 - since / 0.9)).toFixed(3) + ")"; c.beginPath(); c.arc(0, 0, R * (0.7 + since), 0, TAU); c.fill(); }
+    c.restore();
+  }
+  function drawBlock(c, x, y, R, o) {
+    c.save(); c.translate(x, y);
+    c.globalAlpha = o.alpha == null ? 1 : o.alpha;
+    c.rotate(0.25 + o.seed * 0.1);
+    c.fillStyle = "rgba(0,0,0,0.3)"; c.fillRect(-R + 3, -R + 4, R * 2, R * 2);
+    c.fillStyle = "#99908a"; c.strokeStyle = "#5b544f"; c.lineWidth = 2; c.fillRect(-R, -R, R * 2, R * 2); c.strokeRect(-R, -R, R * 2, R * 2);
+    if (o.flash > 0) { c.fillStyle = "rgba(255,255,255," + (o.flash * 0.5).toFixed(2) + ")"; c.fillRect(-R, -R, R * 2, R * 2); }
+    c.restore();
+  }
+  const PAL = {
+    A: { light: "#9a9892", mid: "#7b7973", dark: "#5f5d58", edge: "#3e3d3a", seam: "rgba(40,40,38,0.55)", glow: "#6fe3c4" },
+    B: { light: "#3b3a41", mid: "#2b2a31", dark: "#1d1c22", edge: "#0f0e12", seam: "rgba(0,0,0,0.5)", glow: "#ff7a1a" },
+    C: { light: "#c4aa80", mid: "#a58b66", dark: "#7f6a4c", edge: "#4e4130", seam: "rgba(60,45,25,0.5)", glow: "#ffb547" },
+  };
+
+  // ---------- Scene ----------
+  const cv = $("#arena"), cx = cv.getContext("2d");
+  function bgArena(c, w, h) {
+    c.fillStyle = "#070910"; c.fillRect(0, 0, w, h);
+    c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 1;
+    for (let x = 0; x < w; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
+    for (let y = 0; y < h; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+  }
+  function drawPlayer(c, hitFlash) {
+    c.save(); c.translate(PL.x, PL.y);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(3, 5, PL.r, PL.r, 0, 0, TAU); c.fill();
+    c.fillStyle = "#4a5d72"; c.fillRect(8, -4, 24, 8);
+    c.fillStyle = "#6fe3c4"; c.beginPath(); c.arc(0, 0, PL.r, 0, TAU); c.fill();
+    c.strokeStyle = "#2a8d78"; c.lineWidth = 2.5; c.stroke();
+    c.fillStyle = "#0d2a25"; c.beginPath(); c.arc(4, 0, 6, 0, TAU); c.fill();
+    if (hitFlash > 0) { c.strokeStyle = "rgba(255,107,107," + hitFlash.toFixed(2) + ")"; c.lineWidth = 4; c.beginPath(); c.arc(0, 0, PL.r + 6, 0, TAU); c.stroke(); }
+    c.restore();
+  }
+  function drawShooter(c, p) {
+    c.save(); c.translate(p.x, p.y);
+    c.fillStyle = "#c8505a"; c.strokeStyle = "#7a2a31"; c.lineWidth = 2.5;
+    c.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; c.lineTo(Math.cos(a) * 17, Math.sin(a) * 17); } c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = "#2b0d10"; c.fillRect(-14, -3, 12, 6);
+    c.restore();
+  }
+  function golemList(key, t) {
+    const S = STYLES[key], sim = sims[key], out = [];
+    for (let g = 0; g < 3; g++) {
+      const gy = PL.y + (g - 1) * S.gap;
+      const rise = clamp((t - CAST) / RISE);
+      const v = hpAt(sim, g, t, key);
+      const dead = sim.death[g] != null && t >= sim.death[g];
+      let flash = 0;
+      for (const h of sim.hits[g]) if (t >= h.t && t - h.t < 0.14) flash = Math.max(flash, 1 - (t - h.t) / 0.14);
+      const alpha = key === "now" ? (t >= S.expire ? clamp(1 - (t - S.expire) / 0.35) : 1) : 1;
+      out.push({ g, x: S.cx, y: gy, rise, hp: v / HPMAX, dead, since: dead ? t - sim.death[g] : 0, flash, alpha, expired: key === "now" && t >= S.expire + 0.35 });
+    }
+    return out;
+  }
+  function drawLinks(c, key, gl, t) {
+    if (key === "now") return;
+    const P = PAL[key];
+    for (let i = 0; i < 2; i++) {
+      const a = gl[i], b = gl[i + 1];
+      if (a.dead || b.dead || a.rise < 1) continue;
+      const mx = a.x, y0 = a.y, y1 = b.y;
+      c.save();
+      if (key === "A") { glow(c, P.glow, 10); c.strokeStyle = "rgba(111,227,196," + (0.35 + 0.25 * Math.sin(t * 4 + i)).toFixed(2) + ")"; c.lineWidth = 2; c.setLineDash([6, 5]); c.lineDashOffset = -t * 20; }
+      else if (key === "B") { glow(c, "#ff7a1a", 8); c.strokeStyle = "rgba(255,120,30,0.55)"; c.lineWidth = 3; }
+      else { glow(c, "#ffb547", 8); c.strokeStyle = "rgba(255,190,90," + (0.4 + 0.2 * Math.sin(t * 5 + i)).toFixed(2) + ")"; c.lineWidth = 1.8; }
+      c.beginPath(); c.moveTo(mx - 6, y0 + 22); c.lineTo(mx - 6, y1 - 22); c.stroke();
+      c.restore();
+    }
+  }
+  function render(t) {
+    const key = style, S = STYLES[key], sim = sims[key];
+    bgArena(cx, 960, 380);
+    // cast marker
+    if (t > CAST - 0.35 && t < CAST + 0.5) {
+      const q = (t - (CAST - 0.35)) / 0.85; cx.strokeStyle = "rgba(255,181,71," + (0.5 * (1 - q)).toFixed(2) + ")"; cx.lineWidth = 3;
+      cx.beginPath(); cx.arc(PL.x, PL.y, PL.r + q * 90, 0, TAU); cx.stroke();
+    }
+    const gl = golemList(key, t);
+    // faint ground rune line under the wall
+    drawLinks(cx, key, gl, t);
+    // golems (or their rubble)
+    for (const o of gl) {
+      if (o.expired) continue;
+      if (t < CAST) continue;
+      if (o.dead) drawRubble(cx, key, o.x, o.y, S.R, o.since, o.g * 17 + 3);
+      else drawGolem(cx, key, o.x, o.y, S.R, { hp: o.hp, rise: o.rise, flash: o.flash, t, seed: o.g * 5 + 2, alpha: o.alpha });
+    }
+    // HP bars
+    if (key !== "now") for (const o of gl) {
+      if (o.dead || o.rise < 1) continue;
+      const w = 48, x0 = o.x - w / 2, y0 = o.y + S.R + 9;
+      cx.fillStyle = "rgba(0,0,0,0.6)"; cx.fillRect(x0 - 1, y0 - 1, w + 2, 6);
+      cx.fillStyle = o.hp > 0.5 ? "#6fe3c4" : o.hp > 0.25 ? "#ffb547" : "#ff6b6b"; cx.fillRect(x0, y0, w * o.hp, 4);
+    }
+    // sparks
+    let hitPulse = 0, through = 0;
+    for (const b of sim.bullets) {
+      if (b.blocked) {
+        const ds = t - b.T;
+        if (ds > 0 && ds < 0.3) { const q = ds / 0.3; cx.strokeStyle = "rgba(255,225,160," + (1 - q).toFixed(2) + ")"; cx.lineWidth = 2; for (let i = 0; i < 6; i++) { const a = Math.PI + (i - 2.5) * 0.45; cx.beginPath(); cx.moveTo(b.end.x + Math.cos(a) * 3, b.end.y + Math.sin(a) * 3); cx.lineTo(b.end.x + Math.cos(a) * (6 + 14 * q), b.end.y + Math.sin(a) * (6 + 14 * q)); cx.stroke(); } }
+      } else { const ds = t - b.T; if (ds > 0 && ds < 0.3) hitPulse = Math.max(hitPulse, 1 - ds / 0.3); }
+      if (!b.blocked && t >= b.T) through++;
+    }
+    // bullets
+    for (const b of sim.bullets) {
+      if (t < b.t0 || t > b.T) continue;
+      const q = (t - b.t0) / (b.T - b.t0), px = b.p0.x + (b.end.x - b.p0.x) * q, py = b.p0.y + (b.end.y - b.p0.y) * q;
+      cx.fillStyle = "rgba(255,107,107,0.28)"; cx.beginPath(); cx.arc(px, py, 8, 0, TAU); cx.fill();
+      cx.fillStyle = "#ff8f8f"; cx.beginPath(); cx.arc(px, py, 4, 0, TAU); cx.fill();
+    }
+    SH.forEach(p => drawShooter(cx, p));
+    drawPlayer(cx, hitPulse);
+    // labels
+    cx.font = "500 12px 'IBM Plex Mono', monospace"; cx.fillStyle = "#92a1ad"; cx.textAlign = "left";
+    cx.fillText(S.name + (key === "now" ? " · vanishes at " + S.expire.toFixed(1) + " s" : " · stays until broken"), 14, 22);
+    cx.textAlign = "right"; cx.fillText("t " + t.toFixed(1) + " s", 946, 22);
+    const alive = gl.filter(o => !o.dead && !o.expired && t >= CAST).length;
+    $("#now").textContent = "golems up " + (t < CAST ? 0 : alive) + "/3 · shots that reached you " + through;
+    drawTimeline(t);
+  }
+
+  // ---------- Timeline: health of each golem over time ----------
+  const tl = $("#tl"), tc = tl.getContext("2d");
+  const LANE = ["#6fe3c4", "#ffb547", "#c792ff"];
+  function drawTimeline(t) {
+    const w = 960, h = 150, x0 = 56, x1 = 940, y0 = 28, y1 = 118, key = style, sim = sims[key];
+    tc.fillStyle = "#0c1015"; tc.fillRect(0, 0, w, h);
+    const X = s => x0 + (x1 - x0) * s / L, Y = v => y1 - (y1 - y0) * v / HPMAX;
+    tc.font = "500 11px 'IBM Plex Mono', monospace"; tc.textBaseline = "middle";
+    tc.strokeStyle = "rgba(255,255,255,0.07)"; tc.lineWidth = 1; tc.fillStyle = "#92a1ad"; tc.textAlign = "right";
+    for (const v of [0, 100, 200]) { tc.beginPath(); tc.moveTo(x0, Y(v)); tc.lineTo(x1, Y(v)); tc.stroke(); tc.fillText(v + "", x0 - 8, Y(v)); }
+    tc.textAlign = "center";
+    for (let s = 0; s <= 18; s += 3) { tc.fillText(s + " s", X(s), y1 + 16); tc.beginPath(); tc.moveTo(X(s), y1); tc.lineTo(X(s), y1 + 4); tc.stroke(); }
+    tc.textAlign = "left"; tc.fillStyle = "#92a1ad"; tc.fillText("golem health", x0, 12);
+    // today's cutoff
+    const cut = CAST + 6;
+    tc.setLineDash([4, 4]); tc.strokeStyle = "rgba(255,107,107,0.6)"; tc.beginPath(); tc.moveTo(X(cut), y0 - 6); tc.lineTo(X(cut), y1); tc.stroke(); tc.setLineDash([]);
+    tc.fillStyle = "#ff6b6b"; tc.textAlign = "left"; tc.fillText("today's wall is gone", X(cut) + 6, y0 - 4);
+    for (let g = 0; g < 3; g++) {
+      tc.strokeStyle = LANE[g]; tc.lineWidth = 2.4; tc.lineJoin = "round"; tc.beginPath();
+      let first = true, v = HPMAX;
+      const pts = [[CAST, HPMAX]];
+      for (const hh of sim.hits[g]) { pts.push([hh.t, v]); pts.push([hh.t, hh.hp]); v = hh.hp; }
+      const endT = key === "now" ? Math.min(CAST + 6, sim.death[g] == null ? CAST + 6 : sim.death[g]) : (sim.death[g] == null ? L : sim.death[g]);
+      pts.push([endT, v]);
+      if (key === "now" && sim.death[g] == null) pts.push([endT, 0]);
+      for (const p of pts) { if (p[0] > t) { tc.lineTo(X(t), Y(p[1])); break; } first ? tc.moveTo(X(p[0]), Y(p[1])) : tc.lineTo(X(p[0]), Y(p[1])); first = false; }
+      tc.stroke();
+      if (sim.death[g] != null) { tc.fillStyle = LANE[g]; tc.beginPath(); tc.arc(X(sim.death[g]), Y(0), 4, 0, TAU); tc.fill(); }
+    }
+    tc.strokeStyle = "#fff"; tc.lineWidth = 1; tc.beginPath(); tc.moveTo(X(t), y0 - 6); tc.lineTo(X(t), y1); tc.stroke();
+    tc.fillStyle = "#92a1ad"; tc.textAlign = "right";
+    const lastDeath = Math.max(...sim.death.map(d => d == null ? 0 : d));
+    tc.fillText(key === "now" ? "timer cuts the wall short" : sim.death.every(d => d != null) ? "last golem breaks at " + lastDeath.toFixed(1) + " s" : "", x1, 12);
+  }
+
+  // ---------- Still frames ----------
+  function stillCanvas(parent, label, fn) {
+    const f = document.createElement("div"); f.className = "frame";
+    const cv2 = document.createElement("canvas"); cv2.width = 220; cv2.height = 220; cv2.setAttribute("aria-label", label);
+    const sp = document.createElement("span"); sp.textContent = label; f.append(cv2, sp); parent.append(f);
+    return { c: cv2.getContext("2d"), fn };
+  }
+  const stills = [];
+  function buildStills() {
+    $("#stripRise").replaceChildren(); $("#stripHurt").replaceChildren();
+    const key = style;
+    [0.12, 0.3, 0.5, 0.7, 0.9, 1].forEach(q => stills.push(stillCanvas($("#stripRise"), key === "now" ? "n/a" : "rise " + Math.round(q * 100) + "%", { q })));
+    [1, 0.75, 0.5, 0.25, 0, -1].forEach(h => stills.push(stillCanvas($("#stripHurt"), h === 1 ? "full" : h > 0 ? Math.round(h * 100) + "%" : h === 0 ? "broken" : "rubble", { h })));
+    stills.length = 0;
+    redrawStills();
+  }
+  function redrawStills() {
+    const key = style; stills.length = 0;
+    const rise = [...$("#stripRise").querySelectorAll("canvas")], hurt = [...$("#stripHurt").querySelectorAll("canvas")];
+    const R = key === "now" ? 22 : 38, sc = key === "now" ? 2.6 : 2.2;
+    [0.12, 0.3, 0.5, 0.7, 0.9, 1].forEach((q, i) => {
+      const c = rise[i].getContext("2d"); c.clearRect(0, 0, 220, 220); c.fillStyle = "#070910"; c.fillRect(0, 0, 220, 220);
+      c.save(); c.translate(110, 110); c.scale(sc, sc);
+      drawGolem(c, key, 0, 0, R, { hp: 1, rise: q, flash: 0, t: 1, seed: 2 });
+      c.restore();
+    });
+    [1, 0.75, 0.5, 0.25, 0, -1].forEach((h, i) => {
+      const c = hurt[i].getContext("2d"); c.clearRect(0, 0, 220, 220); c.fillStyle = "#070910"; c.fillRect(0, 0, 220, 220);
+      c.save(); c.translate(110, 110); c.scale(sc, sc);
+      if (h > 0 || key === "now") drawGolem(c, key, 0, 0, R, { hp: key === "now" ? 1 : h, rise: 1, flash: 0, t: 1, seed: 2 });
+      else if (h === 0) drawRubble(c, key, 0, 0, R, 0.3, 3);
+      else drawRubble(c, key, 0, 0, R, 1.1, 3);
+      c.restore();
+    });
+  }
+
+  // ---------- UI ----------
+  const sb = $("#styleBtns"), cards = $("#cards");
+  ORDER.forEach(k => {
+    const b = document.createElement("button"); b.id = "st" + k; b.setAttribute("aria-pressed", String(k === style));
+    b.innerHTML = '<span class="k">' + STYLES[k].key + "</span>" + STYLES[k].name; b.onclick = () => pick(k); sb.append(b);
+    const d = CARDS[k], card = document.createElement("div"); card.className = "card"; card.id = "card" + k;
+    card.innerHTML = '<div class="tag">' + (k === "now" ? "TODAY" : "STYLE " + k) + "</div><h3>" + d[0] + "</h3><p>" + d[1] + "</p><dl>" + d.slice(2).map(r => "<dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>").join("") + "</dl>";
+    card.onclick = () => pick(k); cards.append(card);
+  });
+  function pick(k) {
+    style = k; clock = 0;
+    ORDER.forEach(j => { $("#st" + j).setAttribute("aria-pressed", String(j === k)); $("#card" + j).setAttribute("aria-current", String(j === k)); });
+    redrawStills();
+  }
+  $("#spd1").onclick = () => { speed = 1; $("#spd1").setAttribute("aria-pressed", "true"); $("#spd4").setAttribute("aria-pressed", "false"); };
+  $("#spd4").onclick = () => { speed = 0.25; $("#spd4").setAttribute("aria-pressed", "true"); $("#spd1").setAttribute("aria-pressed", "false"); };
+  $("#pause").onclick = e => { paused = !paused; e.currentTarget.setAttribute("aria-pressed", String(paused)); };
+  buildStills(); pick("A");
+  if (reduced) { paused = true; clock = 6; $("#pause").setAttribute("aria-pressed", "true"); }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!paused) clock = (clock + dt * speed) % L;
+    render(clock);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

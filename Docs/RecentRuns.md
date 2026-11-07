@@ -6,6 +6,8 @@ Status: **phase 1 built (Nov 2026, protocol unchanged, 167)**; phases 2 to 4 are
 A fifth Records row, **Recent runs**: a strip of your last runs, and for the one you pick, stat tiles and graphs of
 what happened during it (damage over time, what hurt you, health, accuracy, team comparison, trends across runs).
 
+> Nov 2026: a **Boss Hunt** now keeps its curve too (`RunTimeline.cs` samples it, `RunSaves.cs` fills the log line with class, `Mode = "Hunt"`, length and the file), because the results screen graphs the run it just ended (`HudSummary.cs`, `SummaryTimeline`). A hunt you quit is still not logged. Practice isn't graphed.
+
 ## What exists today
 
 | Piece | Where | Limit for this feature |

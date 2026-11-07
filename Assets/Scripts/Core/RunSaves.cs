@@ -198,7 +198,7 @@ namespace Arena
         /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
         void LogQuitRun()
         {
-            if (runRecorded || timeline == null || Me == null || !TimelineOn)
+            if (runRecorded || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
                 return;
             runRecorded = true;
             var logged = Profile.AddQuitLog(Wave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
@@ -316,6 +316,13 @@ namespace Arena
                         AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time, Diff.Level == DifficultyLevel.Hard || Diff.Level == DifficultyLevel.Nightmare));  // Hunts.cs
                         int cleared = won ? Hunts.Length : Math.Max(0, HuntWave - 1);
                         LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
+                        var hunted = Profile.Recent[0];  // (the hunt just added by AwardXp: its curve for the results screen and Recent runs)
+                        hunted.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
+                        hunted.Mode = "Hunt";
+                        hunted.Seconds = time;
+                        hunted.Dealt = me.Run.DamageDealt; hunted.Taken = me.Run.DamageTaken; hunted.Heal = me.Run.HealingDone;
+                        hunted.Players = Players.Count;
+                        hunted.File = FinishTimeline(won, HuntWave, false, time, hunted.Class, hunted.Mods, "Hunt");  // RunTimeline.cs
                         SaveProfile();
                         return;
                     }
