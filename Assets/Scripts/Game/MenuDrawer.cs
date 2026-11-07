@@ -144,13 +144,15 @@ namespace Arena
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "Esc closes this menu");
             string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
+            Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] licons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
             float y = cabScreen.y + 10f;
             for (int i = 0; i < LobbyChoices.Length; i++)
             {
                 var r = new Rect(34f, y, 342f, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     lobbySel = i;
-                if (DrawerRow(r, null, LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, Ui.Accent, i == lobbySel, null, i == LobbyChoices.Length - 1))
+                if (DrawerRow(r, PixelArt.Get(licons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, lcols[i], i == lobbySel, null, i == LobbyChoices.Length - 1))
                     LobbyChoose(i);
                 y += 62f;
             }
@@ -254,6 +256,8 @@ namespace Arena
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
             string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
+            Color[] pcols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
+            string[] picons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
             var rows = PauseRows();
             pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
             float y = cabScreen.y + 10f;
@@ -263,7 +267,7 @@ namespace Arena
                 var r = new Rect(34f, y, 342f, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
-                if (DrawerRow(r, null, PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, Ui.Accent, k == pauseSel, null, i == PauseQuit))
+                if (DrawerRow(r, PixelArt.Get(picons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, pcols[i], k == pauseSel, null, i == PauseQuit))
                     PauseChoose(i);
                 y += 62f;
             }
@@ -548,11 +552,13 @@ namespace Arena
             cabBootLog = paused ? "> LINK OK   > SAVE OK   > SETTINGS" : "> LINK OK   > SAVE OK";
             BeginDrawer("SETTINGS", Ui.Accent, 1f, "Pick one to open it");
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change your controls" };
+            string[] gicons = { "pulse", "nova", "crosshair", "ui_pencil" };
+            Color[] gcols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
             float y = cabScreen.y + 10f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
                 bool on = cabWin && cabKind == 1 && cabWinOutAt < 0f && settingsGroup == i;
-                if (DrawerRow(new Rect(34f, y, 342f, 76f), null, SettingsGroups[i], lines[i], null, null, Ui.Accent, on))
+                if (DrawerRow(new Rect(34f, y, 342f, 76f), PixelArt.Get(gicons[i]), SettingsGroups[i], lines[i], null, null, gcols[i], on))
                 {
                     settingsGroup = i;
                     OpenCabWindow(1);  // (the first pick slides it out; later ones only retype it)

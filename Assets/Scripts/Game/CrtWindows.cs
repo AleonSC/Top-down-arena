@@ -135,10 +135,9 @@ namespace Arena
             string s = string.IsNullOrEmpty(line) ? null : CabText(slot + ".s", line, d + 0.05f);
             if (s != null && s.Length == 0)
                 s = " ";  // (the two-line layout holds while the line is still typing)
-            bool clicked = CrtKit.Key(r, n, s, icon, on, CabCalm, WinNow, null, r.height >= 54f ? 24 : 20, null, danger);
+            bool clicked = CrtKit.Key(r, n, s, icon, on, CabCalm, WinNow, null, r.height >= 54f ? 24 : 20, col, danger);
             bool inv = on || (GUI.enabled && r.Contains(Event.current.mousePosition));
-            Color dark = danger ? new Color(0.1f, 0.02f, 0.03f) : CrtUi.Bg, ink = danger ? CabDanger : CrtUi.Ink;
-            Color tc = inv ? dark : ink;
+            Color tc = CrtKit.SoftText(danger ? CabDanger : col, inv);
             if (!string.IsNullOrEmpty(key))
             {
                 string hk = key.ToUpperInvariant();
@@ -148,7 +147,7 @@ namespace Arena
                 Ui.Label(kr, hk, 12, tc, TextAnchor.MiddleCenter, true);
             }
             else if (!string.IsNullOrEmpty(tag))
-                Ui.Label(new Rect(r.xMax - 126f, r.y, 114f, r.height), tag, 12, inv ? dark : (tagColor ?? CabSoft), TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(r.xMax - 126f, r.y, 114f, r.height), tag, 12, inv ? CrtKit.SoftText(col, true) : (tagColor ?? CabSoft), TextAnchor.MiddleRight, true);
             return clicked;
         }
 
@@ -348,11 +347,18 @@ namespace Arena
             bool hover = !isStatic && GUI.enabled && r.Contains(Event.current.mousePosition);
             if (!isStatic)
                 Ui.NoteHover(r);
+            size = CrtKit.Sz(size);
             Color c = accent ?? CrtUi.Ink;
-            bool fill = (hover || sel) && !isStatic;
-            Ui.Fill(r, fill ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, 0.08f));
-            CrtKit.Frame(r, 2f, c);
-            Color tc = fill ? CrtUi.Bg : c;
+            bool fill = false;  // soft keys: light text on a faint tint (CrtKit.SoftBox)
+            bool lit = (hover || sel) && !isStatic;
+            if (isStatic)
+            {
+                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.06f));
+                CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, 0.5f));
+            }
+            else
+                CrtKit.SoftBox(r, c, sel, hover, false);
+            Color tc = CrtKit.SoftText(c, lit);
             float tw = Ui.TextWidth(text, size, true) - 6f, lw = lamp ? 19f : 0f;
             float x = r.center.x - (lw + tw) / 2f;
             if (lamp)

@@ -292,7 +292,7 @@ namespace Arena
             {
                 bool on = cabWin && cabKind == 3 && cabWinOutAt < 0f && ProfSel == i;
                 var o = opts[i];
-                if (DrawerRow(new Rect(34f, y, 342f, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Gold, on))
+                if (DrawerRow(new Rect(34f, y, 342f, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Accent, on))
                 {
                     ProfSel = i;
                     OpenCabWindow(3);  // (the first pick slides it out; later ones only retype it)

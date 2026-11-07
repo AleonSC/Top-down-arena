@@ -13,6 +13,34 @@ namespace Arena
     {
         public const float EraseLen = 0.24f, TypeLen = 0.4f, PowerLen = 1f;
 
+        /// Key text is drawn at this fraction of the size asked for: the game's font is much bigger than the mockups' pixel font,
+        /// and the original menus used small, light text.
+        public const float KeyScale = 0.74f;
+
+        public static int Sz(int s) => Mathf.Max(9, Mathf.RoundToInt(s * KeyScale));
+
+        /// Text colour on a soft key: the accent mixed toward white (more when lit).
+        public static Color SoftText(Color c, bool lit) => Color.Lerp(c, Color.white, lit ? 0.75f : 0.3f);
+
+        /// The soft key box: a faint tint of the accent and a thin outline; hover brightens it; `on` gets a 2 px outline, a
+        /// stronger tint and a glowing underline (no solid fill). locked: dim and dashed.
+        public static void SoftBox(Rect r, Color c, bool on, bool hover, bool locked)
+        {
+            if (locked)
+            {
+                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.03f));
+                Dashed(r, 2f, new Color(c.r, c.g, c.b, 0.7f));
+                return;
+            }
+            Ui.Fill(r, new Color(c.r, c.g, c.b, on ? 0.2f : hover ? 0.14f : 0.06f));
+            Frame(r, on ? 2f : 1f, new Color(c.r, c.g, c.b, on ? 1f : hover ? 0.9f : 0.5f));
+            if (on)
+            {
+                Ui.Fill(new Rect(r.x + 2f, r.yMax - 10f, r.width - 4f, 5f), new Color(c.r, c.g, c.b, 0.12f));
+                Ui.Fill(new Rect(r.x + 8f, r.yMax - 5f, r.width - 16f, 2f), c);
+            }
+        }
+
         // --- Typed text -----------------------------------------------------------------------------------------------
 
         class Slot
@@ -201,18 +229,16 @@ namespace Arena
         public static bool Key(Rect r, string name, string sub, Texture2D icon, bool on, bool calm, float now = 0f, string slot = null,
             int size = 20, Color? accent = null, bool danger = false, bool locked = false, bool colorIcon = false, TextAnchor align = TextAnchor.MiddleLeft)
         {
+            size = Sz(size);
             bool hover = GUI.enabled && !locked && r.Contains(Event.current.mousePosition);
             if (!locked)
                 Ui.NoteHover(r);
             Color c = locked ? CrtUi.Dim : danger ? new Color(1f, 0.42f, 0.48f) : accent ?? CrtUi.Ink;
             Color dark = danger ? new Color(0.1f, 0.02f, 0.03f) : CrtUi.Bg;
-            bool fill = (hover || on) && !locked;
-            Ui.Fill(r, fill ? new Color(c.r, c.g, c.b, 0.95f) : new Color(c.r, c.g, c.b, locked ? 0.03f : 0.08f));
-            if (locked)
-                Dashed(r, 2f, new Color(c.r, c.g, c.b, 0.7f));
-            else
-                Frame(r, 2f, c);
-            Color tc = fill ? dark : c;
+            bool lit = (hover || on) && !locked;
+            bool fill = false;  // the text is light on dark now, so it always glows
+            SoftBox(r, c, on && !locked, hover && !locked, locked);
+            Color tc = locked ? c : SoftText(c, lit);
             bool two = !string.IsNullOrEmpty(sub);
             float isz = Mathf.Min(r.height - 12f, size + 8f);
             float x = r.x + 12f;
