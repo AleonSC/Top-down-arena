@@ -207,10 +207,8 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     h += box('p', 40, 196, 740, 336, card(14, 14, 214, 308, true) + stats(250, 18, 480, 1, 33, STATS.slice(0, 9).map(function (s) { return [s[0], s[1]]; })).replace(/class="st"/g, 'class="st lead"').replace(/<i>([^<]*)<\/i><b>/g, '<i>$1</i><u></u><b>') );
     h += box('r', 800, 196, 440, 150, rank(440, 150).replace('width:210px', 'width:0;display:none').replace(/<div style="width:1px[^>]*><\/div>/, '').replace('width:150px;text-align:center', 'width:90px;text-align:center'));
     h += box('log', 800, 362, 440, 170, at(18, 12, 400, 0, '<div class="lab" style="margin-bottom:8px">Run log</div><div class="log"><em>0:00</em>Hunt begins<br><em>0:12</em>First kill<br><em>0:30</em><span class="bad">DOWNED</span> 7 left<br><em>0:30</em>Party wiped<i class="cur"></i></div>'));
-    h += '<div class="mmpanel" style="left:290px;top:540px;width:700px;height:148px"></div>';
-    h += grid(304, 552, 672, 66, 1, 1, ['<button class="mm big" data-act="again"><span class="gl">&#9654;</span>PLAY AGAIN <kbd>R</kbd></button>'], 0);
-    h += grid(304, 628, 672, 48, 3, 1, ['<button class="mm sm" data-act="leave"><span class="gl">&#9211;</span>Leave</button>', '<button class="mm sm" data-act="rank"><span class="gl">&#9733;</span>Rank report</button>', '<button class="mm sm" data-act="lobby"><span class="gl">&larr;</span>Back to lobby <kbd>L</kbd></button>'], 12);
-    h += at(40, 698, 1200, 0, '<div class="note" style="text-align:center;color:#8f9bc0">Session recorded: ...\\Top-Down Arena\\sessions\\session-20261107-061659.json</div>');
+    h += grid(40, 560, 1200, 72, 4, 1, ['<button class="mm" data-act="leave"><span class="gl">&#9211;</span>Leave</button>', '<button class="mm" data-act="rank"><span class="gl">&#9733;</span>Rank report</button>', '<button class="mm" data-act="again"><span class="gl">&#9654;</span>Play again <kbd>R</kbd></button>', '<button class="mm" data-act="lobby"><span class="gl">&larr;</span>Back to lobby <kbd>L</kbd></button>'], 18);
+    h += at(40, 656, 1200, 0, '<div class="note" style="text-align:center;color:#8f9bc0">Session recorded: ...\\Top-Down Arena\\sessions\\session-20261107-061659.json</div>');
     return h;
   }
   function layC(m) {
