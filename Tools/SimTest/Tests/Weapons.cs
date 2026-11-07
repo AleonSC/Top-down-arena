@@ -643,6 +643,10 @@ static partial class Program
         for (int f = 0; f < 30; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
         Check(me.Weapon.Id == WeaponId.GolemStaff && Game.ChargeWeapon(WeaponId.GolemStaff) && g.Minions.Values.Any(m => m.Owner == 1 && m.Companion),
             "the Summoner Tank's Golem Staff charges like a bow, and its Golem is still there");
+        var golem = g.Minions.Values.First(m => m.Owner == 1 && m.Kind == MinionKind.Golem);
+        for (int f = 0; f < 120; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+        Check(Math.Abs(golem.Scale - Game.GolemScale) < 1e-4f && Game.TitanBlocking(golem) && golem.BlockHp > 300f && golem.BlockHp < 500f,
+            "the Golem is a small Titan: scaled to " + Game.GolemScale + ", risen and standing, soaking about 400");
         V2 from = new V2(200f, 450f);
         Func<V2[], float, float[]> Throw = (spots, draw) =>
         {

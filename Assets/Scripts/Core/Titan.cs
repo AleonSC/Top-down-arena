@@ -16,6 +16,11 @@ namespace Arena
         /// Standing and blocking: not while it is still rising or already crumbling.
         public static bool TitanBlocking(Minion m) => m.Duration - m.T >= TitanRise && m.T > TitanCrumble;
 
+        /// The Golem Staff's Golem is a small Titan (same body, rise, slam and soak at GolemScale of the size). It is summoned with a
+        /// very long life so its age still counts up for the rise; it never crumbles.
+        public const float GolemScale = 0.32f, GolemLife = 100000f;
+        public static bool IsTitanLike(MinionKind k) => k == MinionKind.Titan || k == MinionKind.Golem;
+
         void CastTitan(Player p, bool cap)
         {
             foreach (var old in Minions.Values)
@@ -75,7 +80,7 @@ namespace Arena
                 return;
             }
             Enemy target = NearestEnemy(m.Pos, MinionChaseRange);
-            V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(owner.Aim) * 140f;
+            V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(owner.Aim) * (m.Kind == MinionKind.Golem ? 70f : 140f);
             V2 to = goal - m.Pos;
             if (to.Length > 8f)
             {
