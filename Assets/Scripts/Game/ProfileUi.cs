@@ -176,11 +176,9 @@ namespace Arena
 
         // --- A screen on the cabinet beside the header and the option list ---------------------------------------------------
 
-        /// On the loadout box (cabFlat) a "screen" is just a darker inset card with a thin rim, there from `delay` seconds on; no power-on or glass.
+        /// A "screen" on the loadout box is a darker inset card with a thin rim, there from `delay` seconds on.
         bool CabScreenBegin(Rect r, float delay)
         {
-            if (!cabFlat)
-                return CrtKit.PowerOn(r, CabAge - delay, CabCalm);
             if (!CabCalm && CabAge < delay)
                 return false;
             Ui.Fill(r, new Color(0.02f, 0.04f, 0.1f, 0.9f));
@@ -190,9 +188,6 @@ namespace Arena
 
         void CabScreenEnd(Rect r, float delay)
         {
-            if (cabFlat)
-                return;
-            CrtUi.End(r, WinNow, CabCalm);
             CrtKit.PowerFlash(r, CabAge - delay, CabCalm);
         }
 
@@ -240,7 +235,7 @@ namespace Arena
             int n = opts.Count;
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
-            float rowH = oneLine ? 29f : 40f, step = rowH + 3f;
+            float rowH = oneLine ? 29f : 36f, step = rowH + 3f;
             BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
@@ -329,7 +324,7 @@ namespace Arena
                 y += step;
             }
             EndDrawerScreen();
-            if (cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 634f, CabInW, 36f), "BACK"))
+            if (cabScreenOn && CabBackKey(y + 6f))
             {
                 if (CabWindowOpen)
                     CloseCabWindow();  // the window slides back in first

@@ -160,24 +160,6 @@ namespace Arena
             Ui.Fill(r, new Color(0.8f, 0.9f, 1f, a * 0.5f));
         }
 
-        /// Draws the screen frame for its opening and says whether to draw its content (state 2). Typical use:
-        ///   if (CrtKit.PowerOn(r, age, calm)) { ...content...; CrtUi.End(...); CrtKit.PowerFlash(r, age, calm); }
-        public static bool PowerOn(Rect r, float age, bool calm)
-        {
-            int st = PowerState(age, calm);
-            if (st == 0)
-                return false;
-            if (st == 1)
-            {
-                var pr = PowerRect(r, age);
-                CrtUi.Begin(pr);
-                Ui.Fill(pr, new Color(0.8f, 0.9f, 1f, 0.55f));
-                return false;
-            }
-            CrtUi.Begin(r);
-            return true;
-        }
-
         /// A bright bar sweeping once down a screen (the options list as it fills). `age` 0..1.1 s.
         public static void ScanBar(Rect r, float age, bool calm)
         {
@@ -260,28 +242,6 @@ namespace Arena
             return Ui.HitArea(r) && !locked;
         }
 
-        /// The floating cabinet the menus slide out of (Docs/Mockups/crt-pause-menu.html, "Floating cabinet"): `r` is its outer rect.
-        /// A soft blue glow round it, a dark blue body with rounded corners and a 1 px blue outline, an inner shadow along its edges
-        /// and a bracket corner (20 px L, 2 px thick, the ink) just inside the top-left and bottom-right corners. Static: nothing here
-        /// animates.
-        public static void Cabinet(Rect r)
-        {
-            if (Event.current.type != EventType.Repaint)
-                return;
-            const float rad = 14f;
-            Ui.Glow(r, new Color(0.157f, 0.314f, 1f), 0.22f);
-            RoundBody(r, rad, CabinetFill);
-            RoundOutline(r, rad, CabinetLine);
-            var inner = new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f);
-            EdgeShade(inner, 40f, 8, 0.35f, rad);
-            var ink = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.9f);
-            float cx = inner.x + 8f, cy = inner.y + 8f, bx = inner.xMax - 8f - 20f, by = inner.yMax - 8f - 20f;
-            Ui.Fill(new Rect(cx, cy, 20f, 2f), ink);
-            Ui.Fill(new Rect(cx, cy + 2f, 2f, 18f), ink);
-            Ui.Fill(new Rect(bx, by + 18f, 20f, 2f), ink);
-            Ui.Fill(new Rect(bx + 18f, by, 2f, 18f), ink);
-        }
-
         /// The lobby loadout's box (Docs/Mockups/pause-settings-loadout-box.html): a navy fill, a thin blue rim and the blue bracket corners.
         /// The pause, lobby, Settings and How to play menus sit on it, the cabinet's left box and the window to its right alike. Static.
         public static void LoadoutBox(Rect r)
@@ -292,64 +252,6 @@ namespace Arena
             Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), new Color(0.06f, 0.1f, 0.22f, 0.22f));  // a lighter top, like the lobby's wash
             Frame(r, 1f, new Color(0.19f, 0.32f, 0.55f));
             LobbyKit.Corners(r);
-        }
-
-        static readonly Color CabinetFill = new Color(0.05f, 0.0725f, 0.195f, 0.98f);
-        static readonly Color CabinetLine = new Color(0.227f, 0.333f, 0.647f, 1f);
-
-        /// How far in a circle of radius `rad` is from the edge at the row `i` pixels below its top (a rounded corner, row by row).
-        static float CornerInset(float rad, int i)
-        {
-            float d = rad - i - 0.5f;
-            return Mathf.Round(rad - Mathf.Sqrt(Mathf.Max(0f, rad * rad - d * d)));
-        }
-
-        static void RoundBody(Rect r, float rad, Color c)
-        {
-            int n = Mathf.RoundToInt(rad);
-            for (int i = 0; i < n; i++)
-            {
-                float ins = CornerInset(rad, i);
-                Ui.Fill(new Rect(r.x + ins, r.y + i, r.width - 2f * ins, 1f), c);
-                Ui.Fill(new Rect(r.x + ins, r.yMax - 1f - i, r.width - 2f * ins, 1f), c);
-            }
-            Ui.Fill(new Rect(r.x, r.y + n, r.width, r.height - 2f * n), c);
-        }
-
-        /// A 1 px outline that follows the rounded corners of RoundBody.
-        static void RoundOutline(Rect r, float rad, Color c)
-        {
-            int n = Mathf.RoundToInt(rad);
-            float prev = CornerInset(rad, 0);
-            Ui.Fill(new Rect(r.x + prev, r.y, r.width - 2f * prev, 1f), c);
-            Ui.Fill(new Rect(r.x + prev, r.yMax - 1f, r.width - 2f * prev, 1f), c);
-            for (int i = 1; i < n; i++)
-            {
-                float ins = CornerInset(rad, i), w = Mathf.Max(1f, prev - ins);
-                Ui.Fill(new Rect(r.x + ins, r.y + i, w, 1f), c);
-                Ui.Fill(new Rect(r.xMax - ins - w, r.y + i, w, 1f), c);
-                Ui.Fill(new Rect(r.x + ins, r.yMax - 1f - i, w, 1f), c);
-                Ui.Fill(new Rect(r.xMax - ins - w, r.yMax - 1f - i, w, 1f), c);
-                prev = ins;
-            }
-            Ui.Fill(new Rect(r.x, r.y + n, 1f, r.height - 2f * n), c);
-            Ui.Fill(new Rect(r.xMax - 1f, r.y + n, 1f, r.height - 2f * n), c);
-        }
-
-        /// Black along the inside of a rect's edges, `depth` px deep in `steps` bands that fade out (`alpha` is the darkest band's
-        /// black). The first `corner` px at each end of every edge stay clear, for rounded corners.
-        static void EdgeShade(Rect r, float depth, int steps, float alpha, float corner)
-        {
-            float s = depth / steps;
-            for (int i = 0; i < steps; i++)
-            {
-                float k = 1f - (i + 0.5f) / steps, o = i * s;
-                var c = new Color(0f, 0f, 0f, alpha * k * k);
-                Ui.Fill(new Rect(r.x + corner, r.y + o, r.width - 2f * corner, s), c);
-                Ui.Fill(new Rect(r.x + corner, r.yMax - o - s, r.width - 2f * corner, s), c);
-                Ui.Fill(new Rect(r.x + o, r.y + corner, s, r.height - 2f * corner), c);
-                Ui.Fill(new Rect(r.xMax - o - s, r.y + corner, s, r.height - 2f * corner), c);
-            }
         }
 
         /// The "Soft edges" of the cabinet menus (the mockup's `.edges::after`): the whole screen darkens toward its edges (about 190 px
