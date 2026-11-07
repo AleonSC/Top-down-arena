@@ -203,21 +203,19 @@ namespace Arena
             if (Event.current.type != EventType.Repaint)
                 return;
             var c = new Color(0.36f, 0.6f, 1f);
-            var g = new Color(c.r, c.g, c.b, 0.22f);
             float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
-            for (int pass = 0; pass < 2; pass++)
-            {
-                float e = pass == 0 ? 3f : 0f;  // the soft glow first, a little fatter
-                var col = pass == 0 ? g : c;
-                Ui.Fill(new Rect(x0 - e, y0 - e, arm + 2f * e, th + 2f * e), col);                 // top left
-                Ui.Fill(new Rect(x0 - e, y0 - e, th + 2f * e, arm + 2f * e), col);
-                Ui.Fill(new Rect(x1 - arm - e, y0 - e, arm + 2f * e, th + 2f * e), col);           // top right
-                Ui.Fill(new Rect(x1 - th - e, y0 - e, th + 2f * e, arm + 2f * e), col);
-                Ui.Fill(new Rect(x0 - e, y1 - th - e, arm + 2f * e, th + 2f * e), col);            // bottom left
-                Ui.Fill(new Rect(x0 - e, y1 - arm - e, th + 2f * e, arm + 2f * e), col);
-                Ui.Fill(new Rect(x1 - arm - e, y1 - th - e, arm + 2f * e, th + 2f * e), col);      // bottom right
-                Ui.Fill(new Rect(x1 - th - e, y1 - arm - e, th + 2f * e, arm + 2f * e), col);
-            }
+            Ui.Glow(new Rect(x0, y0, arm, arm), c, 0.3f);              // the soft glow behind each corner
+            Ui.Glow(new Rect(x1 - arm, y0, arm, arm), c, 0.3f);
+            Ui.Glow(new Rect(x0, y1 - arm, arm, arm), c, 0.3f);
+            Ui.Glow(new Rect(x1 - arm, y1 - arm, arm, arm), c, 0.3f);
+            Ui.Fill(new Rect(x0, y0, arm, th), c);                      // top left
+            Ui.Fill(new Rect(x0, y0, th, arm), c);
+            Ui.Fill(new Rect(x1 - arm, y0, arm, th), c);                // top right
+            Ui.Fill(new Rect(x1 - th, y0, th, arm), c);
+            Ui.Fill(new Rect(x0, y1 - th, arm, th), c);                 // bottom left
+            Ui.Fill(new Rect(x0, y1 - arm, th, arm), c);
+            Ui.Fill(new Rect(x1 - arm, y1 - th, arm, th), c);           // bottom right
+            Ui.Fill(new Rect(x1 - th, y1 - arm, th, arm), c);
         }
 
         // --- The role wash: the big boxes' gradient in the picked role's colour -------------------------------------------------
@@ -250,7 +248,7 @@ namespace Arena
 
         /// The mockup's `.grad #main` (Docs/Mockups/crt-lobby-softer.html), in strips that meet exactly: a dark diagonal wash running from about 20% of the
         /// role colour to near black (horizontal strips, with the slight lean to the right as a faint dark ramp), and over it a glow from the top left
-        /// corner that is 32% of the role colour and fades out by 64% of the way (nested rectangles that stack to the right alpha). 36 fills.
+        /// corner that is 32% of the role colour and fades out by 64% of the way (one soft radial texture).
         public static void Wash(Rect r)
         {
             if (Event.current.type != EventType.Repaint)
@@ -276,18 +274,12 @@ namespace Arena
                 float x0 = Mathf.Round(r.x + r.width * i / cols), x1 = Mathf.Round(r.x + r.width * (i + 1) / cols);
                 Ui.Fill(new Rect(x0, r.y, x1 - x0, r.height), new Color(0f, 0f, 0f, 0.07f * i / (cols - 1f)));
             }
-            // The glow: an ellipse 120% x 80% of the box from the top left corner, 32% to 0 at 64%. Nested rectangles (a touch smaller than the ellipse's
-            // box, as the corners reach further than the ellipse does), each adding what the stack still needs.
-            const int steps = 16;
-            float prev = 0f;
-            for (int k = 0; k < steps; k++)
-            {
-                float s = 0.64f * (1f - k / (float)steps) * 0.88f;
-                float target = 0.32f * (k + 0.5f) / steps;
-                float a = 1f - (1f - target) / (1f - prev);
-                prev = target;
-                Ui.Fill(new Rect(r.x, r.y, Mathf.Min(r.width, r.width * 1.2f * s), Mathf.Min(r.height, r.height * 0.8f * s)), new Color(rc.r, rc.g, rc.b, a));
-            }
+            // The glow: an ellipse from the top left corner, 32% of the role colour in the middle fading to nothing at 64% of 120% x 80% of the box.
+            // One soft radial texture, clipped to the box.
+            float rx = r.width * 1.2f * 0.64f, ry = r.height * 0.8f * 0.64f;
+            GUI.BeginGroup(r);
+            Ui.RadialGlow(new Rect(-rx, -ry, rx * 2f, ry * 2f), new Color(rc.r, rc.g, rc.b, 0.32f));
+            GUI.EndGroup();
         }
 
         /// share of colour `c` mixed with `rest` (CSS color-mix(in srgb, c share, rest)).
@@ -403,13 +395,12 @@ namespace Arena
             {
                 float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.4f);
                 float k = 0.85f + 0.3f * pulse;  // a slow brightness pulse
-                for (int i = 4; i >= 1; i--)  // the halo: wider and fainter each step
-                    Ui.Fill(new Rect(fr.x - i, fr.y - i * 1.4f, fr.width + i * 1.5f, fr.height + i * 2.8f), new Color(c.r, c.g, c.b, 0.07f * k));
+                Ui.Glow(fr, c, 0.32f * k);  // the halo
                 Ui.Fill(fr, Color.Lerp(c, new Color(0f, 0f, 0f), 0.3f));                                              // deeper lower half
                 Ui.Fill(new Rect(fr.x, fr.y, fr.width, fr.height * 0.6f), Color.Lerp(c, Color.white, 0.12f * k));  // main body
                 Ui.Fill(new Rect(fr.x, fr.y + 1f, fr.width, 2f), Color.Lerp(c, Color.white, 0.55f));         // the lit top edge
                 var cap = new Rect(fr.xMax - 2f, fr.y - 3f, 3f, fr.height + 6f);                              // the bright end cap
-                Ui.Fill(new Rect(cap.x - 2f, cap.y - 2f, cap.width + 4f, cap.height + 4f), new Color(c.r, c.g, c.b, 0.3f * k));
+                Ui.Glow(cap, c, 0.5f * k);
                 Ui.Fill(cap, Color.white);
             }
             var vr = new Rect(r.xMax - valW, r.y, valW, r.height);

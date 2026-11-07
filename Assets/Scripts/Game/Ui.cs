@@ -889,6 +889,41 @@ namespace Arena
             GUI.backgroundColor = old;
         }
 
+        static Texture2D radialTex;
+
+        /// A round glow filling the rect (an ellipse if it is not square): colour c at its centre, its alpha falling off smoothly to
+        /// nothing at the rect's edge. One soft texture instead of stacked boxes. Draw it inside a GUI group to clip it.
+        public static void RadialGlow(Rect r, Color c)
+        {
+            if (c.a <= 0.003f)
+                return;
+            if (radialTex == null)
+                radialTex = RadialTexture();
+            var old = GUI.color;
+            GUI.color = new Color(c.r, c.g, c.b, c.a * Alpha);
+            GUI.DrawTexture(r, radialTex);
+            GUI.color = old;
+        }
+
+        /// 128 px, white, alpha 1 in the middle falling to 0 at the edge (a smooth curve, not a straight ramp).
+        static Texture2D RadialTexture()
+        {
+            const int size = 128;
+            var tex = NewTexture(size);
+            var px = new Color[size * size];
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - size / 2f) / (size / 2f), dy = (y + 0.5f - size / 2f) / (size / 2f);
+                    float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
+                    float f = 1f - d;
+                    px[y * size + x] = new Color(1f, 1f, 1f, f * f * (3f - 2f * f) * 0.5f + f * 0.5f);  // half smoothstep, half straight: soft but full in the middle
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
+        }
+
         /// A soft glow round a rect: colour c, strength 0..1 at the rect's edge, falling off smoothly over GlowSpread px.
         /// Draw it before the thing it surrounds (the rect itself is solid, so that covers it).
         public static void Glow(Rect r, Color c, float strength)

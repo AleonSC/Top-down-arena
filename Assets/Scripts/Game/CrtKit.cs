@@ -36,8 +36,9 @@ namespace Arena
             Frame(r, on ? 2f : 1f, new Color(c.r, c.g, c.b, on ? 1f : hover ? 0.9f : 0.5f));
             if (on)
             {
-                Ui.Fill(new Rect(r.x + 2f, r.yMax - 10f, r.width - 4f, 5f), new Color(c.r, c.g, c.b, 0.12f));
-                Ui.Fill(new Rect(r.x + 8f, r.yMax - 5f, r.width - 16f, 2f), c);
+                var line = new Rect(r.x + 8f, r.yMax - 5f, r.width - 16f, 2f);
+                Ui.Glow(line, c, 0.4f);  // a soft glow under the underline
+                Ui.Fill(line, c);
             }
         }
 

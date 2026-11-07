@@ -101,11 +101,7 @@ namespace Arena
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
             Ui.Fill(full, new Color(LobbyBg.r, LobbyBg.g, LobbyBg.b, LobbyCrtBgAlpha * a));
-            for (int i = 0; i < 16; i++)  // a glow in the middle: stacked, shrinking rects, many and faint so it reads as smooth
-            {
-                float m = 0.02f + i * 0.028f;
-                Ui.Fill(new Rect(W * m, H * m, W * (1f - 2f * m), H * (1f - 2f * m)), new Color(0.05f, 0.13f, 0.32f, 0.026f * a));
-            }
+            Ui.RadialGlow(new Rect(-W * 0.1f, -H * 0.1f, W * 1.2f, H * 1.2f), new Color(0.05f, 0.13f, 0.32f, 0.38f * a));  // the glow in the middle
             var oldC = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.05f * a);
             GUI.DrawTexture(full, lobbyPhosTex);
@@ -326,11 +322,7 @@ namespace Arena
             float k = EaseInOut(Seg(e, 0.3f, CrtGrowTo));  // the colour change, a little ahead of the size
             var bg = Color.Lerp(CrtUi.Bg, LobbyBg, k);
             Ui.Fill(r, bg);
-            for (int i = 0; i < 16; i++)  // the glow in the middle, as in DrawLobbyCrtBack
-            {
-                float m = 0.02f + i * 0.028f;
-                Ui.Fill(new Rect(r.x + r.width * m, r.y + r.height * m, r.width * (1f - 2f * m), r.height * (1f - 2f * m)), Color.Lerp(new Color(0.08f, 0.16f, 0.36f, 0.022f), new Color(0.05f, 0.13f, 0.32f, 0.026f), k));
-            }
+            Ui.RadialGlow(new Rect(r.x - r.width * 0.1f, r.y - r.height * 0.1f, r.width * 1.2f, r.height * 1.2f), Color.Lerp(new Color(0.08f, 0.16f, 0.36f, 0.34f), new Color(0.05f, 0.13f, 0.32f, 0.38f), k));  // the glow in the middle, as in DrawLobbyCrtBack
             GUI.BeginGroup(r);
             CrtScanlines(new Rect(0f, 0f, W, H), 1f);
             float s = Mathf.Lerp(3f, 9f, grow);
