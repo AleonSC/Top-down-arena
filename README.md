@@ -874,16 +874,16 @@ stack above it) and **your card** right of it (health, shield, level, XP). Teamm
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
 the top middle, and the "Hold TAB" hint is in the top-right corner.
 
-**Between waves.** When the last enemy dies a **Wave n cleared** box drops in (shaded like the upgrade cards, with a
-soft glow; gold after a boss). It shows the wave's **clear time** and **score**, a row per player with **kills, damage
+**Between waves.** When the last enemy dies a **Wave n cleared** box drops in: a CRT screen like the lobby's, in your
+CRT colour (Settings > Visual effects), its title gold after a boss. It shows the wave's **clear time** and **score**, a row per player with **kills, damage
 dealt and damage taken** for that wave, and **awards**: **Untouched** (took no damage), **Reviver** (stood a teammate up),
 and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
 A **Squad** row adds them up. On the right: the enemy types the next wave draws from (new ones marked NEW; a boss wave
-names its boss) and the **road to the next boss**. Along the bottom: the **Ready** button (Y), the **Auto-ready** switch
-and the status. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
+names its boss) and the **road to the next boss**. Along the bottom: the **Ready** key (Y), the **Auto-ready** switch, the
+status and the countdown bar. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
-old pace (it is off by default). A small ring beside each player shows who is ready (a ring with an A for auto-ready).
+old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't).
 The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).
 

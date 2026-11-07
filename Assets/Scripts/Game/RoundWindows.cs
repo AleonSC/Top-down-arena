@@ -12,7 +12,7 @@ namespace Arena
         // --- The dark layer over the arena ------------------------------------------------------------------------------------------
 
         static readonly Color RoundDark = new Color(0.01f, 0.012f, 0.03f);  // the layer's colour
-        const float PickerDark = 0.82f, ShopDark = 0.8f, ResultsDark = 0.84f;  // how dark each window makes the arena
+        const float PickerDark = 0.82f, ShopDark = 0.8f, ResultsDark = 0.84f, WaveClearedDark = 0.35f;  // how dark each window makes the arena
         static readonly Color PathDark = new Color(0.01f, 0.01f, 0.03f, 0.72f);  // the path choice's (a hair different; one colour when it's restyled)
 
         /// The dark layer over the whole screen, `a` strong.

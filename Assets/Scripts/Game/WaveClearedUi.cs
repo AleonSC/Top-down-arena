@@ -3,10 +3,11 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The "WAVE n CLEARED" box between waves (option 1 of Docs/Mockups/wave-cleared-ready.html, the Squad tally with Awards):
-    /// a card shaded like the upgrade cards with a soft glow, a row per player (kills, damage, damage taken, awards and a
-    /// ready tick), a Squad row, the next wave's enemy types and the road to the next boss, and along the bottom the Ready
-    /// button, the Auto-ready switch and the status or countdown. Core side: Core/WaveReady.cs.
+    /// The "WAVE n CLEARED" box between waves, in the lobby's CRT (look A, "One tube", of Docs/Mockups/crt-wave-cleared.html): one CRT
+    /// tube where the old card was, with the title and the wave's two numbers, a row per player (kills, damage, damage taken, award
+    /// tags and a ready mark), a Squad row, the next wave's enemy types and the road to the next boss, and along the bottom the Ready
+    /// key, the Auto-ready switch, the status and the countdown. Colours come from CrtStyle.cs (they follow the CRT colour setting);
+    /// the frame from RoundWindows.cs. Core side: Core/WaveReady.cs.
     public partial class ArenaApp
     {
         const float WcW = 940f, WcH = 410f, WcY = 110f;
@@ -50,9 +51,6 @@ namespace Arena
             me != null && game.State == MatchState.Intermission && game.Wave > 0 && game.WaveReport != null && game.WaveReport.Wave == game.Wave
             && me.Offer == null && game.PathOffer == null && !game.ShopOpen && game.Room != RoomPhase.Portal && game.Practice == null;  // (the Practice Range has no ready-up)
 
-        static readonly Color WcGold = new Color(1f, 0.8f, 0.35f);
-        static readonly Color WcBlue = new Color(0.61f, 0.75f, 1f);
-
         /// Draws the box; false when it isn't up (the plain banner is drawn instead).
         bool DrawWaveCleared(Player me, string waiting)
         {
@@ -68,34 +66,39 @@ namespace Arena
                 wcWave = game.Wave;
             }
             var rep = game.WaveReport;
-            bool boss = game.IsBossWave(game.Wave);
-            Color accent = boss ? Ui.Gold : Ui.Accent;
-            // Drops in over a third of a second.
-            float t = Mathf.Clamp01((now - wcBorn) / 0.35f);
+            bool calm = CabCalm;
+            // Drops in over a third of a second (at once with Reduced effects), over a light dark layer.
+            float t = calm ? 1f : Mathf.Clamp01((now - wcBorn) / 0.35f);
             float ease = 1f - (1f - t) * (1f - t);
+            RoundBackdrop(WaveClearedDark * ease);
             var r = new Rect(W / 2f - WcW / 2f, WcY - 26f * (1f - ease), WcW, WcH);
-            RoundPart(ease, Vector2.zero, () => DrawWaveClearedBox(me, r, accent, rep, waiting));  // fading in (RoundWindows.cs)
+            RoundTube(r, ease, false, () => DrawWaveClearedBox(me, r, rep, waiting, calm));  // a CRT tube, fading in (RoundWindows.cs)
             return true;
         }
 
-        /// The box itself, at `r`.
-        void DrawWaveClearedBox(Player me, Rect r, Color accent, WaveSummary rep, string waiting)
-        {
-            Ui.GlowPanel(r, accent, 0.22f, 0.9f);  // the upgrade cards' shaded body, a slight glow and a rim
-            float x = r.x, y = r.y;
+        // Inside the tube: the tally takes the left 596 px, the next wave the right 278, the keys the bottom 72.
+        const float WcPad = 22f, WcTallyW = 596f, WcRowH = 52f, WcRowStep = 58f, WcSquadH = 38f;
 
-            // Head: check, title, and the wave's two numbers.
-            var chk = new Rect(x + 20f, y + 14f, 30f, 30f);
-            Ui.Dot(chk, accent, true);
-            Ui.Label(chk, "✓", 16, accent, TextAnchor.MiddleCenter, true);
-            Ui.Title(new Rect(x + 58f, y + 8f, 420f, 40f), (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.Wave + " CLEARED", 30, Color.white, TextAnchor.MiddleLeft);
-            Chip(new Rect(x + WcW - 20f - 100f, y + 17f, 100f, 24f), "+" + rep.ScoreGain + " score", accent);
-            Chip(new Rect(x + WcW - 20f - 100f - 8f - 140f, y + 17f, 140f, 24f), FormatClear(rep.ClearTime) + " clear time", accent);
+        /// The box itself, at `r`.
+        void DrawWaveClearedBox(Player me, Rect r, WaveSummary rep, string waiting, bool calm)
+        {
+            float x = r.x, y = r.y;
+            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
+
+            // Head: WAVE n CLEARED (gold after a boss) with the blinking cursor, and the wave's two numbers.
+            bool boss = game.IsBossWave(game.Wave);
+            string title = (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.Wave + " CLEARED";
+            Color tc = boss ? CrtStyle.Gold : ink;
+            CrtUi.Title(new Rect(x + WcPad, y + 12f, 600f, 56f), title, 52, tc, TextAnchor.MiddleLeft, calm);
+            if (calm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
+                Ui.Fill(new Rect(x + WcPad + CrtUi.TitleWidth(title, 52) + 6f, y + 27f, 14f, 28f), tc);
+            WcTile(new Rect(x + 646f, y + 16f, 130f, 50f), FormatClear(rep.ClearTime), "CLEAR TIME", calm);
+            WcTile(new Rect(x + 786f, y + 16f, 132f, 50f), "+" + rep.ScoreGain, "SCORE", calm);
 
             // The tally.
-            float rx = x + 20f, ry = y + 62f;
+            float rx = x + WcPad, ry = y + 84f;
             DrawTallyHeader(rx, ry);
-            ry += 22f;
+            ry += 20f;
             var ids = new List<int>(game.Players.Keys);
             ids.Sort();
             int kills = 0;
@@ -104,97 +107,101 @@ namespace Arena
             {
                 var p = game.Players[id];
                 var line = rep.For(id) ?? new WaveLine { Id = id };
-                DrawTallyRow(new Rect(rx, ry, 600f, 60f), p, line);
+                DrawTallyRow(new Rect(rx, ry, WcTallyW, WcRowH), p, line, calm);
                 kills += line.Kills; dmg += line.Damage; taken += line.Taken;
-                ry += 66f;
+                ry += WcRowStep;
             }
             if (ids.Count > 1)
             {
-                var sq = new Rect(rx, ry, 600f, 36f);
-                Ui.Pill(sq, new Color(accent.r, accent.g, accent.b, 0.12f));
-                Ui.Rim(sq, accent, 0.45f);
-                Ui.Label(new Rect(sq.x + 12f, sq.y, 90f, sq.height), "Squad", 14, Ui.Muted, TextAnchor.MiddleLeft, true);
-                DrawNums(sq, kills, dmg, taken, null, false);
+                var sq = new Rect(rx, ry, WcTallyW, WcSquadH);
+                CrtKit.Dashed(sq, 1f, new Color(ink.r, ink.g, ink.b, 0.4f));
+                HudCrt(new Rect(sq.x + 10f + WcColName, sq.y, 100f, sq.height), "SQUAD", 26, dim);
+                DrawNums(sq, kills, dmg, taken, ink, ink);
             }
 
-            DrawNextPanel(new Rect(x + 640f, y + 62f, 280f, WcH - 62f - 84f), accent);
+            DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
 
-            // The bottom bar: Ready, Auto-ready, the status.
-            DrawReadyBar(me, new Rect(x + 20f, y + WcH - 76f, WcW - 40f, 62f), accent, waiting);
+            // The bottom: Ready, Auto-ready, the status, and the countdown along the foot.
+            DrawReadyBar(me, new Rect(x + WcPad, y + 338f, WcW - 2f * WcPad, 58f), waiting, calm);
         }
 
         static string FormatClear(float s) => Mathf.FloorToInt(s / 60f) + ":" + Mathf.FloorToInt(s % 60f).ToString("00");
 
-        void Chip(Rect r, string text, Color accent)
+        /// A number tile: the value big in gold, its name small under it, in a faint lit box.
+        void WcTile(Rect r, string value, string name, bool calm)
         {
-            Ui.Pill(r, new Color(0f, 0f, 0f, 0.45f));
-            Ui.Rim(r, accent, 0.5f);
-            Ui.Label(r, text, 12, new Color(0.86f, 0.9f, 0.97f), TextAnchor.MiddleCenter, true);
+            var ink = CrtUi.Ink;
+            Ui.Fill(r, new Color(ink.r, ink.g, ink.b, 0.09f));
+            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
+            CrtUi.Title(new Rect(r.x, r.y + 2f, r.width, 30f), value, 28, CrtStyle.Gold, TextAnchor.MiddleCenter, calm);
+            Ui.Label(new Rect(r.x, r.yMax - 17f, r.width, 13f), name, 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
         }
 
-        // Columns inside a 600-wide row: avatar 10, name 38, kills 118, damage 166, taken 224, awards 284, ready tick at the right.
+        // Columns inside a row (from 10 px in): the player's dot, name, kills, damage, taken, the award tags, the ready mark at the right.
+        const float WcColName = 34f, WcColKills = 143f, WcColDamage = 209f, WcColTaken = 293f, WcColAwards = 363f, WcColAwardsEnd = 534f, WcColTick = 542f;
+
         void DrawTallyHeader(float x, float y)
         {
-            var c = Ui.Muted;
-            Ui.Label(new Rect(x + 38f, y, 80f, 18f), "PLAYER", 10, c, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x + 118f, y, 46f, 18f), "KILLS", 10, c, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(x + 166f, y, 56f, 18f), "DAMAGE", 10, c, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(x + 224f, y, 46f, 18f), "TAKEN", 10, c, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(x + 284f, y, 80f, 18f), "AWARDS", 10, c, TextAnchor.MiddleLeft, true);
+            var c = CrtUi.Dim;
+            x += 10f;
+            HudCrt(new Rect(x + WcColName, y, 80f, 16f), "PLAYER", 15, c);
+            HudCrt(new Rect(x + WcColKills, y, 58f, 16f), "KILLS", 15, c, TextAnchor.MiddleRight);
+            HudCrt(new Rect(x + WcColDamage, y, 76f, 16f), "DAMAGE", 15, c, TextAnchor.MiddleRight);
+            HudCrt(new Rect(x + WcColTaken, y, 62f, 16f), "TAKEN", 15, c, TextAnchor.MiddleRight);
+            HudCrt(new Rect(x + WcColAwards, y, 120f, 16f), "AWARDS", 15, c);
         }
 
-        void DrawNums(Rect row, int kills, float damage, float taken, Color? takenColor, bool bright)
+        void DrawNums(Rect row, int kills, float damage, float taken, Color numColor, Color takenColor)
         {
-            var white = Color.white;
-            Ui.Label(new Rect(row.x + 118f, row.y, 46f, row.height), kills.ToString(), 14, white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(row.x + 166f, row.y, 56f, row.height), Mathf.RoundToInt(damage).ToString("N0"), 14, white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(row.x + 224f, row.y, 46f, row.height), Mathf.RoundToInt(taken).ToString("N0"), 14, takenColor ?? white, TextAnchor.MiddleRight, true);
+            float x = row.x + 10f;
+            HudCrt(new Rect(x + WcColKills, row.y, 58f, row.height), kills.ToString(), 26, numColor, TextAnchor.MiddleRight);
+            HudCrt(new Rect(x + WcColDamage, row.y, 76f, row.height), Mathf.RoundToInt(damage).ToString("N0"), 26, numColor, TextAnchor.MiddleRight);
+            HudCrt(new Rect(x + WcColTaken, row.y, 62f, row.height), Mathf.RoundToInt(taken).ToString("N0"), 26, takenColor, TextAnchor.MiddleRight);
         }
 
-        void DrawTallyRow(Rect row, Player p, WaveLine line)
+        void DrawTallyRow(Rect row, Player p, WaveLine line, bool calm)
         {
             bool mine = p.Id == game.MyId;
-            var color = ToColor(p.Def.Color);
-            Ui.Pill(row, mine ? new Color(0.14f, 0.2f, 0.36f, 0.9f) : new Color(0.05f, 0.07f, 0.14f, 0.9f));
-            Ui.Rim(row, mine ? Ui.Accent : new Color(0.3f, 0.34f, 0.5f), mine ? 0.7f : 0.5f);
-            Ui.Dot(new Rect(row.x + 10f, row.y + (row.height - 22f) / 2f, 22f, 22f), color);
-            Ui.Label(new Rect(row.x + 38f, row.y, 82f, row.height), p.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
-            Color takenColor = line.Taken <= 0.5f ? Ui.Good : Color.white;
-            DrawNums(row, line.Kills, line.Damage, line.Taken, takenColor, true);
+            CrtKit.SoftBox(row, CrtUi.Ink, mine, false, false);  // yours lit, like a selected key
+            float x = row.x + 10f, cy = row.center.y;
+            Ui.Dot(new Rect(x + 4f, cy - 9f, 18f, 18f), ToColor(p.Def.Color));  // the only colour on the row besides the awards
+            float nw = WcColKills - WcColName - 8f;
+            Ui.Label(new Rect(x + WcColName, row.y + 8f, nw, 18f), LobbyKit.Truncate(p.Name, 14, nw), 14, Color.white, TextAnchor.MiddleLeft, true);
+            string cls = (Defs.KitName(p.Kit) + " " + p.Def.Name).ToUpperInvariant();
+            Ui.Label(new Rect(x + WcColName, row.y + 27f, nw, 14f), LobbyKit.Truncate(cls, 9, nw), 9, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            DrawNums(row, line.Kills, line.Damage, line.Taken, Color.white, line.Taken <= 0.5f ? Ui.Good : Color.white);
 
-            // Awards: tags left to right, as many as fit.
-            // Each tag is a square, the label split onto two lines at its space (MOST / DAMAGE).
-            float ax = row.x + 284f, limit = row.x + 562f, side = 52f;
+            // Awards: inverse-video tags (gold, or the ink for the healers' ones), left to right, as many as fit.
+            float ax = x + WcColAwards, limit = x + WcColAwardsEnd;
             foreach (var a in AwardList(line.Awards))
             {
-                int longest = 0;
-                foreach (var word in a.Item1.Split(' '))
-                    longest = Mathf.Max(longest, word.Length);
-                float w = longest > 7 ? 72f : side;  // a long single word (UNTOUCHED) gets a wider tag
+                float w = CrtUi.TitleWidth(a.Item1, 15) + 10f;
                 if (ax + w > limit)
                     break;
-                var tag = new Rect(ax, row.y + (row.height - side) / 2f, w, side);
-                Color tc = a.Item2 ? WcBlue : WcGold;
-                Ui.Pill(tag, new Color(tc.r * 0.16f, tc.g * 0.16f, tc.b * 0.16f, 0.95f));
-                Ui.Rim(tag, tc, 0.7f);
-                Ui.Label(tag, a.Item1.Replace(' ', '\n'), 8, tc, TextAnchor.MiddleCenter, true);
-                ax += w + 3f;
+                var tag = new Rect(ax, cy - 9f, w, 18f);
+                Ui.Fill(tag, a.Item2 ? CrtUi.Ink : CrtStyle.Gold);
+                bool was = Ui.CrtFont;
+                Ui.CrtFont = true;
+                Ui.Label(tag, a.Item1, 15, a.Item2 ? CrtUi.Bg : new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
+                Ui.CrtFont = was;
+                ax += w + 4f;
             }
 
-            // Ready tick: a ring for auto-ready, a green tick when ready, an empty ring while they are not.
-            var dot = new Rect(row.xMax - 34f, row.y + (row.height - 24f) / 2f, 24f, 24f);
+            // Ready mark: A for auto-ready, a green tick when ready, a dashed empty box while they are not.
+            var dot = new Rect(x + WcColTick + 8f, cy - 13f, 26f, 26f);
             if (p.AutoReady)
             {
-                Ui.Dot(dot, Ui.Accent, true);
-                Ui.Label(dot, "A", 11, Ui.Accent, TextAnchor.MiddleCenter, true);
+                CrtKit.Frame(dot, 2f, CrtUi.Ink);
+                HudCrt(dot, "A", 20, CrtUi.Ink, TextAnchor.MiddleCenter);
             }
             else if (p.Ready)
             {
-                Ui.Dot(dot, Ui.Good, true);
-                Ui.Label(dot, "✓", 13, Ui.Good, TextAnchor.MiddleCenter, true);
+                Ui.Fill(dot, new Color(Ui.Good.r, Ui.Good.g, Ui.Good.b, 0.12f));
+                CrtKit.Frame(dot, 2f, Ui.Good);
+                Ui.Label(dot, "✓", 15, Ui.Good, TextAnchor.MiddleCenter, true);
             }
             else
-                Ui.Dot(dot, new Color(0.3f, 0.35f, 0.55f), true);
+                CrtKit.Dashed(dot, 2f, CrtUi.Dim);
         }
 
         /// (text, blue?) for each award someone has, in the order they show.
@@ -209,23 +216,22 @@ namespace Arena
             return l;
         }
 
-        /// The panel on the right: which enemy types the next wave draws from (a boss wave names its boss), and the road to the next boss.
-        void DrawNextPanel(Rect r, Color accent)
+        /// The panel on the right, in a dashed frame: which enemy types the next wave draws from (a boss wave names its boss), and the road to the next boss.
+        void DrawNextPanel(Rect r)
         {
-            Ui.Pill(r, new Color(0.05f, 0.07f, 0.14f, 0.9f));
-            Ui.Rim(r, new Color(0.3f, 0.34f, 0.5f), 0.5f);
-            float x = r.x + 14f, y = r.y + 10f;
+            var ink = CrtUi.Ink;
+            CrtKit.Dashed(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
+            float x = r.x + 14f, y = r.y + 12f, w = r.width - 28f;
             int next = game.Wave + 1;
-            Ui.Label(new Rect(x, y, r.width - 28f, 16f), "NEXT: WAVE " + next, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            y += 22f;
+            HudCrt(new Rect(x, y, w, 18f), "NEXT: WAVE " + next, 18, CrtUi.Dim);
+            y += 26f;
             if (game.IsBossWave(next))
             {
                 var d = Defs.Get(game.BossAt(next));
-                Ui.Dot(new Rect(x, y + 3f, 14f, 14f), ToColor(d.Color));
-                Ui.Label(new Rect(x + 22f, y, r.width - 50f, 22f), d.Name, 16, Ui.Gold, TextAnchor.MiddleLeft, true);
-                y += 26f;
-                Ui.Label(new Rect(x, y, r.width - 28f, 20f), "A boss wave", 12, Ui.Muted, TextAnchor.MiddleLeft);
-                y += 24f;
+                Ui.Dot(new Rect(x, y + 6f, 12f, 12f), ToColor(d.Color));
+                CrtUi.Title(new Rect(x + 22f, y, w - 22f, 26f), d.Name.ToUpperInvariant(), 26, CrtStyle.Gold, TextAnchor.MiddleLeft, CabCalm);
+                y += 28f;
+                HudCrt(new Rect(x, y, w, 20f), "A BOSS WAVE", 20, CrtUi.Dim);
             }
             else
             {
@@ -235,24 +241,24 @@ namespace Arena
                 for (int i = now.Count - 1; i >= 0 && shown < 5; i--, shown++)  // the newest types first
                 {
                     var d = Defs.Get(now[i]);
-                    bool isNew = !before.Contains(now[i]);
-                    Ui.Dot(new Rect(x, y + 4f, 12f, 12f), ToColor(d.Color));
-                    Ui.Label(new Rect(x + 20f, y, r.width - 90f, 20f), d.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
-                    if (isNew)
+                    Ui.Dot(new Rect(x, y + 5f, 11f, 11f), ToColor(d.Color));
+                    Ui.Label(new Rect(x + 20f, y, w - 70f, 21f), d.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
+                    if (!before.Contains(now[i]))
                     {
-                        var chip = new Rect(r.xMax - 14f - 40f, y + 2f, 40f, 16f);
-                        Ui.Pill(chip, new Color(0.16f, 0.13f, 0.03f, 0.95f));
-                        Ui.Rim(chip, WcGold, 0.7f);
-                        Ui.Label(chip, "NEW", 9, WcGold, TextAnchor.MiddleCenter, true);
+                        var chip = new Rect(r.xMax - 14f - 38f, y + 2f, 38f, 17f);
+                        Ui.Fill(chip, CrtStyle.Gold);
+                        bool was = Ui.CrtFont;
+                        Ui.CrtFont = true;
+                        Ui.Label(chip, "NEW", 15, new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
+                        Ui.CrtFont = was;
                     }
                     y += 22f;
                 }
-                y += 2f;
             }
-            DrawBossRoad(new Rect(x, r.yMax - 52f, r.width - 28f, 44f), accent);
+            DrawBossRoad(new Rect(x, r.yMax - 12f - 56f, w, 56f));
         }
 
-        void DrawBossRoad(Rect r, Color accent)
+        void DrawBossRoad(Rect r)
         {
             int next = game.Wave + 1;
             while (next < game.Wave + 60 && !game.IsBossWave(next))
@@ -264,41 +270,40 @@ namespace Arena
                 prev = 0;
             int steps = Mathf.Clamp(next - prev, 1, 10), done = Mathf.Clamp(game.Wave - prev, 0, steps);
             string boss = Defs.Get(game.BossAt(next)).Name;
-            Ui.Label(new Rect(r.x, r.y, r.width, 16f), "ROAD TO " + boss.ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            HudCrt(new Rect(r.x, r.y, r.width, 18f), "ROAD TO " + boss.ToUpperInvariant(), 18, CrtUi.Dim);
             float gap = 4f, w = (r.width - gap * (steps - 1)) / steps;
+            var ink = CrtUi.Ink;
             for (int i = 0; i < steps; i++)
             {
-                var seg = new Rect(r.x + i * (w + gap), r.y + 22f, w, 6f);
-                Ui.Pill(seg, i == steps - 1 ? Ui.Gold : i < done ? accent : new Color(1f, 1f, 1f, 0.12f));
+                var seg = new Rect(r.x + i * (w + gap), r.y + 26f, w, 8f);
+                Ui.Fill(seg, i == steps - 1 ? CrtStyle.Gold : i < done ? ink : new Color(1f, 1f, 1f, 0.1f));
             }
-            Ui.Label(new Rect(r.x, r.y + 28f, r.width, 16f), "Wave " + game.Wave + " of " + next, 11, Ui.Muted, TextAnchor.MiddleLeft);
+            HudCrt(new Rect(r.x, r.y + 38f, r.width, 18f), "WAVE " + game.Wave + " OF " + next, 19, CrtUi.Dim);
         }
 
-        /// Ready button, the Auto-ready switch, the status line and the bar under it all.
-        void DrawReadyBar(Player me, Rect r, Color accent, string waiting)
+        /// The Ready key, the Auto-ready switch, the status line, and the countdown bar along the bottom.
+        void DrawReadyBar(Player me, Rect r, string waiting, bool calm)
         {
-            // Ready.
-            var btn = new Rect(r.x, r.y + 4f, 200f, 40f);
+            var ink = CrtUi.Ink;
+            // Ready: a lobby key (green and ticked once you are ready); with Auto-ready on it's a dim dashed key.
+            var btn = new Rect(r.x, r.y, 220f, 48f);
             string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
             if (me.AutoReady)
-            {
-                GUI.enabled = false;
-                Ui.ActionButton(btn, "AUTO-READY", false, Ui.Primary, null, null, 15);
-                GUI.enabled = true;
-            }
-            else if (Ui.ActionButton(btn, me.Ready ? "✓  READY   (undo)" : "READY   [" + key + "]", me.Ready, Ui.Primary, null, null, 15))
+                LobbyKit.Key(btn, "AUTO-READY", false, calm, size: 24, locked: true);
+            else if (LobbyKit.Key(btn, me.Ready ? "READY" : "READY  [" + key + "]", me.Ready, calm, me.Ready ? PixelArt.Get("ui_check") : null, size: 24, minSize: 14,
+                         accent: me.Ready ? Ui.Good : (Color?)null))
                 PressReady(me);
 
-            // Auto-ready: a switch, remembered between runs.
-            var sw = new Rect(r.x + 222f, r.y + 10f, 42f, 24f);
+            // Auto-ready: the Settings switch (lamp, ON / OFF), remembered between runs; its label takes the click too.
             bool on = me.AutoReady;
-            Ui.Pill(sw, on ? Ui.Good : new Color(0.17f, 0.2f, 0.28f));
-            Ui.Rim(sw, on ? Ui.Good : new Color(0.3f, 0.34f, 0.5f), 0.9f);
-            Ui.Dot(new Rect(sw.x + (on ? 22f : 4f), sw.y + 4f, 16f, 16f), on ? new Color(0.03f, 0.13f, 0.06f) : new Color(0.6f, 0.65f, 0.76f));
-            Ui.Label(new Rect(sw.xMax + 10f, r.y + 6f, 190f, 20f), "Auto-ready", 14, new Color(0.86f, 0.9f, 0.97f), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(sw.xMax + 10f, r.y + 24f, 190f, 16f), "from now on, every wave", 11, Ui.Muted, TextAnchor.MiddleLeft);
-            var hit = new Rect(sw.x, r.y + 4f, 260f, 40f);
-            if (GUI.Button(hit, GUIContent.none, GUIStyle.none))
+            bool flip = WinKey(new Rect(r.x + 240f, r.y + 7f, 86f, 34f), on ? "ON" : "OFF", false, 18, on ? ink : CrtUi.Dim, true, on);
+            var lab = new Rect(r.x + 338f, r.y + 4f, 170f, 40f);
+            Ui.Label(new Rect(lab.x, r.y + 6f, lab.width, 18f), "Auto-ready", 14, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lab.x, r.y + 24f, lab.width, 15f), "from now on, every wave", 11, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.NoteHover(lab);
+            if (Ui.HitArea(lab))
+                flip = true;
+            if (flip)
             {
                 bool v = !me.AutoReady;
                 AutoReadyPref = v;
@@ -306,7 +311,7 @@ namespace Arena
                 game.SetMyAutoReady(v);
             }
 
-            // Status and bar.
+            // Status and the countdown.
             bool allAuto = game.AllAutoReady(), all = game.AllReady();
             string status;
             float frac = 0f;
@@ -319,7 +324,7 @@ namespace Arena
             }
             else if (all)
             {
-                status = "Everyone is ready. Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);
+                status = "Everyone is ready · wave " + (game.Wave + 1) + " in " + Mathf.CeilToInt(game.StateTimer);
                 frac = game.StateTimer / Game.ReadyCountdown;
             }
             else
@@ -328,15 +333,24 @@ namespace Arena
                 foreach (var p in game.Players.Values)
                     if (!p.Ready && !p.AutoReady)
                         names.Add(p.Id == game.MyId ? "you" : p.Name);
-                status = "Waiting for " + string.Join(" and ", names.ToArray()) + (game.Players.Count > 1 ? "  ·  no timer until everyone is ready" : "  ·  no timer until you are ready");
+                status = "Waiting for " + string.Join(" and ", names.ToArray()) + " · no timer yet";
             }
-            Ui.Label(new Rect(r.x + 420f, r.y + 8f, r.width - 420f, 22f), status, 14, Ui.Muted, TextAnchor.MiddleRight);
-            var bar = new Rect(r.x, r.yMax - 6f, r.width, 5f);
-            Ui.Bar(bar, frac, accent, new Color(1f, 1f, 1f, 0.11f));
-            if (frac <= 0f && !all)  // waiting: a slow light moving along the empty bar
+            var sr = new Rect(r.x + 520f, r.y + 10f, r.width - 520f, 26f);
+            string st = status.ToUpperInvariant().Replace("…", "...");
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;  // (measured in the CRT font it's drawn in)
+            st = LobbyKit.Truncate(st, 22, sr.width, false);
+            Ui.CrtFont = was;
+            HudCrt(sr, st, 22, frac > 0f ? ink : CrtUi.Dim, TextAnchor.MiddleRight);
+            var bar = new Rect(r.x, r.yMax - 4f, r.width, 10f);
+            Ui.Fill(bar, new Color(1f, 1f, 1f, 0.08f));
+            float fw = bar.width * Mathf.Clamp01(frac);
+            for (float sx = 0f; sx < fw; sx += 8f)  // segments, like the XP strip
+                Ui.Fill(new Rect(bar.x + sx, bar.y, Mathf.Min(6f, fw - sx), bar.height), ink);
+            if (frac <= 0f && !all && !calm)  // waiting: a slow light moving along the empty bar
             {
                 float sweep = MathX.Fmod(Time.unscaledTime * 0.35f, 1f);
-                Ui.Fill(new Rect(bar.x + sweep * (bar.width - 60f), bar.y, 60f, bar.height), new Color(1f, 1f, 1f, 0.16f));
+                Ui.Fill(new Rect(bar.x + sweep * (bar.width - 70f), bar.y, 70f, bar.height), new Color(ink.r, ink.g, ink.b, 0.35f));
             }
         }
     }
