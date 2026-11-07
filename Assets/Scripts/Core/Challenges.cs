@@ -152,6 +152,18 @@ namespace Arena
             OpenPortal(pool[rng.Next(pool.Count)]);
         }
 
+        /// Is a whole Data Gate (its ring and a margin) free of walls, pillars and solid props at `at`?
+        bool PortalSpotClear(V2 at)
+        {
+            float pad = Challenges.PortalR + 24f;
+            if (NearSolid(at, pad))
+                return false;
+            foreach (var pr in Props.Values)
+                if (Solid(pr) && pr.Hp > 0f && PropCovers(pr, at, pad))
+                    return false;
+            return true;
+        }
+
         void OpenPortal(ChallengeKind kind)
         {
             RoomKind = kind;
@@ -159,20 +171,45 @@ namespace Arena
             Room = RoomPhase.Portal;
             RoomT = Challenges.PortalLife;
             PortalFill = 0f;
-            // Somewhere open, away from where everyone is standing.
+            // Somewhere open, away from where everyone is standing, and clear of every wall, pillar and crate.
             PortalPos = new V2(Width / 2f, Height / 2f);
-            for (int tries = 0; tries < 20; tries++)
+            bool found = false;
+            for (int tries = 0; tries < 80 && !found; tries++)
             {
                 var at = RandomInArena(320f, 230f);
-                bool clear = true;
+                if (!PortalSpotClear(at))
+                    continue;
+                bool away = true;
                 foreach (var p in Players.Values)
-                    clear &= p.Pos.DistanceTo(at) > 220f;
-                PortalPos = at;
-                if (clear)
-                    break;
+                    away &= p.Pos.DistanceTo(at) > (tries < 40 ? 220f : 0f);
+                if (away)
+                {
+                    PortalPos = at;
+                    found = true;
+                }
+            }
+            if (!found)  // a crowded layout: sweep the arena for any clear spot
+            {
+                V2 lo = ArenaMin, hi = ArenaMax;
+                float best = -1f;
+                for (float y = lo.Y + 120f; y <= hi.Y - 120f; y += 40f)
+                    for (float x = lo.X + 120f; x <= hi.X - 120f; x += 40f)
+                    {
+                        var at = new V2(x, y);
+                        if (!PortalSpotClear(at))
+                            continue;
+                        float near = float.MaxValue;
+                        foreach (var p in Players.Values)
+                            near = Math.Min(near, p.Pos.DistanceTo(at));
+                        if (near > best)
+                        {
+                            best = near;
+                            PortalPos = at;
+                        }
+                    }
             }
             BroadcastFx(FxKind.Ring, PortalPos, Challenges.Accent(kind), 160f, 0.8f, Sfx.BossWarp);
-            DoLog("a portal opens: " + Challenges.Name(kind));
+            DoLog("a Data Gate opens: " + Challenges.Name(kind));
         }
 
         /// Dev menu: open a portal to this challenge now (in a break), or straight into the room with `enter`.
@@ -214,7 +251,7 @@ namespace Arena
                 Room = RoomPhase.None;
                 RoomKind = ChallengeKind.None;
                 BroadcastFx(FxKind.Implode, PortalPos, new Rgba(0.7f, 0.6f, 1f), 120f, 0.5f, Sfx.None);
-                DoLog("the portal closes");
+                DoLog("the Data Gate closes");
             }
         }
 
