@@ -1,0 +1,159 @@
+<title>Play Picker Keys</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: the Play picker's CRT screen at game size (720 x 330 px of the 1280 x 720 canvas), scaled to fit, in three key styles; under
+   it a strip of every key in every state. Key colours and strengths are CrtStyle.cs's (soft keys: tint 6 / 14 / 20 %, rim 50 / 90 / 100 %). */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #446dac; --scr: #030816; --danger: #ff6b7a; --gold: #f2c14e;
+  --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; --f-game: Arial, "Liberation Sans", Helvetica, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p, .desc { margin: 0; color: var(--muted); font: 500 16px/1.45 var(--f-ui); max-width: 78ch; }
+.desc b { color: var(--fg); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .key:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 12px/1.5 var(--f-mono); color: var(--muted); margin: 0; }
+.view { width: 100%; max-width: 100%; aspect-ratio: 720 / 330; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0d1020; }
+.stage { position: absolute; left: 0; top: 0; width: 720px; height: 330px; transform-origin: 0 0; font-family: var(--f-game); }
+
+/* the menu box round the screen (the main menu's chassis) */
+.chassis { position: absolute; inset: 0; background: linear-gradient(#2a3350, #1a2036); border: 1px solid #56658f; border-radius: 10px; }
+.screen { position: absolute; left: 16px; top: 54px; width: 688px; height: 206px; background: var(--scr); box-shadow: 0 0 0 3px #0c1224, inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent); overflow: hidden; }
+.screen::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.screen::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.45) 100%); }
+.hdr { position: absolute; left: 16px; top: 8px; width: 488px; height: 38px; background: var(--scr); box-shadow: 0 0 0 3px #0c1224; color: var(--ink); font: 700 21px/38px var(--f-game); padding-left: 16px; text-shadow: 0 0 6px rgba(102,163,255,.55); }
+.cap { position: absolute; border-radius: 7px; background: linear-gradient(#5b74c6, #34479a); border: 1px solid #8aa3ee; box-shadow: 0 4px 0 #0b0f22, inset 0 1px 0 rgba(255,255,255,.3);
+  color: #fff; font: 700 15px var(--f-game); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.cap i { position: absolute; right: 5px; top: 4px; width: 6px; height: 6px; border-radius: 50%; background: #4dff9a; box-shadow: 0 0 6px #4dff9a; }
+.at { position: absolute; }
+.t { color: var(--ink); text-shadow: 0 0 5px rgba(102,163,255,.5); white-space: nowrap; }
+.t.dim { color: var(--dim); text-shadow: none; }
+.rule { position: absolute; width: 1px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.seat { position: absolute; width: 4px; height: 16px; }
+.badge { position: absolute; height: 18px; border-radius: 9px; background: #2a1840; color: #e7dcff; font: 700 10px/18px var(--f-game); text-align: center; text-shadow: none; }
+
+/* keys */
+.key { --c: var(--ink); position: absolute; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font: 700 15px var(--f-game); letter-spacing: .02em;
+  white-space: nowrap; user-select: none; transition: background .06s, color .06s, border-color .06s; }
+.key.danger { --c: var(--danger); }
+.key svg { width: 1em; height: 1em; fill: currentColor; }
+/* Now: inverse video (CrtUi.Button / Small) */
+.s-now .key { background: color-mix(in srgb, var(--c) 7%, transparent); border: 2px solid var(--c); color: var(--c); text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); }
+.s-now .key:hover, .s-now .key.hov, .s-now .key.armed { background: color-mix(in srgb, var(--c) 95%, transparent); color: var(--scr); text-shadow: none; }
+.s-now .key.danger:hover, .s-now .key.danger.hov, .s-now .key.danger.armed { color: #1a0306; }
+/* A and B: soft keys (CrtKit.SoftBox / SoftText) */
+.s-a .key, .s-b .key { background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+  color: color-mix(in srgb, var(--c) 70%, #fff); text-shadow: 0 0 6px color-mix(in srgb, var(--c) 45%, transparent); }
+.s-a .key:hover, .s-a .key.hov, .s-b .key:hover, .s-b .key.hov { background: color-mix(in srgb, var(--c) 14%, transparent); border-color: color-mix(in srgb, var(--c) 90%, transparent); color: color-mix(in srgb, var(--c) 25%, #fff); }
+.s-a .key.armed, .s-b .key.armed, .s-b .key.lead { background: color-mix(in srgb, var(--c) 20%, transparent); border: 2px solid var(--c); color: color-mix(in srgb, var(--c) 25%, #fff);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 28%, transparent); }
+/* B: delete keys are quiet (dashed) until the mouse is on them */
+.s-b .key.danger:not(:hover):not(.hov):not(.armed) { background: color-mix(in srgb, var(--c) 2%, transparent); border: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); color: color-mix(in srgb, var(--c) 80%, transparent); text-shadow: none; }
+.calm .key, .calm .t, .calm .hdr { text-shadow: none !important; } .calm .key { box-shadow: none !important; }
+
+.strip { display: grid; grid-template-columns: 120px repeat(4, minmax(0, 1fr)); gap: 10px 12px; align-items: center; background: var(--scr); border: 1px solid var(--line); padding: 16px; overflow-x: auto; }
+.strip .h { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.strip .cell { position: relative; height: 50px; min-width: 120px; }
+.strip .cell .key { inset: 6px 0; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.legend > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #0c1122; min-width: 0; }
+.legend b { font: 700 16px var(--f-ui); display: block; margin-bottom: 4px; }
+.legend p { margin: 0; color: var(--muted); font: 500 14px/1.45 var(--f-ui); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Play picker keys as soft keys</h1>
+    <p>The saved-runs screen after Play. Its Continue, DEL and the older-runs page's PREV / NEXT are the last CRT keys that flip to a solid block under the mouse. A and B draw them as the lobby's soft keys instead. Back and New run are the menu's mechanical keycaps and stay as they are.</p>
+  </header>
+  <div class="bar">
+    <div class="grp" role="group" aria-label="Key style"><span>Keys</span>
+      <button class="seg" id="kNow" data-style="now" aria-pressed="false">Now · inverse video</button>
+      <button class="seg" id="kA" data-style="a" aria-pressed="true">A · Soft</button>
+      <button class="seg" id="kB" data-style="b" aria-pressed="false">B · Soft, Continue leads</button></div>
+    <div class="grp"><span>Effects</span><button class="seg" id="calm" aria-pressed="false">Reduced</button></div>
+  </div>
+  <div class="view" id="view"><div class="stage s-a" id="stage">
+    <div class="chassis"></div>
+    <div class="hdr">YOUR RUNS_</div>
+    <div class="cap" style="left:524px;top:8px;width:180px;height:38px">&#8592; Back<i></i></div>
+    <div class="screen">
+      <!-- the latest run -->
+      <div class="at t dim" style="left:18px;top:8px;font-size:10px">LATEST RUN</div>
+      <div class="at t" style="left:18px;top:20px;font:700 26px var(--f-game)">Wave 24</div>
+      <div class="at t dim" style="left:18px;top:58px;font-size:10px;line-height:15px">SAVED<br>SCORE<br>PLAYED</div>
+      <div class="at t" style="left:70px;top:57px;font-size:12px;line-height:15px">Nov 7, 17:20<br>18450<br>45 min</div>
+      <div class="badge" style="left:18px;top:102px;width:112px">BAZAAR</div><div class="badge" style="left:136px;top:102px;width:112px">2 MODIFIERS</div>
+      <div class="rule" style="left:184px;top:12px;height:86px"></div>
+      <div class="at t dim" style="left:202px;top:8px;font-size:10px">SQUAD</div>
+      <div class="seat" style="left:202px;top:28px;background:#5b8cff"></div><div class="at t" style="left:214px;top:27px;font-weight:700;font-size:13px">Anthony</div><div class="at t dim" style="left:316px;top:28px;font-size:12px">Knight Tank</div>
+      <div class="seat" style="left:202px;top:51px;background:#ff8a3d"></div><div class="at t" style="left:214px;top:50px;font-weight:700;font-size:13px">Aleon</div><div class="at t dim" style="left:316px;top:51px;font-size:12px">Elementalist DPS</div>
+      <div class="rule" style="left:500px;top:12px;height:86px"></div>
+      <div class="at t dim" style="left:518px;top:6px;width:152px;text-align:center;font-size:10px">&#9679; READY</div>
+      <div class="key lead" style="left:518px;top:24px;width:152px;height:50px;font-size:20px"><svg viewBox="0 0 8 10"><path d="M0 0h2v10H0zM2 1h2v8H2zM4 2h2v6H4zM6 3.5h2v3H6z"/></svg>CONTINUE</div>
+      <div class="key danger" id="del1" style="left:518px;top:82px;width:152px;height:28px">DEL</div>
+      <!-- an older run -->
+      <div class="rule" style="left:10px;top:128px;width:668px;height:1px"></div>
+      <div class="at t" style="left:14px;top:142px;font:700 24px var(--f-game)">8</div>
+      <div class="at t" style="left:52px;top:149px;font-size:12px">Nov 5, 18:00</div>
+      <div class="at t" style="left:140px;top:148px;font-size:13px">3120</div>
+      <div class="at t" style="left:184px;top:149px;font-size:12px">11 min</div>
+      <div class="seat" style="left:232px;top:150px;width:3px;height:11px;background:#4dff9a"></div><div class="at t" style="left:241px;top:147px;font-weight:700;font-size:11px">Anthony</div><div class="at t dim" style="left:310px;top:147px;font-size:11px">Ninja Healer</div>
+      <div class="key" style="left:486px;top:136px;width:132px;height:36px;font-size:13px"><svg viewBox="0 0 8 10"><path d="M0 0h2v10H0zM2 1h2v8H2zM4 2h2v6H4zM6 3.5h2v3H6z"/></svg>CONTINUE</div>
+      <div class="key danger" id="del2" style="left:622px;top:136px;width:58px;height:36px">DEL</div>
+    </div>
+    <div class="cap" style="left:16px;top:274px;width:688px;height:40px;font-size:18px">&#9654; New run</div>
+  </div></div>
+  <p class="note">Hover the keys; click a DEL once to arm it (REALLY?), again to put it back. Game size, scaled to fit.</p>
+
+  <div class="strip s-a" id="strip">
+    <span class="h"></span><span class="h">Resting</span><span class="h">Mouse on it</span><span class="h">Lit</span><span class="h">Delete armed</span>
+    <span class="h">Continue</span>
+    <div class="cell"><div class="key" style="left:0;right:0">CONTINUE</div></div>
+    <div class="cell"><div class="key hov" style="left:0;right:0">CONTINUE</div></div>
+    <div class="cell"><div class="key lead-demo" style="left:0;right:0">CONTINUE</div></div>
+    <div class="cell"></div>
+    <span class="h">Delete</span>
+    <div class="cell"><div class="key danger" style="left:0;right:0">DEL</div></div>
+    <div class="cell"><div class="key danger hov" style="left:0;right:0">DEL</div></div>
+    <div class="cell"></div>
+    <div class="cell"><div class="key danger armed" style="left:0;right:0;font-size:12px">REALLY?</div></div>
+    <span class="h">Pager</span>
+    <div class="cell"><div class="key" style="left:0;right:0;font-size:14px">&lt; PREV</div></div>
+    <div class="cell"><div class="key hov" style="left:0;right:0;font-size:14px">NEXT &gt;</div></div>
+    <div class="cell"></div><div class="cell"></div>
+  </div>
+
+  <div class="legend">
+    <div><b>Now · inverse video</b><p>Outlined 2 px; under the mouse the whole key fills with the ink and the text goes dark. Loud next to the rest of the CRT screens.</p></div>
+    <div><b>A · Soft</b><p>Exactly the lobby and Settings keys: a faint tint and a thin outline, brighter under the mouse. An armed delete lights like a selected key (2 px, soft glow) and reads REALLY?.</p></div>
+    <div><b>B · Soft, Continue leads</b><p>As A, but the latest run's Continue is always lit, since it is what most people press, and the DEL keys stay dashed and quiet until the mouse is on them.</p></div>
+  </div>
+  <p class="desc"><b>Building it:</b> CrtUi.Button and CrtUi.Small become CrtKit.SoftBox keys reading CrtStyle.cs (no new style); the CRT colour setting carries over. The inverse-video settings in CrtStyle.cs would go.</p>
+</div>
+
+<script>
+const stage = document.getElementById("stage"), strip = document.getElementById("strip");
+function setStyle(s) {
+  for (const el of [stage, strip]) { el.classList.remove("s-now", "s-a", "s-b"); el.classList.add("s-" + s); }
+  document.querySelectorAll("[data-style]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.style === s)));
+  // the Lit column shows how each style draws a lit key (B's leading Continue; A and Now have no lit Continue at rest)
+  strip.querySelectorAll(".lead-demo").forEach(k => { k.classList.toggle("lead", s === "b"); k.classList.toggle("armed", s !== "b"); k.textContent = "CONTINUE"; });
+}
+document.querySelectorAll("[data-style]").forEach(b => b.onclick = () => setStyle(b.dataset.style));
+document.getElementById("calm").onclick = e => { const on = e.currentTarget.getAttribute("aria-pressed") !== "true"; e.currentTarget.setAttribute("aria-pressed", String(on)); stage.classList.toggle("calm", on); strip.classList.toggle("calm", on); };
+for (const id of ["del1", "del2"]) {
+  const k = document.getElementById(id);
+  k.onclick = () => { const a = !k.classList.contains("armed"); k.classList.toggle("armed", a); k.textContent = a ? "REALLY?" : "DEL"; k.style.fontSize = a ? "12px" : ""; };
+}
+function fit() { const v = document.getElementById("view"); stage.style.transform = `scale(${v.clientWidth / 720})`; }
+new ResizeObserver(fit).observe(document.getElementById("view")); fit(); setStyle("a");
+</script>
