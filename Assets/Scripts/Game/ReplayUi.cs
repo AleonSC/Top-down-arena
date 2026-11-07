@@ -90,7 +90,7 @@ namespace Arena
             bool hear = moving && replay.Rate > 0f && replay.Rate <= 2f;
             foreach (var sfx in game.Sounds)
                 if (hear)
-                    sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
+                    sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
             game.MasteryToasts.Clear();
             UpdateMusic();

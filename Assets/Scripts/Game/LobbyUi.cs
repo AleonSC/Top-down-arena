@@ -1188,7 +1188,7 @@ namespace Arena
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)
                 if (!showcaseMute)
-                    sounds.PlayMuffled(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
+                    sounds.PlayMuffled(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             showcase.Game.Sounds.Clear();
         }
 
