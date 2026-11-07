@@ -170,7 +170,63 @@ static partial class Program
         Check(!g.Props.ContainsKey(hb.Id) && healed >= Game.OrbHeal * 2f - 0.5f, "walking into it breaks it into health orbs (two, which you pick up)");
         host.Leave(""); client.Leave("");
 
-        // Bots open the chest and take their items, so the wave can't stall.
+        // Pushing: crates and barrels slide when leaned on. Tanks shove fastest, then Dps, then Healers; enemies barely.
+        port = nextPort++;
+        host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Host", Role.Tank);
+        client = JoinAs(port, false, "Friend", Role.Dps);
+        s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        Run(s, dt, 20f, () => host.Game.State == MatchState.Fighting && host.Game.Wave == 3);
+        g = host.Game;
+        g.Props.Clear();
+        Func<PropKind, float, float> slide = (kind, speed) =>
+        {
+            var pr = g.AddProp(kind, new V2(Game.Width / 2f, Game.Height / 2f));
+            V2 start = pr.Pos;
+            for (int i = 0; i < 60; i++)  // a second of leaning in from the left, 4 px deep each step
+                g.ShoveProps(pr.Pos - new V2(Game.HalfW(pr) + 5f - 4f, 0f), 5f, speed, 1f / 60f, 0f, V2.Zero);
+            float d = pr.Pos.X - start.X;
+            g.Props.Remove(pr.Id);
+            return d;
+        };
+        float tank = slide(PropKind.Crate, Game.PushTank), dps = slide(PropKind.Crate, Game.PushDps), healer = slide(PropKind.Crate, Game.PushHealer);
+        float foeSlide = slide(PropKind.Crate, Game.PushEnemy), heavy = slide(PropKind.HeavyCrate, Game.PushTank), barrelSlide = slide(PropKind.Barrel, Game.PushTank);
+        Console.WriteLine("  pushed in 1 s: tank {0:0.0}, dps {1:0.0}, healer {2:0.0}, enemy {3:0.0}, heavy crate (tank) {4:0.0}, barrelSlide (tank) {5:0.0}", tank, dps, healer, foeSlide, heavy, barrelSlide);
+        Check(tank > dps && dps > healer && healer > 5f * foeSlide && foeSlide > 0.5f, "tanks shove props fastest, then dps, then healers; healers are far faster than enemies, who still move them");
+        Check(heavy > 0f && heavy < tank && barrelSlide > 0f, "a heavy crate gives more slowly; barrels slide too");
+        var pushChest = g.AddProp(PropKind.Chest, new V2(Game.Width / 2f, Game.Height / 2f));
+        V2 chestAt = pushChest.Pos;
+        g.ShoveProps(pushChest.Pos - new V2(30f, 0f), 5f, 100f, 1f, 0f, V2.Zero);
+        Check(pushChest.Pos.DistanceTo(chestAt) < 0.01f, "chests don't slide");
+        g.Props.Remove(pushChest.Id);
+        var edge = g.AddProp(PropKind.Crate, new V2(g.ArenaMax.X - Game.CrateSize / 2f - 1f, Game.Height / 2f));
+        for (int i = 0; i < 120; i++)
+            g.ShoveProps(edge.Pos - new V2(Game.HalfW(edge) + 1f, 0f), 5f, Game.PushTank, 1f / 60f, 0f, V2.Zero);
+        Check(edge.Pos.X <= g.ArenaMax.X - Game.CrateSize / 2f + 0.01f, "a pushed crate stops at the arena's edge");
+        g.Props.Remove(edge.Id);
+        var c1 = g.AddProp(PropKind.Crate, new V2(Game.Width / 2f, Game.Height / 2f));
+        var c2 = g.AddProp(PropKind.Crate, new V2(Game.Width / 2f + Game.CrateSize, Game.Height / 2f));
+        for (int i = 0; i < 120; i++)
+            g.ShoveProps(c1.Pos - new V2(Game.HalfW(c1) + 1f, 0f), 5f, Game.PushTank, 1f / 60f, 0f, V2.Zero);
+        Check(c1.Pos.X <= c2.Pos.X - Game.CrateSize + 0.6f, "a pushed crate can't be shoved through another");
+        // Enemies walk round crates when there's a way, and only shove when boxed in.
+        var propDir = typeof(Game).GetMethod("PropDir", flags);
+        g.Props.Clear();
+        var foeA = new Enemy { Id = 2, Type = EnemyType.Grunt, Pos = new V2(Game.Width / 2f, Game.Height / 2f) };
+        foeA.Def = Defs.Get(EnemyType.Grunt);
+        V2 ahead = new V2(1f, 0f);
+        g.AddProp(PropKind.Crate, foeA.Pos + new V2(45f, 0f));
+        V2 turned = (V2)propDir.Invoke(g, new object[] { foeA, ahead });
+        Check(turned.DistanceTo(ahead) > 0.3f, "an enemy with a crate ahead turns to go round it");
+        foreach (var id in g.Props.Keys.ToList()) g.Props.Remove(id);
+        for (int i = 0; i < 12; i++)
+            g.AddProp(PropKind.Crate, foeA.Pos + V2.FromAngle(i * MathX.Pi * 2f / 12f) * 60f);
+        V2 boxed = (V2)propDir.Invoke(g, new object[] { foeA, ahead });
+        Check(boxed.DistanceTo(ahead) < 0.001f, "boxed in by crates, it walks straight on (and shoves)");
+        g.Props.Clear();
+        host.Leave(""); client.Leave("");
+
+        // Bots open the pushChest and take their items, so the wave can't stall.
         port = nextPort++;
         host = new Session { AutoStart = 2, StartWave = 3 };
         host.Game.Bot = true;
