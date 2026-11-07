@@ -52,7 +52,7 @@ namespace Arena
                 return;
             var lines = session.Chat;
             double now = Session.Clock;
-            float bottom = SideY - 10f - Mathf.Max(0, game.Players.Count - 1) * 35f;
+            float bottom = SideY - 10f - Mathf.Max(0, game.Players.Count - 1) * 35f - (game.Me != null && Game.HasPerk(game.Me, PerkId.RiotGear) ? 44f : 0f);  // (teammate rows and the Riot Gear chip stack over your card, Hud.cs)
             float x = W - 12f - ChatW;
 
             if (chatOpen || chatK > 0.01f)

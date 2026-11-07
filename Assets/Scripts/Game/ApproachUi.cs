@@ -8,19 +8,46 @@ namespace Arena
     {
         static readonly Color ApproachColor = new Color(1f, 0.72f, 0.4f);
 
-        /// "APPROACH · THE WARDEN · 3/4" above the wave panel during an approach wave; returns the height it took.
-        float DrawApproachChip(float x, float y)
+        /// The objective as one quiet CRT line at the top centre: "THE WARDEN'S OWN  1/9  ·  [FUNNELS]" (a hunt), or
+        /// "APPROACH  ·  THE WARDEN  3/4" on the road to a boss, with the arena layout's name as a small tag after it.
+        /// Replaces the chips that used to stack above the wave panel (Docs/Mockups/crt-hud-a-variants.html, A1).
+        void DrawObjectiveLine()
         {
-            if (game.State != MatchState.Fighting || game.ApproachShare(game.Wave) <= 0f)
-                return 0f;
-            string text = game.Hunt != null ? "HUNT  ·  " + Defs.Get(game.Hunt.Boss).Name.ToUpperInvariant() + "'S OWN  ·  " + game.HuntWave + "/" + (Hunts.Length - 1)
-                : "APPROACH  ·  " + Defs.Get(Game.ApproachBoss(game.Wave)).Name.ToUpperInvariant() + "  ·  " + Game.ApproachStep(game.Wave) + "/4";
-            float w = 26f + text.Length * 6.4f;
-            var chip = new Rect(x, y, w, 20f);
-            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
-            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ApproachColor);
-            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ApproachColor, TextAnchor.MiddleLeft, true);
-            return 24f;
+            string head = null, count = null;
+            if (game.State == MatchState.Fighting && game.ApproachShare(game.Wave) > 0f)
+            {
+                if (game.Hunt != null)
+                {
+                    head = Defs.Get(game.Hunt.Boss).Name.ToUpperInvariant() + "'S OWN";
+                    count = game.HuntWave + "/" + (Hunts.Length - 1);
+                }
+                else
+                {
+                    head = "APPROACH  ·  " + Defs.Get(Game.ApproachBoss(game.Wave)).Name.ToUpperInvariant();
+                    count = Game.ApproachStep(game.Wave) + "/4";
+                }
+            }
+            string tag = game.LayoutOn && game.ActiveLayout != null ? game.ActiveLayout.Name.ToUpperInvariant() : null;
+            if (head == null && tag == null)
+                return;
+            bool calm = CabCalm;
+            const int size = 15;
+            float hw = head != null ? CrtUi.TitleWidth(head, size) + 8f : 0f, cw = count != null ? CrtUi.TitleWidth(count, size) + 14f : 0f;
+            float tw = tag != null ? CrtUi.TitleWidth(tag, 12) + 16f : 0f, gap = head != null && tag != null ? 10f : 0f;
+            float x = W / 2f - (hw + cw + gap + tw) / 2f, y = BossUp() ? 92f : 14f;
+            if (head != null)
+            {
+                CrtUi.Text(new Rect(x, y, hw, 20f), head, size, Ui.Gold, TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(x + hw, y, cw, 20f), count, size, CrtUi.Dim, TextAnchor.MiddleLeft, true, true);
+                x += hw + cw + gap;
+            }
+            if (tag != null)
+            {
+                var r = new Rect(x, y + 2f, tw, 17f);
+                Ui.Fill(r, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.12f));
+                Ui.Rim(r, CrtUi.Dim, 0.8f);
+                CrtUi.Text(r, tag, 12, CrtUi.Dim, TextAnchor.MiddleCenter, true, true);
+            }
         }
 
         /// The banner's line before the next wave: setting off toward a boss, or that it's near.
