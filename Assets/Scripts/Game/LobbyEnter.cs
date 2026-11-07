@@ -60,8 +60,11 @@ namespace Arena
             enterLastScreen = session.Screen;
             if (enterT < 0f)
                 return;
+            float enterPrev = enterT;
             enterT += dt;
             SkipCrtEntry();  // LobbyCrt.cs
+            if (crtEntry)
+                PlayCrtEntryCues(enterPrev, enterT);  // the boot's sounds (LobbyCrt.cs)
             if (session.Screen != AppScreen.Lobby || enterT >= (crtEntry ? EnterCrtLen : EnterLen))
             {
                 enterT = -1f;
