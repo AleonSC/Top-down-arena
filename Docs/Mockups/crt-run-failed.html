@@ -100,16 +100,31 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
 .sB .card { border-radius: 6px; }
 .sB[data-pal="blue"] .deco { background: radial-gradient(60% 70% at 72% 18%, #1c2656, transparent), radial-gradient(60% 60% at 20% 95%, #2a1226, transparent), #0a0d1c; }
 .vcr .rail { position: absolute; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--ink) 30%, transparent); }
+
+/* main-menu buttons: bevelled blue slabs with an inset frame, a corner screw lamp and a dark base lip, inside a bracketed panel */
+.mmpanel { position: absolute; border: 2px solid #4a66c8; background: linear-gradient(#0c1330, #080d22); box-shadow: 0 0 22px rgba(80,120,255,.3), inset 0 0 0 1px #1b2a63; }
+.mmpanel::before, .mmpanel::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid #7fa0ff; }
+.mmpanel::before { left: -7px; top: -7px; border-right: 0; border-bottom: 0; } .mmpanel::after { right: -7px; bottom: -7px; border-left: 0; border-top: 0; }
+.mm { position: relative; width: 100%; height: 100%; cursor: pointer; font: 700 24px var(--f-ui); letter-spacing: .02em; color: #eef2ff; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 6px;
+  background: linear-gradient(#4a62c4 0%, #3a4fa6 45%, #2e3f8c 100%); border: 1px solid #7f9aee; border-bottom: 0; box-shadow: 0 5px 0 #17214f, 0 8px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35); transition: transform .06s, box-shadow .06s, filter .1s; }
+.mm::before { content: ""; position: absolute; inset: 5px; border: 1px solid rgba(190,205,255,.5); border-radius: 3px; background: linear-gradient(rgba(255,255,255,.08), transparent 55%); pointer-events: none; }
+.mm::after { content: ""; position: absolute; right: 9px; top: 8px; width: 6px; height: 6px; border-radius: 1px; background: #0b1230; box-shadow: 0 0 0 1px rgba(150,170,255,.35); }
+.mm:hover { filter: brightness(1.15); } .mm:active { transform: translateY(4px); box-shadow: 0 1px 0 #17214f, 0 2px 5px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); }
+.mm:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.mm.big { font-size: 40px; letter-spacing: .04em; } .mm.big .gl { font-size: 34px; }
+.mm.sm { font-size: 22px; }
+.mm kbd { font: 700 14px var(--f-mono); background: rgba(5,10,40,.5); border: 1px solid rgba(190,205,255,.4); border-radius: 4px; padding: 2px 6px; }
+.mm .gl { font-size: 22px; line-height: 1; }
 @media (prefers-reduced-motion: reduce) { .roll, .cur, .rec, .title, .glassroll, .seg10 i.on { animation: none !important; } }
 </style>
 <div class="wrap">
 <header><h1>CRT Run Failed</h1><p>Four layouts for the end-of-run screen when the run is lost, all built from the lobby's CRT kit: VT323 type in a single phosphor colour, digital keys with the same hover and press, scanlines, vignette and glass. Colour stays where the lobby keeps it: the player card, the XP bar and the pixel icons. The numbers are the ones in the current Hunt Failed screenshot. Pick a layout, a mode (the title and subtitle change like the game's), and a phosphor.</p></header>
 <div class="bar">
-<div class="grp"><span>Layout</span><button class="seg" data-lay="A" aria-pressed="true">A Terminal</button><button class="seg" data-lay="B" aria-pressed="false">B Rack</button><button class="seg" data-lay="C" aria-pressed="false">C Post-mortem</button><button class="seg" data-lay="D" aria-pressed="false">D Tape</button></div>
+<div class="grp"><span>Layout</span><button class="seg" data-lay="A" aria-pressed="false">A Terminal</button><button class="seg" data-lay="B" aria-pressed="true">B Rack</button><button class="seg" data-lay="C" aria-pressed="false">C Post-mortem</button><button class="seg" data-lay="D" aria-pressed="false">D Tape</button></div>
 <div class="grp"><span>Mode</span><button class="seg" data-mode="gauntlet" aria-pressed="false">Gauntlet</button><button class="seg" data-mode="hunt" aria-pressed="true">Boss Hunt</button><button class="seg" data-mode="practice" aria-pressed="false">Practice</button></div>
-<div class="grp"><span>Phosphor</span><button class="seg" data-pal="red" aria-pressed="true">Red</button><button class="seg" data-pal="blue" aria-pressed="false">Blue</button><button class="seg" data-pal="amber" aria-pressed="false">Amber</button><button class="seg" data-pal="green" aria-pressed="false">Green</button></div>
+<div class="grp"><span>Phosphor</span><button class="seg" data-pal="red" aria-pressed="false">Red</button><button class="seg" data-pal="blue" aria-pressed="true">Blue</button><button class="seg" data-pal="amber" aria-pressed="false">Amber</button><button class="seg" data-pal="green" aria-pressed="false">Green</button></div>
 <div class="grp"><span>Effects</span><button class="seg" id="bfx" aria-pressed="false">Reduced effects</button></div></div>
-<div class="view" id="view"><div class="stage sA" id="stage" data-pal="red"></div></div>
+<div class="view" id="view"><div class="stage sB" id="stage" data-pal="blue"></div></div>
 <p class="desc2" id="lay-desc"></p>
 <p class="note">Mockup only. Hover the keys to see the inverse-video press. The pixel flame is the Elementalist class icon from the game, enlarged.</p>
 </div>
@@ -133,7 +148,7 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     C: '<b>C, Post-mortem.</b> A two-column fault report. The title is stacked huge on the left with a segmented wave track showing how far you got; the right column is the player card over a dot-leader stats sheet with a cause-of-failure line. Best for a run you want to learn from.',
     D: '<b>D, Tape.</b> The run as a recording. A REC bar, a scrub timeline with the first kill and the moment you went down, and the actions as transport keys. Uses the "Session recorded" file the game already writes, so it adds a story to the screen.'
   };
-  var S = { lay: 'A', mode: 'hunt', pal: 'red', calm: false };
+  var S = { lay: 'B', mode: 'hunt', pal: 'blue', calm: false };
   var stage = $('#stage'), view = $('#view');
 
   function box(id, x, y, w, h, inner, cls) { return '<div class="box ' + (cls || '') + '" id="' + id + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px"><div class="in">' + inner + '</div><i class="roll"></i></div>'; }
@@ -192,8 +207,10 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     h += box('p', 40, 196, 740, 336, card(14, 14, 214, 308, true) + stats(250, 18, 480, 1, 33, STATS.slice(0, 9).map(function (s) { return [s[0], s[1]]; })).replace(/class="st"/g, 'class="st lead"').replace(/<i>([^<]*)<\/i><b>/g, '<i>$1</i><u></u><b>') );
     h += box('r', 800, 196, 440, 150, rank(440, 150).replace('width:210px', 'width:0;display:none').replace(/<div style="width:1px[^>]*><\/div>/, '').replace('width:150px;text-align:center', 'width:90px;text-align:center'));
     h += box('log', 800, 362, 440, 170, at(18, 12, 400, 0, '<div class="lab" style="margin-bottom:8px">Run log</div><div class="log"><em>0:00</em>Hunt begins<br><em>0:12</em>First kill<br><em>0:30</em><span class="bad">DOWNED</span> 7 left<br><em>0:30</em>Party wiped<i class="cur"></i></div>'));
-    h += grid(40, 556, 1200, 76, 4, 1, [tac('&#9211; Leave', '', 'leave'), tac('&#9733; Rank report', '', 'rank'), tac('&#9654; Play again <kbd>R</kbd>', 'pri', 'again'), tac('&larr; Back to lobby <kbd>L</kbd>', '', 'lobby')], 18);
-    h += at(40, 656, 1200, 0, '<div class="note" style="text-align:center;color:#8f7f9a">Session recorded: ...\\Top-Down Arena\\sessions\\session-20261107-061659.json</div>');
+    h += '<div class="mmpanel" style="left:290px;top:540px;width:700px;height:148px"></div>';
+    h += grid(304, 552, 672, 66, 1, 1, ['<button class="mm big" data-act="again"><span class="gl">&#9654;</span>PLAY AGAIN <kbd>R</kbd></button>'], 0);
+    h += grid(304, 628, 672, 48, 3, 1, ['<button class="mm sm" data-act="leave"><span class="gl">&#9211;</span>Leave</button>', '<button class="mm sm" data-act="rank"><span class="gl">&#9733;</span>Rank report</button>', '<button class="mm sm" data-act="lobby"><span class="gl">&larr;</span>Back to lobby <kbd>L</kbd></button>'], 12);
+    h += at(40, 698, 1200, 0, '<div class="note" style="text-align:center;color:#8f9bc0">Session recorded: ...\\Top-Down Arena\\sessions\\session-20261107-061659.json</div>');
     return h;
   }
   function layC(m) {
@@ -241,7 +258,7 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; m
     stage.innerHTML = LAY[S.lay](MODES[S.mode]);
     $$('canvas[data-flame]', stage).forEach(function (c) { pix(c, FLAME, +c.getAttribute('data-flame')); });
     $('#lay-desc').innerHTML = DESC[S.lay];
-    $$('.k, .tac', stage).forEach(function (b) { b.addEventListener('click', function () { var a = b.getAttribute('data-act'); toast(a === 'again' ? 'Play again' : a === 'lobby' ? 'Back to lobby' : a === 'rank' ? 'Rank report' : 'Leave'); }); });
+    $$('.k, .tac, .mm', stage).forEach(function (b) { b.addEventListener('click', function () { var a = b.getAttribute('data-act'); toast(a === 'again' ? 'Play again' : a === 'lobby' ? 'Back to lobby' : a === 'rank' ? 'Rank report' : 'Leave'); }); });
     fit();
   }
   function toast(t) { var old = $('.ttoast', stage); if (old) old.remove(); var d = document.createElement('div'); d.className = 'ttoast'; d.style.cssText = 'position:absolute;right:30px;bottom:6px;z-index:40;font:24px var(--f-crt);color:var(--ink);background:var(--sbg);border:2px solid var(--ink);padding:6px 14px 3px'; d.textContent = '> ' + t; stage.appendChild(d); setTimeout(function () { d.remove(); }, 1100); }
