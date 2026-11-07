@@ -9,11 +9,9 @@ namespace Arena
     /// Records page, the lobby's seats when continuing a run, and "Unlocked" toasts in a match.
     public partial class ArenaApp
     {
-        bool continueOpen;
         List<RunSave> savedRuns = new List<RunSave>();
         string deleteArmed;  // the save whose Delete was clicked once (a second click deletes it)
 
-        static readonly Color SaveColor = new Color(0.42f, 0.86f, 0.62f);
 
         /// Where saves and the profile live (called once at start): the profile last used, under profiles/ (ProfileStore.cs).
         /// A pre-profiles install is copied into a profile named after the old player name.
@@ -37,13 +35,6 @@ namespace Arena
                 }
                 return savesCount;
             }
-        }
-
-        void OpenContinue()
-        {
-            savedRuns = SaveStore.List();
-            deleteArmed = null;
-            continueOpen = true;
         }
 
         // --- Play: the saved-runs picker inside the menu's box -------------------------------------
@@ -318,90 +309,6 @@ namespace Arena
             }
             if (s.DevUsed && n < max)
                 Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), "DEV TOOLS USED", Ui.Neutral);
-        }
-
-        // --- Continue a run ------------------------------------------------------------------------
-
-        void DrawContinue()
-        {
-            var panel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
-            Ui.Panel(panel, true);
-            Ui.Glitch(new Rect(panel.x, panel.y + 14f, panel.width, 50f), "CONTINUE A RUN", 34, Color.white, TextAnchor.MiddleCenter, SaveColor);
-            Ui.Label(new Rect(panel.x, panel.y + 60f, panel.width, 18f), "Runs save themselves as each wave starts, and when you leave between waves. You host the run; friends join and take their seats.",
-                12, Ui.Muted, TextAnchor.MiddleCenter);
-            float x = panel.x + 30f, w = panel.width - 60f, y = panel.y + 96f;
-            if (savedRuns.Count == 0)
-                Ui.Label(new Rect(x, y + 120f, w, 60f), "No saved runs yet.\nStart a run: it's saved from its first wave on, until it's won or lost.", 16, Ui.Muted, TextAnchor.MiddleCenter, false, true);
-            for (int i = 0; i < savedRuns.Count && i < 5; i++)
-            {
-                DrawSaveRow(new Rect(x, y, w, 92f), savedRuns[i]);
-                y += 100f;
-            }
-            if (savedRuns.Count > 5)
-                Ui.Label(new Rect(x, y - 4f, w, 16f), "and " + (savedRuns.Count - 5) + " older (delete some to see them)", 11, Ui.Muted, TextAnchor.MiddleCenter);
-            if (session.Status.Length > 0)
-                Ui.Label(new Rect(x, panel.yMax - 100f, w, 30f), session.Status, 13, Ui.Warn, TextAnchor.MiddleCenter, false, true);
-            if (Ui.ActionButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", false, Ui.Primary, PixelArt.Get("ui_back"), null, 16))
-                continueOpen = false;
-        }
-
-        void DrawSaveRow(Rect r, RunSave s)
-        {
-            Ui.Card(r, SaveColor, 0.25f);
-            float x = r.x + 18f;
-            Ui.Label(new Rect(x, r.y + 8f, 260f, 30f), "Wave " + (s.Wave + 1) + (s.Endless ? "  (endless)" : ""), 22, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x, r.y + 38f, 260f, 18f), "Saved " + s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, Ui.Muted);
-            Ui.Label(new Rect(x, r.y + 56f, 260f, 18f), "Score " + s.Score + "  ·  " + (int)(s.RunTime / 60f) + " min played", 12, Ui.Muted);
-            // The seats, as they'll be taken back.
-            float sx = x + 250f;
-            for (int i = 0; i < s.Seats.Count; i++)
-            {
-                var seat = s.Seats[i];
-                var c = ToColor(Defs.Get(seat.Role).Color);
-                Ui.Fill(new Rect(sx, r.y + 12f + i * 24f, 4f, 18f), c);
-                Ui.Label(new Rect(sx + 10f, r.y + 10f + i * 24f, 290f, 22f), seat.Name + "  —  " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name + ", level " + seat.Level, 13, Ui.Text);
-            }
-            // What's special about it.
-            float bx = r.xMax - 324f, by = r.y + 12f;
-            if (s.CurrentPath != PathId.None && s.PathTo > s.Wave)
-            {
-                Ui.Badge(new Rect(bx, by, 150f, 20f), Game.PathName(s.CurrentPath).ToUpperInvariant(), new Color(0.55f, 0.4f, 0.85f));
-                by += 26f;
-            }
-            if (s.Diff.Level != DifficultyLevel.Normal)
-            {
-                Ui.Badge(new Rect(bx, by, 150f, 20f), s.Diff.Name.ToUpperInvariant(), DiffBadgeColor(s.Diff.Level));
-                by += 26f;
-            }
-            int mods = Modifiers.Count(s.Mods);
-            if (mods > 0)
-            {
-                Ui.Badge(new Rect(bx, by, 150f, 20f), mods + (mods == 1 ? " MODIFIER" : " MODIFIERS"), ModColor);
-                by += 26f;
-            }
-            if (s.DevUsed)
-                Ui.Badge(new Rect(bx, by, 150f, 20f), "DEV TOOLS USED", Ui.Neutral);
-            // Continue, or delete (click twice).
-            bool armed = deleteArmed == s.Id;
-            if (Ui.ActionButton(new Rect(r.xMax - 150f, r.y + 10f, 136f, 40f), "Continue", true, Ui.Primary, PixelArt.Get("ui_play"), null, 16))
-            {
-                if (session.HostResume(s, Port(), nameText))
-                {
-                    addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
-                    continueOpen = false;
-                }
-            }
-            if (Ui.ActionButton(new Rect(r.xMax - 150f, r.y + 56f, 136f, 28f), armed ? "Really delete?" : "Delete", armed, Ui.Danger, PixelArt.Get("ui_trash"), armed ? (Color?)null : new Color(1f, 0.6f, 0.64f), 13))
-            {
-                if (armed)
-                {
-                    SaveStore.Delete(s.Id);
-                    savedRuns = SaveStore.List();
-                    deleteArmed = null;
-                }
-                else
-                    deleteArmed = s.Id;
-            }
         }
 
         // --- What the profile's Records tab reads (ProfileUi.cs) ----------------------------------------

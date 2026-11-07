@@ -43,7 +43,7 @@ namespace Arena
         /// Each frame: run a closing window's clock, then close it.
         void TickWindowClose()
         {
-            if (!settingsOpen && !howToOpen && !profileOpen && !lobbyMenuOpen && pauseAnim <= 0f && !WindowClosing)
+            if (!settingsOpen && !profileOpen && !lobbyMenuOpen && pauseAnim <= 0f && !WindowClosing)
             {
                 drawerKey = null;  // nothing open: the next window opens with its slide, however the last one closed
                 if (cabWin)
