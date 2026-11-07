@@ -1,0 +1,617 @@
+<title>Floppy Slot Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Permanent+Marker&display=swap">
+<style>
+/* Layout: the 1280 x 720 game screen on top, playing "pick a disk" through to the finished menu. Under it, the switches for
+   the slot look, the arc look and which profile is picked, then one card per option, then notes for building it.
+   Single dark look on purpose: it mirrors the game, like the other mockups in Docs/Mockups. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --blue: #73a6ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #05070d; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 30px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 32px; padding: 0 14px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 15px; height: 15px; margin: 0; }
+input[type=range] { accent-color: var(--teal); flex: 1 1 200px; min-width: 120px; }
+.clock { font: 500 12.5px var(--font-data); color: var(--soft); font-variant-numeric: tabular-nums; min-width: 76px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c, var(--blue)); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 9px; align-content: start; min-width: 0; background: var(--panel-2); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c, var(--blue)); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card h3 { margin: 4px 0 0; font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 13px; color: var(--soft); }
+.card ul li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
+.card ul li span { font: 500 11.5px var(--font-data); color: var(--muted); padding-top: 1px; }
+.notes { display: grid; gap: 8px; font-size: 14px; color: var(--soft); }
+.notes code { font: 500 12.5px var(--font-data); color: var(--teal); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; max-width: 80ch; }
+.q { border-left: 2px solid var(--amber); padding-left: 12px; }
+.q b { color: var(--fg); }
+@media (max-width: 520px) { .seg button { padding: 0 9px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Who's playing? to main menu</div>
+    <h1>Floppy <span>slot</span> and vector arc</h1>
+    <p class="lead">Pick a profile disk and it flies up, tips flat and slides into a slot that sits where the glowing x-axis line is now. The long axis line is gone. The dashed arc over the title becomes a clean vector path. Switch the looks below, or pick Before to see today's version.</p>
+  </header>
+
+  <section class="stage" aria-label="Animation">
+    <canvas id="cv" width="1280" height="720" role="img" aria-label="Animated mockup of the Who's playing screen: a floppy disk rises into a drive slot, then the main menu appears with a vector arc over the title."></canvas>
+    <div class="bar">
+      <button class="act" id="replay" type="button">Replay</button>
+      <button class="act" id="pp" type="button">Pause</button>
+      <input type="range" id="scrub" min="0" max="7000" value="0" aria-label="Timeline">
+      <span class="clock" id="clock">0.00 s</span>
+      <span class="lbl">Speed</span>
+      <span class="seg" id="speed"><button type="button" data-v="0.4">0.4x</button><button type="button" data-v="1" class="on">1x</button></span>
+      <label class="tog"><input type="checkbox" id="loop" checked> Loop</label>
+    </div>
+    <div class="bar">
+      <span class="lbl">Slot</span>
+      <span class="seg" id="slot">
+        <button type="button" data-v="old">Before</button>
+        <button type="button" data-v="A" class="on">A Slim slot</button>
+        <button type="button" data-v="B">B Drive bay</button>
+        <button type="button" data-v="C">C Origin port</button>
+      </span>
+      <span class="lbl">Arc</span>
+      <span class="seg" id="arc">
+        <button type="button" data-v="0">Before</button>
+        <button type="button" data-v="1" class="on">1 Pen path</button>
+        <button type="button" data-v="2">2 Plotted curve</button>
+        <button type="button" data-v="3">3 Tapered stroke</button>
+      </span>
+    </div>
+    <div class="bar">
+      <span class="lbl">Disk picked</span>
+      <span class="seg" id="pick"><button type="button" data-v="0" class="on">Anthony</button><button type="button" data-v="1">Sam</button><button type="button" data-v="2">Mia</button></span>
+      <span class="lbl">Jump to</span>
+      <span class="seg" id="jump"><button type="button" data-v="0">Picker</button><button type="button" data-v="2.3">Tipping in</button><button type="button" data-v="3.4">Reading</button><button type="button" data-v="7">Finished menu</button></span>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="eyebrow">The slot, three looks</div>
+    <h2>Where the line was</h2>
+    <div class="cards">
+      <article class="card" style="--c:#73a6ff">
+        <div class="hd"><b class="n">A Slim slot</b><span class="tag">170 px slit</span></div>
+        <p class="sum">A thin machined slit under the title, with a bolt at one end and a status light at the other. The quietest option. After the disk is in, the light stays on in your rank colour as a small "signed in" mark.</p>
+        <h3>Beats</h3>
+        <ul>
+          <li><span>0.9 s</span>The disk lifts out of its clamps and flies to the slit, others dim</li>
+          <li><span>2.0 s</span>It tips flat from its top edge, shutter first</li>
+          <li><span>2.5 s</span>It slides in, the lip flashes, the light turns your colour and blinks</li>
+          <li><span>3.3 s</span>Title writes on, then the arc, then the box</li>
+        </ul>
+      </article>
+      <article class="card" style="--c:#6fe3c4">
+        <div class="hd"><b class="n">B Drive bay</b><span class="tag">330 px housing</span></div>
+        <p class="sum">A wider housing that matches the shelf's hardware: status light, four read cells and a small readout underneath that goes from DRIVE A: EMPTY to DISK DETECTED, READING ANTHONY, then the name with READY. It tells the story of the load, so it is the busiest option.</p>
+        <h3>Beats</h3>
+        <ul>
+          <li><span>1.2 s</span>Light pulses amber as the disk approaches</li>
+          <li><span>2.5 s</span>Disk slides in, readout switches to DISK DETECTED</li>
+          <li><span>2.95 s</span>Four read cells fill while the title types</li>
+          <li><span>3.9 s</span>Readout settles on the name</li>
+        </ul>
+      </article>
+      <article class="card" style="--c:#ffb547">
+        <div class="hd"><b class="n">C Origin port</b><span class="tag">52 px socket</span></div>
+        <p class="sum">Keeps the idea of the origin point of the axis. The disk shrinks all the way down into a small square socket exactly at the origin and the ring pulses once more. Closest to how the move works today, with the dot swapped for a real socket.</p>
+        <h3>Beats</h3>
+        <ul>
+          <li><span>0.9 s</span>Disk shrinks as it flies to the origin</li>
+          <li><span>2.0 s</span>Tips flat over the socket</li>
+          <li><span>2.5 s</span>Drops in, socket lights in your colour</li>
+          <li><span>3.3 s</span>Title writes on, arc, box</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="eyebrow">The arc, three vector looks</div>
+    <h2>From dashes to a path</h2>
+    <div class="cards">
+      <article class="card" style="--c:#73a6ff">
+        <div class="hd"><b class="n">1 Pen path</b><span class="tag">solid 1.5 px</span></div>
+        <p class="sum">A smooth solid curve like one drawn with the pen tool: hollow square anchors at both ends and the peak, short handles with round knobs. The shot rides it with a solid tapered tail instead of a chain of dots.</p>
+      </article>
+      <article class="card" style="--c:#6fe3c4">
+        <div class="hd"><b class="n">2 Plotted curve</b><span class="tag">fades at the ends</span></div>
+        <p class="sum">The arc as a function plot. It fades toward its ends, has ringed end nodes labelled x1 and x2, and a small f(x) label at the peak. The shot drops a thin plumb line to a baseline tick as it moves, so it reads as a point being plotted.</p>
+      </article>
+      <article class="card" style="--c:#ffb547">
+        <div class="hd"><b class="n">3 Tapered stroke</b><span class="tag">0.6 to 3.8 px</span></div>
+        <p class="sum">A filled shape instead of a line: thin at the ends, fuller at the peak, with a soft glow under it, like a brush or variable-width stroke in a vector editor. The shot is a pointed comet that follows the curve. The most graphic of the three.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec notes">
+    <div class="eyebrow">Building it</div>
+    <h2>What changes in the game</h2>
+    <ul>
+      <li><code>DrawAxis</code> (<code>Menus.cs</code>) goes. It is called from <code>Menus.cs</code>, <code>ProfilesUi.cs</code>, <code>LobbyCrt.cs</code> and <code>LobbyEnter.cs</code>, replaced in the picker and menu by one <code>DrawDriveSlot</code>.</li>
+      <li><code>DrawMenuArc</code> and <code>ArcAt</code> are redrawn as the chosen vector style. The intro pen that traces the arc keeps working because the curve itself does not move.</li>
+      <li><code>DrawProfTrWho</code> (<code>ProfileTransition.cs</code>) loses the plot-point dots and the shooting trails. The other disks fade with the shelf, the picked disk takes the flight, tip and insert. The clock keeps its length so the sound cues and menu intro stay in step, with new cues for the lift, the slot click and the read.</li>
+      <li>Switch profile plays it backwards: the disk pops out of the slot, tips up and drops back into its clamps.</li>
+      <li>No network or snapshot change, so the protocol version stays as it is.</li>
+    </ul>
+    <p class="q"><b>Questions before I build:</b> which slot (A, B or C) and which arc (1, 2 or 3)? Should the lobby, which also draws the axis and arc, get the same change, or keep them for now?</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById('cv'), g = cv.getContext('2d');
+  const W = 1280, H = 720, AX = 640, AY = 188;
+  const LEN = 7.0, LOOPLEN = 9.2;
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const seg = (t, a, b) => clamp((t - a) / (b - a));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const eo = t => 1 - Math.pow(1 - t, 3);
+  const eio = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+  const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+  const BLUE = [115, 166, 255], PINK = [255, 120, 150];
+  const PROFILES = [
+    { name: 'Anthony', rank: 14, title: 'Gladiator', col: [255, 196, 87], wins: 31, runs: 58 },
+    { name: 'Sam', rank: 7, title: 'Soldier', col: [111, 227, 196], wins: 9, runs: 22 },
+    { name: 'Mia', rank: 3, title: 'Recruit', col: [130, 160, 255], wins: 2, runs: 11 },
+  ];
+  const st = { slot: 'A', arc: '1', pick: 0, speed: 1, loop: true, T: 0, playing: true };
+  const SD = { A: 150, B: 166, C: 34 };            // the disk's size when it reaches the slot
+  const MARKER = '"Permanent Marker", "Segoe Print", cursive';
+
+  if (!g.roundRect) g.roundRect = function (x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath();
+  };
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); };
+  const circ = (x, y, r) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); };
+  const vgrad = (y0, y1, c0, c1) => { const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, c0); gr.addColorStop(1, c1); return gr; };
+
+  function bolt(x, y, r) {
+    g.fillStyle = '#1a2350'; circ(x, y, r); g.fill();
+    g.strokeStyle = 'rgba(130,160,240,.6)'; g.lineWidth = 1; circ(x, y, r); g.stroke();
+    g.strokeStyle = 'rgba(8,10,28,.9)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x - r * 0.55, y + r * 0.3); g.lineTo(x + r * 0.55, y - r * 0.3); g.stroke();
+  }
+
+  // ---- the picker: shelf, clamps, disks --------------------------------------------------------------------------------
+  const whoBox = i => ({ x: W / 2 - (4 * 184 + 3 * 60) / 2 + i * 244, y: 252, w: 184, h: 184 });
+  const SHELF_TOP = 252 + 184 + 16;
+
+  function clamp3(x, y, w, h, lit) {
+    g.fillStyle = 'rgba(0,0,0,.4)'; rr(x + 1, y + 4, w, h, w / 2); g.fill();
+    g.fillStyle = '#7894e0'; rr(x, y, w, h, w / 2); g.fill();
+    g.fillStyle = '#263470'; rr(x + 1.5, y + 1.5, w - 3, h - 3, w / 2); g.fill();
+    g.fillStyle = 'rgba(115,140,210,.75)'; g.fillRect(x + w * 0.28, y + 4, w * 0.34, h - 8);
+    if (lit) { g.fillStyle = 'rgba(107,255,153,.22)'; circ(x + w / 2, y + 14, 9); g.fill(); g.fillStyle = '#6bff99'; circ(x + w / 2, y + 14, 5); g.fill(); }
+    else { g.fillStyle = '#121a40'; circ(x + w / 2, y + 14, 5); g.fill(); }
+    bolt(x + w / 2, y + h - 12, 4);
+  }
+
+  function drawShelf(open) {
+    const top = SHELF_TOP, left = 70, w = W - 140, wall = { x: left + 20, y: 222, w: w - 40, h: top - 252 + 30 + 54 };
+    g.fillStyle = 'rgba(0,0,0,.35)'; rr(wall.x, wall.y + 4, wall.w, wall.h, 10); g.fill();
+    g.fillStyle = '#2c3a80'; rr(wall.x, wall.y, wall.w, wall.h, 10); g.fill();
+    g.fillStyle = vgrad(wall.y, wall.y + wall.h, '#0f1433', '#080a1a'); rr(wall.x + 1, wall.y + 1, wall.w - 2, wall.h - 2, 9); g.fill();
+    [[12, 12], [wall.w - 12, 12], [12, wall.h - 12], [wall.w - 12, wall.h - 12]].forEach(p => bolt(wall.x + p[0], wall.y + p[1], 6));
+    g.fillStyle = 'rgba(0,0,0,.35)'; rr(left, top + 12, w, 48, 8); g.fill();
+    g.fillStyle = vgrad(top, top + 14, '#8aa1ee', '#46599a'); g.fillRect(left, top, w, 14);
+    g.fillStyle = 'rgba(255,255,255,.45)'; g.fillRect(left + 3, top, w - 6, 1);
+    g.fillStyle = vgrad(top + 14, top + 54, '#3d4d8c', '#1a2352'); g.fillRect(left, top + 14, w, 40);
+    g.strokeStyle = 'rgba(107,133,214,.7)'; g.lineWidth = 0.7; g.strokeRect(left, top, w, 54);
+    [left + 20, left + w - 120].forEach(vx => {
+      g.fillStyle = '#05071a'; rr(vx, top + 22, 100, 24, 12); g.fill();
+      g.fillStyle = '#1a2352'; for (let x = vx + 12; x < vx + 90; x += 12) g.fillRect(x, top + 26, 6, 16);
+    });
+    for (let i = 0; i < 4; i++) {
+      const r = whoBox(i), k = r.w / 200, o = i === st.pick ? open : 0;
+      const px = r.x - 18 * k, pw = r.w + 36 * k, py = r.y + r.h - 4 * k, ph = 20 * k;
+      g.fillStyle = 'rgba(0,0,0,.45)'; rr(px + 2, py + 6, pw - 4, ph, 6); g.fill();
+      g.fillStyle = '#7894e0'; rr(px, py, pw, ph, 6); g.fill();
+      g.fillStyle = vgrad(py, py + ph, '#526bb5', '#1a2350'); rr(px + 1.5, py + 1.5, pw - 3, ph - 3, 5); g.fill();
+      g.fillStyle = '#0a0e22'; for (let gx = px + 14 * k; gx < px + pw - 24 * k; gx += 16 * k) g.fillRect(gx, py + 8 * k, 10 * k, 3);
+      const ch = 84 * k, cw = 22 * k, lit = i === st.pick;
+      clamp3(r.x - 28 * k - o, r.y + r.h - ch + 6 * k, cw, ch, lit);
+      clamp3(r.x + r.w + 6 * k + o, r.y + r.h - ch + 6 * k, cw, ch, lit);
+      g.fillStyle = '#080b1f'; rr(r.x + r.w / 2 - 46, top + 20, 92, 28, 8); g.fill();
+      g.fillStyle = '#a8baf0'; g.font = '600 13px Oxanium, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(i === 3 ? 'NEW' : 'SLOT ' + (i + 1), r.x + r.w / 2, top + 35);
+    }
+  }
+
+  function ghost(r, a, label, sub) {
+    g.strokeStyle = rgba([150, 172, 230], a); g.lineWidth = 2; g.setLineDash([7, 6]);
+    g.beginPath(); g.moveTo(r.x, r.y); g.lineTo(r.x + r.w - 24, r.y); g.lineTo(r.x + r.w, r.y + 24); g.lineTo(r.x + r.w, r.y + r.h); g.lineTo(r.x, r.y + r.h); g.closePath(); g.stroke(); g.setLineDash([]);
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = rgba([150, 172, 230], a * 1.6);
+    g.font = '400 44px Barlow, sans-serif'; g.fillText('+', r.x + r.w / 2, r.y + r.h / 2 - 22);
+    g.font = '500 15px Barlow, sans-serif'; g.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 14);
+    g.font = '400 11px Barlow, sans-serif'; g.fillText(sub, r.x + r.w / 2, r.y + r.h / 2 + 36);
+  }
+
+  // A floppy at x,y (top left), s px wide, drawn from a 200 unit sheet. sy squashes it from the top edge (the tip), sx from the centre.
+  function disk(x, y, s, P, slotNo, o = {}) {
+    const k = s / 200, sy = o.sy ?? 1, sx = o.sx ?? 1;
+    g.save();
+    if (o.shadow) { g.shadowColor = 'rgba(0,0,0,.55)'; g.shadowBlur = o.shadow; g.shadowOffsetY = o.shadow * 0.55; }
+    g.translate(x + s * (1 - sx) / 2, y); g.scale(k * sx, k * sy);
+    const c1 = mix(P.col, [0, 0, 0], 0.17), c2 = mix(P.col, [0, 0, 0], 0.55);
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(176, 0); g.lineTo(200, 24); g.lineTo(200, 200); g.lineTo(0, 200); g.closePath();
+    g.fillStyle = vgrad(0, 200, rgba(c1, 1), rgba(c2, 1)); g.fill();
+    g.shadowColor = 'transparent';
+    g.fillStyle = 'rgba(255,255,255,.24)'; g.fillRect(2, 0, 172, 2); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(0, 24, 2, 176);
+    g.fillStyle = '#0a0d17'; g.fillRect(10, 176, 14, 14); g.fillRect(174, 174, 16, 16);
+    g.fillStyle = '#e8edf7'; g.fillRect(176, 176, 6, 12);
+    const cols = [[0.2, '#8f99b5'], [0.35, '#e3e8f5'], [0.3, '#b3bcd6'], [0.15, '#7f8aa6']]; let sxp = 46;
+    cols.forEach(c => { g.fillStyle = c[1]; g.fillRect(sxp, 0, 108 * c[0] + 0.5, 60); sxp += 108 * c[0]; });
+    g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(46, 58, 108, 2);
+    g.fillStyle = 'rgba(40,52,80,.3)'; g.fillRect(58, 22, 36, 3); g.fillRect(58, 30, 36, 3);
+    g.fillStyle = '#0a0e1a'; rr(116, 9, 24, 38, 3); g.fill();
+    g.fillStyle = '#f5f0e0'; g.fillRect(16, 70, 168, 110);
+    g.fillStyle = 'rgba(80,110,190,.2)'; for (let j = 1; j <= 4; j++) g.fillRect(16, 70 + 17 + j * 19, 168, 1);
+    g.fillStyle = rgba(P.col, 1); g.fillRect(16, 70, 168, 17);
+    g.fillStyle = 'rgba(10,14,30,.85)'; g.font = '700 10px Oxanium, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('SLOT ' + slotNo, 24, 79);
+    let size = 25; g.font = `${size}px ${MARKER}`;
+    while (size > 12 && g.measureText(P.name).width > 112) { size--; g.font = `${size}px ${MARKER}`; }
+    g.fillStyle = '#1a2447'; g.fillText(P.name, 22, 106);
+    g.fillStyle = rgba(mix(P.col, [0, 0, 0], 0.55), 1); circ(160, 111, 19); g.fill();
+    g.strokeStyle = rgba(P.col, 1); g.lineWidth = 2; circ(160, 111, 19); g.stroke();
+    g.fillStyle = '#fff'; g.font = '700 16px Oxanium, sans-serif'; g.textAlign = 'center'; g.fillText(P.rank, 160, 112); g.textAlign = 'left';
+    g.fillStyle = '#29356a'; g.font = '500 13px Barlow, sans-serif'; g.fillText(P.title + '  ·  Rank ' + P.rank, 22, 134);
+    g.fillStyle = '#5a668f'; g.font = '400 11.5px Barlow, sans-serif'; g.fillText(P.wins + ' wins  ·  ' + P.runs + ' runs', 22, 152);
+    g.restore();
+  }
+
+  // ---- titles and the pen ----------------------------------------------------------------------------------------------
+  function title(text, size, y, alpha, reveal) {
+    g.save(); g.font = `800 ${size}px Oxanium, "Segoe UI", sans-serif`; g.textAlign = 'left'; g.textBaseline = 'middle';
+    try { g.letterSpacing = (size * 0.04) + 'px'; } catch (e) { }
+    const w = g.measureText(text).width, x = W / 2 - w / 2;
+    g.globalAlpha = alpha; g.beginPath(); g.rect(x - 6, y - size, w * reveal + 10, size * 2); g.clip();
+    g.shadowColor = rgba(BLUE, 0.55); g.shadowBlur = 18; g.fillStyle = '#fff'; g.fillText(text, x, y);
+    g.restore();
+    return { x, w };
+  }
+  function penTip(x, y) {
+    g.fillStyle = 'rgba(150,200,255,.12)'; circ(x, y, 16); g.fill();
+    g.fillStyle = 'rgba(150,200,255,.3)'; circ(x, y, 9); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.95)'; circ(x, y, 3.5); g.fill();
+  }
+
+  // ---- the old axis (Before) -------------------------------------------------------------------------------------------
+  function oldAxis(T) {
+    const half = 390;
+    for (let side = -1; side <= 1; side += 2) {
+      const gr = g.createLinearGradient(AX, 0, AX + side * half, 0);
+      gr.addColorStop(0, rgba(BLUE, 0.6)); gr.addColorStop(1, rgba(BLUE, 0.18));
+      g.strokeStyle = gr; g.lineWidth = 1.5; g.beginPath(); g.moveTo(AX, AY); g.lineTo(AX + side * half, AY); g.stroke();
+      g.strokeStyle = rgba(BLUE, 0.06); g.lineWidth = 6; g.stroke();
+      for (let k = 1; k * 24 < half - 10; k++) {
+        const fade = 1 - 0.7 * k * 24 / half, len = k % 4 === 0 ? 6 : 3;
+        g.strokeStyle = rgba(BLUE, 0.55 * fade); g.lineWidth = 1.2; g.beginPath(); g.moveTo(AX + side * k * 24, AY - len); g.lineTo(AX + side * k * 24, AY + len); g.stroke();
+      }
+      const tip = AX + side * (half + 10);
+      g.fillStyle = rgba(BLUE, 0.5); g.beginPath(); g.moveTo(tip, AY); g.lineTo(tip - side * 10, AY - 5); g.lineTo(tip - side * 10, AY + 5); g.closePath(); g.fill();
+      const f = (T * 0.45) % 1; g.fillStyle = `rgba(255,255,255,${0.8 * (1 - f)})`; circ(AX + side * half * f, AY, 2.2); g.fill();
+    }
+    const p = (T * 0.8) % 1;
+    g.strokeStyle = rgba(BLUE, 0.7 * (1 - p)); g.lineWidth = 1.5; circ(AX, AY, 5 + 14 * p); g.stroke();
+    g.fillStyle = rgba(BLUE, 0.18); circ(AX, AY, 8); g.fill();
+    g.fillStyle = '#d9ebff'; circ(AX, AY, 3.5); g.fill();
+  }
+
+  // ---- the slot --------------------------------------------------------------------------------------------------------
+  function led(x, y, r, col, a) {
+    g.fillStyle = rgba(col, 0.25 * a); circ(x, y, r * 2.1); g.fill();
+    g.fillStyle = rgba(col, a); circ(x, y, r); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.55)'; circ(x - r * 0.3, y - r * 0.3, r * 0.3); g.fill();
+  }
+  function slit(x, y, w, h, S) {
+    if (S.glow > 0) { g.save(); g.shadowColor = rgba(S.gcol, 0.9 * S.glow); g.shadowBlur = 16; g.fillStyle = rgba(S.gcol, 0.55 * S.glow); rr(x, y, w, h, h / 2); g.fill(); g.restore(); }
+    g.fillStyle = '#01020a'; g.globalAlpha = 1 - 0.55 * S.glow; rr(x, y, w, h, h / 2); g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = rgba([190, 210, 255], 0.5); g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, y + h + 0.5); g.lineTo(x + w - 2, y + h + 0.5); g.stroke();
+    if (S.flash > 0) { g.strokeStyle = `rgba(255,255,255,${S.flash})`; g.lineWidth = 2; g.beginPath(); g.moveTo(x, y + h / 2); g.lineTo(x + w, y + h / 2); g.stroke(); }
+  }
+  function mono(text, x, y, a, size = 11.5) {
+    g.font = `500 ${size}px "IBM Plex Mono", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = rgba([160, 190, 255], a);
+    try { g.letterSpacing = '1.6px'; } catch (e) { } g.fillText(text, x, y); try { g.letterSpacing = '0px'; } catch (e) { }
+  }
+  function drawSlot(S, T) {
+    const v = st.slot;
+    if (v === 'A') {
+      g.fillStyle = vgrad(AY - 11, AY + 11, '#1b2448', '#0a0f22'); rr(AX - 115, AY - 11, 230, 22, 11); g.fill();
+      g.strokeStyle = rgba(BLUE, 0.45); g.lineWidth = 1; rr(AX - 115, AY - 11, 230, 22, 11); g.stroke();
+      slit(AX - 85, AY - 4, 170, 8, S); bolt(AX - 101, AY, 4); led(AX + 101, AY, 4, S.led, S.ledA);
+    } else if (v === 'B') {
+      g.fillStyle = 'rgba(0,0,0,.35)'; rr(AX - 165, AY - 16, 330, 40, 10); g.fill();
+      g.fillStyle = vgrad(AY - 20, AY + 20, '#232e5c', '#0a0f24'); rr(AX - 165, AY - 20, 330, 40, 10); g.fill();
+      g.strokeStyle = rgba(BLUE, 0.5); g.lineWidth = 1; rr(AX - 165, AY - 20, 330, 40, 10); g.stroke();
+      slit(AX - 95, AY - 4, 190, 8, S);
+      led(AX - 143, AY, 4.5, S.led, S.ledA);
+      g.font = '700 11px "IBM Plex Mono", monospace'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = rgba([160, 190, 255], 0.7); g.fillText('A:', AX - 128, AY + 1);
+      for (let i = 0; i < 4; i++) {
+        const on = S.prog > (i + 0.5) / 4 || S.done;
+        g.fillStyle = on ? rgba(S.gcol, 0.95) : '#10173a'; rr(AX + 112 + i * 12, AY - 4, 8, 8, 2); g.fill();
+      }
+      mono(S.text, AX, AY + 36, S.done ? 0.9 : 0.6);
+    } else if (v === 'C') {
+      const p = (T * 0.8) % 1;
+      if (!S.inserted) { g.strokeStyle = rgba(BLUE, 0.6 * (1 - p)); g.lineWidth = 1.5; rr(AX - 26 - 14 * p, AY - 26 - 14 * p, 52 + 28 * p, 52 + 28 * p, 12 + 10 * p); g.stroke(); }
+      g.fillStyle = 'rgba(0,0,0,.35)'; rr(AX - 26, AY - 22, 52, 52, 12); g.fill();
+      g.fillStyle = vgrad(AY - 26, AY + 26, '#2a3668', '#0b1024'); rr(AX - 26, AY - 26, 52, 52, 12); g.fill();
+      g.strokeStyle = rgba(BLUE, 0.55); g.lineWidth = 1; rr(AX - 26, AY - 26, 52, 52, 12); g.stroke();
+      g.fillStyle = '#060919'; rr(AX - 20, AY - 20, 40, 40, 8); g.fill();
+      slit(AX - 17, AY - 8, 34, 7, S);
+      led(AX, AY + 11, 3, S.led, S.ledA);
+      [[-22, -22], [22, -22], [-22, 22], [22, 22]].forEach(p => bolt(AX + p[0], AY + p[1], 2.2));
+    }
+  }
+
+  // ---- the arc: the old dashes, and three vector looks -------------------------------------------------------------------
+  const ARC = { x0: 250, x1: 1030, base: 162, top: 24 };
+  const arcAt = u => [lerp(ARC.x0, ARC.x1, u), ARC.base - (ARC.base - ARC.top) * 4 * u * (1 - u)];
+  const arcDir = u => { const dx = ARC.x1 - ARC.x0, dy = -(ARC.base - ARC.top) * 4 * (1 - 2 * u), l = Math.hypot(dx, dy); return [dx / l, dy / l]; };
+  function arcPath(a, b, steps = 70) { g.beginPath(); for (let i = 0; i <= steps; i++) { const p = arcAt(lerp(a, b, i / steps)); i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); } }
+  function tail(u, len, wMax, col, a) {
+    const n = 16;
+    for (let i = 0; i < n; i++) {
+      const u0 = Math.max(0, u - len * (i + 1) / n), u1 = Math.max(0, u - len * i / n), f = 1 - i / n, p0 = arcAt(u0), p1 = arcAt(u1);
+      g.strokeStyle = rgba(col, a * f * 0.9); g.lineWidth = Math.max(0.6, wMax * f); g.lineCap = 'round';
+      g.beginPath(); g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.stroke();
+    }
+  }
+  function head(u, r, a) {
+    const p = arcAt(u);
+    g.fillStyle = rgba(PINK, 0.2 * a); circ(p[0], p[1], r * 3); g.fill();
+    g.fillStyle = rgba(PINK, a); circ(p[0], p[1], r); g.fill();
+    g.fillStyle = `rgba(255,255,255,${0.9 * a})`; circ(p[0], p[1], r * 0.4); g.fill();
+  }
+  function knob(x, y) { g.fillStyle = '#0a0f1c'; g.strokeStyle = rgba([190, 215, 255], 0.9); g.lineWidth = 1.3; circ(x, y, 3); g.fill(); g.stroke(); }
+  function sq(x, y, s) { g.fillStyle = '#0a0f1c'; g.strokeStyle = rgba([190, 215, 255], 0.95); g.lineWidth = 1.4; g.beginPath(); g.rect(x - s / 2, y - s / 2, s, s); g.fill(); g.stroke(); }
+
+  function drawArc(T) {
+    const upTo = eo(seg(T, 3.9, 4.7)), shotIn = seg(T, 4.9, 5.3), style = st.arc;
+    if (upTo <= 0) return;
+    const su = Math.max(0, (T - 5.0) * 0.22) % 1;
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+    if (style === '0') {
+      g.strokeStyle = rgba(BLUE, 0.35); g.lineWidth = 1.5; const n = Math.ceil(60 * upTo);
+      for (let i = 0; i < n; i += 2) { const a = arcAt(Math.min(upTo, i / 60)), b = arcAt(Math.min(upTo, (i + 1) / 60)); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+      if (shotIn > 0) for (let i = 6; i >= 0; i--) { const p = arcAt(Math.max(0, su - i * 0.008)); g.fillStyle = rgba(PINK, (0.12 + 0.5 * (1 - i / 6)) * shotIn); circ(p[0], p[1], 5 - i * 0.5); g.fill(); }
+    } else if (style === '1') {
+      g.strokeStyle = rgba(BLUE, 0.07); g.lineWidth = 7; arcPath(0, upTo); g.stroke();
+      g.strokeStyle = rgba(BLUE, 0.85); g.lineWidth = 1.5; arcPath(0, upTo); g.stroke();
+      const hs = eo(seg(T, 4.5, 5.1));
+      if (hs > 0) {
+        const L = 74 * hs, d0 = arcDir(0), d1 = arcDir(1), pk = arcAt(0.5), a0 = arcAt(0), a1 = arcAt(1);
+        g.strokeStyle = rgba(BLUE, 0.5); g.lineWidth = 1;
+        [[a0, d0, 1], [a1, d1, -1], [pk, [1, 0], 1], [pk, [1, 0], -1]].forEach(h => {
+          const bx = h[0][0], by = h[0][1], ex = bx + h[1][0] * L * h[2], ey = by + h[1][1] * L * h[2];
+          g.beginPath(); g.moveTo(bx, by); g.lineTo(ex, ey); g.stroke(); knob(ex, ey);
+        });
+        sq(a0[0], a0[1], 8); sq(a1[0], a1[1], 8); sq(pk[0], pk[1], 7);
+        g.save(); g.translate(pk[0], pk[1]); g.rotate(Math.PI / 4); g.fillStyle = rgba([190, 215, 255], 0.95); g.fillRect(-1.6, -1.6, 3.2, 3.2); g.restore();
+      }
+      if (shotIn > 0) { tail(su, 0.13, 3.4, PINK, shotIn); head(su, 4.4, shotIn); }
+    } else if (style === '2') {
+      const gr = g.createLinearGradient(ARC.x0, 0, ARC.x1, 0);
+      gr.addColorStop(0, rgba(BLUE, 0.08)); gr.addColorStop(0.5, rgba(BLUE, 0.95)); gr.addColorStop(1, rgba(BLUE, 0.08));
+      g.strokeStyle = gr; g.lineWidth = 1.6; arcPath(0, upTo); g.stroke();
+      const ns = eo(seg(T, 4.4, 5.0));
+      if (ns > 0) {
+        [0, 1].forEach(e => {
+          const p = arcAt(e);
+          g.strokeStyle = rgba([190, 215, 255], 0.9 * ns); g.lineWidth = 1.3; circ(p[0], p[1], 5.5 * ns); g.stroke();
+          g.beginPath(); g.moveTo(p[0] - 11 * ns, p[1]); g.lineTo(p[0] + 11 * ns, p[1]); g.moveTo(p[0], p[1] - 11 * ns); g.lineTo(p[0], p[1] + 11 * ns); g.strokeStyle = rgba(BLUE, 0.4 * ns); g.stroke();
+          mono(e ? 'x2' : 'x1', p[0], p[1] + 22, 0.7 * ns, 11);
+        });
+        const pk = arcAt(0.5);
+        g.strokeStyle = rgba([190, 215, 255], 0.8 * ns); g.lineWidth = 1.3; g.beginPath(); g.moveTo(pk[0] - 9, pk[1] + 8); g.lineTo(pk[0] + 9, pk[1] + 8); g.stroke();
+        mono('f(x)', pk[0], pk[1] + 21, 0.75 * ns, 11);
+      }
+      if (shotIn > 0) {
+        const p = arcAt(su);
+        g.strokeStyle = rgba(PINK, 0.4 * shotIn); g.lineWidth = 1; g.beginPath(); g.moveTo(p[0], p[1] + 6); g.lineTo(p[0], ARC.base); g.stroke();
+        g.strokeStyle = rgba(PINK, 0.8 * shotIn); g.beginPath(); g.moveTo(p[0] - 5, ARC.base); g.lineTo(p[0] + 5, ARC.base); g.stroke();
+        tail(su, 0.09, 2.4, PINK, shotIn); head(su, 4.2, shotIn);
+      }
+    } else if (style === '3') {
+      const N = 90, wAt = u => 0.6 + 3.2 * Math.pow(Math.sin(Math.PI * u), 1.1);
+      g.strokeStyle = rgba(BLUE, 0.06); g.lineWidth = 12; arcPath(0, upTo); g.stroke();
+      g.strokeStyle = rgba(BLUE, 0.09); g.lineWidth = 6; arcPath(0, upTo); g.stroke();
+      const gr = g.createLinearGradient(ARC.x0, 0, ARC.x1, 0);
+      gr.addColorStop(0, rgba([150, 190, 255], 0.55)); gr.addColorStop(0.5, rgba([190, 215, 255], 0.98)); gr.addColorStop(1, rgba([150, 190, 255], 0.55));
+      const up = [], dn = [];
+      for (let i = 0; i <= N; i++) {
+        const u = upTo * i / N, p = arcAt(u), d = arcDir(u), w = wAt(u) / 2;
+        up.push([p[0] - d[1] * w, p[1] + d[0] * w]); dn.push([p[0] + d[1] * w, p[1] - d[0] * w]);
+      }
+      g.beginPath(); up.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); for (let i = N; i >= 0; i--) g.lineTo(dn[i][0], dn[i][1]); g.closePath(); g.fillStyle = gr; g.fill();
+      const ns = eo(seg(T, 4.5, 5.0));
+      if (ns > 0) { [0, 1].forEach(e => { const p = arcAt(e); g.fillStyle = rgba([190, 215, 255], 0.9 * ns); circ(p[0], p[1], 2.6 * ns); g.fill(); }); }
+      if (shotIn > 0) {
+        const n = 22, len = 0.16;
+        for (let side = 0; side < 1; side++) {
+          const L = [], R = [];
+          for (let i = 0; i <= n; i++) {
+            const u = Math.max(0, su - len * i / n), p = arcAt(u), d = arcDir(u), w = (1 - i / n) * 3.2 + 0.1;
+            L.push([p[0] - d[1] * w, p[1] + d[0] * w]); R.push([p[0] + d[1] * w, p[1] - d[0] * w]);
+          }
+          g.beginPath(); L.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); for (let i = n; i >= 0; i--) g.lineTo(R[i][0], R[i][1]); g.closePath();
+          g.fillStyle = rgba(PINK, 0.85 * shotIn); g.fill();
+        }
+        const p = arcAt(su); g.fillStyle = rgba(PINK, 0.2 * shotIn); circ(p[0], p[1], 10); g.fill(); g.fillStyle = `rgba(255,255,255,${0.95 * shotIn})`; circ(p[0], p[1], 2.2); g.fill();
+      }
+    }
+    g.restore();
+    if (T >= 3.9 && T < 4.7 && st.slot !== 'old' || (st.slot === 'old' && T >= 3.9 && T < 4.7)) { const p = arcAt(upTo); penTip(p[0], p[1]); }
+  }
+
+  // ---- the menu box ----------------------------------------------------------------------------------------------------
+  function drawCard(T, P) {
+    const k = eo(seg(T, 4.4, 5.2)); if (k <= 0) return;
+    const x = AX - 340, y = 268 + (1 - k) * -26, w = 680, h = 320;
+    g.save(); g.globalAlpha = clamp(k * 2.5);
+    g.shadowColor = rgba(BLUE, 0.25); g.shadowBlur = 30; g.fillStyle = '#0b1022'; rr(x, y, w, h, 12); g.fill(); g.shadowColor = 'transparent';
+    g.fillStyle = vgrad(y, y + h, '#10173a', '#080c1e'); rr(x, y, w, h, 12); g.fill();
+    g.strokeStyle = rgba(BLUE, 0.35); g.lineWidth = 1; rr(x, y, w, h, 12); g.stroke();
+    [[9, 9], [w - 9, 9], [9, h - 9], [w - 9, h - 9]].forEach(p => bolt(x + p[0], y + p[1], 5));
+    const cl = 22, o = 11; g.strokeStyle = rgba(BLUE, 0.7); g.lineWidth = 2;
+    [[x - o, y - o, 1, 1], [x + w + o, y - o, -1, 1], [x - o, y + h + o, 1, -1], [x + w + o, y + h + o, -1, -1]].forEach(c => {
+      g.beginPath(); g.moveTo(c[0] + c[2] * cl, c[1]); g.lineTo(c[0], c[1]); g.lineTo(c[0], c[1] + c[3] * cl); g.stroke();
+    });
+    // name chip
+    g.fillStyle = 'rgba(20,28,64,.9)'; rr(x + 24, y + 22, w - 48, 54, 9); g.fill();
+    g.fillStyle = rgba(P.col, 1); rr(x + 24, y + 22, 5, 54, 3); g.fill();
+    g.font = '700 22px Oxanium, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.fillText(P.name, x + 44, y + 42);
+    g.font = '500 13px Barlow, sans-serif'; g.fillStyle = rgba(mix(P.col, [255, 255, 255], 0.4), 1); g.fillText(P.title + '  ·  Rank ' + P.rank, x + 44, y + 63);
+    g.textAlign = 'right'; g.fillStyle = '#7e8bb8'; g.fillText('Switch profile', x + w - 40, y + 49); g.textAlign = 'left';
+    ['Host game', 'Join game', 'Continue  (3)'].forEach((t, i) => {
+      const a = eo(seg(T, 4.8 + i * 0.12, 5.3 + i * 0.12)), by = y + 100 + i * 66;
+      g.globalAlpha = clamp(k * 2.5) * a;
+      g.fillStyle = 'rgba(0,0,0,.4)'; rr(x + 24, by + 4, w - 48, 54, 9); g.fill();
+      g.fillStyle = vgrad(by, by + 54, '#2b3a78', '#141c46'); rr(x + 24, by, w - 48, 54, 9); g.fill();
+      g.strokeStyle = 'rgba(130,160,240,.5)'; g.lineWidth = 1; rr(x + 24, by, w - 48, 54, 9); g.stroke();
+      g.font = '700 20px Oxanium, sans-serif'; g.textAlign = 'center'; g.fillStyle = '#e9f0ff'; g.fillText(t, x + w / 2, by + 28);
+    });
+    g.restore();
+  }
+
+  // ---- one frame -------------------------------------------------------------------------------------------------------
+  function frame(T) {
+    const P = PROFILES[st.pick], R = whoBox(st.pick), slotNo = st.pick + 1, old = st.slot === 'old';
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = '#05070d'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(115,166,255,.035)'; g.lineWidth = 1; g.beginPath();
+    for (let x = 0; x <= W; x += 40) { g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); } for (let y = 0; y <= H; y += 40) { g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); }
+    g.stroke();
+
+    const fade = 1 - seg(T, 0.8, 1.5), hover = eo(seg(T, 0.1, 0.5)), flight = eio(seg(T, 0.9, 2.0));
+
+    // slot state
+    const S = { led: [70, 90, 150], ledA: 0.6, glow: 0, gcol: P.col, flash: 0, text: 'DRIVE A: EMPTY', prog: 0, done: false, inserted: T >= 2.95 };
+    if (T >= 1.2 && T < 2.5) { S.led = [255, 181, 71]; S.ledA = 0.6 + 0.4 * Math.sin(T * 14); S.text = 'DISK INCOMING'; }
+    else if (T >= 2.5 && T < 2.95) { S.led = [255, 181, 71]; S.ledA = 1; S.text = 'DISK DETECTED'; }
+    else if (T >= 2.95 && T < 3.9) { S.led = P.col; S.ledA = Math.floor(T * 10) % 2 ? 1 : 0.35; S.text = 'READING ' + P.name.toUpperCase(); }
+    else if (T >= 3.9) { S.led = P.col; S.ledA = 1; S.text = P.name.toUpperCase() + '  READY'; S.done = true; }
+    S.glow = seg(T, 2.5, 3.0) * (T < 3.9 ? 1 : 0.4); S.flash = T >= 2.9 && T < 3.25 ? 1 - seg(T, 2.9, 3.25) : 0; S.prog = seg(T, 2.95, 3.9);
+
+    // picker title and shelf
+    if (fade > 0) {
+      g.save(); g.globalAlpha = fade;
+      title("WHO'S PLAYING?", 58, 126, 1, 1);
+      drawShelf(hover * 9 * (1 - flight));
+      for (let i = 0; i < 4; i++) {
+        const r = whoBox(i);
+        if (i === 3) { ghost(r, 0.22, 'New profile', 'All 3 slots used'); continue; }
+        if (i === st.pick) continue;
+        disk(r.x, r.y, r.w, PROFILES[i], i + 1);
+      }
+      g.restore();
+    }
+    // the menu title
+    const rv = eo(seg(T, 3.3, 4.1));
+    if (rv > 0) {
+      const tt = title('CARTESIAN COLOSSEUM', 64, 126, 1, rv);
+      if (rv < 1) penTip(tt.x + tt.w * rv, 126);
+    }
+
+    if (old) oldAxis(T);
+
+    // the picked disk
+    if (T < 2.95 + 0.001) {
+      if (old) {
+        const e = flight, s = lerp(184, 14, eo(seg(T, 0.9, 1.9))), x = lerp(R.x, AX - 7, e), y = lerp(R.y - 12 * hover, AY - 7, e);
+        if (T < 2.0) {
+          if (fade > 0 || T < 1.9) { g.save(); g.globalAlpha = 1; disk(x, y, s, P, slotNo, { shadow: 16 * (1 - e) }); g.restore(); }
+          if (e > 0.85) { const q = seg(T, 1.9, 2.6); g.fillStyle = rgba(P.col, 1 - q * 0.0); circ(AX, AY, 7 * (1 - seg(T, 2.2, 3.0))); g.fill(); g.fillStyle = rgba(P.col, 0.25 * (1 - q)); circ(AX, AY, 7 + 16 * q); g.fill(); }
+        } else { const q = seg(T, 2.0, 3.0); g.fillStyle = rgba(P.col, 1); circ(AX, AY, 7 * (1 - q)); g.fill(); g.fillStyle = rgba(P.col, 0.25 * (1 - q)); circ(AX, AY, 7 + 16 * q); g.fill(); }
+      } else {
+        const sd = SD[st.slot];
+        let x = lerp(R.x, AX - sd / 2, flight), y = lerp(R.y - 12 * hover, AY + 8, flight), s = lerp(184, sd, flight), opt = { shadow: 18 * (1 - seg(T, 1.9, 2.1)) };
+        if (T >= 2.0) { const k = eio(seg(T, 2.0, 2.5)); opt.sy = lerp(1, 0.06, k); y = lerp(AY + 8, AY + 3, k); opt.shadow = 0; }
+        if (T >= 2.5) { const k = eio(seg(T, 2.5, 2.95)); opt.sx = lerp(1, 0.88, k); y = AY + 3 - 4 * k; g.globalAlpha = 1 - k; }
+        if (T < 0.55 && flight === 0) { const c = seg(T, 0.5, 0.8); }
+        disk(x, y, s, P, slotNo, opt); g.globalAlpha = 1;
+      }
+      if (T >= 0.5 && T < 0.9) {  // the click ring on the disk
+        const c = seg(T, 0.5, 0.9); g.strokeStyle = rgba(P.col, 0.8 * (1 - c)); g.lineWidth = 3; rr(R.x - 4 - 14 * c, R.y - 16 - 14 * c, R.w + 8 + 28 * c, R.h + 8 + 28 * c, 8 + 8 * c); g.stroke();
+      }
+    }
+    if (!old) drawSlot(S, T);
+    drawArc(T);
+    drawCard(T, P);
+  }
+
+  // ---- clock and controls ----------------------------------------------------------------------------------------------
+  const scrub = document.getElementById('scrub'), clock = document.getElementById('clock'), pp = document.getElementById('pp');
+  let last = performance.now();
+  function render() { frame(st.T); scrub.value = Math.min(7000, st.T * 1000); clock.textContent = st.T.toFixed(2) + ' s'; }
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (st.playing) {
+      st.T += dt * st.speed;
+      if (st.T > LOOPLEN) { if (st.loop) st.T = 0; else { st.T = LEN; st.playing = false; pp.textContent = 'Play'; } }
+    }
+    render(); requestAnimationFrame(loop);
+  }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { st.T = LEN; st.playing = false; pp.textContent = 'Play'; }
+  function group(id, fn) {
+    const el = document.getElementById(id);
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (id !== 'jump') { el.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); }
+      fn(b.dataset.v);
+    });
+  }
+  group('slot', v => { st.slot = v; if (!st.playing) render(); });
+  group('arc', v => { st.arc = v; if (!st.playing) render(); });
+  group('pick', v => { st.pick = +v; });
+  group('speed', v => { st.speed = +v; });
+  group('jump', v => { st.T = +v; st.playing = false; pp.textContent = 'Play'; });
+  document.getElementById('replay').addEventListener('click', () => { st.T = 0; st.playing = true; pp.textContent = 'Pause'; });
+  pp.addEventListener('click', () => { st.playing = !st.playing; pp.textContent = st.playing ? 'Pause' : 'Play'; if (st.playing && st.T >= LEN) st.T = 0; });
+  scrub.addEventListener('input', () => { st.T = scrub.value / 1000; st.playing = false; pp.textContent = 'Play'; });
+  document.getElementById('loop').addEventListener('change', e => { st.loop = e.target.checked; });
+
+  const fonts = ['800 20px Oxanium', '700 20px Oxanium', '500 12px "IBM Plex Mono"', '23px "Permanent Marker"', '400 14px Barlow', '500 14px Barlow'];
+  Promise.all(fonts.map(f => document.fonts.load(f).catch(() => 0))).finally(() => { last = performance.now(); requestAnimationFrame(loop); });
+  setTimeout(() => { if (!window.__started) { window.__started = 1; } }, 0);
+})();
+</script>
