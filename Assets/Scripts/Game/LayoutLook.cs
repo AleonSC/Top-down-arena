@@ -6,8 +6,9 @@ namespace Arena
     /// its teal player gates and red holographic enemy gates, the Bunker's hold point, and the HUD chip.
     public partial class ArenaApp
     {
-        static readonly Rgba WallBody = new Rgba(0.33f, 0.4f, 0.45f), WallTop = new Rgba(0.6f, 0.72f, 0.79f), WallDark = new Rgba(0.14f, 0.18f, 0.21f);
-        static readonly Rgba GateTeal = new Rgba(0.25f, 0.84f, 0.77f), HoloRed = new Rgba(1f, 0.35f, 0.29f), HoldGold = new Rgba(0.9f, 0.83f, 0.42f);
+        // Phosphor vector look (Docs/Mockups/arena-layouts-digital.html, style A, cyan palette): glowing outlines with a
+        // faint fill and diagonal hatching, dashed pillar cores, teal chevrons and flickering red enemy gates.
+        static readonly Rgba Ink = new Rgba(0.373f, 0.941f, 1f), GateTeal = new Rgba(0.247f, 0.839f, 0.769f), HoloRed = new Rgba(1f, 0.353f, 0.29f);
 
         /// Under the props: walls and pillars (they rise out of the floor when a new cycle starts), then the edge gates.
         void DrawLayout(float t)
@@ -24,66 +25,123 @@ namespace Arena
                 if (s.Edge)
                 {
                     if (!game.Walled)
-                        DrawEdgeWall(s, a);
+                        DrawSolid(s, 0f, true, a);
                     continue;
                 }
-                if (s.Round)
-                {
-                    Circle(s.Pos + new V2(4f, 6f), s.R, new Rgba(0f, 0f, 0f, 0.32f * a), 20);
-                    Circle(s.Pos - new V2(0f, lift), s.R, WallBody.WithAlpha(a), 22);
-                    Arc(s.Pos - new V2(0f, lift), s.R - 1.5f, 3f, WallTop.WithAlpha(0.9f * a), 22);
-                    Circle(s.Pos - new V2(0f, lift), s.R * 0.42f, WallDark.WithAlpha(0.6f * a), 14);
-                    continue;
-                }
-                float x = s.Pos.X - s.HW, y = s.Pos.Y - s.HH - lift, w = s.HW * 2f, h = s.HH * 2f;
-                FillRect(x + 4f, s.Pos.Y - s.HH + 6f, w, h, new Rgba(0f, 0f, 0f, 0.32f * a));
-                FillRect(x, y, w, h, WallBody.WithAlpha(a));
-                FillRect(x, y, w, Mathf.Min(4f, h), WallTop.WithAlpha(0.9f * a));          // lit top edge
-                FillRect(x, y + h - Mathf.Min(4f, h), w, Mathf.Min(4f, h), WallDark.WithAlpha(0.75f * a));  // shaded foot
-                // Rivets along the long side.
-                bool horizontal = w >= h;
-                float len = horizontal ? w : h;
-                for (float u = 14f; u < len - 8f; u += 30f)
-                    Circle(horizontal ? new V2(x + u, y + h / 2f) : new V2(x + w / 2f, y + u), 1.8f, WallDark.WithAlpha(0.7f * a), 6);
+                DrawSolid(s, lift, false, a);
             }
             if (game.EdgesGated)
                 DrawEdgeGates(d, t, a);
         }
 
-        /// A stretch of the wall round the arena: dark steel with a bright inner edge.
-        void DrawEdgeWall(Solid s, float a)
+        /// One wall, pillar or stretch of edge wall: tinted fill, hatching, glowing outline.
+        void DrawSolid(Solid s, float lift, bool edge, float a)
         {
-            float x = s.Pos.X - s.HW, y = s.Pos.Y - s.HH, w = s.HW * 2f, h = s.HH * 2f;
-            FillRect(x, y, w, h, WallDark.WithAlpha(0.96f * a));
-            bool horizontal = w >= h;
-            if (horizontal)
-                FillRect(x, s.Pos.Y < Game.Height / 2f ? y + h - 3f : y, w, 3f, WallTop.WithAlpha(0.55f * a));
-            else
-                FillRect(s.Pos.X < Game.Width / 2f ? x + w - 3f : x, y, 3f, h, WallTop.WithAlpha(0.55f * a));
+            V2 c = s.Pos - new V2(0f, lift);
+            float lw = edge ? 1.5f : 2.5f;
+            if (s.Round)
+            {
+                Circle(c, s.R, Ink.WithAlpha(0.10f * a), 24);
+                HatchCircle(c, s.R, Ink.WithAlpha(0.22f * a));
+                Arc(c, s.R, lw + 8f, Ink.WithAlpha(0.10f * a), 28);
+                Arc(c, s.R, lw + 4f, Ink.WithAlpha(0.18f * a), 28);
+                Arc(c, s.R, lw, Ink.WithAlpha(a), 28);
+                int n = Mathf.Max(6, Mathf.RoundToInt(MathX.Tau * s.R * 0.55f / 10f));
+                for (int i = 0; i < n; i++)
+                    Arc(c, s.R * 0.55f, 1.5f, Ink.WithAlpha(0.7f * a), 3, MathX.Tau * i / n, MathX.Tau / n * 0.5f);
+                Line(c - new V2(s.R * 0.3f, 0f), c + new V2(s.R * 0.3f, 0f), 1.5f, Ink.WithAlpha(0.7f * a));
+                Line(c - new V2(0f, s.R * 0.3f), c + new V2(0f, s.R * 0.3f), 1.5f, Ink.WithAlpha(0.7f * a));
+                return;
+            }
+            float x = c.X - s.HW, y = c.Y - s.HH, w = s.HW * 2f, h = s.HH * 2f;
+            FillRect(x, y, w, h, Ink.WithAlpha(0.10f * a));
+            HatchRect(x, y, w, h, Ink.WithAlpha(0.22f * a));
+            OutlineRect(x, y, w, h, lw + 8f, Ink.WithAlpha(0.10f * a));
+            OutlineRect(x, y, w, h, lw + 4f, Ink.WithAlpha(0.18f * a));
+            OutlineRect(x, y, w, h, lw, Ink.WithAlpha(a));
         }
 
-        /// The gaps (teal chevrons pointing through: walk out and come back in opposite) and the holograms (red,
-        /// scanning, brighter while something is stepping out of them).
+        void OutlineRect(float x, float y, float w, float h, float width, Rgba c)
+        {
+            float e = width * 0.5f;
+            Line(new V2(x - e, y), new V2(x + w + e, y), width, c);
+            Line(new V2(x - e, y + h), new V2(x + w + e, y + h), width, c);
+            Line(new V2(x, y), new V2(x, y + h), width, c);
+            Line(new V2(x + w, y), new V2(x + w, y + h), width, c);
+        }
+
+        /// 45 degree lines every 12 px, clipped to the box.
+        void HatchRect(float x, float y, float w, float h, Rgba c)
+        {
+            for (float k = -h; k < w; k += 12f)
+            {
+                float u0 = Mathf.Max(0f, -k), u1 = Mathf.Min(h, w - k);
+                if (u1 - u0 < 0.5f)
+                    continue;
+                Line(new V2(x + k + u0, y + h - u0), new V2(x + k + u1, y + h - u1), 1.5f, c);
+            }
+        }
+
+        void HatchCircle(V2 c, float r, Rgba col)
+        {
+            float bx = c.X - r, by = c.Y - r, bh = r * 2f;
+            for (float k = -bh; k < bh; k += 12f)
+            {
+                float px = bx + k - c.X, py = by + bh - c.Y;
+                float b = px - py, disc = b * b - 2f * (px * px + py * py - r * r);
+                if (disc <= 0f)
+                    continue;
+                float sq = Mathf.Sqrt(disc), u0 = (-b - sq) / 2f, u1 = (-b + sq) / 2f;
+                Line(new V2(bx + k + u0, by + bh - u0), new V2(bx + k + u1, by + bh - u1), 1.5f, col);
+            }
+        }
+
+        /// A dashed segment; phase shifts the dashes along it.
+        void PhosDash(V2 a, V2 b, float dash, float gap, float phase, float width, Rgba c)
+        {
+            float len = (b - a).Length;
+            if (len < 0.01f)
+                return;
+            V2 dir = (b - a) * (1f / len);
+            float period = dash + gap, at = -(((phase % period) + period) % period);
+            for (; at < len; at += period)
+            {
+                float s0 = Mathf.Max(0f, at), s1 = Mathf.Min(len, at + dash);
+                if (s1 > s0)
+                    Line(a + dir * s0, a + dir * s1, width, c);
+            }
+        }
+
+        /// The gaps (teal chevrons pointing into the arena, bracketed) and the holograms (red, flickering, dashed,
+        /// brighter while something is stepping out of them).
         void DrawEdgeGates(LayoutDef d, float t, float a)
         {
             foreach (var g in d.PlayerGates)
             {
-                V2 mid = EdgeAt(g.Side, g.Mid, 12f), dir = EdgeIn(g.Side);
                 bool alongX = g.Side < 2;
-                V2 p0 = alongX ? new V2(g.From, mid.Y) : new V2(mid.X, g.From), p1 = alongX ? new V2(g.To, mid.Y) : new V2(mid.X, g.To);
-                float pulse = 0.55f + 0.25f * Mathf.Sin(t * 3f + g.Side);
-                Line(p0, p1, 2.5f, GateTeal.WithAlpha(0.7f * a));
-                // Two chevrons pointing out through the gap.
+                V2 mid = EdgeAt(g.Side, g.Mid, Layouts.EdgeT / 2f), dir = EdgeIn(g.Side);
                 V2 across = alongX ? new V2(1f, 0f) : new V2(0f, 1f);
-                for (int k = 0; k < 2; k++)
+                int n = Mathf.FloorToInt(g.Len / 44f);
+                for (int i = 0; i < n; i++)
                 {
-                    V2 tip = mid - dir * (k * 14f - 8f);
-                    Line(tip - across * 12f + dir * 9f, tip, 2.5f, GateTeal.WithAlpha(pulse * a * (1f - 0.4f * k)));
-                    Line(tip + across * 12f + dir * 9f, tip, 2.5f, GateTeal.WithAlpha(pulse * a * (1f - 0.4f * k)));
+                    V2 cp = mid + across * ((i - (n - 1) * 0.5f) * 44f);
+                    V2 tip = cp + dir * 5f;
+                    for (int pass = 0; pass < 2; pass++)  // glow, then the line
+                    {
+                        var col = GateTeal.WithAlpha((pass == 0 ? 0.2f : 1f) * a);
+                        float wd = pass == 0 ? 8f : 3f;
+                        Line(cp - across * 9f - dir * 5f, tip, wd, col);
+                        Line(cp + across * 9f - dir * 5f, tip, wd, col);
+                    }
                 }
+                V2 e0 = alongX ? new V2(g.From, mid.Y) : new V2(mid.X, g.From), e1 = alongX ? new V2(g.To, mid.Y) : new V2(mid.X, g.To);
+                V2 thick = dir * (Layouts.EdgeT / 2f);
+                Line(e0 - thick, e0 + thick, 2f, GateTeal.WithAlpha(a));
+                Line(e1 - thick, e1 + thick, 2f, GateTeal.WithAlpha(a));
             }
-            foreach (var g in d.EnemyGates)
+            for (int gi = 0; gi < d.EnemyGates.Length; gi++)
             {
+                var g = d.EnemyGates[gi];
                 if (!d.SpawnSide[g.Side])
                     continue;
                 bool alongX = g.Side < 2;
@@ -95,24 +153,16 @@ namespace Arena
                 foreach (var e in game.Enemies.Values)  // something stepping out of it
                     if (e.SpawnT > 0f && Mathf.Abs(alongX ? e.Pos.X - g.Mid : e.Pos.Y - g.Mid) < g.Len / 2f + 20f && (g.Side < 2 ? Mathf.Abs(e.Pos.Y - cy) : Mathf.Abs(e.Pos.X - cx)) < 110f)
                         burst = Mathf.Max(burst, e.SpawnT);
-                float flick = 0.8f + 0.2f * Mathf.Sin(t * 23f + g.From) * Mathf.Sin(t * 7.1f);
-                FillRect(x, y, w, h, HoloRed.WithAlpha((0.22f + 0.4f * burst) * flick * a));
-                // Scan lines drifting along the gate.
-                float len = alongX ? w : h;
-                for (float u = (t * 40f) % 14f; u < len; u += 14f)
-                    Line(alongX ? new V2(x + u, y) : new V2(x, y + u), alongX ? new V2(x + u, y + h) : new V2(x + w, y + u), 1.2f, HoloRed.WithAlpha(0.3f * a));
-                // Bright rim on the arena side and chevrons pointing in.
-                V2 dirIn = EdgeIn(g.Side);
-                V2 rimA = alongX ? new V2(x, g.Side == 0 ? y + h : y) : new V2(g.Side == 2 ? x + w : x, y);
-                V2 rimB = alongX ? new V2(x + w, rimA.Y) : new V2(rimA.X, y + h);
-                Line(rimA, rimB, 2.5f, HoloRed.WithAlpha((0.8f + 0.2f * burst) * a));
-                V2 across = alongX ? new V2(1f, 0f) : new V2(0f, 1f);
-                for (float u = 24f; u < len - 12f; u += 46f)
-                {
-                    V2 at = (alongX ? new V2(x + u, cy) : new V2(cx, y + u)) + dirIn * (3f * Mathf.Sin(t * 4f - u * 0.05f));
-                    Line(at - across * 7f - dirIn * 4f, at + dirIn * 4f, 2f, HoloRed.WithAlpha(0.75f * a));
-                    Line(at + across * 7f - dirIn * 4f, at + dirIn * 4f, 2f, HoloRed.WithAlpha(0.75f * a));
-                }
+                float f = 0.55f + 0.35f * Mathf.Sin(t * 9f + gi * 1.7f) - (Mathf.Sin(t * 37f + gi) > 0.93f ? 0.3f : 0f);
+                f = Mathf.Clamp01(Mathf.Max(0.15f, f) + 0.4f * burst) * a;
+                FillRect(x - 8f, y - 8f, w + 16f, h + 16f, HoloRed.WithAlpha(0.10f * f));
+                FillRect(x, y, w, h, HoloRed.WithAlpha(0.35f * f));
+                float ph = t * 30f;
+                V2 p00 = new V2(x + 1f, y + 1f), p10 = new V2(x + w - 1f, y + 1f), p11 = new V2(x + w - 1f, y + h - 1f), p01 = new V2(x + 1f, y + h - 1f);
+                PhosDash(p00, p10, 8f, 6f, ph, 2f, HoloRed.WithAlpha(f));
+                PhosDash(p10, p11, 8f, 6f, ph + w, 2f, HoloRed.WithAlpha(f));
+                PhosDash(p11, p01, 8f, 6f, ph + w + h, 2f, HoloRed.WithAlpha(f));
+                PhosDash(p01, p00, 8f, 6f, ph + 2f * w + h, 2f, HoloRed.WithAlpha(f));
             }
         }
 
@@ -130,9 +180,17 @@ namespace Arena
 
         void DrawHoldPoint(V2 at, float r, float t, float a)
         {
-            for (int i = 0; i < 16; i++)
-                Arc(at, r, 2.5f, HoldGold.WithAlpha(0.7f * a), 3, MathX.Tau * i / 16f + t * 0.15f, MathX.Tau / 32f);
-            Circle(at, r - 3f, HoldGold.WithAlpha(0.05f * a), 28);
+            int n = 24;
+            for (int i = 0; i < n; i++)
+            {
+                float st = MathX.Tau * i / n;
+                Arc(at, r, 6f, Ink.WithAlpha(0.15f * a), 3, st, MathX.Tau / n * 0.55f);
+                Arc(at, r, 2f, Ink.WithAlpha(a), 3, st, MathX.Tau / n * 0.55f);
+            }
+            Line(at - new V2(14f, 0f), at + new V2(14f, 0f), 2f, Ink.WithAlpha(a));
+            Line(at - new V2(0f, 14f), at + new V2(0f, 14f), 2f, Ink.WithAlpha(a));
+            float s3 = Mathf.Sin(t * 3f);
+            Arc(at, r + 10f + 4f * s3, 2f, Ink.WithAlpha((0.5f + 0.3f * s3) * a), 40);
         }
 
         /// Under the path chip: the floor plan's name.

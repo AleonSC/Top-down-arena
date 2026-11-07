@@ -20,7 +20,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Challenges.cs`: challenge rooms (portal, crystal, gatekeeper, kill rush, altar)
 - `Paths.cs`: choose-your-path offers, path enemy mixes, hazards, arena rules
 - `Props.cs`: crates, pots, barrels, treasure chests
-- `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look
+- `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look (phosphor vector, Docs/Mockups/arena-layouts-digital.html)
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
 - `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game (with stand-in teammates for ally abilities)
