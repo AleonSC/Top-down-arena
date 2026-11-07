@@ -196,6 +196,30 @@ namespace Arena
             Ui.Label(r, Truncate(t, size, r.width), size, bright ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleLeft, true);
         }
 
+        /// The blue corner brackets of the lobby's boxes (as on the original's ability box): an L on every corner, 3 px thick,
+        /// bright blue with a soft glow behind, hugging the box from just outside.
+        public static void Corners(Rect r, float arm = 26f, float th = 3f)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            var c = new Color(0.36f, 0.6f, 1f);
+            var g = new Color(c.r, c.g, c.b, 0.22f);
+            float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                float e = pass == 0 ? 3f : 0f;  // the soft glow first, a little fatter
+                var col = pass == 0 ? g : c;
+                Ui.Fill(new Rect(x0 - e, y0 - e, arm + 2f * e, th + 2f * e), col);                 // top left
+                Ui.Fill(new Rect(x0 - e, y0 - e, th + 2f * e, arm + 2f * e), col);
+                Ui.Fill(new Rect(x1 - arm - e, y0 - e, arm + 2f * e, th + 2f * e), col);           // top right
+                Ui.Fill(new Rect(x1 - th - e, y0 - e, th + 2f * e, arm + 2f * e), col);
+                Ui.Fill(new Rect(x0 - e, y1 - th - e, arm + 2f * e, th + 2f * e), col);            // bottom left
+                Ui.Fill(new Rect(x0 - e, y1 - arm - e, th + 2f * e, arm + 2f * e), col);
+                Ui.Fill(new Rect(x1 - arm - e, y1 - th - e, arm + 2f * e, th + 2f * e), col);      // bottom right
+                Ui.Fill(new Rect(x1 - th - e, y1 - arm - e, th + 2f * e, arm + 2f * e), col);
+            }
+        }
+
         /// A screen panel: a faint wash, a thin rim and bracket corners that stick out at the top left and bottom right.
         public static void Panel(Rect r, bool brackets = true)
         {
@@ -203,11 +227,7 @@ namespace Arena
             CrtKit.Frame(r, 1f, Ink(0.5f));
             if (!brackets)
                 return;
-            var c = CrtUi.Ink;
-            Ui.Fill(new Rect(r.x - 6f, r.y - 6f, 22f, 2f), c);
-            Ui.Fill(new Rect(r.x - 6f, r.y - 6f, 2f, 22f), c);
-            Ui.Fill(new Rect(r.xMax - 16f, r.yMax + 4f, 22f, 2f), c);
-            Ui.Fill(new Rect(r.xMax + 4f, r.yMax - 16f, 2f, 22f), c);
+            Corners(r);
         }
 
         /// A number tile: a gold value over a small dim caption, the value shrinking to fit the tile.
