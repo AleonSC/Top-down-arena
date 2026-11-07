@@ -858,7 +858,7 @@ How to play page show your own keys.
 When a run starts it drops you in, all within the 3 s before wave 1 (on your own screen only): the lobby's two sides
 slide off left and right; a ripple runs out from the middle of the arena, bending its grid; each player beams down as
 a pillar of light in their colour, a quarter second apart, landing with a ring and their class icon flashing above
-them; the HUD slides in; GET READY counts down; and a gold **WAVE 1** pops in as the fight starts. You can't move,
+them; the HUD slides in; GET READY counts down on a CRT scan band (a full-width strip with a countdown bar; gold on boss waves); and the band flashes to **WAVE 1 STARTED** as the fight starts. The same band shows between waves. You can't move,
 dash, shoot, parry or use abilities until then. **Play again** from the results screen does the same without the lobby
 part.
 
