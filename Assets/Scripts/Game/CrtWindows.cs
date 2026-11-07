@@ -68,6 +68,8 @@ namespace Arena
             bool calm = CabCalm;
             float age = CabAge, now = WinNow;
             rowIndex = 0;
+            if (age >= CabOpenEnd && !calm)
+                CrtKit.SeedRows(16, now);
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, H));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
@@ -344,8 +346,36 @@ namespace Arena
             cabWinRow = 0;
         }
 
+        float panelSwitchAt = -1f;
+
+        /// Which section a window draws: when the pick changes, the section on screen first backspaces its text away
+        /// (CrtKit.EraseAll, held by CrtKit.Hold), then the new one is shown and types in. Not while the window is opening.
+        int PanelShown(ref int shown, int want)
+        {
+            if (CabCalm || !cabWin || WinNow - cabWinInAt < 0.8f || shown == want)
+            {
+                shown = want;
+                panelSwitchAt = -1f;
+                return shown;
+            }
+            if (panelSwitchAt < 0f)
+            {
+                panelSwitchAt = WinNow;
+                CrtKit.EraseAll("win.", WinNow);
+            }
+            if (WinNow - panelSwitchAt >= CrtKit.EraseLen)
+            {
+                shown = want;
+                panelSwitchAt = -1f;
+            }
+            else
+                CrtKit.Hold = true;
+            return shown;
+        }
+
         void EndPanelAnim()
         {
+            CrtKit.Hold = false;
             PopShift();
             GUI.enabled = cabWinEnabledWas;
         }
