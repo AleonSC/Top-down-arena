@@ -9,6 +9,9 @@ namespace Arena
     {
         static readonly Color HuntColor = new Color(0.95f, 0.42f, 0.32f);
 
+        static readonly Color PhosGreen = new Color(0.30f, 1f, 0.60f);
+        static Color FadedBlue(float a) => new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, a);
+
         static void HuntBox(Rect r, Color c)
         {
             Ui.Fill(new Rect(r.x, r.y, r.width, 1f), c);
@@ -59,13 +62,13 @@ namespace Arena
                 var c = new Rect(x, bodyY + i * (rh + gap), listW, rh);
                 rows[i] = c;
                 bool hover = host && open && c.Contains(Event.current.mousePosition);
-                Ui.Card(c, picked ? HuntColor : open ? Ui.Gold : Ui.Muted, picked ? 0.9f : hover ? 0.5f : open ? 0.25f : 0.08f);
+                Ui.Card(c, picked ? HuntColor : open ? Ui.Gold : FadedBlue(0.55f), picked ? 0.9f : hover ? 0.5f : open ? 0.25f : 0.06f);
                 if (picked)
                     Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(HuntColor.r, HuntColor.g, HuntColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
-                Ui.Label(new Rect(c.x + 8f, c.y, 20f, c.height), (i + 1).ToString("00"), 10, Ui.Muted, TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), BossName(boss), 14, open || picked ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(c.x + 8f, c.y, 20f, c.height), (i + 1).ToString("00"), 10, open || picked ? Ui.Muted : FadedBlue(0.4f), TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), BossName(boss), 14, open || picked ? Color.white : FadedBlue(0.5f), TextAnchor.MiddleLeft, true);
                 string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss) > 0 ? "WON x" + profile.HuntWon(boss) : "OPEN";
-                Color cc = hunt == null ? Ui.Muted : !open ? HuntColor : profile.HuntWon(boss) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
+                Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
                 HuntChip(c.xMax - 8f, c.center.y, chip, cc);
                 if (hover && !picked && Ui.HitArea(c))
                     session.SetHuntBoss(boss);
@@ -75,11 +78,20 @@ namespace Arena
             float x2 = x + listW + 14f, w2 = w - listW - 14f, y2 = bodyY;
             var picked2 = Hunts.Get(session.HuntBoss);
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
-            Ui.Fill(scope, new Color(0.02f, 0.04f, 0.09f, 0.92f));
-            HuntBox(scope, new Color(ink.r, ink.g, ink.b, 0.35f));
-            Ui.Fill(new Rect(scope.x, scope.center.y, scope.width, 1f), new Color(ink.r, ink.g, ink.b, 0.12f));
-            Ui.Fill(new Rect(scope.center.x, scope.y, 1f, scope.height), new Color(ink.r, ink.g, ink.b, 0.12f));
-            LobbyKit.Corners(scope, 14f, 2f);
+            Ui.Fill(scope, new Color(0.012f, 0.067f, 0.04f, 1f));  // phosphor green screen (the mockup's #03110a)
+            Ui.Fill(new Rect(scope.x + scope.width * 0.15f, scope.y + scope.height * 0.15f, scope.width * 0.7f, scope.height * 0.7f), new Color(0.04f, 0.16f, 0.1f, 0.55f));
+            HuntBox(scope, new Color(0.11f, 0.23f, 0.16f, 1f));
+            Ui.Fill(new Rect(scope.x, scope.center.y, scope.width, 1f), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.22f));
+            Ui.Fill(new Rect(scope.center.x, scope.y, 1f, scope.height), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.22f));
+            foreach (float rad in new[] { 0.62f, 0.42f })
+            {
+                float rr = scope.height * rad * 0.5f;
+                for (int k = 0; k < 48; k++)
+                {
+                    float a = k * Mathf.PI * 2f / 48f;
+                    Ui.Fill(new Rect(scope.center.x + Mathf.Cos(a) * rr * 1.6f - 1f, scope.center.y + Mathf.Sin(a) * rr - 1f, 2f, 2f), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.28f));
+                }
+            }
             y2 += scope.height + 12f;
             if (picked2 == null)
             {
@@ -91,7 +103,7 @@ namespace Arena
                 bool can = Hunts.Available(picked2, profile);
                 string name = BossName(picked2.Boss);
                 var dim = new Color(ink.r, ink.g, ink.b, 0.7f);
-                LobbyKit.Spaced(new Rect(scope.x + 10f, scope.y + 6f, 160f, 16f), "TARGET LOCK", 11, dim, TextAnchor.MiddleLeft, 2f);
+                LobbyKit.Spaced(new Rect(scope.x + 10f, scope.y + 6f, 160f, 16f), "TARGET LOCK", 11, PhosGreen, TextAnchor.MiddleLeft, 2f);
                 LobbyKit.Spaced(new Rect(scope.xMax - 170f, scope.y + 6f, 160f, 16f), "WAVE " + Hunts.Length + " / " + Hunts.Length, 11, Ui.Gold, TextAnchor.MiddleRight, 2f);
                 Ui.Glitch(new Rect(x2, y2, w2, 28f), picked2.Name.ToUpperInvariant(), 20, Color.white, TextAnchor.MiddleLeft);
                 y2 += 32f;
@@ -153,6 +165,22 @@ namespace Arena
                     DrawEnemyPreview(picked2.Boss == EnemyType.TwinB ? EnemyType.TwinA : picked2.Boss, new V2(scope.center.x, scope.center.y), scope.height - 56f, t, true);
                 }
                 EndUiGl();
+            }
+            if (picked2 != null)
+            {
+                // CRT finish over the scope (and the model): scan lines, then a vignette toward the edges.
+                for (float sy = scope.y + 1f; sy < scope.yMax - 1f; sy += 3f)
+                    Ui.Fill(new Rect(scope.x + 1f, sy, scope.width - 2f, 1f), new Color(0f, 0f, 0f, 0.25f));
+                for (int k = 0; k < 8; k++)
+                {
+                    float a = 0.30f * (1f - k / 8f) * (1f - k / 8f);
+                    float d = 1f + k * 4f;
+                    var vc = new Color(0f, 0f, 0f, a);
+                    Ui.Fill(new Rect(scope.x + d, scope.y + d, scope.width - 2f * d, 4f), vc);
+                    Ui.Fill(new Rect(scope.x + d, scope.yMax - d - 4f, scope.width - 2f * d, 4f), vc);
+                    Ui.Fill(new Rect(scope.x + d, scope.y + d + 4f, 4f, scope.height - 2f * d - 8f), vc);
+                    Ui.Fill(new Rect(scope.xMax - d - 4f, scope.y + d + 4f, 4f, scope.height - 2f * d - 8f), vc);
+                }
             }
         }
     }
