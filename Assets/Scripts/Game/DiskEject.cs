@@ -23,18 +23,19 @@ namespace Arena
 
         bool EjectAvailable => ProfileStore.Root != null && ProfileStore.ActiveId.Length > 0 && Profile.Current.Name.Length > 0;
 
-        /// The eject key, right of the drive on the menu (called from DrawMenu). live: it takes clicks (the menu isn't in its intro).
+        /// The eject key, right of the drive on the menu (called from DrawMenu), there from the first frame like the drive. live: it takes clicks (the menu isn't in its intro).
         void DrawDriveEject(float alpha, bool live)
         {
-            if (alpha <= 0f || !EjectAvailable || (profTr && !profEj))
+            if (alpha <= 0f)
                 return;
             var r = EjectKeyRect;
             var mouse = Event.current.mousePosition;
-            bool hot = live && r.Contains(mouse);
+            bool usable = live && !profTr && EjectAvailable;  // otherwise the key is there but dimmed: while the disk goes in, or with no profile loaded
+            bool hot = usable && r.Contains(mouse);
             if (Event.current.type == EventType.Repaint)
                 ejHover = Mathf.MoveTowards(ejHover, hot ? 1f : 0f, Time.unscaledDeltaTime * 8f);
             float press = profEj ? Seg(profEjT, 0f, 0.08f) * (1f - Seg(profEjT, 0.2f, 0.3f)) : 0f;
-            bool spent = profEj && profEjT > 0.3f;  // the key has been used: dimmed while the disk comes out
+            bool spent = (profEj && profEjT > 0.3f) || (!usable && !profEj);  // dimmed: used (the disk is coming out), or nothing to eject
             WithAlpha(alpha, () =>
             {
                 float dy = 2f * press, h = ejHover;
@@ -55,7 +56,7 @@ namespace Arena
                     });
                 }
             });
-            if (live && !profTr && Ui.HitArea(r))
+            if (usable && Ui.HitArea(r))
                 StartProfEject();
         }
 
