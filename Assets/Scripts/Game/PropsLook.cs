@@ -23,6 +23,18 @@ namespace Arena
                     Arc(p.Pos, Game.HalfW(p) + 6f + 22f * k, 3f, new Rgba(0.8f, 0.75f, 0.65f, 0.4f * (1f - k)), 24);
                 }
                 V2 at = p.Pos - new V2(0f, lift);
+                if (p.PushT > 0f)
+                {
+                    // Being shoved: a small shudder and scuffed-up dust left behind it.
+                    at += new V2(Mathf.Sin(p.Age * 70f), Mathf.Cos(p.Age * 53f)) * 0.9f;
+                    float k = p.PushT / 0.25f;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        float f = (p.Age * 3f + i / 3f) % 1f;
+                        V2 puff = p.Pos - p.PushDir * (Game.HalfW(p) + 2f + f * 14f) + new V2(-p.PushDir.Y, p.PushDir.X) * ((i - 1) * 7f);
+                        Circle(puff, 2.5f + f * 4f, new Rgba(0.8f, 0.75f, 0.65f, 0.35f * k * (1f - f)), 10);
+                    }
+                }
                 // Its shadow stays on the ground.
                 float hw = Game.HalfW(p), hh = Game.HalfH(p);
                 if (Game.Round(p))

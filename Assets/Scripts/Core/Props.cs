@@ -27,6 +27,8 @@ namespace Arena
         public int LitBy;        // host: the player who set a barrel off (kill credit)
         // Every game, for the look.
         public float Age, HitT, OpenT;
+        public float PushT;      // seconds left of "it's being pushed" (dust, a shudder)
+        public V2 PushDir, SeenAt;  // the way it last slid, and where we last saw it
     }
 
     /// A chest's item for one player. Everyone's game has every item, but only its owner's draws it.
@@ -110,6 +112,122 @@ namespace Arena
                 pos = m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
             }
             return PushOutOfSolids(pos, r);  // and the layout's walls and pillars (LayoutRules.cs)
+        }
+
+        // --- Pushing (host) -------------------------------------------------------------------------
+
+        /// How fast (px/s) each kind of player shoves a crate or barrel along: Tanks fastest, Dps next, Healers slowest.
+        /// Enemies barely move them. Even the Healer is ten times the enemies. A heavy crate gives at 60%.
+        public const float PushTank = 70f, PushDps = 50f, PushHealer = 34f, PushEnemy = 3f, HeavyPushMult = 0.6f;
+        const float PushContact = 2f;      // a remote player counts as leaning on a prop this close (their own game already holds them out)
+        const float PushLeanSpeed = 15f;   // ...if they're moving toward it at least this fast (px/s)
+
+        public static float PushSpeed(Player p) => p.Role == Role.Tank ? PushTank : p.Role == Role.Healer ? PushHealer : PushDps;
+        /// Crates and barrels slide; pots smash, chests and health barrels stay put.
+        public static bool Pushable(Prop p) => p.Hp > 0f && (p.Kind == PropKind.Crate || p.Kind == PropKind.HeavyCrate || p.Kind == PropKind.Barrel);
+
+        /// Host: something of radius r at pos is leaning into crates and barrels: each one it overlaps (or touches, within
+        /// reach) slides away along the way it is being pushed, by at most speed × dt and never by more than the overlap.
+        /// The rest of the overlap is then pushed back out of the body by PushOutOfProps, so the pusher is held to the
+        /// prop's pace. heading (a remote player's smoothed motion) must point at the prop, or zero to skip that check.
+        public void ShoveProps(V2 pos, float r, float speed, float dt, float reach, V2 heading)
+        {
+            if (Props.Count == 0 || speed <= 0f)
+                return;
+            foreach (var p in Props.Values)
+            {
+                if (!Pushable(p))
+                    continue;
+                V2 dir;
+                float pen;
+                if (Round(p))
+                {
+                    V2 d = p.Pos - pos;
+                    float dist = d.Length;
+                    pen = PropRadius(p) + r + reach - dist;
+                    dir = dist > 0.5f ? d / dist : (heading.IsZero ? new V2(1f, 0f) : heading.Normalized());
+                }
+                else
+                {
+                    float dx = p.Pos.X - pos.X, dy = p.Pos.Y - pos.Y;
+                    float px = HalfW(p) + r + reach - Math.Abs(dx), py = HalfH(p) + r + reach - Math.Abs(dy);
+                    if (px <= 0f || py <= 0f)
+                        continue;
+                    if (px < py)
+                    {
+                        pen = px;
+                        dir = new V2(dx < 0f ? -1f : 1f, 0f);
+                    }
+                    else
+                    {
+                        pen = py;
+                        dir = new V2(0f, dy < 0f ? -1f : 1f);
+                    }
+                }
+                if (pen <= 0f || !heading.IsZero && heading.Dot(dir) < PushLeanSpeed)
+                    continue;
+                float amt = Math.Min(pen, speed * (p.Kind == PropKind.HeavyCrate ? HeavyPushMult : 1f) * dt);
+                MoveProp(p, dir * amt);
+            }
+        }
+
+        const float PropLook = 70f;  // how far ahead (px) an enemy looks for a crate or barrel in its way
+
+        /// Would something of radius r walking from `from` along dir, for PropLook px, run into a crate or barrel?
+        bool PropAhead(V2 from, V2 dir, float r)
+        {
+            for (int i = 1; i <= 5; i++)
+            {
+                V2 pt = from + dir * (PropLook * i / 5f);
+                foreach (var p in Props.Values)
+                    if (Pushable(p) && PropCovers(p, pt, r))
+                        return true;
+            }
+            return false;
+        }
+
+        /// Host: which way a walking enemy heads with crates and barrels about. Straight on if nothing is in the way;
+        /// otherwise the nearest turn (up to a little past sideways) that is clear of props and walls. If no way round
+        /// exists, it keeps going straight and shoves the prop.
+        V2 PropDir(Enemy e, V2 dir)
+        {
+            float r = e.Radius * 0.8f + 2f;
+            if (dir.IsZero || !PropAhead(e.Pos, dir, r))
+                return dir;
+            var layout = LayoutOn ? ActiveLayout : null;
+            float first = (e.Id & 1) == 0 ? 1f : -1f;  // each enemy keeps to its own side, so they don't dither
+            for (int i = 1; i <= 3; i++)
+                for (int side = 0; side < 2; side++)
+                {
+                    V2 d = dir.Rotated(first * (side == 0 ? 1f : -1f) * 0.55f * i);
+                    if (!PropAhead(e.Pos, d, r) && (layout == null || !SegBlocked(layout, e.Pos, e.Pos + d * PropLook, r)))
+                        return d;
+                }
+            return dir;
+        }
+
+        /// Slides a prop by delta unless that puts it in a wall, the arena's edge or another solid prop (it stops there).
+        bool MoveProp(Prop p, V2 delta)
+        {
+            float hw = HalfW(p), hh = HalfH(p);
+            V2 to = (p.Pos + delta).Clamp(ArenaMin + new V2(hw, hh), ArenaMax - new V2(hw, hh));
+            V2 fit = PushOutOfSolids(to, Math.Min(hw, hh));
+            if (fit.DistanceTo(to) > 0.01f)
+                return false;
+            foreach (var q in Props.Values)
+                if (q != p && Solid(q) && q.Hp > 0f && Math.Abs(to.X - q.Pos.X) < hw + HalfW(q) - 0.5f && Math.Abs(to.Y - q.Pos.Y) < hh + HalfH(q) - 0.5f)
+                    return false;
+            p.Pos = to;
+            return true;
+        }
+
+        /// Host, each tick: players in other games lean on props where we can only see them touch (their own game holds
+        /// them out, so there's no overlap). Our own player and the enemies shove from their own movement step.
+        void ShoveFromRemotePlayers(float dt)
+        {
+            foreach (var pl in Players.Values)
+                if (pl.Id != MyId && !pl.Downed)
+                    ShoveProps(pl.Pos, pl.Def.HitR + PropPad, PushSpeed(pl), dt, PushContact, pl.Motion);
         }
 
         // --- Spawning (host) ------------------------------------------------------------------------
@@ -360,6 +478,7 @@ namespace Arena
             if (Props.Count == 0 && Loots.Count == 0)
                 return;
             propsGone.Clear();
+            ShoveFromRemotePlayers(dt);
             foreach (var p in Props.Values)
             {
                 if (p.Kind == PropKind.Barrel && p.Fuse > 0f && (p.Fuse -= dt) <= 0f)
@@ -631,6 +750,15 @@ namespace Arena
             {
                 p.Age += dt;
                 p.HitT = Math.Max(0f, p.HitT - dt);
+                V2 slid = p.Pos - p.SeenAt;
+                if (p.Age > dt && slid.Length > 0.02f && slid.Length < 30f)
+                {
+                    p.PushT = 0.25f;
+                    p.PushDir = slid.Normalized();
+                }
+                else
+                    p.PushT = Math.Max(0f, p.PushT - dt);
+                p.SeenAt = p.Pos;
                 if (p.Open)
                     p.OpenT += dt;
             }

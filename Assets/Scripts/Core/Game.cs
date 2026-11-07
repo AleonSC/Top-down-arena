@@ -941,6 +941,8 @@ namespace Arena
             }
             WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
             ColossusPush(me, before);    // the Colossus's stomp rings, plates and pillars (Colossus.cs)
+            if (IsHost && Props.Count > 0 && !me.Downed)
+                ShoveProps(me.Pos, me.Def.HitR + PropPad, PushSpeed(me), dt, 0f, V2.Zero);  // leaning on a crate or barrel slides it (Props.cs)
             if ((Props.Count > 0 || LayoutOn) && !me.Downed)
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
