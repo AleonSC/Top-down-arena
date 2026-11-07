@@ -1,0 +1,339 @@
+<title>Floppy Shelves</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Caveat:wght@600;700&display=swap">
+<style>
+/* Mockup (round two: the tray you picked plus four other shelves; round one is whos-playing-floppy.html). Original note: "Who's playing?" with the profiles as 3.5" floppy disks, and Manage profiles drawn as the main menu's Play keycap
+   (KeyUi.Key in Assets/Scripts/Game/KeyUi.cs: dark well, bevelled cap, dished top, engraved legend, lamp that lights on hover).
+   Three layouts for the same disks. Single dark look by choice: it mirrors the game. Click a disk to play as it, click Manage
+   profiles to get Rename and Delete (Delete asks twice). */
+:root {
+  --bg:#07090f; --panel:#10141f; --line:#232b3f; --fg:#e8edf8; --muted:#8e9ab5; --accent:#6f8cff; --amber:#ffc24b;
+  --well:#080a17; --cap-hi:#82a5fb; --cap-lo:#455cad; --side-hi:#3d54a0; --side-lo:#17224d; --dish-hi:#222d63; --dish-lo:#4560b0;
+  --lamp-off:#121a40; --lamp-on:#6bff99;
+  --ui:"Rajdhani","Segoe UI",system-ui,sans-serif; --hand:"Caveat","Segoe Print",cursive;
+  color-scheme:dark;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:500 16px/1.5 var(--ui); }
+.wrap { max-width:1280px; margin:0 auto; padding-block:28px 64px; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); display:grid; gap:40px; }
+h1 { margin:0; font:700 clamp(28px,5vw,44px)/1.05 var(--ui); letter-spacing:.06em; text-transform:uppercase; text-wrap:balance; }
+h2 { margin:0; font:700 24px var(--ui); letter-spacing:.04em; display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; }
+.tag { font:700 12px var(--ui); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+p { margin:0; max-width:74ch; color:#c6d0e6; }
+.opt { display:grid; gap:12px; min-width:0; }
+.notes { margin:0; padding-left:20px; color:#b8c3dc; display:grid; gap:2px; max-width:80ch; }
+.hint { color:var(--muted); font-size:14px; }
+
+/* the screen, drawn at 1280 x 720 and scaled to fit */
+.frame { position:relative; width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:#030510; }
+.stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; background:radial-gradient(90% 80% at 50% 45%,#0a0d1e,#030510 75%); overflow:hidden; user-select:none; }
+.stage svg.bg { position:absolute; inset:0; width:1280px; height:720px; }
+.title { position:absolute; left:0; right:0; top:62px; text-align:center; font:700 72px/1 var(--ui); letter-spacing:.07em; color:#fff;
+  text-shadow:3px 0 0 #6f8cff, -3px 0 0 #6f8cff, 0 3px 0 #6f8cff, 0 -3px 0 #6f8cff, 7px 2px 0 rgba(255,255,255,.35), -6px -2px 0 rgba(255,255,255,.25); }
+.toast { position:absolute; left:50%; top:206px; transform:translate(-50%,-6px); opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; z-index:50;
+  font:700 20px var(--ui); letter-spacing:.05em; padding:7px 18px 6px; border-radius:999px; background:#0b1026ee; border:1px solid #4a63b3; color:#dfe8ff; white-space:nowrap; }
+.toast.on { opacity:1; transform:translate(-50%,0); }
+
+/* a floppy disk, 200 x 200 */
+.slot { position:absolute; width:200px; height:200px; }
+.disk { position:absolute; inset:0; border:0; padding:0; background:none; color:inherit; font:inherit; cursor:pointer; text-align:left;
+  filter:drop-shadow(0 10px 10px rgba(0,0,0,.55)) drop-shadow(0 0 0 transparent); transition:transform .18s cubic-bezier(.3,1.4,.5,1), filter .18s; }
+.disk:focus-visible { outline:2px solid #fff; outline-offset:6px; border-radius:8px; }
+.disk .body { position:absolute; inset:0; border-radius:5px; clip-path:polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+  background:linear-gradient(160deg,var(--t1),var(--t2)); box-shadow:inset 0 0 0 2px rgba(255,255,255,.1); }
+.disk .body::after { content:""; position:absolute; inset:0; background:linear-gradient(115deg,rgba(255,255,255,.22),transparent 34%); }
+.disk .hubhole { position:absolute; left:10px; bottom:10px; width:14px; height:14px; border-radius:3px; background:#0a0d18; box-shadow:inset 0 1px 2px #000; }
+.disk .wp { position:absolute; right:10px; bottom:10px; width:16px; height:16px; border-radius:3px; background:#0a0d18; box-shadow:inset 0 1px 2px #000; }
+.disk .wp::after { content:""; position:absolute; left:2px; top:2px; width:6px; height:12px; border-radius:2px; background:#e9edf8; transform:translateY(0); transition:transform .2s; }
+.disk .shutter { position:absolute; left:46px; top:0; width:108px; height:60px; border-radius:0 0 4px 4px; background:linear-gradient(90deg,#8e99b5,#e3e9f6 30%,#b3bdd5 70%,#7f8aa6); box-shadow:inset 0 -2px 3px rgba(0,0,0,.3), 0 2px 3px rgba(0,0,0,.35); }
+.disk .shutter i { position:absolute; right:14px; top:9px; width:24px; height:38px; border-radius:3px; background:#0a0e1b; box-shadow:inset 0 2px 4px #000, 0 1px 0 rgba(255,255,255,.4); }
+.disk .shutter b { position:absolute; left:12px; top:22px; width:36px; height:3px; background:rgba(40,50,80,.28); border-radius:2px; box-shadow:0 8px 0 rgba(40,50,80,.28); }
+.disk .label { position:absolute; left:16px; top:70px; width:168px; height:110px; border-radius:3px; overflow:hidden; color:#1a2347;
+  background:repeating-linear-gradient(transparent 0 21px,rgba(80,110,190,.2) 21px 22px),#f5f0e1; box-shadow:0 1px 3px rgba(0,0,0,.4); }
+.disk .label .band { height:17px; background:var(--tier); color:rgba(10,14,32,.85); font:700 11px/17px var(--ui); letter-spacing:.2em; padding-left:8px; display:flex; justify-content:space-between; padding-right:8px; }
+.disk .label .nm { position:absolute; left:9px; right:50px; top:15px; font:700 33px/1.1 var(--hand); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform:rotate(-1.5deg); }
+.disk .label .l1 { position:absolute; left:9px; top:61px; font:700 14px var(--ui); letter-spacing:.04em; color:#2a3566; }
+.disk .label .l2 { position:absolute; left:9px; top:81px; font:600 13px var(--ui); color:#5a6590; }
+.disk .label svg { position:absolute; right:6px; top:22px; width:38px; height:44px; }
+.disk.cur .label::after { content:"LAST USED"; position:absolute; right:6px; bottom:5px; font:700 10px var(--ui); letter-spacing:.14em; color:#b3261e; border:1.5px solid #b3261e; padding:0 4px; border-radius:2px; transform:rotate(-5deg); }
+.slot:hover .disk, .slot.pick .disk { transform:translateY(-12px); filter:drop-shadow(0 16px 12px rgba(0,0,0,.5)) drop-shadow(0 0 18px var(--tier)); }
+.slot:hover .disk .wp::after { transform:translateY(0); }
+.slot.go .disk { transform:translateY(-60px) scale(1.06); filter:drop-shadow(0 0 26px var(--tier)); transition-duration:.4s; }
+.slot.cur .disk { filter:drop-shadow(0 10px 10px rgba(0,0,0,.55)) drop-shadow(0 0 12px color-mix(in srgb,var(--tier) 45%,transparent)); }
+.slot.cur:hover .disk, .slot.cur.pick .disk { filter:drop-shadow(0 16px 12px rgba(0,0,0,.5)) drop-shadow(0 0 20px var(--tier)); }
+.stage[data-v=c] .slot:hover .disk, .stage[data-v=c] .slot.pick .disk { transform:translateY(-34px); }
+.slot.man .disk { cursor:default; transform:none; }
+.slot.man:hover .disk, .stage[data-v=c] .slot.man:hover .disk { transform:none; }
+
+/* empty slot and the New profile disk: a dashed outline */
+.ghost { position:absolute; inset:0; border:0; background:none; color:#7f8bab; font:inherit; cursor:pointer; }
+.ghost svg { position:absolute; inset:0; width:200px; height:200px; }
+.ghost .plus { position:absolute; left:0; right:0; top:64px; text-align:center; font:700 56px/1 var(--ui); color:#8b97b8; }
+.ghost .cap { position:absolute; left:0; right:0; top:128px; text-align:center; font:700 19px var(--ui); letter-spacing:.04em; }
+.ghost .cap2 { position:absolute; left:0; right:0; top:152px; text-align:center; font:500 13px var(--ui); color:#5d6886; }
+.ghost.dim { cursor:default; opacity:.55; }
+.ghost:not(.dim):hover { color:#fff; } .ghost:not(.dim):hover .plus { color:#fff; }
+.ghost:not(.dim):hover svg path { stroke:#8aa4ff; }
+.ghost:focus-visible { outline:2px solid #fff; outline-offset:6px; }
+
+/* Rename / Delete under a disk, in Manage */
+.acts { position:absolute; left:0; right:0; display:none; gap:8px; justify-content:center; z-index:5; }
+.man .acts { display:flex; }
+.sm { font:700 15px var(--ui); letter-spacing:.03em; color:#e6ecff; background:linear-gradient(#34417a,#222c58); border:1px solid #5169b8; border-radius:8px; padding:4px 14px 3px; cursor:pointer; box-shadow:0 2px 0 #0a0f26; }
+.sm:hover { filter:brightness(1.2); } .sm:active { transform:translateY(2px); box-shadow:none; }
+.sm.dan.armed { background:linear-gradient(#b0384e,#7d2036); border-color:#ff7e93; }
+.sm:disabled { opacity:.4; cursor:not-allowed; }
+
+/* the Play keycap, reused for Manage profiles */
+.key { position:absolute; width:300px; height:74px; border:0; padding:0; background:none; cursor:pointer; color:#edf2ff; font:inherit; }
+.key .well { position:absolute; inset:0; border-radius:18px; background:var(--well); box-shadow:inset 0 4px 5px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.07); }
+.key .side { position:absolute; left:7px; right:7px; top:13px; bottom:6px; border-radius:15px; background:linear-gradient(var(--side-hi),var(--side-lo)); box-shadow:0 5px 8px rgba(0,0,0,.5); }
+.key .cap { position:absolute; left:7px; right:7px; top:6px; height:58px; border-radius:15px; background:linear-gradient(var(--cap-hi),var(--cap-lo)); border:2px solid #3a4b8d;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.55), inset 0 -3px 0 rgba(0,0,0,.28); transition:transform .06s, filter .12s; }
+.key .dish { position:absolute; left:9px; right:9px; top:9px; bottom:9px; border-radius:10px; background:linear-gradient(var(--dish-hi),var(--dish-lo)); box-shadow:inset 0 3px 0 rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; gap:12px; }
+.key .dish span { font:700 29px var(--ui); letter-spacing:.04em; text-shadow:0 2px 0 rgba(0,0,0,.5); padding-top:2px; }
+.key .dish svg { width:26px; height:26px; fill:#fff; opacity:.95; }
+.key .lamp { position:absolute; right:13px; top:11px; width:10px; height:10px; border-radius:50%; background:var(--lamp-off); box-shadow:inset 0 1px 2px #000; }
+.key:hover .cap { filter:brightness(1.12); }
+.key:hover .lamp, .key.lit .lamp { background:var(--lamp-on); box-shadow:0 0 0 3px rgba(107,255,153,.22), 0 0 10px var(--lamp-on); }
+.key:active .cap { transform:translateY(5px); }
+.key:focus-visible { outline:2px solid #fff; outline-offset:4px; border-radius:18px; }
+
+/* option C: the tray */
+.tray { position:absolute; border-radius:18px; border:1px solid #4a68b8; background:linear-gradient(#262f58,#0c1020 92%); box-shadow:0 0 40px rgba(80,120,255,.16), inset 0 1px 0 rgba(255,255,255,.1); }
+.tray::before, .tray::after { content:""; position:absolute; width:26px; height:26px; border:2px solid rgba(110,165,255,.7); pointer-events:none; }
+.tray::before { left:-10px; top:-10px; border-right:0; border-bottom:0; } .tray::after { right:-10px; bottom:-10px; border-left:0; border-top:0; }
+.tray .rail { position:absolute; left:12px; right:12px; bottom:12px; height:66px; border-radius:12px; background:linear-gradient(#3b4a86,#1a2350); border:1px solid #5d78c8; box-shadow:0 -6px 12px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22); z-index:4; }
+.tray .rail .num { position:absolute; top:7px; width:80px; margin-left:-22px; white-space:nowrap; text-align:center; font:700 15px var(--ui); letter-spacing:.1em; color:#9fb2ea; text-shadow:0 1px 0 #0a0f26; }
+.tray .rail .bolt { position:absolute; top:50%; width:8px; height:8px; margin-top:-4px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#a8b7ea,#4d5f9f 60%,#1a2350); }
+
+.reset { justify-self:start; }
+
+/* round two: the shelves */
+.num { position:absolute; z-index:5; width:80px; margin-left:-40px; text-align:center; white-space:nowrap; font:700 15px var(--ui); letter-spacing:.12em; color:#9fb2ea; text-shadow:0 1px 0 #0a0f26; }
+.dfront { position:absolute; z-index:4; border-radius:12px; background:linear-gradient(#3b4a86,#1a2350); border:1px solid #5d78c8; box-shadow:0 -6px 12px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22); }
+.tab { position:absolute; z-index:4; width:110px; height:26px; border:1px solid #6580d0; border-bottom:0; border-radius:9px 9px 0 0; background:linear-gradient(#4a5b9c,#33427f); text-align:center; font:700 14px/25px var(--ui); letter-spacing:.14em; }
+.pull { position:absolute; z-index:5; width:170px; height:28px; border-radius:14px; background:#080b1e; box-shadow:inset 0 3px 5px #000, 0 1px 0 rgba(255,255,255,.18); }
+.drv { position:absolute; z-index:4; width:224px; height:136px; border-radius:12px; background:linear-gradient(#37447f,#171f48); border:1px solid #5d78c8; box-shadow:0 12px 18px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.22); }
+.drv .slit { position:absolute; left:12px; right:12px; top:-5px; height:14px; border-radius:3px 3px 7px 7px; background:#04060f; box-shadow:inset 0 -3px 4px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.14); }
+.drv .ltr { position:absolute; left:20px; top:30px; font:700 50px/1 var(--ui); letter-spacing:.04em; color:#8da3e6; text-shadow:0 2px 0 #0a0f26, 0 -1px 0 rgba(255,255,255,.2); }
+.drv .led { position:absolute; right:20px; top:34px; width:12px; height:12px; border-radius:50%; background:var(--lamp-off); box-shadow:inset 0 1px 2px #000; }
+.drv .led.on { background:var(--lamp-on); box-shadow:0 0 0 3px rgba(107,255,153,.2), 0 0 10px var(--lamp-on); }
+.rib { position:absolute; width:8px; border-radius:3px; background:linear-gradient(90deg,#7d9aee66,#2b3a72aa); box-shadow:0 0 0 1px #0b1030; }
+.peg { position:absolute; border-radius:14px; border:1px solid #1f2a52; background:radial-gradient(circle,#2a3869 1.5px,transparent 1.8px) 0 0/26px 26px, linear-gradient(#0b1030,#070a1c); }
+.shelf-top { position:absolute; height:12px; border-radius:5px 5px 0 0; background:linear-gradient(#7f96e2,#43589a); }
+.shelf-face { position:absolute; height:34px; border-radius:0 0 7px 7px; background:linear-gradient(#3b4a86,#1a2350); border:1px solid #5d78c8; border-top:0; box-shadow:0 16px 22px rgba(0,0,0,.55); }
+.brk { position:absolute; width:28px; height:64px; background:linear-gradient(90deg,#2b376d,#141b40); clip-path:polygon(0 0,100% 0,100% 100%,0 14%); }
+.plate { position:absolute; width:70px; height:22px; border-radius:4px; background:#080b1e; color:#9fb2ea; font:700 13px/22px var(--ui); letter-spacing:.14em; text-align:center; box-shadow:inset 0 2px 3px #000; }
+.cone { position:absolute; left:-40px; top:-34px; width:280px; height:240px; z-index:-1; pointer-events:none; clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);
+  background:linear-gradient(color-mix(in srgb,var(--tier) 34%,transparent),transparent 90%); opacity:.45; transition:opacity .18s; }
+.slot:hover .cone, .slot.pick .cone { opacity:1; }
+.slot.man .cone { opacity:.25; }
+
+.stage[data-v=d] .slot:hover .disk, .stage[data-v=f] .slot:hover .disk { transform:translateY(-22px); }
+.stage[data-v=e] .slot:hover .disk { transform:translateY(-34px); }
+.stage[data-v=d] .slot.go .disk, .stage[data-v=f] .slot.go .disk, .stage[data-v=g] .slot.go .disk { transform:translateY(-52px) scale(1.05); }
+.stage[data-v=e] .slot.go .disk { transform:translateY(34px); filter:drop-shadow(0 0 18px var(--tier)); }
+.stage[data-v] .slot.man .disk, .stage[data-v] .slot.man:hover .disk { transform:none; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <h1>Floppy profiles: more shelves</h1>
+    <p>You picked the tray, so here are four other ways to shelve the same disks, with the tray first for comparison. Every one keeps the Play-style Manage keycap and the same disk, so only the furniture changes.</p>
+    <p class="hint">Hover a disk to lift it. Click one to play as it. Manage profiles shows Rename and Delete (Delete asks twice).</p>
+  </header>
+
+  <section class="opt">
+    <h2><span class="tag">Your pick</span>Tray</h2>
+    <p>The earlier option C: a panel with corner brackets, the lip covering the bottom of each disk.</p>
+    <div class="frame"><div class="stage" data-v="c"></div></div>
+  </section>
+
+  <section class="opt">
+    <h2><span class="tag">Shelf 1</span>Index drawer</h2>
+    <p>A card-file drawer. Each disk has an index tab in front of it with its slot number, and the drawer front has a pull groove. The lip is lower than the tray's, so more of every disk shows.</p>
+    <div class="frame"><div class="stage" data-v="d"></div></div>
+    <ul class="notes">
+      <li>The tabs give each disk a clear slot name even if the label is busy.</li>
+      <li>Rename and Delete sit on the drawer front above the pull.</li>
+    </ul>
+  </section>
+
+  <section class="opt">
+    <h2><span class="tag">Shelf 2</span>Drive bays</h2>
+    <p>Each profile is its own disk drive with a drive letter (A:, B:, C:, D:) and a lamp. The disk sticks up out of the slot. Hover to eject it a little, click to push it in.</p>
+    <div class="frame"><div class="stage" data-v="e"></div></div>
+    <ul class="notes">
+      <li>The lamp is lit on a drive that holds a profile. The empty drive is unlit and takes the New profile disk.</li>
+      <li>The most game-like of the set: the click has a physical result.</li>
+    </ul>
+  </section>
+
+  <section class="opt">
+    <h2><span class="tag">Shelf 3</span>Lidded box</h2>
+    <p>A disk box with its smoked-plastic lid propped open behind the disks, plastic ribs between the slots and a front lip with slot numbers.</p>
+    <div class="frame"><div class="stage" data-v="f"></div></div>
+    <ul class="notes">
+      <li>The ribs make four clear compartments, which suits an empty slot.</li>
+      <li>Takes the most vertical room: the lid sits between the axis line and the disks.</li>
+    </ul>
+  </section>
+
+  <section class="opt">
+    <h2><span class="tag">Shelf 4</span>Display shelf</h2>
+    <p>Disks stand on a wall-mounted metal shelf in front of a pegboard, each under its own spotlight that brightens on hover. Nothing is hidden, so the whole disk always shows.</p>
+    <div class="frame"><div class="stage" data-v="g"></div></div>
+    <ul class="notes">
+      <li>The only layout where the bottom corners of the disk (the write-protect and hub holes) show.</li>
+      <li>Rename and Delete go under the shelf, so the shelf face stays clean.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var TIERS = {
+    legend: { t:"#f3c24f", t1:"#d9a936", t2:"#7f5d17" },
+    recruit: { t:"#a3afcf", t1:"#7a86a8", t2:"#3d4565" }
+  };
+  var START = [
+    { id:"a", name:"Anthony", tier:"legend", title:"Legend", rank:999, wins:0, runs:20, cur:true },
+    { id:"b", name:"Bobs", tier:"recruit", title:"Recruit", rank:1, wins:0, runs:0 },
+    { id:"c", name:"Vagene", tier:"recruit", title:"Recruit", rank:1, wins:0, runs:0 }
+  ];
+  var CHAMFER = "M3 3 H174 L197 26 V197 H3 Z";
+  var COG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M10.3 2h3.4l.6 2.6c.6.2 1.1.5 1.6.8l2.3-1.4 2.4 2.4-1.4 2.3c.3.5.6 1 .8 1.6l2.6.6v3.4l-2.6.6c-.2.6-.5 1.1-.8 1.6l1.4 2.3-2.4 2.4-2.3-1.4c-.5.3-1 .6-1.6.8l-.6 2.6h-3.4l-.6-2.6c-.6-.2-1.1-.5-1.6-.8l-2.3 1.4-2.4-2.4 1.4-2.3c-.3-.5-.6-1-.8-1.6L2 13.7v-3.4l2.6-.6c.2-.6.5-1.1.8-1.6L4 5.8l2.4-2.4 2.3 1.4c.5-.3 1-.6 1.6-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>';
+  var X0 = 170, PITCH = 240;   // the disks' left edges: 170, 410, 650, 890
+  var CFG = { c:{ y:285, acts:472 }, d:{ y:262, acts:482 }, e:{ y:244, acts:512 }, f:{ y:284, acts:490 }, g:{ y:268, acts:526 } };
+
+  function badge(p) {
+    var c = TIERS[p.tier].t, n = String(p.rank), fs = n.length > 2 ? 15 : 19;
+    return '<svg viewBox="0 0 40 46" aria-hidden="true"><path d="M20 2 37 8v16c0 10-8 17-17 20C11 41 3 34 3 24V8z" fill="#1c2447" stroke="' + c + '" stroke-width="3"/>' +
+      '<text x="20" y="' + (n.length > 2 ? 27 : 28) + '" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="' + fs + '" fill="#fff">' + n + '</text></svg>';
+  }
+  function diskHtml(p, i) {
+    var T = TIERS[p.tier];
+    return '<button type="button" class="disk' + (p.cur ? ' cur' : '') + '" data-pick="' + i + '" style="--t1:' + T.t1 + ';--t2:' + T.t2 + ';--tier:' + T.t + '" aria-label="Play as ' + p.name + '">' +
+      '<span class="body"></span><span class="shutter"><i></i><b></b></span><span class="hubhole"></span><span class="wp"></span>' +
+      '<span class="label"><span class="band"><span>SLOT ' + (i + 1) + '</span></span><span class="nm">' + p.name + '</span>' + badge(p) +
+      '<span class="l1">' + p.title + ' · Rank ' + p.rank + '</span><span class="l2">' + p.wins + ' wins · ' + p.runs + ' runs</span></span></button>';
+  }
+  function ghostHtml(kind, full) {
+    var lab = kind === "new" ? '<span class="plus">+</span><span class="cap">New profile</span><span class="cap2">' + (full ? 'All 3 slots used' : 'Add a profile') + '</span>'
+                             : '<span class="cap" style="top:84px;color:#56607e">Empty</span>';
+    return '<button type="button" class="ghost' + (full || kind === "empty" ? ' dim' : '') + '" data-new="' + (kind === "new" && !full ? 1 : 0) + '">' +
+      '<svg viewBox="0 0 200 200"><path d="' + CHAMFER + '" fill="rgba(255,255,255,.025)" stroke="rgba(150,170,230,.35)" stroke-width="2" stroke-dasharray="7 6" stroke-linejoin="round"/></svg>' + lab + '</button>';
+  }
+
+  function build(stage) {
+    var v = stage.dataset.v, state = { slots: START.map(function (p) { return Object.assign({}, p); }), manage: false, armed: null, toast: 0, msg: "" };
+    var rnd = (function (s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; })(11);
+
+    function bg() {
+      var s = '<svg class="bg" viewBox="0 0 1280 720">';
+      for (var r = 150; r <= 560; r += 68) s += '<circle cx="640" cy="400" r="' + r + '" fill="none" stroke="rgba(120,150,255,.07)"/>';
+      for (var i = 0; i < 90; i++) s += '<circle cx="' + (rnd() * 1280).toFixed(0) + '" cy="' + (rnd() * 720).toFixed(0) + '" r="' + (0.6 + rnd() * 1.3).toFixed(1) + '" fill="#fff" opacity="' + (0.15 + rnd() * 0.45).toFixed(2) + '"/>';
+      [[498,288,7,"#d9a2ff"],[848,262,13,"#ffd27a"],[430,553,6,"#7dffa7"],[612,652,9,"#ff8266"],[1000,665,6,"#6fd0ff"]].forEach(function (d) {
+        s += '<circle cx="' + d[0] + '" cy="' + d[1] + '" r="' + d[2] * 2.2 + '" fill="' + d[3] + '" opacity=".08"/><circle cx="' + d[0] + '" cy="' + d[1] + '" r="' + d[2] + '" fill="' + d[3] + '"/>';
+      });
+      s += '<g stroke="#3d5aa8" fill="#3d5aa8"><line x1="250" y1="170" x2="1030" y2="170" stroke-width="2"/><path d="M240 170l12-6v12zM1040 170l-12-6v12z" stroke="none"/>';
+      for (var k = 0; k <= 36; k++) s += '<line x1="' + (250 + k * 21.67).toFixed(1) + '" y1="' + (k % 6 === 0 ? 162 : 166) + '" x2="' + (250 + k * 21.67).toFixed(1) + '" y2="' + (k % 6 === 0 ? 178 : 174) + '" stroke-width="1.5" opacity=".7"/>';
+      s += '</g><circle cx="640" cy="170" r="9" fill="#050816" stroke="#9db4ff" stroke-width="2"/><circle cx="640" cy="170" r="3.5" fill="#fff"/></svg>';
+      return s;
+    }
+    function tierOf(p) { return p ? TIERS[p.tier].t : '#7f8bab'; }
+    function nums(top, label) {
+      return [0,1,2,3].map(function (i) { return '<span class="num" style="top:' + top + 'px;left:' + (X0 + i * PITCH + 100) + 'px;display:' + (state.manage ? 'none' : 'block') + '">' + label(i) + '</span>'; }).join('');
+    }
+
+    function behind() {
+      if (v === "c") return '<div class="tray" style="left:120px;top:262px;width:1040px;height:271px"></div>';
+      if (v === "d") return '<div class="tray" style="left:120px;top:236px;width:1040px;height:330px"></div>';
+      if (v === "f") {
+        var h = '<div class="tray" style="left:120px;top:272px;width:1040px;height:294px;background:linear-gradient(#1b2650aa,#0a0e20)"></div>';
+        [390,630,870].forEach(function (x) { h += '<i class="rib" style="left:' + (x - 4) + 'px;top:292px;height:190px"></i>'; });
+        h += '<svg style="position:absolute;left:110px;top:196px;width:1060px;height:84px" viewBox="0 0 1060 84"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ab8ff" stop-opacity=".30"/><stop offset="1" stop-color="#9ab8ff" stop-opacity=".07"/></linearGradient></defs>' +
+          '<polygon points="70,4 990,4 1048,80 12,80" fill="url(#lg)" stroke="#7d9aee" stroke-width="2" stroke-linejoin="round"/><polygon points="70,4 990,4 1000,16 60,16" fill="#fff" opacity=".12"/>' +
+          '<text x="530" y="52" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="24" letter-spacing="9" fill="#b9c9f5" opacity=".75">PROFILES</text>' +
+          '<rect x="0" y="66" width="34" height="14" rx="3" fill="#4a5f9f"/><rect x="1026" y="66" width="34" height="14" rx="3" fill="#4a5f9f"/></svg>';
+        return h;
+      }
+      if (v === "g") return '<div class="peg" style="left:100px;top:226px;width:1080px;height:292px"></div>' +
+        '<div class="shelf-top" style="left:80px;top:468px;width:1120px"></div><div class="shelf-face" style="left:80px;top:480px;width:1120px"></div>' +
+        '<i class="brk" style="left:150px;top:514px"></i><i class="brk" style="left:1104px;top:514px"></i>' +
+        [0,1,2,3].map(function (i) { return '<span class="plate" style="left:' + (X0 + i * PITCH + 65) + 'px;top:486px">' + (state.manage ? '' : 'SLOT ' + (i + 1)) + '</span>'; }).join('');
+      return '';
+    }
+    function front() {
+      if (v === "c") return '<div class="dfront" style="left:132px;top:' + (262 + 195) + 'px;width:1016px;height:66px">' + '</div>' + nums(262 + 195 + 7, function (i) { return 'SLOT ' + (i + 1); });
+      if (v === "d") {
+        var h = '<div class="dfront" style="left:132px;top:468px;width:1016px;height:86px"></div><div class="pull" style="left:555px;top:514px"></div>';
+        [0,1,2,3].forEach(function (i) {
+          var p = state.slots[i], c = i < 3 && p ? tierOf(p) : '#6580d0';
+          h += '<div class="tab" style="left:' + (X0 + i * PITCH + 45) + 'px;top:442px;border-color:' + c + ';color:' + (i < 3 && p ? c : '#8d9cc8') + '">' + (i === 3 ? 'NEW' : 'SLOT ' + (i + 1)) + '</div>';
+        });
+        return h;
+      }
+      if (v === "e") return [0,1,2,3].map(function (i) {
+        var p = state.slots[i];
+        return '<div class="drv" style="left:' + (X0 + i * PITCH - 12) + 'px;top:424px"><i class="slit"></i><span class="ltr">' + 'ABCD'[i] + ':</span><i class="led' + (p ? ' on' : '') + '"></i></div>';
+      }).join('');
+      if (v === "f") return '<div class="dfront" style="left:132px;top:470px;width:1016px;height:96px"></div>' + nums(478, function (i) { return 'SLOT ' + (i + 1); });
+      return '';
+    }
+
+    function acts(i) {
+      var p = state.slots[i];
+      if (i === 3 || !p) return '';
+      var n = state.slots.filter(Boolean).length;
+      return '<button type="button" class="sm" data-ren="' + i + '">Rename</button><button type="button" class="sm dan' + (state.armed === i ? ' armed' : '') + '" data-del="' + i + '"' + (n < 2 ? ' disabled' : '') + '>' + (state.armed === i ? 'Sure?' : 'Delete') + '</button>';
+    }
+
+    function render() {
+      var full = state.slots.every(Boolean), C = CFG[v];
+      var h = bg() + '<div class="title">WHO\'S PLAYING?</div><div class="toast"></div>' + behind();
+      for (var i = 0; i < 4; i++) {
+        var p = state.slots[i], x = X0 + i * PITCH, inner;
+        if (i === 3) inner = ghostHtml("new", full); else if (p) inner = diskHtml(p, i); else inner = ghostHtml("empty");
+        h += '<div class="slot' + (state.manage ? ' man' : '') + (p && p.cur ? ' cur' : '') + '" style="--tier:' + tierOf(p) + ';left:' + x + 'px;top:' + C.y + 'px;z-index:3" data-i="' + i + '">' +
+          (v === "g" && p ? '<i class="cone"></i>' : '') + inner + '</div>';
+      }
+      h += front();
+      if (state.manage) h += [0,1,2,3].map(function (i) { return '<div class="acts" style="display:flex;position:absolute;z-index:6;left:' + (X0 + i * PITCH) + 'px;top:' + C.acts + 'px;width:200px">' + acts(i) + '</div>'; }).join('');
+      h += '<button type="button" class="key' + (state.manage ? ' lit' : '') + '" style="left:490px;top:600px" data-manage="1"><span class="well"></span><span class="side"></span><span class="cap"><span class="dish">' + COG + '<span>' + (state.manage ? 'Done' : 'Manage profiles') + '</span></span><i class="lamp"></i></span></button>';
+      stage.innerHTML = h;
+      if (state.msg) toast(state.msg, true);
+    }
+    function toast(msg, keep) {
+      var t = stage.querySelector('.toast'); if (!t) return;
+      t.textContent = msg; t.classList.add('on'); state.msg = msg;
+      clearTimeout(state.toast); state.toast = setTimeout(function () { state.msg = ""; var q = stage.querySelector('.toast'); if (q) q.classList.remove('on'); }, keep ? 900 : 1800);
+    }
+
+    stage.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.manage) { state.manage = !state.manage; state.armed = null; render(); return; }
+      if (b.dataset.pick !== undefined && !state.manage) {
+        var i = +b.dataset.pick, p = state.slots[i], slot = b.closest('.slot'); slot.classList.add('go'); setTimeout(function () { slot.classList.remove('go'); }, 1000);
+        state.slots.forEach(function (q) { if (q) q.cur = false; }); p.cur = true;
+        toast('Playing as ' + p.name); return;
+      }
+      if (b.dataset.new === "1") { var free = state.slots.indexOf(null); if (free > -1 && free < 3) { state.slots[free] = { id: 'n' + free, name: "New" + (free + 1), tier: "recruit", title: "Recruit", rank: 1, wins: 0, runs: 0 }; render(); toast('Name box opens here in the game'); } return; }
+      if (b.dataset.ren !== undefined) { toast('Rename box opens here in the game'); return; }
+      if (b.dataset.del !== undefined) {
+        var d = +b.dataset.del;
+        if (state.armed !== d) { state.armed = d; render(); return; }
+        state.slots[d] = null; state.armed = null; render();
+      }
+    });
+    render();
+  }
+
+  var stages = [].slice.call(document.querySelectorAll('.stage'));
+  stages.forEach(build);
+  function fit() { stages.forEach(function (s) { s.style.transform = 'scale(' + (s.parentNode.clientWidth / 1280) + ')'; }); }
+  fit(); window.addEventListener('resize', fit);
+  if (window.ResizeObserver) { var ro = new ResizeObserver(fit); stages.forEach(function (s) { ro.observe(s.parentNode); }); }
+})();
+</script>
