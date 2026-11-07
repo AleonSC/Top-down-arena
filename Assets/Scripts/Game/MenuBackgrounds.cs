@@ -11,7 +11,7 @@ namespace Arena
                 "Spiral", "Warp", "Aurora", "Synthwave", "Bokeh", "Hex Pulse", "Orbits", "Digital Rain", "Nebula", "Tides",
                 "Ember Storm", "Constellations", "Radar", "Blueprint", "Bullet Curtain", "Frost Peaks", "Circuit", "Event Horizon", "Firefly Wood", "Plotter",
                 // Rank rewards (Rank.cs, Kind Background): locked until the rank. Each needs a row in RewardBackgrounds below.
-                "Dusk Grid", "Ripples", "Boot Log", "Vector Rocks", "Life Grid",
+                "Dusk Grid", "Ripples", "Boot Log", "Vector Rocks", "Life Grid", "Phosphor Pond", "Vector Tunnel", "Signal Lost",
             };
 
         /// Where the rank-reward backgrounds start in BackgroundNames. Everything from here on is a Background cosmetic in Rank.cs.
@@ -20,7 +20,7 @@ namespace Arena
         /// The cosmetic id of each reward background, in BackgroundNames order from FirstRewardBg. The reactive ones (ids "bg-react-...")
         /// are drawn with the pointer and click input in BackgroundReact.cs. To add one: a name here and in BackgroundNames, an accent,
         /// a `case` in DrawMenuBackground, a CosmeticDef in Rank.cs.
-        static readonly string[] RewardBackgrounds = { "bg-dusk", "bg-react-ripples", "bg-react-bootlog", "bg-react-rocks", "bg-react-life" };
+        static readonly string[] RewardBackgrounds = { "bg-dusk", "bg-react-ripples", "bg-react-bootlog", "bg-react-rocks", "bg-react-life", "bg-react-pond", "bg-react-tunnel", "bg-react-signal" };
 
         static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
         static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? 0 : FirstRewardBg + k; }
@@ -77,6 +77,9 @@ namespace Arena
                 case 22: BgBootLog(t); break;
                 case 23: BgVectorRocks(t); break;
                 case 24: BgLifeGrid(t); break;
+                case 25: BgPhosphorPond(t); break;
+                case 26: BgVectorTunnel(t); break;
+                case 27: BgSignalLost(t); break;
                 default: BgSpiral(t); break;
             }
         }
@@ -109,6 +112,9 @@ namespace Arena
             new Color(0.35f, 1f, 0.6f),    // Boot Log
             new Color(0.55f, 0.8f, 1f),    // Vector Rocks
             new Color(1f, 0.72f, 0.28f),   // Life Grid
+            new Color(0.5f, 1f, 0.4f),     // Phosphor Pond
+            new Color(0.85f, 0.45f, 1f),   // Vector Tunnel
+            new Color(1f, 0.6f, 0.4f),     // Signal Lost
         };
 
         float bgChangedAt = -100f;   // when the background last changed (the name slides in)
@@ -128,10 +134,13 @@ namespace Arena
         /// A live thumbnail of the current background, rimmed in its colour.
         void BackgroundThumb(Rect thumb, Color accent, float rimAlpha)
         {
-            UiModelAt(new V2(thumb.x, thumb.y), thumb.width / W);
+            // Scaled to cover the whole thumbnail (a taller one crops the sides, so no empty strip is left under the picture).
+            float sc = Mathf.Max(thumb.width / W, thumb.height / H);
+            var org = new V2(thumb.x - (W * sc - thumb.width) / 2f, thumb.y - (H * sc - thumb.height) / 2f);
+            UiModelAt(org, sc);
             UiClip(thumb);
-            bgViewOrigin = new V2(thumb.x, thumb.y);  // (BackgroundReact.cs: the pointer is only over this view if it is in the thumbnail)
-            bgViewScale = thumb.width / W;
+            bgViewOrigin = org;  // (BackgroundReact.cs: the pointer is only over this view if it is in the thumbnail)
+            bgViewScale = sc;
             bgViewRect = thumb;
             DrawMenuBackground(Time.time);
             bgViewOrigin = V2.Zero;

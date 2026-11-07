@@ -96,7 +96,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Saving, stats and text data (Core)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
 - `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`)
-- `ProfileTransition.cs`: the half-speed move between that screen and the main menu (plot points), with its sounds
+- `ProfileTransition.cs`, `DriveSlot.cs`: the move between that screen and the main menu (your disk flies up and slides into the disk drive under the title, which reads it, then the menu draws in), with its sounds; `DriveSlot.cs` is the drive itself (replaces the x-axis on the picker and menu)
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
 - `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
@@ -178,7 +178,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PerksUi.cs`: the lobby's Perks tab (look A: your slots left, perk cards right; click to equip, hover for the rules) and the perk icons on party cards (`DrawSeatPerks`); see `Docs/RiotGear.md`
 - `ProfileUi.cs`: your profile as a CRT cabinet (header, profile screen with badge/name/XP, four tab keys, option keys, Back; opened by the main menu's player card, also the pause and lobby menus' Profile row without Look) and the "YOUR PROFILE" nudge beside the card (`DrawProfileHint`)
 - `ProfileWindows.cs`: the profile's CRT windows (cab window kind 3): Rank > Progress / Tiers / XP sources, the Unlocks tab
-- `BackgroundReactSet.cs`: the three reactive backgrounds after Ripples, with state (Boot Log, Vector Rocks, Life Grid; mockup `Docs/Mockups/crt-backgrounds.html`)
+- `BackgroundReactSet.cs`: the six reactive backgrounds after Ripples, with state (Boot Log, Vector Rocks, Life Grid, Phosphor Pond, Vector Tunnel, Signal Lost; mockup `Docs/Mockups/crt-backgrounds.html`)
 - `BackgroundReact.cs`: groundwork for reactive menu backgrounds (pointer, pointer speed, click ripples, `ReactKick`; thumbnails map the pointer into their own view) and the reference one, `BgRipples`; the unlock table is `RewardBackgrounds` in `MenuBackgrounds.cs`
 - `CosmeticsUi.cs`: the Look windows (`DrawLookWindow`: try it on, how others see you, equip list for Frame, Trail, Background, Card background, Name effect, Aim line, Cursor) and the Reward ladder
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
@@ -223,7 +223,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Recent runs graphs | `RunTimeline.cs` (data, sampler, files), `RunGraphs.cs` (page), Tests `RecentRuns.cs` |
-| Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs` (`Docs/Profiles.md`) |
+| Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs`, `DriveSlot.cs` (`Docs/Profiles.md`) |
 | Account rank, XP, cosmetics | `Rank.cs`, `Profile.cs`, `RankLook.cs`, `RankUi.cs`, `RankTrails.cs` (`Docs/Rank.md`) |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
 | Arena layouts (walls, edge gates) | `Layouts.cs` (floor plans), `LayoutRules.cs` (pick per cycle, `PushOutOfSolids`, `SolidStops`, spawn through gates, `LayoutDir` steering), `LayoutLook.cs`, `Tools/SimTest/Tests/Layouts.cs` |

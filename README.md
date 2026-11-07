@@ -531,14 +531,17 @@ the other players), so it always matches how weapons and abilities really behave
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
-lobby. There are 25:
+lobby. There are 28:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter, **Dusk Grid** (a
-rank-15 reward) and four **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
+rank-15 reward) and seven **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
 **Ripples** (25: rings spread from your clicks and a soft light follows the pointer), **Boot Log** (28: a green BIOS terminal
 that logs faster as you move, lights the line under the pointer and logs each click with its position), **Vector Rocks** (39:
 neon asteroids drift away from a little ship on your pointer; a click fires a ring of shots that splits them) and **Life Grid**
-(43: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders). The reward ones are greyed and skipped until you have them. Each has its own
+(43: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders), **Phosphor Pond** (47: a dot
+grid that ripples where the pointer goes, a click makes a big ring), **Vector Tunnel** (49: neon gates rushing past, the
+vanishing point leaning toward the pointer, a click is a speed burst) and **Signal Lost** (53: a phosphor test card that
+tears at the pointer's height and rolls on a click). The reward ones are greyed and skipped until you have them. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
 **LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
@@ -964,6 +967,9 @@ each kind at a time:
 | 28 | **Boot Log**: a reactive menu background (a BIOS terminal that logs your pointer and clicks) |
 | 39 | **Vector Rocks**: a reactive menu background (an asteroid field with a ship on your pointer; click to fire) |
 | 43 | **Life Grid**: a reactive menu background (Conway's Life in phosphor, seeded where you go; click for gliders) |
+| 47 | **Phosphor Pond**: a reactive menu background (a dot grid that ripples where you go and click) |
+| 49 | **Vector Tunnel**: a reactive menu background (neon gates rushing past, steered by the pointer) |
+| 53 | **Signal Lost**: a reactive menu background (a test card that tears at the pointer and rolls on a click) |
 | 18 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
 | 20 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
 | 22 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
@@ -1049,7 +1055,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
-**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 3: there are always four boxes, an unused slot says Empty, and New profile is grayed out when all three are used), **Manage profiles** (a keycap like the main menu's Play; each profile is a floppy disk held in a clamp cradle on a shelf, its name written in marker pen, and an unused slot or New profile is a dashed disk outline) to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Picking one plays a slow move into the menu (each box shrinks to a point on the axis, yours opens into the menu), and Switch profile plays it backwards, with sounds; any key skips it. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Profile > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
+**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 3: there are always four boxes, an unused slot says Empty, and New profile is grayed out when all three are used), **Manage profiles** (a keycap like the main menu's Play; each profile is a floppy disk held in a clamp cradle on a shelf, its name written in marker pen, and an unused slot or New profile is a dashed disk outline) to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Picking one plays a move into the menu (your disk lifts out of its clamps, flies up to the disk drive under the title, tips flat and slides into the slot; the drive reads it, then the menu draws in), and Switch profile plays it backwards (the disk pops back out), with sounds for each step; any key skips it. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Profile > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
 
 **Unlocks**: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the records; it's earned the
 moment the condition holds (an **Unlocked** toast in the match, listed in Profile > Unlocks). So far: **Warden Hunt** (beat the
@@ -1107,7 +1113,7 @@ out (Back or Esc), and only then does the window really close.
   switches, like the pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu**: the title on its x-axis with a shot arcing over it. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
+- **The main menu**: the title over a small disk drive (it says DRIVE A: EMPTY on the picker and your name and READY once a profile is loaded) with a shot arcing over it on a tapered vector stroke. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
   **your player card** (your party card in small; click it to open your **Profile**, where the pencil next to your name renames you; it's remembered; hover it for **Switch
   profile**). Until you have opened your profile once (and for at most your first five launches on that profile), a small purple **YOUR PROFILE** tag beside the card bounces toward it; clicking the tag opens the profile too, and it holds still with Reduced effects; it fades out while the Join row is open. **Join game** opens a row
   under the box for the host's address and **Connect**. Hold the mouse over Play, Join game, Settings or any button in the saved-runs picker and the button turns into a worn VHS tape (blue cast, flicker, scanlines, a rolling tracking band, a tape counter); click it and it snaps into focus with a white flash and stays clean until you move off and back on (Reduced effects: tint and scanlines only, no snap). **Play** swaps the box's insides for the saved-runs picker (see

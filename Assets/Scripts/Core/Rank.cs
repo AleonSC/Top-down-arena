@@ -107,6 +107,9 @@ namespace Arena
             new CosmeticDef { Id = "bg-react-bootlog", Name = "Boot Log", Kind = CosmeticKind.Background, Rank = 28 },  // a BIOS terminal that logs your pointer and clicks
             new CosmeticDef { Id = "bg-react-rocks", Name = "Vector Rocks", Kind = CosmeticKind.Background, Rank = 39 },  // an asteroid field with a ship on your pointer
             new CosmeticDef { Id = "bg-react-life", Name = "Life Grid", Kind = CosmeticKind.Background, Rank = 43 },  // Conway's Life in phosphor, seeded where you go
+            new CosmeticDef { Id = "bg-react-pond", Name = "Phosphor Pond", Kind = CosmeticKind.Background, Rank = 47 },  // a dot grid that ripples where you go and click
+            new CosmeticDef { Id = "bg-react-tunnel", Name = "Vector Tunnel", Kind = CosmeticKind.Background, Rank = 49 },  // neon gates rushing past, steered by the pointer
+            new CosmeticDef { Id = "bg-react-signal", Name = "Signal Lost", Kind = CosmeticKind.Background, Rank = 53 },  // a test card that tears at the pointer and rolls on a click
             new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 20 },
             new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 18 },
             new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 24 },

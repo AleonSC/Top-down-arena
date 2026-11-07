@@ -323,9 +323,9 @@ namespace Arena
                     float lift = away * away * 30f;
                     Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize - lift, W, MenuTitleSize * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(MenuTitleSize), Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                 });
+                DrawDriveSlot(k, DriveIdle());
                 if (BeginUiGl())
                 {
-                    DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf, t, k);
                     DrawMenuArc(t, k);
                     DrawPlotCorners(MenuCard, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * k));
                     EndUiGl();
