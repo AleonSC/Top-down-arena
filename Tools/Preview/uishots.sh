@@ -70,7 +70,6 @@ for n in ("Shot.cs", "ShotModes.cs", "ShotScenes.cs"):
 PY
   fi
   render "$WT/Tools/Preview" "$WT/Assets/Scripts" "$HERE/out/ui-ref"
-  python3 uisheet.py "$NOW" "$HERE/out/ui-ref" "$REF"
-else
-  python3 uisheet.py "$NOW"
 fi
+python3 uisheet.py "$NOW"
+[ -z "$REF" ] || python3 uisheet.py "$NOW" "$HERE/out/ui-ref" "$REF"
