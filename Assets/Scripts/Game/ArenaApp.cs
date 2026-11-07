@@ -128,6 +128,7 @@ namespace Arena
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadCamLean();     // CameraLean.cs
+            SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)

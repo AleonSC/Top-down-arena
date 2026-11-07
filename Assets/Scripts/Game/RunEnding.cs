@@ -227,26 +227,5 @@ namespace Arena
                 return Vector2.zero;
             return new Vector2(Mathf.Sin(endT * 90f), Mathf.Cos(endT * 77f)) * (8f * k);
         }
-
-        /// Draw something faded in (alpha) and moved, then put things back.
-        void EndPart(float a, Vector2 offset, System.Action draw)
-        {
-            if (a <= 0f)
-                return;
-            if (a >= 1f && offset == Vector2.zero)
-            {
-                draw();
-                return;
-            }
-            var oldColor = GUI.color;
-            float oldAlpha = Ui.Alpha;
-            Ui.Alpha = oldAlpha * a;
-            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
-            GUI.BeginGroup(new Rect(offset.x, offset.y, W, H));
-            draw();
-            GUI.EndGroup();
-            Ui.Alpha = oldAlpha;
-            GUI.color = oldColor;
-        }
     }
 }

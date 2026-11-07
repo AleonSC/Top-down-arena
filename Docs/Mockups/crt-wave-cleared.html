@@ -1,0 +1,294 @@
+<title>CRT Wave Cleared</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game canvas) scaled to fit, with the arena and the HUD console behind. Three Wave cleared boxes in the lobby's
+   blue CRT: one tube (A), a rack of tubes like the results screen (B), a low strip over the console (C). Colour stays in the player dots. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.55); --rim: #12203f; --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 74ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .k:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.desc2 { font: 500 15px/1.5 var(--f-ui); color: var(--muted); max-width: 90ch; margin: 0; }
+.desc2 b { color: var(--fg); }
+.note { font: 500 12px/1.5 var(--f-mono); color: var(--muted); letter-spacing: .04em; margin: 0; }
+.view { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; }
+
+/* the arena behind */
+.arena { position: absolute; inset: 0; background: #0d1020;
+  background-image: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px); background-size: 40px 40px; }
+.wall { position: absolute; background: #5d6a86; box-shadow: inset 0 -3px 0 #3a4560; }
+.you { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, #9ab8ff 0 35%, #3554c9 36% 70%, transparent 71%); box-shadow: 0 0 18px #4d74ff; }
+.layer { position: absolute; inset: 0; background: rgba(3,4,10,.0); transition: background .2s; }
+.stage[data-look="B"] .layer { background: rgba(3,4,10,.78); }
+.stage[data-look="A"] .layer { background: rgba(3,4,10,.35); }
+
+/* the HUD console (simplified) */
+.console { position: absolute; left: 10px; top: 632px; width: 1260px; height: 80px; background: var(--sbg); border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+  box-shadow: 0 0 0 3px #0c1224; color: var(--ink); font-family: var(--f-crt); }
+.console .plate { position: absolute; left: 14px; top: 8px; font-size: 18px; color: var(--dim); } .console .plate b { font: 54px/1 var(--f-crt); color: var(--ink); font-weight: 400; vertical-align: -10px; margin: 0 6px 0 -2px; }
+.console .key { position: absolute; top: 11px; width: 150px; height: 58px; border: 2px solid var(--ink); background: color-mix(in srgb, var(--ink) 9%, transparent); padding: 4px 8px; font-size: 22px; }
+.console .key kbd { font: 15px var(--f-crt); background: var(--ink); color: var(--sbg); padding: 0 5px; margin-right: 6px; }
+.console .key.ult { border-color: var(--gold); color: #fff; } .console .key.ult kbd { background: var(--gold); }
+.console .card { position: absolute; right: 2px; top: 4px; width: 229px; height: 72px; background: #0b1530; border: 1px solid #5b8cff; border-left: 6px solid #5b8cff; padding: 6px 10px; font: 700 14px var(--f-ui); color: #fff; }
+.console .card small { display: block; color: #79a0ff; font-size: 11px; }
+.xp { position: absolute; left: 249px; top: 613px; width: 782px; height: 14px; background: rgba(2,6,16,.88); outline: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  background-image: repeating-linear-gradient(90deg, #ffd24d 0 6px, transparent 6px 8px); background-size: 41% 100%; background-repeat: no-repeat; font: 700 10px/14px var(--f-ui); color: #05091a; padding-left: 7px; }
+
+/* CRT tubes */
+.box { position: absolute; color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow); overflow: hidden; isolation: isolate; background: var(--sbg);
+  box-shadow: 0 0 0 3px #0c1224, inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent); }
+.box > .in { position: absolute; inset: 0; z-index: 1; }
+.box::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.24) 0 1px, transparent 1px 3px); }
+.box::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.5) 100%); }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.045), transparent); animation: roll 8s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes drop { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: none; } }
+.box.anim { animation: drop .35s ease-out both; }
+.cur { display: inline-block; width: .45em; height: .72em; background: currentColor; margin-left: 6px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+.at { position: absolute; }
+.lab { font: 18px/1 var(--f-crt); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); text-shadow: none; }
+.head { font: 54px/1 var(--f-crt); letter-spacing: .04em; color: var(--ink); white-space: nowrap; }
+.head.gold { color: var(--gold); text-shadow: 0 0 10px rgba(242,193,78,.55); }
+.tile { background: color-mix(in srgb, var(--ink) 9%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 45%, transparent); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.tile b { font: 400 34px/1 var(--f-crt); color: var(--gold); text-shadow: 0 0 8px rgba(242,193,78,.6); } .tile span { font: 12px var(--f-ui); letter-spacing: .12em; color: var(--dim); text-shadow: none; text-transform: uppercase; }
+/* tally */
+.tal { display: grid; grid-template-columns: 26px 1fr 58px 76px 62px 1.7fr 34px; align-items: center; column-gap: 8px; }
+.tal.hd { font: 15px/1 var(--f-crt); letter-spacing: .12em; color: var(--dim); text-shadow: none; }
+.tal.hd > :nth-child(n+3):nth-child(-n+5) { text-align: right; }
+.row { height: 52px; border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent); background: color-mix(in srgb, var(--ink) 6%, transparent); padding: 0 10px; font: 26px/1 var(--f-crt); }
+.row.me { border: 2px solid var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.row.sq { height: 38px; border-style: dashed; background: transparent; color: var(--dim); }
+.row .n { color: #fff; text-shadow: none; font: 700 17px var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .n small { display: block; font: 500 11px var(--f-ui); color: var(--dim); letter-spacing: .06em; }
+.row .v { text-align: right; color: #fff; text-shadow: none; font-variant-numeric: tabular-nums; }
+.row .v.zero { color: var(--good); text-shadow: 0 0 6px rgba(77,255,154,.5); }
+.dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.aw { display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; }
+.tag { font: 15px/1 var(--f-crt); letter-spacing: .06em; padding: 3px 5px 1px; background: var(--gold); color: #1d1300; text-shadow: none; white-space: nowrap; }
+.tag.b { background: var(--ink); color: var(--sbg); }
+.rd { width: 26px; height: 26px; border: 2px dashed var(--dim); display: flex; align-items: center; justify-content: center; font-size: 22px; text-shadow: none; justify-self: end; }
+.rd.ok { border: 2px solid var(--good); color: var(--good); background: rgba(77,255,154,.12); }
+.rd.auto { border: 2px solid var(--ink); color: var(--ink); font-size: 18px; }
+/* next */
+.nx { font: 24px/1.15 var(--f-crt); }
+.nx .t { display: flex; align-items: center; gap: 10px; color: #fff; text-shadow: none; font: 600 17px/1.6 var(--f-ui); }
+.nx .t i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.nx .t em { font: 15px var(--f-crt); font-style: normal; background: var(--gold); color: #1d1300; padding: 2px 5px 0; margin-left: auto; letter-spacing: .06em; }
+.road { display: flex; gap: 4px; } .road s { flex: 1; height: 8px; background: rgba(255,255,255,.1); } .road s.on { background: var(--ink); box-shadow: 0 0 6px var(--glow); } .road s.boss { background: var(--gold); box-shadow: 0 0 8px rgba(242,193,78,.6); }
+/* keys */
+.k { --c: var(--ink); font: 26px/1 var(--f-crt); letter-spacing: .05em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 2px solid var(--c);
+  padding: 3px 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); white-space: nowrap; cursor: pointer; }
+.k:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.k.on { --c: var(--good); background: color-mix(in srgb, var(--c) 20%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 35%, transparent); }
+.k.pri { font-size: 32px; box-shadow: 0 0 14px color-mix(in srgb, var(--c) 30%, transparent); }
+.k.dis { --c: var(--dim); border-style: dashed; cursor: default; }
+.k kbd { font: 20px var(--f-crt); border: 1px solid currentColor; padding: 1px 6px 0; opacity: .85; }
+.sw { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.sw .k { width: 86px; height: 34px; font-size: 22px; padding-top: 2px; }
+.lamp { width: 9px; height: 9px; background: currentColor; display: inline-block; } .k.off .lamp { opacity: .4; }
+.sw .tx { font: 700 15px/1.2 var(--f-ui); color: #e6edff; text-shadow: none; } .sw .tx small { display: block; font: 500 12px var(--f-ui); color: var(--dim); }
+.status { font: 24px/1 var(--f-crt); color: var(--dim); text-align: right; white-space: nowrap; }
+.status b { color: var(--ink); font-weight: 400; }
+.cd { height: 10px; background: rgba(255,255,255,.08); position: relative; overflow: hidden; }
+.cd s { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 8px); filter: drop-shadow(0 0 4px var(--glow)); }
+.cd.wait s { width: 70px !important; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 50%, transparent), transparent); animation: sweep 2.9s linear infinite; }
+@keyframes sweep { from { left: -70px; } to { left: 100%; } }
+.stage.calm .roll, .stage.calm .cur, .stage.calm .box.anim { animation: none; display: revert; } .stage.calm .roll { display: none; }
+.stage.calm .box, .stage.calm .k { text-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .roll, .cur, .box.anim, .cd.wait s { animation: none; } }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.legend > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #0c1122; min-width: 0; }
+.legend b { font: 700 16px var(--f-ui); color: var(--fg); display: block; margin-bottom: 4px; }
+.legend p { margin: 0; color: var(--muted); font: 500 14px/1.45 var(--f-ui); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Wave cleared, in the lobby's CRT</h1>
+    <p>The box between waves, rebuilt from the lobby's blue CRT parts: phosphor text, digital keys, scanlines and glass. The numbers, awards, next wave and Ready / Auto-ready are the same as today; colour stays in the player dots and the gold awards.</p>
+  </header>
+  <div class="bar">
+    <div class="grp" role="group" aria-label="Look"><span>Look</span>
+      <button class="seg" id="lA" data-look="A" aria-pressed="true">A · One tube</button>
+      <button class="seg" id="lB" data-look="B" aria-pressed="false">B · Rack</button>
+      <button class="seg" id="lC" data-look="C" aria-pressed="false">C · Low strip</button></div>
+    <div class="grp" role="group" aria-label="Party"><span>Party</span>
+      <button class="seg" id="p1" data-party="1" aria-pressed="false">Solo</button>
+      <button class="seg" id="p3" data-party="3" aria-pressed="true">Three</button></div>
+    <div class="grp" role="group" aria-label="Ready"><span>Ready</span>
+      <button class="seg" id="sW" data-state="wait" aria-pressed="true">Waiting</button>
+      <button class="seg" id="sR" data-state="ready" aria-pressed="false">All ready</button>
+      <button class="seg" id="sA" data-state="auto" aria-pressed="false">Auto-ready</button></div>
+    <div class="grp" role="group" aria-label="Next"><span>Next</span>
+      <button class="seg" id="nN" data-next="wave" aria-pressed="true">Wave 7</button>
+      <button class="seg" id="nB" data-next="boss" aria-pressed="false">Boss (5)</button></div>
+    <div class="grp"><span>Effects</span><button class="seg" id="calm" aria-pressed="false">Reduced</button>
+      <button class="seg" id="replay">Replay drop-in</button></div>
+  </div>
+  <div class="view" id="view"><div class="stage" id="stage" data-look="A">
+    <div class="arena">
+      <div class="wall" style="left:64px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:880px;top:260px;width:340px;height:18px"></div>
+      <div class="wall" style="left:630px;top:20px;width:18px;height:200px"></div><div class="wall" style="left:630px;top:330px;width:18px;height:240px"></div>
+      <div class="you" style="left:300px;top:390px"></div>
+    </div>
+    <div class="layer"></div>
+    <div class="xp">LV 6 · 41%</div>
+    <div class="console">
+      <div class="plate">WAVE <b id="cw">4</b>/ 50</div>
+      <div class="key" style="left:239px"><kbd>SPACE</kbd>Shield Wall</div><div class="key" style="left:397px"><kbd>Q</kbd>Leap Slam</div>
+      <div class="key" style="left:555px"><kbd>E</kbd>Empty</div><div class="key" style="left:713px"><kbd>SHIFT</kbd>Empty</div><div class="key ult" style="left:871px"><kbd>ULT · F</kbd>Last Stand</div>
+      <div class="card">Anthony<small>Knight Tank · LV 6</small></div>
+    </div>
+    <div id="win"></div>
+  </div></div>
+  <p class="note">1280 x 720, as the game draws it. Click Ready, the Auto-ready switch or the [Y] key to try them. Reduced effects drops the glow, the roll bar and the drop-in.</p>
+  <div class="legend">
+    <div><b>A · One tube</b><p>Today's box, same size and place (940 x 410 at y 110), as one CRT tube. Tally on the left, next wave on the right, keys along the bottom. The least change from now.</p></div>
+    <div><b>B · Rack</b><p>Separate tubes on the dark layer, like the run results: the title, the tally, the next wave, then the keys. Reads as the same family as the results screen; covers more of the arena.</p></div>
+    <div><b>C · Low strip</b><p>One slim tube just above the HUD console. Each player is one line; the arena stays in view between waves. Awards shrink to tags; the next wave is one line.</p></div>
+  </div>
+  <p class="desc2"><b>Building it:</b> each look is the shared between-round frame (<b>RoundTube</b> in RoundWindows.cs) with the lobby's keys and the CRT colours from CrtStyle.cs, so no new key styles are needed.</p>
+</div>
+
+<script>
+const S = { look: "A", party: 3, state: "wait", next: "wave", calm: false, me: { ready: false, auto: false } };
+const P = [
+  { n: "Anthony", c: "Knight Tank", col: "#5b8cff", k: 18, d: 2140, t: 0, aw: [["UNTOUCHED", 0]] },
+  { n: "Aleon", c: "Elementalist DPS", col: "#ff8a3d", k: 21, d: 2880, t: 96, aw: [["MOST DAMAGE", 0], ["MOST KILLS", 0]] },
+  { n: "Sam", c: "Summoner Healer", col: "#4dff9a", k: 13, d: 1310, t: 22, aw: [["MOST HEALING", 1]] },
+];
+const NEXT = [["Spinner", "#c86bff", true], ["Swarmer", "#ff5a6a"], ["Sniper", "#ffd24d"], ["Grunt", "#ff7a3d"]];
+const $ = id => document.getElementById(id);
+const fmt = v => v.toLocaleString("en-US");
+function readyOf(i) {
+  if (i === 0) return S.me.auto ? "auto" : S.me.ready ? "ok" : "";
+  if (S.state === "auto") return "auto";
+  if (S.state === "ready") return "ok";
+  return i === 1 ? "ok" : "";
+}
+function allReady() { const n = S.party; for (let i = 0; i < n; i++) if (!readyOf(i)) return false; return true; }
+function status() {
+  const wave = S.next === "boss" ? 5 : 7;
+  if (S.state === "auto" && S.me.auto) return [`WAVE ${wave} STARTS IN <b>3</b>`, 0.78];
+  if (allReady()) return [`EVERYONE IS READY · WAVE ${wave} IN <b>2</b>`, 0.62];
+  const names = []; for (let i = 0; i < S.party; i++) if (!readyOf(i)) names.push(i === 0 ? "YOU" : P[i].n.toUpperCase());
+  return [`WAITING FOR ${names.join(" AND ")} · NO TIMER YET`, -1];
+}
+function tally(compact) {
+  const rows = [];
+  let K = 0, D = 0, T = 0;
+  for (let i = 0; i < S.party; i++) {
+    const p = P[i]; K += p.k; D += p.d; T += p.t;
+    const r = readyOf(i);
+    const aw = p.aw.map(a => `<span class="tag${a[1] ? " b" : ""}">${a[0]}</span>`).join("");
+    rows.push(`<div class="tal row${i === 0 ? " me" : ""}"${compact ? ' style="height:34px"' : ""}><i class="dot" style="background:${p.col};color:${p.col}"></i>
+      <div class="n">${p.n}${compact ? "" : `<small>${p.c.toUpperCase()}</small>`}</div><div class="v">${p.k}</div><div class="v">${fmt(p.d)}</div>
+      <div class="v${p.t === 0 ? " zero" : ""}">${p.t}</div><div class="aw">${aw}</div>
+      <div class="rd ${r}">${r === "ok" ? "✓" : r === "auto" ? "A" : ""}</div></div>`);
+  }
+  if (S.party > 1 && !compact) rows.push(`<div class="tal row sq"><span></span><div>SQUAD</div><div class="v" style="color:var(--ink)">${K}</div><div class="v" style="color:var(--ink)">${fmt(D)}</div><div class="v" style="color:var(--ink)">${T}</div><div></div><div></div></div>`);
+  return `<div class="tal hd"><span></span><span>PLAYER</span><span>KILLS</span><span>DAMAGE</span><span>TAKEN</span><span>AWARDS</span><span></span></div>` + rows.join("");
+}
+function nextBlock(compact) {
+  if (S.next === "boss") {
+    if (compact) return `<span class="lab">NEXT</span> <span style="color:var(--gold)">WAVE 5 · THE WARDEN</span>`;
+    return `<div class="lab">NEXT: WAVE 5</div><div class="t" style="margin-top:10px"><i style="background:#ff4fa8"></i><span style="font:26px var(--f-crt);color:var(--gold);text-shadow:0 0 8px rgba(242,193,78,.5)">THE WARDEN</span></div>
+      <div style="color:var(--dim);font-size:20px">A BOSS WAVE</div>`;
+  }
+  if (compact) return `<span class="lab">NEXT</span> WAVE 7 · <span style="color:var(--gold)">SPINNER NEW</span> · SWARMER · SNIPER`;
+  return `<div class="lab">NEXT: WAVE 7</div><div style="margin-top:8px">${NEXT.map(e => `<div class="t"><i style="background:${e[1]}"></i>${e[0]}${e[2] ? "<em>NEW</em>" : ""}</div>`).join("")}</div>`;
+}
+function road() {
+  const steps = 5, done = S.next === "boss" ? 4 : 1;
+  let s = ""; for (let i = 0; i < steps; i++) s += `<s class="${i === steps - 1 ? "boss" : i < done ? "on" : ""}"></s>`;
+  const boss = S.next === "boss" ? "THE WARDEN" : "HIVE QUEEN";
+  return `<div class="lab" style="margin-bottom:8px">ROAD TO ${boss}</div><div class="road">${s}</div><div style="color:var(--dim);font-size:19px;margin-top:6px">${S.next === "boss" ? "WAVE 4 OF 5" : "WAVE 6 OF 10"}</div>`;
+}
+function keys(w, compact) {
+  const [st, frac] = status();
+  const me = S.me;
+  const ready = me.auto ? `<div class="k pri dis" style="width:${compact ? 170 : 220}px;height:${compact ? 40 : 48}px">AUTO-READY</div>`
+    : `<div class="k pri${me.ready ? " on" : ""}" id="rk" style="width:${compact ? 170 : 220}px;height:${compact ? 40 : 48}px">${me.ready ? "✓ READY" : "READY"} <kbd>Y</kbd></div>`;
+  const sw = `<div class="sw" id="sw"><div class="k ${me.auto ? "on" : "off"}"><span class="lamp"></span>${me.auto ? "ON" : "OFF"}</div>${compact ? "" : `<div class="tx">Auto-ready<small>from now on, every wave</small></div>`}</div>`;
+  const cd = `<div class="cd${frac < 0 ? " wait" : ""}"><s style="width:${Math.max(0, frac) * 100}%"></s></div>`;
+  return { ready, sw, st: `<div class="status">${st}</div>`, cd };
+}
+function title(size) {
+  const g = S.next === "boss" && false;
+  return `<div class="head${g ? " gold" : ""}" style="font-size:${size}px">WAVE 4 CLEARED<span class="cur"></span></div>`;
+}
+function tube(x, y, w, h, inner, delay) {
+  return `<div class="box${S.calm ? "" : " anim"}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;animation-delay:${delay || 0}ms"><div class="roll"></div><div class="in">${inner}</div></div>`;
+}
+function render() {
+  const st = $("stage"); st.dataset.look = S.look; st.classList.toggle("calm", S.calm);
+  let h = "";
+  if (S.look === "A") {
+    const k = keys(900);
+    h = tube(170, 110, 940, 410, `
+      <div class="at" style="left:22px;top:14px">${title(52)}</div>
+      <div class="at" style="left:646px;top:16px;width:130px;height:50px"><div class="tile" style="height:100%"><b style="font-size:28px">0:42</b><span>clear time</span></div></div>
+      <div class="at" style="left:786px;top:16px;width:132px;height:50px"><div class="tile" style="height:100%"><b style="font-size:28px">+120</b><span>score</span></div></div>
+      <div class="at" style="left:22px;top:84px;width:596px;display:grid;gap:6px">${tally(false)}</div>
+      <div class="at" style="left:640px;top:84px;width:278px;height:236px;border:1px dashed color-mix(in srgb,var(--ink) 45%,transparent);padding:12px 14px" class="nx">
+        <div class="nx">${nextBlock(false)}</div><div class="at" style="left:14px;right:14px;bottom:12px">${road()}</div></div>
+      <div class="at" style="left:22px;top:338px">${k.ready}</div>
+      <div class="at" style="left:262px;top:345px">${k.sw}</div>
+      <div class="at" style="right:22px;top:350px;width:440px">${k.st}</div>
+      <div class="at" style="left:22px;right:22px;bottom:14px">${k.cd}</div>`);
+  } else if (S.look === "B") {
+    const k = keys(1000);
+    const tallyH = S.party > 1 ? 330 : 160;
+    h = tube(140, 36, 1000, 104, `<div class="at" style="left:0;right:0;top:16px;text-align:center">${title(64)}</div>
+        <div class="at lab" style="left:0;right:0;top:76px;text-align:center;letter-spacing:.3em">0:42 CLEAR TIME · +120 SCORE</div>`, 0)
+      + tube(140, 156, 660, tallyH, `<div class="at" style="left:18px;top:16px;right:18px;display:grid;gap:6px">${tally(false)}</div>`, 90)
+      + tube(816, 156, 324, tallyH, `<div class="at nx" style="left:16px;top:16px;right:16px">${nextBlock(false)}</div><div class="at" style="left:16px;right:16px;bottom:14px">${road()}</div>`, 160)
+      + tube(140, 156 + tallyH + 16, 1000, 96, `
+        <div class="at" style="left:18px;top:14px">${k.ready}</div><div class="at" style="left:258px;top:21px">${k.sw}</div>
+        <div class="at" style="right:18px;top:26px;width:460px">${k.st}</div><div class="at" style="left:18px;right:18px;bottom:12px">${k.cd}</div>`, 230);
+  } else {
+    const k = keys(1000, true);
+    const rows = S.party * 40 + 22;
+    const H = 66 + rows + 56;
+    const y = 600 - H;
+    h = tube(140, y, 1000, H, `
+      <div class="at" style="left:18px;top:12px">${title(40)}</div>
+      <div class="at" style="left:400px;top:22px;font-size:22px;color:var(--dim)">0:42 · <span style="color:var(--gold)">+120</span></div>
+      <div class="at nx" style="right:18px;top:20px;font-size:22px">${nextBlock(true)}</div>
+      <div class="at" style="left:18px;top:58px;width:964px;display:grid;gap:6px">${tally(true)}</div>
+      <div class="at" style="left:18px;bottom:16px">${k.ready}</div><div class="at" style="left:204px;bottom:19px">${k.sw}</div>
+      <div class="at" style="left:320px;right:18px;bottom:28px">${k.st}</div><div class="at" style="left:320px;right:18px;bottom:14px">${k.cd}</div>`);
+  }
+  $("win").innerHTML = h;
+  $("cw").textContent = "4";
+  const rk = $("rk"); if (rk) rk.onclick = () => { S.me.ready = !S.me.ready; render(); };
+  const sw = $("sw"); if (sw) sw.onclick = () => { S.me.auto = !S.me.auto; render(); };
+}
+function press(group, attr, key, cast) {
+  document.querySelectorAll(`[data-${attr}]`).forEach(b => b.onclick = () => {
+    S[key] = cast ? cast(b.dataset[attr]) : b.dataset[attr];
+    if (key === "state") S.me = { ready: S.state === "ready", auto: S.state === "auto" };
+    document.querySelectorAll(`[data-${attr}]`).forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+    render();
+  });
+}
+press("look", "look", "look"); press("party", "party", "party", Number); press("state", "state", "state"); press("next", "next", "next");
+$("calm").onclick = () => { S.calm = !S.calm; $("calm").setAttribute("aria-pressed", String(S.calm)); render(); };
+$("replay").onclick = () => render();
+document.addEventListener("keydown", e => { if ((e.key === "y" || e.key === "Y") && !S.me.auto) { S.me.ready = !S.me.ready; render(); } });
+function fit() { const v = $("view"); $("stage").style.transform = `scale(${v.clientWidth / 1280})`; }
+new ResizeObserver(fit).observe($("view")); fit(); render();
+</script>

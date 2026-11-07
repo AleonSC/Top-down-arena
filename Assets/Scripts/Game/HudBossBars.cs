@@ -306,7 +306,7 @@ namespace Arena
 
         void DrawBossBars()
         {
-            float panelW = 640f, y = 12f, x0 = W / 2f - panelW / 2f;
+            float panelW = HudTopRow.width, y = HudBossBarsY, x0 = HudTopRow.x;  // (HudLayout.cs)
             foreach (var e in game.Enemies.Values)
             {
                 if (!e.Def.IsBoss && !e.Def.Mini)  // (a challenge room's mini-boss gets one too)

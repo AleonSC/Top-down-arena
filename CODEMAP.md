@@ -155,9 +155,11 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PixelArt.cs`, `ModIcons.cs`: pixel icons as text grids (`ModIcons.cs`: the Modifiers tab's)
 
 ## HUD and in-run UI (Game)
-- `WaveClearedUi.cs`: the "Wave n cleared" box between waves (squad tally, awards, next wave, Ready and Auto-ready bar)
+- `RoundWindows.cs`: the between-round windows' shared frame: the dark layer over the arena (`RoundBackdrop`, each window's strength), a part fading and sliding in (`RoundPart`, fades `Ui.Alpha` too), the CRT tube a window sits in (`RoundTube`); used by the results, picker, shop, path choice and Wave cleared box
+- `WaveClearedUi.cs`: the "Wave n cleared" box between waves as one CRT tube (look A of `Docs/Mockups/crt-wave-cleared.html`: squad tally, award tags, next wave, Ready key, Auto-ready switch, countdown)
 - `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
+- `HudLayout.cs`: **the HUD's layout**: the console (wave plate, the five keys and XP strip, your card), what stacks above it (chips, Riot Gear chip, teammate rows, chat, emote bar, mastery toasts, chest hint), the top row (boss bars, objective line, hint pill), the banner; the hide/show slides pivot on these rects
 - `CardArt.cs`: the picker cards' holographic bodies (`Holo`, one baked texture per rarity colour, plus the scan `Band`; `HudPicker.DrawHolo` (also the Bazaar shelf cards in `ShopUi.DrawShopCard`) adds scanlines, the drifting band and the colour fringe; look: `Docs/Mockups/holo-level-up-cards.html`; `Body` is the older shaded gradient; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
 - `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker (CRT look: lobby keys, boxed cards, `Docs/Mockups/crt-level-up-blue.html`), run summary (the "Rack" of `Docs/Mockups/crt-run-failed.html`: blue CRT tubes for title, totals, each player and the run's damage and health charts, the main menu's keycaps along the bottom), Tab menu, ability tile animations
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
@@ -171,7 +173,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
 - `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
-- `CrtUi.cs`: the green-phosphor CRT look of the latest-run card, the older-runs page and the tip box (`Begin`, glowing `Text`, inverse-video `Button`/`Small`/`Tile`, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
+- `CrtStyle.cs`: **the CRT look's settings**: the palette (Ink, Dim, Bg, Danger, Body, Desc, Head, Gold, the box/corner/glass colours) and how every CRT key is drawn (fill and outline strengths, widths, text mix, locked/waiting/static keys, the HUD console's keys, the inverse-video keys); change a value to restyle every CRT screen
+- `CrtUi.cs`: the blue-phosphor CRT look of the latest-run card, the older-runs page and the tip box (`Begin`, glowing `Text`, inverse-video `Button`/`Small`/`Tile`, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
 - `KeyUi.cs`: the menu's mechanical keycap buttons (`KeyUi.Key`: a keycap in a dark well with a corner lamp and a few pixels of travel; `KeyUi.Well` for rings). Used by the main menu's Play / Join game / Records / Settings (`Menus.cs`) and the Play screen's New run and Back (`SavesUi.cs`)
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `PerksUi.cs`: the lobby's Perks tab (look A: your slots left, perk cards right; click to equip, hover for the rules) and the perk icons on party cards (`DrawSeatPerks`); see `Docs/RiotGear.md`
@@ -182,6 +185,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CosmeticsUi.cs`: the Look windows (`DrawLookWindow`: try it on, how others see you, equip list for Frame, Trail, Background, Card background, Name effect, Aim line, Cursor) and the Reward ladder
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`, `FrameLooks.cs` (the animated frames), `CardBackgrounds.cs` (the ten party-card fills, rank 6-55), `NameEffects.cs` (the twelve name looks, `DrawName`), `AimLineLooks.cs` (the nine rank-unlocked aim lines and Classic, `DrawAimLook`; local only), `CursorLooks.cs` (the ten rank-unlocked crosshairs and Classic, `DrawCursorLook`; local only), `EmoteLooks.cs` / `EmoteBar.cs` (the thirteen emotes and the hold-to-open bar; state in `Session.Emotes`), `LightCycleTrail.cs` (the rank-45 corner-snapped wall trail): the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
 - `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a big scrolling room where everyone's character walks with WASD wearing their cosmetics, with a minimap, a PvP switch and the preview-window grow transition (`Docs/Hangout.md`)
+- `LobbyLayout.cs`: **the lobby's layout**: every box round the lobby's edges (header keys, mode keys, party column, Ready/Start, tab keys, the big screen) and the bands the entrance, leave, New run boot, return and launch cut it into; move a box here and those animations follow
 - `LobbyKit.cs`: lobby-only digital CRT keys, headings, panel, tiles and stat bars (`LobbyUi.cs` draws the lobby with them)
 - `LobbyCrt.cs`: the lobby's blue CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`, its sounds `PlayCrtEntryCues` with the `Sfx.Crt*` cues: power-on thump, typing keys, line beeps, scan sweep, ready chime; `LobbyEnter.cs` has the other entrances)
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
@@ -217,8 +221,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
 | Damage numbers, hit effects, shake | `Juice.cs`, `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`) |
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
-| HUD layout | `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
-| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs` |
+| HUD layout | `HudLayout.cs` (where everything goes), `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
+| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs`; move lobby boxes in `LobbyLayout.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Recent runs graphs | `RunTimeline.cs` (data, sampler, files), `RunGraphs.cs` (page), Tests `RecentRuns.cs` |
@@ -231,4 +235,5 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Pixel icons | `PixelArt.cs` |
 | Bots, Boss Lab, lobby bots | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs`, `PartyBots.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
+| See every UI screen, or what a UI change changed | `Tools/Preview/uishots.sh [-r git-ref]` (list in `Tools/Preview/ui-screens.txt`; `HANDOFF.md` §3) |
 | A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/CompileCheck/UnityStubs.cs` and `Tools/Preview/Stubs.cs` |

@@ -123,12 +123,13 @@ namespace Arena
 
             // The title flies to the top left, shrinking, and turns into LOBBY on the way.
             float tk = EaseInOut(Seg(e, 0f, 0.6f));
-            float cx = Lerp(W / 2f, 124f, tk), cy = Lerp(MenuTitleY, 50f, tk), size = Lerp(MenuTitleSize, 18f, tk);  // (124, 50: where the small LOBBY title sits)
+            var to = LobbyTitleAnchor;  // where the small LOBBY title's text sits (LobbyLayout.cs)
+            float cx = Lerp(W / 2f, to.X, tk), cy = Lerp(MenuTitleY, to.Y, tk), size = Lerp(MenuTitleSize, 18f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
-                WithAlpha(newA, () => DrawLobbyTitle(new Rect(PartyX + 54f + (cx - 124f), 30f + (cy - 50f), 250f, 40f), 1f, fxReduced, t));  // (the lobby's own title, so the hand-over at the end shows no change)
+                WithAlpha(newA, () => DrawLobbyTitle(new Rect(LobbyTitleRect.x + (cx - to.X), LobbyTitleRect.y + (cy - to.Y), LobbyTitleRect.width, LobbyTitleRect.height), 1f, fxReduced, t));  // (the lobby's own title, so the hand-over at the end shows no change)
 
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())
@@ -156,20 +157,18 @@ namespace Arena
             // Repaint only, so nothing in them takes a click (GUI.enabled = false would also draw them half see-through).
             // Its live models wait.
             uiGlBlocked = true;
-            const float split = LobbySplit;
-            const float headH = 76f, modeY = 78f, partyLineY = 138f, bodyCut = LobbyBodyTop - 6f;  // (the layout's rows: Docs/Mockups/crt-lobby-softer.html)
-            const float cardsY = PartyTop - 2f, cardsEnd = PartyTop + PartyCardH + PartyGap;
-            LobbyPiece(new Rect(0f, 0f, 88f, headH), e, 0.5f, 0.8f, -60f, 0f);                      // the Back key
+            // (the bands are LobbyLayout.cs's, so they follow the boxes)
+            LobbyPiece(LobbyBackBand, e, 0.5f, 0.8f, -60f, 0f);            // the Back key
             if (title)
-                LobbyPiece(new Rect(88f, 0f, 262f, headH), e, 0.45f, 0.8f, 0f, -20f);               // the LOBBY title (the menu's entrance flies it in instead)
-            LobbyPiece(new Rect(350f, 0f, split - 350f, headH), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
-            LobbyPiece(new Rect(0f, modeY, split, partyLineY - modeY), e, 0.45f, 0.85f, -60f, 0f);   // the mode keys
-            LobbyPiece(new Rect(0f, partyLineY, split, cardsY - partyLineY), e, 0.5f, 0.9f, -60f, 0f);  // "Party (1/3)" and Hangout
-            LobbyPiece(new Rect(0f, cardsEnd, split, LobbyNoteY - cardsEnd), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
-            LobbyPiece(new Rect(0f, LobbyNoteY, split, H - LobbyNoteY), e, 0.7f, 1.1f, -60f, 0f);   // Ready and Start
-            LobbyPiece(new Rect(0f, cardsY, split, cardsEnd - cardsY), e, 0.8f, 1.15f, -60f, 0f, true);  // your party card, last
-            LobbyPiece(new Rect(split, 0f, W - split, bodyCut), e, 0.55f, 0.9f, 0f, -30f);          // the tab keys
-            LobbyPiece(new Rect(split, bodyCut, W - split, H - bodyCut), e, 0.65f, 1.05f, 0f, 0f, true);  // the loadout, filling in (its live preview fades up with it instead of popping in after)
+                LobbyPiece(LobbyTitleBand, e, 0.45f, 0.8f, 0f, -20f);      // the LOBBY title (the menu's entrance flies it in instead)
+            LobbyPiece(LobbyInfoBand, e, 0.55f, 0.8f, 0f, -20f);           // the "!" by the title (the title itself flies in)
+            LobbyPiece(LobbyModeBand, e, 0.45f, 0.85f, -60f, 0f);          // the mode keys
+            LobbyPiece(LobbyPartyLineBand, e, 0.5f, 0.9f, -60f, 0f);       // "Party (1/3)" and Hangout
+            LobbyPiece(LobbyOtherSlotsBand, e, 0.6f, 1.0f, -60f, 0f);      // the other slots
+            LobbyPiece(LobbyActionsBand, e, 0.7f, 1.1f, -60f, 0f);         // Ready and Start
+            LobbyPiece(LobbyYourCardBand, e, 0.8f, 1.15f, -60f, 0f, true); // your party card, last
+            LobbyPiece(LobbyTabsBand, e, 0.55f, 0.9f, 0f, -30f);           // the tab keys
+            LobbyPiece(LobbyBodyBand, e, 0.65f, 1.05f, 0f, 0f, true);      // the loadout, filling in (its live preview fades up with it instead of popping in after)
             uiGlBlocked = false;
         }
 

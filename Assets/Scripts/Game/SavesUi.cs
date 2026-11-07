@@ -197,7 +197,7 @@ namespace Arena
             bool armed = deleteArmed == s.Id;
             var rule = new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f);
             if (armed)
-                Ui.Fill(r, new Color(1f, 0.42f, 0.48f, 0.08f));
+                Ui.Fill(r, new Color(CrtStyle.Danger.r, CrtStyle.Danger.g, CrtStyle.Danger.b, 0.08f));
             else if (latest)
                 Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.04f));
             Ui.Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), rule);

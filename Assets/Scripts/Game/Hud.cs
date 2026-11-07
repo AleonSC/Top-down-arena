@@ -21,11 +21,11 @@ namespace Arena
             DrawMatchPings();       // the party's pings (PingLooks.cs)
             if (me != null)
                 HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleBack);  // the CRT screen under the wave plate, keys and card (below)
-            HudGroup(1, new Vector2(-150f, 30f), new Rect(SideL, SideY, SideW, SideH), DrawWaveCorner);
-            HudGroup(3, new Vector2(0f, -80f), new Rect(W / 2f - 320f, 0f, 640f, 60f), () =>
+            HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, DrawWaveCorner);  // (the layout: HudLayout.cs)
+            HudGroup(3, new Vector2(0f, -80f), HudTopRow, () =>
             {
                 if (game.Recorder != null)  // this match is being recorded (hosts only)
-                    Ui.Label(new Rect(W - 70f, 34f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
+                    Ui.Label(HudRecTag, "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
                 DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs)
                 DrawBossBars();
             });
@@ -34,7 +34,7 @@ namespace Arena
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
-            DrawUnlockToasts(W / 2f, 150f);  // SavesUi.cs
+            DrawUnlockToasts(W / 2f, HudUnlockToastY);  // SavesUi.cs
             if (aimDebug && me != null)
                 DrawAimDebug(me);
             if (dpsMeter)
@@ -71,15 +71,15 @@ namespace Arena
                 }
             }
 
-            HudGroup(2, new Vector2(150f, 30f), new Rect(SideR, SideY, SideW, SideH), DrawPlayerCorner);
+            HudGroup(2, new Vector2(150f, 30f), HudMyCard, DrawPlayerCorner);
             if (me != null)
             {
-                HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
+                HudGroup(0, new Vector2(0f, 110f), HudBarPivot, () => DrawAbilityBar(me));
                 HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleGlass);  // scanlines and glass over all of it
             }
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
             if (me != null && !me.Downed)
-                DrawEmoteBar(W / 2f, H - 112f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
+                DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
             DrawChat();  // the chat box, bottom right above the player cards (ChatBox.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
@@ -140,9 +140,9 @@ namespace Arena
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
                 if (!pauseMenuOpen)  // (the pause menu carries this hint at the foot of its drawer)
-                HudGroup(3, new Vector2(0f, -60f), new Rect(W - 290f, 10f, 274f, 22f), () =>
+                HudGroup(3, new Vector2(0f, -60f), HudHintPill, () =>
                 {
-                    var hint = new Rect(W - 290f, 10f, 274f, 22f);
+                    var hint = HudHintPill;
                     Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
                     Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
                 });
@@ -151,14 +151,14 @@ namespace Arena
                 if (back > 0f && !LaunchActive && !RecallActive)  // (not while a run launches, the HUD on its way in, or beams out: Recall.cs)
                 {
                     float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
-                    Ui.Shadowed(new Rect(0f, H - 30f + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
+                    Ui.Shadowed(new Rect(0f, HudHiddenHintY + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
                 }
             }
         }
 
         // --- Hiding the HUD (H) ---------------------------------------------------------
 
-        bool hudShown = true;
+        bool hudShown = true;  // the full console is up (HUD mode 0, HudModes.cs; the mode is saved as hud_mode)
         float hudT = 1f;               // 0 hidden .. 1 shown, eased in Update
         const float HudFadeTime = 0.55f, HudStagger = 0.14f;
         const int HudGroups = 4;       // 0 ability bar, 1 wave panel, 2 player cards, 3 top row (boss bars, hints)
@@ -194,21 +194,20 @@ namespace Arena
 
         // --- Beside the hotbar ----------------------------------------------------------
 
-        // The wave panel sits left of the ability bar and your card right of it, both 72 px tall and lined up with
-        // the bar's bottom; the path and modifier chips stack up from the wave panel, teammates from your card.
-        const float SideW = 229f, SideL = 12f, SideR = W - 12f - SideW, SideH = 72f, SideY = H - 12f - SideH;
+        // The wave panel sits left of the ability bar and your card right of it; the path and modifier chips stack up from the wave
+        // panel, teammates from your card. Where everything goes: HudLayout.cs.
 
         void DrawWaveCorner()
         {
-            DrawWavePlate(new Rect(SideL, SideY, SideW, SideH));
-            float y = SideY - 28f;
+            DrawWavePlate(HudWavePlate);
+            float y = HudChipsY;
             if (game.CurrentPath != PathId.None)
             {
                 DrawPathChip(SideL, y);  // PathsUi.cs
-                y -= 24f;
+                y -= HudChipLine;
             }
             if (DrawGoldChip(SideL, y))  // ShopUi.cs
-                y -= 24f;
+                y -= HudChipLine;
             DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs
         }
 
@@ -219,20 +218,20 @@ namespace Arena
             if (ids.Count == 0)
                 return;
             // Yours in full; teammates as slim rows above it. (A spectator-less game always has you first.)
-            DrawPlayerHudCard(game.Players[ids[0]], new Rect(SideR, SideY, SideW, SideH), ids[0] == game.MyId);
-            float y = SideY - 6f;
+            DrawPlayerHudCard(game.Players[ids[0]], HudMyCard, ids[0] == game.MyId);
+            float y = HudStackY;  // (the stack's sizes are HudLayout.cs's; HudStackTop gives the chat box its top)
             var mine = game.Me;
             if (mine != null && Game.HasPerk(mine, PerkId.RiotGear))  // status chips sit over your card (RiotGearLook.cs)
             {
-                y -= 42f;
-                DrawRiotChip(new Rect(SideR, y, 112f, 38f), mine);
-                y -= 6f;
+                y -= HudRiotChipH + HudRiotChipGap;
+                DrawRiotChip(new Rect(SideR, y, HudRiotChipW, HudRiotChipH), mine);
+                y -= HudRiotChipAfter;
             }
             for (int i = 1; i < ids.Count; i++)
             {
-                y -= 30f;
-                DrawTeammateRow(game.Players[ids[i]], new Rect(SideR, y, SideW, 30f));
-                y -= 5f;
+                y -= HudTeammateH;
+                DrawTeammateRow(game.Players[ids[i]], new Rect(SideR, y, SideW, HudTeammateH));
+                y -= HudTeammateGap;
             }
         }
 
@@ -268,7 +267,6 @@ namespace Arena
 
         // --- The CRT console (Docs/Mockups/crt-hud-a-variants.html, A1): one blue phosphor screen under the wave plate, the five keys and your card.
 
-        static readonly Rect ConsoleR = new Rect(10f, SideY - 4f, W - 20f, SideH + 8f);
         static readonly Color KeyGreen = new Color(0.42f, 1f, 0.6f);
 
         void DrawConsoleBack()
@@ -295,12 +293,12 @@ namespace Arena
         {
             if (dashed)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, 0.02f));
-                CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, 0.55f));
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.HudKeyEmptyTint));
+                CrtKit.Dashed(r, 1f, new Color(c.r, c.g, c.b, CrtStyle.HudKeyEmptyDash));
                 return;
             }
-            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.09f));
-            CrtKit.Frame(r, 2f, c);
+            Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.HudKeyTint));  // (CrtStyle.cs)
+            CrtKit.Frame(r, CrtStyle.HudKeyRimW, c);
         }
 
         int plateWave = -1, plateMax = 1;
@@ -401,9 +399,7 @@ namespace Arena
                 session.IsHost || game.PingMs < 60f ? Ui.Good : game.PingMs < 120f ? Ui.Warn : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleRight, true);
         }
 
-        /// A centered announcement between waves.
-        static readonly Rect BannerRect = new Rect(W / 2f - 280f, H / 2f - 92f, 560f, 96f);
-
+        /// A centered announcement between waves (at BannerRect, HudLayout.cs).
         void DrawBanner(string title, string sub, Color accent)
         {
             var r = new Rect(BannerRect.x, BannerRect.y, BannerRect.width, sub.Length > 0 ? 96f : 70f);
@@ -417,12 +413,8 @@ namespace Arena
         /// XP bar plus the ability tiles (Space / Q / E / Shift / ultimate) along the bottom.
         void DrawAbilityBar(Player me)
         {
-            const float tileW = 150f, tileH = 58f, gap = 8f;
-            float total = tileW * Upgrades.SlotCount + gap * (Upgrades.SlotCount - 1);
-            float x0 = (W - total) / 2f, y = SideY + (SideH - tileH) / 2f;
-
             // XP strip with the level inside it (the CRT console look: a segmented gold bar, "LV 3 · 48%" at its left end).
-            var xp = new Rect(x0, y - 30f, total, 14f);
+            var xp = HudXpStrip;  // (the strip and the keys: HudLayout.cs)
             float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
             Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
@@ -432,12 +424,12 @@ namespace Arena
 
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
-                var r = new Rect(x0 + i * (tileW + gap), y, tileW, tileH);
+                var r = HudTile(i);
                 var look = TileLookFor(i, i == Upgrades.UltSlot);  // how the tile reacts this frame (HudTiles.cs)
                 int slotIndex = i;
                 TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
             }
-            DrawMasteryToasts(x0 + total / 2f, y - 74f);
+            DrawMasteryToasts(HudMasteryToastAt.X, HudMasteryToastAt.Y);
         }
 
         /// One ability tile: key, name, READY or the timer, mastery and recharge lines, charge pips; `look` adds the
@@ -564,6 +556,7 @@ namespace Arena
         void DrawMasteryToasts(float cx, float y)
         {
             var toasts = game.MasteryToasts;
+            if (Event.current.type == EventType.Repaint)  // (OnGUI runs once per event: tick once a frame, or toasts ran out early)
             for (int i = toasts.Count - 1; i >= 0; i--)
             {
                 toasts[i].T -= Time.unscaledDeltaTime;

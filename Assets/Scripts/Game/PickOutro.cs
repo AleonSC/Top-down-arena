@@ -34,7 +34,7 @@ namespace Arena
             outroRects = new Rect[n];
             outroColors = new Rgba[n];
             outroOffer = (int[])me.Offer.Clone();
-            outroGrid = n > 3;
+            outroGrid = me.OfferMod;  // as the picker draws them (Wide Choice's 4th and 5th level-up cards stay tall)
             for (int i = 0; i < n; i++)
             {
                 outroRects[i] = pickCardRects[i];
@@ -43,7 +43,7 @@ namespace Arena
             outroPicked = picked;
             outroIcon = PixelArt.ForUpgrade(Upgrades.All[me.Offer[picked]].Name);
             outroTarget = PickHome(me);
-            outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones <= 1;
+            outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingMilestones + me.PrizePicks <= 1;
             pickOutroAt = Time.unscaledTime;
         }
 

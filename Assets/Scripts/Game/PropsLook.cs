@@ -649,7 +649,7 @@ namespace Arena
             if (hint == null)
                 return;
             float pulse = holding ? 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 3f) : 0.7f;
-            var r = new Rect(W / 2f - 280f, H - 132f, 560f, 26f);
+            var r = HudChestHint;  // over the XP strip (HudLayout.cs)
             Ui.Pill(r, new Color(0.12f, 0.09f, 0.03f, 0.7f));
             Ui.Label(r, hint, 13, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, pulse), TextAnchor.MiddleCenter, true);
         }

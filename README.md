@@ -837,7 +837,7 @@ as usual.
 | Kill every enemy on the field (dev, host) | X, once the F1 Match tab's kill-all key is on |
 | Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H (cycles four modes: Full, Corner text (health, cooldown numbers and enemies left as plain text in the corners), On the player (a health arc, cooldown numbers under you, enemy count at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
+| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (health, cooldown numbers and enemies left as plain text in the corners), On the player (a health arc, cooldown numbers under you, enemy count at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
 | Aim debug overlay | F3 |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
 | Freeze time with no menu (dev) | P, once the F1 Tools tab's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |
@@ -881,16 +881,16 @@ stack above it) and **your card** right of it (health, shield, level, XP). Teamm
 your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
 the top middle, and the "Hold TAB" hint is in the top-right corner.
 
-**Between waves.** When the last enemy dies a **Wave n cleared** box drops in (shaded like the upgrade cards, with a
-soft glow; gold after a boss). It shows the wave's **clear time** and **score**, a row per player with **kills, damage
+**Between waves.** When the last enemy dies a **Wave n cleared** box drops in: a CRT screen like the lobby's, in your
+CRT colour (Settings > Visual effects), its title gold after a boss. It shows the wave's **clear time** and **score**, a row per player with **kills, damage
 dealt and damage taken** for that wave, and **awards**: **Untouched** (took no damage), **Reviver** (stood a teammate up),
 and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
 A **Squad** row adds them up. On the right: the enemy types the next wave draws from (new ones marked NEW; a boss wave
-names its boss) and the **road to the next boss**. Along the bottom: the **Ready** button (Y), the **Auto-ready** switch
-and the status. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
+names its boss) and the **road to the next boss**. Along the bottom: the **Ready** key (Y), the **Auto-ready** switch, the
+status and the countdown bar. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
-old pace (it is off by default). A small ring beside each player shows who is ready (a ring with an A for auto-ready).
+old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't).
 The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).
 
