@@ -209,7 +209,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `DpsMeterUi.cs` | 0.1k | the F2 DPS meter overlay (`DrawDpsMeter`) and the F1 DPS tab (`DrawDevDps`) |
 | `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
 | `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |
-| `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |
+| `ModifiersUi.cs` | 0.1k | the lobby's Modifiers tab: tiles in two columns under foldable tier headings (`DrawModTile`, look C1 of `Docs/Mockups/modifiers-crt-icons.html`); icons via `ModIconKey` |
+| `ModIcons.cs` | 0.2k | the 12×12 `mod_*` icons (white, tinted by the tab); a partial of `PixelArt`, which `Get` falls back to |
 | `RunStatsUi.cs` | 0.4k | the Run stats screen (Tab, or the pause menu's Run stats): tabs Run so far (header chips, totals strip, `BuildRoute`, fight and party-share cards), Your build (`DrawTabMenu`), Team (`DrawMateCard`) |
 | `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
