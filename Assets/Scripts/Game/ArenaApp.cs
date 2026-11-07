@@ -106,6 +106,7 @@ namespace Arena
 
         void Awake()
         {
+            Game.StartDelay = LaunchFightAt;  // a longer GET READY than the sim default (LaunchIntro.cs)
             Application.runInBackground = true;  // keep hosting while alt-tabbed
             Application.targetFrameRate = 144;
             if (QualitySettings.antiAliasing < 4)

@@ -211,7 +211,7 @@ static partial class Shot {
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;
     if (launchAt >= 0f) {
       set("launchT", launchAt); set("launchFromLobby", true); set("launchRippled", true);
-      host.Game.State = launchAt < 3f ? MatchState.Intermission : MatchState.Fighting; host.Game.Wave = launchAt < 3f ? 0 : 1; host.Game.StateTimer = Math.Max(0.1f, 3f - launchAt);
+      host.Game.State = launchAt < 5f ? MatchState.Intermission : MatchState.Fighting; host.Game.Wave = launchAt < 5f ? 0 : 1; host.Game.StateTimer = Math.Max(0.1f, 5f - launchAt);
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); foreach (var pl in host.Game.Players.Values) { pl.Offer = null; pl.PendingPicks = 0; }
       float hk = Math.Max(0f, Math.Min(1f, (launchAt - 1.7f) / 0.35f)); set("hudT", hk);
     }

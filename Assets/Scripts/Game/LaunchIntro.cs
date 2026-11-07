@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Launching into a run ("drop in", Docs/Mockups/run-launch.html option A), all inside the 3 s before wave 1:
+    /// Launching into a run ("drop in", Docs/Mockups/run-launch.html option A), all inside the 5 s before wave 1:
     ///   0.0-0.8 s  the lobby's two sides slide off left and right and fade (only when coming from the lobby);
     ///   0.35 s     a ripple runs out from the middle of the arena, bending the grid (Juice's ripple) under a bright ring;
     ///   1.0 s on   each player beams down as a pillar of light in their colour, a quarter second apart: they appear as
@@ -15,7 +15,7 @@ namespace Arena
     /// the HUD's swish; the fight's WaveStart as WAVE 1 pops in.
     public partial class ArenaApp
     {
-        const float LaunchLen = 4.6f, LobbyOutTime = 0.8f, LaunchRippleAt = 0.35f, PillarAt = 1.0f, PillarStep = 0.25f, PillarLife = 0.7f,
+        const float LaunchFightAt = 5f, LaunchLen = 6.6f, LobbyOutTime = 0.8f, LaunchRippleAt = 0.35f, PillarAt = 1.0f, PillarStep = 0.25f, PillarLife = 0.7f,
             PillarLand = 0.3f, LaunchHudAt = 1.7f, LaunchBannerAt = 2.0f;
 
         float launchT = -1f;  // seconds since the run launched; below 0 when there's no launch going on
@@ -213,7 +213,7 @@ namespace Arena
         {
             if (!LaunchActive || game.State != MatchState.Fighting)
                 return;
-            float start = 3f, k = Seg(launchT, start, start + 0.3f), o = Seg(launchT, LaunchLen - 0.4f, LaunchLen);
+            float start = LaunchFightAt, k = Seg(launchT, start, start + 0.3f), o = Seg(launchT, LaunchLen - 0.4f, LaunchLen);
             if (k <= 0f)
                 return;
             float a = 1f - o;
