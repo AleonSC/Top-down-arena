@@ -1100,7 +1100,7 @@ namespace Arena
             float nt = Ui.Slider(track, t);
             if (nt != t)
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
-            if (showcaseZoomA > 0.3f && Ui.Button(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral))
+            if (showcaseZoomA > 0.3f && Ui.SmallButton(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral, 10))
                 showcaseMute = !showcaseMute;
             GUI.color = oc;
             Ui.Alpha = oa;
