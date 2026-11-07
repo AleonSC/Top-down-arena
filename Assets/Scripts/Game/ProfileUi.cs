@@ -229,10 +229,10 @@ namespace Arena
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
             float rowH = oneLine ? 29f : 40f, step = rowH + 3f;
-            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, 358f, 312f), new Rect(26f, 22f, 358f, 78f), false);
+            BeginDrawer("PROFILE", Ui.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f), false);
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
-            var ps = new Rect(26f, 112f, 358f, 126f);
+            var ps = new Rect(26f, 112f, CabInW, 126f);
             if (CabScreenBegin(ps, 0.9f))
             {
                 var badge = new Rect(ps.x + 12f, ps.y + 8f, 76f, 76f);
@@ -282,7 +282,7 @@ namespace Arena
             }
 
             // The tab keys: quiet, on the cabinet itself (no screen), once its screens are up.
-            var ts = new Rect(26f, 250f, 358f, 54f);
+            var ts = new Rect(26f, 250f, CabInW, 54f);
             if (calm || CabAge >= 0.9f)
             {
                 int first = inMenu ? 1 : 0, nt = ProfileTabs.Length - first;
@@ -309,7 +309,7 @@ namespace Arena
             {
                 bool on = cabWin && cabKind == 3 && cabWinOutAt < 0f && ProfSel == i;
                 var o = opts[i];
-                if (DrawerRow(new Rect(34f, y, 342f, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Accent, on))
+                if (DrawerRow(new Rect(34f, y, CabRowW, rowH), PixelArt.Get(o.Icon), o.Name, oneLine ? null : o.Line, null, o.Tag, Ui.Accent, on))
                 {
                     ProfSel = i;
                     OpenCabWindow(3);  // (the first pick slides it out; later ones only retype it)
@@ -317,7 +317,7 @@ namespace Arena
                 y += step;
             }
             EndDrawerScreen();
-            if (cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 634f, 358f, 36f), "BACK"))
+            if (cabScreenOn && CrtKit.PhysicalKey(new Rect(26f, 634f, CabInW, 36f), "BACK"))
             {
                 if (CabWindowOpen)
                     CloseCabWindow();  // the window slides back in first
