@@ -42,6 +42,10 @@ hud-emotes        hud       EMOTEBAR=1
 hud-chips         hud       GOLD=120 MODS=5 APPROACH=1
 hud-boss          hud       5 12.2 1 WARDEN=0.6 NOISY=1
 tab               tab
+tab-run           tab       23 12.2 1 STATSTAB=0
+tab-build         tab       23 12.2 1 STATSTAB=1
+tab-team          tab       23 12.2 3 STATSTAB=2 NOISY=1
+tab-switching     tab       23 12.2 1 STATSTAB=0 HOLOAT=0.2
 pause             pause
 pause-settings    pause     PAUSESET=2
 pause-confirm     pause     PAUSECONFIRM=1

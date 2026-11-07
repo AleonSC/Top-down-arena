@@ -568,7 +568,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 ## Arena layouts
 
 Each **boss cycle** (the regular waves between two bosses) gets one of six fixed floor plans, picked at random and never
-the same one twice running. Boss waves, the Practice Range, challenge rooms and the loadout preview are the plain open
+the same one twice running. Boss waves, the Practice Range, Data Gates and the loadout preview are the plain open
 arena. A teal chip above the wave plate names the layout. Mockups: [`Docs/Mockups/arena-layouts.html`](Docs/Mockups/arena-layouts.html);
 design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 
@@ -647,15 +647,15 @@ wave, everyone gets a shop before the boss:
   last player is done). After a minute the host can close it for everyone. When it closes, each player's leftover
   gold becomes their own XP (1 gold = 1 XP).
 
-## Challenge rooms
+## Data Gates
 
-Once in every five waves a **portal** swirls open during the break: after the 1st, 2nd or 3rd wave of each stretch
+Once in every five waves a **Data Gate** opens during the break: a dark disc of scrolling data in the challenge's colour, ringed by turning dashes, with a ring of pips that lights as the party steps in. It never opens under a wall, pillar or crate: after the 1st, 2nd or 3rd wave of each stretch
 (in the first stretch after wave 2 or 3), so never right before a boss. A card over it names the challenge on the
 other side. Everyone alive stands in it to go through: it fills faster the more of you are in it, but only goes
 when you all are. The break's countdown waits while it's open; ignore it for 15 s (counting only while nobody's
 choosing cards) and it closes, and the run carries on as usual.
 
-Through the portal is a **challenge room**: the same arena with its own ground (a tint in the challenge's colour, a
+Through the Data Gate is a **challenge**: the same arena with its own ground (a tint in the challenge's colour, a
 rune circle, glyphs round the walls). A title card names the challenge and what it takes, and 3 s later it starts,
 with an objective plate at the top of the screen:
 
@@ -671,7 +671,7 @@ with an objective plate at the top of the screen:
 a **Challenge prize** pick: three cards, each rare or very rare (no rerolls), and a 1 in 4 chance of a legendary
 pick too. **Lose** (the crystal breaks, the clock runs out, or everyone goes down) and you're simply sent back:
 it's safe to fail, the downed get back up at 30% health and nothing else is lost. Either way the break then starts
-over. The room's two enemies are in the Field guide under **Challenge rooms**. Developer tools (F1, Match) can take
+over. The room's two enemies are in the Field guide under **Challenge rooms** (the Bestiary page keeps that name for now). Developer tools (F1, Match) can take
 everyone straight into any of the five.
 
 ## Run modifiers
@@ -751,7 +751,7 @@ In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields and Gas Grenadiers, its Breakout and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
-path offer, no challenge portal, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
+path offer, no Data Gate, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).
 
 The **Boss hunt** tab is a dossier: a looping drum of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN; mouse wheel, PREV / NEXT or a click rolls one to the top, and the list never ends). The boss on top is the picked one: the host can scroll onto a locked or coming-soon boss to look at it, but START stays off until the top boss's hunt is open. For the top boss it shows a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
@@ -1065,8 +1065,9 @@ Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins 
 
 ## Run stats (Tab)
 
-Hold **Tab** during a match for the **Run stats** screen, with three tabs (click to switch; it remembers the last
-one):
+Hold **Tab** during a match for the **Run stats** screen: hologram panels projected over the arena (in your CRT
+colour, lit by a beam along the bottom of the screen), your stats down the left, and three tabs (click to switch; it
+remembers the last one):
 
 - **Run so far:** the wave and where you are (path and wave of it, enemies left), time played, score, the next boss
   and the run's modifiers; your totals (damage, kills, healing, accuracy, biggest hit, level, times downed, allies
@@ -1078,9 +1079,9 @@ one):
 - **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and
   upgrades.
 
-Switching tabs **zooms through**: the old page grows a little and fades while the new one rises in from just
-behind (about a quarter of a second; teammates' live models appear once it settles). With **Reduced effects** it's a
-plain crossfade, and with **Visual effects** off it switches instantly.
+The panels **switch on** from a thin line when the screen opens and when you change tab (about a third of a
+second; teammates' live models appear once it settles). With **Reduced effects** or **Visual effects** off they're
+simply there, without the drifting band and flicker.
 
 **Solo, holding Tab pauses the match** (letting go resumes it). **With friends it doesn't pause** (you can still move
 and shoot while it's up); to look together, pause (**Esc**) and press **Run stats** in the pause menu. The host sends
@@ -1108,7 +1109,7 @@ out (Back or Esc), and only then does the window really close.
   desktop** (closes the game), or **Keep playing** (Esc). The controls hint (Hold Tab, H) sits at the foot of the
   cabinet while paused. Choose with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the
   right with a **this run** screen (it fades while a window is out): the wave, time and score, chips for the path (and waves left), the run's modifiers
-  and the difficulty, the next boss (moving), and this stretch's challenge room (won, lost, or when the next portal
+  and the difficulty, the next boss (moving), and this stretch's Data Gate (won, lost, or when the next one
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (the cabinet's list
@@ -1133,7 +1134,7 @@ out (Back or Esc), and only then does the window really close.
 - **Profile:** four tabs. **Look** (the cosmetics), **Rank** (Progress, Reward ladder, Tiers, XP sources), **Records** (Overview, Bosses with each one moving beside its count, Classes, **Recent runs**, **Challenge rooms** with each room played and
   won) and **Unlocks**. Mid-run and in the lobby it has no Look tab.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
-  basics, Fighting, Between waves, Challenge rooms (with a little animated portal), Paths and modifiers, Playing
+  basics, Fighting, Between waves, Data Gates (with a little animated gate), Paths and modifiers, Playing
   together, and the **Field guide** under them.
 
 Esc goes back (from the pause menu's Settings, to its list). The **Field guide** opens two in-game databases:

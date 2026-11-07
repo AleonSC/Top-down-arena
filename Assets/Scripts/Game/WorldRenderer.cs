@@ -486,7 +486,7 @@ namespace Arena
                 Arc(p.Disp, p.Def.BodyR + 12f + 3f * Mathf.Sin(t * 16f), 3f, new Rgba(1f, 0.4f, 0.25f, 0.85f), 32);
         }
 
-        /// A health orb: green with a white cross; big ones get a gold ring.
+        /// A health orb: a green hologram sphere with a white plus; big ones get a gold ring.
         void DrawOrb(Orb o, float t)
         {
             if (o.Med)
@@ -497,15 +497,7 @@ namespace Arena
             // Blink during the last 3 seconds before the orb disappears.
             if (o.Life < 3f && MathX.Fmod(t, 0.25f) < 0.1f)
                 return;
-            float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : o.Tiny ? 11f : 8f) + o.Id);
-            float r = o.Radius * pulse;
-            var green = o.Tiny ? new Rgba(0.55f, 1f, 0.75f) : new Rgba(0.35f, 1f, 0.5f);  // tiny orbs are paler
-            Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
-            Circle(o.Disp, r, green, 16);
-            Line(o.Disp - new V2(r * 0.55f, 0), o.Disp + new V2(r * 0.55f, 0), o.Big ? 3f : 2f, Rgba.White);
-            Line(o.Disp - new V2(0, r * 0.55f), o.Disp + new V2(0, r * 0.55f), o.Big ? 3f : 2f, Rgba.White);
-            if (o.Big)
-                Arc(o.Disp, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.8f), 24);
+            DrawHoloOrb(o, t);  // OrbLook.cs
         }
 
         /// A player, plus, near an edge, the part of them already coming in on the far side.
