@@ -186,8 +186,10 @@ namespace Arena
             }
             var old = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
-            GUI.Box(full, GUIContent.none, lobbyGlassStyle);
+            // The rounded frame sits 7 px in from the screen's edge, with a thin square line 4 px in, round the outside of it (the mockup's layout).
+            GUI.Box(new Rect(7f, 7f, W - 14f, H - 14f), GUIContent.none, lobbyGlassStyle);
             GUI.color = old;
+            CrtKit.Frame(new Rect(4f, 4f, W - 8f, H - 8f), 1f, new Color(0.15f, 0.21f, 0.37f, a));
         }
 
         /// New run: start the host, and (with effects on) play the CRT boot into the lobby.
