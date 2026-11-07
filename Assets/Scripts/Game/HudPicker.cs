@@ -317,8 +317,8 @@ namespace Arena
             Ui.Fill(new Rect(r.xMax - w, r.y, w, r.height), c);
         }
 
-        /// An upgrade card in the lobby's digital CRT look (Docs/Mockups/crt-level-up-blue.html): a dark screen with a faint
-        /// tint at the top, a thin outline (brighter picked or hovered), blue corner brackets and a soft glow that grows on
+        /// An upgrade card in the lobby's digital CRT look (Docs/Mockups/crt-level-up-blue.html): a holographic screen in the
+        /// card's rarity colour (DrawHolo), a thin outline (brighter picked or hovered), blue corner brackets and a soft glow that grows on
         /// the picked card.
         void DrawCrtCardFrame(Rect r, Color c, bool selected, bool hover, bool behind, float now)
         {
@@ -326,14 +326,41 @@ namespace Arena
             Ui.Glow(r, c, glow);
             if (selected)
                 Ui.Glow(r, c, 0.3f);
-            Ui.Fill(r, new Color(0.016f, 0.035f, 0.09f, 0.97f));
-            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.45f), new Color(c.r, c.g, c.b, selected ? 0.1f : 0.05f));
+            DrawHolo(r, c, now);
             var edge = selected ? Color.Lerp(c, Color.white, 0.55f) : new Color(c.r, c.g, c.b, hover ? 0.9f : 0.5f);
             CrtEdge(r, selected ? 2f : 1f, edge);
             const float arm = 18f, th = 3f;
             var b = new Color(c.r, c.g, c.b, behind ? 0.35f : 1f);
             Ui.Fill(new Rect(r.x, r.y, arm, th), b); Ui.Fill(new Rect(r.x, r.y, th, arm), b);
             Ui.Fill(new Rect(r.xMax - arm, r.yMax - th, arm, th), b); Ui.Fill(new Rect(r.xMax - th, r.yMax - arm, th, arm), b);
+        }
+
+        /// The card's holographic body (Docs/Mockups/holo-level-up-cards.html, "3 Projection"): rarity-coloured glass fading to
+        /// the dark screen colour (CardArt.Holo), a scanline every 4 px that dips now and then, a bright band drifting down
+        /// every 3.4 s, and a magenta fringe on the left edge and a cyan one on the right. Reduced effects keeps the glass and
+        /// the lines, still.
+        void DrawHolo(Rect r, Color c, float now)
+        {
+            Ui.Picture(r, CardArt.Holo(c));
+            float t = MathX.Fmod(now, 5f) / 5f;
+            bool dip = !fxReduced && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);  // the mockup's flicker: two short dips every 5 s
+            var line = new Color(c.r, c.g, c.b, (dip ? 0.32f : 0.5f) * 0.4f);
+            for (float y = Mathf.Round(r.yMax) - 1f; y >= r.y; y -= 4f)  // counted up from the bottom edge, like the mockup
+                Ui.Fill(new Rect(r.x, y, r.width, 1f), line);
+            if (!fxReduced)
+            {
+                float h = r.height, p = MathX.Fmod(now, 3.4f) / 3.4f;
+                float by = Mathf.Lerp(-0.288f * h, 1.152f * h, p);
+                var bc = Color.Lerp(c, Color.white, 0.3f);
+                var old = GUI.color;
+                GUI.BeginGroup(r);
+                GUI.color = Ui.Faded(new Color(bc.r, bc.g, bc.b, 0.5f));
+                GUI.DrawTexture(new Rect(0f, by, r.width, 0.28f * h), CardArt.Band());
+                GUI.EndGroup();
+                GUI.color = old;
+            }
+            Ui.Fill(new Rect(r.x, r.y, 2f, r.height), new Color(1f, 60f / 255f, 200f / 255f, 0.35f));
+            Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), new Color(60f / 255f, 240f / 255f, 1f, 0.35f));
         }
 
         /// A small key-like label (the rarity): outlined and faintly lit, inverse video on the picked card.
@@ -377,21 +404,113 @@ namespace Arena
             Ui.Fill(new Rect(x1 - len, y1 - th, len, th), c); Ui.Fill(new Rect(x1 - th, y1 - len, th, len), c);
         }
 
-        /// The picked card's change lines (up to two) in green on a dark strip over the card's bottom.
-        void DrawPickStrip(Rect strip, int size, bool label, List<string> parts = null)
+        static readonly Color PickGo = new Color(125f / 255f, 1f, 160f / 255f);  // #7dffa0
+        static readonly Color PickDim = new Color(63f / 255f, 122f / 255f, 82f / 255f);  // #3f7a52
+
+        /// The mockup's blink (steps(2) between 100% and 15%): four steps of a quarter cycle each.
+        static float PickBlink(float now, float cycle)
+        {
+            switch ((int)(MathX.Fmod(now, cycle) / (cycle / 4f)))
+            {
+                case 0: return 1f;
+                case 2: return 0.15f;
+                default: return 0.575f;
+            }
+        }
+
+        /// A small pixel triangle pointing right (the mockup's ▸): three columns of 2 px, 6, 4 and 2 px tall.
+        static void PickArrow(float x, float cy, Color c)
+        {
+            for (int i = 0; i < 3; i++)
+                Ui.Fill(new Rect(x + i * 2f, cy - (3 - i), 2f, (3 - i) * 2f), c);
+        }
+
+        /// The picked card's change lines (up to two) as a green phosphor readout (Docs/Mockups/holo-level-up-cards.html, "A
+        /// readout"): THIS PICK with a blinking square, then per line the stat in the CRT font on the left and old ▸▸ new on
+        /// the right, and a row of 8 segments for the stacks you hold with the next one blinking. The panel sits with its
+        /// bottom on the strip's bottom and grows upward. stacks: how many you hold (-1: all segments off).
+        void DrawPickStrip(Rect strip, int size, bool label, List<string> parts = null, int stacks = -1)
         {
             if (parts == null)
                 parts = pickParts;
             int lines = Math.Min(2, parts.Count);
-            Ui.Card(strip, new Color(0.45f, 0.95f, 0.55f), 0.6f);
-            float y = strip.y + 4f;
+            float now = Time.unscaledTime;
+            const float pad = 9f, rowH = 17f;
+            float h = 25.5f + (label ? 11f : 0f) + lines * (rowH + 3.2f);  // top 6.4, label, gap 3.2, rows, gap 5, segments 6.4, bottom 7.7
+            var r = new Rect(strip.x, strip.yMax - h, strip.width, h);
+            var go = PickGo;
+            Ui.Fill(r, new Color(2f / 255f, 10f / 255f, 8f / 255f, 0.82f));
+            for (int k = 0; k < 4; k++)  // the faint inner glow
+                CrtEdge(new Rect(r.x + k * 3f, r.y + k * 3f, r.width - k * 6f, r.height - k * 6f), 3f, new Color(go.r, go.g, go.b, 0.045f - k * 0.011f));
+            CrtEdge(r, 1f, new Color(go.r, go.g, go.b, 0.55f));
+            const float arm = 6.4f;  // brackets: top left and bottom right
+            Ui.Fill(new Rect(r.x, r.y, arm, 2f), go); Ui.Fill(new Rect(r.x, r.y, 2f, arm), go);
+            Ui.Fill(new Rect(r.xMax - arm, r.yMax - 2f, arm, 2f), go); Ui.Fill(new Rect(r.xMax - 2f, r.yMax - arm, 2f, arm), go);
+            float y = r.y + 6.4f;
             if (label)
             {
-                Ui.Label(new Rect(strip.x, y, strip.width, 12f), "THIS PICK", 9, Ui.Muted, TextAnchor.MiddleCenter, true);
-                y += 13f;
+                PickArrow(r.x + pad, y + 5.5f, new Color(0.31f, 0.65f, 0.416f));
+                Ui.Label(new Rect(r.x + pad + 14f, y, 90f, 11f), "THIS PICK", 9, new Color(0.31f, 0.65f, 0.416f), TextAnchor.MiddleLeft, false);
+                float bl = fxReduced ? 1f : PickBlink(now, 1.1f);
+                Ui.Fill(new Rect(r.xMax - pad - 6f, y + 2.5f, 6f, 6f), new Color(go.r, go.g, go.b, bl));
+                y += 11f;
             }
-            for (int i = 0; i < lines; i++, y += size + 4f)
-                Ui.Label(new Rect(strip.x, y, strip.width, size + 4f), parts[i], parts[i].Length > 32 ? size - 1 : size, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
+            y += 3.2f;
+            float avail = r.width - pad * 2f;
+            bool was = Ui.CrtFont;
+            Ui.CrtFont = true;
+            for (int i = 0; i < lines; i++, y += rowH + 3.2f)
+            {
+                string part = parts[i], left = part, oldV = null, newV = null;
+                int sp = part.IndexOf("  ", StringComparison.Ordinal);
+                if (sp > 0)
+                {
+                    left = part.Substring(0, sp).ToUpperInvariant();
+                    string rest = part.Substring(sp + 2).Trim();
+                    int arrow = rest.IndexOf(" → ", StringComparison.Ordinal);
+                    if (arrow >= 0) { oldV = rest.Substring(0, arrow); newV = rest.Substring(arrow + 3); }
+                    else newV = rest;
+                }
+                int fs = 17;
+                float aw = oldV != null ? 16f : 0f;
+                while (fs > 11 && Ui.TextWidth(left, fs) + 12f + (oldV != null ? Ui.TextWidth(oldV, fs) + aw : 0f) + (newV != null ? Ui.TextWidth(newV, fs) : 0f) > avail)
+                    fs--;
+                var row = new Rect(r.x + pad, y, avail, rowH);
+                CrtUi.Text(row, left, fs, go, TextAnchor.MiddleLeft, false, fxReduced);
+                if (newV != null)
+                {
+                    float nw = Ui.TextWidth(newV, fs), x = row.xMax - nw;
+                    CrtUi.Text(new Rect(x, y, nw + 2f, rowH), newV, fs, go, TextAnchor.MiddleLeft, false, fxReduced);
+                    if (oldV != null)
+                    {
+                        var arr = new Color(go.r, go.g, go.b, 1f);
+                        PickArrow(x - 7f, y + rowH / 2f, arr);
+                        PickArrow(x - 14f, y + rowH / 2f, arr);
+                        float ow = Ui.TextWidth(oldV, fs);
+                        CrtUi.Text(new Rect(x - 20f - ow, y, ow + 2f, rowH), oldV, fs, PickDim, TextAnchor.MiddleLeft, false, true);
+                    }
+                }
+            }
+            Ui.CrtFont = was;
+            y += 5f - 3.2f;
+            const int segs = 8;
+            const float gap = 2.56f, sh = 6.4f;
+            float sw = (avail - gap * (segs - 1)) / segs;
+            int have = Math.Max(0, stacks), first = have / segs * segs;  // a window of 8: the stacks held, then the next one
+            for (int k = 0; k < segs; k++)
+            {
+                var seg = new Rect(r.x + pad + k * (sw + gap), y, sw, sh);
+                int n = first + k;
+                if (stacks >= 0 && n < have)
+                {
+                    Ui.Fill(new Rect(seg.x - 2f, seg.y - 2f, seg.width + 4f, seg.height + 4f), new Color(go.r, go.g, go.b, 0.18f));
+                    Ui.Fill(seg, go);
+                }
+                else if (stacks >= 0 && n == have)
+                    Ui.Fill(seg, new Color(go.r, go.g, go.b, fxReduced ? 1f : PickBlink(now, 0.8f)));
+                else
+                    Ui.Fill(seg, new Color(16f / 255f, 48f / 255f, 28f / 255f));
+            }
         }
 
         static Texture2D hatchTex;
@@ -496,7 +615,7 @@ namespace Arena
                         Ui.Label(new Rect(r.x + 6f, r.yMax - 76f + i * 15f, r.width - 12f, 16f), shown[i], shown[i].Length > 34 ? 11 : 12, ms && !selected ? new Color(0.45f, 0.85f, 0.52f) : new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
             }
             else if (showParts && !grants)
-                DrawPickStrip(new Rect(r.x + 10f, r.yMax - 98f, r.width - 20f, 20f + 15f * Math.Min(2, shown.Count)), 12, true, shown);
+                DrawPickStrip(new Rect(r.x + 15.4f, r.yMax - 100f, r.width - 30.8f, 56f), 12, true, shown, Upgrades.Count(me.Taken, me.Offer[index]));  // (the mockup's 1.2cqw side margin; the panel's bottom sits 44 px up, over the key)
 
             // The key, bottom centre, over the fading rarity line.
             string keyText = (index + 1).ToString();
