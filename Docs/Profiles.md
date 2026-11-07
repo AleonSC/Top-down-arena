@@ -94,5 +94,5 @@ Clicking plays 2.9 s: the key sinks (0 s), the drive's light turns amber and the
 kicks out of the slit about 40 % on a spring, TAKE DISK blinking (0.5 s), it slides fully out (1.4 s) and the menu fades, it flies to its cradle
 (1.7 to 2.6 s) as the picker fades in, the clamps close (2.9 s), then the picker is live. Any key skips it; nothing can be clicked meanwhile. Reduced
 effects or Visual effects off: the picker just opens. The key is hidden without a loaded profile (a command-line start). It replaced the hover-only
-"Switch profile" tab (`StartProfTrOut` in `ProfileTransition.cs`, the 5.4 s backwards move, is no longer called). Drawing and sound only, no protocol bump.
+"Switch profile" tab (its 5.4 s backwards move, `StartProfTrOut`, was removed; the clock's backwards branch only remains for the preview). Drawing and sound only, no protocol bump.
 Preview: `PROFEJ=<0..2.9>,<slot> Tools/Preview/shot.sh x whotr`.

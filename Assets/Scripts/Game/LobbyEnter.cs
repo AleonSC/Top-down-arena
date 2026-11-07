@@ -95,6 +95,10 @@ namespace Arena
             if (fade ? cardA > 0f : (k < 1f || e < 1.05f))
                 Ui.BodyGlow(r, fade ? cardA : 1f - k);  // first, so it sits under everything else; it fades as the card becomes the lobby's box, which has none
 
+            // The disk drive under the title (DriveSlot.cs) is gone before the box grows up over it, and drawn first so the box covers any
+            // of it that is left (leaving plays this backwards: the drive comes back as the box settles below it).
+            DrawDriveSlot(fade ? 1f - Seg(e, 0.1f, 0.4f) : 1f - Seg(k, 0f, 0.25f), DriveIdle());
+
             // The bottom bar and your player card drop away and fade.
             float drop = Seg(e, 0f, 0.35f);
             if (drop < 1f)
@@ -131,7 +135,6 @@ namespace Arena
             if (newA > 0f)
                 WithAlpha(newA, () => DrawLobbyTitle(new Rect(LobbyTitleRect.x + (cx - to.X), LobbyTitleRect.y + (cy - to.Y), LobbyTitleRect.width, LobbyTitleRect.height), 1f, fxReduced, t));  // (the lobby's own title, so the hand-over at the end shows no change)
 
-            DrawDriveSlot(1f - Seg(e, 0.5f, 0.8f), DriveIdle());  // the disk drive fades out under the title as it leaves
             // GL: the card's plot corners and the ring off your party card.
             if (BeginUiGl())
             {
