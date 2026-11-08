@@ -211,6 +211,8 @@ namespace Arena
                     continue;  // inside the Devourer (DevourerLook.cs shows them in its mouth)
                 DrawPlayerWrapped(p, t);
                 DrawHalberdIdle(p, t);  // the Halberd held at the ready (HalberdLook.cs)
+                DrawRapierIdle(p, t);  // the Rapier held at the ready (MeleeLooks.cs)
+                DrawKatanaIdle(p, t);  // the Katana held at the ready (KatanaLook.cs)
                 DrawGreatswordIdle(p, t);  // the Greatsword held at the ready (GreatswordLook.cs)
                 DrawQuarterstaffIdle(p, t);  // the Quarterstaff held at the ready (QuarterstaffLook.cs)
                 DrawBoStaffIdle(p, t);  // the Bo Staff held at the ready (BoStaffLook.cs)

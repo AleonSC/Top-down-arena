@@ -35,6 +35,18 @@ namespace Arena
                 DrawKatanaBlade(p, emp, t);
         }
 
+        /// The Katana held drawn at the ready (strike meter not full; a full meter keeps the model's sheathed scabbard), drawn over the
+        /// body in place of the model's own blade. It phases out while a swipe or lunge draws the blade, and back in after (HeldPhase).
+        void DrawKatanaIdle(Player p, float t)
+        {
+            if (!fxOn || p.Weapon.Id != WeaponId.Katana || p.Downed || p.KatanaMeter >= Game.KatanaMeterMax)
+                return;
+            float phase = HeldPhase(p.Id);
+            if (phase <= 0f)
+                return;
+            DrawMeleeModel(WeaponId.Katana, p.Disp, p.Aim - 0.4f + 0.02f * Mathf.Sin(t * 2.6f), Game.MeleeReach(p, p.Weapon.Reach) * 0.7f, phase, MeleeColor(WeaponId.Katana, Rgba.White), false, 0.4f, ArmColor(p.Id));
+        }
+
         /// Blade notches: a tiny katana over the swordsman, one notch lit per kill in a row; at five the whole blade burns gold.
         void DrawKatanaBlade(Player p, bool emp, float t)
         {

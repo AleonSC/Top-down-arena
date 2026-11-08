@@ -603,6 +603,8 @@ namespace Arena
                     MPoly(Hx(0xd7e0ee), 3f, 0f, 3f, -3.5f, 40f, -3.5f, 46f, 0f, 40f, 3.5f, 3f, 3.5f); MLine(10f, 0f, 40f, 0f, 0.8f, Hx(0x8fa0b8)); MRect(-1f, -9f, 4f, 18f, MGold); MLine(-12f, 0f, -1f, 0f, 3.4f, Hx(0x6b4a2e)); MCirc(-14f, 0f, 3f, MGold, 8);
                     break;
                 case WeaponId.Rapier:
+                    if (fxOn)
+                        break;  // with Visual effects on, MeleeLooks.cs draws it in hand (DrawRapierIdle)
                     MLine(2f, 0f, 38f, 0f, 1.6f, Hx(0xeef4ff)); MArc(2f, 0f, 6f, -1.6f, 1.6f, 2f, MGold); MLine(-8f, 0f, 0f, 0f, 2.4f, Hx(0x5a3a2a)); MLine(-1f, -6f, -1f, 6f, 1.4f, MGold);
                     break;
                 // ---- Ninja
@@ -639,6 +641,8 @@ namespace Arena
                     MStar(6f, 0f, 6.5f, 2f, 4, t * 4f, MSteel);
                     break;
                 case WeaponId.Katana:
+                    if (fxOn && p.KatanaMeter < Game.KatanaMeterMax)
+                        break;  // with Visual effects on, the drawn blade is KatanaLook.cs's (DrawKatanaIdle); the sheathed one below stays
                     MLine(-6f, 0f, 0f, 0f, 3f, Hx(0x1d1d26)); MCirc(1f, 0f, 3.4f, MGold, 8); MCirc(1f, 0f, 1.4f, Hx(0x1d1d26), 6);
                     if (p.KatanaMeter >= Game.KatanaMeterMax)  // strike meter full: sheathed, ready to cut, a dark scabbard with a glint running along it
                     {

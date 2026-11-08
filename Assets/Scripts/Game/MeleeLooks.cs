@@ -381,6 +381,18 @@ namespace Arena
             Arc(p, 6f + 10f * EaseOut3(q), 1.5f, col.WithAlpha(0.8f * a), 14);
         }
 
+        /// The Rapier held at the ready, point forward, drawn over the body in place of the model's own blade. It phases out while a
+        /// thrust draws the blade, and back in after (HeldPhase).
+        void DrawRapierIdle(Player p, float t)
+        {
+            if (!fxOn || p.Weapon.Id != WeaponId.Rapier || p.Downed)
+                return;
+            float phase = HeldPhase(p.Id);
+            if (phase <= 0f)
+                return;
+            DrawMeleeModel(WeaponId.Rapier, p.Disp, p.Aim - 0.2f + 0.02f * Mathf.Sin(t * 2.6f), 78f, phase, MeleeColor(WeaponId.Rapier, Rgba.White), false, 0f, ArmColor(p.Id));
+        }
+
         /// Six small diamonds on an arc behind you: they fill one by one as the streak builds, and turn gold at six with a faint
         /// halo until it breaks. Shown for a Rapier with a streak going.
         void DrawRapierPips(Player p)
