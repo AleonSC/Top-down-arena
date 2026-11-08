@@ -577,7 +577,6 @@ namespace Arena
                 HammerStunStars(c, R, power, after);
                 return;
             }
-            HammerQuake(c, R, pw, after, seed);  // (the crater and cracks are drawn under the enemies: DrawHammerFloor)
             Player owner;
             bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
             if (!aftershock && !charging)
@@ -737,15 +736,7 @@ namespace Arena
         }
 
         /// Quake: the ground taking the blow. A dark crater with a lighter rim and cracks that stay for about two seconds, dust
-        /// puffs rolling out round the circle, and stone chips thrown up that land with a small shadow. Solid pass.
-        void HammerQuake(V2 c, float R, float pw, float after, int seed)
-        {
-            if (after < 0f)
-                return;
-            DrawHammerRise(c, R, pw, after, seed);
-        }
-
-        /// The Warhammer slam's ground marks (crater, rim and cracks), drawn on the floor before the enemies so they walk over
+        /// puffs rolling out round the circle, and stone chips that land with a small shadow, all drawn on the floor before the enemies so they walk over
         /// them (called from DrawArenaContents). Same geometry as DrawHammerSlamE.
         void DrawHammerFloor()
         {
@@ -771,6 +762,7 @@ namespace Arena
                 V2 c = MeleeOrigin(fx, seen) + V2.FromAngle(aim) * reach;
                 HammerCrater(c, fx.Radius, pw, after, MeleeSeed(fx));
                 HammerDustPuffs(fx.Radius, c, pw, after, MeleeSeed(fx));
+                DrawHammerChips(pw, c, after, MeleeSeed(fx));
             }
         }
 
@@ -804,12 +796,6 @@ namespace Arena
                     }
                 }
             }
-        }
-
-        /// What the slam throws up: stone chips that land with a small shadow (the dust is on the floor: HammerDustPuffs).
-        void DrawHammerRise(V2 c, float R, float pw, float after, int seed)
-        {
-            DrawHammerChips(pw, c, after, seed);
         }
 
         /// Dust puffs rolling out round the circle, drawn under the enemies with the crater.
