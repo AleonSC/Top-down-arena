@@ -297,6 +297,21 @@ namespace Arena
                         break;
                     }
                 }
+                if (fx.Kind == FxKind.GreatRend && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && me.Pos.DistanceTo(fx.Pos) < 44f)
+                {
+                    V2 rl = fx.Pos2 - fx.Pos, rd = rl.Length > 1f ? rl / rl.Length : new V2(1f, 0f);
+                    float rt = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own Rend: harder the more Temper it carried
+                    foreach (var en in game.Enemies.Values)
+                    {
+                        V2 rel = en.Disp - fx.Pos;
+                        float along = rel.X * rd.X + rel.Y * rd.Y, across = Mathf.Abs(-rel.X * rd.Y + rel.Y * rd.X);
+                        if (along < 0f || along > rl.Length + en.Radius || across > fx.Radius + en.Radius)
+                            continue;
+                        Hold(0.04f + 0.04f * rt);  // it caught something: a hit-stop and a kick
+                        Shake(0.12f + 0.2f * rt);
+                        break;
+                    }
+                }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
