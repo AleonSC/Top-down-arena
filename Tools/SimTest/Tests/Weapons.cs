@@ -724,6 +724,8 @@ static partial class Program
                     continue;
                 }
                 volley.Invoke(g, new object[] { me, 0f, extra });
+                if (w.Id == WeaponId.StormHammer)  // the hammer leaves the hand a moment after the click (StormHammer.cs)
+                    for (int f = 0; f < 15; f++) { me.Pos = new V2(120f, 450f); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }
                 var first = new HashSet<int>(g.Bullets.Values.Where(b => b.Owner == 1).Select(b => b.Id));
                 float far = 0f;
                 for (int f = 0; f < 150; f++)
@@ -856,7 +858,9 @@ static partial class Program
         Action<float> step = secs => { for (int f = 0; f < secs * 60; f++) { for (int k = 0; k < dummies.Length; k++) { dummies[k].Pos = spots[k]; dummies[k].FrozenT = 1f; } me.Pos = new V2(200f, 450f); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) }); } };
         me.Pos = new V2(200f, 450f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
-        bool hammer = g.Bullets.Values.Any(b => b.Owner == 1 && b.Kind == Defs.HammerShot);
+        bool early = g.Bullets.Values.Any(b => b.Owner == 1 && b.Kind == Defs.HammerShot);  // the hammer is still in the hand: it leaves HammerThrowRelease after the click
+        step(Game.HammerThrowRelease + 0.04f);
+        bool hammer = !early && g.Bullets.Values.Any(b => b.Owner == 1 && b.Kind == Defs.HammerShot);
         float landed = 0f;
         for (int f = 0; f < 60 && landed == 0f; f++) { step(1f / 60f); landed = dummies[0].MaxHp - dummies[0].Hp; }
         float first = dummies[1].MaxHp - dummies[1].Hp;
@@ -868,6 +872,38 @@ static partial class Program
         Check(Math.Abs(first - landed * Game.HammerArcMult) < 0.2f && took.Skip(1).Take(3).All(d => Math.Abs(d - landed * Game.HammerArcMult * Game.ShockPulses) < 0.3f) && took[4] == 0f,
             "the electrified enemy arcs a little lightning to 3 enemies round it, three times, and not to one too far away");
         Check(took[1] < took[0] * 0.5f, "most of the damage is the hammer's");
+        host.Leave("");
+    }
+
+    static void StormHammerSlamTest(float dt)
+    {
+        // The Storm Hammer's Alt slam: after its wind-up a shockwave runs out from a point ahead of you and hurts every enemy it
+        // crosses once (and electrifies it), not the ones beyond its reach; the key has a cooldown.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var slam = typeof(Game).GetMethod("HostHammerSlam", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 1 }, port, false, "Solo", Role.Tank, 2, 0, Kit.Elementalist);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();
+        var spots = new[] { new V2(330f, 450f), new V2(480f, 450f), new V2(800f, 450f) };  // near the crater (252, 450), inside the reach, far outside it
+        var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+        Action<float> step = secs => { for (int f = 0; f < secs * 60; f++) { for (int k = 0; k < dummies.Length; k++) { dummies[k].Pos = spots[k]; dummies[k].FrozenT = 1f; } me.Pos = new V2(200f, 450f); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) }); } };
+        me.Pos = new V2(200f, 450f); me.Aim = 0f;
+        slam.Invoke(g, new object[] { me, new V2(600f, 450f) });
+        slam.Invoke(g, new object[] { me, new V2(600f, 450f) });  // (pressed again: the cooldown refuses it)
+        Check(g.Effects.Count(e => e.Kind == FxKind.HammerThrow) == 1, "the slam's wind-up is one HammerThrow effect, and a second press inside the cooldown is refused");
+        step(Game.HammerSlamWind - 0.1f);
+        Check(dummies.All(e => e.Hp == e.MaxHp) && !g.Effects.Any(e => e.Kind == FxKind.HammerSlam), "nothing is hurt during the wind-up");
+        step(0.1f + 1.2f);
+        float[] took = dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        Console.WriteLine("  hammer slam: near {0:0.0}, inside {1:0.0}, outside {2:0.0}", took[0], took[1], took[2]);
+        Check(g.Effects.Any(e => e.Kind == FxKind.HammerSlam) || took[0] > 0f, "the impact sends the shockwave effect");
+        Check(took[0] >= me.Weapon.Damage * Game.HammerSlamDmg && took[1] >= me.Weapon.Damage * Game.HammerSlamDmg, "the wave hurts every enemy it crosses for the slam's damage (plus the electrify arcs)");
+        Check(took[2] == 0f, "an enemy beyond the wave's reach is not hurt");
         host.Leave("");
     }
 

@@ -1143,6 +1143,8 @@ namespace Arena
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
+            TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand
+            TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets

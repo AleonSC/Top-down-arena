@@ -281,6 +281,11 @@ namespace Arena
                     Hold(0.04f + 0.03f * hp);
                     Shake(0.1f + 0.26f * hp);  // Quake: the ground takes it, so it kicks harder
                 }
+                if (fx.Kind == FxKind.HammerSlam && me != null && me.Pos.DistanceTo(fx.Pos2) < 40f)
+                {
+                    Hold(0.06f);  // your own Storm Hammer slam: the picture holds and the ground kicks
+                    Shake(0.3f);
+                }
                 if (fx.Kind == FxKind.Slash && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && fx.Radius > 1f && me.Pos.DistanceTo(fx.Pos) < 44f)
                 {
                     float gr = fx.Pos2.DistanceTo(fx.Pos), ga = (fx.Pos2 - fx.Pos).Angle;
@@ -841,6 +846,7 @@ namespace Arena
                     GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) || IsFlakBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));
                 }
             DrawWeatherGlow();  // Ambience.cs
+            DrawHammerGlow();   // the Storm Hammer: slam flash, ring, throw release (StormHammerLook.cs)
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
             DrawKatanaGlow();   // the Katana's Alt strike: the beam, the flash (KatanaLook.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)

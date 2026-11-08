@@ -911,6 +911,8 @@ namespace Arena
             SeedHit(b, e);      // Sprite Staff seeds and fireflies stick (KitWeapons.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (KitWeapons.cs)
+            if (b.Kind == Defs.HammerShot)
+                HammerStrikeFx(e.Pos);  // a bolt from the sky where it landed (StormHammer.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts
             {
                 if (!b.Pierced && b.Kind == Defs.FlameShot)  // a flame does full damage to the first enemy, a third to the ones behind

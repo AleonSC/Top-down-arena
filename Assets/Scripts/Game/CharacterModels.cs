@@ -445,7 +445,7 @@ namespace Arena
                     MCirc(16f, 0f, 2f, Hx(0xe8fbff), 8);
                     break;
                 case WeaponId.StormHammer:
-                    MLine(-6f, 0f, 22f, 0f, 3f, MWood); MRect(20f, -8f, 12f, 16f, Hx(0x7d8796)); MRect(26f, -8f, 3f, 16f, Hx(0xffe04a)); MLine(32f, -4f, 36f, -1f, 1.2f, Hx(0xffe04a)); MLine(36f, -1f, 33f, 3f, 1.2f, Hx(0xffe04a));
+                    DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam
                     break;
                 case WeaponId.RadiantOrb:
                     MCirc(12f, 0f, 10f, Hx(0xffe078, 0.25f), 14); MCirc(12f, 0f, 6.5f, Hx(0xffe9a0), 12); MCirc(12f, 0f, 3.5f, MWhite, 10); MArc(12f, 0f, 9.5f, t * 2f, t * 2f + 2.5f, 1.5f, Hx(0xffd24a));

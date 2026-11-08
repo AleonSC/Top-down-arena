@@ -544,6 +544,29 @@ static partial class Shot {
       me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.2f; host.Game.Bot = false;
       host.Game.Effects.Add(new Effect { Kind = FxKind.Repulse, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 253f, Color = new Rgba(0.55f, 0.95f, 1f), Radius = 0.61f, Dur = Game.RepulseFxTime, T = rt });
     }
+    if (Environment.GetEnvironmentVariable("HAMMERFX") != null) {
+      // The Storm Hammer's throw and slam (StormHammerLook.cs). HAMMERFX=throw:<s since the click> | slam:<s since the click> | wave:<s since the impact>
+      var hp = Environment.GetEnvironmentVariable("HAMMERFX").Split(':');
+      float ha = float.Parse(hp[1], System.Globalization.CultureInfo.InvariantCulture);
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      var hw = System.Array.Find(Defs.Weapons, x => x.Id == WeaponId.StormHammer); me.Weapon = hw; me.Kit = hw.Kit;
+      me.Pos = me.Disp = new V2(330f, 450f); me.Aim = 0f; me.DrawT = 0f;
+      V2 crater = me.Pos + new V2(Game.HammerSlamReach, 0f);
+      var foes = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values); foes.RemoveAll(x => x.Def.IsBoss);
+      float[][] spots = { new[] { 120f, 0f }, new[] { 170f, -1.1f }, new[] { 175f, 1.0f }, new[] { 230f, 0.3f }, new[] { 250f, -0.5f }, new[] { 90f, 2.6f } };
+      for (int k = 0; k < foes.Count && k < spots.Length; k++) foes[k].Pos = foes[k].Disp = crater + V2.FromAngle(spots[k][1]) * spots[k][0];
+      for (int k = spots.Length; k < foes.Count; k++) foes[k].Pos = foes[k].Disp = new V2(1500f, 120f + 30f * k);
+      if (hp[0] == "throw") {
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerThrow, Pos = me.Pos, Pos2 = new V2(0f, 0f), Color = Game.HammerStormColor, Radius = me.Id, T = ha, Dur = Game.HammerThrowDur });
+        var sbt = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+        if (ha >= Game.HammerThrowRelease) { var hb = sbt.Invoke(gm, new object[] { Defs.HammerShot, me.Pos + new V2(32f, 0f), new V2(460f, 0f), 0f, 1.1f, 40f, me.Id, false, 0f }) as Bullet; if (hb != null) hb.Pos += new V2(460f * (ha - Game.HammerThrowRelease), 0f); }
+      } else if (hp[0] == "slam") {
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerThrow, Pos = me.Pos, Pos2 = new V2(1f, 0f), Color = Game.HammerStormColor, Radius = me.Id, T = ha, Dur = Game.HammerSlamBack });
+      } else {
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerThrow, Pos = me.Pos, Pos2 = new V2(1f, 0f), Color = Game.HammerStormColor, Radius = me.Id, T = ha + Game.HammerSlamWind, Dur = Game.HammerSlamBack });
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerSlam, Pos = crater, Pos2 = me.Pos, Color = Game.HammerStormColor, Radius = Game.HammerSlamRadius, T = ha, Dur = 2.4f });
+      }
+    }
     if (Environment.GetEnvironmentVariable("HAMMER") != null) {
       // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.
       var sbh = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

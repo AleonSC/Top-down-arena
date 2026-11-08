@@ -684,7 +684,7 @@ namespace Arena
 
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
-        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9;
+        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 10;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -1002,6 +1002,19 @@ namespace Arena
                 me.KunaiMarkT = 0f;  // used (the host's next snapshot agrees)
                 return;
             }
+            if (LocalHammerSlamReady(me, pressed, dt))
+            {
+                if (IsHost)
+                    HostWeaponDash(MyId, DashHammerSlam, aimAt);  // no move: the hammer lands ahead of where you stand
+                else
+                {
+                    var hw = Proto.Begin(Msg.WeaponDash);
+                    hw.Write(DashHammerSlam);
+                    hw.Write(aimAt);
+                    session.SendToHost(Proto.End(hw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.BoStaff && pressed)
             {
                 if (IsHost)
@@ -1085,6 +1098,11 @@ namespace Arena
             if (kind == DashKatana)
             {
                 HostKatanaStrike(p, target);
+                return;
+            }
+            if (kind == DashHammerSlam)
+            {
+                HostHammerSlam(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashJab)
