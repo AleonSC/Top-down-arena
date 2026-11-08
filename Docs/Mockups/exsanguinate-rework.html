@@ -1,0 +1,766 @@
+<title>Exsanguinate Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead, one big animated arena with controls, then one card per take (click to play it), then shared rules and open questions.
+   Single dark look, the Hemomancer's blood palette. */
+:root{
+  --bg:#10050a; --panel:#1c0a10; --fg:#f1e4e4; --muted:#b48c93; --line:#3a1620;
+  --acc:#ff4d5e; --acc2:#8c0f27; --arena:#0a0507;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+h1{font:700 clamp(40px,7vw,72px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 14px;text-wrap:balance}
+header p{margin:0;max-width:64ch;color:var(--muted);font-size:17px}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px;color:var(--acc);text-wrap:balance}
+h3{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 18px 60px -22px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:760/440;cursor:crosshair}
+.badge{position:absolute;left:12px;top:10px;font:700 18px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--fg);text-shadow:0 2px 8px #000;pointer-events:none}
+.badge small{display:block;font:500 11px var(--mono);letter-spacing:.1em;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--panel);color:var(--fg)}
+.seg input:checked+label{background:var(--acc);color:#12060a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--acc);color:#12060a;border-color:var(--acc)}
+.slider,.chk{display:flex;align-items:center;gap:8px;font:500 13px var(--mono);color:var(--muted)}
+.slider output{color:var(--fg);min-width:4ch}
+input[type=range]{accent-color:var(--acc);width:110px}
+input[type=checkbox]{accent-color:var(--acc)}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:72ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.card{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:18px;display:flex;flex-direction:column;gap:10px;cursor:pointer;min-width:0}
+.card:hover{border-color:var(--acc2)}
+.card.on{border-color:var(--acc);box-shadow:0 0 36px -14px var(--acc)}
+.card:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.card .tag{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.card p{margin:0;font-size:15px}
+.card ol{margin:0;padding-left:20px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.card ol b{color:var(--fg);font-weight:600}
+.tl{display:flex;height:22px;border-radius:4px;overflow:hidden;font:500 10px var(--mono);margin-top:auto}
+.tl div{display:flex;align-items:center;padding:0 5px;white-space:nowrap;overflow:hidden;color:#12060a}
+.tlab{display:flex;justify-content:space-between;font:500 11px var(--mono);color:var(--muted)}
+dl.rules{display:grid;grid-template-columns:max-content minmax(0,1fr);margin:0;border-top:1px solid var(--line)}
+dl.rules dt,dl.rules dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+dl.rules dt{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);padding-right:22px}
+dl.rules dd{font-size:15px}
+ul.q{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:column;gap:8px}
+code{font:400 13px var(--mono);color:var(--fg)}
+@media (max-width:560px){dl.rules{grid-template-columns:1fr}dl.rules dt{padding-bottom:0;border-bottom:0}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">Hemomancer · Tank · ability rework mockup</p>
+  <h1>Exsanguinate</h1>
+  <p>Blood tendrils burst out of you and out of every enemy in a wide ring. They reach for each other, touch, knot, and reel the enemies in to you while their blood runs down the strand into you. Three takes on it, plus today's version for comparison.</p>
+</header>
+
+<section class="stage" aria-label="Animated preview">
+  <div class="frame">
+    <canvas id="cv" width="760" height="440" aria-label="Top-down arena: the Hemomancer casting Exsanguinate on the enemies around them"></canvas>
+    <div class="badge" id="badge">Vein Net<small>take A</small></div>
+  </div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Take">
+      <input type="radio" name="v" id="v-net" value="net" checked><label for="v-net">A · Vein Net</label>
+      <input type="radio" name="v" id="v-lash" value="lash"><label for="v-lash">B · Barbed Lash</label>
+      <input type="radio" name="v" id="v-heart" value="heart"><label for="v-heart">C · Heartstrings</label>
+      <input type="radio" name="v" id="v-cur" value="cur"><label for="v-cur">Today</label>
+    </div>
+    <button class="primary" id="cast">Cast</button>
+    <button id="reset">New enemies</button>
+  </div>
+  <div class="controls">
+    <label class="slider" for="speed">Speed <input type="range" id="speed" min="0.15" max="1" step="0.05" value="1"><output id="speedo">1.00×</output></label>
+    <label class="slider" for="count">Enemies <input type="range" id="count" min="2" max="12" step="1" value="7"><output id="counto">7</output></label>
+    <label class="chk" for="heavy"><input type="checkbox" id="heavy"> Heavy in range</label>
+    <label class="chk" for="loop"><input type="checkbox" id="loop" checked> Auto-recast</label>
+    <label class="chk" for="reach"><input type="checkbox" id="reach"> Show reach</label>
+  </div>
+  <p class="hint">Click the arena to move the Hemomancer there and cast. The two enemies past the ring are out of reach and stay put. Tick <b>Heavy in range</b> to see a brute that can't be moved: the tendrils go taut and strain, but it is still drained. Slow it down to 0.25× to see the tendrils touch.</p>
+</section>
+
+<section aria-label="The takes">
+  <h2>Three takes</h2>
+  <div class="cards" id="cards">
+    <article class="card on" data-v="net" tabindex="0">
+      <span class="tag">Take A · 2.7 s show</span>
+      <h3>Vein Net</h3>
+      <p>Your veins crack across the floor out to the edge of the ring. A tendril grows from you toward each enemy, and one bursts out of the enemy toward you. They meet halfway, splice into a knot, and reel in smoothly.</p>
+      <ol>
+        <li><b>0.0 s</b> veins race out to 220 px</li>
+        <li><b>0.25 s</b> tendrils grow from both ends</li>
+        <li><b>0.7 s</b> they touch: knot and flash</li>
+        <li><b>0.95 s</b> the reel, faster as it closes</li>
+        <li><b>1.45 s</b> enemies land on you: drain</li>
+      </ol>
+      <div class="tl"><div style="flex:25;background:#8c0f27;color:#fff">veins</div><div style="flex:45;background:#d92a3d">reach</div><div style="flex:25;background:#ff8a94">knot</div><div style="flex:50;background:#ff4d5e">reel</div><div style="flex:80;background:#3a1620;color:#b48c93">drain</div></div>
+    </article>
+    <article class="card" data-v="lash" tabindex="0">
+      <span class="tag">Take B · 2.0 s show</span>
+      <h3>Barbed Lash</h3>
+      <p>Fast and violent. Barbed tendrils whip out of you and hook each enemy almost at arm's length. The hook rips the enemy's own veins out, the two braid together, then one hard yank throws them spinning into you.</p>
+      <ol>
+        <li><b>0.1 s</b> whips crack out to the ring</li>
+        <li><b>0.34 s</b> hook: the enemy's veins tear out</li>
+        <li><b>0.46 s</b> they braid</li>
+        <li><b>0.62 s</b> yank, enemies spin in</li>
+        <li><b>0.88 s</b> impact burst: drain</li>
+      </ol>
+      <div class="tl"><div style="flex:22;background:#d92a3d">whip</div><div style="flex:12;background:#ff8a94">hook</div><div style="flex:16;background:#8c0f27;color:#fff">braid</div><div style="flex:26;background:#ff4d5e">yank</div><div style="flex:60;background:#3a1620;color:#b48c93">drain</div></div>
+    </article>
+    <article class="card" data-v="heart" tabindex="0">
+      <span class="tag">Take C · 3.6 s show</span>
+      <h3>Heartstrings</h3>
+      <p>Slow and ritual, set to your heartbeat. Each enemy's heart glows and a tendril creeps out of it as yours reach out like seaweed. They tie on a beat, then three heartbeats tug them in a third of the way each, draining a third each time.</p>
+      <ol>
+        <li><b>0.15 s</b> first beat: a ring to 220 px</li>
+        <li><b>0.2 s</b> hearts glow, tendrils creep</li>
+        <li><b>0.85 s</b> second beat: they tie</li>
+        <li><b>1.45 / 1.95 / 2.45 s</b> tug, tug, TUG</li>
+        <li>each tug drains 7 (20 in all)</li>
+      </ol>
+      <div class="tl"><div style="flex:20;background:#8c0f27;color:#fff">beat</div><div style="flex:65;background:#d92a3d">creep</div><div style="flex:60;background:#ff8a94">tie</div><div style="flex:120;background:#ff4d5e">3 tugs</div><div style="flex:50;background:#3a1620;color:#b48c93">let go</div></div>
+    </article>
+    <article class="card" data-v="cur" tabindex="0">
+      <span class="tag">Today · 0.5 s show</span>
+      <h3>Current Exsanguinate</h3>
+      <p>For comparison: a ring closes in, enemies jump 60 px toward you at once, and a thin stream of drops runs from where each one stood. It reads as a tug, not a grab.</p>
+      <ol>
+        <li><b>0.0 s</b> ring closes in (Implode)</li>
+        <li><b>0.0 s</b> enemies snap 60 px in</li>
+        <li><b>0.0–0.5 s</b> drain streams (FxKind.Drain)</li>
+      </ol>
+      <div class="tl"><div style="flex:40;background:#ff4d5e">ring + snap</div><div style="flex:60;background:#3a1620;color:#b48c93">streams</div></div>
+    </article>
+  </div>
+</section>
+
+<section aria-label="Rules">
+  <h2>What would change</h2>
+  <dl class="rules">
+    <dt>Cost, reach, drain</dt><dd>Kept: 10% of max health, 220 px, 20 drained from each and healed to you, 8 s cooldown. Deep Veins still reaches 30% farther and drains 50% more.</dd>
+    <dt>The pull</dt><dd>Today it moves enemies 60 px in at once. The rework reels them all the way in to touching you, over the show (A 0.5 s, B 0.26 s, C three tugs). They are stunned while held, so they can't shoot on the way in.</dd>
+    <dt>When the drain lands</dt><dd>On arrival (A, B), or a third on each tug (C), not at the cast. An enemy that dies on the way in lets go of its tendril and its blood splashes into you.</dd>
+    <dt>Heavy enemies, bosses</dt><dd>Not moved, as today. The tendrils go taut and strain against them, and they still get drained.</dd>
+    <dt>Mastered</dt><dd>Kept: drained enemies are slowed 50% for 2 s. They now arrive in a clump at your feet, which sets up Blood Lash and Crimson Pact.</dd>
+    <dt>Network</dt><dd>A new <code>FxKind</code> at the end of the list (one per held enemy, with its id, so the client can draw the tendril to wherever it is now), and a protocol bump. The pull itself is server-side movement, already replicated.</dd>
+  </dl>
+</section>
+
+<section aria-label="Open questions">
+  <h2>Open questions</h2>
+  <ul class="q">
+    <li>Which take? B feels best in a fight; C looks best but holds enemies for 2.5 s, which is a lot of crowd control for an 8 s cooldown.</li>
+    <li>Pull everything to touching you, or stop at Blood Lash range (about 100 px) so the follow-up lash's tip hits them for double?</li>
+    <li>Should allies in the ring get a thin tendril too and share the heal (Blood Gift style)?</li>
+    <li>Should the cast lock you in place while you reel, or can you keep walking and drag them with you?</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const W = 760, H = 440, R = 170;              // 220 game px drawn at 0.77
+const PR = 14;
+const dpr = Math.min(2, window.devicePixelRatio || 1);
+cv.width = W * dpr; cv.height = H * dpr;
+const decal = document.createElement('canvas'); decal.width = W; decal.height = H;
+const dctx = decal.getContext('2d');
+const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const C = { dark:'#3d030b', mid:'#b0122a', red:'#d92a3d', hi:'#ff7a86', glow:'#ff4d5e', bone:'#f1e4e4' };
+const clamp = (x,a=0,b=1) => Math.max(a, Math.min(b, x));
+const lerp = (a,b,t) => a + (b-a)*t;
+const eOutC = t => 1 - Math.pow(1-t, 3), eInC = t => t*t*t, eInQ = t => t*t*t*t;
+const eOutBack = t => { const c=1.9; return 1 + (c+1)*Math.pow(t-1,3) + c*Math.pow(t-1,2); };
+const eIO = t => -(Math.cos(Math.PI*t) - 1) / 2;
+const rnd = (a,b) => a + Math.random()*(b-a);
+
+// ---------- state ----------
+let variant = 'net', speed = 1, count = 7, heavyOn = false, loopOn = true, reachOn = false;
+const P = { x: W/2, y: H/2, hp: 230, max: 300, glow: 0, pulse: 0 };
+let respawned = false, enemies = [], cast = null, idleT = 0, shake = 0, freeze = 0, time = 0;
+const parts = [], nums = [], rings = [];
+let veins = [];
+
+function makeEnemies() {
+  enemies = [];
+  const n = count;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + rnd(-0.35, 0.35);
+    const d = rnd(R * 0.4, R * 0.93);
+    const kind = Math.random() < 0.3 ? 'runner' : 'grunt';
+    addEnemy(P.x + Math.cos(a)*d, P.y + Math.sin(a)*d, kind);
+  }
+  if (heavyOn) { const a = rnd(0, Math.PI*2); addEnemy(P.x + Math.cos(a)*R*0.7, P.y + Math.sin(a)*R*0.7, 'brute'); }
+  // two out of reach, off to the sides
+  for (const side of [-1, 1]) {
+    const a = (side < 0 ? Math.PI : 0) + rnd(-0.3, 0.3), d = R * rnd(1.18, 1.35);
+    addEnemy(clamp(P.x + Math.cos(a)*d, 20, W-20), clamp(P.y + Math.sin(a)*d, 20, H-20), 'grunt');
+  }
+  // keep them apart
+  for (let k = 0; k < 30; k++) for (const a of enemies) for (const b of enemies) {
+    if (a === b) continue;
+    const dx = b.x-a.x, dy = b.y-a.y, d = Math.hypot(dx,dy)||1, m = a.r+b.r+6;
+    if (d < m) { const p = (m-d)/2; a.x -= dx/d*p; a.y -= dy/d*p; b.x += dx/d*p; b.y += dy/d*p; }
+  }
+}
+function addEnemy(x, y, kind) {
+  const k = { grunt:{r:11,col:'#6f8656',hp:60}, runner:{r:8,col:'#c49a45',hp:35}, brute:{r:20,col:'#5e6480',hp:400} }[kind];
+  enemies.push({ x, y, r:k.r, col:k.col, kind, hp:k.hp, max:k.hp, heavy: kind==='brute', flash:0, spin:0, spawn:0.35, heart:0, wob:rnd(0,9), dead:false });
+}
+
+// ---------- the four shows ----------
+// Each link is one held enemy. state(t) gives: gp/ge (how far your tendril and theirs have grown), m (where they meet,
+// 0 = at you, 1 = at them), joined, pull (0..1 of the way in), amp (how much the strand writhes), fade.
+const V = {
+  net: {
+    name:'Vein Net', tag:'take A', dur:2.7, delayMax:0.12, m:0.55,
+    state(t, L) {
+      const s = { m: 0.55 };
+      s.gp = eOutC(clamp((t-0.25)/0.45)); s.ge = eOutC(clamp((t-0.32)/0.40));
+      s.joined = t >= 0.72; if (s.joined) s.gp = s.ge = 1;
+      s.pull = eInC(clamp((t-0.95)/0.5));
+      s.m = lerp(0.55, 0.22, s.pull);
+      s.amp = s.joined ? lerp(7, 3, s.pull) + 6*Math.max(0, 1-(t-0.72)/0.2) : 18;
+      s.fade = clamp((t-2.05)/0.45);
+      s.wave = 5; s.twist = 0;
+      return s;
+    },
+    events: [{at:0.72, fn:'join'}, {at:1.45, fn:'arrive', amt:20}],
+  },
+  lash: {
+    name:'Barbed Lash', tag:'take B', dur:2.0, delayMax:0.06, m:0.8,
+    state(t, L) {
+      const s = { m: 0.8 };
+      s.gp = clamp(eOutBack(clamp((t-0.12)/0.22)), 0, 1.06); s.ge = eOutC(clamp((t-0.34)/0.12));
+      s.joined = t >= 0.46; if (s.joined) { s.gp = 1; s.ge = 1; }
+      s.pull = eInQ(clamp((t-0.62)/0.26));
+      s.m = lerp(0.8, 0.45, s.pull);
+      s.amp = s.joined ? lerp(9, 2, clamp((t-0.46)/0.3)) : 26;
+      s.wave = s.joined ? 6 : 16;  // the whip's travelling wave
+      s.twist = s.joined ? 5 * (1 - clamp((t-1.0)/0.3)) : 0;
+      s.fade = clamp((t-1.25)/0.35);
+      s.barbs = true;
+      return s;
+    },
+    events: [{at:0.34, fn:'hook'}, {at:0.46, fn:'join'}, {at:0.88, fn:'arrive', amt:20}],
+  },
+  heart: {
+    name:'Heartstrings', tag:'take C', dur:3.6, delayMax:0.04, m:0.5,
+    beats:[0.15, 0.85, 1.45, 1.95, 2.45],
+    state(t, L) {
+      const s = { m: 0.5 };
+      s.gp = eIO(clamp((t-0.2)/0.65)); s.ge = eIO(clamp((t-0.15)/0.7));
+      s.joined = t >= 0.85; if (s.joined) s.gp = s.ge = 1;
+      let pull = 0, imp = 0;
+      for (const tg of [1.45, 1.95, 2.45]) { const k = clamp((t-tg)/0.2); pull += eOutBack(k)/3; imp = Math.max(imp, k > 0 && k < 1 ? 1-k : 0); }
+      s.pull = clamp(pull, 0, 1.03);
+      s.m = lerp(0.5, 0.25, clamp(pull));
+      s.amp = s.joined ? 9 - 8*imp : 20;
+      s.wave = s.joined ? 3 : 2;
+      s.fade = clamp((t-2.9)/0.5);
+      s.twist = 0; s.heart = clamp((t-0.15)/0.3) * (1 - clamp((t-2.6)/0.4));
+      return s;
+    },
+    events: [{at:0.85, fn:'join'}, {at:1.45, fn:'tug', amt:7}, {at:1.95, fn:'tug', amt:7}, {at:2.45, fn:'tug', amt:6, last:true}],
+  },
+  cur: {
+    name:'Current Exsanguinate', tag:'today', dur:1.1, delayMax:0, m:0.5,
+    state(t, L) { return { gp:0, ge:0, joined:false, pull: eOutC(clamp(t/0.1)), amp:0, fade:1, m:0.5, wave:0, twist:0 }; },
+    events: [{at:0.0, fn:'arrive', amt:20}],
+  },
+};
+
+function startCast() {
+  if (cast) finishCast();
+  const v = V[variant];
+  P.hp = Math.max(40, P.hp - P.max * 0.1);
+  num(P.x, P.y - 30, '-' + Math.round(P.max*0.1), '#ff9aa3', 13);
+  splat(P.x, P.y, 10, 90, 0, Math.PI*2, 2.2);
+  const links = [];
+  for (const e of enemies) {
+    if (e.dead) continue;
+    const d = Math.hypot(e.x-P.x, e.y-P.y);
+    if (d > R + e.r) continue;
+    const ang = Math.atan2(e.y-P.y, e.x-P.x);
+    let ex, ey;
+    if (variant === 'cur') { const nd = Math.max(d - 46, PR + e.r + 4); ex = P.x + Math.cos(ang)*nd; ey = P.y + Math.sin(ang)*nd; }
+    else { ex = P.x + Math.cos(ang)*(PR+e.r+5); ey = P.y + Math.sin(ang)*(PR+e.r+5); }
+    if (e.heavy) { ex = e.x + Math.cos(ang)*-6; ey = e.y + Math.sin(ang)*-6; }
+    links.push({ e, sx:e.x, sy:e.y, ex, ey, ang, delay: v.delayMax * (d/R), ph: rnd(0, 6.28), side: Math.random()<0.5?-1:1, fired:new Set(), dist:d });
+  }
+  // the clump at your feet: push arrivals apart on the ring round you
+  const ends = links.filter(l => !l.e.heavy);
+  for (let k = 0; k < 40; k++) for (const a of ends) for (const b of ends) {
+    if (a === b) continue;
+    const dx = b.ex-a.ex, dy = b.ey-a.ey, d = Math.hypot(dx,dy)||1, m = a.e.r+b.e.r+2;
+    if (d < m) { const p=(m-d)/2; a.ex-=dx/d*p; a.ey-=dy/d*p; b.ex+=dx/d*p; b.ey+=dy/d*p; }
+    for (const l of [a,b]) { const ax=l.ex-P.x, ay=l.ey-P.y, al=Math.hypot(ax,ay)||1, want=Math.max(al, PR+l.e.r+5); l.ex=P.x+ax/al*want; l.ey=P.y+ay/al*want; }
+  }
+  // floor veins for the reach (take A and C), whips for take B
+  veins = [];
+  const nv = variant === 'lash' ? 10 : 16;
+  for (let i = 0; i < nv; i++) {
+    const a = i/nv*Math.PI*2 + rnd(-0.15,0.15), pts = [];
+    let x = 0, y = 0, aa = a;
+    const steps = 14;
+    for (let k = 0; k <= steps; k++) { pts.push([x,y]); aa += rnd(-0.35,0.35); const st = R/steps*rnd(0.9,1.1); x += Math.cos(aa)*st; y += Math.sin(aa)*st; }
+    const br = [];
+    for (let b = 0; b < 2; b++) { const at = 4 + Math.floor(rnd(0, 8)), bp = []; let [bx,by] = pts[at]; let ba = a + (Math.random()<0.5?-1:1)*rnd(0.5,1); for (let k=0;k<5;k++){ bp.push([bx,by]); ba+=rnd(-0.4,0.4); bx+=Math.cos(ba)*9; by+=Math.sin(ba)*9; } br.push({at, bp}); }
+    veins.push({ a, pts, br, ph: rnd(0,6) });
+  }
+  cast = { v: variant, t: 0, links, fired: new Set() };
+  if (variant === 'cur') rings.push({ x:P.x, y:P.y, t:0, dur:0.4, r0:R, r1:8, w:4, col:C.red, implode:true });
+  else if (variant === 'net') rings.push({ x:P.x, y:P.y, t:0, dur:0.35, r0:10, r1:R, w:3, col:C.glow });
+  else if (variant === 'lash') { rings.push({ x:P.x, y:P.y, t:0, dur:0.22, r0:10, r1:R, w:5, col:C.hi }); shake = Math.max(shake, 3); }
+  P.glow = 1;
+}
+function finishCast() {
+  if (!cast) return;
+  for (const L of cast.links) if (!L.e.heavy && !L.e.dead) { L.e.x = L.ex; L.e.y = L.ey; }
+  cast = null;
+}
+
+// ---------- effects ----------
+function splat(x, y, n, sp, dir, spread, size=2.5) {
+  for (let i = 0; i < n; i++) {
+    const a = dir + rnd(-spread/2, spread/2), v = sp * rnd(0.3, 1);
+    parts.push({ x, y, vx:Math.cos(a)*v, vy:Math.sin(a)*v, life:0, max:rnd(0.35,0.8), r:size*rnd(0.6,1.4), stain: Math.random()<0.55 });
+  }
+}
+function num(x, y, text, col, size=15) { nums.push({ x, y, text, col, size, t:0 }); }
+let healNum = null;
+function heal(a) {
+  P.hp = Math.min(P.max, P.hp + a); P.pulse = 1;
+  if (healNum && healNum.t < 0.35) { healNum.v += a; healNum.text = '+' + healNum.v; healNum.t = 0.05; }
+  else { healNum = { x:P.x+16, y:P.y-24, v:a, text:'+'+a, col:'#7dff9c', size:17, t:0 }; nums.push(healNum); }
+}
+function hurt(e, a, dir) {
+  e.hp -= a; e.flash = 1;
+  num(e.x, e.y - e.r - 6, '-' + a, '#ffd1d5', 13);
+  splat(e.x, e.y, 8, 120, dir, 1.4, 2.4);
+  if (e.hp <= 0 && !e.dead) { e.dead = true; splat(e.x, e.y, 22, 160, 0, Math.PI*2, 3); }
+}
+function fire(L, ev, v) {
+  const e = L.e, back = Math.atan2(P.y-e.y, P.x-e.x);
+  if (ev.fn === 'hook') { splat(e.x, e.y, 14, 150, back, 1.0, 2.6); e.flash = 1; shake = Math.max(shake, 2); }
+  if (ev.fn === 'join') {
+    const k = linkGeom(L, v.state(cast.t - L.delay, L)); const j = curvePt(k, k.s.m);
+    rings.push({ x:j.x, y:j.y, t:0, dur:0.3, r0:2, r1:16, w:2.5, col:C.hi });
+    splat(j.x, j.y, 6, 80, 0, Math.PI*2, 1.8);
+    if (cast.v === 'lash') freeze = Math.max(freeze, 0.045);
+  }
+  if (ev.fn === 'arrive' || ev.fn === 'tug') {
+    hurt(e, ev.amt, back + Math.PI); heal(ev.amt);
+    if (cast.v !== 'cur') { shake = Math.max(shake, cast.v === 'lash' ? 7 : 4); freeze = Math.max(freeze, cast.v === 'lash' ? 0.07 : 0.04); }
+    if (ev.fn === 'arrive' && cast.v !== 'cur' && !cast.fired.has('burst')) {
+      cast.fired.add('burst');
+      rings.push({ x:P.x, y:P.y, t:0, dur:0.4, r0:PR, r1:60, w:5, col:C.glow });
+      splat(P.x, P.y, 20, 140, 0, Math.PI*2, 2.4);
+    }
+    if (ev.last && !cast.fired.has('burst')) { cast.fired.add('burst'); rings.push({ x:P.x, y:P.y, t:0, dur:0.45, r0:PR, r1:70, w:5, col:C.glow }); }
+  }
+}
+
+// ---------- tendril geometry ----------
+function linkGeom(L, s) {
+  const e = L.e;
+  const ax = P.x, ay = P.y, bx = e.x, by = e.y;
+  const dx = bx-ax, dy = by-ay, len = Math.hypot(dx,dy) || 1, ux = dx/len, uy = dy/len;
+  const A = { x: ax + ux*(PR-2), y: ay + uy*(PR-2) }, B = { x: bx - ux*(e.r-2), y: by - uy*(e.r-2) };
+  return { A, B, ux, uy, nx:-uy, ny:ux, len: Math.hypot(B.x-A.x, B.y-A.y), s, L };
+}
+function curvePt(g, u) {
+  const { A, B, nx, ny, s, L } = g;
+  const env = Math.sin(Math.PI*u) * Math.min(1, g.len/90);
+  const w = s.wave || 0, tt = time;
+  let off = s.amp * env * (0.7*Math.sin(u*9 + L.ph + tt*w) + 0.3*Math.sin(u*21 - L.ph*1.7 + tt*w*1.6)) * L.side;
+  return { x: lerp(A.x,B.x,u) + nx*off, y: lerp(A.y,B.y,u) + ny*off };
+}
+// a tapered ribbon along the curve from u0 to u1, widths w0 -> w1
+function ribbon(g, u0, u1, w0, w1, twist, alpha) {
+  if (u1 - u0 < 0.002) return;
+  const N = Math.max(6, Math.ceil(28 * (u1-u0))), L = [], Rr = [], mid = [];
+  for (let i = 0; i <= N; i++) {
+    const u = lerp(u0, u1, i/N), p = curvePt(g, u), q = curvePt(g, Math.min(1, u + 0.01)), p0 = curvePt(g, Math.max(0, u - 0.01));
+    let tx = q.x-p0.x, ty = q.y-p0.y; const tl = Math.hypot(tx,ty)||1; tx/=tl; ty/=tl;
+    let x = p.x, y = p.y;
+    if (twist) { const o = twist*Math.sin(u*38 + time*10); x += -ty*o; y += tx*o; }
+    const w = lerp(w0, w1, i/N) / 2;
+    L.push([x - ty*w, y + tx*w]); Rr.push([x + ty*w, y - tx*w]); mid.push([x - ty*w*0.45, y + tx*w*0.45]);
+  }
+  const path = c => { c.beginPath(); c.moveTo(L[0][0], L[0][1]); for (const p of L) c.lineTo(p[0],p[1]); for (let i = Rr.length-1; i >= 0; i--) c.lineTo(Rr[i][0],Rr[i][1]); c.closePath(); };
+  ctx.globalAlpha = alpha;
+  ctx.lineJoin = 'round';
+  path(ctx); ctx.strokeStyle = C.dark; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.fillStyle = C.mid; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(mid[0][0], mid[0][1]); for (const p of mid) ctx.lineTo(p[0],p[1]);
+  ctx.strokeStyle = C.hi; ctx.lineWidth = 1; ctx.globalAlpha = alpha * 0.7; ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+function barbs(g, u0, u1, alpha) {
+  ctx.globalAlpha = alpha; ctx.fillStyle = C.dark;
+  for (let u = u0 + 0.06; u < u1 - 0.04; u += 0.09) {
+    const p = curvePt(g, u), q = curvePt(g, u + 0.02);
+    const tx = q.x-p.x, ty = q.y-p.y, tl = Math.hypot(tx,ty)||1, ax = tx/tl, ay = ty/tl;
+    for (const sd of [-1, 1]) {
+      ctx.beginPath(); ctx.moveTo(p.x - ay*sd*2, p.y + ax*sd*2);
+      ctx.lineTo(p.x - ay*sd*7 - ax*5, p.y + ax*sd*7 - ay*5); ctx.lineTo(p.x - ax*1, p.y - ay*1); ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+function hook(g, u, alpha) {
+  const p = curvePt(g, u), q = curvePt(g, Math.max(0, u - 0.03));
+  const a = Math.atan2(p.y-q.y, p.x-q.x);
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(a); ctx.globalAlpha = alpha;
+  ctx.beginPath(); ctx.moveTo(-3, 0); ctx.quadraticCurveTo(8, -9, 2, -12); ctx.quadraticCurveTo(4, -5, -3, -3);
+  ctx.moveTo(-3, 0); ctx.quadraticCurveTo(8, 9, 2, 12); ctx.quadraticCurveTo(4, 5, -3, 3);
+  ctx.fillStyle = C.bone; ctx.fill(); ctx.strokeStyle = C.dark; ctx.lineWidth = 1; ctx.stroke();
+  ctx.restore(); ctx.globalAlpha = 1;
+}
+
+function drawLink(L, v) {
+  const t = cast.t - L.delay, s = v.state(t, L);
+  if (cast.v === 'cur') return;
+  const g = linkGeom(L, s), al = 1 - s.fade, ws = 1 - 0.7*s.fade;
+  if (al <= 0.01) return;
+  const m = s.m, strain = L.e.heavy && s.joined ? 1 : 0;
+  if (strain) { s.amp = 1.2; }
+  // enemy's own tendril: from its body toward you
+  if (s.ge > 0) {
+    const u0 = s.joined ? m - (s.twist ? 0.12 : 0) : 1 - s.ge*(1-m);
+    ribbon(g, u0, 1, s.joined ? 3.5*ws : 1.2, 5.5*ws, s.twist, al);
+  }
+  // yours: from you toward it
+  if (s.gp > 0) {
+    const u1 = s.joined ? m + (s.twist ? 0.1 : 0) : Math.min(1, s.gp*m);
+    ribbon(g, 0, u1, 8*ws, s.joined ? 3.5*ws : 1.3, s.twist ? -s.twist : 0, al);
+    if (s.barbs) barbs(g, 0, u1, al);
+    if (s.barbs && !s.joined) hook(g, u1, al);
+  }
+  if (s.joined) {
+    // the knot where they touched
+    const j = curvePt(g, m), kp = 1 + 0.25*Math.sin(time*14 + L.ph);
+    ctx.globalAlpha = al;
+    ctx.beginPath(); ctx.arc(j.x, j.y, 5.2*kp*ws, 0, 7); ctx.fillStyle = C.mid; ctx.fill(); ctx.strokeStyle = C.dark; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(j.x-1.3, j.y-1.3, 1.8*ws, 0, 7); ctx.fillStyle = C.hi; ctx.fill();
+    // blood running down it into you
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 5; k++) {
+      const u = 1 - ((time*(cast.v==='lash'?2.2:1.4) + k/5 + L.ph) % 1);
+      const p = curvePt(g, u);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.4*ws, 0, 7); ctx.fillStyle = 'rgba(255,90,105,0.9)'; ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  }
+}
+
+// ---------- update ----------
+function update(dt) {
+  time += dt;
+  P.glow = Math.max(0, P.glow - dt*0.7); P.pulse = Math.max(0, P.pulse - dt*3);
+  for (const e of enemies) { e.flash = Math.max(0, e.flash - dt*5); e.spawn = Math.max(0, e.spawn - dt); }
+  if (cast) {
+    const v = V[cast.v];
+    cast.t += dt;
+    if (v.beats) for (const b of v.beats) if (cast.t >= b && !cast.fired.has('b'+b)) { cast.fired.add('b'+b); P.pulse = 1; rings.push({ x:P.x, y:P.y, t:0, dur:0.6, r0:PR, r1: b < 0.5 ? R : R*0.55, w: b < 0.5 ? 4 : 2.5, col:C.glow }); if (b > 1) shake = Math.max(shake, 2.5); }
+    for (const L of cast.links) {
+      const t = cast.t - L.delay, s = v.state(t, L), e = L.e;
+      if (e.dead) continue;
+      for (const ev of v.events) if (t >= ev.at && !L.fired.has(ev)) { L.fired.add(ev); fire(L, ev, v); }
+      const p = e.heavy ? Math.min(s.pull, 1) : s.pull;
+      e.x = lerp(L.sx, L.ex, p); e.y = lerp(L.sy, L.ey, p);
+      if (e.heavy && s.joined && s.fade < 1) { e.x += rnd(-1.2,1.2); e.y += rnd(-1.2,1.2); }
+      else if (s.joined && s.pull < 0.02) { e.x += rnd(-0.8,0.8); e.y += rnd(-0.8,0.8); }  // shudders on the hook
+      if (cast.v === 'lash' && s.pull > 0 && s.pull < 1) e.spin += dt * 22 * (1 - s.pull);
+      if (s.pull > 0.05 && s.pull < 0.98 && !e.heavy && Math.random() < dt*40) parts.push({ x:e.x+rnd(-3,3), y:e.y+rnd(-3,3), vx:0, vy:0, life:0, max:0.3, r:rnd(1.5,3.2), stain:true });
+      e.heart = s.heart || 0;
+    }
+    if (cast.t > v.dur) { finishCast(); idleT = 0; }
+  } else {
+    idleT += dt;
+    for (const e of enemies) {  // drift toward you
+      if (e.dead) continue;
+      const dx = P.x-e.x, dy = P.y-e.y, d = Math.hypot(dx,dy)||1;
+      if (d > PR + e.r + 8) { e.x += dx/d*dt*7; e.y += dy/d*dt*7; }
+    }
+    if (loopOn && idleT > 0.9 && !respawned) { makeEnemies(); respawned = true; }
+    if (loopOn && idleT > 1.3) { respawned = false; idleT = 0; startCast(); }
+  }
+  for (let i = parts.length-1; i >= 0; i--) {
+    const p = parts[i]; p.life += dt; p.x += p.vx*dt; p.y += p.vy*dt; p.vx *= Math.pow(0.02, dt); p.vy *= Math.pow(0.02, dt);
+    if (p.life >= p.max) { if (p.stain) { dctx.fillStyle = 'rgba(120,8,22,0.55)'; dctx.beginPath(); dctx.arc(p.x, p.y, p.r*1.1, 0, 7); dctx.fill(); } parts.splice(i,1); }
+  }
+  for (let i = nums.length-1; i >= 0; i--) { nums[i].t += dt; if (nums[i].t > 0.9) nums.splice(i,1); }
+  for (let i = rings.length-1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t > rings[i].dur) rings.splice(i,1); }
+  shake = Math.max(0, shake - dt*30);
+  // floor stains dry and fade
+  dctx.globalCompositeOperation = 'destination-out'; dctx.fillStyle = `rgba(0,0,0,${dt*0.12})`; dctx.fillRect(0,0,W,H); dctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------- draw ----------
+function drawFloor() {
+  ctx.fillStyle = '#0d0609'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.035)'; ctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 40) { ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
+  for (let y = 0; y <= H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
+  ctx.drawImage(decal, 0, 0, W, H);
+}
+function drawReach() {
+  const t = cast ? cast.t : 0, v = cast ? cast.v : variant;
+  let a = 0;
+  if (cast && v !== 'cur') a = clamp(t/0.3) * (1 - clamp((t - (V[v].dur - 0.6))/0.6));
+  if (a > 0) {  // the ground under the reach darkens with blood
+    const gr = ctx.createRadialGradient(P.x, P.y, 10, P.x, P.y, R);
+    gr.addColorStop(0, `rgba(120,6,22,${0.32*a})`); gr.addColorStop(0.85, `rgba(90,4,16,${0.18*a})`); gr.addColorStop(1, `rgba(255,60,80,${0.25*a})`);
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(P.x, P.y, R, 0, 7); ctx.fill();
+  }
+  if (reachOn || a > 0) {
+    ctx.setLineDash([6, 7]); ctx.lineDashOffset = -time*20;
+    ctx.strokeStyle = `rgba(255,77,94,${reachOn ? 0.45 : 0.4*a})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(P.x, P.y, R, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+function drawVeins() {
+  if (!cast || cast.v === 'cur') return;
+  const t = cast.t, v = cast.v;
+  if (v === 'lash') {  // whips cracking out to the edge and back
+    const k = clamp((t-0.08)/0.3), out = k < 0.5 ? eOutC(k*2) : 1 - eInC((k-0.5)*2);
+    if (k <= 0 || k >= 1) return;
+    for (const vn of veins) {
+      const g = { A:{x:P.x+Math.cos(vn.a)*PR, y:P.y+Math.sin(vn.a)*PR}, B:{x:P.x+Math.cos(vn.a)*R, y:P.y+Math.sin(vn.a)*R}, nx:-Math.sin(vn.a), ny:Math.cos(vn.a), len:R, s:{amp:16, wave:22}, L:{ph:vn.ph, side:1} };
+      ribbon(g, 0, out, 5, 1, 0, 0.75);
+      if (out > 0.85) { const p = curvePt(g, out); ctx.globalAlpha = 0.6; ctx.strokeStyle = C.hi; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
+    }
+    return;
+  }
+  const grow = v === 'net' ? eOutC(clamp(t/0.38)) : eOutC(clamp((t-0.15)/0.5));
+  const fade = 1 - clamp((t - (V[v].dur - 0.7))/0.7);
+  let beat = 0;
+  if (v === 'heart') for (const b of V.heart.beats) { const k = t - b; if (k > 0 && k < 0.4) beat = Math.max(beat, 1 - k/0.4); }
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const vn of veins) {
+    const n = vn.pts.length - 1, upto = grow * n;
+    for (let pass = 0; pass < 2; pass++) {
+      ctx.beginPath();
+      for (let i = 0; i <= Math.floor(upto); i++) { const p = vn.pts[i]; i ? ctx.lineTo(P.x+p[0], P.y+p[1]) : ctx.moveTo(P.x+p[0], P.y+p[1]); }
+      const fi = Math.floor(upto), fr = upto - fi;
+      if (fi < n) { const a = vn.pts[fi], b = vn.pts[fi+1]; ctx.lineTo(P.x+lerp(a[0],b[0],fr), P.y+lerp(a[1],b[1],fr)); }
+      ctx.strokeStyle = pass ? `rgba(255,${90+100*beat},${105+60*beat},${(0.55+0.4*beat)*fade})` : `rgba(60,2,10,${0.8*fade})`;
+      ctx.lineWidth = pass ? 1.4 + 1.5*beat : 4;
+      ctx.stroke();
+    }
+    for (const b of vn.br) if (upto > b.at + 1) {
+      ctx.beginPath(); b.bp.forEach((p,i) => i ? ctx.lineTo(P.x+p[0], P.y+p[1]) : ctx.moveTo(P.x+p[0], P.y+p[1]));
+      ctx.strokeStyle = `rgba(200,30,50,${0.5*fade})`; ctx.lineWidth = 1; ctx.stroke();
+    }
+    if (grow < 1 && grow > 0) { const fi = Math.min(n, Math.floor(upto)), p = vn.pts[fi]; ctx.fillStyle = `rgba(255,140,150,${fade})`; ctx.beginPath(); ctx.arc(P.x+p[0], P.y+p[1], 2, 0, 7); ctx.fill(); }
+  }
+}
+function drawEnemy(e) {
+  if (e.dead) return;
+  const sp = e.spawn > 0 ? 1 - e.spawn/0.35 : 1;
+  ctx.save(); ctx.translate(e.x, e.y); ctx.globalAlpha = sp;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, e.r*0.7, e.r*1.05, e.r*0.45, 0, 0, 7); ctx.fill();
+  ctx.rotate(e.spin);
+  const look = Math.atan2(P.y-e.y, P.x-e.x) - e.spin;
+  ctx.fillStyle = e.flash > 0 ? mix(e.col, '#ffffff', e.flash*0.8) : e.col;
+  ctx.strokeStyle = '#140a0c'; ctx.lineWidth = 2;
+  if (e.kind === 'brute') { ctx.beginPath(); roundRect(-e.r, -e.r, e.r*2, e.r*2, 5); ctx.fill(); ctx.stroke(); }
+  else if (e.kind === 'runner') { ctx.beginPath(); ctx.moveTo(Math.cos(look)*e.r*1.3, Math.sin(look)*e.r*1.3); ctx.lineTo(Math.cos(look+2.4)*e.r, Math.sin(look+2.4)*e.r); ctx.lineTo(Math.cos(look-2.4)*e.r, Math.sin(look-2.4)*e.r); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  else { ctx.beginPath(); ctx.arc(0, 0, e.r, 0, 7); ctx.fill(); ctx.stroke(); }
+  if (e.heart > 0) {  // Heartstrings: its heart glows through
+    const b = e.heart * (0.6 + 0.4*Math.sin(time*9 + e.wob));
+    ctx.globalCompositeOperation = 'lighter';
+    const gr = ctx.createRadialGradient(0,0,0,0,0,e.r*1.4); gr.addColorStop(0, `rgba(255,60,80,${0.9*b})`); gr.addColorStop(1, 'rgba(255,60,80,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0,0,e.r*1.4,0,7); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  for (const sd of [-1, 1]) {  // eyes on you
+    const ex = Math.cos(look)*e.r*0.42 + Math.cos(look+Math.PI/2)*sd*e.r*0.32, ey = Math.sin(look)*e.r*0.42 + Math.sin(look+Math.PI/2)*sd*e.r*0.32;
+    ctx.fillStyle = '#f4e9d8'; ctx.beginPath(); ctx.arc(ex, ey, Math.max(1.8, e.r*0.2), 0, 7); ctx.fill();
+    ctx.fillStyle = '#c0102a'; ctx.beginPath(); ctx.arc(ex + Math.cos(look)*0.8, ey + Math.sin(look)*0.8, Math.max(1, e.r*0.1), 0, 7); ctx.fill();
+  }
+  ctx.restore();
+  if (e.hp < e.max) {
+    const w = e.r*2; ctx.fillStyle = '#000a'; ctx.fillRect(e.x-w/2, e.y-e.r-7, w, 3);
+    ctx.fillStyle = '#e04050'; ctx.fillRect(e.x-w/2, e.y-e.r-7, w*clamp(e.hp/e.max), 3);
+  }
+}
+function drawPlayer() {
+  const casting = cast && cast.v !== 'cur';
+  ctx.save(); ctx.translate(P.x, P.y);
+  // aura
+  const ga = Math.max(P.glow*0.8, P.pulse);
+  if (ga > 0) {
+    ctx.globalCompositeOperation = 'lighter';
+    const gr = ctx.createRadialGradient(0,0,4,0,0,46+20*P.pulse); gr.addColorStop(0, `rgba(255,60,80,${0.55*ga})`); gr.addColorStop(1, 'rgba(255,60,80,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0,0,66,0,7); ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+  }
+  // a crown of short tendrils writhing while you cast
+  if (casting) {
+    const k = Math.min(clamp(cast.t/0.3), 1 - clamp((cast.t - (V[cast.v].dur-0.6))/0.6));
+    for (let i = 0; i < 9; i++) {
+      const a = i/9*Math.PI*2 + time*0.6, len = (16 + 10*Math.sin(time*5+i*1.7)) * k;
+      ctx.beginPath(); ctx.moveTo(Math.cos(a)*PR*0.8, Math.sin(a)*PR*0.8);
+      const cx = Math.cos(a+0.5*Math.sin(time*6+i))*(PR+len*0.6), cy = Math.sin(a+0.5*Math.sin(time*6+i))*(PR+len*0.6);
+      ctx.quadraticCurveTo(cx, cy, Math.cos(a+0.3)*(PR+len), Math.sin(a+0.3)*(PR+len));
+      ctx.strokeStyle = C.dark; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke();
+      ctx.strokeStyle = C.mid; ctx.lineWidth = 2.2; ctx.stroke();
+    }
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0, PR*0.75, PR*1.1, PR*0.45, 0, 0, 7); ctx.fill();
+  const s = 1 + 0.12*P.pulse;
+  ctx.scale(s, s);
+  // robe and hood
+  ctx.fillStyle = '#4a0a16'; ctx.strokeStyle = '#12040a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, PR, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#6e1020'; ctx.beginPath(); ctx.moveTo(0, -PR-6); ctx.quadraticCurveTo(PR*0.95, -PR*0.1, PR*0.7, PR*0.45); ctx.lineTo(-PR*0.7, PR*0.45); ctx.quadraticCurveTo(-PR*0.95, -PR*0.1, 0, -PR-6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#12040a'; ctx.beginPath(); ctx.ellipse(0, -1, PR*0.5, PR*0.42, 0, 0, 7); ctx.fill();
+  const eg = 0.7 + 0.3*Math.max(P.glow, P.pulse);
+  ctx.fillStyle = `rgba(255,${70+80*P.pulse},90,${eg})`;
+  ctx.beginPath(); ctx.arc(-3.2, -1.5, 1.7, 0, 7); ctx.arc(3.2, -1.5, 1.7, 0, 7); ctx.fill();
+  ctx.restore();
+  // circling drops
+  for (let i = 0; i < 3; i++) {
+    const a = time*1.8 + i*2.094, rr = PR + 9 + 3*Math.sin(time*3+i);
+    ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(P.x+Math.cos(a)*rr, P.y+Math.sin(a)*rr*0.8, 2.6, 0, 7); ctx.fill();
+  }
+  // heart over you (take C)
+  if (cast && cast.v === 'heart') {
+    const k = Math.min(clamp(cast.t/0.2), 1 - clamp((cast.t-3.0)/0.4)), b = 1 + 0.35*P.pulse;
+    if (k > 0) { ctx.save(); ctx.translate(P.x, P.y - PR - 18); ctx.scale(b*k, b*k); ctx.fillStyle = C.glow; ctx.beginPath();
+      ctx.moveTo(0, 4); ctx.bezierCurveTo(-9, -3, -5, -10, 0, -5); ctx.bezierCurveTo(5, -10, 9, -3, 0, 4); ctx.fill(); ctx.restore(); }
+  }
+  // your health bar
+  const w = 46, x = P.x - w/2, y = P.y + PR + 9;
+  ctx.fillStyle = '#000b'; ctx.fillRect(x-1, y-1, w+2, 6);
+  ctx.fillStyle = '#7dff9c'; ctx.fillRect(x, y, w*clamp(P.hp/P.max), 4);
+}
+function drawRings() {
+  for (const r of rings) {
+    const k = r.t / r.dur, rad = lerp(r.r0, r.r1, r.implode ? eInC(k) : eOutC(k));
+    ctx.globalAlpha = r.implode ? 0.9*(1-k*0.4) : 1 - k;
+    ctx.strokeStyle = r.col; ctx.lineWidth = r.w * (r.implode ? 1 : 1 - k*0.6);
+    ctx.beginPath(); ctx.arc(r.x, r.y, Math.max(1, rad), 0, 7); ctx.stroke();
+    if (r.implode) for (let i = 0; i < 12; i++) { const a = i/12*Math.PI*2 + k; ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(r.x+Math.cos(a)*rad, r.y+Math.sin(a)*rad, 3, 0, 7); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+}
+function drawCurrentStreams() {
+  if (!cast || cast.v !== 'cur') return;
+  const f = clamp(cast.t / 0.5);
+  if (f >= 1) return;
+  const fade = f < 0.7 ? 1 : (1-f)/0.3;
+  for (const L of cast.links) {
+    const ax = L.sx, ay = L.sy, dx = P.x-ax, dy = P.y-ay, len = Math.hypot(dx,dy)||1, nx = -dy/len, ny = dx/len, bow = Math.min(18, len*0.08) * L.side;
+    ctx.strokeStyle = `rgba(217,26,46,${0.55*fade})`; ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (let k = 0; k <= 16; k++) { const u = k/16; if (u > Math.min(1, f*2.5)) break; const x = ax+dx*u+nx*bow*Math.sin(u*Math.PI), y = ay+dy*u+ny*bow*Math.sin(u*Math.PI); k ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+    ctx.stroke();
+    for (let k = 0; k < 6; k++) { const u = f*1.6 - k*0.12; if (u < 0 || u > 1) continue; ctx.fillStyle = `rgba(255,90,100,${fade})`; ctx.beginPath(); ctx.arc(ax+dx*u+nx*bow*Math.sin(u*Math.PI), ay+dy*u+ny*bow*Math.sin(u*Math.PI), 3, 0, 7); ctx.fill(); }
+  }
+}
+function drawParts() {
+  for (const p of parts) { const a = 1 - p.life/p.max; ctx.fillStyle = `rgba(${200+55*a|0},${20+40*a|0},${36+30*a|0},${0.4+0.6*a})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); }
+}
+function drawNums() {
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const n of nums) {
+    const k = n.t/0.9, pop = n.t < 0.1 ? 1 + (1 - n.t/0.1)*0.6 : 1;
+    ctx.font = `700 ${n.size*pop}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+    ctx.globalAlpha = 1 - Math.max(0, k-0.6)/0.4;
+    ctx.lineWidth = 3; ctx.strokeStyle = '#0a0306'; ctx.strokeText(n.text, n.x, n.y - 22*eOutC(k)); ctx.fillStyle = n.col; ctx.fillText(n.text, n.x, n.y - 22*eOutC(k));
+  }
+  ctx.globalAlpha = 1;
+}
+function drawTimeline() {
+  if (!cast) return;
+  const v = V[cast.v], k = clamp(cast.t / v.dur);
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(12, H-14, W-24, 4);
+  ctx.fillStyle = C.glow; ctx.fillRect(12, H-14, (W-24)*k, 4);
+  ctx.font = '500 11px "IBM Plex Mono", monospace'; ctx.textAlign = 'right'; ctx.fillStyle = '#b48c93';
+  ctx.fillText(cast.t.toFixed(2) + ' s', W-12, H-24);
+}
+function render() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const sx = shake ? rnd(-shake, shake) : 0, sy = shake ? rnd(-shake, shake) : 0;
+  ctx.save(); ctx.translate(sx, sy);
+  drawFloor(); drawReach(); drawVeins(); drawRings();
+  drawCurrentStreams();
+  if (cast) for (const L of cast.links) if (!L.e.dead) drawLink(L, V[cast.v]);
+  for (const e of enemies) drawEnemy(e);
+  drawPlayer(); drawParts(); drawNums();
+  ctx.restore();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawTimeline();
+}
+
+// ---------- helpers ----------
+function mix(a, b, t) { const pa = parseInt(a.slice(1),16), pb = parseInt(b.slice(1),16); const r = lerp(pa>>16, pb>>16, t)|0, g = lerp((pa>>8)&255, (pb>>8)&255, t)|0, bl = lerp(pa&255, pb&255, t)|0; return `rgb(${r},${g},${bl})`; }
+function roundRect(x, y, w, h, r) { ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath(); }
+
+// ---------- loop ----------
+let last = performance.now();
+function frame(now) {
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (freeze > 0) { freeze -= dt; dt = 0; }
+  update(dt * speed);
+  render();
+  requestAnimationFrame(frame);
+}
+
+// ---------- UI ----------
+const badge = document.getElementById('badge');
+function setVariant(v) {
+  variant = v;
+  document.getElementById('v-' + v).checked = true;
+  badge.innerHTML = V[v].name + '<small>' + V[v].tag + '</small>';
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('on', c.dataset.v === v));
+  if (cast) finishCast();
+  parts.length = 0; nums.length = 0; rings.length = 0; healNum = null; dctx.clearRect(0, 0, W, H); P.hp = 230;
+  makeEnemies(); idleT = 0; startCast();
+}
+document.querySelectorAll('input[name=v]').forEach(r => r.addEventListener('change', () => setVariant(r.value)));
+document.querySelectorAll('.card').forEach(c => {
+  c.addEventListener('click', () => { setVariant(c.dataset.v); document.querySelector('.stage').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); });
+  c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); c.click(); } });
+});
+document.getElementById('cast').addEventListener('click', () => { idleT = 0; startCast(); });
+document.getElementById('reset').addEventListener('click', () => { if (cast) finishCast(); makeEnemies(); idleT = 0; });
+const sp = document.getElementById('speed'), spo = document.getElementById('speedo');
+sp.addEventListener('input', () => { speed = +sp.value; spo.textContent = speed.toFixed(2) + '×'; });
+const ct = document.getElementById('count'), cto = document.getElementById('counto');
+ct.addEventListener('input', () => { count = +ct.value; cto.textContent = count; });
+ct.addEventListener('change', () => { if (cast) finishCast(); makeEnemies(); idleT = 0; });
+document.getElementById('heavy').addEventListener('change', e => { heavyOn = e.target.checked; if (cast) finishCast(); makeEnemies(); idleT = 0; startCast(); });
+document.getElementById('loop').addEventListener('change', e => { loopOn = e.target.checked; });
+document.getElementById('reach').addEventListener('change', e => { reachOn = e.target.checked; });
+cv.addEventListener('click', ev => {
+  const b = cv.getBoundingClientRect();
+  if (cast) finishCast();
+  P.x = clamp((ev.clientX - b.left) / b.width * W, 30, W-30);
+  P.y = clamp((ev.clientY - b.top) / b.height * H, 30, H-30);
+  idleT = 0; startCast();
+});
+if (reduce) { speed = 0.5; sp.value = 0.5; spo.textContent = '0.50×'; }
+
+makeEnemies(); startCast();
+requestAnimationFrame(frame);
+})();
+</script>
