@@ -569,6 +569,8 @@ namespace Arena
                     break;
                 case WeaponId.HolyMace:  // Quarterstaff: an iron shaft, steel bands, a lantern head whose crystal and pips follow the Jab stacks
                 {
+                    if (fxOn)
+                        break;  // with Visual effects on, QuarterstaffLook.cs draws it in two hands (DrawQuarterstaffIdle)
                     int cap = game.StaffCap(p), n = Mathf.Min(cap, (int)p.StaffStacks);
                     float lit = cap > 0 ? (float)n / cap : 0f;
                     MLine(-28f, 0f, 46f, 0f, 4.2f, Hx(0x12151c)); MLine(-28f, 0f, 46f, 0f, 3f, Hx(0x4a5262));
