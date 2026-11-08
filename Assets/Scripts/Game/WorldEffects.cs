@@ -147,6 +147,9 @@ namespace Arena
                 case FxKind.ShellPop:
                     DrawShellPopFx(fx, f);
                     break;
+                case FxKind.MartyrCast:
+                    DrawMartyrFx(fx, f);  // MartyrLook.cs
+                    break;
                 case FxKind.Drain:
                     DrawDrainFx(fx, f);
                     break;

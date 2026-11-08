@@ -121,6 +121,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
 - `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`
+- `MartyrLook.cs`: the Healer Hemomancer's Martyr (look A, Offering, of `Docs/Mockups/martyr.html`): chest cross, bead string, rise burst and the ward halo (12 beads from `Player.WardT`); `FxKind.MartyrCast`
 - `ClassLooks.cs`, `AbilityLooks.cs`, `BloodMageLook.cs`: per-class ability/buff overlays on the model, ability feedback, Blood Mage visuals
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)

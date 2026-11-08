@@ -20,7 +20,9 @@ namespace Arena
         public const float PactDuration = 4f;
         const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
-        const float GiftMult = 2f, GiftSplash = 200f, SiphonRadius = 140f, SiphonTime = 6f, MartyrRevive = 0.5f, MartyrWardTime = 12f;
+        const float GiftMult = 2f, GiftSplash = 200f, SiphonRadius = 140f, SiphonTime = 6f, MartyrRevive = 0.5f;
+        public const float MartyrWardTime = 12f;  // also the halo's twelve beads, one a second (Game/MartyrLook.cs)
+        public const float MartyrFxTime = 1.4f;  // how long a MartyrCast effect plays (beads, burst, spent ward)
         const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
         const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
         const float NovaDamage = 20f, NovaHeal = 3f;
@@ -937,8 +939,7 @@ namespace Arena
                         RevivePlayer(down, Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw), p);
                         down.InvulnT = Math.Max(down.InvulnT, 1.5f + s.MartyrInvuln);
                         castHits += 3;
-                        BroadcastFx(FxKind.Drain, p.Pos, down.Pos, blood, 12f, 0.55f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, down.Pos, blood, 70f, 0.5f, Sfx.Revive);
+                        BroadcastFx(FxKind.MartyrCast, p.Pos, down.Pos, blood, 1f, MartyrFxTime, Sfx.Revive);  // Game/MartyrLook.cs
                     }
                     else
                     {
@@ -948,9 +949,7 @@ namespace Arena
                         ward.WardFrac = Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw);
                         ward.WardInvuln = 1.5f + s.MartyrInvuln;
                         castHits += 2;
-                        if (ward != p)
-                            BroadcastFx(FxKind.Drain, p.Pos, ward.Pos, blood, 10f, 0.5f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, ward.Pos, blood, 60f, 0.5f, Sfx.SpellHoly);
+                        BroadcastFx(FxKind.MartyrCast, p.Pos, ward.Pos, blood, 0f, MartyrFxTime, Sfx.SpellHoly);
                     }
                     if (cap)
                         p.InvulnT = Math.Max(p.InvulnT, 2f);

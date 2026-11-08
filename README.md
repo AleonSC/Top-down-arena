@@ -64,7 +64,7 @@ use your damage and attack-speed bonuses too.
 someone's full health becomes a shield (up to 20% of their max health, for 4 s; the aura's own ticks don't count).
 Healer abilities work alone too: the **Adrenaline Shot** goes to you, **Spirit Ward** takes your own
 damage, **Martyr** with no one down wards the most hurt ally (you, alone) for 12 s so going down puts them straight
-back up at 50%, and a **Phoenix** brings anyone back, you included (the run doesn't end while one is out).
+back up at 50% (the ward is a halo of 12 blood beads turning round them, one going out each second), and a **Phoenix** brings anyone back, you included (the run doesn't end while one is out).
 
 ### The Knight
 

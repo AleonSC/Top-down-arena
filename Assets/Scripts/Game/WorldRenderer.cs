@@ -345,8 +345,8 @@ namespace Arena
                 DrawAdrenaline(p, t);  // heartbeat rings and a thumping heart (AdrenalineLook.cs)
             if (p.AegisT > 0f)  // Aeroaegis: the gust shell (AeroaegisLook.cs)
                 DrawAeroaegis(p, t);
-            if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a blood-red ring, pulsing faster as it runs out
-                Arc(p.Disp, p.Def.BodyR + 13f, 2f, new Rgba(0.95f, 0.15f, 0.25f, 0.45f + 0.35f * Mathf.Sin(t * (4f + 8f * (1f - p.WardT / 12f)))), 24);
+            if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a halo of twelve beads, one a second (MartyrLook.cs)
+                DrawMartyrHalo(p, t);
             if (fxOn)
                 DrawEnergyWard(p, t);  // the Energy Ward's bubble and its break (EnergyWardLook.cs)
             if (p.ShellOn)  // Blood Shell: the bubble (BloodShellLook.cs)
