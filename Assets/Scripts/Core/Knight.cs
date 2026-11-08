@@ -474,6 +474,19 @@ namespace Arena
                 KatanaGain(p, s.Meter * hits.Count);
                 KatanaHitCue(p, s.DrawCut, hits.Count);  // its cut sound, and the lunge's hit-pause (Katana.cs)
             }
+            float rapierMult = 1f;
+            if (s.Rapier && hits.Count > 0)
+            {
+                // Each thrust in a row on the same PRIMARY (nearest) enemy deals 10% more (up to +60%); the streak updates once
+                // per thrust and the same bonus applies to every enemy that thrust hits (the +1 upgrade's second target).
+                var primary = hits[0];
+                foreach (var e in hits)
+                    if (e.Pos.DistanceSq(origin) < primary.Pos.DistanceSq(origin))
+                        primary = e;
+                p.RapierStreak = primary.Id == p.RapierTarget ? Math.Min(6, p.RapierStreak + 1) : 0;
+                p.RapierTarget = primary.Id;
+                rapierMult = 1f + 0.1f * p.RapierStreak;
+            }
             int healed = 0;
             foreach (var e in hits)
             {
@@ -481,13 +494,7 @@ namespace Arena
                 bool crack = s.Tip > 0f && e.Pos.DistanceTo(origin) + e.Radius >= s.Tip;
                 if (crack)
                     dmg *= LashCrack;
-                if (s.Rapier)
-                {
-                    // Each hit in a row on the same enemy deals 10% more (up to +60%).
-                    p.RapierStreak = e.Id == p.RapierTarget ? Math.Min(6, p.RapierStreak + 1) : 0;
-                    p.RapierTarget = e.Id;
-                    dmg *= 1f + 0.1f * p.RapierStreak;
-                }
+                dmg *= rapierMult;
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);

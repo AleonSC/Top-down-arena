@@ -860,6 +860,26 @@ static partial class Program
         Check(me.RapierStreak >= Math.Min(6, s0 + 1 + Game.RapierSkewerMax), "each skewered bullet adds to the Rapier's streak");
         reset();
 
+        // Rapier with the +1 upgrade: two enemies in line. The streak follows the nearest one and builds to 6; both take the same bonus.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        me.RapierStreak = 0; me.RapierTarget = 0;
+        var near2 = dummy(from + new V2(60f, 0f), 1e6f);
+        var far2 = dummy(from + new V2(100f, 0f), 1e6f);
+        var streaks = new List<int>();
+        float nearDmg = 0f, farDmg = 0f;
+        for (int k = 0; k < 8; k++)
+        {
+            near2.Hp = near2.MaxHp; far2.Hp = far2.MaxHp;
+            volley.Invoke(g, new object[] { me, 0f, 1 });
+            play(0.4f, new PlayerInput());  // past the swing's land time and its cooldown
+            streaks.Add(me.RapierStreak);
+            nearDmg = near2.MaxHp - near2.Hp; farDmg = far2.MaxHp - far2.Hp;
+        }
+        Console.WriteLine("  rapier +1: streak per thrust {0}; last thrust did {1:0.0} to the near enemy, {2:0.0} to the far one", string.Join(",", streaks), nearDmg, farDmg);
+        Check(me.RapierStreak == 6, "a two-target Rapier thrust still builds its streak to 6 on the primary target");
+        Check(farDmg > 0f && Math.Abs(nearDmg - farDmg) < 0.5f, "the second enemy a thrust hits takes the same streak bonus as the first");
+        reset();
+
         // Katana (Docs/KatanaCombo.md): swipe, swipe, lunge in that order; the lunge cuts through everything in its line; a pause starts the chain over.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);
         me.Hp = me.MaxHp;  // (Blood Price would change the damage as health moves)
