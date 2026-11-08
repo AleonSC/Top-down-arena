@@ -1,0 +1,368 @@
+<title>Greatsword Combo Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, stage 1 (three-hit chain with hanging crescents), stage 2 (Guard & Rend alt fire), numbers table, notes.
+   Same page tokens as the other Knight mockups; canvas colours are the Greatsword's steel blue on a night-blue arena. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#2f78c4;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8fc4ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8fc4ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+section>p{margin:0 0 12px;max-width:70ch;color:var(--muted);font-size:15px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1000/420}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+</style>
+
+<main>
+<header>
+  <h1>Greatsword: three cuts and a guard</h1>
+  <p>Proposed rework. The basic attack becomes a three-hit chain: two quick cuts, then a slow overhead rend. The weapon-action key becomes Guard &amp; Rend: hold to stop bullets and build Temper, release to fire a beam that scales with it.</p>
+  <p>Both stages below are live. Enemy bullets come from the right; one in six is a red aimed shot, which nothing here stops.</p>
+</header>
+
+<section>
+  <h2>Basic attack: the chain</h2>
+  <p>Cut, return cut, overhead rend. The pips over the Knight show the step. The chain restarts after 0.9 s without a swing. Each cut leaves its edge hanging as a crescent; the third hangs longest.</p>
+  <div class="bar">
+    <button id="a_auto" class="on" type="button" aria-pressed="true">Auto chain</button>
+    <button id="a_s1" type="button">1 Cut</button>
+    <button id="a_s2" type="button">2 Return cut</button>
+    <button id="a_s3" type="button">3 Overhead rend</button>
+    <label class="tg"><input type="checkbox" id="a_bul" checked> Enemy bullets</label>
+    <label class="tg"><input type="checkbox" id="slow"> Slow motion</label>
+    <button id="pause" type="button">Pause</button>
+  </div>
+  <div class="frame"><canvas id="A" width="1000" height="420" aria-label="Greatsword three-hit chain animation"></canvas></div>
+</section>
+
+<section>
+  <h2>Alt fire: Guard &amp; Rend</h2>
+  <p>Hold the weapon-action key (hold the button below, or Space) to raise the blade: 120° arc, half speed, no swinging. Every bullet stopped adds a Temper pip, up to six. Release to fire a piercing beam for 30 + 15 per pip. Six pips also make your next chain start on step 3.</p>
+  <div class="bar">
+    <button id="b_auto" class="on" type="button" aria-pressed="true">Auto demo</button>
+    <button id="b_hold" type="button">Hold to guard</button>
+    <span class="sub" id="b_info">Temper 0/6</span>
+  </div>
+  <div class="frame"><canvas id="B" width="1000" height="420" aria-label="Greatsword guard and rend animation"></canvas></div>
+</section>
+
+<section>
+  <h2>Numbers</h2>
+  <p>Chain damage is tuned to land near today's 90 DPS estimate for the weapon.</p>
+  <div class="card tw">
+    <table>
+      <thead><tr><th>Move</th><th>Arc</th><th>Damage</th><th>Wind-up</th><th>Crescent hangs</th><th>Extra</th></tr></thead>
+      <tbody>
+        <tr><td>Today: sweep</td><td class="n">170°</td><td class="n">60</td><td class="n">none</td><td class="n">0.5 s</td><td>Interval 0.7 s</td></tr>
+        <tr><td>1 Cut</td><td class="n">150°</td><td class="n">40</td><td class="n">none</td><td class="n">0.35 s</td><td>Sweeps top to bottom</td></tr>
+        <tr><td>2 Return cut</td><td class="n">150°</td><td class="n">40</td><td class="n">none</td><td class="n">0.35 s</td><td>Sweeps bottom to top</td></tr>
+        <tr><td>3 Overhead rend</td><td class="n">200°</td><td class="n">90</td><td class="n">0.25 s</td><td class="n">0.9 s</td><td>40 px knockback, sword wave at 50%</td></tr>
+        <tr><td>Rend (alt fire)</td><td>beam</td><td class="n">30 + 15 per pip</td><td class="n">none</td><td>none</td><td>Pierces; 120 to 0 Temper</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="grid2">
+  <div class="card"><h3>Why it works</h3><ul>
+    <li>Hits 1 and 2 are a light bullet screen you can keep up while moving.</li>
+    <li>Hit 3 is the committed beat, with the longest crescent covering the recovery.</li>
+    <li>Guard trades damage output for safety, then pays it back as a beam.</li>
+  </ul></div>
+  <div class="card"><h3>Still open</h3><ul>
+    <li>Does Guard block melee hits too, or bullets only?</li>
+    <li>Can step 3 be interrupted by stun during its 0.25 s wind-up?</li>
+    <li>Should the +1 sword beam upgrade fire on step 3 only?</li>
+  </ul></div>
+</section>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const STEEL='#8fc4ff', STEEL_D='#4a86c8', BG='#0c1118', ORANGE='#f0a257', RED='#ff5252', GOLD='#ffd166';
+const P={x:170,y:210}, REACH=150, W=1000, H=420;
+let paused=false, speed=1;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const angDiff=(a,b)=>{let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return Math.abs(d)};
+
+function drawBase(c,t){
+  c.fillStyle=BG;c.fillRect(0,0,W,H);
+  c.strokeStyle='rgba(143,196,255,.06)';c.lineWidth=1;
+  for(let x=0;x<=W;x+=50){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}
+  for(let y=0;y<=H;y+=50){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+}
+function drawKnight(c,tilt){
+  c.save();c.translate(P.x,P.y);
+  c.fillStyle='#1d2a3a';c.strokeStyle=STEEL;c.lineWidth=3;
+  c.beginPath();c.arc(0,0,20,0,7);c.fill();c.stroke();
+  c.fillStyle=STEEL;c.beginPath();c.arc(8,0,5,0,7);c.fill();
+  c.restore();
+}
+function drawPips(c,n,total,gold,pulse,t){
+  for(let i=0;i<total;i++){
+    const x=P.x-(total-1)*9+i*18, y=P.y-42;
+    c.beginPath();c.arc(x,y,5+(pulse&&i===total-1?1.5*Math.sin(t*10)+1.5:0),0,7);
+    if(i<n){c.fillStyle=gold?GOLD:STEEL;c.fill()}else{c.strokeStyle='rgba(143,196,255,.45)';c.lineWidth=2;c.stroke()}
+  }
+}
+function drawCrescent(c,aim,half,r,w,alpha,col){
+  c.save();c.globalAlpha=alpha;c.strokeStyle=col;c.lineWidth=w;c.lineCap='round';
+  c.shadowColor=col;c.shadowBlur=14;
+  c.beginPath();c.arc(P.x,P.y,r,aim-half,aim+half);c.stroke();c.restore();
+}
+function drawBullet(c,b){
+  c.fillStyle=b.red?RED:ORANGE;c.beginPath();c.arc(b.x,b.y,b.red?7:6,0,7);c.fill();
+  if(b.red){c.strokeStyle=RED;c.lineWidth=1.5;c.beginPath();c.arc(b.x,b.y,11,0,7);c.stroke()}
+}
+function drawSparks(c,sp,t){
+  for(const s of sp){const a=(t-s.t)/0.25;if(a>1||a<0)continue;
+    c.strokeStyle=STEEL;c.globalAlpha=1-a;c.lineWidth=2;
+    for(let k=0;k<6;k++){const an=k*1.05+s.r;c.beginPath();c.moveTo(s.x+Math.cos(an)*4,s.y+Math.sin(an)*4);c.lineTo(s.x+Math.cos(an)*(8+14*a),s.y+Math.sin(an)*(8+14*a));c.stroke()}
+    c.globalAlpha=1}
+}
+function drawText(c,list,t){
+  c.textAlign='center';c.font='700 22px "Barlow Condensed",sans-serif';
+  for(const f of list){const a=(t-f.t)/0.8;if(a<0||a>1)continue;
+    c.globalAlpha=1-a*a;c.fillStyle=f.col||'#fff';c.fillText(f.txt,f.x,f.y-a*30);c.globalAlpha=1}
+}
+function drawDummy(c,x,y,flash){
+  c.fillStyle=flash>0?'#fff':'#3b2a2a';c.strokeStyle='#c46a6a';c.lineWidth=3;
+  c.beginPath();c.arc(x,y,22,0,7);c.fill();c.stroke();
+}
+
+/* ---------- Stage 1: chain ---------- */
+const CA=$('A').getContext('2d');
+const STEPS={
+  1:{half:75*Math.PI/180,dur:.14,wind:0,life:.35,dir:1,dmg:40,w:9,col:STEEL},
+  2:{half:75*Math.PI/180,dur:.14,wind:0,life:.35,dir:-1,dmg:40,w:9,col:STEEL},
+  3:{half:100*Math.PI/180,dur:.22,wind:.25,life:.9,dir:1,dmg:90,w:15,col:'#c9e3ff'}
+};
+const A={t:0,swings:[],bul:[],sp:[],tx:[],beams:[],nextB:0,cyc:0,fired:[false,false,false],auto:true,
+  step:0,lastSwing:-9,flash:-9,kb:{t0:-9},bn:0};
+function swing(step){
+  const s=STEPS[step];
+  A.swings.push({step,t0:A.t,hitDone:false,beamDone:false,s});
+  A.step=step;A.lastSwing=A.t+s.wind+s.dur;
+}
+function stepA(dt){
+  A.t+=dt;
+  if(A.auto){
+    A.cyc+=dt;
+    if(!A.fired[0]&&A.cyc>=0){swing(1);A.fired[0]=true}
+    if(!A.fired[1]&&A.cyc>=.45){swing(2);A.fired[1]=true}
+    if(!A.fired[2]&&A.cyc>=.9){swing(3);A.fired[2]=true}
+    if(A.cyc>=3){A.cyc=0;A.fired=[false,false,false]}
+  }
+  if(A.t-A.lastSwing>.9&&A.step&&A.t>A.lastSwing)A.step=0;
+  if($('a_bul').checked&&A.t>A.nextB){
+    A.nextB=A.t+.28;A.bn++;
+    const y=rnd(40,380),red=A.bn%6===0;
+    const d=Math.hypot(W-P.x,y-P.y),sp=red?300:240;
+    A.bul.push({x:W-10,y,vx:(P.x-(W-10))/d*sp+rnd(-20,20)*(red?0:1),vy:(P.y-y)/d*sp+rnd(-30,30)*(red?0:1),red});
+  }
+  for(const sw of A.swings){
+    const s=sw.s,start=sw.t0+s.wind,end=start+s.dur;
+    if(!sw.hitDone&&A.t>=start+s.dur*.5){
+      sw.hitDone=true;A.flash=A.t;
+      A.tx.push({t:A.t,x:P.x+110,y:P.y-30,txt:String(s.dmg),col:sw.step===3?GOLD:'#fff'});
+      if(sw.step===3)A.kb.t0=A.t;
+    }
+    if(sw.step===3&&!sw.beamDone&&A.t>=end){sw.beamDone=true;A.beams.push({t:A.t,x:P.x+REACH})}
+  }
+  A.swings=A.swings.filter(sw=>A.t<sw.t0+sw.s.wind+sw.s.dur+sw.s.life+.1);
+  for(const b of A.bul){
+    b.x+=b.vx*dt;b.y+=b.vy*dt;
+    if(!b.red){
+      const d=Math.hypot(b.x-P.x,b.y-P.y);
+      for(const sw of A.swings){
+        const s=sw.s,end=sw.t0+s.wind+s.dur;
+        if(A.t<end||A.t>end+s.life)continue;
+        if(Math.abs(d-REACH)<16&&angDiff(Math.atan2(b.y-P.y,b.x-P.x),0)<s.half){
+          b.dead=true;A.sp.push({t:A.t,x:b.x,y:b.y,r:Math.random()*6});break}
+      }
+    }
+    if(Math.hypot(b.x-P.x,b.y-P.y)<18||b.x<-20||b.y<-20||b.y>H+20)b.dead=true;
+  }
+  A.bul=A.bul.filter(b=>!b.dead);
+  A.beams=A.beams.filter(b=>A.t-b.t<1.4);
+  A.sp=A.sp.filter(s=>A.t-s.t<.3);A.tx=A.tx.filter(f=>A.t-f.t<.9);
+}
+function drawA(){
+  const c=CA,t=A.t;drawBase(c,t);
+  // dummy with knockback
+  const kbA=clamp((t-A.kb.t0)/.25,0,1);
+  const kbX=A.kb.t0>0?40*Math.sin(kbA*Math.PI)*(1-0)*(kbA<1?1:0):0;
+  drawDummy(c,P.x+110+kbX,P.y,t-A.flash<.08?1:0);
+  // swings
+  for(const sw of A.swings){
+    const s=sw.s,start=sw.t0+s.wind,end=start+s.dur;
+    if(t<start){ // wind-up: blade raised, charge ring
+      const p=(t-sw.t0)/s.wind, a=-s.half-.4;
+      c.strokeStyle='#c9e3ff';c.lineWidth=6;c.lineCap='round';
+      c.beginPath();c.moveTo(P.x,P.y);c.lineTo(P.x+Math.cos(a)*REACH*.9,P.y+Math.sin(a)*REACH*.9);c.stroke();
+      c.strokeStyle='rgba(201,227,255,'+(.25+.5*p)+')';c.lineWidth=3;
+      c.beginPath();c.arc(P.x,P.y,34+30*(1-p),0,7);c.stroke();
+      continue;
+    }
+    const p=clamp((t-start)/s.dur,0,1),e=1-Math.pow(1-p,2);
+    const a0=s.dir>0?-s.half:s.half, a1=s.dir>0?s.half:-s.half, a=a0+(a1-a0)*e;
+    if(p<1||t-end<.18){
+      c.save();c.globalAlpha=p<1?.3:.3*(1-(t-end)/.18);c.fillStyle=s.col;
+      c.beginPath();c.moveTo(P.x,P.y);c.arc(P.x,P.y,REACH,Math.min(a0,a),Math.max(a0,a));c.closePath();c.fill();c.restore();
+    }
+    if(p<1){c.strokeStyle='#fff';c.lineWidth=6;c.lineCap='round';c.beginPath();c.moveTo(P.x+Math.cos(a)*30,P.y+Math.sin(a)*30);c.lineTo(P.x+Math.cos(a)*REACH,P.y+Math.sin(a)*REACH);c.stroke()}
+    const age=t-end;
+    if(age>=0&&age<s.life){
+      const fade=Math.min(1,(s.life-age)/(s.life*.3));
+      drawCrescent(c,0,s.half,REACH,s.w,fade,s.col);
+    }
+  }
+  // beams
+  for(const b of A.beams){
+    const x=b.x+(t-b.t)*720;
+    c.save();c.strokeStyle='#c9e3ff';c.lineWidth=6;c.shadowColor=STEEL;c.shadowBlur=12;c.globalAlpha=clamp(1-(t-b.t)/1.4,0,1);
+    c.beginPath();c.arc(x-40,P.y,46,-.7,.7);c.stroke();c.restore();
+  }
+  c.save();for(const b of A.bul)drawBullet(c,b);c.restore();
+  drawSparks(c,A.sp,t);drawKnight(c);
+  drawPips(c,A.step,3,false,A.step===2,t);
+  drawText(c,A.tx,t);
+  c.fillStyle='rgba(230,236,226,.7)';c.font='500 13px "IBM Plex Mono",monospace';c.textAlign='left';
+  c.fillText(A.step?['','Step 1: Cut','Step 2: Return cut','Step 3: Overhead rend'][A.step]:'Chain reset',16,H-16);
+  c.textAlign='right';c.fillText('red = aimed shot, not stopped',W-16,H-16);
+}
+
+/* ---------- Stage 2: Guard & Rend ---------- */
+const CB=$('B').getContext('2d');
+const B={t:0,guard:false,manual:false,temper:0,bul:[],sp:[],tx:[],beams:[],nextB:0,bn:0,auto:true,cyc:0,hold:1.2,flash:-9,rendT:-9,dummy:[ -9,-9 ],hurt:-9,primed:false};
+const GUARD_R=72, GUARD_HALF=60*Math.PI/180;
+function setGuard(on){
+  if(on===B.guard)return;
+  if(!on){ // release: rend
+    if(B.temper>=0){
+      const n=B.temper,dmg=30+15*n;
+      B.beams.push({t:B.t,w:10+n*5,dmg,n});
+      B.primed=n>=6;B.temper=0;
+    }
+  }
+  B.guard=on;
+}
+function stepB(dt){
+  B.t+=dt;
+  if(B.auto){
+    B.cyc+=dt;
+    if(B.cyc>=.3&&B.cyc<.3+B.hold)setGuard(true);
+    else setGuard(false);
+    if(B.cyc>=.3+B.hold+1.4){B.cyc=0;B.hold=B.hold<2?2.6:1.2}
+  } else setGuard(B.manual);
+  if(B.t>B.nextB){
+    B.nextB=B.t+.22;B.bn++;
+    const red=B.bn%6===0,y=rnd(90,330),d=Math.hypot(W-P.x,y-P.y),sp=red?300:250;
+    B.bul.push({x:W-10,y,vx:(P.x-(W-10))/d*sp,vy:(P.y-y)/d*sp,red});
+  }
+  for(const b of B.bul){
+    b.x+=b.vx*dt;b.y+=b.vy*dt;
+    const d=Math.hypot(b.x-P.x,b.y-P.y);
+    if(B.guard&&!b.red&&Math.abs(d-GUARD_R)<14&&angDiff(Math.atan2(b.y-P.y,b.x-P.x),0)<GUARD_HALF){
+      b.dead=true;B.sp.push({t:B.t,x:b.x,y:b.y,r:Math.random()*6});
+      if(B.temper<6){B.temper++;B.tx.push({t:B.t,x:P.x+10,y:P.y-60,txt:'+1',col:STEEL})}
+    } else if(d<20){b.dead=true;B.hurt=B.t}
+    if(b.x<-20||b.y<-20||b.y>H+20)b.dead=true;
+  }
+  B.bul=B.bul.filter(b=>!b.dead);
+  for(const bm of B.beams){
+    for(let i=0;i<2;i++){
+      const dx=[480,760][i],reach=P.x+(B.t-bm.t)*1400;
+      if(!bm['h'+i]&&reach>=dx){bm['h'+i]=true;B.flash=B.t;B.tx.push({t:B.t,x:dx,y:P.y-34,txt:String(bm.dmg),col:bm.n>=6?GOLD:'#fff'})}
+    }
+  }
+  B.beams=B.beams.filter(b=>B.t-b.t<.9);
+  B.sp=B.sp.filter(s=>B.t-s.t<.3);B.tx=B.tx.filter(f=>B.t-f.t<.9);
+  $('b_info').textContent='Temper '+B.temper+'/6'+(B.guard?'  ·  guarding, 50% speed':'')+(B.primed?'  ·  next chain starts on step 3':'');
+}
+function drawB(){
+  const c=CB,t=B.t;drawBase(c,t);
+  drawDummy(c,480,P.y,t-B.flash<.08?1:0);drawDummy(c,760,P.y,t-B.flash<.08?1:0);
+  for(const bm of B.beams){
+    const a=clamp(1-(t-bm.t)/.9,0,1),x1=Math.min(W,P.x+(t-bm.t)*1400);
+    c.save();c.globalAlpha=a;c.shadowColor=bm.n>=6?GOLD:STEEL;c.shadowBlur=18;
+    c.strokeStyle=bm.n>=6?GOLD:'#c9e3ff';c.lineWidth=bm.w;c.lineCap='round';
+    c.beginPath();c.moveTo(P.x+GUARD_R,P.y);c.lineTo(x1,P.y);c.stroke();c.restore();
+  }
+  c.save();for(const b of B.bul)drawBullet(c,b);c.restore();
+  if(B.guard){
+    const full=B.temper>=6;
+    drawCrescent(c,0,GUARD_HALF,GUARD_R,10,1,full?GOLD:STEEL);
+    c.save();c.globalAlpha=.12;c.fillStyle=full?GOLD:STEEL;c.beginPath();c.moveTo(P.x,P.y);c.arc(P.x,P.y,GUARD_R,-GUARD_HALF,GUARD_HALF);c.closePath();c.fill();c.restore();
+  }
+  drawSparks(c,B.sp,t);drawKnight(c);
+  if(t-B.hurt<.2){c.strokeStyle=RED;c.lineWidth=4;c.beginPath();c.arc(P.x,P.y,26,0,7);c.stroke()}
+  drawPips(c,B.temper,6,B.temper>=6,B.temper>=6,t);
+  drawText(c,B.tx,t);
+  c.fillStyle='rgba(230,236,226,.7)';c.font='500 13px "IBM Plex Mono",monospace';c.textAlign='left';
+  c.fillText(B.guard?'Guarding: 120° arc, 50% speed':'Idle',16,H-16);
+  c.textAlign='right';c.fillText('release: beam 30 + 15 x Temper',W-16,H-16);
+}
+
+/* ---------- controls ---------- */
+function bindToggle(btn,get,set){btn.addEventListener('click',()=>{set(!get());btn.classList.toggle('on',get());btn.setAttribute('aria-pressed',get())})}
+bindToggle($('a_auto'),()=>A.auto,v=>{A.auto=v;A.cyc=0;A.fired=[false,false,false]});
+bindToggle($('b_auto'),()=>B.auto,v=>{B.auto=v;B.cyc=0;B.manual=false});
+[1,2,3].forEach(n=>$('a_s'+n).addEventListener('click',()=>{
+  if(A.auto){A.auto=false;$('a_auto').classList.remove('on');$('a_auto').setAttribute('aria-pressed','false')}
+  swing(n);
+}));
+const hold=$('b_hold');
+function holdOn(e){if(e)e.preventDefault();if(B.auto){B.auto=false;$('b_auto').classList.remove('on');$('b_auto').setAttribute('aria-pressed','false')}B.manual=true;hold.classList.add('on')}
+function holdOff(){B.manual=false;hold.classList.remove('on')}
+hold.addEventListener('pointerdown',holdOn);
+['pointerup','pointerleave','pointercancel'].forEach(ev=>hold.addEventListener(ev,holdOff));
+hold.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat){e.preventDefault();holdOn()}});
+hold.addEventListener('keyup',e=>{if(e.code==='Space')holdOff()});
+$('pause').addEventListener('click',e=>{paused=!paused;e.target.textContent=paused?'Resume':'Pause';e.target.classList.toggle('on',paused)});
+$('slow').addEventListener('change',e=>{speed=e.target.checked?.25:1});
+
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(!paused){stepA(dt*speed);stepB(dt*speed)}
+  drawA();drawB();
+  requestAnimationFrame(frame);
+}
+// open on a representative frame
+for(let i=0;i<76;i++){stepA(1/60);stepB(1/60)}
+requestAnimationFrame(frame);
+})();
+</script>
