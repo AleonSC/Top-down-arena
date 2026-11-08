@@ -563,9 +563,20 @@ namespace Arena
                         break;  // with Visual effects on, HalberdLook.cs draws it in two hands
                     MLine(-10f, 0f, 40f, 0f, 3f, MWood); MPoly(MSteel, 28f, 0f, 30f, -11f, 40f, -8f, 36f, -2f); MPoly(MSteel, 40f, -1.5f, 52f, 0f, 40f, 1.5f); MPoly(MSteel, 30f, 2f, 36f, 7f, 34f, 1f);
                     break;
-                case WeaponId.HolyMace:  // Quarterstaff
-                    MLine(-16f, 0f, 30f, 0f, 3.4f, Hx(0x9a7648)); MCirc(-16f, 0f, 3.4f, MGold, 8); MCirc(30f, 0f, 3.8f, MGold, 8); MLine(0f, -2f, 0f, 2f, 1.6f, MGold); MLine(14f, -2f, 14f, 2f, 1.6f, MGold);
+                case WeaponId.HolyMace:  // Quarterstaff: an iron shaft, steel bands, a lantern head whose crystal and pips follow the Jab stacks
+                {
+                    int cap = game.StaffCap(p), n = Mathf.Min(cap, (int)p.StaffStacks);
+                    float lit = cap > 0 ? (float)n / cap : 0f;
+                    MLine(-28f, 0f, 46f, 0f, 4.2f, Hx(0x12151c)); MLine(-28f, 0f, 46f, 0f, 3f, Hx(0x4a5262));
+                    MLine(14f, 0f, 15.5f, 0f, 5f, Hx(0x9aa4b8)); MLine(-10f, 0f, -8.5f, 0f, 5f, Hx(0x9aa4b8)); MLine(36f, 0f, 37.5f, 0f, 5f, Hx(0x9aa4b8));
+                    MPoly(Hx(0xb9c2d4), -36f, 0f, -28f, -2f, -28f, 2f);
+                    MPoly(Hx(0x9aa4b8), 55f, 0f, 51f, -5.5f, 44f, -5.5f, 40f, 0f, 44f, 5.5f, 51f, 5.5f);
+                    MPoly(Hx(0x0e1016), 53f, 0f, 50f, -4f, 45f, -4f, 42.5f, 0f, 45f, 4f, 50f, 4f);
+                    if (lit > 0f) MCirc(47.5f, 0f, 6f + 6f * lit, Hx(0xffd36a, 0.12f + 0.25f * lit), 12);
+                    MPoly(lit > 0f ? Hx(0xffd36a, 0.6f + 0.4f * lit) : Hx(0x6b7388), 47.5f, -3.6f, 51f, 0f, 47.5f, 3.6f, 44f, 0f);
+                    for (int i = 0; i < n; i++) { float a = t * 1.4f + i * MathX.Tau / cap; MCirc(47.5f + Mathf.Cos(a) * 9.5f, Mathf.Sin(a) * 9.5f, 1.8f, Hx(0xffd36a), 6); }
                     break;
+                }
                 case WeaponId.Lightbringer:
                     MLine(2f, 0f, 34f, 0f, 7f, Hx(0xfff0aa, 0.25f)); MLine(2f, 0f, 34f, 0f, 3.6f, Hx(0xfff3c0)); MPoly(Hx(0xfff3c0), 33f, 0f, 33f, -2f, 40f, 0f, 33f, 2f);
                     MLine(2f, -6f, 2f, 6f, 3f, MGold); MLine(-6f, 0f, 2f, 0f, 3f, Hx(0x6b4a2e)); MCirc(-7f, 0f, 2.6f, MGold, 8);

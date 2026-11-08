@@ -173,6 +173,8 @@ namespace Arena
         public float WallPlateMax;                                    // host: what each plate started with
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget;  // host: Knight weapon state
+        public byte StaffStacks;     // Quarterstaff: Jab stacks stored, 0 to 3 plus one per extra projectile (replicated, drawn on the staff and as pips behind you)
+        public float StaffJabCd;     // host: the Quarterstaff's jab cools down for this long
         public int RapierStreak;     // Rapier: hits in a row on the same enemy plus bullets skewered, 0 to 6 (replicated, drawn as pips behind you)
         public float MeleeGraceT;   // host: a melee swing just landed: bodies you're touching can't hurt you for a moment (Balance.MeleeContactGrace)
         public float BossContactT;  // host: a boss's body can only hurt you once a second

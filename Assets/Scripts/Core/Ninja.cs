@@ -658,7 +658,7 @@ namespace Arena
 
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
-        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6;
+        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -914,7 +914,7 @@ namespace Arena
         static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
 
         // Local: this machine's player's weapon dashes.
-        float reelCd;
+        float reelCd, staffJabLocalCd;
         bool wasWeaponAction;
 
         /// Your own game, every tick: weapon secondaries go on the weapon-action key (Keybinds, Left Alt by default;
@@ -924,6 +924,7 @@ namespace Arena
         void LocalWeaponDash(Player me, V2 move, V2 aimAt, bool weaponAction, float dt)
         {
             reelCd -= dt;
+            staffJabLocalCd -= dt;
             bool pressed = weaponAction && !wasWeaponAction;
             wasWeaponAction = weaponAction;
             if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
@@ -971,6 +972,20 @@ namespace Arena
                     sw.Write(DashShove);
                     sw.Write(aimAt);
                     session.SendToHost(Proto.End(sw));
+                }
+                return;
+            }
+            if (me.Weapon.Id == WeaponId.HolyMace && weaponAction && staffJabLocalCd <= 0f && me.StaffStacks > 0)
+            {
+                staffJabLocalCd = StaffJabCd;  // (held, the key jabs again as soon as the host would let it)
+                if (IsHost)
+                    HostWeaponDash(MyId, DashJab, aimAt);  // no move: the jab lands where you stand, along your aim
+                else
+                {
+                    var jw = Proto.Begin(Msg.WeaponDash);
+                    jw.Write(DashJab);
+                    jw.Write(aimAt);
+                    session.SendToHost(Proto.End(jw));
                 }
                 return;
             }
@@ -1025,6 +1040,11 @@ namespace Arena
             if (kind == DashKatana)
             {
                 HostKatanaStrike(p, target);
+                return;
+            }
+            if (kind == DashJab)
+            {
+                HostStaffJab(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashShove)

@@ -91,8 +91,8 @@ namespace Arena
             }
             float flip;
             meleeFlip.TryGetValue(best.Id, out flip);
-            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana;
-            if (alternates && !(thrust && best.Weapon.Id == WeaponId.Katana))  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
+            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace;
+            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace)))  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
             else if (best.Weapon.Id == WeaponId.Halberd)
             {
@@ -193,6 +193,7 @@ namespace Arena
             var col = MeleeColor(seen.Weapon, fx.Color);
             float T = fx.T;
             int seed = MeleeSeed(fx);
+            ownerOfModel = seen.Owner;
 
             if (thrust)
             {
@@ -208,6 +209,10 @@ namespace Arena
                     KatanaGhosts(fx.Pos, dir, T, game.Players.TryGetValue(seen.Owner, out owner) ? owner.Def.BodyR : 16f, col);
                     KatanaMarks(o, aim, 0f, 1f, reach, T, MeleeThrustTime, true, col);
                 }
+                }
+                else if (light && seen.Weapon == WeaponId.HolyMace)
+                {
+                    StaffJabCone(o, aim, -half, reach, T, MeleeThrustTime, fade, col);  // QuarterstaffLook.cs
                 }
                 else if (light && seen.Weapon == WeaponId.Rapier)
                 {
@@ -876,6 +881,7 @@ namespace Arena
         /// The weapon itself, from your body out along `ang` to `reach` (the mockup's shapes and sizes: a handle, a gold
         /// guard and a tapered blade with a coloured edge; a pole for the Halberd; a thin blade for the Rapier).
         /// `bright`: mid-swing, the blade is white.
+        int ownerOfModel;  // whose staff DrawMeleeModel is drawing (its stacks light the head)
         void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col, bool bright, float bend = 0f, Rgba arm = default(Rgba))
         {
             if (alpha <= 0f)
@@ -921,7 +927,9 @@ namespace Arena
                     Line(o + dir * (r0 + 4f), o + dir * (tip - 6f), 1.2f, edge);
                     break;
                 }
-                case WeaponId.HolyMace:  // the Quarterstaff
+                case WeaponId.HolyMace:  // the Quarterstaff: two hands, a lantern head (QuarterstaffLook.cs)
+                    DrawQuarterstaffModel(o, ang, reach, alpha, col, bright, bend, arm, ownerOfModel);
+                    break;
                 case WeaponId.BoStaff:
                     Line(o - dir * reach * 0.25f, o + dir * reach * 0.97f, 4f, MeleeHandle.WithAlpha(alpha));
                     Line(o + dir * (reach * 0.97f - 10f), o + dir * reach * 0.97f, 5f, MeleeGuard.WithAlpha(alpha));

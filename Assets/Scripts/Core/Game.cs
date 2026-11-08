@@ -1144,6 +1144,7 @@ namespace Arena
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
+            TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
