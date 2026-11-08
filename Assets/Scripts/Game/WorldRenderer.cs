@@ -100,6 +100,7 @@ namespace Arena
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
                     DrawGreatWindup(p);
+                    DrawGreatGuardPose(p);
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)
