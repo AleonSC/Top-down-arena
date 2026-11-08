@@ -309,7 +309,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("HEMODPS") != null) {
       // The DPS Hemomancer's Space abilities. HEMODPS=spray: Arterial Spray gushing into a pack (ArterialSprayLook.cs).
       // HEMODPS=debt: Blood Debt's ledger, coins flying in from a kill (BloodDebtLook.cs); DEBTSETTLE=paid or forfeit shows
-      // the stamp instead. HEMODPS=rush: Vein Rush, RUSHT=<seconds since the cast> (the rush is 0.22 s; default 0.15) (VeinRushLook.cs).
+      // the stamp instead (DEBTSETTLE=borrowed: the cast). HEMODPS=rush: Vein Rush, RUSHT=<seconds since the cast> (the rush is 0.22 s; default 0.15) (VeinRushLook.cs).
       // Use with mode hud.
       var gm = host.Game; gm.Bot = false;
       foreach (var e in gm.Enemies.Values) e.Hp = 0f;
@@ -334,25 +334,29 @@ static partial class Shot {
         me.Hp = me.MaxHp * 0.42f; me.DebtOwed = me.MaxHp * 0.75f; me.Debt = me.MaxHp * 0.33f; me.DebtT = 3.1f;
         if (settle == "paid") {
           me.Debt = 0f; me.Hp = me.MaxHp; me.DebtT = 1.5f;
-          gm.Effects.Add(new Effect { Kind = FxKind.DebtSettle, Pos = from, Pos2 = new V2(me.Id, 1f), Color = new Rgba(1f, 0.8f, 0.35f), Radius = me.DebtOwed, Dur = 1.2f, T = 0.25f });
+          gm.Effects.Add(new Effect { Kind = FxKind.DebtSettle, Pos = from, Pos2 = new V2(me.Id, 1f), Color = new Rgba(1f, 0.8f, 0.35f), Radius = me.DebtOwed, Dur = Game.DebtPaidFx, T = 0.25f });
+        } else if (settle == "borrowed") {
+          me.Hp = me.MaxHp * 0.25f; me.Debt = me.DebtOwed; me.DebtT = 7.7f;
+          gm.Effects.Add(new Effect { Kind = FxKind.DebtSettle, Pos = from, Pos2 = new V2(me.Id, 2f), Color = blood, Radius = me.DebtOwed, Dur = Game.DebtBorrowFx, T = 0.3f });
         } else if (settle == "forfeit") {
-          gm.Effects.Add(new Effect { Kind = FxKind.DebtSettle, Pos = from, Pos2 = new V2(me.Id, 0f), Color = blood, Radius = me.Debt, Dur = 1.2f, T = 0.35f });
+          gm.Effects.Add(new Effect { Kind = FxKind.DebtSettle, Pos = from, Pos2 = new V2(me.Id, 0f), Color = blood, Radius = me.Debt, Dur = Game.DebtForfeitFx, T = 0.35f });
           me.Debt = 0f; me.DebtT = 0f;
         } else {
-          gm.Effects.Add(new Effect { Kind = FxKind.DebtCoin, Pos = mobs[0].Pos, Pos2 = new V2(me.Id, 0f), Color = blood, Radius = 10f, Dur = 0.6f, T = 0.25f });
-          gm.Effects.Add(new Effect { Kind = FxKind.DebtCoin, Pos = mobs[3].Pos, Pos2 = new V2(me.Id, 0f), Color = blood, Radius = 24f, Dur = 0.6f, T = 0.12f });
+          gm.Effects.Add(new Effect { Kind = FxKind.DebtCoin, Pos = mobs[0].Pos, Pos2 = new V2(me.Id, 0f), Color = blood, Radius = 10f, Dur = Game.DebtCoinFx, T = 0.25f });
+          gm.Effects.Add(new Effect { Kind = FxKind.DebtCoin, Pos = mobs[3].Pos, Pos2 = new V2(me.Id, 0f), Color = blood, Radius = 24f, Dur = Game.DebtCoinFx, T = 0.12f });
         }
       } else {
         float rt = float.Parse(Environment.GetEnvironmentVariable("RUSHT") ?? "0.15");
-        V2 start = new V2(330f, 470f), end = start + new V2(280f, 0f);
+        V2 start = new V2(420f, 475f), end = start + new V2(280f, 0f);
         float k = Math.Min(1f, rt / Game.VeinRushTime);
         me.Pos = me.Disp = start + (end - start) * k;
         gm.Effects.Add(new Effect { Kind = FxKind.VeinRush, Pos = start, Pos2 = end, Color = blood, Radius = me.Id, Dur = Game.VeinRushTime + Game.VeinRushFxTime, T = rt });
         foreach (var en in mobs)
           if (Math.Abs(en.Pos.Y - start.Y) < 40f && en.Pos.X > start.X && en.Pos.X < end.X)
-            gm.Effects.Add(new Effect { Kind = FxKind.VeinCut, Pos = en.Pos, Pos2 = new V2(1f, 0f), Color = blood, Radius = en.Radius, Dur = 0.35f, T = Math.Max(0f, rt - (en.Pos.X - start.X) / 280f * Game.VeinRushTime) });
-        for (float d = 17f; d < 280f && d < 280f * k; d += 34f)
-          gm.Zones[9000 + (int)d] = new Zone { Id = 9000 + (int)d, Kind = ZoneKind.VeinTrail, Owner = me.Id, Pos = start + new V2(d, 0f), Radius = 24f, Duration = 2f, T = 2f - Math.Max(0.2f, rt) };
+            gm.Effects.Add(new Effect { Kind = FxKind.VeinCut, Pos = en.Pos, Pos2 = new V2(1f, 0f), Color = blood, Radius = me.Id * 1000f + en.Radius, Dur = Game.VeinCutFxTime, T = Math.Max(0f, rt - (en.Pos.X - start.X) / 280f * Game.VeinRushTime) });
+        int zi = 0;
+        for (float d = 17f; d < 280f && d < 280f * k; d += 34f, zi++)
+          gm.Zones[9000 + zi] = new Zone { Id = 9000 + zi, Kind = ZoneKind.VeinTrail, Owner = me.Id, Pos = start + new V2(d, 0f), Radius = 24f, Duration = 2f, T = 2f - Math.Max(0.2f, rt), Aim = Environment.GetEnvironmentVariable("RUSHMASTERED") != null ? 1f : 0f };
       }
     }
     if (Environment.GetEnvironmentVariable("TITHE") != null) {

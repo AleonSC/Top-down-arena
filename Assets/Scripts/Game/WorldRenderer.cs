@@ -199,6 +199,7 @@ namespace Arena
                 if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
                     DrawEnemy(e, t);
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
+            DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);

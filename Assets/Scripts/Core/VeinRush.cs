@@ -12,11 +12,13 @@ namespace Arena
     {
         public const float VeinRushReach = 280f, VeinRushTime = 0.22f;
         public const float VeinRushFxTime = 0.6f;          // the streak and its afterimages fade out after the rush
+        public const float VeinCutFxTime = 1f;             // a cut's slash, and the blood flying back to the rusher
+        public const float TrailBurstAtPublic = 1f;        // (for drawing: when a mastered trail bursts)
         const float RushWidth = 22f;                       // how near the path an enemy must be (plus its radius) to be cut
         const float RushDamage = 25f, RushBleed = 6f;      // the cut; bleed a second (3 stacks' worth, for 3 s)
         const float RushRefund = 0.02f;                    // each enemy cut gives back this share of your max health
         const float TrailTime = 2f, TrailRadius = 24f, TrailGap = 34f;
-        const float TrailBurstAt = 1f, TrailBurst = 20f;   // mastered: the trail bursts this long after the rush, for this much
+        const float TrailBurstAt = TrailBurstAtPublic, TrailBurst = 20f;   // mastered: the trail bursts this long after the rush, for this much
 
         /// Where a rush toward `aimAt` lands: up to its reach (Crimson Tide adds 25%), along your aim if the cursor is on you.
         public V2 VeinRushLanding(Player p, V2 aimAt)
@@ -49,13 +51,13 @@ namespace Arena
                 ApplyBleed(e, RushBleed * power, p.Id);
                 Heal(p, refund, p, "Vein Rush");
                 castHits++;
-                BroadcastFx(FxKind.VeinCut, e.Pos, dir, blood, e.Radius, 0.35f, Sfx.None);
-                BroadcastFx(FxKind.Drain, e.Pos, target, blood, 3f, 0.45f, Sfx.None);  // its blood flying to where you land
+                BroadcastFx(FxKind.VeinCut, e.Pos, dir, blood, p.Id * 1000f + e.Radius, VeinCutFxTime, Sfx.None);  // the slash, and its blood flying back to you
             }
             for (float d = TrailGap * 0.5f; d < len; d += TrailGap)  // the trail: a row of small pools along the path
             {
                 var z = AddZone(ZoneKind.VeinTrail, p, from + dir * d, TrailRadius, TrailTime);
                 z.Bursts = mastered;
+                z.Aim = mastered ? 1f : 0f;  // (replicated, so everyone sees it swell before it bursts)
             }
             BroadcastFx(FxKind.VeinRush, from, target, blood, p.Id, VeinRushTime + VeinRushFxTime, Sfx.Blink);
         }

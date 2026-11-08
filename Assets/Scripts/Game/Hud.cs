@@ -17,7 +17,8 @@ namespace Arena
             var me = game.Me;
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
-            DrawDebtLedgers();  // Blood Debt's tally and stamps (BloodDebtLook.cs)
+            DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
+            DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)
             if (me != null)
@@ -83,6 +84,7 @@ namespace Arena
                 HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleGlass);  // scanlines and glass over all of it
             }
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
+            DrawMyLedger();  // Blood Debt's ledger card beside you, over the enemy tags (BloodDebtLook.cs)
             DrawDownedBand(me);  // the DOWNED and REVIVED scan band (DownedLooks.cs)
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)

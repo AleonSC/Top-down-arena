@@ -303,6 +303,11 @@ namespace Arena
                     Hold(0.03f, 0.15f);  // ...and each swipe that cuts something with a lighter one and a 0.03 s hit-stop (a short gap, so a 0.26 s chain gets one each)
                     Shake(0.07f);
                 }
+                if (fx.Kind == FxKind.VeinCut && (int)(fx.Radius / 1000f) == game.MyId)
+                {
+                    Hold(0.05f, 0.1f);  // your own Vein Rush cut something: the Needle's hit-stop (VeinRushLook.cs)
+                    Shake(0.05f);
+                }
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
                 if (fx.Kind == FxKind.Jab && me != null && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B && me.Pos.DistanceTo(fx.Pos) < 44f)
