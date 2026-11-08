@@ -359,6 +359,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 ## Rules
 
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
+- **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
   Enemies and bullets don't wrap, so the edges make a good escape route.
 - **Melee grace:** when a melee swing hits something, bodies you're touching can't hurt you for 0.3 s (contact damage only, not bullets or boss attacks). It keeps a melee build from being punished for standing close to land its hits, bosses' bodies included.
 - Your hitbox is the small coloured dot ringed in white in the middle of your character, not the whole circle.
