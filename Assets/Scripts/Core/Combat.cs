@@ -385,9 +385,11 @@ namespace Arena
                 if (b.WardAlly > 0f)
                 {
                     Ward(p, b.WardAlly);  // Mercy Cut's crescent (Lightbringer.cs)
+                    BroadcastSound(Sfx.LightWard);
                     return true;
                 }
-                Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
+                if (Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner)) > 0f && b.Kind == Defs.KnightWave)
+                    BroadcastSound(Sfx.LightHeal);  // a Lightbringer crescent (the only healing sword wave)
                 TransfusionCost(b);  // Transfusion Darts cost their healer (BloodMage.cs)
                 return true;
             }

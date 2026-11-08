@@ -54,7 +54,7 @@ namespace Arena
                 s.Delay = d.Dur * LightbringerMotion.CutHit;
                 s.LightWaves = 1 + extra;
                 s.LightWaveDmg = w.Damage * dmg * CrescentMult;
-                s.Sound = step == 1 ? Sfx.SwingLight : Sfx.SwingHeavy;
+                s.Sound = step == 1 ? Sfx.LightCut1 : Sfx.LightCut2;  // (LightSoundBank.cs)
             }
             else
             {
@@ -68,7 +68,7 @@ namespace Arena
                 s.Knock = NoonKnock;
                 s.Heavy = true;
                 s.Delay = d.Dur * LightbringerMotion.NoonHit;
-                s.Sound = Sfx.SpellHoly;
+                s.Silent = true;  // its sound plays from the click: the swell up to the blow, then the chord
             }
             s.NoFx = true;  // the step's own effect draws it
             s.LightKind = (byte)step;
@@ -77,7 +77,7 @@ namespace Arena
             // The whole move, drawn from its age: Radius carries who and which step (4: a Radiant Noon); Pos2 is out along the
             // aim at the cut's reach, or at the ring's radius for Noon.
             BroadcastFx(FxKind.LightStep, p.Pos, p.Pos + V2.FromAngle(aim) * reach, LightGold, p.Id * 10 + (radiant ? 4 : step),
-                d.Dur + LightbringerMotion.Recover + (step == 3 ? 0.15f : 0f), Sfx.None);  // (Noon's light outlasts the swing)
+                d.Dur + LightbringerMotion.Recover + (step == 3 ? 0.15f : 0f), step < 3 ? Sfx.None : radiant ? Sfx.LightRadiant : Sfx.LightNoon);  // (Noon's light outlasts the swing)
         }
 
         /// Host, from LandSwing: a Lightbringer step landed and hit `hits` enemies. The gauge fills, Dawn and Mercy throw their
@@ -88,6 +88,8 @@ namespace Arena
                 p.Light = Math.Min(LightMax, p.Light + hits * (s.LightKind == 3 ? 2 : 1));
             if (s.LightKind < 3)
             {
+                if (hits > 0)
+                    BroadcastSound(Sfx.LightHit);
                 for (int i = 0; i < s.LightWaves; i++)
                 {
                     float f = s.LightWaves == 1 ? 0f : i * 2f / (s.LightWaves - 1) - 1f;
@@ -145,7 +147,7 @@ namespace Arena
 
         void LandSunlance(Player p, Player q, int pips)
         {
-            BroadcastSound(Sfx.SpellHoly);
+            BroadcastSound(Sfx.LanceRelease);
             if (q.Downed)
                 q.Revive = Math.Min(1f, q.Revive + LanceRevive);
             else
@@ -204,7 +206,7 @@ namespace Arena
             p.FireCd = Math.Max(p.FireCd, LightbringerMotion.Lance.Dur * 0.85f);
             lanceRuns.Add(new LanceRun { Owner = p.Id, Target = q.Id, Pips = pips });
             // The thrust and the lance, drawn from its age: Radius carries the thrower's id * 1000 + the ally's, Pos2 where the ally stood.
-            BroadcastFx(FxKind.Sunlance, p.Pos, q.Pos, LightGold, p.Id * 1000 + q.Id, LightbringerMotion.Lance.Dur + LightbringerMotion.Recover, Sfx.SpellArcane);
+            BroadcastFx(FxKind.Sunlance, p.Pos, q.Pos, LightGold, p.Id * 1000 + q.Id, LightbringerMotion.Lance.Dur + LightbringerMotion.Recover, Sfx.LanceGather);
         }
 
         /// Raising the parry (or the Sunlance) cancels the chain: back to Dawn, a step still winding up never lands.
@@ -253,6 +255,7 @@ namespace Arena
             if (me.Light < LanceNeed || SunlanceTarget(me, aimAt) == null)
             {
                 AddFx(FxKind.Ring, me.Pos, new Rgba(1f, 0.6f, 0.5f, 0.6f), 22f, 0.25f);  // not enough light, or no ally in reach
+                Sounds.Add(Sfx.LanceFizzle);  // (your own screen only)
                 return true;
             }
             lanceLocalCd = LanceCooldown;

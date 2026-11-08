@@ -72,6 +72,9 @@ namespace Arena
         // The Twin Blades (TwinSoundBank.cs, the Crescent Waltz): the Rising and Falling Cuts, a jab, the Pirouette, the Crescent Shear, a cut landing (and a heavy one),
         // Twin Fang thrown, its burst where the sabres cross, and the catch. Sent by the host; all but the catch use the Weapons volume.
         TwinCut1, TwinCut2, TwinJab, TwinSpin, TwinShear, TwinHit, TwinHitHeavy, TwinThrow, TwinCross, TwinCatch,
+        // The Lightbringer (LightSoundBank.cs): Dawn and Mercy Cuts, Noon (from the click: the swell up to the blow, then the chord) and a Radiant Noon,
+        // a cut landing, a crescent healing and warding an ally, the Sunlance gathering and released, and your own key with too little light.
+        LightCut1, LightCut2, LightNoon, LightRadiant, LightHit, LightHeal, LightWard, LanceGather, LanceRelease, LanceFizzle,
     }
 
     public struct SoundCue
