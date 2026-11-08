@@ -31,6 +31,9 @@ namespace Arena
                     Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
                     Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
                     break;
+                case FxKind.BloodFreeze:
+                    DrawBloodFreeze(fx);  // BloodFreezeLook.cs
+                    break;
                 case FxKind.Debris:
                     DrawDebrisFx(fx, f);  // PropsLook.cs
                     break;

@@ -208,11 +208,10 @@ static partial class Program
         use(AbilityId.Exsanguinate, hp.Pos);
         Check(hp.Hp == 1f && !hp.Downed, "a health cost stops at 1 HP (the ability still casts, for nothing)");
 
-        // Blood Shell: held, free to raise; stops bullets and enemies at its skin; each bullet costs you and heals allies inside.
+        // Blood Shell: a toggle, free to raise; stops bullets and enemies at its skin; each bullet costs you and heals allies inside.
         place(1, 500f); place(2, 540f); run(0.3f);
         hp.Hp = hp.MaxHp * 0.5f; cp.Hp = cp.MaxHp * 0.5f;
         float s0 = hp.Hp, cAlly0 = cp.Hp;
-        g.HoldShell = true;
         use(AbilityId.BloodShell, hp.Pos);
         Check(hp.ShellOn && hp.Hp == s0 && hp.ShieldHp == 0f, "Blood Shell costs nothing to raise and doesn't shield");
         var inside = dummy(hp.Pos + new V2(40f, 0f));
@@ -226,11 +225,18 @@ static partial class Program
         Console.WriteLine("  blood shell: one bullet cost {0:0.0}, ally gained {1:0.0}", maxDrop, cp.Hp - cAlly0);
         Check(!g.Bullets.ContainsKey(900001) && Math.Abs(maxDrop - 7f) < 0.6f, "a bullet stops at the skin and costs 7 health");
         Check(cp.Hp - cAlly0 >= 3.5f && cp.Hp - cAlly0 < 20f && hp.ShellOn, "an ally inside heals when it stops a bullet, and the shell stays up");
-        g.HoldShell = false;
-        run(0.5f);
-        Check(!hp.ShellOn, "letting go brings the shell down");
+        float d0 = hp.Hp;
+        Run(s, dt, 2f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; });
+        float up = hp.Hp - d0;
+        use(AbilityId.BloodShell, hp.Pos);
+        run(0.2f);
+        Check(!hp.ShellOn, "pressing again brings the shell down");
+        float dDown = hp.Hp;
+        run(2f);
+        float free = hp.Hp - dDown;  // what the same 2 s does with the shell down (regen, heals)
+        Console.WriteLine("  blood shell: {0:0.0} in 2 s standing vs {1:0.0} with it down", up, free);
+        Check(free - up > 1.5f && free - up < 5f, "a standing shell bleeds you slowly (about 3 in 2 s)");
         hp.Hp = hp.MaxHp * Game.ShellPopFrac + 1f;
-        g.HoldShell = true;
         use(AbilityId.BloodShell, hp.Pos);
         var near = dummy(hp.Pos + new V2(Game.ShellRadius + 30f, 0f));
         run(0.2f);
@@ -240,7 +246,6 @@ static partial class Program
         Console.WriteLine("  blood shell: burst with {0:0} of {1:0} health, an enemy at the skin was thrown {2:0} px", hp.Hp, hp.MaxHp, near.Pos.DistanceTo(hp.Pos) - before);
         Check(!hp.ShellOn && hp.Hp <= hp.MaxHp * Game.ShellPopFrac + 8f, "it bursts when your health falls to a third");
         Check(near.Pos.DistanceTo(hp.Pos) > before + 60f, "the burst throws nearby enemies back");
-        g.HoldShell = false;
         keep.Remove(inside); keep.Remove(near); inside.Hp = near.Hp = 0f;
         run(0.2f);
 

@@ -259,7 +259,9 @@ namespace Arena
                 }
                 if (s.Id == AbilityId.BloodShell && me.ShellOn)
                 {
-                    held[slot] = botHeldLast[slot] = BotDanger > 0.3f;  // keep the shell up while shots are coming
+                    held[slot] = botHeldLast[slot] = false;
+                    if (BotDanger < 0.1f && me.ShellT > 1.5f)  // nothing coming: press again to drop it (it bleeds you)
+                        held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
                 if (s.Id == AbilityId.None || s.Charges <= 0 || botHeldLast[slot])
