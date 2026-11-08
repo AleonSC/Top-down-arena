@@ -201,7 +201,7 @@ namespace Arena
             e.Hp = e.MaxHp;
             e.ShieldHp = e.BubbleHp = 0f;
             e.KnockLeft = V2.Zero;
-            e.FrozenT = e.GraspT = e.CageT = 0f;  // nothing pins or cages it: the meter should see what the weapon does
+            e.FrozenT = e.GraspT = e.CageT = e.IceT = 0f;  // nothing pins or cages it: the meter should see what the weapon does
             if (DummyMoves)
                 e.Pos = ClampToArena(new V2(e.DummyHome.X + (float)Math.Sin(e.T * DummyPatrolSpeed) * DummyPatrol, e.DummyHome.Y), e.Radius);
             else

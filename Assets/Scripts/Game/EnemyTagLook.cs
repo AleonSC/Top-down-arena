@@ -14,6 +14,17 @@ namespace Arena
         readonly HashSet<int> tagChecked = new HashSet<int>();                      // enemies already counted
         int tagRunKey = -1;
 
+        // Settings -> Gameplay -> "Enemy names on hover": point at an enemy to see its name (and job), any time. Off by default.
+        bool hoverNames;
+        void LoadHoverNames() => hoverNames = PlayerPrefs.GetInt("hover_names", 0) == 1;
+
+        void SetHoverNames(bool on)
+        {
+            hoverNames = on;
+            PlayerPrefs.SetInt("hover_names", on ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+
         static readonly string[] JobNames = { "PRESSURE", "HUNTER", "ZONER", "DISRUPTOR", "ANCHOR" };
 
         /// Hud: count the enemies that just came into view and draw the tags that are up.
@@ -73,6 +84,39 @@ namespace Arena
             }
             foreach (var id in gone)
                 tagUntil.Remove(id);
+        }
+
+        /// Hud: the name of the enemy the cursor is on (and its job, for the regular ones), when the setting is on.
+        /// Skipped while that enemy already carries a teaching tag, so the two never stack.
+        void DrawHoverName()
+        {
+            if (!hoverNames || game.State != MatchState.Fighting || game.Paused || pauseMenuOpen)
+                return;
+            V2 m = MouseArena();
+            Enemy best = null;
+            float bestD = 1e9f;
+            foreach (var e in game.Enemies.Values)
+            {
+                if (e.Hp <= 0f || game.IsSpawning(e) || e.Type == EnemyType.SapperMine || tagUntil.ContainsKey(e.Id))
+                    continue;
+                float d = e.Disp.DistanceTo(m) - e.Radius;
+                if (d < 10f && d < bestD)
+                {
+                    best = e;
+                    bestD = d;
+                }
+            }
+            if (best == null)
+                return;
+            V2 at = ToUi(best.Disp);
+            float r = best.Radius * WorldToUi;
+            var box = new Rect(at.X - 70f, at.Y - r - 44f, 140f, 14f);
+            Ui.Label(box, best.Def.Name.ToUpperInvariant(), 11, Color.white, TextAnchor.MiddleCenter, true);
+            if (HasJobMarker(best))
+            {
+                int job = (int)Game.JobOf(best.Type);
+                Ui.Label(new Rect(box.x, box.y + 12f, box.width, 12f), JobNames[job], 9, ToColor(JobColors[job]), TextAnchor.MiddleCenter, true);
+            }
         }
     }
 }

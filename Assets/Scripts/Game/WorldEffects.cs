@@ -31,6 +31,9 @@ namespace Arena
                     Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
                     Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
                     break;
+                case FxKind.BloodFreeze:
+                    DrawBloodFreeze(fx);  // BloodFreezeLook.cs
+                    break;
                 case FxKind.Debris:
                     DrawDebrisFx(fx, f);  // PropsLook.cs
                     break;
@@ -233,6 +236,12 @@ namespace Arena
                     break;
                 case FxKind.GreatRend:
                     DrawGreatRendFx(fx, f);  // GreatswordLook.cs
+                    break;
+                case FxKind.TwinStep:
+                    DrawTwinStepFx(fx);  // TwinBladesLook.cs
+                    break;
+                case FxKind.TwinFang:
+                    DrawTwinFangFx(fx);
                     break;
             }
         }

@@ -535,6 +535,7 @@ static partial class Program
                 case WeaponId.SpiritChalk: ok = b[3] > a[3]; break;                      // more ink: a longer line
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
                 case WeaponId.Greatsword: ok = b[1] > a[1] && ratio > 1.1f; break;       // the overhead rend's sword waves: only one cut in three has them
+                case WeaponId.TwinBlades: ok = b[1] > a[1] && ratio > 1.1f; break;       // crescents off the Pirouette and the Shear: two steps in five have them
                 case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
                 case WeaponId.HolyMace: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
@@ -736,7 +737,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.ChainThrow)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.ChainThrow || fx.Kind == FxKind.TwinStep)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }

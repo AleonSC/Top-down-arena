@@ -45,8 +45,16 @@ one-line "what it does" in the wave banner for a newly unlocked type. Stored in 
 Tags done (world part): `Game/EnemyTagLook.cs`, `Profile.TagSeen` ("tag" lines, profile format 6, `Profile.TagShows` = 3). The first 3
 times a type comes into view it carries its name and job (job colours) for 2.6 s, fading out; after that, never. Counted per profile,
 client side only, nothing sent. Elites are not tagged on their own (a Gauntlet wave has 40-60 of them); they follow their type's
-count. Preview: `TAGS=1 Tools/Preview/shot.sh tags hud 12 5 1`. Not done yet: the one-line note in the wave banner for a newly
-unlocked type (needs a short description per enemy and a place in the scan band).
+count. Preview: `TAGS=1 Tools/Preview/shot.sh tags hud 12 5 1`. New-enemy chips (option B of `Docs/Mockups/new-enemy-banner.html`): under the between-waves box (and under the GET READY band) one
+CRT chip per type the next wave brings that this profile hasn't met: job marker, name, job, NEW tag, one line from `Game.EnemyNote`.
+`Game.NewTypesAt(n)` (`Core/NewEnemies.cs`) lists what a wave brings (its `WavePool` against the last wave's, plus the rushers'
+unlock waves); a type counts as met once it has carried its name tag (`Profile.TagSeen`). Up to three chips; none on boss waves or in
+the Practice Range. Code: `Game/NewEnemyChips.cs`. Test: `newenemies`. Preview: `WAVECLEARED=1 WCWAVE=17 Tools/Preview/shot.sh chips hud 18 5 1`.
+The one-line notes are drafts for the owner to reword. Section 4 is done.
+
+Hover names: Settings > Gameplay > "Enemy names on hover" (`hover_names` in PlayerPrefs, off by default) shows the name, and the job for the
+regular enemies, of the enemy under the cursor (`DrawHoverName` in `EnemyTagLook.cs`). It stays out of the way of a teaching tag the enemy
+already carries.
 
 ## Order and cost
 1 then 3 (small, mostly code), then 2 (art audit), then 4 (profile data + UI). Only 4 touches the profile; none change

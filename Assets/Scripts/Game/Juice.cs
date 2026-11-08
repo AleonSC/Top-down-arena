@@ -159,6 +159,7 @@ namespace Arena
             ClearGolemWallLook();  // GolemWallLook.cs
             ClearTankLooks();  // TankLooks.cs
             ClearTombLook();  // GlacialTombLook.cs
+            ClearBloodFreezeLook();  // BloodFreezeLook.cs
             ClearTankGunLooks();  // TankGunLooks.cs
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
@@ -179,6 +180,23 @@ namespace Arena
         readonly System.Random juiceRng = new System.Random();  // its own rolls: the game's stay untouched
 
         int lastRapierStreak;
+
+        /// Your own Twin Blades hit: a hit-pause and a kick sized to the move. The quick steps get a short hold with a short gap, so
+        /// a whole chain gets one each; the Pirouette only kicks (a hold mid-turn reads as a stutter); the Shear and Twin Fang's
+        /// burst hold longest. `hits`: enemies cut, which adds a little.
+        void TwinHitFeel(int kind, int hits)
+        {
+            float more = Mathf.Min(3, Mathf.Max(0, hits - 1));
+            switch (kind)
+            {
+                case 1: case 2: Hold(0.025f, 0.12f); Shake(0.06f + 0.01f * more); break;
+                case 3: Hold(0.018f, 0.1f); Shake(0.05f); break;
+                case 4: Shake(0.04f + 0.01f * more); break;
+                case 5: Hold(0.05f + 0.01f * more, 0.2f); Shake(0.18f + 0.02f * more); break;
+                case 6: Shake(0.04f); break;
+                case 7: Hold(0.04f, 0.2f); Shake(0.15f); break;
+            }
+        }
 
         void Shake(float amount)
         {
@@ -246,6 +264,7 @@ namespace Arena
             var me = game.Me;
 
             UpdateTombLook(t);  // GlacialTombLook.cs: remembers the enemy shots a Glacial Tomb is about to erase
+            UpdateBloodFreezeLook(t);  // BloodFreezeLook.cs: the wave's screen kick, and forgetting old crystals
 
             // New effects: blasts shake, spark, scorch and ripple.
             if (me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Rapier)
@@ -275,6 +294,8 @@ namespace Arena
                     Hold(0.03f, 0.15f);  // ...and each swipe that cuts something with a lighter one and a 0.03 s hit-stop (a short gap, so a 0.26 s chain gets one each)
                     Shake(0.07f);
                 }
+                if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
+                    TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
                 if (fx.Kind == FxKind.Jab && me != null && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B && me.Pos.DistanceTo(fx.Pos) < 44f)
                 {
                     float hp = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own hammer slam: a hit-stop and a kick, harder the more it was charged
@@ -297,6 +318,21 @@ namespace Arena
                             continue;
                         Hold(0.05f);  // your own Greatsword cut caught something: a hit-stop and a kick
                         Shake(0.14f);
+                        break;
+                    }
+                }
+                if (fx.Kind == FxKind.GreatRend && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && me.Pos.DistanceTo(fx.Pos) < 44f)
+                {
+                    V2 rl = fx.Pos2 - fx.Pos, rd = rl.Length > 1f ? rl / rl.Length : new V2(1f, 0f);
+                    float rt = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own Rend: harder the more Temper it carried
+                    foreach (var en in game.Enemies.Values)
+                    {
+                        V2 rel = en.Disp - fx.Pos;
+                        float along = rel.X * rd.X + rel.Y * rd.Y, across = Mathf.Abs(-rel.X * rd.Y + rel.Y * rd.X);
+                        if (along < 0f || along > rl.Length + en.Radius || across > fx.Radius + en.Radius)
+                            continue;
+                        Hold(0.04f + 0.04f * rt);  // it caught something: a hit-stop and a kick
+                        Shake(0.12f + 0.2f * rt);
                         break;
                     }
                 }

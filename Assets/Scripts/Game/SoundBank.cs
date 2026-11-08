@@ -214,7 +214,7 @@ namespace Arena
             string name = s.ToString();
             if (name.StartsWith("Boss") || name.StartsWith("Zombie") || IsMeleeEnemySfx(name))
                 return Category.Enemies;
-            if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit || IsKatanaWeaponSfx(s) || s == Sfx.GreatWindup || s == Sfx.GreatRend)
+            if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit || IsKatanaWeaponSfx(s) || IsTwinWeaponSfx(s) || s == Sfx.GreatWindup || s == Sfx.GreatRend)
                 return Category.Weapons;
             return Category.Effects;
         }
@@ -249,6 +249,7 @@ namespace Arena
             BuildNinja();  // NinjaSoundBank.cs
             BuildKatana();  // KatanaSoundBank.cs
             BuildGreatsword();  // GreatswordSoundBank.cs
+            BuildTwin();  // TwinSoundBank.cs
             BuildTreant();  // TreantSoundBank.cs
         }
 

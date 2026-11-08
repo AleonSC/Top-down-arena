@@ -43,7 +43,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard }
 
     public class ZoneDef
     {
@@ -131,7 +131,6 @@ namespace Arena
             new ZoneDef { Name = "Smoke Bomb", Color = new Rgba(0.62f, 0.62f, 0.7f) },  // slows enemy bullets inside (Ninja.cs)
             new ZoneDef { Name = "Healing Footprint", Color = new Rgba(0.55f, 1f, 0.8f) },  // a Healing Dash footprint: heals whoever stands in it (Ninja.cs)
             new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f) },  // takes the damage allies near it would take, then pays some back as healing (Ninja.cs)
-            new ZoneDef { Name = "Siphon Field", Color = new Rgba(0.85f, 0.15f, 0.3f), HealRate = 10f, Dps = 10f },
             new ZoneDef { Name = "Blood Pool", Color = new Rgba(0.6f, 0.05f, 0.12f), Slow = 0.4f },  // a Clot Bolt's
             new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },
             new ZoneDef { Name = "Incense", Color = new Rgba(0.85f, 0.8f, 0.6f), HealRate = 4f },  // the Censer's trail (Knight.cs); enemy shots fired inside it stray

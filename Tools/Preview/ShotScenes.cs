@@ -347,7 +347,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
-      var gm = host.Game; gm.Bot = false; gm.HoldShell = true;  // (a held ability, the Blood Shell, stays up)
+      var gm = host.Game; gm.Bot = false;
       var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
       var adef = Upgrades.Ability(aid);
       int slot = adef.Choice == AbilityDef.Ult ? Upgrades.UltSlot : 0;
@@ -474,7 +474,14 @@ static partial class Shot {
           break;
         }
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
-        case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
+        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
+        {
+          string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";
+          if (tsn == "fang") gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.FangReach, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangTotal });
+          else { int tsi = int.Parse(tsn); me.Combo = (1 << 3) | tsi; gm.Effects.Add(new Effect { Kind = FxKind.TwinStep, Pos = me.Pos, Pos2 = to, Color = Game.TwinMoon, Radius = me.Id * 10 + tsi, T = st, Dur = TwinBladesMotion.Steps[tsi - 1].Dur + TwinBladesMotion.Recover }); }
+          break;
+        }
+        case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)
         {
           int bs = int.Parse(Environment.GetEnvironmentVariable("BOSTEP") ?? "0");

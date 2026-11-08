@@ -55,7 +55,6 @@ namespace Arena
 
         public bool RerollPending => rerollsAtRequest >= 0;
 
-        public bool HoldShell;  // tests: the Blood Shell's key is down
         public bool Bot;  // drive the local player automatically (testing)
         V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
@@ -975,10 +974,6 @@ namespace Arena
                 knockLeft = 0f;
             }
 
-            bool shellHeld = false;  // the Blood Shell's key is down (BloodShell.cs)
-            for (int slot = 0; slot < held.Length; slot++)
-                if (held[slot] && me.Slots[slot].Id == AbilityId.BloodShell)
-                    shellHeld = true;
             for (int slot = 0; slot < held.Length; slot++)
             {
                 bool pressed = held[slot] && !abilityWasDown[slot];
@@ -992,8 +987,9 @@ namespace Arena
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
                 bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
+                bool shellOut = ShellRelease(me, slot);  // Blood Shell pressed again: the host brings it down (BloodShell.cs)
                 bool rainOut = RainPress(me, slot);  // Sanguine Rain pressed again: the host cancels it (SanguineRain.cs)
-                if (!orbitOut && !standOut && !harvestOut && !rainOut && !Consume(me, slot, false))
+                if (!orbitOut && !standOut && !harvestOut && !rainOut && !shellOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
@@ -1088,7 +1084,6 @@ namespace Arena
             if (IsHost)
             {
                 me.Firing = firing;
-                me.ShellHold = shellHeld || HoldShell || me.ShellT < ShellMinUp;
                 if (bowRelease > 0f)
                     me.BowRelease = bowRelease;
             }
@@ -1102,7 +1097,6 @@ namespace Arena
                 w.Write(me.Parrying);
                 w.Write(me.DrawT);
                 w.Write(bowRelease);
-                w.Write(shellHeld);
                 session.SendToHost(Proto.End(w));
             }
         }
@@ -1137,11 +1131,12 @@ namespace Arena
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
+            TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
-            TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
+            TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
             TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves

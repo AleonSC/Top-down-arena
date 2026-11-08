@@ -245,7 +245,6 @@ namespace Arena
                     Tri(z.Pos + sd * 16f, z.Pos + sd * 9f + sd.Orthogonal() * 3.5f, z.Pos + sd * 9f - sd.Orthogonal() * 3.5f);
                     break;
                 }
-                case ZoneKind.Siphon:
                 case ZoneKind.BloodPool:
                     DrawBloodZone(z, c, t);  // BloodMageLook.cs
                     break;
@@ -494,12 +493,14 @@ namespace Arena
             {
                 if (fxOn)
                 {
-                    if (!DrawTombSpires(e, pos, r, t))  // a Glacial Tomb's spires (GlacialTombLook.cs)
+                    if (!DrawBloodIce(e, pos, r, t) && !DrawTombSpires(e, pos, r, t))  // a Blood Freeze's crystal (BloodFreezeLook.cs), a Glacial Tomb's spires (GlacialTombLook.cs)
                         DrawIceBlockFacets(e, pos, r, t);  // FrostNovaLook.cs
                 }
                 else
                     DrawIceBlock(e, pos, r, t);
             }
+            if (bfStates.Count > 0)
+                DrawBloodShatter(e, pos, r, t);  // the crystal breaking as the freeze ends (BloodFreezeLook.cs)
             if (tombStates.Count > 0)
                 DrawTombShatter(e, pos, r, t);  // the spires breaking as the freeze ends (GlacialTombLook.cs)
             DrawEnemyDetails(e, pos, r, col, t);
@@ -748,7 +749,10 @@ namespace Arena
         Rgba DrawEnemyStatus(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             if (e.Frozen && !LeapCaged(e))
-                col = col.Mix(new Rgba(0.75f, 0.92f, 1f), 0.85f);  // frosted almost white-blue
+            {
+                if (!(fxOn && bfStates.ContainsKey(e.Id)))  // (a Blood Freeze's crystal shows the enemy through it: BloodFreezeLook.cs)
+                    col = col.Mix(new Rgba(0.75f, 0.92f, 1f), 0.85f);  // frosted almost white-blue
+            }  // frosted almost white-blue
             else if (e.Chilled)
                 col = col.Mix(IceColor, 0.35f);
             if (e.Burning)

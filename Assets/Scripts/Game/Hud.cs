@@ -30,6 +30,7 @@ namespace Arena
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawFreezeBanner();  // Blood Freeze's count and timer (BloodFreezeLook.cs)
             DrawKatanaLetterbox();  // the bars over your own Katana strike (KatanaLook.cs)
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
@@ -72,6 +73,7 @@ namespace Arena
             }
 
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
+            DrawHoverName();  // the name of the enemy under the cursor, if Settings has it on (EnemyTagLook.cs)
 
             HudGroup(2, new Vector2(150f, 30f), HudMyCard, DrawPlayerCorner);
             if (me != null)
@@ -126,11 +128,16 @@ namespace Arena
                     if (game.Room == RoomPhase.Portal)
                         break;  // a portal is open: its own call instead (ChallengeLook.cs)
                     if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
+                    {
+                        DrawNewEnemyChips(WcY + WcH + 14f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
                         break;
+                    }
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
                         DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.IsBossWave(game.Wave) ? Ui.Gold : Ui.Accent);
+                    if (pr == null)
+                        DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:

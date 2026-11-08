@@ -796,6 +796,8 @@ namespace Arena
             }
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
+            if (e.IceT > 0f && e.FrozenT > 0f)
+                dmg *= e.IceMult;  // the mastered Blood Freeze (BloodFreeze.cs)
             if (attacker > 0)
                 dmg *= LitMult(e);  // in a Searchlight (Stun.cs)
             if (Hungry(e))
