@@ -401,6 +401,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 The Lunger, Spike Block, Charger and Riot Shield all warn of a lunge the same way: a red strip on the floor that fills up over the wind-up and flashes white just before they go.
 
+A Phantom shows a ring where it is about to blink (half a second before it does, and before its ring of shots), and a Mortar's bomb shows a ring where it will land.
+
 From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn. Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
 
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a

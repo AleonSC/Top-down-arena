@@ -95,18 +95,29 @@ namespace Arena
 
         // --- Mechanics ----------------------------------------------------------
 
+        public const float PhantomWarn = 0.5f, PhantomBurstRadius = 40f, MortarMarkRadius = 40f;  // the Phantom blink warning ring (how long, how big) and the Mortar landing ring
+
         void LateSpecial(Enemy e, V2 tpos, float dt)
         {
             e.PhaseT -= dt;
             switch (e.Type)
             {
                 case EnemyType.Phantom:
-                    if (e.PhaseT <= 0f)
+                    // Blink somewhere near the target, then burst. The spot is marked first (a Target ring, PhantomWarn s, the
+                    // same "it lands here" ring as the bombs and blasts); Phase 1 is that warning.
+                    if (e.Phase == 0 && e.PhaseT <= 0f)
                     {
-                        // Blink somewhere near the target, then burst.
+                        e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                        e.Phase = 1;
+                        e.PhaseT = PhantomWarn;
+                        BroadcastFx(FxKind.Target, e.Waypoint, e.Def.Color, PhantomBurstRadius, PhantomWarn, Sfx.None);
+                    }
+                    else if (e.Phase == 1 && e.PhaseT <= 0f)
+                    {
+                        e.Phase = 0;
                         e.PhaseT = Rand(3f, 4.5f);
                         V2 from = e.Pos;
-                        e.Pos = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                        e.Pos = e.Waypoint;
                         e.Disp = e.Pos;
                         BroadcastFx(FxKind.Ring, from, e.Def.Color, 30f, 0.3f, Sfx.None);
                         BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 40f, 0.3f, Sfx.Blink);
