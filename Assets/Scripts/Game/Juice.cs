@@ -258,8 +258,10 @@ namespace Arena
                 if (fx.Kind == FxKind.KatanaHitCue && fx.Color.A > 0.75f && (int)fx.Pos2.X == game.MyId)
                 {
                     Hold(Game.KatanaLungeHold + Game.KatanaLungeHoldPer * Mathf.Min(3f, fx.Radius - 1f));  // your own lunge cut something: the picture holds
-                    Shake(0.05f);
+                    Shake(0.14f);  // Moon Steel: the lunge lands with a kick
                 }
+                else if (fx.Kind == FxKind.KatanaHitCue && (int)fx.Pos2.X == game.MyId)
+                    Shake(0.07f);  // ...and each swipe that cuts something with a lighter one
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)

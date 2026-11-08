@@ -201,6 +201,8 @@ namespace Arena
                 {
                 {
                     KatanaSpear(o, dir, aim, ext, T, fade, col);
+                    Player owner;
+                    KatanaGhosts(fx.Pos, dir, T, game.Players.TryGetValue(seen.Owner, out owner) ? owner.Def.BodyR : 16f, col);
                     KatanaMarks(o, aim, 0f, 1f, reach, T, MeleeThrustTime, true, col);
                 }
                 }
@@ -296,6 +298,24 @@ namespace Arena
             float s = sweep >= 0f ? 1f : -1f, shock = fade * (T < sweepTime + 0.1f ? 1f : 0.5f);
             for (int k = 0; k < 2; k++)
                 Arc(o, reach + 9f + 8f * k, 1.3f, col.WithAlpha((0.35f - 0.15f * k) * shock), 14, at - s * (0.52f - 0.1f * k), s * 0.64f);
+        }
+
+        /// Five afterimages of the swordsman along the lunge's step, from where they stood, fading as the step ends.
+        void KatanaGhosts(V2 from, V2 dir, float T, float bodyR, Rgba col)
+        {
+            const float step = 0.12f, tail = 0.35f;
+            if (T < 0f || T > step + tail)
+                return;
+            float fade = 1f - Mathf.Clamp01((T - step) / tail), cur = EaseOut3(Mathf.Clamp01(T / step));
+            for (int i = 1; i <= 5; i++)
+            {
+                float u = cur - i * 0.14f, a = fade * (0.42f - i * 0.07f);
+                if (u < 0f || a <= 0f)
+                    continue;
+                V2 c = from + dir * (Game.KatanaLungeStep * EaseOut3(u));
+                GlowDisc(c, bodyR, col, a * 0.6f);
+                Arc(c, bodyR, 1.4f, Rgba.White.WithAlpha(a * 0.7f), 18);
+            }
         }
 
         /// A bright cut across each enemy the swing or lunge passes through, timed to the blade reaching it. Worked out from
