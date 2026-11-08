@@ -14,39 +14,44 @@ namespace Arena
             if (offer == null)
                 return;
             Ui.Alpha = 1f;  // the choice is never faded: nothing else's leftover fade may dim it
-            Ui.Fill(new Rect(0, 0, W, H), PathDark);  // (RoundWindows.cs)
-            Ui.Fancy(new Rect(0, 26f, W, 44f), "CHOOSE YOUR PATH", 34, Color.white, new Color(0.75f, 0.85f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
+            bool calm = CabCalm;
+            RoundBackdrop(PathDim);  // (RoundWindows.cs)
+            CrtUi.Title(new Rect(0, 22f, W, 56f), "CHOOSE YOUR PATH", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
             int from = game.Wave + 1, to = game.Wave + Paths.Length, boss = to + 1;
-            Ui.Label(new Rect(0, 70f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss at wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(0, 80f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss at wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);
             if (game.Route.Count > 0)
             {
                 string route = "Route so far:  ";
                 for (int i = 0; i < game.Route.Count; i++)
                     route += (i > 0 ? "  >  " : "") + Game.PathName(game.Route[i]);
-                Ui.Label(new Rect(0, 90f, W, 18f), route, 11, Ui.Muted, TextAnchor.MiddleCenter);
+                Ui.Label(new Rect(0, 98f, W, 18f), route, 11, Ui.Muted, TextAnchor.MiddleCenter);
             }
-            float cw = 440f, ch = 452f, gap = 40f, y = 116f;
+            float cw = 550f, ch = 452f, gap = 60f, y = 118f;
             for (int i = 0; i < 2; i++)
             {
                 var r = new Rect(W / 2f - cw - gap / 2f + i * (cw + gap), y, cw, ch);
-                if (DrawPathCard(r, Paths.Get(offer[i]), t, i))
+                if (DrawPathCard(r, Paths.Get(offer[i]), t, i, calm))
                     game.ChoosePath(i);
             }
             // Or neither: the plain arena for this stretch, with no bonus and no prize.
-            var none = new Rect(W / 2f - 230f, y + ch + 12f, 460f, 34f);
-            if (session.IsHost && Ui.Button(none, "No path: stay on the plain arena (no bonus, no prize)", Ui.Neutral))
+            float by = y + ch + 12f;
+            if (session.IsHost && CrtUi.Small(new Rect(W / 2f - 250f, by, 500f, 34f), "NO PATH  ·  STAY ON THE PLAIN ARENA", null, 22, calm))
                 game.ChoosePath(2);
             string waitText = session.IsHost ? "You're the host: pick the path for everyone" : "Waiting for " + HostName() + " to pick the path (or no path)";
-            Ui.Label(new Rect(0, none.yMax + 8f, W, 22f), waitText, 14, session.IsHost ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0, by + 40f, W, 22f), waitText, 14, session.IsHost ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
         }
 
-        bool DrawPathCard(Rect r, PathDef d, float t, int index)
+        /// One path as a blue CRT tube (look A of Docs/Mockups/crt-path-select.html): its live floor, name and skulls, rules, bonus and prize.
+        bool DrawPathCard(Rect r, PathDef d, float t, int index, bool calm)
         {
-            var accent = ToColor(d.Accent);
             bool hover = session.IsHost && r.Contains(Event.current.mousePosition);
-            Ui.Card(r, accent, hover ? 0.95f : 0.55f);
+            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
+            bool taken = false;
+            CrtUi.Begin(r);
+            if (hover)
+                CrtKit.Frame(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, r.height - 6f), 2f, ink);
             // The path's floor, with a few of its enemies on it.
-            var stage = new Rect(r.x + 14f, r.y + 14f, r.width - 28f, 170f);
+            var stage = new Rect(r.x + 22f, r.y + 22f, r.width - 44f, 128f);
             if (BeginUiGl())
             {
                 UiClip(stage);
@@ -74,30 +79,29 @@ namespace Arena
                 }
                 EndUiGl();
             }
-            float x = r.x + 22f, w = r.width - 44f, y = stage.yMax + 14f;
-            Ui.Fancy(new Rect(x, y, w, 32f), d.Name.ToUpperInvariant(), 26, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft, accent);
+            CrtKit.Frame(stage, 2f, dim);
+            float x = r.x + 22f, w = r.width - 44f, y = stage.yMax + 10f;
+            CrtUi.Title(new Rect(x, y, w - 90f, 46f), d.Name.ToUpperInvariant(), 44, ink, TextAnchor.MiddleLeft, calm);
             for (int k = 0; k < 3; k++)  // danger: 1-3 skulls
-                Ui.Icon(new Rect(r.xMax - 22f - (3 - k) * 20f, y + 8f, 16f, 16f), PixelArt.Get("ui_skull"), k < d.Danger ? new Color(1f, 0.45f, 0.45f) : new Color(1f, 1f, 1f, 0.15f));
-            y += 32f;
-            Ui.Label(new Rect(x, y, w, 18f), d.Kind.ToUpperInvariant() + "  ·  " + d.Blurb, 11, Ui.Muted);
-            y += 26f;
+                Ui.Icon(new Rect(r.xMax - 22f - (3 - k) * 28f, y + 11f, 24f, 24f), PixelArt.Get("ui_skull"), k < d.Danger ? new Color(1f, 0.45f, 0.5f) : new Color(1f, 1f, 1f, 0.15f));
+            y += 48f;
+            Ui.Label(new Rect(x, y, w, 18f), d.Kind.ToUpperInvariant() + "  ·  " + d.Blurb.ToUpperInvariant(), 11, dim, TextAnchor.MiddleLeft, true);
+            y += 24f;
             foreach (var rule in d.Rules)
             {
-                Ui.Fill(new Rect(x + 2f, y + 7f, 5f, 5f), accent);
-                Ui.Label(new Rect(x + 14f, y, w - 14f, 20f), rule, 13, Ui.Text);
-                y += 22f;
+                HudCrt(new Rect(x, y, w, 24f), "> " + rule, 22, ink);
+                y += 25f;
             }
             y += 8f;
-            Ui.Fill(new Rect(x, y, w, 1f), new Color(1f, 1f, 1f, 0.08f));
-            y += 10f;
-            Ui.Label(new Rect(x, y, 120f, 18f), "WHILE ON IT", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x + 110f, y, w - 110f, 18f), Paths.BonusText(d.Danger), 13, d.Danger > 1 ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
-            y += 24f;
-            Ui.Label(new Rect(x, y, 120f, 18f), "PRIZE", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x + 110f, y, w - 110f, 18f), Paths.PrizeText(d) + " before the boss", 13, Ui.Gold, TextAnchor.MiddleLeft, true);
-            if (!session.IsHost)
-                return false;
-            return Ui.Button(new Rect(x, r.yMax - 58f, w, 42f), "Take this path", new Color(accent.r * 0.75f, accent.g * 0.75f, accent.b * 0.75f), PixelArt.Get("ui_play"));
+            Ui.Label(new Rect(x, y, 130f, 24f), "WHILE ON IT", 10, dim, TextAnchor.MiddleLeft, true);
+            HudCrt(new Rect(x + 140f, y, w - 140f, 24f), Paths.BonusText(d.Danger), 22, d.Danger > 1 ? Ui.Good : dim);
+            y += 26f;
+            Ui.Label(new Rect(x, y, 130f, 24f), "PRIZE", 10, dim, TextAnchor.MiddleLeft, true);
+            HudCrt(new Rect(x + 140f, y, w - 140f, 24f), Paths.PrizeText(d) + " before the boss", 22, CrtStyle.Gold);
+            if (session.IsHost)
+                taken = CrtUi.Button(new Rect(x, r.yMax - 18f - 46f, w, 46f), "TAKE THIS PATH", PixelArt.Get("ui_play"), 26, calm);
+            CrtUi.End(r, Time.unscaledTime, fxReduced);
+            return taken;
         }
 
         // --- The path's floor ---------------------------------------------------------------------

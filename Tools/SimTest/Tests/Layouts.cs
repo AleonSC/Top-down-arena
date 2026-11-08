@@ -210,6 +210,45 @@ static partial class Program
         brute.Hp = 0f;
         Quiet();
 
+        // Routing: across every floor plan, enemies find a way between far-apart spots even when it takes several corners.
+        {
+            var rng = new Random(7);
+            int tried = 0, reached = 0;
+            foreach (var ld in Layouts.Playable())
+            {
+                g.DevSetLayout(ld.Id);
+                g.Props.Clear();
+                for (int k = 0; k < 12; k++)
+                {
+                    Func<V2> spot = () =>
+                    {
+                        for (int tries = 0; tries < 200; tries++)
+                        {
+                            var q = new V2(80f + (float)rng.NextDouble() * (Game.Width - 160f), 80f + (float)rng.NextDouble() * (Game.Height - 160f));
+                            if (ld.Solids.All(sd => !Layouts.Inside(sd, q, 30f)))
+                                return q;
+                        }
+                        return new V2(Game.Width / 2f, Game.Height / 2f);
+                    };
+                    V2 from = spot(), to = spot();
+                    var walker = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Brute, from, 0f, 0, false });
+                    walker.SpawnT = 0f; walker.Hp = walker.MaxHp = 99999f;
+                    float near = 9999f;
+                    for (int i = 0; i < 3000 && near > 50f; i++)
+                    {
+                        moveEnemy.Invoke(g, new object[] { walker, to, dt });
+                        walker.T += dt;
+                        near = Math.Min(near, walker.Pos.DistanceTo(to));
+                    }
+                    tried++;
+                    if (near <= 50f) reached++;
+                    walker.Hp = 0f;
+                    Quiet();
+                }
+            }
+            Check(reached >= tried - 2, "enemies route round walls on every floor plan (" + reached + " of " + tried + " trips made it)");
+        }
+
         // The cover of a new cycle, and random props staying out of the walls.
         g.Props.Clear();
         g.DevSetLayout(LayoutId.Islands);

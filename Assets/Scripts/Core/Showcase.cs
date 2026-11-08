@@ -14,6 +14,7 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
+        public bool Idle;  // the lobby's IDLE key: the character and the dummies stand still
         public Game Game => session.Game;
         public Player Me => Game.Me;
 
@@ -109,6 +110,7 @@ namespace Arena
             if (!Game.Running || Me == null)
                 return;
             t += dt;
+            Game.ShowcaseIdle = Idle;
             var me = Me;
             var input = new PlayerInput { AimAt = Home + new V2(0f, -Distance) };
             if (allies && demoAbility)
@@ -122,7 +124,7 @@ namespace Arena
             }
             // Stroll around home (and walk back after a dash or leap).
             V2 stroll = Home + Game.Sway(t, 7, 26f);
-            if (me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
+            if (!Idle && me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
@@ -174,6 +176,7 @@ namespace Arena
     public partial class Game
     {
         public bool ShowcaseMode;
+        public bool ShowcaseIdle;  // the dummies hold their spots (the lobby's IDLE key)
         readonly List<V2> dummySpots = new List<V2>();
         readonly List<int> dummyIds = new List<int>();
         readonly List<float> dummyRespawn = new List<float>();
@@ -298,7 +301,7 @@ namespace Arena
                 if (dummyIds[i] != 0 && Enemies.TryGetValue(dummyIds[i], out alive))
                 {
                     // Knocked back (Lance, Bulldoze...): walk back to its spot.
-                    V2 goal = dummySpots[i] + Sway(showT, i, 22f);
+                    V2 goal = dummySpots[i] + (ShowcaseIdle ? V2.Zero : Sway(showT, i, 22f));
                     V2 back = goal - alive.Pos;
                     float step = DummyReturn * dt;
                     alive.Pos = back.Length <= step ? goal : alive.Pos + back.Normalized() * step;

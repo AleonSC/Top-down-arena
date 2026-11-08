@@ -22,6 +22,7 @@ namespace Arena
         float showcaseZoomA;       // the zoom meter's fade (0 hidden .. 1 shown)
         bool showcaseZoomDrag;
         float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
+        bool showcaseIdle;         // the preview's IDLE key: the character stands still
         bool showcaseMute;         // the preview's MUTE key (next to the zoom slider)
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
@@ -1074,7 +1075,8 @@ namespace Arena
                 showcaseZoomDrag = false;
             var bar = new Rect(view.x, view.y, view.width, 18f);  // flush with the top of the window
             var muteKey = new Rect(bar.xMax - 50f, bar.y + 1f, 46f, bar.height - 2f);
-            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 50f, bar.height);
+            var idleKey = new Rect(muteKey.x - 50f, muteKey.y, 46f, muteKey.height);
+            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 100f, bar.height);
             if (e.type == EventType.MouseDown && track.Contains(e.mousePosition))
                 showcaseZoomDrag = true;
             float oa = Ui.Alpha;
@@ -1090,6 +1092,8 @@ namespace Arena
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
             if (showcaseZoomA > 0.3f && Ui.SmallButton(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral, 10))
                 showcaseMute = !showcaseMute;
+            if (showcaseZoomA > 0.3f && Ui.SmallButton(idleKey, "IDLE", showcaseIdle ? LobbyKit.Gold : Ui.Neutral, 10))
+                showcaseIdle = !showcaseIdle;
             GUI.color = oc;
             Ui.Alpha = oa;
         }
@@ -1184,6 +1188,7 @@ namespace Arena
                 showcase = null;
                 return;
             }
+            showcase.Idle = showcaseIdle;
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)

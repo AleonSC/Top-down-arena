@@ -307,8 +307,102 @@ namespace Arena
             return false;
         }
 
-        /// Which way a walking enemy heads for its target: straight at it, or, with a wall in the way, at the corner
-        /// that gets it round soonest. It sticks to the corner it chose for half a second so it doesn't dither.
+        // Waypoint graph: which corners see each other (for a fat enemy), and the shortest walk between any two.
+        sealed class WayGraph
+        {
+            public float[,] Dist, Direct;  // shortest walk, and the straight line between corners that see each other (else MaxValue)
+        }
+
+        sealed class GoalInfo
+        {
+            public float[] Cost;  // from each corner to the target
+            public int[] Next;    // the corner to head for from there (-1: straight at the target)
+        }
+
+        const float GraphR = 22f;
+        readonly Dictionary<LayoutDef, WayGraph> wayGraphs = new Dictionary<LayoutDef, WayGraph>();
+        readonly Dictionary<long, GoalInfo> goalCost = new Dictionary<long, GoalInfo>();
+        int goalStamp = -1;
+
+        WayGraph GraphFor(LayoutDef d)
+        {
+            WayGraph g;
+            if (wayGraphs.TryGetValue(d, out g))
+                return g;
+            var w = d.Waypoints;
+            int n = w.Length;
+            var dist = new float[n, n];
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    dist[i, j] = i == j ? 0f : (SegBlocked(d, w[i], w[j], GraphR) ? float.MaxValue : w[i].DistanceTo(w[j]));
+            var direct = (float[,])dist.Clone();
+            for (int k = 0; k < n; k++)  // Floyd-Warshall: corner to corner, round as many walls as it takes
+                for (int i = 0; i < n; i++)
+                {
+                    float ik = dist[i, k];
+                    if (ik == float.MaxValue)
+                        continue;
+                    for (int j = 0; j < n; j++)
+                    {
+                        float kj = dist[k, j];
+                        if (kj != float.MaxValue && ik + kj < dist[i, j])
+                            dist[i, j] = ik + kj;
+                    }
+                }
+            wayGraphs[d] = g = new WayGraph { Dist = dist, Direct = direct };
+            return g;
+        }
+
+        /// For each corner, the length of the best walk from it to tpos (through other corners if need be).
+        GoalInfo GoalCosts(LayoutDef d, V2 tpos, float r)
+        {
+            int stamp = (int)(LayoutAge * 5f);
+            if (stamp != goalStamp || goalCost.Count > 64)
+            {
+                goalCost.Clear();
+                goalStamp = stamp;
+            }
+            long key = ((long)(int)(tpos.X / 8f) << 32) ^ ((long)(int)(tpos.Y / 8f) << 8) ^ (long)(int)r;
+            GoalInfo info;
+            if (goalCost.TryGetValue(key, out info))
+                return info;
+            var w = d.Waypoints;
+            var graph = GraphFor(d);
+            var dist = graph.Dist;
+            int n = w.Length;
+            var last = new float[n];  // corners that see the target: the walk's last leg
+            for (int j = 0; j < n; j++)
+                last[j] = SegBlocked(d, w[j], tpos, r) ? float.MaxValue : w[j].DistanceTo(tpos);
+            var cost = new float[n];
+            var next = new int[n];
+            for (int i = 0; i < n; i++)
+            {
+                float best = float.MaxValue;
+                for (int j = 0; j < n; j++)
+                    if (last[j] != float.MaxValue && dist[i, j] != float.MaxValue && dist[i, j] + last[j] < best)
+                        best = dist[i, j] + last[j];
+                cost[i] = best == float.MaxValue ? 500f + w[i].DistanceTo(tpos) : best;  // no clean route: the nearest corner will do
+                next[i] = -1;
+            }
+            for (int i = 0; i < n; i++)
+            {
+                if (last[i] != float.MaxValue && last[i] <= cost[i] + 0.01f)
+                    continue;  // sees the target: go straight
+                float nb = float.MaxValue;
+                for (int k = 0; k < n; k++)
+                    if (k != i && graph.Direct[i, k] != float.MaxValue && graph.Direct[i, k] + cost[k] < nb)
+                    {
+                        nb = graph.Direct[i, k] + cost[k];
+                        next[i] = k;
+                    }
+            }
+            goalCost[key] = info = new GoalInfo { Cost = cost, Next = next };
+            return info;
+        }
+
+        /// Which way a walking enemy heads for its target: straight at it, or, with a wall in the way, along the
+        /// shortest route through the wall corners (as many as it takes). It sticks to the corner it chose for a
+        /// moment so it doesn't dither.
         V2 LayoutDir(Enemy e, V2 tpos, V2 dir)
         {
             var d = ActiveLayout;
@@ -327,6 +421,20 @@ namespace Arena
             var wps = d.Waypoints;
             if (m.Wp >= 0 && e.T < m.Until && e.Pos.DistanceTo(wps[m.Wp]) > 14f && !SegBlocked(d, e.Pos, wps[m.Wp], r))
                 return (wps[m.Wp] - e.Pos).Normalized();
+            var goal = GoalCosts(d, tpos, r);
+            var cost = goal.Cost;
+            int at = -1;  // standing on a corner: carry on to the next one on the route
+            for (int i = 0; i < wps.Length; i++)
+                if (e.Pos.DistanceTo(wps[i]) < 14f && (at < 0 || e.Pos.DistanceTo(wps[i]) < e.Pos.DistanceTo(wps[at])))
+                    at = i;
+            if (at >= 0)
+            {
+                if (goal.Next[at] < 0)
+                    return dir;
+                m.Wp = goal.Next[at];
+                m.Until = e.T + 0.5f;
+                return (wps[m.Wp] - e.Pos).Normalized();
+            }
             int best = -1;
             float bestScore = float.MaxValue;
             for (int i = 0; i < wps.Length; i++)
@@ -334,7 +442,7 @@ namespace Arena
                 float toW = e.Pos.DistanceTo(wps[i]);
                 if (toW < 14f || SegBlocked(d, e.Pos, wps[i], r))
                     continue;
-                float score = toW + wps[i].DistanceTo(tpos) + (SegBlocked(d, wps[i], tpos, r) ? 500f : 0f);
+                float score = toW + cost[i];
                 if (score < bestScore)
                 {
                     bestScore = score;

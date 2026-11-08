@@ -244,7 +244,7 @@ namespace Arena
             // The Halberd's sweep takes its six steps' 0.21 s at a steady speed, in step with its hits; the others ease out
             // over 0.11 s (the hit has already landed).
             bool full = half >= MathX.Pi - 0.01f, halberd = seen.Weapon == WeaponId.Halberd;
-            float sweepTime = halberd ? HalberdSweepTime : MeleeSweepTime;
+            float sweepTime = halberd ? HalberdSweepTime : seen.Weapon == WeaponId.Kusarigama ? KusariSweepTime : MeleeSweepTime;
             float s = seen.Sign, e = halberd ? Mathf.Clamp01(T / sweepTime) : EaseOut3(Mathf.Clamp01(T / sweepTime));
             float fadeOut = T < sweepTime ? 1f : 1f - Mathf.Clamp01((T - sweepTime) / MeleeTail);
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
@@ -261,6 +261,8 @@ namespace Arena
                 KatanaCrescent(o, reach, start, at, T, sweepTime, col, half > 1.5f ? 0.4f : 0.3f, false);  // one long crescent, thin at the tail and fat at the blade (fatter for the overhead rend)
                 KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
             }
+            else if (light && seen.Weapon == WeaponId.Kusarigama && !full)
+                KusariCutLook(fx, o, reach, start, at, T, col);  // KusarigamaLook.cs: the ribbon and the crescent it leaves hanging
             else if (light)
                 GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
             else
@@ -589,7 +591,6 @@ namespace Arena
                 HammerStunStars(c, R, power, after);
                 return;
             }
-            HammerQuake(c, R, pw, after, seed);
             Player owner;
             bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
             if (!aftershock && !charging)
@@ -642,8 +643,14 @@ namespace Arena
                 return true;
             foreach (var fx in game.Effects)
                 if (fx.Kind == FxKind.Jab && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B
-                    && fx.T < HammerSwingTime + HammerReturn && (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
-                    return true;
+                    && fx.T < HammerSwingTime + HammerReturn)
+                {
+                    // The slam's hammer follows its owner (MeleeOrigin), so match by owner: moving away from where the slam started
+                    // must not let the idle hammer show up beside the returning one.
+                    MeleeSeen seen;
+                    if (meleeSeen.TryGetValue(fx, out seen) ? seen.Owner == p.Id : (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
+                        return true;
+                }
             return false;
         }
 
@@ -749,11 +756,39 @@ namespace Arena
         }
 
         /// Quake: the ground taking the blow. A dark crater with a lighter rim and cracks that stay for about two seconds, dust
-        /// puffs rolling out round the circle, and stone chips thrown up that land with a small shadow. Solid pass.
-        void HammerQuake(V2 c, float R, float pw, float after, int seed)
+        /// puffs rolling out round the circle, and stone chips that land with a small shadow, all drawn on the floor before the enemies so they walk over
+        /// them (called from DrawArenaContents). Same geometry as DrawHammerSlamE.
+        void DrawHammerFloor()
         {
-            if (after < 0f)
+            if (!fxOn)
                 return;
+            foreach (var fx in game.Effects)
+            {
+                if (fx.Kind != FxKind.Jab || fx.Color.R != Game.HammerBoomColor.R || fx.Color.G != Game.HammerBoomColor.G
+                    || fx.Color.B != Game.HammerBoomColor.B)
+                    continue;
+                V2 to = fx.Pos2 - fx.Pos;
+                float reach = to.Length;
+                if (reach < 1f)
+                    continue;
+                var seen = MeleeOwnerOf(fx, HammerSwingTime + 2.3f, false, 0.5f);
+                if (seen == null || seen.Weapon != WeaponId.Warhammer)
+                    continue;
+                bool aftershock = reach > Game.HammerCentre(seen.BaseReach) + 1f;
+                float after = aftershock ? fx.T : fx.T - HammerSwingTime;
+                if (after < 0f)
+                    continue;
+                float aim = to.Angle, power = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f), pw = 0.45f + 0.55f * power;
+                V2 c = MeleeOrigin(fx, seen) + V2.FromAngle(aim) * reach;
+                HammerCrater(c, fx.Radius, pw, after, MeleeSeed(fx));
+                HammerDustPuffs(fx.Radius, c, pw, after, MeleeSeed(fx));
+                DrawHammerChips(pw, c, after, MeleeSeed(fx));
+            }
+        }
+
+        /// The crater with a lighter rim and the cracks that stay for about two seconds.
+        void HammerCrater(V2 c, float R, float pw, float after, int seed)
+        {
             float stay = 1f - Mathf.Clamp01((after - 0.4f) / 1.8f);
             if (stay > 0f)
             {
@@ -781,6 +816,11 @@ namespace Arena
                     }
                 }
             }
+        }
+
+        /// Dust puffs rolling out round the circle, drawn under the enemies with the crater.
+        void HammerDustPuffs(float R, V2 c, float pw, float after, int seed)
+        {
             for (int d = 0; d < 16; d++)  // dust rolling out
             {
                 float an = (float)d / 16f * MathX.Tau + Hash01(seed, d) * 0.3f, k = after / 1.1f;
@@ -789,6 +829,10 @@ namespace Arena
                 float rr = R * (0.55f + 0.55f * EaseOut3(Mathf.Min(1f, k * 1.1f))), pr = 8f + 20f * EaseOut3(k);
                 Circle(c + new V2(Mathf.Cos(an) * rr, Mathf.Sin(an) * rr * 0.9f - k * 10f), pr, new Rgba(0.62f, 0.58f, 0.52f, 0.34f * (1f - k) * (0.5f + 0.5f * pw)), 12);
             }
+        }
+
+        void DrawHammerChips(float pw, V2 c, float after, int seed)
+        {
             for (int s2 = 0; s2 < 14; s2++)  // stone chips
             {
                 float age = after - 0.02f * Hash01(seed, s2 + 20);
