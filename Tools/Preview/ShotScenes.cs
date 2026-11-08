@@ -547,15 +547,32 @@ static partial class Shot {
         {
           string lsn = Environment.GetEnvironmentVariable("LIGHTSTEP") ?? "1";
           me.Light = int.Parse(Environment.GetEnvironmentVariable("LIGHT") ?? "5");
-          if (Environment.GetEnvironmentVariable("WARD") == "1") foreach (var q in gm.Players.Values) q.MercyT = Game.MercyTime;
-          Player ally = null; foreach (var q in gm.Players.Values) if (q.Id != me.Id) { ally = q; q.Pos = q.Disp = me.Pos + V2.FromAngle(me.Aim - 0.5f) * 260f; }
-          if (lsn == "lance") gm.Effects.Add(new Effect { Kind = FxKind.Sunlance, Pos = me.Pos, Pos2 = ally != null ? ally.Pos : me.Pos + V2.FromAngle(me.Aim) * 300f, Color = Game.LightGold, Radius = me.Id * 1000 + (ally != null ? ally.Id : 0), T = st, Dur = LightbringerMotion.Lance.Dur + LightbringerMotion.Recover });
+          if (Environment.GetEnvironmentVariable("WARD") == "1") foreach (var q in gm.Players.Values) q.MercyT = Game.MercyTime - 0.7f;
+          Player ally = null; foreach (var q in gm.Players.Values) if (q.Id != me.Id) { ally = q; q.Pos = q.Disp = me.Pos + V2.FromAngle(me.Aim - 0.5f) * (lsn == "3" || lsn == "4" ? 110f : 260f); }
+          // LIGHTSTEP=cut: a Dawn crescent (and a Mercy one, CRES=mercy) SWING seconds into its flight; WARD=1 WARDHIT=<s>: a shot struck the ward that long ago
+          if (lsn == "cut")
+          {
+            bool mer = Environment.GetEnvironmentVariable("CRES") == "mercy";
+            V2 cd = V2.FromAngle(me.Aim);
+            gm.Bullets[99001] = new Bullet { Id = 99001, Kind = Defs.KnightWave, Owner = me.Id, Pos = me.Pos + cd * (me.Def.BodyR + 600f * st), Vel = cd * 600f, Life = 0.45f - st, Life0 = 0.45f, Radius = Defs.BulletRadius(Defs.KnightWave), Look = mer ? ShotLook.Crescent : ShotLook.Dart };
+            if (ally != null) { ally.Pos = ally.Disp = me.Pos + cd * 330f; gm.Effects.Add(new Effect { Kind = FxKind.LightMark, Pos = ally.Pos, Pos2 = new V2(mer ? 2 : 1, 0f), Color = Game.LightGold.WithAlpha(0.5f), Radius = ally.Id, T = st - 0.4f, Dur = 0.85f }); }
+            break;
+          }
+          if (Environment.GetEnvironmentVariable("WARDHIT") != null && ally != null)
+            gm.Effects.Add(new Effect { Kind = FxKind.LightMark, Pos = ally.Pos, Pos2 = new V2(3, 0f), Color = Game.LightGold, Radius = ally.Id, T = float.Parse(Environment.GetEnvironmentVariable("WARDHIT"), System.Globalization.CultureInfo.InvariantCulture), Dur = 0.4f });
+          if (lsn == "lance") gm.Effects.Add(new Effect { Kind = FxKind.Sunlance, Pos = me.Pos, Pos2 = ally != null ? ally.Pos : me.Pos + V2.FromAngle(me.Aim) * 300f, Color = Game.LightGold, Radius = me.Id * 1000 + (ally != null ? ally.Id : 0), T = st, Dur = LightbringerMotion.LanceRelease + LightbringerMotion.LanceLightTail });
           else
           {
             int ls = int.Parse(lsn), step = ls == 4 ? 3 : ls;
             float lr = step == 3 ? (ls == 4 ? Game.NoonRadiantRadius : Game.NoonRadius) : reach;
             me.Combo = (1 << 3) | step;
-            gm.Effects.Add(new Effect { Kind = FxKind.LightStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * lr, Color = Game.LightGold, Radius = me.Id * 10 + ls, T = st, Dur = LightbringerMotion.Steps[step - 1].Dur + LightbringerMotion.Recover + 0.15f });
+            if (step == 3 && ally != null)  // the ally's heal burst as the ring reaches them
+            {
+              V2 ringAt = me.Pos + V2.FromAngle(me.Aim) * Game.NoonAt;
+              float lag = Game.NoonMarkLag * Math.Min(1f, ally.Pos.DistanceTo(ringAt) / lr), since = st - LightbringerMotion.Steps[2].Dur * LightbringerMotion.NoonHit;
+              if (since >= 0f) gm.Effects.Add(new Effect { Kind = FxKind.LightMark, Pos = ally.Pos, Pos2 = new V2(1, lag), Color = Game.LightGold.WithAlpha(ls == 4 ? 1f : 0.5f), Radius = ally.Id, T = since, Dur = lag + 0.85f });
+            }
+            gm.Effects.Add(new Effect { Kind = FxKind.LightStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * lr, Color = Game.LightGold, Radius = me.Id * 10 + ls, T = st, Dur = step < 3 ? LightbringerMotion.Steps[step - 1].Dur + LightbringerMotion.Recover : LightbringerMotion.Steps[2].Dur * LightbringerMotion.NoonHit + LightbringerMotion.NoonLightTail });
           }
           break;
         }

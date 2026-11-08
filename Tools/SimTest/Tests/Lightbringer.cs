@@ -27,6 +27,8 @@ static partial class Program
         var keep = new List<Enemy>();
         var pins = new Dictionary<Enemy, V2>();
         var heard = new HashSet<Sfx>();
+        var marks = new HashSet<int>();  // LightMark kinds seen on the client (1 heal burst, 2 ward snap, 3 a shot on the ward)
+        var looks = new HashSet<ShotLook>();  // the Look of the Lightbringer's crescents, as the client got them
         Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
         Action<float, PlayerInput> play = (secs, input) =>
         {
@@ -40,6 +42,8 @@ static partial class Program
                 foreach (var c in g.Sounds) heard.Add(c.Sfx);
                 g.Update(dt);
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+                foreach (var e in client.Game.Effects) if (e.Kind == FxKind.LightMark) marks.Add((int)Math.Round(e.Pos2.X));
+                foreach (var b in client.Game.Bullets.Values) if (b.Kind == Defs.KnightWave && b.Owner == 1) looks.Add(b.Look);
             }
         };
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); me.Light = 0; me.Combo = 0; me.ComboT = 0f; ally.ShieldHp = 0f; ally.ShieldT = 0f; ally.MercyT = 0f; };
@@ -135,6 +139,22 @@ static partial class Program
         Check(Math.Abs(low[0] - base0[0]) < 1f && low[1] < 1f, "the Sunlance needs 4 light");
         Check(cd > 0f && cd < Game.LanceCooldown, "the Sunlance has a short cooldown");
         Check(seen, "the Sunlance sends its effect");
+
+        // A shot on a warded ally: the ward soaks it and the plate facing it flashes on every screen.
+        reset();
+        ally.ShieldHp = 0f;
+        allyAt = from + new V2(0f, -120f);
+        var warder = typeof(Game).GetMethod("Ward", flags);
+        warder.Invoke(g, new object[] { ally, Game.MercyWard });
+        var hurt = typeof(Game).GetMethod("Damage", flags);
+        float hp0 = ally.Hp;
+        g.DevSetGod(2, false); ally.InvulnT = 0f;
+        hurt.Invoke(g, new object[] { ally, 5f, "test" });
+        g.DevSetGod(2, true);
+        play(0.1f, new PlayerInput());
+        Console.WriteLine("  ward struck: health {0:0} -> {1:0}; marks seen {2}; crescent looks {3}", hp0, ally.Hp, string.Join(",", marks.OrderBy(x => x)), string.Join(",", looks));
+        Check(ally.Hp >= hp0 - 0.01f && marks.SetEquals(new[] { 1, 2, 3 }), "the ward soaks a shot; heal bursts, the ward snapping shut and a struck ward all reach the other screens");
+        Check(looks.Contains(ShotLook.Dart) && looks.Contains(ShotLook.Crescent), "Dawn's and Mercy's crescents reach the other screens marked as such (their Sunrise look)");
 
         // Its own sound bank (LightSoundBank.cs), and none of the generic swing whooshes.
         var want = new[] { Sfx.LightCut1, Sfx.LightCut2, Sfx.LightNoon, Sfx.LightRadiant, Sfx.LightHit, Sfx.LightHeal, Sfx.LightWard, Sfx.LanceGather, Sfx.LanceRelease, Sfx.LanceFizzle };

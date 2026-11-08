@@ -364,7 +364,7 @@ namespace Arena
                 DrawBloodShell(p, t);
             if (p.ShieldHp > 0f && p.Kit == Kit.Hemomancer)  // Blood Gift alone: plates of blood (BloodMageLook.cs)
                 DrawBloodShellOn(p, t);
-            else if (p.ShieldHp > 0f && !(fxOn && p.EnergyMax > 0f))  // Energy Ward, the plain ring (the bubble is EnergyWardLook.cs)
+            else if (p.ShieldHp > 0f && p.MercyT <= 0f && !(fxOn && p.EnergyMax > 0f))  // Energy Ward, the plain ring (a Lightbringer's ward draws its own plates) (the bubble is EnergyWardLook.cs)
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
             if (p.LegionT > 0f)  // Legion: the blood moon (LegionLook.cs)
                 DrawBloodMoon(p, t);

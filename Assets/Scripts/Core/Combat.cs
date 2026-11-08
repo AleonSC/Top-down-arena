@@ -50,6 +50,8 @@ namespace Arena
                 float soak = Math.Min(p.ShieldHp, amount);
                 p.ShieldHp -= soak;
                 amount -= soak;
+                if (p.MercyT > 0f && soak > 0f)  // a Lightbringer's ward took it: the plate facing the shot flashes (Lightbringer.cs)
+                    LightMark(p, 3, (RiotImpactPoint(p) - p.Pos).Angle, false);
                 if (p.EnergyOn)
                 {
                     p.EnergyStore += soak;  // an Energy Ward keeps it, to pay back
@@ -385,11 +387,15 @@ namespace Arena
                 if (b.WardAlly > 0f)
                 {
                     Ward(p, b.WardAlly);  // Mercy Cut's crescent (Lightbringer.cs)
+                    LightMark(p, 2, 0f, false);
                     BroadcastSound(Sfx.LightWard);
                     return true;
                 }
                 if (Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner)) > 0f && b.Kind == Defs.KnightWave)
-                    BroadcastSound(Sfx.LightHeal);  // a Lightbringer crescent (the only healing sword wave)
+                {
+                    LightMark(p, 1, 0f, false);  // a Lightbringer crescent (the only healing sword wave)
+                    BroadcastSound(Sfx.LightHeal);
+                }
                 TransfusionCost(b);  // Transfusion Darts cost their healer (BloodMage.cs)
                 return true;
             }

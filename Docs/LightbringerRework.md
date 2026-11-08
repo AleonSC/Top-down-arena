@@ -3,6 +3,9 @@
 Status: **built** (Nov 2026, protocol 208) with Sunlance as the alt; Dawnguard was not built. Mockup: `Docs/Mockups/lightbringer-rework.html` (built on the Twin Blades mockup engine: posed sword arm, trails, hit sparks, a scrubbable replay, a playable Try it, and a loop of each move, covering the chain, the
 radiant finisher and both alt-attack candidates).
 
+## Looks
+The Sundial (Noon), Sunrise (crescents), Spear (Sunlance) and Hex plates (ward) from `Docs/Mockups/lightbringer-looks.html` are built (`Game/LightbringerFxLook.cs`, protocol 215).
+
 ## Built differently
 - Dawn and Mercy take 0.4 s each (a press counts 85% through, so 0.34 s apart), not 0.45 s; Noon 0.62 s. About 1.3 s a chain.
 - A crescent still stops at the first ally it heals or wards (as the old crescent did), so it doesn't heal a whole line.

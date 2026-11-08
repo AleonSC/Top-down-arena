@@ -204,6 +204,12 @@ namespace Arena
                 }
                 return;
             }
+            if (IsLightCrescent(b))  // a Lightbringer's Dawn or Mercy crescent (LightbringerFxLook.cs; in the glow pass when Visual effects are on)
+            {
+                if (!Juicy)
+                    DrawSunriseCrescent(b);
+                return;
+            }
             if (b.Kind == Defs.KnightWave)  // a crescent of steel (or light) flying edge-first
             {
                 float a = b.Vel.Angle;

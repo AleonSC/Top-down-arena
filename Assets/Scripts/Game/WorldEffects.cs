@@ -258,6 +258,10 @@ namespace Arena
                 case FxKind.Sunlance:
                     DrawSunlanceFx(fx);
                     break;
+                case FxKind.LightMark:
+                    if (!Juicy)
+                        DrawLightMark(fx);  // LightbringerFxLook.cs (in the glow pass when Visual effects are on)
+                    break;
                 case FxKind.TwinFang:
                     DrawTwinFangFx(fx);
                     break;

@@ -34,6 +34,7 @@ namespace Arena
             TwinBladesMotion.K(0.6f, P(0.08f, 36f, 0.02f, -0.6f, 16f, -0.3f, -0.1f), 1), TwinBladesMotion.K(1f, P(0.15f, 30f, 0.05f, -0.85f, 15f, -0.4f), 1) } };
 
         public const float Recover = TwinBladesMotion.Recover;
+        public const float NoonLightTail = 1.05f, LanceLightTail = 0.7f;  // how long Noon's ring and the Sunlance's light play after the blow / the release (their looks)
         public static float LanceRelease => Lance.Dur * LanceHit;
 
         static LightbringerMotion()

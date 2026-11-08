@@ -77,7 +77,7 @@ namespace Arena
             // The whole move, drawn from its age: Radius carries who and which step (4: a Radiant Noon); Pos2 is out along the
             // aim at the cut's reach, or at the ring's radius for Noon.
             BroadcastFx(FxKind.LightStep, p.Pos, p.Pos + V2.FromAngle(aim) * reach, LightGold, p.Id * 10 + (radiant ? 4 : step),
-                d.Dur + LightbringerMotion.Recover + (step == 3 ? 0.15f : 0f), step < 3 ? Sfx.None : radiant ? Sfx.LightRadiant : Sfx.LightNoon);  // (Noon's light outlasts the swing)
+                step < 3 ? d.Dur + LightbringerMotion.Recover : d.Dur * LightbringerMotion.NoonHit + LightbringerMotion.NoonLightTail, step < 3 ? Sfx.None : radiant ? Sfx.LightRadiant : Sfx.LightNoon);  // (Noon's light outlasts the swing)
         }
 
         /// Host, from LandSwing: a Lightbringer step landed and hit `hits` enemies. The gauge fills, Dawn and Mercy throw their
@@ -95,6 +95,10 @@ namespace Arena
                     float f = s.LightWaves == 1 ? 0f : i * 2f / (s.LightWaves - 1) - 1f;
                     var b = SpawnBullet(Defs.KnightWave, origin + V2.FromAngle(s.Aim) * p.Def.BodyR, V2.FromAngle(s.Aim + f * 0.2f * (s.LightWaves - 1)) * 600f, 0f, 0.45f, s.LightWaveDmg, p.Id);
                     b.Pierce += 2;
+                    b.Look = s.LightKind == 2 ? ShotLook.Crescent : ShotLook.Dart;
+                    if (b.Sent != null)
+                        b.Sent.Look = b.Look;  // (the spawn message still to go out carries it)
+                    // (on a player's sword wave, Look marks the Lightbringer's crescent: Dart Dawn, Crescent Mercy; Game/LightbringerFxLook.cs)
                     if (s.LightKind == 2)
                         b.WardAlly = MercyWard;
                     else
@@ -110,7 +114,23 @@ namespace Arena
                 Heal(q, (q.Id == p.Id ? NoonSelfHeal : NoonHeal) * mult, p);
                 if (s.LightRadiant)
                     Ward(q, MercyWard);
+                if (q.Id != p.Id)  // the burst shows as the ring reaches them (Game/LightbringerLook.cs)
+                {
+                    float delay = NoonMarkLag * Math.Min(1f, q.Pos.DistanceTo(circleAt) / s.Circle);
+                    LightMark(q, 1, delay, s.LightRadiant);
+                    if (s.LightRadiant)
+                        LightMark(q, 2, delay, true);
+                }
             }
+        }
+
+        public const float NoonMarkLag = 0.28f;  // the Sunburst's ring reaches an ally at its edge this long after the blow (its look)
+
+        /// A Lightbringer's mark on a player, drawn on every screen (FxKind.LightMark): kind 1 a heal burst, 2 a ward snapping
+        /// shut, both `y` seconds from now; 3 a shot striking the ward from angle `y`.
+        void LightMark(Player q, int kind, float y, bool big)
+        {
+            BroadcastFx(FxKind.LightMark, q.Pos, new V2(kind, y), LightGold.WithAlpha(big ? 1f : 0.5f), q.Id, kind == 3 ? 0.4f : y + 0.85f, Sfx.None);
         }
 
         /// Mercy's ward on a player: a shield that soaks the next MercyWard damage, for MercyTime (the larger of it and any
@@ -206,7 +226,7 @@ namespace Arena
             p.FireCd = Math.Max(p.FireCd, LightbringerMotion.Lance.Dur * 0.85f);
             lanceRuns.Add(new LanceRun { Owner = p.Id, Target = q.Id, Pips = pips });
             // The thrust and the lance, drawn from its age: Radius carries the thrower's id * 1000 + the ally's, Pos2 where the ally stood.
-            BroadcastFx(FxKind.Sunlance, p.Pos, q.Pos, LightGold, p.Id * 1000 + q.Id, LightbringerMotion.Lance.Dur + LightbringerMotion.Recover, Sfx.LanceGather);
+            BroadcastFx(FxKind.Sunlance, p.Pos, q.Pos, LightGold, p.Id * 1000 + q.Id, LightbringerMotion.LanceRelease + LightbringerMotion.LanceLightTail, Sfx.LanceGather);
         }
 
         /// Raising the parry (or the Sunlance) cancels the chain: back to Dawn, a step still winding up never lands.

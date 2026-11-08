@@ -20,9 +20,10 @@ namespace Arena
             LbGoldDark = new Rgba(0.29f, 0.2f, 0.04f), LbGrip = new Rgba(0.95f, 0.93f, 0.87f), LbLight = new Rgba(1f, 0.84f, 0.47f), LbHot = new Rgba(1f, 0.97f, 0.87f),
             LbHeal = new Rgba(0.47f, 0.93f, 0.59f), LbArmDark = new Rgba(0.16f, 0.14f, 0.06f);
         const int LbTrailN = 10;
-        const float LbTrailDt = 0.012f, NoonFxTail = 0.55f;
+        const float LbTrailDt = 0.012f;
 
-        /// The step or lance effect of this player that is playing now (the newest), or null.
+        /// The step or lance effect of this player whose pose is playing now (the newest), or null. (Noon's ring and the lance's
+        /// light outlast the pose; once it has settled back to the guard the sword is drawn held at the ready again.)
         Effect LightFxOf(int id)
         {
             Effect best = null;
@@ -31,7 +32,14 @@ namespace Arena
                 if (fx.T >= fx.Dur)
                     continue;
                 int code = Mathf.RoundToInt(fx.Radius);
-                bool mine = fx.Kind == FxKind.LightStep ? code / 10 == id : fx.Kind == FxKind.Sunlance && code / 1000 == id;
+                bool mine;
+                if (fx.Kind == FxKind.LightStep)
+                {
+                    int kind = code % 10;
+                    mine = code / 10 == id && kind >= 1 && kind <= 4 && fx.T < LightbringerMotion.Steps[(kind == 4 ? 3 : kind) - 1].Dur + LightbringerMotion.Recover;
+                }
+                else
+                    mine = fx.Kind == FxKind.Sunlance && code / 1000 == id && fx.T < LightbringerMotion.Lance.Dur + LightbringerMotion.Recover;
                 if (mine && (best == null || fx.T < best.T))
                     best = fx;
             }
@@ -72,7 +80,11 @@ namespace Arena
                 aim += diff * u * u * (3f - 2f * u);
             }
             if (step == 3)
-                DrawSunburst(fx, s, radiant);
+            {
+                DrawSundial(fx, radiant, false);  // the cracks (LightbringerFxLook.cs); its light is in the glow pass
+                if (!Juicy)
+                    DrawSundial(fx, radiant, true);
+            }
             bool current = owner == null || LightFxOf(id) == fx;
             if (!current)
                 return;  // a newer step (or a lance) by the same player has taken over
@@ -82,53 +94,6 @@ namespace Arena
             DrawLightPose(o, aim, LightbringerMotion.At(s, c), owner != null ? owner.Def.Color : new Rgba(0.85f, 0.76f, 0.48f), glow, 0f, t, 1f);
             if (owner != null)
                 DrawLightPips(owner, t);
-        }
-
-        /// Noon: the pillar where the blade goes in, the ring of light running out to the Sunburst's edge, rays and a sun
-        /// left on the ground. Drawn from the step's age (the ring lands NoonHit of the way through the step).
-        void DrawSunburst(Effect fx, TwinBladesMotion.Step s, bool radiant)
-        {
-            float hitT = s.Dur * LightbringerMotion.NoonHit, k = (fx.T - hitT) / NoonFxTail;
-            if (k < 0f || k >= 1f)
-                return;
-            V2 dir = (fx.Pos2 - fx.Pos).Normalized(), at = fx.Pos + dir * Game.NoonAt;
-            float R = (fx.Pos2 - fx.Pos).Length, grow = 1f - Mathf.Pow(1f - Mathf.Clamp01(k / 0.4f), 3f), r = R * grow, al = 1f - k;
-            // the ground: a faint sun disc and its rays
-            Circle(at, r, LbLight.WithAlpha(0.07f * al), 40);
-            int rays = radiant ? 16 : 12;
-            for (int i = 0; i < rays; i++)
-            {
-                V2 d = V2.FromAngle(i * MathX.Tau / rays + k * 0.4f);
-                Line(at + d * r * 0.3f, at + d * r * 0.92f, radiant ? 4.5f : 3f, LbLight.WithAlpha(0.22f * al));
-            }
-            Arc(at, r * 0.3f, 1.5f, LbLight.WithAlpha(0.3f * al), 24);
-            // the ring
-            Arc(at, r, (radiant ? 10f : 6f) * al + 1.5f, LbLight.WithAlpha(0.75f * al), 48);
-            Arc(at, r * 0.96f, 1.5f, new Rgba(1f, 1f, 1f, al), 48);
-            if (radiant)
-                Arc(at, r * 0.85f, 3f, LbHeal.WithAlpha(0.5f * al), 48);
-            // the flash and the pillar of light
-            if (k < 0.18f)
-            {
-                float f = 1f - k / 0.18f;
-                Circle(at, R * 0.55f, new Rgba(1f, 1f, 1f, 0.28f * f), 32);
-                Circle(at, R * 0.3f, LbHot.WithAlpha(0.35f * f), 24);
-            }
-            if (k < 0.6f)
-            {
-                float f = 1f - k / 0.6f, w = (radiant ? 12f : 7f) * f;
-                V2 top = at + new V2(0f, -120f);
-                VTri(at + new V2(-w, 0f), LbHot.WithAlpha(0.6f * f), at + new V2(w, 0f), LbHot.WithAlpha(0.6f * f), top + new V2(w * 0.6f, 0f), LbLight.WithAlpha(0f));
-                VTri(at + new V2(-w, 0f), LbHot.WithAlpha(0.6f * f), top + new V2(w * 0.6f, 0f), LbLight.WithAlpha(0f), top + new V2(-w * 0.6f, 0f), LbLight.WithAlpha(0f));
-            }
-            // cracks in the floor where it went in
-            for (int i = 0; i < 8; i++)
-            {
-                float a = i * MathX.Tau / 8f + 0.37f * Mathf.Sin(i * 12.9f), l = 24f + 14f * Mathf.Abs(Mathf.Sin(i * 7.3f));
-                V2 d = V2.FromAngle(a), m = at + d * (l * 0.5f) + d.Orthogonal() * 3f;
-                Line(at, m, 2f, new Rgba(0.08f, 0.09f, 0.13f, 0.8f * al));
-                Line(m, at + V2.FromAngle(a + 0.1f) * l, 2f, new Rgba(0.08f, 0.09f, 0.13f, 0.8f * al));
-            }
         }
 
         /// The gold trail off the blade while it cuts.
@@ -164,6 +129,8 @@ namespace Arena
             Player owner, ally;
             game.Players.TryGetValue(id, out owner);
             game.Players.TryGetValue(target, out ally);
+            if (!Juicy)
+                DrawSpearLight(fx);  // the Spear (LightbringerFxLook.cs); in the glow pass when Visual effects are on
             if (owner != null && LightFxOf(id) != fx)
                 return;
             var s = LightbringerMotion.Lance;
@@ -176,60 +143,20 @@ namespace Arena
                 DashedLine(o, to, 1.5f, LbHeal.WithAlpha(0.55f * a));
                 float rr = 26f - 10f * (c / release);
                 Arc(to, rr, 1.6f, LbHeal.WithAlpha(0.8f * a), 24);
-                for (int i = 0; i < 4; i++)
-                {
-                    V2 d = V2.FromAngle(i * MathX.Pi / 2f + t * 2f);
-                    Line(to + d * (rr + 3f), to + d * (rr + 9f), 1.6f, LbHeal.WithAlpha(a));
-                }
             }
             DrawLightTrail(o, aim, s, c, 1f);
             var m = LightbringerMotion.At(s, c);
             DrawLightPose(o, aim, m, owner != null ? owner.Def.Color : new Rgba(0.85f, 0.76f, 0.48f), c < release ? 1f : LightGlow(owner), palm, t, 1f);
-            float q = (c - release) / 0.45f;
-            if (q >= 0f && q < 1f)
-            {
-                V2 hand, dir;
-                TwinHand(o, aim, m, true, out hand, out dir);
-                V2 from = hand + dir * (5f + LightbringerMotion.BladeLen);
-                float grow = Mathf.Clamp01(q / 0.15f), al = 1f - q;
-                V2 end = from + (to - from) * grow, d = (end - from).Normalized(), n = d.Orthogonal();
-                float w = 9f * al + 1f;
-                VTri(from + n * w, LbLight.WithAlpha(0.45f * al), from - n * w, LbLight.WithAlpha(0.45f * al), end, LbHeal.WithAlpha(0.6f * al));
-                Line(from, end, 3.5f * al + 1f, LbHot.WithAlpha(al));
-                Line(from, end, 1.2f, new Rgba(1f, 1f, 1f, al));
-                float len = (end - from).Length;
-                for (int i = 0; i < 14; i++)  // motes running along it
-                {
-                    float f = Mathf.Repeat(i * 0.137f + q * 2.4f, 1f) * len, off = (Mathf.Repeat(i * 0.61f, 1f) - 0.5f) * 14f * al;
-                    Circle(from + d * f + n * off, 1.6f, LbHot.WithAlpha(al), 6);
-                }
-                if (grow >= 1f && q < 0.6f)
-                {
-                    float f = 1f - q / 0.6f;
-                    Circle(to, 34f * f + 8f, new Rgba(1f, 1f, 1f, 0.35f * f), 20);
-                    Circle(to, 22f, LbHeal.WithAlpha(0.35f * f), 20);
-                    Arc(to, 16f + 60f * (1f - f), 2.5f, LbHeal.WithAlpha(0.8f * f), 28);
-                }
-            }
             if (owner != null)
                 DrawLightPips(owner, t);
         }
 
-        /// A gold hexagon turning round a player while a Mercy ward is on them.
+        /// Mercy's ward on a player: the Hex plates (LightbringerFxLook.cs), here when Visual effects are off (the glow pass draws
+        /// them otherwise).
         void DrawMercyWard(Player p, float t)
         {
-            if (p.MercyT <= 0f || p.Downed)
-                return;
-            float fade = Mathf.Clamp01(p.MercyT / 0.4f), pul = 0.55f + 0.25f * Mathf.Sin(t * 7f + p.Id), r = p.Def.BodyR + 7f;
-            V2 prev = default(V2);
-            for (int i = 0; i <= 6; i++)
-            {
-                V2 at = p.Disp + V2.FromAngle(i * MathX.Tau / 6f + MathX.Pi / 6f + t * 0.5f) * r;
-                if (i > 0)
-                    Line(prev, at, 2f, LbLight.WithAlpha(pul * fade));
-                prev = at;
-            }
-            Polygon(p.Disp, r, 6, MathX.Pi / 6f + t * 0.5f, LbLight.WithAlpha(0.07f * fade));
+            if (!Juicy)
+                DrawMercyPlates(p, t);
         }
 
         // --- pieces ---------------------------------------------------------------------------------------------
