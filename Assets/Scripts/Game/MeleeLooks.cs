@@ -577,7 +577,7 @@ namespace Arena
                 HammerStunStars(c, R, power, after);
                 return;
             }
-            HammerQuake(c, R, pw, after, seed);
+            HammerQuake(c, R, pw, after, seed);  // (the crater and cracks are drawn under the enemies: DrawHammerFloor)
             Player owner;
             bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
             if (!aftershock && !charging)
@@ -742,6 +742,40 @@ namespace Arena
         {
             if (after < 0f)
                 return;
+            DrawHammerRise(c, R, pw, after, seed);
+        }
+
+        /// The Warhammer slam's ground marks (crater, rim and cracks), drawn on the floor before the enemies so they walk over
+        /// them (called from DrawArenaContents). Same geometry as DrawHammerSlamE.
+        void DrawHammerFloor()
+        {
+            if (!fxOn)
+                return;
+            foreach (var fx in game.Effects)
+            {
+                if (fx.Kind != FxKind.Jab || fx.Color.R != Game.HammerBoomColor.R || fx.Color.G != Game.HammerBoomColor.G
+                    || fx.Color.B != Game.HammerBoomColor.B)
+                    continue;
+                V2 to = fx.Pos2 - fx.Pos;
+                float reach = to.Length;
+                if (reach < 1f)
+                    continue;
+                var seen = MeleeOwnerOf(fx, HammerSwingTime + 2.3f, false, 0.5f);
+                if (seen == null || seen.Weapon != WeaponId.Warhammer)
+                    continue;
+                bool aftershock = reach > Game.HammerCentre(seen.BaseReach) + 1f;
+                float after = aftershock ? fx.T : fx.T - HammerSwingTime;
+                if (after < 0f)
+                    continue;
+                float aim = to.Angle, power = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f), pw = 0.45f + 0.55f * power;
+                V2 c = MeleeOrigin(fx, seen) + V2.FromAngle(aim) * reach;
+                HammerCrater(c, fx.Radius, pw, after, MeleeSeed(fx));
+            }
+        }
+
+        /// The crater with a lighter rim and the cracks that stay for about two seconds.
+        void HammerCrater(V2 c, float R, float pw, float after, int seed)
+        {
             float stay = 1f - Mathf.Clamp01((after - 0.4f) / 1.8f);
             if (stay > 0f)
             {
@@ -769,6 +803,11 @@ namespace Arena
                     }
                 }
             }
+        }
+
+        /// What the slam throws up: dust puffs rolling out round the circle, and stone chips that land with a small shadow.
+        void DrawHammerRise(V2 c, float R, float pw, float after, int seed)
+        {
             for (int d = 0; d < 16; d++)  // dust rolling out
             {
                 float an = (float)d / 16f * MathX.Tau + Hash01(seed, d) * 0.3f, k = after / 1.1f;
