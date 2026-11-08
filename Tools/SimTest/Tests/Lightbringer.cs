@@ -26,6 +26,7 @@ static partial class Program
         V2 from = new V2(400f, 450f), allyAt = new V2(400f, 330f);
         var keep = new List<Enemy>();
         var pins = new Dictionary<Enemy, V2>();
+        var heard = new HashSet<Sfx>();
         Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
         Action<float, PlayerInput> play = (secs, input) =>
         {
@@ -35,7 +36,9 @@ static partial class Program
                 foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
                 me.Pos = from;
                 ally.Pos = client.Game.Me.Pos = allyAt;
-                host.Poll(); g.FixedStep(dt, input); g.Update(dt);
+                host.Poll(); g.FixedStep(dt, input);
+                foreach (var c in g.Sounds) heard.Add(c.Sfx);
+                g.Update(dt);
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
             }
         };
@@ -132,6 +135,13 @@ static partial class Program
         Check(Math.Abs(low[0] - base0[0]) < 1f && low[1] < 1f, "the Sunlance needs 4 light");
         Check(cd > 0f && cd < Game.LanceCooldown, "the Sunlance has a short cooldown");
         Check(seen, "the Sunlance sends its effect");
+
+        // Its own sound bank (LightSoundBank.cs), and none of the generic swing whooshes.
+        var want = new[] { Sfx.LightCut1, Sfx.LightCut2, Sfx.LightNoon, Sfx.LightRadiant, Sfx.LightHit, Sfx.LightHeal, Sfx.LightWard, Sfx.LanceGather, Sfx.LanceRelease, Sfx.LanceFizzle };
+        var missing = want.Where(x => !heard.Contains(x)).ToList();
+        Console.WriteLine("  lightbringer sounds missing: {0}", missing.Count == 0 ? "none" : string.Join(", ", missing));
+        Check(missing.Count == 0, "every Lightbringer sound is raised: both cuts, Noon and a Radiant Noon, a cut landing, a crescent healing and warding, the Sunlance gathering, released and refused");
+        Check(!heard.Contains(Sfx.SwingLight) && !heard.Contains(Sfx.SwingHeavy) && !heard.Contains(Sfx.SpellHoly), "the Lightbringer no longer uses the generic swing and spell sounds");
         host.Leave(""); client.Leave("");
     }
 }
