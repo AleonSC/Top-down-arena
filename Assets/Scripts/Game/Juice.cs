@@ -56,7 +56,7 @@ namespace Arena
         class EnemySeen
         {
             public V2 Pos;
-            public float Hp, Max, R, Rot, Squash, Flash, Dmg, DmgT;
+            public float Hp, Max, R, Rot, Squash, Flash, Dmg, DmgT, HitFlash;  // HitFlash: the enemy's own Flash last frame (a rise is a real hit)
             public int Sides, Frame;
             public Rgba Col;
             public bool Boss, Big, Spawning;
@@ -77,6 +77,35 @@ namespace Arena
             public V2 Pos, Vel;
             public float Life, Max, Size, Rot, Spin, A0, A1;
             public Rgba Col;
+        }
+
+        // Impact crowding: a coarse grid of how many hits have landed in each cell lately (each hit adds 1, and it
+        // drains at ImpactDrain a second), so BulletEnding can thin out the sparks where hits pile up.
+        const float ImpactCell = 64f, ImpactDrain = 10f;
+        readonly Dictionary<int, float> impactHeat = new Dictionary<int, float>();
+        readonly List<int> impactKeys = new List<int>();
+        float impactAt;
+
+        /// Adds a hit at this spot and returns how crowded its cell was before it.
+        float ImpactCrowd(V2 at)
+        {
+            float drain = (juiceClock - impactAt) * ImpactDrain;
+            impactAt = juiceClock;
+            if (drain > 0f && impactHeat.Count > 0)
+            {
+                impactKeys.Clear();
+                impactKeys.AddRange(impactHeat.Keys);
+                foreach (int k in impactKeys)
+                {
+                    float v = impactHeat[k] - drain;
+                    if (v <= 0f) impactHeat.Remove(k); else impactHeat[k] = v;
+                }
+            }
+            int key = (int)Mathf.Floor(at.X / ImpactCell) * 4096 + (int)Mathf.Floor(at.Y / ImpactCell);
+            float heat;
+            impactHeat.TryGetValue(key, out heat);
+            impactHeat[key] = heat + 1f;
+            return heat;
         }
 
         const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;  // 8-10: GunBowLooks.cs
@@ -123,7 +152,7 @@ namespace Arena
             seenEnemies.Clear();
             seenShots.Clear();
             partN = 0;
-            scorches.Clear(); ripples.Clear(); numbers.Clear(); bursts.Clear(); muzzleT.Clear();
+            scorches.Clear(); ripples.Clear(); numbers.Clear(); bursts.Clear(); muzzleT.Clear(); impactHeat.Clear();
             ClearGunBowLooks();  // GunBowLooks.cs
             ClearSoldierLooks();  // SoldierLooks.cs
             ClearCloneWallLook();  // CloneWallLook.cs
@@ -262,6 +291,7 @@ namespace Arena
                 {
                     s = enemyPool.Count > 0 ? enemyPool.Pop() : new EnemySeen();
                     s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = 0f;
+                    s.HitFlash = e.Flash;
                     seenEnemies[e.Id] = s;
                     if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting)
                     {
@@ -274,18 +304,28 @@ namespace Arena
                 }
                 bool spawning = game.IsSpawning(e);
                 float lost = s.Hp - e.Hp;
+                // A real hit raises the enemy's Flash (Combat.cs HurtEnemy, or the snapshot's hit flag); burning, bleeding and
+                // poison only wear its health down, so they add to the damage number without flashing or bulging it.
+                bool struck = e.Flash > s.HitFlash + 1e-4f;
+                s.HitFlash = e.Flash;
                 if (!fresh && lost > 0.01f && !spawning)
                 {
-                    s.Squash = 1f;
-                    s.Flash = 0.09f;
                     s.Dmg += lost;
                     if (s.DmgT <= 0f)
                         s.DmgT = 0.15f;
-                    if (!e.Def.IsBoss && lost >= Mathf.Max(80f, e.MaxHp * 0.35f))
+                    if (struck && !e.Def.IsBoss && lost >= Mathf.Max(80f, e.MaxHp * 0.35f))
                     {
                         Hold(0.035f);
                         Shake(0.06f);
                     }
+                }
+                if (!fresh && struck && !spawning)
+                {
+                    // Under steady fire the bulge gets smaller and only starts again once the last one has mostly settled,
+                    // so a boss everyone is shooting pulses gently instead of staying swollen.
+                    if (s.Squash < 0.35f)
+                        s.Squash = 1f - 0.6f * e.FlashHeat;
+                    s.Flash = 0.09f;
                 }
                 s.Pos = e.Disp; s.Hp = e.Hp; s.Max = e.MaxHp; s.Rot = EnemyRotation(e, t);
                 s.R = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;
@@ -515,9 +555,15 @@ namespace Arena
                     AddPart(new Part { Kind = PDust, Pos = s.Pos + dir * 3f, Vel = dir * 20f, Life = 0.35f, Max = 0.35f, Size = r * 0.9f, Col = c.Mix(DustColor, 0.5f) });
                     break;
                 case Ending.HitEnemy:
-                    // A splash flattened against the enemy, and sparks bouncing back the way it came.
-                    AddPart(new Part { Kind = PSplash, Pos = s.Pos, Rot = dir.Angle, Life = 0.14f, Max = 0.14f, Size = r * 2.6f, Col = c });
-                    for (int i = 0; i < 5; i++)
+                {
+                    // A splash flattened against the enemy, and sparks bouncing back the way it came. Where hits are
+                    // pouring into one spot (a boss under the whole team's fire) each one throws fewer, so the glow
+                    // doesn't add up to a white blob.
+                    float crowd = ImpactCrowd(s.Pos);
+                    int sparks = crowd < 3f ? 5 : crowd < 6f ? 2 : crowd < 10f ? 1 : 0;
+                    if (crowd < 10f || juiceRng.Next(3) == 0)
+                        AddPart(new Part { Kind = PSplash, Pos = s.Pos, Rot = dir.Angle, Life = 0.14f, Max = 0.14f, Size = r * 2.6f, Col = c });
+                    for (int i = 0; i < sparks; i++)
                     {
                         float a = dir.Angle + MathX.Pi + Rnd(-0.75f, 0.75f);
                         AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.FromAngle(a) * Rnd(90f, 260f), Life = Rnd(0.15f, 0.28f), Max = 0.28f, Size = 1.8f, Col = c });
@@ -529,6 +575,7 @@ namespace Arena
                             AddPart(new Part { Kind = PTumble, Pos = s.Pos, Vel = V2.FromAngle(a) * Rnd(70f, 170f), Rot = a, Spin = Rnd(-14f, 14f), Life = 0.4f, Max = 0.4f, Size = 2.4f, Col = new Rgba(0.9f, 0.98f, 1f) });
                         }
                     break;
+                }
                 case Ending.Blocked:
                 {
                     NoteBarrierBlock(s.Pos);  // a Barrier's plate recoils there (BarrierLook.cs)
@@ -603,8 +650,12 @@ namespace Arena
         float JuiceScale(Enemy e)
         {
             EnemySeen s;
-            return Juicy && !fxReduced && seenEnemies.TryGetValue(e.Id, out s) ? 1f + 0.15f * Mathf.Sin(s.Squash * MathX.Pi) : 1f;
+            return Juicy && !fxReduced && seenEnemies.TryGetValue(e.Id, out s) ? 1f + (s.Boss ? 0.05f : 0.15f) * Mathf.Sin(s.Squash * MathX.Pi) : 1f;
         }
+
+        /// How far a hit turns an enemy white: all the way for a fresh hit, down to a light tint once it has been under
+        /// steady fire for a moment (Enemy.FlashHeat), and never past 70% on a boss, so it keeps its colour and shape.
+        static float HitFlashMix(Enemy e) => Mathf.Min(e.Def.IsBoss ? 0.7f : 1f, 1f - 0.7f * e.FlashHeat);
 
         bool JuiceFlash(Enemy e)
         {

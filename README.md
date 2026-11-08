@@ -341,7 +341,7 @@ start with 2 rerolls and everyone gets 2 more for each boss killed. The next wav
 | **Incendiary Rounds** | Hits set enemies on fire: each burns for another 40% of the hit's damage over 3 s (per stack), and burns from every hit add up, so fast and slow weapons gain about the same |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
 | **Shock Rounds** | 25% chance per hit for lightning to arc to 2 more enemies at 60% damage |
-| **Explosive Rounds** | Shots explode on impact for 30% damage around them (bigger blast per stack) |
+| **Explosive Rounds** | Shots explode on impact for 30% damage around them (bigger blast per stack). On a fast weapon the blasts on one spot are shown at most every 0.13 s; every hit's damage still lands |
 | **Velocity Rounds** | Shots fly 30% faster and farther, +25% damage |
 
 Mods apply to your weapon's shots and your minions' shots, but not to grenades. They also ride every hit of
@@ -1176,11 +1176,12 @@ each enemy it hits; **Arc Lightning** as a violet halo and sparks building on yo
 along it, then a whole tree of lightning (a trunk with branches three deep, and a branch to each enemy) whipping down it,
 cooling to violet and staying on the ground for a second, and a crackle on each enemy it stuns; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
 embers (thrusts stab through a beam, the Lance slides out through a glowing box, and the Warhammer is raised over your
-shoulder as it charges, then swung over into the floor with a glowing circle and a pillar of light); an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
-when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains
+shoulder as it charges, then swung over into the floor with a glowing circle and a pillar of light); an **additive glow** on bullets, blasts, sparks, bosses and players (enemy bullets are always drawn on top of every effect, spark and glow, so a busy fight never hides what you have to dodge); enemies **flash white and bulge**
+when hit (only by a real hit: burning, bleeding and poison don't flash them; under steady fire the flash softens to a
+light tint and the bulge to a gentle pulse, and a boss never goes more than 70% white, so it keeps its colour and shape); every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains
 after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every 0.4
 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
-**scorch mark** that fades over 8 s; **sparks** where shots land and a flash at your muzzle; **trails** behind fast
+**scorch mark** that fades over 8 s; **sparks** where shots land (fewer where many hits pile into one spot) and a flash at your muzzle; **trails** behind fast
 shots; the **grid ripples** out from big blasts; a light tint for the path you're on or the boss you're
 fighting; a faint **red tint in the corners** when you're
 hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (3.2 s,

@@ -73,9 +73,10 @@ namespace Arena
             Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
-            DrawArenaContents(t);
+            DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             GlowPass();        // the additive glow
+            DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
             DrawMood(AW, AH);  // tint, red corners when hurt or low
@@ -123,7 +124,9 @@ namespace Arena
 
         /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the
         /// lobby's loadout preview (a Showcase game swapped in as `game`).
-        void DrawArenaContents(float t)
+        /// enemyShotsLater: the match leaves enemy bullets out here and draws them over the effects and the glow
+        /// (DrawEnemyShots); the lobby preview draws everything here.
+        void DrawArenaContents(float t, bool enemyShotsLater = false)
         {
             DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
             foreach (var p in game.Players.Values)
@@ -193,12 +196,21 @@ namespace Arena
                 DrawHeldStunGun(p, t);
             }
             foreach (var b in game.Bullets.Values)
-                if (b.Kind >= Defs.SmallShot)
+                if (b.Kind >= Defs.SmallShot && !(enemyShotsLater && Defs.IsEnemyShot(b.Kind)))
                     DrawSmallShot(b, t);
             DrawFrozenShots(t);  // bullets a Lumen Ward is holding (LumenWardLook.cs)
             DrawQueenSwarm(t);  // QueenLook.cs
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
+        }
+
+        /// Enemy bullets, drawn last in the arena (after effects, sparks and the additive glow; before Fogbound's mist and
+        /// the mood tint): whatever the players' weapons are doing, the shots you have to dodge stay on top.
+        void DrawEnemyShots(float t)
+        {
+            foreach (var b in game.Bullets.Values)
+                if (b.Kind >= Defs.SmallShot && Defs.IsEnemyShot(b.Kind))
+                    DrawSmallShot(b, t);
         }
 
         /// Under a player: the healer's aura, Barrier, buffs, the parry shield and ultimates' looks.

@@ -687,7 +687,8 @@ namespace Arena
                         continue;
                     HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
                 }
-                BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, b.Kind == Defs.FlakShell ? Sfx.Explode : Sfx.None);
+                if (b.Kind == Defs.FlakShell || !SplashFxNearby(b))
+                    BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, b.Kind == Defs.FlakShell ? Sfx.Explode : Sfx.None);
                 PropBlast(b.Pos, b.Splash, b.Owner);
                 if (b.HealBurst > 0f)
                     CharmHeal(b);  // Ofuda (Ninja.cs)
@@ -859,6 +860,28 @@ namespace Arena
             e.Flash = 0.06f;
             if (p != null && p.Stats.ReapBelow > 0f)
                 FinalReap(p, e);  // a phantom scythe finishes it off (ReaperLoot.cs)
+        }
+
+        // Explosive and Collapse Rounds blow up on every hit: a fast weapon on a boss would stack a dozen blasts a second
+        // on one spot (a white blob, and an effect message each). The damage always lands; the blast is only shown
+        // if no blast of the same kind has been shown that near in the last SplashFxGap ticks.
+        public const int SplashFxGap = 8;              // ticks (about 0.13 s)
+        public const float SplashFxNear = 0.6f;        // of the splash's radius
+        struct SplashSeen { public V2 Pos; public int Tick; public byte Kind; }
+        readonly List<SplashSeen> splashSeen = new List<SplashSeen>();
+
+        bool SplashFxNearby(Bullet b)
+        {
+            for (int i = splashSeen.Count - 1; i >= 0; i--)
+            {
+                var r = splashSeen[i];
+                if (tick - r.Tick > SplashFxGap || tick < r.Tick)
+                    splashSeen.RemoveAt(i);
+                else if (r.Kind == b.Kind && r.Pos.DistanceTo(b.Pos) < b.Splash * SplashFxNear)
+                    return true;
+            }
+            splashSeen.Add(new SplashSeen { Pos = b.Pos, Tick = tick, Kind = b.Kind });
+            return false;
         }
 
         // Swarm Rounds splits and Aegis reflections, queued while the bullet loop runs.

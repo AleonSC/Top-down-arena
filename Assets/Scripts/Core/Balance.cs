@@ -73,6 +73,12 @@ namespace Arena
         const float ContactDamage = 15f;
         const float BossContactEvery = 1f, BossShoveTime = 0.15f, BossShoveSpeed = 700f;  // about 105 px out
 
+        // --- Hit feedback (drawing only) --------------------------------------------------------------------------------
+
+        // An enemy under steady fire builds FlashHeat (Entities.cs): its white hit flash fades to a light tint, so a boss
+        // everyone is shooting doesn't turn into a white blob. A fresh hit after a pause still flashes full white.
+        public const float FlashHeatUp = 2.5f, FlashHeatDown = 2f;
+
         // --- The Healer's aura (every Healer heals allies near them) -------------------------------------------------
 
         public const float AuraRange = 170f;

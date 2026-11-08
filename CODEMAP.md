@@ -226,7 +226,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
 | Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs` |
 | Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
-| Damage numbers, hit effects, shake | `Juice.cs`, `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`) |
+| Damage numbers, hit effects, shake | `Juice.cs` (`HitFlashMix`, `ImpactCrowd`), `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`, `SplashFxNearby`); `Enemy.FlashHeat`; test `hitfx` |
+| Late-game pressure (fire rate, budget, melee share) | `Docs/LateGamePressure.md`, `EnemyAI.cs` (`WaveFireRate`, `ShotBudget`, `MeleeShare`), `Readability.cs`, `Variety.cs` |
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
 | HUD layout | `HudLayout.cs` (where everything goes), `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
 | Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs`; move lobby boxes in `LobbyLayout.cs` |

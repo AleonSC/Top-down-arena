@@ -740,7 +740,11 @@ namespace Arena
             TickRunTimeline(dt);  // RunTimeline.cs (every game: the Recent runs graphs)
             TickArenaRules(dt);
             foreach (var e in Enemies.Values)
+            {
+                // Heat: full after about 0.4 s of steady hits, gone about 0.5 s after they stop (drawing only).
+                e.FlashHeat = e.Flash > 0f ? Math.Min(1f, e.FlashHeat + dt * FlashHeatUp) : Math.Max(0f, e.FlashHeat - dt * FlashHeatDown);
                 e.Flash = Math.Max(0f, e.Flash - dt);
+            }
             foreach (var p in Players.Values)
             {
                 p.Flash = Math.Max(0f, p.Flash - dt);

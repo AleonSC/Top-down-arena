@@ -472,7 +472,7 @@ namespace Arena
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
             col = DrawEnemyStatus(e, pos, r, col, t);
             if (e.Flash > 0f || JuiceFlash(e))
-                col = Rgba.White;
+                col = col.Mix(Rgba.White, HitFlashMix(e));  // softer under steady fire (Juice.cs)
             if (Zombies.Is(e.Type))
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
             else if (e.Type == EnemyType.Swarmer)

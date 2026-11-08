@@ -582,13 +582,14 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int hemorrhage = 0, stars = 0, traits = 0, bubble = 0, ward = 0;
-            bool winding = false, penned = false, wet = false;
+            bool winding = false, penned = false, wet = false, hit = false;
             int bleedHits = 0;
             if (!s.Reading)
             {
                 bleedHits = e.BleedT > 0f ? e.BleedHits : 0;
                 traits = e.Traits;
                 winding = e.Winding;
+                hit = e.Flash > 0f;  // a real hit in the last 0.06 s (snapshots are 0.05 s apart); burning and bleeding don't count
                 penned = e.PenId != 0;
                 wet = e.WetT > 0f;
                 e.Wet = wet;
@@ -634,6 +635,7 @@ namespace Arena
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
+            s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -643,8 +645,8 @@ namespace Arena
             }
             if (s.Reading)
             {
-                if (hp < e.Hp)
-                    e.Flash = 0.06f;
+                if (hit)
+                    e.Flash = Math.Max(e.Flash, 0.06f);
                 e.Pos = pos;
                 e.Hp = hp;
                 e.MaxHp = maxHp;
