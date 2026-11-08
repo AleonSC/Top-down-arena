@@ -186,12 +186,12 @@ namespace Arena
         }
 
         /// Hold the picture for a moment (at most every 0.4 s, so fast weapons don't stutter).
-        void Hold(float seconds)
+        void Hold(float seconds, float gap = 0.4f)
         {
             if (fxReduced || holdGap > 0f)
                 return;
             holdT = Mathf.Max(holdT, seconds);
-            holdGap = 0.4f;
+            holdGap = gap;
         }
 
         void Sparks(V2 at, Rgba col, int n, float speed, float life, float size)
@@ -261,7 +261,10 @@ namespace Arena
                     Shake(0.14f);  // Moon Steel: the lunge lands with a kick
                 }
                 else if (fx.Kind == FxKind.KatanaHitCue && (int)fx.Pos2.X == game.MyId)
-                    Shake(0.07f);  // ...and each swipe that cuts something with a lighter one
+                {
+                    Hold(0.03f, 0.15f);  // ...and each swipe that cuts something with a lighter one and a 0.03 s hit-stop (a short gap, so a 0.26 s chain gets one each)
+                    Shake(0.07f);
+                }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
