@@ -91,6 +91,9 @@ namespace Arena
             if (n >= 9) pool.Add(EnemyType.Shielder);
             if (n >= 11) pool.Add(EnemyType.Medic);
             if (n >= 14) pool.Add(EnemyType.Pauser);   // new shooting patterns (Variety.cs)
+            if (n >= 15) pool.Add(EnemyType.FuseRunner);  // enemies that don't shoot (NonShooters.cs; waves from 13 are built by WaveRecipe.cs)
+            if (n >= 17) pool.Add(EnemyType.Hookman);
+            if (n >= 18) pool.Add(EnemyType.Sapper);
             if (n >= 16) pool.Add(EnemyType.Phantom);
             if (n >= 18) pool.Add(EnemyType.BeamSentry);  // the second half's new enemies (Variety.cs)
             if (n >= 19) pool.Add(EnemyType.Leader);
@@ -167,6 +170,14 @@ namespace Arena
             BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
             {
+                MixApproach();
+                return;
+            }
+            if (n >= RecipeFrom)
+            {
+                // The late recipe (WaveRecipe.cs): headliners, half the wave as squads, then singles to each job's share.
+                PickHeadliners(n);
+                BuildRecipeSingles(n, count, BuildSquads(n, count));
                 MixApproach();
                 return;
             }
@@ -443,7 +454,7 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || DevourUnder(e) || e.Dummy)
+                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
@@ -532,6 +543,8 @@ namespace Arena
             float want = (tpos - e.Pos).Angle;
             if (e.Type == EnemyType.Charger && e.Phase != 0)
                 return;  // locked in while winding up and dashing
+            if (NonShooterFaceLocked(e))
+                return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
             if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
@@ -776,6 +789,8 @@ namespace Arena
                 v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
+            if (IsNonShooter(e.Type))
+                v = NonShooterMove(e, tpos, dir, dist, ref speed);  // NonShooters.cs
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
@@ -798,6 +813,11 @@ namespace Arena
             if (Challenges.Own(e.Type))
             {
                 RoomSpecial(e, tpos, dt);  // Challenges.cs
+                return;
+            }
+            if (IsNonShooter(e.Type))
+            {
+                NonShooterSpecial(e, tpos, dt);  // NonShooters.cs
                 return;
             }
             if (IsLateGame(e.Type))

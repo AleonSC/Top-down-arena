@@ -704,6 +704,7 @@ namespace Arena
             foreach (var e in dead)
             {
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
+                NonShooterDeath(e);  // a Fuse Runner killed during its fuse, a Tripwire Pod (NonShooters.cs)
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
                 foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
@@ -776,6 +777,8 @@ namespace Arena
                 dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
             if (ReaverIsOpen(e))
                 dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
+            if (HookIsOpen(e))
+                dmg *= HookOpenMult;  // a Hookman that just missed (NonShooters.cs)
             if (RiotShieldBroken(e))
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
             if (WardenExposed(e))

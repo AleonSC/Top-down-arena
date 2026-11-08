@@ -77,6 +77,10 @@ namespace Arena
             new SquadDef { Name = "Hunting party", From = 19, Members = new[] { EnemyType.Leader, EnemyType.Leader, EnemyType.Sniper } },
             new SquadDef { Name = "Seamstresses", From = 22, Members = new[] { EnemyType.Stitcher, EnemyType.Stitcher, EnemyType.Grunt } },
             new SquadDef { Name = "Bastion", From = 36, Members = new[] { EnemyType.Warder, EnemyType.Juggernaut, EnemyType.Grunt, EnemyType.Grunt } },
+            // Enemies that don't shoot (NonShooters.cs)
+            new SquadDef { Name = "Demolition", From = 15, Members = new[] { EnemyType.FuseRunner, EnemyType.FuseRunner, EnemyType.Grunt } },
+            new SquadDef { Name = "Whalers", From = 17, Members = new[] { EnemyType.Hookman, EnemyType.Lunger, EnemyType.Lunger } },
+            new SquadDef { Name = "Minefield", From = 18, Members = new[] { EnemyType.Sapper, EnemyType.SpikeBlock, EnemyType.SpikeBlock } },
         };
 
         /// Host: squads still to arrive this wave (they come in turn with the single enemies of spawnQueue).
@@ -114,12 +118,13 @@ namespace Arena
                 if (s.From <= n)
                     ok.Add(s);
             int spent = 0;
-            float melee = MeleeShare(n);
-            for (int guard = 0; guard < 40 && spent < count * SquadShare && ok.Count > 0; guard++)
+            bool recipe = n >= RecipeFrom;  // the late recipe: half the wave, mostly-not-shooting squads as often as those jobs' share (WaveRecipe.cs)
+            float melee = recipe ? 1f - JobShares[(int)EnemyJob.Pressure] : MeleeShare(n), share = recipe ? RecipeSquadShare : SquadShare;
+            for (int guard = 0; guard < 40 && spent < count * share && ok.Count > 0; guard++)
             {
                 // Early waves keep their share of rushers: a melee squad that often, a shooting one otherwise.
                 bool wantMelee = rng.NextDouble() < melee;
-                var from = ok.FindAll(q => MeleeSquad(q) == wantMelee);
+                var from = ok.FindAll(q => (recipe ? !PressureSquad(q) : MeleeSquad(q)) == wantMelee);
                 if (from.Count == 0)
                     from = ok;
                 // Newer squads a little more often, so each one shows up soon after it unlocks.
@@ -137,7 +142,7 @@ namespace Arena
                         break;
                     }
                 }
-                if (spent + pick.Members.Length > count * 0.8f)
+                if (spent + pick.Members.Length > count * (recipe ? RecipeSquadShare + 0.1f : 0.8f))
                     break;
                 squadQueue.Add(pick);
                 spent += pick.Members.Length;
@@ -149,7 +154,11 @@ namespace Arena
 
         static bool MeleeSquad(SquadDef s) => Array.TrueForAll(s.Members, t => Defs.Get(t).Melee);
 
-        static float SquadWeight(SquadDef s, int n) => 1f + Math.Max(0, 6 - (n - s.From)) * 0.15f;
+        /// Mostly shooters (the late recipe's Pressure job, WaveRecipe.cs)?
+        static bool PressureSquad(SquadDef s) => Array.FindAll(s.Members, t => JobOf(t) == EnemyJob.Pressure).Length * 2 > s.Members.Length;
+
+        /// Newer squads a little more often; on a recipe wave old squads retire as old types do (WaveRecipe.cs).
+        static float SquadWeight(SquadDef s, int n) => (1f + Math.Max(0, 6 - (n - s.From)) * 0.15f) * (n >= RecipeFrom ? RecipeWeight(s.From, n) : 1f);
 
         /// Host, while a wave spawns: a squad comes after every three single enemies (or once the singles run out).
         bool SpawnNextSquad()
@@ -194,7 +203,7 @@ namespace Arena
                     pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, LayoutOn ? LayoutSideY(i == 0 ? 2 : 3, 150f) : Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
                 {
-                    bool behind = i > 0 && (type == EnemyType.Sniper || type == EnemyType.Medic || type == EnemyType.BeamSentry || type == EnemyType.Mortar || type == EnemyType.Warder);
+                    bool behind = i > 0 && (type == EnemyType.Sniper || type == EnemyType.Medic || type == EnemyType.BeamSentry || type == EnemyType.Mortar || type == EnemyType.Warder || type == EnemyType.Hookman || type == EnemyType.Sapper);
                     pos = ClampToArena(basePos + across * ((i - (n - 1) / 2f) * 60f) - fwd * (behind ? 70f : 0f), 40f);
                 }
                 if (type == EnemyType.Nest)

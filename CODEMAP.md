@@ -70,6 +70,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Enemies and bosses (Core)
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
 - `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Spiker and the Spike Block's lunge
+- `NonShooters.cs`: the enemies that don't shoot: the Fuse Runner (fuse, blast that hurts enemies too), the Hookman (aim, harpoon, yank via `KnockPlayer`, open window), the Sapper and its Tripwire Pods (`SapperMine`: arming, lasers, beep, blast; not counted by `Foes`); drawn in `Game/NonShooterLooks.cs`
+- `WaveRecipe.cs`: the late wave recipe from wave 13: `EnemyJob` (Pressure, Hunter, Zoner, Disruptor, Anchor), job shares, headliners, types and squads retiring (`Docs/EnemyRoles.md`; report `wavemix`)
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
@@ -125,6 +127,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
+- `NonShooterLooks.cs`: the Fuse Runner (Powder Keg), Hookman (Harpoon) and Sapper's Tripwire Pods (looks A, B, C of `Docs/Mockups/non-shooter-enemies.html`)
 - `EnemyPresenceLook.cs`: regular enemies' soft shadow and quiet colour glow with Visual effects on (look D of `Docs/Mockups/enemy-prominence.html`)
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
 - `LeapSlamLook.cs` (Game): the Knight's Leap Slam with Visual effects on (look C, Bulwark: the leap swells and lifts the knight, a closing hex landing marker, hex pressure rings, plates and sparks, a hex rune, a hex cage with a draining ring on each stunned enemy; `FxKind.LeapSlam`)
@@ -227,7 +230,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs` |
 | Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
 | Damage numbers, hit effects, shake | `Juice.cs` (`HitFlashMix`, `ImpactCrowd`), `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`, `SplashFxNearby`); `Enemy.FlashHeat`; test `hitfx` |
-| Late-game pressure (fire rate, budget, melee share, enemy jobs) | `Docs/EnemyRoles.md`, `Docs/LateGamePressure.md`, report `wavemix`, `EnemyAI.cs` (`WaveFireRate`, `ShotBudget`, `MeleeShare`), `Readability.cs`, `Variety.cs` |
+| Late-game pressure (fire rate, budget, melee share, enemy jobs) | `WaveRecipe.cs`, `NonShooters.cs`, `Docs/EnemyRoles.md`, `Docs/LateGamePressure.md`, report `wavemix`, `EnemyAI.cs` (`WaveFireRate`, `ShotBudget`, `MeleeShare`), `Readability.cs`, `Variety.cs` |
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
 | HUD layout | `HudLayout.cs` (where everything goes), `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
 | Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs`; move lobby boxes in `LobbyLayout.cs` |

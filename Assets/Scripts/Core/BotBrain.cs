@@ -532,6 +532,20 @@ namespace Arena
                             d += w * 2.5f;
                     foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
                     {
+                        // The enemies that don't shoot (NonShooters.cs): a lit fuse's blast, the Hookman's line, pods and their lasers.
+                        if (e.Type == EnemyType.FuseRunner && e.Phase == 1 && e.Pos.DistanceTo(p) < FuseBlast + hitR + 10f)
+                            d += w * 3f;
+                        else if (e.Type == EnemyType.Hookman && e.Phase == 1 && SegmentDistance(p, e.Pos, e.Pos + V2.FromAngle(e.Facing) * HookReach) < hitR + 22f)
+                            d += w * 2.5f;
+                        else if (e.Type == EnemyType.SapperMine && e.Phase >= 1)
+                        {
+                            if (e.Pos.DistanceTo(p) < (e.Phase == 2 ? PodBlast : PodTrigger) + hitR + 8f)
+                                d += w * 3f;
+                            if (e.Phase == 1)
+                                foreach (var o in Enemies.Values)
+                                    if (o.Type == EnemyType.SapperMine && o.Phase == 1 && o.Id > e.Id && o.Pos.DistanceTo(e.Pos) < PodWire && SegmentDistance(p, e.Pos, o.Pos) < hitR + 8f)
+                                        d += w * 2.5f;
+                        }
                         if (e.Type == EnemyType.BeamSentry && (e.Phase == 3 || e.Phase == 2 && e.PhaseT < t + 0.3f))
                         {
                             // It sweeps a quarter turn either way from where it points: keep clear of that fan near its line.

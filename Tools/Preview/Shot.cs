@@ -254,6 +254,24 @@ static partial class Shot {
         Time.unscaledTime = 105f + dv;
       }
     }
+    if (Environment.GetEnvironmentVariable("NONSHOOT") != null) {  // NONSHOOT=1: the enemies that don't shoot, each caught mid-move (NonShooterLooks.cs)
+      var ng = host.Game; ng.Enemies.Clear(); ng.Bullets.Clear();
+      var nsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, byte, float, float, float, Enemy> put = (t, at, ph, pt, t2, face) => { var e = (Enemy)nsp.Invoke(ng, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Phase = ph; e.PhaseT = pt; e.T2 = t2; e.Facing = face; return e; };
+      me.Pos = me.Disp = new V2(560f, 450f);
+      put(EnemyType.FuseRunner, new V2(500f, 400f), 0, 0f, 0f, 0.6f);                       // running
+      put(EnemyType.FuseRunner, new V2(330f, 500f), 1, 0.35f, 0f, 0f);                      // fuse half burnt
+      put(EnemyType.Hookman, new V2(860f, 300f), 1, 0.2f, 0f, (me.Pos - new V2(860f, 300f)).Angle);   // aiming
+      put(EnemyType.Hookman, new V2(900f, 600f), 2, 0f, 210f, (me.Pos - new V2(900f, 600f)).Angle);   // harpoon out
+      put(EnemyType.Hookman, new V2(1150f, 450f), 0, 0.5f, 0f, MathX.Pi);                   // spinning
+      put(EnemyType.Hookman, new V2(1250f, 250f), 4, 0.6f, 60f, MathX.Pi);                  // open after a miss
+      put(EnemyType.Sapper, new V2(400f, 200f), 0, 1f, 0f, 0.3f);
+      put(EnemyType.SapperMine, new V2(250f, 180f), 1, 0f, 3f, 0f);
+      put(EnemyType.SapperMine, new V2(380f, 120f), 1, 0f, 3f, 0f);
+      put(EnemyType.SapperMine, new V2(230f, 310f), 0, 0f, 0.4f, 0f);                       // arming
+      put(EnemyType.SapperMine, new V2(700f, 180f), 2, 0.15f, 3f, 0f);                      // beeping
+      foreach (var e in ng.Enemies.Values) if (e.Type == EnemyType.SapperMine) { e.Hp = e.MaxHp = 1f; }
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

@@ -40,6 +40,8 @@ namespace Arena
         Buzzsaw, SpikeBlock,
         // the simplest melee grunt: a white chomper that walks straight at you, in packs (EnemyAI.cs)
         Swarmer,
+        // enemies that don't shoot (NonShooters.cs, Docs/EnemyRoles.md): a Hunter, a Disruptor, a Zoner and the Zoner's mines
+        FuseRunner, Hookman, Sapper, SapperMine,
     }
 
     public class RoleDef
@@ -267,6 +269,15 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Rocks from side to side as it closes in, then stops, flashes a red line and lunges for a big hit (35). Slow to recover." },
             new EnemyDef { Name = "Swarmer", Hp = 14f, Radius = 9f, Speed = 115f, Score = 3, Xp = 3, Sides = 24, Color = new Rgba(0.97f, 0.97f, 0.95f), Melee = true, Contact = 6f,
                 Picker = PickerGroup.Melee, Blurb = "The simplest melee rusher: a white chomper with no eyes that walks straight at you. Weak alone, and it comes in packs." },
+            // Enemies that don't shoot (NonShooters.cs). Melee = true keeps them out of the shooting turns; they're drawn without spikes.
+            new EnemyDef { Name = "Fuse Runner", Hp = 50f, Radius = 12f, Speed = 200f, Score = 12, Xp = 10, Sides = 24, Color = new Rgba(1f, 0.55f, 0.15f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Late, Blurb = "A powder keg on the run: it plants its feet near you and blows up after a 0.8 s fuse, hurting enemies too. Step out, or shoot it early." },
+            new EnemyDef { Name = "Hookman", Hp = 150f, Radius = 15f, Speed = 70f, Score = 25, Xp = 14, Sides = 4, Color = new Rgba(0.73f, 0.55f, 1f), Melee = true,
+                Picker = PickerGroup.Late, Blurb = "Throws a harpoon along a blinking line and yanks you to its squad. Sidestep or parry; a miss leaves it open (+50%)." },
+            new EnemyDef { Name = "Sapper", Hp = 110f, Radius = 14f, Speed = 85f, Score = 25, Xp = 14, Sides = 6, Color = new Rgba(0.91f, 0.81f, 0.29f), Melee = true,
+                Picker = PickerGroup.Late, Blurb = "Plants tripwire pods; armed pods are joined by lasers. Cross a laser or step on a pod and it blows. Shoot a pod to use it on enemies." },
+            new EnemyDef { Name = "Tripwire Pod", Hp = 1f, Radius = 7f, Speed = 0f, Score = 0, Xp = 0, Sides = 6, Color = new Rgba(1f, 0.42f, 0.35f), Melee = true, Heavy = true,
+                Picker = PickerGroup.Hidden, Blurb = "A Sapper's pod: arms in 1 s, then a laser joins it to armed pods near it. Shoot it to blow it up." },
         };
 
         public const int WeaponsPerRole = 3;

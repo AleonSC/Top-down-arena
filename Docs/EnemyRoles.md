@@ -1,7 +1,13 @@
 # Enemy roles: late waves where enemies do more than shoot
 
 Owner (Nov 2026): "I think it's mostly enemy design. Like the enemies just shoot after a certain point."
-Follows on from [`LateGamePressure.md`](LateGamePressure.md) (the numbers side). **Design only: nothing here is built.**
+Follows on from [`LateGamePressure.md`](LateGamePressure.md) (the numbers side).
+
+**Status (Nov 2026, protocol 193):** built: section 1, the wave recipe (`Core/WaveRecipe.cs`), and three new enemies from
+section 3, the **Fuse Runner** (look A, Powder Keg), **Hookman** (look B, Harpoon) and **Sapper** (look C, Tripwire)
+(`Core/NonShooters.cs`, `Game/NonShooterLooks.cs`). Not built yet: the section 2 reworks and the other five new enemies.
+After the build, `wavemix` shows waves 14-39 at 54-58% shooters (Pressure about 45%; Chargers, Beam Sentries and
+Scorchers fire too), with headliners making up 20-29% of a wave.
 
 ## What a wave is made of today
 
@@ -78,9 +84,9 @@ Most of these reuse things the game already has (noted in brackets), so they cos
 
 | Enemy | From | Job | What it does | The answer |
 |---|---|---|---|---|
-| **Fuse Runner** | 15 | Hunter | Sprints at you; within 120 px it plants its feet, a ring shrinks for 0.8 s, then it blows up (35). The blast hurts **enemies too** | Step out, or lead it into its friends. Shot during the fuse, it blows up early where it stands |
+| **Fuse Runner** | 15 | Hunter | Sprints at you; within 70 px it plants its feet, a ring shrinks for 0.8 s, then it blows up (90 px, 35). The blast hurts **enemies too** (built: 50 health; it planted at 120 px in the first draft, outside its own 90 px blast) | Step out, or lead it into its friends. Shot during the fuse, it blows up early where it stands |
 | **Hookman** | 17 | Disruptor | Swings a chain, shows a line for 0.5 s, throws a hook that **yanks you 220 px** toward it and its squad (no damage) | Dodge or dash sideways, or perfect-parry it. A teammate's shot on the chain cuts it. 1 s open after a miss |
-| **Sapper** | 18 | Zoner | Runs about planting mines that arm after 1 s (a blinking ring) and last 12 s; up to 4 each | Walk round, or **shoot a mine** to set it off, hurting enemies near it |
+| **Sapper** | 18 | Zoner | Runs about planting mines that arm after 1 s (a blinking ring) and last 12 s; up to 4 each (built as look C: Tripwire Pods, joined by lasers within 180 px; crossing one sets off both ends) | Walk round, or **shoot a mine** to set it off, hurting enemies near it |
 | **Burrower** | 20 | Hunter | Dives, and a dirt trail chases you (a bit slower than you walk); after 3 s it erupts under the trail's head (a 0.5 s ring) | Keep moving, or bait it then step away. It's stuck for 1 s after erupting [the Earthquake ability's Burrower look] |
 | **Leech** | 23 | Disruptor | Leaps on a player (0.4 s crouch), latches: you're slowed 40% and drained 6/s until it's knocked off | A teammate shoots it off (it takes double damage while latched), or you dodge twice. Solo it lets go after 3 s [the Crawler's grab, `Zombies.cs`] |
 | **Bulwark** | 25 | Hunter | A wide, slow wall-bodied brute that **shoves** players ahead of it (no damage) toward the rest of the wave. Front-armoured | Go round it. Its back takes double [the Riot Shield's front block] |

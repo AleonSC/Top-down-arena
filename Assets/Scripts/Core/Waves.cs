@@ -155,6 +155,7 @@ namespace Arena
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
             ResetBossState();
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)
+            ClearPods();  // a Sapper's pods left over fizzle out (NonShooters.cs)
             ClearRisers();
             Zones.Clear();
             Hazards.Clear();

@@ -690,6 +690,8 @@ namespace Arena
                 SyncLich(s, e);    // Lich.cs
             else if (kind == EnemyType.Colossus)
                 SyncColossus(s, e);  // Colossus.cs
+            else if (IsNonShooter(kind))
+                SyncNonShooter(s, e);  // NonShooters.cs: the fuse, the aim, the harpoon, a pod's arming
             if (s.Reading)
                 e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : kind == EnemyType.Devourer ? DevourRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
             return id;

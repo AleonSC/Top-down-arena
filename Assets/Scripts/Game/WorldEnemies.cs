@@ -462,12 +462,14 @@ namespace Arena
                 return;
             }
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type))
+            if (e.Def.Melee && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
+            if (Game.IsNonShooter(e.Type) && !spawning)
+                DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
             col = DrawEnemyStatus(e, pos, r, col, t);
@@ -477,6 +479,8 @@ namespace Arena
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
             else if (e.Type == EnemyType.Swarmer)
                 DrawChomper(e, pos, r, col, t);
+            else if (Game.IsNonShooter(e.Type))
+                DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)
@@ -494,7 +498,7 @@ namespace Arena
             DrawEnemyDetails(e, pos, r, col, t);
             DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.
-            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning;
+            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning && e.Type != EnemyType.SapperMine;
             if (bar)
             {
                 float w = Mathf.Max(30f, r * 2f);
@@ -818,6 +822,9 @@ namespace Arena
                 case EnemyType.Bloater:
                 case EnemyType.Shrieker:
                 case EnemyType.Mender:
+                case EnemyType.FuseRunner:
+                case EnemyType.Hookman:
+                case EnemyType.Sapper:
                     return e.Facing;  // point where they're aiming (zombies: where they're going)
                 case EnemyType.Spinner:
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying

@@ -396,8 +396,18 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 ## Enemies
 
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
-little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 13** the early rushers are gone (melee
-comes back in squads, and with the Reaver from wave 28).
+little more each wave: wave 1 is all melee, wave 7 about half.
+
+**From wave 13, every enemy has a job** (design: [`Docs/EnemyRoles.md`](Docs/EnemyRoles.md)), and a wave is built to a
+mix of jobs instead of an even draw from every type seen so far: about 45% **Pressure** (they shoot: weave and use
+cover), 25% **Hunters** (they come for you: Swarmers, Spikers, Brutes, Lungers, Buzzsaws, Spike Blocks, Chargers, Fuse
+Runners, Reavers), 12% **Zoners** (they take ground: Beam Sentries, Sappers, Scorchers), 8% **Disruptors** (the
+Hookman) and 10% **Anchors** (kill them first: Medics, Nests, Warders). A job with nothing unlocked yet passes its share
+on. Each wave has **2 headliners** (3 from wave 25), favouring newer types, that make up a good part of their jobs, so
+waves feel different from each other. Types fade out once they've been around for 10 waves (down to 15% as often by 20
+waves in), and so do old squads, so the wave-1 Grunt gives way to what came after it. Squads are half of a late wave, and
+the single enemies fill whatever each job is still short of. `Tools/SimTest/run.sh 1 1 wavemix` shows the mix wave by wave
+(waves 14-29 went from 81-91% shooters to about 55%).
 
 With **Visual effects** on, regular enemies stand out from the floor: a soft dark shadow under each body and a faint glow in their own colour, much quieter than a player's halo. Bosses, spawning enemies and zombies don't get it.
 
@@ -412,7 +422,8 @@ other; the rest are single enemies. Each squad unlocks at a wave, and none comes
 five Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
 you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder
 leading two Snipers that keep behind it), Field hospital (11: three Brutes and a Medic behind them), Hold the line
-(14: a Pauser and two Grunts), Ambush (16: three Phantoms blink in around you), Beam battery (18: two Beam Sentries
+(14: a Pauser and two Grunts), Demolition (15: two Fuse Runners and a Grunt), Ambush (16: three Phantoms blink in around
+you), Whalers (17: a Hookman and two Lungers waiting for what it hauls in), Minefield (18: a Sapper and two Spike Blocks), Beam battery (18: two Beam Sentries
 guarded by a Shielder), Hunting party (19: two Leaders and a Sniper), Pincer (21: Hexers from opposite edges),
 Seamstresses (22: two Stitchers side by side, and a Grunt), Scorched earth (24: two Scorchers and Spikers), Siege
 (26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two Lungers), Hive (31: a Nest guarded by
@@ -450,6 +461,13 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 | 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a perfect parry blocks it). For 0.7 s after a swipe it's **open**: +50% damage |
 | 31 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
 | 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it. Kill it and every bubble pops |
+
+| Wave | Doesn't shoot | What it does |
+|---|---|---|
+| 15 | **Fuse Runner** | A banded orange powder keg with a lit wick (Hunter; comes in pairs). Sprints at you (200), stops within 70 px and a 0.8 s fuse runs down: a red ring shows the 90 px blast, an orange ring closes on the keg and the wick burns down. Then it blows up for 35 (plus 3% a wave on Normal), and the blast hurts **enemies** too (40, growing with enemy health; bosses take a quarter). Step out, or lead it into its friends first. Shot dead during the fuse, it blows up at once where it stands, and your shot gets the credit for what the blast hits. 50 health |
+| 17 | **Hookman** | A violet diamond with a harpoon spinning round it (Disruptor). Keeps about 260 px off with its squad; every 4 s it locks a thin line on you (0.5 s, blinking faster as the throw nears) and throws the harpoon (320 px). A hit **yanks you 220 px** toward it and whatever's beside it, but does no damage. Sidestep, dodge through it (the dodge's invulnerability), or perfect-parry it; a player's shot across the cable cuts it. A miss leaves it **open** for 1 s, shimmering white: +50% damage. 150 health |
+| 18 | **Sapper** | A yellow hexagon with a red core (Zoner). Circles you about 240 px out, planting a **Tripwire Pod** every 1.6 s (4 at most: the oldest fizzles). A pod takes 1 s to arm, then a red **laser** joins it to every armed pod within 180 px. Step within 40 px of an armed pod or cross a laser and it beeps for 0.3 s, then blows up (70 px, 28 plus 3% a wave on Normal); crossing a laser sets off both ends. The blast hurts enemies too, and **shooting a pod** blows it up at once (your shot gets the credit). Pods last 12 s, don't count as enemies left in the wave, and fizzle out when it's cleared. Kill the Sapper to stop new ones. 110 health |
+
 | 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a **trait** shown as a marker over it (two traits from wave 35): **Hasted** (40% faster moving and firing), **Shielded** (a bubble worth 40% of its health that grows back 4 s after it was last hit), **Volatile** (bursts into a ring of 16 shots 0.6 s after it dies), **Splitting** (dies into two Shards, four from a Juggernaut, Nest or Brute), **Mirrored** (one in four of your shots that hit it bounce back at you), **Commander** (allies within 220 px fire 30% faster). More common each wave |
 
 ### Boss approaches

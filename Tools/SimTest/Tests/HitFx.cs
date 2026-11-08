@@ -113,27 +113,28 @@ static partial class Program
         var squadF = typeof(Game).GetField("squadQueue", flags);
         var support = new HashSet<EnemyType> { EnemyType.Medic, EnemyType.Warder, EnemyType.Nest };
         var g = new Session().Game;
-        Console.WriteLine("  wave  enemies  shoot  melee  support  kinds   most common");
+        Console.WriteLine("  wave  enemies  shoot  melee  support  heads  kinds   most common   (heads: the wave's headliners, from wave 13)");
         foreach (int n in new[] { 1, 3, 6, 9, 12, 14, 17, 19, 22, 24, 27, 29, 33, 37, 39 })
         {
-            int shoot = 0, melee = 0, sup = 0, total = 0, runs = 40;
+            int shoot = 0, melee = 0, sup = 0, total = 0, runs = 40, heads = 0;
             var kinds = new Dictionary<EnemyType, int>();
             for (int r = 0; r < runs; r++)
             {
                 build.Invoke(g, new object[] { n });
                 var all = new List<EnemyType>((List<EnemyType>)queueF.GetValue(g));
                 foreach (var sq in (List<SquadDef>)squadF.GetValue(g)) all.AddRange(sq.Members);
+                if (n >= Game.RecipeFrom) heads += all.Count(t => g.Headliners.Contains(t));
                 foreach (var t in all)
                 {
                     total++;
                     kinds[t] = kinds.TryGetValue(t, out int k) ? k + 1 : 1;
                     if (support.Contains(t)) sup++;
-                    else if (Defs.Get(t).Melee) melee++;
+                    else if (Defs.Get(t).Melee) melee++;  // contact, charges, lunges, and the enemies that don't shoot (Hookman, Sapper)
                     else shoot++;
                 }
             }
             var top = kinds.OrderByDescending(kv => kv.Value).Take(4).Select(kv => string.Format("{0} {1:0}%", kv.Key, 100f * kv.Value / total));
-            Console.WriteLine("  {0,4}  {1,7:0}  {2,4:0}%  {3,4:0}%  {4,6:0}%  {5,5}   {6}", n, (float)total / runs, 100f * shoot / total, 100f * melee / total, 100f * sup / total, kinds.Count, string.Join(", ", top));
+            Console.WriteLine("  {0,4}  {1,7:0}  {2,4:0}%  {3,4:0}%  {4,6:0}%  {5,4:0}%  {6,5}   {7}", n, (float)total / runs, 100f * shoot / total, 100f * melee / total, 100f * sup / total, 100f * heads / total, kinds.Count, string.Join(", ", top));
         }
     }
 }
