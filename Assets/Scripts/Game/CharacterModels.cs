@@ -152,7 +152,7 @@ namespace Arena
             gKick += dKick;
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
-            bool ownArms = p.Weapon.Id == WeaponId.TwinBlades || p.Weapon.Id == WeaponId.Lightbringer || (p.Weapon.Id == WeaponId.Censer && fxOn && !p.Downed);  // TwinBladesLook.cs / LightbringerLook.cs / CenserLook.cs draw the arms and the blades, held and swung
+            bool ownArms = p.Weapon.Id == WeaponId.TwinBlades || p.Weapon.Id == WeaponId.Lightbringer || p.Weapon.Id == WeaponId.Lance || (p.Weapon.Id == WeaponId.Censer && fxOn && !p.Downed);  // TwinBladesLook.cs / LightbringerLook.cs / LanceLook.cs / CenserLook.cs draw the arms and the weapon, held and swung
             if (!ownArms)
             {
                 ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
@@ -560,8 +560,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.Lance:
-                    MLine(-12f, 0f, 40f, 0f, 3.6f, Hx(0xc9a35e)); MPoly(MSteel, 40f, 0f, 40f, -3.5f, 56f, 0f, 40f, 3.5f); MCirc(8f, 0f, 7f, Hx(0xaeb9c9), 12); MCirc(8f, 0f, 3f, Hx(0x7c8797), 8);
-                    break;
+                    break;  // LanceLook.cs draws the arms, shield and lance, held and swung (the model leaves its own out)
                 case WeaponId.Halberd:
                     if (fxOn)
                         break;  // with Visual effects on, HalberdLook.cs draws it in two hands

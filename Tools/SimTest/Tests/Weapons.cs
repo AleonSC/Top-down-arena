@@ -488,6 +488,8 @@ static partial class Program
                 e.MaxHp = e.Hp = 1e6f;
                 dummies.Add(e);
             }
+            ((System.Collections.IList)typeof(Game).GetField("pendingSwings", bf).GetValue(g)).Clear();  // the last weapon's swings still in flight don't land in this trial
+            me.FireCd = 0f; me.Combo = 0; me.ComboT = 0f;
             me.Weapon = w;
             me.Stats.ExtraShots = extra;
             me.AmmoUsed = 0;
@@ -745,7 +747,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }

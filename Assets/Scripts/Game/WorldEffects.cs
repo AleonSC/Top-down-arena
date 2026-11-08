@@ -265,6 +265,18 @@ namespace Arena
                 case FxKind.TwinFang:
                     DrawTwinFangFx(fx);
                     break;
+                case FxKind.LanceStep:
+                    DrawLanceStepFx(fx);  // LanceLook.cs
+                    break;
+                case FxKind.LanceHook:
+                    DrawLanceHookFx(fx);
+                    break;
+                case FxKind.LanceSpark:
+                    DrawLanceSparkFx(fx);
+                    break;
+                case FxKind.LanceImpact:
+                    DrawLanceImpactFx(fx);
+                    break;
             }
         }
 

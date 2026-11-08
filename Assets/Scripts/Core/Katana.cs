@@ -119,6 +119,11 @@ namespace Arena
                 ResetCenserChain(p);  // Censer.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Lance)
+            {
+                ResetLanceChain(p);  // Lance.cs
+                return;
+            }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
             p.KatanaStep = 0;

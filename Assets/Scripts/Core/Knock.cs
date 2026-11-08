@@ -41,8 +41,14 @@ namespace Arena
             V2 want = e.Pos + move;
             e.Pos = ClampToArena(want, e.Radius);
             float lost = (want - e.Pos).Length;
+            if (lost > 0.01f && e.ImpactBy > 0 && len - step + lost >= ImpactArmed)
+            {
+                LanceWallImpact(e, e.Pos + (want - e.Pos).Normalized() * e.Radius);  // a Lance shove still sliding fast (Lance.cs)
+                return;
+            }
             if (lost > 0.01f && len - step + lost >= WallSlamMin)
             {
+                e.ImpactBy = 0;
                 // Slammed into the arena wall: the push that's left is spent as damage, and the slide stops.
                 float dmg = Math.Min(WallSlamMax, WallSlamBase + WallSlamPerPx * (len - step + lost));
                 e.KnockLeft = V2.Zero;
@@ -55,9 +61,15 @@ namespace Arena
             {
                 e.KnockLeft = V2.Zero;
                 e.KnockSpeed = 0f;
+                e.ImpactBy = 0;
+                e.ImpactLast = -1;
             }
             else
+            {
                 e.KnockLeft -= move;
+                if (e.ImpactBy > 0 && len >= ImpactArmed)
+                    LanceBump(e);  // a Lance shove still sliding fast (as this tick began) meets whatever it runs into (Lance.cs)
+            }
         }
     }
 }

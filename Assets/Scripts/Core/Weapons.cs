@@ -526,6 +526,8 @@ namespace Arena
                     return MeleeReach(p, (p.BoStep == 1 ? BoJabReach : p.BoStep == 2 ? BoSpinReach : w.Reach) + w.Grow * x);
                 case WeaponId.Greatsword:  // the cuts' reach (extra projectiles only add sword waves to the overhead rend)
                     return MeleeReach(p, w.Reach);
+                case WeaponId.Lance:  // the jabs' reach, or the Breaching Thrust's when it is next (extra projectiles only lengthen the thrust; Lance.cs)
+                    return MeleeReach(p, p.LancePrimed || TwinBladesMotion.StepOf(p.Combo) == 3 ? w.Reach + BreachExtraReach + w.Grow * x : w.Reach);
             }
             if (w.Melee)
                 return MeleeReach(p, w.Reach + w.Grow * x);

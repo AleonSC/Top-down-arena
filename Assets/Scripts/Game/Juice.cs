@@ -66,6 +66,7 @@ namespace Arena
         {
             public V2 Pos;
             public float Hp, Max, R, Rot, Squash, Flash, Dmg, DmgT, HitFlash;  // HitFlash: the enemy's own Flash last frame (a rise is a real hit)
+            public float Owed;  // Impact damage already shown in orange (a Lance shove), left out of its next number
             public int Sides, Frame;
             public Rgba Col;
             public bool Boss, Big, Spawning;
@@ -121,7 +122,7 @@ namespace Arena
 
         struct Decal { public V2 Pos; public float R, Age; }
         struct Ripple { public V2 Pos; public float T, Power; }
-        struct Number { public V2 Pos; public float T; public int Value; public bool Big; }
+        struct Number { public V2 Pos; public float T; public int Value; public bool Big; public string Tag; }  // Tag: an Impact's number, orange with its tag over it (LanceLook.cs)
         struct Burst { public float At; public V2 Pos; public Rgba Col; public float R; }
 
         Game juiceGame;
@@ -310,6 +311,10 @@ namespace Arena
                 }
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
+                if (fx.Kind == FxKind.LanceHit && (int)fx.Pos2.X == game.MyId)
+                    LanceHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Lance hit something (below)
+                if (fx.Kind == FxKind.LanceImpact)
+                    ImpactNumber(fx);  // a Lance shove's Impact: its own orange number (below)
                 if (fx.Kind == FxKind.Jab && me != null && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B && me.Pos.DistanceTo(fx.Pos) < 44f)
                 {
                     float hp = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own hammer slam: a hit-stop and a kick, harder the more it was charged
@@ -398,7 +403,7 @@ namespace Arena
                 if (fresh)
                 {
                     s = enemyPool.Count > 0 ? enemyPool.Pop() : new EnemySeen();
-                    s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = 0f;
+                    s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = s.Owed = 0f;
                     s.HitFlash = e.Flash;
                     seenEnemies[e.Id] = s;
                     if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting)
@@ -472,7 +477,7 @@ namespace Arena
                         break;
                     }
                 if (s.Dmg > 0f)
-                    FlushNumber(s);
+                    FlushNumber(s);  // (its Impact damage already shown is left out)
                 if (!s.Spawning)
                     Shatter(s, s.Boss && !bossLeft);
                 enemyPool.Push(s);
@@ -705,6 +710,9 @@ namespace Arena
 
         void FlushNumber(EnemySeen s)
         {
+            float owed = Mathf.Min(s.Owed, s.Dmg);
+            s.Dmg -= owed;
+            s.Owed -= owed;
             if (fxNumbers && s.Dmg >= 0.5f)
             {
                 if (numbers.Count >= 60)
@@ -713,6 +721,37 @@ namespace Arena
             }
             s.Dmg = 0f;
             s.DmgT = 0f;
+        }
+
+        /// A Lance Impact (Pos2 = the enemy's id and the other's, -1 a wall, -2 a heavy one that took nothing; Radius = the damage
+        /// each took): one orange number with its tag where they met, and that damage left out of their own next numbers.
+        void ImpactNumber(Effect fx)
+        {
+            EnemySeen s;
+            int a = Mathf.RoundToInt(fx.Pos2.X), b = Mathf.RoundToInt(fx.Pos2.Y);
+            if (seenEnemies.TryGetValue(a, out s))
+                s.Owed += fx.Radius;
+            if (b >= 0 && seenEnemies.TryGetValue(b, out s))
+                s.Owed += fx.Radius;
+            if (!fxNumbers)
+                return;
+            if (numbers.Count >= 60)
+                numbers.RemoveAt(0);
+            numbers.Add(new Number { Pos = fx.Pos + new V2(Rnd(-4f, 4f), -18f), Value = Mathf.RoundToInt(fx.Radius), Big = true, Tag = b == -1 ? "WALL" : "IMPACT" });
+        }
+
+        /// Your own Lance hit: a hit-pause and a kick sized to the move. The jabs and the sweep get a light kick, the Breaching
+        /// Thrust a hold and the biggest kick, the hook a short tug. `hits`: enemies hit, which adds a little.
+        void LanceHitFeel(int kind, int hits)
+        {
+            float more = Mathf.Min(3, Mathf.Max(0, hits - 1));
+            switch (kind)
+            {
+                case 1: case 2: Hold(0.02f, 0.12f); Shake(0.05f + 0.01f * more); break;
+                case 3: Shake(0.05f + 0.01f * more); break;
+                case 4: Hold(0.05f + 0.01f * more, 0.2f); Shake(0.2f + 0.02f * more); break;
+                case 5: Hold(0.03f, 0.2f); Shake(0.08f); break;
+            }
         }
 
         /// An enemy is gone: it breaks into the triangles of its shape, with a white flash, sparks and a scorch.
@@ -912,6 +951,7 @@ namespace Arena
             DrawHammerGlow();   // the Storm Hammer: slam flash, ring, throw release (StormHammerLook.cs)
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
             DrawKatanaGlow();   // the Katana's Alt strike: the beam, the flash (KatanaLook.cs)
+            DrawLanceGlow();    // the Lance's hits and Impacts (LanceLook.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             DrawArcLightningGlow();  // Arc Lightning's Thunderhead (ArcLightningLooks.cs)
@@ -1149,8 +1189,10 @@ namespace Arena
                 float f = n.T / NumberLife, pop = Mathf.Min(1f, n.T * 12f);
                 int size = Mathf.RoundToInt((n.Big ? 17f : 12f) * (0.6f + 0.4f * pop));
                 V2 at = ToUi(n.Pos);
-                var col = n.Big ? new Color(1f, 0.84f, 0.35f, 1f - f * f) : new Color(0.92f, 0.94f, 1f, 1f - f * f);
+                var col = n.Tag != null ? new Color(1f, 0.65f, 0.28f, 1f - f * f) : n.Big ? new Color(1f, 0.84f, 0.35f, 1f - f * f) : new Color(0.92f, 0.94f, 1f, 1f - f * f);
                 Ui.Shadowed(new Rect(at.X - 40f, at.Y - 10f, 80f, 20f), n.Value.ToString(), size, col);
+                if (n.Tag != null)  // an Impact's tag over its number
+                    Ui.Shadowed(new Rect(at.X - 40f, at.Y - 24f, 80f, 14f), n.Tag, Mathf.RoundToInt(10f * (0.6f + 0.4f * pop)), col);
             }
             if (introT > 0f)
             {

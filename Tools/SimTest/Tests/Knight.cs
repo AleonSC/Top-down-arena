@@ -121,37 +121,7 @@ static partial class Program
         Check(Upgrades.DescFor(Upgrades.All[U("Piercing Rounds")], me.Weapon).Contains("reach") && Upgrades.DescFor(Upgrades.All[U("Multishot")], me.Weapon).Contains("knockback"),
             "upgrade cards describe what they do for a Knight weapon");
 
-        // The Lance shoves what it hits far back.
-        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
-        var shoved = Dummy(new V2(900f, 600f));
-        me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 1);
-        me.Pos = new V2(780f, 600f);
-        V2 shovedFrom = shoved.Pos;
-        for (int f = 0; f < 45; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1000f, 600f) }); shoved.FrozenT = 1f; Clear(); me.Pos = new V2(780f, 600f); }
-        Console.WriteLine("  lance: pushed a Brute {0:0} px", shoved.Pos.X - shovedFrom.X);
-        Check(me.Weapon.Name == "Lance" && shoved.Pos.X - shovedFrom.X > 120f, "the Lance jabs enemies far back");
-        shoved.Hp = 0f; keep.Remove(shoved);
-        // Its hitbox is a box straight ahead: something off to the side at the same distance isn't hit.
-        var ahead = Dummy(new V2(920f, 600f));
-        var beside = Dummy(new V2(880f, 600f + Game.LanceHalfWidth + 60f));
-        float aheadHp = ahead.Hp, besideHp = beside.Hp;
-        for (int f = 0; f < 45; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1000f, 600f) }); ahead.FrozenT = beside.FrozenT = 1f; ahead.Pos = new V2(920f, 600f); beside.Pos = new V2(880f, 600f + Game.LanceHalfWidth + 60f); Clear(); me.Pos = new V2(780f, 600f); }
-        Console.WriteLine("  lance box: ahead took {0:0}, beside took {1:0}", aheadHp - ahead.Hp, besideHp - beside.Hp);
-        Check(ahead.Hp < aheadHp && beside.Hp == besideHp, "the Lance hits a box straight ahead, not a cone");
-        ahead.Hp = beside.Hp = 0f; keep.Remove(ahead); keep.Remove(beside);
-        // And it stuns what it hits for a second (not bosses).
-        var stunned = Dummy(new V2(900f, 600f));
-        var lanceBoss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(900f, 600f), 0f, 0, false });
-        lanceBoss.Hp = lanceBoss.MaxHp = 1e6f; lanceBoss.SpawnT = 0f; keep.Add(lanceBoss);
-        float stunAt = 0f, bossFrozen = 0f;
-        for (int f = 0; f < 45; f++)
-        {
-            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1000f, 600f) }); Clear(); me.Pos = new V2(780f, 600f);
-            stunAt = Math.Max(stunAt, stunned.FrozenT); bossFrozen = Math.Max(bossFrozen, lanceBoss.FrozenT);
-        }
-        Console.WriteLine("  lance stun: {0:0.00} s on a Brute, {1:0.00} s on the Warden", stunAt, bossFrozen);
-        Check(stunAt > 0.9f && bossFrozen == 0f, "the Lance stuns what it hits for 1 s (not bosses)");
-        stunned.Hp = lanceBoss.Hp = 0f; keep.Remove(stunned); keep.Remove(lanceBoss);
+        // (The Lance has its own suite: run.sh 1 30 lance, Tests/Lance.cs.)
 
         // Abilities (cast directly; all players are invulnerable to everything but what's tested).
         Func<AbilityId, int> Slot = id => { var p = g.Players.Values.First(q => q.Slots.Any(sl => sl.Id == id)); return Array.FindIndex(p.Slots, sl => sl.Id == id); };

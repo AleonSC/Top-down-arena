@@ -498,7 +498,26 @@ static partial class Shot {
       Action<FxKind, V2, float, float, float> fx = (kind, p2, rad, t0, dur) => gm.Effects.Add(new Effect { Kind = kind, Pos = me.Pos, Pos2 = p2, Color = col, Radius = rad, T = st - t0, Dur = dur });
       switch (me.Weapon.Id) {
         case WeaponId.Warhammer: gm.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.HammerCentre(reach), Color = Game.HammerBoomColor.WithAlpha(float.Parse(Environment.GetEnvironmentVariable("HAMMERPOW") ?? "1", System.Globalization.CultureInfo.InvariantCulture)), Radius = Game.HammerRadius, T = st, Dur = 0.26f }); break;
-        case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
+        case WeaponId.Lance:  // LANCESTEP=1..4 Jab, Second Jab, Wide Sweep, Breaching Thrust, hook Hook & Haul (at the nearest enemy), 0 held at the ready; PRIMED=1 a hook primed the thrust (SWING = seconds after the click)
+        {
+          string lsn = Environment.GetEnvironmentVariable("LANCESTEP") ?? "1";
+          me.LancePrimed = Environment.GetEnvironmentVariable("PRIMED") == "1";
+          if (lsn == "hook")
+          {
+            Enemy near = null; foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && (near == null || en.Pos.DistanceTo(me.Pos) > near.Pos.DistanceTo(me.Pos))) near = en;
+            V2 at = near != null ? near.Pos : me.Pos + V2.FromAngle(me.Aim) * Game.HookMiss;
+            if (near != null) { near.Pos = near.Disp = me.Pos + V2.FromAngle(me.Aim) * 230f; at = near.Pos; }
+            gm.Effects.Add(new Effect { Kind = FxKind.LanceHook, Pos = me.Pos, Pos2 = at, Color = Game.LanceGlow, Radius = me.Id * 10 + (near != null ? 1 : 0), T = st, Dur = LanceMotion.Hook.Dur + LanceMotion.Recover });
+          }
+          else if (lsn != "0")
+          {
+            int ls = int.Parse(lsn);
+            float lr = ls == 4 ? Game.MeleeReach(me, me.Weapon.Reach + Game.BreachExtraReach) : ls == 3 ? LanceMotion.Len + 17f : reach;
+            me.Combo = (1 << 3) | ls;
+            gm.Effects.Add(new Effect { Kind = FxKind.LanceStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * lr, Color = Game.LanceGlow.WithAlpha(ls == 4 ? Game.BreachHalfWidth / 100f : 0f), Radius = me.Id * 10 + ls, T = st, Dur = LanceMotion.Steps[ls - 1].Dur + LanceMotion.Recover });
+          }
+          break;
+        }
         case WeaponId.Rapier: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
         case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
         case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
@@ -859,7 +878,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("THRUST") != null) {
       float tt = float.Parse(Environment.GetEnvironmentVariable("THRUST"));
       host.Game.Effects.Clear();
-      host.Game.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 150f, Color = Defs.BulletColor(Defs.KnightSlash), Radius = Game.LanceHalfWidth, T = tt * 0.26f, Dur = 0.26f });
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 150f, Color = Defs.BulletColor(Defs.KnightSlash), Radius = Game.BreachHalfWidth, T = tt * 0.26f, Dur = 0.26f });
     }
     if (Environment.GetEnvironmentVariable("BG") != null) typeof(ArenaApp).GetField("menuBg", f2).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("BG")));
     if (Environment.GetEnvironmentVariable("PATCHES") != null) {

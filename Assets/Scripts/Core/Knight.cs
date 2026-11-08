@@ -48,6 +48,8 @@ namespace Arena
         public int LightWaves;        // Dawn's and Mercy's crescents of light
         public float LightWaveDmg;
         public byte CenserStep;       // a Censer step (1-3; Censer.cs): its hits light Embers, and it leaves incense as it lands
+        public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
+        public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -62,7 +64,6 @@ namespace Arena
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallHalfArc = 1.05f;  // 120 degrees across; the capacity is shared out between the plates
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
-        public const float LanceHalfWidth = 44f, LanceStun = 1f;
         public const float RootHalfWidth = 22f, RootHeal = 10f, RootFxTime = 0.5f;  // the Treant Rod's root lash (KitWeapons.cs)
         public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f, SplinterFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
         public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
@@ -129,17 +130,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.Lance:
-                {
-                    // A big jab straight ahead that drives everything it hits far back (not bosses or heavies).
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 0f, w.Damage * dmg);
-                    s.HalfWidth = LanceHalfWidth + 12f * extra;
-                    s.Stun = LanceStun;
-                    s.Knock = 140f + 60f * extra;
-                    s.Heavy = true;
-                    s.Thrust = true;
-                    pendingSwings.Add(s);
+                    FireLance(p, aim, dmg, extra);  // the Breach's next step (Lance.cs)
                     break;
-                }
                 case WeaponId.Halberd:
                 {
                     // A long, thin cone that sweeps across in front of you; each enemy is hit once a sweep.
@@ -351,7 +343,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent && !(s.Twin && s.Sound == Sfx.None))  // (a Twin Blades hit with no sound of its own: the step's is already playing)
+                if (!s.Silent && !((s.Twin || s.LanceKind > 0) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -468,6 +460,8 @@ namespace Arena
             }
             if (hits.Count > 0 && s.TwinKind > 0)
                 TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
+            if (hits.Count > 0 && s.LanceKind > 0)
+                LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
             float rapierMult = 1f;
             if (s.Rapier && hits.Count > 0)
             {
@@ -499,7 +493,18 @@ namespace Arena
                     e.FrozenT = Math.Max(e.FrozenT, s.Stun);
                     e.SlowT = Math.Max(e.SlowT, s.Stun);
                 }
-                if (s.Knock > 0f && !Heavy(e))
+                if (s.LanceKind > 0)  // a Lance step: drives straight ahead (the sweep bats along its swing), sparks, and arms Impact (Lance.cs)
+                {
+                    V2 away = (e.Pos - origin).Normalized(), kd = LanceKnockDir(s, away, dir);
+                    if (s.Knock > 0f && !Heavy(e))
+                    {
+                        KnockEnemy(e, kd * s.Knock);
+                        e.ImpactBy = p.Id + 1;
+                        e.ImpactLast = -1;
+                    }
+                    BroadcastFx(FxKind.LanceSpark, e.Pos, e.Pos + kd, LanceGlow, s.LanceKind == 4 ? 1f : 0.5f, 0.4f, Sfx.None);
+                }
+                else if (s.Knock > 0f && !Heavy(e))
                 {
                     V2 away = (e.Pos - origin).Normalized();
                     KnockEnemy(e, (away.IsZero ? dir : away) * s.Knock);  // slides (Knock.cs)
@@ -665,8 +670,8 @@ namespace Arena
             // Tank
             new WeaponDef { Id = WeaponId.Warhammer, Kit = Kit.Knight, Role = Role.Tank, Choice = 0, Damage = 80f, Reach = 130f, Grow = 40f, Melee = true, ExtraDesc = "+1 aftershock: another slam 0.2 s later, 40 px further out, at 60% damage", Name = "Warhammer", FireInterval = 0.75f,
                 Desc = "Hold to charge, let go to slam the ground in front of you. The longer the charge, the harder it hits and the longer it stuns." },
-            new WeaponDef { Id = WeaponId.Lance, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 36f, Reach = 180f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.6f,
-                Desc = "A heavy jab in front of you that shoves enemies far back and stuns them." },
+            new WeaponDef { Id = WeaponId.Lance, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 14f, Reach = 178f, Grow = 30f, Melee = true, ExtraDesc = "The Breaching Thrust: +30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.24f,
+                Desc = "A four-step chain with a lance and shield: two quick jabs, a wide sweep that bats enemies aside, then a Breaching Thrust that shoves everything in front far back and stuns it. Shoved enemies that hit another enemy or a wall take Impact damage. The weapon-action key hooks the enemy nearest your cursor, hauls it in and makes your next attack the Breaching Thrust." },
             new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
                 Desc = "Sweeps a long, thin blade across in front of you, hitting each enemy once per sweep." },
             // Healer
