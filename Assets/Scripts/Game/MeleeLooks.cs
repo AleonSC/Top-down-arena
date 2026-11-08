@@ -499,7 +499,7 @@ namespace Arena
             var col = MeleeColor(seen.Weapon, fx.Color);
             if (seen.Weapon == WeaponId.Warhammer)
             {
-                DrawHammerSlamE(seen, o, aim, reach, w, fx.Color.A, T, seed, light);
+                DrawHammerSlamE(seen, o, aim, reach, w, fx.Color.A, T, seed, light, fx.Pos2);
                 return true;
             }
             // The Lance: the box glows from your body to its sliding front edge, the lance riding out at its front.
@@ -525,12 +525,12 @@ namespace Arena
         /// The Warhammer: from over your shoulder, a burning arc into the floor in front of you, then the impact (a
         /// glow, a ring with turning ticks, a pillar of light, embers). An aftershock (a later slam, further out) is just
         /// the impact.
-        void DrawHammerSlamE(MeleeSeen seen, V2 o, float aim, float reach, float radius, float power01, float T, int seed, bool light)
+        void DrawHammerSlamE(MeleeSeen seen, V2 o, float aim, float reach, float radius, float power01, float T, int seed, bool light, V2 centre)
         {
             var col = HammerDust;
             bool aftershock = reach > Game.HammerCentre(seen.BaseReach) + 1f;  // `reach`: how far out the slam's circle is centred
             float d = reach, R = radius, power = Mathf.Clamp01((power01 - 0.2f) / 0.8f);
-            V2 c = o + V2.FromAngle(aim) * d;
+            V2 c = centre;  // where it hit: the circle stays put when the player moves
             float after = aftershock ? T : T - HammerSwingTime;
             if (!aftershock && T < HammerSwingTime)
             {
@@ -759,7 +759,7 @@ namespace Arena
                 if (after < 0f)
                     continue;
                 float aim = to.Angle, power = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f), pw = 0.45f + 0.55f * power;
-                V2 c = MeleeOrigin(fx, seen) + V2.FromAngle(aim) * reach;
+                V2 c = fx.Pos2;  // where it hit, not where the player now stands
                 HammerCrater(c, fx.Radius, pw, after, MeleeSeed(fx));
                 HammerDustPuffs(fx.Radius, c, pw, after, MeleeSeed(fx));
                 DrawHammerChips(pw, c, after, MeleeSeed(fx));
