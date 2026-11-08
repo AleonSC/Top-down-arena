@@ -347,7 +347,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
-      var gm = host.Game; gm.Bot = false; gm.HoldShell = true;  // (a held ability, the Blood Shell, stays up)
+      var gm = host.Game; gm.Bot = false;
       var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
       var adef = Upgrades.Ability(aid);
       int slot = adef.Choice == AbilityDef.Ult ? Upgrades.UltSlot : 0;

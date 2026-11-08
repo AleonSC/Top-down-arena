@@ -16,7 +16,6 @@ namespace Arena
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
-            bool shellHeld = r.ReadBoolean();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
@@ -29,7 +28,6 @@ namespace Arena
             p.AimAt = aimAt;
             p.Firing = firing;
             p.Parrying = parry;
-            p.ShellHold = shellHeld || p.ShellT < ShellMinUp;
         }
 
         public void OnWeaponDash(int peer, BinaryReader r)

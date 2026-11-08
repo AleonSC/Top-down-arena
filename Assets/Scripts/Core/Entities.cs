@@ -216,7 +216,7 @@ namespace Arena
         public Dictionary<AbilityId, float> MasteryXp = new Dictionary<AbilityId, float>();  // ability mastery (Mastery.cs)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public bool ShellOn;                   // Blood Shell is up (replicated; its wear is your health)
-        public bool ShellHold, ShellMastered;  // host: the ability key is held; a mastered shell erases bullets as it bursts
+        public bool ShellMastered;  // host: a mastered shell erases bullets as it bursts
         public float ShellT, ShellPower = 1f;  // host: how long it has stood; mastery power
         public bool StandOn;                   // Last Stand: planted behind the barrier (replicated; its wear is your health)
         public float StandAim;                 // Last Stand (replicated): where the barrier faces; it turns slowly toward your aim
