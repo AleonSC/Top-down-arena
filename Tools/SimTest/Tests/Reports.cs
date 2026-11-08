@@ -52,6 +52,29 @@ static partial class Program
     }
 
     // How crowded the screen gets: enemy bullets on screen through a wave (bots playing, buffed so they survive).
+    static void PerfReport(float dt)
+    {
+        foreach (int wave in new[] { 10, 15, 20, 22, 25, 28 })
+        {
+            var s = StartBuffed(dt, wave, 6);
+            s[0].Game.DevSetGod(1, true); s[0].Game.DevSetGod(2, true);
+            Run(s, dt, 8, () => s[0].Game.State == MatchState.Fighting);
+            var ms = new List<double>(); int maxE = 0, maxB = 0, maxF = 0, maxZ = 0, maxM = 0;
+            var sw = new System.Diagnostics.Stopwatch();
+            Run(s, dt, 40, () => s[0].Game.State != MatchState.Fighting, () =>
+            {
+                var g = s[0].Game;
+                maxE = Math.Max(maxE, g.Enemies.Count); maxB = Math.Max(maxB, g.Bullets.Count);
+                maxF = Math.Max(maxF, g.Effects.Count); maxZ = Math.Max(maxZ, g.Zones.Count); maxM = Math.Max(maxM, g.Minions.Count);
+                sw.Restart(); g.FixedStep(dt, new PlayerInput()); ms.Add(sw.Elapsed.TotalMilliseconds);
+            });
+            ms.Sort();
+            Console.WriteLine("  wave {0,2}: tick ms avg {1:0.00} p99 {2:0.00} max {3:0.00} | enemies {4} bullets {5} effects {6} zones {7} minions {8}",
+                wave, ms.Count > 0 ? ms.Average() : 0, ms.Count > 0 ? ms[ms.Count * 99 / 100] : 0, ms.Count > 0 ? ms.Last() : 0, maxE, maxB, maxF, maxZ, maxM);
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+
     static void BulletCountReport(float dt)
     {
         foreach (int wave in new[] { 3, 6, 9, 12, 15, 18, 21, 24, 27 })
