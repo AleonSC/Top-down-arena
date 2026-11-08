@@ -232,9 +232,9 @@ namespace Arena
             }
         }
 
-        // --- Healer kit: the Censer's incense, Sprite Staff seeds, Ofuda wards ---------
+        // --- Healer kit: the Censer's incense (made by its swings, Censer.cs), Sprite Staff seeds, Ofuda wards ---------
 
-        public const float IncenseStep = 45f, IncenseRadius = 45f, IncenseTime = 3f, IncenseStray = 0.35f;  // dropped every IncenseStep you move; enemy shots fired inside stray this far either side
+        public const float IncenseStray = 0.35f;  // enemy shots fired inside the Censer's incense stray this far either side
         public const int FireflyHops = 2;  // a firefly hops this many times: three enemies seeded from one shot
         public const float FireflyReach = 300f, FireflySpeed = 860f;
         public const float SeedTime = 4f, SpriteFreed = 6f;
@@ -307,15 +307,9 @@ namespace Arena
                 SpawnMinion(MinionKind.Sprite, p, e.Pos, SpriteFreed);
         }
 
-        /// Host, every tick: the Censer leaves incense as you move; wards burst under enemies; seeds wear off.
+        /// Host, every tick: wards burst under enemies; seeds wear off. (The Censer's incense comes from its swings: Censer.cs.)
         void TickHealerKit(float dt)
         {
-            foreach (var p in Players.Values)
-                if (p.Weapon.Id == WeaponId.Censer && !p.Downed && p.Pos.DistanceTo(p.LastIncense) >= IncenseStep)
-                {
-                    p.LastIncense = p.Pos;
-                    AddZone(ZoneKind.Incense, p, p.Pos, IncenseRadius, IncenseTime);
-                }
             List<Zone> burst = null;
             foreach (var z in Zones.Values)
                 if (z.Kind == ZoneKind.OfudaWard)

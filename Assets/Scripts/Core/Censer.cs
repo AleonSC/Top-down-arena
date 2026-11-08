@@ -13,7 +13,8 @@ namespace Arena
     ///     They never fade.
     ///   - Alt (the weapon-action key): Censer Cast. The head is thrown out to the cursor (up to CastReach), bursts where it
     ///     lands for CastBurstPerEmber a spent Ember, and leaves an incense cloud that grows and heals more with each Ember. It
-    ///     spends every Ember and the head is reeled back on its own; no swings until it is. Your game sends Msg.WeaponDash
+    ///     spends every Ember and the head is reeled back on its own; no swings until it is. A downed ally in the cloud gets a
+    ///     fifth of their revive at once and is revived twice as fast while it lasts. Your game sends Msg.WeaponDash
     ///     (DashCast, aimed at the cursor); the host does the rest.
     /// Each step is one effect (FxKind.CenserStep) and each throw one (FxKind.CenserCast), drawn from their age (Game/CenserLook.cs).
     public partial class Game
@@ -27,6 +28,7 @@ namespace Arena
         public const int EmberBase = 5;
         public const float CastReach = 280f, CastCooldown = 6f, CastBurstR = 50f, CastBurstPerEmber = 8f, CastCloudBase = 60f, CastCloudPerEmber = 6f, CastCloudTime = 4f;
         public const float CastHealBase = 2f, CastHealPerEmber = 1f;  // the cloud's healing a second
+        public const float CastReviveBoost = 1f, CastReviveKick = 0.2f;  // a downed ally in the cloud: revived this much faster (1 = twice as fast), and this share of the revive at once when it lands
         public static readonly Rgba CenserGold = new Rgba(1f, 0.81f, 0.43f);
 
         class CastRun
@@ -63,7 +65,7 @@ namespace Arena
             s.CenserStep = (byte)step;
             s.Heavy = fin;
             s.Knock = fin ? 20f : 12f;
-            s.Sound = fin ? Sfx.SwingHeavy : Sfx.SwingLight;
+            s.Sound = fin ? Sfx.CenserWhirl : step == 1 ? Sfx.CenserSweep1 : Sfx.CenserSweep2;  // CenserSoundBank.cs
             s.HealSpin = CenserHeal[step - 1] + extra;
             s.HealRange = CenserHealR[step - 1];
             pendingSwings.Add(s);
@@ -76,18 +78,27 @@ namespace Arena
         void CenserLanded(Player p, Swing s, int hits)
         {
             if (hits > 0)
+            {
                 p.Embers = (byte)Math.Min(EmberCap(p), p.Embers + hits);
+                BroadcastSound(s.CenserStep == 3 ? Sfx.CenserHitHeavy : Sfx.CenserHit);
+            }
+            bool blessed = false;  // an ally (not you) in the heal's reach: the blessing chimes
+            foreach (var q in Players.Values)
+                if (q.Id != p.Id && !q.Downed && q.Pos.DistanceTo(p.Pos) < s.HealRange)
+                    blessed = true;
             if (s.CenserStep == 3)
             {
                 s.HealSpin += Math.Min(BenedictionBonus, hits);
                 AddZone(ZoneKind.Incense, p, p.Pos, BenedictionCloudR, BenedictionCloudT);
-                BroadcastFx(FxKind.Ring, p.Pos, CenserGold, s.HealRange, 0.45f, Sfx.SpellHoly);
+                BroadcastFx(FxKind.Ring, p.Pos, CenserGold, s.HealRange, 0.45f, Sfx.CenserBell);
             }
             else
             {
                 var d = CenserMotion.Steps[s.CenserStep - 1];
                 V2 at = ClampToArena(CenserMotion.Head(p.Pos, s.Aim, CenserMotion.At(d, d.Dur), s.Reach), 10f);
                 AddZone(ZoneKind.Incense, p, at, PuffRadius, PuffTime);
+                if (blessed)
+                    BroadcastSound(Sfx.CenserBless);
             }
         }
 
@@ -110,6 +121,8 @@ namespace Arena
                 if (!Players.TryGetValue(r.Owner, out p) || r.T >= CenserMotion.CastTotal)
                 {
                     castRuns.RemoveAt(i);
+                    if (p != null && !p.Downed)
+                        BroadcastSound(Sfx.CenserCatch);  // the head back on its chain
                     continue;
                 }
                 if (!r.Landed && r.T >= CenserMotion.CastLand)
@@ -138,10 +151,20 @@ namespace Arena
             float radius = CastCloudBase + CastCloudPerEmber * n, heal = CastHealBase + CastHealPerEmber * n;
             var z = AddZone(ZoneKind.Incense, p, r.To, radius, CastCloudTime);
             z.HealMult = heal / z.Def.HealRate;
+            z.ExtraRevive = CastReviveBoost;  // a downed ally in the cloud is revived twice as fast, as in Guardian's Oath's ward
             foreach (var q in Players.Values)
-                if (!q.Downed && q.Pos.DistanceTo(r.To) <= radius)
+            {
+                if (q.Pos.DistanceTo(r.To) > radius)
+                    continue;
+                if (q.Downed)
+                {
+                    q.Revive = Math.Min(0.99f, q.Revive + CastReviveKick);  // the landing alone brings them a share of the way back
+                    q.ReviveBy = p.Id;
+                }
+                else
                     Heal(q, heal, p);
-            BroadcastFx(FxKind.Ring, r.To, CenserGold, CastBurstR, 0.35f, Sfx.Explode);
+            }
+            BroadcastFx(FxKind.Ring, r.To, CenserGold, CastBurstR, 0.35f, Sfx.CenserLand);
         }
 
         /// Host: the weapon-action key with the Censer, aimed at `aimAt`: Censer Cast, if it is ready and there is an Ember.
@@ -160,7 +183,7 @@ namespace Arena
             p.Combo &= ~7;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.CenserStep > 0 && s.Delay > 0f);  // a step still winding up never lands
             castRuns.Add(new CastRun { Owner = p.Id, To = target, Embers = n });
-            BroadcastFx(FxKind.CenserCast, p.Pos, target, CenserGold, p.Id * 10 + Math.Min(9, n), CenserMotion.CastTotal, Sfx.SwingHeavy);
+            BroadcastFx(FxKind.CenserCast, p.Pos, target, CenserGold, p.Id * 10 + Math.Min(9, n), CenserMotion.CastTotal, Sfx.CenserThrow);
         }
 
         /// Raising the parry cancels the rite (ResetAttackChains): back to the Sweep, a step still winding up never lands.

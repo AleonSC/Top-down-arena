@@ -137,7 +137,7 @@ namespace Arena
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 5f)), 40);
                     Polygon(z.Pos, 9f, 4, MathX.Pi / 4f, c);
                     break;
-                case ZoneKind.Incense:  // the Censer's trail: soft puffs of smoke drifting up and thinning
+                case ZoneKind.Incense:  // the Censer's incense: soft puffs of smoke drifting up and thinning
                 {
                     for (int k = 0; k < 3; k++)
                     {

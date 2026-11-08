@@ -638,7 +638,7 @@ static partial class Program
 
     static void HealerFiveTest(float dt)
     {
-        // The Censer's incense trail heals and spoils enemy aim; the Spirit Fan alternates pushing and pulling; Ofuda
+        // The Censer's incense heals and spoils enemy aim (its rite and Censer Cast too); the Spirit Fan alternates pushing and pulling; Ofuda
         // charms lie as wards that burst under enemies; Sprite Staff seeds free sprites from kills; Totem Staff totems
         // are thrown and charged by seed hits.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -676,19 +676,30 @@ static partial class Program
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Minions.Clear(); g.Zones.Clear(); };
         play(0.3f, new PlayerInput());
 
-        // Censer: walk, leaving incense; an ally in it heals; enemy shots fired from inside it stray.
+        // Censer: walking leaves no incense; a sweep leaves a puff where the head ends up; an ally in it heals; enemy shots fired
+        // from inside it stray.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Censer);
+        var censerHeard = new HashSet<Sfx>();
+        Action<float, PlayerInput> censerPlay = (secs, input) =>
+        {
+            for (int f = 0; f < Math.Max(1, (int)Math.Round(secs * 60)); f++) { play(1f / 60f, input); foreach (var c in g.Sounds) censerHeard.Add(c.Sfx); }
+        };
         pinMe = false;
         me.Pos = from;
-        play(1f, new PlayerInput { Move = new V2(1f, 0f), AimAt = from + new V2(400f, 0f) });
+        censerPlay(1f, new PlayerInput { Move = new V2(1f, 0f), AimAt = from + new V2(400f, 0f) });
         pinMe = true;
-        int trail = g.Zones.Values.Count(z => z.Kind == ZoneKind.Incense);
+        int walked = g.Zones.Values.Count(z => z.Kind == ZoneKind.Incense);
+        from = me.Pos;
+        allyAt = from + new V2(0f, 100f);  // in the sweep's 140 px heal: the blessing chimes
+        censerPlay(2f / 60f, new PlayerInput { Fire = true, AimAt = from + new V2(400f, 0f) });
+        censerPlay(0.5f, new PlayerInput { AimAt = from + new V2(400f, 0f) });
+        int puffs = g.Zones.Values.Count(z => z.Kind == ZoneKind.Incense);
         bool clientTrail = client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Incense);
         var puff = g.Zones.Values.Where(z => z.Kind == ZoneKind.Incense).OrderBy(z => z.T).Last();
         allyAt = puff.Pos;
         ally.Hp = ally.MaxHp * 0.3f;
         float a0 = ally.Hp;
-        from = new V2(300f, 800f);  // step away so the spin's healing doesn't count
+        from = new V2(300f, 800f);  // step away so the swing's healing doesn't count
         play(0.5f, new PlayerInput());
         float trailHeal = ally.Hp - a0;
         int strayed = 0, straight = 0;
@@ -699,9 +710,10 @@ static partial class Program
             if (Math.Abs(inside.Vel.Angle) > 0.01f) strayed++;
             if (Math.Abs(outside.Vel.Angle) < 0.001f) straight++;
         }
-        Console.WriteLine("  censer: walking left {0} puffs of incense (client saw {1}); an ally in it healed {2:0.0} in 0.5 s; enemy shots from inside strayed {3}/20, outside straight {4}/20",
-            trail, clientTrail, trailHeal, strayed, straight);
-        Check(trail >= 3 && clientTrail && trailHeal > 0f, "the Censer leaves a trail of incense as you move, healing allies in it");
+        Console.WriteLine("  censer: walking left {0} incense; a sweep left {1} puff (client saw it {2}); an ally in it healed {3:0.0} in 0.5 s; enemy shots from inside strayed {4}/20, outside straight {5}/20",
+            walked, puffs, clientTrail, trailHeal, strayed, straight);
+        Check(walked == 0, "walking with the Censer leaves no incense trail");
+        Check(puffs == 1 && clientTrail && trailHeal > 0f, "a Censer sweep leaves a puff of incense where the head ends up, healing allies in it");
         Check(strayed >= 17 && straight == 20, "enemy shots fired from inside the incense stray");
         from = new V2(300f, 450f); allyAt = new V2(300f, 150f);
         reset();
@@ -720,7 +732,7 @@ static partial class Program
         for (int f = 0; f < 180 && rite.Count < 4; f++)
         {
             float hpWas = ally.Hp;
-            play(1f / 60f, new PlayerInput { Fire = true, AimAt = from + new V2(400f, 0f) });
+            censerPlay(1f / 60f, new PlayerInput { Fire = true, AimAt = from + new V2(400f, 0f) });
             bestJump = Math.Max(bestJump, ally.Hp - hpWas);
             int st = CenserMotion.StepOf(me.Combo);
             if (st != 0 && (rite.Count == 0 || rite[rite.Count - 1] != st))
@@ -728,7 +740,7 @@ static partial class Program
             peakEmbers = Math.Max(peakEmbers, me.Embers);
             clientEmbers = Math.Max(clientEmbers, client.Game.Players[1].Embers);
         }
-        play(0.6f, new PlayerInput { AimAt = from + new V2(400f, 0f) });
+        censerPlay(0.6f, new PlayerInput { AimAt = from + new V2(400f, 0f) });
         peakEmbers = Math.Max(peakEmbers, me.Embers);
         clientEmbers = Math.Max(clientEmbers, client.Game.Players[1].Embers);
         float frontDmg = frontHp - front.Hp, behindDmg = behindHp - behind.Hp, allyGain = ally.Hp - allyHp0;
@@ -752,7 +764,7 @@ static partial class Program
         ally.Hp = ally.MaxHp * 0.3f;
         int spent = me.Embers;
         float targetHp = target.Hp, castAlly0 = ally.Hp;
-        for (int k = 0; k < 66; k++) play(1f / 60f, new PlayerInput { WeaponAction = k < 2, AimAt = castAt });
+        for (int k = 0; k < 66; k++) censerPlay(1f / 60f, new PlayerInput { WeaponAction = k < 2, AimAt = castAt });
         var cloud = g.Zones.Values.Where(z => z.Kind == ZoneKind.Incense).OrderByDescending(z => z.Radius).FirstOrDefault();
         float castDmg = targetHp - target.Hp, castHeal = ally.Hp - castAlly0;
         Console.WriteLine("  censer cast: spent {0} Embers; the enemy at the cursor took {1:0}; cloud {2:0} px at {3:0} px out; the ally in it healed {4:0.0}; Embers left {5}, cooldown {6:0.0} s",
@@ -764,6 +776,24 @@ static partial class Program
         int before = (int)target.Hp;
         for (int k = 0; k < 10; k++) play(1f / 60f, new PlayerInput { WeaponAction = k % 2 == 0, AimAt = castAt });
         Check((int)target.Hp == before, "with no Embers, or on its cooldown, the key does nothing");
+
+        // Censer Cast on a downed ally: the landing brings them a share of the way back, and the cloud revives them twice as fast.
+        g.Zones.Clear();
+        me.CenserCd = 0f; me.Embers = 3;
+        typeof(Game).GetField("censerLocalCd", flags).SetValue(g, 0f);
+        ally.Downed = true; ally.Revive = 0f;
+        for (int k = 0; k < 24; k++) censerPlay(1f / 60f, new PlayerInput { WeaponAction = k < 2, AimAt = castAt });  // to the landing (0.38 s)
+        float kick = ally.Revive;
+        censerPlay(0.5f, new PlayerInput { AimAt = castAt });
+        float later = ally.Revive - kick, normal = 0.5f / g.D(DiffKnob.ReviveTime);
+        Console.WriteLine("  censer cast on a downed ally: revive {0:0.00} when it landed, +{1:0.000} in the next 0.5 s (a teammate beside them alone: {2:0.000})", kick, later, normal);
+        Check(kick >= Game.CastReviveKick - 0.01f && later >= normal * 0.9f, "Censer Cast landing on a downed ally brings them a fifth of the way back, and its cloud revives them as fast again as a teammate beside them");
+        ally.Downed = false; ally.Revive = 0f; ally.Hp = ally.MaxHp;
+        var censerWant = new[] { Sfx.CenserSweep1, Sfx.CenserSweep2, Sfx.CenserWhirl, Sfx.CenserHit, Sfx.CenserHitHeavy, Sfx.CenserBless, Sfx.CenserBell, Sfx.CenserThrow, Sfx.CenserLand, Sfx.CenserCatch };
+        var censerMissing = censerWant.Where(x => !censerHeard.Contains(x)).ToList();
+        Console.WriteLine("  censer sounds missing: {0}", censerMissing.Count == 0 ? "none" : string.Join(", ", censerMissing));
+        Check(censerMissing.Count == 0, "every Censer sound is raised: both sweeps, the whirl, a hit and a heavy hit, the blessing, the bell, the throw, the landing and the catch");
+        Check(!censerHeard.Contains(Sfx.SwingLight) && !censerHeard.Contains(Sfx.SwingHeavy), "the Censer no longer uses the generic swing whooshes");
         allyAt = new V2(300f, 150f);
         reset();
 

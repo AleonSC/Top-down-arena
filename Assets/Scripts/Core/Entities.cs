@@ -75,6 +75,9 @@ namespace Arena
         // The Lightbringer (LightSoundBank.cs): Dawn and Mercy Cuts, Noon (from the click: the swell up to the blow, then the chord) and a Radiant Noon,
         // a cut landing, a crescent healing and warding an ally, the Sunlance gathering and released, and your own key with too little light.
         LightCut1, LightCut2, LightNoon, LightRadiant, LightHit, LightHeal, LightWard, LanceGather, LanceRelease, LanceFizzle,
+        // The Censer (CenserSoundBank.cs, the Thurible Rite): the Sweep and Return Sweep, the Benediction's whirl, a hit landing (and a heavy one),
+        // the blessing as a heal goes out, the Benediction's bell, Censer Cast thrown, its landing, and the head caught back. Sent by the host; the swings and hits use the Weapons volume.
+        CenserSweep1, CenserSweep2, CenserWhirl, CenserHit, CenserHitHeavy, CenserBless, CenserBell, CenserThrow, CenserLand, CenserCatch,
     }
 
     public struct SoundCue
@@ -146,7 +149,6 @@ namespace Arena
         public float KunaiMarkT;                      //   for this much longer (replicated)
         public int KunaiCount;                        // host: kunai thrown (every KunaiShadowEvery-th is a shadow kunai)
         public int Light;                             // Lightbringer: its light gauge, hits landed toward a Radiant Noon or a Sunlance (replicated; Lightbringer.cs)
-        public V2 LastIncense;                        // host: where the Censer last left incense
         public int Combo;                             // Twin Blades and Censer: the chain step last thrown, 1 to 5 (0: the next is the first), in the low 3 bits, and a count of steps thrown above them (replicated; your own game steps you forward when the count changes); ComboT: until the chain starts over (host)
         public float ComboT;
         public float FangCd;                          // Twin Blades: until Twin Fang can be thrown again (host)
