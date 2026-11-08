@@ -306,7 +306,7 @@ static partial class Program
         run(0.3f);
         Check(!cp.Downed && Math.Abs(cp.Hp - cp.MaxHp * 0.5f) < 2f && !client.Game.Me.Downed && Math.Abs(hp.Hp - hp.MaxHp * 0.6f) < 0.5f,
             "Martyr spends 40% of your health to revive a downed ally across the arena at 50%");
-        Check(g.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius == 1 && e.Pos2.DistanceTo(cp.Pos) < 5f) || client.Game.Effects.Exists(e => e.Kind == FxKind.MartyrCast),
+        Check(g.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius % 10 == 1 && e.Pos2.DistanceTo(cp.Pos) < 5f) || client.Game.Effects.Exists(e => e.Kind == FxKind.MartyrCast),
             "a Martyr revive plays the Martyr cast effect at the ally (Radius 1)");
 
         // Blood Boil: enemies near you burst after 1 s for three times what you paid.

@@ -8,7 +8,8 @@ namespace Arena
     ///   Ward:  a halo of 12 beads and thorns turns round the ally, one bead a second (read from the replicated
     ///          Player.WardT, so every screen agrees); the last 3 s flicker and it spins faster.
     ///   Spent: the halo's beads fly outward and the revive burst plays (FxKind.MartyrCast, Radius 2).
-    /// FxKind.MartyrCast: Pos = the Hemomancer, Pos2 = the ally, Radius = 1 revive, 0 ward put on, 2 ward spent.
+    /// FxKind.MartyrCast: Pos = the Hemomancer, Pos2 = the ally, Radius = the ally's id * 10 + (1 revive, 0 ward put on, 2 ward spent).
+    ///   Shimmer: after a revive or a spent ward a dashed white ring rides the ally for as long as they are invulnerable (the effect's Dur).
     /// With Visual effects off it is a plain ring (and a line for the blood) and the old pulsing ward ring.
     public partial class ArenaApp
     {
@@ -103,7 +104,7 @@ namespace Arena
 
         void DrawMartyrFx(Effect fx, float f)
         {
-            int mode = (int)fx.Radius;
+            int mode = (int)fx.Radius % 10, id = (int)fx.Radius / 10;
             float a = fx.T;
             if (!fxOn)
             {
@@ -113,6 +114,8 @@ namespace Arena
                 Arc(fx.Pos2, rr, 2.5f, BloodRed.WithAlpha(Mathf.Clamp01(1f - a / 0.6f)), 32);
                 return;
             }
+            if (mode != 0)
+                MartyrShimmer(fx, id, a);
             if (mode == 2)  // the ward is spent: its beads fly out, the revive burst plays
             {
                 for (int i = 0; i < 12; i++)
@@ -127,6 +130,19 @@ namespace Arena
             MartyrBeads(fx.Pos, fx.Pos2, a);
             if (a < 1.3f)
                 MartyrBurst(fx.Pos2, a, mode == 1);
+        }
+
+        /// A dashed ring round the ally while the invulnerability lasts, fading over its last half second.
+        void MartyrShimmer(Effect fx, int id, float a)
+        {
+            Player q;
+            if (!game.Players.TryGetValue(id, out q) || q.Downed)
+                return;
+            float fade = Mathf.Clamp01((fx.Dur - a) / 0.5f), al = (0.55f + 0.3f * Mathf.Sin(a * 18f)) * fade;
+            if (al <= 0f)
+                return;
+            for (int i = 0; i < 10; i++)
+                Arc(q.Disp, q.Def.BodyR + 6f, 1.8f, MartyrFlare.WithAlpha(al), 3, i * MathX.Tau / 10f, MathX.Tau / 20f * 1.5f);
         }
 
         static float HaloRadius(Player p) => (p != null ? p.Def.BodyR : 16f) * 1.9f;

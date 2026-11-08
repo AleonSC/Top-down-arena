@@ -939,7 +939,7 @@ namespace Arena
                         RevivePlayer(down, Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw), p);
                         down.InvulnT = Math.Max(down.InvulnT, 1.5f + s.MartyrInvuln);
                         castHits += 3;
-                        BroadcastFx(FxKind.MartyrCast, p.Pos, down.Pos, blood, 1f, MartyrFxTime, Sfx.Revive);  // Game/MartyrLook.cs
+                        BroadcastFx(FxKind.MartyrCast, p.Pos, down.Pos, blood, 1f + 10f * down.Id, Math.Max(MartyrFxTime, 1.5f + s.MartyrInvuln), Sfx.Revive);  // Game/MartyrLook.cs (the shimmer lasts the invulnerability)
                     }
                     else
                     {
@@ -949,7 +949,7 @@ namespace Arena
                         ward.WardFrac = Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw);
                         ward.WardInvuln = 1.5f + s.MartyrInvuln;
                         castHits += 2;
-                        BroadcastFx(FxKind.MartyrCast, p.Pos, ward.Pos, blood, 0f, MartyrFxTime, Sfx.SpellHoly);
+                        BroadcastFx(FxKind.MartyrCast, p.Pos, ward.Pos, blood, 0f + 10f * ward.Id, MartyrFxTime, Sfx.SpellHoly);
                     }
                     if (cap)
                         p.InvulnT = Math.Max(p.InvulnT, 2f);
