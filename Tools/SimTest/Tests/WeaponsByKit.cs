@@ -517,8 +517,8 @@ static partial class Program
 
     static void FourMoreTest(float dt)
     {
-        // Shuriken stars stick and are recalled; Bone Spears stay stuck as health pickups; the Lightbringer's full light
-        // gauge triples its crescents' healing; the Treant Rod's Treant roots with a vine to you that heals and slows.
+        // Shuriken stars stick and are recalled; Bone Spears stay stuck as health pickups; the
+        // Treant Rod's Treant roots with a vine to you that heals and slows.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -589,29 +589,7 @@ static partial class Program
         me.Kit = Kit.Knight;
         reset();
 
-        // Lightbringer.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Lightbringer);
-        me.Light = 0;
-        var foe = dummy(from + new V2(60f, 0f));
-        for (int k = 0; k < 5; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.1f, new PlayerInput()); }
-        int filled = me.Light;
-        reset();
-        Func<int, float> crescent = light =>
-        {
-            ally.Hp = ally.MaxHp * 0.3f;
-            me.Light = light;
-            float a0 = ally.Hp;
-            if (light >= 0) volley.Invoke(g, new object[] { me, (allyAt - from).Angle, 0 });
-            play(0.5f, new PlayerInput());
-            return ally.Hp - a0;
-        };
-        allyAt = from + new V2(0f, -120f);
-        float aura = crescent(-1);  // the healer's aura alone, over the same time
-        float plain = crescent(0) - aura, radiant = crescent(Game.LightMax) - aura;
-        Console.WriteLine("  lightbringer: 5 swings filled the gauge to {0}; a crescent healed {1:0.0}, a radiant one {2:0.0} (gauge now {3})", filled, plain, radiant, me.Light);
-        Check(filled == 5 && plain > 0f && Math.Abs(radiant - plain * Game.LightRadiant) < 1f && me.Light == 0, "Lightbringer hits fill its light gauge; full, the next crescents heal three times as much");
-        allyAt = new V2(300f, 150f);
-        reset();
+        // (The Lightbringer has its own suite: run.sh 1 30 lightbringer, Tests/Lightbringer.cs.)
 
         // Treant Rod.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TreantRod);

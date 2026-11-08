@@ -152,7 +152,7 @@ namespace Arena
             gKick += dKick;
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
-            bool ownArms = p.Weapon.Id == WeaponId.TwinBlades || (p.Weapon.Id == WeaponId.Censer && fxOn && !p.Downed);  // TwinBladesLook.cs and CenserLook.cs draw the arms and the weapon, held and swung
+            bool ownArms = p.Weapon.Id == WeaponId.TwinBlades || p.Weapon.Id == WeaponId.Lightbringer || (p.Weapon.Id == WeaponId.Censer && fxOn && !p.Downed);  // TwinBladesLook.cs / LightbringerLook.cs / CenserLook.cs draw the arms and the blades, held and swung
             if (!ownArms)
             {
                 ModelArm(K, 1f, ry * 0.72f, rhx, rhy);

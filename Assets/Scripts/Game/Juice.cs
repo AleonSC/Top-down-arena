@@ -24,6 +24,7 @@ namespace Arena
     {
         // --- Settings --------------------------------------------------------------------------------------------------
         bool fxOn = true, fxNumbers = true, fxReduced;
+        float mateShotAlpha = 1f;  // how opaque other players' shots are drawn, 0.25..1 (Settings > Gameplay > Teammate shots)
         int fxShake = 1;  // 0 off, 1 low (the default), 2 full
 
         void LoadFxSettings()
@@ -34,6 +35,14 @@ namespace Arena
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
             CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
+            mateShotAlpha = Mathf.Clamp(PlayerPrefs.GetFloat("mate_shot_alpha", 1f), 0.25f, 1f);
+        }
+
+        void SetMateShotAlpha(float a)
+        {
+            mateShotAlpha = Mathf.Clamp(a, 0.25f, 1f);
+            PlayerPrefs.SetFloat("mate_shot_alpha", mateShotAlpha);
+            PlayerPrefs.Save();
         }
 
         void SaveFxSettings()

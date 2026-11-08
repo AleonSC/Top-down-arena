@@ -25,7 +25,7 @@ static partial class Program
         me.Taken.Clear(); g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, u => u.Name == "Vitality"));
         float plain = bossScale();
         // The uploaded Hemomancer run's picks before wave 20.
-        string[] picks = { "Magnum Rounds", "Hair Trigger", "Bloodrush", "Warden's Guard", "Homing Rounds", "Magnum Rounds", "Hair Trigger", "Light Boots", "Sprinter", "Reinforced Guard", "Hair Trigger", "Warden's Guard", "Sharpened Rounds", "Hive Drones", "Homing Rounds", "Sharpened Rounds", "Multishot", "Blink", "Magnum Rounds", "Barrage", "Overcharge", "Fortitude", "Executioner", "Homing Rounds", "Barrage", "Hair Trigger", "Nova", "Thick Skin", "Hemo Nova", "Sharpened Rounds", "Thick Skin", "Hair Trigger", "Magnum Rounds", "Twin Fang", "Second Charge", "Multishot" };
+        string[] picks = { "Magnum Rounds", "Hair Trigger", "Usury", "Warden's Guard", "Homing Rounds", "Magnum Rounds", "Hair Trigger", "Light Boots", "Sprinter", "Reinforced Guard", "Hair Trigger", "Warden's Guard", "Sharpened Rounds", "Hive Drones", "Homing Rounds", "Sharpened Rounds", "Multishot", "Blink", "Magnum Rounds", "Barrage", "Overcharge", "Fortitude", "Executioner", "Homing Rounds", "Barrage", "Hair Trigger", "Nova", "Thick Skin", "Vein Rush", "Sharpened Rounds", "Thick Skin", "Hair Trigger", "Magnum Rounds", "Twin Fang", "Second Charge", "Multishot" };
         me.Taken.Clear();
         foreach (var n in picks) me.Taken.Add(Array.FindIndex(Upgrades.All, u => u.Name == n));
         g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, u => u.Name == "Vitality"));

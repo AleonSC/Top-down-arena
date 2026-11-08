@@ -14,7 +14,7 @@ namespace Arena
     {
         public struct Pose { public float Ra, Rr, Rb, La, Lr, Lb, Tw, Sp; }
 
-        internal struct Key { public float T; public Pose P; public byte E; }  // E: 0 ease in-out, 1 ease out, 2 linear
+        internal struct Key { public float T; public Pose P; public byte E; }  // E: 0 ease in-out, 1 ease out, 2 linear, 3 ease in
 
         public class Step
         {
@@ -25,6 +25,7 @@ namespace Arena
             public float HotR0, HotR1, HotL0, HotL1;  // the shares of Dur when each blade is cutting (its trail is drawn)
             internal Key[] Keys;
             internal Pose Entry, Exit;  // where it starts (the step before's end), and its end turned back into one turn
+            internal bool HasHome; internal Pose Home;  // another weapon's guard to settle back to (the Lightbringer's; LightbringerMotion.cs)
         }
 
         public const float BladeLen = 48f, Recover = 0.25f;
@@ -32,9 +33,9 @@ namespace Arena
 
         public static readonly Pose Ready = P(0.75f, 18f, 0.35f, -0.75f, 18f, -0.35f);
 
-        static Pose P(float ra, float rr, float rb, float la, float lr, float lb, float tw = 0f, float sp = 0f)
+        internal static Pose P(float ra, float rr, float rb, float la, float lr, float lb, float tw = 0f, float sp = 0f)
             => new Pose { Ra = ra, Rr = rr, Rb = rb, La = la, Lr = lr, Lb = lb, Tw = tw, Sp = sp };
-        static Key K(float t, Pose p, byte e = 0) => new Key { T = t, P = p, E = e };
+        internal static Key K(float t, Pose p, byte e = 0) => new Key { T = t, P = p, E = e };
 
         public static readonly Step[] Steps =
         {
@@ -69,7 +70,7 @@ namespace Arena
             Fang.Exit = Ready;
         }
 
-        static Pose Wrap(Pose p)
+        internal static Pose Wrap(Pose p)
         {
             p.Sp = (float)(Math.IEEERemainder(p.Sp, MathX.Tau));
             return p;
@@ -82,6 +83,7 @@ namespace Arena
             t = C01(t);
             if (e == 1) { float m = 1f - t; return 1f - m * m * m; }
             if (e == 2) return t;
+            if (e == 3) return t * t * t;  // ease in (a blow that speeds up into the ground)
             return t < 0.5f ? 2f * t * t : 1f - (float)Math.Pow(-2f * t + 2f, 2) / 2f;
         }
 
@@ -97,7 +99,7 @@ namespace Arena
             if (c >= s.Dur)
             {
                 float u = C01((c - s.Dur) / Recover);
-                return Mix(s.Exit, Ready, Ease(1, u));
+                return Mix(s.Exit, s.HasHome ? s.Home : Ready, Ease(1, u));
             }
             float k = C01(c / s.Dur);
             float t0 = 0f;

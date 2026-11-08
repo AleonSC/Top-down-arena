@@ -739,6 +739,8 @@ static partial class Program
                 {
                     g.Enemies.Clear();
                     me.Pos = new V2(120f, 450f);
+                    if (w.Id == WeaponId.Lightbringer)  // its crescent leaves as the cut lands, a moment after the click (Lightbringer.cs)
+                        foreach (var b in g.Bullets.Values) if (b.Owner == 1) first.Add(b.Id);
                     foreach (var b in g.Bullets.Values)
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));

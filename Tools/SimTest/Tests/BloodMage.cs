@@ -314,32 +314,80 @@ static partial class Program
         Check(g.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius % 10 == 1 && e.Pos2.DistanceTo(cp.Pos) < 5f) || client.Game.Effects.Exists(e => e.Kind == FxKind.MartyrCast),
             "a Martyr revive plays the Martyr cast effect at the ally (Radius 1)");
 
-        // Blood Boil: enemies near you burst after 1 s for three times what you paid.
-        place(1, 820f); run(0.2f);
-        hp.Hp = hp.MaxHp;
-        eBefore = d1.Hp;
-        use(AbilityId.BloodBoil, hp.Pos);
-        float boilPaid = hp.MaxHp - hp.Hp;
-        run(0.5f);
-        float early = eBefore - d1.Hp;
-        run(0.8f);
-        float boiled = eBefore - d1.Hp;
-        Console.WriteLine("  blood boil: paid {0:0}; {1:0} after 0.5 s, {2:0} after 1.3 s", boilPaid, early, boiled);
-        Check(early < 1f && boiled >= boilPaid * 3f - 1f, "Blood Boil bursts after 1 s for three times the health paid");
+        // Arterial Spray: a toggle; the jet hurts what's in front of you (not behind), drains 4% of max health a second,
+        // and its cooldown starts when it stops; it sputters out at 15% health.
+        place(1, 500f); run(0.2f);
+        d1.Pos = new V2(620f, 450f);
+        var back = dummy(new V2(380f, 450f));
+        hp.Hp = hp.MaxHp; hp.Aim = 0f;
+        float sp0 = d1.Hp, b0s = back.Hp;
+        use(AbilityId.BloodBoil, new V2(700f, 450f));
+        bool sprayed = hp.SprayOn;
+        Run(s, dt, 1f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; hp.Aim = 0f; });
+        float sprayDealt = sp0 - d1.Hp, drained = hp.MaxHp - hp.Hp;
+        bool seenSpray = client.Game.Players[1].SprayOn;
+        Console.WriteLine("  arterial spray: {0:0.0} to the enemy in front, {1:0.0} behind, you drained {2:0.0} in 1 s; the friend sees it {3}", sprayDealt, b0s - back.Hp, drained, seenSpray);
+        Check(sprayed && seenSpray && sprayDealt > 27f && sprayDealt < 40f && b0s - back.Hp < 0.01f, "Arterial Spray hurts what's in the jet (about 30 a second), not what's behind you");
+        Check(drained > hp.MaxHp * 0.03f && drained < hp.MaxHp * 0.05f, "Arterial Spray drains about 4% of your max health a second");
+        hp.Slots[0].Charges = 0;  // (the charge the cast spent)
+        cast.Invoke(g, new object[] { 1, 0, new V2(700f, 450f), false });
+        Check(!hp.SprayOn && hp.Slots[0].Timer > 7f, "pressing Arterial Spray again closes the vein, and the cooldown starts then");
+        hp.Hp = hp.MaxHp * (Game.SprayFloor + 0.01f);
+        use(AbilityId.BloodBoil, new V2(700f, 450f));
+        run(0.6f);
+        Check(!hp.SprayOn && hp.Hp >= hp.MaxHp * Game.SprayFloor - 0.5f, "Arterial Spray sputters out at 15% health");
+        keep.Remove(back); back.Hp = 0f;
 
-        // Frenzy Pact: faster firing, a drain that stops at 1 HP.
-        hp.Hp = 30f;
+        // Blood Debt: health drops to 25%, kills pay it back, and what's unpaid when the time runs out is lost.
+        hp.Hp = hp.MaxHp;
         use(AbilityId.FrenzyPact, hp.Pos);
-        run(5f);
-        Check(hp.RushT > 0f && hp.Hp >= 1f && hp.Hp < 30f && !hp.Downed, "Frenzy Pact drains health while it lasts, never below 1");
-        hp.RushT = 0f;
-
-        // Hemo Nova: 16 bolts in a ring, each that hits heals you.
-        g.Bullets.Clear();
+        Console.WriteLine("  blood debt: health {0:0} of {1:0}, owed {2:0}, {3:0.0} s", hp.Hp, hp.MaxHp, hp.Debt, hp.DebtT);
+        Check(Math.Abs(hp.Hp - hp.MaxHp * Game.DebtFloor) < 0.5f && Math.Abs(hp.Debt - hp.MaxHp * 0.75f) < 0.5f && Math.Abs(hp.DebtT - Game.DebtTime) < 0.05f,
+            "Blood Debt drops you to 25% health and owes you the rest for 8 s");
+        float owed0 = hp.Debt;
+        var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f, 300f), 0f, 0, false });
+        grunt.SpawnT = 0f;
+        hurt.Invoke(g, new object[] { grunt, 1e5f, 1 });
+        run(0.1f);
+        Console.WriteLine("  blood debt: a Grunt kill repaid {0:0.0} (4% is {1:0.0}); client sees owed {2:0}", owed0 - hp.Debt, hp.MaxHp * 0.04f, client.Game.Players[1].Debt);
+        Check(Math.Abs(owed0 - hp.Debt - hp.MaxHp * 0.04f) < 0.3f && Math.Abs(client.Game.Players[1].Debt - hp.Debt) < 1f, "a Grunt kill repays 4% of your max health, and the debt is replicated");
+        Check(g.Effects.Exists(e => e.Kind == FxKind.DebtCoin) || client.Game.Effects.Exists(e => e.Kind == FxKind.DebtCoin), "a repayment throws blood coins into the bar");
+        hp.DebtT = 0.05f;
+        run(0.2f);
+        Check(hp.Debt == 0f && hp.DebtT == 0f && (g.Effects.Exists(e => e.Kind == FxKind.DebtSettle && e.Pos2.Y < 0.5f) || client.Game.Effects.Exists(e => e.Kind == FxKind.DebtSettle)),
+            "when the window runs out, what's still owed is lost (a forfeit)");
         hp.Hp = hp.MaxHp;
-        use(AbilityId.HemoNova, hp.Pos);
-        int bolts = g.Bullets.Values.Count(b => b.Kind == Defs.BloodShot && b.Owner == 1 && b.HealOwner > 0f);
-        Check(bolts == 16, "Hemo Nova fires a ring of 16 blood bolts that heal you");
+        use(AbilityId.FrenzyPact, hp.Pos);
+        hp.Debt = 2f;
+        var grunt2 = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f, 300f), 0f, 0, false });
+        grunt2.SpawnT = 0f;
+        hurt.Invoke(g, new object[] { grunt2, 1e5f, 1 });
+        run(0.1f);
+        Check(hp.Debt == 0f && hp.DebtT > Game.DebtTime + 1.5f, "paying the debt in full keeps the lifesteal 2 s longer");
+        float lh = hp.Hp = hp.MaxHp * 0.5f; float le = d1.Hp;
+        hurt.Invoke(g, new object[] { d1, 50f, 1 });
+        Console.WriteLine("  blood debt: lifesteal healed {0:0.00} of {1:0.0} dealt", hp.Hp - lh, le - d1.Hp);
+        Check(Math.Abs(hp.Hp - lh - (le - d1.Hp) * 0.15f) < 0.05f, "while Blood Debt runs, hits heal 15% instead of 3%");
+        hp.DebtT = 0f; hp.Debt = 0f;
+
+        // Vein Rush: 10% health, everything on the path is cut and pays back 2% each, a slowing trail is left behind.
+        place(1, 500f); run(0.2f);
+        d1.Pos = new V2(640f, 450f);
+        var d2 = dummy(new V2(700f, 462f));
+        var off = dummy(new V2(640f, 600f));
+        hp.Hp = hp.MaxHp * 0.5f;
+        float r1 = d1.Hp, r2 = d2.Hp, r3 = off.Hp, rh = hp.Hp;
+        g.Zones.Clear();
+        use(AbilityId.HemoNova, new V2(780f, 450f));
+        float net = hp.Hp - rh;
+        int trails = g.Zones.Values.Count(z => z.Kind == ZoneKind.VeinTrail);
+        float expect = -hp.MaxHp * 0.1f + 2f * hp.MaxHp * 0.02f;
+        Console.WriteLine("  vein rush: cut {0:0.0} and {1:0.0}, missed {2:0.0}; net health {3:+0.0;-0.0} (cost and refunds alone {4:+0.0;-0.0}); {5} trail pools", r1 - d1.Hp, r2 - d2.Hp, r3 - off.Hp, net, expect, trails);
+        Check(r1 - d1.Hp >= 25f && r2 - d2.Hp >= 25f && r3 - off.Hp < 0.01f && hp.InvulnT > 0.2f, "Vein Rush cuts every enemy on its path (25 each) and you're untouchable");
+        Check(net > expect - 0.1f && net < expect + 3f, "Vein Rush costs 10% and each enemy cut gives back 2% of your max health");
+        Check(trails >= 6 && g.Zones.Values.All(z => z.Kind != ZoneKind.VeinTrail || z.Def.Slow > 0.25f), "Vein Rush leaves a trail of blood that slows enemies");
+        keep.Remove(d2); keep.Remove(off); d2.Hp = off.Hp = 0f;
+        d1.BleedT = 0f; d1.BleedDps = 0f;  // (the cut's bleed would add to the next test's numbers)
 
         // Bone Spear: 2 health a throw.
         g.Bullets.Clear();

@@ -681,7 +681,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashCast = 12;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -909,6 +909,9 @@ namespace Arena
             bool pressed = weaponAction && !wasWeaponAction, released = !weaponAction && wasWeaponAction;
             wasWeaponAction = weaponAction;
             LocalTwinStep(me, dt);  // the Twin Blades' steps forward (TwinBlades.cs)
+            LocalLightStep(me, dt);  // the Lightbringer's steps forward (Lightbringer.cs)
+            if (LocalSunlance(me, aimAt, pressed))
+                return;  // the Lightbringer's Sunlance (Lightbringer.cs)
             LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
             if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
                 return;  // the Katana's Alt strike (below)
@@ -1078,6 +1081,11 @@ namespace Arena
             if (kind == DashStrike)
             {
                 HostTwinFang(p, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashLance)
+            {
+                HostSunlance(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashJab)

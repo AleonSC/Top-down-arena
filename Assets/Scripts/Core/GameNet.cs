@@ -435,6 +435,8 @@ namespace Arena
             s.Float(ref p.ParryBroken);
             bool shellOn = p.ShellOn;
             s.Bool(ref shellOn);  // Blood Shell (BloodShell.cs)
+            bool sprayOn = p.SprayOn;
+            s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)
             bool standOn = p.StandOn;
             s.Bool(ref standOn);  // Last Stand (LastStand.cs)
             s.Float(ref p.StandAim);
@@ -506,13 +508,16 @@ namespace Arena
             s.Byte(ref p.RapierStreak);  // the Rapier's streak, drawn as pips behind you (Game/MeleeLooks.cs)
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
+            s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
             s.Float(ref p.DoseT);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
             s.Float(ref p.PactT);
             s.Float(ref p.PactStore);   // drawn: how much the Pact holds, and how far it bursts
             s.Float(ref p.PactRadius);
-            s.Float(ref p.RushT);
+            s.Float(ref p.DebtT);   // Blood Debt (BloodDebt.cs): the window, what's owed and what the cast took
+            s.Float(ref p.Debt);
+            s.Float(ref p.DebtOwed);
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);
             int reserve = (int)p.BloodReserve;
@@ -573,6 +578,7 @@ namespace Arena
                 p.DrawT = drawT;        // your own draw is measured here
             }
             p.ShellOn = shellOn;
+            p.SprayOn = sprayOn;
             p.StandOn = standOn;
             if (hp < p.Hp)
                 p.Flash = 0.1f;

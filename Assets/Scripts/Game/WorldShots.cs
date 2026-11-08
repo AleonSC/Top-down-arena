@@ -15,16 +15,36 @@ namespace Arena
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             float r = b.Radius;
             var ember = new Rgba(0.85f, 0.2f, 0.05f);
+            float soft = FireballSoftness();  // the haze and trail thin out as more fireballs fly together
             for (int k = 0; k < 6; k++)  // the trail: puffs of flame falling behind and cooling
             {
                 float f = MathX.Fmod(t * 3.5f + k / 6f + b.Id * 0.13f, 1f);
                 V2 at = b.Pos - dir * (r * 0.4f + f * r * 2.6f) + side * (Mathf.Sin(t * 13f + k * 2.1f) * r * 0.35f * f);
-                Circle(at, r * (0.75f - 0.45f * f), c.Mix(ember, f).WithAlpha(0.75f * (1f - f)), 10);
+                Circle(at, r * (0.75f - 0.45f * f), c.Mix(ember, f).WithAlpha(0.75f * soft * (1f - f)), 10);
             }
-            Circle(b.Pos, r * (1.6f + 0.1f * Mathf.Sin(t * 25f + b.Id)), c.WithAlpha(0.22f), 16);  // heat haze
+            Circle(b.Pos, r * (1.6f + 0.1f * Mathf.Sin(t * 25f + b.Id)), c.WithAlpha(0.22f * soft), 16);  // heat haze
             Circle(b.Pos, r, c, 16);
             Circle(b.Pos + dir * (r * 0.15f), r * 0.65f, new Rgba(1f, 0.78f, 0.3f), 14);
             Circle(b.Pos + dir * (r * 0.25f), r * 0.32f, new Rgba(1f, 0.97f, 0.8f), 10);
+        }
+
+        int fireballsFrame = -1;
+        float fireballsSoft = 1f;
+
+        /// 1 for a lone fireball, falling toward 0.25 as more fly at once (every +1 adds one), so their haze and trails don't
+        /// pile into a white-out. The ball and its core stay solid. Counted once a frame.
+        float FireballSoftness()
+        {
+            if (fireballsFrame != Time.frameCount)
+            {
+                fireballsFrame = Time.frameCount;
+                int n = 0;
+                foreach (var b in game.Bullets.Values)
+                    if (b.Kind == Defs.FireballShot)
+                        n++;
+                fireballsSoft = Mathf.Clamp(1.6f / Mathf.Max(1, n), 0.25f, 1f);
+            }
+            return fireballsSoft;
         }
 
         /// The Golem Staff's boulder in flight: its shadow on the ground where it is, and the rock itself lifted
@@ -79,6 +99,17 @@ namespace Arena
 
         /// Small shots (enemies', arrows, sword waves...), drawn over everything else.
         void DrawSmallShot(Bullet b, float t)
+        {
+            float keep = glAlpha;
+            glAlpha = keep * TeammateShotAlpha(b);  // a teammate's shot, as faded in Settings > Gameplay
+            DrawSmallShotLook(b, t);
+            glAlpha = keep;
+        }
+
+        /// How opaque a shot is drawn: 1 for yours and the enemies', the Settings > Gameplay "Teammate shots" value for another player's.
+        float TeammateShotAlpha(Bullet b) => mateShotAlpha < 1f && b.Owner != game.MyId && !Defs.IsEnemyShot(b.Kind) && game.Players.ContainsKey(b.Owner) ? mateShotAlpha : 1f;
+
+        void DrawSmallShotLook(Bullet b, float t)
         {
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);

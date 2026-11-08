@@ -69,7 +69,7 @@ namespace Arena
             Buff(p => p.WhirlT, new Rgba(0.8f, 0.85f, 0.9f)),      // Whirlwind
             Buff(p => p.IronT, new Rgba(0.75f, 0.78f, 0.85f)),     // Iron Body
             Buff(p => p.VanishT, new Rgba(0.6f, 0.5f, 0.85f)),     // Vanish
-            Buff(p => p.RushT, new Rgba(0.85f, 0.12f, 0.2f)),      // Frenzy Pact
+            Buff(p => p.DebtT, new Rgba(1f, 0.8f, 0.35f)),         // Blood Debt
             Buff(p => p.WardT, new Rgba(0.95f, 0.25f, 0.35f)),     // Martyr's ward
             Buff(p => p.SwiftT, new Rgba(0.31f, 0.82f, 0.91f)),    // Consecrate's Swiftness
             Buff(p => p.UltT, new Rgba(1f, 0.84f, 0.35f)),         // any ultimate

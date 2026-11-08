@@ -43,6 +43,7 @@ namespace Arena
                 case AbilityId.ShadowStep:
                 case AbilityId.Blink:
                 case AbilityId.RoyalDive:
+                case AbilityId.HemoNova:  // Vein Rush
                     return true;
             }
             return false;

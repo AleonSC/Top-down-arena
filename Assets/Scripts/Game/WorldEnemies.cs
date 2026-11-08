@@ -248,6 +248,9 @@ namespace Arena
                 case ZoneKind.BloodPool:
                     DrawBloodZone(z, c, t);  // BloodMageLook.cs
                     break;
+                case ZoneKind.VeinTrail:
+                    DrawVeinTrail(z, t);  // VeinRushLook.cs
+                    return;  // no timer ring: it's a trail
                 case ZoneKind.HoneyPool:
                     DrawHoneyPool(z, c, t);  // QueenLootLook.cs
                     break;

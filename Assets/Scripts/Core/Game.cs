@@ -426,7 +426,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.LastStand && p.StandOn)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.BloodBoil && p.SprayOn || s.Id == AbilityId.LastStand && p.StandOn)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -989,7 +989,8 @@ namespace Arena
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
                 bool shellOut = ShellRelease(me, slot);  // Blood Shell pressed again: the host brings it down (BloodShell.cs)
                 bool rainOut = RainPress(me, slot);  // Sanguine Rain pressed again: the host cancels it (SanguineRain.cs)
-                if (!orbitOut && !standOut && !harvestOut && !rainOut && !shellOut && !Consume(me, slot, false))
+                bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
+                if (!orbitOut && !standOut && !harvestOut && !rainOut && !shellOut && !sprayOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
@@ -1020,6 +1021,16 @@ namespace Arena
                         DashDir = dist > 1f ? (target - me.Pos) / dist : V2.Zero;
                         DashT = RoyalDiveTime;
                         dashSpeed = dist / RoyalDiveTime;
+                        break;
+                    }
+                    case AbilityId.HemoNova:
+                    {
+                        // Vein Rush: carried to the cursor (up to 280 px) as a streak of blood; the host cuts along the way.
+                        target = VeinRushLanding(me, aimAt);
+                        float dist = target.DistanceTo(me.Pos);
+                        DashDir = dist > 1f ? (target - me.Pos) / dist : V2.Zero;
+                        DashT = VeinRushTime;
+                        dashSpeed = dist / VeinRushTime;
                         break;
                     }
                     case AbilityId.Lunge:
@@ -1137,6 +1148,7 @@ namespace Arena
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
+            TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
             TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
             TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand

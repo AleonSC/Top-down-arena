@@ -380,9 +380,16 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 float r = p.Def.BodyR + b.Radius;
-                if (p.Id == b.Owner || p.Downed || p.Hp >= p.MaxHp || b.Pos.DistanceSq(p.Pos) >= r * r)
+                if (p.Id == b.Owner || p.Downed || (p.Hp >= p.MaxHp && b.WardAlly <= 0f) || b.Pos.DistanceSq(p.Pos) >= r * r)
                     continue;
-                Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
+                if (b.WardAlly > 0f)
+                {
+                    Ward(p, b.WardAlly);  // Mercy Cut's crescent (Lightbringer.cs)
+                    BroadcastSound(Sfx.LightWard);
+                    return true;
+                }
+                if (Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner)) > 0f && b.Kind == Defs.KnightWave)
+                    BroadcastSound(Sfx.LightHeal);  // a Lightbringer crescent (the only healing sword wave)
                 TransfusionCost(b);  // Transfusion Darts cost their healer (BloodMage.cs)
                 return true;
             }
@@ -435,7 +442,7 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
                         continue;
                     }
-                    if (b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
+                    if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -855,7 +862,7 @@ namespace Arena
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
                 KnightLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
-                BloodLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
+                BloodLifesteal(p, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             if (WardenArmorTakes(e, ref dmg))
