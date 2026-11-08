@@ -92,7 +92,7 @@ Most of these reuse things the game already has (noted in brackets), so they cos
 1. **Wave recipe** (section 1) and the **Charger / Phantom / Mortar / Scorcher / Splitter** reworks (section 2).
    No new art beyond small looks, no protocol change for the recipe, testable with the bots and `wavemix`.
    The target is wave 22 at about 50% shooters instead of 91% (check with `wavemix` once it's built).
-2. **Three new enemies** with mockups first: **Fuse Runner, Hookman, Sapper** (one Hunter, one Disruptor, one Zoner,
+2. **Three new enemies** with mockups first: **Fuse Runner, Hookman, Sapper** ([`Mockups/non-shooter-enemies.html`](Mockups/non-shooter-enemies.html), https://claude.ai/artifact/A9YbhUEfw8gXo2Ftz8csJw) (one Hunter, one Disruptor, one Zoner,
    all early enough to be seen in a normal run).
 3. The rest (**Burrower, Leech, Bulwark, Jammer, Pylons**), then retune the fire rate and the budget
    (`LateGamePressure.md` A and B) with the new mix. With fewer shooters the screen may already be readable.
