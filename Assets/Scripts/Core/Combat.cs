@@ -855,7 +855,7 @@ namespace Arena
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
                 KnightLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
-                BloodLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
+                BloodLifesteal(p, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             if (WardenArmorTakes(e, ref dmg))

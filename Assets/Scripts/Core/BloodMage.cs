@@ -23,9 +23,6 @@ namespace Arena
         const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f;
         public const float MartyrWardTime = 12f;  // also the halo's twelve beads, one a second (Game/MartyrLook.cs)
         public const float MartyrFxTime = 1.4f;  // how long a MartyrCast effect plays (beads, burst, spent ward)
-        const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
-        const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
-        const float NovaDamage = 20f, NovaHeal = 3f;
         public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
         public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks
         public const int ClotMaxBase = 5;
@@ -404,8 +401,6 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(b.Owner, out p) || p.Downed)
                 return;
-            if (b.HealOwner > 0f)
-                Heal(p, b.HealOwner, p);  // Hemo Nova
             switch (b.Kind)
             {
                 case Defs.LeechShot:
@@ -435,7 +430,7 @@ namespace Arena
                     AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
                     break;
                 case Defs.BloodShot:
-                    if (b.HealOwner <= 0f && p.Weapon.Id == WeaponId.BloodBolts)  // Blood Bolts (not Hemo Nova's)
+                    if (p.Weapon.Id == WeaponId.BloodBolts)
                         Hemorrhage(p, e, b.Dmg);
                     break;
             }
@@ -627,22 +622,22 @@ namespace Arena
             return 1f + BloodPriceMax * missing;
         }
 
-        /// Healing from damage dealt (HurtEnemy): a Blood Mage's 3% and Frenzy Pact's 10%.
-        void BloodLifesteal(Player p, float dealt)
+        /// Healing from damage dealt (HurtEnemy): a Blood Mage's 3%, Blood Debt's 15% while it runs, and a boss's blood
+        /// paying the debt back (BloodDebt.cs).
+        void BloodLifesteal(Player p, Enemy e, float dealt)
         {
             if (p.Downed || dealt <= 0f)
                 return;
             float frac = 0f;
             if (p.Kit == Kit.Hemomancer)
                 frac += BloodSteal;
-            if (p.RushT > 0f)
-                frac += RushSteal;
+            if (p.DebtT > 0f)
+                frac += DebtSteal;
             if (frac > 0f)
                 Heal(p, dealt * frac, p);
+            if (p.Debt > 0f && e.Def.IsBoss)
+                RepayDebt(p, dealt * DebtBossShare * p.DebtRepay, e.Pos, false);
         }
-
-        /// Faster firing during Frenzy Pact (FireRate).
-        static float BloodFireRate(Player p) => p.RushT > 0f ? 1f + RushRate + p.Stats.RushRate : 1f;
 
         /// Enemies all go for a Blood Mage under Crimson Pact (PickTarget).
         bool BloodTaunting(Player p) => p.PactT > 0f;
@@ -695,15 +690,6 @@ namespace Arena
 
         // --- Abilities ------------------------------------------------------------------
 
-        readonly List<Boil> boils = new List<Boil>();
-
-        class Boil
-        {
-            public int Enemy, Owner;
-            public float T, Dmg;
-            public bool Splash;
-        }
-
         /// The Hemomancer (Kit.Hemomancer): FireBloodWeapon, BloodAbility, TickBloodMages, BloodShotHit. See KitDef (Classes.cs) for what each hook does.
         internal static readonly KitDef HemomancerKit = new KitDef
         {
@@ -713,6 +699,7 @@ namespace Arena
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickBloodMages(dt),
             OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Blood Mage shots drain, pool and drop orbs
+            OnKill = (g, e) => g.DebtKill(e),  // a kill pays back Blood Debt (BloodDebt.cs)
         };
 
         /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
@@ -798,23 +785,23 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BloodBoil, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0,
-                Name = "Blood Boil", Cooldown = 8f, HealthCost = 0.2f, Desc = "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid.",
-                Capstone = "Each burst also hits enemies within 80 px of it.",
-                Bot = b => b.HaveTarget && b.TargetD < 250f && b.Me.Hp > b.Me.MaxHp * 0.45f,
+                Name = "Arterial Spray", Cooldown = 8f, Desc = "Press to open a vein: a 60° jet of blood, 200 px long, follows your aim, 30 damage a second to everything in it (more the lower your health), slowing them 20% and making them bleed. It drains 4% of your max health a second. Press again to stop; it sputters out at 15% health. The cooldown starts when it stops.",
+                Capstone = "The spray also washes away enemy bullets it touches.",
+                Bot = b => b.HaveTarget && b.TargetD < 190f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.FrenzyPact, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1,
-                Name = "Frenzy Pact", Cooldown = 11f, HealthCost = 0.05f, Desc = "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s.",
-                Capstone = "No health drain.",
-                Bot = b => b.HaveTarget && b.TargetD < 500f && b.Me.Hp > b.Me.MaxHp * 0.5f,
+                Name = "Blood Debt", Cooldown = 16f, Desc = "Borrow against your blood: your health drops to 25% (or 5% of your max, if you're already that low) and the rest becomes a debt. For 8 s, kills pay it back (a Grunt 4% of your max health, a Heavy or an elite 10%, hurting a boss 10% of the damage) and your hits heal 15% instead of 3%. Pay it all and you keep the 15% for 2 s more; what's unpaid after 8 s is lost.",
+                Capstone = "Kills repay 50% more.",
+                Bot = b => b.HaveTarget && b.TargetD < 350f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
-                Id = AbilityId.HemoNova, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2,
-                Name = "Hemo Nova", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3.",
-                Capstone = "Bolts pierce 2 enemies.",
-                Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
+                Id = AbilityId.HemoNova, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Instant = true,
+                Name = "Vein Rush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health and rush 280 px toward your cursor as a streak of blood, untouchable. Every enemy you pass through takes 25 and bleeds, and gives back 2% of your max health. You leave a trail of blood that slows enemies 30% for 2 s.",
+                Capstone = "The trail bursts after 1 s for 20 to everything on it.",
+                Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.3f,
             },
             new AbilityDef
             {
@@ -954,38 +941,14 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.BloodBoil:
-                {
-                    float r = BoilRadius * s.BoilRadiusMult, dmg = castPaid * BoilMult * s.BoilMult * s.DmgMult * pw;
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > r + e.Radius)
-                            continue;
-                        boils.Add(new Boil { Enemy = e.Id, Owner = p.Id, T = BoilDelay, Dmg = dmg, Splash = cap });
-                        castHits++;
-                        BroadcastFx(FxKind.Boil, e.Pos, new V2(e.Id, 0f), blood, e.Radius, BoilDelay, Sfx.None);  // bubbling until it bursts
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, r, 0.45f, Sfx.Ability);
+                    OpenSpray(p, pw, cap);  // ArterialSpray.cs: a toggle, not timed
                     return true;
-                }
                 case AbilityId.FrenzyPact:
-                    p.RushT = RushTime + s.RushBonusTime;
-                    p.RushMastered = cap;
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, 60f, 0.4f, Sfx.Roar);
+                    BorrowDebt(p, pw, cap);  // BloodDebt.cs
                     return true;
                 case AbilityId.HemoNova:
-                {
-                    int n = 16 + s.NovaExtraBolts;
-                    for (int i = 0; i < n; i++)
-                    {
-                        V2 d = V2.FromAngle(p.Aim + MathX.Tau * i / n);
-                        var b = SpawnBullet(Defs.BloodShot, p.Pos + d * p.Def.BodyR, d * 600f, 0f, 0.7f, NovaDamage * s.DmgMult, p.Id);
-                        b.HealOwner = NovaHeal;
-                        if (cap)
-                            b.Pierce += 2;
-                    }
-                    Sounds.Add(Sfx.SpellArcane);
+                    CastVeinRush(p, target, pw, cap);  // VeinRush.cs
                     return true;
-                }
 
                 // Ultimates
                 case AbilityId.BloodRite:
@@ -1005,8 +968,7 @@ namespace Arena
 
         // --- Timed effects ---------------------------------------------------------------
 
-        /// Host, every tick: Crimson Pact runs down and bursts, Frenzy Pact drains,
-        /// when it ends, Blood Boils go off.
+        /// Host, every tick: Crimson Pact runs down and bursts, Blood Debt's window runs out, Arterial Spray gushes.
         void TickBloodMages(float dt)
         {
             TickCoatings(dt);
@@ -1018,7 +980,10 @@ namespace Arena
                     p.Grasp.Clear();  // let go of fire and the tendrils let go too
                 if (p.Downed)
                 {
-                    p.PactT = p.RushT = 0f;
+                    p.PactT = 0f;
+                    ForfeitDebt(p, false);  // BloodDebt.cs
+                    if (p.SprayOn)
+                        CloseSpray(p, false);  // ArterialSpray.cs
                     p.Clot = 0;
                     continue;
                 }
@@ -1043,29 +1008,8 @@ namespace Arena
                         p.PactStore = 0f;
                     }
                 }
-                if (p.RushT > 0f)
-                {
-                    p.RushT = Math.Max(0f, p.RushT - dt);
-                    if (!p.RushMastered)
-                        PayHealth(p, RushDrain * dt);
-                }
-            }
-            for (int i = boils.Count - 1; i >= 0; i--)
-            {
-                var b = boils[i];
-                b.T -= dt;
-                if (b.T > 0f)
-                    continue;
-                boils.RemoveAt(i);
-                Enemy e;
-                if (!Enemies.TryGetValue(b.Enemy, out e) || e.Hp <= 0f)
-                    continue;
-                HurtEnemy(e, b.Dmg, b.Owner);
-                if (b.Splash)
-                    foreach (var o in Enemies.Values)
-                        if (o != e && o.SpawnT <= 0f && o.Pos.DistanceTo(e.Pos) < BoilSplash + o.Radius)
-                            HurtEnemy(o, b.Dmg, b.Owner);
-                BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.12f, 0.2f), b.Splash ? BoilSplash : e.Radius + 20f, 0.3f, Sfx.Explode);
+                TickDebt(p, dt);   // BloodDebt.cs
+                TickSpray(p, dt);  // ArterialSpray.cs
             }
         }
     }

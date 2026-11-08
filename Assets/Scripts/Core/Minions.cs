@@ -895,6 +895,8 @@ namespace Arena
                     WorldTreeWave(z, dt);  // WorldTree.cs
                 if (z.Kind == ZoneKind.BloodPool && !z.Congealed && z.Duration - z.T >= PoolCongeal)
                     CongealPool(z);  // BloodMage.cs
+                if (z.Kind == ZoneKind.VeinTrail)
+                    TickVeinTrail(z);  // VeinRush.cs
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {

@@ -39,13 +39,7 @@ namespace Arena
                 Arc(p.Disp, r + 5f, 2f, BloodDark.WithAlpha(0.7f * a), 24, -MathX.Pi / 2f, MathX.Tau);
                 Arc(p.Disp, r + 5f, 2f, new Rgba(1f, 0.55f, 0.6f, 0.9f * a), 24, -MathX.Pi / 2f, MathX.Tau * left);  // the countdown
             }
-            if (p.RushT > 0f)  // Frenzy Pact: red streaks flickering off
-                for (int k = 0; k < 4; k++)
-                {
-                    V2 d = V2.FromAngle(p.Aim + MathX.Pi + (k - 1.5f) * 0.4f);
-                    float f = MathX.Fmod(t * 4f + k * 0.27f, 1f);
-                    Line(p.Disp + d * (r + 4f + 10f * f), p.Disp + d * (r + 10f + 10f * f), 2f, BloodRed.WithAlpha((1f - f) * a));
-                }
+            // (Blood Debt's ring and Arterial Spray's jet are drawn for any class: WorldPlayers.cs)
         }
 
         /// Blood Bolts stuck in an enemy: a drop for each, circling it and drawing in closer as they build toward the
@@ -397,24 +391,6 @@ namespace Arena
             Circle(a0, w + 6f * (1f - f), BloodDark.WithAlpha(0.6f * (1f - f)), 12);
             if (f > 0.4f)
                 Arc(b0, 12f + 14f * (f - 0.4f), 2.5f, BloodRed.WithAlpha(1f - f), 20);
-        }
-
-        /// An enemy boiling before its Blood Boil bursts (FxKind.Boil): bubbles welling up over it, faster and bigger
-        /// as the burst nears, and a red swell closing round it.
-        void DrawBoilFx(Effect fx, float f, float t)
-        {
-            Enemy e;
-            V2 at = game.Enemies.TryGetValue((int)fx.Pos2.X, out e) ? e.Disp : fx.Pos;
-            float r = fx.Radius;
-            Circle(at, r + 3f, BloodRed.WithAlpha(0.12f + 0.25f * f), 20);
-            Arc(at, r + 4f + 10f * (1f - f), 2f + 2f * f, BloodRed.WithAlpha(0.5f + 0.5f * f), 24);  // closing in: when it bursts
-            for (int k = 0; k < 7; k++)
-            {
-                float life = MathX.Fmod(t * (1.5f + 2.5f * f) + k * 0.37f + fx.Pos2.X * 0.13f, 1f);
-                V2 pos = at + new V2(Mathf.Sin(k * 2.7f + fx.Pos2.X) * r * 0.7f, r * 0.4f - life * (r + 10f));
-                float br = (2f + 2.5f * f) * (0.5f + 0.5f * life);
-                Arc(pos, br, 1.5f, new Rgba(1f, 0.4f, 0.45f, 0.9f * (1f - life)), 10);
-            }
         }
 
         /// Crimson Pact bursting (FxKind.PactBurst): thorns of blood spike out to its reach, and a ring rides out with them.

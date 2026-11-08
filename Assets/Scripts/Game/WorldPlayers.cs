@@ -75,6 +75,11 @@ namespace Arena
                 var look = LookOf(p.Kit).Body;
                 if (look != null && rebuild < 0f)
                     look(this, p, modelR, t, col);
+                if (rebuild < 0f)
+                {
+                    DrawDebtRing(p, modelR, t, col.A);  // Blood Debt and Arterial Spray: any class can have them (Wildcard)
+                    DrawSpray(p, modelR, t, col.A);
+                }
                 p.Disp = groundAt;
             }
             // The real hitbox, drawn as a bright ring round a coloured core dot (a solid disc would hide the head).
@@ -92,7 +97,10 @@ namespace Arena
             }
 
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
+            {
                 GhostBar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
+                DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
+            }
             if (p.Downed)
             {
                 if (ds != null)

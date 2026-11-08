@@ -43,6 +43,11 @@ namespace Arena
                 EndShell(p, false);
                 return;
             }
+            if (SprayRelease(p, slot))  // Arterial Spray pressed again: the vein closes (no cooldown spent for the press)
+            {
+                CloseSpray(p, false);
+                return;
+            }
             if (p.StandOn && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
             if (!consumed && !Consume(p, slot, true))

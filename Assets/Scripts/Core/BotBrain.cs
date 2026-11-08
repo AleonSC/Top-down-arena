@@ -257,6 +257,14 @@ namespace Arena
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
+                if (s.Id == AbilityId.BloodBoil && me.SprayOn)
+                {
+                    held[slot] = botHeldLast[slot] = false;
+                    bool inReach = target != null && targetD < Game.SprayReachOf(me) + target.Radius;
+                    if (me.SprayT > 0.5f && (!inReach || me.Hp < me.MaxHp * 0.3f))  // nothing in the jet, or bled enough: close the vein
+                        held[slot] = botHeldLast[slot] = true;
+                    continue;
+                }
                 if (s.Id == AbilityId.BloodShell && me.ShellOn)
                 {
                     held[slot] = botHeldLast[slot] = false;

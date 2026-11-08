@@ -161,8 +161,17 @@ namespace Arena
                 case FxKind.Drain:
                     DrawDrainFx(fx, f);
                     break;
-                case FxKind.Boil:
-                    DrawBoilFx(fx, f, t);
+                case FxKind.DebtCoin:
+                    DrawDebtCoinFx(fx, f);  // BloodDebtLook.cs
+                    break;
+                case FxKind.DebtSettle:
+                    DrawDebtSettleFx(fx, f);  // BloodDebtLook.cs (its stamp is on the HUD)
+                    break;
+                case FxKind.VeinRush:
+                    DrawVeinRushFx(fx, t);  // VeinRushLook.cs
+                    break;
+                case FxKind.VeinCut:
+                    DrawVeinCutFx(fx, f);  // VeinRushLook.cs
                     break;
                 case FxKind.PactBurst:
                     DrawPactBurstFx(fx, f);

@@ -79,8 +79,9 @@ namespace Arena
         // Blood Mage abilities
         public float ShellBonus, PactMult = 1f, PactRadiusMult = 1f, DrainMult = 1f, DrainRadiusMult = 1f;
         public float GiftMult = 1f, FreezeBonusTime, MartyrBonus, MartyrInvuln;
-        public float BoilMult = 1f, BoilRadiusMult = 1f, RushBonusTime, RushRate;
-        public int NovaExtraBolts;
+        public float SprayMult = 1f, SprayReach = 1f;          // Arterial Spray: High Pressure
+        public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
+        public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
 
         // Legendary weapon upgrades from bosses.
@@ -297,12 +298,12 @@ namespace Arena
                 Apply = s => { s.FreezeBonusTime += 1.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Martyr, MaxStacks = 2, Name = "Saint's Blood", Desc = "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
                 Apply = s => { s.MartyrBonus += 0.25f; s.MartyrInvuln += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "Boiling Point", Desc = "Blood Boil bursts 50% harder and reaches 25% farther",
-                Apply = s => { s.BoilMult += 0.5f; s.BoilRadiusMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrenzyPact, MaxStacks = 2, Name = "Bloodrush", Desc = "Frenzy Pact lasts 2 s longer and fires another 25% faster",
-                Apply = s => { s.RushBonusTime += 2f; s.RushRate += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Hemo Nova fires 8 more bolts",
-                Apply = s => s.NovaExtraBolts += 8 },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "High Pressure", Desc = "Arterial Spray reaches 25% farther and hits 25% harder",
+                Apply = s => { s.SprayReach += 0.25f; s.SprayMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrenzyPact, MaxStacks = 2, Name = "Usury", Desc = "Blood Debt's kills repay 25% more, and it gives you 1 s longer to pay",
+                Apply = s => { s.DebtRepay += 0.25f; s.DebtBonusTime += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
+                Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side, at 60% damage. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },

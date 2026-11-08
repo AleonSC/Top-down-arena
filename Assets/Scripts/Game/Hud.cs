@@ -17,6 +17,7 @@ namespace Arena
             var me = game.Me;
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
+            DrawDebtLedgers();  // Blood Debt's tally and stamps (BloodDebtLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)
             if (me != null)
