@@ -45,6 +45,7 @@ namespace Arena
             }
             if (SprayRelease(p, slot))  // Arterial Spray pressed again: the vein closes (no cooldown spent for the press)
             {
+                p.Run.AbilitiesUsed++;
                 CloseSpray(p, false);
                 return;
             }
