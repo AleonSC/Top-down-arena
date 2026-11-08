@@ -134,7 +134,7 @@ namespace Arena
                 case WeaponId.HolyMace: return new Rgba(1f, 0.88f, 0.54f);
                 case WeaponId.Lightbringer: return new Rgba(1f, 0.94f, 0.62f);
                 case WeaponId.Censer: return new Rgba(1f, 0.8f, 0.5f);
-                case WeaponId.Katana: return new Rgba(1f, 0.56f, 0.66f);
+                case WeaponId.Katana: return new Rgba(0.745f, 0.87f, 1f);  // Moon Steel (Docs/Mockups/katana-reach.html)
                 case WeaponId.BoStaff: return new Rgba(0.78f, 0.9f, 0.62f);
                 case WeaponId.Kusarigama: return new Rgba(0.7f, 0.64f, 1f);
                 case WeaponId.BloodLash: return new Rgba(1f, 0.32f, 0.38f);
@@ -197,7 +197,11 @@ namespace Arena
                 float ext = EaseOut3(Mathf.Clamp01(T / MeleeThrustTime)) * reach;
                 float fade = T < MeleeThrustTime ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime) / MeleeTail);
                 V2 tip = o + dir * Mathf.Max(30f, ext);
-                if (light)
+                if (light && seen.Weapon == WeaponId.Katana)
+                {
+                    KatanaSpear(o, dir, aim, ext, T, fade, col);
+                }
+                else if (light)
                 {
                     SoftLine(o + dir * 20f, tip, 26f * fade + 4f, col.WithAlpha(0.5f * fade));  // the beam and its glow
                     SoftLine(o + dir * 20f, tip, 10f * fade + 2f, col.WithAlpha(0.6f * fade));
@@ -205,7 +209,10 @@ namespace Arena
                 }
                 else
                 {
-                    MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true, 18);
+                    if (seen.Weapon == WeaponId.Katana)
+                        KatanaSparks(o, aim, 0f, reach, T, MeleeThrustTime, seed, true, 14);
+                    else
+                        MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true, 18);
                     DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(26f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col, T < MeleeThrustTime);
                 }
                 return true;
@@ -220,15 +227,101 @@ namespace Arena
             float fadeOut = T < sweepTime ? 1f : 1f - Mathf.Clamp01((T - sweepTime) / MeleeTail);
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
             float at = full ? aim + T * 14f * s : start + 2f * half * s * e;
-            if (light)
+            bool katana = seen.Weapon == WeaponId.Katana;
+            if (light && katana)
+                KatanaCrescent(o, reach, start, at, T, sweepTime, col);
+            else if (light)
                 GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
             else
             {
-                MeleeSparks(o, start, 2f * half * s, reach, T, sweepTime, col, seed, false);
+                if (katana)
+                    KatanaSparks(o, start, 2f * half * s, reach, T, sweepTime, seed, false, 20);
+                else
+                    MeleeSparks(o, start, 2f * half * s, reach, T, sweepTime, col, seed, false);
                 float hold = T < sweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.1f) / 0.18f);
                 DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime);
             }
             return true;
+        }
+
+        // --- The Katana's Moon Steel look (Docs/Mockups/katana-reach.html) --------------------------------------------------
+
+        static readonly Rgba KatanaSpark = new Rgba(1f, 0.69f, 0.44f);
+
+        /// The swipe's trail: a crescent thick at the blade and thinning to nothing behind it, its tail eaten away as the
+        /// sweep ends (no band left hanging), a white edge on the outside and a faint air-shock arc ahead of the blade.
+        void KatanaCrescent(V2 o, float reach, float start, float at, float T, float sweepTime, Rgba col)
+        {
+            float sweep = at - start;
+            if (Mathf.Abs(sweep) < 0.01f)
+                return;
+            float tailP = Mathf.Min(Mathf.Clamp01((T - 0.05f) / 0.38f) * Mathf.Clamp01((T - 0.05f) / 0.38f), 1f);
+            float e = Mathf.Clamp01(T / sweepTime), tailE = Mathf.Min(tailP, EaseOut3(e));
+            float tail = start + (at - start) * (T <= sweepTime ? 0f : tailE);
+            float fade = T < sweepTime + 0.12f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.12f) / 0.5f);
+            if (Mathf.Abs(at - tail) < 0.01f || fade <= 0f)
+                return;
+            float maxW = reach * 0.12f;
+            int n = Mathf.Max(8, Mathf.CeilToInt(Mathf.Abs(at - tail) * 40f));
+            for (int i = 0; i < n; i++)
+            {
+                float f0 = (float)i / n, f1 = (float)(i + 1) / n;
+                float a0 = tail + (at - tail) * f0, a1 = tail + (at - tail) * f1;
+                float w0 = maxW * Mathf.Pow(f0, 1.5f) + 0.6f, w1 = maxW * Mathf.Pow(f1, 1.5f) + 0.6f;
+                float k0 = Mathf.Pow(f0, 1.25f) * fade, k1 = Mathf.Pow(f1, 1.25f) * fade;
+                V2 d0 = V2.FromAngle(a0), d1 = V2.FromAngle(a1);
+                // haze: clear on the inside, pale blue at the edge
+                V2 h00 = o + d0 * (reach - w0 * 1.8f), h01 = o + d1 * (reach - w1 * 1.8f), h10 = o + d0 * (reach + 3f), h11 = o + d1 * (reach + 3f);
+                VTri(h00, col.WithAlpha(0f), h10, col.WithAlpha(0.5f * k0), h11, col.WithAlpha(0.5f * k1));
+                VTri(h00, col.WithAlpha(0f), h11, col.WithAlpha(0.5f * k1), h01, col.WithAlpha(0f));
+                // the white edge
+                V2 c00 = o + d0 * (reach - w0 * 0.35f - 1f), c01 = o + d1 * (reach - w1 * 0.35f - 1f), c10 = o + d0 * reach, c11 = o + d1 * reach;
+                VTri(c00, Rgba.White.WithAlpha(0.2f * k0), c10, Rgba.White.WithAlpha(k0), c11, Rgba.White.WithAlpha(k1));
+                VTri(c00, Rgba.White.WithAlpha(0.2f * k0), c11, Rgba.White.WithAlpha(k1), c01, Rgba.White.WithAlpha(0.2f * k1));
+            }
+            float s = sweep >= 0f ? 1f : -1f, shock = fade * (T < sweepTime + 0.1f ? 1f : 0.5f);
+            for (int k = 0; k < 2; k++)
+                Arc(o, reach + 9f + 8f * k, 1.3f, col.WithAlpha((0.35f - 0.15f * k) * shock), 14, at - s * (0.52f - 0.1f * k), s * 0.64f);
+        }
+
+        /// Hot orange and white streaks thrown off the blade (a short line each, not the other weapons' squares).
+        void KatanaSparks(V2 o, float start, float sweep, float reach, float T, float active, int seed, bool line, int count)
+        {
+            uint r = (uint)seed;
+            float s = sweep >= 0f ? 1f : -1f;
+            for (int i = 0; i < count; i++)
+            {
+                float born = active * Rand01(ref r), spd = 150f * (0.4f + Rand01(ref r)), spread = (Rand01(ref r) - 0.5f) * 0.9f, age = T - born;
+                if (age < 0f || age > 0.5f)
+                    continue;
+                float q = age / 0.5f, ba = line ? start : start + sweep * EaseOut3(born / Mathf.Max(active, 1e-4f));
+                V2 from = line ? o + V2.FromAngle(start) * (30f + reach * born / Mathf.Max(active, 1e-4f)) : o + V2.FromAngle(ba) * reach;
+                float oa = line ? start + spread * 1.4f : ba + s * (0.9f + spread);
+                V2 dir = V2.FromAngle(oa), p = from + dir * (spd * EaseOut3(q * 0.9f));
+                Line(p - dir * (14f * (1f - q)), p, 1.5f, (i % 2 == 0 ? KatanaSpark : Rgba.White).WithAlpha(0.9f * (1f - q)));
+            }
+        }
+
+        /// The lunge: a hairline spear of light that tapers behind its tip, shock rings at the head and speed lines behind you.
+        void KatanaSpear(V2 o, V2 dir, float aim, float ext, float T, float fade, Rgba col)
+        {
+            V2 tail = o - dir * 6f, tip = o + dir * Mathf.Max(30f, ext), side = dir.Orthogonal();
+            SoftLine(tail, tip, 8f * fade + 2f, col.WithAlpha(0.5f * fade));
+            Ribbon(tail, tip, 0.4f, 2.2f * fade + 0.4f, Rgba.White.WithAlpha(0f), Rgba.White.WithAlpha(fade));
+            for (int r = 0; r < 3; r++)
+            {
+                float rq = Mathf.Clamp01((T - r * 0.04f) / 0.4f);
+                if (rq <= 0f || rq >= 1f)
+                    continue;
+                Arc(tip + dir * (rq * 26f - 4f), 10f + r * 8f + rq * 14f, 1.4f, col.WithAlpha((1f - rq) * 0.7f), 12, aim - 1.05f, 2.1f);
+            }
+            uint seed = 77u;
+            for (int i = 0; i < 7; i++)
+            {
+                float yo = (Rand01(ref seed) - 0.5f) * 40f, start = 30f * Rand01(ref seed), len = 40f + 60f * Rand01(ref seed), a = 0.4f * fade * (0.4f + Rand01(ref seed) * 0.6f);
+                V2 b = o - dir * start + side * yo;
+                Line(b - dir * len, b, 1f, col.WithAlpha(a));
+            }
         }
 
         // --- The Lance and the Warhammer ----------------------------------------------------------------------------

@@ -14,7 +14,7 @@ Status: **built** (Nov 2026, protocol 179), with the changes listed under "Built
   everything) without making you stop attacking first.
 - The Katana's own description in `Defs`/`Ninja.cs` and the README row.
 
-Everything else about the weapon keeps working: reach 95, the `+1 cut` upgrade, damage multipliers, `Melee = true`
+Everything else about the weapon keeps working: reach 115 (was 95), the `+1 cut` upgrade, damage multipliers, `Melee = true`
 and the swing pipeline (`NewSwing`, `pendingSwings`).
 
 ## The chain
