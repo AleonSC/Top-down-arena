@@ -58,7 +58,8 @@ namespace Arena
         }
 
         /// Aiming a strike: the arena dims, every enemy gets a bracket, and the one it would cut to gets a reticle and the
-        /// route, ending where you would land behind it, with what the cut would do to it. Only for your own Katana.
+        /// route, ending where you would land behind it. Enemies the strike would kill (Game.KatanaWouldKill, so the streak
+        /// goes on) have rose brackets, the rest faint white ones; the reticle is grey on a target that would live. Only for your own Katana.
         void DrawKatanaAim(Player p, float t)
         {
             if (!game.KatanaAiming)
@@ -71,9 +72,9 @@ namespace Arena
             {
                 if (e.Hp <= 0f)
                     continue;
-                bool mark = e.Id == game.KatanaMark;
+                bool mark = e.Id == game.KatanaMark, kills = game.KatanaWouldKill(p, e);
                 float r = e.Radius + (mark ? 9f : 5f);
-                var col = mark ? rose : new Rgba(1f, 1f, 1f, 0.55f);
+                var col = kills ? (mark ? rose : rose.WithAlpha(0.8f)) : new Rgba(1f, 1f, 1f, mark ? 0.75f : 0.35f);
                 float w = mark ? 2.5f : 1.5f;
                 for (int c = 0; c < 4; c++)  // four corner brackets
                 {
@@ -95,7 +96,7 @@ namespace Arena
             for (float d = (t * 40f) % 14f; d < len; d += 14f)  // the route, marching toward the target
                 Line(p.Disp + dir * d, p.Disp + dir * Mathf.Min(len, d + 8f), 2f, rose.WithAlpha(0.9f));
             Arc(end, 14f, 1.5f, new Rgba(0.37f, 0.82f, 0.77f, 0.9f), 20);  // where you will stand
-            Arc(m.Pos, m.Radius + 16f, 2f, rose, 20, t * 1.1f, 4.8f);  // the reticle, turning
+            Arc(m.Pos, m.Radius + 16f, 2f, game.KatanaWouldKill(p, m) ? rose : new Rgba(0.75f, 0.75f, 0.78f, 0.9f), 20, t * 1.1f, 4.8f);  // the reticle, turning (grey: it would live)
         }
 
         /// Letterbox bars on your own screen for your own strike (called from DrawHud).

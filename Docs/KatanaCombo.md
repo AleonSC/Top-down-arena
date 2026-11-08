@@ -156,13 +156,25 @@ the counter, and route kills do not count.
   screen, plus a `FxKind.KatanaCut` per enemy cut (a bright line across it, sparks, and its two halves sliding apart if it
   died) and a camera shake. The chain is a blade of five notches over the swordsman.
 
-## Sound effects (mocked, not built)
-Mockups: `Docs/Mockups/katana-sounds.html` (every sound, three sets: Steel, Silk, Arcade, each with its `SoundBank` recipe) and the
-playable `katana-combo.html` and `katana-chain.html`, which now play them. Sounds: swipe 1, swipe 2, lunge wind-up, lunge, cut
-lands, meter full, no charge, aim begins, target changes, stance, the cut, sheathe, the blow, chains 1 to 5, empowered ready,
-empowered cut, streak lost. Building them needs one `Sfx` value each (at the end of the enum), a `Set(...)` line each in
-`SoundBank.Build()`, and two helpers (`Delay`, `Room`). The chain, hit, lunge and strike sounds go through `BroadcastFx`'s existing
-`Sfx` argument; aim, switch, no-charge and meter-full play on your own screen only. Waiting on a pick of set.
+## Sound effects (built Nov 2026, protocol 194: the Steel set)
+Mockup: `Docs/Mockups/katana-sounds.html` (Steel, Silk, Arcade; the owner picked **Steel**). Recipes are in `Game/KatanaSoundBank.cs`,
+one `Sfx` value each at the end of the enum (the `Delay` and `Room` helpers already existed in `MeleeSoundBank.cs`).
+- **Sent by the host:** the swipes and the lunge replace `SwingLight`/`SwingHeavy` through the new `Swing.Sound`; the lunge's wind-up plays at
+  the press (`BroadcastSound`); a step that cuts anything sends one `FxKind.KatanaHitCue` (draws nothing) carrying `KatanaHit`. The strike:
+  `KatanaStance` on the `KatanaStrike` effect, `KatanaStrikeCut` at the cut (`KatanaEmpStrikeCut` `KatanaEmpLead` 0.28 s earlier, its swell
+  leading in), `KatanaSheathe` 0.05 s into the held frame, `KatanaBlow` on the target's `KatanaCut`. After the blow: `KatanaChain1-5` (the fifth
+  also `KatanaEmpReady`) or `KatanaLost`; these clips start 0.4 s in so the blow is heard first. An empowered kill plays no chain chime.
+- **Your own screen only** (`KatanaLocalSounds`): `KatanaReady` when the meter reaches full with no chain (a chain's chime says it otherwise),
+  `KatanaEmpty` on a press without a full meter, `KatanaAim` when aiming starts, `KatanaSwitch` when the mark moves to another enemy.
+- Swipes, wind-up, lunge and cuts use the Weapons volume; the rest are Effects.
+
+## Feel pass (built Nov 2026, protocol 194)
+- **Lunge hit-pause:** the `KatanaHitCue` effect says how many enemies the step cut and whose it was; on the striker's own screen a lunge that
+  cut something holds the picture `KatanaLungeHold` 0.03 s plus `KatanaLungeHoldPer` 0.01 s per extra enemy (up to 3 more), with a small shake
+  (`Juice.cs`; the usual 0.4 s gap between holds, none with Reduced effects). Swipes don't pause: they come every 0.26 s.
+- **Kill preview while aiming:** `Game.KatanaWouldKill` (the target's health against `KatanaStrikeDamage`: 120 or 240, times your damage and
+  Glass Cannon) colours the brackets: rose for enemies the strike would kill, faint white for the rest; the reticle turns grey on a target that
+  would live. It's a guide: enemy states that change damage (Mark for Death, armour, a boss changing stage) aren't counted.
 
 ## Parry cancels the chain (built Nov 2026, no protocol change)
 Raising the parry (`TickParry`, the tick it goes up) calls `ResetAttackChains` (Katana.cs): the Katana returns to swipe 1,

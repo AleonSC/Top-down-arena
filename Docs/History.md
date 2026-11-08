@@ -3,6 +3,10 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Katana feel pass (Nov 2026), protocol 194:** the Steel set of `Docs/Mockups/katana-sounds.html` (`Game/KatanaSoundBank.cs`, new `Sfx`
+values, `Swing.Sound`, `FxKind.KatanaHitCue`), a hit-pause on your own lunge (`KatanaLungeHold`) and kill-preview brackets while aiming
+(`Game.KatanaWouldKill`). See `Docs/KatanaCombo.md`. Test: `lastfour`.
+
 **Glacial Tomb look (Nov 2026), protocol 185 (no change):** look C (Crystal Reliquary) of `Docs/Mockups/glacial-tomb.html` is in the game as `Game/GlacialTombLook.cs` (see `HANDOFF.md`). The cast's Ring effect now lasts `Game.TombFxTime` (freeze + 1 s) instead of 0.8 s so the look can tell it and run the thaw; nothing else in `Core/` changed. Mockups A and B were not built.
 
 **Parry cancels attack chains (Nov 2026), protocol 183 (no change):** raising the parry calls `ResetAttackChains` (`Core/Katana.cs`,

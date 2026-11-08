@@ -107,6 +107,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
 - `BossSounds.cs`: audio cues for boss attacks
 - `Game/NinjaSoundBank.cs`: the Ninja DPS's sounds (Kunai whoosh `ShotKunai` via the weapon def's `Sound`, `NinjaBlink`, `NinjaStepCast`/`NinjaStepStrike`, `NinjaVanish`, `NinjaFanOpen`/`NinjaFanBurst`, `NinjaLotusCast`), raised in `Ninja.cs`; the Shinobi set of `Docs/Mockups/ninja-dps-sounds.html`
+- `Game/KatanaSoundBank.cs`: the Katana's sounds, the Steel set of `Docs/Mockups/katana-sounds.html` (`KatanaSwipe1/2`, `KatanaWindup`, `KatanaLunge`, `KatanaHit` on the Weapons volume; the strike's `KatanaStance`, `KatanaStrikeCut`/`KatanaEmpStrikeCut`, `KatanaSheathe`, `KatanaBlow`; `KatanaChain1-5`, `KatanaEmpReady`, `KatanaLost`; your own screen only: `KatanaReady`, `KatanaEmpty`, `KatanaAim`, `KatanaSwitch`), raised in `Katana.cs` (`KatanaLocalSounds`, `TickKatanaStrikes`), `Ninja.cs` and `Knight.cs` (`Swing.Sound`, `KatanaHitCue`)
 - `MeleeSounds.cs`, `Game/MeleeSoundBank.cs`: the melee rushers' cues (made from replicated state on every machine, never sent), `QuietAt` (sounds fade with distance, enemy shots too), the Buzzsaw's contact whirr loop (`SawWhirrLevel`, `SoundBank.SetSawLoop`), deaths that merge when a kind dies together
 
 ## World rendering (Game)
