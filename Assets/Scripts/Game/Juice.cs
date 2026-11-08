@@ -271,6 +271,20 @@ namespace Arena
                     Hold(0.04f + 0.03f * hp);
                     Shake(0.08f + 0.2f * hp);
                 }
+                if (fx.Kind == FxKind.Slash && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && fx.Radius > 1f && me.Pos.DistanceTo(fx.Pos) < 44f)
+                {
+                    float gr = fx.Pos2.DistanceTo(fx.Pos), ga = (fx.Pos2 - fx.Pos).Angle;
+                    foreach (var en in game.Enemies.Values)
+                    {
+                        V2 rel = en.Disp - fx.Pos;
+                        float gd = Mathf.Abs(Mathf.Repeat(rel.Angle - ga + MathX.Pi, MathX.Tau) - MathX.Pi);
+                        if (rel.Length - en.Radius * 0.5f > gr || gd > fx.Radius + 0.1f)
+                            continue;
+                        Hold(0.05f);  // your own Greatsword cut caught something: a hit-stop and a kick
+                        Shake(0.14f);
+                        break;
+                    }
+                }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)

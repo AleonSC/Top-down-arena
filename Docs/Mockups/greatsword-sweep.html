@@ -1,0 +1,300 @@
+<title>Greatsword Sweep Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one stage (wind-up, sweep, hanging crescent stopping bullets, sword beam on a loop) with look chips and toggles, three single-moment panels, notes.
+   Same page tokens as the Katana and Warhammer mockups; the canvas colours are the Greatsword's own steel blue on a night-blue arena. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#2f78c4;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8fc4ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8fc4ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:1000/420}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/260}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+</style>
+
+<main>
+<header>
+  <h1>Greatsword: one big cut, left hanging</h1>
+  <p>The Greatsword is one heavy 170° sweep, 125 px out, every 0.7 s for 60 damage, and the edge of each sweep stays in the air for 0.5 s as a crescent that stops enemy bullets. Today that is a rose-coloured band and a thin arc. These three looks keep the numbers and make the cut read as a weight: you gather the sword back in two hands, it comes across in one stroke, and the crescent it leaves is a solid thing you can see bullets die on.</p>
+  <p>Enemy bullets are on by default so you can watch the crescent work. One red bullet passes straight through it: aimed red shots are the only ones it does not stop. The sword beam is the +1 upgrade (a piercing crescent at 40% damage).</p>
+</header>
+
+<section>
+  <h2>The sweep</h2>
+  <div class="bar"><div class="chips" role="group" aria-label="Look" id="looks"></div></div>
+  <div class="bar">
+    <label class="tg"><input type="checkbox" id="tgBullets" checked> Enemy bullets</label>
+    <label class="tg"><input type="checkbox" id="tgBeam" checked> Sword beam upgrade</label>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <button id="pause" type="button">Pause</button>
+  </div>
+  <div class="frame"><canvas id="stage" width="1000" height="420" aria-label="Greatsword wind-up, sweep, hanging crescent and sword beam on a loop"></canvas></div>
+  <p class="sub" id="stageNote" style="margin:8px 0 0"></p>
+</section>
+
+<section>
+  <h2>Each moment</h2>
+  <div class="grid3" id="moves"></div>
+</section>
+
+<section class="card">
+  <h3>Look notes</h3>
+  <ul id="notes"></ul>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var TAU=Math.PI*2,HALF=85*Math.PI/180;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var eo=function(t){return 1-Math.pow(1-clamp(t,0,1),3)},ei=function(t){t=clamp(t,0,1);return t*t},eio=function(t){t=clamp(t,0,1);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2};
+var rnd=function(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+var $=function(i){return document.getElementById(i)};
+var reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* the game's numbers */
+var R=125,BAND=16,SW=.11,WALL=.5,TS=.3,LOOP=2.6;
+var BEAM_SPEED=700,BEAM_LIFE=.6;
+
+var LOOKS={
+ cold:{name:'Cold Steel',col:'143,199,255',hot:'235,245,255',ground:'#0f151c',note:[
+  'The game\'s own steel blue, built up. The sword is a wide bright blade with a fuller and a gold guard. The sweep is an energy band behind the blade, brightest at the edge, with a thick white core and a spray of steel sparks.',
+  'The hanging crescent is frosted steel: a pale haze, a hard white edge and fine tick marks along it. Bullets that hit it die in a white flash with a ring and a few blue-white sparks, and the crescent brightens where they landed.',
+  'It reads as the same weapon you have today, only heavier. The safest choice for matching the rest of the Knight.']},
+ moon:{name:'Moonlit Crescent',col:'200,225,255',hot:'255,255,255',ground:'#0e1219',note:[
+  'Elegant and sharp. The sweep is one long tapered crescent, thin at the tail and fat at the blade, with a cold glow. The blade has a pale luminous edge.',
+  'The hanging crescent is a thin glassy arc with a bright glint that runs along it end to end while it hangs. Bullets leave a small ripple that spreads along the arc, like pressing on a wire.',
+  'The least busy on screen, so it holds up when the arena is full of bullets, which is exactly when you swing it.']},
+ gilt:{name:'Gilded',col:'255,214,130',hot:'255,248,225',ground:'#13141a',note:[
+  'Royal and heavy. The blade is bright steel with gold inlay and a bigger gold guard. The sweep leaves three layered cuts, each a little behind the last, like a stack of gold leaf.',
+  'The hanging crescent is a double gold line with small notches between them, like a heraldic border. Bullets that hit it burst into gold sparks and a short ring.',
+  'The loudest of the three and the most distinct from the other Knight weapons. It gives the Greatsword a clear identity next to the Warhammer\'s orange.']}
+};
+var look='cold';
+
+/* ---------- scene ---------- */
+var FOES=[{x:62,y:-72,id:0},{x:96,y:-34,id:1},{x:112,y:14,id:2},{x:82,y:60,id:3},{x:118,y:-76,id:4},{x:215,y:-6,id:5,beam:1},{x:310,y:8,id:6,beam:1}];
+function warp(t,stops){var te=t,acc=0;for(var i=0;i<stops.length;i++){var ws=stops[i].t+acc;if(t>ws)te-=Math.min(t-ws,stops[i].d);acc+=stops[i].d}return te}
+function sweepAng(te){ /* where the blade points: guard, wind-up behind, the sweep, held, back to guard */
+  var guard=.95,back=-HALF-.28,a0=-HALF,a1=HALF;
+  if(te<.12)return guard+.03*Math.sin(te*5);
+  if(te<TS)return lerp(guard,back,eio((te-.12)/(TS-.12)));
+  if(te<TS+SW){var u=(te-TS)/SW;return lerp(back,a1,eo(u))}
+  if(te<TS+SW+.22)return a1+.06*eo((te-TS-SW)/.12);
+  if(te<TS+SW+.62)return lerp(a1+.06,guard,eio((te-TS-SW-.22)/.4));
+  return guard+.03*Math.sin(te*5)}
+function foeHit(f){var d=Math.hypot(f.x,f.y);if(f.beam||d-12>R)return null;var an=Math.atan2(f.y,f.x);if(an<-HALF-.1||an>HALF+.1)return null;
+  var p=clamp((an-(-HALF))/(2*HALF),0,1);return TS+SW*(1-Math.pow(1-p,1/3))}
+function bulletList(){var out=[];for(var i=0;i<6;i++){var y=-86+i*34,tA=.46+.045*i;out.push({y:y,tA:tA,red:0,i:i})}out.push({y:4,tA:.62,red:1,i:9});return out}
+function bulletX(b){return Math.sqrt(Math.max(0,(R+BAND+3)*(R+BAND+3)-b.y*b.y))}
+
+function sword(x,LK,ang,alpha,o){
+  if(alpha<=0)return;o=o||{};x.save();x.globalAlpha=alpha;x.rotate(ang);
+  var L=R*.98,gx=36;
+  /* two gloved hands joined to the body by arms, so it is held in both */
+  x.lineCap='round';
+  [[17,-3],[31,3]].forEach(function(h){x.strokeStyle='#0c2f2b';x.lineWidth=7.2;x.beginPath();x.moveTo(0,h[1]);x.lineTo(h[0],0);x.stroke();
+    x.strokeStyle='#4aa89d';x.lineWidth=5;x.beginPath();x.moveTo(0,h[1]);x.lineTo(h[0],0);x.stroke()});
+  x.strokeStyle='#3b2c1f';x.lineWidth=5;x.beginPath();x.moveTo(-6,0);x.lineTo(gx,0);x.stroke();
+  x.strokeStyle='#6b5740';x.lineWidth=3;x.beginPath();x.moveTo(-6,0);x.lineTo(gx,0);x.stroke();
+  x.fillStyle=LK==='gilt'?'#e8c768':'#b79a4a';x.beginPath();x.arc(-7,0,3.4,0,TAU);x.fill();
+  [17,31].forEach(function(px,i){x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.5;x.beginPath();x.arc(px,0,i?5.2:6,0,TAU);x.fill();x.stroke()});
+  /* guard */
+  x.fillStyle=LK==='gilt'?'#f0cf72':'#d9bf7a';x.strokeStyle='#4a3a12';x.lineWidth=1;
+  x.beginPath();x.moveTo(gx-3,-12);x.lineTo(gx+3,-10);x.lineTo(gx+3,10);x.lineTo(gx-3,12);x.lineTo(gx-1.5,0);x.closePath();x.fill();x.stroke();
+  /* blade: wide, tapered, with a fuller */
+  var bl=L-gx,w=LK==='gilt'?8.4:7.6;
+  var g=x.createLinearGradient(0,-w,0,w*.6);
+  if(LK==='moon'){g.addColorStop(0,'#ffffff');g.addColorStop(.5,'#cfe0f4');g.addColorStop(1,'#eaf2fb')}
+  else if(LK==='gilt'){g.addColorStop(0,'#fffdf2');g.addColorStop(.5,'#c9ccd2');g.addColorStop(1,'#eef0f3')}
+  else{g.addColorStop(0,'#f7fbff');g.addColorStop(.5,'#9fb4c8');g.addColorStop(1,'#e3edf6')}
+  x.save();x.translate(gx+1,0);
+  if(o.hot||LK==='moon'){x.shadowColor='rgba('+LOOKS[LK].col+',.9)';x.shadowBlur=o.hot?16:8}
+  x.fillStyle=g;x.beginPath();x.moveTo(0,-w);x.lineTo(bl-18,-w*.82);x.lineTo(bl,0);x.lineTo(bl-18,w*.5);x.lineTo(0,w*.62);x.closePath();x.fill();x.shadowBlur=0;
+  x.strokeStyle=LK==='gilt'?'rgba(255,226,150,.95)':LK==='moon'?'rgba(255,255,255,.95)':'rgba(255,255,255,.85)';x.lineWidth=1;x.stroke();
+  x.strokeStyle='rgba(40,60,80,.5)';x.lineWidth=1.8;x.beginPath();x.moveTo(8,-.6);x.lineTo(bl*.86,-.4);x.stroke();
+  x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=.8;x.beginPath();x.moveTo(8,-2.1);x.lineTo(bl*.84,-1.8);x.stroke();
+  if(LK==='gilt'){x.fillStyle='rgba(240,205,110,.9)';for(var k=0;k<4;k++){x.beginPath();x.moveTo(14+k*18,-.5);x.lineTo(18+k*18,-3);x.lineTo(22+k*18,-.5);x.lineTo(18+k*18,2);x.closePath();x.fill()}}
+  if(o.glint!=null){var gp=clamp(o.glint,0,1),gx2=lerp(10,bl-6,gp),ga=Math.sin(gp*Math.PI);x.strokeStyle='rgba(255,255,255,'+ga+')';x.lineWidth=1;x.beginPath();x.moveTo(gx2-6,-1);x.lineTo(gx2+6,-1);x.moveTo(gx2,-6);x.lineTo(gx2,4);x.stroke()}
+  x.restore();x.restore()}
+
+function player(x){x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,16,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(16,0);x.lineTo(7,-6);x.lineTo(7,6);x.closePath();x.fill()}
+function foe(x,fx,fy,flash,al){x.save();x.globalAlpha=al;x.translate(fx,fy);x.fillStyle=flash>0?'#fff':'#d8503f';x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(-14,0);x.lineTo(-7,-5);x.lineTo(-7,5);x.closePath();x.fill();x.restore()}
+function glowDisc(x,cx,cy,r,col,a){var g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,TAU);x.fill()}
+function spark(x,px,py,ba,spread,n,q,seed,cols,speed,len){if(q<0||q>1)return;x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+  for(var i=0;i<n;i++){var a=ba+(rnd(seed+i*3.3)-.5)*spread,d=speed*(.45+rnd(seed+i*7.1))*eo(q*.9),tl=len*(1-q)*(.6+rnd(seed+i)*.8),ex=px+Math.cos(a)*d,ey=py+Math.sin(a)*d;
+    x.strokeStyle='rgba('+cols[i%cols.length]+','+((1-q)*.95)+')';x.lineWidth=1.5*(1-q*.6);x.beginPath();x.moveTo(ex-Math.cos(a)*tl,ey-Math.sin(a)*tl);x.lineTo(ex,ey);x.stroke()}x.restore()}
+
+/* the sweep's trail, one style per look */
+function trail(x,LK,s){ /* s = seconds since the sweep started */
+  if(s<0||s>.8)return;var col=LOOKS[LK].col,p=eo(s/SW),a0=-HALF,cur=lerp(a0,HALF,p),tailP=ei((s-.05)/.38),tail=lerp(a0,HALF,Math.min(tailP,p));
+  var fade=s<SW+.1?1:1-clamp((s-SW-.1)/.5,0,1);
+  x.save();x.globalCompositeOperation='lighter';
+  if(LK==='cold'){
+    var span=cur-a0,N=Math.max(8,Math.ceil(Math.abs(span)*26));x.shadowColor='rgba('+col+',.9)';x.shadowBlur=16;
+    for(var i=0;i<N;i++){var f0=i/N,f1=(i+1)/N,t0=lerp(a0,cur,f0),t1=lerp(a0,cur,f1);x.fillStyle='rgba('+col+','+(lerp(.05,.6,(f0+f1)/2)*fade)+')';
+      x.beginPath();x.arc(0,0,R,t0,t1);x.arc(0,0,R*.62,t1,t0,true);x.closePath();x.fill()}
+    x.shadowBlur=0;x.strokeStyle='rgba(255,255,255,'+.95*fade+')';x.lineWidth=3.2;x.beginPath();x.arc(0,0,R*.93,a0,cur);x.stroke()
+  }else if(LK==='moon'){
+    var sp=cur-tail;if(Math.abs(sp)>.01){var N2=Math.max(10,Math.ceil(Math.abs(sp)*40));
+      for(var layer=0;layer<3;layer++)for(var j=0;j<N2;j++){var f0b=j/N2,f1b=(j+1)/N2,t0b=lerp(tail,cur,f0b),t1b=lerp(tail,cur,f1b),fm=(f0b+f1b)/2,w=R*.3*Math.pow(fm,1.5)+.8,al=Math.pow(fm,1.2)*fade;
+        var r0=R-w*(layer===0?1.6:layer===1?.7:.18);if(layer===2)r0=R-2.4-2.4*fm;
+        x.fillStyle=layer===2?'rgba(255,255,255,'+al+')':'rgba('+col+','+(al*(layer?.6:.22))+')';if(layer===0){x.shadowColor='rgba('+col+',.8)';x.shadowBlur=14}else x.shadowBlur=0;
+        x.beginPath();x.arc(0,0,R,t0b,t1b);x.arc(0,0,r0,t1b,t0b,true);x.closePath();x.fill()}x.shadowBlur=0}
+  }else{
+    [[R,.62,6],[R*.88,.4,5],[R*.76,.26,4]].forEach(function(L,k){var lag=k*.045,pp=eo(Math.max(0,s-lag)/SW),cu=lerp(a0,HALF,pp),sp2=Math.abs(cu-a0);if(sp2<.01)return;
+      var fd=(s<SW+lag+.1?1:1-clamp((s-SW-lag-.1)/.5,0,1)),N3=Math.ceil(sp2*26);
+      for(var q=0;q<N3;q++){var g0=q/N3,g1=(q+1)/N3,u0=lerp(a0,cu,g0),u1=lerp(a0,cu,g1);x.fillStyle='rgba('+col+','+(lerp(.1,.85,(g0+g1)/2)*fd*L[1]*1.4)+')';
+        x.beginPath();x.arc(0,0,L[0],u0,u1);x.arc(0,0,L[0]-L[2]*(.3+.7*g1),u1,u0,true);x.closePath();x.fill()}
+      x.strokeStyle='rgba(255,248,225,'+.9*fd*(k?.6:1)+')';x.lineWidth=2.2-k*.5;x.beginPath();x.arc(0,0,L[0],a0,cu);x.stroke()})
+  }
+  x.restore();
+  /* sparks off the edge */
+  var ns=LK==='gilt'?30:LK==='moon'?20:26,cols=LK==='gilt'?['255,214,130','255,255,255','255,180,90']:LK==='moon'?['255,255,255','200,225,255']:['143,199,255','255,255,255'];
+  x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+  for(var m=0;m<ns;m++){var born=SW*rnd(m*2.3),ba=lerp(a0,HALF,eo(born/SW)),ag=(s-born)/.5;if(ag<0||ag>1)continue;var oa=ba+Math.PI/2*.9+(rnd(m+4)-.5)*.9,d2=130*(.4+rnd(m+8))*eo(ag*.9),tl=10*(1-ag);
+    var sx=Math.cos(ba)*R+Math.cos(oa)*d2,sy=Math.sin(ba)*R+Math.sin(oa)*d2;x.strokeStyle='rgba('+cols[m%cols.length]+','+(1-ag)*.9+')';x.lineWidth=1.6;x.beginPath();x.moveTo(sx-Math.cos(oa)*tl,sy-Math.sin(oa)*tl);x.lineTo(sx,sy);x.stroke()}
+  x.restore()}
+
+/* the crescent left hanging: it appears as the sweep passes, then fades over its 0.5 s. hits = [{ang,age}] where bullets landed */
+function wall(x,LK,s,hits){
+  if(s<0||s>WALL+SW+.05)return;var col=LOOKS[LK].col,head=lerp(-HALF,HALF,eo(s/SW)),f=clamp((s-SW)/WALL,0,1),fade=s<SW?1:1-f*f;
+  x.save();x.globalCompositeOperation='lighter';x.lineCap='butt';
+  x.strokeStyle='rgba('+col+','+.13*fade+')';x.lineWidth=BAND*2;x.beginPath();x.arc(0,0,R,-HALF,head);x.stroke();
+  if(LK==='cold'){x.strokeStyle='rgba(255,255,255,'+.8*fade+')';x.lineWidth=4;x.beginPath();x.arc(0,0,R,-HALF,head);x.stroke();
+    x.strokeStyle='rgba('+col+','+.6*fade+')';x.lineWidth=1.5;x.beginPath();x.arc(0,0,R-7,-HALF,head);x.stroke();
+    x.strokeStyle='rgba(255,255,255,'+.35*fade+')';x.lineWidth=1;for(var k=0;k<34;k++){var a=lerp(-HALF,HALF,k/33);if(a>head)break;x.beginPath();x.moveTo(Math.cos(a)*(R-12),Math.sin(a)*(R-12));x.lineTo(Math.cos(a)*(R-6),Math.sin(a)*(R-6));x.stroke()}
+  }else if(LK==='moon'){x.strokeStyle='rgba(255,255,255,'+.55*fade+')';x.lineWidth=2.4;x.beginPath();x.arc(0,0,R,-HALF,head);x.stroke();
+    x.strokeStyle='rgba('+col+','+.4*fade+')';x.lineWidth=7;x.beginPath();x.arc(0,0,R,-HALF,head);x.stroke();
+    var gl=clamp((s-SW)/.42,0,1);if(gl>0&&gl<1){var ga=lerp(-HALF,HALF,gl);glowDisc(x,Math.cos(ga)*R,Math.sin(ga)*R,26,'255,255,255',.7*fade);
+      x.strokeStyle='rgba(255,255,255,'+.95*fade+')';x.lineWidth=2.4;x.beginPath();x.arc(0,0,R,ga-.08,ga+.08);x.stroke()}
+  }else{[[R+5,2.2],[R-5,1.6]].forEach(function(L){x.strokeStyle='rgba(255,226,150,'+.85*fade+')';x.lineWidth=L[1];x.beginPath();x.arc(0,0,L[0],-HALF,head);x.stroke()});
+    x.strokeStyle='rgba(255,214,130,'+.7*fade+')';x.lineWidth=1.4;for(var k2=0;k2<30;k2++){var a2=lerp(-HALF,HALF,k2/29);if(a2>head)break;x.beginPath();x.moveTo(Math.cos(a2)*(R-5),Math.sin(a2)*(R-5));x.lineTo(Math.cos(a2)*(R+5),Math.sin(a2)*(R+5));x.stroke()}}
+  /* where a bullet died, the crescent brightens and a ripple runs along it */
+  (hits||[]).forEach(function(h){var q=h.age/.4;if(q<0||q>1)return;glowDisc(x,Math.cos(h.ang)*R,Math.sin(h.ang)*R,22*(1-q*.4),LK==='gilt'?'255,226,150':'255,255,255',.7*(1-q)*fade);
+    if(LK==='moon'){x.strokeStyle='rgba(255,255,255,'+(.5*(1-q)*fade)+')';x.lineWidth=2;x.beginPath();x.arc(0,0,R,h.ang-.5*eo(q),h.ang+.5*eo(q));x.stroke()}});
+  x.restore()}
+
+/* ---------- the whole scene ---------- */
+function drawScene(x,W,H,S,P,tRaw,LK){
+  var tt=(tRaw%LOOP)+(P.skip||0)%LOOP,stops=[];
+  var first=1e9;FOES.forEach(function(f){var h=foeHit(f);if(h!=null&&h<first)first=h});
+  if(P.enemies!==false&&first<1e9)stops.push({t:first,d:.05});
+  var te=warp(tt,stops);
+  x.fillStyle=LOOKS[LK].ground;x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(255,255,255,.04)';x.lineWidth=1;x.beginPath();for(var gi=0;gi<=W;gi+=40){x.moveTo(gi+.5,0);x.lineTo(gi+.5,H)}for(var gj=0;gj<=H;gj+=40){x.moveTo(0,gj+.5);x.lineTo(W,gj+.5)}x.stroke();
+  var vg=x.createRadialGradient(W*.3,H*.5,20,W*.5,H*.5,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.42)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  var shake=0,q1=te-TS;if(q1>0&&q1<.3)shake=(1-q1/.3)*3.4;
+  var ox=P.ox!=null?P.ox:W*.19,oy=H*.5;
+  x.save();x.translate(ox+(reduced?0:Math.sin(tt*93)*shake),oy+(reduced?0:Math.cos(tt*81)*shake));x.scale(S,S);
+  var s=te-TS,col=LOOKS[LK].col;
+  /* the wall and the bullets it stops */
+  var hits=[];
+  if(P.bullets){bulletList().forEach(function(b){var bx=bulletX(b),dead=!b.red&&te>=b.tA;if(dead)hits.push({ang:Math.atan2(b.y,bx),age:te-b.tA})})}
+  wall(x,LK,s,hits);
+  if(P.bullets){bulletList().forEach(function(b){var bx=bulletX(b),v=300,px=bx+v*(b.tA-te);
+    if(!b.red){if(te<b.tA){x.save();x.shadowColor='rgba(255,170,90,.9)';x.shadowBlur=8;x.fillStyle='#ffb25c';x.beginPath();x.arc(px,b.y,4.4,0,TAU);x.fill();x.restore();
+        x.strokeStyle='rgba(255,170,90,.35)';x.lineWidth=3;x.beginPath();x.moveTo(px,b.y);x.lineTo(px+22,b.y);x.stroke()}
+      else{var q=(te-b.tA)/.3;if(q<1){x.save();x.globalCompositeOperation='lighter';x.strokeStyle='rgba(255,255,255,'+(1-q)+')';x.lineWidth=2;x.beginPath();x.arc(bx,b.y,4+14*eo(q),0,TAU);x.stroke();
+          glowDisc(x,bx,b.y,18,'255,255,255',.8*(1-q));x.restore();
+          spark(x,bx,b.y,0,1.6,7,q,b.i*13+5,LK==='gilt'?['255,214,130','255,255,255']:['190,225,255','255,255,255'],40,9)}}}
+    else{ /* the red aimed bullet: the crescent does not stop it */
+      var rx=bx+v*(b.tA-te);if(rx>18&&te>0){x.save();x.shadowColor='rgba(255,60,60,.95)';x.shadowBlur=9;x.fillStyle='#ff4a4a';x.beginPath();x.arc(rx,b.y,5,0,TAU);x.fill();x.restore();x.strokeStyle='rgba(255,70,70,.4)';x.lineWidth=3;x.beginPath();x.moveTo(rx,b.y);x.lineTo(rx+24,b.y);x.stroke()}
+      else if(te>0){var qh=(te-(b.tA+(bx-18)/v))/.3;if(qh>0&&qh<1){x.save();x.globalCompositeOperation='lighter';x.strokeStyle='rgba(255,90,90,'+(1-qh)+')';x.lineWidth=2;x.beginPath();x.arc(18,b.y,5+12*eo(qh),0,TAU);x.stroke();x.restore()}}}})}
+  /* enemies */
+  var beamOn=P.beam;
+  FOES.forEach(function(f){
+    if(f.beam&&!beamOn)return;if(P.enemies===false&&!f.beam)return;
+    var h=f.beam?TS+SW*.5+(f.x-30)/BEAM_SPEED:foeHit(f),fx=f.x,fy=f.y,flash=0;
+    if(h!=null&&te>=h){var q=te-h,d=Math.hypot(f.x,f.y)||1,k=(f.beam?3:15)*Math.exp(-q*8);fx+=f.x/d*k;fy+=f.y/d*k;if(q<.09)flash=1}
+    foe(x,fx,fy,flash,1);
+    if(h!=null&&te>=h&&te-h<.7){var q3=te-h,num=f.beam?24:60;x.save();x.globalAlpha=1-clamp((q3-.35)/.35,0,1);x.fillStyle='#fff';x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;
+      x.font='700 '+(f.beam?13:17)+'px Barlow Condensed, sans-serif';x.textAlign='center';var ny=fy-26-q3*34;x.strokeText(num,fx,ny);x.fillText(num,fx,ny);x.restore();
+      if(!f.beam){var sl=clamp(q3/.3,0,1);x.save();x.globalCompositeOperation='lighter';x.translate(fx,fy);x.rotate(Math.atan2(fy,fx)+Math.PI/2-.5);
+        var gr=x.createLinearGradient(-30,0,30,0);gr.addColorStop(0,'rgba('+col+',0)');gr.addColorStop(.5,'rgba(255,255,255,'+(1-sl)+')');gr.addColorStop(1,'rgba('+col+',0)');x.fillStyle=gr;
+        x.beginPath();x.moveTo(-30,0);x.quadraticCurveTo(0,-4*(1-sl)-.4,30,0);x.quadraticCurveTo(0,4*(1-sl)+.4,-30,0);x.fill();x.restore()}}
+  });
+  /* the beam: a piercing crescent flying out */
+  var sb=s-SW*.5;if(beamOn&&sb>0&&sb<BEAM_LIFE){var bx2=30+BEAM_SPEED*sb,fa=1-clamp((sb-BEAM_LIFE+.15)/.15,0,1);
+    x.save();x.globalCompositeOperation='lighter';
+    for(var tr=0;tr<10;tr++){var tx=bx2-tr*12,al=(1-tr/10)*.5*fa;x.strokeStyle='rgba('+col+','+al+')';x.lineWidth=3*(1-tr/12);x.beginPath();x.arc(tx-18,0,38,-.95,.95);x.stroke()}
+    x.shadowColor='rgba('+col+',.9)';x.shadowBlur=16;x.strokeStyle='rgba('+col+','+.8*fa+')';x.lineWidth=7;x.beginPath();x.arc(bx2-18,0,38,-.95,.95);x.stroke();x.shadowBlur=0;
+    x.strokeStyle='rgba(255,255,255,'+fa+')';x.lineWidth=2.4;x.beginPath();x.arc(bx2-18,0,38,-.95,.95);x.stroke();x.restore()}
+  /* the sweep itself, then the sword and its wielder */
+  trail(x,LK,s);
+  player(x);
+  var ang=sweepAng(te),hot=s>=0&&s<SW+.1;
+  sword(x,LK,ang,1,{hot:hot,glint:(te<.12||te>1.1)?((tRaw*.8)%1.6)-.3:null});
+  x.restore();
+  if(P.enemies!==false&&first<1e9){var qf=(tt-first)/.07;if(qf>0&&qf<1){x.fillStyle='rgba(255,255,255,'+.1*(1-qf)+')';x.fillRect(0,0,W,H)}}
+}
+
+/* ---------- canvases ---------- */
+function setup(c,w,h){c.__w=w;c.__h=h;var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+var stage=$('stage'),sx=setup(stage,1000,420);
+var PANELS=[
+ {title:'Wind-up and cut',sub:'0.11 s sweep · 170° · 60',text:'The sword is gathered back across your body, the cut comes through in one stroke, and enemies in the arc reel with a slash mark. The hit-stop is 0.05 s.',P:{enemies:true,skip:0}},
+ {title:'The crescent stops bullets',sub:'hangs 0.5 s',text:'The edge of the cut stays where it passed. Every bullet that touches it dies in a flash. The red aimed bullet passes straight through.',P:{bullets:true,enemies:false,skip:.2}},
+ {title:'Sword beam',sub:'+1 upgrade · 40% damage',text:'A piercing crescent flies out of the cut at 700 px/s for 0.6 s and goes through everything on its line.',P:{beam:true,enemies:false,skip:.15,ox:55}}
+];
+var moves=$('moves');
+PANELS.forEach(function(p){var cell=document.createElement('div');cell.className='cell';
+  cell.innerHTML='<h3>'+p.title+' <small>'+p.sub+'</small></h3><div class="frame"><canvas aria-label="'+p.title+'"></canvas></div><p>'+p.text+'</p>';moves.appendChild(cell);
+  p.c=cell.querySelector('canvas');p.x=setup(p.c,340,260)});
+
+/* ---------- controls ---------- */
+var looksEl=$('looks');
+Object.keys(LOOKS).forEach(function(k){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=LOOKS[k].name;b.dataset.k=k;b.setAttribute('aria-pressed',String(k===look));
+  b.addEventListener('click',function(){look=k;[].forEach.call(looksEl.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.k===k))});notes()});looksEl.appendChild(b)});
+function notes(){$('notes').innerHTML=LOOKS[look].note.map(function(t){return '<li>'+t+'</li>'}).join('');
+  $('stageNote').textContent=LOOKS[look].name+': the cut reaches 125 px and covers 170° in front of you. Enemies marked with a gold ring are only reached by the sword beam.'}
+notes();
+var paused=false,slow=false,clock=0,last=performance.now();
+$('pause').addEventListener('click',function(){paused=!paused;this.textContent=paused?'Play':'Pause'});
+$('tgSlow').addEventListener('change',function(){slow=this.checked});
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)clock+=dt*(slow?.3:1);
+  drawScene(sx,1000,420,1.45,{bullets:$('tgBullets').checked,beam:$('tgBeam').checked,enemies:true},clock,look);
+  PANELS.forEach(function(p){drawScene(p.x,340,260,p.P.beam?.7:1.05,p.P,clock,look)});
+  requestAnimationFrame(frame)}
+try{var qs=new URLSearchParams(location.search);
+  if(qs.get('look')&&LOOKS[qs.get('look')]){look=qs.get('look');[].forEach.call(looksEl.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.k===look))});notes()}
+  if(qs.get('t')!=null){clock=parseFloat(qs.get('t'));paused=true;$('pause').textContent='Play'}}catch(e){}
+if(reduced&&!paused){clock=.5;paused=true;$('pause').textContent='Play'}
+requestAnimationFrame(frame);
+})();
+</script>
