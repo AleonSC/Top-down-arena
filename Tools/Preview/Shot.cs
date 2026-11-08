@@ -300,6 +300,12 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LUNGE"), System.Globalization.CultureInfo.InvariantCulture) * 0.6f;
     }
+    if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
+      float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);
+      float hx = Game.Width / (2f * z), hy = Game.Height / (2f * z);
+      typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
+      typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, me.Disp.X)), Math.Max(hy, Math.Min(Game.Height - hy, me.Disp.Y))));
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

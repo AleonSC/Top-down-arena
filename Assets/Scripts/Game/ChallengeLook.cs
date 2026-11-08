@@ -402,7 +402,7 @@ namespace Arena
                     if (p.Disp.DistanceTo(game.PortalPos) < Challenges.PortalR)
                         inside++;
                 }
-            float y = at.Y - Challenges.PortalR * WorldToUi - 78f;
+            float y = at.Y - Challenges.PortalR * UiWorldScale - 78f;
             var card = new Rect(at.X - 130f, y, 260f, 58f);
             Ui.HudPanel(card, acc);
             Ui.Label(new Rect(card.x, card.y + 5f, card.width, 14f), "DATA GATE", 10, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleCenter, true);

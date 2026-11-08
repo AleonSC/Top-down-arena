@@ -176,7 +176,7 @@ namespace Arena
         void DrawLedgerCard(Player me, Effect settle)
         {
             V2 at = ToUi(me.Disp);
-            float r = me.Def.BodyR * WorldToUi;
+            float r = me.Def.BodyR * UiWorldScale;
             bool left = at.X + r + 30f + LedgerW > W - 20f;
             float x = left ? at.X - r - 30f - LedgerW : at.X + r + 30f, y = at.Y - 92f;
             if (y < 70f)

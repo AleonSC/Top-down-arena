@@ -224,7 +224,7 @@ namespace Arena
 
             // Where the tag goes
             const float tw = 176f, th = 62f, off = 52f;
-            float r = me.Def.BodyR * WorldToUi;
+            float r = me.Def.BodyR * UiWorldScale;
             bool right = at.X - off - tw < 30f, below = at.Y - 92f < 70f;
             float tx = right ? at.X + off : at.X - off - tw, ty = below ? at.Y + 30f : at.Y - 92f;
 

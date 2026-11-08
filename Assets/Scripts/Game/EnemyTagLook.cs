@@ -75,7 +75,7 @@ namespace Arena
                 }
                 int job = (int)Game.JobOf(e.Type);
                 V2 at = ToUi(e.Disp);
-                float r = e.Radius * WorldToUi;
+                float r = e.Radius * UiWorldScale;
                 Color c = ToColor(JobColors[job]);
                 c.a = Mathf.Clamp01(left / TagFade);
                 var box = new Rect(at.X - 70f, at.Y - r - 44f, 140f, 14f);
@@ -109,7 +109,7 @@ namespace Arena
             if (best == null)
                 return;
             V2 at = ToUi(best.Disp);
-            float r = best.Radius * WorldToUi;
+            float r = best.Radius * UiWorldScale;
             var box = new Rect(at.X - 70f, at.Y - r - 44f, 140f, 14f);
             Ui.Label(box, best.Def.Name.ToUpperInvariant(), 11, Color.white, TextAnchor.MiddleCenter, true);
             if (HasJobMarker(best))
