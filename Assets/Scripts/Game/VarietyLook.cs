@@ -52,6 +52,7 @@ namespace Arena
                         Line(pos, tip, Game.SentryBeamWidth * 0.6f, new Rgba(0.87f, 0.97f, 1f));
                     }
                 }
+                DrawShooterAim(e, pos, t);  // a regular shooter's aim line while it winds up (ShooterAimLook.cs)
                 if (e.Type == EnemyType.Leader && e.Phase == 1)  // its aim line, pointing where it thinks you'll be
                 {
                     V2 tip = pos + V2.FromAngle(e.Facing) * 520f;

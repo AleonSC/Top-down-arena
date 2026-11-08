@@ -11,6 +11,7 @@
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).
 # LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).
+# AIM=0.7 (the aimed shooters winding up: Sniper, Shard, Medic, Splitter, Phantom, Grunt with their aim lines).
 # NINJA=n / BLOOD=n (everyone plays that class, with weapon n), CAST="Crimson Pact" (cast an ability; CASTT=<seconds after>).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e
