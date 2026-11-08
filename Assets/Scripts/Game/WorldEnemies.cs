@@ -418,20 +418,27 @@ namespace Arena
         }
 
         /// A Shadow Clone: a dark copy of its ninja, flickering, with its time running out around it.
+        static readonly Rgba InkEcho = new Rgba(0.65f, 0.55f, 1f);
+
+        /// Thousand Clones, "Ink Echo": a violet brush-stroke silhouette standing in a pool of ink, with a ring that
+        /// breathes and a thin health bar (Minion.GuardFrac) that turns red when it is nearly gone.
         void DrawClone(Minion m, float t)
         {
-            Player owner;
-            Rgba col = game.Players.TryGetValue(m.Owner, out owner) ? owner.Def.Color : m.Def.Color;
-            float r = owner != null ? owner.Def.BodyR : m.Def.Radius;
-            float a = 0.55f + 0.15f * Mathf.Sin(t * 11f + m.Id);
-            Circle(m.Disp, r + 8f, m.Def.Color.WithAlpha(0.15f), 20);
-            Circle(m.Disp, r, col.Darkened(0.7f).WithAlpha(a), 24);
-            Arc(m.Disp, r, 2f, col.WithAlpha(a), 24);
-            V2 dir = V2.FromAngle(m.Aim);
-            Arc(m.Disp, r * 0.62f, 4f, NinjaCloth.WithAlpha(a), 16, m.Aim - 1.1f, 2.2f);
-            Line(m.Disp - dir * (r * 0.6f), m.Disp - dir * (r * 0.6f + 16f) + dir.Orthogonal() * (4f * Mathf.Sin(t * 9f)), 2f, col.WithAlpha(a * 0.8f));
-            if (m.T >= 0f && m.Duration > 0f)
-                Arc(m.Disp, r + 5f, 2f, col.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
+            float a = 0.9f + 0.08f * Mathf.Sin(t * 5f + m.Id);
+            V2 c = m.Disp, dir = V2.FromAngle(m.Aim);
+            float breathe = Mathf.Sin(t * 3f + m.Id * 1.7f);
+            Circle(c, 30f, InkEcho.WithAlpha(0.10f), 28);  // the pool
+            Circle(c, 22f, InkEcho.WithAlpha(0.18f), 24);
+            Arc(c, 23f + breathe * 1.5f, 2f, InkEcho.WithAlpha(0.55f), 32);
+            Circle(c, 13f, InkEcho.WithAlpha(a), 20);  // robe
+            Circle(c + dir * 4f, 8f, InkEcho.Darkened(0.55f).WithAlpha(a), 16);  // head
+            Arc(c, 13f, 3f, NinjaCloth.WithAlpha(a), 16, m.Aim - 1.0f, 2.0f);  // the headband
+            Line(c + dir * 8f, c + dir * 24f, 2f, InkEcho.WithAlpha(a));  // blade
+            float f = Mathf.Clamp01(m.GuardFrac);
+            V2 bar = c + new V2(-15f, 26f);
+            Line(bar, bar + new V2(30f, 0f), 4f, new Rgba(0f, 0f, 0f, 0.6f));
+            if (f > 0f)
+                Line(bar, bar + new V2(30f * f, 0f), 4f, f > 0.4f ? InkEcho : new Rgba(1f, 0.38f, 0.44f));
         }
 
         /// An enemy, in layers: spawn ring, melee spikes, its type's effects behind the body, elite ring and

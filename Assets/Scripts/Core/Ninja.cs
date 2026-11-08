@@ -34,6 +34,8 @@ namespace Arena
         public const float ShadowStepFxTime = 1f;
         V2? StepFrom;  // where the caster stood when they pressed Shadow Step (set around HostAbility; null: use their position)
         const float CloneWallTime = 7f, CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
+        const int ThousandClonesCount = 12, ThousandClonesCapstone = 20;
+        const float CloneSpacing = 140f, CloneNinjaGap = 90f, CloneEdge = 60f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
         const float IronTime = 2f, IronCut = 0.8f, IronWaveRadius = 140f, IronWaveDamage = 50f;
         const float SubShield = 60f, SubShieldTime = 6f, WardRadius = 140f, WardTime = 8f;
@@ -407,8 +409,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ThousandClones, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Thousand Clones", Cooldown = 70f, Desc = "Five clones surround you for 8 s: every enemy targets them, and each bursts for 60 when it ends.",
-                Capstone = "Eight clones.",
+                Name = "Thousand Clones", Cooldown = 70f, Desc = "Twelve clones appear all over the map. Every enemy goes for the nearest one at once. They soak 100 damage each and last until they die or the round ends; each bursts for 60 when killed.",
+                Capstone = "Twenty clones.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
@@ -520,9 +522,9 @@ namespace Arena
                 // Ultimates
                 case AbilityId.ThousandClones:
                 {
-                    int n = cap ? 8 : 5;
-                    for (int i = 0; i < n; i++)
-                        SpawnClone(p, p.Pos + V2.FromAngle(p.Aim + MathX.Tau * i / n) * 80f, 8f, s.DmgMult);
+                    int n = cap ? ThousandClonesCapstone : ThousandClonesCount;
+                    foreach (var spot in CloneSpots(p, n))
+                        SpawnClone(p, spot, -1f, s.DmgMult);  // life -1: no timer, they last until killed or the round ends
                     BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(MinionKind.Clone).Color, 90f, 0.5f, Sfx.Summon);
                     return true;
                 }
@@ -557,10 +559,34 @@ namespace Arena
             return false;
         }
 
-        /// A Shadow Clone: enemies go for it, and it bursts when it ends (burst = damage multiplier).
+        /// Thousand Clones: n spots spread over the whole arena, kept apart from each other (the gap relaxes if the map
+        /// is crowded) and off the walls and pillars.
+        List<V2> CloneSpots(Player p, int n)
+        {
+            var spots = new List<V2>();
+            for (int tries = 0; spots.Count < n && tries < 4000; tries++)
+            {
+                var c = PushOutOfSolids(new V2(Rand(ArenaMin.X + CloneEdge, ArenaMax.X - CloneEdge), Rand(ArenaMin.Y + CloneEdge, ArenaMax.Y - CloneEdge)), 20f);
+                float gap = CloneSpacing - Math.Min(60f, tries / 60f);
+                if (c.DistanceTo(p.Pos) < CloneNinjaGap)
+                    continue;
+                bool ok = true;
+                foreach (var o in spots)
+                    if (o.DistanceTo(c) < gap) { ok = false; break; }
+                if (ok)
+                    spots.Add(c);
+            }
+            while (spots.Count < n)  // (a map too crowded to space them out: ring the rest around the Ninja)
+                spots.Add(ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 100f, 10f));
+            return spots;
+        }
+
+        /// A Shadow Clone: enemies go for it. It soaks bullets, bursts when killed, and (life < 0) never times out
+        /// (burst = damage multiplier).
         void SpawnClone(Player p, V2 pos, float life, float burst)
         {
             var m = SpawnMinion(MinionKind.Clone, p, pos, life);
+            m.Duration = Math.Max(0f, life);
             m.Power = burst;
             m.Aim = p.Aim;
         }

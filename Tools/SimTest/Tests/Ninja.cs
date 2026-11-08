@@ -301,10 +301,19 @@ static partial class Program
         Console.WriteLine("  blade fan: {0} kunai; death lotus struck {1} of 10", kunai, struck);
         Check(struck == 8, "Death Lotus strikes 8 enemies");
 
-        // Thousand Clones (the Tank Ninja's ultimate): five clones.
+        // Thousand Clones (the Tank Ninja's ultimate): twelve clones all over the map, until they die or the round ends.
         hp.Slots[Upgrades.UltSlot].Charges = 1;
         cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, hp.Pos, true });
-        Check(g.Minions.Values.Count(m => m.Kind == MinionKind.Clone && m.Owner == 1) == 5, "Thousand Clones surrounds you with five clones");
+        var tc = g.Minions.Values.Where(m => m.Kind == MinionKind.Clone && m.Owner == 1).ToList();
+        Check(tc.Count == 12, "Thousand Clones makes twelve clones");
+        float minGap = 1e9f;
+        for (int i = 0; i < tc.Count; i++) for (int j = i + 1; j < tc.Count; j++) minGap = Math.Min(minGap, tc[i].Pos.DistanceTo(tc[j].Pos));
+        Check(minGap > 70f && tc.Max(m => m.Pos.DistanceTo(hp.Pos)) > 400f, "the clones are spread over the whole map, not ringed around you");
+        Check(tc.All(m => m.T < 0f), "the clones have no timer");
+        run(12f);
+        Check(g.Minions.Values.Count(m => m.Kind == MinionKind.Clone && m.Owner == 1) >= 1, "a clone outlives the old 8 s");
+        var tgt = g.Minions.Values.First(m => m.Kind == MinionKind.Clone && m.Owner == 1);
+        Check(tgt.BlockHp > 0f && tgt.Def.BlockCapacity == 100f, "a clone soaks 100 damage");
         s[0].Leave(""); s[1].Leave("");
     }
 }
