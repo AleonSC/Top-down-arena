@@ -598,6 +598,8 @@ namespace Arena
                     MLine(-4f, 0f, 0f, 0f, 3f, Hx(0x6b4a2e)); MLine(0f, -4f, 0f, 4f, 2.6f, MGold); MLine(1f, 0f, 22f, 0f, 3f, MSteel); MPoly(MSteel, 21f, 0f, 21f, -1.6f, 26f, 0f, 21f, 1.6f);
                     break;
                 case WeaponId.Greatsword:
+                    if (fxOn)
+                        break;  // with Visual effects on, GreatswordLook.cs draws it in two hands (DrawGreatswordIdle)
                     MPoly(Hx(0xd7e0ee), 3f, 0f, 3f, -3.5f, 40f, -3.5f, 46f, 0f, 40f, 3.5f, 3f, 3.5f); MLine(10f, 0f, 40f, 0f, 0.8f, Hx(0x8fa0b8)); MRect(-1f, -9f, 4f, 18f, MGold); MLine(-12f, 0f, -1f, 0f, 3.4f, Hx(0x6b4a2e)); MCirc(-14f, 0f, 3f, MGold, 8);
                     break;
                 case WeaponId.Rapier:

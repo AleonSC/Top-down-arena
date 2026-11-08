@@ -89,6 +89,18 @@ namespace Arena
             DrawMeleeModel(WeaponId.Greatsword, o, ang, Game.MeleeReach(p, p.Weapon.Reach), 1f, GreatMoon, u > 0.7f, 1f, ArmColor(p.Id));
         }
 
+        /// The Greatsword held at the ready in both gloved hands, drawn over the body in place of the model's own blade. It phases out
+        /// while a cut, the rend's wind-up or the guard pose draws the sword, and back in after (HeldPhase).
+        void DrawGreatswordIdle(Player p, float t)
+        {
+            if (!fxOn || p.Weapon.Id != WeaponId.Greatsword || p.Downed || p.GreatGuard)
+                return;
+            float phase = HeldPhase(p.Id);
+            if (phase <= 0f)
+                return;
+            DrawMeleeModel(WeaponId.Greatsword, p.Disp, p.Aim - 0.45f + 0.02f * Mathf.Sin(t * 2.6f), Game.MeleeReach(p, p.Weapon.Reach), phase, GreatMoon, false, 1f, ArmColor(p.Id));
+        }
+
         const float GreatKickTime = 0.22f;
         readonly Dictionary<int, bool> greatGuardSeen = new Dictionary<int, bool>();
         readonly Dictionary<int, float> greatKickAt = new Dictionary<int, float>();
