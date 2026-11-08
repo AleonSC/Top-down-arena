@@ -1,0 +1,576 @@
+<title>Kusarigama Combo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, stage 1 (sickle cut then weight throw), stage 2 (Whirl & Drag alt fire), numbers table, notes.
+   Same page tokens as the other mockups; canvas colours are the Kusarigama's lilac (0.7, 0.64, 1) on a night-violet arena. */
+:root{
+  --bg:#efedf4; --fg:#1c1a2b; --muted:#5d5a73; --panel:#f9f8fc; --line:#d3cfe2; --chip:#e2dff0; --chip-on:#1c1a2b; --chip-on-fg:#f3f1fa; --accent:#5b45c9;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e0c18; --fg:#e9e6f5; --muted:#9a96b3; --panel:#17142a; --line:#2c2845; --chip:#221e38; --chip-on:#e9e6f5; --chip-on-fg:#0e0c18; --accent:#b3a3ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0c18; --fg:#e9e6f5; --muted:#9a96b3; --panel:#17142a; --line:#2c2845; --chip:#221e38; --chip-on:#e9e6f5; --chip-on-fg:#0e0c18; --accent:#b3a3ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px;text-wrap:balance}
+section>p{margin:0 0 12px;max-width:70ch;color:var(--muted);font-size:15px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0d0b17}
+canvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:1000/420;touch-action:none;cursor:crosshair}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;touch-action:manipulation;user-select:none}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);background:var(--chip);border-radius:4px;padding:1px 6px}
+</style>
+
+<main>
+<header>
+  <h1>Kusarigama: sickle, then chain</h1>
+  <p>Proposed remake for the Tank Ninja's Kusarigama. The basic attack becomes a two-piece combo: a fast sickle cut, then the iron weight thrown down the lane, which drags its target back to you. The weapon-action key becomes Whirl &amp; Drag: hold to spin the weight in a circle around you and pull every enemy nearby into the chain.</p>
+  <p>Both stages are live. Move the pointer over a stage to aim, click to attack, or leave Auto on. Nothing in the game has changed yet.</p>
+</header>
+
+<section>
+  <h2>Basic attack: cut, then throw</h2>
+  <p>Piece one is a 144° sickle cut that leaves a lilac crescent hanging in the air while the weight whips behind you. Press again inside 0.7 s for piece two: the weight spins overhead, flies out 280 px, bites the first enemy in the lane and hauls it back to your feet, stunned. The cut then lands on it.</p>
+  <div class="bar">
+    <button id="a_auto" class="on" type="button" aria-pressed="true">Auto combo</button>
+    <button id="a_s1" type="button">1 Sickle cut</button>
+    <button id="a_s2" type="button">2 Weight throw</button>
+    <label class="tg"><input type="checkbox" class="slowcb"> Slow motion</label>
+  </div>
+  <div class="frame"><canvas id="c1" width="1000" height="420" aria-label="Kusarigama combo preview"></canvas></div>
+  <div class="sub" id="s1_info">Two pips over the Ninja show the step. Pointer aims; with no pointer it aims at the nearest enemy.</div>
+</section>
+
+<section>
+  <h2>Weapon action: Whirl &amp; Drag</h2>
+  <p>Hold <kbd>Left Alt</kbd>. The weight winds up to speed in 0.35 s and circles you, its radius growing from 70 to 150 px. Anything within 200 px is dragged toward you in a slow swirl, and the spinning chain cuts everything it crosses. Let go (or run out of the 3 s) and the chain snaps in: a shockwave knocks the crowd back and stuns it.</p>
+  <div class="bar">
+    <button id="b_auto" class="on" type="button" aria-pressed="true">Auto cycle</button>
+    <button id="b_hold" type="button">Hold to whirl</button>
+    <label class="tg"><input type="checkbox" id="b_latch"> Latch the whirl on</label>
+    <label class="tg"><input type="checkbox" class="slowcb"> Slow motion</label>
+  </div>
+  <div class="frame"><canvas id="c2" width="1000" height="420" aria-label="Whirl and Drag preview"></canvas></div>
+  <div class="sub" id="s2_info">The ring around the Ninja fills as the 3 s whirl runs out. In the demo the lockout after release is cut to 1.2 s.</div>
+</section>
+
+<section>
+  <h2>Numbers</h2>
+  <p>Proposed starting values, to be tuned in the sim. The combo is built to land at about the same damage per second as today's throw plus reel.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Move</th><th>Input</th><th>Damage</th><th>Time</th><th>Reach</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>1 Sickle cut</td><td>Fire</td><td class="n">16</td><td class="n">0.30 s</td><td class="n">96 px, 144°</td><td>18 px shove, 0.12 s stun. Opens a 0.7 s window for piece two.</td></tr>
+      <tr><td>2 Weight throw</td><td>Fire again</td><td class="n">34</td><td class="n">0.65 s</td><td class="n">280 px (+40 per bonus), lane 16 px</td><td>Hits the first enemy in the lane, stuns 0.4 s, drags it to 45 px from you. Bonus damage +30% as before.</td></tr>
+      <tr><td>Combo</td><td>Fire, Fire</td><td class="n">50</td><td class="n">0.95 s</td><td class="n">&nbsp;</td><td>About 53 DPS if both land, against 47 for the single throw today. Restarts at piece one after 0.7 s idle.</td></tr>
+      <tr><td>Whirl</td><td>Hold Left Alt</td><td class="n">12 per hit</td><td class="n">max 3.0 s</td><td class="n">70 → 150 px orbit, pull 200 px</td><td>Pull 240 px/s toward you, stops 46 px out. A hit per enemy every 0.12 s at most, about 27 DPS each. You move at 55% speed and cannot swing.</td></tr>
+      <tr><td>Snap</td><td>Release</td><td class="n">30</td><td class="n">0.18 s</td><td class="n">110 px burst</td><td>Knocks enemies out 60 px, stuns 0.6 s. Then a 3 s cooldown.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="grid2">
+  <div class="card">
+    <h3>What changes from today</h3>
+    <ul>
+      <li>The throw no longer needs a second key press to be useful. Its own return drags the target in, so the hook-and-reel on Left Alt goes away.</li>
+      <li>The stunning reel slash (52 damage) is replaced by the cut, which lands on the dragged enemy.</li>
+      <li>Left Alt now does the whirl for every Kusarigama owner, with no hook needed.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>How it would be drawn</h3>
+    <ul>
+      <li>Cut: a tapered lilac ribbon from handle to blade tip that hangs 0.4 s, the same glassy crescent the Greatsword uses.</li>
+      <li>Throw: the weight whirls once, streaks with a glow, and the chain draws taut with a dashed pattern. Impact gets a ring, sparks and a 0.05 s hit-stop.</li>
+      <li>Whirl: a speed-blur arc behind the weight, a dashed pull ring that rotates, and inward chevrons that show the pull.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Questions for you</h3>
+    <ul>
+      <li>OK to drop the hook-and-reel? It is the one thing the old weapon did that this one does not.</li>
+      <li>Should the spinning chain cut small enemy bullets, like the Bo Staff? Easy to add.</li>
+      <li>Tank bonus while whirling, such as 25% less damage taken?</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Build notes</h3>
+    <ul>
+      <li>New replicated fields (combo step, whirl state) and new effect kinds mean a <code>Session.ProtocolVersion</code> bump.</li>
+      <li>The throw reuses the existing lane test in <code>ThrowKusarigama</code>; the whirl and the cut are new code in <code>Ninja.cs</code>.</li>
+      <li>The Armory and Bestiary pages stay as they are until you ask for them.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var W=1000,H=420,TAU=Math.PI*2,LIL='179,163,255';
+var RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+var slow=false;
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,t){return a+(b-a)*t}
+function eo(t){t=clamp(t,0,1);return 1-Math.pow(1-t,3)}
+function sm(t){t=clamp(t,0,1);return t*t*(3-2*t)}
+function normA(a){a%=TAU;if(a<0)a+=TAU;return a}
+function angDiff(a,b){var d=normA(a-b);return d>Math.PI?d-TAU:d}
+function C(col,a){return 'rgba('+col+','+a+')'}
+function setSlow(v){slow=v;[].forEach.call(document.querySelectorAll('.slowcb'),function(c){c.checked=v})}
+[].forEach.call(document.querySelectorAll('.slowcb'),function(c){c.addEventListener('change',function(){setSlow(c.checked)})});
+function setToggle(btn,on){btn.classList.toggle('on',on);btn.setAttribute('aria-pressed',on?'true':'false')}
+
+/* ---------- shared drawing ---------- */
+function drawFloor(g,t){
+  g.fillStyle='#0d0b17';g.fillRect(0,0,W,H);
+  g.fillStyle='#1d1a30';
+  for(var x=20;x<W;x+=40)for(var y=20;y<H;y+=40)g.fillRect(x,y,2,2);
+  var v=g.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.45)');
+  g.fillStyle=v;g.fillRect(0,0,W,H);
+}
+function drawEnemy(g,e,t){
+  if(e.dead)return;
+  g.save();g.translate(e.x,e.y);
+  var fl=e.flash>0;
+  g.fillStyle=fl?'#fff':'#5e2335';g.strokeStyle=fl?'#fff':'#d4707e';g.lineWidth=2;
+  g.beginPath();g.arc(0,0,e.r,0,TAU);g.fill();g.stroke();
+  g.fillStyle=fl?'rgba(255,255,255,.9)':'rgba(255,200,205,.5)';g.beginPath();g.arc(0,0,e.r*.4,0,TAU);g.fill();
+  if(e.stun>0){g.fillStyle='#ffe38a';for(var i=0;i<3;i++){var a=t*7+i*TAU/3;g.beginPath();g.arc(Math.cos(a)*(e.r+7),Math.sin(a)*(e.r+7),2.4,0,TAU);g.fill()}}
+  if(e.hp<e.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(-e.r,-e.r-10,e.r*2,4);g.fillStyle='#e0667a';g.fillRect(-e.r,-e.r-10,e.r*2*Math.max(0,e.hp/e.max),4)}
+  g.restore();
+}
+function drawPlayer(g,x,y,ba,t){
+  var dx=Math.cos(ba),dy=Math.sin(ba),nx=-dy,ny=dx;
+  g.save();g.lineCap='round';
+  var w=Math.sin(t*9)*5;
+  g.strokeStyle='#8f7bf0';g.lineWidth=4;g.beginPath();g.moveTo(x-dx*10,y-dy*10);
+  g.quadraticCurveTo(x-dx*26+nx*w,y-dy*26+ny*w,x-dx*40-nx*w,y-dy*40-ny*w);g.stroke();
+  g.fillStyle='#3d3570';g.strokeStyle='#7a6bd0';g.lineWidth=1.5;
+  [-1,1].forEach(function(s){g.beginPath();g.arc(x+nx*15*s,y+ny*15*s,7,0,TAU);g.fill();g.stroke()});
+  g.fillStyle='#262043';g.strokeStyle='#6a5bb8';g.lineWidth=2.5;g.beginPath();g.arc(x,y,14,0,TAU);g.fill();g.stroke();
+  g.fillStyle='#14111f';g.beginPath();g.arc(x+dx*2,y+dy*2,8.5,0,TAU);g.fill();
+  g.strokeStyle='#b3a3ff';g.lineWidth=2;g.beginPath();g.arc(x+dx*2,y+dy*2,8.5,ba-1.1,ba+1.1);g.stroke();
+  g.strokeStyle='#e9e2ff';g.lineWidth=1.5;g.beginPath();g.moveTo(x+dx*6+nx*-3,y+dy*6+ny*-3);g.lineTo(x+dx*6+nx*3,y+dy*6+ny*3);g.stroke();
+  g.restore();
+}
+function drawSickle(g,hx,hy,a,len){
+  var dx=Math.cos(a),dy=Math.sin(a),nx=-dy,ny=dx,ex=hx+dx*len,ey=hy+dy*len;
+  g.save();g.lineCap='round';
+  g.strokeStyle='#4f4030';g.lineWidth=4.5;g.beginPath();g.moveTo(hx,hy);g.lineTo(ex,ey);g.stroke();
+  g.strokeStyle='#9a8559';g.lineWidth=2;g.beginPath();g.moveTo(hx,hy);g.lineTo(ex,ey);g.stroke();
+  g.beginPath();g.moveTo(ex,ey);
+  g.quadraticCurveTo(ex+dx*26+nx*6,ey+dy*26+ny*6,ex+dx*8+nx*25,ey+dy*8+ny*25);
+  g.quadraticCurveTo(ex+dx*15+nx*10,ey+dy*15+ny*10,ex,ey);
+  g.fillStyle='#c9cde0';g.strokeStyle='#f0f1ff';g.lineWidth=1.5;g.fill();g.stroke();
+  g.restore();
+}
+function drawWeight(g,x,y,glow,ph){
+  g.save();
+  if(glow>0){
+    g.globalCompositeOperation='lighter';
+    var gr=g.createRadialGradient(x,y,2,x,y,30);gr.addColorStop(0,C(LIL,.55*glow));gr.addColorStop(1,C(LIL,0));
+    g.fillStyle=gr;g.beginPath();g.arc(x,y,30,0,TAU);g.fill();
+    g.globalCompositeOperation='source-over';
+  }
+  g.strokeStyle='#aeb3c9';g.lineWidth=3.5;g.lineCap='round';
+  for(var i=0;i<6;i++){var a=i*TAU/6+(ph||0);g.beginPath();g.moveTo(x+Math.cos(a)*7,y+Math.sin(a)*7);g.lineTo(x+Math.cos(a)*13,y+Math.sin(a)*13);g.stroke()}
+  g.fillStyle='#4a4d63';g.strokeStyle='#cdd1e6';g.lineWidth=2;g.beginPath();g.arc(x,y,8.5,0,TAU);g.fill();g.stroke();
+  g.fillStyle='rgba(255,255,255,.55)';g.beginPath();g.arc(x-2.5,y-2.5,2,0,TAU);g.fill();
+  g.restore();
+}
+function sagPoint(lx,ly,wx,wy,max,sign){
+  var dx=wx-lx,dy=wy-ly,len=Math.hypot(dx,dy)||1,mx=(lx+wx)/2,my=(ly+wy)/2;
+  var sag=Math.min(60,Math.sqrt(Math.max(0,max*max-len*len))*.5)*(sign||1);
+  return {x:mx-dy/len*sag,y:my+dx/len*sag};
+}
+function drawChain(g,lx,ly,wx,wy,c,glow){
+  g.save();g.lineCap='butt';
+  if(glow>0){g.globalCompositeOperation='lighter';g.strokeStyle=C(LIL,.35*glow);g.lineWidth=7;g.beginPath();g.moveTo(lx,ly);g.quadraticCurveTo(c.x,c.y,wx,wy);g.stroke();g.globalCompositeOperation='source-over'}
+  g.strokeStyle='#8c90a8';g.lineWidth=3;g.setLineDash([5,3]);g.beginPath();g.moveTo(lx,ly);g.quadraticCurveTo(c.x,c.y,wx,wy);g.stroke();
+  g.strokeStyle='#e0e3f4';g.lineWidth=1.2;g.setLineDash([2,6]);g.beginPath();g.moveTo(lx,ly);g.quadraticCurveTo(c.x,c.y,wx,wy);g.stroke();
+  g.restore();
+}
+
+/* ---------- sim base ---------- */
+function Sim(cv){
+  this.cv=cv;var dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;
+  this.g=cv.getContext('2d');this.g.setTransform(dpr,0,0,dpr,0,0);
+  this.t=0;this.enemies=[];this.fx=[];this.shake=0;this.freeze=0;this.respawns=[];this.vis=true;
+}
+function mkEnemy(x,y,hp){return {x:x,y:y,r:15+Math.random()*4,hp:hp,max:hp,flash:0,stun:0,vx:0,vy:0,cd:0,dead:false,hooked:false,hold:150}}
+Sim.prototype.ring=function(x,y,r0,r1,life,col,w){this.fx.push({k:'r',x:x,y:y,r0:r0,r1:r1,life:life,age:0,col:col,w:w||2})};
+Sim.prototype.sparks=function(x,y,col,n,spd,dir,spread){
+  for(var i=0;i<n;i++){var a=dir===undefined?Math.random()*TAU:dir+(Math.random()-.5)*(spread||1);var s=spd*(.35+Math.random()*.65);
+    this.fx.push({k:'s',x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.2+Math.random()*.25,age:0,col:col})}
+};
+Sim.prototype.num=function(x,y,v,col){this.fx.push({k:'n',x:x,y:y,v:v,life:.7,age:0,col:col})};
+Sim.prototype.hurt=function(e,d,col){
+  if(e.dead)return;
+  e.hp-=d;e.flash=.12;this.num(e.x,e.y-e.r-6,d,col||LIL);this.sparks(e.x,e.y,col||LIL,5,170);
+  if(e.hp<=0){e.dead=true;e.hooked=false;this.sparks(e.x,e.y,'255,130,140',14,250);this.ring(e.x,e.y,e.r,e.r+28,.3,'255,150,160',2);this.respawns.push(1.2)}
+};
+Sim.prototype.baseEnemy=function(e,dt){
+  if(e.flash>0)e.flash-=dt;if(e.cd>0)e.cd-=dt;
+  e.x+=e.vx*dt;e.y+=e.vy*dt;var f=Math.exp(-7*dt);e.vx*=f;e.vy*=f;
+  e.x=clamp(e.x,20,W-20);e.y=clamp(e.y,20,H-20);
+};
+Sim.prototype.stepFx=function(dt){
+  for(var i=this.fx.length-1;i>=0;i--){var f=this.fx[i];f.age+=dt;
+    if(f.k==='s'){f.x+=f.vx*dt;f.y+=f.vy*dt;var d=Math.exp(-6*dt);f.vx*=d;f.vy*=d}
+    else if(f.k==='n')f.y-=40*dt;
+    if(f.age>=f.life)this.fx.splice(i,1)}
+};
+Sim.prototype.drawFx=function(g){
+  g.save();
+  for(var i=0;i<this.fx.length;i++){var f=this.fx[i],u=f.age/f.life;
+    if(f.k==='r'){g.globalCompositeOperation='lighter';g.strokeStyle=C(f.col,(1-u)*.85);g.lineWidth=f.w*(1-u)+.5;g.beginPath();g.arc(f.x,f.y,lerp(f.r0,f.r1,eo(u)),0,TAU);g.stroke()}
+    else if(f.k==='s'){g.globalCompositeOperation='lighter';g.strokeStyle=C(f.col,1-u);g.lineWidth=2;g.beginPath();g.moveTo(f.x,f.y);g.lineTo(f.x-f.vx*.04,f.y-f.vy*.04);g.stroke()}
+    else{g.globalCompositeOperation='source-over';g.globalAlpha=1-u*u;g.font="600 15px 'IBM Plex Mono',monospace";g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.7)';g.strokeText(f.v,f.x,f.y);g.fillStyle=C(f.col,1);g.fillText(f.v,f.x,f.y);g.globalAlpha=1}}
+  g.restore();
+};
+Sim.prototype.step=function(rdt){
+  var dt=rdt*(slow?.3:1);
+  if(this.freeze>0){this.freeze-=rdt;dt=0}
+  this.t+=dt;
+  this.update(dt);
+  this.stepFx(dt);
+  this.shake*=Math.exp(-14*rdt);
+  this.enemies=this.enemies.filter(function(e){return !e.dead});
+  for(var i=this.respawns.length-1;i>=0;i--){this.respawns[i]-=dt;if(this.respawns[i]<=0){this.respawns.splice(i,1);this.spawn(false)}}
+  this.draw();
+};
+Sim.prototype.begin=function(){
+  var g=this.g;g.save();
+  if(!RM&&this.shake>.2)g.translate((Math.random()-.5)*this.shake,(Math.random()-.5)*this.shake);
+  return g;
+};
+function ptrOf(cv,ev){var r=cv.getBoundingClientRect();return {x:(ev.clientX-r.left)/r.width*W,y:(ev.clientY-r.top)/r.height*H}}
+
+/* ---------- stage 1: sickle cut, then weight throw ---------- */
+function S1(cv){
+  Sim.call(this,cv);
+  this.p={x:190,y:210};this.aim=0;this.ptr=null;
+  this.ph='idle';this.t1=0;this.win=0;this.pips=0;this.pipT=0;this.wait=.7;this.auto=!RM;this.cd=0;
+  this.trail=[];this.w={x:160,y:250,vx:0,vy:0};this.wp={x:160,y:250};this.ba=0;this.sa=0.5;this.thr=null;this.glow=0;this.hit=false;this.lockAim=0;this.tt=0;
+  for(var i=0;i<4;i++)this.spawn(true);
+}
+S1.prototype=Object.create(Sim.prototype);
+S1.prototype.spawn=function(init){
+  var e=mkEnemy(init?330+Math.random()*450:W-30,50+Math.random()*320,90);
+  e.hold=init?80+Math.random()*220:110+Math.random()*190;
+  this.enemies.push(e);
+};
+S1.prototype.hands=function(ba){
+  var p=this.p,dx=Math.cos(ba),dy=Math.sin(ba),nx=-dy,ny=dx;
+  return {R:{x:p.x+dx*13+nx*10,y:p.y+dy*13+ny*10},L:{x:p.x+dx*11-nx*10,y:p.y+dy*11-ny*10},dx:dx,dy:dy,nx:nx,ny:ny};
+};
+S1.prototype.press=function(){
+  if(this.cd>0)return;
+  if(this.ph==='idle')this.startCut();
+  else if(this.ph==='gap')this.startThrow();
+};
+S1.prototype.startCut=function(){this.ph='cut';this.t1=0;this.lockAim=this.aim;this.hit=false;this.trail=[];this.pips=1;this.pipT=0};
+S1.prototype.startThrow=function(){
+  var p=this.p,a=this.aim,dx=Math.cos(a),dy=Math.sin(a),first=null,fa=1e9;
+  this.enemies.forEach(function(e){
+    if(e.dead)return;var rx=e.x-p.x,ry=e.y-p.y,al=rx*dx+ry*dy,ac=Math.abs(-rx*dy+ry*dx);
+    if(al<0||al>280+e.r||ac>16+e.r||al>=fa)return;first=e;fa=al});
+  this.ph='throw';this.t1=0;this.lockAim=a;this.pips=2;this.pipT=0;this.glow=0;this.hit=false;
+  this.thr={hook:first,ex:first?first.x-dx*first.r*.7:p.x+dx*280,ey:first?first.y-dy*first.r*.7:p.y+dy*280};
+};
+S1.prototype.angAt=function(t){return t<.06?lerp(this.lockAim-.55,this.lockAim-1.5,t/.06):lerp(this.lockAim-1.5,this.lockAim+1.35,eo((t-.06)/.2))};
+S1.prototype.update=function(dt){
+  var self=this,p=this.p;
+  this.enemies.forEach(function(e){
+    self.baseEnemy(e,dt);
+    if(e.stun>0){e.stun-=dt;return}
+    if(e.hooked)return;
+    var dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1;
+    if(d>e.hold){e.x+=dx/d*34*dt;e.y+=dy/d*34*dt}else{e.x+=-dy/d*10*dt;e.y+=dx/d*10*dt}
+  });
+  if(this.cd>0)this.cd-=dt;
+  if(this.ph==='idle'||this.ph==='gap'){
+    var tg=null;
+    if(this.ptr)tg=Math.atan2(this.ptr.y-p.y,this.ptr.x-p.x);
+    else{var bd=1e9;this.enemies.forEach(function(e){var d=Math.hypot(e.x-p.x,e.y-p.y);if(!e.dead&&d<bd){bd=d;tg=Math.atan2(e.y-p.y,e.x-p.x)}})}
+    if(tg!==null)this.aim+=angDiff(tg,this.aim)*Math.min(1,dt*10);
+  }
+  if(this.pipT>0){this.pipT-=dt;if(this.pipT<=0)this.pips=0}
+  var i;
+  if(this.ph==='cut'){
+    var t0=this.t1;this.t1+=dt;
+    if(dt>0&&this.t1>.06&&t0<.26){
+      for(var k=1;k<=3;k++){var ts=lerp(t0,Math.min(this.t1,.26),k/3);if(ts<.06)continue;
+        var a=this.angAt(ts),h=this.hands(this.lockAim+(a-this.lockAim)*.4),dx=Math.cos(a),dy=Math.sin(a);
+        this.trail.push({x0:h.R.x+dx*34,y0:h.R.y+dy*34,x1:h.R.x+dx*84,y1:h.R.y+dy*84,age:0})}
+    }
+    var ang=this.angAt(Math.min(this.t1,.3));this.sa=ang;this.ba=this.lockAim+(ang-this.lockAim)*.4;
+    if(!this.hit&&this.t1>=.13){this.hit=true;this.cutHit()}
+    if(this.t1>=.3){this.ph='gap';this.win=.7;this.t1=0;this.wait=.05;this.ba=this.lockAim+.5*0}
+  }else if(this.ph==='gap'){
+    this.win-=dt;this.ba+=angDiff(this.aim,this.ba)*Math.min(1,dt*10);
+    if(this.win<=0){this.ph='idle';this.pips=0;this.wait=.35}
+  }else if(this.ph==='throw'){
+    this.t1+=dt;this.ba=this.lockAim;this.throwUpdate();
+  }else{this.ba+=angDiff(this.aim,this.ba)*Math.min(1,dt*10);this.sa=this.ba+.55}
+  for(i=this.trail.length-1;i>=0;i--){this.trail[i].age+=dt;if(this.trail[i].age>(RM?.2:.4))this.trail.splice(i,1)}
+  if(this.glow>0&&this.ph!=='throw')this.glow=Math.max(0,this.glow-dt*4);
+  // idle weight: a spring that lags behind the body
+  if(this.ph!=='throw'){
+    var h=this.hands(this.ba),T={x:h.L.x-h.dx*22-h.nx*40,y:h.L.y-h.dy*22-h.ny*40},w=this.w;
+    w.vx+=((T.x-w.x)*90-w.vx*12)*dt;w.vy+=((T.y-w.y)*90-w.vy*12)*dt;w.x+=w.vx*dt;w.y+=w.vy*dt;
+    var ddx=w.x-h.L.x,ddy=w.y-h.L.y,dd=Math.hypot(ddx,ddy);
+    if(dd>80){w.x=h.L.x+ddx/dd*80;w.y=h.L.y+ddy/dd*80}
+    this.wp.x=w.x;this.wp.y=w.y;
+  }
+  if(this.auto&&(this.ph==='idle'||this.ph==='gap')){this.wait-=dt;if(this.wait<=0)this.press()}
+};
+S1.prototype.cutHit=function(){
+  var p=this.p,a=this.lockAim,self=this;
+  this.enemies.forEach(function(e){
+    if(e.dead)return;var dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;
+    if(d<96+e.r&&Math.abs(angDiff(Math.atan2(dy,dx),a))<1.4){
+      self.hurt(e,16,LIL);e.vx+=dx/d*160;e.vy+=dy/d*160;e.stun=Math.max(e.stun,.12);
+      self.sparks(e.x,e.y,'255,255,255',6,200,Math.atan2(dy,dx),1.2);
+    }
+  });
+  this.ring(p.x+Math.cos(a)*60,p.y+Math.sin(a)*60,10,50,.25,LIL,3);
+  this.shake=3;
+};
+S1.prototype.throwUpdate=function(){
+  var t=this.t1,thr=this.thr,a=this.lockAim,dx=Math.cos(a),dy=Math.sin(a),L=this.hands(a).L,pos,e=thr.hook;
+  var hookEnd={x:L.x+dx*((e?e.r:0)+20),y:L.y+dy*((e?e.r:0)+20)};
+  if(t<.1){
+    var wa=a-TAU*(1-t/.1);pos={x:L.x+Math.cos(wa)*36,y:L.y+Math.sin(wa)*36};this.glow=t/.1*.5;
+  }else if(t<.26){
+    var k=(t-.1)/.16,st={x:L.x+dx*36,y:L.y+dy*36};
+    pos={x:lerp(st.x,thr.ex,eo(k)),y:lerp(st.y,thr.ey,eo(k))};this.glow=1;
+  }else{
+    if(!this.hit){this.hit=true;this.throwHit()}
+    if(t<.31){pos={x:thr.ex,y:thr.ey};this.glow=1}
+    else if(t<.55){
+      var k2=sm((t-.31)/.24),to=e&&!e.dead?hookEnd:L;pos={x:lerp(thr.ex,to.x,k2),y:lerp(thr.ey,to.y,k2)};this.glow=1-k2*.5;
+    }else{
+      if(e)e.hooked=false;
+      var k3=eo((t-.55)/.1),from=e&&!e.dead?hookEnd:L;pos={x:lerp(from.x,L.x,k3),y:lerp(from.y,L.y,k3)};this.glow=.3*(1-k3);
+    }
+    if(e&&!e.dead&&e.hooked&&t>=.31&&t<.55){e.x=pos.x+dx*e.r*.7;e.y=pos.y+dy*e.r*.7;e.vx=0;e.vy=0}
+  }
+  this.wp.x=pos.x;this.wp.y=pos.y;this.w.x=pos.x;this.w.y=pos.y;this.w.vx=0;this.w.vy=0;
+  if(t>=.65){if(e)e.hooked=false;this.ph='idle';this.cd=.1;this.wait=.35;this.pipT=.35;this.glow=0}
+};
+S1.prototype.throwHit=function(){
+  var thr=this.thr,e=thr.hook,a=this.lockAim;
+  this.ring(thr.ex,thr.ey,8,46,.3,LIL,3);this.ring(thr.ex,thr.ey,4,26,.2,'255,255,255',2);
+  if(e&&!e.dead){
+    this.hurt(e,34,'255,255,255');e.stun=.4;
+    if(!e.dead)e.hooked=true;
+    this.sparks(thr.ex,thr.ey,LIL,12,260,a,2.4);this.shake=5;this.freeze=.05;
+  }else this.sparks(thr.ex,thr.ey,'200,200,230',6,120);
+};
+S1.prototype.draw=function(){
+  var g=this.begin(),p=this.p,t=this.t,i;
+  drawFloor(g,t);
+  if((this.ph==='idle'||this.ph==='gap')&&this.aim!==null){
+    g.save();g.strokeStyle=C(LIL,.14);g.lineWidth=2;g.setLineDash([4,8]);g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x+Math.cos(this.aim)*280,p.y+Math.sin(this.aim)*280);g.stroke();g.restore();
+  }
+  // crescent ribbon
+  g.save();g.globalCompositeOperation='lighter';
+  for(i=1;i<this.trail.length;i++){
+    var a=this.trail[i-1],b=this.trail[i],al=(1-b.age/(RM?.2:.4));if(al<=0)continue;
+    g.fillStyle=C(LIL,al*.5);g.beginPath();g.moveTo(a.x0,a.y0);g.lineTo(a.x1,a.y1);g.lineTo(b.x1,b.y1);g.lineTo(b.x0,b.y0);g.closePath();g.fill();
+    g.strokeStyle=C('255,255,255',al*.7);g.lineWidth=2;g.beginPath();g.moveTo(a.x1,a.y1);g.lineTo(b.x1,b.y1);g.stroke();
+  }
+  g.restore();
+  this.enemies.forEach(function(e){drawEnemy(g,e,t)});
+  var h=this.hands(this.ba),wp=this.wp,c;
+  if(this.ph==='throw')c={x:(h.L.x+wp.x)/2,y:(h.L.y+wp.y)/2};else c=sagPoint(h.L.x,h.L.y,wp.x,wp.y,86,1);
+  drawChain(g,h.L.x,h.L.y,wp.x,wp.y,c,this.glow);
+  drawWeight(g,wp.x,wp.y,this.glow,t*(this.ph==='throw'?14:2));
+  drawPlayer(g,p.x,p.y,this.ba,t);
+  drawSickle(g,h.R.x,h.R.y,this.sa,this.ph==='cut'?54:30);
+  for(i=0;i<2;i++){g.fillStyle=this.pips>i?'#e9e2ff':'rgba(179,163,255,.25)';g.beginPath();g.arc(p.x-8+i*16,p.y-34,4,0,TAU);g.fill()}
+  this.drawFx(g);
+  g.restore();
+};
+
+/* ---------- stage 2: Whirl & Drag ---------- */
+var PULL=200,SPIN_MAX=3.0;
+function S2(cv){
+  Sim.call(this,cv);
+  this.p={x:500,y:210};this.hold=false;this.spin=0;this.ang=0;this.om=0;this.held=0;this.lock=0;
+  this.auto=!RM;this.manual=false;this.latch=false;this.cycle=0;this.autoHold=false;
+  for(var i=0;i<9;i++)this.spawn(true);
+}
+S2.prototype=Object.create(Sim.prototype);
+S2.prototype.spawn=function(init){
+  var a=Math.random()*TAU,rx=260+Math.random()*180,ry=90+Math.random()*90;
+  var e=mkEnemy(500+Math.cos(a)*rx,210+Math.sin(a)*ry,70);e.hold=110+Math.random()*200;
+  this.enemies.push(e);
+};
+S2.prototype.release=function(){
+  var p=this.p,self=this;
+  if(this.spin>.3){
+    this.ring(p.x,p.y,20,130,.3,'255,255,255',4);this.ring(p.x,p.y,10,100,.4,LIL,3);
+    this.enemies.forEach(function(e){
+      if(e.dead)return;var dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;
+      if(d<110+e.r){self.hurt(e,30,'255,255,255');e.stun=.6;e.vx+=dx/d*400;e.vy+=dy/d*400}
+    });
+    this.shake=6;this.freeze=.05;
+  }
+  this.hold=false;this.held=0;this.lock=1.2;
+};
+S2.prototype.update=function(dt){
+  var p=this.p,self=this;
+  var want;
+  if(this.auto){
+    this.cycle+=dt;
+    if(!this.autoHold&&this.cycle>1.6&&this.lock<=0){this.autoHold=true;this.cycle=0}
+    else if(this.autoHold&&this.cycle>2.4){this.autoHold=false;this.cycle=0}
+    want=this.autoHold;
+  }else want=this.manual||this.latch;
+  if(this.lock>0)this.lock-=dt;
+  if(want&&!this.hold&&this.lock<=0){this.hold=true;this.held=0}
+  if(!want&&this.hold)this.release();
+  if(this.hold){this.held+=dt;if(this.held>=SPIN_MAX){this.release();if(this.auto)this.autoHold=false}}
+  var tgt=this.hold?1:0;
+  this.spin=clamp(this.spin+(tgt?dt/.35:-dt/.18)*(tgt?1:1),0,1);
+  this.om=14*this.spin;
+  var prev=this.ang;this.ang+=this.om*dt;
+  var R=lerp(70,150,eo(this.spin)),sweep=this.om*dt;
+  this.R=R;
+  this.enemies.forEach(function(e){
+    self.baseEnemy(e,dt);
+    var dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy)||1;
+    if(self.spin>.05&&d<PULL){
+      var minD=46+e.r;
+      if(d>minD){var s=240*self.spin;e.x-=dx/d*s*dt;e.y-=dy/d*s*dt}
+      var ts=80*self.spin;e.x+=-dy/d*ts*dt;e.y+=dx/d*ts*dt;
+      if(e.stun>0)e.stun-=dt*.5;
+    }else{
+      if(e.stun>0){e.stun-=dt;return}
+      if(d>e.hold){e.x-=dx/d*38*dt;e.y-=dy/d*38*dt}else{e.x+=-dy/d*10*dt;e.y+=dx/d*10*dt}
+    }
+    if(dt>0&&self.spin>.5&&d>10&&d<R+e.r&&e.cd<=0){
+      var rel=normA(Math.atan2(dy,dx)-prev),mg=Math.asin(Math.min(.99,e.r/d));
+      if(rel<=sweep+mg||rel>=TAU-mg){
+        self.hurt(e,12,LIL);e.cd=.12;
+        var bx=p.x+dx/d*Math.min(d,R),by=p.y+dy/d*Math.min(d,R);
+        self.sparks(bx,by,'255,255,255',4,160);
+      }
+    }
+  });
+};
+S2.prototype.draw=function(){
+  var g=this.begin(),p=this.p,t=this.t,i,sp=this.spin,R=this.R||70;
+  drawFloor(g,t);
+  if(sp>.02){
+    g.save();
+    g.strokeStyle=C(LIL,.3*sp);g.lineWidth=2;g.setLineDash([10,10]);g.lineDashOffset=t*60;
+    g.beginPath();g.arc(p.x,p.y,PULL,0,TAU);g.stroke();
+    g.setLineDash([]);
+    g.strokeStyle=C(LIL,.12*sp);g.lineWidth=1.5;g.setLineDash([3,9]);g.beginPath();g.arc(p.x,p.y,R,0,TAU);g.stroke();g.setLineDash([]);
+    for(i=0;i<10;i++){
+      var a=i*TAU/10+t*.5,u=((t*1.1+i*.17)%1),r=PULL-u*(PULL-60),bend=u*.5;
+      var ax=p.x+Math.cos(a+bend)*r,ay=p.y+Math.sin(a+bend)*r,ix=p.x+Math.cos(a+bend)*(r-12),iy=p.y+Math.sin(a+bend)*(r-12);
+      g.strokeStyle=C(LIL,.55*sp*(1-u));g.lineWidth=2;g.lineCap='round';
+      g.beginPath();g.moveTo(ax-Math.sin(a+bend)*5,ay+Math.cos(a+bend)*5);g.lineTo(ix,iy);g.lineTo(ax+Math.sin(a+bend)*5,ay-Math.cos(a+bend)*5);g.stroke();
+    }
+    for(i=0;i<6;i++){
+      var rr=80+i*20;g.strokeStyle=C(LIL,.12*sp);g.lineWidth=2;g.beginPath();g.arc(p.x,p.y,rr,this.ang*.6+i*1.1,this.ang*.6+i*1.1+.7);g.stroke();
+    }
+    g.restore();
+  }
+  this.enemies.forEach(function(e){drawEnemy(g,e,t)});
+  // speed-blur arc behind the weight
+  if(sp>.05){
+    g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+    for(i=0;i<10;i++){g.strokeStyle=C(LIL,(1-i/10)*.5*sp);g.lineWidth=(9-i*.7)*sp;g.beginPath();g.arc(p.x,p.y,R,this.ang-(i+1)*.09*sp*1.4,this.ang-i*.09*sp*1.4);g.stroke()}
+    g.restore();
+  }
+  var ba=this.ang-.5*sp-.0;if(sp<.02)ba=-Math.PI/2+Math.sin(t*.8)*.2;
+  var hx=p.x+Math.cos(ba)*11-Math.sin(ba)*-10,hy=p.y+Math.sin(ba)*11+Math.cos(ba)*-10;
+  var wx,wy,c;
+  if(sp>.02){
+    wx=p.x+Math.cos(this.ang)*R;wy=p.y+Math.sin(this.ang)*R;
+    var lag=.35*sp;c={x:p.x+Math.cos(this.ang-lag)*R*.55,y:p.y+Math.sin(this.ang-lag)*R*.55};
+    drawChain(g,hx,hy,wx,wy,c,sp);
+    drawWeight(g,wx,wy,sp,t*18);
+  }else{
+    wx=hx+Math.cos(ba+2.2)*34;wy=hy+Math.sin(ba+2.2)*34;
+    drawChain(g,hx,hy,wx,wy,sagPoint(hx,hy,wx,wy,60,1),0);
+    drawWeight(g,wx,wy,0,0);
+  }
+  drawPlayer(g,p.x,p.y,ba,t);
+  drawSickle(g,p.x+Math.cos(ba)*13-Math.sin(ba)*10,p.y+Math.sin(ba)*13+Math.cos(ba)*10,ba+2.3,26);
+  // whirl gauge and lockout
+  g.save();g.lineWidth=3;g.lineCap='round';
+  if(this.hold){g.strokeStyle=C(LIL,.9);g.beginPath();g.arc(p.x,p.y,30,-Math.PI/2,-Math.PI/2+TAU*(1-this.held/SPIN_MAX));g.stroke()}
+  else if(this.lock>0){g.strokeStyle='rgba(255,120,130,.55)';g.beginPath();g.arc(p.x,p.y,30,-Math.PI/2,-Math.PI/2+TAU*(this.lock/1.2));g.stroke()}
+  g.restore();
+  this.drawFx(g);
+  g.restore();
+};
+
+/* ---------- wiring ---------- */
+var c1=document.getElementById('c1'),c2=document.getElementById('c2');
+var s1=new S1(c1),s2=new S2(c2);
+var a_auto=document.getElementById('a_auto'),b_auto=document.getElementById('b_auto'),b_hold=document.getElementById('b_hold'),b_latch=document.getElementById('b_latch');
+if(RM){setToggle(a_auto,false);setToggle(b_auto,false)}
+function s1Auto(v){s1.auto=v;s1.wait=.3;setToggle(a_auto,v)}
+function s2Auto(v){s2.auto=v;s2.autoHold=false;s2.cycle=0;setToggle(b_auto,v)}
+a_auto.addEventListener('click',function(){s1Auto(!s1.auto)});
+document.getElementById('a_s1').addEventListener('click',function(){s1Auto(false);if(s1.ph==='idle'||s1.ph==='gap'){s1.ph='idle';s1.cd=0;s1.startCut()}});
+document.getElementById('a_s2').addEventListener('click',function(){s1Auto(false);if(s1.ph==='idle'||s1.ph==='gap'){s1.cd=0;s1.startThrow()}});
+c1.addEventListener('pointermove',function(e){s1.ptr=ptrOf(c1,e)});
+c1.addEventListener('pointerleave',function(){s1.ptr=null});
+c1.addEventListener('pointerdown',function(e){s1.ptr=ptrOf(c1,e);if(s1.auto)s1Auto(false);s1.press()});
+b_auto.addEventListener('click',function(){s2Auto(!s2.auto)});
+b_latch.addEventListener('change',function(){if(b_latch.checked&&s2.auto)s2Auto(false);s2.latch=b_latch.checked});
+function down(){if(s2.auto)s2Auto(false);s2.manual=true}
+function up(){s2.manual=false}
+[c2,b_hold].forEach(function(el){
+  el.addEventListener('pointerdown',function(e){e.preventDefault();down()});
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('pointerleave',up);
+});
+b_hold.addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();down()}});
+b_hold.addEventListener('keyup',function(e){if(e.key===' '||e.key==='Enter')up()});
+
+var sims=[s1,s2];
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(es){es.forEach(function(en){var s=en.target===c1?s1:s2;s.vis=en.isIntersecting})});
+  io.observe(c1);io.observe(c2);
+}
+var last=performance.now();
+function frame(now){
+  var rdt=Math.min(.033,(now-last)/1000);last=now;
+  sims.forEach(function(s){if(s.vis)s.step(rdt)});
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

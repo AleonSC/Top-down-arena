@@ -566,7 +566,7 @@ namespace Arena
             Line(b - dir * 6f, b - dir * 1f + side * 6f, 2f, Steel.WithAlpha(alpha));
         }
 
-        /// The Kusarigama's throw: the chain runs out to where it ended (and, if it hooked something, stays taut a moment).
+        /// The old Kusarigama's throw (the host no longer sends it: the throw is drawn from the player's state, KusarigamaLook.cs).
         void DrawChainThrowFx(Effect fx, float f)
         {
             float run = Mathf.Min(1f, f / 0.35f), fade = fx.Radius > 0f ? 1f : 1f - Mathf.Max(0f, (f - 0.35f) / 0.65f);

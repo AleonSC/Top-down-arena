@@ -35,7 +35,7 @@ namespace Arena
             "A tiny dash with a moment of invulnerability; double tap a movement key does it too",
             "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
             "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
-            "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel",
+            "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
             "While standing on it", "While standing on it", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)",
         };
         /// The groups on the Keybinds page: heading and the first action of each.

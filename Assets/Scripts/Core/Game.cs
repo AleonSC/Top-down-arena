@@ -1271,7 +1271,7 @@ namespace Arena
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
                     TickKatanaFire(p);  // swipe, swipe, lunge (Katana) or slash, jab, spin (Bo Staff), with the next step queued if you tap ahead (Katana.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

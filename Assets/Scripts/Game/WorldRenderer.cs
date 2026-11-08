@@ -104,6 +104,9 @@ namespace Arena
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.Kusarigama)
+                    DrawKusarigama(p);  // KusarigamaLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                     DrawBowDraw(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
