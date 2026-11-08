@@ -253,9 +253,9 @@ namespace Arena
                         float ga = at - s * g * 0.16f * (T < sweepTime ? 1f : 0.6f);
                         if ((ga - start) * s < 0f)
                             continue;
-                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false);
+                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false, s);
                     }
-                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime);
+                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime, s);
             }
             return true;
         }
@@ -686,7 +686,7 @@ namespace Arena
         /// The weapon itself, from your body out along `ang` to `reach` (the mockup's shapes and sizes: a handle, a gold
         /// guard and a tapered blade with a coloured edge; a pole for the Halberd; a thin blade for the Rapier).
         /// `bright`: mid-swing, the blade is white.
-        void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col, bool bright)
+        void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col, bool bright, float bend = 0f)
         {
             if (alpha <= 0f)
                 return;
@@ -753,6 +753,36 @@ namespace Arena
                     Line(o + dir * hilt + side * 7f, o + dir * hilt - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
                     var fill = bright ? Rgba.White : id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(0.9f, 0.93f, 0.99f);
                     V2 h0 = o + dir * hilt, b1 = o + dir * (r1 - 10f), tip = o + dir * r1;
+                    if (id == WeaponId.Katana && bend != 0f)
+                    {
+                        // Moon Steel: the blade curves toward the way it sweeps, so the cut always bends along its motion
+                        // (the mockup's blade-curve flip). The curve grows toward the tip, like a real katana's sori.
+                        float len = r1 - hilt, sori = len * 0.07f * bend;
+                        const int segs = 6;
+                        V2 pt = h0 + side * wd, pb = h0 - side * wd * 0.6f;
+                        for (int i = 1; i <= segs; i++)
+                        {
+                            float u = (float)i / segs;
+                            V2 c = h0 + dir * (len * u) + side * (sori * u * u);
+                            float wt = wd * (1f - 0.2f * u), wb = wd * 0.6f * (1f - 0.17f * u);
+                            if (i == segs)
+                                break;
+                            V2 nt = c + side * wt, nb = c - side * wb;
+                            SetColor(fill.WithAlpha(alpha));
+                            Quad(pt, nt, nb, pb);
+                            Line(pt, nt, 1.2f, edge);
+                            Line(nb, pb, 1.2f, edge);
+                            pt = nt;
+                            pb = nb;
+                        }
+                        V2 tip2 = h0 + dir * (len + 10f) + side * sori;
+                        SetColor(fill.WithAlpha(alpha));
+                        Tri(pt, tip2, pb);
+                        Line(pt, tip2, 1.2f, edge);
+                        Line(tip2, pb, 1.2f, edge);
+                        Line(h0 + side * wd, h0 - side * wd * 0.6f, 1.2f, edge);
+                        break;
+                    }
                     V2 p0 = h0 + side * wd, p1 = b1 + side * wd * 0.8f, p3 = b1 - side * wd * 0.6f, p4 = h0 - side * wd * 0.6f;
                     SetColor(fill.WithAlpha(alpha));
                     Quad(p0, p1, p3, p4);
