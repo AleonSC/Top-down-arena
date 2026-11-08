@@ -688,6 +688,8 @@ namespace Arena
             UpdateLayout();
             InitStyles();
             Ui.Init();
+            Ui.Alpha = 1f;  // a fade that was left unrestored (an early return or an error mid-draw) must not carry into this frame: it left the round windows' dark layer and the path cards invisible
+            GUI.color = Color.white;
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX, offY, 0f), Quaternion.identity, new Vector3(scale, scale, 1f));
             // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel

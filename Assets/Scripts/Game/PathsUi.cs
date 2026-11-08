@@ -13,6 +13,7 @@ namespace Arena
             var offer = game.PathOffer;
             if (offer == null)
                 return;
+            Ui.Alpha = 1f;  // the choice is never faded: nothing else's leftover fade may dim it
             Ui.Fill(new Rect(0, 0, W, H), PathDark);  // (RoundWindows.cs)
             Ui.Fancy(new Rect(0, 26f, W, 44f), "CHOOSE YOUR PATH", 34, Color.white, new Color(0.75f, 0.85f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
             int from = game.Wave + 1, to = game.Wave + Paths.Length, boss = to + 1;

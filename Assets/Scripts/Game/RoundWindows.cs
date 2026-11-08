@@ -36,10 +36,13 @@ namespace Arena
             Ui.Alpha = oldAlpha * a;
             GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
             GUI.BeginGroup(new Rect(offset.x, offset.y, W, H));
-            draw();
-            GUI.EndGroup();
-            Ui.Alpha = oldAlpha;
-            GUI.color = oldColor;
+            try { draw(); }
+            finally  // (an error inside must not leave the fade, colour and group stuck for the rest of the frame)
+            {
+                GUI.EndGroup();
+                Ui.Alpha = oldAlpha;
+                GUI.color = oldColor;
+            }
         }
 
         // --- The CRT tube ------------------------------------------------------------------------------------------------------------
