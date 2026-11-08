@@ -2,525 +2,770 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: header, one live stage (sweep, return sweep, Benediction, then the alt; alt / multishot / speed chips), a move strip
-   (four diagrams), rule cards, current-vs-proposed table, open questions.
-   Colour: the Healer's pale gold on a night-green arena, incense cream, enemies brick red, heal green. Tokens match the Quarterstaff mockup. */
+/* Layout: header, alt picker, one live stage (replay with scrubber, or play it yourself), the alt ideas looping, each move
+   looping on its own, the censer model, the move table and build notes. Same engine and page tokens as the Twin Blades
+   mockup; the canvas is the game's night arena with the Healer's gold, incense cream and heal green. */
 :root{
-  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#a0720f;
+  --bg:#efeee8; --fg:#1f1d17; --muted:#5f5b4e; --panel:#faf9f4; --line:#d6d2c4; --chip:#e5e2d6; --chip-on:#1f1d17; --chip-on-fg:#f6f4ec; --accent:#a8761c;
   --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#ffd36a; color-scheme:dark}}
+  --bg:#12110e; --fg:#ebe7da; --muted:#a29c89; --panel:#1a1914; --line:#2f2c23; --chip:#26241c; --chip-on:#ebe7da; --chip-on-fg:#12110e; --accent:#ffcf7a; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#ffd36a; color-scheme:dark}
+  --bg:#12110e; --fg:#ebe7da; --muted:#a29c89; --panel:#1a1914; --line:#2f2c23; --chip:#26241c; --chip-on:#ebe7da; --chip-on-fg:#12110e; --accent:#ffcf7a; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
   padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:38px}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
 header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
-header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
-h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
-.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0b110e}
-canvas{display:block;width:100%;height:auto}
-#stage{aspect-ratio:1000/560}
-#strip{aspect-ratio:1000/290}
-.bar{display:flex;gap:10px 22px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+header p{margin:0 0 8px;max-width:70ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;text-wrap:balance}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118;max-width:100%}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#stage{aspect-ratio:1000/470;touch-action:none;outline:none}
+#stage:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
 .chip:hover,button:hover{border-color:var(--muted)}
-.chip:focus-visible,button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.hint{margin:10px 0 0;color:var(--muted);font-size:14px;max-width:72ch}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.card h3{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
-.card .tag{font:500 12px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
-.card p{margin:0;font-size:14.5px;color:var(--muted)}
-.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:400 13px var(--mono)}
-.card dt{color:var(--muted)}
-.card dd{margin:0;text-align:right}
-.alts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
-.rec{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--chip-on-fg);background:var(--chip-on);padding:2px 8px;border-radius:4px;align-self:flex-start}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.scrub{display:flex;gap:12px;align-items:center;margin-top:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--accent)}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.help{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.help kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--panel);color:var(--fg)}
+.touch{display:flex;gap:10px;margin-top:10px}
+.touch button{flex:1;padding:14px}
+.lead{margin:0 0 16px;max-width:70ch;color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/230}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.idea{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
+.idea.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.idea .why{font-size:14px;color:var(--fg)}
+.idea .use{align-self:flex-start;margin-top:auto}
+.rec{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--chip-on-fg);background:var(--chip-on);padding:2px 7px;border-radius:4px}
+.model{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:center}
+@media (max-width:760px){.model{grid-template-columns:minmax(0,1fr)}}
+.model canvas{aspect-ratio:560/300}
+.model p{margin:0 0 10px;color:var(--muted);font-size:15.5px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-table{border-collapse:collapse;width:100%;min-width:620px;font-size:14.5px}
-th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
-th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-td:first-child{font-weight:600;white-space:nowrap}
-ul.q{margin:0;padding-left:20px;max-width:72ch;display:flex;flex-direction:column;gap:8px}
+th{font:600 12px var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.mv b{font:700 17px var(--display);text-transform:uppercase;letter-spacing:.03em;display:block;line-height:1.1}
+tr.alt td{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
 code{font:500 13px var(--mono)}
-@media (prefers-reduced-motion:reduce){.chip,button{transition:none}}
 </style>
 
 <main>
 <header>
-  <h1>Censer Rework</h1>
-  <p>The Healer Knight's Censer stops being one spin on repeat. The primary button runs a three-step rite: a sweep, a return sweep, then a full Benediction spin. The sweeps heal the allies around you a little, and the Benediction heals more for every enemy it hits. Each enemy you hit stores an Ember. The alt (weapon-action key) spends the Embers to send healing somewhere you can't reach.</p>
-  <p>Two alts are mocked up below; Censer Cast is the recommendation. Every number is a proposed starting value, and none of this is in code yet.</p>
+  <h1>Censer: the Thurible Rite</h1>
+  <p>Today the Censer does one 360° spin on repeat (14 damage, 80 px). Each spin heals allies within 140 px for 3, and walking leaves a trail of incense. There is no combo and no alt.</p>
+  <p>The rework turns it into a healer's chain on the primary button. A <b>Sweep</b> and a <b>Return Sweep</b> each heal the allies around you and drop incense. The <b>Benediction</b> finisher lets the chain out for a full turn and heals more for every enemy it hits. Each enemy you hit lights an <b>Ember</b>, and the alt attack spends Embers to put healing somewhere the swings can't reach. The knight holds the censer on a real chain that whips, lags and trails smoke. Watch the replay, or switch to <b>Try it</b> and play it.</p>
 </header>
 
-<section aria-labelledby="stage-h">
-  <h2 id="stage-h">In the arena</h2>
+<section>
   <div class="bar">
-    <div class="group" id="g-alt"><span>Alt</span></div>
-    <div class="group" id="g-multi"><span>Multishot</span></div>
-    <div class="group" id="g-speed"><span>Speed</span></div>
-    <button id="pause" type="button">Pause</button>
+    <div class="chips" role="group" aria-label="Mode" id="modes"></div>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <label class="tg"><input type="checkbox" id="tgHit"> Show hit and heal areas</label>
+    <label class="tg"><input type="checkbox" id="tgShots" checked> Enemy shots</label>
+    <button type="button" id="pause">Pause</button>
   </div>
-  <div class="frame"><canvas id="stage" width="2000" height="1120" aria-label="Animated arena: the Healer Knight runs the Censer combo on four dummies, then uses the alt"></canvas></div>
-  <p class="hint">Blue circles are allies with their health bars. Green rings show who each heal reaches. The orange pips under the knight are Embers. Shooters on the right fire at the far ally; shots fired from inside incense stray.</p>
+  <div class="bar"><span class="sub">ALT ATTACK</span><div class="chips" role="group" aria-label="Alt attack" id="alts"></div></div>
+  <div class="frame"><canvas id="stage" tabindex="0" aria-label="The Healer Knight using the Censer chain and alt attack among enemies and three allies"></canvas></div>
+  <div class="scrub" id="scrubRow"><span class="sub" id="tlabel">0.00 s</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the replay"></div>
+  <p class="help" id="tryHelp" hidden><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move, aim with the mouse. <b>Click</b> (or hold) to swing: each click is the next step, and the rite starts over 0.6 s after you stop. <b>Right-click</b> or <kbd>Space</kbd> for the alt attack (hold it for Vigil). It needs at least one Ember. Click the arena first so it gets the keys.</p>
+  <div class="touch" id="touch" hidden><button type="button" id="tAtk">Swing</button><button type="button" id="tAlt">Alt attack</button></div>
+  <p class="help">Blue figures are allies. Green motes carry each heal to them. Orange flames under the knight are Embers. Purple turrets fire at you and the far ally; a shot fired from inside incense goes astray.</p>
 </section>
 
-<section aria-labelledby="strip-h">
-  <h2 id="strip-h">The four moves</h2>
-  <div class="frame"><canvas id="strip" width="2000" height="580" aria-label="Diagrams of the sweep, return sweep, Benediction and Censer Cast"></canvas></div>
+<section>
+  <h2>Alt attack ideas</h2>
+  <p class="lead">Three alts for the weapon-action key, all paid with Embers. Each one loops below. Pick one in the chips above the arena, or with its button here, to watch it in the full replay or play it in Try it.</p>
+  <div class="grid3" id="altIdeas"></div>
 </section>
 
-<section aria-labelledby="rules-h">
-  <h2 id="rules-h">The rite</h2>
-  <div class="cards">
-    <article class="card">
-      <span class="tag">Step 1 · primary</span>
-      <h3>Sweep</h3>
-      <p>The censer swings across the front, right to left. Allies near you heal. The head leaves a small puff of incense where the sweep ends.</p>
-      <dl><dt>Damage</dt><dd>13</dd><dt>Arc · reach</dt><dd>200° · 85 px</dd><dt>Heal allies</dt><dd>3 within 140 px</dd><dt>Puff</dt><dd>40 px, 2.5 s</dd></dl>
-    </article>
-    <article class="card">
-      <span class="tag">Step 2 · primary</span>
-      <h3>Return Sweep</h3>
-      <p>The same swing back, left to right. Two sweeps cover your front and drop two puffs either side, so a held click paints a short incense screen.</p>
-      <dl><dt>Damage</dt><dd>13</dd><dt>Arc · reach</dt><dd>200° · 85 px</dd><dt>Heal allies</dt><dd>3 within 140 px</dd><dt>Puff</dt><dd>40 px, 2.5 s</dd></dl>
-    </article>
-    <article class="card">
-      <span class="tag">Step 3 · finisher</span>
-      <h3>Benediction</h3>
-      <p>The chain lets out and the censer goes all the way round. It heals further and harder, and each enemy it hits adds to the heal. It leaves an incense cloud at your feet.</p>
-      <dl><dt>Damage</dt><dd>18</dd><dt>Arc · reach</dt><dd>360° · 115 px</dd><dt>Heal allies</dt><dd>6 +1 per hit (max +4), 170 px</dd><dt>Cloud</dt><dd>75 px, 4 s</dd><dt>Recovery</dt><dd>0.55 s</dd></dl>
-    </article>
-    <article class="card">
-      <span class="tag">Resource</span>
-      <h3>Embers</h3>
-      <p>Each enemy a step hits adds one Ember, shown as pips under you. Embers never fade. Stop clicking for 0.6 s and the rite starts again from the Sweep, but you keep your Embers.</p>
-      <dl><dt>Cap</dt><dd>5, +1 per multishot</dd><dt>Gain</dt><dd>1 per enemy per step</dd><dt>Chain gap</dt><dd>0.6 s</dd></dl>
-    </article>
+<section>
+  <h2>Each move on its own</h2>
+  <div class="grid3" id="strip"></div>
+</section>
+
+<section class="model">
+  <div class="frame"><canvas id="model" aria-label="The censer and the Healer Knight at rest, enlarged"></canvas></div>
+  <div>
+    <h2>The censer</h2>
+    <p>A bronze thurible with a pierced body, a domed lid and a cross finial, on a 10-link chain held in the right hand. The coals glow through the piercings and flare when the head connects. The left hand rests on the chest and opens in a blessing whenever a heal goes out.</p>
+    <p>The chain is simulated. It sags at rest, goes taut and whips in a swing, and drags behind when you walk. Smoke streams off the head all the time and thickens as it speeds up.</p>
   </div>
 </section>
 
-<section aria-labelledby="alt-h">
-  <h2 id="alt-h">Alt attack options</h2>
-  <div class="alts">
-    <article class="card">
-      <span class="rec">Recommended</span>
-      <span class="tag">Alt A · tap</span>
-      <h3>Censer Cast</h3>
-      <p>Throw the censer head out on its chain to the cursor. It lands in a burst that hurts enemies, then leaves a big incense cloud that heals allies inside and makes enemy shots fired from it stray. The head reels back on its own. All your Embers are spent, and the cloud grows with each one. This gives the Censer reach: you can heal the ally at the far end of the arena without leaving the melee.</p>
-      <dl><dt>Needs</dt><dd>1+ Ember, 6 s cooldown</dd><dt>Range</dt><dd>up to 260 px</dd><dt>Burst</dt><dd>8 per Ember, 50 px</dd><dt>Cloud</dt><dd>60 +6 px per Ember, 4 s</dd><dt>Cloud heal</dt><dd>2 +1 per Ember HP/s</dd><dt>Out for</dt><dd>0.55 s (no swings)</dd></dl>
-    </article>
-    <article class="card">
-      <span class="tag">Alt B · hold</span>
-      <h3>Vigil</h3>
-      <p>Hold the key to whirl the censer over your head. You walk at half speed inside a ring of incense that heals allies in it, chips enemies that touch it and bends enemy shots that cross it. Each 0.7 s burns one Ember; it ends when you let go or run out. Strong for holding a revive, but it keeps you where the fighting is.</p>
-      <dl><dt>Needs</dt><dd>1+ Ember</dd><dt>Ring</dt><dd>140 px</dd><dt>Heal</dt><dd>6 HP/s inside</dd><dt>Ring damage</dt><dd>6 per 0.5 s</dd><dt>Cost</dt><dd>1 Ember / 0.7 s</dd><dt>Move</dt><dd>50%</dd></dl>
-    </article>
-  </div>
+<section>
+  <h2>The moves</h2>
+  <div class="tablewrap"><table><thead><tr><th>#</th><th>Move</th><th>Damage</th><th>Healing</th><th>Time</th></tr></thead><tbody id="moves"></tbody></table></div>
+  <p class="sub" style="margin:8px 0 0">Time is how soon the next click is taken. All numbers are proposed starting values, and none of this is in code yet.</p>
 </section>
 
-<section aria-labelledby="table-h">
-  <h2 id="table-h">Current and proposed</h2>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Part</th><th>Now</th><th>Proposed</th></tr></thead>
-    <tbody>
-      <tr><td>Primary</td><td>One 360° spin, 14 damage, 80 px, every 0.4 s</td><td>Sweep, return sweep, Benediction (13 / 13 / 18); 0.36 s between sweeps, 0.55 s after the finisher</td></tr>
-      <tr><td>Healing</td><td>3 to allies within 140 px each spin</td><td>3 per sweep at 140 px; Benediction 6 +1 per enemy hit at 170 px; the cast's cloud</td></tr>
-      <tr><td>Incense</td><td>A puff every 45 px you walk (45 px, 3 s, 4 HP/s)</td><td>Comes from your attacks: puffs at the end of each sweep, a cloud from the Benediction and the cast. The walking trail goes (see the questions)</td></tr>
-      <tr><td>Alt</td><td>None</td><td>Censer Cast (or Vigil), paid with Embers</td></tr>
-      <tr><td>Multishot</td><td>+20 px reach, +1 heal per spin</td><td>+15 px reach, +1 heal per step, +1 Ember cap</td></tr>
-      <tr><td>Network</td><td>Nothing new</td><td>Step and Ember count on <code>Player</code>, the alt over <code>Msg.WeaponDash</code>, the flying head as replicated state. Protocol bump</td></tr>
-    </tbody>
-  </table></div>
+<section class="cards">
+  <div class="card"><h3>What stays</h3><ul>
+    <li>Close reach and a heal on every swing. The sweeps heal for 3 within 140 px, as the spin does today.</li>
+    <li>Incense still heals the allies standing in it (4 HP/s) and still spoils the aim of enemies who shoot from inside it.</li>
+    <li>Shot upgrades work as on every melee weapon: damage, swing speed, crits and lifesteal apply to every hit.</li>
+  </ul></div>
+  <div class="card"><h3>What changes</h3><ul>
+    <li>Incense comes from your swings: a puff where each sweep ends and a cloud from the Benediction. The walking trail goes (see open questions).</li>
+    <li>Embers: each enemy a step hits lights one, up to 5. They never fade. The alt spends them.</li>
+    <li><b>+1 projectile</b> becomes +15 px reach, +1 HP on every heal and +1 Ember cap.</li>
+  </ul></div>
+  <div class="card"><h3>Build notes</h3><ul>
+    <li>A <code>CenserMotion</code> like <code>TwinBladesMotion</code>: key poses for the head angle and chain length, and the host times each hit from them.</li>
+    <li>Chain step, Embers and the alt's state (flying head, tether, vigil) go in the player snapshot, so the protocol version goes up. The alt goes over <code>Msg.WeaponDash</code>.</li>
+    <li>The Armory page is not touched by this mockup.</li>
+  </ul></div>
 </section>
 
-<section aria-labelledby="q-h">
-  <h2 id="q-h">Open questions</h2>
-  <ul class="q">
-    <li>Censer Cast or Vigil for the alt? Cast gives reach, which the Healer Knight lacks; Vigil overlaps with Guardian's Oath's ward.</li>
-    <li>Remove the walking incense trail? With puffs from sweeps and clouds from the Benediction and Cast, the trail is mostly noise. Keeping it would mean three sources of incense on screen.</li>
-    <li>Should a Cast that lands on a downed ally speed up the revive, the way Guardian's Oath's ward does?</li>
-    <li>Should the Benediction always land on the third click, or only when the first two sweeps hit something?</li>
+<section class="card">
+  <h3>Open questions</h3>
+  <ul>
+    <li>Which alt: Censer Cast, Vigil or Holy Tether? Cast is the recommendation; it gives the Healer Knight reach, which it has nothing else for.</li>
+    <li>Can the walking incense trail go? With puffs, clouds and the alt all making incense, a fourth source mostly adds clutter. Removing it means deleting code, so it needs your yes.</li>
+    <li>Should a Cast or Tether on a downed ally also speed up the revive, the way Guardian's Oath's ward does?</li>
   </ul>
 </section>
 </main>
 
 <script>
-(() => {
-const TAU = Math.PI * 2, D = Math.PI / 180;
-const C = { floor:'#0b110e', grid:'rgba(160,190,150,0.06)', gold:'#ffd36a', goldDim:'rgba(255,211,106,', smoke:'235,226,200', heal:'#7cf29a', healA:'rgba(124,242,154,',
-  enemy:'#d0533f', ally:'#7fb6ff', knight:'#efe3bd', ink:'#0b110e', text:'#e6ece2', muted:'#92a090', shot:'#ff8a4c', ember:'#ff9a3c' };
-const state = { alt:'cast', multi:0, speed:1, paused:false };
+(function(){
+'use strict';
+const TAU=Math.PI*2, clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
+const EASE={eio:t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2, eo:t=>1-Math.pow(1-t,3), ei:t=>t*t*t, lin:t=>t};
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+const wrap=a=>((a%TAU)+TAU+Math.PI)%TAU-Math.PI;
+const $=id=>document.getElementById(id);
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FM='500 11px "IBM Plex Mono",ui-monospace,monospace';
+const COL='255,206,110', HOT='255,246,220', HEAL='140,245,170', EMB='255,150,60', SMOKE='236,228,206';
 
-// ---- chips ----
-function chips(id, key, opts) {
-  const g = document.getElementById(id);
-  opts.forEach(([v, label]) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = label;
-    b.setAttribute('aria-pressed', String(state[key] === v));
-    b.addEventListener('click', () => { state[key] = v; g.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === b))); build(); t0 = performance.now(); acc = 0; drawStrip(); });
-    g.appendChild(b);
-  });
+/* pose: censer head angle off the aim and distance from the body, body twist, forward step, body spin, left hand raised (blessing) */
+function P(Ha,Hr,tw=0,fx=0,sp=0,Lb=0){return {Ha,Hr,tw,fx,sp,Lb}}
+const KEYS=['Ha','Hr','tw','fx','sp','Lb'];
+function lerpPose(a,b,t){const o={};KEYS.forEach(k=>o[k]=lerp(a[k],b[k],t));return o}
+const READY=P(1.05,30);
+
+/* ---------- the rite ---------- */
+const STEPS=[
+ {name:'Sweep',desc:'200° swing across the front, right to left; heals allies within 140 px for 3 and leaves a puff of incense where it ends',dur:.36,next:.72,
+  keys:[{t:.28,p:P(2.05,50,.38,-2)},{t:.68,p:P(-1.7,88,-.32,4),e:'eo'},{t:1,p:P(-1.95,64,-.25,4),e:'eo'}],
+  hit:{t0:.3,t1:.7,dmg:13,kb:12}, heal:{t:.55,amt:3,r:140}, puff:{t:.74,r:42,life:2.5}},
+ {name:'Return Sweep',desc:'the same swing back, left to right; another heal and another puff, so two sweeps lay a short screen of incense',dur:.36,next:.72,
+  keys:[{t:.28,p:P(-2.05,50,-.38,-2)},{t:.68,p:P(1.7,88,.32,4),e:'eo'},{t:1,p:P(1.95,64,.25,4),e:'eo'}],
+  hit:{t0:.3,t1:.7,dmg:13,kb:12}, heal:{t:.55,amt:3,r:140}, puff:{t:.74,r:42,life:2.5}},
+ {name:'Benediction',desc:'the chain lets out to 118 px and the censer goes all the way round with the body; heals allies within 170 px for 6, +1 for each enemy it hit (up to +4), and leaves an incense cloud at your feet',dur:.74,next:1,fin:true,
+  keys:[{t:.2,p:P(2.5,44,.55,-3,0,.5)},{t:.82,p:P(2.5+TAU,118,.2,3,TAU,.5),e:'lin'},{t:1,p:P(2.8+TAU,66,0,3,TAU,0),e:'eo'}],
+  hit:{t0:.22,t1:.82,dmg:18,kb:20}, heal:{t:.86,amt:6,r:170,bonus:4}, cloud:{t:.84,r:75,life:4}}
+];
+const ALTS={
+cast:{name:'Censer Cast',tag:'Reach',cd:6,rec:true,dur:1,
+ desc:'throw the censer head to the cursor (up to 280 px). It lands in a burst, 8 damage per Ember within 50 px, then leaves an incense cloud for 4 s: 60 px +6 per Ember, healing 2 +1 per Ember HP a second. Spends every Ember; the head reels back on its own',
+ why:'Healing at range. The Healer Knight can top up the ally at the far end of the arena without leaving the fight, and the cloud ruins the aim of the shooters standing in it.',
+ keys:[{t:.2,p:P(2.75,40,.55,-3)},{t:.32,p:P(-.15,20,-.25,4),e:'eo'},{t:1,p:P(.7,26,0,4),e:'eo'}],
+ dmgText:'8 per Ember', healText:'cloud: 2 +1 per Ember HP/s, 4 s', strip:['e5','alt','w1.8']},
+vigil:{name:'Vigil',tag:'Hold',cd:3,dur:0,hold:true,
+ desc:'hold to whirl the censer over your head at half speed. A 140 px ring of incense heals allies inside 6 HP a second, hits enemies inside for 6 every 0.5 s and turns enemy shots back at the ring. Burns an Ember every 0.7 s; ends when you let go or run out',
+ why:'A held zone for standing over a revive or a choke. It is strong, but it pins you in the fight and covers ground Guardian\'s Oath already covers.',
+ dmgText:'6 / 0.5 s', healText:'6 HP/s in the ring', strip:['e5','alt','h2.6','w.5'], shots:true},
+tether:{name:'Holy Tether',tag:'Link',cd:8,dur:.42,
+ desc:'throw the censer to the ally nearest the cursor (up to 300 px) and hook it round them. For 1.2 s +0.6 s per Ember, they heal 5 HP a second; enemies that touch the chain take 10, and enemy shots that cross it are stopped. It snaps past 360 px',
+ why:'A link you steer: you walk the chain across the enemies and shots between you and the ally. It rewards positioning, but it heals one ally only.',
+ keys:[{t:.2,p:P(2.75,40,.55,-3)},{t:.4,p:P(-.15,20,-.25,4),e:'eo'},{t:1,p:P(0,20,0,4),e:'eo'}],
+ dmgText:'10 a chain touch', healText:'5 HP/s, 1.2 s +0.6 s per Ember', strip:['e5','alt','w3.6'], shots:true}
+};
+const ALT_ORDER=['cast','vigil','tether'];
+let curAlt='cast';
+const EMBER_CAP=5, CHAIN_GAP=.6, HEAD_R=9;
+
+/* ---------- the simulation (replay, strip cells and Try it all run it) ---------- */
+const FOE_R=13, FOE_HP=170, DT=1/120, ALLY_R=12;
+function Sim(opt){ this.opt=opt; this.A=ALTS[opt.alt]; this.reset() }
+Sim.prototype.reset=function(){
+  const o=this.opt;
+  this.t=0; this.seed=1;
+  this.pl={x:o.px,y:o.py,aim:0,step:null,k:-1,tt:0,from:null,idle:9,rec:READY,chain:0,cd:0,buf:null,inst:0,altHeld:false,embers:o.embers||0,
+    hx:o.px+20,hy:o.py+20,hvx:0,hvy:0,rope:[],cast:null,tether:null,vigil:null,reel:null,bless:0,flare:0,hitN:0};
+  this.foes=o.foes.map((f,i)=>({hx:f[0],hy:f[1],x:f[0],y:f[1],vx:0,vy:0,hp:FOE_HP,flash:0,dead:-1,hitBy:{},i,shooter:!!f[2],fire:f[3]!=null?f[3]:.3+i*.17,tgt:0}));
+  this.allies=(o.allies||[]).map((a,i)=>({x:a[0],y:a[1],hp:a[2],name:a[3],i,glow:0,last:-9}));
+  this.zones=[]; this.smoke=[]; this.motes=[]; this.fx=[]; this.nums=[]; this.bullets=[]; this.trail=[]; this.shake=0; this.emAcc=0;
+  this.si=0; this.wait=0; this.label=null; this.done=false;
+  const h=this.headTarget(READY); this.pl.hx=h[0]; this.pl.hy=h[1] };
+Sim.prototype.rand=function(){return rnd(this.seed++ *1.37)};
+Sim.prototype.stepPose=function(S,from,tt){
+  const u=clamp(tt/S.dur); let a={t:0,p:from};
+  for(const k of S.keys){ if(u<=k.t){ const q=(u-a.t)/((k.t-a.t)||1); return lerpPose(a.p,k.p,EASE[k.e||'eio'](clamp(q))) } a=k }
+  return a.p };
+Sim.prototype.pose=function(){
+  const p=this.pl;
+  if(p.step) return this.stepPose(p.step,p.from,p.tt);
+  if(p.vigil){ const v=p.vigil, q=EASE.eo(clamp((this.t-v.t0)/.18)); const o=lerpPose(v.from,P(v.ang,32,0,0,0,1),q); o.Ha=v.ang; return o }
+  const b=Math.sin(this.t*2.4), o=lerpPose(p.rec,READY,EASE.eo(clamp(p.idle/.35)));
+  o.fx=0; o.Ha+=.12*b; o.Hr+=1.5*Math.sin(this.t*1.7); return o };
+Sim.prototype.headTarget=function(o){ const p=this.pl; return [p.x+Math.cos(p.aim+o.Ha)*o.Hr, p.y+Math.sin(p.aim+o.Ha)*o.Hr] };
+/* the right hand follows the head round, the left sits on the chest or opens in blessing */
+Sim.prototype.hands=function(o){ const p=this.pl, ha=p.aim+o.sp+o.tw*.4+clamp(wrap(o.Ha-o.sp),-1.9,1.9)*.62+ .5, r=17+clamp((o.Hr-40)/80)*5;
+  const R=[p.x+Math.cos(ha)*r, p.y+Math.sin(ha)*r];
+  const la=p.aim+o.sp+o.tw-lerp(.95,.35,o.Lb), lr=lerp(10,22,o.Lb);
+  return {R,L:[p.x+Math.cos(la)*lr,p.y+Math.sin(la)*lr]} };
+
+Sim.prototype.start=function(S,k){
+  const p=this.pl, o=this.pose(); const from=Object.assign({},o); from.fx=0; from.sp=wrap(o.sp); from.Ha=wrap(o.Ha);
+  p.step=S; p.k=k; p.tt=0; p.from=from; p.lastFx=0; p.inst++; p.buf=null; p.hitN=0;
+  if(this.opt.aimFn&&!S.alt) p.aim=this.opt.aimFn(p);
+  this.label={name:S.alt?S.name:(k+1)+' · '+S.name,t:this.t,alt:!!S.alt} };
+Sim.prototype.press=function(kind){ this.pl.buf=kind };
+
+Sim.prototype.hitFoe=function(f,dmg,ang,kb,big){
+  if(f.dead>=0) return false;
+  f.hp-=dmg; f.flash=.08; f.vx+=Math.cos(ang)*kb*9; f.vy+=Math.sin(ang)*kb*9;
+  this.fx.push({k:'hit',x:f.x,y:f.y,ang,t0:this.t,seed:this.seed++,big});
+  this.nums.push({x:f.x+(this.rand()-.5)*10,y:f.y-16,v:String(dmg),t0:this.t,big:big||dmg>=25,c:big?HOT:COL});
+  this.shake=Math.max(this.shake,big?2.6:1.2); this.pl.flare=.18;
+  if(f.hp<=0){ f.dead=this.t; this.fx.push({k:'pop',x:f.x,y:f.y,t0:this.t}) }
+  return true };
+Sim.prototype.gainEmber=function(f){ const p=this.pl;
+  if(p.embers>=EMBER_CAP) return;
+  p.embers++; this.motes.push({k:'ember',x:f.x,y:f.y,t0:this.t,dur:.38,seed:this.seed++,slot:p.embers-1}) };
+/* send heal motes from (x,y) to an ally; the heal lands with the first one */
+Sim.prototype.sendHeal=function(x,y,a,amt,n){
+  for(let i=0;i<(n||3);i++) this.motes.push({k:'heal',x,y,a,t0:this.t+i*.035,dur:.32+i*.05,seed:this.seed++,amt:i===0?amt:0}) };
+Sim.prototype.healAlly=function(a,amt,quiet){
+  a.hp=Math.min(100,a.hp+amt); a.glow=.5;
+  if(!quiet||this.t-a.last>.45){ this.nums.push({x:a.x+(this.rand()-.5)*8,y:a.y-22,v:'+'+Math.round(amt),t0:this.t,big:amt>=8,c:HEAL}); a.last=this.t }
+  for(let i=0;i<4;i++) this.fx.push({k:'plus',x:a.x+(this.rand()-.5)*22,y:a.y+(this.rand()-.3)*10,t0:this.t+i*.05,seed:this.seed++}) };
+Sim.prototype.addZone=function(x,y,r,life,heal,big){
+  this.zones.push({x,y,r,life,heal,t0:this.t,tick:0,big:!!big,acc:0});
+  for(let i=0;i<(big?26:12);i++){ const a=this.rand()*TAU, d=this.rand()*r*.4; this.smoke.push({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:Math.cos(a)*(40+this.rand()*60)*(r/60),vy:Math.sin(a)*(40+this.rand()*60)*(r/60),r0:6,r1:r*.42+this.rand()*r*.2,t0:this.t,life:1.1+this.rand()*.8,a:.22}) } };
+
+Sim.prototype.tick=function(dt){
+  const p=this.pl, A=this.A;
+  this.t+=dt; this.shake=Math.max(0,this.shake-dt*18);
+  if(p.cd>0&&!p.vigil&&!p.tether) p.cd-=dt;
+  p.flare=Math.max(0,p.flare-dt); p.bless=Math.max(0,p.bless-dt);
+  /* script */
+  if(this.opt.script){ const sc=this.opt.script;
+    if(this.si<sc.length){ const it=sc[this.si];
+      if(it[0]==='w'){ if(!p.step&&!p.vigil){ this.wait+=dt; if(this.wait>=parseFloat(it.slice(1))){this.wait=0;this.si++} } }
+      else if(it[0]==='h'){ this.wait+=dt; if(this.wait>=parseFloat(it.slice(1))){ this.wait=0; this.si++; p.altHeld=false } }
+      else if(it[0]==='e'){ p.embers=+it.slice(1); this.si++ }
+      else if(it[0]==='s'){ if(!p.step){ this.start(STEPS[+it.slice(1)],+it.slice(1)); this.si++ } }
+      else if(!p.buf&&!p.vigil){ p.buf=it; if(it==='alt') p.altHeld=true; this.si++ } }
+    else if(!p.step&&!p.vigil&&!p.tether&&!p.reel&&!p.cast) this.done=true }
+  /* start or chain */
+  if(p.buf){
+    const busy=p.vigil||p.tether||p.cast||p.reel||(p.step&&p.step.alt);
+    if(p.buf==='alt'){
+      if(busy||p.cd>0||p.embers<1){ if(!busy) p.buf=null }
+      else this.startAlt(); }
+    else if(p.buf==='atk'&&!busy&&(!p.step||(p.tt/p.step.dur>=p.step.next&&p.step.next<1)||p.tt>=p.step.dur)){
+      if(!p.step&&p.idle>CHAIN_GAP) p.chain=0;
+      const k=p.chain; this.start(STEPS[k],k); p.chain=(k+1)%3 } }
+  /* advance the move */
+  const hOld=[p.hx,p.hy];
+  if(p.step){
+    const S=p.step; p.tt+=dt;
+    const o=this.pose(), d=o.fx-p.lastFx; p.lastFx=o.fx;
+    p.x+=Math.cos(p.aim)*d; p.y+=Math.sin(p.aim)*d;
+    if(this.opt.bounds){ const B=this.opt.bounds; p.x=clamp(p.x,B[0],B[2]); p.y=clamp(p.y,B[1],B[3]) }
+    const u=p.tt/S.dur, u0=(p.tt-dt)/S.dur;
+    this.applyStep(S,u0,u,o);
+    if(p.tt>=S.dur){ const oo=this.pose(); p.rec=Object.assign({},oo); p.rec.sp=wrap(oo.sp); p.rec.Ha=wrap(oo.Ha); p.step=null; p.idle=0 }
+  } else p.idle+=dt;
+  if(p.vigil) this.tickVigil(dt);
+  if(p.tether) this.tickTether(dt);
+  this.placeHead(dt);
+  const hv=[(p.hx-hOld[0])/dt,(p.hy-hOld[1])/dt], spd=Math.hypot(hv[0],hv[1]);
+  p.hvx=hv[0]; p.hvy=hv[1];
+  /* head trail while it can hit */
+  const hot=(p.step&&!p.step.alt&&p.tt/p.step.dur>=p.step.hit.t0-.04&&p.tt/p.step.dur<=p.step.hit.t1+.03)||(p.vigil&&this.t-p.vigil.t0>.15)||(p.cast&&p.cast.fly);
+  const hd=this.hands(this.pose());
+  this.trail.push({t:this.t,tip:[p.hx,p.hy],base:[lerp(hd.R[0],p.hx,.45),lerp(hd.R[1],p.hy,.45)],hot,fin:p.step&&p.step.fin}); while(this.trail.length&&this.t-this.trail[0].t>.24) this.trail.shift();
+  /* rope */
+  this.tickRope(hd.R,[p.hx,p.hy]);
+  /* smoke off the head */
+  this.emAcc+=dt*(9+spd*.07);
+  while(this.emAcc>=1){ this.emAcc--; const j=this.rand()*TAU;
+    this.smoke.push({x:p.hx+Math.cos(j)*3,y:p.hy+Math.sin(j)*3,vx:-hv[0]*.06+(this.rand()-.5)*14,vy:-hv[1]*.06+(this.rand()-.5)*14-6,r0:2.5,r1:9+this.rand()*9,t0:this.t,life:.8+this.rand()*.7,a:.2+clamp(spd/900)*.12}) }
+  /* zones: heal ticks and their own smoke */
+  this.zones=this.zones.filter(z=>{ const age=this.t-z.t0; if(age>z.life) return false;
+    z.tick+=dt; if(z.tick>=.5){ z.tick-=.5; this.allies.forEach(a=>{ if(Math.hypot(a.x-z.x,a.y-z.y)<z.r+ALLY_R*.5) this.healAlly(a,z.heal*.5,true) }) }
+    z.acc+=dt*z.r*z.r/1500*clamp((z.life-age)/1);
+    while(z.acc>=1){ z.acc--; const a=this.rand()*TAU, d=Math.sqrt(this.rand())*z.r*.85; this.smoke.push({x:z.x+Math.cos(a)*d,y:z.y+Math.sin(a)*d,vx:(this.rand()-.5)*8,vy:-4-this.rand()*6,r0:z.r*.15,r1:z.r*.4,t0:this.t,life:1.3+this.rand()*.6,a:.11}) }
+    return true });
+  /* smoke */
+  this.smoke=this.smoke.filter(s=>{ const q=(this.t-s.t0)/s.life; if(q>=1) return false; const dmp=Math.pow(.12,dt); s.vx*=dmp; s.vy*=dmp; s.x+=s.vx*dt; s.y+=s.vy*dt; return true });
+  if(this.smoke.length>650) this.smoke.splice(0,this.smoke.length-650);
+  /* motes */
+  this.motes=this.motes.filter(m=>{ const q=(this.t-m.t0)/m.dur; if(q<1) return true;
+    if(m.k==='heal'&&m.amt){ this.healAlly(m.a,m.amt) }
+    return false });
+  /* allies: a slow bleed so the heals show */
+  this.allies.forEach(a=>{ if(a.glow>0) a.glow-=dt; a.hp=Math.max(18,a.hp-dt*(this.opt.bleed||1)) });
+  /* foes */
+  const shots=this.opt.shots&&this.opt.shots();
+  this.foes.forEach(f=>{
+    if(f.dead>=0){ if(this.t-f.dead>1.1){ f.dead=-1; f.hp=FOE_HP; f.x=f.hx; f.y=f.hy; f.vx=f.vy=0; f.hitBy={}; f.born=this.t } return }
+    f.x+=f.vx*dt; f.y+=f.vy*dt; f.vx*=Math.pow(.0005,dt); f.vy*=Math.pow(.0005,dt);
+    f.x+=(f.hx-f.x)*dt*.8; f.y+=(f.hy-f.y)*dt*.8;
+    if(f.flash>0) f.flash-=dt;
+    if(f.shooter&&shots){ f.fire-=dt; if(f.fire<=0){ f.fire=.62;
+      const tg=this.allies.length&&(f.tgt++%2===0)?this.allies[this.allies.length-1]:p;
+      let a=Math.atan2(tg.y-f.y,tg.x-f.x)+(this.rand()-.5)*.12; const fog=this.zones.some(z=>Math.hypot(f.x-z.x,f.y-z.y)<z.r);
+      if(fog) a+=(this.rand()<.5?-1:1)*(.3+this.rand()*.45);
+      this.bullets.push({x:f.x+Math.cos(a)*16,y:f.y+Math.sin(a)*16,vx:Math.cos(a)*230,vy:Math.sin(a)*230,t0:this.t,fog}) } } });
+  /* bullets */
+  this.bullets=this.bullets.filter(b=>{ if(b.dead) return false; const ox=b.x, oy=b.y; b.x+=b.vx*dt; b.y+=b.vy*dt; if(this.t-b.t0>4) return false;
+    if(p.vigil&&!b.turned){ const d0=Math.hypot(ox-p.x,oy-p.y), d1=Math.hypot(b.x-p.x,b.y-p.y); const R=140;
+      if(d0>=R&&d1<R){ const nx=(b.x-p.x)/d1, ny=(b.y-p.y)/d1, dot=b.vx*nx+b.vy*ny; b.vx=(b.vx-2*dot*nx)*.85; b.vy=(b.vy-2*dot*ny)*.85; b.turned=true; b.x=p.x+nx*R; b.y=p.y+ny*R; this.fx.push({k:'block',x:b.x,y:b.y,t0:this.t,seed:this.seed++}) } }
+    if(p.tether){ const T=p.tether, hd2=this.hands(this.pose()); if(segDist([b.x,b.y],hd2.R,[T.a.x,T.a.y])<6){ this.fx.push({k:'block',x:b.x,y:b.y,t0:this.t,seed:this.seed++}); return false } }
+    for(const a of this.allies) if(Math.hypot(b.x-a.x,b.y-a.y)<ALLY_R+3){ a.hp=Math.max(10,a.hp-3); this.fx.push({k:'popb',x:b.x,y:b.y,t0:this.t}); return false }
+    if(Math.hypot(b.x-p.x,b.y-p.y)<15){ this.fx.push({k:'popb',x:b.x,y:b.y,t0:this.t}); return false }
+    return true });
+  this.fx=this.fx.filter(e=>this.t-e.t0<1.1); this.nums=this.nums.filter(n=>this.t-n.t0<.8);
+};
+/* the head: exact on a swing, sprung at rest so it lags and swings when you move */
+Sim.prototype.placeHead=function(dt){
+  const p=this.pl, o=this.pose();
+  if(p.cast){ const c=p.cast, S=p.step, u=S?p.tt/S.dur:1;
+    if(u<.22){ const h=this.headTarget(o); p.hx=h[0]; p.hy=h[1]; c.z=0; c.fly=false; return }
+    if(u<.46){ const q=EASE.eo((u-.22)/.24), s=c.from||(c.from=[p.hx,p.hy]); p.hx=lerp(s[0],c.T[0],q); p.hy=lerp(s[1],c.T[1],q); c.z=Math.sin(Math.PI*q); c.fly=true;
+      if(!c.landed&&u>=.45){ c.landed=true; this.castLand() } return }
+    if(!c.landed){ c.landed=true; this.castLand() }
+    c.fly=false; c.z=0;
+    if(u<.6){ p.hx=c.T[0]; p.hy=c.T[1]; return }
+    const q=EASE.eio(clamp((u-.6)/.38)), h=this.headTarget(o); p.hx=lerp(c.T[0],h[0],q); p.hy=lerp(c.T[1],h[1],q);
+    if(u>=.99||!S){ p.cast=null } return }
+  if(p.tether){ const T=p.tether, S=p.step;
+    if(S&&p.tt/S.dur<.42){ const h=this.headTarget(o); p.hx=h[0]; p.hy=h[1]; T.from=[p.hx,p.hy]; return }
+    if(!T.from) T.from=[p.hx,p.hy];
+    const fly=clamp((this.t-T.fly)/.22), orb=[T.a.x+Math.cos(this.t*5)*20,T.a.y+Math.sin(this.t*5)*20];
+    if(fly<1){ const q=EASE.eo(fly); p.hx=lerp(T.from[0],orb[0],q); p.hy=lerp(T.from[1],orb[1],q) } else { p.hx=orb[0]; p.hy=orb[1] } return }
+  if(p.reel){ const r=p.reel, q=EASE.eio(clamp((this.t-r.t0)/.3)), h=this.headTarget(o); p.hx=lerp(r.x,h[0],q); p.hy=lerp(r.y,h[1],q); if(q>=1) p.reel=null; return }
+  const h=this.headTarget(o);
+  if(p.step||p.vigil){ p.hx=h[0]; p.hy=h[1]; p.sv=[0,0]; return }
+  /* spring toward the rest spot */
+  if(!p.sv) p.sv=[0,0];
+  const k=70; p.sv[0]+=(h[0]-p.hx)*k*dt; p.sv[1]+=(h[1]-p.hy)*k*dt; p.sv[0]*=Math.pow(.02,dt); p.sv[1]*=Math.pow(.02,dt);
+  p.hx+=p.sv[0]*dt; p.hy+=p.sv[1]*dt;
+  const dx=p.hx-p.x, dy=p.hy-p.y, d=Math.hypot(dx,dy); if(d>70){ p.hx=p.x+dx/d*70; p.hy=p.y+dy/d*70 } };
+Sim.prototype.tickRope=function(A,B){
+  const r=this.pl.rope, N=11;
+  if(!r.length) for(let i=0;i<N;i++){ const q=i/(N-1); r.push({x:lerp(A[0],B[0],q),y:lerp(A[1],B[1],q),px:lerp(A[0],B[0],q),py:lerp(A[1],B[1],q)}) }
+  r[0].x=r[0].px=A[0]; r[0].y=r[0].py=A[1]; r[N-1].x=r[N-1].px=B[0]; r[N-1].y=r[N-1].py=B[1];
+  for(let i=1;i<N-1;i++){ const s=r[i], vx=(s.x-s.px)*.9, vy=(s.y-s.py)*.9; s.px=s.x; s.py=s.y; s.x+=vx; s.y+=vy }
+  const dist=Math.hypot(B[0]-A[0],B[1]-A[1]), seg=Math.max(dist*1.05+5,26)/(N-1);
+  for(let it=0;it<10;it++) for(let i=0;i<N-1;i++){ const a=r[i], b=r[i+1], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1, df=(d-seg)/d*.5;
+    if(i>0){ a.x+=dx*df; a.y+=dy*df } if(i+1<N-1){ b.x-=dx*df; b.y-=dy*df } } };
+function segDist(p,a,b){ const dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1; const t=clamp(((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l2); return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dy*t) }
+
+Sim.prototype.applyStep=function(S,u0,u,o){
+  const p=this.pl, once=t=>u0<t&&u>=t;
+  if(S.alt) return;
+  const h=S.hit;
+  if(u>=h.t0&&u0<=h.t1){ const hd=this.hands(o), head=[p.hx,p.hy], mid=[lerp(hd.R[0],p.hx,.5),lerp(hd.R[1],p.hy,.5)];
+    this.foes.forEach(f=>{ if(f.dead>=0||f.hitBy[p.inst]) return;
+      if(Math.hypot(f.x-head[0],f.y-head[1])<FOE_R+HEAD_R+4||segDist([f.x,f.y],mid,head)<FOE_R+2){ f.hitBy[p.inst]=1;
+        const tang=Math.atan2(p.hvy,p.hvx);
+        if(this.hitFoe(f,h.dmg,Math.atan2(f.y-p.y,f.x-p.x),h.kb,!!S.fin)){ this.fx[this.fx.length-1].ang=tang; p.hitN++; this.gainEmber(f);
+          for(let i=0;i<6;i++){ const a=tang+(this.rand()-.5)*1.4; this.fx.push({k:'spark',x:head[0],y:head[1],vx:Math.cos(a)*(120+this.rand()*160),vy:Math.sin(a)*(120+this.rand()*160),t0:this.t,life:.35+this.rand()*.25}) } } } }) }
+  if(S.heal&&once(S.heal.t)){ const amt=S.heal.amt+(S.heal.bonus?Math.min(S.heal.bonus,p.hitN):0);
+    p.bless=.45; this.fx.push({k:'healring',x:p.x,y:p.y,r:S.heal.r,t0:this.t,big:!!S.fin});
+    if(S.fin){ this.shake=Math.max(this.shake,3.2); this.fx.push({k:'rays',x:p.x,y:p.y,t0:this.t,seed:this.seed++}) }
+    this.allies.forEach(a=>{ if(Math.hypot(a.x-p.x,a.y-p.y)<S.heal.r) this.sendHeal(p.hx,p.hy,a,amt,S.fin?5:3) }) }
+  if(S.puff&&once(S.puff.t)) this.addZone(p.hx,p.hy,S.puff.r,S.puff.life,4);
+  if(S.cloud&&once(S.cloud.t)) this.addZone(p.x,p.y,S.cloud.r,S.cloud.life,4,true);
+};
+Sim.prototype.startAlt=function(){
+  const p=this.pl, A=this.A, key=this.opt.alt;
+  p.buf=null; p.idle=0; p.chain=0;
+  if(this.opt.altAim) p.aim=this.opt.altAim(p);
+  if(key==='vigil'){ const o=this.pose(); p.vigil={t0:this.t,ang:wrap(o.Ha),from:Object.assign({},o,{fx:0}),drain:0,tick:0}; p.step=null;
+    this.label={name:A.name,t:this.t,alt:true}; this.fx.push({k:'ring',x:p.x,y:p.y,rad:140,t0:this.t}); return }
+  if(key==='tether'){ const pt=this.opt.altPoint?this.opt.altPoint(p):[p.x+Math.cos(p.aim)*200,p.y+Math.sin(p.aim)*200];
+    let best=null,bd=1e9; this.allies.forEach(a=>{ const d=Math.hypot(a.x-pt[0],a.y-pt[1]); if(Math.hypot(a.x-p.x,a.y-p.y)<300&&d<bd){bd=d;best=a} });
+    if(!best) return;
+    p.aim=Math.atan2(best.y-p.y,best.x-p.x); }
+  const S=Object.assign({alt:true},A); this.start(S,5); p.cd=A.cd;
+  if(key==='cast'){ const tgt=this.opt.altPoint?this.opt.altPoint(p):[p.x+Math.cos(p.aim)*280,p.y+Math.sin(p.aim)*280];
+    let dx=tgt[0]-p.x, dy=tgt[1]-p.y; const d=Math.hypot(dx,dy)||1, L=Math.min(280,d); p.aim=Math.atan2(dy,dx);
+    p.cast={T:[p.x+dx/d*L,p.y+dy/d*L],E:p.embers,landed:false,from:null}; p.embers=0; this.fx.push({k:'aim',x:p.x,y:p.y,x2:p.cast.T[0],y2:p.cast.T[1],t0:this.t}) }
+  if(key==='tether'){ let best=null,bd=1e9; const pt=this.opt.altPoint?this.opt.altPoint(p):[p.x+Math.cos(p.aim)*200,p.y+Math.sin(p.aim)*200];
+    this.allies.forEach(a=>{ const d=Math.hypot(a.x-pt[0],a.y-pt[1]); if(Math.hypot(a.x-p.x,a.y-p.y)<300&&d<bd){bd=d;best=a} });
+    p.tether={a:best,t0:this.t,fly:this.t+A.dur*.42,life:1.2+.6*p.embers,tick:0,last:{},from:null}; p.embers=0 } };
+Sim.prototype.castLand=function(){
+  const p=this.pl, c=p.cast, E=Math.max(1,c.E), T=c.T;
+  this.shake=Math.max(this.shake,3.5);
+  this.fx.push({k:'burst',x:T[0],y:T[1],t0:this.t,r:50,seed:this.seed++});
+  for(let i=0;i<16;i++){ const a=this.rand()*TAU; this.fx.push({k:'spark',x:T[0],y:T[1],vx:Math.cos(a)*(120+this.rand()*220),vy:Math.sin(a)*(120+this.rand()*220),t0:this.t,life:.4+this.rand()*.35}) }
+  this.foes.forEach(f=>{ if(Math.hypot(f.x-T[0],f.y-T[1])<50+FOE_R) this.hitFoe(f,8*E,Math.atan2(f.y-T[1],f.x-T[0]),16,true) });
+  this.addZone(T[0],T[1],60+6*E,4,2+E,true);
+  this.allies.forEach(a=>{ if(Math.hypot(a.x-T[0],a.y-T[1])<60+6*E) this.healAlly(a,2+E) }) };
+Sim.prototype.tickVigil=function(dt){
+  const p=this.pl, v=p.vigil;
+  v.ang+=dt*15; v.drain+=dt; v.tick+=dt;
+  if(v.drain>=.7){ v.drain-=.7; p.embers--; this.fx.push({k:'emberout',x:p.x,y:p.y+27,t0:this.t,slot:p.embers}) }
+  if(v.tick>=.5){ v.tick-=.5;
+    this.allies.forEach(a=>{ if(Math.hypot(a.x-p.x,a.y-p.y)<140) this.sendHeal(p.hx,p.hy,a,3,2) });
+    this.foes.forEach(f=>{ if(f.dead<0&&Math.hypot(f.x-p.x,f.y-p.y)<140+FOE_R*.5) this.hitFoe(f,6,Math.atan2(f.y-p.y,f.x-p.x),4,false) });
+    this.fx.push({k:'vpulse',x:p.x,y:p.y,t0:this.t}) }
+  if(!p.altHeld||p.embers<=0){ const o=this.pose(); p.rec=Object.assign({},o); p.rec.Ha=wrap(o.Ha); p.vigil=null; p.idle=0; p.cd=this.A.cd } };
+Sim.prototype.tickTether=function(dt){
+  const p=this.pl, T=p.tether; if(this.t<T.fly+.22) return;
+  const a=T.a, hd=this.hands(this.pose()); T.tick+=dt;
+  if(T.tick>=.5){ T.tick-=.5; this.healAlly(a,2.5) }
+  this.foes.forEach(f=>{ if(f.dead>=0) return; const l=T.last[f.i]; if(l!=null&&this.t-l<.5) return;
+    if(segDist([f.x,f.y],hd.R,[a.x,a.y])<FOE_R+4){ T.last[f.i]=this.t; this.hitFoe(f,10,Math.atan2(a.y-p.y,a.x-p.x)+Math.PI/2,6,false) } });
+  const far=Math.hypot(a.x-p.x,a.y-p.y)>360;
+  if(this.t-T.fly-.22>T.life||far){ this.fx.push({k:'snap',x:a.x,y:a.y,t0:this.t}); p.reel={x:p.hx,y:p.hy,t0:this.t}; p.tether=null } };
+
+/* ---------- drawing ---------- */
+function line(x,x0,y0,x1,y1,w,c){x.strokeStyle=c;x.lineWidth=w;x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke()}
+function sprite(rgb,size){ const c=document.createElement('canvas'); c.width=c.height=size; const g=c.getContext('2d'), r=size/2, gr=g.createRadialGradient(r,r,0,r,r,r);
+  gr.addColorStop(0,'rgba('+rgb+',1)'); gr.addColorStop(.45,'rgba('+rgb+',.55)'); gr.addColorStop(1,'rgba('+rgb+',0)'); g.fillStyle=gr; g.fillRect(0,0,size,size); return c }
+const SMOKE_SPR=sprite(SMOKE,64), GLOW_SPR=sprite(COL,64), HEAL_SPR=sprite(HEAL,64), EMB_SPR=sprite(EMB,64), SHOT_SPR=sprite('200,120,255',32);
+function blob(x,spr,cx,cy,r,a){ if(a<=0) return; x.globalAlpha=Math.min(1,a); x.drawImage(spr,cx-r,cy-r,r*2,r*2); x.globalAlpha=1 }
+
+/* the censer head: pierced bronze body, domed lid, cross finial, coals glowing through */
+function censer(x,cx,cy,t,glow,z,shadow){
+  const sc=1+(z||0)*.55;
+  if(shadow){ x.fillStyle='rgba(0,0,0,'+(.32-(z||0)*.12)+')'; x.beginPath(); x.ellipse(cx+3+(z||0)*16,cy+5+(z||0)*22,9*sc*.9,7*sc*.9,0,0,TAU); x.fill(); return }
+  x.save(); x.translate(cx,cy); x.scale(sc,sc);
+  x.globalCompositeOperation='lighter'; blob(x,GLOW_SPR,0,0,22+glow*14,.45+glow*.45); x.globalCompositeOperation='source-over';
+  x.rotate(t*.8);
+  x.fillStyle='#8a5f22'; x.strokeStyle='#2d1d08'; x.lineWidth=1.4;
+  x.beginPath(); for(let k=0;k<8;k++){ const a=k*TAU/8+TAU/16; x.lineTo(Math.cos(a)*9,Math.sin(a)*9) } x.closePath(); x.fill(); x.stroke();
+  for(let k=0;k<8;k++){ const a=k*TAU/8, fl=.55+.45*Math.sin(t*13+k*1.7);
+    x.fillStyle='rgba(255,'+Math.round(150+60*fl)+',70,'+((.65+.35*glow)*fl).toFixed(3)+')'; x.beginPath(); x.arc(Math.cos(a)*6.4,Math.sin(a)*6.4,1.25,0,TAU); x.fill() }
+  const g=x.createRadialGradient(-1.5,-1.5,0,0,0,5.6); g.addColorStop(0,'#f6d68a'); g.addColorStop(1,'#b5843a'); x.fillStyle=g; x.beginPath(); x.arc(0,0,5.4,0,TAU); x.fill(); x.strokeStyle='#4a3010'; x.lineWidth=1; x.stroke();
+  line(x,-3.2,0,3.2,0,1.3,'#4a3010'); line(x,0,-3.2,0,3.2,1.3,'#4a3010');
+  x.fillStyle='#fff3cf'; x.beginPath(); x.arc(0,0,1.1,0,TAU); x.fill();
+  x.restore() }
+function drawRope(x,r,shadow,glow){
+  if(r.length<2) return;
+  x.save(); x.lineCap='round';
+  if(shadow){ x.strokeStyle='rgba(0,0,0,.25)'; x.lineWidth=2.2; x.beginPath(); r.forEach((s,i)=>i?x.lineTo(s.x+3,s.y+5):x.moveTo(s.x+3,s.y+5)); x.stroke(); x.restore(); return }
+  if(glow){ x.globalCompositeOperation='lighter'; [[10,.4],[4,.7]].forEach(w=>{ x.strokeStyle='rgba('+(w[0]>5?COL:HOT)+','+(w[1]*glow)+')'; x.lineWidth=w[0]; x.beginPath(); r.forEach((s,i)=>i?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y)); x.stroke() }); x.globalCompositeOperation='source-over' }
+  for(let i=1;i<r.length;i++){ const a=r[i-1], b=r[i], ang=Math.atan2(b.y-a.y,b.x-a.x), mx=(a.x+b.x)/2, my=(a.y+b.y)/2, L=Math.hypot(b.x-a.x,b.y-a.y);
+    x.save(); x.translate(mx,my); x.rotate(ang);
+    [['#2a1d0a',2.6],[i%2?'#e2c27a':'#b99652',1.2]].forEach(c=>{ x.strokeStyle=c[0]; x.lineWidth=c[1]; x.beginPath(); x.ellipse(0,0,Math.max(2,L*.5+.5),i%2?1.7:.9,0,0,TAU); x.stroke() });
+    x.restore() }
+  x.restore() }
+function arm(x,S,h,away){ const dx=h[0]-S[0], dy=h[1]-S[1], l=Math.hypot(dx,dy)||1; let n=[-dy/l,dx/l]; if(n[0]*away[0]+n[1]*away[1]<0) n=[-n[0],-n[1]];
+  const bow=Math.max(0,7-l*.2), e=[(S[0]+h[0])/2+n[0]*bow,(S[1]+h[1])/2+n[1]*bow];
+  [['#3a2d12',8],['#e9dfc2',5.2]].forEach(c=>{x.strokeStyle=c[0];x.lineWidth=c[1];x.lineCap='round';x.beginPath();x.moveTo(S[0],S[1]);x.quadraticCurveTo(e[0],e[1],h[0],h[1]);x.stroke()})}
+/* the Healer Knight: ivory surcoat with a gold cross, silver helm, gold pauldrons */
+function knight(x,sim,o){
+  const p=sim.pl, face=p.aim+o.sp+o.tw, hd=sim.hands(o), c=Math.cos(face), s=Math.sin(face);
+  const SR=[p.x-s*11.5+c,p.y+c*11.5+s], SL=[p.x+s*11.5+c,p.y-c*11.5+s];
+  x.fillStyle='rgba(0,0,0,.3)'; x.beginPath(); x.ellipse(p.x+3,p.y+5,17,13,0,0,TAU); x.fill();
+  x.save(); x.translate(p.x,p.y); x.rotate(face);
+  x.fillStyle='#efe6c8'; x.strokeStyle='#3a2d12'; x.lineWidth=2; x.beginPath(); x.arc(0,0,16,0,TAU); x.fill(); x.stroke();
+  x.fillStyle='#e2d6b0'; x.beginPath(); x.arc(-1,0,10.5,0,TAU); x.fill();
+  line(x,-12,0,-3,0,3,'#d9a842'); line(x,-8.5,-4,-8.5,4,3,'#d9a842');
+  x.restore();
+  arm(x,SR,hd.R,[-s,c]); arm(x,SL,hd.L,[s,-c]);
+  [SR,SL].forEach(S=>{x.save();x.translate(S[0],S[1]);x.rotate(face);const g=x.createLinearGradient(0,-6,0,6);g.addColorStop(0,'#f2d488');g.addColorStop(1,'#b58a3c');
+    x.fillStyle=g;x.strokeStyle='#3a2d12';x.lineWidth=1.5;x.beginPath();x.ellipse(0,0,6.5,5.2,0,0,TAU);x.fill();x.stroke();x.restore()});
+  x.save(); x.translate(p.x,p.y); x.rotate(face);
+  x.fillStyle='#c3cbd6'; x.strokeStyle='#3a2d12'; x.lineWidth=1.6; x.beginPath(); x.arc(2.5,0,7,0,TAU); x.fill(); x.stroke();
+  line(x,6.3,-3.2,6.3,3.2,1.6,'#3a2d12'); line(x,1,-5.5,1,5.5,1,'rgba(255,230,160,.8)');
+  x.restore();
+  if(o.Lb>.05||p.bless>0){ const a=Math.max(o.Lb,clamp(p.bless/.45)); x.save(); x.globalCompositeOperation='lighter'; blob(x,HEAL_SPR,hd.L[0],hd.L[1],16*a+4,.7*a); x.restore() }
+  [hd.R,hd.L].forEach(h=>{x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.5;x.beginPath();x.arc(h[0],h[1],4.6,0,TAU);x.fill();x.stroke();
+    x.fillStyle='rgba(255,236,200,.45)';x.beginPath();x.arc(h[0]-1.2,h[1]-1.5,1.5,0,TAU);x.fill()});
+  x.strokeStyle='#d9a842'; x.lineWidth=1.6; x.beginPath(); x.arc(hd.R[0],hd.R[1],3,0,TAU); x.stroke() }
+
+function drawTrail(x,sim){
+  const T=sim.t, tr=sim.trail, span=.12;
+  x.save(); x.globalCompositeOperation='lighter';
+  for(let i=1;i<tr.length;i++){ const a=tr[i-1], b=tr[i]; if(!a.hot||!b.hot) continue; const age=T-b.t; if(age>span) continue; const k=Math.pow(1-age/span,1.4);
+    x.fillStyle='rgba('+COL+','+(.2*k).toFixed(3)+')'; x.beginPath(); x.moveTo(a.tip[0],a.tip[1]); x.lineTo(b.tip[0],b.tip[1]); x.lineTo(b.base[0],b.base[1]); x.lineTo(a.base[0],a.base[1]); x.closePath(); x.fill() }
+  x.lineCap='round';
+  for(let i=1;i<tr.length;i++){ const a=tr[i-1], b=tr[i]; if(!a.hot||!b.hot) continue; const age=T-b.t; if(age>span) continue; const k=1-age/span;
+    x.strokeStyle='rgba('+COL+','+(.35*k).toFixed(3)+')'; x.lineWidth=(b.fin?16:11)*k; x.beginPath(); x.moveTo(a.tip[0],a.tip[1]); x.lineTo(b.tip[0],b.tip[1]); x.stroke();
+    x.strokeStyle='rgba('+HOT+','+(.9*k).toFixed(3)+')'; x.lineWidth=2.4*k+.5; x.beginPath(); x.moveTo(a.tip[0],a.tip[1]); x.lineTo(b.tip[0],b.tip[1]); x.stroke() }
+  x.restore() }
+
+function drawZones(x,sim){
+  const T=sim.t;
+  sim.zones.forEach(z=>{ const age=T-z.t0, al=clamp(age/.25)*clamp((z.life-age)/.8);
+    x.save(); x.globalCompositeOperation='lighter';
+    const g=x.createRadialGradient(z.x,z.y,0,z.x,z.y,z.r); g.addColorStop(0,'rgba('+HEAL+','+(.07*al)+')'); g.addColorStop(.8,'rgba('+COL+','+(.05*al)+')'); g.addColorStop(1,'rgba('+COL+',0)');
+    x.fillStyle=g; x.beginPath(); x.arc(z.x,z.y,z.r,0,TAU); x.fill();
+    x.setLineDash([2,7]); x.lineDashOffset=-T*14; x.strokeStyle='rgba('+COL+','+(.28*al)+')'; x.lineWidth=1.3; x.beginPath(); x.arc(z.x,z.y,z.r,0,TAU); x.stroke(); x.setLineDash([]);
+    const n=Math.round(z.r/14);
+    for(let i=0;i<n;i++){ const ph=(T*.5+rnd(i+z.t0*7))%1, a=rnd(i*3+z.t0)*TAU, d=Math.sqrt(rnd(i*5+z.t0))*z.r*.8, cx=z.x+Math.cos(a)*d, cy=z.y+Math.sin(a)*d-ph*18, aa=al*Math.sin(Math.PI*ph)*.6;
+      line(x,cx-2.5,cy,cx+2.5,cy,1.2,'rgba('+HEAL+','+aa+')'); line(x,cx,cy-2.5,cx,cy+2.5,1.2,'rgba('+HEAL+','+aa+')') }
+    x.restore() }) }
+function drawSmoke(x,sim){
+  const T=sim.t;
+  sim.smoke.forEach(s=>{ const q=(T-s.t0)/s.life, r=lerp(s.r0,s.r1,EASE.eo(q)); blob(x,SMOKE_SPR,s.x,s.y,r,s.a*Math.sin(Math.PI*Math.min(1,q*1.15+.05))) }) }
+
+function drawFx(x,sim,layer){
+  const T=sim.t;
+  sim.fx.forEach(e=>{ const q=T-e.t0; if(q<0) return;
+    if(layer==='ground'){
+      if(e.k==='healring'){ const dur=e.big?.6:.45; if(q>dur) return; const al=1-q/dur, R=e.r*EASE.eo(clamp(q/(dur*.7)));
+        x.save(); x.globalCompositeOperation='lighter'; x.strokeStyle='rgba('+HEAL+','+(.5*al)+')'; x.lineWidth=(e.big?9:5)*al+1; x.beginPath(); x.arc(e.x,e.y,R,0,TAU); x.stroke();
+        x.strokeStyle='rgba('+HOT+','+(.6*al)+')'; x.lineWidth=1.2; x.beginPath(); x.arc(e.x,e.y,R*.97,0,TAU); x.stroke();
+        if(e.big&&q<.12) blob(x,GLOW_SPR,e.x,e.y,e.r*.6,.9*(1-q/.12));
+        x.restore() }
+      else if(e.k==='rays'){ if(q>.6) return; const al=1-q/.6; x.save(); x.globalCompositeOperation='lighter'; x.translate(e.x,e.y);
+        for(let i=0;i<12;i++){ const a=i/12*TAU+rnd(e.seed+i)*.2+q*.4, L=60+90*EASE.eo(clamp(q/.3)); const g=x.createLinearGradient(0,0,Math.cos(a)*L,Math.sin(a)*L); g.addColorStop(0,'rgba('+HOT+','+(.5*al)+')'); g.addColorStop(1,'rgba('+COL+',0)');
+          x.fillStyle=g; x.beginPath(); x.moveTo(0,0); x.lineTo(Math.cos(a-.07)*L,Math.sin(a-.07)*L); x.lineTo(Math.cos(a+.07)*L,Math.sin(a+.07)*L); x.closePath(); x.fill() } x.restore() }
+      else if(e.k==='burst'){ if(q>.7) return; const al=1-q/.7;
+        x.strokeStyle='rgba(30,22,10,'+(.6*al)+')'; x.lineWidth=1.6; for(let i=0;i<7;i++){ const a=i/7*TAU+rnd(e.seed+i), l=18+rnd(e.seed+i+3)*22; x.beginPath(); x.moveTo(e.x,e.y); x.lineTo(e.x+Math.cos(a)*l,e.y+Math.sin(a)*l); x.stroke() }
+        x.save(); x.globalCompositeOperation='lighter';
+        x.strokeStyle='rgba('+COL+','+(.75*al)+')'; x.lineWidth=7*al+1; x.beginPath(); x.arc(e.x,e.y,e.r*EASE.eo(clamp(q/.3))*1.3,0,TAU); x.stroke();
+        if(q<.12) blob(x,GLOW_SPR,e.x,e.y,70,1-q/.12);
+        for(let i=0;i<8;i++){ const a=i/8*TAU+rnd(e.seed)*.4; line(x,e.x+Math.cos(a)*(12+q*90),e.y+Math.sin(a)*(12+q*90),e.x+Math.cos(a)*(26+q*120),e.y+Math.sin(a)*(26+q*120),2,'rgba('+HOT+','+al+')') }
+        x.restore() }
+      else if(e.k==='aim'){ if(q>.32) return; const al=1-q/.32; x.save(); x.setLineDash([3,7]); x.strokeStyle='rgba('+COL+','+(.55*al)+')'; x.lineWidth=1.6; x.beginPath(); x.moveTo(e.x,e.y); x.lineTo(e.x2,e.y2); x.stroke();
+        x.setLineDash([]); x.beginPath(); x.arc(e.x2,e.y2,50*(1.3-.3*al),0,TAU); x.stroke(); x.restore() }
+      else if(e.k==='vpulse'){ if(q>.4) return; const al=1-q/.4; x.save(); x.globalCompositeOperation='lighter'; x.strokeStyle='rgba('+HEAL+','+(.35*al)+')'; x.lineWidth=3; x.beginPath(); x.arc(e.x,e.y,140-q*60,0,TAU); x.stroke(); x.restore() }
+      return }
+    if(e.k==='hit'){ if(q>.45) return; const sc=e.big?1.3:.9, nx=Math.cos(e.ang), ny=Math.sin(e.ang), al=1-q/.45;
+      x.save(); x.translate(e.x,e.y); x.globalCompositeOperation='lighter';
+      if(q<.07) blob(x,GLOW_SPR,0,0,26*sc,1-q/.07);
+      x.strokeStyle='rgba('+COL+','+(.7*al)+')'; x.lineWidth=3; x.beginPath(); x.arc(0,0,10+q*40*sc,0,TAU); x.stroke();
+      x.lineCap='round'; line(x,-nx*16,-ny*16,nx*16,ny*16,1.4,'rgba(255,255,255,'+al+')');
+      x.restore() }
+    else if(e.k==='spark'){ if(q>e.life) return; const k=1-q/e.life, dmp=Math.exp(-q*5), px=e.x+e.vx*(1-dmp)/5, py=e.y+e.vy*(1-dmp)/5, vx=e.vx*dmp, vy=e.vy*dmp;
+      x.save(); x.globalCompositeOperation='lighter'; line(x,px,py,px-vx*.03,py-vy*.03,1.8,'rgba('+EMB+','+k+')'); blob(x,EMB_SPR,px,py,5,k*.8); x.restore() }
+    else if(e.k==='pop'){ if(q>.5) return; x.strokeStyle='rgba(255,140,110,'+(1-q/.5)+')'; x.lineWidth=2; x.beginPath(); x.arc(e.x,e.y,13+q*60,0,TAU); x.stroke() }
+    else if(e.k==='ring'){ if(q>.5) return; const al=1-q/.5, R=e.rad*EASE.eo(clamp(q/.25));
+      x.save(); x.globalCompositeOperation='lighter'; x.strokeStyle='rgba('+COL+','+(.7*al)+')'; x.lineWidth=6*al+1; x.beginPath(); x.arc(e.x,e.y,R,0,TAU); x.stroke(); x.restore() }
+    else if(e.k==='block'){ if(q>.3) return; const al=1-q/.3; x.save(); x.globalCompositeOperation='lighter'; blob(x,GLOW_SPR,e.x,e.y,14,al);
+      for(let i=0;i<6;i++){ const a=rnd(e.seed+i)*TAU, r=5+q*70; line(x,e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,e.x+Math.cos(a)*(r+6),e.y+Math.sin(a)*(r+6),1.5,'rgba('+HOT+','+al+')') } x.restore() }
+    else if(e.k==='popb'){ if(q>.2) return; x.strokeStyle='rgba(220,150,255,'+(1-q/.2)+')'; x.lineWidth=1.5; x.beginPath(); x.arc(e.x,e.y,4+q*40,0,TAU); x.stroke() }
+    else if(e.k==='plus'){ if(q>.7) return; const al=Math.sin(Math.PI*q/.7), cx=e.x, cy=e.y-q*30; x.save(); x.globalCompositeOperation='lighter';
+      line(x,cx-3,cy,cx+3,cy,1.6,'rgba('+HEAL+','+al+')'); line(x,cx,cy-3,cx,cy+3,1.6,'rgba('+HEAL+','+al+')'); x.restore() }
+    else if(e.k==='snap'){ if(q>.4) return; const al=1-q/.4; x.save(); x.globalCompositeOperation='lighter'; for(let i=0;i<6;i++){ const a=i/6*TAU; line(x,e.x+Math.cos(a)*(8+q*50),e.y+Math.sin(a)*(8+q*50),e.x+Math.cos(a)*(14+q*60),e.y+Math.sin(a)*(14+q*60),1.6,'rgba('+COL+','+al+')') } x.restore() }
+    else if(e.k==='emberout'){ if(q>.4) return; const al=1-q/.4, ex=e.x+(e.slot-(EMBER_CAP-1)/2)*9; x.save(); x.globalCompositeOperation='lighter'; blob(x,EMB_SPR,ex,e.y-q*30,8,al); x.restore() }
+  }) }
+
+function drawFoe(x,sim,f){
+  const T=sim.t; if(f.dead>=0) return;
+  const born=f.born!=null?clamp((T-f.born)/.3):1;
+  x.save(); x.globalAlpha=born; x.translate(f.x,f.y);
+  x.fillStyle='rgba(0,0,0,.28)'; x.beginPath(); x.ellipse(2,4,13,10,0,0,TAU); x.fill();
+  const a=Math.atan2(sim.pl.y-f.y,sim.pl.x-f.x); x.rotate(a);
+  if(f.shooter){ x.fillStyle=f.flash>0?'#fff':'#9c5bd6'; x.strokeStyle='#2c1340'; x.lineWidth=2; x.beginPath(); for(let i=0;i<6;i++){const q=i/6*TAU;x.lineTo(Math.cos(q)*14,Math.sin(q)*14)} x.closePath(); x.fill(); x.stroke(); x.fillStyle='#2c1340'; x.fillRect(8,-3,10,6) }
+  else { x.fillStyle=f.flash>0?'#fff':'#d8503f'; x.strokeStyle='#4a1510'; x.lineWidth=2; x.beginPath(); x.arc(0,0,FOE_R,0,TAU); x.fill(); x.stroke();
+    x.fillStyle=f.flash>0?'#ddd':'#4a1510'; x.beginPath(); x.moveTo(13,0); x.lineTo(6,-4.5); x.lineTo(6,4.5); x.closePath(); x.fill() }
+  x.restore();
+  if(f.shooter&&sim.zones.some(z=>Math.hypot(f.x-z.x,f.y-z.y)<z.r)){ x.font='700 15px "Barlow Condensed","Arial Narrow",sans-serif'; x.textAlign='center'; x.fillStyle='rgba('+SMOKE+',.9)'; x.fillText('?',f.x+15,f.y-14) }
+  const w=26, hp=clamp(f.hp/FOE_HP), hy=f.y-25; x.fillStyle='rgba(0,0,0,.55)'; x.fillRect(f.x-w/2,hy,w,4); x.fillStyle=hp>.4?'#e0685a':'#f0c34a'; x.fillRect(f.x-w/2+.5,hy+.5,(w-1)*hp,3) }
+function drawAlly(x,sim,a){
+  if(a.glow>0){ x.save(); x.globalCompositeOperation='lighter'; blob(x,HEAL_SPR,a.x,a.y,26+10*(1-a.glow/.5),a.glow*1.3); x.restore() }
+  x.fillStyle='rgba(0,0,0,.28)'; x.beginPath(); x.ellipse(a.x+2,a.y+4,13,10,0,0,TAU); x.fill();
+  x.fillStyle='#6fa8e8'; x.strokeStyle='#0f2440'; x.lineWidth=2; x.beginPath(); x.arc(a.x,a.y,ALLY_R,0,TAU); x.fill(); x.stroke();
+  x.fillStyle='#c9dcf2'; x.beginPath(); x.arc(a.x+2,a.y,5.5,0,TAU); x.fill(); x.strokeStyle='#0f2440'; x.lineWidth=1.2; x.stroke();
+  const w=34, hp=clamp(a.hp/100), hy=a.y+17; x.fillStyle='rgba(0,0,0,.6)'; x.fillRect(a.x-w/2,hy,w,5);
+  x.fillStyle=a.glow>.3?'#d8ffe2':hp>.5?'#7ee08b':hp>.3?'#f0c34a':'#f06a5a'; x.fillRect(a.x-w/2+.5,hy+.5,(w-1)*hp,4);
+  x.font=FM; x.textAlign='center'; x.fillStyle='rgba(200,220,245,.7)'; x.fillText(a.name,a.x,a.y-19) }
+function drawMotes(x,sim){
+  const T=sim.t, p=sim.pl; x.save(); x.globalCompositeOperation='lighter';
+  sim.motes.forEach(m=>{ const q=(T-m.t0)/m.dur; if(q<0) return;
+    let tx,ty; if(m.k==='heal'){ tx=m.a.x; ty=m.a.y } else { tx=p.x+(m.slot-(EMBER_CAP-1)/2)*9; ty=p.y+27 }
+    const side=(rnd(m.seed)-.5)*2, dx=tx-m.x, dy=ty-m.y, L=Math.hypot(dx,dy)||1, cx=(m.x+tx)/2-dy/L*L*.35*side, cy=(m.y+ty)/2+dx/L*L*.35*side;
+    const pt=t=>[(1-t)*(1-t)*m.x+2*(1-t)*t*cx+t*t*tx,(1-t)*(1-t)*m.y+2*(1-t)*t*cy+t*t*ty];
+    const e=EASE.eio(clamp(q)), a=pt(e), b=pt(Math.max(0,e-.12)), spr=m.k==='heal'?HEAL_SPR:EMB_SPR, rgb=m.k==='heal'?HEAL:EMB;
+    line(x,b[0],b[1],a[0],a[1],2.2,'rgba('+rgb+',.7)'); blob(x,spr,a[0],a[1],m.k==='heal'?9:7,.95) });
+  x.restore() }
+function drawHud(x,sim){
+  const p=sim.pl;
+  const live=p.step&&!p.step.alt||p.idle<CHAIN_GAP, n=live?(p.step&&!p.step.alt?p.k+1:p.chain):0, y=p.y-32;
+  for(let i=0;i<3;i++){ const cx=p.x+(i-1)*10, lit=i<n, fin=i===2;
+    x.save(); x.translate(cx,y); x.rotate(Math.PI/4); const s=fin?3.8:2.8;
+    x.fillStyle=lit?'rgba('+COL+',1)':'rgba(255,255,255,.14)'; x.strokeStyle='rgba(0,0,0,.6)'; x.lineWidth=1; x.fillRect(-s,-s,2*s,2*s); x.strokeRect(-s,-s,2*s,2*s); x.restore() }
+  if(live&&p.chain===2&&!p.step){ x.save(); x.globalCompositeOperation='lighter'; blob(x,GLOW_SPR,p.x+10,y,10,.5+.3*Math.sin(sim.t*14)); x.restore() }
+  for(let i=0;i<EMBER_CAP;i++){ const ex=p.x+(i-(EMBER_CAP-1)/2)*9, ey=p.y+27, lit=i<p.embers;
+    if(lit){ const fl=1+.18*Math.sin(sim.t*16+i*2); x.save(); x.globalCompositeOperation='lighter'; blob(x,EMB_SPR,ex,ey-1,8*fl,.7); x.restore();
+      x.fillStyle='#ffb04a'; x.beginPath(); x.moveTo(ex,ey-6*fl); x.quadraticCurveTo(ex+3.4,ey-1,ex,ey+2.5); x.quadraticCurveTo(ex-3.4,ey-1,ex,ey-6*fl); x.fill();
+      x.fillStyle='#fff0c0'; x.beginPath(); x.arc(ex,ey,1.2,0,TAU); x.fill() }
+    else { x.strokeStyle='rgba('+EMB+',.35)'; x.lineWidth=1; x.beginPath(); x.arc(ex,ey,2.2,0,TAU); x.stroke() } }
+  const A=sim.A, cdf=p.cd>0?1-p.cd/A.cd:1, ready=cdf>=1&&p.embers>0;
+  x.strokeStyle='rgba(255,255,255,.08)'; x.lineWidth=2; x.beginPath(); x.ellipse(p.x,p.y+3,22,17,0,0,TAU); x.stroke();
+  x.strokeStyle=ready?'rgba('+COL+',.75)':'rgba('+COL+',.3)'; x.beginPath(); x.ellipse(p.x,p.y+3,22,17,0,-Math.PI/2,-Math.PI/2+TAU*cdf); x.stroke() }
+function drawAreas(x,sim){
+  const p=sim.pl, S=p.step; x.save(); x.setLineDash([4,4]); x.lineWidth=1;
+  if(S&&!S.alt){ const u=p.tt/S.dur;
+    if(u>=S.hit.t0&&u<=S.hit.t1){ x.strokeStyle='rgba(255,255,255,.6)'; x.beginPath(); x.arc(p.hx,p.hy,HEAD_R+4,0,TAU); x.stroke() }
+    x.strokeStyle='rgba('+HEAL+',.45)'; x.beginPath(); x.arc(p.x,p.y,S.heal.r,0,TAU); x.stroke() }
+  if(p.vigil){ x.strokeStyle='rgba('+HEAL+',.45)'; x.beginPath(); x.arc(p.x,p.y,140,0,TAU); x.stroke() }
+  if(p.cast){ x.strokeStyle='rgba(255,255,255,.5)'; x.beginPath(); x.arc(p.cast.T[0],p.cast.T[1],50,0,TAU); x.stroke() }
+  x.restore() }
+
+function drawSim(x,sim,W,H,opt){
+  const p=sim.pl, T=sim.t;
+  x.save();
+  const bg=x.createRadialGradient(W*.42,H*.5,0,W*.42,H*.5,Math.max(W,H)*.8); bg.addColorStop(0,'#141c24'); bg.addColorStop(1,'#0a0e13'); x.fillStyle=bg; x.fillRect(0,0,W,H);
+  if(opt.cam){ x.translate(W/2,H/2); x.scale(opt.cam.s,opt.cam.s); x.translate(-opt.cam.x,-opt.cam.y) }
+  x.strokeStyle='rgba(150,170,190,.055)'; x.lineWidth=1; for(let gx=-400;gx<1400;gx+=40){x.beginPath();x.moveTo(gx,-400);x.lineTo(gx,900);x.stroke()} for(let gy=-400;gy<900;gy+=40){x.beginPath();x.moveTo(-400,gy);x.lineTo(1400,gy);x.stroke()}
+  if(!reduced&&sim.shake>0) x.translate((rnd(Math.floor(T*90))-.5)*sim.shake,(rnd(Math.floor(T*90)+5)-.5)*sim.shake);
+  drawZones(x,sim);
+  drawFx(x,sim,'ground');
+  sim.foes.forEach(f=>drawFoe(x,sim,f));
+  sim.allies.forEach(a=>drawAlly(x,sim,a));
+  sim.bullets.forEach(b=>{ blob(x,SHOT_SPR,b.x,b.y,8,.5); x.fillStyle='#e7c6ff'; x.beginPath(); x.arc(b.x,b.y,3.6,0,TAU); x.fill() });
+  drawSmoke(x,sim);
+  if(p.vigil){ const v=p.vigil, al=clamp((T-v.t0)/.2), pulse=.5+.5*Math.sin(T*6);
+    x.save(); const g=x.createRadialGradient(p.x,p.y,80,p.x,p.y,140); g.addColorStop(0,'rgba('+SMOKE+',0)'); g.addColorStop(1,'rgba('+SMOKE+','+((.12+.05*pulse)*al)+')'); x.fillStyle=g; x.beginPath(); x.arc(p.x,p.y,140,0,TAU); x.fill();
+    x.globalCompositeOperation='lighter'; x.setLineDash([12,9]); x.lineDashOffset=-T*60; x.strokeStyle='rgba('+COL+','+((.45+.2*pulse)*al)+')'; x.lineWidth=2.5; x.beginPath(); x.arc(p.x,p.y,140,0,TAU); x.stroke(); x.setLineDash([]);
+    for(let i=0;i<3;i++){ const a=T*1.6+i*TAU/3; x.strokeStyle='rgba('+HOT+','+(.5*al)+')'; x.lineWidth=2; x.beginPath(); x.arc(p.x,p.y,140,a,a+.5); x.stroke() }
+    x.restore() }
+  drawTrail(x,sim);
+  if(opt.hit) drawAreas(x,sim);
+  const o=sim.pose(), cz=p.cast?p.cast.z||0:0;
+  drawRope(x,p.rope,true); censer(x,p.hx,p.hy,0,0,cz,true);
+  knight(x,sim,o);
+  drawRope(x,p.rope,false,p.tether&&T>p.tether.fly+.22?.8+.2*Math.sin(T*10):0);
+  censer(x,p.hx,p.hy,T,p.flare>0?1:(p.step||p.vigil?.5:.2),cz,false);
+  drawMotes(x,sim);
+  drawFx(x,sim,'top');
+  drawHud(x,sim);
+  sim.nums.forEach(n=>{ const q=(T-n.t0)/.8; x.save(); x.globalAlpha=clamp(1-q*q); x.font=(n.big?'700 18px ':'700 14px ')+'"Barlow Condensed","Arial Narrow",sans-serif'; x.textAlign='center';
+    x.fillStyle='rgba(0,0,0,.6)'; x.fillText(n.v,n.x+1,n.y-q*26+1); x.fillStyle='rgb('+n.c+')'; x.fillText(n.v,n.x,n.y-q*26); x.restore() });
+  x.restore();
+  if(opt.label&&sim.label){ const q=T-sim.label.t, al=clamp(1-(q-.7)/.4); if(al>0){ x.save(); x.globalAlpha=al;
+    x.font='700 30px "Barlow Condensed","Arial Narrow",sans-serif'; x.textAlign='left'; x.fillStyle=sim.label.alt?'rgb('+HOT+')':'rgb('+COL+')'; x.fillText(sim.label.name.toUpperCase(),22,44);
+    x.font=FM; x.fillStyle='rgba(220,230,240,.6)'; x.fillText(sim.label.alt?'ALT ATTACK':'RITE STEP',22,62); x.restore() } }
 }
-chips('g-alt', 'alt', [['cast', 'Censer Cast'], ['vigil', 'Vigil']]);
-chips('g-multi', 'multi', [[0, '0'], [1, '+1'], [2, '+2']]);
-chips('g-speed', 'speed', [[1, '1×'], [0.4, '0.4×']]);
-const pauseBtn = document.getElementById('pause');
-pauseBtn.addEventListener('click', () => { state.paused = !state.paused; pauseBtn.textContent = state.paused ? 'Play' : 'Pause'; });
 
-// ---- scene ----
-const K = { x:430, y:300 }, AIM = -0.2;
-const enemies = [ {x:505,y:252}, {x:508,y:338}, {x:368,y:350}, {x:415,y:196} ];
-const allies = [ {x:300,y:226,hp:52,name:'A'}, {x:462,y:446,hp:40,name:'B'}, {x:800,y:168,hp:30,name:'C'} ];
-const shooters = [ {x:858,y:118}, {x:890,y:250} ];
-const LOOP = 7.2;
-const S1 = [0.3, 0.62], S2 = [0.92, 1.24], S3 = [1.55, 2.2];
-const ALT0 = 2.75;
-let N; // numbers that depend on multishot
-let events, hitsAt, puffs, emberLog;
+/* ---------- canvases ---------- */
+function setup(c,w,h){ const d=Math.min(2,window.devicePixelRatio||1); c.width=w*d; c.height=h*d; const x=c.getContext('2d'); x.setTransform(d,0,0,d,0,0); return x }
+const stage=$('stage'), SW=1000, SH=470, sx=setup(stage,SW,SH);
+const STAGE_FOES=[[398,214],[404,292],[262,306],[288,176],[446,252],[884,128,1,.1],[880,372,1,.4]];
+const STAGE_ALLIES=[[226,176,58,'SOLDIER'],[318,418,44,'MAGE'],[566,118,52,'NINJA']];
+function replayScript(){ const chain=['atk','atk','atk','w.45','atk','atk','atk','w.3','alt'];
+  return curAlt==='vigil'?chain.concat(['h2.8','w.8']):curAlt==='tether'?chain.concat(['w4.4']):chain.concat(['w1.6']) }
+function replayOpt(){ return {px:330,py:250,foes:STAGE_FOES,allies:STAGE_ALLIES,alt:curAlt,script:replayScript(),shots:()=>$('tgShots').checked,
+  aimFn:p=>Math.atan2(250-p.y,560-p.x)*.4, altPoint:()=>[566,118], altAim:p=>Math.atan2(118-p.y,566-p.x)} }
+function tryOpt(){ return {px:300,py:250,foes:STAGE_FOES,allies:STAGE_ALLIES,alt:curAlt,shots:()=>$('tgShots').checked,bounds:[20,20,SW-20,SH-20],bleed:2.2,
+  aimFn:p=>Math.atan2(mouse.y-p.y,mouse.x-p.x), altPoint:()=>[mouse.x,mouse.y], altAim:p=>Math.atan2(mouse.y-p.y,mouse.x-p.x)} }
+let mode='replay', sim=null, loopLen=6, clock=0, paused=false, slow=false;
+function measure(){ const s=new Sim(replayOpt()); let n=0; while(!s.done&&n<6000){ s.tick(DT); n++ } return s.t+.05 }
+function resetStage(){ if(mode==='replay'){ sim=new Sim(replayOpt()); loopLen=measure(); clock=0 } else sim=new Sim(tryOpt()) }
+function seek(t){ sim=new Sim(replayOpt()); while(sim.t<t-1e-6) sim.tick(DT); clock=t }
 
-const ease = t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const lerp = (a, b, t) => a + (b - a) * t;
-const angDiff = (a, b) => { let d = (a - b) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
+/* Try it input */
+const mouse={x:600,y:250,down:false}, keys={};
+function toWorld(e){ const r=stage.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*SW,y:(e.clientY-r.top)/r.height*SH} }
+stage.addEventListener('pointermove',e=>{ const w=toWorld(e); mouse.x=w.x; mouse.y=w.y });
+stage.addEventListener('pointerdown',e=>{ if(mode!=='try') return; stage.focus(); const w=toWorld(e); mouse.x=w.x; mouse.y=w.y;
+  if(e.button===2){ sim.press('alt'); sim.pl.altHeld=true } else { mouse.down=true; sim.press('atk') } e.preventDefault() });
+window.addEventListener('pointerup',e=>{ mouse.down=false; if(e.button===2&&sim) sim.pl.altHeld=false });
+stage.addEventListener('contextmenu',e=>e.preventDefault());
+stage.addEventListener('keydown',e=>{ if(mode!=='try') return; const k=e.key.toLowerCase(); keys[k]=true;
+  if(k===' '||k==='e'){ if(!e.repeat){ sim.press('alt'); sim.pl.altHeld=true } e.preventDefault() }
+  if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault() });
+stage.addEventListener('keyup',e=>{ const k=e.key.toLowerCase(); keys[k]=false; if((k===' '||k==='e')&&sim) sim.pl.altHeld=false });
+$('tAtk').addEventListener('pointerdown',e=>{ mouse.down=true; sim.press('atk'); e.preventDefault() }); $('tAtk').addEventListener('pointerup',()=>mouse.down=false);
+$('tAlt').addEventListener('pointerdown',e=>{ sim.press('alt'); sim.pl.altHeld=true; e.preventDefault() }); $('tAlt').addEventListener('pointerup',()=>{ sim.pl.altHeld=false });
+function tryControl(dt){
+  const p=sim.pl; let mx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0), my=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  const l=Math.hypot(mx,my)||1, S=p.step, spd=200*(p.vigil?.5:S&&S.alt?.3:S?.55:1);
+  p.x=clamp(p.x+mx/l*spd*dt,20,SW-20); p.y=clamp(p.y+my/l*spd*dt,20,SH-20);
+  if(!S&&!p.cast) p.aim=Math.atan2(mouse.y-p.y,mouse.x-p.x);
+  if(mouse.down&&!p.buf&&(!S||(!S.alt&&p.tt/S.dur>=S.next-.2))) p.buf='atk' }
 
-function stepAngle(step, u) {
-  const e = ease(u);
-  if (step === 1) return lerp(AIM + 100*D, AIM - 100*D, e);
-  if (step === 2) return lerp(AIM - 100*D, AIM + 100*D, e);
-  return lerp(AIM + 100*D, AIM + 100*D + TAU, e);
-}
-function headRadius(step, u) { return step === 3 ? lerp(N.reach, N.finReach, Math.sin(u * Math.PI) * 0.5 + (u > 0.2 ? 0.5 : u * 2.5)) : N.reach; }
+/* ---------- chips, alt ideas, strip, table ---------- */
+const modeEl=$('modes');
+[['replay','Replay'],['try','Try it']].forEach(m=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=m[1]; b.dataset.k=m[0]; b.setAttribute('aria-pressed',String(m[0]===mode));
+  b.addEventListener('click',()=>{ mode=m[0]; [].forEach.call(modeEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===mode)));
+    $('scrubRow').hidden=mode!=='replay'; $('tryHelp').hidden=mode!=='try'; $('touch').hidden=mode!=='try'; $('pause').hidden=mode!=='replay'; resetStage(); if(mode==='try') stage.focus() }); modeEl.appendChild(b) });
+const altChipEl=$('alts');
+ALT_ORDER.forEach(k=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=ALTS[k].name+(ALTS[k].rec?' (recommended)':''); b.dataset.k=k; b.setAttribute('aria-pressed',String(k===curAlt));
+  b.addEventListener('click',()=>pickAlt(k)); altChipEl.appendChild(b) });
+function pickAlt(k){ curAlt=k; [].forEach.call(altChipEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===k)));
+  [].forEach.call($('altIdeas').children,c=>c.classList.toggle('on',c.dataset.k===k)); resetStage(); fillTable() }
 
-function build() {
-  const m = state.multi;
-  N = { reach: 85 + 15*m, finReach: 115 + 15*m, heal: 3 + m, healR: 140, finHeal: 6 + m, finR: 170, cap: 5 + m };
-  events = []; hitsAt = []; puffs = []; emberLog = [];
-  const steps = [[1, S1], [2, S2], [3, S3]];
-  let embers = 0;
-  for (const [step, [a, b]] of steps) {
-    let hitCount = 0;
-    const reach = step === 3 ? N.finReach : N.reach;
-    enemies.forEach((en, i) => {
-      const ang = Math.atan2(en.y - K.y, en.x - K.x), dist = Math.hypot(en.x - K.x, en.y - K.y);
-      if (dist > reach + 12) return;
-      for (let s = 0; s <= 60; s++) {
-        const u = s / 60, ha = stepAngle(step, u);
-        if (Math.abs(angDiff(ha, ang)) < 0.12) {
-          const t = lerp(a, b, u);
-          hitsAt.push({ i, t }); hitCount++;
-          events.push({ t, x: en.x, y: en.y - 18, text: String(step === 3 ? 18 : 13), color: '#fff' });
-          embers = Math.min(N.cap, embers + 1); emberLog.push({ t, n: embers });
-          break;
-        }
-      }
-    });
-    const healAmt = step === 3 ? N.finHeal + Math.min(4, hitCount) : N.heal;
-    const healR = step === 3 ? N.finR : N.healR;
-    const ht = step === 3 ? lerp(a, b, 0.75) : lerp(a, b, 0.5);
-    events.push({ t: ht, ring: healR, kind: step });
-    allies.forEach((al, j) => { if (Math.hypot(al.x - K.x, al.y - K.y) < healR) events.push({ t: ht, x: al.x, y: al.y - 24, text: '+' + healAmt, color: C.heal, heal: healAmt, j }); });
-    if (step < 3) { const ea = stepAngle(step, 1); puffs.push({ x: K.x + Math.cos(ea) * N.reach, y: K.y + Math.sin(ea) * N.reach, r: 40, t: b, life: 2.5 }); }
-    else puffs.push({ x: K.x, y: K.y, r: 75, t: b - 0.1, life: 4 });
-  }
-  N.emberPeak = embers;
-  if (state.alt === 'cast') {
-    const land = { x: allies[2].x - 10, y: allies[2].y + 6 };
-    N.land = land;
-    N.cloudR = 60 + 6 * embers;
-    emberLog.push({ t: ALT0 + 0.15, n: 0 });
-    const tl = ALT0 + 0.45;
-    events.push({ t: tl, x: land.x, y: land.y - 40, text: 'BURST ' + 8 * embers, color: C.gold });
-    puffs.push({ x: land.x, y: land.y, r: N.cloudR, t: tl, life: 4, big: true });
-    const rate = 2 + embers;
-    for (let k = 1; k <= 4; k++) events.push({ t: tl + k - 0.2, x: allies[2].x, y: allies[2].y - 24, text: '+' + rate, color: C.heal, heal: rate, j: 2 });
-  } else {
-    const dur = Math.min(embers * 0.7, 3.5);
-    N.vigilEnd = ALT0 + dur;
-    for (let k = 1; k <= embers; k++) emberLog.push({ t: ALT0 + k * 0.7, n: embers - k });
-    for (let s = 1; s <= Math.floor(dur); s++) allies.forEach((al, j) => {
-      if (Math.hypot(al.x - K.x, al.y - K.y) < 140 + 12) events.push({ t: ALT0 + s, x: al.x, y: al.y - 24, text: '+6', color: C.heal, heal: 6, j });
-    });
-  }
-  events.sort((a, b) => a.t - b.t);
-}
+let cells=[];
+const CELL_FOES=[[400,214],[404,290],[262,306],[290,180],[448,252]], CELL_ALLIES=[[228,180,58,'SOLDIER'],[318,412,44,'MAGE']];
+function cell(parent,title,small,text,opt,cam,extra,cls){
+  const el=document.createElement('div'); el.className='cell'+(cls?' '+cls:'');
+  el.innerHTML='<h3>'+title+' <small>'+small+'</small></h3><div class="frame"><canvas aria-label="Looping animation"></canvas></div><p>'+text+'</p>'+(extra||'');
+  parent.appendChild(el); const x=setup(el.querySelector('canvas'),340,230);
+  const m=new Sim(opt); let n=0; while(!m.done&&n<5000){ m.tick(DT); n++ }
+  cells.push({x,opt,cam,s:new Sim(opt),c:0,len:m.t+.1}); return el }
+function buildStrip(){
+  const el=$('strip');
+  STEPS.forEach((S,k)=>{
+    const opt={px:330,py:250,foes:CELL_FOES,allies:CELL_ALLIES,alt:'cast',script:['w.25','s'+k,'w.7'],aimFn:()=>0,bleed:3};
+    cell(el,(k+1)+' · '+S.name,S.hit.dmg+' damage',S.desc.charAt(0).toUpperCase()+S.desc.slice(1)+'.',opt,{x:330,y:280,s:k===2?.7:.78}) }) }
+function buildAlts(){
+  const el=$('altIdeas');
+  ALT_ORDER.forEach(k=>{ const A=ALTS[k];
+    const allies=k==='vigil'?CELL_ALLIES:[[228,180,58,'SOLDIER'],[540,180,34,'NINJA']];
+    const foes=k==='cast'?CELL_FOES.concat([[575,140,0],[630,215,1,.2]]):k==='vigil'?CELL_FOES.concat([[590,180,1,.1],[560,380,1,.4]]):CELL_FOES.concat([[450,170],[650,120,1,.2]]);
+    const opt={px:330,py:250,foes,allies,alt:k,script:A.strip,shots:()=>true,aimFn:()=>0,altPoint:()=>k==='cast'?[580,185]:[540,180],altAim:p=>k==='cast'?Math.atan2(185-p.y,580-p.x):Math.atan2(180-p.y,540-p.x),bleed:3};
+    const c=cell(el,A.name+(A.rec?' <span class="rec">Recommended</span>':''),A.tag+(A.hold?'':' · cooldown '+A.cd+' s'),A.desc.charAt(0).toUpperCase()+A.desc.slice(1)+'.',opt,{x:k==='vigil'?370:440,y:260,s:k==='vigil'?.62:.56},
+      '<p class="why">'+A.why+'</p><button type="button" class="use">Watch it on the stage</button>','idea'+(k===curAlt?' on':''));
+    c.dataset.k=k; c.querySelector('.use').addEventListener('click',()=>{ pickAlt(k); stage.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'}) }) }) }
+function tickCells(dt){ cells.forEach(it=>{ it.c+=dt; if(it.c>=it.len){ it.c=0; it.s=new Sim(it.opt) }
+  const n=Math.round(dt/DT); for(let i=0;i<Math.max(1,n);i++) it.s.tick(DT); drawSim(it.x,it.s,340,230,{cam:it.cam,label:false}) }) }
+function fillTable(){
+  const rows=STEPS.map((S,i)=>'<tr><td class="n">'+(i+1)+'</td><td class="mv"><b>'+S.name+'</b>'+S.desc+'</td><td class="n">'+S.hit.dmg+'</td><td class="n">'+S.heal.amt+(S.heal.bonus?' +1 a hit (max +'+S.heal.bonus+')':'')+' · '+S.heal.r+' px</td><td class="n">'+(S.next<1?(S.dur*S.next).toFixed(2):S.dur.toFixed(2))+' s</td></tr>');
+  const A=ALTS[curAlt];
+  rows.push('<tr class="alt"><td class="n">Alt</td><td class="mv"><b>'+A.name+'</b>'+A.desc+(A.hold?'':'. Cooldown '+A.cd+' s')+'</td><td class="n">'+A.dmgText+'</td><td class="n">'+A.healText+'</td><td class="n">'+(A.hold?'held':A.dur.toFixed(2)+' s')+'</td></tr>');
+  $('moves').innerHTML=rows.join('') }
 
-function emberAt(t) { let n = 0; for (const e of emberLog) if (e.t <= t) n = e.n; return n; }
-function hpAt(j, t) { let h = allies[j].hp; for (const e of events) if (e.j === j && e.t <= t) h += e.heal; return Math.min(100, h); }
+/* ---------- the model ---------- */
+function drawModel(){
+  const c=$('model'), x=setup(c,560,300);
+  const s=new Sim({px:0,py:0,foes:[],allies:[],alt:'cast'}); s.pl.aim=-.35; for(let i=0;i<240;i++) s.tick(DT);
+  const bg=x.createRadialGradient(280,150,0,280,150,340); bg.addColorStop(0,'#172028'); bg.addColorStop(1,'#0a0e13'); x.fillStyle=bg; x.fillRect(0,0,560,300);
+  x.save(); x.translate(170,140); x.scale(2.6,2.6); drawSmoke(x,s); drawRope(x,s.pl.rope,true); censer(x,s.pl.hx,s.pl.hy,0,0,0,true); knight(x,s,s.pose()); drawRope(x,s.pl.rope,false,0); censer(x,s.pl.hx,s.pl.hy,1.3,.3,0,false); x.restore();
+  x.save(); x.translate(440,150); x.scale(5,5);
+  const r=[]; for(let i=0;i<8;i++) r.push({x:0,y:-26+i*2.6}); drawRope(x,r,false,0); censer(x,0,0,.4,.5,0,true); x.scale(.6,.6); censer(x,0,0,.4,0,0,false); x.restore();
+  x.font=FM; x.textAlign='left'; x.fillStyle='rgba(220,230,240,.55)'; x.fillText('at rest, ×2.6',14,286); x.fillText('head, ×3',410,286) }
 
-// ---- drawing helpers ----
-function grid(g, w, h) {
-  g.fillStyle = C.floor; g.fillRect(0, 0, w, h);
-  g.strokeStyle = C.grid; g.lineWidth = 1;
-  for (let x = 0; x <= w; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
-  for (let y = 0; y <= h; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
-}
-function smoke(g, x, y, r, a, seed, t) {
-  for (let k = 0; k < 7; k++) {
-    const ang = seed * 3.1 + k * 0.9 + t * 0.15, rr = r * (0.35 + 0.25 * ((k * 37 + seed * 11) % 5) / 5);
-    const px = x + Math.cos(ang) * r * 0.42, py = y + Math.sin(ang) * r * 0.42 - t * 4 % 6;
-    const gr = g.createRadialGradient(px, py, 0, px, py, rr);
-    gr.addColorStop(0, `rgba(${C.smoke},${0.28 * a})`); gr.addColorStop(1, `rgba(${C.smoke},0)`);
-    g.fillStyle = gr; g.beginPath(); g.arc(px, py, rr, 0, TAU); g.fill();
-  }
-  g.strokeStyle = `rgba(${C.smoke},${0.18 * a})`; g.setLineDash([3, 6]); g.lineWidth = 1.2;
-  g.beginPath(); g.arc(x, y, r, 0, TAU); g.stroke(); g.setLineDash([]);
-}
-function head(g, x, y, glow) {
-  const gr = g.createRadialGradient(x, y, 0, x, y, 26);
-  gr.addColorStop(0, C.goldDim + (0.55 * glow) + ')'); gr.addColorStop(1, C.goldDim + '0)');
-  g.fillStyle = gr; g.beginPath(); g.arc(x, y, 26, 0, TAU); g.fill();
-  g.fillStyle = '#c99a3a'; g.strokeStyle = '#3a2a0c'; g.lineWidth = 1.5;
-  g.beginPath(); for (let k = 0; k < 8; k++) { const a = k * TAU / 8 + TAU / 16; g.lineTo(x + Math.cos(a) * 7.5, y + Math.sin(a) * 7.5); } g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#fff1c2'; g.beginPath(); g.arc(x, y, 3, 0, TAU); g.fill();
-}
-function chain(g, hx, hy, x, y, sag) {
-  const mx = (hx + x) / 2, my = (hy + y) / 2, dx = x - hx, dy = y - hy, L = Math.hypot(dx, dy) || 1;
-  const cx = mx - dy / L * sag, cy = my + dx / L * sag;
-  g.strokeStyle = '#b8a77a'; g.lineWidth = 1.6; g.setLineDash([2.5, 2.5]);
-  g.beginPath(); g.moveTo(hx, hy); g.quadraticCurveTo(cx, cy, x, y); g.stroke(); g.setLineDash([]);
-}
-function knight(g, x, y, face) {
-  g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(x, y + 12, 15, 6, 0, 0, TAU); g.fill();
-  g.fillStyle = C.knight; g.strokeStyle = C.ink; g.lineWidth = 2;
-  g.beginPath(); g.arc(x, y, 14, 0, TAU); g.fill(); g.stroke();
-  g.strokeStyle = C.gold; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 6, y); g.lineTo(x + 6, y); g.moveTo(x, y - 6); g.lineTo(x, y + 6); g.stroke();
-  g.fillStyle = C.ink; g.beginPath(); g.arc(x + Math.cos(face) * 9, y + Math.sin(face) * 9, 2.5, 0, TAU); g.fill();
-}
-function hpbar(g, x, y, hp, flash) {
-  g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(x - 18, y, 36, 5);
-  g.fillStyle = flash ? '#c9ffd8' : C.heal; g.fillRect(x - 18, y, 36 * hp / 100, 5);
-}
-function allyDraw(g, al, hp, flash) {
-  if (flash > 0) { g.strokeStyle = C.healA + flash + ')'; g.lineWidth = 3; g.beginPath(); g.arc(al.x, al.y, 14 + (1 - flash) * 12, 0, TAU); g.stroke(); }
-  g.fillStyle = C.ally; g.strokeStyle = C.ink; g.lineWidth = 2; g.beginPath(); g.arc(al.x, al.y, 12, 0, TAU); g.fill(); g.stroke();
-  g.fillStyle = C.ink; g.font = '600 11px Barlow, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(al.name, al.x, al.y + 0.5);
-  hpbar(g, al.x, al.y + 17, hp, flash > 0.5);
-}
-function enemyDraw(g, x, y, hit, kind) {
-  g.save(); g.translate(x, y);
-  if (hit > 0) { g.translate((Math.random() - 0.5) * 3 * hit, 0); }
-  g.fillStyle = hit > 0.5 ? '#ffd0c4' : C.enemy; g.strokeStyle = '#2a0d08'; g.lineWidth = 2;
-  if (kind === 'shooter') { g.beginPath(); g.moveTo(0, -12); g.lineTo(12, 0); g.lineTo(0, 12); g.lineTo(-12, 0); g.closePath(); g.fill(); g.stroke(); }
-  else { g.beginPath(); g.roundRect(-11, -11, 22, 22, 4); g.fill(); g.stroke(); }
-  g.restore();
-}
-function wedge(g, x, y, r, a0, a1, alpha) {
-  const gr = g.createRadialGradient(x, y, 10, x, y, r);
-  gr.addColorStop(0, C.goldDim + '0)'); gr.addColorStop(0.75, C.goldDim + (0.12 * alpha) + ')'); gr.addColorStop(1, C.goldDim + (0.4 * alpha) + ')');
-  g.fillStyle = gr; g.beginPath(); g.moveTo(x, y);
-  const lo = Math.min(a0, a1), hi = Math.max(a0, a1);
-  g.arc(x, y, r, lo, hi); g.closePath(); g.fill();
-}
-function embersDraw(g, x, y, n, cap) {
-  for (let k = 0; k < cap; k++) {
-    const px = x - (cap - 1) * 6 + k * 12;
-    g.beginPath(); g.arc(px, y, 4, 0, TAU);
-    if (k < n) { g.fillStyle = C.ember; g.fill(); g.fillStyle = 'rgba(255,154,60,0.35)'; g.beginPath(); g.arc(px, y, 7, 0, TAU); g.fill(); }
-    else { g.strokeStyle = 'rgba(255,154,60,0.45)'; g.lineWidth = 1.2; g.stroke(); }
-  }
-}
-function label(g, x, y, text, size, color, align) {
-  g.font = `700 ${size}px "Barlow Condensed", "Arial Narrow", sans-serif`; g.textAlign = align || 'left'; g.textBaseline = 'alphabetic';
-  g.fillStyle = color; g.fillText(text, x, y);
-}
-
-// ---- stage ----
-const stage = document.getElementById('stage'), sg = stage.getContext('2d');
-function drawStage(t) {
-  const g = sg; g.setTransform(2, 0, 0, 2, 0, 0);
-  grid(g, 1000, 560);
-  const cast = state.alt === 'cast';
-
-  // incense
-  puffs.forEach((p, i) => { const age = t - p.t; if (age < 0 || age > p.life) return; const a = Math.min(1, age * 4) * Math.min(1, (p.life - age) / 0.8); smoke(g, p.x, p.y, Math.min(p.r, p.r * (0.5 + age * 3)), a * (p.big ? 1.3 : 1), i + 1, t); });
-
-  // shots at C
-  for (let s = 0; s < 2; s++) {
-    const sh = shooters[s];
-    for (let k = 0; k < 14; k++) {
-      const tf = k * 0.5 + s * 0.25, age = t - tf; if (age < 0 || age > 0.9) continue;
-      const tx = allies[2].x, ty = allies[2].y;
-      let dir = Math.atan2(ty - sh.y, tx - sh.x);
-      const inCloud = cast && N.land && tf > ALT0 + 0.45 && tf < ALT0 + 4.45 && Math.hypot(sh.x - N.land.x, sh.y - N.land.y) < N.cloudR;
-      if (inCloud) dir += (k % 2 ? 1 : -1) * 0.35 * (0.6 + (k % 3) * 0.2);
-      const dist = 260 * age, full = Math.hypot(tx - sh.x, ty - sh.y);
-      if (!inCloud && dist > full - 12) continue;
-      const bx = sh.x + Math.cos(dir) * dist, by = sh.y + Math.sin(dir) * dist;
-      g.fillStyle = C.shot; g.beginPath(); g.arc(bx, by, 4, 0, TAU); g.fill();
-      g.strokeStyle = 'rgba(255,138,76,0.35)'; g.lineWidth = 3; g.beginPath(); g.moveTo(bx, by); g.lineTo(bx - Math.cos(dir) * 14, by - Math.sin(dir) * 14); g.stroke();
-    }
-  }
-  shooters.forEach(sh => enemyDraw(g, sh.x, sh.y, 0, 'shooter'));
-
-  // heal rings
-  events.forEach(e => { if (!e.ring) return; const age = t - e.t; if (age < 0 || age > 0.6) return;
-    g.strokeStyle = C.healA + (0.6 * (1 - age / 0.6)) + ')'; g.lineWidth = 2; g.setLineDash([6, 5]);
-    g.beginPath(); g.arc(K.x, K.y, e.ring * (0.6 + age / 1.5), 0, TAU); g.stroke(); g.setLineDash([]); });
-
-  // allies and enemies
-  allies.forEach((al, j) => {
-    let flash = 0; events.forEach(e => { if (e.j === j && t >= e.t && t - e.t < 0.4) flash = Math.max(flash, 1 - (t - e.t) / 0.4); });
-    allyDraw(g, al, hpAt(j, t), flash);
-  });
-  enemies.forEach((en, i) => {
-    let hit = 0; hitsAt.forEach(h => { if (h.i === i && t >= h.t && t - h.t < 0.25) hit = 1 - (t - h.t) / 0.25; });
-    let vig = 0; if (!cast && t > ALT0 && t < N.vigilEnd) vig = ((t - ALT0) % 0.5) < 0.1 ? 0.8 : 0;
-    enemyDraw(g, en.x, en.y, Math.max(hit, vig));
-  });
-
-  // the censer
-  const hand = { x: K.x + Math.cos(AIM) * 13, y: K.y + Math.sin(AIM) * 13 };
-  let hx, hy, glow = 0.5, phase = 'Ready', face = AIM;
-  const inStep = (r) => t >= r[0] && t < r[1];
-  let stepNow = 0, u = 0;
-  if (inStep(S1)) { stepNow = 1; u = (t - S1[0]) / (S1[1] - S1[0]); phase = 'Sweep'; }
-  else if (inStep(S2)) { stepNow = 2; u = (t - S2[0]) / (S2[1] - S2[0]); phase = 'Return Sweep'; }
-  else if (inStep(S3)) { stepNow = 3; u = (t - S3[0]) / (S3[1] - S3[0]); phase = 'Benediction'; }
-  if (stepNow) {
-    const a = stepAngle(stepNow, u), r = headRadius(stepNow, u);
-    const a0 = stepNow === 3 ? stepAngle(3, Math.max(0, u - 0.35)) : (stepNow === 1 ? AIM + 100*D : AIM - 100*D);
-    wedge(g, K.x, K.y, r + 6, a0, a, 1);
-    hx = K.x + Math.cos(a) * r; hy = K.y + Math.sin(a) * r; glow = 1; face = a;
-    for (let k = 1; k <= 4; k++) { const ga = stepAngle(stepNow, Math.max(0, u - k * 0.04)), gr = headRadius(stepNow, Math.max(0, u - k * 0.04));
-      g.fillStyle = C.goldDim + (0.25 - k * 0.05) + ')'; g.beginPath(); g.arc(K.x + Math.cos(ga) * gr, K.y + Math.sin(ga) * gr, 7, 0, TAU); g.fill(); }
-  } else if (t >= ALT0 && cast && t < ALT0 + 1.05) {
-    const L = N.land, out = ALT0 + 0.15, landT = ALT0 + 0.45, back = ALT0 + 1.05;
-    let f;
-    if (t < out) { f = 0; phase = 'Censer Cast'; }
-    else if (t < landT) f = ease((t - out) / (landT - out));
-    else if (t < ALT0 + 0.7) f = 1;
-    else f = 1 - ease((t - ALT0 - 0.7) / (back - ALT0 - 0.7));
-    phase = 'Censer Cast';
-    const ca = Math.atan2(L.y - K.y, L.x - K.x); face = ca;
-    if (f === 0) { hx = K.x - Math.cos(ca) * 26; hy = K.y - Math.sin(ca) * 26 + 6; }
-    else { hx = lerp(K.x + Math.cos(ca) * 20, L.x, f); hy = lerp(K.y + Math.sin(ca) * 20, L.y, f) - Math.sin(f * Math.PI) * 30; }
-    glow = 1;
-    if (t >= landT && t < landT + 0.4) { const a = 1 - (t - landT) / 0.4;
-      g.strokeStyle = C.goldDim + a + ')'; g.lineWidth = 3; g.beginPath(); g.arc(L.x, L.y, 50 * (1.2 - a * 0.5), 0, TAU); g.stroke();
-      g.fillStyle = C.goldDim + (a * 0.25) + ')'; g.beginPath(); g.arc(L.x, L.y, 50, 0, TAU); g.fill(); }
-    if (t < ALT0 + 0.4) { g.strokeStyle = C.goldDim + '0.4)'; g.setLineDash([4, 6]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(K.x, K.y); g.lineTo(L.x, L.y); g.stroke(); g.setLineDash([]);
-      g.beginPath(); g.arc(L.x, L.y, 50, 0, TAU); g.stroke(); }
-  } else if (!cast && t >= ALT0 && t < N.vigilEnd) {
-    phase = 'Vigil'; const sp = 14, a = (t - ALT0) * sp;
-    const ring = 140, pulse = 0.5 + 0.5 * Math.sin(t * 6);
-    const gr = g.createRadialGradient(K.x, K.y, ring * 0.6, K.x, K.y, ring);
-    gr.addColorStop(0, `rgba(${C.smoke},0)`); gr.addColorStop(1, `rgba(${C.smoke},${0.16 + 0.06 * pulse})`);
-    g.fillStyle = gr; g.beginPath(); g.arc(K.x, K.y, ring, 0, TAU); g.fill();
-    g.strokeStyle = C.goldDim + (0.5 + 0.2 * pulse) + ')'; g.lineWidth = 2; g.setLineDash([10, 8]); g.lineDashOffset = -t * 40;
-    g.beginPath(); g.arc(K.x, K.y, ring, 0, TAU); g.stroke(); g.setLineDash([]); g.lineDashOffset = 0;
-    for (let k = 1; k <= 6; k++) { g.fillStyle = C.goldDim + (0.3 - k * 0.045) + ')'; g.beginPath(); g.arc(K.x + Math.cos(a - k * 0.25) * 30, K.y - 8 + Math.sin(a - k * 0.25) * 14, 7, 0, TAU); g.fill(); }
-    hx = K.x + Math.cos(a) * 30; hy = K.y - 8 + Math.sin(a) * 14; glow = 1;
-    // a shot bending round the ring
-    const sa = ((t - ALT0) % 1.2) / 1.2, sx = 760 - sa * 420, sy = 470 - sa * 120;
-    const d = Math.hypot(sx - K.x, sy - K.y);
-    const bx = d < ring ? sx : sx, by = d < ring + 4 ? sy + (ring - d) * 0.9 : sy;
-    g.fillStyle = C.shot; g.beginPath(); g.arc(bx, by, 4, 0, TAU); g.fill();
-    enemyDraw(g, 790, 478, 0, 'shooter');
-  } else {
-    const sw = Math.sin(t * 3) * 0.35;
-    hx = hand.x + Math.sin(sw) * 8 + Math.cos(AIM) * 4; hy = hand.y + 24 + Math.cos(sw) * 2;
-    if (!cast && t >= N.vigilEnd) phase = 'Ready'; if (t > LOOP - 0.6) phase = '';
-  }
-  knight(g, K.x, K.y, face);
-  const hnd = { x: K.x + Math.cos(face) * 12, y: K.y + Math.sin(face) * 12 };
-  const L = Math.hypot(hx - hnd.x, hy - hnd.y);
-  chain(g, hnd.x, hnd.y, hx, hy, stepNow ? -Math.min(14, L * 0.12) : 6);
-  head(g, hx, hy, glow);
-  // incense wisps from the head
-  for (let k = 0; k < 4; k++) { const wa = ((t * 0.9 + k * 0.25) % 1); g.fillStyle = `rgba(${C.smoke},${0.35 * (1 - wa)})`; g.beginPath(); g.arc(hx + Math.sin(t * 2 + k) * 4, hy - 8 - wa * 22, 2.5 + wa * 4, 0, TAU); g.fill(); }
-
-  embersDraw(g, K.x, K.y + 44, emberAt(t), N.cap);
-
-  // popups
-  events.forEach(e => { if (!e.text) return; const age = t - e.t; if (age < 0 || age > 0.8) return;
-    g.globalAlpha = 1 - age / 0.8; label(g, e.x, e.y - age * 26, e.text, 15, e.color, 'center'); g.globalAlpha = 1; });
-
-  // HUD
-  label(g, 24, 42, phase.toUpperCase(), 30, C.gold);
-  const pips = [['Sweep', S1], ['Return', S2], ['Benediction', S3], [cast ? 'Cast' : 'Vigil', [ALT0, cast ? ALT0 + 1.05 : N.vigilEnd]]];
-  pips.forEach(([n, r], k) => { const on = t >= r[0] && t < r[1], done = t >= r[1];
-    g.fillStyle = on ? C.gold : done ? 'rgba(255,211,106,0.4)' : 'rgba(255,255,255,0.12)';
-    g.beginPath(); g.roundRect(24 + k * 104, 56, 96, 6, 3); g.fill();
-    label(g, 24 + k * 104, 80, n.toUpperCase(), 13, on ? C.text : C.muted); });
-  label(g, 976, 540, 'EMBERS ' + emberAt(t) + ' / ' + N.cap, 15, C.ember, 'right');
-}
-
-// ---- strip ----
-const strip = document.getElementById('strip'), stg = strip.getContext('2d');
-function drawStrip() {
-  const g = stg; g.setTransform(2, 0, 0, 2, 0, 0);
-  grid(g, 1000, 290);
-  const panels = [
-    ['1 · SWEEP', 'Front 200°, right to left', 1],
-    ['2 · RETURN SWEEP', 'Front 200°, left to right', 2],
-    ['3 · BENEDICTION', 'All round, longer chain', 3],
-    [state.alt === 'cast' ? 'ALT · CENSER CAST' : 'ALT · VIGIL', state.alt === 'cast' ? 'Spends Embers, heals at range' : 'Hold, ring of incense', 4]
-  ];
-  panels.forEach(([title, sub, k], i) => {
-    const ox = i * 250, cx = ox + 125, cy = 160;
-    if (i) { g.strokeStyle = 'rgba(255,255,255,0.08)'; g.beginPath(); g.moveTo(ox, 20); g.lineTo(ox, 270); g.stroke(); }
-    label(g, ox + 16, 34, title, 19, C.gold); label(g, ox + 16, 54, sub, 14, C.muted);
-    const sc = 0.5;
-    const reach = (85 + 15 * state.multi) * sc, fin = (115 + 15 * state.multi) * sc;
-    g.setLineDash([5, 5]); g.strokeStyle = C.healA + '0.55)'; g.lineWidth = 1.5;
-    if (k <= 2) { g.beginPath(); g.arc(cx, cy, 140 * sc, 0, TAU); g.stroke(); }
-    if (k === 3) { g.beginPath(); g.arc(cx, cy, 170 * sc, 0, TAU); g.stroke(); }
-    g.setLineDash([]);
-    if (k <= 2) {
-      const a0 = AIM - 100 * D, a1 = AIM + 100 * D;
-      wedge(g, cx, cy, reach, a0, a1, 1);
-      const from = k === 1 ? a1 : a0, to = k === 1 ? a0 : a1;
-      g.strokeStyle = C.gold; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, reach + 6, Math.min(from, to), Math.max(from, to)); g.stroke();
-      const tx = cx + Math.cos(to) * (reach + 6), ty = cy + Math.sin(to) * (reach + 6), td = to + (k === 1 ? -Math.PI / 2 : Math.PI / 2);
-      g.fillStyle = C.gold; g.beginPath(); g.moveTo(tx + Math.cos(td) * 8, ty + Math.sin(td) * 8); g.lineTo(tx + Math.cos(td + 2.5) * 7, ty + Math.sin(td + 2.5) * 7); g.lineTo(tx + Math.cos(td - 2.5) * 7, ty + Math.sin(td - 2.5) * 7); g.fill();
-      smoke(g, cx + Math.cos(to) * reach, cy + Math.sin(to) * reach, 20, 1, k, 0);
-      knight(g, cx, cy, AIM); head(g, tx, ty, 0.8);
-    } else if (k === 3) {
-      smoke(g, cx, cy, 75 * sc, 1, 7, 0);
-      wedge(g, cx, cy, fin, 0, TAU, 1);
-      g.strokeStyle = C.gold; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, fin + 6, 0, TAU); g.stroke();
-      knight(g, cx, cy, AIM); head(g, cx + Math.cos(AIM) * (fin + 6), cy + Math.sin(AIM) * (fin + 6), 0.8);
-      label(g, cx, 262, '+1 heal per enemy hit', 14, C.heal, 'center');
-    } else if (state.alt === 'cast') {
-      const kx = ox + 50, ky = 200, lx = ox + 180, ly = 120;
-      smoke(g, lx, ly, (60 + 6 * (5 + state.multi)) * 0.5, 1.2, 9, 0);
-      g.strokeStyle = C.goldDim + '0.6)'; g.setLineDash([4, 6]); g.lineWidth = 1.5; g.beginPath(); g.moveTo(kx, ky); g.quadraticCurveTo((kx + lx) / 2, ly - 10, lx, ly); g.stroke(); g.setLineDash([]);
-      knight(g, kx, ky, Math.atan2(ly - ky, lx - kx)); head(g, lx, ly, 1);
-      allyDraw(g, { x: lx + 24, y: ly + 22, name: 'C' }, 55, 0);
-      embersDraw(g, kx, ky + 30, 0, 5 + state.multi);
-      label(g, cx, 262, 'Cloud grows with each Ember', 14, C.heal, 'center');
-    } else {
-      const ring = 140 * sc;
-      g.fillStyle = `rgba(${C.smoke},0.12)`; g.beginPath(); g.arc(cx, cy, ring, 0, TAU); g.fill();
-      g.strokeStyle = C.goldDim + '0.7)'; g.setLineDash([8, 6]); g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, ring, 0, TAU); g.stroke(); g.setLineDash([]);
-      knight(g, cx, cy, AIM); head(g, cx + 26, cy - 14, 1);
-      g.fillStyle = C.shot; g.beginPath(); g.arc(cx + ring + 8, cy + 30, 4, 0, TAU); g.fill();
-      g.strokeStyle = 'rgba(255,138,76,0.5)'; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(cx + ring + 40, cy + 20); g.quadraticCurveTo(cx + ring, cy + 32, cx + ring - 10, cy + 70); g.stroke(); g.setLineDash([]);
-      label(g, cx, 262, '1 Ember every 0.7 s', 14, C.heal, 'center');
-    }
-  });
-}
-
-// ---- loop ----
-let t0 = performance.now(), acc = 0, last = performance.now();
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (!state.paused) acc += dt * state.speed;
-  drawStage(acc % LOOP);
-  requestAnimationFrame(frame);
-}
-build(); drawStrip();
-if (reduce) { state.paused = true; pauseBtn.textContent = 'Play'; acc = 1.9; }
+/* ---------- loop ---------- */
+$('pause').addEventListener('click',function(){ paused=!paused; this.textContent=paused?'Play':'Pause' });
+$('tgSlow').addEventListener('change',function(){ slow=this.checked });
+const scrub=$('scrub'); let dragging=false;
+scrub.addEventListener('input',()=>{ dragging=true; paused=true; $('pause').textContent='Play'; seek(scrub.value/1000*loopLen) });
+scrub.addEventListener('change',()=>{ dragging=false });
+let last=performance.now(), acc=0, sacc=0;
+function frame(now){
+  let dt=Math.min(.05,(now-last)/1000); last=now; const sp=slow?.25:1;
+  if(mode==='replay'){
+    if(!paused){ acc+=dt*sp; while(acc>=DT){ sim.tick(DT); acc-=DT; clock=sim.t; if(sim.t>=loopLen){ sim=new Sim(replayOpt()); clock=0 } } }
+    if(!dragging) scrub.value=Math.round(clock/loopLen*1000); $('tlabel').textContent=clock.toFixed(2)+' s';
+  } else { acc+=dt*sp; while(acc>=DT){ tryControl(DT); sim.tick(DT); acc-=DT } }
+  drawSim(sx,sim,SW,SH,{label:true,hit:$('tgHit').checked});
+  sx.font=FM; sx.textAlign='left'; sx.fillStyle='rgba(220,230,240,.45)';
+  sx.fillText(mode==='replay'?'REPLAY · SWEEP, RETURN, BENEDICTION TWICE, THEN '+ALTS[curAlt].name.toUpperCase():'TRY IT · click to swing · right-click or space for '+ALTS[curAlt].name.toUpperCase()+(ALTS[curAlt].hold?' (hold)':''),22,SH-16);
+  if(!reduced||!paused){ sacc+=dt*sp; const n=Math.floor(sacc/DT)*DT; sacc-=n; if(n>0) tickCells(n) }
+  requestAnimationFrame(frame) }
+try{ const qs=new URLSearchParams(location.search); if(qs.get('a')&&ALTS[qs.get('a')]) curAlt=qs.get('a'); [].forEach.call(altChipEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===curAlt))) }catch(e){}
+resetStage(); fillTable(); buildAlts(); buildStrip(); drawModel();
+try{ const qs=new URLSearchParams(location.search); if(qs.get('t')!=null){ seek(parseFloat(qs.get('t'))); paused=true; $('pause').textContent='Play' } }catch(e){}
+if(reduced){ seek(1.4); paused=true; $('pause').textContent='Play'; tickCells(.9) }
+if(document.fonts) document.fonts.ready.then(drawModel);
 requestAnimationFrame(frame);
-if (document.fonts) document.fonts.ready.then(drawStrip);
 })();
 </script>
