@@ -129,7 +129,7 @@ namespace Arena
                         break;  // a portal is open: its own call instead (ChallengeLook.cs)
                     if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
                     {
-                        DrawNewEnemyChips(WcY + WcH + 14f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
+                        DrawNewEnemyChips(WcY + WcH + 10f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
                         break;
                     }
                     if (pr != null)
