@@ -1,0 +1,479 @@
+<title>Blood Freeze</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Teko:wght@500;600;700&display=swap">
+<style>
+/* Layout: arena canvas on the left, numbers and open questions on the right; stacks on phones. */
+:root {
+  --bg: #0b0709;
+  --panel: #150d10;
+  --line: #2c1a20;
+  --fg: #f3e6e8;
+  --mute: #a58a90;
+  --blood: #e0284a;
+  --blood-deep: #6d0f24;
+  --ice: #8fe3ff;
+  --frost: #eefbff;
+  --f-display: "Teko", "Arial Narrow", Impact, sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 22px; }
+header { display: grid; gap: 4px; }
+.eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+h1 { margin: 0; font: 700 clamp(46px, 9vw, 84px)/.9 var(--f-display); letter-spacing: .02em; text-transform: uppercase;
+  background: linear-gradient(100deg, var(--blood) 15%, var(--frost) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { margin: 0; max-width: 62ch; color: var(--mute); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.stage { display: grid; gap: 12px; min-width: 0; }
+canvas { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; background: #0d080a; aspect-ratio: 720 / 520; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button, .toggle { font: 600 14px var(--f-body); letter-spacing: .06em; text-transform: uppercase; }
+button { background: var(--blood); color: #fff; border: 0; border-radius: 4px; padding: 11px 20px; cursor: pointer; }
+button:hover { background: #f03a5d; }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+button.ghost[aria-pressed="true"] { border-color: var(--ice); color: var(--ice); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+.toggle { display: inline-flex; gap: 8px; align-items: center; color: var(--mute); cursor: pointer; }
+.hint { color: var(--mute); font-size: 13px; margin-left: auto; }
+.timeline { display: grid; gap: 6px; }
+.track { position: relative; display: flex; height: 34px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.track > div { display: flex; align-items: center; padding: 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.p-charge { flex: 0.55 0 0; background: #3a0c19; color: #ff9db0; }
+.p-wave { flex: 1 0 0; background: linear-gradient(90deg, #3a0c19, #1c4a63); color: var(--frost); }
+.p-freeze { flex: 5 0 0; background: #123246; color: var(--ice); }
+.p-thaw { flex: 0.6 0 0; background: #1a2230; color: var(--mute); }
+.playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 8px #fff; left: 0; pointer-events: none; }
+.times { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); font-variant-numeric: tabular-nums; }
+aside { display: grid; gap: 18px; min-width: 0; }
+h2 { margin: 0 0 8px; font: 600 26px/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--mute); font-weight: 500; width: 34%; padding-right: 10px; }
+td s { color: var(--mute); }
+tr:last-child th, tr:last-child td { border-bottom: 0; }
+ul { margin: 0; padding-left: 18px; display: grid; gap: 7px; }
+li::marker { color: var(--blood); }
+.tag { color: var(--ice); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hemomancer · Healer · Space ability 2 · replaces Siphon Field</div>
+    <h1>Blood Freeze</h1>
+    <p class="lede">Pay a tenth of your blood. A crimson shockwave tears across the arena and locks every enemy it touches in blood-veined ice for five seconds. Press Cast to watch it.</p>
+  </header>
+
+  <div class="grid">
+    <div class="stage">
+      <canvas id="c" width="1440" height="1040" aria-label="Animated mockup of the Blood Freeze shockwave freezing enemies in an arena"></canvas>
+      <div class="controls">
+        <button id="cast">Cast Blood Freeze</button>
+        <button id="slow" class="ghost" aria-pressed="false">Slow-mo ×0.25</button>
+        <label class="toggle"><input id="loop" type="checkbox"> Loop</label>
+        <span class="hint">Space also casts</span>
+      </div>
+      <div class="timeline">
+        <div class="track" id="track">
+          <div class="p-charge">Charge</div><div class="p-wave">Wave</div><div class="p-freeze">Frozen · 5.0 s</div><div class="p-thaw">Thaw</div>
+          <span class="playhead" id="head"></span>
+        </div>
+        <div class="times"><span id="clock">0.00 s</span><span id="status">Ready</span></div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <h2>Proposed numbers</h2>
+        <table>
+          <tr><th>Cost</th><td>10% max health <s>(same as Siphon Field)</s></td></tr>
+          <tr><th>Cooldown</th><td>14 s <s>(was 11 s)</s></td></tr>
+          <tr><th>Shockwave</th><td>Starts at your feet, reaches 460 px in about 0.8 s</td></tr>
+          <tr><th>Effect</th><td>Every enemy the wave crosses is frozen for <span class="tag">5 s</span>: no moving, no shooting</td></tr>
+          <tr><th>Damage</th><td>None. Allies are untouched.</td></tr>
+          <tr><th>Bosses</th><td>Frozen for 2 s (they ignore freezes today)</td></tr>
+          <tr><th>Reuses</th><td>The existing <code>FrozenT</code> enemy state</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Animation beats</h2>
+        <ul>
+          <li><b>Charge.</b> A rune circle spins up at your feet while blood streams in from all sides.</li>
+          <li><b>Wave.</b> A crimson-to-white ring bursts out with screen shake, a flash and ice shards thrown off the front edge.</li>
+          <li><b>Frost.</b> Cracks race across the floor behind the ring and stay for the whole freeze.</li>
+          <li><b>Frozen.</b> Each enemy is sealed in a hexagonal crystal with red veins, a glint, and a draining timer ring.</li>
+          <li><b>Thaw.</b> In the last second the crystals crack and flicker, then shatter into shards and mist.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>To decide</h2>
+        <ul>
+          <li>Hungry Earth (+40% size, +3 s) has nothing to grow. Turn it into +1 s freeze and +20% wave size?</li>
+          <li>The level 5 capstone "follows you" no longer fits. Suggest: frozen enemies take 25% more damage.</li>
+          <li>Should enemy bullets caught by the wave freeze too?</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const W = 720, H = 520, TAU = Math.PI * 2;
+  const P = { x: 360, y: 270 };
+  const CHARGE = 0.55, WAVE = 1.0, FREEZE = 5, MAXR = 520, COOLDOWN_END = CHARGE + 0.3 + FREEZE + 0.6;
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ICE = [143, 227, 255], BLOOD = [224, 40, 74];
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+  const easeBack = t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+
+  let enemies = [], parts = [], cracks = [];
+  let castT = -1, simT = 0, speed = 1, hp = 1, hpShown = 1, shakeAmt = 0, loopAt = 0;
+
+  const TYPES = [
+    { n: 'grunt', r: 12, sp: 22, col: '#78974f' },
+    { n: 'runner', r: 10, sp: 44, col: '#d4802f' },
+    { n: 'brute', r: 20, sp: 12, col: '#8658b0' }
+  ];
+
+  function spawnEnemies() {
+    enemies = [];
+    const plan = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 0, 1, 0, 2];
+    plan.forEach(t => {
+      const d = rnd(90, 420), a = rnd(0, TAU);
+      const x = clamp(P.x + Math.cos(a) * d, 28, W - 28), y = clamp(P.y + Math.sin(a) * d * 0.85, 28, H - 28);
+      enemies.push({ x, y, t: TYPES[t], seed: rnd(0, TAU), fz: null, thaw: 0, released: false, flash: 0, veins: [] });
+    });
+  }
+
+  function buildCracks() {
+    cracks = [];
+    const N = 30;
+    for (let i = 0; i < N; i++) {
+      let a = (i / N) * TAU + rnd(-0.07, 0.07), d = 0, pts = [[P.x, P.y]];
+      while (d < 600) {
+        d += rnd(16, 34); a += rnd(-0.07, 0.07);
+        pts.push([P.x + Math.cos(a) * d, P.y + Math.sin(a) * d]);
+        if (Math.random() < 0.28 && d > 50) {
+          let ba = a + (Math.random() < 0.5 ? -1 : 1) * rnd(0.5, 0.9), bx = P.x + Math.cos(a) * d, by = P.y + Math.sin(a) * d;
+          const bp = [[bx, by]];
+          for (let k = 0; k < 3; k++) { ba += rnd(-0.2, 0.2); bx += Math.cos(ba) * rnd(14, 26); by += Math.sin(ba) * rnd(14, 26); bp.push([bx, by]); }
+          cracks.push({ pts: bp, red: false, w: 0.7 });
+        }
+      }
+      cracks.push({ pts, red: i % 5 === 0, w: 1 });
+    }
+  }
+
+  function addP(o) { parts.push(Object.assign({ x: 0, y: 0, vx: 0, vy: 0, life: 1, max: 1, kind: 'spark', size: 3, drag: 1.5, a: 0 }, o)); o = parts[parts.length - 1]; o.max = o.life; return o; }
+  const shard = (x, y, sp, a) => addP({ kind: 'shard', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, a, life: rnd(0.45, 0.9), size: rnd(4, 10) });
+  const dropAt = (x, y, sp, a, life) => addP({ kind: 'drop', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life, size: rnd(1.5, 3.2) });
+  const nP = n => RM ? Math.ceil(n / 3) : n;
+
+  function cast() {
+    if (castT >= 0 && castT < COOLDOWN_END) spawnEnemies();
+    parts = []; buildCracks();
+    castT = 0; hp = Math.max(0.6, hp - 0.1);
+    enemies.forEach(e => { e.fz = null; e.released = false; e.flash = 0; });
+    addP({ kind: 'text', x: P.x, y: P.y - 30, vy: -26, life: 1.3, text: '−10% HP', drag: 0 });
+    loopAt = 0;
+  }
+
+  function freezeEnemy(e) {
+    e.fz = castT; e.thaw = castT + FREEZE; e.flash = 0.25;
+    e.veins = [];
+    for (let i = 0; i < 3; i++) {
+      const a = rnd(0, TAU), pts = [[0, 0]];
+      for (let k = 1; k <= 3; k++) pts.push([Math.cos(a + rnd(-.5, .5)) * k * (e.t.r + 6) / 3, Math.sin(a + rnd(-.5, .5)) * k * (e.t.r + 6) / 3]);
+      e.veins.push(pts);
+    }
+    for (let i = 0; i < nP(12); i++) shard(e.x, e.y, rnd(60, 190), rnd(0, TAU));
+    for (let i = 0; i < nP(5); i++) addP({ kind: 'spark', x: e.x + rnd(-8, 8), y: e.y + rnd(-8, 8), vx: rnd(-30, 30), vy: rnd(-30, 30), life: rnd(0.3, 0.6), size: rnd(3, 6) });
+  }
+
+  function shatter(e) {
+    e.released = true; e.fz = null;
+    for (let i = 0; i < nP(18); i++) shard(e.x, e.y, rnd(70, 230), rnd(0, TAU));
+    for (let i = 0; i < nP(6); i++) dropAt(e.x, e.y, rnd(30, 120), rnd(0, TAU), rnd(0.5, 0.9));
+    addP({ kind: 'mist', x: e.x, y: e.y, vy: -14, life: 0.9, size: e.t.r + 8, drag: 1 });
+  }
+
+  function waveR() {
+    if (castT < CHARGE) return 0;
+    const u = Math.min(1, (castT - CHARGE) / WAVE);
+    return MAXR * (1 - Math.pow(1 - u, 3));
+  }
+
+  function update(dt) {
+    simT += dt;
+    if (castT >= 0) castT += dt;
+    // charge: blood streams in
+    if (castT >= 0 && castT < CHARGE)
+      for (let i = 0; i < nP(3); i++) {
+        const a = rnd(0, TAU), d = rnd(70, 150);
+        addP({ kind: 'inflow', x: P.x + Math.cos(a) * d, y: P.y + Math.sin(a) * d, life: 0.4, size: rnd(1.5, 3) });
+      }
+    // wave: shards off the front, blood behind it
+    const wr = waveR(), u = castT < CHARGE ? -1 : (castT - CHARGE) / WAVE;
+    if (u >= 0 && u < 1) {
+      for (let i = 0; i < nP(7); i++) {
+        const a = rnd(0, TAU), x = P.x + Math.cos(a) * wr, y = P.y + Math.sin(a) * wr;
+        if (x > -10 && x < W + 10 && y > -10 && y < H + 10) shard(x, y, rnd(30, 120), a + rnd(-0.5, 0.5));
+      }
+      for (let i = 0; i < nP(5); i++) {
+        const a = rnd(0, TAU), x = P.x + Math.cos(a) * (wr - rnd(10, 50)), y = P.y + Math.sin(a) * (wr - rnd(10, 50));
+        if (x > 0 && x < W && y > 0 && y < H) dropAt(x, y, rnd(10, 50), a, rnd(0.4, 0.8));
+      }
+    }
+    shakeAmt = (RM || u < 0 || u > 0.5) ? 0 : 7 * (1 - u / 0.5);
+    if (castT >= 0 && castT >= CHARGE && Math.abs(castT - CHARGE) < dt + 0.0001) shakeAmt = RM ? 0 : 7;
+
+    enemies.forEach(e => {
+      e.flash = Math.max(0, e.flash - dt);
+      if (e.fz === null && !e.released && castT >= 0 && wr >= Math.hypot(e.x - P.x, e.y - P.y) - e.t.r && castT >= CHARGE) freezeEnemy(e);
+      if (e.fz !== null && castT >= e.thaw) shatter(e);
+      if (e.fz === null) {
+        const dx = P.x - e.x, dy = P.y - e.y, d = Math.hypot(dx, dy) || 1;
+        if (d > 70) { e.x += dx / d * e.t.sp * dt; e.y += dy / d * e.t.sp * dt; }
+        else { e.x += -dy / d * e.t.sp * 0.5 * dt; e.y += dx / d * e.t.sp * 0.5 * dt; }
+      }
+    });
+
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.life -= dt;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      if (p.kind === 'inflow') { p.px = p.x; p.py = p.y; const k = Math.min(1, dt * 7); p.x += (P.x - p.x) * k; p.y += (P.y - p.y) * k; continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      const f = Math.max(0, 1 - p.drag * dt); p.vx *= f; p.vy *= f;
+    }
+    if (hpShown > hp) hpShown = Math.max(hp, hpShown - dt * 0.3);
+
+    if (loopAt === 0 && castT > CHARGE + WAVE + FREEZE + 2.5) loopAt = 1;
+    if (loopAt === 1 && document.getElementById('loop').checked) { spawnEnemies(); cast(); }
+  }
+
+  /* ---------- drawing ---------- */
+  function floor() {
+    ctx.fillStyle = '#0d080a'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(255,120,140,0.05)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = 0; x <= W; x += 48) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 0; y <= H; y += 48) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+    const g = ctx.createRadialGradient(P.x, P.y, 40, P.x, P.y, 470);
+    g.addColorStop(0, 'rgba(120,20,40,0.24)'); g.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+
+  function frost(wr) {
+    if (castT < CHARGE || wr <= 0) return;
+    const A = clamp((COOLDOWN_END - 0.6 - castT) / 1.2, 0, 1);
+    if (A <= 0) return;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(P.x, P.y, wr, 0, TAU); ctx.clip();
+    const g = ctx.createRadialGradient(P.x, P.y, wr * 0.2, P.x, P.y, wr);
+    g.addColorStop(0, 'rgba(110,190,240,0.05)'); g.addColorStop(1, 'rgba(140,220,255,0.2)');
+    ctx.globalAlpha = A; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    cracks.forEach(c => {
+      ctx.strokeStyle = c.red ? 'rgba(224,40,74,0.45)' : 'rgba(200,238,255,0.4)'; ctx.lineWidth = c.w;
+      ctx.beginPath();
+      for (let i = 0; i < c.pts.length; i++) i ? ctx.lineTo(c.pts[i][0], c.pts[i][1]) : ctx.moveTo(c.pts[i][0], c.pts[i][1]);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function sigil() {
+    let a = 0, icy = 0;
+    if (castT < 0) return;
+    if (castT < CHARGE) a = castT / CHARGE * 0.9;
+    else { icy = Math.min(1, (castT - CHARGE) / 0.3); a = castT < COOLDOWN_END - 0.6 ? 0.25 + 0.65 * Math.max(0, 1 - (castT - CHARGE) / 1.2) : Math.max(0, (COOLDOWN_END - castT) / 0.6 * 0.25); }
+    if (a <= 0.01) return;
+    ctx.save(); ctx.translate(P.x, P.y); ctx.rotate(simT * (castT < CHARGE ? 2.4 : 0.7));
+    ctx.globalAlpha = a; ctx.strokeStyle = mix(BLOOD, ICE, icy); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, 46, 0, TAU); ctx.stroke();
+    ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.arc(0, 0, 36, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+    for (let k = 0; k < 2; k++) {
+      ctx.beginPath();
+      for (let i = 0; i < 3; i++) { const an = k * Math.PI / 3 + i * TAU / 3 - Math.PI / 2; const x = Math.cos(an) * 46, y = Math.sin(an) * 46; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.closePath(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function ring(wr) {
+    if (castT < CHARGE || wr <= 2) return;
+    const u = (castT - CHARGE) / WAVE;
+    const fade = u < 0.8 ? 1 : clamp(1 - (u - 0.8) / 0.45, 0, 1);
+    if (fade <= 0) return;
+    ctx.save(); ctx.globalAlpha = fade; ctx.globalCompositeOperation = 'lighter';
+    const w = 64;
+    const g = ctx.createRadialGradient(P.x, P.y, Math.max(0, wr - w), P.x, P.y, wr);
+    g.addColorStop(0, 'rgba(160,20,50,0)'); g.addColorStop(0.55, 'rgba(224,40,74,0.32)'); g.addColorStop(0.88, 'rgba(143,227,255,0.65)'); g.addColorStop(1, 'rgba(255,255,255,0.95)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(P.x, P.y, wr + 1, 0, TAU); ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath(); ctx.arc(P.x, P.y, wr, 0, TAU); ctx.stroke();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(224,40,74,0.55)';
+    [0.86, 0.7].forEach(f => { ctx.beginPath(); ctx.arc(P.x, P.y, wr * f, 0, TAU); ctx.stroke(); });
+    ctx.restore();
+  }
+
+  function drawEnemy(e) {
+    const r = e.t.r, ang = Math.atan2(P.y - e.y, P.x - e.x);
+    const frozen = e.fz !== null, remain = frozen ? e.thaw - castT : 0, warn = frozen && remain < 1;
+    let ox = 0, oy = 0;
+    if (warn && !RM) { ox = Math.sin(simT * 90 + e.seed) * 1.3; oy = Math.cos(simT * 77 + e.seed) * 1.3; }
+    ctx.save(); ctx.translate(e.x + ox, e.y + oy);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, r * 0.8, r, r * 0.4, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = e.t.col; ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.5;
+    ctx.save(); ctx.rotate(ang);
+    if (e.t.n === 'runner') { ctx.beginPath(); ctx.moveTo(r + 3, 0); ctx.lineTo(-r, r * 0.9); ctx.lineTo(-r * 0.5, 0); ctx.lineTo(-r, -r * 0.9); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    else {
+      if (e.t.n === 'brute') { ctx.beginPath(); for (let i = 0; i < 16; i++) { const an = i / 16 * TAU, rr = i % 2 ? r : r + 6; ctx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = frozen ? '#cfeaf5' : '#fff';
+      [-1, 1].forEach(s => { ctx.beginPath(); ctx.arc(r * 0.45, s * r * 0.35, r * 0.2, 0, TAU); ctx.fill(); });
+    }
+    ctx.restore();
+    if (frozen) {
+      const k = clamp(easeBack(clamp((castT - e.fz) / 0.28, 0, 1)), 0, 1.15), R = (r + 8) * k;
+      const flick = warn ? (0.55 + 0.45 * Math.abs(Math.sin(simT * 20))) : 1;
+      ctx.save(); ctx.rotate(e.seed); ctx.globalAlpha = flick;
+      const g = ctx.createLinearGradient(-R, -R, R, R);
+      g.addColorStop(0, 'rgba(210,246,255,0.62)'); g.addColorStop(0.5, 'rgba(110,200,240,0.3)'); g.addColorStop(1, 'rgba(170,235,255,0.55)');
+      ctx.fillStyle = g; ctx.strokeStyle = 'rgba(235,252,255,0.9)'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); for (let i = 0; i < 6; i++) { const an = i / 6 * TAU; ctx.lineTo(Math.cos(an) * R, Math.sin(an) * R); } ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let i = 0; i < 6; i += 1) { const an = i / 6 * TAU; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(an) * R, Math.sin(an) * R); } ctx.stroke();
+      ctx.strokeStyle = `rgba(224,40,74,${0.45 + 0.3 * Math.sin(simT * 3 + e.seed)})`; ctx.lineWidth = 1.2;
+      e.veins.forEach(v => { ctx.beginPath(); v.forEach((pt, i) => i ? ctx.lineTo(pt[0] * k, pt[1] * k) : ctx.moveTo(pt[0] * k, pt[1] * k)); ctx.stroke(); });
+      if (warn) { ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-R * 0.7, -R * 0.2); ctx.lineTo(-R * 0.1, R * 0.05); ctx.lineTo(R * 0.1, -R * 0.25); ctx.lineTo(R * 0.7, R * 0.3); ctx.stroke(); }
+      ctx.restore();
+      // glint
+      const ga = simT * 2 + e.seed, gx = Math.cos(ga) * R * 0.6, gy = Math.sin(ga) * R * 0.6, gs = 3 + 2 * Math.sin(simT * 6 + e.seed);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.3; ctx.beginPath();
+      ctx.moveTo(gx - gs, gy); ctx.lineTo(gx + gs, gy); ctx.moveTo(gx, gy - gs); ctx.lineTo(gx, gy + gs); ctx.stroke(); ctx.restore();
+      // timer ring
+      ctx.lineWidth = 2.2; ctx.strokeStyle = warn ? `rgba(224,40,74,${flick})` : 'rgba(143,227,255,0.9)';
+      ctx.beginPath(); ctx.arc(0, 0, r + 14, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(remain / FREEZE, 0, 1)); ctx.stroke();
+    }
+    if (e.flash > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(230,250,255,${e.flash / 0.25})`; ctx.beginPath(); ctx.arc(0, 0, r + 16 * (1 - e.flash / 0.25) + 8, 0, TAU); ctx.fill(); ctx.restore(); }
+    ctx.restore();
+  }
+
+  function drawPlayer() {
+    const pulse = castT >= 0 && castT < CHARGE ? 1 + 0.18 * Math.sin(castT * 40) : 1;
+    const icy = castT >= CHARGE ? clamp(1 - (castT - CHARGE) / 1.5, 0, 1) : 0;
+    ctx.save(); ctx.translate(P.x, P.y);
+    const g = ctx.createRadialGradient(0, 0, 4, 0, 0, 44);
+    g.addColorStop(0, 'rgba(224,40,74,0.5)'); g.addColorStop(1, 'rgba(224,40,74,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 44, 0, TAU); ctx.fill();
+    ctx.scale(pulse, pulse);
+    ctx.fillStyle = '#b81a38'; ctx.strokeStyle = mix([255, 150, 168], ICE, icy); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, 14, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#5a0a1c'; ctx.beginPath(); ctx.arc(0, -1, 9, Math.PI, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffd9df'; ctx.beginPath(); ctx.arc(-3.5, 1, 1.6, 0, TAU); ctx.arc(3.5, 1, 1.6, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawParts() {
+    parts.forEach(p => {
+      const t = p.life / p.max;
+      ctx.save();
+      if (p.kind === 'inflow') {
+        ctx.strokeStyle = `rgba(255,70,100,${0.9 * t + 0.1})`; ctx.lineWidth = p.size; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(p.px ?? p.x, p.py ?? p.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      } else if (p.kind === 'drop') {
+        ctx.fillStyle = `rgba(224,40,74,${t})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.fill();
+      } else if (p.kind === 'shard') {
+        ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.globalAlpha = Math.min(1, t * 1.6);
+        ctx.fillStyle = 'rgba(200,244,255,0.95)'; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(p.size, 0); ctx.lineTo(-p.size * 0.5, p.size * 0.32); ctx.lineTo(-p.size * 0.5, -p.size * 0.32); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (p.kind === 'spark') {
+        ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(255,255,255,${t})`; ctx.lineWidth = 1.2;
+        const s = p.size * t; ctx.beginPath(); ctx.moveTo(p.x - s, p.y); ctx.lineTo(p.x + s, p.y); ctx.moveTo(p.x, p.y - s); ctx.lineTo(p.x, p.y + s); ctx.stroke();
+      } else if (p.kind === 'mist') {
+        const rr = p.size * (1 + (1 - t) * 2.2);
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr);
+        g.addColorStop(0, `rgba(200,240,255,${0.35 * t})`); g.addColorStop(1, 'rgba(200,240,255,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, TAU); ctx.fill();
+      } else if (p.kind === 'text') {
+        ctx.globalAlpha = Math.min(1, t * 2); ctx.fillStyle = '#ff7b93'; ctx.font = '600 16px Barlow, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y);
+      }
+      ctx.restore();
+    });
+  }
+
+  function hud() {
+    // health bar under the player
+    const bw = 64, bx = P.x - bw / 2, by = P.y + 28;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7);
+    ctx.fillStyle = '#7a1224'; ctx.fillRect(bx, by, bw * hpShown, 5);
+    ctx.fillStyle = '#e0284a'; ctx.fillRect(bx, by, bw * hp, 5);
+    // freeze banner
+    const alive = enemies.filter(e => e.fz !== null);
+    if (alive.length) {
+      const rem = Math.max(...alive.map(e => e.thaw - castT));
+      const bw2 = 240, x = (W - bw2) / 2, y = 16;
+      ctx.textAlign = 'center'; ctx.font = '600 22px Teko, sans-serif'; ctx.fillStyle = '#d8f6ff';
+      ctx.fillText(`BLOOD FREEZE  ${alive.length} frozen · ${rem.toFixed(1)}s`, W / 2, y + 12);
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x, y + 20, bw2, 5);
+      ctx.fillStyle = rem < 1 ? '#e0284a' : '#8fe3ff'; ctx.fillRect(x, y + 20, bw2 * clamp(rem / FREEZE, 0, 1), 5);
+    }
+  }
+
+  function frame() {
+    const sx = shakeAmt ? rnd(-shakeAmt, shakeAmt) : 0, sy = shakeAmt ? rnd(-shakeAmt, shakeAmt) : 0;
+    const wr = waveR();
+    ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.save(); ctx.translate(sx, sy);
+    floor(); frost(wr); sigil(); ring(wr);
+    enemies.slice().sort((a, b) => a.y - b.y).forEach(drawEnemy);
+    drawPlayer(); drawParts();
+    ctx.restore();
+    if (castT >= CHARGE && castT < CHARGE + 0.35) {
+      const a = 0.4 * (1 - (castT - CHARGE) / 0.35);
+      ctx.fillStyle = `rgba(215,245,255,${RM ? a * 0.4 : a})`; ctx.fillRect(0, 0, W, H);
+    }
+    hud();
+    // vignette
+    const v = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 460);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.5)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  }
+
+  const head = document.getElementById('head'), clock = document.getElementById('clock'), status = document.getElementById('status');
+  function ui() {
+    const total = CHARGE + WAVE + FREEZE + 0.6;
+    const t = castT < 0 ? 0 : Math.min(castT, total);
+    head.style.left = (t / total * 100) + '%';
+    clock.textContent = t.toFixed(2) + ' s';
+    status.textContent = castT < 0 ? 'Ready' : castT < CHARGE ? 'Charging' : castT < CHARGE + WAVE ? 'Shockwave' : castT < CHARGE + WAVE + FREEZE ? 'Everything is frozen' : castT < total ? 'Thawing' : 'Done';
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000) * speed; last = now;
+    update(dt); frame(); ui();
+    requestAnimationFrame(loop);
+  }
+
+  spawnEnemies(); buildCracks();
+  document.getElementById('cast').addEventListener('click', () => { spawnEnemies(); cast(); });
+  const slow = document.getElementById('slow');
+  slow.addEventListener('click', () => { speed = speed === 1 ? 0.25 : 1; slow.setAttribute('aria-pressed', speed !== 1); });
+  addEventListener('keydown', e => { if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') { e.preventDefault(); spawnEnemies(); cast(); } });
+  setTimeout(() => { cast(); }, 700);
+  requestAnimationFrame(loop);
+})();
+</script>

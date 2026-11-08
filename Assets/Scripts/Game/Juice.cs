@@ -159,6 +159,7 @@ namespace Arena
             ClearGolemWallLook();  // GolemWallLook.cs
             ClearTankLooks();  // TankLooks.cs
             ClearTombLook();  // GlacialTombLook.cs
+            ClearBloodFreezeLook();  // BloodFreezeLook.cs
             ClearTankGunLooks();  // TankGunLooks.cs
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
@@ -246,6 +247,7 @@ namespace Arena
             var me = game.Me;
 
             UpdateTombLook(t);  // GlacialTombLook.cs: remembers the enemy shots a Glacial Tomb is about to erase
+            UpdateBloodFreezeLook(t);  // BloodFreezeLook.cs: the wave's screen kick, and forgetting old crystals
 
             // New effects: blasts shake, spark, scorch and ripple.
             if (me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Rapier)
