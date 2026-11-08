@@ -359,6 +359,7 @@ static partial class Program
         Test("textedit", "the dev text editor's overrides", TextOverridesTest),
         Test("runstats", "the Run stats screen's live numbers reach every player", () => RunStatsLiveTest(Dt)),
         Test("waveready", "the between-waves summary, awards, Ready and Auto-ready", () => WaveReadyTest(Dt)),
+        Test("wavekinds", "a recipe wave shows at most 6 distinct enemy types (8 from wave 25)", () => WaveKindsTest()),
         Test("fieldguide", "the Field guide's Bestiary: an entry per enemy, health at your wave", () => FieldGuideTest(Dt)),
         Test("labtest", "the Boss Lab", () => BossLabTest(Dt)),
         Test("botteam", "the smart bot's team play: Roar, Last Stand, Mark, healing orbs and zones", () => BotTeamplayTest(Dt)),

@@ -105,6 +105,30 @@ static partial class Program
 {
     /// What a regular wave is made of, by what each enemy does: shoots, melee (contact, charges, lunges) or support
     /// (heals, bubbles, spawns). Averaged over many built waves (two players, Normal). Docs/EnemyRoles.md.
+    /// Recipe waves show a bounded number of distinct enemy types (Docs/EnemyReadability.md section 3).
+    static void WaveKindsTest()
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var build = typeof(Game).GetMethod("BuildWave", flags);
+        var queueF = typeof(Game).GetField("spawnQueue", flags);
+        var squadF = typeof(Game).GetField("squadQueue", flags);
+        var g = new Session().Game;
+        foreach (int n in new[] { 13, 14, 17, 20, 22, 24, 25, 27, 29, 33, 37 })
+        {
+            int cap = Game.KindCap(n), most = 0;
+            for (int r = 0; r < 60; r++)
+            {
+                build.Invoke(g, new object[] { n });
+                var kinds = new HashSet<EnemyType>((List<EnemyType>)queueF.GetValue(g));
+                foreach (var sq in (List<SquadDef>)squadF.GetValue(g)) foreach (var m in sq.Members) kinds.Add(m);
+                if (kinds.Any(k => Zombies.Is(k))) continue;  // a Zombie Infection horde is its own mode, not the recipe
+                if (kinds.Count > most) most = kinds.Count;
+            }
+            Console.WriteLine("  wave {0}: at most {1} distinct types (cap {2})", n, most, cap);
+            Check(most <= cap, "wave " + n + " shows " + most + " types against a cap of " + cap);
+        }
+    }
+
     static void WaveMixReport()
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;

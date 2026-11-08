@@ -30,7 +30,12 @@ namespace Arena
         public const int RecipeFrom = 13;
         public const float RecipeSquadShare = 0.5f;
         public static readonly float[] JobShares = { 0.45f, 0.25f, 0.12f, 0.08f, 0.10f };
-        public const float HeadlinerPick = 0.6f;  // a job with a headliner draws it this often (if it isn't capped)
+        public const float HeadlinerPick = 0.6f;
+        /// A recipe wave shows at most this many distinct enemy types (squad members included), 8 from wave RecipeWideFrom,
+        /// so each kind on screen can be learned (Docs/EnemyReadability.md section 3). Once reached, the rest of the wave
+        /// repeats types it already has.
+        public const int RecipeKinds = 6, RecipeKindsWide = 8, RecipeWideFrom = 25;
+        public static int KindCap(int n) => n >= RecipeWideFrom ? RecipeKindsWide : RecipeKinds;  // a job with a headliner draws it this often (if it isn't capped)
 
         /// The types the recipe draws from, the wave each joins, and its job.
         static readonly (EnemyType Type, int From, EnemyJob Job)[] RecipeTypes =
@@ -143,15 +148,23 @@ namespace Arena
             if (sum <= 0f)
                 return;
             var taken = new Dictionary<EnemyType, int>();
+            kinds.Clear();
+            foreach (var h in Headliners)
+                kinds.Add(h);  // headliners are always on the bill, so they count first
+            foreach (var sq in squadQueue)
+                foreach (var t in sq.Members)
+                    kinds.Add(t);
+            kindCap = KindCap(n);
             for (int j = 0; j < shares.Length; j++)
             {
                 int quota = (int)Math.Round(need[j] / sum * left);
                 while (quota > 0)
                 {
-                    var pick = DrawRecipeType((EnemyJob)j, n, taken) ?? DrawRecipeType(EnemyJob.Pressure, n, taken);  // capped out: a shooter instead
+                    var pick = DrawRecipeType((EnemyJob)j, n, taken) ?? DrawRecipeType(EnemyJob.Pressure, n, taken) ?? DrawRecipeType(EnemyJob.Hunter, n, taken);  // capped out: a shooter instead
                     if (pick == null)
                         break;
                     var t = pick.Value;
+                    kinds.Add(t);
                     int pack = PackOf(t);
                     for (int k = 0; k < pack; k++)
                         spawnQueue.Add(t);
@@ -161,11 +174,16 @@ namespace Arena
             }
         }
 
+        // The distinct types this recipe wave has so far; once kindCap is reached only these can be drawn again.
+        readonly HashSet<EnemyType> kinds = new HashSet<EnemyType>();
+        int kindCap = 99;
+        bool KindOk(EnemyType t) => kinds.Count < kindCap || kinds.Contains(t);
+
         EnemyType? DrawRecipeType(EnemyJob job, int n, Dictionary<EnemyType, int> taken)
         {
             if (rng.NextDouble() < HeadlinerPick)
             {
-                var heads = Headliners.FindAll(h => JobOf(h) == job && !(taken.TryGetValue(h, out int hc) && hc >= RecipeCap(h)));
+                var heads = Headliners.FindAll(h => JobOf(h) == job && !(taken.TryGetValue(h, out int hc) && hc >= RecipeCap(h)) && KindOk(h));
                 if (heads.Count > 0)
                     return heads[rng.Next(heads.Count)];
             }
@@ -193,6 +211,8 @@ namespace Arena
         float SingleWeight((EnemyType Type, int From, EnemyJob Job) r, int n, Dictionary<EnemyType, int> taken)
         {
             if (taken.TryGetValue(r.Type, out int c) && c >= RecipeCap(r.Type))
+                return 0f;
+            if (!KindOk(r.Type))
                 return 0f;
             return RecipeWeight(r.From, n);
         }

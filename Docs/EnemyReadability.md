@@ -21,6 +21,10 @@ the 2-3 headliners, plus the singles needed to fill each job's share. Squads cou
 means each one gets learned. Change lives in `WaveRecipe.cs` (headliner pick and the fill step) with a test in the
 features suite that counts distinct types per wave.
 
+Done: `Game.KindCap` (6, 8 from wave 25) bounds a recipe wave. Headliners count first, then `BuildSquads` only takes a squad
+whose types still fit, then the singles repeat the types already on the bill (`KindOk`). Test: `wavekinds`. Children a type
+spawns later (Splitter's Shards) and boss adds are not counted.
+
 ## 4. In-game tags
 First 3 times a type is seen (per profile) and for elites: a short name + job icon above it for 2 s on spawn, plus a
 one-line "what it does" in the wave banner for a newly unlocked type. Stored in the profile, no network change.
