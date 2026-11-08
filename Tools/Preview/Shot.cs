@@ -272,6 +272,16 @@ static partial class Shot {
       put(EnemyType.SapperMine, new V2(700f, 180f), 2, 0.15f, 3f, 0f);                      // beeping
       foreach (var e in ng.Enemies.Values) if (e.Type == EnemyType.SapperMine) { e.Hp = e.MaxHp = 1f; }
     }
+    if (Environment.GetEnvironmentVariable("AIM") != null) {  // AIM=<0-1>: the aimed shooters winding up (ShooterAimLook.cs); draw once, then move the clock on
+      var ag = host.Game; ag.Enemies.Clear(); ag.Bullets.Clear();
+      var asp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> aput = (t, at) => { var e = (Enemy)asp.Invoke(ag, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Winding = true; e.Facing = 0f; return e; };
+      me.Pos = me.Disp = new V2(1200f, 900f);
+      var kinds = new[] { EnemyType.Sniper, EnemyType.Shard, EnemyType.Medic, EnemyType.Splitter, EnemyType.Phantom, EnemyType.Grunt };
+      for (int k = 0; k < kinds.Length; k++) aput(kinds[k], new V2(250f, 130f + 105f * k));
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+      ag.AnimT += float.Parse(Environment.GetEnvironmentVariable("AIM"), System.Globalization.CultureInfo.InvariantCulture) * 0.3f;
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
