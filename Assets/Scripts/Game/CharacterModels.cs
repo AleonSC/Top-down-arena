@@ -610,6 +610,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.BoStaff:
+                    if (fxOn)
+                        break;  // with Visual effects on, BoStaffLook.cs draws it in two hands (DrawBoStaffIdle)
                     MLine(-22f, 0f, 26f, 0f, 3.2f, MWood); MCirc(26f, 0f, 2.2f, Hx(0x1d1d26), 6); MCirc(-22f, 0f, 2.2f, Hx(0x1d1d26), 6); MLine(-2f, -2f, -2f, 2f, 1.4f, Hx(0x1d1d26)); MLine(14f, -2f, 14f, 2f, 1.4f, Hx(0x1d1d26));
                     break;
                 case WeaponId.FumaShuriken:

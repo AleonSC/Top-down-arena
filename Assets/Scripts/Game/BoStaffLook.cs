@@ -166,6 +166,21 @@ namespace Arena
             Circle(b2, 4.9f, leather, 14);
         }
 
+        /// The Bo Staff held at the ready in both gloved hands (the carry pose every swing returns to), drawn over the body in place
+        /// of the model's own stick. It phases out while a swing or shove draws the staff, and back in after (HeldPhase).
+        void DrawBoStaffIdle(Player p, float t)
+        {
+            if (!fxOn || p.Weapon.Id != WeaponId.BoStaff || p.Downed)
+                return;
+            float phase = HeldPhase(p.Id);
+            if (phase <= 0f)
+                return;
+            var r = BoRest(0f).V;
+            float bob = Mathf.Sin(t * 2.6f);
+            V2 dir = V2.FromAngle(p.Aim + r.A + 0.02f * bob);
+            DrawBoStaffHeld(p.Disp, dir * (r.P + Game.MeleeReach(p, p.Weapon.Reach) - BoNominal[0]), dir, r.G1, r.G2, p.Aim, p.Def.BodyR, phase, ArmColor(p.Id));
+        }
+
         /// A slash (mv 0), jab (1) or spin (2) in the Bo Staff's look, from DrawSlashLayer. `light` is the additive pass.
         bool DrawBoStaffFx(Effect fx, bool light, MeleeSeen seen, int mv, float aim, float reach)
         {
