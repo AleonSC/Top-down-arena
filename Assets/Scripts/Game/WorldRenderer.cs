@@ -99,6 +99,7 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
+                    DrawGreatWindup(p);
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)
