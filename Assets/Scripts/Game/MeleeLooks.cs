@@ -487,6 +487,7 @@ namespace Arena
                     GlowDisc(c, R * (0.55f + 0.4f * pw), HammerHot, flash * 0.95f);
                 GlowDisc(c, R * 0.9f, col, 0.42f * pw * (1f - Mathf.Clamp01(after / (0.9f + 0.8f * pw))));
                 HammerCracks(c, R, pw, after, seed);
+                HammerStunStars(c, R, power, after);
                 GlowDisc(c, R * 1.1f, col, 0.35f * pw * fade);
                 GlowDisc(c, R * 0.6f, Rgba.White, 0.18f * pw * fade);
                 Arc(c, R, 2f, col.WithAlpha(0.7f * pw * fade), 48);
@@ -622,6 +623,31 @@ namespace Arena
                 Line(head - side * 9f * sc - dir * 3f * sc, head - side * 3f * sc + dir * sc, 1f, seam);
                 Line(head - side * 3f * sc + dir * sc, head + side * 2f * sc - dir * 2f * sc, 1f, seam);
                 Line(head + side * 2f * sc - dir * 2f * sc, head + side * 9f * sc + dir * 3f * sc, 1f, seam);
+            }
+        }
+
+        /// Stun stars over each enemy the slam caught, for as long as it is stunned (not bosses). The host's stun is not sent to
+        /// the screens, so this works it out as the host does: the circle's enemies, for HammerStunMin..Max by the charge.
+        void HammerStunStars(V2 c, float R, float power, float after)
+        {
+            float stun = 0.25f + 0.65f * Mathf.Clamp01((power - 0.25f) / 0.75f);
+            if (after < 0f || after > stun + 0.05f)
+                return;
+            float a = Mathf.Clamp01((stun - after) / 0.15f) * 0.9f, t = Time.unscaledTime;
+            if (a <= 0f)
+                return;
+            foreach (var e in game.Enemies.Values)
+            {
+                if (e.Def.IsBoss || e.Disp.DistanceTo(c) > R + e.Radius * 0.5f)
+                    continue;
+                for (int i = 0; i < 3; i++)
+                {
+                    float an = t * 7f + i * MathX.Tau / 3f;
+                    V2 sp = e.Disp + new V2(Mathf.Cos(an) * 13f, -e.Radius - 6f + Mathf.Sin(an) * 4f);
+                    V2 u = V2.FromAngle(an) * 3.4f, v = u.Orthogonal();
+                    Line(sp - u, sp + u, 1.4f, new Rgba(1f, 0.88f, 0.47f, a));
+                    Line(sp - v, sp + v, 1.4f, new Rgba(1f, 0.88f, 0.47f, a));
+                }
             }
         }
 
