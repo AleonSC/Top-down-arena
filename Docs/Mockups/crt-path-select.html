@@ -1,0 +1,358 @@
+<title>CRT Path Select</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: four 1280x720 stages (the game's canvas) scaled to fit, one per design. Tubes are CRT screens; the chassis is the tactile blue shell from the lobby. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 36px 70px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+h2 { font-size: 22px; margin: 0 0 4px; }
+header p, section p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 74ch; }
+section { display: flex; flex-direction: column; gap: 10px; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; position: sticky; top: 0; z-index: 30; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line); }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+.stage::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(120,150,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,255,.05) 1px, transparent 1px); background-size: 40px 40px; }
+
+/* ---- CRT tube ---- */
+.tube { position: absolute; background: var(--pbg); color: var(--ph); font-family: var(--f-crt); text-shadow: 0 0 6px var(--pg), 0 0 14px var(--pg); overflow: hidden; isolation: isolate;
+  border-radius: 26px / 22px; box-shadow: inset 0 0 60px rgba(0,0,0,.9), 0 0 0 5px #0b0f1a, 0 0 0 7px #232c46, 0 0 36px var(--pg2); }
+.tube::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px); }
+.tube::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 58%, rgba(0,0,0,.55) 100%); }
+.tube.g { --ph: #4dff9a; --phd: #2fa66a; --pbg: #03110a; --pg: rgba(60,255,150,.55); --pg2: rgba(60,255,150,.12); }
+.tube.a { --ph: #ffb83d; --phd: #b8791f; --pbg: #120a02; --pg: rgba(255,170,50,.55); --pg2: rgba(255,170,50,.12); }
+.tube.c { --ph: #5fe6ff; --phd: #2f8fa6; --pbg: #020d12; --pg: rgba(80,220,255,.55); --pg2: rgba(80,220,255,.12); }
+.in { position: absolute; inset: 0; z-index: 2; }
+.fx .in { animation: flick 5s infinite; }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.05), transparent); top: -40%; display: none; }
+.fx .roll { display: block; animation: roll 8s linear infinite; }
+@keyframes roll { to { top: 110%; } }
+@keyframes flick { 0%, 100% { opacity: 1; } 47% { opacity: 1; } 49% { opacity: .93; } 52% { opacity: 1; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes tvon { 0% { transform: scaleY(.01) scaleX(.2); opacity: 0; } 40% { transform: scaleY(.02) scaleX(1); opacity: 1; } 100% { transform: none; opacity: 1; } }
+.cur { display: inline-block; width: .5em; height: .8em; background: var(--ph); margin-left: 3px; vertical-align: -.05em; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px var(--pg); }
+.pv { display: block; width: 100%; image-rendering: pixelated; border: 2px solid var(--phd); background: #000; }
+.lab { font-size: 18px; color: var(--phd); letter-spacing: .1em; text-shadow: none; }
+.nm { font-size: 44px; line-height: 1; letter-spacing: .04em; }
+.sk { display: inline-flex; gap: 4px; font-size: 26px; color: #ff6b7a; text-shadow: 0 0 8px rgba(255,90,100,.6); }
+ul.rl { list-style: none; margin: 0; padding: 0; font-size: 22px; line-height: 1.1; display: flex; flex-direction: column; gap: 3px; }
+ul.rl li::before { content: "> "; color: var(--phd); }
+.kv { font-size: 21px; display: flex; gap: 14px; line-height: 1; }
+.kv span { width: 140px; color: var(--phd); letter-spacing: .1em; font-size: 18px; text-shadow: none; flex: none; }
+.kv b { font-weight: 400; }
+.kv .gold { color: #ffd45e; } .kv .good { color: #8dff9b; }
+.sm { font: 26px/1 var(--f-crt); letter-spacing: .08em; color: var(--ph); background: rgba(255,255,255,.04); border: 2px solid var(--ph); padding: 9px 14px 7px; cursor: pointer; text-shadow: inherit; width: 100%; }
+.sm:hover, .sm:focus-visible { background: var(--ph); color: var(--pbg); text-shadow: none; }
+.sm.small { font-size: 21px; padding: 5px 12px 3px; width: auto; }
+.sm:disabled { opacity: .45; cursor: default; background: none; color: var(--ph); }
+.wait { font-size: 24px; letter-spacing: .08em; color: var(--phd); text-align: center; padding: 10px 0 8px; border: 2px dashed var(--phd); text-shadow: none; }
+.wait .cur { width: .4em; }
+
+/* design A cards */
+.card { cursor: pointer; transition: box-shadow .15s; }
+.card:hover, .card.sel { box-shadow: inset 0 0 60px rgba(0,0,0,.9), 0 0 0 5px #0b0f1a, 0 0 0 7px var(--ph), 0 0 50px var(--pg); }
+.card .tag { position: absolute; right: 22px; top: 190px; font-size: 18px; background: var(--ph); color: var(--pbg); padding: 1px 8px 0; text-shadow: none; display: none; z-index: 3; }
+.card.sel .tag { display: block; }
+.title { position: absolute; left: 0; right: 0; text-align: center; font-family: var(--f-crt); color: #dfeaff; text-shadow: 0 0 10px rgba(130,170,255,.7); }
+
+/* chassis (design D) */
+.chassis { position: absolute; border-radius: 18px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 90%); box-shadow: 0 0 36px rgba(80,120,255,.14), inset 0 1px 0 rgba(255,255,255,.25); }
+.chassis::before, .chassis::after { content: ""; position: absolute; width: 24px; height: 24px; border: 2px solid rgba(110,165,255,.7); pointer-events: none; }
+.chassis::before { left: -9px; top: -9px; border-right: 0; border-bottom: 0; } .chassis::after { right: -9px; bottom: -9px; border-left: 0; border-top: 0; }
+.plate { position: absolute; font: 700 26px var(--f-ui); letter-spacing: .14em; color: #fff; text-shadow: 0 0 10px rgba(110,255,170,.4); }
+.tac { position: absolute; font: 700 26px var(--f-ui); color: #e9efff; letter-spacing: .06em; cursor: pointer; border-radius: 12px; display: block;
+  background: linear-gradient(#4a63b3, #26336a); border: 1px solid #6279bd; box-shadow: 0 5px 0 #0b0f22, 0 9px 14px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); transition: transform .06s, box-shadow .06s, filter .1s; }
+.tac:hover { filter: brightness(1.14); }
+.tac:active { transform: translateY(4px); box-shadow: 0 1px 0 #0b0f22, 0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+.tac:disabled { filter: saturate(.3) brightness(.7); cursor: default; }
+.tac .led { position: absolute; left: 18px; top: 50%; width: 11px; height: 11px; margin-top: -5px; border-radius: 50%; background: #1b2548; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.tac.on .led, .tac:hover:not(:disabled) .led { background: #6cff9a; box-shadow: 0 0 10px #6cff9a; }
+.tac.sel { border-color: #9fffc8; }
+.lamps { position: absolute; display: flex; gap: 10px; align-items: center; }
+.lamp { width: 16px; height: 16px; border-radius: 50%; background: #18203f; box-shadow: inset 0 1px 3px rgba(0,0,0,.7); border: 1px solid #36457a; }
+.lamp.lit { background: #6cff9a; box-shadow: 0 0 10px #6cff9a; border-color: #b8ffd3; }
+.lamp.now { background: #ffd45e; box-shadow: 0 0 10px #ffd45e; animation: blink 1s steps(1) infinite; border-color: #fff0b0; }
+.lamp.boss { border-radius: 3px; transform: rotate(45deg) scale(.8); }
+.osd { position: absolute; z-index: 3; font-size: 28px; letter-spacing: .06em; }
+.status { position: absolute; font: 500 15px var(--f-mono); letter-spacing: .05em; }
+
+/* locked overlay */
+.lock { position: absolute; inset: 0; z-index: 50; background: rgba(2,4,10,.78); display: flex; align-items: center; justify-content: center; }
+.lock .box { animation: tvon .5s ease-out; text-align: center; font-family: var(--f-crt); padding: 28px 60px; border: 3px solid var(--ph); background: var(--pbg); color: var(--ph); text-shadow: 0 0 8px var(--pg), 0 0 20px var(--pg); box-shadow: 0 0 60px var(--pg2); }
+.lock .big { font-size: 76px; line-height: 1; letter-spacing: .05em; } .lock .sub { font-size: 26px; color: var(--phd); letter-spacing: .12em; margin-top: 10px; text-shadow: none; }
+.lock.g { --ph: #4dff9a; --phd: #2fa66a; --pbg: #03110a; --pg: rgba(60,255,150,.6); --pg2: rgba(60,255,150,.2); }
+.lock.a { --ph: #ffb83d; --phd: #b8791f; --pbg: #120a02; --pg: rgba(255,170,50,.6); --pg2: rgba(255,170,50,.2); }
+.lock.c { --ph: #5fe6ff; --phd: #2f8fa6; --pbg: #020d12; --pg: rgba(80,220,255,.6); --pg2: rgba(80,220,255,.2); }
+[hidden] { display: none !important; }
+.note { font: 500 13px var(--f-mono); color: var(--muted); letter-spacing: .03em; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Choose your path, CRT mockups</h1>
+    <p>Four ways to dress the post-boss path choice in the lobby's CRT language. Same content in each: two offered paths, the host-only pick, the "no path" option, bonus and prize. Hover, click a card or tab to select it, and press the take button to lock it in (as host or as a guest).</p>
+  </header>
+
+  <div class="ctl">
+    <div class="grp"><span>Offer</span><button class="seg" data-act="pair" data-i="0" aria-pressed="true">Sniper + Burning</button><button class="seg" data-act="pair" data-i="1" aria-pressed="false">Swarm + Sanctuary</button><button class="seg" data-act="pair" data-i="2" aria-pressed="false">Fog + Blood Moon</button><button class="seg" data-act="pair" data-i="3" aria-pressed="false">Ice + Bazaar</button></div>
+    <div class="grp"><span>You are</span><button class="seg" data-act="host" data-i="1" aria-pressed="true">Host</button><button class="seg" data-act="host" data-i="0" aria-pressed="false">Guest</button></div>
+    <div class="grp"><span>CRT fx</span><button class="seg" data-act="fx" data-i="1" aria-pressed="true">On</button><button class="seg" data-act="fx" data-i="0" aria-pressed="false">Off</button></div>
+    <div class="grp"><button class="seg" data-act="reset">Reset picks</button></div>
+  </div>
+
+  <section><div><h2>A. Twin tubes</h2><p>Each path gets its own green phosphor tube, like two monitors on a desk. The closest to today's cards, so the least code to change. The live floor preview stays in colour; all the text is phosphor.</p></div><div class="view" id="vA"><div class="stage" id="sA"></div></div></section>
+  <section><div><h2>B. Route radar</h2><p>One amber tube with a branching route map on the left: the stretches you've taken, the fork you're at, and the boss ahead. Pick on the map or the tabs. It makes the "journey" idea from the design doc visible.</p></div><div class="view" id="vB"><div class="stage" id="sB"></div></div></section>
+  <section><div><h2>C. Route console</h2><p>A cyan terminal: a scan log lists the routes with danger bars, a dossier prints the rules, and a live feed shows the floor. Number keys 1-3 select, Enter confirms. Most compact, and the most "hacker" of the four.</p></div><div class="view" id="vC"><div class="stage" id="sC"></div></div></section>
+  <section><div><h2>D. Switch panel</h2><p>The tactile blue chassis with two small green feed screens and real push buttons with LEDs. A lamp tape along the top is the run's route so far. It matches the lobby's mix of tactile buttons and digital screens.</p></div><div class="view" id="vD"><div class="stage" id="sD"></div></div></section>
+  <p class="note">Mockup only: nothing here is wired into the game. Paths, rules, bonuses and prizes are the real ones from Core/Paths.cs.</p>
+</div>
+
+<script>
+// ---------- data (from Core/Paths.cs) ----------
+const P = {
+  swarm:   { id: 'swarm', name: 'Swarm Fields', kind: 'Enemy mix', danger: 2, blurb: 'Open grassland overrun by rushers.', rules: ['Mostly melee rushers: Swarmers, Spikers, Brutes, Lungers', 'Twice as many of them, at 60% health'], floor: [.16,.32,.14], acc: [.55,.95,.45], seed: 11, en: 3 },
+  sniper:  { id: 'sniper', name: 'Sniper Ridge', kind: 'Enemy mix', danger: 2, blurb: 'High rocky ground with long sightlines.', rules: ['Mostly Snipers, Mortars and Grunts', 'Hardly any melee'], floor: [.34,.25,.16], acc: [1,.78,.4], seed: 12, en: 3 },
+  elite:   { id: 'elite', name: 'Elite Gauntlet', kind: 'Enemy mix', danger: 3, blurb: 'A proving ground for the strongest.', rules: ['Half as many enemies', 'Every one of them is elite (2.5x health, faster fire)'], floor: [.3,.24,.08], acc: [1,.85,.3], seed: 13, en: 3 },
+  burning: { id: 'burning', name: 'Burning Grounds', kind: 'Hazard floor', danger: 3, blurb: 'Scorched earth that keeps catching fire.', rules: ['Fire patches flash a warning, then ignite and spread', 'They burn you and the enemies alike'], floor: [.2,.09,.05], acc: [1,.5,.2], seed: 14, en: 3 },
+  sanctuary:{ id: 'sanctuary', name: 'Sanctuary', kind: 'Hazard floor', danger: 1, blurb: 'Quiet ground with springs of healing light.', rules: ['Healing pools appear around the arena', '20% fewer enemies'], floor: [.08,.16,.26], acc: [.5,.9,1], seed: 15, en: 3 },
+  frozen:  { id: 'frozen', name: 'Frozen Lake', kind: 'Twist', danger: 2, blurb: 'A sheet of cracked ice. Mind your footing.', rules: ['You slide: speed builds up and carries on', 'Enemies are chilled: 10% slower'], floor: [.16,.27,.36], acc: [.65,.92,1], seed: 16, en: 3 },
+  blood:   { id: 'blood', name: 'Blood Moon', kind: 'Twist', danger: 3, blurb: 'Under a red moon, only the hunt keeps you alive.', rules: ['No health orbs and no regeneration', 'Every kill heals its killer a little'], floor: [.24,.05,.07], acc: [1,.35,.4], seed: 17, en: 3 },
+  fog:     { id: 'fog', name: 'Fogbound', kind: 'Arena rule', danger: 2, blurb: 'A thick mist rolls in. Stay close together.', rules: ['You only see a short way around each player', 'Enemies and bullets beyond fade into the mist'], floor: [.17,.18,.21], acc: [.8,.86,.95], seed: 18, en: 3 },
+  narrow:  { id: 'narrow', name: 'Narrow Pass', kind: 'Arena rule', danger: 2, blurb: 'A canyon pass hemmed in by glowing walls.', rules: ['The arena closes in to a narrow pass', 'Walls on every side: no wrapping round the edges'], floor: [.27,.19,.14], acc: [1,.7,.45], seed: 19, en: 3 },
+  bazaar:  { id: 'bazaar', name: 'Bazaar', kind: 'Market', danger: 1, blurb: 'A trading town on the road.', rules: ['The usual enemies, but every kill drops gold', 'Gold you don\'t spend becomes XP'], floor: [.3,.2,.1], acc: [1,.8,.35], seed: 20, en: 3, prize: 'A shop' },
+};
+const PAIRS = [['sniper','burning'], ['swarm','sanctuary'], ['fog','blood'], ['frozen','bazaar']];
+const bonus = d => d >= 3 ? '+50% XP and score' : d === 2 ? '+25% XP and score' : 'No bonus';
+const prize = p => p.prize || (p.danger >= 3 ? 'An extra legendary pick' : p.danger === 2 ? '+1 upgrade pick' : 'Full heal and 2 rerolls');
+const ROUTE = ['Swarm Fields'];
+const HOST = 'RIVEN';
+const FROM = 11, TO = 14, BOSS = 15;
+
+const S = { pair: 0, host: true, fx: true, sel: { A: -1, B: 0, C: 0, D: 0 }, lock: { A: null, B: null, C: null, D: null } };
+const offer = () => PAIRS[S.pair].map(id => P[id]);
+
+// ---------- helpers ----------
+const SKULL = ['.XXXXXX.', 'XXXXXXXX', 'XX.XX.XX', 'XX.XX.XX', 'XXXXXXXX', '.XXXXXX.', '.X.XX.X.', '.X.XX.X.'];
+const skPath = SKULL.map((r, y) => [...r].map((c, x) => c === 'X' ? `M${x} ${y}h1v1h-1z` : '').join('')).join('');
+const skSvg = o => `<svg viewBox="0 0 8 8" width="1em" height="1em" style="opacity:${o}" fill="currentColor" shape-rendering="crispEdges"><path d="${skPath}"/></svg>`;
+const sk = d => `<span class="sk" aria-label="Danger ${d} of 3">${[0,1,2].map(i => skSvg(i < d ? 1 : .2)).join('')}</span>`;
+const rules = p => `<ul class="rl">${p.rules.map(r => `<li>${r}</li>`).join('')}</ul>`;
+const kvs = p => `<div class="kv"><span>WHILE ON IT</span><b class="${p.danger > 1 ? 'good' : ''}">${bonus(p.danger)}</b></div><div class="kv"><span>PRIZE</span><b class="gold">${prize(p)} before the boss</b></div>`;
+const wait = () => `<div class="wait">WAITING FOR ${HOST} TO PICK<span class="cur"></span></div>`;
+const cv = (p, w, h, m, style = '') => `<canvas class="pv" data-p="${p.id}" data-m="${m}" width="${w}" height="${h}" style="${style}"></canvas>`;
+const lockOv = (d, cls) => {
+  const l = S.lock[d]; if (l === null) return '';
+  const p = l === 2 ? null : offer()[l];
+  return `<div class="lock ${cls}"><div class="box"><div class="lab" style="font-size:24px">ROUTE LOCKED</div><div class="big">${p ? p.name.toUpperCase() : 'PLAIN ARENA'}</div><div class="sub">WAVES ${FROM}-${TO} · BOSS AT WAVE ${BOSS} IS UNCHANGED</div></div></div>`;
+};
+
+// ---------- design A: twin tubes ----------
+function dA() {
+  const o = offer();
+  const card = (p, i) => `<div class="tube g card ${S.sel.A === i ? 'sel' : ''}" data-act="sel" data-d="A" data-i="${i}" style="left:${60 + i * 610}px;top:116px;width:550px;height:488px">
+    <div class="roll"></div><div class="in" style="padding:22px;display:flex;flex-direction:column;gap:8px">
+      ${cv(p, 220, 65, 'n', 'height:150px')}
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="nm">${p.name.toUpperCase()}</span>${sk(p.danger)}</div>
+      <div class="lab">${p.kind.toUpperCase()} · ${p.blurb.toUpperCase()}</div>
+      ${rules(p)}${kvs(p)}
+      <div style="margin-top:auto">${S.host ? `<button class="sm" data-act="take" data-d="A" data-i="${i}">[ TAKE THIS PATH ]</button>` : wait()}</div>
+    </div></div>`;
+  return `
+    <div class="title" style="top:26px;font-size:56px;letter-spacing:.08em">CHOOSE YOUR PATH</div>
+    <div class="title" style="top:84px;font-size:22px;color:#8190b6;text-shadow:none;letter-spacing:.1em">WAVES ${FROM}-${TO} · THE BOSS AT WAVE ${BOSS} IS THE SAME EITHER WAY</div>
+    ${o.map(card).join('')}
+    ${S.host ? `<div style="position:absolute;left:390px;top:622px;width:500px"><button class="tube g sm" style="position:static;border-radius:4px;box-shadow:none" data-act="take" data-d="A" data-i="2">NO PATH · STAY ON THE PLAIN ARENA</button></div>` : ''}
+    <div class="title" style="top:672px;font-size:24px;letter-spacing:.08em;color:${S.host ? '#ffd45e' : '#8190b6'};text-shadow:none">${S.host ? "YOU'RE THE HOST: PICK THE PATH FOR EVERYONE" : 'WAITING FOR ' + HOST + ' TO PICK THE PATH (OR NO PATH)'}</div>
+    ${lockOv('A', 'g')}`;
+}
+
+// ---------- design B: route radar ----------
+function dB() {
+  const o = offer(), s = S.sel.B, pick = s === 2 ? null : o[s];
+  const ln = (x1, y1, x2, y2, on, dash) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ph)" stroke-width="${on ? 4 : 2}" opacity="${on ? 1 : .4}" ${dash ? 'stroke-dasharray="8 7"' : ''} />`;
+  const boss = (y, t, dim) => `<g opacity="${dim ? .4 : 1}"><rect x="-13" y="-13" width="26" height="26" transform="translate(230 ${y}) rotate(45)" fill="var(--pbg)" stroke="var(--ph)" stroke-width="3"/><text x="262" y="${y + 6}" font-size="20" fill="var(--ph)">${t}</text></g>`;
+  const node = (x, y, i, p) => `<g data-act="sel" data-d="B" data-i="${i}" style="cursor:pointer" opacity="${s === i ? 1 : .6}"><rect x="${x - 92}" y="${y - 24}" width="184" height="48" rx="3" fill="${s === i ? 'var(--ph)' : 'var(--pbg)'}" stroke="var(--ph)" stroke-width="${s === i ? 4 : 2}"/><text x="${x}" y="${y + 7}" text-anchor="middle" font-size="22" fill="${s === i ? 'var(--pbg)' : 'var(--ph)'}" style="text-shadow:none">${'AB'[i]}: ${p.name.toUpperCase()}</text></g>`;
+  const map = `<svg viewBox="0 0 470 560" width="440" height="520" style="overflow:visible;font-family:var(--f-crt)">
+    ${ln(230, 30, 230, 100, 1)}${ln(230, 100, 230, 170, 1)}${ln(230, 170, 230, 235, 1)}
+    ${ln(230, 235, 230, 290, 1)}
+    ${ln(230, 290, 110, 350, s === 0)}${ln(230, 290, 350, 350, s === 1)}${ln(230, 290, 230, 470, s === 2, true)}
+    ${ln(110, 374, 110, 420, s === 0)}${ln(350, 374, 350, 420, s === 1)}${ln(110, 420, 230, 470, s === 0)}${ln(350, 420, 230, 470, s === 1)}
+    ${ln(230, 470, 230, 510, 0)}
+    <circle cx="230" cy="30" r="9" fill="var(--ph)"/><text x="250" y="36" font-size="20" fill="var(--phd)" style="text-shadow:none">START · WAVES 1-4</text>
+    ${boss(100, 'BOSS · WAVE 5')}
+    <circle cx="230" cy="170" r="9" fill="var(--ph)"/><text x="250" y="168" font-size="20" fill="var(--ph)">${ROUTE[0].toUpperCase()}</text><text x="250" y="188" font-size="17" fill="var(--phd)" style="text-shadow:none">WAVES 6-9 · TAKEN</text>
+    ${boss(235, 'BOSS · WAVE 10')}
+    <circle cx="230" cy="290" r="11" fill="var(--pbg)" stroke="var(--ph)" stroke-width="4"/><circle cx="230" cy="290" r="4" fill="var(--ph)"><animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></circle>
+    <text x="250" y="284" font-size="18" fill="var(--phd)" style="text-shadow:none">YOU ARE HERE</text>
+    ${node(110, 350, 0, o[0])}${node(350, 350, 1, o[1])}
+    <g data-act="sel" data-d="B" data-i="2" style="cursor:pointer" opacity="${s === 2 ? 1 : .6}"><text x="238" y="400" font-size="20" fill="var(--ph)" style="text-shadow:none">${s === 2 ? '> ' : ''}PLAIN ARENA</text></g>
+    <circle cx="230" cy="470" r="9" fill="var(--pbg)" stroke="var(--ph)" stroke-width="3"/>
+    ${boss(510, 'BOSS · WAVE 15', 1)}
+  </svg>`;
+  const tab = (i, t) => `<button class="sm small" style="flex:1;font-size:19px;white-space:nowrap;padding-inline:6px;${s === i ? 'background:var(--ph);color:var(--pbg);text-shadow:none' : ''}" data-act="sel" data-d="B" data-i="${i}">${t}</button>`;
+  const detail = pick ? `
+      ${cv(pick, 240, 76, 'a', 'height:205px')}
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="nm">${pick.name.toUpperCase()}</span>${sk(pick.danger)}</div>
+      <div class="lab">${pick.kind.toUpperCase()} · ${pick.blurb.toUpperCase()}</div>${rules(pick)}${kvs(pick)}` : `
+      <div style="height:205px;border:2px dashed var(--phd);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--phd);text-shadow:none">NO FEED · PLAIN ARENA</div>
+      <div class="nm">PLAIN ARENA</div><div class="lab">NO CHANGE FOR THIS STRETCH</div>
+      <ul class="rl"><li>The arena stays as it is for waves ${FROM}-${TO}</li></ul>
+      <div class="kv"><span>WHILE ON IT</span><b>No bonus</b></div><div class="kv"><span>PRIZE</span><b>None</b></div>`;
+  const btn = S.host ? `<button class="sm" data-act="take" data-d="B" data-i="${s}">${pick ? '[ CONFIRM ROUTE ]' : '[ CONFIRM: NO PATH ]'}</button>` : wait();
+  return `
+    <div class="tube a" style="left:40px;top:36px;width:1200px;height:648px"><div class="roll"></div><div class="in" style="padding:26px 34px;display:flex;gap:40px">
+      <div style="width:440px;flex:none"><div class="lab" style="margin-bottom:6px">ROUTE MAP · AFTER WAVE 10</div>${map}</div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:36px;letter-spacing:.1em">CHOOSE YOUR PATH</span><span class="lab">WAVES ${FROM}-${TO} · BOSS ${BOSS}</span></div>
+        <div style="display:flex;gap:8px">${tab(0, 'A · ' + o[0].name.toUpperCase())}${tab(1, 'B · ' + o[1].name.toUpperCase())}${tab(2, 'PLAIN')}</div>
+        ${detail}
+        <div style="margin-top:auto">${btn}</div>
+        <div class="lab" style="text-align:center;font-size:17px">${S.host ? "YOU'RE THE HOST: PICK THE PATH FOR EVERYONE" : 'YOUR TEAMMATES SEE THE SAME MAP'}</div>
+      </div>
+    </div></div>
+    ${lockOv('B', 'a')}`;
+}
+
+// ---------- design C: route console ----------
+function dC() {
+  const o = offer(), s = S.sel.C, pick = s === 2 ? null : o[s];
+  let s2 = false;
+  const bar = d => [0,1,2].map(i => `<i style="display:inline-block;width:16px;height:22px;margin-left:4px;background:var(--ph);opacity:${i < d ? 1 : .2};${s2 ? 'background:var(--pbg)' : ''}"></i>`).join('');
+  const row = (i, p) => { s2 = s === i; return `<div data-act="sel" data-d="C" data-i="${i}" style="cursor:pointer;display:flex;gap:16px;padding:6px 12px 4px;font-size:28px;${s === i ? 'background:var(--ph);color:var(--pbg);text-shadow:none' : ''}">
+      <span style="width:46px">[${i + 1}]</span><span style="flex:1;white-space:nowrap">${p ? p.name.toUpperCase() : 'PLAIN ARENA'}</span><span style="width:200px;font-size:20px;padding-top:4px;${s === i ? '' : 'color:var(--phd);text-shadow:none'}">${p ? p.kind.toUpperCase() : '--'}</span><span style="width:70px;text-align:right;white-space:nowrap">${p ? bar(p.danger) : '---'}</span></div>`; };
+  const dossier = pick ? `<div style="display:flex;flex-direction:column;gap:7px">
+        <div class="lab">DOSSIER // ${pick.name.toUpperCase().replace(/ /g, '_')}</div><div style="font-size:24px">${pick.blurb.toUpperCase()}</div>
+        ${rules(pick).replace(/> /g, '+ ')}${kvs(pick)}</div>` : `<div class="lab">DOSSIER // PLAIN_ARENA</div><div style="font-size:24px">NO CHANGE FOR WAVES ${FROM}-${TO}. NO BONUS, NO PRIZE.</div>`;
+  return `
+    <div class="tube c" style="left:40px;top:36px;width:1200px;height:648px"><div class="roll"></div><div class="in" style="padding:28px 36px;display:flex;gap:36px">
+      <div style="width:590px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:24px;color:var(--phd);text-shadow:none;line-height:1.15">ARENA ROUTING v2.6 // HOST: ${HOST}<br>ROUTES TAKEN: ${ROUTE.join(' > ').toUpperCase()}</div>
+        <div style="font-size:30px">&gt; scan --after wave 10</div>
+        <div style="font-size:26px;color:var(--phd);text-shadow:none">${o.length} ROUTES FOUND + PLAIN ARENA. SELECT ONE.</div>
+        <div style="border-top:2px dashed var(--phd);border-bottom:2px dashed var(--phd);padding:8px 0">${row(0, o[0])}${row(1, o[1])}${row(2, null)}</div>
+        ${dossier}
+        <div style="margin-top:auto;font-size:30px">&gt; ${S.host ? 'route --confirm ' + (pick ? pick.id : 'plain') : 'waiting for ' + HOST.toLowerCase()}<span class="cur"></span></div>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between"><span style="font-size:42px;letter-spacing:.08em">CHOOSE YOUR PATH</span>${pick ? sk(pick.danger) : ''}</div>
+        <div style="position:relative">${pick ? cv(pick, 200, 108, 'c', 'height:290px') : `<div style="height:290px;border:2px dashed var(--phd);display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--phd);text-shadow:none">NO SIGNAL</div>`}
+          <div class="osd" style="left:12px;top:6px">LIVE FEED · FLOOR SCAN</div><div class="osd" style="right:14px;bottom:4px;font-size:22px;color:var(--ph)">REC <span class="cur" style="width:.35em;height:.5em"></span></div></div>
+        ${S.host ? `<button class="sm" data-act="take" data-d="C" data-i="${s}">[ ENTER ] CONFIRM ${pick ? pick.name.toUpperCase() : 'NO PATH'}</button>` : wait()}
+        <div class="lab" style="font-size:20px;line-height:1.3">KEYS: 1 / 2 / 3 SELECT · ENTER CONFIRM<br>WAVES ${FROM}-${TO} · BOSS AT WAVE ${BOSS} IS THE SAME EITHER WAY</div>
+      </div>
+    </div></div>
+    ${lockOv('C', 'c')}`;
+}
+
+// ---------- design D: switch panel ----------
+function dD() {
+  const o = offer();
+  const taken = [1, 0, 0, 0, 0, 0, 0, 0, 0], bossAt = [1, 0, 0, 0, 1, 0, 0, 0, 0];
+  const tape = Array.from({ length: 9 }, (_, i) => `<span class="lamp ${i < 2 ? 'lit' : i === 2 ? 'now' : ''}"></span>`).join('');
+  const screen = (p, i) => {
+    const x = 80 + i * 600, sel = S.sel.D === i;
+    return `<div class="tube g" data-act="sel" data-d="D" data-i="${i}" style="left:${x}px;top:116px;width:520px;height:236px;cursor:pointer;${sel ? 'box-shadow:inset 0 0 60px rgba(0,0,0,.9),0 0 0 5px #0b0f1a,0 0 0 7px #9fffc8,0 0 40px var(--pg)' : ''}"><div class="roll"></div>
+        <div class="in">${cv(p, 208, 94, 'n', 'height:100%;border:0')}
+          <div class="osd" style="left:16px;top:8px;color:#fff">CH-${'AB'[i]} · ${p.name.toUpperCase()}</div><div class="osd" style="right:16px;top:8px">${sk(p.danger)}</div>
+          <div class="osd" style="left:16px;bottom:6px;font-size:20px;color:var(--ph)">${p.kind.toUpperCase()}</div></div></div>
+      <div class="tube g" style="left:${x}px;top:368px;width:520px;height:148px"><div class="in" style="padding:12px 18px;display:flex;flex-direction:column;gap:6px">
+        <ul class="rl" style="font-size:21px">${p.rules.map(r => `<li>${r}</li>`).join('')}</ul>${kvs(p).replace(/width:140px/g, '')}</div></div>
+      ${S.host ? `<button class="tac ${sel ? 'on sel' : ''}" data-act="take" data-d="D" data-i="${i}" style="left:${x}px;top:534px;width:520px;height:62px;padding-left:36px">TAKE PATH ${'AB'[i]}</button>`
+               : `<div class="tac" style="left:${x}px;top:534px;width:520px;height:62px;padding:17px 0 0 36px;filter:saturate(.3) brightness(.7);cursor:default">WAITING FOR ${HOST}</div>`}`;
+  };
+  return `
+    <div class="chassis" style="left:30px;top:26px;width:1220px;height:668px"></div>
+    <div class="plate" style="left:80px;top:54px">ROUTE SELECTOR · WAVES ${FROM}-${TO}</div>
+    <div class="lamps" style="right:80px;top:62px"><span class="status" style="position:static;color:#8fa6e0;margin-right:6px">ROUTE</span>${tape}</div>
+    ${o.map(screen).join('')}
+    <button class="tac ${S.sel.D === 2 ? 'on sel' : ''}" ${S.host ? '' : 'disabled'} data-act="take" data-d="D" data-i="2" style="left:440px;top:622px;width:400px;height:46px;font-size:20px;padding-left:36px">NO PATH · PLAIN ARENA</button>
+    <div class="status" style="left:80px;top:634px;color:#8fa6e0">${S.host ? "YOU'RE THE HOST<br>PICK FOR EVERYONE" : 'GUEST<br>HOST PICKS THE PATH'}</div>
+    <div class="status" style="right:80px;top:634px;color:#8fa6e0;text-align:right">BOSS AT WAVE ${BOSS}<br>UNCHANGED</div>
+    ${lockOv('D', 'g')}`;
+}
+
+// ---------- render + events ----------
+const DES = { A: dA, B: dB, C: dC, D: dD };
+function render() {
+  for (const k in DES) document.getElementById('s' + k).innerHTML = DES[k]();
+  document.body.classList.toggle('fx', S.fx);
+  document.querySelectorAll('.seg').forEach(b => {
+    const a = b.dataset.act, i = +b.dataset.i;
+    if (a === 'pair') b.setAttribute('aria-pressed', i === S.pair);
+    if (a === 'host') b.setAttribute('aria-pressed', !!i === S.host);
+    if (a === 'fx') b.setAttribute('aria-pressed', !!i === S.fx);
+  });
+  cvs = [...document.querySelectorAll('canvas.pv')];
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, d = el.dataset.d, i = +el.dataset.i;
+  if (a === 'pair') { S.pair = i; S.sel = { A: -1, B: 0, C: 0, D: 0 }; S.lock = { A: null, B: null, C: null, D: null }; }
+  else if (a === 'host') S.host = !!i;
+  else if (a === 'fx') S.fx = !!i;
+  else if (a === 'reset') S.lock = { A: null, B: null, C: null, D: null };
+  else if (a === 'sel') S.sel[d] = i;
+  else if (a === 'take' && S.host) { S.sel[d] = i; S.lock[d] = i; }
+  render();
+});
+document.addEventListener('keydown', e => {
+  if (['1', '2', '3'].includes(e.key) && !e.target.closest('button')) { S.sel.C = +e.key - 1; render(); }
+  if (e.key === 'Enter' && S.host && !e.target.closest('button')) { S.lock.C = S.sel.C; render(); }
+});
+const fit = () => ['A', 'B', 'C', 'D'].forEach(k => { const v = document.getElementById('v' + k); document.getElementById('s' + k).style.transform = `scale(${v.clientWidth / 1280})`; });
+new ResizeObserver(fit).observe(document.querySelector('.wrap'));
+
+// ---------- live floor previews ----------
+let cvs = [];
+const MONO = { n: null, a: [1, .72, .24], c: [.37, .9, 1] };
+const rng = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const tint = (c, m) => { if (!m) return c; const l = Math.min(1, (.3 * c[0] + .59 * c[1] + .11 * c[2]) * 1.7 + .1); return [m[0] * l, m[1] * l, m[2] * l]; };
+const col = (c, a = 1) => `rgba(${c[0] * 255 | 0},${c[1] * 255 | 0},${c[2] * 255 | 0},${a})`;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function feed(cv, p, t, m) {
+  const x = cv.getContext('2d'), W = cv.width, H = cv.height, R = rng(p.seed), u = W / 220, C = (c, a = 1) => col(tint(c, m), a);
+  x.fillStyle = C(p.floor); x.fillRect(0, 0, W, H);
+  const A = p.acc;
+  switch (p.id) {
+    case 'swarm': for (let i = 0; i < 90; i++) { const a = R() * W, b = R() * H; x.fillStyle = C(A, .35); x.fillRect(a + Math.sin(t * 2 + i) * u, b, u, 3 * u); } break;
+    case 'sniper': for (let i = 0; i < 8; i++) { const a = R() * W, b = R() * H, w = (14 + R() * 24) * u; x.fillStyle = C([.5, .4, .3], .45); x.fillRect(a, b, w, 3 * u); x.fillStyle = C(A, .3); x.fillRect(a, b, w, u); }
+      x.strokeStyle = C([1, .3, .3], .7); x.lineWidth = u; const cx = (t * 40 * u) % W; x.beginPath(); x.arc(cx, H * .5, 8 * u, 0, 7); x.moveTo(cx - 12 * u, H * .5); x.lineTo(cx + 12 * u, H * .5); x.moveTo(cx, H * .5 - 12 * u); x.lineTo(cx, H * .5 + 12 * u); x.stroke(); break;
+    case 'elite': x.strokeStyle = C(A, .22); x.lineWidth = u; for (let a = 0; a < W; a += 22 * u) { x.beginPath(); x.moveTo(a, 0); x.lineTo(a, H); x.stroke(); } for (let b = 0; b < H; b += 22 * u) { x.beginPath(); x.moveTo(0, b); x.lineTo(W, b); x.stroke(); } break;
+    case 'burning': for (let i = 0; i < 5; i++) { const a = R() * W, b = R() * H, r = (14 + R() * 14) * u * (1 + .15 * Math.sin(t * 5 + i)); const g = x.createRadialGradient(a, b, 0, a, b, r); g.addColorStop(0, C([1, .85, .3], .95)); g.addColorStop(.5, C([1, .4, .1], .7)); g.addColorStop(1, C([1, .2, .05], 0)); x.fillStyle = g; x.fillRect(a - r, b - r, 2 * r, 2 * r); } break;
+    case 'sanctuary': for (let i = 0; i < 3; i++) { const a = W * (.2 + .3 * i), b = H * (.35 + .3 * ((i + 1) % 2)), r = (22 + 3 * Math.sin(t * 2 + i)) * u; const g = x.createRadialGradient(a, b, 0, a, b, r); g.addColorStop(0, C([.8, 1, 1], .85)); g.addColorStop(1, C(A, 0)); x.fillStyle = g; x.fillRect(a - r, b - r, 2 * r, 2 * r); } break;
+    case 'frozen': x.strokeStyle = C([.9, 1, 1], .4); x.lineWidth = u; for (let i = 0; i < 7; i++) { let a = R() * W, b = R() * H; x.beginPath(); x.moveTo(a, b); for (let k = 0; k < 4; k++) { a += (R() - .5) * 40 * u; b += (R() - .5) * 24 * u; x.lineTo(a, b); } x.stroke(); }
+      const sx = (t * 25 * u) % (W + 60 * u) - 30 * u; x.fillStyle = C([1, 1, 1], .1); x.fillRect(sx, 0, 14 * u, H); break;
+    case 'blood': { const g = x.createRadialGradient(W * .8, H * .25, 0, W * .8, H * .25, 60 * u); g.addColorStop(0, C([1, .4, .4], .6)); g.addColorStop(1, C(A, 0)); x.fillStyle = g; x.fillRect(0, 0, W, H); x.fillStyle = C([1, .45, .45], .95); x.beginPath(); x.arc(W * .8, H * .25, 11 * u, 0, 7); x.fill(); break; }
+    case 'fog': for (let i = 0; i < 60; i++) { x.fillStyle = C(A, .08); x.fillRect(R() * W, R() * H, 8 * u, 2 * u); } break;
+    case 'narrow': for (let i = 0; i < 70; i++) { x.fillStyle = C(A, .18); x.fillRect(R() * W, R() * H, 2 * u, 2 * u); } break;
+    case 'bazaar': for (let i = 0; i < 3; i++) { const a = W * (.1 + .3 * i), b = H * .12; for (let k = 0; k < 6; k++) { x.fillStyle = C(k % 2 ? [1, .9, .6] : A, .55); x.fillRect(a + k * 8 * u, b, 8 * u, 7 * u); } }
+      for (let i = 0; i < 5; i++) { x.fillStyle = C([1, .9, .4], .5 + .5 * Math.sin(t * 4 + i * 2)); x.fillRect(R() * W, H * (.6 + R() * .35), 2 * u, 2 * u); } break;
+  }
+  // a few of the path's enemies, bobbing
+  for (let i = 0; i < p.en; i++) {
+    const a = W * ((i + .5) / p.en) + Math.sin(t * 1.3 + i * 2) * 3 * u, b = H * .58 + Math.sin(t * 2 + i) * 3 * u, s = 8 * u;
+    x.fillStyle = C([.95, .35 + .15 * i, .3]); x.beginPath();
+    if (i % 3 === 0) x.rect(a - s, b - s, 2 * s, 2 * s); else if (i % 3 === 1) x.arc(a, b, s, 0, 7); else { x.moveTo(a, b - s * 1.2); x.lineTo(a + s * 1.2, b); x.lineTo(a, b + s * 1.2); x.lineTo(a - s * 1.2, b); }
+    x.fill(); x.fillStyle = C([.05, .02, .05]); x.fillRect(a - s * .5, b - s * .25, u * 2, u * 2); x.fillRect(a + s * .2, b - s * .25, u * 2, u * 2);
+  }
+  if (p.id === 'fog') { const lx = W * .5 + Math.sin(t * .7) * 20 * u, ly = H * .62; const g = x.createRadialGradient(lx, ly, 6 * u, lx, ly, 70 * u); g.addColorStop(0, C(p.floor, 0)); g.addColorStop(.6, C([.5, .55, .62], .75)); g.addColorStop(1, C([.5, .55, .62], .95)); x.fillStyle = g; x.fillRect(0, 0, W, H); x.fillStyle = C([1, .92, .65]); x.beginPath(); x.arc(lx, ly, 3 * u, 0, 7); x.fill(); }
+  if (p.id === 'narrow') { const gl = 22 * u; x.fillStyle = C(A, .9); x.fillRect(W * .17 - u, 0, 2 * u, H); x.fillRect(W * .83 - u, 0, 2 * u, H); x.fillStyle = C([0, 0, 0], .6); x.fillRect(0, 0, W * .17 - u, H); x.fillRect(W * .83 + u, 0, W * .17, H); const g = x.createLinearGradient(W * .17, 0, W * .17 + gl, 0); g.addColorStop(0, C(A, .35)); g.addColorStop(1, C(A, 0)); x.fillStyle = g; x.fillRect(W * .17, 0, gl, H); }
+}
+let t0 = performance.now();
+function loop(now) { const t = reduced ? 0 : (now - t0) / 1000; for (const c of cvs) feed(c, P[c.dataset.p], t, MONO[c.dataset.m]); requestAnimationFrame(loop); }
+render(); fit(); requestAnimationFrame(loop);
+</script>
