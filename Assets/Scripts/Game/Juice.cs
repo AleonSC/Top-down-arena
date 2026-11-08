@@ -265,6 +265,12 @@ namespace Arena
                     Hold(0.03f, 0.15f);  // ...and each swipe that cuts something with a lighter one and a 0.03 s hit-stop (a short gap, so a 0.26 s chain gets one each)
                     Shake(0.07f);
                 }
+                if (fx.Kind == FxKind.Jab && me != null && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B && me.Pos.DistanceTo(fx.Pos) < 44f)
+                {
+                    float hp = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own hammer slam: a hit-stop and a kick, harder the more it was charged
+                    Hold(0.04f + 0.03f * hp);
+                    Shake(0.08f + 0.2f * hp);
+                }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)

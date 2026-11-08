@@ -407,7 +407,7 @@ namespace Arena
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)
                 return false;
-            var seen = MeleeOwnerOf(fx, HammerSwingTime + 0.5f, false, 0.5f);
+            var seen = MeleeOwnerOf(fx, HammerSwingTime + (fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G ? 2.1f : 0.5f), false, 0.5f);  // (a hammer slam's cracks cool over about 2 s)
             if (seen == null || seen.Weapon != WeaponId.Lance && seen.Weapon != WeaponId.Warhammer)
                 return false;
             V2 o = MeleeOrigin(fx, seen), dir = to / reach, side = dir.Orthogonal();
@@ -468,7 +468,12 @@ namespace Arena
                     }
                 }
                 else
-                    HammerPose(o, aim, d, f, 1f, true);
+                {
+                    Rgba arm = ArmColor(seen.Owner);
+                    for (int gh = 2; gh >= 1; gh--)  // two lagging ghosts of the head
+                        HammerPose(o, aim, d, Mathf.Max(0f, f - gh * 0.2f), 0.3f / gh, false, power, false, arm);
+                    HammerPose(o, aim, d, f, 1f, true, power, true, arm);
+                }
                 return;
             }
             const float life = 0.5f;
@@ -477,6 +482,11 @@ namespace Arena
             {
                 // The area it hit, always the same circle: a faint glow and outline, brighter the harder the slam.
                 float pw = 0.45f + 0.55f * power, fade = 1f - k2;
+                float flash = 1f - Mathf.Clamp01(after / 0.16f);  // Forge: a white-orange flash, then a crater that glows and cools
+                if (flash > 0f)
+                    GlowDisc(c, R * (0.55f + 0.4f * pw), HammerHot, flash * 0.95f);
+                GlowDisc(c, R * 0.9f, col, 0.42f * pw * (1f - Mathf.Clamp01(after / (0.9f + 0.8f * pw))));
+                HammerCracks(c, R, pw, after, seed);
                 GlowDisc(c, R * 1.1f, col, 0.35f * pw * fade);
                 GlowDisc(c, R * 0.6f, Rgba.White, 0.18f * pw * fade);
                 Arc(c, R, 2f, col.WithAlpha(0.7f * pw * fade), 48);
@@ -491,18 +501,24 @@ namespace Arena
             else
             {
                 uint r = (uint)seed;
-                for (int i = 0; i < 16; i++)
+                for (int i = 0; i < 30; i++)  // embers float up for a second or two
                 {
-                    float a = Rand01(ref r) * MathX.Tau, v = 30f + 50f * Rand01(ref r), age = after - 0.05f * Rand01(ref r);
-                    if (age < 0f)
+                    float born = 0.06f * Rand01(ref r), life2 = 0.7f + 0.9f * Rand01(ref r), a = Rand01(ref r) * MathX.Tau, r0 = R * 0.8f * Mathf.Sqrt(Rand01(ref r)), rise = 30f + 70f * Rand01(ref r);
+                    float age = after - born;
+                    if (age < 0f || age > life2)
                         continue;
-                    V2 p = c + V2.FromAngle(a) * (R * 0.3f * Rand01(ref r) + v * age) + new V2(0f, -40f * age);
-                    Square(p, 3f, (i % 2 == 0 ? col : new Rgba(1f, 0.89f, 0.69f)).WithAlpha(0.9f * (1f - k2)));
+                    float k = age / life2;
+                    V2 p = c + new V2(Mathf.Cos(a) * r0 + Mathf.Sin(age * 5f + i) * 6f, Mathf.Sin(a) * r0 * 0.7f - rise * age);
+                    Square(p, 3f, (i % 3 != 0 ? col : new Rgba(1f, 0.94f, 0.82f)).WithAlpha(0.9f * (1f - k) * (0.6f + 0.4f * Mathf.Sin(age * 30f + i))));
                 }
                 Player owner;
                 bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
                 if (!aftershock && !charging)
-                    HammerPose(o, aim, d, 1f, 1f - Mathf.Clamp01((after - 0.15f) / 0.2f), after < 0.15f);
+                {
+                    // It stays in the floor a moment, then is drawn back up as the held weapon fades back in.
+                    float u = Mathf.Clamp01((after - 0.3f) / 0.4f);
+                    HammerPose(o, aim, d, Mathf.Lerp(1f, 0f, EaseOut3(u)), 1f - Mathf.Clamp01((after - 0.6f) / 0.15f), after < 0.15f, power * (1f - Mathf.Clamp01(after / 0.5f)), true, ArmColor(seen.Owner));
+                }
             }
         }
 
@@ -517,7 +533,21 @@ namespace Arena
             if (!fxOn)
                 return;
             float d = 16f + Game.MeleeReach(p, p.Weapon.Reach) * 0.65f;
-            HammerPose(p.Disp, p.Aim, d, -0.3f - 0.7f * charge, 1f, charge >= 1f);
+            HammerPose(p.Disp, p.Aim, d, -0.3f - 0.7f * charge, 1f, charge >= 1f, charge, true, p.Def.Color);
+            if (charge > 0.15f)  // the head sheds embers as it heats
+            {
+                float head = Time.unscaledTime;
+                float a, h, rr;
+                HammerArc(p.Aim, d, -0.3f - 0.7f * charge, out a, out h, out rr);
+                V2 hp = p.Disp + V2.FromAngle(a) * rr + new V2(0f, -26f * h);
+                for (int e = 0; e < 8; e++)
+                {
+                    uint sd = (uint)(e * 7919 + 13);
+                    float age = Mathf.Repeat(head * 1.2f + Rand01(ref sd), 1f);
+                    V2 ep = hp + new V2((Rand01(ref sd) - 0.5f) * 18f + Mathf.Sin(age * 6f + e) * 4f, -age * (30f + 20f * Rand01(ref sd)));
+                    Square(ep, 2.6f, (e % 2 == 0 ? HammerGlow : new Rgba(1f, 0.94f, 0.82f)).WithAlpha((1f - age) * 0.9f * charge));
+                }
+            }
         }
 
         /// Where the hammer's head is at `f` through its swing (0 raised over your left shoulder, 1 in the floor at d).
@@ -548,27 +578,88 @@ namespace Arena
 
         /// The hammer itself at `f` through its arc: its handle from your body, its shadow on the floor, its head (18 x
         /// 32 with coloured bands, as in the mockup) drawn bigger the higher it is.
-        void HammerPose(V2 o, float aim, float d, float f, float alpha, bool glow)
+        void HammerPose(V2 o, float aim, float d, float f, float alpha, bool glow, float heat = 0f, bool hands = true, Rgba arm = default(Rgba))
         {
             if (alpha <= 0f)
                 return;
             float a, h, r;
             HammerArc(aim, d, f, out a, out h, out r);
-            V2 ground = o + V2.FromAngle(a) * r, head = ground + new V2(0f, -26f * h);
+            V2 dir = V2.FromAngle(a), side = dir.Orthogonal();
+            V2 ground = o + dir * r, head = ground + new V2(0f, -26f * h);
             float sk = 1f - 0.5f * h;
             Circle(ground + new V2(0f, 4f), 13f * sk, new Rgba(0f, 0f, 0f, (0.22f + 0.25f * (1f - h)) * alpha), 16);
-            Line(o + V2.FromAngle(a) * 12f, head, 4f, MeleeHandle.WithAlpha(alpha));
+            Line(o + dir * 5f, head, 5f, new Rgba(0.23f, 0.17f, 0.12f, alpha));
+            Line(o + dir * 5f, head, 3f, MeleeHandle.WithAlpha(alpha));
+            if (hands)
+            {
+                // Two gloved hands on the handle, each joined to the body by an arm: it is held, not floating.
+                float sg = Mathf.Cos(a) < 0f ? -1f : 1f;
+                Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f);
+                V2 h1 = o + dir * 17f, h2 = o + dir * 34f, s1 = o - side * (3f * sg), s2 = o + side * (3f * sg);
+                Line(s1, h1, 7.2f, new Rgba(0.05f, 0.1f, 0.1f, alpha));
+                Line(s2, h2, 7.2f, new Rgba(0.05f, 0.1f, 0.1f, alpha));
+                Line(s1, h1, 5f, armc.WithAlpha(alpha));
+                Line(s2, h2, 5f, armc.WithAlpha(alpha));
+                var leather = new Rgba(0.72f, 0.56f, 0.34f, alpha);
+                Circle(h1, 6f, new Rgba(0.16f, 0.11f, 0.06f, alpha), 14);
+                Circle(h1, 4.8f, leather, 14);
+                Circle(h2, 5.2f, new Rgba(0.16f, 0.11f, 0.06f, alpha), 14);
+                Circle(h2, 4f, leather, 14);
+            }
             float sc = 1f + 0.55f * h;
-            V2 dir = V2.FromAngle(a), side = dir.Orthogonal();
-            if (glow)
-                GlowDisc(head, 26f * sc, HammerGlow, 0.5f * alpha);
+            if (glow || heat > 0f)
+                GlowDisc(head, (26f + 14f * heat) * sc, HammerGlow, (glow ? 0.5f : 0f) * alpha + 0.45f * heat * alpha);
             V2 hx = dir * 9f * sc, hy = side * 16f * sc;
-            SetColor(HammerHead.WithAlpha(alpha));
+            SetColor(HammerHead.Mix(new Rgba(1f, 0.6f, 0.33f), 0.8f * heat).WithAlpha(alpha));  // iron that glows as it heats (Forge)
             Quad(head - hx - hy, head + hx - hy, head + hx + hy, head - hx + hy);
             V2 bandY = side * 5f * sc;
             SetColor(HammerGlow.WithAlpha(0.95f * alpha));
             Quad(head - hx - hy, head + hx - hy, head + hx - hy + bandY, head - hx - hy + bandY);
             Quad(head - hx + hy - bandY, head + hx + hy - bandY, head + hx + hy, head - hx + hy);
+            if (heat > 0.25f)  // hot seams in the face
+            {
+                var seam = new Rgba(1f, 0.9f, 0.7f, (0.4f + 0.5f * heat) * alpha);
+                Line(head - side * 9f * sc - dir * 3f * sc, head - side * 3f * sc + dir * sc, 1f, seam);
+                Line(head - side * 3f * sc + dir * sc, head + side * 2f * sc - dir * 2f * sc, 1f, seam);
+                Line(head + side * 2f * sc - dir * 2f * sc, head + side * 9f * sc + dir * 3f * sc, 1f, seam);
+            }
+        }
+
+        static readonly Rgba HammerHot = new Rgba(1f, 0.88f, 0.67f);
+
+        /// The owner's body colour, for the arms that hold the hammer.
+        Rgba ArmColor(int owner)
+        {
+            Player p;
+            return game.Players.TryGetValue(owner, out p) ? p.Def.Color : default(Rgba);
+        }
+
+        /// Molten cracks running out from where the hammer landed: white-orange when they open, cooling to dark red over
+        /// about two seconds. More and longer for a harder slam.
+        void HammerCracks(V2 c, float R, float pw, float after, int seed)
+        {
+            float cool = Mathf.Clamp01(after / 1.9f);
+            if (cool >= 1f || after < 0f)
+                return;
+            float vis = EaseOut3(Mathf.Clamp01(after / 0.14f)), al = 1f - cool * 0.85f;
+            var col = new Rgba(1f, Mathf.Lerp(0.75f, 0.12f, cool), Mathf.Lerp(0.47f, 0.06f, cool), al);
+            int n = 7 + Mathf.RoundToInt(4f * pw);
+            uint r = (uint)seed * 2654435761u + 7u;
+            for (int i = 0; i < n; i++)
+            {
+                float a = (float)i / n * MathX.Tau + (Rand01(ref r) - 0.5f) * 0.5f, len = R * (0.55f + 0.5f * Rand01(ref r)) * (0.6f + 0.4f * pw);
+                const int steps = 6;
+                int shown = Mathf.Max(2, Mathf.CeilToInt((steps + 1) * vis));
+                V2 prev = c;
+                for (int k = 1; k <= steps; k++)
+                {
+                    float u = (float)k / steps, j = (Rand01(ref r) - 0.5f) * 0.34f;
+                    V2 p = c + V2.FromAngle(a + j) * (len * u);
+                    if (k < shown)
+                        Line(prev, p, 3.4f * (1f - cool * 0.55f), col);
+                    prev = p;
+                }
+            }
         }
 
         // --- Pieces ------------------------------------------------------------------------------------------------
