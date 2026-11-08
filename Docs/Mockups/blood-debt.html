@@ -1,0 +1,423 @@
+<title>Blood Debt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead, one animated stage with look picker and fight controls, then the relic card (icon, lore, rules), a timeline, palette and open questions.
+   Single dark look: the debt palette is old blood, ledger ink and a tarnished coin gold. */
+:root{
+  --bg:#0f0608; --panel:#1b0c10; --fg:#f2e6e3; --muted:#b39089; --line:#3b1a1f;
+  --acc:#ff4a57; --acc2:#7d0d22; --gold:#d9a24a; --arena:#0a0506;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+h1{font:700 clamp(40px,7vw,72px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 14px;text-wrap:balance;color:var(--fg)}
+header p.lede{margin:0;max-width:62ch;color:var(--muted);font-size:17px}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--acc);text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 18px 50px -20px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--panel);color:var(--fg)}
+.seg input:checked+label{background:var(--acc);color:#12060a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--acc);color:#12060a;border-color:var(--acc)}
+.slider,.check{display:flex;align-items:center;gap:10px;font:500 13px var(--mono);color:var(--muted)}
+.slider output{color:var(--fg);min-width:3ch;text-align:right}
+input[type=range]{accent-color:var(--acc);width:120px}
+input[type=checkbox]{accent-color:var(--acc);width:16px;height:16px}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+.looks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.looks div{border-top:2px solid var(--line);padding-top:10px;font-size:14px;color:var(--muted)}
+.looks b{display:block;font:700 18px var(--display);letter-spacing:.04em;text-transform:uppercase;color:var(--fg)}
+.looks div.on{border-top-color:var(--acc)}
+.relic{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:28px;align-items:start}
+.tile{margin:0;border:1px solid var(--acc);border-radius:10px;padding:14px;background:var(--panel);box-shadow:0 0 40px -12px var(--acc2),inset 0 0 0 1px #ffffff10}
+.tile canvas{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1/1;border-radius:4px}
+.tile figcaption{font:700 13px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-align:center;margin-top:10px}
+.relic p{margin:0 0 12px;max-width:62ch}
+.relic .lore{font-style:italic;color:var(--muted)}
+dl.rules{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:0;margin:20px 0 0;border-top:1px solid var(--line)}
+dl.rules dt,dl.rules dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+dl.rules dt{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);padding-right:22px}
+dl.rules dd{font-size:15px}
+.tl{display:flex;height:34px;border:1px solid var(--line);border-radius:6px;overflow:hidden;font:500 12px var(--mono)}
+.tl div{display:flex;align-items:center;padding:0 10px;white-space:nowrap;overflow:hidden}
+.tl .a{flex:0 0 7%;background:var(--acc);color:#12060a}.tl .b{flex:1;background:var(--acc2);color:#fff}.tl .c{flex:0 0 20%;background:var(--panel);color:var(--gold)}
+.tlabels{display:flex;justify-content:space-between;font:500 12px var(--mono);color:var(--muted);margin-top:6px}
+ul.pal{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+ul.pal li{border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px}
+ul.pal li i{display:block;height:44px}
+ul.pal li span{display:flex;flex-direction:column;padding:6px 8px;background:var(--panel)}
+ul.pal code{font:400 12px var(--mono);color:var(--muted)}
+ul.q{margin:0;padding-left:20px;max-width:68ch;display:flex;flex-direction:column;gap:8px}
+@media (max-width:640px){.relic{grid-template-columns:1fr}.tile{max-width:240px}dl.rules{grid-template-columns:1fr}dl.rules dt{border-bottom:0;padding-bottom:0}.tl div{font-size:11px;padding:0 6px}}
+</style>
+<main>
+<header>
+  <p class="eyebrow">DPS Hemomancer ability rework · replaces Frenzy Pact (16 s)</p>
+  <h1>Blood Debt</h1>
+  <p class="lede">Borrow your own blood. Your health drops to a quarter at once, which puts Blood Price near its cap. The health you gave up becomes a debt on your health bar. Kill fast for 8 seconds and you earn it back. Whatever is still owed when the time runs out is gone.</p>
+</header>
+
+<section class="stage" aria-labelledby="st">
+  <h2 id="st">Live preview</h2>
+  <p class="hint">Starts on its own and loops. The Hemomancer fights normally for a moment, casts, then has 8 s to pay the debt back. Move the mouse over the arena to walk the Hemomancer. Raise or lower the kill rate to see a good and a bad outcome.</p>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Blood Debt animation preview"></canvas></div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Look">
+      <input type="radio" name="look" id="lA" value="0" checked><label for="lA">A · Ledger</label>
+      <input type="radio" name="look" id="lB" value="1"><label for="lB">B · Chains</label>
+      <input type="radio" name="look" id="lC" value="2"><label for="lC">C · Pawned Heart</label>
+    </div>
+  </div>
+  <div class="controls">
+    <button id="replay" class="primary" type="button">Replay</button>
+    <button id="pause" type="button">Pause</button>
+    <div class="seg" role="radiogroup" aria-label="Playback speed">
+      <input type="radio" name="spd" id="s05" value="0.5"><label for="s05">0.5×</label>
+      <input type="radio" name="spd" id="s1" value="1" checked><label for="s1">1×</label>
+      <input type="radio" name="spd" id="s2" value="2"><label for="s2">2×</label>
+    </div>
+    <label class="slider" for="krange">Kills per second <input id="krange" type="range" min="0" max="3" step="0.1" value="1.8"><output id="kval">1.8</output></label>
+    <label class="check" for="mast"><input id="mast" type="checkbox"> Mastered (1.5× repay)</label>
+    <button id="fail" type="button">Fail: stop killing</button>
+  </div>
+  <div class="looks" id="looks">
+    <div class="on"><b>A · Ledger</b>The debt is a hatched ghost segment on the health bar. Each kill spits blood coins that arc into the bar, and a ledger in the corner counts owed, paid and left. Paying in full stamps the bar. A forfeit cracks the ghost segment into shards.</div>
+    <div><b>B · Chains</b>Shackles of blood hang from the Hemomancer, one per chunk of debt. Each kill throws a chain from the corpse that hooks the Hemomancer and reels the blood home. At timeout the leftover shackles rust brown and snap.</div>
+    <div><b>C · Pawned Heart</b>A cracked heart floats over the Hemomancer with its pieces hollow. Each kill sends a drop that fills the next piece. At timeout the hollow pieces break off and fall. A full heart beats and glows.</div>
+  </div>
+</section>
+
+<section aria-labelledby="rl">
+  <h2 id="rl">The relic</h2>
+  <div class="relic">
+    <figure class="tile"><canvas id="ic" width="192" height="192" aria-label="Blood Debt ability icon"></canvas><figcaption>Blood Debt</figcaption></figure>
+    <div>
+      <p class="lore">The vein lends freely. It always collects.</p>
+      <p>A gamble only the Hemomancer can make. It turns Blood Price from something that happens to you into something you choose, and gives you a clear goal for the next 8 seconds. The icon follows the look picked above.</p>
+      <dl class="rules">
+        <dt>Cast</dt><dd>Your health drops to 25% of max at once. If you are already at or below 25%, it costs a flat 5% instead. The health lost becomes the debt.</dd>
+        <dt>Blood Price</dt><dd>At 25% health it is about +33% damage (the cap is +40% at 10%).</dd>
+        <dt>8 s window</dt><dd>Lifesteal goes from 3% to 15%. Each kill pays back debt: a Grunt 4% of max health, a Heavy 10%, an elite 15%, and each hit on a boss 1%.</dd>
+        <dt>Paid in full</dt><dd>A "Debt paid" flourish, and the 15% lifesteal lasts 2 s longer.</dd>
+        <dt>Timeout</dt><dd>Whatever is still owed is gone for good. The ghost segment leaves the bar.</dd>
+        <dt>Mastery</dt><dd>Rare card, renamed from Bloodrush to fit: kills repay 1.5×.</dd>
+        <dt>Cooldown</dt><dd>16 s, starting at the cast. <code>AbilityId.FrenzyPact</code> is kept.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="tm">
+  <h2 id="tm">Timeline</h2>
+  <div class="tl"><div class="a">Cast</div><div class="b">Debt window · 15% lifesteal · kills repay</div><div class="c">+2 s if paid</div></div>
+  <div class="tlabels"><span>0 s</span><span>8 s</span><span>10 s</span></div>
+</section>
+
+<section aria-labelledby="pl">
+  <h2 id="pl">Palette</h2>
+  <ul class="pal"><li><i style="background:#ff4a57"></i><span>Fresh blood<code>#ff4a57</code></span></li><li><i style="background:#7d0d22"></i><span>Debt ghost<code>#7d0d22</code></span></li><li><i style="background:#d9a24a"></i><span>Coin gold<code>#d9a24a</code></span></li><li><i style="background:#8a5a3a"></i><span>Rust<code>#8a5a3a</code></span></li><li><i style="background:#0f0608"></i><span>Ledger black<code>#0f0608</code></span></li></ul>
+</section>
+
+<section aria-labelledby="oq">
+  <h2 id="oq">Open questions</h2>
+  <ul class="q">
+    <li>Cost floor: is a flat 5% right when you cast at or below 25%, or should the ability simply not work there? A flat cost lets you keep casting it for the lifesteal alone.</li>
+    <li>Boss repayment: 1% per hit could pay off the whole debt on a single boss with Blood Bolts. Should boss hits cap at, say, 30% of the debt, or should only boss damage thresholds count?</li>
+    <li>Other healing: should health orbs, allies' heals and lifesteal also pay the debt, or only kills? In the preview only kills repay, and other healing fills the bar in front of the ghost segment.</li>
+    <li>Should the debt ghost segment be visible to allies, so a healer knows not to waste heals on you?</li>
+  </ul>
+</section>
+</main>
+<script>
+(function(){
+const TAU=Math.PI*2,W=720,H=400,MAX=100,PRE=1.6,WIN=8,BONUS=2;
+const cv=document.getElementById('cv'),c=cv.getContext('2d');
+const ic=document.getElementById('ic'),ci=ic.getContext('2d');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t,ease=t=>1-Math.pow(1-t,3);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MONO="500 12px 'IBM Plex Mono',ui-monospace,monospace",DISP="'Barlow Condensed','Arial Narrow',sans-serif";
+const BAR={x:16,y:H-30,w:300,h:14};
+const S={look:0,speed:1,kps:1.8,mast:false,stop:false,paused:false,clock:0,
+  t:0,phase:'pre',hp:92,shown:92,debt:0,owed:0,paid:0,lost:0,resT:0,bonusT:0,
+  px:360,py:220,mx:null,my:null,aim:0,enemies:[],bolts:[],parts:[],pops:[],fx:[],shards:[],spawnN:0,killT:0,fireT:0};
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let R=rng(7);
+function spawn(){
+  const heavy=S.spawnN++%4===3,side=Math.floor(R()*4);
+  let x,y;if(side===0){x=R()*W;y=-20}else if(side===1){x=W+20;y=60+R()*300}else if(side===2){x=R()*W;y=H+20}else{x=-20;y=60+R()*300}
+  S.enemies.push({x,y,heavy,r:heavy?17:10,hp:1,flash:0,atk:R()*1.5,seed:R()*99,doomed:false});
+}
+function reset(){
+  R=rng(7);Object.assign(S,{t:0,phase:'pre',hp:92,shown:92,debt:0,owed:0,paid:0,lost:0,resT:0,bonusT:0,stop:false,px:360,py:220,enemies:[],bolts:[],parts:[],pops:[],fx:[],shards:[],spawnN:0,killT:0,fireT:0});
+  for(let i=0;i<7;i++){spawn();const e=S.enemies[i],a=i/7*TAU+.3;e.x=360+Math.cos(a)*(170+R()*120);e.y=220+Math.sin(a)*(120+R()*40)}
+}
+const inWin=()=>S.phase==='debt'||S.phase==='bonus';
+const steal=()=>(inWin()?0.15:0.03);
+function bp(){return Math.round(40*clamp((1-S.hp/MAX)/0.9,0,1))}
+function cast(){
+  S.phase='debt';S.t=0;
+  const target=S.hp>25?25:S.hp-5;S.owed=S.debt=S.hp-target;S.hp=target;S.paid=0;
+  S.pops.push({x:S.px,y:S.py-30,txt:'−'+Math.round(S.owed)+' BORROWED',age:0,col:'#ff4a57',big:1});
+  for(let i=0;i<26;i++){const a=R()*TAU,v=60+R()*140;S.parts.push({x:S.px,y:S.py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.9,col:i%3?'#ff4a57':'#7d0d22',g:0})}
+  S.fx.push({k:'ring',x:S.px,y:S.py,age:0});
+}
+function kill(e){
+  const i=S.enemies.indexOf(e);if(i<0)return;S.enemies.splice(i,1);
+  for(let j=0;j<10;j++){const a=R()*TAU,v=40+R()*90;S.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.7,col:'#b0142c',g:120})}
+  if(S.phase!=='debt')return;
+  const amt=Math.min(S.debt,(e.heavy?10:4)*(S.mast?1.5:1));if(amt<=0)return;
+  S.debt-=amt;S.hp+=amt;S.paid+=amt;
+  LOOKS[S.look].kill(e,amt);
+  S.pops.push({x:e.x,y:e.y-e.r-8,txt:'+'+(Math.round(amt*10)/10)+' REPAID',age:0,col:'#ffd7a0',big:0});
+  if(S.debt<=0.01){S.debt=0;S.phase='paid';S.resT=0;S.bonusT=BONUS;LOOKS[S.look].paid()}
+}
+function update(dt){
+  if(S.paused)return;
+  S.clock+=dt;const sdt=dt*S.speed;
+  let tx,ty;if(S.mx!==null){tx=S.mx;ty=S.my}else{tx=360+190*Math.sin(S.clock*.35);ty=215+80*Math.sin(S.clock*.57+1)}
+  S.px+=(clamp(tx,30,W-30)-S.px)*Math.min(1,dt*2.5);S.py+=(clamp(ty,60,H-60)-S.py)*Math.min(1,dt*2.5);
+  S.shown+=(S.hp-S.shown)*Math.min(1,dt*6);
+  S.parts.forEach(p=>{p.x+=p.vx*sdt;p.y+=p.vy*sdt;p.vy+=(p.g||0)*sdt;p.vx*=.98;p.life-=sdt});S.parts=S.parts.filter(p=>p.life>0);
+  S.pops.forEach(p=>p.age+=dt);S.pops=S.pops.filter(p=>p.age<1.4);
+  S.fx.forEach(f=>f.age+=sdt);S.fx=S.fx.filter(f=>f.age<(f.life||1.2));
+  S.shards.forEach(p=>{p.x+=p.vx*sdt;p.y+=p.vy*sdt;p.vy+=260*sdt;p.rot+=p.vr*sdt;p.life-=sdt*.7});S.shards=S.shards.filter(p=>p.life>0);
+  S.t+=sdt;
+  if(S.phase==='pre'&&S.t>=PRE)cast();
+  else if(S.phase==='debt'&&S.t>=WIN){S.phase='forfeit';S.resT=0;S.lost=S.debt;LOOKS[S.look].forfeit();S.debt=0}
+  else if(S.phase==='paid'){S.resT+=sdt;S.bonusT-=sdt;if(S.resT>1.2)S.phase='bonus'}
+  else if(S.phase==='bonus'){S.resT+=sdt;S.bonusT-=sdt;if(S.bonusT<=0){S.phase='after';S.resT=0}}
+  else if(S.phase==='forfeit'){S.resT+=sdt;if(S.resT>2.4){S.phase='after';S.resT=0}}
+  else if(S.phase==='after'){S.resT+=sdt;if(S.resT>2.2&&!reduce)reset()}
+  // enemies
+  while(S.enemies.length<7)spawn();
+  S.enemies.forEach(e=>{
+    e.flash=Math.max(0,e.flash-dt*5);
+    const dx=S.px-e.x,dy=S.py-e.y,d=Math.hypot(dx,dy)||1,reach=e.r+18;
+    if(d>reach){const v=(e.heavy?26:40)*sdt;e.x+=dx/d*v;e.y+=dy/d*v}
+    else{e.atk-=sdt;if(e.atk<=0){e.atk=1.5;const dmg=e.heavy?1.2:.5;S.hp=Math.max(1,S.hp-dmg);S.fx.push({k:'hit',x:S.px,y:S.py,age:0,life:.25})}}
+  });
+  // separation
+  for(let i=0;i<S.enemies.length;i++)for(let j=i+1;j<S.enemies.length;j++){const a=S.enemies[i],b=S.enemies[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,m=a.r+b.r+4;if(d<m){const p=(m-d)/2;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}
+  // targeting and fire
+  let tgt=null,bd=1e9;S.enemies.forEach(e=>{if(e.doomed)return;const d=Math.hypot(e.x-S.px,e.y-S.py);if(d<bd){bd=d;tgt=e}});
+  if(tgt)S.aim=Math.atan2(tgt.y-S.py,tgt.x-S.px);
+  const kps=S.stop&&S.phase!=='pre'?0:S.kps;
+  S.fireT+=sdt;
+  if(tgt&&kps>0&&S.fireT>.16){S.fireT=0;S.bolts.push({x:S.px,y:S.py,t:tgt,kill:false})}
+  S.killT+=sdt*kps;
+  if(S.killT>=1&&tgt){S.killT-=1;tgt.doomed=true;S.bolts.push({x:S.px,y:S.py,t:tgt,kill:true})}
+  S.killT=Math.min(S.killT,1.5);
+  S.bolts.forEach(b=>{const e=b.t;if(!S.enemies.includes(e)){b.dead=true;return}
+    const dx=e.x-b.x,dy=e.y-b.y,d=Math.hypot(dx,dy),v=560*sdt;
+    if(d<=v+e.r){b.dead=true;e.flash=1;
+      const heal=9*steal()*(1+bp()/100);S.hp=Math.min(MAX-S.debt,S.hp+heal);
+      if(b.kill)kill(e)}
+    else{b.x+=dx/d*v;b.y+=dy/d*v}});
+  S.bolts=S.bolts.filter(b=>!b.dead);
+  LOOKS[S.look].update(sdt);
+}
+// ---------- drawing helpers ----------
+function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function heartPath(g,x,y,s){g.beginPath();g.moveTo(x,y+5*s);g.bezierCurveTo(x-11*s,y-3*s,x-7*s,y-12*s,x,y-6*s);g.bezierCurveTo(x+7*s,y-12*s,x+11*s,y-3*s,x,y+5*s);g.closePath()}
+function chain(g,ax,ay,bx,by,col,links,sag,broken){
+  const d=Math.hypot(bx-ax,by-ay),n=Math.max(2,Math.round(links||d/9));
+  g.save();g.lineWidth=2.2;g.strokeStyle=col;
+  for(let i=0;i<n;i++){if(broken&&Math.abs(i-n/2)<1)continue;const u=(i+.5)/n,sg=Math.sin(u*Math.PI)*(sag||0);
+    const x=lerp(ax,bx,u),y=lerp(ay,by,u)+sg,a=Math.atan2(by-ay,bx-ax)+(i%2?0:0);
+    g.save();g.translate(x,y);g.rotate(a);g.beginPath();if(i%2)g.ellipse(0,0,5,1.6,0,0,TAU);else g.ellipse(0,0,5,3.4,0,0,TAU);g.stroke();g.restore()}
+  g.restore();
+}
+function barX(v){return BAR.x+BAR.w*clamp(v/MAX,0,1)}
+function ghostRect(){return{x:barX(S.shown),w:barX(S.shown+S.debt)-barX(S.shown)}}
+function hatch(x,y,w,h,col){c.save();rr(x,y,w,h,3);c.clip();c.strokeStyle=col;c.lineWidth=2;for(let i=-h;i<w+h;i+=6){c.beginPath();c.moveTo(x+i,y+h);c.lineTo(x+i+h,y);c.stroke()}c.restore()}
+// ---------- looks ----------
+const LOOKS=[
+{ // A Ledger
+  name:'Ledger',coins:[],
+  kill(e,amt){const n=Math.max(2,Math.round(amt/1.5)),g=ghostRect();for(let i=0;i<n;i++)this.coins.push({sx:e.x,sy:e.y,tx:g.x+4+R()*Math.max(4,g.w-8),ty:BAR.y+BAR.h/2,t:-i*.06,arc:-60-R()*80})},
+  paid(){S.fx.push({k:'stamp',age:0,life:3.2})},
+  forfeit(){const g=ghostRect();for(let i=0;i<Math.max(4,g.w/5);i++)S.shards.push({x:g.x+R()*g.w,y:BAR.y+R()*BAR.h,vx:(R()-.5)*90,vy:-60-R()*90,rot:R()*TAU,vr:(R()-.5)*8,life:1.4,s:3+R()*4,col:i%2?'#7d0d22':'#a51a30'})},
+  update(dt){this.coins.forEach(k=>k.t+=dt*1.6);this.coins=this.coins.filter(k=>k.t<1)},
+  world(){},
+  over(){
+    this.coins.forEach(k=>{if(k.t<0)return;const u=ease(k.t),x=lerp(k.sx,k.tx,u),y=lerp(k.sy,k.ty,u)+Math.sin(u*Math.PI)*k.arc;
+      c.fillStyle='#d9a24a';c.beginPath();c.arc(x,y,4,0,TAU);c.fill();c.fillStyle='#b0142c';c.beginPath();c.arc(x,y,2.4,0,TAU);c.fill()});
+    if(S.phase==='debt'){const f=1-S.t/WIN;c.strokeStyle='rgba(255,74,87,.7)';c.lineWidth=2.5;c.beginPath();c.arc(S.px,S.py,22,-Math.PI/2,-Math.PI/2+TAU*f);c.stroke()}
+  },
+  bar(){
+    const g=ghostRect();if(g.w>0.5){c.fillStyle='rgba(125,13,34,.55)';rr(g.x,BAR.y,g.w,BAR.h,3);c.fill();hatch(g.x,BAR.y,g.w,BAR.h,'rgba(255,74,87,.55)');c.strokeStyle='#ff4a57';c.lineWidth=1;rr(g.x,BAR.y,g.w,BAR.h,3);c.stroke()}
+    if(S.phase!=='pre'&&S.owed>0){
+      const x=W-16,y=58;c.textAlign='right';c.font=MONO;
+      c.fillStyle='rgba(0,0,0,.45)';rr(x-150,y-14,154,70,4);c.fill();
+      c.fillStyle='#b39089';c.fillText('OWED',x-80,y);c.fillText('PAID',x-80,y+18);c.fillText(S.phase==='forfeit'||S.lost>0?'LOST':'LEFT',x-80,y+38);
+      c.fillStyle='#f2e6e3';c.fillText(Math.round(S.owed),x-6,y);c.fillStyle='#d9a24a';c.fillText(Math.round(S.paid),x-6,y+18);
+      c.strokeStyle='#3b1a1f';c.beginPath();c.moveTo(x-142,y+25);c.lineTo(x-2,y+25);c.stroke();
+      c.fillStyle=S.lost>0?'#ff4a57':'#f2e6e3';c.fillText(Math.round(S.lost>0?S.lost:S.debt),x-6,y+38);
+    }
+    const st=S.fx.find(f=>f.k==='stamp');
+    if(st){const a=clamp(st.age/.15,0,1),sc=lerp(2.2,1,a);c.save();c.translate(BAR.x+BAR.w-50,BAR.y-22);c.rotate(-.12);c.scale(sc,sc);c.globalAlpha=a*clamp((3.2-st.age)/.5,0,1);
+      c.strokeStyle='#d9a24a';c.lineWidth=2;c.strokeRect(-56,-12,112,24);c.fillStyle='#d9a24a';c.font='700 16px '+DISP;c.textAlign='center';c.fillText('PAID IN FULL',0,6);c.restore()}
+    if(S.phase==='forfeit'){const a=clamp(S.resT/.2,0,1)*clamp((2.4-S.resT)/.5,0,1);c.save();c.globalAlpha=a;c.translate(BAR.x+BAR.w-46,BAR.y-22);c.rotate(.08);c.strokeStyle='#ff4a57';c.lineWidth=2;c.strokeRect(-52,-12,104,24);c.fillStyle='#ff4a57';c.font='700 16px '+DISP;c.textAlign='center';c.fillText('FORFEIT −'+Math.round(S.lost),0,6);c.restore()}
+  },
+  icon(g,t,s){const k=s/96,cx=s/2,cy=s/2;g.fillStyle='#0f0608';g.fillRect(0,0,s,s);
+    g.fillStyle='#d9a24a';g.beginPath();g.arc(cx,cy+6*k,26*k,0,TAU);g.fill();g.fillStyle='#7d0d22';g.beginPath();g.arc(cx,cy+6*k,20*k,0,TAU);g.fill();
+    g.fillStyle='#ff4a57';g.beginPath();g.moveTo(cx,cy-30*k+Math.sin(t*3)*2*k);g.quadraticCurveTo(cx+10*k,cy-8*k,cx,cy-4*k);g.quadraticCurveTo(cx-10*k,cy-8*k,cx,cy-30*k+Math.sin(t*3)*2*k);g.fill();
+    g.strokeStyle='#d9a24a';g.lineWidth=2*k;for(let i=0;i<3;i++){g.beginPath();g.moveTo(cx-10*k,cy+(2+i*6)*k);g.lineTo(cx+10*k,cy+(2+i*6)*k);g.stroke()}
+    g.strokeStyle='rgba(255,74,87,.5)';g.lineWidth=1.5;g.strokeRect(5,5,s-10,s-10)}
+},
+{ // B Chains
+  name:'Chains',hooks:[],
+  shackles(){return S.phase==='debt'?Math.ceil(S.debt/(S.owed/6)-.001):0},
+  kill(e,amt){this.hooks.push({x:e.x,y:e.y,age:0})},
+  paid(){for(let i=0;i<6;i++){const a=i/6*TAU;S.shards.push({x:S.px+Math.cos(a)*18,y:S.py+Math.sin(a)*18,vx:Math.cos(a)*120,vy:Math.sin(a)*120-60,rot:0,vr:6,life:1.2,s:5,col:'#d9a24a',link:1})}S.fx.push({k:'burst',x:S.px,y:S.py,age:0,life:.8})},
+  forfeit(){this.dead=Math.max(1,Math.ceil(S.debt/(S.owed/6)-.001));this.rust=0},
+  update(dt){this.hooks.forEach(h=>h.age+=dt);this.hooks=this.hooks.filter(h=>h.age<.9)},
+  world(){
+    const n=S.phase==='forfeit'?this.dead:this.shackles();
+    for(let i=0;i<n;i++){const a=i/6*TAU+S.clock*.4,len=26+Math.sin(S.clock*3+i)*3;
+      let col='#b0142c',br=false,ex=S.px+Math.cos(a)*len,ey=S.py+Math.sin(a)*len+10;
+      if(S.phase==='forfeit'){const r=clamp(S.resT/.9,0,1);col='rgb('+Math.round(lerp(176,138,r))+','+Math.round(lerp(20,90,r))+','+Math.round(lerp(44,58,r))+')';
+        if(S.resT>.9){br=true;const f=S.resT-.9;ey+=f*f*240;if(f>1)continue;c.globalAlpha=clamp(1-f,0,1)}}
+      chain(c,S.px+Math.cos(a)*12,S.py+Math.sin(a)*12,ex,ey,col,4,4,br);
+      c.fillStyle=col;c.beginPath();c.arc(ex,ey+2,3.5,0,TAU);c.fill();c.globalAlpha=1}
+    this.hooks.forEach(h=>{const throwU=clamp(h.age/.25,0,1),reel=clamp((h.age-.3)/.5,0,1);
+      const hx=lerp(h.x,S.px,ease(reel)),hy=lerp(h.y,S.py,ease(reel)),tx=lerp(h.x,S.px,throwU),ty=lerp(h.y,S.py,throwU);
+      chain(c,hx,hy,reel>0?S.px:tx,reel>0?S.py:ty,'#ff4a57',0,reel>0?0:10*(1-throwU));
+      c.fillStyle='#ff4a57';c.beginPath();c.arc(hx,hy,5*(1-reel*.5),0,TAU);c.fill()});
+  },
+  over(){},
+  bar(){const g=ghostRect();if(g.w>0.5){c.fillStyle='rgba(125,13,34,.5)';rr(g.x,BAR.y,g.w,BAR.h,3);c.fill();c.save();rr(g.x,BAR.y,g.w,BAR.h,3);c.clip();chain(c,g.x,BAR.y+BAR.h/2,g.x+g.w,BAR.y+BAR.h/2,'#ff4a57',0,0);c.restore()}
+    if(S.phase==='forfeit'&&S.resT<1.4){const r=clamp(S.resT/.9,0,1),w=barX(S.shown+S.lost)-barX(S.shown),x=barX(S.shown);
+      c.globalAlpha=1-clamp((S.resT-.9)/.5,0,1);chain(c,x,BAR.y+BAR.h/2+(S.resT>.9?(S.resT-.9)*40:0),x+w,BAR.y+BAR.h/2+(S.resT>.9?(S.resT-.9)*40:0),'rgb('+Math.round(lerp(255,138,r))+','+Math.round(lerp(74,90,r))+','+Math.round(lerp(87,58,r))+')',0,0,S.resT>.9);c.globalAlpha=1}},
+  icon(g,t,s){const k=s/96;g.fillStyle='#0f0608';g.fillRect(0,0,s,s);g.save();g.translate(s/2,s/2);g.rotate(-.7);g.lineWidth=6*k;g.strokeStyle='#b0142c';
+    for(let i=-1;i<=1;i++){g.beginPath();i%2?g.ellipse(i*22*k,0,14*k,5*k,0,0,TAU):g.ellipse(i*22*k,0,14*k,9*k,0,0,TAU);g.stroke()}g.restore();
+    g.fillStyle='#ff4a57';const y=s*.72+((t*.8)%1)*s*.12;g.beginPath();g.ellipse(s*.62,y,3*k,4.5*k,0,0,TAU);g.fill();
+    g.strokeStyle='rgba(255,74,87,.5)';g.lineWidth=1.5;g.strokeRect(5,5,s-10,s-10)}
+},
+{ // C Pawned Heart
+  name:'Pawned Heart',drops:[],N:8,
+  filled(){if(S.owed<=0)return 0;return Math.floor(S.paid/S.owed*this.N+1e-6)},
+  kill(e){this.drops.push({x:e.x,y:e.y,t:0})},
+  paid(){S.fx.push({k:'glow',age:0,life:1.6})},
+  forfeit(){const n=this.filled();for(let i=n;i<this.N;i++){const a=(i+.5)/this.N*TAU-Math.PI/2;S.shards.push({x:S.px+Math.cos(a)*8,y:S.py-34+Math.sin(a)*8,vx:Math.cos(a)*50,vy:-40,rot:0,vr:(R()-.5)*6,life:1.5,s:6,col:'#3b1a1f',piece:i})}this.keep=n},
+  update(dt){this.drops.forEach(d=>d.t+=dt*1.8);this.drops=this.drops.filter(d=>d.t<1)},
+  world(){},
+  over(){
+    this.drops.forEach(d=>{const u=ease(d.t),x=lerp(d.x,S.px,u),y=lerp(d.y,S.py-34,u)-Math.sin(u*Math.PI)*50;c.fillStyle='#ff4a57';c.beginPath();c.ellipse(x,y,3,4,0,0,TAU);c.fill()});
+    if(S.phase==='pre'||(S.phase==='after'&&S.resT>1))return;
+    const x=S.px,y=S.py-36,beat=S.phase==='bonus'||S.phase==='paid'?Math.exp(-((S.clock*1.6)%1)*5):Math.exp(-((S.clock*1.1)%1)*6)*.4,sc=1.6*(1+beat*.15);
+    const n=S.phase==='forfeit'||S.phase==='after'?this.keep:Math.min(this.N,this.filled()),hollow=S.phase!=='forfeit'&&S.phase!=='after';
+    const gl=S.fx.find(f=>f.k==='glow');if(gl){const a=1-gl.age/1.6;c.fillStyle='rgba(255,74,87,'+(.4*a)+')';c.beginPath();c.arc(x,y-1,22+gl.age*30,0,TAU);c.fill()}
+    for(let i=0;i<this.N;i++){
+      const a0=i/this.N*TAU-Math.PI/2,a1=(i+1)/this.N*TAU-Math.PI/2,isF=i<n;
+      if(!isF&&!hollow)continue;
+      c.save();heartPath(c,x,y,sc);c.clip();c.beginPath();c.moveTo(x,y-2);c.arc(x,y-2,30,a0,a1);c.closePath();
+      c.fillStyle=isF?(i===n-1&&S.phase==='debt'?'#ff6b74':'#c8142f'):'rgba(40,14,18,.9)';c.fill();c.restore();
+    }
+    heartPath(c,x,y,sc);c.strokeStyle='#2a0810';c.lineWidth=2;c.stroke();
+    c.strokeStyle='rgba(15,6,8,.9)';c.lineWidth=1.2;c.save();heartPath(c,x,y,sc);c.clip();
+    for(let i=0;i<this.N;i++){if(!hollow&&i>=n&&i!==n)continue;const a=i/this.N*TAU-Math.PI/2;c.beginPath();c.moveTo(x,y-2);c.lineTo(x+Math.cos(a)*30+Math.sin(i*3)*2,y-2+Math.sin(a)*30);c.stroke()}c.restore();
+  },
+  bar(){const g=ghostRect();if(g.w>0.5){c.fillStyle='rgba(125,13,34,.6)';rr(g.x,BAR.y,g.w,BAR.h,3);c.fill();c.strokeStyle='rgba(255,74,87,.6)';c.lineWidth=1;rr(g.x,BAR.y,g.w,BAR.h,3);c.stroke();heartPath(c,g.x+g.w+9,BAR.y+BAR.h/2+1,.7);c.strokeStyle='#ff4a57';c.stroke()}},
+  icon(g,t,s){const k=s/96,cx=s/2,cy=s/2+4*k;g.fillStyle='#0f0608';g.fillRect(0,0,s,s);const n=Math.floor((t*1.5)%9);
+    for(let i=0;i<8;i++){const a0=i/8*TAU-Math.PI/2,a1=(i+1)/8*TAU-Math.PI/2;g.save();heartPath(g,cx,cy,3.2*k);g.clip();g.beginPath();g.moveTo(cx,cy-4*k);g.arc(cx,cy-4*k,60*k,a0,a1);g.closePath();g.fillStyle=i<n?'#c8142f':'#2a0e12';g.fill();g.restore()}
+    heartPath(g,cx,cy,3.2*k);g.strokeStyle='#ff4a57';g.lineWidth=2*k;g.stroke();
+    g.save();heartPath(g,cx,cy,3.2*k);g.clip();g.strokeStyle='#0f0608';g.lineWidth=2*k;for(let i=0;i<8;i++){const a=i/8*TAU-Math.PI/2;g.beginPath();g.moveTo(cx,cy-4*k);g.lineTo(cx+Math.cos(a)*60*k,cy-4*k+Math.sin(a)*60*k);g.stroke()}g.restore();
+    g.strokeStyle='rgba(255,74,87,.5)';g.lineWidth=1.5;g.strokeRect(5,5,s-10,s-10)}
+}];
+function drawBG(){
+  c.fillStyle='#0a0506';c.fillRect(0,0,W,H);
+  c.strokeStyle='rgba(120,30,40,.12)';c.lineWidth=1;
+  for(let x=0;x<=W;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}
+  for(let y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+  if(inWin()||S.phase==='paid'){const g=c.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,W*.62);g.addColorStop(0,'rgba(120,0,25,0)');g.addColorStop(1,'rgba(170,10,35,.28)');c.fillStyle=g;c.fillRect(0,0,W,H)}
+}
+function drawEnemy(e){
+  c.save();c.translate(e.x,e.y);
+  c.fillStyle=e.heavy?'#5d6273':'#6f7686';c.strokeStyle='#1b1520';c.lineWidth=2;c.beginPath();
+  if(e.heavy){for(let j=0;j<6;j++){const a=j/6*TAU+.52;j?c.lineTo(Math.cos(a)*e.r,Math.sin(a)*e.r):c.moveTo(Math.cos(a)*e.r,Math.sin(a)*e.r)}c.closePath()}else c.arc(0,0,e.r,0,TAU);
+  c.fill();c.stroke();if(e.flash>0){c.fillStyle='rgba(255,255,255,'+e.flash*.7+')';c.fill()}
+  const a=Math.atan2(S.py-e.y,S.px-e.x);c.fillStyle='#ff5a5a';for(const sx of[-1,1]){c.beginPath();c.arc(Math.cos(a)*e.r*.45+Math.cos(a+1.57)*sx*e.r*.35,Math.sin(a)*e.r*.45+Math.sin(a+1.57)*sx*e.r*.35,e.heavy?2.6:2,0,TAU);c.fill()}
+  c.restore();
+}
+function drawPlayer(){
+  c.save();c.translate(S.px,S.py);
+  const hit=S.fx.some(f=>f.k==='hit');
+  c.rotate(S.aim);c.fillStyle='#3a0b17';c.fillRect(7,-3,13,6);c.fillStyle='#ff4a57';c.beginPath();c.arc(20,0,2.5,0,TAU);c.fill();c.rotate(-S.aim);
+  const g=c.createRadialGradient(-4,-4,2,0,0,13);g.addColorStop(0,hit?'#ffb0b8':'#b01f3b');g.addColorStop(1,'#5e0c1e');
+  c.fillStyle=g;c.strokeStyle='#240810';c.lineWidth=2;c.beginPath();c.arc(0,0,12,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#ffd7da';c.beginPath();c.arc(Math.cos(S.aim)*4,Math.sin(S.aim)*4,3,0,TAU);c.fill();
+  c.restore();
+  if(inWin()){c.strokeStyle='rgba(255,74,87,.35)';c.lineWidth=1;c.beginPath();c.arc(S.px,S.py,16+Math.sin(S.clock*6)*1.5,0,TAU);c.stroke()}
+}
+function hud(){
+  const L=LOOKS[S.look];
+  // top: ability timer
+  c.textBaseline='alphabetic';
+  if(S.phase==='debt'||S.phase==='bonus'||S.phase==='paid'){
+    const f=S.phase==='debt'?1-S.t/WIN:clamp(S.bonusT/BONUS,0,1);
+    c.fillStyle='rgba(0,0,0,.5)';rr(14,10,W-28,6,3);c.fill();c.fillStyle=S.phase==='debt'?'#ff4a57':'#d9a24a';rr(14,10,Math.max(6,(W-28)*f),6,3);c.fill();
+    c.font='700 15px '+DISP;c.textAlign='left';c.fillStyle='#f2e6e3';c.fillText(S.phase==='debt'?'BLOOD DEBT':'DEBT PAID · LIFESTEAL HELD',16,36);
+    c.font=MONO;c.textAlign='right';c.fillText((S.phase==='debt'?WIN-S.t:Math.max(0,S.bonusT)).toFixed(1)+' s',W-16,36);
+  } else if(S.phase==='pre'){c.font='700 15px '+DISP;c.textAlign='left';c.fillStyle='#b39089';c.fillText('CASTING IN '+Math.max(0,PRE-S.t).toFixed(1)+' s',16,36)}
+  // bottom: health bar
+  c.fillStyle='rgba(0,0,0,.6)';rr(BAR.x-2,BAR.y-2,BAR.w+4,BAR.h+4,4);c.fill();
+  c.fillStyle=S.shown<30?'#ff4a57':'#e3d9dc';rr(BAR.x,BAR.y,Math.max(2,barX(S.shown)-BAR.x),BAR.h,3);c.fill();
+  L.bar();
+  c.font=MONO;c.textAlign='left';c.fillStyle='#f2e6e3';
+  c.fillText('HP '+Math.ceil(S.hp)+' / '+MAX+(S.debt>0?'   OWED '+Math.ceil(S.debt):''),BAR.x,BAR.y-8);
+  c.textAlign='right';c.fillStyle='#f2e6e3';c.fillText('BLOOD PRICE +'+bp()+'%',W-16,H-34);
+  c.fillStyle=inWin()?'#ff4a57':'#b39089';c.fillText('LIFESTEAL '+Math.round(steal()*100)+'%',W-16,H-17);
+  // banners
+  let txt=null,sub=null,a=0;
+  if(S.phase==='paid'){a=clamp(S.resT/.2,0,1)*clamp((1.2-S.resT)/.3,0,1);txt='Debt paid';sub='+2 s of 15% lifesteal';}
+  if(S.phase==='forfeit'&&S.resT>.4){a=clamp((S.resT-.4)/.3,0,1)*clamp((2.4-S.resT)/.4,0,1);txt='Debt forfeit';sub=Math.round(S.lost)+' HP lost for good';}
+  if(txt){c.globalAlpha=a;c.textAlign='center';c.fillStyle=S.phase==='paid'?'#d9a24a':'#ff4a57';c.font='700 32px '+DISP;c.fillText(txt.toUpperCase(),W/2,H/2-60);c.fillStyle='#f2e6e3';c.font=MONO;c.fillText(sub,W/2,H/2-40);c.globalAlpha=1}
+}
+function draw(){
+  const L=LOOKS[S.look];
+  drawBG();
+  S.fx.forEach(f=>{if(f.k==='ring'){const u=f.age/1.2;c.strokeStyle='rgba(255,74,87,'+(1-u)+')';c.lineWidth=4*(1-u)+1;c.beginPath();c.arc(f.x,f.y,10+u*140,0,TAU);c.stroke()}
+    if(f.k==='burst'){const u=f.age/.8;c.strokeStyle='rgba(217,162,74,'+(1-u)+')';c.lineWidth=3;c.beginPath();c.arc(f.x,f.y,10+u*60,0,TAU);c.stroke()}});
+  S.enemies.forEach(drawEnemy);
+  L.world();
+  c.fillStyle='#ffd0d6';S.bolts.forEach(b=>{c.globalAlpha=.25;c.beginPath();c.arc(b.x,b.y,5,0,TAU);c.fill();c.globalAlpha=1;c.beginPath();c.arc(b.x,b.y,b.kill?3:2.2,0,TAU);c.fill()});
+  drawPlayer();
+  L.over();
+  S.parts.forEach(p=>{c.globalAlpha=clamp(p.life*1.5,0,1);c.fillStyle=p.col;c.beginPath();c.arc(p.x,p.y,2,0,TAU);c.fill()});c.globalAlpha=1;
+  hud();
+  S.shards.forEach(p=>{c.save();c.globalAlpha=clamp(p.life,0,1);c.translate(p.x,p.y);c.rotate(p.rot);c.fillStyle=p.col;
+    if(p.link){c.strokeStyle=p.col;c.lineWidth=2;c.beginPath();c.ellipse(0,0,5,3,0,0,TAU);c.stroke()}
+    else if(p.piece!==undefined){c.beginPath();c.moveTo(0,0);c.arc(0,0,9,-.4,.4);c.closePath();c.fill();c.strokeStyle='#ff4a57';c.lineWidth=1;c.stroke()}
+    else{c.beginPath();c.moveTo(-p.s,-p.s*.5);c.lineTo(p.s,-p.s*.2);c.lineTo(0,p.s);c.closePath();c.fill()}c.restore()});c.globalAlpha=1;
+  S.pops.forEach(p=>{const u=p.age/1.4;c.globalAlpha=1-u*u;c.fillStyle=p.col;c.font=(p.big?'700 16px ':'600 11px ')+"'IBM Plex Mono',monospace";c.textAlign='center';c.fillText(p.txt,p.x,p.y-u*26)});c.globalAlpha=1;
+  ci.clearRect(0,0,192,192);L.icon(ci,S.clock,192);
+}
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop)}
+const $=id=>document.getElementById(id);
+$('replay').onclick=()=>{reset();S.paused=false;$('pause').textContent='Pause'};
+$('pause').onclick=()=>{S.paused=!S.paused;$('pause').textContent=S.paused?'Play':'Pause'};
+$('fail').onclick=()=>{if(S.phase==='after'||S.phase==='forfeit')reset();S.stop=true};
+$('mast').onchange=e=>{S.mast=e.target.checked};
+$('krange').oninput=e=>{S.kps=+e.target.value;$('kval').textContent=S.kps.toFixed(1)};
+document.querySelectorAll('input[name=spd]').forEach(r=>r.onchange=()=>{S.speed=+r.value});
+const cards=[...document.querySelectorAll('#looks div')];
+document.querySelectorAll('input[name=look]').forEach(r=>r.onchange=()=>{S.look=+r.value;cards.forEach((d,i)=>d.classList.toggle('on',i===S.look));reset()});
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();S.mx=(e.clientX-r.left)*W/r.width;S.my=(e.clientY-r.top)*H/r.height});
+cv.addEventListener('pointerleave',()=>{S.mx=null;S.my=null});
+reset();
+if(reduce){for(let i=0;i<300;i++)update(1/60);S.paused=true;$('pause').textContent='Play'}
+requestAnimationFrame(loop);
+})();
+</script>
