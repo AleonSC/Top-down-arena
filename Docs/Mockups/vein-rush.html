@@ -1,0 +1,367 @@
+<title>Vein Rush</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead, one animated stage with controls and a rush readout, the three looks, then the relic card (icon, lore, rules), a timeline, palette and open questions.
+   Single dark look: arterial scarlet on wet black tissue. */
+:root{
+  --bg:#0e0407; --panel:#1b080d; --fg:#f3e6e6; --muted:#b58a91; --line:#3c1520;
+  --acc:#ff3d55; --acc2:#7d0a1e; --arena:#090405; --heal:#ffb3bd;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+h1{font:700 clamp(40px,7vw,72px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 14px;text-wrap:balance;color:var(--fg)}
+header p.lede{margin:0;max-width:62ch;color:var(--muted);font-size:17px}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--acc);text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 18px 50px -20px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:720/400;cursor:crosshair}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--panel);color:var(--fg)}
+.seg input:checked+label{background:var(--acc);color:#12060a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--acc);color:#12060a;border-color:var(--acc)}
+.check{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--body);cursor:pointer}
+.check input{accent-color:var(--acc);width:16px;height:16px}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+.readout{margin:0;font:500 14px var(--mono);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-variant-numeric:tabular-nums}
+.readout b{color:var(--acc);font-weight:500}
+.looks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.looks article{border-top:2px solid var(--line);padding-top:12px;min-width:0}
+.looks article.on{border-top-color:var(--acc)}
+.looks h3{font:700 20px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.looks h3 span{font:500 12px var(--mono);color:var(--acc);letter-spacing:.1em;margin-right:8px}
+.looks p{margin:0;color:var(--muted);font-size:15px}
+.relic{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:28px;align-items:start}
+.tile{margin:0;border:1px solid var(--acc);border-radius:10px;padding:14px;background:var(--panel);box-shadow:0 0 40px -12px var(--acc2),inset 0 0 0 1px #ffffff10}
+.tile canvas{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1/1;border-radius:4px}
+.tile figcaption{font:700 13px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-align:center;margin-top:10px}
+.relic p{margin:0 0 12px;max-width:62ch}
+.relic .lore{font-style:italic;color:var(--muted)}
+dl.rules{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:0;margin:20px 0 0;border-top:1px solid var(--line)}
+dl.rules dt,dl.rules dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+dl.rules dt{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);padding-right:22px}
+dl.rules dd{font-size:15px}
+.tl{display:flex;height:34px;border:1px solid var(--line);border-radius:6px;overflow:hidden;font:500 12px var(--mono)}
+.tl div{display:flex;align-items:center;padding:0 10px;white-space:nowrap;overflow:hidden}
+.tl .a{flex:0 0 8%;background:var(--fg);color:#12060a}.tl .b{flex:0 0 12%;background:var(--acc);color:#12060a}.tl .c{flex:1;background:var(--acc2);color:#fff}.tl .d{flex:1;background:var(--panel);color:var(--muted)}
+.tlabels{display:flex;justify-content:space-between;font:500 12px var(--mono);color:var(--muted);margin-top:6px}
+ul.pal{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+ul.pal li{border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px}
+ul.pal li i{display:block;height:44px}
+ul.pal li span{display:flex;flex-direction:column;padding:6px 8px;background:var(--panel)}
+ul.pal code{font:400 12px var(--mono);color:var(--muted)}
+ul.q{margin:0;padding-left:20px;max-width:68ch;display:flex;flex-direction:column;gap:8px}
+@media (max-width:640px){.relic{grid-template-columns:1fr}.tile{max-width:240px}dl.rules{grid-template-columns:1fr}dl.rules dt{border-bottom:0;padding-bottom:0}.tl div{font-size:11px;padding:0 6px}}
+</style>
+<main>
+<header>
+  <p class="eyebrow">DPS Hemomancer ability rework · replaces Hemo Nova (6 s)</p>
+  <h1>Vein Rush</h1>
+  <p class="lede">The Hemomancer opens a vein and becomes the blood. For a fifth of a second it is a stream that cannot be touched, cutting through everything in its way. Every enemy it passes through pays a little of the price back.</p>
+</header>
+
+<section class="stage" aria-labelledby="st">
+  <h2 id="st">Live preview</h2>
+  <p class="hint">Click anywhere in the arena to rush toward that point (280 px at most). Left alone, the Hemomancer rushes through the enemy line every 2 seconds. Orange shots pass through it during the rush. The 6 s cooldown is off here, and health comes back at 1.5 HP a second so the preview keeps looping.</p>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Vein Rush animation preview"></canvas></div>
+  <div class="controls">
+    <button id="replay" class="primary" type="button">Replay</button>
+    <button id="pause" type="button">Pause</button>
+    <button id="rushnow" type="button">Rush now</button>
+    <div class="seg" role="radiogroup" aria-label="Look">
+      <input type="radio" name="look" id="lA" value="A" checked><label for="lA">A · Stream</label>
+      <input type="radio" name="look" id="lB" value="B"><label for="lB">B · Needle</label>
+      <input type="radio" name="look" id="lC" value="C"><label for="lC">C · Serpent</label>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="Playback speed">
+      <input type="radio" name="spd" id="s1" value="1"><label for="s1">1×</label>
+      <input type="radio" name="spd" id="s2" value="0.5" checked><label for="s2">½×</label>
+      <input type="radio" name="spd" id="s4" value="0.25"><label for="s4">¼×</label>
+    </div>
+    <label class="check" for="mast"><input type="checkbox" id="mast"> Crimson Tide (mastered)</label>
+  </div>
+  <p class="readout" id="net" aria-live="polite">Last rush: waiting for the first rush.</p>
+</section>
+
+<section aria-labelledby="lk">
+  <h2 id="lk">Three looks</h2>
+  <div class="looks">
+    <article id="aA" class="on"><h3><span>A</span>Stream</h3><p>The body melts into a liquid ribbon that snakes along the path, thick at the head and thin at the tail. At the end the ribbon pools and the Hemomancer rises out of it with a splash.</p></article>
+    <article id="aB"><h3><span>B</span>Needle</h3><p>A straight crimson streak with a white-hot core. Afterimages hang along the path, every enemy cut gets a sharp slash line, and each hit freezes the frame for a few hundredths of a second.</p></article>
+    <article id="aC"><h3><span>C</span>Serpent</h3><p>A blood serpent with an open jaw lunges along the path and bites through each enemy. The Hemomancer reforms from its tail as the coils pull back into the landing point.</p></article>
+  </div>
+</section>
+
+<section aria-labelledby="rl">
+  <h2 id="rl">The relic</h2>
+  <div class="relic">
+    <figure class="tile"><canvas id="ic" width="192" height="192" aria-label="Vein Rush ability icon"></canvas><figcaption>Vein Rush</figcaption></figure>
+    <div>
+      <p class="lore">Blood finds the shortest way through. So does the Hemomancer.</p>
+      <p>The DPS Hemomancer has no way to move quickly today. Vein Rush gives it one, and makes it pay for the escape unless it goes through enemies instead of away from them.</p>
+      <dl class="rules">
+        <dt>Cost</dt><dd>10% of max health, paid at the start. It cannot take you below 1 HP.</dd>
+        <dt>Rush</dt><dd>280 px toward the cursor over 0.22 s. You are untouchable and pass through enemies and their bullets.</dd>
+        <dt>Each enemy</dt><dd>25 damage (raised by Blood Price) and 3 bleed stacks, 18 damage over 3 s.</dd>
+        <dt>Refund</dt><dd>2% of max health for each enemy you pass through. Five enemies pay the whole cost back.</dd>
+        <dt>Trail</dt><dd>A blood trail stays on the floor for 2 s and slows enemies on it by 30%.</dd>
+        <dt>Mastery</dt><dd>Crimson Tide (the renamed rare card): 1 s after the rush the trail bursts for 20 to every enemy on it.</dd>
+        <dt>Cooldown</dt><dd>6 s. AbilityId.HemoNova is kept and renamed.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="tm">
+  <h2 id="tm">Timeline</h2>
+  <div class="tl"><div class="a">Pay</div><div class="b">Rush</div><div class="c">Trail · burst (mastered)</div><div class="d">Trail fades</div></div>
+  <div class="tlabels"><span>0 s</span><span>0.22 s</span><span>1.2 s</span><span>2.2 s</span></div>
+</section>
+
+<section aria-labelledby="pl">
+  <h2 id="pl">Palette</h2>
+  <ul class="pal"><li><i style="background:#ff3d55"></i><span>Arterial<code>#ff3d55</code></span></li><li><i style="background:#7d0a1e"></i><span>Venous<code>#7d0a1e</code></span></li><li><i style="background:#ffe9ec"></i><span>Core<code>#ffe9ec</code></span></li><li><i style="background:#ffb3bd"></i><span>Refund drop<code>#ffb3bd</code></span></li><li><i style="background:#3a0812"></i><span>Floor stain<code>#3a0812</code></span></li><li><i style="background:#0e0407"></i><span>Tissue<code>#0e0407</code></span></li></ul>
+</section>
+
+<section aria-labelledby="oq">
+  <h2 id="oq">Open questions</h2>
+  <ul class="q">
+    <li>Cost against refund: 10% for the rush and 2% back per enemy means five enemies break even. Is five the right number, or should it be three or four so a rush through a small pack still pays?</li>
+    <li>Would 2 charges of the rush be a better mastery than the trail burst? Charges help it escape twice; the burst rewards rushing into packs.</li>
+    <li>Should a boss count as several enemies for the refund (for example 3), so rushing through a boss is worth it?</li>
+    <li>Is 0.22 s enough to read as a dash on a real screen, or should it be closer to 0.3 s?</li>
+  </ul>
+</section>
+</main>
+<script>
+(function(){
+const TAU=Math.PI*2,W=720,H=400,MAXHP=100,COST=10,REF=2,DIST=280,RD=.22,TRAIL=2,BURST=1,BDMG=20,DMG=25,POST=.32;
+const cv=document.getElementById('cv'),c=cv.getContext('2d'),ic=document.getElementById('ic'),ci=ic.getContext('2d');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MONO="500 12px 'IBM Plex Mono',ui-monospace,monospace",DISP="'Barlow Condensed','Arial Narrow',sans-serif";
+const S={clock:0,speed:.5,look:'A',mast:false,paused:false,hp:MAXHP,p:{x:150,y:220,a:0},rush:null,post:null,enemies:[],bullets:[],trails:[],pops:[],parts:[],drops:[],slashes:[],ghosts:[],autoT:1.2,hitstop:0,flash:0,last:null,costFlash:0,lastHitIds:0};
+window.RUSH_S=S;
+const bp=()=>1+.4*clamp((1-S.hp/MAXHP)/.9,0,1);
+function wave(){
+  const side=S.p.x<W/2?1:-1,cx=W/2+side*90,es=[];
+  const spots=[[0,0,'heavy'],[-26,-64,'grunt'],[26,-118,'shooter'],[-26,64,'grunt'],[26,118,'shooter'],[48,-14,'grunt'],[-50,22,'grunt'],[60,58,'grunt']];
+  spots.forEach((s,i)=>{const h=s[2]==='heavy';es.push({id:i+Math.random(),x:cx+s[0],y:clamp(215+s[1],70,H-50),type:s[2],r:h?18:10,hp:h?140:40,max:h?140:40,flash:0,bleed:0,shotT:Math.random()*1.4,seed:Math.random()*9})});
+  S.enemies=es;
+}
+function reset(){S.hp=MAXHP;S.p={x:130,y:215,a:0};S.rush=null;S.post=null;S.bullets=[];S.trails=[];S.pops=[];S.parts=[];S.drops=[];S.slashes=[];S.ghosts=[];S.autoT=1;S.last=null;wave();
+  document.getElementById('net').innerHTML='Last rush: waiting for the first rush.'}
+function centroid(){let x=0,y=0,n=0;S.enemies.forEach(e=>{x+=e.x;y+=e.y;n++});return n?{x:x/n,y:y/n}:{x:W/2,y:H/2}}
+function startRush(tx,ty){
+  if(S.rush)return;
+  let dx=tx-S.p.x,dy=ty-S.p.y,d=Math.hypot(dx,dy);if(d<8)return;
+  const ux=dx/d,uy=dy/d;let L=Math.min(DIST,d);
+  // keep the landing inside the arena
+  for(let k=0;k<40;k++){const ex=S.p.x+ux*L,ey=S.p.y+uy*L;if(ex>18&&ex<W-18&&ey>52&&ey<H-40)break;L-=7}
+  const paid=Math.min(COST,S.hp-1);S.hp-=paid;S.costFlash=1;
+  S.pops.push({x:S.p.x,y:S.p.y-20,txt:'−10%',age:0,col:'#f3e6e6',big:1});
+  S.rush={t:0,ax:S.p.x,ay:S.p.y,bx:S.p.x+ux*L,by:S.p.y+uy*L,a:Math.atan2(uy,ux),path:[{x:S.p.x,y:S.p.y}],hits:new Set(),dmg:0,paid,look:S.look,ghostD:0};
+  S.p.a=S.rush.a;S.post=null;
+}
+function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy||1,t=clamp(((px-ax)*dx+(py-ay)*dy)/l,0,1);return Math.hypot(px-ax-dx*t,py-ay-dy*t)}
+function polyDist(px,py,pts){let m=1e9;for(let i=1;i<pts.length;i++)m=Math.min(m,segDist(px,py,pts[i-1].x,pts[i-1].y,pts[i].x,pts[i].y));return m}
+function hurt(e,n,col){e.hp-=n;e.flash=1;S.pops.push({x:e.x+(Math.random()-.5)*8,y:e.y-e.r-8,txt:'−'+Math.round(n),age:0,col:col||'#f3e6e6',big:0});
+  if(e.hp<=0&&!e.dead){e.dead=true;for(let j=0;j<16;j++){const a=Math.random()*TAU,v=60+Math.random()*140;S.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,r:2+Math.random()*2.5,col:j%3?'#9d1027':'#ff3d55'})}}}
+function update(rdt){
+  if(S.paused)return;
+  if(S.hitstop>0){S.hitstop-=rdt;S.flash=Math.max(0,S.flash-rdt*6);return}
+  const g=rdt*S.speed;S.clock+=g;
+  S.flash=Math.max(0,S.flash-rdt*6);S.costFlash=Math.max(0,S.costFlash-g*2);
+  const R=S.rush;
+  if(R){
+    R.t+=g;const u=clamp(R.t/RD,0,1),e2=1-(1-u)*(1-u);
+    const ox=S.p.x,oy=S.p.y;S.p.x=lerp(R.ax,R.bx,e2);S.p.y=lerp(R.ay,R.by,e2);
+    R.path.push({x:S.p.x,y:S.p.y});
+    R.ghostD+=Math.hypot(S.p.x-ox,S.p.y-oy);
+    if(R.look==='B'&&R.ghostD>34){R.ghostD=0;S.ghosts.push({x:S.p.x,y:S.p.y,a:R.a,age:0})}
+    for(const e of S.enemies){if(e.dead||R.hits.has(e))continue;
+      if(segDist(e.x,e.y,ox,oy,S.p.x,S.p.y)<e.r+9){R.hits.add(e);const n=DMG*bp();R.dmg+=n;hurt(e,n,'#ffe9ec');e.bleed=3;
+        S.hp=Math.min(MAXHP,S.hp+REF);S.pops.push({x:e.x+14,y:e.y-e.r-22,txt:'+2%',age:0,col:'#ffb3bd',big:0});
+        for(let j=0;j<3;j++)S.drops.push({x:e.x,y:e.y,vx:(Math.random()-.5)*160,vy:(Math.random()-.5)*160,t:0});
+        S.slashes.push({x:e.x,y:e.y,a:R.a+(Math.random()<.5?.6:-.6),age:0,r:e.r});
+        for(let j=0;j<8;j++){const a=R.a+(Math.random()-.5)*1.6,v=80+Math.random()*120;S.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.8,r:1.5+Math.random()*2,col:'#ff3d55'})}
+        if(R.look==='B'){S.hitstop=.05;S.flash=1}}}
+    if(u>=1){
+      S.rush=null;S.post={t:0,x:S.p.x,y:S.p.y,look:R.look,path:R.path,a:R.a};
+      S.trails.push({pts:R.path.slice(),age:0,burst:false,bf:0});
+      const n=R.hits.size,net=-R.paid+n*REF;
+      S.last={n,net,dmg:R.dmg};
+      document.getElementById('net').innerHTML='Last rush: paid <b>−'+R.paid.toFixed(0)+' HP</b>, '+n+' enem'+(n===1?'y':'ies')+' cut for <b>+'+(n*REF)+' HP</b>, net <b>'+(net>=0?'+':'−')+Math.abs(net)+' HP</b>, '+Math.round(R.dmg)+' hit damage plus '+(n*18)+' bleed.';
+      if(R.look==='A'||R.look==='C')for(let j=0;j<18;j++){const a=Math.random()*TAU,v=50+Math.random()*120;S.parts.push({x:S.p.x,y:S.p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.7,r:1.5+Math.random()*2.5,col:j%2?'#ff3d55':'#9d1027'})}
+    }
+  } else {
+    if(S.post){S.post.t+=g;if(S.post.t>POST)S.post=null}
+    // drift to a spot facing the pack
+    const C=centroid(),dx=S.p.x-C.x,dy=S.p.y-C.y,d=Math.hypot(dx,dy)||1,want=150;
+    const tx=clamp(C.x+dx/d*want,30,W-30),ty=clamp(C.y+dy/d*want+Math.sin(S.clock*.9)*30,70,H-50);
+    S.p.x+=(tx-S.p.x)*Math.min(1,g*1.2);S.p.y+=(ty-S.p.y)*Math.min(1,g*1.2);
+    S.p.a=Math.atan2(C.y-S.p.y,C.x-S.p.x);
+    S.hp=Math.min(MAXHP,S.hp+1.5*g);
+    S.autoT-=g;if(S.autoT<=0&&S.enemies.length){S.autoT=2;const a=Math.atan2(C.y-S.p.y,C.x-S.p.x)+(Math.random()-.5)*.35;startRush(S.p.x+Math.cos(a)*DIST,S.p.y+Math.sin(a)*DIST)}
+  }
+  // enemies
+  for(const e of S.enemies){
+    e.flash=Math.max(0,e.flash-g*5);
+    e.slow=S.trails.some(t=>t.age<TRAIL&&polyDist(e.x,e.y,t.pts)<e.r+8);
+    const dx=S.p.x-e.x,dy=S.p.y-e.y,d=Math.hypot(dx,dy)||1,sp=(e.type==='heavy'?10:16)*(e.slow?.7:1);
+    if(d>60&&!S.rush){e.x+=dx/d*sp*g;e.y+=dy/d*sp*g}
+    if(e.bleed>0){e.bleed-=g;e.bt=(e.bt||0)+g;if(e.bt>=.5){e.bt-=.5;hurt(e,3,'#ff6b7d')}}
+    if(e.type==='shooter'){e.shotT-=g;if(e.shotT<=0){e.shotT=1.3;const a=Math.atan2(dy,dx);S.bullets.push({x:e.x,y:e.y,vx:Math.cos(a)*170,vy:Math.sin(a)*170,ghost:false})}}
+  }
+  S.enemies=S.enemies.filter(e=>!(e.dead));
+  if(S.enemies.length<3&&!S.rush&&!S.post){wave()}
+  // bullets
+  for(const b of S.bullets){b.x+=b.vx*g;b.y+=b.vy*g;
+    if(!b.ghost&&Math.hypot(b.x-S.p.x,b.y-S.p.y)<10){
+      if(S.rush){b.ghost=true;S.pops.push({x:S.p.x,y:S.p.y-26,txt:'IMMUNE',age:0,col:'#ffb347',big:0})}
+      else{b.dead=true;S.hp=Math.max(1,S.hp-4);S.pops.push({x:S.p.x,y:S.p.y-22,txt:'−4',age:0,col:'#ffb347',big:0})}}}
+  S.bullets=S.bullets.filter(b=>!b.dead&&b.x>-10&&b.x<W+10&&b.y>-10&&b.y<H+10);
+  // trails
+  for(const t of S.trails){t.age+=g;
+    if(S.mast&&!t.burst&&t.age>=BURST){t.burst=true;t.bf=1;
+      for(const e of S.enemies)if(polyDist(e.x,e.y,t.pts)<e.r+10)hurt(e,BDMG,'#ff9aa6');
+      for(let i=0;i<t.pts.length;i+=3){const p=t.pts[i];for(let j=0;j<2;j++){const a=Math.random()*TAU,v=40+Math.random()*90;S.parts.push({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-40,life:.8,r:1.5+Math.random()*2,col:'#ff3d55'})}}}
+    t.bf=Math.max(0,t.bf-g*3)}
+  S.trails=S.trails.filter(t=>t.age<TRAIL);
+  S.pops.forEach(p=>{p.age+=g;p.y-=18*g});S.pops=S.pops.filter(p=>p.age<1.1);
+  S.parts.forEach(p=>{p.x+=p.vx*g;p.y+=p.vy*g;p.vx*=1-g*3;p.vy*=1-g*3;p.life-=g*1.4});S.parts=S.parts.filter(p=>p.life>0);
+  S.drops.forEach(d=>{d.t+=g;const dx=S.p.x-d.x,dy=S.p.y-d.y,k=Math.min(1,d.t*2.5);d.vx=lerp(d.vx,dx*7,k*g*8);d.vy=lerp(d.vy,dy*7,k*g*8);d.x+=d.vx*g;d.y+=d.vy*g;if(Math.hypot(dx,dy)<8&&d.t>.15)d.dead=true});
+  S.drops=S.drops.filter(d=>!d.dead&&d.t<1.5);
+  S.slashes.forEach(s=>s.age+=g);S.slashes=S.slashes.filter(s=>s.age<.4);
+  S.ghosts.forEach(s=>s.age+=g);S.ghosts=S.ghosts.filter(s=>s.age<.4);
+}
+// ---------- drawing ----------
+const veins=[];{let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;for(let i=0;i<22;i++){let x=r()*W,y=r()*H,a=r()*TAU;const p=[[x,y]];for(let k=0;k<12;k++){a+=(r()-.5)*.8;x+=Math.cos(a)*20;y+=Math.sin(a)*20;p.push([x,y])}veins.push(p)}}
+function bg(){c.fillStyle='#0e0407';c.fillRect(0,0,W,H);
+  c.strokeStyle='rgba(190,30,55,.08)';c.lineWidth=1;veins.forEach(p=>{c.beginPath();p.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke()});
+  c.strokeStyle='rgba(255,255,255,.025)';for(let x=0;x<=W;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}for(let y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
+  const g=c.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,W*.62);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(90,0,18,.35)');c.fillStyle=g;c.fillRect(0,0,W,H)}
+function stroke(pts,w,col){c.strokeStyle=col;c.lineWidth=w;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke()}
+function trails(){c.lineCap='round';c.lineJoin='round';
+  for(const t of S.trails){const f=t.age>TRAIL-.5?(TRAIL-t.age)/.5:1;
+    c.globalAlpha=.85*f;stroke(t.pts,22,'#3a0812');c.globalAlpha=.55*f;stroke(t.pts,12,'#6d0a1b');
+    c.globalAlpha=.35*f;c.setLineDash([2,9]);stroke(t.pts,3,'#ff3d55');c.setLineDash([]);
+    if(S.mast&&!t.burst){const k=t.age/BURST;c.globalAlpha=f*(.25+.5*k*k)*(.6+.4*Math.sin(S.clock*40));stroke(t.pts,5+10*k,'rgba(255,61,85,.5)')}
+    if(t.bf>0){c.globalAlpha=t.bf;stroke(t.pts,30*t.bf+6,'rgba(255,61,85,.55)');stroke(t.pts,6,'#ffe9ec');
+      for(let i=2;i<t.pts.length;i+=3){const p=t.pts[i],a=(i*2.3)%TAU,L=10+14*t.bf;c.strokeStyle='#ff3d55';c.lineWidth=2.5;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+Math.cos(a)*L,p.y+Math.sin(a)*L);c.stroke()}}
+    c.globalAlpha=1}}
+function enemy(e){c.save();c.translate(e.x,e.y);const r=e.r;
+  c.fillStyle=e.type==='heavy'?'#5a5368':'#6c6a7c';c.strokeStyle='#18121d';c.lineWidth=2;c.beginPath();
+  if(e.type==='heavy'){for(let j=0;j<6;j++){const a=j/6*TAU+.52;j?c.lineTo(Math.cos(a)*r,Math.sin(a)*r):c.moveTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath()}
+  else if(e.type==='shooter'){c.moveTo(0,-r*1.2);c.lineTo(r*1.1,0);c.lineTo(0,r*1.2);c.lineTo(-r*1.1,0);c.closePath()}
+  else c.arc(0,0,r,0,TAU);
+  c.fill();c.stroke();if(e.flash>0){c.fillStyle='rgba(255,255,255,'+e.flash*.75+')';c.fill()}
+  for(const sx of[-1,1]){c.fillStyle='#eef1f7';c.beginPath();c.arc(sx*r*.36,-r*.15,2,0,TAU);c.fill()}
+  if(e.bleed>0){for(let j=0;j<3;j++){const d=((S.clock*1.4+j/3+e.seed)%1);c.fillStyle='rgba(255,61,85,'+(1-d)+')';c.beginPath();c.ellipse((j-1)*r*.5,r+2+d*9,1.6,2.6,0,0,TAU);c.fill()}
+    c.fillStyle='#ff3d55';for(let j=0;j<3;j++){c.beginPath();c.arc(-6+j*6,-r-6,2,0,TAU);c.fill()}}
+  if(e.slow){c.strokeStyle='rgba(255,61,85,.6)';c.lineWidth=1.5;c.setLineDash([3,3]);c.beginPath();c.arc(0,0,r+5,0,TAU);c.stroke();c.setLineDash([])}
+  if(e.hp<e.max){c.fillStyle='rgba(0,0,0,.6)';c.fillRect(-r,r+5,r*2,3);c.fillStyle='#ff3d55';c.fillRect(-r,r+5,r*2*Math.max(0,e.hp/e.max),3)}
+  c.restore()}
+function fig(x,y,a,s,alpha,sx,sy){c.save();c.globalAlpha=alpha;c.translate(x,y);c.rotate(a);c.scale(s*(sx||1),s*(sy||1));
+  c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(2,3,12,10,0,0,TAU);c.fill();
+  c.fillStyle='#4a0d1b';c.strokeStyle='#12040a';c.lineWidth=1.6;c.beginPath();c.moveTo(-11,-9);c.quadraticCurveTo(-4,-13,6,-7);c.lineTo(6,7);c.quadraticCurveTo(-4,13,-11,9);c.quadraticCurveTo(-14,0,-11,-9);c.fill();c.stroke();
+  c.fillStyle='#8d1427';c.beginPath();c.arc(0,0,6.5,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#ff3d55';c.beginPath();c.arc(1.5,0,2.3,0,TAU);c.fill();
+  c.fillStyle='#e9c8c8';c.beginPath();c.arc(9,-6,2.2,0,TAU);c.arc(9,6,2.2,0,TAU);c.fill();
+  c.fillStyle='rgba(255,61,85,.9)';c.beginPath();c.arc(12,6,2.6+Math.sin(S.clock*6)*.5,0,TAU);c.fill();
+  c.restore()}
+function tailPts(path,len,skipHead){const out=[];let acc=0;for(let i=path.length-1;i>=0;i--){if(i<path.length-1)acc+=Math.hypot(path[i].x-path[i+1].x,path[i].y-path[i+1].y);if(acc>=skipHead)out.push({x:path[i].x,y:path[i].y,d:acc});if(acc>len+skipHead)break}return out}
+function ribbon(pts,maxW,phase){if(pts.length<2)return;const n=pts.length;
+  const off=pts.map((p,i)=>{const q=pts[Math.min(n-1,i+1)],o=pts[Math.max(0,i-1)],dx=q.x-o.x,dy=q.y-o.y,d=Math.hypot(dx,dy)||1,w=Math.sin(p.d*.07-phase)*4*(i/n);return{x:p.x+(-dy/d)*w,y:p.y+(dx/d)*w,k:1-i/n}});
+  [[3,'#2a040c'],[0,'#9d1027'],[-.55,'#ff3d55']].forEach(([ex,col],pass)=>{c.strokeStyle=col;for(let i=1;i<n;i++){const k=off[i].k;c.lineWidth=Math.max(.5,(pass===2?maxW*.45:maxW)*(.2+.8*k)+ex);c.beginPath();c.moveTo(off[i-1].x,off[i-1].y);c.lineTo(off[i].x,off[i].y);c.stroke()}});
+  c.strokeStyle='rgba(255,233,236,.8)';c.lineWidth=1.2;c.beginPath();for(let i=0;i<Math.min(n,8);i++)i?c.lineTo(off[i].x-1,off[i].y-1):c.moveTo(off[i].x-1,off[i].y-1);c.stroke();
+  return off}
+function serpent(pts,a,open,scale){if(pts.length<2)return;const n=pts.length;
+  for(let i=n-1;i>=0;i-=2){const k=1-i/n,r=(2+9*Math.pow(k,.7))*scale;c.fillStyle=i%4<2?'#7d0a1e':'#a8132c';c.strokeStyle='#2a040c';c.lineWidth=1.4;c.beginPath();c.arc(pts[i].x,pts[i].y,r,0,TAU);c.fill();c.stroke();
+    if(r>5){c.fillStyle='rgba(255,140,155,.35)';c.beginPath();c.arc(pts[i].x-r*.3,pts[i].y-r*.3,r*.35,0,TAU);c.fill()}}
+  const h=pts[0];c.save();c.translate(h.x,h.y);c.rotate(a);c.scale(scale,scale);
+  const o=.25+.45*open;c.fillStyle='#b5152f';c.strokeStyle='#2a040c';c.lineWidth=1.6;
+  for(const sgn of[-1,1]){c.beginPath();c.moveTo(-6,0);c.quadraticCurveTo(4,sgn*12,20,sgn*(4+o*10));c.lineTo(8,sgn*2);c.closePath();c.fill();c.stroke();
+    c.fillStyle='#ffe9ec';for(let t=0;t<3;t++){c.beginPath();c.moveTo(9+t*3.5,sgn*(2.5+o*3+t*1.4));c.lineTo(10.5+t*3.5,sgn*(2.5+o*3+t*1.4)-sgn*3);c.lineTo(12+t*3.5,sgn*(2.5+o*3+t*1.4));c.fill()}c.fillStyle='#b5152f'}
+  c.beginPath();c.ellipse(-4,0,10,8,0,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#ffd166';for(const sgn of[-1,1]){c.beginPath();c.ellipse(0,sgn*5,2.6,1.6,0,0,TAU);c.fill()}
+  c.restore()}
+function player(){
+  const R=S.rush,P=S.post;
+  if(R){const u=clamp(R.t/RD,0,1);
+    if(R.look==='A'){const pts=tailPts(R.path,Math.min(130,40+u*160),0);ribbon(pts,12,S.clock*60);
+      c.fillStyle='#ff3d55';c.beginPath();c.arc(S.p.x,S.p.y,7,0,TAU);c.fill();c.fillStyle='#ffe9ec';c.beginPath();c.arc(S.p.x+Math.cos(R.a)*2,S.p.y+Math.sin(R.a)*2,2.5,0,TAU);c.fill()}
+    else if(R.look==='B'){
+      c.lineCap='round';c.strokeStyle='rgba(255,61,85,.45)';c.lineWidth=14;c.beginPath();c.moveTo(R.ax,R.ay);c.lineTo(S.p.x,S.p.y);c.stroke();
+      c.strokeStyle='#ff3d55';c.lineWidth=5;c.stroke();c.strokeStyle='#ffe9ec';c.lineWidth=1.8;c.stroke();
+      fig(S.p.x,S.p.y,R.a,1,1,1.7,.55)}
+    else {const pts=tailPts(R.path,Math.min(120,30+u*160),0);serpent(pts,R.a,Math.sin(u*Math.PI*3)*.5+.5,1)}
+    return}
+  if(P){const k=clamp(P.t/POST,0,1);
+    if(P.look==='A'){const pts=tailPts(P.path,130*(1-k)*(1-k),0);if(pts.length>1)ribbon(pts,12*(1-k)+3,S.clock*60);
+      c.fillStyle='rgba(125,10,30,'+(1-k)*.8+')';c.beginPath();c.ellipse(P.x,P.y+3,16+10*k,9+6*k,0,0,TAU);c.fill();
+      c.strokeStyle='rgba(255,61,85,'+(1-k)+')';c.lineWidth=2;c.beginPath();c.arc(P.x,P.y,10+k*34,0,TAU);c.stroke();
+      const s=k<.5?k*2*1.12:1.12-.12*(k-.5)*2;fig(S.p.x,S.p.y,S.p.a,Math.max(.2,s),clamp(k*2.5,0,1),1,1);return}
+    if(P.look==='B'){c.globalAlpha=1-k;c.lineCap='round';c.strokeStyle='#ff3d55';c.lineWidth=4*(1-k);c.beginPath();c.moveTo(P.path[0].x,P.path[0].y);c.lineTo(P.x,P.y);c.stroke();c.strokeStyle='#ffe9ec';c.lineWidth=1.4*(1-k);c.stroke();c.globalAlpha=1;
+      fig(S.p.x,S.p.y,S.p.a,1,1,lerp(1.4,1,k),lerp(.75,1,k));return}
+    if(P.look==='C'){const pts=tailPts(P.path,120*(1-k),0);if(pts.length>1)serpent(pts.slice(),P.a,.2,1-k*.5);
+      c.strokeStyle='rgba(255,61,85,'+(1-k)+')';c.lineWidth=2;for(let j=0;j<2;j++){c.beginPath();c.arc(P.x,P.y,8+j*8+k*18,0,TAU);c.stroke()}
+      fig(S.p.x,S.p.y,S.p.a,Math.max(.25,k),clamp(k*1.6,0,1),1,1);return}}
+  fig(S.p.x,S.p.y,S.p.a,1,1,1,1)}
+function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function hud(){
+  c.textBaseline='alphabetic';c.fillStyle='#f3e6e6';c.font='700 16px '+DISP;c.textAlign='left';
+  c.fillText('VEIN RUSH · '+({A:'STREAM',B:'NEEDLE',C:'SERPENT'})[S.look]+(S.mast?' · CRIMSON TIDE':''),16,28);
+  c.font=MONO;c.textAlign='right';c.fillStyle='#b58a91';c.fillText('SPEED '+(S.speed===1?'1':S.speed===.5?'½':'¼')+'×   COOLDOWN 6 s (off in preview)',W-16,28);
+  const bw=240;c.fillStyle='rgba(0,0,0,.6)';rr(14,H-26,bw,11,5);c.fill();
+  c.fillStyle=S.hp<25?'#ff3b4e':'#e2d4d6';rr(14,H-26,Math.max(0,bw*S.hp/MAXHP),11,5);c.fill();
+  if(S.costFlash>0){c.fillStyle='rgba(255,61,85,'+S.costFlash+')';rr(14+bw*S.hp/MAXHP,H-26,bw*COST/MAXHP,11,3);c.fill()}
+  c.textAlign='left';c.fillStyle='#f3e6e6';c.font=MONO;c.fillText('HP '+Math.ceil(S.hp)+' / '+MAXHP+'   BLOOD PRICE +'+Math.round((bp()-1)*100)+'%',14,H-32);
+  if(S.last){c.textAlign='right';c.fillStyle=S.last.net>=0?'#ffb3bd':'#ff6b7d';c.fillText('LAST RUSH  '+S.last.n+' CUT   NET '+(S.last.net>=0?'+':'−')+Math.abs(S.last.net)+' HP',W-16,H-16)}
+  if(!S.rush&&!S.paused){const k=clamp(S.autoT/2,0,1);c.strokeStyle='rgba(255,61,85,.5)';c.lineWidth=2;c.beginPath();c.arc(S.p.x,S.p.y,17,-Math.PI/2,-Math.PI/2+TAU*(1-k));c.stroke()}
+  if(S.paused){c.fillStyle='rgba(0,0,0,.4)';c.fillRect(0,0,W,H);c.fillStyle='#f3e6e6';c.font='700 28px '+DISP;c.textAlign='center';c.fillText('PAUSED',W/2,H/2)}}
+function draw(){
+  bg();trails();
+  for(const s of S.ghosts){fig(s.x,s.y,s.a,1,(1-s.age/.4)*.45,1.2,.8)}
+  S.enemies.forEach(enemy);
+  for(const b of S.bullets){c.fillStyle=b.ghost?'rgba(255,179,71,.45)':'rgba(255,170,60,.3)';c.beginPath();c.arc(b.x,b.y,7,0,TAU);c.fill();c.fillStyle=b.ghost?'rgba(255,179,71,.6)':'#ffb347';c.beginPath();c.arc(b.x,b.y,3.5,0,TAU);c.fill()}
+  player();
+  for(const s of S.slashes){const k=s.age/.4,L=(s.r+26)*(k<.25?k*4:1);c.save();c.translate(s.x,s.y);c.rotate(s.a);c.globalAlpha=1-k;c.strokeStyle='#ff3d55';c.lineWidth=5;c.beginPath();c.moveTo(-L,0);c.lineTo(L,0);c.stroke();c.strokeStyle='#ffe9ec';c.lineWidth=1.6;c.stroke();c.restore();c.globalAlpha=1}
+  for(const p of S.parts){c.globalAlpha=clamp(p.life,0,1);c.fillStyle=p.col;c.beginPath();c.arc(p.x,p.y,p.r,0,TAU);c.fill()}c.globalAlpha=1;
+  for(const d of S.drops){c.fillStyle='#ffb3bd';c.beginPath();c.arc(d.x,d.y,2.6,0,TAU);c.fill();c.fillStyle='rgba(255,179,189,.25)';c.beginPath();c.arc(d.x,d.y,6,0,TAU);c.fill()}
+  c.textAlign='center';for(const p of S.pops){c.globalAlpha=1-clamp((p.age-.6)/.5,0,1);c.font=(p.big?'700 18px ':'700 14px ')+DISP;c.fillStyle='#000';c.fillText(p.txt,p.x+1,p.y+1);c.fillStyle=p.col;c.fillText(p.txt,p.x,p.y)}c.globalAlpha=1;
+  if(S.flash>0){c.fillStyle='rgba(255,233,236,'+S.flash*.12+')';c.fillRect(0,0,W,H)}
+  hud()}
+function icon(t){const s=192,k=s/96;ci.fillStyle='#0e0407';ci.fillRect(0,0,s,s);
+  ci.strokeStyle='rgba(190,30,55,.18)';ci.lineWidth=1;for(let i=0;i<6;i++){ci.beginPath();ci.moveTo(0,20+i*30);ci.bezierCurveTo(60,i*30,120,40+i*30,s,10+i*30);ci.stroke()}
+  ci.save();ci.translate(s/2,s/2);ci.rotate(-Math.PI/4);ci.lineCap='round';
+  const sh=(t*1.2)%1;
+  for(const [w,col] of [[22*k,'#3a0812'],[13*k,'#9d1027'],[6*k,'#ff3d55']]){ci.strokeStyle=col;ci.lineWidth=w;ci.beginPath();ci.moveTo(-34*k,0);ci.quadraticCurveTo(-8*k,6*k,20*k,0);ci.stroke()}
+  ci.strokeStyle='#ffe9ec';ci.lineWidth=2*k;ci.beginPath();ci.moveTo(-34*k+sh*40*k,-1*k);ci.lineTo(-24*k+sh*40*k,-1*k);ci.stroke();
+  ci.fillStyle='#ff3d55';ci.beginPath();ci.moveTo(34*k,0);ci.quadraticCurveTo(22*k,-11*k,14*k,0);ci.quadraticCurveTo(22*k,11*k,34*k,0);ci.fill();
+  ci.strokeStyle='#ffe9ec';ci.lineWidth=2*k;for(const x of[-14,0,13]){ci.beginPath();ci.moveTo(x*k-4*k,-12*k);ci.lineTo(x*k+4*k,12*k);ci.stroke()}
+  ci.restore();ci.strokeStyle='rgba(255,61,85,.5)';ci.lineWidth=1.5;ci.strokeRect(5,5,s-10,s-10)}
+// ---------- loop & controls ----------
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();icon(now/1000);requestAnimationFrame(frame)}
+reset();
+if(reduce)S.speed=.25;
+requestAnimationFrame(frame);
+cv.addEventListener('click',ev=>{const b=cv.getBoundingClientRect();startRush((ev.clientX-b.left)*W/b.width,(ev.clientY-b.top)*H/b.height);S.autoT=2.4});
+document.getElementById('replay').onclick=reset;
+document.getElementById('rushnow').onclick=()=>{S.autoT=0};
+const pb=document.getElementById('pause');pb.onclick=()=>{S.paused=!S.paused;pb.textContent=S.paused?'Resume':'Pause'};
+document.querySelectorAll('input[name=spd]').forEach(r=>r.addEventListener('change',()=>{S.speed=+r.value}));
+document.querySelectorAll('input[name=look]').forEach(r=>r.addEventListener('change',()=>{S.look=r.value;['A','B','C'].forEach(l=>document.getElementById('a'+l).classList.toggle('on',l===r.value))}));
+document.getElementById('mast').addEventListener('change',e=>{S.mast=e.target.checked});
+})();
+</script>
