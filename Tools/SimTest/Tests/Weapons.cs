@@ -229,12 +229,15 @@ static partial class Program
             d.MaxHp = d.Hp = 1e5f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
             return d;
         };
+        var heard = new HashSet<Sfx>();
         Action<int, bool, bool> Step = (frames, fire, alt) =>
         {
             for (int f = 0; f < frames; f++)
             {
                 me.Pos = from; queue.Clear();
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aimAt, Fire = fire && f < 3, WeaponAction = alt } : new PlayerInput()); }
+                foreach (var c in g.Sounds) heard.Add(c.Sfx);
+                g.Sounds.Clear();
             }
         };
         Func<V2, V2, byte, Bullet> Shot = (at, vel, kind) => (Bullet)shoot.Invoke(g, new object[] { kind, at, vel, 0f, 3f, 5f, 0, false, 0f });
@@ -255,6 +258,7 @@ static partial class Program
         Step(3, true, false);
         float early = Taken();
         Check(me.GreatStep == 3 && early == 0f, "the overhead rend winds up first: nothing lands in its first frames");
+        Check(heard.Contains(Sfx.GreatWindup), "and the blade lifting is heard");
         Step(30, false, false);
         float d3 = Taken();
         Check(Math.Abs(d3 - baseDmg * Game.GreatMult[2]) < 0.5f && d3 > 2f * d1, "then lands for 2.25 times a cut (" + d3 + " vs " + d1 + ")");
@@ -283,11 +287,13 @@ static partial class Program
         near.Hp = near.MaxHp;
         Step(5, true, true);
         Check(me.GreatGuard, "holding the weapon-action key raises the guard");
+        Check(heard.Contains(Sfx.GreatRaise), "the guard going up is heard");
         Check(Math.Abs(me.Speed - speed0 * Game.GreatGuardSlow) < 0.01f, "you move at half speed while guarding");
         Check(near.Hp == near.MaxHp && me.GreatStep == 0, "and you can't swing while it's up");
         int temper0 = me.GreatTemper;
         var b1 = Shot(from + new V2(Game.GreatGuardRadius + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
         Step(20, false, true);
+        Check(heard.Contains(Sfx.GreatBlock), "a bullet stopped on the arc rings");
         Check(!g.Bullets.ContainsKey(b1.Id) && me.GreatTemper == temper0 + 1, "a bullet hitting the arc is stopped and adds a point of Temper (" + me.GreatTemper + ")");
         var red = Shot(from + new V2(Game.GreatGuardRadius + 40f, 0f), new V2(-300f, 0f), Defs.PierceShot);
         Step(6, false, true);
@@ -303,6 +309,8 @@ static partial class Program
             Step(12, false, true);
         }
         Check(me.GreatTemper == Game.GreatTemperMax, "Temper stops at six (" + me.GreatTemper + ")");
+        Check(heard.Contains(Sfx.GreatFull), "and a chime says it is full");
+        heard.Remove(Sfx.GreatRend);
 
         // Release: the Rend. Full Temper, so it also primes the next chain.
         g.Enemies.Clear(); g.Bullets.Clear();
@@ -312,6 +320,7 @@ static partial class Program
         float hIn = inLine.MaxHp - inLine.Hp, hFar = farLine.MaxHp - farLine.Hp;
         Console.WriteLine("  greatsword rend at full Temper: first in line took {0:0}, second {1:0}, off the line {2:0}", hIn, hFar, wide.MaxHp - wide.Hp);
         Check(!me.GreatGuard && me.GreatTemper == 0, "letting go drops the guard and spends the Temper");
+        Check(heard.Contains(Sfx.GreatRend), "and the Rend is heard");
         Check(Math.Abs(hIn - full) < 0.5f && Math.Abs(hFar - full) < 0.5f, "a six-point Rend pierces everything in its line for 120 (" + hIn + ", " + hFar + ")");
         Check(wide.Hp == wide.MaxHp, "and misses what is off the line");
         Check(me.GreatPrimed, "a full Rend primes the next chain");

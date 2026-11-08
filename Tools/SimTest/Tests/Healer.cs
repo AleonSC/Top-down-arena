@@ -88,13 +88,13 @@ static partial class Program
         cast.Invoke(mg, new object[] { 1, 0, mm.Pos, false });
         Console.WriteLine("  martyr alone: paid {0:0}, ward {1:0.0} s", before - mm.Hp, mm.WardT);
         Check(mm.WardT > 11f && before - mm.Hp > mm.MaxHp * 0.35f, "alone, Martyr wards you for 12 s (instead of doing nothing)");
-        Check(mg.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius == 0), "putting the ward on plays the Martyr cast effect (Radius 0)");
+        Check(mg.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius % 10 == 0), "putting the ward on plays the Martyr cast effect (Radius 0)");
         m.Item2(1f);
         mm.InvulnT = 0f; mm.ShieldHp = 0f;
         damage.Invoke(mg, new object[] { mm, mm.Hp + 500f, "test" });
         Console.WriteLine("  martyr ward: after a lethal hit, downed {0}, health {1:0} of {2:0}", mm.Downed, mm.Hp, mm.MaxHp);
         Check(!mm.Downed && Math.Abs(mm.Hp - mm.MaxHp * 0.5f) < 1f && mm.WardT <= 0f, "the ward puts you straight back up at 50%, once");
-        Check(mg.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius == 2), "a spent ward plays the Martyr effect (Radius 2)");
+        Check(mg.Effects.Exists(e => e.Kind == FxKind.MartyrCast && (int)e.Radius % 10 == 2), "a spent ward plays the Martyr effect (Radius 2)");
         m.Item2(2f);
         mm.InvulnT = 0f; mm.ShieldHp = 0f;
         damage.Invoke(mg, new object[] { mm, mm.Hp + 500f, "test" });

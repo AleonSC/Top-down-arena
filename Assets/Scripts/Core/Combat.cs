@@ -72,7 +72,7 @@ namespace Arena
                 p.WardT = 0f;
                 p.Hp = Math.Max(1f, p.MaxHp * p.WardFrac);
                 p.InvulnT = Math.Max(p.InvulnT, p.WardInvuln);
-                BroadcastFx(FxKind.MartyrCast, p.Pos, p.Pos, new Rgba(0.9f, 0.15f, 0.25f), 2f, MartyrFxTime, Sfx.Revive);  // the halo spends itself (Game/MartyrLook.cs)
+                BroadcastFx(FxKind.MartyrCast, p.Pos, p.Pos, new Rgba(0.9f, 0.15f, 0.25f), 2f + 10f * p.Id, Math.Max(MartyrFxTime, p.WardInvuln), Sfx.Revive);  // the halo spends itself (Game/MartyrLook.cs)
             }
             DownIfDead(p, source);
         }

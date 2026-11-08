@@ -490,7 +490,7 @@ namespace Arena
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)
                 return false;
-            var seen = MeleeOwnerOf(fx, HammerSwingTime + (fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G ? 2.1f : 0.5f), false, 0.5f);  // (a hammer slam's cracks cool over about 2 s)
+            var seen = MeleeOwnerOf(fx, HammerSwingTime + (fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G ? 2.3f : 0.5f), false, 0.5f);  // (a hammer slam's cracks cool over about 2 s)
             if (seen == null || seen.Weapon != WeaponId.Lance && seen.Weapon != WeaponId.Warhammer)
                 return false;
             V2 o = MeleeOrigin(fx, seen), dir = to / reach, side = dir.Orthogonal();
@@ -527,7 +527,7 @@ namespace Arena
         /// the impact.
         void DrawHammerSlamE(MeleeSeen seen, V2 o, float aim, float reach, float radius, float power01, float T, int seed, bool light)
         {
-            var col = HammerGlow;
+            var col = HammerDust;
             bool aftershock = reach > Game.HammerCentre(seen.BaseReach) + 1f;  // `reach`: how far out the slam's circle is centred
             float d = reach, R = radius, power = Mathf.Clamp01((power01 - 0.2f) / 0.8f);
             V2 c = o + V2.FromAngle(aim) * d;
@@ -537,7 +537,7 @@ namespace Arena
                 float f = T / HammerSwingTime;
                 if (light)
                 {
-                    // The head's burning path so far: one ribbon widening toward the head, with a white core.
+                    // The head's path so far: a wide pale ribbon with a white core, widening toward the head.
                     const int n = 16;
                     float t0 = Mathf.Max(0f, f - 0.7f);
                     V2 prev = HammerHeadAt(o, aim, d, t0);
@@ -545,7 +545,7 @@ namespace Arena
                     {
                         float fi = t0 + (f - t0) * i / n, k0 = (float)(i - 1) / n, k1 = (float)i / n;
                         V2 p = HammerHeadAt(o, aim, d, fi);
-                        Ribbon(prev, p, 4f + 18f * k0, 4f + 18f * k1, col.WithAlpha(0.7f * k0), col.WithAlpha(0.7f * k1));
+                        Ribbon(prev, p, 3f + 10f * k0, 3f + 10f * k1, col.WithAlpha(0.7f * k0), col.WithAlpha(0.7f * k1));
                         Ribbon(prev, p, 1.2f, 1.2f, Rgba.White.WithAlpha(0.85f * k0 * k0), Rgba.White.WithAlpha(0.85f * k1 * k1));
                         prev = p;
                     }
@@ -554,57 +554,50 @@ namespace Arena
                 {
                     Rgba arm = ArmColor(seen.Owner);
                     for (int gh = 2; gh >= 1; gh--)  // two lagging ghosts of the head
-                        HammerPose(o, aim, d, Mathf.Max(0f, f - gh * 0.2f), 0.3f / gh, false, power, false, arm);
-                    HammerPose(o, aim, d, f, 1f, true, power, true, arm);
+                        HammerPose(o, aim, d, Mathf.Max(0f, f - gh * 0.2f), 0.3f / gh, false, 0f, false, arm);
+                    HammerPose(o, aim, d, f, 1f, false, 0f, true, arm);
                 }
                 return;
             }
-            const float life = 0.5f;
-            float k2 = Mathf.Clamp01(after / life);
+            float pw = 0.45f + 0.55f * power;
             if (light)
             {
-                // The area it hit, always the same circle: a faint glow and outline, brighter the harder the slam.
-                float pw = 0.45f + 0.55f * power, fade = 1f - k2;
-                float flash = 1f - Mathf.Clamp01(after / 0.16f);  // Forge: a white-orange flash, then a crater that glows and cools
-                if (flash > 0f)
-                    GlowDisc(c, R * (0.55f + 0.4f * pw), HammerHot, flash * 0.95f);
-                GlowDisc(c, R * 0.9f, col, 0.42f * pw * (1f - Mathf.Clamp01(after / (0.9f + 0.8f * pw))));
-                HammerCracks(c, R, pw, after, seed);
+                // Quake: a brief flash, and a ring of turning ticks marking the circle. Everything else is solid (below).
+                float fl = 1f - Mathf.Clamp01(after / 0.1f);
+                if (fl > 0f)
+                    GlowDisc(c, R * 0.7f, HammerFlash, 0.5f * fl * pw);
+                float tk = 1f - Mathf.Clamp01(after / 0.8f);
+                if (tk > 0f)
+                    for (int i = 0; i < 28; i++)
+                    {
+                        float ta = (float)i / 28f * MathX.Tau + after * 1.5f;
+                        V2 dn = V2.FromAngle(ta);
+                        Line(c + dn * (R - 4f), c + dn * (R + 4f), 2f, HammerFlash.WithAlpha(0.5f * tk));
+                    }
                 HammerStunStars(c, R, power, after);
-                GlowDisc(c, R * 1.1f, col, 0.35f * pw * fade);
-                GlowDisc(c, R * 0.6f, Rgba.White, 0.18f * pw * fade);
-                Arc(c, R, 2f, col.WithAlpha(0.7f * pw * fade), 48);
-                float wave = Mathf.Clamp01(after / 0.18f);  // a shockwave racing out to the edge
-                Arc(c, R * wave, 3f, Rgba.White.WithAlpha(0.6f * pw * (1f - wave)), 48);
-                if (after < 0.22f)
-                {
-                    float pk = (1f - after / 0.22f) * power;  // a pillar of light, only for a charged slam (the arena's up is -y)
-                    SoftLineFade(c, c + new V2(0f, -130f), 24f * pk + 6f, Rgba.White.WithAlpha(0.7f * pk), col.WithAlpha(0f));
-                }
+                return;
             }
-            else
+            HammerQuake(c, R, pw, after, seed);
+            Player owner;
+            bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
+            if (!aftershock && !charging)
             {
-                uint r = (uint)seed;
-                for (int i = 0; i < 30; i++)  // embers float up for a second or two
-                {
-                    float born = 0.06f * Rand01(ref r), life2 = 0.7f + 0.9f * Rand01(ref r), a = Rand01(ref r) * MathX.Tau, r0 = R * 0.8f * Mathf.Sqrt(Rand01(ref r)), rise = 30f + 70f * Rand01(ref r);
-                    float age = after - born;
-                    if (age < 0f || age > life2)
-                        continue;
-                    float k = age / life2;
-                    V2 p = c + new V2(Mathf.Cos(a) * r0 + Mathf.Sin(age * 5f + i) * 6f, Mathf.Sin(a) * r0 * 0.7f - rise * age);
-                    Square(p, 3f, (i % 3 != 0 ? col : new Rgba(1f, 0.94f, 0.82f)).WithAlpha(0.9f * (1f - k) * (0.6f + 0.4f * Mathf.Sin(age * 30f + i))));
-                }
-                Player owner;
-                bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
-                if (!aftershock && !charging)
-                {
-                    // It stays in the floor a moment, then is drawn back up as the held weapon fades back in.
-                    float u = Mathf.Clamp01((after - 0.3f) / 0.4f);
-                    HammerPose(o, aim, d, Mathf.Lerp(1f, 0f, EaseOut3(u)), 1f - Mathf.Clamp01((after - 0.6f) / 0.15f), after < 0.15f, power * (1f - Mathf.Clamp01(after / 0.5f)), true, ArmColor(seen.Owner));
-                }
+                // It stays in the floor a moment, is drawn back up, then settles into the held pose (DrawHammerIdle takes over there).
+                float f;
+                if (after < 0.15f)
+                    f = 1f;
+                else if (after < 0.55f)
+                    f = Mathf.Lerp(1f, 0f, EaseOut3((after - 0.15f) / 0.4f));
+                else if (after < HammerReturn)
+                    f = Mathf.Lerp(-1f, -0.3f, EaseOut3((after - 0.55f) / (HammerReturn - 0.55f)));
+                else
+                    return;
+                HammerPose(o, aim, d, f, 1f, false, 0f, true, ArmColor(seen.Owner));
             }
         }
+
+        const float HammerReturn = 0.85f;  // after the slam: when the hammer is back in the held pose
+        static readonly Rgba HammerDust = new Rgba(0.9f, 0.84f, 0.75f), HammerFlash = new Rgba(1f, 0.93f, 0.78f);
 
         /// The Warhammer's blast (Game.HammerBoomColor), sent beside its slam: with Visual effects on, the slam above draws the
         /// impact, so the blast's old ring and its glow are left out (effects off: drawn as before).
@@ -617,21 +610,29 @@ namespace Arena
             if (!fxOn)
                 return;
             float d = 16f + Game.MeleeReach(p, p.Weapon.Reach) * 0.65f;
-            HammerPose(p.Disp, p.Aim, d, -0.3f - 0.7f * charge, 1f, charge >= 1f, charge, true, p.Def.Color);
-            if (charge > 0.15f)  // the head sheds embers as it heats
-            {
-                float head = Time.unscaledTime;
-                float a, h, rr;
-                HammerArc(p.Aim, d, -0.3f - 0.7f * charge, out a, out h, out rr);
-                V2 hp = p.Disp + V2.FromAngle(a) * rr + new V2(0f, -26f * h);
-                for (int e = 0; e < 8; e++)
-                {
-                    uint sd = (uint)(e * 7919 + 13);
-                    float age = Mathf.Repeat(head * 1.2f + Rand01(ref sd), 1f);
-                    V2 ep = hp + new V2((Rand01(ref sd) - 0.5f) * 18f + Mathf.Sin(age * 6f + e) * 4f, -age * (30f + 20f * Rand01(ref sd)));
-                    Square(ep, 2.6f, (e % 2 == 0 ? HammerGlow : new Rgba(1f, 0.94f, 0.82f)).WithAlpha((1f - age) * 0.9f * charge));
-                }
-            }
+            HammerPose(p.Disp, p.Aim, d, -0.3f - 0.7f * charge, 1f, false, 0f, true, p.Def.Color);
+        }
+
+        /// The hammer held at the ready (no charge, no slam playing): the same pose a charge starts from and a slam settles back
+        /// into, so it moves smoothly in and out of the animation, as the Halberd does (HalberdLook.cs).
+        void DrawHammerIdle(Player p, float t)
+        {
+            if (!fxOn || p.Weapon.Id != WeaponId.Warhammer || p.Downed || HammerBusy(p))
+                return;
+            float d = 16f + Game.MeleeReach(p, p.Weapon.Reach) * 0.65f;
+            HammerPose(p.Disp, p.Aim, d, -0.3f + 0.03f * Mathf.Sin(t * 2.6f), 1f, false, 0f, true, p.Def.Color);
+        }
+
+        /// True while the hammer is being drawn by something else: charging, or the swing and its return after a slam.
+        bool HammerBusy(Player p)
+        {
+            if (p.DrawT > 0f)
+                return true;
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.Jab && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B
+                    && fx.T < HammerSwingTime + HammerReturn && (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
+                    return true;
+            return false;
         }
 
         /// Where the hammer's head is at `f` through its swing (0 raised over your left shoulder, 1 in the floor at d).
@@ -691,22 +692,23 @@ namespace Arena
                 Circle(h2, 4f, leather, 14);
             }
             float sc = 1f + 0.55f * h;
-            if (glow || heat > 0f)
-                GlowDisc(head, (26f + 14f * heat) * sc, HammerGlow, (glow ? 0.5f : 0f) * alpha + 0.45f * heat * alpha);
             V2 hx = dir * 9f * sc, hy = side * 16f * sc;
-            SetColor(HammerHead.Mix(new Rgba(1f, 0.6f, 0.33f), 0.8f * heat).WithAlpha(alpha));  // iron that glows as it heats (Forge)
+            SetColor(new Rgba(0.42f, 0.4f, 0.37f, alpha));  // dull stone-grey iron, nothing glowing (Quake)
             Quad(head - hx - hy, head + hx - hy, head + hx + hy, head - hx + hy);
+            SetColor(new Rgba(0.64f, 0.61f, 0.57f, alpha));
+            Quad(head - hx - hy, head + hx - hy, head + hx - hy * 0.4f, head - hx - hy * 0.4f);  // the lit side
+            Line(head - hx * 0.8f - hy, head - hx * 0.8f + hy, 1f, new Rgba(1f, 1f, 1f, 0.35f * alpha));
             V2 bandY = side * 5f * sc;
-            SetColor(HammerGlow.WithAlpha(0.95f * alpha));
+            SetColor(new Rgba(0.72f, 0.6f, 0.29f, alpha));  // brass bands on both striking faces
             Quad(head - hx - hy, head + hx - hy, head + hx - hy + bandY, head - hx - hy + bandY);
             Quad(head - hx + hy - bandY, head + hx + hy - bandY, head + hx + hy, head - hx + hy);
-            if (heat > 0.25f)  // hot seams in the face
-            {
-                var seam = new Rgba(1f, 0.9f, 0.7f, (0.4f + 0.5f * heat) * alpha);
-                Line(head - side * 9f * sc - dir * 3f * sc, head - side * 3f * sc + dir * sc, 1f, seam);
-                Line(head - side * 3f * sc + dir * sc, head + side * 2f * sc - dir * 2f * sc, 1f, seam);
-                Line(head + side * 2f * sc - dir * 2f * sc, head + side * 9f * sc + dir * 3f * sc, 1f, seam);
-            }
+        }
+
+                /// The owner's body colour, for the arms that hold the hammer.
+        Rgba ArmColor(int owner)
+        {
+            Player p;
+            return game.Players.TryGetValue(owner, out p) ? p.Def.Color : default(Rgba);
         }
 
         /// Stun stars over each enemy the slam caught, for as long as it is stunned (not bosses). The host's stun is not sent to
@@ -734,41 +736,66 @@ namespace Arena
             }
         }
 
-        static readonly Rgba HammerHot = new Rgba(1f, 0.88f, 0.67f);
-
-        /// The owner's body colour, for the arms that hold the hammer.
-        Rgba ArmColor(int owner)
+        /// Quake: the ground taking the blow. A dark crater with a lighter rim and cracks that stay for about two seconds, dust
+        /// puffs rolling out round the circle, and stone chips thrown up that land with a small shadow. Solid pass.
+        void HammerQuake(V2 c, float R, float pw, float after, int seed)
         {
-            Player p;
-            return game.Players.TryGetValue(owner, out p) ? p.Def.Color : default(Rgba);
-        }
-
-        /// Molten cracks running out from where the hammer landed: white-orange when they open, cooling to dark red over
-        /// about two seconds. More and longer for a harder slam.
-        void HammerCracks(V2 c, float R, float pw, float after, int seed)
-        {
-            float cool = Mathf.Clamp01(after / 1.9f);
-            if (cool >= 1f || after < 0f)
+            if (after < 0f)
                 return;
-            float vis = EaseOut3(Mathf.Clamp01(after / 0.14f)), al = 1f - cool * 0.85f;
-            var col = new Rgba(1f, Mathf.Lerp(0.75f, 0.12f, cool), Mathf.Lerp(0.47f, 0.06f, cool), al);
-            int n = 7 + Mathf.RoundToInt(4f * pw);
-            uint r = (uint)seed * 2654435761u + 7u;
-            for (int i = 0; i < n; i++)
+            float stay = 1f - Mathf.Clamp01((after - 0.4f) / 1.8f);
+            if (stay > 0f)
             {
-                float a = (float)i / n * MathX.Tau + (Rand01(ref r) - 0.5f) * 0.5f, len = R * (0.55f + 0.5f * Rand01(ref r)) * (0.6f + 0.4f * pw);
-                const int steps = 6;
-                int shown = Mathf.Max(2, Mathf.CeilToInt((steps + 1) * vis));
-                V2 prev = c;
-                for (int k = 1; k <= steps; k++)
+                Circle(c, R * 0.88f, new Rgba(0.03f, 0.027f, 0.023f, 0.34f * stay * pw), 36);
+                Arc(c, R * 0.88f, 2f, new Rgba(0.75f, 0.69f, 0.59f, 0.28f * stay), 36);
+                float vis = EaseOut3(Mathf.Clamp01(after / 0.12f));
+                int n = 7 + Mathf.RoundToInt(4f * pw);
+                uint r = (uint)seed * 2654435761u + 7u;
+                for (int i = 0; i < n; i++)
                 {
-                    float u = (float)k / steps, j = (Rand01(ref r) - 0.5f) * 0.34f;
-                    V2 p = c + V2.FromAngle(a + j) * (len * u);
-                    if (k < shown)
-                        Line(prev, p, 3.4f * (1f - cool * 0.55f), col);
-                    prev = p;
+                    float a = (float)i / n * MathX.Tau + (Rand01(ref r) - 0.5f) * 0.5f, len = R * (0.55f + 0.5f * Rand01(ref r)) * (0.6f + 0.4f * pw);
+                    const int steps = 6;
+                    int shown = Mathf.Max(2, Mathf.CeilToInt((steps + 1) * vis));
+                    V2 prev = c;
+                    for (int k = 1; k <= steps; k++)
+                    {
+                        float u = (float)k / steps, j = (Rand01(ref r) - 0.5f) * 0.34f;
+                        V2 pt = c + V2.FromAngle(a + j) * (len * u);
+                        if (k < shown)
+                        {
+                            Line(prev, pt, 2.4f, new Rgba(0.04f, 0.03f, 0.024f, 0.85f * stay));
+                            Line(prev + new V2(1.4f, 1.4f), pt + new V2(1.4f, 1.4f), 0.8f, new Rgba(0.78f, 0.72f, 0.63f, 0.25f * stay));
+                        }
+                        prev = pt;
+                    }
                 }
             }
+            for (int d = 0; d < 16; d++)  // dust rolling out
+            {
+                float an = (float)d / 16f * MathX.Tau + Hash01(seed, d) * 0.3f, k = after / 1.1f;
+                if (k < 0f || k > 1f)
+                    continue;
+                float rr = R * (0.55f + 0.55f * EaseOut3(Mathf.Min(1f, k * 1.1f))), pr = 8f + 20f * EaseOut3(k);
+                Circle(c + new V2(Mathf.Cos(an) * rr, Mathf.Sin(an) * rr * 0.9f - k * 10f), pr, new Rgba(0.62f, 0.58f, 0.52f, 0.34f * (1f - k) * (0.5f + 0.5f * pw)), 12);
+            }
+            for (int s2 = 0; s2 < 14; s2++)  // stone chips
+            {
+                float age = after - 0.02f * Hash01(seed, s2 + 20);
+                if (age < 0f || age > 0.9f)
+                    continue;
+                float a3 = Hash01(seed, s2 + 30) * MathX.Tau, v = 70f + 150f * Hash01(seed, s2 + 40) * pw, hh = Mathf.Max(0f, 150f * age - 260f * age * age);
+                float al = 1f - Mathf.Clamp01((age - 0.55f) / 0.35f);
+                V2 g = c + new V2(Mathf.Cos(a3) * v * age * 0.8f, Mathf.Sin(a3) * v * age * 0.6f);
+                Circle(g + new V2(0f, 3f), 3f, new Rgba(0f, 0f, 0f, 0.3f * al), 6);
+                Square(g + new V2(0f, -hh), 5f, (s2 % 2 == 0 ? new Rgba(0.59f, 0.56f, 0.5f) : new Rgba(0.43f, 0.41f, 0.37f)).WithAlpha(al));
+            }
+        }
+
+        static float Hash01(int seed, int k)
+        {
+            uint h = (uint)(seed * 73856093) ^ (uint)(k * 19349663);
+            h = h * 2654435761u + 12345u;
+            h ^= h >> 13;
+            return (h & 0xffff) / 65535f;
         }
 
         // --- Pieces ------------------------------------------------------------------------------------------------

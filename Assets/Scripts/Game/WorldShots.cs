@@ -328,7 +328,7 @@ namespace Arena
             var gold = new Rgba(1f, 0.82f, 0.3f);
             float r = p.Def.BodyR + 11f;
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
-            Arc(p.Disp, r, full ? 4f : 2.5f, (full ? gold : p.Def.Color).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
+            Arc(p.Disp, r + (fxOn && c > 0.2f ? Mathf.Sin(t * 70f) * 1.2f * c : 0f), full ? 4f : 2.5f, (full ? gold : p.Def.Color).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));  // (Quake: the ring trembles as it fills)
             // Where the slam will land: always the same circle. A faint outline marks the area; the charge grows an
             // inner disc from a small core out to the outline, gold and pulsing when it's full.
             float mult = Game.MeleeReach(p, p.Weapon.Reach) / p.Weapon.Reach;
@@ -341,6 +341,13 @@ namespace Arena
             var fill = full ? gold : new Rgba(1f, 0.7f, 0.4f);
             Circle(at, inner, fill.WithAlpha((0.14f + 0.3f * c) * a), 40);
             Arc(at, inner, full ? 4f : 2.5f, fill.WithAlpha((full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.55f + 0.3f * c) * a), 40);
+            if (fxOn && c > 0f)  // Quake: dust is pulled in toward the circle as the charge builds
+                for (int i = 0; i < 14; i++)
+                {
+                    float ph = Mathf.Repeat(t * 0.9f + i * 0.137f, 1f), an = i * 2.399f;
+                    float rr = R * (1.9f - 1.5f * ph);
+                    Circle(at + new V2(Mathf.Cos(an) * rr, Mathf.Sin(an) * rr * 0.9f), 2f + 2f * (1f - ph), new Rgba(0.69f, 0.64f, 0.57f, (1f - ph) * 0.5f * Mathf.Clamp01(c * 2f) * a), 8);
+                }
         }
 
         /// The Golem Staff's charge: a ring filling round you (gold when full) and, for your own, where the boulder

@@ -187,6 +187,12 @@ static partial class Program
         Check(hintBack.Valid && hintBack.HintLaunches == 1 && hintBack.ProfileOpened && !hintBack.ShowProfileHint, "opening the profile turns the hint off for good, and the file remembers it");
         Check(Profile.Parse("arena-profile 4\nruns 1 0 0\nend 1\n").HintLaunches == 0 && Profile.Parse(new Profile().ToText()).LoadedVersion == Profile.FormatVersion, "an older profile file loads with no hint count");
 
+        var tagP = new Profile();
+        tagP.TagSeen["Sniper"] = 2; tagP.TagSeen["Grunt"] = Profile.TagShows;
+        var tagBack = Profile.Parse(tagP.ToText());
+        Check(tagBack.Valid && tagBack.TagSeen.Count == 2 && tagBack.TagSeen["Sniper"] == 2 && tagBack.TagSeen["Grunt"] == Profile.TagShows, "the name-tag counts read back from the profile file");
+        Check(Profile.Parse("arena-profile 5\nruns 1 0 0\nend 1\n").TagSeen.Count == 0, "an older profile file loads with no name tags shown yet");
+
         ProfileFileTest();
         ProfileStoreTest();
 

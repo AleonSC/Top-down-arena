@@ -99,6 +99,7 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
+                    DrawGreatWindup(p);
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)
@@ -205,6 +206,7 @@ namespace Arena
                     continue;  // inside the Devourer (DevourerLook.cs shows them in its mouth)
                 DrawPlayerWrapped(p, t);
                 DrawHalberdIdle(p, t);  // the Halberd held at the ready (HalberdLook.cs)
+                DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawHeldStunGun(p, t);
             }
