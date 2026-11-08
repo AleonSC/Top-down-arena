@@ -484,20 +484,10 @@ namespace Arena
             return true;
         }
 
-        /// The Blood Mage's zones: the Siphon Field drawing motes in, and a Clot Bolt's glossy pool.
+        /// The Blood Mage's zone: a Clot Bolt's glossy pool.
         void DrawBloodZone(Zone z, Rgba c, float t)
         {
-            if (z.Kind == ZoneKind.Siphon)
-            {
-                Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 3f)), 48);
-                for (int k = 0; k < 10; k++)  // motes drifting in to the centre
-                {
-                    float f = MathX.Fmod(t * 0.5f + k * 0.37f, 1f);
-                    Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 10f + 0.6f * f) * (z.Radius * (1f - f)), 2.5f, c.WithAlpha(0.8f * f), 6);
-                }
-                Circle(z.Pos, 6f, c.WithAlpha(0.7f), 12);
-            }
-            else  // BloodPool
+            // BloodPool
             {
                 float fade = MathX.Clamp01(z.T / 0.5f);  // dries up at the end
                 Circle(z.Pos, z.Radius * 0.85f, c.WithAlpha(0.2f * fade), 32);
