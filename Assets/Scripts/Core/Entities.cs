@@ -150,8 +150,15 @@ namespace Arena
         public float ShoveCd;                         // host: the Bo Staff's shove cools down for this long
         public float KatanaGap, KatanaIdle;           // host: time since the last step began (negative while it plays); time since the last hit
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
-        public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
-        public float HookT;                           //   for this much longer (replicated)
+        public int HookId;                            // Kusarigama: the enemy the weight was thrown at, 0 for a miss (replicated; Kusarigama.cs)
+        public float HookT;                           //   the throw plays for this much longer, KusariThrowTime down to 0 (replicated)
+        public byte KusariStep;                       // Kusarigama: which piece of the combo landed last, 0 none, 1 the sickle cut, 2 the weight throw (replicated, drawn as pips behind you)
+        public float KusariAim;                       // Kusarigama: the angle the weight was thrown along (replicated)
+        public bool KusariWhirl;                      // Kusarigama: the weapon-action key is held, the weight circles you (replicated; you move slowly and can't swing)
+        public float KusariHeld, KusariAng;           //   how long it has whirled, and where the weight is on its circle (replicated)
+        public float KusariGap, KusariLock;           // host: seconds since the last piece; seconds before the whirl can start again
+        public float KusariDmg, KusariD0;             // host: the throw's damage; how far its target was from you when it landed
+        public bool KusariHit;                        // host: the throw landed and is dragging its target in
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
@@ -282,7 +289,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -361,6 +368,7 @@ namespace Arena
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
         public int Hemorrhage;               // Blood Bolts stuck in it (the fifth bursts; BloodMage.cs); replicated, for drawing
         public float HemorrhageT;            // host: until they fade
+        public float KusariCd;               // host: the Kusarigama's whirl can hit it again after this long
         public float Suppress;               // host: the Riot Repeater's suppression, 0 to SuppressMax (slows its shooting)
         public bool Suppressed;              // replicated, for drawing
         public float PoisonT, PoisonDps;     // host: Medicine Darts' poison (stacking)
@@ -521,6 +529,6 @@ namespace Arena
         public bool Ultimate;
         public bool Parry;     // held: raise the parry shield toward the cursor
         public bool Dodge;         // pressed: dodge (Ctrl or a double tap of a movement key; Dodge.cs); this machine only
-        public bool WeaponAction;  // held: your weapon's secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel); this machine only
+        public bool WeaponAction;  // held: your weapon's secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl); this machine only
     }
 }

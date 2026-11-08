@@ -498,7 +498,7 @@ static partial class Program
             for (int f = 0; f < 6 * 60; f++)
             {
                 queue.Clear();
-                me.Pos = w.Id == WeaponId.Kusarigama ? center - new V2(70f, 0f)  // within its reel slash, since this holds you still
+                me.Pos = w.Id == WeaponId.Kusarigama ? center - new V2(70f, 0f)  // within its sickle cut
                     : w.Melee ? center - new V2(Game.MeleeRange(w.Id) * 0.5f + 40f, 0f) : from;  // knights stand in reach
                 ally.Pos = new V2(560f, 300f);
                 foreach (var e in dummies) { e.Speed = 0f; e.FireT = 99f; e.Pos = e.Disp; }
@@ -506,7 +506,7 @@ static partial class Program
                 {
                     x.Poll();
                     // The bow fires when you let go: draw past full (1.25 s), release, repeat.
-                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = w.Id == WeaponId.SpiritChalk ? from + V2.FromAngle(f * 0.06f) * 280f : center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75, WeaponAction = w.Id == WeaponId.Kusarigama && f % 20 < 10 } : new PlayerInput());
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = w.Id == WeaponId.SpiritChalk ? from + V2.FromAngle(f * 0.06f) * 280f : center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75 } : new PlayerInput());
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
@@ -700,6 +700,12 @@ static partial class Program
                     if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.Kusarigama)
+                {
+                    // The weight is state, not an effect: the aim line shows how far it is thrown (Game.KusariReachOf).
+                    if (Math.Abs(range - g.KusariReachOf(me)) < 0.5f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (throws " + g.KusariReachOf(me).ToString("0") + " vs " + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.WispLantern || w.Id == WeaponId.ImpCaller)
                 {
                     // No shots: your companions are sent (WispLantern/ImpCaller tests); the aim line shows how far.
@@ -734,7 +740,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.ChainThrow)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }

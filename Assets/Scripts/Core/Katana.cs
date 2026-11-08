@@ -93,6 +93,12 @@ namespace Arena
                     p.ShoveCd = 0f;
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Kusarigama)
+            {
+                p.KusariStep = 0;  // back to the sickle cut (a throw already away still lands)
+                p.FireCd = 0f;
+                return;
+            }
             if (p.Weapon.Id == WeaponId.Greatsword)
             {
                 ResetGreatChain(p);  // Greatsword.cs

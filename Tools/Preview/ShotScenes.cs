@@ -705,12 +705,18 @@ static partial class Shot {
       for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].Hemorrhage = k + 1; }
     }
     if (Environment.GetEnvironmentVariable("HOOK") != null) {
-      // The Kusarigama: hooked in an enemy (the chain taut to it), and a throw flying out.
+      // The Kusarigama: HOOK=whirl (the weight circling you, enemies drawn in) or HOOK=<seconds into the throw, 0 to 0.65> (a throw biting an enemy).
+      string hookMode = Environment.GetEnvironmentVariable("HOOK");
       me.Kit = Kit.Ninja; me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0); host.Game.Bot = false;
       me.Pos = me.Disp = new V2(500f, 450f); me.Aim = 0f;
       var hk = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
-      if (hk.Count > 0) { hk[0].Pos = hk[0].Disp = new V2(720f, 420f); me.HookId = hk[0].Id; me.HookT = 2f; me.Aim = (hk[0].Pos - me.Pos).Angle; }
-      host.Game.Effects.Add(new Effect { Kind = FxKind.ChainThrow, Pos = new V2(500f, 600f), Pos2 = new V2(780f, 600f), Color = new Rgba(0.75f, 0.78f, 0.85f), Radius = 0f, Dur = 0.25f, T = 0.06f });
+      if (hookMode == "whirl") {
+        me.KusariWhirl = true; me.KusariHeld = 1.4f; me.KusariAng = 2.2f; me.Aim = 0f;
+        for (int k = 0; k < hk.Count && k < 6; k++) { V2 at = me.Pos + V2.FromAngle(k * 1.05f) * (70f + 22f * (k % 3)); hk[k].Pos = hk[k].Disp = at; }
+      } else {
+        float tk = float.Parse(hookMode);
+        if (hk.Count > 0) { hk[0].Pos = hk[0].Disp = new V2(720f, 450f); me.HookId = hk[0].Id; me.HookT = Game.KusariThrowTime - tk; me.KusariAim = 0f; me.KusariStep = 2; }
+      }
     }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

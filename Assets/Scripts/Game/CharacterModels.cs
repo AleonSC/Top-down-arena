@@ -601,10 +601,7 @@ namespace Arena
                 case WeaponId.Kusarigama:
                 {
                     MLine(-4f, 0f, 12f, 0f, 2.6f, MWood); MArc(14f, -6f, 8f, 0.2f, 1.9f, 2.6f, MSteel);
-                    Enemy hooked;
-                    if (p.HookT > 0f && game.Enemies.TryGetValue(p.HookId, out hooked))
-                        DrawChain(MW(-4f, 0f), hooked.Disp, mAlpha);
-                    else
+                    if (p.HookT <= 0f && !p.KusariWhirl)  // (a thrown or whirling weight is drawn in the world: KusarigamaLook.cs)
                         for (int i = 0; i < 9; i++) { float a = t * 1.5f + i * 0.7f; MCirc(-4f + Mathf.Cos(a) * 6f, 8f + Mathf.Sin(a) * 4f, 1f, Hx(0xb8c2d0), 6); }
                     break;
                 }
