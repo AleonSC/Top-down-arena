@@ -770,6 +770,7 @@ namespace Arena
                 float aim = to.Angle, power = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f), pw = 0.45f + 0.55f * power;
                 V2 c = MeleeOrigin(fx, seen) + V2.FromAngle(aim) * reach;
                 HammerCrater(c, fx.Radius, pw, after, MeleeSeed(fx));
+                HammerDustPuffs(fx.Radius, c, pw, after, MeleeSeed(fx));
             }
         }
 
@@ -805,8 +806,14 @@ namespace Arena
             }
         }
 
-        /// What the slam throws up: dust puffs rolling out round the circle, and stone chips that land with a small shadow.
+        /// What the slam throws up: stone chips that land with a small shadow (the dust is on the floor: HammerDustPuffs).
         void DrawHammerRise(V2 c, float R, float pw, float after, int seed)
+        {
+            DrawHammerChips(pw, c, after, seed);
+        }
+
+        /// Dust puffs rolling out round the circle, drawn under the enemies with the crater.
+        void HammerDustPuffs(float R, V2 c, float pw, float after, int seed)
         {
             for (int d = 0; d < 16; d++)  // dust rolling out
             {
@@ -816,6 +823,10 @@ namespace Arena
                 float rr = R * (0.55f + 0.55f * EaseOut3(Mathf.Min(1f, k * 1.1f))), pr = 8f + 20f * EaseOut3(k);
                 Circle(c + new V2(Mathf.Cos(an) * rr, Mathf.Sin(an) * rr * 0.9f - k * 10f), pr, new Rgba(0.62f, 0.58f, 0.52f, 0.34f * (1f - k) * (0.5f + 0.5f * pw)), 12);
             }
+        }
+
+        void DrawHammerChips(float pw, V2 c, float after, int seed)
+        {
             for (int s2 = 0; s2 < 14; s2++)  // stone chips
             {
                 float age = after - 0.02f * Hash01(seed, s2 + 20);
