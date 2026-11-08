@@ -408,6 +408,14 @@ namespace Arena
         /// Players' big shots (kinds below Defs.SmallShot), drawn under enemies.
         void DrawBigShot(Bullet b, float t)
         {
+            float keep = glAlpha;
+            glAlpha = keep * TeammateShotAlpha(b);  // WorldShots.cs
+            DrawBigShotLook(b, t);
+            glAlpha = keep;
+        }
+
+        void DrawBigShotLook(Bullet b, float t)
+        {
             DrawShotMods(b, t);
             if (DrawWeaponShot(b, t))
                 return;  // its weapon's new look (ShotLooks.cs)

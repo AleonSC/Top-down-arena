@@ -74,6 +74,17 @@ namespace Arena
         /// Small shots (enemies', arrows, sword waves...), drawn over everything else.
         void DrawSmallShot(Bullet b, float t)
         {
+            float keep = glAlpha;
+            glAlpha = keep * TeammateShotAlpha(b);  // a teammate's shot, as faded in Settings > Gameplay
+            DrawSmallShotLook(b, t);
+            glAlpha = keep;
+        }
+
+        /// How opaque a shot is drawn: 1 for yours and the enemies', the Settings > Gameplay "Teammate shots" value for another player's.
+        float TeammateShotAlpha(Bullet b) => mateShotAlpha < 1f && b.Owner != game.MyId && !Defs.IsEnemyShot(b.Kind) && game.Players.ContainsKey(b.Owner) ? mateShotAlpha : 1f;
+
+        void DrawSmallShotLook(Bullet b, float t)
+        {
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
