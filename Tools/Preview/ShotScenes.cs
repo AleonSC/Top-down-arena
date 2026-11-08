@@ -446,7 +446,8 @@ static partial class Shot {
       switch (me.Weapon.Id) {
         case WeaponId.Warhammer: gm.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.HammerCentre(reach), Color = Game.HammerBoomColor.WithAlpha(float.Parse(Environment.GetEnvironmentVariable("HAMMERPOW") ?? "1", System.Globalization.CultureInfo.InvariantCulture)), Radius = Game.HammerRadius, T = st, Dur = 0.26f }); break;
         case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
-        case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Rapier: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
         case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
         {

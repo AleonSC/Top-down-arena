@@ -244,7 +244,7 @@ namespace Arena
             // The Halberd's sweep takes its six steps' 0.21 s at a steady speed, in step with its hits; the others ease out
             // over 0.11 s (the hit has already landed).
             bool full = half >= MathX.Pi - 0.01f, halberd = seen.Weapon == WeaponId.Halberd;
-            float sweepTime = halberd ? HalberdSweepTime : MeleeSweepTime;
+            float sweepTime = halberd ? HalberdSweepTime : seen.Weapon == WeaponId.Kusarigama ? KusariSweepTime : MeleeSweepTime;
             float s = seen.Sign, e = halberd ? Mathf.Clamp01(T / sweepTime) : EaseOut3(Mathf.Clamp01(T / sweepTime));
             float fadeOut = T < sweepTime ? 1f : 1f - Mathf.Clamp01((T - sweepTime) / MeleeTail);
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
@@ -261,6 +261,8 @@ namespace Arena
                 KatanaCrescent(o, reach, start, at, T, sweepTime, col, half > 1.5f ? 0.4f : 0.3f, false);  // one long crescent, thin at the tail and fat at the blade (fatter for the overhead rend)
                 KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
             }
+            else if (light && seen.Weapon == WeaponId.Kusarigama && !full)
+                KusariCutLook(fx, o, reach, start, at, T, col);  // KusarigamaLook.cs: the ribbon and the crescent it leaves hanging
             else if (light)
                 GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
             else
