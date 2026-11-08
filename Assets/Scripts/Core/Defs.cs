@@ -388,7 +388,8 @@ namespace Arena
             PauseShot = 53,    // the Pauser's shots: fly out, stop dead and hang, then the host fires a rush shot from each (Variety.cs)
             StitchShot = 54,   // the Stitcher's orbs: each is tied to the nearest other one by a harmful thread (Variety.cs)
             FireflyShot = 55,  // the Sprite Staff's firefly: seeds what it hits, then hops to the nearest enemy that isn't seeded (KitWeapons.cs)
-            MedkitShot = 56;   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
+            MedkitShot = 56,   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
+            TreantSeed = 57;   // a tiny seed the Treant Rod's Treant flicks at enemies, drawn as a thorn dart (KitWeapons.cs, Game/SeedLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
 
@@ -417,6 +418,7 @@ namespace Arena
                 case BoltShot: return 4f;
                 case SeedShot: return 4f;
                 case FireflyShot: return 5f;
+                case TreantSeed: return 2.5f;
                 case BoneShot: return 3.5f;
                 case RockShot: return 6f;
                 case MinionShot: return 3.5f;
@@ -501,6 +503,7 @@ namespace Arena
                 case BoltShot: return new Rgba(0.75f, 0.85f, 1f);
                 case SeedShot: return new Rgba(0.55f, 0.9f, 0.35f);
                 case FireflyShot: return new Rgba(0.89f, 0.97f, 0.56f);
+                case TreantSeed: return new Rgba(0.74f, 0.94f, 0.54f);
                 case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
                 case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);

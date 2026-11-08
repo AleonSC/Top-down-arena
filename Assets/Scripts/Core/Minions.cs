@@ -147,7 +147,7 @@ namespace Arena
                 Companion = MinionKind.Sprite, CompanionCount = 2 },
             new WeaponDef { Id = WeaponId.TreantRod, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1, Damage = 15f, Reach = 250f, BotRange = 210f, ExtraDesc = "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther", Name = "Treant Rod", FireInterval = 0.55f,
                 Desc = "A thorny root whips out along your aim and snaps back, hitting everything on the line and healing allies it touches. Your Treant roots where it stands and blocks bullets; a root runs from you to it, healing allies who cross it and slowing enemies.",
-                Sound = Sfx.SwingLight, AreaDesc = "the lash is 25% wider",
+                Sound = Sfx.SwingRoot, AreaDesc = "the lash is 25% wider",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line before the start rubs out", Name = "Spirit Chalk", FireInterval = 0.1f,
                 Desc = "Hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals allies standing on it and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside (not bosses).",
@@ -732,6 +732,8 @@ namespace Arena
                         break;
                     }
                     case MinionAttack.Slam:
+                        if (m.Kind == MinionKind.Treant)
+                            TickTreantSeeds(m, owner, rate, dt);  // KitWeapons.cs
                         if (m.Cd <= 0f && NearestEnemy(m.Pos, reach) != null)
                         {
                             m.Cd = d.Interval;

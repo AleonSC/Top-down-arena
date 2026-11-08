@@ -144,7 +144,7 @@ namespace Arena
 
         /// Weapon mods apply to players' shots, but not to grenades (they land where you aim)
         /// or to Swarm Rounds' splinters.
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -168,6 +168,8 @@ namespace Arena
                 return Sfx.ShotTurret;
             if (kind == Defs.NovaShot)
                 return Sfx.ShotNova;
+            if (kind == Defs.TreantSeed)
+                return Sfx.ShotSeed;
             Player p;
             if (!Players.TryGetValue(owner, out p))
                 return Sfx.ShotRifle;
@@ -1156,7 +1158,9 @@ namespace Arena
         void RemovedFx(Bullet b)
         {
             AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(b.Kind), 10f, 0.15f);
-            if (!Defs.IsEnemyShot(b.Kind))
+            if (b.Kind == Defs.TreantSeed)
+                Sounds.Add(new SoundCue { Sfx = Sfx.ShotSeedHit, Ally = b.Owner != MyId });
+            else if (!Defs.IsEnemyShot(b.Kind))
                 Sounds.Add(Sfx.Hit);
         }
 

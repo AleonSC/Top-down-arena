@@ -87,6 +87,11 @@ namespace Arena
                 DrawStormHammer(b, c, t);
                 return;
             }
+            if (b.Kind == Defs.TreantSeed)
+            {
+                DrawThornDart(b);  // SeedLook.cs
+                return;
+            }
             if (b.Kind == Defs.MedkitShot)
             {
                 DrawMedkitShot(b, t);  // HealerKitLooks.cs

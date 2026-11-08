@@ -65,6 +65,8 @@ namespace Arena
         // fifth chain (empowered) and a streak lost. On your own screen only, never sent: meter full, no charge, aim begins, target changes.
         KatanaSwipe1, KatanaSwipe2, KatanaWindup, KatanaLunge, KatanaHit, KatanaStance, KatanaStrikeCut, KatanaEmpStrikeCut, KatanaSheathe, KatanaBlow,
         KatanaChain1, KatanaChain2, KatanaChain3, KatanaChain4, KatanaChain5, KatanaEmpReady, KatanaLost, KatanaReady, KatanaEmpty, KatanaAim, KatanaSwitch,
+        // The Treant Rod (TreantSoundBank.cs, from Docs/Mockups/treant-rod-sounds-seeds.html): the root lash's leaf rustle, the Treant's seed shot (Pod Pop) and a seed landing (Tick). Sent, so quieter for allies.
+        SwingRoot, ShotSeed, ShotSeedHit,
     }
 
     public struct SoundCue
@@ -484,6 +486,7 @@ namespace Arena
         public bool Stood, SlamHit;      // host: a Titan has finished rising; its slam has landed
         public System.Collections.Generic.HashSet<int> Burrowed;  // host: the enemies a Burrower has already bitten (Burrower.cs)
         public bool Capstone;            // host: a Burrower from a mastered Earthquake (freezes what it bites)
+        public float SeedCd;             // host: a Treant Rod Treant's time to its next seed (KitWeapons.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 

@@ -380,6 +380,23 @@ namespace Arena
             }
         }
 
+        public const float SeedDamage = 3f, SeedInterval = 0.4f, SeedRange = 320f, SeedSpeed = 520f;
+
+        /// Host: a Treant Rod's Treant flicks a tiny seed (SeedDamage, every SeedInterval) at the nearest enemy within SeedRange. Seeds take
+        /// your damage and fire-rate boosts and reach as far as the Treant's size allows; they get no weapon mods. A staggered Treant holds fire.
+        void TickTreantSeeds(Minion m, Player owner, float rate, float dt)
+        {
+            m.SeedCd -= dt * rate;
+            if (!m.Companion || m.StaggerT > 0f || owner.Weapon.Id != WeaponId.TreantRod || owner.Downed || State != MatchState.Fighting || m.SeedCd > 0f)
+                return;
+            var e = NearestEnemy(m.Pos, SeedRange * m.Scale);
+            if (e == null)
+                return;
+            m.SeedCd = SeedInterval;
+            V2 dir = (e.Pos - m.Pos).Normalized();
+            SpawnBullet(Defs.TreantSeed, m.Pos + dir * (m.Def.Radius * m.Scale), dir * SeedSpeed, 0f, SeedRange * m.Scale / SeedSpeed, SeedDamage * owner.Stats.DmgMult, m.Owner);
+        }
+
         static float DistToSegment(V2 pt, V2 a, V2 b)
         {
             V2 ab = b - a;
