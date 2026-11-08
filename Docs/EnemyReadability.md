@@ -24,7 +24,9 @@ blinks and fires its ring, and the Mortar's bomb comes with a landing ring (`Mor
 Aim lines (`Game/ShooterAimLook.cs`): while an aimed shooter winds up (`Enemy.Winding`, 0.3 s) a thin dashed line, the same dash
 the Leader and Beam Sentry use, shows its shot: Sniper, Shard, Medic, Splitter and Phantom one line, the Grunt its three-shot fan. The
 rings, spirals and lobs (Burster, Spinner, Mortar) have their own marks. Preview: `AIM=0.8 Tools/Preview/shot.sh aim hud 12 5 1`.
-Still to do: the Charger's end ring.
+Charger: a `FxKind.Target` ring marks where the dash ends (and so where its ring of 8 will burst) from the start of the wind-up
+(`ChargerDashSpeed` x `ChargerDashTime` = 252 px along its facing, clamped to the arena; walls can still cut a dash short).
+Section 2 (telegraphs) is done; section 4 (name tags) is next.
 
 ## 3. Fewer types per wave
 Waves 16-24 spawn 10-14 distinct types (see the run logs). Cap a recipe wave at 6 distinct types (8 from wave 25):

@@ -154,6 +154,12 @@ static partial class Program
         mo.Spawning = false; mo.FireT = 0f;
         fire.Invoke(g, new object[] { mo, target });
         Check(g.Effects.Exists(fx => fx.Kind == FxKind.Target), "a Mortar's bomb comes with a landing ring");
+        g.Effects.Clear(); g.Bullets.Clear();
+        var ch = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Charger, new V2(200f, 400f), 0f, 0, false });
+        ch.Spawning = false; ch.FireT = 0f;
+        fire.Invoke(g, new object[] { ch, new V2(900f, 400f) });
+        V2 end = new V2(200f + Game.ChargerDashSpeed * Game.ChargerDashTime, 400f);
+        Check(ch.Phase == 1 && g.Effects.Exists(fx => fx.Kind == FxKind.Target && fx.Pos.DistanceTo(end) < 2f), "a Charger marks where its dash ends (and its ring will burst) from the start of the wind-up");
     }
 
     static void WaveMixReport()

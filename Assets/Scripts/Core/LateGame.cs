@@ -95,7 +95,8 @@ namespace Arena
 
         // --- Mechanics ----------------------------------------------------------
 
-        public const float PhantomWarn = 0.5f, PhantomBurstRadius = 40f, MortarMarkRadius = 40f;  // the Phantom blink warning ring (how long, how big) and the Mortar landing ring
+        public const float PhantomWarn = 0.5f, PhantomBurstRadius = 40f, MortarMarkRadius = 40f,
+            ChargerDashSpeed = 560f, ChargerDashTime = 0.45f, ChargerRingMark = 40f;  // the Charger's dash (speed, seconds) and the ring marking where it ends  // the Phantom blink warning ring (how long, how big) and the Mortar landing ring
 
         void LateSpecial(Enemy e, V2 tpos, float dt)
         {

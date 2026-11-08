@@ -710,7 +710,7 @@ namespace Arena
                     else if (e.Phase == 2)
                     {
                         v = V2.FromAngle(e.Facing);
-                        speed = 560f;
+                        speed = ChargerDashSpeed;
                     }
                     break;
                 case EnemyType.HiveBomber:  // a straight line to the spot it was launched at; Swarm's flankers swoop round (Queen.cs)
@@ -899,7 +899,7 @@ namespace Arena
                     if (e.Phase == 1)
                     {
                         e.Phase = 2;
-                        e.PhaseT = 0.45f;
+                        e.PhaseT = ChargerDashTime;
                     }
                     else
                     {
@@ -1016,6 +1016,7 @@ namespace Arena
                         e.Phase = 1;      // start winding up toward the target
                         e.PhaseT = 0.7f;
                         e.Facing = aim;
+                        BroadcastFx(FxKind.Target, ClampToArena(e.Pos + V2.FromAngle(aim) * (ChargerDashSpeed * ChargerDashTime), e.Radius), e.Def.Color, ChargerRingMark, 0.7f + ChargerDashTime, Sfx.None);  // where its ring will burst, from the start of the wind-up
                     }
                     e.FireT = 99f;        // the dash cycle resets this
                     break;
