@@ -461,6 +461,8 @@ namespace Arena
                 p.Combo = Math.Min(ComboMax, p.Combo + 1);
                 p.ComboT = ComboWindow;
             }
+            if (hits.Count > 0 && p.Weapon.Melee && !s.Silent)
+                p.MeleeGraceT = MeleeContactGrace;  // you're in the thick of it: touching bodies don't hurt for a moment
             if (hits.Count > 0 && s.Meter > 0f)  // a Katana step landed: the strike meter builds, per enemy hit
                 KatanaGain(p, s.Meter * hits.Count);
             int healed = 0;
@@ -915,6 +917,7 @@ namespace Arena
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
                 p.FuryT = Math.Max(0f, p.FuryT - dt);
                 p.BossContactT = Math.Max(0f, p.BossContactT - dt);
+                p.MeleeGraceT = Math.Max(0f, p.MeleeGraceT - dt);
                 TickStand(p, dt);  // LastStand.cs
                 if (p.Downed)
                 {

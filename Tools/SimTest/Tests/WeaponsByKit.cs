@@ -884,6 +884,7 @@ static partial class Program
         volley.Invoke(g, new object[] { me, 0f, 0 });
         play(0.05f, new PlayerInput());
         float held = me.KatanaMeter;
+        Check(me.MeleeGraceT > 0f, "a melee swing that lands keeps contact damage off you for a moment");
         play(1.0f, new PlayerInput());
         Check(me.KatanaStep == 0 && me.KatanaMeter == held, "a pause of 0.7 s resets the chain; the meter holds for 1.2 s");
         play(0.2f + 1.0f, new PlayerInput());
