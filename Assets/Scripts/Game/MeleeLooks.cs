@@ -32,6 +32,7 @@ namespace Arena
             public WeaponId Weapon;
             public float Sign = 1f;       // which way it sweeps (Twin Blades and the Katana alternate)
             public float BaseReach;       // the weapon's own reach (a Warhammer aftershock reaches further)
+            public int Fired;             // the Halberd: which sweeps' first cut has already kicked your screen (bit 1, bit 2)
         }
 
         readonly Dictionary<Effect, MeleeSeen> meleeSeen = new Dictionary<Effect, MeleeSeen>();
@@ -183,6 +184,8 @@ namespace Arena
             bool thrust = half < 0f;
             if (half >= 0f && half < 0.2f)
                 return false;  // a lunge or a dash streak, not a swing: the old look
+            if (!thrust && IsHalberdFx(fx))
+                return DrawHalberdFx(fx, light);  // HalberdLook.cs: the whole swing from the click
             var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust, thrust ? MeleeThrustTime + 0.25f : (half >= MathX.Pi - 0.01f ? 0.4f : MeleeSweepTime + 0.28f));
             if (seen == null)
                 return false;

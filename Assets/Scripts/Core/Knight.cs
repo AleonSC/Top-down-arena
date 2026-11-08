@@ -132,8 +132,13 @@ namespace Arena
                 case WeaponId.Halberd:
                 {
                     // A long, thin cone that sweeps across in front of you; each enemy is hit once a sweep.
-                    // An extra projectile sweeps it back again (60% damage).
+                    // An extra projectile sweeps it back again (60% damage). The swing is one motion timed from the click
+                    // (HalberdMotion.cs: a 0.05 s pull back, then the sweep): its effect is sent now and plays the whole
+                    // thing, and each step lands when the edge reaches it.
                     float reach = w.Reach + w.Grow * extra;
+                    bool back = extra > 0;
+                    BroadcastFx(FxKind.Slash, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, reach), Defs.BulletColor(Defs.KnightSlash),
+                        HalberdSweep + HalberdConeDeg * MathX.Pi / 360f, HalberdMotion.Total(back), Sfx.None);
                     for (int pass = 0; pass <= Math.Min(1, extra); pass++)
                     {
                         int group = ++sweepCount;
@@ -142,12 +147,9 @@ namespace Arena
                             float f = (float)i / (HalberdSteps - 1) * 2f - 1f;
                             var h = NewSwing(p, aim + (pass == 0 ? f : -f) * HalberdSweep, reach, HalberdConeDeg, w.Damage * dmg * (pass == 0 ? 1f : 0.6f));
                             h.Sweep = group;
-                            h.Delay = HalberdStepTime * i + pass * (HalberdStepTime * HalberdSteps + 0.08f);
-                            h.Silent = i > 0;
-                            // One effect for the whole sweep (sent by its first step), not one per step.
-                            h.NoFx = i > 0;
-                            h.FxAim = aim;
-                            h.FxHalf = HalberdSweep + HalberdConeDeg * MathX.Pi / 360f;
+                            h.Delay = HalberdMotion.StepTime(pass + 1, i, HalberdSteps);
+                            h.Silent = i > 0;  // one whoosh a sweep, as the first step lands
+                            h.NoFx = true;     // the click's effect draws it all
                             pendingSwings.Add(h);
                         }
                     }
@@ -355,7 +357,10 @@ namespace Arena
             bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f, circle = s.Circle > 0f;
             V2 circleAt = origin + dir * s.CircleAt;
             if (s.NoFx)
-                { }
+            {
+                if (!s.Silent)
+                    BroadcastSound(Sfx.SwingHeavy);  // a Halberd sweep's whoosh (its effect was sent at the click)
+            }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
                 BroadcastFx(FxKind.Slash, origin, origin + V2.FromAngle(s.FxAim) * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.FxHalf, 0.3f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);

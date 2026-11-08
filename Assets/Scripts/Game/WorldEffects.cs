@@ -426,6 +426,12 @@ namespace Arena
                 Line(fx.Pos, fx.Pos2, 2.5f, Rgba.White.WithAlpha(0.9f * (1f - f)));
                 return;
             }
+            if (IsHalberdFx(fx))  // effects off: the old arc, as the sweep starts (the effect now spans the whole swing)
+            {
+                f = (fx.T - HalberdMotion.Start1) / 0.3f;
+                if (f < 0f || f >= 1f)
+                    return;
+            }
             float sweep = 2f * half * Mathf.Min(1f, f * 3f);
             float from = half >= MathX.Pi - 0.01f ? aim + t * 6f : aim - half;
             Arc(fx.Pos, reach * 0.78f, reach * 0.4f, fx.Color.WithAlpha(0.28f * (1f - f)), 24, from, sweep);
