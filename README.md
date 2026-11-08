@@ -403,6 +403,8 @@ The Lunger, Spike Block, Charger and Riot Shield all warn of a lunge the same wa
 
 A Phantom shows a ring where it is about to blink (half a second before it does, and before its ring of shots), and a Mortar's bomb shows a ring where it will land.
 
+A Charger shows a ring where its dash will end, which is also where its ring of shots will burst.
+
 Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt) draw a thin dashed line along the shot for the instant before they fire; the Grunt shows all three of its shots.
 
 From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn. Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
