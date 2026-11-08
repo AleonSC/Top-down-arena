@@ -659,6 +659,12 @@ namespace Arena
                     if (hover2 != hoverNames)
                         SetHoverNames(hover2);
                     y += 66f;
+                    WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look, so a crowd of them doesn't hide the fight (25% at least)");
+                    float mate = Mathf.Max(0.25f, WinSlider(new Rect(x + w - 376f, y + 6f, 376f, 48f), mateShotAlpha));
+                    if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)
+                        SetMateShotAlpha(mate);
+                    DashLine(x, y + 60f, w);
+                    y += 64f;
                     // The network port (it used to sit on the main menu): hosting and joining both use it.
                     WinLabel(new Rect(x, y, w - 150f, 54f), "Network port", "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.");
                     var pr = new Rect(x + w - 120f, y + 9f, 120f, 36f);
