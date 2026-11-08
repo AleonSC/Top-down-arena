@@ -81,6 +81,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Game/LungeLaneLook.cs`: the shared lunge wind-up lane for the Lunger, Spike Block, Charger and Riot Shield (`Docs/Mockups/lunge-telegraph.html`)
 - `Game/ShooterAimLook.cs`: the dashed aim line of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt)
 - `Game/EnemyTagLook.cs`, `Profile.TagSeen`: the name and job tag an enemy type carries for its first three sightings (profile "tag" lines, format 6)
+- `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),

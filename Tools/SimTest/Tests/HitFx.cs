@@ -162,6 +162,28 @@ static partial class Program
         Check(ch.Phase == 1 && g.Effects.Exists(fx => fx.Kind == FxKind.Target && fx.Pos.DistanceTo(end) < 2f), "a Charger marks where its dash ends (and its ring will burst) from the start of the wind-up");
     }
 
+    /// The new-enemy chips: which types a wave brings, and a note for each.
+    static void NewEnemiesTest()
+    {
+        Check(Game.NewTypesAt(1).Contains(EnemyType.Grunt) && Game.NewTypesAt(1).Contains(EnemyType.Swarmer), "wave 1 brings the Grunt and the Swarmer");
+        Check(Game.NewTypesAt(9).SequenceEqual(new[] { EnemyType.Shielder }), "wave 9 brings the Shielder only");
+        var w18 = Game.NewTypesAt(18);
+        Check(w18.Contains(EnemyType.BeamSentry) && w18.Contains(EnemyType.Sapper), "wave 18 brings the Beam Sentry and the Sapper");
+        Check(Game.NewTypesAt(5).Contains(EnemyType.Lunger) && Game.NewTypesAt(5).Contains(EnemyType.SpikeBlock), "wave 5 brings the melee grunts");
+        var missing = new List<EnemyType>();
+        for (int n = 1; n <= 40; n++)
+            foreach (var t in Game.NewTypesAt(n))
+                if (Game.EnemyNote(t).Length == 0 || Game.EnemyNote(t).Length > 70)
+                    missing.Add(t);
+        Check(missing.Count == 0, "every new type has a note of up to 70 characters" + (missing.Count > 0 ? " (" + string.Join(", ", missing) + ")" : ""));
+        var seen = new HashSet<EnemyType>();
+        bool dup = false;
+        for (int n = 1; n <= 40; n++)
+            foreach (var t in Game.NewTypesAt(n))
+                dup |= !seen.Add(t);
+        Check(!dup, "no type is new twice");
+    }
+
     static void WaveMixReport()
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
