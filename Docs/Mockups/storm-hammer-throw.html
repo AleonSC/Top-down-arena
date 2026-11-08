@@ -1,0 +1,458 @@
+<title>Storm Hammer Throw</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one looping stage (hold, wind-up, throw, flight, strike) with look chips, a scrubber and toggles; five single-moment panels; notes.
+   Same page tokens as the Warhammer mockup; the canvas colours are each look's own lightning on a night-blue arena. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#2f6fb5;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8cc4ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8cc4ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0a0f18}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:1000/420}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.scrub{display:flex;gap:12px;align-items:center;margin-top:12px}
+.scrub input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+#phase{min-width:9ch;text-align:right}
+.grid5{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/260}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+table{border-collapse:collapse;font-size:14.5px;width:100%}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+td.n{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.tw{overflow-x:auto}
+</style>
+
+<main>
+<header>
+  <h1>Storm Hammer: a throw you can see coming</h1>
+  <p>Today the Elementalist's Storm Hammer is an 18 px head on a short stick that appears at the muzzle. The new version is more than twice the size, and you see the player throw it:
+  the hammer in their hand rises over the shoulder as the lightning builds, snaps forward, and that same hammer leaves the hand. Then it flies, strikes and electrifies.</p>
+  <p>Every number stays as the game has it: 460 px/s, 1.1 s of flight, 0.7 s between throws, 40 damage, three arcs of 5 over a second. Pick a look, press play or drag the scrubber. "Now" is the current hammer for comparison.</p>
+</header>
+
+<section>
+  <h2>The throw</h2>
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Look" id="looks"></div>
+  </div>
+  <div class="frame"><canvas id="stage" width="1000" height="420" aria-label="Animated Storm Hammer throw"></canvas></div>
+  <div class="scrub">
+    <button id="play" type="button">Pause</button>
+    <input type="range" id="scr" min="0" max="3800" value="0" aria-label="Time in the throw">
+    <span class="sub" id="phase">hold</span>
+  </div>
+  <div class="bar" style="margin-top:12px">
+    <div class="chips" role="group" aria-label="Speed" id="speeds"></div>
+    <label class="tg"><input type="checkbox" id="tgGhost" checked> Show the second hammer re-forming in the hand</label>
+    <label class="tg"><input type="checkbox" id="tgReduce"> Reduced effects</label>
+  </div>
+  <p class="sub" id="lookNote" style="max-width:none;font-family:var(--body);font-size:15px;color:var(--muted)"></p>
+</section>
+
+<section>
+  <h2>Five moments</h2>
+  <div class="grid5" id="cells"></div>
+</section>
+
+<section class="two">
+  <div class="card">
+    <h3>How the held hammer becomes the thrown one</h3>
+    <ul>
+      <li><b>Hold (0 to 0.45 s).</b> The hammer sits in the right hand at about 1.5x today's size, head forward, with a few sparks on the head.</li>
+      <li><b>Wind-up (0.4 s).</b> The arm draws back, the hammer swings up over the shoulder and swells to 2x as it rises (it is closer to the camera), its shadow slides away, the body leans back and lightning gathers along the haft.</li>
+      <li><b>Throw (0.08 s).</b> The arm snaps forward to full reach. A flash and a ring of sparks mark the release.</li>
+      <li><b>Hand-off.</b> The held model is hidden the frame the projectile appears, at the hand, in the same pose and size. No pop.</li>
+      <li><b>Re-form.</b> 0.7 s after the throw (the weapon's fire interval) sparks pull in to the hand and a new hammer fades in over 0.3 s, even while the first is still flying. That is the cue that you can throw again.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>What changes in the game</h3>
+    <div class="tw"><table>
+      <tr><th>Thing</th><th>Now</th><th>Proposed</th></tr>
+      <tr><td>Drawn size</td><td class="n">18 px head</td><td class="n">48 px head, 70 px long</td></tr>
+      <tr><td>Hit radius</td><td class="n">11 px</td><td class="n">22 px (your call, see below)</td></tr>
+      <tr><td>Held model</td><td class="n">small stick, no motion</td><td class="n">hand-held hammer with a real wind-up</td></tr>
+      <tr><td>Damage, speed, life</td><td class="n">40, 460, 1.1 s</td><td class="n">unchanged</td></tr>
+      <tr><td>Electrify</td><td class="n">3 arcs x 5, 1 s</td><td class="n">unchanged, but drawn bigger</td></tr>
+      <tr><td>Protocol</td><td class="n">&nbsp;</td><td class="n">unchanged unless the hit radius changes</td></tr>
+    </table></div>
+    <p class="sub" style="margin-top:10px;font-family:var(--body);font-size:14.5px">A 48 px hammer that only hits things within 11 px of its centre would look like it passes through enemies. Raising the radius to about 22 px makes it feel right but is a balance change (it hits more). I would do it; say if you want it kept at 11.</p>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var eo=function(t){return 1-Math.pow(1-clamp(t,0,1),3)},ei=function(t){t=clamp(t,0,1);return t*t};
+var rnd=function(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+var $=function(i){return document.getElementById(i)};
+var reducedPref=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* timeline, seconds. Flight is 1.1 s at 460 px/s in the game; the stage is shortened a little so it fits, same pacing. */
+var T={windStart:.45,windEnd:.85,hand:.93,hit:1.93,reform:1.63,reformEnd:1.93,end:3.8};
+var P={x:150,y:215};               /* the player */
+var FLY=T.hit-T.hand;              /* flight time on the stage */
+var ENEMIES=[{x:705,y:215},{x:790,y:150},{x:810,y:285},{x:640,y:120}];
+
+var LOOKS={
+ now:{name:'Now',col:'190,215,255',hot:'255,255,255',s:.45,hold:.45,note:'The current hammer: a small head tumbling at the muzzle, a faint blue glow, two sparks. Nothing shows the player throwing it and the held model is a short stick.'},
+ thunder:{name:'Thunderhead',col:'125,190,255',hot:'232,246,255',s:2,hold:1.5,trail:'cloud',hit:'bolt',
+  note:'A bluish-steel hammer wrapped in a small storm. It drags a cloud of dark vapour and throws forks of lightning down to the floor as it flies. The strike is a bolt from above with a white flash, a scorch mark and the electrified arcs.'},
+ sky:{name:'Skyforge',col:'255,214,90',hot:'255,248,205',s:2,hold:1.5,trail:'rings',hit:'pillar',
+  note:'Gold-white and heavy. The flight leaves expanding pressure rings and ghost copies of the head, so it reads as fast and weighty. The strike is a pillar of light, a star of cracks in the floor and flying debris.'},
+ tether:{name:'Tether',col:'190,140,255',hot:'245,232,255',s:2,hold:1.5,trail:'tether',hit:'chain',
+  note:'Violet. A crackling line of lightning links the hammer to your hand for the whole flight, with sparks orbiting the head, so it looks thrown by you. At the strike the tether snaps back and the arcs chain across the enemies in a heavier way.'}
+};
+var look='thunder',speed=1,playing=true,tm=0,last=0;
+var reduce=reducedPref;
+
+/* ---------- drawing helpers ---------- */
+function rgba(c,a){return 'rgba('+c+','+a+')'}
+function glow(g,x,y,r,col,a){
+  var gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,rgba(col,a));gr.addColorStop(1,rgba(col,0));
+  g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
+}
+function bolt(g,x1,y1,x2,y2,seed,jag,w,col,hot,a){
+  var n=Math.max(4,Math.round(Math.hypot(x2-x1,y2-y1)/16)),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,pts=[];
+  for(var i=0;i<=n;i++){var u=i/n,o=(i===0||i===n)?0:(rnd(seed+i*3.1)-.5)*2*jag;pts.push([x1+dx*u+nx*o,y1+dy*u+ny*o]);}
+  g.lineCap='round';g.lineJoin='round';
+  function pass(lw,c){g.lineWidth=lw;g.strokeStyle=c;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(var i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke();}
+  pass(w*4,rgba(col,.14*a));pass(w*1.8,rgba(col,.55*a));pass(w*.7,rgba(hot,a));
+}
+function ring(g,x,y,r,w,col,a){g.lineWidth=w;g.strokeStyle=rgba(col,a);g.beginPath();g.arc(x,y,r,0,TAU);g.stroke();}
+
+/* ---------- the hammer ---------- */
+/* unit hammer: haft from -20 to +16 along its axis, head centred at +16, 24 wide (across) x 14 long (along) */
+function hammer(g,x,y,ang,s,L,t,charge,seed){
+  var c=Math.cos(ang),sn=Math.sin(ang);
+  g.save();g.translate(x,y);g.rotate(ang);g.scale(s,s);
+  if(charge>0.02&&!L.now) glow(g,16,0,34,L.col,.35*charge);
+  g.lineCap='round';
+  g.strokeStyle='#4b3524';g.lineWidth=4.4;g.beginPath();g.moveTo(-20,0);g.lineTo(16,0);g.stroke();
+  g.strokeStyle='#7a5a3c';g.lineWidth=2.4;g.beginPath();g.moveTo(-20,-.4);g.lineTo(16,-.4);g.stroke();
+  g.strokeStyle='#2c2118';g.lineWidth=1;for(var k=0;k<4;k++){var gx=-18+k*3;g.beginPath();g.moveTo(gx,-2.2);g.lineTo(gx+1.5,2.2);g.stroke();}
+  g.fillStyle='#8b94a6';g.beginPath();g.arc(-21,0,2.4,0,TAU);g.fill();
+  /* head */
+  g.fillStyle='#3a4352';g.fillRect(9,-12,14,24);
+  g.fillStyle='#707b90';g.fillRect(9,-12,14,8);
+  g.fillStyle='#a6b2c6';g.fillRect(9,-12,14,2.2);
+  g.fillStyle='#2a313d';g.fillRect(7.5,-13,3,26);g.fillRect(21.5,-13,3,26);
+  g.fillStyle=rgba(L.col,.55+.4*charge);g.fillRect(14,-12,4,24);
+  g.fillStyle=rgba(L.hot,.55+.4*charge);g.fillRect(15.4,-12,1.2,24);
+  g.fillStyle='#c9d2e2';g.fillRect(10,-10,1.6,1.6);g.fillRect(10,8.4,1.6,1.6);g.fillRect(20.5,-10,1.6,1.6);g.fillRect(20.5,8.4,1.6,1.6);
+  g.restore();
+  /* sparks crawling over the head, in world space so they don't scale with the rotation */
+  if(!L.now){
+    var n=1+Math.round(charge*3),ft=Math.floor(t*22);
+    for(var i=0;i<n;i++){
+      var sd=seed+ft*1.7+i*5.3,side=rnd(sd)<.5?-1:1,al=(16+(rnd(sd+1)-.5)*10)*s,ac=side*12*s;
+      var hx=x+c*al-sn*ac,hy=y+sn*al+c*ac,a2=rnd(sd+2)*TAU,r2=(8+rnd(sd+3)*12)*s*.6;
+      bolt(g,hx,hy,hx+Math.cos(a2)*r2,hy+Math.sin(a2)*r2,sd,3*s,1,L.col,L.hot,.5+.5*charge);
+    }
+  }
+}
+function tinyHammer(g,x,y,ang,L,t){
+  /* the hammer as it is in the game now: haft 16 px, head 18 px wide */
+  var c=Math.cos(ang),sn=Math.sin(ang),hx=x+c*4,hy=y+sn*4,gx=x-c*12,gy=y-sn*12,sx=-sn,sy=c;
+  glow(g,x,y,19,L.col,.22);
+  g.lineCap='round';g.strokeStyle='#8c613a';g.lineWidth=3;g.beginPath();g.moveTo(gx,gy);g.lineTo(hx,hy);g.stroke();
+  g.fillStyle='#b8c2d9';g.beginPath();
+  g.moveTo(hx+sx*9-c*4,hy+sy*9-sn*4);g.lineTo(hx+sx*9+c*4,hy+sy*9+sn*4);g.lineTo(hx-sx*9+c*4,hy-sy*9+sn*4);g.lineTo(hx-sx*9-c*4,hy-sy*9-sn*4);g.fill();
+}
+
+/* ---------- the player and the held hammer ---------- */
+function pose(t){
+  var o={ang:.25,h:0,ext:0,lean:0,vis:1,charge:0,flash:0};
+  if(t<T.windStart){o.charge=.12+.08*Math.sin(t*9);}
+  else if(t<T.windEnd){var k=eo((t-T.windStart)/(T.windEnd-T.windStart));o.ang=lerp(.25,2.7,k);o.h=k;o.ext=-5*k;o.lean=-8*k;o.charge=.2+.8*k;}
+  else if(t<T.hand){var u=eo((t-T.windEnd)/(T.hand-T.windEnd));o.ang=lerp(2.7,.02,u);o.h=lerp(1,.35,u);o.ext=lerp(-5,24,u);o.lean=lerp(-8,7,u);o.charge=1;o.flash=0;}
+  else{
+    var r=clamp((t-T.hand)/.5,0,1);o.ext=lerp(24,0,eo(r));o.lean=lerp(7,0,eo(r));o.ang=.25;o.h=0;o.vis=0;
+    o.flash=clamp(1-(t-T.hand)/.22,0,1);
+    if(t>=T.reform){o.vis=eo((t-T.reform)/(T.reformEnd-T.reform));o.charge=.1;}
+  }
+  return o;
+}
+function drawPlayer(g,t,L,showReform){
+  var q=pose(t),px=P.x+q.lean,py=P.y;
+  /* shadow */
+  g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(px+3,py+5,21,18,0,0,TAU);g.fill();
+  /* off hand and arm (left, -y), braced */
+  var lx=px+8+(q.ext>10?6:0),ly=py-14;
+  g.lineCap='round';g.strokeStyle='#2a5a8c';g.lineWidth=7;g.beginPath();g.moveTo(px,py-6);g.lineTo(lx,ly);g.stroke();
+  g.fillStyle='#d9c9a3';g.beginPath();g.arc(lx,ly,4.2,0,TAU);g.fill();
+  /* hammer hand: shoulder at (px, py+8) */
+  var s=lerp(L.hold,L.s,q.h)*(L.now?1:1);
+  var hx=px+10+q.ext*(1-Math.min(1,q.h)*.2)+(q.h*(-4)),hy=py+14-q.h*8;
+  var hammerOn=q.vis>.02&&(showReform||t<T.hand||t<T.reform||t>=T.reformEnd||true);
+  if(L.now){
+    hx=px+14;hy=py+12;
+    g.strokeStyle='#2a5a8c';g.lineWidth=7;g.beginPath();g.moveTo(px,py+6);g.lineTo(hx,hy);g.stroke();
+    g.fillStyle='#d9c9a3';g.beginPath();g.arc(hx,hy,4.2,0,TAU);g.fill();
+  }
+  if(hammerOn&&!L.now){
+    var vis=q.vis;
+    if(t>=T.reform&&t<T.reformEnd&&showReform){
+      /* sparks pulling in to the hand */
+      var k=(t-T.reform)/(T.reformEnd-T.reform);
+      for(var i=0;i<9;i++){var a=i*TAU/9+rnd(i)*1.2,d=(1-k)*(44+rnd(i+9)*26);g.fillStyle=rgba(L.hot,(1-k)*.9);g.fillRect(hx+Math.cos(a)*d+14-1.5,hy+Math.sin(a)*d-1.5,3,3);}
+      glow(g,hx+14,hy,34*k+10,L.col,.4*k);
+    } else if(t>=T.reform&&t<T.reformEnd&&!showReform){vis=0;}
+    /* floor shadow slides away as it is raised */
+    g.save();g.globalAlpha=vis*.35;g.translate(q.h*16,q.h*18);hammerShadow(g,hx,hy,q.ang,s);g.restore();
+    g.globalAlpha=vis;
+    hammer(g,hx,hy,q.ang,s,L,t,q.charge,3);
+    g.globalAlpha=1;
+  }
+  if(!L.now&&q.h>.15&&t<T.hand){ /* lightning gathers along the haft during the wind-up */
+    var cx=hx+Math.cos(q.ang)*16*s,cy=hy+Math.sin(q.ang)*16*s,n=Math.floor(t*20);
+    for(var j=0;j<3;j++){var sd=n*3+j,a=rnd(sd)*TAU;bolt(g,cx,cy,cx+Math.cos(a)*(28+rnd(sd+2)*30),cy+Math.sin(a)*(28+rnd(sd+2)*30),sd,7,1.1,L.col,L.hot,.4+.5*q.h);}
+  }
+  /* hammer-hand glove and arm, on top of the haft */
+  g.strokeStyle='#2a5a8c';g.lineWidth=7;g.beginPath();g.moveTo(px,py+6);g.lineTo(hx,hy);g.stroke();
+  g.fillStyle='#d9c9a3';g.beginPath();g.arc(hx,hy,4.6,0,TAU);g.fill();
+  /* body: round tank-sized, elementalist blue, with a hood mark */
+  g.fillStyle='#2f6fb5';g.beginPath();g.arc(px,py,19,0,TAU);g.fill();
+  g.strokeStyle='#8cc4ff';g.lineWidth=2;g.beginPath();g.arc(px,py,19,0,TAU);g.stroke();
+  g.fillStyle='#173a63';g.beginPath();g.arc(px+3,py,10,0,TAU);g.fill();
+  g.fillStyle='#d9c9a3';g.beginPath();g.arc(px+7,py,3,0,TAU);g.fill(); /* face / visor, looking along the aim */
+  if(q.flash>0){ /* the release */
+    var fx=hx+16*Math.cos(0)+20,fy=hy;
+    glow(g,fx,fy,60*q.flash+18,L.col,.9*q.flash);
+    if(!reduce)for(var m=0;m<10;m++){var a=-.8+m*.18+rnd(m)*.1,d=(1-q.flash)*60+8;g.fillStyle=rgba(L.hot,q.flash);g.fillRect(fx+Math.cos(a)*d-1.5,fy+Math.sin(a)*d-1.5,3,3);}
+  }
+}
+function hammerShadow(g,x,y,ang,s){
+  g.save();g.translate(x,y);g.rotate(ang);g.scale(s,s);g.fillStyle='#000';g.fillRect(-20,-2,36,4);g.fillRect(9,-12,14,24);g.restore();
+}
+
+/* ---------- flight ---------- */
+function flightPos(u){ /* u 0..1 from the hand to the first enemy */
+  var x0=P.x+10+24+16*2*.5+14,y0=P.y+6; /* matches the hand at full reach plus the head */
+  return {x:lerp(x0,ENEMIES[0].x-18,u),y:lerp(y0,ENEMIES[0].y,u)};
+}
+function drawFlight(g,t,L){
+  if(t<T.hand||t>=T.hit) return;
+  var u=(t-T.hand)/FLY,p=flightPos(u),spinRate=L.now?16:11;
+  function spinAt(tt){return -((tt-T.hand)*spinRate)+.02;}
+  var sc=L.s*(1+.16*Math.sin(u*Math.PI)); /* rises a little at mid-flight */
+  var lift=Math.sin(u*Math.PI)*(L.now?0:14);
+  /* shadow on the floor */
+  if(!L.now){g.globalAlpha=.3;hammerShadow(g,p.x+lift*.9,p.y+lift*1.4+6,spinAt(t),sc*.95);g.globalAlpha=1;}
+  var hy=p.y-lift;
+  g.globalCompositeOperation='lighter';
+  if(L.now){ g.globalCompositeOperation='source-over';tinyHammer(g,p.x,hy,spinAt(t),L,t);return; }
+  if(L.trail==='cloud'){
+    for(var i=0;i<14;i++){var tt=t-i*.028;if(tt<T.hand)break;var q=flightPos((tt-T.hand)/FLY),sz=20+i*2.3+rnd(i)*8,al=(1-i/14)*.28;
+      glow(g,q.x-lift*0+rnd(i+3)*10-5,q.y-(Math.sin((tt-T.hand)/FLY*Math.PI)*14)+(rnd(i+7)-.5)*14,sz,'70,90,150',al);}
+    var n=Math.floor(t*14);for(var j=0;j<3;j++){var sd=n*5+j,off=(rnd(sd)-.5)*90;bolt(g,p.x-6,hy,p.x-36-rnd(sd+1)*50,hy+off+(off>0?30:-30),sd,9,1,L.col,L.hot,.7);}
+  } else if(L.trail==='rings'){
+    for(var i=0;i<9;i++){var tt=t-i*.05;if(tt<T.hand)break;var q2=flightPos((tt-T.hand)/FLY),age=i*.05;
+      ring(g,q2.x,q2.y-Math.sin((tt-T.hand)/FLY*Math.PI)*14,16+age*190,2.2,L.col,(1-age/.45)*.32);}
+    for(var k=1;k<=4;k++){var tt2=t-k*.035;if(tt2<T.hand)break;var q3=flightPos((tt2-T.hand)/FLY);g.globalAlpha=.22/k;hammerOnly(g,q3.x,q3.y-lift,spinAt(tt2),sc,L,t);g.globalAlpha=1;}
+  } else if(L.trail==='tether'){
+    var hx=P.x+34,hy2=P.y+8;
+    var tn=Math.floor(t*30);
+    bolt(g,hx,hy2,p.x-10,hy,tn,10,1.6,L.col,L.hot,.95);
+    bolt(g,hx,hy2,p.x-10,hy,tn+99,16,1,L.col,L.hot,.5);
+    for(var o=0;o<4;o++){var oa=t*9+o*TAU/4;glow(g,p.x+Math.cos(oa)*30*sc/2,hy+Math.sin(oa)*30*sc/2,8,L.hot,.8);}
+  }
+  glow(g,p.x,hy,44*sc/2+10,L.col,.4+.12*Math.sin(t*40));
+  g.globalCompositeOperation='source-over';
+  hammer(g,p.x,hy,spinAt(t),sc,L,t,1,17);
+}
+function hammerOnly(g,x,y,ang,s,L,t){g.save();g.translate(x,y);g.rotate(ang);g.scale(s,s);g.fillStyle='rgba('+L.col+',1)';g.fillRect(9,-12,14,24);g.fillRect(-20,-2,36,4);g.restore();}
+
+/* ---------- the strike ---------- */
+function drawStrike(g,t,L){
+  if(t<T.hit) return;
+  var a=t-T.hit,E=ENEMIES[0],hx=E.x,hy=E.y;
+  /* enemies */
+  var shockT=[0,.33,.66];
+  for(var i=0;i<ENEMIES.length;i++){
+    var e=ENEMIES[i],hot=0,off=0;
+    if(i===0){hot=a<1?.5+.5*Math.sin(a*30):0;off=a<.15?(1-a/.15)*6:0;}
+    else{for(var s=0;s<3;s++){var d=a-shockT[s]-.1;if(d>0&&d<.25)hot=Math.max(hot,1-d/.25);}}
+    var ex=e.x+(i===0?off:0),ey=e.y;
+    if(a>1.4&&i===0){/* already dead? no: keep alive, it just stops being electrified */}
+    g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(ex+3,ey+5,16,14,0,0,TAU);g.fill();
+    g.fillStyle=hot>0?'#f4efe0':'#8a2f3a';g.beginPath();g.arc(ex,ey,15,0,TAU);g.fill();
+    g.strokeStyle=hot>0?rgba(L.col,.9):'#c95a66';g.lineWidth=2;g.beginPath();g.arc(ex,ey,15,0,TAU);g.stroke();
+    g.fillStyle='#1b0e11';g.fillRect(ex-6,ey-4,4,4);g.fillRect(ex+2,ey-4,4,4);
+  }
+  if(L.now){ /* flat: a small flash and the arcs */
+    g.globalCompositeOperation='lighter';
+    glow(g,hx,hy,50*Math.max(0,1-a/.3),L.col,.8*Math.max(0,1-a/.3));
+    g.globalCompositeOperation='source-over';
+  } else {
+    g.globalCompositeOperation='lighter';
+    /* flash */
+    var f=Math.max(0,1-a/.22);
+    glow(g,hx,hy,110*f+24,L.col,.9*f);glow(g,hx,hy,60*f+12,L.hot,f);
+    /* shock ring */
+    ring(g,hx,hy,10+a*320,5*Math.max(0,1-a/.5)+1,L.col,Math.max(0,1-a/.5)*.9);
+    ring(g,hx,hy,6+a*180,3,L.hot,Math.max(0,1-a/.35)*.8);
+    /* look-specific strike */
+    if(L.hit==='bolt'){
+      var bl=Math.max(0,1-a/.5);
+      if(bl>0){bolt(g,hx+18,-20,hx,hy,Math.floor(a*30)*3+1,26,3.2*bl+1,L.col,L.hot,bl);bolt(g,hx-10,-20,hx+6,hy,Math.floor(a*30)*3+77,34,1.6,L.col,L.hot,bl*.7);}
+      /* forks to the floor */
+      var fn=Math.floor(a*20);for(var m=0;m<4&&a<.6;m++){var sd=fn*7+m,an=rnd(sd)*TAU,r=40+rnd(sd+1)*60;bolt(g,hx,hy,hx+Math.cos(an)*r,hy+Math.sin(an)*r*.8,sd,8,1,L.col,L.hot,(1-a/.6)*.8);}
+    } else if(L.hit==='pillar'){
+      var pl=Math.max(0,1-a/.7),pw=34*(.4+pl);
+      var gr=g.createLinearGradient(0,-10,0,hy);gr.addColorStop(0,rgba(L.col,0));gr.addColorStop(.7,rgba(L.col,.5*pl));gr.addColorStop(1,rgba(L.hot,.95*pl));
+      g.fillStyle=gr;g.fillRect(hx-pw/2,-10,pw,hy+10);
+      g.fillStyle=rgba(L.hot,.9*pl);g.fillRect(hx-pw*.14,-10,pw*.28,hy+10);
+    } else if(L.hit==='chain'){
+      var cn=Math.floor(a*24);
+      for(var m2=0;m2<3;m2++){var tgt=ENEMIES[1+m2],cf=a-.05-m2*.08;if(cf>0&&cf<.6)bolt(g,hx,hy,tgt.x,tgt.y,cn*3+m2,10,2.2,L.col,L.hot,1-cf/.6);}
+      /* tether snaps back to the hand */
+      var sn=Math.max(0,1-a/.25);if(sn>0)bolt(g,hx,hy,P.x+34,P.y+8,Math.floor(a*40),24,1.6,L.col,L.hot,sn*.9);
+    }
+    g.globalCompositeOperation='source-over';
+    /* scorch + cracks that cool */
+    var cool=clamp(a/2,0,1),sa=(1-cool)*.9+.1;
+    g.fillStyle='rgba(8,10,16,'+(.35+.3*(1-cool))+')';g.beginPath();g.arc(hx,hy,34,0,TAU);g.fill();
+    var n=L.hit==='pillar'?9:6;
+    for(var k=0;k<n;k++){
+      var an=k*TAU/n+rnd(k)*.5,len=(34+rnd(k+4)*44)*(L.hit==='pillar'?1.25:1)*eo(a/.18),x=hx,y=hy;
+      g.beginPath();g.moveTo(x,y);for(var sg=1;sg<=4;sg++){x=hx+Math.cos(an+(rnd(k*9+sg)-.5)*.5)*len*sg/4;y=hy+Math.sin(an+(rnd(k*9+sg)-.5)*.5)*len*sg/4;g.lineTo(x,y);}
+      g.lineWidth=2.2;g.strokeStyle=rgba(cool<.4?L.hot:L.col,sa);g.stroke();
+    }
+    /* debris for the pillar look, and sparks for the others */
+    if(!reduce){
+      var cnt=L.hit==='pillar'?16:10;
+      for(var d=0;d<cnt;d++){
+        var da=rnd(d)*TAU,sp=80+rnd(d+3)*140,tt=a;if(tt>.9)continue;
+        var dx=Math.cos(da)*sp*tt,dy=Math.sin(da)*sp*tt*.6-(190*tt-250*tt*tt)*.6;
+        g.fillStyle=rgba(rnd(d+9)<.5?L.hot:L.col,1-tt/.9);g.fillRect(hx+dx-2,hy+dy-2,4,4);
+      }
+    }
+  }
+  /* electrify arcs: three pulses over a second */
+  g.globalCompositeOperation='lighter';
+  for(var s2=0;s2<3;s2++){
+    var d2=a-shockT[s2]-.05;
+    if(d2>0&&d2<.28){
+      var fl=1-d2/.28;
+      for(var m3=1;m3<ENEMIES.length;m3++)bolt(g,hx,hy,ENEMIES[m3].x,ENEMIES[m3].y,Math.floor(a*30)+m3*11,9,L.now?1.4:2,L.col,L.hot,fl);
+    }
+  }
+  if(a<1&&!L.now){ /* electrified: a ring of crawling sparks round the hit enemy */
+    var nn=Math.floor(a*26);for(var q2=0;q2<3;q2++){var sa2=rnd(nn+q2)*TAU;bolt(g,hx+Math.cos(sa2)*15,hy+Math.sin(sa2)*15,hx+Math.cos(sa2+.6)*22,hy+Math.sin(sa2+.6)*22,nn+q2,3,1,L.col,L.hot,.8);}
+  }
+  g.globalCompositeOperation='source-over';
+}
+
+/* ---------- the scene ---------- */
+function floor(g,w,h){
+  var gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0d1422');gr.addColorStop(1,'#0a0f18');g.fillStyle=gr;g.fillRect(0,0,w,h);
+  g.strokeStyle='rgba(120,150,200,.07)';g.lineWidth=1;
+  for(var x=0;x<=1000;x+=50){g.beginPath();g.moveTo(x,0);g.lineTo(x,420);g.stroke();}
+  for(var y=0;y<=420;y+=50){g.beginPath();g.moveTo(0,y);g.lineTo(1000,y);g.stroke();}
+}
+function scene(g,t,Lk,view,showReform){
+  var L=LOOKS[Lk];L.now=Lk==='now';
+  g.save();g.setTransform(view.z*view.k,0,0,view.z*view.k,-view.cx*view.z*view.k+view.w/2,-view.cy*view.z*view.k+view.h/2);
+  /* the world is 1000 x 420; view.k maps world units to canvas px at zoom 1 */
+  g.fillStyle='#0a0f18';g.fillRect(-1000,-1000,3000,2400);
+  floor(g,1000,420);
+  /* aim line */
+  g.setLineDash([6,8]);g.strokeStyle='rgba(140,190,255,.18)';g.lineWidth=1.5;g.beginPath();g.moveTo(P.x,P.y);g.lineTo(ENEMIES[0].x,ENEMIES[0].y);g.stroke();g.setLineDash([]);
+  /* range marker: where the hammer has gone after 1.1 s */
+  drawStrike(g,t,L);
+  drawPlayer(g,t,L,showReform);
+  drawFlight(g,t,L);
+  g.restore();
+}
+
+/* ---------- UI ---------- */
+var stage=$('stage'),sg=stage.getContext('2d');
+var phases=[[0,T.windStart,'hold'],[T.windStart,T.windEnd,'wind-up'],[T.windEnd,T.hand,'throw'],[T.hand,T.hit,'flight'],[T.hit,T.end+1,'strike']];
+function phaseName(t){for(var i=0;i<phases.length;i++)if(t>=phases[i][0]&&t<phases[i][1])return phases[i][2];return 'hold';}
+function frame(){
+  scene(sg,tm,look,{cx:500,cy:210,z:1,k:1,w:1000,h:420},$('tgGhost').checked);
+  $('scr').value=Math.round(tm*1000);$('phase').textContent=phaseName(tm);
+}
+function loop(now){
+  if(!last)last=now;var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(playing){tm+=dt*speed;if(tm>=T.end)tm-=T.end;frame();}
+  requestAnimationFrame(loop);
+}
+var lk=$('looks');
+Object.keys(LOOKS).forEach(function(k){
+  var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=LOOKS[k].name;b.setAttribute('aria-pressed',k===look);b.dataset.k=k;
+  b.onclick=function(){look=k;[].forEach.call(lk.children,function(c){c.setAttribute('aria-pressed',c.dataset.k===k)});$('lookNote').textContent=LOOKS[k].note;frame();drawCells();};
+  lk.appendChild(b);
+});
+var sp=$('speeds');
+[[1,'Normal'],[.35,'Slow-mo'],[.12,'Frame by frame']].forEach(function(s,i){
+  var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=s[1];b.setAttribute('aria-pressed',i===0);
+  b.onclick=function(){speed=s[0];[].forEach.call(sp.children,function(c){c.setAttribute('aria-pressed',c===b)});};
+  sp.appendChild(b);
+});
+$('play').onclick=function(){playing=!playing;this.textContent=playing?'Pause':'Play';last=0;};
+$('scr').oninput=function(){playing=false;$('play').textContent='Play';tm=this.value/1000;frame();};
+$('tgGhost').onchange=function(){frame();drawCells();};
+$('tgReduce').checked=reduce;
+$('tgReduce').onchange=function(){reduce=this.checked;frame();drawCells();};
+
+/* five stills, each zoomed on its own moment */
+var CELLS=[
+ {t:.3,name:'Hold',sub:'0.0 s',view:{cx:190,cy:215,z:2.3},txt:'The hammer rests in the right hand at 1.5x the old size, head forward, a spark now and then.'},
+ {t:.8,name:'Wind-up',sub:'0.45 to 0.85 s',view:{cx:185,cy:200,z:2.1},txt:'Arm back, hammer swung over the shoulder and swelling to full size. Lightning gathers along the haft. The body leans away.'},
+ {t:.92,name:'Release',sub:'0.93 s',view:{cx:215,cy:215,z:2.1},txt:'The arm snaps to full reach. The projectile appears in the same pose, in the hand. The held model hides on this frame.'},
+ {t:1.45,name:'Flight',sub:'1.1 s in the game',view:{cx:400,cy:215,z:1.45},txt:'About 48 px across, spinning end over end, with this look\'s trail. A new hammer is already re-forming in the hand.'},
+ {t:2.2,name:'Strike',sub:'electrify, 1 s',view:{cx:720,cy:210,z:1.55},txt:'Flash, ring, scorch and cracks. The hit enemy arcs to three others, three times over a second.'}
+];
+var cellWrap=$('cells'),cellCtx=[];
+CELLS.forEach(function(c){
+  var d=document.createElement('div');d.className='cell';
+  d.innerHTML='<div class="frame"><canvas width="680" height="520" role="img" aria-label="'+c.name+'"></canvas></div><h3>'+c.name+' <small>'+c.sub+'</small></h3><p>'+c.txt+'</p>';
+  cellWrap.appendChild(d);cellCtx.push(d.querySelector('canvas').getContext('2d'));
+});
+function drawCells(){
+  CELLS.forEach(function(c,i){
+    var g=cellCtx[i];g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,680,520);
+    scene(g,c.t,look,{cx:c.view.cx,cy:c.view.cy,z:c.view.z,k:1,w:680,h:520},$('tgGhost').checked);
+  });
+}
+$('lookNote').textContent=LOOKS[look].note;
+frame();drawCells();
+if(reducedPref){playing=false;$('play').textContent='Play';tm=1.45;frame();}
+requestAnimationFrame(loop);
+})();
+</script>

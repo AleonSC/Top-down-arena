@@ -50,23 +50,25 @@ namespace Arena
             {
                 case 1:
                 case 2:
-                    TwinSwing(p, aim, w.Reach, TwinCutArc, hit, d.Dur * 0.5f, Sfx.SwingLight);
+                    TwinSwing(p, aim, w.Reach, TwinCutArc, hit, d.Dur * 0.5f, step == 1 ? Sfx.TwinCut1 : Sfx.TwinCut2, step);
                     break;
                 case 3:
                     for (int k = 0; k < 2; k++)
                     {
-                        var s = TwinSwing(p, aim, TwinJabReach, 0f, hit, d.Dur * (k == 0 ? 0.27f : 0.59f), Sfx.SwingLight);
+                        var s = TwinSwing(p, aim, TwinJabReach, 0f, hit, d.Dur * (k == 0 ? 0.27f : 0.59f), Sfx.TwinJab, step);
                         s.HalfWidth = TwinJabHalfWidth;
                         s.Thrust = true;
                     }
                     break;
                 case 4:
-                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, Sfx.SwingLight);
-                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.7f, Sfx.SwingLight);
+                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, Sfx.TwinSpin, step);
+                    var spin = TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.7f, Sfx.None, step);  // (the first's whirl covers both turns)
+                    spin.Waves = extra;  // the +1 upgrade: the Pirouette throws crescents too
+                    spin.WaveDmg = w.Damage * dmg * TwinWaveMult;
                     break;
                 default:
                 {
-                    var s = TwinSwing(p, aim, w.Reach, TwinShearArc, hit, d.Dur * 0.53f, Sfx.SwingHeavy);
+                    var s = TwinSwing(p, aim, w.Reach, TwinShearArc, hit, d.Dur * 0.53f, Sfx.None, step);
                     s.Heavy = true;
                     s.Knock = TwinShearKnock;
                     s.Waves = 1 + extra;
@@ -76,15 +78,17 @@ namespace Arena
             }
             // The whole move, drawn from its age: Radius carries who and which step.
             BroadcastFx(FxKind.TwinStep, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, w.Reach), TwinMoon, p.Id * 10 + step,
-                d.Dur + TwinBladesMotion.Recover, Sfx.None);
+                d.Dur + TwinBladesMotion.Recover, step == 5 ? Sfx.TwinShear : Sfx.None);  // (the Shear's sound starts with its wind-up)
         }
 
-        Swing TwinSwing(Player p, float aim, float reach, float arcDeg, float dmg, float delay, Sfx sound)
+        /// One hit of a step. `sound` plays as it lands (Sfx.None: nothing, as the Shear's and the second turn's are already playing).
+        Swing TwinSwing(Player p, float aim, float reach, float arcDeg, float dmg, float delay, Sfx sound, int step)
         {
             var s = NewSwing(p, aim, reach, arcDeg, dmg);
             s.Delay = delay;
             s.NoFx = true;  // the step's own effect draws it
             s.Twin = true;
+            s.TwinKind = (byte)step;
             s.Sound = sound;
             pendingSwings.Add(s);
             return s;
@@ -107,6 +111,8 @@ namespace Arena
                 if (!Players.TryGetValue(r.Owner, out p) || r.T >= TwinBladesMotion.FangRelease + TwinBladesMotion.FangFlight)
                 {
                     fangRuns.RemoveAt(i);
+                    if (p != null && !p.Downed)
+                        BroadcastSound(Sfx.TwinCatch);  // both sabres back in hand
                     continue;
                 }
                 float q = (r.T - TwinBladesMotion.FangRelease) / TwinBladesMotion.FangFlight;
@@ -119,7 +125,7 @@ namespace Arena
         void FlyFang(Player p, FangRun r, float q)
         {
             float dmg = p.Weapon.Damage * p.Stats.DmgMult;
-            int leg = q < 0.5f ? 0 : 1;
+            int leg = q < 0.5f ? 0 : 1, cut = 0;
             for (int blade = 0; blade < 2; blade++)
             {
                 V2 at = TwinBladesMotion.FangPos(r.From, r.To, p.Pos, q, blade == 0 ? 1 : -1);
@@ -130,16 +136,25 @@ namespace Arena
                     if (!r.Hit.Add(e.Id * 4 + blade * 2 + leg))
                         continue;
                     FangHurt(p, e, dmg * FangMult, at);
+                    cut++;
                 }
                 CutShotsNear(at, FangHitR);
             }
+            if (cut > 0)
+                TwinHitCue(p, 6, cut);
             if (!r.Burst && q >= 0.5f)
             {
                 r.Burst = true;
+                int burst = 0;
                 foreach (var e in Enemies.Values)
                     if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(r.To) <= e.Radius + FangBurstR)
+                    {
                         FangHurt(p, e, dmg * FangBurstMult, r.To);
-                BroadcastFx(FxKind.Ring, r.To, TwinMoon, FangBurstR, 0.3f, Sfx.SwingHeavy);
+                        burst++;
+                    }
+                BroadcastFx(FxKind.Ring, r.To, TwinMoon, FangBurstR, 0.3f, Sfx.TwinCross);
+                if (burst > 0)
+                    TwinHitCue(p, 7, burst);
             }
         }
 
@@ -181,7 +196,14 @@ namespace Arena
             p.Combo &= ~7;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Twin && s.Delay > 0f);  // a step still winding up never lands
             fangRuns.Add(new FangRun { Owner = p.Id, From = p.Pos, To = target });
-            BroadcastFx(FxKind.TwinFang, p.Pos, target, TwinMoon, p.Id, TwinBladesMotion.FangTotal, Sfx.SwingHeavy);
+            BroadcastFx(FxKind.TwinFang, p.Pos, target, TwinMoon, p.Id, TwinBladesMotion.FangTotal, Sfx.TwinThrow);
+        }
+
+        /// Host: a step (1-5) or a thrown sabre (6 passing, 7 the burst) cut `hits` enemies. Sent as an effect that draws nothing: it
+        /// carries the cut's sound, and the swordsman's own game holds the picture and shakes (Game/Juice.cs, TwinHitFeel).
+        void TwinHitCue(Player p, int kind, int hits)
+        {
+            BroadcastFx(FxKind.TwinHit, p.Pos, new V2(p.Id, kind), TwinMoon, hits, 0.2f, kind == 5 || kind == 7 ? Sfx.TwinHitHeavy : Sfx.TwinHit);
         }
 
         /// Raising the parry cancels the chain (ResetAttackChains): back to the first step, a step still winding up never lands.

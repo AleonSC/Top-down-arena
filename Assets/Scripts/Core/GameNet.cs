@@ -484,6 +484,11 @@ namespace Arena
             s.Float(ref p.RainClock);  // Sanguine Rain (SanguineRain.cs)
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
+            s.Byte(ref p.KusariStep);  // the Kusarigama's combo, throw and whirl (Kusarigama.cs)
+            s.Float(ref p.KusariAim);
+            s.Bool(ref p.KusariWhirl);
+            s.Float(ref p.KusariHeld);
+            s.Float(ref p.KusariAng);
             s.Float(ref p.SpinUp);
             s.Int(ref p.PreyId);
             s.Byte(ref p.Orbiters);

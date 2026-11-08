@@ -449,7 +449,7 @@ namespace Arena
                     MCirc(16f, 0f, 2f, Hx(0xe8fbff), 8);
                     break;
                 case WeaponId.StormHammer:
-                    MLine(-6f, 0f, 22f, 0f, 3f, MWood); MRect(20f, -8f, 12f, 16f, Hx(0x7d8796)); MRect(26f, -8f, 3f, 16f, Hx(0xffe04a)); MLine(32f, -4f, 36f, -1f, 1.2f, Hx(0xffe04a)); MLine(36f, -1f, 33f, 3f, 1.2f, Hx(0xffe04a));
+                    DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam
                     break;
                 case WeaponId.RadiantOrb:
                     MCirc(12f, 0f, 10f, Hx(0xffe078, 0.25f), 14); MCirc(12f, 0f, 6.5f, Hx(0xffe9a0), 12); MCirc(12f, 0f, 3.5f, MWhite, 10); MArc(12f, 0f, 9.5f, t * 2f, t * 2f + 2.5f, 1.5f, Hx(0xffd24a));
@@ -605,10 +605,7 @@ namespace Arena
                 case WeaponId.Kusarigama:
                 {
                     MLine(-4f, 0f, 12f, 0f, 2.6f, MWood); MArc(14f, -6f, 8f, 0.2f, 1.9f, 2.6f, MSteel);
-                    Enemy hooked;
-                    if (p.HookT > 0f && game.Enemies.TryGetValue(p.HookId, out hooked))
-                        DrawChain(MW(-4f, 0f), hooked.Disp, mAlpha);
-                    else
+                    if (p.HookT <= 0f && !p.KusariWhirl)  // (a thrown or whirling weight is drawn in the world: KusarigamaLook.cs)
                         for (int i = 0; i < 9; i++) { float a = t * 1.5f + i * 0.7f; MCirc(-4f + Mathf.Cos(a) * 6f, 8f + Mathf.Sin(a) * 4f, 1f, Hx(0xb8c2d0), 6); }
                     break;
                 }

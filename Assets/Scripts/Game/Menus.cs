@@ -551,7 +551,7 @@ namespace Arena
             { "Aim and shoot", "aim with the mouse, hold to fire" },
             { "Parry", "hold: a shield toward your cursor (no shooting)" },
             { "Role ability", "" },
-            { "Weapon secondary", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel" },
+            { "Weapon secondary", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl" },
             { "Ultimate", "one per role and class; starts each match half charged" },
             { "Bonus abilities", "from upgrade cards; move them between keys in Tab" },
             { "Pick an upgrade", "or click a card, then Confirm (Enter)" },

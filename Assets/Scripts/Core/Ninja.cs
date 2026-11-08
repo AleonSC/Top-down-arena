@@ -54,8 +54,7 @@ namespace Arena
             switch (w.Id)
             {
                 case WeaponId.Kusarigama:
-                    if (!Hooked(p))
-                        ThrowKusarigama(p, aim, w.Reach + w.Grow * extra, w.Damage * dmg);  // hooked: the weapon-action key reels you in instead (LocalWeaponDash)
+                    FireKusarigama(p, aim, dmg, extra);  // the sickle cut, then the weight throw (Kusarigama.cs)
                     break;
                 case WeaponId.BoStaff:
                 {
@@ -317,8 +316,8 @@ namespace Arena
         internal static readonly WeaponDef[] NinjaWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +30% slash damage", Name = "Kusarigama", FireInterval = 0.55f,
-                Desc = "Throw the chain-sickle straight out to hook the first enemy it hits. Fire again to reel yourself in and land a heavy, stunning slash." },
+            new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +20% damage", Name = "Kusarigama", FireInterval = 0.55f,
+                Desc = "Cut with the sickle, then throw the weight to drag the first enemy in its lane to you. Hold the weapon-action key to whirl the weight around you, pulling everything near into the chain." },
             new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +15% damage on every swing and the shove, and +20 px on the shove's push", Name = "Bo Staff", FireInterval = 0.47f,
                 Desc = "Click for a never-ending chain of three swings: a cone slash, a jab, then a full spin that starts it over. Every swing cuts small bullets. The weapon-action key shoves a wall of staff ahead of you and restarts the chain." },
             new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
@@ -677,14 +676,12 @@ namespace Arena
             return 1f;
         }
 
-        // --- Kusarigama and Bo Staff: weapons that move you ---------------------------------------------
+        // --- Bo Staff, Twin Blades and the weapon-action key: weapons that move you ---------------------------------------------
         //
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
-        public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
-        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -896,47 +893,6 @@ namespace Arena
         }
 
 
-        bool Hooked(Player p)
-        {
-            Enemy e;
-            return p.HookT > 0f && Enemies.TryGetValue(p.HookId, out e) && e.Hp > 0f;
-        }
-
-        /// The Kusarigama's throw: the chain-sickle flies straight out and hooks the first enemy in its path.
-        void ThrowKusarigama(Player p, float aim, float reach, float dmg)
-        {
-            reach = MeleeReach(p, reach);
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
-            Enemy first = null;
-            float firstAlong = float.MaxValue;
-            foreach (var e in Enemies.Values)
-            {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
-                    continue;
-                V2 rel = e.Pos - p.Pos;
-                float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
-                if (along < 0f || along > reach + e.Radius || across > KusariHalfWidth + e.Radius || along >= firstAlong)
-                    continue;
-                first = e;
-                firstAlong = along;
-            }
-            p.Run.ShotsFired++;
-            V2 end = first != null ? first.Pos : p.Pos + dir * reach;
-            BroadcastFx(FxKind.ChainThrow, p.Pos, end, Steel, first != null ? 1f : 0f, 0.25f, Sfx.SwingLight);
-            if (first == null)
-                return;
-            if (BlocksShot(first, p.Pos))
-            {
-                WearShield(first, dmg);
-                return;
-            }
-            p.Run.ShotsHit++;
-            HurtEnemy(first, dmg, p.Id);
-            OnBulletHit(new Bullet { Pos = first.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, first);
-            p.HookId = first.Id;
-            p.HookT = HookTime;
-        }
-
         static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
 
         // Local: this machine's player's weapon dashes.
@@ -944,8 +900,7 @@ namespace Arena
         bool wasWeaponAction;
 
         /// Your own game, every tick: weapon secondaries go on the weapon-action key (Keybinds, Left Alt by default;
-        /// PlayerInput.WeaponAction). The Bo Staff shoves; the Kusarigama reels you in to
-        /// the enemy it's hooked in; Twin Blades lunge when the combo is full; the Kunai blinks to its mark; the Shuriken
+        /// PlayerInput.WeaponAction). The Bo Staff shoves; the Kusarigama whirls its weight while held (Kusarigama.cs); Twin Blades lunge when the combo is full; the Kunai blinks to its mark; the Shuriken
         /// stars come back.
         void LocalWeaponDash(Player me, V2 move, V2 aimAt, bool weaponAction, float dt)
         {
@@ -956,6 +911,20 @@ namespace Arena
             LocalTwinStep(me, dt);  // the Twin Blades' steps forward (TwinBlades.cs)
             if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
                 return;  // the Katana's Alt strike (below)
+            if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
+            {
+                byte whirlKind = pressed ? DashWhirlOn : DashWhirlOff;
+                if (IsHost)
+                    HostWeaponDash(MyId, whirlKind, aimAt);
+                else
+                {
+                    var ww = Proto.Begin(Msg.WeaponDash);
+                    ww.Write(whirlKind);
+                    ww.Write(aimAt);
+                    session.SendToHost(Proto.End(ww));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.Greatsword && (pressed || released))  // the Greatsword's guard: held, so both edges go to the host (Greatsword.cs)
             {
                 byte guardKind = pressed ? DashGuardOn : DashGuardOff;
@@ -1017,6 +986,19 @@ namespace Arena
                 me.KunaiMarkT = 0f;  // used (the host's next snapshot agrees)
                 return;
             }
+            if (LocalHammerSlamReady(me, pressed, dt))
+            {
+                if (IsHost)
+                    HostWeaponDash(MyId, DashHammerSlam, aimAt);  // no move: the hammer lands ahead of where you stand
+                else
+                {
+                    var hw = Proto.Begin(Msg.WeaponDash);
+                    hw.Write(DashHammerSlam);
+                    hw.Write(aimAt);
+                    session.SendToHost(Proto.End(hw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.BoStaff && pressed)
             {
                 if (IsHost)
@@ -1044,46 +1026,20 @@ namespace Arena
                 }
                 return;
             }
-            V2 target;
-            byte kind;
-            if (me.Weapon.Id == WeaponId.Kusarigama && pressed && me.HookT > 0f && me.HookT < HookTime - ReelMinHook && reelCd <= 0f)
-            {
-                Enemy e;
-                if (!Enemies.TryGetValue(me.HookId, out e))
-                    return;
-                V2 to = e.Pos - me.Pos;
-                float stop = e.Radius + me.Def.BodyR + 6f;
-                if (to.Length <= stop)
-                    target = me.Pos;
-                else
-                    target = ClampToArena(e.Pos - to.Normalized() * stop, me.Def.BodyR);
-                DashDir = (target - me.Pos).IsZero ? V2.FromAngle(me.Aim) : (target - me.Pos).Normalized();
-                dashSpeed = ReelSpeed;
-                reelCd = 0.6f;
-                kind = DashReel;
-            }
-            else
-                return;
-            DashT = target.DistanceTo(me.Pos) / dashSpeed;
-            if (IsHost)
-                HostWeaponDash(MyId, kind, target);
-            else
-            {
-                var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(kind);
-                w.Write(target);
-                session.SendToHost(Proto.End(w));
-            }
         }
 
-        /// Host: a player's weapon moved them to `target`. A Twin Blades strike cuts everything along the way; a reel lands a
-        /// heavy slash on the hooked enemy when you arrive (and lets go of it).
+        /// Host: a player's weapon-action key did something (a blink, a recall, a shove, a jab, a guard or whirl going up or down, a Twin Fang).
         void HostWeaponDash(int id, int kind, V2 target)
         {
             Player p;
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
             var w = p.Weapon;
+            if (kind == DashWhirlOn || kind == DashWhirlOff)
+            {
+                HostKusariWhirl(p, kind == DashWhirlOn);
+                return;
+            }
             if (kind == DashGuardOn || kind == DashGuardOff)
             {
                 HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
@@ -1092,6 +1048,11 @@ namespace Arena
             if (kind == DashKatana)
             {
                 HostKatanaStrike(p, target);
+                return;
+            }
+            if (kind == DashHammerSlam)
+            {
+                HostHammerSlam(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashStrike)
@@ -1124,25 +1085,6 @@ namespace Arena
                 p.InvulnT = Math.Max(p.InvulnT, 0.2f);
                 BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.NinjaBlink);
                 return;
-            }
-            float dmg = w.Damage * p.Stats.DmgMult;
-            V2 from = p.Pos, path = target - from;
-            float len = Math.Max(1f, path.Length);
-            V2 dir = path / len;
-            if (kind == DashReel && w.Id == WeaponId.Kusarigama && Hooked(p))
-            {
-                Enemy e = Enemies[p.HookId];
-                float time = len / ReelSpeed;
-                p.InvulnT = Math.Max(p.InvulnT, time + 0.15f);
-                var s = NewSwing(p, (e.Pos - from).Angle, ReelSlashReach, 160f, dmg * ReelSlashMult * (1f + ReelSlashGrow * ExtraShots(p)));
-                s.Delay = time + 0.03f;  // lands once you've arrived (the swing hits from where you are then)
-                s.Stun = ReelStun;
-                s.Heavy = true;
-                s.NoCut = true;
-                pendingSwings.Add(s);
-                p.HookT = 0f;
-                p.HookId = 0;
-                BroadcastFx(FxKind.ChainThrow, from, e.Pos, Steel, 1f, 0.15f, Sfx.None);
             }
         }
 
@@ -1271,12 +1213,7 @@ namespace Arena
                 if (p.Downed || p.Weapon.Id != WeaponId.BoStaff)
                     p.BoStep = 0;  // (a downed or re-armed Ninja starts the chain over)
             }
-            foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
-                if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))
-                {
-                    p.HookT = 0f;
-                    p.HookId = 0;
-                }
+            TickKusari(dt);  // Kusarigama.cs: the combo's place, the throw, the whirl
             clones.Clear();
             foreach (var m in Minions.Values)
                 if (m.Kind == MinionKind.Clone || m.Kind == MinionKind.CloneWall)

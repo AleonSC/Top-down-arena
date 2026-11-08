@@ -47,6 +47,12 @@ namespace Arena
         /// The Storm Hammer: a war hammer tumbling end over end, its head crackling with sparks.
         void DrawStormHammer(Bullet b, Rgba c, float t)
         {
+            DrawStormHammerThunder(b, c, t);  // StormHammerLook.cs
+            return;
+        }
+
+        void DrawStormHammerOld(Bullet b, Rgba c, float t)
+        {
             float spin = -(t * 16f + b.Id * 1.3f);
             V2 dir = V2.FromAngle(spin), side = dir.Orthogonal();
             V2 head = b.Pos + dir * 4f, grip = b.Pos - dir * 12f;

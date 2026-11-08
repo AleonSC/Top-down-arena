@@ -105,7 +105,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.StormHammer:  // most of its damage is the smash; the electrified enemy's arcs are a little extra
-                    SpawnBullet(Defs.HammerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (1f + HammerGrow * extra) * dmg, p.Id).Shock = 3 + extra;
+                    QueueHammerThrow(p, extra, dmg);  // the hammer rises, snaps forward and leaves your hand (StormHammer.cs)
                     break;
                 case WeaponId.RadiantOrb:
                     break;  // held on the cursor instead of fired (RadiantOrb.cs); extra projectiles become Light Orbs circling you (TickMinions)

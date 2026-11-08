@@ -444,7 +444,7 @@ namespace Arena
                 case StunShot: return 7f;
                 case StunBolt: return 5f;
                 case FlameShot: return 7f;
-                case HammerShot: return 11f;
+                case HammerShot: return 22f;
                 case BoulderShot: return 16f;
                 case MedkitShot: return 11f;
                 case FireballShot: return 15f;

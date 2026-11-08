@@ -100,8 +100,12 @@ namespace Arena
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
                     DrawGreatWindup(p);
+                    DrawGreatGuardPose(p);
                     DrawGreatPips(p);
                 }
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.Kusarigama)
+                    DrawKusarigama(p);  // KusarigamaLook.cs
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                     DrawBowDraw(p, p.Id == game.MyId, t);
