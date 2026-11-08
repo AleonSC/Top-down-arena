@@ -362,7 +362,7 @@ namespace Arena
         public static float KitSpeedMult(Kit k) => Classes.Get(k).SpeedMult;
 
         /// XP needed to go from this level to the next.
-        public static float XpToNext(int level) => 50f + 30f * (level - 1);
+        public static float XpToNext(int level) => 90f + 55f * (level - 1);
 
         public static RoleDef Get(Role r) => Roles[(int)r];
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
