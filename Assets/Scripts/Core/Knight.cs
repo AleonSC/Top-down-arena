@@ -47,6 +47,7 @@ namespace Arena
         public bool LightRadiant;     // a Radiant Noon: three times the healing, a ward on everyone in the ring
         public int LightWaves;        // Dawn's and Mercy's crescents of light
         public float LightWaveDmg;
+        public byte CenserStep;       // a Censer step (1-3; Censer.cs): its hits light Embers, and it leaves incense as it lands
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -183,13 +184,8 @@ namespace Arena
                     FireLightbringer(p, aim, dmg, extra);  // Dawn, Mercy, Noon (Lightbringer.cs)
                     break;
                 case WeaponId.Censer:
-                {
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg);
-                    s.HealSpin = 3f + extra;
-                    s.HealRange = 140f;
-                    pendingSwings.Add(s);
+                    FireCenser(p, aim, dmg, extra);  // the Thurible Rite's next step (Censer.cs)
                     break;
-                }
                 case WeaponId.TwinBlades:
                     FireTwinBlades(p, aim, dmg, extra);  // the Crescent Waltz's next step (TwinBlades.cs)
                     break;
@@ -528,6 +524,8 @@ namespace Arena
                 if (s.Clots)
                     AddClot(p, crack ? 2 : 1);
             }
+            if (s.CenserStep > 0)
+                CenserLanded(p, s, hits.Count);  // Embers, the Benediction's bonus heal and the step's incense (Censer.cs)
             if (s.HealSpin > 0f)
                 foreach (var q in Players.Values)
                     if (q.Pos.DistanceTo(origin) < s.HealRange)
@@ -676,8 +674,8 @@ namespace Arena
                 Desc = "Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab." },
             new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light on Dawn and Mercy, fanned out, and +30 px on the Sunburst", Name = "Lightbringer", FireInterval = 0.5f,
                 Desc = "A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor." },
-            new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
-                Desc = "A flail whirled all the way around you. Each spin heals nearby allies. As you move it leaves a trail of incense that heals allies in it and makes enemy shots fired from inside it stray." },
+            new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 13f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, +1 HP on every heal and +1 Ember", Name = "Censer", FireInterval = 0.26f,
+                Desc = "A censer on a chain, swung in a three-step rite: a sweep, a return sweep and a Benediction that goes all the way round. Every step heals allies near you and leaves incense that heals allies in it and makes enemy shots fired from inside it stray. Each enemy hit lights an Ember; the weapon-action key throws the censer to your cursor, spending them on a burst and a big healing cloud." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 75f, Melee = true, ExtraDesc = "+1 crescent: the Pirouette and the Crescent Shear each launch one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
                 Desc = "Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back." },

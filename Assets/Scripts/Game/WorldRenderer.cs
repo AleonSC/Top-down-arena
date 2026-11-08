@@ -222,6 +222,7 @@ namespace Arena
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
                 DrawMercyWard(p, t);  // a Lightbringer's ward on anyone (LightbringerLook.cs)
+                DrawCenser(p, t);  // the Censer held, swung and thrown (CenserLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawHeldStunGun(p, t);

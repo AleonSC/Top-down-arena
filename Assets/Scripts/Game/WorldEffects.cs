@@ -140,6 +140,9 @@ namespace Arena
                 case FxKind.TitheSnap:
                     DrawTitheSnapFx(fx, f);  // VeinTitheLook.cs
                     break;
+                case FxKind.Exsanguinate:
+                    DrawExsanguinateFx(fx, t);  // ExsanguinateLook.cs
+                    break;
                 case FxKind.RainRelease:
                     DrawRainReleaseFx(fx, f);  // SanguineRainLook.cs
                     break;

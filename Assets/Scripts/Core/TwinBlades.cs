@@ -100,6 +100,8 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.FangCd = Math.Max(0f, p.FangCd - dt);
+                if (p.Weapon.Id == WeaponId.Censer)
+                    continue;  // the Censer keeps its rite in Combo too (Censer.cs)
                 if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer)))  // (the Lightbringer's chain shares Combo)
                     p.Combo &= ~7;  // back to the first step (the swing count stays)
             }

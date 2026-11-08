@@ -289,10 +289,30 @@ static partial class Program
         place(1, 700f); run(0.2f);
         hp.Hp = hp.MaxHp * 0.5f;
         float dist0 = d1.Pos.DistanceTo(hp.Pos);
+        float dHp0 = d1.Hp;
         use(AbilityId.Exsanguinate, hp.Pos);
-        float hpAfter = hp.Hp - (hp.MaxHp * 0.5f - hp.MaxHp * 0.1f);
-        Console.WriteLine("  exsanguinate: dummy {0:0} -> {1:0} px; healed {2:0.0} after the cost", dist0, d1.Pos.DistanceTo(hp.Pos), hpAfter);
-        Check(d1.Pos.DistanceTo(hp.Pos) < dist0 - 50f && hpAfter >= 20f, "Exsanguinate pulls enemies in and drains health from them");
+        float hpCast = hp.Hp;
+        run(0.4f);  // hooked: held where it stood, nothing drained yet
+        float distHook = d1.Pos.DistanceTo(hp.Pos);
+        float hookHeal = hp.Hp - hpCast, hookDrain = dHp0 - d1.Hp;
+        bool stunned = d1.GraspT > 0f, notYet = hookHeal < 5f && hookDrain < 5f;  // (nothing but a trickle of regen)
+        bool clientFx = client.Game.Effects.Exists(f => f.Kind == FxKind.Exsanguinate && (int)f.Pos2.X == d1.Id);
+        run(0.7f);  // yanked in and landed
+        float hpAfter = hp.Hp - hpCast, touch = d1.Radius + hp.Def.BodyR + 5f;
+        Console.WriteLine("  exsanguinate: dummy {0:0} -> {1:0} (hooked) -> {2:0} px (touching at {3:0}); healed {4:0.0} on landing; drained {5:0}",
+            dist0, distHook, d1.Pos.DistanceTo(hp.Pos), touch, hpAfter, dHp0 - d1.Hp);
+        Console.WriteLine("  hooked: stunned {0}, healed {1:0.0} and drained {2:0.0} so far, client fx {3}", stunned, hookHeal, hookDrain, clientFx);
+        Check(Math.Abs(distHook - dist0) < 2f && stunned && notYet && clientFx, "Exsanguinate hooks enemies in range and holds them, stunned, before the yank (the client sees the tendril)");
+        Check(d1.Pos.DistanceTo(hp.Pos) < touch + 3f && hpAfter >= 19.9f && dHp0 - d1.Hp >= 19.9f, "Exsanguinate yanks enemies in to touching you and drains 20 from each as it lands");
+        Check(d1.ReelBy == 0, "the reel lets go once it lands");
+        var jug = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, hp.Pos + new V2(0f, 150f), 0f, 0, false });
+        jug.Hp = jug.MaxHp = 1e6f; keep.Add(jug); run(0.2f);
+        V2 jug0 = jug.Pos; float jugHp = jug.Hp;
+        use(AbilityId.Exsanguinate, hp.Pos);
+        run(1.1f);
+        Console.WriteLine("  exsanguinate on a Juggernaut: moved {0:0.0} px, drained {1:0}", jug.Pos.DistanceTo(jug0), jugHp - jug.Hp);
+        Check(jug.Pos.DistanceTo(jug0) < 3f && jugHp - jug.Hp >= 19.9f, "a heavy enemy isn't yanked in, but is still drained");
+        keep.Remove(jug); jug.Hp = 0f; run(0.1f);
 
         // Blood Gift: the most hurt ally heals twice what you paid.
         place(1, 600f); place(2, 700f); run(0.3f);
