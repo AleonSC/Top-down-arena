@@ -10,7 +10,7 @@ namespace Arena
     /// seen the enemy. At most three chips; boss waves and the Practice Range show none. Front end only.
     public partial class ArenaApp
     {
-        const float ChipW = 300f, ChipH = 66f, ChipGap = 12f;
+        const float ChipW = 320f, ChipH = 80f, ChipGap = 12f;  // (room for a two-line note: the longest are about 70 characters)
         const int ChipMax = 3;
         readonly List<EnemyType> chipTypes = new List<EnemyType>();
         int chipWave = -1;
@@ -67,7 +67,7 @@ namespace Arena
             Ui.CrtFont = true;
             Ui.Label(tag, "NEW", 15, new Color(0.11f, 0.07f, 0f), TextAnchor.MiddleCenter, false);
             Ui.CrtFont = was;
-            Ui.Label(new Rect(r.x + 14f, r.y + 41f, r.width - 26f, 22f), Game.EnemyNote(t), 11, CrtUi.Dim, TextAnchor.UpperLeft, true, true);
+            Ui.Label(new Rect(r.x + 14f, r.y + 42f, r.width - 26f, 34f), Game.EnemyNote(t), 12, CrtUi.Dim, TextAnchor.UpperLeft, true, true);
         }
 
         /// The job marker's shape in HUD space (the same five shapes as the one under the enemy, JobMarkerLook.cs).

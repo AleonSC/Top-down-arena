@@ -1138,6 +1138,8 @@ namespace Arena
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
+            TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand
+            TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
@@ -1269,7 +1271,7 @@ namespace Arena
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
                     TickKatanaFire(p);  // swipe, swipe, lunge (Katana) or slash, jab, spin (Bo Staff), with the next step queued if you tap ahead (Katana.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

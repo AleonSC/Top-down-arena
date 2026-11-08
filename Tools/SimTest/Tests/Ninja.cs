@@ -48,29 +48,88 @@ static partial class Program
         Action<int, float> place = (id, x) => { var q = (id == 1 ? host : client).Game.Me; q.Pos = q.Disp = new V2(x, 450f); };
         clear(); run(0.3f);
 
-        // Kusarigama: the throw hooks the first enemy in its path; the weapon-action key reels you in to it for a heavy, stunning slash.
+        // Kusarigama combo: a sickle cut, then the weight throw. It bites the first enemy in its lane (not the one behind), stuns it and
+        // drags it to your feet, where the next cut lands on it.
         place(1, 400f); run(0.2f);
         var front = dummy(new V2(600f, 450f));
         var behind = dummy(new V2(650f, 450f));
         V2 frontAt = front.Pos, behindAt = behind.Pos;
-        Action pinBoth = () => { front.Pos = frontAt; behind.Pos = behindAt; front.FireT = behind.FireT = 99f; };
-        float hookedAt = -1f, hitOnHook = 0f, behindOnHook = -1f, maxStun = 0f;
-        bool clientSawHook = false;
-        for (int f = 0; f < 70; f++)
+        front.Speed = behind.Speed = 0f;
+        Action pinBehind = () => { behind.Pos = behindAt; front.FireT = behind.FireT = 99f; };
+        float hitOnThrow = -1f, behindOnThrow = -1f, maxStun = 0f, nearest = 1e9f, hitAfterCut = 0f;
+        bool sawCut = false, sawThrow = false, clientSawThrow = false, clientSawStep = false;
+        for (int f = 0; f < 130; f++)
         {
-            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, WeaponAction = f % 10 < 5, AimAt = frontAt }); g.Update(dt);
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = frontAt }); g.Update(dt);
             client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
-            clear(); pinBoth();
-            if (hookedAt < 0f && hp.HookId == front.Id) { hookedAt = f / 60f; hitOnHook = front.MaxHp - front.Hp; behindOnHook = behind.MaxHp - behind.Hp; }
-            clientSawHook |= client.Game.Players[1].HookId == front.Id;
+            clear(); pinBehind();
+            sawCut |= hp.KusariStep == 1;
+            sawThrow |= hp.KusariStep == 2;
+            if (hitOnThrow < 0f && hp.KusariHit) { hitOnThrow = front.MaxHp - front.Hp; behindOnThrow = behind.MaxHp - behind.Hp; }
+            clientSawThrow |= client.Game.Players[1].HookId == front.Id && client.Game.Players[1].HookT > 0f;
+            clientSawStep |= client.Game.Players[1].KusariStep == 2;
             maxStun = Math.Max(maxStun, front.FrozenT);
+            if (hp.HookT <= 0f && hitOnThrow >= 0f) nearest = Math.Min(nearest, front.Pos.DistanceTo(hp.Pos));
         }
-        float reeled = hp.Pos.DistanceTo(frontAt), total = front.MaxHp - front.Hp;
-        Console.WriteLine("  kusarigama: hooked after {0:0.00} s ({1:0.0}), behind it {2:0.0}; reeled in to {3:0} px of it; slash brought it to {4:0.0}; stunned {5:0.00} s; client saw the hook {6}",
-            hookedAt, hitOnHook, behindOnHook, reeled, total, maxStun, clientSawHook);
-        Check(hookedAt >= 0f && hitOnHook > 0f && behindOnHook == 0f && clientSawHook, "the Kusarigama's throw hooks the first enemy in its path (not the one behind it), and everyone sees the chain");
-        Check(reeled < front.Radius + hp.Def.BodyR + 20f && total >= hitOnHook * 2.5f && maxStun > 0.3f, "the weapon-action key while hooked reels you in to it and lands a heavy, stunning slash");
+        float totalHit = front.MaxHp - front.Hp;
+        hitAfterCut = totalHit - hitOnThrow;
+        Console.WriteLine("  kusarigama: throw hit {0:0.0} (behind it {1:0.0}); dragged to {2:0} px; next cut brought it to {3:0.0}; stunned {4:0.00} s; client saw the throw {5}",
+            hitOnThrow, behindOnThrow, nearest, totalHit, maxStun, clientSawThrow && clientSawStep);
+        Check(sawCut && sawThrow && hitOnThrow > 30f && behindOnThrow == 0f && clientSawThrow && clientSawStep, "the Kusarigama cuts, then throws the weight at the first enemy in its lane (not the one behind it), and everyone sees it");
+        Check(nearest < front.Radius + hp.Def.BodyR + Game.KusariDragStop + 8f && maxStun > 0.3f, "the thrown weight stuns what it bites and drags it to your feet");
+        Check(hitAfterCut > 10f, "the sickle cut that follows lands on the dragged enemy");
+
+        // Kusarigama whirl: hold the weapon-action key and the weight circles you, dragging near enemies in and cutting what it sweeps;
+        // let go and the chain snaps in (a stunning shockwave), then it has to cool down.
         front.Hp = behind.Hp = 0f; keep.Remove(front); keep.Remove(behind);
+        clear(); run(0.2f);
+        place(1, 500f);
+        hp.KusariLock = 0f; hp.FireCd = 0f; hp.KusariStep = 0;
+        V2 spot = hp.Pos;
+        var w1 = dummy(spot + new V2(150f, 0f)); var w2 = dummy(spot + new V2(0f, -170f)); var w3 = dummy(spot + new V2(390f, 0f));  // two inside the pull's 200 px, one outside
+        V2 w3at = w3.Pos;
+        w1.Speed = w2.Speed = w3.Speed = 0f;
+        float baseSpeed = hp.Speed, slowest = 1f, w1Near = 1e9f, w2Near = 1e9f, w3Moved = 0f, stunAfter = 0f, whirlDmg = 0f;
+        bool clientSawWhirl = false, fired = false;
+        int swings0 = hp.SwingCount;
+        Func<bool, V2, bool> frame = (held, aimPt) =>
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = held, AimAt = aimPt }); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            clear(); w3.FireT = w1.FireT = w2.FireT = 99f;
+            return true;
+        };
+        for (int f = 0; f < 100; f++)
+        {
+            frame(true, spot + new V2(300f, 0f));
+            slowest = Math.Min(slowest, hp.Speed / baseSpeed);
+            w1Near = Math.Min(w1Near, w1.Pos.DistanceTo(hp.Pos));
+            w2Near = Math.Min(w2Near, w2.Pos.DistanceTo(hp.Pos));
+            w3Moved = Math.Max(w3Moved, w3.Pos.DistanceTo(w3at));
+            clientSawWhirl |= client.Game.Players[1].KusariWhirl;
+            fired |= hp.SwingCount > swings0;
+        }
+        whirlDmg = (w1.MaxHp - w1.Hp) + (w2.MaxHp - w2.Hp);
+        bool whirlingAtEnd = hp.KusariWhirl;
+        float beforeSnap = whirlDmg;
+        for (int f = 0; f < 30; f++)
+        {
+            frame(false, spot + new V2(300f, 0f));
+            stunAfter = Math.Max(stunAfter, Math.Max(w1.FrozenT, w2.FrozenT));
+        }
+        float snapDmg = (w1.MaxHp - w1.Hp) + (w2.MaxHp - w2.Hp) - beforeSnap;
+        for (int f = 0; f < 40; f++)
+            frame(true, spot + new V2(300f, 0f));  // pressed again straight away: still cooling down
+        bool refused = !hp.KusariWhirl && hp.KusariLock > 0f;
+        Console.WriteLine("  kusarigama whirl: pulled the near ones to {0:0} and {1:0} px, the far one moved {2:0}; speed {3:0%}; chain hits {4:0.0}; snap {5:0.0}, stun {6:0.00} s; client saw it {7}; cools down {8}",
+            w1Near, w2Near, w3Moved, slowest, beforeSnap, snapDmg, stunAfter, clientSawWhirl, refused);
+        Check(w1Near < 90f && w2Near < 90f && w3Moved < 1f, "a Kusarigama whirl pulls enemies within 200 px close to you and leaves the ones beyond");
+        Check(beforeSnap > 20f && whirlingAtEnd && clientSawWhirl && !fired, "the whirling chain cuts what it sweeps, you can't swing meanwhile, and everyone sees it");
+        Check(slowest < 0.6f && slowest > 0.5f, "you move at 55% speed while whirling");
+        Check(snapDmg > 20f && stunAfter > 0.4f, "letting go snaps the chain in: a stunning shockwave");
+        Check(refused, "the whirl has to cool down before it starts again");
+        w1.Hp = w2.Hp = w3.Hp = 0f; keep.Remove(w1); keep.Remove(w2); keep.Remove(w3);
+        clear(); run(0.2f);
         var d1 = dummy(new V2(770f, 450f));
 
         // Bo Staff: the weapon-action key shoves a bar of staff out ahead of you: what's in it is pushed straight ahead 70 px for a little

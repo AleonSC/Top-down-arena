@@ -446,7 +446,8 @@ static partial class Shot {
       switch (me.Weapon.Id) {
         case WeaponId.Warhammer: gm.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.HammerCentre(reach), Color = Game.HammerBoomColor.WithAlpha(float.Parse(Environment.GetEnvironmentVariable("HAMMERPOW") ?? "1", System.Globalization.CultureInfo.InvariantCulture)), Radius = Game.HammerRadius, T = st, Dur = 0.26f }); break;
         case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
-        case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Rapier: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
         case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
         {
@@ -550,6 +551,29 @@ static partial class Shot {
       float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
       me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.2f; host.Game.Bot = false;
       host.Game.Effects.Add(new Effect { Kind = FxKind.Repulse, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 253f, Color = new Rgba(0.55f, 0.95f, 1f), Radius = 0.61f, Dur = Game.RepulseFxTime, T = rt });
+    }
+    if (Environment.GetEnvironmentVariable("HAMMERFX") != null) {
+      // The Storm Hammer's throw and slam (StormHammerLook.cs). HAMMERFX=throw:<s since the click> | slam:<s since the click> | wave:<s since the impact>
+      var hp = Environment.GetEnvironmentVariable("HAMMERFX").Split(':');
+      float ha = float.Parse(hp[1], System.Globalization.CultureInfo.InvariantCulture);
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      var hw = System.Array.Find(Defs.Weapons, x => x.Id == WeaponId.StormHammer); me.Weapon = hw; me.Kit = hw.Kit;
+      me.Pos = me.Disp = new V2(330f, 450f); me.Aim = 0f; me.DrawT = 0f;
+      V2 crater = me.Pos + new V2(Game.HammerSlamReach, 0f);
+      var foes = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values); foes.RemoveAll(x => x.Def.IsBoss);
+      float[][] spots = { new[] { 120f, 0f }, new[] { 170f, -1.1f }, new[] { 175f, 1.0f }, new[] { 230f, 0.3f }, new[] { 250f, -0.5f }, new[] { 90f, 2.6f } };
+      for (int k = 0; k < foes.Count && k < spots.Length; k++) foes[k].Pos = foes[k].Disp = crater + V2.FromAngle(spots[k][1]) * spots[k][0];
+      for (int k = spots.Length; k < foes.Count; k++) foes[k].Pos = foes[k].Disp = new V2(1500f, 120f + 30f * k);
+      if (hp[0] == "throw") {
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerThrow, Pos = me.Pos, Pos2 = new V2(0f, 0f), Color = Game.HammerStormColor, Radius = me.Id, T = ha, Dur = Game.HammerThrowDur });
+        var sbt = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+        if (ha >= Game.HammerThrowRelease) { var hb = sbt.Invoke(gm, new object[] { Defs.HammerShot, me.Pos + new V2(32f, 0f), new V2(460f, 0f), 0f, 1.1f, 40f, me.Id, false, 0f }) as Bullet; if (hb != null) hb.Pos += new V2(460f * (ha - Game.HammerThrowRelease), 0f); }
+      } else if (hp[0] == "slam") {
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerThrow, Pos = me.Pos, Pos2 = new V2(1f, 0f), Color = Game.HammerStormColor, Radius = me.Id, T = ha, Dur = Game.HammerSlamBack });
+      } else {
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerThrow, Pos = me.Pos, Pos2 = new V2(1f, 0f), Color = Game.HammerStormColor, Radius = me.Id, T = ha + Game.HammerSlamWind, Dur = Game.HammerSlamBack });
+        gm.Effects.Add(new Effect { Kind = FxKind.HammerSlam, Pos = crater, Pos2 = me.Pos, Color = Game.HammerStormColor, Radius = Game.HammerSlamRadius, T = ha, Dur = 2.4f });
+      }
     }
     if (Environment.GetEnvironmentVariable("HAMMER") != null) {
       // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.
@@ -712,12 +736,18 @@ static partial class Shot {
       for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].Hemorrhage = k + 1; }
     }
     if (Environment.GetEnvironmentVariable("HOOK") != null) {
-      // The Kusarigama: hooked in an enemy (the chain taut to it), and a throw flying out.
+      // The Kusarigama: HOOK=whirl (the weight circling you, enemies drawn in) or HOOK=<seconds into the throw, 0 to 0.65> (a throw biting an enemy).
+      string hookMode = Environment.GetEnvironmentVariable("HOOK");
       me.Kit = Kit.Ninja; me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0); host.Game.Bot = false;
       me.Pos = me.Disp = new V2(500f, 450f); me.Aim = 0f;
       var hk = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
-      if (hk.Count > 0) { hk[0].Pos = hk[0].Disp = new V2(720f, 420f); me.HookId = hk[0].Id; me.HookT = 2f; me.Aim = (hk[0].Pos - me.Pos).Angle; }
-      host.Game.Effects.Add(new Effect { Kind = FxKind.ChainThrow, Pos = new V2(500f, 600f), Pos2 = new V2(780f, 600f), Color = new Rgba(0.75f, 0.78f, 0.85f), Radius = 0f, Dur = 0.25f, T = 0.06f });
+      if (hookMode == "whirl") {
+        me.KusariWhirl = true; me.KusariHeld = 1.4f; me.KusariAng = 2.2f; me.Aim = 0f;
+        for (int k = 0; k < hk.Count && k < 6; k++) { V2 at = me.Pos + V2.FromAngle(k * 1.05f) * (70f + 22f * (k % 3)); hk[k].Pos = hk[k].Disp = at; }
+      } else {
+        float tk = float.Parse(hookMode);
+        if (hk.Count > 0) { hk[0].Pos = hk[0].Disp = new V2(720f, 450f); me.HookId = hk[0].Id; me.HookT = Game.KusariThrowTime - tk; me.KusariAim = 0f; me.KusariStep = 2; }
+      }
     }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
