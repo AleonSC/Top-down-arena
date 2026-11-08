@@ -34,6 +34,7 @@ namespace Arena
         public float Slow;            // slows what it hits by this much (as frost shots do)
         public bool DrawCut;          // the Katana's lunge: a box (HalfWidth) drawn as a long thin slash, not a jab
         public float Meter;           // the strike meter each enemy this swing hits adds (the Katana's swipes and lunge)
+        public Sfx Sound;             // played in place of the usual swing sound (the Katana's own: KatanaSoundBank.cs)
         public bool Root;             // the Treant Rod's root lash: a box drawn as a thorny root (FxKind.RootLash) that heals allies inside it
         public float RootHeal;        // what an ally touched by the lash is healed
     }
@@ -367,7 +368,7 @@ namespace Arena
             else if (s.Root)
                 BroadcastFx(FxKind.RootLash, origin, origin + dir * s.Reach, new Rgba(0.55f, 0.36f, 0.17f), s.HalfWidth, RootFxTime, Sfx.None);
             else if (s.DrawCut)
-                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
                 BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (box && p.Weapon.Id == WeaponId.BoStaff)  // the Bo Staff's jab: a thrust, drawn like the Rapier's (MeleeLooks.cs)
@@ -377,7 +378,7 @@ namespace Arena
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, s.Tip > 0f || s.Clots ? LashRed : Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
-                    s.Silent ? Sfx.None : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
+                    s.Silent ? Sfx.None : s.Sound != Sfx.None ? s.Sound : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).
             var hits = swingHits;
@@ -464,7 +465,10 @@ namespace Arena
             if (hits.Count > 0 && p.Weapon.Melee && !s.Silent)
                 p.MeleeGraceT = MeleeContactGrace;  // you're in the thick of it: touching bodies don't hurt for a moment
             if (hits.Count > 0 && s.Meter > 0f)  // a Katana step landed: the strike meter builds, per enemy hit
+            {
                 KatanaGain(p, s.Meter * hits.Count);
+                KatanaHitCue(p, s.DrawCut, hits.Count);  // its cut sound, and the lunge's hit-pause (Katana.cs)
+            }
             int healed = 0;
             foreach (var e in hits)
             {

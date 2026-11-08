@@ -17,6 +17,8 @@ namespace Arena
         public const int KatanaChainNeed = 5;  // kills in a row that empower the next strike
         public const float KatanaWind = 0.35f, KatanaCut = 0.14f, KatanaBehind = 52f, KatanaAimMax = 1.5f;  // the Alt strike: the stance before it, the cut across the arena, how far behind the target you land, the longest you can hold to aim
         public const float KatanaStrikeDmg = 120f, KatanaRouteDmg = 60f, KatanaRouteWidth = 24f, KatanaTargetSlack = 90f;  // what it deals to the target and to what it cut through; how far from where you aimed the host will take the target
+        public const float KatanaLungeHold = 0.03f, KatanaLungeHoldPer = 0.01f;  // your own lunge's hit-pause: the picture holds this long, plus this per extra enemy it cut (up to 3 more)
+        public const float KatanaEmpLead = 0.28f, KatanaSheatheAt = 0.05f;  // the empowered cut's sound swells this long before the cut; the sheathe click this long into the held frame
         // The Bo Staff (Docs/Mockups/bo-staff-rework.html): slash, jab, spin, then round again. There is no timer: a click always carries
         // on from where you left off. The weapon-action key shoves and starts the chain over.
         public const float BoSlashArc = 130f, BoJabReach = 140f, BoJabWidth = 14f, BoSpinReach = 100f;  // the slash's cone (degrees), the jab's reach and half width, the spin's reach (the slash uses the weapon's own Reach)
@@ -175,12 +177,15 @@ namespace Arena
                         s.Heavy = true;
                         s.Delay = KatanaLungeWind;
                         s.Meter = KatanaLungeMeter;
+                        s.Sound = Sfx.KatanaLunge;
+                        BroadcastSound(Sfx.KatanaWindup);  // the pull-back, as long as the lunge's wait (KatanaLungeWind)
                         p.KatanaLunges++;  // (your own game steps you forward as it lands: LocalKatana)
                     }
                     else
                     {
                         s = NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
                         s.Meter = KatanaSwipeMeter;
+                        s.Sound = step == 0 ? Sfx.KatanaSwipe1 : Sfx.KatanaSwipe2;
                     }
                     pendingSwings.Add(s);
                     for (int k = 1; k <= extra; k++)

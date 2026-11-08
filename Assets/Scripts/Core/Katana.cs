@@ -19,9 +19,11 @@ namespace Arena
             public V2 From, To;
             public bool Emp;   // empowered: the chain was full when it began
             public float T;  // seconds until the cuts land
+            public int Cue;  // the sounds already raised along the way: 1 the cut, 2 the sheathe
         }
 
         readonly List<KatanaStrikeRun> katanaStrikes = new List<KatanaStrikeRun>();
+        static readonly Sfx[] KatanaChainSfx = { Sfx.KatanaChain1, Sfx.KatanaChain2, Sfx.KatanaChain3, Sfx.KatanaChain4, Sfx.KatanaChain5 };
 
         // Local (your own screen): aiming and the strike you are in the middle of. The front end reads these.
         public bool KatanaAiming;      // holding the key with a full meter
@@ -30,6 +32,9 @@ namespace Arena
         public float KatanaNoMeterT;   // > 0 for a moment after pressing the key without a full meter (the bar shakes)
         byte katanaLungesSeen;         // the lunge count you last saw; a change means one was just thrown
         float katanaLungeIn = -1f;     // > 0: seconds until you step forward with it
+        float katanaMeterSeen;         // the meter last frame (a rise to full plays KatanaReady)
+        bool katanaAimSeen;            // aiming last frame
+        int katanaMarkSeen;            // the marked enemy last frame
         float katanaStrikeT = -1f;     // >= 0 while you are in the strike, counting up from the release
         V2 katanaTo;
         bool katanaDashed, katanaLanded;
@@ -134,6 +139,7 @@ namespace Arena
         bool LocalKatana(Player me, V2 aimAt, bool pressed, bool held, float dt)
         {
             KatanaNoMeterT = Math.Max(0f, KatanaNoMeterT - dt);
+            KatanaLocalSounds(me);
             // A lunge thrown (the host counts them): as it lands you step forward with it, on your own screen like every move.
             if (me.KatanaLunges != katanaLungesSeen)
             {
@@ -204,7 +210,10 @@ namespace Arena
                     KatanaAimT = 0f;
                 }
                 else
+                {
                     KatanaNoMeterT = 0.4f;  // not charged: the bar shakes
+                    Sounds.Add(Sfx.KatanaEmpty);
+                }
             }
             if (KatanaAiming)
             {
@@ -221,6 +230,41 @@ namespace Arena
             else
                 KatanaMark = 0;
             return true;
+        }
+
+        /// Your own screen only, never sent: the meter reaching full (unless a chain's chime is already saying so), the aim
+        /// beginning and the mark moving to another enemy. Reads last frame's state, so it runs first in LocalKatana.
+        void KatanaLocalSounds(Player me)
+        {
+            bool katana = me.Weapon.Id == WeaponId.Katana;
+            if (katana && me.KatanaMeter >= KatanaMeterMax && katanaMeterSeen < KatanaMeterMax && me.KatanaChain == 0 && !me.Downed)
+                Sounds.Add(Sfx.KatanaReady);
+            katanaMeterSeen = katana ? me.KatanaMeter : 0f;
+            if (KatanaAiming && !katanaAimSeen)
+                Sounds.Add(Sfx.KatanaAim);
+            else if (KatanaAiming && KatanaMark != 0 && katanaMarkSeen != 0 && KatanaMark != katanaMarkSeen)
+                Sounds.Add(Sfx.KatanaSwitch);
+            katanaAimSeen = KatanaAiming;
+            katanaMarkSeen = KatanaAiming ? KatanaMark : 0;
+        }
+
+        /// What the Alt strike would deal to its target now: 120, or 240 when the chain is full, times your damage. The aim
+        /// overlay uses it to show which enemies a strike would kill (a guide: a few enemies' own states change it).
+        public float KatanaStrikeDamage(Player p)
+        {
+            float dmg = (p.KatanaChain >= KatanaChainNeed ? KatanaEmpDmg : KatanaStrikeDmg) * p.Stats.DmgMult;
+            if (Has(RunMod.GlassCannon))
+                dmg *= Modifiers.GlassCannonDealt;
+            return dmg;
+        }
+
+        public bool KatanaWouldKill(Player p, Enemy e) => e.Hp <= KatanaStrikeDamage(p);
+
+        /// Host: a swipe or the lunge cut something. Sent as an effect that draws nothing: it carries the cut's sound, and
+        /// the striker's own game holds the picture for a moment on a lunge (Game/Juice.cs).
+        void KatanaHitCue(Player p, bool lunge, int hits)
+        {
+            BroadcastFx(FxKind.KatanaHitCue, p.Pos, new V2(p.Id, 0f), KatanaRose.WithAlpha(lunge ? 1f : 0.5f), hits, 0.2f, Sfx.KatanaHit);
         }
 
         void StartKatanaStrike(Player me, Enemy target)
@@ -260,7 +304,7 @@ namespace Arena
             V2 to = KatanaStrikeEnd(p.Pos, e.Pos, p.Def.BodyR);
             katanaStrikes.Add(new KatanaStrikeRun { Owner = p.Id, Target = e.Id, From = p.Pos, To = to, Emp = emp, T = total });
             // The whole show (stance, cut, held frame, fading line) is one effect, drawn from its age (Game/KatanaLook.cs).
-            BroadcastFx(FxKind.KatanaStrike, p.Pos, to, KatanaRose.WithAlpha(emp ? 1f : 0.5f), p.Id, total + 1.2f, Sfx.None);
+            BroadcastFx(FxKind.KatanaStrike, p.Pos, to, KatanaRose.WithAlpha(emp ? 1f : 0.5f), p.Id, total + 1.2f, Sfx.KatanaStance);
         }
 
         /// Host: land the strikes that are due. The target takes the full cut (240 when empowered) and everything the line
@@ -271,7 +315,19 @@ namespace Arena
             for (int i = katanaStrikes.Count - 1; i >= 0; i--)
             {
                 var k = katanaStrikes[i];
-                if ((k.T -= dt) > 0f)
+                k.T -= dt;
+                float age = KatanaWind + KatanaCut + KatanaHold - k.T;
+                if (k.Cue == 0 && age >= KatanaWind - (k.Emp ? KatanaEmpLead : 0f))
+                {
+                    k.Cue = 1;
+                    BroadcastSound(k.Emp ? Sfx.KatanaEmpStrikeCut : Sfx.KatanaStrikeCut);  // (the empowered one swells in first)
+                }
+                if (k.Cue == 1 && age >= KatanaWind + KatanaCut + KatanaSheatheAt)
+                {
+                    k.Cue = 2;
+                    BroadcastSound(Sfx.KatanaSheathe);
+                }
+                if (k.T > 0f)
                     continue;
                 katanaStrikes.RemoveAt(i);
                 Player p;
@@ -296,16 +352,23 @@ namespace Arena
                     bool dead = e.Hp <= 0f;
                     if (target)
                         killedTarget = dead;
-                    BroadcastFx(FxKind.KatanaCut, e.Pos, dir, KatanaRose.WithAlpha(dead ? 1f : 0.5f), e.Radius, 0.9f, target ? Sfx.SwingHeavy : Sfx.None);
+                    BroadcastFx(FxKind.KatanaCut, e.Pos, dir, KatanaRose.WithAlpha(dead ? 1f : 0.5f), e.Radius, 0.9f, target ? Sfx.KatanaBlow : Sfx.None);
                 }
                 if (killedTarget)
                 {
                     p.KatanaMeter = KatanaMeterMax;  // the meter stays full: strike again at once
                     p.KatanaIdle = 0f;
                     p.KatanaChain = k.Emp ? (byte)0 : (byte)Math.Min(250, p.KatanaChain + 1);  // (only the target's kill counts)
+                    if (p.KatanaChain > 0)  // a chime up the scale (each starts a moment after the blow); the fifth also rings in the empowered strike
+                        BroadcastSound(KatanaChainSfx[Math.Min(KatanaChainSfx.Length, (int)p.KatanaChain) - 1]);
+                    if (p.KatanaChain == KatanaChainNeed)
+                        BroadcastSound(Sfx.KatanaEmpReady);
                 }
                 else
+                {
                     p.KatanaChain = 0;  // it lived: the meter stays spent and the streak is over
+                    BroadcastSound(Sfx.KatanaLost);
+                }
             }
         }
     }

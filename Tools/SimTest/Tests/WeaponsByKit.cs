@@ -867,17 +867,34 @@ static partial class Program
         var farK = dummy(from + new V2(200f, 0f), 1e5f);
         me.KatanaStep = 0; me.KatanaMeter = 0f; me.KatanaGap = 0f;
         var kNear = new float[3]; var kFar = new float[3]; var kOrder = new int[3];
+        Func<Sfx, bool> heard = x => g.Sounds.Any(c => c.Sfx == x);
+        Func<Sfx, int> heardAt = x => g.Sounds.FindIndex(c => c.Sfx == x);
+        g.Sounds.Clear();
+        Effect lungeCue = null;
         for (int step = 0; step < 3; step++)
         {
             nearK.Hp = nearK.MaxHp; farK.Hp = farK.MaxHp;
             kOrder[step] = me.KatanaStep;
             volley.Invoke(g, new object[] { me, 0f, 0 });
-            play(0.3f, new PlayerInput());
+            if (step == 2)
+            {
+                play(0.18f, new PlayerInput());  // the lunge has landed (0.15 s), its cue is still alive (0.2 s)
+                lungeCue = g.Effects.FirstOrDefault(fx => fx.Kind == FxKind.KatanaHitCue && fx.Color.A > 0.75f);
+                play(0.12f, new PlayerInput());
+            }
+            else
+                play(0.3f, new PlayerInput());
             kNear[step] = nearK.MaxHp - nearK.Hp; kFar[step] = farK.MaxHp - farK.Hp;
         }
         Console.WriteLine("  katana: steps {0},{1},{2}; near {3:0}/{4:0}/{5:0}, far {6:0}/{7:0}/{8:0}; next step {9}; meter {10:0}",
             kOrder[0], kOrder[1], kOrder[2], kNear[0], kNear[1], kNear[2], kFar[0], kFar[1], kFar[2], me.KatanaStep, me.KatanaMeter);
         Check(kOrder[0] == 0 && kOrder[1] == 1 && kOrder[2] == 2 && me.KatanaStep == 0, "the Katana goes swipe, swipe, lunge, then starts over");
+        Console.WriteLine("  katana sounds: swipe1 {0}, swipe2 {1}, wind-up {2}, lunge {3}, hit {4}, generic swing {5}; lunge cue cut {6}",
+            heard(Sfx.KatanaSwipe1), heard(Sfx.KatanaSwipe2), heard(Sfx.KatanaWindup), heard(Sfx.KatanaLunge), heard(Sfx.KatanaHit),
+            heard(Sfx.SwingLight) || heard(Sfx.SwingHeavy), lungeCue == null ? -1f : lungeCue.Radius);
+        Check(heard(Sfx.KatanaSwipe1) && heard(Sfx.KatanaSwipe2) && heard(Sfx.KatanaWindup) && heard(Sfx.KatanaLunge) && heard(Sfx.KatanaHit)
+            && !heard(Sfx.SwingLight) && !heard(Sfx.SwingHeavy), "the chain plays the Katana's own Steel sounds (swipes, wind-up, lunge, cut), not the Knight's");
+        Check(lungeCue != null && (int)lungeCue.Radius == 2 && (int)lungeCue.Pos2.X == me.Id, "a lunge that cuts sends a hit cue with the enemies it cut and its owner (for the hit-pause)");
         Check(kNear[0] > 0f && kFar[0] == 0f && kFar[1] == 0f && Math.Abs(kNear[1] - kNear[0]) < 0.5f, "both swipes keep the short reach and the same damage");
         Check(Math.Abs(kNear[2] - kNear[0] * Game.KatanaLungeMult) < 1.5f && Math.Abs(kFar[2] - kNear[2]) < 1.5f, "the lunge cuts through everything in its line for 2.25x");
         Check(Math.Abs(me.KatanaMeter - (Game.KatanaSwipeMeter * 2 + Game.KatanaLungeMeter * 2)) < 0.5f && client.Game.Players[1].KatanaMeter > 0f, "each enemy a step hits builds the strike meter (and the client sees it)");
@@ -965,12 +982,25 @@ static partial class Program
         hostDash.Invoke(g, new object[] { 1, 5, kTarget.Pos });
         play(Game.KatanaWind + Game.KatanaCut + 0.2f, new PlayerInput());
         Check(kTarget.Hp == kTarget.MaxHp && me.KatanaMeter > 0f, "a strike with less than a full meter does nothing");
+        g.Sounds.Clear();
+        me.KatanaMeter = 50f; me.KatanaIdle = 0f;
+        play(0.05f, new PlayerInput { WeaponAction = true, AimAt = kTarget.Pos });
+        play(0.05f, new PlayerInput { AimAt = kTarget.Pos });
+        bool emptyTick = heard(Sfx.KatanaEmpty) && !heard(Sfx.KatanaReady);
         me.KatanaMeter = 100f; me.KatanaIdle = 0f;
         play(0.1f, new PlayerInput { WeaponAction = true, AimAt = kTarget.Pos });
         bool aiming = g.KatanaAiming && g.KatanaMark == kTarget.Id;
+        bool readyAim = heard(Sfx.KatanaReady) && heard(Sfx.KatanaAim);
+        g.Sounds.Clear();
         play(0.05f, new PlayerInput { AimAt = kTarget.Pos });  // let go (the cursor stays where it was)
         bool started = g.KatanaStriking && me.KatanaMeter == 0f && me.InvulnT > 0f;
         play(Game.KatanaWind + Game.KatanaCut + Game.KatanaHold + 0.2f, new PlayerInput());
+        int sStance = heardAt(Sfx.KatanaStance), sCut = heardAt(Sfx.KatanaStrikeCut), sSheathe = heardAt(Sfx.KatanaSheathe), sBlow = heardAt(Sfx.KatanaBlow);
+        Console.WriteLine("  katana strike sounds: empty tick {0}, ready + aim {1}; order stance {2}, cut {3}, sheathe {4}, blow {5}; lost {6}", emptyTick, readyAim, sStance, sCut, sSheathe, sBlow, heard(Sfx.KatanaLost));
+        Check(emptyTick, "pressing the key without a full meter ticks (and the meter isn't full)");
+        Check(readyAim, "the meter reaching full chimes, and aiming starts with a breath in");
+        Check(sStance >= 0 && sStance < sCut && sCut < sSheathe && sSheathe < sBlow, "the strike plays stance, cut, sheathe and blow in order");
+        Check(heard(Sfx.KatanaLost), "a target that lives plays the streak-lost drop");
         float hitT = kTarget.MaxHp - kTarget.Hp, hitR = kRoute.MaxHp - kRoute.Hp, hitO = kOff.MaxHp - kOff.Hp;
         Console.WriteLine("  katana strike: aiming {0}, started {1}; target took {2:0}, enemy on the route {3:0}, one off it {4:0}; striking after {5}", aiming, started, hitT, hitR, hitO, g.KatanaStriking);
         Check(aiming, "holding the key with a full meter aims at the enemy nearest the cursor");
@@ -987,14 +1017,19 @@ static partial class Program
         var kill1 = dummy(from + new V2(400f, 0f), 100f);
         var routeKill = dummy(from + new V2(200f, 6f), 50f);
         me.KatanaChain = 0;
+        bool predictKill = g.KatanaWouldKill(me, kill1);
+        g.Sounds.Clear();
         strikeAt(kill1);
+        Check(heard(Sfx.KatanaChain1) && !heard(Sfx.KatanaLost), "a kill adds a chain and plays its first chime");
         Console.WriteLine("  katana chain: target dead {0}, route dead {1}, chain {2}, meter {3:0}", kill1.Hp <= 0f, routeKill.Hp <= 0f, me.KatanaChain, me.KatanaMeter);
         Check(kill1.Hp <= 0f && me.KatanaMeter == 100f && me.KatanaChain == 1, "a strike that kills its target keeps the meter full and adds a chain");
         Check(routeKill.Hp <= 0f && me.KatanaChain == 1, "kills along the route do not add to the chain");
         reset();
         var tough = dummy(from + new V2(400f, 0f), 500f);
         me.KatanaChain = 3;
+        bool predictLive = !g.KatanaWouldKill(me, tough);
         strikeAt(tough);
+        Check(predictKill && predictLive, "the aim overlay's kill check is right for a target that dies (100) and one that lives (500)");
         Check(tough.Hp > 0f && me.KatanaMeter == 0f && me.KatanaChain == 0, "a target that survives spends the meter and ends the streak");
         reset();
         me.KatanaChain = 2; me.KatanaMeter = 80f; me.KatanaIdle = 0f;
@@ -1004,10 +1039,19 @@ static partial class Program
         play(Game.KatanaDrainDelay + 1.0f, new PlayerInput());
         Check(held80 && me.KatanaMeter < 70f, "on a streak the meter does not drain; with no streak it does");
         reset();
+        var fifth = dummy(from + new V2(400f, 0f), 100f);
+        me.KatanaChain = Game.KatanaChainNeed - 1;
+        g.Sounds.Clear();
+        strikeAt(fifth);
+        Check(me.KatanaChain == Game.KatanaChainNeed && heard(Sfx.KatanaChain5) && heard(Sfx.KatanaEmpReady), "the fifth chain chimes and rings in the empowered strike");
+        reset();
         var big = dummy(from + new V2(400f, 0f), 230f);
         var mid = dummy(from + new V2(200f, 6f), 110f);
         me.KatanaChain = Game.KatanaChainNeed;
+        bool predictEmp = g.KatanaWouldKill(me, big);
+        g.Sounds.Clear();
         strikeAt(big);
+        Check(predictEmp && heard(Sfx.KatanaEmpStrikeCut) && !heard(Sfx.KatanaStrikeCut), "an empowered strike plays its own cut, and the kill check counts its 240");
         Console.WriteLine("  katana empowered: target dead {0}, route dead {1}, chain {2}, meter {3:0}", big.Hp <= 0f, mid.Hp <= 0f, me.KatanaChain, me.KatanaMeter);
         Check(big.Hp <= 0f && mid.Hp <= 0f, "an empowered strike deals 240 to the target and 120 to everything it crossed");
         Check(me.KatanaChain == 0 && me.KatanaMeter == 100f, "an empowered kill starts the chain again and the meter stays full");
