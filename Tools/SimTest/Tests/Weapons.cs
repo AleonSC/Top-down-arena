@@ -215,6 +215,35 @@ static partial class Program
         Check(a.Hp < a.MaxHp && b.Hp < b.MaxHp && c.Hp < c.MaxHp, "the Halberd sweeps across, reaching enemies on both sides of the aim");
         Check(b.MaxHp - b.Hp < dmg * 1.5f, "each enemy is hit once a sweep, however many steps pass over it");
         Check(far.Hp == far.MaxHp, "enemies outside the sweep are safe");
+        // The swing is one motion from the click (HalberdMotion.cs): a pull back, then six steps that land as the edge reaches them.
+        {
+            float prev = 0f; bool inOrder = true, smooth = true;
+            for (int pass = 1; pass <= 2; pass++)
+                for (int i = 0; i < Game.HalberdSteps; i++)
+                {
+                    float t = HalberdMotion.StepTime(pass, i, Game.HalberdSteps);
+                    if (t <= prev) inOrder = false;
+                    prev = t;
+                }
+            float first = HalberdMotion.StepTime(1, 0, Game.HalberdSteps), last = HalberdMotion.StepTime(1, Game.HalberdSteps - 1, Game.HalberdSteps);
+            float ret = HalberdMotion.StepTime(2, 0, Game.HalberdSteps);
+            for (bool up = false; ; up = true)
+            {
+                var pp = HalberdMotion.At(0f, up);
+                for (float t = 0.002f; t < HalberdMotion.Total(up) + 0.05f; t += 0.002f)
+                {
+                    var q = HalberdMotion.At(t, up);
+                    if (Math.Abs(q.A - pp.A) > 0.2f || Math.Abs(q.K - pp.K) > 0.1f || Math.Abs(Math.Cos(q.Roll) - Math.Cos(pp.Roll)) > 0.4) smooth = false;
+                    pp = q;
+                }
+                if (up) break;
+            }
+            Console.WriteLine("  halberd motion: first step at {0:0.000} s, last {1:0.000} s, the return sweep starts {2:0.000} s, total {3:0.00} / {4:0.00} s", first, last, ret, HalberdMotion.Total(false), HalberdMotion.Total(true));
+            Check(inOrder && first > 0.1f && first < 0.2f && last > first && last < 0.3f, "the Halberd's steps land in order after a short wind-up (first within 0.2 s of the click, the sweep done by 0.3 s)");
+            Check(ret > last + 0.05f && ret < 0.5f, "the return sweep follows after the head turns over");
+            Check(smooth, "the Halberd's pose moves smoothly the whole way (no jump in the pole, its reach or the head's roll)");
+            Check(HalberdMotion.Total(false) < 0.6f, "a lone sweep is back at the ready before the next swing (0.6 s)");
+        }
         s[0].Leave(""); s[1].Leave("");
     }
 

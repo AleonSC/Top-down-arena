@@ -559,6 +559,8 @@ namespace Arena
                     MLine(-12f, 0f, 40f, 0f, 3.6f, Hx(0xc9a35e)); MPoly(MSteel, 40f, 0f, 40f, -3.5f, 56f, 0f, 40f, 3.5f); MCirc(8f, 0f, 7f, Hx(0xaeb9c9), 12); MCirc(8f, 0f, 3f, Hx(0x7c8797), 8);
                     break;
                 case WeaponId.Halberd:
+                    if (fxOn)
+                        break;  // with Visual effects on, HalberdLook.cs draws it in two hands
                     MLine(-10f, 0f, 40f, 0f, 3f, MWood); MPoly(MSteel, 28f, 0f, 30f, -11f, 40f, -8f, 36f, -2f); MPoly(MSteel, 40f, -1.5f, 52f, 0f, 40f, 1.5f); MPoly(MSteel, 30f, 2f, 36f, 7f, 34f, 1f);
                     break;
                 case WeaponId.HolyMace:  // Quarterstaff

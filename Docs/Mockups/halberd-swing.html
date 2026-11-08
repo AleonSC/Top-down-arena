@@ -1,0 +1,440 @@
+<title>Halberd Swing Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one live stage (swing on a loop, look chips, toggles, scrubber), a six-frame filmstrip of the pose,
+   four single-moment panels, notes. Page tokens match the Warhammer and Katana mockups; the canvas colours are the
+   Halberd's own mint on a night-blue arena. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#1c8a62;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8ff0c7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8ff0c7; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:1000/420}
+#strip{aspect-ratio:1000/250}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.scrub{display:flex;gap:12px;align-items:center;margin-top:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--accent)}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/260}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+code{font:500 13px var(--mono)}
+</style>
+
+<main>
+<header>
+  <h1>Halberd: a weapon you swing</h1>
+  <p>Today the Knight's Halberd is a 52 px stick on the model, and when you attack the whole pole is drawn as a flat effect that appears over the hit, with nobody holding it. These looks keep every number (30 damage, 200 px reach, an 18° blade swept across 80° in 0.21 s, once per enemy per sweep, the return sweep at 60%) and change what you see: the Knight holds the pole in two gloved hands, winds it back, drives it through the arc with the pole sliding forward in his grip, turns the head over for the return cut, follows through and brings it back to the ready.</p>
+  <p>Pick a look, switch the return sweep on and off, slow it down, or drag the scrubber to stop on any frame.</p>
+</header>
+
+<section>
+  <h2>The swing</h2>
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Look" id="looks"></div>
+    <div class="chips" role="group" aria-label="Wind-up" id="winds"></div>
+  </div>
+  <div class="bar">
+    <label class="tg"><input type="checkbox" id="tgUp" checked> Return sweep upgrade</label>
+    <label class="tg"><input type="checkbox" id="tgFan" checked> Show hit fan</label>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <button type="button" id="pause">Pause</button>
+  </div>
+  <div class="frame"><canvas id="stage" aria-label="The Halberd swing, looping"></canvas></div>
+  <div class="scrub"><span class="sub" id="tlabel">0.00 s</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the swing"></div>
+  <p class="sub" id="stageNote" style="margin:8px 0 0"></p>
+</section>
+
+<section>
+  <h2>The pose, frame by frame</h2>
+  <div class="frame"><canvas id="strip" aria-label="Six frames of the Halberd swing"></canvas></div>
+</section>
+
+<section>
+  <h2>Four moments</h2>
+  <div class="grid4" id="moves"></div>
+</section>
+
+<section>
+  <h2>Up close</h2>
+  <div class="grid4" id="close" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
+</section>
+
+<section class="two">
+  <div class="card"><h3>This look</h3><ul id="notes"></ul></div>
+  <div class="card"><h3>What moves</h3><ul>
+    <li><b>Both hands stay on the pole.</b> The rear hand pushes, the front hand guides, and each is joined to a shoulder by an arm in your colour. The shoulders turn with the swing, about a third of the pole's angle.</li>
+    <li><b>The pole slides in the grip.</b> Pulled back to a short carry while winding up, then it runs forward through the hands until the blade is at the full 200 px.</li>
+    <li><b>The blade is above the floor.</b> It rises and grows as it is raised, drops as it is driven through, and a shadow on the ground shows the height.</li>
+    <li><b>The head turns over for the return cut.</b> The axe edge always leads. In the gap between the two sweeps the head rolls half a turn, so for a moment it is seen edge-on.</li>
+    <li><b>The hit lands when the edge gets there.</b> Each enemy flashes, recoils, takes a cut mark and shows its damage as the blade crosses it. 30, then 18 on the return; a grunt with 40 health goes down on the second.</li>
+  </ul></div>
+</section>
+
+<section class="two">
+  <div class="card"><h3>Kept as it is</h3><ul>
+    <li>Damage 30, reach 200 px, 18° blade, 80° sweep, six steps 0.035 s apart (0.21 s), each enemy hit once per sweep.</li>
+    <li>Return sweep with the extra-projectile upgrade: 60% damage, 0.08 s after the first sweep.</li>
+    <li>No change to the network: this is client-side drawing only, so <code>Session.ProtocolVersion</code> stays.</li>
+  </ul></div>
+  <div class="card"><h3>Needs your call</h3><ul>
+    <li><b>Wind-up.</b> "Off" keeps hits landing the moment you click: the pole rests already drawn back and only snaps through. "0.12 s" adds a visible draw-back and holds the hit 0.12 s after the click, which is the more satisfying read and the heavier feel, but a real change to the weapon's responsiveness.</li>
+    <li>The hit fan (grey, dashed) is only in the mockup to show the 200 px / 80° area. It would not be drawn in the game.</li>
+    <li>If one look is picked, the other two are dropped.</li>
+  </ul></div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+const TAU=Math.PI*2, clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const eo=t=>1-Math.pow(1-clamp(t),3), ei=t=>{t=clamp(t);return t*t}, eio=t=>{t=clamp(t);return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2};
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+const $=id=>document.getElementById(id);
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* the game's numbers (Knight.cs, Defs.cs) */
+const REACH=200, POLE=190, SW=.7, CONE=18*Math.PI/360, SWT=.21, GAP=.08, DMG=30, RDMG=18, HP=40;
+const FONT_D='700 17px "Barlow Condensed","Arial Narrow",sans-serif', FONT_M='500 11px "IBM Plex Mono",ui-monospace,monospace';
+
+const LOOKS={
+ steel:{name:'Steel Arc',col:'143,240,199',hot:'225,255,244',shake:1.1,
+  steel:['#f1f5fb','#98a5b8'],edge:'rgba(190,255,230,.95)',
+  note:[
+   'The Halberd\'s own mint. The swing leaves a pale crescent that is thick at the blade and thin at the shaft, a bright line along the tip\'s path and a thin shock arc leading the edge.',
+   'Hits throw a mint ring and eight short streaks along the cut, with a white flash on the enemy. The cut mark across it fades in about 0.45 s.',
+   'The cleanest to read in a crowd and the same family as the Katana\'s Moon Steel, so melee reads as one set.']},
+ cleaver:{name:'Cleaver',col:'255,170,92',hot:'255,236,200',shake:2.6,
+  steel:['#c4ccd8','#586374'],edge:'rgba(255,206,150,.95)',
+  note:[
+   'Weight, not light. The head is dark blued steel with a hot edge. There is only a short orange trail, but the head leaves three lagging ghosts and the tip scuffs the floor, kicking up dust puffs as it goes through.',
+   'Hits throw orange sparks and a dust ring, the enemy is knocked back further and the screen shakes harder (2.6 px, 0.12 s).',
+   'It reads as heavy even without glow, so it suits Reduced effects best: the ghosts and dust need no additive blending.']},
+ gale:{name:'Gale',col:'140,225,255',hot:'235,252,255',shake:.8,
+  steel:['#eef4fb','#a7b6c9'],edge:'rgba(170,240,255,.95)',
+  note:[
+   'Air, not metal. No solid ribbon: seven hairline streaks curl off the blade at different depths and lag behind it, so the sweep looks like a cut through wind.',
+   'Hits are a pair of cyan pressure rings and three curling arcs. Enemies are pushed a little further than the others but the screen barely moves (0.8 px).',
+   'The lightest on screen. It stays readable over busy bullet patterns because it never fills in an area.']}
+};
+let look='steel', W=.12, up=true;
+
+/* ---------- the pose, a pure function of the swing clock ---------- */
+const tcache={};
+function timing(P){
+  const key=P.W+'|'+(P.up?1:0); if(tcache[key]) return tcache[key];
+  const hold=P.W?.05:0, w0=.6, s0=w0+P.W+hold, s1=s0+SWT, r0=s1+GAP, r1=r0+SWT, end=P.up?r1:s1, f1=end+.16, rec=f1+.45;
+  const T=tcache[key]={W:P.W,up:P.up,w0,s0,s1,r0,r1,end,f1,rec,loop:rec+1.0,restA:P.W?-.95:-.74,windA:P.W?-1.3:-.74,h1:{},h2:{}};
+  return T}
+/* angle of one pass: eases in from aStart to the edge of the 80 degrees, then holds the speed that finishes it in 0.21 s */
+function passAngle(s,aStart,edge,dir){
+  const d=Math.abs(edge-aStart), v=(2*d+2*SW)/SWT, tau=d>0?2*d/v:0; s=clamp(s,0,SWT);
+  const p=s<tau?.5*(v/tau)*s*s:d+v*(s-tau); return aStart+dir*p}
+function pose(c,P){
+  const T=timing(P), o={a:T.restA,k:.72,roll:0,lift:.5,ph:'Ready',pass:0,u:0}, k0=T.W?.55:.72, l0=T.W?1:.5;
+  if(c<T.w0||c>=T.rec){ const b=Math.sin(c*2.6); o.a=T.restA+.02*b; o.k=.72+.008*b; o.roll=(T.up&&c>=T.rec)?TAU:0 }
+  else if(c<T.s0){ const u=T.W?clamp((c-T.w0)/T.W):1, e=eio(u);
+    o.a=lerp(T.restA,T.windA,e); o.k=lerp(.72,.55,e); o.lift=lerp(.5,1,e); o.ph=u<1?'Wind-up':'Coiled' }
+  else if(c<T.s1){ const s=c-T.s0, u=s/SWT;
+    o.a=passAngle(s,T.windA,-SW,1); o.k=lerp(k0,1,eo(u/.28)); o.lift=lerp(l0,.25,eio(u/.6)); o.ph='Sweep'; o.pass=1; o.u=u }
+  else if(T.up&&c<T.r0){ const u=(c-T.s1)/GAP;
+    o.a=SW+.14*eo(u/.6); o.k=lerp(1,.97,u); o.roll=Math.PI*eio(u); o.lift=lerp(.25,.5,u); o.ph='Turn over' }
+  else if(T.up&&c<T.r1){ const s=c-T.r0, u=s/SWT;
+    o.a=passAngle(s,SW+.14,SW,-1); o.k=.97; o.roll=Math.PI; o.lift=lerp(.5,.25,eio(u/.4)); o.ph='Return sweep'; o.pass=2; o.u=u }
+  else if(c<T.f1){ const u=(c-T.end)/(T.f1-T.end), dir=T.up?-1:1, a0=T.up?-SW:SW;
+    o.a=a0+dir*.22*eo(u); o.k=lerp(T.up?.97:1,.9,u); o.roll=T.up?Math.PI:0; o.lift=lerp(.25,.45,u); o.ph='Follow-through' }
+  else { const u=eio((c-T.f1)/(T.rec-T.f1)), dir=T.up?-1:1, a0=(T.up?-SW:SW)+dir*.22;
+    o.a=lerp(a0,T.restA,u); o.k=lerp(.9,.72,u); o.roll=T.up?Math.PI*(1+u):0; o.lift=lerp(.45,.5,u); o.ph='Recover' }
+  o.tw=.3*o.a; return o}
+/* when the edge crosses an enemy's bearing (the hit lands then) */
+function hitTime(P,phi,pass){
+  const T=timing(P), M=pass===1?T.h1:T.h2, key=phi.toFixed(3); if(key in M) return M[key];
+  let r=null; const a=pass===1?T.s0:T.r0, b=a+SWT;
+  for(let t=a;t<=b;t+=.001){ const an=pose(t,P).a; if(pass===1?an>=phi:an<=phi){r=t;break} }
+  return M[key]=r}
+
+/* ---------- drawing pieces ---------- */
+const FOES=[{r:150,phi:-.56},{r:188,phi:-.24},{r:132,phi:.02},{r:192,phi:.3},{r:160,phi:.52},{r:140,phi:.76},{r:238,phi:.1,out:1}];
+function line(x,x0,y0,x1,y1,w,c){x.strokeStyle=c;x.lineWidth=w;x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke()}
+function rot(p,a){const c=Math.cos(a),s=Math.sin(a);return [p[0]*c-p[1]*s,p[0]*s+p[1]*c]}
+
+function weapon(x,o,LK,shadow,al,headOnly){
+  const L=LOOKS[LK], d=[Math.cos(o.a),Math.sin(o.a)], tip=REACH*o.k, but=tip-POLE, sc=1+.2*o.lift;
+  x.save(); x.globalAlpha=al; x.lineCap='round'; x.lineJoin='round';
+  if(shadow) x.translate(5*o.lift+2,7*o.lift+3);
+  /* shaft, grips, butt */
+  if(!headOnly){
+  line(x,d[0]*but,d[1]*but,d[0]*(tip-24),d[1]*(tip-24),6.2*sc,shadow?'rgba(0,0,0,.26)':'#2f2418');
+  if(!shadow){
+    line(x,d[0]*but,d[1]*but,d[0]*(tip-24),d[1]*(tip-24),3.6*sc,'#7a6347');
+    [16,40].forEach(h=>{line(x,d[0]*(h-10),d[1]*(h-10),d[0]*(h+10),d[1]*(h+10),7.4*sc,'#241810');line(x,d[0]*(h-10),d[1]*(h-10),d[0]*(h+10),d[1]*(h+10),4.8*sc,'#5a402a');
+      x.strokeStyle='rgba(20,12,6,.7)';x.lineWidth=1;x.beginPath();for(let i=-3;i<=3;i++){const q=h+i*2.8;x.moveTo(d[0]*q-d[1]*3*sc,d[1]*q+d[0]*3*sc);x.lineTo(d[0]*q+d[1]*3*sc,d[1]*q-d[0]*3*sc)}x.stroke()});
+    x.fillStyle='#9aa6b8';x.strokeStyle='#1b222c';x.lineWidth=1.2;x.beginPath();x.arc(d[0]*but,d[1]*but,4.4*sc,0,TAU);x.fill();x.stroke();
+  } else { x.fillStyle='rgba(0,0,0,.26)';x.beginPath();x.arc(d[0]*but,d[1]*but,4.4*sc,0,TAU);x.fill() }
+  }
+  /* head: local x runs out along the pole, +y is the edge side; roll squeezes y so the head turns over */
+  x.save(); x.translate(d[0]*tip,d[1]*tip); x.rotate(o.a); x.scale(sc,sc*Math.cos(o.roll));
+  const sh='rgba(0,0,0,.26)';
+  const g=x.createLinearGradient(0,-16,0,28); g.addColorStop(0,L.steel[0]); g.addColorStop(1,L.steel[1]);
+  const fill=shadow?sh:g, out=shadow?'transparent':'rgba(8,12,18,.85)';
+  x.lineWidth=1.1; x.strokeStyle=out;
+  x.fillStyle=shadow?sh:'#7d8898'; x.fillRect(-62,-1.8,48,3.6);                       // langets up the shaft
+  x.fillStyle=fill; x.beginPath(); x.moveTo(1.5,0); x.lineTo(-17,-4); x.lineTo(-17,4); x.closePath(); x.fill(); x.stroke();  // spike
+  x.beginPath(); x.moveTo(-13,3); x.bezierCurveTo(-13,15,-20,26,-31,27.5); x.quadraticCurveTo(-52,25,-59,10); x.lineTo(-57,3); x.closePath(); x.fill(); x.stroke();  // axe blade
+  x.beginPath(); x.moveTo(-27,-2.5); x.lineTo(-41,-18); x.lineTo(-51,-3); x.closePath(); x.fill(); x.stroke();  // fluke
+  x.fillStyle=shadow?sh:'#b8975a'; x.fillRect(-63,-4.8,12,9.6); x.strokeRect(-63,-4.8,12,9.6);  // socket band
+  if(!shadow){
+    x.strokeStyle=L.edge; x.lineWidth=1.6; x.beginPath(); x.moveTo(-13,5); x.bezierCurveTo(-13,16,-20,25.5,-31,26.2); x.quadraticCurveTo(-50,24,-57.5,10.5); x.stroke();   // cutting edge
+    x.strokeStyle='rgba(20,28,40,.45)'; x.lineWidth=1; x.beginPath(); x.moveTo(-24,6); x.quadraticCurveTo(-30,15,-46,13); x.stroke();                 // fuller
+    x.strokeStyle='rgba(255,255,255,.7)'; x.beginPath(); x.moveTo(-15,-1); x.lineTo(1,0); x.stroke();
+  }
+  x.restore(); x.restore()}
+
+function arm(x,S,h,sgn){ /* shoulder -> elbow -> glove, the elbow bowed away from the body */
+  const dx=h[0]-S[0], dy=h[1]-S[1], l=Math.hypot(dx,dy)||1; let n=[-dy/l,dx/l]; if(n[0]*S[0]+n[1]*S[1]<0) n=[-n[0],-n[1]];
+  const e=[(S[0]+h[0])/2+n[0]*6, (S[1]+h[1])/2+n[1]*6];
+  [['#0c2f2b',8.2],['#4aa89d',5.6]].forEach(c=>{x.strokeStyle=c[0];x.lineWidth=c[1];x.lineCap='round';x.beginPath();x.moveTo(S[0],S[1]);x.quadraticCurveTo(e[0],e[1],h[0],h[1]);x.stroke()})}
+function knight(x,o,LK,al,ghost){
+  const d=[Math.cos(o.a),Math.sin(o.a)], tw=o.tw, S1=rot([2,-11.5],tw), S2=rot([2,11.5],tw), hF=[d[0]*40,d[1]*40], hR=[d[0]*16,d[1]*16];
+  x.save(); x.globalAlpha=al;
+  /* body: round tank, plate chest, helm with a visor slit */
+  x.save(); x.rotate(tw);
+  x.fillStyle='#5fd0c4'; x.strokeStyle='#0c2f2b'; x.lineWidth=2; x.beginPath(); x.arc(0,0,16,0,TAU); x.fill(); x.stroke();
+  x.fillStyle='#4aa89d'; x.beginPath(); x.arc(-1,0,10.5,0,TAU); x.fill();
+  x.strokeStyle='#e0c46a'; x.lineWidth=2; x.beginPath(); x.moveTo(-2,0); x.lineTo(-8,0); x.stroke();
+  x.restore();
+  arm(x,S1,hF); arm(x,S2,hR);
+  [S1,S2].forEach(S=>{x.save();x.translate(S[0],S[1]);x.rotate(tw);const g=x.createLinearGradient(0,-6,0,6);g.addColorStop(0,'#d3dbe6');g.addColorStop(1,'#8d99ab');
+    x.fillStyle=g;x.strokeStyle='#0c2f2b';x.lineWidth=1.5;x.beginPath();x.ellipse(0,0,7,5.4,0,0,TAU);x.fill();x.stroke();x.restore()});
+  x.save(); x.rotate(tw);
+  x.fillStyle='#aeb9c9'; x.strokeStyle='#0c2f2b'; x.lineWidth=1.6; x.beginPath(); x.arc(2.5,0,7,0,TAU); x.fill(); x.stroke();
+  x.strokeStyle='#0c2f2b'; x.lineWidth=1.5; x.beginPath(); x.moveTo(6.3,-3.2); x.lineTo(6.3,3.2); x.stroke();
+  x.restore();
+  if(!ghost){ weapon(x,o,LK,true,.9); weapon(x,o,LK,false,1) } else weapon(x,o,LK,false,1);
+  [[hR,5.4],[hF,6]].forEach(h=>{x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.5;x.beginPath();x.arc(h[0][0],h[0][1],h[1],0,TAU);x.fill();x.stroke();
+    x.fillStyle='rgba(255,236,200,.45)';x.beginPath();x.arc(h[0][0]-1.4,h[0][1]-1.8,1.8,0,TAU);x.fill()});
+  x.restore()}
+
+/* ---------- effects ---------- */
+function samples(c,span,N,P){ const out=[]; for(let i=0;i<=N;i++){const t=c-span*i/N, o=t<0?null:pose(t,P); if(!o){out.push({ok:0});continue}
+  const d=[Math.cos(o.a),Math.sin(o.a)], tip=REACH*o.k; out.push({ok:o.pass>0,t,o,d,tip,tp:[d[0]*tip,d[1]*tip]})} return out}
+function ribbon(x,sm,inner,rgb,A,pw){ const N=sm.length-1;
+  for(let i=0;i<N;i++){ const a=sm[i], b=sm[i+1]; if(!a.ok||!b.ok) continue;
+    x.fillStyle='rgba('+rgb+','+(A*Math.pow(1-(i+.5)/N,pw)).toFixed(3)+')'; x.beginPath();
+    x.moveTo(a.tp[0],a.tp[1]); x.lineTo(b.tp[0],b.tp[1]); x.lineTo(b.d[0]*(b.tip-inner),b.d[1]*(b.tip-inner)); x.lineTo(a.d[0]*(a.tip-inner),a.d[1]*(a.tip-inner)); x.closePath(); x.fill() } }
+function polyline(x,pts,w,col){ x.strokeStyle=col; x.lineWidth=w; x.lineCap='round'; x.beginPath(); let st=false; pts.forEach(p=>{ if(!p){st=false;return} if(!st){x.moveTo(p[0],p[1]);st=true}else x.lineTo(p[0],p[1]) }); x.stroke() }
+
+function trailFx(x,LK,P,c,o){
+  const L=LOOKS[LK];
+  if(LK==='steel'){
+    const sm=samples(c,.24,20,P); x.save(); x.globalCompositeOperation='lighter';
+    ribbon(x,sm,70,L.col,.2,1.6); ribbon(x,sm,22,L.hot,.4,1.8); x.restore();
+    polyline(x,sm.map(s=>s.ok?s.tp:null),2.2,'rgba(240,255,250,.9)');
+    if(o.pass>0){ x.strokeStyle='rgba('+L.hot+',.5)'; x.lineWidth=1.4; x.beginPath(); const R=REACH*o.k+8, dir=o.pass===1?1:-1; x.arc(0,0,R,o.a-dir*.4,o.a+dir*.05,dir<0); x.stroke() }
+  } else if(LK==='cleaver'){
+    const sm=samples(c,.1,12,P); x.save(); x.globalCompositeOperation='lighter'; ribbon(x,sm,60,L.col,.32,1.4); ribbon(x,sm,16,L.hot,.5,1.6); x.restore();
+    polyline(x,sm.map(s=>s.ok?s.tp:null),2.4,'rgba(255,240,220,.85)');
+    [.03,.06,.09].forEach((lag,i)=>{ const t=c-lag; if(t<0) return; const og=pose(t,P); if(og.pass>0&&o.pass>0) { x.save(); x.globalAlpha=.34-.1*i; weapon(x,og,LK,false,1,true); x.restore() } });
+  } else {
+    const N=16, span=.3;
+    for(let j=0;j<7;j++){ const pts=[], lag=j*.007;
+      for(let i=0;i<=N;i++){ const t=c-lag-span*i/N; const oo=t<0?null:pose(t,P); if(!oo||oo.pass===0){pts.push(null);continue}
+        const R=REACH*oo.k-6-j*8, w=Math.sin((i/N)*3+j)*3; pts.push([Math.cos(oo.a)*R+Math.cos(oo.a+1.57)*w,Math.sin(oo.a)*R+Math.sin(oo.a+1.57)*w]) }
+      polyline(x,pts,1.3+(j<2?.6:0),'rgba('+(j<2?L.hot:L.col)+','+(.6-.07*j)+')') }
+  }
+}
+function groundFx(x,LK,P,c){
+  if(LK!=='cleaver') return; const T=timing(P);
+  [[T.s0,1],[T.up?T.r0:-1,2]].forEach(([ps,pass])=>{ if(ps<0) return;
+    for(let j=0;j<16;j++){ const tj=ps+j*SWT/16, age=c-tj; if(age<=0||age>.6) continue; const oo=pose(tj,P), R=REACH*oo.k+rnd(j+pass*9)*8-4, sd=pass===1?1:-1;
+      const px=Math.cos(oo.a)*R+Math.cos(oo.a)*age*26+Math.cos(oo.a+1.57*sd)*age*(10+rnd(j)*22), py=Math.sin(oo.a)*R+Math.sin(oo.a)*age*26+Math.sin(oo.a+1.57*sd)*age*(10+rnd(j)*22);
+      const u=age/.6; x.fillStyle='rgba(176,150,120,'+(.24*(1-u)*(1-u)).toFixed(3)+')'; x.beginPath(); x.arc(px,py,3+u*11,0,TAU); x.fill() } })
+}
+function hitFx(x,LK,p,q,ang,big,seed){
+  const L=LOOKS[LK]; if(q<0||q>.55) return; const nx=-Math.sin(ang), ny=Math.cos(ang), sc=big?1:.7;
+  x.save(); x.translate(p[0],p[1]);
+  if(q<.06){ x.globalCompositeOperation='lighter'; const g=x.createRadialGradient(0,0,0,0,0,26*sc); g.addColorStop(0,'rgba(255,255,255,'+(.9*(1-q/.06))+')'); g.addColorStop(1,'rgba('+L.col+',0)'); x.fillStyle=g; x.beginPath(); x.arc(0,0,26*sc,0,TAU); x.fill(); x.globalCompositeOperation='source-over' }
+  if(LK==='steel'){
+    if(q<.3){ x.strokeStyle='rgba('+L.col+','+(.7*(1-q/.3))+')'; x.lineWidth=2; x.beginPath(); x.arc(0,0,8+q*160*sc,0,TAU); x.stroke() }
+    if(q<.22) for(let i=0;i<8;i++){ const s=(i/7-.5)*1.9, a=ang+Math.PI/2*(i%2?1:-1)*0+s*0, dx=Math.cos(ang+s*.9), dy=Math.sin(ang+s*.9), r0=12+q*210*(.6+.4*rnd(seed+i)), l=10+10*rnd(seed+i+4);
+      line(x,dx*r0,dy*r0,dx*(r0+l),dy*(r0+l),1.6,'rgba(235,255,247,'+(.9*(1-q/.22))+')') }
+  } else if(LK==='cleaver'){
+    if(q<.4) for(let i=0;i<(big?14:8);i++){ const th=ang+(rnd(seed+i)-.5)*2.2+(i%2?0:Math.PI*.0), sp=(130+240*rnd(seed+i+3))*(big?1:.7), r=sp*q, l=7+9*rnd(seed+i+7);
+      x.strokeStyle=(i%3?'rgba(255,170,92,':'rgba(255,236,200,')+(1-q/.4)+')'; x.lineWidth=2; x.lineCap='round'; x.beginPath(); x.moveTo(Math.cos(th)*r,Math.sin(th)*r); x.lineTo(Math.cos(th)*(r+l),Math.sin(th)*(r+l)); x.stroke() }
+    if(q<.45){ x.strokeStyle='rgba(150,124,96,'+(.4*(1-q/.45))+')'; x.lineWidth=5*(1-q/.45)+1; x.beginPath(); x.arc(0,0,6+q*95*sc,0,TAU); x.stroke() }
+  } else {
+    [0,.07].forEach(d=>{ const qq=q-d; if(qq<0||qq>.34) return; x.strokeStyle='rgba('+L.col+','+(.5*(1-qq/.34))+')'; x.lineWidth=1.6; x.beginPath(); x.arc(0,0,8+qq*105*sc,0,TAU); x.stroke() });
+    if(q<.4) for(let i=0;i<3;i++){ const a0=ang+(i-1)*1.1, r=14+q*100+i*5; x.strokeStyle='rgba('+L.hot+','+(.7*(1-q/.4))+')'; x.lineWidth=1.3; x.beginPath(); x.arc(0,0,r,a0-.5,a0+.5); x.stroke() }
+  }
+  /* the cut mark across the enemy, along the way the blade travelled */
+  if(q<.45){ const al=1-q/.45; x.lineCap='round'; line(x,-nx*20,-ny*20,nx*20,ny*20,3.2,'rgba('+L.col+','+(.7*al)+')'); line(x,-nx*20,-ny*20,nx*20,ny*20,1.3,'rgba(255,255,255,'+al+')') }
+  x.restore()}
+
+function foeDraw(x,LK,P,c,f,i){
+  const L=LOOKS[LK], T=timing(P), ev=[];
+  if(!f.out){ const t1=hitTime(P,f.phi,1); if(t1!=null) ev.push({t:t1,dmg:DMG,pass:1}); if(P.up){ const t2=hitTime(P,f.phi,2); if(t2!=null) ev.push({t:t2,dmg:RDMG,pass:2}) } }
+  const base=[Math.cos(f.phi)*f.r,Math.sin(f.phi)*f.r], push=LK==='cleaver'?1.5:LK==='gale'?1.25:1;
+  let off=0, hp=HP, flash=0, dead=0; const nums=[], fxs=[];
+  ev.forEach((e,k)=>{ const q=c-e.t; if(q<0) return; hp-=e.dmg; const amp=(e.pass===1?15:9)*push; off+=amp*(q<.05?q/.05:Math.exp(-(q-.05)*8)); if(q<.07) flash=1;
+    nums.push({q,e}); fxs.push({q,e,k}); if(hp<=0) dead=q });
+  const cnt=Math.cos(f.phi), sn=Math.sin(f.phi);
+  let alpha=1, scale=1; if(hp<=0){ alpha=clamp(1-dead/.4); scale=1+.35*clamp(dead/.4) }
+  const wob=Math.sin(c*38)*Math.exp(-Math.max(0,off)*0)*(nums.length&&!dead?clamp(1-(c-nums[nums.length-1].e.t)/.25)*1.6:0);
+  const px=base[0]+cnt*off-sn*wob, py=base[1]+sn*off+cnt*wob, ang=f.phi;
+  if(alpha>0){
+    x.save(); x.globalAlpha=alpha*(f.out?.8:1); x.translate(px,py); x.scale(scale,scale);
+    x.fillStyle='rgba(0,0,0,.28)'; x.beginPath(); x.ellipse(2,4,13,10,0,0,TAU); x.fill();
+    x.rotate(f.phi+Math.PI); x.fillStyle=flash?'#fff':'#d8503f'; x.strokeStyle='#4a1510'; x.lineWidth=2; x.beginPath(); x.arc(0,0,13,0,TAU); x.fill(); x.stroke();
+    x.fillStyle=flash?'#ddd':'#4a1510'; x.beginPath(); x.moveTo(13,0); x.lineTo(6,-4.5); x.lineTo(6,4.5); x.closePath(); x.fill();
+    x.restore();
+    if(!dead){ const w=26; x.fillStyle='rgba(0,0,0,.55)'; x.fillRect(px-w/2,py-24,w,4); x.fillStyle=hp/HP>.4?'#7ee08b':'#f0c34a'; x.fillRect(px-w/2+.5,py-23.5,(w-1)*clamp(hp/HP),3) }
+  }
+  return {px,py,fxs,nums,ang}}
+
+/* ---------- the whole scene ---------- */
+function drawScene(x,W_,H_,S,ox,oy,P,c,LK,opt){
+  const L=LOOKS[LK], T=timing(P);
+  x.save(); x.clearRect(0,0,W_,H_);
+  const bg=x.createRadialGradient(ox,oy,0,ox,oy,Math.max(W_,H_)*.8); bg.addColorStop(0,'#141d28'); bg.addColorStop(1,'#0b1017'); x.fillStyle=bg; x.fillRect(0,0,W_,H_);
+  /* shake from hits */
+  let sh=0; const evs=[]; FOES.forEach(f=>{ if(f.out) return; [1,2].forEach(pass=>{ if(pass===2&&!P.up) return; const t=hitTime(P,f.phi,pass); if(t!=null){ evs.push(t); const q=c-t; if(q>=0&&q<.12) sh=Math.max(sh,L.shake*(1-q/.12)) } }) });
+  if(!reduced&&sh>0) x.translate((rnd(Math.floor(c*120))-.5)*2*sh,(rnd(Math.floor(c*120)+7)-.5)*2*sh);
+  x.translate(ox,oy); x.scale(S,S);
+  /* floor grid */
+  x.strokeStyle='rgba(120,160,200,.07)'; x.lineWidth=1/S; x.beginPath();
+  for(let g=-600;g<=600;g+=50){ x.moveTo(g,-400); x.lineTo(g,400); x.moveTo(-600,g); x.lineTo(600,g) } x.stroke();
+  /* the hit fan */
+  if(opt.fan){ x.strokeStyle='rgba('+L.col+',.3)'; x.lineWidth=1.2/S; x.setLineDash([5/S,6/S]); x.beginPath(); x.arc(0,0,REACH,-SW-CONE,SW+CONE); x.moveTo(Math.cos(-SW-CONE)*20,Math.sin(-SW-CONE)*20); x.lineTo(Math.cos(-SW-CONE)*REACH,Math.sin(-SW-CONE)*REACH); x.moveTo(Math.cos(SW+CONE)*20,Math.sin(SW+CONE)*20); x.lineTo(Math.cos(SW+CONE)*REACH,Math.sin(SW+CONE)*REACH); x.stroke(); x.setLineDash([]);
+    if(opt.labels){ x.fillStyle='rgba('+L.col+',.7)'; x.font=(11/S)+'px "IBM Plex Mono",monospace'; x.fillText('200 px',REACH*Math.cos(SW+CONE)-18,REACH*Math.sin(SW+CONE)+16/S) } }
+  const o=pose(c,P);
+  groundFx(x,LK,P,c);
+  const fs=FOES.map((f,i)=>foeDraw(x,LK,P,c,f,i));
+  trailFx(x,LK,P,c,o);
+  knight(x,o,LK,1,false);
+  fs.forEach((f,i)=>f.fxs.forEach(h=>hitFx(x,LK,[f.px,f.py],h.q,f.ang,h.e.pass===1,i*11+h.k*3)));
+  fs.forEach(f=>f.nums.forEach(n=>{ const u=n.q/.75; if(u<0||u>1) return; x.save(); x.globalAlpha=1-u*u; x.font=n.e.pass===1?FONT_D:'600 14px "Barlow Condensed",sans-serif'; x.textAlign='center';
+    x.lineWidth=3; x.strokeStyle='rgba(8,12,18,.9)'; x.fillStyle=n.e.pass===1?'#fff':'rgba('+L.hot+',1)'; const ty=f.py-28-26*eo(u)-(n.e.pass===2?10:0); x.strokeText(String(n.e.dmg),f.px,ty); x.fillText(String(n.e.dmg),f.px,ty); x.restore() }));
+  x.restore();
+  /* hud */
+  if(opt.labels){
+    x.save(); x.fillStyle='rgba(235,242,250,.92)'; x.font='700 22px "Barlow Condensed",sans-serif'; x.textBaseline='top'; x.fillText(o.ph.toUpperCase(),20,16);
+    x.font=FONT_M; x.fillStyle='rgba(170,185,205,.9)'; x.fillText(c.toFixed(2)+' s',20,44);
+    const rx=W_-232, rows=[['pole angle',(o.a*180/Math.PI).toFixed(0)+'°'],['blade reach',Math.round(REACH*o.k)+' px'],['head roll',(((o.roll*180/Math.PI)%360)).toFixed(0)+'°'],['blade height',o.lift.toFixed(2)],['shoulder turn',(o.tw*180/Math.PI).toFixed(0)+'°']];
+    x.fillStyle='rgba(8,12,18,.55)'; x.fillRect(rx-14,14,236,12+rows.length*20+8); x.strokeStyle='rgba('+L.col+',.35)'; x.lineWidth=1; x.strokeRect(rx-13.5,14.5,235,12+rows.length*20+7);
+    rows.forEach((r,i)=>{ x.fillStyle='rgba(150,168,190,.9)'; x.fillText(r[0],rx,26+i*20); x.fillStyle='rgba(235,242,250,.95)'; x.textAlign='right'; x.fillText(r[1],rx+206,26+i*20); x.textAlign='left' });
+    /* timeline */
+    const tx=20, tw=W_-40, ty=H_-30, k=tw/T.loop; const segs=[[0,T.w0,'#33414f'],[T.w0,T.s0,'#8a7bd8'],[T.s0,T.s1,'rgb('+L.col+')'],[T.s1,T.up?T.r0:T.s1,'#e0b84a'],[T.up?T.r0:T.s1,T.end,'rgb('+L.col+')'],[T.end,T.rec,'#4b6a8a'],[T.rec,T.loop,'#33414f']];
+    segs.forEach(s=>{ if(s[1]>s[0]){ x.fillStyle=s[2]; x.globalAlpha=.85; x.fillRect(tx+s[0]*k,ty,(s[1]-s[0])*k,8) } }); x.globalAlpha=1;
+    evs.forEach(t=>{ x.fillStyle='#fff'; x.fillRect(tx+t*k-.5,ty-4,1.2,16) });
+    x.fillStyle='#fff'; x.fillRect(tx+c*k-1.5,ty-8,3,24);
+    x.restore() }
+  x.restore() }
+
+/* ---------- the filmstrip ---------- */
+function strip(x,P){
+  const T=timing(P), N=6, cw=1000/N, S=.52;
+  const cuts=[['Ready',.3],['Coiled',T.s0-.005],['Drive',T.s0+.075],['Through',T.s0+.17],['Turn over',T.s1+.045],['Return',T.r0+.1]];
+  x.clearRect(0,0,1000,250); const bg=x.createLinearGradient(0,0,0,250); bg.addColorStop(0,'#131b26'); bg.addColorStop(1,'#0b1017'); x.fillStyle=bg; x.fillRect(0,0,1000,250);
+  cuts.forEach((cu,i)=>{ const cx=i*cw+46, cy=108, L=LOOKS[look];
+    x.save(); x.beginPath(); x.rect(i*cw+1,0,cw-2,250); x.clip();
+    x.translate(cx,cy); x.scale(S,S);
+    x.strokeStyle='rgba('+L.col+',.2)'; x.lineWidth=1/S; x.setLineDash([4/S,5/S]); x.beginPath(); x.arc(0,0,REACH,-SW-CONE,SW+CONE); x.stroke(); x.setLineDash([]);
+    if(i>=2) for(let j=3;j>=1;j--){ const t=cu[1]-j*.03; if(t<0) continue; const og=pose(t,P); x.save(); x.globalAlpha=.2*(4-j)/3; weapon(x,og,look,false,1,true); x.restore() }
+    const o=pose(cu[1],P); knight(x,o,look,1,false); x.restore();
+    x.fillStyle='rgba(235,242,250,.95)'; x.font='700 17px "Barlow Condensed",sans-serif'; x.fillText(cu[0].toUpperCase(),i*cw+14,214);
+    x.font=FONT_M; x.fillStyle='rgba(150,168,190,.95)'; x.fillText(cu[1].toFixed(2)+' s · '+(o.a*180/Math.PI).toFixed(0)+'° · '+Math.round(REACH*o.k)+' px',i*cw+14,234);
+    if(i) { x.fillStyle='rgba(120,160,200,.18)'; x.fillRect(i*cw-.5,16,1,218) } }) }
+
+/* ---------- canvases and controls ---------- */
+function setup(c,w,h){const d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+const stage=$('stage'), sx=setup(stage,1000,420), stripC=$('strip'), stripX=setup(stripC,1000,250);
+const PANELS=[
+ {title:'Coiled',sub:'0.12 s wind-up done',text:'Drawn back and up: the pole is short in the grip, the blade is high and big, the shoulders are turned away. The edge side faces the sweep.',P:{W:.12,up:true},t:p=>timing(p).s0-.004},
+ {title:'Contact',sub:'30 damage',text:'The edge reaches the middle enemy. The pole has slid out to 200 px, the blade is low, the enemy flashes and takes the cut mark.',P:{W:.12,up:true},t:p=>hitTime(p,.02,1)+.035},
+ {title:'Turn over',sub:'0.08 s between sweeps',text:'The head rolls half a turn, so the axe edge leads the return cut. Seen edge-on for a moment, which is why it looks thin here.',P:{W:.12,up:true},t:p=>timing(p).s1+.045},
+ {title:'Return cut',sub:'18 damage · 60%',text:'Back across the same enemies. Anything already at 10 health goes down on this pass.',P:{W:.12,up:true},t:p=>hitTime(p,.02,2)+.05}
+];
+const moves=$('moves');
+PANELS.forEach(p=>{ const cell=document.createElement('div'); cell.className='cell';
+  cell.innerHTML='<h3>'+p.title+' <small>'+p.sub+'</small></h3><div class="frame"><canvas aria-label="'+p.title+'"></canvas></div><p>'+p.text+'</p>'; moves.appendChild(cell);
+  p.c=cell.querySelector('canvas'); p.x=setup(p.c,340,260) });
+
+/* close-ups: the camera sits on a point of the pole, no enemies */
+function drawClose(x,W_,H_,S,P,c,LK,focus){
+  const o=pose(c,P), d=[Math.cos(o.a),Math.sin(o.a)], tip=REACH*o.k, F=focus==='head'?[d[0]*(tip-32)-d[1]*6,d[1]*(tip-32)+d[0]*6]:[d[0]*14,d[1]*14];
+  x.save(); x.clearRect(0,0,W_,H_); const bg=x.createRadialGradient(W_/2,H_/2,0,W_/2,H_/2,W_*.7); bg.addColorStop(0,'#16202c'); bg.addColorStop(1,'#0b1017'); x.fillStyle=bg; x.fillRect(0,0,W_,H_);
+  x.translate(W_/2-F[0]*S,H_/2-F[1]*S); x.scale(S,S);
+  x.strokeStyle='rgba(120,160,200,.07)'; x.lineWidth=1/S; x.beginPath(); for(let g=-600;g<=600;g+=25){x.moveTo(g,-400);x.lineTo(g,400);x.moveTo(-600,g);x.lineTo(600,g)} x.stroke();
+  knight(x,o,LK,1,false); x.restore() }
+const CLOSE=[
+ {title:'Two hands',sub:'ready',text:'The rear hand is at the hip, the front hand a pole-length of grip further on. Each is joined to a pauldron by an arm in your colour.',S:3.1,focus:'body',t:p=>.3},
+ {title:'Sliding grip',sub:'0.06 s into the sweep',text:'The pole runs forward through both hands. The butt, which was behind you in the carry, comes up to the rear hand.',S:3.1,focus:'body',t:p=>timing(p).s0+.06},
+ {title:'The head',sub:'raised, edge side down',text:'Spike, bearded axe blade with its lit cutting edge, fluke on the other side and a brass socket. A shadow sits under it while it is held high.',S:3.4,focus:'head',t:p=>timing(p).s0-.004}
+];
+const closeEl=$('close');
+CLOSE.forEach(p=>{ const cell=document.createElement('div'); cell.className='cell';
+  cell.innerHTML='<h3>'+p.title+' <small>'+p.sub+'</small></h3><div class="frame"><canvas aria-label="'+p.title+'"></canvas></div><p>'+p.text+'</p>'; closeEl.appendChild(cell);
+  p.c=cell.querySelector('canvas'); p.x=setup(p.c,340,260) });
+const looksEl=$('looks'), windsEl=$('winds');
+function chips(el,items,cur,fn){ items.forEach(it=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=it[1]; b.dataset.k=it[0]; b.setAttribute('aria-pressed',String(it[0]===cur));
+  b.addEventListener('click',()=>{ fn(it[0]); [].forEach.call(el.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===it[0]))) }); el.appendChild(b) }) }
+function setLookChips(){ [].forEach.call(looksEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===look))) }
+function notes(){ $('notes').innerHTML=LOOKS[look].note.map(t=>'<li>'+t+'</li>').join('');
+  $('stageNote').textContent=LOOKS[look].name+': white ticks on the timeline are hits; purple is the wind-up, gold is the turn over. The grey enemy-sized circle at 238 px is out of reach and is never touched.' }
+chips(looksEl,Object.keys(LOOKS).map(k=>[k,LOOKS[k].name]),look,k=>{look=k;notes()});
+chips(windsEl,[['0','Wind-up: off (hit on click)'],['1','Wind-up: 0.12 s']],'1',k=>{W=k==='1'?.12:0;clock=0});
+notes();
+let paused=false, slow=false, clock=0, last=performance.now(), dragging=false;
+const scrub=$('scrub');
+$('pause').addEventListener('click',function(){paused=!paused;this.textContent=paused?'Play':'Pause'});
+$('tgSlow').addEventListener('change',function(){slow=this.checked});
+$('tgUp').addEventListener('change',function(){up=this.checked;clock=0});
+scrub.addEventListener('input',()=>{ dragging=true; paused=true; $('pause').textContent='Play'; clock=scrub.value/1000*timing({W:W,up:up}).loop });
+scrub.addEventListener('change',()=>{dragging=false});
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now; const P={W:W,up:up}, T=timing(P);
+  if(!paused) clock+=dt*(slow?.25:1); if(clock>=T.loop) clock-=T.loop;
+  drawScene(sx,1000,420,1.3,360,208,P,clock,look,{fan:$('tgFan').checked,labels:true});
+  strip(stripX,{W:.12,up:true});
+  PANELS.forEach(p=>{ const pp=p.P; drawScene(p.x,340,260,.98,62,130,pp,p.t(pp),look,{fan:true,labels:false}) });
+  CLOSE.forEach(p=>drawClose(p.x,340,260,p.S,{W:.12,up:true},p.t({W:.12,up:true}),look,p.focus));
+  if(!dragging) scrub.value=Math.round(clock/T.loop*1000); $('tlabel').textContent=clock.toFixed(2)+' s';
+  requestAnimationFrame(frame) }
+try{ const qs=new URLSearchParams(location.search);
+  if(qs.get('look')&&LOOKS[qs.get('look')]){look=qs.get('look');setLookChips();notes()}
+  if(qs.get('w')!=null){W=parseFloat(qs.get('w'));[].forEach.call(windsEl.children,c=>c.setAttribute('aria-pressed',String((c.dataset.k==='1')===(W>0))))}
+  if(qs.get('up')!=null){up=qs.get('up')==='1';$('tgUp').checked=up}
+  if(qs.get('t')!=null){clock=parseFloat(qs.get('t'));paused=true;$('pause').textContent='Play'} }catch(e){}
+if(reduced&&!paused){clock=1.2;paused=true;$('pause').textContent='Play'}
+requestAnimationFrame(frame);
+})();
+</script>

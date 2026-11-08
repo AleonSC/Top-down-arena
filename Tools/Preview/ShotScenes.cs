@@ -428,7 +428,7 @@ static partial class Shot {
     }
     // SWING=<seconds>: your melee weapon's attack that far in (with KNIGHT=, NINJA= or BLOOD=; MeleeLooks.cs draws it
     // with Visual effects on). Built like the game's own effects: Slash with the weapon's half arc (negative: a
-    // thrust), the Halberd's six steps, Jab boxes for the Lance and the Warhammer.
+    // thrust), the Halberd's whole swing (SWING = seconds after the click, HALBERDUP=1 for the return sweep), Jab boxes for the Lance and the Warhammer.
     if (Environment.GetEnvironmentVariable("SWING") != null) {
       float st = float.Parse(Environment.GetEnvironmentVariable("SWING"), System.Globalization.CultureInfo.InvariantCulture);
       var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
@@ -447,7 +447,7 @@ static partial class Shot {
         case WeaponId.Warhammer: gm.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.HammerCentre(reach), Color = Game.HammerBoomColor.WithAlpha(float.Parse(Environment.GetEnvironmentVariable("HAMMERPOW") ?? "1", System.Globalization.CultureInfo.InvariantCulture)), Radius = Game.HammerRadius, T = st, Dur = 0.26f }); break;
         case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
         case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
-        case WeaponId.Halberd: for (int i = 0; i < 6; i++) { float a = me.Aim + (i / 5f * 2f - 1f) * 0.7f; fx(FxKind.Slash, me.Pos + V2.FromAngle(a) * reach, 18f * MathX.Pi / 360f, 0.035f * i, 0.16f); } break;
+        case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
         {
           foreach (int sd in new[] { 1, -1 })
