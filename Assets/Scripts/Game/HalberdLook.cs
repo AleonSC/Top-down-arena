@@ -61,8 +61,15 @@ namespace Arena
         bool HalberdBusy(Player p)
         {
             foreach (var fx in game.Effects)
-                if (IsHalberdFx(fx) && fx.T < fx.Dur - 0.001f && (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
+            {
+                if (!IsHalberdFx(fx) || fx.T >= fx.Dur - 0.001f)
+                    continue;
+                // The swing is drawn on its owner's body as they move (MeleeOrigin), so match by owner once it's known; moving away from
+                // where the swing started must not let the idle Halberd show up beside it. (Not yet seen: where it started.)
+                MeleeSeen seen;
+                if (meleeSeen.TryGetValue(fx, out seen) ? seen.Owner == p.Id : (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
                     return true;
+            }
             return false;
         }
 
