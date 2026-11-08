@@ -658,7 +658,7 @@ namespace Arena
 
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
-        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7;
+        const byte DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -925,10 +925,24 @@ namespace Arena
         {
             reelCd -= dt;
             staffJabLocalCd -= dt;
-            bool pressed = weaponAction && !wasWeaponAction;
+            bool pressed = weaponAction && !wasWeaponAction, released = !weaponAction && wasWeaponAction;
             wasWeaponAction = weaponAction;
             if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
                 return;  // the Katana's Alt strike (below)
+            if (me.Weapon.Id == WeaponId.Greatsword && (pressed || released))  // the Greatsword's guard: held, so both edges go to the host (Greatsword.cs)
+            {
+                byte guardKind = pressed ? DashGuardOn : DashGuardOff;
+                if (IsHost)
+                    HostWeaponDash(MyId, guardKind, aimAt);
+                else
+                {
+                    var gw = Proto.Begin(Msg.WeaponDash);
+                    gw.Write(guardKind);
+                    gw.Write(aimAt);
+                    session.SendToHost(Proto.End(gw));
+                }
+                return;
+            }
             if (me.Downed || DashT > 0f || me.StunT > 0f)
                 return;
             if (me.Weapon.Id == WeaponId.Shuriken && pressed)
@@ -1037,6 +1051,11 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
             var w = p.Weapon;
+            if (kind == DashGuardOn || kind == DashGuardOff)
+            {
+                HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
+                return;
+            }
             if (kind == DashKatana)
             {
                 HostKatanaStrike(p, target);

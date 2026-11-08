@@ -495,6 +495,10 @@ namespace Arena
             s.Byte(ref p.KatanaChain);
             s.Byte(ref p.BoStep);
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
+            s.Byte(ref p.GreatStep);    // the Greatsword's chain, Temper and guard (Greatsword.cs)
+            s.Byte(ref p.GreatTemper);
+            s.Bool(ref p.GreatGuard);
+            s.Bool(ref p.GreatPrimed);
             s.Byte(ref p.RapierStreak);  // the Rapier's streak, drawn as pips behind you (Game/MeleeLooks.cs)
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);

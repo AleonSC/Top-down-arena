@@ -209,6 +209,140 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    static void GreatswordTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 3, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", bf);
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
+        var me = g.Players[1];
+        me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 1);
+        me.Hp = me.MaxHp;
+        V2 from = new V2(500f, 450f), aimAt = new V2(800f, 450f);
+        Func<V2, Enemy> Dummy = at =>
+        {
+            var d = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+            d.MaxHp = d.Hp = 1e5f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
+            return d;
+        };
+        Action<int, bool, bool> Step = (frames, fire, alt) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aimAt, Fire = fire && f < 3, WeaponAction = alt } : new PlayerInput()); }
+            }
+        };
+        Func<V2, V2, byte, Bullet> Shot = (at, vel, kind) => (Bullet)shoot.Invoke(g, new object[] { kind, at, vel, 0f, 3f, 5f, 0, false, 0f });
+        queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+        float mult = me.Stats.DmgMult, baseDmg = me.Weapon.Damage * mult;
+
+        // The chain: cut, return cut, overhead rend, then round again.
+        var dummy = Dummy(new V2(590f, 450f));
+        Func<float> Taken = () => { float t = dummy.MaxHp - dummy.Hp; dummy.Hp = dummy.MaxHp; return t; };
+        Step(6, true, false);
+        float d1 = Taken();
+        Check(me.GreatStep == 1 && Math.Abs(d1 - baseDmg) < 0.5f, "the first cut lands at once for the weapon's damage (" + d1 + " vs " + baseDmg + ")");
+        Step(30, false, false);
+        Step(6, true, false);
+        float d2 = Taken();
+        Check(me.GreatStep == 2 && Math.Abs(d2 - baseDmg) < 0.5f, "the return cut is the same (" + d2 + ")");
+        Step(30, false, false);
+        Step(3, true, false);
+        float early = Taken();
+        Check(me.GreatStep == 3 && early == 0f, "the overhead rend winds up first: nothing lands in its first frames");
+        Step(30, false, false);
+        float d3 = Taken();
+        Check(Math.Abs(d3 - baseDmg * Game.GreatMult[2]) < 0.5f && d3 > 2f * d1, "then lands for 2.25 times a cut (" + d3 + " vs " + d1 + ")");
+        Step(70, false, false);
+        Check(me.GreatStep == 0, "the chain starts over after 0.9 s without a swing");
+        Console.WriteLine("  greatsword chain: {0:0} / {1:0} / {2:0}", d1, d2, d3);
+
+        // The cuts leave crescents that hang for their own times.
+        Step(70, false, false);
+        g.Bullets.Clear();
+        Step(3, true, false);
+        var wall1 = Shot(from + new V2(Game.MeleeReach(me, me.Weapon.Reach) + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
+        Step(10, false, false);
+        Check(!g.Bullets.ContainsKey(wall1.Id), "a cut's crescent stops a bullet crossing it");
+        Step(60, false, false);
+        var wall2 = Shot(from + new V2(Game.MeleeReach(me, me.Weapon.Reach) + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
+        Step(10, false, false);
+        Check(g.Bullets.ContainsKey(wall2.Id), "and after 0.35 s it has gone");
+        g.Bullets.Clear();
+        Step(80, false, false);
+
+        // Guard: hold the weapon-action key.
+        float speed0 = me.Speed;
+        g.Enemies.Clear();
+        var near = Dummy(new V2(590f, 450f));
+        near.Hp = near.MaxHp;
+        Step(5, true, true);
+        Check(me.GreatGuard, "holding the weapon-action key raises the guard");
+        Check(Math.Abs(me.Speed - speed0 * Game.GreatGuardSlow) < 0.01f, "you move at half speed while guarding");
+        Check(near.Hp == near.MaxHp && me.GreatStep == 0, "and you can't swing while it's up");
+        int temper0 = me.GreatTemper;
+        var b1 = Shot(from + new V2(Game.GreatGuardRadius + 40f, 0f), new V2(-300f, 0f), Defs.BigShot);
+        Step(20, false, true);
+        Check(!g.Bullets.ContainsKey(b1.Id) && me.GreatTemper == temper0 + 1, "a bullet hitting the arc is stopped and adds a point of Temper (" + me.GreatTemper + ")");
+        var red = Shot(from + new V2(Game.GreatGuardRadius + 40f, 0f), new V2(-300f, 0f), Defs.PierceShot);
+        Step(6, false, true);
+        Check(g.Bullets.ContainsKey(red.Id) && me.GreatTemper == temper0 + 1, "an aimed red shot goes through and gives nothing");
+        g.Bullets.Clear();
+        var behind = Shot(from + new V2(-(Game.GreatGuardRadius + 40f), 0f), new V2(300f, 0f), Defs.BigShot);
+        Step(14, false, true);
+        Check(me.GreatTemper == temper0 + 1, "a bullet from behind is not stopped by the arc in front");
+        g.Bullets.Clear();
+        for (int k = 0; k < 8; k++)
+        {
+            Shot(from + new V2(Game.GreatGuardRadius + 30f, 0f), new V2(-300f, 0f), Defs.BigShot);
+            Step(12, false, true);
+        }
+        Check(me.GreatTemper == Game.GreatTemperMax, "Temper stops at six (" + me.GreatTemper + ")");
+
+        // Release: the Rend. Full Temper, so it also primes the next chain.
+        g.Enemies.Clear(); g.Bullets.Clear();
+        var inLine = Dummy(new V2(700f, 450f)); var farLine = Dummy(new V2(1050f, 450f)); var wide = Dummy(new V2(700f, 520f));
+        Step(10, false, false);
+        float full = Game.GreatRendDamage(Game.GreatTemperMax) * mult;
+        float hIn = inLine.MaxHp - inLine.Hp, hFar = farLine.MaxHp - farLine.Hp;
+        Console.WriteLine("  greatsword rend at full Temper: first in line took {0:0}, second {1:0}, off the line {2:0}", hIn, hFar, wide.MaxHp - wide.Hp);
+        Check(!me.GreatGuard && me.GreatTemper == 0, "letting go drops the guard and spends the Temper");
+        Check(Math.Abs(hIn - full) < 0.5f && Math.Abs(hFar - full) < 0.5f, "a six-point Rend pierces everything in its line for 120 (" + hIn + ", " + hFar + ")");
+        Check(wide.Hp == wide.MaxHp, "and misses what is off the line");
+        Check(me.GreatPrimed, "a full Rend primes the next chain");
+        Step(30, false, false);
+        Step(3, true, false);
+        Check(me.GreatStep == 3 && !me.GreatPrimed, "which starts on the overhead rend (" + me.GreatStep + ")");
+
+        // A short guard still fires a small Rend, and the guard can't go straight back up.
+        Step(80, false, false);
+        g.Enemies.Clear();
+        var small = Dummy(new V2(700f, 450f));
+        Step(4, false, true);
+        me.GreatTemper = 2;
+        Step(10, false, false);
+        float dSmall = small.MaxHp - small.Hp;
+        Check(Math.Abs(dSmall - Game.GreatRendDamage(2) * mult) < 0.5f, "a Rend with two points deals 60 (" + dSmall + ")");
+        Step(10, false, true);
+        Check(!me.GreatGuard, "the guard can't go straight back up after a Rend");
+        Step(2, false, false);
+        Step(60, false, false);
+        Step(4, false, true);
+        Check(me.GreatGuard, "but can after a moment");
+
+        // Putting the sword away clears everything.
+        me.GreatTemper = 3;
+        me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 0);
+        Step(4, false, false);
+        Check(!me.GreatGuard && me.GreatTemper == 0 && me.GreatStep == 0, "the guard and Temper go when the sword is put away");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void TankKnightTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);

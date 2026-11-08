@@ -93,6 +93,11 @@ namespace Arena
                     p.ShoveCd = 0f;
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Greatsword)
+            {
+                ResetGreatChain(p);  // Greatsword.cs
+                return;
+            }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
             p.KatanaStep = 0;

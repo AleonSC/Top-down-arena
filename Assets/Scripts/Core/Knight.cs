@@ -15,6 +15,9 @@ namespace Arena
         public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
+        public bool Rend;             // the Greatsword's Rend (Greatsword.cs): a long box drawn as a lance of light, Power = Temper / GreatTemperMax
+        public int Waves;             // sword waves launched as it lands (the Greatsword's overhead rend with extra projectiles)
+        public float WaveDmg;
         public bool Staff;            // each enemy it hits adds a Jab stack (the Quarterstaff's swipes; Quarterstaff.cs)
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
         public float Stun;            // freezes what it hits for this long (not bosses)
@@ -212,16 +215,24 @@ namespace Arena
                 }
                 case WeaponId.Greatsword:
                 {
-                    var s = NewSwing(p, aim, w.Reach, 170f, w.Damage * dmg);
+                    // Cut, return cut, overhead rend (Greatsword.cs). A full-Temper Rend makes the next chain start on the rend.
+                    int step = p.GreatStep == 1 || p.GreatStep == 2 ? p.GreatStep + 1 : (p.GreatPrimed ? 3 : 1);
+                    if (step == 3 && p.GreatStep != 2)
+                        p.GreatPrimed = false;
+                    p.GreatStep = (byte)step;
+                    p.GreatGap = 0f;
+                    p.FireCd = GreatInterval[step - 1] / FireRate(p);
+                    var s = NewSwing(p, aim, w.Reach, step == 3 ? GreatRendArc : GreatCutArc, w.Damage * dmg * GreatMult[step - 1]);
                     s.Heavy = true;
-                    pendingSwings.Add(s);
-                    SteelWall(p, aim, s.Reach, s.HalfArc);  // the sweep's edge lingers, stopping bullets
-                    for (int i = 0; i < extra; i++)
+                    if (step == 3)
                     {
-                        float f = extra == 1 ? 0f : i * 2f / (extra - 1) - 1f;
-                        var b = SpawnBullet(Defs.KnightWave, p.Pos + V2.FromAngle(aim) * p.Def.BodyR, V2.FromAngle(aim + f * 0.25f) * 700f, 0f, 0.6f, 24f * dmg, p.Id);
-                        b.Pierce += 99;
+                        s.Delay = GreatRendWind;  // the blade goes up first
+                        s.Knock = GreatRendKnock;
+                        s.Waves = extra;
+                        s.WaveDmg = GreatWaveDmg * dmg;
                     }
+                    pendingSwings.Add(s);
+                    SteelWall(p, aim, s.Reach, s.HalfArc, GreatWall[step - 1], s.Delay);  // the sweep's edge lingers, stopping bullets
                     break;
                 }
                 case WeaponId.Rapier:
@@ -265,16 +276,23 @@ namespace Arena
         class Crescent
         {
             public V2 Center;
-            public float Aim, Reach, HalfArc, T;
+            public float Aim, Reach, HalfArc, T, Wait, Life;
+            public int Owner;
         }
 
         readonly List<Crescent> steelWalls = new List<Crescent>();
 
-        void SteelWall(Player p, float aim, float reach, float halfArc)
+        /// A crescent that hangs for `life` seconds, starting `wait` seconds from now (the overhead rend's blade goes up first).
+        void SteelWall(Player p, float aim, float reach, float halfArc, float life = SteelWallTime, float wait = 0f)
         {
-            steelWalls.Add(new Crescent { Center = p.Pos, Aim = aim, Reach = reach, HalfArc = halfArc, T = SteelWallTime });
-            BroadcastFx(FxKind.SteelWall, p.Pos, p.Pos + V2.FromAngle(aim) * reach, Defs.BulletColor(Defs.KnightSlash), halfArc, SteelWallTime, Sfx.None);
+            var c = new Crescent { Owner = p.Id, Center = p.Pos, Aim = aim, Reach = reach, HalfArc = halfArc, T = life, Wait = wait, Life = life };
+            steelWalls.Add(c);
+            if (wait <= 0f)
+                SendSteelWall(c);
         }
+
+        void SendSteelWall(Crescent c) =>
+            BroadcastFx(FxKind.SteelWall, c.Center, c.Center + V2.FromAngle(c.Aim) * c.Reach, Defs.BulletColor(Defs.KnightSlash), c.HalfArc, c.Life, Sfx.None);
 
         void TickSteelWalls(float dt)
         {
@@ -284,6 +302,12 @@ namespace Arena
             for (int i = steelWalls.Count - 1; i >= 0; i--)
             {
                 var c = steelWalls[i];
+                if (c.Wait > 0f)
+                {
+                    if ((c.Wait -= dt) <= 0f)
+                        SendSteelWall(c);
+                    continue;
+                }
                 if ((c.T -= dt) <= 0f)
                 {
                     steelWalls.RemoveAt(i);
@@ -354,6 +378,12 @@ namespace Arena
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
             bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f, circle = s.Circle > 0f;
             V2 circleAt = origin + dir * s.CircleAt;
+            for (int i = 0; i < s.Waves; i++)  // the overhead rend's sword waves (Greatsword.cs)
+            {
+                float f = s.Waves == 1 ? 0f : i * 2f / (s.Waves - 1) - 1f;
+                var wave = SpawnBullet(Defs.KnightWave, origin + dir * p.Def.BodyR, V2.FromAngle(s.Aim + f * 0.25f) * 700f, 0f, 0.6f, s.WaveDmg, p.Id);
+                wave.Pierce += 99;
+            }
             if (s.NoFx)
             {
                 if (!s.Silent)
@@ -374,6 +404,8 @@ namespace Arena
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
                 BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
+            else if (s.Rend)  // the Greatsword's Rend: a lance of light (Game/GreatswordLook.cs); Radius is its half width, the colour's alpha is its Temper
+                BroadcastFx(FxKind.GreatRend, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash).WithAlpha(0.2f + 0.8f * s.Power), s.HalfWidth, GreatRendFxTime, Sfx.SwingHeavy);
             else if (box && p.Weapon.Id == WeaponId.BoStaff)  // the Bo Staff's jab: a thrust, drawn like the Rapier's (MeleeLooks.cs)
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), -0.3f, 0.24f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (box)
@@ -683,8 +715,8 @@ namespace Arena
             // DPS
             new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 15f, Reach = 75f, Melee = true, ExtraDesc = "+1 cut: each swing strikes once more (60% damage)", Name = "Twin Blades", FireInterval = 0.16f,
                 Desc = "Very fast alternating slashes. Land enough in a row to prime a dash-strike: press your weapon-action key to lunge through enemies for big damage." },
-            new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 60f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword beam: each sweep launches a piercing crescent (40% damage)", Name = "Greatsword", FireInterval = 0.7f,
-                Desc = "Huge sweeping cuts with long reach. The edge of each sweep hangs in the air for a moment as a crescent of steel that stops enemy bullets." },
+            new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: the overhead rend launches a piercing crescent (50% damage)", Name = "Greatsword", FireInterval = 0.7f,
+                Desc = "A three-hit chain: two quick cuts, then a slow overhead rend. The edge of each sweep hangs in the air as a crescent of steel that stops enemy bullets. Hold the weapon-action key to guard: the arc stops bullets and builds Temper, and letting go fires a beam that hits harder for every point of Temper." },
             new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
                 Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals more. Thrusts also skewer enemy bullets along their line, and each one adds to the streak." },
         };
