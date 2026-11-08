@@ -397,6 +397,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Enemies
 
+**Job markers.** A small bar and shape under each regular enemy shows its job: orange dot = Pressure (shoots), red chevron = Hunter (runs at you), yellow ring = Zoner (takes ground), violet diamond = Disruptor (breaks your position), cyan square = Anchor (kill it first). Bosses get none.
+
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
 little more each wave: wave 1 is all melee, wave 7 about half.
 

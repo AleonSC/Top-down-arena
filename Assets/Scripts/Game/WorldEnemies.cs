@@ -496,6 +496,7 @@ namespace Arena
             if (tombStates.Count > 0)
                 DrawTombShatter(e, pos, r, t);  // the spires breaking as the freeze ends (GlacialTombLook.cs)
             DrawEnemyDetails(e, pos, r, col, t);
+            DrawJobMarker(e, pos, r);  // JobMarkerLook.cs
             DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.
             bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning && e.Type != EnemyType.SapperMine;

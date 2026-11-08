@@ -74,6 +74,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `NonShooters.cs`: the enemies that don't shoot: the Fuse Runner (fuse, blast that hurts enemies too), the Hookman (aim, harpoon, yank via `KnockPlayer`, open window), the Sapper and its Tripwire Pods (`SapperMine`: arming, lasers, beep, blast; not counted by `Foes`); drawn in `Game/NonShooterLooks.cs`
 - `WaveRecipe.cs`: the late wave recipe from wave 13: `EnemyJob` (Pressure, Hunter, Zoner, Disruptor, Anchor), job shares, headliners, types and squads retiring (`Docs/EnemyRoles.md`; report `wavemix`)
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
+- `Game/JobMarkerLook.cs`: the job marker under each regular enemy (bar + shape: dot Pressure, chevron Hunter, ring Zoner, diamond Disruptor, square Anchor; `Docs/EnemyReadability.md`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
