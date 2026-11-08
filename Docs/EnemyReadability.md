@@ -19,7 +19,9 @@ Done for lunges (option A, `Docs/Mockups/lunge-telegraph.html`): the Lunger, Spi
 (`Game/LungeLaneLook.cs`): a strip as wide as the body and as long as the lunge, Hunter red, filling over the wind-up, white for
 the last 0.1 s. It replaced their four older looks. The fill is timed on each client from when it first sees the wind-up
 (`PhaseT` isn't sent), so there is no protocol change. Preview: `LUNGE=0.5 Tools/Preview/shot.sh lunge hud 12 5 1`.
-Still to do: the Phantom blink ring, the Mortar landing mark, aim lines for aimed shooters, and the Charger's end ring.
+Also done: the Phantom marks the spot it will blink to (a `FxKind.Target` ring for `Game.PhantomWarn` = 0.5 s, Phase 1) before it
+blinks and fires its ring, and the Mortar's bomb comes with a landing ring (`MortarMarkRadius`). Test: `landmarks`.
+Still to do: aim lines for aimed shooters, and the Charger's end ring.
 
 ## 3. Fewer types per wave
 Waves 16-24 spawn 10-14 distinct types (see the run logs). Cap a recipe wave at 6 distinct types (8 from wave 25):

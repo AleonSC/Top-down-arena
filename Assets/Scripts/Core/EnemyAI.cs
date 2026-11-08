@@ -1037,6 +1037,7 @@ namespace Arena
                     var bomb = SpawnBullet(Defs.MineShot, e.Pos + V2.FromAngle(aim) * e.Radius, vel, 0f, flight, Defs.BulletDamage(Defs.MineShot), 0);
                     bomb.Burst = e.Elite ? 10 : 7;  // was 14 / 10
                     bomb.Source = e.Type;
+                    BroadcastFx(FxKind.Target, e.Pos + vel * flight, e.Def.Color, MortarMarkRadius, flight, Sfx.None);  // where it lands (the same ring the gas and the bombers use)
                     break;
                 }
                 case EnemyType.Shielder:
