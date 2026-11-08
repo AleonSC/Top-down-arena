@@ -152,20 +152,24 @@ namespace Arena
             gKick += dKick;
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
-            ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
-            ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
+            bool ownArms = p.Weapon.Id == WeaponId.TwinBlades;  // TwinBladesLook.cs draws the arms and both sabres, held and swung
+            if (!ownArms)
+            {
+                ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
+                ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
+            }
             float twist = mDpsOn && p.Weapon.Id == WeaponId.TwinRifle ? 0.12f : 0f;  // the Twin Rifle's guns angle in toward where the streams cross
             MFrame(rhx, rhy, -twist, wk, false);
             float keepA = mAlpha;
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
-            if (mAlpha > 0.01f)
+            if (mAlpha > 0.01f && !ownArms)
             {
                 DrawHeld(p, t, hold);
                 if (hold == 2) { MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
-            MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
+            if (!ownArms) { MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove); }
 
             ModelHead(p, kit, role, K, RC, r, sh, t);
         }

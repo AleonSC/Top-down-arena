@@ -313,31 +313,44 @@ static partial class Program
         Console.WriteLine("  riot repeater: 10 rounds suppressed it to {0:0.00} (shown {1}); 2.5 s later {2:0.00}", suppressed, shown, gunner.Suppress);
         Check(Math.Abs(suppressed - Game.SuppressMax) < 0.05f && shown && gunner.Suppress == 0f, "Riot Repeater rounds suppress an enemy up to 50% slower shooting, and it fades");
 
-        // Twin Blades.
+        // Twin Blades: the Crescent Waltz (TwinBlades.cs).
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TwinBlades);
         me.Kit = Kit.Knight;
         g.Enemies.Clear(); g.Bullets.Clear();
-        var close = dummy(from + new V2(50f, 0f));
-        var beyond = dummy(from + new V2(180f, 0f));
-        int combo = 0;
-        float x0 = 0f, beyondBefore = 0f, dashed = 0f;
-        for (int f = 0; f < 240; f++)
+        var close = dummy(from + new V2(45f, 0f));
+        var beyond = dummy(from + new V2(170f, 0f));
+        var steps = new List<int>();
+        float closeHp = close.Hp, beyondHp = beyond.Hp;
+        for (int f = 0; f < 240 && steps.Count < 6; f++)
         {
-            if (me.Combo < Game.ComboMax) { me.Pos = from; x0 = from.X; beyondBefore = beyond.Hp; }
-            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, WeaponAction = me.Combo >= Game.ComboMax, AimAt = me.Pos + new V2(400f, 0f) });
-            close.Pos = from + new V2(50f, 0f); beyond.Pos = from + new V2(180f, 0f);
-            combo = Math.Max(combo, me.Combo);
-            dashed = Math.Max(dashed, me.Pos.X - x0);
-            if (combo >= Game.ComboMax && me.Combo == 0)
-            {
-                for (int k = 0; k < 15; k++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = me.Pos + new V2(400f, 0f) }); dashed = Math.Max(dashed, me.Pos.X - x0); }  // the lunge carries you
-                break;
-            }
+            me.Pos = from;
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = from + new V2(400f, 0f) });
+            close.Pos = from + new V2(45f, 0f); beyond.Pos = from + new V2(170f, 0f);
+            int st = TwinBladesMotion.StepOf(me.Combo);
+            if (st != 0 && (steps.Count == 0 || steps[steps.Count - 1] != st))
+                steps.Add(st);
         }
-        Console.WriteLine("  twin blades: combo reached {0}; the dash-strike lunged {1:0} px and hit the one beyond for {2:0.0}; combo now {3}",
-            combo, dashed, beyondBefore - beyond.Hp, me.Combo);
-        Check(combo == Game.ComboMax && dashed > Game.DashStrikeDist * 0.8f && beyondBefore - beyond.Hp >= me.Weapon.Damage * Game.DashStrikeMult * 0.99f && me.Combo == 0,
-            "10 Twin Blades hits in a row prime a dash-strike; the weapon-action key lunges you through enemies for triple damage");
+        for (int k = 0; k < 40; k++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(400f, 0f) }); beyond.Pos = from + new V2(170f, 0f); }
+        float closeDmg = closeHp - close.Hp, beyondDmg = beyondHp - beyond.Hp;
+        Console.WriteLine("  twin blades: steps {0}; the close one took {1:0}, the one beyond (only the crescent reaches it) {2:0}", string.Join(",", steps), closeDmg, beyondDmg);
+        Check(string.Join(",", steps) == "1,2,3,4,5,1" && closeDmg >= me.Weapon.Damage * 6f && beyondDmg >= me.Weapon.Damage * Game.TwinWaveMult * 0.99f,
+            "Twin Blades chain rising cut, falling cut, double jab, pirouette, crescent shear and start over; the shear's crescent reaches past the blades");
+        for (int k = 0; k < 90; k++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(400f, 0f) }); }
+        Check(TwinBladesMotion.StepOf(me.Combo) == 0, "the Twin Blades chain starts over after a pause");
+
+        // Twin Fang: both sabres thrown to the cursor and back.
+        float fangHp = beyond.Hp;
+        V2 cursor = from + new V2(170f, 0f);
+        for (int k = 0; k < 90; k++)
+        {
+            me.Pos = from;
+            host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = k < 2, AimAt = cursor });
+            beyond.Pos = cursor;
+        }
+        float fangDmg = fangHp - beyond.Hp, cdAfter = me.FangCd;
+        Console.WriteLine("  twin fang: the enemy at the cursor took {0:0}; cooldown left {1:0.0} s", fangDmg, cdAfter);
+        Check(fangDmg >= me.Weapon.Damage * (Game.FangBurstMult + 2f * Game.FangMult) * 0.99f && cdAfter > 0f && cdAfter < Game.FangCooldown,
+            "Twin Fang throws both sabres to the cursor, they burst where they cross and cut it again on the way back, then it waits on its cooldown");
         host.Leave("");
     }
 
