@@ -109,6 +109,11 @@ namespace Arena
                 ResetTwinChain(p);  // TwinBlades.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Censer)
+            {
+                ResetCenserChain(p);  // Censer.cs
+                return;
+            }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
             p.KatanaStep = 0;

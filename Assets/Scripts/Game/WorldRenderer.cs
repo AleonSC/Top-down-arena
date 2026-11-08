@@ -218,6 +218,7 @@ namespace Arena
                 DrawQuarterstaffIdle(p, t);  // the Quarterstaff held at the ready (QuarterstaffLook.cs)
                 DrawBoStaffIdle(p, t);  // the Bo Staff held at the ready (BoStaffLook.cs)
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
+                DrawCenser(p, t);  // the Censer held, swung and thrown (CenserLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawHeldStunGun(p, t);

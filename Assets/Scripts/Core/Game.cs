@@ -1137,6 +1137,7 @@ namespace Arena
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
+            TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing
             TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
             TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves

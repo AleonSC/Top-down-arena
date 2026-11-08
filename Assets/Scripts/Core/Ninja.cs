@@ -681,7 +681,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashCast = 12;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -909,6 +909,7 @@ namespace Arena
             bool pressed = weaponAction && !wasWeaponAction, released = !weaponAction && wasWeaponAction;
             wasWeaponAction = weaponAction;
             LocalTwinStep(me, dt);  // the Twin Blades' steps forward (TwinBlades.cs)
+            LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
             if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
                 return;  // the Katana's Alt strike (below)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
@@ -950,6 +951,20 @@ namespace Arena
                     fw.Write(DashStrike);
                     fw.Write(aimAt);
                     session.SendToHost(Proto.End(fw));
+                }
+                return;
+            }
+            if (me.Weapon.Id == WeaponId.Censer && pressed && censerLocalCd <= 0f && me.Embers > 0 && !me.Downed && me.StunT <= 0f)
+            {
+                censerLocalCd = CastCooldown;  // Censer Cast (Censer.cs): no move, the host throws the head at the cursor
+                if (IsHost)
+                    HostWeaponDash(MyId, DashCast, aimAt);
+                else
+                {
+                    var cw = Proto.Begin(Msg.WeaponDash);
+                    cw.Write(DashCast);
+                    cw.Write(aimAt);
+                    session.SendToHost(Proto.End(cw));
                 }
                 return;
             }
@@ -1053,6 +1068,11 @@ namespace Arena
             if (kind == DashHammerSlam)
             {
                 HostHammerSlam(p, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashCast)
+            {
+                HostCenserCast(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashStrike)

@@ -728,6 +728,67 @@ static partial class Program
         from = new V2(300f, 450f); allyAt = new V2(300f, 150f);
         reset();
 
+        // Censer: the Thurible Rite (sweep, return sweep, Benediction), Embers and Censer Cast (Censer.cs).
+        me.Embers = 0; me.Combo = 0; g.Zones.Clear();
+        var front = dummy(from + new V2(55f, 0f), 1e5f);
+        var behind = dummy(from + new V2(-62f, 0f), 1e5f);  // only the Benediction goes all the way round
+        allyAt = from + new V2(0f, 150f);  // outside the sweeps' 140 px heal, inside the Benediction's 170
+        play(0.2f, new PlayerInput());
+        ally.Hp = ally.MaxHp * 0.3f;
+        float frontHp = front.Hp, behindHp = behind.Hp, allyHp0 = ally.Hp;
+        var rite = new List<int>();
+        int peakEmbers = 0, clientEmbers = 0;
+        float bestJump = 0f;  // the biggest one-frame heal the ally got (the healer's aura trickles; a step's heal lands at once)
+        for (int f = 0; f < 180 && rite.Count < 4; f++)
+        {
+            float hpWas = ally.Hp;
+            play(1f / 60f, new PlayerInput { Fire = true, AimAt = from + new V2(400f, 0f) });
+            bestJump = Math.Max(bestJump, ally.Hp - hpWas);
+            int st = CenserMotion.StepOf(me.Combo);
+            if (st != 0 && (rite.Count == 0 || rite[rite.Count - 1] != st))
+                rite.Add(st);
+            peakEmbers = Math.Max(peakEmbers, me.Embers);
+            clientEmbers = Math.Max(clientEmbers, client.Game.Players[1].Embers);
+        }
+        play(0.6f, new PlayerInput { AimAt = from + new V2(400f, 0f) });
+        peakEmbers = Math.Max(peakEmbers, me.Embers);
+        clientEmbers = Math.Max(clientEmbers, client.Game.Players[1].Embers);
+        float frontDmg = frontHp - front.Hp, behindDmg = behindHp - behind.Hp, allyGain = ally.Hp - allyHp0;
+        int incense = g.Zones.Values.Count(z => z.Kind == ZoneKind.Incense);
+        Console.WriteLine("  censer rite: steps {0}; front took {1:0}, behind {2:0}; Embers peaked at {3} (client saw {4}); the ally 150 px off healed {5:0.0} (at most {7:0.0} at once); {6} incense zones",
+            string.Join(",", rite), frontDmg, behindDmg, peakEmbers, clientEmbers, allyGain, incense, bestJump);
+        Check(string.Join(",", rite) == "1,2,3,1", "the Censer's rite goes sweep, return sweep, Benediction, then starts over");
+        Check(frontDmg >= 13f * 2f + 18f - 0.5f && behindDmg >= 17.5f && behindDmg <= 18.5f, "the sweeps hit in front only; the Benediction goes all the way round");
+        Check(peakEmbers == g.EmberCap(me) && clientEmbers == peakEmbers, "every enemy a step hits lights an Ember, up to the cap, and other players see them");
+        Check(bestJump >= 8f - 0.01f && bestJump < 12f, "the Benediction heals further than the sweeps, and 1 more for each enemy it hit");
+        Check(incense >= 3, "the sweeps leave puffs of incense and the Benediction a cloud");
+        for (int k = 0; k < 60; k++) play(1f / 60f, new PlayerInput { AimAt = from + new V2(400f, 0f) });
+        Check(CenserMotion.StepOf(me.Combo) == 0, "the Censer's rite starts over after a pause");
+
+        // Censer Cast: the head thrown to the cursor spends every Ember on a burst and a healing cloud.
+        g.Zones.Clear();
+        V2 castAt = from + new V2(240f, 0f);
+        var target = dummy(castAt, 1e5f);
+        allyAt = castAt + new V2(0f, 30f);
+        play(0.1f, new PlayerInput());
+        ally.Hp = ally.MaxHp * 0.3f;
+        int spent = me.Embers;
+        float targetHp = target.Hp, castAlly0 = ally.Hp;
+        for (int k = 0; k < 66; k++) play(1f / 60f, new PlayerInput { WeaponAction = k < 2, AimAt = castAt });
+        var cloud = g.Zones.Values.Where(z => z.Kind == ZoneKind.Incense).OrderByDescending(z => z.Radius).FirstOrDefault();
+        float castDmg = targetHp - target.Hp, castHeal = ally.Hp - castAlly0;
+        Console.WriteLine("  censer cast: spent {0} Embers; the enemy at the cursor took {1:0}; cloud {2:0} px at {3:0} px out; the ally in it healed {4:0.0}; Embers left {5}, cooldown {6:0.0} s",
+            spent, castDmg, cloud != null ? cloud.Radius : 0f, cloud != null ? cloud.Pos.DistanceTo(from) : 0f, castHeal, me.Embers, me.CenserCd);
+        Check(spent > 0 && castDmg >= Game.CastBurstPerEmber * spent * 0.99f && me.Embers == 0, "Censer Cast bursts for every Ember spent, where the cursor is, and spends them all");
+        Check(cloud != null && Math.Abs(cloud.Radius - (Game.CastCloudBase + Game.CastCloudPerEmber * spent)) < 0.5f && cloud.Pos.DistanceTo(castAt) < 2f && castHeal >= Game.CastHealBase + spent,
+            "the cast leaves an incense cloud that grows with each Ember and heals the allies in it");
+        Check(me.CenserCd > 0f && me.CenserCd < Game.CastCooldown, "Censer Cast then waits on its cooldown");
+        int before = (int)target.Hp;
+        for (int k = 0; k < 10; k++) play(1f / 60f, new PlayerInput { WeaponAction = k % 2 == 0, AimAt = castAt });
+        Check((int)target.Hp == before, "with no Embers, or on its cooldown, the key does nothing");
+        allyAt = new V2(300f, 150f);
+        reset();
+
         // Spirit Fan: one shot blows enemies away, the next draws them in.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SpiritFan);
         var blown = dummy(from + new V2(110f, 0f), 1e5f);

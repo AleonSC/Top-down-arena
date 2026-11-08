@@ -110,7 +110,7 @@ code{font:500 13px var(--mono)}
   <div class="frame"><canvas id="model" aria-label="The censer and the Healer Knight at rest, enlarged"></canvas></div>
   <div>
     <h2>The censer</h2>
-    <p>A bronze thurible with a pierced body, a domed lid and a cross finial, on a 10-link chain held in the right hand. The coals glow through the piercings and flare when the head connects. The left hand rests on the chest and opens in a blessing whenever a heal goes out.</p>
+    <p>A bronze thurible with a pierced body, a domed lid and a cross finial, on a 10-link chain hung from a short brass haft held in both hands, as the Halberd is held. The coals glow through the piercings and flare when the head connects. The left hand lifts off the haft in a blessing whenever a heal goes out.</p>
     <p>The chain is simulated. It sags at rest, goes taut and whips in a swing, and drags behind when you walk. Smoke streams off the head all the time and thickens as it speeds up.</p>
   </div>
 </section>
@@ -226,9 +226,10 @@ Sim.prototype.pose=function(){
 Sim.prototype.headTarget=function(o){ const p=this.pl; return [p.x+Math.cos(p.aim+o.Ha)*o.Hr, p.y+Math.sin(p.aim+o.Ha)*o.Hr] };
 /* the right hand follows the head round, the left sits on the chest or opens in blessing */
 Sim.prototype.hands=function(o){ const p=this.pl, ha=p.aim+o.sp+o.tw*.4+clamp(wrap(o.Ha-o.sp),-1.9,1.9)*.62+ .5, r=17+clamp((o.Hr-40)/80)*5;
-  const R=[p.x+Math.cos(ha)*r, p.y+Math.sin(ha)*r];
-  const la=p.aim+o.sp+o.tw-lerp(.95,.35,o.Lb), lr=lerp(10,22,o.Lb);
-  return {R,L:[p.x+Math.cos(la)*lr,p.y+Math.sin(la)*lr]} };
+  const G=[p.x+Math.cos(ha)*r, p.y+Math.sin(ha)*r], dx=p.hx-G[0], dy=p.hy-G[1], dl=Math.hypot(dx,dy)||1;
+  const R=[G[0]+dx/dl*3,G[1]+dy/dl*3], L0=[G[0]-dx/dl*3,G[1]-dy/dl*3];  /* both hands on the haft, as the Halberd is held */
+  const ba=p.aim+o.sp+o.tw-.4, bl=Math.max(o.Lb,clamp(p.bless/.45)), B=[p.x+Math.cos(ba)*20,p.y+Math.sin(ba)*20];
+  return {R,L:[lerp(L0[0],B[0],bl),lerp(L0[1],B[1],bl)]} };
 
 Sim.prototype.start=function(S,k){
   const p=this.pl, o=this.pose(); const from=Object.assign({},o); from.fx=0; from.sp=wrap(o.sp); from.Ha=wrap(o.Ha);

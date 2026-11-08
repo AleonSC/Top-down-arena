@@ -474,7 +474,15 @@ static partial class Shot {
           else { me.GreatStep = 1; fx(FxKind.Slash, to, Game.GreatCutArc * MathX.Pi / 360f, 0f, 0.16f); }
           break;
         }
-        case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
+        case WeaponId.Censer:  // CENSERSTEP=1..3 a step of the Thurible Rite (default 1), CENSERSTEP=cast Censer Cast (SWING = seconds after the click), EMBERS=<n> held
+        {
+          string csn = Environment.GetEnvironmentVariable("CENSERSTEP") ?? "1";
+          me.Embers = (byte)int.Parse(Environment.GetEnvironmentVariable("EMBERS") ?? "3");
+          if (csn == "cast") gm.Effects.Add(new Effect { Kind = FxKind.CenserCast, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 240f, Color = Game.CenserGold, Radius = me.Id * 10 + 5, T = st, Dur = CenserMotion.CastTotal });
+          else { int ci = int.Parse(csn); me.Combo = (1 << 3) | ci; float cr = Game.MeleeReach(me, me.Weapon.Reach + (ci == 3 ? Game.BenedictionReach : 0f));
+            gm.Effects.Add(new Effect { Kind = FxKind.CenserStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * cr, Color = Game.CenserGold, Radius = me.Id * 10 + ci, T = st, Dur = CenserMotion.Steps[ci - 1].Dur + CenserMotion.Recover }); }
+          break;
+        }
         case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
         {
           string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";
