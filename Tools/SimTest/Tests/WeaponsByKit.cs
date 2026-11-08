@@ -320,17 +320,25 @@ static partial class Program
         var close = dummy(from + new V2(45f, 0f));
         var beyond = dummy(from + new V2(170f, 0f));
         var steps = new List<int>();
+        var twinHeard = new HashSet<Sfx>();
+        var twinCues = new HashSet<int>();  // the hit cues' kinds (1-5 a step, 6 a sabre passing, 7 the burst)
+        Action twinListen = () =>
+        {
+            foreach (var c in g.Sounds) twinHeard.Add(c.Sfx);
+            foreach (var e in g.Effects) if (e.Kind == FxKind.TwinHit && (int)e.Pos2.X == me.Id) twinCues.Add((int)e.Pos2.Y);
+        };
         float closeHp = close.Hp, beyondHp = beyond.Hp;
         for (int f = 0; f < 240 && steps.Count < 6; f++)
         {
             me.Pos = from;
             host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = from + new V2(400f, 0f) });
             close.Pos = from + new V2(45f, 0f); beyond.Pos = from + new V2(170f, 0f);
+            twinListen();
             int st = TwinBladesMotion.StepOf(me.Combo);
             if (st != 0 && (steps.Count == 0 || steps[steps.Count - 1] != st))
                 steps.Add(st);
         }
-        for (int k = 0; k < 40; k++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(400f, 0f) }); beyond.Pos = from + new V2(170f, 0f); }
+        for (int k = 0; k < 40; k++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(400f, 0f) }); beyond.Pos = from + new V2(170f, 0f); twinListen(); }
         float closeDmg = closeHp - close.Hp, beyondDmg = beyondHp - beyond.Hp;
         Console.WriteLine("  twin blades: steps {0}; the close one took {1:0}, the one beyond (only the crescent reaches it) {2:0}", string.Join(",", steps), closeDmg, beyondDmg);
         Check(string.Join(",", steps) == "1,2,3,4,5,1" && closeDmg >= me.Weapon.Damage * 6f && beyondDmg >= me.Weapon.Damage * Game.TwinWaveMult * 0.99f,
@@ -346,11 +354,18 @@ static partial class Program
             me.Pos = from;
             host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = k < 2, AimAt = cursor });
             beyond.Pos = cursor;
+            twinListen();
         }
         float fangDmg = fangHp - beyond.Hp, cdAfter = me.FangCd;
         Console.WriteLine("  twin fang: the enemy at the cursor took {0:0}; cooldown left {1:0.0} s", fangDmg, cdAfter);
         Check(fangDmg >= me.Weapon.Damage * (Game.FangBurstMult + 2f * Game.FangMult) * 0.99f && cdAfter > 0f && cdAfter < Game.FangCooldown,
             "Twin Fang throws both sabres to the cursor, they burst where they cross and cut it again on the way back, then it waits on its cooldown");
+        var twinWant = new[] { Sfx.TwinCut1, Sfx.TwinCut2, Sfx.TwinJab, Sfx.TwinSpin, Sfx.TwinShear, Sfx.TwinHit, Sfx.TwinHitHeavy, Sfx.TwinThrow, Sfx.TwinCross, Sfx.TwinCatch };
+        var twinMissing = twinWant.Where(x => !twinHeard.Contains(x)).ToList();
+        Console.WriteLine("  twin sounds missing: {0}; hit cues seen: {1}", twinMissing.Count == 0 ? "none" : string.Join(", ", twinMissing), string.Join(",", twinCues.OrderBy(x => x)));
+        Check(twinMissing.Count == 0, "every Twin Blades sound is raised: both cuts, the jab, the Pirouette, the Shear, a cut and a heavy cut landing, Twin Fang's throw, burst and catch");
+        Check(twinCues.SetEquals(new[] { 1, 2, 3, 4, 5, 6, 7 }), "every step and both kinds of Twin Fang hit send a hit cue (your hit-pause and shake)");
+        Check(!twinHeard.Contains(Sfx.SwingLight) && !twinHeard.Contains(Sfx.SwingHeavy), "the Twin Blades no longer use the generic swing whooshes");
         host.Leave("");
     }
 

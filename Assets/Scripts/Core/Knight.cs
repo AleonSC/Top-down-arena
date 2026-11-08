@@ -42,6 +42,7 @@ namespace Arena
         public bool Root;             // the Treant Rod's root lash: a box drawn as a thorny root (FxKind.RootLash) that heals allies inside it
         public float RootHeal;        // what an ally touched by the lash is healed
         public bool Twin;             // a Twin Blades step (TwinBlades.cs): Twin Fang and the parry take back one still winding up
+        public byte TwinKind;         // which step (1-5): its hit cue's sound and your hit-pause (TwinHitCue)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -366,7 +367,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent)
+                if (!s.Silent && !(s.Twin && s.Sound == Sfx.None))  // (a Twin Blades hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -481,6 +482,8 @@ namespace Arena
                 KatanaGain(p, s.Meter * hits.Count);
                 KatanaHitCue(p, s.DrawCut, hits.Count);  // its cut sound, and the lunge's hit-pause (Katana.cs)
             }
+            if (hits.Count > 0 && s.TwinKind > 0)
+                TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             float rapierMult = 1f;
             if (s.Rapier && hits.Count > 0)
             {
