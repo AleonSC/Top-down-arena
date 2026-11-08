@@ -1,0 +1,342 @@
+<title>Warhammer Slam Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one stage (charge, swing, slam, aftershock on a loop) with look chips and toggles, four single-moment panels, notes.
+   Same page tokens as the Katana mockups; the canvas colours are the Warhammer's own forge orange on a night-blue arena. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#c4651f;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#ffa268; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#ffa268; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:1000/420}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/260}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+</style>
+
+<main>
+<header>
+  <h1>Warhammer: a slam you can feel</h1>
+  <p>The Knight's Warhammer today is a stick with a block on it and a flat ring. These three looks keep every number (the 160 px circle 100 px ahead, the 0.9 s charge, the 0.08 s swing, the aftershock 0.2 s later and 40 px further out) and rebuild how it looks and lands: a hammer with weight, a head that heats as you charge, a swing with a trail, and an impact with a hit-stop, a shake, a mark that stays, enemies that reel and stun stars for as long as the stun lasts.</p>
+  <p>The charge control picks how long you hold: a tap (20 damage, 0.25 s stun) up to full (80 damage, 0.9 s stun). A harder hit makes a bigger flash, deeper cracks and a taller pillar.</p>
+</header>
+
+<section>
+  <h2>The slam</h2>
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Look" id="looks"></div>
+  </div>
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Charge" id="powers"></div>
+    <label class="tg"><input type="checkbox" id="tgAfter" checked> Aftershock upgrade</label>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <button id="pause" type="button">Pause</button>
+  </div>
+  <div class="frame"><canvas id="stage" width="1000" height="420" aria-label="Warhammer charge, swing, slam and aftershock on a loop"></canvas></div>
+  <p class="sub" id="stageNote" style="margin:8px 0 0"></p>
+</section>
+
+<section>
+  <h2>Each moment</h2>
+  <div class="grid4" id="moves"></div>
+</section>
+
+<section class="card">
+  <h3>Look notes</h3>
+  <ul id="notes"></ul>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var eo=function(t){return 1-Math.pow(1-clamp(t,0,1),3)},ei=function(t){t=clamp(t,0,1);return t*t};
+var rnd=function(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+var $=function(i){return document.getElementById(i)};
+var reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* the game's numbers */
+var R=80,D=16+.65*130,SWING=.08,CHARGE=.9,AFTER_DT=.2,AFTER_PUSH=40;
+
+var LOOKS={
+ forge:{name:'Forge',col:'255,163,107',hot:'255,224,170',ground:'#10151b',note:[
+  'The head is hot iron. It glows brighter as you charge, sheds embers, and at full charge pulses gold. The swing leaves a white-orange trail with two lagging ghosts of the head.',
+  'The impact is a white flash, a shock ring racing to the edge of the circle and molten cracks that run out from the centre, glowing white, then orange, then dark red as they cool over about two seconds. Embers drift up for longer than that.',
+  'A full-charge slam adds a pillar of light, a longer-lived crater glow and deeper cracks. A tap barely cracks the floor.']},
+ quake:{name:'Quake',col:'200,184,160',hot:'255,236,200',ground:'#12151a',note:[
+  'Heavy and earthy. The head is dull stone-grey iron with a brass band; nothing glows. Charging pulls dust in toward the target circle and the player ring trembles.',
+  'The impact is a ring of dust puffs rolling out, stone chips thrown up that land with a small shadow, a dark crater with a lighter rim and cracks that stay for about two seconds. A ring of turning ticks marks the circle.',
+  'The quietest on colour and the loudest on the floor: it reads as the ground being hit, so it suits a crowded screen where flashes are already everywhere.']},
+ shock:{name:'Shockwave',col:'255,200,120',hot:'255,250,240',ground:'#0e1219',note:[
+  'Graphic and clean. The head is bright steel with a thin amber edge. Charging collapses rings inward onto the target circle and at full charge brackets lock on in gold.',
+  'The impact is three sonic rings with a cyan and a red fringe, a starburst flash and sixteen speed spokes. A thin dashed ring with turning ticks stays on the floor for a second to mark where it landed.',
+  'No debris, no cracks. The easiest to read at a glance and the cheapest to draw, so it is also the best fallback for Reduced effects.']}
+};
+var look='forge';
+var POWERS=[['Tap',.28],['Half',.62],['Full',1]],power=1;
+
+/* ---------- scene ---------- */
+function foeList(P){return [{x:68,y:-42,id:0},{x:104,y:34,id:1},{x:132,y:-6,id:2},{x:62,y:92,id:3,out:1},{x:206,y:2,id:4,far:1}]}
+function warp(t,stops){var te=t,acc=0;for(var i=0;i<stops.length;i++){var ws=stops[i].t+acc;if(t>ws)te-=Math.min(t-ws,stops[i].d);acc+=stops[i].d}return te}
+function timing(P){
+  var tr=P.noRelease?1e9:.2+P.power*CHARGE+(P.power>=1?.18:0);
+  var ti=tr+SWING,loop=P.noRelease?1.9:ti+2.3;
+  return {tr:tr,ti:ti,loop:loop,ts2:ti+AFTER_DT}}
+function hammerArc(f){ /* where the head is at f: below 0 being raised (-1 fully up), 0..1 swinging into the floor */
+  var rest=-1.1,up=-2.6,a,h,r;
+  if(f<0){var k=clamp(-f,0,1);a=lerp(rest,up,k);h=.3+.7*k;r=D*.6}
+  else{var e=f*f;a=lerp(up,0,e);h=1-e;r=D*(.6+.4*e)}
+  return {a:a,h:h,r:r,gx:Math.cos(a)*r,gy:Math.sin(a)*r,hx:Math.cos(a)*r,hy:Math.sin(a)*r-26*h}}
+
+function drawHammer(x,LK,f,alpha,heat,pulse){
+  if(alpha<=0)return;var A=hammerArc(f),sc=1+.55*A.h,col=LOOKS[LK].col;
+  x.save();x.globalAlpha=alpha;
+  /* shadow on the floor */
+  x.fillStyle='rgba(0,0,0,'+(.22+.25*(1-A.h))+')';x.beginPath();x.ellipse(A.gx,A.gy+4,13*(1-.5*A.h),9*(1-.5*A.h),0,0,TAU);x.fill();
+  /* handle: dark wood, wrapped */
+  var hx0=Math.cos(A.a)*12,hy0=Math.sin(A.a)*12;
+  x.lineCap='round';x.strokeStyle='#3b2c1f';x.lineWidth=5;x.beginPath();x.moveTo(hx0,hy0);x.lineTo(A.hx,A.hy);x.stroke();
+  x.strokeStyle='#6b5740';x.lineWidth=3;x.beginPath();x.moveTo(hx0,hy0);x.lineTo(A.hx,A.hy);x.stroke();
+  x.strokeStyle='rgba(20,14,8,.55)';x.lineWidth=1;x.beginPath();
+  for(var i=0;i<5;i++){var u=.15+i*.13,px=lerp(hx0,A.hx,u),py=lerp(hy0,A.hy,u);x.moveTo(px-2,py-2);x.lineTo(px+2,py+2)}x.stroke();
+  /* head */
+  x.save();x.translate(A.hx,A.hy);x.rotate(A.a);x.scale(sc,sc);
+  if(LK==='forge'&&heat>0){x.shadowColor='rgba('+col+',1)';x.shadowBlur=10+22*heat}
+  var g=x.createLinearGradient(0,-16,0,16);
+  if(LK==='forge'){g.addColorStop(0,'#c9ced6');g.addColorStop(.5,mix('#7c828c','#ff9a55',heat*.8));g.addColorStop(1,mix('#4b5058','#d84a1a',heat))}
+  else if(LK==='quake'){g.addColorStop(0,'#a39d92');g.addColorStop(.5,'#6a665e');g.addColorStop(1,'#3d3a35')}
+  else{g.addColorStop(0,'#f4f8ff');g.addColorStop(.5,'#b7c3d3');g.addColorStop(1,'#6c7a8c')}
+  x.fillStyle=g;x.beginPath();x.moveTo(-9,-13);x.lineTo(-6,-16);x.lineTo(6,-16);x.lineTo(9,-13);x.lineTo(9,13);x.lineTo(6,16);x.lineTo(-6,16);x.lineTo(-9,13);x.closePath();x.fill();
+  x.shadowBlur=0;
+  x.strokeStyle=LK==='shock'?'rgba('+col+',.95)':'rgba(15,12,10,.7)';x.lineWidth=1;x.stroke();
+  /* bands at both striking faces */
+  x.fillStyle=LK==='quake'?'#b79a4a':'rgba('+col+',.95)';x.fillRect(-9,-16,18,4.4);x.fillRect(-9,11.6,18,4.4);
+  x.fillStyle='rgba(255,255,255,.35)';x.fillRect(-7,-11,2.4,22);
+  if(LK==='forge'&&heat>.25){x.strokeStyle='rgba(255,230,180,'+(.4+.5*heat)+')';x.lineWidth=1;x.beginPath();
+    x.moveTo(-3,-9);x.lineTo(1,-3);x.lineTo(-2,2);x.lineTo(3,9);x.moveTo(3,-8);x.lineTo(5,0);x.stroke()}
+  if(pulse>0){x.strokeStyle='rgba(255,209,77,'+pulse+')';x.lineWidth=2;x.strokeRect(-11,-18,22,36)}
+  x.restore();x.restore()}
+function mix(a,b,t){var pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),r=[16,8,0].map(function(s){return Math.round(lerp((pa>>s)&255,(pb>>s)&255,clamp(t,0,1)))});return 'rgb('+r.join(',')+')'}
+
+function player(x,a){x.save();x.globalAlpha=a==null?1:a;x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,16,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(16,0);x.lineTo(7,-6);x.lineTo(7,6);x.closePath();x.fill();x.restore()}
+function foe(x,fx,fy,flash,al){x.save();x.globalAlpha=al;x.translate(fx,fy);x.rotate(Math.PI+Math.atan2(fy,fx-0)*0);
+  x.fillStyle=flash>0?'#fff':'#d8503f';x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,14,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(-14,0);x.lineTo(-7,-5);x.lineTo(-7,5);x.closePath();x.fill();x.restore()}
+function glowDisc(x,cx,cy,r,col,a){var g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,TAU);x.fill()}
+function stars(x,cx,cy,t,a){for(var i=0;i<3;i++){var an=t*7+i*TAU/3;x.save();x.translate(cx+Math.cos(an)*13,cy-20+Math.sin(an)*4);x.rotate(an);
+  x.strokeStyle='rgba(255,224,120,'+a+')';x.lineWidth=1.4;x.beginPath();x.moveTo(-3.4,0);x.lineTo(3.4,0);x.moveTo(0,-3.4);x.lineTo(0,3.4);x.stroke();x.restore()}}
+
+/* ---- the impact, one look at a time. c = centre, q = seconds since it landed, pw = how hard (0.45..1) ---- */
+function crackLines(c,pw,seed){var out=[],n=7+Math.round(4*pw);
+  for(var i=0;i<n;i++){var a=i/n*TAU+(rnd(seed+i)-.5)*.5,len=R*(.55+.5*rnd(seed+i+9))*(.6+.4*pw),pts=[[0,0]],steps=6;
+    for(var s=1;s<=steps;s++){var u=s/steps,j=(rnd(seed+i*7+s)-.5)*.34;pts.push([Math.cos(a+j)*len*u,Math.sin(a+j)*len*u])}
+    out.push(pts)}return out}
+function impact(x,LK,c,q,pw,seed,second){
+  if(q<0)return;var col=LOOKS[LK].col,hot=LOOKS[LK].hot,sc=second?.8:1;
+  x.save();x.translate(c.x,c.y);
+  if(LK==='forge'){
+    x.save();x.globalCompositeOperation='lighter';
+    var fl=1-clamp(q/.16,0,1);if(fl>0)glowDisc(x,0,0,R*(.55+.4*pw),hot,fl*.95);
+    var cg=1-clamp(q/(.9+.8*pw),0,1);glowDisc(x,0,0,R*.9,col,.42*pw*cg);
+    var wv=clamp(q/.2,0,1);if(wv<1){x.strokeStyle='rgba('+hot+','+(.85*(1-wv)*pw+.1)+')';x.lineWidth=3.4*(1-wv)+1;x.beginPath();x.arc(0,0,R*eo(wv),0,TAU);x.stroke()}
+    x.strokeStyle='rgba('+col+','+(.55*(1-clamp(q/.6,0,1)))+')';x.lineWidth=2;x.beginPath();x.arc(0,0,R,0,TAU);x.stroke();
+    var cr=crackLines(c,pw,seed),cool=clamp(q/1.9,0,1),vis=eo(q/.14);
+    cr.forEach(function(p){
+      var ncount=Math.max(2,Math.ceil(p.length*vis));if(q<0)return;
+      var rr=lerp(255,120,cool),gg=lerp(190,30,cool),bb=lerp(120,16,cool),al=(1-cool*.85)*(cool>=1?0:1);
+      x.strokeStyle='rgba('+rr+','+gg+','+bb+','+al+')';x.lineWidth=3.4*(1-cool*.55);x.shadowColor='rgba('+col+','+al+')';x.shadowBlur=8;x.lineCap='round';x.beginPath();
+      for(var k=0;k<ncount;k++){var pp=p[Math.min(k,p.length-1)];k?x.lineTo(pp[0],pp[1]):x.moveTo(pp[0],pp[1])}x.stroke()});
+    x.shadowBlur=0;
+    if(pw>.7&&q<.24){var pk=(1-q/.24)*pw,g=x.createLinearGradient(0,0,0,-130);g.addColorStop(0,'rgba(255,255,255,'+.7*pk+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.fillRect(-(12*pk+3),-130,(24*pk+6),130)}
+    x.restore();
+    /* embers float up */
+    for(var i=0;i<30;i++){var born=.06*rnd(seed+i),age=q-born,life=.7+.9*rnd(seed+i+5);if(age<0||age>life)continue;var k=age/life,a0=rnd(seed+i+2)*TAU,r0=R*.8*Math.sqrt(rnd(seed+i+3));
+      var px=Math.cos(a0)*r0+Math.sin(age*5+i)*6,py=Math.sin(a0)*r0*.7-(30+70*rnd(seed+i+4))*age;
+      x.fillStyle=(i%3?'rgba('+col+',':'rgba(255,240,210,')+(.9*(1-k)*(.6+.4*Math.sin(age*30+i)))+')';x.fillRect(px-1.5,py-1.5,3,3)}
+  }else if(LK==='quake'){
+    /* crater and cracks that stay */
+    var stay=1-clamp((q-.4)/1.8,0,1);
+    if(stay>0){x.fillStyle='rgba(8,7,6,'+(.34*stay*pw)+')';x.beginPath();x.ellipse(0,0,R*.9,R*.82,0,0,TAU);x.fill();
+      x.strokeStyle='rgba(190,175,150,'+(.28*stay)+')';x.lineWidth=2;x.beginPath();x.ellipse(0,0,R*.9,R*.82,0,0,TAU);x.stroke();
+      crackLines(c,pw,seed).forEach(function(p){var vis=eo(q/.12),n=Math.max(2,Math.ceil(p.length*vis));
+        x.strokeStyle='rgba(10,8,6,'+(.85*stay)+')';x.lineWidth=2.4;x.lineCap='round';x.beginPath();for(var k=0;k<n;k++){var pp=p[Math.min(k,p.length-1)];k?x.lineTo(pp[0],pp[1]):x.moveTo(pp[0],pp[1])}x.stroke();
+        x.strokeStyle='rgba(200,185,160,'+(.25*stay)+')';x.lineWidth=.8;x.beginPath();for(var k2=0;k2<n;k2++){var p2=p[Math.min(k2,p.length-1)];k2?x.lineTo(p2[0]+1.4,p2[1]+1.4):x.moveTo(p2[0]+1.4,p2[1]+1.4)}x.stroke()})}
+    var fl2=1-clamp(q/.1,0,1);if(fl2>0){x.save();x.globalCompositeOperation='lighter';glowDisc(x,0,0,R*.7,hot,.5*fl2*pw);x.restore()}
+    /* dust puffs rolling out */
+    for(var d=0;d<16;d++){var an=d/16*TAU+rnd(seed+d)*.3,age2=q-.01*rnd(seed+d+1);if(age2<0||age2>1.1)continue;var k2=age2/1.1,rr=R*(.55+.55*eo(k2*1.1)),pr=8+20*eo(k2);
+      x.fillStyle='rgba(158,148,132,'+(.34*(1-k2)*(.5+.5*pw))+')';x.beginPath();x.arc(Math.cos(an)*rr,Math.sin(an)*rr*.9-k2*10,pr,0,TAU);x.fill()}
+    /* chips */
+    for(var s=0;s<14;s++){var age3=q-.02*rnd(seed+s+20);if(age3<0||age3>.9)continue;var a3=rnd(seed+s+30)*TAU,v=70+150*rnd(seed+s+40)*pw,hh=Math.max(0,(150*age3-260*age3*age3)),gx=Math.cos(a3)*v*age3*.8,gy=Math.sin(a3)*v*age3*.6,al3=1-clamp((age3-.55)/.35,0,1);
+      x.fillStyle='rgba(0,0,0,'+.3*al3+')';x.beginPath();x.ellipse(gx,gy+3,3.2,2,0,0,TAU);x.fill();
+      x.save();x.translate(gx,gy-hh);x.rotate(age3*9+s);x.fillStyle='rgba('+(s%2?'150,142,128':'110,104,94')+','+al3+')';x.fillRect(-2.6,-2.1,5.2,4.2);x.restore()}
+    var tk=1-clamp(q/.8,0,1);if(tk>0){x.strokeStyle='rgba(255,236,200,'+(.5*tk)+')';x.lineWidth=2;for(var t2=0;t2<28;t2++){var ta=t2/28*TAU+q*1.5;x.beginPath();x.moveTo(Math.cos(ta)*(R-4),Math.sin(ta)*(R-4));x.lineTo(Math.cos(ta)*(R+4),Math.sin(ta)*(R+4));x.stroke()}}
+  }else{
+    x.save();x.globalCompositeOperation='lighter';
+    var star=1-clamp(q/.14,0,1);
+    if(star>0){x.strokeStyle='rgba(255,255,255,'+star+')';x.lineWidth=3*star+1;x.lineCap='round';x.beginPath();for(var b=0;b<8;b++){var ba=b/8*TAU+.2;x.moveTo(Math.cos(ba)*6,Math.sin(ba)*6);x.lineTo(Math.cos(ba)*(30+40*pw)*(.5+.5*eo(q/.1)),Math.sin(ba)*(30+40*pw)*(.5+.5*eo(q/.1)))}x.stroke();glowDisc(x,0,0,R*.5,hot,.7*star)}
+    for(var rg=0;rg<3;rg++){var w=clamp((q-rg*.05)/.38,0,1);if(w<=0||w>=1)continue;var rr2=R*1.12*eo(w),aw=(1-w)*(.9-.2*rg)*(.55+.45*pw);
+      [[-2.2,'255,70,70'],[2.2,'90,210,255'],[0,'255,244,226']].forEach(function(f){x.strokeStyle='rgba('+f[1]+','+(aw*(f[0]?.55:1))+')';x.lineWidth=(f[0]?1.4:3.2)*(1-w*.6);x.beginPath();x.arc(0,0,Math.max(1,rr2+f[0]),0,TAU);x.stroke()})}
+    for(var sp=0;sp<16;sp++){var sa=sp/16*TAU+rnd(seed+sp)*.2,sq=clamp((q-.02)/.3,0,1);if(sq<=0||sq>=1)continue;var r1=R*(.2+.6*rnd(seed+sp+3))*eo(sq),r2=r1+R*.22*(1-sq);
+      x.strokeStyle='rgba('+col+','+(.8*(1-sq))+')';x.lineWidth=1.3;x.beginPath();x.moveTo(Math.cos(sa)*r1,Math.sin(sa)*r1);x.lineTo(Math.cos(sa)*r2,Math.sin(sa)*r2);x.stroke()}
+    x.restore();
+    var st=1-clamp((q-.15)/1,0,1);if(st>0){x.strokeStyle='rgba('+col+','+(.55*st)+')';x.lineWidth=1.5;x.setLineDash([7,5]);x.lineDashOffset=-q*30;x.beginPath();x.arc(0,0,R,0,TAU);x.stroke();x.setLineDash([]);
+      for(var t3=0;t3<24;t3++){var tb=t3/24*TAU+q*1.2;x.strokeStyle='rgba('+hot+','+(.5*st)+')';x.beginPath();x.moveTo(Math.cos(tb)*(R-5),Math.sin(tb)*(R-5));x.lineTo(Math.cos(tb)*(R+5),Math.sin(tb)*(R+5));x.stroke()}}
+  }
+  x.restore()}
+
+/* ---- the charge, per look ---- */
+function chargeFX(x,LK,c,te,tc,P){
+  var col=LOOKS[LK].col,hot=LOOKS[LK].hot,full=c>=.999,ctr={x:D,y:0};
+  /* the target: always the same circle, a faint outline, a disc growing inside it */
+  x.save();x.translate(ctr.x,ctr.y);
+  x.fillStyle='rgba(230,215,190,.05)';x.beginPath();x.arc(0,0,R,0,TAU);x.fill();
+  x.strokeStyle='rgba(230,215,190,.3)';x.lineWidth=2;x.beginPath();x.arc(0,0,R,0,TAU);x.stroke();
+  var inner=lerp(8,R,c),fill=full?'255,209,77':'255,178,102';
+  x.fillStyle='rgba('+fill+','+(.14+.3*c)+')';x.beginPath();x.arc(0,0,inner,0,TAU);x.fill();
+  x.strokeStyle='rgba('+fill+','+(full?.75+.25*Math.sin(te*20):.55+.3*c)+')';x.lineWidth=full?4:2.5;x.beginPath();x.arc(0,0,inner,0,TAU);x.stroke();
+  if(LK==='quake'){for(var i=0;i<14;i++){var ph=((te*.9+rnd(i))%1),an=rnd(i+4)*TAU,rr=R*(1.9-1.5*ph),al=(1-ph)*.5*clamp(c*2,0,1);
+      x.fillStyle='rgba(176,164,146,'+al+')';x.beginPath();x.arc(Math.cos(an)*rr,Math.sin(an)*rr*.9,2+2*(1-ph),0,TAU);x.fill()}}
+  if(LK==='shock'){x.save();x.globalCompositeOperation='lighter';
+    for(var r=0;r<3;r++){var ph2=((te*1.4+r/3)%1),rr2=lerp(R*1.5,R*lerp(.9,.2,c),eo(ph2));x.strokeStyle='rgba('+col+','+((1-ph2)*.5*clamp(c*3,0,1))+')';x.lineWidth=1.6;x.beginPath();x.arc(0,0,rr2,0,TAU);x.stroke()}
+    if(full){x.strokeStyle='rgba(255,209,77,'+(.7+.3*Math.sin(te*20))+')';x.lineWidth=3;for(var b=0;b<4;b++){var ba=b*Math.PI/2+Math.PI/4,bx=Math.cos(ba)*(R+8),by=Math.sin(ba)*(R+8);x.beginPath();x.moveTo(bx-Math.cos(ba)*8*0-(by>0?0:0),by);
+        x.moveTo(bx+(bx>0?-10:10),by);x.lineTo(bx,by);x.lineTo(bx,by+(by>0?-10:10));x.stroke()}}
+    x.restore()}
+  x.restore();
+  /* the player's charge ring */
+  x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=2.5;x.beginPath();x.arc(0,0,27,0,TAU);x.stroke();
+  x.strokeStyle=full?'rgba(255,209,77,'+(.75+.25*Math.sin(te*20))+')':'rgba(95,208,196,.85)';x.lineWidth=full?4:2.5;x.beginPath();
+  x.arc(0,0,27+(LK==='quake'&&c>.2?Math.sin(te*70)*1.2*c:0),-Math.PI/2,-Math.PI/2+TAU*Math.max(.02,c));x.stroke();
+  /* embers off a hot head */
+  if(LK==='forge'&&c>.15){var A=hammerArc(-.3-.7*c);x.save();x.globalCompositeOperation='lighter';
+    for(var e=0;e<8;e++){var age=((te*1.2+rnd(e))%1),px=A.hx+(rnd(e+3)-.5)*18+Math.sin(age*6+e)*4,py=A.hy-age*(30+20*rnd(e+5));
+      x.fillStyle='rgba('+(e%2?col:'255,240,210')+','+((1-age)*.9*c)+')';x.fillRect(px-1.3,py-1.3,2.6,2.6)}x.restore()}
+}
+
+/* ---- one whole scene ---- */
+function drawScene(x,W,H,S,P,tRaw,LK){
+  var T=timing(P),tt=(tRaw%(T.loop-(P.skip||0)))+(P.skip||0),stops=[];
+  if(!P.noRelease){stops.push({t:T.ti,d:.06});if(P.after)stops.push({t:T.ts2,d:.03})}
+  var te=warp(tt,stops),pw=.45+.55*P.power;
+  x.fillStyle=LOOKS[LK].ground;x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(255,255,255,.04)';x.lineWidth=1;x.beginPath();for(var gi=0;gi<=W;gi+=40){x.moveTo(gi+.5,0);x.lineTo(gi+.5,H)}for(var gj=0;gj<=H;gj+=40){x.moveTo(0,gj+.5);x.lineTo(W,gj+.5)}x.stroke();
+  var vg=x.createRadialGradient(W*.35,H*.5,20,W*.5,H*.5,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.42)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  var ox=W<500?W*.17:W*.2,oy=H*.5,shake=0,q1=te-T.ti,q2=te-T.ts2;
+  if(!P.noRelease){if(q1>0&&q1<.28)shake+=(1-q1/.28)*(1.2+3.2*pw)*(LK==='quake'?1.4:1);if(P.after&&q2>0&&q2<.2)shake+=(1-q2/.2)*(.8+1.6*pw)}
+  x.save();x.translate(ox+(reduced?0:Math.sin(tt*93)*shake),oy+(reduced?0:Math.cos(tt*81)*shake));x.scale(S,S);
+  var c1={x:D,y:0},c2={x:D+AFTER_PUSH,y:0},charging=te>=.2&&te<T.tr&&!P.noRelease||(P.noRelease&&te>=.2),c=0;
+  if(te>=.2)c=clamp((te-.2)/CHARGE,0,P.power);
+  /* what stays on the floor and what lands */
+  if(!P.noRelease&&te>=T.ti){impact(x,LK,c1,te-T.ti,pw,11,false);if(P.after&&te>=T.ts2)impact(x,LK,c2,te-T.ts2,pw*.8,29,true)}
+  if(charging||(P.noRelease&&te>=.2))chargeFX(x,LK,c,te,te-.2,P);
+  /* enemies */
+  var stun=.25+.65*P.power;
+  foeList(P).forEach(function(f){
+    if(f.far&&!P.after)return;
+    var hit1=!f.far&&!f.out&&Math.hypot(f.x-c1.x,f.y-c1.y)<=R+8,hit2=P.after&&Math.hypot(f.x-c2.x,f.y-c2.y)<=R+8;
+    var fx=f.x,fy=f.y,flash=0,al=1,hitAt=hit1?T.ti:hit2?T.ts2:-1,cc=hit1?c1:c2;
+    if(!P.noRelease&&hitAt>=0&&te>=hitAt){var q=te-hitAt,dx=f.x-cc.x,dy=f.y-cc.y,dl=Math.hypot(dx,dy)||1;
+      var k=(hit1?16:10)*pw*Math.exp(-q*8);fx+=dx/dl*k;fy+=dy/dl*k;if(q<.09)flash=1;
+      if(hit1&&hit2&&te>=T.ts2){var q2b=te-T.ts2;fx+=Math.cos(0)*8*Math.exp(-q2b*8);if(q2b<.09)flash=1}}
+    foe(x,fx,fy,flash,al);
+    if(f.far&&P.after){x.save();x.strokeStyle='rgba(217,191,122,.85)';x.lineWidth=1.6;x.beginPath();x.arc(f.x,f.y,19,0,TAU);x.stroke();x.restore()}
+    if(!P.noRelease&&hitAt>=0&&te>=hitAt){var q3=te-hitAt;
+      if(q3<stun+.05)stars(x,fx,fy,te,clamp((stun-q3)/.15,0,1)*.9);
+      if(q3<.7){var num=hit1?Math.round(20+60*P.power):Math.round((20+60*P.power)*.6);x.save();x.globalAlpha=1-clamp((q3-.35)/.35,0,1);x.fillStyle='#fff';x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;x.font='700 '+(13+4*P.power)+'px Barlow Condensed, sans-serif';x.textAlign='center';
+        var ny=fy-28-q3*34;x.strokeText(num,fx,ny);x.fillText(num,fx,ny);x.restore()}}
+  });
+  /* the hammer and the player */
+  var heat=LK==='forge'?(te>=.2?clamp(c,0,1):0):0,pulse=0;
+  if(te<.2||(P.noRelease&&false)){drawHammer(x,-.3,1,0,0)}
+  var fHam=null,alpha=1;
+  if(te<.2)fHam=-.3;
+  else if(te<T.tr||P.noRelease)fHam=-.3-.7*c;
+  else if(te<T.ti)fHam=(te-T.tr)/SWING;
+  else{fHam=1;alpha=1-clamp((te-T.ti-.3)/.25,0,1)}
+  /* a swing trail: the head's path with two ghosts, drawn before the head */
+  if(!P.noRelease&&te>=T.tr&&te<T.ti+.14){
+    var fnow=clamp((te-T.tr)/SWING,0,1),ta=1-clamp((te-T.ti)/.14,0,1);
+    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+    var prev=hammerArc(Math.max(0,fnow-.62));
+    for(var i=1;i<=14;i++){var u=Math.max(0,fnow-.62)+(fnow-Math.max(0,fnow-.62))*i/14,A=hammerArc(u),kk=i/14;
+      x.strokeStyle='rgba('+(LK==='quake'?'230,214,190':LOOKS[LK].col)+','+(.7*kk*ta)+')';x.lineWidth=2+(LK==='quake'?10:14)*kk;x.beginPath();x.moveTo(prev.hx,prev.hy);x.lineTo(A.hx,A.hy);x.stroke();
+      x.strokeStyle='rgba(255,255,255,'+(.8*kk*kk*ta)+')';x.lineWidth=1.2;x.beginPath();x.moveTo(prev.hx,prev.hy);x.lineTo(A.hx,A.hy);x.stroke();prev=A}
+    x.restore();
+    for(var gh=1;gh<=2;gh++)drawHammer(x,LK,Math.max(0,fnow-gh*.2),.3/gh*ta,heat,0)}
+  player(x,1);
+  if(P.noRelease||te<T.tr)heat=heat;
+  drawHammer(x,LK,fHam,alpha,te>=T.tr&&te<T.ti+.3?Math.max(0,1-(te-T.ti)/.5)*P.power:heat,(c>=.999&&te<T.tr)?.5+.5*Math.sin(te*20):0);
+  x.restore();
+  if(!P.noRelease){[T.ti,P.after?T.ts2:-1].forEach(function(s,i){if(s<0)return;var q=(tt-s)/.07;if(q>0&&q<1){x.fillStyle='rgba(255,255,255,'+(.1*(1-q)*(i?.6:1))+')';x.fillRect(0,0,W,H)}})}
+}
+
+/* ---------- canvases ---------- */
+function setup(c,w,h){c.__w=w;c.__h=h;var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+var stage=$('stage'),sx=setup(stage,1000,420);
+var PANELS=[
+ {title:'Charge',sub:'0.9 s · gold when full',text:'The head heats, the disc fills the circle, the ring closes. Release any time: a tap still lands.',P:{power:1,noRelease:1}},
+ {title:'Tap slam',sub:'20 damage · 0.25 s stun',text:'A short hold: a small flash, a few hairline cracks and a short stun. Enemies reel a little and shake it off.',P:{power:.28,skip:.0}},
+ {title:'Full slam',sub:'80 damage · 0.9 s stun',text:'The full read: pillar, deep cracks, a hard shake and stun stars that stay over every enemy for 0.9 s.',P:{power:1,skip:1.1}},
+ {title:'Aftershock',sub:'+1 upgrade · 60% · 40 px further',text:'0.2 s after the first, a second slam lands further out. The enemy only it reaches is ringed in gold.',P:{power:1,after:1,skip:1.1}}
+];
+var moves=$('moves');
+PANELS.forEach(function(p){var cell=document.createElement('div');cell.className='cell';
+  cell.innerHTML='<h3>'+p.title+' <small>'+p.sub+'</small></h3><div class="frame"><canvas aria-label="'+p.title+'"></canvas></div><p>'+p.text+'</p>';moves.appendChild(cell);
+  p.c=cell.querySelector('canvas');p.x=setup(p.c,340,260)});
+
+/* ---------- controls ---------- */
+var looksEl=$('looks'),powersEl=$('powers');
+function chips(el,items,cur,fn){items.forEach(function(it){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=it[1];b.dataset.k=it[0];b.setAttribute('aria-pressed',String(it[0]===cur));
+  b.addEventListener('click',function(){fn(it[0]);[].forEach.call(el.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.k===it[0]))})});el.appendChild(b)})}
+chips(looksEl,Object.keys(LOOKS).map(function(k){return [k,LOOKS[k].name]}),look,function(k){look=k;notes()});
+chips(powersEl,POWERS.map(function(p,i){return [String(i),p[0]+' hold']}),'2',function(k){power=POWERS[+k][1]});
+function notes(){$('notes').innerHTML=LOOKS[look].note.map(function(t){return '<li>'+t+'</li>'}).join('');
+  $('stageNote').textContent=LOOKS[look].name+': the circle is 160 px across and centred 100 px ahead of you, whatever the charge. The enemy with the gold ring is only reached by the aftershock.'}
+notes();
+var paused=false,slow=false,clock=0,last=performance.now();
+$('pause').addEventListener('click',function(){paused=!paused;this.textContent=paused?'Play':'Pause'});
+$('tgSlow').addEventListener('change',function(){slow=this.checked});
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)clock+=dt*(slow?.3:1);
+  drawScene(sx,1000,420,1.5,{power:power,after:$('tgAfter').checked},clock,look);
+  PANELS.forEach(function(p){drawScene(p.x,340,260,1.18,p.P,clock,look)});
+  requestAnimationFrame(frame)}
+try{var qs=new URLSearchParams(location.search);
+  if(qs.get('look')&&LOOKS[qs.get('look')]){look=qs.get('look');[].forEach.call(looksEl.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.k===look))});notes()}
+  if(qs.get('p')!=null)power=parseFloat(qs.get('p'));
+  if(qs.get('t')!=null){clock=parseFloat(qs.get('t'));paused=true;$('pause').textContent='Play'}}catch(e){}
+if(reduced&&!paused){clock=1.5;paused=true;$('pause').textContent='Play'}
+requestAnimationFrame(frame);
+})();
+</script>
