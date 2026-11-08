@@ -531,6 +531,22 @@ static partial class Shot {
           else { int tsi = int.Parse(tsn); me.Combo = (1 << 3) | tsi; gm.Effects.Add(new Effect { Kind = FxKind.TwinStep, Pos = me.Pos, Pos2 = to, Color = Game.TwinMoon, Radius = me.Id * 10 + tsi, T = st, Dur = TwinBladesMotion.Steps[tsi - 1].Dur + TwinBladesMotion.Recover }); }
           break;
         }
+        case WeaponId.Lightbringer:  // LIGHTSTEP=1..3 Dawn, Mercy, Noon, 4 a Radiant Noon, lance the Sunlance (to the other player, 2 players); LIGHT=<n> pips; WARD=1 a Mercy ward on everyone (SWING = seconds after the click)
+        {
+          string lsn = Environment.GetEnvironmentVariable("LIGHTSTEP") ?? "1";
+          me.Light = int.Parse(Environment.GetEnvironmentVariable("LIGHT") ?? "5");
+          if (Environment.GetEnvironmentVariable("WARD") == "1") foreach (var q in gm.Players.Values) q.MercyT = Game.MercyTime;
+          Player ally = null; foreach (var q in gm.Players.Values) if (q.Id != me.Id) { ally = q; q.Pos = q.Disp = me.Pos + V2.FromAngle(me.Aim - 0.5f) * 260f; }
+          if (lsn == "lance") gm.Effects.Add(new Effect { Kind = FxKind.Sunlance, Pos = me.Pos, Pos2 = ally != null ? ally.Pos : me.Pos + V2.FromAngle(me.Aim) * 300f, Color = Game.LightGold, Radius = me.Id * 1000 + (ally != null ? ally.Id : 0), T = st, Dur = LightbringerMotion.Lance.Dur + LightbringerMotion.Recover });
+          else
+          {
+            int ls = int.Parse(lsn), step = ls == 4 ? 3 : ls;
+            float lr = step == 3 ? (ls == 4 ? Game.NoonRadiantRadius : Game.NoonRadius) : reach;
+            me.Combo = (1 << 3) | step;
+            gm.Effects.Add(new Effect { Kind = FxKind.LightStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * lr, Color = Game.LightGold, Radius = me.Id * 10 + ls, T = st, Dur = LightbringerMotion.Steps[step - 1].Dur + LightbringerMotion.Recover + 0.15f });
+          }
+          break;
+        }
         case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)
         {

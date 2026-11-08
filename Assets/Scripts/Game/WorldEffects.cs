@@ -249,6 +249,12 @@ namespace Arena
                 case FxKind.TwinStep:
                     DrawTwinStepFx(fx);  // TwinBladesLook.cs
                     break;
+                case FxKind.LightStep:
+                    DrawLightStepFx(fx);  // LightbringerLook.cs
+                    break;
+                case FxKind.Sunlance:
+                    DrawSunlanceFx(fx);
+                    break;
                 case FxKind.TwinFang:
                     DrawTwinFangFx(fx);
                     break;

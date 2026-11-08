@@ -100,7 +100,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.FangCd = Math.Max(0f, p.FangCd - dt);
-                if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || p.Weapon.Id != WeaponId.TwinBlades))
+                if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer)))  // (the Lightbringer's chain shares Combo)
                     p.Combo &= ~7;  // back to the first step (the swing count stays)
             }
             for (int i = fangRuns.Count - 1; i >= 0; i--)

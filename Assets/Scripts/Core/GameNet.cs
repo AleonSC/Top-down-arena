@@ -507,6 +507,7 @@ namespace Arena
             s.Byte(ref p.RapierStreak);  // the Rapier's streak, drawn as pips behind you (Game/MeleeLooks.cs)
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
+            s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
             s.Float(ref p.DoseT);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);

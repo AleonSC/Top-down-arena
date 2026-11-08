@@ -380,8 +380,13 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 float r = p.Def.BodyR + b.Radius;
-                if (p.Id == b.Owner || p.Downed || p.Hp >= p.MaxHp || b.Pos.DistanceSq(p.Pos) >= r * r)
+                if (p.Id == b.Owner || p.Downed || (p.Hp >= p.MaxHp && b.WardAlly <= 0f) || b.Pos.DistanceSq(p.Pos) >= r * r)
                     continue;
+                if (b.WardAlly > 0f)
+                {
+                    Ward(p, b.WardAlly);  // Mercy Cut's crescent (Lightbringer.cs)
+                    return true;
+                }
                 Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
                 TransfusionCost(b);  // Transfusion Darts cost their healer (BloodMage.cs)
                 return true;
@@ -435,7 +440,7 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
                         continue;
                     }
-                    if (b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
+                    if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;

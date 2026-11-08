@@ -43,6 +43,10 @@ namespace Arena
         public float RootHeal;        // what an ally touched by the lash is healed
         public bool Twin;             // a Twin Blades step (TwinBlades.cs): Twin Fang and the parry take back one still winding up
         public byte TwinKind;         // which step (1-5): its hit cue's sound and your hit-pause (TwinHitCue)
+        public byte LightKind;        // a Lightbringer step (1 Dawn, 2 Mercy, 3 Noon; Lightbringer.cs): fills the gauge, throws its crescents or heals its ring
+        public bool LightRadiant;     // a Radiant Noon: three times the healing, a ward on everyone in the ring
+        public int LightWaves;        // Dawn's and Mercy's crescents of light
+        public float LightWaveDmg;
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -176,24 +180,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.Lightbringer:
-                {
-                    pendingSwings.Add(NewSwing(p, aim, w.Reach, 100f, w.Damage * dmg));
-                    bool radiant = p.Light >= LightMax;  // a full gauge: these crescents heal three times as much
-                    if (radiant)
-                    {
-                        p.Light = 0;
-                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.65f), 50f, 0.35f, Sfx.SpellHoly);
-                    }
-                    int n = 1 + extra;
-                    for (int i = 0; i < n; i++)
-                    {
-                        float f = n == 1 ? 0f : i * 2f / (n - 1) - 1f;
-                        var b = SpawnBullet(Defs.KnightWave, p.Pos + V2.FromAngle(aim) * p.Def.BodyR, V2.FromAngle(aim + f * 0.2f * (n - 1)) * 600f, 0f, 0.45f, 12f * dmg, p.Id);
-                        b.Pierce += 2;
-                        b.HealAlly = 6f * (radiant ? LightRadiant : 1f);
-                    }
+                    FireLightbringer(p, aim, dmg, extra);  // Dawn, Mercy, Noon (Lightbringer.cs)
                     break;
-                }
                 case WeaponId.Censer:
                 {
                     var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg);
@@ -325,7 +313,7 @@ namespace Arena
                 }
         }
 
-        /// Lightbringer: each enemy its swings hit fills the light gauge; full, the next swing's crescents heal LightRadiant times as much.
+        /// Lightbringer: each enemy its swings hit fills the light gauge; full, the next Noon Sunburst is Radiant (Lightbringer.cs).
         public const int LightMax = 12;
         public const float LightRadiant = 3f;
 
@@ -471,8 +459,8 @@ namespace Arena
             p.Run.ShotsFired++;
             if (hits.Count > 0)
                 p.Run.ShotsHit++;
-            if (hits.Count > 0 && p.Weapon.Id == WeaponId.Lightbringer)  // every enemy a Lightbringer swing hits fills its light gauge
-                p.Light = Math.Min(LightMax, p.Light + hits.Count);
+            if (s.LightKind > 0)  // a Lightbringer step: the gauge, its crescents or its ring's healing (Lightbringer.cs)
+                LightLanded(p, s, origin, circleAt, hits.Count);
             if (hits.Count > 0 && s.Staff)  // a Quarterstaff swipe landed: a Jab stack for every enemy hit, up to its limit
                 p.StaffStacks = (byte)Math.Min(StaffCap(p), p.StaffStacks + hits.Count);
             if (hits.Count > 0 && p.Weapon.Melee && !s.Silent)
@@ -686,8 +674,8 @@ namespace Arena
             // Healer
             new WeaponDef { Id = WeaponId.HolyMace, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
                 Desc = "Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab." },
-            new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light, fanned out", Name = "Lightbringer", FireInterval = 0.5f,
-                Desc = "Sword swings that also send out a crescent of light, which heals allies it passes. Hitting enemies fills a light gauge, and when it is full your next swing heals far more." },
+            new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light on Dawn and Mercy, fanned out, and +30 px on the Sunburst", Name = "Lightbringer", FireInterval = 0.5f,
+                Desc = "A three-step chain. Dawn Cut's crescent heals the allies it passes, Mercy Cut's wards them, and Noon Sunburst plants the sword in a ring that heals everyone near you. Hits fill a light gauge: full, the next Noon is Radiant. The weapon-action key spends the light on a Sunlance that heals the ally nearest your cursor." },
             new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
                 Desc = "A flail whirled all the way around you. Each spin heals nearby allies. As you move it leaves a trail of incense that heals allies in it and makes enemy shots fired from inside it stray." },
             // DPS

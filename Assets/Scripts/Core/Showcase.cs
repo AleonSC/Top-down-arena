@@ -14,7 +14,7 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
-        public bool Idle;  // the lobby's IDLE key: the character and the dummies stand still
+        public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
         public Game Game => session.Game;
         public Player Me => Game.Me;
 
@@ -127,7 +127,7 @@ namespace Arena
             if (!Idle && me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
-            input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
+            input.Fire = !Idle && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
             // The Bo Staff: fire runs the slash, jab, spin chain; every few seconds the weapon-action key shoves, partway into a chain so the
             // reset shows (BoStaff.cs).
             if (me.Weapon.Id == WeaponId.BoStaff)

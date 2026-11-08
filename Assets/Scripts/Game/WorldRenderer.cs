@@ -219,6 +219,8 @@ namespace Arena
                 DrawQuarterstaffIdle(p, t);  // the Quarterstaff held at the ready (QuarterstaffLook.cs)
                 DrawBoStaffIdle(p, t);  // the Bo Staff held at the ready (BoStaffLook.cs)
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
+                DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
+                DrawMercyWard(p, t);  // a Lightbringer's ward on anyone (LightbringerLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawHeldStunGun(p, t);
@@ -420,6 +422,14 @@ namespace Arena
 
         /// Players' big shots (kinds below Defs.SmallShot), drawn under enemies.
         void DrawBigShot(Bullet b, float t)
+        {
+            float keep = glAlpha;
+            glAlpha = keep * TeammateShotAlpha(b);  // WorldShots.cs
+            DrawBigShotLook(b, t);
+            glAlpha = keep;
+        }
+
+        void DrawBigShotLook(Bullet b, float t)
         {
             DrawShotMods(b, t);
             if (DrawWeaponShot(b, t))
