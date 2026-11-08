@@ -190,7 +190,7 @@ namespace Arena
                     Enemy e;
                     if (game.Enemies.TryGetValue(ping.Target, out e))
                     {
-                        float rr = (e.Radius + 5f) * WorldToUi;
+                        float rr = (e.Radius + 5f) * UiWorldScale;
                         Ui.Dot(new Rect(at.X - rr, at.Y - rr, 2f * rr, 2f * rr), who, true);
                     }
                 }
@@ -200,7 +200,7 @@ namespace Arena
                     if (game.Players.TryGetValue(ping.Owner, out p) && !p.Downed)
                     {
                         V2 pa = ToUi(p.Disp);
-                        float rr = p.Def.BodyR * WorldToUi + 8f + Mathf.Sin(now * 8f) * 2f;
+                        float rr = p.Def.BodyR * UiWorldScale + 8f + Mathf.Sin(now * 8f) * 2f;
                         Ui.Dot(new Rect(pa.X - rr, pa.Y - rr, 2f * rr, 2f * rr), tone, true);
                     }
                 }

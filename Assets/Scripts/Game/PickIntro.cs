@@ -84,7 +84,7 @@ namespace Arena
         }
 
         /// Your character's body radius on the HUD canvas, for the pillar's foot and halo.
-        float PickHomeR(Player me) => (me != null ? me.Def.BodyR : 16f) * WorldToUi;
+        float PickHomeR(Player me) => (me != null ? me.Def.BodyR : 16f) * UiWorldScale;
 
         /// A pillar of gold light rising out of a character (k: 0..1, it shoots up, then thins and fades). Its foot
         /// ("soft fade", Docs/Mockups/pillar-foot.html option 2) stops just above their middle and fades out over the

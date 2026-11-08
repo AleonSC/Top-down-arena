@@ -167,7 +167,7 @@ namespace Arena
                 if (p.Downed || LaunchHides(p) || !session.EmoteOf(p.Id, out index, out age))
                     continue;
                 V2 at = ToUi(p.Disp);
-                DrawEmote(index, new Vector2(at.X, at.Y - p.Def.BodyR * WorldToUi - 60f), age, 0.8f);
+                DrawEmote(index, new Vector2(at.X, at.Y - p.Def.BodyR * UiWorldScale - 60f), age, 0.8f);
             }
         }
     }

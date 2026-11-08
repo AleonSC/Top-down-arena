@@ -79,11 +79,14 @@ namespace Arena
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
+            bool zoomed = camZoomOn;
+            camZoomOn = false;  // the screen overlays below fill the screen, unzoomed (CameraZoom.cs)
             DrawMood(AW, AH);  // tint, red corners when hurt or low
 
             EndEndingWorld();  // the camera and colours back; the ending's vignette and flash (RunEnding.cs)
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f * EndBg));
+            camZoomOn = zoomed;
 
             if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me))
                 DrawAimLine(game.Me, MouseArena(), t);
@@ -199,6 +202,7 @@ namespace Arena
                 if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
                     DrawEnemy(e, t);
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
+            DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);
@@ -583,6 +587,8 @@ namespace Arena
 
         Vector3 Px(V2 p)
         {
+            if (camZoomOn)
+                p = ZoomPoint(p);  // the scroll-wheel zoom (CameraZoom.cs)
             var v = CanvasPx(glShift + p * glZoom);
             v.x += shakeX - leanPxX;  // screen shake (Juice.cs) and camera lean (CameraLean.cs) while the world is drawn; 0 otherwise
             v.y += shakeY + leanPxY;  // (GL's y runs up the screen, the arena's runs down)

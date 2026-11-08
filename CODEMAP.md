@@ -146,6 +146,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
+- `CameraZoom.cs`: scroll-wheel zoom (1x to 2x on you, focus held inside the arena; Settings → Gameplay), `ZoomPoint`/`UnzoomPoint` used by `Px`, `ToUi` and `MouseArena`, `UiWorldScale` for HUD sizes around world things
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
@@ -255,6 +256,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Damage numbers, hit effects, shake | `Juice.cs` (`HitFlashMix`, `ImpactCrowd`), `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`, `SplashFxNearby`); `Enemy.FlashHeat`; test `hitfx` |
 | Late-game pressure (fire rate, budget, melee share, enemy jobs) | `WaveRecipe.cs`, `NonShooters.cs`, `Docs/EnemyRoles.md`, `Docs/LateGamePressure.md`, report `wavemix`, `EnemyAI.cs` (`WaveFireRate`, `ShotBudget`, `MeleeShare`), `Readability.cs`, `Variety.cs` |
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
+| Scroll-wheel zoom | `CameraZoom.cs` (same hooks as the lean; screen overlays skip it in `DrawWorld`) |
 | HUD layout | `HudLayout.cs` (where everything goes), `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
 | Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs`; move lobby boxes in `LobbyLayout.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |

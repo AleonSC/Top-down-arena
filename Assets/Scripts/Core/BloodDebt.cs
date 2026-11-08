@@ -17,6 +17,7 @@ namespace Arena
         const float DebtGrunt = 0.04f, DebtHeavy = 0.10f;  // a kill repays this share of your max health (Heavy, elite or boss: the second)
         const float DebtBossShare = 0.10f;           // hurting a boss repays this share of the damage
         const float DebtMastered = 1.5f;             // mastered: kills repay this much more
+        public const float DebtCoinFx = 0.9f, DebtBorrowFx = 1.4f, DebtPaidFx = 3.2f, DebtForfeitFx = 2.4f;  // how long each effect plays (the stamps' lives)
 
         /// Host: Blood Debt was cast.
         void BorrowDebt(Player p, float power, bool mastered)
@@ -32,10 +33,7 @@ namespace Arena
             p.DebtT = DebtTime + p.Stats.DebtBonusTime;
             p.Debt = p.DebtOwed = took;
             p.DebtRepay = (mastered ? DebtMastered : 1f) * (1f + p.Stats.DebtRepay) * power;
-            var blood = new Rgba(0.85f, 0.12f, 0.2f);
-            if (took >= 1f)
-                BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), blood, took, 0.55f, Sfx.None);  // the blood it took spurting off you
-            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 60f, 0.4f, Sfx.Roar);
+            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 2f), new Rgba(0.85f, 0.12f, 0.2f), took, DebtBorrowFx, Sfx.Roar);  // the blood it took bursting off you
         }
 
         /// Host, from the class's kill hook: whoever landed the last hit pays back some of their debt.
@@ -57,12 +55,12 @@ namespace Arena
             p.Debt -= amount;
             Heal(p, amount, p, "Blood Debt");
             if (coins)
-                BroadcastFx(FxKind.DebtCoin, from, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), amount, 0.6f, Sfx.None);
+                BroadcastFx(FxKind.DebtCoin, from, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), amount, DebtCoinFx, Sfx.None);
             if (p.Debt > 0.01f)
                 return;
             p.Debt = 0f;  // paid in full: a gold stamp, and the lifesteal stays a little longer
             p.DebtT += DebtPaidBonus;
-            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 1f), new Rgba(1f, 0.8f, 0.35f), p.DebtOwed, 1.2f, Sfx.SpellHoly);
+            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 1f), new Rgba(1f, 0.8f, 0.35f), p.DebtOwed, DebtPaidFx, Sfx.SpellHoly);
         }
 
         /// Host, every tick: the window runs out; whatever is still owed is lost.
@@ -79,7 +77,7 @@ namespace Arena
         void ForfeitDebt(Player p, bool show)
         {
             if (show && p.Debt > 0.5f)
-                BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), p.Debt, 1.2f, Sfx.Hit);
+                BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), p.Debt, DebtForfeitFx, Sfx.Hit);
             p.DebtT = 0f;
             p.Debt = 0f;
         }

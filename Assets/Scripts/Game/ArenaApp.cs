@@ -129,6 +129,7 @@ namespace Arena
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadCamLean();     // CameraLean.cs
+            LoadCamZoom();     // CameraZoom.cs
             LoadHoverNames();  // EnemyTagLook.cs
             SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
             LoadBackgroundSettings();
@@ -659,7 +660,8 @@ namespace Arena
         {
             Vector3 m = Input.mousePosition;
             float ws = scale * WorldToUi;
-            return new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws) + lean;  // (+ the camera lean, CameraLean.cs)
+            V2 s = new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws) + lean;  // (+ the camera lean, CameraLean.cs)
+            return CamZoomed ? UnzoomPoint(s) : s;  // (and the scroll-wheel zoom, CameraZoom.cs)
         }
 
         // --- Menus and HUD (IMGUI, arena coordinates) --------------------------

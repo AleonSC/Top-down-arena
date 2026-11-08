@@ -174,7 +174,7 @@ namespace Arena
                     DrawVeinRushFx(fx, t);  // VeinRushLook.cs
                     break;
                 case FxKind.VeinCut:
-                    DrawVeinCutFx(fx, f);  // VeinRushLook.cs
+                    DrawVeinCutFx(fx, t);  // VeinRushLook.cs
                     break;
                 case FxKind.PactBurst:
                     DrawPactBurstFx(fx, f);
