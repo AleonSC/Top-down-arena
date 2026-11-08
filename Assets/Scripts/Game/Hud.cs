@@ -126,11 +126,16 @@ namespace Arena
                     if (game.Room == RoomPhase.Portal)
                         break;  // a portal is open: its own call instead (ChallengeLook.cs)
                     if (DrawWaveCleared(me, sub))  // the squad tally with Ready and Auto-ready (WaveClearedUi.cs)
+                    {
+                        DrawNewEnemyChips(WcY + WcH + 14f, CabCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
                         break;
+                    }
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
                         DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.IsBossWave(game.Wave) ? Ui.Gold : Ui.Accent);
+                    if (pr == null)
+                        DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
