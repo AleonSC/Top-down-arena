@@ -21,7 +21,10 @@ the last 0.1 s. It replaced their four older looks. The fill is timed on each cl
 (`PhaseT` isn't sent), so there is no protocol change. Preview: `LUNGE=0.5 Tools/Preview/shot.sh lunge hud 12 5 1`.
 Also done: the Phantom marks the spot it will blink to (a `FxKind.Target` ring for `Game.PhantomWarn` = 0.5 s, Phase 1) before it
 blinks and fires its ring, and the Mortar's bomb comes with a landing ring (`MortarMarkRadius`). Test: `landmarks`.
-Still to do: aim lines for aimed shooters, and the Charger's end ring.
+Aim lines (`Game/ShooterAimLook.cs`): while an aimed shooter winds up (`Enemy.Winding`, 0.3 s) a thin dashed line, the same dash
+the Leader and Beam Sentry use, shows its shot: Sniper, Shard, Medic, Splitter and Phantom one line, the Grunt its three-shot fan. The
+rings, spirals and lobs (Burster, Spinner, Mortar) have their own marks. Preview: `AIM=0.8 Tools/Preview/shot.sh aim hud 12 5 1`.
+Still to do: the Charger's end ring.
 
 ## 3. Fewer types per wave
 Waves 16-24 spawn 10-14 distinct types (see the run logs). Cap a recipe wave at 6 distinct types (8 from wave 25):
