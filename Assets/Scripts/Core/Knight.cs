@@ -42,6 +42,7 @@ namespace Arena
         public bool Root;             // the Treant Rod's root lash: a box drawn as a thorny root (FxKind.RootLash) that heals allies inside it
         public float RootHeal;        // what an ally touched by the lash is healed
         public bool Twin;             // a Twin Blades step (TwinBlades.cs): Twin Fang and the parry take back one still winding up
+        public byte TwinKind;         // which step (1-5): its hit cue's sound and your hit-pause (TwinHitCue)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -366,7 +367,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent)
+                if (!s.Silent && !(s.Twin && s.Sound == Sfx.None))  // (a Twin Blades hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -481,6 +482,8 @@ namespace Arena
                 KatanaGain(p, s.Meter * hits.Count);
                 KatanaHitCue(p, s.DrawCut, hits.Count);  // its cut sound, and the lunge's hit-pause (Katana.cs)
             }
+            if (hits.Count > 0 && s.TwinKind > 0)
+                TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             float rapierMult = 1f;
             if (s.Rapier && hits.Count > 0)
             {
@@ -688,7 +691,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
                 Desc = "A flail whirled all the way around you. Each spin heals nearby allies. As you move it leaves a trail of incense that heals allies in it and makes enemy shots fired from inside it stray." },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 75f, Melee = true, ExtraDesc = "+1 crescent: the Crescent Shear launches one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
+            new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 75f, Melee = true, ExtraDesc = "+1 crescent: the Pirouette and the Crescent Shear each launch one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
                 Desc = "Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back." },
             new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: the overhead rend launches a piercing crescent (50% damage)", Name = "Greatsword", FireInterval = 0.7f,
                 Desc = "A three-hit chain: two quick cuts, then a slow overhead rend. The edge of each sweep hangs in the air as a crescent of steel that stops enemy bullets. Hold the weapon-action key to guard: the arc stops bullets and builds Temper, and letting go fires a beam that hits harder for every point of Temper." },
