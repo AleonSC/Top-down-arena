@@ -199,7 +199,10 @@ namespace Arena
                 V2 tip = o + dir * Mathf.Max(30f, ext);
                 if (light && seen.Weapon == WeaponId.Katana)
                 {
+                {
                     KatanaSpear(o, dir, aim, ext, T, fade, col);
+                    KatanaMarks(o, aim, 0f, 1f, reach, T, MeleeThrustTime, true, col);
+                }
                 }
                 else if (light)
                 {
@@ -229,7 +232,10 @@ namespace Arena
             float at = full ? aim + T * 14f * s : start + 2f * half * s * e;
             bool katana = seen.Weapon == WeaponId.Katana;
             if (light && katana)
+            {
                 KatanaCrescent(o, reach, start, at, T, sweepTime, col);
+                KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
+            }
             else if (light)
                 GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
             else
@@ -239,6 +245,14 @@ namespace Arena
                 else
                     MeleeSparks(o, start, 2f * half * s, reach, T, sweepTime, col, seed, false);
                 float hold = T < sweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.1f) / 0.18f);
+                if (katana && T < sweepTime + 0.25f)  // three lagging ghosts of the blade
+                    for (int g = 1; g <= 3; g++)
+                    {
+                        float ga = at - s * g * 0.16f * (T < sweepTime ? 1f : 0.6f);
+                        if ((ga - start) * s < 0f)
+                            continue;
+                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false);
+                    }
                 DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime);
             }
             return true;
@@ -282,6 +296,47 @@ namespace Arena
             float s = sweep >= 0f ? 1f : -1f, shock = fade * (T < sweepTime + 0.1f ? 1f : 0.5f);
             for (int k = 0; k < 2; k++)
                 Arc(o, reach + 9f + 8f * k, 1.3f, col.WithAlpha((0.35f - 0.15f * k) * shock), 14, at - s * (0.52f - 0.1f * k), s * 0.64f);
+        }
+
+        /// A bright cut across each enemy the swing or lunge passes through, timed to the blade reaching it. Worked out from
+        /// the swing's own numbers and where the enemies are drawn (drawing only: the host's hits are its own).
+        void KatanaMarks(V2 o, float aim, float half, float s, float reach, float T, float sweepTime, bool thrust, Rgba col)
+        {
+            foreach (var e in game.Enemies.Values)
+            {
+                V2 rel = e.Disp - o;
+                float d = rel.Length, hitT, markAng, len;
+                if (thrust)
+                {
+                    V2 dir = V2.FromAngle(aim);
+                    float along = rel.X * dir.X + rel.Y * dir.Y, across = Mathf.Abs(-rel.X * dir.Y + rel.Y * dir.X);
+                    if (along < 0f || along > reach + e.Radius || across > 26f + e.Radius * 0.6f)
+                        continue;
+                    hitT = sweepTime * Mathf.Clamp01(along / reach);
+                    markAng = aim + MathX.Pi * 0.5f + 0.2f;
+                    len = 46f;
+                }
+                else
+                {
+                    if (d - e.Radius * 0.5f > reach)
+                        continue;
+                    float diff = Mathf.Repeat(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi;
+                    if (Mathf.Abs(diff) > half + 0.12f)
+                        continue;
+                    float p = Mathf.Clamp01((diff + half * s) / (2f * half * s));
+                    hitT = sweepTime * (1f - Mathf.Pow(1f - p, 1f / 3f));
+                    markAng = rel.Angle + s * MathX.Pi * 0.5f - 0.6f * s;
+                    len = 34f;
+                }
+                float q = (T - hitT) / 0.32f;
+                if (q < 0f || q > 1f)
+                    continue;
+                float a = 1f - q, l = Mathf.Lerp(10f, len, EaseOut3(Mathf.Clamp01(q * 2.2f)));
+                V2 u = V2.FromAngle(markAng), c = e.Disp;
+                SoftLine(c - u * (l * 0.7f), c + u * (l * 0.7f), 7f * a, col.WithAlpha(0.5f * a));
+                Ribbon(c - u * l, c, 0.3f, 3.4f * a + 0.4f, Rgba.White.WithAlpha(0f), Rgba.White.WithAlpha(a));
+                Ribbon(c + u * l, c, 0.3f, 3.4f * a + 0.4f, Rgba.White.WithAlpha(0f), Rgba.White.WithAlpha(a));
+            }
         }
 
         /// Hot orange and white streaks thrown off the blade (a short line each, not the other weapons' squares).
