@@ -42,6 +42,12 @@ spawns later (Splitter's Shards) and boss adds are not counted.
 First 3 times a type is seen (per profile) and for elites: a short name + job icon above it for 2 s on spawn, plus a
 one-line "what it does" in the wave banner for a newly unlocked type. Stored in the profile, no network change.
 
+Tags done (world part): `Game/EnemyTagLook.cs`, `Profile.TagSeen` ("tag" lines, profile format 6, `Profile.TagShows` = 3). The first 3
+times a type comes into view it carries its name and job (job colours) for 2.6 s, fading out; after that, never. Counted per profile,
+client side only, nothing sent. Elites are not tagged on their own (a Gauntlet wave has 40-60 of them); they follow their type's
+count. Preview: `TAGS=1 Tools/Preview/shot.sh tags hud 12 5 1`. Not done yet: the one-line note in the wave banner for a newly
+unlocked type (needs a short description per enemy and a place in the scan band).
+
 ## Order and cost
 1 then 3 (small, mostly code), then 2 (art audit), then 4 (profile data + UI). Only 4 touches the profile; none change
 the snapshot format unless the job marker is sent rather than derived (derive it: `JobOf` is deterministic).

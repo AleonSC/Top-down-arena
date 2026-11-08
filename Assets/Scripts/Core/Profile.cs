@@ -47,7 +47,8 @@ namespace Arena
         /// 3: adds the "name" line (the profile's name, ProfileStore.cs). Older files load with no name.
         /// 4: adds the "perks" line (the perks equipped, Perks.cs). Older files load with none.
         /// 5: adds the "hint" line (how many launches the menu has pointed at the player card, and whether the profile was ever opened). Older files load with none.
-        public const int FormatVersion = 5;
+        /// 6: adds the "tag" lines (how many times each enemy type has been tagged with its name on sight, EnemyTagLook.cs). Older files load with none.
+        public const int FormatVersion = 6;
 
         /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
         public string Name = "";
@@ -89,6 +90,10 @@ namespace Arena
 
         // The main menu's "your profile" nudge beside the player card: shown until the profile has been opened once, for at most HintMaxLaunches launches.
         public int HintLaunches;
+
+        /// EnemyType name -> how many times it has been shown with a name tag (the first TagShows sightings get one).
+        public readonly Dictionary<string, int> TagSeen = new Dictionary<string, int>();
+        public const int TagShows = 3;
         public bool ProfileOpened;
         public const int HintMaxLaunches = 5;
         public bool ShowProfileHint => !ProfileOpened && HintLaunches <= HintMaxLaunches;
@@ -290,6 +295,7 @@ namespace Arena
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             if (PerkNames.Count > 0) RunSave.Line(sb, "perks", string.Join(",", PerkNames));
             if (HintLaunches > 0 || ProfileOpened) RunSave.Line(sb, "hint", HintLaunches + " " + (ProfileOpened ? 1 : 0));
+            foreach (var kv in TagSeen) RunSave.Line(sb, "tag", kv.Key + " " + kv.Value);
             RunSave.Line(sb, "xp", Xp);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine) + " " + Dash(Cursor));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')) + " " + Dash(l.Class.Replace(' ', '_')) + " " + Dash(l.Mode) + " " + RunSave.F(l.Seconds) + " " + RunSave.F(l.Dealt) + " " + RunSave.F(l.Taken) + " " + RunSave.F(l.Heal) + " " + l.Players + " " + Dash(l.File));
@@ -339,6 +345,7 @@ namespace Arena
                         case "unlocked": p.Unlocked.Add(val); break;
                         case "perks": foreach (var n in val.Split(',')) if (n.Length > 0) p.PerkNames.Add(n.Trim()); break;
                         case "hint": p.HintLaunches = Math.Max(0, RunSave.I(f[0])); p.ProfileOpened = f.Length > 1 && RunSave.I(f[1]) != 0; break;
+                        case "tag": p.TagSeen[f[0]] = Math.Max(0, RunSave.I(f[1])); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); if (f.Length > 6) p.Cursor = UnDash(f[6]); break;
                         case "rlog":
@@ -370,7 +377,7 @@ namespace Arena
         /// Brings an older file's data up to FormatVersion. Add a step per version when the format changes.
         static void Migrate(Profile p)
         {
-            // 1 -> 2 only added the "end" line, 2 -> 3 the name, 3 -> 4 the perks, 4 -> 5 the hint line: nothing to convert.
+            // 1 -> 2 only added the "end" line, 2 -> 3 the name, 3 -> 4 the perks, 4 -> 5 the hint line, 5 -> 6 the tag lines: nothing to convert.
             Perks.Clean(p);  // drop a perk that isn't unlocked (a hand-edited file) or no longer fits the slots
             p.LoadedVersion = FormatVersion;
         }

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>New Enemy Banner</title>
+<style>
+:root{--bg:#07090d;--panel:#0d1218;--line:#1f2a38;--fg:#e6edf3;--muted:#8fa0b4;--cyan:#59e6ff;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:24px 16px 56px}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:32px 0 8px}
+p{margin:0 0 8px;color:#c4cfdb;max-width:72ch}.note{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{background:#141c27;color:var(--fg);border:1px solid #2a3850;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+button[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan)}
+.screen{position:relative;background:#0b1018;border:1px solid var(--line);border-radius:10px;height:300px;overflow:hidden;
+ background-image:linear-gradient(#142030 1px,transparent 1px),linear-gradient(90deg,#142030 1px,transparent 1px);background-size:40px 40px}
+.band{position:absolute;left:0;right:0;top:50px;height:150px;background:rgba(7,12,18,.94);border-block:1px solid #24465a;text-align:center;
+ -webkit-mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.band .log{position:absolute;top:8px;font:11px ui-monospace,monospace;color:#4f7f93;letter-spacing:.08em}.band .l{left:14%}.band .r{right:14%}
+.band h3{margin:30px 0 0;font-size:40px;letter-spacing:.18em;color:var(--cyan);text-shadow:0 0 16px rgba(89,230,255,.5)}
+.band .sub{font:12px ui-monospace,monospace;letter-spacing:.2em;color:#7aa5b8;margin-top:2px}
+.new{display:inline-flex;gap:10px;align-items:center;margin-top:12px;padding:4px 12px;border:1px solid;border-radius:4px;background:rgba(0,0,0,.35);font-size:13px}
+.new b{letter-spacing:.12em}.new .tag{font:700 10px ui-monospace,monospace;letter-spacing:.14em;padding:1px 5px;border-radius:3px;background:#ffd84a;color:#111}
+.new svg{flex:none}.new span.d{color:#cfd9e4}
+.chips{position:absolute;left:0;right:0;top:206px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 12px}
+.chip{display:flex;gap:10px;align-items:center;background:rgba(10,16,24,.92);border:1px solid;border-radius:8px;padding:8px 12px;max-width:340px;text-align:left}
+.chip .t{font-size:13px;line-height:1.3}.chip .t b{display:block;letter-spacing:.1em;font-size:13px}
+.side{position:absolute;right:12px;bottom:12px;display:grid;gap:8px;width:300px}
+.hide{display:none}
+</style></head><body><div class="wrap">
+<h1>New enemy note</h1>
+<p>When a wave brings an enemy type for the first time, the between-waves banner says so: its name, its job, and one line on what to do about it. Three places to put it, shown on three sample waves. The enemy glyphs are the job marker shapes, not the real enemy art. The one-line descriptions are drafts.</p>
+<div class="tabs" id="waves" role="group" aria-label="Sample wave">
+ <button data-w="0" aria-pressed="true">Wave 9: Shielder</button><button data-w="1" aria-pressed="false">Wave 18: Beam Sentry + Sapper</button><button data-w="2" aria-pressed="false">Wave 6: Charger (a short one)</button></div>
+
+<h2>A. In the band: a line under the title</h2>
+<div class="screen" id="A"></div>
+<p class="note">Reads as part of the announcement and costs no extra space. With two new enemies it gets crowded fast, so it stacks to two lines at most.</p>
+<h2>B. Chips under the band: one card per new enemy</h2>
+<div class="screen" id="B"></div>
+<p class="note">Room for the job marker, a name and a full sentence per enemy, and several fit side by side. The band stays clean. This is the clearest when a wave brings two or three.</p>
+<h2>C. Corner toast: after the band, in the corner</h2>
+<div class="screen" id="C"></div>
+<p class="note">Stays up a few seconds into the fight so it is read at your own pace, and never covers the banner. It sits near the HUD, which is already busy.</p>
+
+<h2>Rules in every version</h2>
+<p>Only for types you have not met yet (from the same profile record as the name tags, so it appears once). A wave that unlocks nothing shows nothing. Job color and shape match the marker under the enemy. Wave number comes from the type's unlock wave in the wave recipe; a path with its own enemy mix can introduce a type earlier, and that counts too.</p>
+</div>
+<script>
+const J={P:{n:'PRESSURE',c:'#ff9a3c',s:'<circle r="4.5" cx="9" cy="9"/>'},H:{n:'HUNTER',c:'#ff5a5a',s:'<path d="M3,12L9,5L15,12L9,9z"/>'},Z:{n:'ZONER',c:'#ffd84a',s:'<path fill-rule="evenodd" d="M9,3a6,6 0 1,0 .01,0zM9,6a3,3 0 1,1 -.01,0z"/>'},D:{n:'DISRUPTOR',c:'#b07cff',s:'<path d="M9,3L15,9L9,15L3,9z"/>'},A:{n:'ANCHOR',c:'#4fe0e0',s:'<path d="M4,4h10v10h-10z"/>'}};
+const E={
+ Shielder:{j:'P',d:'Fires a five-shot fan. Its shield turns slowly: go round it.'},
+ 'Beam Sentry':{j:'Z',d:'Plants, then sweeps a beam. Break line of sight.'},
+ Sapper:{j:'Z',d:'Lays tripwire pods. Shoot a pod before it arms.'},
+ Charger:{j:'H',d:'Winds up, then dashes and bursts. Sidestep the lane.'}};
+const W=[{t:'WAVE 9',s:'SHIELDS UP',n:['Shielder']},{t:'WAVE 18',s:'GET READY',n:['Beam Sentry','Sapper']},{t:'WAVE 6',s:'GET READY',n:['Charger']}];
+let cur=0;
+const ico=k=>`<svg width="18" height="18" viewBox="0 0 18 18" fill="${J[E[k].j].c}">${J[E[k].j].s}</svg>`;
+function band(w,inner){return `<div class="band"><span class="log l">LOG &gt; FIELD UPLINK</span><span class="log r">SECTOR CLEAR</span><h3>${w.t}</h3><div class="sub">${w.s}</div>${inner||''}</div>`}
+function render(){
+ const w=W[cur];
+ const lineA=w.n.map(k=>`<div class="new" style="border-color:${J[E[k].j].c}66"><span class="tag">NEW</span>${ico(k)}<b style="color:${J[E[k].j].c}">${k.toUpperCase()}</b><span class="d">${J[E[k].j].n.toLowerCase()} · ${E[k].d}</span></div>`).join('<br>');
+ document.getElementById('A').innerHTML=band(w,w.n.length>1?lineA.replace(/margin-top:12px/g,''):lineA);
+ const chips=w.n.map(k=>`<div class="chip" style="border-color:${J[E[k].j].c}88">${ico(k).replace('18','26').replace('18','26')}<div class="t"><b style="color:${J[E[k].j].c}">NEW · ${k.toUpperCase()} <span style="color:#8fa0b4;font-weight:400">${J[E[k].j].n}</span></b>${E[k].d}</div></div>`).join('');
+ document.getElementById('B').innerHTML=band(w)+`<div class="chips">${chips}</div>`;
+ const toast=w.n.map(k=>`<div class="chip" style="border-color:${J[E[k].j].c}88">${ico(k)}<div class="t"><b style="color:${J[E[k].j].c}">${k.toUpperCase()}</b>${E[k].d}</div></div>`).join('');
+ document.getElementById('C').innerHTML=band(w)+`<div class="side">${toast}</div>`;
+}
+document.getElementById('waves').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=+b.dataset.w;[...document.querySelectorAll('#waves button')].forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+render();
+</script></body></html>
