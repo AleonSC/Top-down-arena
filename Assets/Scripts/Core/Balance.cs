@@ -71,6 +71,7 @@ namespace Arena
         // --- Taking hits ---------------------------------------------------------------------------------------------
 
         const float ContactDamage = 15f;
+        const float MeleeContactGrace = 0.3f;  // a melee swing that hits something keeps contact damage off you this long (body touches only, not bullets)
         const float BossContactEvery = 1f, BossShoveTime = 0.15f, BossShoveSpeed = 700f;  // about 105 px out
 
         // --- Hit feedback (drawing only) --------------------------------------------------------------------------------

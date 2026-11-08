@@ -465,7 +465,7 @@ namespace Arena
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
+                    if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.MeleeGraceT > 0f)
                         continue;
                     if (p.ParryActive && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.BodyR + ParryReach && ParryContact(p, e, contact))
                         continue;
