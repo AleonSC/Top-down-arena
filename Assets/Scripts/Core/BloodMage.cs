@@ -19,7 +19,7 @@ namespace Arena
         const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
         public const float PactDuration = 4f;
         const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
-        const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
+        const float DrainRadius = 220f, DrainAmount = 20f;  // Exsanguinate (Exsanguinate.cs)
         const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f;
         public const float MartyrWardTime = 12f;  // also the halo's twelve beads, one a second (Game/MartyrLook.cs)
         public const float MartyrFxTime = 1.4f;  // how long a MartyrCast effect plays (beads, burst, spent ward)
@@ -757,7 +757,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Exsanguinate, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2,
-                Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you.",
+                Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: barbed blood whips hook every enemy within 220 px and yank them in to you, stunned on the way. Each drains 20 health into you as it lands. Heavy enemies and bosses stay put but are still drained.",
                 Capstone = "Also slows the enemies it drains by 50% for 2 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
             },
@@ -853,31 +853,8 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, blood, p.PactRadius, 0.5f, Sfx.Roar);
                     return true;
                 case AbilityId.Exsanguinate:
-                {
-                    float r = DrainRadius * s.DrainRadiusMult, drain = DrainAmount * s.DrainMult;
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > r + e.Radius)
-                            continue;
-                        V2 was = e.Pos;
-                        if (!Heavy(e))
-                        {
-                            V2 away = (e.Pos - p.Pos).Normalized();
-                            float d = Math.Max(e.Pos.DistanceTo(p.Pos) - DrainPull, e.Radius + p.Def.BodyR + 4f);
-                            e.Pos = ClampToArena(p.Pos + (away.IsZero ? V2.FromAngle(p.Aim) : away) * d, e.Radius);
-                        }
-                        HurtEnemy(e, drain * s.DmgMult, p.Id);
-                        Heal(p, drain, p);
-                        if (cap && !e.Def.IsBoss)
-                        {
-                            e.SlowT = Math.Max(e.SlowT, 2f);
-                            e.SlowMult = Math.Min(e.SlowMult, 0.5f);
-                        }
-                        BroadcastFx(FxKind.Drain, was, p.Pos, blood, e.Radius, 0.5f, Sfx.None);  // its blood flowing into you
-                    }
-                    BroadcastFx(FxKind.Implode, p.Pos, blood, r, 0.4f, Sfx.Shockwave);  // a ring closing in: the pull
+                    CastExsanguinate(p, cap, blood);  // Exsanguinate.cs: the whips hook, the yank lands later
                     return true;
-                }
                 case AbilityId.BloodGift:
                 {
                     Player ally = null;
@@ -974,6 +951,7 @@ namespace Arena
             TickCoatings(dt);
             TickRain(dt);  // SanguineRain.cs
             TickTithe(dt);  // VeinTithe.cs
+            TickReels(dt);  // Exsanguinate.cs
             foreach (var p in Players.Values)
             {
                 if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))

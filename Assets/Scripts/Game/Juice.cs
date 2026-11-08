@@ -347,6 +347,19 @@ namespace Arena
                 }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
+                if (fx.Kind == FxKind.Exsanguinate && fx.Pos2.X < 0f && me != null)  // Exsanguinate's Barbed Lash (ExsanguinateLook.cs)
+                {
+                    bool mine = (int)fx.Pos2.Y == game.MyId;
+                    if (fx.Pos2.X < -1.5f && mine)
+                    {
+                        Hold(0.07f);  // your yank lands: a hit-stop and a hard kick
+                        Shake(0.32f);
+                    }
+                    else if (fx.Pos2.X < -1.5f && me.Pos.DistanceTo(fx.Pos) < 900f)
+                        Shake(0.12f);
+                    else if (mine)
+                        Shake(0.1f);  // the whips crack out
+                }
                 if (fx.Kind == FxKind.DeathLotus && fx.Pos2.X < 0f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
                     Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
                 if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X < 2f && me.Pos.DistanceTo(fx.Pos) < 1100f)
