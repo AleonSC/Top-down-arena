@@ -37,6 +37,12 @@ namespace Arena
                 EndStand(p, true);
                 return;
             }
+            if (ShellRelease(p, slot))  // Blood Shell pressed again: it comes down (no cooldown spent for the press)
+            {
+                p.Run.AbilitiesUsed++;
+                EndShell(p, false);
+                return;
+            }
             if (p.StandOn && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
             if (!consumed && !Consume(p, slot, true))

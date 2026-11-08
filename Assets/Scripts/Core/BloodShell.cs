@@ -2,31 +2,33 @@ using System;
 
 namespace Arena
 {
-    /// The Hemomancer tank's Blood Shell: hold the ability and a big bubble of blood stands round you. Enemy bullets stop at
+    /// The Hemomancer tank's Blood Shell: press the ability and a big bubble of blood stands round you (press again to drop it). Enemy bullets stop at
     /// its skin and enemies can't walk in; you and your allies can stand inside. Every bullet it stops costs you health, and
-    /// every ally inside gets a little back. It stands until you let go or your health falls to a third, when it bursts.
-    /// Player.ShellOn is replicated (the shell's wear is just your health), and the hold itself goes to the host in the
-    /// input message. Drawn in Game/BloodShellLook.cs (look B "Heartbeat" of Docs/Mockups/blood-shell.html).
+    /// every ally inside gets a little back. It also bleeds you slowly the whole time it stands, and it
+    /// stands until you press again or your health falls to a third, when it bursts.
+    /// Player.ShellOn is replicated (the shell's wear is just your health); the cancel press goes to the host like any cast. Drawn in Game/BloodShellLook.cs (look B "Heartbeat" of Docs/Mockups/blood-shell.html).
     public partial class Game
     {
         public const float ShellRadius = 96f;
         public const float ShellPopFrac = 1f / 3f;   // it bursts when your health falls to this share of your max
         const float ShellCost = 7f, ShellHeal = 4f;  // health you pay / each ally inside gets, per bullet it stops
-        const float ShellMinUp = 0.25f;              // a tap still raises it this long
+        const float ShellDrain = 1.5f;               // health a second it bleeds you just for standing (bullets cost far more)
         const float ShellPopShove = 150f;            // enemies near a burst are flung this far out
 
-        /// Host: the Blood Shell was cast. (The hold arrives with the input message.)
+        /// Pressing Blood Shell again while it stands takes it down (no cooldown is spent for the press itself).
+        public bool ShellRelease(Player p, int slot) => p.ShellOn && p.Slots[slot].Id == AbilityId.BloodShell;
+
+        /// Host: the Blood Shell was cast.
         void RaiseShell(Player p, float power, bool mastered)
         {
             p.ShellOn = true;
-            p.ShellHold = true;
             p.ShellT = 0f;
             p.ShellPower = power;
             p.ShellMastered = mastered;
             KeepOutOfShell(0f);  // enemies already inside are put out at the skin
         }
 
-        /// Host, every tick: it comes down when released, at a third health, or when you go down.
+        /// Host, every tick: it bleeds you, and comes down at a third health, or when you go down.
         void TickBloodShell(Player p, float dt)
         {
             if (!p.ShellOn)
@@ -36,15 +38,18 @@ namespace Arena
                 EndShell(p, false);
             else if (p.Hp <= p.MaxHp * ShellPopFrac + 0.01f)
                 EndShell(p, true);
-            else if (!p.ShellHold && p.ShellT > ShellMinUp)
-                EndShell(p, false);
+            else
+            {
+                PayHealth(p, ShellDrain * dt);
+                if (p.Hp <= p.MaxHp * ShellPopFrac + 0.01f)
+                    EndShell(p, true);
+            }
         }
 
-        /// The shell comes down (burst: your health ran out to a third; otherwise you let go). Its cooldown starts now.
+        /// The shell comes down (burst: your health ran out to a third; otherwise you pressed again). Its cooldown starts now.
         void EndShell(Player p, bool burst)
         {
             p.ShellOn = false;
-            p.ShellHold = false;
             for (int i = 0; i < p.Slots.Length; i++)
                 if (p.Slots[i].Id == AbilityId.BloodShell && p.Slots[i].Charges <= 0)
                     p.Slots[i].Timer = Cooldown(p, i);
