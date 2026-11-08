@@ -1,0 +1,303 @@
+<title>Rapier Streak Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one stage (a run of thrusts building the streak, a kill, a new target) with look chips and toggles, four single-idea panels, notes.
+   Same page tokens as the other Knight weapon mockups; the canvas colours are the Rapier's own lilac on a night-blue arena. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#7a5cc7;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#c9b6ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#c9b6ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:1000/420}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/260}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+</style>
+
+<main>
+<header>
+  <h1>Rapier: every hit counts</h1>
+  <p>The Rapier is fast and narrow: a thrust every 0.28 s, 130 px long, 18 damage, always at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more, up to +60% at six, and every enemy bullet the blade skewers on its line adds a stack too. Today that is a thin line and a flat flash, so you cannot see the streak you are building.</p>
+  <p>These three looks keep the numbers and make the streak visible: you see the thrust (a hand and arm that actually reach, a blade that flexes at full extension), and you see how many stacks you have without looking at a HUD. Switch the bullets and the second target on and off to see what each does.</p>
+</header>
+
+<section>
+  <h2>The streak</h2>
+  <div class="bar"><div class="chips" role="group" aria-label="Look" id="looks"></div></div>
+  <div class="bar">
+    <label class="tg"><input type="checkbox" id="tgBullets" checked> Enemy bullets</label>
+    <label class="tg"><input type="checkbox" id="tgUp"> Skewers a second enemy (+1 upgrade)</label>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <button id="pause" type="button">Pause</button>
+  </div>
+  <div class="frame"><canvas id="stage" width="1000" height="420" aria-label="Rapier thrusts building a streak on a loop"></canvas></div>
+  <p class="sub" id="stageNote" style="margin:8px 0 0"></p>
+</section>
+
+<section>
+  <h2>Each idea</h2>
+  <div class="grid4" id="moves"></div>
+</section>
+
+<section class="card">
+  <h3>Look notes</h3>
+  <ul id="notes"></ul>
+</section>
+
+<section class="card">
+  <h3>Found while building this</h3>
+  <ul>
+    <li>With the +1 upgrade on, a thrust that hits two enemies runs the streak check once for each. The second enemy is not the one the first was, so the streak resets to zero on every thrust and never builds. This mockup shows the intended behaviour (the streak follows the front enemy). It is a separate fix in <code>Knight.cs</code>, not part of the looks.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var eo=function(t){return 1-Math.pow(1-clamp(t,0,1),3)},ei=function(t){t=clamp(t,0,1);return t*t};
+var rnd=function(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+var $=function(i){return document.getElementById(i)};
+var reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* the game's numbers */
+var REACH=130,PERIOD=.28,BASE=18,T0=.4,HIT_U=.45,BODY=14;
+
+var LOOKS={
+ needle:{name:'Needle',col:'204,184,255',hot:'255,255,255',gold:'255,214,130',ground:'#10141c',note:[
+  'Fencing. The thrust leaves a thin tapered streak from the hand to the point, with a star glint where it lands and a small pierce ring on the enemy. Nothing else on screen.',
+  'The streak is six small diamonds on an arc behind you: they fill one by one, and at six they turn gold, the blade point glows gold and a faint halo holds round you until the streak breaks.',
+  'A skewered bullet is stuck on the blade for a moment, spins on it, then pops into four sparks and fills a diamond. The most elegant and the quietest of the three.']},
+ quick:{name:'Quicksilver',col:'190,225,255',hot:'255,255,255',gold:'255,214,130',ground:'#0e131b',note:[
+  'The streak is drawn as the blade itself. Every thrust leaves afterimages of the blade fanned slightly apart, one per stack, so at six you are looking at a fan of six silver blades and speed lines behind them.',
+  'No pips, no numbers: the fan is the counter. When the streak breaks the fan collapses back to one blade. At six the hit also gets a short hit-pause.',
+  'A skewered bullet is sliced in two on the blade and the halves fly off to either side. The most readable at a glance, and the loudest when the streak is high.']},
+ cadence:{name:'Cadence',col:'255,140,150',hot:'255,245,235',gold:'255,214,130',ground:'#14131a',note:[
+  'The streak lives on the target. A bracket closes round the enemy you are working on and six notches on it fill, one per stack. At six the bracket locks gold and turns slowly.',
+  'Each thrust sends a ring out from the enemy, and the damage number grows and warms with the stack: white at 18, gold at full. Switch target and the bracket lets go, and a new one starts empty.',
+  'A skewered bullet bursts into red sparks that fly to the target\'s bracket and fill a notch. It makes the link between skewering and the streak obvious.']}
+};
+var look='needle';
+
+/* ---------- the run: who is hit when, how hard, and the streak after each thrust ---------- */
+var AX=95,AY=-6;
+function enemiesFor(P){var l=[{id:'A',x:95,y:-6,hp:P.hpA||150},{id:'B',x:84,y:50,hp:P.hpB||100}];if(P.upgrade)l.push({id:'C',x:126,y:-8,hp:P.hpC||95});return l}
+function sim(P){
+  var en=enemiesFor(P),streak=0,target=null,ev=[],plan=P.plan||{1:1,3:2,8:1},prevAim=Math.atan2(AY,AX),maxK=P.thrusts||14;
+  for(var k=0;k<maxK;k++){
+    var alive=en.filter(function(e){return e.hp>0});if(!alive.length)break;
+    alive.sort(function(a,b){return Math.hypot(a.x,a.y)-Math.hypot(b.x,b.y)});
+    var prim=alive[0],aim=Math.atan2(prim.y,prim.x),ts=T0+PERIOD*k,th=ts+PERIOD*HIT_U,hits=[];
+    var inCone=alive.filter(function(e){var d=Math.hypot(e.x,e.y),an=Math.atan2(e.y,e.x);return d<=REACH&&Math.abs(an-aim)<=.32});
+    var targets=[prim];if(P.upgrade)inCone.forEach(function(e){if(e!==prim&&targets.length<2)targets.push(e)});
+    streak=(prim.id===target)?Math.min(6,streak+1):0;target=prim.id;
+    var before=streak;
+    targets.forEach(function(e,i){var d=BASE*(1+.1*streak);e.hp-=d;hits.push({id:e.id,dmg:d,kill:e.hp<=0,x:e.x,y:e.y})});
+    var nb=P.bullets?(plan[k]||0):0,after=Math.min(6,streak+nb);
+    ev.push({k:k,ts:ts,th:th,aim:aim,prevAim:prevAim,hits:hits,prim:prim.id,streak:streak,streakAfter:after,skew:nb,newTarget:before===0&&k>0&&ev.length&&ev[ev.length-1].prim!==prim.id});
+    streak=after;prevAim=aim}
+  var last=ev.length?ev[ev.length-1].th:1;
+  return {ev:ev,loop:last+1.3,en:enemiesFor(P)}}
+function warp(t,stops){var te=t,acc=0;for(var i=0;i<stops.length;i++){var ws=stops[i].t+acc;if(t>ws)te-=Math.min(t-ws,stops[i].d);acc+=stops[i].d}return te}
+
+/* ---------- the figure ---------- */
+function extAt(te,ev){ /* 0..1 how far the blade is out, and the pulse of the thrust itself */
+  var best=null;for(var i=0;i<ev.length;i++){if(te>=ev[i].ts-.02)best=ev[i]}
+  if(!best)return{x:.55,pulse:0,u:-1,e:null};
+  var u=(te-best.ts)/PERIOD,x;
+  if(u<0)x=.55;else if(u<.35)x=lerp(.55,.18,eo(u/.35));else if(u<.5)x=lerp(.18,1,eo((u-.35)/.15));else if(u<.7)x=1;else if(u<1)x=lerp(1,.55,eo((u-.7)/.3));else x=.55;
+  var pulse=u>=.35&&u<.62?Math.sin((u-.35)/.27*Math.PI):0;
+  return{x:x,pulse:pulse,u:u,e:best}}
+function aimAt(te,ev){if(!ev.length)return Math.atan2(AY,AX);var cur=ev[0];for(var i=0;i<ev.length;i++){if(te>=ev[i].ts-.12)cur=ev[i]}
+  return lerp(cur.prevAim,cur.aim,eo((te-(cur.ts-.12))/.1))}
+function figure(x,LK,te,sm,P){
+  var E=extAt(te,sm.ev),ang=aimAt(te,sm.ev),streak=E.e?(E.u>=.5?E.e.streakAfter:E.e.streak):0,col=LOOKS[LK].col,gold=streak>=6;
+  x.save();x.rotate(ang);
+  var lunge=7*(E.x>.55?(E.x-.55)/.45:0)-3*(E.x<.55?(.55-E.x)/.37:0);x.translate(lunge,0);
+  /* off hand behind the back */
+  x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.4;x.beginPath();x.arc(-11,9,4.6,0,TAU);x.fill();x.stroke();
+  x.strokeStyle='#4aa89d';x.lineWidth=4;x.lineCap='round';x.beginPath();x.moveTo(0,5);x.lineTo(-9,9);x.stroke();
+  /* body */
+  x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,16,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(16,0);x.lineTo(7,-6);x.lineTo(7,6);x.closePath();x.fill();
+  /* sword arm and hand, reaching with the thrust */
+  var hx=12+12*E.x;
+  x.strokeStyle='#0c2f2b';x.lineWidth=7.2;x.beginPath();x.moveTo(2,-5);x.lineTo(hx,-1);x.stroke();
+  x.strokeStyle='#4aa89d';x.lineWidth=5;x.beginPath();x.moveTo(2,-5);x.lineTo(hx,-1);x.stroke();
+  /* the blade: thin, flexing at the end of the thrust */
+  var tip=hx+8+(REACH*.98-hx-8)*Math.max(0,(E.x-.2)/.8)+ (E.x<.2?0:0),bl=tip,flex=5*E.pulse;
+  var gcol=gold?'rgba(255,214,130,1)':'rgba('+col+',1)';
+  x.save();if(gold||streak>=3||E.pulse>.3){x.shadowColor=gold?'rgba(255,214,130,.9)':'rgba('+col+',.8)';x.shadowBlur=6+streak*2}
+  x.strokeStyle='#f2f5ff';x.lineWidth=2.5;x.lineCap='round';x.beginPath();x.moveTo(hx+8,-1);x.quadraticCurveTo((hx+8+bl)/2,-1-flex,bl,-1);x.stroke();
+  x.shadowBlur=0;x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=.9;x.beginPath();x.moveTo(hx+9,-1.8);x.quadraticCurveTo((hx+8+bl)/2,-1.8-flex,bl,-1);x.stroke();x.restore();
+  /* swept hilt and glove */
+  x.strokeStyle='#d9bf7a';x.lineWidth=3;x.beginPath();x.arc(hx+4,-1,7,-1.7,1.7);x.stroke();
+  x.strokeStyle='#d9bf7a';x.lineWidth=2;x.beginPath();x.moveTo(hx+5,-8);x.lineTo(hx+5,6);x.stroke();
+  x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.5;x.beginPath();x.arc(hx,-1,5.2,0,TAU);x.fill();x.stroke();
+  if(gold&&LK==='needle'){x.save();x.globalCompositeOperation='lighter';var g=x.createRadialGradient(bl,-1,0,bl,-1,16);g.addColorStop(0,'rgba(255,214,130,.9)');g.addColorStop(1,'rgba(255,214,130,0)');x.fillStyle=g;x.beginPath();x.arc(bl,-1,16,0,TAU);x.fill();x.restore()}
+  x.restore();
+  return{ang:ang,E:E,tipDist:lunge+bl,streak:streak}}
+
+function foe(x,fx,fy,flash,al,face){x.save();x.globalAlpha=al;x.translate(fx,fy);x.rotate(face);x.fillStyle=flash>0?'#fff':'#d8503f';x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,BODY,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(BODY,0);x.lineTo(7,-5);x.lineTo(7,5);x.closePath();x.fill();x.restore()}
+function glowDisc(x,cx,cy,r,col,a){var g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,TAU);x.fill()}
+function spark(x,px,py,ba,spread,n,q,seed,cols,speed,len){if(q<0||q>1)return;x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+  for(var i=0;i<n;i++){var a=ba+(rnd(seed+i*3.3)-.5)*spread,d=speed*(.45+rnd(seed+i*7.1))*eo(q*.9),tl=len*(1-q)*(.6+rnd(seed+i)*.8),ex=px+Math.cos(a)*d,ey=py+Math.sin(a)*d;
+    x.strokeStyle='rgba('+cols[i%cols.length]+','+((1-q)*.95)+')';x.lineWidth=1.5*(1-q*.6);x.beginPath();x.moveTo(ex-Math.cos(a)*tl,ey-Math.sin(a)*tl);x.lineTo(ex,ey);x.stroke()}x.restore()}
+
+/* ---------- the scene ---------- */
+function drawScene(x,W,H,S,P,tRaw,LK){
+  var sm=P.__sim||(P.__sim=sim(P)),ev=sm.ev,tt=tRaw%sm.loop,stops=[];
+  ev.forEach(function(e){if(e.streak===6&&(e.k===0||ev[e.k-1].streakAfter<6||ev[e.k-1].prim!==e.prim))stops.push({t:e.th,d:.04})});
+  var te=warp(tt,stops),col=LOOKS[LK].col,gold=LOOKS[LK].gold;
+  x.fillStyle=LOOKS[LK].ground;x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(255,255,255,.04)';x.lineWidth=1;x.beginPath();for(var gi=0;gi<=W;gi+=40){x.moveTo(gi+.5,0);x.lineTo(gi+.5,H)}for(var gj=0;gj<=H;gj+=40){x.moveTo(0,gj+.5);x.lineTo(W,gj+.5)}x.stroke();
+  var vg=x.createRadialGradient(W*.3,H*.5,20,W*.5,H*.5,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.42)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  var shake=0;ev.forEach(function(e){var q=(te-e.th)/.14;if(q>0&&q<1)shake+=(1-q)*(.4+.35*e.streak)});
+  var ox=P.ox!=null?P.ox:W*.17,oy=H*.5;
+  x.save();x.translate(ox+(reduced?0:Math.sin(tt*93)*shake),oy+(reduced?0:Math.cos(tt*81)*shake));x.scale(S,S);
+  /* enemies */
+  var en=sm.en,state={};
+  en.forEach(function(e){var hp=e.hp0==null?(e.hp0=P.hpOf?P.hpOf(e):null):e.hp0;state[e.id]={dead:-1,hits:[]}});
+  ev.forEach(function(e){e.hits.forEach(function(h){state[h.id].hits.push({t:e.th,dmg:h.dmg,streak:e.streak,ev:e});if(h.kill)state[h.id].dead=e.th})});
+  var curTarget=null;ev.forEach(function(e){if(te>=e.ts-.15)curTarget=e});
+  var aimNow=aimAt(te,ev);
+  /* the target mark (Cadence) */
+  en.forEach(function(e){
+    var st=state[e.id],fx=e.x,fy=e.y,flash=0,alive=true,al=1,face=Math.atan2(-e.y,-e.x);
+    st.hits.forEach(function(h){var q=te-h.t;if(q>0&&q<.4){var d=Math.hypot(e.x,e.y),k=2.4*Math.exp(-q*14)+(h.streak>=6?1.5:0)*Math.exp(-q*10);fx+=e.x/d*k;fy+=e.y/d*k;if(q<.07)flash=1}});
+    if(st.dead>=0&&te>=st.dead){var qd=te-st.dead;if(qd>.6)alive=false;else{
+      var off=eo(qd/.4)*20,a2=1-clamp((qd-.15)/.45,0,1),an=Math.atan2(e.y,e.x)+Math.PI/2;
+      [1,-1].forEach(function(sg){x.save();x.globalAlpha=a2;x.translate(fx+Math.cos(an)*off*sg*.6,fy+Math.sin(an)*off*sg*.6);x.fillStyle=qd<.05?'#fff':'#d8503f';x.strokeStyle='rgba('+col+',.9)';x.lineWidth=2;
+        x.beginPath();x.arc(0,0,BODY,an+(sg>0?0:Math.PI),an+(sg>0?Math.PI:TAU));x.closePath();x.fill();x.stroke();x.restore()});alive=false}}
+    if(alive){foe(x,fx,fy,flash,al,face);
+      /* its remaining health */
+      var dmg=0;st.hits.forEach(function(h){if(te>=h.t)dmg+=h.dmg});var maxhp=(e.id==='A'?(P.hpA||150):e.id==='B'?(P.hpB||100):(P.hpC||95)),f=clamp(1-dmg/maxhp,0,1);
+      x.fillStyle='rgba(0,0,0,.55)';x.fillRect(fx-14,fy-24,28,4);x.fillStyle=f>.3?'#7ddc8a':'#ffb25c';x.fillRect(fx-14,fy-24,28*f,4);
+      if(LK==='cadence'&&curTarget&&curTarget.prim===e.id){var sk=te>=curTarget.th?curTarget.streakAfter:curTarget.streak,gl=sk>=6;
+        var sm2=te>curTarget.th+.35?sk:sk;x.save();x.translate(fx,fy);x.rotate(gl?te*.8:0);var rr=20+(gl?3:0);
+        for(var b=0;b<4;b++){x.save();x.rotate(b*Math.PI/2);x.strokeStyle=gl?'rgba(255,214,130,.95)':'rgba('+col+',.8)';x.lineWidth=2;x.beginPath();x.moveTo(-rr,-rr+7);x.lineTo(-rr,-rr);x.lineTo(-rr+7,-rr);x.stroke();x.restore()}
+        for(var n=0;n<6;n++){var na=-Math.PI/2+n*TAU/6;x.fillStyle=n<sk?(gl?'rgba(255,214,130,1)':'rgba('+col+',1)'):'rgba(255,255,255,.18)';x.beginPath();x.arc(Math.cos(na)*(rr+8),Math.sin(na)*(rr+8),2.4,0,TAU);x.fill()}
+        x.restore()}}
+    /* damage numbers */
+    st.hits.forEach(function(h){var q=te-h.t;if(q<0||q>.75)return;var ge=h.streak>=6;x.save();x.globalAlpha=1-clamp((q-.4)/.35,0,1);
+      x.fillStyle=LK==='cadence'?(ge?'#ffd682':h.streak>=3?'#ffd2c4':'#fff'):'#fff';x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;
+      x.font='700 '+(LK==='cadence'?12+h.streak*1.6:14)+'px Barlow Condensed, sans-serif';x.textAlign='center';var ny=e.y-30-q*30;var s=String(Math.round(h.dmg));var jx=((h.ev.k%3)-1)*13;x.strokeText(s,e.x+jx,ny);x.fillText(s,e.x+jx,ny);x.restore()});
+  });
+  /* bullets skewered along the line */
+  ev.forEach(function(e){
+    if(!e.skew)return;
+    for(var b=0;b<e.skew;b++){var dc=48+b*20,dirx=Math.cos(e.aim),diry=Math.sin(e.aim),thb=e.th+b*.012,v=330,d=dc+v*(thb-te);
+      if(te<thb){if(d>0&&d<260){x.save();x.shadowColor='rgba(255,170,90,.9)';x.shadowBlur=8;x.fillStyle='#ffb25c';x.beginPath();x.arc(dirx*d,diry*d,4.4,0,TAU);x.fill();x.restore();
+        x.strokeStyle='rgba(255,170,90,.35)';x.lineWidth=3;x.beginPath();x.moveTo(dirx*d,diry*d);x.lineTo(dirx*(d+22),diry*(d+22));x.stroke()}}
+      else{var q=(te-thb)/.35;if(q<1){var px=dirx*dc,py=diry*dc;
+        if(LK==='needle'){ /* stuck on the blade, spinning, then four sparks */
+          if(q<.4){x.save();x.translate(px,py);x.rotate(q*14);x.fillStyle='#ffb25c';x.fillRect(-4,-1.6,8,3.2);x.fillRect(-1.6,-4,3.2,8);x.restore()}
+          spark(x,px,py,0,TAU,4,clamp((q-.35)/.65,0,1),e.k*7+b,[col,'255,255,255'],26,8)}
+        else if(LK==='quick'){var o2=eo(q)*18,nx=-diry,ny2=dirx;x.save();x.globalAlpha=1-q;x.fillStyle='#ffb25c';
+          [1,-1].forEach(function(sg){x.beginPath();x.arc(px+nx*o2*sg,py+ny2*o2*sg,4.4,sg>0?Math.atan2(ny2,nx)-Math.PI/2:Math.atan2(ny2,nx)+Math.PI/2,sg>0?Math.atan2(ny2,nx)+Math.PI/2:Math.atan2(ny2,nx)+Math.PI*1.5);x.closePath();x.fill()});x.restore();
+          spark(x,px,py,0,TAU,6,q,e.k*5+b,['190,225,255','255,255,255'],30,9)}
+        else{spark(x,px,py,0,TAU,8,q,e.k*3+b,['255,120,130','255,230,200'],34,9);
+          x.save();x.globalCompositeOperation='lighter';var tg=sm.en.filter(function(z){return z.id===e.prim})[0];var f2=eo(q);x.fillStyle='rgba(255,120,130,'+(1-q)+')';x.beginPath();x.arc(lerp(px,tg.x,f2),lerp(py,tg.y,f2),3,0,TAU);x.fill();x.restore()}}}}
+  });
+  /* the thrust itself: trail, ghosts, pierce */
+  ev.forEach(function(e){
+    var q=(te-e.th)/.16,qs=(te-e.ts)/PERIOD;if(qs<.3||q>1)return;
+    var dirx=Math.cos(e.aim),diry=Math.sin(e.aim),hit=e.hits[0],str=e.streak;
+    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+    var tipD=Math.min(REACH,Math.hypot(hit?hit.x:100,hit?hit.y:0)+10),fade=1-clamp(q,0,1)*(q>0?1:0);
+    if(LK==='needle'){var g=x.createLinearGradient(14*dirx,14*diry,tipD*dirx,tipD*diry);g.addColorStop(0,'rgba('+col+',0)');g.addColorStop(1,'rgba(255,255,255,'+fade+')');x.strokeStyle=g;x.lineWidth=3+str*.4;x.beginPath();x.moveTo(14*dirx,14*diry);x.lineTo(tipD*dirx,tipD*diry);x.stroke()}
+    else if(LK==='quick'){for(var gI=0;gI<=str;gI++){var off=(gI-str/2)*.045;x.strokeStyle='rgba('+col+','+(fade*(gI===str?.9:.35))+')';x.lineWidth=gI===str?2:1.4;x.beginPath();x.moveTo(Math.cos(e.aim+off)*18,Math.sin(e.aim+off)*18);x.lineTo(Math.cos(e.aim+off)*tipD,Math.sin(e.aim+off)*tipD);x.stroke()}
+      for(var sl=0;sl<4+str;sl++){var yo=(rnd(sl+e.k)-.5)*26,ls=-20-30*rnd(sl+3),len=30+50*rnd(sl+5);x.strokeStyle='rgba(220,236,255,'+(.3*fade)+')';x.lineWidth=1;x.beginPath();
+        x.moveTo(ls*dirx-len*dirx-yo*diry,ls*diry-len*diry+yo*dirx);x.lineTo(ls*dirx-yo*diry,ls*diry+yo*dirx);x.stroke()}}
+    else{x.strokeStyle='rgba(255,'+Math.round(lerp(140,214,str/6))+','+Math.round(lerp(150,130,str/6))+','+fade*.9+')';x.lineWidth=2+str*.3;x.beginPath();x.moveTo(16*dirx,16*diry);x.lineTo(tipD*dirx,tipD*diry);x.stroke();
+      x.strokeStyle='rgba(255,255,255,'+fade+')';x.lineWidth=1;x.beginPath();x.moveTo(16*dirx,16*diry);x.lineTo(tipD*dirx,tipD*diry);x.stroke()}
+    x.restore();
+    /* where it landed */
+    e.hits.forEach(function(h){var px=h.x,py=h.y,qq=(te-e.th)/.3;if(qq<0||qq>1)return;x.save();x.globalCompositeOperation='lighter';
+      if(LK==='needle'){x.strokeStyle='rgba(255,255,255,'+(1-qq)+')';x.lineWidth=1.5;var sz=6+14*eo(qq);x.beginPath();x.moveTo(px-sz,py);x.lineTo(px+sz,py);x.moveTo(px,py-sz);x.lineTo(px,py+sz);x.stroke();
+        x.strokeStyle='rgba('+col+','+(.8*(1-qq))+')';x.beginPath();x.arc(px,py,6+10*eo(qq),0,TAU);x.stroke()}
+      else if(LK==='quick'){spark(x,px,py,e.aim,1.2,8,qq,e.k*11+3,['255,255,255','190,225,255'],46,12)}
+      else{x.strokeStyle='rgba(255,'+Math.round(lerp(140,214,h.streak/6))+',150,'+(.85*(1-qq))+')';x.lineWidth=2.4;x.beginPath();x.arc(px,py,8+22*eo(qq),0,TAU);x.stroke()}
+      x.restore()});
+  });
+  /* you */
+  var F=figure(x,LK,te,sm,P);
+  /* the streak, as this look shows it */
+  var streak=F.streak,gold2=streak>=6;
+  if(LK==='needle'){
+    for(var d=0;d<6;d++){var da=F.ang+Math.PI+(d-2.5)*.34,px2=Math.cos(da)*30,py2=Math.sin(da)*30,on=d<streak;x.save();x.translate(px2,py2);x.rotate(Math.PI/4);
+      x.fillStyle=on?(gold2?'rgba(255,214,130,1)':'rgba('+col+',1)'):'rgba(255,255,255,.14)';x.fillRect(-3,-3,6,6);x.restore()}
+    if(gold2){x.save();x.globalCompositeOperation='lighter';x.strokeStyle='rgba(255,214,130,'+(.25+.1*Math.sin(te*9))+')';x.lineWidth=3;x.beginPath();x.arc(0,0,26,0,TAU);x.stroke();x.restore()}}
+  x.restore();
+  stops.forEach(function(st){var q=(tt-st.t)/.06;if(q>0&&q<1){x.fillStyle='rgba(255,255,255,'+.1*(1-q)+')';x.fillRect(0,0,W,H)}})
+}
+
+/* ---------- canvases ---------- */
+function setup(c,w,h){c.__w=w;c.__h=h;var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+var stage=$('stage'),sx=setup(stage,1000,420);
+var PANELS=[
+ {title:'One thrust',sub:'0.28 s · 130 px · 18',text:'The hand and arm really reach. The blade draws back, drives out and flexes at the end, then settles. Your off hand stays behind your back.',P:{thrusts:1,hpA:999,bullets:false,ox:55}},
+ {title:'Building the streak',sub:'+10% a hit · up to +60%',text:'Seven thrusts on one enemy: 18, 20, 22, 23, 25, 27 and 29. This is where the three looks differ the most.',P:{thrusts:7,hpA:999,bullets:false,ox:55}},
+ {title:'Skewering bullets',sub:'up to 3 a thrust · +1 stack each',text:'Bullets on the blade\'s line are skewered, never red aimed shots. Each adds a stack, so the streak climbs faster under fire.',P:{thrusts:4,hpA:999,bullets:true,plan:{0:1,1:2,2:1},ox:55}},
+ {title:'A second enemy',sub:'+1 upgrade',text:'The upgrade skewers one more enemy behind the first, on the same thrust and for the same damage.',P:{thrusts:3,hpA:999,hpC:999,bullets:false,upgrade:true,ox:55}}
+];
+var moves=$('moves');
+PANELS.forEach(function(p){var cell=document.createElement('div');cell.className='cell';
+  cell.innerHTML='<h3>'+p.title+' <small>'+p.sub+'</small></h3><div class="frame"><canvas aria-label="'+p.title+'"></canvas></div><p>'+p.text+'</p>';moves.appendChild(cell);
+  p.c=cell.querySelector('canvas');p.x=setup(p.c,340,260)});
+
+/* ---------- controls ---------- */
+var looksEl=$('looks');
+Object.keys(LOOKS).forEach(function(k){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=LOOKS[k].name;b.dataset.k=k;b.setAttribute('aria-pressed',String(k===look));
+  b.addEventListener('click',function(){look=k;[].forEach.call(looksEl.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.k===k))});notes()});looksEl.appendChild(b)});
+function notes(){$('notes').innerHTML=LOOKS[look].note.map(function(t){return '<li>'+t+'</li>'}).join('');
+  $('stageNote').textContent=LOOKS[look].name+': seven or so thrusts on the first enemy, the kill, then a fresh streak on the next. With the upgrade on, the streak follows the front enemy (the intended behaviour: see the last card).'}
+notes();
+var paused=false,slow=false,clock=0,last=performance.now(),stageP={bullets:true,upgrade:false},lastKey='';
+$('pause').addEventListener('click',function(){paused=!paused;this.textContent=paused?'Play':'Pause'});
+$('tgSlow').addEventListener('change',function(){slow=this.checked});
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)clock+=dt*(slow?.3:1);
+  var key=$('tgBullets').checked+'|'+$('tgUp').checked;if(key!==lastKey){lastKey=key;stageP={bullets:$('tgBullets').checked,upgrade:$('tgUp').checked,thrusts:14}}
+  drawScene(sx,1000,420,1.5,stageP,clock,look);
+  PANELS.forEach(function(p){drawScene(p.x,340,260,1.1,p.P,clock,look)});
+  requestAnimationFrame(frame)}
+try{var qs=new URLSearchParams(location.search);
+  if(qs.get('look')&&LOOKS[qs.get('look')]){look=qs.get('look');[].forEach.call(looksEl.children,function(c){c.setAttribute('aria-pressed',String(c.dataset.k===look))});notes()}
+  if(qs.get('t')!=null){clock=parseFloat(qs.get('t'));paused=true;$('pause').textContent='Play'}}catch(e){}
+if(reduced&&!paused){clock=1.2;paused=true;$('pause').textContent='Play'}
+requestAnimationFrame(frame);
+})();
+</script>
