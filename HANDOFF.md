@@ -367,7 +367,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
     `warden`, `singularity`, `mastery`, `classcards`, `showcase`, `ults`, `mods`, `hitfx` (hit flash and blast thinning), ... Reports (numbers, no pass/fail):
-    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
+    `ttk`, `lab`, `levels`, `bulletcount`, `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to
     the `Suites` table (and to `FeatureTests` if it belongs in the feature suite).

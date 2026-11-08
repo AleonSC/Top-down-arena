@@ -54,7 +54,7 @@ hold fire (the turn system already knows how). You get a window to push, pick up
 readable because it starts from a thin screen. A faint cue in the HUD or music on the swell would help. Touches:
 `EnemyAI.cs` `RegularShotBudget`, a test in `budget`.
 
-**C. Bring melee back late.**
+**C. Bring melee back late.** *(Superseded by [`EnemyRoles.md`](EnemyRoles.md): the owner sees it as enemy design, and that page plans the whole late roster by job.)*
 Instead of melee fading to 0% at wave 13, keep a floor of about 20-25%, drawn from the *late* melee (Buzzsaw, Spike Block,
 Lunger, Reaver, Juggernaut) and as squads (a shooter line with a rush squad in front). Moving to deal with a charge is
 a different decision from weaving. Touches: `MeleeShare`, `BuildWave`.
