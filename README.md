@@ -405,6 +405,8 @@ A Phantom shows a ring where it is about to blink (half a second before it does,
 
 **New enemy chips.** Between waves, under the results box, a small card for each enemy the next wave brings that you haven't met yet: its name, its job and one line on what to do about it (at most three; none before boss waves).
 
+**Enemy names on hover** (Settings → Gameplay, off by default): point at any enemy to see its name, and its job for the regular ones.
+
 **Name tags.** The first three times you see each kind of enemy it carries its name and job for a couple of seconds. Your profile remembers which ones, so you are only taught once.
 
 A Charger shows a ring where its dash will end, which is also where its ring of shots will burst.

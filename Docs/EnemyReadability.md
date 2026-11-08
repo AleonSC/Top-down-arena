@@ -52,6 +52,10 @@ unlock waves); a type counts as met once it has carried its name tag (`Profile.T
 the Practice Range. Code: `Game/NewEnemyChips.cs`. Test: `newenemies`. Preview: `WAVECLEARED=1 WCWAVE=17 Tools/Preview/shot.sh chips hud 18 5 1`.
 The one-line notes are drafts for the owner to reword. Section 4 is done.
 
+Hover names: Settings > Gameplay > "Enemy names on hover" (`hover_names` in PlayerPrefs, off by default) shows the name, and the job for the
+regular enemies, of the enemy under the cursor (`DrawHoverName` in `EnemyTagLook.cs`). It stays out of the way of a teaching tag the enemy
+already carries.
+
 ## Order and cost
 1 then 3 (small, mostly code), then 2 (art audit), then 4 (profile data + UI). Only 4 touches the profile; none change
 the snapshot format unless the job marker is sent rather than derived (derive it: `JobOf` is deterministic).

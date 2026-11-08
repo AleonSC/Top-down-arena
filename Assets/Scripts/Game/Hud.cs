@@ -73,6 +73,7 @@ namespace Arena
             }
 
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
+            DrawHoverName();  // the name of the enemy under the cursor, if Settings has it on (EnemyTagLook.cs)
 
             HudGroup(2, new Vector2(150f, 30f), HudMyCard, DrawPlayerCorner);
             if (me != null)
