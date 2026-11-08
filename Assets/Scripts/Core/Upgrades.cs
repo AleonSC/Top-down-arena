@@ -78,7 +78,7 @@ namespace Arena
         public int FanExtraKunai;
         // Blood Mage abilities
         public float ShellBonus, PactMult = 1f, PactRadiusMult = 1f, DrainMult = 1f, DrainRadiusMult = 1f;
-        public float GiftMult = 1f, SiphonRadiusMult = 1f, SiphonBonusTime, MartyrBonus, MartyrInvuln;
+        public float GiftMult = 1f, FreezeBonusTime, MartyrBonus, MartyrInvuln;
         public float BoilMult = 1f, BoilRadiusMult = 1f, RushBonusTime, RushRate;
         public int NovaExtraBolts;
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
@@ -293,8 +293,8 @@ namespace Arena
                 Apply = s => { s.DrainRadiusMult += 0.3f; s.DrainMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodGift, MaxStacks = 2, Name = "Lifeblood", Desc = "Blood Gift gives 50% more",
                 Apply = s => s.GiftMult += 0.5f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiphonField, MaxStacks = 2, Name = "Hungry Earth", Desc = "Siphon Field is 40% bigger and lasts 3 s longer",
-                Apply = s => { s.SiphonRadiusMult += 0.4f; s.SiphonBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiphonField, MaxStacks = 2, Name = "Hungry Earth", Desc = "Blood Freeze holds everything 1.5 s longer",
+                Apply = s => { s.FreezeBonusTime += 1.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Martyr, MaxStacks = 2, Name = "Saint's Blood", Desc = "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
                 Apply = s => { s.MartyrBonus += 0.25f; s.MartyrInvuln += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "Boiling Point", Desc = "Blood Boil bursts 50% harder and reaches 25% farther",

@@ -1137,6 +1137,7 @@ namespace Arena
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
+            TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey

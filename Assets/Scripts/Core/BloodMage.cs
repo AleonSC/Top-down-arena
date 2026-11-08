@@ -20,7 +20,7 @@ namespace Arena
         public const float PactDuration = 4f;
         const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
-        const float GiftMult = 2f, GiftSplash = 200f, SiphonRadius = 140f, SiphonTime = 6f, MartyrRevive = 0.5f, MartyrWardTime = 12f;
+        const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f, MartyrWardTime = 12f;
         const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
         const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
         const float NovaDamage = 20f, NovaHeal = 3f;
@@ -782,9 +782,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SiphonField, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
-                Name = "Siphon Field", Cooldown = 11f, HealthCost = 0.1f, Desc = "Pay 10% of your max health for a 140 px field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s.",
-                Capstone = "The field follows you.",
-                Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
+                Name = "Blood Freeze", Cooldown = 14f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: a shockwave tears across the arena and freezes every enemy it reaches for 5 s (bosses for 3 s). Frozen enemies can't move or shoot.",
+                Capstone = "Frozen enemies take 25% more damage.",
+                Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
@@ -915,9 +915,7 @@ namespace Arena
                 }
                 case AbilityId.SiphonField:
                 {
-                    var z = AddZone(ZoneKind.Siphon, p, p.Pos, SiphonRadius * s.SiphonRadiusMult, SiphonTime + s.SiphonBonusTime);
-                    z.Follow = cap;
-                    BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.45f, Sfx.Ability);
+                    CastBloodFreeze(p, cap, s.FreezeBonusTime);  // BloodFreeze.cs
                     return true;
                 }
                 case AbilityId.Martyr:
