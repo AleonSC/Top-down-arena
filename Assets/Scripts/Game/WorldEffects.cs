@@ -223,6 +223,9 @@ namespace Arena
                 case FxKind.SteelWall:
                     DrawSteelWallFx(fx, f);
                     break;
+                case FxKind.GreatRend:
+                    DrawGreatRendFx(fx, f);  // GreatswordLook.cs
+                    break;
             }
         }
 
@@ -469,17 +472,19 @@ namespace Arena
             float reach = to.Length, aim = to.Angle, half = fx.Radius, fade = 1f - f * f, T = fx.T;
             if (reach < 1f)
                 return;
-            float head = -half + 2f * half * EaseOut3(Mathf.Clamp01(T / MeleeSweepTime));
+            float sg = GreatWallSign(fx, fx.Pos);  // the way its cut swept (GreatswordLook.cs)
+            float run0 = 2f * half * EaseOut3(Mathf.Clamp01(T / MeleeSweepTime));
             var moonCol = new Rgba(0.78f, 0.88f, 1f);
-            if (head <= -half + 0.01f)
+            if (run0 <= 0.01f)
                 return;
-            Arc(fx.Pos, reach, Game.SteelWallBand * 2f, moonCol.WithAlpha(0.13f * fade), 24, aim - half, head + half);
-            Arc(fx.Pos, reach, 7f, moonCol.WithAlpha(0.4f * fade), 24, aim - half, head + half);
-            Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.55f * fade), 24, aim - half, head + half);
-            float gl = Mathf.Clamp01((T - MeleeSweepTime) / 0.42f);
+            float from = aim - sg * half;
+            Arc(fx.Pos, reach, Game.SteelWallBand * 2f, moonCol.WithAlpha(0.13f * fade), 24, from, sg * run0);
+            Arc(fx.Pos, reach, 7f, moonCol.WithAlpha(0.4f * fade), 24, from, sg * run0);
+            Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.55f * fade), 24, from, sg * run0);
+            float gl = Mathf.Clamp01((T - MeleeSweepTime) / (fx.Dur > MeleeSweepTime ? 0.84f * (fx.Dur - MeleeSweepTime) : 0.42f));
             if (gl > 0f && gl < 1f)
             {
-                float ga = aim - half + 2f * half * gl;
+                float ga = from + sg * 2f * half * gl;
                 GlowDisc(fx.Pos + V2.FromAngle(ga) * reach, 26f, Rgba.White, 0.7f * fade);
                 Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.95f * fade), 6, ga - 0.08f, 0.16f);
             }

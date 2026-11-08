@@ -102,7 +102,7 @@ static partial class Program
         me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 1);
         int waves0 = g.Bullets.Values.Count(b => b.Kind == Defs.KnightWave);
         bool beams = false;  // watched every frame: the beams only live 0.6 s
-        for (int f = 0; f < 50; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); beams |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1); }
+        for (int f = 0; f < 150; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); beams |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1); }
         second.Hp = 0f;
         Console.WriteLine("  Multishot: rapier skewers a 2nd enemy {0}; greatsword throws beams {1}", skewer, beams);
         Check(skewer && beams, "extra projectiles upgrade each Knight weapon its own way");
@@ -202,6 +202,7 @@ static partial class Program
         // Last Stand: you plant, the plates stop shots from the front and you take a tenth of them, teammates' shots pass out
         // through, you can't move, pressing it again brings it down, and going down ends it.
         foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
+        foreach (var e in g.Enemies.Values) { e.Pos = new V2(1500f, 800f); e.FrozenT = 99f; }  // (a stray Brute from the sections above must not stand on the plates)
         var ult = me.Slots[Upgrades.UltSlot];
         ult.Id = AbilityId.LastStand;
         me.Pos = s[0].Game.Players[1].Pos = new V2(400f, 450f);

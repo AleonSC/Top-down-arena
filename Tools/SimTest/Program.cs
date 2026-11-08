@@ -274,6 +274,7 @@ static partial class Program
         Test("lastfour", "Clot Bolt, Transfusion Darts, Rapier and the Katana (chain, meter, Alt strike)", () => LastFourTest(Dt)),
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),
         Test("quarterstaff", "the Quarterstaff", () => { QuarterstaffTest(Dt); QuarterstaffStacksTest(Dt); }),
+        Test("greatsword", "the Greatsword's chain, guard and Rend", () => GreatswordTest(Dt)),
         Test("tankknight", "the Warhammer's charged slam and the Halberd's sweep", () => TankKnightTest(Dt)),
         Test("revolver", "the Revolver", () => RevolverReloadTest(Dt)),
         Test("bow", "the Mender's Bow", () => BowTest(Dt)),
