@@ -89,6 +89,10 @@ static partial class Program
         Run(s, dt, 3f, null, () => { noPicks(); hold(); });
         bool halfOnly = g.Room == RoomPhase.Portal && g.PortalFill <= 0.951f && g.PortalFill > 0.5f && g.StateTimer == timer0;
         friendAt = g.PortalPos;
+        // Everyone's in the gate, but a player still has upgrade cards up: the gate can't be entered until they've picked.
+        Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); g.Players[2].PendingPicks = 1; hold(); });
+        bool blockedByPicks = !g.InRoom && g.Room == RoomPhase.Portal && g.PortalFill < 1f;
+        Check(blockedByPicks, "a Data Gate can't be entered while a player's upgrade picks are unselected");
         Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); hold(); });
         Check(clientSeesPortal && halfOnly && g.InRoom && g.State == MatchState.Fighting,
             "a portal waits (and holds the break) until everyone alive stands in it, then takes the party into the room (seen on the client)");
