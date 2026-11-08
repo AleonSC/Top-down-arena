@@ -1,6 +1,6 @@
 # Lightbringer rework (design)
 
-Status: **proposed, not built**. Mockup: `Docs/Mockups/lightbringer-rework.html` (looping demo of the chain, the
+Status: **proposed, not built**. Mockup: `Docs/Mockups/lightbringer-rework.html` (built on the Twin Blades mockup engine: posed sword arm, trails, hit sparks, a scrubbable replay, a playable Try it, and a loop of each move, covering the chain, the
 radiant finisher and both alt-attack candidates). Waiting on the owner's pick of alt attack.
 
 > The Lightbringer stops being one cut on repeat. It is a three-step healer chain, **heal, protect, group heal**, the
