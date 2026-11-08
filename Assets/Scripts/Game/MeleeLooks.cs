@@ -632,8 +632,14 @@ namespace Arena
                 return true;
             foreach (var fx in game.Effects)
                 if (fx.Kind == FxKind.Jab && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B
-                    && fx.T < HammerSwingTime + HammerReturn && (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
-                    return true;
+                    && fx.T < HammerSwingTime + HammerReturn)
+                {
+                    // The slam's hammer follows its owner (MeleeOrigin), so match by owner: moving away from where the slam started
+                    // must not let the idle hammer show up beside the returning one.
+                    MeleeSeen seen;
+                    if (meleeSeen.TryGetValue(fx, out seen) ? seen.Owner == p.Id : (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
+                        return true;
+                }
             return false;
         }
 
