@@ -119,7 +119,7 @@ namespace Arena
                 float pop = Mathf.Min(1f, fx.T * 8f), fade = f < 0.7f ? 1f : 1f - (f - 0.7f) / 0.3f;
                 bool paid = fx.Pos2.Y > 0.5f;
                 V2 at = ToUi(p.Disp);
-                at.Y -= p.Def.BodyR * WorldToUi + 30f + 8f * f;
+                at.Y -= p.Def.BodyR * UiWorldScale + 30f + 8f * f;
                 Color c = paid ? ToColor(DebtGold) : ToColor(BloodRed.Mix(Rgba.White, 0.25f));
                 c.a = fade;
                 int size = Mathf.RoundToInt(15f * (1.6f - 0.6f * pop));  // slams down onto the bar

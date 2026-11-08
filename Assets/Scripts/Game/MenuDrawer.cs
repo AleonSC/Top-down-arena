@@ -655,6 +655,10 @@ namespace Arena
                     if (lean2 != camLean)
                         SetCamLean(lean2);
                     y += 66f;
+                    bool zoom2 = SwitchRow(new Rect(x, y, w, 54f), scrollZoom, "Scroll-wheel zoom", "Scroll up to zoom in on yourself (up to 2x), down to see the whole arena again");
+                    if (zoom2 != scrollZoom)
+                        SetCamZoom(zoom2);
+                    y += 66f;
                     bool hover2 = SwitchRow(new Rect(x, y, w, 54f), hoverNames, "Enemy names on hover", "Point at an enemy to see its name and what it does (the first sightings show it anyway)");
                     if (hover2 != hoverNames)
                         SetHoverNames(hover2);

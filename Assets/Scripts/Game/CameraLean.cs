@@ -30,11 +30,12 @@ namespace Arena
         }
 
         /// An arena position as a point on the HUD canvas, with the lean applied (name tags, damage numbers, labels).
-        V2 ToUi(V2 p) => (p - lean) * WorldToUi;
+        V2 ToUi(V2 p) => ((CamZoomed ? ZoomPoint(p) : p) - lean) * WorldToUi;  // (and the scroll-wheel zoom, CameraZoom.cs)
 
         /// Once a frame from Update: ease the lean toward where you're looking and heading.
         void UpdateCameraLean(float dt)
         {
+            UpdateCameraZoom(dt);  // the scroll-wheel zoom (CameraZoom.cs)
             var me = game.Me;
             bool live = camLean && session.Screen == AppScreen.Game && game.Running && me != null && !me.Downed && !EndingOn && !devFrozen;
             if (!(session.Screen == AppScreen.Game && game.Running) || me == null)
@@ -76,9 +77,14 @@ namespace Arena
         {
             leanPxX = lean.X * drawScale;
             leanPxY = lean.Y * drawScale;
+            camZoomOn = CamZoomed;  // CameraZoom.cs
         }
 
-        void EndLeanFrame() => leanPxX = leanPxY = 0f;
+        void EndLeanFrame()
+        {
+            leanPxX = leanPxY = 0f;
+            camZoomOn = false;
+        }
 
         /// The dim layer over the menu background behind the arena: the arena itself, or (while leaning) the strip it uncovers too.
         void FillArenaBackdrop(Rgba c)
