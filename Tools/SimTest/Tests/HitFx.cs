@@ -105,6 +105,57 @@ static partial class Program
 {
     /// What a regular wave is made of, by what each enemy does: shoots, melee (contact, charges, lunges) or support
     /// (heals, bubbles, spawns). Averaged over many built waves (two players, Normal). Docs/EnemyRoles.md.
+    /// Recipe waves show a bounded number of distinct enemy types (Docs/EnemyReadability.md section 3).
+    static void WaveKindsTest()
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var build = typeof(Game).GetMethod("BuildWave", flags);
+        var queueF = typeof(Game).GetField("spawnQueue", flags);
+        var squadF = typeof(Game).GetField("squadQueue", flags);
+        var g = new Session().Game;
+        foreach (int n in new[] { 13, 14, 17, 20, 22, 24, 25, 27, 29, 33, 37 })
+        {
+            int cap = Game.KindCap(n), most = 0;
+            for (int r = 0; r < 60; r++)
+            {
+                build.Invoke(g, new object[] { n });
+                var kinds = new HashSet<EnemyType>((List<EnemyType>)queueF.GetValue(g));
+                foreach (var sq in (List<SquadDef>)squadF.GetValue(g)) foreach (var m in sq.Members) kinds.Add(m);
+                if (kinds.Any(k => Zombies.Is(k))) continue;  // a Zombie Infection horde is its own mode, not the recipe
+                if (kinds.Count > most) most = kinds.Count;
+            }
+            Console.WriteLine("  wave {0}: at most {1} distinct types (cap {2})", n, most, cap);
+            Check(most <= cap, "wave " + n + " shows " + most + " types against a cap of " + cap);
+        }
+    }
+
+    /// The Phantom's blink and the Mortar's bomb mark where they land (a Target ring) before they burst.
+    static void LandingMarksTest()
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var special = typeof(Game).GetMethod("LateSpecial", flags);
+        var fire = typeof(Game).GetMethod("EnemyFire", flags);
+        var g = new Session().Game;
+        g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();
+        var target = new V2(600f, 400f);
+        var ph = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Phantom, new V2(200f, 200f), 0f, 0, false });
+        ph.Spawning = false; ph.PhaseT = 0f;
+        special.Invoke(g, new object[] { ph, target, 0.016f });
+        bool marked = g.Effects.Exists(fx => fx.Kind == FxKind.Target && fx.Pos.DistanceTo(ph.Waypoint) < 1f);
+        Check(ph.Phase == 1 && marked && g.Bullets.Count == 0, "a Phantom marks where it will blink and fires nothing yet");
+        V2 before = ph.Pos;
+        special.Invoke(g, new object[] { ph, target, Game.PhantomWarn * 0.5f });
+        Check(ph.Pos.DistanceTo(before) < 1f && g.Bullets.Count == 0, "...and waits out the warning");
+        special.Invoke(g, new object[] { ph, target, Game.PhantomWarn });
+        Check(ph.Phase == 0 && ph.Pos.DistanceTo(ph.Waypoint) < 1f && g.Bullets.Count == 8, "then blinks to the marked spot and fires its ring of 8");
+        g.Effects.Clear(); g.Bullets.Clear();
+        var mo = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Mortar, new V2(200f, 200f), 0f, 0, false });
+        mo.Spawning = false; mo.FireT = 0f;
+        fire.Invoke(g, new object[] { mo, target });
+        Check(g.Effects.Exists(fx => fx.Kind == FxKind.Target), "a Mortar's bomb comes with a landing ring");
+    }
+
     static void WaveMixReport()
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;

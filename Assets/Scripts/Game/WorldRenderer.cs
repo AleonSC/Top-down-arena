@@ -96,6 +96,12 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.HolyMace)
                     DrawStaffPips(p);  // QuarterstaffLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.Greatsword)
+                {
+                    DrawGreatGuard(p);  // GreatswordLook.cs
+                    DrawGreatPips(p);
+                }
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                     DrawBowDraw(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)

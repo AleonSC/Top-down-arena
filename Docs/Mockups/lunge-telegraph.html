@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lunge Telegraph</title>
+<style>
+:root{--bg:#0b0d12;--panel:#12161e;--line:#232a38;--fg:#e6e9f0;--muted:#9aa4b8;--hunter:#ff5a5a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:24px 16px 56px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:30px 0 8px}
+p{margin:0 0 8px;color:#c9d0de;max-width:70ch}
+.bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:sticky;top:8px;z-index:2}
+.bar input[type=range]{flex:1;min-width:160px}
+button{background:#1c2331;color:var(--fg);border:1px solid #2c3550;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+.card b{display:block}.card i{font-style:normal;color:var(--muted);font-size:12px}
+svg{width:100%;height:auto;display:block;background:#0e1118;border-radius:6px;margin-top:6px}
+.note{font-size:13px;color:var(--muted)}
+</style></head><body><div class="wrap">
+<h1>Lunge telegraph</h1>
+<p>Four enemies do the same thing, a wind-up then a straight lunge or charge, and each shows it differently. This page shows today's four looks, then three candidates for one shared look. Scrub the wind-up or press play.</p>
+<div class="bar"><button id="play">Pause</button><label for="t" class="note">Wind-up</label><input id="t" type="range" min="0" max="1" step="0.001" value="0"><span class="note" id="tv">0%</span></div>
+<h2>Today (four looks for one attack)</h2><div class="grid" id="now"></div>
+<h2>A. Lane: a filled strip that fills out from the enemy</h2><div class="grid" id="A"></div>
+<p class="note">Reads as a floor hazard: you see how wide and how far. Fills over the wind-up, flashes white for the last 0.1 s.</p>
+<h2>B. Rail: dashed rail with marching chevrons and an end ring</h2><div class="grid" id="B"></div>
+<p class="note">Thin and light on a busy screen. The chevrons speed up as it gets close, the end ring marks where it stops.</p>
+<h2>C. Lane and landing mark: the strip plus a closing ring at the end</h2><div class="grid" id="C"></div>
+<p class="note">Same ring language as the Fuse Runner and Gas Grenadier blasts, so "ring = it lands here" stays one rule. The most to read.</p>
+<h2>What stays the same in every candidate</h2>
+<p>One color for the Hunter job (the red of the job marker), the same strip width for every lunger (about the body width), the strip's length is the real reach of each enemy (Lunger 230, Spike Block 175, Charger 260, Riot Shield bash 120 px), and it replaces the 0.3 s body glow for these enemies instead of running after it. Riot Shield gets a floor shape for the first time.</p>
+</div>
+<script>
+const E=[{n:'Lunger',L:230,r:12,c:'#ff7ad0',w:'0.6 s'},{n:'Spike Block',L:175,r:14,c:'#ff5a5a',w:'0.55 s'},{n:'Charger',L:260,r:13,c:'#ff4040',w:'0.7 s'},{n:'Riot Shield',L:120,r:15,c:'#cfd8e6',w:'0.4 s'}];
+const H='#ff5a5a';let T=0,playing=true;
+function svgFor(e,look,t){
+  const W=300,Hh=70,x0=24,sc=(W-x0-10)/265,L=e.L*sc,cy=35,r=e.r*0.9;let s='';
+  const blink=Math.sin(t*t*60)>0;const flash=t>0.9;
+  const col=look==='now'?e.c:H;
+  if(look==='now'){
+    if(e.n==='Riot Shield'){s+=`<circle cx="${x0}" cy="${cy}" r="${r+6}" fill="none" stroke="#fff" stroke-opacity="${blink?.9:.15}" stroke-width="2"/>`}
+    else if(e.n==='Spike Block'){s+=`<circle cx="${x0}" cy="${cy}" r="${r+7}" fill="#ff5a5a" fill-opacity=".18"/>`;s+=`<line x1="${x0}" y1="${cy}" x2="${x0+L}" y2="${cy}" stroke="${col}" stroke-width="3" stroke-opacity="${blink?.9:.2}"/>`}
+    else if(e.n==='Lunger'){s+=`<line x1="${x0}" y1="${cy}" x2="${x0+L}" y2="${cy}" stroke="${col}" stroke-width="2" stroke-opacity="${blink?.9:.25}"/><circle cx="${x0+L}" cy="${cy}" r="6" fill="none" stroke="${col}" stroke-opacity="${blink?.9:.25}"/>`}
+    else{s+=`<line x1="${x0}" y1="${cy}" x2="${x0+L}" y2="${cy}" stroke="${col}" stroke-width="4" stroke-opacity="${blink?.95:.3}" stroke-dasharray="10 6"/>`}
+  }else if(look==='A'||look==='C'){
+    const f=Math.min(1,t/0.9)*L,wd=r*2;
+    s+=`<rect x="${x0}" y="${cy-wd/2}" width="${L}" height="${wd}" fill="${H}" fill-opacity=".08" stroke="${H}" stroke-opacity=".45" stroke-width="1.5"/>`;
+    s+=`<rect x="${x0}" y="${cy-wd/2}" width="${f}" height="${wd}" fill="${flash?'#fff':H}" fill-opacity="${flash?.85:.45}"/>`;
+    if(look==='C'){const rr=4+(1-Math.min(1,t))*16;s+=`<circle cx="${x0+L}" cy="${cy}" r="${rr}" fill="none" stroke="${H}" stroke-width="2" stroke-opacity=".9"/><circle cx="${x0+L}" cy="${cy}" r="3" fill="${H}"/>`}
+  }else{
+    s+=`<line x1="${x0}" y1="${cy}" x2="${x0+L}" y2="${cy}" stroke="${H}" stroke-width="2" stroke-dasharray="8 6" stroke-opacity=".7"/>`;
+    const sp=0.5+t*3,n=Math.floor(L/22);
+    for(let k=0;k<n;k++){const px=x0+((k*22+t*sp*120)%L);const a=.25+.6*(px-x0)/L;s+=`<path d="M${px-4},${cy-5}L${px+2},${cy}L${px-4},${cy+5}" fill="none" stroke="${flash?'#fff':H}" stroke-width="2" stroke-opacity="${a}"/>`}
+    s+=`<circle cx="${x0+L}" cy="${cy}" r="7" fill="none" stroke="${H}" stroke-width="2" stroke-opacity="${.4+.5*t}"/>`;
+  }
+  s+=`<circle cx="${x0}" cy="${cy}" r="${r}" fill="#2a2f3a" stroke="${look==='now'?e.c:'#8895aa'}" stroke-width="2"/><circle cx="${x0}" cy="${cy}" r="${r*.4}" fill="#8895aa"/>`;
+  return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${e.n} wind-up">${s}</svg>`;
+}
+function render(){
+  for(const k of ['now','A','B','C']){
+    document.getElementById(k).innerHTML=E.map(e=>`<div class="card"><b>${e.n}</b><i>wind-up ${e.w}, reach ${e.L} px</i>${svgFor(e,k,T)}</div>`).join('');
+  }
+  document.getElementById('t').value=T;document.getElementById('tv').textContent=Math.round(T*100)+'%';
+}
+let last=0;function tick(ts){if(playing){T=(T+(ts-last)/1500)%1.25;if(T>1)T=T>1.2?0:1;}last=ts;render();requestAnimationFrame(tick)}
+document.getElementById('t').addEventListener('input',e=>{T=+e.target.value;playing=false;document.getElementById('play').textContent='Play'});
+document.getElementById('play').onclick=()=>{playing=!playing;document.getElementById('play').textContent=playing?'Pause':'Play'};
+requestAnimationFrame(tick);
+</script></body></html>

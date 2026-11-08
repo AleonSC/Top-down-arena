@@ -1,0 +1,496 @@
+<title>Bo Staff Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one live stage (move / look / model chips, toggles, scrubber), a frame-by-frame sheet with one row per move,
+   then notes. Tokens follow the other melee mockups; the staff's own sage green is the accent. The canvases stay dark in both themes. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#4d7a1f;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#b4e07a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#b4e07a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.bar{display:flex;gap:10px 22px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.chip,button{font:500 14px var(--body);padding:7px 13px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1210}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#stage{aspect-ratio:1000/430}
+.scrub{display:flex;gap:12px;align-items:center;margin-top:12px}
+.scrub input{flex:1;min-width:0;accent-color:var(--accent)}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.row{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.row h3{font:700 20px var(--display);letter-spacing:.05em;text-transform:uppercase;margin:0;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.row h3 small{font:500 12px var(--mono);color:var(--muted);text-transform:none;letter-spacing:.02em}
+.film{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.film figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.film .frame{aspect-ratio:1/1}
+.film figcaption{font:500 11px var(--mono);color:var(--muted)}
+@media (max-width:640px){.film{grid-template-columns:repeat(3,1fr)}}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent)}
+code{font:500 13px var(--mono)}
+</style>
+
+<main>
+<header>
+  <h1>Bo Staff: a staff you can see being swung</h1>
+  <p>Today the Ninja tank's Bo Staff appears as a flat line and a glow over the hit, with no hands on it and no pose before or after. These animations keep every number (the 130° slash, the 140 px jab, the full spin, the 100 px shove) and change what you see: the Ninja holds the staff in two gloved hands, winds it back, swings it through with the grip sliding, follows through, and brings it back to a ready carry.</p>
+  <p>Pick a move, a look, and switch between Today and New. Drag the scrubber to stop on any frame.</p>
+</header>
+
+<section>
+  <h2>In the arena</h2>
+  <div class="bar">
+    <div class="group" role="group" aria-label="Move"><span>Move</span>
+      <button class="chip" type="button" data-move="chain" aria-pressed="true">Chain</button>
+      <button class="chip" type="button" data-move="slash" aria-pressed="false">Slash</button>
+      <button class="chip" type="button" data-move="jab" aria-pressed="false">Jab</button>
+      <button class="chip" type="button" data-move="spin" aria-pressed="false">Spin</button>
+      <button class="chip" type="button" data-move="shove" aria-pressed="false">Shove</button>
+    </div>
+    <div class="group" role="group" aria-label="Look"><span>Look</span>
+      <button class="chip" type="button" data-look="ribbon" aria-pressed="true">Sage ribbon</button>
+      <button class="chip" type="button" data-look="ghost" aria-pressed="false">Afterimages</button>
+    </div>
+    <div class="group" role="group" aria-label="Model"><span>Model</span>
+      <button class="chip" type="button" data-model="new" aria-pressed="true">New</button>
+      <button class="chip" type="button" data-model="today" aria-pressed="false">Today</button>
+    </div>
+  </div>
+  <div class="bar">
+    <label class="tg"><input type="checkbox" id="tgArea"> Show hit area</label>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <button type="button" id="pause">Pause</button>
+  </div>
+  <div class="frame"><canvas id="stage" role="img" aria-label="Top-down animation of the Bo Staff slash, jab, spin and shove on dummy enemies"></canvas></div>
+  <div class="scrub"><span class="sub" id="tlabel">0.00 s</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the animation"></div>
+</section>
+
+<section>
+  <h2>Frame by frame</h2>
+  <div id="films"></div>
+</section>
+
+<section class="two">
+  <div class="card"><h3>What moves</h3><ul>
+    <li><b>Two hands stay on the staff.</b> The rear hand pushes, the front hand guides, each joined to a shoulder in your colour. The shoulders turn with the swing.</li>
+    <li><b>The grip slides.</b> The staff is carried short, runs forward through the hands as it is driven out, and comes back to the carry afterwards.</li>
+    <li><b>Slash:</b> a quick draw-back behind the shoulder, then the sweep across the 130° cone with your body leaning into it, then a follow-through that settles.</li>
+    <li><b>Jab:</b> the staff squares up to your aim, pulls back to the hip, then thrusts 140 px with a 12 px step, a shock ring at the tip and speed lines behind you.</li>
+    <li><b>Spin:</b> a coil to the side, then your whole body turns with the staff for one full circle. A ring lands on the floor at the end of the spin, then a short recovery.</li>
+    <li><b>Shove:</b> the staff turns crosswise in both hands, is drawn in, driven out as a bar with pressure arcs rolling off the front, held, then drawn back.</li>
+    <li><b>Enemy bullets</b> (amber) are cut where the staff meets them, with a small spark.</li>
+  </ul></div>
+  <div class="card"><h3>Kept as it is</h3><ul>
+    <li>Slash 16 damage, 130° cone, 105 px. Jab 22, 140 px line, 28 px wide. Spin 30, 100 px. Shove 6, 100 px wide, 78 px deep, pushes 70 px.</li>
+    <li>Step times 0.32, 0.30 and 0.80 s (the spin includes its recovery); the shove lands 0.1 s after the press.</li>
+    <li>The chain has no timer, and the three pips over your head are unchanged.</li>
+    <li>Client-side drawing only. <code>Session.ProtocolVersion</code> stays.</li>
+  </ul></div>
+</section>
+
+<section class="two">
+  <div class="card"><h3>Needs your call</h3><ul>
+    <li><b>Look.</b> Sage ribbon is one soft energy sweep that matches the game's glowing melee trail. Afterimages leaves three fading copies of the staff, which shows the staff itself better in a crowd.</li>
+    <li><b>Spin turns the body.</b> In the mockup the model turns a full circle with the staff. In the game that would be drawn only; your aim stays where it is.</li>
+    <li><b>Arms in the shove.</b> The bar ends 72 px out, so the arms are fully stretched at the front. A shorter drive would look more natural but would change the push.</li>
+  </ul></div>
+  <div class="card"><h3>Not in the mockup</h3><ul>
+    <li>Hit-stop and screen shake (the other melee looks have them; the same values would apply).</li>
+    <li>The Alt strike's sounds and the upgrade (+20 px reach) look.</li>
+    <li>The Armory page would be out of date once this is built.</li>
+  </ul></div>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+const TAU=Math.PI*2, clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const EASE={lin:t=>t, eo:t=>1-Math.pow(1-t,3), ei:t=>t*t*t, eio:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2};
+const $=id=>document.getElementById(id);
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SAGE=[199,229,158], H=67;           // staff half length: 134 px, which is -29..105 from the body at a 38 px slide
+const rgba=(c,a)=>'rgba('+c[0]+','+c[1]+','+c[2]+','+Math.max(0,Math.min(1,a)).toFixed(3)+')';
+const rot=(x,y,a)=>[x*Math.cos(a)-y*Math.sin(a), x*Math.sin(a)+y*Math.cos(a)];
+
+/* ---------- the poses: one list of keyframes per move (angles in radians, 0 = your aim, px) ---------- */
+const READY={A:-.6,p:22,lat:0,bx:0,by:0,g1:-14,g2:20,turn:0};
+const K=(t,e,o)=>Object.assign({t:t,e:e},READY,o);
+const MOVES={
+ slash:{name:'Slash',dur:.32,trail:[.05,.2],dmg:16,knock:14,kd:.25,keys:[
+   K(0,'lin',{}),
+   K(.07,'eo',{A:-1.55,p:14,bx:-3,by:2,g1:-18,g2:16,turn:-.3}),
+   K(.19,'eio',{A:1.3,p:40,bx:4,by:-1,g1:-24,g2:22,turn:.3}),
+   K(.32,'eio',{})]},
+ jab:{name:'Jab',dur:.3,trail:[.1,.18],dmg:22,knock:22,kd:.25,keys:[
+   K(0,'lin',{}),
+   K(.05,'eo',{A:0,p:36,g1:-22,g2:18,turn:-.1}),
+   K(.1,'eio',{A:0,p:5,bx:-5,g1:-20,g2:10,turn:-.25}),
+   K(.16,'eo',{A:0,p:73,bx:12,g1:-24,g2:22,turn:.1}),
+   K(.2,'lin',{A:0,p:73,bx:12,g1:-24,g2:22,turn:.1}),
+   K(.3,'eio',{})]},
+ spin:{name:'Spin',dur:.8,trail:[.06,.54],dmg:30,knock:20,kd:.25,keys:[
+   K(0,'lin',{}),
+   K(.08,'eo',{A:-2.0,p:24,bx:-2,g1:-16,g2:20,turn:-.4}),
+   K(.52,'eio',{A:-.6+TAU,p:33,bx:0,g1:-20,g2:20,turn:TAU}),
+   K(.8,'eio',{A:-.6+TAU,turn:TAU})]},
+ shove:{name:'Shove',dur:.5,trail:[1,0],dmg:6,knock:70,kd:.35,keys:[
+   K(0,'lin',{}),
+   K(.1,'eio',{A:Math.PI/2,p:0,lat:-8,bx:-4,g1:-15,g2:15,turn:-.15}),
+   K(.2,'eo',{A:Math.PI/2,p:0,lat:-72,bx:6,g1:-15,g2:15,turn:.05}),
+   K(.29,'lin',{A:Math.PI/2,p:0,lat:-72,bx:6,g1:-15,g2:15,turn:.05}),
+   K(.39,'eio',{A:Math.PI/2,p:0,lat:-20,bx:0,g1:-15,g2:15,turn:0}),
+   K(.5,'eio',{})]}
+};
+const ORDER=['slash','jab','spin','shove'];
+/* where the dummy enemies and bullets stand for each move (px from the player, aim to the right) */
+const SCEN={
+ slash:{en:[[78,-48],[88,0],[78,48],[165,0]],bul:[-.5,.45]},
+ jab:{en:[[72,0],[120,6],[62,-48],[175,0]],bul:[.02]},
+ spin:{en:[[78,-28],[-18,-78],[-80,14],[-34,76],[64,56]],bul:[1.2,-2.7]},
+ shove:{en:[[52,-30],[56,26],[62,0],[66,-84],[125,0]],bul:[]}
+};
+
+function poseAt(move,tm){
+  const ks=MOVES[move].keys;
+  if(tm<=0) return ks[0];
+  const last=ks[ks.length-1];
+  if(tm>=last.t) return last;
+  let i=1; while(ks[i].t<tm) i++;
+  const a=ks[i-1], b=ks[i], u=EASE[b.e]((tm-a.t)/(b.t-a.t)), o={};
+  for(const f of ['A','p','lat','bx','by','g1','g2','turn']) o[f]=lerp(a[f],b[f],u);
+  return o;
+}
+/* the geometry of a pose: staff back, tip and centre, and the two hand points, all in px from the player's start spot */
+function geom(P){
+  const d=[Math.cos(P.A),Math.sin(P.A)], n=[-d[1],d[0]], c=[d[0]*P.p+n[0]*P.lat+P.bx, d[1]*P.p+n[1]*P.lat+P.by];
+  const at=s=>[c[0]+d[0]*s,c[1]+d[1]*s];
+  return {d:d,n:n,c:c,back:at(-H),tip:at(H),at:at,h1:at(P.g1),h2:at(P.g2),body:[P.bx,P.by]};
+}
+function segDist(p,a,b){
+  const vx=b[0]-a[0], vy=b[1]-a[1], L=vx*vx+vy*vy, u=L?clamp(((p[0]-a[0])*vx+(p[1]-a[1])*vy)/L):0;
+  return Math.hypot(p[0]-a[0]-vx*u,p[1]-a[1]-vy*u);
+}
+
+/* ---------- scenario: when each enemy and bullet is hit, worked out once per move from the poses ---------- */
+const cache={};
+function scenario(move,lead){
+  const key=move+'/'+lead; if(cache[key]) return cache[key];
+  const M=MOVES[move], S=SCEN[move], dt=1/240, tw=M.trail;
+  const hit=(tm,e,r)=>{
+    const P=poseAt(move,tm), G=geom(P), q=[e[0],e[1]];
+    if(move==='shove'){ if(tm<.12) return false; const along=q[0]-G.body[0], across=Math.abs(q[1]-G.body[1]); return along>-r-16&&along<78+r&&across<50+r; }
+    if(tm<tw[0]||tm>tw[1]) return false;
+    if(move==='slash'&&Math.abs(P.A)>130*Math.PI/360) return false;
+    return segDist(q,G.at(-20),G.tip)<r+4 && Math.hypot(q[0],q[1])<(move==='jab'?150:112)+r;
+  };
+  const en=S.en.map(e=>{
+    let ht=null; for(let tm=0;tm<=M.dur;tm+=dt) if(hit(tm,e,14)){ht=tm;break;}
+    const L=Math.hypot(e[0],e[1])||1, dir=move==='jab'||move==='shove'?[1,0]:[e[0]/L,e[1]/L];
+    return {x:e[0],y:e[1],r:14,hit:ht===null?null:ht+lead,k:[dir[0]*M.knock,dir[1]*M.knock]};
+  });
+  const bul=S.bul.map(th=>{
+    const dir=[Math.cos(th),Math.sin(th)], v=170; let aim=null;
+    for(let tm=0;tm<=M.dur;tm+=dt){ const G=geom(poseAt(move,tm)); if(tm>=tw[0]&&tm<=tw[1]&&segDist([dir[0]*88,dir[1]*88],G.at(-20),G.tip)<5){aim=tm;break;} }
+    if(aim===null) aim=(tw[0]+tw[1])/2;
+    const R0=88+v*(aim+lead);
+    let cut=null;
+    for(let tm=0;tm<=M.dur;tm+=dt){ const R=R0-v*(tm+lead); if(R<14) break; const G=geom(poseAt(move,tm)); if(tm>=tw[0]&&tm<=tw[1]&&segDist([dir[0]*R,dir[1]*R],G.at(-20),G.tip)<5){cut=tm;break;} }
+    return {dir:dir,R0:R0,v:v,cut:cut===null?null:cut+lead};
+  });
+  return (cache[key]={en:en,bul:bul,lead:lead,move:move});
+}
+
+/* ---------- drawing ---------- */
+function circle(c,x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,r,0,TAU);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||1;c.stroke();}}
+function line(c,a,b,w,col,cap){c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineWidth=w;c.strokeStyle=col;c.lineCap=cap||'round';c.stroke();}
+const W=(v,S)=>[v[0]*S,v[1]*S];
+
+function drawStaff(c,G,S,alpha,tint){
+  const a=W(G.back,S), b=W(G.tip,S), d=G.d, k=S/2;
+  line(c,a,b,6.2*k,'rgba(20,14,8,'+alpha+')');
+  line(c,a,b,4.4*k,tint?rgba(tint,alpha):'rgba(196,150,96,'+alpha+')');
+  line(c,[a[0]+G.n[0]*1.2*S,a[1]+G.n[1]*1.2*S],[b[0]+G.n[0]*1.2*S,b[1]+G.n[1]*1.2*S],1*k,'rgba(255,240,215,'+(alpha*.35)+')');
+  if(tint) return;
+  line(c,a,[a[0]+d[0]*10*S,a[1]+d[1]*10*S],6.4*k,rgba(SAGE,alpha*.95));      // the ferrules
+  line(c,b,[b[0]-d[0]*10*S,b[1]-d[1]*10*S],6.4*k,rgba(SAGE,alpha*.95));
+  line(c,[a[0]+d[0]*10*S,a[1]+d[1]*10*S],[a[0]+d[0]*12*S,a[1]+d[1]*12*S],6.8*k,'rgba(40,52,30,'+alpha+')');
+  line(c,[b[0]-d[0]*10*S,b[1]-d[1]*10*S],[b[0]-d[0]*12*S,b[1]-d[1]*12*S],6.8*k,'rgba(40,52,30,'+alpha+')');
+}
+
+function drawPlayer(c,P,G,S,o){
+  const bx=G.body[0]*S, by=G.body[1]*S, T=P.turn;
+  // scarf: trails opposite to the way the body turns and the way it lunges
+  const sw=Math.sin(o.clock*9)*3, lean=-(o.speed||0);
+  for(let i=0;i<2;i++){
+    const sg=i?1:-1, base=rot(-10,sg*4,T), tailLen=24+Math.min(18,Math.abs(lean)*.25);
+    const e=rot(-tailLen,sg*(6+sw*(i?1:-1)),T+(o.dir||0)*.35);
+    c.beginPath();c.moveTo(bx+base[0]*S,by+base[1]*S);
+    c.quadraticCurveTo(bx+(base[0]+e[0])*S*.55,by+(base[1]+e[1])*S*.55+sg*3*S,bx+(base[0]+e[0])*S,by+(base[1]+e[1])*S);
+    c.lineWidth=4.4*S/2;c.strokeStyle=rgba(SAGE,.85-.25*i);c.lineCap='round';c.stroke();
+  }
+  circle(c,bx,by,16*S,'#2a3140','#0c0f14',1.6*S/2);
+  // shoulders and arms: pair each hand with the nearer shoulder
+  const s1=rot(1,-12,T), s2=rot(1,12,T), sh=[[bx+s1[0]*S,by+s1[1]*S],[bx+s2[0]*S,by+s2[1]*S]];
+  const h=[W(G.h1,S),W(G.h2,S)];
+  const dd=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);
+  const straight=dd(sh[0],h[0])+dd(sh[1],h[1])<=dd(sh[0],h[1])+dd(sh[1],h[0]);
+  const pairs=straight?[[sh[0],h[0]],[sh[1],h[1]]]:[[sh[0],h[1]],[sh[1],h[0]]];
+  for(const pr of pairs){ line(c,pr[0],pr[1],8*S/2,'#0d1208'); line(c,pr[0],pr[1],5.6*S/2,'#5d7d43'); }
+  for(const pr of pairs) circle(c,pr[0][0],pr[0][1],6.4*S/2,'#456030','#0d1208',1.2*S/2);
+  return pairs.map(p=>p[1]);
+}
+function drawHead(c,P,G,S){
+  const bx=G.body[0]*S, by=G.body[1]*S, T=P.turn;
+  circle(c,bx,by,9.5*S/2*1.0,'#171c26','#06080b',1.2*S/2);
+  const f=rot(1,0,T);
+  c.beginPath();c.arc(bx,by,9.5*S/2,T-.75,T+.75);c.lineWidth=2.6*S/2;c.strokeStyle='rgba(230,240,215,.88)';c.lineCap='round';c.stroke();  // the eye slit, the way the head faces
+  circle(c,bx,by,5.2*S/2,'#101520');
+  void f;
+}
+function drawHands(c,hs,S){ for(const p of hs){ circle(c,p[0],p[1],6.6*S/2,'#0d1208'); circle(c,p[0],p[1],5.2*S/2,'#b98c58'); } }
+
+function drawEnemy(c,e,t,S,M){
+  const u=e.hit===null?-1:t-e.hit, k=u<0?0:EASE.eo(clamp(u/MOVES[M].kd));
+  const x=(e.x+e.k[0]*k)*S, y=(e.y+e.k[1]*k)*S, fl=u<0?0:Math.max(0,1-u/.16);
+  circle(c,x,y,e.r*S,fl>0?'rgb('+Math.round(180+75*fl)+','+Math.round(70+170*fl)+','+Math.round(60+170*fl)+')':'#b04a3d','#4a1a14',1.6*S/2);
+  circle(c,x+3*S,y,3.6*S/2,'#2a0f0c'); circle(c,x-2*S,y-4*S,2*S/2,'#2a0f0c'); circle(c,x-2*S,y+4*S,2*S/2,'#2a0f0c');
+  if(u>=0){
+    const v=clamp(u/.3), r=(10+36*EASE.eo(v))*S;
+    c.beginPath();c.arc(x,y,r,0,TAU);c.lineWidth=(3*(1-v)+.6)*S/2;c.strokeStyle=rgba(SAGE,(1-v)*.9);c.stroke();
+    const seed=e.x*3.1+e.y*1.7;
+    for(let i=0;i<7;i++){
+      const a=seed+i*.9+Math.sin(seed*i)*.3, d=(8+26*EASE.eo(clamp(u/.22)))*S, l=(7*(1-clamp(u/.25)))*S;
+      if(u<.25) line(c,[x+Math.cos(a)*d,y+Math.sin(a)*d],[x+Math.cos(a)*(d+l),y+Math.sin(a)*(d+l)],2*S/2,i%3?rgba(SAGE,1-u/.25):'rgba(255,255,255,'+(1-u/.25)+')');
+    }
+    if(u<.7){ c.font='600 '+Math.round(15*S/2)+'px "IBM Plex Mono",monospace';c.textAlign='center';c.fillStyle='rgba(255,246,214,'+clamp(1-u/.7)+')';c.fillText(String(MOVES[M].dmg),x,y-(e.r+8+22*EASE.eo(clamp(u/.5)))*S);}
+  }
+}
+function drawBullets(c,sc,t,S){
+  for(const b of sc.bul){
+    const R=b.R0-b.v*t;
+    if(b.cut!==null&&t>=b.cut){
+      const u=t-b.cut; if(u>.25) continue;
+      const Rc=b.R0-b.v*b.cut, x=b.dir[0]*Rc*S, y=b.dir[1]*Rc*S;
+      for(let i=0;i<5;i++){ const a=i*1.26+b.dir[1], d=(4+16*EASE.eo(u/.25))*S; line(c,[x+Math.cos(a)*d,y+Math.sin(a)*d],[x+Math.cos(a)*(d+4*S),y+Math.sin(a)*(d+4*S)],1.6*S/2,'rgba(255,214,120,'+(1-u/.25)+')'); }
+      continue;
+    }
+    if(R<14) continue;
+    const x=b.dir[0]*R*S, y=b.dir[1]*R*S;
+    circle(c,x,y,7*S/2,'rgba(255,170,40,.28)'); circle(c,x,y,3.6*S/2,'#ffbe3a'); circle(c,x,y,1.6*S/2,'#fff3c8');
+  }
+}
+
+/* the trail and the per-move effects, all worked out from the pose at earlier times */
+function drawTrail(c,o,sc,tm,S){
+  const M=MOVES[sc.move], tw=M.trail; if(tw[0]>tw[1]) return;
+  if(o.look==='ribbon'){
+    const N=18, step=.008; c.globalCompositeOperation='lighter';
+    let prev=null;
+    for(let i=0;i<=N;i++){
+      const ts=tm-i*step; if(ts<tw[0]||ts>tw[1]){prev=null;continue;}
+      const G=geom(poseAt(sc.move,ts)), tip=G.tip, inn=G.at(H-52);
+      if(prev){
+        const spd=Math.hypot(prev.tip[0]-tip[0],prev.tip[1]-tip[1]), a=Math.pow(1-i/N,1.5)*clamp(spd/9);
+        c.beginPath();c.moveTo(...W(prev.tip,S));c.lineTo(...W(tip,S));c.lineTo(...W(inn,S));c.lineTo(...W(prev.inn,S));c.closePath();
+        c.fillStyle=rgba(SAGE,.5*a);c.fill();
+        line(c,W(prev.tip,S),W(tip,S),3.2*S/2,rgba([245,255,230],.85*a));
+      }
+      prev={tip:tip,inn:inn};
+    }
+    c.globalCompositeOperation='source-over';
+  }else{
+    c.globalCompositeOperation='lighter';
+    for(let i=3;i>=1;i--){
+      const ts=tm-i*.03; if(ts<tw[0]||ts>tw[1]) continue;
+      const G=geom(poseAt(sc.move,ts)); drawStaff(c,G,S,.4-.1*i,SAGE);
+    }
+    let prev=null;
+    for(let i=0;i<=12;i++){ const ts=tm-i*.008; if(ts<tw[0]||ts>tw[1]){prev=null;continue;} const tip=geom(poseAt(sc.move,ts)).tip; if(prev) line(c,W(prev,S),W(tip,S),2.2*S/2,rgba([240,255,225],.7*(1-i/12))); prev=tip; }
+    c.globalCompositeOperation='source-over';
+  }
+}
+function drawFx(c,o,sc,tm,S){
+  const mv=sc.move, P=poseAt(mv,tm), G=geom(P);
+  if(mv==='jab'){
+    if(tm>.1&&tm<.3){
+      const u=clamp((tm-.14)/.2), tip=W(G.tip,S);
+      if(tm>.12){ c.beginPath();c.arc(tip[0],tip[1],(8+30*EASE.eo(u))*S/2,0,TAU);c.lineWidth=3*S/2*(1-u)+.5;c.strokeStyle=rgba(SAGE,.9*(1-u));c.stroke();
+        c.beginPath();c.arc(tip[0],tip[1],(4+16*EASE.eo(u))*S/2,0,TAU);c.lineWidth=1.6*S/2;c.strokeStyle='rgba(255,255,255,'+(.8*(1-u))+')';c.stroke(); }
+      const a=clamp((tm-.1)/.06)*clamp(1-(tm-.16)/.1);
+      for(const y of [-9,0,9]) line(c,W([G.body[0]-18,G.body[1]+y],S),W([G.body[0]-18-30*a,G.body[1]+y],S),1.8*S/2,'rgba(255,255,255,'+(.35*a)+')');
+    }
+  }
+  if(mv==='spin'&&tm>.5&&tm<.8){
+    const u=clamp((tm-.5)/.28);
+    c.beginPath();c.arc(G.body[0]*S,G.body[1]*S,(70+34*EASE.eo(u))*S,0,TAU);c.lineWidth=(3.4*(1-u)+.5)*S/2;c.strokeStyle=rgba(SAGE,.8*(1-u));c.stroke();
+  }
+  if(mv==='shove'&&tm>.04&&tm<.5){
+    const ph=P.lat, front=-ph, a=clamp(1-Math.max(0,tm-.39)/.1)*(tm<.1?.35:1);
+    const L=W([G.c[0]-G.d[0]*50,G.c[1]-G.d[1]*50],S), R=W([G.c[0]+G.d[0]*50,G.c[1]+G.d[1]*50],S);
+    c.globalCompositeOperation='lighter';
+    line(c,L,R,18*S/2*a+2,rgba(SAGE,.22*a)); line(c,L,R,7*S/2*a+1,rgba(SAGE,.35*a)); line(c,L,R,2*S/2,'rgba(255,255,255,'+.8*a+')');
+    c.globalCompositeOperation='source-over';
+    const landed=tm-.12;
+    if(landed>0){
+      const wv=EASE.eo(clamp(landed/.35)), ctr=[G.body[0]+front-70,G.body[1]];
+      for(let i=0;i<3;i++){
+        const kk=clamp(wv*1.15-i*.12), r=70+18*(i+1)*kk+6*i, al=(.75-.2*i)*(1-clamp(landed/.45));
+        if(al>.01){ c.beginPath();c.arc(ctr[0]*S,ctr[1]*S,r*S,-.62,.62);c.lineWidth=(3.5-i*.6)*S/2;c.strokeStyle=rgba(SAGE,al);c.stroke(); }
+      }
+    }
+  }
+}
+function drawArea(c,mv,S){
+  c.setLineDash([6,5]);c.lineWidth=1.2;c.strokeStyle='rgba(200,215,190,.45)';c.fillStyle='rgba(200,215,190,.05)';
+  c.beginPath();
+  if(mv==='slash'){c.moveTo(0,0);c.arc(0,0,105*S,-65*Math.PI/180,65*Math.PI/180);c.closePath();}
+  else if(mv==='jab'){c.rect(0,-14*S,140*S,28*S);}
+  else if(mv==='spin'){c.arc(0,0,100*S,0,TAU);}
+  else if(mv==='shove'){c.rect(0,-50*S,78*S,100*S);}
+  c.fill();c.stroke();c.setLineDash([]);
+}
+function drawPips(c,n,t,S){
+  const ox=-14*S, oy=-34*S;
+  c.fillStyle='rgba(0,0,0,.4)';c.fillRect(ox-9*S,oy-6*S,46*S,12*S);
+  for(let i=0;i<3;i++){
+    const lit=i<n, fin=(i===2&&n===2), pu=.5+.5*Math.sin(t*12);
+    if(fin){c.beginPath();c.arc(ox+i*14*S,oy,(6+2*pu)*S,0,TAU);c.lineWidth=1.8*S/2;c.strokeStyle=rgba(SAGE,.5+.4*pu);c.stroke();}
+    circle(c,ox+i*14*S,oy,(i===2?4.5:3.5)*S,lit?rgba(SAGE,1):rgba(SAGE,.25));
+  }
+}
+
+/* one picture of the scene: `sc` is the scenario, `t` the time in it (seconds), `o` the options */
+function drawScene(c,sc,t,o,view){
+  const S=view.S, tm=t-sc.lead, mv=sc.move, M=MOVES[mv];
+  c.save();c.translate(view.ox,view.oy);
+  // floor
+  c.fillStyle='rgba(180,200,170,.07)';
+  for(let gx=-12;gx<=12;gx++)for(let gy=-8;gy<=8;gy++) c.fillRect((gx*60-1)*S/2,(gy*60-1)*S/2,2*S/2,2*S/2);
+  if(o.area) drawArea(c,mv,S);
+  for(const e of sc.en) drawEnemy(c,e,t,S,mv);
+  drawBullets(c,sc,t,S);
+  const P=poseAt(mv,tm), G=geom(P), P2=poseAt(mv,tm-.02), lungeSpd=(P.bx-P2.bx)/.02;
+  o.speed=lungeSpd; o.dir=(P.turn-P2.turn);
+  drawTrail(c,o,sc,tm,S);
+  if(o.model==='today'){
+    circle(c,G.body[0]*0+0,0,16*S,'#2a3140','#0c0f14',1.6*S/2);
+    const tw=M.trail;
+    if(mv==='shove'){ if(tm>=.1&&tm<.4){ const f=EASE.eo(clamp((tm-.1)/.1)); line(c,[ (18+54*f)*S,-50*S],[(18+54*f)*S,50*S],4*S/2,'rgba(199,229,158,.9)'); } }
+    else if(tm>=tw[0]&&tm<=tw[1]){ const g=geom(Object.assign({},P,{p:38,bx:0,by:0,lat:0})); line(c,W(g.at(-26),S),W(g.at(102-38),S),4*S/2,'rgba(150,120,80,.95)'); }
+  }else{
+    const hs=drawPlayer(c,P,G,S,{clock:t,speed:lungeSpd,dir:o.dir});
+    drawStaff(c,G,S,1);
+    drawHands(c,hs,S);
+    drawHead(c,P,G,S);
+  }
+  drawFx(c,o,sc,tm,S);
+  if(o.pips!==undefined) drawPips(c,o.pips,t,S);
+  c.restore();
+}
+
+/* ---------- the live stage ---------- */
+const stage=$('stage'), sctx=stage.getContext('2d');
+const st={move:'chain',look:'ribbon',model:'new',area:false,slow:false,paused:reduced,t:reduced?.62:0,scrubbing:false};
+function segments(){
+  const lead=st.move==='chain'?.35:.55, tail=.65, list=(st.move==='chain'?ORDER:[st.move]);
+  let acc=0; return list.map((m,i)=>{const sc=scenario(m,lead), len=lead+MOVES[m].dur+tail, s={sc:sc,start:acc,len:len,i:i};acc+=len;return s;});
+}
+let segs=segments(), total=segs.reduce((a,s)=>a+s.len,0);
+function pipsFor(seg,tm){
+  const m=seg.sc.move, done=tm>=MOVES[m].dur*.5;
+  const before={slash:0,jab:1,spin:2,shove:2}[m], after={slash:1,jab:2,spin:0,shove:0}[m];
+  return tm<0?before:(done?after:before);
+}
+function fit(cv,w,h){
+  const dpr=Math.min(2,window.devicePixelRatio||1), cw=cv.clientWidth||w;
+  const px=Math.round(cw*dpr); if(cv.width!==px){cv.width=px;cv.height=Math.round(px*h/w);}
+  return px/w;
+}
+function renderStage(){
+  const k=fit(stage,1000,430);
+  sctx.setTransform(k,0,0,k,0,0);
+  sctx.clearRect(0,0,1000,430);
+  const g=sctx.createRadialGradient(330,215,40,330,215,640);g.addColorStop(0,'#1c261d');g.addColorStop(1,'#0b100c');
+  sctx.fillStyle=g;sctx.fillRect(0,0,1000,430);
+  let seg=segs[segs.length-1]; for(const s of segs) if(st.t<s.start+s.len){seg=s;break;}
+  const t=st.t-seg.start, tm=t-seg.sc.lead;
+  drawScene(sctx,seg.sc,t,{look:st.look,model:st.model,area:st.area,pips:pipsFor(seg,tm)},{S:2.05,ox:310,oy:215});
+  sctx.font='600 13px "IBM Plex Mono",monospace';sctx.textAlign='left';sctx.fillStyle='rgba(199,229,158,.9)';
+  sctx.fillText(MOVES[seg.sc.move].name.toUpperCase()+(st.move==='chain'?'  '+(seg.i+1)+' / 4':''),18,28);
+  $('tlabel').textContent=Math.max(0,tm).toFixed(2)+' s';
+}
+let last=0;
+function tick(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
+  if(!st.paused&&!st.scrubbing){ st.t+=dt*(st.slow?.25:1); if(st.t>=total) st.t-=total; $('scrub').value=Math.round(st.t/total*1000); }
+  renderStage(); requestAnimationFrame(tick);
+}
+function setGroup(attr,val){document.querySelectorAll('['+attr+']').forEach(b=>b.setAttribute('aria-pressed',b.getAttribute(attr)===val?'true':'false'));}
+document.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('click',()=>{st.move=b.dataset.move;setGroup('data-move',st.move);segs=segments();total=segs.reduce((a,s)=>a+s.len,0);st.t=0;}));
+document.querySelectorAll('[data-look]').forEach(b=>b.addEventListener('click',()=>{st.look=b.dataset.look;setGroup('data-look',st.look);}));
+document.querySelectorAll('[data-model]').forEach(b=>b.addEventListener('click',()=>{st.model=b.dataset.model;setGroup('data-model',st.model);}));
+$('tgArea').addEventListener('change',e=>{st.area=e.target.checked;});
+$('tgSlow').addEventListener('change',e=>{st.slow=e.target.checked;});
+$('pause').addEventListener('click',()=>{st.paused=!st.paused;$('pause').textContent=st.paused?'Play':'Pause';});
+$('pause').textContent=st.paused?'Play':'Pause';
+$('scrub').addEventListener('input',e=>{st.scrubbing=true;st.paused=true;$('pause').textContent='Play';st.t=e.target.value/1000*total;});
+$('scrub').addEventListener('change',()=>{st.scrubbing=false;});
+
+/* ---------- frame-by-frame sheet ---------- */
+const FRAMES={
+ slash:[0,.05,.1,.15,.2,.3], jab:[0,.07,.11,.15,.2,.28], spin:[.04,.14,.26,.38,.56,.78], shove:[.04,.12,.2,.28,.38,.48]
+};
+const films=$('films'), sheet=[];
+for(const m of ORDER){
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML='<h3>'+MOVES[m].name+' <small>'+MOVES[m].dur.toFixed(2)+' s</small></h3><div class="film"></div>';
+  const film=row.querySelector('.film');
+  for(const tm of FRAMES[m]){
+    const fig=document.createElement('figure'), fr=document.createElement('div'), cv=document.createElement('canvas');
+    fr.className='frame';cv.setAttribute('role','img');cv.setAttribute('aria-label',MOVES[m].name+' at '+tm.toFixed(2)+' seconds');
+    fr.appendChild(cv);fig.appendChild(fr);
+    const cap=document.createElement('figcaption');cap.textContent=(tm*1000).toFixed(0)+' ms';fig.appendChild(cap);film.appendChild(fig);
+    sheet.push({cv:cv,m:m,tm:tm});
+  }
+  films.appendChild(row);
+}
+function renderSheet(){
+  for(const f of sheet){
+    const k=fit(f.cv,300,300), c=f.cv.getContext('2d');
+    c.setTransform(k,0,0,k,0,0);
+    const g=c.createRadialGradient(130,150,20,130,150,260);g.addColorStop(0,'#1c261d');g.addColorStop(1,'#0b100c');
+    c.fillStyle=g;c.fillRect(0,0,300,300);
+    const sc=scenario(f.m,.55);
+    drawScene(c,sc,sc.lead+f.tm,{look:st.look,model:st.model,area:false},{S:1.0,ox:92,oy:150});
+  }
+}
+let sheetDirty=true;
+['data-look','data-model'].forEach(a=>document.querySelectorAll('['+a+']').forEach(b=>b.addEventListener('click',()=>{sheetDirty=true;})));
+window.addEventListener('resize',()=>{sheetDirty=true;});
+setInterval(()=>{if(sheetDirty){sheetDirty=false;renderSheet();}},150);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{sheetDirty=true;});
+renderSheet();
+requestAnimationFrame(tick);
+})();
+</script>

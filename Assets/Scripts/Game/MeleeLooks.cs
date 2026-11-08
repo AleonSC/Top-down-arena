@@ -103,7 +103,10 @@ namespace Arena
                 meleeFlip[best.Id] = flip = backPass ? -1f : 1f;
                 alternates = true;
             }
-            seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = alternates ? flip : 1f, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };
+            float sign = alternates ? flip : 1f;
+            if (best.Weapon.Id == WeaponId.Greatsword)
+                sign = best.GreatStep == 2 ? -1f : 1f;  // the return cut sweeps back; the cut and the rend sweep forward (GreatswordLook.cs)
+            seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = sign, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };
             meleeSeen[fx] = seen;
             float now = Time.unscaledTime;
             float st;
@@ -189,6 +192,8 @@ namespace Arena
             var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust, thrust ? MeleeThrustTime + 0.25f : (half >= MathX.Pi - 0.01f ? 0.4f : MeleeSweepTime + 0.28f));
             if (seen == null)
                 return false;
+            if (seen.Weapon == WeaponId.BoStaff)
+                return DrawBoStaffFx(fx, light, seen, thrust ? 1 : half >= MathX.Pi - 0.01f ? 2 : 0, aim, reach);  // BoStaffLook.cs: held in two hands, with the Sage ribbon
             V2 o = MeleeOrigin(fx, seen);
             var col = MeleeColor(seen.Weapon, fx.Color);
             float T = fx.T;
@@ -253,7 +258,7 @@ namespace Arena
             }
             else if (light && moon)
             {
-                KatanaCrescent(o, reach, start, at, T, sweepTime, col, 0.3f, false);  // one long crescent, thin at the tail and fat at the blade
+                KatanaCrescent(o, reach, start, at, T, sweepTime, col, half > 1.5f ? 0.4f : 0.3f, false);  // one long crescent, thin at the tail and fat at the blade (fatter for the overhead rend)
                 KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
             }
             else if (light)
