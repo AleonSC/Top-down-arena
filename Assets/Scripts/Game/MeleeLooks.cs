@@ -189,6 +189,8 @@ namespace Arena
             var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust, thrust ? MeleeThrustTime + 0.25f : (half >= MathX.Pi - 0.01f ? 0.4f : MeleeSweepTime + 0.28f));
             if (seen == null)
                 return false;
+            if (seen.Weapon == WeaponId.BoStaff)
+                return DrawBoStaffFx(fx, light, seen, thrust ? 1 : half >= MathX.Pi - 0.01f ? 2 : 0, aim, reach);  // BoStaffLook.cs: held in two hands, with the Sage ribbon
             V2 o = MeleeOrigin(fx, seen);
             var col = MeleeColor(seen.Weapon, fx.Color);
             float T = fx.T;
