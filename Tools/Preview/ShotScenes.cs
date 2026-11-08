@@ -463,6 +463,16 @@ static partial class Shot {
           if (Environment.GetEnvironmentVariable("STAFFJAB") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.StaffJabReach), -Game.StaffJabArc * MathX.Pi / 360f, 0f, 0.24f);
           else fx(FxKind.Slash, to, Game.StaffSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
           break;
+        case WeaponId.Greatsword:  // GREAT=guard (TEMPER=<n> points held), GREAT=wind (the overhead rend's wind-up, first frame), GREAT=rend (the Rend, TEMPER=<n>), else the cut
+        {
+          string gmode = Environment.GetEnvironmentVariable("GREAT") ?? "cut";
+          int gn = int.Parse(Environment.GetEnvironmentVariable("TEMPER") ?? "3");
+          if (gmode == "guard") { me.GreatGuard = true; me.GreatTemper = (byte)gn; }
+          else if (gmode == "wind") me.GreatStep = 3;
+          else if (gmode == "rend") gm.Effects.Add(new Effect { Kind = FxKind.GreatRend, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.GreatRendReach, Color = col.WithAlpha(0.2f + 0.8f * gn / Game.GreatTemperMax), Radius = Game.GreatRendWidth + Game.GreatRendWidthPer * gn, T = st, Dur = Game.GreatRendFxTime });
+          else { me.GreatStep = 1; fx(FxKind.Slash, to, Game.GreatCutArc * MathX.Pi / 360f, 0f, 0.16f); }
+          break;
+        }
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
         case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)

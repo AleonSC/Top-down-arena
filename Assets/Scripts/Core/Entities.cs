@@ -67,6 +67,8 @@ namespace Arena
         KatanaChain1, KatanaChain2, KatanaChain3, KatanaChain4, KatanaChain5, KatanaEmpReady, KatanaLost, KatanaReady, KatanaEmpty, KatanaAim, KatanaSwitch,
         // The Treant Rod (TreantSoundBank.cs, from Docs/Mockups/treant-rod-sounds-seeds.html): the root lash's leaf rustle, the Treant's seed shot (Pod Pop) and a seed landing (Tick). Sent, so quieter for allies.
         SwingRoot, ShotSeed, ShotSeedHit,
+        // The Greatsword (GreatswordSoundBank.cs): the overhead rend's blade lifting, the guard going up, a bullet stopped on it, Temper full and the Rend. Sent by the host; the wind-up and the Rend use the Weapons volume.
+        GreatWindup, GreatRaise, GreatBlock, GreatFull, GreatRend,
     }
 
     public struct SoundCue
@@ -181,7 +183,7 @@ namespace Arena
         public byte GreatTemper;     // Greatsword: Temper stored while guarding, 0 to 6 (replicated, drawn as pips and on the blade)
         public bool GreatGuard;      // Greatsword: the weapon-action key is held, the guard arc is up (replicated; you move at half speed and can't swing)
         public bool GreatPrimed;     // Greatsword: a full-Temper Rend was fired, so the next chain starts on the overhead rend (replicated)
-        public float GreatGap, GreatLock;  // host: seconds since the last cut; seconds the guard can't go up again after a Rend
+        public float GreatGap, GreatLock, GreatBlockT;  // host: seconds since the last cut; seconds the guard can't go up again after a Rend; a guard clang just sounded (not another for a moment)
         public int RapierStreak;     // Rapier: hits in a row on the same enemy plus bullets skewered, 0 to 6 (replicated, drawn as pips behind you)
         public float MeleeGraceT;   // host: a melee swing just landed: bodies you're touching can't hurt you for a moment (Balance.MeleeContactGrace)
         public float BossContactT;  // host: a boss's body can only hurt you once a second

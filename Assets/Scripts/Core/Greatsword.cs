@@ -26,7 +26,7 @@ namespace Arena
         public const float GreatGuardSlow = 0.5f, GreatGuardLockout = 0.6f;  // your speed while guarding; how soon it can go up again after a Rend
         public const int GreatTemperMax = 6;
         public const float GreatRendBase = 30f, GreatRendPer = 15f, GreatRendReach = 640f, GreatRendWidth = 16f, GreatRendWidthPer = 5f;
-        public const float GreatRendFxTime = 0.5f;
+        public const float GreatRendFxTime = 0.5f, GreatBlockSoundGap = 0.07f;
 
         /// What a Rend of `temper` points deals before your damage upgrades.
         public static float GreatRendDamage(int temper) => GreatRendBase + GreatRendPer * temper;
@@ -42,6 +42,7 @@ namespace Arena
                     return;
                 p.GreatGuard = true;
                 p.GreatTemper = 0;
+                BroadcastSound(Sfx.GreatRaise);
                 return;
             }
             if (!p.GreatGuard)
@@ -73,6 +74,7 @@ namespace Arena
             {
                 p.GreatGap = Math.Min(p.GreatGap + dt, 5f);
                 p.GreatLock = Math.Max(0f, p.GreatLock - dt);
+                p.GreatBlockT = Math.Max(0f, p.GreatBlockT - dt);
                 if (p.Weapon.Id != WeaponId.Greatsword)
                 {
                     p.GreatStep = 0;
@@ -108,6 +110,7 @@ namespace Arena
                     continue;
                 guardStopped.Add(b.Id);
             }
+            bool full = false;
             foreach (int id in guardStopped)
             {
                 Bullet b;
@@ -116,8 +119,18 @@ namespace Arena
                 AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(Defs.KnightSlash), 8f, 0.2f);
                 Bullets.Remove(id);
                 pendingRemoved.Add(id);
-                if (p.GreatTemper < GreatTemperMax)
-                    p.GreatTemper++;
+                if (p.GreatTemper < GreatTemperMax && ++p.GreatTemper == GreatTemperMax)
+                    full = true;
+            }
+            if (full)
+            {
+                BroadcastSound(Sfx.GreatFull);  // Temper is full: a chime
+                p.GreatBlockT = GreatBlockSoundGap;
+            }
+            else if (guardStopped.Count > 0 && p.GreatBlockT <= 0f)
+            {
+                BroadcastSound(Sfx.GreatBlock);  // (a stream of shots rings the arc at most this often)
+                p.GreatBlockT = GreatBlockSoundGap;
             }
         }
 

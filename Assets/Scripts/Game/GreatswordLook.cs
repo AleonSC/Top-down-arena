@@ -9,6 +9,8 @@ namespace Arena
     ///     each sweeps (the return cut goes back), and DrawSteelWallFx (WorldEffects.cs) hangs each crescent the same way;
     ///   - the chain shows as three diamonds behind you (DrawGreatPips), the Temper as six, gold when full or when the next chain
     ///     starts on the rend;
+    ///   - the overhead rend's wind-up (the host delays the cut by GreatRendWind): seen as the owner's GreatStep turning to 3, the blade
+    ///     swings back from the aim to where the cut will start while a ring tightens round them (DrawGreatWindup);
     ///   - the guard is a glassy 120 degree arc in front of you (DrawGreatGuard) that brightens where a bullet died on it;
     ///   - the Rend (FxKind.GreatRend: Pos to Pos2 along the aim, Radius half its width, the colour's alpha its Temper) is a lance
     ///     of light with a crescent head and a trail of fading ones, wider for every point of Temper and gold at six.
@@ -50,6 +52,39 @@ namespace Arena
             }
             greatWallSign[fx] = sign;
             return sign;
+        }
+
+        readonly Dictionary<int, byte> greatStepSeen = new Dictionary<int, byte>();
+        readonly Dictionary<int, float> greatWindAt = new Dictionary<int, float>();
+
+        /// The overhead rend's wind-up: the blade swings back to where the cut starts and a ring tightens round the swordsman, for the
+        /// GreatRendWind the host waits before the cut lands (the sweep's own effect takes over from the last pose).
+        void DrawGreatWindup(Player p)
+        {
+            byte prev;
+            greatStepSeen.TryGetValue(p.Id, out prev);
+            greatStepSeen[p.Id] = p.GreatStep;
+            float now = Time.unscaledTime, at;
+            if (p.GreatStep == 3 && prev != 3 && !p.Downed)
+                greatWindAt[p.Id] = now;
+            if (!fxOn || p.Downed || p.GreatStep != 3 || !greatWindAt.TryGetValue(p.Id, out at))
+                return;
+            float u = (now - at) / Game.GreatRendWind;
+            if (u < 0f || u > 1.4f)
+                return;
+            float uc = Mathf.Clamp01(u), e = uc * uc * (3f - 2f * uc), half = Game.GreatRendArc * MathX.Pi / 360f;
+            V2 o = p.Disp;
+            float st;
+            if (!(swingTo.TryGetValue(p.Id, out st) && st > now))
+                swingFrom[p.Id] = now;
+            swingTo[p.Id] = now + 0.1f;  // the held sword phases out while this one is drawn (MeleeLooks.cs)
+            if (u < 1f)
+            {
+                Arc(o, 60f - 34f * e, 2.5f, GreatMoon.WithAlpha(0.2f + 0.5f * e), 24);
+                GlowDisc(o, 70f, GreatMoon, 0.18f * e);
+            }
+            float ang = p.Aim - Mathf.Lerp(0f, half + 0.2f, e);
+            DrawMeleeModel(WeaponId.Greatsword, o, ang, Game.MeleeReach(p, p.Weapon.Reach), 1f, GreatMoon, u > 0.7f, 1f, ArmColor(p.Id));
         }
 
         /// The chain's three diamonds, or the Temper's six, on an arc behind you.

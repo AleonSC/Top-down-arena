@@ -227,6 +227,7 @@ namespace Arena
                     if (step == 3)
                     {
                         s.Delay = GreatRendWind;  // the blade goes up first
+                        BroadcastSound(Sfx.GreatWindup);
                         s.Knock = GreatRendKnock;
                         s.Waves = extra;
                         s.WaveDmg = GreatWaveDmg * dmg;
@@ -405,7 +406,7 @@ namespace Arena
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
                 BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (s.Rend)  // the Greatsword's Rend: a lance of light (Game/GreatswordLook.cs); Radius is its half width, the colour's alpha is its Temper
-                BroadcastFx(FxKind.GreatRend, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash).WithAlpha(0.2f + 0.8f * s.Power), s.HalfWidth, GreatRendFxTime, Sfx.SwingHeavy);
+                BroadcastFx(FxKind.GreatRend, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash).WithAlpha(0.2f + 0.8f * s.Power), s.HalfWidth, GreatRendFxTime, Sfx.GreatRend);
             else if (box && p.Weapon.Id == WeaponId.BoStaff)  // the Bo Staff's jab: a thrust, drawn like the Rapier's (MeleeLooks.cs)
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), -0.3f, 0.24f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (box)
