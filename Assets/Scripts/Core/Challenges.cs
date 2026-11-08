@@ -233,13 +233,15 @@ namespace Arena
                     if (p.Pos.DistanceTo(PortalPos) < Challenges.PortalR)
                         inside++;
                 }
-            if (inside > 0 && alive > 0)
+            if (AnyonePicking())
+                PortalFill = Math.Max(0f, PortalFill - dt * 0.6f);  // someone's upgrade cards are up: the gate can't be entered yet
+            else if (inside > 0 && alive > 0)
                 PortalFill += dt / Challenges.PortalFillTime * (0.35f + 0.65f * inside / alive);
             else
                 PortalFill = Math.Max(0f, PortalFill - dt * 0.6f);
             if (inside < alive)
                 PortalFill = Math.Min(PortalFill, 0.95f);  // everyone goes, or nobody
-            if (PortalFill >= 1f)
+            if (PortalFill >= 1f && !AnyonePicking())
             {
                 EnterRoom();
                 return;

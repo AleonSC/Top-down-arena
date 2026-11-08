@@ -676,7 +676,7 @@ wave, everyone gets a shop before the boss:
 Once in every five waves a **Data Gate** opens during the break: a dark disc of scrolling data in the challenge's colour, ringed by turning dashes, with a ring of pips that lights as the party steps in. It never opens under a wall, pillar or crate: after the 1st, 2nd or 3rd wave of each stretch
 (in the first stretch after wave 2 or 3), so never right before a boss. A card over it names the challenge on the
 other side. Everyone alive stands in it to go through: it fills faster the more of you are in it, but only goes
-when you all are. The break's countdown waits while it's open; ignore it for 15 s (counting only while nobody's
+when you all are, and not while anyone still has upgrade cards to pick (it drains until they have). The break's countdown waits while it's open; ignore it for 15 s (counting only while nobody's
 choosing cards) and it closes, and the run carries on as usual.
 
 Through the Data Gate is a **challenge**: the same arena with its own ground (a tint in the challenge's colour, a
