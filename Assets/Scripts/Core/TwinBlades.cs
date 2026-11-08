@@ -62,7 +62,9 @@ namespace Arena
                     break;
                 case 4:
                     TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, Sfx.SwingLight);
-                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.7f, Sfx.SwingLight);
+                    var spin = TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.7f, Sfx.SwingLight);
+                    spin.Waves = extra;  // the +1 upgrade: the Pirouette throws crescents too
+                    spin.WaveDmg = w.Damage * dmg * TwinWaveMult;
                     break;
                 default:
                 {
