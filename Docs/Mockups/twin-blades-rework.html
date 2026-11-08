@@ -65,6 +65,11 @@ tr.alt td{background:color-mix(in srgb,var(--accent) 9%,transparent)}
 .cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
 .cell p{margin:0;font-size:14.5px;color:var(--muted)}
 .swords canvas{aspect-ratio:340/300}
+.lead{margin:0 0 16px;max-width:70ch;color:var(--muted)}
+.idea{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
+.idea.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.idea .why{font-size:14px;color:var(--fg)}
+.idea .use{align-self:flex-start;margin-top:auto}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
 .card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
 .card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
@@ -94,10 +99,17 @@ code{font:500 13px var(--mono)}
     <label class="tg"><input type="checkbox" id="tgShots" checked> Enemy shots</label>
     <button type="button" id="pause">Pause</button>
   </div>
+  <div class="bar"><span class="sub">ALT ATTACK</span><div class="chips" role="group" aria-label="Alt attack" id="alts"></div></div>
   <div class="frame"><canvas id="stage" tabindex="0" aria-label="The Knight using the Twin Blades chain"></canvas></div>
   <div class="scrub" id="scrubRow"><span class="sub" id="tlabel">0.00 s</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the replay"></div>
   <p class="help" id="tryHelp" hidden><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move, aim with the mouse. <b>Click</b> (or hold) to attack: each click is the next step, and the chain starts over 0.7 s after you stop. <b>Right-click</b> or <kbd>Space</kbd> for the alt attack. Click the arena first so it gets the keys.</p>
   <div class="touch" id="touch" hidden><button type="button" id="tAtk">Attack</button><button type="button" id="tAlt">Alt attack</button></div>
+</section>
+
+<section>
+  <h2>Alt attack ideas</h2>
+  <p class="lead">Five new alts for the weapon-action key. Each one works with any of the three chains and uses the swords of the rework picked above. Pick one in the chips over the arena (or with its button here) to watch it in the full replay or play it in Try it.</p>
+  <div class="grid3" id="altIdeas"></div>
 </section>
 
 <section class="two">
@@ -248,15 +260,52 @@ storm:{name:'Storm Edge',short:'Reverse-grip wind-cutters. Hook cuts, a turning 
 const ORDER=['tempo','waltz','storm'];
 let cur='tempo';
 
+/* ---------- alt attack ideas: each works with any of the three chains ---------- */
+const ALTS={
+riposte:{name:'Riposte Stance',hand:'Alt',cd:4,dur:.95,next:1,tagline:'Counter',
+ desc:'cross both blades in front for 0.55 s. Every bullet that hits the guard is caught, then you throw an X-shaped cut forward that pierces: 25, plus 15 per bullet caught. Caught nothing: a small cut for 20',
+ pitch:'A counter. It asks you to stand in front of the bullets instead of dodging them, and it pays off most in a bullet-heavy wave. Red aimed shots could stay uncatchable, as with the Greatsword guard.',
+ keys:[{t:.1,p:P(-.4,17,-1.05,.4,17,1.05,0,-2)},{t:.64,p:P(-.35,18,-1.0,.35,18,1.0,0,-4)},{t:.76,p:P(1.5,21,2.4,-1.5,21,-2.4,0,10),e:'eo'},{t:1,p:P(1.2,19,1.8,-1.2,19,-1.8,0,11),e:'eo'}],
+ hits:[{k:'parry',t0:.1,t1:.64,arc:1.05,base:25,per:15,miss:20,fire:.7}],
+ script:['atk','atk','atk','w1.5','alt','atk','atk','w1.1'],stripScript:['w1.0','alt','w.6'],shots:true},
+shadow:{name:'Shadow Step',hand:'Alt',cd:4,dur:.6,next:1,tagline:'Assassin',
+ desc:'vanish and reappear behind the nearest enemy in front (up to 260 px), then drive both blades into its back for 40, doubled on an enemy under half health',
+ pitch:'An assassin\'s opener. It puts you on the target you pick through a crowd, and it is the best way to finish a wounded elite. There is no path, so nothing in between is hit.',
+ keys:[{t:.18,p:P(.9,14,2.6,-.9,14,-2.6,0,-3)},{t:.24,p:P(.6,13,.4,-.6,13,-.4,0,0)},{t:.46,p:P(.14,34,.04,-.14,34,-.04,0,6),e:'eo'},{t:1,p:P(.45,22,.25,-.45,22,-.25,0,8),e:'eo'}],
+ hits:[{k:'blink',t:.2,range:260,behind:30},{k:'line',t:.44,len:62,w:32,dmg:40,kb:22,exec:true}],
+ script:['atk','atk','atk','atk','atk','w.5','alt','atk','atk','w1.0'],stripScript:['alt','w.6']},
+launch:{name:'Rising Crescent',hand:'Alt',cd:3.5,dur:.44,next:1,tagline:'Launcher',
+ desc:'a rising cross cut from the hips: 18 per blade, and everything it hits is thrown up for 1 s, unable to move or shoot. Your hits on a thrown enemy deal 50% more',
+ pitch:'A combo starter. Lift a group, then run the rest of the chain through them while they hang in the air. On its own it is a light hit, so the payoff is in what follows.',
+ keys:[{t:.35,p:P(1.9,12,2.9,-1.9,12,-2.9,0,-4)},{t:.62,p:P(-.25,26,-.3,.25,26,.3,0,10),e:'eo'},{t:1,p:P(-.15,22,-.12,.15,22,.12,0,11),e:'eo'}],
+ hits:[{k:'blade',hand:'R',t0:.4,t1:.62,dmg:18,kb:4,launch:1},{k:'blade',hand:'L',t0:.4,t1:.62,dmg:18,kb:4,launch:1}],
+ script:['atk','atk','w.5','alt','atk','atk','atk','w1.1'],stripScript:['alt','atk','atk','w.6']},
+orbit:{name:'Spectral Blades',hand:'Alt',cd:9,dur:.42,next:1,tagline:'Buff',
+ desc:'raise both blades and two ghost swords peel off them to circle you for 4 s, 60 px out: 6 to each enemy they touch (at most every 0.25 s), and they cut small bullets. You keep your chain the whole time',
+ pitch:'A buff, not a burst. It roughly doubles your damage in a crowd for four seconds and puts a bullet screen round you while you keep attacking. It suits players who stay in melee.',
+ keys:[{t:.4,p:P(-.3,15,-1.3,.3,15,1.3)},{t:.7,p:P(1.4,21,1.9,-1.4,21,-1.9),e:'eo'},{t:1,p:P(1.1,19,1.4,-1.1,19,-1.4),e:'eo'}],
+ hits:[{k:'orbit',t:.62,life:4,rad:60,dmg:6,every:.25,spin:6.5}],
+ script:['alt','atk','atk','atk','atk','atk','w1.8'],stripScript:['alt','atk','atk','w1.6'],shots:true},
+charge:{name:'Cross Draw',hand:'Alt',cd:5,dur:1.2,next:1,hold:true,holdFrom:.1,releaseAt:.7,charge:true,tagline:'Charged shot',
+ desc:'hold to draw both blades back behind you (full draw at 0.7 s); let go to cut a cross that flies 330 px forward and pierces: 30, rising to 90 and twice as wide at full draw',
+ pitch:'A charged shot for a melee weapon. You trade the chain\'s pace for one big hit at range, and how long you hold it is a choice you make between dodges.',
+ keys:[{t:.1,p:P(2.3,13,2.95,-2.3,13,-2.95,0,-4)},{t:.7,p:P(2.42,12,3.02,-2.42,12,-3.02,0,-6),e:'lin'},{t:.8,p:P(-.75,26,-1.15,.75,26,1.15,0,14),e:'eo'},{t:1,p:P(-.6,22,-.9,.6,22,.9,0,15),e:'eo'}],
+ hits:[{k:'xwave',t:.76,min:30,max:90,speed:560,life:.6}],
+ script:['atk','atk','atk','atk','atk','w.5','alt','w1.0'],stripScript:['alt','w.6']}
+};
+const ALT_ORDER=['riposte','shadow','launch','orbit','charge'];
+let curAlt='own';
+function altOf(ck,ak){ return ak&&ak!=='own'?ALTS[ak]:CONCEPTS[ck].alt }
+
 /* ---------- the simulation (replays, the strip and Try it all run it) ---------- */
 const FOE_R=13, FOE_HP=160, DT=1/120;
 function Sim(ck,opt){
-  this.C=CONCEPTS[ck]; this.opt=opt; this.reset() }
+  this.C=CONCEPTS[ck]; this.A=altOf(ck,opt.alt); this.opt=opt; this.reset() }
 Sim.prototype.reset=function(){
   const o=this.opt;
   this.t=0; this.seed=1;
-  this.pl={x:o.px,y:o.py,aim:0,step:null,k:-1,tt:0,from:null,idle:9,rec:this.C.ready,chain:0,cd:0,buf:null,inst:0,lock:0,altHeld:false,throwInfo:null};
-  this.foes=o.foes.map((f,i)=>({hx:f[0],hy:f[1],x:f[0],y:f[1],vx:0,vy:0,hp:FOE_HP,flash:0,dead:-1,mark:null,hitBy:{},i,shooter:!!f[2],fire:.3+i*.13}));
+  this.pl={orbit:null,x:o.px,y:o.py,aim:0,step:null,k:-1,tt:0,from:null,idle:9,rec:this.C.ready,chain:0,cd:0,buf:null,inst:0,lock:0,altHeld:false,throwInfo:null};
+  this.foes=o.foes.map((f,i)=>({hx:f[0],hy:f[1],x:f[0],y:f[1],vx:0,vy:0,hp:FOE_HP,flash:0,dead:-1,mark:null,air:null,hitBy:{},i,shooter:!!f[2],fire:f[3]!=null?f[3]:.3+i*.13}));
   this.fx=[]; this.nums=[]; this.waves=[]; this.bullets=[]; this.trail={R:[],L:[],TR:[],TL:[]}; this.ghosts=[]; this.shake=0;
   this.si=0; this.wait=0; this.label=null };
 Sim.prototype.rand=function(){return rnd(this.seed++ *1.37)};
@@ -278,19 +327,19 @@ function segDist(p,a,b){ const dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1; cons
 
 Sim.prototype.start=function(S,k){
   const p=this.pl, o=this.pose(); const from=Object.assign({},o); from.fx=0; from.sp=((o.sp%TAU)+TAU+Math.PI)%TAU-Math.PI;
-  if(p.step&&p.step.alt&&this.C.alt.hits[0].k==='throw'&&p.throwInfo) p.throwInfo=null;
-  p.step=S; p.k=k; p.tt=0; p.from=from; p.lastFx=0; p.inst++; p.buf=null; p.throwInfo=null; p.tick=0;
+  p.step=S; p.k=k; p.tt=0; p.from=from; p.lastFx=0; p.inst++; p.buf=null; p.throwInfo=null; p.tick=0; p.parry=0; p.charge=1;
   if(this.opt.aimFn) p.aim=this.opt.aimFn(p);
   this.label={name:S.alt?S.name:(k+1)+' · '+S.name,t:this.t,alt:!!S.alt};
   this.sfxStart&&this.sfxStart(S) };
 Sim.prototype.press=function(kind){ this.pl.buf=kind };
-Sim.prototype.forceStep=function(k){ const S=k===5?Object.assign({alt:true},this.C.alt):this.C.steps[k]; this.start(S,k); if(k===5) this.pl.cd=0 };
+Sim.prototype.forceStep=function(k){ const S=k===5?Object.assign({alt:true},this.A):this.C.steps[k]; this.start(S,k); if(k===5) this.pl.cd=0 };
 
 Sim.prototype.hitFoe=function(f,dmg,ang,kb,big,kind){
   if(f.dead>=0) return;
+  let air=false; if(f.air!=null&&this.t-f.air<1){ dmg=Math.round(dmg*1.5); air=true }
   f.hp-=dmg; f.flash=.07; f.vx+=Math.cos(ang)*kb*9; f.vy+=Math.sin(ang)*kb*9;
   this.fx.push({k:'hit',x:f.x,y:f.y,ang,t0:this.t,seed:this.seed++,big});
-  this.nums.push({x:f.x+(this.rand()-.5)*10,y:f.y-16,v:dmg,t0:this.t,big:dmg>=30});
+  this.nums.push({x:f.x+(this.rand()-.5)*10,y:f.y-16-(air?20:0),v:dmg,t0:this.t,big:dmg>=30||air,air});
   this.shake=Math.max(this.shake,big?3:1.2);
   if(f.hp<=0){ f.dead=this.t; this.fx.push({k:'pop',x:f.x,y:f.y,t0:this.t}) } };
 
@@ -308,7 +357,7 @@ Sim.prototype.tick=function(dt){
   if(p.buf){
     const canAlt=p.buf==='alt'&&p.cd<=0&&!(p.step&&p.step.alt);
     if(p.buf==='alt'&&!canAlt&&!(p.step&&p.step.alt)&&p.cd>0) p.buf=null;
-    else if(canAlt){ const S=Object.assign({alt:true},C.alt); this.start(S,5); p.cd=C.alt.cd; if(C.alt.chainTo!=null) p.chain=C.alt.chainTo; p.idle=0 }
+    else if(canAlt){ const A=this.A, S=Object.assign({alt:true},A); this.start(S,5); p.cd=A.cd; if(A.chainTo!=null) p.chain=A.chainTo; p.idle=0 }
     else if(p.buf==='atk'&&(!p.step||(!p.step.alt&&p.tt/p.step.dur>=p.step.next&&p.step.next<1)||(p.step&&p.tt>=p.step.dur))){
       if(!p.step&&p.idle>.7) p.chain=0;
       const k=p.chain; this.start(C.steps[k],k); p.chain=(k+1)%5 }
@@ -316,7 +365,7 @@ Sim.prototype.tick=function(dt){
   /* advance the move */
   if(p.step){
     const S=p.step; p.tt+=dt;
-    if(S.hold&&!p.altHeld&&p.tt/S.dur<.92&&p.tt/S.dur>.3) p.tt=Math.max(p.tt,.92*S.dur);
+    if(S.hold&&!p.altHeld){ const ra=S.releaseAt||.92, hf=S.holdFrom||.3, uu=p.tt/S.dur; if(uu<ra&&uu>hf){ p.charge=clamp((uu-hf)/(ra-hf)); p.tt=ra*S.dur } }
     const o=this.pose(), d=o.fx-p.lastFx; p.lastFx=o.fx;
     p.x+=Math.cos(p.aim)*d; p.y+=Math.sin(p.aim)*d;
     if(this.opt.bounds){ const B=this.opt.bounds; p.x=clamp(p.x,B[0],B[2]); p.y=clamp(p.y,B[1],B[3]) }
@@ -325,25 +374,31 @@ Sim.prototype.tick=function(dt){
     if(S.ghost||(S.hits[0]&&S.hits[0].k==='dash')){ if(!this.lastGhost||this.t-this.lastGhost>.028){ this.lastGhost=this.t; this.ghosts.push({x:p.x,y:p.y,aim:p.aim,o:Object.assign({},o),t0:this.t}) } }
     if(p.tt>=S.dur){ p.rec=Object.assign({},o); p.rec.sp=((o.sp%TAU)+TAU+Math.PI)%TAU-Math.PI; p.step=null; p.idle=0; p.throwInfo=null }
   } else p.idle+=dt;
+  /* spectral blades circling the player */
+  if(p.orbit){ const ob=p.orbit, age=this.t-ob.t0; if(age>ob.life) p.orbit=null; else this.orbitSegs().forEach(g=>{
+    this.foes.forEach(f=>{ if(f.dead>=0) return; const l=ob.last[f.i]; if(l!=null&&this.t-l<ob.every) return; if(segDist([f.x,f.y],g.b0,g.b1)<FOE_R+3){ ob.last[f.i]=this.t; this.hitFoe(f,ob.dmg,g.a,4,false) } });
+    this.bullets.forEach(b=>{ if(!b.dead&&segDist([b.x,b.y],g.b0,g.b1)<8){ b.dead=this.t; this.fx.push({k:'cut',x:b.x,y:b.y,t0:this.t,seed:this.seed++}) } }) }) }
   /* trails */
   const o=this.pose(), S=p.step, u=S?p.tt/S.dur:0;
   ['R','L'].forEach(h=>{ const g=this.bladeSeg(o,h); let hot=false;
-    if(S){ S.hits.forEach(hh=>{ if((hh.k==='blade'&&(hh.hand===h)&&u>=hh.t0-.04&&u<=hh.t1+.02)||(hh.k==='line'&&(!hh.hand||hh.hand===h)&&Math.abs(u-hh.t)<.09)||(hh.k==='dash'&&u>=hh.t0&&u<=hh.t1)||(hh.k==='ring'&&u>.4&&u<=hh.t+.02)) hot=true }) }
+    if(S){ S.hits.forEach(hh=>{ if((hh.k==='blade'&&(hh.hand===h)&&u>=hh.t0-.04&&u<=hh.t1+.02)||(hh.k==='line'&&(!hh.hand||hh.hand===h)&&Math.abs(u-hh.t)<.09)||(hh.k==='dash'&&u>=hh.t0&&u<=hh.t1)||(hh.k==='ring'&&u>.4&&u<=hh.t+.02)||(hh.k==='xwave'&&u>.7&&u<.83)||(hh.k==='parry'&&u>hh.fire-.06&&u<hh.fire+.08)) hot=true }) }
     if(p.throwInfo) hot=false;
     if(S&&S.hits[0].k==='tick'&&u>.08&&u<.92) hot='tip';
     this.trail[h].push({t:this.t,tip:g.b1,base:g.m,hot}); while(this.trail[h].length&&this.t-this.trail[h][0].t>.2) this.trail[h].shift() });
   /* foes */
   this.foes.forEach(f=>{
-    if(f.dead>=0){ if(this.t-f.dead>1.1){ f.dead=-1; f.hp=FOE_HP; f.x=f.hx; f.y=f.hy; f.vx=f.vy=0; f.hitBy={}; f.mark=null; f.born=this.t } return }
+    if(f.dead>=0){ if(this.t-f.dead>1.1){ f.dead=-1; f.air=null; f.hp=FOE_HP; f.x=f.hx; f.y=f.hy; f.vx=f.vy=0; f.hitBy={}; f.mark=null; f.born=this.t } return }
     f.x+=f.vx*dt; f.y+=f.vy*dt; f.vx*=Math.pow(.0005,dt); f.vy*=Math.pow(.0005,dt);
     f.x+=(f.hx-f.x)*dt*.8; f.y+=(f.hy-f.y)*dt*.8;
     if(f.flash>0) f.flash-=dt;
     if(f.mark&&this.t-f.mark.t0>=.5){ const m=f.mark; f.mark=null; this.fx.push({k:'xburst',x:f.x,y:f.y,t0:this.t}); this.hitFoe(f,m.dmg,m.ang,6,true) }
-    if(f.shooter&&this.opt.shots&&this.opt.shots()){ f.fire-=dt; if(f.fire<=0){ f.fire=.55; const a=Math.atan2(p.y-f.y,p.x-f.x)+(this.rand()-.5)*.25;
-      this.bullets.push({x:f.x+Math.cos(a)*16,y:f.y+Math.sin(a)*16,vx:Math.cos(a)*170,vy:Math.sin(a)*170,t0:this.t}) } } });
+    if(f.shooter&&!(f.air!=null&&this.t-f.air<1)&&this.opt.shots&&this.opt.shots()){ f.fire-=dt; if(f.fire<=0){ f.fire=.55; const a=Math.atan2(p.y-f.y,p.x-f.x)+(this.rand()-.5)*.25;
+      this.bullets.push({x:f.x+Math.cos(a)*16,y:f.y+Math.sin(a)*16,vx:Math.cos(a)*230,vy:Math.sin(a)*230,t0:this.t}) } } });
   /* waves */
   this.waves=this.waves.filter(w=>{ w.x+=Math.cos(w.a)*w.sp*dt; w.y+=Math.sin(w.a)*w.sp*dt; const age=this.t-w.t0; if(age>w.life) return false;
     const R=34+age*40;
+    if(w.shape==='x'){ const rr=24*w.size; this.foes.forEach(f=>{ if(f.dead<0&&!w.hit[f.i]&&Math.hypot(f.x-w.x,f.y-w.y)<rr+FOE_R){ w.hit[f.i]=1; this.hitFoe(f,w.dmg,w.a,12,true) } });
+      this.bullets.forEach(b=>{ if(!b.dead&&Math.hypot(b.x-w.x,b.y-w.y)<rr){ b.dead=this.t; this.fx.push({k:'cut',x:b.x,y:b.y,t0:this.t,seed:this.seed++}) } }); return true }
     this.foes.forEach(f=>{ if(f.dead>=0||w.hit[f.i]) return; const dx=f.x-(w.x-Math.cos(w.a)*R*.6), dy=f.y-(w.y-Math.sin(w.a)*R*.6), dd=Math.hypot(dx,dy), an=Math.atan2(dy,dx)-w.a;
       const na=Math.atan2(Math.sin(an),Math.cos(an)); if(Math.abs(dd-R*.6)<FOE_R+10&&Math.abs(na)<1.0||Math.hypot(f.x-w.x,f.y-w.y)<FOE_R+14){ w.hit[f.i]=1; this.hitFoe(f,w.dmg,w.a,10,true) } });
     this.bullets.forEach(b=>{ if(!b.dead&&Math.hypot(b.x-w.x,b.y-w.y)<30){ b.dead=this.t; this.fx.push({k:'cut',x:b.x,y:b.y,t0:this.t,seed:this.seed++}) } });
@@ -363,10 +418,10 @@ Sim.prototype.applyHit=function(S,h,hi,u0,u,o){
   if(h.k==='blade'){ if(u<h.t0||u0>h.t1) return; const g=this.bladeSeg(o,h.hand);
     this.foes.forEach(f=>{ if(f.dead>=0||f.hitBy[id]) return; if(segDist([f.x,f.y],g.b0,g.b1)<FOE_R+3){ f.hitBy[id]=1;
       const prev=this.trail[h.hand][this.trail[h.hand].length-1]; const ang=prev?Math.atan2(g.b1[1]-prev.tip[1],g.b1[0]-prev.tip[0]):g.a;
-      this.hitFoe(f,h.dmg,Math.atan2(f.y-p.y,f.x-p.x),h.kb,S.fin,'blade'); this.fx[this.fx.length-1].ang=ang } }) }
+      this.hitFoe(f,h.dmg,Math.atan2(f.y-p.y,f.x-p.x),h.kb,S.fin,'blade'); this.fx[this.fx.length-1].ang=ang; if(h.launch&&f.dead<0){ f.air=this.t; f.vx*=.3; f.vy*=.3 } } }) }
   else if(h.k==='line'&&fireOnce(h.t)){ const c=Math.cos(p.aim), s=Math.sin(p.aim), side=h.hand==='R'?6:h.hand==='L'?-6:0, ox=p.x-s*side, oy=p.y+c*side;
     this.fx.push({k:'line',x:ox,y:oy,a:p.aim,len:h.len,w:h.w,t0:this.t,big:S.fin});
-    this.foes.forEach(f=>{ const dx=f.x-ox, dy=f.y-oy, along=dx*c+dy*s, across=Math.abs(-dx*s+dy*c); if(along>-6&&along<h.len+FOE_R&&across<h.w/2+FOE_R) this.hitFoe(f,h.dmg,p.aim,h.kb,S.fin) }) }
+    this.foes.forEach(f=>{ const dx=f.x-ox, dy=f.y-oy, along=dx*c+dy*s, across=Math.abs(-dx*s+dy*c); if(along>-6&&along<h.len+FOE_R&&across<h.w/2+FOE_R) this.hitFoe(f,h.exec&&f.hp<FOE_HP/2?h.dmg*2:h.dmg,p.aim,h.kb,S.fin||h.exec) }) }
   else if(h.k==='xflash'&&fireOnce(h.t)){ this.fx.push({k:'xflash',x:p.x+Math.cos(p.aim)*h.off,y:p.y+Math.sin(p.aim)*h.off,a:p.aim,t0:this.t}) }
   else if(h.k==='wave'&&fireOnce(h.t)){ this.waves.push({x:p.x+Math.cos(p.aim)*40,y:p.y+Math.sin(p.aim)*40,a:p.aim,sp:h.speed,life:h.life,dmg:h.dmg,t0:this.t,hit:{}}) }
   else if(h.k==='ring'&&fireOnce(h.t)){ const cx=p.x+Math.cos(p.aim)*h.off, cy=p.y+Math.sin(p.aim)*h.off;
@@ -378,6 +433,22 @@ Sim.prototype.applyHit=function(S,h,hi,u0,u,o){
   else if(h.k==='tick'){ if(u<h.t0||u>h.t1) return; p.tick+= (u-u0)*S.dur; if(p.tick<h.every&&u0>h.t0) return; p.tick=0;
     this.foes.forEach(f=>{ if(f.dead>=0) return; if(Math.hypot(f.x-p.x,f.y-p.y)<h.rad+FOE_R*.5) this.hitFoe(f,h.dmg,Math.atan2(f.y-p.y,f.x-p.x),5,false) });
     this.bullets.forEach(b=>{ if(Math.hypot(b.x-p.x,b.y-p.y)<h.rad){ b.dead=this.t; this.fx.push({k:'cut',x:b.x,y:b.y,t0:this.t,seed:this.seed++}) } }) }
+  else if(h.k==='parry'){
+    if(u>=h.t0&&u<=h.t1) this.bullets.forEach(b=>{ if(b.dead) return; const dx=b.x-p.x, dy=b.y-p.y, d=Math.hypot(dx,dy); let da=Math.atan2(dy,dx)-p.aim; da=Math.atan2(Math.sin(da),Math.cos(da));
+      if(d<32&&Math.abs(da)<h.arc){ b.dead=this.t; p.parry++; this.fx.push({k:'block',x:b.x,y:b.y,t0:this.t,seed:this.seed++}); this.shake=Math.max(this.shake,1.5) } });
+    if(fireOnce(h.fire)){ const n=p.parry; this.waves.push({shape:'x',x:p.x+Math.cos(p.aim)*30,y:p.y+Math.sin(p.aim)*30,a:p.aim,sp:520,life:.55,dmg:n?h.base+h.per*n:h.miss,size:n?1+.18*Math.min(n,4):.65,t0:this.t,hit:{}}); if(n) this.shake=3 } }
+  else if(h.k==='blink'&&fireOnce(h.t)){
+    let best=null, bd=1e9, cone=false;
+    this.foes.forEach(f=>{ if(f.dead>=0) return; const d=Math.hypot(f.x-p.x,f.y-p.y); if(d>h.range) return; let da=Math.atan2(f.y-p.y,f.x-p.x)-p.aim; da=Math.abs(Math.atan2(Math.sin(da),Math.cos(da)));
+      const inC=da<1.2; if((inC&&!cone)||(inC===cone&&d<bd)){ best=f; bd=d; cone=inC } });
+    const ox=p.x, oy=p.y;
+    if(best){ const ux=(best.x-p.x)/(bd||1), uy=(best.y-p.y)/(bd||1); p.x=best.x+ux*h.behind; p.y=best.y+uy*h.behind; p.aim=Math.atan2(-uy,-ux) }
+    else { p.x+=Math.cos(p.aim)*120; p.y+=Math.sin(p.aim)*120 }
+    if(this.opt.bounds){ const B=this.opt.bounds; p.x=clamp(p.x,B[0],B[2]); p.y=clamp(p.y,B[1],B[3]) }
+    this.fx.push({k:'puff',x:ox,y:oy,t0:this.t,seed:this.seed++}); this.fx.push({k:'puff',x:p.x,y:p.y,t0:this.t,seed:this.seed++,inw:1}); this.fx.push({k:'blinkline',x:ox,y:oy,x2:p.x,y2:p.y,t0:this.t});
+    ['R','L'].forEach(hn=>this.trail[hn].length=0) }
+  else if(h.k==='orbit'&&fireOnce(h.t)){ p.orbit={t0:this.t,life:h.life,rad:h.rad,dmg:h.dmg,every:h.every,spin:h.spin,last:{}}; this.fx.push({k:'ring',x:p.x,y:p.y,rad:h.rad,t0:this.t}) }
+  else if(h.k==='xwave'&&fireOnce(h.t)){ const c=p.charge; this.waves.push({shape:'x',x:p.x+Math.cos(p.aim)*34,y:p.y+Math.sin(p.aim)*34,a:p.aim,sp:h.speed,life:h.life,dmg:Math.round(h.min+(h.max-h.min)*c),size:.8+1.0*c,t0:this.t,hit:{}}); this.shake=1+3*c }
   else if(h.k==='throw'){
     if(u<h.t0||u>h.t1){ return }
     if(!p.throwInfo){ const tx=p.x+Math.cos(p.aim)*h.dist, ty=p.y+Math.sin(p.aim)*h.dist; p.throwInfo={R:handW(p,o,'R'),L:handW(p,o,'L'),T:[tx,ty],a:p.aim,burst:false,hit:{}} }
@@ -391,6 +462,9 @@ Sim.prototype.applyHit=function(S,h,hi,u0,u,o){
       this.foes.forEach(f=>{ if(Math.hypot(f.x-ti.T[0],f.y-ti.T[1])<h.rad+FOE_R) this.hitFoe(f,h.burst,Math.atan2(f.y-ti.T[1],f.x-ti.T[0]),14,true) }) }
   }
 };
+Sim.prototype.orbitSegs=function(){ const p=this.pl, ob=p.orbit; if(!ob) return []; const age=this.t-ob.t0, BL=this.C.BL, out=[];
+  for(let k=0;k<2;k++){ const an=ob.t0*3+age*ob.spin+k*Math.PI, cx=p.x+Math.cos(an)*ob.rad, cy=p.y+Math.sin(an)*ob.rad, d=an+Math.PI/2, c=Math.cos(d), s=Math.sin(d);
+    out.push({an,c:[cx,cy],a:d,b0:[cx-c*BL*.5,cy-s*BL*.5],b1:[cx+c*BL*.5,cy+s*BL*.5]}) } return out };
 Sim.prototype.thrownPos=function(hn,q,o,h){
   const ti=this.pl.throwInfo, p=this.pl, s=hn==='R'?1:-1, a=ti.a, nx=-Math.sin(a), ny=Math.cos(a);
   const bez=(A,B,Cc,t)=>[(1-t)*(1-t)*A[0]+2*(1-t)*t*B[0]+t*t*Cc[0],(1-t)*(1-t)*A[1]+2*(1-t)*t*B[1]+t*t*Cc[1]];
@@ -503,15 +577,22 @@ function drawFx(x,sim,layer){
       x.restore() }
     else if(e.k==='cut'){ if(q>.3) return; const al=1-q/.3; x.save(); x.translate(e.x,e.y); for(let i=0;i<5;i++){ const a=rnd(e.seed+i)*TAU, r=4+q*70; line(x,Math.cos(a)*r,Math.sin(a)*r,Math.cos(a)*(r+5),Math.sin(a)*(r+5),1.4,'rgba('+C.hot+','+al+')') }
       x.strokeStyle='rgba(220,150,255,'+(.6*al)+')'; x.lineWidth=1.4; x.beginPath(); x.arc(0,0,4+q*30,0,TAU); x.stroke(); x.restore() }
+    else if(e.k==='block'){ if(q>.3) return; const al=1-q/.3; x.save(); x.globalCompositeOperation='lighter'; x.translate(e.x,e.y);
+      const g=x.createRadialGradient(0,0,0,0,0,14); g.addColorStop(0,'rgba(255,255,255,'+al+')'); g.addColorStop(1,'rgba('+C.col+',0)'); x.fillStyle=g; x.beginPath(); x.arc(0,0,14,0,TAU); x.fill();
+      for(let i=0;i<6;i++){ const a=rnd(e.seed+i)*TAU, r=5+q*80; line(x,Math.cos(a)*r,Math.sin(a)*r,Math.cos(a)*(r+6),Math.sin(a)*(r+6),1.5,'rgba('+C.hot+','+al+')') } x.restore() }
+    else if(e.k==='puff'){ if(q>.4) return; const al=1-q/.4; for(let i=0;i<9;i++){ const a=rnd(e.seed+i)*TAU, r=e.inw?(1-q/.4)*26+4:6+q*60; x.fillStyle='rgba(30,20,50,'+(.5*al)+')'; x.beginPath(); x.arc(e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,6+rnd(e.seed+i+9)*5,0,TAU); x.fill() }
+      x.strokeStyle='rgba('+C.col+','+(.6*al)+')'; x.lineWidth=1.5; x.beginPath(); x.arc(e.x,e.y,e.inw?24*(1-q/.4)+4:10+q*50,0,TAU); x.stroke() }
+    else if(e.k==='blinkline'){ if(q>.3) return; const al=1-q/.3; x.save(); x.setLineDash([3,7]); x.strokeStyle='rgba('+C.col+','+(.6*al)+')'; x.lineWidth=2; x.beginPath(); x.moveTo(e.x,e.y); x.lineTo(e.x2,e.y2); x.stroke(); x.restore() }
     else if(e.k==='popb'){ if(q>.2) return; x.strokeStyle='rgba(220,150,255,'+(1-q/.2)+')'; x.lineWidth=1.5; x.beginPath(); x.arc(e.x,e.y,4+q*40,0,TAU); x.stroke() }
   }) }
 
 function drawFoe(x,sim,f){
   const T=sim.t;
   if(f.dead>=0) return;
-  const born=f.born!=null?clamp((T-f.born)/.3):1;
+  const born=f.born!=null?clamp((T-f.born)/.3):1, aq=f.air!=null?(T-f.air):9, z=aq<1?30*Math.sin(Math.PI*Math.pow(aq,.7)):0;
   x.save(); x.globalAlpha=born; x.translate(f.x,f.y);
-  x.fillStyle='rgba(0,0,0,.28)'; x.beginPath(); x.ellipse(2,4,13,10,0,0,TAU); x.fill();
+  x.fillStyle='rgba(0,0,0,'+(.28-z*.004)+')'; x.beginPath(); x.ellipse(2,4,13-z*.12,10-z*.1,0,0,TAU); x.fill();
+  x.translate(0,-z); if(z>0){ const sc=1+z*.006; x.scale(sc,sc); for(let i=0;i<3;i++){ const a=T*7+i*2.1; x.fillStyle='rgba(255,230,140,.85)'; x.beginPath(); x.arc(Math.cos(a)*15,-16+Math.sin(a)*4,1.8,0,TAU); x.fill() } }
   const a=Math.atan2(sim.pl.y-f.y,sim.pl.x-f.x); x.rotate(a);
   if(f.shooter){ x.fillStyle=f.flash>0?'#fff':'#9c5bd6'; x.strokeStyle='#2c1340'; x.lineWidth=2; x.beginPath(); for(let i=0;i<6;i++){const q=i/6*TAU;x.lineTo(Math.cos(q)*14,Math.sin(q)*14)} x.closePath(); x.fill(); x.stroke();
     x.fillStyle='#2c1340'; x.fillRect(8,-3,10,6) }
@@ -520,7 +601,7 @@ function drawFoe(x,sim,f){
   x.restore();
   if(f.mark){ const q=(T-f.mark.t0)/.5; x.save(); x.translate(f.x,f.y); x.globalCompositeOperation='lighter'; const R=9+4*Math.sin(q*20);
     [.78,-.78].forEach(an=>{ x.save(); x.rotate(an); line(x,-R,0,R,0,2.2,'rgba('+sim.C.col+',.9)'); x.restore() }); x.restore() }
-  const w=26, hp=clamp(f.hp/FOE_HP); x.fillStyle='rgba(0,0,0,.55)'; x.fillRect(f.x-w/2,f.y-25,w,4); x.fillStyle=hp>.4?'#7ee08b':'#f0c34a'; x.fillRect(f.x-w/2+.5,f.y-24.5,(w-1)*hp,3) }
+  const w=26, hp=clamp(f.hp/FOE_HP), hy=f.y-25-z; x.fillStyle='rgba(0,0,0,.55)'; x.fillRect(f.x-w/2,hy,w,4); x.fillStyle=hp>.4?'#7ee08b':'#f0c34a'; x.fillRect(f.x-w/2+.5,hy+.5,(w-1)*hp,3) }
 
 function drawHud(x,sim){
   const p=sim.pl, C=sim.C, o=sim.pose();
@@ -533,7 +614,7 @@ function drawHud(x,sim){
     x.fillRect(-s,-s,2*s,2*s); x.strokeRect(-s,-s,2*s,2*s); x.restore() }
   if(live&&p.chain===4&&!p.step){ x.save(); x.globalCompositeOperation='lighter'; x.fillStyle='rgba('+C.col+','+(.35+.25*Math.sin(sim.t*14))+')'; x.beginPath(); x.arc(p.x+18,y,7,0,TAU); x.fill(); x.restore() }
   /* alt cooldown ring under the feet */
-  const cdf=p.cd>0?1-p.cd/C.alt.cd:1;
+  const cdf=p.cd>0?1-p.cd/sim.A.cd:1;
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=2; x.beginPath(); x.ellipse(p.x,p.y+3,22,17,0,0,TAU); x.stroke();
   x.strokeStyle=cdf>=1?'rgba('+C.col+',.7)':'rgba('+C.col+',.35)'; x.beginPath(); x.ellipse(p.x,p.y+3,22,17,0,-Math.PI/2,-Math.PI/2+TAU*cdf); x.stroke() }
 
@@ -560,6 +641,10 @@ function drawSim(x,sim,W,H,opt){
   sim.foes.forEach(f=>drawFoe(x,sim,f));
   /* waves */
   sim.waves.forEach(w=>{ const age=T-w.t0, al=clamp(1-age/w.life)*.95, R=34+age*40;
+    if(w.shape==='x'){ const rr=24*w.size; x.save(); x.globalCompositeOperation='lighter'; x.translate(w.x,w.y); x.rotate(w.a);
+      [.62,-.62].forEach(an=>{ x.save(); x.rotate(an); x.fillStyle='rgba('+C.col+','+(.4*al)+')'; x.beginPath(); x.ellipse(0,0,rr*1.15,rr*.22,0,0,TAU); x.fill(); line(x,-rr*1.1,0,rr*1.1,0,2,'rgba('+C.hot+','+al+')'); x.restore() });
+      for(let i=1;i<4;i++){ line(x,-i*10-6,-rr*.5,-i*10-14,-rr*.5,1.2,'rgba('+C.col+','+(.5*al/i)+')'); line(x,-i*10-6,rr*.5,-i*10-14,rr*.5,1.2,'rgba('+C.col+','+(.5*al/i)+')') }
+      x.restore(); return }
     x.save(); x.globalCompositeOperation='lighter'; x.translate(w.x,w.y); x.rotate(w.a);
     x.fillStyle='rgba('+C.col+','+(.35*al)+')'; x.beginPath(); x.arc(-R*.6,0,R,-1,1); x.arc(-R*.6-9,0,R-4,1,-1,true); x.closePath(); x.fill();
     x.strokeStyle='rgba('+C.hot+','+al+')'; x.lineWidth=2; x.beginPath(); x.arc(-R*.6,0,R,-1,1); x.stroke(); x.restore() });
@@ -571,13 +656,30 @@ function drawSim(x,sim,W,H,opt){
   if(opt.hit) drawHitAreas(x,sim);
   const o=sim.pose(), thrown=!!p.throwInfo;
   x.save(); x.translate(p.x,p.y); x.rotate(p.aim); knight(x,o,C,1,false,T,thrown); x.restore();
-  if(thrown&&p.step){ const h=C.alt.hits[0], q=(p.tt/p.step.dur-h.t0)/(h.t1-h.t0);
+  if(thrown&&p.step){ const h=sim.A.hits[0], q=(p.tt/p.step.dur-h.t0)/(h.t1-h.t0);
     if(q>=0&&q<=1) ['R','L'].forEach(hn=>{ const pos=sim.thrownPos(hn,q,o,h); x.save(); x.translate(pos[0],pos[1]); x.rotate(T*28*(hn==='R'?1:-1)); x.translate(-(5+C.BL/2),0); sword(x,C.sword,C.BL,C,false,T); x.restore() }) }
+  if(p.orbit){ const ob=p.orbit, age=T-ob.t0, al=clamp(age/.2)*clamp((ob.life-age)/.4);
+    x.save(); x.globalCompositeOperation='lighter'; x.strokeStyle='rgba('+C.col+','+(.1*al)+')'; x.lineWidth=C.BL*.9; x.beginPath(); x.arc(p.x,p.y,ob.rad,0,TAU); x.stroke(); x.restore();
+    sim.orbitSegs().forEach(g=>{ x.save(); x.globalCompositeOperation='lighter'; x.strokeStyle='rgba('+C.col+','+(.35*al)+')'; x.lineWidth=6; x.beginPath(); x.arc(p.x,p.y,ob.rad+C.BL*.3,g.an-1.1,g.an); x.stroke(); x.restore();
+      x.save(); x.globalAlpha=.7*al; x.translate(g.c[0],g.c[1]); x.rotate(g.a); x.translate(-(5+C.BL/2),0); sword(x,C.sword,C.BL,C,false,T); x.restore();
+      x.save(); x.globalCompositeOperation='lighter'; line(x,g.b0[0],g.b0[1],g.b1[0],g.b1[1],5,'rgba('+C.col+','+(.35*al)+')'); x.restore() }) }
+  if(p.step&&p.step.hits[0].k==='parry'){ const h=p.step.hits[0], u=p.tt/p.step.dur;
+    if(u>=h.t0&&u<=h.t1){ const al=clamp((u-h.t0)/.05)*clamp((h.t1-u)/.05); x.save(); x.globalCompositeOperation='lighter';
+      x.strokeStyle='rgba('+C.col+','+(.55*al)+')'; x.lineWidth=4; x.beginPath(); x.arc(p.x,p.y,30,p.aim-h.arc,p.aim+h.arc); x.stroke();
+      x.strokeStyle='rgba('+C.hot+','+(.5*al*(.6+.4*Math.sin(T*40)))+')'; x.lineWidth=1.2; x.beginPath(); x.arc(p.x,p.y,33,p.aim-h.arc,p.aim+h.arc); x.stroke(); x.restore() }
+    if(p.parry>0&&u<h.fire+.1){ x.font='700 16px "Barlow Condensed","Arial Narrow",sans-serif'; x.fillStyle='rgb('+C.hot+')'; x.fillText('×'+p.parry,p.x+20,p.y-20) } }
+  if(p.step&&p.step.charge){ const S=p.step, u=p.tt/S.dur, hf=S.holdFrom, ra=S.releaseAt;
+    if(u>hf&&u<ra){ const c=(u-hf)/(ra-hf); x.save(); x.globalCompositeOperation='lighter';
+      x.strokeStyle='rgba('+C.col+','+(.25+.5*c)+')'; x.lineWidth=1.5+2*c; x.beginPath(); x.arc(p.x,p.y,58-30*c,0,TAU); x.stroke();
+      for(let i=0;i<10;i++){ const a=i/10*TAU+T*3, r=(1-((T*2.2+i*.1)%1))*70+16; x.fillStyle='rgba('+C.hot+','+(.7*c)+')'; x.beginPath(); x.arc(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,1.6,0,TAU); x.fill() }
+      x.strokeStyle='rgba('+C.col+',.8)'; x.lineWidth=3; x.beginPath(); x.arc(p.x,p.y,24,-Math.PI/2,-Math.PI/2+TAU*c); x.stroke();
+      if(c>.97){ const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,40); g.addColorStop(0,'rgba(255,255,255,.35)'); g.addColorStop(1,'rgba('+C.col+',0)'); x.fillStyle=g; x.beginPath(); x.arc(p.x,p.y,40,0,TAU); x.fill() }
+      x.restore() } }
   drawFx(x,sim,'top');
   drawHud(x,sim);
   /* damage numbers */
   sim.nums.forEach(n=>{ const q=(T-n.t0)/.75; x.save(); x.globalAlpha=clamp(1-q*q); x.font=(n.big?'700 18px ':'700 14px ')+'"Barlow Condensed","Arial Narrow",sans-serif'; x.textAlign='center';
-    x.fillStyle='rgba(0,0,0,.6)'; x.fillText(Math.round(n.v),n.x+1,n.y-q*26+1); x.fillStyle=n.big?'rgb('+C.hot+')':'rgb('+C.col+')'; x.fillText(Math.round(n.v),n.x,n.y-q*26); x.restore() });
+    x.fillStyle='rgba(0,0,0,.6)'; x.fillText(Math.round(n.v),n.x+1,n.y-q*26+1); x.fillStyle=n.air?'#ffb45c':n.big?'rgb('+C.hot+')':'rgb('+C.col+')'; x.fillText(Math.round(n.v),n.x,n.y-q*26); x.restore() });
   x.restore();
   /* the move's name */
   if(opt.label&&sim.label){ const q=T-sim.label.t, al=clamp(1-(q-.6)/.4); if(al>0){ x.save(); x.globalAlpha=al;
@@ -588,11 +690,11 @@ function drawSim(x,sim,W,H,opt){
 /* ---------- canvases ---------- */
 function setup(c,w,h){ const d=Math.min(2,window.devicePixelRatio||1); c.width=w*d; c.height=h*d; const x=c.getContext('2d'); x.setTransform(d,0,0,d,0,0); return x }
 const stage=$('stage'), SW=1000, SH=470, sx=setup(stage,SW,SH);
-const STAGE_FOES=[[392,200],[398,276],[446,238],[338,168],[332,314],[500,196],[516,282],[580,240],[880,110,1],[870,390,1]];
-function replayOpt(ck){ return {px:320,py:240,foes:STAGE_FOES,script:CONCEPTS[ck].script,shots:()=>$('tgShots').checked,aimFn:p=>Math.atan2(240-p.y,560-p.x)*.35} }
-function tryOpt(){ return {px:300,py:240,foes:STAGE_FOES,shots:()=>$('tgShots').checked,bounds:[20,20,SW-20,SH-20],aimFn:p=>Math.atan2(mouse.y-p.y,mouse.x-p.x)} }
+const STAGE_FOES=[[392,200],[398,276],[446,238],[338,168],[332,314],[500,196],[516,282],[580,240],[880,110,1,.1],[870,390,1,.3]];
+function replayOpt(ck){ return {px:320,py:240,foes:STAGE_FOES,alt:curAlt,script:curAlt==='own'?CONCEPTS[ck].script:ALTS[curAlt].script,shots:()=>$('tgShots').checked,aimFn:p=>Math.atan2(240-p.y,560-p.x)*.35} }
+function tryOpt(){ return {px:300,py:240,foes:STAGE_FOES,alt:curAlt,shots:()=>$('tgShots').checked,bounds:[20,20,SW-20,SH-20],aimFn:p=>Math.atan2(mouse.y-p.y,mouse.x-p.x)} }
 let mode='replay', sim=null, loopLen=6, clock=0, paused=false, slow=false;
-function measure(ck){ const s=new Sim(ck,Object.assign(replayOpt(ck),{shots:()=>false})); let n=0; while(!s.done&&n<4000){ s.tick(DT); n++ } return s.t+.05 }
+function measure(ck){ const s=new Sim(ck,replayOpt(ck)); let n=0; while(!s.done&&n<4000){ s.tick(DT); n++ } return s.t+.05 }
 function resetStage(){
   if(mode==='replay'){ sim=new Sim(cur,replayOpt(cur)); loopLen=measure(cur); clock=0 }
   else { sim=new Sim(cur,tryOpt()) } }
@@ -615,17 +717,17 @@ tAtk.addEventListener('pointerdown',e=>{ mouse.down=true; sim.press('atk'); e.pr
 tAlt.addEventListener('pointerdown',e=>{ sim.press('alt'); sim.pl.altHeld=true; e.preventDefault() }); tAlt.addEventListener('pointerup',()=>{ sim.pl.altHeld=false });
 function tryControl(dt){
   const p=sim.pl; let mx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0), my=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
-  const l=Math.hypot(mx,my)||1, S=p.step, moving=S&&(S.ghost||S.hits[0].k==='dash'||S.fin);
-  const spd=210*(!S?1:S.hold?.7:moving?0:.45);
+  const l=Math.hypot(mx,my)||1, S=p.step, moving=S&&(S.ghost||S.hits[0].k==='dash'||S.hits[0].k==='blink'||S.fin);
+  const spd=210*(!S?1:S.charge?.35:S.hold?.7:moving?0:.45);
   p.x=clamp(p.x+mx/l*spd*dt,20,SW-20); p.y=clamp(p.y+my/l*spd*dt,20,SH-20);
-  if(!S||S.hold) p.aim=Math.atan2(mouse.y-p.y,mouse.x-p.x);
+  if(!S||(S.hold&&p.tt/S.dur<(S.releaseAt||.92))) p.aim=Math.atan2(mouse.y-p.y,mouse.x-p.x);
   if(mouse.down&&!p.buf&&(!S||(!S.alt&&p.tt/S.dur>=S.next-.2))) p.buf='atk' }
 
 /* ---------- concept picker, mode chips, tables ---------- */
 const conEl=$('concepts');
 ORDER.forEach(k=>{ const C=CONCEPTS[k], b=document.createElement('button'); b.type='button'; b.className='chip concept'; b.dataset.k=k;
   b.innerHTML='<b>'+C.name+'</b><span>'+C.short+'</span>'; b.setAttribute('aria-pressed',String(k===cur));
-  b.addEventListener('click',()=>{ cur=k; [].forEach.call(conEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===k))); resetStage(); fillConcept(); buildStrip() }); conEl.appendChild(b) });
+  b.addEventListener('click',()=>{ cur=k; [].forEach.call(conEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===k))); resetStage(); fillConcept(); buildStrip(); buildAlts(); fillAltChips() }); conEl.appendChild(b) });
 const modeEl=$('modes');
 [['replay','Replay'],['try','Try it']].forEach(m=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=m[1]; b.dataset.k=m[0]; b.setAttribute('aria-pressed',String(m[0]===mode));
   b.addEventListener('click',()=>{ mode=m[0]; [].forEach.call(modeEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===mode)));
@@ -636,14 +738,17 @@ function stepDamage(S){ let d=0; S.hits.forEach(h=>{
   else if(h.k==='dash') d+=h.dmg+h.mark;
   else if(h.k==='throw') d+=h.dmg*2+h.burst;
   else if(h.k==='tick') d+=h.dmg*Math.floor((h.t1-h.t0)*S.dur/h.every+1) }); return d }
+function altDmgText(A){ const h=A.hits.find(q=>q.k!=='blink'&&q.k!=='xflash');
+  if(h.k==='parry') return h.base+' + '+h.per+' a bullet'; if(h.k==='xwave') return h.min+' to '+h.max; if(h.k==='orbit') return h.dmg+' a touch, 4 s';
+  if(h.exec) return h.dmg+' (×2 under half)'; if(h.launch) return h.dmg+' + '+h.dmg+', then +50%'; return dmgText(A) }
 function chainStats(C){ let dmg=0,t=0; C.steps.forEach((S,i)=>{ dmg+=stepDamage(S); t+=i<4?S.dur*S.next:S.dur }); return {dmg,t,dps:dmg/t} }
-function dmgText(S){ return S.hits.filter(h=>h.dmg).map(h=>{
-  if(h.k==='dash') return h.dmg+' + '+h.mark; if(h.k==='throw') return h.dmg+' ×4 + '+h.burst; if(h.k==='tick') return h.dmg+' / 0.12 s'; return String(h.dmg) }).join(' + ') }
+function dmgText(S){ if(S.hits.some(h=>h.k==='parry'||h.k==='xwave'||h.k==='orbit')) return altDmgText(S); return S.hits.filter(h=>h.dmg).map(h=>{
+  if(h.k==='dash') return h.dmg+' + '+h.mark; if(h.k==='parry'||h.k==='xwave'||h.k==='orbit'||h.exec||h.launch) return altDmgText(S); if(h.k==='throw') return h.dmg+' ×4 + '+h.burst; if(h.k==='tick') return h.dmg+' / 0.12 s'; return String(h.dmg) }).join(' + ') }
 function fillConcept(){
-  const C=CONCEPTS[cur], st=chainStats(C);
+  const C=CONCEPTS[cur], st=chainStats(C), A=altOf(cur,curAlt);
   $('pitch').innerHTML='<h3>'+C.name+'</h3>'+C.pitch.map(t=>'<p>'+t+'</p>').join('')+'<p class="tag">'+C.tag+'</p><p class="tag">Whole chain: '+st.dmg+' damage in '+st.t.toFixed(2)+' s, '+Math.round(st.dps)+' a second.</p>';
   $('moves').innerHTML=C.steps.map((S,i)=>'<tr><td class="n">'+(i+1)+'</td><td class="mv"><b>'+S.name+'</b>'+S.hand+' · '+S.desc+'</td><td class="n">'+dmgText(S)+'</td><td class="n">'+(i<4?(S.dur*S.next).toFixed(2):S.dur.toFixed(2))+' s</td></tr>').join('')
-    +'<tr class="alt"><td class="n">Alt</td><td class="mv"><b>'+C.alt.name+'</b>'+C.alt.desc+'</td><td class="n">'+dmgText(C.alt)+'</td><td class="n">'+C.alt.dur.toFixed(2)+' s</td></tr>' }
+    +'<tr class="alt"><td class="n">Alt</td><td class="mv"><b>'+A.name+'</b>'+A.desc+'. Cooldown '+A.cd+' s</td><td class="n">'+dmgText(A)+'</td><td class="n">'+A.dur.toFixed(2)+' s</td></tr>' }
 function fillCompare(){
   $('compare').innerHTML='<tr><td class="mv"><b>Today</b></td><td class="n">15 a swing</td><td class="n">0.16 s</td><td class="n">94</td><td>Dash-strike after 10 hits in a row</td><td>Steady damage</td></tr>'+
   ORDER.map(k=>{ const C=CONCEPTS[k], s=chainStats(C); return '<tr><td class="mv"><b>'+C.name+'</b></td><td class="n">'+s.dmg+'</td><td class="n">'+s.t.toFixed(2)+' s</td><td class="n">'+Math.round(s.dps)+'</td><td>'+C.alt.name+' ('+C.alt.cd+' s)</td><td>'+C.best+'</td></tr>' }).join('') }
@@ -653,19 +758,47 @@ let strip=[];
 const STRIP_FOES=[[134,72],[146,118],[132,164],[90,52],[86,182],[220,118]];
 function buildStrip(){
   const el=$('strip'); el.innerHTML=''; strip=[]; const C=CONCEPTS[cur];
-  C.steps.concat([Object.assign({alt:true},C.alt)]).forEach((S,k)=>{
+  C.steps.forEach((S,k)=>{
     const cell=document.createElement('div'); cell.className='cell';
     cell.innerHTML='<h3>'+(S.alt?'Alt':k+1)+' · '+S.name+' <small>'+(dmgText(S)||'')+'</small></h3><div class="frame"><canvas aria-label="'+S.name+' looping"></canvas></div><p>'+S.desc.charAt(0).toUpperCase()+S.desc.slice(1)+'</p>';
     el.appendChild(cell); const c=cell.querySelector('canvas'), x=setup(c,340,230);
     const far=S.alt&&(C.alt.hits[0].k==='dash'||C.alt.hits[0].k==='throw')||S.fin;
     const opt={px:far?50:72,py:115,foes:STRIP_FOES.map(f=>[f[0]+(far?40:0),f[1]]),aimFn:()=>0};
-    const s=new Sim(cur,opt); strip.push({x,s,k,opt,S,c:0,len:.25+S.dur+.55}) }) }
-function tickStrip(dt){ strip.forEach(it=>{ it.c+=dt;
+    const s=new Sim(cur,opt); strip.push({x,s,k,opt,S,c:0,len:.25+S.dur+.55}) });
+  const A=altOf(cur,curAlt), cell=document.createElement('div'); cell.className='cell'; el.appendChild(cell);
+  scriptCell(cell,curAlt,'Alt · '+A.name,dmgText(A),A.desc.charAt(0).toUpperCase()+A.desc.slice(1)) }
+/* a cell that plays a short script (alt cells): its loop length is measured once */
+let scriptCells=[];
+function scriptCell(cell,ak,title,small,text,extra){
+  const A=altOf(cur,ak);
+  cell.innerHTML='<h3>'+title+' <small>'+small+'</small></h3><div class="frame"><canvas aria-label="'+A.name+' looping"></canvas></div><p>'+text+'</p>'+(extra||'');
+  const x=setup(cell.querySelector('canvas'),340,230), k=A.hits[0].k, far=k==='dash'||k==='throw'||k==='blink'||k==='xwave';
+  const foes=STRIP_FOES.map(f=>[f[0]+(far?40:0),f[1]]); if(A.shots||ak==='own'&&false) foes.push([330,28,1,.1],[330,204,1,.35]);
+  const opt={px:far?50:72,py:115,foes,alt:ak,script:A.stripScript||['alt','w.6'],shots:A.shots?()=>true:()=>false,aimFn:()=>0,bounds:[10,10,330,220]};
+  const m=new Sim(cur,opt); let n=0; while(!m.done&&n<3000){ m.tick(DT); n++ }
+  const it={x,s:new Sim(cur,opt),opt,c:0,len:m.t+.05,script:true}; scriptCells.push(it); return it }
+function tickStrip(dt){ scriptCells.forEach(it=>{ if(!it.x.canvas.isConnected) return; it.c+=dt; if(it.c>=it.len){ it.c=0; it.s=new Sim(cur,it.opt) }
+  const n=Math.round(dt/DT); for(let i=0;i<Math.max(1,n);i++) it.s.tick(DT); drawSim(it.x,it.s,340,230,{scale:1,label:false}) });
+  scriptCells=scriptCells.filter(it=>it.x.canvas.isConnected);
+  strip.forEach(it=>{ it.c+=dt;
   if(it.c>=it.len){ it.c=0; it.s=new Sim(cur,it.opt) }
   if(it.c>=.25&&!it.s.pl.step&&!it.started){ it.s.forceStep(it.k); it.s.pl.altHeld=true; it.started=true }
   if(it.c<.25) it.started=false;
   const n=Math.round(dt/DT); for(let i=0;i<Math.max(1,n);i++) it.s.tick(DT);
   drawSim(it.x,it.s,340,230,{scale:1,label:false}) }) }
+
+/* ---------- alt ideas: chips on the stage and a looping card for each ---------- */
+const altChipEl=$('alts');
+function fillAltChips(){ altChipEl.innerHTML=''; [['own',CONCEPTS[cur].alt.name+' (current)']].concat(ALT_ORDER.map(k=>[k,ALTS[k].name])).forEach(it=>{
+  const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=it[1]; b.dataset.k=it[0]; b.setAttribute('aria-pressed',String(it[0]===curAlt));
+  b.addEventListener('click',()=>pickAlt(it[0])); altChipEl.appendChild(b) }) }
+function pickAlt(k){ curAlt=k; [].forEach.call(altChipEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===k)));
+  [].forEach.call($('altIdeas').children,c=>c.classList.toggle('on',c.dataset.k===k)); resetStage(); fillConcept(); buildStrip() }
+function buildAlts(){ const el=$('altIdeas'); el.innerHTML='';
+  ALT_ORDER.forEach(k=>{ const A=ALTS[k], cell=document.createElement('div'); cell.className='cell idea'+(k===curAlt?' on':''); cell.dataset.k=k; el.appendChild(cell);
+    scriptCell(cell,k,A.name,A.tagline+' · cooldown '+A.cd+' s',A.desc.charAt(0).toUpperCase()+A.desc.slice(1)+'.',
+      '<p class="why">'+A.pitch+'</p><button type="button" class="use">Try it on the stage</button>');
+    cell.querySelector('.use').addEventListener('click',()=>{ pickAlt(k); $('stage').scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'}) }) }) }
 
 /* ---------- the sword models ---------- */
 function buildSwords(){
@@ -693,11 +826,11 @@ function frame(now){
   } else { acc+=dt*sp; while(acc>=DT){ tryControl(DT); sim.tick(DT); acc-=DT } }
   drawSim(sx,sim,SW,SH,{label:true,hit:$('tgHit').checked});
   if(mode==='replay'){ sx.font=FM; sx.fillStyle='rgba(220,230,240,.45)'; sx.fillText('REPLAY · '+CONCEPTS[cur].name.toUpperCase()+' · purple turrets fire small bullets to show the cuts',22,SH-16) }
-  else { sx.font=FM; sx.fillStyle='rgba(220,230,240,.45)'; sx.fillText('TRY IT · click to attack · right-click or space for '+CONCEPTS[cur].alt.name.toUpperCase(),22,SH-16) }
+  else { sx.font=FM; sx.fillStyle='rgba(220,230,240,.45)'; sx.fillText('TRY IT · click to attack · right-click or space for '+altOf(cur,curAlt).name.toUpperCase()+(altOf(cur,curAlt).hold?' (hold)':''),22,SH-16) }
   if(!reduced||!paused){ sacc+=dt*sp; const n=Math.floor(sacc/DT)*DT; sacc-=n; if(n>0) tickStrip(n) }
   requestAnimationFrame(frame) }
-try{ const qs=new URLSearchParams(location.search); if(qs.get('c')&&CONCEPTS[qs.get('c')]){ cur=qs.get('c'); [].forEach.call(conEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===cur))) } }catch(e){}
-resetStage(); fillConcept(); fillCompare(); buildStrip(); buildSwords();
+try{ const qs=new URLSearchParams(location.search); if(qs.get('a')&&ALTS[qs.get('a')]) curAlt=qs.get('a'); if(qs.get('c')&&CONCEPTS[qs.get('c')]){ cur=qs.get('c'); [].forEach.call(conEl.children,c=>c.setAttribute('aria-pressed',String(c.dataset.k===cur))) } }catch(e){}
+fillAltChips(); resetStage(); fillConcept(); fillCompare(); buildStrip(); buildAlts(); buildSwords();
 try{ const qs=new URLSearchParams(location.search); if(qs.get('t')!=null){ seek(parseFloat(qs.get('t'))); paused=true; $('pause').textContent='Play' } }catch(e){}
 if(reduced){ seek(1.0); paused=true; $('pause').textContent='Play'; tickStrip(.6) }
 requestAnimationFrame(frame);
