@@ -655,6 +655,10 @@ namespace Arena
                     if (lean2 != camLean)
                         SetCamLean(lean2);
                     y += 66f;
+                    bool hover2 = SwitchRow(new Rect(x, y, w, 54f), hoverNames, "Enemy names on hover", "Point at an enemy to see its name and what it does (the first sightings show it anyway)");
+                    if (hover2 != hoverNames)
+                        SetHoverNames(hover2);
+                    y += 66f;
                     // The network port (it used to sit on the main menu): hosting and joining both use it.
                     WinLabel(new Rect(x, y, w - 150f, 54f), "Network port", "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.");
                     var pr = new Rect(x + w - 120f, y + 9f, 120f, 36f);
