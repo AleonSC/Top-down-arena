@@ -14,6 +14,7 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
+        public bool Idle;  // the lobby's IDLE key: the character stands still (no stroll around home)
         public Game Game => session.Game;
         public Player Me => Game.Me;
 
@@ -122,7 +123,7 @@ namespace Arena
             }
             // Stroll around home (and walk back after a dash or leap).
             V2 stroll = Home + Game.Sway(t, 7, 26f);
-            if (me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
+            if (!Idle && me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
