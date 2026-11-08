@@ -1,0 +1,274 @@
+<title>Treant Rod Sounds and Seeds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, volume, then two parts: (1) sound cards in three groups (lash, seed shot, seed hit) with a combo player,
+   (2) an animated arena with three seed looks. Colour: bark-tinted neutrals, moss green for the thing being auditioned. */
+:root{
+  --bg:#eceee8; --fg:#1d2219; --muted:#5d6556; --panel:#f8f9f4; --line:#cdd2c4;
+  --moss:#3f7a2a; --chip:#dfe3d6; --chip-on:#1d2219; --chip-on-fg:#f4f7ee; --wave:#3f7a2a; --wave-bg:#e2e6d8;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10130e; --fg:#e6ebdd; --muted:#98a28c; --panel:#181c14; --line:#2d3427;
+  --moss:#8fd16a; --chip:#232a1e; --chip-on:#e6ebdd; --chip-on-fg:#10130e; --wave:#8fd16a; --wave-bg:#0d100b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10130e; --fg:#e6ebdd; --muted:#98a28c; --panel:#181c14; --line:#2d3427;
+  --moss:#8fd16a; --chip:#232a1e; --chip-on:#e6ebdd; --chip-on-fg:#10130e; --wave:#8fd16a; --wave-bg:#0d100b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h2.part{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+h3.grp{font:700 20px var(--display);text-transform:uppercase;letter-spacing:.05em;margin:0;color:var(--muted)}
+p{margin:0 0 8px;max-width:68ch;color:var(--muted)} p strong{color:var(--fg)}
+section{display:flex;flex-direction:column;gap:14px}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.controls label{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.controls select{font:500 14px var(--body);padding:6px 8px;background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:6px}
+.controls input[type=range]{width:150px;accent-color:var(--moss)}
+.controls output{font:500 13px var(--mono);min-width:3ch;color:var(--fg)}
+button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;user-select:none;-webkit-user-select:none}
+button:hover{border-color:var(--muted)} button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button[aria-pressed=true]{background:var(--moss);border-color:var(--moss);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.card.playing{border-color:var(--moss)}
+.card h4{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card h4 small{font:500 12px var(--mono);color:var(--muted);text-transform:none}
+.card p{font-size:14px;margin:0}
+canvas.w{display:block;width:100%;height:auto;aspect-ratio:600/90;border-radius:4px;background:var(--wave-bg)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row .stat{font:500 12px var(--mono);color:var(--muted);margin-left:auto}
+#arena{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:640/320;border-radius:6px;background:#0c100a;border:1px solid var(--line)}
+.looks .card p{min-height:4.2em}
+.spec{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.spec ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;max-width:74ch;color:var(--muted);font-size:15px}
+.spec li strong{color:var(--fg)}
+code{font:400 13px var(--mono);color:var(--fg)}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}.looks .card p{min-height:0}}
+</style>
+
+<main>
+<header>
+  <h1>Treant Rod Sounds and Seeds</h1>
+  <p>Part 1 lets you hear three options for each Treant Rod sound: the root lash, the new seed shot, and the seed landing. Part 2 shows three looks for the tiny seeds your Treant fires at enemies.</p>
+  <p>Browser playback here is a quick port of the kind of synthesis <strong>SoundBank</strong> uses, so it shows the character of each option. Once you pick, I tune it in SoundBank and check it with <code>Tools/SoundCheck/render.sh</code>.</p>
+</header>
+
+<div class="controls">
+  <label for="vol">Volume <input id="vol" type="range" min="0" max="100" value="70"><output id="volOut">70</output></label>
+  <button id="stop">Stop loops</button>
+</div>
+
+<section>
+  <h2 class="part">Part 1: Sounds</h2>
+  <p>The lash is <code>Sfx.SwingLight</code> today (the same swish as other light melee). The seed sounds are new, so they need to be quiet: seeds fire about 2.5 times a second all wave.</p>
+
+  <h3 class="grp">Root lash (every 0.55 s)</h3>
+  <div class="grid" id="g-lash"></div>
+  <h3 class="grp">Seed shot (every 0.4 s)</h3>
+  <div class="grid" id="g-shot"></div>
+  <h3 class="grp">Seed hits an enemy</h3>
+  <div class="grid" id="g-hit"></div>
+
+  <div class="controls" role="group" aria-label="Combo">
+    <strong>Hear it together</strong>
+    <label for="selLash">Lash <select id="selLash"></select></label>
+    <label for="selShot">Shot <select id="selShot"></select></label>
+    <label for="selHit">Hit <select id="selHit"></select></label>
+    <button id="combo" aria-pressed="false">Combat loop</button>
+  </div>
+</section>
+
+<section class="looks">
+  <h2 class="part">Part 2: Seeds</h2>
+  <p>A small tree stands in the middle and flicks seeds at the nearest enemy. Switch looks to compare. The root lash fires too, so you can see the seeds next to it. Reduced effects drops the trail and the hit sparks in every look.</p>
+  <canvas id="arena" width="640" height="320" aria-label="Treant firing seeds at three moving enemies"></canvas>
+  <div class="row" id="lookBtns"></div>
+  <div class="grid" id="lookCards"></div>
+
+  <div class="spec">
+    <h3 class="grp" style="margin-bottom:8px">Proposed numbers</h3>
+    <ul>
+      <li><strong>Damage 3 per seed</strong>, every 0.4 s, so about 7.5 damage a second. The Treant's slam is 15 every 1.2 s, and the Wisp shoots 7 every 0.5 s, so seeds stay a side job.</li>
+      <li><strong>Range 320 px</strong>, speed 520 px/s, nearest enemy, fires only while a wave is fighting. Seeds are blocked by walls like other player bullets.</li>
+      <li>Damage uses your damage multiplier. The Treant growing 30% with Extra projectiles also makes the seed 30% bigger; it does not add more seeds.</li>
+      <li>Look A reuses the existing minion shot with a new colour, so no protocol change. Looks B and C need a new bullet kind, which means a <code>Session.ProtocolVersion</code> bump.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+var RATE=44100;
+function lcg(seed){var s=(seed>>>0)||1;return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+/* State variable filter; f and mode can change every sample. */
+function svf(){var lp=0,bp=0;return function(x,f,q,mode){var g=2*Math.sin(Math.PI*Math.min(f,RATE*.4)/RATE),hp=x-lp-(1/q)*bp;bp+=g*hp;lp+=g*bp;return mode==='bp'?bp:mode==='lp'?lp:hp}}
+function fin(a,peak){var n=a.length,fade=Math.min(n,441),i,m=0;for(i=0;i<fade;i++)a[n-1-i]*=i/fade;for(i=0;i<n;i++)m=Math.max(m,Math.abs(a[i]));if(m>0)for(i=0;i<n;i++)a[i]*=peak/m;return a}
+function env(t,a,d){return Math.min(1,t/a)*Math.exp(-t/d)}
+function sweep(a,b,u){return a*Math.pow(b/a,Math.min(1,Math.max(0,u)))}
+
+/* Each sound: (rnd) => Float32Array. Peaks are low on purpose. */
+var SOUNDS={
+ lash:[
+  {id:'barkwhip',name:'Bark Whip',tag:'A',peak:.5,dur:.34,note:'A woody swish that climbs in pitch, with a low creak underneath and a small snap as the root reaches the end. Reads as a heavy branch.',
+   f:function(r){var n=Math.floor(.34*RATE),o=new Float32Array(n),f1=svf(),ph=0;
+    for(var i=0;i<n;i++){var t=i/RATE,w=r()*2-1,fc=sweep(350,2400,t/.17);
+     var sw=f1(w,fc,2.2,'bp')*env(t,.03,.09)*1.6;
+     ph+=sweep(85,150,t/.2)/RATE;var creak=(((ph%1)*2-1)*.5)*env(t,.01,.1)*(.6+.4*Math.sin(t*90));
+     var snap=t>.17?(r()*2-1)*Math.exp(-(t-.17)/.012)*.7:0;o[i]=Math.tanh(sw+creak+snap)}return o}},
+  {id:'thornsnap',name:'Thorn Snap',tag:'B',peak:.5,dur:.28,note:'A short whoosh ending in a sharp whip crack and a dull wooden knock. The punchiest, easiest to hear over a crowd.',
+   f:function(r){var n=Math.floor(.28*RATE),o=new Float32Array(n),f1=svf(),f2=svf(),ph=0;
+    for(var i=0;i<n;i++){var t=i/RATE,w=r()*2-1;
+     var wh=f1(w,sweep(600,3200,t/.12),1.4,'bp')*env(t,.02,.06)*1.2;
+     var c=t>.12?f2(w,2600,.8,'hp')*Math.exp(-(t-.12)/.01):0;
+     ph+=sweep(190,80,(t-.12)/.08)/RATE;var kn=t>.12?Math.sin(2*Math.PI*ph)*Math.exp(-(t-.12)/.05)*.8:0;
+     o[i]=Math.tanh(wh+c+kn)}return o}},
+  {id:'leafrustle',name:'Leaf Rustle',tag:'C',peak:.42,dur:.4,note:'A soft rustle of leaves with a fluttering edge and a gentle swish. The most natural and the quietest; the lash feels light.',
+   f:function(r){var n=Math.floor(.4*RATE),o=new Float32Array(n),f1=svf(),f2=svf();
+    for(var i=0;i<n;i++){var t=i/RATE,w=r()*2-1;
+     var fl=.55+.45*Math.sin(t*140+Math.sin(t*37)*2);
+     var leaf=f1(w,sweep(3200,6200,t/.3),1.2,'bp')*fl*env(t,.04,.12);
+     var sw=f2(w,sweep(500,1400,t/.2),1.5,'bp')*env(t,.05,.1)*.8;o[i]=Math.tanh(leaf*1.5+sw)}return o}}
+ ],
+ shot:[
+  {id:'pip',name:'Pip',tag:'A',peak:.22,dur:.1,note:'A tiny rising blip with a soft click. Clean and bright, like a seed flicked off a fingertip.',
+   f:function(r){var n=Math.floor(.1*RATE),o=new Float32Array(n),ph=0;
+    for(var i=0;i<n;i++){var t=i/RATE;ph+=sweep(900,1700,t/.05)/RATE;
+     o[i]=Math.sin(2*Math.PI*ph)*env(t,.002,.025)+(r()*2-1)*Math.exp(-t/.002)*.3}return o}},
+  {id:'podpop',name:'Pod Pop',tag:'B',peak:.24,dur:.12,note:'A small bubbly pop that falls in pitch, like a seed pod bursting. Rounder and a little lower than Pip.',
+   f:function(r){var n=Math.floor(.12*RATE),o=new Float32Array(n),ph=0,f1=svf();
+    for(var i=0;i<n;i++){var t=i/RATE;ph+=sweep(620,210,t/.07)/RATE;
+     o[i]=Math.sin(2*Math.PI*ph)*env(t,.002,.03)+f1(r()*2-1,2200,1,'bp')*Math.exp(-t/.006)*.5}return o}},
+  {id:'spit',name:'Spit',tag:'C',peak:.2,dur:.09,note:'A breath of air with a faint high tone. The airiest and most forgettable, which is right for something that fires constantly.',
+   f:function(r){var n=Math.floor(.09*RATE),o=new Float32Array(n),f1=svf(),ph=0;
+    for(var i=0;i<n;i++){var t=i/RATE;ph+=sweep(1500,1100,t/.05)/RATE;
+     o[i]=f1(r()*2-1,sweep(3500,2200,t/.06),1.8,'bp')*env(t,.004,.02)*1.4+Math.sin(2*Math.PI*ph)*Math.exp(-t/.015)*.25}return o}}
+ ],
+ hit:[
+  {id:'tick',name:'Tick',tag:'A',peak:.22,dur:.07,note:'A dry tick, like a seed hitting a wooden board. Very short, so a volley never smears.',
+   f:function(r){var n=Math.floor(.07*RATE),o=new Float32Array(n),f1=svf(),ph=0;
+    for(var i=0;i<n;i++){var t=i/RATE;ph+=sweep(420,260,t/.03)/RATE;
+     o[i]=f1(r()*2-1,3000,.8,'hp')*Math.exp(-t/.004)*.6+Math.sin(2*Math.PI*ph)*Math.exp(-t/.012)*.7}return o}},
+  {id:'thwip',name:'Thwip',tag:'B',peak:.22,dur:.09,note:'A wet little stick-in, a short falling tone with a soft noise tail. Sounds like the seed lodges in the enemy.',
+   f:function(r){var n=Math.floor(.09*RATE),o=new Float32Array(n),f1=svf(),ph=0;
+    for(var i=0;i<n;i++){var t=i/RATE;ph+=sweep(700,180,t/.05)/RATE;
+     o[i]=Math.sin(2*Math.PI*ph)*Math.exp(-t/.015)*.8+f1(r()*2-1,1400,1.2,'bp')*env(t,.003,.02)*.6}return o}},
+  {id:'sprout',name:'Sprout',tag:'C',peak:.2,dur:.16,note:'A tick followed by a tiny rising chirp, a hint of something growing. The only option with a bit of reward in it.',
+   f:function(r){var n=Math.floor(.16*RATE),o=new Float32Array(n),ph=0,f1=svf();
+    for(var i=0;i<n;i++){var t=i/RATE,ch=t>.02?Math.sin(2*Math.PI*(ph+=sweep(600,1300,(t-.02)/.1)/RATE))*env(t-.02,.01,.04)*.5:0;
+     o[i]=f1(r()*2-1,2800,.8,'hp')*Math.exp(-t/.003)*.5+ch}return o}}
+ ]
+};
+
+var ctx=null,master=null,bufs={},takes={},cards={},loops={};
+function ensure(){if(ctx)return;ctx=new (window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.connect(ctx.destination);setVol()}
+function setVol(){if(master)master.gain.value=Math.pow(document.getElementById('vol').value/100,2)}
+function get(s){if(bufs[s.id])return bufs[s.id];var l=[];for(var v=0;v<4;v++){var d=fin(s.f(lcg(97+v*31+s.id.length*7)),s.peak),b=ctx.createBuffer(1,d.length,RATE);b.copyToChannel(d,0);l.push(b)}return bufs[s.id]=l}
+function play(s){ensure();if(ctx.state==='suspended')ctx.resume();var l=get(s),i=(takes[s.id]=(takes[s.id]||0)+1)%l.length,src=ctx.createBufferSource();
+  src.buffer=l[i];src.playbackRate.value=1+(Math.random()-.5)*.08;src.connect(master);src.start();
+  var el=cards[s.id];if(el){el.classList.add('playing');setTimeout(function(){el.classList.remove('playing')},160)}}
+function stopLoops(){for(var k in loops)clearInterval(loops[k]);loops={};document.querySelectorAll('.loopbtn,#combo').forEach(function(b){b.setAttribute('aria-pressed','false')})}
+
+function drawWave(cv,d){var c=cv.getContext('2d'),W=cv.width,H=cv.height,st=getComputedStyle(document.documentElement),col=st.getPropertyValue('--wave').trim()||'#3f7a2a',mut=st.getPropertyValue('--line').trim()||'#888';
+  c.clearRect(0,0,W,H);c.strokeStyle=mut;c.beginPath();c.moveTo(0,H/2);c.lineTo(W,H/2);c.stroke();c.fillStyle=col;var per=d.length/W;
+  for(var x=0;x<W;x++){var m=0;for(var i=Math.floor(x*per);i<Math.min(d.length,Math.floor((x+1)*per));i++)m=Math.max(m,Math.abs(d[i]));var h=m*(H/2-3);c.fillRect(x,H/2-h,1,Math.max(1,h*2))}}
+var waves=[];
+var GROUPS={lash:['g-lash',550],shot:['g-shot',400],hit:['g-hit',400]};
+Object.keys(GROUPS).forEach(function(k){
+  var host=document.getElementById(GROUPS[k][0]),every=GROUPS[k][1];
+  SOUNDS[k].forEach(function(s){
+    var d=fin(s.f(lcg(97+s.id.length*7)),s.peak);waves.push([s,d]);
+    var el=document.createElement('div');el.className='card';cards[s.id]=el;
+    el.innerHTML='<h4><span>'+s.name+'</span><small>option '+s.tag+'</small></h4><p>'+s.note+'</p><canvas class="w" width="600" height="90" aria-label="Waveform of '+s.name+'"></canvas>'+
+      '<div class="row"><button class="primary play">Play</button><button class="loopbtn" aria-pressed="false">Loop at '+(every/1000).toFixed(2)+' s</button><span class="stat">peak '+s.peak.toFixed(2)+' / '+Math.round(s.dur*1000)+' ms</span></div>';
+    el.querySelector('.play').onclick=function(){stopLoops();play(s)};
+    el.querySelector('.loopbtn').onclick=function(e){var on=loops[s.id];stopLoops();if(!on){play(s);loops[s.id]=setInterval(function(){play(s)},every);e.target.setAttribute('aria-pressed','true')}};
+    host.appendChild(el);drawWave(el.querySelector('canvas'),d)})});
+function redraw(){waves.forEach(function(w){drawWave(cards[w[0].id].querySelector('canvas'),w[1])})}
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){setTimeout(redraw,50)});
+new MutationObserver(function(){setTimeout(redraw,50)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* Combo: lash every 0.55 s, a seed shot every 0.4 s, and a hit 0.15 s after each shot. */
+['Lash:lash:selLash','Shot:shot:selShot','Hit:hit:selHit'].forEach(function(x){var p=x.split(':'),sel=document.getElementById(p[2]);
+  SOUNDS[p[1]].forEach(function(s,i){var o=document.createElement('option');o.value=i;o.textContent=s.tag+' '+s.name;sel.appendChild(o)})});
+document.getElementById('combo').onclick=function(e){var on=loops.combo;stopLoops();if(on)return;
+  var L=SOUNDS.lash[+selLash.value],S=SOUNDS.shot[+selShot.value],H=SOUNDS.hit[+selHit.value];
+  play(L);play(S);setTimeout(function(){play(H)},150);
+  var a=setInterval(function(){play(L)},550),b=setInterval(function(){play(S);setTimeout(function(){play(H)},150)},400);
+  loops.combo=setInterval(function(){},1e6);loops.c1=a;loops.c2=b;e.target.setAttribute('aria-pressed','true')};
+document.getElementById('vol').oninput=function(e){document.getElementById('volOut').textContent=e.target.value;setVol()};
+document.getElementById('stop').onclick=stopLoops;
+
+/* ---------- Part 2: seed looks ---------- */
+var LOOKS=[
+ {id:'acorn',name:'Acorn Pip',tag:'A',note:'A small brown seed with a pale cap and a short green streak behind. Reads as a seed at a glance. Reuses the minion shot, so no protocol change.',
+  col:'#b98b52',glow:'#8fd16a'},
+ {id:'spore',name:'Spore',tag:'B',note:'A soft pale-green glow with a fading trail of motes. The calmest to look at while the Treant is firing all wave. Needs a new bullet kind.',
+  col:'#d6ffc0',glow:'#9be873'},
+ {id:'thorn',name:'Thorn Dart',tag:'C',note:'A thin dark-green sliver with a bright tip that points along its path. The easiest to follow against busy bullets. Needs a new bullet kind.',
+  col:'#bdf08a',glow:'#4f9a38'}
+];
+var look=LOOKS[0],cv=document.getElementById('arena'),g=cv.getContext('2d');
+var lb=document.getElementById('lookBtns'),lc=document.getElementById('lookCards');
+LOOKS.forEach(function(l){
+  var b=document.createElement('button');b.textContent=l.tag+' '+l.name;b.setAttribute('aria-pressed',l===look?'true':'false');b.onclick=function(){look=l;[].forEach.call(lb.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')})};lb.appendChild(b);
+  var c=document.createElement('div');c.className='card';c.innerHTML='<h4><span>'+l.name+'</span><small>look '+l.tag+'</small></h4><p>'+l.note+'</p>';lc.appendChild(c)});
+
+var T={x:320,y:170},P={x:130,y:250};
+var enemies=[0,1,2].map(function(i){return{a:i*2.1,r:130+i*30,sp:.35+i*.1,x:0,y:0,hit:0,hp:1}});
+var seeds=[],sparks=[],cd=0,lashT=0,lashCd=1,last=0,reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function hexagon(x,y,r,fill,stroke,rot){g.beginPath();for(var i=0;i<6;i++){var a=rot+i*Math.PI/3;g[i?'lineTo':'moveTo'](x+Math.cos(a)*r,y+Math.sin(a)*r)}g.closePath();g.fillStyle=fill;g.fill();g.strokeStyle=stroke;g.lineWidth=2;g.stroke()}
+function frame(ts){
+  var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  g.clearRect(0,0,640,320);
+  g.strokeStyle='rgba(143,209,106,.06)';g.lineWidth=1;for(var x=0;x<=640;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,320);g.stroke()}for(var y=0;y<=320;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(640,y);g.stroke()}
+  enemies.forEach(function(e){e.a+=e.sp*dt;e.x=T.x+Math.cos(e.a)*e.r*1.7;e.y=T.y+Math.sin(e.a)*e.r*.8;if(e.hit>0)e.hit-=dt});
+  /* root to the player */
+  g.strokeStyle='#4f7d34';g.lineWidth=3;g.beginPath();g.moveTo(P.x,P.y);g.quadraticCurveTo((P.x+T.x)/2,(P.y+T.y)/2+14,T.x,T.y);g.stroke();
+  /* lash toward nearest enemy */
+  lashCd-=dt;
+  var near=enemies.slice().sort(function(a,b){return Math.hypot(a.x-T.x,a.y-T.y)-Math.hypot(b.x-T.x,b.y-T.y)})[0];
+  if(lashCd<=0){lashCd=.55;lashT=.22;}
+  if(lashT>0){lashT-=dt;var k=1-lashT/.22,ang=Math.atan2(near.y-P.y,near.x-P.x),len=Math.sin(k*Math.PI)*210;
+    g.strokeStyle='#7fbf4a';g.lineWidth=7;g.lineCap='round';g.beginPath();g.moveTo(P.x,P.y);g.lineTo(P.x+Math.cos(ang)*len,P.y+Math.sin(ang)*len);g.stroke();g.lineCap='butt'}
+  /* seeds */
+  cd-=dt;
+  if(cd<=0){cd=.4;var d=Math.hypot(near.x-T.x,near.y-T.y),a=Math.atan2(near.y-T.y,near.x-T.x);
+    seeds.push({x:T.x+Math.cos(a)*22,y:T.y+Math.sin(a)*22,vx:Math.cos(a)*420,vy:Math.sin(a)*420,t:0,tr:[]})}
+  seeds=seeds.filter(function(s){
+    s.t+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.tr.push([s.x,s.y]);if(s.tr.length>9)s.tr.shift();
+    for(var i=0;i<enemies.length;i++){var e=enemies[i];if(Math.hypot(e.x-s.x,e.y-s.y)<14){e.hit=.12;if(!reduce)for(var k=0;k<4;k++)sparks.push({x:s.x,y:s.y,a:Math.random()*6.28,t:0});return false}}
+    return s.t<.8});
+  sparks=sparks.filter(function(p){p.t+=dt;return p.t<.25});
+  /* treant */
+  var tr=1+.04*Math.sin(ts/300);
+  hexagon(T.x,T.y,22*tr,'#2f5d25','#6fbf4f',ts/6000);
+  g.fillStyle='#a8f07a';g.fillRect(T.x-8,T.y-4,4,4);g.fillRect(T.x+4,T.y-4,4,4);
+  /* player */
+  g.beginPath();g.arc(P.x,P.y,11,0,6.283);g.fillStyle='#e8f0d8';g.fill();
+  /* enemies */
+  enemies.forEach(function(e){hexagon(e.x,e.y,13,e.hit>0?'#ffffff':'#7a2a2a',e.hit>0?'#ffffff':'#e06060',0)});
+  /* seed drawing per look */
+  seeds.forEach(function(s){
+    var a=Math.atan2(s.vy,s.vx);
+    if(look.id==='acorn'){
+      if(!reduce){g.strokeStyle='rgba(143,209,106,.45)';g.lineWidth=2;g.beginPath();var q=s.tr.slice(-4);q.forEach(function(p,i){g[i?'lineTo':'moveTo'](p[0],p[1])});g.stroke()}
+      g.fillStyle=look.col;g.beginPath();g.ellipse(s.x,s.y,4,3,a,0,6.283);g.fill();
+      g.fillStyle='#e8d3a8';g.beginPath();g.arc(s.x-Math.cos(a)*1.5,s.y-Math.sin(a)*1.5,2,0,6.283);g.fill()}
+    else if(look.id==='spore'){
+      if(!reduce)s.tr.forEach(function(p,i){g.fillStyle='rgba(155,232,115,'+(i/s.tr.length*.35)+')';g.beginPath();g.arc(p[0],p[1],1+i/s.tr.length*2,0,6.283);g.fill()});
+      var gr=g.createRadialGradient(s.x,s.y,0,s.x,s.y,10);gr.addColorStop(0,'rgba(214,255,192,.95)');gr.addColorStop(.35,'rgba(155,232,115,.5)');gr.addColorStop(1,'rgba(155,232,115,0)');
+      g.fillStyle=gr;g.beginPath();g.arc(s.x,s.y,10,0,6.283);g.fill()}
+    else{
+      g.save();g.translate(s.x,s.y);g.rotate(a);
+      g.fillStyle=look.glow;g.beginPath();g.moveTo(-8,0);g.lineTo(-1,-2.2);g.lineTo(-1,2.2);g.closePath();g.fill();
+      g.fillStyle=look.col;g.beginPath();g.moveTo(7,0);g.lineTo(-1,-2.2);g.lineTo(-1,2.2);g.closePath();g.fill();g.restore()}});
+  sparks.forEach(function(p){var r=p.t/.25;g.strokeStyle=look.id==='thorn'?'rgba(189,240,138,'+(1-r)+')':'rgba(155,232,115,'+(1-r)+')';g.lineWidth=1.5;
+    g.beginPath();g.moveTo(p.x+Math.cos(p.a)*3,p.y+Math.sin(p.a)*3);g.lineTo(p.x+Math.cos(p.a)*(5+r*9),p.y+Math.sin(p.a)*(5+r*9));g.stroke()});
+  requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>
