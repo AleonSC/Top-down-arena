@@ -126,6 +126,50 @@ static partial class Program
         // Timing: the weapon fires about every 0.55 s.
         Check(Math.Abs(me.Weapon.FireInterval - 0.55f) < 0.001f && me.Weapon.Damage * (1f / me.Weapon.FireInterval) > 25f && me.Weapon.Damage * (1f / me.Weapon.FireInterval) < 30f, "the lash is sized to about 27 damage a second on one target");
         reset();
+
+        // --- Treant Rod: the Treant's seeds (tiny, 3 damage, every 0.4 s, nearest enemy within 320 px).
+        play(1.5f);  // the Treant is back
+        var treant = g.Minions.Values.FirstOrDefault(m => m.Kind == MinionKind.Treant && m.Owner == 1);
+        Check(treant != null, "the Treant Rod's Treant is out");
+        var foe = dummy(treant.Pos + new V2(200f, 0f));
+        float h0 = foe.Hp, seedDmg = Game.SeedDamage * me.Stats.DmgMult;
+        bool sawSeed = false, clientSawSeed = false;
+        for (int f = 0; f < 60; f++)
+        {
+            play(1f / 60f);
+            sawSeed |= g.Bullets.Values.Any(x => x.Kind == Defs.TreantSeed && x.Owner == 1);
+            clientSawSeed |= client.Game.Bullets.Values.Any(x => x.Kind == Defs.TreantSeed);
+        }
+        float dealt = h0 - foe.Hp;
+        Console.WriteLine("  treant seeds: {0:0.0} damage to an enemy 200 px away in 1 s (a seed is {1:0.0})", dealt, seedDmg);
+        Check(sawSeed && clientSawSeed, "the Treant flicks seeds at an enemy in range, and the other player sees them");
+        Check(dealt >= seedDmg * 2f - 0.01f && dealt <= seedDmg * 3f + 0.01f && Math.Abs(dealt / seedDmg - Math.Round(dealt / seedDmg)) < 0.01f,
+            "about 2 to 3 seeds land in a second, each for exactly one seed's damage (" + (int)Game.SeedDamage + " x your damage)");
+        Check(Game.SeedDamage * 4f < me.Weapon.Damage, "a seed is small next to the lash");
+
+        treant.StaggerT = 5f;
+        play(0.6f);  // the seeds already flying land first
+        float h1 = foe.Hp;
+        play(1f);
+        Check(h1 - foe.Hp < 0.01f, "a staggered Treant holds its seeds");
+        treant.StaggerT = 0f;
+        reset();
+
+        play(1.5f);
+        treant = g.Minions.Values.First(m => m.Kind == MinionKind.Treant && m.Owner == 1);
+        var distant = dummy(treant.Pos + new V2(Game.SeedRange + 150f, 0f));
+        float d0 = distant.Hp;
+        play(1f);
+        Check(d0 - distant.Hp < 0.01f && !g.Bullets.Values.Any(x => x.Kind == Defs.TreantSeed), "an enemy past the seed range gets no seeds");
+        reset();
+
+        // The seeds belong to the Treant Rod: another weapon's Treant (none) and a lone Treant with nobody holding the rod fire nothing.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SpriteStaff);
+        play(1.5f);
+        var other = dummy(from + new V2(150f, 0f));
+        play(1f);
+        Check(!g.Bullets.Values.Any(x => x.Kind == Defs.TreantSeed), "no seeds without the Treant Rod");
+        reset();
         host.Leave(""); client.Leave("");
     }
 }

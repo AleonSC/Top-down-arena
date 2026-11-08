@@ -248,6 +248,7 @@ namespace Arena
             BuildMelee(owner);  // MeleeSoundBank.cs
             BuildNinja();  // NinjaSoundBank.cs
             BuildKatana();  // KatanaSoundBank.cs
+            BuildTreant();  // TreantSoundBank.cs
         }
 
         void Build()
