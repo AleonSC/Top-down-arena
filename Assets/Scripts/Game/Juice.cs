@@ -279,7 +279,7 @@ namespace Arena
                 {
                     float hp = Mathf.Clamp01((fx.Color.A - 0.2f) / 0.8f);  // your own hammer slam: a hit-stop and a kick, harder the more it was charged
                     Hold(0.04f + 0.03f * hp);
-                    Shake(0.08f + 0.2f * hp);
+                    Shake(0.1f + 0.26f * hp);  // Quake: the ground takes it, so it kicks harder
                 }
                 if (fx.Kind == FxKind.Slash && me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Greatsword && fx.Radius > 1f && me.Pos.DistanceTo(fx.Pos) < 44f)
                 {
