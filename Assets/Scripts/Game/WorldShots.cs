@@ -165,6 +165,19 @@ namespace Arena
             if (b.Kind == Defs.KnightWave)  // a crescent of steel (or light) flying edge-first
             {
                 float a = b.Vel.Angle;
+                Player bo;
+                if (fxOn && game.Players.TryGetValue(b.Owner, out bo) && bo.Weapon != null && bo.Weapon.Id == WeaponId.Greatsword)
+                {
+                    // Moonlit Crescent's sword beam: a trail of fading crescents behind a bright one.
+                    V2 bd = V2.FromAngle(a);
+                    var moon = new Rgba(0.78f, 0.88f, 1f);
+                    for (int k = 9; k >= 1; k--)
+                        Arc(b.Pos - bd * (8f + 12f * k), b.Radius + 6f, 3f * (1f - k / 12f), moon.WithAlpha((1f - k / 10f) * 0.5f), 12, a - 0.95f, 1.9f);
+                    GlowDisc(b.Pos, 30f, moon, 0.3f);
+                    Arc(b.Pos - bd * 8f, b.Radius + 6f, 7f, moon.WithAlpha(0.8f), 12, a - 0.95f, 1.9f);
+                    Arc(b.Pos - bd * 8f, b.Radius + 6f, 2.4f, Rgba.White, 12, a - 0.95f, 1.9f);
+                    return;
+                }
                 Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 5f, c.WithAlpha(0.45f), 12, a - 0.9f, 1.8f);
                 Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 2f, Rgba.White.WithAlpha(0.95f), 12, a - 0.8f, 1.6f);
                 return;

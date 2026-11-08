@@ -125,7 +125,7 @@ namespace Arena
         {
             switch (id)
             {
-                case WeaponId.Greatsword: return new Rgba(0.56f, 0.78f, 1f);
+                case WeaponId.Greatsword: return new Rgba(0.78f, 0.88f, 1f);  // Moonlit Crescent (Docs/Mockups/greatsword-sweep.html)
                 case WeaponId.TwinBlades: return new Rgba(1f, 0.82f, 0.48f);
                 case WeaponId.Halberd: return new Rgba(0.56f, 0.94f, 0.78f);
                 case WeaponId.Rapier: return new Rgba(0.8f, 0.72f, 1f);
@@ -233,9 +233,15 @@ namespace Arena
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
             float at = full ? aim + T * 14f * s : start + 2f * half * s * e;
             bool katana = seen.Weapon == WeaponId.Katana;
+            bool moon = seen.Weapon == WeaponId.Greatsword && !full;  // Moonlit Crescent
             if (light && katana)
             {
                 KatanaCrescent(o, reach, start, at, T, sweepTime, col);
+                KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
+            }
+            else if (light && moon)
+            {
+                KatanaCrescent(o, reach, start, at, T, sweepTime, col, 0.3f, false);  // one long crescent, thin at the tail and fat at the blade
                 KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
             }
             else if (light)
@@ -244,6 +250,8 @@ namespace Arena
             {
                 if (katana)
                     KatanaSparks(o, start, 2f * half * s, reach, T, sweepTime, seed, false, 20);
+                else if (moon)
+                    KatanaSparks(o, start, 2f * half * s, reach, T, sweepTime, seed, false, 20, col);
                 else
                     MeleeSparks(o, start, 2f * half * s, reach, T, sweepTime, col, seed, false);
                 float hold = T < sweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.1f) / 0.18f);
@@ -253,9 +261,9 @@ namespace Arena
                         float ga = at - s * g * 0.16f * (T < sweepTime ? 1f : 0.6f);
                         if ((ga - start) * s < 0f)
                             continue;
-                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false, s);
+                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false, s, ArmColor(seen.Owner));
                     }
-                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime, s);
+                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime, s, ArmColor(seen.Owner));
             }
             return true;
         }
@@ -266,7 +274,7 @@ namespace Arena
 
         /// The swipe's trail: a crescent thick at the blade and thinning to nothing behind it, its tail eaten away as the
         /// sweep ends (no band left hanging), a white edge on the outside and a faint air-shock arc ahead of the blade.
-        void KatanaCrescent(V2 o, float reach, float start, float at, float T, float sweepTime, Rgba col)
+        void KatanaCrescent(V2 o, float reach, float start, float at, float T, float sweepTime, Rgba col, float width = 0.12f, bool shock = true)
         {
             float sweep = at - start;
             if (Mathf.Abs(sweep) < 0.01f)
@@ -277,7 +285,7 @@ namespace Arena
             float fade = T < sweepTime + 0.12f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.12f) / 0.5f);
             if (Mathf.Abs(at - tail) < 0.01f || fade <= 0f)
                 return;
-            float maxW = reach * 0.12f;
+            float maxW = reach * width;
             int n = Mathf.Max(8, Mathf.CeilToInt(Mathf.Abs(at - tail) * 40f));
             for (int i = 0; i < n; i++)
             {
@@ -295,9 +303,9 @@ namespace Arena
                 VTri(c00, Rgba.White.WithAlpha(0.2f * k0), c10, Rgba.White.WithAlpha(k0), c11, Rgba.White.WithAlpha(k1));
                 VTri(c00, Rgba.White.WithAlpha(0.2f * k0), c11, Rgba.White.WithAlpha(k1), c01, Rgba.White.WithAlpha(0.2f * k1));
             }
-            float s = sweep >= 0f ? 1f : -1f, shock = fade * (T < sweepTime + 0.1f ? 1f : 0.5f);
-            for (int k = 0; k < 2; k++)
-                Arc(o, reach + 9f + 8f * k, 1.3f, col.WithAlpha((0.35f - 0.15f * k) * shock), 14, at - s * (0.52f - 0.1f * k), s * 0.64f);
+            float s = sweep >= 0f ? 1f : -1f, shockA = fade * (T < sweepTime + 0.1f ? 1f : 0.5f);
+            for (int k = 0; k < (shock ? 2 : 0); k++)
+                Arc(o, reach + 9f + 8f * k, 1.3f, col.WithAlpha((0.35f - 0.15f * k) * shockA), 14, at - s * (0.52f - 0.1f * k), s * 0.64f);
         }
 
         /// Five afterimages of the swordsman along the lunge's step, from where they stood, fading as the step ends.
@@ -360,7 +368,7 @@ namespace Arena
         }
 
         /// Hot orange and white streaks thrown off the blade (a short line each, not the other weapons' squares).
-        void KatanaSparks(V2 o, float start, float sweep, float reach, float T, float active, int seed, bool line, int count)
+        void KatanaSparks(V2 o, float start, float sweep, float reach, float T, float active, int seed, bool line, int count, Rgba warm = default(Rgba))
         {
             uint r = (uint)seed;
             float s = sweep >= 0f ? 1f : -1f;
@@ -373,7 +381,7 @@ namespace Arena
                 V2 from = line ? o + V2.FromAngle(start) * (30f + reach * born / Mathf.Max(active, 1e-4f)) : o + V2.FromAngle(ba) * reach;
                 float oa = line ? start + spread * 1.4f : ba + s * (0.9f + spread);
                 V2 dir = V2.FromAngle(oa), p = from + dir * (spd * EaseOut3(q * 0.9f));
-                Line(p - dir * (14f * (1f - q)), p, 1.5f, (i % 2 == 0 ? KatanaSpark : Rgba.White).WithAlpha(0.9f * (1f - q)));
+                Line(p - dir * (14f * (1f - q)), p, 1.5f, (i % 2 == 0 ? (warm.A > 0f ? warm : KatanaSpark) : Rgba.White).WithAlpha(0.9f * (1f - q)));
             }
         }
 
@@ -803,7 +811,7 @@ namespace Arena
         /// The weapon itself, from your body out along `ang` to `reach` (the mockup's shapes and sizes: a handle, a gold
         /// guard and a tapered blade with a coloured edge; a pole for the Halberd; a thin blade for the Rapier).
         /// `bright`: mid-swing, the blade is white.
-        void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col, bool bright, float bend = 0f)
+        void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col, bool bright, float bend = 0f, Rgba arm = default(Rgba))
         {
             if (alpha <= 0f)
                 return;
@@ -855,6 +863,42 @@ namespace Arena
                         Line(prev, p, 3.5f - 2.5f * f, new Rgba(0.75f, 0.12f, 0.16f, alpha));
                         prev = p;
                     }
+                    break;
+                }
+                case WeaponId.Greatsword:
+                {
+                    // Moonlit Crescent: a wide blade with a fuller, a big gold guard, held in two gloved hands joined to the body by arms.
+                    const float gx = 36f;
+                    float L = reach * 0.98f, w = 7.6f;
+                    Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f), dark = new Rgba(0.05f, 0.1f, 0.1f, alpha), leather = new Rgba(0.72f, 0.56f, 0.34f, alpha), hide = new Rgba(0.16f, 0.11f, 0.06f, alpha);
+                    V2 h1 = o + dir * 17f, h2 = o + dir * 31f;
+                    Line(o - side * 3f, h1, 7.2f, dark);
+                    Line(o + side * 3f, h2, 7.2f, dark);
+                    Line(o - side * 3f, h1, 5f, armc.WithAlpha(alpha));
+                    Line(o + side * 3f, h2, 5f, armc.WithAlpha(alpha));
+                    Line(o - dir * 6f, o + dir * gx, 5f, new Rgba(0.23f, 0.17f, 0.12f, alpha));
+                    Line(o - dir * 6f, o + dir * gx, 3f, MeleeHandle.WithAlpha(alpha));
+                    Circle(o - dir * 7f, 3.4f, new Rgba(0.72f, 0.6f, 0.29f, alpha), 8);
+                    Circle(h1, 6f, hide, 14);
+                    Circle(h1, 4.8f, leather, 14);
+                    Circle(h2, 5.2f, hide, 14);
+                    Circle(h2, 4f, leather, 14);
+                    V2 g0 = o + dir * (gx - 3f), g1 = o + dir * (gx + 3f);
+                    SetColor(MeleeGuard.WithAlpha(alpha));
+                    Quad(g0 - side * 12f, g1 - side * 10f, g1 + side * 10f, g0 + side * 12f);
+                    V2 b0 = o + dir * (gx + 1f);
+                    float bl = L - gx - 1f;
+                    V2 q0 = b0 - side * w, q1 = b0 + dir * (bl - 18f) - side * w * 0.82f, tipG = b0 + dir * bl, q3 = b0 + dir * (bl - 18f) + side * w * 0.5f, q4 = b0 + side * w * 0.62f;
+                    SetColor((bright ? Rgba.White : new Rgba(0.88f, 0.93f, 0.99f)).WithAlpha(alpha));
+                    Quad(q0, q1, q3, q4);
+                    Tri(q1, tipG, q3);
+                    var edgeG = Rgba.White.WithAlpha(0.95f * alpha);
+                    Line(q0, q1, 1.1f, edgeG);
+                    Line(q1, tipG, 1.1f, edgeG);
+                    Line(tipG, q3, 1.1f, edgeG);
+                    Line(q3, q4, 1.1f, edgeG);
+                    Line(b0 + dir * 8f - side * 0.6f, b0 + dir * (bl * 0.86f) - side * 0.4f, 1.8f, new Rgba(0.16f, 0.24f, 0.31f, 0.5f * alpha));
+                    Line(b0 + dir * 8f - side * 2.1f, b0 + dir * (bl * 0.84f) - side * 1.8f, 0.8f, Rgba.White.WithAlpha(0.55f * alpha));
                     break;
                 }
                 default:

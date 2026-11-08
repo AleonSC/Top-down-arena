@@ -457,13 +457,42 @@ namespace Arena
         /// A Greatsword's crescent of steel hanging where its sweep's edge passed, fading as it goes.
         void DrawSteelWallFx(Effect fx, float f)
         {
+            // Moonlit Crescent: a glassy arc that appears as the sweep passes, with a glint that runs along it, and a ripple
+            // wherever a bullet died on it (the host's spark for it is the cue).
             V2 to = fx.Pos2 - fx.Pos;
-            float reach = to.Length, aim = to.Angle, half = fx.Radius, fade = 1f - f * f;
+            float reach = to.Length, aim = to.Angle, half = fx.Radius, fade = 1f - f * f, T = fx.T;
             if (reach < 1f)
                 return;
-            Arc(fx.Pos, reach, Game.SteelWallBand * 1.6f, fx.Color.WithAlpha(0.12f * fade), 24, aim - half, half * 2f);
-            Arc(fx.Pos, reach, 4f, Rgba.White.WithAlpha(0.75f * fade), 24, aim - half, half * 2f);
-            Arc(fx.Pos, reach - 6f, 1.5f, fx.Color.WithAlpha(0.6f * fade), 24, aim - half, half * 2f);
+            float head = -half + 2f * half * EaseOut3(Mathf.Clamp01(T / MeleeSweepTime));
+            var moonCol = new Rgba(0.78f, 0.88f, 1f);
+            if (head <= -half + 0.01f)
+                return;
+            Arc(fx.Pos, reach, Game.SteelWallBand * 2f, moonCol.WithAlpha(0.13f * fade), 24, aim - half, head + half);
+            Arc(fx.Pos, reach, 7f, moonCol.WithAlpha(0.4f * fade), 24, aim - half, head + half);
+            Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.55f * fade), 24, aim - half, head + half);
+            float gl = Mathf.Clamp01((T - MeleeSweepTime) / 0.42f);
+            if (gl > 0f && gl < 1f)
+            {
+                float ga = aim - half + 2f * half * gl;
+                GlowDisc(fx.Pos + V2.FromAngle(ga) * reach, 26f, Rgba.White, 0.7f * fade);
+                Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.95f * fade), 6, ga - 0.08f, 0.16f);
+            }
+            var hitCol = Defs.BulletColor(Defs.KnightSlash);
+            foreach (var sp in game.Effects)
+            {
+                if (sp.Kind != FxKind.Spark || sp.Radius != 8f || sp.Color.R != hitCol.R || sp.Color.G != hitCol.G || sp.Color.B != hitCol.B)
+                    continue;
+                V2 rel = sp.Pos - fx.Pos;
+                float d = rel.Length, an = rel.Angle, diff = Mathf.Repeat(an - aim + MathX.Pi, MathX.Tau) - MathX.Pi;
+                if (Mathf.Abs(d - reach) > Game.SteelWallBand + 10f || Mathf.Abs(diff) > half + 0.1f)
+                    continue;
+                float q = Mathf.Clamp01(sp.T / 0.4f);
+                if (q >= 1f)
+                    continue;
+                GlowDisc(fx.Pos + V2.FromAngle(an) * reach, 22f * (1f - q * 0.4f), Rgba.White, 0.7f * (1f - q) * fade);  // the arc brightens where it was hit
+                float run = 0.5f * EaseOut3(q);
+                Arc(fx.Pos, reach, 2f, Rgba.White.WithAlpha(0.5f * (1f - q) * fade), 12, an - run, 2f * run);  // and a ripple runs along it
+            }
         }
 
         /// A Railgun's ion trail: the stretch the round has passed through in the last second glows and crackles
