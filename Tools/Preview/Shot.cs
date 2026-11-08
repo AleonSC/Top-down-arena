@@ -272,6 +272,14 @@ static partial class Shot {
       put(EnemyType.SapperMine, new V2(700f, 180f), 2, 0.15f, 3f, 0f);                      // beeping
       foreach (var e in ng.Enemies.Values) if (e.Type == EnemyType.SapperMine) { e.Hp = e.MaxHp = 1f; }
     }
+    if (Environment.GetEnvironmentVariable("TAGS") != null) {  // TAGS=1: a set of enemies on first sight, each with its name tag (EnemyTagLook.cs); a fresh profile, so nothing is saved to yours
+      var tg = host.Game; tg.Enemies.Clear(); tg.Bullets.Clear();
+      tg.ProfileOverride = new Profile();
+      var tsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      me.Pos = me.Disp = new V2(1200f, 900f);
+      var tk = new[] { EnemyType.Grunt, EnemyType.Swarmer, EnemyType.Mortar, EnemyType.Hookman, EnemyType.Medic, EnemyType.Sapper };
+      for (int k = 0; k < tk.Length; k++) { var e = (Enemy)tsp.Invoke(tg, new object[] { tk[k], new V2(250f + 170f * k, 300f), 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; }
+    }
     if (Environment.GetEnvironmentVariable("AIM") != null) {  // AIM=<0-1>: the aimed shooters winding up (ShooterAimLook.cs); draw once, then move the clock on
       var ag = host.Game; ag.Enemies.Clear(); ag.Bullets.Clear();
       var asp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

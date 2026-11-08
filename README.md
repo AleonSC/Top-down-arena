@@ -403,6 +403,8 @@ The Lunger, Spike Block, Charger and Riot Shield all warn of a lunge the same wa
 
 A Phantom shows a ring where it is about to blink (half a second before it does, and before its ring of shots), and a Mortar's bomb shows a ring where it will land.
 
+**Name tags.** The first three times you see each kind of enemy it carries its name and job for a couple of seconds. Your profile remembers which ones, so you are only taught once.
+
 A Charger shows a ring where its dash will end, which is also where its ring of shots will burst.
 
 Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt) draw a thin dashed line along the shot for the instant before they fire; the Grunt shows all three of its shots.
