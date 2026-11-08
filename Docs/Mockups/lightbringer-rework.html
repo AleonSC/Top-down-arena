@@ -1,0 +1,384 @@
+<title>Lightbringer Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one looping arena stage (mode and speed chips above it), then the three chain steps, the two alt-attack candidates,
+   a current-vs-proposed table and open questions. Same frame as the other weapon-rework mockups.
+   Colour: the game's own Lightbringer gold (1, 0.94, 0.62) for light, ally blue, enemy brick red, bullets amber.
+   Type: Barlow Condensed display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#eef0f3; --fg:#1d1f26; --muted:#5d6170; --panel:#f9fafb; --line:#cfd3dc;
+  --accent:#8a6200; --chip:#e1e4ea; --chip-on:#1d1f26; --chip-on-fg:#f4f5f8; --pick:#2f6b3a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1116; --fg:#e8e9ee; --muted:#9499a8; --panel:#171a21; --line:#2b2f3a;
+  --accent:#f2d27a; --chip:#232733; --chip-on:#e8e9ee; --chip-on-fg:#0f1116; --pick:#8fd39b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1116; --fg:#e8e9ee; --muted:#9499a8; --panel:#171a21; --line:#2b2f3a;
+  --accent:#f2d27a; --chip:#232733; --chip-on:#e8e9ee; --chip-on-fg:#0f1116; --pick:#8fd39b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px;text-wrap:balance}
+.sub{margin:0 0 14px;color:var(--muted);max-width:68ch;font-size:15px}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#11141a}
+canvas{display:block;width:100%;aspect-ratio:720/420;max-width:100%}
+.caption{margin:0;font-size:15px;max-width:72ch;min-height:3em}
+.caption b{font-weight:500;color:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.card .tag{font:500 12px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.card .tag.pick{color:var(--pick)}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.card dl{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:400 13px var(--mono);font-variant-numeric:tabular-nums}
+.card dt{color:var(--muted)}
+.card dd{margin:0;text-align:right}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:15px;max-width:none}
+.note p{margin:0}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500;white-space:nowrap}
+ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+@media (prefers-reduced-motion:reduce){.frame{outline:0}}
+</style>
+
+<main>
+<header>
+  <h1>Lightbringer rework</h1>
+  <p>The Lightbringer stops being one cut on repeat. It becomes a three-step chain where each step does a different healer job:
+    patch up, protect, then heal everyone around you. The light gauge now powers the finisher, and the weapon-action key
+    (Left Alt) gets an alt attack. Two candidates for it are mocked below; pick one.</p>
+</header>
+
+<section class="stage" aria-label="Animated demo">
+  <div class="controls">
+    <div class="group" role="group" aria-label="Demo"><span>Show</span>
+      <button type="button" id="m-chain" data-mode="chain" aria-pressed="true">Chain</button>
+      <button type="button" id="m-radiant" data-mode="radiant" aria-pressed="false">Radiant finisher</button>
+      <button type="button" id="m-lance" data-mode="lance" aria-pressed="false">Alt A: Sunlance</button>
+      <button type="button" id="m-guard" data-mode="guard" aria-pressed="false">Alt B: Dawnguard</button>
+      <button type="button" id="m-old" data-mode="old" aria-pressed="false">Current</button>
+    </div>
+    <div class="group" role="group" aria-label="Speed"><span>Speed</span>
+      <button type="button" id="s-1" data-speed="1" aria-pressed="true">1×</button>
+      <button type="button" id="s-05" data-speed="0.4" aria-pressed="false">0.4×</button>
+      <button type="button" id="s-p" data-speed="0" aria-pressed="false">Pause</button>
+    </div>
+  </div>
+  <div class="frame"><canvas id="cv" width="1440" height="840" aria-label="Top-down arena: the Knight (gold) with three allies (blue) and enemies (red)"></canvas></div>
+  <p class="caption" id="cap"></p>
+</section>
+
+<section>
+  <h2>The chain: Dawn, Mercy, Noon</h2>
+  <p class="sub">Always in this order. Fire while a step plays queues the next. If you don't swing for 0.8 s the chain starts again at Dawn.
+    Every crescent still pierces 2 and still flies out past the cut, so you can heal allies who aren't in melee with you.</p>
+  <div class="cards">
+    <article class="card">
+      <span class="tag">Step 1 · heal</span>
+      <h3>Dawn Cut</h3>
+      <p>The cut you have today. A crescent of light heals each ally it passes.</p>
+      <dl><dt>Cut</dt><dd>100° · 17</dd><dt>Crescent</dt><dd>12 · pierce 2</dd><dt>Ally heal</dt><dd>+6 HP</dd><dt>Light</dt><dd>+1 / enemy</dd><dt>Time</dt><dd>0.45 s</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Step 2 · protect</span>
+      <h3>Mercy Cut</h3>
+      <p>The backhand return cut. Its crescent leaves a light ward on each ally it passes, so the hit they're about to take hurts less.</p>
+      <dl><dt>Cut</dt><dd>100° · 17</dd><dt>Crescent</dt><dd>12 · pierce 2</dd><dt>Ally ward</dt><dd>12 HP · 3 s</dd><dt>Light</dt><dd>+1 / enemy</dd><dt>Time</dt><dd>0.45 s</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Step 3 · group heal</span>
+      <h3>Noon Sunburst</h3>
+      <p>You plant the blade and a ring of light bursts out. It shoves enemies back and heals every ally inside, you included.</p>
+      <dl><dt>Ring</dt><dd>140 px · 22</dd><dt>Knockback</dt><dd>60 px</dd><dt>Ally heal</dt><dd>+10 HP</dd><dt>Self heal</dt><dd>+5 HP</dd><dt>Light</dt><dd>+2 / enemy</dd><dt>Time</dt><dd>0.65 s</dd></dl>
+    </article>
+  </div>
+</section>
+
+<section>
+  <h2>Radiant Sunburst</h2>
+  <div class="note"><p>The light gauge (12 pips round you, as now) no longer powers "the next swing". It powers the <b>next Sunburst</b>, so you
+    choose when to spend it by timing your chain. Full gauge: the ring grows to <b>220 px</b>, heals <b>3×</b> (30 HP), puts a
+    Mercy ward on every ally inside and spends the gauge. Tapping fire all the way through gives you a radiant group heal
+    about every 3 to 4 chains in a crowd.</p></div>
+</section>
+
+<section>
+  <h2>Alt attack: pick one</h2>
+  <p class="sub">On the weapon-action key (Left Alt), like the Twin Blades lunge and the Katana strike. Both spend or build the same light gauge,
+    so the alt and the Radiant Sunburst compete for it. That trade is the healer's decision.</p>
+  <div class="cards">
+    <article class="card">
+      <span class="tag pick">A · recommended</span>
+      <h3>Sunlance</h3>
+      <p>Tap to throw a lance of light at the ally nearest your cursor, anywhere within 450 px. It heals them for 4 per light pip and
+        burns every enemy along the line. One big heal on one ally, at range. Use it to save someone across the arena instead of
+        waiting for the group heal.</p>
+      <dl><dt>Needs</dt><dd>4+ light</dd><dt>Spends</dt><dd>all light</dd><dt>Ally heal</dt><dd>4 / pip (max 48)</dd><dt>Line damage</dt><dd>10 + 2 / pip</dd><dt>Downed ally</dt><dd>+25% revive</dd><dt>Cooldown</dt><dd>1.5 s</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">B · alternative</span>
+      <h3>Dawnguard</h3>
+      <p>Hold to raise the blade. A 120° arc of light in front of you blocks enemy bullets, so allies standing behind you are covered too.
+        Each bullet blocked adds a light pip. Let go after blocking 3 or more and you fire a Sunburst straight away.</p>
+      <dl><dt>Arc</dt><dd>120° · 60 px</dd><dt>Move speed</dt><dd>50%</dd><dt>Light</dt><dd>+1 / bullet</dd><dt>Release</dt><dd>Sunburst at 3+</dd><dt>Can't swing</dt><dd>while held</dd><dt>Cooldown</dt><dd>none</dd></dl>
+    </article>
+  </div>
+  <p class="sub" style="margin-top:14px">Why A: Dawnguard overlaps the Greatsword guard and the Quarterstaff's bullet batting, and it's a tank move.
+    Sunlance gives the Knight healer something none of the other healer weapons has, a ranged heal aimed at one ally.</p>
+</section>
+
+<section>
+  <h2>Current vs proposed</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Current</th><th>Proposed</th></tr></thead>
+    <tbody>
+      <tr><td>Primary</td><td>The same cut every 0.5 s: 17 cut + 12 crescent</td><td>Dawn, Mercy, Noon chain, 1.55 s a cycle</td></tr>
+      <tr><td>Healing</td><td>+6 per ally a crescent passes</td><td>+6 (Dawn), 12 HP ward (Mercy), +10 to all within 140 px (Noon)</td></tr>
+      <tr><td>Light gauge</td><td>12 hits: next crescents heal 3×</td><td>12 pips: next Sunburst is radiant (220 px, 3×, wards all), or spent on the alt</td></tr>
+      <tr><td>Alt attack</td><td>None</td><td>Sunlance (A) or Dawnguard (B)</td></tr>
+      <tr><td>Damage / s</td><td>≈ 58 on one target</td><td>≈ 51 on one target, more in a crowd (the ring hits everything)</td></tr>
+      <tr><td>+1 upgrade</td><td>+1 crescent, fanned out</td><td>Same on Dawn and Mercy, and +30 px on the Sunburst ring</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <ol>
+    <li>Sunlance or Dawnguard? (Or both: tap for Sunlance, hold for Dawnguard. That's more to learn and more to balance.)</li>
+    <li>Should Sunlance be able to target yourself when no ally is in range? The mockup says no, to keep it a support move.</li>
+    <li>Mercy's ward reuses the Energy Ward shield (<code>ShieldHp</code>). Should it stack with a real Energy Ward or take the larger of the two? The mockup takes the larger.</li>
+    <li>All numbers are first guesses for a balance pass after it's built.</li>
+  </ol>
+</section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),cx=cv.getContext('2d'),W=720,H=420;
+cx.scale(2,2);
+const GOLD='#fff0a0',GOLDS='rgba(255,240,160,',ALLY='#5aa0ff',ENEMY='#d0533f',BUL='#ffb43c';
+const CAPS={
+  chain:'<b>Dawn</b> heals the ally its crescent passes, <b>Mercy</b> wards the next one, <b>Noon</b> bursts and heals everyone near you. Gold pips round the Knight are the light gauge.',
+  radiant:'The gauge is almost full. Dawn fills it, so this chain\'s Noon becomes a <b>Radiant Sunburst</b>: a bigger ring that heals three times as much and wards every ally inside.',
+  lance:'Alt A. The ally top right is low and far away. Point at them and tap Left Alt: the <b>Sunlance</b> spends the gauge, heals them for 4 a pip and burns the enemy in the way.',
+  guard:'Alt B. Hold Left Alt: the <b>Dawnguard</b> arc blocks the volley for you and the ally behind you, each blocked bullet adds a pip, and letting go fires a Sunburst.',
+  old:'Today\'s Lightbringer: the same cut and crescent every half second, and a full gauge makes the next crescents heal more.'
+};
+let mode='chain',speed=1,T=0,S;
+const ang=(a,b)=>Math.atan2(b.y-a.y,b.x-a.x),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function reset(){
+  T=0;
+  S={k:{x:300,y:220,aim:0,hp:80},allies:[],enemies:[],fx:[],cres:[],bullets:[],nums:[],light:0,events:[],guard:false,cursor:null};
+  const k=S.k;
+  const ally=(x,y,hp)=>S.allies.push({x,y,hp,max:100,ward:0,wardT:0,flash:0});
+  const foe=(x,y)=>S.enemies.push({x,y,hp:60,flash:0,ox:x,oy:y});
+  if(mode==='lance'){
+    ally(200,150,70);ally(615,85,18);
+    foe(370,190);foe(385,250);foe(470,140);
+    S.light=9;
+    at(0.4,()=>{S.cursor={x:615,y:85}});
+    at(1.2,()=>sunlance(S.allies[1]));
+    at(2.2,()=>{S.cursor=null;k.aim=0;dawn(0)});
+    at(2.7,()=>mercy(0));
+    at(4.4,null);
+  }else if(mode==='guard'){
+    ally(230,220,55);ally(250,320,60);
+    S.shooters=[{x:640,y:130},{x:650,y:220},{x:640,y:310}];
+    S.light=2;
+    at(0.3,()=>{S.guard=true});
+    for(let i=0;i<14;i++)at(0.35+i*0.13,()=>{const s=S.shooters[i%3],a=ang(s,k)+(Math.random()-0.5)*0.12;S.bullets.push({x:s.x,y:s.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340})});
+    at(2.9,()=>{S.guard=false;sunburst(false)});
+    at(4.2,null);
+  }else if(mode==='old'){
+    ally(520,170,50);ally(500,300,60);ally(210,160,70);
+    foe(370,200);foe(385,250);foe(365,280);
+    S.light=8;
+    for(let i=0;i<7;i++)at(0.3+i*0.5,()=>{k.aim=i%2?0.45:-0.35;oldCut()});
+    at(3.9,null);
+  }else{
+    ally(525,165,45);ally(495,315,40);ally(210,160,55);
+    foe(368,195);foe(385,245);foe(362,282);
+    S.light=mode==='radiant'?10:2;
+    at(0.3,()=>{k.aim=ang(k,S.allies[0]);dawn()});
+    at(0.8,()=>{k.aim=ang(k,S.allies[1]);mercy()});
+    at(1.35,()=>sunburst(true));
+    if(mode==='chain'){
+      at(2.3,()=>{k.aim=ang(k,S.allies[1]);dawn()});
+      at(2.8,()=>{k.aim=ang(k,S.allies[0]);mercy()});
+      at(3.35,()=>sunburst(true));
+      at(4.6,null);
+    }else at(3.2,null);
+  }
+}
+function at(t,fn){S.events.push({t,fn})}
+
+function hitEnemiesArc(arc,reach,dmg){
+  let n=0;const k=S.k;
+  for(const e of S.enemies){const d=dist(k,e);let da=Math.abs(((ang(k,e)-k.aim+Math.PI*3)%(Math.PI*2))-Math.PI);
+    if(d<reach+12&&da<arc/2){hurt(e,dmg);n++}}
+  return n;
+}
+function hurt(e,d){e.flash=0.18;e.hp=Math.max(5,e.hp-d);num(e.x,e.y-14,'-'+d,ENEMY)}
+function heal(a,v){a.hp=Math.min(a.max,a.hp+v);a.flash=0.35;num(a.x,a.y-22,'+'+v,'#7dff9a')}
+function ward(a,v){a.ward=Math.max(a.ward,v);a.wardT=3;num(a.x+14,a.y-30,'ward',GOLD)}
+function num(x,y,t,c){S.nums.push({x,y,t,c,life:0.9})}
+function gain(n){S.light=Math.min(12,S.light+n)}
+function cut(side){
+  S.fx.push({kind:'cut',aim:S.k.aim,side,life:0.22,max:0.22});
+  return hitEnemiesArc(100*Math.PI/180,80,17);
+}
+function crescent(wardIt){
+  const k=S.k;S.cres.push({x:k.x+Math.cos(k.aim)*16,y:k.y+Math.sin(k.aim)*16,a:k.aim,life:0.45,ward:wardIt,hitA:new Set(),hitE:new Set(),pierce:3});
+}
+function dawn(){gain(cut(1));crescent(false)}
+function mercy(){gain(cut(-1));crescent(true)}
+function oldCut(){
+  const n=cut(S.k.aim>0?-1:1);const rad=S.light>=12;if(rad)S.light=0;gain(n);
+  crescent(false);S.cres[S.cres.length-1].heal=rad?18:6;
+}
+function sunburst(useLight){
+  const k=S.k,rad=useLight&&S.light>=12,R=rad?220:140;
+  S.fx.push({kind:'ring',r:R,life:rad?0.7:0.5,max:rad?0.7:0.5,rad});
+  S.fx.push({kind:'plant',life:0.4,max:0.4});
+  let n=0;
+  for(const e of S.enemies)if(dist(k,e)<R){hurt(e,22);n++;const a=ang(k,e);e.kx=Math.cos(a)*60;e.ky=Math.sin(a)*60;e.kt=0.2}
+  for(const a of S.allies)if(dist(k,a)<R){heal(a,rad?30:10);if(rad)ward(a,12)}
+  k.hp=Math.min(100,k.hp+5);
+  if(rad){S.light=0;num(k.x,k.y-40,'RADIANT',GOLD)}else gain(2*n);
+}
+function sunlance(a){
+  const k=S.k,p=S.light;k.aim=ang(k,a);
+  S.fx.push({kind:'lance',to:{x:a.x,y:a.y},life:0.5,max:0.5});
+  for(const e of S.enemies){const t=((e.x-k.x)*(a.x-k.x)+(e.y-k.y)*(a.y-k.y))/dist(k,a)**2;
+    if(t>0&&t<1){const px=k.x+(a.x-k.x)*t,py=k.y+(a.y-k.y)*t;if(Math.hypot(e.x-px,e.y-py)<22)hurt(e,10+2*p)}}
+  heal(a,4*p);S.light=0;
+}
+
+function step(dt){
+  T+=dt;
+  for(const ev of S.events)if(!ev.done&&T>=ev.t){ev.done=true;if(ev.fn)ev.fn();else{reset();return}}
+  const k=S.k;
+  for(const c of S.cres){
+    c.x+=Math.cos(c.a)*600*dt;c.y+=Math.sin(c.a)*600*dt;c.life-=dt;
+    for(const e of S.enemies)if(!c.hitE.has(e)&&c.pierce>0&&Math.hypot(e.x-c.x,e.y-c.y)<20){c.hitE.add(e);c.pierce--;hurt(e,12)}
+    for(const a of S.allies)if(!c.hitA.has(a)&&Math.hypot(a.x-c.x,a.y-c.y)<36){c.hitA.add(a);if(c.ward)ward(a,12);else heal(a,c.heal||6)}
+  }
+  S.cres=S.cres.filter(c=>c.life>0);
+  for(const b of S.bullets){
+    b.x+=b.vx*dt;b.y+=b.vy*dt;
+    const d=dist(b,k);
+    if(S.guard&&d<64){const da=Math.abs(((ang(k,b)-k.aim+Math.PI*3)%(Math.PI*2))-Math.PI);
+      if(da<Math.PI/3){b.dead=true;gain(1);S.fx.push({kind:'spark',x:b.x,y:b.y,life:0.25,max:0.25})}}
+    if(d<12)b.dead=true;
+  }
+  S.bullets=S.bullets.filter(b=>!b.dead&&b.x>-20);
+  for(const e of S.enemies){e.flash=Math.max(0,e.flash-dt);if(e.kt>0){e.kt-=dt;e.x+=e.kx*dt*5;e.y+=e.ky*dt*5}else{e.x+=(e.ox-e.x)*dt*0.6;e.y+=(e.oy-e.y)*dt*0.6}}
+  for(const a of S.allies){a.flash=Math.max(0,a.flash-dt);if(a.wardT>0){a.wardT-=dt;if(a.wardT<=0)a.ward=0}}
+  for(const f of S.fx)f.life-=dt;S.fx=S.fx.filter(f=>f.life>0);
+  for(const n of S.nums){n.life-=dt;n.y-=24*dt}S.nums=S.nums.filter(n=>n.life>0);
+}
+
+function body(x,y,r,c){cx.fillStyle=c;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()}
+function bar(x,y,v,max,c,wardV){
+  cx.fillStyle='rgba(255,255,255,.12)';cx.fillRect(x-16,y,32,4);
+  cx.fillStyle=c;cx.fillRect(x-16,y,32*v/max,4);
+  if(wardV>0){cx.fillStyle=GOLD;cx.fillRect(x-16,y-3,32*Math.min(1,wardV/40),2)}
+}
+function draw(){
+  cx.fillStyle='#11141a';cx.fillRect(0,0,W,H);
+  cx.strokeStyle='rgba(255,255,255,.035)';cx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+  for(let y=0;y<=H;y+=40){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+  const k=S.k;
+  // rings under everything
+  for(const f of S.fx)if(f.kind==='ring'){
+    const p=1-f.life/f.max,r=f.r*(0.25+0.75*Math.min(1,p*2.2));
+    cx.fillStyle=GOLDS+(0.16*(1-p))+')';cx.beginPath();cx.arc(k.x,k.y,r,0,7);cx.fill();
+    cx.strokeStyle=GOLDS+(0.9*(1-p))+')';cx.lineWidth=f.rad?5:3;cx.beginPath();cx.arc(k.x,k.y,r,0,7);cx.stroke();
+    if(f.rad){for(let i=0;i<12;i++){const a=i/12*Math.PI*2+p;cx.beginPath();cx.moveTo(k.x+Math.cos(a)*r*0.4,k.y+Math.sin(a)*r*0.4);cx.lineTo(k.x+Math.cos(a)*r,k.y+Math.sin(a)*r);cx.stroke()}}
+  }
+  if(S.shooters)for(const s of S.shooters){body(s.x,s.y,12,ENEMY);cx.fillStyle='#000a';cx.fillRect(s.x-16,s.y-2,8,4)}
+  for(const e of S.enemies){body(e.x,e.y,13,e.flash>0?'#fff':ENEMY);bar(e.x,e.y+18,e.hp,60,ENEMY,0)}
+  for(const a of S.allies){
+    if(a.ward>0){cx.strokeStyle=GOLDS+(0.5+0.3*Math.sin(T*8))+')';cx.lineWidth=2;cx.beginPath();cx.arc(a.x,a.y,19,0,7);cx.stroke()}
+    if(a.flash>0){cx.fillStyle='rgba(125,255,154,'+a.flash+')';cx.beginPath();cx.arc(a.x,a.y,22,0,7);cx.fill()}
+    body(a.x,a.y,13,ALLY);bar(a.x,a.y+19,a.hp,a.max,'#7dff9a',a.ward*3);
+  }
+  // lance
+  for(const f of S.fx)if(f.kind==='lance'){
+    const p=f.life/f.max;cx.lineCap='round';
+    cx.strokeStyle=GOLDS+(0.25*p)+')';cx.lineWidth=22;cx.beginPath();cx.moveTo(k.x,k.y);cx.lineTo(f.to.x,f.to.y);cx.stroke();
+    cx.strokeStyle=GOLDS+p+')';cx.lineWidth=5;cx.stroke();cx.strokeStyle='rgba(255,255,255,'+p+')';cx.lineWidth=2;cx.stroke();cx.lineCap='butt';
+  }
+  // crescents
+  for(const c of S.cres){
+    cx.strokeStyle=c.ward?'#ffe27a':GOLD;cx.lineWidth=c.ward?5:4;cx.globalAlpha=Math.min(1,c.life*4);
+    cx.beginPath();cx.arc(c.x-Math.cos(c.a)*10,c.y-Math.sin(c.a)*10,16,c.a-1.1,c.a+1.1);cx.stroke();cx.globalAlpha=1;
+  }
+  for(const b of S.bullets)body(b.x,b.y,4,BUL);
+  // knight
+  body(k.x,k.y,15,'#c9ccd6');cx.strokeStyle='#8a8f9e';cx.lineWidth=2;cx.beginPath();cx.arc(k.x,k.y,15,0,7);cx.stroke();
+  const planted=S.fx.some(f=>f.kind==='plant');
+  if(!planted){cx.strokeStyle=GOLD;cx.lineWidth=3;cx.beginPath();cx.moveTo(k.x+Math.cos(k.aim)*12,k.y+Math.sin(k.aim)*12);cx.lineTo(k.x+Math.cos(k.aim)*34,k.y+Math.sin(k.aim)*34);cx.stroke()}
+  else{cx.strokeStyle=GOLD;cx.lineWidth=3;cx.beginPath();cx.moveTo(k.x,k.y-6);cx.lineTo(k.x,k.y+26);cx.stroke();cx.beginPath();cx.moveTo(k.x-7,k.y+4);cx.lineTo(k.x+7,k.y+4);cx.stroke()}
+  for(const f of S.fx)if(f.kind==='cut'){
+    const p=1-f.life/f.max,a0=f.aim-0.87*f.side,a1=a0+1.74*f.side*Math.min(1,p*1.6);
+    cx.strokeStyle=GOLDS+(1-p)+')';cx.lineWidth=7;cx.beginPath();cx.arc(k.x,k.y,72,Math.min(a0,a1),Math.max(a0,a1));cx.stroke();
+  }
+  if(S.guard){
+    cx.fillStyle=GOLDS+'0.14)';cx.beginPath();cx.moveTo(k.x,k.y);cx.arc(k.x,k.y,62,k.aim-Math.PI/3,k.aim+Math.PI/3);cx.fill();
+    cx.strokeStyle=GOLDS+(0.75+0.25*Math.sin(T*14))+')';cx.lineWidth=4;cx.beginPath();cx.arc(k.x,k.y,62,k.aim-Math.PI/3,k.aim+Math.PI/3);cx.stroke();
+  }
+  for(const f of S.fx)if(f.kind==='spark'){const p=1-f.life/f.max;cx.strokeStyle=GOLDS+(1-p)+')';cx.lineWidth=2;cx.beginPath();cx.arc(f.x,f.y,3+p*10,0,7);cx.stroke()}
+  // gauge pips
+  const full=S.light>=12,r=26;
+  for(let i=0;i<S.light;i++){const a=-Math.PI/2+i/12*Math.PI*2;body(k.x+Math.cos(a)*r,k.y+Math.sin(a)*r,full?2.8:2.2,GOLDS+(full?0.7+0.3*Math.sin(T*10):0.8)+')')}
+  if(full){cx.strokeStyle=GOLDS+'0.45)';cx.lineWidth=2;cx.beginPath();cx.arc(k.x,k.y,r+5,0,7);cx.stroke()}
+  // cursor
+  if(S.cursor){const c=S.cursor;cx.strokeStyle=GOLD;cx.lineWidth=1.5;cx.setLineDash([4,4]);cx.beginPath();cx.moveTo(k.x,k.y);cx.lineTo(c.x,c.y);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.arc(c.x,c.y,24,0,7);cx.stroke();for(const s of[0,1,2,3]){const a=s*Math.PI/2;cx.beginPath();cx.moveTo(c.x+Math.cos(a)*18,c.y+Math.sin(a)*18);cx.lineTo(c.x+Math.cos(a)*30,c.y+Math.sin(a)*30);cx.stroke()}}
+  for(const n of S.nums){cx.globalAlpha=Math.min(1,n.life*2);cx.fillStyle=n.c;cx.font='600 13px "IBM Plex Mono",monospace';cx.textAlign='center';cx.fillText(n.t,n.x,n.y);cx.globalAlpha=1}
+  // step label
+  cx.textAlign='left';cx.font='700 18px "Barlow Condensed",sans-serif';cx.fillStyle='rgba(255,255,255,.75)';
+  cx.fillText(label(),16,28);
+  cx.font='500 11px "IBM Plex Mono",monospace';cx.fillStyle='rgba(255,255,255,.45)';cx.fillText('LIGHT '+S.light+'/12',16,46);
+}
+function label(){
+  const done=S.events.filter(e=>e.done).length;
+  if(mode==='lance')return T<1.2?'AIM AT AN ALLY':T<2.2?'SUNLANCE':'CHAIN REFILLS THE GAUGE';
+  if(mode==='guard')return S.guard?'DAWNGUARD (HELD)':T>2.9?'RELEASE: SUNBURST':'';
+  if(mode==='old')return 'CUT + CRESCENT, REPEAT';
+  const names=['','DAWN CUT','MERCY CUT',(mode==='radiant'?'RADIANT SUNBURST':'NOON SUNBURST')];
+  const i=done%3===0&&done>0?3:done%3;return names[i]||'';
+}
+let last=performance.now();
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;if(speed>0){let d=dt*speed;while(d>0){const s=Math.min(d,1/120);step(s);d-=s}}draw();requestAnimationFrame(loop)}
+function setMode(m){mode=m;document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));document.getElementById('cap').innerHTML=CAPS[m];reset()}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+if(reduce){speed=0.4;document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.speed==='0.4'))}
+setMode('chain');
+// show a mid-chain frame at rest, so a still capture shows the idea
+for(let i=0;i<170;i++)step(1/120);
+requestAnimationFrame(loop);
+})();
+</script>
