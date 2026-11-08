@@ -272,6 +272,16 @@ static partial class Shot {
       put(EnemyType.SapperMine, new V2(700f, 180f), 2, 0.15f, 3f, 0f);                      // beeping
       foreach (var e in ng.Enemies.Values) if (e.Type == EnemyType.SapperMine) { e.Hp = e.MaxHp = 1f; }
     }
+    if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
+      var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
+      var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> lput = (t, at) => { var e = (Enemy)lsp.Invoke(lg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Phase = 1; e.PhaseT = 0.5f; e.Facing = 0f; return e; };
+      me.Pos = me.Disp = new V2(1200f, 900f);
+      lput(EnemyType.Lunger, new V2(300f, 200f)); lput(EnemyType.SpikeBlock, new V2(300f, 330f)); lput(EnemyType.Charger, new V2(300f, 460f));
+      var rs = lput(EnemyType.RiotShield, new V2(300f, 590f)); rs.Phase = 0; typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { rs, Game.RiotWinding, 0.4f });
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+      lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LUNGE"), System.Globalization.CultureInfo.InvariantCulture) * 0.6f;
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

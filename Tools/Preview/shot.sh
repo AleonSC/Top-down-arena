@@ -10,6 +10,7 @@
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).
+# LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).
 # NINJA=n / BLOOD=n (everyone plays that class, with weapon n), CAST="Crimson Pact" (cast an ability; CASTT=<seconds after>).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e

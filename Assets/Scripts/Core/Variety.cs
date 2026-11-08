@@ -120,13 +120,31 @@ namespace Arena
             int spent = 0;
             bool recipe = n >= RecipeFrom;  // the late recipe: half the wave, mostly-not-shooting squads as often as those jobs' share (WaveRecipe.cs)
             float melee = recipe ? 1f - JobShares[(int)EnemyJob.Pressure] : MeleeShare(n), share = recipe ? RecipeSquadShare : SquadShare;
+            int kindCapHere = recipe ? KindCap(n) : 99;  // the late recipe bounds the wave's distinct types (WaveRecipe.cs)
+            kinds.Clear();
+            if (recipe)
+                foreach (var h in Headliners)
+                    kinds.Add(h);
+            Func<SquadDef, bool> fits = q =>
+            {
+                int extra = 0;
+                var seen = new HashSet<EnemyType>();
+                foreach (var m in q.Members)
+                    if (!kinds.Contains(m) && seen.Add(m))
+                        extra++;
+                return kinds.Count + extra <= kindCapHere;
+            };
             for (int guard = 0; guard < 40 && spent < count * share && ok.Count > 0; guard++)
             {
+                if (recipe && !ok.Exists(q => fits(q)))
+                    break;
                 // Early waves keep their share of rushers: a melee squad that often, a shooting one otherwise.
                 bool wantMelee = rng.NextDouble() < melee;
                 var from = ok.FindAll(q => (recipe ? !PressureSquad(q) : MeleeSquad(q)) == wantMelee);
+                if (recipe)
+                    from = from.FindAll(q => fits(q));
                 if (from.Count == 0)
-                    from = ok;
+                    from = recipe ? ok.FindAll(q => fits(q)) : ok;
                 // Newer squads a little more often, so each one shows up soon after it unlocks.
                 float total = 0f;
                 foreach (var s in from)
@@ -145,6 +163,9 @@ namespace Arena
                 if (spent + pick.Members.Length > count * (recipe ? RecipeSquadShare + 0.1f : 0.8f))
                     break;
                 squadQueue.Add(pick);
+                if (recipe)
+                    foreach (var m in pick.Members)
+                        kinds.Add(m);
                 spent += pick.Members.Length;
                 if (squadQueue.FindAll(q => q == pick).Count >= 2)
                     ok.Remove(pick);
