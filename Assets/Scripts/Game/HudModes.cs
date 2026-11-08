@@ -202,17 +202,25 @@ namespace Arena
         }
 
         // ---- E: Callout Tag. A leader line from you to a small glass tag (up and to the left; it flips right near the left wall
-        // and below you near the top), and the wave line at the top centre.
+        // and below you near the top), and the wave line at the top centre. The tag hides while you're downed: the DOWNED band
+        // and the revive plate by your body already say it.
 
         static string MiniShortKey(string k) => k == "SPACE" ? "SPC" : k == "SHIFT" ? "SHF" : k;
 
         void MiniOnPlayer(Player me, float a)
         {
+            if (!me.Downed)
+                MiniTag(me, a);
+            MiniWaveLine(a);
+        }
+
+        void MiniTag(Player me, float a)
+        {
             Color ink = CrtUi.Ink, dim = CrtUi.Dim, red = CrtStyle.Danger;
             V2 at = ToUi(me.Disp);
             float frac = Mathf.Clamp01(me.Hp / Mathf.Max(1f, me.MaxHp));
-            bool low = !me.Downed && frac < MiniLow;
-            Color tone = me.Downed || low ? red : ink;
+            bool low = frac < MiniLow;
+            Color tone = low ? red : ink;
 
             // Where the tag goes
             const float tw = 176f, th = 62f, off = 52f;
@@ -240,44 +248,38 @@ namespace Arena
             var tr = new Rect(tx, ty, tw, th);
             MiniPlate(tr, tone, a);
             float cx = tx + 8f, cw = tw - 16f;
-            if (me.Downed)
-            {
-                MiniText(new Rect(cx, ty + 6f, cw, 24f), "DOWNED", 24, red, MiniBlink(a));
-                MiniText(new Rect(cx, ty + 8f, cw, 20f), Mathf.RoundToInt(me.Revive * 100f) + "%", 18, red, a, TextAnchor.MiddleRight);
-                MiniCells(new Rect(cx, ty + 34f, cw, 6f), me.Revive, 12, red, a);
-                MiniText(new Rect(cx, ty + 42f, cw, 16f), "REVIVING", 15, dim, a);
-            }
-            else
-            {
-                string hp = Mathf.CeilToInt(me.Hp).ToString(), max = "/" + Mathf.CeilToInt(me.MaxHp);
-                float mw = CrtUi.TitleWidth(max, 15);
-                MiniText(new Rect(cx, ty + 6f, 40f, 18f), "HP", 16, low ? red : dim, a);
-                MiniText(new Rect(cx, ty + 3f, cw - mw - 2f, 22f), hp, 24, low ? red : Color.white, a, TextAnchor.MiddleRight);
-                MiniText(new Rect(cx + cw - mw, ty + 9f, mw, 16f), max, 15, low ? red : dim, a);
-                MiniCells(new Rect(cx, ty + 26f, cw, 5f), frac, 12, tone, low ? MiniBlink(a) : a);
+            string hp = Mathf.CeilToInt(me.Hp).ToString(), max = "/" + Mathf.CeilToInt(me.MaxHp);
+            float mw = CrtUi.TitleWidth(max, 15);
+            MiniText(new Rect(cx, ty + 6f, 40f, 18f), "HP", 16, low ? red : dim, a);
+            MiniText(new Rect(cx, ty + 3f, cw - mw - 2f, 22f), hp, 24, low ? red : Color.white, a, TextAnchor.MiddleRight);
+            MiniText(new Rect(cx + cw - mw, ty + 9f, mw, 16f), max, 15, low ? red : dim, a);
+            MiniCells(new Rect(cx, ty + 26f, cw, 5f), frac, 12, tone, low ? MiniBlink(a) : a);
 
-                // The chips: the key, then its seconds left; lit green when ready; the ult in gold with its charge.
-                float x = cx, y = ty + 38f;
-                for (int i = 0; i < Upgrades.SlotCount; i++)
+            // The chips: the key, then its seconds left; lit green when ready; the ult in gold with its charge.
+            float x = cx, y = ty + 38f;
+            for (int i = 0; i < Upgrades.SlotCount; i++)
+            {
+                if (!MiniSlot(me, i, out bool ready, out float f))
+                    continue;
+                bool ult = i == Upgrades.UltSlot;
+                if (ult)
                 {
-                    if (!MiniSlot(me, i, out bool ready, out float f))
-                        continue;
-                    bool ult = i == Upgrades.UltSlot;
-                    if (ult)
-                    {
-                        bool full = me.Slots[i].Charges > 0;
-                        float ua = full && !CabCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
-                        x += MiniCap(x, y, 16f, SlotKeys[i] + (full ? " ULT" : " " + Mathf.FloorToInt(f * 100f) + "%"), 15, Ui.Gold, full, ua) + 4f;
-                    }
-                    else if (ready)
-                        x += MiniCap(x, y, 16f, MiniShortKey(SlotKeys[i]), 15, KeyGreen, true, a) + 4f;
-                    else
-                        x += MiniCap(x, y, 16f, MiniShortKey(SlotKeys[i]) + " " + Mathf.CeilToInt(me.Slots[i].Timer), 15, dim, false, a) + 4f;
+                    bool full = me.Slots[i].Charges > 0;
+                    float ua = full && !CabCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
+                    x += MiniCap(x, y, 16f, SlotKeys[i] + (full ? " ULT" : " " + Mathf.FloorToInt(f * 100f) + "%"), 15, Ui.Gold, full, ua) + 4f;
                 }
+                else if (ready)
+                    x += MiniCap(x, y, 16f, MiniShortKey(SlotKeys[i]), 15, KeyGreen, true, a) + 4f;
+                else
+                    x += MiniCap(x, y, 16f, MiniShortKey(SlotKeys[i]) + " " + Mathf.CeilToInt(me.Slots[i].Timer), 15, dim, false, a) + 4f;
             }
             MiniScan(tr, a);
+        }
 
-            // The wave line, top centre: WAVE 06/50  23 LEFT
+        /// The wave line, top centre: WAVE 06/50  23 LEFT
+        void MiniWaveLine(float a)
+        {
+            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
             string wave = MiniWave(), left = game.Remaining.ToString();
             float w1 = CrtUi.TitleWidth(wave, 20), w2 = CrtUi.TitleWidth(left, 30), w3 = CrtUi.TitleWidth("LEFT", 20);
             float total = w1 + 14f + w2 + 6f + w3, x0 = W / 2f - total / 2f, y0 = 30f;

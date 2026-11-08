@@ -232,6 +232,12 @@ namespace Arena
                 case FxKind.GreatRend:
                     DrawGreatRendFx(fx, f);  // GreatswordLook.cs
                     break;
+                case FxKind.TwinStep:
+                    DrawTwinStepFx(fx);  // TwinBladesLook.cs
+                    break;
+                case FxKind.TwinFang:
+                    DrawTwinFangFx(fx);
+                    break;
             }
         }
 

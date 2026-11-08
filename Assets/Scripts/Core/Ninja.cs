@@ -908,6 +908,7 @@ namespace Arena
             staffJabLocalCd -= dt;
             bool pressed = weaponAction && !wasWeaponAction, released = !weaponAction && wasWeaponAction;
             wasWeaponAction = weaponAction;
+            LocalTwinStep(me, dt);  // the Twin Blades' steps forward (TwinBlades.cs)
             if (LocalKatana(me, aimAt, pressed, weaponAction, dt))
                 return;  // the Katana's Alt strike (below)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
@@ -935,6 +936,20 @@ namespace Arena
                     gw.Write(guardKind);
                     gw.Write(aimAt);
                     session.SendToHost(Proto.End(gw));
+                }
+                return;
+            }
+            if (me.Weapon.Id == WeaponId.TwinBlades && pressed && fangLocalCd <= 0f && !me.Downed && me.StunT <= 0f)
+            {
+                fangLocalCd = FangCooldown;  // Twin Fang (TwinBlades.cs): no move, the host throws both sabres at the cursor
+                if (IsHost)
+                    HostWeaponDash(MyId, DashStrike, aimAt);
+                else
+                {
+                    var fw = Proto.Begin(Msg.WeaponDash);
+                    fw.Write(DashStrike);
+                    fw.Write(aimAt);
+                    session.SendToHost(Proto.End(fw));
                 }
                 return;
             }
@@ -998,32 +1013,9 @@ namespace Arena
                 }
                 return;
             }
-            V2 target;
-            byte kind;
-            if (me.Weapon.Id == WeaponId.TwinBlades && pressed && me.Combo >= ComboMax && reelCd <= 0f)
-            {
-                DashDir = V2.FromAngle(me.Aim);
-                target = ClampToArena(me.Pos + DashDir * DashStrikeDist, me.Def.BodyR);
-                dashSpeed = DashStrikeSpeed;
-                reelCd = 0.4f;  // (the host resets the combo; don't lunge twice before that arrives)
-                kind = DashStrike;
-            }
-            else
-                return;
-            DashT = target.DistanceTo(me.Pos) / dashSpeed;
-            if (IsHost)
-                HostWeaponDash(MyId, kind, target);
-            else
-            {
-                var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(kind);
-                w.Write(target);
-                session.SendToHost(Proto.End(w));
-            }
         }
 
-        /// Host: a player's weapon moved them to `target`. A Twin Blades strike cuts everything along the way; a reel lands a
-        /// heavy slash on the hooked enemy when you arrive (and lets go of it).
+        /// Host: a player's weapon-action key did something (a blink, a recall, a shove, a jab, a guard or whirl going up or down, a Twin Fang).
         void HostWeaponDash(int id, int kind, V2 target)
         {
             Player p;
@@ -1043,6 +1035,11 @@ namespace Arena
             if (kind == DashKatana)
             {
                 HostKatanaStrike(p, target);
+                return;
+            }
+            if (kind == DashStrike)
+            {
+                HostTwinFang(p, target);  // (target: where they were aiming)
                 return;
             }
             if (kind == DashJab)
@@ -1070,27 +1067,6 @@ namespace Arena
                 p.InvulnT = Math.Max(p.InvulnT, 0.2f);
                 BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.NinjaBlink);
                 return;
-            }
-            float dmg = w.Damage * p.Stats.DmgMult;
-            V2 from = p.Pos, path = target - from;
-            float len = Math.Max(1f, path.Length);
-            V2 dir = path / len;
-            if (kind == DashStrike && w.Id == WeaponId.TwinBlades && p.Combo >= ComboMax)
-            {
-                float time = len / DashStrikeSpeed, mult = DashStrikeMult, width = DashStrikeWidth;
-                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // cutting through
-                foreach (var e in Enemies.Values)
-                {
-                    if (e.SpawnT > 0f || e.Hp <= 0f)
-                        continue;
-                    float along = Math.Max(0f, Math.Min(len, Dot(e.Pos - from, dir)));
-                    if (e.Pos.DistanceTo(from + dir * along) > e.Radius + width)
-                        continue;
-                    HurtEnemy(e, dmg * mult, p.Id);
-                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg * mult, Kind = Defs.KnightSlash }, e);
-                }
-                p.Combo = 0;
-                BroadcastFx(FxKind.Slash, from, target, Defs.BulletColor(Defs.KnightSlash), 0.12f, 0.2f, Sfx.SwingHeavy);
             }
         }
 

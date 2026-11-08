@@ -245,7 +245,6 @@ namespace Arena
                     Tri(z.Pos + sd * 16f, z.Pos + sd * 9f + sd.Orthogonal() * 3.5f, z.Pos + sd * 9f - sd.Orthogonal() * 3.5f);
                     break;
                 }
-                case ZoneKind.Siphon:
                 case ZoneKind.BloodPool:
                     DrawBloodZone(z, c, t);  // BloodMageLook.cs
                     break;

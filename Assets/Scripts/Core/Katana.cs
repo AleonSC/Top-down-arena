@@ -81,7 +81,7 @@ namespace Arena
 
         /// Raising the parry is an animation cancel for weapons that attack in a fixed order: the chain goes back to its first
         /// step, the wait for the next step is cleared, and an attack that hasn't landed yet never does. Builds you have earned
-        /// (the strike meter and its chain, Twin Blades' combo, the Rapier's streak) are left alone. Called on the host.
+        /// (the strike meter and its chain, the Rapier's streak) are left alone. Called on the host.
         void ResetAttackChains(Player p)
         {
             if (p.Weapon.Id == WeaponId.BoStaff)
@@ -102,6 +102,11 @@ namespace Arena
             if (p.Weapon.Id == WeaponId.Greatsword)
             {
                 ResetGreatChain(p);  // Greatsword.cs
+                return;
+            }
+            if (p.Weapon.Id == WeaponId.TwinBlades)
+            {
+                ResetTwinChain(p);  // TwinBlades.cs
                 return;
             }
             if (p.Weapon.Id != WeaponId.Katana)

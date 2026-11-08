@@ -337,7 +337,7 @@ static partial class Shot {
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
       var secEnv = Environment.GetEnvironmentVariable("SECTION");
-      if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("rankSection", sec); set("unlocksSection", sec); set("howToTopic", sec); }
+      if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("settingsShown", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("rankSection", sec); set("unlocksSection", sec); set("howToTopic", sec); }
       if (Environment.GetEnvironmentVariable("REDUCED") != null) set("fxReduced", true);  // Reduced effects (calm CRT)
       // The window beside the cabinet (CrtWindows.cs): settings opens one (NOWIN=1: just the cabinet's list); WINWIN=<s>: that long since it began to slide out.
       float winWin = Environment.GetEnvironmentVariable("WINWIN") != null ? float.Parse(Environment.GetEnvironmentVariable("WINWIN"), System.Globalization.CultureInfo.InvariantCulture) : 10f;

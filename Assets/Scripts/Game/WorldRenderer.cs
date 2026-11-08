@@ -100,6 +100,7 @@ namespace Arena
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
                     DrawGreatWindup(p);
+                    DrawGreatGuardPose(p);
                     DrawGreatPips(p);
                 }
             foreach (var p in game.Players.Values)
@@ -210,6 +211,7 @@ namespace Arena
                     continue;  // inside the Devourer (DevourerLook.cs shows them in its mouth)
                 DrawPlayerWrapped(p, t);
                 DrawHalberdIdle(p, t);  // the Halberd held at the ready (HalberdLook.cs)
+                DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawHeldStunGun(p, t);
@@ -299,17 +301,6 @@ namespace Arena
                         Line(p.Disp, m.Disp, Game.VineWidth * 2f, RootBark.WithAlpha(0.07f));  // how wide it mends and stings
                         break;
                     }
-            if (p.Weapon.Id == WeaponId.TwinBlades && p.Combo > 0)  // the Twin Blades' combo: pips round you, glowing once the dash-strike is ready
-            {
-                bool primed = p.Combo >= Game.ComboMax;
-                float r = p.Def.BodyR + 9f;
-                var c = primed ? new Rgba(1f, 0.85f, 0.35f, 0.7f + 0.3f * Mathf.Sin(t * 20f)) : new Rgba(0.95f, 0.95f, 1f, 0.8f);
-                for (int i = 0; i < p.Combo; i++)
-                {
-                    float a = -MathX.Pi / 2f + MathX.Tau * i / Game.ComboMax;
-                    Circle(p.Disp + V2.FromAngle(a) * r, primed ? 2.6f : 2f, c, 6);
-                }
-            }
             if (p.Weapon.Id == WeaponId.BurstSmg && p.SpinUp > 0.02f)  // the Burst SMG spinning up: a ring filling round you, white-hot when full
             {
                 float r = p.Def.BodyR + 9f;
