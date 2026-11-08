@@ -15,6 +15,12 @@ One wind-up per attack, one look per attack kind: line (shots, beams), cone (mel
 tether (grabs). Wind-up length and the fill color follow the job color. Audit every enemy against that table; the
 ones that already have a good telegraph (Beam Sentry, Riot Shield, Spike Block, Reaver) are the reference.
 
+Done for lunges (option A, `Docs/Mockups/lunge-telegraph.html`): the Lunger, Spike Block, Charger and Riot Shield share one lane
+(`Game/LungeLaneLook.cs`): a strip as wide as the body and as long as the lunge, Hunter red, filling over the wind-up, white for
+the last 0.1 s. It replaced their four older looks. The fill is timed on each client from when it first sees the wind-up
+(`PhaseT` isn't sent), so there is no protocol change. Preview: `LUNGE=0.5 Tools/Preview/shot.sh lunge hud 12 5 1`.
+Still to do: the Phantom blink ring, the Mortar landing mark, aim lines for aimed shooters, and the Charger's end ring.
+
 ## 3. Fewer types per wave
 Waves 16-24 spawn 10-14 distinct types (see the run logs). Cap a recipe wave at 6 distinct types (8 from wave 25):
 the 2-3 headliners, plus the singles needed to fill each job's share. Squads count as one type. Fewer kinds on screen

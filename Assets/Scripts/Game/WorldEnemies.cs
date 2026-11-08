@@ -585,17 +585,11 @@ namespace Arena
             }
         }
 
-        /// Winding up: the red line of the lunge. Leaping: a smear behind it. Resting: dim.
+        /// Winding up: the shared lane. Leaping: a smear behind it. Resting: dim.
         void DrawSpikeBlockTell(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            if (e.Phase == 1)
-            {
-                V2 dir = V2.FromAngle(e.Facing);
-                float a = MathX.Fmod(t, 0.12f) < 0.06f ? 0.65f : 0.3f;
-                Line(pos + dir * r, pos + dir * (r + 175f), 3f, new Rgba(1f, 0.25f, 0.25f, a));
-                Circle(pos, r + 6f + 2f * Mathf.Sin(t * 30f), new Rgba(1f, 0.2f, 0.2f, 0.2f), 20);
-            }
-            else if (e.Phase == 2)
+            DrawLungeLane(e, pos, r, t);  // the wind-up: the shared lane (LungeLaneLook.cs)
+            if (e.Phase == 2)
                 for (int k = 1; k <= 3; k++)
                     Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
         }
@@ -620,6 +614,9 @@ namespace Arena
                     break;
                 case EnemyType.Charger:
                     DrawChargerTell(e, pos, r, col, t);
+                    break;
+                case EnemyType.RiotShield:
+                    DrawLungeLane(e, pos, r, t);  // its bash wind-up, same lane as the others (LungeLaneLook.cs)
                     break;
                 case EnemyType.HiveBomber:  // a hot glow and a faint streak along its flight line
                     if (!spawning)
@@ -697,31 +694,20 @@ namespace Arena
             }
         }
 
-        /// Winding up: where it's about to leap. Leaping: a smear behind it.
+        /// Winding up: the shared lane. Leaping: a smear behind it.
         void DrawLungerTell(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            if (e.Phase == 1)
-            {
-                V2 dir = V2.FromAngle(e.Facing);
-                float a = MathX.Fmod(t, 0.12f) < 0.06f ? 0.6f : 0.25f;
-                Line(pos + dir * r, pos + dir * 230f, 4f, new Rgba(1f, 0.35f, 0.65f, a));
-                Arc(pos + dir * 230f, 10f, 2f, new Rgba(1f, 0.35f, 0.65f, a), 12);
-            }
-            else if (e.Phase == 2)
+            DrawLungeLane(e, pos, r, t);  // the wind-up: the shared lane (LungeLaneLook.cs)
+            if (e.Phase == 2)
                 for (int k = 1; k <= 3; k++)
                     Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
         }
 
-        /// Wind-up: where it's about to dash. Dashing: a smear behind it.
+        /// Wind-up: the shared lane. Dashing: a smear behind it.
         void DrawChargerTell(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            if (e.Phase == 1)
-            {
-                V2 dir = V2.FromAngle(e.Facing);
-                float a = MathX.Fmod(t, 0.16f) < 0.08f ? 0.55f : 0.25f;
-                Line(pos + dir * r, pos + dir * 260f, 3f, new Rgba(1f, 0.3f, 0.3f, a));
-            }
-            else if (e.Phase == 2)
+            DrawLungeLane(e, pos, r, t);  // the wind-up: the shared lane (LungeLaneLook.cs)
+            if (e.Phase == 2)
                 Circle(pos - V2.FromAngle(e.Facing) * r, r * 0.9f, col.WithAlpha(0.3f), 16);
         }
 

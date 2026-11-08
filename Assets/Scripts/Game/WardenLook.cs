@@ -414,9 +414,7 @@ namespace Arena
             V2 a = c - side * half, b = c + side * half, a2 = a + f * depth, b2 = b + f * depth;
             float wear = crack / 4f;
             Rgba face = RiotSteel.WithAlpha(low ? 0.5f : 0.92f - 0.18f * wear);
-            if (st == Game.RiotWinding)  // the warning: it flashes white
-                face = face.Mix(Rgba.White, 0.5f + 0.5f * Mathf.Sin(t * 40f));
-            else if (st == Game.RiotLunging)
+            if (st == Game.RiotLunging)  // (the wind-up's warning is the shared lane under it: LungeLaneLook.cs)
                 face = face.Mix(Rgba.White, 0.65f);
             var edge = new Rgba(0.1f, 0.13f, 0.24f, 0.95f);
             Line(a + f * (depth / 2f), b + f * (depth / 2f), depth, face);
