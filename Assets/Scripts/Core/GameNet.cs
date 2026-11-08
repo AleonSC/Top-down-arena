@@ -494,6 +494,7 @@ namespace Arena
             s.Byte(ref p.KatanaLunges);
             s.Byte(ref p.KatanaChain);
             s.Byte(ref p.BoStep);
+            s.Byte(ref p.RapierStreak);  // the Rapier's streak, drawn as pips behind you (Game/MeleeLooks.cs)
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.DoseT);

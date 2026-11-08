@@ -90,6 +90,9 @@ namespace Arena
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.Rapier)
+                    DrawRapierPips(p);  // MeleeLooks.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                     DrawBowDraw(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)

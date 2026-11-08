@@ -172,7 +172,8 @@ namespace Arena
         public readonly float[] WallPlateHp = new float[WallPlates];  // host: Shield Wall plate health
         public float WallPlateMax;                                    // host: what each plate started with
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
-        public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
+        public int SwingCount, RapierTarget;  // host: Knight weapon state
+        public int RapierStreak;     // Rapier: hits in a row on the same enemy plus bullets skewered, 0 to 6 (replicated, drawn as pips behind you)
         public float MeleeGraceT;   // host: a melee swing just landed: bodies you're touching can't hurt you for a moment (Balance.MeleeContactGrace)
         public float BossContactT;  // host: a boss's body can only hurt you once a second
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)

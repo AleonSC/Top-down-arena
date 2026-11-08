@@ -209,6 +209,10 @@ namespace Arena
                     KatanaMarks(o, aim, 0f, 1f, reach, T, MeleeThrustTime, true, col);
                 }
                 }
+                else if (light && seen.Weapon == WeaponId.Rapier)
+                {
+                    RapierThrustLook(seen, o, dir, aim, ext, reach, T, fade, col);  // Needle
+                }
                 else if (light)
                 {
                     SoftLine(o + dir * 20f, tip, 26f * fade + 4f, col.WithAlpha(0.5f * fade));  // the beam and its glow
@@ -221,7 +225,7 @@ namespace Arena
                         KatanaSparks(o, aim, 0f, reach, T, MeleeThrustTime, seed, true, 14);
                     else
                         MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true, 18);
-                    DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(26f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col, T < MeleeThrustTime);
+                    DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(26f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col, T < MeleeThrustTime, Mathf.Sin(Mathf.Clamp01(T / (MeleeThrustTime * 1.8f)) * MathX.Pi), ArmColor(seen.Owner));
                 }
                 return true;
             }
@@ -328,6 +332,64 @@ namespace Arena
                 Arc(c, bodyR, 1.4f, Rgba.White.WithAlpha(a * 0.7f), 18);
             }
         }
+
+        // --- The Rapier's Needle look (Docs/Mockups/rapier-streak.html) ---------------------------------------------------
+
+        static readonly Rgba NeedleGold = new Rgba(1f, 0.84f, 0.51f);
+
+        /// A thrust: a thin streak from the hand to the point (wider with the streak), a star glint and a ring where it
+        /// landed, and at six stacks a gold glow on the point.
+        void RapierThrustLook(MeleeSeen seen, V2 o, V2 dir, float aim, float ext, float reach, float T, float fade, Rgba col)
+        {
+            Player owner;
+            int streak = game.Players.TryGetValue(seen.Owner, out owner) ? owner.RapierStreak : 0;
+            V2 tipP = o + dir * Mathf.Max(30f, ext);
+            Ribbon(o + dir * 14f, tipP, 0.4f, 1.6f + 0.2f * streak, col.WithAlpha(0f), Rgba.White.WithAlpha(fade));
+            if (streak >= 6)
+                GlowDisc(tipP, 16f, NeedleGold, 0.9f * fade);
+            // Where it landed: the nearest enemy in its narrow cone.
+            Enemy near = null;
+            float best = 1e9f;
+            foreach (var e in game.Enemies.Values)
+            {
+                V2 rel = e.Disp - o;
+                float d = rel.Length, diff = Mathf.Abs(Mathf.Repeat(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                if (d - e.Radius * 0.5f > reach || diff > 0.34f || d >= best)
+                    continue;
+                best = d;
+                near = e;
+            }
+            if (near == null)
+                return;
+            float q = (T - MeleeThrustTime * Mathf.Clamp01(best / reach)) / 0.3f;
+            if (q < 0f || q > 1f)
+                return;
+            V2 p = near.Disp;
+            float sz = 6f + 14f * EaseOut3(q), a = 1f - q;
+            Line(p - new V2(sz, 0f), p + new V2(sz, 0f), 1.5f, Rgba.White.WithAlpha(a));
+            Line(p - new V2(0f, sz), p + new V2(0f, sz), 1.5f, Rgba.White.WithAlpha(a));
+            Arc(p, 6f + 10f * EaseOut3(q), 1.5f, col.WithAlpha(0.8f * a), 14);
+        }
+
+        /// Six small diamonds on an arc behind you: they fill one by one as the streak builds, and turn gold at six with a faint
+        /// halo until it breaks. Shown for a Rapier with a streak going.
+        void DrawRapierPips(Player p)
+        {
+            if (!fxOn || p.Downed || p.RapierStreak <= 0)
+                return;
+            int n = Mathf.Min(6, p.RapierStreak);
+            bool gold = n >= 6;
+            var col = MeleeColor(WeaponId.Rapier, Rgba.White);
+            for (int d = 0; d < 6; d++)
+            {
+                float da = p.Aim + MathX.Pi + (d - 2.5f) * 0.34f;
+                V2 c = p.Disp + V2.FromAngle(da) * 30f;
+                Polygon(c, 4.3f, 4, 0f, d < n ? (gold ? NeedleGold : col) : new Rgba(1f, 1f, 1f, 0.14f));
+            }
+            if (gold)
+                Arc(p.Disp, 26f, 3f, NeedleGold.WithAlpha(0.25f + 0.1f * Mathf.Sin(Time.unscaledTime * 9f)), 32);
+        }
+
 
         /// A bright cut across each enemy the swing or lunge passes through, timed to the blade reaching it. Worked out from
         /// the swing's own numbers and where the enemies are drawn (drawing only: the host's hits are its own).
@@ -823,9 +885,31 @@ namespace Arena
             switch (id)
             {
                 case WeaponId.Rapier:
-                    Line(o + dir * 18f, o + dir * reach, 2.5f, new Rgba(0.93f, 0.95f, 1f, alpha));
-                    Arc(o + dir * 20f, 6f, 3f, MeleeGuard.WithAlpha(alpha), 10, ang - 1.6f, 3.2f);
+                {
+                    // Needle: the hand and arm reach with the thrust, the thin blade flexes at the end of it, a swept hilt, and the
+                    // off hand stays behind your back.
+                    float x01 = Mathf.Clamp01((reach - 26f) / 104f), flex = bend * 5f;
+                    Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f), leather = new Rgba(0.72f, 0.56f, 0.34f, alpha), hide = new Rgba(0.16f, 0.11f, 0.06f, alpha);
+                    V2 hand = o + dir * (12f + 12f * x01);
+                    Line(o - side * 4f, o - dir * 9f + side * 9f, 5f, armc.WithAlpha(alpha));
+                    Circle(o - dir * 11f + side * 9f, 4.6f, hide, 10);
+                    Circle(o - dir * 11f + side * 9f, 3.6f, leather, 10);
+                    Line(o + dir * 2f + side * 5f, hand, 7.2f, new Rgba(0.05f, 0.1f, 0.1f, alpha));
+                    Line(o + dir * 2f + side * 5f, hand, 5f, armc.WithAlpha(alpha));
+                    V2 prev = hand + dir * 8f, tipR = o + dir * reach;
+                    for (int i = 1; i <= 8; i++)
+                    {
+                        float u = i / 8f, bow = 1f - (2f * u - 1f) * (2f * u - 1f);
+                        V2 pt = V2.Lerp(hand + dir * 8f, tipR, u) - side * (flex * bow);
+                        Line(prev, pt, 2.5f, new Rgba(0.95f, 0.96f, 1f, alpha));
+                        prev = pt;
+                    }
+                    Arc(hand + dir * 4f, 7f, 3f, MeleeGuard.WithAlpha(alpha), 10, ang - 1.7f, 3.4f);
+                    Line(hand + dir * 5f + side * 8f, hand + dir * 5f - side * 6f, 2f, MeleeGuard.WithAlpha(alpha));
+                    Circle(hand, 6f, hide, 12);
+                    Circle(hand, 5.2f, leather, 12);
                     break;
+                }
                 case WeaponId.Lance:
                 {
                     float tip = reach * 0.98f, r0 = 18f;

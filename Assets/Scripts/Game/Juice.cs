@@ -178,6 +178,8 @@ namespace Arena
         float Rnd(float a, float b) => a + (float)juiceRng.NextDouble() * (b - a);
         readonly System.Random juiceRng = new System.Random();  // its own rolls: the game's stay untouched
 
+        int lastRapierStreak;
+
         void Shake(float amount)
         {
             if (fxShake == 0 || fxReduced)
@@ -246,6 +248,14 @@ namespace Arena
             UpdateTombLook(t);  // GlacialTombLook.cs: remembers the enemy shots a Glacial Tomb is about to erase
 
             // New effects: blasts shake, spark, scorch and ripple.
+            if (me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Rapier)
+            {
+                if (me.RapierStreak > lastRapierStreak && me.RapierStreak > 0)
+                    Shake(0.02f + 0.03f * me.RapierStreak);  // each hit in the streak: a small kick, harder as it builds
+                if (me.RapierStreak >= 6 && lastRapierStreak < 6)
+                    Hold(0.04f);  // the stack that fills the streak: a short hit-pause
+            }
+            lastRapierStreak = me != null ? me.RapierStreak : 0;
             newBooms.Clear();
             float boomShake = 0f;  // explosions this frame shake together, up to a cap, rather than piling up
             foreach (var fx in game.Effects)
