@@ -139,6 +139,76 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    /// The Quarterstaff's Jab stacks: one per enemy a swipe hits, three at most (a limit each extra projectile raises), never
+    /// fading; the weapon-action key spends one on a cone jab that hits the cone and nothing outside it.
+    static void QuarterstaffStacksTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 3, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
+        var me = g.Players[1];
+        me.Weapon = Defs.Weapon(Role.Healer, Kit.Knight, 0);
+        me.Hp = me.MaxHp;
+        V2 from = new V2(500f, 450f), aimAt = new V2(800f, 450f);
+        Func<V2, Enemy> Dummy = at =>
+        {
+            var d = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+            d.MaxHp = d.Hp = 1e5f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
+            return d;
+        };
+        int altFrames = int.MaxValue;  // how long the jab key is held in each step
+        Action<int, bool, bool> Step = (frames, fire, alt) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aimAt, Fire = fire && f < 3, WeaponAction = alt && f < altFrames } : new PlayerInput()); }
+            }
+        };
+        queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+        Check(me.StaffStacks == 0, "the staff starts with no stacks");
+        Step(40, false, true);
+        Check(me.StaffStacks == 0 && g.Bullets.Count == 0, "the jab key does nothing without a stack");
+
+        Func<Enemy[]> Pair = () => { g.Enemies.Clear(); return new[] { Dummy(new V2(590f, 450f)), Dummy(new V2(570f, 500f)) }; };
+        Pair();
+        Step(60, true, false);
+        Check(me.StaffStacks == 2, "a swipe that hits two enemies stores two stacks (" + me.StaffStacks + ")");
+        Pair(); Step(60, true, false);
+        Check(me.StaffStacks == Game.StaffBaseStacks, "the staff stores three at most (" + me.StaffStacks + ")");
+        Step(60 * 12, false, false);
+        Check(me.StaffStacks == Game.StaffBaseStacks, "stacks never fade");
+        Pair(); Step(60, true, false);
+        me.Stats.ExtraShots = 1;
+        Check(g.StaffCap(me) == Game.StaffBaseStacks + 1, "each extra projectile raises the limit by one");
+        Pair(); Step(60, true, false);
+        Check(me.StaffStacks == Game.StaffBaseStacks + 1, "and the stacks fill to it (" + me.StaffStacks + ")");
+        me.Stats.ExtraShots = 0;
+
+        // The jab: a cone 170 px out and 48 degrees across.
+        g.Enemies.Clear();
+        var near = Dummy(new V2(640f, 450f)); var wide = Dummy(new V2(560f, 530f)); var far = Dummy(new V2(720f, 450f));
+        me.StaffStacks = 3; me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
+        float x0 = near.Pos.X;
+        altFrames = 3;
+        Step(30, false, true);
+        altFrames = int.MaxValue;
+        float dn = near.MaxHp - near.Hp;
+        Console.WriteLine("  staff jab: stacks left {0}, ahead took {1:0} and moved {2:0} px, off to the side took {3:0}, past the reach took {4:0}",
+            me.StaffStacks, dn, near.Pos.X - x0, wide.MaxHp - wide.Hp, far.MaxHp - far.Hp);
+        Check(me.StaffStacks == 2, "a jab spends one stack");
+        Check(dn >= 30f && near.Pos.X - x0 > 60f, "it hurts what is in the cone and shoves it back");
+        Check(wide.Hp == wide.MaxHp && far.Hp == far.MaxHp, "enemies outside the cone or its reach are missed");
+        Check(me.Hp > hp0, "it heals you for what it hits");
+        Step(60, false, true);
+        Check(me.StaffStacks == 0, "held down, the key keeps jabbing until the stacks are gone (" + me.StaffStacks + ")");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void TankKnightTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);
@@ -323,6 +393,7 @@ static partial class Program
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
                 case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
+                case WeaponId.HolyMace: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
                 case WeaponId.GolemStaff: ok = a[2] == 1 && b[2] == 3; break;
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;

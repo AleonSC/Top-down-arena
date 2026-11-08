@@ -458,6 +458,11 @@ static partial class Shot {
           int bid = 9001; gm.Minions[bid] = new Minion { Id = bid, Owner = me.Id, Kind = MinionKind.Bear, Pos = bearAt, Disp = bearAt, Aim = me.Aim, T = -1f, Companion = true };
           break;
         }
+        case WeaponId.HolyMace:  // STAFFJAB=1 the jab's cone (else the swipe), STACKS=<n> Jab stacks held
+          me.StaffStacks = (byte)int.Parse(Environment.GetEnvironmentVariable("STACKS") ?? "2");
+          if (Environment.GetEnvironmentVariable("STAFFJAB") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.StaffJabReach), -Game.StaffJabArc * MathX.Pi / 360f, 0f, 0.24f);
+          else fx(FxKind.Slash, to, Game.StaffSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
+          break;
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
         case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)

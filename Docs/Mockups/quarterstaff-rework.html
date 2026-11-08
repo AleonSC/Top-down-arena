@@ -1,0 +1,643 @@
+<title>Quarterstaff Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one live stage (swipe, swipe, then jabs on dummies; look / multishot / stack-rule chips), a model sheet
+   (3 staff looks x 5 stack states), a pose strip for the chosen look, four rule cards, current-vs-proposed table, open questions.
+   Colour: the Healer's pale gold on a night-green arena, enemies brick red, heal green. Page tokens match the Halberd mockup. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#a0720f;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#ffd36a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#ffd36a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:38px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0b110e}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:1000/560}
+#sheet{aspect-ratio:1000/720}
+#strip{aspect-ratio:1000/250}
+.bar{display:flex;gap:10px 22px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.hint{margin:10px 0 0;color:var(--muted);font-size:14px;max-width:72ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.card .tag{font:500 12px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.card p{margin:0;font-size:14.5px;color:var(--muted)}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:400 13px var(--mono)}
+.card dt{color:var(--muted)}
+.card dd{margin:0;text-align:right}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-weight:600;white-space:nowrap}
+ul.q{margin:0;padding-left:20px;max-width:72ch;display:flex;flex-direction:column;gap:8px}
+code{font:500 13px var(--mono)}
+</style>
+
+<main>
+<header>
+  <h1>Quarterstaff Rework</h1>
+  <p>The Healer Knight's staff becomes a two-handed weapon held like the Halberd. The primary button alternates a left swipe and a right swipe. Every swipe that connects stores a Jab stack, up to 3. The alt fire spends stacks on a cone-shaped jab. Multishot raises the stack limit.</p>
+  <p>All three staff models are new. All numbers are proposed starting values and none of this is in code yet.</p>
+</header>
+
+<section aria-labelledby="stage-h">
+  <h2 id="stage-h">In the arena</h2>
+  <div class="bar">
+    <div class="group" id="g-look"><span>Look</span></div>
+    <div class="group" id="g-multi"><span>Multishot</span></div>
+    <div class="group" id="g-rule"><span>Jab spends</span></div>
+    <div class="group" id="g-speed"><span>Speed</span></div>
+    <div class="group"><button id="pause" type="button">Pause</button><button id="restart" type="button">Restart</button></div>
+  </div>
+  <div class="frame"><canvas id="stage" width="1000" height="560" aria-label="Looping demo: left swipe, right swipe, then jabs, on dummy enemies"></canvas></div>
+  <p class="hint">Facing up. The loop swipes until the stacks are full, then jabs them out. One enemy bullet is batted back by the first swipe, as the staff does today. Green numbers are the heal each swipe gives you and your ally (bottom left).</p>
+</section>
+
+<section aria-labelledby="sheet-h">
+  <h2 id="sheet-h">Model sheet</h2>
+  <div class="frame"><canvas id="sheet" width="1000" height="720" aria-label="Three staff models at 0, 1, 2 and 3 stacks and at 5 of 5 with Multishot +2"></canvas></div>
+  <p class="hint">The held staff as the player sees it, top down, with the stacks showing on the weapon itself. The last column is Multishot +2 (5 of 5). Pick a look above and it is used on the stage and the pose strip.</p>
+</section>
+
+<section aria-labelledby="strip-h">
+  <h2 id="strip-h">Poses, chosen look</h2>
+  <div class="frame"><canvas id="strip" width="1000" height="250" aria-label="Six poses: ready, pull back, left swipe, right swipe, jab pull back, jab thrust"></canvas></div>
+  <p class="hint">Both hands stay on the shaft. Swipes turn the whole staff; the jab slides it through the hands, like the Halberd's pole.</p>
+</section>
+
+<section aria-labelledby="rules-h">
+  <h2 id="rules-h">The rules</h2>
+  <div class="cards">
+    <article class="card">
+      <span class="tag">Primary</span>
+      <h3>Left and right swipe</h3>
+      <p>Each click swings the other way, so a held button is a continuous figure of eight. Still parries bullets in its arc and heals you and allies as it hits.</p>
+      <dl><dt>Damage</dt><dd>18</dd><dt>Sweep</dt><dd>130°, reach 120 px</dd><dt>Knockback</dt><dd>70 px</dd><dt>Heal</dt><dd>2 per enemy, max 8</dd><dt>Click to hit</dt><dd>about 0.2 s</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Builds</span>
+      <h3>Jab stacks</h3>
+      <p>Each swipe that hits at least one enemy adds one stack, however many it hits. Stacks show on the staff and as pips behind you. They fall off 6 s after the last connecting swipe.</p>
+      <dl><dt>Gain</dt><dd>+1 per connecting swipe</dd><dt>Limit</dt><dd>3 (+1 per Multishot)</dd><dt>Decay</dt><dd>6 s idle</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Alt fire</span>
+      <h3>Cone jab</h3>
+      <p>A short thrust that hits everything in a cone, front and back. It also bats bullets in the cone. Two ways to spend stacks, switch above to compare.</p>
+      <dl><dt>Charges</dt><dd>1 stack, 30 dmg</dd><dt>Power</dt><dd>all stacks, x1.5 per extra</dd><dt>Cone</dt><dd>48°, reach 170 px</dd><dt>Knockback</dt><dd>110 px</dd><dt>Heal</dt><dd>3 per enemy, max 9</dd></dl>
+    </article>
+    <article class="card">
+      <span class="tag">Upgrade</span>
+      <h3>Multishot</h3>
+      <p>Replaces the follow-up strike with the other end. Each extra projectile raises the stack limit by one, so +2 stores five jabs. Staff sockets and pips grow to match.</p>
+      <dl><dt>+0</dt><dd>3 stacks</dd><dt>+1</dt><dd>4 stacks</dd><dt>+2</dt><dd>5 stacks</dd></dl>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="diff-h">
+  <h2 id="diff-h">Current against proposed</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>Now</th><th>Proposed</th></tr></thead>
+      <tbody>
+        <tr><td>Primary</td><td>One 150° sweep, 105 px, 18 damage</td><td>Alternating left and right swipes, 130°, 120 px, 18 damage</td></tr>
+        <tr><td>Alt fire</td><td>None</td><td>Cone jab, 170 px, 30 damage, costs stacks</td></tr>
+        <tr><td>Parry and heal</td><td>Bats bullets in the arc; heals 2 per hit</td><td>Same on the swipes; the jab bats bullets and heals 3 per hit</td></tr>
+        <tr><td>Multishot</td><td>+1 follow-up strike, 60% damage</td><td>+1 stack limit per extra projectile</td></tr>
+        <tr><td>Model</td><td>A thin stick with brass tips, one hand</td><td>Two-handed staff with arms and gloves, three looks, stacks drawn on the staff</td></tr>
+        <tr><td>Network</td><td></td><td>New replicated stack count, so <code>Session.ProtocolVersion</code> goes up. The alt key needs a Knight path (the Katana's Alt strike is the model).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <h2 id="q-h">Open questions</h2>
+  <ul class="q">
+    <li>Is a stack per connecting swipe right, or should it be one per enemy hit? Per enemy fills the bar in one swipe against a crowd.</li>
+    <li>Charges (one jab per stack) or Power (one big jab for all stacks)? The stage shows both. I lean Charges because it keeps the alternating rhythm.</li>
+    <li>Does Multishot only raise the limit, or also add a stack per swipe? Only the limit keeps +0 and +2 filling at the same speed.</li>
+    <li>Which look: Oak and Brass (plain, sockets), Pilgrim's Ash (cloth and prayer beads) or Beacon (iron, with a crystal head that lights)?</li>
+    <li>Should the 6 s decay exist, or do stacks last until spent?</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var D=Math.PI/180, TAU=Math.PI*2;
+var LOOKS=[{id:'oak',name:'A · Oak and Brass'},{id:'ash',name:'B · Pilgrim’s Ash'},{id:'beacon',name:'C · Beacon'}];
+var st={look:0,extra:0,rule:'charges',speed:1,paused:false};
+
+// ---------- controls ----------
+function chips(id,items,key,cb){
+  var g=document.getElementById(id);
+  items.forEach(function(it,i){
+    var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=it.t;
+    b.setAttribute('aria-pressed',String(st[key]===it.v));
+    b.onclick=function(){st[key]=it.v;[].forEach.call(g.querySelectorAll('.chip'),function(x,j){x.setAttribute('aria-pressed',String(items[j].v===it.v))});cb();};
+    g.appendChild(b);
+  });
+}
+chips('g-look',LOOKS.map(function(l,i){return{t:l.name,v:i}}),'look',function(){drawStrip();});
+chips('g-multi',[{t:'+0',v:0},{t:'+1',v:1},{t:'+2',v:2}],'extra',function(){build();});
+chips('g-rule',[{t:'1 stack (Charges)',v:'charges'},{t:'All stacks (Power)',v:'power'}],'rule',function(){build();});
+chips('g-speed',[{t:'1x',v:1},{t:'0.4x',v:0.4}],'speed',function(){});
+document.getElementById('pause').onclick=function(){st.paused=!st.paused;this.textContent=st.paused?'Play':'Pause';};
+document.getElementById('restart').onclick=function(){build();};
+
+// ---------- helpers ----------
+function U(th){return{x:Math.sin(th*D),y:-Math.cos(th*D)};}
+function lerp(a,b,t){return a+(b-a)*t;}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function easeIO(t){return 0.5-0.5*Math.cos(Math.PI*clamp(t,0,1));}
+function easeOut(t){t=clamp(t,0,1);return 1-Math.pow(1-t,3);}
+function angOf(px,py,ex,ey){return Math.atan2(ex-px,-(ey-py))/D;} // degrees clockwise from up
+function rgba(c,a){return 'rgba('+c+','+a+')';}
+var GOLD='255,211,106',WHITE='255,246,214',GREEN='126,240,165',RED='181,72,58';
+
+// ---------- staff + player drawing ----------
+var REAR=55,FRONT=95,H1=16;
+// pose: th = degrees clockwise from up, s = how far the pole is slid out (grip centre from the body), sway = tassel swing
+function drawPlayer(c,P,pose,look,stacks,cap,time,sc){
+  sc=sc||1;
+  c.save();c.translate(P.x,P.y);c.scale(sc,sc);
+  var u=U(pose.th),n={x:-u.y,y:u.x};
+  var lean=pose.th*0.3; var ln=U(lean),lp={x:-ln.y,y:ln.x};
+  // cape
+  c.fillStyle='#d9cfa6';c.beginPath();c.ellipse(-ln.x*6,-ln.y*6+4,19,17,0,0,TAU);c.fill();
+  // body and shoulders
+  c.fillStyle='#f3ead0';c.strokeStyle='#8a7a4a';c.lineWidth=1.5;
+  c.beginPath();c.arc(0,0,17,0,TAU);c.fill();c.stroke();
+  var shL={x:-lp.x*15,y:-lp.y*15},shR={x:lp.x*15,y:lp.y*15};
+  c.fillStyle='#e7d9a6';[shL,shR].forEach(function(s){c.beginPath();c.arc(s.x,s.y,7.5,0,TAU);c.fill();c.stroke();});
+  // hands on the shaft (they stay, the pole slides in jabs)
+  var lead=pose.lead!=null?pose.lead:H1+34;
+  var hRear={x:u.x*H1,y:u.y*H1},hLead={x:u.x*lead,y:u.y*lead};
+  // which shoulder reaches which hand: nearer shoulder to the nearer hand
+  var armA=[shL,hRear],armB=[shR,hLead];
+  if(pose.th>0){armA=[shL,hLead];armB=[shR,hRear];}
+  c.lineCap='round';
+  [armA,armB].forEach(function(a){c.strokeStyle='#cbbd8a';c.lineWidth=7;c.beginPath();c.moveTo(a[0].x,a[0].y);c.lineTo(a[1].x,a[1].y);c.stroke();});
+  // staff
+  var g=pose.s;
+  var rear={x:u.x*(g-REAR),y:u.y*(g-REAR)},front={x:u.x*(g+FRONT),y:u.y*(g+FRONT)};
+  drawStaff(c,rear,front,u,n,g,look,stacks,cap,time,pose.sway||0);
+  // gloves over the shaft
+  c.fillStyle='#7c5a2e';c.strokeStyle='#3d2a12';c.lineWidth=1.2;
+  [hRear,hLead].forEach(function(h){c.beginPath();c.arc(h.x,h.y,5.6,0,TAU);c.fill();c.stroke();});
+  // head
+  c.fillStyle='#ffe9b8';c.strokeStyle='#8a7a4a';c.lineWidth=1.5;c.beginPath();c.arc(ln.x*1.5,ln.y*1.5,8.2,0,TAU);c.fill();c.stroke();
+  c.fillStyle='rgba('+GOLD+',.9)';c.beginPath();c.arc(ln.x*1.5-ln.x*2.5,ln.y*1.5-ln.y*2.5+1,5.5,0,TAU);c.fill();
+  c.restore();
+}
+
+function along(c,u,g,d){return{x:u.x*(g+d),y:u.y*(g+d)};}
+function drawStaff(c,r,f,u,n,g,look,stacks,cap,time,sway){
+  c.lineCap='butt';
+  function seg(a,b,w,col){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();}
+  function pt(d,off){return{x:u.x*(g+d)+n.x*(off||0),y:u.y*(g+d)+n.y*(off||0)};}
+  function glowDot(p,rad,on){
+    c.save();
+    if(on){c.shadowColor='rgba('+GOLD+',.95)';c.shadowBlur=12;c.fillStyle='rgb('+GOLD+')';}else{c.fillStyle='#2a2418';}
+    c.beginPath();c.arc(p.x,p.y,rad,0,TAU);c.fill();
+    c.restore();
+  }
+  var i,k;
+  if(look==='oak'){
+    seg(r,f,8,'#3b2412');seg(r,f,6,'#7a4f2b');
+    seg(pt(-REAR,-1.3),pt(FRONT,-1.3),1.6,'#a8723d');
+    // brass caps and rings
+    seg(pt(-REAR,0),pt(-REAR+12,0),9.5,'#d9a441');seg(pt(FRONT-14,0),pt(FRONT,0),9.5,'#d9a441');
+    seg(pt(-REAR+12,0),pt(-REAR+14,0),11,'#b07d22');seg(pt(FRONT-16,0),pt(FRONT-14,0),11,'#b07d22');
+    seg(pt(-6,0),pt(-2,0),9,'#c18f2e');seg(pt(30,0),pt(34,0),9,'#c18f2e');
+    // sockets along the front half
+    for(i=0;i<cap;i++){
+      var d=cap===1?52:lerp(40,80,i/(cap-1));
+      var p=pt(d,0);
+      c.save();c.strokeStyle='#d9a441';c.lineWidth=2.2;c.fillStyle='#1b1408';c.beginPath();c.arc(p.x,p.y,5.2,0,TAU);c.fill();c.stroke();c.restore();
+      if(i<stacks)glowDot(p,3.5,true);
+    }
+  }else if(look==='ash'){
+    seg(r,f,7,'#8e8467');seg(r,f,5,'#e3dac0');
+    seg(pt(-REAR,1),pt(FRONT,1),1,'#c4b894');
+    // cloth wraps at both hands
+    seg(pt(H1-6,0),pt(H1+7,0),8.4,'#b84a3a');seg(pt(H1+28,0),pt(H1+41,0),8.4,'#b84a3a');
+    seg(pt(H1-6,0),pt(H1+7,0),1.2,'#f4e1c8');seg(pt(H1+28,0),pt(H1+41,0),1.2,'#f4e1c8');
+    // iron shoes
+    seg(pt(-REAR,0),pt(-REAR+7,0),7,'#4a4f58');seg(pt(FRONT-8,0),pt(FRONT,0),7,'#4a4f58');
+    // cord and beads hanging off the front third, swaying with the swing
+    var sw=clamp(sway,-1,1)*9;
+    var a0=pt(22,3.5),a1=pt(64,3.5+sw*0.6);
+    c.strokeStyle='#8a2f24';c.lineWidth=1.3;c.beginPath();c.moveTo(a0.x,a0.y);c.quadraticCurveTo(pt(43,3.5+9+sw).x,pt(43,3.5+9+sw).y,a1.x,a1.y);c.stroke();
+    for(i=0;i<cap;i++){
+      var tt=cap===1?0.5:i/(cap-1);
+      var bx=lerp(a0.x,a1.x,tt)+n.x*(9+sw)*Math.sin(Math.PI*tt)*0.9,by=lerp(a0.y,a1.y,tt)+n.y*(9+sw)*Math.sin(Math.PI*tt)*0.9;
+      glowDot({x:bx,y:by},3.9,i<stacks);
+    }
+    // tassel at the front end
+    var te=pt(FRONT-4,0),tp=pt(FRONT+10,sw*1.4);
+    seg(te,tp,3,'#b84a3a');
+  }else{
+    // beacon: iron staff, crystal lantern head, steel spike behind
+    seg(r,f,7.5,'#12151c');seg(r,f,5.5,'#4a5262');
+    seg(pt(-REAR,-1.2),pt(FRONT-20,-1.2),1.2,'#8b95a8');
+    seg(pt(-6,0),pt(-3,0),9,'#9aa4b8');seg(pt(24,0),pt(27,0),9,'#9aa4b8');seg(pt(52,0),pt(55,0),9,'#9aa4b8');
+    // rear spike
+    var sp=pt(-REAR-9,0),sb1=pt(-REAR,-3.5),sb2=pt(-REAR,3.5);
+    c.fillStyle='#b9c2d4';c.beginPath();c.moveTo(sp.x,sp.y);c.lineTo(sb1.x,sb1.y);c.lineTo(sb2.x,sb2.y);c.closePath();c.fill();
+    // lantern head: hex ring + crystal
+    var hc=pt(FRONT-4,0),inten=cap?stacks/cap:0;
+    c.save();c.translate(hc.x,hc.y);c.rotate(Math.atan2(u.x,-u.y));
+    c.strokeStyle='#9aa4b8';c.lineWidth=2.4;c.fillStyle='#10131a';
+    c.beginPath();for(k=0;k<6;k++){var a=k*Math.PI/3+Math.PI/6;c.lineTo(Math.cos(a)*10.5,Math.sin(a)*10.5);}c.closePath();c.fill();c.stroke();
+    c.shadowColor='rgba('+GOLD+','+(0.25+0.75*inten)+')';c.shadowBlur=6+14*inten;
+    c.fillStyle='rgba('+(inten>0?GOLD:'110,120,140')+','+(0.45+0.55*inten)+')';
+    c.beginPath();c.moveTo(0,-8);c.lineTo(5,0);c.lineTo(0,8);c.lineTo(-5,0);c.closePath();c.fill();
+    c.restore();
+    // orbiting pips around the head
+    for(i=0;i<cap;i++){
+      var ang=time*1.4+i*TAU/cap;
+      var p2={x:hc.x+Math.cos(ang)*17,y:hc.y+Math.sin(ang)*17};
+      glowDot(p2,3,i<stacks);
+    }
+  }
+}
+
+// ---------- the stage simulation ----------
+var cv=document.getElementById('stage'),cx=cv.getContext('2d');
+var P={x:500,y:468};
+var SWIPE_REACH=128,SWIPE_ARC=68,JAB_REACH=170,JAB_HALF=24;
+var enemyDef=[ // [dist, angle]
+  [102,-50],[108,-18],[98,16],[104,48],[176,-5],[150,15]];
+var S; // sim state
+function build(){
+  var cap=3+st.extra;
+  var acts=[],t=0.55,side=-1; // first swipe is the left swipe (right to left)
+  for(var i=0;i<cap;i++){acts.push({type:'swipe',dir:side,t0:t});side=-side;t+=0.68;}
+  t+=0.35;
+  var nj=st.rule==='charges'?cap+1:2;
+  for(var j=0;j<nj;j++){acts.push({type:'jab',t0:t});t+=0.62;}
+  var total=t+1.3;
+  S={t:0,total:total,acts:acts,cap:cap,stacks:0,
+    enemies:enemyDef.map(function(e,i){var a=e[1]*D;return{i:i,hx:P.x+Math.sin(a)*e[0],hy:P.y-Math.cos(a)*e[0],d:e[0],ang:e[1],kx:0,ky:0,kt:-9,flash:-9,hp:1,tint:0};}),
+    bullets:[],floats:[],fx:[],label:'',labelT:-9,lastConn:-99,decayed:false,
+    shownDry:false};
+  S.bullets.push({x:P.x+Math.sin(25*D)*218,y:P.y-Math.cos(25*D)*218,spawn:0.05,deflected:false,dead:false});
+  // fixed per-action bookkeeping
+  S.acts.forEach(function(a){a.hit={};a.done=false;a.gained=false;a.spent=null;});
+}
+build();
+function advance(dt){
+  var S0=S;S0.t+=dt;
+  if(S0.t>=S0.total){build();return;}
+  var t=S0.t;
+  S0.acts.forEach(function(a){
+    var u=t-a.t0;
+    if(u<0)return;
+    if(a.type==='swipe')stepSwipe(a,u);else stepJab(a,u);
+  });
+  // bullets
+  S0.bullets.forEach(function(b){
+    if(t<b.spawn||b.dead)return;
+    if(!b.deflected){
+      var dx=P.x-b.x,dy=P.y-b.y,dl=Math.hypot(dx,dy);
+      b.x+=dx/dl*180*dt;b.y+=dy/dl*180*dt;
+      if(dl<20)b.dead=true;
+    }else{
+      b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(b.life<=0)b.dead=true;
+    }
+  });
+  S0.floats=S0.floats.filter(function(f){return t-f.t<f.life;});
+  S0.fx=S0.fx.filter(function(f){return t-f.t<f.life;});
+  // stack decay is a rule in the cards; the demo never idles that long
+}
+function pose(t){
+  var ready={th:42,s:24,lead:H1+34,sway:0};
+  var last=null;
+  for(var i=0;i<S.acts.length;i++){if(S.acts[i].t0<=t)last=S.acts[i];}
+  if(!last)return ready;
+  var u=t-last.t0,prevEnd=last.prevTh!=null?last.prevTh:ready.th;
+  var p;
+  if(last.type==='swipe'){
+    var start=-last.dir*SWIPE_ARC,end=last.dir*SWIPE_ARC;
+    var pull=start+(-last.dir)*8; // 8 degrees further behind the start
+    if(u<0.12){p={th:lerp(prevEnd,pull,easeIO(u/0.12)),s:24,sway:0};}
+    else if(u<0.34){var k=(u-0.12)/0.22;p={th:lerp(pull,end,easeIO(k)),s:24+6*Math.sin(Math.PI*k),sway:last.dir*Math.sin(Math.PI*k)*1.1};}
+    else if(u<0.62){var k2=easeOut((u-0.34)/0.28);p={th:lerp(end,end+last.dir*7,k2),s:24,sway:last.dir*(1-k2)*0.6};}
+    else p={th:end+last.dir*7,s:24,sway:0};
+    p.lead=H1+34;
+  }else{
+    var dry=!!last.dry;
+    var th0=prevEnd;
+    var base=lerp(th0,0,easeIO(u/0.12));
+    if(u<0.12){p={th:base,s:lerp(24,6,easeIO(u/0.12)),lead:lerp(H1+34,H1+22,easeIO(u/0.12)),sway:0};}
+    else if(u<0.2&&!dry){p={th:0,s:lerp(6,76,easeOut((u-0.12)/0.08)),lead:lerp(H1+22,H1+42,(u-0.12)/0.08),sway:0.5};}
+    else if(u<0.3&&!dry){p={th:0,s:76,lead:H1+42,sway:0};}
+    else if(u<0.5&&!dry){var k3=easeIO((u-0.3)/0.2);p={th:0,s:lerp(76,24,k3),lead:lerp(H1+42,H1+34,k3),sway:0};}
+    else if(dry&&u<0.2){p={th:0,s:lerp(6,22,easeOut((u-0.12)/0.08)),lead:H1+26,sway:0};}
+    else if(dry&&u<0.4){var k4=easeIO((u-0.2)/0.2);p={th:0,s:lerp(22,24,k4),lead:H1+30,sway:0};}
+    else p={th:0,s:24,lead:H1+34,sway:0};
+  }
+  // after the last action, drift back to the ready pose
+  if(last===S.acts[S.acts.length-1]&&u>0.9){var kk=easeIO((u-0.9)/0.45);p.th=lerp(p.th,ready.th,kk);}
+  return p;
+}
+// record each action's start angle (end of the previous one) once
+function linkPrev(){
+  var prev=42;
+  S.acts.forEach(function(a){a.prevTh=prev;prev=(a.type==='swipe')?a.dir*SWIPE_ARC+a.dir*7:0;});
+}
+function swipeCurrentTh(a,u){
+  var start=-a.dir*SWIPE_ARC,end=a.dir*SWIPE_ARC;
+  if(u<0.12)return null;
+  if(u<0.34)return lerp(start,end,easeIO((u-0.12)/0.22));
+  return end;
+}
+function heal(t,x,y,txt,col){S.floats.push({t:t,x:x,y:y,txt:txt,col:col||GREEN,life:0.9});}
+function stepSwipe(a,u){
+  var th=swipeCurrentTh(a,u);
+  if(th==null)return;
+  var start=-a.dir*SWIPE_ARC,t=S.t;
+  var healed=0;
+  S.enemies.forEach(function(e){
+    if(a.hit[e.i])return;
+    if(e.d>SWIPE_REACH)return;
+    var passed=a.dir<0?(th<=e.ang+3):(th>=e.ang-3);
+    if(!passed)return;
+    a.hit[e.i]=true;
+    e.flash=t;e.kt=t;
+    var w=U(e.ang);e.kx=w.x*34;e.ky=w.y*34;
+    e.hp=Math.max(0.18,e.hp-0.11);
+    S.floats.push({t:t,x:e.hx+w.x*34,y:e.hy+w.y*34-18,txt:'18',col:WHITE,life:0.8});
+    if(Object.keys(a.hit).length<=4){healed++;}
+    S.fx.push({kind:'spark',t:t,x:e.hx,y:e.hy,life:0.3});
+    if(!a.gained){
+      a.gained=true;
+      if(S.stacks<S.cap){S.stacks++;S.fx.push({kind:'pip',t:t,life:0.5,n:S.stacks});}
+    }
+  });
+  if(healed&&!a.healShown){a.healShown=true;heal(t,P.x-4,P.y-34,'+'+Math.min(8,2*healed));heal(t,P.x-90,P.y+34,'+'+Math.min(8,2*healed));}
+  // parry
+  S.bullets.forEach(function(b){
+    if(b.dead||b.deflected||t<b.spawn)return;
+    var d=Math.hypot(b.x-P.x,b.y-P.y);if(d>SWIPE_REACH+8)return;
+    var ba=angOf(P.x,P.y,b.x,b.y);
+    var lo=Math.min(start,th)-6,hi=Math.max(start,th)+6;
+    if(ba>=lo&&ba<=hi){
+      b.deflected=true;var dx=b.x-P.x,dy=b.y-P.y,dl=Math.hypot(dx,dy)||1;
+      b.vx=dx/dl*520;b.vy=dy/dl*520;b.life=0.9;
+      S.fx.push({kind:'clang',t:t,x:b.x,y:b.y,life:0.35});
+      S.label='PARRY';S.labelT=t;
+    }
+  });
+}
+function stepJab(a,u){
+  var t=S.t;
+  if(!a.resolved&&u>=0.12){
+    a.resolved=true;
+    if(S.stacks<=0){a.dry=true;if(!S.shownDry){S.shownDry=true;}S.label='NO STACKS';S.labelT=t;S.fx.push({kind:'dry',t:t,life:0.5});return;}
+    var n=st.rule==='power'?S.stacks:1;
+    a.n=n;a.dmg=st.rule==='power'?Math.round(30*(1+0.5*(n-1))):30;
+    a.half=JAB_HALF+(st.rule==='power'?(n-1)*3:0);a.reach=JAB_REACH+(st.rule==='power'?(n-1)*14:0);
+    S.stacks-=n;
+    S.fx.push({kind:'pipLoss',t:t,life:0.4});
+    S.label='JAB −'+n+' stack'+(n>1?'s':'')+'  '+a.dmg+' dmg';S.labelT=t;
+  }
+  if(a.dry||!a.resolved)return;
+  if(u>=0.12&&u<0.34){
+    if(!a.coneStart)a.coneStart=t;
+    var tip=lerp(6,76,easeOut(clamp((u-0.12)/0.08,0,1)))+FRONT;
+    var healed=0;
+    S.enemies.forEach(function(e){
+      if(a.hit[e.i])return;
+      if(Math.abs(e.ang)>a.half+6||e.d>a.reach+14)return;
+      if(tip<e.d-14)return;
+      a.hit[e.i]=true;e.flash=t;e.kt=t;
+      var w=U(e.ang);e.kx=w.x*52;e.ky=w.y*52;
+      e.hp=Math.max(0.18,e.hp-0.2);
+      S.floats.push({t:t,x:e.hx+w.x*50,y:e.hy+w.y*50-18,txt:''+a.dmg,col:GOLD,life:0.9});
+      S.fx.push({kind:'spark',t:t,x:e.hx,y:e.hy,life:0.35});healed++;
+    });
+    if(healed&&!a.healShown){a.healShown=true;heal(t,P.x-4,P.y-34,'+'+Math.min(9,3*healed));}
+  }
+}
+
+function drawArena(c,time){
+  c.fillStyle='#0e1713';c.fillRect(0,0,1000,560);
+  // faint grid and ring marks for the reaches
+  c.strokeStyle='rgba(255,255,255,0.045)';c.lineWidth=1;
+  for(var x=0;x<=1000;x+=50){c.beginPath();c.moveTo(x,0);c.lineTo(x,560);c.stroke();}
+  for(var y=0;y<=560;y+=50){c.beginPath();c.moveTo(0,y);c.lineTo(1000,y);c.stroke();}
+}
+function reachMark(c,r,label,col){
+  c.save();c.setLineDash([3,6]);c.strokeStyle=col;c.lineWidth=1;
+  c.beginPath();c.arc(P.x,P.y,r,-Math.PI*0.88,-Math.PI*0.12);c.stroke();c.setLineDash([]);
+  c.fillStyle=col;c.font='500 11px "IBM Plex Mono",monospace';c.fillText(label,P.x+r*Math.sin(-62*D)-8,P.y-r*Math.cos(-62*D)-6);c.restore();
+}
+function drawEnemy(c,e,t){
+  var k=clamp((t-e.kt)/0.5,0,1),back=(1-easeOut(k));
+  var x=e.hx+e.kx*back,y=e.hy+e.ky*back;
+  var fl=clamp(1-(t-e.flash)/0.14,0,1);
+  c.save();
+  c.fillStyle=fl>0?'rgb(255,'+Math.round(220+35*fl)+','+Math.round(200+55*fl)+')':'rgb('+RED+')';
+  c.strokeStyle='#4a1a14';c.lineWidth=2;
+  var r=15+fl*3;c.beginPath();c.arc(x,y,r,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#4a1a14';c.beginPath();c.arc(x-5,y-3,2,0,TAU);c.arc(x+5,y-3,2,0,TAU);c.fill();
+  c.fillStyle='rgba(0,0,0,.5)';c.fillRect(x-14,y-26,28,4);c.fillStyle='#7ef0a5';c.fillRect(x-14,y-26,28*e.hp,4);
+  c.restore();
+}
+function drawSwipeFx(c,a,u,dir){
+  // crescent trail behind the moving tip, fading
+  var start=-dir*SWIPE_ARC;
+  if(u<0.12||u>0.7)return;
+  var cur=u<0.34?lerp(start,dir*SWIPE_ARC,easeIO((u-0.12)/0.22)):dir*SWIPE_ARC;
+  var fade=u<0.34?1:clamp(1-(u-0.34)/0.36,0,1);
+  var N=22;
+  for(var i=0;i<N;i++){
+    var f0=i/N,f1=(i+1)/N;
+    var th0=lerp(cur,Math.max(Math.min(start,cur),Math.min(Math.max(start,cur),cur-(cur-start)*0.8)),f0);
+    var th1=lerp(cur,cur-(cur-start)*0.8,f1);
+    var al=(1-f0)*0.55*fade;
+    c.beginPath();
+    c.strokeStyle='rgba('+GOLD+','+al+')';c.lineWidth=5+14*(1-f0)*0.9;c.lineCap='round';
+    var a0=(th0-90)*D,a1=(th1-90)*D;
+    c.arc(P.x,P.y,108,Math.min(a0,a1),Math.max(a0,a1));c.stroke();
+    c.beginPath();c.strokeStyle='rgba('+WHITE+','+al*0.9+')';c.lineWidth=2;
+    c.arc(P.x,P.y,112,Math.min(a0,a1),Math.max(a0,a1));c.stroke();
+  }
+}
+function drawJabFx(c,a,u){
+  if(!a.resolved||a.dry)return;
+  if(u<0.12||u>0.5)return;
+  var al=u<0.2?clamp((u-0.12)/0.06,0,1):clamp(1-(u-0.2)/0.3,0,1);
+  var hf=a.half*D,r=a.reach;
+  var g=c.createRadialGradient(P.x,P.y,10,P.x,P.y,r);
+  g.addColorStop(0,'rgba('+GOLD+','+0.06*al+')');g.addColorStop(1,'rgba('+GOLD+','+0.34*al+')');
+  c.fillStyle=g;c.beginPath();c.moveTo(P.x,P.y);c.arc(P.x,P.y,r,-Math.PI/2-hf,-Math.PI/2+hf);c.closePath();c.fill();
+  c.strokeStyle='rgba('+WHITE+','+0.8*al+')';c.lineWidth=2;c.beginPath();c.arc(P.x,P.y,r,-Math.PI/2-hf,-Math.PI/2+hf);c.stroke();
+  c.strokeStyle='rgba('+GOLD+','+0.5*al+')';c.lineWidth=1.5;
+  c.beginPath();c.moveTo(P.x+Math.sin(-hf)*30,P.y-Math.cos(-hf)*30);c.lineTo(P.x+Math.sin(-hf)*r,P.y-Math.cos(-hf)*r);
+  c.moveTo(P.x+Math.sin(hf)*30,P.y-Math.cos(hf)*30);c.lineTo(P.x+Math.sin(hf)*r,P.y-Math.cos(hf)*r);c.stroke();
+  // tip flash and shock ring
+  var tipy=P.y-r;
+  c.strokeStyle='rgba('+WHITE+','+al+')';c.lineWidth=3;c.beginPath();c.arc(P.x,tipy+10,10+30*(1-al),0,TAU);c.stroke();
+  // speed lines behind
+  c.strokeStyle='rgba('+WHITE+','+0.5*al+')';c.lineWidth=2;
+  for(var i=-2;i<=2;i++){c.beginPath();c.moveTo(P.x+i*8,P.y+24);c.lineTo(P.x+i*8,P.y+24+40*al);c.stroke();}
+}
+function drawPips(c,time){
+  var n=S.cap,r=36;
+  for(var i=0;i<n;i++){
+    var ang=Math.PI/2+(i-(n-1)/2)*0.42; // behind the player
+    var x=P.x+Math.cos(ang)*r,y=P.y+Math.sin(ang)*r+4;
+    c.save();c.beginPath();
+    var on=i<S.stacks;
+    if(on){c.shadowColor='rgba('+GOLD+',.9)';c.shadowBlur=12;c.fillStyle='rgb('+GOLD+')';}else{c.fillStyle='rgba(255,255,255,.12)';}
+    // diamond
+    c.moveTo(x,y-6);c.lineTo(x+5,y);c.lineTo(x,y+6);c.lineTo(x-5,y);c.closePath();c.fill();
+    c.restore();
+  }
+}
+function drawStage(){
+  var c=cx,t=S.t,tm=performance.now()/1000;
+  drawArena(c,tm);
+  reachMark(c,SWIPE_REACH,'swipe 120',rgba(WHITE,.35));
+  reachMark(c,JAB_REACH+6,'jab 170',rgba(GOLD,.4));
+  // ally
+  c.fillStyle='#4aa3d9';c.strokeStyle='#1f5b80';c.lineWidth=2;c.beginPath();c.arc(P.x-90,P.y+16,13,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#fff';c.fillRect(P.x-96,P.y+14,12,4);c.fillRect(P.x-92,P.y+10,4,12);
+  S.enemies.forEach(function(e){drawEnemy(c,e,t);});
+  // bullets
+  S.bullets.forEach(function(b){
+    if(t<b.spawn||b.dead)return;
+    c.save();
+    if(b.deflected){c.shadowColor='rgba('+GOLD+',1)';c.shadowBlur=14;c.fillStyle='rgb('+WHITE+')';}
+    else{c.shadowColor='rgba(255,140,60,.9)';c.shadowBlur=10;c.fillStyle='#ff9a4a';}
+    c.beginPath();c.arc(b.x,b.y,6.5,0,TAU);c.fill();c.restore();
+  });
+  // action fx
+  S.acts.forEach(function(a){
+    var u=t-a.t0;if(u<0)return;
+    if(a.type==='swipe')drawSwipeFx(c,a,u,a.dir);else drawJabFx(c,a,u);
+  });
+  drawPips(c,tm);
+  drawPlayer(c,P,pose(t),LOOKS[st.look].id,S.stacks,S.cap,tm,1);
+  // fx
+  S.fx.forEach(function(f){
+    var k=(t-f.t)/f.life;
+    if(f.kind==='spark'||f.kind==='clang'){
+      c.strokeStyle='rgba('+(f.kind==='clang'?WHITE:GOLD)+','+(1-k)+')';c.lineWidth=2;
+      for(var i=0;i<6;i++){var an=i*TAU/6+f.t*3;c.beginPath();c.moveTo(f.x+Math.cos(an)*(6+16*k),f.y+Math.sin(an)*(6+16*k));c.lineTo(f.x+Math.cos(an)*(12+20*k),f.y+Math.sin(an)*(12+20*k));c.stroke();}
+    }else if(f.kind==='pip'){
+      c.strokeStyle='rgba('+GOLD+','+(1-k)+')';c.lineWidth=2;c.beginPath();c.arc(P.x,P.y,36+k*30,Math.PI*0.2,Math.PI*0.8);c.stroke();
+    }else if(f.kind==='dry'){
+      c.fillStyle='rgba(150,150,150,'+(1-k)*0.8+')';c.beginPath();c.arc(P.x,P.y-60-k*14,5,0,TAU);c.fill();
+    }
+  });
+  // floats
+  c.textAlign='center';
+  S.floats.forEach(function(f){
+    var k=(t-f.t)/f.life;c.font='700 20px "Barlow Condensed",sans-serif';
+    c.fillStyle='rgba('+f.col+','+(1-k*k)+')';c.strokeStyle='rgba(0,0,0,'+(0.6*(1-k))+')';c.lineWidth=3;
+    c.strokeText(f.txt,f.x,f.y-k*26);c.fillText(f.txt,f.x,f.y-k*26);
+  });
+  c.textAlign='left';
+  // HUD
+  c.fillStyle='rgba(255,255,255,.75)';c.font='500 13px "IBM Plex Mono",monospace';
+  c.fillText('STACKS '+S.stacks+' / '+S.cap,18,28);
+  c.fillStyle='rgba(255,255,255,.4)';
+  c.fillText(LOOKS[st.look].name+'  ·  Multishot +'+st.extra+'  ·  '+(st.rule==='charges'?'jab spends 1':'jab spends all'),18,48);
+  if(t-S.labelT<1.2){c.fillStyle='rgba('+GOLD+','+clamp(1-(t-S.labelT)/1.2,0,1)+')';c.font='700 28px "Barlow Condensed",sans-serif';c.fillText(S.label,18,84);}
+  // action name
+  var cur=null;S.acts.forEach(function(a){if(a.t0<=t&&t-a.t0<0.6)cur=a;});
+  if(cur){c.fillStyle='rgba(255,255,255,.9)';c.font='700 22px "Barlow Condensed",sans-serif';
+    c.textAlign='right';c.fillText(cur.type==='swipe'?(cur.dir<0?'LEFT SWIPE':'RIGHT SWIPE'):(cur.dry?'JAB (dry)':'JAB'),982,32);c.textAlign='left';}
+}
+
+// ---------- model sheet ----------
+var sh=document.getElementById('sheet'),sc=sh.getContext('2d');
+function drawSheet(){
+  var c=sc;c.fillStyle='#0e1713';c.fillRect(0,0,1000,720);
+  var cols=[{s:0,cap:3,t:'0 / 3'},{s:1,cap:3,t:'1 / 3'},{s:2,cap:3,t:'2 / 3'},{s:3,cap:3,t:'3 / 3'},{s:5,cap:5,t:'5 / 5  Multishot +2'}];
+  var cw=1000/5,rh=240;
+  LOOKS.forEach(function(l,r){
+    c.fillStyle='rgba(255,255,255,.05)';c.fillRect(0,r*rh,1000,1);
+    c.fillStyle='rgba('+GOLD+',.95)';c.font='700 24px "Barlow Condensed",sans-serif';c.fillText(l.name.toUpperCase(),16,r*rh+30);
+    cols.forEach(function(col,i){
+      var cxp=i*cw+cw/2+8,cyp=r*rh+196;
+      drawPlayer(c,{x:cxp,y:cyp},{th:0,s:30,lead:H1+34,sway:0},l.id,col.s,col.cap,2.0+r,1.1);
+      c.fillStyle='rgba(255,255,255,.55)';c.font='500 12px "IBM Plex Mono",monospace';c.textAlign='center';c.fillText(col.t,cxp,r*rh+234);c.textAlign='left';
+    });
+  });
+  c.fillStyle='rgba(255,255,255,.05)';c.fillRect(0,719,1000,1);
+}
+
+// ---------- pose strip ----------
+var sp=document.getElementById('strip'),pc=sp.getContext('2d');
+function drawStrip(){
+  var c=pc,look=LOOKS[st.look].id;
+  c.fillStyle='#0e1713';c.fillRect(0,0,1000,250);
+  var cells=[
+    {n:'Ready',th:42,s:24,lead:H1+34,stk:2},
+    {n:'Pull back',th:76,s:24,lead:H1+34,stk:2,arc:[null]},
+    {n:'Left swipe',th:-5,s:30,lead:H1+34,stk:2,sweep:[68,-5],sway:1},
+    {n:'Right swipe',th:15,s:30,lead:H1+34,stk:3,sweep:[-68,15],sway:-1},
+    {n:'Jab pull back',th:0,s:6,lead:H1+22,stk:3},
+    {n:'Jab thrust',th:0,s:76,lead:H1+42,stk:3,cone:true,sway:0.5}
+  ];
+  var cw=1000/6;
+  cells.forEach(function(k,i){
+    var x0=i*cw,cxp=x0+cw/2,cyp=205;
+    c.fillStyle='rgba(255,255,255,.04)';if(i%2)c.fillRect(x0,0,cw,250);
+    if(k.sweep){
+      var a0=(k.sweep[0]-90)*D,a1=(k.sweep[1]-90)*D;
+      c.strokeStyle='rgba('+GOLD+',.35)';c.lineWidth=16;c.lineCap='round';c.beginPath();c.arc(cxp,cyp,76,Math.min(a0,a1),Math.max(a0,a1));c.stroke();
+      c.strokeStyle='rgba('+WHITE+',.5)';c.lineWidth=2;c.beginPath();c.arc(cxp,cyp,80,Math.min(a0,a1),Math.max(a0,a1));c.stroke();
+    }
+    if(k.cone){
+      var hf=24*D,r=130;
+      var g=c.createRadialGradient(cxp,cyp,6,cxp,cyp,r);g.addColorStop(0,'rgba('+GOLD+',.06)');g.addColorStop(1,'rgba('+GOLD+',.34)');
+      c.fillStyle=g;c.beginPath();c.moveTo(cxp,cyp);c.arc(cxp,cyp,r,-Math.PI/2-hf,-Math.PI/2+hf);c.closePath();c.fill();
+    }
+    drawPlayer(c,{x:cxp,y:cyp},{th:k.th,s:k.s,lead:k.lead,sway:k.sway||0},look,k.stk,3,2.0,0.82);
+    c.fillStyle='rgba(255,255,255,.7)';c.font='700 18px "Barlow Condensed",sans-serif';c.textAlign='center';c.fillText(k.n.toUpperCase(),cxp,26);c.textAlign='left';
+  });
+}
+
+// ---------- loop ----------
+linkPrev();
+var _build=build;build=function(){_build();linkPrev();};
+var last=performance.now();
+function frame(now){
+  var dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(!st.paused)advance(dt*st.speed);
+  drawStage();
+  requestAnimationFrame(frame);
+}
+function ready(){drawSheet();drawStrip();}
+ready();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ready);
+requestAnimationFrame(frame);
+})();
+</script>

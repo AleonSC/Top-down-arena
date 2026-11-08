@@ -15,6 +15,7 @@ namespace Arena
         public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
+        public bool Staff;            // each enemy it hits adds a Jab stack (the Quarterstaff's swipes; Quarterstaff.cs)
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
         public float Stun;            // freezes what it hits for this long (not bosses)
         public float Circle, CircleAt, Power;  // Circle > 0: hits everything within this radius of the point CircleAt px along the aim (the Warhammer's slam); Power 0..1 is how charged it was (its look)
@@ -157,19 +158,16 @@ namespace Arena
                 }
                 case WeaponId.HolyMace:
                 {
-                    // The Quarterstaff: a wide sweep that knocks enemies back and parries bullets as it goes;
-                    // each extra projectile follows up with the other end of the staff.
-                    for (int k = 0; k <= extra; k++)
-                    {
-                        var s = NewSwing(p, aim + (k == 0 ? 0f : (k % 2 == 1 ? 0.25f : -0.25f)), w.Reach, 150f, w.Damage * dmg * (k == 0 ? 1f : 0.6f));
-                        s.Knock = StaffKnock;
-                        s.Deflect = true;
-                        s.HealPerHit = 2f;  // each enemy hit heals you and allies near you (as the Holy Mace did)
-                        s.HealRange = 220f;
-                        s.HealHits = 4;
-                        s.Delay = 0.14f * k;
-                        pendingSwings.Add(s);
-                    }
+                    // The Quarterstaff: a wide swipe that knocks enemies back and parries bullets as it goes. Every enemy it
+                    // hits adds a Jab stack (Quarterstaff.cs); the screen's look alternates a left and a right swipe.
+                    var s = NewSwing(p, aim, w.Reach, StaffSwipeArc, w.Damage * dmg);
+                    s.Knock = StaffKnock;
+                    s.Deflect = true;
+                    s.Staff = true;
+                    s.HealPerHit = 2f;  // each enemy hit heals you and allies near you (as the Holy Mace did)
+                    s.HealRange = 220f;
+                    s.HealHits = 4;
+                    pendingSwings.Add(s);
                     break;
                 }
                 case WeaponId.Lightbringer:
@@ -467,6 +465,8 @@ namespace Arena
                 p.Combo = Math.Min(ComboMax, p.Combo + 1);
                 p.ComboT = ComboWindow;
             }
+            if (hits.Count > 0 && s.Staff)  // a Quarterstaff swipe landed: a Jab stack for every enemy hit, up to its limit
+                p.StaffStacks = (byte)Math.Min(StaffCap(p), p.StaffStacks + hits.Count);
             if (hits.Count > 0 && p.Weapon.Melee && !s.Silent)
                 p.MeleeGraceT = MeleeContactGrace;  // you're in the thick of it: touching bodies don't hurt for a moment
             if (hits.Count > 0 && s.Meter > 0f)  // a Katana step landed: the strike meter builds, per enemy hit
@@ -674,8 +674,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
                 Desc = "Sweeps a long, thin blade across in front of you, hitting each enemy once per sweep." },
             // Healer
-            new WeaponDef { Id = WeaponId.HolyMace, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 105f, Melee = true, ExtraDesc = "+1 strike with the other end of the staff (60% damage)", Name = "Quarterstaff", FireInterval = 0.5f,
-                Desc = "Wide staff sweeps that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies." },
+            new WeaponDef { Id = WeaponId.HolyMace, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
+                Desc = "Left and right staff swipes that knock enemies back and bat enemy bullets back at them. Every enemy hit heals you and nearby allies and stores a Jab stack (up to 3); the weapon-action key spends one on a cone jab." },
             new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light, fanned out", Name = "Lightbringer", FireInterval = 0.5f,
                 Desc = "Sword swings that also send out a crescent of light, which heals allies it passes. Hitting enemies fills a light gauge, and when it is full your next swing heals far more." },
             new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
