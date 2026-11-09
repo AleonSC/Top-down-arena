@@ -7,8 +7,8 @@ namespace Arena
 
     public enum AbilityId : byte
     {
-        Barrier, MendPulse, Dash, Shockwave, Overdrive, Blink, Nova, Turret,
-        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Nova, Turret,
+        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
         // Mage
         ArcaneAegis, FrostNova, FlameWall, HealingRain, EnergyWard, Sanctify, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number)
         // Summoner
@@ -65,7 +65,7 @@ namespace Arena
         public int RoleCharges, ExtraCharges;
         public float BarrierRadiusMult = 1f, BarrierBonusTime, BarrierCapacityMult = 1f;
         public float PulseHealMult = 1f, PulseRangeMult = 1f, AuraRangeMult = 1f, AuraHealMult = 1f;
-        public float DashIframeBonus, DashCdMult = 1f;
+        public float VenomMult = 1f, VenomReachBonus;  // Virulence (Poison Dart, PoisonDart.cs)
         public float RoarBonusTime, RoarExtraReduction, BulldozeMult = 1f;
         public float AdrenalineBonusTime, LinkHealMult = 1f;
         public float GrenadeRadiusMult = 1f, MarkBonus;
@@ -276,8 +276,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLantern, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Lantern heals twice as fast", Apply = s => s.LinkHealMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Dash, MaxStacks = 2, Name = "Phase Step", Desc = "Dash invulnerability lasts 0.25 s longer; -25% Dash cooldown",
-                Apply = s => { s.DashIframeBonus += 0.25f; s.DashCdMult *= 0.75f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.PoisonDart, MaxStacks = 2, Name = "Virulence", Desc = "Poison Dart's venom deals 30% more damage and spreads 60 px further",
+                Apply = s => { s.VenomMult *= 1.3f; s.VenomReachBonus += 60f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Airstrike, MaxStacks = 2, Name = "Bigger Boom", Desc = "Airstrike's bombs blast 50% wider",
                 Apply = s => s.GrenadeRadiusMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },

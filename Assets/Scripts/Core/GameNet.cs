@@ -618,7 +618,7 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int hemorrhage = 0, stars = 0, traits = 0, bubble = 0, ward = 0;
-            bool winding = false, penned = false, wet = false, hit = false;
+            bool winding = false, penned = false, wet = false, hit = false, venom = false;
             int bleedHits = 0;
             if (!s.Reading)
             {
@@ -629,6 +629,8 @@ namespace Arena
                 penned = e.PenId != 0;
                 wet = e.WetT > 0f;
                 e.Wet = wet;
+                venom = e.VenomT > 0f;
+                e.Venomed = venom;
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
                 bubble = (int)Math.Ceiling(e.BubbleFrac * 255f);
                 ward = e.BubbleHp > 0f ? e.WardId : 0;
@@ -671,6 +673,7 @@ namespace Arena
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
+            s.Bool(ref venom);      // Poison Dart's venom (PoisonDart.cs)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
             s.Byte(ref challengeBy);  // a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
@@ -712,6 +715,7 @@ namespace Arena
                 e.Penned = penned;
                 e.BleedHits = bleedHits;
                 e.Wet = wet;
+                e.Venomed = venom;
                 e.ChallengeBy = challengeBy;
                 e.ChallengeT = challengeT;
             }

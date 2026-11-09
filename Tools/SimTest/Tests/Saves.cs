@@ -21,8 +21,8 @@ static partial class Program
             made.Route.Add(PathId.SwarmFields); made.Route.Add(PathId.Bazaar);
             var seat = new SeatSave { Name = "Anthony", Role = Role.Healer, Kit = Kit.Ninja, Weapon = 2, Ability = 1, Level = 9, Xp = 41.5f, Rerolls = 3, Gold = 120, ReviveToken = true, HpFrac = 0.75f };
             seat.Taken.Add(Upgrades.All[0].Name); seat.Taken.Add(Upgrades.All[5].Name);
-            seat.BonusKeys[1] = AbilityId.Dash.ToString();
-            seat.Mastery["Dash"] = 123.5f;
+            seat.BonusKeys[1] = AbilityId.PoisonDart.ToString();
+            seat.Mastery["PoisonDart"] = 123.5f;
             seat.Run.Kills = 77; seat.Run.DamageDealt = 9876.5f;
             made.Seats.Add(seat);
             var back = RunSave.Parse(made.ToText() + "\nsomething-new 42\n", "t1");
@@ -30,7 +30,7 @@ static partial class Program
             Console.WriteLine("  save text: {0} lines, read back wave {1}, seat {2} ({3}), {4} upgrades, mastery {5}", made.ToText().Split('\n').Length, back?.Wave, bs?.Name, bs?.Summary, bs?.Taken.Count, bs?.Mastery.Values.FirstOrDefault());
             Check(back != null && back.Wave == 12 && back.Score == 3456 && back.Mods == made.Mods && back.CurrentPath == PathId.Bazaar && back.PathTo == 14 && back.Route.Count == 2
                 && bs.Role == Role.Healer && bs.Kit == Kit.Ninja && bs.Weapon == 2 && bs.Level == 9 && bs.Gold == 120 && bs.ReviveToken && Math.Abs(bs.HpFrac - 0.75f) < 0.01f
-                && bs.Taken.SequenceEqual(seat.Taken) && bs.BonusKeys[1] == "Dash" && Math.Abs(bs.Mastery["Dash"] - 123.5f) < 0.01f && bs.Run.Kills == 77,
+                && bs.Taken.SequenceEqual(seat.Taken) && bs.BonusKeys[1] == "PoisonDart" && Math.Abs(bs.Mastery["PoisonDart"] - 123.5f) < 0.01f && bs.Run.Kills == 77,
                 "a saved run's text reads back the same (upgrades and abilities by name)");
             // Saves from before the classes were renamed in the code (Kit.Mage, Kit.BloodMage) still load.
             seat.Kit = Kit.Elementalist;

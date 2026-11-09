@@ -21,7 +21,7 @@ static partial class Program
         bool neverOffered = true;
         var rng = new Random(7);
         for (int k = 0; k < 300; k++)
-            neverOffered &= !Upgrades.LegendaryOffer(rng, (EnemyType)rng.Next(0, 60), Role.Dps, AbilityId.Dash, new List<int>())
+            neverOffered &= !Upgrades.LegendaryOffer(rng, (EnemyType)rng.Next(0, 60), Role.Dps, AbilityId.PoisonDart, new List<int>())
                 .Any(i => Upgrades.All[i].Name == "Executioner" || Upgrades.All[i].Name == "Twin Fang" || Upgrades.All[i].Name == "Soul Harvest");
         Console.WriteLine("  the Twin Reapers' legendaries: {0}; the old ones never offered in 300 boss offers: {1}", string.Join(", ", own), neverOffered);
         Check(own.Length == 3 && own.Contains("Twin Scythes") && own.Contains("Final Reap") && own.Contains("Scythe Throw")
