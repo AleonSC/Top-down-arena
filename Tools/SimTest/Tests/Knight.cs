@@ -235,12 +235,6 @@ static partial class Program
         Check(leapFx, "Leap Slam sends its look to every screen (FxKind.LeapSlam: landing spot, owner, radius, length)");
         landing.Hp = 0f;
 
-        // Lunge: two charges, hits along the way.
-        cp.RoleAbility = dp.RoleAbility = AbilityId.Lunge;
-        g.GrantUpgrade(2, U("Vitality"));  // recomputes slots and charges on both games
-        Run(s, dt, 0.3f, null, () => Clear());
-        Check(dp.Slots[0].MaxCharges == 2 && cp.Slots[0].MaxCharges == 2, "Lunge has two charges");
-
         // Healer: Consecrate heals, Lay on Hands revives, Guardian's Oath pulls allies clear and plants a ward.
         dp.Hp = dp.MaxHp * 0.3f;
         dp.Pos = cp.Pos = me.Pos + new V2(40f, 0f);
@@ -269,16 +263,8 @@ static partial class Program
         Cast(1, AbilityId.LayOnHands, me.Pos);
         Check(!dp.Downed && dp.Hp > dp.MaxHp * 0.4f, "Lay on Hands revives a downed ally nearby");
 
-        // DPS: Whirlwind spins, Battle Fury speeds swings; ultimates.
+        // Ultimates (the DPS Knight's abilities are in KnightDps.cs).
         me.Pos = new V2(640f, 450f);
-        float w0 = dummy.Hp;
-        Cast(1, AbilityId.Whirlwind, me.Pos);
-        Run(s, dt, 1f, null, () => { Clear(); dummy.FrozenT = 1f; dummy.Pos = new V2(700f, 450f); });
-        Check(dummy.Hp < w0 && client.Game.Players[1].WhirlT > 0f, "Whirlwind hits everything around you (and others see it spinning)");
-        var fireRate = typeof(Game).GetMethod("FireRate", flags);
-        float fr0 = (float)fireRate.Invoke(g, new object[] { me });
-        Cast(1, AbilityId.BattleFury, me.Pos);
-        Check((float)fireRate.Invoke(g, new object[] { me }) > fr0 * 1.35f, "Battle Fury makes you swing 40% faster");
         me.Slots[Upgrades.UltSlot].Id = AbilityId.HallowedBlade;
         g.Zones.Clear();
         var under = Dummy(new V2(900f, 300f)); float u0 = under.Hp;
@@ -297,11 +283,6 @@ static partial class Program
         Check(Math.Abs((far0 - farFoe.Hp) * 3f - burnPerSec * 2f) < burnPerSec * 0.3f, "the first pulse hurts an enemy far outside the ring for a third of what the ring does in 2 s");
         Check(farAlly.Hp - ally0 > Game.HallowedPulseHeal * 0.9f && farAlly.Hp - ally0 < Game.HallowedPulseHeal * 1.3f, "the first pulse heals an ally far outside the ring for a third of what the ring does in 2 s");
         under.Hp = 0f;
-        me.Slots[Upgrades.UltSlot].Id = AbilityId.BladeTempest;
-        cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, true });
-        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
-        Swing(0.5f, dummy.Pos);
-        Check(g.Bullets.Values.Count(b => b.Kind == Defs.KnightWave && b.Pierce > 50) >= 3, "Blade Tempest hurls piercing sword beams with each swing");
         host.Leave(""); client.Leave("");
     }
 }

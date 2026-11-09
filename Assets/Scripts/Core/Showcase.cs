@@ -135,6 +135,8 @@ namespace Arena
                 float phase = MathX.Fmod(t, BoStaffDemoEvery);
                 input.WeaponAction = phase >= BoStaffDemoShove && phase - dt < BoStaffDemoShove;
             }
+            if (demoAbility && !ultimate && ability == AbilityId.Whirlwind && castT <= 0.1f)
+                Game.ShowcaseWoundDummies();  // Misericorde needs wounded enemies to execute (Misericorde.cs); just before the cast, or your swings finish them first
             if (demoAbility)
             {
                 castT -= dt;
@@ -277,6 +279,17 @@ namespace Arena
                 dummySpots.Add(home + V2.FromAngle(-MathX.Pi / 2f + k * 0.42f) * distance);
                 dummyIds.Add(0);
                 dummyRespawn.Add(0.2f + 0.15f * (k + 1));
+            }
+        }
+
+        /// Misericorde's demo: the dummies are worn down under its threshold just before the cast.
+        public void ShowcaseWoundDummies()
+        {
+            foreach (int id in dummyIds)
+            {
+                Enemy e;
+                if (id != 0 && Enemies.TryGetValue(id, out e) && e.Hp > e.MaxHp * 0.2f)
+                    e.Hp = e.MaxHp * 0.2f;
             }
         }
 

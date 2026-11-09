@@ -196,6 +196,15 @@ namespace Arena
                         ApplyCooldownCut(Me, ab, share);
                     break;
                 }
+                case Msg.Carry:  // a Knight ability carries someone (the Gauntlet's charge, Misericorde's leaps); only their own game moves them (Gauntlet.cs)
+                {
+                    int id = r.ReadInt32();
+                    V2 to = r.ReadV2();
+                    float time = r.ReadSingle();
+                    if (id == MyId && !IsHost)
+                        StartCarry(to, time);
+                    break;
+                }
                 case Msg.Knock:  // a Riot Shield bashed someone; only their own game moves them (WardenFaction.cs)
                 {
                     int id = r.ReadInt32();
@@ -472,8 +481,11 @@ namespace Arena
             for (int k = 0; k < Player.WallPlates; k++)
                 s.Byte(ref p.WallPlate[k]);
             s.Float(ref p.UnbreakT);
-            s.Float(ref p.FuryT);
-            s.Float(ref p.WhirlT);
+            s.Float(ref p.SteelT);  // Caught Steel (CaughtSteel.cs)
+            s.Byte(ref p.Steel);
+            s.Bool(ref p.GauntletDown);  // The Gauntlet lying where it hit (Gauntlet.cs)
+            if (p.GauntletDown)
+                s.Vec(ref p.GauntletRest);
             s.Float(ref p.VanishT);
             s.Float(ref p.IronT);
             s.Vec(ref p.VanishFrom);
@@ -657,6 +669,11 @@ namespace Arena
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
+            int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
+            s.Byte(ref challengeBy);  // a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
+            float challengeT = !s.Reading && challengeBy > 0 ? e.ChallengeT : 0f;
+            if (challengeBy > 0)
+                s.Float(ref challengeT);
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -692,6 +709,8 @@ namespace Arena
                 e.Penned = penned;
                 e.BleedHits = bleedHits;
                 e.Wet = wet;
+                e.ChallengeBy = challengeBy;
+                e.ChallengeT = challengeT;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

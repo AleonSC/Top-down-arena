@@ -75,6 +75,8 @@ namespace Arena
         /// The glow pass's glow for a shot: the tracers' is the mockup's (14 px at 0.8), the rest the usual soft glow.
         void ShotGlow(Bullet b)
         {
+            if (b.Kind == Defs.SteelShard)
+                return;  // it carries its own glow (KnightDpsLook.cs)
             if (IsLightCrescent(b))
             {
                 DrawSunriseCrescent(b);  // all light (LightbringerFxLook.cs)
