@@ -39,7 +39,7 @@ namespace Arena
         public static readonly V2[] ZoneSpots = { new V2(420f, 300f), new V2(1180f, 300f), new V2(800f, 690f) };
         // The room's own enemies' health: a share of what the Warden would have at that wave, for this party (BossEquivalentHp).
         // A shadow is a one-on-one fight, so it takes its share of a solo Warden, however many are playing (ShadowHp).
-        public const float MiniBossShare = 0.5f, ShadowShare = 0.2f;
+        public const float MiniBossShare = 0.8f, ShadowShare = 0.2f;
         // The prize.
         public const float PrizeLegendaryChance = 0.25f;
 
