@@ -120,7 +120,7 @@ namespace Arena
             {
                 if (p.Downed)
                     continue;
-                if (p.TauntT > 0f || p.PactT > 0f)
+                if (p.TauntT > 0f || p.PactT > 0f || Game.JuggOn(p))  // (the Juggernaut Suit draws them too)
                     best = p;
             }
             return best;
