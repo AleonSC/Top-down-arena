@@ -62,6 +62,8 @@ namespace Arena
                         break;  // the Shadow Step's plain ring: its look draws from FxKind.ShadowStep (ShadowStepLook.cs)
                     if (IsTankRing(fx))
                         break;  // Roar's and Bulldoze's plain rings: their looks draw from the cast's Callout (TankLooks.cs)
+                    if (IsKusariRing(fx))
+                        break;  // the Kusarigama's bite and snap: drawn as ink splashes in the glow pass (KusarigamaLook.cs)
                     Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
                     break;
                 case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
@@ -206,6 +208,8 @@ namespace Arena
                 case FxKind.BridgeSpark:
                     DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
                     break;
+                case FxKind.BathHeal:
+                    break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
                 case FxKind.RodBolt:
                     DrawRodBoltFx(fx);  // LightningRodLook.cs
                     break;

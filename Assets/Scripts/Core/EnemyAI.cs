@@ -388,6 +388,8 @@ namespace Arena
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
+                if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
+                    e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // KitWeapons.cs
@@ -821,6 +823,8 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
+            else if (e.WadeT > 0f)
+                speed *= e.WadeMult;  // Heavy enemies and bosses ignore the usual slow, but not a Bloodbath (Bloodbath.cs)
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
             if (IsHost && Props.Count > 0 && !e.Def.IsBoss)

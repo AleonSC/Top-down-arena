@@ -19,6 +19,7 @@ namespace Arena
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
             DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
+            DrawBathPops();  // Bloodbath's "+n" heals off the Hemomancer (BloodbathLook.cs)
             DrawKnightDpsPops();  // "† 11", READY, the chain ending, Caught Steel's pips (KnightDpsLook.cs)
             DrawRodPops();  // Lightning Rod's grey numbers off the tank (LightningRodLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)

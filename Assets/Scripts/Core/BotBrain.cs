@@ -25,6 +25,7 @@ namespace Arena
         public bool AllyThreatened;  // a hurt or downed ally has enemies close on them (Roar draws those enemies off)
         public float DownedD;    // distance to the nearest downed ally (9999 with none)
         public bool TargetMarked;  // its target already carries a Mark for Death
+        public int NearEnemies;    // enemies within BotNearReach of it (Bloodbath wants several)
         public int Crowd;        // enemies within Game.JuggBotRange of it (the Juggernaut Suit's rule; only counted for that one)
         public int Shooters;       // how many enemies have shots in flight coming at it (Lightning Rod)
     }
@@ -304,10 +305,22 @@ namespace Arena
             {
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
-                AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked,
+                AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
                 Crowd = id == AbilityId.JuggernautSuit ? CrowdNear(me) : 0,
                 Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
+        }
+
+        public const float BotNearReach = 170f;
+
+        /// Enemies (up and fighting) within reach of pos.
+        int EnemiesNear(V2 pos, float reach)
+        {
+            int n = 0;
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && !e.Dummy && e.Pos.DistanceTo(pos) < reach + e.Radius)
+                    n++;
+            return n;
         }
 
         /// Abilities that heal where you aim them: a bot casts these at the ally who needs it, not at the boss.
