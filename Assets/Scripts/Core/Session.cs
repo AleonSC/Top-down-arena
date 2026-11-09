@@ -42,6 +42,7 @@ namespace Arena
         WildcardRequest, // client -> host: a Wildcard's whole loadout at once: weapon, first ability, second ability and its key (Session.SetWildcard)
         Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Misericorde's leaps); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
+        NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -101,7 +102,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 230;
+        public const int ProtocolVersion = 231;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -670,9 +671,19 @@ namespace Arena
                     var w = Proto.Begin(Msg.Pong);
                     w.Write(r.ReadInt64());
                     Net.Send(peer, Proto.End(w));
+                    peerPing[peer] = r.ReadUInt16();  // the client's last round trip, shared with everyone by Msg.NetPings (LagNet.cs)
                     break;
                 }
             }
+        }
+
+        readonly Dictionary<int, float> peerPing = new Dictionary<int, float>();
+
+        /// Host: a client's last round trip in ms, as its own pings report it (0 until one has).
+        public float PeerPingMs(int peer)
+        {
+            float ms;
+            return peerPing.TryGetValue(peer, out ms) ? ms : 0f;
         }
 
         void Reject(int peer, string reason)

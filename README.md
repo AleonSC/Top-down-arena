@@ -944,6 +944,7 @@ as usual.
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (CRT phosphor readouts in bracket corners: health with a 20-cell bar bottom-left, each ability key over its seconds left and the ult's charge % at the bottom, the wave and enemies left top-right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a chip per key with its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
 | Aim debug overlay | F3 |
+| Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
 | Open the folder with `Player.log` (menus, lobby, results; in a run F2 is the DPS meter) | F2 |
 | Freeze time with no menu (dev) | P, once the F1 Tools tab's freeze-time key is on; everything holds, attacks and effects mid-swing included; P again resumes. Pausing is shared, so it stops everyone |
@@ -1379,6 +1380,31 @@ counted in Records, XP or ranks, like Boss Lab fights and the F1 bot.
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask
 the host to allow the game the first time they host; click **Allow**.
+
+### Lag chart (F5)
+
+For finding out why a match feels laggy. Anyone can turn it on, host or guest: **F5** in a match cycles **off → pill →
+chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved on your machine).
+
+- **Pill**: a small box at the top right with **Good / OK / Poor** (green, yellow, red) and your ping. *Poor* means a ping
+  of 150 ms or more over the last 3 s, a stall of 300 ms or more in the last 5 s, or under 20 fps; *OK* is 80 ms, a
+  shorter stall, or under 40 fps.
+- **Chart**: the last 30 s, a column every quarter second. The **blue line** is your round trip to the host (pinged 4
+  times a second). The **yellow line** is your frame time, so you can tell your own PC hitching from the network. The
+  **bars** are the gaps between snapshots from the host (normally 50 ms); one past the **red 150 ms line** is a
+  **stall**, drawn red (the game sends over TCP, so a lost packet holds up everything behind it: that's what lag feels
+  like). **Ticks** mark each wave start, a boss arriving and a **bullet storm** (450+ enemy bullets), so a spike can be
+  lined up with what was happening. Under it: ping now / avg / p95 / max / jitter, stalls and the worst gap, FPS and
+  its 1% low, data in and out (KB/s) and the snapshot size, and **every player's ping** (the host shares them once a
+  second; red at 150 ms or more).
+- **The host** has no ping of its own: its blue line is the **worst guest's ping**, and its rows show its frame rate
+  and upload.
+- **Shift+F5** freezes the chart (the numbers keep counting underneath; again to unfreeze). **Ctrl+F5** copies a text
+  summary of the whole run so far (ping min/avg/p95/max, stalls, FPS, bandwidth, everyone's ping, the version) to the
+  clipboard, to paste to whoever's hosting.
+- **Log lag to a file** (Settings → Gameplay) writes a CSV for each run to the `lag` folder in your profile folder: a row
+  every quarter second (time, ping, snapshot gap, worst frame, fps, KB/s in and out) and a row for each wave, boss and
+  storm.
 
 ## Making a build to send to your friend
 

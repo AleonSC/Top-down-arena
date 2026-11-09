@@ -28,6 +28,7 @@
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
 # CAST="Poison Dart" DARTKILL=<s> (its target dies that long after the cast, so the poison spreads; CASTT after it shows the globs).
 # CLOT=<draw s> (the Clot Cannon charging, clots in flight, a wet pool and a congealed one; mode hud).
+# LAG=pill|chart|guest LAGFROZEN=1 (the lag chart with made-up numbers, ShotLag.cs; mode hud, 3 players).
 # NINJA=n / BLOOD=n (everyone plays that class, with weapon n), CAST="Blood Wall" (cast an ability; CASTT=<seconds after>).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e

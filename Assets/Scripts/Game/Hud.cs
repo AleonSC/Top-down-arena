@@ -172,6 +172,8 @@ namespace Arena
                     Ui.Shadowed(new Rect(0f, HudHiddenHintY + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
                 }
             }
+            if (!tabHeld)
+                DrawLagChart();  // F5, over the name tags (LagChartUi.cs)
         }
 
         // --- Hiding the HUD (H) ---------------------------------------------------------
