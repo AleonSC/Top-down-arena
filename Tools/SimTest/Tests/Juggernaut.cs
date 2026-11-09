@@ -38,7 +38,7 @@ static partial class Program
                 for (int u = 1; u < Upgrades.UltKeys; u++)
                     if (Upgrades.AltUltimate((Role)r, (Kit)k, u) != AbilityId.None)
                         alts++;
-        Check(alts == 1, "every other role and class keeps its three locked slots");
+        Check(alts == 2 && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath, "every other role and class keeps its three locked slots (the Tank Hemomancer has Bloodbath on key 1)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Soldier);  // (AutoStart: StartMatch below needs no Ready)

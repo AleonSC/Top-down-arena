@@ -85,7 +85,8 @@ namespace Arena
                 this.ability = ability;
                 this.ultimate = ultimate;
                 var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit, ultPick) : ability;
-                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f : UltimateEvery;
+                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
+                    : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f : UltimateEvery;  // (a Bloodbath dries up before the next)
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;

@@ -101,7 +101,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 222;
+        public const int ProtocolVersion = 223;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -580,11 +580,11 @@ namespace Arena
                 case Msg.AbilityRequest:
                     SetAbility(peer, r.ReadByte());
                     break;
-                case Msg.KitRequest:
-                    SetKit(peer, r.ReadByte());
-                    break;
                 case Msg.UltRequest:
                     SetUlt(peer, r.ReadByte());
+                    break;
+                case Msg.KitRequest:
+                    SetKit(peer, r.ReadByte());
                     break;
                 case Msg.WildcardRequest:
                 {
@@ -705,7 +705,7 @@ namespace Arena
         public bool HostResume(RunSave save, int port, string name)
         {
             var first = save.Seats[0];
-            if (!Host(port, name, first.Role, first.Weapon, first.Ability, first.Kit, first.Wild))
+            if (!Host(port, name, first.Role, first.Weapon, first.Ability, first.Kit, first.Wild, first.Ult))
                 return false;
             Resume = save;
             Modifiers = save.Mods;
@@ -777,7 +777,7 @@ namespace Arena
                 return;
             if (e.Role != (Role)role)
             {
-                e.Weapon = 0;  // weapons and abilities differ per role
+                e.Weapon = 0;  // weapons, abilities and ultimates differ per role
                 e.Ability = 0;
                 e.Wild = 0;
                 e.Ult = 0;
@@ -827,7 +827,7 @@ namespace Arena
                 return;
             if (e.Kit != ClampKit(kit))
             {
-                e.Weapon = 0;  // each kit has its own weapons and abilities
+                e.Weapon = 0;  // each kit has its own weapons, abilities and ultimates
                 e.Ability = 0;
                 e.Ult = 0;
             }
