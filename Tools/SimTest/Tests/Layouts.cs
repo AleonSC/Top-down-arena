@@ -210,6 +210,23 @@ static partial class Program
         brute.Hp = 0f;
         Quiet();
 
+        // The Warden's own (Riot Shield, Guard, Rioter) head for spots of their own choosing; they route round walls too.
+        foreach (var wt in new[] { EnemyType.RiotShield, EnemyType.Guard, EnemyType.Rioter })
+        {
+            var we = (Enemy)spawnEnemyAt.Invoke(g, new object[] { wt, new V2(500f, 255f), 0f, 0, false });
+            we.SpawnT = 0f; we.Hp = we.MaxHp = 99999f;
+            float wnear = 9999f;
+            for (int i = 0; i < 2400 && wnear > 50f; i++)
+            {
+                moveEnemy.Invoke(g, new object[] { we, goal, dt });
+                we.T += dt;
+                wnear = Math.Min(wnear, we.Pos.DistanceTo(goal));
+            }
+            Check(wnear <= 50f, "a " + wt + " walks round a wall to get at you (got within " + (int)wnear + " px)");
+            we.Hp = 0f;
+            Quiet();
+        }
+
         // Routing: across every floor plan, enemies find a way between far-apart spots even when it takes several corners.
         {
             var rng = new Random(7);

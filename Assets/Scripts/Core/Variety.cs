@@ -516,7 +516,7 @@ namespace Arena
             return v;
         }
 
-        static V2 GoalVel(Enemy e, V2 goal) => (goal - e.Pos) / 60f;
+        V2 GoalVel(Enemy e, V2 goal) => RouteVel(e, goal, (goal - e.Pos) / 60f);  // round walls and crates (LayoutRules.cs)
 
         static bool Centroid(List<Enemy> mates, Enemy self, EnemyType? type, out V2 c)
         {
