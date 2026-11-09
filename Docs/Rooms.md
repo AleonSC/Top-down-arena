@@ -2,7 +2,8 @@
 
 **Status: design and mockup; phase 0 built (run-log fields), the rooms themselves not.**
 Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,
-Cross, Annexes), a following camera at 1x / 1.5x / 2x, minimap or room strip, split up or stay together, a live sim.
+Cross, Annexes), hallways on or off (with the vault), a following camera at 1x / 1.5x / 2x, minimap or room strip, split
+up or stay together, a live sim.
 
 ## Why
 
@@ -61,6 +62,27 @@ The log has no record of **where** enemies were relative to you, so the zoom pro
   boss waves).
 - **Rooms have their own cover**: a few walls, pillars and crates from a small set of room plans, reusing `Solid`,
   `LayoutCrate` and the waypoint steering in `LayoutRules.cs`.
+
+### Hallways and the vault (owner: yes, Nov 2026)
+
+- **Why**: with one door per room, every room is a dead end and the safe play is to stand in the hub and shoot through
+  the doorway while enemies funnel into the choke. Hallways join neighbouring rooms into a **loop round the hub**:
+  enemies can come at you two ways (no free door camping), and you can run the loop to kite. The loop also replaces
+  the feel of today's edge wrap, which stays off on room waves (a literal wrap would be confusing with a following camera).
+- **Galleries, not corridors**: **260 px wide** (the mockup), short, maybe a pillar at a corner. A narrow corridor with
+  a volley coming down it can't be dodged, which is face-tanking again.
+- **Per map** (mockup):
+  - **Wings**: a gallery above and one below the hub, each joining West and East (a door from each room into each).
+  - **Cross**: four corner galleries (West to North, North to East, East to South, South to West): a ring.
+  - **Annexes**: a side door between the two rooms on each side, and a gallery across the top joining the top two.
+- **Spills**: a room with several doors to the hub or a hallway picks one at random for each spill (never into the next
+  room). The minimap's spill ring and the amber warning sit on that door. Hallway spills take longer to arrive but come
+  from where you aren't looking.
+- **The vault**: a small room off a hallway with **two elite guards** and a **rare-or-better chest**. **Optional**: the
+  wave ends without it, and the rooms keep spilling while you're inside. Rooms behind rooms otherwise stay out: each
+  layer adds backtracking, and a far room's spills take so long to reach the hub that the pressure fades.
+- **Routing**: steering becomes a path over doors (the mockup does a shortest path over door crossings), not just
+  "head for the one door". Enemies and bots both use it.
 
 ## How a wave plays
 
@@ -133,6 +155,11 @@ Each client already draws its own screen, so every player's camera follows thems
 5. **Polish**: paths in rooms, room plans with character, bots.
 
 ## Open questions
+
+- Which map: Wings, Cross, Annexes, or a mix picked per boss cycle like layouts?
+- Hallways on every wave, or only on some maps?
+- The vault: every wave, once per boss cycle, or a chance? What's in it besides the chest?
+- HUD: minimap, room strip, or both?
 
 - How many room plans, and do rooms have their own types (an elite room, a hazard room, a loot room)?
 - Does the hub keep the cycle's layout walls, or do rooms replace layouts on regular waves?

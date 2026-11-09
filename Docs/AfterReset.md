@@ -380,7 +380,8 @@ So friends can play without Tailscale or port forwarding.
       threats near you at once so enemy damage can go up and dodging matters again. Decided: rooms on every regular wave
       (boss waves stay in the hub), nests that spill into the hub, players can split up, a small reward for each cleared
       room. **Mockup ready:** [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): pick a
-      map (Wings / Cross / Annexes), a HUD (minimap / room strip / both), and answer its open questions. **Phase 0 built**
+      map (Wings / Cross / Annexes), hallways on or off (wide galleries that loop the rooms, plus an optional vault with
+      two elite guards and a rare+ chest), a HUD (minimap / room strip / both), and answer its open questions. **Phase 0 built**
       (run-log format 3): samples record each player's nearest enemy, enemies within 300 px and enemies and shots in a
       2x-zoom view; `Tools/SessionReport/report.py` prints "Threats near you". Record a run or two now for the before picture.
 - [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
