@@ -155,6 +155,43 @@ static partial class Program
         Console.WriteLine("  twin rifle: barrel width with 2 barrels {0:0.0}, with 4 {1:0.0}", w2, w4);
         Check(Math.Abs(w4 - w2) < 1f, "extra Twin Rifle barrels fill the same width instead of widening it");
 
+        // Spread arms: the rounds start at the drawn muzzles, out past your edge (TwinMuzzleOut), the barrels' width apart;
+        // pressed against a wall, they start at your edge instead, so they never come out the far side.
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); me.Pos = from; me.AimAt = from + new V2(400f, 0f);
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            var rs = g.Bullets.Values.Where(b => b.Owner == 1).ToList();
+            float ahead = rs.Min(b => (b.Pos - from).Dot(new V2(1f, 0f))), want = me.Def.BodyR + Game.TwinMuzzleOut;
+            Console.WriteLine("  twin rifle: rounds start {0:0.0} px ahead (muzzles at {1:0.0})", ahead, want);
+            Check(rs.Count == 2 && rs.All(b => Math.Abs((b.Pos - from).X - want) < 2f), "the Twin Rifle's rounds start at its muzzles, held out past your edge");
+            var keepLayout = g.Layout;
+            LayoutId wallLayout = LayoutId.Open; Solid wall = default(Solid);
+            foreach (LayoutId id in Enum.GetValues(typeof(LayoutId)))
+            {
+                if (id == LayoutId.Open) continue;
+                var d = Layouts.Get(id);
+                if (d == null) continue;
+                foreach (var sd in d.Solids)
+                    if (!sd.Edge && !sd.Round && sd.HH >= 40f && sd.HW >= 8f && sd.Pos.X - sd.HW > 100f) { wallLayout = id; wall = sd; break; }
+                if (wallLayout != LayoutId.Open) break;
+            }
+            if (wallLayout != LayoutId.Open)
+            {
+                g.Layout = wallLayout;
+                float face = wall.Pos.X - wall.HW;
+                V2 at = new V2(face - me.Def.BodyR - 1f, wall.Pos.Y);
+                g.Bullets.Clear(); me.Pos = at; me.AimAt = at + new V2(400f, 0f);
+                volley.Invoke(g, new object[] { me, 0f, 0 });
+                var ws = g.Bullets.Values.Where(b => b.Owner == 1).ToList();
+                Console.WriteLine("  twin rifle against a wall ({0}): rounds start at x {1:0.0} (the wall's face {2:0.0})", wallLayout, ws.Max(b => b.Pos.X), face);
+                Check(ws.Count == 2 && ws.All(b => b.Pos.X <= face), "against a wall the Twin Rifle's rounds start at your edge, not through the wall");
+                g.Layout = keepLayout;
+                g.Bullets.Clear(); me.Pos = from;
+            }
+            else
+                Check(false, "found a wall to test the Twin Rifle against");
+        }
+
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BurstSmg);
         g.Enemies.Clear(); g.Bullets.Clear();
         me.Pos = from;

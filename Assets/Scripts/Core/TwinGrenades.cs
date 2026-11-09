@@ -19,12 +19,20 @@ namespace Arena
         /// Which tube a loaded grenade sits in, for the screen: with two, both; with one, the one TwinNext names.
         public static bool TwinTubeLoaded(Player p, int tube) => p.TwinNades >= 2 || p.TwinNades == 1 && p.TwinNext == tube;
 
-        /// Where tube `tube` (0 left, 1 right) fires from: the outer barrel on that side, at the muzzle.
+        /// Where tube `tube` (0 left, 1 right) fires from: the mouth of the tube under that rifle, just behind and outside its
+        /// muzzle (the guns are held out wide, Weapons.cs TwinMuzzleOut). Against a wall, from your edge.
         public V2 TwinTubeMuzzle(Player p, float aim, int tube)
         {
             V2 v = V2.FromAngle(aim), left = v.Orthogonal();  // (arena y runs down the screen, so Orthogonal is to your left)
-            return p.Pos + v * (p.Def.BodyR + 8f) + left * ((tube == 0 ? 1f : -1f) * TwinBarrelGap * 0.5f);
+            V2 lat = left * ((tube == 0 ? 1f : -1f) * (TwinBarrelGap * 0.5f + TwinTubeOut));
+            V2 at = p.Pos + v * (p.Def.BodyR + TwinMuzzleOut - 2f) + lat;
+            if (ActiveLayout != null && SegBlocked(ActiveLayout, p.Pos, at, 0f))
+                at = p.Pos + v * p.Def.BodyR + lat;
+            return at;
         }
+
+        /// How far outside its rifle's barrel a tube's mouth sits.
+        const float TwinTubeOut = 4f;
 
         /// Host: a Twin Rifle round hit an enemy (Combat.cs, after the crossfire check). Loads the tubes.
         void TwinRifleHit(Bullet b, Enemy e)

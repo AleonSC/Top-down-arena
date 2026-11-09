@@ -87,6 +87,9 @@ namespace Arena
         /// TwinCrossZone of the crossing is crossfire, for TwinCrossMult.
         /// TwinBarrelGap is the total width of the barrels (however many); TwinCopySpan is the same for a Barrage copy.
         public const float TwinCopySpan = 20f;
+        /// How far past your edge the Twin Rifle's muzzles are: the guns are held out wide (Spread arms,
+        /// Docs/Mockups/twin-rifle-firing.html) and the rounds start at the drawn muzzles. Against a wall they start at your edge.
+        public const float TwinMuzzleOut = 22f;
         public const float TwinBarrelGap = 60f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 2f;
         public float TwinCrossDistance(Player p) => Math.Max(TwinCrossMin, Math.Min(p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
 
@@ -430,9 +433,12 @@ namespace Arena
                     float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
                     V2 v = V2.FromAngle(a), side = v.Orthogonal();
                     V2 cross = p.Pos + v * TwinCrossDistance(p);
+                    float outFrom = p.Def.BodyR + TwinMuzzleOut;
                     for (int i = 0; i < n; i++)
                     {
-                        V2 from = muzzle + side * ((i - (n - 1) / 2f) * gap);
+                        V2 from = p.Pos + v * outFrom + side * ((i - (n - 1) / 2f) * gap);
+                        if (ActiveLayout != null && SegBlocked(ActiveLayout, p.Pos, from, 0f))
+                            from = muzzle + side * ((i - (n - 1) / 2f) * gap);  // a gun pushed into a wall fires from your edge
                         var b = SpawnBullet(Defs.DpsShot, from, (cross - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.Cross = cross;
                         b.Crossfire = true;
@@ -516,6 +522,8 @@ namespace Arena
                     return NimbusReach(p);
                 case WeaponId.SpiritChalk:  // how far from you you can draw (Chalk.cs)
                     return ChalkReach(p);
+                case WeaponId.TwinRifle:  // the rounds start out at the muzzles
+                    return p.Def.BodyR + TwinMuzzleOut + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
                     return p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.FrostLance:  // the icicle, out from you

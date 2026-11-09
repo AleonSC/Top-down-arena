@@ -150,16 +150,29 @@ namespace Arena
             float dKick;
             DpsGunPose(p, out dKick);  // the Twin Rifle, Railgun and Burst SMG kick, charge and spin (DpsGunLooks.cs)
             gKick += dKick;
-            rhx -= gKick + mNadeKick1; lhx -= gKick + gPump * wk + mNadeKick0;  // (a grenade launch kicks only its own gun, TwinNadeLook.cs)
+            rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
+            // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
+            // along its own barrel (DpsGunLooks.cs TwinSpreadPose).
+            float twist = 0f, climbR = 0f, climbL = 0f;
+            bool spread = p.Weapon.Id == WeaponId.TwinRifle;
+            if (spread)
+                TwinSpreadPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out twist, out climbR, out climbL);
             bool ownArms = LookDrawsArms(p);
             if (!ownArms)
             {
-                ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
-                ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
+                if (spread)
+                {
+                    TwinArm(K, 1f, ry * 0.72f, rhx, rhy, 1f);
+                    TwinArm(K, 1f, -ry * 0.72f, lhx, lhy, -1f);
+                }
+                else
+                {
+                    ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
+                    ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
+                }
             }
-            float twist = mDpsOn && p.Weapon.Id == WeaponId.TwinRifle ? 0.12f : 0f;  // the Twin Rifle's guns angle in toward where the streams cross
-            MFrame(rhx, rhy, -twist + mNadeClimb1, wk, false);  // (the climb turns each gun outward)
+            MFrame(rhx, rhy, -twist + climbR, wk, false);  // (the climb turns each gun outward)
             float keepA = mAlpha;
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
@@ -167,7 +180,7 @@ namespace Arena
                 mHeldTube = 1;  // (the right hand's Twin Rifle carries the right grenade tube, DpsGunLooks.cs)
                 mHeldOwner = p;
                 DrawHeld(p, t, hold);
-                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist - mNadeClimb0, wk, true); DrawHeld(p, t, hold); }
+                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist - climbL, wk, true); DrawHeld(p, t, hold); }
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
@@ -207,6 +220,15 @@ namespace Arena
                 default:
                     return false;
             }
+        }
+
+        /// A long arm out to a Twin Rifle held wide: bent a little at the elbow, outward and back. `sd` is +1 right, -1 left.
+        void TwinArm(ModelPal K, float sx, float sy, float hx, float hy, float sd)
+        {
+            float ex = (sx + hx) * 0.5f - 2f, ey = (sy + hy) * 0.5f + sd * 2.6f;
+            MLine(sx, sy, ex, ey, 6f, K.Dark); MLine(ex, ey, hx, hy, 6f, K.Dark);
+            MLine(sx, sy, ex, ey, 4.4f, K.Sleeve); MLine(ex, ey, hx, hy, 4.4f, K.Sleeve);
+            MCirc(ex, ey, 2.2f, K.Sleeve, 8);
         }
 
         void ModelArm(ModelPal K, float sx, float sy, float hx, float hy)

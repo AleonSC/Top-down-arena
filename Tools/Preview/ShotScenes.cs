@@ -502,6 +502,7 @@ static partial class Shot {
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
     // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
     // right, the arena otherwise empty). NADELOAD=<s>: instead, the left tube loading that long ago (its breech and shell).
+    // RIFLEFIRE=1 holds fire as well (NADET=0.4 RIFLEFIRE=1 shows the rifles mid-burst); CROSSAT=<px> sets the cursor distance.
     if (Environment.GetEnvironmentVariable("NADET") != null || Environment.GetEnvironmentVariable("NADELOAD") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -509,9 +510,10 @@ static partial class Shot {
       V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
       bool load = Environment.GetEnvironmentVariable("NADELOAD") != null;
       me.TwinNades = (byte)(load ? 0 : 2); me.TwinNext = 0;
-      V2 aimAt = home + new V2(320f, 0f);
+      bool fire = Environment.GetEnvironmentVariable("RIFLEFIRE") != null;  // RIFLEFIRE=1: holding fire too (Spread arms, DpsGunLooks.cs)
+      V2 aimAt = home + new V2(float.Parse(Environment.GetEnvironmentVariable("CROSSAT") ?? "320", ci), 0f);
       var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
-      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos; me.Aim = 0f; draw.Invoke(app, null); };
+      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = fire }); me.Disp = me.Pos; me.Aim = 0f; draw.Invoke(app, null); };
       for (int f = 0; f < 6; f++) frame();
       if (load) me.TwinNades = 1;
       else typeof(Game).GetMethod("HostTwinGrenade", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, aimAt });
