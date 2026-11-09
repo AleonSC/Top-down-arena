@@ -1,0 +1,619 @@
+<title>Arena Rooms</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: header, a row of three map cards (the map picker), a control bar, the player's screen (a live sim, 16:9), then the
+   whole world from above with live numbers beside it, then notes and open questions.
+   Colour: the phosphor-blue arena look of arena-layouts-digital.html. Walls blue, enemies red, spilled enemies orange,
+   nests yellow-green, doors red (uncleared) / amber (about to spill) / teal (cleared), P1 cyan, P2 violet.
+   Type: VT323 for anything on the game screen, Rajdhani for UI, Plex Mono for numbers. Single dark theme on purpose (it is a screen). */
+:root{
+  --bg:#070a14; --fg:#dfe8ff; --muted:#8190b6; --line:#243055; --panel:#0d1226; --accent:#5b8cff; --on-accent:#05102c;
+  --f-crt:"VT323","Courier New",monospace; --f-ui:"Rajdhani",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --red:#ff4d6a; --amber:#ffb347; --teal:#3ee6b4; --p1:#7cf7ff; --p2:#c79bff;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:17px;line-height:1.45;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1160px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font:700 34px/1.05 var(--f-ui);margin:0 0 8px;text-wrap:balance;letter-spacing:.01em}
+h2{font:500 12px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+header p{margin:0;color:var(--muted);max-width:72ch}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;min-width:0}
+.card canvas{width:100%;height:auto;aspect-ratio:2/1;display:block;border-radius:3px;background:#000;max-width:100%}
+.card b{font:700 16px var(--f-ui);letter-spacing:.04em;text-transform:uppercase}
+.card small{font:400 12px/1.35 var(--f-mono);color:var(--muted)}
+.card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.card:focus-visible,.key:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
+.grp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.grp>span{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.key{font:700 14px var(--f-ui);color:var(--fg);background:#1a2242;border:1px solid var(--line);border-radius:8px;padding:7px 13px;cursor:pointer}
+.key[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.view{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
+.view canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.crt{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%)}
+.cap{font:500 13px/1.5 var(--f-mono);color:var(--muted);margin:8px 0 0}
+.below{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;align-items:start}
+.over{border:1px solid var(--line);border-radius:8px;background:#000;overflow:hidden}
+.over canvas{display:block;width:100%;height:auto;max-width:100%}
+.stats{display:flex;flex-direction:column;gap:8px;min-width:0}
+.stat{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:4px 0;font:500 14px var(--f-mono);font-variant-numeric:tabular-nums}
+.stat span:first-child{color:var(--muted)}
+.stat .good{color:var(--teal)} .stat .warn{color:var(--amber)} .stat .bad{color:var(--red)}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;font:400 12px/1.4 var(--f-mono);color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.box{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--panel);min-width:0}
+.box ul,.box ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.box li{color:var(--fg)} .box li em{color:var(--muted);font-style:normal}
+@media (max-width:760px){.cards{grid-template-columns:1fr}.below,.notes{grid-template-columns:1fr}h1{font-size:28px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Rooms: a hub with side rooms</h1>
+    <p>Mockup for <code>Docs/Rooms.md</code>. Today's 1600&times;900 arena stays as the hub; rooms join it through doors. Each room has a nest that keeps it stocked, and an uncleared room sends a squad into the hub every so often. Below is a live sim with two bots: your screen first, then the whole world from above. Nothing here is built yet.</p>
+  </header>
+
+  <section>
+    <h2>1 &middot; The map</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="bar" aria-label="Controls">
+    <div class="grp"><span>Zoom</span>
+      <button class="key" data-zoom="1" aria-pressed="true">1x</button>
+      <button class="key" data-zoom="1.5" aria-pressed="false">1.5x</button>
+      <button class="key" data-zoom="2" aria-pressed="false">2x</button>
+    </div>
+    <div class="grp"><span>HUD</span>
+      <button class="key" data-hud="map" aria-pressed="true">Minimap</button>
+      <button class="key" data-hud="strip" aria-pressed="false">Room strip</button>
+      <button class="key" data-hud="both" aria-pressed="false">Both</button>
+    </div>
+    <div class="grp"><span>Party</span>
+      <button class="key" data-party="split" aria-pressed="true">Split up</button>
+      <button class="key" data-party="together" aria-pressed="false">Stay together</button>
+    </div>
+    <div class="grp">
+      <button class="key" id="pause" aria-pressed="false">Pause</button>
+      <button class="key" id="restart">Restart wave</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 &middot; Your screen (P1, cyan)</h2>
+    <div class="view"><canvas id="screen" width="1600" height="900" aria-label="The player's screen: the camera follows P1"></canvas><div class="crt"></div></div>
+    <p class="cap">The camera follows you and stays inside the part of the world you're in, so at 1x in the hub it shows the whole hub exactly like today. Step through a door and it slides to the room. Red arrows: enemies just off-screen. Amber arrows: a door about to spill. Violet: your teammate.</p>
+  </section>
+
+  <section class="below">
+    <div>
+      <h2>3 &middot; The whole world from above</h2>
+      <div class="over"><canvas id="over" aria-label="The whole world from above"></canvas></div>
+      <p class="cap">Solid box: your screen at the zoom you picked. Dashed box: what 1x would show.</p>
+    </div>
+    <div class="stats">
+      <h2>Live numbers</h2>
+      <div class="stat"><span>Wave</span><span id="sWave">1</span></div>
+      <div class="stat"><span>Threats in your view</span><span id="sView">0</span></div>
+      <div class="stat"><span>Enemy shots in your view</span><span id="sShots">0</span></div>
+      <div class="stat"><span>Enemies in the hub</span><span id="sHub">0</span></div>
+      <div class="stat"><span>Enemies in rooms</span><span id="sRooms">0</span></div>
+      <div class="stat"><span>Rooms cleared</span><span id="sClear">0</span></div>
+      <div class="stat"><span>Next spill</span><span id="sSpill">&ndash;</span></div>
+      <p class="cap" style="margin:4px 0 0">Target from the doc: at most 8&ndash;10 threats in view at once on a regular wave. The run log now records the same numbers (phase 0).</p>
+      <div class="legend">
+        <div><i style="background:var(--p1)"></i>P1 (you)</div>
+        <div><i style="background:var(--p2)"></i>P2</div>
+        <div><i style="background:#ff5a6e"></i>Room enemy</div>
+        <div><i style="background:#ff8a3d"></i>Spilled enemy</div>
+        <div><i style="background:#b8e65c"></i>Nest</div>
+        <div><i style="background:var(--red)"></i>Door: uncleared</div>
+        <div><i style="background:var(--amber)"></i>Door: spill soon</div>
+        <div><i style="background:var(--teal)"></i>Door: cleared</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <div class="box">
+      <h2>What to look at</h2>
+      <ul>
+        <li><b>The map.</b> Wings: two big rooms, one door each. Cross: four rooms, the hub becomes the crossroads. Annexes: four smaller rooms, two doors on each side.</li>
+        <li><b>Zoom 2x.</b> In a room, enemies are in front of you instead of just off-screen.</li>
+        <li><b>Split up vs stay together.</b> Split clears faster, but the hub fills with spills while you're both away.</li>
+        <li><b>The HUD.</b> Minimap (corner), a room strip (top middle, with spill timers), or both.</li>
+        <li><b>The doors.</b> Red while uncleared, flashing amber 2 s before a spill, teal once cleared.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h2>Open questions</h2>
+      <ol>
+        <li>Which map: Wings, Cross, Annexes, or a mix picked per boss cycle like layouts?</li>
+        <li>HUD: minimap, room strip, or both?</li>
+        <li>Should a room's door lock behind you while its nest is alive? <em>(The sim keeps doors open.)</em></li>
+        <li>Spill squads: the room's own mix, or always fast melee so they reach the hub as a real threat?</li>
+        <li>Do the hub's layout walls stay, or do rooms replace layouts on regular waves?</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const HUB = { id: 'H', name: 'Hub', x: 0, y: 0, w: 1600, h: 900, hub: true };
+const DOOR = 160, WALL = 24;
+// Rooms: rect, door point on the hub's edge, n = the direction from the hub into the room. Cover is drawn only.
+const MAPS = {
+  wings: { name: 'Wings', blurb: 'Two big rooms, left and right. One door each.', rooms: [
+    { id: 'W', name: 'West', x: -900, y: 0, w: 900, h: 900, door: [0, 450], n: [-1, 0], cover: [['p', -450, 250, 50], ['p', -450, 650, 50], ['b', -700, 450, 30, 260]] },
+    { id: 'E', name: 'East', x: 1600, y: 0, w: 900, h: 900, door: [1600, 450], n: [1, 0], cover: [['p', 2050, 250, 50], ['p', 2050, 650, 50], ['b', 2300, 450, 30, 260]] } ] },
+  cross: { name: 'Cross', blurb: 'Four rooms. The hub is the crossroads.', rooms: [
+    { id: 'W', name: 'West', x: -800, y: 50, w: 800, h: 800, door: [0, 450], n: [-1, 0], cover: [['p', -400, 300, 45], ['p', -400, 600, 45]] },
+    { id: 'E', name: 'East', x: 1600, y: 50, w: 800, h: 800, door: [1600, 450], n: [1, 0], cover: [['p', 2000, 300, 45], ['p', 2000, 600, 45]] },
+    { id: 'N', name: 'North', x: 300, y: -560, w: 1000, h: 560, door: [800, 0], n: [0, -1], cover: [['b', 550, -300, 200, 30], ['b', 1050, -300, 200, 30]] },
+    { id: 'S', name: 'South', x: 300, y: 900, w: 1000, h: 560, door: [800, 900], n: [0, 1], cover: [['b', 550, 1200, 200, 30], ['b', 1050, 1200, 200, 30]] } ] },
+  annex: { name: 'Annexes', blurb: 'Four smaller rooms, two doors on each side.', rooms: [
+    { id: 'NW', name: 'NW', x: -720, y: 0, w: 720, h: 435, door: [0, 218], n: [-1, 0], cover: [['p', -380, 218, 45]] },
+    { id: 'SW', name: 'SW', x: -720, y: 465, w: 720, h: 435, door: [0, 682], n: [-1, 0], cover: [['p', -380, 682, 45]] },
+    { id: 'NE', name: 'NE', x: 1600, y: 0, w: 720, h: 435, door: [1600, 218], n: [1, 0], cover: [['p', 1980, 218, 45]] },
+    { id: 'SE', name: 'SE', x: 1600, y: 465, w: 720, h: 435, door: [1600, 682], n: [1, 0], cover: [['p', 1980, 682, 45]] } ] },
+};
+const HUB_COVER = [['p', 500, 300, 34], ['p', 1100, 300, 34], ['p', 500, 600, 34], ['p', 1100, 600, 34]];
+const C = { wall: '#66a3ff', grid: 'rgba(80,120,220,0.10)', enemy: '#ff5a6e', spill: '#ff8a3d', nest: '#b8e65c', shot: '#ff7aa8',
+  red: '#ff4d6a', amber: '#ffb347', teal: '#3ee6b4', p1: '#7cf7ff', p2: '#c79bff', text: '#cfe0ff', dim: '#4068b8' };
+const CAP = 5, SPILL = 14, WARN = 2, SPAWN = 2.6, NEST_HP = 12;
+
+let mapKey = 'wings', map = MAPS.wings, zoom = 1, hud = 'map', party = 'split', paused = false;
+let S;  // the sim state
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function bounds(m) {
+  let x0 = 0, y0 = 0, x1 = 1600, y1 = 900;
+  for (const r of m.rooms) { x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y); x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h); }
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+const inR = (r, x, y, pad = 0) => x >= r.x - pad && x <= r.x + r.w + pad && y >= r.y - pad && y <= r.y + r.h + pad;
+function regionAt(x, y) {
+  for (const r of map.rooms) if (inR(r, x, y)) return r;
+  if (inR(HUB, x, y)) return HUB;
+  for (const r of map.rooms) if (inR(r, x, y, 16)) return r;
+  return HUB;
+}
+const inner = r => [r.door[0] + r.n[0] * 70, r.door[1] + r.n[1] * 70];
+const outer = r => [r.door[0] - r.n[0] * 70, r.door[1] - r.n[1] * 70];
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+// The way from p to t: through the doors (rooms only join the hub).
+function route(p, t) {
+  const A = regionAt(p[0], p[1]), B = regionAt(t[0], t[1]), w = [];
+  if (A !== B) {
+    if (!A.hub) { if (dist(p, inner(A)) > 60 && !nearDoorLine(A, p)) w.push(inner(A)); w.push(outer(A)); }
+    if (!B.hub) { const o = outer(B); if (A.hub && dist(p, o) > 60 || !A.hub) w.push(o); w.push(inner(B)); }
+  }
+  w.push(t);
+  return w;
+}
+function nearDoorLine(r, p) {  // already lined up with the door, between inner and the doorway
+  const d = r.door, along = (p[0] - d[0]) * r.n[0] + (p[1] - d[1]) * r.n[1], side = Math.abs((p[0] - d[0]) * r.n[1] - (p[1] - d[1]) * r.n[0]);
+  return along < 80 && side < 40;
+}
+
+function newWave(wave) {
+  S = { t: 0, wave, players: [
+      { id: 1, c: C.p1, x: 760, y: 470, aim: 0, fireT: 0, goalT: 0, wps: [], flash: 0 },
+      { id: 2, c: C.p2, x: 840, y: 430, aim: 0, fireT: 0.15, goalT: 0, wps: [], flash: 0 } ],
+    enemies: [], shots: [], beams: [], pops: [], chests: [], banner: 0,
+    rooms: map.rooms.map((r, i) => ({ r, cleared: false, seen: false, spillT: SPILL * (0.75 + 0.25 * i) + 3, spawnT: 0,
+      nest: { x: r.x + r.w / 2 + r.n[0] * r.w * 0.18, y: r.y + r.h / 2 + r.n[1] * r.h * 0.18, hp: NEST_HP, alive: true } })),
+    cam: null };
+  for (const rs of S.rooms) for (let k = 0; k < 4; k++) spawnHome(rs);
+  for (let k = 0; k < 2; k++) S.enemies.push(mkEnemy(rnd(200, 1400), k ? 120 : 780, null, false));  // a small opening squad in the hub
+}
+function mkEnemy(x, y, home, spill) { return { x, y, home, spill, hp: 2, fireT: rnd(0.4, 1.8), ang: 0, wps: [], wpT: 0, orbit: rnd(0, 6.28), flash: 0 }; }
+function spawnHome(rs) {
+  const n = rs.nest, a = rnd(0, 6.28), d = rnd(60, 160);
+  const x = Math.max(rs.r.x + 40, Math.min(rs.r.x + rs.r.w - 40, n.x + Math.cos(a) * d));
+  const y = Math.max(rs.r.y + 40, Math.min(rs.r.y + rs.r.h - 40, n.y + Math.sin(a) * d));
+  S.enemies.push(mkEnemy(x, y, rs, false));
+}
+
+function step(dt) {
+  S.t += dt;
+  const P = S.players;
+  // Rooms: nests spawn, doors count down and spill, rooms clear.
+  for (const rs of S.rooms) {
+    if (rs.cleared) continue;
+    if (!rs.seen) rs.seen = P.some(p => regionAt(p.x, p.y) === rs.r || dist([p.x, p.y], rs.r.door) < 320);
+    const home = S.enemies.filter(e => e.home === rs && !e.spill && regionAt(e.x, e.y) === rs.r);
+    if (rs.nest.alive) {
+      rs.spawnT -= dt;
+      if (rs.spawnT <= 0 && home.length < CAP) { spawnHome(rs); rs.spawnT = SPAWN; }
+      rs.spillT -= dt;
+      if (rs.spillT <= 0) {
+        const [ix, iy] = inner(rs.r);
+        for (let k = 0; k < 3; k++) S.enemies.push(mkEnemy(ix + rnd(-30, 30) * Math.abs(rs.r.n[1] || 1), iy + rnd(-30, 30) * Math.abs(rs.r.n[0] || 1), rs, true));
+        rs.spillT = SPILL;
+        S.pops.push({ x: rs.r.door[0], y: rs.r.door[1], text: 'SPILL', c: C.amber, life: 1.4 });
+      }
+    } else if (home.length === 0) {
+      rs.cleared = true;
+      S.chests.push({ x: rs.nest.x, y: rs.nest.y, life: 7 });
+      S.pops.push({ x: rs.nest.x, y: rs.nest.y - 30, text: rs.r.name.toUpperCase() + ' CLEARED  +CHEST', c: C.teal, life: 2.4 });
+    }
+  }
+  // Players: fight what's near, else head for an uncleared room (split: different rooms; together: P2 sticks with P1).
+  for (const p of P) {
+    p.goalT -= dt;
+    const here = regionAt(p.x, p.y);
+    if (p.goalT <= 0) {
+      p.goalT = 0.4;
+      let goal = null;
+      const near = nearestEnemy(p, e => regionAt(e.x, e.y) === here, 650);
+      if (near) { const d = Math.max(1, Math.hypot(near.x - p.x, near.y - p.y)); goal = [near.x - (near.x - p.x) / d * 230, near.y - (near.y - p.y) / d * 230]; }
+      else {
+        const hubFoe = S.enemies.find(e => e.spill && regionAt(e.x, e.y) === HUB);
+        if (hubFoe && (here === HUB || p.id === 2)) goal = [hubFoe.x, hubFoe.y];
+        else if (party === 'together' && p.id === 2) goal = [P[0].x - 70, P[0].y + 50];
+        else {
+          const open = S.rooms.filter(rs => !rs.cleared);
+          let pick = null, best = 1e9;
+          const taken = p.id === 2 && party === 'split' ? P[0].room : null;
+          for (const rs of open) {
+            let d = dist([p.x, p.y], [rs.nest.x, rs.nest.y]);
+            if (rs === taken && open.length > 1) d += 5000;
+            if (d < best) { best = d; pick = rs; }
+          }
+          p.room = pick;
+          goal = pick ? (pick.nest.alive ? [pick.nest.x - pick.r.n[0] * 200, pick.nest.y - pick.r.n[1] * 200] : [pick.nest.x, pick.nest.y]) : [800, 450];
+        }
+      }
+      p.wps = route([p.x, p.y], goal);
+    }
+    moveAlong(p, 270, dt);
+    // Shoot the nearest enemy or nest in the same part of the world.
+    p.fireT -= dt;
+    let tgt = nearestEnemy(p, e => regionAt(e.x, e.y) === here, 470), tx, ty;
+    if (!tgt) for (const rs of S.rooms) if (rs.nest.alive && rs.r === here && Math.hypot(rs.nest.x - p.x, rs.nest.y - p.y) < 520) { tgt = rs.nest; }
+    if (tgt) { tx = tgt.x; ty = tgt.y; p.aim = Math.atan2(ty - p.y, tx - p.x); }
+    if (tgt && p.fireT <= 0) {
+      p.fireT = 0.3;
+      tgt.hp -= 1; tgt.flash = 0.12;
+      S.beams.push({ x1: p.x, y1: p.y, x2: tx, y2: ty, c: p.c, life: 0.12 });
+      if (tgt.hp <= 0) {
+        if (tgt.alive !== undefined) { tgt.alive = false; S.pops.push({ x: tgt.x, y: tgt.y, text: 'NEST DOWN', c: C.nest, life: 1.6 }); }
+        else S.enemies.splice(S.enemies.indexOf(tgt), 1);
+      }
+    }
+    p.flash = Math.max(0, p.flash - dt);
+  }
+  // Enemies: room enemies guard their nest until a player comes in; spilled ones hunt.
+  for (const e of S.enemies) {
+    const here = regionAt(e.x, e.y);
+    const tp = nearestPlayer(e);
+    const seesP = tp && regionAt(tp.x, tp.y) === here && Math.hypot(tp.x - e.x, tp.y - e.y) < 560;
+    e.wpT -= dt;
+    if (e.spill || !e.home) {
+      if (tp && e.wpT <= 0) { e.wps = route([e.x, e.y], [tp.x, tp.y]); e.wpT = 0.5; }
+      if (seesP && Math.hypot(tp.x - e.x, tp.y - e.y) < 190) e.wps = [];
+      moveAlong(e, 140, dt);
+    } else if (seesP) {
+      const d = Math.hypot(tp.x - e.x, tp.y - e.y);
+      e.wps = d > 200 ? [[tp.x, tp.y]] : [];
+      moveAlong(e, 115, dt);
+    } else {
+      e.orbit += dt * 0.6;
+      e.wps = [[e.home.nest.x + Math.cos(e.orbit) * 120, e.home.nest.y + Math.sin(e.orbit) * 90]];
+      moveAlong(e, 70, dt);
+    }
+    if (tp) e.ang = Math.atan2(tp.y - e.y, tp.x - e.x);
+    e.fireT -= dt;
+    if (seesP && e.fireT <= 0) {
+      e.fireT = rnd(1.4, 2.2);
+      S.shots.push({ x: e.x, y: e.y, vx: Math.cos(e.ang) * 260, vy: Math.sin(e.ang) * 260, life: 2.2 });
+    }
+    e.flash = Math.max(0, e.flash - dt);
+  }
+  // Keep enemies apart a little.
+  for (let i = 0; i < S.enemies.length; i++) for (let j = i + 1; j < S.enemies.length; j++) {
+    const a = S.enemies[i], b = S.enemies[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+    if (d > 0 && d < 30) { const k = (30 - d) / 2 / d; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; }
+  }
+  for (const s of S.shots) {
+    s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    for (const p of P) if (Math.hypot(p.x - s.x, p.y - s.y) < 16) { s.life = 0; p.flash = 0.15; }
+    if (!inR(regionAt(s.x, s.y), s.x, s.y)) s.life = 0;
+  }
+  S.shots = S.shots.filter(s => s.life > 0);
+  for (const b of S.beams) b.life -= dt; S.beams = S.beams.filter(b => b.life > 0);
+  for (const q of S.pops) { q.life -= dt; q.y -= dt * 20; } S.pops = S.pops.filter(q => q.life > 0);
+  for (const c of S.chests) c.life -= dt; S.chests = S.chests.filter(c => c.life > 0);
+  if (!S.banner && S.rooms.every(rs => rs.cleared) && S.enemies.length === 0) S.banner = 3;
+  if (S.banner) { S.banner -= dt; if (S.banner <= 0) newWave(S.wave + 1); }
+}
+function nearestEnemy(p, ok, max) { let best = null, bd = max; for (const e of S.enemies) { if (!ok(e)) continue; const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < bd) { bd = d; best = e; } } return best; }
+function nearestPlayer(e) { let best = null, bd = 1e9; for (const p of S.players) { const d = Math.hypot(p.x - e.x, p.y - e.y); if (d < bd) { bd = d; best = p; } } return best; }
+function moveAlong(o, speed, dt) {
+  while (o.wps.length) {
+    const w = o.wps[0], dx = w[0] - o.x, dy = w[1] - o.y, d = Math.hypot(dx, dy);
+    if (d < 8) { o.wps.shift(); continue; }
+    const s = Math.min(d, speed * dt);
+    o.x += dx / d * s; o.y += dy / d * s;
+    break;
+  }
+}
+
+// --- Drawing ---------------------------------------------------------------------------------------------------
+function doorState(rs) {
+  if (rs.cleared) return C.teal;
+  if (rs.nest.alive && rs.spillT < WARN) return Math.floor(S.t * 6) % 2 ? C.amber : '#7a4a10';
+  return C.red;
+}
+function wallSegs(r, doors) {  // the four edges of a rect, with the doorways cut out
+  const out = [], E = [[r.x, r.y, r.x + r.w, r.y], [r.x, r.y + r.h, r.x + r.w, r.y + r.h], [r.x, r.y, r.x, r.y + r.h], [r.x + r.w, r.y, r.x + r.w, r.y + r.h]];
+  for (const [x1, y1, x2, y2] of E) {
+    const horiz = y1 === y2, gaps = [];
+    for (const d of doors) if (horiz ? Math.abs(d[1] - y1) < 1 && d[0] > x1 && d[0] < x2 : Math.abs(d[0] - x1) < 1 && d[1] > y1 && d[1] < y2) gaps.push(horiz ? d[0] : d[1]);
+    gaps.sort((a, b) => a - b);
+    let a = horiz ? x1 : y1; const end = horiz ? x2 : y2;
+    for (const g of gaps) { out.push(horiz ? [a, y1, g - DOOR / 2, y1] : [x1, a, x1, g - DOOR / 2]); a = g + DOOR / 2; }
+    out.push(horiz ? [a, y1, end, y1] : [x1, a, x1, end]);
+  }
+  return out;
+}
+function poly(ctx, x, y, r, n, a) { ctx.beginPath(); for (let i = 0; i < n; i++) { const t = a + i * Math.PI * 2 / n; ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(t) * r, y + Math.sin(t) * r); } ctx.closePath(); }
+
+// Draws the world with ctx already transformed to world units; k = screen px per world unit (for line widths).
+function drawWorld(ctx, k, opt) {
+  const regions = [HUB, ...map.rooms];
+  for (const r of regions) {
+    const rs = S && S.rooms.find(q => q.r === r);
+    ctx.fillStyle = r.hub ? '#040b1c' : rs && rs.cleared ? 'rgba(62,230,180,0.06)' : 'rgba(255,77,106,0.045)';
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    if (opt.grid) {
+      ctx.strokeStyle = C.grid; ctx.lineWidth = 1 / k; ctx.beginPath();
+      for (let x = Math.ceil(r.x / 100) * 100; x < r.x + r.w; x += 100) { ctx.moveTo(x, r.y); ctx.lineTo(x, r.y + r.h); }
+      for (let y = Math.ceil(r.y / 100) * 100; y < r.y + r.h; y += 100) { ctx.moveTo(r.x, y); ctx.lineTo(r.x + r.w, y); }
+      ctx.stroke();
+    }
+  }
+  // Cover.
+  ctx.strokeStyle = C.dim; ctx.lineWidth = Math.max(2 / k, 3); ctx.fillStyle = 'rgba(64,104,184,0.18)';
+  for (const c of [...HUB_COVER, ...map.rooms.flatMap(r => r.cover)]) {
+    ctx.beginPath();
+    if (c[0] === 'p') ctx.arc(c[1], c[2], c[3], 0, Math.PI * 2); else ctx.rect(c[1] - c[3] / 2, c[2] - c[4] / 2, c[3], c[4]);
+    ctx.fill(); ctx.stroke();
+  }
+  // Walls, with the doorways cut out.
+  const doors = map.rooms.map(r => r.door);
+  ctx.strokeStyle = C.wall; ctx.lineWidth = Math.max(WALL * 0.5, 2.5 / k); ctx.lineCap = 'square';
+  if (opt.glow) { ctx.shadowColor = C.wall; ctx.shadowBlur = 12; }
+  ctx.beginPath();
+  for (const r of regions) for (const s of wallSegs(r, doors)) { ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); }
+  ctx.stroke(); ctx.shadowBlur = 0;
+  // Doors: lights at the jambs, a faint line across.
+  if (S) for (const rs of S.rooms) {
+    const r = rs.r, col = doorState(rs), along = [Math.abs(r.n[1]), Math.abs(r.n[0])];
+    const a = [r.door[0] - along[0] * DOOR / 2, r.door[1] - along[1] * DOOR / 2], b = [r.door[0] + along[0] * DOOR / 2, r.door[1] + along[1] * DOOR / 2];
+    ctx.strokeStyle = col; ctx.globalAlpha = 0.5; ctx.lineWidth = Math.max(3, 1.5 / k); ctx.setLineDash([14, 10]);
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.fillStyle = col; if (opt.glow) { ctx.shadowColor = col; ctx.shadowBlur = 16; }
+    const jw = Math.max(18, 4 / k);
+    for (const j of [a, b]) ctx.fillRect(j[0] - jw / 2, j[1] - jw / 2, jw, jw);
+    ctx.shadowBlur = 0;
+  }
+  if (!S) return;
+  // Nests.
+  for (const rs of S.rooms) {
+    const n = rs.nest; if (!n.alive) continue;
+    ctx.strokeStyle = n.flash > 0 ? '#fff' : C.nest; ctx.lineWidth = Math.max(4, 2 / k); ctx.fillStyle = 'rgba(184,230,92,0.15)';
+    poly(ctx, n.x, n.y, 30, 6, S.t * 0.5); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(n.x, n.y, 42, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * n.hp / NEST_HP); ctx.stroke();
+    n.flash = Math.max(0, (n.flash || 0) - 0.016);
+  }
+  for (const c of S.chests) {
+    ctx.globalAlpha = Math.min(1, c.life); ctx.strokeStyle = '#ffd166'; ctx.fillStyle = 'rgba(255,209,102,0.25)'; ctx.lineWidth = Math.max(3, 1.5 / k);
+    ctx.fillRect(c.x - 18, c.y - 13, 36, 26); ctx.strokeRect(c.x - 18, c.y - 13, 36, 26); ctx.globalAlpha = 1;
+  }
+  // Shots, beams, enemies, players.
+  ctx.fillStyle = C.shot;
+  for (const s of S.shots) { ctx.beginPath(); ctx.arc(s.x, s.y, Math.max(6, 2 / k), 0, Math.PI * 2); ctx.fill(); }
+  for (const b of S.beams) { ctx.strokeStyle = b.c; ctx.globalAlpha = b.life / 0.12; ctx.lineWidth = Math.max(3, 1 / k); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke(); } ctx.globalAlpha = 1;
+  for (const e of S.enemies) {
+    ctx.strokeStyle = e.flash > 0 ? '#fff' : e.spill ? C.spill : C.enemy; ctx.lineWidth = Math.max(3.5, 1.6 / k);
+    ctx.fillStyle = e.spill ? 'rgba(255,138,61,0.18)' : 'rgba(255,90,110,0.15)';
+    poly(ctx, e.x, e.y, 17, 3, e.ang); ctx.fill(); ctx.stroke();
+  }
+  for (const p of S.players) {
+    ctx.strokeStyle = p.flash > 0 ? '#fff' : p.c; ctx.fillStyle = p.c + '33'; ctx.lineWidth = Math.max(4, 2 / k);
+    if (opt.glow) { ctx.shadowColor = p.c; ctx.shadowBlur = 14; }
+    ctx.beginPath(); ctx.arc(p.x, p.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.x + Math.cos(p.aim) * 18, p.y + Math.sin(p.aim) * 18); ctx.lineTo(p.x + Math.cos(p.aim) * 34, p.y + Math.sin(p.aim) * 34); ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  if (opt.pops) {
+    ctx.textAlign = 'center'; ctx.font = '34px VT323, monospace';
+    for (const q of S.pops) { ctx.globalAlpha = Math.min(1, q.life); ctx.fillStyle = q.c; ctx.fillText(q.text, q.x, q.y); }
+    ctx.globalAlpha = 1;
+  }
+}
+
+// --- The player's screen -----------------------------------------------------------------------------------------
+const scr = document.getElementById('screen'), sx = scr.getContext('2d');
+function camTarget() {
+  const p = S.players[0], r = regionAt(p.x, p.y), vw = 1600 / zoom, vh = 900 / zoom;
+  const cx = r.w >= vw ? Math.max(r.x + vw / 2, Math.min(r.x + r.w - vw / 2, p.x)) : r.x + r.w / 2;
+  const cy = r.h >= vh ? Math.max(r.y + vh / 2, Math.min(r.y + r.h - vh / 2, p.y)) : r.y + r.h / 2;
+  return [cx, cy];
+}
+function view() { const vw = 1600 / zoom, vh = 900 / zoom; return { x: S.cam[0] - vw / 2, y: S.cam[1] - vh / 2, w: vw, h: vh }; }
+function drawScreen() {
+  const v = view();
+  sx.setTransform(1, 0, 0, 1, 0, 0); sx.fillStyle = '#000'; sx.fillRect(0, 0, 1600, 900);
+  sx.setTransform(zoom, 0, 0, zoom, -v.x * zoom, -v.y * zoom);
+  drawWorld(sx, zoom, { grid: true, glow: true, pops: true });
+  sx.setTransform(1, 0, 0, 1, 0, 0);
+  // Off-screen arrows: enemies close by, doors about to spill, the teammate.
+  const P1 = S.players[0], arrows = [];
+  const onScreen = (x, y) => inR(v, x, y, -10);
+  for (const e of S.enemies) if (!onScreen(e.x, e.y) && Math.hypot(e.x - P1.x, e.y - P1.y) < 900) arrows.push([e.x, e.y, e.spill ? C.spill : C.red, '']);
+  for (const rs of S.rooms) if (!rs.cleared && rs.nest.alive && rs.spillT < WARN + 1 && !onScreen(rs.r.door[0], rs.r.door[1])) arrows.push([rs.r.door[0], rs.r.door[1], C.amber, rs.spillT.toFixed(0)]);
+  const P2 = S.players[1]; if (!onScreen(P2.x, P2.y)) arrows.push([P2.x, P2.y, C.p2, 'P2']);
+  const cxs = 800, cys = 450;
+  for (const [x, y, col, label] of arrows) {
+    const ax = (x - v.x) * zoom - cxs, ay = (y - v.y) * zoom - cys, s = Math.min(740 / Math.abs(ax || 1e-3), 350 / Math.abs(ay || 1e-3));  // clear of the HUD at the top
+    const px = cxs + ax * s, py = cys + ay * s, a = Math.atan2(ay, ax);
+    sx.save(); sx.translate(px, py); sx.rotate(a); sx.fillStyle = col; sx.shadowColor = col; sx.shadowBlur = 10;
+    sx.beginPath(); sx.moveTo(14, 0); sx.lineTo(-10, -11); sx.lineTo(-5, 0); sx.lineTo(-10, 11); sx.closePath(); sx.fill(); sx.restore();
+    if (label) { sx.fillStyle = col; sx.font = '28px VT323, monospace'; sx.textAlign = 'center'; sx.fillText(label, px - Math.cos(a) * 30, py - Math.sin(a) * 30 + 8); }
+  }
+  // HUD: wave, threats in view, and the minimap and/or room strip.
+  sx.font = '36px VT323, monospace'; sx.textAlign = 'left'; sx.fillStyle = C.text;
+  const cleared = S.rooms.filter(r => r.cleared).length;
+  sx.fillText(`WAVE ${S.wave}   ROOMS ${cleared}/${S.rooms.length}`, 28, 50);
+  const iv = inView();
+  sx.font = '30px VT323, monospace'; sx.fillStyle = iv.threats > 10 ? C.red : iv.threats > 7 ? C.amber : C.teal;
+  sx.fillText(`IN VIEW ${iv.threats}   SHOTS ${iv.shots}`, 28, 872);
+  if (hud !== 'strip') drawMinimap();
+  if (hud !== 'map') drawStrip();
+  if (S.banner) {
+    sx.fillStyle = 'rgba(0,0,0,0.45)'; sx.fillRect(0, 380, 1600, 120);
+    sx.font = '84px VT323, monospace'; sx.textAlign = 'center'; sx.fillStyle = C.teal; sx.shadowColor = C.teal; sx.shadowBlur = 18;
+    sx.fillText('WAVE CLEARED', 800, 468); sx.shadowBlur = 0;
+  }
+}
+function drawMinimap() {
+  const b = bounds(map), W = 250, H = Math.min(190, W * b.h / b.w), k = Math.min(W / b.w, H / b.h);
+  const ox = 1600 - 24 - b.w * k, oy = 24;
+  sx.fillStyle = 'rgba(3,8,20,0.82)'; sx.strokeStyle = 'rgba(102,163,255,0.5)'; sx.lineWidth = 2;
+  sx.fillRect(ox - 8, oy - 8, b.w * k + 16, b.h * k + 16); sx.strokeRect(ox - 8, oy - 8, b.w * k + 16, b.h * k + 16);
+  const X = x => ox + (x - b.x) * k, Y = y => oy + (y - b.y) * k;
+  for (const r of [HUB, ...map.rooms]) {
+    const rs = S.rooms.find(q => q.r === r);
+    sx.fillStyle = r.hub ? 'rgba(102,163,255,0.12)' : rs.cleared ? 'rgba(62,230,180,0.35)' : rs.seen ? 'rgba(255,77,106,0.22)' : 'rgba(102,163,255,0.05)';
+    sx.strokeStyle = r.hub ? 'rgba(102,163,255,0.7)' : rs.cleared ? C.teal : rs.seen ? C.red : 'rgba(102,163,255,0.3)';
+    sx.fillRect(X(r.x), Y(r.y), r.w * k, r.h * k); sx.strokeRect(X(r.x), Y(r.y), r.w * k, r.h * k);
+  }
+  for (const rs of S.rooms) {  // doors, with the spill timer as a ring
+    const x = X(rs.r.door[0]), y = Y(rs.r.door[1]);
+    sx.fillStyle = doorState(rs); sx.beginPath(); sx.arc(x, y, 5, 0, Math.PI * 2); sx.fill();
+    if (!rs.cleared && rs.nest.alive) { sx.strokeStyle = doorState(rs); sx.lineWidth = 2; sx.beginPath(); sx.arc(x, y, 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - rs.spillT / SPILL)); sx.stroke(); }
+  }
+  for (const e of S.enemies) if (e.spill || regionAt(e.x, e.y) === HUB) { sx.fillStyle = C.spill; sx.fillRect(X(e.x) - 2, Y(e.y) - 2, 4, 4); }
+  for (const p of S.players) { sx.fillStyle = p.c; sx.beginPath(); sx.arc(X(p.x), Y(p.y), 5, 0, Math.PI * 2); sx.fill(); }
+  const v = view(); sx.strokeStyle = 'rgba(255,255,255,0.55)'; sx.lineWidth = 1.5; sx.strokeRect(X(v.x), Y(v.y), v.w * k, v.h * k);
+}
+function drawStrip() {
+  const n = S.rooms.length, cw = 150, gap = 10, total = n * cw + (n - 1) * gap, x0 = 800 - total / 2, y0 = hud === 'both' ? 24 : 24;
+  S.rooms.forEach((rs, i) => {
+    const x = x0 + i * (cw + gap), col = doorState(rs);
+    sx.fillStyle = 'rgba(3,8,20,0.82)'; sx.fillRect(x, y0, cw, 50);
+    sx.strokeStyle = col; sx.lineWidth = 2; sx.strokeRect(x, y0, cw, 50);
+    sx.font = '26px VT323, monospace'; sx.textAlign = 'left'; sx.fillStyle = col;
+    sx.fillText(rs.cleared ? rs.r.name.toUpperCase() + ' ✓' : rs.r.name.toUpperCase(), x + 10, y0 + 24);
+    if (!rs.cleared) {
+      sx.textAlign = 'right'; sx.fillStyle = C.text;
+      sx.fillText(rs.nest.alive ? Math.ceil(rs.spillT) + 's' : 'MOP UP', x + cw - 10, y0 + 24);
+      sx.fillStyle = 'rgba(255,255,255,0.12)'; sx.fillRect(x + 10, y0 + 34, cw - 20, 6);
+      sx.fillStyle = col; sx.fillRect(x + 10, y0 + 34, (cw - 20) * (rs.nest.alive ? 1 - rs.spillT / SPILL : 1), 6);
+    }
+  });
+}
+function inView() {
+  const v = view(); let threats = 0, shots = 0;
+  for (const e of S.enemies) if (inR(v, e.x, e.y)) threats++;
+  for (const rs of S.rooms) if (rs.nest.alive && inR(v, rs.nest.x, rs.nest.y)) threats++;
+  for (const s of S.shots) if (inR(v, s.x, s.y)) shots++;
+  return { threats, shots };
+}
+
+// --- The world from above ---------------------------------------------------------------------------------------
+const ov = document.getElementById('over'), ox = ov.getContext('2d');
+function sizeOver() { const b = bounds(map), W = 1400; ov.width = W; ov.height = Math.round(W * (b.h + 80) / (b.w + 80)); }
+function drawOver() {
+  const b = bounds(map), k = ov.width / (b.w + 80);
+  ox.setTransform(1, 0, 0, 1, 0, 0); ox.fillStyle = '#000'; ox.fillRect(0, 0, ov.width, ov.height);
+  ox.setTransform(k, 0, 0, k, (-b.x + 40) * k, (-b.y + 40) * k);
+  drawWorld(ox, k, { grid: false, glow: false, pops: false });
+  const v = view();
+  ox.strokeStyle = 'rgba(255,255,255,0.9)'; ox.lineWidth = 3 / k; ox.strokeRect(v.x, v.y, v.w, v.h);
+  if (zoom !== 1) {
+    const p = S.players[0], r = regionAt(p.x, p.y);
+    const cx = r.w >= 1600 ? Math.max(r.x + 800, Math.min(r.x + r.w - 800, p.x)) : r.x + r.w / 2, cy = r.h >= 900 ? Math.max(r.y + 450, Math.min(r.y + r.h - 450, p.y)) : r.y + r.h / 2;
+    ox.setLineDash([12 / k, 10 / k]); ox.strokeStyle = 'rgba(255,255,255,0.45)'; ox.strokeRect(cx - 800, cy - 450, 1600, 900); ox.setLineDash([]);
+  }
+}
+
+// --- Map cards -------------------------------------------------------------------------------------------------
+const cardsEl = document.getElementById('cards');
+for (const key of Object.keys(MAPS)) {
+  const m = MAPS[key], btn = document.createElement('button');
+  btn.className = 'card'; btn.setAttribute('aria-pressed', key === mapKey); btn.dataset.map = key;
+  const cv = document.createElement('canvas'); cv.width = 600; cv.height = 300;
+  btn.append(cv); const b = document.createElement('b'); b.textContent = m.name; const sm = document.createElement('small'); sm.textContent = m.blurb; btn.append(b, sm);
+  cardsEl.append(btn);
+  const saveMap = map, saveS = S; map = m; S = null;
+  const c = cv.getContext('2d'), bb = bounds(m), k = Math.min(600 / (bb.w + 160), 300 / (bb.h + 160));
+  c.fillStyle = '#000'; c.fillRect(0, 0, 600, 300);
+  c.setTransform(k, 0, 0, k, 300 - (bb.x + bb.w / 2) * k, 150 - (bb.y + bb.h / 2) * k);
+  drawWorld(c, k, { grid: false, glow: false });
+  c.fillStyle = C.nest; for (const r of m.rooms) { poly(c, r.x + r.w / 2 + r.n[0] * r.w * 0.18, r.y + r.h / 2 + r.n[1] * r.h * 0.18, 40, 6, 0); c.fill(); }
+  c.strokeStyle = C.red; c.lineWidth = 6 / k; for (const r of m.rooms) { const al = [Math.abs(r.n[1]), Math.abs(r.n[0])]; c.beginPath(); c.moveTo(r.door[0] - al[0] * 80, r.door[1] - al[1] * 80); c.lineTo(r.door[0] + al[0] * 80, r.door[1] + al[1] * 80); c.stroke(); }
+  map = saveMap; S = saveS;
+  btn.addEventListener('click', () => { mapKey = key; map = m; document.querySelectorAll('.card').forEach(x => x.setAttribute('aria-pressed', x.dataset.map === key)); start(); });
+}
+function group(attr, set) {
+  document.querySelectorAll(`[data-${attr}]`).forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll(`[data-${attr}]`).forEach(x => x.setAttribute('aria-pressed', x === b));
+    set(b.dataset[attr]);
+  }));
+}
+group('zoom', v => zoom = +v);
+group('hud', v => hud = v);
+group('party', v => party = v);
+const pauseBtn = document.getElementById('pause');
+pauseBtn.addEventListener('click', () => { paused = !paused; pauseBtn.setAttribute('aria-pressed', paused); pauseBtn.textContent = paused ? 'Play' : 'Pause'; });
+document.getElementById('restart').addEventListener('click', () => start());
+
+// --- Loop ------------------------------------------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+function stats() {
+  const iv = inView();
+  $('sWave').textContent = S.wave;
+  const vEl = $('sView'); vEl.textContent = iv.threats; vEl.className = iv.threats > 10 ? 'bad' : iv.threats > 7 ? 'warn' : 'good';
+  $('sShots').textContent = iv.shots;
+  $('sHub').textContent = S.enemies.filter(e => regionAt(e.x, e.y) === HUB).length;
+  $('sRooms').textContent = S.enemies.filter(e => regionAt(e.x, e.y) !== HUB).length + S.rooms.filter(r => r.nest.alive).length + ' (incl. nests)';
+  $('sClear').textContent = S.rooms.filter(r => r.cleared).length + ' / ' + S.rooms.length;
+  const open = S.rooms.filter(r => !r.cleared && r.nest.alive);
+  $('sSpill').textContent = open.length ? Math.min(...open.map(r => r.spillT)).toFixed(1) + ' s (' + open.reduce((a, r) => r.spillT < a.spillT ? r : a).r.name + ')' : 'none';
+}
+function start() {
+  newWave(1); sizeOver(); S.cam = camTarget();
+  if (reduce) { for (let i = 0; i < 480; i++) step(1 / 60); S.cam = camTarget(); paused = true; pauseBtn.setAttribute('aria-pressed', true); pauseBtn.textContent = 'Play'; }
+  render();
+}
+function render() { drawScreen(); drawOver(); stats(); }
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!paused) {
+    step(dt);
+    const t = camTarget(), e = Math.min(1, dt * 6);
+    S.cam = [S.cam[0] + (t[0] - S.cam[0]) * e, S.cam[1] + (t[1] - S.cam[1]) * e];
+  }
+  render();
+  requestAnimationFrame(frame);
+}
+start();
+document.fonts && document.fonts.ready.then(render);
+requestAnimationFrame(frame);
+})();
+</script>

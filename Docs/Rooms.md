@@ -1,6 +1,8 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: design only, nothing built.** Next step: a mockup of the map and the camera (`Docs/Mockups/rooms.html`).
+**Status: design and mockup; phase 0 built (run-log fields), the rooms themselves not.**
+Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,
+Cross, Annexes), a following camera at 1x / 1.5x / 2x, minimap or room strip, split up or stay together, a live sim.
 
 ## Why
 
@@ -118,8 +120,10 @@ Each client already draws its own screen, so every player's camera follows thems
 
 ## Phases
 
-0. **Measure** (small, worth doing first): add *nearest enemy distance* and *enemies within the view at 2x zoom* to the
-   run log samples, and a SimTest baseline for threats near you and damage taken per wave. This is the before picture.
+0. **Measure** (**built**, run-log format 3): every 5 s sample now has, per player not downed, `near`: `nearest` (px to the
+   nearest enemy, -1 for none), `within300`, `inView2x` (enemies inside the 800×450 view the 2x zoom shows, held inside
+   the arena like the camera) and `shotsInView2x`. `Tools/SessionReport/report.py` prints them as "Threats near you" per
+   wave. Record a few runs on the current game for the before picture.
 1. **World and camera**: a world bigger than the hub on regular waves, a following camera, wrapping off, empty walled
    rooms with doors, edge arrows. Check the zoom feels right in Unity.
 2. **Nests, room spawning, spill, clear reward.** The hub goes quiet except for spills. Minimap.

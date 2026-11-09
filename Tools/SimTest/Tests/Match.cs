@@ -568,11 +568,18 @@ static partial class Program
         Check(ok, "a recorded session has waves, the boss fight, damage sources, picks and samples, as valid JSON");
         bool extra = true;
         var missing = new List<string>();
-        foreach (var key in new[] { "\"format\": 2", "\"mode\": \"run\"", "\"paths\"", "\"afterWave\": 5", "\"chosen\": \"", "\"healingReceivedFrom\"", "\"regeneration\"",
+        foreach (var key in new[] { "\"format\": 3", "\"mode\": \"run\"", "\"paths\"", "\"afterWave\": 5", "\"chosen\": \"", "\"healingReceivedFrom\"", "\"regeneration\"",
                                     "\"devTools\"", "bot plays for the host: on", "\"abilityMastery\"", "\"levelEnd\"" })
             if (!text.Contains(key)) { extra = false; missing.Add(key); }
         if (missing.Count > 0) Console.WriteLine("  missing: " + string.Join(" ", missing));
         Check(extra, "it also has the mode, the path choices, healing received by source, dev tool use and each player's final abilities");
+        // Docs/Rooms.md phase 0: every sample says how close the fight is to each player.
+        var near = System.Text.RegularExpressions.Regex.Matches(text, "\"nearest\": (-?[0-9.]+),\\s*\"within300\": (\\d+),\\s*\"inView2x\": (\\d+),\\s*\"shotsInView2x\": (\\d+)");
+        int withEnemy = 0;
+        foreach (System.Text.RegularExpressions.Match nm in near)
+            if (float.Parse(nm.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) > 0f) withEnemy++;
+        Console.WriteLine("  near samples: {0} ({1} with an enemy up)", near.Count, withEnemy);
+        Check(near.Count > 4 && withEnemy > 0, "samples record each player's nearest enemy and the enemies and shots in a 2x-zoom view");
         string copy = Path.Combine(Path.GetTempPath(), "arena-last-session.json");
         if (ok)
             File.Copy(path, copy, true);

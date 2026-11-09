@@ -12,7 +12,7 @@ namespace Arena
     /// the end. Tools/SessionReport/report.py summarizes one or many of them.
     public class SessionRecorder
     {
-        public const int FormatVersion = 2;  // 2: mode, endless, paths, dev tools, healing received, final loadouts
+        public const int FormatVersion = 3;  // 3: per-player "near" in the samples (Docs/Rooms.md); 2: mode, endless, paths, dev tools, healing received, final loadouts
         public readonly string Path;
         public bool Ended { get; private set; }
 
@@ -62,7 +62,18 @@ namespace Arena
         class DownRec { public int Player, Wave; public float Time; public string Source; }
         class PathRec { public int AfterWave; public string[] Offered; public string Chosen, Prize; }
         class DevRec { public float Time; public int Wave; public string What; }
-        class Sample { public float Time; public int Wave, Enemies, Bullets; public Dictionary<int, float> Hp = new Dictionary<int, float>(); }
+        class Sample
+        {
+            public float Time; public int Wave, Enemies, Bullets;
+            public Dictionary<int, float> Hp = new Dictionary<int, float>();
+            public readonly Dictionary<int, Near> Near = new Dictionary<int, Near>();  // per player, not downed (format 3)
+        }
+
+        /// How close the fight is to one player (Docs/Rooms.md, phase 0): the nearest enemy, enemies within 300 px, enemies
+        /// and enemy shots inside the view at the scroll wheel's full 2x zoom (800 x 450, held inside the arena like the camera).
+        class Near { public float Nearest = -1f; public int Within300, InView2x, ShotsInView2x; }
+
+        public const float NearRange = 300f, View2xHalfW = Game.Width / 4f, View2xHalfH = Game.Height / 4f;
 
         readonly List<PlayerInfo> players = new List<PlayerInfo>();
         readonly List<WaveRec> waves = new List<WaveRec>();
@@ -172,8 +183,33 @@ namespace Arena
             sampleT = 5f;
             var s = new Sample { Time = now, Wave = g.Wave, Enemies = g.Enemies.Count, Bullets = g.Bullets.Count };
             foreach (var p in g.Players.Values)
+            {
                 s.Hp[p.Id] = p.Downed ? 0f : p.Hp / Math.Max(1f, p.MaxHp);
+                if (!p.Downed)
+                    s.Near[p.Id] = MeasureNear(g, p.Pos);
+            }
             samples.Add(s);
+        }
+
+        /// The Near numbers for a player standing at pos. Distances are straight lines (no wrap), like the zoomed camera.
+        static Near MeasureNear(Game g, V2 pos)
+        {
+            var n = new Near();
+            float cx = Math.Max(View2xHalfW, Math.Min(Game.Width - View2xHalfW, pos.X));
+            float cy = Math.Max(View2xHalfH, Math.Min(Game.Height - View2xHalfH, pos.Y));
+            float best = float.MaxValue;
+            foreach (var e in g.Enemies.Values)
+            {
+                float d = (float)Math.Sqrt(e.Pos.DistanceSq(pos));
+                if (d < best) best = d;
+                if (d <= NearRange) n.Within300++;
+                if (Math.Abs(e.Pos.X - cx) <= View2xHalfW && Math.Abs(e.Pos.Y - cy) <= View2xHalfH) n.InView2x++;
+            }
+            if (best < float.MaxValue) n.Nearest = best;
+            foreach (var b in g.Bullets.Values)
+                if (Defs.IsEnemyShot(b.Kind) && Math.Abs(b.Pos.X - cx) <= View2xHalfW && Math.Abs(b.Pos.Y - cy) <= View2xHalfH)
+                    n.ShotsInView2x++;
+            return n;
         }
 
         public void WaveStart(Game g, int wave, string boss)
@@ -615,6 +651,15 @@ namespace Arena
                 j.Key("hp"); j.Open();
                 foreach (var kv in s.Hp)
                     j.Field(kv.Key.ToString(), kv.Value);
+                j.Close();
+                j.Key("near"); j.Open();
+                foreach (var kv in s.Near)
+                {
+                    j.Key(kv.Key.ToString()); j.Open();
+                    j.Field("nearest", kv.Value.Nearest); j.Field("within300", kv.Value.Within300);
+                    j.Field("inView2x", kv.Value.InView2x); j.Field("shotsInView2x", kv.Value.ShotsInView2x);
+                    j.Close();
+                }
                 j.Close();
                 j.Close();
             }

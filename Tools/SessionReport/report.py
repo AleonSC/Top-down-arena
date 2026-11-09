@@ -123,6 +123,26 @@ def main():
     table(["wave", "runs", "avg length (s)", "avg enemies", "dmg taken / player", "% of max HP", "downs", "low-HP s / player", "boss"],
           rows, "Difficulty by wave (watch for spikes)")
 
+    # --- Threats near you (format 3+: samples carry "near"; Docs/Rooms.md phase 0) ---------
+    near = defaultdict(list)
+    for r in runs:
+        for smp in r.get("samples", []):
+            for v in (smp.get("near") or {}).values():
+                near[smp["wave"]].append(v)
+    if near:
+        rows = []
+        for n in sorted(near):
+            vs = near[n]
+            dists = sorted(v["nearest"] for v in vs if v["nearest"] >= 0)
+            rows.append([
+                n, len(vs), mean(dists), dists[len(dists) // 10] if dists else "",
+                mean(v["within300"] for v in vs), max(v["within300"] for v in vs),
+                mean(v["inView2x"] for v in vs), max(v["inView2x"] for v in vs), mean(v["shotsInView2x"] for v in vs),
+            ])
+        table(["wave", "samples", "avg nearest (px)", "10% nearest", "avg within 300", "max within 300",
+               "avg in 2x view", "max in 2x view", "avg shots in 2x view"], rows,
+              "Threats near you (every 5 s, per player)")
+
     # --- Paths ------------------------------------------------------------------
     path_waves = defaultdict(list)
     for r in runs:
