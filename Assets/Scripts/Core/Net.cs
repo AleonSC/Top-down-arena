@@ -33,6 +33,9 @@ namespace Arena
         const float ConnectTimeout = 8f;
 
         public bool IsHost { get; private set; }
+
+        /// Every byte read and written so far (length prefixes included), for the lag chart's bandwidth (LagNet.cs).
+        public long BytesIn, BytesOut;
         public int MaxClients = 1;
 
         TcpListener listener;
@@ -146,6 +149,7 @@ namespace Arena
                         return;
                     }
                     c.Len += n;
+                    BytesIn += n;
                 }
             }
             catch (Exception)
@@ -192,6 +196,7 @@ namespace Arena
                 Buffer.BlockCopy(BitConverter.GetBytes(data.Length), 0, frame, 0, 4);
                 Buffer.BlockCopy(data, 0, frame, 4, data.Length);
                 c.Stream.Write(frame, 0, frame.Length);
+                BytesOut += frame.Length;
             }
             catch (IOException)
             {

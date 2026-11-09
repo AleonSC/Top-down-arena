@@ -259,13 +259,14 @@ namespace Arena
                     ReadDevStats(r);
                     break;
                 case Msg.Snapshot:
+                    NoteSnapshotLag((int)r.BaseStream.Length);  // the lag chart (LagNet.cs)
                     ReadSnapshot(r);
                     break;
                 case Msg.Steer:
                     ReadSteer(r);
                     break;
                 case Msg.Pong:
-                    PingMs = (float)((clock.ElapsedTicks - r.ReadInt64()) * 1000.0 / System.Diagnostics.Stopwatch.Frequency);
+                    NotePong((float)((clock.ElapsedTicks - r.ReadInt64()) * 1000.0 / System.Diagnostics.Stopwatch.Frequency));  // LagNet.cs
                     break;
                 case Msg.BulletSync:
                     ReadBulletSync(r);
@@ -281,6 +282,9 @@ namespace Arena
                     break;
                 case Msg.WaveSummary:
                     ReadWaveSummary(r);
+                    break;
+                case Msg.NetPings:
+                    ReadNetPings(r);  // LagNet.cs
                     break;
             }
         }
