@@ -647,10 +647,11 @@ namespace Arena
                         SetAimLine(l2);
                     y += 66f;
                     WinLabel(new Rect(x, y, w, 24f), "HUD", "H cycles it; a slim boss bar stays when it's hidden");
-                    int hudPick = WinChoices(new Rect(x, y + 28f, w, 34f), HudModeNames, hudMode);
+                    int hudPick = WinChoices(new Rect(x, y + 46f, w, 34f), HudModeNames, hudMode);  // (under the line, not over it)
                     if (hudPick != hudMode)
                         SetHudMode(hudPick);
-                    y += 74f;
+                    DashLine(x, y + 88f, w);
+                    y += 96f;
                     bool lean2 = SwitchRow(new Rect(x, y, w, 54f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
                     if (lean2 != camLean)
                         SetCamLean(lean2);
@@ -663,7 +664,7 @@ namespace Arena
                     if (hover2 != hoverNames)
                         SetHoverNames(hover2);
                     y += 66f;
-                    WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look, so a crowd of them doesn't hide the fight (25% at least)");
+                    WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look (25% at least)");
                     float mate = Mathf.Max(0.25f, WinSlider(new Rect(x + w - 376f, y + 6f, 376f, 48f), mateShotAlpha));
                     if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)
                         SetMateShotAlpha(mate);
