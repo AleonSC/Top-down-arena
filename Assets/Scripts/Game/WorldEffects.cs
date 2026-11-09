@@ -128,6 +128,9 @@ namespace Arena
                 case FxKind.Airstrike:
                     DrawAirstrikeFx(fx);  // AirstrikeLook.cs
                     break;
+                case FxKind.JuggShard:
+                    DrawJuggShardFx(fx);  // JuggernautLook.cs
+                    break;
                 case FxKind.PactBind:
                     DrawPactBindFx(fx, f, t);  // ForcePactLook.cs, like the three below
                     break;

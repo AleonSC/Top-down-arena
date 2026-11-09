@@ -36,8 +36,9 @@ static partial class Program
             for (int k = 0; k < Defs.KitCount; k++)
             {
                 placed.Add(Upgrades.Ultimate(role, (Kit)k));
-                if (Upgrades.UltChoices(role, (Kit)k) > 1)
-                    placed.Add(Upgrades.Ultimate(role, (Kit)k, 1));  // a second ultimate (lobby key 1)
+                for (int u = 1; u < Upgrades.UltKeys; u++)  // the other keys of the lobby's Ultimate row (the Juggernaut Suit)
+                    if (Upgrades.AltUltimate(role, (Kit)k, u) != AbilityId.None)
+                        placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
                 for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
                     placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }

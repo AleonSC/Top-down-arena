@@ -33,7 +33,7 @@ namespace Arena
                 if (id <= 0 || id >= Upgrades.Abilities.Length)
                     continue;
                 var def = Upgrades.Ability((AbilityId)id);
-                bool ult = def.IsUlt;
+                bool ult = def.Choice == AbilityDef.Ult;
                 float f = Mathf.Clamp01(fx.T / Mathf.Max(0.01f, fx.Dur));
                 float pop = Mathf.Min(1f, fx.T * 10f), fade = f < 0.65f ? 1f : 1f - (f - 0.65f) / 0.35f;
                 int stack = 0;  // a newer cast by the same player sits above an older one
@@ -119,7 +119,7 @@ namespace Arena
             {
                 if (p.Downed)
                     continue;
-                if (p.TauntT > 0f || p.PactT > 0f || p.RodT > 0f)
+                if (p.RodT > 0f || p.TauntT > 0f || p.PactT > 0f || Game.JuggOn(p))  // (the Juggernaut Suit draws them too)
                     best = p;
             }
             return best;

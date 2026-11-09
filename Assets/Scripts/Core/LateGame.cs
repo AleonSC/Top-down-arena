@@ -109,6 +109,8 @@ namespace Arena
                     if (e.Phase == 0 && e.PhaseT <= 0f)
                     {
                         e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                        for (int i = 0; i < 8 && NearSolid(e.Waypoint, e.Radius + 8f); i++)  // not into a wall or pillar (LayoutRules.cs)
+                            e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
                         e.Phase = 1;
                         e.PhaseT = PhantomWarn;
                         BroadcastFx(FxKind.Target, e.Waypoint, e.Def.Color, PhantomBurstRadius, PhantomWarn, Sfx.None);

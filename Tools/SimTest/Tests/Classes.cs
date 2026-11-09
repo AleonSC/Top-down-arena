@@ -56,15 +56,16 @@ static partial class Program
             {
                 var placed = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Select(c => Upgrades.RoleAbility(role, k.Id, c)).ToList();
                 placed.Add(Upgrades.Ultimate(role, k.Id));
-                if (Upgrades.UltChoices(role, k.Id) > 1)
-                    placed.Add(Upgrades.Ultimate(role, k.Id, 1));
+                for (int u = 1; u < Upgrades.UltKeys; u++)  // any other ultimates on the lobby's Ultimate row
+                    if (Upgrades.AltUltimate(role, k.Id, u) != AbilityId.None)
+                        placed.Add(Upgrades.AltUltimate(role, k.Id, u));
                 foreach (var id in placed)
                 {
                     var a = Upgrades.Ability(id);
                     string an = who + " " + role + " ability " + a.Name;
                     need(a.Kit == k.Id && a.Role == role, an + ": belongs to its class and role");
                     need(core.Contains("case AbilityId." + id + ":"), an + ": a cast (a case AbilityId." + id + " in its class's switch)");
-                    need(a.IsUlt || pixelArt.Contains("{ \"" + a.Name + "\", \""), an + ": an icon in PixelArt.cs (ByUpgrade maps its name to an icon; ultimates have none)");
+                    need(a.Choice == AbilityDef.Ult || pixelArt.Contains("{ \"" + a.Name + "\", \""), an + ": an icon in PixelArt.cs (ByUpgrade maps its name to an icon; ultimates have none)");
                 }
             }
         }

@@ -311,8 +311,8 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
-                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p) || p.RodT > 0f))
-                    return p.Id;  // Roar (or a Lightning Rod's charge): everyone goes for the roaring tank
+                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p) || JuggOn(p) || p.RodT > 0f))
+                    return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
@@ -1096,6 +1096,7 @@ namespace Arena
             V2 dir = V2.FromAngle(ang);
             var b = SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0, e.Def.IsBoss);
             b.Source = e.Type;
+            b.Shooter = e.Id;  // (the Juggernaut Suit's flak finds its way back by this)
             b.Look = b.Sent.Look = LookFor(e, ang, angVel);  // a dart, a crescent or round (Readability.cs)
             NoteVolley(e, b);  // a ring or a spray stays round all the way round
         }

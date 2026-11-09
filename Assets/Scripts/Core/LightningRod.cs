@@ -37,12 +37,12 @@ namespace Arena
         public const int RodBotShooters = 3;                      // a bot casts it when this many enemies have shots coming at it
         public static readonly Rgba RodBlue = new Rgba(0.59f, 0.78f, 1f);
 
-        /// The second ultimates (AbilityDef.UltAlt): picked on key 1 of the lobby's Ultimate row. Upgrades.Abilities gathers them.
+        /// Lightning Rod's entry: key 1 of the tank Elementalist's Ultimate row (AbilityDef.UltKey). Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] SecondUltimates =
         {
             new AbilityDef
             {
-                Id = AbilityId.LightningRod, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.UltAlt,
+                Id = AbilityId.LightningRod, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
                 Name = "Lightning Rod", Cooldown = 70f,
                 Desc = "For 6 s you crackle with charge: you take 80% less damage and every enemy, bosses too, goes for you. Each enemy hit on you calls a bolt from the sky on whoever landed it (30), which arcs on to the 2 enemies nearest it (15 each). Wet enemies take extra arcs.",
                 Capstone = "Lasts 8 s and each bolt arcs to 3 enemies.",

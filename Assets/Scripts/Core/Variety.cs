@@ -449,8 +449,9 @@ namespace Arena
                         }
                     if (n == 0)
                         return KeepDistance(dir, dist, SentryRange);
-                    V2 goal = sum / n - dir * 160f;
-                    return (goal - e.Pos) / 80f;
+                    V2 mid = sum / n, away = (mid - tpos).IsZero ? -dir : (mid - tpos).Normalized();  // the straight line, not the way round a wall
+                    V2 goal = mid + away * 160f;
+                    return RouteVel(e, goal, (goal - e.Pos) / 80f);  // round walls and crates (LayoutRules.cs)
                 }
             }
             return V2.Zero;
