@@ -31,7 +31,7 @@ no Unity in the cloud container: check changes with the tools below.
   `Branch used: claude/xyz (not merged to main)`, so the owner knows whether to ask for a merge.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
-- Ask with a question box before deleting code.
+- Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
 - **Never update the reference pages unless the owner asks in that prompt**: the Bestiary (`Docs/Bestiary/`), the Armory
   (`Docs/Armory/`, its icons and `build.sh`), `BestiaryData.Generated.cs`, and the published artifacts. Code changes
   don't carry them along; at most, say in the report that they are now out of date. When asked to edit a Bestiary
