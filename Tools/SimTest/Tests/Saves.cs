@@ -41,6 +41,14 @@ static partial class Program
             Check(made.ToText().Contains("Healer Ninja ") && oldMage?.Seats[0].Kit == Kit.Elementalist && oldBlood?.Seats[0].Kit == Kit.Hemomancer,
                 "saves that call the classes Mage and BloodMage (before the rename) load as the Elementalist and Hemomancer");
             Check(RunSave.Parse("not a save") == null && RunSave.Parse("") == null, "a file that isn't a save isn't read as one");
+            {
+                var t = new RunSave { Id = "trashme", Wave = 5 };
+                t.Seats.Add(new SeatSave { Name = "A" });
+                SaveStore.Write(t);
+                bool moved = SaveStore.Trash("trashme");
+                Check(moved && SaveStore.List().All(x => x.Id != "trashme") && System.IO.File.Exists(System.IO.Path.Combine(folder, "deleted", "trashme.run")), "DEL moves a save to deleted/ instead of erasing it");
+                System.IO.File.Delete(System.IO.Path.Combine(folder, "deleted", "trashme.run"));
+            }
 
             // The host saves as each wave starts; the save has every seat and their picks.
             int port = nextPort++;

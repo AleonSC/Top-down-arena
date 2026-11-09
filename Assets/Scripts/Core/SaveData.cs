@@ -270,6 +270,27 @@ namespace Arena
                 File.Move(tmp, path);
         }
 
+        /// The DEL key in the Continue list: the save moves to Folder/deleted/ instead of being erased, so a mis-click can be
+        /// undone by moving the file back. (A run that ends deletes its own save for good with Delete.) Returns false if it
+        /// couldn't move it.
+        public static bool Trash(string id)
+        {
+            if (Folder == null || string.IsNullOrEmpty(id) || !File.Exists(PathOf(id)))
+                return false;
+            try
+            {
+                string dir = Path.Combine(Folder, "deleted");
+                Directory.CreateDirectory(dir);
+                string to = Path.Combine(dir, id + ".run");
+                if (File.Exists(to))
+                    File.Delete(to);
+                File.Move(PathOf(id), to);
+                return true;
+            }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+        }
+
         public static void Delete(string id)
         {
             if (Folder == null || string.IsNullOrEmpty(id))
