@@ -67,7 +67,7 @@ namespace Arena
             {
                 m.SentT += dt;
                 Enemy prey;
-                bool alive = Enemies.TryGetValue(m.GoalEnemy, out prey) && prey.Hp > 0f && prey.SpawnT <= 0f;
+                bool alive = Enemies.TryGetValue(m.GoalEnemy, out prey) && Targetable(prey);
                 V2 goal = !m.Returning && alive ? prey.Pos : slot;
                 V2 to = goal - m.Pos;
                 m.Aim = to.Angle;
@@ -96,7 +96,7 @@ namespace Arena
                 return;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(m.Pos) > e.Radius + ScytheBlade)
+                if (!Targetable(e) || e.Pos.DistanceTo(m.Pos) > e.Radius + ScytheBlade)
                     continue;
                 long key = ((long)m.Id << 32) | (uint)e.Id;
                 float last;
@@ -231,7 +231,7 @@ namespace Arena
             if (!throwHits.TryGetValue(m.Id, out cut))
                 throwHits[m.Id] = cut = new HashSet<int>();
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && !cut.Contains(e.Id) && e.Pos.DistanceTo(m.Pos) < e.Radius + ThrowReach)
+                if (Targetable(e) && !cut.Contains(e.Id) && e.Pos.DistanceTo(m.Pos) < e.Radius + ThrowReach)
                 {
                     cut.Add(e.Id);
                     HurtEnemy(e, m.Def.Damage * owner.Stats.DmgMult * m.Power, owner.Id);

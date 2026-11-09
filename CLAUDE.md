@@ -50,5 +50,5 @@ Tools/Preview/uishots.sh [-r git-ref]  # every UI screen + contact sheet; -r: wh
 Tools/WaveGen/build.sh                 # after adding or changing Data/Waves/*.waves (builds them into the game)
 ```
 
-If the game uses a Unity member the stubs lack, add it to both `Tools/CompileCheck/UnityStubs.cs` and
-`Tools/Preview/Stubs.cs`.
+If the game uses a Unity member the stubs lack, add it to `Tools/Preview/Stubs.cs` (the compile check, previews,
+RenderCheck and SoundCheck all build against it).

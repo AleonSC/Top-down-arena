@@ -60,7 +60,6 @@ namespace Arena
         public static string Title(KeyAction a) => Titles[(int)a];
         public static string Line(KeyAction a) => Lines[(int)a];
         public static KeyCode Get(KeyAction a) => keys[(int)a];
-        public static KeyCode DefaultKey(KeyAction a) => Defaults[(int)a];
         public static bool IsDefault(KeyAction a) => keys[(int)a] == Defaults[(int)a];
 
         static bool Either(KeyCode k, Func<KeyCode, bool> test)

@@ -24,9 +24,6 @@ namespace Arena
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
-            foreach (var q in Players.Values)
-                if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
-                    amount *= 0.5f;  // a healer's Soul Link halves the damage
             amount *= p.Stats.DamageTaken;
             if (Has(RunMod.GlassCannon))
                 amount *= Modifiers.GlassCannonTaken;
@@ -471,7 +468,7 @@ namespace Arena
                     }
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Hp <= 0f || e.Id == b.LastHit || DevourUnder(e))
+                        if (!Targetable(e) || e.Id == b.LastHit || DevourUnder(e))
                             continue;  // (the Devourer underground: shots pass over it)
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
@@ -1071,7 +1068,7 @@ namespace Arena
             float bestD = reach * reach;
             foreach (var e in Enemies.Values)
             {
-                if (e.Id == lastHit || e.Hp <= 0f || e.SpawnT > 0f || e.Def.Xp == 0)
+                if (e.Id == lastHit || !Targetable(e) || e.Def.Xp == 0)
                     continue;
                 float d = e.Pos.DistanceSq(pos);
                 if (d < bestD)

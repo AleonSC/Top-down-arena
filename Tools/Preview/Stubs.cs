@@ -114,7 +114,7 @@ namespace UnityEditor {
   public class EditorApplication { public delegate void CallbackFunction(); public static CallbackFunction delayCall; public static bool isPlayingOrWillChangePlaymode; }
   public class EditorBuildSettingsScene { public EditorBuildSettingsScene(string p, bool e){} }
   public class EditorBuildSettings { public static EditorBuildSettingsScene[] scenes; }
-  public class PlayerSettings { public static string productName; public static bool runInBackground, resizableWindow; public static UnityEngine.FullScreenMode fullScreenMode; public static int defaultScreenWidth, defaultScreenHeight; }
+  public class PlayerSettings { public static UnityEngine.ColorSpace colorSpace; public static string productName; public static bool runInBackground, resizableWindow; public static UnityEngine.FullScreenMode fullScreenMode; public static int defaultScreenWidth, defaultScreenHeight; }
   public enum BuildTarget { StandaloneWindows64 } [Flags] public enum BuildOptions { None=0 }
   public struct BuildPlayerOptions { public string[] scenes; public string locationPathName; public BuildTarget target; public BuildOptions options; }
   public class BuildPipeline { public static UnityEditor.Build.Reporting.BuildReport BuildPlayer(BuildPlayerOptions o){return null;} }

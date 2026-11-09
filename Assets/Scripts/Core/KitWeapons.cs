@@ -220,7 +220,7 @@ namespace Arena
             {
                 Enemy next = null;
                 foreach (var e in Enemies.Values)
-                    if (!hit.Contains(e.Id) && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(cur.Pos) < reach &&
+                    if (!hit.Contains(e.Id) && Targetable(e) && e.Pos.DistanceTo(cur.Pos) < reach &&
                         (next == null || e.Pos.DistanceSq(cur.Pos) < next.Pos.DistanceSq(cur.Pos)))
                         next = e;
                 if (next == null)
@@ -272,7 +272,7 @@ namespace Arena
             float bestD = FireflyReach * FireflyReach;
             foreach (var e in Enemies.Values)
             {
-                if (e.Id == b.LastHit || e.Hp <= 0f || e.SpawnT > 0f || e.Def.Xp == 0 || e.SeededT > 0f && e.SeededBy == b.Owner)
+                if (e.Id == b.LastHit || !Targetable(e) || e.Def.Xp == 0 || e.SeededT > 0f && e.SeededBy == b.Owner)
                     continue;
                 float d = e.Pos.DistanceSq(b.Pos);
                 if (d < bestD)
@@ -314,7 +314,7 @@ namespace Arena
             foreach (var z in Zones.Values)
                 if (z.Kind == ZoneKind.OfudaWard)
                     foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
+                        if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
                         {
                             (burst = burst ?? new List<Zone>()).Add(z);
                             break;
@@ -362,7 +362,7 @@ namespace Arena
                         Heal(q, VineHeal * dt, p);
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f || DistToSegment(e.Pos, a, b) > VineWidth + e.Radius)
+                    if (!Targetable(e) || DistToSegment(e.Pos, a, b) > VineWidth + e.Radius)
                         continue;
                     if (!e.Def.IsBoss)
                     {
@@ -516,7 +516,7 @@ namespace Arena
             // What it reached: its target, or (on the way, for an imp) any enemy it runs into.
             Enemy hit = null;
             foreach (var o in Enemies.Values)
-                if (o.SpawnT <= 0f && o.Hp > 0f && o.Pos.DistanceTo(m.Pos) < o.Radius + d.Radius * m.Scale + 4f && (imp || o == e))
+                if (Targetable(o) && o.Pos.DistanceTo(m.Pos) < o.Radius + d.Radius * m.Scale + 4f && (imp || o == e))
                 {
                     hit = o;
                     break;
@@ -608,7 +608,7 @@ namespace Arena
                 }
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f)
+                    if (!Targetable(e))
                         continue;
                     V2 rel = e.Pos - tr.From;
                     float along = Dot(rel, tr.Dir), across = Math.Abs(Dot(rel, tr.Dir.Orthogonal()));
@@ -642,7 +642,7 @@ namespace Arena
         Enemy Prey(Player p)
         {
             Enemy e;
-            return p.PreyT > 0f && Enemies.TryGetValue(p.PreyId, out e) && e.Hp > 0f && e.SpawnT <= 0f ? e : null;
+            return p.PreyT > 0f && Enemies.TryGetValue(p.PreyId, out e) && Targetable(e) ? e : null;
         }
 
         /// A wolf bit something: if it's the prey and every wolf has now bitten it within PackWindow, a takedown.
@@ -725,7 +725,7 @@ namespace Arena
             bool any = false;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 V2 rel = e.Pos - p.Pos;
                 float along = Dot(rel, dir), across = Dot(rel, side);
@@ -787,7 +787,7 @@ namespace Arena
                 hits[v] = new List<Enemy>();
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 float d = e.Pos.DistanceTo(p.Pos);
                 if (d - e.Radius > reach)
@@ -889,7 +889,7 @@ namespace Arena
         void LandBoulder(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
                 {
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
@@ -930,7 +930,7 @@ namespace Arena
             BroadcastFx(FxKind.Spark, from.Pos, Defs.BulletColor(Defs.HammerShot), from.Radius + 14f, 0.3f, Sfx.None);
             var near = new List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (e != from && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(from.Pos) < sh.Reach + e.Radius)
+                if (e != from && Targetable(e) && e.Pos.DistanceTo(from.Pos) < sh.Reach + e.Radius)
                     near.Add(e);
             WetArcs(from.Pos, from, sh.Dmg / HammerArcMult * 0.5f, sh.Owner);  // Tsunami.cs: a pulse counts as half a hammer hit (its own arcs are only an eighth)
             near.Sort((a, b) => a.Pos.DistanceSq(from.Pos).CompareTo(b.Pos.DistanceSq(from.Pos)));

@@ -152,7 +152,7 @@ namespace Arena
                 wallContactAcc -= WallContactTick;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 Zone touched = null;
                 foreach (var z in wallNodes)

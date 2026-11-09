@@ -17,20 +17,8 @@ namespace Arena
         }
 
         /// A struck chime: harmonic partials (unlike Bell's inharmonic ones), so it rings sweet rather than churchy.
-        static float[] Chime(float dur, float f, float vol)
-        {
-            float[] ratio = { 1f, 2f, 3f, 4.01f }, amp = { 1f, 0.35f, 0.14f, 0.06f }, life = { 1f, 0.55f, 0.3f, 0.18f };
-            int n = (int)(dur * Rate);
-            var data = new float[n];
-            for (int i = 0; i < n; i++)
-            {
-                float t = (float)i / Rate, u = (float)i / n, x = 0f;
-                for (int k = 0; k < ratio.Length; k++)
-                    x += amp[k] * Mathf.Sin(2f * Mathf.PI * f * ratio[k] * t) * Mathf.Pow(Mathf.Max(0f, 1f - u / life[k]), 2f);
-                data[i] = x * vol * Mathf.Min(1f, t / 0.003f);
-            }
-            return data;
-        }
+        static float[] Chime(float dur, float f, float vol) =>
+            Partials(dur, f, vol, new[] { 1f, 2f, 3f, 4.01f }, new[] { 1f, 0.35f, 0.14f, 0.06f }, new[] { 1f, 0.55f, 0.3f, 0.18f }, 0.003f);
 
         /// Sparkle: `count` tiny high chimes scattered over `dur`, fading as they go (light motes).
         float[] Sparkle(float dur, int count, float vol, float lo = 2600f, float hi = 5200f)

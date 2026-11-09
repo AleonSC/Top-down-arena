@@ -665,7 +665,7 @@ namespace Arena
                         e.WardT = WarderEvery;
                         var near = new List<Enemy>();
                         foreach (var o in Enemies.Values)
-                            if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && o.Hp > 0f && o.SpawnT <= 0f && o.Pos.DistanceTo(e.Pos) < WarderRange)
+                            if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && Targetable(o) && o.Pos.DistanceTo(e.Pos) < WarderRange)
                                 near.Add(o);
                         near.Sort((a, b) => a.Pos.DistanceSq(e.Pos).CompareTo(b.Pos.DistanceSq(e.Pos)));
                         for (int i = 0; i < near.Count && i < WarderMax; i++)
@@ -735,7 +735,7 @@ namespace Arena
                                 lead = o;
                     Enemy partner = null;
                     if (lead != null && squadMembers.TryGetValue(e.SquadId, out mates))
-                        partner = mates.Find(o => o != lead && o.Type == EnemyType.Stitcher && o.Hp > 0f && o.SpawnT <= 0f);
+                        partner = mates.Find(o => o != lead && o.Type == EnemyType.Stitcher && Targetable(o));
                     if (partner != null)
                     {
                         if (lead != e)

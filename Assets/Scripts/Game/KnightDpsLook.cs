@@ -68,23 +68,6 @@ namespace Arena
             }
         }
 
-        /// The triangles of a shattered shape flying apart.
-        void KShatter(V2 c, float age, Rgba col, int n, float seed, float sp, float r, float dur)
-        {
-            if (age < 0f || age > dur)
-                return;
-            float f = age / dur;
-            for (int i = 0; i < n; i++)
-            {
-                float s = seed + i, a = KHash(s) * MathX.Tau, v = sp * (0.5f + KHash(s * 1.9f)), d = v * dur * (f - f * f / 2f), rr = r * (0.6f + KHash(s * 3.3f));
-                float ra = a + f * (KHash(s * 7f) - 0.5f) * 12f;
-                V2 at = c + V2.FromAngle(a) * d;
-                V2 p0 = at + V2.FromAngle(ra) * rr, p1 = at + V2.FromAngle(ra + 2.3f) * rr * 0.9f, p2 = at + V2.FromAngle(ra - 2.3f) * rr * 0.95f;
-                SetColor(col.WithAlpha(1f - f));
-                Tri(p0, p1, p2);
-            }
-        }
-
         /// A cut's crescent: thick and bright at its head, thinning and fading toward its tail.
         void KCrescent(V2 c, float a0, float a1, float r0, float r1, Rgba col, float alpha)
         {

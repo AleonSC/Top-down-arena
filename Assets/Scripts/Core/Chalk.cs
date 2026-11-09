@@ -206,7 +206,7 @@ namespace Arena
                 h.LoopFrom = last;  // the next loop starts from here
                 int caught = 0;
                 foreach (var e in Enemies.Values)
-                    if (e.Hp > 0f && e.SpawnT <= 0f && e.PenId == 0 && !e.Def.IsBoss && !e.Def.Mini && InsidePoly(pen.Poly, e.Pos))
+                    if (Targetable(e) && e.PenId == 0 && !e.Def.IsBoss && !e.Def.Mini && InsidePoly(pen.Poly, e.Pos))
                     {
                         e.PenId = pen.Id;
                         e.PenPos = e.Pos;
@@ -245,7 +245,7 @@ namespace Arena
         {
             foreach (var e in Enemies.Values)
             {
-                if (e.Hp <= 0f || e.SpawnT > 0f)
+                if (!Targetable(e))
                     continue;
                 foreach (var d in Ink)
                 {

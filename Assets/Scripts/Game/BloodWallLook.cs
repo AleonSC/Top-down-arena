@@ -14,7 +14,6 @@ namespace Arena
         static readonly Rgba VeinUnder = new Rgba(0.23f, 0.01f, 0.035f), VeinLow = new Rgba(0.54f, 0.05f, 0.125f), VeinHigh = new Rgba(0.7f, 0.08f, 0.17f);
         static readonly Rgba ThornRed = new Rgba(0.55f, 0.05f, 0.09f), PulsePink = new Rgba(1f, 0.43f, 0.49f), WallAsh = new Rgba(0.16f, 0.06f, 0.07f);
         static readonly Rgba[] WallTier = { new Rgba(1f, 0.54f, 0.59f), new Rgba(1f, 0.33f, 0.41f), new Rgba(0.91f, 0.13f, 0.23f), new Rgba(1f, 0.82f, 0.84f) };
-        static readonly string[] WallTierName = { "Seep", "Flow", "Gush", "Hemorrhage" };
         const float BraidStep = 0.75f, BraidAmp = 4.5f, WallSubsteps = 3;
 
         /// The drain's stage: under 2%/s, under 4, under 8, then Hemorrhage.

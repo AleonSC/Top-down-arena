@@ -191,7 +191,7 @@ namespace Arena
             float bd = float.MaxValue;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) > HookRange)
+                if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) > HookRange)
                     continue;
                 float d = e.Pos.DistanceSq(aimAt);
                 if (d < bd)
@@ -237,7 +237,7 @@ namespace Arena
         {
             foreach (var g in Enemies.Values)
             {
-                if (g == e || g.SpawnT > 0f || g.Hp <= 0f || g.Id == e.ImpactLast || g.Pos.DistanceTo(e.Pos) > e.Radius + g.Radius + 1f)
+                if (g == e || !Targetable(g) || g.Id == e.ImpactLast || g.Pos.DistanceTo(e.Pos) > e.Radius + g.Radius + 1f)
                     continue;
                 Player owner;
                 Players.TryGetValue(e.ImpactBy - 1, out owner);

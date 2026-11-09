@@ -56,15 +56,6 @@ namespace Arena
         /// is scaled in by Game.ArcTaper nearer you).
         static V2 ArcPt(V2 o, V2 dir, V2 side, float len, float along, float across) => o + dir * along + side * (across * Game.ArcTaper(along, len));
 
-        void ThunderBolt(System.Collections.Generic.List<V2> pts, float w, float a, Rgba col)
-        {
-            for (int i = 0; i + 1 < pts.Count; i++)
-            {
-                SoftLine(pts[i], pts[i + 1], w * 3.2f, col.WithAlpha(0.35f * a));
-                Line(pts[i], pts[i + 1], w, Rgba.White.WithAlpha(a));
-            }
-        }
-
         /// A jagged run from a to b: each middle point is thrown sideways by up to amp, most in the middle.
         static System.Collections.Generic.List<V2> ThunderJag(V2 a, V2 b, int segs, float amp, ref uint s)
         {

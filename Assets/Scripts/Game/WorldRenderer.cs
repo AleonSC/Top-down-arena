@@ -514,33 +514,11 @@ namespace Arena
             }
         }
 
-        /// Soul Link's tether (to an ally, or to your Soul Ghost when you're alone), and Roar's ring.
+        /// Roar's ring.
         void DrawPlayerLinks(Player p, float t)
         {
             if (LaunchHides(p))
                 return;
-            Player q;
-            V2? other = null;
-            if (p.LinkT > 0f && p.LinkTo != p.Id && game.Players.TryGetValue(p.LinkTo, out q))
-                other = q.Disp;
-            else if (p.LinkT > 0f)
-                foreach (var m in game.Minions.Values)
-                    if (m.Owner == p.Id && m.Kind == MinionKind.SoulGhost)
-                        other = m.Disp;
-            if (other.HasValue)
-            {
-                // Soul Link: a wavy tether between healer and ally.
-                V2 a = p.Disp, b = other.Value, n = (b - a).Normalized().Orthogonal();
-                var c = new Rgba(0.6f, 1f, 0.9f, 0.8f);
-                V2 prev = a;
-                for (int k = 1; k <= 16; k++)
-                {
-                    float f = k / 16f;
-                    V2 pt = V2.Lerp(a, b, f) + n * (Mathf.Sin(f * 12f - t * 10f) * 5f * Mathf.Sin(f * MathX.Pi));
-                    Line(prev, pt, 2.5f, c);
-                    prev = pt;
-                }
-            }
             if (p.TauntT > 0f && !p.Downed && fxOn)  // Roar: plates, a draining rim and tethers (TankLooks.cs)
                 DrawRoarSustain(p, t);
             else if (p.TauntT > 0f && !p.Downed)  // Roar

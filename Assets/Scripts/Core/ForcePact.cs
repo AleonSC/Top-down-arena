@@ -16,7 +16,7 @@ namespace Arena
 
         /// Can the pact take this enemy? Regular enemies only: no bosses, boss adds or mini-bosses (their Picker group is Hidden,
         /// Late or Boss), no practice dummies.
-        static bool CanPact(Enemy e) => e.SpawnT <= 0f && e.Hp > 0f && !e.Dummy && !e.Def.IsBoss && !e.Def.Mini
+        static bool CanPact(Enemy e) => Targetable(e) && !e.Dummy && !e.Def.IsBoss && !e.Def.Mini
             && (e.Def.Picker == PickerGroup.Melee || e.Def.Picker == PickerGroup.Ranged);
 
         /// How big a thrall is: its enemy type's size (a Brute is a big thrall).
@@ -175,7 +175,7 @@ namespace Arena
             Enemy target = null;
             if (!atk.Heal)
                 foreach (var e in Enemies.Values)
-                    if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(owner.Pos) < leash + e.Radius
+                    if (Targetable(e) && e.Pos.DistanceTo(owner.Pos) < leash + e.Radius
                         && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
                         target = e;
             V2 home = owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;

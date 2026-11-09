@@ -46,7 +46,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
             {
                 float d = e.Pos.DistanceTo(p.Pos);
-                if (e.SpawnT > 0f || e.Hp <= 0f || d > r + e.Radius)
+                if (!Targetable(e) || d > r + e.Radius)
                     continue;
                 bool heavy = Heavy(e);
                 float stagger = ExsStagger * Math.Min(1f, d / Math.Max(1f, r));

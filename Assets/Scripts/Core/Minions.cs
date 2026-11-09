@@ -505,7 +505,6 @@ namespace Arena
                 }
                 var d = m.Def;
                 m.HurtT -= dt;
-                m.InvulnT -= dt;
                 if (m.StaggerT > 0f)
                 {
                     m.StaggerT -= dt;
@@ -653,7 +652,6 @@ namespace Arena
                         // The treant stands in front of you; the guardian spirit hovers on you.
                         V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
                             : m.Kind == MinionKind.Nimbus ? NimbusGoal(owner)  // the cloud drifts after your cursor (Nimbus.cs)
-                            : m.Kind == MinionKind.SoulGhost ? owner.Pos + V2.FromAngle(owner.Aim + 2f) * 60f  // a Soul Ghost keeps beside you, a little back
                             : owner.Pos;
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);
                         break;
@@ -674,8 +672,7 @@ namespace Arena
                         {
                             m.Cd = d.Interval;
                             V2 dir = V2.FromAngle(m.Aim);
-                            byte kind = m.Kind == MinionKind.Turret ? Defs.TurretShot : m.Kind == MinionKind.Phoenix ? Defs.FireShot
-                                : m.Kind == MinionKind.SoulGhost ? Defs.HealerShot : Defs.MinionShot;  // the ghost fires its healer's light bolts
+                            byte kind = m.Kind == MinionKind.Turret ? Defs.TurretShot : m.Kind == MinionKind.Phoenix ? Defs.FireShot : Defs.MinionShot;
                             SpawnBullet(kind, m.Pos + dir * d.Radius, dir * 650f, 0f, d.Range / 650f, dmg, m.Owner);
                         }
                         break;

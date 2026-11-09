@@ -435,8 +435,6 @@ namespace Arena
             s.Float(ref p.AdrenalineT);
             s.Float(ref p.SwiftT);  // Consecrate's Swiftness (HolyCross.cs)
             s.Float(ref p.TauntT);
-            s.Float(ref p.LinkT);
-            s.Int(ref p.LinkTo);
             s.Float(ref p.AegisT);
             s.Float(ref p.FrenzyT);
             s.Float(ref p.LegionT);
@@ -772,7 +770,7 @@ namespace Arena
                 t = m.T;
                 duration = m.Duration;
                 m.GuardFrac = m.Kind == MinionKind.CloneWall ? MathX.Clamp01(m.BlockHp / Math.Max(1f, m.MaxHp))  // a wall clone: what is left of its health
-                    : HasHealth(m) ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard or Soul Ghost: its health
+                    : HasHealth(m) ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard or Force Pact thrall: its health
                     : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
                 guard = m.GuardFrac;
                 scale = m.Scale;

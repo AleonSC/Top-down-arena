@@ -468,46 +468,6 @@ namespace Arena
             SyncProfileName();  // your name is the profile's name (ProfilesUi.cs)
         }
 
-        /// A glowing x-axis under a title: ticks (a long one every fourth), arrowheads, a pulsing origin and
-        /// sparks running outward. Call between BeginUiGl and EndUiGl (UI canvas coordinates).
-        void DrawAxis(V2 o, float half, float t, float alpha = 1f)
-        {
-            UiModelAt(V2.Zero, 1f);
-            var c = new Rgba(0.45f, 0.65f, 1f);
-            const int Segs = 24;
-            for (int i = 0; i < Segs; i++)  // brightest at the origin, fading out to the ends
-            {
-                float a = (float)i / Segs, b = (float)(i + 1) / Segs, fade = 1f - 0.7f * a;
-                for (int side = -1; side <= 1; side += 2)
-                {
-                    V2 p0 = o + new V2(side * half * a, 0f), p1 = o + new V2(side * half * b, 0f);
-                    Line(p0, p1, 6f, c.WithAlpha((0.06f * fade) * alpha));
-                    Line(p0, p1, 1.5f, c.WithAlpha((0.6f * fade) * alpha));
-                }
-            }
-            for (int k = 1; k * 24f < half - 10f; k++)
-            {
-                float fade = 1f - 0.7f * k * 24f / half, len = k % 4 == 0 ? 6f : 3f;
-                for (int side = -1; side <= 1; side += 2)
-                {
-                    V2 p = o + new V2(side * k * 24f, 0f);
-                    Line(p - new V2(0f, len), p + new V2(0f, len), 1.2f, c.WithAlpha((0.55f * fade) * alpha));
-                }
-            }
-            for (int side = -1; side <= 1; side += 2)  // arrowheads
-            {
-                V2 tip = o + new V2(side * (half + 10f), 0f);
-                SetColor(c.WithAlpha((0.5f) * alpha));
-                Tri(tip, tip - new V2(side * 10f, 5f), tip - new V2(side * 10f, -5f));
-                float f = MathX.Fmod(t * 0.45f, 1f);  // a spark running out along the axis
-                Circle(o + new V2(side * half * f, 0f), 2.2f, Rgba.White.WithAlpha((0.8f * (1f - f)) * alpha), 10);
-            }
-            float pulse = MathX.Fmod(t * 0.8f, 1f);
-            Arc(o, 5f + 14f * pulse, 1.5f, c.WithAlpha((0.7f * (1f - pulse)) * alpha), 24);
-            Circle(o, 8f, c.WithAlpha((0.18f) * alpha), 20);
-            Circle(o, 3.5f, new Rgba(0.85f, 0.92f, 1f, alpha), 14);
-        }
-
         /// Corner brackets just outside a panel, like the frame of a plot.
         void DrawPlotCorners(Rect r, float gap, float len, Rgba c)
         {
@@ -582,16 +542,6 @@ namespace Arena
         };
 
         /// How to play, as the side drawer (MenuDrawer.cs).
-
-        /// A keyboard key: a raised cap with its label. Returns its width.
-        float KeyCap(float x, float y, string key)
-        {
-            float w = Mathf.Max(26f, 12f + key.Length * 7.5f);
-            Ui.Pill(new Rect(x, y + 2f, w, 24f), new Color(0.03f, 0.035f, 0.06f, 0.9f));  // its side
-            Ui.Pill(new Rect(x, y, w, 23f), new Color(0.24f, 0.27f, 0.38f));
-            Ui.Label(new Rect(x, y, w, 23f), key, 11, Color.white, TextAnchor.MiddleCenter, true);
-            return w;
-        }
 
         /// The small drawing beside each How to play tip.
         void DrawTipGlyph(int i, V2 c, float t)

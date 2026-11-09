@@ -225,13 +225,6 @@ namespace Arena
             return n;
         }
 
-        void SpawnDecoy(V2 pos)
-        {
-            var d = SpawnEnemyAt(EnemyType.Decoy, pos, 0f, 0);
-            d.PhaseT = 5f;  // pops after 5 s unless killed first
-            d.FireT = 99f;
-        }
-
         /// A spot at least 250 px from every living player (best of a few tries).
         V2 FarFromPlayers(float radius)
         {

@@ -116,7 +116,7 @@ namespace Arena
                 bool any = false;
                 foreach (var e in new List<Enemy>(Enemies.Values))
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f || run.Hit.Contains(e.Id))
+                    if (!Targetable(e) || run.Hit.Contains(e.Id))
                         continue;
                     float d = e.Pos.DistanceTo(run.At);
                     if (d - e.Radius > run.Radius)

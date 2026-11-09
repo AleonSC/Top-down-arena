@@ -133,7 +133,7 @@ namespace Arena
                 V2 at = TwinBladesMotion.FangPos(r.From, r.To, p.Pos, q, blade == 0 ? 1 : -1);
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(at) > e.Radius + FangHitR)
+                    if (!Targetable(e) || e.Pos.DistanceTo(at) > e.Radius + FangHitR)
                         continue;
                     if (!r.Hit.Add(e.Id * 4 + blade * 2 + leg))
                         continue;
@@ -149,7 +149,7 @@ namespace Arena
                 r.Burst = true;
                 int burst = 0;
                 foreach (var e in Enemies.Values)
-                    if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(r.To) <= e.Radius + FangBurstR)
+                    if (Targetable(e) && e.Pos.DistanceTo(r.To) <= e.Radius + FangBurstR)
                     {
                         FangHurt(p, e, dmg * FangBurstMult, r.To);
                         burst++;

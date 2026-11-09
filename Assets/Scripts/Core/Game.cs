@@ -1269,19 +1269,8 @@ namespace Arena
                 if (p.EnergyOn && p.ShieldHp <= 0f)
                     EnergyPayback(p);  // the Energy Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
-                p.LinkT = Math.Max(0f, p.LinkT - dt);
                 if (p.Downed)
-                    p.TauntT = p.LinkT = 0f;
-                if (p.LinkT > 0f)
-                {
-                    Player q;
-                    float heal = LinkHeal * p.Stats.LinkHealMult * dt;
-                    Heal(p, heal, p);
-                    if (Players.TryGetValue(p.LinkTo, out q) && q != p)
-                        Heal(q, heal, p);
-                    else
-                        HealSoulGhost(p, heal);  // alone: the link heals your ghost (SoulGhost.cs)
-                }
+                    p.TauntT = 0f;
                 p.FireCd -= dt;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)

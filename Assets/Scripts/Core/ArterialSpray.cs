@@ -70,7 +70,7 @@ namespace Arena
             V2 from = p.Pos, dir = V2.FromAngle(p.Aim);
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || !InSpray(from, p.Aim, reach, e.Pos, e.Radius))
+                if (!Targetable(e) || !InSpray(from, p.Aim, reach, e.Pos, e.Radius))
                     continue;
                 HurtEnemy(e, dmg, p.Id);
                 ApplyBleed(e, SprayBleed * p.SprayPower, p.Id);

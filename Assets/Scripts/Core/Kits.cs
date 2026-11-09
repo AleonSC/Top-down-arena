@@ -8,7 +8,6 @@ namespace Arena
         LightOrb,  // Radiant Orb's extra projectiles: circles the orb while it's out (you otherwise), hurting enemies and healing allies it touches
         Clone,     // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
         WardenGuard,  // Warden's Guard (legendary): walks with you and fights; it has health, and comes back after it falls (Stun.cs)
-        SoulGhost,    // Soul Link cast with no ally: a ghost of you, linked, that fights beside you; it has health (SoulGhost.cs)
         HiveDrone,    // Hive Drones (the Hive Queen's legendary): circles you blocking bullets, flies out to sting, heals you coming home (QueenLoot.cs)
         HiveBomber,   // Bomber Escort (the Hive Queen's legendary): flies at the toughest enemy near you and bursts on it (QueenLoot.cs)
         Scythe,       // Twin Scythes (the Twin Reapers' legendary): circles you, cutting enemies and small bullets (ReaperLoot.cs)
@@ -94,8 +93,6 @@ namespace Arena
             new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 100f },  // Thousand Clones: soaks enemy shots, bursts when it breaks
             new MinionDef { Name = "Warden's Guard", Radius = 13f, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 240f,  // looks like the riot's guards
                 Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
-            new MinionDef { Name = "Soul Ghost", Radius = 14f, Sides = 12, Color = new Rgba(0.6f, 1f, 0.9f), Move = MinionMove.FollowOwner, Speed = 320f,
-                Attack = MinionAttack.Shoot, Interval = 0.3f, Damage = 11f, Range = 460f },
             new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = new Rgba(1f, 0.82f, 0.3f), Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,
                 BlockRadius = 16f, BlockCapacity = 60f },  // moved and stings by QueenLoot.cs
             new MinionDef { Name = "Hive Bomber", Radius = 9f, Sides = 3, Color = new Rgba(1f, 0.5f, 0.18f), Move = MinionMove.Static,

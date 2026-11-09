@@ -132,10 +132,7 @@ namespace Arena
             if (s.Stage == HeraldStage.Supercell)
                 TickConductor(e, s, dt);
 
-            Player target;
-            Players.TryGetValue(e.TargetId, out target);
-            if (target == null || target.Downed)
-                target = FirstAlive();
+            Player target = BossTarget(e);
             V2 at = target != null ? target.Pos : tpos;
 
             s.ActT -= dt;
@@ -263,23 +260,6 @@ namespace Arena
         static Rgba HeraldColor(HeraldStage stage) => stage == HeraldStage.Gale ? new Rgba(0.5f, 0.7f, 1f)
             : stage == HeraldStage.Supercell ? new Rgba(0.66f, 0.55f, 1f) : stage == HeraldStage.LastStand ? new Rgba(0.83f, 0.55f, 1f) : new Rgba(0.56f, 0.82f, 1f);
 
-        Player FirstAlive()
-        {
-            foreach (var p in Players.Values)
-                if (!p.Downed)
-                    return p;
-            return null;
-        }
-
-        List<Player> AlivePlayersList()
-        {
-            var list = new List<Player>();
-            foreach (var p in Players.Values)
-                if (!p.Downed)
-                    list.Add(p);
-            return list;
-        }
-
         void StrikeEveryone(float radius, float warn)
         {
             foreach (var p in Players.Values)
@@ -393,10 +373,7 @@ namespace Arena
             V2 wind = HeraldWind(BallWind);
             foreach (var b in balls)
             {
-                Player near = null;
-                foreach (var p in Players.Values)
-                    if (!p.Downed && (near == null || p.Pos.DistanceSq(b.Pos) < near.Pos.DistanceSq(b.Pos)))
-                        near = p;
+                Player near = NearestPlayer(b.Pos);
                 if (near != null)
                     b.Pos += (near.Pos - b.Pos).Normalized() * BallSpeed * dt;
                 b.Pos = ClampToArena(b.Pos + wind * dt, b.Radius);

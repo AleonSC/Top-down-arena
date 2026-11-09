@@ -347,10 +347,7 @@ namespace Arena
         void Slingshot(Enemy e, SingState s)
         {
             int shots = 0;
-            var targets = new List<Player>();
-            foreach (var p in Players.Values)
-                if (!p.Downed)
-                    targets.Add(p);
+            var targets = AlivePlayersList();
             if (targets.Count == 0)
                 return;
             for (int k = 0; k < 3; k++)

@@ -91,7 +91,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `BonePhalanx.cs`, `Game/BonePhalanxLook.cs`: the Tank Summoner's second ultimate, Bone Phalanx (key 1 of the lobby's Ultimate row: `UltKey = 1`): a `ZoneKind.Phalanx` line of 8 shield skeletons (Pos = shield face, Aim = heading, replicated `Zone.Marched` and one health byte per skeleton in `Zone.Bones`) that steps out of a bone gate and marches 260 px; `PhalanxStops` (enemy-bullet loop in `Combat.cs`), `ShovePhalanx`/`KeepOffPhalanx` (shove, Heavy pace, boss/wall stop), spears, `CrumblePhalanx`; `FxKind.PhalanxJab`/`PhalanxSpark`/`PhalanxBreak`; mockup `Docs/Mockups/bone-phalanx.html`; preview `PHALANX=<s>` (`Tools/Preview/ShotPhalanx.cs`); test suite `phalanx`
 - `Burrower.cs`, `Game/BurrowerLook.cs`: the Tank Summoner's Earthquake (a 25-damage slam round you, then a `MinionKind.Burrower` that breaks out at the cursor and tunnels 3 s, biting each enemy it passes under once for 30; `FxKind.BurrowSnap` for the head popping up under a bite) and its drawing (mound, scar, dust, rock)
 - `Hydra.cs`, `Game/HydraLook.cs`: the Summoner DPS's Hydra ability (a stationary minion whose heads each spit at a different enemy) and its drawing
-- `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
+- `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs)
 
 ## Enemies and bosses (Core)
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
@@ -109,6 +109,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
   `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
   late-boss logic
+- `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
+  `BossTarget(e)` (its target while up, else the first player up) and `Targetable(e)` (host: spawned in and alive)
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot
 - `PartyBots.cs`: bots that fill the lobby's open slots (extra sessions joined over localhost; stepped by `ArenaApp`; buttons in `LobbyUi.cs`)
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
@@ -291,4 +293,4 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Bots, Boss Lab, lobby bots | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs`, `PartyBots.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
 | See every UI screen, or what a UI change changed | `Tools/Preview/uishots.sh [-r git-ref]` (list in `Tools/Preview/ui-screens.txt`; `HANDOFF.md` §3) |
-| A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/CompileCheck/UnityStubs.cs` and `Tools/Preview/Stubs.cs` |
+| A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/Preview/Stubs.cs` (one copy for every tool) |

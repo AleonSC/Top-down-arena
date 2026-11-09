@@ -299,7 +299,6 @@ namespace Arena
         public float AvgFps => frameSum > 0 ? (float)(frameCount / frameSum) : 0f;
         public float AvgSnapBytes => snapCount > 0 ? (float)snapBytes / snapCount : 0f;
         public long TotalIn => totalIn;
-        public long TotalOut => totalOut;
 
         /// The "1% low": the frame rate of the slowest 1% of frames.
         public float FpsLow1

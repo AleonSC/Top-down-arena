@@ -20,7 +20,7 @@ static partial class Program
                 var client = JoinAs(port, true, "Friend", roles[1], 0, choice);
                 var s = new[] { host, client };
                 WaitForGame(host, client, dt);
-                bool taunt = false, zone = false, link = false, grenade = false, marked = false, adrenaline = false;
+                bool taunt = false, zone = false, grenade = false, marked = false, adrenaline = false;
                 int ghosts = 0, frame = 0;
                 // Mark needs an enemy on screen when the bot presses it, so give it longer.
                 float seconds = roles[0] == Role.Dps && choice == 2 ? 26f : 14f;
@@ -29,7 +29,6 @@ static partial class Program
                     foreach (var p in client.Game.Players.Values)
                     {
                         taunt |= p.TauntT > 0f;
-                        link |= p.LinkT > 0f;
                         adrenaline |= p.AdrenalineT > 0f;
                     }
                     zone |= client.Game.Zones.Count > 0;

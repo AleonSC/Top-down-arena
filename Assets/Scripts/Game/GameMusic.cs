@@ -294,21 +294,7 @@ namespace Arena
             for (int i = 0; i < dry.Length; i++)
                 dry[i] += verb[i] * k.Reverb + wet[i] * 0.3f;
 
-            // Fold the tail onto the start so it loops cleanly, soft-clip and normalize.
-            var outp = new float[n];
-            Array.Copy(dry, outp, n);
-            for (int i = 0; i < tail; i++)
-                outp[i] += dry[n + i];
-            float peak = 0f;
-            for (int i = 0; i < n; i++)
-            {
-                outp[i] = (float)Math.Tanh(outp[i] * 1.2f);
-                peak = Math.Max(peak, Math.Abs(outp[i]));
-            }
-            if (peak > 0f)
-                for (int i = 0; i < n; i++)
-                    outp[i] *= 0.8f * k.Gain / peak;
-            return outp;
+            return MenuMusic.LoopAndNormalize(dry, n, tail, k.Gain);
         }
 
         static float At(string pattern, int s) =>

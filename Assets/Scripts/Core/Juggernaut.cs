@@ -103,14 +103,14 @@ namespace Arena
         Enemy JuggShooter(Bullet b)
         {
             Enemy e;
-            if (b.Shooter > 0 && Enemies.TryGetValue(b.Shooter, out e) && e.Hp > 0f && e.SpawnT <= 0f)
+            if (b.Shooter > 0 && Enemies.TryGetValue(b.Shooter, out e) && Targetable(e))
                 return e;
             V2 back = b.Vel.IsZero ? V2.Zero : -b.Vel.Normalized();
             Enemy best = null;
             float bestD = float.MaxValue;
             foreach (var c in Enemies.Values)
             {
-                if (c.Hp <= 0f || c.SpawnT > 0f || c.Dummy)
+                if (!Targetable(c) || c.Dummy)
                     continue;
                 V2 to = c.Pos - b.Pos;
                 float along = back.IsZero ? to.Length : to.X * back.X + to.Y * back.Y;
@@ -165,7 +165,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (e.Hp > 0f && e.SpawnT <= 0f && !e.Dummy && e.Pos.DistanceSq(me.Pos) < JuggBotRange * JuggBotRange)
+                if (Targetable(e) && !e.Dummy && e.Pos.DistanceSq(me.Pos) < JuggBotRange * JuggBotRange)
                     n++;
             return n;
         }

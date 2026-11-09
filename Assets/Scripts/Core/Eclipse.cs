@@ -215,10 +215,7 @@ namespace Arena
             TickEclipseHazards(e, s, dt);
 
             var alive = AlivePlayersList();
-            Player target;
-            Players.TryGetValue(e.TargetId, out target);
-            if (target == null || target.Downed)
-                target = FirstAlive();
+            Player target = BossTarget(e);
             V2 at = target != null ? target.Pos : tpos;
 
             s.ActT -= dt;

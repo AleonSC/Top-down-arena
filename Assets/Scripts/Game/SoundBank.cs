@@ -995,9 +995,13 @@ namespace Arena
         }
 
         /// A struck bell: a few inharmonic partials, each dying away at its own pace.
-        static float[] Bell(float dur, float f, float vol)
+        static float[] Bell(float dur, float f, float vol) =>
+            Partials(dur, f, vol, new[] { 1f, 2.76f, 5.4f, 8.93f }, new[] { 1f, 0.5f, 0.25f, 0.12f }, new[] { 1f, 0.6f, 0.35f, 0.2f }, 0.004f);
+
+        /// Struck partials (Bell, Chime): each `ratio` x f at its `amp`, dying away over its share `life` of `dur`,
+        /// with an `attack`-second fade-in against clicks.
+        static float[] Partials(float dur, float f, float vol, float[] ratio, float[] amp, float[] life, float attack)
         {
-            float[] ratio = { 1f, 2.76f, 5.4f, 8.93f }, amp = { 1f, 0.5f, 0.25f, 0.12f }, life = { 1f, 0.6f, 0.35f, 0.2f };
             int n = (int)(dur * Rate);
             var data = new float[n];
             for (int i = 0; i < n; i++)
@@ -1005,7 +1009,7 @@ namespace Arena
                 float t = (float)i / Rate, u = (float)i / n, x = 0f;
                 for (int k = 0; k < ratio.Length; k++)
                     x += amp[k] * Mathf.Sin(2f * Mathf.PI * f * ratio[k] * t) * Mathf.Pow(Mathf.Max(0f, 1f - u / life[k]), 2f);
-                data[i] = x * vol * Mathf.Min(1f, t / 0.004f);
+                data[i] = x * vol * Mathf.Min(1f, t / attack);
             }
             return data;
         }

@@ -292,8 +292,6 @@ namespace Arena
         public readonly float[] HpHistory = new float[16];   // host: unused since Time Rewind was replaced by Healing Rain (every 0.25 s)
         public readonly bool[] DownHistory = new bool[16];
         public int HistoryIdx;
-        public float LinkT;   // Soul Link: protecting LinkTo
-        public int LinkTo;
 
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
@@ -556,8 +554,7 @@ namespace Arena
         public bool Companion;
         public float Scale = 1f;         // replicated: Treant Rod's treant grows with extra projectiles
         public float Power = 1f;         // host: mastery of the ability that summoned it
-        public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's or Soul Ghost's health, and its contact-damage cooldown
-        public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
+        public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's or thrall's health, and its contact-damage cooldown
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix)
         public byte Pact = 255;          // replicated: the EnemyType a Thrall was; PactSlot (host) is its Force Pact slot
         public int PactSlot;

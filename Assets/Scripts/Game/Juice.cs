@@ -625,8 +625,6 @@ namespace Arena
 
         public enum Ending : byte { None, RanOut, HitEnemy, Blocked, HitPlayer }
 
-        static readonly Rgba[] PrismColors = { new Rgba(1f, 0.3f, 0.3f), new Rgba(0.3f, 1f, 0.4f), new Rgba(0.35f, 0.5f, 1f) };
-
         /// Why a shot that's just gone went, from where it was, how fast, how much life it had left and what was near it.
         public Ending WhyGone(V2 pos, V2 vel, float life, float radius, int owner)
         {

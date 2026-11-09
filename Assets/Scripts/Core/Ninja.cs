@@ -664,7 +664,7 @@ namespace Arena
         {
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || Heavy(e))
+                if (!Targetable(e) || Heavy(e))
                     continue;
                 float d = e.Pos.DistanceTo(p.Pos);
                 if (d - e.Radius > reach || AngleTo(p.Pos, e.Pos, aim) > FanCone + (d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi))
@@ -707,7 +707,7 @@ namespace Arena
             float r = WardBurst * (Players.ContainsKey(z.Owner) ? AreaMult(Players[z.Owner]) : 1f);
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
+                if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
                 {
                     HurtEnemy(e, dmg, z.Owner);
                     OnBulletHit(new Bullet { Pos = e.Pos, Owner = z.Owner, Dmg = dmg, Kind = Defs.OfudaShot }, e);  // weapon mods ride the burst

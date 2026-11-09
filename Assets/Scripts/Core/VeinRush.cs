@@ -41,7 +41,7 @@ namespace Arena
             var blood = new Rgba(0.85f, 0.12f, 0.2f);
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
                 V2 near = from + dir * along;
