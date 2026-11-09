@@ -1088,7 +1088,7 @@ Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 beside it, and under it one scrolling screen with every save, newest first. The newest run is a tall row (wave, when,
 score, time played, each seat's player and class, the path, difficulty and modifiers) with a big **Continue**; every
 other run is a one-line row with its own **Continue**. Each row has a **DEL** key (click twice: it turns into
-**REALLY?**). Scroll with the mouse wheel or drag the scroll bar; a "more" strip at the foot of the screen counts the
+**REALLY?**); a deleted run is moved to a `deleted` folder next to the saves, not erased, so you can drag it back. Scroll with the mouse wheel or drag the scroll bar; a "more" strip at the foot of the screen counts the
 runs below. **New run** is under the screen. With no saves the screen says so and offers **New run**. **Back** or Esc closes it. Continuing hosts a
 lobby for that run: it shows **Continuing a saved run** instead of the mode switch, and a **Seats** tab instead of
 your loadout. Everyone plays the character they had: a friend who joins takes back the seat with their name (or

@@ -87,7 +87,8 @@ namespace Arena
                 deleteArmed = s.Id;
                 return;
             }
-            SaveStore.Delete(s.Id);
+            if (!SaveStore.Trash(s.Id))
+                SaveStore.Delete(s.Id);  // (couldn't move it: erase it, as the key always did)
             savedRuns = SaveStore.List();
             deleteArmed = null;
         }
