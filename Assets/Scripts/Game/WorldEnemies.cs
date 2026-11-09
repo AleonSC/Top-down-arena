@@ -257,6 +257,9 @@ namespace Arena
                 case ZoneKind.Bloodbath:
                     DrawBloodbath(z, t);  // BloodbathLook.cs (its own time ring when Visual effects are off)
                     return;
+                case ZoneKind.BloodWall:
+                    DrawBloodWallNode(z, t);  // BloodWallLook.cs
+                    return;  // no timer ring: it's a wall
                 case ZoneKind.Phalanx:
                     DrawPhalanx(z, t);  // BonePhalanxLook.cs
                     return;  // no timer ring: the line is its own clock

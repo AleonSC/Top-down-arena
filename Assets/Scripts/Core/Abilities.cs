@@ -49,6 +49,12 @@ namespace Arena
                 CloseSpray(p, false);
                 return;
             }
+            if (WallRelease(p, slot))  // Blood Wall pressed again: it stops (no cooldown spent for the press)
+            {
+                p.Run.AbilitiesUsed++;
+                EndBloodWall(p);
+                return;
+            }
             if (SteelRelease(p, slot))  // Caught Steel pressed again: the cut throws the shards (no cooldown spent for the press)
             {
                 p.Run.AbilitiesUsed++;

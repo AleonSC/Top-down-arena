@@ -81,7 +81,7 @@ namespace Arena
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;
         // Blood Mage abilities
-        public float ShellBonus, PactMult = 1f, PactRadiusMult = 1f, DrainMult = 1f, DrainRadiusMult = 1f;
+        public float ShellBonus, WallLifeBonus, WallRampBonus, DrainMult = 1f, DrainRadiusMult = 1f;
         public float GiftMult = 1f, FreezeBonusTime, MartyrBonus, MartyrInvuln;
         public float SprayMult = 1f, SprayReach = 1f;          // Arterial Spray: High Pressure
         public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
@@ -318,8 +318,8 @@ namespace Arena
                 Apply = s => s.FanExtraKunai += 6 },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",
                 Apply = s => s.ShellBonus += 1f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Crimson Pact's burst hits 50% harder and reaches 30% farther",
-                Apply = s => { s.PactMult += 0.5f; s.PactRadiusMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Blood Wall stands 2 s longer and its drain doubles 1 s slower",
+                Apply = s => { s.WallLifeBonus += Game.WallLifeUp; s.WallRampBonus += Game.WallDoubleUp; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Exsanguinate, MaxStacks = 2, Name = "Deep Veins", Desc = "Exsanguinate reaches 30% farther and drains 50% more",
                 Apply = s => { s.DrainRadiusMult += 0.3f; s.DrainMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodGift, MaxStacks = 2, Name = "Lifeblood", Desc = "Blood Gift gives 50% more",

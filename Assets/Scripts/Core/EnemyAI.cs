@@ -311,7 +311,7 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
-                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p) || JuggOn(p) || p.RodT > 0f))
+                if (!p.Downed && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)

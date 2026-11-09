@@ -186,7 +186,7 @@ namespace Arena
             { "Usury", "debt" },
             { "Crimson Tide", "veinrush" },
             { "Blood Shell", "bloodshell" },
-            { "Crimson Pact", "pact" },
+            { "Blood Wall", "pact" },
             { "Exsanguinate", "drain" },
             { "Blood Gift", "gift" },
             { "Blood Freeze", "bloodfreeze" },

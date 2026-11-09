@@ -46,7 +46,6 @@ namespace Arena
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
-            amount *= 1f - BloodCut(p);     // a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
@@ -67,7 +66,6 @@ namespace Arena
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
-            BloodTookHit(p, amount);  // Crimson Pact stores it
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             lastTaken = Math.Max(0f, amount);
@@ -547,6 +545,11 @@ namespace Arena
                     if (BridgeStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
+                        continue;
+                    }
+                    if (WallStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
                         continue;
                     }
                     foreach (var p in Players.Values)

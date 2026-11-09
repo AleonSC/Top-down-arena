@@ -234,8 +234,8 @@ namespace Arena
                 case FxKind.VeinCut:
                     DrawVeinCutFx(fx, t);  // VeinRushLook.cs
                     break;
-                case FxKind.PactBurst:
-                    DrawPactBurstFx(fx, f);
+                case FxKind.WallSplash:
+                    DrawWallSplashFx(fx, f);  // BloodWallLook.cs
                     break;
                 case FxKind.Link:
                     if (!IsLifelinePlain(fx))  // (Lifeline's own beams: LifelineLook.cs)
