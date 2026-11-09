@@ -623,6 +623,9 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 - **Walls and pillars** (glowing cyan outlines with diagonal hatching, the phosphor vector look of [`Docs/Mockups/arena-layouts-digital.html`](Docs/Mockups/arena-layouts-digital.html)) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
   and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
   starts the cycle with its own crates; random crates, pots and barrels still turn up, clear of the walls.
+  Enemies path round walls to get at you, and so do the ones heading somewhere of their own: squads keeping
+  formation, the Warden's Riot Shields (herding you or marching in a Riot Line), Guards and Rioters, and the
+  wandering Spinner (its random spots stay clear of the walls).
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
   through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (flickering red holograms with a dashed rim, part of the
   wall) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
@@ -710,7 +713,7 @@ with an objective plate at the top of the screen:
 | Challenge | Goal |
 |---|---|
 | **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Its enemies are mostly melee (Swarmers, Spikers, Lungers, Brutes; about 1 in 7 is a Grunt or Sniper), so it's about cutting off the bodies rushing it: two in three go for it (their hits and shots wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
-| **The Gatekeeper** | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has 80% of the Warden's health at your wave. |
+| **The Gatekeeper** | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has 65% of the Warden's health at your wave. |
 | **Kill Rush** | Kill 40 enemies in 40 s (+14 for each extra player). Weak enemies (half health) pour in from every side. |
 | **Hold the Zones** | Stand in each of three zones in turn until it fills (8 s; half as fast with an enemy in it, and it drains slowly if you leave) within 60 s. Half the enemies crowd the zone. |
 | **Mirror Match** | A shadow of each player: their class and weapon in dark violet. Each hunts its own player, keeps the distance their weapon wants, sidesteps every few seconds and fires their way (a fan as wide as their extra shots, or a slash up close). Each has 20% of the health a Warden would have against one player alone, however many of you are playing (each of you fights your own). |

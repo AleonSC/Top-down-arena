@@ -58,8 +58,8 @@ namespace Arena
                 case "frame-neon":  // a cyan tube inside the magenta one (the rim); the rim's dropout is in FrameTint
                 {
                     var cy = new Color(0.43f, 0.94f, 1f, 0.9f);
-                    FrameOutlineRect(new Rect(r.x + 4f, r.y + 4f, w - 8f, h - 8f), 1.4f, cy);
-                    FrameOutlineRect(new Rect(r.x + 3f, r.y + 3f, w - 6f, h - 6f), 1f, new Color(0.43f, 0.94f, 1f, 0.18f));
+                    FrameOutlineRect(new Rect(r.x + 4f, r.y + 4f, w - 8f, h - 8f), 1f, cy);
+                    FrameOutlineRect(new Rect(r.x + 3f, r.y + 3f, w - 6f, h - 6f), 0.8f, new Color(0.43f, 0.94f, 1f, 0.12f));
                     break;
                 }
                 case "frame-hazard":  // warning tape: blocks of yellow and black marching clockwise
@@ -129,14 +129,14 @@ namespace Arena
                         for (int k = 1; k < cnt; k++)
                             pts[k] = a + dir * (len * k / cnt) + perp * ((FrameHash(seed * 31 + i * 17 + k) - 0.5f) * 9f);
                         for (int k = 0; k < cnt; k++)
-                            FrameLine(pts[k], pts[k + 1], 2.2f, new Color(0.35f, 0.55f, 1f, 0.22f));
+                            FrameLine(pts[k], pts[k + 1], 1.2f, new Color(0.35f, 0.55f, 1f, 0.16f));
                         for (int k = 0; k < cnt; k++)
-                            FrameLine(pts[k], pts[k + 1], 0.7f, new Color(0.92f, 0.96f, 1f, 0.95f));
+                            FrameLine(pts[k], pts[k + 1], 0.45f, new Color(0.92f, 0.96f, 1f, 0.95f));
                     }
                     foreach (var c in corners)
                     {
-                        FrameDot(c.x, c.y, 7f, new Color(0.47f, 0.67f, 1f, 0.3f));
-                        FrameDot(c.x, c.y, 3.4f, new Color(0.82f, 0.9f, 1f, 0.95f));
+                        FrameDot(c.x, c.y, 4.5f, new Color(0.47f, 0.67f, 1f, 0.22f));
+                        FrameDot(c.x, c.y, 2.2f, new Color(0.82f, 0.9f, 1f, 0.95f));
                     }
                     break;
                 }
@@ -157,8 +157,8 @@ namespace Arena
                     {
                         float x = r.x + 30f + FrameHash(i * 7 + 2) * (w - 60f), life = (t * 0.16f + FrameHash(i + 8)) % 1f;
                         float grow = Mathf.Min(1f, life / 0.6f), len = 12f * (1f - (1f - grow) * (1f - grow));
-                        Ui.Fill(new Rect(x - 1.3f, r.yMax, 2.6f, len), new Color(0.75f, 0.06f, 0.18f, 0.95f));
-                        FrameDot(x, r.yMax + len + 0.5f, 2.5f, new Color(0.84f, 0.12f, 0.24f, 0.95f));
+                        Ui.Fill(new Rect(x - 1f, r.yMax, 2f, len), new Color(0.75f, 0.06f, 0.18f, 0.95f));
+                        FrameDot(x, r.yMax + len + 0.5f, 2f, new Color(0.84f, 0.12f, 0.24f, 0.95f));
                         if (life > 0.6f)
                         {
                             float f = (life - 0.6f) / 0.4f;
@@ -178,7 +178,7 @@ namespace Arena
                         var steel = new Color(0.78f, 0.83f, 0.9f, 0.7f + 0.3f * shine);
                         bool horizontal = n.y != 0f;
                         if (i % 2 == 0)
-                            FrameOutlineRect(horizontal ? new Rect(p.x - 6f, p.y - 3f, 12f, 6f) : new Rect(p.x - 3f, p.y - 6f, 6f, 12f), 1.3f, steel);
+                            FrameOutlineRect(horizontal ? new Rect(p.x - 5f, p.y - 2.5f, 10f, 5f) : new Rect(p.x - 2.5f, p.y - 5f, 5f, 10f), 1f, steel);
                         else
                         {
                             var q = horizontal ? new Rect(p.x - 3f, p.y - 2f, 6f, 4f) : new Rect(p.x - 2f, p.y - 3f, 4f, 6f);

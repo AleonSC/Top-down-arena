@@ -177,6 +177,15 @@ namespace Arena
             return false;
         }
 
+        /// A random spot in the arena (m in from the edge) clear of walls and pillars by `pad`, for a wandering enemy.
+        V2 WanderSpot(float m, float pad)
+        {
+            V2 at = RandomInArena(m);
+            for (int i = 0; i < 12 && NearSolid(at, pad); i++)
+                at = RandomInArena(m);
+            return at;
+        }
+
         // --- Where enemies come in ------------------------------------------------------------------
 
         /// A regular enemy's spawn spot (m: how far in from the edge). With the edge gated it's a spot along one of
@@ -264,6 +273,7 @@ namespace Arena
             public int Wp = -1;
             public float Until;
             public LayoutDef Def;  // the floor plan Wp indexes into: a new layout means a fresh start
+            public V2 Goal;        // where it was heading when it chose Wp: a goal far from that means a fresh choice
         }
 
         readonly Dictionary<int, SteerMem> steerMem = new Dictionary<int, SteerMem>();
@@ -403,6 +413,33 @@ namespace Arena
             return info;
         }
 
+        const float SteerGoalSlack = 60f;  // a remembered corner holds while the goal stays this close to where it was
+
+        /// The way a walking enemy heads for a spot of its own choosing (a formation place, a herding spot, another
+        /// enemy): round walls (`LayoutDir`) and crates (`PropDir`) like a chase. Bosses go straight. Zero when it's there.
+        V2 RouteTo(Enemy e, V2 goal)
+        {
+            V2 to = goal - e.Pos;
+            float len = to.Length;
+            if (len < 0.01f)
+                return V2.Zero;
+            V2 dir = to / len;
+            if (e.Def.IsBoss)
+                return dir;
+            if (LayoutOn)
+                dir = LayoutDir(e, goal, dir);
+            if (IsHost && Props.Count > 0)
+                dir = PropDir(e, dir);
+            return dir;
+        }
+
+        /// `RouteTo` keeping the length of a goal-seeking velocity (formations slow down as they near their place).
+        V2 RouteVel(Enemy e, V2 goal, V2 v)
+        {
+            float len = v.Length;
+            return len < 0.0001f ? v : RouteTo(e, goal) * len;
+        }
+
         /// Which way a walking enemy heads for its target: straight at it, or, with a wall in the way, along the
         /// shortest route through the wall corners (as many as it takes). It sticks to the corner it chose for a
         /// moment so it doesn't dither.
@@ -422,11 +459,12 @@ namespace Arena
                 steerMem[e.Id] = m = new SteerMem();
             }
             var wps = d.Waypoints;
-            if (m.Def != d || m.Wp >= wps.Length)
+            if (m.Def != d || m.Wp >= wps.Length || m.Goal.DistanceTo(tpos) > SteerGoalSlack)
             {
                 m.Def = d;
                 m.Wp = -1;
             }
+            m.Goal = tpos;
             if (m.Wp >= 0 && e.T < m.Until && e.Pos.DistanceTo(wps[m.Wp]) > 14f && !SegBlocked(d, e.Pos, wps[m.Wp], r))
                 return (wps[m.Wp] - e.Pos).Normalized();
             var goal = GoalCosts(d, tpos, r);

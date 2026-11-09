@@ -210,6 +210,23 @@ static partial class Program
         brute.Hp = 0f;
         Quiet();
 
+        // The Warden's own (Riot Shield, Guard, Rioter) head for spots of their own choosing; they route round walls too.
+        foreach (var wt in new[] { EnemyType.RiotShield, EnemyType.Guard, EnemyType.Rioter })
+        {
+            var we = (Enemy)spawnEnemyAt.Invoke(g, new object[] { wt, new V2(500f, 255f), 0f, 0, false });
+            we.SpawnT = 0f; we.Hp = we.MaxHp = 99999f;
+            float wnear = 9999f;
+            for (int i = 0; i < 2400 && wnear > 50f; i++)
+            {
+                moveEnemy.Invoke(g, new object[] { we, goal, dt });
+                we.T += dt;
+                wnear = Math.Min(wnear, we.Pos.DistanceTo(goal));
+            }
+            Check(wnear <= 50f, "a " + wt + " walks round a wall to get at you (got within " + (int)wnear + " px)");
+            we.Hp = 0f;
+            Quiet();
+        }
+
         // Routing: across every floor plan, enemies find a way between far-apart spots even when it takes several corners.
         {
             var rng = new Random(7);
@@ -247,6 +264,36 @@ static partial class Program
                 }
             }
             Check(reached >= tried - 2, "enemies route round walls on every floor plan (" + reached + " of " + tried + " trips made it)");
+        }
+
+        // A Spinner wanders between random spots: on every floor plan it picks spots clear of the walls and gets to them.
+        {
+            int legs = 0, spotsMade = 0;
+            foreach (var ld in Layouts.Playable())
+            {
+                g.DevSetLayout(ld.Id);
+                g.Props.Clear();
+                var sp = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Spinner, new V2(Game.Width / 2f, 120f), 0f, 0, false });
+                sp.SpawnT = 0f; sp.Hp = sp.MaxHp = 99999f;
+                sp.Pos = g.PushOutOfSolids(sp.Pos, sp.Radius);
+                V2 wp = sp.Waypoint;
+                for (int i = 0; i < (int)(240f / dt); i++)
+                {
+                    V2 was = sp.Pos;
+                    moveEnemy.Invoke(g, new object[] { sp, new V2(Game.Width / 2f, Game.Height / 2f), dt });
+                    sp.T += dt;
+                    if (sp.Waypoint.DistanceTo(wp) > 0.01f)
+                    {
+                        legs++;
+                        if (wp.DistanceTo(was) < 30f)
+                            spotsMade++;
+                        wp = sp.Waypoint;
+                    }
+                }
+                sp.Hp = 0f;
+                Quiet();
+            }
+            Check(legs >= 60 && spotsMade >= legs - 3, "a Spinner wanders round the walls on every floor plan (" + spotsMade + " of " + legs + " spots reached)");
         }
 
         // The cover of a new cycle, and random props staying out of the walls.
