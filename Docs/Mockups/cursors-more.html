@@ -1,0 +1,215 @@
+<title>More Cursors</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: header, rank slider, live arena to try the cursor, then a grid of cursor cards (locked ones greyed). Matches the game's dark teal/amber mockup look. */
+:root{--bg:#0a0d10;--panel:#11161b;--panel2:#161d24;--line:#242d36;--fg:#e7eef3;--muted:#92a1ad;--soft:#cfdae2;--teal:#4de0bd;--amber:#ffb547;
+--fd:"Oxanium","Segoe UI",system-ui,sans-serif;--fb:"Barlow","Segoe UI",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.55 var(--fb);margin:0;
+ padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:30px}
+h1,h2,h3{font-family:var(--fd);margin:0}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+h2{font-size:20px;font-weight:700;letter-spacing:.04em}
+p{margin:0;max-width:72ch;color:var(--soft)}
+.eyebrow{font:600 11px var(--fd);letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+header{display:grid;gap:10px}
+.ctl-unused{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ctl label{font:600 12px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ctl input[type=range]{flex:1 1 220px;min-width:0;accent-color:var(--teal)}
+.rankout{font:700 18px var(--fd);min-width:7.5em;display:flex;align-items:center;gap:10px;font-variant-numeric:tabular-nums}
+.badge{width:26px;height:28px;clip-path:polygon(0 0,100% 0,100% 70%,50% 100%,0 70%);display:grid;place-items:center;font:800 13px var(--fd);color:#0a0d10}
+.tier{font:600 12px var(--fd);letter-spacing:.12em;text-transform:uppercase}
+.arena{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.arena canvas{display:block;width:100%;height:clamp(260px,42vw,400px);cursor:none;touch-action:none}
+.hint{position:absolute;left:12px;top:10px;font:600 11px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);pointer-events:none;
+ background:#0a0d10b3;padding:4px 8px;border-radius:4px}
+.cur-label{position:absolute;right:12px;top:10px;font:600 11px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);pointer-events:none;
+ background:#0a0d10b3;padding:4px 8px;border-radius:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.card{all:unset;box-sizing:border-box;display:grid;gap:6px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 10px 12px;cursor:pointer;
+ transition:border-color .15s,background .15s}
+.card:hover{border-color:#3a4a58;background:var(--panel2)}
+.card:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.card[aria-pressed=true]{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal) inset}
+.card[aria-disabled=true]{cursor:not-allowed}
+.card[aria-disabled=true]:hover{border-color:var(--line);background:var(--panel)}
+.pv{position:relative;border-radius:6px;overflow:hidden;background:#0c1116;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:16px 16px}
+.pv canvas{display:block;width:100%;height:104px}
+.locked .pv canvas{filter:grayscale(1) brightness(.5)}
+.lock{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:5px;background:#0a0d10cc;display:none;place-items:center}
+.locked .lock{display:grid}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.name{font:700 15px var(--fd);letter-spacing:.03em}
+.rk{font:600 11px var(--fd);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.desc{font-size:13px;line-height:1.4;color:var(--muted);min-height:2.8em}
+.state{font:700 11px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card[aria-pressed=true] .state{color:var(--teal)}
+.card:not(.locked):not([aria-pressed=true]) .state{color:var(--amber)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:4px;min-width:0}
+.note h3{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.note p{font-size:14px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+<header>
+ <div class="eyebrow">Mockup · Cosmetics · Rank rewards</div>
+ <h1>More Cursors</h1>
+ <p>Eight new ideas for the crosshair you aim with, to sit beside the ten cursors the ladder has today. Move the pointer over the practice arena to try one (the cursor follows you, click or hold to fire; with the pointer outside it plays itself). Pick any card to put it in the arena. All eight keep a clear centre point and stay under about 40 px wide, and each swells or snaps when you fire.</p>
+</header>
+
+<section style="display:grid;gap:10px">
+ <div class="arena">
+  <canvas id="arena" aria-label="Practice arena. Move the pointer to aim, press to fire."></canvas>
+  <div class="hint">Move to aim · click or hold to fire</div>
+  <div class="cur-label" id="curlabel">Radar Sweep</div>
+ </div>
+</section>
+
+<section style="display:grid;gap:12px">
+ <h2>Cursor collection</h2>
+ <div class="grid" id="grid"></div>
+</section>
+
+<section style="display:grid;gap:12px">
+ <h2>Design notes</h2>
+ <div class="notes">
+  <div class="note"><h3>Always readable</h3><p>Every cursor keeps a clear centre point and sits between about 20 and 40 px wide, so none hides enemies or bullets. Laser Dot is the smallest and Target Lock the busiest.</p></div>
+  <div class="note"><h3>Rank ladder</h3><p>Ranks are not chosen yet. Every rank from 2 to 79 already has a reward, so new cursors would go above 79 or share a rank with something existing.</p></div>
+  <div class="note"><h3>Visual effects off</h3><p>With Visual effects off, the animated ones (radar beam, sonar rings, chevron breathing, pixel colours, petal turn, target spin) fall back to a still version of the same shape and colour. In the game each also gets a small Corner pointer for menus, like the existing ten.</p></div>
+ </div>
+</section>
+</div>
+
+<script>
+(function(){
+var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function rnd(n){var x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x);}
+function line(c,x1,y1,x2,y2){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();}
+function circ(c,x,y,r){c.beginPath();c.arc(x,y,r,0,Math.PI*2);}
+function dot(c,x,y,r,col){c.fillStyle=col;circ(c,x,y,r);c.fill();}
+function star(c,x,y,r,col){c.fillStyle=col;c.beginPath();
+ for(var i=0;i<8;i++){var a=i*Math.PI/4,rr=i%2?r*0.25:r;c.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}c.closePath();c.fill();}
+
+/* Each draw(c,x,y,t,f,h): c context, x/y cursor, t time ms, f fire 0..1, h position history (oldest first) */
+var CURSORS=[
+{id:'radar',name:'Radar Sweep',tag:'Arena',rank:1,desc:'A green scope ring with a beam sweeping round it and two contacts that light as it passes.',
+ draw:function(c,x,y,t,f){var r=12+f*5,a=t*0.004,TAU=Math.PI*2;c.strokeStyle='#6bff9a';c.lineWidth=1.6;circ(c,x,y,r);c.stroke();c.globalAlpha=0.4;circ(c,x,y,r*0.5);c.stroke();
+  for(var k=0;k<10;k++){c.globalAlpha=0.35*(1-k/10);c.fillStyle='#6bff9a';c.beginPath();c.moveTo(x,y);c.arc(x,y,r,a-(k+1)*0.09,a-k*0.09);c.closePath();c.fill();}
+  c.globalAlpha=1;c.strokeStyle='#c8ffe0';c.lineWidth=1.6;line(c,x,y,x+Math.cos(a)*r,y+Math.sin(a)*r);
+  for(var i=0;i<2;i++){var an=rnd(i+3)*TAU,rd=r*(0.4+0.5*rnd(i+8)),since=(((a-an)%TAU)+TAU)%TAU;c.globalAlpha=Math.max(0,1-since/4);dot(c,x+Math.cos(an)*rd,y+Math.sin(an)*rd,2,'#e8fff0');}
+  c.globalAlpha=1;dot(c,x,y,1.6,'#c8ffe0');}},
+{id:'sniper',name:'Sniper Scope',tag:'Precise',rank:1,desc:'A thin scope ring with hairlines that stop short of the centre, mil-dot ticks and a red dot. Tightens when you fire.',
+ draw:function(c,x,y,t,f){var r=16-f*3;c.strokeStyle='#e7eef3';c.lineWidth=1.2+f*0.8;circ(c,x,y,r);c.stroke();
+  line(c,x-r-8,y,x-4,y);line(c,x+4,y,x+r+8,y);line(c,x,y-r-8,x,y-4);line(c,x,y+4,x,y+r+8);
+  for(var i=1;i<=2;i++){var o=4+i*4;dot(c,x-o,y,0.9,'#e7eef3');dot(c,x+o,y,0.9,'#e7eef3');dot(c,x,y-o,0.9,'#e7eef3');dot(c,x,y+o,0.9,'#e7eef3');}
+  c.shadowColor='#ff2a2a';c.shadowBlur=8;dot(c,x,y,1.8,'#ff4d4d');c.shadowBlur=0;}},
+{id:'chevron',name:'Chevron Snap',tag:'Bold',rank:1,desc:'Four magenta chevrons that point at the centre and breathe in and out, snapping tight when you fire.',
+ draw:function(c,x,y,t,f){var d=10+3*Math.sin(t/300)-f*5;c.strokeStyle='#ff6bd6';c.lineWidth=2.2;c.lineCap='round';c.lineJoin='round';
+  for(var k=0;k<4;k++){c.save();c.translate(x,y);c.rotate(k*Math.PI/2);c.beginPath();c.moveTo(d+6,-5);c.lineTo(d,0);c.lineTo(d+6,5);c.stroke();c.restore();}
+  dot(c,x,y,1.8,'#ffe0f6');}},
+{id:'sonar',name:'Sonar Ping',tag:'Calm',rank:1,desc:'A bright dot that sends out soft rings, one after another, each fading as it grows. Firing makes them wider.',
+ draw:function(c,x,y,t,f){c.lineWidth=1.6;for(var i=0;i<3;i++){var ph=((t/1400)+i/3)%1;c.globalAlpha=(1-ph)*0.8;c.strokeStyle='#7fe8ff';circ(c,x,y,3+ph*(20+f*6));c.stroke();}
+  c.globalAlpha=1;c.shadowColor='#7fe8ff';c.shadowBlur=8;dot(c,x,y,2.4,'#e8fbff');c.shadowBlur=0;}},
+{id:'pixel',name:'Pixel Plus',tag:'Retro',rank:1,desc:'A plus made of chunky 3 px squares in four colours that cycle round the arms. Arms grow a square when you fire.',
+ draw:function(c,x,y,t,f){var u=3,PAL=['#ff4d6d','#ffd166','#06d6a0','#4cc9f0'],n1=2,n2=4+Math.round(f*2),st=Math.floor(t/150);
+  function sq(px,py,col){c.fillStyle='#05070b';c.fillRect(px-u/2-1,py-u/2-1,u+2,u+2);c.fillStyle=col;c.fillRect(px-u/2,py-u/2,u,u);}
+  for(var n=n1;n<=n2;n++){var o=n*u;sq(x-o,y,PAL[(st+n)%4]);sq(x+o,y,PAL[(st+n+1)%4]);sq(x,y-o,PAL[(st+n+2)%4]);sq(x,y+o,PAL[(st+n+3)%4]);}
+  sq(x,y,'#ffffff');}},
+{id:'petal',name:'Petal Ring',tag:'Soft',rank:1,desc:'Five pink petals turning slowly round the centre. They open outward when you fire.',
+ draw:function(c,x,y,t,f){var R=9+f*5,a0=t*0.0015;for(var k=0;k<5;k++){var a=a0+k*Math.PI*2/5,px=x+Math.cos(a)*R,py=y+Math.sin(a)*R;c.fillStyle='rgba(255,159,196,.92)';c.strokeStyle='#fff0f6';c.lineWidth=1;c.beginPath();c.ellipse(px,py,5,2.7,a,0,Math.PI*2);c.fill();c.stroke();}
+  dot(c,x,y,2,'#fff0f6');}},
+{id:'laser',name:'Laser Dot',tag:'Minimal',rank:1,desc:'Just a small red dot with a soft bloom and a tiny wobble. The least cursor here, for people who want to see the arena.',
+ draw:function(c,x,y,t,f){var w=Math.sin(t/90)*0.35,g=c.createRadialGradient(x,y,0,x,y,9+f*6);g.addColorStop(0,'rgba(255,60,60,.55)');g.addColorStop(1,'rgba(255,60,60,0)');c.fillStyle=g;circ(c,x,y,9+f*6);c.fill();
+  c.shadowColor='#ff2a2a';c.shadowBlur=12;dot(c,x+w,y-w,2.3+f*1.2,'#ff5a5a');c.shadowBlur=0;dot(c,x+w,y-w,0.9,'#ffe0e0');}},
+{id:'lock',name:'Target Lock',tag:'Tactical',rank:1,desc:'Three orange triangles circling a dashed red ring, like a lock-on. The triangles close in when you fire.',
+ draw:function(c,x,y,t,f){var R=15-f*4;c.strokeStyle='#ff5d5d';c.lineWidth=1.3;c.setLineDash([3,4]);c.lineDashOffset=-t/40;circ(c,x,y,9);c.stroke();c.setLineDash([]);c.lineDashOffset=0;
+  for(var k=0;k<3;k++){var a=t*0.002+k*Math.PI*2/3;c.save();c.translate(x+Math.cos(a)*R,y+Math.sin(a)*R);c.rotate(a+Math.PI);c.fillStyle='#ff8a3d';c.beginPath();c.moveTo(5,0);c.lineTo(-4,-4.2);c.lineTo(-4,4.2);c.closePath();c.fill();c.restore();}
+  dot(c,x,y,1.8,'#ffd9a0');}}
+];
+
+
+var TIERS=[[1,'Recruit','#8fa3b5'],[5,'Challenger','#5aa2ff'],[10,'Veteran','#4de0bd'],[20,'Champion','#a77bff'],[30,'Legend','#ffc94d']];
+function tierOf(r){var t=TIERS[0];TIERS.forEach(function(x){if(r>=x[0])t=x;});return t;}
+
+var rank=99,equipped='radar';
+var el=function(id){return document.getElementById(id);};
+
+/* canvas sizing */
+function fit(cv,w,h){var d=Math.min(window.devicePixelRatio||1,3);cv.width=Math.round(w*d);cv.height=Math.round(h*d);var c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);return c;}
+
+/* cards */
+var grid=el('grid'),cards=[];
+CURSORS.forEach(function(cu){
+ var b=document.createElement('button');b.className='card';b.type='button';
+ b.innerHTML='<div class="pv"><canvas></canvas><div class="lock"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#cfdae2" stroke-width="1.5"><rect x="2" y="5.5" width="8" height="5.5" rx="1"/><path d="M4 5.5V4a2 2 0 0 1 4 0v1.5"/></svg></div></div>'+
+ '<div class="row"><span class="name"></span><span class="rk"></span></div><div class="desc"></div><div class="state"></div>';
+ b.querySelector('.name').textContent=cu.name;b.querySelector('.desc').textContent=cu.desc;
+ b.addEventListener('click',function(){if(rank>=cu.rank){equipped=cu.id;refresh();}});
+ grid.appendChild(b);cards.push({cu:cu,btn:b,cv:b.querySelector('canvas'),ctx:null,w:0,h:0});
+});
+function sizeCards(){cards.forEach(function(k){var r=k.cv.getBoundingClientRect();k.w=r.width||180;k.h=104;k.ctx=fit(k.cv,k.w,k.h);});}
+
+function refresh(){
+ var cur=CURSORS.filter(function(c){return c.id===equipped;})[0];
+ 
+ el('curlabel').textContent=cur.name;
+ cards.forEach(function(k){var ok=rank>=k.cu.rank,on=k.cu.id===equipped;
+  k.btn.classList.toggle('locked',!ok);k.btn.setAttribute('aria-pressed',on?'true':'false');k.btn.setAttribute('aria-disabled',ok?'false':'true');
+  var rk=k.btn.querySelector('.rk'),tt=tierOf(k.cu.rank);rk.textContent=k.cu.tag;rk.style.color='#4de0bd';
+  k.btn.querySelector('.state').textContent=on?'Equipped':ok?'Equip':'Locked';});
+}
+
+/* arena */
+var ac=el('arena'),actx,aw=0,ah=0;
+function sizeArena(){var r=ac.getBoundingClientRect();aw=r.width;ah=r.height;actx=fit(ac,aw,ah);}
+var mouse={x:0,y:0,inside:false},down=false,lastShot=-9999,bullets=[],hist=[],lastBullet=0;
+function pos(e){var r=ac.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;}
+ac.addEventListener('pointermove',function(e){pos(e);mouse.inside=true;});
+ac.addEventListener('pointerenter',function(e){pos(e);mouse.inside=true;});
+ac.addEventListener('pointerleave',function(){mouse.inside=false;down=false;});
+ac.addEventListener('pointerdown',function(e){pos(e);mouse.inside=true;down=true;try{ac.setPointerCapture(e.pointerId);}catch(_){}});
+ac.addEventListener('pointerup',function(){down=false;});
+ac.addEventListener('pointercancel',function(){down=false;});
+
+function shoot(now,cx,cy,tx,ty){lastShot=now;var a=Math.atan2(ty-cy,tx-cx);bullets.push({x:cx+Math.cos(a)*14,y:cy+Math.sin(a)*14,vx:Math.cos(a)*0.7,vy:Math.sin(a)*0.7,born:now});}
+
+function frame(now){
+ var T=reduce?1000:now;
+ /* cards */
+ cards.forEach(function(k){if(!k.ctx)return;var c=k.ctx,cx=k.w/2,cy=k.h/2;c.clearRect(0,0,k.w,k.h);
+  function P(tt){return {x:cx+Math.sin(tt/700)*26,y:cy+Math.sin(tt/450+1)*14,t:tt};}
+  var h=[];if(!reduce)for(var i=40;i>=1;i--)h.push(P(T-i*45));
+  var p=P(T),f=reduce?0:Math.max(0,1-((T%2200)/260));
+  c.save();k.cu.draw(c,p.x,p.y,T,f,h);c.restore();});
+ /* arena */
+ if(actx){var c=actx,cx=aw/2,cy=ah/2,x,y,auto=!mouse.inside;
+  if(auto){x=cx+aw*0.3*Math.sin(now/1300);y=cy+ah*0.3*Math.sin(now/900+1);if(!reduce&&now-lastShot>700)shoot(now,cx,cy,x,y);}
+  else{x=mouse.x;y=mouse.y;if(down&&now-lastBullet>120){lastBullet=now;shoot(now,cx,cy,x,y);}}
+  hist.push({x:x,y:y,t:now});while(hist.length&&now-hist[0].t>2500)hist.shift();
+  c.clearRect(0,0,aw,ah);c.fillStyle='#0c1116';c.fillRect(0,0,aw,ah);
+  c.strokeStyle='#ffffff0a';c.lineWidth=1;c.beginPath();for(var gx=0;gx<aw;gx+=40){c.moveTo(gx+.5,0);c.lineTo(gx+.5,ah);}for(var gy=0;gy<ah;gy+=40){c.moveTo(0,gy+.5);c.lineTo(aw,gy+.5);}c.stroke();
+  c.strokeStyle='#242d36';c.lineWidth=2;c.strokeRect(1,1,aw-2,ah-2);
+  /* enemies */
+  for(var e=0;e<7;e++){var ex=cx+Math.cos(now/2600*(e%2?1:-1)+e*0.9)*(aw*0.2+e*aw*0.04),ey=cy+Math.sin(now/2100*(e%2?-1:1)+e*1.3)*(ah*0.18+e*ah*0.03);
+   dot(c,ex,ey,9,'#ff5d5d');dot(c,ex,ey,4,'#7a1f1f');}
+  /* bullets */
+  bullets=bullets.filter(function(b){return now-b.born<1100;});
+  bullets.forEach(function(b){var dt=16;b.x+=b.vx*dt;b.y+=b.vy*dt;dot(c,b.x,b.y,3,'#ffb547');});
+  /* aim line */
+  c.setLineDash([4,6]);c.strokeStyle='#4de0bd44';c.lineWidth=1;line(c,cx,cy,x,y);c.setLineDash([]);
+  /* player */
+  var a=Math.atan2(y-cy,x-cx);c.strokeStyle='#4de0bd';c.lineWidth=4;line(c,cx,cy,cx+Math.cos(a)*18,cy+Math.sin(a)*18);dot(c,cx,cy,11,'#4de0bd');dot(c,cx,cy,5,'#0a3a30');
+  /* cursor */
+  var cur=CURSORS.filter(function(q){return q.id===equipped;})[0],f=Math.max(0,1-(now-lastShot)/240);
+  c.save();cur.draw(c,x,y,reduce?1000:now,reduce?0:f,hist);c.restore();}
+ requestAnimationFrame(frame);
+}
+
+function init(){sizeCards();sizeArena();refresh();}
+var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(init,100);});
+init();requestAnimationFrame(frame);
+})();
+</script>
