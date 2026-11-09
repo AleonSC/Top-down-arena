@@ -145,6 +145,12 @@ namespace Arena
             int dashes = Mathf.Max(6, (int)(MathX.Tau * R / 12f));
             for (int i = 0; i < dashes; i++)
                 Arc(land, R, 1.5f, FragOrange.WithAlpha(0.28f), 2, MathX.Tau * i / dashes, MathX.Tau / dashes * 0.5f);
+            DrawRocketNade(b, t);  // Rocket assist: nose first, with its flame (TwinNadeLook.cs)
+        }
+
+        /// The old tumbling grenade (unused since Rocket assist; kept for a look that wants it).
+        void DrawTumblingNade(Bullet b, float t)
+        {
             float rot = t * 9f;
             Circle(b.Pos, b.Radius * 0.9f, NadeOlive, 12);
             V2 band = V2.FromAngle(rot) * b.Radius * 0.9f;

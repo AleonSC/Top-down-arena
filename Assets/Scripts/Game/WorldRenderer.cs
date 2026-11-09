@@ -121,6 +121,8 @@ namespace Arena
                     DrawBoulderCharge(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
                     DrawArcCharge(p, p.Id == game.MyId, t);
+                else if (p.Weapon.Id == WeaponId.ClotBolt && p.DrawT > 0f && !p.Downed)
+                    DrawClotCharge(p, p.Id == game.MyId, t);  // ClotCannonLook.cs
 
             if (aimDebug && game.Me != null)
             {
@@ -177,6 +179,7 @@ namespace Arena
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
+            DrawClotStains(t);       // the Clot Cannon's drops on the floor (ClotCannonLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
@@ -217,6 +220,7 @@ namespace Arena
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
             DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests, Misericorde's daggers (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
+            DrawClotAir(t);      // the Clot Cannon's drops falling (ClotCannonLook.cs)
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
             {

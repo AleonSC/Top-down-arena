@@ -20,12 +20,14 @@
 # PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
 # KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
+# NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
 # CAST="Poison Dart" DARTKILL=<s> (its target dies that long after the cast, so the poison spreads; CASTT after it shows the globs).
+# CLOT=<draw s> (the Clot Cannon charging, clots in flight, a wet pool and a congealed one; mode hud).
 # NINJA=n / BLOOD=n (everyone plays that class, with weapon n), CAST="Blood Wall" (cast an ability; CASTT=<seconds after>).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e

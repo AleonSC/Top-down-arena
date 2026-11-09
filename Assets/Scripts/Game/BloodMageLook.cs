@@ -383,11 +383,8 @@ namespace Arena
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             switch (b.Kind)
             {
-                case Defs.ClotShot:  // a lumpy dark clot
-                    Circle(b.Pos, b.Radius + 3f, c.WithAlpha(0.3f), 12);
-                    Circle(b.Pos, b.Radius, c, 12);
-                    Circle(b.Pos + side * 3f - dir * 2f, b.Radius * 0.6f, c, 10);
-                    Circle(b.Pos + dir * 2f - side * 2f, b.Radius * 0.35f, BloodRed, 8);
+                case Defs.ClotShot:  // the Clot Cannon's clot, lobbed over its shadow (ClotCannonLook.cs)
+                    DrawClotLob(b, t);
                     break;
                 case Defs.LeechShot:  // a streak of the beam
                     Line(b.Pos - dir * 14f, b.Pos + dir * 4f, 5f, c.WithAlpha(0.3f));
@@ -415,30 +412,6 @@ namespace Arena
                     break;
             }
             return true;
-        }
-
-        /// The Blood Mage's zone: a Clot Bolt's glossy pool.
-        void DrawBloodZone(Zone z, Rgba c, float t)
-        {
-            // BloodPool
-            {
-                float fade = MathX.Clamp01(z.T / 0.5f);  // dries up at the end
-                Circle(z.Pos, z.Radius * 0.85f, c.WithAlpha(0.2f * fade), 32);
-                for (int k = 0; k < 5; k++)
-                    Circle(z.Pos + V2.FromAngle(k * 1.3f + z.Id) * (z.Radius * 0.6f), z.Radius * 0.3f, c.WithAlpha(0.12f * fade), 16);
-                if (z.Duration - z.T >= Game.PoolCongeal)  // congealed: a dark crust, cracked
-                {
-                    var crust = new Rgba(0.3f, 0.02f, 0.06f, 0.75f * fade);
-                    Arc(z.Pos, z.Radius * 0.85f, 3f, crust, 32);
-                    for (int k = 0; k < 4; k++)
-                    {
-                        V2 d0 = V2.FromAngle(k * 1.6f + z.Id);
-                        Line(z.Pos + d0 * (z.Radius * 0.2f), z.Pos + d0.Rotated(0.3f) * (z.Radius * 0.7f), 1.5f, crust);
-                    }
-                }
-                else
-                    Circle(z.Pos + new V2(-z.Radius * 0.3f, -z.Radius * 0.3f), z.Radius * 0.15f, new Rgba(1f, 0.6f, 0.6f, 0.25f), 10);  // still wet: a glint
-            }
         }
     }
 }

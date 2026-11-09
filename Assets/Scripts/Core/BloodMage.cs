@@ -8,8 +8,14 @@ namespace Arena
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;
-        public const float PoolCongeal = 1f, PoolStuck = 1f, PoolGuard = 0.15f;  // a Clot Bolt's pool congeals after this long, sticking enemies in it; its owner takes less inside  // (each weapon's main reach, speed and damage are in Defs)
+        // The Clot Cannon (WeaponId.ClotBolt kept): hold to charge, let go to lob a clot over enemies. The charge sets only
+        // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
+        // slows enemies and congeals after PoolCongeal, sticking the enemies in it for PoolStuck (not bosses).
+        public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f;
+        public static float ClotDistance(float c) => ClotMin + (ClotMax - ClotMin) * c;
+        public static float ClotFlight(float c) => 0.45f + 0.3f * c;
+        public static float ClotApex(float c) => 50f + 110f * c;  // how high it flies (drawing only)
+        public const float PoolCongeal = 1f, PoolStuck = 1f;  // (each weapon's main reach, speed and damage are in Defs)
         const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
@@ -63,12 +69,18 @@ namespace Arena
                 }
                 case WeaponId.ClotBolt:
                 {
+                    // The Clot Cannon: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
+                    // the damage doesn't change with the charge. Extra projectiles fan more clots out to the same distance.
+                    float c = BowCharge(p, p.BowShotDraw), flight = ClotFlight(c);
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
-                        var b = SpawnBullet(Defs.ClotShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.2f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        V2 vel = V2.FromAngle(Fanned(aim, i, n, ClotFan)) * (ClotDistance(c) / flight);  // SpawnBullet adds Velocity Rounds, which send it farther
+                        var b = SpawnBullet(Defs.ClotShot, p.Pos, vel, 0f, flight, w.Damage * dmg, p.Id);
+                        b.Splash = ClotSplash * AreaMult(p);
                         b.Pool = ClotPoolRadius * AreaMult(p);
                         b.PoolTime = ClotPoolTime;
+                        b.Burst = 1;  // marks it as landing (MoveBullets)
                     }
                     break;
                 }
@@ -424,9 +436,6 @@ namespace Arena
                     }
                     break;
                 }
-                case Defs.ClotShot:
-                    AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
-                    break;
                 case Defs.BloodShot:
                     if (p.Weapon.Id == WeaponId.BloodBolts)
                         Hemorrhage(p, e, b.Dmg);
@@ -562,7 +571,24 @@ namespace Arena
                     Zones.Remove(id);
         }
 
-        /// A Clot Bolt's pool sets: enemies still in it are stuck for a moment (not bosses).
+        /// A Clot Cannon's clot landed: it splashes every enemy under it (weapon mods apply to each, as on a melee hit)
+        /// and spreads a pool of blood.
+        void LandClot(Bullet b)
+        {
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                {
+                    HurtEnemy(e, b.Dmg, b.Owner);
+                    OnBulletHit(b, e);
+                }
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
+            Player p;
+            if (Players.TryGetValue(b.Owner, out p))
+                AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
+            BroadcastFx(FxKind.Ring, b.Pos, Defs.BulletColor(Defs.ClotShot), b.Splash * 1.4f, 0.32f, Sfx.Explode);
+        }
+
+        /// A Clot Cannon's pool sets: enemies still in it are stuck for a moment (not bosses).
         void CongealPool(Zone z)
         {
             z.Congealed = true;
@@ -693,9 +719,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
                 Desc = "A whip of blood. Its tip cracks for double damage and taunts, and enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
-            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
-                Desc = "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it. After a moment the pool congeals and holds enemies still. You take less damage standing in your own pool.",
-                Sound = Sfx.SpellArcane, AreaDesc = "blood pools 25% wider" },
+            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 clot, fanned out", Name = "Clot Cannon", FireInterval = 0.75f,
+                Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. It bursts into a big pool of blood that slows enemies, and after a moment the pool congeals and holds them still.",
+                Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils that grasp nearby enemies while you hold on. They are stunned and drained, and part of the damage heals you.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },

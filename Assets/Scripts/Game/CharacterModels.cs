@@ -150,7 +150,7 @@ namespace Arena
             float dKick;
             DpsGunPose(p, out dKick);  // the Twin Rifle, Railgun and Burst SMG kick, charge and spin (DpsGunLooks.cs)
             gKick += dKick;
-            rhx -= gKick; lhx -= gKick + gPump * wk;
+            rhx -= gKick + mNadeKick1; lhx -= gKick + gPump * wk + mNadeKick0;  // (a grenade launch kicks only its own gun, TwinNadeLook.cs)
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             bool ownArms = LookDrawsArms(p);
             if (!ownArms)
@@ -159,7 +159,7 @@ namespace Arena
                 ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
             }
             float twist = mDpsOn && p.Weapon.Id == WeaponId.TwinRifle ? 0.12f : 0f;  // the Twin Rifle's guns angle in toward where the streams cross
-            MFrame(rhx, rhy, -twist, wk, false);
+            MFrame(rhx, rhy, -twist + mNadeClimb1, wk, false);  // (the climb turns each gun outward)
             float keepA = mAlpha;
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
@@ -167,7 +167,7 @@ namespace Arena
                 mHeldTube = 1;  // (the right hand's Twin Rifle carries the right grenade tube, DpsGunLooks.cs)
                 mHeldOwner = p;
                 DrawHeld(p, t, hold);
-                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
+                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist - mNadeClimb0, wk, true); DrawHeld(p, t, hold); }
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);

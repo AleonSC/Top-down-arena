@@ -496,6 +496,26 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
+    // right, the arena otherwise empty). NADELOAD=<s>: instead, the left tube loading that long ago (its breech and shell).
+    if (Environment.GetEnvironmentVariable("NADET") != null || Environment.GetEnvironmentVariable("NADELOAD") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      bool load = Environment.GetEnvironmentVariable("NADELOAD") != null;
+      me.TwinNades = (byte)(load ? 0 : 2); me.TwinNext = 0;
+      V2 aimAt = home + new V2(320f, 0f);
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos; me.Aim = 0f; draw.Invoke(app, null); };
+      for (int f = 0; f < 6; f++) frame();
+      if (load) me.TwinNades = 1;
+      else typeof(Game).GetMethod("HostTwinGrenade", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, aimAt });
+      float at = float.Parse(Environment.GetEnvironmentVariable(load ? "NADELOAD" : "NADET"), ci);
+      for (int f = 0; f < Math.Round(at * 60f); f++) { if (load) me.TwinNades = 1; frame(); }
+      GL.Tris.Clear(); GUI.Log.Clear();  // (only the mode's own draw goes in the picture)
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /
     // 0.3 s, aiming right, the arena otherwise empty (for comparing shot looks with Docs/Mockups/projectiles.html).
     if (Environment.GetEnvironmentVariable("SHOTW") != null) {
@@ -880,6 +900,32 @@ static partial class Shot {
       {
         var b = (Bullet)sbb.Invoke(host.Game, new object[] { Defs.BoulderShot, new V2(560f + 110f * k, 300f), new V2(500f, 0f), 0f, 0.7f, 40f, 1, false, 0f });
         b.Life = 0.7f * (0.8f - 0.3f * k);
+      }
+    }
+    if (Environment.GetEnvironmentVariable("CLOT") != null) {
+      // The Clot Cannon: charging (CLOT=<draw seconds>, with the arc and the landing outline), two clots in flight,
+      // a pool still wet and one congealed with an enemy stuck in it.
+      var sbc2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var addZone = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
+      var gm = host.Game; gm.Bot = false;
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.ClotBolt); me.Kit = Kit.Hemomancer;
+      me.Pos = me.Disp = new V2(380f, 520f); me.Aim = -0.2f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("CLOT"), System.Globalization.CultureInfo.InvariantCulture);
+      for (int k = 0; k < 2; k++)
+      {
+        float c = k == 0 ? 1f : 0.4f, fl = Game.ClotFlight(c);
+        var b = (Bullet)sbc2.Invoke(gm, new object[] { Defs.ClotShot, new V2(520f + 260f * k, 300f - 60f * k), new V2(500f, -60f), 0f, fl, 34f, 1, false, 0f });
+        b.Life = fl * (k == 0 ? 0.55f : 0.3f);
+      }
+      var en = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values);
+      V2[] at = { new V2(1020f, 470f), new V2(1080f, 540f), new V2(700f, 700f), new V2(760f, 650f) };
+      for (int k = 0; k < en.Count && k < at.Length; k++) { en[k].Pos = en[k].Disp = at[k]; en[k].FrozenT = k < 2 ? 0.6f : 0f; }
+      V2[] poolAt = { new V2(1040f, 500f), new V2(720f, 680f) };
+      float[] poolAge = { 1.6f, 0.5f };
+      for (int k = 0; k < 2; k++)
+      {
+        float age = poolAge[k];
+        var z = (Zone)addZone.Invoke(gm, new object[] { ZoneKind.BloodPool, me, poolAt[k], Game.ClotPoolRadius, Game.ClotPoolTime });
+        z.T = z.Duration - age; z.Congealed = age >= Game.PoolCongeal;
       }
     }
     if (Environment.GetEnvironmentVariable("CAGE") != null) {
