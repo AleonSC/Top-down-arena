@@ -177,6 +177,15 @@ namespace Arena
             return false;
         }
 
+        /// A random spot in the arena (m in from the edge) clear of walls and pillars by `pad`, for a wandering enemy.
+        V2 WanderSpot(float m, float pad)
+        {
+            V2 at = RandomInArena(m);
+            for (int i = 0; i < 12 && NearSolid(at, pad); i++)
+                at = RandomInArena(m);
+            return at;
+        }
+
         // --- Where enemies come in ------------------------------------------------------------------
 
         /// A regular enemy's spawn spot (m: how far in from the edge). With the edge gated it's a spot along one of
