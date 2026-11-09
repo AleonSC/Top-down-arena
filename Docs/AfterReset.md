@@ -376,6 +376,10 @@ So friends can play without Tailscale or port forwarding.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
 
 ## Bigger features (design docs ready)
+- [ ] **Rooms: a hub with side rooms on every regular wave (design only, nothing built).** [`Rooms.md`](Rooms.md). Fewer
+      threats near you at once so enemy damage can go up and dodging matters again. Decided: rooms on every regular wave
+      (boss waves stay in the hub), nests that spill into the hub, players can split up, a small reward for each cleared
+      room. Next: a mockup of the map and the camera, then phase 0 (run-log sample fields for enemy distance).
 - [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs
