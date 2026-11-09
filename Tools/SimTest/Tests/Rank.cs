@@ -18,7 +18,7 @@ static partial class Program
         Check(r2.Rank == 1 && r2.Into == 199 && r3.Rank == 2 && r3.Into == 0 && r3.Need == 400, "200 XP is exactly rank 2");
         Check(Rank.Of(Rank.XpAt(8) + 115).Rank == 8 && Rank.Of(Rank.XpAt(8) + 115).Into == 115 && Rank.Of(Rank.XpAt(8)).Need == 1600, "rank 8 is 1,600 XP long (200 a rank), with 115 into it");
         Check(Rank.Of(-50).Rank == 1 && Rank.Of(long.MaxValue / 4).Rank == Rank.MaxRank, "negative XP is rank 1 and rank stops at the cap");
-        Check(Rank.Title(5) == "Recruit" && Rank.Title(6) == "Challenger" && Rank.Title(11) == "Veteran" && Rank.Title(21) == "Champion" && Rank.Title(31) == "Legend" && Rank.Tier(99) == 4, "tiers start at 6, 11, 21 and 31");
+        Check(Rank.Title(9) == "Recruit" && Rank.Title(10) == "Challenger" && Rank.Title(20) == "Veteran" && Rank.Title(30) == "Champion" && Rank.Title(40) == "Legend" && Rank.Tier(99) == 4, "tiers start at 10, 20, 30 and 40");
 
         // Cosmetics: owned from their rank, one frame number each.
         Check(!Rank.Owns(8, "trail-ember") && Rank.Owns(9, "trail-ember") && !Rank.Owns(99, "nonsense") && Rank.Owns(31, "frame-gold"), "a cosmetic is yours from its rank, and unknown ids never are");
@@ -49,7 +49,7 @@ static partial class Program
         // The profile: XP, rank-ups and what they unlock, equipping, and saving it.
         var p = new Profile();
         var g1 = p.AwardXp(Rank.Award(false, 10, 2, 1, RunMod.None, DifficultyLevel.Normal), 11, 0);
-        Check(p.Xp == 540 && g1.Before == 0 && g1.After == 540 && g1.RankBefore == 1 && g1.RankAfter == 2 && g1.RankedUp && p.RankNow == 2 && g1.Unlocked.Count == 2, "540 XP takes a new profile to rank 2, which unlocks the Wave and Thumbs up emotes");
+        Check(p.Xp == 540 && g1.Before == 0 && g1.After == 540 && g1.RankBefore == 1 && g1.RankAfter == 2 && g1.RankedUp && p.RankNow == 2 && g1.Unlocked.Count == 1, "540 XP takes a new profile to rank 2, which unlocks the Wave emote");
         p.Xp = Rank.XpAt(8) + 900;
         var g2 = p.AwardXp(Rank.Award(false, 10, 2, 1, RunMod.ToughCrowd | RunMod.Nightfall, DifficultyLevel.Normal), 11, 0);
         Check(g2.RankBefore == 8 && g2.RankAfter == 9 && g2.Unlocked.Count == 1 && g2.Unlocked[0].Id == "trail-ember" && Rank.Of(p.Xp).Into == 110, "rank 8 + 810 XP is rank 9, which unlocks the Ember trail");
@@ -108,11 +108,11 @@ static partial class Program
               && Rank.RewardsAt(26).Exists(rc => rc.Id == "bg-react-ripples"), "reactive menu backgrounds are Background cosmetics (ids bg-react-...), Ripples unlocking at rank 26");
         Check(Rank.Owns(29, "bg-react-bootlog") && !Rank.Owns(28, "bg-react-bootlog") && Rank.Owns(40, "bg-react-rocks") && !Rank.Owns(39, "bg-react-rocks") && Rank.Owns(44, "bg-react-life") && !Rank.Owns(43, "bg-react-life")
               && Rank.IsReactiveBackground("bg-react-bootlog") && Rank.IsReactiveBackground("bg-react-rocks") && Rank.IsReactiveBackground("bg-react-life"), "Boot Log (29), Vector Rocks (40) and Life Grid (44) are reactive menu backgrounds");
-        Check(Rank.Owns(48, "bg-react-pond") && !Rank.Owns(47, "bg-react-pond") && Rank.Owns(50, "bg-react-tunnel") && !Rank.Owns(49, "bg-react-tunnel") && Rank.Owns(54, "bg-react-signal") && !Rank.Owns(53, "bg-react-signal")
-              && Rank.IsReactiveBackground("bg-react-pond") && Rank.IsReactiveBackground("bg-react-tunnel") && Rank.IsReactiveBackground("bg-react-signal"), "Phosphor Pond (48), Vector Tunnel (50) and Signal Lost (54) are reactive menu backgrounds");
+        Check(Rank.Owns(48, "bg-react-pond") && !Rank.Owns(47, "bg-react-pond") && Rank.Owns(50, "bg-react-tunnel") && !Rank.Owns(49, "bg-react-tunnel") && Rank.Owns(53, "bg-react-signal") && !Rank.Owns(52, "bg-react-signal")
+              && Rank.IsReactiveBackground("bg-react-pond") && Rank.IsReactiveBackground("bg-react-tunnel") && Rank.IsReactiveBackground("bg-react-signal"), "Phosphor Pond (48), Vector Tunnel (50) and Signal Lost (53) are reactive menu backgrounds");
         // Card backgrounds: ten of them, numbered in rank order, shared through the lobby like frames and trails.
-        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 10 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "" && Rank.Owns(56, "card-prism") && !Rank.Owns(55, "card-prism") && Rank.RewardsAt(7)[0].Id == "card-dusk",
-            "ten card backgrounds, Dusk Grid at rank 7 to Prism Shards at 56, numbered for the lobby");
+        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 10 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "" && Rank.Owns(54, "card-prism") && !Rank.Owns(53, "card-prism") && Rank.RewardsAt(7)[0].Id == "card-dusk",
+            "ten card backgrounds, Dusk Grid at rank 7 to Prism Shards at 54, numbered for the lobby");
         cp.Xp = Rank.XpAt(31); hp.Xp = Rank.XpAt(31);
         Check(cp.Equip(CosmeticKind.CardBackground, "card-rain") == false && cp.Equip(CosmeticKind.CardBackground, "card-circuit") && cp.CardBg == "card-circuit" && !cp.Equip(CosmeticKind.Frame, "card-dusk") && cp.Equipped(CosmeticKind.CardBackground) == "card-circuit", "you equip the card backgrounds your rank has, and only in their slot");
         hp.Equip(CosmeticKind.CardBackground, "card-dusk");
@@ -125,7 +125,7 @@ static partial class Program
         Check(entry(host, cid).CardBg == 0, "a card background the rank doesn't have is dropped by the host");
         // Name effects: twelve, numbered in rank order, shared through the lobby; the host drops one the rank doesn't have.
         Check(Rank.OfKind(CosmeticKind.NameEffect).Count == 12 && Rank.NameFxIndex("name-outline") == 1 && Rank.NameFxIndex("name-glitchy") == 8 && Rank.NameFxId(12) == "name-rainbow" && Rank.NameFxId(13) == "" && Rank.Owns(37, "name-glitchy") && !Rank.Owns(36, "name-glitchy") && Rank.RewardsAt(37).Exists(rw => rw.Id == "name-glitchy"),
-            "twelve name effects, Steel Outline at rank 5 to Rainbow at 57, with Glitchy at 37");
+            "twelve name effects, Steel Outline at rank 5 to Rainbow at 55, with Glitchy at 37");
         cp.Xp = Rank.XpAt(41); hp.Xp = Rank.XpAt(41);
         Check(cp.Equip(CosmeticKind.NameEffect, "name-glitchy") && cp.NameFx == "name-glitchy" && !cp.Equip(CosmeticKind.NameEffect, "name-gold") && !cp.Equip(CosmeticKind.Frame, "name-fire") && cp.Equipped(CosmeticKind.NameEffect) == "name-glitchy", "you equip the name effects your rank has, and only in their slot");
         hp.Equip(CosmeticKind.NameEffect, "name-outline");
@@ -151,7 +151,7 @@ static partial class Program
         cp.Xp = Rank.XpAt(30);
         // Emotes: thirteen, on the bar (nothing to equip); a player sends one, the host checks rank and pause, everyone sees it.
         Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(2, "emote-wave") && !Rank.Owns(25, "emote-spin") && Rank.Owns(26, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",
-            "thirteen emotes from rank 2 to 53, numbered in order, and nothing to equip");
+            "thirteen emotes from rank 2 to 52, numbered in order, and nothing to equip");
         cp.Xp = Rank.XpAt(30);
         client.ShareCosmetics();
         PollBoth(host, client);

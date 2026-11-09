@@ -105,7 +105,7 @@ Placeholder ladder, from the mockup:
 
 > The numbers in the bullets below are from before the ladder moved up one rank (nothing unlocks at rank 1 any more; the first rewards are at rank 2). Add 1 to each, or read `Rank.Cosmetics` in `Core/Rank.cs`.
 
-- **Title**: the line under your name on the menu chip, the lobby hover card and Records.
+- **Title**: Challenger 10, Veteran 20, Champion 30, Legend 40 (every 10 ranks); the line under your name on the menu chip, the lobby hover card and Records.
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).
 - **Frame**: the border of your lobby party card (and your results card).
 - **Card background**: the fill of your lobby party card, behind your name (`Game/CardBackgrounds.cs`; mockup `Docs/Mockups/card-backgrounds.html`). Ten, from rank 6 to 55. Everyone in the lobby sees it (`LobbyEntry.CardBg`, protocol 140).

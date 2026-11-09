@@ -129,7 +129,7 @@ namespace Arena
             }
         }
 
-        static readonly int[] TierStarts = { 1, 6, 11, 21, 31 };
+        static readonly int[] TierStarts = { 1, 10, 20, 30, 40 };
 
         void DrawRankTiers(Profile p)
         {

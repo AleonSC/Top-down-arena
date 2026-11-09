@@ -85,7 +85,7 @@ namespace Arena
 
         // --- Tiers: a title, a colour and a number of chevrons each ----------------------------------
 
-        public static int Tier(int rank) => rank >= 31 ? 4 : rank >= 21 ? 3 : rank >= 11 ? 2 : rank >= 6 ? 1 : 0;
+        public static int Tier(int rank) => rank >= 40 ? 4 : rank >= 30 ? 3 : rank >= 20 ? 2 : rank >= 10 ? 1 : 0;
         public static readonly string[] TierNames = { "Recruit", "Challenger", "Veteran", "Champion", "Legend" };
         public static string Title(int rank) => TierNames[Tier(rank)];
         public static readonly Rgba[] TierColors =
@@ -109,7 +109,7 @@ namespace Arena
             new CosmeticDef { Id = "bg-react-life", Name = "Life Grid", Kind = CosmeticKind.Background, Rank = 44 },  // Conway's Life in phosphor, seeded where you go
             new CosmeticDef { Id = "bg-react-pond", Name = "Phosphor Pond", Kind = CosmeticKind.Background, Rank = 48 },  // a dot grid that ripples where you go and click
             new CosmeticDef { Id = "bg-react-tunnel", Name = "Vector Tunnel", Kind = CosmeticKind.Background, Rank = 50 },  // neon gates rushing past, steered by the pointer
-            new CosmeticDef { Id = "bg-react-signal", Name = "Signal Lost", Kind = CosmeticKind.Background, Rank = 54 },  // a test card that tears at the pointer and rolls on a click
+            new CosmeticDef { Id = "bg-react-signal", Name = "Signal Lost", Kind = CosmeticKind.Background, Rank = 53 },  // a test card that tears at the pointer and rolls on a click
             new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 21 },
             new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 19 },
             new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 25 },
@@ -129,9 +129,9 @@ namespace Arena
             new CosmeticDef { Id = "card-rain", Name = "Rain on Glass card", Kind = CosmeticKind.CardBackground, Rank = 33 },
             new CosmeticDef { Id = "card-void", Name = "Void Rift card", Kind = CosmeticKind.CardBackground, Rank = 38 },
             new CosmeticDef { Id = "card-foil", Name = "Gilded Foil card", Kind = CosmeticKind.CardBackground, Rank = 43 },
-            new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 56 },
+            new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 54 },
             new CosmeticDef { Id = "emote-wave", Name = "Wave emote", Kind = CosmeticKind.Emote, Rank = 2 },
-            new CosmeticDef { Id = "emote-thumbs", Name = "Thumbs up emote", Kind = CosmeticKind.Emote, Rank = 2 },
+            new CosmeticDef { Id = "emote-thumbs", Name = "Thumbs up emote", Kind = CosmeticKind.Emote, Rank = 3 },
             new CosmeticDef { Id = "emote-gg", Name = "GG emote", Kind = CosmeticKind.Emote, Rank = 4 },
             new CosmeticDef { Id = "emote-cheer", Name = "Cheer emote", Kind = CosmeticKind.Emote, Rank = 8 },
             new CosmeticDef { Id = "emote-heart", Name = "Heart emote", Kind = CosmeticKind.Emote, Rank = 11 },
@@ -142,7 +142,7 @@ namespace Arena
             new CosmeticDef { Id = "emote-spin", Name = "Spin emote", Kind = CosmeticKind.Emote, Rank = 26 },
             new CosmeticDef { Id = "emote-salute", Name = "Salute emote", Kind = CosmeticKind.Emote, Rank = 32 },
             new CosmeticDef { Id = "emote-fireworks", Name = "Fireworks emote", Kind = CosmeticKind.Emote, Rank = 42 },
-            new CosmeticDef { Id = "emote-steam", Name = "Steam emote", Kind = CosmeticKind.Emote, Rank = 53 },
+            new CosmeticDef { Id = "emote-steam", Name = "Steam emote", Kind = CosmeticKind.Emote, Rank = 52 },
             new CosmeticDef { Id = "name-outline", Name = "Steel Outline name", Kind = CosmeticKind.NameEffect, Rank = 5 },
             new CosmeticDef { Id = "name-frost", Name = "Frost name", Kind = CosmeticKind.NameEffect, Rank = 12 },
             new CosmeticDef { Id = "name-ember", Name = "Ember name", Kind = CosmeticKind.NameEffect, Rank = 14 },
@@ -154,7 +154,7 @@ namespace Arena
             new CosmeticDef { Id = "name-fire", Name = "Fire name", Kind = CosmeticKind.NameEffect, Rank = 39 },
             new CosmeticDef { Id = "name-gold", Name = "Gold Foil name", Kind = CosmeticKind.NameEffect, Rank = 45 },
             new CosmeticDef { Id = "name-void", Name = "Void name", Kind = CosmeticKind.NameEffect, Rank = 49 },
-            new CosmeticDef { Id = "name-rainbow", Name = "Rainbow name", Kind = CosmeticKind.NameEffect, Rank = 57 },
+            new CosmeticDef { Id = "name-rainbow", Name = "Rainbow name", Kind = CosmeticKind.NameEffect, Rank = 55 },
             new CosmeticDef { Id = "aim-dotted", Name = "Dotted Tracer aim line", Kind = CosmeticKind.AimLine, Rank = 6 },
             new CosmeticDef { Id = "aim-chevron", Name = "Chevron Flow aim line", Kind = CosmeticKind.AimLine, Rank = 12 },
             new CosmeticDef { Id = "aim-ruler", Name = "Ruler aim line", Kind = CosmeticKind.AimLine, Rank = 15 },
