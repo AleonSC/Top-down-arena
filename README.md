@@ -766,13 +766,34 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
 - **The camera follows you.** It stays inside the part of the world you're in, so at 1x in the hub you see the whole
   hub exactly as before; step through a door and it slides to the room or hallway. Arrows at the edge of the screen
   point at enemies and teammates you can't see (at any zoom). The scroll-wheel zoom works as usual.
-- **Enemies come in out in the rooms and hallways** and make their way to you through the doors (they steer through
-  doorways and round every wall). The F1 "Bot plays for you" bot walks through doors too.
+- **Nests.** Each side room has a **nest** (a Nest with three times the health). The wave's enemies come in by the
+  nests, a few at a time (5 to a room early on, up to 12 later and with more players), and **guard their room**: they
+  stay round the nest, without shooting, until someone comes in. Kill a nest and its room stops filling up; once both
+  nests are down **the rest of the wave is called off**, so killing them fast means fewer enemies.
+- **Spills.** While its nest lives, a room sends out a squad of fast **Runners** (3 or more) every 22 s (down to 11 s
+  late in the run), through one of its doors: into the hub or a hallway, picked at random each time. That door
+  flashes amber for 2 s before. Spilled runners hunt you anywhere. Once a nest is down, what's left in its room comes
+  for you too.
+- **Doors lock behind you.** Step into a room while its nest lives and you can't leave through its doors (dodges and
+  dashes included) until the nest dies. Doors lock one way: teammates can always come in. A locked door shows a solid
+  bar. Hallways and the hub never lock.
+- **Clearing a room** (its nest and everything it kept): its doors turn teal, two big health orbs drop by the nest,
+  and everyone gets some XP. A regular wave ends when the nests are down and nothing is left (the vault aside).
+- **The vault**: one regular wave in each stretch of ten opens a small gold room off the top hallway with **The
+  Gatekeeper** in it (his Data Gate duel moved here: in the Rooms arena he's never in a Data Gate). He stays in the
+  vault, and the vault locks behind you until he falls. Beat him and everyone gets a **prize pick** (rare or better,
+  sometimes a legendary), as from his old Data Gate. It's optional: the wave ends without him (he goes with it), and
+  the rooms keep spilling while you're in there. His boss bar shows once you're at the vault.
+- **The minimap** (top right): the hub, rooms (red once seen, teal once cleared), hallways and the vault, the doors
+  with a ring filling up to each room's next spill, enemies (spilled runners orange, nests green, the vault's
+  Gatekeeper big and orange), the players, and the box your screen shows.
+- Enemies make their way through the doors and round every wall. The F1 "Bot plays for you" bot walks through doors
+  too.
 - Data Gates open in the hub. The rooms aren't used with **Tiny Arena** or on the **Narrow Pass** path (they wall the
   hub in themselves), in Boss Hunts, the Practice Range or the Showcase.
 
-Coming next (phase 2): nests in the rooms that spill fast runners into the hub, doors that lock behind you while a
-nest lives, a reward for each cleared room, the minimap, and the vault (one wave in ten, holding the Gatekeeper).
+Coming next (phase 3): tuning (room caps, spill timing), then harder-hitting enemies and less player health in the Rooms
+arena only, so dodging matters. Classic stays as it is.
 
 ## Data Gates
 
@@ -789,7 +810,7 @@ with an objective plate at the top of the screen:
 | Challenge | Goal |
 |---|---|
 | **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Its enemies are mostly melee (Swarmers, Spikers, Lungers, Brutes; about 1 in 7 is a Grunt or Sniper), so it's about cutting off the bodies rushing it: two in three go for it (their hits and shots wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
-| **The Gatekeeper** | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has 65% of the Warden's health at your wave. |
+| **The Gatekeeper** (Classic arena only; in the Rooms arena he's in the vault) | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has 65% of the Warden's health at your wave. |
 | **Kill Rush** | Kill 40 enemies in 40 s (+14 for each extra player). Weak enemies (half health) pour in from every side. |
 | **Hold the Zones** | Stand in each of three zones in turn until it fills (8 s; half as fast with an enemy in it, and it drains slowly if you leave) within 60 s. Half the enemies crowd the zone. |
 | **Mirror Match** | A shadow of each player: their class and weapon in dark violet. Each hunts its own player, keeps the distance their weapon wants, sidesteps every few seconds and fires their way (a fan as wide as their extra shots, or a slash up close). Each has 20% of the health a Warden would have against one player alone, however many of you are playing (each of you fights your own). |

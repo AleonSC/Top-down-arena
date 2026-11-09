@@ -34,17 +34,21 @@ static partial class Program
         }
         Check(tiled, "the hub, the two rooms and the two hallways fill the whole world (no gaps)");
         var withRooms = Rooms.With(LayoutId.Open);
-        bool doorsOpen = Rooms.Doors.All(d => withRooms.Solids.All(sd => !Layouts.Inside(sd, d.Pos, 30f) && !Layouts.Inside(sd, d.Pos + d.Across * Rooms.DoorPad, 20f) && !Layouts.Inside(sd, d.Pos - d.Across * Rooms.DoorPad, 20f)));
+        bool doorsOpen = Rooms.Doors.Where((d, i) => Rooms.DoorUp(i, false)).All(d => withRooms.Solids.All(sd => !Layouts.Inside(sd, d.Pos, 30f) && !Layouts.Inside(sd, d.Pos + d.Across * Rooms.DoorPad, 20f) && !Layouts.Inside(sd, d.Pos - d.Across * Rooms.DoorPad, 20f)));
         Check(doorsOpen, "every doorway is open, with room to stand either side");
         bool wallsOk = true;
         foreach (var ld in new[] { LayoutId.Open }.Concat(Layouts.Playable().Select(x => x.Id)))
+        foreach (bool vaultUp in new[] { false, true })
         {
-            var d = Rooms.With(ld);
+            var d = Rooms.With(ld, vaultUp);
             wallsOk &= d.Waypoints.All(p => d.Solids.All(sd => !Layouts.Inside(sd, p, 18f)));
             wallsOk &= d.Solids.All(sd => !sd.Edge) && d.EnemyGates.Length == 0 && d.PlayerGates.Length == 0;
-            wallsOk &= Rooms.Doors.All(dr => d.Waypoints.Any(w => w.DistanceTo(dr.Pos + dr.Across * Rooms.DoorPad) < 1f) && d.Waypoints.Any(w => w.DistanceTo(dr.Pos - dr.Across * Rooms.DoorPad) < 1f));
+            wallsOk &= Rooms.Doors.Where((dr, i) => Rooms.DoorUp(i, vaultUp)).All(dr => d.Waypoints.Any(w => w.DistanceTo(dr.Pos + dr.Across * Rooms.DoorPad) < 1f) && d.Waypoints.Any(w => w.DistanceTo(dr.Pos - dr.Across * Rooms.DoorPad) < 1f));
         }
-        Check(wallsOk, "with every floor plan in the hub: steering spots clear of the walls, no edge gates, a spot each side of every door");
+        Check(wallsOk, "with every floor plan in the hub, with and without the vault: steering spots clear of the walls, no edge gates, a spot each side of every door");
+        var vaultWalls = Rooms.With(LayoutId.Open, true);
+        var vd = Rooms.Doors[Rooms.Doors.Length - 1];
+        Check(vaultWalls.Solids.All(sd => !Layouts.Inside(sd, vd.Pos, 30f)) && withRooms.Solids.Any(sd => Layouts.Inside(sd, vd.Pos, 0f)), "the vault's door is open on a vault wave and walled up otherwise");
         Check(Rooms.Cover.All(c => Rooms.Areas.Count(a => !a.Hub && a.Contains(c.Pos, -30f)) == 1), "the small obstacles stand inside the rooms and hallways");
 
         // The Arena setting: Classic by default on every preset, a flavour knob, kept by saves and the network.
@@ -109,15 +113,85 @@ static partial class Program
         });
         Check(wallMin > 0f && doorMin < -100f, "a wall stops a shot; a shot through the doorway flies on into the room (" + (int)wallMin + ", " + (int)doorMin + ")");
 
-        // Spawns: regular enemies come in out in the rooms and hallways, not in the hub.
-        var before = new HashSet<int>(g.Enemies.Keys);
-        for (int i = 0; i < 60; i++)
-            spawnEnemy.Invoke(g, new object[] { EnemyType.Grunt });
-        var made = g.Enemies.Values.Where(e => !before.Contains(e.Id)).ToList();
+        var startRooms = typeof(Game).GetMethod("StartRoomsWave", flags);
+        var spawnReady = typeof(Game).GetMethod("RoomsSpawnReady", flags);
+        var roomsHold = typeof(Game).GetMethod("RoomsHold", flags);
+        var movePlayer = typeof(Game).GetMethod("MovePlayer", flags);
+        var spawnQueue = (IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         var hub = Rooms.Areas[Rooms.Hub];
-        Check(made.Count == 60 && made.All(e => !hub.Contains(e.Pos)), "regular enemies come in out in the rooms and hallways (" + made.Count(e => hub.Contains(e.Pos)) + " of 60 in the hub)");
-        Check(new[] { Rooms.West, Rooms.East, Rooms.TopHall, Rooms.BottomHall }.All(a => made.Any(e => Rooms.AreaAt(e.Pos) == a)), "...in every room and hallway");
+        Func<RoomState> west = () => g.RoomStates.First(r => r.Area == Rooms.West), east = () => g.RoomStates.First(r => r.Area == Rooms.East);
         Quiet();
+        Run(s, dt, 0.3f);
+        g.Props.Clear();
+        foreach (var p in g.Players.Values) movePlayer.Invoke(g, new object[] { p, new V2(Game.Width / 2f, Game.Height / 2f) });
+
+        // Each room gets a nest (three times a Nest's health), its spill timer and a door for its first spill.
+        startRooms.Invoke(g, null);
+        var nests = g.Enemies.Values.Where(e => e.Type == EnemyType.Nest && e.Home >= 0).ToList();
+        float nestHp = (float)typeof(Game).GetMethod("SpawnHp").Invoke(g, new object[] { EnemyType.Nest, g.Wave });
+        bool doorsOk = g.RoomStates.All(r => r.NextDoor >= 0 && Rooms.Doors[r.NextDoor].Joins(r.Area) && !Rooms.Areas[Rooms.Doors[r.NextDoor].Other(r.Area)].Vault
+            && !Rooms.Doors[r.NextDoor].Joins(r.Area == Rooms.West ? Rooms.East : Rooms.West));
+        Check(nests.Count == 2 && nests.All(n => Rooms.AreaAt(n.Pos) == n.Home && Math.Abs(n.MaxHp - nestHp * Rooms.NestHpMult) < 1f)
+            && g.RoomStates.All(r => r.NestAlive && !r.Cleared && r.SpillT > 5f) && doorsOk,
+            "each room gets a nest (" + Rooms.NestHpMult + "x a Nest's health), a spill timer and a door out for its first spill");
+        Run(s, dt, 0.4f);
+        Check(cg.RoomStates.All(r => r.NestAlive && !r.Cleared && r.SpillT > 4f && r.NextDoor >= 0), "the client knows the nests, the spill timers and the doors");
+
+        // The wave's enemies come in by the nests, up to each room's cap, then wait.
+        int cap = Rooms.RoomCap(g.Wave, g.Players.Count), spawned = 0;
+        foreach (var r in g.RoomStates) r.SpillT = 999f;
+        while ((bool)spawnReady.Invoke(g, null) && spawned < 100)
+        {
+            spawnEnemy.Invoke(g, new object[] { EnemyType.Grunt });
+            spawned++;
+        }
+        var roomFoes = g.Enemies.Values.Where(e => e.Type != EnemyType.Nest && e.Home >= 0).ToList();
+        Check(spawned == cap * 2 && roomFoes.All(e => Rooms.AreaAt(e.Pos) == e.Home && (e.Home == Rooms.West || e.Home == Rooms.East)),
+            "the wave's enemies come in by the nests, in their rooms, " + cap + " to a room, then wait (" + spawned + " spawned)");
+        Check(!g.Enemies.Values.Any(e => hub.Contains(e.Pos)), "...none in the hub");
+
+        // Nobody in a room: its enemies stay and guard the nest (no shooting at nothing).
+        int shotsBefore = g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind));
+        Run(s, dt, 4f, null, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
+        Check(roomFoes.All(e => !g.Enemies.ContainsKey(e.Id) || Rooms.AreaAt(e.Pos) == e.Home), "with nobody in a room its enemies stay in it, round the nest");
+        Check(g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) <= shotsBefore + 2, "...and don't shoot at nothing");
+
+        // A spill: fast runners out through the chosen door, hunting.
+        int spillDoor = west().NextDoor;
+        west().SpillT = 0.05f;
+        Run(s, dt, 0.3f);
+        var runners = g.Enemies.Values.Where(e => e.Spilled && e.Type == EnemyType.Runner).ToList();
+        Check(runners.Count == Rooms.SpillSize(g.Wave, g.Players.Count) && runners.All(e => e.Pos.DistanceTo(Rooms.Doors[spillDoor].Pos) < 150f) && west().SpillT > 5f,
+            "a room spills " + runners.Count + " runners out through its door (" + Rooms.Areas[Rooms.Doors[spillDoor].Other(Rooms.West)].Name + "), and its timer starts again");
+        Run(s, dt, 3f, null, () => { foreach (var r in g.RoomStates) r.SpillT = Math.Max(r.SpillT, 50f); });
+        Check(runners.Any(e => !g.Enemies.ContainsKey(e.Id) || Rooms.AreaAt(e.Pos) != Rooms.West), "the runners come out of the room after you");
+        foreach (var e in runners) e.Hp = 0f;
+
+        // Doors lock behind you: in a room with its nest alive you can't step back out; you can always step in.
+        V2 inside = new V2(-30f, Game.Height / 2f), outDoor = new V2(30f, Game.Height / 2f);
+        V2 held2 = (V2)roomsHold.Invoke(g, new object[] { inside, outDoor, 14f });
+        V2 entered = (V2)roomsHold.Invoke(g, new object[] { outDoor, inside, 14f });
+        Check(g.AreaLocked(Rooms.West) && held2.X <= -14f + 0.01f && entered.DistanceTo(inside) < 0.01f, "a room's doors lock behind you while its nest lives (" + held2.X + "); stepping in is fine");
+        Check(!g.AreaLocked(Rooms.TopHall) && !g.AreaLocked(Rooms.Hub), "hallways and the hub never lock");
+
+        // Clearing a room: the nest and what it kept. Its doors open, two big health orbs and XP for everyone.
+        float xp0 = g.Players.Values.First().Xp;
+        int orbs0 = g.Orbs.Count;
+        foreach (var e in g.Enemies.Values) if (e.Home == Rooms.West) e.Hp = 0f;
+        Run(s, dt, 0.4f);
+        Check(west().Cleared && !west().NestAlive && !g.AreaLocked(Rooms.West) && g.Orbs.Count >= orbs0 + 2, "kill the nest and its room's enemies: the room is cleared, its doors open, two big health orbs drop");
+        Check(cg.RoomStates.First(r => r.Area == Rooms.West).Cleared, "...on the client too");
+        Check(g.Players.Values.First().Xp > xp0 || g.Players.Values.First().Level > 1, "...and everyone gets some XP");
+        Check(((V2)roomsHold.Invoke(g, new object[] { inside, outDoor, 14f })).DistanceTo(outDoor) < 0.01f, "a cleared room lets you out");
+
+        // With every nest down the rest of the wave's queue is called off.
+        foreach (var e in g.Enemies.Values) if (e.Home == Rooms.East && e.Type == EnemyType.Nest) e.Hp = 0f;
+        Run(s, dt, 0.3f);
+        spawnQueue.Add(EnemyType.Grunt); spawnQueue.Add(EnemyType.Grunt);
+        bool ready = (bool)spawnReady.Invoke(g, null);
+        Check(!ready && spawnQueue.Count == 0, "with every nest down, the rest of the wave is called off");
+        Quiet();
+        Run(s, dt, 0.3f);
 
         // The Data Gate opens in the hub.
         {
@@ -218,6 +292,87 @@ static partial class Program
         g.Mods &= ~RunMod.TinyArena;
         pickRooms.Invoke(g, null);
 
+        // The vault: one regular wave in each stretch of ten.
+        {
+            var fStretch = typeof(Game).GetField("vaultStretch", flags);
+            var fWave = typeof(Game).GetField("vaultWave", flags);
+            g.Mods &= ~RunMod.TinyArena;
+            fStretch.SetValue(g, -1);
+            var vaultWaves = new List<int>();
+            for (int w = 1; w <= 50; w++)
+            {
+                g.Wave = w;
+                pickRooms.Invoke(g, null);
+                if (g.VaultUp) vaultWaves.Add(w);
+            }
+            bool onePer = Enumerable.Range(0, 5).All(st => vaultWaves.Count(w => (w - 1) / 10 == st) == 1) && vaultWaves.All(w => w % 5 != 0);
+            Check(onePer, "one regular wave in each stretch of ten has the vault (" + string.Join(", ", vaultWaves) + ")");
+
+            // A vault wave: the world reaches up to it, its mini-boss is the Gatekeeper, and he stays in it.
+            Quiet();
+            foreach (var p in g.Players.Values) movePlayer.Invoke(g, new object[] { p, new V2(Game.Width / 2f, Game.Height / 2f) });
+            g.Wave = 7; fStretch.SetValue(g, 0); fWave.SetValue(g, 7);
+            pickRooms.Invoke(g, null);
+            startRooms.Invoke(g, null);
+            Run(s, dt, 0.4f);
+            var vault = Rooms.Areas[Rooms.Vault];
+            var keeper = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Gatekeeper);
+            Check(g.VaultOn && cg.VaultOn && g.ArenaMin.Y < -Rooms.HallH - Rooms.VaultH + 1f && cg.ArenaMin.DistanceTo(g.ArenaMin) < 0.01f && g.ActiveLayout.Waypoints.Any(w => vault.Contains(w)),
+                "a vault wave opens the vault off the top hallway (on both screens)");
+            Check(keeper != null && keeper.Home == Rooms.Vault && vault.Contains(keeper.Pos), "the Gatekeeper waits in the vault");
+            Run(s, dt, 5f, null, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
+            Check(keeper != null && vault.Contains(keeper.Pos, 10f), "...and stays there while nobody comes in");
+            Check(g.AreaLocked(Rooms.Vault), "the vault locks behind you while he lives");
+
+            // The vault is optional: clear the rooms and the wave ends without him (he goes with it).
+            foreach (var e in g.Enemies.Values) if (e.Type != EnemyType.Gatekeeper) e.Hp = 0f;
+            spawnQueue.Clear();
+            ((IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Clear();
+            g.State = MatchState.Fighting;
+            Run(s, dt, 3f, () => g.State == MatchState.Intermission, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
+            Check(g.State == MatchState.Intermission && !g.Enemies.Values.Any(e => e.Type == EnemyType.Gatekeeper), "the wave ends without the vault, and its mini-boss goes with the wave");
+
+            // Beat him: everyone gets a prize pick (rare or better), as from his old Data Gate.
+            g.State = MatchState.Fighting;
+            g.Wave = 8; fStretch.SetValue(g, 0); fWave.SetValue(g, 8);
+            pickRooms.Invoke(g, null);
+            startRooms.Invoke(g, null);
+            var picks0 = g.Players.Values.Select(p => p.PrizePicks).ToList();
+            Run(s, dt, 0.3f);
+            foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Gatekeeper) e.Hp = 0f;
+            Run(s, dt, 0.4f, null, () => { foreach (var p in g.Players.Values) { p.Offer = null; } });
+            Check(g.VaultCleared && cg.VaultCleared && g.Players.Values.Select(p => p.PrizePicks).Zip(picks0, (a2, b2) => a2 >= b2 + 1).All(x => x) || g.VaultCleared && g.Players.Values.All(p => p.OfferPrize),
+                "beating the vault's Gatekeeper gives everyone a prize pick");
+            Quiet();
+            Run(s, dt, 0.3f);
+            foreach (var p in g.Players.Values) { p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+        }
+
+        // The Gatekeeper's Data Gate: gone from the Rooms arena (he's in the vault), still there in Classic.
+        {
+            var maybe = typeof(Game).GetMethod("MaybeOpenPortal", flags);
+            var fBlock = typeof(Game).GetField("portalBlock", flags);
+            bool chOn = g.ChallengesOn;
+            g.ChallengesOn = true;
+            var kinds = new Dictionary<bool, HashSet<ChallengeKind>> { { true, new HashSet<ChallengeKind>() }, { false, new HashSet<ChallengeKind>() } };
+            foreach (bool roomsArena in new[] { true, false })
+            {
+                g.Diff.Set(DiffKnob.ArenaRooms, roomsArena ? 1f : 0f);
+                for (int i = 0; i < 80; i++)
+                {
+                    g.Room = RoomPhase.None;
+                    fBlock.SetValue(g, -1);
+                    g.Wave = 3;
+                    maybe.Invoke(g, null);
+                    if (g.Room == RoomPhase.Portal) kinds[roomsArena].Add(g.RoomKind);
+                }
+            }
+            g.Room = RoomPhase.None; g.RoomKind = ChallengeKind.None; g.ChallengesOn = chOn;
+            g.Diff.Set(DiffKnob.ArenaRooms, 1f);
+            Check(!kinds[true].Contains(ChallengeKind.MiniBoss) && kinds[true].Count == 4 && kinds[false].Contains(ChallengeKind.MiniBoss),
+                "the Rooms arena's Data Gates never hold the Gatekeeper (" + string.Join(", ", kinds[true]) + "); Classic's still do");
+        }
+
         // A whole regular wave with the rooms up: the enemies come for you through the doors and the wave ends.
         {
             g.Wave = 6;
@@ -232,7 +387,7 @@ static partial class Program
             Check(g.RoomsOn, "wave " + g.Wave + " starts with the rooms up");
             float worstSpread = 0f;
             int seenIn = 0;
-            Run(s, dt, 150f, () => g.Wave > startWave || g.State == MatchState.Intermission, () =>
+            Run(s, dt, 240f, () => g.Wave > startWave || g.State == MatchState.Intermission, () =>
             {
                 NoPicks();
                 foreach (var e in g.Enemies.Values)
@@ -242,7 +397,7 @@ static partial class Program
                 }
             });
             Console.WriteLine("  wave {0}: state {1}, enemies left {2}", g.Wave, g.State, g.Enemies.Count);
-            Check(seenIn > 0 && (g.State == MatchState.Intermission || g.Wave > startWave), "the enemies came into the hub through the doors and the wave was cleared");
+            Check(seenIn > 0 && (g.State == MatchState.Intermission || g.Wave > startWave), "smart bots clear a whole wave: into the rooms, the nests down, the spills dealt with");
         }
         host.Leave(""); client.Leave("");
     }

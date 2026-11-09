@@ -1096,7 +1096,7 @@ namespace Arena
             LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
             katanaFireHeld = firing;  // the Katana spends a full meter on a held fire (Katana.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
-            me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
+            me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
             me.FiringSeen = firing;
             me.AimAt = aimAt;
             if (IsHost)

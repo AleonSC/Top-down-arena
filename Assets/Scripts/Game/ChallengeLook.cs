@@ -531,7 +531,7 @@ namespace Arena
                 col = new Color(1f, 0.45f, 0.35f);
                 return "ENRAGED — faster, and it rings twice";
             }
-            return "DATA GATE MINI-BOSS";
+            return game.RoomsOn ? "VAULT MINI-BOSS · beat it for a prize pick" : "DATA GATE MINI-BOSS";
         }
     }
 }

@@ -129,6 +129,8 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Nest:
+                    if (e.Home >= 0)
+                        break;  // a room's nest in the Rooms arena keeps its room stocked from the wave instead (Rooms.cs)
                     if (e.PhaseT <= 0f)
                     {
                         e.PhaseT = 5f;

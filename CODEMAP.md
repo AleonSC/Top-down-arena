@@ -20,7 +20,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Challenges.cs`: challenge rooms (portal, crystal, gatekeeper, kill rush, altar)
 - `Paths.cs`: choose-your-path offers, path enemy mixes, hazards, arena rules
 - `Props.cs`: crates, pots, barrels, treasure chests; pushing crates and barrels (`ShoveProps`: Tank 70, Dps 50, Healer 34, enemy 3 px/s; `PropDir`: enemies path round them first)
-- `Rooms.cs`, `Game/RoomsLook.cs`: the Rooms arena (the Arena setting, Docs/Rooms.md): the Wings world (hub, side rooms, hallways, doors), its walls added to the cycle's floor plan (`Rooms.With`), `PickRooms`/`RoomsOn` (regular waves), `PullIntoHub` (boss waves); the floor and door look. Camera follow in `CameraZoom.cs`
+- `Rooms.cs`, `Game/RoomsLook.cs`: the Rooms arena (the Arena setting, Docs/Rooms.md): nests, spills, locked doors, room rewards, the vault (the Gatekeeper) and the minimap; the Wings world (hub, side rooms, hallways, doors), its walls added to the cycle's floor plan (`Rooms.With`), `PickRooms`/`RoomsOn` (regular waves), `PullIntoHub` (boss waves); the floor and door look. Camera follow in `CameraZoom.cs`
 - `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look (phosphor vector, Docs/Mockups/arena-layouts-digital.html)
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers

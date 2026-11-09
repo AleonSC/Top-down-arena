@@ -148,7 +148,7 @@ namespace Arena
             portalBlock = block;
             var pool = new List<ChallengeKind>();
             foreach (var c in Challenges.All)
-                if (c != lastRoom)
+                if (c != lastRoom && !(c == ChallengeKind.MiniBoss && RoomsArena))  // the Rooms arena: the Gatekeeper lives in the vault (Rooms.cs)
                     pool.Add(c);
             OpenPortal(pool[rng.Next(pool.Count)]);
         }

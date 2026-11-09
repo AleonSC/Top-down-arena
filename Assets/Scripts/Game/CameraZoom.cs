@@ -104,7 +104,7 @@ namespace Arena
 
         /// Where the rooms' camera looks: at you, held inside the area you're in (centred on it when it's smaller than
         /// the view), then inside the world.
-        static V2 RoomsFocus(V2 at, float zoom) => Rooms.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom));
+        V2 RoomsFocus(V2 at, float zoom) => Rooms.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn);
 
         /// An arena point through the zoom (arena units on the unzoomed screen). Only while CamZoomed.
         V2 ZoomPoint(V2 p) => (p - camFocus) * camZoom + new V2(AW / 2f, AH / 2f);

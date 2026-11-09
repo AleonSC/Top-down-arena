@@ -89,6 +89,7 @@ namespace Arena
         /// Host: squads still to arrive this wave (they come in turn with the single enemies of spawnQueue).
         readonly List<SquadDef> squadQueue = new List<SquadDef>();
         int nextSquadId = 1, singlesSinceSquad;
+        int spawnHome = -1;  // host: the Rooms arena's room the enemies being spawned now belong to (Rooms.cs; -1: none)
         /// Host, rebuilt each tick: each squad's living members, and the living Commanders.
         readonly Dictionary<int, List<Enemy>> squadMembers = new Dictionary<int, List<Enemy>>();
         readonly Dictionary<int, SquadForm> squadForms = new Dictionary<int, SquadForm>();  // host: each squad's form (by SquadId)
@@ -207,7 +208,9 @@ namespace Arena
             V2 basePos = at.HasValue ? ClampToArena(at.Value, 50f)
                 : side == 0 ? new V2(Rand(lo.X + 150f, hi.X - 150f), lo.Y) : side == 1 ? new V2(Rand(lo.X + 150f, hi.X - 150f), hi.Y)
                 : side == 2 ? new V2(lo.X, Rand(lo.Y + 120f, hi.Y - 120f)) : new V2(hi.X, Rand(lo.Y + 120f, hi.Y - 120f));
-            if (LayoutOn && !at.HasValue)
+            if (RoomsOn && !at.HasValue)
+                basePos = RoomSpawnSpot(60f, out spawnHome);  // by a room's nest (Rooms.cs); its members guard that room
+            else if (LayoutOn && !at.HasValue)
                 basePos = LayoutSquadBase();  // in front of an enemy gate (LayoutRules.cs)
             V2 fwd = (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();
             Player target = null;
@@ -218,7 +221,7 @@ namespace Arena
             {
                 var type = s.Members[i];
                 V2 pos;
-                if (s.Form == SquadForm.Around && target != null)
+                if (s.Form == SquadForm.Around && target != null && !RoomsOn)  // (the Rooms arena: they form up in their room)
                     pos = ClampToArena(target.Pos + V2.FromAngle(MathX.Tau * i / n + Rand(0f, 1f)) * 280f, 40f);
                 else if (s.Form == SquadForm.RiotLine)
                     pos = ClampToArena(basePos + across * ((RiotLineSlot(s, i) - (RiotLineCount(s, type) - 1) / 2f) * (type == EnemyType.RiotShield ? RiotLineGap : RiotGuardGap))
@@ -236,6 +239,7 @@ namespace Arena
                 e.SquadId = id;
                 e.SquadSlot = i;
             }
+            spawnHome = -1;
             squadForms[id] = s.Form;
             if (s.Form == SquadForm.RiotLine)
                 riotLines[id] = RiotLineCount(s, EnemyType.RiotShield);

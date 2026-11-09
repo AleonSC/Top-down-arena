@@ -200,7 +200,7 @@ namespace Arena
             float cy = Math.Max(View2xHalfH, Math.Min(Game.Height - View2xHalfH, pos.Y));
             if (g.RoomsOn)  // the Rooms arena's camera frames the room or hallway you're in (Rooms.cs)
             {
-                V2 c = Rooms.ViewCentre(pos, View2xHalfW, View2xHalfH);
+                V2 c = Rooms.ViewCentre(pos, View2xHalfW, View2xHalfH, g.VaultOn);
                 cx = c.X;
                 cy = c.Y;
             }

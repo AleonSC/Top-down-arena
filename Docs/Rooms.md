@@ -1,7 +1,7 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: phase 0 and phase 1 built (protocol 233): the Arena setting and the Wings world with its camera. Phase 2
-(nests, spills, locks, rewards, minimap, vault) is next.**
+**Status: phases 0, 1 and 2 built (protocol 234): the Arena setting, the Wings world and its camera, nests, spills,
+locked doors, room rewards, the minimap and the vault with the Gatekeeper. Phase 3 (tuning, then damage) is next.**
 Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,
 Cross, Annexes), hallways on or off (with the vault), a following camera at 1x / 1.5x / 2x, minimap or room strip, split
 up or stay together, a live sim.
@@ -214,6 +214,32 @@ Each client already draws its own screen, so every player's camera follows thems
      Frozen Lake, Fogbound) still only cover the hub; teleports and blinks can still cross a wall, as with layouts.
 2. **Nests, room spawning, fast-melee spills, doors that lock behind you, clear reward, the minimap.** The hub goes quiet
    except for spills. Then **the vault**: one wave in ten, the Gatekeeper moved out of the Data Gates into it.
+   **Built (protocol 234)**, as follows (all in `Rooms.cs` unless named; numbers in `Rooms`):
+   - **Nests**: `StartRoomsWave` (after `BuildWave`) puts a Nest (`NestHpMult` 3x health, `Enemy.Home` = its room, no
+     shards: `LateGame.cs`) at each room's `NestSpot`. `Enemy.Home`/`Spilled` are host-only; children inherit them.
+   - **Spawning**: the wave's queue (singles and squads, `Variety.cs`) only spawns while a room with a living nest is
+     under `RoomCap` (5 + wave/8 + 2 per extra player, max 12), at `RoomSpawnSpot` by that nest. With every nest down
+     `RoomsSpawnReady` clears the queue. The total still comes from `BuildWave`.
+   - **Guarding**: `RoomsLeash` (from `TickEnemies`) keeps a room's enemies orbiting their nest, not firing, while it
+     lives and nobody is in the room; a player inside is their target. Once the nest dies they hunt.
+   - **Spills**: `TickRoomsWave`: each room's `SpillT` (first after `FirstSpill` 18 s + 4 s per room, then
+     `SpillTime` 22 s down to 11 s) sends `SpillSize` Runners (3 + wave/15 + 1 per extra player), `Spilled`, out of
+     `NextDoor` (random each time: hub or hallway). Warning: the door flashes amber `SpillWarn` 2 s before.
+   - **Locks**: `AreaLocked` (a room while its nest lives, the vault while its mini-boss does); `RoomsHold` in your own
+     game's movement (`Game.cs`) keeps you in the area you were in. One way.
+   - **Clear**: nest dead and no unspilled `Home` enemies left → `ClearRoom`: two big orbs, `ClearXp` (30 + 3 a wave)
+     for everyone, teal doors.
+   - **Vault**: `VaultWaveFor` picks one regular wave per stretch of ten (from the stretch's 2nd wave). The world's
+     top grows by `VaultH` (`MinFor`, `WallsFor(true)`: the top wall gets a door, the vault its own walls). The
+     Gatekeeper spawns with `Home` = vault (his Data Gate attacks and health share), stays in (leash), and the wave ends
+     without him (`FoesOutsideVault`; `EndRoomsWave` removes him and lets anyone out). `WinVault`: a prize pick each
+     (`PrizePicks`, the duel's legendary chance). The Data Gate pool drops `MiniBoss` with the Rooms arena; Classic
+     keeps it. His intro banner is skipped and his boss bar only shows at the vault (`InVault`, `AtVault`).
+   - **Sync**: `SyncRooms` after the layout byte: per room flags, spill tenths, next door; the vault's flags.
+   - **Look** (`RoomsLook.cs`): room tints (red, teal once cleared, gold vault), door colours (red, flashing amber,
+     solid bar when locked, teal, gold), the minimap (top right, `DrawRoomsMinimap` from `Hud.cs`).
+   - **Tests**: `wings` covers all of it, including smart bots clearing a whole wave. **Preview**: `ROOMS=x,y [VAULT=1]
+     [ROOMCLEAR=1]`.
 3. **Tuning**: room caps, spill timing, how many rooms a wave opens. Then raise enemy damage and lower player health
    until a regular wave costs real health again. A `rooms` SimTest suite to check the numbers.
 4. **The power-stacking nerf pass** (its own doc): kill speed vs enemy health past wave 20, full-heal sustain, parry.

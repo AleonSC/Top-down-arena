@@ -358,6 +358,8 @@ namespace Arena
         public EnemyType Type;
         public EnemyDef Def;
         public V2 Pos, Disp, Waypoint;
+        public int Home = -1;   // host only: the Rooms arena's area it belongs to (Rooms.cs): a room it guards, or the vault
+        public bool Spilled;    // host only: sent out of its room in a spill (it hunts instead of guarding)
         public float Hp, MaxHp, Radius, Speed;
         public int Score;
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;

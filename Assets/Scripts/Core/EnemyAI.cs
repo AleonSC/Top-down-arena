@@ -213,7 +213,10 @@ namespace Arena
             float m = d.Radius + 30f;
             V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             V2 pos;
-            if (LayoutOn && !d.IsBoss)
+            int home = -1;
+            if (RoomsOn && !d.IsBoss)
+                pos = RoomSpawnSpot(d.Radius, out home);  // by a room's nest (Rooms.cs)
+            else if (LayoutOn && !d.IsBoss)
                 pos = LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
             else
                 switch (rng.Next(4))
@@ -235,7 +238,9 @@ namespace Arena
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = RollElite(d);
+            spawnHome = home;
             SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
+            spawnHome = -1;
         }
 
         /// An enemy's health when it spawns on a wave, for this party and the run's modifiers (before paths and elites).
@@ -294,6 +299,14 @@ namespace Arena
             if (type == EnemyType.RiotShield)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * RiotShieldShare;  // WardenFaction.cs
             Recorder?.EnemySpawned(e);
+            Enemy parentE;
+            if (parent != 0 && Enemies.TryGetValue(parent, out parentE))
+            {
+                e.Home = parentE.Home;  // (a Splitter's halves, a Nest's shards: the Rooms arena's room of their parent)
+                e.Spilled = parentE.Spilled;
+            }
+            else
+                e.Home = spawnHome;
             e.Pos = ClampToArena(pos, e.Radius);
             e.Disp = e.Pos;
             e.Waypoint = e.Pos;
@@ -437,6 +450,7 @@ namespace Arena
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RoomTarget(e, tpos);  // a challenge room: the crystal, or the zone (Challenges.cs)
+                bool held = RoomsLeash(e, ref tpos);  // the Rooms arena: guarding its nest, or the vault (Rooms.cs)
                 if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
                 MoveEnemy(e, tpos, dt);
@@ -450,6 +464,8 @@ namespace Arena
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
                     e.Winding = TakesTurns(e) && HasTurn(e) && rateNow > 0f && e.FireT / rateNow <= WindUp && e.FireT > -0.5f;
+                    if (held && e.FireT <= 0f)
+                        e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
                     {
                         if (!HasTurn(e))

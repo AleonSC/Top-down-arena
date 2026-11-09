@@ -311,6 +311,8 @@ namespace Arena
             {
                 if (!e.Def.IsBoss && !e.Def.Mini)  // (a challenge room's mini-boss gets one too)
                     continue;
+                if (game.InVault(e) && !game.AtVault(game.Me))
+                    continue;  // the Rooms arena's vault: its bar shows once you go to it (Rooms.cs)
                 var col = ToColor(e.Def.Color);
                 string note = null;
                 Color noteColor = Ui.Warn;

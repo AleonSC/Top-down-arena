@@ -24,7 +24,7 @@ namespace Arena
             get
             {
                 if (RoomsOn)
-                    return Rooms.With(Layout);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
+                    return Rooms.With(Layout, VaultUp);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
                 if (Layout == LayoutId.Open || InRoom || Practice != null || ShowcaseMode)
                     return null;
                 return Layouts.Get(Layout);
@@ -43,7 +43,14 @@ namespace Arena
             lastLayout = LayoutId.Open;
             layoutFresh = false;
             LayoutAge = 0f;
-            RoomsUp = false;
+            RoomsUp = VaultUp = VaultCleared = false;
+            vaultStretch = vaultWave = -1;
+            foreach (var rs in RoomStates)
+            {
+                rs.NestAlive = rs.Seen = false;
+                rs.Cleared = true;
+                rs.NextDoor = -1;
+            }
         }
 
         /// Host, at the start of each wave: boss waves are the open arena; every other cycle (the waves between two
@@ -108,6 +115,7 @@ namespace Arena
                 Layout = lay;
                 RoomsUp = rooms;
             }
+            SyncRooms(s);  // the nests, spills and the vault (Rooms.cs)
         }
 
         void TickLayout(float dt)

@@ -412,7 +412,8 @@ namespace Arena
                     s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = s.Owed = 0f;
                     s.HitFlash = e.Flash;
                     seenEnemies[e.Id] = s;
-                    if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting)
+                    if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
+                        && !(e.Def.Mini && game.RoomsOn))  // (the Rooms arena's vault mini-boss is optional: no fanfare)
                     {
                         introWave = game.Wave;
                         introT = IntroTime;

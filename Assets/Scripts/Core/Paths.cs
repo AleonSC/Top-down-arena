@@ -387,17 +387,19 @@ namespace Arena
             get
             {
                 if (RoomsOn)
-                    return Rooms.WorldMin;  // the side rooms and hallways round the hub (Rooms.cs)
+                    return Rooms.MinFor(VaultUp);  // the side rooms and hallways round the hub, and the vault (Rooms.cs)
                 float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
                 return new V2(Math.Max(Paths.NarrowInsetX * f, TinyInset.X), Math.Max(Paths.NarrowInsetY * f, TinyInset.Y));
             }
         }
 
-        public V2 ArenaMax => new V2(Width, Height) - ArenaMin;
+        public V2 ArenaMax => RoomsOn ? Rooms.WorldMax : new V2(Width, Height) - ArenaMin;
 
         /// A random spot in the playable arena, at least margin (mx across, my down) from its edges.
         V2 RandomInArena(float mx, float my)
         {
+            if (RoomsOn)
+                return RandomInRooms(mx, my);  // in one of the Rooms world's areas (Rooms.cs)
             V2 lo = ArenaMin, hi = ArenaMax;
             return new V2(Rand(lo.X + mx, hi.X - mx), Rand(lo.Y + my, hi.Y - my));
         }

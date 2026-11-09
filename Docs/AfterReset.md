@@ -390,8 +390,13 @@ So friends can play without Tailscale or port forwarding.
       the hub), the following camera and edge arrows at 1x, enemies and the F1 bot through doors. Check in Unity: how
       the camera slide feels through doors, the zoom in rooms and hallways, the walls rising when the rooms come up,
       and a 2-player game over Tailscale. Push the `classic-arena` tag from your machine
-      (`git tag classic-arena abcee50 && git push origin classic-arena`). **Next: phase 2** (nests, runner spills,
-      locking doors, room rewards, minimap, then the vault).
+      (`git tag classic-arena abcee50 && git push origin classic-arena`). **Phase 2 built (protocol 234; check in Unity)**: nests in
+      both rooms (the wave comes in by them and guards its room; both down = the rest called off), Runner spills every
+      22 s down to 11 s through a random door (amber warning), doors that lock behind you while the nest lives, cleared
+      rooms (orbs + XP, teal doors), the minimap (top right), and the vault one wave in ten with the Gatekeeper (his Data
+      Gate gone in the Rooms arena; prize pick each). Check in Unity: how a wave feels and how long it takes, the spill
+      pace, the lock (does it feel fair?), the minimap's size and spot, the vault fight in a 500 x 400 room. **Next:
+      phase 3** (tuning, then more enemy damage / less health in the Rooms arena only).
 - [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs

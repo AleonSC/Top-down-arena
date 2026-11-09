@@ -95,6 +95,7 @@ namespace Arena
                             PickRooms();   // the side rooms and hallways, on a regular wave with the Rooms arena (Rooms.cs)
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
+                            StartRoomsWave();  // the rooms' nests and the vault's mini-boss (Rooms.cs)
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = IsBossWave(Wave) ? Defs.Get(BossAt(Wave)).Name : null;
@@ -108,7 +109,10 @@ namespace Arena
                 case MatchState.Fighting:
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
                     TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
-                    if (spawnQueue.Count > 0 || squadQueue.Count > 0)
+                    TickRoomsWave(dt);  // the Rooms arena's nests, spills and cleared rooms (Rooms.cs)
+                    if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && RoomsOn && !RoomsSpawnReady())
+                        spawnTimer = Math.Max(spawnTimer, 0.3f);  // every room full (or every nest down: the rest is called off)
+                    else if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
                         float next = Math.Max(0.3f, 1.1f - Wave * 0.05f);
@@ -125,9 +129,9 @@ namespace Arena
                             }
                         }
                     }
-                    else if (Foes() == 0 && PropsHoldWave())
+                    else if (FoesOutsideVault() == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
-                    else if (Foes() == 0 && !ZombiesRising && DesignPending == 0)
+                    else if (FoesOutsideVault() == 0 && !ZombiesRising && DesignPending == 0)  // (the vault is optional: Rooms.cs)
                     {
                         if (Practice != null)
                         {
@@ -152,6 +156,7 @@ namespace Arena
 
         void WaveCleared()
         {
+            EndRoomsWave();  // the vault closes with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
             ResetBossState();
