@@ -70,9 +70,15 @@ namespace Arena
                 {
                     // The round starts at the gun's muzzle (Spread arms), so the flash sits on the gun: a star whose size varies a
                     // little shot to shot, two puffs out of the muzzle brake's side ports, and brass flipping out of the port.
+                    // (side is your left: sd +1 is the left gun, tube 0). The round has already flown a little by the time it is
+                    // seen, so the flash goes on the gun as last drawn, and a bright streak joins the gun to the round.
                     float sd = (b.Pos - owner.Pos).Dot(side) >= 0f ? 1f : -1f;
+                    int gun = sd > 0f ? 0 : 1;
+                    V2 drawn = s.Muzzle[gun];
+                    at = !drawn.IsZero && drawn.DistanceTo(owner.Disp) < 90f ? drawn : owner.Disp + dir * TwinOut(owner) + side * (b.Pos - owner.Pos).Dot(side);
                     V2 bs = bd.Orthogonal(), port = at - bd * 17f + side * (sd * 1.5f);
                     float fl = Rnd(0.75f, 1.15f);
+                    TwinShotFx(at, b.Pos, bd, port, side * sd);  // TwinRifleFx.cs: the light on the floor, the streak, the brass
                     AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.04f, Max = 0.04f, Size = 18f * fl, Col = TwinFlashCol });
                     AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.06f, Max = 0.06f, Size = 10f * fl, Col = TwinFlashOrange });
                     AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.05f, Max = 0.05f, Size = 7f, Col = TwinFlashOrange });
@@ -80,8 +86,6 @@ namespace Arena
                         AddPart(new Part { Kind = PDust, Pos = at - bd * 1.5f, Vel = bs * (k * Rnd(40f, 60f)), Life = 0.07f, Max = 0.07f, Size = 1.8f, Col = TwinFlashOrange.Mix(Rgba.White, 0.5f) });
                     if (Rnd(0f, 1f) < 0.5f)
                         AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 28f, Life = 0.4f, Max = 0.4f, Size = 2.6f, Col = SmokeCol });
-                    AddPart(new Part { Kind = PSpark, Pos = port, Vel = side * (sd * 40f), Life = 0.035f, Max = 0.035f, Size = 1.6f, Col = Rgba.White });
-                    AddPart(new Part { Kind = PCasing, Pos = port, Vel = side * (sd * Rnd(80f, 125f)) + bd * Rnd(-25f, 5f), Rot = Rnd(0f, MathX.Tau), Spin = Rnd(-20f, 20f), Life = 0.9f, Max = 0.9f, Size = 3f, Col = BrassCol });
                     // where the streams cross, from how far this round turns in (for drawing other players' guns, TwinSpreadPose)
                     float turn = Mathf.Abs(MathX.Fmod(bd.Angle - owner.Aim + MathX.Pi, MathX.Tau) - MathX.Pi), lat = Mathf.Abs((b.Pos - owner.Pos).Dot(side));
                     if (turn > 0.01f && lat > 4f)
@@ -171,14 +175,14 @@ namespace Arena
                     if (age < TwinKick)  // each gun recoils along its own barrel and climbs outward (TwinSpreadPose), not along the aim
                     {
                         float f = 1f - age / TwinKick;
-                        mTwinKick = 4.5f * f * f;
-                        mTwinClimb = 0.105f * Mathf.Pow(f, 1.5f);
+                        mTwinKick = 6f * f * f;
+                        mTwinClimb = 0.12f * Mathf.Pow(f, 1.5f);
                         mBolt = 5f * Mathf.Sin(MathX.Pi * age / TwinKick);
                     }
                     else if (age < TwinKick + 0.04f)  // a small spring past rest
                     {
                         float k = Mathf.Sin(MathX.Pi * (age - TwinKick) / 0.04f);
-                        mTwinKick = -0.75f * k;
+                        mTwinKick = -1f * k;
                         mTwinClimb = -0.02f * k;
                     }
                     mDHeat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);

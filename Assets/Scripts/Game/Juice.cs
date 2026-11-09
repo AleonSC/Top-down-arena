@@ -500,7 +500,7 @@ namespace Arena
                     seenShots[b.Id] = s;
                     Player owner = null;
                     float cool;
-                    bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f;
+                    bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f + (owner.Weapon.Id == WeaponId.TwinRifle ? Game.TwinMuzzleOut + 30f : 0f);  // (the Twin Rifle's rounds start out at its wide-held muzzles, 30 px to each side)
                     if (fromGun && owner.Weapon.Id == WeaponId.Pistol && b.Kind == Defs.HealerShot)
                         OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
                     else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
@@ -585,10 +585,15 @@ namespace Arena
                 p.Life -= dt;
                 if (p.Life <= 0f)
                     continue;
-                p.Pos += p.Vel * dt;
-                float drag = (float)Math.Exp(-(p.Kind == PShard ? 2.2f : p.Kind == PDust ? 5f : 3.5f) * dt);
-                p.Vel = p.Vel * drag;
-                p.Rot += p.Spin * dt;
+                if (p.Kind == PBrass)
+                    BrassStep(ref p, dt);  // a casing in the air, bouncing, sliding (TwinRifleFx.cs)
+                else
+                {
+                    p.Pos += p.Vel * dt;
+                    float drag = (float)Math.Exp(-(p.Kind == PShard ? 2.2f : p.Kind == PDust ? 5f : 3.5f) * dt);
+                    p.Vel = p.Vel * drag;
+                    p.Rot += p.Spin * dt;
+                }
                 parts[n++] = p;
             }
             partN = n;
@@ -913,6 +918,9 @@ namespace Arena
                     case PMuzzle: case PCasing: case PSnap:  // the Revolver's flash and brass, the bow's ring (GunBowLooks.cs)
                         DrawGunPart(p, f);
                         break;
+                    case PBrass: case PStreak: case PPool:  // the Twin Rifle's bouncing brass, first-frame streak, light on the floor (TwinRifleFx.cs)
+                        DrawTwinPart(p, f);
+                        break;
                     case PTumble:  // a ricochet spinning off: a short bar that turns as it flies
                     {
                         V2 d = V2.FromAngle(p.Rot) * (p.Size * 1.6f);
@@ -935,8 +943,13 @@ namespace Arena
             {
                 var p = parts[i];
                 float f = p.Life / p.Max;
-                if (p.Kind == PDust)
+                if (p.Kind == PDust || p.Kind == PBrass)
                     continue;
+                if (p.Kind == PPool || p.Kind == PStreak)
+                {
+                    GlowDisc(p.Pos, p.Kind == PPool ? p.Size : 10f, p.Col, (p.Kind == PPool ? 0.45f : 0.3f) * f);  // (TwinRifleFx.cs)
+                    continue;
+                }
                 if (p.Kind == PFade || p.Kind == PSplash || p.Kind == PTumble)
                 {
                     GlowDisc(p.Pos, p.Size * 4f, p.Col, 0.45f * f);

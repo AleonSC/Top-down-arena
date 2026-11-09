@@ -115,6 +115,7 @@ namespace Arena
             Rgba RC = p.Def.Color;
             float[] sh = ModelBuild[role];
             mO = p.Disp; mAim = p.Aim; mDir = V2.FromAngle(p.Aim); mSide = new V2(-mDir.Y, mDir.X); mU = r / 18f; mT = t;
+            mO -= mDir * TwinJolt(p);  // the Twin Rifle's recoil jolts the whole body back (TwinRifleFx.cs)
             mAlpha = col.A; mWhite = p.Flash > 0f ? 0.85f : 0f;
             MFrame(0f, 0f, 0f, 1f, false);
             float rx = sh[0], ry = sh[1], w = Mathf.Sin(t * 3f) * 1.6f;
@@ -163,8 +164,8 @@ namespace Arena
             {
                 if (spread)
                 {
-                    TwinArm(K, 1f, ry * 0.72f, rhx, rhy, 1f);
-                    TwinArm(K, 1f, -ry * 0.72f, lhx, lhy, -1f);
+                    TwinArm(K, 1f, ry * 0.72f, rhx, rhy, 1f, TwinArmFold(1));   // the elbows fold with each gun's recoil
+                    TwinArm(K, 1f, -ry * 0.72f, lhx, lhy, -1f, TwinArmFold(0));
                 }
                 else
                 {
@@ -223,9 +224,9 @@ namespace Arena
         }
 
         /// A long arm out to a Twin Rifle held wide: bent a little at the elbow, outward and back. `sd` is +1 right, -1 left.
-        void TwinArm(ModelPal K, float sx, float sy, float hx, float hy, float sd)
+        void TwinArm(ModelPal K, float sx, float sy, float hx, float hy, float sd, float fold)
         {
-            float ex = (sx + hx) * 0.5f - 2f, ey = (sy + hy) * 0.5f + sd * 2.6f;
+            float ex = (sx + hx) * 0.5f - 2f - fold, ey = (sy + hy) * 0.5f + sd * (2.6f + fold * 0.8f);
             MLine(sx, sy, ex, ey, 6f, K.Dark); MLine(ex, ey, hx, hy, 6f, K.Dark);
             MLine(sx, sy, ex, ey, 4.4f, K.Sleeve); MLine(ex, ey, hx, hy, 4.4f, K.Sleeve);
             MCirc(ex, ey, 2.2f, K.Sleeve, 8);
