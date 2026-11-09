@@ -167,6 +167,8 @@ namespace Arena
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
             if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
+            if (n >= SwordsmanFrom) melee.Add(EnemyType.Swordsman);  // the swordsmen (Swordsman.cs)
+            if (n >= ShieldSwordsmanFrom) melee.Add(EnemyType.ShieldSwordsman);
             BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
             {
@@ -554,6 +556,11 @@ namespace Arena
                 RiotShieldFace(e, want, dt);  // WardenFaction.cs
                 return;
             }
+            if (IsSwordsman(e.Type))
+            {
+                SwordsmanTurn(e, want, dt);  // Swordsman.cs
+                return;
+            }
             if (e.Type == EnemyType.Shielder)
             {
                 // Turns slowly, so you can get around the shield.
@@ -570,6 +577,11 @@ namespace Arena
             if (e.Type == EnemyType.RiotShield)
             {
                 WearRiotShield(e, amount);  // WardenFaction.cs
+                return;
+            }
+            if (e.Type == EnemyType.ShieldSwordsman)
+            {
+                SwordShieldStruck(e);  // it doesn't wear: it flashes (Swordsman.cs)
                 return;
             }
             if (e.Type == EnemyType.Boss && e.Warden != null)
@@ -618,6 +630,8 @@ namespace Arena
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
             if (e.Type == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
+            if (e.Type == EnemyType.ShieldSwordsman)
+                return SwordShieldBlocks(e, from);  // Swordsman.cs
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);

@@ -300,6 +300,19 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LUNGE"), System.Globalization.CultureInfo.InvariantCulture) * 0.6f;
     }
+    if (Environment.GetEnvironmentVariable("SWORD") != null) {  // SWORD=1: the Swordsman (top row) and the Shield Swordsman (bottom row) in each phase: closing in, wind-up, cut, recovery (SwordsmanLook.cs); SWORDBLOCK=1 flashes the plate
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear();
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      me.Pos = me.Disp = new V2(1500f, 900f);
+      var ages = new[] { 0f, 0.3f, 0.07f, 0.35f };
+      for (int row = 0; row < 2; row++)
+        for (int ph = 0; ph < 4; ph++) {
+          var e = (Enemy)ssp.Invoke(sg, new object[] { row == 0 ? EnemyType.Swordsman : EnemyType.ShieldSwordsman, new V2(260f + 260f * ph, 230f + 280f * row), 0f, 0, false });
+          e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f; e.Phase = (byte)ph; e.SeenPhase = (byte)ph; e.SeenT = ages[ph];
+          if (Environment.GetEnvironmentVariable("SWORDBLOCK") != null) e.T2 = 0.2f;
+        }
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+    }
     if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);
       float hx = Game.Width / (2f * z), hy = Game.Height / (2f * z);

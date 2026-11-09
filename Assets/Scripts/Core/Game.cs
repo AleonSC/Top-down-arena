@@ -782,7 +782,19 @@ namespace Arena
                 p.Disp = p.Id == MyId || Math.Abs(p.Disp.X - p.Pos.X) > Width / 2f || Math.Abs(p.Disp.Y - p.Pos.Y) > Height / 2f
                     ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
             foreach (var e in Enemies.Values)
+            {
                 e.Disp = V2.Lerp(e.Disp, e.Pos, k);
+                if (IsSwordsman(e.Type))
+                {
+                    if (e.Phase != e.SeenPhase)
+                    {
+                        e.SeenPhase = e.Phase;
+                        e.SeenT = 0f;
+                    }
+                    else
+                        e.SeenT += dt;  // clients only get PhaseT every snapshot, so the swing is timed from here
+                }
+            }
             UpdateMeleeSounds(dt);  // the melee rushers' cues, quieter with distance (MeleeSounds.cs)
             foreach (var o in Orbs.Values)
                 o.Disp = IsHost ? o.Pos : V2.Lerp(o.Disp, o.Pos, k);

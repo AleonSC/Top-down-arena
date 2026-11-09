@@ -336,6 +336,8 @@ namespace Arena
         public V2 Vel;          // host only: a Buzzsaw's steering velocity (it swoops instead of turning on the spot)
         public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
         public float PhaseT;
+        public byte SeenPhase;  // every peer, drawing only: the Phase the swing look last saw, and how long ago it changed (Game.cs; Swordsman.cs)
+        public float SeenT;
         public bool Elite;
         public byte Traits;           // an elite's traits (EliteTrait flags; Variety.cs; replicated)
         public int SquadId, SquadSlot;  // host: the squad it arrived with, and its place in it (Variety.cs)

@@ -442,7 +442,7 @@ With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
 five Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
-you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder
+you), Splinters (7: two Splitters and a Grunt), Sword line (7: three Swordsmen), Shield line (10: two Shield Swordsmen and a Swordsman), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder
 leading two Snipers that keep behind it), Field hospital (11: three Brutes and a Medic behind them), Hold the line
 (14: a Pauser and two Grunts), Demolition (15: two Fuse Runners and a Grunt), Ambush (16: three Phantoms blink in around
 you), Whalers (17: a Hookman and two Lungers waiting for what it hauls in), Minefield (18: a Sapper and two Spike Blocks), Beam battery (18: two Beam Sentries
@@ -460,6 +460,8 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
 | 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
 | 5 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
+| 7 | **Swordsman** | A melee enemy with a long blade (85 health, never fires). It closes in until you are about 100 px away, then stops turning and raises its sword for 0.55 s while the cone in front of it fills red. The cone is exactly what the blade covers: 140 px long and 90° wide, a curved band from its hand to the tip. It then cuts across the whole cone in 0.15 s (14 damage to everyone in it, once; a perfect parry blocks it) and recovers for 0.8 s. Step out of the cone before the red reaches the edge |
+| 10 | **Shield Swordsman** | A Swordsman (slower: 75 against 95) with a blue-steel shield held up in front that stops every shot from the front within 63° either side (it flashes when it blocks one, and doesn't wear). The shield drops the moment it cuts and stays down for the first 0.75 s of its 1 s recovery, so shoot it then, or from the side or behind |
 
 | Wave | Shooter | What it does |
 |---|---|---|

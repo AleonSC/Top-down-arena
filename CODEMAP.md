@@ -153,6 +153,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E); the held poses (`MeleeRest`), each swing's return into them (`DrawSwingModel`) and the hand-over (`MeleeSwingShowing`)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
+- `Swordsman.cs`, `Game/SwordsmanLook.cs`: the Swordsman and Shield Swordsman (non-shooters, waves 7 and 10): close in, wind up (cone fills red), cut the cone (a band from the hand to `SwordReach`), recover; the shield's guard (`SwordGuardAt`, `SwordShieldBlocks` from `BlocksShot`, block flash in `T2`); the client times the swing from `Enemy.SeenT` (set in `Game.Update`); looks from `Docs/Mockups/swordsman.html`
 - `NonShooterLooks.cs`: the Fuse Runner (Powder Keg), Hookman (Harpoon) and Sapper's Tripwire Pods (looks A, B, C of `Docs/Mockups/non-shooter-enemies.html`)
 - `EnemyPresenceLook.cs`: regular enemies' soft shadow and quiet colour glow with Visual effects on (look D of `Docs/Mockups/enemy-prominence.html`)
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
