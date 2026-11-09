@@ -1,0 +1,380 @@
+<title>Twin Rifle Grenade Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one weapon stage (canvas, look picker, replay/pause/slow-mo), then a beat card and a what-changes card for the picked look.
+   Colour: olive drab for the launcher and grenade, tracer orange for the rifle (the game's own colours). Type: Barlow Condensed display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#ecede6; --fg:#1d2119; --muted:#5d6455; --panel:#f8f9f3; --line:#cfd3c4;
+  --acc:#5d6b1f; --hot:#c2570a; --chip:#e0e3d6; --chip-on:#1d2119; --chip-on-fg:#f4f5ee;
+  --arena:#121613;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101310; --fg:#e7eadf; --muted:#959c8a; --panel:#181c17; --line:#2c3229;
+  --acc:#b8cc5a; --hot:#ff9a3c; --chip:#232821; --chip-on:#e7eadf; --chip-on-fg:#101310;
+  --arena:#0b0e0c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101310; --fg:#e7eadf; --muted:#959c8a; --panel:#181c17; --line:#2c3229;
+  --acc:#b8cc5a; --hot:#ff9a3c; --chip:#232821; --chip-on:#e7eadf; --chip-on-fg:#101310;
+  --arena:#0b0e0c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header h1 span{color:var(--acc)}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--acc)}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:70ch;color:var(--muted);min-height:3em}
+.blurb b{color:var(--fg);font-weight:600}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:720/400}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.pick td:first-child{font-weight:600;color:var(--acc)}
+.dev{font-size:14.5px;color:var(--muted);max-width:78ch;margin:0}
+.dev strong{color:var(--fg)}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<main>
+<header>
+  <h1>Twin Rifle <span>+ Cluster Grenade</span></h1>
+  <p>Gameplay mockup. The Cluster Grenade leaves the Soldier DPS's ability bar (its slot becomes Airstrike) and moves onto the Twin Rifle's weapon-action key (Alt). Three ways to fit it on the gun, each tied to the rifle's crossfire X. Same scene every time: the soldier holds fire while enemies walk into the crossing.</p>
+</header>
+
+<section class="stage">
+  <h2 id="ttl">Current <small id="stats"></small></h2>
+  <p class="blurb" id="blurb"></p>
+  <div class="frame"><canvas id="cv" width="720" height="400" aria-label="Twin Rifle grenade animation preview"></canvas></div>
+  <div class="controls">
+    <div class="seg" id="seg" role="radiogroup" aria-label="Look"></div>
+    <button type="button" id="replay">Replay</button>
+    <button type="button" id="pause">Pause</button>
+    <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo (0.25×)</label>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Beats</h3><ol id="beats"></ol></div>
+    <div class="card"><h3>What changes</h3><ul id="fix"></ul></div>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Side by side</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Look</th><th>Alt does</th><th>Damage</th><th>Blast</th><th>Recharge</th><th>Skill test</th></tr></thead>
+    <tbody>
+      <tr><td>Today</td><td>Nothing on the Twin Rifle. Cluster Grenade is ability 1</td><td class="n">80 + 8×9.6</td><td class="n">110 px</td><td class="n">6 s</td><td>Aim a throw</td></tr>
+      <tr class="pick"><td>A · Underbarrel</td><td>One grenade to the X; the blast becomes crossfire</td><td class="n">60 + 8×7</td><td class="n">90 px</td><td class="n">7 s</td><td>Put the X on a crowd</td></tr>
+      <tr><td>B · Twin Tubes</td><td>A grenade from each gun; they fuse at the X</td><td class="n">2×35 or 110 fused</td><td class="n">60 / 130 px</td><td class="n">9 s</td><td>Get the distance right</td></tr>
+      <tr><td>C · Cluster Mag</td><td>Fires the grenades your hits loaded, as a salvo</td><td class="n">3 × (40 + 6×6)</td><td class="n">70 px each</td><td class="n">25 hits a round</td><td>Keep hitting</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<p class="dev"><strong>Build notes.</strong> The Alt goes over <code>Msg.WeaponDash</code> like the Kunai blink and Twin Fang, so building it bumps <code>Session.ProtocolVersion</code>. The grenade keeps <code>Defs.GrenadeShot</code> and <code>ExplodeGrenade</code> (shrapnel at 12% of the blast, 520 px/s). Today's capstone (a second grenade 80 px further) would move to Airstrike, and the rifle's “+1 barrel” upgrade could add a shard per barrel. Scene scale is 0.6 (60 px barrels draw 36 px apart). Numbers are starting points, not tuned.</p>
+</main>
+
+<script>
+(function(){
+var W=720,H=400,TAU=Math.PI*2,S=0.6;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v,a,b){if(a===undefined){a=0;b=1}return Math.max(a,Math.min(b,v))}
+function eo(f){f=clamp(f);return 1-Math.pow(1-f,3)}
+function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function rgba(c,a){return 'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+clamp(a)+')'}
+function circle(c,x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function glow(c,x,y,r,col,a){if(r<=0||a<=0)return;var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,rgba(col,a));g.addColorStop(1,rgba(col,0));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill()}
+
+var cv=document.getElementById('cv'),c=cv.getContext('2d');
+var P={x:96,y:205},X={x:352,y:205},HW=18,LOOP=5.6,FIRE0=.25,FIRE1=5.0;
+var TR=820*S, TLIFE=.7;
+
+/* ---------------- scene: floor, enemies ---------------- */
+function floor(){
+  c.fillStyle='#121613';c.fillRect(0,0,W,H);
+  c.strokeStyle='#1a201b';c.lineWidth=1;c.beginPath();
+  for(var x=0;x<=W;x+=36){c.moveTo(x+.5,0);c.lineTo(x+.5,H)}
+  for(var y=0;y<=H;y+=36){c.moveTo(0,y+.5);c.lineTo(W,y+.5)}
+  c.stroke();
+  // a couple of floor marks for depth
+  c.fillStyle='rgba(255,255,255,.025)';c.fillRect(560,40,90,60);c.fillRect(470,300,60,50);
+}
+var FOES=[
+  {x:410,y:150,r:10,hp:40},{x:372,y:232,r:10,hp:40},{x:445,y:206,r:14,hp:120,big:1},
+  {x:330,y:178,r:10,hp:40},{x:500,y:250,r:10,hp:40},{x:470,y:120,r:10,hp:40},{x:540,y:190,r:10,hp:40}
+];
+function foePos(f,i,t){return {x:f.x-16*t+3*Math.sin(t*2+i), y:f.y+6*Math.sin(t*1.3+i*2)}}
+function drawFoe(f,i,t,flash){
+  var p=foePos(f,i,t);
+  c.save();c.translate(p.x,p.y);c.rotate(Math.PI/4+(f.big?0:Math.sin(t*3+i)*.08));
+  var s=f.r*.9;
+  c.fillStyle=f.big?'#d4683a':'#d9474a';c.fillRect(-s,-s,2*s,2*s);
+  c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=2;c.strokeRect(-s,-s,2*s,2*s);
+  if(flash>0){c.fillStyle=rgba([255,255,255],flash);c.fillRect(-s,-s,2*s,2*s)}
+  c.restore();
+  return p;
+}
+
+/* ---------------- the soldier and two rifles ---------------- */
+function rifleAng(side){return Math.atan2(X.y-(P.y+side*HW),X.x-(P.x+24))}
+function drawSoldier(t,o){
+  var kick=o.kick||0;
+  // body
+  circle(c,P.x+2,P.y+3,15,'rgba(0,0,0,.35)');
+  [-1,1].forEach(function(s){
+    var a=rifleAng(s),bx=P.x+6-kick*(s===o.kickSide?6:2),by=P.y+s*HW;
+    c.save();c.translate(bx,by);c.rotate(a);
+    // stock and body
+    c.fillStyle='#1f252b';c.fillRect(-6,-3.5,34,7);
+    c.fillStyle='#3a434d';c.fillRect(-2,-2.5,26,5);
+    c.fillStyle='#14181c';c.fillRect(28,-1.8,9,3.6); // barrel
+    if(o.tube&&o.tube(s)){var tb=o.tube(s);
+      c.fillStyle=tb.ready?'#7c8c45':'#4b5530';c.fillRect(6,3.2,20,5);
+      c.fillStyle='#2a301c';c.fillRect(24,3.6,4,4.2);
+      if(tb.ready){glow(c,26,5.6,9,[200,230,110],.35+.2*Math.sin(t*6))}
+      if(tb.prog!=null&&!tb.ready){c.fillStyle='#b8cc5a';c.fillRect(6,8.6,20*tb.prog,1.6)}
+    }
+    // muzzle flash
+    var f=o.flash?o.flash(s):0;
+    if(f>0){glow(c,40,0,16,[255,200,90],.9*f);c.fillStyle=rgba([255,245,200],f);c.beginPath();c.moveTo(37,-3);c.lineTo(50,0);c.lineTo(37,3);c.fill()}
+    var g=o.thump?o.thump(s):0;
+    if(g>0){glow(c,30,6,22,[230,240,190],.8*g);circle(c,30+14*(1-g),6,6+10*(1-g),null,rgba([220,230,190],g*.8),2)}
+    c.restore();
+  });
+  // arms out to each rifle's grip, then shoulders + body + helmet
+  [-1,1].forEach(function(s){c.strokeStyle='#3c6f9e';c.lineWidth=6;c.lineCap='round';c.beginPath();c.moveTo(P.x+4,P.y+s*8);c.lineTo(P.x+14,P.y+s*(HW-1));c.stroke();circle(c,P.x+14,P.y+s*(HW-1),3.4,'#c9a27e')});
+  circle(c,P.x,P.y,14,'#4f8fd0','#1d3550',3);
+  c.fillStyle='#3c6f9e';c.fillRect(P.x-5,P.y-HW+3,10,6);c.fillRect(P.x-5,P.y+HW-9,10,6);
+  circle(c,P.x+1,P.y,8.5,'#5d6a3a','#2d3420',2);
+  c.fillStyle='rgba(255,255,255,.18)';c.fillRect(P.x-2,P.y-5,5,2);
+}
+
+/* ---------------- rifle tracers (they stop on the first enemy) ---------------- */
+var shots=[];
+(function(){for(var k=0;FIRE0+k*.05<FIRE1;k++){shots.push({t:FIRE0+k*.05,s:k%2?1:-1})}})();
+function tracerStart(s){var a=rifleAng(s);return {x:P.x+6+Math.cos(a)*44,y:P.y+s*HW+Math.sin(a)*44,a:a}}
+function drawTracers(t,cross){
+  var hits=[];
+  shots.forEach(function(sh,k){
+    var age=t-sh.t;if(age<0||age>TLIFE)return;
+    var st=tracerStart(sh.s),dx=Math.cos(st.a),dy=Math.sin(st.a);
+    var d=age*TR;
+    // first enemy along the path (enemies barely move during a shot's life)
+    var stop=1e9,who=-1;
+    FOES.forEach(function(f,i){if(deadAt(i)<sh.t)return;var p=foePos(f,i,sh.t+.2);var px=p.x-st.x,py=p.y-st.y,along=px*dx+py*dy;if(along<0)return;var perp=Math.abs(px*dy-py*dx);if(perp<f.r&&along<stop){stop=along-f.r*.4;who=i}});
+    if(d>stop){var since=(d-stop)/TR;if(since<.09){var hx=st.x+dx*stop,hy=st.y+dy*stop;hits.push({x:hx,y:hy,i:who,k:since/.09});}return}
+    var x=st.x+dx*d,y=st.y+dy*d,len=Math.min(18,d);
+    var g=c.createLinearGradient(x-dx*len,y-dy*len,x,y);g.addColorStop(0,'rgba(255,150,40,0)');g.addColorStop(1,'rgba(255,214,120,.95)');
+    c.strokeStyle=g;c.lineWidth=2.4;c.lineCap='round';c.beginPath();c.moveTo(x-dx*len,y-dy*len);c.lineTo(x,y);c.stroke();
+    c.fillStyle='#fff4cf';c.fillRect(x-1.2,y-1.2,2.4,2.4);
+  });
+  hits.forEach(function(h){
+    var inX=Math.hypot(h.x-X.x,h.y-X.y)<45*S||(cross&&cross(h.x,h.y));
+    var col=inX?[255,210,80]:[255,170,90];
+    for(var j=0;j<4;j++){var a=hash(h.x+j)*TAU;c.strokeStyle=rgba(col,1-h.k);c.lineWidth=1.4;c.beginPath();c.moveTo(h.x,h.y);c.lineTo(h.x+Math.cos(a)*(4+8*h.k),h.y+Math.sin(a)*(4+8*h.k));c.stroke()}
+    if(inX){c.fillStyle=rgba([255,220,90],1-h.k);c.font='700 11px Barlow Condensed,sans-serif';c.textAlign='center';c.fillText('×2',h.x,h.y-12-6*h.k)}
+  });
+  return hits;
+}
+function muzzle(t,s){var best=1;shots.forEach(function(sh){if(sh.s!==s)return;var a=t-sh.t;if(a>=0&&a<best)best=a});return best<.035?1-best/.035:0}
+
+/* ---------------- aim line with the crossing X ---------------- */
+function drawAim(t,col){
+  c.strokeStyle='rgba(255,255,255,.08)';c.setLineDash([3,7]);c.lineWidth=1;
+  [-1,1].forEach(function(s){var st=tracerStart(s);c.beginPath();c.moveTo(st.x,st.y);c.lineTo(X.x,X.y);c.stroke()});
+  c.setLineDash([]);
+  var r=8;c.strokeStyle=col||'rgba(255,220,140,.75)';c.lineWidth=2;c.beginPath();c.moveTo(X.x-r,X.y-r);c.lineTo(X.x+r,X.y+r);c.moveTo(X.x+r,X.y-r);c.lineTo(X.x-r,X.y+r);c.stroke();
+  circle(c,X.x,X.y,45*S,null,'rgba(255,220,140,.12)',1);
+}
+
+/* ---------------- grenades and blasts ---------------- */
+function lob(a,b,t0,fl,hgt,t){var u=(t-t0)/fl;if(u<0||u>1)return null;var x=a.x+(b.x-a.x)*u,y=a.y+(b.y-a.y)*u;return {x:x,y:y-hgt*Math.sin(Math.PI*u),gy:y,u:u}}
+function nade(g,t,blink){
+  c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(g.x,g.gy+2,5.5-2*Math.sin(Math.PI*g.u),2.6,0,0,TAU);c.fill();
+  c.save();c.translate(g.x,g.y);c.rotate(g.u*10);
+  circle(c,0,0,5.4,'#64753c','#2b3320',1.5);c.fillStyle='#2b3320';c.fillRect(-5.4,-.8,10.8,1.6);c.fillStyle='#c8cfaa';c.fillRect(-1.3,-7.2,2.6,2.6);
+  c.restore();
+  if(blink&&Math.sin(t*48)>0)circle(c,g.x,g.y-1,2,'#ff5a3a');
+}
+function trail(a,b,t0,fl,hgt,t){c.strokeStyle='rgba(200,210,180,.22)';c.lineWidth=2;c.beginPath();for(var k=0;k<=14;k++){var tt=t0+fl*k/14;if(tt>t)break;var p=lob(a,b,t0,fl,hgt,tt);k?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)}c.stroke()}
+function scorch(x,y,R,age){if(age<0)return;var a=.5*clamp(1-(age-1.2)/2.5);c.fillStyle=rgba([10,8,6],a);c.beginPath();c.arc(x,y,R*.42,0,TAU);c.fill();c.strokeStyle=rgba([40,32,24],a*.8);c.lineWidth=2;for(var k=0;k<7;k++){var an=k/7*TAU+.4;c.beginPath();c.moveTo(x+Math.cos(an)*R*.3,y+Math.sin(an)*R*.3);c.lineTo(x+Math.cos(an)*R*.62,y+Math.sin(an)*R*.62);c.stroke()}}
+function boom(x,y,R,age,n,seed,tint){
+  if(age<0||age>1.6)return;
+  tint=tint||[255,150,50];
+  if(age<.1){circle(c,x,y,R*.4+R*.4*age/.1,rgba([255,250,225],1-age/.1))}
+  if(age<.45){var k=eo(age/.3);glow(c,x,y,R*1.05*k,tint,.55*(1-age/.45));circle(c,x,y,R*k,null,rgba([255,205,110],.95*(1-age/.45)),3*(1-age/.45)+1)}
+  for(var s=0;s<6;s++){var p=clamp((age-.06)/1.3);if(age<.06||p>=1)continue;var an=s/6*TAU+seed;circle(c,x+Math.cos(an)*R*.3*eo(p),y+Math.sin(an)*R*.3*eo(p)-14*p,R*.16+R*.18*p,rgba([86,80,74],.42*(1-p)))}
+  for(var j=0;j<n;j++){var an2=j/n*TAU+seed*1.7,u=clamp((age-.03)/.42);if(age<.03||u>=1)continue;var d=175*S*eo(u),sx=x+Math.cos(an2)*(R*.3+d),sy=y+Math.sin(an2)*(R*.3+d),f=1-u*u;
+    c.strokeStyle=rgba([255,205,100],f);c.lineWidth=2.2;c.beginPath();c.moveTo(sx-Math.cos(an2)*13,sy-Math.sin(an2)*13);c.lineTo(sx,sy);c.stroke();c.fillStyle=rgba([255,255,230],f);c.fillRect(sx-1.4,sy-1.4,2.8,2.8)}
+}
+function floater(x,y,txt,col,age,size){if(age<0||age>.85)return;c.fillStyle=rgba(col,1-age/.85);c.font='700 '+(size||15)+'px Barlow Condensed,sans-serif';c.textAlign='center';c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=3;var yy=y-16-24*eo(age/.85);c.strokeText(txt,x,yy);c.fillText(txt,x,yy)}
+
+/* ---------------- input chips (bottom left) ---------------- */
+function chips(t,list){
+  var x=12,y=H-14;c.font='600 12px IBM Plex Mono,monospace';c.textAlign='left';c.textBaseline='middle';
+  list.forEach(function(k){var w=c.measureText(k.key).width+12,on=k.on;
+    c.fillStyle=on?'#e8ecd8':'rgba(255,255,255,.08)';c.fillRect(x,y-10,w,20);c.fillStyle=on?'#121613':'#cfd6c4';c.fillText(k.key,x+6,y+1);x+=w+6;
+    c.fillStyle=k.dim?'rgba(207,214,196,.45)':'#cfd6c4';c.font='500 12px Barlow,sans-serif';c.fillText(k.label,x,y+1);x+=c.measureText(k.label).width+16;c.font='600 12px IBM Plex Mono,monospace'});
+  c.textBaseline='alphabetic';
+}
+function state(txt){c.font='500 12px IBM Plex Mono,monospace';c.textAlign='right';c.fillStyle='rgba(207,214,196,.8)';c.fillText(txt,W-12,20);c.textAlign='left'}
+
+/* ---------------- blast list per look; enemies take hits from them ---------------- */
+var blasts=[],deaths={};
+function deadAt(i){return deaths[i]==null?1e9:deaths[i]}
+function resolve(){
+  deaths={};var hp=FOES.map(function(f){return f.hp}),hits=[];
+  blasts.slice().sort(function(a,b){return a.t-b.t}).forEach(function(b){
+    FOES.forEach(function(f,i){if(hp[i]<=0)return;var p=foePos(f,i,b.t);if(Math.hypot(p.x-b.x,p.y-b.y)<b.R+f.r){hp[i]-=b.dmg;hits.push({i:i,t:b.t,dmg:b.dmg,x:b.x,y:b.y,bonus:b.bonus});if(hp[i]<=0)deaths[i]=b.t}});
+  });
+  return hits;
+}
+var hitList=[];
+function drawFoes(t){
+  var flash={};hitList.forEach(function(h){var a=t-h.t;if(a>=0&&a<.18)flash[h.i]=Math.max(flash[h.i]||0,1-a/.18)});
+  FOES.forEach(function(f,i){var dt=t-deadAt(i);
+    if(dt>.35)return;
+    if(dt>0){var p=foePos(f,i,deadAt(i));var k=dt/.35;circle(c,p.x,p.y,f.r*(1+k*1.4),null,rgba([255,200,140],1-k),2);for(var j=0;j<5;j++){var a=j/5*TAU+i;c.fillStyle=rgba([220,80,70],1-k);c.fillRect(p.x+Math.cos(a)*f.r*1.8*k-2,p.y+Math.sin(a)*f.r*1.8*k-2,4,4)}return}
+    drawFoe(f,i,t,flash[i]||0)});
+  hitList.forEach(function(h){var p=foePos(FOES[h.i],h.i,h.t);floater(p.x,p.y,String(h.dmg),h.bonus?[255,220,80]:[255,180,90],t-h.t,h.bonus?17:15)});
+}
+
+/* ===================================================== LOOKS */
+var LOOKS=[
+ {key:'now',name:'Current',stats:'Twin Rifle Alt: unused · Cluster Grenade: ability 1, 6 s',
+  blurb:'Today the Twin Rifle has <b>no Alt</b>. The Cluster Grenade is a separate ability: you throw it by hand to your cursor (380 px max), it lands in 0.55 s and bursts for 80 in 110 px with 8 shards.',
+  beats:[['0.0 s','Hold fire. Streams angle in and cross at your cursor (×2 at the X).'],['1.4 s','Press ability 1: a hand throw from your body, separate from the gun.'],['1.95 s','80 damage in 110 px, 8 shards at 9.6 each.'],['After','6 s cooldown on the ability bar.']],
+  fix:['Shown for comparison.','The grenade and the rifle don\'t interact: the throw ignores the crossing.','Moving it to the gun frees ability slot 1 for Airstrike.'],
+  setup:function(){var to=X;blasts=[{t:1.95,x:to.x,y:to.y,R:110*S,dmg:80}]},
+  draw:function(t){
+    floor();drawAim(t);
+    scorch(X.x,X.y,110*S,t-1.95);
+    drawFoes(t);drawTracers(t);
+    var g=lob({x:P.x+4,y:P.y-10},X,1.4,.55,70,t);if(g){trail({x:P.x+4,y:P.y-10},X,1.4,.55,70,t);nade(g,t)}
+    drawSoldier(t,{flash:function(s){return muzzle(t,s)}});
+    if(t>1.35&&t<1.55){var k=(t-1.35)/.2;c.strokeStyle=rgba([220,230,200],1-k);c.lineWidth=2;c.beginPath();c.arc(P.x,P.y,16+10*k,-1.2,.2);c.stroke()}
+    boom(X.x,X.y,110*S,t-1.95,8,.3);
+    chips(t,[{key:'LMB',label:'Fire',on:t>FIRE0&&t<FIRE1},{key:'Alt',label:'—',dim:1},{key:'1',label:'Cluster Grenade',on:t>1.35&&t<1.55}]);
+    state(t<1.4?'firing':t<1.95?'grenade in the air':t<3?'blast':'firing');
+  }},
+ {key:'a',name:'A · Underbarrel',stats:'Alt · 7 s recharge · 60 + 8 shards · 90 px · 0.4 s flight',
+  blurb:'A launcher under the lower rifle. <b>Alt</b> thumps one grenade straight to the crossing X (flatter and faster than a throw). Where it bursts, the ground stays <b>crossfire for 1.5 s</b>: every rifle hit inside the blast counts double, not just the ones at the X.',
+  beats:[['0.0 s','Hold fire. The tube glows olive: a grenade is loaded.'],['1.4 s','Alt: thump, the gun kicks, a puff from the tube. The rifles keep firing.'],['1.8 s','Lands on the X: 60 in 90 px and 8 shards.'],['1.8–3.3 s','An amber crossfire ring stays: rifle hits inside it pop ×2.'],['After','A bar under the tube refills over 7 s.']],
+  fix:['The grenade now feeds the rifle: put the X on a crowd, Alt, then hose the ring.','No new aiming: it always goes to your crossing distance (120–575 px), so it is fast to use.','Lower burst than today (60 vs 80), paid back by the doubled stream inside the ring.','Recommended: simplest to learn, and the clearest link to the crossfire.'],
+  setup:function(){blasts=[{t:1.8,x:X.x,y:X.y,R:90*S,dmg:60}]},
+  draw:function(t){
+    floor();
+    var zoneA=t-1.8,zone=zoneA>0&&zoneA<1.5;
+    if(zone){var fade=zoneA<1.2?1:1-(zoneA-1.2)/.3,R=90*S;c.fillStyle=rgba([255,190,60],.07*fade);circle(c,X.x,X.y,R,rgba([255,190,60],.07*fade));
+      c.setLineDash([7,5]);c.lineDashOffset=-t*30;circle(c,X.x,X.y,R,null,rgba([255,200,90],.75*fade),2);c.setLineDash([]);c.lineDashOffset=0;
+      c.strokeStyle=rgba([255,200,90],.9*fade);c.lineWidth=3;c.beginPath();c.arc(X.x,X.y,R+6,-Math.PI/2,-Math.PI/2+TAU*(1-zoneA/1.5));c.stroke();
+      c.fillStyle=rgba([255,210,110],.85*fade);c.font='700 12px Barlow Condensed,sans-serif';c.textAlign='center';c.fillText('CROSSFIRE',X.x,X.y-R-12)}
+    drawAim(t,zone?'rgba(255,210,90,.95)':null);
+    scorch(X.x,X.y,90*S,t-1.8);
+    drawFoes(t);
+    var cross=function(x,y){return zone&&Math.hypot(x-X.x,y-X.y)<90*S};
+    drawTracers(t,cross);
+    var from={x:P.x+38,y:P.y+HW+8},g=lob(from,X,1.4,.4,26,t);if(g){trail(from,X,1.4,.4,26,t);nade(g,t,1)}
+    var rech=t<1.4?1:clamp((t-1.4)/(LOOP-1.6));
+    drawSoldier(t,{flash:function(s){return muzzle(t,s)},kick:t>1.4&&t<1.6?1-(t-1.4)/.2:0,kickSide:1,
+      tube:function(s){return s===1?{ready:rech>=1,prog:rech}:null},
+      thump:function(s){return s===1&&t>1.4&&t<1.7?1-(t-1.4)/.3:0}});
+    boom(X.x,X.y,90*S,t-1.8,8,.9);
+    chips(t,[{key:'LMB',label:'Fire',on:t>FIRE0&&t<FIRE1},{key:'Alt',label:'Underbarrel grenade',on:t>1.35&&t<1.55},{key:'1',label:'Airstrike',dim:1}]);
+    state(t<1.4?'firing · grenade loaded':t<1.8?'grenade in the air':zone?'crossfire zone '+(1.5-zoneA).toFixed(1)+' s':'reloading tube');
+  }},
+ {key:'b',name:'B · Twin Tubes',stats:'Alt · 9 s recharge · 2 × 35, or 110 fused · 0.45 s flight',
+  blurb:'A tube under each rifle. <b>Alt</b> fires both, one down each stream line. If the crossing is on target they <b>meet at the X and fuse</b> into one big blast: 110 in 130 px with 12 shards. If the X is past the enemies, the two hit them first as small 35 blasts.',
+  beats:[['0.0 s','Hold fire. Both tubes glow.'],['1.4 s','Alt: both guns kick at once, two puffs, two dashed paths light up toward the X.'],['1.85 s','The grenades kiss at the X: a white fusion flash.'],['1.9 s','One big blast: 110 in 130 px and 12 shards.'],['After','Both tubes refill over 9 s.']],
+  fix:['A skill shot built on the rifle\'s own rule: get the distance right and it pays big.','Biggest single hit of the three, good on bosses and Brutes.','Miss the distance and you still get two small blasts, so it never whiffs completely.','Harder to read in co-op: two arcs, then one blast.'],
+  setup:function(){blasts=[{t:1.9,x:X.x,y:X.y,R:130*S,dmg:110}]},
+  draw:function(t){
+    floor();drawAim(t);
+    if(t>1.3&&t<1.9){var k=clamp((t-1.3)/.1)*(t<1.8?1:1-(t-1.8)/.1);c.setLineDash([5,5]);c.lineDashOffset=-t*60;[-1,1].forEach(function(s){var st=tracerStart(s);c.strokeStyle=rgba([200,230,110],.6*k);c.lineWidth=1.5;c.beginPath();c.moveTo(st.x,st.y+5);c.lineTo(X.x,X.y);c.stroke()});c.setLineDash([]);c.lineDashOffset=0}
+    scorch(X.x,X.y,130*S,t-1.9);
+    drawFoes(t);drawTracers(t);
+    [-1,1].forEach(function(s){var st=tracerStart(s),from={x:st.x-6,y:st.y+6};var g=lob(from,X,1.4,.45,14,t);if(g)nade(g,t,1)});
+    var rech=t<1.4?1:clamp((t-1.4)/(LOOP-1.6));
+    drawSoldier(t,{flash:function(s){return muzzle(t,s)},kick:t>1.4&&t<1.6?1-(t-1.4)/.2:0,kickSide:0,
+      tube:function(){return {ready:rech>=1,prog:rech}},
+      thump:function(){return t>1.4&&t<1.7?1-(t-1.4)/.3:0}});
+    var fa=t-1.85;if(fa>0&&fa<.25){var k2=fa/.25;circle(c,X.x,X.y,6+30*k2,rgba([255,255,255],1-k2));for(var j=0;j<4;j++){var an=j/4*TAU+Math.PI/4;c.strokeStyle=rgba([235,255,190],1-k2);c.lineWidth=2;c.beginPath();c.moveTo(X.x+Math.cos(an)*8,X.y+Math.sin(an)*8);c.lineTo(X.x+Math.cos(an)*(14+40*k2),X.y+Math.sin(an)*(14+40*k2));c.stroke()}}
+    boom(X.x,X.y,130*S,t-1.9,12,.2,[255,170,60]);
+    if(t>1.9&&t<2.7){c.fillStyle=rgba([235,255,190],1-(t-1.9)/.8);c.font='700 14px Barlow Condensed,sans-serif';c.textAlign='center';c.fillText('FUSED',X.x,X.y-130*S-8)}
+    chips(t,[{key:'LMB',label:'Fire',on:t>FIRE0&&t<FIRE1},{key:'Alt',label:'Twin grenades',on:t>1.35&&t<1.55},{key:'1',label:'Airstrike',dim:1}]);
+    state(t<1.4?'firing · both tubes loaded':t<1.85?'converging':t<2.8?'fused blast':'reloading tubes');
+  }},
+ {key:'c',name:'C · Cluster Mag',stats:'Alt · loads 1 round per 25 hits (max 3) · 3 × (40 + 6 shards) · 70 px',
+  blurb:'No timer: <b>your hits load the grenades</b>. Every 25 rifle hits loads a round (3 max, shown as pips by your feet; crossfire hits count double). <b>Alt</b> dumps every loaded round as a quick salvo that walks out to the X.',
+  beats:[['0.0–2.6 s','Hold fire. Pips fill as hits land (sped up here).'],['2.9 s','Alt: three thumps 0.12 s apart.'],['3.2–3.5 s','They land at 70%, 85% and 100% of the crossing distance: a walking line of blasts.'],['After','Pips empty; keep hitting to load again. Tap Alt with one pip for a single grenade.']],
+  fix:['Rewards staying on target, like the rifle\'s crossfire already does.','You choose: one grenade now, or save three for a wave.','The salvo walks toward the X, so it clears a lane in front of you.','Needs a new HUD pip row; the other two only need the tube glow.'],
+  setup:function(){var d=[.7,.85,1];blasts=d.map(function(f,k){var x=P.x+(X.x-P.x)*f,y=P.y+(k-1)*14;return {t:3.2+k*.12+.06*k,x:x,y:y,R:70*S,dmg:40}})},
+  draw:function(t){
+    floor();drawAim(t);
+    blasts.forEach(function(b){scorch(b.x,b.y,b.R,t-b.t)});
+    drawFoes(t);drawTracers(t);
+    blasts.forEach(function(b,k){var t0=2.9+k*.12,from={x:P.x+38,y:P.y+HW+8},fl=b.t-t0;var g=lob(from,b,t0,fl,30,t);if(g){trail(from,b,t0,fl,30,t);nade(g,t,1)}});
+    var loaded=t<2.9?Math.min(3,Math.floor(Math.max(0,t-.2)/.8)):t<3.26?Math.max(0,2-Math.floor((t-2.9)/.12)):0;
+    var partial=t<2.9?(t<.2?0:((t-.2)%.8)/.8):clamp((t-3.3)/2.4)*.6;
+    drawSoldier(t,{flash:function(s){return muzzle(t,s)},kick:t>2.9&&t<3.4?Math.abs(Math.sin((t-2.9)/.12*Math.PI)):0,kickSide:1,
+      tube:function(s){return s===1?{ready:loaded>0}:null},
+      thump:function(s){if(s!==1)return 0;for(var k=0;k<3;k++){var a=t-(2.9+k*.12);if(a>0&&a<.2)return 1-a/.2}return 0}});
+    // pips
+    for(var k=0;k<3;k++){var px=P.x-16+k*16,py=P.y+38,full=k<loaded;c.save();c.translate(px,py);c.rotate(Math.PI/4);c.fillStyle=full?'#b8cc5a':'rgba(255,255,255,.08)';c.fillRect(-5,-5,10,10);
+      if(!full&&k===loaded&&t<2.9){c.fillStyle='rgba(184,204,90,.6)';c.fillRect(-5,5-10*partial,10,10*partial)}
+      c.strokeStyle=full?'#e6f0b8':'rgba(255,255,255,.25)';c.lineWidth=1.2;c.strokeRect(-5,-5,10,10);c.restore();
+      if(full&&t<2.9){glow(c,px,py,12,[200,230,110],.25)}}
+    blasts.forEach(function(b,k){boom(b.x,b.y,b.R,t-b.t,6,k*1.3)});
+    chips(t,[{key:'LMB',label:'Fire',on:t>FIRE0&&t<FIRE1},{key:'Alt',label:'Fire loaded rounds',on:t>2.85&&t<3.3},{key:'1',label:'Airstrike',dim:1}]);
+    state(t<2.9?'loading · '+loaded+'/3':t<3.6?'salvo':'loading · '+loaded+'/3');
+  }}
+];
+
+/* ===================================================== runner */
+var seg=document.getElementById('seg'),cur=1,t=0,last=null,paused=false;
+LOOKS.forEach(function(L,i){var id='lk'+i;var inp=document.createElement('input');inp.type='radio';inp.name='look';inp.id=id;inp.checked=i===cur;
+  inp.addEventListener('change',function(){if(inp.checked)pick(i)});var lab=document.createElement('label');lab.htmlFor=id;lab.textContent=L.name;seg.appendChild(inp);seg.appendChild(lab)});
+function pick(i){cur=i;var L=LOOKS[i];t=0;L.setup();hitList=resolve();
+  document.getElementById('ttl').firstChild.nodeValue=L.name+' ';
+  document.getElementById('stats').textContent=L.stats;
+  document.getElementById('blurb').innerHTML=L.blurb;
+  document.getElementById('beats').innerHTML=L.beats.map(function(b){return '<li><b>'+b[0]+'</b><span>'+b[1]+'</span></li>'}).join('');
+  document.getElementById('fix').innerHTML=L.fix.map(function(f){return '<li>'+f+'</li>'}).join('');
+  if(paused)draw();
+}
+function draw(){LOOKS[cur].draw(t)}
+function frame(now){if(last==null)last=now;var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(!paused){t+=dt*(document.getElementById('slow').checked?.25:1);if(t>LOOP)t=0;draw()}
+  requestAnimationFrame(frame)}
+document.getElementById('replay').addEventListener('click',function(){t=0;draw()});
+var pb=document.getElementById('pause');pb.addEventListener('click',function(){paused=!paused;pb.textContent=paused?'Play':'Pause'});
+window.seekLook=function(i,tt){pick(i);t=tt;draw()};  // for screenshots
+pick(cur);
+if(reduce){paused=true;pb.textContent='Play';t=2.05;draw()}
+requestAnimationFrame(frame);
+})();
+</script>

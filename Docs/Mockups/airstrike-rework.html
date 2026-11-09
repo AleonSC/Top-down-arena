@@ -1,0 +1,306 @@
+<title>Airstrike Ability Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ability stage showing the whole 1600 × 900 arena (canvas, look picker, capstone, replay/pause/slow-mo), then beats, what-changes and a side-by-side table.
+   Colour: signal-smoke red for the call-in and the lane, ordnance orange for the blasts. Type: Barlow Condensed display, Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#eeece8; --fg:#201c1a; --muted:#645d58; --panel:#f9f7f4; --line:#d6d0ca;
+  --acc:#b8321f; --chip:#e4e0db; --chip-on:#201c1a; --chip-on-fg:#f6f3ef;
+  --arena:#121414;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121111; --fg:#ece7e2; --muted:#a29890; --panel:#1b1918; --line:#322d2a;
+  --acc:#ff6b55; --chip:#262321; --chip-on:#ece7e2; --chip-on-fg:#121111;
+  --arena:#0c0d0d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121111; --fg:#ece7e2; --muted:#a29890; --panel:#1b1918; --line:#322d2a;
+  --acc:#ff6b55; --chip:#262321; --chip-on:#ece7e2; --chip-on-fg:#121111;
+  --arena:#0c0d0d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header h1 span{color:var(--acc)}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--acc)}
+.stage h2 small{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:none}
+.blurb{margin:0;max-width:70ch;color:var(--muted);min-height:3em}
+.blurb b{color:var(--fg);font-weight:600}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:720/405}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ol,.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card ol li{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px}
+.card ol li b{font:500 12.5px/1.7 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card ul li{padding-left:14px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.pick td:first-child{font-weight:600;color:var(--acc)}
+.dev{font-size:14.5px;color:var(--muted);max-width:78ch;margin:0}
+.dev strong{color:var(--fg)}
+@media (max-width:720px){.cols{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<main>
+<header>
+  <h1>Soldier DPS: <span>Airstrike</span></h1>
+  <p>Gameplay mockup. Airstrike replaces the Cluster Grenade on the ability bar (the grenade moves to the Twin Rifle's Alt). You throw a smoke flare at your cursor and a jet runs a line across the <b>whole arena</b> through it. The view is the full 1600 × 900 arena, so you can see the line reach wall to wall.</p>
+</header>
+
+<section class="stage">
+  <h2 id="ttl">Bombing Run <small id="stats"></small></h2>
+  <p class="blurb" id="blurb"></p>
+  <div class="frame"><canvas id="cv" width="720" height="405" aria-label="Airstrike animation preview"></canvas></div>
+  <div class="controls">
+    <div class="seg" id="seg" role="radiogroup" aria-label="Look"></div>
+    <label class="chk" for="cap"><input type="checkbox" id="cap"> Capstone (level 5)</label>
+    <button type="button" id="replay">Replay</button>
+    <button type="button" id="pause">Pause</button>
+    <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo (0.25×)</label>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Beats</h3><ol id="beats"></ol></div>
+    <div class="card"><h3>What changes</h3><ul id="fix"></ul></div>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Side by side</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Look</th><th>The line</th><th>Damage</th><th>Warning</th><th>Cooldown</th><th>Capstone</th></tr></thead>
+    <tbody>
+      <tr><td>Today · Cluster Grenade</td><td>One spot, 380 px max</td><td class="n">80 in 110 px + 8 shards</td><td class="n">0.55 s</td><td class="n">6 s</td><td>A second grenade 80 px further</td></tr>
+      <tr class="pick"><td>A · Bombing Run</td><td>Along your aim, wall to wall</td><td class="n">a bomb per 140 px × 55 in 75 px</td><td class="n">1.0 s</td><td class="n">14 s</td><td>A second jet crosses at the flare: an X</td></tr>
+      <tr><td>B · Carpet Wall</td><td>Across your aim, wall to wall</td><td class="n">7 bombs × 55, then fire 15/s for 3 s</td><td class="n">1.0 s</td><td class="n">16 s</td><td>A second wall 160 px further</td></tr>
+      <tr><td>C · Gun Run</td><td>Along your aim; two cannon lines cross at the flare</td><td class="n">2 × 40 rounds × 8 (×2 at the crossing)</td><td class="n">0.8 s</td><td class="n">12 s</td><td>The jet comes back the other way</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<p class="dev"><strong>Build notes.</strong> One new <code>AbilityId</code> (at the end, before <code>None</code>) or a rename of <code>AbilityId.Grenade</code>, plus an <code>FxKind</code> for the flare, the lane and the jet; that is a snapshot change, so <code>Session.ProtocolVersion</code> goes up. The host lays the bombs (or rounds) as timed blasts down the line, the same way the Cavalry Call's lancers walk theirs (<code>CavalryCall.cs</code>). A and C run along your aim like the Cavalry Call does, so B is the one that feels least like the Tank's charge. Allies take no damage. Mastery scales damage and blast size, as for every ability. Numbers are starting points, not tuned.</p>
+</main>
+
+<script>
+(function(){
+var W=720,H=405,AW=1600,AH=900,K=W/AW,TAU=Math.PI*2;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v,a,b){if(a===undefined){a=0;b=1}return Math.max(a,Math.min(b,v))}
+function eo(f){f=clamp(f);return 1-Math.pow(1-f,3)}
+function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function rgba(c,a){return 'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+clamp(a)+')'}
+var cv=document.getElementById('cv'),c=cv.getContext('2d');
+function circle(x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function glow(x,y,r,col,a){if(r<=0||a<=0)return;var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,rgba(col,a));g.addColorStop(1,rgba(col,0));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill()}
+
+/* scene in game pixels; the canvas is the whole arena at 0.45 */
+var P={x:360,y:520},CUR={x:880,y:400},LOOP=6.2,TC=.35,TF=.75;
+var aim=Math.atan2(CUR.y-P.y,CUR.x-P.x),D={x:Math.cos(aim),y:Math.sin(aim)},N={x:-D.y,y:D.x};
+var PROPS=[{x:700,y:180,w:80,h:80},{x:1180,y:640,w:110,h:70},{x:560,y:760,w:60,h:60},{x:1380,y:240,w:70,h:70}];
+var FOES=[];
+(function(){var spots=[[760,330],[830,470],[900,380],[960,300],[1010,450],[1080,360],[1150,420],[1220,330],[1300,400],[1380,470],[1460,350],[700,600],[1000,640],[1100,180],[860,180],[1260,560],[620,420]];
+  spots.forEach(function(s,i){var big=i===4||i===9;FOES.push({x:s[0],y:s[1],r:big?26:17,hp:big?220:60,big:big,sp:big?30:55})})})();
+function foePos(f,i,t){var dx=P.x-f.x,dy=P.y-f.y,d=Math.hypot(dx,dy),m=Math.min(t*f.sp,d-80);return {x:f.x+dx/d*m+10*Math.sin(t*2+i),y:f.y+dy/d*m+10*Math.cos(t*1.6+i*2)}}
+
+/* clip the infinite line through o along dir to the arena */
+function clipLine(o,dir){var ts=[];
+  if(Math.abs(dir.x)>1e-6){[0,AW].forEach(function(x){var tt=(x-o.x)/dir.x,y=o.y+dir.y*tt;if(y>=-1&&y<=AH+1)ts.push(tt)})}
+  if(Math.abs(dir.y)>1e-6){[0,AH].forEach(function(y){var tt=(y-o.y)/dir.y,x=o.x+dir.x*tt;if(x>=-1&&x<=AW+1)ts.push(tt)})}
+  ts.sort(function(a,b){return a-b});return {a:ts[0],b:ts[ts.length-1]}}
+function at(o,dir,s){return {x:o.x+dir.x*s,y:o.y+dir.y*s}}
+
+/* ---------------- drawing pieces ---------------- */
+function floor(){
+  c.fillStyle='#121414';c.fillRect(0,0,AW,AH);
+  c.strokeStyle='#1b1e1e';c.lineWidth=2;c.beginPath();
+  for(var x=0;x<=AW;x+=80){c.moveTo(x,0);c.lineTo(x,AH)}for(var y=0;y<=AH;y+=80){c.moveTo(0,y);c.lineTo(AW,y)}c.stroke();
+  PROPS.forEach(function(p){c.fillStyle='#2a2622';c.fillRect(p.x,p.y,p.w,p.h);c.strokeStyle='#3c3630';c.lineWidth=4;c.strokeRect(p.x+2,p.y+2,p.w-4,p.h-4);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+p.w,p.y+p.h);c.moveTo(p.x+p.w,p.y);c.lineTo(p.x,p.y+p.h);c.stroke()});
+  c.strokeStyle='#3a3f3f';c.lineWidth=8;c.strokeRect(4,4,AW-8,AH-8);
+}
+function drawPlayer(t,throwK){
+  circle(P.x+4,P.y+6,26,'rgba(0,0,0,.35)');
+  [-1,1].forEach(function(s){c.save();c.translate(P.x+N.x*s*22,P.y+N.y*s*22);c.rotate(aim);c.fillStyle='#262c32';c.fillRect(-4,-5,48,10);c.fillStyle='#3d464f';c.fillRect(4,-3,30,6);c.restore()});
+  circle(P.x,P.y,25,'#4f8fd0','#1d3550',5);circle(P.x+D.x*2,P.y+D.y*2,15,'#5d6a3a','#2d3420',3);
+  if(throwK>0){c.strokeStyle=rgba([255,180,160],throwK);c.lineWidth=4;c.beginPath();c.arc(P.x,P.y,32+20*(1-throwK),aim-1.1,aim+.3);c.stroke()}
+}
+function drawFoe(f,i,t,flash){var p=foePos(f,i,t);c.save();c.translate(p.x,p.y);c.rotate(Math.PI/4);var s=f.r*.9;
+  c.fillStyle=f.big?'#d4683a':'#d9474a';c.fillRect(-s,-s,2*s,2*s);c.strokeStyle='rgba(0,0,0,.45)';c.lineWidth=4;c.strokeRect(-s,-s,2*s,2*s);
+  if(flash>0){c.fillStyle=rgba([255,255,255],flash);c.fillRect(-s,-s,2*s,2*s)}c.restore()}
+function floater(x,y,txt,col,age,size){if(age<0||age>.85)return;c.font='700 '+(size||34)+'px Barlow Condensed,sans-serif';c.textAlign='center';var yy=y-36-50*eo(age/.85);c.strokeStyle=rgba([0,0,0],.6*(1-age/.85));c.lineWidth=6;c.strokeText(txt,x,yy);c.fillStyle=rgba(col,1-age/.85);c.fillText(txt,x,yy)}
+
+/* the flare: an arc to the cursor, then red smoke */
+function flare(t,at0){
+  var u=(t-TC)/(TF-TC);
+  if(u>=0&&u<1){var x=P.x+(CUR.x-P.x)*u,y=P.y+(CUR.y-P.y)*u-120*Math.sin(Math.PI*u);circle(x,y,9,'#ff4433','#5a1410',3);glow(x,y,30,[255,80,60],.5)}
+  var a=t-TF;if(a<0)return;var end=at0;var fade=a<end?1:clamp(1-(a-end)/1);
+  for(var k=0;k<9;k++){var p=((a*.45+hash(k))%1),dx=18+70*p+30*hash(k+3),ang=-2.2+hash(k+9)*.9;circle(CUR.x+Math.cos(ang)*dx,CUR.y+Math.sin(ang)*dx,16+40*p,rgba([220,60,45],(.32*(1-p))*fade))}
+  circle(CUR.x,CUR.y,8,'#ff5a44','#4a120e',3);glow(CUR.x,CUR.y,40+6*Math.sin(t*20),[255,90,60],.55*fade);
+}
+/* the lane telegraph: grows out from the flare to both walls; chevrons show which way the jet comes */
+function lane(o,dir,half,t0,end,t,col,tag){
+  var a=t-t0;if(a<0||a>end+.4)return;var fade=a<end?1:1-(a-end)/.4;var L=clipLine(o,dir),g=eo(a/.35);
+  var s0=L.a*g,s1=L.b*g,p0=at(o,dir,s0),p1=at(o,dir,s1),n={x:-dir.y,y:dir.x};
+  var pulse=.5+.5*Math.sin(t*14);
+  c.fillStyle=rgba(col,(.06+.05*pulse)*fade);c.beginPath();c.moveTo(p0.x+n.x*half,p0.y+n.y*half);c.lineTo(p1.x+n.x*half,p1.y+n.y*half);c.lineTo(p1.x-n.x*half,p1.y-n.y*half);c.lineTo(p0.x-n.x*half,p0.y-n.y*half);c.closePath();c.fill();
+  c.setLineDash([22,14]);c.lineDashOffset=-t*120;c.strokeStyle=rgba(col,.75*fade);c.lineWidth=3;
+  [-1,1].forEach(function(s){c.beginPath();c.moveTo(p0.x+n.x*half*s,p0.y+n.y*half*s);c.lineTo(p1.x+n.x*half*s,p1.y+n.y*half*s);c.stroke()});c.setLineDash([]);c.lineDashOffset=0;
+  // chevrons
+  for(var k=0;k<14;k++){var s=L.a+((k/14+a*.6)%1)*(L.b-L.a);if(s<s0||s>s1)continue;var p=at(o,dir,s);c.save();c.translate(p.x,p.y);c.rotate(Math.atan2(dir.y,dir.x));c.strokeStyle=rgba(col,.45*fade);c.lineWidth=4;c.beginPath();c.moveTo(-10,-half*.45);c.lineTo(8,0);c.lineTo(-10,half*.45);c.stroke();c.restore()}
+  if(tag&&a<end){c.font='700 30px Barlow Condensed,sans-serif';c.textAlign='center';c.fillStyle=rgba(col,.9*fade);var pt=at(o,dir,L.a+60);c.save();c.translate(pt.x,pt.y);c.rotate(Math.atan2(dir.y,dir.x));c.fillText(tag,90,-half-14);c.restore()}
+}
+/* the jet: shadow on the floor, the plane above it, two contrails */
+function jet(o,dir,s,t,col){
+  var p=at(o,dir,s),ang=Math.atan2(dir.y,dir.x);
+  // shadow
+  c.save();c.translate(p.x+60,p.y+80);c.rotate(ang);c.fillStyle='rgba(0,0,0,.4)';plane(1.15);c.restore();
+  // contrails
+  for(var k=1;k<26;k++){var q=at(o,dir,s-k*34);[-1,1].forEach(function(sd){var n={x:-dir.y*sd*44,y:dir.x*sd*44};circle(q.x+n.x-dir.x*20,q.y+n.y-dir.y*20,5+k*.5,rgba([230,235,240],.28*(1-k/26)))})}
+  c.save();c.translate(p.x,p.y);c.rotate(ang);c.fillStyle='#8d979e';plane(1);c.fillStyle='#c9d1d6';c.fillRect(10,-6,46,12);c.fillStyle='#2b3640';c.beginPath();c.ellipse(40,0,12,5,0,0,TAU);c.fill();
+  glow(-40,0,30,[255,170,80],.7);c.restore();
+}
+function plane(k){c.beginPath();c.moveTo(70*k,0);c.lineTo(30*k,-10*k);c.lineTo(0,-58*k);c.lineTo(-18*k,-58*k);c.lineTo(-8*k,-12*k);c.lineTo(-38*k,-12*k);c.lineTo(-50*k,-30*k);c.lineTo(-60*k,-30*k);c.lineTo(-52*k,0);c.lineTo(-60*k,30*k);c.lineTo(-50*k,30*k);c.lineTo(-38*k,12*k);c.lineTo(-8*k,12*k);c.lineTo(-18*k,58*k);c.lineTo(0,58*k);c.lineTo(30*k,10*k);c.closePath();c.fill()}
+function bombFall(x,y,u,dir){c.fillStyle=rgba([0,0,0],.35+.3*u);c.beginPath();c.ellipse(x,y,6+8*u,4+5*u,0,0,TAU);c.fill();var bx=x-dir.x*60*(1-u)+30*(1-u),by=y-dir.y*60*(1-u)-60*(1-u);c.save();c.translate(bx,by);c.rotate(Math.atan2(dir.y,dir.x));c.fillStyle='#3b4430';c.beginPath();c.ellipse(0,0,13-3*u,6-1*u,0,0,TAU);c.fill();c.fillStyle='#22281b';c.fillRect(-16,-6,5,12);c.restore()}
+function crater(x,y,R,age){if(age<0)return;var a=.55*clamp(1-(age-2.2)/2);c.fillStyle=rgba([8,7,6],a);c.beginPath();c.arc(x,y,R*.45,0,TAU);c.fill();c.strokeStyle=rgba([45,36,28],a);c.lineWidth=4;for(var k=0;k<8;k++){var an=k/8*TAU+x;c.beginPath();c.moveTo(x+Math.cos(an)*R*.35,y+Math.sin(an)*R*.35);c.lineTo(x+Math.cos(an)*R*.75,y+Math.sin(an)*R*.75);c.stroke()}}
+function explode(x,y,R,age,seed){
+  if(age<0||age>1.8)return;
+  if(age<.09)circle(x,y,R*.5+R*.4*age/.09,rgba([255,250,228],1-age/.09));
+  if(age<.5){var k=eo(age/.32);glow(x,y,R*1.15*k,[255,140,45],.7*(1-age/.5));circle(x,y,R*k,null,rgba([255,210,120],.95*(1-age/.5)),8*(1-age/.5)+2)}
+  for(var s=0;s<7;s++){var p=clamp((age-.05)/1.6);if(age<.05||p>=1)continue;var an=s/7*TAU+seed;circle(x+Math.cos(an)*R*.35*eo(p)+20*p,y+Math.sin(an)*R*.35*eo(p)-40*p,R*.22+R*.3*p,rgba([84,78,72],.42*(1-p)))}
+  for(var j=0;j<10;j++){var an2=j/10*TAU+seed*2,u=clamp((age-.02)/.5);if(u>=1)continue;var d=R*.4+R*1.1*eo(u);c.fillStyle=rgba([255,220,150],1-u);c.fillRect(x+Math.cos(an2)*d-3,y+Math.sin(an2)*d-3,6,6)}
+}
+function impact(x,y,age,hot){if(age<0||age>.5)return;var u=age/.5;circle(x,y,6+16*u,rgba(hot?[255,220,90]:[255,190,110],.9*(1-u)));for(var k=0;k<3;k++){var an=hash(x+k)*TAU;c.fillStyle=rgba([150,130,110],.8*(1-u));c.fillRect(x+Math.cos(an)*(8+30*u)-3,y+Math.sin(an)*(8+30*u)-3-20*u,6,6)}}
+function fireStrip(o,dir,half,t0,dur,t){var a=t-t0;if(a<0||a>dur)return;var fade=a<.2?a/.2:a>dur-.5?(dur-a)/.5:1;var L=clipLine(o,dir);
+  for(var s=L.a;s<L.b;s+=34){var p=at(o,dir,s),f=hash(s);for(var k=0;k<2;k++){var fl=(a*2.2+f+k*.5)%1,n=(hash(s+k*7)-.5)*half*1.4;var x=p.x-dir.y*n,y=p.y+dir.x*n;glow(x,y-fl*30,24+14*(1-fl),[255,120+80*fl,40],.55*fade*(1-fl))}}
+  c.fillStyle=rgba([255,90,30],.08*fade);var n2={x:-dir.y*half,y:dir.x*half},p0=at(o,dir,L.a),p1=at(o,dir,L.b);c.beginPath();c.moveTo(p0.x+n2.x,p0.y+n2.y);c.lineTo(p1.x+n2.x,p1.y+n2.y);c.lineTo(p1.x-n2.x,p1.y-n2.y);c.lineTo(p0.x-n2.x,p0.y-n2.y);c.closePath();c.fill()}
+
+/* ---------------- hit resolution: blasts at times; enemies walk in ---------------- */
+var blasts=[],hits=[],deaths={};
+function resolve(){deaths={};hits=[];var hp=FOES.map(function(f){return f.hp});
+  blasts.slice().sort(function(a,b){return a.t-b.t}).forEach(function(b){FOES.forEach(function(f,i){if(hp[i]<=0)return;var p=foePos(f,i,b.t);if(Math.hypot(p.x-b.x,p.y-b.y)<b.R+f.r){hp[i]-=b.dmg;hits.push({i:i,t:b.t,dmg:b.dmg,hot:b.hot,quiet:b.quiet,bk:b.bucket||.25});if(hp[i]<=0)deaths[i]=b.t}})})}
+function drawFoes(t){var flash={};hits.forEach(function(h){var a=t-h.t;if(a>=0&&a<.16)flash[h.i]=Math.max(flash[h.i]||0,1-a/.16)});
+  FOES.forEach(function(f,i){var d=deaths[i];if(d!=null&&t>d){var a=t-d;if(a>.4)return;var p=foePos(f,i,d),k=a/.4;circle(p.x,p.y,f.r*(1+1.6*k),null,rgba([255,200,140],1-k),4);for(var j=0;j<6;j++){var an=j/6*TAU+i;c.fillStyle=rgba([220,80,70],1-k);c.fillRect(p.x+Math.cos(an)*f.r*2*k-5,p.y+Math.sin(an)*f.r*2*k-5,10,10)}return}
+    drawFoe(f,i,t,flash[i]||0)});
+  // one number per enemy per blast; gun rounds (per 0.25 s) and fire (per second) add up so they don't spam
+  var shown={};hits.forEach(function(h){if(h.quiet){var bk=h.bk,key=h.i+'_'+bk+'_'+Math.floor(h.t/bk);if(shown[key])return;shown[key]=1;var sum=0,hot=false;hits.forEach(function(g){if(g.i===h.i&&g.quiet&&g.bk===bk&&Math.floor(g.t/bk)===Math.floor(h.t/bk)){sum+=g.dmg;hot=hot||g.hot}});var p=foePos(FOES[h.i],h.i,h.t);floater(p.x,p.y,String(Math.round(sum)),hot?[255,220,80]:[255,180,90],t-h.t-bk,30);return}
+    var p2=foePos(FOES[h.i],h.i,h.t);floater(p2.x,p2.y,String(h.dmg),[255,180,90],t-h.t)});
+}
+function hud(txt,chip){c.save();c.setTransform(1,0,0,1,0,0);c.font='500 12px IBM Plex Mono,monospace';c.textAlign='right';c.fillStyle='rgba(220,214,206,.82)';c.fillText(txt,W-12,20);
+  c.textAlign='left';c.fillStyle='rgba(220,214,206,.5)';c.fillText('1600 × 900 arena',12,20);
+  if(chip){var x=12,y=H-14;c.font='600 12px IBM Plex Mono,monospace';c.textBaseline='middle';var w=c.measureText('1').width+12;c.fillStyle=chip.on?'#f0e6e0':'rgba(255,255,255,.08)';c.fillRect(x,y-10,w,20);c.fillStyle=chip.on?'#121414':'#dcd6ce';c.fillText('1',x+6,y+1);c.font='500 12px Barlow,sans-serif';c.fillStyle='#dcd6ce';c.fillText(chip.label,x+w+6,y+1);c.textBaseline='alphabetic'}
+  c.restore()}
+
+/* ---------------- strikes: each look lays its blasts and draws itself ---------------- */
+var RED=[255,80,60],AMB=[255,170,60],SAFE=150;  // no bombs or rounds within 150 px of you
+function runBomb(o,dir,t0,spacing,R,dmg,speed){ // jet starts 400 px before the near wall; bombs drop every `spacing` within the arena
+  var L=clipLine(o,dir),start=L.a-400,list=[];for(var s=L.a+40;s<L.b-20;s+=spacing){var tdrop=t0+(s-start)/speed;var p=at(o,dir,s);if(Math.hypot(p.x-P.x,p.y-P.y)<SAFE)continue;list.push({t:tdrop+.28,x:p.x,y:p.y,R:R,dmg:dmg,drop:tdrop})}
+  return {o:o,dir:dir,t0:t0,start:start,end:L.b+500,speed:speed,list:list}}
+function drawRun(run,t){var s=run.start+(t-run.t0)*run.speed;
+  run.list.forEach(function(b){crater(b.x,b.y,b.R,t-b.t)});
+  return s}
+function drawRunTop(run,t){var s=run.start+(t-run.t0)*run.speed;
+  run.list.forEach(function(b){var u=(t-b.drop)/.28;if(u>=0&&u<1)bombFall(b.x,b.y,u,run.dir)});
+  run.list.forEach(function(b,k){explode(b.x,b.y,b.R,t-b.t,k)});
+  if(t>=run.t0&&s<run.end)jet(run.o,run.dir,s,t);}
+
+var runs=[],extra={};
+var LOOKS=[
+ {key:'now',name:'Today',stats:'Cluster Grenade · 6 s · 80 in 110 px + 8 shards · 380 px max',
+  blurb:'What Airstrike replaces. The Cluster Grenade covers <b>one spot</b> near you: the throw stops at 380 px, so most of the arena is out of reach and the crowd behind the front row is untouched.',
+  beats:[['0.35 s','Throw toward the cursor; it stops at 380 px.'],['0.9 s','80 in 110 px and 8 shards.'],['After','6 s cooldown.']],
+  fix:['Shown for comparison.','It moves to the Twin Rifle\'s Alt (see the Twin Rifle mockup), so nothing is lost.'],
+  cap:'Throws a second grenade 80 px further.',
+  setup:function(cap){var d=Math.min(380,Math.hypot(CUR.x-P.x,CUR.y-P.y)),g=at(P,D,d);extra.g=[g];if(cap)extra.g.push(at(P,D,d+80));blasts=extra.g.map(function(p){return {t:.9,x:p.x,y:p.y,R:110,dmg:80}})},
+  draw:function(t){floor();extra.g.forEach(function(g){crater(g.x,g.y,110,t-.9)});drawFoes(t);
+    extra.g.forEach(function(g){var u=(t-.35)/.55;if(u>=0&&u<1){var x=P.x+(g.x-P.x)*u,y=P.y+(g.y-P.y)*u-90*Math.sin(Math.PI*u);circle(x,y+90*Math.sin(Math.PI*u),8,'rgba(0,0,0,.35)');circle(x,y,11,'#64753c','#2b3320',3)}});
+    c.setLineDash([10,10]);circle(P.x,P.y,380,null,'rgba(255,255,255,.12)',2);c.setLineDash([]);
+    drawPlayer(t,t>.3&&t<.5?1-(t-.3)/.2:0);
+    extra.g.forEach(function(g,k){explode(g.x,g.y,110,t-.9,k);var a=t-.9;if(a>0&&a<.5)for(var j=0;j<8;j++){var an=j/8*TAU+.3,u=a/.45;if(u>=1)continue;var dd=110*.3+175*eo(u);c.strokeStyle=rgba([255,205,100],1-u*u);c.lineWidth=4;c.beginPath();c.moveTo(g.x+Math.cos(an)*(dd-26),g.y+Math.sin(an)*(dd-26));c.lineTo(g.x+Math.cos(an)*dd,g.y+Math.sin(an)*dd);c.stroke()}});
+    hud(t<.35?'ready':t<.9?'grenade in the air':t<1.6?'blast':'cooldown 6 s',{label:'Cluster Grenade',on:t>.3&&t<.5})}},
+ {key:'a',name:'A · Bombing Run',stats:'14 s · bombs every 140 px × 55 in 75 px · along your aim · 1.0 s warning',
+  blurb:'Throw a red smoke flare at your cursor. A lane lights up <b>along your aim, wall to wall</b>, with chevrons showing the jet\'s heading. One second later the jet roars in from behind you and lays a bomb every 140 px (none within 150 px of you), so the blasts <b>walk down the line</b> away from you.',
+  beats:[['0.35 s','Throw the flare (0.4 s arc). Red smoke where it lands.'],['0.75 s','The lane grows out to both walls: 150 px wide, red, chevrons moving the way the jet will fly.'],['1.3 s','The jet\'s shadow crosses the floor first, then the jet.'],['1.6–2.6 s','Bombs drop and burst one after another: 55 each in 75 px.'],['After','Craters fade over 4 s. 14 s cooldown.']],
+  fix:['Reaches the whole arena: the back row, the Mortars and Snipers behind the crowd.','The walk away from you reads clearly, and allies get a full second to step out (they take no damage anyway).','Pairs with the Twin Rifle: aim through the crowd you are already crossing.','Recommended: the clearest “airstrike” and the easiest to aim.'],
+  cap:'A second jet crosses the first line at the flare, 0.6 s later: an X.',
+  setup:function(cap){runs=[runBomb(CUR,D,1.0,140,75,55,1700)];if(cap)runs.push(runBomb(CUR,N,1.6,140,75,55,1700));blasts=[];runs.forEach(function(r){blasts=blasts.concat(r.list)})},
+  draw:function(t){floor();runs.forEach(function(r,i){lane(r.o,r.dir,75,TF+i*.6,r.t0-TF+(r.list[r.list.length-1].t-r.t0)-i*.6,t,RED,i?'':'AIRSTRIKE')});
+    runs.forEach(function(r){drawRun(r,t)});flare(t,3);drawFoes(t);drawPlayer(t,t>TC-.05&&t<TC+.2?1-(t-TC+.05)/.25:0);runs.forEach(function(r){drawRunTop(r,t)});
+    var last=blasts.reduce(function(m,b){return Math.max(m,b.t)},0);
+    hud(t<TC?'ready':t<TF?'flare in the air':t<runs[0].list[0].t?'inbound · '+Math.max(0,runs[0].list[0].t-t).toFixed(1)+' s':t<last+.3?'bombing run':'cooldown 14 s',{label:'Airstrike',on:t>TC-.05&&t<TC+.2})}},
+ {key:'b',name:'B · Carpet Wall',stats:'16 s · 7 bombs × 55 in 85 px · then fire 15/s for 3 s · across your aim',
+  blurb:'Same flare, but the line runs <b>across your aim</b> through it, wall to wall. The jet flies sideways in front of you and carpets the line, then the strip <b>burns for 3 s</b>: a wall of fire between you and the wave that enemies have to walk through.',
+  beats:[['0.35 s','Throw the flare.'],['0.75 s','A lane lights up across your front, side wall to side wall.'],['1.3 s','The jet comes in from one side wall.'],['1.55–2.1 s','7 bombs: 55 each in 85 px.'],['2.1–5.1 s','The strip burns: 15 a second to enemies in it.']],
+  fix:['A defensive airstrike: it cuts the arena in two and holds the wave back for 3 s.','Least like the Tank\'s Cavalry Call, which already runs along your aim.','Fewer bombs hit each enemy, so it kills less than A unless they cross the fire.','Capstone gives a second wall, a box to fight in.'],
+  cap:'A second wall lands 160 px further out, 0.5 s later.',
+  setup:function(cap){runs=[runBomb(CUR,N,1.0,140,85,55,1700)];if(cap)runs.push(runBomb(at(CUR,D,160),N,1.5,140,85,55,1700));blasts=[];runs.forEach(function(r,i){blasts=blasts.concat(r.list);var tb=r.list[r.list.length-1].t;for(var k=0;k<12;k++){/* fire ticks 0.25 s, 3.75 each */r.list.forEach(function(b){blasts.push({t:tb+.1+k*.25,x:b.x,y:b.y,R:70,dmg:3.75,quiet:1,bucket:1})})}})},
+  draw:function(t){floor();runs.forEach(function(r,i){lane(r.o,r.dir,85,TF+i*.5,r.list[r.list.length-1].t-TF-i*.5,t,RED,i?'':'AIRSTRIKE')});
+    runs.forEach(function(r){drawRun(r,t)});runs.forEach(function(r){fireStrip(r.o,r.dir,80,r.list[r.list.length-1].t,3,t)});
+    flare(t,3);drawFoes(t);drawPlayer(t,t>TC-.05&&t<TC+.2?1-(t-TC+.05)/.25:0);runs.forEach(function(r){drawRunTop(r,t)});
+    var tb=runs[0].list[runs[0].list.length-1].t;
+    hud(t<TC?'ready':t<TF?'flare in the air':t<runs[0].list[0].t?'inbound · '+Math.max(0,runs[0].list[0].t-t).toFixed(1)+' s':t<tb+.2?'carpet':t<tb+3?'burning · '+(tb+3-t).toFixed(1)+' s':'cooldown 16 s',{label:'Airstrike',on:t>TC-.05&&t<TC+.2})}},
+ {key:'c',name:'C · Gun Run',stats:'12 s · 2 cannons × 40 rounds × 8 · along your aim · ×2 where they cross',
+  blurb:'A gunship strafes <b>along your aim</b>. Its two cannons are angled in like your Twin Rifle, so the two lines of hits <b>cross at the flare</b>: rounds within 60 px of it count double. Put the flare on the boss.',
+  beats:[['0.35 s','Throw the flare.'],['0.75 s','Two thin lanes light up, pinched together at the flare.'],['1.4 s','The gunship\'s shadow, then the cannons: hits walk down both lines.'],['At the flare','The lines meet: amber hits, ×2.'],['After','12 s cooldown.']],
+  fix:['The Soldier DPS\'s crossfire idea at arena scale.','Spread thin away from the flare, deadly at it: good on one big target.','Fastest of the three (0.8 s warning, shortest cooldown).','Weakest on a spread-out wave.'],
+  cap:'The gunship comes back the other way 0.8 s later.',
+  setup:function(cap){runs=[];blasts=[];extra.lines=[];
+    var passes=cap?[{dir:D,t0:.95},{dir:{x:-D.x,y:-D.y},t0:1.95}]:[{dir:D,t0:.95}];
+    passes.forEach(function(ps){var dir=ps.dir,n={x:-dir.y,y:dir.x},L=clipLine(CUR,dir),start=L.a-400,speed=1500;
+      var run={o:CUR,dir:dir,t0:ps.t0,start:start,end:L.b+500,speed:speed,list:[]};runs.push(run);
+      [-1,1].forEach(function(sd){var line=[];for(var s=L.a+20;s<L.b;s+=22){var off=clamp(Math.abs(s)/700)*90*sd;var x=CUR.x+dir.x*s+n.x*off,y=CUR.y+dir.y*s+n.y*off,hot=Math.abs(s)<60;var tt=ps.t0+(s-start)/speed+.05;if(Math.hypot(x-P.x,y-P.y)<SAFE)continue;var b={t:tt,x:x,y:y,R:26,dmg:hot?16:8,hot:hot,quiet:1};blasts.push(b);line.push(b)}extra.lines.push({dir:dir,pts:line,sd:sd})})})},
+  draw:function(t){floor();
+    // two pinched lanes
+    var a=t-TF,fade=a<0?0:a<1.8?1:clamp(1-(a-1.8)/.4);
+    if(fade>0)extra.lines.forEach(function(l,li){if(li>1&&t<runs[1].t0-.6)return;var g=eo(a/.35);c.setLineDash([18,12]);c.lineDashOffset=-t*120;c.strokeStyle=rgba(RED,.6*fade);c.lineWidth=3;c.beginPath();l.pts.forEach(function(p,k){var px=CUR.x+(p.x-CUR.x)*g,py=CUR.y+(p.y-CUR.y)*g;k?c.lineTo(px,py):c.moveTo(px,py)});c.stroke();c.setLineDash([]);c.lineDashOffset=0});
+    if(fade>0){circle(CUR.x,CUR.y,60,rgba(AMB,.08*fade),rgba(AMB,.7*fade),3);c.font='700 26px Barlow Condensed,sans-serif';c.textAlign='center';c.fillStyle=rgba(AMB,.9*fade);c.fillText('×2',CUR.x,CUR.y-72)}
+    extra.lines.forEach(function(l){l.pts.forEach(function(b){var ag=t-b.t;if(ag>0){c.fillStyle=rgba([10,8,6],.4*clamp(1-(ag-2)/2));c.fillRect(b.x-5,b.y-5,10,10)}})});
+    flare(t,2.6);drawFoes(t);drawPlayer(t,t>TC-.05&&t<TC+.2?1-(t-TC+.05)/.25:0);
+    extra.lines.forEach(function(l){l.pts.forEach(function(b){impact(b.x,b.y,t-b.t,b.hot)})});
+    // tracer streaks from the gunship to the newest hits
+    runs.forEach(function(r){var s=r.start+(t-r.t0)*r.speed;if(t<r.t0||s>r.end)return;var p=at(r.o,r.dir,s);
+      extra.lines.forEach(function(l){if(l.dir!==r.dir)return;l.pts.forEach(function(b){var ag=t-b.t;if(ag>-.05&&ag<0){c.strokeStyle='rgba(255,220,140,.8)';c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(b.x,b.y);c.stroke()}})});
+      jet(r.o,r.dir,s,t)});
+    var last=blasts.reduce(function(m,b){return Math.max(m,b.t)},0);
+    hud(t<TC?'ready':t<TF?'flare in the air':t<1.45?'inbound':t<last+.2?'gun run':'cooldown 12 s',{label:'Airstrike',on:t>TC-.05&&t<TC+.2})}}
+];
+
+/* ===================================================== runner */
+var seg=document.getElementById('seg'),cur=1,t=0,last=null,paused=false,capEl=document.getElementById('cap');
+LOOKS.forEach(function(L,i){var id='lk'+i;var inp=document.createElement('input');inp.type='radio';inp.name='look';inp.id=id;inp.checked=i===cur;
+  inp.addEventListener('change',function(){if(inp.checked)pick(i)});var lab=document.createElement('label');lab.htmlFor=id;lab.textContent=L.name;seg.appendChild(inp);seg.appendChild(lab)});
+function pick(i){cur=i;var L=LOOKS[i];t=0;extra={};L.setup(capEl.checked);resolve();
+  document.getElementById('ttl').firstChild.nodeValue=L.name+' ';
+  document.getElementById('stats').textContent=L.stats;
+  document.getElementById('blurb').innerHTML=L.blurb+' <b>Capstone:</b> '+L.cap;
+  document.getElementById('beats').innerHTML=L.beats.map(function(b){return '<li><b>'+b[0]+'</b><span>'+b[1]+'</span></li>'}).join('');
+  document.getElementById('fix').innerHTML=L.fix.map(function(f){return '<li>'+f+'</li>'}).join('');
+  if(paused)draw()}
+capEl.addEventListener('change',function(){pick(cur)});
+function draw(){c.setTransform(K,0,0,K,0,0);LOOKS[cur].draw(t)}
+function frame(now){if(last==null)last=now;var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(!paused){t+=dt*(document.getElementById('slow').checked?.25:1);if(t>LOOP)t=0;draw()}requestAnimationFrame(frame)}
+document.getElementById('replay').addEventListener('click',function(){t=0;draw()});
+var pb=document.getElementById('pause');pb.addEventListener('click',function(){paused=!paused;pb.textContent=paused?'Play':'Pause'});
+window.seekLook=function(i,tt){pick(i);t=tt;draw()};  // for screenshots
+pick(cur);
+if(reduce){paused=true;pb.textContent='Play';t=2.2;draw()}
+requestAnimationFrame(frame);
+})();
+</script>
