@@ -23,7 +23,7 @@ static partial class Program
 
         // They join the mix at their waves.
         var seen = new HashSet<EnemyType>();
-        for (int k = 0; k < 12; k++)
+        for (int k = 0; k < 30; k++)
         {
             g.Wave = 22;
             buildWave.Invoke(g, new object[] { 22 });

@@ -10,6 +10,7 @@ namespace Arena
         static readonly (EnemyType Type, int From)[] MeleeUnlocks =
         {
             (EnemyType.Swarmer, 1), (EnemyType.Spiker, 2), (EnemyType.Brute, 3), (EnemyType.Lunger, 5), (EnemyType.Buzzsaw, 5), (EnemyType.SpikeBlock, 5),
+            (EnemyType.Swordsman, SwordsmanFrom), (EnemyType.ShieldSwordsman, ShieldSwordsmanFrom),
         };
 
         /// The regular types that join on wave n: the ones its pool has and the last wave's didn't, plus the rushers that unlock then.
@@ -57,6 +58,8 @@ namespace Arena
                 case EnemyType.Stitcher: return "Fires orbs joined by a thread. Don't cross the thread.";
                 case EnemyType.Scorcher: return "Leaves burning embers on the floor. Don't stand in them.";
                 case EnemyType.Juggernaut: return "A ring of big, slow shots. Step through the gaps.";
+                case EnemyType.Swordsman: return "Raises its sword, then cuts the cone on the floor. Step out of it.";
+                case EnemyType.ShieldSwordsman: return "Its shield stops shots from the front. Shoot it after it cuts.";
                 case EnemyType.Reaver: return "Winds up a cone swipe, then is open. Hit it after.";
                 case EnemyType.Nest: return "Spawns Shards every few seconds. Kill it to stop them.";
                 case EnemyType.Warder: return "Holds shield bubbles over other enemies. Kill it first.";

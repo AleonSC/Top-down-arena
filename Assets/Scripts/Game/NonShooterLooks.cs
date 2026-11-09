@@ -29,6 +29,10 @@ namespace Arena
                 case EnemyType.Hookman:
                     DrawHookUnder(e, pos, r, t);
                     break;
+                case EnemyType.Swordsman:
+                case EnemyType.ShieldSwordsman:
+                    DrawSwordsmanUnder(e, pos, r, t);  // the cone it cuts (SwordsmanLook.cs)
+                    break;
                 case EnemyType.SapperMine:
                     if (e.Phase == 1)  // each pod draws the lasers to the armed pods after it (so each is drawn once)
                         foreach (var o in game.Enemies.Values)
@@ -127,6 +131,10 @@ namespace Arena
                         DrawHarpoon(pos + V2.FromAngle(e.Facing) * (r + 4f), e.Facing, 1.2f);  // held ready on the line
                     break;
                 }
+                case EnemyType.Swordsman:
+                case EnemyType.ShieldSwordsman:
+                    DrawSwordsmanBody(e, pos, r, col, t);  // SwordsmanLook.cs
+                    break;
                 case EnemyType.Sapper:
                 {
                     // Tripwire: a hexagon with a red core light that pulses.

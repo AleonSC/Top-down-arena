@@ -29,14 +29,15 @@ namespace Arena
         public const float PodArm = 1f, PodTrigger = 40f, PodWire = 180f, PodBeep = 0.3f, PodLife = 12f,
             PodBlast = 70f, PodDamage = 28f, PodEnemyDamage = 30f;
 
-        public static bool IsNonShooter(EnemyType t) => t == EnemyType.FuseRunner || t == EnemyType.Hookman || t == EnemyType.Sapper || t == EnemyType.SapperMine;
+        public static bool IsNonShooter(EnemyType t) => t == EnemyType.FuseRunner || t == EnemyType.Hookman || t == EnemyType.Sapper || t == EnemyType.SapperMine || IsSwordsman(t);
 
         /// A Hookman that just missed takes more damage (Combat.cs HurtEnemy).
         static bool HookIsOpen(Enemy e) => e.Type == EnemyType.Hookman && e.Phase == 4;
 
         /// Locked aims: a planted Fuse Runner, and a Hookman from its aim to the end of its throw (EnemyAI.cs Face).
         static bool NonShooterFaceLocked(Enemy e) =>
-            e.Type == EnemyType.FuseRunner && e.Phase == 1 || e.Type == EnemyType.Hookman && e.Phase >= 1 && e.Phase <= 3 || e.Type == EnemyType.SapperMine;
+            e.Type == EnemyType.FuseRunner && e.Phase == 1 || e.Type == EnemyType.Hookman && e.Phase >= 1 && e.Phase <= 3 || e.Type == EnemyType.SapperMine
+            || IsSwordsman(e.Type) && e.Phase != 0;  // a Swordsman's aim is locked from its wind-up to the end of its recovery
 
         /// The enemy's own movement (EnemyAI.cs MoveEnemy).
         V2 NonShooterMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
@@ -60,6 +61,9 @@ namespace Arena
                 case EnemyType.SapperMine:
                     speed = 0f;
                     return V2.Zero;
+                case EnemyType.Swordsman:
+                case EnemyType.ShieldSwordsman:
+                    return SwordsmanMove(e, dir, dist, ref speed);  // Swordsman.cs
             }
             return V2.Zero;
         }
@@ -73,6 +77,8 @@ namespace Arena
                 case EnemyType.Hookman: HookSpecial(e, tpos, dt); break;
                 case EnemyType.Sapper: SapperSpecial(e, dt); break;
                 case EnemyType.SapperMine: PodSpecial(e, dt); break;
+                case EnemyType.Swordsman:
+                case EnemyType.ShieldSwordsman: SwordsmanSpecial(e, tpos, dt); break;
             }
         }
 

@@ -77,6 +77,9 @@ namespace Arena
             new SquadDef { Name = "Hunting party", From = 19, Members = new[] { EnemyType.Leader, EnemyType.Leader, EnemyType.Sniper } },
             new SquadDef { Name = "Seamstresses", From = 22, Members = new[] { EnemyType.Stitcher, EnemyType.Stitcher, EnemyType.Grunt } },
             new SquadDef { Name = "Bastion", From = 36, Members = new[] { EnemyType.Warder, EnemyType.Juggernaut, EnemyType.Grunt, EnemyType.Grunt } },
+            // Swordsmen (Swordsman.cs): melee only comes in squads from wave 13, so they join the late waves here
+            new SquadDef { Name = "Sword line", From = SwordsmanFrom, Members = new[] { EnemyType.Swordsman, EnemyType.Swordsman, EnemyType.Swordsman } },
+            new SquadDef { Name = "Shield line", From = ShieldSwordsmanFrom, Members = new[] { EnemyType.ShieldSwordsman, EnemyType.ShieldSwordsman, EnemyType.Swordsman } },
             // Enemies that don't shoot (NonShooters.cs)
             new SquadDef { Name = "Demolition", From = 15, Members = new[] { EnemyType.FuseRunner, EnemyType.FuseRunner, EnemyType.Grunt } },
             new SquadDef { Name = "Whalers", From = 17, Members = new[] { EnemyType.Hookman, EnemyType.Lunger, EnemyType.Lunger } },

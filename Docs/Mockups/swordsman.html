@@ -1,0 +1,503 @@
+<title>Swordsman Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with the variant switch, one live stage with a legend, a strip of the four attack phases, then numbers and notes.
+   Colour: crimson armour, steel blade, blue-steel shield. The cone runs amber (reach), red (committed) and cream (swept).
+   Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#5b665a; --panel:#f8faf6; --line:#cdd5ca;
+  --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --amber:#b87400; --red:#c0392b; --cream:#8a7a60; --shield:#2f6b9a; --arena:#141a17;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --amber:#ffb02e; --red:#ff6a52; --cream:#f1e4cc; --shield:#7fb4e2; --arena:#0b0f0d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e;
+  --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --amber:#ffb02e; --red:#ff6a52; --cream:#f1e4cc; --shield:#7fb4e2; --arena:#0b0f0d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:62ch;color:var(--muted)}
+header{display:flex;flex-direction:column;gap:18px}
+section{min-width:0}
+.seg{display:inline-flex;align-self:flex-start;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--chip)}
+.seg button{border:0;border-radius:0;padding:10px 20px;background:transparent;font:700 17px var(--display);letter-spacing:.04em;text-transform:uppercase}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-fg)}
+.frame{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--arena);box-shadow:0 10px 30px -18px rgba(0,0,0,.6)}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:720/400;touch-action:none;cursor:crosshair}
+.hud{position:absolute;left:12px;top:10px;display:flex;gap:10px;flex-wrap:wrap;pointer-events:none}
+.hud span{font:500 12px var(--mono);color:#dfe8dc;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:4px}
+.hud .state{color:#ffd9a0}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:22px;height:12px;border-radius:2px}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin-top:14px}
+.ctl{display:flex;align-items:center;gap:8px;font:500 13px var(--mono);color:var(--muted)}
+.ctl input[type=range]{width:130px;accent-color:var(--amber)}
+.ctl output{min-width:42px;color:var(--fg)}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.controls button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-fg)}
+.hint{font-size:14px;color:var(--muted);margin-top:10px}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.phase{display:flex;flex-direction:column;gap:8px;min-width:0}
+.phase canvas{aspect-ratio:240/170;border:1px solid var(--line);border-radius:8px;background:var(--arena)}
+.phase h3{font:700 21px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.phase h3 span{font:500 12px var(--mono);color:var(--muted);text-transform:none;letter-spacing:0}
+.phase p{font-size:14px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child th,tr:last-child td{border-bottom:0}
+th{font-weight:600;white-space:nowrap}
+td{font-family:var(--mono);font-size:13px}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.notes li{max-width:60ch}
+body.shield .v-single, body:not(.shield) .v-shield{display:none}
+</style>
+
+<main>
+  <header>
+    <div>
+      <div class="eyebrow">New enemy · Melee</div>
+      <h1>Swordsman</h1>
+      <p class="lede">A long-bladed melee enemy. It walks up, raises its sword and cuts across the cone in front of it. The cone is the exact area the blade covers: a curved band from the hand out to the tip. The shield variant holds a shield in front that stops your bullets until it commits to a cut.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Variant">
+      <button id="single" aria-pressed="true">Single cut</button>
+      <button id="shield" aria-pressed="false">Shield</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="live">
+    <h2 id="live">Live</h2>
+    <div class="frame">
+      <canvas id="stage" width="720" height="400" aria-label="The Swordsman chasing and slashing a player dot"></canvas>
+      <div class="hud" id="hud"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:rgba(255,176,46,.35);border:1px dashed var(--amber)"></i>Reach: the area the blade covers</span>
+      <span><i style="background:var(--red);opacity:.75"></i>Committed: the cut lands when the red reaches the edge</span>
+      <span><i style="background:var(--cream)"></i>Swept: where the blade has already passed</span>
+      <span class="v-shield"><i style="background:var(--shield)"></i>Shield: blocks bullets while it is up</span>
+    </div>
+    <div class="controls">
+      <button id="pause" aria-pressed="false">Pause</button>
+      <button id="auto" aria-pressed="true">Auto player</button>
+      <button id="coneBtn" aria-pressed="true">Show cone</button>
+      <label class="ctl" for="range">Range <input id="range" type="range" min="80" max="200" value="140"><output id="rangeO">140 px</output></label>
+      <label class="ctl" for="angle">Cone <input id="angle" type="range" min="40" max="150" value="90"><output id="angleO">90°</output></label>
+    </div>
+    <p class="hint">Press and drag on the arena to move the player yourself. The player fires at the Swordsman on its own. Get out of the cone before the red fill reaches the edge.</p>
+  </section>
+
+  <section aria-labelledby="ph">
+    <h2 id="ph">One attack, four phases</h2>
+    <div class="phases">
+      <div class="phase"><canvas id="p0" width="240" height="170"></canvas><h3>Close in <span>until in reach</span></h3><p>Sword held low at its side. The dashed cone is the area the blade will cover.<span class="v-shield"> The shield is up in front and the spark shows a bullet being stopped.</span></p></div>
+      <div class="phase"><canvas id="p1" width="240" height="170"></canvas><h3>Wind-up <span>0.55 s</span></h3><p>The blade swings out to one edge of the cone and the cone fills red from the enemy outward. It stops turning.<span class="v-shield"> The shield stays up.</span></p></div>
+      <div class="phase"><canvas id="p2" width="240" height="170"></canvas><h3>Cut <span>0.15 s</span></h3><p>The tip sweeps edge to edge along the rim. The bright wedge is what the blade has already passed through.<span class="v-shield"> The shield drops the moment it swings.</span></p></div>
+      <div class="phase"><canvas id="p3" width="240" height="170"></canvas><h3>Recover <span id="recLabel">0.80 s</span></h3><p>Sword low and slow. This is the window to shoot it.<span class="v-shield"> The shield stays down for the first 0.75 s, then comes back up.</span></p></div>
+    </div>
+  </section>
+
+  <section class="cols">
+    <div>
+      <h2>Proposed numbers</h2>
+      <div class="tbl"><table>
+        <tr><th>Health</th><td>70</td></tr>
+        <tr><th>Move speed</th><td><span class="v-single">70 px/s</span><span class="v-shield">55 px/s</span></td></tr>
+        <tr><th>Turn speed</th><td>2.8 rad/s, locked while winding up</td></tr>
+        <tr><th>Reach</th><td>140 px from its centre</td></tr>
+        <tr><th>Cone</th><td>90° wide, facing forward, equal to the blade's sweep</td></tr>
+        <tr><th>Wind-up / cut</th><td>0.55 s / 0.15 s</td></tr>
+        <tr><th>Recover</th><td><span class="v-single">0.80 s</span><span class="v-shield">1.00 s</span></td></tr>
+        <tr class="v-shield"><th>Shield</th><td>126° arc in front, stops every player bullet and flashes when it does; up while closing in and winding up, down for the cut and 0.75 s of recover</td></tr>
+        <tr><th>Damage</th><td>12 per cut that lands</td></tr>
+        <tr><th>Look</th><td>crimson armour, steel blade<span class="v-shield">, blue-steel shield</span></td></tr>
+      </table></div>
+    </div>
+    <div>
+      <h2>Notes</h2>
+      <div class="notes"><ul>
+        <li>It sits between the Brute (slow, heavy) and the Lunger (one dash). The Swordsman is about timing a sidestep, not about running away.</li>
+        <li>Because it stops turning during the wind-up, circling it works. Standing still next to it does not.</li>
+        <li class="v-shield">The shield turns the fight around. Shooting it from the front does nothing, so you have to go round the side or bait the cut and shoot in the recover.</li>
+        <li class="v-shield">It moves slower and recovers longer, so the shield costs it speed in return for being hard to shoot.</li>
+        <li>The cone is drawn on the floor, below the enemy, so it never hides bullets.</li>
+        <li>Numbers are a starting point for tuning. The code is not written yet.</li>
+      </ul></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var TAU = Math.PI * 2;
+  var cfg = { R: 140, H: 45 * Math.PI / 180, shield: false };      // reach, half-angle, variant
+  var T_WIND = 0.55, T_CUT = 0.15;
+  var INNER = 18;                    // where the blade starts: the hand
+  var PR = 10;                       // player radius
+  var SH_HALF = 1.1;                 // shield half-arc (rad), 126 degrees in all
+  function recT(){ return cfg.shield ? 1.0 : 0.8; }
+
+  function ease(t){ return t * t * (3 - 2 * t); }
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function angDiff(a, b){ var d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
+
+  // blade angle relative to facing, per phase
+  function swordAngle(state, t){
+    var rest = 0.8, H = cfg.H;
+    if (state === 'wind') return lerp(rest, -H, ease(Math.min(1, t / T_WIND)));
+    if (state === 'cut')  return lerp(-H, H, Math.min(1, t / T_CUT));
+    if (state === 'rec')  return lerp(H, rest, ease(Math.min(1, t / recT())));
+    return rest;
+  }
+  // 1 = shield up in front, 0 = lowered at the side
+  function guardAmt(state, t){
+    if (!cfg.shield) return 0;
+    if (state === 'cut') return 1 - Math.min(1, t / 0.06);
+    if (state === 'rec'){ var u = t - (recT() - 0.25); return u <= 0 ? 0 : ease(Math.min(1, u / 0.25)); }
+    return 1;
+  }
+
+  // The blade starts at the hand, so the area it covers is a curved band, not a pointed wedge.
+  function band(c, x, y, r, a0, a1){
+    c.beginPath();
+    if (r <= INNER) return false;
+    c.arc(x, y, r, a0, a1);
+    c.arc(x, y, INNER, a1, a0, true);
+    c.closePath();
+    return true;
+  }
+  function grad(c, x, y, r, stops){
+    var g = c.createRadialGradient(x, y, INNER, x, y, Math.max(r, INNER + 1));
+    for (var i = 0; i < stops.length; i++) g.addColorStop(stops[i][0], stops[i][1]);
+    return g;
+  }
+
+  function drawScene(c, W, H, e, p, flash, showCone, fx){
+    fx = fx || {};
+    var R = cfg.R, h = cfg.H, f = e.face, st = e.state;
+
+    // floor: soft vignette and a faint grid
+    var fl = c.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, Math.max(W, H) * 0.75);
+    fl.addColorStop(0, '#1e2824'); fl.addColorStop(1, '#0b0f0d');
+    c.fillStyle = fl; c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(255,255,255,.035)'; c.lineWidth = 1;
+    for (var gx = 0; gx <= W; gx += 40){ c.beginPath(); c.moveTo(gx + .5, 0); c.lineTo(gx + .5, H); c.stroke(); }
+    for (var gy = 0; gy <= H; gy += 40){ c.beginPath(); c.moveTo(0, gy + .5); c.lineTo(W, gy + .5); c.stroke(); }
+
+    // the cone, under everything else
+    if (showCone){
+      var cutting = st === 'cut', edge = 'rgba(255,176,46,.7)', dash = [7, 5], lw = 1.5;
+      band(c, e.x, e.y, R, f - h, f + h);
+      c.fillStyle = grad(c, e.x, e.y, R, [[0, 'rgba(255,176,46,.03)'], [1, 'rgba(255,176,46,.20)']]); c.fill();
+      if (st === 'wind'){
+        var fr = INNER + (R - INNER) * ease(Math.min(1, e.t / T_WIND));
+        band(c, e.x, e.y, fr, f - h, f + h);
+        c.fillStyle = grad(c, e.x, e.y, fr, [[0, 'rgba(255,60,40,.12)'], [1, 'rgba(255,70,50,.6)']]); c.fill();
+        edge = 'rgba(255,110,80,.95)'; dash = []; lw = 2.5;
+      } else if (cutting){
+        band(c, e.x, e.y, R, f - h, f + h);
+        c.fillStyle = 'rgba(255,90,60,.16)'; c.fill();
+        var s0 = f - h, s1 = f + swordAngle(st, e.t);
+        band(c, e.x, e.y, R, s0, s1);
+        c.fillStyle = grad(c, e.x, e.y, R, [[0, 'rgba(255,240,220,.15)'], [1, 'rgba(255,245,230,.7)']]); c.fill();
+        edge = 'rgba(255,238,210,1)'; dash = []; lw = 2.5;
+      } else if (st === 'rec'){
+        band(c, e.x, e.y, R, f - h, f + h);
+        c.fillStyle = 'rgba(255,230,200,' + (0.12 * (1 - e.t / recT())) + ')'; c.fill();
+        edge = 'rgba(255,176,46,.45)'; dash = [];
+      }
+      band(c, e.x, e.y, R, f - h, f + h);
+      c.setLineDash(dash); c.lineWidth = lw; c.strokeStyle = edge;
+      c.shadowColor = edge; c.shadowBlur = st === 'wind' || cutting ? 12 : 0;
+      c.stroke(); c.shadowBlur = 0; c.setLineDash([]);
+      if (cutting){   // bright tip line along the rim where the blade has passed
+        c.beginPath(); c.arc(e.x, e.y, R, f - h, f + swordAngle(st, e.t));
+        c.lineWidth = 4; c.lineCap = 'round'; c.strokeStyle = '#fff6e6';
+        c.shadowColor = '#ffe3b0'; c.shadowBlur = 14; c.stroke(); c.shadowBlur = 0; c.lineCap = 'butt';
+      }
+    }
+
+    // player bullets
+    if (fx.bullets){
+      for (var i = 0; i < fx.bullets.length; i++){
+        var b = fx.bullets[i], sp = Math.hypot(b.vx, b.vy);
+        c.beginPath(); c.moveTo(b.x - b.vx / sp * 12, b.y - b.vy / sp * 12); c.lineTo(b.x, b.y);
+        c.lineWidth = 3; c.lineCap = 'round'; c.strokeStyle = 'rgba(120,214,255,.9)';
+        c.shadowColor = '#59c7ff'; c.shadowBlur = 8; c.stroke(); c.shadowBlur = 0; c.lineCap = 'butt';
+      }
+    }
+
+    // player
+    if (p){
+      c.beginPath(); c.arc(p.x, p.y, PR + 5, 0, TAU); c.strokeStyle = 'rgba(89,199,255,.25)'; c.lineWidth = 2; c.stroke();
+      c.beginPath(); c.arc(p.x, p.y, PR, 0, TAU);
+      c.shadowColor = flash > 0 ? '#ff4a3a' : '#59c7ff'; c.shadowBlur = 14;
+      c.fillStyle = flash > 0 ? '#ff5a48' : '#59c7ff'; c.fill(); c.shadowBlur = 0;
+      c.lineWidth = 2; c.strokeStyle = 'rgba(255,255,255,.85)'; c.stroke();
+    }
+
+    // ---- the swordsman ----
+    var a = f + swordAngle(st, e.t), g = guardAmt(st, e.t);
+    var ca = Math.cos(f), sa = Math.sin(f);          // forward
+    var px = -sa, py = ca;                           // right-hand side
+
+    // ground shadow
+    c.beginPath(); c.ellipse(e.x + 3, e.y + 5, 21, 19, 0, 0, TAU); c.fillStyle = 'rgba(0,0,0,.4)'; c.fill();
+
+    // cloak trailing behind
+    c.save(); c.translate(e.x, e.y); c.rotate(f);
+    c.beginPath(); c.moveTo(-6, -13); c.quadraticCurveTo(-26, -15, -31, -4); c.lineTo(-31, 4); c.quadraticCurveTo(-26, 15, -6, 13); c.closePath();
+    var cg = c.createLinearGradient(-31, 0, -6, 0); cg.addColorStop(0, '#4a1513'); cg.addColorStop(1, '#7a2420');
+    c.fillStyle = cg; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#2e0c0b'; c.stroke();
+    c.restore();
+
+    // body
+    var bg = c.createRadialGradient(e.x - 4, e.y - 4, 2, e.x, e.y, 16);
+    bg.addColorStop(0, '#d5574c'); bg.addColorStop(1, '#8e2d28');
+    c.beginPath(); c.arc(e.x, e.y, 15, 0, TAU); c.fillStyle = bg; c.fill();
+    c.lineWidth = 2.5; c.strokeStyle = '#4a1513'; c.stroke();
+
+    // off-hand arm and shield (variant)
+    if (cfg.shield){
+      var sc = f + lerp(-1.5, 0, g), hw = lerp(0.6, SH_HALF, g), rr = lerp(25, 35, g);
+      var gx2 = e.x + Math.cos(sc) * (rr - 3), gy2 = e.y + Math.sin(sc) * (rr - 3);
+      c.lineCap = 'round'; c.lineWidth = 7; c.strokeStyle = '#7a2420';
+      c.beginPath(); c.moveTo(e.x - px * 11, e.y - py * 11); c.lineTo(gx2, gy2); c.stroke(); c.lineCap = 'butt';
+      // plate
+      c.shadowColor = 'rgba(127,180,226,' + (0.5 * g) + ')'; c.shadowBlur = 14 * g;
+      c.beginPath(); c.arc(e.x, e.y, rr, sc - hw, sc + hw);
+      c.lineWidth = 14; c.strokeStyle = '#27435e'; c.stroke(); c.shadowBlur = 0;
+      c.beginPath(); c.arc(e.x, e.y, rr, sc - hw, sc + hw); c.lineWidth = 9; c.strokeStyle = '#6f9cc4'; c.stroke();
+      if (fx.spark){   // the whole plate flashes when it stops a bullet
+        var fl2 = Math.pow(1 - fx.spark.t, 1.5);
+        c.beginPath(); c.arc(e.x, e.y, rr, sc - hw, sc + hw);
+        c.lineWidth = 14; c.strokeStyle = 'rgba(240,250,255,' + (0.9 * fl2) + ')';
+        c.shadowColor = 'rgba(160,215,255,' + fl2 + ')'; c.shadowBlur = 28 * fl2; c.stroke(); c.shadowBlur = 0;
+      }
+      c.beginPath(); c.arc(e.x, e.y, rr + 3, sc - hw, sc + hw); c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,255,255,.6)'; c.stroke();
+      c.beginPath(); c.arc(e.x, e.y, rr - 3, sc - hw, sc + hw); c.lineWidth = 1; c.strokeStyle = 'rgba(15,30,45,.7)'; c.stroke();
+      for (var k = -1; k <= 1; k++){
+        var ra = sc + k * hw * 0.62;
+        c.beginPath(); c.arc(e.x + Math.cos(ra) * rr, e.y + Math.sin(ra) * rr, 1.8, 0, TAU); c.fillStyle = '#dbe9f5'; c.fill();
+      }
+      if (fx.spark){
+        var q = fx.spark, qx = e.x + Math.cos(q.a) * (rr + 4), qy = e.y + Math.sin(q.a) * (rr + 4), al = 1 - q.t;
+        c.strokeStyle = 'rgba(220,240,255,' + al + ')'; c.lineWidth = 2; c.lineCap = 'round';
+        c.shadowColor = '#bfe3ff'; c.shadowBlur = 10;
+        for (var s = 0; s < 7; s++){
+          var sa2 = q.a + (s - 3) * 0.42, len = 6 + 12 * q.t + (s % 2) * 5;
+          c.beginPath(); c.moveTo(qx + Math.cos(sa2) * 2, qy + Math.sin(sa2) * 2);
+          c.lineTo(qx + Math.cos(sa2) * len, qy + Math.sin(sa2) * len); c.stroke();
+        }
+        c.shadowBlur = 0; c.lineCap = 'butt';
+      }
+    }
+
+    // sword arm
+    var hx = e.x + Math.cos(a) * INNER, hy = e.y + Math.sin(a) * INNER;
+    c.lineCap = 'round'; c.lineWidth = 7; c.strokeStyle = '#7a2420';
+    c.beginPath(); c.moveTo(e.x + px * 11, e.y + py * 11); c.lineTo(hx, hy); c.stroke(); c.lineCap = 'butt';
+
+    // blade: tapered, with a fuller; the tip sits exactly on the cone's rim
+    var ux = Math.cos(a), uy = Math.sin(a), vx = -uy, vy = ux;
+    var g0 = INNER + 5, bw = 4.6;
+    c.beginPath();
+    c.moveTo(e.x + ux * g0 + vx * bw, e.y + uy * g0 + vy * bw);
+    c.lineTo(e.x + ux * (R - 16) + vx * bw * 0.9, e.y + uy * (R - 16) + vy * bw * 0.9);
+    c.lineTo(e.x + ux * R, e.y + uy * R);
+    c.lineTo(e.x + ux * (R - 16) - vx * bw * 0.9, e.y + uy * (R - 16) - vy * bw * 0.9);
+    c.lineTo(e.x + ux * g0 - vx * bw, e.y + uy * g0 - vy * bw);
+    c.closePath();
+    var bl = c.createLinearGradient(e.x + vx * bw, e.y + vy * bw, e.x - vx * bw, e.y - vy * bw);
+    bl.addColorStop(0, '#f2f6f8'); bl.addColorStop(.5, '#b9c5cc'); bl.addColorStop(1, '#8796a0');
+    c.shadowColor = st === 'cut' ? '#fff0d0' : 'rgba(0,0,0,.5)'; c.shadowBlur = st === 'cut' ? 16 : 4;
+    c.fillStyle = bl; c.fill(); c.shadowBlur = 0;
+    c.lineWidth = 1; c.strokeStyle = '#5b6870'; c.stroke();
+    c.beginPath(); c.moveTo(e.x + ux * (g0 + 4), e.y + uy * (g0 + 4)); c.lineTo(e.x + ux * (R - 22), e.y + uy * (R - 22));
+    c.lineWidth = 1.5; c.strokeStyle = 'rgba(60,75,85,.55)'; c.stroke();
+    // grip, crossguard, pommel
+    c.lineCap = 'round';
+    c.beginPath(); c.moveTo(e.x + ux * (INNER - 6), e.y + uy * (INNER - 6)); c.lineTo(e.x + ux * g0, e.y + uy * g0);
+    c.lineWidth = 4.5; c.strokeStyle = '#3a2418'; c.stroke();
+    c.beginPath(); c.moveTo(e.x + ux * g0 + vx * 9, e.y + uy * g0 + vy * 9); c.lineTo(e.x + ux * g0 - vx * 9, e.y + uy * g0 - vy * 9);
+    c.lineWidth = 4; c.strokeStyle = '#d2a84c'; c.stroke(); c.lineCap = 'butt';
+    c.beginPath(); c.arc(hx, hy, 4, 0, TAU); c.fillStyle = '#9aa7ae'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#4b585f'; c.stroke();
+
+    // pauldrons
+    for (var sgn = -1; sgn <= 1; sgn += 2){
+      var sx = e.x + px * 13 * sgn, sy = e.y + py * 13 * sgn;
+      c.beginPath(); c.arc(sx, sy, 7, 0, TAU);
+      var pg = c.createRadialGradient(sx - 2, sy - 2, 1, sx, sy, 8); pg.addColorStop(0, '#d6dfe4'); pg.addColorStop(1, '#8896a0');
+      c.fillStyle = pg; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#4b585f'; c.stroke();
+    }
+
+    // helmet with a crest along the facing and a visor slit
+    var hg = c.createRadialGradient(e.x - 3, e.y - 3, 1, e.x, e.y, 10);
+    hg.addColorStop(0, '#e1e8ec'); hg.addColorStop(1, '#8e9ca6');
+    c.beginPath(); c.arc(e.x, e.y, 9.5, 0, TAU); c.fillStyle = hg; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#4b585f'; c.stroke();
+    c.lineCap = 'round'; c.lineWidth = 3.5; c.strokeStyle = '#c0392b';
+    c.beginPath(); c.moveTo(e.x - ca * 9, e.y - sa * 9); c.lineTo(e.x + ca * 6, e.y + sa * 6); c.stroke();
+    c.lineWidth = 2.5; c.strokeStyle = '#1a1210';
+    c.beginPath(); c.moveTo(e.x + ca * 7 + px * -3.5, e.y + sa * 7 + py * -3.5); c.lineTo(e.x + ca * 7 + px * 3.5, e.y + sa * 7 + py * 3.5); c.stroke();
+    c.lineCap = 'butt';
+
+    // hit flash on the body
+    if (e.hurt > 0){
+      c.beginPath(); c.arc(e.x, e.y, 15, 0, TAU); c.fillStyle = 'rgba(255,255,255,' + (e.hurt * 5) + ')'; c.fill();
+    }
+  }
+
+  function setup(id){
+    var cv = document.getElementById(id), r = window.devicePixelRatio || 1;
+    if (!cv.dataset.w){ cv.dataset.w = cv.width; cv.dataset.h = cv.height; }
+    var w = +cv.dataset.w, h = +cv.dataset.h;
+    cv.width = w * r; cv.height = h * r;
+    var c = cv.getContext('2d'); c.setTransform(r, 0, 0, r, 0, 0);
+    return { cv: cv, c: c, W: w, H: h };
+  }
+
+  var $ = function(i){ return document.getElementById(i); };
+  var S = setup('stage');
+  var hud = $('hud');
+  var e = { x: 180, y: 200, face: 0, state: 'chase', t: 0, hurt: 0 };
+  var p = { x: 520, y: 200 };
+  var bullets = [], spark = null, shootT = 0;
+  var clock = 0, hits = 0, dodges = 0, landed = 0, blocked = 0, flash = 0;
+  var paused = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var auto = true, showCone = true;
+
+  function inCone(){
+    var dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx, dy);
+    if (d > cfg.R + PR) return false;
+    var slack = Math.asin(Math.min(1, PR / Math.max(d, PR)));
+    return Math.abs(angDiff(e.face, Math.atan2(dy, dx))) <= cfg.H + slack;
+  }
+
+  function step(dt){
+    clock += dt; flash = Math.max(0, flash - dt); e.hurt = Math.max(0, e.hurt - dt);
+    if (spark){ spark.t += dt / 0.3; if (spark.t >= 1) spark = null; }
+    if (auto){
+      p.x = 360 + Math.cos(clock * 0.55) * 270;
+      p.y = 200 + Math.sin(clock * 0.9) * 135;
+    }
+    var dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx, dy), want = Math.atan2(dy, dx);
+    e.t += dt;
+    if (e.state === 'chase'){
+      var turn = 2.8 * dt, diff = angDiff(e.face, want);
+      e.face += Math.max(-turn, Math.min(turn, diff));
+      if (d > cfg.R * 0.7){ var sp = cfg.shield ? 55 : 70; e.x += Math.cos(e.face) * sp * dt; e.y += Math.sin(e.face) * sp * dt; }
+      if (inCone() && d <= cfg.R * 0.95){ e.state = 'wind'; e.t = 0; }
+    } else if (e.state === 'wind'){
+      if (e.t >= T_WIND){ e.state = 'cut'; e.t = 0; if (inCone()){ hits++; flash = 0.35; } else { dodges++; } }
+    } else if (e.state === 'cut'){
+      if (e.t >= T_CUT){ e.state = 'rec'; e.t = 0; }
+    } else if (e.state === 'rec'){
+      if (e.t >= recT()){ e.state = 'chase'; e.t = 0; }
+    }
+    e.x = Math.max(24, Math.min(S.W - 24, e.x));
+    e.y = Math.max(24, Math.min(S.H - 24, e.y));
+
+    // the player fires at the swordsman
+    shootT += dt;
+    if (shootT >= 0.4){
+      shootT = 0;
+      var ax = e.x - p.x, ay = e.y - p.y, al = Math.hypot(ax, ay) || 1;
+      bullets.push({ x: p.x, y: p.y, vx: ax / al * 460, vy: ay / al * 460 });
+    }
+    var g = guardAmt(e.state, e.t);
+    for (var i = bullets.length - 1; i >= 0; i--){
+      var b = bullets[i]; b.x += b.vx * dt; b.y += b.vy * dt;
+      var bd = Math.hypot(b.x - e.x, b.y - e.y), ba = Math.atan2(b.y - e.y, b.x - e.x);
+      if (cfg.shield && g > 0.5 && bd <= 40 && Math.abs(angDiff(e.face, ba)) <= SH_HALF + 0.1){
+        blocked++; spark = { a: ba, t: 0 }; bullets.splice(i, 1);
+      } else if (bd <= 15){
+        landed++; e.hurt = 0.2; bullets.splice(i, 1);
+      } else if (b.x < -20 || b.x > S.W + 20 || b.y < -20 || b.y > S.H + 20){
+        bullets.splice(i, 1);
+      }
+    }
+  }
+
+  var names = { chase: 'closing in', wind: 'wind-up', cut: 'CUT', rec: 'recover' };
+  function render(){
+    drawScene(S.c, S.W, S.H, { x: e.x, y: e.y, face: e.face, state: e.state === 'chase' ? 'idle' : e.state, t: e.t, hurt: e.hurt },
+      p, flash, showCone, { bullets: bullets, spark: spark });
+    hud.innerHTML = '<span class="state">' + names[e.state] + '</span><span>cuts: hit ' + hits + ' · dodged ' + dodges + '</span>' +
+      '<span>shots: landed ' + landed + (cfg.shield ? ' · blocked ' + blocked : '') + '</span>';
+  }
+
+  var last = 0;
+  function frame(ts){
+    var dt = Math.min(0.05, (ts - last) / 1000 || 0); last = ts;
+    if (!paused) step(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // phase strip: fixed poses of the same drawing code
+  function strip(id, state, t, px, py, sp){
+    var m = setup(id);
+    drawScene(m.c, m.W, m.H, { x: 50, y: 85, face: 0, state: state, t: t, hurt: 0 }, { x: px, y: py }, 0, true, sp ? { spark: sp } : null);
+  }
+  function drawStrips(){
+    var savedR = cfg.R; cfg.R = 150;
+    strip('p0', 'idle', 0, 190, 40, cfg.shield ? { a: 0.15, t: 0.15 } : null);
+    strip('p1', 'wind', T_WIND * 0.7, 120, 95);
+    strip('p2', 'cut', T_CUT * 0.5, 120, 95);
+    strip('p3', 'rec', recT() * 0.3, 120, 95);
+    cfg.R = savedR;
+  }
+  drawStrips();
+
+  // controls
+  function setVariant(shield){
+    cfg.shield = shield; e.state = 'chase'; e.t = 0; bullets = []; spark = null;
+    hits = dodges = landed = blocked = 0;
+    document.body.classList.toggle('shield', shield);
+    $('single').setAttribute('aria-pressed', !shield); $('shield').setAttribute('aria-pressed', shield);
+    $('recLabel').textContent = recT().toFixed(2) + ' s';
+    drawStrips();
+  }
+  $('single').onclick = function(){ setVariant(false); };
+  $('shield').onclick = function(){ setVariant(true); };
+  $('pause').onclick = function(){ paused = !paused; this.setAttribute('aria-pressed', paused); this.textContent = paused ? 'Play' : 'Pause'; };
+  $('auto').onclick = function(){ auto = !auto; this.setAttribute('aria-pressed', auto); };
+  $('coneBtn').onclick = function(){ showCone = !showCone; this.setAttribute('aria-pressed', showCone); };
+  $('range').oninput = function(){ cfg.R = +this.value; $('rangeO').textContent = this.value + ' px'; };
+  $('angle').oninput = function(){ cfg.H = (+this.value / 2) * Math.PI / 180; $('angleO').textContent = this.value + '°'; drawStrips(); };
+  $('pause').textContent = paused ? 'Play' : 'Pause'; $('pause').setAttribute('aria-pressed', paused);
+
+  var drag = false;
+  function at(ev){
+    var b = S.cv.getBoundingClientRect();
+    return { x: (ev.clientX - b.left) * S.W / b.width, y: (ev.clientY - b.top) * S.H / b.height };
+  }
+  S.cv.addEventListener('pointerdown', function(ev){
+    drag = true; auto = false; $('auto').setAttribute('aria-pressed', false);
+    S.cv.setPointerCapture(ev.pointerId); var q = at(ev); p.x = q.x; p.y = q.y;
+  });
+  S.cv.addEventListener('pointermove', function(ev){ if (drag){ var q = at(ev); p.x = q.x; p.y = q.y; } });
+  S.cv.addEventListener('pointerup', function(){ drag = false; });
+  S.cv.addEventListener('pointercancel', function(){ drag = false; });
+})();
+</script>
