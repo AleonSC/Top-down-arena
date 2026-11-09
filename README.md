@@ -960,7 +960,9 @@ HUD and mute toggles. For Fire and Parry, a "Left click / Right click" pair of b
 any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
 changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. The
 arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
-(Esc, Tab, 1-3, Enter, F1-F4) can't be changed, and menus are always clicked with the mouse. The HUD, the Tab screen and the
+(Esc, Tab, Enter, F1-F5) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
+while the upgrade picker is open, the numbers of its cards pick a card instead, and while the emote bar is open, the
+numbers of its slots play an emote instead (an action on one of those keys waits until it closes). The HUD, the Tab screen and the
 How to play page show your own keys.
 
 ## Launching a run
