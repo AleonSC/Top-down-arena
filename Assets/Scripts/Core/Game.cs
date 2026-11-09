@@ -1272,6 +1272,7 @@ namespace Arena
                 }
                 p.FireCd -= dt;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
+                TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                     TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
                 if (p.Downed || p.SwallowT > 0f)

@@ -211,8 +211,8 @@ namespace Arena
             }
             float flip;
             meleeFlip.TryGetValue(best.Id, out flip);
-            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace;
-            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace)))  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
+            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace || best.Weapon.Id == WeaponId.Rapier;
+            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace || best.Weapon.Id == WeaponId.Rapier)))  // (a Rapier thrust neither: only its Flourish swings go back and forth)  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
             else if (best.Weapon.Id == WeaponId.Halberd)
             {
@@ -475,15 +475,15 @@ namespace Arena
 
         static readonly Rgba NeedleGold = new Rgba(1f, 0.84f, 0.51f);
 
-        /// A thrust: a thin streak from the hand to the point (wider with the streak), a star glint and a ring where it
-        /// landed, and at six stacks a gold glow on the point.
+        /// A thrust: a thin streak from the hand to the point (wider with Tempo), a star glint and a ring where it
+        /// landed, and at full Tempo a gold glow on the point.
         void RapierThrustLook(MeleeSeen seen, V2 o, V2 dir, float aim, float ext, float reach, float T, float fade, Rgba col)
         {
             Player owner;
-            int streak = game.Players.TryGetValue(seen.Owner, out owner) ? owner.RapierStreak : 0;
+            int tempo = game.Players.TryGetValue(seen.Owner, out owner) ? owner.RapierTempo : 0;
             V2 tipP = o + dir * Mathf.Max(30f, ext);
-            Ribbon(o + dir * 14f, tipP, 0.4f, 1.6f + 0.2f * streak, col.WithAlpha(0f), Rgba.White.WithAlpha(fade));
-            if (streak >= 6)
+            Ribbon(o + dir * 14f, tipP, 0.4f, 1.6f + 2.4f * tempo / Game.RapierTempoMax, col.WithAlpha(0f), Rgba.White.WithAlpha(fade));
+            if (tempo >= Game.RapierTempoMax)
                 GlowDisc(tipP, 16f, NeedleGold, 0.9f * fade);
             // Where it landed: the nearest enemy in its narrow cone.
             Enemy near = null;
@@ -519,25 +519,34 @@ namespace Arena
             DrawMeleeModel(WeaponId.Rapier, p.Disp, ang, reach, 1f, MeleeColor(WeaponId.Rapier, Rgba.White), false, bend, ArmColor(p.Id));
         }
 
-        /// Six small diamonds on an arc behind you: they fill one by one as the streak builds, and turn gold at six with a faint
-        /// halo until it breaks. Shown for a Rapier with a streak going.
+        /// Tempo: one small diamond per stack (RapierTempoMax) on an arc behind you. They fill as it builds and all turn gold at
+        /// full, with a faint halo. A thin arc under them runs down through the grace period; once it's gone the top diamond
+        /// shows orange while Tempo drains. Shown for a Rapier with Tempo.
         void DrawRapierPips(Player p)
         {
-            if (!fxOn || p.Downed || p.RapierStreak <= 0)
+            if (!fxOn || p.Downed || p.RapierTempo <= 0)
                 return;
-            int n = Mathf.Min(6, p.RapierStreak);
-            bool gold = n >= 6;
+            int max = Game.RapierTempoMax, n = Mathf.Min(max, p.RapierTempo);
+            bool gold = n >= max, draining = p.RapierGraceLeft == 0;
             var col = MeleeColor(WeaponId.Rapier, Rgba.White);
-            for (int d = 0; d < 6; d++)
+            float spread = Mathf.Min(0.34f, 3.3f / max), r = 33f, half = (max - 1) * 0.5f * spread;
+            for (int d = 0; d < max; d++)
             {
-                float da = p.Aim + MathX.Pi + (d - 2.5f) * 0.34f;
-                V2 c = p.Disp + V2.FromAngle(da) * 30f;
-                Polygon(c, 4.3f, 4, 0f, d < n ? (gold ? NeedleGold : col) : new Rgba(1f, 1f, 1f, 0.14f));
+                float da = p.Aim + MathX.Pi + (d - (max - 1) * 0.5f) * spread;
+                V2 c = p.Disp + V2.FromAngle(da) * r;
+                Rgba fill = d >= n ? new Rgba(1f, 1f, 1f, 0.14f) : gold ? NeedleGold : draining && d == n - 1 ? RapierDrainCol : col;
+                Polygon(c, max > 14 ? 2.7f : max > 9 ? 3.4f : 4.3f, 4, 0f, fill);
+            }
+            if (!draining)  // the grace period left
+            {
+                float g = p.RapierGraceLeft / 255f * (half + 0.08f);
+                Arc(p.Disp, r + 7f, 1.5f, col.WithAlpha(0.85f), 24, p.Aim + MathX.Pi - g, 2f * g);
             }
             if (gold)
                 Arc(p.Disp, 26f, 3f, NeedleGold.WithAlpha(0.25f + 0.1f * Mathf.Sin(Time.unscaledTime * 9f)), 32);
         }
 
+        static readonly Rgba RapierDrainCol = new Rgba(1f, 0.59f, 0.39f);
 
         /// A bright cut across each enemy the swing or lunge passes through, timed to the blade reaching it. Worked out from
         /// the swing's own numbers and where the enemies are drawn (drawing only: the host's hits are its own).

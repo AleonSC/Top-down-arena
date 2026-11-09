@@ -857,7 +857,7 @@ static partial class Program
     static void LastFourTest(float dt)
     {
         // Clot Bolt pools congeal, sticking enemies and guarding their owner; Transfusion Darts give an ally a lot for a little
-        // and steal a sliver from enemies; the Rapier skewers bullets into its streak; the Katana's chain, meter and Alt strike.
+        // and steal a sliver from enemies; the Rapier's Tempo, skewering and Flourish; the Katana's chain, meter and Alt strike.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -938,12 +938,13 @@ static partial class Program
         Check(stolen >= Game.TransfuseSteal - 0.05f && stolen < 1.2f, "Transfusion Darts steal only a sliver from enemies");
         reset();
 
-        // Rapier: a thrust skewers enemy bullets along its line (3 at most), each adding to the streak.
+        // Rapier (Rapier.cs): a thrust skewers enemy bullets along its line (3 at most); they add no Tempo, the enemy hit adds one.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
         var mark = dummy(from + new V2(120f, 0f), 1e5f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
         play(0.1f, new PlayerInput());
-        int s0 = me.RapierStreak;
+        int s0 = me.RapierTempo;
         var shots = new List<Bullet>();
         for (int k = 0; k < 5; k++)
             shots.Add((Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(30f + 18f * k, 0f), new V2(0f, 0f), 0f, 5f, 5f, 0, false, 0f }));
@@ -952,30 +953,86 @@ static partial class Program
         play(0.05f, new PlayerInput());
         int skewered = shots.Count(b => !g.Bullets.ContainsKey(b.Id));
         bool asideLeft = g.Bullets.ContainsKey(aside.Id);
-        Console.WriteLine("  rapier: streak {0} -> {1}; skewered {2} of 5 bullets on its line, one off the line left alone {3}", s0, me.RapierStreak, skewered, asideLeft);
+        Console.WriteLine("  rapier: Tempo {0} -> {1}; skewered {2} of 5 bullets on its line, one off the line left alone {3}", s0, me.RapierTempo, skewered, asideLeft);
+        Check(s0 == 1, "a Rapier thrust that hits an enemy adds one Tempo");
         Check(skewered == Game.RapierSkewerMax && asideLeft, "a Rapier thrust skewers up to 3 enemy bullets along its line");
-        Check(me.RapierStreak >= Math.Min(6, s0 + 1 + Game.RapierSkewerMax), "each skewered bullet adds to the Rapier's streak");
+        Check(me.RapierTempo == s0 + 1, "skewered bullets add no Tempo (only the enemy hit does)");
         reset();
 
-        // Rapier with the +1 upgrade: two enemies in line. The streak follows the nearest one and builds to 6; both take the same bonus.
+        // Tempo makes the thrusts quicker: the wait after a thrust at 0 Tempo against one at full.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
-        me.RapierStreak = 0; me.RapierTarget = 0;
+        dummy(from + new V2(80f, 0f), 1e6f);
+        me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float slowCd = me.FireCd;
+        me.RapierTempoF = Game.RapierTempoMax; me.RapierTempo = Game.RapierTempoMax; me.FireCd = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float fastCd = me.FireCd;
+        Console.WriteLine("  rapier tempo: the next thrust waits {0:0.000} s at 0 Tempo, {1:0.000} s at {2}", slowCd, fastCd, Game.RapierTempoMax);
+        Check(Math.Abs(slowCd / fastCd - Game.RapierSlow / Game.RapierFast) < 0.05f, "a full-Tempo Rapier thrusts three times as often as at 0 Tempo");
+        Check(fastCd >= Game.RapierMinInterval - 1e-4f, "the Rapier's thrusts never come quicker than its floor");
+        play(0.6f, new PlayerInput());
+        reset();
+
+        // Grace, then the drain: Tempo holds for RapierGrace after the last hit, then drops RapierDrain a second.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
+        dummy(from + new V2(80f, 0f), 1e6f);
+        for (int k = 0; k < 10; k++) { me.RapierTempoF = Math.Min(me.RapierTempoF, 9f); volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.1f, new PlayerInput()); }
+        int built = me.RapierTempo, seen = client.Game.Players[1].RapierTempo;
+        play(Game.RapierGrace - 0.4f, new PlayerInput());
+        int heldT = me.RapierTempo;
+        bool graceShown = me.RapierGraceLeft > 0;
+        play(1.5f, new PlayerInput());
+        int drained = me.RapierTempo;
+        Console.WriteLine("  rapier drain: built {0} (the client sees {1}); {2} near the end of the grace period; {3} 1.5 s later", built, seen, heldT, drained);
+        Check(built == 10 && seen == built, "Tempo builds a stack a hit and every screen sees it");
+        Check(heldT == built && graceShown, "Tempo holds through the grace period");
+        Check(drained < heldT && drained >= heldT - 4, "after the grace period Tempo drains slowly");
+        reset();
+
+        // With the +1 upgrade a thrust hits two enemies: two Tempo, and both take the same flat damage.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
         var near2 = dummy(from + new V2(60f, 0f), 1e6f);
         var far2 = dummy(from + new V2(100f, 0f), 1e6f);
-        var streaks = new List<int>();
-        float nearDmg = 0f, farDmg = 0f;
-        for (int k = 0; k < 8; k++)
+        var tempos = new List<int>();
+        float nearDmg = 0f, farDmg = 0f, firstNear = 0f;
+        for (int k = 0; k < 4; k++)
         {
             near2.Hp = near2.MaxHp; far2.Hp = far2.MaxHp;
             volley.Invoke(g, new object[] { me, 0f, 1 });
-            play(0.4f, new PlayerInput());  // past the swing's land time and its cooldown
-            streaks.Add(me.RapierStreak);
+            play(0.1f, new PlayerInput());
+            tempos.Add(me.RapierTempo);
             nearDmg = near2.MaxHp - near2.Hp; farDmg = far2.MaxHp - far2.Hp;
+            if (k == 0) firstNear = nearDmg;
         }
-        Console.WriteLine("  rapier +1: streak per thrust {0}; last thrust did {1:0.0} to the near enemy, {2:0.0} to the far one", string.Join(",", streaks), nearDmg, farDmg);
-        Check(me.RapierStreak == 6, "a two-target Rapier thrust still builds its streak to 6 on the primary target");
-        Check(farDmg > 0f && Math.Abs(nearDmg - farDmg) < 0.5f, "the second enemy a thrust hits takes the same streak bonus as the first");
+        Console.WriteLine("  rapier +1: Tempo per thrust {0}; last thrust did {1:0.0} to the near enemy, {2:0.0} to the far one (first {3:0.0})", string.Join(",", tempos), nearDmg, farDmg, firstNear);
+        Check(me.RapierTempo == 8, "a two-target Rapier thrust adds two Tempo");
+        Check(farDmg > 0f && Math.Abs(nearDmg - farDmg) < 0.5f && Math.Abs(nearDmg - firstNear) < 0.5f, "every Rapier thrust deals the same damage to both enemies, however many in a row");
         reset();
+
+        // Flourish: the weapon-action key spends all the Tempo on one swing (and one piercing wave) per two stacks.
+        var flourish = typeof(Game).GetMethod("HostRapierFlourish", flags);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        Func<int, float> flourishDmg = tempo =>
+        {
+            var a1 = dummy(from + new V2(170f, 0f), 1e6f);
+            var a2 = dummy(from + new V2(260f, 0f), 1e6f);
+            me.RapierTempoF = tempo; me.RapierTempo = tempo; me.RapierHitAgo = 0f; me.FireCd = 0f;
+            flourish.Invoke(g, new object[] { me, from + new V2(300f, 0f) });
+            play(1.8f, new PlayerInput());
+            float d = (a1.MaxHp - a1.Hp) + (a2.MaxHp - a2.Hp);
+            reset();
+            return d;
+        };
+        float lowFl = flourishDmg(2), smallFl = flourishDmg(4);
+        int left = me.RapierTempo;
+        float fullFl = flourishDmg(Game.RapierTempoMax);
+        Console.WriteLine("  rapier flourish: with 2 Tempo {0:0}, with 4 {1:0} (Tempo after {2}), with {3} {4:0}", lowFl, smallFl, left, Game.RapierTempoMax, fullFl);
+        Check(lowFl == 0f, "a Flourish needs at least 3 Tempo");
+        Check(smallFl > 0f && left == 0, "a Flourish throws waves and spends the Tempo");
+        Check(Math.Abs(fullFl / smallFl - Game.RapierFlourishSwings(Game.RapierTempoMax) / (float)Game.RapierFlourishSwings(4)) < 0.6f, "a full-Tempo Flourish throws a wave per two stacks, each piercing both enemies in line");
 
         // Katana (Docs/KatanaCombo.md): swipe, swipe, lunge in that order; the lunge cuts through everything in its line; a pause starts the chain over.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);

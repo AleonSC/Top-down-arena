@@ -189,7 +189,7 @@ namespace Arena
         float Rnd(float a, float b) => a + (float)juiceRng.NextDouble() * (b - a);
         readonly System.Random juiceRng = new System.Random();  // its own rolls: the game's stay untouched
 
-        int lastRapierStreak;
+        int lastRapierTempo;
 
         /// Your own Twin Blades hit: a hit-pause and a kick sized to the move. The quick steps get a short hold with a short gap, so
         /// a whole chain gets one each; the Pirouette only kicks (a hold mid-turn reads as a stutter); the Shear and Twin Fang's
@@ -279,12 +279,12 @@ namespace Arena
             // New effects: blasts shake, spark, scorch and ripple.
             if (me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Rapier)
             {
-                if (me.RapierStreak > lastRapierStreak && me.RapierStreak > 0)
-                    Shake(0.02f + 0.03f * me.RapierStreak);  // each hit in the streak: a small kick, harder as it builds
-                if (me.RapierStreak >= 6 && lastRapierStreak < 6)
-                    Hold(0.04f);  // the stack that fills the streak: a short hit-pause
+                if (me.RapierTempo > lastRapierTempo && me.RapierTempo > 0)
+                    Shake(0.02f + 0.18f * me.RapierTempo / Game.RapierTempoMax);  // each Tempo hit: a small kick, harder as it builds
+                if (me.RapierTempo >= Game.RapierTempoMax && lastRapierTempo < Game.RapierTempoMax)
+                    Hold(0.04f);  // the stack that fills Tempo: a short hit-pause
             }
-            lastRapierStreak = me != null ? me.RapierStreak : 0;
+            lastRapierTempo = me != null ? me.RapierTempo : 0;
             newBooms.Clear();
             float boomShake = 0f;  // explosions this frame shake together, up to a cap, rather than piling up
             foreach (var fx in game.Effects)

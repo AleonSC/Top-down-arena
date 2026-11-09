@@ -522,7 +522,12 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.Rapier: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Rapier:  // TEMPO=<0-20> its Tempo (GRACE=<0-1> of the grace period left; 0 = draining); FLOURISH=1 a Flourish sweep instead of a thrust
+          me.RapierTempo = int.Parse(Environment.GetEnvironmentVariable("TEMPO") ?? "0");
+          me.RapierGraceLeft = (byte)(255f * float.Parse(Environment.GetEnvironmentVariable("GRACE") ?? "1", System.Globalization.CultureInfo.InvariantCulture));
+          if (Environment.GetEnvironmentVariable("FLOURISH") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * reach * 0.75f, 0.95f, 0f, 0.2f);
+          else fx(FxKind.Slash, to, -0.12f, 0f, 0.16f);
+          break;
         case WeaponId.BloodLash:  // the lash (110 degrees), CLOTBURST=1 the Clot Burst (all round you, 1.3x reach)
           if (Environment.GetEnvironmentVariable("CLOTBURST") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * reach * 1.3f, MathX.Pi, 0f, 0.16f);
           else fx(FxKind.Slash, to, 110f * MathX.Pi / 360f, 0f, 0.16f);

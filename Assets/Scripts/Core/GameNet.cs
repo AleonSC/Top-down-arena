@@ -509,7 +509,8 @@ namespace Arena
             s.Bool(ref p.GreatGuard);
             s.Bool(ref p.GreatPrimed);
             s.Bool(ref p.LancePrimed);  // the Lance's hook primed the Breaching Thrust (Lance.cs)
-            s.Byte(ref p.RapierStreak);  // the Rapier's streak, drawn as pips behind you (Game/MeleeLooks.cs)
+            s.Byte(ref p.RapierTempo);  // the Rapier's Tempo and its grace period, drawn as diamonds behind you (Game/MeleeLooks.cs)
+            s.Byte(ref p.RapierGraceLeft);
             s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)

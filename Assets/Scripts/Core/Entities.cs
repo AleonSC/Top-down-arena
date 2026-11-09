@@ -206,7 +206,7 @@ namespace Arena
         public readonly float[] WallPlateHp = new float[WallPlates];  // host: Shield Wall plate health
         public float WallPlateMax;                                    // host: what each plate started with
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
-        public int SwingCount, RapierTarget;  // host: Knight weapon state
+        public int SwingCount;  // host: Knight weapon state
         public byte StaffStacks;     // Quarterstaff: Jab stacks stored, 0 to 3 plus one per extra projectile (replicated, drawn on the staff and as pips behind you)
         public float StaffJabCd;     // host: the Quarterstaff's jab cools down for this long
         public byte TwinNades;       // Twin Rifle: grenades loaded in the tubes, 0 to 2 (replicated; TwinGrenades.cs)
@@ -218,7 +218,12 @@ namespace Arena
         public bool GreatGuard;      // Greatsword: the weapon-action key is held, the guard arc is up (replicated; you move at half speed and can't swing)
         public bool GreatPrimed;     // Greatsword: a full-Temper Rend was fired, so the next chain starts on the overhead rend (replicated)
         public float GreatGap, GreatLock, GreatBlockT;  // host: seconds since the last cut; seconds the guard can't go up again after a Rend; a guard clang just sounded (not another for a moment)
-        public int RapierStreak;     // Rapier: hits in a row on the same enemy plus bullets skewered, 0 to 6 (replicated, drawn as pips behind you)
+        public int RapierTempo;      // Rapier: Tempo stacks, 0 to Game.RapierTempoMax: one per enemy a thrust hits; each makes the thrusts quicker (replicated, drawn as diamonds behind you; Rapier.cs)
+        public float RapierTempoF;   // host: the exact Tempo (it drains a little at a time)
+        public float RapierHitAgo = 99f;  // host: seconds since a Rapier thrust last hit an enemy (Tempo holds for RapierGrace, then drains)
+        public byte RapierGraceLeft; // Rapier: how much of the grace period is left, 0 to 255 (replicated: the arc under the diamonds; 0 = draining)
+        public int RapierFlourishLeft, RapierFlourishCharge;  // host: Flourish swings still to come, and the Tempo it spent
+        public float RapierFlourishT, RapierFlourishAim;      // host: until the next Flourish swing; where it is aimed
         public float MeleeGraceT;   // host: a melee swing just landed: bodies you're touching can't hurt you for a moment (Balance.MeleeContactGrace)
         public float BossContactT;  // host: a boss's body can only hurt you once a second
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
