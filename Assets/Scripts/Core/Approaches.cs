@@ -81,6 +81,22 @@ namespace Arena
 
     public partial class Game
     {
+        /// XP for killing a faction enemy pays like a regular enemy of its health (Defs: Rioter 7, Guard 15, Riot Shield 10,
+        /// Gas Grenadier 9), so a themed approach wave, much tougher than a regular one, doesn't leave you levels behind
+        /// at the boss. The Warden's own riot on its boss wave sends dozens of Rioters and Guards, so those keep the old
+        /// fodder XP there (RioterFodderXp, GuardFodderXp).
+        public const float RioterFodderXp = 2f, GuardFodderXp = 4f;
+
+        /// The XP a kill gives everyone, before elites, paths and modifiers (Combat.cs).
+        float KillXp(Enemy e)
+        {
+            if (IsBossWave(Wave) && e.Type == EnemyType.Rioter)
+                return RioterFodderXp;
+            if (IsBossWave(Wave) && e.Type == EnemyType.Guard)
+                return GuardFodderXp;
+            return e.Def.Xp;
+        }
+
         /// The boss this wave leads up to (the next boss wave's), whether or not it has a faction.
         public static EnemyType ApproachBoss(int wave) => BossForWave((wave + 4) / 5 * 5);
 

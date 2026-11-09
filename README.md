@@ -551,6 +551,10 @@ Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Mend
 shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
 outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
 
+The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9),
+so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
+his own riot, on the boss wave, still give 2 and 4.
+
 | From | The Warden's faction | What it does |
 |---|---|---|
 | 1 | **Rioter** | A prisoner on the loose: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
