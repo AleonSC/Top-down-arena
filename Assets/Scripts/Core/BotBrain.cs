@@ -25,6 +25,7 @@ namespace Arena
         public bool AllyThreatened;  // a hurt or downed ally has enemies close on them (Roar draws those enemies off)
         public float DownedD;    // distance to the nearest downed ally (9999 with none)
         public bool TargetMarked;  // its target already carries a Mark for Death
+        public int Shooters;       // how many enemies have shots in flight coming at it (Lightning Rod)
     }
 
     public partial class Game
@@ -303,6 +304,7 @@ namespace Arena
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
                 AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked,
+                Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
         }
 

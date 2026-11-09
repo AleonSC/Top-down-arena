@@ -233,15 +233,23 @@ Parry upgrades show up like any other card:
 
 ### Ultimates
 
-**F** fires your **ultimate**. Each role and class combination has its own, fixed one: it
-comes with your role and class and only changes if you pick a different one. Ultimates have long cooldowns
-that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
+**F** fires your **ultimate**. Each role and class combination has its own default one (the table below), and some
+also have a **second** to choose instead: pick it in the lobby's **Ultimate** row (key 0 is the default, key 1 the
+second; the other keys are locked for ultimates still to come). Changing role or class puts you back on the default; a
+Wildcard has no choice (its ultimate follows its first ability's class). Ultimates have long cooldowns that upgrades
+don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead. With Visual effects on a frost lattice spreads out from you, spires cage each frozen enemy and break when the freeze ends, and a ring of spears jabs at bosses | **Titan** (80 s): a huge stone titan (140 px across) rises from rubble over 1.4 s, then stomps after enemies for 17 s, raising its fists for 0.4 s before each slam (90 damage, 190 px, every 1.4 s, shoves enemies back; bosses and Heavy enemies aren't shoved). Its whole body blocks bullets (soaks 1000 boss damage). It crumbles when time is up | **Last Stand** (70 s): plant yourself behind a crescent of plates that stops every shot from the front while you take 10% of it (no timer; press again to cancel) |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (7 pulses: 20 each, the last 30; each ally heals as the ring reaches them) | **World Tree** (80 s): a 100 px tree for 15 s that heals everyone under it (18 HP/s), slows and burns enemies, and sends a wave of healing butterflies, one to each ally (the most hurt first), every 1.9 s; each butterfly flutters to its ally and heals 14 on arrival | **Hallowed Blade** (80 s): a giant sword of light falls at your cursor (200 damage) and stays planted for 8 s; allies in its ring heal 15 HP/s and enemies burn 20 a second, and every 2 s a pulse crosses the whole arena (4 pulses, the last bigger) healing every ally 10 and hurting every enemy 13 as the ring reaches them |
 | **DPS** | **Artillery Assault** (60 s): 6 s of triple fire rate and +2 extra projectiles, with a heat aura, speed streaks and a muzzle flash | **Bullet Rain** (70 s): a downpour at your cursor (330 px across) for 6 s: the whole arena darkens and rains, and inside the zone the drops harden into needles that do 45 damage a second to every enemy in it, bosses too, and leaves them **wet** (as Tsunami does: slowed, and any lightning anywhere arcs to them) for 3 s after they leave | **Legion** (70 s): a blood moon rises and tints the arena for 10 s; 6 wolves and 6 bats circle you for a second, then run 40% faster, and your other minions frenzy | **Drawbridge** (75 s): a gatehouse rises behind you and its drawbridge falls along your aim, crushing the 500 x 100 px lane (140) and throwing the edges aside (45); then for 5 s it's a walkway enemies can't step onto, and their shots stop at its rails |
+
+**Second ultimates** (lobby key 1):
+
+| | Ultimate |
+|---|---|
+| **Tank Elementalist** | **Lightning Rod** (70 s): for 6 s you crackle with charge (a blue glow and small arcs on your body): you take 80% less damage and every enemy, bosses too, goes for you. Each enemy bullet that hits you calls a bolt from the sky down on the enemy that fired it (30, by your damage), and the bolt arcs on to the 2 enemies nearest it within 320 px (15 each), drawn as jagged lines; if the shooter has died the bolt still lands where it stood and arcs from there. Melee and contact hits on you call a bolt on whoever hit you. It counts as lightning: wet enemies (Tsunami, Bullet Rain) take the usual extra arcs. Each enemy can call at most one bolt every 0.25 s (a shotgun volley calls one, not five; the other pellets are still cut by 80%). A shot that touches you during your hit grace is grounded too: used up, no damage, and its bolt still falls. A small grey number shows what each grounded hit took. It ends after 6 s, or at once if you go down |
 
 ### Ability mastery
 
@@ -286,7 +294,7 @@ once mastered); the Tab menu shows the level.
 | **Lay on Hands** | Also heals everyone else near them for half as much. | **Misericorde** | Each execution heals you 5% of your health. |
 | **The Gauntlet** | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | **Caught Steel** | Holds up to 18 shards. |
 | **Last Stand** | You take 5% of the damage instead of 10%. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
-| **Drawbridge** | The bridge stands for 8 s. |  |  |
+| **Drawbridge** | The bridge stands for 8 s. | **Lightning Rod** | Lasts 8 s and each bolt arcs to 3 enemies. |
 
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next one
 fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -294,9 +302,11 @@ fills as it earns XP). What level 5 unlocks is always written in gold under each
 level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
 with "…"; hover a Tab tile to read it in full.
 
-In the lobby, your **ultimate** sits at the bottom of the left column of the loadout screen, under the stat bars: a gold charge ring (half full, as every
-ultimate starts a match half charged) with its key, its charge time, what it does and what mastering it adds. Click
-it to watch it in the preview above; the ring fills while it plays.
+In the lobby, your **ultimate** is the **Ultimate** row of the loadout screen: key 0 is your role and class's default,
+key 1 its second ultimate where it has one (the Tank Elementalist: Lightning Rod), and the rest are locked. Click a key
+to pick it (inverse video, as the weapon and ability keys); the detail box shows its charge time, what it does and what
+mastering it adds, and the preview casts it. Your pick reaches the other players, is kept in saved runs, and works in
+the Practice Range; the Field guide lists both ultimates.
 Mastery resets each run.
 
 ## Levels and upgrades

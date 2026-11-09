@@ -27,18 +27,20 @@ namespace Arena
         StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
         RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
         ScytheThrow,  // the Twin Reapers' legendary: a Q / E / Shift ability (ReaperLoot.cs)
+        LightningRod,  // the Tank Elementalist's second ultimate, picked in the lobby (LightningRod.cs)
         None = 255,
     }
 
     /// Everything about one ability except its cast code (which is in its class's file, next to its entry).
     public class AbilityDef
     {
-        public const int CardOnly = -1, Ult = 3;
+        public const int CardOnly = -1, Ult = 3, UltAlt = 4;  // UltAlt: a role and class's second ultimate (key 1 of the lobby's Ultimate row)
 
         public AbilityId Id;
         public Kit Kit;
         public Role Role;
-        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Ult, or CardOnly (very rare cards only)
+        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Ult (the default ultimate), UltAlt (the second), or CardOnly (very rare cards only)
+        public bool IsUlt => Choice == Ult || Choice == UltAlt;  // an ultimate (F), the default or a second one
         public string Name, Desc;
         public string Capstone;        // what mastering it (level 5) adds
         public float Cooldown;
@@ -141,13 +143,41 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.ElementalistAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.HemomancerAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities);
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.HemomancerAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates);
 
-        /// Each role and class has its own ultimate; it can't be changed.
+        /// Each role and class has its own default ultimate (lobby key 0); some also have a second (AltUltimates, key 1).
         static readonly AbilityId[] Ultimates = LobbyTable(true);
 
         /// A Wildcard's ultimate is the DPS one of the class its first ability comes from (pass that class as kit).
         public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)(r == Role.Wildcard ? Role.Dps : r) * Defs.KitCount + (int)kit];
+
+        /// The ultimate picked in the lobby: choice 0 is the default, 1 the second one where the role and class has one
+        /// (anything else, or a Wildcard, gets the default).
+        public static AbilityId Ultimate(Role r, Kit kit, int choice) =>
+            choice <= 0 || choice >= UltChoices(r, kit) ? Ultimate(r, kit) : AltUltimates[(int)r * Defs.KitCount + (int)kit];
+
+        /// How many ultimates the lobby offers this role and class: 1, or 2 where a second one exists. A Wildcard always has 1.
+        public static int UltChoices(Role r, Kit kit) =>
+            r == Role.Wildcard || (int)r >= 3 || (int)kit < 0 || (int)kit >= Defs.KitCount || AltUltimates[(int)r * Defs.KitCount + (int)kit] == AbilityId.None ? 1 : 2;
+
+        /// The second ultimates (AbilityDef.UltAlt), None where a role and class has only its default.
+        static readonly AbilityId[] AltUltimates = AltTable();
+
+        static AbilityId[] AltTable()
+        {
+            var table = new AbilityId[3 * Defs.KitCount];
+            for (int i = 0; i < table.Length; i++)
+                table[i] = AbilityId.None;
+            foreach (var a in Abilities)
+                if (a.Choice == AbilityDef.UltAlt)
+                {
+                    int i = (int)a.Role * Defs.KitCount + (int)a.Kit;
+                    if (table[i] != AbilityId.None)
+                        throw new InvalidOperationException(a.Id + " and " + table[i] + " are both the second ultimate of " + a.Role + " " + a.Kit);
+                    table[i] = a.Id;
+                }
+            return table;
+        }
 
         /// The three Space abilities for each role and kit, picked in the lobby.
         static readonly AbilityId[] RoleAbilities = LobbyTable(false);
@@ -192,7 +222,7 @@ namespace Arena
                 table[i] = AbilityId.None;
             foreach (var a in Abilities)
             {
-                if (a.Choice == AbilityDef.CardOnly || ultimates != (a.Choice == AbilityDef.Ult))
+                if (a.Choice == AbilityDef.CardOnly || a.Choice == AbilityDef.UltAlt || ultimates != (a.Choice == AbilityDef.Ult))  // (second ultimates have their own table, AltTable)
                     continue;
                 int i = ((int)a.Role * Defs.KitCount + (int)a.Kit) * per + (ultimates ? 0 : a.Choice);
                 if (table[i] != AbilityId.None)

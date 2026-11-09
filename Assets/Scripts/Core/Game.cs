@@ -155,6 +155,7 @@ namespace Arena
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
                 w.Write(e.Wild);
+                w.Write(e.Ult);  // which ultimate they picked (0 = the default; Upgrades.Ultimate)
                 var perks = PerksFor(e);
                 w.Write((byte)perks.Length);
                 foreach (var id in perks)
@@ -196,12 +197,14 @@ namespace Arena
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
                 int wild = r.ReadByte();  // a Wildcard's second ability and its key (Defs.WildSecond / WildKey)
+                int ult = r.ReadByte();   // the ultimate picked in the lobby
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
                     perkBytes.Add(r.ReadByte());
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
                 p.Kit = kit;
+                p.UltChoice = (byte)(ult < Upgrades.UltChoices(role, kit) ? ult : 0);  // (a Wildcard has only its default)
                 p.Weapon = Defs.Weapon(role, kit, weapon < (role == Role.Wildcard ? Defs.WildcardChoices : Defs.WeaponsPerRole) ? weapon : 0);
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
                 if (role == Role.Wildcard)
@@ -347,7 +350,7 @@ namespace Arena
             ids[0] = p.RoleAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
-            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit);
+            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.UltChoice);  // the one picked in the lobby (LobbyEntry.Ult)
             // Bonus abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
             if (p.StartBonus != AbilityId.None)
@@ -1186,6 +1189,7 @@ namespace Arena
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt);
             Collide();
+            TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
             TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();

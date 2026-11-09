@@ -33,7 +33,7 @@ namespace Arena
                 if (id <= 0 || id >= Upgrades.Abilities.Length)
                     continue;
                 var def = Upgrades.Ability((AbilityId)id);
-                bool ult = def.Choice == AbilityDef.Ult;
+                bool ult = def.IsUlt;
                 float f = Mathf.Clamp01(fx.T / Mathf.Max(0.01f, fx.Dur));
                 float pop = Mathf.Min(1f, fx.T * 10f), fade = f < 0.65f ? 1f : 1f - (f - 0.65f) / 0.35f;
                 int stack = 0;  // a newer cast by the same player sits above an older one
@@ -119,7 +119,7 @@ namespace Arena
             {
                 if (p.Downed)
                     continue;
-                if (p.TauntT > 0f || p.PactT > 0f)
+                if (p.TauntT > 0f || p.PactT > 0f || p.RodT > 0f)
                     best = p;
             }
             return best;
@@ -132,8 +132,9 @@ namespace Arena
             var taunter = Taunter();
             if (taunter == null)
                 return;
-            var c = taunter.Kit == Kit.Hemomancer ? new Rgba(0.85f, 0.1f, 0.18f) : new Rgba(1f, 0.45f, 0.25f);
-            var dark = taunter.Kit == Kit.Hemomancer ? new Rgba(0.35f, 0.03f, 0.08f) : new Rgba(0.3f, 0.1f, 0.05f);
+            bool rod = taunter.RodT > 0f && taunter.TauntT <= 0f && taunter.PactT <= 0f;  // a Lightning Rod's taunt marks are blue (LightningRodLook.cs)
+            var c = rod ? Game.RodBlue : taunter.Kit == Kit.Hemomancer ? new Rgba(0.85f, 0.1f, 0.18f) : new Rgba(1f, 0.45f, 0.25f);
+            var dark = rod ? new Rgba(0.06f, 0.12f, 0.25f) : taunter.Kit == Kit.Hemomancer ? new Rgba(0.35f, 0.03f, 0.08f) : new Rgba(0.3f, 0.1f, 0.05f);
             foreach (var e in game.Enemies.Values)
             {
                 if (game.IsSpawning(e) || Game.DevourUnder(e))

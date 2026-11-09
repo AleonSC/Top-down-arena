@@ -203,6 +203,14 @@ namespace Arena
                 case FxKind.BridgeSpark:
                     DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
                     break;
+                case FxKind.RodBolt:
+                    DrawRodBoltFx(fx);  // LightningRodLook.cs
+                    break;
+                case FxKind.RodArc:
+                    DrawRodArcFx(fx);
+                    break;
+                case FxKind.RodGround:
+                    break;  // its grey number is on the HUD (LightningRodLook.cs DrawRodPops)
                 case FxKind.SteelCatch:
                 case FxKind.SteelRelease:
                 case FxKind.SteelHit:

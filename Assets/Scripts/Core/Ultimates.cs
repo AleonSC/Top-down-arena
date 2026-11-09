@@ -135,6 +135,10 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 900f, TombFxTime(cap), Sfx.Freeze);  // lasts the freeze plus the thaw; Game/GlacialTombLook.cs draws it
                     break;
 
+                case AbilityId.LightningRod:  // Tank: Mage, the second ultimate (LightningRod.cs)
+                    CastLightningRod(p, cap);
+                    break;
+
                 case AbilityId.Titan:  // Tank: Summoner
                     CastTitan(p, cap);  // Titan.cs
                     break;

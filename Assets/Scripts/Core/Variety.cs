@@ -647,6 +647,7 @@ namespace Arena
                             if (p.ParryActive && ParryContact(p, e, ReaverDamage))
                                 continue;  // a raised guard takes it
                             Damage(p, ReaverDamage, e.Def.Name + " (swipe)");
+                            RodTouched(p, e);  // LightningRod.cs
                         }
                         BroadcastFx(FxKind.Claw, e.Pos, e.Pos + V2.FromAngle(e.Facing) * (ReaverSwipeR + e.Radius), e.Def.Color, ReaverCone, 0.25f, Sfx.SwingHeavy);
                         e.Phase = 3;

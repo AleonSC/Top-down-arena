@@ -481,6 +481,7 @@ namespace Arena
             for (int k = 0; k < Player.WallPlates; k++)
                 s.Byte(ref p.WallPlate[k]);
             s.Float(ref p.UnbreakT);
+            s.Float(ref p.RodT);    // Lightning Rod's charge (LightningRod.cs)
             s.Float(ref p.SteelT);  // Caught Steel (CaughtSteel.cs)
             s.Byte(ref p.Steel);
             s.Bool(ref p.GauntletDown);  // The Gauntlet lying where it hit (Gauntlet.cs)

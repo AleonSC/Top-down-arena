@@ -740,7 +740,10 @@ namespace Arena
                                 continue;
                             float diff = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - rp.A + MathX.Pi, MathX.Tau) - MathX.Pi);
                             if (diff < ReapHalfArc)
+                            {
                                 Damage(p, ReapDamage, e.Def.Name + " (reap)");
+                                RodTouched(p, e);  // LightningRod.cs
+                            }
                         }
                         BroadcastFx(FxKind.Slash, e.Pos, e.Pos + V2.FromAngle(rp.A) * ReapReach, e.Def.Color, ReapHalfArc, 0.22f, Sfx.BossScythe);
                     }

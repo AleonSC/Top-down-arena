@@ -311,8 +311,8 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
-                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p)))
-                    return p.Id;  // Roar: everyone goes for the roaring tank
+                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p) || p.RodT > 0f))
+                    return p.Id;  // Roar (or a Lightning Rod's charge): everyone goes for the roaring tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
@@ -381,6 +381,7 @@ namespace Arena
             tickEnemies.AddRange(Enemies.Values);
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
+                actingEnemy = e;  // its shots are stamped with it (Lightning Rod; LightningRod.cs)
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
@@ -482,12 +483,14 @@ namespace Arena
                             p.BossContactT = BossContactEvery;
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
+                        RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
                         if (e.Type == EnemyType.Buzzsaw && !p.Downed)
                             p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
                 }
             }
 
+            actingEnemy = null;
             TickHazards(dt);
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);

@@ -20,6 +20,7 @@ namespace Arena
             DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
             DrawKnightDpsPops();  // "† 11", READY, the chain ending, Caught Steel's pips (KnightDpsLook.cs)
+            DrawRodPops();  // Lightning Rod's grey numbers off the tank (LightningRodLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)
             if (me != null)

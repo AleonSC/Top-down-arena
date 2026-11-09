@@ -235,6 +235,7 @@ namespace Arena
                 DrawCenser(p, t);  // the Censer held, swung and thrown (CenserLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
+                DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawHeldStunGun(p, t);
             }
             foreach (var b in game.Bullets.Values)
@@ -265,6 +266,7 @@ namespace Arena
                 return;
             LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
+            DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
