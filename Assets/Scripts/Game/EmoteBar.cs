@@ -36,12 +36,14 @@ namespace Arena
             emoteTickFrame = Time.frameCount;
             emoteBarOpen = allowed && Keybinds.Held(KeyAction.Emote);
             emoteBarK = Mathf.MoveTowards(emoteBarK, emoteBarOpen ? 1f : 0f, Time.unscaledDeltaTime * 7f);
+            Keybinds.SetEmoteNumbers(0);
             if (!emoteBarOpen)
                 return;
             // The number keys are the slots of the bar (1 is the leftmost one in view): they always mean the same place, so which
             // emote a key plays depends on how far along the bar you've scrolled.
             var own = EmotesOwned();
             emoteFirst = Mathf.Clamp(emoteFirst, 0, Mathf.Max(0, own.Count - EmoteView));
+            Keybinds.SetEmoteNumbers(Mathf.Min(EmoteView, own.Count - emoteFirst));  // its slot keys win over a bound number key
             for (int k = 0; k < EmoteView; k++)
                 if (emoteFirst + k < own.Count && Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1 + k)))
                     session.SendEmote(own[emoteFirst + k]);

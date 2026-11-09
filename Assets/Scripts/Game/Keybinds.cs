@@ -6,7 +6,8 @@ namespace Arena
 {
     /// Every control you can change (Settings → Keybinds, KeybindsUi.cs). Fire and Parry may be a key or any mouse button
     /// (left and right click by default); the rest are keys (or the middle and side mouse buttons). The arrow keys always
-    /// move too; the menu keys (Esc, Tab, Enter, 1-8, F1-F5) are fixed. Saved in PlayerPrefs by name, so the order here is
+    /// move too; the menu keys (Esc, Tab, Enter, F1-F5) are fixed. The number keys can be bound: while the upgrade picker
+    /// or the emote bar is open, the numbers it uses pick a card or an emote instead (NumberTaken). Saved in PlayerPrefs by name, so the order here is
     /// only the order on the page (each group is a run of this list).
     public enum KeyAction
     {
@@ -72,21 +73,41 @@ namespace Arena
             return false;
         }
 
+        /// How many number keys (1, 2, ...) the upgrade picker (its cards) and the emote bar (its slots) are using right now,
+        /// set each frame by ArenaApp.Update and EmoteBar.TickEmoteBar. An action bound to one of those keys sits out meanwhile.
+        /// A count not set this frame or the last has gone stale (the screen that set it has closed) and counts as 0.
+        static int pickerNumbers, emoteNumbers, pickerFrame = -10, emoteFrame = -10;
+
+        public static void SetPickerNumbers(int n) { pickerNumbers = n; pickerFrame = Time.frameCount; }
+        public static void SetEmoteNumbers(int n) { emoteNumbers = n; emoteFrame = Time.frameCount; }
+
+        static bool NumberTaken(KeyAction a)
+        {
+            KeyCode k = keys[(int)a];
+            if (k < KeyCode.Alpha1 || k > KeyCode.Alpha9)
+                return false;
+            int n = k - KeyCode.Alpha0;
+            if (Time.frameCount - pickerFrame <= 1 && n <= pickerNumbers)
+                return true;
+            return a != KeyAction.Emote && Time.frameCount - emoteFrame <= 1 && n <= emoteNumbers;  // (the Emote key itself keeps the bar open)
+        }
+
         /// Pressed this frame (never while rebinding).
-        public static bool Down(KeyAction a) => !Busy && Either(keys[(int)a], Input.GetKeyDown);
+        public static bool Down(KeyAction a) => !Busy && !NumberTaken(a) && Either(keys[(int)a], Input.GetKeyDown);
         /// Held now (never while rebinding).
-        public static bool Held(KeyAction a) => !Busy && Either(keys[(int)a], Input.GetKey);
+        public static bool Held(KeyAction a) => !Busy && !NumberTaken(a) && Either(keys[(int)a], Input.GetKey);
 
         /// Movement: the bound key or its arrow.
         public static bool MoveHeld(KeyAction a)
         {
             KeyCode arrow = a == KeyAction.MoveUp ? KeyCode.UpArrow : a == KeyAction.MoveDown ? KeyCode.DownArrow : a == KeyAction.MoveLeft ? KeyCode.LeftArrow : KeyCode.RightArrow;
-            return !Busy && (Either(keys[(int)a], Input.GetKey) || Input.GetKey(arrow));
+            return !Busy && ((!NumberTaken(a) && Either(keys[(int)a], Input.GetKey)) || Input.GetKey(arrow));
         }
 
         static bool Mouse01(KeyCode k) => k == KeyCode.Mouse0 || k == KeyCode.Mouse1;
 
-        /// Keys that can't be given to an action: the menus and the dev tools use them, and left and right click are for
+        /// Keys that can't be given to an action: the menus and the dev tools use them (the number keys are fine: NumberTaken
+        /// hands them to the upgrade picker and the emote bar while those are open), and left and right click are for
         /// Fire and Parry only (they click everything else).
         public static bool Allowed(KeyCode k, KeyAction a)
         {
@@ -96,7 +117,7 @@ namespace Arena
                 || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4 || k == KeyCode.F5
                 || k == KeyCode.UpArrow || k == KeyCode.DownArrow || k == KeyCode.LeftArrow || k == KeyCode.RightArrow)
                 return false;
-            return !(k >= KeyCode.Alpha1 && k <= KeyCode.Alpha8);  // the upgrade picker's card keys
+            return true;
         }
 
         /// Give `a` the key `k`. A key another action already has swaps over to this one's old key, so none is ever doubled.
