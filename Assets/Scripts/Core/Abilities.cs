@@ -31,6 +31,11 @@ namespace Arena
                 EndRain(p, true);
                 return;
             }
+            if (BathPress(p, slot))  // Bloodbath pressed again: the channel ends and the pool dries up (no cooldown spent; Bloodbath.cs)
+            {
+                EndBath(ActiveBath(p));
+                return;
+            }
             if (StandRelease(p, slot))  // Last Stand pressed again: it comes down (no cooldown spent for the press)
             {
                 p.Run.AbilitiesUsed++;

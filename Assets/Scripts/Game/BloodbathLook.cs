@@ -11,7 +11,8 @@ namespace Arena
     ///   enemies wading in it: a red tint over them, a ring of blood at their feet and drops falling off them;
     ///   allies standing in it: a thin red guard arc (they take 20% less);
     ///   heal pops: a small "+n" rising off the Hemomancer for each tick (`FxKind.BathHeal`, on the HUD);
-    ///   drying up: over the last Game.BathDry s it darkens to brown, pulls back unevenly and cracks before it's gone.
+    ///   the channel: while it drains you, drops of your blood run off you and down into the pool's middle;
+    ///   drying up: once the channel ends (`Zone.Aim` 1) it darkens to brown over Game.BathDry s, pulls back unevenly and cracks.
     /// Visual effects off: a plain disc at its reach, a rim, and the zone's time ring. Reduced effects: no wobble, fewer ripples and drops.
     public partial class ArenaApp
     {
@@ -22,7 +23,7 @@ namespace Arena
         static Rgba BathMix(Rgba a, Rgba b, float f) => new Rgba(a.R + (b.R - a.R) * f, a.G + (b.G - a.G) * f, a.B + (b.B - a.B) * f, a.A + (b.A - a.A) * f);
 
         /// How dry the pool is, 0 (wet) to 1 (gone), over its last BathDry seconds.
-        static float BathDryness(Zone z) => Mathf.Clamp01((Game.BathDry - z.T) / Game.BathDry);
+        static float BathDryness(Zone z) => z.Aim > 0f ? Mathf.Clamp01(1f - z.T / Game.BathDry) : 0f;
 
         /// The edge's distance from the middle at angle a: the reach, made wavy and uneven, and pulled back as it dries.
         float BathEdgeAt(Zone z, float reach, float a, float t, float dry)
@@ -43,7 +44,7 @@ namespace Arena
             {
                 Circle(z.Pos, reach, BathFlood.WithAlpha(0.35f), 40);
                 Arc(z.Pos, reach, 2f, BathWet.WithAlpha(0.6f), 48);
-                Arc(z.Pos, reach + 4f, 2.5f, BathFlood.WithAlpha(0.8f), 48, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(z.T / Mathf.Max(0.01f, z.Duration)));
+                Arc(z.Pos, reach + 4f, 2.5f, BathFlood.WithAlpha(0.8f), 48, -MathX.Pi / 2f, MathX.Tau * (z.Aim > 0f ? 0f : MathX.Clamp01(1f - age / Game.BathTime)));
                 return;
             }
             float fade = 1f - dry * dry;
@@ -91,6 +92,23 @@ namespace Arena
                     Line(z.Pos + d0 * (reach * 0.12f), mid, 1.5f, crack);
                     Line(mid, z.Pos + d0.Rotated(-0.15f) * len, 1.2f, crack);
                 }
+            }
+            // The channel: your blood running off you into the pool's middle while it drains you.
+            Player owner;
+            if (dry <= 0f && game.Players.TryGetValue(z.Owner, out owner) && !owner.Downed)
+            {
+                V2 from = owner.Disp, to = z.Pos;
+                float len = from.DistanceTo(to);
+                if (len < 30f)
+                    to = from + new V2(0f, 26f);  // standing in the middle: the drops just fall at your feet
+                int n = fxReduced ? 2 : 4;
+                for (int k = 0; k < n; k++)
+                {
+                    float ph = Mathf.Repeat(t * 0.9f + k / (float)n, 1f);
+                    V2 at = from + (to - from) * ph + new V2(0f, -10f * Mathf.Sin(ph * MathX.Pi));
+                    Circle(at, 2.4f * (1f - 0.5f * ph), BathDrop.WithAlpha(0.85f * (1f - ph * 0.6f)), 8);
+                }
+                Arc(owner.Disp, owner.Def.BodyR + 3f, 1.5f, BathWet.WithAlpha(0.5f + 0.3f * Mathf.Sin(t * 6f)), 20);  // a pulse round you: you're paying for it
             }
             // Allies standing in it: a thin guard arc under them (they take Game.BathGuard less).
             foreach (var p in game.Players.Values)
