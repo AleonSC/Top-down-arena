@@ -120,6 +120,14 @@ namespace Arena
             new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 36 },
             new CosmeticDef { Id = "trail-lightcycle", Name = "Light Cycle trail", Kind = CosmeticKind.Trail, Rank = 46 },
             new CosmeticDef { Id = "frame-prism", Name = "Prism frame", Kind = CosmeticKind.Frame, Rank = 51 },
+            new CosmeticDef { Id = "frame-neon", Name = "Neon Tube frame", Kind = CosmeticKind.Frame, Rank = 56 },
+            new CosmeticDef { Id = "frame-hazard", Name = "Hazard Tape frame", Kind = CosmeticKind.Frame, Rank = 58 },
+            new CosmeticDef { Id = "frame-frost", Name = "Frostbite frame", Kind = CosmeticKind.Frame, Rank = 60 },
+            new CosmeticDef { Id = "frame-barbed", Name = "Barbed Wire frame", Kind = CosmeticKind.Frame, Rank = 62 },
+            new CosmeticDef { Id = "frame-storm", Name = "Lightning Cage frame", Kind = CosmeticKind.Frame, Rank = 64 },
+            new CosmeticDef { Id = "frame-pixel", Name = "Pixel March frame", Kind = CosmeticKind.Frame, Rank = 66 },
+            new CosmeticDef { Id = "frame-blood", Name = "Blood Drip frame", Kind = CosmeticKind.Frame, Rank = 68 },
+            new CosmeticDef { Id = "frame-chain", Name = "Chain Link frame", Kind = CosmeticKind.Frame, Rank = 70 },
             new CosmeticDef { Id = "card-dusk", Name = "Dusk Grid card", Kind = CosmeticKind.CardBackground, Rank = 7 },
             new CosmeticDef { Id = "card-stars", Name = "Starfield card", Kind = CosmeticKind.CardBackground, Rank = 11 },
             new CosmeticDef { Id = "card-blueprint", Name = "Blueprint card", Kind = CosmeticKind.CardBackground, Rank = 14 },
@@ -130,6 +138,14 @@ namespace Arena
             new CosmeticDef { Id = "card-void", Name = "Void Rift card", Kind = CosmeticKind.CardBackground, Rank = 38 },
             new CosmeticDef { Id = "card-foil", Name = "Gilded Foil card", Kind = CosmeticKind.CardBackground, Rank = 43 },
             new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 54 },
+            new CosmeticDef { Id = "card-radar", Name = "Radar Sweep card", Kind = CosmeticKind.CardBackground, Rank = 57 },
+            new CosmeticDef { Id = "card-spiral", Name = "Bullet Spiral card", Kind = CosmeticKind.CardBackground, Rank = 59 },
+            new CosmeticDef { Id = "card-matrix", Name = "Phosphor Rain card", Kind = CosmeticKind.CardBackground, Rank = 61 },
+            new CosmeticDef { Id = "card-lava", Name = "Lava Veins card", Kind = CosmeticKind.CardBackground, Rank = 63 },
+            new CosmeticDef { Id = "card-sun", Name = "Synthwave Sun card", Kind = CosmeticKind.CardBackground, Rank = 65 },
+            new CosmeticDef { Id = "card-snow", Name = "Snowfall card", Kind = CosmeticKind.CardBackground, Rank = 67 },
+            new CosmeticDef { Id = "card-topo", Name = "Contour Map card", Kind = CosmeticKind.CardBackground, Rank = 69 },
+            new CosmeticDef { Id = "card-hex", Name = "Honeycomb Pulse card", Kind = CosmeticKind.CardBackground, Rank = 71 },
             new CosmeticDef { Id = "emote-wave", Name = "Wave emote", Kind = CosmeticKind.Emote, Rank = 2 },
             new CosmeticDef { Id = "emote-thumbs", Name = "Thumbs up emote", Kind = CosmeticKind.Emote, Rank = 3 },
             new CosmeticDef { Id = "emote-gg", Name = "GG emote", Kind = CosmeticKind.Emote, Rank = 4 },
@@ -265,6 +281,14 @@ namespace Arena
                 case "frame-gold":
                 case "frame-foil": return new Rgba(1f, 0.8f, 0.35f);
                 case "frame-prism": return new Rgba(0.9f, 0.95f, 1f);
+                case "frame-neon": return new Rgba(1f, 0.27f, 0.75f);
+                case "frame-hazard": return new Rgba(0.95f, 0.76f, 0f);
+                case "frame-frost": return new Rgba(0.59f, 0.84f, 1f);
+                case "frame-barbed": return new Rgba(0.63f, 0.67f, 0.72f);
+                case "frame-storm": return new Rgba(0.55f, 0.75f, 1f);
+                case "frame-pixel": return new Rgba(0.3f, 0.79f, 0.94f);
+                case "frame-blood": return new Rgba(0.78f, 0.08f, 0.2f);
+                case "frame-chain": return new Rgba(0.69f, 0.74f, 0.8f);
                 default: return new Rgba(0.72f, 0.78f, 0.9f);  // Steel
             }
         }

@@ -1029,6 +1029,14 @@ each kind at a time:
 | 36 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
 | 46 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
 | 51 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
+| 56 | **Neon Tube frame**: a magenta tube with a cyan tube inside it; the outer one buzzes and drops out now and then |
+| 58 | **Hazard Tape frame**: yellow and black warning tape marching round the card |
+| 60 | **Frostbite frame**: an ice rim with snowflake crystals that grow and shrink, and a travelling glint |
+| 62 | **Barbed Wire frame**: two twisted strands with rusty barbs |
+| 64 | **Lightning Cage frame**: corner nodes with arcs of lightning jumping between them |
+| 66 | **Pixel March frame**: chunky 4 px squares in four colours stepping round the card |
+| 68 | **Blood Drip frame**: a crimson rim with drips forming along the bottom edge, hanging, dropping and fading |
+| 70 | **Chain Link frame**: steel links running slowly round the card |
 | 7 | **Dusk Grid card**: a perspective grid sliding toward you under a violet horizon (the fill of your lobby party card, behind your name) |
 | 11 | **Starfield card**: three layers of drifting stars and now and then a shooting star (the fill of your lobby party card, behind your name) |
 | 14 | **Blueprint card**: cyan drafting paper with a grid, a dimension line and a circle that traces itself (the fill of your lobby party card, behind your name) |
@@ -1039,6 +1047,14 @@ each kind at a time:
 | 38 | **Void Rift card**: a slow violet vortex behind your portrait (the fill of your lobby party card, behind your name) |
 | 43 | **Gilded Foil card**: brushed gold with a sheen sweeping across (the fill of your lobby party card, behind your name) |
 | 54 | **Prism Shards card**: spectrum shards turning slowly and overlapping (the fill of your lobby party card, behind your name) |
+| 57 | **Radar Sweep card**: a green radar scope whose beam lights the contacts it passes (the fill of your lobby party card, behind your name) |
+| 59 | **Bullet Spiral card**: a five-armed spiral of slow pink and cyan bullets (the fill of your lobby party card, behind your name) |
+| 61 | **Phosphor Rain card**: columns of green characters falling (the fill of your lobby party card, behind your name) |
+| 63 | **Lava Veins card**: near-black rock with glowing orange veins that slide and pulse (the fill of your lobby party card, behind your name) |
+| 65 | **Synthwave Sun card**: a striped sun sinking into a pink horizon over a grid floor (the fill of your lobby party card, behind your name) |
+| 67 | **Snowfall card**: drifting snow at two depths on a night-blue sky (the fill of your lobby party card, behind your name) |
+| 69 | **Contour Map card**: topographic rings round two drifting peaks (the fill of your lobby party card, behind your name) |
+| 71 | **Honeycomb Pulse card**: a hex grid with a wave of amber light spreading through it (the fill of your lobby party card, behind your name) |
 | 2 | **Wave emote**: a hand waves while you sway |
 | 3 | **Thumbs up emote**: a thumb pops up, you bob |
 | 4 | **GG emote** |

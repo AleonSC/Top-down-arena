@@ -22,10 +22,10 @@ static partial class Program
 
         // Cosmetics: owned from their rank, one frame number each.
         Check(!Rank.Owns(8, "trail-ember") && Rank.Owns(9, "trail-ember") && !Rank.Owns(99, "nonsense") && Rank.Owns(31, "frame-gold"), "a cosmetic is yours from its rank, and unknown ids never are");
-        Check(Rank.FrameIndex("") == 0 && Rank.FrameIndex("frame-steel") == 1 && Rank.FrameIndex("frame-gold") == 5 && Rank.FrameId(5) == "frame-gold" && Rank.FrameId(9) == "" && Rank.FrameId(0) == "", "frames are numbered in rank order for the lobby (0 none), so Gold is 5");
-        Check(Rank.RewardsAt(17)[0].Id == "frame-circuit" && Rank.RewardsAt(21).Exists(rw => rw.Id == "frame-ember") && Rank.RewardsAt(25)[0].Id == "frame-void" && Rank.RewardsAt(41)[0].Id == "frame-foil" && Rank.RewardsAt(51)[0].Id == "frame-prism" && Rank.OfKind(CosmeticKind.Frame).Count == 7 && Rank.FrameIndex("frame-prism") == 7 && Rank.FrameId(8) == "", "Circuit, Ember Edge, Void Pulse, Legend Foil and Prism unlock at 17, 21, 25, 41 and 51");
+        Check(Rank.FrameIndex("") == 0 && Rank.FrameIndex("frame-steel") == 1 && Rank.FrameIndex("frame-gold") == 5 && Rank.FrameId(5) == "frame-gold" && Rank.FrameId(16) == "" && Rank.FrameId(0) == "", "frames are numbered in rank order for the lobby (0 none), so Gold is 5");
+        Check(Rank.RewardsAt(17)[0].Id == "frame-circuit" && Rank.RewardsAt(21).Exists(rw => rw.Id == "frame-ember") && Rank.RewardsAt(25)[0].Id == "frame-void" && Rank.RewardsAt(41)[0].Id == "frame-foil" && Rank.RewardsAt(51)[0].Id == "frame-prism" && Rank.OfKind(CosmeticKind.Frame).Count == 15 && Rank.FrameIndex("frame-prism") == 7 && Rank.FrameId(8) == "frame-neon" && Rank.FrameId(16) == "", "Circuit, Ember Edge, Void Pulse, Legend Foil and Prism unlock at 17, 21, 25, 41 and 51");
         bool distinct = true;
-        for (int i = 1; i <= 7; i++) for (int j = i + 1; j <= 7; j++) distinct &= Rank.FrameId(i) != Rank.FrameId(j);
+        for (int i = 1; i <= 15; i++) for (int j = i + 1; j <= 15; j++) distinct &= Rank.FrameId(i) != Rank.FrameId(j);
         Check(distinct && Rank.FrameColor(2).G > 0.8f && Rank.FrameColor(3).R > 0.9f, "every frame has its own number and a base colour");
         Check(Rank.RewardsAt(9).Count == 1 && Rank.RewardsAt(9)[0].Id == "trail-ember" && Rank.RewardsAt(10).Count == 0, "rank 9 brings the Ember trail, rank 10 nothing");
 
@@ -111,8 +111,13 @@ static partial class Program
         Check(Rank.Owns(48, "bg-react-pond") && !Rank.Owns(47, "bg-react-pond") && Rank.Owns(50, "bg-react-tunnel") && !Rank.Owns(49, "bg-react-tunnel") && Rank.Owns(53, "bg-react-signal") && !Rank.Owns(52, "bg-react-signal")
               && Rank.IsReactiveBackground("bg-react-pond") && Rank.IsReactiveBackground("bg-react-tunnel") && Rank.IsReactiveBackground("bg-react-signal"), "Phosphor Pond (48), Vector Tunnel (50) and Signal Lost (53) are reactive menu backgrounds");
         // Card backgrounds: ten of them, numbered in rank order, shared through the lobby like frames and trails.
-        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 10 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "" && Rank.Owns(54, "card-prism") && !Rank.Owns(53, "card-prism") && Rank.RewardsAt(7)[0].Id == "card-dusk",
-            "ten card backgrounds, Dusk Grid at rank 7 to Prism Shards at 54, numbered for the lobby");
+        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 18 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "card-radar" && Rank.CardBgId(19) == "" && Rank.Owns(54, "card-prism") && !Rank.Owns(53, "card-prism") && Rank.RewardsAt(7)[0].Id == "card-dusk",
+            "ten card backgrounds, Dusk Grid at rank 7 to Prism Shards at 54, numbered for the lobby, and the eight newer ones after them");
+        // The sixteen newer frames and card backgrounds (ranks 56 to 71, one a rank, alternating) are numbered after the old ones, so no old number moved.
+        string[] newIds = { "frame-neon", "card-radar", "frame-hazard", "card-spiral", "frame-frost", "card-matrix", "frame-barbed", "card-lava", "frame-storm", "card-sun", "frame-pixel", "card-snow", "frame-blood", "card-topo", "frame-chain", "card-hex" };
+        bool newOk = true;
+        for (int i = 0; i < newIds.Length; i++) { var def = Rank.Cosmetic(newIds[i]); newOk &= def != null && def.Rank == 56 + i && Rank.RewardsAt(56 + i).Count == 1 && Rank.Owns(56 + i, newIds[i]) && !Rank.Owns(55 + i, newIds[i]); }
+        Check(newOk && Rank.FrameIndex("frame-neon") == 8 && Rank.FrameIndex("frame-chain") == 15 && Rank.CardBgIndex("card-radar") == 11 && Rank.CardBgIndex("card-hex") == 18 && Rank.FrameColor(8).R > 0.9f && Rank.FrameColor(15).B > 0.75f, "eight frames and eight card backgrounds at ranks 56 to 71, one a rank, numbered after the existing ones");
         cp.Xp = Rank.XpAt(31); hp.Xp = Rank.XpAt(31);
         Check(cp.Equip(CosmeticKind.CardBackground, "card-rain") == false && cp.Equip(CosmeticKind.CardBackground, "card-circuit") && cp.CardBg == "card-circuit" && !cp.Equip(CosmeticKind.Frame, "card-dusk") && cp.Equipped(CosmeticKind.CardBackground) == "card-circuit", "you equip the card backgrounds your rank has, and only in their slot");
         hp.Equip(CosmeticKind.CardBackground, "card-dusk");
