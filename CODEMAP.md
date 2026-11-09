@@ -136,7 +136,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `OrbLook.cs`: health orbs as hologram spheres (`DrawHoloOrb`) and the pickup data burst (`DataBurst`, particle kinds 12-14)
 - `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
-- `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`; `LookDrawsArms`: the weapons whose own look draws the arms (the model leaves its arms out)
+- `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`; `LookDrawsArms`: the weapons whose own look draws the arms (the model leaves its arms out); `LookDrawsPauldrons`: those whose arms have their own pauldrons (the model leaves its shoulder plates out)
 - `MartyrLook.cs`: the Healer Hemomancer's Martyr (look A, Offering, of `Docs/Mockups/martyr.html`): chest cross, bead string, rise burst and the ward halo (12 beads from `Player.WardT`); `FxKind.MartyrCast`
 - `ClassLooks.cs`, `AbilityLooks.cs`, `BloodMageLook.cs`: per-class ability/buff overlays on the model, ability feedback, Blood Mage visuals
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
@@ -151,7 +151,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `CameraZoom.cs`: scroll-wheel zoom (1x to 2x on you, focus held inside the arena; Settings → Gameplay), `ZoomPoint`/`UnzoomPoint` used by `Px`, `ToUi` and `MouseArena`, `UiWorldScale` for HUD sizes around world things
 - `OffscreenMarkers.cs`: while zoomed, edge arrows to off-screen teammates (colour + name, red when downed) and enemies (nearest 40, bosses always), drawn in `DrawHud`
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
-- `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E); the held poses (`MeleeRest`), each swing's return into them (`DrawSwingModel`) and the hand-over (`MeleeSwingShowing`)
+- `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E); the held poses (`MeleeRest`; the Kusarigama and Blood Lash held with arms, `DrawMeleeHeldIdle`), each swing's return into them (`DrawSwingModel`) and the hand-over (`MeleeSwingShowing`)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
 - `NonShooterLooks.cs`: the Fuse Runner (Powder Keg), Hookman (Harpoon) and Sapper's Tripwire Pods (looks A, B, C of `Docs/Mockups/non-shooter-enemies.html`)
 - `EnemyPresenceLook.cs`: regular enemies' soft shadow and quiet colour glow with Visual effects on (look D of `Docs/Mockups/enemy-prominence.html`)

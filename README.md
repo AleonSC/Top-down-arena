@@ -429,7 +429,7 @@ waves in), and so do old squads, so the wave-1 Grunt gives way to what came afte
 the single enemies fill whatever each job is still short of. `Tools/SimTest/run.sh 1 1 wavemix` shows the mix wave by wave
 (waves 14-29 went from 81-91% shooters to about 55%).
 
-With **Visual effects** on, a melee weapon drawn in its own hands (Halberd, Warhammer, Greatsword, Rapier, Quarterstaff, Censer, Twin Blades, Lightbringer, Lance, Bo Staff, Katana) is the only pair of arms you see: the character's own arms are left out. Every swing starts from the held pose and comes back into it: after the cut the weapon holds a moment, then turns back to where you are aiming and settles into the held pose, with no fading in or out. (The Kusarigama and Blood Lash are held by the character itself and still phase out for a swing.)
+With **Visual effects** on, a melee weapon drawn in its own hands (Halberd, Warhammer, Greatsword, Rapier, Quarterstaff, Censer, Twin Blades, Lightbringer, Lance, Bo Staff, Katana, Kusarigama, Blood Lash) is the only pair of arms you see: the character's own arms are left out (and its shoulder plates too, for weapons whose arms have their own pauldrons). The Kusarigama keeps the sickle in one hand and the weight hanging from the other; the Blood Lash's whip hangs slack and sways until it cracks. Every swing starts from the held pose and comes back into it: after the cut the weapon holds a moment, then turns back to where you are aiming and settles into the held pose, with no fading in or out.
 
 With **Visual effects** on, regular enemies stand out from the floor: a soft dark shadow under each body and a faint glow in their own colour, much quieter than a player's halo. Bosses, spawning enemies and zombies don't get it.
 
