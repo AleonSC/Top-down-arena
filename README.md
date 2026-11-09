@@ -624,8 +624,9 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
   starts the cycle with its own crates; random crates, pots and barrels still turn up, clear of the walls.
   Enemies path round walls to get at you, and so do the ones heading somewhere of their own: squads keeping
-  formation, the Warden's Riot Shields (herding you or marching in a Riot Line), Guards and Rioters, and the
-  wandering Spinner (its random spots stay clear of the walls).
+  formation, the Warden's Riot Shields (herding you or marching in a Riot Line), Guards and Rioters, the Warder
+  keeping behind its allies, and the wandering Spinner (its random spots stay clear of the walls). A Phantom never
+  blinks into a wall.
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
   through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (flickering red holograms with a dashed rim, part of the
   wall) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
