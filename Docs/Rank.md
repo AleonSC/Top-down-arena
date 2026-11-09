@@ -75,33 +75,35 @@ Placeholder ladder, from the mockup:
 
 | Rank | Reward |
 |---|---|
-| 5 | Title: Challenger |
-| 8 | Trail: Ember |
-| 10 | Title: Veteran |
-| 12 | Frame: Steel |
-| 14 | Trail: Frost |
-| 16 | Frame: Circuit |
-| 15 | Menu background: Dusk grid |
-| 18 | Trail: Storm |
-| 20 | Title: Champion, Frame: Ember Edge |
-| 22 | Trail: Void |
-| 24 | Frame: Void Pulse |
-| 25 | Trail: Gold stardust |
-| 30 | Frame: Gold, Title: Legend |
-| 35 | Trail: Prism |
-| 40 | Frame: Legend Foil |
-| 45 | Trail: Light Cycle |
-| 50 | Frame: Prism |
-| 6 | Card background: Dusk Grid |
-| 10 | Card background: Starfield |
-| 13 | Card background: Blueprint |
-| 19 | Card background: Ember Glow |
-| 23 | Card background: Aurora |
-| 27 | Card background: Circuit Board |
-| 32 | Card background: Rain on Glass |
-| 37 | Card background: Void Rift |
-| 42 | Card background: Gilded Foil |
-| 55 | Card background: Prism Shards |
+| 6 | Title: Challenger |
+| 9 | Trail: Ember |
+| 11 | Title: Veteran |
+| 13 | Frame: Steel |
+| 15 | Trail: Frost |
+| 17 | Frame: Circuit |
+| 16 | Menu background: Dusk grid |
+| 19 | Trail: Storm |
+| 21 | Title: Champion, Frame: Ember Edge |
+| 23 | Trail: Void |
+| 25 | Frame: Void Pulse |
+| 26 | Trail: Gold stardust |
+| 31 | Frame: Gold, Title: Legend |
+| 36 | Trail: Prism |
+| 41 | Frame: Legend Foil |
+| 46 | Trail: Light Cycle |
+| 51 | Frame: Prism |
+| 7 | Card background: Dusk Grid |
+| 11 | Card background: Starfield |
+| 14 | Card background: Blueprint |
+| 20 | Card background: Ember Glow |
+| 24 | Card background: Aurora |
+| 28 | Card background: Circuit Board |
+| 33 | Card background: Rain on Glass |
+| 38 | Card background: Void Rift |
+| 43 | Card background: Gilded Foil |
+| 56 | Card background: Prism Shards |
+
+> The numbers in the bullets below are from before the ladder moved up one rank (nothing unlocks at rank 1 any more; the first rewards are at rank 2). Add 1 to each, or read `Rank.Cosmetics` in `Core/Rank.cs`.
 
 - **Title**: the line under your name on the menu chip, the lobby hover card and Records.
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).

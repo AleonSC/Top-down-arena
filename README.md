@@ -990,8 +990,8 @@ Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html
 (1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's
 step (Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5, Custom x1). A hunt counts its waves and the boss, with no
 win bonus. The Practice Range and runs where dev tools (F1) or the bot were used earn nothing, like Records.
-**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). The tiers have titles: **Recruit** (1-4),
-**Challenger** (5-9), **Veteran** (10-19), **Champion** (20-29), **Legend** (30+), shown by the badge's colour (steel,
+**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). The tiers have titles: **Recruit** (1-5),
+**Challenger** (6-10), **Veteran** (11-20), **Champion** (21-30), **Legend** (31+), shown by the badge's colour (steel,
 blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
@@ -1065,9 +1065,9 @@ each kind at a time:
 | 48 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
 | 56 | **Rainbow name**: every letter its own hue, turning round the spectrum |
 
-**Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 5), Chevron Flow (11), Ruler (14), Ember Wisp (17), Frost Shard (21), Storm Arc (26), Pixel Beam (29), Helix (34) and Prism (46) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
+**Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 6), Chevron Flow (12), Ruler (15), Ember Wisp (18), Frost Shard (22), Storm Arc (27), Pixel Beam (30), Helix (35) and Prism (47) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
 
-**Cursors** change your crosshair in a match. Classic is free; Fine Cross (rank 3), Corner Sight (4), Ember Ring (11), Frost Snowflake (15), Circuit Sight (17), Storm Arc (21), Void Eye (26), Gold Diamond (31), Prism Ring (38) and Light Cycle (46, it lays a corner-snapped wall of light behind the pointer) are rank rewards. Each swells for a quarter second when you fire. Your equipped cursor also replaces the system pointer in the main menu and lobby (the system pointer is hidden everywhere: each look draws its own Corner pointer, a small L-bracket in the look's colours with its own flourish (Ember sparks, Storm crackle, Circuit pulse, Gold twinkle, Prism spectrum, and so on). It collapses to a dot and the crosshair swells out as a match starts, and back again when a menu, the pause screen or the end screen opens; about 0.6 s, instant with reduced effects), and the Light Cycle cursor's wall fades out in under a second. Only you see your own cursor.
+**Cursors** change your crosshair in a match. Classic is free; Fine Cross (rank 4), Corner Sight (5), Ember Ring (12), Frost Snowflake (16), Circuit Sight (18), Storm Arc (22), Void Eye (27), Gold Diamond (32), Prism Ring (39) and Light Cycle (47, it lays a corner-snapped wall of light behind the pointer) are rank rewards. Each swells for a quarter second when you fire. Your equipped cursor also replaces the system pointer in the main menu and lobby (the system pointer is hidden everywhere: each look draws its own Corner pointer, a small L-bracket in the look's colours with its own flourish (Ember sparks, Storm crackle, Circuit pulse, Gold twinkle, Prism spectrum, and so on). It collapses to a dot and the crosshair swells out as a match starts, and back again when a menu, the pause screen or the end screen opens; about 0.6 s, instant with reduced effects), and the Light Cycle cursor's wall fades out in under a second. Only you see your own cursor.
 
 **Name effects** change how your name is drawn for everyone: on the lobby party card, the Hangout name plate and the tag over your head in a match (small names keep only colour and glow, so they stay readable; with Visual effects off each is still).
 

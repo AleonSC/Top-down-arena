@@ -352,7 +352,7 @@ namespace Arena
             var rows = new List<LadderRow>();
             for (int t = 1; t < Rank.TierNames.Length; t++)
             {
-                int at = new[] { 0, 5, 10, 20, 30 }[t];
+                int at = new[] { 0, 6, 11, 21, 31 }[t];
                 rows.Add(new LadderRow { Rank = at, Name = Rank.TierNames[t], Kind = "Title" });
             }
             foreach (var c in Rank.Cosmetics)
