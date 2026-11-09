@@ -31,7 +31,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons and three Space abilities. Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far only the Tank Hemomancer: Vein Tithe or **Bloodbath**); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and the Tank Hemomancer: **Bloodbath**); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard
 ignores it, and a saved run's seats keep theirs.
@@ -237,14 +237,25 @@ Parry upgrades show up like any other card:
 
 ### Ultimates
 
-**F** fires your **ultimate**. Each role and class combination has its own default one, picked on key 0 of the
-lobby's Ultimate row; a few have a second on key 1 (the Tank Hemomancer's **Bloodbath**, in the Hemomancer table
-below). Ultimates have long cooldowns
+**F** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
+pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit**, below the table; and the
+Tank Hemomancer: **Bloodbath**, in the Hemomancer table; a
+Wildcard always gets the DPS ultimate of its first ability's class). Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
+
+**Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
+for 10 s you carry **300 armour**, which takes damage before your shields and health; a segmented steel bar over your
+health bar shows it draining, and a plate comes off for every sixth of it gone. You move 25% slower and every enemy,
+bosses too, goes for you (the taunt, without Roar's damage cut). Each enemy bullet the armour takes throws a **flak
+shard** straight back at whoever fired it: 12 damage times your damage multiplier, dealt at once, with a short amber
+tracer. A shot the plates take whole gives no hit grace, so a stream of fire keeps feeding the flak. It ends when the
+10 s run out, the armour is gone (the rest of that hit reaches your health), you go down, or the wave is cleared (as
+Last Stand), and the plates fall off. Bots that have it put it on with four or more enemies within 260 px. Mastered:
+450 armour and 18 a shard. Design: [`Docs/Mockups/juggernaut-suit.html`](Docs/Mockups/juggernaut-suit.html).
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
-| **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead. With Visual effects on a frost lattice spreads out from you, spires cage each frozen enemy and break when the freeze ends, and a ring of spears jabs at bosses | **Titan** (80 s): a huge stone titan (140 px across) rises from rubble over 1.4 s, then stomps after enemies for 17 s, raising its fists for 0.4 s before each slam (90 damage, 190 px, every 1.4 s, shoves enemies back; bosses and Heavy enemies aren't shoved). Its whole body blocks bullets (soaks 1000 boss damage). It crumbles when time is up | **Last Stand** (70 s): plant yourself behind a crescent of plates that stops every shot from the front while you take 10% of it (no timer; press again to cancel) |
+| **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out. Or pick **Juggernaut Suit** (75 s) on the lobby's Ultimate row: 10 s of 300 armour, 25% slower, a taunt, and a flak shard back at the shooter for each bullet the armour takes (above) | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead. With Visual effects on a frost lattice spreads out from you, spires cage each frozen enemy and break when the freeze ends, and a ring of spears jabs at bosses | **Titan** (80 s): a huge stone titan (140 px across) rises from rubble over 1.4 s, then stomps after enemies for 17 s, raising its fists for 0.4 s before each slam (90 damage, 190 px, every 1.4 s, shoves enemies back; bosses and Heavy enemies aren't shoved). Its whole body blocks bullets (soaks 1000 boss damage). It crumbles when time is up | **Last Stand** (70 s): plant yourself behind a crescent of plates that stops every shot from the front while you take 10% of it (no timer; press again to cancel) |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (7 pulses: 20 each, the last 30; each ally heals as the ring reaches them) | **World Tree** (80 s): a 100 px tree for 15 s that heals everyone under it (18 HP/s), slows and burns enemies, and sends a wave of healing butterflies, one to each ally (the most hurt first), every 1.9 s; each butterfly flutters to its ally and heals 14 on arrival | **Hallowed Blade** (80 s): a giant sword of light falls at your cursor (200 damage) and stays planted for 8 s; allies in its ring heal 15 HP/s and enemies burn 20 a second, and every 2 s a pulse crosses the whole arena (4 pulses, the last bigger) healing every ally 10 and hurting every enemy 13 as the ring reaches them |
 | **DPS** | **Artillery Assault** (60 s): 6 s of triple fire rate and +2 extra projectiles, with a heat aura, speed streaks and a muzzle flash | **Bullet Rain** (70 s): a downpour at your cursor (330 px across) for 6 s: the whole arena darkens and rains, and inside the zone the drops harden into needles that do 45 damage a second to every enemy in it, bosses too, and leaves them **wet** (as Tsunami does: slowed, and any lightning anywhere arcs to them) for 3 s after they leave | **Legion** (70 s): a blood moon rises and tints the arena for 10 s; 6 wolves and 6 bats circle you for a second, then run 40% faster, and your other minions frenzy | **Drawbridge** (75 s): a gatehouse rises behind you and its drawbridge falls along your aim, crushing the 500 x 100 px lane (140) and throwing the edges aside (45); then for 5 s it's a walkway enemies can't step onto, and their shots stop at its rails |
 
@@ -281,7 +292,8 @@ once mastered); the Tab menu shows the level.
 | **Spirit Swarm** | Releases 8 sprites. | **Phoenix** | Revives at full health, and the phoenix keeps fighting. |
 | **Soul Lantern** | Lasts 9 s, and the linked player can't go down. | **Bat Swarm** | Releases 14 bats. |
 | **Hydra** | A fourth head. | **Alpha Call** | Also summons 3 wolves for 6 s. |
-| **Fortress** | Lasts 14 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
+| **Fortress** | Lasts 14 s. | **Juggernaut Suit** | 450 armour, and each flak shard does 18. |
+| **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |  |  |
 | **Titan** | The titan is 30% bigger and stays for 27 s. | **Lifeline** | Everyone also gets 4 s of Overdrive. |
 | **Sanctum** | The dome is half again as wide (300 px). | **World Tree** | Lasts 20 s, butterflies every 1.4 s and heal 18 each. |
 | **Artillery Assault** | +4 extra projectiles instead of +2. | **Bullet Rain** | Lasts 9 s. |
@@ -299,9 +311,13 @@ fills as it earns XP). What level 5 unlocks is always written in gold under each
 level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
 with "…"; hover a Tab tile to read it in full.
 
-In the lobby, your **ultimate** sits in the Ultimate row of the loadout screen (key 0 the default, key 1 the second where
-your role and class have one) and in the detail box: its charge time, what it does and what mastering it adds. Click
-it to pick it and watch it in the preview above.
+In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
+the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier and **Bloodbath**
+for the Tank Hemomancer), and the rest
+are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
+weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
+charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to
+key 0. The pick comes with you into the match, the Practice Range and a saved run (a continued run keeps the seat's).
 Mastery resets each run.
 
 ## Levels and upgrades

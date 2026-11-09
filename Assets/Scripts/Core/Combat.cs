@@ -47,6 +47,7 @@ namespace Arena
             amount *= 1f - BloodCut(p);     // a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
+            amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
@@ -599,7 +600,10 @@ namespace Arena
                             // Invulnerable players (dash, recent hit) let bullets pass through.
                             if (p.InvulnT <= 0f)
                             {
-                                Damage(p, b.Dmg, ShotSource(b));
+                                if (JuggOn(p))
+                                    JuggShot(p, b);  // the suit's armour takes it and throws flak back (Juggernaut.cs)
+                                else
+                                    Damage(p, b.Dmg, ShotSource(b));
                                 scratchIds.Add(b.Id);
                                 if (b.Kind == Defs.StunShot && !p.Downed)
                                 {

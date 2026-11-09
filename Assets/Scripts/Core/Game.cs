@@ -197,16 +197,16 @@ namespace Arena
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
                 int wild = r.ReadByte();  // a Wildcard's second ability and its key (Defs.WildSecond / WildKey)
-                int ult = r.ReadByte();   // the ultimate picked in the lobby (Upgrades.Ultimate)
+                int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
                     perkBytes.Add(r.ReadByte());
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
                 p.Kit = kit;
-                p.Ult = (byte)Upgrades.ClampUlt(role, kit, ult);
                 p.Weapon = Defs.Weapon(role, kit, weapon < (role == Role.Wildcard ? Defs.WildcardChoices : Defs.WeaponsPerRole) ? weapon : 0);
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
+                p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
                 if (role == Role.Wildcard)
                 {
                     p.WildKit = (Kit)(Math.Min(ability, Defs.WildcardChoices - 1) / Defs.WeaponsPerRole);
@@ -350,7 +350,7 @@ namespace Arena
             ids[0] = p.RoleAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
-            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.Ult);
+            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.UltPick);  // the lobby's Ultimate row pick (0: the default one)
             // Bonus abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
             if (p.StartBonus != AbilityId.None)
@@ -1150,6 +1150,7 @@ namespace Arena
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
+            TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies

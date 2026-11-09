@@ -27,7 +27,7 @@ namespace Arena
         Role hostRole = Role.Tank;
         Role? joinRole;
         int weaponChoice, abilityChoice;
-        int ultChoice;  // the lobby's Ultimate row: 0 the class's default, 1 its second (LobbyEntry.Ult)
+        int ultChoice;  // the key picked on the lobby's Ultimate row (LobbyEntry.Ult; 0 the default ultimate)
         int wildSecond = 1, wildKey = 1;  // a Wildcard's second ability (0-17) and its key (1 Q, 2 E, 3 Shift); see Defs.MakeWild
         int wildTab;                      // the lobby's Wildcard picker: 0 edits the first ability, 1 the second
         Kit kitChoice = Kit.Soldier;
@@ -176,7 +176,7 @@ namespace Arena
             if (opts.TryGetValue("ability", out v) && int.TryParse(v, out weapon))
                 abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.RoleAbilityChoices - 1);
             if (opts.TryGetValue("ult", out v) && int.TryParse(v, out weapon))
-                ultChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.UltChoices - 1);  // the host clamps it to what the class has
+                ultChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.UltKeys - 1);  // the host clamps it to what the class has
             if (opts.TryGetValue("class", out v))
                 for (int i = 0; i < Defs.KitCount; i++)
                     if (string.Equals(((Kit)i).ToString(), v, StringComparison.OrdinalIgnoreCase))
@@ -208,7 +208,7 @@ namespace Arena
         void HostGame()
         {
             SaveMenuFields();
-            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice, 0, ultChoice))
+            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice, ult: ultChoice))
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
 

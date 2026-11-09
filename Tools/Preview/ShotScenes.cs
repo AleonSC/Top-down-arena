@@ -360,6 +360,31 @@ static partial class Shot {
           gm.Zones[9000 + zi] = new Zone { Id = 9000 + zi, Kind = ZoneKind.VeinTrail, Owner = me.Id, Pos = start + new V2(d, 0f), Radius = 24f, Duration = 2f, T = 2f - Math.Max(0.2f, rt), Aim = Environment.GetEnvironmentVariable("RUSHMASTERED") != null ? 1f : 0f };
       }
     }
+    if (Environment.GetEnvironmentVariable("JUGG") != null) {
+      // A Tank Soldier's Juggernaut Suit (JuggernautLook.cs): JUGG=<seconds since the cast> (the plates bolt on to 0.6 s; use 0.3 or 3),
+      // JUGGARMOR=<armour left, 0-1> (plates come off a sixth at a time), with six enemies around firing at the suit and flak shards
+      // flying back. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Soldier; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.JuggernautSuit;
+      V2 from = new V2(640f, 480f);
+      me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.9f;
+      float jt = float.Parse(Environment.GetEnvironmentVariable("JUGG"));
+      me.JuggT = Math.Max(0.1f, Game.JuggTime - jt); me.UltT = me.JuggT;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      me.JuggMax = Game.JuggArmor; me.JuggArmor = Game.JuggArmor * float.Parse(Environment.GetEnvironmentVariable("JUGGARMOR") ?? "0.72");
+      var rnd = new System.Random(9);
+      for (int i = 0; i < 6; i++) {
+        float ang = -1.1f + i * 0.5f + (float)rnd.NextDouble() * 0.2f;
+        V2 at = from + V2.FromAngle(ang) * (230f + (float)rnd.NextDouble() * 180f);
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 2 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+        if (jt < Game.JuggClamp) continue;
+        V2 hit = from + (at - from).Normalized() * (me.Def.BodyR * 1.3f + 4f);
+        gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
+      }
+    }
     if (Environment.GetEnvironmentVariable("TITHE") != null) {
       // A tank Hemomancer's Vein Tithe (VeinTitheLook.cs): TITHE=<seconds since the cast> (the arteries grow to 1.2 s, then beat once a second; use 0.6 or 4.3),
       // with nine enemies held around. TITHESNAP=<seconds since it ended> shows the arteries letting go instead. Use with mode hud.

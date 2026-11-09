@@ -812,7 +812,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Bloodbath, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltAlt = 1, HealthCost = BathCost,
+                Id = AbilityId.Bloodbath, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1, HealthCost = BathCost,
                 Name = "Bloodbath", Cooldown = BathCooldown, Desc = "Pay 15% of your max health: blood floods the floor 170 px round you for 10 s (it stays where you cast it). Enemies wading in it are slowed 50% (Heavy enemies 35%, bosses 20%) and bleed 15 a second, and every drop heals you for 25% of it, wherever you are. Allies standing in it, you included, take 20% less damage.",
                 Capstone = "The pool spreads to 220 px and gives back 35% of the bleed.",
                 Bot = b => b.NearEnemies >= 3 && b.Me.Hp > b.Me.MaxHp * 0.4f,

@@ -20,10 +20,11 @@ static partial class Program
         // The table: key 0 stays Vein Tithe, key 1 is Bloodbath; other classes have one.
         var def = Upgrades.Ability(AbilityId.Bloodbath);
         Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.BloodRite && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
-            && Upgrades.UltCount(Role.Tank, Kit.Hemomancer) == 2 && Upgrades.UltCount(Role.Healer, Kit.Hemomancer) == 1 && Upgrades.UltCount(Role.Wildcard, Kit.Hemomancer) == 1
+            && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.None && Upgrades.AltUltimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.None
+            && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
             && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 1) == AbilityId.CrimsonApotheosis,
             "the Tank Hemomancer has two ultimates (Vein Tithe the default, Bloodbath second); a pick a class lacks falls back to its default");
-        Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0.15f && def.Choice == AbilityDef.Ult && def.UltAlt == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
+        Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0.15f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
             "Bloodbath: a 75 s Tank Hemomancer ultimate costing 15% of max health");
 
         int port = nextPort++;
@@ -35,7 +36,7 @@ static partial class Program
         var g = hostS.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1]; var ally = g.Players[2];
-        Check(me.Ult == 1 && me.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath
+        Check(me.UltPick == 1 && me.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath
             && ally.Slots[Upgrades.UltSlot].Id == Upgrades.Ultimate(Role.Healer, Kit.Knight), "the lobby pick reaches the match, on both screens");
         g.DevSetGod(2, true);
 
