@@ -199,6 +199,9 @@ static partial class Program
         bool fired = g.Bullets.Values.Any(b => b.Source == EnemyType.Shadow);
         bool hardy = shadows.All(e => e.MaxHp >= g.Players[g.ShadowOf[e.Id]].MaxHp * 2f);
         Check(ownPlayers && clientKnows && fired && hardy, "Mirror Match: a shadow of each player, fighting back, and every screen knows whose is whose");
+        // One on one: a duo's shadows are sized for a solo player (Normal: 85%), not for the party.
+        float party = g.BossEquivalentHp(g.Wave) * Challenges.ShadowShare;
+        Check(shadows.All(e => e.MaxHp < party * 0.9f && e.MaxHp > party * 0.8f), $"Mirror Match: each shadow has a solo player's share ({shadows.FirstOrDefault()?.MaxHp:0} of {party:0})");
 
         // Everyone down in the room: the challenge is lost, not the run; the downed get back up.
         g.DevSetGod(1, false); g.DevSetGod(2, false);

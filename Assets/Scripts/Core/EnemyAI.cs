@@ -67,9 +67,10 @@ namespace Arena
 
         /// Enemy health for the party size: solo 85% (the difficulty's Solo enemy health), two players 100%, three
         /// players 120% (bosses 150%, since there are no extra bosses to share the load).
-        float PartyHpScale(bool boss)
+        float PartyHpScale(bool boss) => PartyHpScale(boss, Players.Count);
+
+        float PartyHpScale(bool boss, int n)
         {
-            int n = Players.Count;
             if (n <= 1) return D(DiffKnob.SoloHp);
             if (n == 2) return 1f;
             return boss ? 1.5f : 1.2f;
