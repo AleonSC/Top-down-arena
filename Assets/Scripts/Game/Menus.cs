@@ -11,8 +11,7 @@ namespace Arena
         // The main menu ("Big play", Docs/Mockups/menu-d.html, player card below: Docs/Mockups/menu-card-bottom.html): the title on its
         // x-axis with a shot arcing over it; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big Play
         // button over Join game and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect), which opens your
-        // profile (ProfileUi.cs) and wears a "YOUR PROFILE" nudge until it has (DrawProfileHint). The tip
-        // box (DrawMenuTipBox, MenuTip, HowToTips) is parked: nothing draws it for now. Play swaps the box's insides for the saved-runs
+        // profile (ProfileUi.cs) and wears a "YOUR PROFILE" nudge until it has (DrawProfileHint). Play swaps the box's insides for the saved-runs
         // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
         // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
@@ -69,89 +68,14 @@ namespace Arena
             DrawMenuTitleText(r);
         }
 
-        const float MenuTipCycle = 8f, MenuTipGap = 22f, MenuTipH = 92f;
-        static readonly Rect MenuTipRect = new Rect(W / 2f - 340f, MenuCard.yMax + MenuTipGap, 680f, MenuTipH);
-        int menuTipIdx;               // the tip showing (HowToTips row)
-        float menuTipAt = -10f;       // when it came up (the next one follows after MenuTipCycle, or at once on Prev / Next)
-        float menuTipHide;            // 0 to 1: the box fades out while the Join address row is open (they share the spot)
+        float menuBottomHide;         // 0 to 1: the player card fades out while the Join address row is open (they share the spot)
 
-        /// The tip box's current tip, stepping to the next one every MenuTipCycle seconds. `age` is how long this one has been up.
-        void MenuTip(float t, out string topic, out string body, out float age)
+        /// How far the player card under the box is showing (0 to 1): the menu's intro brings it in, and the Join row's address
+        /// row takes its spot.
+        float MenuBottomShow(float intro)
         {
-            int n = HowToTips.GetLength(0);
-            if (t - menuTipAt >= MenuTipCycle)
-            {
-                menuTipIdx = (menuTipIdx + 1) % n;
-                menuTipAt = t;
-            }
-            age = t - menuTipAt;
-            topic = HowToTips[menuTipIdx, 0];
-            body = HowToTips[menuTipIdx, 1];
-        }
-
-        /// How far the tip box is showing (0 to 1): the menu's intro brings it in, and the Join row's address row takes its spot.
-        float MenuTipShow(float intro)
-        {
-            menuTipHide = Mathf.MoveTowards(menuTipHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
-            return intro * (1f - EaseOut(menuTipHide));
-        }
-
-        /// The tip box (Docs/Mockups/menu-tip-box.html, C with D's corner outlines): its own box under the menu card, a drawing for the
-        /// tip on the left, TIP and the topic in bold over the text, and Prev / Next with the count on the right. The tip changes with
-        /// a quick fade. `intro` is how far the menu's intro has brought it in (1 = in place); `live` lets the buttons take clicks.
-        /// GUI part; DrawMenuTipGl draws the drawing and the corners over it.
-        void DrawMenuTipBox(float t, float alpha, float intro, bool live)
-        {
-            float show = MenuTipShow(intro);
-            MenuTip(t, out string topic, out string body, out float age);
-            float a = alpha * show;
-            if (a <= 0f)
-                return;
-            var r = MenuTipRect;
-            r.y += 12f * (1f - show);  // rises into place
-            float ca = Mathf.Clamp01(age / 0.25f);  // the new tip fades in
-            var blue = new Color(0.43f, 0.65f, 1f);
-            int n = HowToTips.GetLength(0);
-            bool prev = false, next = false;
-            WithAlpha(a, () =>
-            {
-                Ui.BodyBox(r);
-                // The tip sits on a green CRT screen inset in the box (Docs/Mockups/crt-tip-box.html, B): picture tile, TIP, topic, text,
-                // and the count with Prev / Next, all on the screen. DrawMenuTipGl draws the picture over the tile.
-                var scr = new Rect(r.x + 10f, r.y + 10f, r.width - 20f, r.height - 20f);
-                bool calm = fxReduced;
-                CrtUi.Begin(scr);
-                CrtUi.Tile(new Rect(r.x + 22f, r.center.y - 26f, 52f, 52f));
-                float tx = r.x + 92f, tw = r.width - 92f - 196f;
-                var ink = CrtUi.Ink;
-                var dim = CrtUi.Dim;
-                CrtUi.Text(new Rect(tx, r.y + 15f, 32f, 20f), "TIP", 11, new Color(dim.r, dim.g, dim.b, ca), TextAnchor.MiddleLeft, true, calm);
-                CrtUi.Text(new Rect(tx + 32f, r.y + 15f, tw - 32f, 20f), topic, 17, new Color(ink.r, ink.g, ink.b, ca), TextAnchor.MiddleLeft, true, calm);
-                CrtUi.Text(new Rect(tx, r.y + 34f, tw, r.height - 40f), body, 13, new Color(dim.r + 0.1f, dim.g + 0.25f, dim.b + 0.2f, 0.95f * ca), TextAnchor.UpperLeft, false, calm, true);
-                float bx = r.xMax - 20f - 168f;
-                CrtUi.Text(new Rect(bx, r.y + 17f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, dim, TextAnchor.MiddleRight, true, calm);
-                prev = CrtUi.SoftKey(new Rect(bx, r.y + 42f, 80f, 30f), "< PREV", null, 14, calm);
-                next = CrtUi.SoftKey(new Rect(bx + 88f, r.y + 42f, 80f, 30f), "NEXT >", null, 14, calm);
-                CrtUi.End(scr, Time.unscaledTime, calm);
-            });
-            if (live && show >= 1f && (prev || next))
-            {
-                menuTipIdx = (menuTipIdx + (next ? 1 : n - 1)) % n;
-                menuTipAt = t;
-            }
-        }
-
-        /// GL (inside BeginUiGl): the tip's drawing in its tile, and the corner outlines around the box (the same ones as the menu card's).
-        void DrawMenuTipGl(float t, float alpha, float intro)
-        {
-            float show = MenuTipShow(intro) * alpha;
-            if (show <= 0f)
-                return;
-            var r = MenuTipRect;
-            r.y += 12f * (1f - show);
-            UiModelAt(V2.Zero, 1f);
-            DrawTipGlyph(menuTipIdx, new V2(r.x + 48f, r.center.y), t);
-            DrawPlotCorners(r, 5f, 14f, new Rgba(0.45f, 0.65f, 1f, 0.7f * show));
+            menuBottomHide = Mathf.MoveTowards(menuBottomHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
+            return intro * (1f - EaseOut(menuBottomHide));
         }
 
         /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.
@@ -295,11 +219,11 @@ namespace Arena
                 Ui.Label(new Rect(row.x - 40f, (menuJoinOpen ? row.yMax : row.y) + 6f, row.width + 80f, 40f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
         }
 
-        /// Your player card under the box, where the tip box used to be (Docs/Mockups/menu-card-bottom.html). It fades out while Join's
-        /// address row is open, since the two share the spot (the same fade the tip box had), and rises in with the intro.
+        /// Your player card under the box (Docs/Mockups/menu-card-bottom.html). It fades out while Join's address row is open, since
+        /// the two share the spot, and rises in with the intro.
         void DrawMenuPlayerCard(float t, float alpha, float intro, bool live)
         {
-            float show = MenuTipShow(intro);
+            float show = MenuBottomShow(intro);
             float a = alpha * show;
             if (a <= 0f)
                 return;

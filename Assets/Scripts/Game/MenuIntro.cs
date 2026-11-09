@@ -32,9 +32,7 @@ namespace Arena
             bool onMenu = session.Screen == AppScreen.Menu;
             if (onMenu && menuLastScreen != AppScreen.Menu)
             {
-                menuTipIdx = Random.Range(0, HowToTips.GetLength(0));  // a new first tip each time the menu opens
-                menuTipAt = Time.unscaledTime;
-                menuPlayOpen = false;                 // and the box is back on Play (SavesUi.cs)
+                menuPlayOpen = false;                 // the box is back on Play (SavesUi.cs)
                 menuPlayK = 0f;
             }
             menuLastScreen = session.Screen;
