@@ -1,0 +1,454 @@
+<title>Rapier Tempo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with the rule in one paragraph, the live arena (watch or play) with a readout and a Tempo trace under it,
+   the tuning sliders beside the speed curve, three Flourish panels by charge, then before/after and open questions.
+   Same page tokens as the other Knight weapon mockups (rapier-streak.html); the arena keeps the Rapier's lilac on night blue. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef;
+  --accent:#7a5cc7; --gold:#a8771c; --decay:#c0612f; --grace:#8b958a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --accent:#c9b6ff; --gold:#f0c56a; --decay:#f08a55; --grace:#6f7a6e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311;
+  --accent:#c9b6ff; --gold:#f0c56a; --decay:#f08a55; --grace:#6f7a6e; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 8px;max-width:70ch;color:var(--muted)}
+header p strong{color:var(--fg)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;text-wrap:balance}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118;max-width:100%}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#stage{aspect-ratio:1000/420;touch-action:none;user-select:none;-webkit-user-select:none}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip,button{font:600 14px var(--body);padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"],button.on{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover,button:hover{border-color:var(--muted)}
+.chip:focus-visible,button:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.sub{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:12px}
+.readout div{background:var(--panel);padding:10px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.readout b{font:700 26px/1 var(--display);font-variant-numeric:tabular-nums}
+.readout span{font:500 11px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+#state b{text-transform:uppercase;letter-spacing:.03em}
+.trace{margin-top:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:10px 12px 6px}
+.trace canvas{aspect-ratio:1000/150}
+.legend{display:flex;gap:6px 16px;flex-wrap:wrap;font:500 12px var(--mono);color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px}
+@media (max-width:760px){.split{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card h3{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.card li{padding-left:14px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:1px;background:var(--accent);transform:rotate(45deg)}
+.sliders{display:flex;flex-direction:column;gap:12px}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:baseline}
+.sl label{font-size:14.5px}
+.sl output{font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--fg)}
+.sl input{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.curve canvas{aspect-ratio:520/300}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cell canvas{aspect-ratio:340/240}
+.cell h3{font:700 18px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cell h3 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em;text-transform:none}
+.cell p{margin:0;font-size:14.5px;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-weight:600;white-space:nowrap}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--chip)}
+</style>
+
+<main>
+<header>
+  <h1>Rapier: Tempo and Flourish</h1>
+  <p>Today the Rapier thrusts every 0.28 s and each hit in a row on the <em>same</em> enemy deals 10% more, up to +60%. This rework swaps the damage streak for speed. <strong>The first thrust is slow. Every enemy you hit, any enemy, adds a stack of Tempo, and every stack makes the next thrust come sooner.</strong> Stop hitting and Tempo holds through a short grace period, then drains slowly.</p>
+  <p><strong>The weapon-action key spends it all on a Flourish:</strong> the rapier whips back and forth in front of you, and every swing throws a crescent wave down your aim. More Tempo, more swings. Afterwards you are back to a slow first thrust, so the choice is to keep the speed or cash it in.</p>
+</header>
+
+<section>
+  <h2>The arena</h2>
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Mode" id="modes">
+      <button type="button" class="chip" data-m="watch" aria-pressed="true">Watch the loop</button>
+      <button type="button" class="chip" data-m="play" aria-pressed="false">Play it</button>
+    </div>
+    <label class="tg"><input type="checkbox" id="tgBullets" checked> Enemy bullets</label>
+    <label class="tg"><input type="checkbox" id="tgSlow"> Slow motion</label>
+    <button id="pause" type="button">Pause</button>
+  </div>
+  <div class="bar" id="playbar" hidden>
+    <button type="button" id="btnHold">Hold to thrust</button>
+    <button type="button" id="btnAlt">Flourish</button>
+    <span class="sub">Or hold the mouse on the arena to thrust and right-click to Flourish. Keys: hold <kbd>Z</kbd>, tap <kbd>X</kbd>.</span>
+  </div>
+  <div class="frame"><canvas id="stage" width="1000" height="420" tabindex="0" aria-label="The Rapier building Tempo on a pack of enemies, then a Flourish"></canvas></div>
+  <div class="readout" aria-live="off">
+    <div><span>Tempo</span><b id="rStacks">0 / 12</b></div>
+    <div><span>Next thrust in</span><b id="rInt">0.48 s</b></div>
+    <div><span>Thrust speed</span><b id="rSpd">2.1 / s</b></div>
+    <div id="state"><span>State</span><b id="rState">Idle</b></div>
+    <div><span>Flourish now</span><b id="rFl">—</b></div>
+  </div>
+  <div class="trace">
+    <canvas id="trace" width="1000" height="150" aria-label="Tempo over the last ten seconds"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>Building (hits)</span>
+      <span><i style="background:var(--grace)"></i>Grace (held)</span>
+      <span><i style="background:var(--decay)"></i>Draining</span>
+      <span><i style="background:var(--gold)"></i>Flourish (spent)</span>
+    </div>
+  </div>
+  <p class="sub" id="stageNote" style="margin:8px 0 0"></p>
+</section>
+
+<section>
+  <h2>The numbers</h2>
+  <div class="split">
+    <div class="card">
+      <h3>Tune it</h3>
+      <div class="sliders">
+        <div class="sl"><label for="sSlow">First thrust (0 Tempo)</label><output id="oSlow"></output><input type="range" id="sSlow" min="0.30" max="0.70" step="0.02" value="0.48"></div>
+        <div class="sl"><label for="sFast">Full Tempo thrust</label><output id="oFast"></output><input type="range" id="sFast" min="0.10" max="0.28" step="0.01" value="0.16"></div>
+        <div class="sl"><label for="sMax">Max Tempo stacks</label><output id="oMax"></output><input type="range" id="sMax" min="6" max="20" step="1" value="12"></div>
+        <div class="sl"><label for="sGrace">Grace before it drains</label><output id="oGrace"></output><input type="range" id="sGrace" min="0" max="3" step="0.1" value="1.2"></div>
+        <div class="sl"><label for="sDecay">Drain speed</label><output id="oDecay"></output><input type="range" id="sDecay" min="0.5" max="6" step="0.5" value="2"></div>
+        <div class="sl"><label for="sWave">Wave damage</label><output id="oWave"></output><input type="range" id="sWave" min="10" max="40" step="1" value="22"></div>
+        <label class="tg"><input type="checkbox" id="tgSkewer" checked> Skewered bullets add Tempo too</label>
+      </div>
+    </div>
+    <div class="card curve">
+      <h3>Speed by Tempo</h3>
+      <canvas id="curve" width="520" height="300" aria-label="Thrust interval and damage per second for each Tempo stack"></canvas>
+      <p class="sub" id="curveNote" style="margin:8px 0 0"></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Flourish by charge</h2>
+  <div class="grid3" id="flourishes"></div>
+</section>
+
+<section class="card">
+  <h3>Before and after</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Rapier today</th><th>Rapier with Tempo</th></tr></thead>
+    <tbody id="cmp"></tbody>
+  </table></div>
+</section>
+
+<section class="card">
+  <h3>Open questions</h3>
+  <ul>
+    <li><strong>Drop the same-target damage streak?</strong> The mockup drops it: every thrust deals a flat 18 and all the build-up is speed. Keeping both would make a full-Tempo Rapier on one boss far above the other DPS weapons.</li>
+    <li><strong>Do skewered bullets still count?</strong> Today each one adds to the streak. Here it's the toggle above (on by default), so thrusting into a bullet stream still builds Tempo.</li>
+    <li><strong>Hits or thrusts?</strong> With the +1 upgrade a thrust can hit two enemies. The mockup gives a stack per enemy hit, as you asked ("every hit on an enemy"), so the upgrade also ramps you faster.</li>
+    <li><strong>Battle Fury and fire-rate cards</strong> would multiply on top of the Tempo interval, so the fastest thrust needs a floor (0.08 s is the game's usual melee floor).</li>
+    <li><strong>The six diamonds</strong> behind you become one per Tempo stack on the same arc, the top one draining while Tempo falls. With 12 or more they sit closer together; a 6-diamond meter with half steps is the fallback if it reads too busy.</li>
+    <li><strong>Network:</strong> the Tempo stacks replace <code>RapierStreak</code> in the snapshot, and the Flourish needs its own waves; both mean a protocol bump.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var TAU=Math.PI*2;
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))},lerp=function(a,b,t){return a+(b-a)*t};
+var eo=function(t){return 1-Math.pow(1-clamp(t,0,1),3)};
+var rnd=function(s){var v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+var $=function(i){return document.getElementById(i)};
+var reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- the rule ---------- */
+var C={slow:.48,fast:.16,max:12,grace:1.2,decay:2,wave:22,skewer:true,dmg:18,reach:130,minFl:3,swing:.1,waveRange:380,waveSpeed:560,bullets:true};
+function interval(st){return lerp(C.slow,C.fast,clamp(Math.floor(st)/C.max,0,1))}
+function wavesFor(st){return Math.ceil(Math.floor(st)/2)}
+var LIL='204,184,255',GOLD='255,214,130',DEC='255,150,100',BODY=14;
+
+/* ---------- one simulated fight ---------- */
+function Sim(o){
+  this.o=o;this.reset();
+}
+Sim.prototype.reset=function(){
+  var o=this.o;this.t=0;this.stacks=o.startStacks||0;this.lastHit=o.startStacks?0:-99;this.cd=0;this.aim=0;
+  this.thrusts=[];this.waves=[];this.fl=null;this.floats=[];this.bul=[];this.hist=[];this.sparks=[];
+  this.enemies=o.slots.map(function(s,i){return{id:i,x:s[0]+(o.walkIn?260:0),y:s[1],hp:o.hp,maxhp:o.hp,flash:0,dead:-1,shoot:1+i*.37}});
+  this.attack=false;this.alt=false;this.state='Idle';this.lastFl=null;this.uid=100};
+Sim.prototype.target=function(){
+  var best=null,bd=1e9;this.enemies.forEach(function(e){if(e.dead>=0)return;var d=Math.hypot(e.x,e.y);if(d<bd&&d<=C.reach+BODY){bd=d;best=e}});return best};
+Sim.prototype.hit=function(e,dmg,col){
+  e.hp-=dmg;e.flash=.07;this.floats.push({x:e.x,y:e.y,t:this.t,v:Math.round(dmg),col:col,j:(this.uid++%3)-1});
+  if(e.hp<=0&&e.dead<0)e.dead=this.t};
+Sim.prototype.step=function(dt){
+  var o=this.o,self=this;this.t+=dt;var t=this.t;
+  /* enemies: the k-th nearest walks to the k-th slot; the dead come back from the right */
+  var alive=this.enemies.filter(function(e){return e.dead<0});
+  alive.sort(function(a,b){return Math.hypot(a.x,a.y)-Math.hypot(b.x,b.y)});
+  alive.forEach(function(e,k){var s=o.slots[Math.min(k,o.slots.length-1)],dx=s[0]-e.x,dy=s[1]-e.y,d=Math.hypot(dx,dy),sp=70*dt;if(d>1){var m=Math.min(sp,d)/d;e.x+=dx*m;e.y+=dy*m}e.flash=Math.max(0,e.flash-dt)});
+  this.enemies.forEach(function(e){if(e.dead>=0&&o.respawn&&t-e.dead>1.1){e.dead=-1;e.hp=e.maxhp;e.x=o.respawn;e.y=(rnd(t*3+e.id)-.5)*200}});
+  /* enemy bullets, which the thrust can skewer */
+  if(o.bullets&&C.bullets)alive.forEach(function(e){e.shoot-=dt;if(e.shoot<=0){e.shoot=1.5+rnd(t+e.id)*1.2;var a=Math.atan2(-e.y,-e.x)+(rnd(t*7+e.id)-.5)*.25;self.bul.push({x:e.x,y:e.y,vx:Math.cos(a)*150,vy:Math.sin(a)*150})}});
+  this.bul=this.bul.filter(function(b){b.x+=b.vx*dt;b.y+=b.vy*dt;return Math.hypot(b.x,b.y)>18&&b.x<800});
+  /* Flourish */
+  if(this.alt){this.alt=false;if(!this.fl&&Math.floor(this.stacks)>=C.minFl){
+    var tg=this.target(),ch=Math.floor(this.stacks),n=wavesFor(ch);
+    var ref=tg||alive[0];this.aim=ref?Math.atan2(ref.y,ref.x):0;
+    this.fl={t0:t,n:n,aim:this.aim,charge:ch,done:0};this.lastFl={t:t,charge:ch,n:n};this.stacks=0;this.lastHit=-99;this.cd=.25}}
+  if(this.fl){var f=this.fl,k=Math.floor((t-f.t0)/C.swing+.5);
+    while(f.done<Math.min(k,f.n)){var i=f.done,side=i%2?1:-1,dir=f.aim+side*.09,full=f.charge>=C.max;
+      this.waves.push({x:Math.cos(f.aim)*26,y:Math.sin(f.aim)*26,dir:dir,t0:t,hitIds:{},side:side,gold:full,dist:0});f.done++}
+    if(t>f.t0+f.n*C.swing+.12)this.fl=null}
+  this.waves=this.waves.filter(function(w){var s=C.waveSpeed*dt;w.dist+=s;w.x+=Math.cos(w.dir)*s;w.y+=Math.sin(w.dir)*s;
+    self.enemies.forEach(function(e){if(e.dead>=0||w.hitIds[e.id])return;var dx=e.x-w.x,dy=e.y-w.y,along=dx*Math.cos(w.dir)+dy*Math.sin(w.dir),perp=-dx*Math.sin(w.dir)+dy*Math.cos(w.dir);
+      if(Math.abs(along)<BODY+10&&Math.abs(perp)<34+BODY){w.hitIds[e.id]=1;self.hit(e,C.wave,w.gold?'#ffd682':'#e6dcff')}});
+    self.bul=self.bul.filter(function(b){var dx=b.x-w.x,dy=b.y-w.y;return !(Math.abs(dx*Math.cos(w.dir)+dy*Math.sin(w.dir))<10&&Math.abs(-dx*Math.sin(w.dir)+dy*Math.cos(w.dir))<34)});
+    return w.dist<C.waveRange});
+  /* thrusts */
+  if(!this.fl){this.cd-=dt;
+    if(this.attack&&this.cd<=0){
+      var tg2=this.target(),aim=tg2?Math.atan2(tg2.y,tg2.x):(alive[0]?Math.atan2(alive[0].y,alive[0].x):0);this.aim=aim;
+      var gained=0,hits=[];
+      if(tg2){this.hit(tg2,C.dmg,'#fff');gained++;hits.push({x:tg2.x,y:tg2.y})}
+      /* skewer up to 3 bullets on the line */
+      var sk=0,ca=Math.cos(aim),sa=Math.sin(aim);
+      this.bul=this.bul.filter(function(b){var al=b.x*ca+b.y*sa,pp=-b.x*sa+b.y*ca;if(sk<3&&al>10&&al<C.reach+10&&Math.abs(pp)<14){sk++;self.sparks.push({x:b.x,y:b.y,t:t});return false}return true});
+      if(C.skewer)gained+=sk;
+      if(gained>0){this.stacks=Math.min(C.max,Math.floor(this.stacks)+gained);this.lastHit=t}
+      var iv=interval(this.stacks);this.cd=iv;
+      this.thrusts.push({t0:t,aim:aim,dur:Math.min(.24,iv*.9),hits:hits,st:this.stacks});
+      if(this.thrusts.length>8)this.thrusts.shift()}}
+  /* the drain */
+  var since=t-this.lastHit;
+  if(!this.fl&&since>C.grace&&this.stacks>0)this.stacks=Math.max(0,this.stacks-C.decay*dt);
+  this.state=this.fl?'Flourish':this.stacks<=0?(this.attack?'Building':'Idle'):since<=.45?'Building':since<=C.grace?'Grace':'Draining';
+  if(this.o.history){this.hist.push({t:t,s:this.stacks,st:this.state});while(this.hist.length&&this.hist[0].t<t-10)this.hist.shift()}
+  this.floats=this.floats.filter(function(f){return t-f.t<.8});this.sparks=this.sparks.filter(function(s){return t-s.t<.35});
+};
+
+/* ---------- drawing ---------- */
+function setup(c,w,h){c.__w=w;c.__h=h;var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+function ground(x,W,H){x.fillStyle='#10141c';x.fillRect(0,0,W,H);x.strokeStyle='rgba(255,255,255,.04)';x.lineWidth=1;x.beginPath();
+  for(var i=0;i<=W;i+=40){x.moveTo(i+.5,0);x.lineTo(i+.5,H)}for(var j=0;j<=H;j+=40){x.moveTo(0,j+.5);x.lineTo(W,j+.5)}x.stroke();
+  var g=x.createRadialGradient(W*.3,H*.5,20,W*.5,H*.5,Math.max(W,H)*.75);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.42)');x.fillStyle=g;x.fillRect(0,0,W,H)}
+function foe(x,e){x.save();x.translate(e.x,e.y);x.rotate(Math.atan2(-e.y,-e.x));x.fillStyle=e.flash>0?'#fff':'#d8503f';x.strokeStyle='#4a1510';x.lineWidth=2;x.beginPath();x.arc(0,0,BODY,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#4a1510';x.beginPath();x.moveTo(BODY,0);x.lineTo(7,-5);x.lineTo(7,5);x.closePath();x.fill();x.restore();
+  var f=clamp(e.hp/e.maxhp,0,1);x.fillStyle='rgba(0,0,0,.55)';x.fillRect(e.x-14,e.y-24,28,4);x.fillStyle=f>.3?'#7ddc8a':'#ffb25c';x.fillRect(e.x-14,e.y-24,28*f,4)}
+
+function drawSim(x,W,H,S,ox,sm){
+  var t=sm.t;ground(x,W,H);
+  x.save();x.translate(ox,H*.5);x.scale(S,S);
+  /* enemies, dying ones split */
+  sm.enemies.forEach(function(e){if(e.dead<0){foe(x,e);return}var q=t-e.dead;if(q>.5)return;var an=Math.atan2(e.y,e.x)+Math.PI/2,off=eo(q/.4)*18;
+    [1,-1].forEach(function(sg){x.save();x.globalAlpha=1-clamp((q-.12)/.38,0,1);x.translate(e.x+Math.cos(an)*off*sg*.6,e.y+Math.sin(an)*off*sg*.6);x.fillStyle='#d8503f';x.strokeStyle='rgba('+LIL+',.9)';x.lineWidth=2;
+      x.beginPath();x.arc(0,0,BODY,an+(sg>0?0:Math.PI),an+(sg>0?Math.PI:TAU));x.closePath();x.fill();x.stroke();x.restore()})});
+  /* bullets */
+  sm.bul.forEach(function(b){x.save();x.shadowColor='rgba(255,170,90,.9)';x.shadowBlur=8;x.fillStyle='#ffb25c';x.beginPath();x.arc(b.x,b.y,4.2,0,TAU);x.fill();x.restore()});
+  sm.sparks.forEach(function(s){var q=(t-s.t)/.35;x.save();x.globalCompositeOperation='lighter';for(var i=0;i<4;i++){var a=i*TAU/4+.6,d=4+16*eo(q);x.fillStyle='rgba('+LIL+','+(1-q)+')';x.fillRect(s.x+Math.cos(a)*d-1.5,s.y+Math.sin(a)*d-1.5,3,3)}x.restore()});
+  /* waves */
+  sm.waves.forEach(function(w){var fade=1-clamp((w.dist-C.waveRange*.7)/(C.waveRange*.3),0,1),col=w.gold?GOLD:LIL,cx=w.x-Math.cos(w.dir)*30,cy=w.y-Math.sin(w.dir)*30;
+    x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+    x.strokeStyle='rgba('+col+','+(.25*fade)+')';x.lineWidth=12;x.beginPath();x.arc(cx,cy,34,w.dir-.95,w.dir+.95);x.stroke();
+    x.strokeStyle='rgba('+col+','+(.95*fade)+')';x.lineWidth=3.5;x.beginPath();x.arc(cx,cy,34,w.dir-.95,w.dir+.95);x.stroke();
+    x.strokeStyle='rgba(255,255,255,'+(.9*fade)+')';x.lineWidth=1.2;x.beginPath();x.arc(cx,cy,35,w.dir-.6,w.dir+.6);x.stroke();
+    /* the trail of the swing it came from */
+    x.strokeStyle='rgba('+col+','+(.18*fade)+')';x.lineWidth=2;x.beginPath();x.moveTo(cx-Math.cos(w.dir)*Math.min(w.dist,60),cy-Math.sin(w.dir)*Math.min(w.dist,60));x.lineTo(cx,cy);x.stroke();x.restore()});
+  /* thrust streaks */
+  sm.thrusts.forEach(function(th){var q=(t-th.t0)/th.dur;if(q<.35||q>1.4)return;var fade=q<.6?1:1-clamp((q-.6)/.8,0,1),c=Math.cos(th.aim),s=Math.sin(th.aim),hit=th.hits[0],tip=hit?Math.min(C.reach,Math.hypot(hit.x,hit.y)+8):C.reach*.95,full=th.st>=C.max;
+    x.save();x.globalCompositeOperation='lighter';var g=x.createLinearGradient(14*c,14*s,tip*c,tip*s);g.addColorStop(0,'rgba('+LIL+',0)');g.addColorStop(1,full?'rgba('+GOLD+','+fade+')':'rgba(255,255,255,'+fade+')');
+    x.strokeStyle=g;x.lineCap='round';x.lineWidth=2.5+th.st/C.max*2.5;x.beginPath();x.moveTo(14*c,14*s);x.lineTo(tip*c,tip*s);x.stroke();
+    if(hit&&q<1.2){var qq=clamp((q-.45)/.75,0,1),sz=5+12*eo(qq);x.strokeStyle='rgba(255,255,255,'+(1-qq)+')';x.lineWidth=1.4;x.beginPath();x.moveTo(hit.x-sz,hit.y);x.lineTo(hit.x+sz,hit.y);x.moveTo(hit.x,hit.y-sz);x.lineTo(hit.x,hit.y+sz);x.stroke()}
+    x.restore()});
+  /* you */
+  drawYou(x,sm);
+  /* damage numbers */
+  sm.floats.forEach(function(f){var q=t-f.t;x.save();x.globalAlpha=1-clamp((q-.45)/.35,0,1);x.fillStyle=f.col;x.strokeStyle='rgba(0,0,0,.7)';x.lineWidth=3;x.font='700 14px Barlow Condensed, sans-serif';x.textAlign='center';
+    var ny=f.y-30-q*30;x.strokeText(f.v,f.x+f.j*12,ny);x.fillText(f.v,f.x+f.j*12,ny);x.restore()});
+  x.restore()}
+
+function drawYou(x,sm){
+  var t=sm.t,st=sm.stacks,full=Math.floor(st)>=C.max,f=sm.fl;
+  /* the blade's pose: thrust extension, or a Flourish swing */
+  var ext=.55,pulse=0,bladeAng=0,flSw=null,lastT=sm.thrusts[sm.thrusts.length-1];
+  var aimNow=f?f.aim:sm.aim;
+  if(f){var u=(t-f.t0)/C.swing,i=Math.min(Math.floor(u),f.n-1),p=clamp(u-i,0,1),dirS=i%2?-1:1;bladeAng=dirS*lerp(-1,1,eo(p))*.95;ext=1;flSw={i:i,p:p,dirS:dirS}}
+  else if(lastT){var uu=(t-lastT.t0)/lastT.dur;if(uu>=0&&uu<1.2){if(uu<.35)ext=lerp(.55,.2,eo(uu/.35));else if(uu<.5)ext=lerp(.2,1,eo((uu-.35)/.15));else if(uu<.75)ext=1;else ext=lerp(1,.55,eo((uu-.75)/.45));pulse=uu>=.35&&uu<.62?Math.sin((uu-.35)/.27*Math.PI):0}}
+  x.save();x.rotate(aimNow);
+  /* Tempo aura: a soft lilac (gold at full) ring that brightens with stacks */
+  var fr=clamp(st/C.max,0,1);
+  if(fr>0){x.save();x.globalCompositeOperation='lighter';var g=x.createRadialGradient(0,0,10,0,0,40);g.addColorStop(0,'rgba('+(full?GOLD:LIL)+',0)');g.addColorStop(.6,'rgba('+(full?GOLD:LIL)+','+(.1+.18*fr)+')');g.addColorStop(1,'rgba('+(full?GOLD:LIL)+',0)');x.fillStyle=g;x.beginPath();x.arc(0,0,40,0,TAU);x.fill();x.restore()}
+  /* Flourish arc trail */
+  if(flSw){x.save();x.globalCompositeOperation='lighter';var a0=flSw.dirS*-.95,a1=bladeAng;x.strokeStyle='rgba('+(f.charge>=C.max?GOLD:LIL)+',.55)';x.lineWidth=10;x.lineCap='round';x.beginPath();x.arc(0,0,92,Math.min(a0,a1),Math.max(a0,a1));x.stroke();
+    x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=2;x.beginPath();x.arc(0,0,96,Math.min(a0,a1),Math.max(a0,a1));x.stroke();x.restore()}
+  var lunge=f?4:7*(ext>.55?(ext-.55)/.45:0)-3*(ext<.55?(.55-ext)/.35:0);x.translate(lunge,0);
+  /* off hand behind the back */
+  x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.4;x.beginPath();x.arc(-11,9,4.6,0,TAU);x.fill();x.stroke();
+  x.strokeStyle='#4aa89d';x.lineWidth=4;x.lineCap='round';x.beginPath();x.moveTo(0,5);x.lineTo(-9,9);x.stroke();
+  /* body */
+  x.fillStyle='#5fd0c4';x.strokeStyle='#0c2f2b';x.lineWidth=2;x.beginPath();x.arc(0,0,16,0,TAU);x.fill();x.stroke();
+  x.fillStyle='#0c2f2b';x.beginPath();x.moveTo(16,0);x.lineTo(7,-6);x.lineTo(7,6);x.closePath();x.fill();
+  /* arm, hand, blade */
+  x.save();x.rotate(bladeAng*.55);
+  var hx=12+12*ext;
+  x.strokeStyle='#0c2f2b';x.lineWidth=7.2;x.beginPath();x.moveTo(2,-5);x.lineTo(hx,-1);x.stroke();
+  x.strokeStyle='#4aa89d';x.lineWidth=5;x.beginPath();x.moveTo(2,-5);x.lineTo(hx,-1);x.stroke();
+  x.translate(hx,-1);x.rotate(bladeAng*.45);
+  var bl=f?88:8+(C.reach*.98-hx-8)*Math.max(0,(ext-.2)/.8)*.55+40,flex=f?-5*(flSw?flSw.dirS:1):5*pulse;
+  x.save();if(full||fr>.4||pulse>.3||f){x.shadowColor=full?'rgba('+GOLD+',.9)':'rgba('+LIL+',.8)';x.shadowBlur=5+fr*8}
+  x.strokeStyle='#f2f5ff';x.lineWidth=2.5;x.lineCap='round';x.beginPath();x.moveTo(8,0);x.quadraticCurveTo((8+bl)/2,-flex,bl,0);x.stroke();x.restore();
+  x.strokeStyle='#d9bf7a';x.lineWidth=3;x.beginPath();x.arc(4,0,7,-1.7,1.7);x.stroke();x.lineWidth=2;x.beginPath();x.moveTo(5,-7);x.lineTo(5,7);x.stroke();
+  x.fillStyle='#b98f56';x.strokeStyle='#2a1c10';x.lineWidth=1.5;x.beginPath();x.arc(0,0,5.2,0,TAU);x.fill();x.stroke();
+  if(full&&!f){x.save();x.globalCompositeOperation='lighter';var gg=x.createRadialGradient(bl,0,0,bl,0,14);gg.addColorStop(0,'rgba('+GOLD+',.9)');gg.addColorStop(1,'rgba('+GOLD+',0)');x.fillStyle=gg;x.beginPath();x.arc(bl,0,14,0,TAU);x.fill();x.restore()}
+  x.restore();x.restore();
+  /* the Tempo meter: one diamond per stack on an arc behind you; the top one drains; a thin grace arc under it */
+  var n=C.max,spread=Math.min(.3,3.3/n),whole=Math.floor(st),part=st-whole,since=t-sm.lastHit,draining=since>C.grace&&st>0&&!f,R=33;
+  for(var d=0;d<n;d++){var da=aimNow+Math.PI+(d-(n-1)/2)*spread,px=Math.cos(da)*R,py=Math.sin(da)*R,on=d<whole,pf=d===whole?part:0,sz=n>14?2:n>9?2.4:2.9;
+    x.save();x.translate(px,py);x.rotate(Math.PI/4);x.fillStyle='rgba(255,255,255,.13)';x.fillRect(-sz,-sz,sz*2,sz*2);
+    if(on){x.fillStyle=full?'rgba('+GOLD+',1)':(draining&&d===whole-1&&part<.01?'rgba('+DEC+',1)':'rgba('+LIL+',1)');x.fillRect(-sz,-sz,sz*2,sz*2)}
+    else if(pf>0){x.fillStyle='rgba('+DEC+','+(.25+.75*pf)+')';x.fillRect(-sz,-sz,sz*2,sz*2*pf)}
+    x.restore()}
+  if(st>0&&!f){var gf=since<=C.grace?1-since/Math.max(C.grace,.001):0,half=(n-1)/2*spread+.08;
+    x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=1.5;x.beginPath();x.arc(0,0,R+7,aimNow+Math.PI-half,aimNow+Math.PI+half);x.stroke();
+    if(gf>0){x.strokeStyle='rgba('+LIL+',.85)';x.beginPath();x.arc(0,0,R+7,aimNow+Math.PI-half*gf,aimNow+Math.PI+half*gf);x.stroke()}}
+  if(full&&!f){x.save();x.globalCompositeOperation='lighter';x.strokeStyle='rgba('+GOLD+','+(.25+.1*Math.sin(t*9))+')';x.lineWidth=3;x.beginPath();x.arc(0,0,26,0,TAU);x.stroke();x.restore()}
+}
+
+/* ---------- the trace and the curve (page colours from the tokens) ---------- */
+var tok={};function readTok(){var cs=getComputedStyle(document.documentElement);['fg','muted','line','panel','accent','gold','decay','grace'].forEach(function(k){tok[k]=cs.getPropertyValue('--'+k).trim()})}
+readTok();try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok)}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+function drawTrace(x,W,H,sm){
+  x.clearRect(0,0,W,H);var L=30,R=W-6,T=8,B=H-22,t=sm.t,t0=t-10;
+  x.font='500 11px IBM Plex Mono, monospace';x.fillStyle=tok.muted;x.strokeStyle=tok.line;x.lineWidth=1;x.textAlign='right';x.textBaseline='middle';
+  [0,Math.round(C.max/2),C.max].forEach(function(v){var y=lerp(B,T,v/C.max);x.beginPath();x.moveTo(L,Math.round(y)+.5);x.lineTo(R,Math.round(y)+.5);x.stroke();x.fillText(v,L-6,y)});
+  x.textAlign='center';x.textBaseline='top';for(var s=0;s<=10;s+=2){var xx=lerp(L,R,s/10);x.fillText(s===10?'now':'-'+(10-s)+' s',xx,B+6)}
+  var h=sm.hist;if(h.length<2)return;
+  for(var i=1;i<h.length;i++){var a=h[i-1],b=h[i];if(b.t<t0)continue;var x0=lerp(L,R,(a.t-t0)/10),x1=lerp(L,R,(b.t-t0)/10);
+    var col=b.st==='Grace'?tok.grace:b.st==='Draining'?tok.decay:b.st==='Flourish'?tok.gold:tok.accent;
+    x.fillStyle=col;x.globalAlpha=.22;x.fillRect(Math.max(L,x0),lerp(B,T,b.s/C.max),x1-Math.max(L,x0)+.6,B-lerp(B,T,b.s/C.max));x.globalAlpha=1;
+    x.strokeStyle=col;x.lineWidth=2;x.beginPath();x.moveTo(Math.max(L,x0),lerp(B,T,a.s/C.max));x.lineTo(x1,lerp(B,T,b.s/C.max));x.stroke();
+    if(a.st!=='Flourish'&&b.st==='Flourish'){x.fillStyle=tok.gold;x.fillRect(x1-1,T,2,B-T);var nr=x1>R-80;x.textAlign=nr?'right':'left';x.textBaseline='top';x.fillText('Flourish',nr?x1-5:x1+4,T)}}
+}
+function drawCurve(x,W,H,st){
+  x.clearRect(0,0,W,H);var L=44,R=W-46,T=14,B=H-34,n=C.max;
+  var ivMax=.7,dpsMax=Math.ceil(C.dmg/C.fast/20)*20+20;
+  x.font='500 11px IBM Plex Mono, monospace';x.lineWidth=1;
+  for(var v=0;v<=.7001;v+=.1){var y=lerp(B,T,v/ivMax);x.strokeStyle=tok.line;x.beginPath();x.moveTo(L,Math.round(y)+.5);x.lineTo(R,Math.round(y)+.5);x.stroke();x.fillStyle=tok.muted;x.textAlign='right';x.textBaseline='middle';x.fillText(v.toFixed(1)+' s',L-6,y)}
+  x.textAlign='left';for(var dv=0;dv<=dpsMax;dv+=40){x.fillStyle=tok.muted;x.fillText(dv,R+6,lerp(B,T,dv/dpsMax))}
+  var bw=(R-L)/(n+1);x.textAlign='center';x.textBaseline='top';
+  for(var s=0;s<=n;s++){var iv=interval(s),cx=L+bw*(s+.5),y2=lerp(B,T,iv/ivMax),cur=s===Math.floor(st);
+    x.fillStyle=cur?tok.fg:(s===n?tok.gold:tok.accent);x.globalAlpha=cur?1:.55;x.fillRect(cx-bw*.32,y2,bw*.64,B-y2);x.globalAlpha=1;
+    if(n<=14||s%2===0){x.fillStyle=cur?tok.fg:tok.muted;x.fillText(s,cx,B+5)}}
+  x.fillText('Tempo stacks',(L+R)/2,B+19);
+  x.strokeStyle=tok.decay;x.lineWidth=2;x.beginPath();for(var s2=0;s2<=n;s2++){var px=L+bw*(s2+.5),py=lerp(B,T,(C.dmg/interval(s2))/dpsMax);s2?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();
+  x.fillStyle=tok.decay;x.textAlign='right';x.textBaseline='bottom';x.fillText('damage / s',R,T+10);
+  x.fillStyle=tok.muted;x.textAlign='left';x.fillText('bar: time to next thrust',L+4,T+10)}
+
+/* ---------- the stage ---------- */
+var SLOTS=[[100,0],[160,-48],[166,50],[236,-6],[262,-90],[258,86],[330,36],[340,-44]];
+var stage=$('stage'),sx=setup(stage,1000,420),trace=$('trace'),tx=setup(trace,1000,150),curve=$('curve'),cx=setup(curve,520,300);
+var main=new Sim({slots:SLOTS,hp:90,respawn:720,bullets:true,history:true});
+var mode='watch',paused=false,slow=false,holdBtn=false,holdMouse=false,holdKey=false;
+/* the scripted loop: build, stop (grace then drain), rebuild from what's left, Flourish, slow again */
+var SCRIPT=[[0,5,'atk'],[5,8.6,'idle'],[8.6,10.8,'atk'],[11.1,0,'alt'],[11.8,13,'atk'],[13,16.5,'idle']],LOOP=16.5,altDone=false,loopT=0;
+function scriptAt(lt){var a=false;SCRIPT.forEach(function(s){if(s[2]==='atk'&&lt>=s[0]&&lt<s[1])a=true});return a}
+function noteText(lt){
+  if(mode==='play')return 'Your turn. Hold to thrust: the first few are slow, then they speed up with every hit. Let go to watch the grace period and the drain. Flourish needs '+C.minFl+' Tempo.';
+  if(lt<5)return 'Thrusting into the pack: the first thrust is slow ('+C.slow.toFixed(2)+' s), each hit adds a stack and the next comes sooner.';
+  if(lt<8.6)return 'Stopped attacking: Tempo holds for the '+C.grace.toFixed(1)+' s grace period (the thin arc under the diamonds), then drains '+C.decay+' stacks a second.';
+  if(lt<11.1)return 'Back in: the build-up starts from what was left, so a short pause costs little.';
+  if(lt<11.8)return 'Weapon action: Flourish spends every stack. Swing after swing, back and forth, each one throwing a crescent wave.';
+  return 'Tempo is spent, so the thrusts are slow again. Cash it in when the waves are worth more than the speed.'}
+function syncMode(){[].forEach.call($('modes').children,function(b){b.setAttribute('aria-pressed',String(b.dataset.m===mode))});$('playbar').hidden=mode!=='play';main.reset();loopT=0;altDone=false}
+$('modes').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;mode=b.dataset.m;syncMode();if(mode==='play')stage.focus()});
+$('pause').addEventListener('click',function(){paused=!paused;this.textContent=paused?'Play':'Pause'});
+$('tgSlow').addEventListener('change',function(){slow=this.checked});
+$('tgBullets').addEventListener('change',function(){C.bullets=this.checked;if(!C.bullets)main.bul=[]});
+function altNow(){if(mode!=='play'){mode='play';syncMode()}main.alt=true}
+var hb=$('btnHold');
+hb.addEventListener('pointerdown',function(e){e.preventDefault();holdBtn=true;hb.classList.add('on')});
+['pointerup','pointerleave','pointercancel'].forEach(function(ev){hb.addEventListener(ev,function(){holdBtn=false;hb.classList.remove('on')})});
+$('btnAlt').addEventListener('click',altNow);
+stage.addEventListener('contextmenu',function(e){e.preventDefault()});
+stage.addEventListener('pointerdown',function(e){if(e.button===2){altNow();return}if(mode!=='play'){mode='play';syncMode()}holdMouse=true;try{stage.setPointerCapture(e.pointerId)}catch(_){}});
+['pointerup','pointercancel'].forEach(function(ev){stage.addEventListener(ev,function(){holdMouse=false})});
+window.addEventListener('keydown',function(e){if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;var k=e.key.toLowerCase();if(k==='z'){if(mode!=='play'){mode='play';syncMode()}holdKey=true}if(k==='x'&&!e.repeat)altNow()});
+window.addEventListener('keyup',function(e){if(e.key.toLowerCase()==='z')holdKey=false});
+window.addEventListener('blur',function(){holdKey=holdMouse=holdBtn=false;hb.classList.remove('on')});
+
+/* ---------- sliders ---------- */
+var SL=[['sSlow','oSlow','slow',function(v){return v.toFixed(2)+' s'}],['sFast','oFast','fast',function(v){return v.toFixed(2)+' s'}],['sMax','oMax','max',function(v){return v+' stacks'}],
+  ['sGrace','oGrace','grace',function(v){return v.toFixed(1)+' s'}],['sDecay','oDecay','decay',function(v){return v+' stacks / s'}],['sWave','oWave','wave',function(v){return v+' a wave'}]];
+function readSliders(){SL.forEach(function(s){var v=parseFloat($(s[0]).value);C[s[2]]=v;$(s[1]).textContent=s[3](v)});C.skewer=$('tgSkewer').checked;if(C.fast>C.slow)C.fast=C.slow;
+  main.stacks=Math.min(main.stacks,C.max);buildPanels();buildTable();
+  var t0=0;for(var s=0;s<C.max;s++)t0+=interval(s);
+  $('curveNote').textContent='From 0 to '+C.max+' Tempo takes about '+t0.toFixed(1)+' s of hits on one enemy. '+(C.dmg/C.slow).toFixed(0)+' damage a second at 0 Tempo, '+(C.dmg/C.fast).toFixed(0)+' at full (today: about 101 with the streak).'}
+SL.forEach(function(s){$(s[0]).addEventListener('input',readSliders)});$('tgSkewer').addEventListener('change',readSliders);
+
+/* ---------- Flourish panels ---------- */
+var panels=[],flEl=$('flourishes');
+function buildPanels(){
+  var charges=[Math.max(C.minFl,Math.round(C.max/3)),Math.round(C.max*2/3),C.max];
+  if(panels.length&&panels.every(function(p,i){return p.charge===charges[i]&&p.wave===C.wave}))return;
+  flEl.innerHTML='';panels=[];
+  charges.forEach(function(ch,i){var n=wavesFor(ch),cell=document.createElement('div');cell.className='cell';
+    var title=['A quick cash-in','Half Tempo','Full Tempo'][i];
+    cell.innerHTML='<h3>'+title+' <small>'+ch+' stacks · '+n+' swing'+(n>1?'s':'')+' · '+(n*C.wave)+' in line</small></h3><div class="frame"><canvas aria-label="Flourish with '+ch+' Tempo"></canvas></div><p>'+
+      [n+' waves. Worth it when a pack lines up and you are about to lose the stacks anyway.', n+' waves crossing back and forth. Each pierces the whole line, so a column of enemies takes all of them.', n+' gold waves, the most it can throw. You start the next fight at a slow first thrust.'][i]+'</p>';
+    flEl.appendChild(cell);var c=cell.querySelector('canvas');
+    var sm=new Sim({slots:[[120,0],[175,-26],[178,30],[240,0],[250,-60],[255,58]],hp:999,startStacks:ch,bullets:false});
+    panels.push({c:c,x:setup(c,340,240),sm:sm,charge:ch,wave:C.wave,lt:0})})}
+function stepPanel(p,dt){p.lt+=dt;var sm=p.sm;if(p.lt>2.8){p.lt=0;sm.reset()}
+  if(p.lt>.35&&!p.fired){sm.alt=true;p.fired=true}if(p.lt<.35)p.fired=false;sm.step(dt)}
+
+/* ---------- before / after ---------- */
+function buildTable(){var rows=[
+  ['Thrust speed','0.28 s, always',C.slow.toFixed(2)+' s at 0 Tempo, '+C.fast.toFixed(2)+' s at '+C.max],
+  ['Build-up','+10% damage per hit in a row on the same enemy, up to +60%; switching target resets it','+1 Tempo per enemy hit, any enemy, up to '+C.max+(C.skewer?'; +1 per skewered bullet':'')],
+  ['Damage a thrust','18 to 29','18, flat'],
+  ['Damage a second','64 to 103 on one enemy',(C.dmg/C.slow).toFixed(0)+' to '+(C.dmg/C.fast).toFixed(0)+', any targets'],
+  ['When you stop','Streak kept until you hit something else','Held for '+C.grace.toFixed(1)+' s, then drains '+C.decay+' a second'],
+  ['Weapon action','None','Flourish: spends all Tempo (needs '+C.minFl+'), one swing per 2 stacks, each a piercing '+C.wave+'-damage wave, '+C.waveRange+' px']];
+  $('cmp').innerHTML=rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>'}).join('')}
+
+readSliders();
+
+/* ---------- the loop ---------- */
+var last=performance.now(),uiT=0;
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;if(paused)dt=0;else if(slow)dt*=.3;
+  if(dt>0){
+    var steps=Math.ceil(dt/.01),h=dt/steps;
+    for(var i=0;i<steps;i++){
+      if(mode==='watch'){loopT+=h;if(loopT>=LOOP){loopT=0;altDone=false;main.reset()}main.attack=scriptAt(loopT);if(!altDone&&loopT>=11.1){main.alt=true;altDone=true}}
+      else main.attack=holdBtn||holdMouse||holdKey;
+      main.step(h);panels.forEach(function(p){stepPanel(p,h)})}}
+  drawSim(sx,1000,420,1.3,170,main);
+  drawTrace(tx,1000,150,main);
+  panels.forEach(function(p){drawSim(p.x,340,240,.82,46,p.sm)});
+  uiT-=dt;if(uiT<=0||paused){uiT=.08;
+    var st=main.stacks;$('rStacks').textContent=Math.floor(st)+' / '+C.max;$('rInt').textContent=interval(st).toFixed(2)+' s';$('rSpd').textContent=(1/interval(st)).toFixed(1)+' / s';
+    $('rState').textContent=main.state;$('rState').style.color=main.state==='Grace'?'var(--grace)':main.state==='Draining'?'var(--decay)':main.state==='Flourish'?'var(--gold)':main.state==='Building'?'var(--accent)':'';
+    $('rFl').textContent=Math.floor(st)>=C.minFl?wavesFor(st)+' waves':'needs '+C.minFl;
+    $('stageNote').textContent=noteText(loopT);drawCurve(cx,520,300,st)}
+  requestAnimationFrame(frame)}
+try{var qs=new URLSearchParams(location.search);if(qs.get('t')!=null){var tt=parseFloat(qs.get('t'));for(var k=0;k<tt/.01;k++){loopT+=.01;main.attack=scriptAt(loopT);if(!altDone&&loopT>=11.1){main.alt=true;altDone=true}main.step(.01);panels.forEach(function(p){stepPanel(p,.01)})}paused=true;$('pause').textContent='Play'}}catch(e){}
+if(reduced&&!paused){for(var r=0;r<450;r++){loopT+=.01;main.attack=scriptAt(loopT);main.step(.01);panels.forEach(function(p){stepPanel(p,.01)})}paused=true;$('pause').textContent='Play'}
+requestAnimationFrame(frame);
+})();
+</script>

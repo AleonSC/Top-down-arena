@@ -82,6 +82,9 @@ namespace Arena
             return ok;
         }
 
+        /// An ability's name in an older save, as it is called now (the Cluster Grenade became Airstrike).
+        static string OldAbilityName(string name) => name == "Grenade" ? nameof(AbilityId.Airstrike) : name;
+
         /// Host, just after the match starts from a save: everyone's earnings back, and the run's own state.
         void ApplyResume(RunSave save)
         {
@@ -94,20 +97,21 @@ namespace Arena
                 p.Taken.Clear();
                 foreach (var name in s.Taken)
                 {
-                    int u = Array.FindIndex(Upgrades.All, x => x.Name == name);
+                    string card = name == "Cluster Grenade" ? "Airstrike" : name;  // (the Cluster Grenade became Airstrike)
+                    int u = Array.FindIndex(Upgrades.All, x => x.Name == card);
                     if (u >= 0)
                         p.Taken.Add(u);
                 }
                 for (int k = 0; k < p.BonusKeys.Length; k++)
                 {
                     AbilityId id;
-                    p.BonusKeys[k] = Enum.TryParse(s.BonusKeys[k], out id) ? id : AbilityId.None;
+                    p.BonusKeys[k] = Enum.TryParse(OldAbilityName(s.BonusKeys[k]), out id) ? id : AbilityId.None;
                 }
                 p.MasteryXp.Clear();
                 foreach (var kv in s.Mastery)
                 {
                     AbilityId id;
-                    if (Enum.TryParse(kv.Key, out id))
+                    if (Enum.TryParse(OldAbilityName(kv.Key), out id))
                         p.MasteryXp[id] = kv.Value;
                 }
                 p.Level = s.Level;

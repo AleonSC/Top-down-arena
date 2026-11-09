@@ -63,8 +63,43 @@ namespace Arena
                 case WeaponId.Katana: ang -= 0.4f; reach *= 0.7f; bend = 0.4f; return p.KatanaMeter < Game.KatanaMeterMax;
                 case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return !p.GreatGuard;
                 case WeaponId.HolyMace: ang -= 0.3f; reach *= 0.85f; return true;
+                case WeaponId.Kusarigama: ang -= 0.35f; reach = 36f; return true;  // the sickle in hand, its chain in
+                case WeaponId.BloodLash: ang -= 0.55f; reach = 52f; return true;   // the whip hanging slack beside you
                 default: return false;
             }
+        }
+
+        /// Both arms, shoulder to hand, in the owner's colour (`grip` the lead hand, `off` the other): for weapons drawn in their own hands.
+        void DrawMeleeArms(V2 o, V2 side, V2 grip, V2 off, Rgba arm, float alpha)
+        {
+            V2 shLead = o - side * 11f, shOff = o + side * 11f;
+            var dark = new Rgba(0.04f, 0.04f, 0.06f, alpha);
+            Line(shOff, off, 7.2f, dark);
+            Line(shLead, grip, 7.2f, dark);
+            Line(shOff, off, 5f, arm.WithAlpha(alpha));
+            Line(shLead, grip, 5f, arm.WithAlpha(alpha));
+        }
+
+        void DrawMeleeGloves(V2 a, V2 b, Rgba rim, Rgba fill)
+        {
+            Circle(a, 5f, rim, 12);
+            Circle(a, 3.9f, fill, 12);
+            Circle(b, 5f, rim, 12);
+            Circle(b, 3.9f, fill, 12);
+        }
+
+        /// The Kusarigama and Blood Lash held at the ready in their own hands (the model leaves its arms and weapon out); a swing draws the
+        /// weapon and comes back to this pose (DrawSwingModel), and it waits until then.
+        void DrawMeleeHeldIdle(Player p)
+        {
+            WeaponId id = p.Weapon.Id;
+            if (id != WeaponId.Kusarigama && id != WeaponId.BloodLash)
+                return;
+            float ang, reach, bend;
+            if (!MeleeRest(p, id, out ang, out reach, out bend) || MeleeSwingShowing(p))
+                return;
+            ownerOfModel = p.Id;
+            DrawMeleeModel(id, p.Disp, ang, reach, 1f, MeleeColor(id, Rgba.White), false, bend, ArmColor(p.Id));
         }
 
         /// True while one of this player's swings (or the Bo Staff's shove) draws their weapon, so the held pose waits. The swing starts
@@ -120,8 +155,10 @@ namespace Arena
             }
             else
                 seen.ModelEnd = -1f;
-            // The Katana's arms only while the model leaves its own out (a full strike meter keeps the model's arms and scabbard).
-            bool arms = seen.Weapon != WeaponId.Katana || (owner != null && LookDrawsArms(owner));
+            // The Katana, Kusarigama and Blood Lash draw arms only while the model leaves its own out (a full strike meter keeps the
+            // model's arms and the Katana's scabbard; downed or Visual effects off, the model's).
+            bool arms = (seen.Weapon != WeaponId.Katana && seen.Weapon != WeaponId.Kusarigama && seen.Weapon != WeaponId.BloodLash) || (owner != null && LookDrawsArms(owner));
+            ownerOfModel = seen.Owner;
             DrawMeleeModel(seen.Weapon, o, ang, reach, fade, col, bright, bend, arms ? ArmColor(seen.Owner) : default(Rgba));
         }
 
@@ -174,8 +211,8 @@ namespace Arena
             }
             float flip;
             meleeFlip.TryGetValue(best.Id, out flip);
-            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace;
-            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace)))  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
+            bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace || best.Weapon.Id == WeaponId.Rapier;
+            if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.HolyMace || best.Weapon.Id == WeaponId.Rapier)))  // (a Rapier thrust neither: only its Flourish swings go back and forth)  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
             else if (best.Weapon.Id == WeaponId.Halberd)
             {
@@ -438,15 +475,15 @@ namespace Arena
 
         static readonly Rgba NeedleGold = new Rgba(1f, 0.84f, 0.51f);
 
-        /// A thrust: a thin streak from the hand to the point (wider with the streak), a star glint and a ring where it
-        /// landed, and at six stacks a gold glow on the point.
+        /// A thrust: a thin streak from the hand to the point (wider with Tempo), a star glint and a ring where it
+        /// landed, and at full Tempo a gold glow on the point.
         void RapierThrustLook(MeleeSeen seen, V2 o, V2 dir, float aim, float ext, float reach, float T, float fade, Rgba col)
         {
             Player owner;
-            int streak = game.Players.TryGetValue(seen.Owner, out owner) ? owner.RapierStreak : 0;
+            int tempo = game.Players.TryGetValue(seen.Owner, out owner) ? owner.RapierTempo : 0;
             V2 tipP = o + dir * Mathf.Max(30f, ext);
-            Ribbon(o + dir * 14f, tipP, 0.4f, 1.6f + 0.2f * streak, col.WithAlpha(0f), Rgba.White.WithAlpha(fade));
-            if (streak >= 6)
+            Ribbon(o + dir * 14f, tipP, 0.4f, 1.6f + 2.4f * tempo / Game.RapierTempoMax, col.WithAlpha(0f), Rgba.White.WithAlpha(fade));
+            if (tempo >= Game.RapierTempoMax)
                 GlowDisc(tipP, 16f, NeedleGold, 0.9f * fade);
             // Where it landed: the nearest enemy in its narrow cone.
             Enemy near = null;
@@ -482,25 +519,34 @@ namespace Arena
             DrawMeleeModel(WeaponId.Rapier, p.Disp, ang, reach, 1f, MeleeColor(WeaponId.Rapier, Rgba.White), false, bend, ArmColor(p.Id));
         }
 
-        /// Six small diamonds on an arc behind you: they fill one by one as the streak builds, and turn gold at six with a faint
-        /// halo until it breaks. Shown for a Rapier with a streak going.
+        /// Tempo: one small diamond per stack (RapierTempoMax) on an arc behind you. They fill as it builds and all turn gold at
+        /// full, with a faint halo. A thin arc under them runs down through the grace period; once it's gone the top diamond
+        /// shows orange while Tempo drains. Shown for a Rapier with Tempo.
         void DrawRapierPips(Player p)
         {
-            if (!fxOn || p.Downed || p.RapierStreak <= 0)
+            if (!fxOn || p.Downed || p.RapierTempo <= 0)
                 return;
-            int n = Mathf.Min(6, p.RapierStreak);
-            bool gold = n >= 6;
+            int max = Game.RapierTempoMax, n = Mathf.Min(max, p.RapierTempo);
+            bool gold = n >= max, draining = p.RapierGraceLeft == 0;
             var col = MeleeColor(WeaponId.Rapier, Rgba.White);
-            for (int d = 0; d < 6; d++)
+            float spread = Mathf.Min(0.34f, 3.3f / max), r = 33f, half = (max - 1) * 0.5f * spread;
+            for (int d = 0; d < max; d++)
             {
-                float da = p.Aim + MathX.Pi + (d - 2.5f) * 0.34f;
-                V2 c = p.Disp + V2.FromAngle(da) * 30f;
-                Polygon(c, 4.3f, 4, 0f, d < n ? (gold ? NeedleGold : col) : new Rgba(1f, 1f, 1f, 0.14f));
+                float da = p.Aim + MathX.Pi + (d - (max - 1) * 0.5f) * spread;
+                V2 c = p.Disp + V2.FromAngle(da) * r;
+                Rgba fill = d >= n ? new Rgba(1f, 1f, 1f, 0.14f) : gold ? NeedleGold : draining && d == n - 1 ? RapierDrainCol : col;
+                Polygon(c, max > 14 ? 2.7f : max > 9 ? 3.4f : 4.3f, 4, 0f, fill);
+            }
+            if (!draining)  // the grace period left
+            {
+                float g = p.RapierGraceLeft / 255f * (half + 0.08f);
+                Arc(p.Disp, r + 7f, 1.5f, col.WithAlpha(0.85f), 24, p.Aim + MathX.Pi - g, 2f * g);
             }
             if (gold)
                 Arc(p.Disp, 26f, 3f, NeedleGold.WithAlpha(0.25f + 0.1f * Mathf.Sin(Time.unscaledTime * 9f)), 32);
         }
 
+        static readonly Rgba RapierDrainCol = new Rgba(1f, 0.59f, 0.39f);
 
         /// A bright cut across each enemy the swing or lunge passes through, timed to the blade reaching it. Worked out from
         /// the swing's own numbers and where the enemies are drawn (drawing only: the host's hits are its own).
@@ -1118,18 +1164,53 @@ namespace Arena
                 case WeaponId.Kusarigama:
                 {
                     float tip = reach * 0.97f;
+                    if (arm.A > 0f)
+                    {
+                        // In hand (the model leaves its own arms out): the sickle's grip in the lead hand, its chain out to the blade
+                        // in a cut; the off hand holds the chain's weight hanging at your side (not while it's thrown or whirling,
+                        // KusarigamaLook.cs draws it then).
+                        V2 grip = o + dir * Mathf.Min(20f, tip - 14f) - side * 3f, off = o + dir * 6f + side * 13f;
+                        DrawMeleeArms(o, side, grip, off, arm, alpha);
+                        Line(grip - dir * 5f, grip + dir * 8f, 3.2f, new Rgba(0.42f, 0.3f, 0.18f, alpha));  // the wooden grip
+                        if (tip - 8f > (grip - o).Length + 9f)
+                            Line(grip + dir * 8f, o + dir * (tip - 8f), 1.5f, new Rgba(0.7f, 0.72f, 0.78f, alpha));  // the chain, paid out
+                        Arc(o + dir * tip - side * 8f, 10f, 3f, MeleeSteel.WithAlpha(alpha), 10, ang - 0.2f, 1.9f);  // the sickle
+                        Player kp;
+                        if (game.Players.TryGetValue(ownerOfModel, out kp) && kp.HookT <= 0f && !kp.KusariWhirl)
+                        {
+                            float sw = Mathf.Sin(game.AnimT * 3.1f) * 0.35f;
+                            V2 wt = off + V2.FromAngle(ang + MathX.Pi * 0.75f + sw) * 13f;
+                            for (int i = 0; i < 4; i++)
+                                Circle(V2.Lerp(off, wt, (i + 0.5f) / 4f), 1.3f, new Rgba(0.72f, 0.75f, 0.84f, alpha), 6);
+                            Circle(wt, 4.6f, new Rgba(0.85f, 0.87f, 0.95f, alpha), 10);
+                            Circle(wt, 3.4f, new Rgba(0.27f, 0.28f, 0.38f, alpha), 10);
+                        }
+                        DrawMeleeGloves(grip, off, new Rgba(0.03f, 0.03f, 0.05f, alpha), new Rgba(0.17f, 0.17f, 0.23f, alpha));
+                        break;
+                    }
                     Line(o + dir * 12f, o + dir * (tip - 8f), 1.5f, new Rgba(0.7f, 0.72f, 0.78f, alpha));  // the chain
                     Arc(o + dir * tip - side * 8f, 10f, 3f, MeleeSteel.WithAlpha(alpha), 10, ang - 0.2f, 1.9f);  // the sickle
                     break;
                 }
                 case WeaponId.BloodLash:
                 {
-                    float tip = reach * 0.97f;
-                    V2 prev = o + dir * 12f;  // a whip: a wavy line, thinning out
+                    float tip = reach * 0.97f, root = 12f;
+                    // Held (bend 0) the whip sways; cracked (bend ±1) it lies in its fixed wave. A return blends from one to the other.
+                    float still = 1f - Mathf.Clamp01(Mathf.Abs(bend)), tw = game.AnimT * 5f;
+                    if (arm.A > 0f)
+                    {
+                        // In hand (the model leaves its own arms out): the lead hand on a dark grip, the off hand open at your side.
+                        V2 grip = o + dir * 14f - side * 3f, off = o + dir * 5f + side * 14f;
+                        DrawMeleeArms(o, side, grip, off, arm, alpha);
+                        Line(grip - dir * 5f, grip + dir * 6f, 3.6f, new Rgba(0.23f, 0.04f, 0.07f, alpha));
+                        DrawMeleeGloves(grip, off, new Rgba(0.08f, 0.02f, 0.03f, alpha), new Rgba(0.24f, 0.06f, 0.09f, alpha));
+                        root = (grip - o).Length + 6f;
+                    }
+                    V2 prev = o + dir * root;  // a whip: a wavy line, thinning out
                     for (int i = 1; i <= 10; i++)
                     {
-                        float f = i / 10f;
-                        V2 p = o + dir * (12f + (tip - 12f) * f) + side * (Mathf.Sin(f * 6f) * 5f * f);
+                        float f = i / 10f, wave = Mathf.Lerp(Mathf.Sin(f * 6f) * 5f, Mathf.Sin(f * 5f + tw) * 3.5f, still) * f;
+                        V2 p = o + dir * (root + (tip - root) * f) + side * wave;
                         Line(prev, p, 3.5f - 2.5f * f, new Rgba(0.75f, 0.12f, 0.16f, alpha));
                         prev = p;
                     }

@@ -1049,8 +1049,8 @@ namespace Arena
                         dashSpeed = BulldozeSpeed;
                         target = ClampToArena(me.Pos + DashDir * BulldozeSpeed * BulldozeTime, me.Def.BodyR);  // where the charge ends
                         break;
-                    case AbilityId.Grenade:
-                        target = ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(GrenadeRange), 10f);
+                    case AbilityId.Airstrike:
+                        target = ClampToArena(aimAt, AirEdgeInset);  // the flare lands anywhere in the arena (Airstrike.cs)
                         break;
                     case AbilityId.FlameWall:
                     case AbilityId.Meteor:
@@ -1141,6 +1141,7 @@ namespace Arena
             TickTsunami(dt);  // Tsunami.cs: waves rolling out
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
+            TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
@@ -1156,6 +1157,7 @@ namespace Arena
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
+            TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
@@ -1270,6 +1272,7 @@ namespace Arena
                 }
                 p.FireCd -= dt;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
+                TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                     TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
                 if (p.Downed || p.SwallowT > 0f)

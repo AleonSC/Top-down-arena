@@ -38,7 +38,8 @@ namespace Arena
         public const int ZoneCount = 3;
         public static readonly V2[] ZoneSpots = { new V2(420f, 300f), new V2(1180f, 300f), new V2(800f, 690f) };
         // The room's own enemies' health: a share of what the Warden would have at that wave, for this party (BossEquivalentHp).
-        public const float MiniBossShare = 0.5f, ShadowShare = 0.3f;
+        // A shadow is a one-on-one fight, so it takes its share of a solo Warden, however many are playing (ShadowHp).
+        public const float MiniBossShare = 0.8f, ShadowShare = 0.2f;
         // The prize.
         public const float PrizeLegendaryChance = 0.25f;
 
@@ -666,7 +667,8 @@ namespace Arena
             return SpawnHp(EnemyType.Boss, wave) * Math.Max(late, BossPowerScale()) / late;
         }
 
-        float ShadowHp(Player p) => SpawnHp(EnemyType.Shadow, Wave);
+        /// A shadow's health: its share of the Warden, as if its player were alone (each player fights their own).
+        float ShadowHp(Player p) => SpawnHp(EnemyType.Shadow, Wave) / PartyHpScale(true) * PartyHpScale(true, 1);
 
         Player CopyOf(Enemy e)
         {

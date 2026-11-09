@@ -122,7 +122,7 @@ namespace Arena
             MEll(1f, 2f, rx + 2f, ry + 1f, new Rgba(0f, 0f, 0f, 0.28f));
             ModelBack(p, kit, role, K, RC, rx, ry, w, t);
             MEll(-1f, 0f, rx, ry, K.Dark); MEll(-1f, 0f, rx - 1.6f, ry - 1.6f, K.Base);
-            ModelRoleTrim(role, K, RC, rx, ry, t);
+            ModelRoleTrim(role, K, RC, rx, ry, t, !LookDrawsPauldrons(p));
 
             if (p.Weapon.Id == WeaponId.BearTotem)  // a claw on each hand and the totem on the back, not a held weapon (BearLooks.cs)
             {
@@ -164,8 +164,10 @@ namespace Arena
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
             {
+                mHeldTube = 1;  // (the right hand's Twin Rifle carries the right grenade tube, DpsGunLooks.cs)
+                mHeldOwner = p;
                 DrawHeld(p, t, hold);
-                if (hold == 2) { MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
+                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
@@ -187,7 +189,21 @@ namespace Arena
                 case WeaponId.Katana:
                     return fxOn && !p.Downed && p.KatanaMeter < Game.KatanaMeterMax;  // KatanaLook.cs, MeleeLooks.cs (a full meter keeps the model's arms and the sheathed blade)
                 case WeaponId.Censer: case WeaponId.Warhammer: case WeaponId.Greatsword: case WeaponId.Rapier: case WeaponId.HolyMace: case WeaponId.BoStaff:
-                    return fxOn && !p.Downed;  // CenserLook.cs, MeleeLooks.cs (Warhammer, Rapier), GreatswordLook.cs, QuarterstaffLook.cs, BoStaffLook.cs
+                case WeaponId.Kusarigama: case WeaponId.BloodLash:
+                    return fxOn && !p.Downed;  // CenserLook.cs, MeleeLooks.cs (Warhammer, Rapier, Kusarigama, Blood Lash), GreatswordLook.cs, QuarterstaffLook.cs, BoStaffLook.cs
+                default:
+                    return false;
+            }
+        }
+
+        /// True when the weapon's look also puts a pauldron on each shoulder (turning with the swing), so the model leaves its own
+        /// shoulder plates out: two sets side by side read as a second pair of arms.
+        bool LookDrawsPauldrons(Player p)
+        {
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.Halberd: case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.Censer:
+                    return LookDrawsArms(p);
                 default:
                     return false;
             }
@@ -258,11 +274,11 @@ namespace Arena
             }
         }
 
-        void ModelRoleTrim(int role, ModelPal K, Rgba RC, float rx, float ry, float t)
+        void ModelRoleTrim(int role, ModelPal K, Rgba RC, float rx, float ry, float t, bool pauldrons = true)
         {
             if (role == 0)  // Tank: plate pauldrons and a chest plate
             {
-                for (int s = -1; s <= 1; s += 2)
+                for (int s = -1; s <= 1 && pauldrons; s += 2)
                 {
                     MCirc(0f, s * (ry - 1f), 7.2f, K.Dark, 14); MCirc(0f, s * (ry - 1f), 6f, K.Base, 14);
                     MArc(0f, s * (ry - 1f), 6f, 0f, MathX.Tau, 1.6f, RC);
@@ -281,7 +297,7 @@ namespace Arena
             }
             else  // DPS: small pauldrons, a sash and a speed streak
             {
-                for (int s = -1; s <= 1; s += 2) MCirc(0f, s * (ry - 1f), 4.4f, K.Dark);
+                for (int s = -1; s <= 1 && pauldrons; s += 2) MCirc(0f, s * (ry - 1f), 4.4f, K.Dark);
                 MLine(5f, -ry * 0.65f, -6f, ry * 0.65f, 3.4f, RC);
                 float sw = Mathf.Sin(t * 6f);
                 MLine(-rx - 2f, -3f, -rx - 9f - sw, -3f, 1.3f, RC); MLine(-rx - 2f, 3f, -rx - 11f - sw, 3f, 1.3f, RC);
@@ -445,6 +461,7 @@ namespace Arena
                 case WeaponId.TwinRifle:
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
+                    DrawTwinTube();
                     break;
                 case WeaponId.Railgun:
                     if (mDpsOn) { DrawRailgunFx(); break; }  // DpsGunLooks.cs
@@ -628,6 +645,8 @@ namespace Arena
                 // ---- Ninja
                 case WeaponId.Kusarigama:
                 {
+                    if (fxOn && !p.Downed)
+                        break;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
                     MLine(-4f, 0f, 12f, 0f, 2.6f, MWood); MArc(14f, -6f, 8f, 0.2f, 1.9f, 2.6f, MSteel);
                     if (p.HookT <= 0f && !p.KusariWhirl)  // (a thrown or whirling weight is drawn in the world: KusarigamaLook.cs)
                         for (int i = 0; i < 9; i++) { float a = t * 1.5f + i * 0.7f; MCirc(-4f + Mathf.Cos(a) * 6f, 8f + Mathf.Sin(a) * 4f, 1f, Hx(0xb8c2d0), 6); }
@@ -676,6 +695,8 @@ namespace Arena
                 // ---- Hemomancer
                 case WeaponId.BloodLash:
                 {
+                    if (fxOn && !p.Downed)
+                        break;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
                     MLine(-4f, 0f, 6f, 0f, 3f, Hx(0x3a0a10));
                     float px = 6f, py = 0f;
                     for (int i = 1; i <= 9; i++) { float x = 6f + i * 3.6f, y = Mathf.Sin(t * 8f + i * 0.9f) * 2.8f * i / 9f; MLine(px, py, x, y, 3f - i * 0.25f, Hx(0xe0203a)); px = x; py = y; }

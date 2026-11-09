@@ -99,6 +99,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.HolyMace)
                     DrawStaffPips(p);  // QuarterstaffLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.TwinRifle)
+                    DrawTwinNadePips(p);  // DpsGunLooks.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
@@ -222,6 +225,7 @@ namespace Arena
                 DrawGreatswordIdle(p, t);  // the Greatsword held at the ready (GreatswordLook.cs)
                 DrawQuarterstaffIdle(p, t);  // the Quarterstaff held at the ready (QuarterstaffLook.cs)
                 DrawBoStaffIdle(p, t);  // the Bo Staff held at the ready (BoStaffLook.cs)
+                DrawMeleeHeldIdle(p);  // the Kusarigama and Blood Lash held at the ready (MeleeLooks.cs)
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
                 DrawLanceIdle(p, t);  // the Lance and shield held at the ready (LanceLook.cs)

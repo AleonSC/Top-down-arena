@@ -108,8 +108,7 @@ namespace Arena
         public const float HealDashSpeed = 1.7f;  // Healing Dash: the Ninja's sprint (Ninja.cs)
         const float LinkHeal = 8f;  // Soul Lantern's regeneration a second (SoulLantern.cs)
         const float MedkitCooldown = 14f, MedkitReach = 360f, MedkitFlight = 0.5f, MedkitLife = 6f;  // Medkit.cs
-        const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeDamage = 80f;
-        public const float GrenadeRadius = 110f;  // (public: the grenade's flight look draws it, SoldierLooks.cs)
+        public const float GrenadeRadius = 110f;  // the Twin Rifle's grenades (TwinGrenades.cs; public: the grenade's flight look draws it, SoldierLooks.cs)
         const float MarkTime = 6f;
         const float BlinkRange = 300f;
         const float ShockwaveRange = 230f;

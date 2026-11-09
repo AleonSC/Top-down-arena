@@ -263,6 +263,7 @@ namespace Arena
         {
             public int Wp = -1;
             public float Until;
+            public LayoutDef Def;  // the floor plan Wp indexes into: a new layout means a fresh start
         }
 
         readonly Dictionary<int, SteerMem> steerMem = new Dictionary<int, SteerMem>();
@@ -323,6 +324,7 @@ namespace Arena
         readonly Dictionary<LayoutDef, WayGraph> wayGraphs = new Dictionary<LayoutDef, WayGraph>();
         readonly Dictionary<long, GoalInfo> goalCost = new Dictionary<long, GoalInfo>();
         int goalStamp = -1;
+        LayoutDef goalDef;
 
         WayGraph GraphFor(LayoutDef d)
         {
@@ -357,10 +359,11 @@ namespace Arena
         GoalInfo GoalCosts(LayoutDef d, V2 tpos, float r)
         {
             int stamp = (int)(LayoutAge * 5f);
-            if (stamp != goalStamp || goalCost.Count > 64)
+            if (stamp != goalStamp || d != goalDef || goalCost.Count > 64)
             {
                 goalCost.Clear();
                 goalStamp = stamp;
+                goalDef = d;
             }
             long key = ((long)(int)(tpos.X / 8f) << 32) ^ ((long)(int)(tpos.Y / 8f) << 8) ^ (long)(int)r;
             GoalInfo info;
@@ -419,6 +422,11 @@ namespace Arena
                 steerMem[e.Id] = m = new SteerMem();
             }
             var wps = d.Waypoints;
+            if (m.Def != d || m.Wp >= wps.Length)
+            {
+                m.Def = d;
+                m.Wp = -1;
+            }
             if (m.Wp >= 0 && e.T < m.Until && e.Pos.DistanceTo(wps[m.Wp]) > 14f && !SegBlocked(d, e.Pos, wps[m.Wp], r))
                 return (wps[m.Wp] - e.Pos).Normalized();
             var goal = GoalCosts(d, tpos, r);

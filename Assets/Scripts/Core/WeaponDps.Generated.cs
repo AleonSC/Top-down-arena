@@ -43,7 +43,7 @@ namespace Arena
             { WeaponId.Censer, 35f },
             { WeaponId.TwinBlades, 90f },
             { WeaponId.Greatsword, 90f },
-            { WeaponId.Rapier, 101f },
+            { WeaponId.Rapier, 85f },
             { WeaponId.Kusarigama, 10f },
             { WeaponId.BoStaff, 48f },
             { WeaponId.FumaShuriken, 84f },

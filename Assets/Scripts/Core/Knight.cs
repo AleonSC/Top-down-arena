@@ -206,6 +206,8 @@ namespace Arena
                 }
                 case WeaponId.Rapier:
                 {
+                    // Tempo sets how soon the next thrust comes: slow at 0, quick at full (Rapier.cs).
+                    p.FireCd = RapierCooldown(p);
                     var s = NewSwing(p, aim, w.Reach, 36f, w.Damage * dmg);
                     s.Rapier = true;
                     s.Thrust = true;
@@ -462,19 +464,8 @@ namespace Arena
                 TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             if (hits.Count > 0 && s.LanceKind > 0)
                 LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
-            float rapierMult = 1f;
             if (s.Rapier && hits.Count > 0)
-            {
-                // Each thrust in a row on the same PRIMARY (nearest) enemy deals 10% more (up to +60%); the streak updates once
-                // per thrust and the same bonus applies to every enemy that thrust hits (the +1 upgrade's second target).
-                var primary = hits[0];
-                foreach (var e in hits)
-                    if (e.Pos.DistanceSq(origin) < primary.Pos.DistanceSq(origin))
-                        primary = e;
-                p.RapierStreak = primary.Id == p.RapierTarget ? Math.Min(6, p.RapierStreak + 1) : 0;
-                p.RapierTarget = primary.Id;
-                rapierMult = 1f + 0.1f * p.RapierStreak;
-            }
+                RapierGainTempo(p, hits.Count);  // a stack of Tempo for every enemy the thrust hits (Rapier.cs)
             int healed = 0;
             foreach (var e in hits)
             {
@@ -482,7 +473,6 @@ namespace Arena
                 bool crack = s.Tip > 0f && e.Pos.DistanceTo(origin) + e.Radius >= s.Tip;
                 if (crack)
                     dmg *= LashCrack;
-                dmg *= rapierMult;
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
@@ -550,13 +540,10 @@ namespace Arena
                 DeflectBullets(p, origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc);
             else if (s.Rapier)
             {
-                // The Rapier skewers enemy bullets along its line (big ones too, never red aimed shots); each one adds to the streak.
+                // The Rapier skewers enemy bullets along its line (big ones too, never red aimed shots). They add no Tempo.
                 int skewered = CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc, true, RapierSkewerWidth, RapierSkewerMax);
                 if (skewered > 0)
-                {
-                    p.RapierStreak = Math.Min(6, p.RapierStreak + skewered);
                     BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
-                }
             }
             else if (!s.NoCut && circle)
                 CutBulletsInCircle(circleAt, s.Circle, s.CutAll);  // the slam clears small bullets over its whole circle
@@ -686,8 +673,8 @@ namespace Arena
                 Desc = "Two sabres in a five-step chain: rising cut, falling cut, double jab, pirouette, and a crossing shear that throws a crescent wave. Each step carries you forward. The weapon-action key hurls both sabres to cross at your cursor and fly back." },
             new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: the overhead rend launches a piercing crescent (50% damage)", Name = "Greatsword", FireInterval = 0.7f,
                 Desc = "A three-hit chain: two quick cuts, then a slow overhead rend. The edge of each sweep hangs in the air as a crescent of steel that stops enemy bullets. Hold the weapon-action key to guard: the arc stops bullets and builds Temper, and letting go fires a beam that hits harder for every point of Temper." },
-            new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
-                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals more. Thrusts also skewer enemy bullets along their line, and each one adds to the streak." },
+            new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.48f,  // the first thrust; Tempo makes them quicker (Rapier.cs)
+                Desc = "Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave." },
         };
 
         /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)

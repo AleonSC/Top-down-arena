@@ -71,39 +71,100 @@ Tune in `Rank.NeedFor(rank)`; there's no cap on rank (the badge handles three di
 
 ## Rewards (cosmetics)
 
-Placeholder ladder, from the mockup:
+Every rank from 2 to 87 gives something (generated from `Rank.Cosmetics`; the titles come with the tier):
 
 | Rank | Reward |
 |---|---|
-| 5 | Title: Challenger |
-| 8 | Trail: Ember |
-| 10 | Title: Veteran |
-| 12 | Frame: Steel |
-| 14 | Trail: Frost |
-| 16 | Frame: Circuit |
-| 15 | Menu background: Dusk grid |
-| 18 | Trail: Storm |
-| 20 | Title: Champion, Frame: Ember Edge |
-| 22 | Trail: Void |
-| 24 | Frame: Void Pulse |
-| 25 | Trail: Gold stardust |
-| 30 | Frame: Gold, Title: Legend |
-| 35 | Trail: Prism |
-| 40 | Frame: Legend Foil |
-| 45 | Trail: Light Cycle |
-| 50 | Frame: Prism |
-| 6 | Card background: Dusk Grid |
-| 10 | Card background: Starfield |
-| 13 | Card background: Blueprint |
-| 19 | Card background: Ember Glow |
-| 23 | Card background: Aurora |
-| 27 | Card background: Circuit Board |
-| 32 | Card background: Rain on Glass |
-| 37 | Card background: Void Rift |
-| 42 | Card background: Gilded Foil |
-| 55 | Card background: Prism Shards |
+| 2 | Emote: Wave emote |
+| 3 | Emote: Thumbs up emote |
+| 4 | Emote: GG emote, Cursor: Fine Cross cursor |
+| 5 | Name effect: Steel Outline name, Cursor: Corner Sight cursor |
+| 6 | Aim line: Dotted Tracer aim line |
+| 7 | Card background: Dusk Grid card |
+| 8 | Emote: Cheer emote |
+| 9 | Trail: Ember trail |
+| 10 | Title: Challenger |
+| 11 | Card background: Starfield card, Emote: Heart emote |
+| 12 | Name effect: Frost name, Aim line: Chevron Flow aim line, Cursor: Ember Ring cursor |
+| 13 | Frame: Steel frame, Emote: Laugh emote |
+| 14 | Card background: Blueprint card, Name effect: Ember name |
+| 15 | Trail: Frost trail, Aim line: Ruler aim line |
+| 16 | Menu background: Dusk grid, Emote: Question emote, Cursor: Frost Snowflake cursor |
+| 17 | Frame: Circuit frame |
+| 18 | Emote: Sleep emote, Aim line: Ember Wisp aim line, Cursor: Circuit Sight cursor |
+| 19 | Trail: Storm trail, Name effect: Neon name |
+| 20 | Title: Veteran, Card background: Ember Glow card |
+| 21 | Frame: Ember Edge frame |
+| 22 | Emote: Dance emote, Aim line: Frost Shard aim line, Cursor: Storm Arc cursor |
+| 23 | Trail: Void trail, Name effect: Wave name |
+| 24 | Card background: Aurora card |
+| 25 | Frame: Void Pulse frame |
+| 26 | Menu background: Ripples, Trail: Gold stardust, Emote: Spin emote |
+| 27 | Aim line: Storm Arc aim line, Cursor: Void Eye cursor |
+| 28 | Card background: Circuit Board card, Name effect: Shimmer name |
+| 29 | Menu background: Boot Log |
+| 30 | Title: Champion, Aim line: Pixel Beam aim line |
+| 31 | Frame: Gold frame |
+| 32 | Emote: Salute emote, Cursor: Gold Diamond cursor |
+| 33 | Card background: Rain on Glass card |
+| 34 | Name effect: Glitch name |
+| 35 | Aim line: Helix aim line |
+| 36 | Trail: Prism trail |
+| 37 | Name effect: Glitchy name |
+| 38 | Card background: Void Rift card |
+| 39 | Name effect: Fire name, Cursor: Prism Ring cursor |
+| 40 | Title: Legend, Menu background: Vector Rocks |
+| 41 | Frame: Legend Foil frame |
+| 42 | Emote: Fireworks emote |
+| 43 | Card background: Gilded Foil card |
+| 44 | Menu background: Life Grid |
+| 45 | Name effect: Gold Foil name |
+| 46 | Trail: Light Cycle trail |
+| 47 | Aim line: Prism aim line, Cursor: Light Cycle cursor |
+| 48 | Menu background: Phosphor Pond |
+| 49 | Name effect: Void name |
+| 50 | Menu background: Vector Tunnel |
+| 51 | Frame: Prism frame |
+| 52 | Emote: Steam emote |
+| 53 | Menu background: Signal Lost |
+| 54 | Card background: Prism Shards card |
+| 55 | Name effect: Rainbow name |
+| 56 | Frame: Neon Tube frame |
+| 57 | Card background: Radar Sweep card |
+| 58 | Frame: Hazard Tape frame |
+| 59 | Card background: Bullet Spiral card |
+| 60 | Frame: Frostbite frame |
+| 61 | Card background: Phosphor Rain card |
+| 62 | Frame: Barbed Wire frame |
+| 63 | Card background: Lava Veins card |
+| 64 | Frame: Lightning Cage frame |
+| 65 | Card background: Synthwave Sun card |
+| 66 | Frame: Pixel March frame |
+| 67 | Card background: Snowfall card |
+| 68 | Frame: Blood Drip frame |
+| 69 | Card background: Contour Map card |
+| 70 | Frame: Chain Link frame |
+| 71 | Card background: Honeycomb Pulse card |
+| 72 | Name effect: Chrome name |
+| 73 | Name effect: Toxic Drip name |
+| 74 | Name effect: Hologram name |
+| 75 | Name effect: Nebula name |
+| 76 | Name effect: Pixel name |
+| 77 | Name effect: Terminal name |
+| 78 | Name effect: Electric name |
+| 79 | Name effect: Petals name |
+| 80 | Cursor: Radar Sweep cursor |
+| 81 | Cursor: Sniper Scope cursor |
+| 82 | Cursor: Chevron Snap cursor |
+| 83 | Cursor: Sonar Ping cursor |
+| 84 | Cursor: Pixel Plus cursor |
+| 85 | Cursor: Petal Ring cursor |
+| 86 | Cursor: Laser Dot cursor |
+| 87 | Cursor: Target Lock cursor |
 
-- **Title**: the line under your name on the menu chip, the lobby hover card and Records.
+> The numbers in the bullets below are from before the ladder moved up one rank (nothing unlocks at rank 1 any more; the first rewards are at rank 2). Add 1 to each, or read `Rank.Cosmetics` in `Core/Rank.cs`.
+
+- **Title**: Challenger 10, Veteran 20, Champion 30, Legend 40 (every 10 ranks); the line under your name on the menu chip, the lobby hover card and Records.
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).
 - **Frame**: the border of your lobby party card (and your results card).
 - **Card background**: the fill of your lobby party card, behind your name (`Game/CardBackgrounds.cs`; mockup `Docs/Mockups/card-backgrounds.html`). Ten, from rank 6 to 55. Everyone in the lobby sees it (`LobbyEntry.CardBg`, protocol 140).

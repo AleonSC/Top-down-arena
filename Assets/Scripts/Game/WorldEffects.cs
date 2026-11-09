@@ -125,6 +125,9 @@ namespace Arena
                 case FxKind.CavalryCall:
                     DrawCavalryCallFx(fx);  // CavalryCallLook.cs
                     break;
+                case FxKind.Airstrike:
+                    DrawAirstrikeFx(fx);  // AirstrikeLook.cs
+                    break;
                 case FxKind.PactBind:
                     DrawPactBindFx(fx, f, t);  // ForcePactLook.cs, like the three below
                     break;

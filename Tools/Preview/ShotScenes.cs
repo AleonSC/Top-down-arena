@@ -435,6 +435,10 @@ static partial class Shot {
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    if (Environment.GetEnvironmentVariable("TWINNADES") != null) {  // TWINNADES=<loaded>,<next tube 0/1>,<charge>: the Twin Rifle's grenade tubes (TwinGrenades.cs)
+      var tn = Environment.GetEnvironmentVariable("TWINNADES").Split(',');
+      me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.TwinNades = byte.Parse(tn[0]); me.TwinNext = byte.Parse(tn[1]); me.TwinCharge = byte.Parse(tn[2]);
+    }
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
@@ -518,7 +522,16 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.Rapier: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Rapier:  // TEMPO=<0-20> its Tempo (GRACE=<0-1> of the grace period left; 0 = draining); FLOURISH=1 a Flourish sweep instead of a thrust
+          me.RapierTempo = int.Parse(Environment.GetEnvironmentVariable("TEMPO") ?? "0");
+          me.RapierGraceLeft = (byte)(255f * float.Parse(Environment.GetEnvironmentVariable("GRACE") ?? "1", System.Globalization.CultureInfo.InvariantCulture));
+          if (Environment.GetEnvironmentVariable("FLOURISH") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * reach * 0.75f, 0.95f, 0f, 0.2f);
+          else fx(FxKind.Slash, to, -0.12f, 0f, 0.16f);
+          break;
+        case WeaponId.BloodLash:  // the lash (110 degrees), CLOTBURST=1 the Clot Burst (all round you, 1.3x reach)
+          if (Environment.GetEnvironmentVariable("CLOTBURST") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * reach * 1.3f, MathX.Pi, 0f, 0.16f);
+          else fx(FxKind.Slash, to, 110f * MathX.Pi / 360f, 0f, 0.16f);
+          break;
         case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
         case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)

@@ -20,10 +20,12 @@ no Unity in the cloud container: check changes with the tools below.
 
 ## Rules
 
-- Work on and push to **`main`** (`git push -u origin main`). Commit messages end with the session's attribution
-  lines; no model ids in commits.
+- Work on and push to the branch the session gives you (don't merge into `main` unless the owner asks). Commit
+  messages end with the session's attribution lines; no model ids in commits.
 - Do the whole job: code, tests, README, then commit and push. End with a short report
   that names the protocol version and what's next.
+- The **very last line** of every session's final message is `Branch used: <branch>`, e.g. `Branch used: main` or
+  `Branch used: claude/xyz (not merged to main)`, so the owner knows whether to ask for a merge.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask with a question box before deleting code. For visual choices, offer mockups (`Docs/Mockups/`). For big
