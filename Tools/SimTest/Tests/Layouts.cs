@@ -266,6 +266,36 @@ static partial class Program
             Check(reached >= tried - 2, "enemies route round walls on every floor plan (" + reached + " of " + tried + " trips made it)");
         }
 
+        // A Spinner wanders between random spots: on every floor plan it picks spots clear of the walls and gets to them.
+        {
+            int legs = 0, spotsMade = 0;
+            foreach (var ld in Layouts.Playable())
+            {
+                g.DevSetLayout(ld.Id);
+                g.Props.Clear();
+                var sp = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Spinner, new V2(Game.Width / 2f, 120f), 0f, 0, false });
+                sp.SpawnT = 0f; sp.Hp = sp.MaxHp = 99999f;
+                sp.Pos = g.PushOutOfSolids(sp.Pos, sp.Radius);
+                V2 wp = sp.Waypoint;
+                for (int i = 0; i < (int)(240f / dt); i++)
+                {
+                    V2 was = sp.Pos;
+                    moveEnemy.Invoke(g, new object[] { sp, new V2(Game.Width / 2f, Game.Height / 2f), dt });
+                    sp.T += dt;
+                    if (sp.Waypoint.DistanceTo(wp) > 0.01f)
+                    {
+                        legs++;
+                        if (wp.DistanceTo(was) < 30f)
+                            spotsMade++;
+                        wp = sp.Waypoint;
+                    }
+                }
+                sp.Hp = 0f;
+                Quiet();
+            }
+            Check(legs >= 60 && spotsMade >= legs - 3, "a Spinner wanders round the walls on every floor plan (" + spotsMade + " of " + legs + " spots reached)");
+        }
+
         // The cover of a new cycle, and random props staying out of the walls.
         g.Props.Clear();
         g.DevSetLayout(LayoutId.Islands);

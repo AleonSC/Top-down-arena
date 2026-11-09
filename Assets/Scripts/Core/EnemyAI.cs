@@ -769,10 +769,14 @@ namespace Arena
                     else if (e.Phase == 3)
                         speed *= 0.3f;  // recovering after the leap
                     break;
-                case EnemyType.Spinner:
-                    if (e.Pos.DistanceTo(e.Waypoint) < 20f)
-                        e.Waypoint = RandomInArena(Walled ? 80f : 150f);
-                    v = (e.Waypoint - e.Pos).Normalized();
+                case EnemyType.Spinner:  // wanders between random spots, round walls and crates; gives up on one it can't reach
+                    e.PhaseT -= dt;
+                    if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
+                    {
+                        e.Waypoint = WanderSpot(Walled ? 80f : 150f, e.Radius + 12f);
+                        e.PhaseT = e.Pos.DistanceTo(e.Waypoint) / Math.Max(1f, e.Speed) * 1.6f + 4f;
+                    }
+                    v = RouteTo(e, e.Waypoint);  // LayoutRules.cs
                     break;
                 case EnemyType.Boss:
                     v = WardenMove(e, tpos, ref speed);  // Warden.cs
