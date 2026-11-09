@@ -130,8 +130,8 @@ namespace Arena
                 CrtUi.Text(new Rect(tx, r.y + 34f, tw, r.height - 40f), body, 13, new Color(dim.r + 0.1f, dim.g + 0.25f, dim.b + 0.2f, 0.95f * ca), TextAnchor.UpperLeft, false, calm, true);
                 float bx = r.xMax - 20f - 168f;
                 CrtUi.Text(new Rect(bx, r.y + 17f, 168f, 18f), (menuTipIdx + 1) + " / " + n, 11, dim, TextAnchor.MiddleRight, true, calm);
-                prev = CrtUi.Small(new Rect(bx, r.y + 42f, 80f, 30f), "< PREV", null, 14, calm);
-                next = CrtUi.Small(new Rect(bx + 88f, r.y + 42f, 80f, 30f), "NEXT >", null, 14, calm);
+                prev = CrtUi.SoftKey(new Rect(bx, r.y + 42f, 80f, 30f), "< PREV", null, 14, calm);
+                next = CrtUi.SoftKey(new Rect(bx + 88f, r.y + 42f, 80f, 30f), "NEXT >", null, 14, calm);
                 CrtUi.End(scr, Time.unscaledTime, calm);
             });
             if (live && show >= 1f && (prev || next))

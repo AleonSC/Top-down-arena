@@ -262,7 +262,7 @@ namespace Arena
                 case ZoneKind.HoneyPool:
                     DrawHoneyPool(z, c, t);  // QueenLootLook.cs
                     break;
-                default:  // Haven
+                default:  // a zone with no look of its own: a softly pulsing circle
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
                     break;
             }
