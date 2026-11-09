@@ -62,7 +62,7 @@ td{font-family:var(--mono);font-size:13px}
 <main>
   <header>
     <h1>Swordsman</h1>
-    <p class="lede">A new melee enemy with a long blade. It walks up, raises its sword and cuts across a cone in front of it. The cone is the exact area the sword covers: the tip reaches its edge and the cut sweeps from one side to the other. It comes in two variants, a single cut and a two-hit combo.</p>
+    <p class="lede">A new melee enemy with a long blade. It walks up, raises its sword and cuts across a cone in front of it. The cone is the exact area the sword covers: a curved band from the hand out to the tip, swept from one side to the other. It comes in two variants, a single cut and a two-hit combo.</p>
   </header>
 
   <section aria-labelledby="live">
@@ -144,7 +144,15 @@ td{font-family:var(--mono);font-size:13px}
     return rest;
   }
 
-  function fan(c, x, y, r, a0, a1){ c.beginPath(); c.moveTo(x, y); c.arc(x, y, r, a0, a1); c.closePath(); }
+  // The blade starts at the hand (15 px out), so the area it covers is a curved band, not a pointed wedge.
+  var INNER = 15;
+  function fan(c, x, y, r, a0, a1){
+    c.beginPath();
+    if (r <= INNER) return;
+    c.arc(x, y, r, a0, a1);
+    c.arc(x, y, INNER, a1, a0, true);
+    c.closePath();
+  }
 
   function drawScene(c, W, H, e, p, flash, showCone){
     c.clearRect(0, 0, W, H);
