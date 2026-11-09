@@ -246,7 +246,7 @@ namespace Arena
                     break;
                 }
                 case ZoneKind.BloodPool:
-                    DrawBloodZone(z, c, t);  // BloodMageLook.cs
+                    DrawBloodZone(z, c, t);  // ClotCannonLook.cs
                     break;
                 case ZoneKind.VeinTrail:
                     DrawVeinTrail(z, t);  // VeinRushLook.cs

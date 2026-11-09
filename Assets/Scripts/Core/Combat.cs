@@ -35,8 +35,6 @@ namespace Arena
             {
                 if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, z.DamageCut);
-                if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
-                    cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
                 if (InBath(z, p.Pos, 0f))
                     cut = Math.Max(cut, BathGuard);  // standing in anyone's Bloodbath (Bloodbath.cs)
             }
@@ -236,14 +234,14 @@ namespace Arena
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
+                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.MedkitShot)
                     PullIntoWells(b, dt);
                 float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
                     b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)
                 else
                     b.Pos += b.Vel * (dt * SmokeSpeed(b) * lumen);
-                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
+                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.MedkitShot)
                     b.Pos += wind * dt;
                 b.Life -= dt * lumen;  // a held bullet doesn't run out of range
                 if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
@@ -282,6 +280,11 @@ namespace Arena
                 if (b.Kind == Defs.BoulderShot)
                 {
                     LandBoulder(b);  // KitWeapons.cs
+                    continue;
+                }
+                if (b.Kind == Defs.ClotShot)
+                {
+                    LandClot(b);  // BloodMage.cs
                     continue;
                 }
                 if (b.Kind == Defs.FlakShell)
@@ -432,8 +435,8 @@ namespace Arena
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
-                    continue;  // grenades, boulders, medkits and flak shells fly over enemies and land or burst where you aimed
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.ClotShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
+                    continue;  // grenades, boulders, Clot Cannon clots, medkits and flak shells fly over enemies and land or burst where you aimed
                 if (LayoutOn && SolidStops(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
@@ -1053,7 +1056,7 @@ namespace Arena
         {
             Bullet live;
             return b.Id != 0 && Bullets.TryGetValue(b.Id, out live) && live == b && b.Pierce < 50 && !b.Bolts && b.Burst == 0 && !b.Ward
-                && b.Kind != Defs.BoulderShot && b.Kind != Defs.FumaStar;
+                && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.FumaStar;
         }
 
         /// The nearest enemy a bounce can go to from `pos`, other than the one it just hit.
