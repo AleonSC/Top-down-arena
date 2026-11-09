@@ -27,6 +27,7 @@ namespace Arena
         public bool TargetMarked;  // its target already carries a Mark for Death
         public int NearEnemies;    // enemies within BotNearReach of it (Bloodbath wants several)
         public int Crowd;        // enemies within Game.JuggBotRange of it (the Juggernaut Suit's rule; only counted for that one)
+        public int Shooters;       // how many enemies have shots in flight coming at it (Lightning Rod)
     }
 
     public partial class Game
@@ -313,6 +314,7 @@ namespace Arena
                 Players = Players.Count, BotDanger = BotDanger,
                 AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
                 Crowd = id == AbilityId.JuggernautSuit ? CrowdNear(me) : 0,
+                Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
         }
 

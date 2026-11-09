@@ -14,8 +14,9 @@ namespace Arena
 
         /// A gnarled root from `from` along `dir`, `len` long: a bark body that tapers to a third of `thick`, a light edge, knots,
         /// alternating thorns, and (if `leafy`) small leaves. `wave` is how far it snakes to the side, `phase` moves the snake.
-        /// `tip`: a leaf bud at the end (the lash). Fades with `a`.
-        void DrawRoot(V2 from, V2 dir, float len, float thick, float wave, float phase, float a, bool leafy, bool tip)
+        /// `tip`: a leaf bud at the end (the lash). Fades with `a`. `swell`: it starts at a third of `thick`, swells to all of it
+        /// over the first 15% and has rounded joints, so it grows out of something rather than starting as a flat stump (the lash).
+        void DrawRoot(V2 from, V2 dir, float len, float thick, float wave, float phase, float a, bool leafy, bool tip, bool swell = false)
         {
             if (len < 2f || a <= 0f)
                 return;
@@ -24,7 +25,11 @@ namespace Arena
             for (int i = 1; i <= n; i++)
             {
                 float k = (float)i / n, w = Mathf.Lerp(thick, thick * 0.3f, k);
+                if (swell)
+                    w = k < 0.15f ? thick * (0.35f + 0.65f * Mathf.Sqrt(k / 0.15f)) : Mathf.Lerp(thick, thick * 0.3f, (k - 0.15f) / 0.85f);
                 V2 at = from + dir * (len * k) + side * (Mathf.Sin(k * 9f - phase) * wave * Mathf.Sin(k * Mathf.PI));  // still at both ends
+                if (swell && i > 1)
+                    Circle(prev, w * 0.5f, RootBark.WithAlpha(a), 8);  // a rounded joint
                 Line(prev, at, w, RootBark.WithAlpha(a));
                 Line(prev, at, w * 0.35f, RootBarkHi.WithAlpha(a));
                 if (i % 4 == 2)
@@ -104,13 +109,46 @@ namespace Arena
             else
                 len = reach * Mathf.Clamp01(1f - (t - RootOut - RootHold) / RootBack);
             float wave = t < RootOut + RootHold ? 6f : 3f;
-            // A pale flash where it breaks the ground, then the root itself starting a body-length out from you.
-            if (t < 0.1f)
-                Arc(fx.Pos + dir * 22f, 8f + 90f * t, 2f, RootThorn.WithAlpha(0.6f * (1f - t / 0.1f)), 10);
-            V2 start = fx.Pos + dir * 20f;
-            DrawRoot(start, dir, Mathf.Max(0f, len - 20f), fx.Radius * 0.6f, wave, t * 28f, 1f, false, true);
+            // It grows from a knot at your feet (Docs/Mockups/treant-root-lash-follow.html, C): it starts thin under you and swells,
+            // and three rootlets curl round your feet as it lashes and curl back in as it snaps home.
+            V2 start = fx.Pos + dir * 10f;
             if (t > RootOut && t < RootOut + RootHold)  // the width it hit: a faint bark-coloured strip, so the line you aimed along reads
-                Line(start, start + dir * (reach - 20f), fx.Radius * 2f, RootBark.WithAlpha(0.1f));
+                Line(start, start + dir * (reach - 10f), fx.Radius * 2f, RootBark.WithAlpha(0.1f));
+            DrawRoot(start, dir, Mathf.Max(0f, len - 10f), fx.Radius * 0.6f, wave, t * 28f, 1f, false, true, true);
+            float back = t > RootOut + RootHold ? Mathf.Clamp01((t - RootOut - RootHold) / RootBack) : 0f;
+            DrawRootCollar(fx.Pos, dir, Mathf.Clamp01(t / RootOut) * (1f - back));
+        }
+
+        const float RootCollarR = 12f;  // how far from the caster's middle the rootlets start (the Healer's body is 14)
+
+        /// The lash's collar: a knot where it leaves you and three rootlets curling round your feet, `curl` 0-1 how far out.
+        void DrawRootCollar(V2 c, V2 dir, float curl)
+        {
+            if (curl <= 0f)
+                return;
+            float aim = Mathf.Atan2(dir.Y, dir.X);
+            for (int r = 0; r < 3; r++)
+            {
+                float sd = r == 0 ? -1f : r == 1 ? 1f : 0f, turn = sd == 0f ? 1f : sd;
+                float ang = aim + sd * 0.55f + (sd == 0f ? MathX.Pi : 0f);
+                V2 p = c + V2.FromAngle(ang) * RootCollarR;
+                ang += sd * 0.4f;
+                float w = 5f;
+                int steps = Mathf.Max(1, (int)(6f * curl + 0.5f));
+                for (int s = 0; s < steps; s++)
+                {
+                    ang += turn * 0.42f;
+                    V2 q = p + V2.FromAngle(ang) * 4.5f;
+                    Circle(p, w * 0.5f, RootBark.WithAlpha(0.95f), 6);
+                    Line(p, q, w, RootBark.WithAlpha(0.95f));
+                    Line(p, q, w * 0.35f, RootBarkHi.WithAlpha(0.95f));
+                    p = q;
+                    w *= 0.8f;
+                }
+                if (curl > 0.6f)
+                    Circle(p + V2.FromAngle(ang + 1.4f) * 3f, 2.3f, RootLeaf.WithAlpha(0.85f * curl), 6);
+            }
+            Circle(c + dir * (RootCollarR + 1f), 6f * (0.5f + 0.5f * curl), RootKnot.WithAlpha(0.95f), 10);  // the knot it branches from
         }
     }
 }
