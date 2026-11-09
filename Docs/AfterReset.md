@@ -381,7 +381,9 @@ So friends can play without Tailscale or port forwarding.
       every regular wave (boss waves in the hub), nests that spill **fast melee** runners, split up freely, a small reward
       per room; **Wings first** (Annexes, then Cross later); **hallways always**; the **minimap**; doors **lock behind you**
       while the nest lives; layouts stay in the hub plus small obstacles; a **vault one wave in ten** holding **the
-      Gatekeeper** (his duel leaves the Data Gates when the vault is built, not before). Phase 0 (run-log format 3):
+      Gatekeeper** (his duel leaves the Data Gates when the vault is built, not before). **Classic stays**: an Arena
+      setting (Classic / Rooms) on the Difficulty tab, **Classic by default** until Rooms is tuned, balance changes for
+      Rooms only, Classic untouched (it can become its own game mode later). Phase 0 (run-log format 3):
       samples record each player's nearest enemy and the threats in a 2x-zoom view; `report.py` prints "Threats near
       you". **Next: phase 1** (Wings world, following camera, hallways, doors). Record a run or two first for the before
       picture.

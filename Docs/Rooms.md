@@ -64,6 +64,21 @@ Second round (after the mockup, Nov 2026):
 10. **Spill squads are fast melee** for now (runners), so they reach the hub as a real threat.
 11. **Layouts stay** in the hub (the boss-cycle layout as today), and rooms and hallways get some small obstacles.
 
+Third round (Nov 2026):
+
+12. **Classic stays.** Today's arena is kept exactly as it is, as **Arena: Classic**, next to **Arena: Rooms**.
+    - **A setting for now**: a lobby choice on the Difficulty tab, a flavour knob like `DiffKnob.ArenaLayouts` (the same
+      on every preset, doesn't make a Custom difficulty; a new `DiffKnob` value at the end). It can become its own game
+      mode in the Play menu later. The host's choice is synced with the lobby and saved with the run.
+    - **Classic is the default** until Rooms is tuned.
+    - **Classic is untouched**: one 1600×900 screen, edge wrap, enemies from the edges, today's camera, and the
+      Gatekeeper's duel Data Gate. Every rooms code path checks the setting.
+    - **Balance is per arena**: the phase 3 changes (more enemy damage, less player health, room caps, spills) apply to
+      Rooms only. The stacking nerf pass (phase 4) is judged per arena.
+    - **The Gatekeeper moves to the vault in Rooms only**; Classic keeps his Data Gate.
+    - **Records say which arena**: run history, saved runs and the session recorder note it.
+    - A git tag (`classic-arena`) on `main` before rooms code lands, as an exact snapshot.
+
 ## The map (first draft; the mockup decides)
 
 - **The hub is today's arena**, 1600×900, at the same world coordinates (0..1600, 0..900). Everything tuned for the hub
@@ -166,7 +181,7 @@ Each client already draws its own screen, so every player's camera follows thems
    nearest enemy, -1 for none), `within300`, `inView2x` (enemies inside the 800×450 view the 2x zoom shows, held inside
    the arena like the camera) and `shotsInView2x`. `Tools/SessionReport/report.py` prints them as "Threats near you" per
    wave. Record a few runs on the current game for the before picture.
-1. **World and camera, Wings only**: a world bigger than the hub on regular waves, a following camera, wrapping off,
+1. **The Arena setting (Classic / Rooms, Classic by default) first**, then **world and camera, Wings only**: a world bigger than the hub on regular waves, a following camera, wrapping off,
    the two Wings rooms and both hallways (walled, with doors and small obstacles), the hub's layout kept, edge arrows,
    path steering over doors. Check the zoom feels right in Unity.
 2. **Nests, room spawning, fast-melee spills, doors that lock behind you, clear reward, the minimap.** The hub goes quiet
