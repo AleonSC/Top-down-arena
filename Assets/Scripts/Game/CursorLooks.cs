@@ -146,6 +146,14 @@ namespace Arena
                 case 8: CurGold(m, t, f); break;
                 case 9: CurPrism(m, t, f); break;
                 case 10: CurCycle(m, t, f, hist); break;
+                case 11: CurRadar(m, t, f); break;
+                case 12: CurSniper(m, f); break;
+                case 13: CurChevron(m, t, f); break;
+                case 14: CurSonar(m, t, f); break;
+                case 15: CurPixel(m, t, f); break;
+                case 16: CurPetal(m, t, f); break;
+                case 17: CurLaser(m, t, f); break;
+                case 18: CurLock(m, t, f); break;
                 default: CurClassic(m, f); break;
             }
         }
@@ -378,7 +386,15 @@ namespace Arena
             new Rgba(0.61f, 0.42f, 1f),           // 7 Void Eye
             new Rgba(1f, 0.82f, 0.3f),            // 8 Gold Diamond
             Rgba.White,                           // 9 Prism Ring (cycles through the spectrum)
-            new Rgba(70f / 255f, 230f / 255f, 1f) // 10 Light Cycle
+            new Rgba(70f / 255f, 230f / 255f, 1f),// 10 Light Cycle
+            new Rgba(0.42f, 1f, 0.6f),            // 11 Radar Sweep
+            new Rgba(0.91f, 0.94f, 0.97f),        // 12 Sniper Scope
+            new Rgba(1f, 0.42f, 0.84f),           // 13 Chevron Snap
+            new Rgba(0.5f, 0.91f, 1f),            // 14 Sonar Ping
+            new Rgba(1f, 0.82f, 0.4f),            // 15 Pixel Plus
+            new Rgba(1f, 0.62f, 0.77f),           // 16 Petal Ring
+            new Rgba(1f, 0.35f, 0.35f),           // 17 Laser Dot
+            new Rgba(1f, 0.54f, 0.24f)            // 18 Target Lock
         };
 
         /// Any look at morph `k`: 0 is its corner pointer, 1 its crosshair. The bracket collapses to a dot (k 0 to 0.3), then the crosshair
@@ -489,6 +505,48 @@ namespace Arena
                     Line(sp - new V2(0f, sr), sp + new V2(0f, sr), 1.3f, wh);
                     break;
                 }
+                case 11:  // Radar: a tiny scope ring with a beam
+                {
+                    V2 o = m + new V2(6f, 6f) * s;
+                    Arc(o, 3.6f * s, 1.2f, c, 12);
+                    Line(o, o + V2.FromAngle(t * 4f) * (3.6f * s), 1.2f, c);
+                    break;
+                }
+                case 12:  // Sniper: a red dot in the corner
+                    Circle(m + new V2(5f, 5f) * s, 1.6f * s, new Rgba(1f, 0.3f, 0.3f), 8);
+                    break;
+                case 13:  // Chevron: a small chevron pointing at the corner
+                {
+                    V2 o = m + new V2(7f, 7f) * s;
+                    Line(o + new V2(2f, -3f) * s, o, 1.6f, c);
+                    Line(o, o + new V2(-3f, 2f) * s, 1.6f, c);
+                    break;
+                }
+                case 14:  // Sonar: a ring growing out of the corner, over and over
+                {
+                    float ph = MathX.Fmod(t / 1.4f, 1f);
+                    Arc(m + new V2(5f, 5f) * s, (2f + ph * 7f) * s, 1.2f, c.WithAlpha(1f - ph), 14);
+                    break;
+                }
+                case 15:  // Pixel: two chunky squares in the corner
+                    FillRect(m.X + 4f * s, m.Y + 4f * s, 3f * s, 3f * s, new Rgba(1f, 0.3f, 0.43f));
+                    FillRect(m.X + 8f * s, m.Y + 4f * s, 3f * s, 3f * s, new Rgba(0.3f, 0.79f, 0.94f));
+                    break;
+                case 16:  // Petal: five tiny petals turning in the corner
+                    for (int q = 0; q < 5; q++)
+                    {
+                        V2 d = V2.FromAngle(t * 1.5f + q * MathX.Tau / 5f);
+                        Circle(m + new V2(7f, 7f) * s + d * (3.5f * s), 1.3f * s, c, 6);
+                    }
+                    break;
+                case 17:  // Laser: a glowing dot in the corner
+                    Circle(m + new V2(5f, 5f) * s, 4f * s, c.WithAlpha(0.25f), 10);
+                    Circle(m + new V2(5f, 5f) * s, 1.6f * s, c, 8);
+                    break;
+                case 18:  // Target Lock: a small dashed ring turning in the corner
+                    for (int q = 0; q < 6; q++)
+                        Arc(m + new V2(6.5f, 6.5f) * s, 4f * s, 1.2f, c, 4, t * 1.2f + q * MathX.Tau / 6f, MathX.Tau / 12f);
+                    break;
                 case 10:  // Light Cycle: a square head on the corner
                     FillRect(m.X - 3f * s, m.Y - 3f * s, 6f * s, 6f * s, c);
                     FillRect(m.X - 1f, m.Y - 1f, 2f, 2f, new Rgba(0.04f, 0.05f, 0.06f));

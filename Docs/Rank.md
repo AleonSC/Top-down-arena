@@ -71,7 +71,7 @@ Tune in `Rank.NeedFor(rank)`; there's no cap on rank (the badge handles three di
 
 ## Rewards (cosmetics)
 
-Every rank from 2 to 79 gives something (generated from `Rank.Cosmetics`; the titles come with the tier):
+Every rank from 2 to 87 gives something (generated from `Rank.Cosmetics`; the titles come with the tier):
 
 | Rank | Reward |
 |---|---|
@@ -153,6 +153,14 @@ Every rank from 2 to 79 gives something (generated from `Rank.Cosmetics`; the ti
 | 77 | Name effect: Terminal name |
 | 78 | Name effect: Electric name |
 | 79 | Name effect: Petals name |
+| 80 | Cursor: Radar Sweep cursor |
+| 81 | Cursor: Sniper Scope cursor |
+| 82 | Cursor: Chevron Snap cursor |
+| 83 | Cursor: Sonar Ping cursor |
+| 84 | Cursor: Pixel Plus cursor |
+| 85 | Cursor: Petal Ring cursor |
+| 86 | Cursor: Laser Dot cursor |
+| 87 | Cursor: Target Lock cursor |
 
 > The numbers in the bullets below are from before the ladder moved up one rank (nothing unlocks at rank 1 any more; the first rewards are at rank 2). Add 1 to each, or read `Rank.Cosmetics` in `Core/Rank.cs`.
 

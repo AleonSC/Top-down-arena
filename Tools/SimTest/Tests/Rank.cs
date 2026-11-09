@@ -152,8 +152,12 @@ static partial class Program
         Check(cp.Equip(CosmeticKind.AimLine, "aim-ember") && cp.AimLine == "aim-ember" && cp.Equipped(CosmeticKind.AimLine) == "aim-ember" && !cp.Equip(CosmeticKind.AimLine, "aim-storm") && !cp.Equip(CosmeticKind.Trail, "aim-dotted") && cp.Equip(CosmeticKind.AimLine, "") && cp.AimLine == "",
             "you equip the aim lines your rank has, only in their slot, and \"\" goes back to Classic");
         // Cursors: ten unlocks beside the free Classic crosshair; local only, saved as the seventh field of the equip line.
-        Check(Rank.OfKind(CosmeticKind.Cursor).Count == 10 && Rank.CursorIndex("cursor-fine") == 1 && Rank.CursorIndex("cursor-cycle") == 10 && Rank.CursorId(10) == "cursor-cycle" && Rank.CursorId(11) == "" && Rank.CursorIndex("") == 0
-              && Rank.Owns(47, "cursor-cycle") && !Rank.Owns(46, "cursor-cycle") && Rank.Owns(4, "cursor-fine") && !Rank.Owns(3, "cursor-fine"), "ten cursors, Fine Cross at rank 4 to Light Cycle at 47, numbered in rank order, Classic is 0");
+        Check(Rank.OfKind(CosmeticKind.Cursor).Count == 18 && Rank.CursorIndex("cursor-fine") == 1 && Rank.CursorIndex("cursor-cycle") == 10 && Rank.CursorId(10) == "cursor-cycle" && Rank.CursorId(11) == "cursor-radar" && Rank.CursorId(19) == "" && Rank.CursorIndex("") == 0
+              && Rank.Owns(47, "cursor-cycle") && !Rank.Owns(46, "cursor-cycle") && Rank.Owns(4, "cursor-fine") && !Rank.Owns(3, "cursor-fine"), "ten cursors, Fine Cross at rank 4 to Light Cycle at 47, numbered in rank order, Classic is 0, and eight newer ones after them");
+        string[] newCur = { "cursor-radar", "cursor-sniper", "cursor-chevron", "cursor-sonar", "cursor-pixel", "cursor-petal", "cursor-laser", "cursor-lock" };
+        bool curOk = true;
+        for (int i = 0; i < newCur.Length; i++) { var def = Rank.Cosmetic(newCur[i]); curOk &= def != null && def.Kind == CosmeticKind.Cursor && def.Rank == 80 + i && Rank.RewardsAt(80 + i).Count == 1 && Rank.CursorIndex(newCur[i]) == 11 + i && !Rank.Owns(79 + i, newCur[i]) && Rank.Owns(80 + i, newCur[i]); }
+        Check(curOk, "eight newer cursors at ranks 80 to 87, one a rank, numbered 11 to 18 after Light Cycle");
         cp.Xp = Rank.XpAt(20);
         Check(cp.Equip(CosmeticKind.Cursor, "cursor-ember") && cp.Cursor == "cursor-ember" && cp.Equipped(CosmeticKind.Cursor) == "cursor-ember" && !cp.Equip(CosmeticKind.Cursor, "cursor-storm") && !cp.Equip(CosmeticKind.AimLine, "cursor-fine") && cp.Equip(CosmeticKind.Cursor, "cursor-fine") && cp.Equip(CosmeticKind.Cursor, "") && cp.Cursor == "",
             "you equip the cursors your rank has, only in their slot, and \"\" goes back to Classic");

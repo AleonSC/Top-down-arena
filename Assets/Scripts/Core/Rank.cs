@@ -198,6 +198,14 @@ namespace Arena
             new CosmeticDef { Id = "cursor-gold", Name = "Gold Diamond cursor", Kind = CosmeticKind.Cursor, Rank = 32 },
             new CosmeticDef { Id = "cursor-prism", Name = "Prism Ring cursor", Kind = CosmeticKind.Cursor, Rank = 39 },
             new CosmeticDef { Id = "cursor-cycle", Name = "Light Cycle cursor", Kind = CosmeticKind.Cursor, Rank = 47 },
+            new CosmeticDef { Id = "cursor-radar", Name = "Radar Sweep cursor", Kind = CosmeticKind.Cursor, Rank = 80 },
+            new CosmeticDef { Id = "cursor-sniper", Name = "Sniper Scope cursor", Kind = CosmeticKind.Cursor, Rank = 81 },
+            new CosmeticDef { Id = "cursor-chevron", Name = "Chevron Snap cursor", Kind = CosmeticKind.Cursor, Rank = 82 },
+            new CosmeticDef { Id = "cursor-sonar", Name = "Sonar Ping cursor", Kind = CosmeticKind.Cursor, Rank = 83 },
+            new CosmeticDef { Id = "cursor-pixel", Name = "Pixel Plus cursor", Kind = CosmeticKind.Cursor, Rank = 84 },
+            new CosmeticDef { Id = "cursor-petal", Name = "Petal Ring cursor", Kind = CosmeticKind.Cursor, Rank = 85 },
+            new CosmeticDef { Id = "cursor-laser", Name = "Laser Dot cursor", Kind = CosmeticKind.Cursor, Rank = 86 },
+            new CosmeticDef { Id = "cursor-lock", Name = "Target Lock cursor", Kind = CosmeticKind.Cursor, Rank = 87 },
         };
 
         public static CosmeticDef Cosmetic(string id)
