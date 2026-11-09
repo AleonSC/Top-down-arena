@@ -28,7 +28,10 @@ static partial class Shot {
       // EMOTEBAR=1: the emote bar open (rank 60); EMOTE=n[,age]: emote number n showing over player 1, that many seconds in (EmoteBar.cs)
       if (Environment.GetEnvironmentVariable("EMOTEBAR") != null) { Profile.Current.Xp = Rank.XpAt(60); set("emoteBarOpen", true); set("emoteBarK", 1f); }
       if (Environment.GetEnvironmentVariable("EMOTE") != null) { var ep = Environment.GetEnvironmentVariable("EMOTE").Split(','); host.Emotes[1] = new Session.EmoteShow { Index = byte.Parse(ep[0]), At = Session.Clock - (ep.Length > 1 ? float.Parse(ep[1]) : 0.8f) }; }
+      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null;  // (the off-screen markers draw with GL on the HUD; OffscreenMarkers.cs)
+      if (zoomGl) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      if (zoomGl) GL.ToUi = false;
       if (recallAt >= 0f) typeof(ArenaApp).GetMethod("DrawRecallFade", f2).Invoke(app, null);
       if (launchAt >= 0f) { typeof(ArenaApp).GetMethod("DrawLaunchWave", f2).Invoke(app, null); typeof(ArenaApp).GetMethod("DrawLobbyLeaving", f2).Invoke(app, null); }
     }
