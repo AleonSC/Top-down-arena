@@ -129,8 +129,12 @@ static partial class Program
         PollBoth(host, client);
         Check(entry(host, cid).CardBg == 0, "a card background the rank doesn't have is dropped by the host");
         // Name effects: twelve, numbered in rank order, shared through the lobby; the host drops one the rank doesn't have.
-        Check(Rank.OfKind(CosmeticKind.NameEffect).Count == 12 && Rank.NameFxIndex("name-outline") == 1 && Rank.NameFxIndex("name-glitchy") == 8 && Rank.NameFxId(12) == "name-rainbow" && Rank.NameFxId(13) == "" && Rank.Owns(37, "name-glitchy") && !Rank.Owns(36, "name-glitchy") && Rank.RewardsAt(37).Exists(rw => rw.Id == "name-glitchy"),
-            "twelve name effects, Steel Outline at rank 5 to Rainbow at 55, with Glitchy at 37");
+        Check(Rank.OfKind(CosmeticKind.NameEffect).Count == 20 && Rank.NameFxIndex("name-outline") == 1 && Rank.NameFxIndex("name-glitchy") == 8 && Rank.NameFxId(12) == "name-rainbow" && Rank.NameFxId(13) == "name-chrome" && Rank.NameFxId(21) == "" && Rank.Owns(37, "name-glitchy") && !Rank.Owns(36, "name-glitchy") && Rank.RewardsAt(37).Exists(rw => rw.Id == "name-glitchy"),
+            "twelve name effects, Steel Outline at rank 5 to Rainbow at 55, with Glitchy at 37, and eight newer ones after them");
+        string[] newFx = { "name-chrome", "name-toxic", "name-holo", "name-nebula", "name-pixel", "name-terminal", "name-electric", "name-petals" };
+        bool fxOk = true;
+        for (int i = 0; i < newFx.Length; i++) { var def = Rank.Cosmetic(newFx[i]); fxOk &= def != null && def.Kind == CosmeticKind.NameEffect && def.Rank == 72 + i && Rank.RewardsAt(72 + i).Count == 1 && Rank.NameFxIndex(newFx[i]) == 13 + i && !Rank.Owns(71 + i, newFx[i]) && Rank.Owns(72 + i, newFx[i]); }
+        Check(fxOk, "eight newer name effects at ranks 72 to 79, one a rank, numbered 13 to 20 after Rainbow");
         cp.Xp = Rank.XpAt(41); hp.Xp = Rank.XpAt(41);
         Check(cp.Equip(CosmeticKind.NameEffect, "name-glitchy") && cp.NameFx == "name-glitchy" && !cp.Equip(CosmeticKind.NameEffect, "name-gold") && !cp.Equip(CosmeticKind.Frame, "name-fire") && cp.Equipped(CosmeticKind.NameEffect) == "name-glitchy", "you equip the name effects your rank has, and only in their slot");
         hp.Equip(CosmeticKind.NameEffect, "name-outline");

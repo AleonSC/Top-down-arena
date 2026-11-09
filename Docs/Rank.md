@@ -71,7 +71,7 @@ Tune in `Rank.NeedFor(rank)`; there's no cap on rank (the badge handles three di
 
 ## Rewards (cosmetics)
 
-Every rank from 2 to 71 gives something (generated from `Rank.Cosmetics`; the titles come with the tier):
+Every rank from 2 to 79 gives something (generated from `Rank.Cosmetics`; the titles come with the tier):
 
 | Rank | Reward |
 |---|---|
@@ -145,6 +145,14 @@ Every rank from 2 to 71 gives something (generated from `Rank.Cosmetics`; the ti
 | 69 | Card background: Contour Map card |
 | 70 | Frame: Chain Link frame |
 | 71 | Card background: Honeycomb Pulse card |
+| 72 | Name effect: Chrome name |
+| 73 | Name effect: Toxic Drip name |
+| 74 | Name effect: Hologram name |
+| 75 | Name effect: Nebula name |
+| 76 | Name effect: Pixel name |
+| 77 | Name effect: Terminal name |
+| 78 | Name effect: Electric name |
+| 79 | Name effect: Petals name |
 
 > The numbers in the bullets below are from before the ladder moved up one rank (nothing unlocks at rank 1 any more; the first rewards are at rank 2). Add 1 to each, or read `Rank.Cosmetics` in `Core/Rank.cs`.
 

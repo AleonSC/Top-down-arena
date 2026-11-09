@@ -1080,6 +1080,14 @@ each kind at a time:
 | 45 | **Gold Foil name**: rich gold with a sheen sweeping across |
 | 49 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
 | 55 | **Rainbow name**: every letter its own hue, turning round the spectrum |
+| 72 | **Chrome name**: mirror metal with a dark horizon line and a sheen gliding across |
+| 73 | **Toxic Drip name**: acid green with slime that gathers under letters, hangs and drops |
+| 74 | **Hologram name**: a cyan projection with a magenta fringe, faint scanlines and a travelling bright band |
+| 75 | **Nebula name**: a pink, violet and blue gradient with a drifting glow and twinkling stars |
+| 76 | **Pixel name**: chunky blocks of four colours stepping along the name |
+| 77 | **Terminal name**: fixed-pitch green with a blinking block cursor; every few seconds it scrambles and decodes |
+| 78 | **Electric name**: warm white with a flickering blue glow and bolts jumping through the name |
+| 79 | **Petals name**: soft pink with cherry-blossom petals tumbling past |
 
 **Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 6), Chevron Flow (12), Ruler (15), Ember Wisp (18), Frost Shard (22), Storm Arc (27), Pixel Beam (30), Helix (35) and Prism (47) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
 
