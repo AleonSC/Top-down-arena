@@ -157,6 +157,51 @@ namespace Arena
             MLine(12f, 0f, 26f, 0f, 2.4f, MSteel.Mix(new Rgba(1f, 0.55f, 0.2f), mDHeat));  // the barrel warms with sustained fire
             MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
             MRect(5f - mBolt, 2.6f, 5f, 1.4f, MSteel);                                      // the charging handle flicks back
+            DrawTwinTube();
+        }
+
+        // --- the Twin Rifle's grenade tubes (Core/TwinGrenades.cs) -----------------------------------------------------
+
+        static readonly Rgba TubeOlive = Hx(0x7c8c45), TubeEmpty = Hx(0x3f4728), TubeLit = Hx(0xd6ec8a);
+        int mHeldTube;        // which tube the rifle being drawn carries: 0 left hand, 1 right (set by the model, CharacterModels.cs)
+        Player mHeldOwner;
+
+        /// A launcher tube under the barrel: olive and glowing when a grenade is in it, dark when empty, with a light at the
+        /// muzzle on the tube that fires next.
+        void DrawTwinTube()
+        {
+            var p = mHeldOwner;
+            if (p == null || p.Weapon.Id != WeaponId.TwinRifle)
+                return;
+            bool loaded = Game.TwinTubeLoaded(p, mHeldTube), next = loaded && p.TwinNext == mHeldTube;
+            MRect(11f, 2.9f, 12f, 3.4f, loaded ? TubeOlive : TubeEmpty);
+            MRect(22f, 2.6f, 2.4f, 4f, Hx(0x2a301c));
+            if (next)
+                MCirc(24.8f, 4.6f, 1.4f, TubeLit.WithAlpha(0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 8f)), 8);
+        }
+
+        /// Two diamonds behind you, one a tube: olive when loaded, the next one to fire ringed, and the empty tube that loads next
+        /// ringed by its progress as your hits load it.
+        void DrawTwinNadePips(Player p)
+        {
+            if (!fxOn || p.Downed || p.TwinNades == 0 && p.TwinCharge == 0)
+                return;
+            float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 6f);
+            int filling = p.TwinNades == 0 ? p.TwinNext : p.TwinNades == 1 ? 1 - p.TwinNext : -1;
+            for (int tube = 0; tube < Game.TwinNadeMax; tube++)
+            {
+                // tube 0 (left) sits to your left behind you: arena y runs down the screen, so Orthogonal is your left
+                V2 back = V2.FromAngle(p.Aim + MathX.Pi), left = V2.FromAngle(p.Aim).Orthogonal();
+                V2 c = p.Disp + back * 28f + left * (tube == 0 ? 11f : -11f);
+                bool on = Game.TwinTubeLoaded(p, tube);
+                if (on)
+                    Circle(c, 8f, TubeLit.WithAlpha(0.12f + 0.1f * pulse), 12);
+                Polygon(c, 5f, 4, 0f, on ? TubeOlive.Mix(TubeLit, 0.35f) : new Rgba(1f, 1f, 1f, 0.14f));
+                if (tube == filling && p.TwinCharge > 0)  // a ring closing round it as your hits load it
+                    Arc(c, 8.5f, 1.8f, TubeLit.WithAlpha(0.75f), 16, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.TwinCharge / (float)Game.TwinNadeHits));
+                if (on && p.TwinNext == tube && p.TwinNades == 2)
+                    Arc(c, 8.5f, 1.4f, TubeLit.WithAlpha(0.8f), 14);
+            }
         }
 
         void DrawRailgunFx()

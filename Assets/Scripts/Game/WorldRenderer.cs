@@ -99,6 +99,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.HolyMace)
                     DrawStaffPips(p);  // QuarterstaffLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.TwinRifle)
+                    DrawTwinNadePips(p);  // DpsGunLooks.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs

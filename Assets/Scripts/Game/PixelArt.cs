@@ -127,7 +127,7 @@ namespace Arena
             { "Adrenaline Shot", "pulse" },
             { "Deployable Medkit", "pulse" },
             { "Dash", "dash" },
-            { "Cluster Grenade", "grenade" },
+            { "Airstrike", "explode" },
             { "Mark for Death", "crosshair" },
             { "Aeroaegis", "mirror" },
             { "Frost Nova", "snow" },

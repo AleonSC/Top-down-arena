@@ -153,9 +153,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Grenade, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1,
-                Name = "Cluster Grenade", Cooldown = 6f, Desc = "Throw a grenade at your cursor that explodes into shrapnel.",
-                Capstone = "Throws a second grenade 80 px further.",
+                Id = AbilityId.Airstrike, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1,
+                Name = "Airstrike", Cooldown = 16f, Desc = "Throw a flare at your cursor: a jet carpets a line across the arena through it, across your aim (55 a bomb), and the line burns for 3 s.",
+                Capstone = "A second wall lands 160 px further out, half a second later.",
             },
             new AbilityDef
             {
@@ -225,22 +225,9 @@ namespace Arena
                 case AbilityId.Medkit:
                     ThrowMedkit(p, target, cap, pw);  // Medkit.cs
                     break;
-                case AbilityId.Grenade:
-                {
-                    V2 vel = (target - p.Pos) / GrenadeFlight;
-                    var g = SpawnBullet(Defs.GrenadeShot, p.Pos, vel, 0f, GrenadeFlight, GrenadeDamage * s.DmgMult, p.Id);
-                    g.Splash = GrenadeRadius * s.GrenadeRadiusMult;
-                    g.Burst = 8 + s.GrenadeExtraShrapnel;
-                    if (cap)
-                    {
-                        // A second grenade lands 80 px past the first.
-                        V2 far = target + (target - p.Pos).Normalized() * 80f;
-                        var g2 = SpawnBullet(Defs.GrenadeShot, p.Pos, (far - p.Pos) / GrenadeFlight, 0f, GrenadeFlight, GrenadeDamage * s.DmgMult, p.Id);
-                        g2.Splash = g.Splash;
-                        g2.Burst = g.Burst;
-                    }
+                case AbilityId.Airstrike:
+                    CastAirstrike(p, target, cap, pw);  // Airstrike.cs
                     break;
-                }
                 case AbilityId.Mark:
                 {
                     // The enemy nearest the cursor (the three nearest once mastered).

@@ -681,7 +681,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatana = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -896,7 +896,7 @@ namespace Arena
         static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
 
         // Local: this machine's player's weapon dashes.
-        float reelCd, staffJabLocalCd;
+        float reelCd, staffJabLocalCd, twinNadeLocalCd;
         bool wasWeaponAction;
 
         /// Your own game, every tick: weapon secondaries go on the weapon-action key (Keybinds, Left Alt by default;
@@ -906,6 +906,7 @@ namespace Arena
         {
             reelCd -= dt;
             staffJabLocalCd -= dt;
+            twinNadeLocalCd -= dt;
             bool pressed = weaponAction && !wasWeaponAction, released = !weaponAction && wasWeaponAction;
             wasWeaponAction = weaponAction;
             LocalTwinStep(me, dt);  // the Twin Blades' steps forward (TwinBlades.cs)
@@ -1033,6 +1034,20 @@ namespace Arena
                 }
                 return;
             }
+            if (me.Weapon.Id == WeaponId.TwinRifle && pressed && twinNadeLocalCd <= 0f && me.TwinNades > 0)
+            {
+                twinNadeLocalCd = TwinNadeCd;  // one grenade a press, the tubes taking turns (TwinGrenades.cs)
+                if (IsHost)
+                    HostWeaponDash(MyId, DashNade, aimAt);  // no move: the grenade flies to where the streams cross
+                else
+                {
+                    var nw = Proto.Begin(Msg.WeaponDash);
+                    nw.Write(DashNade);
+                    nw.Write(aimAt);
+                    session.SendToHost(Proto.End(nw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.HolyMace && weaponAction && staffJabLocalCd <= 0f && me.StaffStacks > 0)
             {
                 staffJabLocalCd = StaffJabCd;  // (held, the key jabs again as soon as the host would let it)
@@ -1094,6 +1109,11 @@ namespace Arena
             if (kind == DashLance)
             {
                 HostSunlance(p, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashNade)
+            {
+                HostTwinGrenade(p, target);  // (target: where they were aiming; TwinGrenades.cs)
                 return;
             }
             if (kind == DashJab)

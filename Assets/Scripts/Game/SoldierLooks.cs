@@ -7,7 +7,7 @@ namespace Arena
     /// effects off, none of this runs and the old looks draw as before.
     ///   Dash            B, Comet Streak: a tapered cyan ribbon from where you started to where you are, cooling off over 0.4 s,
     ///                   sparks off it, and a ring of sparks where you land (your own dash only, as the dash always was);
-    ///   Cluster Grenade A, Frag Burst: an olive grenade with a faint ring growing to its blast radius, then a white flash,
+    ///   Grenade (the Twin Rifle's tubes; Airstrike's bombs use the blast) A, Frag Burst: an olive grenade with a faint ring growing to its blast radius, then a white flash,
     ///                   an orange blast out to the radius, eight streaking shards and smoke (the scorch is Juice.cs's);
     ///   Mark for Death  A, Reticle Lock, with B's skull floating over it: the reticle snaps down and circles the enemy, a
     ///                   timer arc unwinds round it, and both blink for the last second.
@@ -90,7 +90,7 @@ namespace Arena
                 }
         }
 
-        // --- Cluster Grenade: Frag Burst -------------------------------------------------------------------------------
+        // --- Grenades (Twin Rifle tubes) and Airstrike bombs: Frag Burst -------------------------------------------------------------------------------
 
         /// A grenade's blast: Combat.cs sends it as a Boom in the grenade shot's colour (nothing else uses that colour).
         bool IsGrenadeBoom(Effect fx)

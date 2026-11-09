@@ -33,8 +33,8 @@ static partial class Program
                         adrenaline |= p.AdrenalineT > 0f;
                     }
                     zone |= client.Game.Zones.Count > 0;
-                    foreach (var b in client.Game.Bullets.Values)
-                        grenade |= b.Kind == Defs.GrenadeShot;
+                    foreach (var fx in client.Game.Effects)
+                        grenade |= fx.Kind == FxKind.Airstrike;
                     foreach (var e in client.Game.Enemies.Values)
                         marked |= e.Marked;
                     if (++frame % 60 == 0)
@@ -51,7 +51,7 @@ static partial class Program
                     {
                         case AbilityId.Roar: seen = taunt; break;
                         case AbilityId.Adrenaline: seen = adrenaline; break;
-                        case AbilityId.Grenade: seen = grenade; break;
+                        case AbilityId.Airstrike: seen = grenade; break;
                         case AbilityId.Mark: seen = marked; break;
                     }
                     if (Environment.GetEnvironmentVariable("DEBUG") != null)

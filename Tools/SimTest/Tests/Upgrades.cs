@@ -284,16 +284,16 @@ static partial class Program
             && !Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, new List<int>()),
             "a class ability card isn't offered twice, and that ability's own upgrades open up");
 
-        // In a match: the DPS Soldier (Space: Dash) gets Cluster Grenade on Q, and the bot throws it.
+        // In a match: the DPS Soldier (Space: Dash) gets Airstrike on Q, and the bot calls it in.
         var s = StartBuffed(dt, 1, 0);
         Run(s, dt, 1);
-        s[0].Game.GrantUpgrade(2, U("Cluster Grenade"));
+        s[0].Game.GrantUpgrade(2, U("Airstrike"));
         bool thrown = false;
-        Run(s, dt, 9, null, () => thrown |= s[0].Game.Bullets.Values.Any(b => b.Kind == Defs.GrenadeShot && b.Owner == 2));
+        Run(s, dt, 9, null, () => thrown |= s[0].Game.Effects.Any(e => e.Kind == FxKind.Airstrike && (int)(e.Radius / 10000f) == 2));
         var hp = s[0].Game.Players[2];
         var cp = s[1].Game.Players[2];
-        Console.WriteLine("  DPS Soldier: Space {0}, Q {1} (client sees {2}); grenade thrown {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
-        Check(hp.Slots[0].Id == AbilityId.Dash && hp.Slots[1].Id == AbilityId.Grenade && cp.Slots[1].Id == AbilityId.Grenade && thrown,
+        Console.WriteLine("  DPS Soldier: Space {0}, Q {1} (client sees {2}); airstrike called {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
+        Check(hp.Slots[0].Id == AbilityId.Dash && hp.Slots[1].Id == AbilityId.Airstrike && cp.Slots[1].Id == AbilityId.Airstrike && thrown,
             "a class ability card puts that ability on Q, E or Shift, and it works there");
         s[0].Leave(""); s[1].Leave("");
     }

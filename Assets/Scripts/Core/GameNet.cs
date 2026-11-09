@@ -500,6 +500,9 @@ namespace Arena
             s.Byte(ref p.KatanaChain);
             s.Byte(ref p.BoStep);
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
+            s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
+            s.Byte(ref p.TwinNext);
+            s.Byte(ref p.TwinCharge);
             s.Byte(ref p.Embers);       // the Censer's Embers (Censer.cs)
             s.Byte(ref p.GreatStep);    // the Greatsword's chain, Temper and guard (Greatsword.cs)
             s.Byte(ref p.GreatTemper);

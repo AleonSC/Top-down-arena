@@ -435,6 +435,10 @@ static partial class Shot {
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    if (Environment.GetEnvironmentVariable("TWINNADES") != null) {  // TWINNADES=<loaded>,<next tube 0/1>,<charge>: the Twin Rifle's grenade tubes (TwinGrenades.cs)
+      var tn = Environment.GetEnvironmentVariable("TWINNADES").Split(',');
+      me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.TwinNades = byte.Parse(tn[0]); me.TwinNext = byte.Parse(tn[1]); me.TwinCharge = byte.Parse(tn[2]);
+    }
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {

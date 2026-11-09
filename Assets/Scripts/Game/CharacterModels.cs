@@ -164,8 +164,10 @@ namespace Arena
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
             {
+                mHeldTube = 1;  // (the right hand's Twin Rifle carries the right grenade tube, DpsGunLooks.cs)
+                mHeldOwner = p;
                 DrawHeld(p, t, hold);
-                if (hold == 2) { MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
+                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
@@ -459,6 +461,7 @@ namespace Arena
                 case WeaponId.TwinRifle:
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
+                    DrawTwinTube();
                     break;
                 case WeaponId.Railgun:
                     if (mDpsOn) { DrawRailgunFx(); break; }  // DpsGunLooks.cs

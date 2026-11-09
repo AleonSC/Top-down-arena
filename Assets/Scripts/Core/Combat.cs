@@ -488,6 +488,8 @@ namespace Arena
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);
+                            if (b.Crossfire)
+                                TwinRifleHit(b, e);  // Twin Rifle hits load the grenade tubes (TwinGrenades.cs)
                             foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
                                 onHit(this, b, e, hit);
                             OnBulletHit(b, e);
