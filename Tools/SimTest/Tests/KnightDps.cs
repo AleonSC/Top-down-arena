@@ -174,6 +174,9 @@ static partial class Program
         var railShot = Shot(new V2(620f, 300f), new V2(0f, 320f));
         Step(0.7f, new V2(900f, 450f));
         Check(!g.Bullets.ContainsKey(railShot.Id) && railShot.Pos.Y < 450f - Game.BridgeHalfWidth + 12f, "enemy shots stop at the rail");
+        clear.Pos = new V2(600f, 455f);  // shoved onto the rail again
+        Step(0.6f, new V2(900f, 450f));
+        Check(1e6f - clear.Hp >= Game.BridgeRailDps * Game.BridgeRailTick * 0.9f, "the rails grind an enemy pressed against them");
         Step(6f, new V2(900f, 450f));
         Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.Drawbridge), "the bridge gives way after its time");
         host.Leave(""); client.Leave("");

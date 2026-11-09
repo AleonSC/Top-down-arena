@@ -77,7 +77,7 @@ namespace Arena
             new MinionDef { Name = "Wisp", Radius = 6f, Sides = 5, Color = new Rgba(0.85f, 1f, 0.95f), Move = MinionMove.Orbit, Speed = 2.5f, OrbitRadius = 40f,
                 Attack = MinionAttack.Shoot, Interval = 0.5f, Damage = 7f, Range = 380f },
             new MinionDef { Name = "Imp", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.35f, 0.2f), Move = MinionMove.Chase, Speed = 240f,
-                Attack = MinionAttack.Explode, Damage = 45f, Range = 70f },
+                Attack = MinionAttack.Explode, Damage = 70f, Range = 70f },
             new MinionDef { Name = "Bat", Radius = 6f, Sides = 3, Color = new Rgba(0.55f, 0.4f, 0.7f), Move = MinionMove.Chase, Speed = 320f,
                 Attack = MinionAttack.Bite, Interval = 0.4f, Damage = 6f },
             new MinionDef { Name = "Phoenix", Radius = 12f, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f), Move = MinionMove.Orbit, Speed = 1.8f, OrbitRadius = 70f,

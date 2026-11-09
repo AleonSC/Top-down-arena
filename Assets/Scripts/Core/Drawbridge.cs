@@ -17,7 +17,11 @@ namespace Arena
         public const float BridgeLength = 500f, BridgeHalfWidth = 50f, BridgeHingeOut = 30f;
         public const float BridgeFallStart = 0.42f, BridgeChainsSnap = 0.72f, BridgeSlam = 1.05f;
         public const float BridgeStand = 5f, BridgeStandMastered = 8f, BridgeCrumble = 0.9f;
-        public const float BridgeCrush = 140f, BridgeEdgeDamage = 45f, BridgeEdgeBand = 40f, BridgeEdgeShove = 40f;
+        public const float BridgeCrush = 260f, BridgeEdgeDamage = 45f, BridgeEdgeBand = 40f, BridgeEdgeShove = 40f;
+
+        public const float BridgeRailDps = 80f, BridgeRailTick = 0.5f;  // enemies pressed against a rail are ground down
+        float bridgeRailAcc;
+        readonly System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Enemy, Zone>> bridgeRailHits = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Enemy, Zone>>();
 
         public static float BridgeAge(Zone z) => z.Duration - z.T;
 
@@ -83,8 +87,13 @@ namespace Arena
         }
 
         /// Host, after the enemies move: nobody steps onto a bridge that's down (they're kept to its rails and far end).
-        void KeepOffBridges()
+        void KeepOffBridges(float dt)
         {
+            bridgeRailAcc += dt;
+            bool tick = bridgeRailAcc >= BridgeRailTick;
+            if (tick)
+                bridgeRailAcc -= BridgeRailTick;
+            bridgeRailHits.Clear();
             foreach (var z in Zones.Values)
             {
                 if (z.Kind != ZoneKind.Drawbridge || !BridgeDown(z))
@@ -95,7 +104,11 @@ namespace Arena
                         continue;
                     V2 l = BridgeLocal(z, e.Pos);
                     float m = BridgeHalfWidth + e.Radius + 2f;
-                    if (l.X <= -4f - e.Radius || l.X >= BridgeLength + e.Radius || Math.Abs(l.Y) >= m)
+                    if (l.X <= -4f - e.Radius || l.X >= BridgeLength + e.Radius || Math.Abs(l.Y) >= m + 3f)
+                        continue;
+                    if (tick)
+                        bridgeRailHits.Add(new System.Collections.Generic.KeyValuePair<Enemy, Zone>(e, z));  // pressed against a rail
+                    if (Math.Abs(l.Y) >= m)
                         continue;
                     float toEnd = BridgeLength + e.Radius - l.X, toSide = m - Math.Abs(l.Y);
                     if (toEnd < toSide)
@@ -106,6 +119,8 @@ namespace Arena
                     e.KnockLeft = V2.Zero;
                 }
             }
+            foreach (var h in bridgeRailHits)  // the rails grind what's pressed against them
+                HurtEnemy(h.Key, BridgeRailDps * BridgeRailTick * h.Value.DmgMult, h.Value.Owner);
         }
 
         /// Host, from the enemy-bullet loop (Combat.cs): an enemy shot reaching a bridge that's down stops at its rail.

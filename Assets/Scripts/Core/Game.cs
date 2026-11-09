@@ -1181,7 +1181,7 @@ namespace Arena
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
-            KeepOffBridges();    // the Drawbridge (Drawbridge.cs)
+            KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);

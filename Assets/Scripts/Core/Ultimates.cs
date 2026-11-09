@@ -110,8 +110,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Legion, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Legion", Cooldown = 70f, Desc = "A blood moon rises. Summon 6 wolves and 6 bats that circle you, then run 40% faster for 10 s; your other minions frenzy.",
-                Capstone = "Summons 10 wolves and 10 bats.",
+                Name = "Legion", Cooldown = 70f, Desc = "A blood moon rises. Summon 4 wolves and 4 bats that circle you, then run 40% faster for 10 s; your other minions frenzy.",
+                Capstone = "Summons 7 wolves and 7 bats.",
             },
         };
 
@@ -215,7 +215,7 @@ namespace Arena
                 }
 
                 case AbilityId.Legion:  // DPS: Summoner. Blood Moon: the pack circles you, then is let loose, faster than normal
-                    int pack = cap ? 10 : 6;
+                    int pack = cap ? 7 : 4;
                     for (int i = 0; i < pack; i++)
                     {
                         float a = MathX.Tau * i / pack;
