@@ -42,13 +42,13 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx }
 
     public class ZoneDef
     {
         public string Name;
         public Rgba Color;
-        public float HealRate, ReviveBoost;  // HP/s for allies inside; extra revive speed for downed allies
+        public float HealRate;  // HP/s for allies inside
         public float Dps, Slow;              // damage per second to enemies inside; slow amount (0..1)
         public float BlockCapacity;          // enemy bullets coming in are destroyed until this much boss damage is soaked
         public bool PreventDown;             // allies inside can't drop below 1 HP
@@ -115,8 +115,6 @@ namespace Arena
         // Indexed by ZoneKind.
         public static readonly ZoneDef[] Zones =
         {
-            new ZoneDef { Name = "Haven",  // unused since the Adrenaline Shot; kept so the ZoneKind numbers stay put
-                Color = new Rgba(0.4f, 1f, 0.6f), HealRate = 15f, ReviveBoost = 2f },
             new ZoneDef { Name = "Flame Wall", Color = new Rgba(1f, 0.45f, 0.15f), Dps = 30f, BlockCapacity = 300f },
             new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
             new ZoneDef { Name = "Meteor", Color = new Rgba(1f, 0.35f, 0.15f), BlastDamage = 150f },

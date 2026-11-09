@@ -876,13 +876,13 @@ namespace Arena
                 {
                     if (q.Pos.DistanceTo(z.Pos) > z.Radius)
                         continue;
-                    if (q.Downed && d.ReviveBoost + z.ExtraRevive > 0f)
+                    if (q.Downed && z.ExtraRevive > 0f)
                     {
-                        q.Revive += dt / D(DiffKnob.ReviveTime) * (d.ReviveBoost + z.ExtraRevive);  // on top of the normal revive
+                        q.Revive += dt / D(DiffKnob.ReviveTime) * z.ExtraRevive;  // on top of the normal revive
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f && !HallowedSpent(z))
-                        Heal(q, d.HealRate * z.HealMult * (d.ReviveBoost > 0f && Players.Count == 1 ? SoloZoneHeal : 1f) * dt, PlayerOrNull(z.Owner));  // alone, nobody to revive: heals faster
+                        Heal(q, d.HealRate * z.HealMult * dt, PlayerOrNull(z.Owner));
                 }
                 if (z.Kind == ZoneKind.Sanctum)
                     SanctumPulse(z, dt);  // Sanctum.cs

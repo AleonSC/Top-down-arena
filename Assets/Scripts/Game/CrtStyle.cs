@@ -48,7 +48,6 @@ namespace Arena
         }
 
         public static readonly Color Danger = new Color(1f, 0.42f, 0.48f);   // Quit, delete, leave
-        public static readonly Color DangerDark = new Color(0.1f, 0.02f, 0.03f);  // text on a lit danger key (inverse video)
         public static readonly Color Body = new Color(0.76f, 0.80f, 0.91f);  // body text on a screen (the lobby)
         public static readonly Color Desc = new Color(0.55f, 0.7f, 0.97f);   // small descriptions on a screen (the drawer menus)
         public static readonly Color Head = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)
@@ -87,9 +86,7 @@ namespace Arena
         public const float HudKeyTint = 0.09f, HudKeyRimW = 2f;          // a ready key: a faint fill of its colour, a 2 px outline
         public const float HudKeyEmptyTint = 0.02f, HudKeyEmptyDash = 0.55f;  // an empty slot: dashed
 
-        // --- Inverse-video keys (CrtUi.Button / Small: the path choice and the main menu's tip box) -----------------------------------------
-
-        public const float InvTint = 0.07f, InvLit = 0.95f, InvRimW = 2f;  // outlined; under the mouse a solid block with dark text
+        // --- Key colours ----------------------------------------------------------------------------------------------------------
 
         /// A key's colour: dim when locked, red for danger, else its accent (the phosphor by default).
         public static Color KeyColor(Color? accent, bool danger = false, bool locked = false) =>

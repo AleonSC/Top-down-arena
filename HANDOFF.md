@@ -252,8 +252,7 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
 - **Rendering** is GL immediate mode with many small circles (8-48 segments). Fine on desktop; if frame time ever
   matters, lower segment counts for small bullets and batch the menu backgrounds. Bandwidth is fine for 3 players
   (full state at 20 Hz, no bullets); delta compression only if player counts grow.
-- **Dormant code:** `ZoneKind.Haven` and its `ZoneDef` (unused since the Adrenaline Shot; ask before removing).
-  `Kits.Zones` and `Kits.Minions` are read by kind number, so removing a kind means removing its entry too (the `core`
+- `Kits.Zones` and `Kits.Minions` are read by kind number, so removing a kind means removing its entry too (the `core`
   suite checks the counts) and bumping the protocol. The **simple test bot** in
   `LocalControl` (`Bot` without a `BotLevel`) is *not* dead: most sim tests and `--bot` rely on it.
 - **Paths** are built but untuned (Frozen Lake's grip, Fogbound's 350 px sight, Narrow Pass's 1120 x 720, fire

@@ -514,7 +514,7 @@ namespace Arena
                         sunspot = spot.Pos;
             }
 
-            // Hurt: healing orbs and the team's healing zones (Haven, rain, lantern, tree, ...) are worth walking to.
+            // Hurt: healing orbs and the team's healing zones (rain, tree, pools, wards, ...) are worth walking to.
             bool lure = false;
             V2 lurePos = V2.Zero;
             float lureR = 0f, lureD = 450f;

@@ -1341,7 +1341,7 @@ namespace Arena
                 }
                 else if (p.ReviveBy == 0)
                     p.Revive = Math.Max(0f, p.Revive - dt * 0.25f);
-                // A Haven or other zone can finish the revive on its own (it sets ReviveBy to its owner).
+                // A zone with a revive boost (ExtraRevive: the Censer's cloud, a ward) can finish the revive on its own (it sets ReviveBy to its owner).
                 if (p.Revive >= 1f)
                     RevivePlayer(p, 0.35f, PlayerOrNull(p.ReviveBy));
                 p.ReviveBy = 0;
