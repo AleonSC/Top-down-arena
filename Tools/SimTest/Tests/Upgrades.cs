@@ -35,7 +35,8 @@ static partial class Program
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
             {
-                placed.Add(Upgrades.Ultimate(role, (Kit)k));
+                for (int u = 0; u < Upgrades.UltCount(role, (Kit)k); u++)
+                    placed.Add(Upgrades.Ultimate(role, (Kit)k, u));  // the default, and the second where the class has one
                 for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
                     placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }

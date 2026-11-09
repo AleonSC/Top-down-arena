@@ -35,6 +35,8 @@ namespace Arena
                     cut = Math.Max(cut, z.DamageCut);
                 if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
+                if (InBath(z, p.Pos, 0f))
+                    cut = Math.Max(cut, BathGuard);  // standing in anyone's Bloodbath (Bloodbath.cs)
             }
             amount *= 1f - cut;  // the Ninja's smoke
             if (p.AdrenalineT > 0f)

@@ -203,6 +203,8 @@ namespace Arena
                 case FxKind.BridgeSpark:
                     DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
                     break;
+                case FxKind.BathHeal:
+                    break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
                 case FxKind.SteelCatch:
                 case FxKind.SteelRelease:
                 case FxKind.SteelHit:

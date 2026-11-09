@@ -203,10 +203,11 @@ namespace Arena
                             Defs.Get((Role)r).Name + " · " + CooldownText(Upgrades.Ability(Upgrades.RoleAbility((Role)r, (Kit)k, c)))));
             for (int k = 0; k < Defs.KitCount; k++)
                 for (int r = 0; r < 3; r++)
-                {
-                    var a = Upgrades.Ability(Upgrades.Ultimate((Role)r, (Kit)k));
-                    list.Add(AbilityItem(a, "Ultimates · F", Defs.KitName((Kit)k) + " " + Defs.Get((Role)r).Name + " · " + CooldownText(a)));
-                }
+                    for (int u = 0; u < Upgrades.UltCount((Role)r, (Kit)k); u++)  // the default, then the second where the class has one
+                    {
+                        var a = Upgrades.Ability(Upgrades.Ultimate((Role)r, (Kit)k, u));
+                        list.Add(AbilityItem(a, "Ultimates · F", Defs.KitName((Kit)k) + " " + Defs.Get((Role)r).Name + (u > 0 ? " (second)" : "") + " · " + CooldownText(a)));
+                    }
             foreach (var a in Upgrades.Abilities)
                 if (a.Choice == AbilityDef.CardOnly)
                     list.Add(AbilityItem(a, "Bonus abilities · Q / E / Shift", "From a card · " + CooldownText(a)));
@@ -784,8 +785,11 @@ namespace Arena
             for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
                 if (AbilityLink(Upgrades.Ability(Upgrades.RoleAbility(it.Role, it.Kit, c)), it.Accent))
                     break;
-            GHeading("Ultimate (F)");
-            AbilityLink(Upgrades.Ability(Upgrades.Ultimate(it.Role, it.Kit)), new Color(1f, 0.6f, 0.3f));
+            int ults = Upgrades.UltCount(it.Role, it.Kit);
+            GHeading(ults > 1 ? "Ultimate (F, pick one in the lobby)" : "Ultimate (F)");
+            for (int u = 0; u < ults; u++)
+                if (AbilityLink(Upgrades.Ability(Upgrades.Ultimate(it.Role, it.Kit, u)), new Color(1f, 0.6f, 0.3f)))
+                    break;
             GuideBodyEnd();
         }
 
@@ -899,7 +903,7 @@ namespace Arena
             }
             if (a.Choice != AbilityDef.CardOnly)
             {
-                GHeading(a.Choice == AbilityDef.Ult ? "The ultimate of" : "Picked in the lobby by");
+                GHeading(a.Choice == AbilityDef.Ult ? (a.UltAlt > 0 ? "The second ultimate of (key " + (a.UltAlt + 1) + " of the lobby's Ultimate row)" : "The ultimate of") : "Picked in the lobby by");
                 var role = Defs.Get(a.Role);
                 if (GLink(null, Defs.KitName(a.Kit) + " " + role.Name, role.Desc + " " + KitBlurb(a.Kit), ToColor(role.Color)))
                     GuideJump(GuideClasses, (int)a.Role + "/" + (int)a.Kit);

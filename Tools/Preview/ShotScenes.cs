@@ -382,6 +382,29 @@ static partial class Shot {
       }
       if (snap == null) { me.TitheClock = Math.Max(0.001f, tt); me.UltT = Math.Max(0.1f, Game.TitheLen - tt); }
     }
+    if (Environment.GetEnvironmentVariable("BLOODBATH") != null) {
+      // A tank Hemomancer's Bloodbath (BloodbathLook.cs): BLOODBATH=<seconds since the cast> (it floods out to 0.9 s, lasts 10 s and dries over the
+      // last 1.2; use 0.4, 3 or 9.4), with enemies wading in it and around it, an ally inside and a few heal numbers. BATHMASTERED=1: 220 px. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.Bloodbath;
+      V2 from = new V2(700f, 480f);
+      me.Pos = me.Disp = from + new V2(-30f, 20f); me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.7f;
+      float bt = float.Parse(Environment.GetEnvironmentVariable("BLOODBATH"));
+      float R = Environment.GetEnvironmentVariable("BATHMASTERED") != null ? Game.BathRadiusMastered : Game.BathRadius;
+      gm.Zones[9100] = new Zone { Id = 9100, Kind = ZoneKind.Bloodbath, Owner = me.Id, Pos = from, Radius = R, Duration = Game.BathTime, T = Math.Max(0.01f, Game.BathTime - bt) };
+      V2[] spots = { new V2(90f, -60f), new V2(-110f, -40f), new V2(40f, 110f), new V2(130f, 70f), new V2(-60f, 120f), new V2(330f, -40f), new V2(-320f, 90f), new V2(260f, 200f) };
+      for (int i = 0; i < spots.Length; i++) {
+        V2 at = from + spots[i];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Juggernaut : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
+      }
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = from + new V2(-40f, -110f); break; }
+      if (bt > 0.6f)
+        for (int k = 0; k < 3; k++)
+          gm.Effects.Add(new Effect { Kind = FxKind.BathHeal, Pos = me.Pos + new V2(k * 7f, 0f), Pos2 = new V2(me.Id, 0f), Color = new Rgba(1f, 0.35f, 0.4f), Radius = 6f + k * 3f, Dur = Game.BathHealFxTime, T = 0.1f + k * 0.28f });
+    }
     if (Environment.GetEnvironmentVariable("RAIN") != null) {
       // A Hemomancer's Sanguine Rain (SanguineRainLook.cs): RAIN=<seconds since the cast> (siphon to 1.8 s, seeds to 2.4 s, then rain; use 4 or 6), with the allies
       // standing near. RAINEND=<seconds since it ended> shows the rings splashing away instead. Use with mode hud.

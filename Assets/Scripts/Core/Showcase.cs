@@ -21,6 +21,7 @@ namespace Arena
         Role role;
         Kit kit;
         int weapon = -1;
+        int ult;  // the lobby's ultimate pick (LobbyEntry.Ult)
         AbilityId ability = AbilityId.None;
         bool demoAbility, ultimate;
         float t, castT;
@@ -73,23 +74,24 @@ namespace Arena
         /// Show this loadout. Anything new (weapon, role, class, the ability shown, or switching to the
         /// ultimate) restarts the scene, so nothing from the last demo plays on. demo: cast the ability every
         /// few seconds; ultimate: cast your ultimate (F) instead.
-        public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false)
+        public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false, int ult = 0)
         {
-            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate)
+            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ult != this.ult)
             {
+                this.ult = ult;
                 this.role = role;
                 this.kit = kit;
                 this.weapon = weapon;
                 this.ability = ability;
                 this.ultimate = ultimate;
-                var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit) : ability;
-                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : UltimateEvery;
+                var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit, ult) : ability;
+                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f : UltimateEvery;  // (a Bloodbath dries up before the next)
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
                 castCount = 0;
                 aimTicks = 0;
-                session.HostOffline(role, kit, weapon, 0, allies ? 2 : 0);
+                session.HostOffline(role, kit, weapon, 0, allies ? 2 : 0, 0, ult);
                 Game.ShowcaseMode = true;
                 Game.HostStart();
                 Game.ShowcaseStart(ability);

@@ -531,7 +531,7 @@ namespace Arena
             float dps = Defs.WeaponDps(wdef.Id);
             LobbyKit.StatBar(new Rect(lx, sy + 78f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
                 dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.36f, 0.36f), calm);
-            var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit));
+            var ult = Upgrades.Ability(me.UltId);  // the one picked in the Ultimate row (key 0 the default)
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
             float x = r.x + 334f, w = 454f, y = r.y + 16f;
@@ -567,6 +567,7 @@ namespace Arena
                         joinRole = (Role)i;
                         weaponChoice = 0;
                         abilityChoice = 0;
+                        ultChoice = 0;
                         wildSecond = 1;
                         wildKey = 1;
                         wildTab = 0;
@@ -606,6 +607,7 @@ namespace Arena
                             kitChoice = (Kit)i;
                             weaponChoice = 0;
                             abilityChoice = 0;
+                            ultChoice = 0;
                         }
                     }
                 }
@@ -658,18 +660,27 @@ namespace Arena
             }
 
             ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
-            // The ultimate: its key, then locked slots for ultimates still to come. Click it to watch it in the preview.
+            // The ultimates: key 0 the class's default, key 1 its second where it has one (picked like the weapon and ability keys,
+            // shown in inverse video), then locked slots for ultimates still to come. Click one to pick it and watch it in the preview.
             LobbyKit.Heading(x, ultY, w, "Ultimate", null, calm, 15);
+            int ults = Upgrades.UltCount(me.Role, me.UltKit);
             for (int i = 0; i < 4; i++)
             {
                 var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
-                if (i > 0)
+                if (i >= ults || i >= Upgrades.UltChoices)
                 {
                     LockedSlot(b);
                     continue;
                 }
-                if (LobbyKit.Key(b, ult.Name.ToUpperInvariant(), true, calm, size: 15, minSize: 9))
+                var key = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit, i));
+                if (LobbyKit.Key(b, key.Name.ToUpperInvariant(), ults == 1 || me.Ult == i, calm, size: 15, minSize: 9))
                 {
+                    if (ults > 1)
+                    {
+                        tgt.RequestUlt(i);
+                        if (self)
+                            ultChoice = i;
+                    }
                     detailSel = 2;  // (the preview then casts it until you click something else)
                 }
             }
@@ -1109,7 +1120,7 @@ namespace Arena
             bool demo = detailSel != 0;
             if (showcase == null)
                 showcase = new Showcase();
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo, ult);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
             showcaseSeen = Time.unscaledTime;
             if (!BeginUiGl())
                 return;
@@ -1171,7 +1182,7 @@ namespace Arena
             EndUiGl();
             if (demo)
             {
-                var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));
+                var ab = Upgrades.Ability(ult ? me.UltId : Upgrades.RoleAbility(me.Role, me.Kit, shown));
                 Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), ab.Name.ToUpperInvariant(), 10,
                     Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);  // just the name (no key or "ultimate" prefix)
             }
