@@ -296,6 +296,54 @@ static partial class Program
             Check(legs >= 60 && spotsMade >= legs - 3, "a Spinner wanders round the walls on every floor plan (" + spotsMade + " of " + legs + " spots reached)");
         }
 
+        // A Phantom never picks a blink spot in a wall or pillar.
+        {
+            var lateSpecial = typeof(Game).GetMethod("LateSpecial", flags);
+            var nearSolid = typeof(Game).GetMethod("NearSolid", flags);
+            int blinks = 0, blinkInWall = 0;
+            foreach (var ld in Layouts.Playable())
+            {
+                g.DevSetLayout(ld.Id);
+                g.Props.Clear();
+                var ph = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Phantom, new V2(Game.Width / 2f, 120f), 0f, 0, false });
+                ph.SpawnT = 0f; ph.Hp = ph.MaxHp = 99999f;
+                for (int k = 0; k < 40; k++)
+                {
+                    ph.Phase = 0; ph.PhaseT = 0f;
+                    lateSpecial.Invoke(g, new object[] { ph, new V2(Game.Width / 2f, Game.Height / 2f), dt });
+                    blinks++;
+                    if ((bool)nearSolid.Invoke(g, new object[] { ph.Waypoint, ph.Radius }))
+                        blinkInWall++;
+                }
+                ph.Hp = 0f;
+                g.Bullets.Clear();
+                Quiet();
+            }
+            Check(blinkInWall == 0, "a Phantom never blinks into a wall (" + blinkInWall + " of " + blinks + " spots in one)");
+        }
+
+        // A Warder keeps behind its allies, round a wall if it has to.
+        {
+            g.DevSetLayout(LayoutId.TwinLanes);
+            g.Props.Clear();
+            g.Enemies.Clear();
+            var ally = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Brute, new V2(500f, 505f), 0f, 0, false });
+            ally.SpawnT = 0f; ally.Hp = ally.MaxHp = 99999f;
+            var wd = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Warder, new V2(500f, 255f), 0f, 0, false });
+            wd.SpawnT = 0f; wd.Hp = wd.MaxHp = 99999f;
+            V2 behind = new V2(500f, 345f);
+            float wnear = 9999f;
+            for (int i = 0; i < 2400 && wnear > 30f; i++)
+            {
+                moveEnemy.Invoke(g, new object[] { wd, new V2(500f, 700f), dt });
+                wd.T += dt;
+                wnear = Math.Min(wnear, wd.Pos.DistanceTo(behind));
+            }
+            Check(wnear <= 30f, "a Warder walks round a wall to keep behind its allies (got within " + (int)wnear + " px)");
+            wd.Hp = 0f; ally.Hp = 0f;
+            Quiet();
+        }
+
         // The cover of a new cycle, and random props staying out of the walls.
         g.Props.Clear();
         g.DevSetLayout(LayoutId.Islands);
