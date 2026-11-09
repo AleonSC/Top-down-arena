@@ -184,6 +184,7 @@ namespace Arena
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
+            DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, Misericorde's candles, the Drawbridge's slam (KnightDpsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerLinks(p, t);
@@ -212,6 +213,7 @@ namespace Arena
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
+            DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests, Misericorde's daggers (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
@@ -240,6 +242,7 @@ namespace Arena
                     DrawSmallShot(b, t);
             DrawFrozenShots(t);  // bullets a Lumen Ward is holding (LumenWardLook.cs)
             DrawQueenSwarm(t);  // QueenLook.cs
+            DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
         }

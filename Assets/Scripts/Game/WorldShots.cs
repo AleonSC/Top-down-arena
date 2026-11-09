@@ -119,6 +119,11 @@ namespace Arena
             foreach (var look in KitLooks)  // a class's own shots (KitLook.Shot in ClassLooks.cs: the Ninja's, the Hemomancer's)
                 if (look.Shot != null && look.Shot(this, b, c, t))
                     return;
+            if (b.Kind == Defs.SteelShard)
+            {
+                DrawSteelShardShot(b);  // KnightDpsLook.cs
+                return;
+            }
             if (b.Kind == Defs.HammerShot)
             {
                 DrawStormHammer(b, c, t);

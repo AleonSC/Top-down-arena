@@ -34,6 +34,11 @@ namespace Arena
                     h = Mathf.Sin(Mathf.PI * Mathf.Clamp01(fx.T / Game.LeapTime));
                     return true;
                 }
+                else if (fx.Kind == FxKind.MercyLeap && fx.T < Game.MercyLeapTime && (int)(fx.Radius / 100f + 0.001f) == p.Id)
+                {
+                    h = 0.43f * Mathf.Sin(Mathf.PI * Mathf.Clamp01(fx.T / Game.MercyLeapTime));  // Misericorde's leap: lower, 24 px up (KnightDpsLook.cs)
+                    return true;
+                }
             return false;
         }
 

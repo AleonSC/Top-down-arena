@@ -179,6 +179,38 @@ namespace Arena
                 case FxKind.VeinRush:
                     DrawVeinRushFx(fx, t);  // VeinRushLook.cs
                     break;
+                case FxKind.GauntletThrow:
+                    DrawGauntletThrowFx(fx, t);  // KnightDpsLook.cs
+                    break;
+                case FxKind.GauntletCharge:
+                    DrawGauntletChargeFx(fx, t);
+                    break;
+                case FxKind.GauntletBowl:
+                    DrawGauntletBowlFx(fx);
+                    break;
+                case FxKind.GauntletImpact:
+                    DrawGauntletImpactFx(fx);
+                    break;
+                case FxKind.GauntletBack:
+                    DrawGauntletBackFx(fx, t);
+                    break;
+                case FxKind.MercyLeap:
+                    DrawMercyLeapFx(fx, t);
+                    break;
+                case FxKind.MercyKill:
+                    DrawMercyKillFx(fx, t);
+                    break;
+                case FxKind.MercyEnd:
+                    DrawMercyEndFx(fx);
+                    break;
+                case FxKind.BridgeSpark:
+                    DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
+                    break;
+                case FxKind.SteelCatch:
+                case FxKind.SteelRelease:
+                case FxKind.SteelHit:
+                case FxKind.SteelDrop:
+                    break;  // drawn with the knight's shards (KnightDpsLook.cs DrawSteel)
                 case FxKind.VeinCut:
                     DrawVeinCutFx(fx, t);  // VeinRushLook.cs
                     break;

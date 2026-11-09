@@ -49,6 +49,12 @@ namespace Arena
                 CloseSpray(p, false);
                 return;
             }
+            if (SteelRelease(p, slot))  // Caught Steel pressed again: the cut throws the shards (no cooldown spent for the press)
+            {
+                p.Run.AbilitiesUsed++;
+                ReleaseSteel(p);
+                return;
+            }
             if (p.StandOn && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
             if (!consumed && !Consume(p, slot, true))

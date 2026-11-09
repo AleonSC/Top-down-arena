@@ -64,6 +64,8 @@ namespace Arena
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             BloodTookHit(p, amount);  // Crimson Pact stores it
+            if (amount > 0f && !tickDamage)
+                SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -147,7 +149,7 @@ namespace Arena
 
         /// Weapon mods apply to players' shots, but not to grenades (they land where you aim)
         /// or to Swarm Rounds' splinters.
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -525,6 +527,11 @@ namespace Arena
                         scratchIds.Add(b.Id);
                         continue;
                     }
+                    if (BridgeStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
+                        continue;
+                    }
                     foreach (var p in Players.Values)
                     {
                         if (p.Downed || p.SwallowT > 0f)
@@ -578,6 +585,11 @@ namespace Arena
                                 p.BarrierT = 0f;  // shattered
                                 BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Hit);
                             }
+                            break;
+                        }
+                        if (SteelGraze(p, b))
+                        {
+                            scratchIds.Add(b.Id);  // Caught Steel: it skimmed past and hangs round them now (CaughtSteel.cs)
                             break;
                         }
                         float r = p.Def.HitR + b.Radius;
@@ -836,7 +848,6 @@ namespace Arena
             if (Players.TryGetValue(attacker, out p))
             {
                 var s = p.Stats;
-                dmg *= KnightDamageMult(p);  // Battle Fury
                 if (IsHunted(p))
                     dmg *= Modifiers.HuntedDamage;  // Hunted: the quarry hits twice as hard (Modifiers.cs)
                 dmg *= BloodDamageMult(p);   // Blood Price
@@ -873,7 +884,6 @@ namespace Arena
                 if (e.Def.IsBoss)
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
-                KnightLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
                 BloodLifesteal(p, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));

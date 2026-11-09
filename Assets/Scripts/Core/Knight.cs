@@ -10,7 +10,7 @@ namespace Arena
         public int Owner;
         public float Aim, Reach, HalfArc, Dmg, Knock, Delay;
         public int MaxTargets;        // 0 = everything in the arc; otherwise the nearest few (Rapier)
-        public bool CutAll;           // also cuts big orbs and mines (mastered Whirlwind)
+        public bool CutAll;           // also cuts big orbs and mines (it was the mastered Whirlwind's; nothing sets it today)
         public float HealPerHit, HealRange;
         public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
         public float HealSpin;        // heals allies near you once per swing (Censer)
@@ -61,9 +61,7 @@ namespace Arena
         const float LeapRange = 320f, SlamRadius = 130f, SlamDamage = 50f;
         public const float LeapTime = 0.45f, LeapFxTail = 0.5f;  // the leap's length, and how long its look outlasts the stun (Game/LeapSlamLook.cs)
         public static readonly Rgba LeapBoomColor = new Rgba(0.6f, 0.78f, 1f);  // the landing's Boom: the Bulwark look draws its own impact
-        const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallHalfArc = 1.05f;  // 120 degrees across; the capacity is shared out between the plates
-        const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
         public const float RootHalfWidth = 22f, RootHeal = 10f, RootFxTime = 0.5f;  // the Treant Rod's root lash (KitWeapons.cs)
         public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f, SplinterFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
         public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
@@ -217,17 +215,6 @@ namespace Arena
                 }
             }
 
-            // Blade Tempest: every swing also hurls piercing sword beams.
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BladeTempest)
-            {
-                int n = Mastered(p, AbilityId.BladeTempest) ? 5 : 3;
-                for (int i = 0; i < n; i++)
-                {
-                    float f = i * 2f / (n - 1) - 1f;
-                    var b = SpawnBullet(Defs.KnightWave, p.Pos + V2.FromAngle(aim) * p.Def.BodyR, V2.FromAngle(aim + f * 0.22f) * 750f, 0f, 0.7f, 20f * dmg, p.Id);
-                    b.Pierce += 99;
-                }
-            }
         }
 
         /// Barrage on a Knight weapon: a sword wave per stack, fanned out to the sides.
@@ -581,7 +568,7 @@ namespace Arena
             return hit.Count;
         }
 
-        /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.
+        /// Swings slice small enemy bullets out of the air; a swing with CutAll would stop big orbs too.
         /// Bosses' red aimed shots always get through.
         public const float RapierSkewerWidth = 14f;
         public const int RapierSkewerMax = 3;
@@ -648,6 +635,8 @@ namespace Arena
             Blurb = "Melee: swings cut small bullets out of the air. Armoured: 115% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKnightWeapon(p, aim, dmg, extra),
             Ability = (g, p, id, target) => g.KnightAbility(p, id, target),
+            OnKill = (g, e) => g.GauntletKill(e),  // a Challenged enemy's death sends the gauntlet back (Gauntlet.cs)
+            OnShotHit = (g, b, e, hit) => g.SteelShardHit(b, e),  // Caught Steel's shards striking (CaughtSteel.cs)
         };
 
         /// The Knight's weapons (swung in FireKnightWeapon).
@@ -724,24 +713,24 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Whirlwind, Kit = Kit.Knight, Role = Role.Dps, Choice = 0,
-                Name = "Whirlwind", Cooldown = 10f, Desc = "Spin for 2 s, hitting everything within 110 px for 12 every 0.2 s and slicing small bullets out of the air.",
-                Capstone = "Lasts 3 s and cuts every bullet except red aimed shots.",
-                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 150f,
+                Id = AbilityId.Whirlwind, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Misericorde (Misericorde.cs); the id is Whirlwind's, kept so the numbers stay put
+                Name = "Misericorde", Cooldown = 12f, Desc = "Leap onto the wounded enemy (under 25% health, from anyone's damage) nearest your cursor within 200 px and execute it with the mercy dagger, then leap on to the next wounded enemy within 200 px, and the next, until none are left in reach. You can't be hurt while it runs. A wounded boss takes a heavy stab (120) instead, and the chain ends there.",
+                Capstone = "Each execution heals you 5% of your health.",
+                Bot = b => b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
-                Id = AbilityId.Lunge, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true, ExtraCharges = 1, CapstoneCharge = true,
-                Name = "Lunge", Cooldown = 6f, Desc = "Dash 260 px toward your cursor, hitting everything you pass for 35. Two charges.",
-                Capstone = "+1 charge (three in all).",
-                Bot = b => b.HaveTarget && b.TargetD > 110f && b.TargetD < 300f || b.BotDanger > 2.5f,
+                Id = AbilityId.Lunge, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true,  // The Gauntlet (Gauntlet.cs); the id is Lunge's
+                Name = "The Gauntlet", Cooldown = 9f, Desc = "Throw down the gauntlet at the enemy nearest your cursor along your aim (up to 380 px; it flies over anything in between): it takes 12 and is Challenged for 5 s. You shoulder-charge to it, untouchable, bowling everything in the way aside (18 and a shove), and hit it for 30. Kill the Challenged enemy before the Challenge runs out and the gauntlet flies back: the cooldown resets.",
+                Capstone = "The Challenge lasts 8 s, and the charge's impact stuns for 1 s.",
+                Bot = b => b.HaveTarget && b.TargetD > 90f && b.TargetD < 380f,
             },
             new AbilityDef
             {
-                Id = AbilityId.BattleFury, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,
-                Name = "Battle Fury", Cooldown = 16f, Desc = "For 6 s you swing 40% faster and deal 25% more damage.",
-                Capstone = "+1 extra projectile while it lasts.",
-                Bot = b => b.HaveTarget && b.TargetD < 220f,
+                Id = AbilityId.BattleFury, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs); the id is Battle Fury's
+                Name = "Caught Steel", Cooldown = 16f, Desc = "For 6 s, enemy bullets that skim past you without touching you are caught and hang round you as steel (up to 12). Press again (or let the time run out) and a sweeping cut hurls them out along your aim: each shard cuts the bullets in its way and hits the first enemy for 22. A hit knocks a third of them loose. The cooldown starts when you throw them.",
+                Capstone = "Holds up to 18 shards.",
+                Bot = b => b.Danger,
             },
             new AbilityDef
             {
@@ -758,10 +747,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.BladeTempest, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Blade Tempest", Cooldown = 65f, Desc = "For 6 s every swing also hurls three piercing sword beams.",
-                Capstone = "Five sword beams a swing instead of three.",
-                Bot = b => b.HaveTarget && b.TargetD < 220f,
+                Id = AbilityId.BladeTempest, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,  // the Drawbridge (Drawbridge.cs); the id is Blade Tempest's
+                Name = "Drawbridge", Cooldown = 75f, Desc = "A gatehouse rises behind you and its drawbridge falls along your aim: 500 px long and 100 wide, it crushes everything in the lane for 140 and throws enemies at its edges aside (45). Then it lies there for 5 s as a walkway: enemies can't step onto it, and their shots stop at its rails, red aimed shots too.",
+                Capstone = "The bridge stands for 8 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 450f,
             },
         };
 
@@ -830,35 +819,13 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.Whirlwind:
-                    p.WhirlT = (cap ? 3f : 2f) + s.WhirlBonusTime;
-                    p.WhirlTick = 0f;
-                    p.WhirlPower = pw;
-                    p.WhirlAll = cap;
+                    CastMisericorde(p, target, pw, cap);  // Misericorde.cs
                     return true;
                 case AbilityId.Lunge:
-                {
-                    // Like Bulldoze: the player's own game moves them; everything near the path takes a hit.
-                    p.InvulnT = Math.Max(p.InvulnT, LungeRange * s.LungeRangeMult / LungeSpeed + 0.1f);
-                    V2 from = p.Pos, path = target - from;
-                    float len = Math.Max(1f, path.Length);
-                    V2 dir = path / len;
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (e.SpawnT > 0f)
-                            continue;
-                        float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
-                        if (e.Pos.DistanceTo(from + dir * along) > e.Radius + 34f)
-                            continue;
-                        float dmg = LungeDamage * s.DmgMult * s.LungeDmgMult;
-                        HurtEnemy(e, dmg, p.Id);
-                        OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
-                    }
-                    BroadcastFx(FxKind.Slash, from, target, Defs.BulletColor(Defs.KnightSlash), 0.12f, 0.2f, Sfx.SwingLight);
+                    CastGauntlet(p, target, pw, cap);  // Gauntlet.cs
                     return true;
-                }
                 case AbilityId.BattleFury:
-                    p.FuryT = 6f * pw;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.35f, 0.25f), 60f, 0.4f, Sfx.Roar);
+                    CastCaughtSteel(p, pw, cap);  // CaughtSteel.cs
                     return true;
 
                 // Ultimates
@@ -882,22 +849,10 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.BladeTempest:
-                    p.UltT = 6f;
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.KnightWave), 80f, 0.4f, Sfx.SwingHeavy);
+                    CastDrawbridge(p, target, cap);  // Drawbridge.cs
                     return true;
             }
             return false;
-        }
-
-        /// Damage multiplier from Knight buffs on whoever dealt the hit (applied in HurtEnemy).
-        float KnightDamageMult(Player p) => p.FuryT > 0f ? 1.25f : 1f;
-
-        /// Battle Fury (with Bloodlust) heals you for part of what you deal.
-        void KnightLifesteal(Player p, float dealt)
-        {
-            float frac = (p.FuryT > 0f ? p.Stats.FuryLifesteal : 0f);
-            if (frac > 0f && !p.Downed && dealt > 0f)
-                Heal(p, dealt * frac, p);
         }
 
         // --- Timed effects ---------------------------------------------------------------
@@ -912,34 +867,23 @@ namespace Arena
 
         readonly List<Slam> slams = new List<Slam>();
 
-        /// Host, every tick: Knight buffs run down, Whirlwind spins, Leap Slams land.
+        /// Host, every tick: Knight buffs run down, the DPS Knight's abilities run, Leap Slams land.
         void TickKnights(float dt)
         {
             TickOath(dt);  // GuardiansOath.cs
+            TickSteel(dt);      // CaughtSteel.cs
+            TickGauntlets(dt);  // Gauntlet.cs
+            TickMercy(dt);      // Misericorde.cs
             foreach (var p in Players.Values)
             {
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
-                p.FuryT = Math.Max(0f, p.FuryT - dt);
                 p.BossContactT = Math.Max(0f, p.BossContactT - dt);
                 p.MeleeGraceT = Math.Max(0f, p.MeleeGraceT - dt);
                 TickStand(p, dt);  // LastStand.cs
                 if (p.Downed)
                 {
                     Array.Clear(p.WallPlate, 0, Player.WallPlates);
-                    p.WhirlT = p.UnbreakT = p.FuryT = 0f;
-                }
-                if (p.WhirlT > 0f)
-                {
-                    p.WhirlT -= dt;
-                    p.WhirlTick -= dt;
-                    if (p.WhirlTick <= 0f)
-                    {
-                        p.WhirlTick += WhirlEvery;
-                        var s = NewSwing(p, p.Aim, WhirlRadius * p.Stats.WhirlRadiusMult, 360f, WhirlDamage * p.Stats.DmgMult * p.WhirlPower);
-                        s.CutAll = p.WhirlAll;
-                        s.Silent = MathX.Fmod(p.WhirlT, 0.6f) > 0.2f;
-                        pendingSwings.Add(s);
-                    }
+                    p.UnbreakT = 0f;
                 }
             }
             for (int i = slams.Count - 1; i >= 0; i--)

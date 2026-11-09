@@ -65,8 +65,7 @@ namespace Arena
             Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Aeroaegis
             Buff(p => p.FrenzyT, new Rgba(1f, 0.5f, 0.3f)),        // Alpha Call
             Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Cavalry Call: the guard
-            Buff(p => p.FuryT, new Rgba(1f, 0.3f, 0.2f)),          // Battle Fury
-            Buff(p => p.WhirlT, new Rgba(0.8f, 0.85f, 0.9f)),      // Whirlwind
+            Buff(p => p.SteelT, new Rgba(1f, 0.59f, 0.24f)),       // Caught Steel's catching time
             Buff(p => p.IronT, new Rgba(0.75f, 0.78f, 0.85f)),     // Iron Body
             Buff(p => p.VanishT, new Rgba(0.6f, 0.5f, 0.85f)),     // Vanish
             Buff(p => p.DebtT, new Rgba(1f, 0.8f, 0.35f)),         // Blood Debt
@@ -149,22 +148,6 @@ namespace Arena
         }
 
         // --- Buff looks -----------------------------------------------------------------------------------------------
-
-        /// Blade Tempest: three spectral swords wheeling round the knight, ready to fly with each swing.
-        void DrawBladeTempest(Player p, float r, float t)
-        {
-            var c = Defs.BulletColor(Defs.KnightWave);
-            for (int k = 0; k < 3; k++)
-            {
-                float a = t * 3f + MathX.Tau * k / 3f;
-                V2 d = V2.FromAngle(a), along = d.Orthogonal(), mid = p.Disp + d * (r + 22f);
-                Line(mid - along * 9f, mid + along * 7f, 6f, c.WithAlpha(0.25f));
-                Line(mid - along * 9f, mid + along * 7f, 2.5f, c.Mix(Rgba.White, 0.4f).WithAlpha(0.9f));
-                SetColor(c.Mix(Rgba.White, 0.4f).WithAlpha(0.9f));
-                Tri(mid + along * 12f, mid + along * 6f + d * 3f, mid + along * 6f - d * 3f);
-                Line(mid - along * 6f + d * 4f, mid - along * 6f - d * 4f, 2f, c.WithAlpha(0.9f));  // the guard
-            }
-        }
 
         /// Alpha Call: each of the caster's minions burns with a flickering ember ring and streaks behind it. In Blood Scent
         /// (Stacks > 0) the ring grows and goes from orange to red with each stack, with a pip per stack above the minion.

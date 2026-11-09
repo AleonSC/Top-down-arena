@@ -48,7 +48,7 @@ namespace Arena
         };
 
         /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
-        float FireRate(Player p) => p.Stats.FireRateMult * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
+        float FireRate(Player p) => p.Stats.FireRateMult * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
 
         /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
@@ -192,8 +192,7 @@ namespace Arena
 
         /// Extra projectiles from upgrades, plus two during Artillery Assault.
         public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
-            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0)
-            + (p.FuryT > 0f && Mastered(p, AbilityId.BattleFury) ? 1 : 0);
+            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0);
 
         // --- Revolver (the Healer's Pistol) -------------------------------------------
 

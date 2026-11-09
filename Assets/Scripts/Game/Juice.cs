@@ -309,6 +309,7 @@ namespace Arena
                     Hold(0.05f, 0.1f);  // your own Vein Rush cut something: the Needle's hit-stop (VeinRushLook.cs)
                     Shake(0.05f);
                 }
+                KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
                 if (fx.Kind == FxKind.LanceHit && (int)fx.Pos2.X == game.MyId)

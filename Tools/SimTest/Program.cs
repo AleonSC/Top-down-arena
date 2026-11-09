@@ -292,6 +292,7 @@ static partial class Program
         Test("ults", "every ultimate over the network", () => UltimateSweep(Dt)),
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
+        Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Misericorde and Drawbridge", () => KnightDpsTest(Dt)),
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
         Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),

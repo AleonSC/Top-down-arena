@@ -121,15 +121,6 @@ namespace Arena
             V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
             // Abilities
             DrawShieldWall(p, r, t);  // ShieldWallLook.cs (also runs when it's down, to notice it going up)
-            if (p.WhirlT > 0f)
-                for (int k = 0; k < 3; k++)
-                {
-                    float a = t * 14f + MathX.Tau * k / 3f, reach = 110f * p.Stats.WhirlRadiusMult;
-                    Line(p.Disp + V2.FromAngle(a) * r, p.Disp + V2.FromAngle(a) * reach, 3f, Steel.WithAlpha(0.8f));
-                    Arc(p.Disp, reach, 2f, Steel.WithAlpha(0.3f), 12, a - 0.6f, 0.6f);
-                }
-            if (p.FuryT > 0f)
-                Arc(p.Disp, r + 6f, 3f, new Rgba(1f, 0.3f, 0.2f, 0.5f + 0.4f * Mathf.Sin(t * 12f)), 24);
             if (p.UnbreakT > 0f)  // Cavalry Call's guard: a golden octagon of plates, its edges bright
             {
                 Polygon(p.Disp, r + 9f, 8, t * 0.5f, new Rgba(0.9f, 0.8f, 0.5f, 0.3f));
@@ -137,8 +128,6 @@ namespace Arena
                     Line(p.Disp + V2.FromAngle(t * 0.5f + MathX.Tau * k / 8f) * (r + 11f), p.Disp + V2.FromAngle(t * 0.5f + MathX.Tau * (k + 1) / 8f) * (r + 11f), 2.5f,
                          new Rgba(1f, 0.88f, 0.55f, 0.75f + 0.2f * Mathf.Sin(t * 6f + k)));
             }
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BladeTempest)  // three spectral blades wheeling round
-                DrawBladeTempest(p, r, t);  // AbilityLooks.cs
             DrawLastStand(p, r, t);  // LastStandLook.cs (also runs when it's down, for the collapse)
         }
 

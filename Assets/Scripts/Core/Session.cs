@@ -40,6 +40,7 @@ namespace Arena
         LobbyAbility, // client -> host: cast your Hangout ability (a dash, barrier or burst heal by role) toward this angle; host -> all: (owner id, kind, position, angle) to show and apply (LobbyCombat.cs)
         Dodge,        // client -> host: this player dodged from this spot; the host gives them a moment of invulnerability (Dodge.cs)
         WildcardRequest, // client -> host: a Wildcard's whole loadout at once: weapon, first ability, second ability and its key (Session.SetWildcard)
+        Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Misericorde's leaps); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
 
         // Fixed value so every version can understand it, whatever else changes.
@@ -100,7 +101,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 221;
+        public const int ProtocolVersion = 222;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

@@ -71,7 +71,7 @@ namespace Arena
         public float SlamRadiusMult = 1f, SlamStunBonus;
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
-        public float WhirlBonusTime, WhirlRadiusMult = 1f, LungeRangeMult = 1f, LungeDmgMult = 1f, FuryLifesteal;
+        public float MercyBelow, MercyReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
         // Ninja abilities
         public float CloneBonusTime, CloneHpMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, IronBonusTime, IronWaveMult = 1f;
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
@@ -289,12 +289,12 @@ namespace Arena
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Cyclone", Desc = "Whirlwind lasts 1 s longer and reaches 30% further",
-                Apply = s => { s.WhirlBonusTime += 1f; s.WhirlRadiusMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Flurry", Desc = "Lunge goes 40% further and hits 50% harder",
-                Apply = s => { s.LungeRangeMult += 0.4f; s.LungeDmgMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Bloodlust", Desc = "During Battle Fury your hits heal you for 10% of the damage they deal",
-                Apply = s => s.FuryLifesteal += 0.1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Coup de Grace", Desc = "Misericorde executes enemies under 30% health (+5%) and leaps 40 px further",
+                Apply = s => { s.MercyBelow += 0.05f; s.MercyReach += 40f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
+                Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
+                Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowClone, MaxStacks = 2, Name = "Mirror Image", Desc = "Shadow Clone lasts 2 s longer and its clones have 50% more health",
                 Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",

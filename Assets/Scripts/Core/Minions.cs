@@ -897,6 +897,8 @@ namespace Arena
                     CongealPool(z);  // BloodMage.cs
                 if (z.Kind == ZoneKind.VeinTrail)
                     TickVeinTrail(z);  // VeinRush.cs
+                if (z.Kind == ZoneKind.Drawbridge)
+                    TickDrawbridge(z);  // Drawbridge.cs
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
