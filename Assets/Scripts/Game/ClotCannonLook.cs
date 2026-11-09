@@ -7,7 +7,7 @@ namespace Arena
     /// Docs/Mockups/clot-cannon.html. While you hold, the clot in your hand swells and your arc grows out to where it
     /// will land: a trail of beads up and over to a dashed outline of the pool and the splash inside it. The clot flies
     /// lifted along its arc over its shadow, raining drops; it lands in a crown of drops and a big pool (DrawBloodZone)
-    /// that wobbles while it's wet, with a rim that closes over the first second, then congeals: a brown crust creeps
+    /// that wobbles while it's wet (healing motes rise off it), with a rim that closes over the first second, then congeals: a brown crust creeps
     /// in from the edge and cracks. Drops fall from the hand as you walk (more while charging) and stain the floor.
     /// Everything comes from replicated state (Player.DrawT and Aim, the clot's Life and Life0, the pool zone's age);
     /// the drops and stains are this screen's own.
@@ -459,6 +459,12 @@ namespace Arena
                     if (f > 0f && f < 1f)
                         Arc(p, f * R * 0.9f, 3f * (1f - f) + 1f, new Rgba(1f, 0.47f, 0.55f, 0.4f * (1f - f) * wetA), 40);
                 }
+            }
+            for (int k = 0; k < 7; k++)  // it heals whoever stands in it: pale motes rising off it
+            {
+                float ph = (t * 0.55f + k / 7f + PoolHash(z.Id, 200 + k)) % 1f;
+                V2 at = p + V2.FromAngle(PoolHash(z.Id, 210 + k) * MathX.Tau) * (R * (0.15f + 0.6f * PoolHash(z.Id, 220 + k))) + new V2(0f, -26f * ph);
+                Circle(at, 1.6f + 1.2f * (1f - ph), new Rgba(1f, 0.72f, 0.76f, 0.55f * Mathf.Sin(ph * MathX.Pi) * end), 6);
             }
             PoolOutline(p, R, z.Id, wet, t, 3f, (ck > 0f ? new Rgba(0.11f, 0.035f, 0.025f) : new Rgba(0.13f, 0.01f, 0.03f)).WithAlpha(0.95f * end));
             if (wet && age > 0.15f)  // the rim arc: when it closes, the pool sets

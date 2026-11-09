@@ -939,6 +939,7 @@ static partial class Program
         var tapFar = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
         me.BowShotDraw = Game.BowMinDraw;
         volley.Invoke(g, new object[] { me, 0f, 0 });
+        me.Hp = me.MaxHp;  // the shot's cost would raise Blood Price: keep both shots at full health so only the range differs
         play(Game.ClotFlight(0f) + 0.1f, new PlayerInput());
         float tapHit = tapNear.MaxHp - tapNear.Hp, tapMiss = tapFar.MaxHp - tapFar.Hp;
         reset();
@@ -946,7 +947,12 @@ static partial class Program
         var stuck = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
         var beside = dummy(from + new V2(Game.ClotMax, Game.ClotSplash + 40f), 1e5f);  // outside the splash, inside the pool
         me.BowShotDraw = g.BowFull(me);
+        me.Hp = me.MaxHp;
         volley.Invoke(g, new object[] { me, 0f, 0 });
+        float shotCost = me.MaxHp - me.Hp;
+        Console.WriteLine("  clot cannon: a shot cost {0:0.0} of {1:0} health", shotCost, me.MaxHp);
+        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Clot Cannon shot costs 6% of your max health");
+        me.Hp = me.MaxHp;
         play(Game.ClotFlight(1f) + 0.05f, new PlayerInput());
         float fullHit = stuck.MaxHp - stuck.Hp, underHit = under.MaxHp - under.Hp, besideHit = beside.MaxHp - beside.Hp;
         var pool = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.BloodPool);
@@ -971,6 +977,15 @@ static partial class Program
         Console.WriteLine("  clot cannon: enemy free while wet {0}, stuck once it congealed {1}; 20 damage taken outside {2:0.0}, in your pool {3:0.0}",
             wetFree, setStuck, outside, inside);
         Check(Math.Abs(inside - outside) < 0.01f && outside > 0f, "standing in your own pool doesn't guard you any more");
+        // Standing in the pool heals slowly (against your own healing standing outside it).
+        Func<float> gain = () => { me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(1f, new PlayerInput()); return me.Hp - h; };
+        float healIn = pool != null && g.Zones.ContainsKey(pool.Id) ? gain() : 0f;
+        V2 inPool = from; from = new V2(300f, 450f);
+        float healOut = gain();
+        from = inPool;
+        Console.WriteLine("  clot cannon: 1 s in the pool healed {0:0.0}, outside {1:0.0}", healIn, healOut);
+        Check(healIn - healOut > Kits.Get(ZoneKind.BloodPool).HealRate * 0.8f && healIn - healOut < Kits.Get(ZoneKind.BloodPool).HealRate * 1.3f,
+            "the pool slowly heals you while you stand in it");
         from = new V2(300f, 450f);
         reset();
         g.Orbs.Clear();  // the dummies just cleared may drop health orbs where the next test's ally stands
