@@ -306,6 +306,16 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, me.Disp.X)), Math.Max(hy, Math.Min(Game.Height - hy, me.Disp.Y))));
     }
+    if (Environment.GetEnvironmentVariable("SWING") != null)  // draw the swings once first (then throw that away), so each is already seen (its owner known) as after its first frame in the game
+    {
+      var slashE = typeof(ArenaApp).GetMethod("DrawSlashE", f2);
+      var shoveL = typeof(ArenaApp).GetMethod("DrawStaffShoveLayer", f2);
+      foreach (var e in host.Game.Effects)
+        if (e.Kind == FxKind.Slash) slashE.Invoke(app, new object[] { e, 0f });
+        else if (e.Kind == FxKind.StaffShove) shoveL.Invoke(app, new object[] { e, false });
+      GL.Tris.Clear();
+      typeof(ArenaApp).GetField("holdT", f2).SetValue(app, 0f);  // (a hit-pause it started would replay a frame)
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

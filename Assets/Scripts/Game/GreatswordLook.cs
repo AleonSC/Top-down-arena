@@ -76,34 +76,39 @@ namespace Arena
                 return;
             float uc = Mathf.Clamp01(u), e = uc * uc * (3f - 2f * uc), half = Game.GreatRendArc * MathX.Pi / 360f;
             V2 o = p.Disp;
-            float st;
-            if (!(swingTo.TryGetValue(p.Id, out st) && st > now))
-                swingFrom[p.Id] = now;
-            swingTo[p.Id] = now + 0.1f;  // the held sword phases out while this one is drawn (MeleeLooks.cs)
             if (u < 1f)
             {
                 Arc(o, 60f - 34f * e, 2.5f, GreatMoon.WithAlpha(0.2f + 0.5f * e), 24);
                 GlowDisc(o, 70f, GreatMoon, 0.18f * e);
             }
-            float ang = p.Aim - Mathf.Lerp(0f, half + 0.2f, e);
+            if (u >= 1f && MeleeSwingShowing(p))
+                return;  // the rend's own cut has the sword now
+            float ang = p.Aim - Mathf.Lerp(GreatRestOff, half + 0.2f, e);  // from the held pose back to where the cut starts
             DrawMeleeModel(WeaponId.Greatsword, o, ang, Game.MeleeReach(p, p.Weapon.Reach), 1f, GreatMoon, u > 0.7f, 1f, ArmColor(p.Id));
         }
 
-        /// The Greatsword held at the ready in both gloved hands, drawn over the body in place of the model's own blade. It phases out
-        /// while a cut, the rend's wind-up or the guard pose draws the sword, and back in after (HeldPhase).
+        /// The Greatsword held at the ready in both gloved hands, drawn over the body in place of the model's own blade. A cut, the
+        /// rend's wind-up and the guard pose each start from this pose and come back to it, and it waits while they draw the sword.
         void DrawGreatswordIdle(Player p, float t)
         {
-            if (!fxOn || p.Weapon.Id != WeaponId.Greatsword || p.Downed || p.GreatGuard)
+            float ang, reach, bend;
+            if (!MeleeRest(p, WeaponId.Greatsword, out ang, out reach, out bend) || MeleeSwingShowing(p) || GreatPoseShowing(p))
                 return;
-            float phase = HeldPhase(p.Id);
-            if (phase <= 0f)
-                return;
-            DrawMeleeModel(WeaponId.Greatsword, p.Disp, p.Aim - 0.45f + 0.02f * Mathf.Sin(t * 2.6f), Game.MeleeReach(p, p.Weapon.Reach), phase, GreatMoon, false, 1f, ArmColor(p.Id));
+            DrawMeleeModel(WeaponId.Greatsword, p.Disp, ang, reach, 1f, GreatMoon, false, bend, ArmColor(p.Id));
         }
 
-        const float GreatKickTime = 0.22f;
+        /// True while the rend's wind-up or the guard pose (with its thrust) draws the sword (DrawGreatWindup, DrawGreatGuardPose).
+        bool GreatPoseShowing(Player p)
+        {
+            float at;
+            if (p.GreatStep == 3 && greatWindAt.TryGetValue(p.Id, out at) && (Time.unscaledTime - at) / Game.GreatRendWind <= 1.4f)
+                return true;
+            return p.GreatGuard || (greatKickAt.TryGetValue(p.Id, out at) && Time.unscaledTime - at < GreatKickTime);
+        }
+
+        const float GreatKickTime = 0.22f, GreatRaiseTime = 0.08f, GreatRestOff = 0.45f;  // the guard's thrust back to the ready; raising it; the held pose's angle off the aim (MeleeRest)
         readonly Dictionary<int, bool> greatGuardSeen = new Dictionary<int, bool>();
-        readonly Dictionary<int, float> greatKickAt = new Dictionary<int, float>();
+        readonly Dictionary<int, float> greatKickAt = new Dictionary<int, float>(), greatRaiseAt = new Dictionary<int, float>();
 
         /// The sword while you guard: braced out along the aim and trembling a little, brighter with every point of Temper, then thrust
         /// forward for GreatKickTime when you let go (the Rend). The held sword phases out while this one is drawn.
@@ -115,24 +120,29 @@ namespace Arena
             float now = Time.unscaledTime, kick;
             if (prev && !p.GreatGuard && !p.Downed)
                 greatKickAt[p.Id] = now;
+            if (!prev && p.GreatGuard)
+                greatRaiseAt[p.Id] = now;
             float since = greatKickAt.TryGetValue(p.Id, out kick) ? now - kick : 99f;
             bool kicking = !p.GreatGuard && since >= 0f && since < GreatKickTime;
             if (!fxOn || p.Downed || !(p.GreatGuard || kicking))
                 return;
-            float st;
-            if (!(swingTo.TryGetValue(p.Id, out st) && st > now))
-                swingFrom[p.Id] = now;
-            swingTo[p.Id] = now + 0.1f;  // the held sword phases out while this one is drawn (MeleeLooks.cs)
             float fill = Mathf.Clamp01((float)p.GreatTemper / Game.GreatTemperMax);
             bool full = p.GreatTemper >= Game.GreatTemperMax;
             V2 o = p.Disp;
             V2 dir = V2.FromAngle(p.Aim);
             float reach = Game.MeleeReach(p, p.Weapon.Reach), t = now;
             float push = 0f, ang = p.Aim + (p.GreatGuard ? 0.015f * Mathf.Sin(t * 38f) * (0.4f + fill) : 0f);
+            float rest = p.Aim - GreatRestOff + 0.02f * Mathf.Sin(game.AnimT * 2.6f), raise;
             if (kicking)
             {
                 float q = since / GreatKickTime;
-                push = 16f * (1f - q) * (1f - q);  // a thrust that eases back to the ready
+                push = 16f * (1f - q) * (1f - q);  // a thrust that eases back to the ready, turning down into the held pose
+                ang += (rest - ang) * q * q * (3f - 2f * q);
+            }
+            else if (greatRaiseAt.TryGetValue(p.Id, out raise) && now - raise < GreatRaiseTime)
+            {
+                float q = (now - raise) / GreatRaiseTime;  // raised from the held pose
+                ang = rest + (ang - rest) * q * (2f - q);
             }
             Rgba col = full ? GreatGold : GreatMoon;
             DrawMeleeModel(WeaponId.Greatsword, o + dir * push, ang, reach, 1f, col, full || kicking || fill > 0.5f, 1f, ArmColor(p.Id));

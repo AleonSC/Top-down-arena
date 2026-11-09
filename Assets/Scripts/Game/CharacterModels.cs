@@ -152,7 +152,7 @@ namespace Arena
             gKick += dKick;
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
-            bool ownArms = p.Weapon.Id == WeaponId.TwinBlades || p.Weapon.Id == WeaponId.Lightbringer || p.Weapon.Id == WeaponId.Lance || (p.Weapon.Id == WeaponId.Censer && fxOn && !p.Downed);  // TwinBladesLook.cs / LightbringerLook.cs / LanceLook.cs / CenserLook.cs draw the arms and the weapon, held and swung
+            bool ownArms = LookDrawsArms(p);
             if (!ownArms)
             {
                 ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
@@ -172,6 +172,25 @@ namespace Arena
             if (!ownArms) { MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove); }
 
             ModelHead(p, kit, role, K, RC, r, sh, t);
+        }
+
+        /// True when the weapon's own look draws the arms, gloves and weapon, held and swung, so the model leaves its own out (two
+        /// pairs of arms otherwise). Each case matches when that look's held pose is drawn. A new weapon look with arms goes here.
+        bool LookDrawsArms(Player p)
+        {
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance:
+                    return true;  // TwinBladesLook.cs, LightbringerLook.cs, LanceLook.cs
+                case WeaponId.Halberd:
+                    return fxOn;  // HalberdLook.cs
+                case WeaponId.Katana:
+                    return fxOn && !p.Downed && p.KatanaMeter < Game.KatanaMeterMax;  // KatanaLook.cs, MeleeLooks.cs (a full meter keeps the model's arms and the sheathed blade)
+                case WeaponId.Censer: case WeaponId.Warhammer: case WeaponId.Greatsword: case WeaponId.Rapier: case WeaponId.HolyMace: case WeaponId.BoStaff:
+                    return fxOn && !p.Downed;  // CenserLook.cs, MeleeLooks.cs (Warhammer, Rapier), GreatswordLook.cs, QuarterstaffLook.cs, BoStaffLook.cs
+                default:
+                    return false;
+            }
         }
 
         void ModelArm(ModelPal K, float sx, float sy, float hx, float hy)

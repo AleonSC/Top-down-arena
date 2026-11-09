@@ -488,7 +488,7 @@ static partial class Shot {
       // SWINGW=<WeaponId>: any melee weapon in your hand (e.g. Greatsword, Rapier, Halberd, Warhammer, Katana, BoStaff).
       var wn = Environment.GetEnvironmentVariable("SWINGW");
       if (wn != null) { var wd = System.Array.Find(Defs.Weapons, x => x.Id.ToString() == wn); if (wd != null) { me.Weapon = wd; me.Kit = wd.Kit; } }
-      me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.15f; me.DrawT = 0f;
+      me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.15f; me.DrawT = 0f; me.Flash = 0f;  // (no hit flash: the model shows its own colours)
       int k = 0;
       foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; float a = me.Aim + (k - 1) * 0.55f; en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * (70f + 25f * (k % 2)); if (++k >= 3) break; }
       foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
@@ -595,7 +595,7 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
+        case WeaponId.Katana: fx(FxKind.Slash, to, Environment.GetEnvironmentVariable("KATANALUNGE") == "1" ? -0.12f : 1.05f, 0f, 0.16f); break;  // KATANALUNGE=1: the lunge's thrust (else a swipe)
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)
         {
           int bs = int.Parse(Environment.GetEnvironmentVariable("BOSTEP") ?? "0");

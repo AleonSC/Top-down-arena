@@ -78,16 +78,14 @@ namespace Arena
             Circle(leadHand, 4.6f, StaffGlove.WithAlpha(alpha), 10);
         }
 
-        /// The Quarterstaff held at the ready in both gloved hands, drawn over the body in place of the model's own staff. It phases
-        /// out while a swipe or jab draws the staff, and back in after (HeldPhase).
+        /// The Quarterstaff held at the ready in both gloved hands, drawn over the body in place of the model's own staff. A swipe or
+        /// jab draws the staff and comes back to this pose (DrawSwingModel, MeleeLooks.cs); it waits until then.
         void DrawQuarterstaffIdle(Player p, float t)
         {
-            if (!fxOn || p.Weapon.Id != WeaponId.HolyMace || p.Downed)
+            float ang, reach, bend;
+            if (!MeleeRest(p, WeaponId.HolyMace, out ang, out reach, out bend) || MeleeSwingShowing(p))
                 return;
-            float phase = HeldPhase(p.Id);
-            if (phase <= 0f)
-                return;
-            DrawQuarterstaffModel(p.Disp, p.Aim - 0.3f + 0.02f * Mathf.Sin(t * 2.6f), Game.MeleeReach(p, p.Weapon.Reach) * 0.85f, phase, StaffGold, false, 0f, ArmColor(p.Id), p.Id);
+            DrawQuarterstaffModel(p.Disp, ang, reach, 1f, StaffGold, false, bend, ArmColor(p.Id), p.Id);
         }
 
         /// One diamond behind you for each stack the staff can store, gold when held.

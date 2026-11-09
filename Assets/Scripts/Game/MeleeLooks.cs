@@ -33,14 +33,97 @@ namespace Arena
             public float Sign = 1f;       // which way it sweeps (Twin Blades and the Katana alternate)
             public float BaseReach;       // the weapon's own reach (a Warhammer aftershock reaches further)
             public int Fired;             // the Halberd: which sweeps' first cut has already kicked your screen (bit 1, bit 2)
+            public float ModelEnd = -1f;  // a weapon with a held pose: the effect's age when its swing is back in that pose (-1: none)
         }
 
         readonly Dictionary<Effect, MeleeSeen> meleeSeen = new Dictionary<Effect, MeleeSeen>();
         readonly Dictionary<int, float> meleeFlip = new Dictionary<int, float>();
         readonly Dictionary<int, float> halberdLast = new Dictionary<int, float>();
-        // The held weapon phases out while the swinging model is out, and back in after (HeldPhase, CharacterModels.cs).
+        // A weapon the model holds itself (the Kusarigama, the Blood Lash) phases out while the swinging model is out, and back in after
+        // (HeldPhase, CharacterModels.cs). Weapons with their own held look go back into it instead (DrawSwingModel, MeleeSwingShowing).
         readonly Dictionary<int, float> swingFrom = new Dictionary<int, float>(), swingTo = new Dictionary<int, float>();
         const float HeldFadeOut = 0.04f, HeldFadeIn = 0.14f;
+        // A weapon drawn in its own hands (the Rapier, Katana, Greatsword, Quarterstaff) holds the end of its cut for SwingFollow, then
+        // eases back into the held pose (MeleeRest) over SwingRecover and hands over to it: no fading in or out (DrawSwingModel).
+        const float SwingFollow = 0.06f, SwingRecover = 0.16f;
+        readonly Dictionary<int, Effect> meleeNewest = new Dictionary<int, Effect>();  // each player's newest swing: only it draws the weapon
+
+        /// Where a weapon drawn by DrawMeleeModel is held at the ready: its angle, reach and bend now. False: it has no held pose now
+        /// (Visual effects off, downed, a full Katana meter sheathes the blade, the Greatsword guarding), so a swing fades out instead.
+        bool MeleeRest(Player p, WeaponId id, out float ang, out float reach, out float bend)
+        {
+            ang = p.Aim + 0.02f * Mathf.Sin(game.AnimT * 2.6f);
+            reach = Game.MeleeReach(p, p.Weapon.Reach);
+            bend = 0f;
+            if (!fxOn || p.Downed || p.Weapon.Id != id)
+                return false;
+            switch (id)
+            {
+                case WeaponId.Rapier: ang -= 0.2f; reach = 78f; return true;
+                case WeaponId.Katana: ang -= 0.4f; reach *= 0.7f; bend = 0.4f; return p.KatanaMeter < Game.KatanaMeterMax;
+                case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return !p.GreatGuard;
+                case WeaponId.HolyMace: ang -= 0.3f; reach *= 0.85f; return true;
+                default: return false;
+            }
+        }
+
+        /// True while one of this player's swings (or the Bo Staff's shove) draws their weapon, so the held pose waits. The swing starts
+        /// where they stand (not yet seen: matched by place, as HalberdBusy does).
+        bool MeleeSwingShowing(Player p)
+        {
+            foreach (var fx in game.Effects)
+            {
+                if (fx.Kind == FxKind.Slash)
+                {
+                    if (fx.Radius >= 0f && fx.Radius < 0.2f)
+                        continue;  // a lunge or dash streak: no weapon drawn
+                }
+                else if (fx.Kind != FxKind.StaffShove)
+                    continue;
+                MeleeSeen seen;
+                if (meleeSeen.TryGetValue(fx, out seen))
+                {
+                    if (seen.Owner == p.Id && fx.T < (seen.ModelEnd >= 0f ? seen.ModelEnd : 0.5f))
+                        return true;
+                }
+                else if (fx.T < 0.5f && (fx.Pos.DistanceTo(p.Pos) < 44f || fx.Pos.DistanceTo(p.Disp) < 44f))
+                    return true;
+            }
+            return false;
+        }
+
+        /// The swing's weapon at a pose of the cut (`ang`, `reach`, `bend`, frozen once `T` passes `endT`). With a held pose to go back
+        /// to, it stays solid and eases into it over SwingRecover, then stops (the held pose takes over the same frame); without one it
+        /// fades by `fade` as before. Only the owner's newest swing draws: a new cut takes the weapon from the last one's return.
+        void DrawSwingModel(Effect fx, MeleeSeen seen, V2 o, float T, float endT, float ang, float reach, float bend, bool bright, float fade, Rgba col)
+        {
+            Effect newest;
+            if (meleeNewest.TryGetValue(seen.Owner, out newest) && newest != fx)
+                return;
+            Player owner;
+            float ra, rr, rb;
+            if (game.Players.TryGetValue(seen.Owner, out owner) && MeleeRest(owner, seen.Weapon, out ra, out rr, out rb))
+            {
+                seen.ModelEnd = endT + SwingRecover;
+                fade = 1f;
+                if (T > endT)
+                {
+                    float u = Mathf.Clamp01((T - endT) / SwingRecover);
+                    if (u >= 1f)
+                        return;
+                    u = u * u * (3f - 2f * u);
+                    ang += (Mathf.Repeat(ra - ang + MathX.Pi, MathX.Tau) - MathX.Pi) * u;
+                    reach = Mathf.Lerp(reach, rr, u);
+                    bend = Mathf.Lerp(bend, rb, u);
+                    bright = false;
+                }
+            }
+            else
+                seen.ModelEnd = -1f;
+            // The Katana's arms only while the model leaves its own out (a full strike meter keeps the model's arms and scabbard).
+            bool arms = seen.Weapon != WeaponId.Katana || (owner != null && LookDrawsArms(owner));
+            DrawMeleeModel(seen.Weapon, o, ang, reach, fade, col, bright, bend, arms ? ArmColor(seen.Owner) : default(Rgba));
+        }
 
         /// 1 = the weapon is in hand, 0 = it's out (a swing's model is drawn in its place).
         float HeldPhase(int id)
@@ -108,6 +191,7 @@ namespace Arena
                 sign = best.GreatStep == 2 ? -1f : 1f;  // the return cut sweeps back; the cut and the rend sweep forward (GreatswordLook.cs)
             seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = sign, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };
             meleeSeen[fx] = seen;
+            meleeNewest[best.Id] = fx;
             float now = Time.unscaledTime;
             float st;
             swingFrom[best.Id] = swingTo.TryGetValue(best.Id, out st) && st > now ? swingFrom[best.Id] : now;  // chained swings keep the weapon out
@@ -235,7 +319,9 @@ namespace Arena
                         KatanaSparks(o, aim, 0f, reach, T, MeleeThrustTime, seed, true, 14);
                     else
                         MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true, 18);
-                    DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(26f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col, T < MeleeThrustTime, Mathf.Sin(Mathf.Clamp01(T / (MeleeThrustTime * 1.8f)) * MathX.Pi), ArmColor(seen.Owner));
+                    float endT = MeleeThrustTime + 0.1f, Tc = Mathf.Min(T, endT);
+                    DrawSwingModel(fx, seen, o, T, endT, aim, Mathf.Max(26f, EaseOut3(Mathf.Clamp01(Tc / MeleeThrustTime)) * reach), Mathf.Sin(Mathf.Clamp01(Tc / (MeleeThrustTime * 1.8f)) * MathX.Pi),
+                        T < MeleeThrustTime, T < endT ? 1f : 1f - Mathf.Clamp01((T - endT) / 0.15f), col);
                 }
                 return true;
             }
@@ -274,15 +360,18 @@ namespace Arena
                 else
                     MeleeSparks(o, start, 2f * half * s, reach, T, sweepTime, col, seed, false);
                 float hold = T < sweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.1f) / 0.18f);
-                if (katana && T < sweepTime + 0.25f)  // three lagging ghosts of the blade
+                Effect newest;
+                bool mine = !meleeNewest.TryGetValue(seen.Owner, out newest) || newest == fx;
+                if (katana && mine && T < sweepTime + SwingFollow)  // three lagging ghosts of the blade
                     for (int g = 1; g <= 3; g++)
                     {
                         float ga = at - s * g * 0.16f * (T < sweepTime ? 1f : 0.6f);
                         if ((ga - start) * s < 0f)
                             continue;
-                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false, s, ArmColor(seen.Owner));
+                        DrawMeleeModel(seen.Weapon, o, ga, reach, hold * (0.34f - g * 0.09f), col, false, s);  // (ghosts of the blade only, no arms)
                     }
-                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime, s, ArmColor(seen.Owner));
+                float endT = sweepTime + SwingFollow, atEnd = full ? aim + endT * 14f * s : start + 2f * half * s;
+                DrawSwingModel(fx, seen, o, T, endT, T < endT ? at : atEnd, reach, s, T < sweepTime, hold, col);
             }
             return true;
         }
@@ -383,16 +472,14 @@ namespace Arena
             Arc(p, 6f + 10f * EaseOut3(q), 1.5f, col.WithAlpha(0.8f * a), 14);
         }
 
-        /// The Rapier held at the ready, point forward, drawn over the body in place of the model's own blade. It phases out while a
-        /// thrust draws the blade, and back in after (HeldPhase).
+        /// The Rapier held at the ready, point forward, drawn over the body in place of the model's own blade. A thrust draws the blade
+        /// and comes back to this pose (DrawSwingModel); it waits until then.
         void DrawRapierIdle(Player p, float t)
         {
-            if (!fxOn || p.Weapon.Id != WeaponId.Rapier || p.Downed)
+            float ang, reach, bend;
+            if (!MeleeRest(p, WeaponId.Rapier, out ang, out reach, out bend) || MeleeSwingShowing(p))
                 return;
-            float phase = HeldPhase(p.Id);
-            if (phase <= 0f)
-                return;
-            DrawMeleeModel(WeaponId.Rapier, p.Disp, p.Aim - 0.2f + 0.02f * Mathf.Sin(t * 2.6f), 78f, phase, MeleeColor(WeaponId.Rapier, Rgba.White), false, 0f, ArmColor(p.Id));
+            DrawMeleeModel(WeaponId.Rapier, p.Disp, ang, reach, 1f, MeleeColor(WeaponId.Rapier, Rgba.White), false, bend, ArmColor(p.Id));
         }
 
         /// Six small diamonds on an arc behind you: they fill one by one as the streak builds, and turn gold at six with a faint
@@ -1093,7 +1180,25 @@ namespace Arena
                     float bladeShare = pole ? 0.3f : id == WeaponId.TwinBlades || id == WeaponId.Katana ? 0.7f : 0.78f;
                     float r0 = 18f, r1 = reach * 0.98f, hilt = pole ? reach * (1f - bladeShare) : r0 + (r1 - r0) * (1f - bladeShare);
                     float wd = pole ? 7f : 5f;
+                    bool katanaArms = id == WeaponId.Katana && arm.A > 0f;  // the Katana in both hands, arms to the shoulders (the model leaves its own out)
+                    V2 kh1 = o + dir * (r0 - 4f), kh2 = o + dir * (hilt - 6f);
+                    if (katanaArms)
+                    {
+                        V2 shRear = o + side * 11f, shLead = o - side * 11f;
+                        var armDark = new Rgba(0.04f, 0.04f, 0.06f, alpha);
+                        Line(shRear, kh1, 7.2f, armDark);
+                        Line(shLead, kh2, 7.2f, armDark);
+                        Line(shRear, kh1, 5f, arm.WithAlpha(alpha));
+                        Line(shLead, kh2, 5f, arm.WithAlpha(alpha));
+                    }
                     Line(o + dir * (r0 - 6f), o + dir * hilt, 4f, MeleeHandle.WithAlpha(alpha));
+                    if (katanaArms)  // charcoal gloves on the wrapped grip
+                    {
+                        Circle(kh1, 5f, new Rgba(0.03f, 0.03f, 0.05f, alpha), 12);
+                        Circle(kh1, 3.9f, new Rgba(0.17f, 0.17f, 0.23f, alpha), 12);
+                        Circle(kh2, 5f, new Rgba(0.03f, 0.03f, 0.05f, alpha), 12);
+                        Circle(kh2, 3.9f, new Rgba(0.17f, 0.17f, 0.23f, alpha), 12);
+                    }
                     Line(o + dir * hilt + side * 7f, o + dir * hilt - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
                     var fill = bright ? Rgba.White : id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(0.9f, 0.93f, 0.99f);
                     V2 h0 = o + dir * hilt, b1 = o + dir * (r1 - 10f), tip = o + dir * r1;

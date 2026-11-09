@@ -65,11 +65,31 @@ namespace Arena
                 }
                 return true;
             }
-            // The solid staff, crosswise in both gloved hands (DrawBoStaffHeld), then sparks where it lands.
-            if (fade > 0f)
+            // The solid staff, crosswise in both gloved hands (DrawBoStaffHeld), then sparks where it lands. With the staff still in hand,
+            // the draw-in brings it back into the carry pose instead of fading, and the held staff takes over as it gets there.
+            Player owner;
+            game.Players.TryGetValue(seen.Owner, out owner);
+            Effect newest;
+            bool mine = !meleeNewest.TryGetValue(seen.Owner, out newest) || newest == fx;
+            float back0 = ShovePull + ShovePush + ShoveHoldT;
+            if (mine && owner != null && BoHeld(owner))
             {
-                Player owner;
-                game.Players.TryGetValue(seen.Owner, out owner);
+                seen.ModelEnd = gone;
+                if (T < gone)
+                {
+                    float u = Mathf.Clamp01((T - back0) / ShoveBack);
+                    u = u * u * (3f - 2f * u);
+                    var cp = BoCarry(owner);
+                    float sideA = side.Angle, cross = Mathf.Abs(Mathf.Repeat(cp.A - sideA + MathX.Pi, MathX.Tau) - MathX.Pi) <= MathX.Pi / 2f ? sideA : sideA + MathX.Pi;
+                    float ang = cross + (Mathf.Repeat(cp.A - cross + MathX.Pi, MathX.Tau) - MathX.Pi) * u;
+                    float shAim = to.Angle + (Mathf.Repeat(owner.Aim - to.Angle + MathX.Pi, MathX.Tau) - MathX.Pi) * u;
+                    V2 sd = V2.FromAngle(ang), mid = V2.Lerp(dir * (T < back0 ? d : front), V2.FromAngle(cp.A) * cp.P, u);
+                    DrawBoStaffHeld(o, mid, sd, Mathf.Lerp(-15f, cp.G1, u), Mathf.Lerp(15f, cp.G2, u), shAim, owner.Def.BodyR, 1f, ArmColor(seen.Owner));
+                }
+            }
+            else if (fade > 0f && mine)
+            {
+                seen.ModelEnd = -1f;
                 DrawBoStaffHeld(o, dir * d, side, -15f, 15f, to.Angle, owner != null ? owner.Def.BodyR : 16f, fade, ArmColor(seen.Owner));
             }
             if (landed > 0f && landed < 0.3f)
@@ -166,19 +186,26 @@ namespace Arena
             Circle(b2, 4.9f, leather, 14);
         }
 
-        /// The Bo Staff held at the ready in both gloved hands (the carry pose every swing returns to), drawn over the body in place
-        /// of the model's own stick. It phases out while a swing or shove draws the staff, and back in after (HeldPhase).
+        /// The Bo Staff held at the ready in both gloved hands (the carry pose every swing and the shove return to), drawn over the
+        /// body in place of the model's own stick. It waits while a swing or shove draws the staff (MeleeSwingShowing, MeleeLooks.cs).
         void DrawBoStaffIdle(Player p, float t)
         {
-            if (!fxOn || p.Weapon.Id != WeaponId.BoStaff || p.Downed)
+            if (!BoHeld(p) || MeleeSwingShowing(p))
                 return;
-            float phase = HeldPhase(p.Id);
-            if (phase <= 0f)
-                return;
+            var r = BoCarry(p);
+            V2 dir = V2.FromAngle(r.A);
+            DrawBoStaffHeld(p.Disp, dir * r.P, dir, r.G1, r.G2, p.Aim, p.Def.BodyR, 1f, ArmColor(p.Id));
+        }
+
+        bool BoHeld(Player p) => fxOn && p.Weapon.Id == WeaponId.BoStaff && !p.Downed;
+
+        /// The carry pose now: A is the staff's world angle, P how far out its middle is (longer with the +20 px upgrade).
+        BoPose BoCarry(Player p)
+        {
             var r = BoRest(0f).V;
-            float bob = Mathf.Sin(t * 2.6f);
-            V2 dir = V2.FromAngle(p.Aim + r.A + 0.02f * bob);
-            DrawBoStaffHeld(p.Disp, dir * (r.P + Game.MeleeReach(p, p.Weapon.Reach) - BoNominal[0]), dir, r.G1, r.G2, p.Aim, p.Def.BodyR, phase, ArmColor(p.Id));
+            r.A += p.Aim + 0.02f * Mathf.Sin(game.AnimT * 2.6f);
+            r.P += Game.MeleeReach(p, p.Weapon.Reach) - BoNominal[0];
+            return r;
         }
 
         /// A slash (mv 0), jab (1) or spin (2) in the Bo Staff's look, from DrawSlashLayer. `light` is the additive pass.
@@ -186,11 +213,7 @@ namespace Arena
         {
             float span = BoTotal[mv] - BoStrikeAt[mv];
             if (fx.Dur < span + 0.02f)
-            {
                 fx.Dur = span + 0.02f;  // the whole motion, not just the flash (front end only)
-                float now = Time.unscaledTime, st;
-                swingTo[seen.Owner] = swingTo.TryGetValue(seen.Owner, out st) ? Mathf.Max(st, now + span) : now + span;
-            }
             float T = fx.T, tm = T + BoStrikeAt[mv], dp = reach - BoNominal[mv];
             V2 o = MeleeOrigin(fx, seen);
             var col = MeleeColor(WeaponId.BoStaff, fx.Color);
@@ -255,10 +278,31 @@ namespace Arena
                 float start = full ? aim + T * 14f - 1.6f : aim - half;
                 MeleeSparks(o, start, 2f * half, reach, T, MeleeSweepTime, col, seed, false);
             }
+            Effect newest;
+            if (meleeNewest.TryGetValue(seen.Owner, out newest) && newest != fx)
+                return true;  // a newer swing has the staff
             var pose = BoPoseAt(mv, tm, dp);
-            V2 dir = V2.FromAngle(aim + pose.A);
-            float fade = Mathf.Clamp01((BoTotal[mv] - tm) / 0.06f);
-            DrawBoStaffHeld(o, dir * pose.P, dir, pose.G1, pose.G2, aim, owner != null ? owner.Def.BodyR : 16f, fade, ArmColor(seen.Owner));
+            float ang = aim + pose.A, shAim = aim, fade = Mathf.Clamp01((BoTotal[mv] - tm) / 0.06f);
+            if (owner != null && BoHeld(owner))
+            {
+                // The return to the carry: turn to where you aim now and settle into the held pose exactly, then hand over to it.
+                seen.ModelEnd = span;
+                if (tm >= BoTotal[mv])
+                    return true;
+                fade = 1f;
+                var ks = BoKeys[mv];
+                float r0 = ks[ks.Length - 2].T, u = Mathf.Clamp01((tm - r0) / (BoTotal[mv] - r0));
+                u = u * u * (3f - 2f * u);
+                var c = BoCarry(owner);
+                float turn = (Mathf.Repeat(owner.Aim - aim + MathX.Pi, MathX.Tau) - MathX.Pi) * u;
+                ang += turn + (c.A - (owner.Aim + BoRest(0f).V.A)) * u;  // (the bob)
+                shAim += turn;
+                pose.P = Mathf.Lerp(pose.P, c.P, u);
+            }
+            else
+                seen.ModelEnd = -1f;
+            V2 dir = V2.FromAngle(ang);
+            DrawBoStaffHeld(o, dir * pose.P, dir, pose.G1, pose.G2, shAim, owner != null ? owner.Def.BodyR : 16f, fade, ArmColor(seen.Owner));
             return true;
         }
 
