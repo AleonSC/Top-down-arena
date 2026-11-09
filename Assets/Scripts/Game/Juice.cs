@@ -294,10 +294,15 @@ namespace Arena
                 fx.Juiced = true;
                 if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
                     Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
+                if (fx.Kind == FxKind.PerfectParry && (int)fx.Pos2.X == game.MyId)
+                {
+                    Hold(Game.PerfectHold, 0.12f);  // your own perfect parry: the picture holds (the world slowing is Core/Parry.cs)
+                    Shake(0.16f);
+                }
                 if (fx.Kind == FxKind.KatanaHitCue && fx.Color.A > 0.75f && (int)fx.Pos2.X == game.MyId)
                 {
-                    Hold(Game.KatanaLungeHold + Game.KatanaLungeHoldPer * Mathf.Min(3f, fx.Radius - 1f));  // your own lunge cut something: the picture holds
-                    Shake(0.14f);  // Moon Steel: the lunge lands with a kick
+                    Hold(Game.KatanaDashHold + Game.KatanaDashHoldPer * Mathf.Min(3f, fx.Radius - 1f), 0.12f);  // your own dash-cut cut something: the picture holds
+                    Shake(0.14f);  // Moon Steel: the dash lands with a kick
                 }
                 else if (fx.Kind == FxKind.KatanaHitCue && (int)fx.Pos2.X == game.MyId)
                 {
@@ -357,7 +362,7 @@ namespace Arena
                     }
                 }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
-                    Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // the blow lands (an empowered strike's cuts are on every enemy it crossed, so they add up)
+                    Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // a Kage Chain or Zanshin cut lands (a kill harder)
                 if (fx.Kind == FxKind.Exsanguinate && fx.Pos2.X < 0f && me != null)  // Exsanguinate's Barbed Lash (ExsanguinateLook.cs)
                 {
                     bool mine = (int)fx.Pos2.Y == game.MyId;
@@ -951,7 +956,8 @@ namespace Arena
             DrawWeatherGlow();  // Ambience.cs
             DrawHammerGlow();   // the Storm Hammer: slam flash, ring, throw release (StormHammerLook.cs)
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
-            DrawKatanaGlow();   // the Katana's Alt strike: the beam, the flash (KatanaLook.cs)
+            DrawKatanaGlow();   // the Katana's hops and stance switch (KatanaLook.cs)
+            DrawPerfectParryGlow();  // a perfect parry's burst (ParryLook.cs)
             DrawLanceGlow();    // the Lance's hits and Impacts (LanceLook.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)

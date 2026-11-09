@@ -564,8 +564,9 @@ namespace Arena
                         {
                             // The parry stops anything in front of it, even shots barriers can't.
                             scratchIds.Add(b.Id);
-                            if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry or Mirror Guard: sent back
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot });
+                            bool perfect = PerfectNow(p);
+                            if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
                             break;
                         }
                         if (p.WallUp && WallCovers(p, b.Pos, b.Radius, out int plate))
@@ -590,7 +591,7 @@ namespace Arena
                         }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))
                         {
-                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult });  // Aeroaegis
+                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult, Kind = Defs.ArcaneShot });  // Aeroaegis
                             scratchIds.Add(b.Id);
                             p.AegisHp -= BlockerWear(b);
                             if (p.AegisHp <= 0f)
@@ -663,7 +664,10 @@ namespace Arena
                     continue;
                 var warden = rb.StunBack ? TheWarden() : null;
                 V2 back = warden != null ? (warden.Pos - rb.Pos).Normalized() : -rb.Vel.Normalized();  // a parried stun shot goes straight back at the Warden
-                var shot = SpawnBullet(Defs.ArcaneShot, rb.Pos, back * 520f, 0f, warden != null ? 2.5f : 1f, 12f * owner.Stats.DmgMult * (rb.Dmg > 0f ? rb.Dmg : 1f), rb.Owner);
+                // A perfect parry's shot goes back as a fast white needle (Parry.cs); Mirror Guard and Aeroaegis keep the arcane bolt.
+                bool needle = rb.Kind == Defs.ParryNeedle;
+                var shot = SpawnBullet(needle ? Defs.ParryNeedle : Defs.ArcaneShot, rb.Pos, back * (needle ? NeedleSpeed : 520f), 0f, (warden != null ? 2.5f : 1f) * (needle ? 520f / NeedleSpeed : 1f),
+                    12f * owner.Stats.DmgMult * (rb.Dmg > 0f ? rb.Dmg : 1f), rb.Owner);
                 shot.StunBack = rb.StunBack;
             }
 

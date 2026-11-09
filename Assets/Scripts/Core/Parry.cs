@@ -12,12 +12,25 @@ namespace Arena
         public const float ParryHalfArc = 0.95f;    // radians either side of your aim (about 110 degrees in all)
         public const float ParryReach = 20f;        // how far past your body it sticks out
         const float ParrySlow = 0.7f;               // move speed while it's up
-        const float PerfectParry = 0.22f;           // seconds after raising that count as a perfect parry
+        public const float PerfectParry = 0.30f;    // seconds after raising that count as a perfect parry (0.22 before Nov 2026)
         const float PerfectRearm = 0.5f;            // it must have been down this long first (no spamming)
         const float ParryBreakTime = 3f;            // locked out after it breaks
         const float ParryRegenDelay = 0.8f, ParryRegen = 40f;
         const float CounterTime = 2.5f;             // Counterstance: faster fire after a perfect parry
         const float ShatterTime = 0.65f;            // how long the breaking shield's pieces fly
+        // A perfect parry's feel (Docs/Mockups/parry-perfect-rework.html): the shot goes back as a fast white needle
+        // (Defs.ParryNeedle), the shield flashes on every screen (FxKind.PerfectParry), the parrier's own picture holds
+        // (Game/Juice.cs), and the world slows (WorldSlowT): enemies and every shot move at PerfectSlow for PerfectSlowTime,
+        // at most once every PerfectSlowGap, so a burst slows the game once. Players keep their own speed.
+        public const float NeedleSpeed = 900f, PerfectSlow = 0.3f, PerfectSlowTime = 0.3f, PerfectSlowGap = 0.6f, PerfectSlowEase = 0.08f;
+        public const float PerfectHold = 0.05f, PerfectFxTime = 0.35f;
+        public float WorldSlowT;   // > 0: the world is slowed by a perfect parry (every game: the host's sets it, guests' from the effect)
+        float lastPerfectSlow = -99f;
+
+        /// How fast the world (enemies and every shot) runs this tick: slowed after a perfect parry, easing back at the end.
+        public float WorldRate => WorldSlowT <= 0f ? 1f : WorldSlowT >= PerfectSlowEase ? PerfectSlow : PerfectSlow + (1f - PerfectSlow) * (1f - WorldSlowT / PerfectSlowEase);
+
+        void StartWorldSlow() => WorldSlowT = PerfectSlowTime;
 
         /// How much the shield soaks for this player (Reinforced Guard raises it).
         public static float ParryMax(Player p) => ParryCapacity * p.Stats.ParryCapacityMult;
@@ -71,7 +84,15 @@ namespace Arena
             {
                 if (p.Stats.CounterFireRate > 0f)
                     p.CounterT = CounterTime;  // Counterstance
-                BroadcastFx(FxKind.Spark, at, new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.Blink);
+                // The flash (every screen): Pos is where the shot met the shield, Pos2 the parrier's id and aim, Radius half the
+                // shield's arc, the colour the parrier's; alpha 1 means this one slows the world (the first in PerfectSlowGap).
+                bool slow = RunTime - lastPerfectSlow >= PerfectSlowGap || RunTime < lastPerfectSlow;
+                if (slow)
+                {
+                    lastPerfectSlow = RunTime;
+                    StartWorldSlow();
+                }
+                BroadcastFx(FxKind.PerfectParry, at, new V2(p.Id, p.Aim), p.Def.Color.WithAlpha(slow ? 1f : 0.5f), HalfArc(p), PerfectFxTime, Sfx.PerfectParry);
                 Recorder?.Parry(p, dmg, true, false);
                 return true;
             }

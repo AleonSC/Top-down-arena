@@ -7,7 +7,7 @@ namespace Arena
     ///   - Chain: Rising Cut, Falling Cut, Double Jab, Pirouette, Crescent Shear, then it starts over. The next press counts once a
     ///     step is Next of the way through; TwinChainWindow after a step ends without one, the chain starts over too. Each step
     ///     moves you forward a little: the host counts the swings in Player.Combo's high bits, and your own game steps you
-    ///     forward when the count changes (LocalTwinStep), as the Katana's lunge does. The Shear launches a piercing crescent.
+    ///     forward when the count changes (LocalTwinStep), as the Katana's dash does. The Shear launches a piercing crescent.
     ///   - Alt (the weapon-action key): Twin Fang. Both sabres are thrown out on mirrored curves to your cursor (up to
     ///     FangReach), cross there in a burst and fly back the other way, cutting what they pass both ways. You can't swing
     ///     until you catch them. Your game sends Msg.WeaponDash (DashStrike, aimed at the cursor); the host does the rest.

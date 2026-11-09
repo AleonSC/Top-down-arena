@@ -2,7 +2,9 @@ namespace Arena
 {
     /// The Katana's sounds (cues raised in Core/Katana.cs, Core/Ninja.cs and Core/Knight.cs), the Steel set of
     /// Docs/Mockups/katana-sounds.html: airy whooshes with a metallic ring on top, hard cracks, bell tails.
-    /// The swipes, the lunge and a cut landing use the Weapons volume (IsKatanaWeaponSfx); the rest are Effects.
+    /// Senbon's swipes, Hayate's dash-cut (KatanaLunge) and a cut landing use the Weapons volume (IsKatanaWeaponSfx); the rest are
+    /// Effects. The two stances (Katana.cs) reuse the old strike's sounds: KatanaStance as a Kage Chain or Zanshin begins, a chain
+    /// chime per hop, the sheathe and KatanaEmpStrikeCut as Zanshin's cuts fall.
     public partial class SoundBank
     {
         const float KatanaRing = 2600f, KatanaRingVol = 0.07f, KatanaRoom = 0.25f, KatanaChime = 0.2f;
@@ -41,6 +43,14 @@ namespace Arena
                 Tone(0.07f, S, 1900f, 650f, 0.2f, noise: 0.9f, lowpass: 0.8f, decay: 3f),
                 Tone(0.13f, S, 230f, 90f, 0.26f, noise: 0.3f, lowpass: 0.3f, decay: 3f),
                 Bell(0.28f, KatanaRing * 0.75f, 0.045f)), 0.4f), 0.04f);
+
+            // The stance switch: the blade turned over (a quick swish), a click as it sets in its new guard, a soft thump of the burst
+            // and a short ring.
+            Set(Sfx.KatanaStanceSwap, Finish(Room(Mix(
+                Tone(0.14f, S, 400f, 1400f, 0.14f, noise: 0.85f, lowpass: 0.6f, attack: 0.01f, decay: 1.8f),
+                Delay(Tone(0.025f, Osc.Square, 2100f, 1700f, 0.07f, lowpass: 0.55f, decay: 3f), 0.1f),
+                Delay(Tone(0.18f, S, 160f, 60f, 0.22f, noise: 0.3f, lowpass: 0.3f, decay: 2.4f), 0.1f),
+                Delay(Bell(0.4f, KatanaRing * 0.8f, 0.05f), 0.11f)), KatanaRoom * 0.6f), 0.5f), 0.1f);
 
             // --- The meter (your own screen) ---
             Set(Sfx.KatanaReady, Finish(Room(Mix(

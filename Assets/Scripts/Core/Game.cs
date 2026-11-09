@@ -732,11 +732,12 @@ namespace Arena
             }
             else
             {
-                MoveBullets(dt);
+                MoveBullets(dt * WorldRate);  // (a perfect parry slows every shot on every screen: Parry.cs)
                 tick++;
                 if (tick % 120 == 0)
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
+            WorldSlowT = Math.Max(0f, WorldSlowT - dt);  // Parry.cs
             AgePatches(dt);  // Paths.cs (every game, so the floors look the same everywhere)
             TickLayout(dt);  // LayoutRules.cs (every game: a joiner's walls fade in off this clock, or they stay invisible)
             TickRunTimeline(dt);  // RunTimeline.cs (every game: the Recent runs graphs)
@@ -918,7 +919,7 @@ namespace Arena
             }
             if (KatanaStriking && DashT <= 0f)
             {
-                move = V2.Zero;  // the Katana's stance before the cut and the held frame after it: you hold still and can't swing (Katana.cs)
+                move = V2.Zero;  // a Kage Chain or Zanshin under way: you go where it takes you and can't swing (Katana.cs)
                 firing = false;
             }
             float bowRelease = LocalBow(me, firing, dt);
@@ -1097,6 +1098,7 @@ namespace Arena
             }
 
             LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
+            katanaFireHeld = firing;  // the Katana spends a full meter on a held fire (Katana.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
@@ -1162,7 +1164,7 @@ namespace Arena
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
             TickLance(dt);  // Lance.cs: Hook & Haul's cooldown and hooks landing
             TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing
-            TickKatanaStrikes(dt);  // Ninja.cs: the Katana's Alt strikes landing
+            TickKatanaRuns(dt);  // Katana.cs: the Kage Chain and Zanshin landing
             TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
@@ -1179,7 +1181,7 @@ namespace Arena
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
-            TickEnemies(dt);
+            TickEnemies(dt * WorldRate);  // (slowed for a moment by a perfect parry: Parry.cs)
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
@@ -1191,7 +1193,7 @@ namespace Arena
             TickOrbs(dt);
             TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
-            MoveBullets(dt);
+            MoveBullets(dt * WorldRate);
             Collide();
             TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
@@ -1301,7 +1303,7 @@ namespace Arena
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
-                    TickKatanaFire(p);  // swipe, swipe, lunge (Katana) or slash, jab, spin (Bo Staff), with the next step queued if you tap ahead (Katana.cs)
+                    TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);

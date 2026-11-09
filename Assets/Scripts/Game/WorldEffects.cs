@@ -114,8 +114,14 @@ namespace Arena
                     break;
                 case FxKind.HammerThrow:
                     break;  // a pose and a glow, nothing solid (StormHammerLook.cs)
-                case FxKind.KatanaStrike:
-                    DrawKatanaStrikeFx(fx);  // KatanaLook.cs
+                case FxKind.KatanaStanceFx:
+                    DrawKatanaStanceFx(fx);  // KatanaLook.cs
+                    break;
+                case FxKind.KatanaHop:
+                    DrawKatanaHopFx(fx);  // KatanaLook.cs
+                    break;
+                case FxKind.PerfectParry:
+                    DrawPerfectParryFx(fx);  // ParryLook.cs
                     break;
                 case FxKind.KatanaCut:
                     DrawKatanaCutFx(fx);

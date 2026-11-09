@@ -60,7 +60,8 @@ namespace Arena
             switch (id)
             {
                 case WeaponId.Rapier: ang -= 0.2f; reach = 78f; return true;
-                case WeaponId.Katana: ang -= 0.4f; reach *= 0.7f; bend = 0.4f; return p.KatanaMeter < Game.KatanaMeterMax;
+                case WeaponId.Katana:  // Hayate: low and out to the side; Senbon: forward (KatanaLook.cs)
+                    ang -= p.KatanaStance == 0 ? 1.15f : 0.12f; reach *= p.KatanaStance == 0 ? 0.72f : 0.78f; bend = 0.4f; return true;
                 case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return !p.GreatGuard;
                 case WeaponId.HolyMace: ang -= 0.3f; reach *= 0.85f; return true;
                 case WeaponId.Kusarigama: ang -= 0.35f; reach = 36f; return true;  // the sickle in hand, its chain in
@@ -155,8 +156,8 @@ namespace Arena
             }
             else
                 seen.ModelEnd = -1f;
-            // The Katana, Kusarigama and Blood Lash draw arms only while the model leaves its own out (a full strike meter keeps the
-            // model's arms and the Katana's scabbard; downed or Visual effects off, the model's).
+            // The Katana, Kusarigama and Blood Lash draw arms only while the model leaves its own out (downed or Visual effects off,
+            // the model's).
             bool arms = (seen.Weapon != WeaponId.Katana && seen.Weapon != WeaponId.Kusarigama && seen.Weapon != WeaponId.BloodLash) || (owner != null && LookDrawsArms(owner));
             ownerOfModel = seen.Owner;
             DrawMeleeModel(seen.Weapon, o, ang, reach, fade, col, bright, bend, arms ? ArmColor(seen.Owner) : default(Rgba));
@@ -333,7 +334,7 @@ namespace Arena
                 {
                     KatanaSpear(o, dir, aim, ext, T, fade, col);
                     Player owner;
-                    KatanaGhosts(fx.Pos, dir, T, game.Players.TryGetValue(seen.Owner, out owner) ? owner.Def.BodyR : 16f, col);
+                    KatanaGhosts(fx.Pos, dir, reach, T, game.Players.TryGetValue(seen.Owner, out owner) ? owner.Def.BodyR : 16f, col);
                     KatanaMarks(o, aim, 0f, 1f, reach, T, MeleeThrustTime, true, col);
                 }
                 }
@@ -454,10 +455,10 @@ namespace Arena
                 Arc(o, reach + 9f + 8f * k, 1.3f, col.WithAlpha((0.35f - 0.15f * k) * shockA), 14, at - s * (0.52f - 0.1f * k), s * 0.64f);
         }
 
-        /// Five afterimages of the swordsman along the lunge's step, from where they stood, fading as the step ends.
-        void KatanaGhosts(V2 from, V2 dir, float T, float bodyR, Rgba col)
+        /// Five afterimages of the swordsman along Hayate's dash-cut, from where they stood, fading as the dash ends.
+        void KatanaGhosts(V2 from, V2 dir, float len, float T, float bodyR, Rgba col)
         {
-            const float step = 0.12f, tail = 0.35f;
+            const float step = Game.KatanaDashTime, tail = 0.35f;
             if (T < 0f || T > step + tail)
                 return;
             float fade = 1f - Mathf.Clamp01((T - step) / tail), cur = EaseOut3(Mathf.Clamp01(T / step));
@@ -466,7 +467,7 @@ namespace Arena
                 float u = cur - i * 0.14f, a = fade * (0.42f - i * 0.07f);
                 if (u < 0f || a <= 0f)
                     continue;
-                V2 c = from + dir * (Game.KatanaLungeStep * EaseOut3(u));
+                V2 c = from + dir * (len * EaseOut3(u));
                 GlowDisc(c, bodyR, col, a * 0.6f);
                 Arc(c, bodyR, 1.4f, Rgba.White.WithAlpha(a * 0.7f), 18);
             }
