@@ -159,9 +159,14 @@ namespace Arena
 
         /// Corners to steer round: each box's four corners and eight spots round each pillar, pushed out from it, and
         /// only the ones that aren't inside something else.
-        static V2[] MakeWaypoints(LayoutDef d)
+        static V2[] MakeWaypoints(LayoutDef d) => MakeWaypoints(d, V2.Zero, new V2(W, H), null);
+
+        /// The same for any bounds (lo..hi), plus extra spots of the caller's (Rooms.cs: either side of each door).
+        internal static V2[] MakeWaypoints(LayoutDef d, V2 lo, V2 hi, IEnumerable<V2> extra)
         {
             var pts = new List<V2>();
+            if (extra != null)
+                pts.AddRange(extra);
             foreach (var s in d.Solids)
             {
                 if (s.Edge)
@@ -176,7 +181,7 @@ namespace Arena
             var keep = new List<V2>();
             foreach (var p in pts)
             {
-                if (p.X < 40f || p.Y < 40f || p.X > W - 40f || p.Y > H - 40f)
+                if (p.X < lo.X + 40f || p.Y < lo.Y + 40f || p.X > hi.X - 40f || p.Y > hi.Y - 40f)
                     continue;
                 bool inside = false;
                 foreach (var s in d.Solids)

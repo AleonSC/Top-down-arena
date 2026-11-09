@@ -360,6 +360,11 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, me.Disp.X)), Math.Max(hy, Math.Min(Game.Height - hy, me.Disp.Y))));
     }
+    if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
+      float z = (float)typeof(ArenaApp).GetField("camZoom", f2).GetValue(app);
+      typeof(ArenaApp).GetField("camFollow", f2).SetValue(app, true);
+      typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, typeof(ArenaApp).GetMethod("RoomsFocus", f2 | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { me.Disp, z }));
+    }
     if (Environment.GetEnvironmentVariable("SWING") != null)  // draw the swings once first (then throw that away), so each is already seen (its owner known) as after its first frame in the game
     {
       var slashE = typeof(ArenaApp).GetMethod("DrawSlashE", f2);

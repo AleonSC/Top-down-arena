@@ -28,7 +28,7 @@ namespace Arena
         {
             if (!CamZoomed || !game.Running)
                 return;
-            float fade = Mathf.Clamp01((camZoom - 1f) / 0.12f);
+            float fade = camFollow ? 1f : Mathf.Clamp01((camZoom - 1f) / 0.12f);  // (the rooms' camera hides things at any zoom: Rooms.cs)
             if (fade <= 0.01f)
                 return;
             V2 mid = new V2(MarkArea.center.x, MarkArea.center.y);

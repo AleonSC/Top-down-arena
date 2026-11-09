@@ -175,6 +175,19 @@ namespace Arena
                 pref = 0f;
             }
 
+            // --- The Rooms arena (Rooms.cs): with a wall between us and where we're going, head for the next corner or
+            // doorway on the way round instead (the enemies' steering, LayoutRules.cs).
+            if (RoomsOn && anchor.DistanceTo(me.Pos) > pref + 40f)
+            {
+                V2 straight = (anchor - me.Pos).Normalized();
+                V2 way = SteerDir(-me.Id, me.Pos, botClock, me.Def.BodyR + 4f, anchor, straight);
+                if (way.DistanceTo(straight) > 0.01f)
+                {
+                    anchor = me.Pos + way * 140f;
+                    pref = 0f;
+                }
+            }
+
             // --- Dodge: score each way we could move over the next fraction of a second.
             botThinkT -= dt;
             if (botThinkT <= 0f)

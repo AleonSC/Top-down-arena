@@ -32,6 +32,7 @@ namespace Arena
         ApproachShare,  // share: the themed share of the last wave before each boss (Approaches.cs); 0 = off
         ApproachRamp,   // on/off: the four approach waves rise to that share (on) or all use it (off)
         ArenaLayouts,   // on/off: each boss cycle gets a fixed floor plan (Layouts.cs); off = always the open arena
+        ArenaRooms,     // on/off: the Arena setting, Rooms (on: side rooms and hallways on regular waves, Rooms.cs) or Classic (off)
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
@@ -282,6 +283,10 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.ArenaLayouts, Name = "Arena layouts", Flavour = true,
                 Desc = "On: each boss cycle gets a fixed floor plan with walls, pillars and edge gates (and 30% more enemies). Off: always the open arena.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
+            // The Arena (Rooms.cs, Docs/Rooms.md): flavour. Off is Classic, today's arena, the default until Rooms is tuned.
+            new KnobDef { Knob = DiffKnob.ArenaRooms, Name = "Rooms arena", Flavour = true,
+                Desc = "On: regular waves spread into side rooms and hallways round the arena, joined by doors (boss waves stay in the middle). Off: the Classic arena.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
         };
     }
 

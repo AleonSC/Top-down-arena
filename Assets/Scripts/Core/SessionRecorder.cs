@@ -91,7 +91,7 @@ namespace Arena
         bool endless, fighting, lastBot;
         readonly DateTime started = DateTime.Now;
         int playerCount, startWave;
-        string modifiers = "", difficulty = "Normal";
+        string modifiers = "", difficulty = "Normal", arena = "Classic";
         float sampleT, saveT = AutosaveEvery, now;
         const float AutosaveEvery = 10f;  // a run in progress is written this often, so a crash or a closed window keeps nearly all of it
         string outcome = "in progress";
@@ -138,6 +138,7 @@ namespace Arena
             if (g.Bot)
                 Dev(g, "bot plays for the host: on");
             modifiers = string.Join(", ", Modifiers.Names(g.Mods).ToArray());
+            arena = g.RoomsArena ? "Rooms" : "Classic";  // the Arena setting (Rooms.cs)
             difficulty = g.Diff.Level == DifficultyLevel.Custom ? "Custom (" + string.Join(", ", g.Diff.Changes().ToArray()) + ")" : g.Diff.Name;
             playerCount = g.Players.Count;
             foreach (var p in g.Players.Values)
@@ -197,6 +198,12 @@ namespace Arena
             var n = new Near();
             float cx = Math.Max(View2xHalfW, Math.Min(Game.Width - View2xHalfW, pos.X));
             float cy = Math.Max(View2xHalfH, Math.Min(Game.Height - View2xHalfH, pos.Y));
+            if (g.RoomsOn)  // the Rooms arena's camera frames the room or hallway you're in (Rooms.cs)
+            {
+                V2 c = Rooms.ViewCentre(pos, View2xHalfW, View2xHalfH);
+                cx = c.X;
+                cy = c.Y;
+            }
             float best = float.MaxValue;
             foreach (var e in g.Enemies.Values)
             {
@@ -516,6 +523,7 @@ namespace Arena
             j.Field("endless", endless);
             j.Field("modifiers", modifiers);
             j.Field("difficulty", difficulty);
+            j.Field("arena", arena);
             j.Key("end"); j.Open();
             j.Field("outcome", outcome); j.Field("wave", endWave); j.Field("time", endTime); j.Field("score", endScore);
             j.Close();

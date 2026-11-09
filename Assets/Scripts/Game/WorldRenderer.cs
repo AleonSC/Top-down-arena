@@ -59,7 +59,9 @@ namespace Arena
             DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
             DrawRoomFloor(t);  // a challenge room's ground (ChallengeLook.cs)
             var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f, 0.035f);
-            if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)
+            if (game.RoomsOn)
+                DrawRoomsFloor(grid);  // the side rooms and hallways: the grid across the whole world (RoomsLook.cs)
+            else if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)
             {
                 for (float x = 0; x <= AW; x += 64f)
                     Line(new V2(x, 0), new V2(x, AH), 1f, grid);
@@ -67,10 +69,13 @@ namespace Arena
                     Line(new V2(0, y), new V2(AW, y), 1f, grid);
             }
             var border = infected ? ZombieBorder : new Rgba(0.3f, 0.35f, 0.5f, 0.6f);
-            Line(new V2(2, 2), new V2(AW - 2, 2), 3f, border);
-            Line(new V2(2, AH - 2), new V2(AW - 2, AH - 2), 3f, border);
-            Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
-            Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
+            if (!game.RoomsOn)  // (the rooms' walls stand where the border was)
+            {
+                Line(new V2(2, 2), new V2(AW - 2, 2), 3f, border);
+                Line(new V2(2, AH - 2), new V2(AW - 2, AH - 2), 3f, border);
+                Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
+                Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
+            }
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawArenaContents(t, true);

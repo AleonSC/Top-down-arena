@@ -28,7 +28,7 @@ static partial class Shot {
       // EMOTEBAR=1: the emote bar open (rank 60); EMOTE=n[,age]: emote number n showing over player 1, that many seconds in (EmoteBar.cs)
       if (Environment.GetEnvironmentVariable("EMOTEBAR") != null) { Profile.Current.Xp = Rank.XpAt(60); set("emoteBarOpen", true); set("emoteBarK", 1f); }
       if (Environment.GetEnvironmentVariable("EMOTE") != null) { var ep = Environment.GetEnvironmentVariable("EMOTE").Split(','); host.Emotes[1] = new Session.EmoteShow { Index = byte.Parse(ep[0]), At = Session.Clock - (ep.Length > 1 ? float.Parse(ep[1]) : 0.8f) }; }
-      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("LAG") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
+      bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("LAG") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
       if (zoomGl) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
       if (zoomGl) GL.ToUi = false;

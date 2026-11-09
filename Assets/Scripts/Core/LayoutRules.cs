@@ -23,6 +23,8 @@ namespace Arena
         {
             get
             {
+                if (RoomsOn)
+                    return Rooms.With(Layout);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
                 if (Layout == LayoutId.Open || InRoom || Practice != null || ShowcaseMode)
                     return null;
                 return Layouts.Get(Layout);
@@ -41,6 +43,7 @@ namespace Arena
             lastLayout = LayoutId.Open;
             layoutFresh = false;
             LayoutAge = 0f;
+            RoomsUp = false;
         }
 
         /// Host, at the start of each wave: boss waves are the open arena; every other cycle (the waves between two
@@ -94,12 +97,16 @@ namespace Arena
 
         void SyncLayout(NetSync s)
         {
-            byte l = (byte)Layout;
+            byte l = (byte)((byte)Layout | (RoomsUp ? 0x80 : 0));  // the top bit: the Rooms world is up (Rooms.cs)
             s.Byte(ref l);
-            if (s.Reading && (LayoutId)l != Layout)
+            if (s.Reading)
             {
-                Layout = (LayoutId)l;
-                LayoutAge = 0f;
+                bool rooms = (l & 0x80) != 0;
+                var lay = (LayoutId)(l & 0x7f);
+                if (lay != Layout || rooms != RoomsUp)
+                    LayoutAge = 0f;
+                Layout = lay;
+                RoomsUp = rooms;
             }
         }
 
@@ -443,20 +450,23 @@ namespace Arena
         /// Which way a walking enemy heads for its target: straight at it, or, with a wall in the way, along the
         /// shortest route through the wall corners (as many as it takes). It sticks to the corner it chose for a
         /// moment so it doesn't dither.
-        V2 LayoutDir(Enemy e, V2 tpos, V2 dir)
+        V2 LayoutDir(Enemy e, V2 tpos, V2 dir) => SteerDir(e.Id, e.Pos, e.T, e.Radius * 0.8f + 3f, tpos, dir);
+
+        /// LayoutDir for anything that walks (an enemy, or a bot heading through the Rooms arena's doors: BotBrain.cs):
+        /// key names its steering memory, now is its own clock, r how fat it is.
+        V2 SteerDir(int key, V2 pos, float now, float r, V2 tpos, V2 dir)
         {
             var d = ActiveLayout;
             if (d == null || d.Waypoints.Length == 0)
                 return dir;
-            float r = e.Radius * 0.8f + 3f;
-            if (!SegBlocked(d, e.Pos, tpos, r))
+            if (!SegBlocked(d, pos, tpos, r))
                 return dir;
             SteerMem m;
-            if (!steerMem.TryGetValue(e.Id, out m))
+            if (!steerMem.TryGetValue(key, out m))
             {
                 if (steerMem.Count > 300)
                     steerMem.Clear();
-                steerMem[e.Id] = m = new SteerMem();
+                steerMem[key] = m = new SteerMem();
             }
             var wps = d.Waypoints;
             if (m.Def != d || m.Wp >= wps.Length || m.Goal.DistanceTo(tpos) > SteerGoalSlack)
@@ -465,28 +475,28 @@ namespace Arena
                 m.Wp = -1;
             }
             m.Goal = tpos;
-            if (m.Wp >= 0 && e.T < m.Until && e.Pos.DistanceTo(wps[m.Wp]) > 14f && !SegBlocked(d, e.Pos, wps[m.Wp], r))
-                return (wps[m.Wp] - e.Pos).Normalized();
+            if (m.Wp >= 0 && now < m.Until && pos.DistanceTo(wps[m.Wp]) > 14f && !SegBlocked(d, pos, wps[m.Wp], r))
+                return (wps[m.Wp] - pos).Normalized();
             var goal = GoalCosts(d, tpos, r);
             var cost = goal.Cost;
             int at = -1;  // standing on a corner: carry on to the next one on the route
             for (int i = 0; i < wps.Length; i++)
-                if (e.Pos.DistanceTo(wps[i]) < 14f && (at < 0 || e.Pos.DistanceTo(wps[i]) < e.Pos.DistanceTo(wps[at])))
+                if (pos.DistanceTo(wps[i]) < 14f && (at < 0 || pos.DistanceTo(wps[i]) < pos.DistanceTo(wps[at])))
                     at = i;
             if (at >= 0)
             {
                 if (goal.Next[at] < 0)
                     return dir;
                 m.Wp = goal.Next[at];
-                m.Until = e.T + 0.5f;
-                return (wps[m.Wp] - e.Pos).Normalized();
+                m.Until = now + 0.5f;
+                return (wps[m.Wp] - pos).Normalized();
             }
             int best = -1;
             float bestScore = float.MaxValue;
             for (int i = 0; i < wps.Length; i++)
             {
-                float toW = e.Pos.DistanceTo(wps[i]);
-                if (toW < 14f || SegBlocked(d, e.Pos, wps[i], r))
+                float toW = pos.DistanceTo(wps[i]);
+                if (toW < 14f || SegBlocked(d, pos, wps[i], r))
                     continue;
                 float score = toW + cost[i];
                 if (score < bestScore)
@@ -498,8 +508,8 @@ namespace Arena
             if (best < 0)
                 return dir;
             m.Wp = best;
-            m.Until = e.T + 0.5f;
-            return (wps[best] - e.Pos).Normalized();
+            m.Until = now + 0.5f;
+            return (wps[best] - pos).Normalized();
         }
     }
 }

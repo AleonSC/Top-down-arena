@@ -748,6 +748,32 @@ wave, everyone gets a shop before the boss:
   last player is done). After a minute the host can close it for everyone. When it closes, each player's leftover
   gold becomes their own XP (1 gold = 1 XP).
 
+## Rooms arena
+
+**The Arena** setting on the lobby's **Difficulty** tab: **Classic arena** (the default, everything above as it has always
+been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: [`Docs/Rooms.md`](Docs/Rooms.md), mockup:
+[`Docs/Mockups/rooms.html`](Docs/Mockups/rooms.html)). What's in so far (phase 1, the map **Wings**):
+
+- On **regular waves** the arena grows: the middle (the hub, today's 1600 x 900 arena) gets a big **room** on each
+  side (900 x 900), and a **hallway** (260 px wide) runs above and below the hub, joining the two rooms into a loop
+  round it. **Doors** (160 px gaps with cyan brackets) join them: one from the hub into each room, and one from each
+  room into each hallway. The hub's top and bottom walls have no door.
+- **Boss waves** are the hub alone (bosses are built for it). When a boss wave starts, anyone out in a room or
+  hallway is brought into the hub, and the props out there are cleared away.
+- **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
+  crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
+  their own. Walls stop walking and every shot, as in the layouts.
+- **The camera follows you.** It stays inside the part of the world you're in, so at 1x in the hub you see the whole
+  hub exactly as before; step through a door and it slides to the room or hallway. Arrows at the edge of the screen
+  point at enemies and teammates you can't see (at any zoom). The scroll-wheel zoom works as usual.
+- **Enemies come in out in the rooms and hallways** and make their way to you through the doors (they steer through
+  doorways and round every wall). The F1 "Bot plays for you" bot walks through doors too.
+- Data Gates open in the hub. The rooms aren't used with **Tiny Arena** or on the **Narrow Pass** path (they wall the
+  hub in themselves), in Boss Hunts, the Practice Range or the Showcase.
+
+Coming next (phase 2): nests in the rooms that spill fast runners into the hub, doors that lock behind you while a
+nest lives, a reward for each cleared room, the minimap, and the vault (one wave in ten, holding the Gatekeeper).
+
 ## Data Gates
 
 Once in every five waves a **Data Gate** opens during the break: a dark disc of scrolling data in the challenge's colour, ringed by turning dashes, with a ring of pips that lights as the party steps in. It never opens under a wall, pillar or crate: after the 1st, 2nd or 3rd wave of each stretch
@@ -835,12 +861,15 @@ and green when it's easier. Hover a number for what it does.
 | Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
 | Arena layouts (a fixed floor plan each boss cycle) | On | **On** | On | On | On / Off |
+| Arena: Classic or Rooms (side rooms and hallways on regular waves) | Classic | **Classic** | Classic | Classic | Classic / Rooms |
 
 The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't
 make the difficulty Custom, and picking a preset keeps them. **Blend** and **Fully themed** buttons under them set
 both at once (60% with the ramp; 100% without).
 The **Arena layouts** setting is flavour too: **Layouts on / Layouts off** buttons beside them. Off keeps the open arena all run
 (and the usual enemy count); see Arena layouts above.
+The **Arena** (Classic or Rooms) is flavour as well: **Classic arena / Rooms arena** buttons on the row below. See Rooms
+arena above.
 
 Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack

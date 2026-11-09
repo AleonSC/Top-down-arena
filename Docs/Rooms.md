@@ -1,6 +1,7 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: design and mockup; phase 0 built (run-log fields), the rooms themselves not.**
+**Status: phase 0 and phase 1 built (protocol 233): the Arena setting and the Wings world with its camera. Phase 2
+(nests, spills, locks, rewards, minimap, vault) is next.**
 Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,
 Cross, Annexes), hallways on or off (with the vault), a following camera at 1x / 1.5x / 2x, minimap or room strip, split
 up or stay together, a live sim.
@@ -184,6 +185,33 @@ Each client already draws its own screen, so every player's camera follows thems
 1. **The Arena setting (Classic / Rooms, Classic by default) first**, then **world and camera, Wings only**: a world bigger than the hub on regular waves, a following camera, wrapping off,
    the two Wings rooms and both hallways (walled, with doors and small obstacles), the hub's layout kept, edge arrows,
    path steering over doors. Check the zoom feels right in Unity.
+   **Built (protocol 233)**, as follows:
+   - **Setting**: `DiffKnob.ArenaRooms`, a flavour knob (Classic on every preset), "Classic arena / Rooms arena" on the
+     lobby's Difficulty tab under the approach and layout picks. Saved runs and the lobby carry it like any knob; the
+     session recorder writes `"arena": "Classic"` or `"Rooms"`. The `classic-arena` git tag marks `main` before this.
+   - **World** (`Rooms.cs`): the hub 0..1600 x 0..900; West and East rooms 900 x 900; Top and Bottom halls 260 px tall
+     across the whole width (-900..2500). Doors 160 px: hub-West, hub-East, and each room into each hall. Walls 24 px,
+     the world's outer edge walled too. Cover: two pillars and a short wall in each room, two blocks in the top hall,
+     two pillars in the bottom hall.
+   - **How it's done**: the world is one box symmetric round the hub, so `ArenaMin`/`ArenaMax` simply become the world
+     while `RoomsOn` and `Walled` turns on (clamp instead of wrap, bullets culled at the world edge: no new code for
+     those). The walls are layout solids: `Rooms.With(LayoutId)` is the cycle's floor plan minus its edge wall plus the
+     rooms' walls and cover, with waypoints either side of every door, so the existing `LayoutDir` corner graph routes
+     enemies through doors. Spawning falls back to the world's edges, which are all in rooms and hallways.
+   - **When**: `PickRooms` at each wave start (before `PickLayout`): regular waves only; not in Boss Hunts, the Practice
+     Range, the Showcase, with Tiny Arena or on the Narrow Pass path. A boss wave runs `PullIntoHub` (players moved in,
+     props outside removed). Data Gates open in the hub (`HubMin`/`HubMax`); inside a Data Gate's challenge the world is
+     the hub. Synced as the top bit of the layout byte. The 30% layout enemy bonus only counts a real floor plan.
+   - **Camera** (`CameraZoom.cs`): follows you at any zoom while `RoomsOn` (`Rooms.ViewCentre`: inside your area, an
+     area smaller than the view centred, then inside the world), sliding at `RoomEase` through doors; at 1x in the hub it
+     is exactly the classic view. Off-screen arrows show at 1x too. Backdrop and grid cover the whole world
+     (`RoomsLook.cs`), doors get cyan brackets.
+   - **Bots**: the smart bot steers through doors (`SteerDir`, the enemies' steering generalised). The simple test bot
+     doesn't, but enemies come to it.
+   - **Run log**: the phase 0 "in a 2x view" numbers use the rooms' camera framing while the rooms are up.
+   - **Tests**: `run.sh 1 30 wings`. **Preview**: `ROOMS=x,y [ZOOM=1.5] Tools/Preview/shot.sh <name> hud`.
+   - **Not yet**: nests, spills, locks, rewards, the minimap, the vault (phase 2); paths' hazards (Burning Grounds,
+     Frozen Lake, Fogbound) still only cover the hub; teleports and blinks can still cross a wall, as with layouts.
 2. **Nests, room spawning, fast-melee spills, doors that lock behind you, clear reward, the minimap.** The hub goes quiet
    except for spills. Then **the vault**: one wave in ten, the Gatekeeper moved out of the Data Gates into it.
 3. **Tuning**: room caps, spill timing, how many rooms a wave opens. Then raise enemy damage and lower player health

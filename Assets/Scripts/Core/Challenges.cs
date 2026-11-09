@@ -177,7 +177,7 @@ namespace Arena
             bool found = false;
             for (int tries = 0; tries < 80 && !found; tries++)
             {
-                var at = RandomInArena(320f, 230f);
+                var at = new V2(Rand(HubMin.X + 320f, HubMax.X - 320f), Rand(HubMin.Y + 230f, HubMax.Y - 230f));  // (in the hub with the Rooms arena)
                 if (!PortalSpotClear(at))
                     continue;
                 bool away = true;
@@ -191,7 +191,7 @@ namespace Arena
             }
             if (!found)  // a crowded layout: sweep the arena for any clear spot
             {
-                V2 lo = ArenaMin, hi = ArenaMax;
+                V2 lo = HubMin, hi = HubMax;
                 float best = -1f;
                 for (float y = lo.Y + 120f; y <= hi.Y - 120f; y += 40f)
                     for (float x = lo.X + 120f; x <= hi.X - 120f; x += 40f)

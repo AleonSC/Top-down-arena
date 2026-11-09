@@ -1060,6 +1060,19 @@ static partial class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("PATHON") != null) { host.Game.CurrentPath = (PathId)int.Parse(Environment.GetEnvironmentVariable("PATHON")); host.Game.PathFrom = host.Game.Wave - 1; host.Game.PathTo = host.Game.Wave + 2; host.Game.Mods = RunMod.Frenzy; if (host.Game.CurrentPath == PathId.Fogbound) host.Game.FogF = 1f; if (host.Game.CurrentPath == PathId.NarrowPass) { host.Game.NarrowF = 1f; foreach (var pl in host.Game.Players.Values) pl.Disp = pl.Pos = pl.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); foreach (var en in host.Game.Enemies.Values) en.Disp = en.Pos = en.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); } }
+    if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // ROOMS=x,y: the Rooms arena's side rooms up (Rooms.cs), you at x,y, the enemies spread over the rooms and hallways
+      var rg = host.Game; rg.Diff.Set(DiffKnob.ArenaRooms, 1f); rg.RoomsUp = true; rg.LayoutAge = 5f;
+      var rp = Environment.GetEnvironmentVariable("ROOMS").Split(',');
+      var at = new V2(float.Parse(rp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(rp[1], System.Globalization.CultureInfo.InvariantCulture));
+      int pi = 0;
+      foreach (var pl in rg.Players.Values) { pl.Pos = pl.Disp = rg.PushOutOfProps(at + new V2(70f * pi, 40f * pi), 14f); pi++; }
+      var rrng = new System.Random(7); int ei = 0;
+      foreach (var en in rg.Enemies.Values) {
+        if (en.Def.IsBoss) continue;
+        var ar = Rooms.Areas[1 + ei++ % 4];
+        en.Pos = en.Disp = rg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)rrng.NextDouble() * (ar.Size.X - 120f), ar.Min.Y + 50f + (float)rrng.NextDouble() * (ar.Size.Y - 100f)), en.Radius);
+      }
+    }
     if (Environment.GetEnvironmentVariable("LAYOUT") != null) {  // LAYOUT=<LayoutId number, 1-6>: that floor plan with its cover, everyone out of its walls
       var lg = host.Game; lg.PropsOn = true; lg.DevSetLayout((LayoutId)int.Parse(Environment.GetEnvironmentVariable("LAYOUT"))); lg.LayoutAge = 5f;
       typeof(Game).GetMethod("WaveProps", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(lg, null);

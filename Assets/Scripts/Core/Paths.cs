@@ -379,13 +379,15 @@ namespace Arena
         }
 
         /// Narrow Pass, Tiny Arena or Solid Walls is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
-        public bool Walled => NarrowF > 0f || TinyInset.X > 0.5f || Has(RunMod.SolidWalls) && State != MatchState.Idle;
+        public bool Walled => NarrowF > 0f || TinyInset.X > 0.5f || Has(RunMod.SolidWalls) && State != MatchState.Idle || RoomsOn;  // (the Rooms world has walls all round, Rooms.cs)
 
         /// The playable part of the arena: all of it, or what's inside Narrow Pass's or Tiny Arena's walls.
         public V2 ArenaMin
         {
             get
             {
+                if (RoomsOn)
+                    return Rooms.WorldMin;  // the side rooms and hallways round the hub (Rooms.cs)
                 float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
                 return new V2(Math.Max(Paths.NarrowInsetX * f, TinyInset.X), Math.Max(Paths.NarrowInsetY * f, TinyInset.Y));
             }

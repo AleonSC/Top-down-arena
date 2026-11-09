@@ -89,6 +89,12 @@ namespace Arena
         /// The dim layer over the menu background behind the arena: the arena itself, or (while leaning) the strip it uncovers too.
         void FillArenaBackdrop(Rgba c)
         {
+            if (game.RoomsOn)  // the Rooms world: behind all of it (Rooms.cs), plus a lean's worth round it
+            {
+                V2 lo = Rooms.WorldMin, hi = Rooms.WorldMax;
+                FillRect(lo.X - LeanMaxX - 2f, lo.Y - LeanMaxY - 2f, hi.X - lo.X + 2f * LeanMaxX + 4f, hi.Y - lo.Y + 2f * LeanMaxY + 4f, c);
+                return;
+            }
             if (lean.LengthSq < 0.0001f)
                 FillRect(0, 0, AW, AH, c);
             else

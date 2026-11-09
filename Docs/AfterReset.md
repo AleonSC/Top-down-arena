@@ -385,8 +385,13 @@ So friends can play without Tailscale or port forwarding.
       setting (Classic / Rooms) on the Difficulty tab, **Classic by default** until Rooms is tuned, balance changes for
       Rooms only, Classic untouched (it can become its own game mode later). Phase 0 (run-log format 3):
       samples record each player's nearest enemy and the threats in a 2x-zoom view; `report.py` prints "Threats near
-      you". **Next: phase 1** (Wings world, following camera, hallways, doors). Record a run or two first for the before
-      picture.
+      you". **Phase 1 built (protocol 233; check in Unity)**: the Arena setting (lobby → Difficulty → Classic arena /
+      Rooms arena), the Wings world on regular waves (two side rooms, two hallways, doors, walls, cover; boss waves in
+      the hub), the following camera and edge arrows at 1x, enemies and the F1 bot through doors. Check in Unity: how
+      the camera slide feels through doors, the zoom in rooms and hallways, the walls rising when the rooms come up,
+      and a 2-player game over Tailscale. Push the `classic-arena` tag from your machine
+      (`git tag classic-arena abcee50 && git push origin classic-arena`). **Next: phase 2** (nests, runner spills,
+      locking doors, room rewards, minimap, then the vault).
 - [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs

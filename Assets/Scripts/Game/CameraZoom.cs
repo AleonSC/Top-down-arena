@@ -12,10 +12,14 @@ namespace Arena
     ///            the ending's vignette and the game-over dim are screen overlays and skip it (camZoomOn off).
     ///   reset    zoom 1 means the focus sits on the centre and everything draws exactly as without it. The view eases back
     ///            out during a run's ending, and snaps back between matches.
+    ///   rooms    with the Rooms arena's side rooms up (Rooms.cs) the camera follows you even at zoom 1: it holds inside the
+    ///            area you're in (the hub, a room or a hallway; an area smaller than the view is centred) and inside the
+    ///            world, and slides (dt * RoomEase) when you step through a door. At zoom 1 in the hub it shows the whole
+    ///            hub, as without the rooms.
     /// Setting: Settings → Gameplay → Scroll-wheel zoom (PlayerPrefs "cam_zoom", on by default). Off keeps zoom 1.
     public partial class ArenaApp
     {
-        const float ZoomMax = 2f, ZoomStep = 1.12f, ZoomEase = 10f, FocusEase = 8f;
+        const float ZoomMax = 2f, ZoomStep = 1.12f, ZoomEase = 10f, FocusEase = 8f, RoomEase = 6f;
 
         bool scrollZoom = true;
         float camZoom = 1f;      // the drawn zoom (1: the whole arena)
@@ -23,9 +27,10 @@ namespace Arena
         V2 camFocusRaw;          // eased toward you, not yet held inside the arena
         V2 camFocus = new V2(AW / 2f, AH / 2f);  // the arena point at the centre of the screen
         bool camZoomOn;          // while the world is drawn and zoomed (set in BeginLeanFrame, cleared in EndLeanFrame)
+        bool camFollow;          // the Rooms world is up: the camera follows you at any zoom (Rooms.cs)
 
-        /// Any zoom at all this frame (false keeps every transform exactly as before).
-        bool CamZoomed => camZoom > 1.0001f;
+        /// Any zoom at all this frame, or the rooms' following camera (false keeps every transform exactly as before).
+        bool CamZoomed => camZoom > 1.0001f || camFollow;
 
         /// Arena units -> HUD canvas units for sizes around world things (rings, label offsets), with the zoom.
         float UiWorldScale => CamZoomed ? WorldToUi * camZoom : WorldToUi;
@@ -49,6 +54,7 @@ namespace Arena
             {
                 camZoom = zoomWant = 1f;
                 camFocus = camFocusRaw = new V2(AW / 2f, AH / 2f);
+                camFollow = false;
                 return;
             }
             if (game.Paused)
@@ -71,6 +77,22 @@ namespace Arena
                 camFocusRaw = me.Disp;  // (zoomed out it already follows you; a wrap or a teleport is a cut, not a pan)
             else
                 camFocusRaw += to * Mathf.Min(1f, dt * FocusEase);
+            if (game.RoomsOn)
+            {
+                bool fresh = !camFollow;
+                camFollow = true;
+                V2 want2 = RoomsFocus(me.Disp, camZoom);
+                if (fresh || (want2 - camFocus).Length > 1600f)
+                    camFocus = want2;  // (the rooms just came up, or a teleport: a cut)
+                else
+                    camFocus += (want2 - camFocus) * Mathf.Min(1f, dt * RoomEase);
+                return;
+            }
+            if (camFollow)
+            {
+                camFollow = false;  // the rooms went (a boss wave): back to the hub view at once
+                camFocusRaw = me.Disp;
+            }
             if (!CamZoomed)
             {
                 camFocus = new V2(AW / 2f, AH / 2f);
@@ -79,6 +101,10 @@ namespace Arena
             float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
             camFocus = new V2(Mathf.Clamp(camFocusRaw.X, hx, AW - hx), Mathf.Clamp(camFocusRaw.Y, hy, AH - hy));
         }
+
+        /// Where the rooms' camera looks: at you, held inside the area you're in (centred on it when it's smaller than
+        /// the view), then inside the world.
+        static V2 RoomsFocus(V2 at, float zoom) => Rooms.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom));
 
         /// An arena point through the zoom (arena units on the unzoomed screen). Only while CamZoomed.
         V2 ZoomPoint(V2 p) => (p - camFocus) * camZoom + new V2(AW / 2f, AH / 2f);
