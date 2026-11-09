@@ -797,7 +797,7 @@ namespace Arena
                 else if (killer != null && e.Def.Xp > 0 && Has(RunMod.Bloodlust))
                     Heal(killer, Paths.BloodMoonHeal(Wave), null, "Bloodlust");
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
-                GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
+                GrantXp(KillXp(e) * (e.Elite ? 3 : 1) * PathBonus * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
                 MaybeRise(e, killer);  // Zombies.cs
                 if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush))
                     GrantGold(e);  // Shop.cs
