@@ -11,7 +11,9 @@ namespace Arena
         // The Clot Cannon (WeaponId.ClotBolt kept): hold to charge, let go to lob a clot over enemies. The charge sets only
         // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
         // slows enemies and congeals after PoolCongeal, sticking the enemies in it for PoolStuck (not bosses).
-        public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f;
+        // Every shot costs ClotCost of your max health (never below 1); the pools heal everyone standing in them (the
+        // Blood Pool zone's HealRate, Kits.cs), so you can win some of it back by wading into your own blood.
+        public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f, ClotCost = 0.06f;
         public static float ClotDistance(float c) => ClotMin + (ClotMax - ClotMin) * c;
         public static float ClotFlight(float c) => 0.45f + 0.3f * c;
         public static float ClotApex(float c) => 50f + 110f * c;  // how high it flies (drawing only)
@@ -72,6 +74,12 @@ namespace Arena
                     // The Clot Cannon: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
                     // the damage doesn't change with the charge. Extra projectiles fan more clots out to the same distance.
                     float c = BowCharge(p, p.BowShotDraw), flight = ClotFlight(c);
+                    if (!casting)  // the clot is your own blood: a shot costs health (extra clots come free)
+                    {
+                        float paid = PayHealth(p, p.MaxHp * ClotCost);
+                        if (paid >= 1f)
+                            BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), paid, 0.55f, Sfx.None);
+                    }
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
@@ -720,7 +728,7 @@ namespace Arena
                 Desc = "A whip of blood. Its tip cracks for double damage and taunts, and enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
             new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 clot, fanned out", Name = "Clot Cannon", FireInterval = 0.75f,
-                Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. It bursts into a big pool of blood that slows enemies, and after a moment the pool congeals and holds them still.",
+                Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils that grasp nearby enemies while you hold on. They are stunned and drained, and part of the damage heals you.",
