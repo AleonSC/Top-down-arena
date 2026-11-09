@@ -2,7 +2,7 @@
 
 Quick index of the source. Paths are under `Assets/Scripts/` (`Core/` = plain C# logic, namespace `Arena`, no Unity;
 `Game/` = Unity front end). `Game` (Core) is one big `partial class` split by feature; `ArenaApp` (Game/) is the
-front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-facing reference: `README.md`.
+front-end `partial class`. Older, more detailed per-file notes (not maintained): `Docs/CodeNotes.md`. Player-facing reference: `README.md`.
 
 ## Engine and match flow (Core)
 - `Game.cs`: match state, lifecycle, frame loop (`FixedStep`, `HostTick`), picks, local movement/dash
@@ -204,6 +204,9 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
   `QueenLootLook.cs`, `ReaperLootLook.cs`
 - `PixelArt.cs`, `ModIcons.cs`: pixel icons as text grids (`ModIcons.cs`: the Modifiers tab's)
+- `Game/BatLook.cs`: a Bat Swarm bat, look B (Belfry burst) of `Docs/Mockups/bat-swarm-rework.html`: flapping wings, a dive streak, feathers as it fades
+- `Game/HealerKitLooks.cs`: the Healer's Soul Lantern (iron cage, teal flame, ribbon to its linked player) and Deployable Medkit (case, healing orbs) looks
+- `Game/PingLooks.cs`: pings on screen and their input (tap or hold-wheel on the Ping key, `TickPing`, `DrawMatchPings`); the logic is `Core/Pings.cs`
 
 ## HUD and in-run UI (Game)
 - `RoundWindows.cs`: the between-round windows' shared frame: the dark layer over the arena (`RoundBackdrop`, each window's strength), a part fading and sliding in (`RoundPart`, fades `Ui.Alpha` too), the CRT tube a window sits in (`RoundTube`); used by the results, picker, shop, path choice and Wave cleared box
@@ -219,6 +222,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
 - `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen (the Tab screen, as hologram panels), hunt tab
 - `TabHolo.cs`: the Tab screen's hologram panels (glass, scanlines, band, fringe, flicker, switch-on), the projector beam, and its layout and text helpers
+- `Game/HudModes.cs`: the HUD modes on H (full, corner text, on the player, hidden); the two partial modes in the CRT look of `Docs/Mockups/crt-hud-modes.html`
 
 ## Menus and lobby (Game)
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
@@ -246,12 +250,16 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
+- `Game/CrtKit.cs`: shared CRT cabinet pieces (retyping text, power-on, boot-log line, scan bar, soft digital key, the floating chassis and soft edges)
+- `Game/DifficultyUi.cs`: the lobby's Difficulty tab (five cards, then every number as a slider with a text box; host edits, others read)
+- `Game/ModifiersUi.cs`: the lobby's Modifiers tab (tiles in two columns under foldable tier headings, `DrawModTile`)
 
 ## Dev tools and editors (Game)
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `PracticeUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, Practice Range, F1 wave editor
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
+- `Game/ClickLog.cs`: a temporary lost-click debugging aid: F9 shows the last mouse presses and releases and logs them
 
 ## Audio (Game)
 - `SoundBank.cs`: every synthesised sound effect
@@ -261,7 +269,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Tools and docs (repo root)
 - `Tools/CompileCheck`, `Tools/SimTest` (tests in `Tools/SimTest/Tests`), `Tools/RenderCheck`, `Tools/Preview`, `Tools/SoundCheck`, `Tools/SessionReport`, `Tools/TextEdits`, `Tools/WaveGen` (builds `Data/Waves` into code): see `HANDOFF.md` §3
-- `Docs/AfterReset.md` (owner to-do), `Docs/History.md` (changelog), `Docs/Bestiary/` and `Docs/Armory/` (reference pages), `Docs/Mockups/`
+- `Docs/AfterReset.md` (owner to-do), `Docs/History.md` (finished to-do entries, audit notes, changelog), `Docs/CodeNotes.md` (older detailed per-file notes, not maintained), `Docs/Bestiary/` and `Docs/Armory/` (reference pages), `Docs/Mockups/`
 
 ## Where to look for...
 | Task | Files |
