@@ -162,7 +162,7 @@ namespace Arena
         static V2[] MakeWaypoints(LayoutDef d) => MakeWaypoints(d, V2.Zero, new V2(W, H), null);
 
         /// The same for any bounds (lo..hi), plus extra spots of the caller's (Rooms.cs: either side of each door).
-        internal static V2[] MakeWaypoints(LayoutDef d, V2 lo, V2 hi, IEnumerable<V2> extra)
+        internal static V2[] MakeWaypoints(LayoutDef d, V2 lo, V2 hi, IEnumerable<V2> extra, float clear = 18f)
         {
             var pts = new List<V2>();
             if (extra != null)
@@ -185,7 +185,7 @@ namespace Arena
                     continue;
                 bool inside = false;
                 foreach (var s in d.Solids)
-                    if (Inside(s, p, 18f))
+                    if (Inside(s, p, clear))
                     {
                         inside = true;
                         break;

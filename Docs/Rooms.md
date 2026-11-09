@@ -1,7 +1,8 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: phases 0, 1 and 2 built (protocol 234): the Arena setting, the Wings world and its camera, nests, spills,
-locked doors, room rewards, the minimap and the vault with the Gatekeeper. Phase 3 (tuning, then damage) is next.**
+**Status: phases 0-3 built (protocol 234): the Arena setting, the Wings world and its camera, nests, spills, locked
+doors, room rewards, the minimap, the vault with the Gatekeeper, and a first tuning pass (Rooms-only 1.3x enemy damage).
+Next: play it in Unity and adjust; then phase 4 (the power-stacking nerf pass).**
 Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,
 Cross, Annexes), hallways on or off (with the vault), a following camera at 1x / 1.5x / 2x, minimap or room strip, split
 up or stay together, a live sim.
@@ -242,6 +243,40 @@ Each client already draws its own screen, so every player's camera follows thems
      [ROOMCLEAR=1]`.
 3. **Tuning**: room caps, spill timing, how many rooms a wave opens. Then raise enemy damage and lower player health
    until a regular wave costs real health again. A `rooms` SimTest suite to check the numbers.
+   **Built (first pass)**. The measuring tool is a report, `Tools/SimTest/run.sh 1 1 arenabal [last wave] [seed] [damage x]`:
+   two Good bots play the same seed on Classic and on Rooms, and each regular wave prints its length, damage taken (%
+   of max health), threats and enemy shots in a 1x view, and downs (`ARENADBG=1` prints a dump when a wave runs past
+   150 s, and every down with what was near). Final numbers, 8 seeds, waves 1-24 (medians, Rooms vs Classic):
+
+   | | Classic | Rooms |
+   |---|---|---|
+   | Wave length | 30 s | 44 s |
+   | Damage taken per player per wave (% of max HP) | 20% | 34% |
+   | Threats in a 1x view (average) | 9.6 | 3.8 |
+   | Enemy shots in a 1x view | 28 | 9.5 |
+   | Downs per run / lost runs (of 8) | 0 / 0 | 1 / 1 |
+   | Worst moment, threats in view (median wave / 90th percentile) | 29 / 36 | 12 / 16 |
+
+   Changes from it:
+   - **Room cap** 4 + wave/7 + 1 per extra player, max 10 (was 5 + wave/8 + 2 a player, max 12): the worst moments.
+   - **Rooms-only enemy damage 1.3x** (`Rooms.EnemyDamageMult`, applied in `Combat.cs` while `RoomsOn`; boss waves
+     and Classic unchanged). Player health is left alone (it would change the boss fights too). The bots take ~1.7x
+     Classic's damage with it; they're a weak stand-in for skilled players (who took almost nothing in the Nov 9 run),
+     so **this is the number to adjust by playing**.
+   - **Spills come out on the far side of the door** (they spawned on the room side, so a hallway spill walked back
+     through the room). A spill also switches door just before its warning if someone stands where it would come out
+     (`SpillClear` 180 px).
+   - **The vault never comes before the first boss** (`FirstVault` 6): a Data Gate-strength mini-boss that locks you
+     in was too much at wave 2.
+   - **Steering**: a corner with no way on from it now picks another corner instead of walking into the wall (Rooms
+     only), and the rooms' own walls keep steering spots 24 px clear (stubs where two room walls meet stranded
+     Runners). The routing test now includes Runners and hallway-to-room trips.
+   - **Bots** (F1 "Bot plays for you", the reports): walk a door route directly when nothing threatens them; their
+     move scoring knows walls, locked doors and room corners (and no longer treats the rooms as "off the edge"); they
+     turn past crates, barrels and chests (both arenas); locked in a room they clear it before going to revive; they
+     leave the optional vault alone; the treasure bot routes through doors.
+   - The bots still lose a run now and then on Rooms (locked in with a melee rush, a person would kite) and can
+     stall (a slow wave in a few hundred); the report shows these.
 4. **The power-stacking nerf pass** (its own doc): kill speed vs enemy health past wave 20, full-heal sustain, parry.
 5. **More maps** (Annexes, then Cross), more vault mini-bosses. **Polish**: paths in rooms, room plans with character, bots.
 

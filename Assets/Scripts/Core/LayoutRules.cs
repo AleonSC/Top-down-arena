@@ -493,11 +493,16 @@ namespace Arena
                     at = i;
             if (at >= 0)
             {
-                if (goal.Next[at] < 0)
+                if (goal.Next[at] >= 0)
+                {
+                    m.Wp = goal.Next[at];
+                    m.Until = now + 0.5f;
+                    return (wps[m.Wp] - pos).Normalized();
+                }
+                if (!RoomsOn)
                     return dir;
-                m.Wp = goal.Next[at];
-                m.Until = now + 0.5f;
-                return (wps[m.Wp] - pos).Normalized();
+                // (the Rooms arena: a corner with no way on from it and the target still behind a wall: pick another
+                // corner below rather than walk straight into the wall)
             }
             int best = -1;
             float bestScore = float.MaxValue;

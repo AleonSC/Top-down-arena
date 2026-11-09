@@ -395,8 +395,12 @@ So friends can play without Tailscale or port forwarding.
       22 s down to 11 s through a random door (amber warning), doors that lock behind you while the nest lives, cleared
       rooms (orbs + XP, teal doors), the minimap (top right), and the vault one wave in ten with the Gatekeeper (his Data
       Gate gone in the Rooms arena; prize pick each). Check in Unity: how a wave feels and how long it takes, the spill
-      pace, the lock (does it feel fair?), the minimap's size and spot, the vault fight in a 500 x 400 room. **Next:
-      phase 3** (tuning, then more enemy damage / less health in the Rooms arena only).
+      pace, the lock (does it feel fair?), the minimap's size and spot, the vault fight in a 500 x 400 room. **Phase 3 first pass built (protocol 234)**: room cap 4 + wave/7 + 1 per extra player (max 10), Rooms-only enemy
+      damage 1.3x (regular waves while the rooms are up; boss waves and Classic unchanged), spills come out on the far
+      side of the door and dodge a door someone stands at, no vault before the first boss, steering and bot fixes.
+      Measured with `run.sh 1 1 arenabal` (Docs/Rooms.md has the table): ~4 threats in view vs ~10, a third of the
+      shots, waves ~44 s vs 30, ~1.7x the damage per wave. **Play it and tell me**: is 1.3x right (`Rooms.EnemyDamageMult`),
+      do waves drag, is the lock fair? Then phase 4 (the power-stacking nerf pass).
 - [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs

@@ -232,7 +232,19 @@ namespace Arena
                 HoldPos = plan.HoldPos,
                 HoldR = plan.HoldR,
             };
-            d.Waypoints = Layouts.MakeWaypoints(d, MinFor(vault), WorldMax, DoorSpots(vault));
+            // Steering spots: the usual ones (18 px clear of every wall), minus any within 24 px of the rooms' own walls (the
+            // stubs where two room walls meet leave corners the steering graph's body can't get away from); the hub's floor
+            // plan keeps its own, so its narrow doors still have corners to route through.
+            var wps = new List<V2>();
+            foreach (var p in Layouts.MakeWaypoints(d, MinFor(vault), WorldMax, DoorSpots(vault)))
+            {
+                bool tight = false;
+                foreach (var w in WallsFor(vault))
+                    tight |= Layouts.Inside(w, p, 24f);
+                if (!tight)
+                    wps.Add(p);
+            }
+            d.Waypoints = wps.ToArray();
             withRooms[key] = d;
             return d;
         }
@@ -241,11 +253,19 @@ namespace Arena
 
         public const float NestHpMult = 3f;      // a room's nest: this many times a Nest's health at the wave
         public const float SpillWarn = 2f;       // the door flashes this long before a spill
+        public const float SpillClear = 180f;    // a spill picks another door if someone stands this close to where it would come out
         public const float FirstSpill = 18f;     // the first spill of a wave comes after this (plus a few seconds per room)
         public const int VaultEvery = 10;        // one regular wave in each stretch of this many has the vault
+        public const int FirstVault = 6;         // the first stretch's vault comes after the first boss (its mini-boss is a Data Gate duel's strength)
 
-        /// Room enemies kept alive at once in each room while its nest lives: more later and with more players.
-        public static int RoomCap(int wave, int players) => Math.Min(12, 5 + wave / 8 + 2 * Math.Max(0, players - 1));
+        /// Room enemies kept alive at once in each room while its nest lives: more later and with more players. (Phase 3:
+        /// from 5 + wave/8 + 2 a player, max 12, so a room's worst moment stays near the 8-10 threats in view the design
+        /// asks for; measured with run.sh 1 1 arenabal.)
+        public static int RoomCap(int wave, int players) => Math.Min(10, 4 + wave / 7 + Math.Max(0, players - 1));
+
+        /// Phase 3: everything that hurts players hits this much harder while the rooms are up (regular waves of the Rooms
+        /// arena only: boss waves and the Classic arena are unchanged). Fewer threats at once, so each one counts.
+        public static float EnemyDamageMult = 1.3f;  // (static, not const: the balance report tries others)
 
         /// Seconds between a room's spills: shorter later in the run.
         public static float SpillTime(int wave) => Math.Max(11f, 22f - wave * 0.25f);
@@ -285,6 +305,9 @@ namespace Arena
         public bool RoomsOn => RoomsUp && !InRoom && Practice == null && !ShowcaseMode;
         public bool VaultOn => RoomsOn && VaultUp;
 
+        /// Enemy damage to players: Rooms.EnemyDamageMult while the rooms are up, else 1 (Combat.cs).
+        public float RoomsDamageMult => RoomsOn ? Rooms.EnemyDamageMult : 1f;
+
         /// The run's Arena setting is Rooms (the lobby's Difficulty tab; Classic, today's arena, by default).
         public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
 
@@ -322,7 +345,8 @@ namespace Arena
             {
                 vaultStretch = stretch;
                 var pool = new List<int>();
-                for (int w = Math.Max(wave, stretch * Rooms.VaultEvery + 2); w <= (stretch + 1) * Rooms.VaultEvery; w++)
+                int from = stretch == 0 ? Rooms.FirstVault : stretch * Rooms.VaultEvery + 2;  // (not before the first boss)
+                for (int w = Math.Max(wave, from); w <= (stretch + 1) * Rooms.VaultEvery; w++)
                     if (!IsBossWave(w))
                         pool.Add(w);
                 vaultWave = pool.Count > 0 ? pool[rng.Next(pool.Count)] : -1;
@@ -360,16 +384,27 @@ namespace Arena
         }
 
         /// A random door out of a room for its next spill: into the hub or a hallway, never into another room.
-        int PickSpillDoor(int area)
+        int PickSpillDoor(int area, bool clearOfPlayers = false)
         {
             var ok = new List<int>();
             for (int i = 0; i < Rooms.Doors.Length; i++)
             {
                 var d = Rooms.Doors[i];
-                if (d.Joins(area) && !Rooms.Areas[d.Other(area)].Vault && (Rooms.Areas[d.Other(area)].Hub || Rooms.Areas[d.Other(area)].Hall))
+                if (d.Joins(area) && !Rooms.Areas[d.Other(area)].Vault && (Rooms.Areas[d.Other(area)].Hub || Rooms.Areas[d.Other(area)].Hall)
+                    && !(clearOfPlayers && PlayerNear(d.Side(d.Other(area)), Rooms.SpillClear)))
                     ok.Add(i);
             }
+            if (ok.Count == 0 && clearOfPlayers)
+                return PickSpillDoor(area);  // every door has someone at it: any will do
             return ok.Count > 0 ? ok[rng.Next(ok.Count)] : -1;
+        }
+
+        bool PlayerNear(V2 at, float r)
+        {
+            foreach (var p in Players.Values)
+                if (!p.Downed && p.Pos.DistanceTo(at) < r)
+                    return true;
+            return false;
         }
 
         RoomState StateOf(int area)
@@ -398,6 +433,8 @@ namespace Arena
                 rs.NestAlive = Enemies.TryGetValue(rs.NestId, out nest) && nest.Hp > 0f;
                 if (rs.NestAlive)
                 {
+                    if (rs.SpillT > Rooms.SpillWarn + 0.5f && rs.SpillT - dt <= Rooms.SpillWarn + 0.5f && rs.NextDoor >= 0 && PlayerNear(Rooms.Doors[rs.NextDoor].Side(Rooms.Doors[rs.NextDoor].Other(rs.Area)), Rooms.SpillClear))
+                        rs.NextDoor = PickSpillDoor(rs.Area, true);  // someone's standing where it would come out: another door (before its warning shows)
                     rs.SpillT -= dt;
                     if (rs.SpillT <= 0f && rs.NextDoor >= 0)
                         Spill(rs, players);
@@ -425,7 +462,7 @@ namespace Arena
         void Spill(RoomState rs, int players)
         {
             var door = Rooms.Doors[rs.NextDoor];
-            V2 at = door.Side(rs.Area);
+            V2 at = door.Side(door.Other(rs.Area));  // just outside, in the hub or the hallway
             int n = Rooms.SpillSize(Wave, players);
             for (int i = 0; i < n; i++)
             {

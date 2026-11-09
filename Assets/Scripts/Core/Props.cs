@@ -729,7 +729,7 @@ namespace Arena
         /// Bots: once the enemies are down, open the chest and take their item.
         void BotTreasure(Player me, ref V2 move)
         {
-            if (State != MatchState.Fighting || Foes() > 0 || me.Downed)
+            if (State != MatchState.Fighting || FoesOutsideVault() > 0 || me.Downed)  // (the Rooms arena's vault is optional: Rooms.cs)
                 return;
             V2? goal = null;
             var mine = MyLoot;
@@ -749,7 +749,10 @@ namespace Arena
                     if (p.Kind == PropKind.Chest && !p.Open)
                         goal = p.Pos;
             if (goal.HasValue)
-                move = (goal.Value - me.Pos).LimitLength(1f);
+            {
+                V2 straight = (goal.Value - me.Pos).LimitLength(1f);
+                move = RoomsOn && straight.Length > 0.01f ? SteerDir(-1000 - me.Id, me.Pos, botT, me.Def.BodyR + 4f, goal.Value, straight.Normalized()) : straight;  // through the Rooms arena's doors (LayoutRules.cs)
+            }
         }
 
         /// Every game, each frame: ages the props and items for their looks.

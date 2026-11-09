@@ -767,19 +767,22 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
   hub exactly as before; step through a door and it slides to the room or hallway. Arrows at the edge of the screen
   point at enemies and teammates you can't see (at any zoom). The scroll-wheel zoom works as usual.
 - **Nests.** Each side room has a **nest** (a Nest with three times the health). The wave's enemies come in by the
-  nests, a few at a time (5 to a room early on, up to 12 later and with more players), and **guard their room**: they
+  nests, a few at a time (4 to a room early on, one more every 7 waves and per extra player, at most 10), and **guard their room**: they
   stay round the nest, without shooting, until someone comes in. Kill a nest and its room stops filling up; once both
   nests are down **the rest of the wave is called off**, so killing them fast means fewer enemies.
 - **Spills.** While its nest lives, a room sends out a squad of fast **Runners** (3 or more) every 22 s (down to 11 s
-  late in the run), through one of its doors: into the hub or a hallway, picked at random each time. That door
-  flashes amber for 2 s before. Spilled runners hunt you anywhere. Once a nest is down, what's left in its room comes
+  late in the run), out through one of its doors: into the hub or a hallway, picked at random each time (and never
+  right on top of you: if someone stands where it would come out, it picks another door before its warning). That
+  door flashes amber for 2 s before. Spilled runners hunt you anywhere. Once a nest is down, what's left in its room comes
   for you too.
 - **Doors lock behind you.** Step into a room while its nest lives and you can't leave through its doors (dodges and
   dashes included) until the nest dies. Doors lock one way: teammates can always come in. A locked door shows a solid
   bar. Hallways and the hub never lock.
 - **Clearing a room** (its nest and everything it kept): its doors turn teal, two big health orbs drop by the nest,
   and everyone gets some XP. A regular wave ends when the nests are down and nothing is left (the vault aside).
-- **The vault**: one regular wave in each stretch of ten opens a small gold room off the top hallway with **The
+- **Rooms waves hit harder**: while the rooms are up, everything that hurts you hits **1.3x** as hard (fewer
+  threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
+- **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-9, 12-19, 22-29, ...) opens a small gold room off the top hallway with **The
   Gatekeeper** in it (his Data Gate duel moved here: in the Rooms arena he's never in a Data Gate). He stays in the
   vault, and the vault locks behind you until he falls. Beat him and everyone gets a **prize pick** (rare or better,
   sometimes a legendary), as from his old Data Gate. It's optional: the wave ends without him (he goes with it), and
@@ -792,8 +795,10 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
 - Data Gates open in the hub. The rooms aren't used with **Tiny Arena** or on the **Narrow Pass** path (they wall the
   hub in themselves), in Boss Hunts, the Practice Range or the Showcase.
 
-Coming next (phase 3): tuning (room caps, spill timing), then harder-hitting enemies and less player health in the Rooms
-arena only, so dodging matters. Classic stays as it is.
+Measured with two Good bots over waves 1-24 (8 seeds, `Tools/SimTest/run.sh 1 1 arenabal`), Rooms against Classic:
+about 4 threats in a 1x view at a time instead of 10, a third of the enemy shots on screen, waves about 45 s instead of
+30, and (with the 1.3x) about 1.7x the damage taken per wave. Still to tune by playing it. Next: the power-stacking nerf
+pass (phase 4). Classic stays as it is.
 
 ## Data Gates
 

@@ -102,10 +102,13 @@ namespace Arena
             // --- Target: the boss (or the Reaper that can be hurt), unless something small is right on top of us.
             Enemy target = null, close = null;
             float bestScore = float.MaxValue, closeD = 170f;
+            bool inVault = VaultOn && Rooms.AreaAt(me.Pos) == Rooms.Vault;
             foreach (var e in Enemies.Values)
             {
                 if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
                     continue;
+                if (!inVault && InVault(e))
+                    continue;  // the Rooms arena's vault is optional: the bot leaves it alone (Rooms.cs)
                 float d = e.Pos.DistanceTo(me.Pos);
                 float score = e.Def.IsBoss ? d * 0.25f + e.Hp / Math.Max(1f, e.MaxHp) * 200f : d;
                 if (e.Marked || e.MarkT > 0f)
@@ -156,6 +159,12 @@ namespace Arena
             float pref = me.Weapon.BotRange - (me.Role == Role.Tank ? 40f : 0f);
             if (me.Weapon.Melee)  // in swinging distance of the target's edge
                 pref = MeleeReach(me, MeleeRange(me.Weapon.Id)) * 0.7f + (target != null ? target.Radius : 0f);
+            if (downed != null && RoomsOn)
+            {
+                int mine = Rooms.AreaAt(me.Pos);
+                if (AreaLocked(mine) && Rooms.AreaAt(downed.Pos) != mine)
+                    downed = null;  // locked in a room (Rooms.cs): clear it first, the door won't let you out to them
+            }
             V2 anchor = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
             if (downed != null)
             {
@@ -177,6 +186,7 @@ namespace Arena
 
             // --- The Rooms arena (Rooms.cs): with a wall between us and where we're going, head for the next corner or
             // doorway on the way round instead (the enemies' steering, LayoutRules.cs).
+            V2 routeWay = V2.Zero;
             if (RoomsOn && anchor.DistanceTo(me.Pos) > pref + 40f)
             {
                 V2 straight = (anchor - me.Pos).Normalized();
@@ -185,6 +195,7 @@ namespace Arena
                 {
                     anchor = me.Pos + way * 140f;
                     pref = 0f;
+                    routeWay = way;
                 }
             }
 
@@ -196,6 +207,9 @@ namespace Arena
                 botMove = ChooseMove(me, sk, anchor, pref, me.Role == Role.Healer && downed == null ? lowest : null, out BotDanger);
             }
             move = botMove;
+            if (!routeWay.IsZero && BotDanger < 1.2f)
+                move = routeWay;  // on the way round a wall and nothing to dodge: walk the route (the dodge scoring would rub on door jambs)
+            move = AroundProps(me, move);
 
             // --- Aim: lead the target, with a skill-based wobble.
             if (shootAt != null)
@@ -419,6 +433,33 @@ namespace Arena
 
         /// Tries the 8 WASD directions and standing still, and returns the one with
         /// the least predicted danger plus a small cost for being far from where we'd like to be.
+        /// A bot walking into a crate, barrel or chest turns to the nearest way past it (enemies steer round props in
+        /// PropDir; players would just walk round). Only when one is right in the way.
+        V2 AroundProps(Player me, V2 move)
+        {
+            if (move.IsZero || Props.Count == 0)
+                return move;
+            float r = me.Def.BodyR + 4f;
+            Func<V2, bool> blocked = dir =>
+            {
+                V2 ahead = me.Pos + dir * 28f;
+                foreach (var pr in Props.Values)
+                    if (Solid(pr) && pr.Hp > 0f && PropCovers(pr, ahead, r))
+                        return true;
+                return false;
+            };
+            V2 want = move.Normalized();
+            if (!blocked(want))
+                return move;
+            foreach (float turn in new[] { 0.5f, -0.5f, 1f, -1f, 1.5f, -1.5f })
+            {
+                V2 d = V2.FromAngle(want.Angle + turn);
+                if (!blocked(d))
+                    return d * move.Length;
+            }
+            return move;
+        }
+
         V2 ChooseMove(Player me, SkillParams sk, V2 anchor, float pref, Player stayNear, out float danger)
         {
             float speed = me.Speed * (bowDraw >= 0f ? BowDrawSlow : 1f);
@@ -549,6 +590,7 @@ namespace Arena
 
             V2 best = V2.Zero;
             float bestCost = float.MaxValue, bestDanger = 0f;
+            int lockedArea = RoomsOn && AreaLocked(Rooms.AreaAt(me.Pos)) ? Rooms.AreaAt(me.Pos) : -1;
             for (int c = 0; c < 9; c++)
             {
                 V2 dir = c == 8 ? V2.Zero : V2.FromAngle(MathX.Tau * c / 8f);  // WASD: 8 directions or standing still
@@ -776,6 +818,19 @@ namespace Arena
                     float room = Math.Min(Math.Min(p.X, Width - p.X), Math.Min(p.Y, Height - p.Y)) - es.Inset;
                     if (room < 60f)
                         d += 0.8f * (60f - room) / 60f;
+                }
+                else if (RoomsOn)
+                {
+                    // The Rooms arena (Rooms.cs): a step into a wall goes nowhere, a locked door holds you in, and a corner of
+                    // a room is a bad place to be caught (a person kites round the room instead).
+                    if (lockedArea >= 0 && Rooms.AreaAt(p) != lockedArea)
+                        d += 2f;
+                    if (NearSolid(p, hitR + 6f))
+                        d += 1f;
+                    var ar = Rooms.Areas[Rooms.AreaAt(p)];
+                    float edge = Math.Min(Math.Min(p.X - ar.Min.X, ar.Max.X - p.X), Math.Min(p.Y - ar.Min.Y, ar.Max.Y - p.Y));
+                    if (edge < 50f && !ar.Hall)
+                        d += 0.3f * (50f - edge) / 50f;
                 }
                 else if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
                     d += 0.2f;

@@ -157,14 +157,16 @@ static partial class Program
         Check(g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) <= shotsBefore + 2, "...and don't shoot at nothing");
 
         // A spill: fast runners out through the chosen door, hunting.
+        west().NextDoor = 0;  // the hub door (Rooms.Doors[0]: hub | West)
         int spillDoor = west().NextDoor;
         west().SpillT = 0.05f;
         Run(s, dt, 0.3f);
         var runners = g.Enemies.Values.Where(e => e.Spilled && e.Type == EnemyType.Runner).ToList();
-        Check(runners.Count == Rooms.SpillSize(g.Wave, g.Players.Count) && runners.All(e => e.Pos.DistanceTo(Rooms.Doors[spillDoor].Pos) < 150f) && west().SpillT > 5f,
+        Check(runners.Count == Rooms.SpillSize(g.Wave, g.Players.Count) && runners.All(e => e.Pos.DistanceTo(Rooms.Doors[spillDoor].Pos) < 150f && Rooms.AreaAt(e.Pos) == Rooms.Hub) && west().SpillT > 5f,
             "a room spills " + runners.Count + " runners out through its door (" + Rooms.Areas[Rooms.Doors[spillDoor].Other(Rooms.West)].Name + "), and its timer starts again");
         Run(s, dt, 3f, null, () => { foreach (var r in g.RoomStates) r.SpillT = Math.Max(r.SpillT, 50f); });
-        Check(runners.Any(e => !g.Enemies.ContainsKey(e.Id) || Rooms.AreaAt(e.Pos) != Rooms.West), "the runners come out of the room after you");
+        Check(runners.All(e => !g.Enemies.ContainsKey(e.Id) || Rooms.AreaAt(e.Pos) != Rooms.West || Rooms.Doors[spillDoor].Other(Rooms.West) != Rooms.Hub),
+            "spilled into the hub, the runners stay out of the room and come after you");
         foreach (var e in runners) e.Hp = 0f;
 
         // Doors lock behind you: in a room with its nest alive you can't step back out; you can always step in.
@@ -217,7 +219,7 @@ static partial class Program
                 g.DevSetLayout(ld);
                 g.Props.Clear();
                 var d = g.ActiveLayout;
-                for (int k = 0; k < 8; k++)
+                for (int k = 0; k < 16; k++)
                 {
                     Func<int, V2> spot = area =>
                     {
@@ -231,8 +233,9 @@ static partial class Program
                         return a.Mid;
                     };
                     int fromArea = 1 + k % 4, toArea = k % 2 == 0 ? Rooms.Hub : 1 + (k + 1) % 4;
+                    if (k >= 8) { fromArea = k % 2 == 0 ? Rooms.TopHall : Rooms.BottomHall; toArea = k % 4 < 2 ? Rooms.West : Rooms.East; }
                     V2 from = spot(fromArea), to = spot(toArea);
-                    var walker = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Brute, from, 0f, 0, false });
+                    var walker = (Enemy)spawnEnemyAt.Invoke(g, new object[] { k % 3 == 2 ? EnemyType.Runner : EnemyType.Brute, from, 0f, 0, false });
                     walker.SpawnT = 0f; walker.Hp = walker.MaxHp = 99999f;
                     float near = 9999f;
                     for (int i = 0; i < 4000 && near > 50f; i++)
@@ -243,7 +246,7 @@ static partial class Program
                     }
                     tried++;
                     if (near <= 50f) reached++;
-                    else Console.WriteLine("  stuck: {0} {1} -> {2} {3}, got within {4}", Rooms.Areas[fromArea].Name, from, Rooms.Areas[toArea].Name, to, (int)near);
+                    else Console.WriteLine("  stuck: {5} {0} {1:0},{6:0} -> {2} {3:0},{7:0}, got within {4} (ended at {8:0},{9:0}, layout {10})", Rooms.Areas[fromArea].Name, from.X, Rooms.Areas[toArea].Name, to.X, (int)near, walker.Type, from.Y, to.Y, walker.Pos.X, walker.Pos.Y, ld);
                     walker.Hp = 0f;
                     Quiet();
                 }
