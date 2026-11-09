@@ -28,6 +28,7 @@ namespace Arena
         RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
         ScytheThrow,  // the Twin Reapers' legendary: a Q / E / Shift ability (ReaperLoot.cs)
         JuggernautSuit,  // the Tank Soldier's second ultimate (Juggernaut.cs), picked on the lobby's Ultimate row
+        Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
         None = 255,
     }
 
