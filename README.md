@@ -1256,7 +1256,7 @@ out (Back or Esc), and only then does the window really close.
   first time it shows after the game starts it draws itself in: a pen writes the title and traces the arc, then the
   box opens and its buttons rise into it (2.75 s; any key or click skips it; with Reduced effects or Visual effects
   off, a short fade). Starting a run grows the box into the lobby's loadout while the rest of the menu fades out and
-  the lobby fades in. (The Field guide and How to play are in the lobby's and the pause menu's drawer.)
+  the lobby fades in. (How to play is in the lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
   **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
@@ -1268,7 +1268,7 @@ out (Back or Esc), and only then does the window really close.
   basics, Fighting, Between waves, Data Gates (with a little animated gate), Paths and modifiers, Playing
   together, and the **Field guide** under them.
 
-Esc goes back (from the pause menu's Settings, to its list). The **Field guide** opens two in-game databases:
+Esc goes back (from the pause menu's Settings, to its list). The **Field guide** is hidden from both menus for now (its code stays; `FieldGuideRow` in MenuDrawer.cs). It opens two in-game databases:
 
 - **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health
   at your wave for your party (with the run's modifiers), what it does, when it appears, a staged boss's stages, and

@@ -105,8 +105,18 @@ namespace Arena
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
         static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
+        const int FieldGuideRow = 2;  // hidden from both menus for now (the code in FieldGuide.cs stays)
         bool lobbyMenuOpen;
         int lobbySel;
+
+        static List<int> LobbyRows()
+        {
+            var rows = new List<int>();
+            for (int i = 0; i < LobbyChoices.Length; i++)
+                if (i != FieldGuideRow)
+                    rows.Add(i);
+            return rows;
+        }
 
         /// Esc in the lobby: the menu slides in (its own clock starts here).
         void OpenLobbyMenu()
@@ -155,12 +165,14 @@ namespace Arena
             Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
             string[] licons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
             float y = cabScreen.y + 10f;
-            for (int i = 0; i < LobbyChoices.Length; i++)
+            var lrows = LobbyRows();
+            for (int k = 0; k < lrows.Count; k++)
             {
+                int i = lrows[k];
                 var r = new Rect(34f, y, CabRowW, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
-                    lobbySel = i;
-                if (DrawerRow(r, PixelArt.Get(licons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, lcols[i], i == lobbySel, null, i == LobbyChoices.Length - 1))
+                    lobbySel = k;
+                if (DrawerRow(r, PixelArt.Get(licons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, lcols[i], k == lobbySel, null, i == LobbyChoices.Length - 1))
                     LobbyChoose(i);
                 y += 62f;
             }
@@ -176,12 +188,13 @@ namespace Arena
             var e = Event.current;
             if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
                 return;
+            var rows = LobbyRows();
             if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
-                lobbySel = (lobbySel + LobbyChoices.Length - 1) % LobbyChoices.Length;
+                lobbySel = (lobbySel + rows.Count - 1) % rows.Count;
             else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
-                lobbySel = (lobbySel + 1) % LobbyChoices.Length;
+                lobbySel = (lobbySel + 1) % rows.Count;
             else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                LobbyChoose(lobbySel);
+                LobbyChoose(rows[Mathf.Clamp(lobbySel, 0, rows.Count - 1)]);
             else
                 return;
             e.Use();
@@ -215,7 +228,8 @@ namespace Arena
         {
             var rows = new List<int>();
             for (int i = 0; i < PauseChoices.Length; i++)
-                rows.Add(i);
+                if (i != FieldGuideRow)  // the Field guide (Bestiary + Armory) is hidden for now
+                    rows.Add(i);
             return rows;
         }
 
@@ -902,17 +916,18 @@ namespace Arena
         static readonly HowTo[] HowToTopics =
         {
             new HowTo { Name = "Controls", Icon = "ui_help", Color = new Color(0.6f, 0.75f, 1f), Keys = true, Intro = "Keyboard and mouse. Ability keys show on the bar at the bottom." },
-            new HowTo { Name = "The basics", Icon = "crosshair", Color = new Color(1f, 0.55f, 0.5f), Intro = "Survive 50 waves with a boss every fifth one.",
+            new HowTo { Name = "The basics", Icon = "crosshair", Color = new Color(1f, 0.55f, 0.5f), Intro = "Survive 50 waves with a boss every fifth one, or take a Boss Hunt: ten waves ending in one boss.",
                 Tips = new[,] { { "Hitbox", "Your hitbox is the small ring in the middle of your character, with a coloured dot at its centre. Only the ring's inside can be hit, not the whole body.", "0" }, { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow.", "1" },
                     { "Roles", "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest.", "8" }, { "Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close.", "9" },
+                    { "Dodge", "A tiny dash with a moment of invulnerability. Double tap a movement key or press Ctrl.", "icon:blink" },
                     { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself.", "13" } } },
             new HowTo { Name = "Fighting", Icon = "guard_reinforced", Color = new Color(0.55f, 0.8f, 1f), Intro = "Read the shots, parry what you can, and let your abilities grow.",
                 Tips = new[,] { { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", "7" }, { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", "5" },
                     { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, flame = burning, drop = bleeding, crosshair = marked.", "2" },
                     { "Ability mastery", "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone.", "10" } } },
             new HowTo { Name = "Between waves", Icon = "ui_star", Color = Ui.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
-                Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it once the wave is clear and everyone gets an item.", "icon:ui_coin" },
-                    { "Rerolls", "Don't like the cards? Reroll them: you start with 2 and get 2 more for every boss.", "icon:ui_arrow" }, { "Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back.", "3" } } },
+                Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it and everyone gets their own item. Stand on it to take (G) or throw away (X) yours.", "icon:ui_coin" },
+                    { "Rerolls", "Don't like the cards? Reroll them: you start with 2 and get 2 more for every boss.", "icon:ui_arrow" }, { "Downed", "At 0 HP you're downed: stand by a downed ally for a few seconds (4 s on Normal) to revive them. Clearing a wave brings everyone back.", "3" } } },
             new HowTo { Name = "Data Gates", Icon = "blink", Color = new Color(0.45f, 0.9f, 1f), Portal = true, Intro = "Once every five waves a Data Gate opens in the break. Everyone alive stands in it to go through. Win the challenge for a prize pick; lose it and you're simply sent back.",
                 Tips = new[,] { { "Defend the Crystal", "Keep it alive for 40 s. Most enemies go for it.", "icon:shield" }, { "The Gatekeeper", "A mini-boss: slip the ring's gap, step off its charge line.", "icon:ui_skull" },
                     { "Kill Rush", "40 kills in 40 s, weak enemies from every side.", "icon:bolt" }, { "Hold the Zones", "Stand in each zone until it fills. An enemy in it slows you.", "icon:pulse" },
@@ -922,6 +937,8 @@ namespace Arena
                     { "Difficulty", "Easy to Nightmare, or Custom with every number on a slider. Set in the lobby.", "icon:ui_gear" } } },
             new HowTo { Name = "Playing together", Icon = "link", Color = new Color(0.55f, 1f, 0.6f), Intro = "Up to three players, one hosting.",
                 Tips = new[,] { { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", "6" }, { "Reviving", "Stand by a downed ally to bring them back. Healers and some upgrades do it faster.", "3" },
+                    { "Pings and emotes", "Tap the ping key to mark your cursor, hold it for the wheel. Hold the emote key to cheer on your team.", "icon:ui_arrow" },
+                    { "Hangout", "Walk around the lobby with your party while you wait.", "icon:ui_star" },
                     { "Pausing", "Anyone can pause: it pauses the match for everyone until someone resumes.", "icon:ui_play" } } },
         };
 

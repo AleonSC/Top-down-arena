@@ -420,9 +420,10 @@ namespace Arena
                     howToKeys = new[]
                     {
                         new[] { K(KeyAction.MoveUp), K(KeyAction.MoveLeft), K(KeyAction.MoveDown), K(KeyAction.MoveRight) }, new[] { K(KeyAction.Fire) }, new[] { K(KeyAction.Parry) },
-                        new[] { K(KeyAction.Ability) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
+                        new[] { K(KeyAction.Dodge) }, new[] { K(KeyAction.Ability) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
                         new[] { K(KeyAction.AbilityQ), K(KeyAction.AbilityE), K(KeyAction.AbilityShift) },
-                        new[] { "1", "2", "3" }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
+                        new[] { "1", "2", "3" },
+                        new[] { K(KeyAction.TakeItem), K(KeyAction.DiscardItem) }, new[] { K(KeyAction.Ping), K(KeyAction.Emote) }, new[] { K(KeyAction.ReadyUp) }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
                         new[] { "Esc" }, new[] { K(KeyAction.Mute) }, new[] { "R", "L", "C" }, new[] { "F1" },
                     };
                 }
@@ -434,15 +435,19 @@ namespace Arena
             { "Move", "or the arrow keys; change keys in Settings" },
             { "Aim and shoot", "aim with the mouse, hold to fire" },
             { "Parry", "hold: a shield toward your cursor (no shooting)" },
+            { "Dodge", "double tap a movement key does it too" },
             { "Role ability", "" },
             { "Weapon secondary", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl" },
             { "Ultimate", "one per role and class; starts each match half charged" },
             { "Bonus abilities", "from upgrade cards; move them between keys in Tab" },
             { "Pick an upgrade", "or click a card, then Confirm (Enter)" },
+            { "Chest item", "standing on it: take it / throw it away" },
+            { "Ping, emotes", "tap to ping, hold for the wheel · hold for emotes" },
+            { "Ready up", "between waves: the wave starts once everyone is" },
             { "Reroll upgrades", "" },
             { "Stats & upgrades", "hold: just for you, doesn't pause" },
             { "Aim line, HUD", "aim line on / off · hide or show the HUD" },
-            { "Pause menu", "with the Field guide: every enemy, weapon and upgrade" },
+            { "Pause menu", "run stats, profile, how to play, settings" },
             { "Mute", "" },
             { "After a run (host)", "R: play again · L: back to lobby · C: keep going" },
             { "Developer tools", "and the Boss Lab" },
