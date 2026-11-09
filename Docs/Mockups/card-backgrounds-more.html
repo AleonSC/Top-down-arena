@@ -1,0 +1,201 @@
+<title>More Card Backgrounds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as card-backgrounds.html. Top: a lobby party at the game's own size (376 x 88 per card) wearing
+   the background you pick. Under it: one card per new idea, all animating. A background sits BEHIND the card's content
+   under a scrim so the text stays readable. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.party { display: grid; justify-items: center; padding: 22px 16px 10px; background: #080b11; }
+.party canvas { display: block; width: 100%; max-width: 560px; height: auto; aspect-ratio: 404 / 348; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; cursor: pointer; min-width: 0; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--teal); }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 404 / 116; background: #080b11; border-radius: 6px; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tag { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--edge); color: var(--muted); white-space: nowrap; }
+.card p { font-size: 14px; color: var(--soft); }
+.notes { display: grid; gap: 8px; color: var(--soft); font-size: 15px; }
+.notes b { font-family: var(--font-display); color: var(--fg); }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; cosmetics &middot; card backgrounds</div>
+  <h1>More card <span>backgrounds</span></h1>
+  <p class="lead">Eight new ideas for the fill of your lobby party card (and results card), seen by everyone. They sit beside the ten card backgrounds the ladder has today, and lean on the game's own world: arena radar, bullet patterns, CRT glass. Click one to put it on your card at the top. Drawing only, from the clock.</p>
+</header>
+
+<section class="stage" aria-label="Preview">
+  <div class="party"><canvas id="party" width="808" height="696"></canvas></div>
+  <div class="bar">
+    <div class="group"><span class="label">Effects</span><button id="fxBtn" aria-pressed="true">Animated</button></div>
+    <div class="group"><span class="label">Your background</span><span id="curName">Radar Sweep</span></div>
+  </div>
+</section>
+
+<section class="cards" id="cards" aria-label="Backgrounds"></section>
+
+<section class="notes">
+  <p><b>Readability.</b> Every background gets the same left-to-right scrim as the current ones (dark behind the portrait and name, lighter on the right), so the name, role and badges read the same on all of them.</p>
+  <p><b>Cost.</b> Plain quads, lines and circles, like <code>CardBackgrounds.cs</code>. With Visual effects off each one falls back to its still base colours.</p>
+  <p><b>Wiring (if picked).</b> A row each in <code>Rank.Cosmetics</code> (kind CardBackground, at the end of that kind so no existing number moves), a case each in <code>CardBackgrounds.cs</code>, and a protocol bump for the larger lobby number. Ranks are not chosen yet. Every rank from 2 to 55 already has a reward, so new backgrounds would go above 55 or share a rank with something existing.</p>
+</section>
+</div>
+<script>
+"use strict";
+const TAU = Math.PI * 2, CW = 376, CH = 88;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const rr = (c, x, y, w, h, r) => { c.beginPath(); c.roundRect(x, y, w, h, r); };
+const lin = (c, x0, y0, x1, y1, stops) => { const g = c.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, col]) => g.addColorStop(o, col)); return g; };
+
+/* Each draws into a w x h card at time t (seconds). fx=false freezes t at 0 for the still look. */
+const BG = [
+ { id: "radar", name: "Radar Sweep", tag: "Arena", note: "A green radar scope on the right. A beam sweeps round and lights the contacts it passes, which then fade until the next sweep. It is the arena seen from above.",
+   draw(c, w, h, t) {
+     c.fillStyle = "#04140f"; c.fillRect(0, 0, w, h); const cx = w * .8, cy = h * .5, a = t * 1.3;
+     c.strokeStyle = "rgba(70,230,150,.2)"; c.lineWidth = 1;
+     for (const r of [16, 32, 50]) { c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.stroke(); }
+     c.beginPath(); c.moveTo(cx - 60, cy); c.lineTo(cx + 60, cy); c.moveTo(cx, cy - 60); c.lineTo(cx, cy + 60); c.stroke();
+     for (let k = 0; k < 24; k++) { c.fillStyle = `rgba(70,230,150,${.22 * (1 - k / 24)})`; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, 90, a - (k + 1) * .035, a - k * .035); c.closePath(); c.fill(); }
+     c.strokeStyle = "rgba(170,255,210,.85)"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * 90, cy + Math.sin(a) * 90); c.stroke();
+     for (let i = 0; i < 6; i++) { const ang = hash(i) * TAU, rad = 10 + hash(i + 4) * 70, since = (((a - ang) % TAU) + TAU) % TAU, al = Math.max(0, 1 - since / 5);
+       c.fillStyle = `rgba(190,255,220,${al})`; c.beginPath(); c.arc(cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad, 2.2, 0, TAU); c.fill(); }
+   } },
+ { id: "spiral", name: "Bullet Spiral", tag: "Arena", note: "A five-armed spiral of slow pink and cyan bullets, fired from the right-hand edge and fanning out across the card. It is a boss pattern you can stand still in.",
+   draw(c, w, h, t) {
+     c.fillStyle = "#120a14"; c.fillRect(0, 0, w, h); const cx = w * .86, cy = h * .5;
+     for (let k = 0; k < 5; k++) for (let j = 0; j < 18; j++) {
+       const age = (t * .3 + j / 18) % 1, ang = k * TAU / 5 + age * 1.5 + t * .25, r = age * w * .95, x = cx + Math.cos(ang) * r, y = cy + Math.sin(ang) * r * .9;
+       const col = k % 2 ? "255,90,170" : "90,220,255";
+       c.fillStyle = `rgba(${col},${.85 - age * .55})`; c.beginPath(); c.arc(x, y, 1.6 + age * 1.8, 0, TAU); c.fill();
+       c.fillStyle = `rgba(${col},${.12 * (1 - age)})`; c.beginPath(); c.arc(x, y, 5 + age * 4, 0, TAU); c.fill();
+     }
+   } },
+ { id: "matrix", name: "Phosphor Rain", tag: "CRT", note: "Columns of green characters falling at different speeds, with a bright head and a fading tail. Matches the CRT menu look and costs only text.",
+   draw(c, w, h, t) {
+     c.fillStyle = "#020a06"; c.fillRect(0, 0, w, h); c.font = "500 10px 'IBM Plex Mono', monospace"; const glyphs = "01ABCDEF<>/+*:=#%";
+     for (let i = 0; i < w / 11; i++) {
+       const sp = 22 + hash(i) * 30, head = ((t * sp + hash(i + 5) * 200) % (h + 90)) - 12;
+       for (let j = 0; j < 7; j++) { const y = head - j * 11; if (y < -10 || y > h + 10) continue;
+         const ch = glyphs[Math.floor(hash(i * 7 + j + Math.floor(t * 3 + j * .3)) * glyphs.length)];
+         c.fillStyle = j === 0 ? "rgba(210,255,225,.95)" : `rgba(60,255,140,${.55 * (1 - j / 7)})`; c.fillText(ch, i * 11 + 1, y); }
+     }
+   } },
+ { id: "lava", name: "Lava Veins", tag: "Warm", note: "A near-black rock with glowing orange veins that slide and pulse. Heavier and hotter than Ember Glow, and it should look good next to the Ember Edge frame.",
+   draw(c, w, h, t) {
+     c.fillStyle = "#130607"; c.fillRect(0, 0, w, h); c.globalCompositeOperation = "lighter"; c.lineJoin = "round";
+     for (let k = 0; k < 5; k++) {
+       const path = () => { c.beginPath(); for (let x = -4; x <= w + 4; x += 5) { const y = h * (.12 + .19 * k) + Math.sin(x * .03 + t * .5 + k * 2) * 11 + Math.sin(x * .07 - t * .8 + k) * 5; x < 0 ? c.moveTo(x, y) : c.lineTo(x, y); } };
+       path(); c.strokeStyle = "rgba(255,90,20,.10)"; c.lineWidth = 9; c.stroke(); path(); c.strokeStyle = `rgba(255,${130 + 50 * Math.sin(t + k) | 0},40,.55)`; c.lineWidth = 1.8; c.stroke();
+     }
+     for (let i = 0; i < 3; i++) { const x = w * (.2 + .3 * i) + Math.sin(t * .4 + i) * 20, y = h * .5 + Math.cos(t * .5 + i * 2) * 18, g = c.createRadialGradient(x, y, 0, x, y, 40); g.addColorStop(0, "rgba(255,120,30,.22)"); g.addColorStop(1, "rgba(255,120,30,0)"); c.fillStyle = g; c.fillRect(0, 0, w, h); }
+     c.globalCompositeOperation = "source-over";
+   } },
+ { id: "sun", name: "Synthwave Sun", tag: "Retro", note: "A striped sun sinking into a pink horizon over a dark floor. The stripes widen and slide down it. Differs from Dusk Grid by being about the sun, not the grid.",
+   draw(c, w, h, t) {
+     const hz = h * .64, cx = w * .72;
+     c.fillStyle = lin(c, 0, 0, 0, hz, [[0, "#140a35"], [.6, "#4a1769"], [1, "#d6407e"]]); c.fillRect(0, 0, w, hz);
+     c.save(); c.beginPath(); c.rect(0, 0, w, hz); c.clip();
+     c.fillStyle = lin(c, 0, hz - 40, 0, hz + 6, [[0, "#ffe27a"], [1, "#ff4f8b"]]); c.beginPath(); c.arc(cx, hz - 4, 34, 0, TAU); c.fill();
+     c.fillStyle = "#4a1769"; for (let k = 0; k < 7; k++) { const y = hz - 38 + ((k * 8 + t * 3) % 56), th = .8 + (y - (hz - 38)) / 56 * 4.5; c.fillRect(cx - 40, y, 80, th); }
+     c.restore();
+     c.fillStyle = "#0d0722"; c.fillRect(0, hz, w, h - hz);
+     c.strokeStyle = "rgba(255,90,160,.4)"; c.lineWidth = 1;
+     for (let i = -10; i <= 10; i++) { c.beginPath(); c.moveTo(cx + i * 6, hz); c.lineTo(cx + i * 26, h); c.stroke(); }
+     for (let k = 0; k < 4; k++) { const f = ((k + t * .4) % 4) / 4; c.globalAlpha = .2 + .5 * f; c.beginPath(); c.moveTo(0, hz + (h - hz) * f * f); c.lineTo(w, hz + (h - hz) * f * f); c.stroke(); }
+     c.globalAlpha = 1;
+   } },
+ { id: "snow", name: "Snowfall", tag: "Calm", note: "A cold night blue with two depths of snow drifting down and sideways, and a pale haze along the bottom. The quietest animated one.",
+   draw(c, w, h, t) {
+     c.fillStyle = lin(c, 0, 0, 0, h, [[0, "#0b1628"], [1, "#1c3250"]]); c.fillRect(0, 0, w, h);
+     for (let i = 0; i < 70; i++) { const far = i % 2, sp = far ? 7 + hash(i) * 6 : 15 + hash(i) * 14, x = ((hash(i + 1) * w + Math.sin(t * .7 + i) * 9 + t * (far ? 2 : 5)) % w + w) % w, y = (hash(i + 9) * h + t * sp) % h;
+       c.fillStyle = `rgba(235,244,255,${far ? .35 : .8})`; c.beginPath(); c.arc(x, y, far ? .9 : 1.7, 0, TAU); c.fill(); }
+     c.fillStyle = lin(c, 0, h - 26, 0, h, [[0, "rgba(220,235,255,0)"], [1, "rgba(220,235,255,.14)"]]); c.fillRect(0, h - 26, w, 26);
+   } },
+ { id: "topo", name: "Contour Map", tag: "Calm", note: "Topographic lines drawn as wobbling rings around two peaks, every third one brighter. The peaks drift slowly so the map breathes.",
+   draw(c, w, h, t) {
+     c.fillStyle = "#0c1611"; c.fillRect(0, 0, w, h);
+     for (const [px, py, sc] of [[w * .78 + Math.sin(t * .2) * 12, h * .45, 1], [w * .32 + Math.cos(t * .17) * 14, h * .85, .8]])
+       for (let lv = 1; lv <= 10; lv++) { c.beginPath();
+         for (let a = 0; a <= TAU + .01; a += .12) { const rad = lv * 8.5 * sc * (1 + .12 * Math.sin(a * 3 + t * .4 + lv * .3) + .07 * Math.sin(a * 5 - t * .3)), x = px + Math.cos(a) * rad * 1.5, y = py + Math.sin(a) * rad * .8; a ? c.lineTo(x, y) : c.moveTo(x, y); }
+         c.closePath(); c.strokeStyle = lv % 3 ? "rgba(140,210,150,.16)" : "rgba(170,235,170,.34)"; c.lineWidth = lv % 3 ? 1 : 1.3; c.stroke(); }
+   } },
+ { id: "hex", name: "Honeycomb Pulse", tag: "Tech", note: "A hex grid where a wave of amber light spreads out from a point on the right, filling the cells as it passes. Reads as a shield or energy field.",
+   draw(c, w, h, t) {
+     c.fillStyle = "#0d0e1a"; c.fillRect(0, 0, w, h); const r = 11, dx = r * 1.5, dy = Math.sqrt(3) * r;
+     for (let i = -1; i < w / dx + 1; i++) for (let j = -1; j < h / dy + 1; j++) {
+       const x = i * dx, y = j * dy + (i % 2 ? dy / 2 : 0), wave = .5 + .5 * Math.sin(Math.hypot(x - w * .8, y - h * .5) * .06 - t * 2.2);
+       c.beginPath(); for (let k = 0; k < 6; k++) { const a = k * TAU / 6; k ? c.lineTo(x + Math.cos(a) * (r - 1), y + Math.sin(a) * (r - 1)) : c.moveTo(x + Math.cos(a) * (r - 1), y + Math.sin(a) * (r - 1)); } c.closePath();
+       c.fillStyle = `rgba(255,185,60,${wave * wave * .22})`; c.fill(); c.strokeStyle = `rgba(255,185,60,${.08 + wave * .22})`; c.lineWidth = 1; c.stroke();
+     }
+   } },
+];
+const NONE = { id: "none", name: "None", draw(c, w, h) { c.fillStyle = "#0e1420"; c.fillRect(0, 0, w, h); } };
+
+let fx = true, cur = BG[0];
+const t0 = performance.now(), sel = [BG[0], BG[3], BG[5]];
+const ROLES = [["Antaleon", "Soldier Tank", "Scattergun · Barrier", "#6a9bff", true], ["Moss", "Ranger Healer", "Mender's Bow · Mend Pulse", "#5be0a0", false], ["Quill", "Mage Support", "Chain Light · Shield", "#e0a0ff", false]];
+
+function card(c, x, y, bg, t, who) {
+  const w = CW, h = CH;
+  c.save(); rr(c, x, y, w, h, 9); c.clip(); c.translate(x, y); bg.draw(c, w, h, fx ? t : 0);
+  c.fillStyle = lin(c, 0, 0, w, 0, [[0, "rgba(6,9,16,.9)"], [.55, "rgba(6,9,16,.55)"], [1, "rgba(6,9,16,.15)"]]); c.fillRect(0, 0, w, h);
+  c.fillStyle = "rgba(255,255,255,.06)"; rr(c, 8, 8, 72, 72, 6); c.fill(); c.fillStyle = who[3]; c.beginPath(); c.arc(44, 44, 15, 0, TAU); c.fill(); c.strokeStyle = "#fff"; c.lineWidth = 2; c.stroke();
+  c.fillStyle = "#fff"; c.font = "700 22px Oxanium, sans-serif"; c.fillText(who[0], 94, 36);
+  c.fillStyle = who[3]; c.font = "700 15px Oxanium, sans-serif"; c.fillText(who[1], 94, 58);
+  c.fillStyle = "#aab4c0"; c.font = "500 12px Barlow, sans-serif"; c.fillText(who[2], 94, 78);
+  if (who[4]) { c.fillStyle = "#28406b"; rr(c, w - 60, 12, 48, 17, 8); c.fill(); c.fillStyle = "#cfe0ff"; c.font = "700 10px Oxanium, sans-serif"; c.fillText("YOU", w - 47, 24); }
+  c.restore();
+  c.save(); c.strokeStyle = who[3]; c.globalAlpha = .5; c.lineWidth = 1.5; rr(c, x + .5, y + .5, w - 1, h - 1, 9); c.stroke(); c.restore();
+}
+const pc = document.getElementById("party").getContext("2d");
+const cardsEl = document.getElementById("cards"), mini = [];
+BG.forEach(b => {
+  const el = document.createElement("div"); el.className = "card"; el.tabIndex = 0; el.setAttribute("role", "button");
+  el.innerHTML = `<div class="row"><h3>${b.name}</h3><span class="tag">${b.tag}</span></div><canvas width="808" height="232"></canvas><p>${b.note}</p>`;
+  const c = el.querySelector("canvas").getContext("2d"); c.scale(2, 2); mini.push({ b, el, c });
+  const pick = () => { sel[0] = b; cur = b; refresh(); }; el.onclick = pick; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
+  cardsEl.appendChild(el);
+});
+function refresh() { document.getElementById("curName").textContent = cur.name; mini.forEach(m => m.el.setAttribute("aria-current", m.b === cur ? "true" : "false")); }
+const xb = document.getElementById("fxBtn");
+xb.onclick = () => { fx = !fx; xb.setAttribute("aria-pressed", fx); xb.textContent = fx ? "Animated" : "Still"; };
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) { fx = false; xb.setAttribute("aria-pressed", false); xb.textContent = "Still"; }
+function loop(now) {
+  const t = (now - t0) / 1000;
+  pc.setTransform(2, 0, 0, 2, 0, 0); pc.fillStyle = "#080b11"; pc.fillRect(0, 0, 404, 348);
+  for (let i = 0; i < 3; i++) card(pc, 14, 14 + i * 108, sel[i], t + i * 3, ROLES[i]);
+  mini.forEach(m => { m.c.clearRect(0, 0, 404, 116); card(m.c, 14, 14, m.b, t, ROLES[0]); });
+  requestAnimationFrame(loop);
+}
+refresh(); (document.fonts && document.fonts.ready || Promise.resolve()).then(() => requestAnimationFrame(loop));
+</script>

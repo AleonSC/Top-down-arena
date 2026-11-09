@@ -85,7 +85,7 @@ namespace Arena
 
         // --- Tiers: a title, a colour and a number of chevrons each ----------------------------------
 
-        public static int Tier(int rank) => rank >= 30 ? 4 : rank >= 20 ? 3 : rank >= 10 ? 2 : rank >= 5 ? 1 : 0;
+        public static int Tier(int rank) => rank >= 40 ? 4 : rank >= 30 ? 3 : rank >= 20 ? 2 : rank >= 10 ? 1 : 0;
         public static readonly string[] TierNames = { "Recruit", "Challenger", "Veteran", "Champion", "Legend" };
         public static string Title(int rank) => TierNames[Tier(rank)];
         public static readonly Rgba[] TierColors =
@@ -98,82 +98,114 @@ namespace Arena
 
         public static readonly CosmeticDef[] Cosmetics =
         {
-            new CosmeticDef { Id = "trail-ember", Name = "Ember trail", Kind = CosmeticKind.Trail, Rank = 8 },
-            new CosmeticDef { Id = "frame-steel", Name = "Steel frame", Kind = CosmeticKind.Frame, Rank = 12 },
-            new CosmeticDef { Id = "frame-circuit", Name = "Circuit frame", Kind = CosmeticKind.Frame, Rank = 16 },
-            new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 14 },
-            new CosmeticDef { Id = "bg-dusk", Name = "Dusk grid", Kind = CosmeticKind.Background, Rank = 15 },
-            new CosmeticDef { Id = "bg-react-ripples", Name = "Ripples", Kind = CosmeticKind.Background, Rank = 25 },  // the first reactive background (a reference for the rest)
-            new CosmeticDef { Id = "bg-react-bootlog", Name = "Boot Log", Kind = CosmeticKind.Background, Rank = 28 },  // a BIOS terminal that logs your pointer and clicks
-            new CosmeticDef { Id = "bg-react-rocks", Name = "Vector Rocks", Kind = CosmeticKind.Background, Rank = 39 },  // an asteroid field with a ship on your pointer
-            new CosmeticDef { Id = "bg-react-life", Name = "Life Grid", Kind = CosmeticKind.Background, Rank = 43 },  // Conway's Life in phosphor, seeded where you go
-            new CosmeticDef { Id = "bg-react-pond", Name = "Phosphor Pond", Kind = CosmeticKind.Background, Rank = 47 },  // a dot grid that ripples where you go and click
-            new CosmeticDef { Id = "bg-react-tunnel", Name = "Vector Tunnel", Kind = CosmeticKind.Background, Rank = 49 },  // neon gates rushing past, steered by the pointer
+            new CosmeticDef { Id = "trail-ember", Name = "Ember trail", Kind = CosmeticKind.Trail, Rank = 9 },
+            new CosmeticDef { Id = "frame-steel", Name = "Steel frame", Kind = CosmeticKind.Frame, Rank = 13 },
+            new CosmeticDef { Id = "frame-circuit", Name = "Circuit frame", Kind = CosmeticKind.Frame, Rank = 17 },
+            new CosmeticDef { Id = "trail-frost", Name = "Frost trail", Kind = CosmeticKind.Trail, Rank = 15 },
+            new CosmeticDef { Id = "bg-dusk", Name = "Dusk grid", Kind = CosmeticKind.Background, Rank = 16 },
+            new CosmeticDef { Id = "bg-react-ripples", Name = "Ripples", Kind = CosmeticKind.Background, Rank = 26 },  // the first reactive background (a reference for the rest)
+            new CosmeticDef { Id = "bg-react-bootlog", Name = "Boot Log", Kind = CosmeticKind.Background, Rank = 29 },  // a BIOS terminal that logs your pointer and clicks
+            new CosmeticDef { Id = "bg-react-rocks", Name = "Vector Rocks", Kind = CosmeticKind.Background, Rank = 40 },  // an asteroid field with a ship on your pointer
+            new CosmeticDef { Id = "bg-react-life", Name = "Life Grid", Kind = CosmeticKind.Background, Rank = 44 },  // Conway's Life in phosphor, seeded where you go
+            new CosmeticDef { Id = "bg-react-pond", Name = "Phosphor Pond", Kind = CosmeticKind.Background, Rank = 48 },  // a dot grid that ripples where you go and click
+            new CosmeticDef { Id = "bg-react-tunnel", Name = "Vector Tunnel", Kind = CosmeticKind.Background, Rank = 50 },  // neon gates rushing past, steered by the pointer
             new CosmeticDef { Id = "bg-react-signal", Name = "Signal Lost", Kind = CosmeticKind.Background, Rank = 53 },  // a test card that tears at the pointer and rolls on a click
-            new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 20 },
-            new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 18 },
-            new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 24 },
-            new CosmeticDef { Id = "trail-void", Name = "Void trail", Kind = CosmeticKind.Trail, Rank = 22 },
-            new CosmeticDef { Id = "trail-gold", Name = "Gold stardust", Kind = CosmeticKind.Trail, Rank = 25 },
-            new CosmeticDef { Id = "frame-gold", Name = "Gold frame", Kind = CosmeticKind.Frame, Rank = 30 },
-            new CosmeticDef { Id = "frame-foil", Name = "Legend Foil frame", Kind = CosmeticKind.Frame, Rank = 40 },
-            new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 35 },
-            new CosmeticDef { Id = "trail-lightcycle", Name = "Light Cycle trail", Kind = CosmeticKind.Trail, Rank = 45 },
-            new CosmeticDef { Id = "frame-prism", Name = "Prism frame", Kind = CosmeticKind.Frame, Rank = 50 },
-            new CosmeticDef { Id = "card-dusk", Name = "Dusk Grid card", Kind = CosmeticKind.CardBackground, Rank = 6 },
-            new CosmeticDef { Id = "card-stars", Name = "Starfield card", Kind = CosmeticKind.CardBackground, Rank = 10 },
-            new CosmeticDef { Id = "card-blueprint", Name = "Blueprint card", Kind = CosmeticKind.CardBackground, Rank = 13 },
-            new CosmeticDef { Id = "card-embers", Name = "Ember Glow card", Kind = CosmeticKind.CardBackground, Rank = 19 },
-            new CosmeticDef { Id = "card-aurora", Name = "Aurora card", Kind = CosmeticKind.CardBackground, Rank = 23 },
-            new CosmeticDef { Id = "card-circuit", Name = "Circuit Board card", Kind = CosmeticKind.CardBackground, Rank = 27 },
-            new CosmeticDef { Id = "card-rain", Name = "Rain on Glass card", Kind = CosmeticKind.CardBackground, Rank = 32 },
-            new CosmeticDef { Id = "card-void", Name = "Void Rift card", Kind = CosmeticKind.CardBackground, Rank = 37 },
-            new CosmeticDef { Id = "card-foil", Name = "Gilded Foil card", Kind = CosmeticKind.CardBackground, Rank = 42 },
-            new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 55 },
-            new CosmeticDef { Id = "emote-wave", Name = "Wave emote", Kind = CosmeticKind.Emote, Rank = 1 },
-            new CosmeticDef { Id = "emote-thumbs", Name = "Thumbs up emote", Kind = CosmeticKind.Emote, Rank = 1 },
-            new CosmeticDef { Id = "emote-gg", Name = "GG emote", Kind = CosmeticKind.Emote, Rank = 3 },
-            new CosmeticDef { Id = "emote-cheer", Name = "Cheer emote", Kind = CosmeticKind.Emote, Rank = 7 },
-            new CosmeticDef { Id = "emote-heart", Name = "Heart emote", Kind = CosmeticKind.Emote, Rank = 10 },
-            new CosmeticDef { Id = "emote-laugh", Name = "Laugh emote", Kind = CosmeticKind.Emote, Rank = 12 },
-            new CosmeticDef { Id = "emote-question", Name = "Question emote", Kind = CosmeticKind.Emote, Rank = 15 },
-            new CosmeticDef { Id = "emote-sleep", Name = "Sleep emote", Kind = CosmeticKind.Emote, Rank = 17 },
-            new CosmeticDef { Id = "emote-dance", Name = "Dance emote", Kind = CosmeticKind.Emote, Rank = 21 },
-            new CosmeticDef { Id = "emote-spin", Name = "Spin emote", Kind = CosmeticKind.Emote, Rank = 25 },
-            new CosmeticDef { Id = "emote-salute", Name = "Salute emote", Kind = CosmeticKind.Emote, Rank = 31 },
-            new CosmeticDef { Id = "emote-fireworks", Name = "Fireworks emote", Kind = CosmeticKind.Emote, Rank = 41 },
+            new CosmeticDef { Id = "frame-ember", Name = "Ember Edge frame", Kind = CosmeticKind.Frame, Rank = 21 },
+            new CosmeticDef { Id = "trail-storm", Name = "Storm trail", Kind = CosmeticKind.Trail, Rank = 19 },
+            new CosmeticDef { Id = "frame-void", Name = "Void Pulse frame", Kind = CosmeticKind.Frame, Rank = 25 },
+            new CosmeticDef { Id = "trail-void", Name = "Void trail", Kind = CosmeticKind.Trail, Rank = 23 },
+            new CosmeticDef { Id = "trail-gold", Name = "Gold stardust", Kind = CosmeticKind.Trail, Rank = 26 },
+            new CosmeticDef { Id = "frame-gold", Name = "Gold frame", Kind = CosmeticKind.Frame, Rank = 31 },
+            new CosmeticDef { Id = "frame-foil", Name = "Legend Foil frame", Kind = CosmeticKind.Frame, Rank = 41 },
+            new CosmeticDef { Id = "trail-prism", Name = "Prism trail", Kind = CosmeticKind.Trail, Rank = 36 },
+            new CosmeticDef { Id = "trail-lightcycle", Name = "Light Cycle trail", Kind = CosmeticKind.Trail, Rank = 46 },
+            new CosmeticDef { Id = "frame-prism", Name = "Prism frame", Kind = CosmeticKind.Frame, Rank = 51 },
+            new CosmeticDef { Id = "frame-neon", Name = "Neon Tube frame", Kind = CosmeticKind.Frame, Rank = 56 },
+            new CosmeticDef { Id = "frame-hazard", Name = "Hazard Tape frame", Kind = CosmeticKind.Frame, Rank = 58 },
+            new CosmeticDef { Id = "frame-frost", Name = "Frostbite frame", Kind = CosmeticKind.Frame, Rank = 60 },
+            new CosmeticDef { Id = "frame-barbed", Name = "Barbed Wire frame", Kind = CosmeticKind.Frame, Rank = 62 },
+            new CosmeticDef { Id = "frame-storm", Name = "Lightning Cage frame", Kind = CosmeticKind.Frame, Rank = 64 },
+            new CosmeticDef { Id = "frame-pixel", Name = "Pixel March frame", Kind = CosmeticKind.Frame, Rank = 66 },
+            new CosmeticDef { Id = "frame-blood", Name = "Blood Drip frame", Kind = CosmeticKind.Frame, Rank = 68 },
+            new CosmeticDef { Id = "frame-chain", Name = "Chain Link frame", Kind = CosmeticKind.Frame, Rank = 70 },
+            new CosmeticDef { Id = "card-dusk", Name = "Dusk Grid card", Kind = CosmeticKind.CardBackground, Rank = 7 },
+            new CosmeticDef { Id = "card-stars", Name = "Starfield card", Kind = CosmeticKind.CardBackground, Rank = 11 },
+            new CosmeticDef { Id = "card-blueprint", Name = "Blueprint card", Kind = CosmeticKind.CardBackground, Rank = 14 },
+            new CosmeticDef { Id = "card-embers", Name = "Ember Glow card", Kind = CosmeticKind.CardBackground, Rank = 20 },
+            new CosmeticDef { Id = "card-aurora", Name = "Aurora card", Kind = CosmeticKind.CardBackground, Rank = 24 },
+            new CosmeticDef { Id = "card-circuit", Name = "Circuit Board card", Kind = CosmeticKind.CardBackground, Rank = 28 },
+            new CosmeticDef { Id = "card-rain", Name = "Rain on Glass card", Kind = CosmeticKind.CardBackground, Rank = 33 },
+            new CosmeticDef { Id = "card-void", Name = "Void Rift card", Kind = CosmeticKind.CardBackground, Rank = 38 },
+            new CosmeticDef { Id = "card-foil", Name = "Gilded Foil card", Kind = CosmeticKind.CardBackground, Rank = 43 },
+            new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 54 },
+            new CosmeticDef { Id = "card-radar", Name = "Radar Sweep card", Kind = CosmeticKind.CardBackground, Rank = 57 },
+            new CosmeticDef { Id = "card-spiral", Name = "Bullet Spiral card", Kind = CosmeticKind.CardBackground, Rank = 59 },
+            new CosmeticDef { Id = "card-matrix", Name = "Phosphor Rain card", Kind = CosmeticKind.CardBackground, Rank = 61 },
+            new CosmeticDef { Id = "card-lava", Name = "Lava Veins card", Kind = CosmeticKind.CardBackground, Rank = 63 },
+            new CosmeticDef { Id = "card-sun", Name = "Synthwave Sun card", Kind = CosmeticKind.CardBackground, Rank = 65 },
+            new CosmeticDef { Id = "card-snow", Name = "Snowfall card", Kind = CosmeticKind.CardBackground, Rank = 67 },
+            new CosmeticDef { Id = "card-topo", Name = "Contour Map card", Kind = CosmeticKind.CardBackground, Rank = 69 },
+            new CosmeticDef { Id = "card-hex", Name = "Honeycomb Pulse card", Kind = CosmeticKind.CardBackground, Rank = 71 },
+            new CosmeticDef { Id = "emote-wave", Name = "Wave emote", Kind = CosmeticKind.Emote, Rank = 2 },
+            new CosmeticDef { Id = "emote-thumbs", Name = "Thumbs up emote", Kind = CosmeticKind.Emote, Rank = 3 },
+            new CosmeticDef { Id = "emote-gg", Name = "GG emote", Kind = CosmeticKind.Emote, Rank = 4 },
+            new CosmeticDef { Id = "emote-cheer", Name = "Cheer emote", Kind = CosmeticKind.Emote, Rank = 8 },
+            new CosmeticDef { Id = "emote-heart", Name = "Heart emote", Kind = CosmeticKind.Emote, Rank = 11 },
+            new CosmeticDef { Id = "emote-laugh", Name = "Laugh emote", Kind = CosmeticKind.Emote, Rank = 13 },
+            new CosmeticDef { Id = "emote-question", Name = "Question emote", Kind = CosmeticKind.Emote, Rank = 16 },
+            new CosmeticDef { Id = "emote-sleep", Name = "Sleep emote", Kind = CosmeticKind.Emote, Rank = 18 },
+            new CosmeticDef { Id = "emote-dance", Name = "Dance emote", Kind = CosmeticKind.Emote, Rank = 22 },
+            new CosmeticDef { Id = "emote-spin", Name = "Spin emote", Kind = CosmeticKind.Emote, Rank = 26 },
+            new CosmeticDef { Id = "emote-salute", Name = "Salute emote", Kind = CosmeticKind.Emote, Rank = 32 },
+            new CosmeticDef { Id = "emote-fireworks", Name = "Fireworks emote", Kind = CosmeticKind.Emote, Rank = 42 },
             new CosmeticDef { Id = "emote-steam", Name = "Steam emote", Kind = CosmeticKind.Emote, Rank = 52 },
-            new CosmeticDef { Id = "name-outline", Name = "Steel Outline name", Kind = CosmeticKind.NameEffect, Rank = 4 },
-            new CosmeticDef { Id = "name-frost", Name = "Frost name", Kind = CosmeticKind.NameEffect, Rank = 11 },
-            new CosmeticDef { Id = "name-ember", Name = "Ember name", Kind = CosmeticKind.NameEffect, Rank = 13 },
-            new CosmeticDef { Id = "name-neon", Name = "Neon name", Kind = CosmeticKind.NameEffect, Rank = 18 },
-            new CosmeticDef { Id = "name-wave", Name = "Wave name", Kind = CosmeticKind.NameEffect, Rank = 22 },
-            new CosmeticDef { Id = "name-shimmer", Name = "Shimmer name", Kind = CosmeticKind.NameEffect, Rank = 27 },
-            new CosmeticDef { Id = "name-glitch", Name = "Glitch name", Kind = CosmeticKind.NameEffect, Rank = 33 },
-            new CosmeticDef { Id = "name-glitchy", Name = "Glitchy name", Kind = CosmeticKind.NameEffect, Rank = 36 },
-            new CosmeticDef { Id = "name-fire", Name = "Fire name", Kind = CosmeticKind.NameEffect, Rank = 38 },
-            new CosmeticDef { Id = "name-gold", Name = "Gold Foil name", Kind = CosmeticKind.NameEffect, Rank = 44 },
-            new CosmeticDef { Id = "name-void", Name = "Void name", Kind = CosmeticKind.NameEffect, Rank = 48 },
-            new CosmeticDef { Id = "name-rainbow", Name = "Rainbow name", Kind = CosmeticKind.NameEffect, Rank = 56 },
-            new CosmeticDef { Id = "aim-dotted", Name = "Dotted Tracer aim line", Kind = CosmeticKind.AimLine, Rank = 5 },
-            new CosmeticDef { Id = "aim-chevron", Name = "Chevron Flow aim line", Kind = CosmeticKind.AimLine, Rank = 11 },
-            new CosmeticDef { Id = "aim-ruler", Name = "Ruler aim line", Kind = CosmeticKind.AimLine, Rank = 14 },
-            new CosmeticDef { Id = "aim-ember", Name = "Ember Wisp aim line", Kind = CosmeticKind.AimLine, Rank = 17 },
-            new CosmeticDef { Id = "aim-frost", Name = "Frost Shard aim line", Kind = CosmeticKind.AimLine, Rank = 21 },
-            new CosmeticDef { Id = "aim-storm", Name = "Storm Arc aim line", Kind = CosmeticKind.AimLine, Rank = 26 },
-            new CosmeticDef { Id = "aim-pixel", Name = "Pixel Beam aim line", Kind = CosmeticKind.AimLine, Rank = 29 },
-            new CosmeticDef { Id = "aim-helix", Name = "Helix aim line", Kind = CosmeticKind.AimLine, Rank = 34 },
-            new CosmeticDef { Id = "aim-prism", Name = "Prism aim line", Kind = CosmeticKind.AimLine, Rank = 46 },
-            new CosmeticDef { Id = "cursor-fine", Name = "Fine Cross cursor", Kind = CosmeticKind.Cursor, Rank = 3 },
-            new CosmeticDef { Id = "cursor-corner", Name = "Corner Sight cursor", Kind = CosmeticKind.Cursor, Rank = 4 },
-            new CosmeticDef { Id = "cursor-ember", Name = "Ember Ring cursor", Kind = CosmeticKind.Cursor, Rank = 11 },
-            new CosmeticDef { Id = "cursor-frost", Name = "Frost Snowflake cursor", Kind = CosmeticKind.Cursor, Rank = 15 },
-            new CosmeticDef { Id = "cursor-circuit", Name = "Circuit Sight cursor", Kind = CosmeticKind.Cursor, Rank = 17 },
-            new CosmeticDef { Id = "cursor-storm", Name = "Storm Arc cursor", Kind = CosmeticKind.Cursor, Rank = 21 },
-            new CosmeticDef { Id = "cursor-void", Name = "Void Eye cursor", Kind = CosmeticKind.Cursor, Rank = 26 },
-            new CosmeticDef { Id = "cursor-gold", Name = "Gold Diamond cursor", Kind = CosmeticKind.Cursor, Rank = 31 },
-            new CosmeticDef { Id = "cursor-prism", Name = "Prism Ring cursor", Kind = CosmeticKind.Cursor, Rank = 38 },
-            new CosmeticDef { Id = "cursor-cycle", Name = "Light Cycle cursor", Kind = CosmeticKind.Cursor, Rank = 46 },
+            new CosmeticDef { Id = "name-outline", Name = "Steel Outline name", Kind = CosmeticKind.NameEffect, Rank = 5 },
+            new CosmeticDef { Id = "name-frost", Name = "Frost name", Kind = CosmeticKind.NameEffect, Rank = 12 },
+            new CosmeticDef { Id = "name-ember", Name = "Ember name", Kind = CosmeticKind.NameEffect, Rank = 14 },
+            new CosmeticDef { Id = "name-neon", Name = "Neon name", Kind = CosmeticKind.NameEffect, Rank = 19 },
+            new CosmeticDef { Id = "name-wave", Name = "Wave name", Kind = CosmeticKind.NameEffect, Rank = 23 },
+            new CosmeticDef { Id = "name-shimmer", Name = "Shimmer name", Kind = CosmeticKind.NameEffect, Rank = 28 },
+            new CosmeticDef { Id = "name-glitch", Name = "Glitch name", Kind = CosmeticKind.NameEffect, Rank = 34 },
+            new CosmeticDef { Id = "name-glitchy", Name = "Glitchy name", Kind = CosmeticKind.NameEffect, Rank = 37 },
+            new CosmeticDef { Id = "name-fire", Name = "Fire name", Kind = CosmeticKind.NameEffect, Rank = 39 },
+            new CosmeticDef { Id = "name-gold", Name = "Gold Foil name", Kind = CosmeticKind.NameEffect, Rank = 45 },
+            new CosmeticDef { Id = "name-void", Name = "Void name", Kind = CosmeticKind.NameEffect, Rank = 49 },
+            new CosmeticDef { Id = "name-rainbow", Name = "Rainbow name", Kind = CosmeticKind.NameEffect, Rank = 55 },
+            new CosmeticDef { Id = "name-chrome", Name = "Chrome name", Kind = CosmeticKind.NameEffect, Rank = 72 },
+            new CosmeticDef { Id = "name-toxic", Name = "Toxic Drip name", Kind = CosmeticKind.NameEffect, Rank = 73 },
+            new CosmeticDef { Id = "name-holo", Name = "Hologram name", Kind = CosmeticKind.NameEffect, Rank = 74 },
+            new CosmeticDef { Id = "name-nebula", Name = "Nebula name", Kind = CosmeticKind.NameEffect, Rank = 75 },
+            new CosmeticDef { Id = "name-pixel", Name = "Pixel name", Kind = CosmeticKind.NameEffect, Rank = 76 },
+            new CosmeticDef { Id = "name-terminal", Name = "Terminal name", Kind = CosmeticKind.NameEffect, Rank = 77 },
+            new CosmeticDef { Id = "name-electric", Name = "Electric name", Kind = CosmeticKind.NameEffect, Rank = 78 },
+            new CosmeticDef { Id = "name-petals", Name = "Petals name", Kind = CosmeticKind.NameEffect, Rank = 79 },
+            new CosmeticDef { Id = "aim-dotted", Name = "Dotted Tracer aim line", Kind = CosmeticKind.AimLine, Rank = 6 },
+            new CosmeticDef { Id = "aim-chevron", Name = "Chevron Flow aim line", Kind = CosmeticKind.AimLine, Rank = 12 },
+            new CosmeticDef { Id = "aim-ruler", Name = "Ruler aim line", Kind = CosmeticKind.AimLine, Rank = 15 },
+            new CosmeticDef { Id = "aim-ember", Name = "Ember Wisp aim line", Kind = CosmeticKind.AimLine, Rank = 18 },
+            new CosmeticDef { Id = "aim-frost", Name = "Frost Shard aim line", Kind = CosmeticKind.AimLine, Rank = 22 },
+            new CosmeticDef { Id = "aim-storm", Name = "Storm Arc aim line", Kind = CosmeticKind.AimLine, Rank = 27 },
+            new CosmeticDef { Id = "aim-pixel", Name = "Pixel Beam aim line", Kind = CosmeticKind.AimLine, Rank = 30 },
+            new CosmeticDef { Id = "aim-helix", Name = "Helix aim line", Kind = CosmeticKind.AimLine, Rank = 35 },
+            new CosmeticDef { Id = "aim-prism", Name = "Prism aim line", Kind = CosmeticKind.AimLine, Rank = 47 },
+            new CosmeticDef { Id = "cursor-fine", Name = "Fine Cross cursor", Kind = CosmeticKind.Cursor, Rank = 4 },
+            new CosmeticDef { Id = "cursor-corner", Name = "Corner Sight cursor", Kind = CosmeticKind.Cursor, Rank = 5 },
+            new CosmeticDef { Id = "cursor-ember", Name = "Ember Ring cursor", Kind = CosmeticKind.Cursor, Rank = 12 },
+            new CosmeticDef { Id = "cursor-frost", Name = "Frost Snowflake cursor", Kind = CosmeticKind.Cursor, Rank = 16 },
+            new CosmeticDef { Id = "cursor-circuit", Name = "Circuit Sight cursor", Kind = CosmeticKind.Cursor, Rank = 18 },
+            new CosmeticDef { Id = "cursor-storm", Name = "Storm Arc cursor", Kind = CosmeticKind.Cursor, Rank = 22 },
+            new CosmeticDef { Id = "cursor-void", Name = "Void Eye cursor", Kind = CosmeticKind.Cursor, Rank = 27 },
+            new CosmeticDef { Id = "cursor-gold", Name = "Gold Diamond cursor", Kind = CosmeticKind.Cursor, Rank = 32 },
+            new CosmeticDef { Id = "cursor-prism", Name = "Prism Ring cursor", Kind = CosmeticKind.Cursor, Rank = 39 },
+            new CosmeticDef { Id = "cursor-cycle", Name = "Light Cycle cursor", Kind = CosmeticKind.Cursor, Rank = 47 },
+            new CosmeticDef { Id = "cursor-radar", Name = "Radar Sweep cursor", Kind = CosmeticKind.Cursor, Rank = 80 },
+            new CosmeticDef { Id = "cursor-sniper", Name = "Sniper Scope cursor", Kind = CosmeticKind.Cursor, Rank = 81 },
+            new CosmeticDef { Id = "cursor-chevron", Name = "Chevron Snap cursor", Kind = CosmeticKind.Cursor, Rank = 82 },
+            new CosmeticDef { Id = "cursor-sonar", Name = "Sonar Ping cursor", Kind = CosmeticKind.Cursor, Rank = 83 },
+            new CosmeticDef { Id = "cursor-pixel", Name = "Pixel Plus cursor", Kind = CosmeticKind.Cursor, Rank = 84 },
+            new CosmeticDef { Id = "cursor-petal", Name = "Petal Ring cursor", Kind = CosmeticKind.Cursor, Rank = 85 },
+            new CosmeticDef { Id = "cursor-laser", Name = "Laser Dot cursor", Kind = CosmeticKind.Cursor, Rank = 86 },
+            new CosmeticDef { Id = "cursor-lock", Name = "Target Lock cursor", Kind = CosmeticKind.Cursor, Rank = 87 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -265,6 +297,14 @@ namespace Arena
                 case "frame-gold":
                 case "frame-foil": return new Rgba(1f, 0.8f, 0.35f);
                 case "frame-prism": return new Rgba(0.9f, 0.95f, 1f);
+                case "frame-neon": return new Rgba(1f, 0.27f, 0.75f);
+                case "frame-hazard": return new Rgba(0.95f, 0.76f, 0f);
+                case "frame-frost": return new Rgba(0.59f, 0.84f, 1f);
+                case "frame-barbed": return new Rgba(0.63f, 0.67f, 0.72f);
+                case "frame-storm": return new Rgba(0.55f, 0.75f, 1f);
+                case "frame-pixel": return new Rgba(0.3f, 0.79f, 0.94f);
+                case "frame-blood": return new Rgba(0.78f, 0.08f, 0.2f);
+                case "frame-chain": return new Rgba(0.69f, 0.74f, 0.8f);
                 default: return new Rgba(0.72f, 0.78f, 0.9f);  // Steel
             }
         }
