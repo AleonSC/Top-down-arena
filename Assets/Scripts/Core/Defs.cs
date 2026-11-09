@@ -95,7 +95,7 @@ namespace Arena
         public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
 
         // The main attack's numbers, in one place: the code that fires it, WeaponRange (the aim line) and the bots
-        // all read these. Secondary parts (fragments, sword waves, a Katana's lunge and Alt strike, heals) stay with the weapon's code.
+        // all read these. Secondary parts (fragments, sword waves, a Katana's Kage Chain and Zanshin, heals) stay with the weapon's code.
         public float Speed, Life;      // a shot's speed (px/s) and lifetime (s): it reaches Speed × Life
         public float Damage;           // the main shot's or swing's damage (before upgrades)
         public float Reach;            // a swing's reach (px), or a beam's length
@@ -396,7 +396,8 @@ namespace Arena
             FireflyShot = 55,  // the Sprite Staff's firefly: seeds what it hits, then hops to the nearest enemy that isn't seeded (KitWeapons.cs)
             MedkitShot = 56,   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
             TreantSeed = 57,   // a tiny seed the Treant Rod's Treant flicks at enemies, drawn as a thorn dart (KitWeapons.cs, Game/SeedLook.cs)
-            SteelShard = 58;   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
+            SteelShard = 58,   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
+            ParryNeedle = 59;  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
 
@@ -427,6 +428,7 @@ namespace Arena
                 case FireflyShot: return 5f;
                 case TreantSeed: return 2.5f;
                 case SteelShard: return 4f;
+                case ParryNeedle: return 4f;
                 case BoneShot: return 3.5f;
                 case RockShot: return 6f;
                 case MinionShot: return 3.5f;
@@ -513,6 +515,7 @@ namespace Arena
                 case FireflyShot: return new Rgba(0.89f, 0.97f, 0.56f);
                 case TreantSeed: return new Rgba(0.74f, 0.94f, 0.54f);
                 case SteelShard: return new Rgba(1f, 0.59f, 0.24f);
+                case ParryNeedle: return new Rgba(1f, 1f, 1f);
                 case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
                 case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);

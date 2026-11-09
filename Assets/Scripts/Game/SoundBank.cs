@@ -253,6 +253,7 @@ namespace Arena
             BuildLight();  // LightSoundBank.cs
             BuildCenser();  // CenserSoundBank.cs
             BuildLance();  // LanceSoundBank.cs
+            BuildParry();  // ParrySoundBank.cs
             BuildTreant();  // TreantSoundBank.cs
         }
 

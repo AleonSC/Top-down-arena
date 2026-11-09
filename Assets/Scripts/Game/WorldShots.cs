@@ -114,6 +114,11 @@ namespace Arena
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
+            if (b.Kind == Defs.ParryNeedle)
+            {
+                DrawParryNeedle(b);  // ParryLook.cs
+                return;
+            }
             if (DrawWeaponShot(b, t))
                 return;  // its weapon's new look (ShotLooks.cs)
             foreach (var look in KitLooks)  // a class's own shots (KitLook.Shot in ClassLooks.cs: the Ninja's, the Hemomancer's)

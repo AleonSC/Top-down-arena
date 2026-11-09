@@ -563,6 +563,16 @@ static partial class Shot {
     // SWING=<seconds>: your melee weapon's attack that far in (with KNIGHT=, NINJA= or BLOOD=; MeleeLooks.cs draws it
     // with Visual effects on). Built like the game's own effects: Slash with the weapon's half arc (negative: a
     // thrust), the Halberd's whole swing (SWING = seconds after the click, HALBERDUP=1 for the return sweep), Jab boxes for the Lance and the Warhammer.
+    // PERFECTPARRY=<s since the catch>: your shield up and a perfect parry's flash, with its needle flying back (ParryLook.cs).
+    if (Environment.GetEnvironmentVariable("PERFECTPARRY") != null) {
+      float pt = float.Parse(Environment.GetEnvironmentVariable("PERFECTPARRY"), System.Globalization.CultureInfo.InvariantCulture);
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.4f; me.Parrying = true; me.ParryHp = Game.ParryMax(me);
+      V2 hitAt = me.Pos + V2.FromAngle(me.Aim) * (me.Def.BodyR + Game.ParryReach * 0.55f);
+      gm.Effects.Add(new Effect { Kind = FxKind.PerfectParry, Pos = hitAt, Pos2 = new V2(me.Id, me.Aim), Color = me.Def.Color, Radius = Game.ParryArc(me), T = pt, Dur = Game.PerfectFxTime });
+      var needleShot = new Bullet { Id = 999999, Kind = Defs.ParryNeedle, Owner = me.Id, Pos = hitAt + V2.FromAngle(me.Aim) * (Game.NeedleSpeed * pt), Vel = V2.FromAngle(me.Aim) * Game.NeedleSpeed, Radius = 4f, Life0 = 1f, Life = 1f - pt };
+      gm.Bullets[needleShot.Id] = needleShot;
+    }
     if (Environment.GetEnvironmentVariable("SWING") != null) {
       float st = float.Parse(Environment.GetEnvironmentVariable("SWING"), System.Globalization.CultureInfo.InvariantCulture);
       var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
@@ -685,7 +695,19 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.Katana: fx(FxKind.Slash, to, Environment.GetEnvironmentVariable("KATANALUNGE") == "1" ? -0.12f : 1.05f, 0f, 0.16f); break;  // KATANALUNGE=1: the lunge's thrust (else a swipe)
+        case WeaponId.Katana:  // KATANA=hayate|senbon[,flow,kage,zan] the stance and meters (senbon marks the enemies 1-3); KATANAMOVE=dash|swipe|switch|hop
+        {
+          var kp = (Environment.GetEnvironmentVariable("KATANA") ?? "hayate").Split(',');
+          me.KatanaStance = (byte)(kp[0] == "senbon" ? 1 : 0);
+          if (kp.Length > 3) { me.KatanaFlow = byte.Parse(kp[1]); me.KatanaKage = byte.Parse(kp[2]); me.KatanaZan = byte.Parse(kp[3]); }
+          int km = 0; if (me.KatanaStance == 1) foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && km < 3) en.KatanaMarks = (byte)(++km);
+          string mv = Environment.GetEnvironmentVariable("KATANAMOVE") ?? "swipe";
+          if (mv == "dash") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.KatanaDashReach(me), -0.1f, 0f, 0.3f);
+          else if (mv == "switch") gm.Effects.Add(new Effect { Kind = FxKind.KatanaStanceFx, Pos = me.Pos, Pos2 = new V2(me.Id, me.KatanaStance), Color = me.KatanaStance == 0 ? Game.KatanaSteel : Game.KatanaRose, Radius = Game.KatanaSwitchRadius, T = st, Dur = 0.5f });
+          else if (mv == "hop") { V2 prev = me.Pos; int hk = 0; foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss || hk++ >= 3) continue; gm.Effects.Add(new Effect { Kind = FxKind.KatanaHop, Pos = prev, Pos2 = en.Pos, Color = (me.KatanaStance == 1 ? Game.KatanaRose : Game.KatanaSteel).WithAlpha(me.KatanaStance == 1 ? 1f : 0.5f), Radius = me.Id, T = st, Dur = 1.2f }); prev = en.Pos; } }
+          else fx(FxKind.Slash, to, Game.KatanaSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
+          break;
+        }
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)
         {
           int bs = int.Parse(Environment.GetEnvironmentVariable("BOSTEP") ?? "0");

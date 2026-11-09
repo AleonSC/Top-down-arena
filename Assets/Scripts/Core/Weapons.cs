@@ -521,8 +521,8 @@ namespace Arena
                 case WeaponId.FrostLance:  // the icicle, out from you
                 case WeaponId.TreantRod:   // the root lash, out from you
                     return MeleeReach(p, w.Reach + w.Grow * x);
-                case WeaponId.Katana:  // the lunge reaches much further than the swipes (Ninja.cs)
-                    return MeleeReach(p, p.KatanaStep == 2 ? KatanaLungeReach : w.Reach);
+                case WeaponId.Katana:  // Hayate's dash-cut reaches further than Senbon's swipes (Katana.cs)
+                    return p.KatanaStance == 0 ? KatanaDashReach(p) : MeleeReach(p, w.Reach);
                 case WeaponId.BoStaff:  // each step of the chain has its own reach (Ninja.cs)
                     return MeleeReach(p, (p.BoStep == 1 ? BoJabReach : p.BoStep == 2 ? BoSpinReach : w.Reach) + w.Grow * x);
                 case WeaponId.Greatsword:  // the cuts' reach (extra projectiles only add sword waves to the overhead rend)
