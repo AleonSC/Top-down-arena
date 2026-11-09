@@ -51,6 +51,19 @@ The log has no record of **where** enemies were relative to you, so the zoom pro
    your auras behind. A real risk/reward choice.
 4. **A small reward for each cleared room** (a chest, orbs or XP), so going in is worth it and not a chore.
 
+Second round (after the mockup, Nov 2026):
+
+5. **Maps: simple first.** Build **Wings** first, then **Annexes**, then **Cross** later.
+6. **Hallways always.**
+7. **The vault: one wave in ten, holding a mini-boss.** For now that's **The Gatekeeper**, who leaves the Data Gates:
+   the mini-boss duel is no longer a Data Gate challenge, and his duel room's look becomes the vault's. **Timing**: the
+   duel Data Gate stays until the vault is built, then the Gatekeeper moves in the same change (he never drops out of the
+   game in between). The other four Data Gate challenges stay as they are.
+8. **HUD: the minimap.** No room strip.
+9. **Doors lock behind you** while the room's nest lives (the vault's while the Gatekeeper lives).
+10. **Spill squads are fast melee** for now (runners), so they reach the hub as a real threat.
+11. **Layouts stay** in the hub (the boss-cycle layout as today), and rooms and hallways get some small obstacles.
+
 ## The map (first draft; the mockup decides)
 
 - **The hub is today's arena**, 1600×900, at the same world coordinates (0..1600, 0..900). Everything tuned for the hub
@@ -78,8 +91,12 @@ The log has no record of **where** enemies were relative to you, so the zoom pro
 - **Spills**: a room with several doors to the hub or a hallway picks one at random for each spill (never into the next
   room). The minimap's spill ring and the amber warning sit on that door. Hallway spills take longer to arrive but come
   from where you aren't looking.
-- **The vault**: a small room off a hallway with **two elite guards** and a **rare-or-better chest**. **Optional**: the
-  wave ends without it, and the rooms keep spilling while you're inside. Rooms behind rooms otherwise stay out: each
+- **The vault** (decision 7): a small room off a hallway on **one regular wave in each 10-wave stretch** (picked at random,
+  never a boss wave), holding a **mini-boss**: The Gatekeeper for now, with his duel's attacks, health share
+  (`Challenges.MiniBossShare` of `BossEquivalentHp`), boss bar and the duel room's look (ground tint and colour). Beat him
+  and an **altar gives everyone a prize pick** (rare or better, sometimes a legendary), as the duel does now. **Optional**:
+  the wave ends without it, and the rooms keep spilling while you're inside; its door locks behind you until he falls.
+  More mini-bosses can join the vault later. Rooms behind rooms otherwise stay out: each
   layer adds backtracking, and a far room's spills take so long to reach the hub that the pressure fades.
 - **Routing**: steering becomes a path over doors (the mockup does a shortest path over door crossings), not just
   "head for the one door". Enemies and bots both use it.
@@ -90,8 +107,11 @@ The log has no record of **where** enemies were relative to you, so the zoom pro
    group of enemies. Rooms are dim on the minimap until someone looks inside.
 2. **In a room**: the nest keeps its room topped up to a **room cap** (about 5-8 alive, scaled by wave and party) from
    the wave's enemy mix. Room enemies stay in their room until they spill, unless they've seen a player.
-3. **Spill**: every `SpillTime` (about 20 s, shorter later in the run) an uncleared room sends a squad of 3-5 through
-   its door into the hub. Spilled enemies hunt the nearest player. A warning flashes over the door 2 s before.
+   **Doors lock behind you** (decision 9): once a player is inside and the nest lives, that player can't leave until the
+   nest dies. Doors lock one way: teammates can still come in (to help or revive), and spills still go out.
+3. **Spill**: every `SpillTime` (about 20 s, shorter later in the run) an uncleared room sends a squad of 3-5 **fast
+   melee runners** (decision 10) through one of its doors into the hub or a hallway. They hunt the nearest player. A
+   warning flashes over that door 2 s before.
 4. **Clear**: kill the nest and the room's enemies and the room is cleared: the door light turns teal and the reward
    drops (a chest, or orbs and XP).
 5. **Wave end**: every room cleared and no enemies left in the hub. The wave's total enemy count still comes from
@@ -146,24 +166,21 @@ Each client already draws its own screen, so every player's camera follows thems
    nearest enemy, -1 for none), `within300`, `inView2x` (enemies inside the 800×450 view the 2x zoom shows, held inside
    the arena like the camera) and `shotsInView2x`. `Tools/SessionReport/report.py` prints them as "Threats near you" per
    wave. Record a few runs on the current game for the before picture.
-1. **World and camera**: a world bigger than the hub on regular waves, a following camera, wrapping off, empty walled
-   rooms with doors, edge arrows. Check the zoom feels right in Unity.
-2. **Nests, room spawning, spill, clear reward.** The hub goes quiet except for spills. Minimap.
+1. **World and camera, Wings only**: a world bigger than the hub on regular waves, a following camera, wrapping off,
+   the two Wings rooms and both hallways (walled, with doors and small obstacles), the hub's layout kept, edge arrows,
+   path steering over doors. Check the zoom feels right in Unity.
+2. **Nests, room spawning, fast-melee spills, doors that lock behind you, clear reward, the minimap.** The hub goes quiet
+   except for spills. Then **the vault**: one wave in ten, the Gatekeeper moved out of the Data Gates into it.
 3. **Tuning**: room caps, spill timing, how many rooms a wave opens. Then raise enemy damage and lower player health
    until a regular wave costs real health again. A `rooms` SimTest suite to check the numbers.
 4. **The power-stacking nerf pass** (its own doc): kill speed vs enemy health past wave 20, full-heal sustain, parry.
-5. **Polish**: paths in rooms, room plans with character, bots.
+5. **More maps** (Annexes, then Cross), more vault mini-bosses. **Polish**: paths in rooms, room plans with character, bots.
 
 ## Open questions
 
-- Which map: Wings, Cross, Annexes, or a mix picked per boss cycle like layouts?
-- Hallways on every wave, or only on some maps?
-- The vault: every wave, once per boss cycle, or a chance? What's in it besides the chest?
-- HUD: minimap, room strip, or both?
-
+- Doors lock one way (teammates can come in): confirm.
+- Once Annexes and Cross are built: how they're picked (per boss cycle, by wave?) and how many rooms a wave opens.
+- Which mini-bosses join the vault after the Gatekeeper.
 - How many room plans, and do rooms have their own types (an elite room, a hazard room, a loot room)?
-- Does the hub keep the cycle's layout walls, or do rooms replace layouts on regular waves?
-- Should a room's door close behind you while its nest is alive (a lock-in), or stay open?
-- Spill squads: the room's mix, or always fast melee so they reach the hub as a real threat?
 - What does a cleared room give exactly: a chest every time, or a chance?
 - Endless mode and Boss Hunts: rooms too, or the hub only?

@@ -376,14 +376,15 @@ So friends can play without Tailscale or port forwarding.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
 
 ## Bigger features (design docs ready)
-- [ ] **Rooms: a hub with side rooms on every regular wave (design only, nothing built).** [`Rooms.md`](Rooms.md). Fewer
-      threats near you at once so enemy damage can go up and dodging matters again. Decided: rooms on every regular wave
-      (boss waves stay in the hub), nests that spill into the hub, players can split up, a small reward for each cleared
-      room. **Mockup ready:** [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): pick a
-      map (Wings / Cross / Annexes), hallways on or off (wide galleries that loop the rooms, plus an optional vault with
-      two elite guards and a rare+ chest), a HUD (minimap / room strip / both), and answer its open questions. **Phase 0 built**
-      (run-log format 3): samples record each player's nearest enemy, enemies within 300 px and enemies and shots in a
-      2x-zoom view; `Tools/SessionReport/report.py` prints "Threats near you". Record a run or two now for the before picture.
+- [ ] **Rooms: a hub with side rooms on every regular wave (design and mockup; phase 0 built).** [`Rooms.md`](Rooms.md),
+      mockup [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj). Decided: rooms
+      every regular wave (boss waves in the hub), nests that spill **fast melee** runners, split up freely, a small reward
+      per room; **Wings first** (Annexes, then Cross later); **hallways always**; the **minimap**; doors **lock behind you**
+      while the nest lives; layouts stay in the hub plus small obstacles; a **vault one wave in ten** holding **the
+      Gatekeeper** (his duel leaves the Data Gates when the vault is built, not before). Phase 0 (run-log format 3):
+      samples record each player's nearest enemy and the threats in a 2x-zoom view; `report.py` prints "Threats near
+      you". **Next: phase 1** (Wings world, following camera, hallways, doors). Record a run or two first for the before
+      picture.
 - [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs

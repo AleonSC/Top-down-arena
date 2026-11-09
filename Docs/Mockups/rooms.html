@@ -56,28 +56,19 @@ header p{margin:0;color:var(--muted);max-width:72ch}
 <div class="wrap">
   <header>
     <h1>Rooms: a hub with side rooms</h1>
-    <p>Mockup for <code>Docs/Rooms.md</code>. Today's 1600&times;900 arena stays as the hub; rooms join it through doors. Each room has a nest that keeps it stocked, and an uncleared room sends a squad out every so often. With hallways on, wide galleries join the rooms into a loop round the hub, and an optional vault hangs off one of them. Below is a live sim with two bots: your screen first, then the whole world from above. Nothing here is built yet.</p>
+    <p>Mockup for <code>Docs/Rooms.md</code>. Today's 1600&times;900 arena stays as the hub; rooms join it through doors. Each room has a nest that keeps it stocked, and an uncleared room sends a squad out every so often. Wide hallways join the rooms into a loop round the hub, and one wave in ten has a vault off a hallway with a mini-boss in it. Below is a live sim with two bots: your screen first, then the whole world from above. Nothing here is built yet.</p>
   </header>
 
   <section>
-    <h2>1 &middot; The map</h2>
+    <h2>1 &middot; The map (built in this order: simple first)</h2>
     <div class="cards" id="cards"></div>
   </section>
 
   <section class="bar" aria-label="Controls">
-    <div class="grp"><span>Hallways</span>
-      <button class="key" data-halls="on" aria-pressed="true">On + vault</button>
-      <button class="key" data-halls="off" aria-pressed="false">Off</button>
-    </div>
     <div class="grp"><span>Zoom</span>
       <button class="key" data-zoom="1" aria-pressed="true">1x</button>
       <button class="key" data-zoom="1.5" aria-pressed="false">1.5x</button>
       <button class="key" data-zoom="2" aria-pressed="false">2x</button>
-    </div>
-    <div class="grp"><span>HUD</span>
-      <button class="key" data-hud="map" aria-pressed="true">Minimap</button>
-      <button class="key" data-hud="strip" aria-pressed="false">Room strip</button>
-      <button class="key" data-hud="both" aria-pressed="false">Both</button>
     </div>
     <div class="grp"><span>Party</span>
       <button class="key" data-party="split" aria-pressed="true">Split up</button>
@@ -92,7 +83,7 @@ header p{margin:0;color:var(--muted);max-width:72ch}
   <section>
     <h2>2 &middot; Your screen (P1, cyan)</h2>
     <div class="view"><canvas id="screen" width="1600" height="900" aria-label="The player's screen: the camera follows P1"></canvas><div class="crt"></div></div>
-    <p class="cap">The camera follows you and stays inside the part of the world you're in, so at 1x in the hub it shows the whole hub exactly like today. Step through a door and it slides to the room or hallway. Red and orange arrows: enemies just off-screen. Amber arrows: a door about to spill. Violet: your teammate.</p>
+    <p class="cap">The camera follows you and stays inside the part of the world you're in, so at 1x in the hub it shows the whole hub exactly like today. Step through a door and it slides to the room or hallway. A room's doors lock behind you while its nest lives (shown as a solid bar). Red and orange arrows: enemies just off-screen. Amber arrows: a door about to spill. Violet: your teammate.</p>
   </section>
 
   <section class="below">
@@ -117,9 +108,9 @@ header p{margin:0;color:var(--muted);max-width:72ch}
         <div><i style="background:var(--p1)"></i>P1 (you)</div>
         <div><i style="background:var(--p2)"></i>P2</div>
         <div><i style="background:#ff5a6e"></i>Room enemy</div>
-        <div><i style="background:#ff8a3d"></i>Spilled enemy</div>
+        <div><i style="background:#ff8a3d"></i>Spilled runner (fast melee)</div>
         <div><i style="background:#b8e65c"></i>Nest</div>
-        <div><i style="background:var(--gold)"></i>Vault, guard, chest</div>
+        <div><i style="background:#ff9e4d"></i>The Gatekeeper (vault)</div>
         <div><i style="background:var(--red)"></i>Door: uncleared</div>
         <div><i style="background:var(--amber)"></i>Door: spill soon</div>
         <div><i style="background:var(--teal)"></i>Door: cleared</div>
@@ -129,26 +120,23 @@ header p{margin:0;color:var(--muted);max-width:72ch}
 
   <section class="notes">
     <div class="box">
-      <h2>What to look at</h2>
+      <h2>Decided (owner, Nov 2026)</h2>
       <ul>
-        <li><b>Hallways on vs off.</b> Off, every room is a dead end with one door, and the safe play is to stand in the hub and shoot through the doorway. On, the rooms join into a loop: enemies can come at you two ways, and you can run the loop to kite.</li>
-        <li><b>Spills.</b> A room with two doors picks one at random for each spill. Hallway spills take longer to reach the hub, but they come from where you aren't looking.</li>
-        <li><b>The vault</b> (gold). Off a hallway, with two elite guards and a rare-or-better chest. Optional: the wave ends without it, and the rooms keep spilling while you're in there.</li>
-        <li><b>Hallway width.</b> 260 px, wide enough to dodge a volley. Narrow corridors would turn back into face-tanking.</li>
-        <li><b>Zoom 2x.</b> In a room or hallway, enemies are in front of you instead of just off-screen.</li>
-        <li><b>The HUD.</b> Minimap (corner), a room strip (top middle, with spill timers), or both.</li>
+        <li><b>Maps:</b> build the simple ones first (Wings), the complex ones later (Annexes, then Cross).</li>
+        <li><b>Hallways always.</b> Wide galleries (260 px) loop the rooms round the hub, with a few small obstacles.</li>
+        <li><b>The vault:</b> one wave in ten. It holds a mini-boss: for now <b>The Gatekeeper</b>, moved out of the Data Gates; his duel room's look becomes the vault's. Its door locks behind you until he falls.</li>
+        <li><b>HUD:</b> the minimap.</li>
+        <li><b>Doors lock behind you</b> while the room's nest lives: you can go in, not out. Spills still leave.</li>
+        <li><b>Spill squads are fast melee</b> (runners), so they reach the hub as a real threat.</li>
+        <li><b>Layouts stay</b> in the hub, and rooms and hallways get some small obstacles.</li>
       </ul>
     </div>
     <div class="box">
-      <h2>Open questions</h2>
+      <h2>Still open</h2>
       <ol>
-        <li>Which map: Wings, Cross, Annexes, or a mix picked per boss cycle like layouts?</li>
-        <li>Hallways on every wave, or only on some maps?</li>
-        <li>The vault: every wave, once per boss cycle, or a chance? What's in it?</li>
-        <li>HUD: minimap, room strip, or both?</li>
-        <li>Should a room's doors lock behind you while its nest is alive? <em>(The sim keeps doors open.)</em></li>
-        <li>Spill squads: the room's own mix, or always fast melee so they reach the hub as a real threat?</li>
-        <li>Do the hub's layout walls stay, or do rooms replace layouts on regular waves?</li>
+        <li>Can a teammate still come <em>in</em> to a locked room (to help or revive)? <em>(The doc assumes yes: doors lock one way.)</em></li>
+        <li>What does the vault give besides the Gatekeeper's altar pick? Other mini-bosses later: which ones?</li>
+        <li>How many rooms a wave opens on the bigger maps, and from which wave the bigger maps come in.</li>
       </ol>
     </div>
   </section>
@@ -161,31 +149,34 @@ const DOOR = 160, WALL = 24, HALL = 260;
 // Each map: rooms (with their door to the hub), and with hallways on: halls, extra doors and a vault.
 // A door: [x, y, v, a, b]: v = on a vertical wall (the gap runs along y); a and b = the ids of the two areas it joins.
 const MAPS = {
-  wings: { name: 'Wings', blurb: 'Two big rooms, left and right. Hallways: a gallery above and below the hub.',
+  wings: { name: 'Wings', blurb: 'First to build. Two big rooms, left and right. Hallways: a gallery above and below the hub.',
     rooms: [['W', 'West', -900, 0, 900, 900], ['E', 'East', 1600, 0, 900, 900]],
     hubDoors: [[0, 450, true, 'H', 'W'], [1600, 450, true, 'H', 'E']],
     halls: [['TH', 'Top hall', -900, -HALL, 3400, HALL], ['BH', 'Bottom hall', -900, 900, 3400, HALL]],
     hallDoors: [[-450, 0, false, 'W', 'TH'], [2050, 0, false, 'E', 'TH'], [-450, 900, false, 'W', 'BH'], [2050, 900, false, 'E', 'BH'], [800, -HALL, false, 'TH', 'V']],
     vault: ['V', 'Vault', 650, -HALL - 300, 300, 300],
+    hallCover: [['b', 200, -130, 60, 60], ['b', 1400, -130, 60, 60], ['p', 200, 1030, 26], ['p', 1400, 1030, 26]],
     cover: [['p', -450, 250, 50], ['p', -450, 650, 50], ['b', -700, 450, 30, 260], ['p', 2050, 250, 50], ['p', 2050, 650, 50], ['b', 2300, 450, 30, 260]] },
-  cross: { name: 'Cross', blurb: 'Four rooms round the hub. Hallways: corner galleries join them into a ring.',
+  annex: { name: 'Annexes', blurb: 'Second. Four smaller rooms, two each side. Hallways: side doors between them, a gallery across the top.',
+    rooms: [['NW', 'NW', -720, 0, 720, 450], ['SW', 'SW', -720, 450, 720, 450], ['NE', 'NE', 1600, 0, 720, 450], ['SE', 'SE', 1600, 450, 720, 450]],
+    hubDoors: [[0, 225, true, 'H', 'NW'], [0, 675, true, 'H', 'SW'], [1600, 225, true, 'H', 'NE'], [1600, 675, true, 'H', 'SE']],
+    halls: [['TH', 'Top hall', -720, -HALL, 3040, HALL]],
+    hallDoors: [[-360, 450, false, 'NW', 'SW'], [1960, 450, false, 'NE', 'SE'], [-360, 0, false, 'NW', 'TH'], [1960, 0, false, 'NE', 'TH'], [800, -HALL, false, 'TH', 'V']],
+    vault: ['V', 'Vault', 650, -HALL - 300, 300, 300],
+    hallCover: [['b', 300, -130, 60, 60], ['b', 1300, -130, 60, 60]],
+    cover: [['p', -380, 225, 45], ['p', -380, 675, 45], ['p', 1980, 225, 45], ['p', 1980, 675, 45]] },
+  cross: { name: 'Cross', blurb: 'Last. Four rooms round the hub. Hallways: corner galleries join them into a ring.',
     rooms: [['W', 'West', -800, 0, 800, 900], ['E', 'East', 1600, 0, 800, 900], ['N', 'North', 300, -560, 1000, 560], ['S', 'South', 300, 900, 1000, 560]],
     hubDoors: [[0, 450, true, 'H', 'W'], [1600, 450, true, 'H', 'E'], [800, 0, false, 'H', 'N'], [800, 900, false, 'H', 'S']],
     halls: [['NWH', 'NW hall', -800, -HALL, 1100, HALL], ['NEH', 'NE hall', 1300, -HALL, 1100, HALL], ['SWH', 'SW hall', -800, 900, 1100, HALL], ['SEH', 'SE hall', 1300, 900, 1100, HALL]],
     hallDoors: [[-400, 0, false, 'W', 'NWH'], [300, -130, true, 'NWH', 'N'], [2000, 0, false, 'E', 'NEH'], [1300, -130, true, 'NEH', 'N'],
       [-400, 900, false, 'W', 'SWH'], [300, 1030, true, 'SWH', 'S'], [2000, 900, false, 'E', 'SEH'], [1300, 1030, true, 'SEH', 'S'], [-500, -HALL, false, 'NWH', 'V']],
     vault: ['V', 'Vault', -700, -HALL - 300, 400, 300],
+    hallCover: [['b', -150, -130, 60, 60], ['b', 1750, -130, 60, 60], ['p', -150, 1030, 26], ['p', 1750, 1030, 26]],
     cover: [['p', -400, 300, 45], ['p', -400, 600, 45], ['p', 2000, 300, 45], ['p', 2000, 600, 45], ['b', 550, -330, 200, 30], ['b', 1050, -330, 200, 30], ['b', 550, 1230, 200, 30], ['b', 1050, 1230, 200, 30]] },
-  annex: { name: 'Annexes', blurb: 'Four smaller rooms, two each side. Hallways: side doors between them, a gallery across the top.',
-    rooms: [['NW', 'NW', -720, 0, 720, 450], ['SW', 'SW', -720, 450, 720, 450], ['NE', 'NE', 1600, 0, 720, 450], ['SE', 'SE', 1600, 450, 720, 450]],
-    hubDoors: [[0, 225, true, 'H', 'NW'], [0, 675, true, 'H', 'SW'], [1600, 225, true, 'H', 'NE'], [1600, 675, true, 'H', 'SE']],
-    halls: [['TH', 'Top hall', -720, -HALL, 3040, HALL]],
-    hallDoors: [[-360, 450, false, 'NW', 'SW'], [1960, 450, false, 'NE', 'SE'], [-360, 0, false, 'NW', 'TH'], [1960, 0, false, 'NE', 'TH'], [800, -HALL, false, 'TH', 'V']],
-    vault: ['V', 'Vault', 650, -HALL - 300, 300, 300],
-    cover: [['p', -380, 225, 45], ['p', -380, 675, 45], ['p', 1980, 225, 45], ['p', 1980, 675, 45]] },
 };
 const HUB_COVER = [['p', 500, 300, 34], ['p', 1100, 300, 34], ['p', 500, 600, 34], ['p', 1100, 600, 34]];
-const C = { wall: '#66a3ff', grid: 'rgba(80,120,220,0.10)', enemy: '#ff5a6e', spill: '#ff8a3d', nest: '#b8e65c', shot: '#ff7aa8', gold: '#ffd166',
+const C = { gate: '#ff9e4d', wall: '#66a3ff', grid: 'rgba(80,120,220,0.10)', enemy: '#ff5a6e', spill: '#ff8a3d', nest: '#b8e65c', shot: '#ff7aa8', gold: '#ffd166',
   red: '#ff4d6a', amber: '#ffb347', teal: '#3ee6b4', p1: '#7cf7ff', p2: '#c79bff', text: '#cfe0ff', dim: '#4068b8' };
 const CAP = 5, SPILL = 14, WARN = 2, SPAWN = 2.6, NEST_HP = 12;
 
@@ -202,7 +193,7 @@ function build(key, withHalls) {
   const byId = Object.fromEntries(areas.map(a => [a.id, a]));
   const doors = raw.map(([x, y, v, a, b]) => ({ x, y, v, a: byId[a], b: byId[b] }));
   for (const a of areas) a.doors = doors.filter(d => d.a === a || d.b === a);
-  return { key, name: m.name, areas, doors, hub: areas[0], cover: [...HUB_COVER, ...m.cover] };
+  return { key, name: m.name, areas, doors, hub: areas[0], cover: [...HUB_COVER, ...m.cover, ...(withHalls ? m.hallCover : [])] };
 }
 function bounds(w) {
   let x0 = 0, y0 = 0, x1 = 1600, y1 = 900;
@@ -268,7 +259,7 @@ function newWave(wave) {
   const v = W.areas.find(a => a.kind === 'vault');
   if (v) {
     S.vault = { r: v, cleared: false, nest: { x: v.x + v.w / 2, y: v.y + v.h / 2, alive: false } };
-    for (const dx of [-60, 60]) { const e = mkEnemy(v.x + v.w / 2 + dx, v.y + v.h / 2, S.vault, false); e.hp = 8; e.elite = true; S.enemies.push(e); }
+    const g = mkEnemy(v.x + v.w / 2, v.y + v.h / 2 - 40, S.vault, false); g.hp = 30; g.maxHp = 30; g.boss = true; S.enemies.push(g);  // The Gatekeeper
   }
   for (let k = 0; k < 2; k++) S.enemies.push(mkEnemy(rnd(200, 1400), k ? 120 : 780, null, false));  // a small opening squad in the hub
 }
@@ -294,7 +285,7 @@ function step(dt) {
       rs.spillT -= dt;
       if (rs.spillT <= 0) {
         const [ix, iy] = side(rs.next, rs.r);
-        for (let k = 0; k < 3; k++) S.enemies.push(mkEnemy(ix + rnd(-25, 25), iy + rnd(-25, 25), rs, true));
+        for (let k = 0; k < 3; k++) { const e = mkEnemy(ix + rnd(-25, 25), iy + rnd(-25, 25), rs, true); e.melee = true; S.enemies.push(e); }
         S.pops.push({ x: rs.next.x, y: rs.next.y, text: 'SPILL', c: C.amber, life: 1.4 });
         rs.spillT = SPILL;
         rs.next = rs.outs[Math.floor(Math.random() * rs.outs.length)];
@@ -308,8 +299,10 @@ function step(dt) {
   if (S.vault && !S.vault.cleared && !S.enemies.some(e => e.home === S.vault)) {
     S.vault.cleared = true;
     S.chests.push({ x: S.vault.nest.x, y: S.vault.nest.y, life: 9, gold: true });
-    S.pops.push({ x: S.vault.nest.x, y: S.vault.nest.y - 40, text: 'VAULT  RARE+ CHEST', c: C.gold, life: 2.6 });
+    S.pops.push({ x: S.vault.nest.x, y: S.vault.nest.y - 40, text: 'GATEKEEPER DOWN  ALTAR PICK', c: C.gold, life: 2.6 });
   }
+  for (const rs of [...S.rooms, ...(S.vault ? [S.vault] : [])])
+    rs.locked = !rs.cleared && (rs === S.vault || rs.nest.alive) && P.some(p => areaAt(p.x, p.y) === rs.r);
   // Players: fight what's near, else head for an objective (split: different ones; together: P2 sticks with P1).
   for (const p of P) {
     p.goalT -= dt;
@@ -318,7 +311,9 @@ function step(dt) {
       p.goalT = 0.4;
       let goal = null;
       const near = nearestEnemy(p, e => areaAt(e.x, e.y) === here, 650);
+      const lockedIn = [...S.rooms, S.vault].find(rs => rs && rs.locked && rs.r === here);
       if (near) { const d = Math.max(1, Math.hypot(near.x - p.x, near.y - p.y)); goal = [near.x - (near.x - p.x) / d * 230, near.y - (near.y - p.y) / d * 230]; }
+      else if (lockedIn) goal = [lockedIn.nest.x + 120, lockedIn.nest.y + 60];  // can't leave: finish the room
       else {
         const loose = S.enemies.find(e => e.spill && areaAt(e.x, e.y).kind !== 'room');
         if (loose && (here.kind === 'hub' || p.id === 2)) goal = [loose.x, loose.y];
@@ -365,8 +360,9 @@ function step(dt) {
     e.wpT -= dt;
     if (e.spill || !e.home) {
       if (tp && e.wpT <= 0) { e.wps = route([e.x, e.y], [tp.x, tp.y]); e.wpT = 0.5; }
-      if (seesP && Math.hypot(tp.x - e.x, tp.y - e.y) < 190) e.wps = [];
-      moveAlong(e, 140, dt);
+      if (seesP && !e.melee && Math.hypot(tp.x - e.x, tp.y - e.y) < 190) e.wps = [];
+      if (e.melee && seesP && Math.hypot(tp.x - e.x, tp.y - e.y) < 24) { tp.flash = 0.15; e.wps = []; }  // contact
+      moveAlong(e, e.melee ? 215 : 140, dt);
     } else if (seesP) {
       e.wps = Math.hypot(tp.x - e.x, tp.y - e.y) > 200 ? [[tp.x, tp.y]] : [];
       moveAlong(e, 115, dt);
@@ -378,9 +374,14 @@ function step(dt) {
     }
     if (tp) e.ang = Math.atan2(tp.y - e.y, tp.x - e.x);
     e.fireT -= dt;
-    if (seesP && e.fireT <= 0) {
-      e.fireT = e.elite ? rnd(0.9, 1.3) : rnd(1.4, 2.2);
-      S.shots.push({ x: e.x, y: e.y, vx: Math.cos(e.ang) * 260, vy: Math.sin(e.ang) * 260, life: 2.2 });
+    if (seesP && !e.melee && e.fireT <= 0) {
+      if (e.boss) {  // the Gatekeeper: a ring of shots with a gap
+        e.fireT = 1.6; const gap = e.ang + Math.PI;
+        for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; if (Math.abs(Math.atan2(Math.sin(a - gap), Math.cos(a - gap))) < 0.5) continue; S.shots.push({ x: e.x, y: e.y, vx: Math.cos(a) * 200, vy: Math.sin(a) * 200, life: 2.4 }); }
+      } else {
+        e.fireT = rnd(1.4, 2.2);
+        S.shots.push({ x: e.x, y: e.y, vx: Math.cos(e.ang) * 260, vy: Math.sin(e.ang) * 260, life: 2.2 });
+      }
     }
     e.flash = Math.max(0, e.flash - dt);
   }
@@ -415,6 +416,7 @@ function moveAlong(o, speed, dt) {
 
 // --- Drawing ---------------------------------------------------------------------------------------------------
 function stateOf(r) { return S ? S.rooms.find(q => q.r === r) || (S.vault && S.vault.r === r ? S.vault : null) : null; }
+function doorLocked(d) { return S && [d.a, d.b].map(stateOf).some(o => o && o.locked); }
 function doorColour(d) {
   if (!S) return [d.a, d.b].some(r => r.kind === 'vault') ? C.gold : C.red;
   const owners = [d.a, d.b].map(stateOf).filter(Boolean);
@@ -441,7 +443,7 @@ function poly(ctx, x, y, r, n, a) { ctx.beginPath(); for (let i = 0; i < n; i++)
 function drawWorld(ctx, k, opt) {
   for (const r of W.areas) {
     const st = stateOf(r);
-    ctx.fillStyle = r.kind === 'hub' ? '#040b1c' : r.kind === 'hall' ? '#030919' : r.kind === 'vault' ? 'rgba(255,209,102,0.07)'
+    ctx.fillStyle = r.kind === 'hub' ? '#040b1c' : r.kind === 'hall' ? '#030919' : r.kind === 'vault' ? 'rgba(255,158,77,0.09)'
       : st && st.cleared ? 'rgba(62,230,180,0.06)' : 'rgba(255,77,106,0.045)';
     ctx.fillRect(r.x, r.y, r.w, r.h);
     if (opt.grid) {
@@ -470,7 +472,8 @@ function drawWorld(ctx, k, opt) {
   for (const d of W.doors) {  // lights at the jambs, a faint line across
     const col = doorColour(d), al = d.v ? [0, 1] : [1, 0];
     const a = [d.x - al[0] * DOOR / 2, d.y - al[1] * DOOR / 2], b = [d.x + al[0] * DOOR / 2, d.y + al[1] * DOOR / 2];
-    ctx.strokeStyle = col; ctx.globalAlpha = 0.5; ctx.lineWidth = Math.max(3, 1.5 / k); ctx.setLineDash([14, 10]);
+    const lk = doorLocked(d);  // locked: a solid bar (players can come in, not go out)
+    ctx.strokeStyle = col; ctx.globalAlpha = lk ? 0.9 : 0.5; ctx.lineWidth = Math.max(lk ? 8 : 3, 1.5 / k); ctx.setLineDash(lk ? [] : [14, 10]);
     ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
     ctx.fillStyle = col; if (opt.glow) { ctx.shadowColor = col; ctx.shadowBlur = 16; }
     const jw = Math.max(18, 4 / k);
@@ -479,7 +482,7 @@ function drawWorld(ctx, k, opt) {
   }
   if (opt.labels) {
     ctx.font = '40px VT323, monospace'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(102,163,255,0.35)';
-    for (const r of W.areas) if (r.kind !== 'hub') ctx.fillText(r.name.toUpperCase(), r.x + r.w / 2, r.y + 44);
+    for (const r of W.areas) if (r.kind !== 'hub') ctx.fillText(r.kind === 'vault' ? 'VAULT' : r.name.toUpperCase(), r.x + r.w / 2, r.y + 44);
   }
   if (!S) {  // thumbnails: nests and the vault chest only
     for (const r of W.areas) if (r.kind === 'room') { ctx.fillStyle = C.nest; poly(ctx, r.x + r.w / 2, r.y + r.h / 2, 40, 6, 0); ctx.fill(); }
@@ -506,9 +509,17 @@ function drawWorld(ctx, k, opt) {
   for (const s of S.shots) { ctx.beginPath(); ctx.arc(s.x, s.y, Math.max(6, 2 / k), 0, Math.PI * 2); ctx.fill(); }
   for (const b of S.beams) { ctx.strokeStyle = b.c; ctx.globalAlpha = b.life / 0.12; ctx.lineWidth = Math.max(3, 1 / k); ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke(); } ctx.globalAlpha = 1;
   for (const e of S.enemies) {
-    ctx.strokeStyle = e.flash > 0 ? '#fff' : e.elite ? C.gold : e.spill ? C.spill : C.enemy; ctx.lineWidth = Math.max(e.elite ? 5 : 3.5, 1.6 / k);
-    ctx.fillStyle = e.elite ? 'rgba(255,209,102,0.15)' : e.spill ? 'rgba(255,138,61,0.18)' : 'rgba(255,90,110,0.15)';
-    poly(ctx, e.x, e.y, e.elite ? 26 : 17, 3, e.ang); ctx.fill(); ctx.stroke();
+    if (e.boss) {  // the Gatekeeper: an orange octagon with a health ring
+      ctx.strokeStyle = e.flash > 0 ? '#fff' : C.gate; ctx.lineWidth = Math.max(5, 2 / k); ctx.fillStyle = 'rgba(255,158,77,0.18)';
+      poly(ctx, e.x, e.y, 36, 8, S.t * 0.3); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(e.x, e.y, 50, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * e.hp / e.maxHp); ctx.stroke();
+      continue;
+    }
+    ctx.strokeStyle = e.flash > 0 ? '#fff' : e.spill ? C.spill : C.enemy; ctx.lineWidth = Math.max(3.5, 1.6 / k);
+    ctx.fillStyle = e.spill ? 'rgba(255,138,61,0.18)' : 'rgba(255,90,110,0.15)';
+    if (e.melee) { ctx.beginPath(); ctx.moveTo(e.x + Math.cos(e.ang) * 22, e.y + Math.sin(e.ang) * 22); ctx.lineTo(e.x + Math.cos(e.ang + 2.6) * 13, e.y + Math.sin(e.ang + 2.6) * 13); ctx.lineTo(e.x + Math.cos(e.ang - 2.6) * 13, e.y + Math.sin(e.ang - 2.6) * 13); ctx.closePath(); }
+    else poly(ctx, e.x, e.y, 17, 3, e.ang);
+    ctx.fill(); ctx.stroke();
   }
   for (const p of S.players) {
     ctx.strokeStyle = p.flash > 0 ? '#fff' : p.c; ctx.fillStyle = p.c + '33'; ctx.lineWidth = Math.max(4, 2 / k);
@@ -542,7 +553,7 @@ function drawScreen() {
   // Off-screen arrows: enemies close by, doors about to spill, the teammate.
   const P1 = S.players[0], arrows = [];
   const onScreen = (x, y) => inR(v, x, y, -10);
-  for (const e of S.enemies) if (!onScreen(e.x, e.y) && Math.hypot(e.x - P1.x, e.y - P1.y) < 900) arrows.push([e.x, e.y, e.elite ? C.gold : e.spill ? C.spill : C.red, '']);
+  for (const e of S.enemies) if (!onScreen(e.x, e.y) && Math.hypot(e.x - P1.x, e.y - P1.y) < 900) arrows.push([e.x, e.y, e.boss ? C.gate : e.spill ? C.spill : C.red, '']);
   for (const rs of S.rooms) if (!rs.cleared && rs.nest.alive && rs.spillT < WARN + 1 && !onScreen(rs.next.x, rs.next.y)) arrows.push([rs.next.x, rs.next.y, C.amber, rs.spillT.toFixed(0)]);
   const P2 = S.players[1]; if (!onScreen(P2.x, P2.y)) arrows.push([P2.x, P2.y, C.p2, 'P2']);
   for (const [x, y, col, label] of arrows) {
@@ -658,9 +669,7 @@ function group(attr, set) {
   }));
 }
 group('zoom', v => zoom = +v);
-group('hud', v => hud = v);
 group('party', v => party = v);
-group('halls', v => { halls = v === 'on'; drawThumbs(); start(); });
 const pauseBtn = document.getElementById('pause');
 function setPaused(v) { paused = v; pauseBtn.setAttribute('aria-pressed', v); pauseBtn.textContent = v ? 'Play' : 'Pause'; }
 pauseBtn.addEventListener('click', () => setPaused(!paused));
@@ -677,7 +686,7 @@ function stats() {
   $('sHall').textContent = halls ? S.enemies.filter(e => kindOf(e) === 'hall').length : '–';
   $('sRooms').textContent = S.enemies.filter(e => kindOf(e) === 'room').length + ' + ' + S.rooms.filter(r => r.nest.alive).length + ' nests';
   $('sClear').textContent = S.rooms.filter(r => r.cleared).length + ' / ' + S.rooms.length;
-  $('sVault').textContent = !S.vault ? '–' : S.vault.cleared ? 'looted' : S.enemies.filter(e => e.home === S.vault).length + ' guards left';
+  $('sVault').textContent = !S.vault ? '–' : S.vault.cleared ? 'Gatekeeper down' : 'The Gatekeeper waits';
   const open = S.rooms.filter(r => !r.cleared && r.nest.alive);
   if (!open.length) { $('sSpill').textContent = 'none'; return; }
   const r = open.reduce((a, q) => q.spillT < a.spillT ? q : a), to = other(r.next, r.r);
