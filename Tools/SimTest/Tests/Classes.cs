@@ -56,6 +56,9 @@ static partial class Program
             {
                 var placed = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Select(c => Upgrades.RoleAbility(role, k.Id, c)).ToList();
                 placed.Add(Upgrades.Ultimate(role, k.Id));
+                for (int u = 1; u < Upgrades.UltKeys; u++)  // any other ultimates on the lobby's Ultimate row
+                    if (Upgrades.AltUltimate(role, k.Id, u) != AbilityId.None)
+                        placed.Add(Upgrades.AltUltimate(role, k.Id, u));
                 foreach (var id in placed)
                 {
                     var a = Upgrades.Ability(id);

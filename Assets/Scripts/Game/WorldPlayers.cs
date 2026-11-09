@@ -54,6 +54,7 @@ namespace Arena
                     modelR = r * (1f + LeapSwell * leapH);
                     p.Disp += new V2(0f, -LeapLiftPx * leapH);
                 }
+                modelR *= JuggSwell(p, t);  // the Juggernaut Suit: bigger while it's on (JuggernautLook.cs)
                 V2 emoteOff;
                 float emoteSpin;
                 int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
@@ -77,6 +78,7 @@ namespace Arena
                     look(this, p, modelR, t, col);
                 if (rebuild < 0f)
                 {
+                    DrawJuggernaut(p, modelR, t, col.A);  // the Juggernaut Suit's plates (JuggernautLook.cs)
                     DrawDebtRing(p, modelR, t, col.A);  // Blood Debt and Arterial Spray: any class can have them (Wildcard)
                     DrawSpray(p, modelR, t, col.A);
                 }
@@ -100,6 +102,7 @@ namespace Arena
             {
                 GhostBar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
                 DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
+                DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
             }
             if (p.Downed)
             {
