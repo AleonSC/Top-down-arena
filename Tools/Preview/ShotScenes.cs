@@ -5,6 +5,7 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 static partial class Shot {
   static void PlayerScenes() {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
+    PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }

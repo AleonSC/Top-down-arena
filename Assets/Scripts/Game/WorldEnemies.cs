@@ -519,6 +519,8 @@ namespace Arena
             if (tombStates.Count > 0)
                 DrawTombShatter(e, pos, r, t);  // the spires breaking as the freeze ends (GlacialTombLook.cs)
             DrawEnemyDetails(e, pos, r, col, t);
+            if (e.Venomed)
+                DrawVenomOver(e, pos, r, t);  // Poison Dart: the rim, bubbles and the stuck dart (PoisonDartLook.cs)
             DrawJobMarker(e, pos, r);  // JobMarkerLook.cs
             DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.
@@ -526,7 +528,7 @@ namespace Arena
             if (bar)
             {
                 float w = Mathf.Max(30f, r * 2f);
-                GhostBar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // HealthBars.cs
+                GhostBar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, e.Venomed ? VenomBar : new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // (green while Poison Dart's venom eats it)  // HealthBars.cs
             }
             if (e.Caged)
                 DrawBoneCage(pos, r, t);
