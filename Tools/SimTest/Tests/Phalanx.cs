@@ -16,18 +16,15 @@ static partial class Program
 
         // --- The table ---
         var def = Upgrades.Ability(AbilityId.BonePhalanx);
-        Check(def.Name == "Bone Phalanx" && def.Cooldown == 75f && def.Choice == AbilityDef.Ult && def.UltChoice == 1 && def.Capstone != null,
-            "Bone Phalanx is an ultimate, 75 s, with a capstone");
+        Check(def.Name == "Bone Phalanx" && def.Cooldown == 75f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Capstone != null,
+            "Bone Phalanx is an ultimate, 75 s, on key 1 of the Ultimate row, with a capstone");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Summoner) == AbilityId.Titan && Upgrades.Ultimate(Role.Tank, Kit.Summoner, 1) == AbilityId.BonePhalanx
-            && Upgrades.UltChoices(Role.Tank, Kit.Summoner) == 2, "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx");
-        bool others = true;
-        for (int r = 0; r < 3; r++)
-            for (int k = 0; k < Defs.KitCount; k++)
-                if (!((Role)r == Role.Tank && (Kit)k == Kit.Summoner))
-                    others &= Upgrades.UltChoices((Role)r, (Kit)k) == 1 && Upgrades.Ultimate((Role)r, (Kit)k, 1) == Upgrades.Ultimate((Role)r, (Kit)k);
-        Check(others, "every other role and class has one ultimate (a pick of 1 falls back to it)");
-        Check(Upgrades.UltChoices(Role.Wildcard, Kit.Summoner) == 1 && Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner)
-            && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 0, "a Wildcard ignores the pick; out-of-range picks fall back to 0");
+            && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 2) == AbilityId.None, "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx, then locked keys");
+        Check(Upgrades.AltUltimate(Role.Healer, Kit.Summoner, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) == AbilityId.None
+            && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) != AbilityId.BonePhalanx, "it is only the Tank Summoner's");
+        Check(Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner)
+            && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 0,
+            "a Wildcard ignores the pick; picks the class doesn't have fall back to 0");
 
         // --- The saved run keeps the pick ---
         var save = new RunSave { Wave = 4 };
@@ -52,8 +49,8 @@ static partial class Program
         client.RequestUlt(1);
         for (int i = 0; i < 60 && client.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
         Check(host.Lobby[2].Ult == 1 && client.Lobby[2].Ult == 1, "...and back to everyone");
-        client.RequestKit(Kit.Soldier);
-        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Soldier; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        client.RequestKit(Kit.Elementalist);
+        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Elementalist; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
         Check(host.Lobby[2].Ult == 0, "changing class resets the pick");
         client.RequestUlt(1);
         for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }

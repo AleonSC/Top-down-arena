@@ -47,6 +47,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.JuggernautSuit, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
+                Name = "Juggernaut Suit", Cooldown = 75f, Desc = "Steel plates clamp on: for 10 s you carry 300 armour that takes damage before your health. You move 25% slower and every enemy, bosses too, comes for you. Each enemy bullet the armour takes throws a 12-damage flak shard straight back at whoever fired it. It ends early if the armour is gone or you go down.",
+                Capstone = "450 armour, and each shard does 18.",
+                Bot = b => b.Crowd >= Game.JuggBotCrowd,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.GlacialTomb, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Ult, Instant = true,
                 Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
                 Capstone = "Enemies stay frozen for 6 s and bosses take 500.",
@@ -60,7 +67,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.BonePhalanx, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult, UltChoice = 1,
+                Id = AbilityId.BonePhalanx, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
                 Name = "Bone Phalanx", Cooldown = 75f, Desc = "A bone gate opens ahead of you and 8 skeletons with tower shields march a line 260 px along your aim over 6 s. "
                     + "Their shields stop every enemy shot from the front (red aimed shots too) while your team shoots through; enemies are shoved ahead and speared for 15 every 0.5 s. "
                     + "Each skeleton has 120 health; a broken one leaves a gap. Bosses and walls stop the line.",
@@ -125,6 +132,10 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), DomeRadius, 0.6f, Sfx.Roar);
                     break;
                 }
+
+                case AbilityId.JuggernautSuit:  // Tank: Soldier, the second ultimate (Juggernaut.cs)
+                    CastJugg(p, cap);
+                    break;
 
                 case AbilityId.GlacialTomb:  // Tank: Mage
                     EraseEnemyBullets(p.Pos, 99999f);

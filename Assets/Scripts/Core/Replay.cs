@@ -30,7 +30,7 @@ namespace Arena
     public class ReplayFile
     {
         public const string Ext = ".replay";
-        public const int FormatVersion = 3;  // 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: it carries their Ultimate pick and snapshots a Bone Phalanx's skeletons (old replays no longer read)
+        public const int FormatVersion = 3;  // 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons (old replays no longer read)
         static readonly byte[] Magic = { (byte)'A', (byte)'R', (byte)'N', (byte)'R' };
 
         // Header (what the list shows).

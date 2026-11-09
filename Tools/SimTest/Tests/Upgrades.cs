@@ -35,8 +35,10 @@ static partial class Program
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
             {
-                for (int u = 0; u < Upgrades.UltChoices(role, (Kit)k); u++)
-                    placed.Add(Upgrades.Ultimate(role, (Kit)k, u));  // the default ultimate, and the second where there is one
+                placed.Add(Upgrades.Ultimate(role, (Kit)k));
+                for (int u = 1; u < Upgrades.UltKeys; u++)  // the other keys of the lobby's Ultimate row (the Juggernaut Suit)
+                    if (Upgrades.AltUltimate(role, (Kit)k, u) != AbilityId.None)
+                        placed.Add(Upgrades.AltUltimate(role, (Kit)k, u));
                 for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
                     placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
             }

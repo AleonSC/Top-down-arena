@@ -1,0 +1,346 @@
+<title>Juggernaut Suit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the house mockup look (steel and parchment neutrals, gold for ultimates). A title block, then the arena demo as the
+   hero with its timeline, the lobby's Ultimate row as it is built (a CRT panel: click a key to switch the demo), then the
+   numbers and how it ends, three still frames, and the build notes. The arena and the CRT panel are game screens: always dark. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5d6168; --panel:#f8f7f3; --line:#d3d0c6; --chip:#e1ded4;
+  --acc:#9a6608; --steel:#6d7781; --flak:#b9741a;
+  --arena:#121418; --crt:#06101c; --ink:#86c8ff; --inkdim:rgba(134,200,255,.38);
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#9a9fa7; --panel:#171a1f; --line:#2b3037; --chip:#21252b;
+  --acc:#f0bd54; --steel:#aab4bf; --flak:#ffd28a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#9a9fa7; --panel:#171a1f; --line:#2b3037; --chip:#21252b;
+  --acc:#f0bd54; --steel:#aab4bf; --flak:#ffd28a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font:800 clamp(44px,8vw,84px)/.9 var(--display);letter-spacing:.005em;text-transform:uppercase;margin:0;text-wrap:balance}
+h1 span{color:var(--acc)}
+.lede{margin:12px 0 0;max-width:68ch;color:var(--muted);font-size:17px}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin:0;text-wrap:balance}
+h2 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:none;margin-left:8px}
+
+/* the hero: arena + timeline */
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.frame{position:relative;border-radius:8px;overflow:hidden;background:var(--arena);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 40px -24px rgba(0,0,0,.6)}
+#arena{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.hudtag{position:absolute;left:12px;top:10px;font:500 11px var(--mono);color:#cfd5dc;opacity:.85;pointer-events:none;letter-spacing:.04em;text-shadow:0 1px 2px #000}
+.timeline{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.track{position:relative;height:30px}
+.track input{position:absolute;inset:0;width:100%;margin:0;opacity:0;cursor:pointer}
+.bar{position:absolute;left:0;right:0;top:12px;height:6px;border-radius:3px;background:var(--chip);overflow:hidden}
+.seg{position:absolute;top:0;bottom:0}
+.head{position:absolute;top:6px;width:2px;height:18px;background:var(--fg);border-radius:1px;transform:translateX(-1px);pointer-events:none}
+.marks{position:relative;height:16px;font:500 11px var(--mono);color:var(--muted)}
+.marks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:600 15px var(--display);letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible,.key:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font:500 13px var(--mono);color:var(--muted);cursor:pointer}
+
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.readout{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.readout .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.readout .k{font:500 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.readout .v{font:700 24px/1 var(--display);font-variant-numeric:tabular-nums}
+.meter{height:8px;border-radius:2px;background:var(--chip);overflow:hidden;position:relative}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--steel)}
+.phase{font:600 15px var(--display);text-transform:uppercase;letter-spacing:.05em;color:var(--acc);min-height:22px}
+.note{font-size:14px;color:var(--muted);margin:0}
+
+/* the lobby's Ultimate row, as built: a CRT panel with digital keys */
+.crt{background:var(--crt);border-radius:10px;padding:18px 20px 20px;color:var(--ink);position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(134,200,255,.18) inset,0 20px 40px -26px rgba(0,0,0,.7)}
+.crt::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+.crt .hd{display:flex;align-items:center;gap:12px;font:700 13px var(--display);letter-spacing:.18em;text-transform:uppercase}
+.crt .hd::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--inkdim),transparent)}
+.keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (max-width:560px){.keys{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.key{appearance:none;border:1.5px solid rgba(134,200,255,.7);background:transparent;color:var(--ink);border-radius:3px;min-height:46px;padding:6px 8px;
+  font:700 15px/1.05 var(--display);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;text-shadow:0 0 8px rgba(134,200,255,.55)}
+.key:hover{background:rgba(134,200,255,.1)}
+.key[aria-pressed="true"]{background:var(--ink);color:var(--crt);text-shadow:none;box-shadow:0 0 18px rgba(134,200,255,.45)}
+.key.locked{border-style:dashed;border-color:rgba(134,200,255,.32);color:rgba(134,200,255,.4);cursor:default;text-shadow:none;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.key.locked:hover{background:transparent}
+.lock{width:9px;height:11px;position:relative;display:inline-block}
+.lock::before{content:"";position:absolute;left:1px;top:0;width:5px;height:5px;border:1.5px solid currentColor;border-bottom:0;border-radius:3px 3px 0 0}
+.lock::after{content:"";position:absolute;left:0;bottom:0;width:9px;height:6px;background:currentColor;border-radius:1px}
+.detail{margin-top:14px;border:1px solid rgba(134,200,255,.25);border-radius:4px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px}
+.detail .kind{font:500 11px var(--mono);letter-spacing:.12em;color:var(--inkdim)}
+.detail .nm{font:800 26px/1.05 var(--display);text-transform:uppercase;letter-spacing:.03em;color:#fff;text-shadow:0 0 12px rgba(134,200,255,.4)}
+.detail .cd{grid-row:1 / span 2;grid-column:2;align-self:start;border:1px solid rgba(134,200,255,.35);padding:4px 10px;text-align:center}
+.detail .cd b{display:block;font:800 24px/1 var(--display);color:#ffd36e}
+.detail .cd small{font:500 10px var(--mono);letter-spacing:.08em;color:var(--inkdim)}
+.detail p{grid-column:1 / -1;margin:6px 0 0;color:#cfe6ff;font-size:15px;max-width:72ch}
+.detail .mast{grid-column:1 / -1;color:#e8c46a;font-size:14px}
+.caption{font-size:14px;color:var(--muted);margin:10px 0 0;max-width:80ch}
+
+/* numbers and endings */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.card{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:16px 18px;min-width:0}
+.card h3{font:700 18px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:baseline}
+tr:last-child td{border-bottom:0}
+td.n{font:500 14px var(--mono);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;padding-left:12px}
+td.n em{font-style:normal;color:var(--acc)}
+ul.ends{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+ul.ends li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:baseline}
+ul.ends b{font:700 15px var(--display);text-transform:uppercase;letter-spacing:.05em}
+ul.ends span{color:var(--muted);font-size:15px}
+
+.stills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:720px){.stills{grid-template-columns:minmax(0,1fr)}}
+.still{display:flex;flex-direction:column;gap:6px;min-width:0}
+.still canvas{display:block;width:100%;height:auto;aspect-ratio:4/3;max-width:100%;border-radius:6px;background:var(--arena)}
+.still b{font:700 16px var(--display);text-transform:uppercase;letter-spacing:.05em}
+.still span{font-size:14px;color:var(--muted)}
+.build{font-size:15px;color:var(--muted);max-width:86ch;margin:0}
+.build code{font:500 13px var(--mono);background:var(--chip);padding:1px 5px;border-radius:3px;color:var(--fg)}
+@media (prefers-reduced-motion:reduce){.key{transition:none}}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">Tank · Soldier · second ultimate · built, protocol 222</p>
+  <h1>Juggernaut <span>Suit</span></h1>
+  <p class="lede">Bolt on a heavy plate rig and turn every hit into a shot back. Fortress stays the Tank Soldier's default; the suit is the second key on the lobby's Ultimate row.</p>
+</header>
+
+<section class="stage" aria-label="The suit in the arena">
+  <div>
+    <div class="frame"><canvas id="arena" width="960" height="540" aria-label="Looping arena demo: you, the ringed tank on the left, put on the suit; enemies on the right shoot at it and flak flies back"></canvas><div class="hudtag" id="tag">JUGGERNAUT SUIT · 0.0 s</div></div>
+    <div class="timeline">
+      <div class="track"><div class="bar" id="bar"></div><div class="head" id="head"></div><input type="range" id="scrub" min="0" max="11.5" step="0.01" value="0" aria-label="Scrub the demo's timeline"></div>
+      <div class="marks" id="marks"></div>
+      <div class="controls">
+        <button type="button" id="play">Pause</button>
+        <button type="button" id="replay">Replay</button>
+        <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo 0.35×</label>
+        <label class="chk" for="mast"><input type="checkbox" id="mast"> Mastered</label>
+      </div>
+    </div>
+  </div>
+  <aside class="side" aria-live="polite">
+    <div class="readout">
+      <div class="phase" id="phase">Ready</div>
+      <div class="row"><span class="k">Armour</span><span class="v" id="armV">0</span></div>
+      <div class="meter"><i id="armM" style="width:0%"></i></div>
+      <div class="row"><span class="k">Suit time</span><span class="v" id="timeV">—</span></div>
+      <div class="row"><span class="k">Shards thrown</span><span class="v" id="shardV">0</span></div>
+      <div class="row"><span class="k">Flak dealt</span><span class="v" id="dmgV">0</span></div>
+      <div class="row"><span class="k">Your health</span><span class="v" id="hpV">240</span></div>
+    </div>
+    <p class="note">Every bullet that lands on the plates throws one shard back at the enemy that fired it. A plate comes off for each sixth of the armour gone.</p>
+  </aside>
+</section>
+
+<section aria-label="The lobby's Ultimate row">
+  <div class="crt">
+    <div class="hd">Ultimate</div>
+    <div class="keys" role="group" aria-label="Pick your ultimate">
+      <button type="button" class="key" id="k0" aria-pressed="false">Fortress</button>
+      <button type="button" class="key" id="k1" aria-pressed="true">Juggernaut Suit</button>
+      <div class="key locked" aria-disabled="true"><i class="lock"></i>Locked</div>
+      <div class="key locked" aria-disabled="true"><i class="lock"></i>Locked</div>
+    </div>
+    <div class="detail">
+      <div class="kind">ULTIMATE</div>
+      <div class="cd"><b id="dCd">75 s</b><small>TO CHARGE</small></div>
+      <div class="nm" id="dName">Juggernaut Suit</div>
+      <p id="dDesc"></p>
+      <div class="mast" id="dMast"></div>
+    </div>
+  </div>
+  <p class="caption">The Ultimate row as built: key 0 is the default, the picked key is in inverse video like the weapon and ability keys, and clicking one shows it in the detail box and the preview. Click a key here to switch the demo above. Every other role and class keeps three locked slots.</p>
+</section>
+
+<section class="cols" aria-label="Numbers and endings">
+  <div class="card">
+    <h3>The numbers</h3>
+    <table>
+      <tr><td>Cooldown (not shortened by upgrades)</td><td class="n">75 s</td></tr>
+      <tr><td>Plates clamp on</td><td class="n">0.6 s</td></tr>
+      <tr><td>Suit time</td><td class="n">10 s</td></tr>
+      <tr><td>Armour, soaks before shields and health</td><td class="n">300 <em>/ 450</em></td></tr>
+      <tr><td>Flak shard, × your damage multiplier</td><td class="n">12 <em>/ 18</em></td></tr>
+      <tr><td>Your speed while suited</td><td class="n">−25%</td></tr>
+      <tr><td>Taunt: every enemy, bosses too</td><td class="n">whole suit</td></tr>
+      <tr><td>A bot puts it on with</td><td class="n">4 enemies ≤ 260 px</td></tr>
+    </table>
+    <p class="caption">Gold numbers are the mastery capstone (level 5).</p>
+  </div>
+  <div class="card">
+    <h3>How it ends</h3>
+    <ul class="ends">
+      <li><b>Time</b><span>The 10 s run out.</span></li>
+      <li><b>Armour 0</b><span>The plates are gone; what's left of that hit reaches your health.</span></li>
+      <li><b>Down</b><span>You go down.</span></li>
+      <li><b>Wave over</b><span>The wave is cleared, as Last Stand does, so no armour is carried into the break.</span></li>
+    </ul>
+    <p class="caption">A bullet the plates take whole gives no hit grace, so a stream of fire keeps feeding the flak. Contact hits still do.</p>
+  </div>
+</section>
+
+<section aria-label="Three moments">
+  <h2>Three moments <small>the same drawing as the demo</small></h2>
+  <div class="stills" style="margin-top:12px">
+    <div class="still"><canvas id="s1" width="480" height="360" aria-label="Plates swinging in, sparks at the bolts"></canvas><b>Clamp · 0.35 s</b><span>Six plates swing in one after another, a spark as each bolts home. The body swells to 1.3×.</span></div>
+    <div class="still"><canvas id="s2" width="480" height="360" aria-label="Mid-fight, four plates left, tracers flying back"></canvas><b>Taking fire · 5 s</b><span>Shards race back at each shooter as amber tracers. Two plates already knocked loose.</span></div>
+    <div class="still"><canvas id="s3" width="480" height="360" aria-label="The last plates falling away"></canvas><b>Off · 10.2 s</b><span>Time's up: the last plates tumble off and the body shrinks back.</span></div>
+  </div>
+</section>
+
+<p class="build"><strong>Build notes.</strong> Core in <code>Core/Juggernaut.cs</code>, look in <code>Game/JuggernautLook.cs</code>, new <code>AbilityId.JuggernautSuit</code> and <code>FxKind.JuggShard</code> at the ends of their enums. The lobby pick is <code>LobbyEntry.Ult</code> (0 = the default), sent with <code>Msg.UltRequest</code>, the lobby and start messages, and saved runs; the suit's time and armour ride the player snapshot. Protocol 221 → 222. Preview: <code>JUGG=3 Tools/Preview/shot.sh x hud</code>.</p>
+</main>
+
+<script>
+(function(){
+var TAU=Math.PI*2, LOOP=11.5;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function ph(t,a,b){return clamp((t-a)/(b-a),0,1)}
+function eo(f){f=clamp(f,0,1);return 1-Math.pow(1-f,3)}
+function lerp(a,b,f){return a+(b-a)*f}
+function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+
+/* ---- the scene (480 x 270 logical) ---- */
+var P0={x:132,y:142};
+var EN=[{x:332,y:58},{x:388,y:110,h:1},{x:318,y:160},{x:410,y:196},{x:350,y:236},{x:436,y:64},{x:290,y:104}];
+var CAST=.45, ON=CAST+.0, CLAMP=.6, LEN=10, OFF=CAST+LEN;
+var state={ult:1,mast:false};
+function cfg(){return {arm:state.mast?450:300,shard:state.mast?18:12}}
+/* the bullets: every 0.29 s from 1 s, from a rotating shooter, 7-9 damage each (300 armour just outlasts the 10 s) */
+var SHOTS=[];(function(){for(var j=0;j<40;j++){var t0=1.0+j*.29+hash(j)*.08;SHOTS.push({j:j,t0:t0,src:(j*3+1)%EN.length,dmg:7+Math.round(hash(j+9)*2)})}})();
+function player(t){var suited=state.ult===1&&t>CAST&&t<OFF;var amp=suited?13:17,sp=suited?.75:1;
+  return {x:P0.x+Math.sin(t*.9*sp)*amp,y:P0.y+Math.sin(t*1.3*sp+1)*amp*.7,suited:suited}}
+function enemyPos(i,t){var e=EN[i],taunt=state.ult===1&&t>CAST?ph(t,CAST,CAST+3)*Math.min(t-CAST,OFF-CAST)/LEN:0;
+  var p=player(t),dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy);var pull=Math.min(60,d-80)*taunt*.9;
+  return {x:e.x+dx/d*pull+Math.sin(t*1.6+i)*3,y:e.y+dy/d*pull+Math.cos(t*1.2+i*2)*3,h:!!e.h}}
+/* walk the shots up to time t: armour left, shards thrown, plates lost and when, end time */
+function sim(t){var c=cfg(),arm=c.arm,events=[],shards=0,dealt=0,end=OFF,endWhy='time',lost=[],hp=240;
+  if(state.ult!==1){return {arm:0,max:c.arm,events:[],shards:0,dealt:0,end:OFF,endWhy:'',lost:[],hp:240,on:false}}
+  for(var k=0;k<SHOTS.length;k++){var s=SHOTS[k],src=enemyPos(s.src,s.t0),pp=player(s.t0),d=Math.hypot(pp.x-src.x,pp.y-src.y),arr=s.t0+(d-14)/210;
+    if(arr>t)break;if(arr<ON)continue;if(arr>=end){continue}
+    var before=arm;arm=Math.max(0,arm-s.dmg);var at=player(arr);
+    events.push({t:arr,src:s.src,from:at,j:s.j});shards++;dealt+=c.shard;
+    var pb=Math.ceil(before/c.arm*6-1e-3),pa=Math.max(arm>0?1:0,Math.ceil(arm/c.arm*6-1e-3));for(var q=pb-1;q>=pa;q--)lost.push({k:q,t:arr});
+    if(arm<=0){end=arr;endWhy='armour';hp-=Math.max(0,s.dmg-before);break}}
+  return {arm:t<ON?0:(t>=end?0:arm),max:c.arm,events:events,shards:shards,dealt:dealt,end:end,endWhy:endWhy,lost:lost,hp:hp,on:t>=ON&&t<end}}
+
+/* ---- drawing ---- */
+function circle(c,x,y,r,f,s,w){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);if(f){c.fillStyle=f;c.fill()}if(s){c.lineWidth=w||1;c.strokeStyle=s;c.stroke()}}
+function line(c,x0,y0,x1,y1,col,w){c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.lineWidth=w||1;c.strokeStyle=col;c.lineCap='round';c.stroke()}
+function glow(c,x,y,r,c0){var g=c.createRadialGradient(x,y,0,x,y,Math.max(1,r));g.addColorStop(0,c0);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,Math.max(1,r),0,TAU);c.fill()}
+function num(c,x,y,txt,age,col){if(age<0||age>.8)return;var f=age/.8;c.save();c.globalAlpha=1-f*f;c.font='700 13px "Barlow Condensed","Arial Narrow",sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.8)';c.fillStyle=col;var yy=y-16-eo(f)*14;c.strokeText(txt,x,yy);c.fillText(txt,x,yy);c.restore()}
+function floor(c,W,H){c.fillStyle='#121418';c.fillRect(0,0,W,H);c.strokeStyle='#1a1e24';c.lineWidth=1;for(var x=0;x<=W;x+=30){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,H);c.stroke()}for(var y=0;y<=H;y+=30){c.beginPath();c.moveTo(0,y+.5);c.lineTo(W,y+.5);c.stroke()}
+  var g=c.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.7);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');c.fillStyle=g;c.fillRect(0,0,W,H)}
+function drawEnemy(c,e,i,flash,eye,P){c.save();c.translate(e.x,e.y);var r=e.h?15:10,a=Math.atan2(P.y-e.y,P.x-e.x);c.rotate(a);
+  circle(c,0,0,r,flash?'#fff':(e.h?'#6e5a86':'#8d7399'),e.h?'#2d2039':'#35263f',2.5);if(e.h)circle(c,0,0,r-5,null,'rgba(255,255,255,.22)',1.5);
+  c.fillStyle='#1b1320';c.beginPath();c.arc(r*.5,-r*.3,1.8,0,TAU);c.arc(r*.5,r*.3,1.8,0,TAU);c.fill();c.restore();
+  if(eye>0){var ex=e.x,ey=e.y-r-11,lx=(P.x-ex),ly=(P.y-ey),ll=Math.hypot(lx,ly)||1;c.save();c.globalAlpha=eye;circle(c,ex,ey,5,'rgba(48,18,8,.9)','rgba(255,120,64,.9)',1.5);circle(c,ex+lx/ll*2,ey+ly/ll*2,2.1,'#ffb48a');c.restore()}}
+function plate(c,cx,cy,ang,r,sc,alpha,heat,spin){c.save();c.translate(cx,cy);c.rotate(ang);var x=r;c.translate(x,0);c.rotate(spin||0);c.globalAlpha=alpha;
+  var lo=heat>0?'rgb('+lerp(123,255,heat*.5)+','+lerp(133,255,heat*.5)+','+lerp(143,255,heat*.5)+')':'#7b858f';
+  c.beginPath();c.moveTo(-3*sc,-7*sc);c.lineTo(4*sc,-5*sc);c.lineTo(4*sc,5*sc);c.lineTo(-3*sc,7*sc);c.closePath();c.fillStyle=lo;c.fill();c.lineWidth=1.3;c.strokeStyle='#2b3138';c.stroke();
+  line(c,4*sc,-5*sc,4*sc,5*sc,heat>0?'#fff':'#c3ccd5',1.6*sc);circle(c,.5*sc,-3.6*sc,.9*sc,'#2b3138');circle(c,.5*sc,3.6*sc,.9*sc,'#2b3138');c.restore()}
+function drawPlayer(c,P,sw,t){c.save();c.beginPath();c.ellipse(P.x,P.y+4,13*sw,6*sw,0,0,TAU);c.fillStyle='rgba(0,0,0,.35)';c.fill();
+  c.translate(P.x,P.y);c.scale(sw,sw);c.save();c.globalCompositeOperation='lighter';glow(c,0,0,24,'rgba(111,176,240,.32)');c.restore();
+  line(c,4,0,18,0,'#59606c',4.5);circle(c,0,0,10,sw>1.02?'#a9b1ba':'#cfd8e6','#4a5463',2);circle(c,0,0,13.5,null,'rgba(111,176,240,.95)',2);c.fillStyle='#1c212b';c.fillRect(4,-2,3,4);c.restore()}
+
+/* the whole frame at time t; W x H canvas units, s = scale from the 480 x 270 scene; crop = optional {x,y,z} zoom */
+function frame(c,t,W,H,crop){var S=sim(t),c0=cfg();c.save();floor(c,W,H);
+  var z=crop?crop.z:W/480;c.scale(z,z);if(crop)c.translate(-crop.x,-crop.y);
+  var P=player(t),suitOn=state.ult===1;
+  /* Fortress: the dome */
+  var fortOn=state.ult===0&&t>CAST&&t<OFF;
+  if(fortOn){var a=ph(t,CAST,CAST+.4)*(t>OFF-.4?ph(OFF,t,t+.4)*0+1-ph(t,OFF-.4,OFF):1);c.save();c.globalAlpha=a;c.beginPath();c.arc(P0.x,P0.y,96,0,TAU);c.fillStyle='rgba(255,204,90,.06)';c.fill();
+    for(var k=0;k<24;k++){var a0=k/24*TAU+t*.05;c.beginPath();c.arc(P0.x,P0.y,96,a0+.03,a0+TAU/24-.03);c.lineWidth=5;c.strokeStyle='rgba(255,206,110,.75)';c.stroke()}c.restore()}
+  /* enemies, their eyes (the taunt), flashes */
+  var flashes={};S.events.forEach(function(ev){var hitAt=ev.t+.26;if(t>=hitAt&&t<hitAt+.08)flashes[ev.src]=1});
+  for(var i=0;i<EN.length;i++){var e=enemyPos(i,t);var eye=suitOn&&S.on?ph(t,CAST,CAST+.4):0;drawEnemy(c,e,i,flashes[i],eye,P)}
+  /* bullets in flight */
+  for(var k2=0;k2<SHOTS.length;k2++){var s=SHOTS[k2];if(s.t0>t)break;var src=enemyPos(s.src,s.t0),pp=player(s.t0),dx=pp.x-src.x,dy=pp.y-src.y,d=Math.hypot(dx,dy),arr=s.t0+(d-14)/210;
+    if(t>=arr)continue;var f=(t-s.t0)*210,bx=src.x+dx/d*f,by=src.y+dy/d*f;
+    if(fortOn&&Math.hypot(bx-P0.x,by-P0.y)<98){continue}
+    c.save();c.globalCompositeOperation='lighter';glow(c,bx,by,7,'rgba(255,110,90,.55)');c.restore();circle(c,bx,by,3,'#ffd9cf','#ff5a44',1.2)}
+  /* the suit */
+  var sw=1;if(suitOn&&t>CAST){sw=t<S.end?1+.3*eo((t-CAST)/CLAMP):1+.3*(1-eo((t-S.end)/.3))}
+  drawPlayer(c,P,sw,t);
+  if(suitOn&&t>CAST){var since=t-CAST,R=16*sw,sc=sw;var lostAt={};S.lost.forEach(function(l){lostAt[l.k]=l.t});
+    var aim=Math.atan2(enemyPos(1,t).y-P.y,enemyPos(1,t).x-P.x);
+    for(var k3=0;k3<6;k3++){var ang=aim+k3/6*TAU+.3,land=ph(since,k3*.08,k3*.08+.2),gone=lostAt[k3]!==undefined?lostAt[k3]:(t>=S.end?S.end:null);
+      var fall=gone!==null&&t>=gone?(t-gone)/.55:-1;if(fall>=1)continue;if(fall<0&&land<=0)continue;
+      var heat=0;S.events.forEach(function(ev){var age=t-ev.t;if(age>=0&&age<.15){var ea=Math.atan2(enemyPos(ev.src,ev.t).y-ev.from.y,enemyPos(ev.src,ev.t).x-ev.from.x);var dd=Math.abs(((ea-ang)%TAU+TAU*1.5)%TAU-Math.PI);if(dd<.65)heat=Math.max(heat,1-age/.15)}});
+      if(fall>=0){var r2=R+22*fall;c.save();c.translate(0,14*fall*fall);plate(c,P.x,P.y,ang,r2,sc,1-fall*fall,0,(k3%2?-1:1)*2.4*fall);c.restore()}
+      else{var rr=lerp(40,16,eo(land))*sw;plate(c,P.x,P.y,ang,rr,sc,land,heat,0);
+        if(land<1){c.save();c.globalCompositeOperation='lighter';var px=P.x+Math.cos(ang)*rr,py=P.y+Math.sin(ang)*rr;glow(c,px,py,10*(1-land)+2,'rgba(255,220,150,.95)');circle(c,px,py,5*(1-land),'rgba(255,236,190,.95)');c.restore()}}}
+    /* falling sparks when it comes off */
+    if(t>=S.end&&t<S.end+.4){c.save();c.globalCompositeOperation='lighter';for(var q=0;q<10;q++){var a3=hash(q)*TAU,f3=(t-S.end)/.4,rr3=10+70*eo(f3)*(.4+hash(q+5)*.6);circle(c,P.x+Math.cos(a3)*rr3,P.y+Math.sin(a3)*rr3+20*f3*f3,1.6*(1-f3),'rgba(255,220,150,.9)')}c.restore()}
+    /* the armour bar over the health bar */
+    if(S.on){var w=40,bx2=P.x-w/2,by2=P.y-13*sw-17,fr=S.arm/S.max;c.fillStyle='rgba(0,0,0,.65)';c.fillRect(bx2-1,by2-1,w+2,6);
+      var ghost=fr;S.events.forEach(function(ev){var age=t-ev.t;if(age>=0&&age<.6)ghost=Math.max(ghost,fr+ (12/S.max)*(1-age/.6))});
+      c.fillStyle='rgba(255,230,180,.55)';c.fillRect(bx2,by2,w*Math.min(1,ghost),4);c.fillStyle='#b8c2cc';c.fillRect(bx2,by2,w*fr,4);c.fillStyle='rgba(255,255,255,.5)';c.fillRect(bx2,by2,w*fr,1);
+      c.fillStyle='rgba(0,0,0,.55)';for(var n=1;n<6;n++)c.fillRect(bx2+w*n/6-.5,by2,1,4);c.fillStyle='rgba(255,212,90,.75)';c.fillRect(bx2,by2+5,w*clamp((OFF-t)/LEN,0,1),1)}
+    /* flak: tracers racing back, a pop, the number */
+    S.events.forEach(function(ev){var age=t-ev.t;if(age<0||age>1.1)return;var e2=enemyPos(ev.src,ev.t+.26),f4=clamp(age/.26,0,1),fx=ev.from.x,fy=ev.from.y,dx2=e2.x-fx,dy2=e2.y-fy,dl=Math.hypot(dx2,dy2)||1;
+      if(f4<1){var hx=fx+dx2*eo(f4),hy=fy+dy2*eo(f4),tl=Math.max(12,dl*.08);c.save();c.globalCompositeOperation='lighter';line(c,hx-dx2/dl*tl,hy-dy2/dl*tl,hx,hy,'rgba(255,214,140,.35)',4);line(c,hx-dx2/dl*tl,hy-dy2/dl*tl,hx,hy,'rgba(255,224,160,.95)',2);circle(c,hx,hy,1.6,'#fff');c.restore()}
+      else if(age<.36){c.save();c.globalCompositeOperation='lighter';glow(c,e2.x,e2.y,10+8*(age-.26)/.1,'rgba(255,214,140,'+(.85*(1-(age-.26)/.1))+')');c.restore()}
+      if(age<.06){c.save();c.globalCompositeOperation='lighter';glow(c,fx+dx2/dl*16*sw,fy+dy2/dl*16*sw,9,'rgba(255,230,170,.9)');c.restore()}
+      num(c,e2.x,e2.y,String(c0.shard),age-.26,'#ffd38a')})}
+  /* health bar */
+  var hw=40;c.fillStyle='rgba(0,0,0,.6)';c.fillRect(P.x-hw/2,P.y-13*sw-10,hw,4);c.fillStyle='#4fe07a';c.fillRect(P.x-hw/2,P.y-13*sw-10,hw*clamp(S.hp/240,0,1),4);
+  /* Fortress: shots stopping at the dome */
+  if(fortOn)SHOTS.forEach(function(s){if(s.t0>t)return;var src=enemyPos(s.src,s.t0),pp=P0,dx=pp.x-src.x,dy=pp.y-src.y,d=Math.hypot(dx,dy),hitT=s.t0+(d-96)/210,age=t-hitT;if(age<0||age>.25)return;var hx=pp.x-dx/d*96,hy=pp.y-dy/d*96;c.save();c.globalCompositeOperation='lighter';glow(c,hx,hy,12*(1-age/.25)+3,'rgba(255,214,120,.9)');c.restore()});
+  /* the cast ring */
+  if(t>CAST&&t<CAST+.6){var f5=(t-CAST)/.6;circle(c,P.x,P.y,20+70*eo(f5),null,state.ult===1?'rgba(190,198,208,'+(1-f5)+')':'rgba(255,204,90,'+(1-f5)+')',3)}
+  c.restore();return S}
+
+/* ---- the hero canvas ---- */
+var cv=document.getElementById('arena'),ctx=cv.getContext('2d');
+function fit(){var r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1,w=Math.max(320,Math.round(r.width*d));if(cv.width!==w){cv.width=w;cv.height=Math.round(w*9/16)}}
+var T=0,playing=!reduce,slow=false,last=null;
+var phaseEl=document.getElementById('phase'),armV=document.getElementById('armV'),armM=document.getElementById('armM'),timeV=document.getElementById('timeV'),shardV=document.getElementById('shardV'),dmgV=document.getElementById('dmgV'),hpV=document.getElementById('hpV'),tag=document.getElementById('tag');
+var scrub=document.getElementById('scrub'),head=document.getElementById('head'),bar=document.getElementById('bar'),marks=document.getElementById('marks');
+function buildBar(){var S=sim(LOOP);bar.innerHTML='';function seg(a,b,col){var d=document.createElement('div');d.className='seg';d.style.left=(a/LOOP*100)+'%';d.style.width=((b-a)/LOOP*100)+'%';d.style.background=col;bar.appendChild(d)}
+  if(state.ult===1){seg(CAST,CAST+CLAMP,'#e6b35a');seg(CAST+CLAMP,S.end,'#8d99a6');}else seg(CAST,OFF,'#d8a845');
+  var m=state.ult===1?[[CAST,'cast'],[CAST+CLAMP,'clamped'],[S.end,S.endWhy==='armour'?'armour 0':'10 s up'],[LOOP,LOOP+' s']]:[[CAST,'cast'],[OFF,'10 s up'],[LOOP,LOOP+' s']];
+  marks.innerHTML='';m.forEach(function(x,i){var s=document.createElement('span');s.textContent=x[1];s.style.left=(x[0]/LOOP*100)+'%';if(i===m.length-1)s.style.transform='translateX(-100%)';marks.appendChild(s)})}
+function readout(S,t){var suit=state.ult===1;
+  var p=t<CAST?'Ready':suit?(t<CAST+CLAMP?'Plates clamping on':(S.on?(S.arm/S.max<.34?'Plates failing':'Taking fire, flak flying'):'Plates fell off · '+(S.endWhy==='armour'?'armour gone':'time up'))):(t<OFF?'Fortress dome up':'Dome down');
+  phaseEl.textContent=p;armV.textContent=suit?Math.round(S.arm)+' / '+S.max:'—';armM.style.width=(suit&&S.max?S.arm/S.max*100:0)+'%';
+  timeV.textContent=suit&&S.on?(OFF-t).toFixed(1)+' s':'—';shardV.textContent=suit?S.shards:'—';dmgV.textContent=suit?S.dealt:'—';hpV.textContent=Math.round(S.hp);
+  tag.textContent=(suit?'JUGGERNAUT SUIT':'FORTRESS')+' · '+t.toFixed(1)+' s'+(slow?' · 0.35×':'');head.style.left=(t/LOOP*100)+'%';scrub.value=t}
+function draw(){fit();var W=cv.width,H=cv.height;var S=frame(ctx,T,W,H);readout(S,T)}
+function tick(ts){if(last===null)last=ts;var dt=Math.min(.05,(ts-last)/1000);last=ts;if(playing){T+=dt*(slow?.35:1);if(T>LOOP)T=0}draw();requestAnimationFrame(tick)}
+document.getElementById('play').addEventListener('click',function(){playing=!playing;this.textContent=playing?'Pause':'Play'});
+document.getElementById('replay').addEventListener('click',function(){T=0;playing=true;document.getElementById('play').textContent='Pause'});
+document.getElementById('slow').addEventListener('change',function(){slow=this.checked});
+document.getElementById('mast').addEventListener('change',function(){state.mast=this.checked;buildBar();detail();stills()});
+scrub.addEventListener('input',function(){T=parseFloat(this.value);playing=false;document.getElementById('play').textContent='Play'});
+if(!playing){T=5;document.getElementById('play').textContent='Play'}
+
+/* ---- the Ultimate row ---- */
+var D=[{name:'Fortress',cd:'70 s',desc:'Raises a fixed, impenetrable dome here for 10 s. Only players and player bullets cross it: enemies and their shots can\'t get in or shoot through.',mast:'Lasts 14 s.'},
+       {name:'Juggernaut Suit',cd:'75 s',desc:'Steel plates clamp on: for 10 s you carry 300 armour that takes damage before your health. You move 25% slower and every enemy, bosses too, comes for you. Each enemy bullet the armour takes throws a 12-damage flak shard straight back at whoever fired it. It ends early if the armour is gone or you go down.',mast:'450 armour, and each shard does 18.'}];
+function detail(){var d=D[state.ult];document.getElementById('dName').textContent=d.name;document.getElementById('dCd').textContent=d.cd;document.getElementById('dDesc').textContent=d.desc;document.getElementById('dMast').textContent='★ Mastered (Lv 5): '+d.mast;
+  document.getElementById('k0').setAttribute('aria-pressed',state.ult===0);document.getElementById('k1').setAttribute('aria-pressed',state.ult===1)}
+[0,1].forEach(function(i){document.getElementById('k'+i).addEventListener('click',function(){state.ult=i;T=0;playing=!reduce||playing;buildBar();detail()})});
+
+/* ---- the stills ---- */
+function still(id,t,crop){var c=document.getElementById(id),x=c.getContext('2d'),keep=state.ult;state.ult=1;frame(x,t,c.width,c.height,crop);state.ult=keep}
+function stills(){var cr={x:P0.x-110,y:P0.y-82,z:480/220};still('s1',CAST+.35,cr);still('s2',5,{x:P0.x-70,y:P0.y-110,z:480/330});still('s3',OFF+.18,cr)}
+
+buildBar();detail();stills();draw();requestAnimationFrame(tick);
+window.addEventListener('resize',draw);
+})();
+</script>

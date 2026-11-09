@@ -531,7 +531,7 @@ namespace Arena
             float dps = Defs.WeaponDps(wdef.Id);
             LobbyKit.StatBar(new Rect(lx, sy + 78f, lw, 22f), "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
                 dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.36f, 0.36f), calm);
-            var ult = Upgrades.Ability(me.UltId);
+            var ult = Upgrades.Ability(me.UltId);  // the one picked on the Ultimate row
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
             float x = r.x + 334f, w = 454f, y = r.y + 16f;
@@ -660,28 +660,24 @@ namespace Arena
             }
 
             ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
-            // The ultimates: key 0 the role and class's default, key 1 its second where it has one (the Tank Summoner's Bone
-            // Phalanx), then locked slots for ultimates still to come. The picked one is lit (inverse video, as the weapon and
-            // ability keys); clicking one picks it and shows it in the detail box and the preview.
+            // The ultimate: key 0 is the role and class's default one, keys 1-3 the others it has (the Tank Soldier's Juggernaut Suit on
+            // key 1), locked while empty. Click one to pick it (inverse video, like the weapon and ability keys) and watch it in the preview.
             LobbyKit.Heading(x, ultY, w, "Ultimate", null, calm, 15);
-            int ultKeys = Upgrades.UltChoices(me.Role, me.Kit);
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < Upgrades.UltKeys; i++)
             {
                 var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
-                if (i >= ultKeys)
+                var id = i == 0 ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.AltUltimate(me.Role, me.Kit, i);
+                if (id == AbilityId.None)
                 {
                     LockedSlot(b);
                     continue;
                 }
-                var u = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.UltKit, i));
-                if (LobbyKit.Key(b, u.Name.ToUpperInvariant(), me.Ult == i, calm, size: 15, minSize: 9))
+                if (LobbyKit.Key(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == i, calm, size: 15, minSize: 9))
                 {
                     if (me.Ult != i)
-                    {
                         tgt.RequestUlt(i);
-                        if (self)
-                            ultChoice = i;
-                    }
+                    if (self)
+                        ultChoice = i;
                     detailSel = 2;  // (the preview then casts it until you click something else)
                 }
             }

@@ -133,7 +133,7 @@ namespace Arena
                 players.Add(new PlayerInfo
                 {
                     Id = p.Id, Name = p.Name, Role = p.Def.Name, Kit = Defs.KitName(p.Kit), Weapon = p.Weapon.Name,
-                    Ability = Upgrades.Ability(p.RoleAbility).Name, Ultimate = Upgrades.Ability(Upgrades.Ultimate(p.Role, p.UltKit, p.UltChoice)).Name,
+                    Ability = Upgrades.Ability(p.RoleAbility).Name, Ultimate = Upgrades.Ability(Upgrades.Ultimate(p.Role, p.UltKit, p.UltPick)).Name,
                 });
             Save();
         }

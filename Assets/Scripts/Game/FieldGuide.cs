@@ -203,11 +203,16 @@ namespace Arena
                             Defs.Get((Role)r).Name + " · " + CooldownText(Upgrades.Ability(Upgrades.RoleAbility((Role)r, (Kit)k, c)))));
             for (int k = 0; k < Defs.KitCount; k++)
                 for (int r = 0; r < 3; r++)
-                    for (int u = 0; u < Upgrades.UltChoices((Role)r, (Kit)k); u++)  // the default, then the second where there is one
+                {
+                    for (int u = 0; u < Upgrades.UltKeys; u++)  // the default one, then any others on the lobby's Ultimate row
                     {
-                        var a = Upgrades.Ability(Upgrades.Ultimate((Role)r, (Kit)k, u));
-                        list.Add(AbilityItem(a, "Ultimates · F", Defs.KitName((Kit)k) + " " + Defs.Get((Role)r).Name + (u > 0 ? " (second)" : "") + " · " + CooldownText(a)));
+                        var id = u == 0 ? Upgrades.Ultimate((Role)r, (Kit)k) : Upgrades.AltUltimate((Role)r, (Kit)k, u);
+                        if (id == AbilityId.None)
+                            continue;
+                        var a = Upgrades.Ability(id);
+                        list.Add(AbilityItem(a, "Ultimates · F", Defs.KitName((Kit)k) + " " + Defs.Get((Role)r).Name + (u > 0 ? " (pick)" : "") + " · " + CooldownText(a)));
                     }
+                }
             foreach (var a in Upgrades.Abilities)
                 if (a.Choice == AbilityDef.CardOnly)
                     list.Add(AbilityItem(a, "Bonus abilities · Q / E / Shift", "From a card · " + CooldownText(a)));
@@ -785,11 +790,13 @@ namespace Arena
             for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
                 if (AbilityLink(Upgrades.Ability(Upgrades.RoleAbility(it.Role, it.Kit, c)), it.Accent))
                     break;
-            int ults = Upgrades.UltChoices(it.Role, it.Kit);
-            GHeading(ults > 1 ? "Ultimates (F; pick one in the lobby)" : "Ultimate (F)");
-            for (int u = 0; u < ults; u++)
-                if (AbilityLink(Upgrades.Ability(Upgrades.Ultimate(it.Role, it.Kit, u)), new Color(1f, 0.6f, 0.3f)))
+            GHeading(Upgrades.AltUltimate(it.Role, it.Kit, 1) != AbilityId.None ? "Ultimate (F, pick one in the lobby)" : "Ultimate (F)");
+            for (int u = 0; u < Upgrades.UltKeys; u++)
+            {
+                var id = u == 0 ? Upgrades.Ultimate(it.Role, it.Kit) : Upgrades.AltUltimate(it.Role, it.Kit, u);
+                if (id != AbilityId.None && AbilityLink(Upgrades.Ability(id), new Color(1f, 0.6f, 0.3f)))
                     break;
+            }
             GuideBodyEnd();
         }
 
@@ -907,8 +914,8 @@ namespace Arena
                 var role = Defs.Get(a.Role);
                 if (GLink(null, Defs.KitName(a.Kit) + " " + role.Name, role.Desc + " " + KitBlurb(a.Kit), ToColor(role.Color)))
                     GuideJump(GuideClasses, (int)a.Role + "/" + (int)a.Kit);
-                if (a.Choice == AbilityDef.Ult && Upgrades.UltChoices(a.Role, a.Kit) > 1)
-                    GText(a.UltChoice > 0 ? "Its second ultimate: pick it with the second key of the lobby's Ultimate row." : "Its default ultimate (the first key of the lobby's Ultimate row; the second picks its other one).", 12, Ui.Muted);
+                if (a.Choice == AbilityDef.Ult && a.UltKey > 0)
+                    GText("Picked on the lobby's Ultimate row in place of " + Upgrades.Ability(Upgrades.Ultimate(a.Role, a.Kit)).Name + ", which stays the default.", 12, Ui.Muted);
                 if (a.Choice != AbilityDef.Ult)
                     GText("It's also a very rare card (for Q, E or Shift) for players of this class who picked one of its other two Space abilities.", 12, Ui.Muted);
             }

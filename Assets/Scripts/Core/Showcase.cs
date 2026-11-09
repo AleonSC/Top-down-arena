@@ -23,7 +23,7 @@ namespace Arena
         int weapon = -1;
         AbilityId ability = AbilityId.None;
         bool demoAbility, ultimate;
-        int ultChoice;  // which key of the lobby's Ultimate row (LobbyEntry.Ult)
+        int ultPick;  // the Ultimate row's key (LobbyEntry.Ult)
         float t, castT;
         bool castHeld;
         float ultEvery = UltimateEvery;    // the Titan stays 17 s, so its demo waits for it to crumble
@@ -74,25 +74,25 @@ namespace Arena
         /// Show this loadout. Anything new (weapon, role, class, the ability shown, or switching to the
         /// ultimate) restarts the scene, so nothing from the last demo plays on. demo: cast the ability every
         /// few seconds; ultimate: cast your ultimate (F) instead.
-        public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false, int ultChoice = 0)
+        public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false, int ultPick = 0)
         {
-            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultChoice != this.ultChoice)
+            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick)
             {
-                this.ultChoice = ultChoice;
+                this.ultPick = ultPick;
                 this.role = role;
                 this.kit = kit;
                 this.weapon = weapon;
                 this.ability = ability;
                 this.ultimate = ultimate;
-                var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit, ultChoice) : ability;
-                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f
+                var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit, ultPick) : ability;
+                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
                 castCount = 0;
                 aimTicks = 0;
-                session.HostOffline(role, kit, weapon, 0, allies ? 2 : 0, ult: ultChoice);
+                session.HostOffline(role, kit, weapon, 0, allies ? 2 : 0, 0, ultPick);
                 Game.ShowcaseMode = true;
                 Game.HostStart();
                 Game.ShowcaseStart(ability);
@@ -332,6 +332,7 @@ namespace Arena
                 dummyIds[i] = e.Id;
                 dummyRespawn[i] = DummyRespawn;
             }
+            JuggShowcaseShots(dummyIds, dt);  // the Juggernaut Suit's flak needs shots to throw back (Juggernaut.cs)
             Orbs.Clear();
             Remaining = Enemies.Count;
         }
