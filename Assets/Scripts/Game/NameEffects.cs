@@ -131,7 +131,7 @@ namespace Arena
                         NRun(r, x + NPrefix(text, i, size), text.Substring(i, 1), size, Color.HSVToRGB(((t * 70f + i * 38f) % 360f) / 360f, 0.85f, 0.95f));
                     break;
                 case "name-chrome":
-                    NOutline(r, x, text, size, new Color(0.04f, 0.06f, 0.12f), 1.1f);
+                    NOutline(r, x, text, size, new Color(0.04f, 0.06f, 0.12f), 0.8f);
                     NBand(r, x, w, text, size, -0.8f, -0.35f, new Color(1f, 1f, 1f));
                     NBand(r, x, w, text, size, -0.35f, -0.05f, new Color(0.74f, 0.84f, 1f));
                     NBand(r, x, w, text, size, -0.05f, 0.08f, new Color(0.12f, 0.16f, 0.28f));
@@ -140,8 +140,8 @@ namespace Arena
                     NSheen(r, x, w, text, size, t * 0.8f, new Color(1f, 1f, 1f, 0.7f), 0.45f);
                     break;
                 case "name-toxic":
-                    NOutline(r, x, text, size, new Color(0.05f, 0.18f, 0.02f), Mathf.Max(1f, size * 0.07f));
-                    NGlow(r, x, text, size, new Color(0.47f, 1f, 0.16f, 0.22f), 1.8f);
+                    NOutline(r, x, text, size, new Color(0.05f, 0.18f, 0.02f), Mathf.Max(0.8f, size * 0.045f));
+                    NGlow(r, x, text, size, new Color(0.47f, 1f, 0.16f, 0.14f), 1.1f);
                     NGradient(r, x, w, text, size, new Color(0.89f, 1f, 0.42f), new Color(0.6f, 0.95f, 0.2f), new Color(0.31f, 0.82f, 0f));
                     if (!small && t > 0f)
                         for (int i = 0; i < text.Length; i++)
@@ -196,7 +196,7 @@ namespace Arena
                     var pal = new[] { new Color(1f, 0.3f, 0.43f), new Color(1f, 0.82f, 0.4f), new Color(0.02f, 0.84f, 0.63f), new Color(0.3f, 0.79f, 0.94f) };
                     int step = t > 0f ? Mathf.FloorToInt(t * 6f) : 0;
                     float block = Mathf.Max(5f, size * 0.3f);
-                    NOutline(r, x, text, size, new Color(0.04f, 0.05f, 0.1f), 1f);
+                    NOutline(r, x, text, size, new Color(0.04f, 0.05f, 0.1f), 0.7f);
                     for (int k = 0; k * block < w + block; k++)
                     {
                         var clip = new Rect(x + k * block, cy - size * 0.8f, Mathf.Min(block, w + 6f - k * block), size * 1.6f);
@@ -215,7 +215,7 @@ namespace Arena
                     {
                         string ch = i < shown ? text.Substring(i, 1) : GlitchChars.Substring(Mathf.FloorToInt(FrameHash(Mathf.FloorToInt(t * 25f) + i * 7) * GlitchChars.Length) % GlitchChars.Length, 1);
                         float cx0 = x + i * pitch + (pitch - Ui.TextWidth(ch, size, true)) * 0.5f;
-                        NRun(r, cx0, ch, size, new Color(0.24f, 1f, 0.51f, 0.2f), 1f);
+                        NRun(r, cx0, ch, size, new Color(0.24f, 1f, 0.51f, 0.14f), 0.6f);
                         NRun(r, cx0, ch, size, green);
                     }
                     if (small || t <= 0f || Mathf.FloorToInt(t * 2f) % 2 == 0)
@@ -225,7 +225,7 @@ namespace Arena
                 case "name-electric":
                 {
                     int seed = t > 0f ? Mathf.FloorToInt(t * 14f) : 0;
-                    NGlow(r, x, text, size, new Color(0.43f, 0.67f, 1f, 0.2f + 0.12f * FrameHash(seed)), 1.7f);
+                    NGlow(r, x, text, size, new Color(0.43f, 0.67f, 1f, 0.12f + 0.08f * FrameHash(seed)), 0.9f);
                     NRun(r, x, text, size, new Color(1f, 0.97f, 0.78f));
                     if (!small && t > 0f)
                         for (int b = 0; b < 2; b++)
@@ -237,15 +237,15 @@ namespace Arena
                             for (float px = x + 8f; px < x + w + 4f; px += 9f)
                             {
                                 var nx = new Vector2(px, sy + (FrameHash(seed * 13 + (int)px + b) - 0.5f) * size * 0.7f);
-                                FrameLine(prev, nx, 1.5f, new Color(0.39f, 0.59f, 1f, 0.35f));
-                                FrameLine(prev, nx, 0.55f, new Color(0.92f, 0.96f, 1f, 0.95f));
+                                FrameLine(prev, nx, 0.9f, new Color(0.39f, 0.59f, 1f, 0.22f));
+                                FrameLine(prev, nx, 0.4f, new Color(0.92f, 0.96f, 1f, 0.95f));
                                 prev = nx;
                             }
                         }
                     break;
                 }
                 case "name-petals":
-                    NGlow(r, x, text, size, new Color(1f, 0.51f, 0.69f, 0.2f), 1.5f);
+                    NGlow(r, x, text, size, new Color(1f, 0.51f, 0.69f, 0.14f), 1f);
                     NGradient(r, x, w, text, size, new Color(1f, 0.96f, 0.97f), new Color(1f, 0.83f, 0.89f), new Color(1f, 0.69f, 0.8f));
                     if (!small && t > 0f)
                         for (int i = 0; i < 8; i++)
