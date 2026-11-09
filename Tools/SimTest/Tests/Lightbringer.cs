@@ -50,7 +50,7 @@ static partial class Program
         play(0.3f, new PlayerInput());
 
         // The chain: held fire runs Dawn, Mercy, Noon and starts over; each enemy a cut hits adds a pip, the ring two.
-        var foe = dummy(from + new V2(45f, 0f));
+        dummy(from + new V2(45f, 0f));
         var steps = new List<int>();
         var fx = new HashSet<int>();
         for (int f = 0; f < 300 && steps.Count < 4; f++)

@@ -17,8 +17,8 @@ static partial class Program
         {
             var s = StartBuffed(dt, wave, 0);
             var types = new HashSet<EnemyType>();
-            int melee = 0, ranged = 0, enemyShotsFromMelee = 0, loneMelee = 0;
-            bool leapSeen = false, meleeHurt = false;
+            int melee = 0, ranged = 0, loneMelee = 0;
+            bool leapSeen = false;
             var counted = new HashSet<int>();
             Run(s, dt, 25, () => s[0].Game.Wave > wave, () =>
             {

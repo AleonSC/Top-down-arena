@@ -105,7 +105,6 @@ static partial class Program
         // --- Sapper --------------------------------------------------------------------------------------------------
         stand(me, new V2(300f, 200f));
         var sp = put(EnemyType.Sapper, new V2(1200f, 600f));
-        int spId = sp.Id;
         Run(s, dt, 9f, null, () => { me.Pos = new V2(300f, 200f); sp.Pos = new V2(1200f, 600f) + new V2((float)Math.Cos(g.AnimT) * 150f, (float)Math.Sin(g.AnimT) * 150f); });
         var pods = g.Enemies.Values.Where(e => e.Type == EnemyType.SapperMine).ToList();
         Console.WriteLine("  Sapper: {0} pods out after 9 s, {1} armed; foes counted {2}", pods.Count, pods.Count(p => p.Phase == 1), g.Foes());

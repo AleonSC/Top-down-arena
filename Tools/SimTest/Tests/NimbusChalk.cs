@@ -152,7 +152,7 @@ static partial class Program
         play(0.5f, f => new PlayerInput { Fire = true, AimAt = zig(f) });
         InkDot first = g.Ink.First(d => d.Owner == 1);
         int ff0 = 30;
-        int drawn = 0, atCap = 0;
+        int drawn = 0;
         play(2.5f, f =>
         {
             drawn = Math.Max(drawn, g.Ink.Count(d => d.Owner == 1 && d.T > Game.ChalkErase));

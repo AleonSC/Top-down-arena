@@ -74,7 +74,6 @@ static partial class Program
         Vector2Check(near, spots[near]);
 
         // Frozen, it neither moves nor shoots; and the ice runs out.
-        float t0 = Game.FreezeTime;
         step(Game.FreezeBossTime - 0.2f);
         Check(boss.FrozenT <= 0.3f, "the boss thaws first");
         step(2.5f);
@@ -98,7 +97,6 @@ static partial class Program
         // Mastered: +25% while frozen, and not after.
         reset();
         var m = pin(new V2(500f, 450f), EnemyType.Grunt);
-        var castMastered = typeof(Game).GetField("castMastered", flags);
         g.ShowcaseSetAbility(AbilityId.SiphonField); me.Slots[0].Charges = 1;
         me.MasteryXp[AbilityId.SiphonField] = 1e9f;
         hostAbility.Invoke(g, new object[] { 1, 0, mePos, true });

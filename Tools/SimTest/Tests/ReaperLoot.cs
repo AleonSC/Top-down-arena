@@ -83,7 +83,7 @@ static partial class Program
         var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, home + new V2(200f, 0f), 0f, 0, false });
         grunt.Hp = grunt.MaxHp = 1000f; grunt.SpawnT = 0f; keep.Add(grunt);
         hp.Hp = hp.MaxHp * 0.5f;
-        float before = hp.Hp, regen0 = hp.Stats.Regen;
+        float before = hp.Hp;
         hurt.Invoke(g, new object[] { grunt, 880f, 2 });  // leaves 120: 12%
         bool reaped = grunt.Hp <= 0f;
         float healed = hp.Hp - before;

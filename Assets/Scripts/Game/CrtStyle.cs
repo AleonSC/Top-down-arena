@@ -74,6 +74,8 @@ namespace Arena
         public const float KeyGlowOn = 0.1f;                                          // the selected key's soft glow
         public const float KeyTextMix = 0.3f, KeyTextMixLit = 0.75f;                  // text: the accent mixed this far toward white
         public const float KeyLockedTint = 0.03f, KeyLockedDashW = 2f, KeyLockedDash = 0.7f;  // a locked key: dashed
+        // A quiet key (CrtUi.SoftKey quiet: the Play picker's DEL until the mouse is on it): a 1 px dashed outline, dim text.
+        public const float KeyQuietTint = 0.02f, KeyQuietDashW = 1f, KeyQuietDash = 0.55f, KeyQuietText = 0.8f;
 
         // A key that can't be used yet (LobbyKit.Key locked: Start before everyone is ready): fainter than a locked slot.
         public const float KeyWaitTint = 0.015f, KeyWaitDash = 0.3f, KeyWaitText = 0.5f;
@@ -85,7 +87,7 @@ namespace Arena
         public const float HudKeyTint = 0.09f, HudKeyRimW = 2f;          // a ready key: a faint fill of its colour, a 2 px outline
         public const float HudKeyEmptyTint = 0.02f, HudKeyEmptyDash = 0.55f;  // an empty slot: dashed
 
-        // --- Inverse-video keys (CrtUi.Button / Small: the Play picker and the main menu's run screens) -----------------------------
+        // --- Inverse-video keys (CrtUi.Button / Small: the path choice and the main menu's tip box) -----------------------------------------
 
         public const float InvTint = 0.07f, InvLit = 0.95f, InvRimW = 2f;  // outlined; under the mouse a solid block with dark text
 

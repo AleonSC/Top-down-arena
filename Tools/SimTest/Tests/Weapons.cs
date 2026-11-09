@@ -299,7 +299,7 @@ static partial class Program
         Step(6, false, true);
         Check(g.Bullets.ContainsKey(red.Id) && me.GreatTemper == temper0 + 1, "an aimed red shot goes through and gives nothing");
         g.Bullets.Clear();
-        var behind = Shot(from + new V2(-(Game.GreatGuardRadius + 40f), 0f), new V2(300f, 0f), Defs.BigShot);
+        Shot(from + new V2(-(Game.GreatGuardRadius + 40f), 0f), new V2(300f, 0f), Defs.BigShot);
         Step(14, false, true);
         Check(me.GreatTemper == temper0 + 1, "a bullet from behind is not stopped by the arc in front");
         g.Bullets.Clear();

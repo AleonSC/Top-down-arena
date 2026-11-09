@@ -95,7 +95,6 @@ static partial class Program
         host.Host(port, "A", Role.Tank, 0);
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = BotSkill.Good; c.Game.BotRerolls = false;
         c.Join("127.0.0.1", port, "B", Role.Dps, 0);
-        var s = new[] { host, c };
         WaitForGame(host, c, dt);
         int lastWave = 0;
         for (int f = 0; f < 60 * 60 * 40 && host.Game.State != MatchState.GameOver && host.Game.Wave <= 30; f++)

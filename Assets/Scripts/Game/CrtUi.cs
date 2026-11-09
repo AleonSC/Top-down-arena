@@ -119,6 +119,43 @@ namespace Arena
             return Ui.HitArea(r);
         }
 
+        /// A soft key with an optional icon: the Play picker's Continue and DEL (look B of Docs/Mockups/crt-play-picker-keys.html).
+        /// Drawn like the lobby's keys (CrtKit.SoftBox / SoftText), never a solid block. lit: always shown selected (the latest
+        /// run's Continue, a delete waiting for its second click). danger: red. quiet: dashed and dim until the mouse is on it
+        /// (unless lit). True when pressed.
+        public static bool SoftKey(Rect r, string text, Texture2D icon, int size, bool calm, bool lit = false, bool danger = false, bool quiet = false)
+        {
+            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            Color c = CrtStyle.KeyColor(null, danger), tc;
+            bool hushed = quiet && !hover && !lit;
+            if (hushed)
+            {
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietTint));
+                CrtKit.Dashed(r, CrtStyle.KeyQuietDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietDash));
+                tc = new Color(c.r, c.g, c.b, CrtStyle.KeyQuietText);
+            }
+            else
+            {
+                CrtKit.SoftBox(r, c, lit, hover, false);
+                tc = CrtKit.SoftText(c, lit || hover);
+            }
+            float isz = Mathf.Min(size * 1.0f, r.height * 0.5f);
+            float tw = text.Length == 0 ? 0f : Ui.TextWidth(text, size, true) - 6f, gap = icon != null && text.Length > 0 ? (size >= 18 ? 10f : 6f) : 0f, ic = icon != null ? isz : 0f;
+            float x = r.center.x - (ic + gap + tw) / 2f;
+            if (icon != null)
+                Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), icon, tc);
+            if (text.Length > 0)
+            {
+                var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height);
+                if (hover || lit)
+                    Ui.Label(tr, text, size, tc, TextAnchor.MiddleLeft, true);
+                else
+                    Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, calm);
+            }
+            return Ui.HitArea(r);
+        }
+
         /// Scanlines, vignette and (unless calm) the rolling bar and flicker, over everything drawn since Begin.
         public static void End(Rect r, float t, bool calm)
         {

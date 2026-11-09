@@ -166,7 +166,7 @@ static partial class Program
         // The seeds belong to the Treant Rod: another weapon's Treant (none) and a lone Treant with nobody holding the rod fire nothing.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SpriteStaff);
         play(1.5f);
-        var other = dummy(from + new V2(150f, 0f));
+        dummy(from + new V2(150f, 0f));
         play(1f);
         Check(!g.Bullets.Values.Any(x => x.Kind == Defs.TreantSeed), "no seeds without the Treant Rod");
         reset();

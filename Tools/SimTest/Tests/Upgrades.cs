@@ -46,6 +46,12 @@ static partial class Program
             && placed.All(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly)
             && ids.Count(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly) == placed.Count;
         Check(complete && lobby, "every ability has a complete entry, and each lobby place holds exactly one");
+        // Kits.Zones and Kits.Minions are read by kind number: an enum value added or removed without its entry shifts
+        // every later kind's numbers (it compiles, and only some zone tests notice).
+        int zoneKinds = Enum.GetValues(typeof(ZoneKind)).Length;
+        int minionKinds = Enum.GetValues(typeof(MinionKind)).Cast<MinionKind>().Count(k => k != MinionKind.None);
+        Check(Kits.Zones.Length == zoneKinds && Kits.Minions.Length == minionKinds,
+            "every zone and minion kind has exactly one definition (" + Kits.Zones.Length + "/" + zoneKinds + " zones, " + Kits.Minions.Length + "/" + minionKinds + " minions)");
     }
 
     static void CheckOffers()

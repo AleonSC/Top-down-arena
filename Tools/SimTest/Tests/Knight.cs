@@ -90,7 +90,7 @@ static partial class Program
 
         // Extra projectiles: each weapon its own way.
         me.Role = Role.Dps;
-        float rapier1 = Measure(2);
+        Measure(2);
         var second = Dummy(new V2(720f, 450f));
         float before2 = second.Hp;
         g.GrantUpgrade(1, U("Multishot"));
@@ -100,7 +100,6 @@ static partial class Program
         for (int f = 0; f < 120; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); dummy.FrozenT = second.FrozenT = 1f; dummy.Pos = new V2(700f, 450f); second.Pos = new V2(720f, 450f); }
         bool skewer = second.Hp < before2;
         me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 1);
-        int waves0 = g.Bullets.Values.Count(b => b.Kind == Defs.KnightWave);
         bool beams = false;  // watched every frame: the beams only live 0.6 s
         for (int f = 0; f < 150; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); beams |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1); }
         second.Hp = 0f;
@@ -124,7 +123,6 @@ static partial class Program
         // (The Lance has its own suite: run.sh 1 30 lance, Tests/Lance.cs.)
 
         // Abilities (cast directly; all players are invulnerable to everything but what's tested).
-        Func<AbilityId, int> Slot = id => { var p = g.Players.Values.First(q => q.Slots.Any(sl => sl.Id == id)); return Array.FindIndex(p.Slots, sl => sl.Id == id); };
         Action<int, AbilityId, V2> Cast = (pid, id, at) =>
         {
             var p = g.Players[pid];
@@ -140,7 +138,7 @@ static partial class Program
         for (int f = 0; f < 20; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
         float tookFront = me.Run.DamageTaken;
         me.InvulnT = 0f;
-        var back = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, new V2(330f, 450f), new V2(300f, 0f), 0f, 5f, 10f, 0, false, 0f });
+        shoot.Invoke(g, new object[] { Defs.BigShot, new V2(330f, 450f), new V2(300f, 0f), 0f, 5f, 10f, 0, false, 0f });
         for (int f = 0; f < 30; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
         for (int f = 0; f < 10; f++) { Thread.Sleep(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); }
         Console.WriteLine("  shield wall: front shot gone {0}, damage from front {1:0}, from behind {2:0}", !g.Bullets.ContainsKey(front.Id), tookFront, me.Run.DamageTaken - tookFront);

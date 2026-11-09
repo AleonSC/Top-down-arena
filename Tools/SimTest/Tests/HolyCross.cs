@@ -33,7 +33,6 @@ static partial class Program
         ally.Hp = ally.MaxHp * 0.3f;
         var near = pin(new V2(560f, 450f)); var far = pin(new V2(760f, 520f)); var off = pin(offPos); var behind = pin(new V2(100f, 450f));
         var shoved = make(new V2(480f, 420f));  // not pinned, so its knockback shows
-        var shovedFrom = shoved.Pos;
         masteredField.SetValue(g, false);
         cast.Invoke(g, new object[] { me, 0, new V2(900f, 450f) });
         bool fx = g.Effects.Any(e => e.Kind == FxKind.HolyCross);

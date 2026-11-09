@@ -655,7 +655,6 @@ static partial class Program
             if (mode == "flame wall")
                 s[0].Game.AddZone(ZoneKind.FlameWall, tank, boss.Pos, 90f, 30f);
             int escaped = 0, frame = 0, bossShots = 0, plain = 0;
-            float hpBefore = s[0].Game.Players[2].Hp + s[0].Game.Players[1].Hp;
             Run(s, dt, 8, null, () =>
             {
                 var b = Find(s[0], EnemyType.Boss);

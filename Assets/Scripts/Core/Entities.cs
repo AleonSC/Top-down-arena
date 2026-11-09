@@ -510,7 +510,7 @@ namespace Arena
         public float Heal => Med ? MedHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
     }
 
-    /// An area on the ground: Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
+    /// An area on the ground: Flame Wall, Blizzard, smoke, pools, wards, a meteor's warning and the like (ZoneKind).
     public class Zone
     {
         public int Id, Owner;

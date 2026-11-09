@@ -222,9 +222,10 @@ namespace Arena
                 DrawSaveBadges(s, r.x + 18f, r.y + 100f, 112f, 6f, 4);
                 bool blink = calm || Mathf.FloorToInt(Time.unscaledTime * 1.5f) % 2 == 0;
                 CrtUi.Text(new Rect(r.xMax - 170f, r.y + 6f, 152f, 14f), (blink ? "\u25cf " : "  ") + "READY", 10, CrtUi.Dim, TextAnchor.MiddleCenter, false, calm);
-                if (CrtUi.Button(new Rect(r.xMax - 170f, r.y + 24f, 152f, 50f), "CONTINUE", PixelArt.Get("ui_play"), 20, calm))
+                // The latest run's Continue is always lit (it's what most people press); DEL stays quiet until the mouse is on it.
+                if (CrtUi.SoftKey(new Rect(r.xMax - 170f, r.y + 24f, 152f, 50f), "CONTINUE", PixelArt.Get("ui_play"), 20, calm, lit: true))
                     toContinue = s;
-                if (CrtUi.Small(new Rect(r.xMax - 170f, r.y + 82f, 152f, 28f), delLabel, null, armed ? 12 : 15, calm, true, armed))
+                if (CrtUi.SoftKey(new Rect(r.xMax - 170f, r.y + 82f, 152f, 28f), delLabel, null, armed ? 12 : 15, calm, lit: armed, danger: true, quiet: true))
                     toDelete = s;
                 return;
             }
@@ -246,9 +247,9 @@ namespace Arena
                 CrtUi.Text(new Rect(cx + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                 CrtUi.Text(new Rect(cx + colX[4] + 78f, top + k * 15f - 1f, 84f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
             }
-            if (CrtUi.Small(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 13, calm))
+            if (CrtUi.SoftKey(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", PixelArt.Get("ui_play"), 13, calm))
                 toContinue = s;
-            if (CrtUi.Small(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), delLabel, null, armed ? 12 : 15, calm, true, armed))
+            if (CrtUi.SoftKey(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), delLabel, null, armed ? 12 : 15, calm, lit: armed, danger: true, quiet: true))
                 toDelete = s;
         }
 
