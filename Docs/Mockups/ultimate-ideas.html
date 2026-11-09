@@ -1,0 +1,811 @@
+<title>Ultimate Ideas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, role + class pickers, the current ultimate as a one-line strip, two idea cards side by side
+   (each a looping arena canvas over its rules), then an at-a-glance grid of all 36 ideas. House mockup palette:
+   steel and parchment neutrals, gold for ultimates, the role colour on the picked role. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#a8700a; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee; --arena:#14161a;
+  --tank:#2f6fb3; --healer:#2f8f5a; --dps:#c2462f;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#f0bd54; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f;
+  --tank:#6fb0f0; --healer:#6fd69a; --dps:#f08a72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#f0bd54; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f;
+  --tank:#6fb0f0; --healer:#6fd69a; --dps:#f08a72; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:72ch;color:var(--muted)}
+.pick{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.row>span{font:500 12px var(--mono);color:var(--muted);width:44px;text-transform:uppercase;letter-spacing:.06em}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);border-radius:0;padding:8px 14px;font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;background:var(--chip);color:var(--fg);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg button.r-tank[aria-pressed="true"]{background:var(--tank);color:#fff}
+.seg button.r-healer[aria-pressed="true"]{background:var(--healer);color:#fff}
+.seg button.r-dps[aria-pressed="true"]{background:var(--dps);color:#fff}
+button{font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:focus-visible,.chk input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font:500 13px var(--mono);color:var(--muted)}
+.current{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0}
+.current b{font:700 13px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.current strong{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+.current span{color:var(--muted);flex:1 1 360px;min-width:0}
+.ideas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px}
+.idea{display:flex;flex-direction:column;gap:12px;min-width:0}
+.idea h2{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;color:var(--acc);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.idea h2 small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:none}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:480/270;max-width:100%}
+.tl{position:absolute;left:8px;bottom:6px;font:500 11px var(--mono);color:#cfd3d8;opacity:.8;pointer-events:none;text-shadow:0 1px 2px #000}
+.hook{margin:0;font-weight:600}
+.rules{margin:0;color:var(--fg)}
+.nums{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.nums li{font:500 12px var(--mono);background:var(--chip);border-radius:4px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.why{margin:0;color:var(--muted);font-size:15px}
+.why b{color:var(--fg);font-weight:600}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+h3{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 0}
+.wrapx{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:700 15px var(--display);text-transform:uppercase;letter-spacing:.05em}
+th.r{width:80px}
+tr:last-child td{border-bottom:0}
+td button{all:unset;cursor:pointer;display:block;color:var(--fg);font-weight:500;line-height:1.35;padding:1px 0}
+td button:hover{color:var(--acc)}
+td button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+td button.on{color:var(--acc);font-weight:600}
+td small{display:block;color:var(--muted);font:400 11px var(--mono);margin-top:4px}
+.dev{margin:0;color:var(--muted);font-size:14px;max-width:84ch}
+</style>
+<main>
+<header>
+  <h1>Ultimate Ideas</h1>
+  <p>Two new ultimate ideas for every role and class, 36 in all, for the three locked ultimate slots in the lobby. Each loops in the arena: you are the ringed player on the left, your two allies sit behind you, enemies come from the right. Numbers are first guesses, sized against the current ultimates. A Wildcard would use the DPS ultimates as it does today.</p>
+</header>
+
+<section class="pick" aria-label="Pick a role and class">
+  <div class="row"><span>Role</span><div class="seg" id="roles"></div></div>
+  <div class="row"><span>Class</span><div class="seg" id="classes"></div></div>
+</section>
+
+<div class="current"><b>Now</b><strong id="curName"></strong><span id="curText"></span></div>
+
+<div class="controls">
+  <button type="button" id="replay">Replay</button>
+  <button type="button" id="pause">Pause</button>
+  <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo (0.35×)</label>
+</div>
+
+<section class="ideas" id="ideas"></section>
+
+<h3>All 36 at a glance</h3>
+<div class="wrapx"><table id="grid"></table></div>
+
+<p class="dev"><strong>Build notes.</strong> Mockup only, nothing built. Each idea would be a new <code>AbilityId</code> at the end of the enum (before <code>None</code>) and a protocol bump for its replicated clock, as Vein Tithe and Crimson Harvest did. The lobby already draws three locked slots beside the ultimate key, so a pick here would fill one of them; how a player chooses between ultimates (lobby pick, unlock by rank, or mastery) is still open.</p>
+</main>
+
+<script>
+(function(){
+var W=480,H=270,TAU=Math.PI*2;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v,a,b){if(a===undefined){a=0;b=1}return Math.max(a,Math.min(b,v))}
+function ph(t,a,b){return clamp((t-a)/(b-a))}
+function eo(f){f=clamp(f);return 1-Math.pow(1-f,3)}
+function sm(f){f=clamp(f);return f*f*(3-2*f)}
+function lerp(a,b,f){return a+(b-a)*f}
+function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function rgba(c,a){return 'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+a+')'}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function circle(c,x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function ell(c,x,y,rx,ry,fill,stroke,lw,rot){c.beginPath();c.ellipse(x,y,Math.max(0,rx),Math.max(0,ry),rot||0,0,TAU);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function line(c,x0,y0,x1,y1,col,lw){c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.lineWidth=lw||1;c.strokeStyle=col;c.lineCap='round';c.stroke()}
+function poly(c,p,fill,stroke,lw){c.beginPath();p.forEach(function(q,i){i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function glow(c,x,y,r,c0,c1){var g=c.createRadialGradient(x,y,0,x,y,Math.max(1,r));g.addColorStop(0,c0);g.addColorStop(1,c1);c.fillStyle=g;c.beginPath();c.arc(x,y,Math.max(1,r),0,TAU);c.fill()}
+function arc(c,x,y,r,a0,a1,col,lw){c.beginPath();c.arc(x,y,Math.max(0,r),a0,a1);c.lineWidth=lw||1;c.strokeStyle=col;c.lineCap='round';c.stroke()}
+function zig(c,x0,y0,x1,y1,col,lw,seed){var n=7,dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;c.beginPath();c.moveTo(x0,y0);for(var k=1;k<n;k++){var f=k/n,o=(hash(seed*13+k)-.5)*16;c.lineTo(x0+dx*f+nx*o,y0+dy*f+ny*o)}c.lineTo(x1,y1);c.lineWidth=lw;c.strokeStyle=col;c.lineCap='round';c.lineJoin='round';c.stroke()}
+function num(c,x,y,txt,age,col,size){if(age<0||age>.9)return;var f=age/.9;c.save();c.globalAlpha=1-f*f;c.font='700 '+(size||14)+'px "Barlow Condensed","Arial Narrow",sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.75)';c.fillStyle=col||'#fff';var yy=y-14-eo(f)*16;c.strokeText(txt,x,yy);c.fillText(txt,x,yy);c.restore()}
+function add(c){c.globalCompositeOperation='lighter'}
+
+/* ---- scene ---- */
+var PL=[{x:120,y:140},{x:72,y:78},{x:80,y:204}];
+var B=[[300,64],[352,112],[286,150],[392,196,1],[334,232],[424,84],[446,156],[258,100,1],[404,246],[262,214],[452,222],[366,40]];
+var ROLECOL={Tank:[111,176,240],Healer:[111,214,154],DPS:[240,138,114]};
+function basePos(i,t,o){o=o||{};var b=B[i],v=o.v==null?10:o.v,stop=o.stop||90,P=PL[0];var dx=P.x-b[0],dy=P.y-b[1],d=Math.hypot(dx,dy);var m=Math.min(v*t,Math.max(0,d-stop));
+  return{x:b[0]+dx/d*m+Math.sin(t*1.7+i)*2,y:b[1]+dy/d*m+Math.cos(t*1.3+i*2)*2,a:Math.atan2(dy,dx),d0:d}}
+function enemyAt(I,i,t,S,main){var b=B[i],p=I.noDrift?{x:b[0]+Math.sin(t*1.7+i)*2,y:b[1]+Math.cos(t*1.3+i*2)*2,a:Math.atan2(PL[0].y-b[1],PL[0].x-b[0]),d0:Math.hypot(PL[0].x-b[0],PL[0].y-b[1])}:basePos(i,t,I.drift);
+  var e={i:i,x:p.x,y:p.y,a:p.a,d0:p.d0,r:b[2]?15:10,heavy:!!b[2],dead:0,flash:0,stun:0,tint:null,noShoot:0,hp:1,scale:1,ring:null};
+  if(I.enemy)I.enemy(e,t,S,main);return e}
+/* place enemy on its line to P at radius r */
+function onRay(e,r){e.x=PL[0].x-Math.cos(e.a)*r;e.y=PL[0].y-Math.sin(e.a)*r}
+/* approach P at v; at `edge` (while t0..t1) get knocked out to `out` over .3 s, then come again */
+function bounce(r0,v,edge,out,t,t0,t1,minR){var r=r0,tc=0,n=0,last=-1;minR=minR||70;
+  for(var g=0;g<30;g++){var tt=Math.max(tc+Math.max(0,r-edge)/v,t0);
+    if(tt>t1||t<tt){var rr=r-v*(t-tc);return{r:Math.max(tt>t1?minR:edge,rr),hit:last>=0?t-last:-1,n:n}}
+    n++;last=tt;if(t<tt+.3)return{r:edge+(out-edge)*eo((t-tt)/.3),hit:t-tt,n:n};r=out;tc=tt+.3}
+  return{r:r,hit:-1,n:n}}
+function bullets(I,t,S){var out=[],n=I.nb||26,per=(I.dur-1.4)/n;
+  for(var j=0;j<n;j++){var t0=.1+j*per+hash(j)*.25;if(t<t0)continue;var si=(j*5+3)%12,src=enemyAt(I,si,t0,S,false);
+    if(src.dead>0||src.stun>0||src.noShoot)continue;var tg=I.target?I.target(j,t0,S):(I.party?PL[j%3]:PL[0]);
+    var dx=tg.x-src.x,dy=tg.y-src.y,d=Math.hypot(dx,dy)||1,sp=130;var b={j:j,t0:t0,age:t-t0,arr:(d-10)/sp,sx:src.x,sy:src.y,src:si,tg:tg,ux:dx/d,uy:dy/d,sp:sp};
+    var k=Math.min(b.age,b.arr);b.x=b.sx+b.ux*sp*k;b.y=b.sy+b.uy*sp*k;b.landed=b.age>=b.arr;b.posAt=function(a){a=Math.min(a,this.arr);return{x:this.sx+this.ux*this.sp*a,y:this.sy+this.uy*this.sp*a}};out.push(b)}
+  return out}
+/* was this bullet, at any moment in (t0, t], inside test(x,y,time)? returns the time or -1 */
+function caught(b,t,test){for(var a=0;a<=Math.min(b.age,b.arr);a+=.04){var p=b.posAt(a);if(test(p.x,p.y,b.t0+a))return b.t0+a}return -1}
+
+function floor(c){c.fillStyle='#14161a';c.fillRect(0,0,W,H);c.strokeStyle='#1c2025';c.lineWidth=1;
+  for(var x=0;x<=W;x+=30){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,H);c.stroke()}
+  for(var y=0;y<=H;y+=30){c.beginPath();c.moveTo(0,y+.5);c.lineTo(W,y+.5);c.stroke()}
+  var g=c.createRadialGradient(W/2,H/2,90,W/2,H/2,320);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');c.fillStyle=g;c.fillRect(0,0,W,H)}
+function drawEnemy(c,e){if(e.dead>=1)return;c.save();c.globalAlpha=1-e.dead;c.translate(e.x,e.y);c.scale(e.scale,e.scale);
+  if(e.dead>0){c.save();add(c);circle(c,0,0,e.r+eo(e.dead)*22,null,rgba([255,240,220],.8*(1-e.dead)),2);c.restore()}
+  c.rotate(e.a);var fl=e.flash>0;
+  circle(c,0,0,e.r,fl?'#fff':(e.tint||(e.heavy?'#6e5a86':'#8d7399')),e.heavy?'#2d2039':'#35263f',2.5);
+  if(e.heavy)circle(c,0,0,e.r-5,null,'rgba(255,255,255,.22)',1.5);
+  c.fillStyle='#1b1320';c.beginPath();c.arc(e.r*.5,-e.r*.3,1.8,0,TAU);c.arc(e.r*.5,e.r*.3,1.8,0,TAU);c.fill();c.restore();
+  if(e.heavy&&e.dead<=0){c.fillStyle='rgba(0,0,0,.55)';c.fillRect(e.x-14,e.y-e.r-9,28,3.5);c.fillStyle=e.hp<1?'#e5a13a':'#6fbf73';c.fillRect(e.x-14,e.y-e.r-9,28*clamp(e.hp),3.5)}
+  if(e.stun>0&&e.dead<=0){for(var k=0;k<3;k++){var a=performance.now()/300+k*TAU/3;circle(c,e.x+Math.cos(a)*(e.r+4),e.y-e.r-3+Math.sin(a)*3,1.8,'#ffe9a0')}}
+  if(e.ring&&e.dead<=0)circle(c,e.x,e.y,e.r+5,null,e.ring,2)}
+function drawBullet(c,b){c.save();add(c);glow(c,b.x,b.y,7,'rgba(255,110,90,.55)','rgba(255,110,90,0)');c.restore();circle(c,b.x,b.y,3,'#ffd9cf','#ff5a44',1.2)}
+function drawPlayer(c,p,role){c.save();c.globalAlpha=p.alpha;
+  ell(c,p.x,p.y+3,12*p.scale,6*p.scale,'rgba(0,0,0,.35)');
+  var y=p.y-p.lift;c.translate(p.x,y);c.scale(p.scale,p.scale);
+  var me=p.k===0,col=me?ROLECOL[role]:[150,165,185];
+  if(p.down){circle(c,0,0,10,'#555b66','#2a2e35',2);line(c,-5,-5,5,5,'#c44',2.5);line(c,-5,5,5,-5,'#c44',2.5);c.restore();return}
+  if(me){c.save();add(c);glow(c,0,0,22,rgba(col,.35),rgba(col,0));c.restore()}
+  line(c,4,0,17,0,'#59606c',4);
+  circle(c,0,0,10,p.tint||'#cfd8e6','#4a5463',2);circle(c,0,0,13.5,null,rgba(col,me?.95:.55),2);
+  c.fillStyle='#1c212b';c.fillRect(4,-2,3,4);c.restore();
+  if(p.hp<1){var hx=p.x-14,hy=p.y-p.lift-21;c.fillStyle='rgba(0,0,0,.6)';c.fillRect(hx,hy,28,3.5);c.fillStyle=p.hp<.35?'#e0573f':'#6fd69a';c.fillRect(hx,hy,28*clamp(p.hp),3.5)}}
+function reticle(c,x,y){c.save();c.globalAlpha=.8;circle(c,x,y,8,null,'#fff',1.2);line(c,x-13,y,x-5,y,'#fff',1.2);line(c,x+5,y,x+13,y,'#fff',1.2);line(c,x,y-13,x,y-5,'#fff',1.2);line(c,x,y+5,x,y+13,'#fff',1.2);c.restore()}
+function nearestTo(S,x,y,n,filter){return S.E.filter(function(e){return e.dead<=0&&(!filter||filter(e))}).sort(function(a,b){return Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)}).slice(0,n)}
+/* dwell: seconds enemy i's base track spent within rad of path(time) over [a, min(t,b)] */
+function dwell(I,i,t,a,b,rad,path){var s=0;for(var u=a;u<=Math.min(t,b);u+=.05){var p=basePos(i,u,I.drift),q=path(u);if(Math.hypot(p.x-q.x,p.y-q.y)<rad)s+=.05}return s}
+
+function frame(c,I,role,t){var S={t:t,I:I};
+  S.E=B.map(function(_,i){return enemyAt(I,i,t,S,true)});
+  S.PL=PL.map(function(p,k){var q={k:k,x:p.x,y:p.y,hp:1,down:0,scale:1,alpha:1,lift:0,tint:null};if(I.player)I.player(q,t,S);return q});
+  S.B=bullets(I,t,S);
+  floor(c);if(I.under)I.under(c,S);
+  S.E.forEach(function(e){drawEnemy(c,e)});
+  S.B.forEach(function(b){if(b.landed)return;if(I.bullet&&I.bullet(b,t,S)===false)return;drawBullet(c,b)});
+  S.PL.forEach(function(p){drawPlayer(c,p,role)});
+  if(I.over)I.over(c,S);
+  if(I.cursor&&t<(I.cursorEnd||1.4))reticle(c,I.cursor.x,I.cursor.y)}
+
+/* =====================================================================================
+   THE IDEAS. Each: name, cd, hook, rules, nums, why, dur, and drawing hooks.
+   enemy(e,t,S,main) moves/marks an enemy; player(p,t,S); bullet(b,t,S) false = erased;
+   under(c,S) draws on the floor; over(c,S) draws on top.
+   ===================================================================================== */
+var P=PL[0];
+var IDEAS={};
+
+/* ---------------- SOLDIER ---------------- */
+IDEAS['Tank/Soldier']=[
+{name:'Claymore Ring',cd:70,dur:8,drift:{v:24,stop:60},
+ hook:'Throw a ring of claymores round yourself and let the wave walk into it.',
+ rules:'Twelve claymores land in a 150 px ring round you and arm for 12 s. An enemy that steps up to one sets it off: a cone blast outward, 50 damage and a 70 px shove (Heavy enemies 25 px, bosses not moved). Each claymore re-arms 3 s later. Enemy bullets fly over them, so it buys space, not cover.',
+ nums:['70 s','12 claymores','150 px ring','50 dmg','70 px shove','re-arm 3 s','12 s'],
+ why:'<b>Unlike Fortress</b>, nothing is sealed off: you keep your angle on the pack and the pack keeps getting thrown back as it comes.',
+ enemy:function(e,t,S,main){var o=bounce(e.d0,24,150,e.heavy?175:220,t,.9,7.6,60);onRay(e,o.r);if(o.hit>=0&&o.hit<.12)e.flash=1;
+   if(main&&o.hit>=0&&o.hit<.9){(S.trig=S.trig||[]).push({a:e.a,age:o.hit,x:e.x,y:e.y})}},
+ under:function(c,S){var t=S.t,on=ph(t,.3,.9);if(on<=0)return;
+   for(var k=0;k<12;k++){var a=k/12*TAU+.13,r=150*eo(on),x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;
+     c.save();c.translate(x,y);c.rotate(a);poly(c,[[-4,-8],[4,-6],[4,6],[-4,8]],'#7d8c55','#252a1c',1.5);c.restore();
+     var blink=(Math.sin(t*8+k)>.4&&t<7.6)?1:.3;circle(c,x,y,1.8,'rgba(255,60,50,'+blink+')')}
+   (S.trig||[]).forEach(function(g){if(g.age>.45)return;var a=g.a+Math.PI,mx=P.x+Math.cos(a)*150,my=P.y+Math.sin(a)*150,f=g.age/.45;
+     c.save();add(c);c.globalAlpha=1-f;c.beginPath();c.moveTo(mx,my);c.arc(mx,my,30+eo(f)*60,a-.5,a+.5);c.closePath();c.fillStyle='rgba(255,190,90,.55)';c.fill();c.restore()})},
+ over:function(c,S){(S.trig||[]).forEach(function(g){num(c,g.x,g.y,'50',g.age,'#ffd38a')})}},
+{name:'Juggernaut Suit',cd:75,dur:8,
+ hook:'Bolt on a heavy plate rig and turn every hit into a shot back.',
+ rules:'Plates clamp on over 0.6 s. For 10 s you carry 300 armour that soaks damage before your health, move 25% slower and every enemy prefers you (bosses too). Each bullet the armour takes throws a flak shard straight back at whoever fired it, 12 damage. The plates fall off when the time or the armour runs out.',
+ nums:['75 s','300 armour','10 s','-25% speed','taunt','12 per shard'],
+ why:'<b>Unlike Fortress</b>, it moves with you: the tank keeps walking point while the party is safe behind the taunt.',
+ player:function(p,t,S){if(p.k)return;var on=ph(t,.3,.9);p.scale=1+.3*eo(on)*(t<7.6?1:1-ph(t,7.6,7.9));if(on>0)p.tint='#9ea6ae'},
+ over:function(c,S){var t=S.t,on=ph(t,.3,.9),off=t>7.6?1-ph(t,7.6,7.9):1,sc=(1+.3*eo(on))*off;if(on<=0||off<=0)return;
+   c.save();c.translate(P.x,P.y);for(var k=0;k<6;k++){var a=k/6*TAU+.3,f=ph(t,.3+k*.08,.5+k*.08),r=lerp(40,16,eo(f))*sc;c.save();c.rotate(a);c.globalAlpha=f;poly(c,[[r-3,-7],[r+4,-5],[r+4,5],[r-3,7]],'#7b858f','#2e343b',1.5);c.restore();
+     if(f>0&&f<1){c.save();add(c);circle(c,Math.cos(a)*r,Math.sin(a)*r,5*(1-f),'rgba(255,220,150,.9)');c.restore()}}c.restore();
+   var n=S.B.filter(function(b){return b.landed&&b.t0+b.arr>.9}).length,arm=clamp(1-n*.06);
+   c.fillStyle='rgba(0,0,0,.6)';c.fillRect(P.x-18,P.y-30,36,4);c.fillStyle='#b7c2cc';c.fillRect(P.x-18,P.y-30,36*arm,4);
+   S.B.forEach(function(b){if(!b.landed||b.t0+b.arr<.9)return;var a=b.age-b.arr;if(a>.6)return;var e=S.E[b.src],f=ph(a,0,.28),x=lerp(P.x,e.x,f),y=lerp(P.y,e.y,f);
+     if(f<1){c.save();add(c);line(c,x,y,x-(e.x-P.x)*.08,y-(e.y-P.y)*.08,'rgba(255,214,140,.95)',2.5);c.restore()}else num(c,e.x,e.y,'12',a-.28,'#ffd38a',12)})}}
+];
+IDEAS['Healer/Soldier']=[
+{name:'Supply Drop',cd:85,dur:8,party:1,cursor:{x:132,y:148},cursorEnd:1.2,
+ hook:'Call in a crate that turns into a med and ammo station.',
+ rules:'A crate parachutes in at your cursor (1.2 s, its shadow shows where). It cracks open into a station for 12 s: allies within 110 px heal 25 a second and fire 30% faster, and a downed ally inside is pulled back up at 50% after 2 s.',
+ nums:['85 s','1.2 s drop','110 px','25 HP/s','+30% fire rate','revive in 2 s','12 s'],
+ why:'<b>Unlike Lifeline</b>, it is a place, not a button: strong if the party holds the spot, wasted if they scatter.',
+ player:function(p,t){if(p.k===2&&t<3.6)p.down=1;if(p.k===2&&t>=3.6)p.hp=lerp(.5,1,ph(t,3.6,7))},
+ under:function(c,S){var t=S.t,C=this.cursor,land=1.3;
+   if(t<land){var f=ph(t,0,land);ell(c,C.x,C.y+4,14*(.4+.6*f),7*(.4+.6*f),'rgba(0,0,0,.4)')}
+   else{var on=ph(t,land,land+.4),R=110*eo(on);c.save();add(c);glow(c,C.x,C.y,R,'rgba(120,240,170,.14)','rgba(120,240,170,0)');c.restore();
+     c.setLineDash([6,6]);c.lineDashOffset=-t*20;circle(c,C.x,C.y,R,null,'rgba(140,240,180,.7)',1.5);c.setLineDash([]);
+     var p=(t*.7)%1;circle(c,C.x,C.y,R*p,null,'rgba(140,240,180,'+(.5*(1-p))+')',2);
+     if(t<land+.35){var f2=ph(t,land,land+.35);circle(c,C.x,C.y,10+f2*60,null,'rgba(255,255,255,'+(1-f2)+')',3)}}},
+ over:function(c,S){var t=S.t,C=this.cursor,land=1.3;
+   if(t<land){var f=ph(t,0,land),h=(1-f)*120;var x=C.x,y=C.y-h;c.save();c.globalAlpha=.95;
+     c.beginPath();c.arc(x,y-26,18,Math.PI,0);c.closePath();c.fillStyle='#e7e3d6';c.fill();c.strokeStyle='#8c8673';c.stroke();
+     line(c,x-17,y-26,x-6,y-6,'#8c8673',1);line(c,x+17,y-26,x+6,y-6,'#8c8673',1);c.fillStyle='#6b5a3a';c.fillRect(x-8,y-8,16,14);c.restore()}
+   else{var o=ph(t,land,land+.3);c.save();c.translate(C.x,C.y);c.fillStyle='#6b5a3a';c.fillRect(-9-4*o,-7,9,14);c.fillRect(4*o,-7,9,14);c.fillStyle='#e8e6de';c.fillRect(-3,-7,6,14);c.fillRect(-7,-3,14,6);c.fillStyle='#d24b3e';c.fillRect(-2,-6,4,12);c.fillRect(-6,-2,12,4);c.restore();
+     for(var k=0;k<3;k++){var pp=S.PL[k];if(pp.down)continue;var a=((t-land-.4+k*.2)%.7);if(t>land+.4)num(c,pp.x,pp.y,'+15',a,'#8ff0b4',12)}
+     if(t>3.6&&t<4.5)num(c,S.PL[2].x,S.PL[2].y-8,'UP',t-3.6,'#fff',15)}}},
+{name:'Medevac Drones',cd:90,dur:8,party:1,
+ hook:'Three drones lift off your back, one to each player.',
+ rules:'One drone per player for 10 s. It hovers over them, heals 12 a second and zaps enemy bullets within 55 px of them (one every 0.3 s each). A drone sent to a downed player lifts them and flies them back to you; they stand up at 50% when they arrive.',
+ nums:['90 s','1 drone per player','10 s','12 HP/s','55 px zap','1 zap / 0.3 s','carry-revive'],
+ why:'<b>Unlike Lifeline</b>, it saves a bad position instead of resetting it: the downed ally is brought to you, not revived where they fell.',
+ player:function(p,t){if(p.k===2){if(t<1.6)p.down=1;else if(t<3.6){var f=sm(ph(t,1.6,3.6));p.down=1;p.x=lerp(80,108,f);p.y=lerp(204,170,f);p.lift=10*Math.sin(f*Math.PI)}else{p.x=108;p.y=170;p.hp=lerp(.5,1,ph(t,3.6,7.5))}}},
+ dronePos:function(k,t,S){var tg=S.PL[k],f=eo(ph(t,.3,1.1+k*.15));return{x:lerp(P.x,tg.x+10,f)+Math.sin(t*3+k)*3,y:lerp(P.y,tg.y-26,f)+Math.cos(t*2.4+k)*2}},
+ bullet:function(b,t,S){if(t<1.1)return true;var tg=S.PL[PL.indexOf(b.tg)]||S.PL[0];var tt=caught(b,t,function(x,y,tm){return tm>1.1&&Math.hypot(x-b.tg.x,y-b.tg.y)<55});if(tt<0)return true;(S.zaps=S.zaps||[]).push({x:b.posAt(tt-b.t0).x,y:b.posAt(tt-b.t0).y,k:PL.indexOf(b.tg),age:t-tt});return false},
+ over:function(c,S){var t=S.t,self=this;if(t<.3)return;
+   for(var k=0;k<3;k++){var d=this.dronePos(k,t,S);
+     if(t>1.2){c.save();add(c);line(c,d.x,d.y,S.PL[k].x,S.PL[k].y-S.PL[k].lift,'rgba(130,240,180,.35)',3);c.restore()}
+     line(c,d.x-9,d.y,d.x+9,d.y,'#59606c',2);circle(c,d.x-9,d.y,4,'rgba(200,220,235,.35)','#9fb0c0',1);circle(c,d.x+9,d.y,4,'rgba(200,220,235,.35)','#9fb0c0',1);circle(c,d.x,d.y,4,'#e8e6de','#59606c',1.5);c.fillStyle='#d24b3e';c.fillRect(d.x-1,d.y-3,2,6);c.fillRect(d.x-3,d.y-1,6,2);
+     if(t>1.4&&!S.PL[k].down)num(c,S.PL[k].x,S.PL[k].y,'+12',(t-1.4+k*.3)%.8,'#8ff0b4',11)}
+   (S.zaps||[]).forEach(function(z){if(z.age>.18)return;var d=self.dronePos(z.k<0?0:z.k,t,S);c.save();add(c);line(c,d.x,d.y,z.x,z.y,'rgba(150,230,255,'+(1-z.age/.18)+')',1.6);circle(c,z.x,z.y,6*(1-z.age/.18),'rgba(200,240,255,.8)');c.restore()});
+   if(t>3.6&&t<4.5)num(c,S.PL[2].x,S.PL[2].y-8,'UP',t-3.6,'#fff',15)}}
+];
+IDEAS['DPS/Soldier']=[
+{name:'Orbital Laser',cd:60,dur:7.5,
+ hook:'Paint a spot and steer a beam from orbit through the pack.',
+ rules:'A designator ping, then after 0.8 s a 36 px beam lands at your cursor and follows it at 140 px/s for 5 s (it lags, so you lead it), 110 damage a second, bosses too. It leaves a scorched line that burns 15 a second for 2 s. You can keep shooting while you steer it.',
+ nums:['60 s','0.8 s warning','36 px beam','140 px/s','110 dmg/s','5 s','scorch 2 s'],
+ why:'<b>Unlike Artillery Assault</b>, the damage is placed, not sprayed: it rewards reading the wave and sweeping lines of enemies.',
+ path:function(u){u=clamp(u);return{x:262+190*u,y:142+78*Math.sin(u*TAU*1.15+.4)}},
+ beam:function(t){return this.path(ph(t,1,6))},
+ enemy:function(e,t,S,main){var self=this,d=dwell(this,e.i,t,1,6,26,function(u){return self.beam(u)});if(e.heavy){e.hp=1-d/1.6}else if(d>.45)e.dead=clamp((d-.45)/.3)},
+ under:function(c,S){var t=S.t;if(t<1)return;for(var u=1;u<Math.min(t,6);u+=.03){var age=t-u;if(age>2)continue;var q=this.beam(u);circle(c,q.x,q.y,13,'rgba(255,120,40,'+(.22*(1-age/2))+')')}},
+ over:function(c,S){var t=S.t;
+   if(t<1){var q=this.path(0);c.save();add(c);line(c,q.x,0,q.x,q.y,'rgba(255,60,60,'+(.3+.3*Math.sin(t*30))+')',1.5);circle(c,q.x,q.y,6+3*Math.sin(t*20),null,'rgba(255,70,70,.9)',1.5);c.restore();return}
+   if(t>6.2)return;var q2=this.beam(t),fade=t>6?1-ph(t,6,6.2):1;
+   c.save();add(c);c.globalAlpha=fade;var g=c.createLinearGradient(q2.x-18,0,q2.x+18,0);g.addColorStop(0,'rgba(255,90,40,0)');g.addColorStop(.5,'rgba(255,240,200,.85)');g.addColorStop(1,'rgba(255,90,40,0)');c.fillStyle=g;c.fillRect(q2.x-18,0,36,q2.y);
+     glow(c,q2.x,q2.y,40,'rgba(255,220,160,.9)','rgba(255,120,40,0)');circle(c,q2.x,q2.y,18,null,'rgba(255,200,120,.8)',2);c.restore();
+   var self=this;S.E.forEach(function(e){if(e.dead<=0&&Math.hypot(e.x-q2.x,e.y-q2.y)<30)num(c,e.x,e.y,'110',(t*3+e.i*.3)%1*.9,'#ffc07a',12)})}},
+{name:'Swarm Missiles',cd:65,dur:7,
+ hook:'Shoulder pods open and empty 24 micro-rockets into the wave.',
+ rules:'Over 1.2 s, 24 rockets launch and curl out, each locking the enemy nearest your aim that two rockets are not already on. Each lands for 40 in a 50 px blast. Leftover rockets go to Heavy enemies and bosses. Spread wide, they finish a wave; on a boss, all 24 land on it.',
+ nums:['65 s','24 rockets','1.2 s volley','40 each','50 px blast','2 per target'],
+ why:'<b>Unlike Artillery Assault</b>, it is one burst that needs no aim time: a clear button for when the screen is full.',
+ noDrift:1,
+ mis:function(k){var tgt=[2,7,1,9,0,4,3,5,11,6,10,8][k%12],t0=.5+k*.05,fl=.75+hash(k)*.2;return{tgt:tgt,t0:t0,t1:t0+fl,side:(k%2?1:-1)*(30+hash(k+3)*40)}},
+ enemy:function(e,t){var hits=0,last=-1;for(var k=0;k<24;k++){var m=this.mis(k);if(m.tgt===e.i&&t>=m.t1){hits++;last=m.t1}}
+   if(e.heavy){e.hp=1-hits*.18;if(last>=0&&t-last<.08)e.flash=1}else if(hits>=2)e.dead=ph(t,last,last+.3);else if(last>=0&&t-last<.08)e.flash=1},
+ over:function(c,S){var t=S.t;
+   if(t>.3&&t<1.8){c.save();c.globalAlpha=1-ph(t,1.5,1.8);poly(c,[[P.x-14,P.y-14],[P.x-4,P.y-18],[P.x-4,P.y-10]],'#59606c');poly(c,[[P.x-14,P.y+14],[P.x-4,P.y+18],[P.x-4,P.y+10]],'#59606c');c.restore()}
+   for(var k=0;k<24;k++){var m=this.mis(k),e=S.E[m.tgt];var ex=B[m.tgt][0],ey=B[m.tgt][1];
+     if(t>=m.t0&&t<m.t1){var f=(t-m.t0)/(m.t1-m.t0),cx=P.x+40,cy=P.y+m.side*1.6,x=(1-f)*(1-f)*P.x+2*(1-f)*f*cx+f*f*ex,y=(1-f)*(1-f)*P.y+2*(1-f)*f*cy+f*f*ey;
+       var f2=Math.max(0,f-.06),x2=(1-f2)*(1-f2)*P.x+2*(1-f2)*f2*cx+f2*f2*ex,y2=(1-f2)*(1-f2)*P.y+2*(1-f2)*f2*cy+f2*f2*ey;
+       c.save();add(c);line(c,x2,y2,x,y,'rgba(255,200,140,.7)',2);c.restore();circle(c,x,y,2.2,'#fff')}
+     var a=t-m.t1;if(a>=0&&a<.4){c.save();add(c);circle(c,ex+(hash(k)-.5)*10,ey+(hash(k+1)-.5)*10,8+eo(a/.4)*20,'rgba(255,170,80,'+(.6*(1-a/.4))+')');c.restore()}
+     num(c,ex,ey-(k%2)*10,'40',a,'#ffc07a',12)}}}
+];
+
+/* ---------------- ELEMENTALIST ---------------- */
+IDEAS['Tank/Elementalist']=[
+{name:'Magma Bastion',cd:75,dur:8,drift:{v:24,stop:60},
+ hook:'A ring of lava pillars erupts round you and holds the line.',
+ rules:'The floor cracks out to 150 px, then twelve lava pillars burst up in a ring for 8 s. Enemy bullets that cross the ring melt. Enemies that reach it take 25, catch fire and are thrown back out 60 px. Allies walk through freely, and you take 30% less inside.',
+ nums:['75 s','150 px ring','8 s','melts bullets','25 + burn','60 px throw','-30% damage inside'],
+ why:'<b>Unlike Glacial Tomb</b>, it does not stop the fight: it draws a border round the party and enforces it for 8 s.',
+ enemy:function(e,t){var o=bounce(e.d0,24,160+e.r,215+e.r,t,1,8,60);onRay(e,o.r);if(o.n>0&&t<8.5)e.tint='#b0643e';if(o.hit>=0&&o.hit<.1)e.flash=1;e._hit=o.hit},
+ bullet:function(b,t){if(t<1)return true;var tt=caught(b,t,function(x,y,tm){return tm>1&&tm<8&&Math.hypot(x-P.x,y-P.y)<152});if(tt<0)return true;b._melt=t-tt;return false},
+ under:function(c,S){var t=S.t,cr=ph(t,.2,.9),end=t>7.6?1-ph(t,7.6,8):1;if(cr<=0)return;c.save();c.globalAlpha=end;
+   for(var k=0;k<24;k++){var a=k/24*TAU+hash(k)*.2;c.beginPath();c.moveTo(P.x,P.y);var r=150*eo(cr);for(var s=1;s<=4;s++){var rr=r*s/4,aa=a+(hash(k*5+s)-.5)*.35;c.lineTo(P.x+Math.cos(aa)*rr,P.y+Math.sin(aa)*rr)}c.lineWidth=1.5;c.strokeStyle='rgba(255,110,40,.28)';c.stroke()}
+   c.save();add(c);arc(c,P.x,P.y,150,0,TAU,'rgba(255,120,40,'+(.25+.1*Math.sin(t*6))+')',10);c.restore();c.restore()},
+ over:function(c,S){var t=S.t,end=t>7.6?1-ph(t,7.6,8):1;
+   for(var k=0;k<12;k++){var a=k/12*TAU,x=P.x+Math.cos(a)*150,y=P.y+Math.sin(a)*150,h=eo(ph(t,.9+k*.03,1.2+k*.03))*end;if(h<=0)continue;
+     c.save();add(c);glow(c,x,y,18*h,'rgba(255,200,90,.9)','rgba(255,80,20,0)');c.restore();
+     poly(c,[[x-7*h,y],[x-4*h,y-26*h],[x+1,y-32*h],[x+5*h,y-22*h],[x+7*h,y]],'#3a2a26','#ff7a2a',1.5);line(c,x,y-4,x+1,y-26*h,'rgba(255,170,60,.9)',2)}
+   S.B.forEach(function(b){if(b._melt!=null&&b._melt<.3){c.save();add(c);circle(c,b.x,b.y,4+b._melt*20,'rgba(255,150,60,'+(1-b._melt/.3)*.7+')');c.restore()}});
+   S.E.forEach(function(e){num(c,e.x,e.y,'25',e._hit,'#ffb070',12)})}},
+{name:'Lightning Rod',cd:70,dur:7.5,
+ hook:'Become a conductor: every shot that hits you calls lightning on the shooter.',
+ rules:'For 6 s you crackle with charge: you take 80% less damage, every enemy prefers you, and each enemy bullet that hits you calls a bolt down on the enemy that fired it (30) that arcs on to the 2 enemies nearest it (15 each). The more they shoot, the harder it gets.',
+ nums:['70 s','6 s','-80% damage','taunt','30 bolt','2 arcs × 15'],
+ why:'<b>Unlike Glacial Tomb</b>, the tank wants enemies firing: damage comes from the pressure the wave puts on you.',
+ bolts:function(S){var t=S.t,out=[];S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&lt>.5&&lt<6.5&&t-lt<.5)out.push({src:b.src,age:t-lt,j:b.j})});return out},
+ enemy:function(e,t,S,main){},
+ over:function(c,S){var t=S.t,on=t>.4&&t<6.5;
+   if(on){c.save();add(c);glow(c,P.x,P.y,34,'rgba(150,200,255,.45)','rgba(150,200,255,0)');for(var k=0;k<4;k++){var a=t*7+k*1.6;zig(c,P.x+Math.cos(a)*8,P.y+Math.sin(a)*8,P.x+Math.cos(a)*24,P.y+Math.sin(a)*24,'rgba(190,225,255,.8)',1.2,Math.floor(t*20)+k)}c.restore()}
+   this.bolts(S).forEach(function(z){var e=S.E[z.src];if(z.age<.25){c.save();add(c);zig(c,e.x+8,0,e.x,e.y,'rgba(210,235,255,'+(1-z.age/.25)+')',2.5,z.j+Math.floor(z.age*30));
+       nearestTo(S,e.x,e.y,3).slice(1).forEach(function(n,q){zig(c,e.x,e.y,n.x,n.y,'rgba(150,200,255,'+(1-z.age/.25)+')',1.5,z.j*3+q)});glow(c,e.x,e.y,22,'rgba(220,240,255,.8)','rgba(120,180,255,0)');c.restore()}
+     num(c,e.x,e.y,'30',z.age,'#cfe6ff',13)});
+   S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&lt>.5&&lt<6.5)num(c,P.x+(hash(b.j)-.5)*14,P.y,'-2',t-lt,'#9aa3ad',11)})}}
+];
+IDEAS['Healer/Elementalist']=[
+{name:'Spring Tide',cd:85,dur:7.5,party:1,
+ hook:'A wave rolls out across the arena and back.',
+ rules:'A wave of water rolls out from you to the far wall in 1.8 s, then draws back to you in 1.7 s. Each pass heals every ally it touches for 15% of their max health and erases enemy bullets it meets. Going out, it shoves enemies 80 px and soaks them (wet, as Tsunami: slowed, lightning arcs to them).',
+ nums:['85 s','2 passes','15% heal each','erases bullets','80 px shove','wet 4 s'],
+ why:'<b>Unlike Sanctum</b>, nothing stands still: one big tide that wipes the screen twice, and the party can keep moving.',
+ R:function(t){if(t<.5)return -1;if(t<2.3)return 420*eo(ph(t,.5,2.3));if(t<3.3)return 420;if(t<5)return 420*(1-sm(ph(t,3.3,5)));return -1},
+ enemy:function(e,t){var self=this,d=e.d0,tp=-1;for(var u=.5;u<=Math.min(t,2.3);u+=.03){if(self.R(u)>=d-10){tp=u;break}}if(tp>=0){var f=eo(ph(t,tp,tp+.4)),o=e.heavy?25:80;onRay(e,Math.hypot(P.x-e.x,P.y-e.y)+o*f);if(t-tp<5)e.tint='#6f86a8'}},
+ bullet:function(b,t){var self=this;return caught(b,t,function(x,y,tm){var R=self.R(tm);return R>0&&Math.abs(Math.hypot(x-P.x,y-P.y)-R)<16})<0},
+ under:function(c,S){var R=this.R(S.t);if(R<0)return;c.save();add(c);for(var k=0;k<3;k++)arc(c,P.x,P.y,Math.max(0,R-k*10),-1.5,1.5,'rgba(90,180,255,'+(.4-k*.12)+')',10-k*3);arc(c,P.x,P.y,R+4,-1.5,1.5,'rgba(220,245,255,.8)',2);
+   for(var k2=0;k2<30;k2++){var a=-1.4+k2/29*2.8,rr=R+2+Math.sin(S.t*10+k2)*3;circle(c,P.x+Math.cos(a)*rr,P.y+Math.sin(a)*rr,1.6,'rgba(230,248,255,.8)')}c.restore();
+   arc(c,P.x,P.y,R,1.6,4.7,'rgba(90,180,255,.25)',8)},
+ over:function(c,S){var t=S.t;num(c,PL[1].x,PL[1].y,'+15%',t-.7,'#8fe0ff');num(c,PL[2].x,PL[2].y,'+15%',t-.7,'#8fe0ff');num(c,PL[1].x,PL[1].y,'+15%',t-4.8,'#8fe0ff');num(c,PL[2].x,PL[2].y,'+15%',t-4.8,'#8fe0ff')}},
+{name:'Aurora Veil',cd:80,dur:8,party:1,
+ hook:'Aurora curtains hang over the arena and no hit can land hard.',
+ rules:'For 8 s every player wears a veil: no single hit can deal more than 10 to them, and they heal 8 a second. When the veil ends, each player heals half of everything it held back. Built for boss red shots and big bursts, weak against many small hits.',
+ nums:['80 s','8 s','10 max per hit','8 HP/s','refund 50% held back'],
+ why:'<b>Unlike Sanctum</b>, the party can go anywhere: the protection is on them, not in a dome.',
+ player:function(p,t){if(t>.6&&t<7.6)p.hp=.75+.2*Math.sin(t+p.k)},
+ under:function(c,S){var t=S.t,on=ph(t,.3,1)*(t>7.4?1-ph(t,7.4,7.9):1);if(on<=0)return;c.save();add(c);c.globalAlpha=on;
+   var cols=['rgba(90,255,180,.10)','rgba(120,170,255,.09)','rgba(220,120,255,.08)'];
+   for(var b=0;b<3;b++){c.beginPath();for(var x=0;x<=W;x+=8){var y=30+b*22+Math.sin(x*.02+t*(1+b*.3)+b)*14;x?c.lineTo(x,y):c.moveTo(x,y)}for(var x2=W;x2>=0;x2-=8){var y2=30+b*22+70+Math.sin(x2*.017+t*.8+b)*20;c.lineTo(x2,y2)}c.closePath();c.fillStyle=cols[b];c.fill()}c.restore()},
+ over:function(c,S){var t=S.t,on=ph(t,.5,1.1)*(t>7.4?1-ph(t,7.4,7.9):1);
+   S.PL.forEach(function(p){if(on<=0)return;c.save();add(c);c.globalAlpha=on;for(var k=0;k<3;k++){var a=t*2+k*2.1;ell(c,p.x,p.y,19+k*2,22-k*2,null,['rgba(90,255,180,.6)','rgba(120,170,255,.55)','rgba(220,120,255,.5)'][k],1.5,a*.2)}c.restore();
+     num(c,p.x+10,p.y,'+8',(t+p.k*.3)%1,'#8ff0b4',11)});
+   S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&lt>.6&&lt<7.4)num(c,b.tg.x-12,b.tg.y,'10',t-lt,'#e0d0ff',13)});
+   if(t>7.4)S.PL.forEach(function(p){num(c,p.x,p.y-6,'+38',t-7.45,'#b9ffd9',15)})}}
+];
+IDEAS['DPS/Elementalist']=[
+{name:'Singularity',cd:70,dur:7,cursor:{x:360,y:150},cursorEnd:.6,
+ hook:'An arcane star pulls the wave together, then collapses on it.',
+ rules:'A star forms at your cursor. For 3 s it pulls enemies within 220 px toward its core (Heavy enemies slowly, bosses not at all) and drags enemy bullets into it. Then it collapses: 180 at the core, falling to 90 at the edge.',
+ nums:['70 s','220 px pull','3 s','eats bullets','180 core','90 edge'],
+ why:'<b>Unlike Bullet Rain</b>, it gathers before it hits: the setup is the payoff, and it pairs with every other area attack in the party.',
+ enemy:function(e,t){var C=this.cursor,d=Math.hypot(e.x-C.x,e.y-C.y);if(d>230)return;var k=sm(ph(t,.8,3.8))*(e.heavy?.3:.82);e.x=lerp(e.x,C.x+(e.x-C.x)*.15,k);e.y=lerp(e.y,C.y+(e.y-C.y)*.15,k);
+   if(t>=3.8){if(e.heavy){e.hp=.45;if(t<3.9)e.flash=1}else e.dead=ph(t,3.8,4.1)}},
+ bullet:function(b,t){var C=this.cursor;if(t<.8||t>3.8)return true;var d=Math.hypot(b.x-C.x,b.y-C.y);if(d>220)return true;var k=(1-d/220)*.7*ph(t,.8,1.4);b.x=lerp(b.x,C.x,k);b.y=lerp(b.y,C.y,k);return Math.hypot(b.x-C.x,b.y-C.y)>14},
+ under:function(c,S){var t=S.t,C=this.cursor;if(t<.5||t>4.4)return;var on=ph(t,.5,1);c.save();add(c);c.globalAlpha=t>3.8?1-ph(t,3.8,4.4):1;
+   for(var k=0;k<4;k++){var r=220*((t*.5+k/4)%1);circle(c,C.x,C.y,220-r,null,'rgba(190,130,255,'+(.25*(r/220))+')',1.5)}
+   for(var s=0;s<5;s++){c.beginPath();for(var u=0;u<1;u+=.02){var a=s/5*TAU+u*5-t*3,r2=200*(1-u)*on;var x=C.x+Math.cos(a)*r2,y=C.y+Math.sin(a)*r2;u?c.lineTo(x,y):c.moveTo(x,y)}c.lineWidth=1.2;c.strokeStyle='rgba(200,150,255,.35)';c.stroke()}c.restore()},
+ over:function(c,S){var t=S.t,C=this.cursor;if(t<.5)return;
+   if(t<3.8){var r=6+10*ph(t,.5,3.8);c.save();add(c);glow(c,C.x,C.y,r*3,'rgba(210,160,255,.8)','rgba(120,60,255,0)');c.restore();circle(c,C.x,C.y,r,'#0a0612','rgba(230,200,255,.9)',2)}
+   else{var f=ph(t,3.8,4.5);c.save();add(c);glow(c,C.x,C.y,40+220*eo(f),'rgba(240,220,255,'+(.9*(1-f))+')','rgba(140,80,255,0)');circle(c,C.x,C.y,20+200*eo(f),null,'rgba(230,200,255,'+(1-f)+')',4);c.restore();
+     S.E.forEach(function(e,i){if(Math.hypot(B[i][0]-C.x,B[i][1]-C.y)<230)num(c,e.x,e.y,e.heavy?'120':'180',t-3.85,'#e0c8ff',14)})}}},
+{name:'Convergence',cd:65,dur:7,
+ hook:'Four element orbs fight beside you, then fuse into one prism beam.',
+ rules:'Fire, frost, lightning and arcane orbs circle you for 5 s, each beaming a different enemy within 320 px (25 a second each: fire burns, frost slows 40%, lightning arcs to one more, arcane pierces). At the end, or on a second press, they fuse in front of you into a prism beam along your aim for 1 s: 200 a second, 40 px wide, through everything.',
+ nums:['65 s','4 orbs','5 s','25/s each','prism 200/s','40 px','1 s'],
+ why:'<b>Unlike Bullet Rain</b>, it is a showcase of the whole class: four statuses at once, then one burst you aim.',
+ cols:[[255,122,58],[143,227,255],[255,232,106],[197,139,255]],
+ enemy:function(e,t){if(t>=5.2&&Math.abs(e.y-(P.y))<24+e.r&&e.x>P.x){if(e.heavy){e.hp=.3;e.flash=t<5.3?1:0}else e.dead=ph(t,5.25,5.5)}},
+ over:function(c,S){var t=S.t,self=this;if(t<.3)return;var fuse=ph(t,4.6,5.1);
+   for(var k=0;k<4;k++){var a=t*2.4+k*TAU/4,ox=P.x+Math.cos(a)*30,oy=P.y+Math.sin(a)*30,fx=P.x+30,fy=P.y+(k-1.5)*6;var x=lerp(ox,fx,fuse),y=lerp(oy,fy,fuse),col=this.cols[k];
+     if(t>.7&&t<4.6){var tg=nearestTo(S,P.x,P.y,8)[(k*2+Math.floor(t/1.2))%8];if(tg){c.save();add(c);if(k===2)zig(c,x,y,tg.x,tg.y,rgba(col,.9),2,Math.floor(t*14)+k);else line(c,x,y,tg.x,tg.y,rgba(col,.75),k===3?3:2.5);circle(c,tg.x,tg.y,tg.r+3,null,rgba(col,.8),2);c.restore();num(c,tg.x,tg.y,'25',(t*1.6+k*.25)%1,rgba(col,1),11)}}
+     c.save();add(c);glow(c,x,y,14,rgba(col,.9),rgba(col,0));c.restore();circle(c,x,y,4.5,'#fff',rgba(col,1),1.5)}
+   if(t>5.1&&t<6.3){var f=ph(t,5.1,6.3),w=20*(1-f*f);c.save();add(c);var g=c.createLinearGradient(0,P.y-w,0,P.y+w);g.addColorStop(0,'rgba(255,80,80,0)');g.addColorStop(.25,'rgba(255,220,100,.7)');g.addColorStop(.5,'rgba(255,255,255,.95)');g.addColorStop(.75,'rgba(120,200,255,.7)');g.addColorStop(1,'rgba(190,120,255,0)');c.fillStyle=g;c.fillRect(P.x+30,P.y-w,W,w*2);c.restore();
+     S.E.forEach(function(e,i){if(Math.abs(B[i][1]-P.y)<34&&B[i][0]>P.x)num(c,e.x,e.y,'200',t-5.25,'#fff',15)})}}}
+];
+
+/* ---------------- SUMMONER ---------------- */
+IDEAS['Tank/Summoner']=[
+{name:'Bone Phalanx',cd:75,dur:8,
+ hook:'A bone gate opens and eight shield skeletons march the line forward.',
+ rules:'Eight skeletons with tower shields step out in a line across your aim, 60 px ahead, and march 260 px over 6 s. Their shields stop every enemy bullet (red aimed shots too), shove enemies ahead of the line and spear what they shove for 15 every 0.5 s. Each skeleton has 120 health; a broken one leaves a gap. Your team shoots through.',
+ nums:['75 s','8 skeletons','260 px march','6 s','blocks all shots','15 / 0.5 s','120 HP each'],
+ why:'<b>Unlike Titan</b>, it is a wall that takes ground instead of one big body that chases: the tank chooses where the front is.',
+ X:function(t){return P.x+60+260*sm(ph(t,1.1,7.1))},
+ enemy:function(e,t){if(t<1.1)return;var X=this.X(t)+e.r+10;if(e.x<X){e.x=X;e.ring='rgba(230,225,200,.6)';if((t*2+e.i*.3)%1<.08)e.flash=1}},
+ bullet:function(b,t){if(t<1.1||t>7.4)return true;var self=this;var tt=caught(b,t,function(x,y,tm){return tm>1.1&&tm<7.4&&x<self.X(tm)+6&&y>36&&y<244});if(tt>=0){b._blk=t-tt;b._x=self.X(tt);return false}return true},
+ under:function(c,S){var t=S.t,g=ph(t,.2,.8);if(g>0&&t<1.6){c.save();c.globalAlpha=1-ph(t,1.2,1.6);var x=P.x+50;line(c,x,40,x,240,'rgba(230,225,200,.5)',2);for(var k=0;k<9;k++)line(c,x-8,40+k*25,x+8,40+k*25,'rgba(230,225,200,.4)',2);c.restore()}},
+ over:function(c,S){var t=S.t;if(t<.8)return;var X=this.X(t),fade=t>7.4?1-ph(t,7.4,7.9):1;
+   for(var k=0;k<8;k++){var y=48+k*25.5,st=ph(t,.8+k*.04,1.1+k*.04),x=lerp(P.x+50,X,st)+((t*4+k)%1<.5&&t>1.1?2:0);c.save();c.globalAlpha=st*fade;
+     circle(c,x-8,y,6,'#e8e4d4','#7d7766',1.5);c.fillStyle='#ccc6b0';c.fillRect(x-2,y-11,6,22);c.strokeStyle='#5c5648';c.lineWidth=1.5;c.strokeRect(x-2,y-11,6,22);
+     var jab=(t*2+k*.37)%1<.25?8:0;line(c,x,y+3,x+12+jab,y+3,'#a59d86',1.5);c.restore()}
+   S.B.forEach(function(b){if(b._blk!=null&&b._blk<.2){c.save();add(c);circle(c,b._x+6,b.y,3+b._blk*25,'rgba(255,240,200,'+(1-b._blk/.2)+')');c.restore()}});
+   S.E.forEach(function(e){if(e.ring)num(c,e.x,e.y,'15',(t*2+e.i*.3)%1,'#efe7cf',11)})}},
+{name:'Ursine Spirit',cd:80,dur:8,drift:{v:26,stop:66},
+ hook:'Your bear spirit takes you over: grow huge and maul.',
+ rules:'A spirit bear wraps round you for 10 s. You grow to double size, take 50% less damage, every enemy prefers you, and your attack becomes a three-swing maul in a 110 px arc (40, 40, then 80 with a 60 px shove). Your other minions keep fighting.',
+ nums:['80 s','10 s','2x size','-50% damage','taunt','40 / 40 / 80','110 px arc'],
+ why:'<b>Unlike Titan</b>, the tank is the monster: no minion to babysit, and it pulls fire onto the player built to take it.',
+ swing:function(t){if(t<1)return -1;return Math.floor((t-1)/.55)},
+ enemy:function(e,t){var s=this.swing(t);if(s<0)return;var d=Math.hypot(e.x-P.x,e.y-P.y);if(d<120){var a=(t-1)%.55;if(a<.08)e.flash=1;if(s%3===2){var f=eo(ph(a,0,.25));e.x+= (e.x-P.x)/d*60*f;e.y+=(e.y-P.y)/d*60*f}}},
+ player:function(p,t){if(p.k===0)p.scale=1+eo(ph(t,.3,.9))*.9*(t>7.6?1-ph(t,7.6,8):1)},
+ over:function(c,S){var t=S.t,on=eo(ph(t,.3,.9))*(t>7.6?1-ph(t,7.6,8):1);if(on<=0)return;
+   c.save();add(c);c.globalAlpha=on;glow(c,P.x,P.y,52,'rgba(140,220,255,.35)','rgba(140,220,255,0)');
+   ell(c,P.x-4,P.y,32*on,26*on,null,'rgba(170,230,255,.7)',2);circle(c,P.x+8,P.y-22*on,7*on,null,'rgba(170,230,255,.7)',2);circle(c,P.x+8,P.y+22*on,7*on,null,'rgba(170,230,255,.7)',2);
+   ell(c,P.x+24*on,P.y,12*on,10*on,null,'rgba(200,240,255,.85)',2);c.restore();
+   var s=this.swing(t);if(s>=0&&t<7.6){var a=(t-1)%.55;if(a<.25){var dir=s%3===1?-1:1,f=a/.25,big=s%3===2;var tg=nearestTo(S,P.x,P.y,1)[0],base=tg?Math.atan2(tg.y-P.y,tg.x-P.x):0;
+     c.save();add(c);for(var q=0;q<3;q++)arc(c,P.x,P.y,90+q*8,base-1*dir+f*2*dir-.5,base-1*dir+f*2*dir+.1,'rgba(200,240,255,'+(.8-q*.2)*(1-f)+')',big?5:3);c.restore()}
+     S.E.forEach(function(e){if(Math.hypot(e.x-P.x,e.y-P.y)<125)num(c,e.x,e.y,s%3===2?'80':'40',a,'#d0f0ff',s%3===2?15:12)})}}}
+];
+IDEAS['Healer/Summoner']=[
+{name:'Dawn Stag',cd:85,dur:8,party:1,
+ hook:'A white spirit stag runs the arena, leaving a meadow behind it.',
+ rules:'The stag leaps from you and runs a 5 s loop of the arena. Its trail blooms into a meadow that lasts 4 s: allies on it heal 14 a second, and enemies that cross it are rooted for 1.5 s. It runs through enemies without stopping, so the root is the safety, not a shield.',
+ nums:['85 s','5 s run','trail 4 s','14 HP/s on it','1.5 s root'],
+ why:'<b>Unlike World Tree</b>, the healing travels: the meadow reaches allies across the map and ties down the enemies near them.',
+ path:function(u){var a=Math.PI+u*TAU*1.15;return{x:290+170*Math.cos(a),y:140+92*Math.sin(a)}},
+ trailAt:function(u){return this.path(ph(u,.5,5.5))},
+ enemy:function(e,t){var self=this;for(var u=Math.max(.5,t-1.5);u<=Math.min(t,5.5);u+=.05){var q=self.trailAt(u);if(Math.hypot(q.x-e.x,q.y-e.y)<24){e.ring='rgba(150,230,120,.9)';e.tint='#7d8a6a';return}}},
+ under:function(c,S){var t=S.t;for(var u=.5;u<=Math.min(t,5.5);u+=.04){var age=t-u;if(age>4)continue;var q=this.trailAt(u),f=1-age/4;circle(c,q.x,q.y,16,'rgba(120,200,110,'+.18*f+')');
+   if(Math.floor(u*25)%3===0){var fx=q.x+(hash(u*100)-.5)*22,fy=q.y+(hash(u*100+1)-.5)*22;circle(c,fx,fy,2.4*f,'rgba(255,240,170,'+f+')');circle(c,fx,fy,1,'#fff')}}},
+ over:function(c,S){var t=S.t;S.E.forEach(function(e){if(e.ring){for(var k=0;k<3;k++){var a=k*2.1+e.i;arc(c,e.x,e.y,e.r+3,a,a+1,'rgba(120,200,90,.95)',2)}}});
+   if(t<.5||t>5.6)return;var u=ph(t,.5,5.5),q=this.path(u),q2=this.path(u+.01),a=Math.atan2(q2.y-q.y,q2.x-q.x);
+   c.save();add(c);glow(c,q.x,q.y,30,'rgba(255,250,220,.5)','rgba(255,250,220,0)');c.restore();
+   c.save();c.translate(q.x,q.y);c.rotate(a);var g=Math.sin(t*20)*3;ell(c,0,0,14,6,'#f6f2e6','#b8b09a',1.5);ell(c,14,0,5,3.5,'#f6f2e6','#b8b09a',1.2);
+   line(c,16,-2,22,-9,'#e8d9a8',1.5);line(c,19,-6,17,-12,'#e8d9a8',1.2);line(c,16,2,22,9,'#e8d9a8',1.5);line(c,19,6,17,12,'#e8d9a8',1.2);line(c,-8,-4,-8+g,-9,'#b8b09a',1.5);line(c,-8,4,-8-g,9,'#b8b09a',1.5);line(c,7,-4,7-g,-9,'#b8b09a',1.5);line(c,7,4,7+g,9,'#b8b09a',1.5);c.restore();
+   S.PL.forEach(function(p){var self=IDEAS['Healer/Summoner'][0];for(var w=Math.max(.5,t-4);w<=Math.min(t,5.5);w+=.1){var z=self.trailAt(w);if(Math.hypot(z.x-p.x,z.y-p.y)<22){num(c,p.x,p.y,'+14',(t+p.k*.3)%.9,'#bff59a',11);break}}})}},
+{name:'Fairy Ring',cd:80,dur:8,party:1,drift:{v:22,stop:60},cursor:{x:112,y:142},cursorEnd:.9,
+ hook:'Mushrooms ring the party; nobody inside can fall and enemies who step in fall asleep.',
+ rules:'A 100 px ring of glowing mushrooms grows at your cursor for 10 s. Allies inside can\'t drop below 1 health and heal 10 a second. Enemies that walk into the ring fall asleep for 3 s (they stop and don\'t shoot); a hit from you wakes them early. Bosses only slow down.',
+ nums:['80 s','100 px ring','10 s','1 HP floor','10 HP/s','sleep 3 s'],
+ why:'<b>Unlike World Tree</b>, it is a safety net more than a heal: it stops a wipe instead of topping everyone up.',
+ enemy:function(e,t,S){var C=this.cursor;var d=Math.hypot(e.x-C.x,e.y-C.y);if(t>1&&d<118){var k=118/d;e.x=C.x+(e.x-C.x)*k;e.y=C.y+(e.y-C.y)*k;e.noShoot=1;e.tint='#77708a';e._zz=1}},
+ under:function(c,S){var t=S.t,C=this.cursor,on=ph(t,.3,1),off=t>7.5?1-ph(t,7.5,8):1;if(on<=0)return;c.save();c.globalAlpha=off;c.save();add(c);glow(c,C.x,C.y,104,'rgba(200,150,255,.12)','rgba(200,150,255,0)');c.restore();
+   for(var k=0;k<22;k++){var a=k/22*TAU,s=eo(ph(t,.3+k*.02,.6+k*.02)),x=C.x+Math.cos(a)*104,y=C.y+Math.sin(a)*104;if(s<=0)continue;line(c,x,y,x,y-6*s,'#e8e0d0',2);ell(c,x,y-7*s,6*s,3.5*s,k%3?'#c58bff':'#8ff0d8');c.save();add(c);glow(c,x,y-7*s,10*s,'rgba(220,180,255,.5)','rgba(220,180,255,0)');c.restore()}
+   for(var m=0;m<16;m++){var ph2=(t*.3+hash(m))%1,mx=C.x+(hash(m*3)-.5)*180,my=C.y+(hash(m*5)-.5)*180-ph2*30;if(Math.hypot(mx-C.x,my-C.y)<100)circle(c,mx,my,1.5,'rgba(255,240,200,'+(1-ph2)+')')}c.restore()},
+ over:function(c,S){var t=S.t;S.E.forEach(function(e){if(e._zz){c.save();c.font='600 11px "IBM Plex Mono",monospace';c.fillStyle='rgba(220,210,255,.9)';var b=(t*1.2+e.i*.3)%1;c.globalAlpha=1-b;c.fillText('z',e.x+8+b*6,e.y-12-b*12);c.restore()}});
+   S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&lt>1)num(c,b.tg.x,b.tg.y,'1 HP',t-lt,'#e8d8ff',11)});
+   if(t>1)S.PL.forEach(function(p){num(c,p.x+10,p.y,'+10',(t+p.k*.33)%1,'#8ff0b4',11)})}}
+];
+IDEAS['DPS/Summoner']=[
+{name:'Sky Wyrm',cd:70,dur:8,cursor:{x:340,y:150},cursorEnd:.7,
+ hook:'A long serpent rises from a portal and coils through the pack.',
+ rules:'A portal opens at your cursor and a 30-segment wyrm pours out for 7 s, weaving through the enemies near it. Its head bites everything it passes (45). Enemies its body coils round are squeezed for 20 a second and slowed 50%. Your other minions get +25% attack speed while it is out.',
+ nums:['70 s','7 s','45 per bite','coil 20/s','-50% speed','+25% minion speed'],
+ why:'<b>Unlike Legion</b>, one big minion does the work in one place: it is the zone-clear the Summoner DPS lacks.',
+ head:function(u){var C=this.cursor,s=u-.7;return{x:C.x+115*Math.sin(1.25*s)*Math.min(1,s*1.2),y:C.y+92*Math.sin(2.05*s+.6)*Math.min(1,s*1.2)}},
+ enemy:function(e,t,S){var self=this;if(t<.8)return;var d=dwell(this,e.i,t,.8,7.7,22,function(u){return self.head(u)});if(e.heavy)e.hp=1-d*1.1;else if(d>.18)e.dead=ph(d,.18,.3);else if(d>0)e.flash=1},
+ under:function(c,S){var t=S.t,C=this.cursor,on=ph(t,.2,.7)*(t>7.7?1-ph(t,7.7,8):1);if(on<=0)return;c.save();add(c);circle(c,C.x,C.y,26*on,'rgba(60,200,170,.18)','rgba(90,240,200,.8)',2);arc(c,C.x,C.y,18*on,t*3,t*3+4,'rgba(90,240,200,.6)',2);c.restore()},
+ over:function(c,S){var t=S.t;if(t<.75||t>7.8)return;var n=30;
+   for(var k=n;k>=0;k--){var u=t-k*.06;if(u<.7)continue;var q=this.head(u),r=k===0?9:7-k*.15;circle(c,q.x,q.y,Math.max(2.5,r),k===0?'#3fd0a8':(k%2?'#2a8f78':'#33a58a'),'#0f3b33',1.5);
+     if(k===0){var q2=this.head(u-.03),a=Math.atan2(q.y-q2.y,q.x-q2.x);c.save();c.translate(q.x,q.y);c.rotate(a);poly(c,[[6,-6],[16,-3],[16,3],[6,6]],'#3fd0a8','#0f3b33',1.5);circle(c,8,-4,1.5,'#ffec80');circle(c,8,4,1.5,'#ffec80');line(c,-2,-7,-10,-12,'#bff5e6',1.5);line(c,-2,7,-10,12,'#bff5e6',1.5);c.restore()}}
+   var h=this.head(t);S.E.forEach(function(e){if(Math.hypot(e.x-h.x,e.y-h.y)<26)num(c,e.x,e.y,'45',(t*2.5)%1,'#9ff0d8',12)})}},
+{name:'Kraken',cd:70,dur:7,noDrift:1,cursor:{x:352,y:150},cursorEnd:.6,
+ hook:'The floor turns to sea and tentacles drag the closest enemies under.',
+ rules:'A pool of dark water opens at your cursor (120 px). Six tentacles burst up under the six enemies nearest it, wrap them for 0.8 s (stunned) and slam them for 70. Then they sweep round the pool for 1.5 s (30 to everything they touch, shoving it out) and sink.',
+ nums:['70 s','120 px pool','6 tentacles','70 slam','sweep 30','4.5 s'],
+ why:'<b>Unlike Legion</b>, it picks targets for you: a sure kill on six enemies, aimed by one click.',
+ tg:[2,1,4,3,9,0],
+ enemy:function(e,t){var k=this.tg.indexOf(e.i);if(k<0){var C=this.cursor;if(t>3.2&&t<4.7&&Math.hypot(e.x-C.x,e.y-C.y)<140)e.flash=(t*6)%1<.15?1:0;return}var t0=1+k*.12;if(t>t0)e.stun=1;if(t>t0&&t<t0+.8)e.scale=1+.2*Math.sin(ph(t,t0,t0+.8)*Math.PI);
+   if(t>t0+.8){if(e.heavy){e.hp=.4;e.stun=t<t0+1.6?1:0}else e.dead=ph(t,t0+.8,t0+1.1)}},
+ under:function(c,S){var t=S.t,C=this.cursor,on=eo(ph(t,.3,.9))*(t>5.4?1-ph(t,5.4,6.2):1);if(on<=0)return;
+   ell(c,C.x,C.y,120*on,95*on,'rgba(10,30,45,.75)','rgba(60,140,170,.6)',2);for(var k=0;k<3;k++){var p=(t*.4+k/3)%1;ell(c,C.x,C.y,120*on*p,95*on*p,null,'rgba(90,170,200,'+(.35*(1-p))+')',1.5)}},
+ over:function(c,S){var t=S.t,C=this.cursor;var self=this;
+   this.tg.forEach(function(i,k){var e=S.E[i],t0=1+k*.12,bx=B[i][0],by=B[i][1];if(t<t0||t>t0+1.3)return;var h=eo(ph(t,t0,t0+.25)),sl=ph(t,t0+.6,t0+.85);
+     c.save();for(var s=0;s<3;s++){var a=s*2.1+t*4;arc(c,bx,by,e.r+3+s*2,a,a+2*h,'#5a3e6e',4)}
+     var tx=bx+Math.sin(t*6+k)*6,ty=by-34*h*(1-sl)-4;c.beginPath();c.moveTo(bx-6,by+6);c.quadraticCurveTo(bx-14,by-14,tx,ty);c.quadraticCurveTo(bx+10,by-12,bx+6,by+6);c.fillStyle='#6d4a85';c.fill();c.strokeStyle='#2c1a38';c.lineWidth=1.5;c.stroke();c.restore();
+     num(c,bx,by,'70',t-t0-.82,'#d6b8ff',14)});
+   if(t>3.2&&t<4.8){var f=ph(t,3.2,4.7);for(var q=0;q<4;q++){var a=f*TAU*1.2+q*TAU/4;c.save();c.lineCap='round';c.beginPath();c.moveTo(C.x,C.y);c.quadraticCurveTo(C.x+Math.cos(a-.6)*80,C.y+Math.sin(a-.6)*70,C.x+Math.cos(a)*125,C.y+Math.sin(a)*100);c.lineWidth=9;c.strokeStyle='#6d4a85';c.stroke();c.lineWidth=2;c.strokeStyle='#c9a6e8';c.setLineDash([2,6]);c.stroke();c.restore()}}}}
+];
+
+/* ---------------- KNIGHT ---------------- */
+IDEAS['Tank/Knight']=[
+{name:'War Banner',cd:70,dur:8,party:1,
+ hook:'Plant a war banner that pulls every gun onto itself.',
+ rules:'You drive a banner into the ground at your feet for 12 s. Within 200 px of it, allies take 40% less damage, and every enemy inside the circle shoots at the banner instead of a player. The banner soaks 600 damage before it falls. You can walk away from it and fight.',
+ nums:['70 s','200 px','12 s','-40% damage','taunts to banner','600 HP banner'],
+ why:'<b>Unlike Last Stand</b>, the tank stays free: the banner holds the spot and takes the fire while you move.',
+ F:{x:142,y:126},
+ target:function(j,t0,S){return t0>.8?this.F:PL[j%3]},
+ enemy:function(e,t){if(t>.8&&Math.hypot(e.x-this.F.x,e.y-this.F.y)<210)e.ring='rgba(255,200,90,.85)'},
+ under:function(c,S){var t=S.t,F=this.F,on=eo(ph(t,.6,1.1));if(on<=0)return;c.save();add(c);glow(c,F.x,F.y,200*on,'rgba(255,200,90,.12)','rgba(255,200,90,0)');c.restore();c.setLineDash([3,7]);circle(c,F.x,F.y,200*on,null,'rgba(255,210,120,.55)',1.5);c.setLineDash([]);
+   if(t<1.1){var f=ph(t,.6,1.1);circle(c,F.x,F.y,10+80*f,null,'rgba(255,230,170,'+(1-f)+')',3)}},
+ over:function(c,S){var t=S.t,F=this.F;var drop=ph(t,.3,.6),h=(1-drop)*50;if(t<.3)return;
+   ell(c,F.x,F.y+2,8,3,'rgba(0,0,0,.4)');line(c,F.x,F.y-h,F.x,F.y-46-h,'#6b5238',3);var wv=Math.sin(t*5)*3;poly(c,[[F.x+1,F.y-46-h],[F.x+26,F.y-42-h+wv],[F.x+22,F.y-33-h],[F.x+26,F.y-24-h+wv],[F.x+1,F.y-28-h]],'#b33a3a','#5a1c1c',1.5);
+   poly(c,[[F.x+9,F.y-40-h],[F.x+15,F.y-37-h],[F.x+9,F.y-33-h]],'#ffd36a');
+   var n=S.B.filter(function(b){return b.landed&&b.t0>.8}).length;c.fillStyle='rgba(0,0,0,.6)';c.fillRect(F.x-14,F.y-56,28,3.5);c.fillStyle='#ffd36a';c.fillRect(F.x-14,F.y-56,28*clamp(1-n*.035),3.5);
+   S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&b.t0>.8){var a=t-lt;if(a<.2){c.save();add(c);circle(c,F.x,F.y-20,4+a*40,'rgba(255,220,140,'+(1-a/.2)+')');c.restore()}}})}},
+{name:'Iron Vow',cd:75,dur:7.5,
+ hook:'Turn to steel, catch every bullet, then throw them all back.',
+ rules:'You turn to steel for 4 s: no damage at all, you can\'t move, and every enemy prefers you. Each bullet that hits you sticks and circles you as a shard. At the end you burst: every shard flies straight out in a ring, 25 damage each, piercing. A full screen of fire becomes a full ring.',
+ nums:['75 s','4 s','immune','taunt','1 shard per bullet','25 each, pierce'],
+ why:'<b>Unlike Last Stand</b>, it is short and all-or-nothing: absolute safety, then a payoff that scales with how hard they shot.',
+ nb:40,
+ player:function(p,t){if(p.k===0&&t>.3&&t<4.6)p.tint='#9aa3ad'},
+ shards:function(S){return S.B.filter(function(b){var lt=b.t0+b.arr;return b.landed&&lt>.3&&lt<4.3}).map(function(b,i){return{a:i*2.4,lt:b.t0+b.arr}})},
+ enemy:function(e,t){if(t>4.4&&t<4.8)e.flash=(t*10)%1<.4?1:0},
+ over:function(c,S){var t=S.t,sh=this.shards(S);
+   if(t>.3&&t<4.4){c.save();add(c);glow(c,P.x,P.y,24,'rgba(200,215,230,.45)','rgba(200,215,230,0)');c.restore();arc(c,P.x,P.y,15,0,TAU*ph(t,.3,4.3),'rgba(230,236,245,.9)',2);
+     sh.forEach(function(s,i){var a=s.a+t*2.5,r=20+(i%3)*5;c.save();c.translate(P.x+Math.cos(a)*r,P.y+Math.sin(a)*r);c.rotate(a);poly(c,[[-4,0],[0,-2],[4,0],[0,2]],'#e2e8ef','#59606c',1);c.restore()})}
+   if(t>=4.3){var f=ph(t,4.3,5.6);sh.forEach(function(s,i){var a=s.a,r=24+f*380;var x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;c.save();add(c);line(c,x,y,x-Math.cos(a)*16,y-Math.sin(a)*16,'rgba(230,240,255,'+(1-f)+')',2.5);c.restore()});
+     if(t<4.5){c.save();add(c);circle(c,P.x,P.y,20+ph(t,4.3,4.5)*40,null,'rgba(255,255,255,.9)',4);c.restore()}
+     S.E.forEach(function(e){num(c,e.x,e.y,'25',t-4.5-Math.hypot(e.x-P.x,e.y-P.y)/380,'#e6eef8',13)})}
+   if(t>.3&&t<4.4){c.save();c.font='600 11px "IBM Plex Mono",monospace';c.fillStyle='#e6eef8';c.textAlign='center';c.fillText(sh.length+' caught',P.x,P.y+34);c.restore()}}}
+];
+IDEAS['Healer/Knight']=[
+{name:'Seraph Ascent',cd:85,dur:8,party:1,
+ hook:'Wings unfold and you rise over the fight, then land in light.',
+ rules:'You rise on wings of light for 6 s: untouchable, you drift toward your cursor at half speed. Every 0.5 s a lance of light falls on an enemy (40), and every second a ring of light falls on each ally (20 heal). You land with a 200 px shockwave that heals allies 30 and shoves enemies.',
+ nums:['85 s','6 s airborne','untouchable','lance 40 / 0.5 s','20 heal / s per ally','landing 200 px, 30 heal'],
+ why:'<b>Unlike Hallowed Blade</b>, the healer is the effect: you leave the floor, so a wipe can\'t catch you, and you choose where to land.',
+ lift:function(t){return 22*eo(ph(t,.3,1))*(t>6.6?1-eo(ph(t,6.6,7)):1)},
+ player:function(p,t){if(p.k)return;p.lift=this.lift(t);p.x=lerp(120,150,sm(ph(t,1,6.6)));p.y=lerp(140,132,sm(ph(t,1,6.6)));p.scale=1+p.lift/60},
+ bullet:function(b,t){return !(b.tg===PL[0]&&t>.3&&t<6.8&&b.age>b.arr-.4)},
+ lance:function(k){return{t:1.2+k*.5,i:[2,7,1,9,0,4,5,11,6,3,10][k%11]}},
+ enemy:function(e,t){for(var k=0;k<11;k++){var l=this.lance(k);if(l.i===e.i&&t>l.t){if(e.heavy){e.hp=.6}else e.dead=ph(t,l.t+.1,l.t+.4);if(t<l.t+.1)e.flash=1}}},
+ over:function(c,S){var t=S.t,me=S.PL[0],ly=me.y-me.lift;
+   if(t>.3&&t<7){var w=eo(ph(t,.3,.8))*(t>6.6?1-ph(t,6.6,7):1),fl=Math.sin(t*6)*.25;c.save();c.translate(me.x,ly);c.save();add(c);glow(c,0,0,40,'rgba(255,240,190,.45)','rgba(255,240,190,0)');c.restore();
+     for(var s=-1;s<=1;s+=2){c.save();c.scale(1,s);c.rotate(-.2-fl);for(var f=0;f<5;f++){ell(c,-8-f*4,-12-f*3,14*w,4*w,'rgba(255,248,225,.85)','rgba(220,190,110,.8)',1,-.9+f*.18)}c.restore()}c.restore()}
+   for(var k=0;k<11;k++){var l=this.lance(k),e=S.E[l.i],a=t-l.t;if(a>-.15&&a<.25){c.save();add(c);var al=a<0?.4:1-a/.25;line(c,B[l.i][0],0,B[l.i][0],B[l.i][1],'rgba(255,240,180,'+al+')',a<0?1.5:5);glow(c,B[l.i][0],B[l.i][1],18,'rgba(255,240,190,'+al+')','rgba(255,240,190,0)');c.restore()}num(c,B[l.i][0],B[l.i][1],'40',a-.05,'#fff0b0',13)}
+   for(var q=1;q<3;q++){var p=S.PL[q],a2=(t-1)%1;if(t>1&&t<6.6){if(a2<.3){c.save();add(c);circle(c,p.x,p.y,30*(1-a2/.3)+12,null,'rgba(255,240,180,'+(1-a2/.3)+')',2);c.restore()}num(c,p.x,p.y,'+20',a2,'#fff0b0',11)}}
+   if(t>6.95){var f2=ph(t,6.95,7.6);c.save();add(c);circle(c,me.x,me.y,200*eo(f2),null,'rgba(255,240,180,'+(1-f2)+')',5);c.restore();num(c,PL[1].x,PL[1].y-8,'+30',t-7.1,'#fff0b0',14);num(c,PL[2].x,PL[2].y-8,'+30',t-7.15,'#fff0b0',14)}}},
+{name:'Judgment Bell',cd:80,dur:7.5,party:1,
+ hook:'A bell of light tolls three times; each toll sweeps the arena clean.',
+ rules:'A great bell appears over you and tolls three times, 1.8 s apart. Each toll sends a ring across the whole arena: allies it reaches heal 12% of their max health, enemy bullets it meets are erased, and enemies it passes are stunned for 0.8 s.',
+ nums:['80 s','3 tolls','1.8 s apart','12% heal each','erases bullets','0.8 s stun'],
+ why:'<b>Unlike Hallowed Blade</b>, it is a rhythm: three timed resets the party can play around, and it covers the whole map without aiming.',
+ tolls:[.8,2.6,4.4],
+ R:function(t,k){var a=t-this.tolls[k];return a<0||a>1.3?-1:540*eo(a/1.3)},
+ hitT:function(d,k){for(var a=0;a<1.3;a+=.02){if(540*eo(a/1.3)>=d)return this.tolls[k]+a}return 99},
+ enemy:function(e,t){for(var k=0;k<3;k++){var h=this.hitT(Math.hypot(e.x-P.x,e.y-P.y),k);if(t>=h&&t<h+.8){e.stun=1;if(t<h+.08)e.flash=1}}},
+ bullet:function(b,t){var self=this;return caught(b,t,function(x,y,tm){for(var k=0;k<3;k++){var R=self.R(tm,k);if(R>0&&Math.abs(Math.hypot(x-P.x,y-P.y)-R)<18)return true}return false})<0},
+ under:function(c,S){var t=S.t;for(var k=0;k<3;k++){var R=this.R(t,k);if(R<0)continue;var f=R/540;c.save();add(c);circle(c,P.x,P.y,R,null,'rgba(255,230,150,'+(.85*(1-f))+')',6);circle(c,P.x,P.y,R-10,null,'rgba(255,245,210,'+(.4*(1-f))+')',2);c.restore()}},
+ over:function(c,S){var t=S.t,on=eo(ph(t,.2,.6))*(t>5.8?1-ph(t,5.8,6.3):1);if(on<=0)return;var sw=0;for(var k=0;k<3;k++){var a=t-this.tolls[k];if(a>=0&&a<.6)sw=Math.sin(a*20)*(1-a/.6)*.35}
+   c.save();c.translate(P.x,P.y-40);c.rotate(sw);c.globalAlpha=on;c.save();add(c);glow(c,0,8,30,'rgba(255,230,150,.5)','rgba(255,230,150,0)');c.restore();
+   c.beginPath();c.moveTo(-6,-10);c.quadraticCurveTo(-8,8,-16,14);c.lineTo(16,14);c.quadraticCurveTo(8,8,6,-10);c.closePath();c.fillStyle='rgba(255,236,170,.9)';c.fill();c.strokeStyle='#b88a2a';c.lineWidth=1.5;c.stroke();circle(c,0,16,3,'#b88a2a');c.restore();
+   for(var q=0;q<3;q++){var self=this;S.PL.forEach(function(p){if(p.k)num(c,p.x,p.y,'+12%',t-self.tolls[q]-.12,'#fff0b0',12)})}}}
+];
+IDEAS['DPS/Knight']=[
+{name:"Heaven's Cleave",cd:65,dur:7,
+ hook:'Raise a sword of light for one swing that crosses the arena.',
+ rules:'Hold the ultimate key: a sword of light rises over you for up to 1.2 s (you move at half speed). Let go and it swings once, throwing a 160° crescent wave across the whole arena: 220 damage within 300 px, 110 beyond. It cuts every small bullet it crosses. Let go early and it swings at 60%.',
+ nums:['65 s','1.2 s charge','160° wave','220 near','110 far','cuts bullets'],
+ why:'<b>Unlike Blade Tempest</b>, it is one decisive hit instead of 6 s of extra beams: you pick the moment and the angle.',
+ R:function(t){return t<1.6?-1:30+510*eo(ph(t,1.6,2.5))},
+ enemy:function(e,t){var d=Math.hypot(B[e.i][0]-P.x,B[e.i][1]-P.y),self=this;var ht=-1;for(var u=1.6;u<=2.5;u+=.02){if(self.R(u)>=d){ht=u;break}}if(ht>=0&&t>=ht){if(e.heavy){e.hp=d<300?.15:.55;if(t<ht+.08)e.flash=1}else if(d<300)e.dead=ph(t,ht,ht+.3);else{e.hp=.4;if(t<ht+.08)e.flash=1}}},
+ bullet:function(b,t){var self=this;return caught(b,t,function(x,y,tm){var R=self.R(tm);return R>0&&Math.abs(Math.hypot(x-P.x,y-P.y)-R)<20&&Math.abs(Math.atan2(y-P.y,x-P.x))<1.4})<0},
+ over:function(c,S){var t=S.t,ch=ph(t,.3,1.5);
+   if(t>.3&&t<1.75){var L=20+50*eo(ch),a=t<1.6?-1.4:lerp(-1.4,1.4,ph(t,1.6,1.75));c.save();c.translate(P.x,P.y);c.rotate(a);c.save();add(c);glow(c,L*.6,0,L*.7,'rgba(200,230,255,'+(.3+.4*ch)+')','rgba(200,230,255,0)');c.restore();
+     poly(c,[[12,-3],[12+L,-2],[18+L,0],[12+L,2],[12,3]],'rgba(240,248,255,.95)','rgba(150,200,255,.9)',1.5);line(c,10,-8,10,8,'#d8b25a',3);c.restore()}
+   var R=this.R(t);if(R>0&&R<540){var f=R/540;c.save();add(c);c.beginPath();c.arc(P.x,P.y,R,-1.4,1.4);c.arc(P.x,P.y,Math.max(0,R-26*(1-f*.5)),1.4,-1.4,true);c.closePath();c.fillStyle='rgba(210,235,255,'+(.75*(1-f))+')';c.fill();arc(c,P.x,P.y,R,-1.4,1.4,'rgba(255,255,255,'+(1-f)+')',2.5);c.restore()}
+   S.E.forEach(function(e,i){var d=Math.hypot(B[i][0]-P.x,B[i][1]-P.y);num(c,e.x,e.y,d<300?'220':'110',t-1.6-d/540*.6,'#dff0ff',d<300?16:13)})}},
+{name:'Sentence of Swords',cd:60,dur:7,noDrift:1,cursor:{x:258,y:100},cursorEnd:.6,
+ hook:'Mark one enemy and let eight swords pass sentence on it.',
+ rules:'Mark the enemy nearest your cursor (bosses welcome). Eight spectral swords form a ring over it and strike one by one, 0.3 s apart, 40 each; the eighth falls for 160. If the mark dies early, the swords left jump to the nearest enemy and carry on. 440 damage in all, built for bosses and elites.',
+ nums:['60 s','8 swords','0.3 s apart','40 × 7','160 finisher','jumps on a kill'],
+ why:'<b>Unlike Blade Tempest</b>, it is pure single-target: the Knight DPS answer to a boss phase, aimed with one click.',
+ st:function(k){return 1.1+k*.3+(k===7?.25:0)},
+ enemy:function(e,t){if(e.i!==7)return;var n=0;for(var k=0;k<8;k++)if(t>=this.st(k)){n+=k===7?160:40;if(t<this.st(k)+.06)e.flash=1}e.hp=1-n/440;if(n>=440)e.dead=ph(t,this.st(7)+.1,this.st(7)+.5);e.ring=t>.4&&n<440?'rgba(255,90,90,.9)':null},
+ over:function(c,S){var t=S.t,e=S.E[7],x=B[7][0],y=B[7][1];if(t<.5)return;
+   for(var k=0;k<8;k++){var a=k/8*TAU-Math.PI/2+t*.6,form=eo(ph(t,.5+k*.05,.9+k*.05)),s=this.st(k),hit=ph(t,s-.12,s);if(t>s+.15||form<=0)continue;var big=k===7;
+     var r=lerp(48,0,eo(hit))*form+(1-form)*80,sx=x+Math.cos(a)*r,sy=y+Math.sin(a)*r-20*(1-hit),ang=Math.atan2(y-sy,x-sx);
+     c.save();c.translate(sx,sy);c.rotate(ang);c.globalAlpha=form*(t>s?1-ph(t,s,s+.15):1);var L=big?34:20;poly(c,[[-L*.4,-2],[L*.6,-1.5],[L*.75,0],[L*.6,1.5],[-L*.4,2]],'rgba(225,238,255,.95)','rgba(140,180,255,.9)',1);line(c,-L*.4,-6,-L*.4,6,'#d8b25a',2.5);c.restore()}
+   for(var k2=0;k2<8;k2++){var s2=this.st(k2);num(c,x+(k2%2?10:-10),y,k2===7?'160':'40',t-s2,k2===7?'#ffd36a':'#dfe8ff',k2===7?18:12)}
+   if(t>this.st(7)&&t<this.st(7)+.4){var f=ph(t,this.st(7),this.st(7)+.4);c.save();add(c);circle(c,x,y,10+f*50,null,'rgba(255,230,160,'+(1-f)+')',4);c.restore()}}}
+];
+
+/* ---------------- NINJA ---------------- */
+IDEAS['Tank/Ninja']=[
+{name:'Shadow Prison',cd:70,dur:8,noDrift:1,cursor:{x:360,y:150},cursorEnd:.6,
+ hook:'An ink circle traps a pack and makes it fight only you.',
+ rules:'An ink circle spreads at your cursor (110 px). For 6 s the enemies inside can\'t leave it and shoot only at you, wherever your allies are. When it closes they take 60 and are stunned for 1 s. Bosses inside are taunted but can walk out.',
+ nums:['70 s','110 px','6 s','held + taunted','60 on close','1 s stun'],
+ why:'<b>Unlike Thousand Clones</b>, it takes a pack out of the fight instead of spreading their aim round the map.',
+ inside:function(i){var C=this.cursor;return Math.hypot(B[i][0]-C.x,B[i][1]-C.y)<115},
+ enemy:function(e,t){if(!this.inside(e.i)||t<.8)return;e.ring='rgba(150,110,220,.9)';if(t>6.6&&t<7.6){e.stun=1;if(t<6.7)e.flash=1}},
+ target:function(j,t0){return PL[0]},
+ under:function(c,S){var t=S.t,C=this.cursor,on=eo(ph(t,.3,.9)),cl=ph(t,6.3,6.6);if(on<=0||t>7)return;var R=110*on*(1-cl);
+   c.beginPath();for(var k=0;k<=48;k++){var a=k/48*TAU,r=R+Math.sin(a*7+t*2)*4;var x=C.x+Math.cos(a)*r,y=C.y+Math.sin(a)*r;k?c.lineTo(x,y):c.moveTo(x,y)}c.closePath();c.fillStyle='rgba(20,10,30,.6)';c.fill();c.lineWidth=3;c.strokeStyle='rgba(140,100,210,.85)';c.stroke();
+   for(var k2=0;k2<8;k2++){var a2=k2/8*TAU-t*.4;c.save();c.translate(C.x+Math.cos(a2)*R,C.y+Math.sin(a2)*R);c.rotate(a2);c.fillStyle='#e8dcc0';c.fillRect(-3,-6,6,12);c.fillStyle='#8a2a2a';c.fillRect(-1,-4,2,8);c.restore()}},
+ over:function(c,S){var t=S.t,self=this;S.E.forEach(function(e){if(self.inside(e.i)&&t>.8&&t<6.6){line(c,e.x,e.y,self.cursor.x+(e.x-self.cursor.x)*.3,self.cursor.y+(e.y-self.cursor.y)*.3,'rgba(150,110,220,.5)',1.5)}num(c,e.x,e.y,self.inside(e.i)?'60':'',t-6.6,'#d6c4ff',14)});
+   if(t>6.3&&t<6.9){var f=ph(t,6.3,6.9);c.save();add(c);circle(c,this.cursor.x,this.cursor.y,(1-f)*110,null,'rgba(200,170,255,'+(1-f)+')',4);c.restore()}}},
+{name:'Ink Dragon',cd:75,dur:8,drift:{v:24,stop:60},
+ hook:'An ink dragon coils round you as armour and bites what comes near.',
+ rules:'An ink dragon wraps round you for 8 s. Its body is a ring 60 px out that blocks enemy bullets. Its head snaps at any enemy that comes within 150 px: 60 damage and a 60 px shove, one bite every 0.4 s. Your allies can stand inside the coil.',
+ nums:['75 s','8 s','60 px coil','blocks bullets','bite 60','150 px reach','1 bite / 0.4 s'],
+ why:'<b>Unlike Thousand Clones</b>, the tank holds still and becomes the wall, with a bite to keep melee off.',
+ enemy:function(e,t){var o=bounce(e.d0,24,150,205,t,.9,7.6,60);onRay(e,o.r);if(o.hit>=0&&o.hit<.1)e.flash=1;e._b=o.hit},
+ bullet:function(b,t){if(t<.9||t>7.6)return true;return caught(b,t,function(x,y,tm){return tm>.9&&tm<7.6&&Math.hypot(x-P.x,y-P.y)<64})<0},
+ over:function(c,S){var t=S.t,on=eo(ph(t,.3,.9))*(t>7.6?1-ph(t,7.6,8):1);if(on<=0)return;var R=60*on;
+   for(var k=0;k<40;k++){var a=k/40*TAU*.92+t*.8,r=R+Math.sin(k*.6+t*3)*3,x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;circle(c,x,y,7-k*.1,'rgba(25,20,40,.92)','rgba(150,120,220,.6)',1)}
+   var biting=null;S.E.forEach(function(e){if(e._b>=0&&e._b<.3)biting=e});var ha=t*.8,hx=P.x+Math.cos(ha)*R,hy=P.y+Math.sin(ha)*R;
+   if(biting){var f=Math.sin(ph(biting._b,0,.3)*Math.PI);hx=lerp(hx,biting.x,f*.85);hy=lerp(hy,biting.y,f*.85);c.beginPath();c.moveTo(P.x+Math.cos(ha)*R,P.y+Math.sin(ha)*R);c.lineTo(hx,hy);c.lineWidth=8;c.strokeStyle='rgba(25,20,40,.9)';c.stroke()}
+   var hd=Math.atan2(hy-P.y,hx-P.x)+(biting?0:Math.PI/2);c.save();c.translate(hx,hy);c.rotate(hd);poly(c,[[-8,-8],[12,-5],[16,0],[12,5],[-8,8]],'#191426','rgba(170,140,240,.9)',1.5);circle(c,6,-4,1.6,'#ff5a5a');circle(c,6,4,1.6,'#ff5a5a');line(c,-6,-8,-14,-14,'rgba(170,140,240,.8)',1.5);line(c,-6,8,-14,14,'rgba(170,140,240,.8)',1.5);c.restore();
+   S.E.forEach(function(e){num(c,e.x,e.y,'60',e._b,'#d6c4ff',13)});}}
+];
+IDEAS['Healer/Ninja']=[
+{name:'Rewind Seal',cd:90,dur:7.5,party:1,
+ hook:'Stamp a seal under every ally; four seconds later, time snaps back for them.',
+ rules:'A seal stamps under each player. For 4 s the fight goes on as normal. Then it snaps back: each player returns to where they stood and to the health they had at the stamp, even if they went down. Enemy bullets fired at them in those 4 s are erased on the snap.',
+ nums:['90 s','4 s','position + health','undoes a down','erases bullets'],
+ why:'<b>Unlike Blossom Storm</b>, it rewards foresight: cast it before the danger, and a mistake in the next 4 s never happened.',
+ path:function(k,t){var f=sm(ph(t,.5,4.4)),back=eo(ph(t,4.4,4.9));var dx=[40,30,26][k],dy=[-10,18,-20][k];f=f*(1-back);return{x:PL[k].x+dx*f,y:PL[k].y+dy*f}},
+ player:function(p,t){var q=this.path(p.k,t);p.x=q.x;p.y=q.y;if(t>.6&&t<4.4){p.hp=1-.18*(t-.6)*(p.k===2?1.45:p.k===0?.6:.9);if(p.hp<=0){p.down=1}}},
+ bullet:function(b,t){return !(t>4.4&&b.t0<4.4)},
+ under:function(c,S){var t=S.t;if(t<.4||t>5)return;var self=this;for(var k=0;k<3;k++){var o=PL[k],st=eo(ph(t,.4,.6));c.save();c.globalAlpha=t>4.6?1-ph(t,4.6,5):1;circle(c,o.x,o.y,18*st,'rgba(120,90,200,.18)','rgba(170,140,240,.8)',1.5);
+   c.save();c.translate(o.x,o.y);c.rotate(-Math.PI/2);arc(c,0,0,13,0,TAU*ph(t,.6,4.4),'rgba(220,200,255,.9)',2);c.restore();line(c,o.x,o.y,o.x+Math.cos(-Math.PI/2+TAU*ph(t,.6,4.4))*12,o.y+Math.sin(-Math.PI/2+TAU*ph(t,.6,4.4))*12,'#efe6ff',1.5);c.restore()}},
+ over:function(c,S){var t=S.t;if(t>4.4&&t<5){var f=ph(t,4.4,5);c.save();add(c);c.fillStyle='rgba(180,150,255,'+(.25*(1-f))+')';c.fillRect(0,0,W,H);for(var k=0;k<3;k++){var a=this.path(k,4.35);for(var g=0;g<4;g++){var q=this.path(k,4.4+g*.08);circle(c,lerp(a.x,PL[k].x,g/4),lerp(a.y,PL[k].y,g/4),9,'rgba(200,180,255,'+(.3*(1-f))+')')}}c.restore();
+     S.PL.forEach(function(p){num(c,p.x,p.y,'RESTORED',t-4.5,'#e6dcff',12)})}}},
+{name:'Thousand Cranes',cd:80,dur:7.5,party:1,
+ hook:'Forty paper cranes burst from your sleeves to heal and to seal.',
+ rules:'Over 1.2 s, 40 paper cranes fly out. Half find allies (most hurt first) and heal 15 each when they land. The other half land on enemies and seal them: a sealed enemy can\'t shoot for 4 s. Bosses can\'t be sealed; their cranes deal 15 instead.',
+ nums:['80 s','40 cranes','1.2 s','20 heal × 15','20 seals','4 s no shooting'],
+ why:'<b>Unlike Blossom Storm</b>, it splits between healing and stopping fire: fewer bullets in the air is healing too.',
+ crane:function(k){var ally=k%2===0;return{ally:ally,tgt:ally?[1,2,0,2,1][k/2%5]:[2,7,1,9,0,4,3,5,11,6][((k-1)/2)%10],t0:.4+k*.03,fl:.8+hash(k)*.3,side:(hash(k+9)-.5)*140}},
+ enemy:function(e,t){for(var k=1;k<40;k+=2){var cr=this.crane(k);if(cr.tgt===e.i&&t>cr.t0+cr.fl&&t<cr.t0+cr.fl+4){e.noShoot=1;e._seal=1;if(e.heavy&&t<cr.t0+cr.fl+.06)e.flash=1}}},
+ over:function(c,S){var t=S.t;for(var k=0;k<40;k++){var cr=this.crane(k),a=t-cr.t0;var tx,ty;if(cr.ally){tx=PL[cr.tgt].x;ty=PL[cr.tgt].y}else{tx=S.E[cr.tgt].x;ty=S.E[cr.tgt].y}
+     if(a>0&&a<cr.fl){var f=a/cr.fl,cx=(P.x+tx)/2+cr.side*.4,cy=(P.y+ty)/2+cr.side,x=(1-f)*(1-f)*P.x+2*(1-f)*f*cx+f*f*tx,y=(1-f)*(1-f)*P.y+2*(1-f)*f*cy+f*f*ty;var fl=Math.sin(t*25+k)*3;
+       c.save();c.translate(x,y);c.rotate(Math.atan2(ty-y,tx-x));poly(c,[[6,0],[-4,-3-fl],[-2,0],[-4,3+fl]],cr.ally?'#f5f0e6':'#f0e2d0','rgba(0,0,0,.3)',.8);c.restore()}
+     if(cr.ally)num(c,tx+(hash(k)-.5)*12,ty,'+15',a-cr.fl,'#b9ffd9',11)}
+   S.E.forEach(function(e){if(e._seal&&e.dead<=0){c.save();c.translate(e.x,e.y-2);c.rotate(.2);c.fillStyle='#efe2c4';c.fillRect(-4,-8,8,16);c.fillStyle='#b8322e';c.fillRect(-2,-5,4,4);c.fillRect(-1,1,2,5);c.restore()}})}}
+];
+IDEAS['DPS/Ninja']=[
+{name:'Five Shadows',cd:65,dur:7,noDrift:1,
+ hook:'Five shadow copies cut five lanes through the wave at once.',
+ rules:'Five shadows of you appear in a fan behind you and, 0.4 s later, dash 420 px along five lanes spread 40° across your aim, cutting every enemy on their lane for 90. You blink to where the middle shadow ends. Each lane is 28 px wide; a boss in two lanes takes both.',
+ nums:['65 s','5 lanes','40° fan','420 px','90 per cut','you blink to the end'],
+ why:'<b>Unlike Death Lotus</b>, it is aimed by direction, not targets: line it up with the wave and it crosses the whole screen.',
+ lanes:[-.36,-.18,0,.18,.36],
+ hitT:function(i){var bx=B[i][0]-P.x,by=B[i][1]-P.y,best=99;for(var q=0;q<5;q++){var a=this.lanes[q],along=bx*Math.cos(a)+by*Math.sin(a),off=-bx*Math.sin(a)+by*Math.cos(a);if(along>0&&along<340&&Math.abs(off)<28)best=Math.min(best,.9+along/340*.35)}return best},
+ enemy:function(e,t){var h=this.hitT(e.i);if(t>=h){if(e.heavy){e.hp=.5;if(t<h+.08)e.flash=1}else e.dead=ph(t,h,h+.3)}},
+ player:function(p,t){if(p.k)return;if(t>1.25&&t<5.5){p.x=P.x+330;p.y=P.y;p.alpha=1}if(t>.85&&t<1.25)p.alpha=.2;if(t>=5.5){var f=sm(ph(t,5.5,6.5));p.x=lerp(P.x+330,P.x,f)}},
+ over:function(c,S){var t=S.t;for(var q=0;q<5;q++){var a=this.lanes[q],f=t<.9?0:eo(ph(t,.9,1.25)),d=-30+370*f,x=P.x+Math.cos(a)*d-(t<.9?Math.cos(a)*20*eo(ph(t,.4,.9)):0),y=P.y+Math.sin(a)*d;
+     if(t>.4&&t<1.6){var al=t>1.25?1-ph(t,1.25,1.6):eo(ph(t,.4,.7));c.save();c.globalAlpha=al;if(t>.9){c.save();add(c);line(c,P.x,P.y,x,y,'rgba(190,150,255,.5)',3);c.restore()}circle(c,x,y,10,'rgba(30,20,50,.9)','rgba(190,150,255,.9)',2);c.restore()}}
+   var self=this;S.E.forEach(function(e,i){num(c,e.x,e.y,'90',t-self.hitT(i),'#e0d0ff',14)})}},
+{name:'Moonfall',cd:70,dur:7,noDrift:1,
+ hook:'Leap out of sight and fall back as a crescent cut across the arena.',
+ rules:'You leap out of the fight (untouchable for 1.4 s) as a crescent moon rises over the arena. Then you fall along your aim as one crescent slash 520 px long: 250 to every enemy it crosses, 120 to enemies within 50 px of it. You land at its end.',
+ nums:['70 s','1.4 s untouchable','520 px slash','250 on the line','120 within 50 px'],
+ why:'<b>Unlike Death Lotus</b>, it also gets you out: a dodge and a screen-wide cut in one button.',
+ curve:function(u){return{x:P.x+30+u*320,y:P.y-50*Math.sin(u*Math.PI)+20*u}},
+ dist:function(i){var best=1e9;for(var u=0;u<=1;u+=.02){var q=this.curve(u);best=Math.min(best,Math.hypot(B[i][0]-q.x,B[i][1]-q.y))}return best},
+ enemy:function(e,t){if(t<1.9)return;var d=this.dist(e.i);if(d<24+e.r){if(e.heavy)e.hp=.2;else e.dead=ph(t,1.95,2.25)}else if(d<70){e.hp=.5;if(t<2)e.flash=1}},
+ player:function(p,t){if(p.k)return;if(t>.3&&t<1.9){p.alpha=1-ph(t,.3,.5);p.lift=60*eo(ph(t,.3,.6))}if(t>=1.9&&t<5.4){var q=this.curve(1);p.x=q.x-10;p.y=q.y}if(t>=5.4){var f=sm(ph(t,5.4,6.4)),q2=this.curve(1);p.x=lerp(q2.x-10,P.x,f);p.y=lerp(q2.y,P.y,f)}},
+ bullet:function(b,t){return !(b.tg===PL[0]&&t>.3&&t<1.9)},
+ over:function(c,S){var t=S.t,m=eo(ph(t,.5,1.4))*(t>2.2?1-ph(t,2.2,2.8):1);
+   if(m>0){c.save();c.fillStyle='rgba(5,5,20,'+(.35*m)+')';c.fillRect(0,0,W,H);c.save();add(c);glow(c,380,40,60*m,'rgba(220,230,255,.4)','rgba(220,230,255,0)');c.restore();
+     c.beginPath();c.arc(380,40,26*m,0,TAU);c.arc(392,34,24*m,0,TAU,true);c.fillStyle='rgba(235,240,255,.95)';c.fill('evenodd');c.restore()}
+   if(t>.3&&t<1.9)ell(c,P.x,P.y+3,10,5,'rgba(0,0,0,.4)');
+   if(t>1.85&&t<2.8){var f=ph(t,1.85,2.05),fade=1-ph(t,2.2,2.8);c.save();add(c);c.globalAlpha=fade;c.beginPath();for(var u=0;u<=f;u+=.01){var q=this.curve(u);u?c.lineTo(q.x,q.y-6*Math.sin(u*Math.PI)):c.moveTo(q.x,q.y)}for(var u2=f;u2>=0;u2-=.01){var q2=this.curve(u2);c.lineTo(q2.x,q2.y+6*Math.sin(u2*Math.PI))}c.closePath();c.fillStyle='rgba(235,240,255,.95)';c.fill();c.lineWidth=6;c.strokeStyle='rgba(160,180,255,.4)';c.stroke();c.restore()}
+   var self=this;S.E.forEach(function(e,i){var d=self.dist(i);if(d<70)num(c,e.x,e.y,d<24+e.r?'250':'120',t-1.98,'#eef2ff',d<24+e.r?16:12)})}}
+];
+
+/* ---------------- HEMOMANCER ---------------- */
+IDEAS['Tank/Hemomancer']=[
+{name:'Bloodbath',cd:75,dur:8,drift:{v:22,stop:40},
+ hook:'Flood the floor round you with blood that drags at everything in it.',
+ rules:'Pay 15% of your max health and the floor floods with blood for 10 s, 170 px round where you cast. Enemies wading in it move 50% slower and bleed 15 a second; every bleed tick heals you for a quarter of it. Allies standing in it take 20% less damage.',
+ nums:['75 s','15% cost','170 px','10 s','-50% speed','bleed 15/s','25% back to you'],
+ why:'<b>Unlike Vein Tithe</b>, nothing is frozen: it is a slow, sticky zone the tank fights in, and it pays the cost back over time.',
+ player:function(p,t){if(p.k===0)p.hp=t<.3?1:.85+.15*ph(t,1.5,7.5)},
+ enemy:function(e,t){var b=basePos(e.i,t,{v:22,stop:40}),d0=e.d0,R=170;var tin=(d0-R)/22;if(t>Math.max(tin,1)){var t1=Math.max(tin,1),slow=11*(t-t1),r=Math.max(40,(d0-22*t1)-slow);onRay(e,r);e.tint='#8a3a4a';e._bl=1}},
+ under:function(c,S){var t=S.t,on=eo(ph(t,.3,1.2))*(t>7.5?1-ph(t,7.5,8):1);if(on<=0)return;var R=170*on;
+   c.beginPath();for(var k=0;k<=60;k++){var a=k/60*TAU,r=R+Math.sin(a*6+1)*7+Math.sin(a*11)*4;var x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;k?c.lineTo(x,y):c.moveTo(x,y)}c.closePath();c.fillStyle='rgba(110,8,20,.55)';c.fill();c.lineWidth=2;c.strokeStyle='rgba(200,40,60,.6)';c.stroke();
+   for(var q=0;q<4;q++){var p=(t*.35+q/4)%1;circle(c,P.x,P.y,R*p,null,'rgba(230,80,90,'+(.25*(1-p))+')',1.5)}},
+ over:function(c,S){var t=S.t;S.E.forEach(function(e){if(e._bl){var a=(t*1.4+e.i*.37)%1;circle(c,e.x+3,e.y+e.r+a*8,1.8*(1-a),'rgba(220,30,50,.9)');num(c,e.x,e.y,'15',(t+e.i*.4)%1,'#ff8a8a',11)}});
+   if(t>1.5)num(c,P.x,P.y,'+4',(t*1.3)%1,'#ff9aa8',12);num(c,P.x,P.y-8,'-15%',t-.3,'#ff6a6a',14)}},
+{name:'Heartless',cd:80,dur:8,
+ hook:'Tear your heart out: you can\'t die, and every hit you take loads it.',
+ rules:'You hold your heart up for 7 s. You can\'t drop below 1 health and every enemy prefers you. All the damage you take is stored in the heart. When it ends the heart bursts: the stored damage is split between enemies within 260 px, and you heal 30% of it.',
+ nums:['80 s','7 s','1 HP floor','taunt','stored → split','heal 30% of it'],
+ why:'<b>Unlike Vein Tithe</b>, it turns the tank\'s job into damage: the more the wave hits you, the bigger the burst.',
+ nb:34,
+ stored:function(S){return S.B.filter(function(b){var lt=b.t0+b.arr;return b.landed&&lt>.4&&lt<7}).length*14},
+ player:function(p,t,S){if(p.k)return;p.hp=t<.4?.9:t<7?Math.max(.03,.9-(t-.4)*.2):lerp(.03,.6,ph(t,7.1,7.6))},
+ enemy:function(e,t){if(t>7&&t<7.2)e.flash=1},
+ over:function(c,S){var t=S.t,st=this.stored(S);if(t>.3&&t<7.1){var beat=1+.12*Math.max(0,Math.sin(t*9)),s=(8+Math.min(12,st/40))*beat*eo(ph(t,.3,.7)),x=P.x,y=P.y-34;
+     line(c,P.x+4,P.y-8,x,y+s*.6,'#7a1a24',3);c.save();add(c);glow(c,x,y,s*2.4,'rgba(255,60,80,.55)','rgba(255,60,80,0)');c.restore();
+     c.beginPath();c.moveTo(x,y+s);c.bezierCurveTo(x-s*1.4,y,x-s*.9,y-s*1.1,x,y-s*.4);c.bezierCurveTo(x+s*.9,y-s*1.1,x+s*1.4,y,x,y+s);c.fillStyle='#c4202f';c.fill();c.strokeStyle='#4a0810';c.lineWidth=1.5;c.stroke();
+     c.save();c.font='600 11px "IBM Plex Mono",monospace';c.fillStyle='#ffc4c8';c.textAlign='center';c.fillText(st+' stored',x,y-s-6);c.restore();
+     S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&lt>.4&&lt<7)num(c,P.x+12,P.y+6,'14',t-lt,'#ff9a9a',11)})}
+   if(t>=7){var f=ph(t,7,7.7);c.save();add(c);circle(c,P.x,P.y-20,20+240*eo(f),null,'rgba(255,60,80,'+(1-f)+')',6);glow(c,P.x,P.y-20,60*(1-f),'rgba(255,120,130,.8)','rgba(255,60,80,0)');c.restore();
+     var hit=S.E.filter(function(e){return Math.hypot(e.x-P.x,e.y-P.y)<260}),each=Math.round(st/Math.max(1,hit.length));hit.forEach(function(e){num(c,e.x,e.y,''+each,t-7.1,'#ff8a8a',14)});num(c,P.x,P.y-4,'+'+Math.round(st*.3),t-7.2,'#ff9aa8',15)}}}
+];
+IDEAS['Healer/Hemomancer']=[
+{name:'Blood Bond',cd:85,dur:8,party:1,nb:30,
+ hook:'Veins bind the party into one health pool.',
+ rules:'For 8 s veins link every player. Damage any of them takes is split evenly across all of them, so no one is burst down alone. You pour 2% of your max health a second into the bond, and it heals every player 3% a second.',
+ nums:['85 s','8 s','damage shared','2%/s from you','3%/s to all'],
+ why:'<b>Unlike Sanguine Rain</b>, it is about spikes, not totals: it turns one ally\'s fatal hit into three survivable ones.',
+ player:function(p,t){if(t>.5&&t<7.6)p.hp=.8+.12*Math.sin(t*.8)},
+ over:function(c,S){var t=S.t,on=eo(ph(t,.3,.8))*(t>7.6?1-ph(t,7.6,8):1);if(on<=0)return;var pl=S.PL;
+   for(var a=0;a<3;a++){var b=(a+1)%3,p=pl[a],q=pl[b],mx=(p.x+q.x)/2+(a===1?-24:18),my=(p.y+q.y)/2+(a===2?10:0);c.save();c.globalAlpha=on;
+     c.beginPath();c.moveTo(p.x,p.y);c.quadraticCurveTo(mx,my,q.x,q.y);c.lineWidth=4;c.strokeStyle='rgba(120,10,25,.85)';c.stroke();c.lineWidth=1.6;c.strokeStyle='rgba(255,90,100,.85)';c.stroke();
+     for(var k=0;k<3;k++){var f=(t*.7+k/3+a*.2)%1,x=(1-f)*(1-f)*p.x+2*(1-f)*f*mx+f*f*q.x,y=(1-f)*(1-f)*p.y+2*(1-f)*f*my+f*f*q.y;circle(c,x,y,2.4,'#ff4a5a')}c.restore()}
+   S.B.forEach(function(b){var lt=b.t0+b.arr;if(b.landed&&lt>.6&&lt<7.6){var a2=t-lt;pl.forEach(function(p){num(c,p.x+8,p.y,'-6',a2,'#ff8a8a',11)});if(a2<.25){c.save();add(c);circle(c,b.tg.x,b.tg.y,12+a2*40,null,'rgba(255,80,90,'+(1-a2/.25)+')',2);c.restore()}}});
+   if(t>.8&&t<7.6)pl.forEach(function(p){num(c,p.x-10,p.y,'+3%',(t*.9+p.k*.3)%1,'#ff9aa8',10)})}},
+{name:'Crimson Bloom',cd:80,dur:8,party:1,cursor:{x:330,y:146},cursorEnd:.6,
+ hook:'A blood flower opens among the enemies and sends their blood to your allies.',
+ rules:'A blood flower opens at your cursor for 8 s. It drains every enemy within 220 px for 12 a second (bosses 30), and the blood flies back as petals to the most hurt ally, 6 health each, about 4 a second with a full pack. It costs nothing, but the more enemies near it, the more it heals.',
+ nums:['80 s','8 s','220 px','12/s drain','boss 30/s','6 per petal'],
+ why:'<b>Unlike Sanguine Rain</b>, the enemies pay instead of you: it is the healer Hemomancer\'s ultimate that does not cost health.',
+ player:function(p,t){if(p.k===2)p.hp=clamp(.3+.08*Math.max(0,t-1.4))},
+ enemy:function(e,t){var C=this.cursor;if(t>1&&t<7.7&&Math.hypot(e.x-C.x,e.y-C.y)<220){e.ring='rgba(220,40,60,.75)'}},
+ under:function(c,S){var t=S.t,C=this.cursor,on=eo(ph(t,.3,1.2))*(t>7.6?1-ph(t,7.6,8):1);if(on<=0)return;c.save();add(c);glow(c,C.x,C.y,220*on,'rgba(200,20,40,.1)','rgba(200,20,40,0)');c.restore();c.setLineDash([2,8]);circle(c,C.x,C.y,220*on,null,'rgba(220,60,80,.4)',1.2);c.setLineDash([])},
+ over:function(c,S){var t=S.t,C=this.cursor,on=eo(ph(t,.3,1.2))*(t>7.6?1-ph(t,7.6,8):1);if(on<=0)return;
+   S.E.forEach(function(e){if(!e.ring)return;for(var k=0;k<2;k++){var f=(t*.8+k*.5+e.i*.13)%1;circle(c,lerp(e.x,C.x,f),lerp(e.y,C.y,f)+Math.sin(f*6+e.i)*4,2,'rgba(230,30,50,'+(1-f*.5)+')')}line(c,e.x,e.y,C.x,C.y,'rgba(200,30,50,.18)',1)});
+   for(var k=0;k<8;k++){var a=k/8*TAU+t*.3;c.save();c.translate(C.x,C.y);c.rotate(a);ell(c,14*on,0,14*on,6*on,'#b3162a','#5a0812',1);c.restore()}circle(c,C.x,C.y,7*on,'#ffcf6a','#7a4a10',1.5);
+   var tg=S.PL[2];for(var q=0;q<12;q++){var t0=1.4+q*.5,f2=ph(t,t0,t0+.9);if(f2<=0||f2>=1){num(c,tg.x,tg.y,'+6',t-t0-.9,'#ff9aa8',11);continue}var cx=(C.x+tg.x)/2,cy=Math.min(C.y,tg.y)-60-hash(q)*40,x=(1-f2)*(1-f2)*C.x+2*(1-f2)*f2*cx+f2*f2*tg.x,y=(1-f2)*(1-f2)*C.y+2*(1-f2)*f2*cy+f2*f2*tg.y;c.save();c.translate(x,y);c.rotate(t*6+q);ell(c,0,0,5,2.5,'#d42a3e');c.restore()}}}
+];
+IDEAS['DPS/Hemomancer']=[
+{name:'Red Cascade',cd:65,dur:7,noDrift:1,
+ hook:'For 8 s every kill ruptures, and ruptures kill.',
+ rules:'For 8 s every enemy you kill bursts in blood: 40 damage within 100 px. A burst that kills sets off another, so one kill in a tight pack can clear it. Blood Price counts double while it lasts (up to +80% at 10% health). Heavy enemies and bosses take the bursts but don\'t chain unless they die.',
+ nums:['65 s','8 s','40 per burst','100 px','chains on kills','Blood Price x2'],
+ why:'<b>Unlike Crimson Harvest</b>, it needs no aiming and no hold: play normally and the kills do the rest.',
+ chain:null,
+ build:function(){if(this.chain)return this.chain;var kt={};kt[2]=1.3;var q=[2];while(q.length){var i=q.shift();if(B[i][2])continue;for(var j=0;j<12;j++){if(kt[j]!=null)continue;if(Math.hypot(B[i][0]-B[j][0],B[i][1]-B[j][1])<100){kt[j]=kt[i]+.32;q.push(j)}}}this.chain=kt;return kt},
+ enemy:function(e,t){var kt=this.build();var k=kt[e.i];if(k==null)return;if(e.heavy){if(t>k){e.hp=.55;if(t<k+.08)e.flash=1}}else if(t>k)e.dead=ph(t,k,k+.25)},
+ over:function(c,S){var t=S.t,kt=this.build();
+   if(t>.3&&t<7){c.save();add(c);glow(c,P.x,P.y,30,'rgba(255,40,60,.35)','rgba(255,40,60,0)');c.restore();arc(c,P.x,P.y,17,-Math.PI/2,-Math.PI/2+TAU*(1-ph(t,.3,7)),'rgba(255,80,90,.9)',2)}
+   for(var q=0;q<3;q++){var t0=.7+q*.18,f=ph(t,t0,t0+.25);if(f>0&&f<1){var x=lerp(P.x+14,B[2][0],f),y=lerp(P.y,B[2][1],f);c.save();add(c);line(c,x-8,y,x,y,'rgba(255,90,100,.95)',3);c.restore()}}
+   for(var i in kt){var k=kt[i],a=t-k,bx=B[i][0],by=B[i][1];if(a>=0&&a<.5&&!B[i][2]){var f2=a/.5;c.save();add(c);circle(c,bx,by,12+88*eo(f2),'rgba(200,20,40,'+(.25*(1-f2))+')','rgba(255,70,90,'+(1-f2)+')',3);c.restore();
+       for(var d=0;d<8;d++){var an=d/8*TAU+i*1.3,r=10+eo(f2)*50;circle(c,bx+Math.cos(an)*r,by+Math.sin(an)*r,2.5*(1-f2),'#d01830')}}
+     num(c,bx,by,'40',a,'#ff8a8a',13)}}},
+{name:'Heart Lance',cd:65,dur:7,noDrift:1,
+ hook:'Pour 40% of your health into one beam across the arena.',
+ rules:'Pay 40% of your current health. After a 0.8 s charge, a blood beam 40 px wide crosses the whole arena along your aim for 1.5 s, turning slowly with it. It deals 6 times the health you paid every second (at full health on 95 HP: 38 paid, 228 a second), so the cost is the damage. Blood Price counts from your health after paying.',
+ nums:['65 s','40% current HP','0.8 s charge','40 px','1.5 s','6 × paid per s'],
+ why:'<b>Unlike Crimson Harvest</b>, it is the purest Hemomancer trade: health in, damage out, no setup on the enemies.',
+ aim:function(t){return lerp(-.13,.13,sm(ph(t,1.2,2.7)))},
+ enemy:function(e,t){var bx=B[e.i][0]-P.x,by=B[e.i][1]-P.y;for(var u=1.2;u<=Math.min(t,2.7);u+=.03){var a=this.aim(u),off=Math.abs(-bx*Math.sin(a)+by*Math.cos(a));if(bx>0&&off<20+e.r){if(e.heavy){e.hp=.25;if(t<u+.1)e.flash=1}else e.dead=ph(t,u+.1,u+.35);return}}},
+ player:function(p,t){if(p.k===0)p.hp=t<.4?1:.6},
+ over:function(c,S){var t=S.t;num(c,P.x,P.y-6,'-38',t-.4,'#ff6a6a',15);
+   if(t>.4&&t<1.25){var f=ph(t,.4,1.2);for(var k=0;k<14;k++){var a=k/14*TAU+t*3,r=40*(1-((f*2+k/14)%1));circle(c,P.x+Math.cos(a)*r,P.y+Math.sin(a)*r,2,'#e01830')}c.save();add(c);glow(c,P.x+16,P.y,10+14*f,'rgba(255,60,80,.9)','rgba(255,60,80,0)');c.restore()}
+   if(t>1.2&&t<2.9){var a=this.aim(t),w=20*(t>2.7?1-ph(t,2.7,2.9):eo(ph(t,1.2,1.3)));c.save();c.translate(P.x+14,P.y);c.rotate(a);c.save();add(c);var g=c.createLinearGradient(0,-w,0,w);g.addColorStop(0,'rgba(180,0,20,0)');g.addColorStop(.3,'rgba(220,20,40,.8)');g.addColorStop(.5,'rgba(255,200,200,.95)');g.addColorStop(.7,'rgba(220,20,40,.8)');g.addColorStop(1,'rgba(180,0,20,0)');c.fillStyle=g;c.fillRect(0,-w,520,w*2);c.restore();
+     for(var k2=0;k2<10;k2++){var x=((t*600+k2*53)%520);circle(c,x,(hash(k2)-.5)*w,2,'rgba(255,230,230,.9)')}c.restore()}
+   var self=this;S.E.forEach(function(e,i){var bx=B[i][0]-P.x,by=B[i][1]-P.y;for(var u=1.2;u<=2.7;u+=.03){var a=self.aim(u);if(bx>0&&Math.abs(-bx*Math.sin(a)+by*Math.cos(a))<20+e.r){num(c,e.x,e.y,'228',t-u,'#ffb0b0',14);break}}})}}
+];
+
+/* ---------------- CURRENT ULTIMATES (from the README) ---------------- */
+var CUR={
+'Tank/Soldier':['Fortress','70 s: a fixed 240 px dome for 10 s that enemies and their shots can\'t cross.'],
+'Healer/Soldier':['Lifeline','90 s: revive and fully heal the whole party, plus 3 s of invulnerability.'],
+'DPS/Soldier':['Artillery Assault','60 s: 6 s of triple fire rate and +2 projectiles.'],
+'Tank/Elementalist':['Glacial Tomb','75 s: erase every enemy bullet and freeze every enemy for 4 s.'],
+'Healer/Elementalist':['Sanctum','80 s: a 7 s holy dome; allies inside can\'t go down, seven healing pulses.'],
+'DPS/Elementalist':['Bullet Rain','70 s: a 330 px downpour for 6 s, 45 a second and wet.'],
+'Tank/Summoner':['Titan','80 s: a stone titan stomps after enemies for 17 s and blocks bullets.'],
+'Healer/Summoner':['World Tree','80 s: a 15 s tree that heals under it and sends healing butterflies.'],
+'DPS/Summoner':['Legion','70 s: 6 wolves and 6 bats for 10 s under a blood moon; minions frenzy.'],
+'Tank/Knight':['Last Stand','70 s: plant behind a crescent of plates; shots from the front do 10%.'],
+'Healer/Knight':['Hallowed Blade','80 s: a sword of light falls (200), its ring heals and pulses for 8 s.'],
+'DPS/Knight':['Blade Tempest','65 s: for 6 s every swing also hurls three sword beams.'],
+'Tank/Ninja':['Thousand Clones','70 s: twelve ink clones over the map draw every enemy\'s aim.'],
+'Healer/Ninja':['Blossom Storm','80 s: 5 s of 20 HP/s for the party; bullets near allies erased.'],
+'DPS/Ninja':['Death Lotus','65 s: up to 8 enemies near your cursor take 100 each.'],
+'Tank/Hemomancer':['Vein Tithe','75 s: hold every enemy on screen for 30 s, paying health per enemy.'],
+'Healer/Hemomancer':['Sanguine Rain','80 s: pay health into an orb, then rain circles heal allies for 10 s.'],
+'DPS/Hemomancer':['Crimson Harvest','65 s: rip blood from every enemy into a ball, then throw it.']
+};
+
+/* ---------------- page ---------------- */
+var ROLES=['Tank','Healer','DPS'],CLASSES=['Soldier','Elementalist','Summoner','Knight','Ninja','Hemomancer'];
+var state={role:'Tank',cls:'Soldier'};
+try{var h=(location.hash||'').slice(1).split('-');if(ROLES.indexOf(cap(h[0]))>=0)state.role=cap(h[0]);if(h[1]&&CLASSES.indexOf(cap(h[1]))>=0)state.cls=cap(h[1]);if(h[0]==='dps')state.role='DPS'}catch(e){}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s}
+var rolesEl=document.getElementById('roles'),classesEl=document.getElementById('classes'),ideasEl=document.getElementById('ideas'),gridEl=document.getElementById('grid');
+ROLES.forEach(function(r){var b=document.createElement('button');b.type='button';b.textContent=r;b.className='r-'+r.toLowerCase();b.onclick=function(){state.role=r;show()};b.dataset.v=r;rolesEl.appendChild(b)});
+CLASSES.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){state.cls=k;show()};b.dataset.v=k;classesEl.appendChild(b)});
+/* grid */
+(function(){var th='<tr><th class="r"></th>'+CLASSES.map(function(k){return '<th>'+k+'</th>'}).join('')+'</tr>';var rows=ROLES.map(function(r){return '<tr><th class="r">'+r+'</th>'+CLASSES.map(function(k){var key=r+'/'+k;return '<td>'+IDEAS[key].map(function(I,n){return '<button type="button" data-k="'+key+'" data-n="'+n+'">'+I.name+'</button>'}).join('')+'<small>now: '+CUR[key][0]+'</small></td>'}).join('')+'</tr>'});gridEl.innerHTML=th+rows.join('');
+  gridEl.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;var p=b.dataset.k.split('/');state.role=p[0];state.cls=p[1];show();document.getElementById('roles').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})})})();
+
+var cards=[],clock=0,last=0,paused=false,slow=false;
+function makeCard(I){var el=document.createElement('article');el.className='idea';
+  el.innerHTML='<h2>'+I.name+' <small>'+I.cd+' s cooldown</small></h2><div class="frame"><canvas width="960" height="540" aria-label="'+I.name+' animation"></canvas><div class="tl"></div></div><p class="hook"></p><p class="rules"></p><ul class="nums"></ul><p class="why"></p>';
+  el.querySelector('.hook').textContent=I.hook;el.querySelector('.rules').textContent=I.rules;el.querySelector('.why').innerHTML=I.why;
+  el.querySelector('.nums').innerHTML=I.nums.map(function(n){return '<li>'+n+'</li>'}).join('');
+  var cv=el.querySelector('canvas'),c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);return{el:el,I:I,c:c,tl:el.querySelector('.tl')}}
+function show(){var key=state.role+'/'+state.cls;
+  [].forEach.call(rolesEl.children,function(b){b.setAttribute('aria-pressed',b.dataset.v===state.role)});
+  [].forEach.call(classesEl.children,function(b){b.setAttribute('aria-pressed',b.dataset.v===state.cls)});
+  document.getElementById('curName').textContent=CUR[key][0];document.getElementById('curText').textContent=CUR[key][1];
+  ideasEl.innerHTML='';cards=IDEAS[key].map(function(I){var cd=makeCard(I);ideasEl.appendChild(cd.el);return cd});
+  [].forEach.call(gridEl.querySelectorAll('td button'),function(b){b.classList.toggle('on',b.dataset.k===key)});
+  try{history.replaceState(null,'','#'+state.role.toLowerCase()+'-'+state.cls.toLowerCase())}catch(e){}
+  clock=0;draw()}
+function draw(){var role=state.role;cards.forEach(function(cd){var I=cd.I,t=reduce&&!paused?clock:clock;t=t%(I.dur+.6);if(t>I.dur)t=I.dur;
+  try{cd.c.save();frame(cd.c,I,role,t);cd.c.restore()}catch(err){cd.c.restore();(window.__errs=window.__errs||[]).push(I.name+': '+err);cd.c.fillStyle='#f66';cd.c.fillText(String(err),10,20)}
+  cd.tl.textContent=t.toFixed(2)+' s'})}
+function tick(now){var dt=Math.min(.05,(now-(last||now))/1000);last=now;if(!paused)clock+=dt*(slow?.35:1);draw();requestAnimationFrame(tick)}
+document.getElementById('replay').onclick=function(){clock=0;if(reduce)paused=false;draw()};
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'Play':'Pause'};
+document.getElementById('slow').onchange=function(){slow=this.checked};
+window.addEventListener('hashchange',function(){var h=(location.hash||'').slice(1).split('-');var r=h[0]==='dps'?'DPS':cap(h[0]);if(ROLES.indexOf(r)>=0&&CLASSES.indexOf(cap(h[1]))>=0){state.role=r;state.cls=cap(h[1]);show()}});
+show();
+if(reduce){paused=true;clock=3.2;document.getElementById('pause').textContent='Play';draw()}
+requestAnimationFrame(tick);
+})();
+</script>
