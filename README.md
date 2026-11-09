@@ -583,11 +583,11 @@ lobby. There are 28:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter, **Dusk Grid** (a
 rank-15 reward) and seven **reactive** backgrounds that answer your pointer and clicks (frozen with STILL), all rank rewards:
-**Ripples** (25: rings spread from your clicks and a soft light follows the pointer), **Boot Log** (28: a green BIOS terminal
-that logs faster as you move, lights the line under the pointer and logs each click with its position), **Vector Rocks** (39:
+**Ripples** (26: rings spread from your clicks and a soft light follows the pointer), **Boot Log** (29: a green BIOS terminal
+that logs faster as you move, lights the line under the pointer and logs each click with its position), **Vector Rocks** (40:
 neon asteroids drift away from a little ship on your pointer; a click fires a ring of shots that splits them) and **Life Grid**
-(43: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders), **Phosphor Pond** (47: a dot
-grid that ripples where the pointer goes, a click makes a big ring), **Vector Tunnel** (49: neon gates rushing past, the
+(44: Conway's Life in amber phosphor, seeded where the pointer goes; a click launches gliders), **Phosphor Pond** (48: a dot
+grid that ripples where the pointer goes, a click makes a big ring), **Vector Tunnel** (50: neon gates rushing past, the
 vanishing point leaning toward the pointer, a click is a speed burst) and **Signal Lost** (53: a phosphor test card that
 tears at the pointer's height and rolls on a click). The reward ones are greyed and skipped until you have them. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
@@ -992,8 +992,8 @@ Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html
 (1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's
 step (Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5, Custom x1). A hunt counts its waves and the boss, with no
 win bonus. The Practice Range and runs where dev tools (F1) or the bot were used earn nothing, like Records.
-**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). The tiers have titles: **Recruit** (1-4),
-**Challenger** (5-9), **Veteran** (10-19), **Champion** (20-29), **Legend** (30+), shown by the badge's colour (steel,
+**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). The tiers have titles: **Recruit** (1-9),
+**Challenger** (10-19), **Veteran** (20-29), **Champion** (30-39), **Legend** (40+), shown by the badge's colour (steel,
 blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
@@ -1008,68 +1008,92 @@ each kind at a time:
 
 | Rank | Reward |
 |---|---|
-| 5 / 10 / 20 / 30 | Titles: Challenger, Veteran, Champion, Legend (automatic) |
-| 8 | **Ember trail**: embers drift behind you as you move |
-| 12 | **Steel frame**: a lit rim on your lobby party card and name chip |
-| 14 | **Frost trail**: a pale chill line with ice crystals that stay where they formed, glint and melt |
-| 16 | **Circuit frame**: a teal rim with bracketed corners and a pulse of light running round the edge |
-| 15 | **Dusk Grid**: a 21st menu background (also pickable in Settings > Visual effects once unlocked) |
-| 25 | **Ripples**: a reactive menu background (rings from your clicks, a light that follows the pointer; also pickable in Settings > Visual effects) |
-| 28 | **Boot Log**: a reactive menu background (a BIOS terminal that logs your pointer and clicks) |
-| 39 | **Vector Rocks**: a reactive menu background (an asteroid field with a ship on your pointer; click to fire) |
-| 43 | **Life Grid**: a reactive menu background (Conway's Life in phosphor, seeded where you go; click for gliders) |
-| 47 | **Phosphor Pond**: a reactive menu background (a dot grid that ripples where you go and click) |
-| 49 | **Vector Tunnel**: a reactive menu background (neon gates rushing past, steered by the pointer) |
+| 10 / 20 / 30 / 40 | Titles: Challenger, Veteran, Champion, Legend (automatic) |
+| 9 | **Ember trail**: embers drift behind you as you move |
+| 13 | **Steel frame**: a lit rim on your lobby party card and name chip |
+| 15 | **Frost trail**: a pale chill line with ice crystals that stay where they formed, glint and melt |
+| 17 | **Circuit frame**: a teal rim with bracketed corners and a pulse of light running round the edge |
+| 16 | **Dusk Grid**: a 21st menu background (also pickable in Settings > Visual effects once unlocked) |
+| 26 | **Ripples**: a reactive menu background (rings from your clicks, a light that follows the pointer; also pickable in Settings > Visual effects) |
+| 29 | **Boot Log**: a reactive menu background (a BIOS terminal that logs your pointer and clicks) |
+| 40 | **Vector Rocks**: a reactive menu background (an asteroid field with a ship on your pointer; click to fire) |
+| 44 | **Life Grid**: a reactive menu background (Conway's Life in phosphor, seeded where you go; click for gliders) |
+| 48 | **Phosphor Pond**: a reactive menu background (a dot grid that ripples where you go and click) |
+| 50 | **Vector Tunnel**: a reactive menu background (neon gates rushing past, steered by the pointer) |
 | 53 | **Signal Lost**: a reactive menu background (a test card that tears at the pointer and rolls on a click) |
-| 18 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
-| 20 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
-| 22 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
-| 24 | **Void Pulse frame**: a violet rim with a breathing inner rim and two dark motes circling the card |
-| 25 | **Gold stardust trail** |
-| 30 | **Gold frame** |
-| 40 | **Legend Foil frame**: gold with a bright band sweeping across the rim and twinkling corner stars |
-| 35 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
-| 45 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
-| 50 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
-| 6 | **Dusk Grid card**: a perspective grid sliding toward you under a violet horizon (the fill of your lobby party card, behind your name) |
-| 10 | **Starfield card**: three layers of drifting stars and now and then a shooting star (the fill of your lobby party card, behind your name) |
-| 13 | **Blueprint card**: cyan drafting paper with a grid, a dimension line and a circle that traces itself (the fill of your lobby party card, behind your name) |
-| 19 | **Ember Glow card**: a warm glow along the bottom edge with embers lifting off it (the fill of your lobby party card, behind your name) |
-| 23 | **Aurora card**: slow green and violet ribbons (the fill of your lobby party card, behind your name) |
-| 27 | **Circuit Board card**: dark green traces with a pulse running along each (the fill of your lobby party card, behind your name) |
-| 32 | **Rain on Glass card**: cool grey-blue with thin streaks and beads running down (the fill of your lobby party card, behind your name) |
-| 37 | **Void Rift card**: a slow violet vortex behind your portrait (the fill of your lobby party card, behind your name) |
-| 42 | **Gilded Foil card**: brushed gold with a sheen sweeping across (the fill of your lobby party card, behind your name) |
-| 55 | **Prism Shards card**: spectrum shards turning slowly and overlapping (the fill of your lobby party card, behind your name) |
-| 1 | **Wave emote**: a hand waves while you sway |
-| 1 | **Thumbs up emote**: a thumb pops up, you bob |
-| 3 | **GG emote** |
-| 7 | **Cheer emote**: you hop, with a burst of confetti |
-| 10 | **Heart emote**: small hearts floating up |
-| 12 | **Laugh emote**: you shake with it |
-| 15 | **Question emote** |
-| 17 | **Sleep emote**: Zs drifting up while you sink |
-| 21 | **Dance emote**: you sway to the beat, notes drifting off |
-| 25 | **Spin emote**: two turns inside a ring of light |
-| 31 | **Salute emote**: you snap upright |
-| 41 | **Fireworks emote**: three bursts in turn |
+| 19 | **Storm trail**: crackling static, a jagged yellow-white thread that re-rolls every few frames |
+| 21 | **Ember Edge frame**: a flickering warm rim with embers lifting off the top edge |
+| 23 | **Void trail**: a dark ribbon with a violet edge, motes pulled back toward you |
+| 25 | **Void Pulse frame**: a violet rim with a breathing inner rim and two dark motes circling the card |
+| 26 | **Gold stardust trail** |
+| 31 | **Gold frame** |
+| 41 | **Legend Foil frame**: gold with a bright band sweeping across the rim and twinkling corner stars |
+| 36 | **Prism trail**: three ribbons cycling through the spectrum, with white glints |
+| 46 | **Light Cycle trail**: a wall of light that follows where you've been but snaps to straight runs with right-angle corners; the floor tiles it crosses light up, and the wall breaks into squares that drift off as it ages (about 2.4 s). Cyan only. With Visual effects off it is one flat line |
+| 51 | **Prism frame**: a rim cycling through the whole spectrum as it turns round the card |
+| 56 | **Neon Tube frame**: a magenta tube with a cyan tube inside it; the outer one buzzes and drops out now and then |
+| 58 | **Hazard Tape frame**: yellow and black warning tape marching round the card |
+| 60 | **Frostbite frame**: an ice rim with snowflake crystals that grow and shrink, and a travelling glint |
+| 62 | **Barbed Wire frame**: two twisted strands with rusty barbs |
+| 64 | **Lightning Cage frame**: corner nodes with arcs of lightning jumping between them |
+| 66 | **Pixel March frame**: chunky 4 px squares in four colours stepping round the card |
+| 68 | **Blood Drip frame**: a crimson rim with drips forming along the bottom edge, hanging, dropping and fading |
+| 70 | **Chain Link frame**: steel links running slowly round the card |
+| 7 | **Dusk Grid card**: a perspective grid sliding toward you under a violet horizon (the fill of your lobby party card, behind your name) |
+| 11 | **Starfield card**: three layers of drifting stars and now and then a shooting star (the fill of your lobby party card, behind your name) |
+| 14 | **Blueprint card**: cyan drafting paper with a grid, a dimension line and a circle that traces itself (the fill of your lobby party card, behind your name) |
+| 20 | **Ember Glow card**: a warm glow along the bottom edge with embers lifting off it (the fill of your lobby party card, behind your name) |
+| 24 | **Aurora card**: slow green and violet ribbons (the fill of your lobby party card, behind your name) |
+| 28 | **Circuit Board card**: dark green traces with a pulse running along each (the fill of your lobby party card, behind your name) |
+| 33 | **Rain on Glass card**: cool grey-blue with thin streaks and beads running down (the fill of your lobby party card, behind your name) |
+| 38 | **Void Rift card**: a slow violet vortex behind your portrait (the fill of your lobby party card, behind your name) |
+| 43 | **Gilded Foil card**: brushed gold with a sheen sweeping across (the fill of your lobby party card, behind your name) |
+| 54 | **Prism Shards card**: spectrum shards turning slowly and overlapping (the fill of your lobby party card, behind your name) |
+| 57 | **Radar Sweep card**: a green radar scope whose beam lights the contacts it passes (the fill of your lobby party card, behind your name) |
+| 59 | **Bullet Spiral card**: a five-armed spiral of slow pink and cyan bullets (the fill of your lobby party card, behind your name) |
+| 61 | **Phosphor Rain card**: columns of green characters falling (the fill of your lobby party card, behind your name) |
+| 63 | **Lava Veins card**: near-black rock with glowing orange veins that slide and pulse (the fill of your lobby party card, behind your name) |
+| 65 | **Synthwave Sun card**: a striped sun sinking into a pink horizon over a grid floor (the fill of your lobby party card, behind your name) |
+| 67 | **Snowfall card**: drifting snow at two depths on a night-blue sky (the fill of your lobby party card, behind your name) |
+| 69 | **Contour Map card**: topographic rings round two drifting peaks (the fill of your lobby party card, behind your name) |
+| 71 | **Honeycomb Pulse card**: a hex grid with a wave of amber light spreading through it (the fill of your lobby party card, behind your name) |
+| 2 | **Wave emote**: a hand waves while you sway |
+| 3 | **Thumbs up emote**: a thumb pops up, you bob |
+| 4 | **GG emote** |
+| 8 | **Cheer emote**: you hop, with a burst of confetti |
+| 11 | **Heart emote**: small hearts floating up |
+| 13 | **Laugh emote**: you shake with it |
+| 16 | **Question emote** |
+| 18 | **Sleep emote**: Zs drifting up while you sink |
+| 22 | **Dance emote**: you sway to the beat, notes drifting off |
+| 26 | **Spin emote**: two turns inside a ring of light |
+| 32 | **Salute emote**: you snap upright |
+| 42 | **Fireworks emote**: three bursts in turn |
 | 52 | **Steam emote**: puffs of steam and a red bubble, you shake |
-| 4 | **Steel Outline name**: a thin steel-blue line round white letters |
-| 11 | **Frost name**: white fading to ice blue with a cold glow |
-| 13 | **Ember name**: yellow fading to orange-red with sparks lifting off |
-| 18 | **Neon name**: white letters with a cyan glow that breathes |
-| 22 | **Wave name**: letters riding a gentle wave, cyan shading into violet |
-| 27 | **Shimmer name**: silver with a white sheen gliding across |
-| 33 | **Glitch name**: red and cyan fringes, and every couple of seconds a slice jumps sideways |
-| 36 | **Glitchy name**: always glitching: letters jump, swap for symbols, the line splits and slides, the fringes pulse and it flickers |
-| 38 | **Fire name**: yellow core to red tips, each letter flickering, flames licking up |
-| 44 | **Gold Foil name**: rich gold with a sheen sweeping across |
-| 48 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
-| 56 | **Rainbow name**: every letter its own hue, turning round the spectrum |
+| 5 | **Steel Outline name**: a thin steel-blue line round white letters |
+| 12 | **Frost name**: white fading to ice blue with a cold glow |
+| 14 | **Ember name**: yellow fading to orange-red with sparks lifting off |
+| 19 | **Neon name**: white letters with a cyan glow that breathes |
+| 23 | **Wave name**: letters riding a gentle wave, cyan shading into violet |
+| 28 | **Shimmer name**: silver with a white sheen gliding across |
+| 34 | **Glitch name**: red and cyan fringes, and every couple of seconds a slice jumps sideways |
+| 37 | **Glitchy name**: always glitching: letters jump, swap for symbols, the line splits and slides, the fringes pulse and it flickers |
+| 39 | **Fire name**: yellow core to red tips, each letter flickering, flames licking up |
+| 45 | **Gold Foil name**: rich gold with a sheen sweeping across |
+| 49 | **Void name**: pale violet on a dark violet edge with a purple glow and circling motes |
+| 55 | **Rainbow name**: every letter its own hue, turning round the spectrum |
+| 72 | **Chrome name**: mirror metal with a dark horizon line and a sheen gliding across |
+| 73 | **Toxic Drip name**: acid green with slime that gathers under letters, hangs and drops |
+| 74 | **Hologram name**: a cyan projection with a magenta fringe, faint scanlines and a travelling bright band |
+| 75 | **Nebula name**: a pink, violet and blue gradient with a drifting glow and twinkling stars |
+| 76 | **Pixel name**: chunky blocks of four colours stepping along the name |
+| 77 | **Terminal name**: fixed-pitch green with a blinking block cursor; every few seconds it scrambles and decodes |
+| 78 | **Electric name**: warm white with a flickering blue glow and bolts jumping through the name |
+| 79 | **Petals name**: soft pink with cherry-blossom petals tumbling past |
 
-**Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 5), Chevron Flow (11), Ruler (14), Ember Wisp (17), Frost Shard (21), Storm Arc (26), Pixel Beam (29), Helix (34) and Prism (46) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
+**Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 6), Chevron Flow (12), Ruler (15), Ember Wisp (18), Frost Shard (22), Storm Arc (27), Pixel Beam (30), Helix (35) and Prism (47) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
 
-**Cursors** change your crosshair in a match. Classic is free; Fine Cross (rank 3), Corner Sight (4), Ember Ring (11), Frost Snowflake (15), Circuit Sight (17), Storm Arc (21), Void Eye (26), Gold Diamond (31), Prism Ring (38) and Light Cycle (46, it lays a corner-snapped wall of light behind the pointer) are rank rewards. Each swells for a quarter second when you fire. Your equipped cursor also replaces the system pointer in the main menu and lobby (the system pointer is hidden everywhere: each look draws its own Corner pointer, a small L-bracket in the look's colours with its own flourish (Ember sparks, Storm crackle, Circuit pulse, Gold twinkle, Prism spectrum, and so on). It collapses to a dot and the crosshair swells out as a match starts, and back again when a menu, the pause screen or the end screen opens; about 0.6 s, instant with reduced effects), and the Light Cycle cursor's wall fades out in under a second. Only you see your own cursor.
+**Cursors** change your crosshair in a match. Classic is free; Fine Cross (rank 4), Corner Sight (5), Ember Ring (12), Frost Snowflake (16), Circuit Sight (18), Storm Arc (22), Void Eye (27), Gold Diamond (32), Prism Ring (39), Light Cycle (47, it lays a corner-snapped wall of light behind the pointer), and, higher up, Radar Sweep (80), Sniper Scope (81), Chevron Snap (82), Sonar Ping (83), Pixel Plus (84), Petal Ring (85), Laser Dot (86) and Target Lock (87) are rank rewards. Each swells for a quarter second when you fire. Your equipped cursor also replaces the system pointer in the main menu and lobby (the system pointer is hidden everywhere: each look draws its own Corner pointer, a small L-bracket in the look's colours with its own flourish (Ember sparks, Storm crackle, Circuit pulse, Gold twinkle, Prism spectrum, and so on). It collapses to a dot and the crosshair swells out as a match starts, and back again when a menu, the pause screen or the end screen opens; about 0.6 s, instant with reduced effects), and the Light Cycle cursor's wall fades out in under a second. Only you see your own cursor.
 
 **Name effects** change how your name is drawn for everyone: on the lobby party card, the Hangout name plate and the tag over your head in a match (small names keep only colour and glow, so they stay readable; with Visual effects off each is still).
 

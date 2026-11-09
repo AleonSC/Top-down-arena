@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The frames a rank unlocks (Rank.cs), drawn round a card: Steel and Gold are a plain lit rim, and the rest add something
-    /// that moves (Circuit, Ember Edge, Void Pulse, Legend Foil, Prism). Drawing only: the lobby entry carries the frame number
+    /// that moves (Circuit, Ember Edge, Void Pulse, Legend Foil, Prism; and the eight of FrameLooksMore.cs). Drawing only: the lobby entry carries the frame number
     /// and every screen animates it from the clock. With Visual effects off they fall back to the static rim in their base colour.
     /// Mockup: Docs/Mockups/rank-frames.html.
     public partial class ArenaApp
@@ -25,6 +25,8 @@ namespace Arena
                 return RankLook.Tint(Spectrum(t * 0.11f));
             if (id == "frame-ember")
                 c.a = 0.8f + 0.2f * Mathf.Sin(t * 17f);
+            if (id == "frame-neon" && Mathf.Sin(t * 41f) * Mathf.Sin(t * 7.3f) > 0.93f)
+                c.a = 0.3f;  // the tube drops out for a few frames
             return c;
         }
 
@@ -144,6 +146,9 @@ namespace Arena
                     FrameSpark(g.x, g.y, 5f, new Color(1f, 1f, 1f, 0.95f));
                     break;
                 }
+                default:
+                    DrawFrameFxMore(r, Rank.FrameId(index), t);
+                    break;
             }
         }
     }

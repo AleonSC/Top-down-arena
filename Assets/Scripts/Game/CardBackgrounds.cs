@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The card backgrounds a rank unlocks (Rank.cs, CosmeticKind.CardBackground): the fill of a lobby party card, behind its
-    /// portrait and text. Mockup: Docs/Mockups/card-backgrounds.html. Drawing only: the lobby entry carries the number.
+    /// portrait and text. Mockups: Docs/Mockups/card-backgrounds.html (the first ten) and card-backgrounds-more.html (the eight in CardBackgroundsMore.cs). Drawing only: the lobby entry carries the number.
     /// Every one is drawn inside a clipped group (so nothing spills past the card), then a left-to-right scrim goes over it so the
     /// name and badges read the same on all of them. With Visual effects off each one is its still self (the clock held at 0).
     /// Built from IMGUI fills only (rects, discs, rotated rects as lines), like FrameLooks.cs.
@@ -36,6 +36,14 @@ namespace Arena
                 case "card-void": CardVoid(w, h, t); break;
                 case "card-foil": CardFoil(w, h, t); break;
                 case "card-prism": CardPrism(w, h, t); break;
+                case "card-radar": CardRadar(w, h, t); break;
+                case "card-spiral": CardSpiral(w, h, t); break;
+                case "card-matrix": CardMatrix(w, h, t); break;
+                case "card-lava": CardLava(w, h, t); break;
+                case "card-sun": CardSun(w, h, t); break;
+                case "card-snow": CardSnow(w, h, t); break;
+                case "card-topo": CardTopo(w, h, t); break;
+                case "card-hex": CardHex(w, h, t); break;
             }
             // The scrim: dark behind the portrait and name, lighter on the right.
             const int steps = 16;

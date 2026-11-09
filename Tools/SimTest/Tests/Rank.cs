@@ -18,16 +18,16 @@ static partial class Program
         Check(r2.Rank == 1 && r2.Into == 199 && r3.Rank == 2 && r3.Into == 0 && r3.Need == 400, "200 XP is exactly rank 2");
         Check(Rank.Of(Rank.XpAt(8) + 115).Rank == 8 && Rank.Of(Rank.XpAt(8) + 115).Into == 115 && Rank.Of(Rank.XpAt(8)).Need == 1600, "rank 8 is 1,600 XP long (200 a rank), with 115 into it");
         Check(Rank.Of(-50).Rank == 1 && Rank.Of(long.MaxValue / 4).Rank == Rank.MaxRank, "negative XP is rank 1 and rank stops at the cap");
-        Check(Rank.Title(4) == "Recruit" && Rank.Title(5) == "Challenger" && Rank.Title(10) == "Veteran" && Rank.Title(20) == "Champion" && Rank.Title(30) == "Legend" && Rank.Tier(99) == 4, "tiers start at 5, 10, 20 and 30");
+        Check(Rank.Title(9) == "Recruit" && Rank.Title(10) == "Challenger" && Rank.Title(20) == "Veteran" && Rank.Title(30) == "Champion" && Rank.Title(40) == "Legend" && Rank.Tier(99) == 4, "tiers start at 10, 20, 30 and 40");
 
         // Cosmetics: owned from their rank, one frame number each.
-        Check(!Rank.Owns(7, "trail-ember") && Rank.Owns(8, "trail-ember") && !Rank.Owns(99, "nonsense") && Rank.Owns(30, "frame-gold"), "a cosmetic is yours from its rank, and unknown ids never are");
-        Check(Rank.FrameIndex("") == 0 && Rank.FrameIndex("frame-steel") == 1 && Rank.FrameIndex("frame-gold") == 5 && Rank.FrameId(5) == "frame-gold" && Rank.FrameId(9) == "" && Rank.FrameId(0) == "", "frames are numbered in rank order for the lobby (0 none), so Gold is 5");
-        Check(Rank.RewardsAt(16)[0].Id == "frame-circuit" && Rank.RewardsAt(20).Exists(rw => rw.Id == "frame-ember") && Rank.RewardsAt(24)[0].Id == "frame-void" && Rank.RewardsAt(40)[0].Id == "frame-foil" && Rank.RewardsAt(50)[0].Id == "frame-prism" && Rank.OfKind(CosmeticKind.Frame).Count == 7 && Rank.FrameIndex("frame-prism") == 7 && Rank.FrameId(8) == "", "Circuit, Ember Edge, Void Pulse, Legend Foil and Prism unlock at 16, 20, 24, 40 and 50");
+        Check(!Rank.Owns(8, "trail-ember") && Rank.Owns(9, "trail-ember") && !Rank.Owns(99, "nonsense") && Rank.Owns(31, "frame-gold"), "a cosmetic is yours from its rank, and unknown ids never are");
+        Check(Rank.FrameIndex("") == 0 && Rank.FrameIndex("frame-steel") == 1 && Rank.FrameIndex("frame-gold") == 5 && Rank.FrameId(5) == "frame-gold" && Rank.FrameId(16) == "" && Rank.FrameId(0) == "", "frames are numbered in rank order for the lobby (0 none), so Gold is 5");
+        Check(Rank.RewardsAt(17)[0].Id == "frame-circuit" && Rank.RewardsAt(21).Exists(rw => rw.Id == "frame-ember") && Rank.RewardsAt(25)[0].Id == "frame-void" && Rank.RewardsAt(41)[0].Id == "frame-foil" && Rank.RewardsAt(51)[0].Id == "frame-prism" && Rank.OfKind(CosmeticKind.Frame).Count == 15 && Rank.FrameIndex("frame-prism") == 7 && Rank.FrameId(8) == "frame-neon" && Rank.FrameId(16) == "", "Circuit, Ember Edge, Void Pulse, Legend Foil and Prism unlock at 17, 21, 25, 41 and 51");
         bool distinct = true;
-        for (int i = 1; i <= 7; i++) for (int j = i + 1; j <= 7; j++) distinct &= Rank.FrameId(i) != Rank.FrameId(j);
+        for (int i = 1; i <= 15; i++) for (int j = i + 1; j <= 15; j++) distinct &= Rank.FrameId(i) != Rank.FrameId(j);
         Check(distinct && Rank.FrameColor(2).G > 0.8f && Rank.FrameColor(3).R > 0.9f, "every frame has its own number and a base colour");
-        Check(Rank.RewardsAt(8).Count == 1 && Rank.RewardsAt(8)[0].Id == "trail-ember" && Rank.RewardsAt(9).Count == 0, "rank 8 brings the Ember trail, rank 9 nothing");
+        Check(Rank.RewardsAt(9).Count == 1 && Rank.RewardsAt(9)[0].Id == "trail-ember" && Rank.RewardsAt(10).Count == 0, "rank 9 brings the Ember trail, rank 10 nothing");
 
         // XP for a run.
         var a = Rank.Award(false, 10, 2, 1, RunMod.None, DifficultyLevel.Normal);
@@ -49,14 +49,14 @@ static partial class Program
         // The profile: XP, rank-ups and what they unlock, equipping, and saving it.
         var p = new Profile();
         var g1 = p.AwardXp(Rank.Award(false, 10, 2, 1, RunMod.None, DifficultyLevel.Normal), 11, 0);
-        Check(p.Xp == 540 && g1.Before == 0 && g1.After == 540 && g1.RankBefore == 1 && g1.RankAfter == 2 && g1.RankedUp && p.RankNow == 2 && g1.Unlocked.Count == 0, "540 XP takes a new profile to rank 2, with nothing to unlock yet");
-        p.Xp = Rank.XpAt(7) + 900;
+        Check(p.Xp == 540 && g1.Before == 0 && g1.After == 540 && g1.RankBefore == 1 && g1.RankAfter == 2 && g1.RankedUp && p.RankNow == 2 && g1.Unlocked.Count == 1, "540 XP takes a new profile to rank 2, which unlocks the Wave emote");
+        p.Xp = Rank.XpAt(8) + 900;
         var g2 = p.AwardXp(Rank.Award(false, 10, 2, 1, RunMod.ToughCrowd | RunMod.Nightfall, DifficultyLevel.Normal), 11, 0);
-        Check(g2.RankBefore == 7 && g2.RankAfter == 8 && g2.Unlocked.Count == 1 && g2.Unlocked[0].Id == "trail-ember" && Rank.Of(p.Xp).Into == 310, "rank 7 + 810 XP is rank 8, which unlocks the Ember trail");
+        Check(g2.RankBefore == 8 && g2.RankAfter == 9 && g2.Unlocked.Count == 1 && g2.Unlocked[0].Id == "trail-ember" && Rank.Of(p.Xp).Into == 110, "rank 8 + 810 XP is rank 9, which unlocks the Ember trail");
         Check(p.Recent.Count == 2 && p.Recent[0].Xp == 810 && p.Recent[0].MultPct == 150 && p.Recent[0].Mods == "Tough Crowd|Nightfall", "the run is logged, newest first");
         for (int i = 0; i < Profile.RecentKept + 3; i++) p.AwardXp(Rank.Award(false, 1, 0, 0, RunMod.None, DifficultyLevel.Normal), 2, 0);
         Check(p.Recent.Count == Profile.RecentKept, "only the last few runs are kept");
-        p.Xp = Rank.XpAt(12);
+        p.Xp = Rank.XpAt(13);
         Check(!p.Equip(CosmeticKind.Frame, "frame-gold") && p.Frame == "" && !p.Equip(CosmeticKind.Trail, "frame-steel") && p.Equip(CosmeticKind.Frame, "frame-steel") && p.Frame == "frame-steel" && p.Equip(CosmeticKind.Trail, "trail-ember"), "you can equip what your rank has and the right kind, not more");
         Check(p.Equip(CosmeticKind.Frame, "") && p.Frame == "", "an empty id takes the slot off");
         p.Equip(CosmeticKind.Frame, "frame-steel");
@@ -69,89 +69,102 @@ static partial class Program
         // The lobby: a friend's rank and frame reach the host and everyone, and the host only believes frames the rank has.
         int port = nextPort++;
         var host = new Session();
-        var hp = host.Game.ProfileOverride = new Profile { Xp = Rank.XpAt(30) };
+        var hp = host.Game.ProfileOverride = new Profile { Xp = Rank.XpAt(31) };
         hp.Equip(CosmeticKind.Frame, "frame-gold");
         host.Host(port, "Host", Role.Tank);
         var client = new Session();
-        var cp = client.Game.ProfileOverride = new Profile { Xp = Rank.XpAt(12) };
+        var cp = client.Game.ProfileOverride = new Profile { Xp = Rank.XpAt(13) };
         cp.Equip(CosmeticKind.Frame, "frame-steel");
         client.Join("127.0.0.1", port, "Friend", Role.Dps);
         WaitForLobby(host, client);
         PollBoth(host, client);
         Func<Session, int, LobbyEntry> entry = (sess, id) => sess.Lobby.ContainsKey(id) ? sess.Lobby[id] : null;
         int cid = client.MyId;
-        Check(entry(host, 1).Rank == 30 && entry(host, 1).Frame == 5 && entry(client, 1).Rank == 30 && entry(client, 1).Frame == 5, "the host's rank 30 and gold frame show in everyone's lobby");
-        Check(entry(host, cid).Rank == 12 && entry(host, cid).Frame == 1 && entry(client, cid).Rank == 12 && entry(client, cid).Frame == 1, "the friend's rank 12 and steel frame reach the host and the lobby");
-        cp.Xp = Rank.XpAt(13);
+        Check(entry(host, 1).Rank == 31 && entry(host, 1).Frame == 5 && entry(client, 1).Rank == 31 && entry(client, 1).Frame == 5, "the host's rank 31 and gold frame show in everyone's lobby");
+        Check(entry(host, cid).Rank == 13 && entry(host, cid).Frame == 1 && entry(client, cid).Rank == 13 && entry(client, cid).Frame == 1, "the friend's rank 13 and steel frame reach the host and the lobby");
+        cp.Xp = Rank.XpAt(14);
         cp.Frame = "frame-gold";  // not theirs yet: a tampered profile
         client.ShareCosmetics();
         PollBoth(host, client);
-        Check(entry(host, cid).Rank == 13 && entry(host, cid).Frame == 0 && entry(client, cid).Frame == 0, "a new rank is shared, and a frame the rank doesn't have is dropped by the host");
+        Check(entry(host, cid).Rank == 14 && entry(host, cid).Frame == 0 && entry(client, cid).Frame == 0, "a new rank is shared, and a frame the rank doesn't have is dropped by the host");
         cp.Frame = "";
         cp.Equip(CosmeticKind.Frame, "frame-steel");
         client.ShareCosmetics();
-        hp.Xp = Rank.XpAt(31);
+        hp.Xp = Rank.XpAt(32);
         host.ShareCosmetics();
         PollBoth(host, client);
-        Check(entry(client, cid).Frame == 1 && entry(client, 1).Rank == 31, "equipping a frame, and the host's own rank-up, update the lobby");
-        cp.Xp = Rank.XpAt(25);
+        Check(entry(client, cid).Frame == 1 && entry(client, 1).Rank == 32, "equipping a frame, and the host's own rank-up, update the lobby");
+        cp.Xp = Rank.XpAt(26);
         cp.Equip(CosmeticKind.Trail, "trail-gold");
         hp.Equip(CosmeticKind.Trail, "trail-ember");
         client.ShareCosmetics(); host.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).Trail == 5 && entry(client, cid).Trail == 5 && entry(client, 1).Trail == 1 && Rank.TrailId(5) == "trail-gold" && Rank.TrailIndex("trail-ember") == 1, "everyone's lobby knows each player's trail, so it can be drawn in the match");
-        Check(Rank.RewardsAt(14)[0].Id == "trail-frost" && Rank.RewardsAt(18)[0].Id == "trail-storm" && Rank.RewardsAt(22)[0].Id == "trail-void" && Rank.RewardsAt(35)[0].Id == "trail-prism"
-              && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 14, 18, 22 and 35, and every trail has its own lobby number");
-        Check(Rank.RewardsAt(45).Count == 1 && Rank.RewardsAt(45)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(44, "trail-lightcycle") && Rank.Owns(45, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 45 as the last trail, and no earlier trail's number moves");
-        // Menu backgrounds: Dusk Grid (15) and the reactive Ripples (25) are rank rewards, equipped in the Background slot only.
-        Check(Rank.OfKind(CosmeticKind.Background).Count == 8 && Rank.Owns(15, "bg-dusk") && !Rank.Owns(24, "bg-react-ripples") && Rank.Owns(25, "bg-react-ripples") && Rank.IsReactiveBackground("bg-react-ripples") && !Rank.IsReactiveBackground("bg-dusk") && !Rank.IsReactiveBackground("")
-              && Rank.RewardsAt(25).Exists(rc => rc.Id == "bg-react-ripples"), "reactive menu backgrounds are Background cosmetics (ids bg-react-...), Ripples unlocking at rank 25");
-        Check(Rank.Owns(28, "bg-react-bootlog") && !Rank.Owns(27, "bg-react-bootlog") && Rank.Owns(39, "bg-react-rocks") && !Rank.Owns(38, "bg-react-rocks") && Rank.Owns(43, "bg-react-life") && !Rank.Owns(42, "bg-react-life")
-              && Rank.IsReactiveBackground("bg-react-bootlog") && Rank.IsReactiveBackground("bg-react-rocks") && Rank.IsReactiveBackground("bg-react-life"), "Boot Log (28), Vector Rocks (39) and Life Grid (43) are reactive menu backgrounds");
-        Check(Rank.Owns(47, "bg-react-pond") && !Rank.Owns(46, "bg-react-pond") && Rank.Owns(49, "bg-react-tunnel") && !Rank.Owns(48, "bg-react-tunnel") && Rank.Owns(53, "bg-react-signal") && !Rank.Owns(52, "bg-react-signal")
-              && Rank.IsReactiveBackground("bg-react-pond") && Rank.IsReactiveBackground("bg-react-tunnel") && Rank.IsReactiveBackground("bg-react-signal"), "Phosphor Pond (47), Vector Tunnel (49) and Signal Lost (53) are reactive menu backgrounds");
+        Check(Rank.RewardsAt(15)[0].Id == "trail-frost" && Rank.RewardsAt(19)[0].Id == "trail-storm" && Rank.RewardsAt(23)[0].Id == "trail-void" && Rank.RewardsAt(36)[0].Id == "trail-prism"
+              && Rank.OfKind(CosmeticKind.Trail).Count == 7 && Rank.TrailIndex("trail-prism") == 6 && Rank.TrailId(6) == "trail-prism" && Rank.TrailId(8) == "", "Frost, Storm, Void and Prism unlock at 15, 19, 23 and 36, and every trail has its own lobby number");
+        Check(Rank.RewardsAt(46).Count == 1 && Rank.RewardsAt(46)[0].Id == "trail-lightcycle" && Rank.TrailIndex("trail-lightcycle") == 7 && Rank.TrailId(7) == "trail-lightcycle" && !Rank.Owns(45, "trail-lightcycle") && Rank.Owns(46, "trail-lightcycle") && Rank.TrailIndex("trail-gold") == 5, "the Light Cycle trail unlocks at rank 46 as the last trail, and no earlier trail's number moves");
+        // Menu backgrounds: Dusk Grid (16) and the reactive Ripples (26) are rank rewards, equipped in the Background slot only.
+        Check(Rank.OfKind(CosmeticKind.Background).Count == 8 && Rank.Owns(16, "bg-dusk") && !Rank.Owns(25, "bg-react-ripples") && Rank.Owns(26, "bg-react-ripples") && Rank.IsReactiveBackground("bg-react-ripples") && !Rank.IsReactiveBackground("bg-dusk") && !Rank.IsReactiveBackground("")
+              && Rank.RewardsAt(26).Exists(rc => rc.Id == "bg-react-ripples"), "reactive menu backgrounds are Background cosmetics (ids bg-react-...), Ripples unlocking at rank 26");
+        Check(Rank.Owns(29, "bg-react-bootlog") && !Rank.Owns(28, "bg-react-bootlog") && Rank.Owns(40, "bg-react-rocks") && !Rank.Owns(39, "bg-react-rocks") && Rank.Owns(44, "bg-react-life") && !Rank.Owns(43, "bg-react-life")
+              && Rank.IsReactiveBackground("bg-react-bootlog") && Rank.IsReactiveBackground("bg-react-rocks") && Rank.IsReactiveBackground("bg-react-life"), "Boot Log (29), Vector Rocks (40) and Life Grid (44) are reactive menu backgrounds");
+        Check(Rank.Owns(48, "bg-react-pond") && !Rank.Owns(47, "bg-react-pond") && Rank.Owns(50, "bg-react-tunnel") && !Rank.Owns(49, "bg-react-tunnel") && Rank.Owns(53, "bg-react-signal") && !Rank.Owns(52, "bg-react-signal")
+              && Rank.IsReactiveBackground("bg-react-pond") && Rank.IsReactiveBackground("bg-react-tunnel") && Rank.IsReactiveBackground("bg-react-signal"), "Phosphor Pond (48), Vector Tunnel (50) and Signal Lost (53) are reactive menu backgrounds");
         // Card backgrounds: ten of them, numbered in rank order, shared through the lobby like frames and trails.
-        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 10 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "" && Rank.Owns(55, "card-prism") && !Rank.Owns(54, "card-prism") && Rank.RewardsAt(6)[0].Id == "card-dusk",
-            "ten card backgrounds, Dusk Grid at rank 6 to Prism Shards at 55, numbered for the lobby");
-        cp.Xp = Rank.XpAt(30); hp.Xp = Rank.XpAt(30);
+        Check(Rank.OfKind(CosmeticKind.CardBackground).Count == 18 && Rank.CardBgIndex("card-dusk") == 1 && Rank.CardBgIndex("card-prism") == 10 && Rank.CardBgId(10) == "card-prism" && Rank.CardBgId(11) == "card-radar" && Rank.CardBgId(19) == "" && Rank.Owns(54, "card-prism") && !Rank.Owns(53, "card-prism") && Rank.RewardsAt(7)[0].Id == "card-dusk",
+            "ten card backgrounds, Dusk Grid at rank 7 to Prism Shards at 54, numbered for the lobby, and the eight newer ones after them");
+        // The sixteen newer frames and card backgrounds (ranks 56 to 71, one a rank, alternating) are numbered after the old ones, so no old number moved.
+        string[] newIds = { "frame-neon", "card-radar", "frame-hazard", "card-spiral", "frame-frost", "card-matrix", "frame-barbed", "card-lava", "frame-storm", "card-sun", "frame-pixel", "card-snow", "frame-blood", "card-topo", "frame-chain", "card-hex" };
+        bool newOk = true;
+        for (int i = 0; i < newIds.Length; i++) { var def = Rank.Cosmetic(newIds[i]); newOk &= def != null && def.Rank == 56 + i && Rank.RewardsAt(56 + i).Count == 1 && Rank.Owns(56 + i, newIds[i]) && !Rank.Owns(55 + i, newIds[i]); }
+        Check(newOk && Rank.FrameIndex("frame-neon") == 8 && Rank.FrameIndex("frame-chain") == 15 && Rank.CardBgIndex("card-radar") == 11 && Rank.CardBgIndex("card-hex") == 18 && Rank.FrameColor(8).R > 0.9f && Rank.FrameColor(15).B > 0.75f, "eight frames and eight card backgrounds at ranks 56 to 71, one a rank, numbered after the existing ones");
+        cp.Xp = Rank.XpAt(31); hp.Xp = Rank.XpAt(31);
         Check(cp.Equip(CosmeticKind.CardBackground, "card-rain") == false && cp.Equip(CosmeticKind.CardBackground, "card-circuit") && cp.CardBg == "card-circuit" && !cp.Equip(CosmeticKind.Frame, "card-dusk") && cp.Equipped(CosmeticKind.CardBackground) == "card-circuit", "you equip the card backgrounds your rank has, and only in their slot");
         hp.Equip(CosmeticKind.CardBackground, "card-dusk");
         client.ShareCosmetics(); host.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).CardBg == 6 && entry(client, cid).CardBg == 6 && entry(client, 1).CardBg == 1, "everyone's lobby knows each player's card background");
-        cp.CardBg = "card-prism";  // not theirs at rank 30
+        cp.CardBg = "card-prism";  // not theirs at rank 31
         client.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).CardBg == 0, "a card background the rank doesn't have is dropped by the host");
         // Name effects: twelve, numbered in rank order, shared through the lobby; the host drops one the rank doesn't have.
-        Check(Rank.OfKind(CosmeticKind.NameEffect).Count == 12 && Rank.NameFxIndex("name-outline") == 1 && Rank.NameFxIndex("name-glitchy") == 8 && Rank.NameFxId(12) == "name-rainbow" && Rank.NameFxId(13) == "" && Rank.Owns(36, "name-glitchy") && !Rank.Owns(35, "name-glitchy") && Rank.RewardsAt(36).Exists(rw => rw.Id == "name-glitchy"),
-            "twelve name effects, Steel Outline at rank 4 to Rainbow at 56, with Glitchy at 36");
-        cp.Xp = Rank.XpAt(40); hp.Xp = Rank.XpAt(40);
+        Check(Rank.OfKind(CosmeticKind.NameEffect).Count == 20 && Rank.NameFxIndex("name-outline") == 1 && Rank.NameFxIndex("name-glitchy") == 8 && Rank.NameFxId(12) == "name-rainbow" && Rank.NameFxId(13) == "name-chrome" && Rank.NameFxId(21) == "" && Rank.Owns(37, "name-glitchy") && !Rank.Owns(36, "name-glitchy") && Rank.RewardsAt(37).Exists(rw => rw.Id == "name-glitchy"),
+            "twelve name effects, Steel Outline at rank 5 to Rainbow at 55, with Glitchy at 37, and eight newer ones after them");
+        string[] newFx = { "name-chrome", "name-toxic", "name-holo", "name-nebula", "name-pixel", "name-terminal", "name-electric", "name-petals" };
+        bool fxOk = true;
+        for (int i = 0; i < newFx.Length; i++) { var def = Rank.Cosmetic(newFx[i]); fxOk &= def != null && def.Kind == CosmeticKind.NameEffect && def.Rank == 72 + i && Rank.RewardsAt(72 + i).Count == 1 && Rank.NameFxIndex(newFx[i]) == 13 + i && !Rank.Owns(71 + i, newFx[i]) && Rank.Owns(72 + i, newFx[i]); }
+        Check(fxOk, "eight newer name effects at ranks 72 to 79, one a rank, numbered 13 to 20 after Rainbow");
+        cp.Xp = Rank.XpAt(41); hp.Xp = Rank.XpAt(41);
         Check(cp.Equip(CosmeticKind.NameEffect, "name-glitchy") && cp.NameFx == "name-glitchy" && !cp.Equip(CosmeticKind.NameEffect, "name-gold") && !cp.Equip(CosmeticKind.Frame, "name-fire") && cp.Equipped(CosmeticKind.NameEffect) == "name-glitchy", "you equip the name effects your rank has, and only in their slot");
         hp.Equip(CosmeticKind.NameEffect, "name-outline");
         client.ShareCosmetics(); host.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).NameFx == 8 && entry(client, cid).NameFx == 8 && entry(client, 1).NameFx == 1, "everyone's lobby knows each player's name effect");
-        cp.NameFx = "name-rainbow";  // not theirs at rank 40
+        cp.NameFx = "name-rainbow";  // not theirs at rank 41
         client.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).NameFx == 0, "a name effect the rank doesn't have is dropped by the host");
         // Aim lines: nine unlocks beside the free Classic line; local only (nothing on the wire), saved with the profile.
         Check(Rank.OfKind(CosmeticKind.AimLine).Count == 9 && Rank.AimLineIndex("aim-dotted") == 1 && Rank.AimLineIndex("aim-prism") == 9 && Rank.AimLineId(9) == "aim-prism" && Rank.AimLineId(10) == "" && Rank.AimLineIndex("") == 0
-              && Rank.Owns(46, "aim-prism") && !Rank.Owns(45, "aim-prism") && Rank.Owns(5, "aim-dotted") && !Rank.Owns(4, "aim-dotted"), "nine aim lines, Dotted Tracer at rank 5 to Prism at 46, numbered in rank order, Classic is 0");
+              && Rank.Owns(47, "aim-prism") && !Rank.Owns(46, "aim-prism") && Rank.Owns(6, "aim-dotted") && !Rank.Owns(5, "aim-dotted"), "nine aim lines, Dotted Tracer at rank 6 to Prism at 47, numbered in rank order, Classic is 0");
         cp.Xp = Rank.XpAt(20);
         Check(cp.Equip(CosmeticKind.AimLine, "aim-ember") && cp.AimLine == "aim-ember" && cp.Equipped(CosmeticKind.AimLine) == "aim-ember" && !cp.Equip(CosmeticKind.AimLine, "aim-storm") && !cp.Equip(CosmeticKind.Trail, "aim-dotted") && cp.Equip(CosmeticKind.AimLine, "") && cp.AimLine == "",
             "you equip the aim lines your rank has, only in their slot, and \"\" goes back to Classic");
         // Cursors: ten unlocks beside the free Classic crosshair; local only, saved as the seventh field of the equip line.
-        Check(Rank.OfKind(CosmeticKind.Cursor).Count == 10 && Rank.CursorIndex("cursor-fine") == 1 && Rank.CursorIndex("cursor-cycle") == 10 && Rank.CursorId(10) == "cursor-cycle" && Rank.CursorId(11) == "" && Rank.CursorIndex("") == 0
-              && Rank.Owns(46, "cursor-cycle") && !Rank.Owns(45, "cursor-cycle") && Rank.Owns(3, "cursor-fine") && !Rank.Owns(2, "cursor-fine"), "ten cursors, Fine Cross at rank 3 to Light Cycle at 46, numbered in rank order, Classic is 0");
+        Check(Rank.OfKind(CosmeticKind.Cursor).Count == 18 && Rank.CursorIndex("cursor-fine") == 1 && Rank.CursorIndex("cursor-cycle") == 10 && Rank.CursorId(10) == "cursor-cycle" && Rank.CursorId(11) == "cursor-radar" && Rank.CursorId(19) == "" && Rank.CursorIndex("") == 0
+              && Rank.Owns(47, "cursor-cycle") && !Rank.Owns(46, "cursor-cycle") && Rank.Owns(4, "cursor-fine") && !Rank.Owns(3, "cursor-fine"), "ten cursors, Fine Cross at rank 4 to Light Cycle at 47, numbered in rank order, Classic is 0, and eight newer ones after them");
+        string[] newCur = { "cursor-radar", "cursor-sniper", "cursor-chevron", "cursor-sonar", "cursor-pixel", "cursor-petal", "cursor-laser", "cursor-lock" };
+        bool curOk = true;
+        for (int i = 0; i < newCur.Length; i++) { var def = Rank.Cosmetic(newCur[i]); curOk &= def != null && def.Kind == CosmeticKind.Cursor && def.Rank == 80 + i && Rank.RewardsAt(80 + i).Count == 1 && Rank.CursorIndex(newCur[i]) == 11 + i && !Rank.Owns(79 + i, newCur[i]) && Rank.Owns(80 + i, newCur[i]); }
+        Check(curOk, "eight newer cursors at ranks 80 to 87, one a rank, numbered 11 to 18 after Light Cycle");
         cp.Xp = Rank.XpAt(20);
         Check(cp.Equip(CosmeticKind.Cursor, "cursor-ember") && cp.Cursor == "cursor-ember" && cp.Equipped(CosmeticKind.Cursor) == "cursor-ember" && !cp.Equip(CosmeticKind.Cursor, "cursor-storm") && !cp.Equip(CosmeticKind.AimLine, "cursor-fine") && cp.Equip(CosmeticKind.Cursor, "cursor-fine") && cp.Equip(CosmeticKind.Cursor, "") && cp.Cursor == "",
             "you equip the cursors your rank has, only in their slot, and \"\" goes back to Classic");
         cp.Xp = Rank.XpAt(30);
         // Emotes: thirteen, on the bar (nothing to equip); a player sends one, the host checks rank and pause, everyone sees it.
-        Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(1, "emote-wave") && !Rank.Owns(24, "emote-spin") && Rank.Owns(25, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",
-            "thirteen emotes from rank 1 to 52, numbered in order, and nothing to equip");
+        Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(2, "emote-wave") && !Rank.Owns(25, "emote-spin") && Rank.Owns(26, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",
+            "thirteen emotes from rank 2 to 52, numbered in order, and nothing to equip");
         cp.Xp = Rank.XpAt(30);
         client.ShareCosmetics();
         PollBoth(host, client);
