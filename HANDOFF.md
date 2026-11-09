@@ -588,7 +588,7 @@ running both test suites and the compile check after each.
 
 ### 6.8 Work plan (the owner's order, October 2026)
 
-One step per commit, pushed to `main`; compile check and both suites must pass first (rerun known flakes).
+One step per commit, pushed to the session's branch; compile check and both suites must pass first (rerun known flakes).
 Bump `Session.ProtocolVersion` and tell the owner whenever a message format changes. Preview any UI touched,
 before and after. Ask before deleting code, changing behaviour, or growing a step beyond what's described.
 
