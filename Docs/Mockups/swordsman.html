@@ -62,7 +62,7 @@ td{font-family:var(--mono);font-size:13px}
 <main>
   <header>
     <h1>Swordsman</h1>
-    <p class="lede">A new melee enemy. It walks up, raises its sword and cuts a wide arc in front of it. The cone on the floor shows how far and how wide the cut reaches, so you can read it and step out.</p>
+    <p class="lede">A new melee enemy with a long blade. It walks up, raises its sword and cuts across a cone in front of it. The cone is the exact area the sword covers: the tip reaches its edge and the cut sweeps from one side to the other. It comes in two variants, a single cut and a two-hit combo.</p>
   </header>
 
   <section aria-labelledby="live">
@@ -72,22 +72,25 @@ td{font-family:var(--mono);font-size:13px}
       <div class="hud" id="hud"></div>
     </div>
     <div class="controls">
+      <button id="single" aria-pressed="true">Single cut</button>
+      <button id="combo" aria-pressed="false">Two-hit combo</button>
       <button id="pause" aria-pressed="false">Pause</button>
       <button id="auto" aria-pressed="true">Auto player</button>
       <button id="coneBtn" aria-pressed="true">Show cone</button>
-      <label class="ctl" for="range">Range <input id="range" type="range" min="60" max="150" value="96"><output id="rangeO">96 px</output></label>
+      <label class="ctl" for="range">Range <input id="range" type="range" min="80" max="200" value="140"><output id="rangeO">140 px</output></label>
       <label class="ctl" for="angle">Cone <input id="angle" type="range" min="40" max="150" value="90"><output id="angleO">90°</output></label>
     </div>
     <p class="hint">Press and drag on the arena to move the player yourself. Get out of the cone before the red fill reaches the edge.</p>
   </section>
 
   <section aria-labelledby="ph">
-    <h2 id="ph">One attack, four phases</h2>
+    <h2 id="ph">One attack, five phases</h2>
     <div class="phases">
-      <div class="phase"><canvas id="p0" width="240" height="170"></canvas><h3>Close in <span>until in reach</span></h3><p>Sword held low at its side. The cone is a faint outline and only shows the reach.</p></div>
-      <div class="phase"><canvas id="p1" width="240" height="170"></canvas><h3>Wind-up <span>0.55 s</span></h3><p>Sword goes back behind the shoulder. The cone fills from the enemy outward and it stops turning.</p></div>
-      <div class="phase"><canvas id="p2" width="240" height="170"></canvas><h3>Cut <span>0.15 s</span></h3><p>One fast sweep across the whole cone. Anything inside is hit once.</p></div>
-      <div class="phase"><canvas id="p3" width="240" height="170"></canvas><h3>Recover <span>0.80 s</span></h3><p>Sword low and slow. This is the window to shoot it.</p></div>
+      <div class="phase"><canvas id="p0" width="240" height="170"></canvas><h3>Close in <span>until in reach</span></h3><p>Sword held low at its side. The dashed cone is the area the blade will cover.</p></div>
+      <div class="phase"><canvas id="p1" width="240" height="170"></canvas><h3>Wind-up <span>0.55 s</span></h3><p>The blade swings out to one edge of the cone. The cone fills red from the enemy outward and it stops turning.</p></div>
+      <div class="phase"><canvas id="p2" width="240" height="170"></canvas><h3>Cut <span>0.15 s</span></h3><p>The tip sweeps edge to edge along the cone's rim. The bright wedge is what the blade has already passed through.</p></div>
+      <div class="phase"><canvas id="p3" width="240" height="170"></canvas><h3>Return cut <span>0.30 + 0.15 s</span></h3><p>Combo only. The cone refills red for a short beat, then the blade cuts back across the same area.</p></div>
+      <div class="phase"><canvas id="p4" width="240" height="170"></canvas><h3>Recover <span>0.80 s</span></h3><p>Sword low and slow. This is the window to shoot it.</p></div>
     </div>
   </section>
 
@@ -98,10 +101,11 @@ td{font-family:var(--mono);font-size:13px}
         <tr><th>Health</th><td>70</td></tr>
         <tr><th>Move speed</th><td>70 px/s</td></tr>
         <tr><th>Turn speed</th><td>2.8 rad/s, locked while winding up</td></tr>
-        <tr><th>Reach</th><td>96 px from its centre</td></tr>
-        <tr><th>Cone</th><td>90° wide, facing forward</td></tr>
-        <tr><th>Wind-up / cut / recover</th><td>0.55 / 0.15 / 0.80 s</td></tr>
-        <tr><th>Damage</th><td>12, once per cut</td></tr>
+        <tr><th>Reach</th><td>140 px from its centre (both variants)</td></tr>
+        <tr><th>Cone</th><td>90° wide, facing forward, equal to the blade's sweep</td></tr>
+        <tr><th>Single cut</th><td>wind-up 0.55 s, cut 0.15 s, recover 0.80 s</td></tr>
+        <tr><th>Two-hit combo</th><td>wind-up 0.55 s, cut 0.15 s, re-wind 0.30 s, return cut 0.15 s, recover 0.80 s</td></tr>
+        <tr><th>Damage</th><td>12 per cut that lands (24 for a full combo)</td></tr>
         <tr><th>Look</th><td>crimson armour, steel blade</td></tr>
       </table></div>
     </div>
@@ -110,6 +114,7 @@ td{font-family:var(--mono);font-size:13px}
       <div class="notes"><ul>
         <li>It sits between the Brute (slow, heavy) and the Lunger (one dash). The Swordsman is about timing a sidestep, not about running away.</li>
         <li>Because it stops turning during the wind-up, circling it works. Standing still next to it does not.</li>
+        <li>The combo's second cut comes only 0.30 s after the first, so stepping sideways inside the cone does not work. Leave the cone entirely.</li>
         <li>The cone is drawn on the floor, below the enemy, so it never hides bullets.</li>
         <li>Numbers are a starting point for tuning. The code is not written yet.</li>
       </ul></div>
@@ -120,8 +125,8 @@ td{font-family:var(--mono);font-size:13px}
 <script>
 (function(){
   var TAU = Math.PI * 2;
-  var cfg = { R: 96, H: 45 * Math.PI / 180 };       // reach and half-angle
-  var T_WIND = 0.55, T_CUT = 0.15, T_REC = 0.80;
+  var cfg = { R: 140, H: 45 * Math.PI / 180, combo: false };       // reach, half-angle, variant
+  var T_WIND = 0.55, T_CUT = 0.15, T_WIND2 = 0.30, T_REC = 0.80;
   var PR = 10;                                        // player radius
 
   function ease(t){ return t * t * (3 - 2 * t); }
@@ -130,10 +135,12 @@ td{font-family:var(--mono);font-size:13px}
 
   // sword angle relative to facing, per phase
   function swordAngle(state, t){
-    var rest = 0.75, back = -(cfg.H + 0.55), fwd = cfg.H + 0.35;
-    if (state === 'wind') return lerp(rest, back, ease(Math.min(1, t / T_WIND)));
-    if (state === 'cut')  return lerp(back, fwd, Math.min(1, t / T_CUT));
-    if (state === 'rec')  return lerp(fwd, rest, ease(Math.min(1, t / T_REC)));
+    var rest = 0.75, H = cfg.H;
+    if (state === 'wind')  return lerp(rest, -H, ease(Math.min(1, t / T_WIND)));
+    if (state === 'cut')   return lerp(-H, H, Math.min(1, t / T_CUT));
+    if (state === 'wind2') return H + Math.sin(t * 50) * 0.03;
+    if (state === 'cut2')  return lerp(H, -H, Math.min(1, t / T_CUT));
+    if (state === 'rec')   return lerp(cfg.combo ? -H : H, rest, ease(Math.min(1, t / T_REC)));
     return rest;
   }
 
@@ -150,20 +157,26 @@ td{font-family:var(--mono);font-size:13px}
 
     // the cone, under everything else
     if (showCone){
-      var fillR = 0, fillA = 0, edge = 'rgba(255,176,46,.55)';
-      if (e.state === 'wind'){ fillR = R * ease(Math.min(1, e.t / T_WIND)); fillA = .30; edge = 'rgba(255,100,70,.9)'; }
-      else if (e.state === 'cut'){ fillR = R; fillA = .55 * (1 - e.t / T_CUT * .5); edge = 'rgba(255,230,200,1)'; }
+      var fillR = 0, fillA = 0, edge = 'rgba(255,176,46,.55)', cutting = e.state === 'cut' || e.state === 'cut2';
+      if (e.state === 'wind' || e.state === 'wind2'){ fillR = R * ease(Math.min(1, e.t / (e.state === 'wind' ? T_WIND : T_WIND2))); fillA = .30; edge = 'rgba(255,100,70,.9)'; }
+      else if (cutting){ fillR = R; fillA = .14; edge = 'rgba(255,230,200,1)'; }
       else if (e.state === 'rec'){ fillR = R; fillA = .10 * (1 - e.t / T_REC); }
       fan(c, e.x, e.y, R, f - h, f + h);
       c.fillStyle = 'rgba(255,176,46,.07)'; c.fill();
       if (fillR > 0){
         fan(c, e.x, e.y, fillR, f - h, f + h);
-        c.fillStyle = e.state === 'wind' ? 'rgba(255,70,50,' + fillA + ')' : 'rgba(255,220,180,' + fillA + ')';
+        c.fillStyle = fillA >= .3 ? 'rgba(255,70,50,' + fillA + ')' : 'rgba(255,220,180,' + fillA + ')';
         c.fill();
+      }
+      if (cutting){
+        // the wedge the blade has already passed through
+        var s0 = e.state === 'cut' ? f - h : f + h, s1 = f + swordAngle(e.state, e.t);
+        fan(c, e.x, e.y, R, Math.min(s0, s1), Math.max(s0, s1));
+        c.fillStyle = 'rgba(255,245,230,.5)'; c.fill();
       }
       fan(c, e.x, e.y, R, f - h, f + h);
       c.setLineDash(e.state === 'idle' ? [6, 5] : []);
-      c.lineWidth = e.state === 'wind' || e.state === 'cut' ? 2.5 : 1.5;
+      c.lineWidth = e.state === 'idle' || e.state === 'rec' ? 1.5 : 2.5;
       c.strokeStyle = edge; c.stroke(); c.setLineDash([]);
     }
 
@@ -177,14 +190,7 @@ td{font-family:var(--mono);font-size:13px}
     // swordsman
     var a = f + swordAngle(e.state, e.t);
     var hx = e.x + Math.cos(a) * 15, hy = e.y + Math.sin(a) * 15;
-    var bx = hx + Math.cos(a) * 38, by = hy + Math.sin(a) * 38;
-
-    // cut trail
-    if (e.state === 'cut' && showCone){
-      var a0 = f + swordAngle('wind', T_WIND), a1 = a;
-      c.beginPath(); c.arc(e.x, e.y, 52, Math.min(a0, a1), Math.max(a0, a1));
-      c.lineWidth = 7; c.lineCap = 'round'; c.strokeStyle = 'rgba(255,245,230,.55)'; c.stroke(); c.lineCap = 'butt';
-    }
+    var bx = e.x + Math.cos(a) * R, by = e.y + Math.sin(a) * R;   // the tip is exactly at the cone's rim
 
     // arms
     c.lineWidth = 6; c.lineCap = 'round'; c.strokeStyle = '#8c2f2b';
@@ -194,7 +200,7 @@ td{font-family:var(--mono);font-size:13px}
     c.lineCap = 'butt';
 
     // blade
-    c.lineWidth = 5; c.strokeStyle = '#d4dde2'; c.beginPath(); c.moveTo(hx, hy); c.lineTo(bx, by); c.stroke();
+    c.lineWidth = 6; c.strokeStyle = '#d4dde2'; c.beginPath(); c.moveTo(hx, hy); c.lineTo(bx, by); c.stroke();
     c.lineWidth = 1.5; c.strokeStyle = '#7f8e96'; c.beginPath(); c.moveTo(hx, hy); c.lineTo(bx, by); c.stroke();
     // crossguard and pommel
     var px = -Math.sin(a), py = Math.cos(a);
@@ -235,6 +241,8 @@ td{font-family:var(--mono);font-size:13px}
     return Math.abs(angDiff(e.face, Math.atan2(dy, dx))) <= cfg.H + slack;
   }
 
+  function resolve(){ if (inCone()){ hits++; flash = 0.35; } else { dodges++; } }
+
   function step(dt){
     clock += dt; flash = Math.max(0, flash - dt);
     if (auto){
@@ -249,11 +257,12 @@ td{font-family:var(--mono);font-size:13px}
       if (d > cfg.R * 0.7){ e.x += Math.cos(e.face) * 70 * dt; e.y += Math.sin(e.face) * 70 * dt; }
       if (inCone() && d <= cfg.R * 0.95){ e.state = 'wind'; e.t = 0; }
     } else if (e.state === 'wind'){
-      if (e.t >= T_WIND){
-        e.state = 'cut'; e.t = 0;
-        if (inCone()){ hits++; flash = 0.35; } else { dodges++; }
-      }
+      if (e.t >= T_WIND){ e.state = 'cut'; e.t = 0; resolve(); }
     } else if (e.state === 'cut'){
+      if (e.t >= T_CUT){ e.state = cfg.combo ? 'wind2' : 'rec'; e.t = 0; }
+    } else if (e.state === 'wind2'){
+      if (e.t >= T_WIND2){ e.state = 'cut2'; e.t = 0; resolve(); }
+    } else if (e.state === 'cut2'){
       if (e.t >= T_CUT){ e.state = 'rec'; e.t = 0; }
     } else if (e.state === 'rec'){
       if (e.t >= T_REC){ e.state = 'chase'; e.t = 0; }
@@ -262,7 +271,7 @@ td{font-family:var(--mono);font-size:13px}
     e.y = Math.max(24, Math.min(S.H - 24, e.y));
   }
 
-  var names = { chase: 'closing in', wind: 'wind-up', cut: 'CUT', rec: 'recover' };
+  var names = { chase: 'closing in', wind: 'wind-up', cut: 'CUT', wind2: 're-wind', cut2: 'CUT BACK', rec: 'recover' };
   function render(){
     drawScene(S.c, S.W, S.H, { x: e.x, y: e.y, face: e.face, state: e.state === 'chase' ? 'idle' : e.state, t: e.t }, p, flash, showCone);
     hud.textContent = names[e.state] + '   hit ' + hits + '   dodged ' + dodges;
@@ -280,21 +289,28 @@ td{font-family:var(--mono);font-size:13px}
   // phase strip: fixed poses of the same drawing code
   function strip(id, state, t, px, py){
     var m = setup(id);
-    var en = { x: 78, y: 85, face: 0, state: state, t: t };
+    var en = { x: 50, y: 85, face: 0, state: state, t: t };
     drawScene(m.c, m.W, m.H, en, { x: px, y: py }, 0, true);
   }
   function drawStrips(){
-    strip('p0', 'idle', 0, 215, 40);
-    strip('p1', 'wind', T_WIND * 0.7, 140, 95);
-    strip('p2', 'cut', T_CUT * 0.5, 140, 95);
-    strip('p3', 'rec', T_REC * 0.3, 140, 95);
+    strip('p0', 'idle', 0, 190, 40);
+    strip('p1', 'wind', T_WIND * 0.7, 120, 95);
+    strip('p2', 'cut', T_CUT * 0.5, 120, 95);
+    strip('p3', 'cut2', T_CUT * 0.5, 120, 95);
+    strip('p4', 'rec', T_REC * 0.3, 120, 95);
   }
   // the strips use a smaller reach so the cone fits the card
-  var saved = cfg.R; cfg.R = 120; drawStrips(); cfg.R = saved;
+  var saved = cfg.R; cfg.R = 150; drawStrips(); cfg.R = saved;
 
   // controls
   var $ = function(i){ return document.getElementById(i); };
   $('pause').onclick = function(){ paused = !paused; this.setAttribute('aria-pressed', paused); this.textContent = paused ? 'Play' : 'Pause'; };
+  function variant(on){
+    cfg.combo = on; e.state = 'chase'; e.t = 0;
+    $('single').setAttribute('aria-pressed', !on); $('combo').setAttribute('aria-pressed', on);
+  }
+  $('single').onclick = function(){ variant(false); };
+  $('combo').onclick = function(){ variant(true); };
   $('auto').onclick = function(){ auto = !auto; this.setAttribute('aria-pressed', auto); };
   $('coneBtn').onclick = function(){ showCone = !showCone; this.setAttribute('aria-pressed', showCone); };
   $('range').oninput = function(){ cfg.R = +this.value; $('rangeO').textContent = this.value + ' px'; };
