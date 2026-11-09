@@ -796,6 +796,8 @@ namespace Arena
                 if (fxOn && e.BleedHits > 0)
                     DrawBleedScars(e, pos, r, t);  // claw scars, one set per two stacked hits (BearLooks.cs)
             }
+            if (e.Venomed)
+                col = DrawVenomed(e, pos, r, col, t);  // Poison Dart (PoisonDartLook.cs)
             if (e.Marked && fxOn)  // Mark for Death: the reticle lock and skull (SoldierLooks.cs)
             {
                 col = col.Mix(new Rgba(1f, 0.42f, 0.35f), 0.2f);
@@ -1002,11 +1004,11 @@ namespace Arena
         }
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, flame = burning, blood drop = bleeding, green bubbles = poisoned, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
+        /// slowed, flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
             bool iced = e.Frozen && !LeapCaged(e);
-            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0);
+            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1063,6 +1065,13 @@ namespace Arena
                 Circle(c + new V2(-2.5f, 2f), 3f, green, 8);
                 Circle(c + new V2(3f, -1f), 2.2f, green, 8);
                 Circle(c + new V2(0f, -4.5f), 1.6f, green, 6);
+                x += step;
+            }
+            if (e.Venomed)  // Poison Dart's venom (PoisonDartLook.cs)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                DrawVenomIcon(c, size);
                 x += step;
             }
             if (e.Suppressed)  // the Riot Repeater's suppression: a pause sign, its shooting slowed

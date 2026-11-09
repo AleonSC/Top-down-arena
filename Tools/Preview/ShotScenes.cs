@@ -478,7 +478,11 @@ static partial class Shot {
       me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
       float ct = float.Parse(Environment.GetEnvironmentVariable("CASTT") ?? "0.2");
-      for (int f = 0; f < 60 * ct; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
+      int dartKill = Environment.GetEnvironmentVariable("DARTKILL") != null ? (int)(60f * float.Parse(Environment.GetEnvironmentVariable("DARTKILL"))) : -1;  // DARTKILL=<s>: Poison Dart's target dies then (the poison spreads)
+      for (int f = 0; f < 60 * ct; f++) {
+        if (f == dartKill) foreach (var e in gm.Enemies.Values) if (e.VenomT > 0f) e.Hp = 0f;
+        me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f);
+      }
       me.Disp = me.Pos;
       if (aid == AbilityId.Bulldoze) me.Disp = me.Pos + V2.FromAngle(me.Aim) * System.Math.Min(200f, 750f * System.Math.Min(ct, 0.35f));  // the charge itself is the player's own game; show how far it has got
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;

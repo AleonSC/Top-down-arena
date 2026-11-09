@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poison Dart Looks</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Poison Dart (Soldier DPS, replaces Dash): three looks for the dart, the venom on an enemy, and the spread when a
+   poisoned enemy dies. Looping scenes at game scale (1 canvas px = 1 arena px). Numbers: Core/Balance.cs (Venom*). */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --amber:#ffb547; --acc:#8ef05a;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1100px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:28px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--acc); }
+h2 { font-size:22px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:74ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header, section.ab { display:grid; gap:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.tag { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--acc); }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:80ch; }
+.bar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:2; background:var(--bg); padding:8px 0; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 12px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button:focus-visible, input:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+label { color:var(--soft); font-size:14.5px; display:flex; gap:6px; align-items:center; cursor:pointer; }
+code { font-size:.92em; color:var(--soft); }
+.note-motion { display:none; color:var(--muted); font-size:13px; }
+@media (prefers-reduced-motion: reduce) { .note-motion { display:block; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Soldier · DPS ability 1 (replaces Dash)</div>
+  <h1>Poison <span>Dart</span></h1>
+  <p class="lead">A dart flies at the enemy nearest your cursor and poisons it. If it dies while still poisoned, the poison jumps to the enemies around it, and on from them when they die. Three looks, each playing the whole chain: the dart (0.5 s), the first enemy dying (2.2 s), the spread, and a second death that carries it on (3.9 s). The blue circle is you, the white cross is your cursor, the diamonds are enemies.</p>
+  <div class="bar">
+    <button id="pause" aria-pressed="false">Pause</button>
+    <button id="restart">Restart all</button>
+    <label><input type="checkbox" id="slow"> Slow motion (¼ speed)</label>
+    <label><input type="checkbox" id="cap"> Mastered (capstone)</label>
+    <span class="note-motion">Reduced motion is on: each scene shows one still frame. Press Play to start them.</span>
+  </div>
+</header>
+
+<section class="ab">
+  <div class="eyebrow">Ability 1 · 8 s cooldown</div>
+  <h2>The whole chain, three ways</h2>
+  <p>The dart hits for 20 and poisons for 18 a second over 5 s. A poisoned enemy that dies spreads it to the 3 nearest unpoisoned enemies within 180 px, each at 80% of the strength it had, with the full 5 s; they can spread it again. Tick <b>Mastered</b>: it spreads to 5 and doesn't weaken.</p>
+  <div class="grid" id="g-dart"></div>
+</section>
+
+<section class="panel">
+  <h2>Shared across all looks</h2>
+  <ul>
+    <li><b>Colour:</b> toxic green, so it doesn't clash with Mark for Death's red or the Grenade's orange. Medicine Darts' poison (the Ninja healer) stays its softer green bubbles; this one is louder so you can tell whose poison will spread.</li>
+    <li><b>Network:</b> the venom is a new replicated flag on each enemy, and the dart and the spread are two new <code>FxKind</code>s (dart: you → target; spread: corpse → each new victim), so <code>Session.ProtocolVersion</code> goes up.</li>
+    <li><b>Status icon:</b> a green drop with a dart through it in the row over the enemy, next to Medicine Darts' bubbles.</li>
+    <li><b>Phase Step</b> (the Dash card) becomes <b>Virulence</b>: the poison deals 30% more and spreads 60 px further, two stacks.</li>
+    <li>The Armory and Bestiary pages are not touched unless you ask.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(() => {
+  const W = 480, H = 340, TAU = Math.PI * 2;
+  const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+  const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const eo = (u) => 1 - (1 - cl(u)) ** 3;
+  const opts = { cap: false };
+  const GREEN = [142, 240, 90], LIME = [210, 255, 150], DEEP = [40, 120, 40], VIOLET = [170, 90, 230], SPORE = [205, 160, 255];
+
+  function floor(ctx) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = '#10151b'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+  function label(ctx, s) { ctx.fillStyle = '#92a1ad'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(s, 10, H - 10); }
+  function player(ctx, x, y, aim) {
+    ctx.fillStyle = 'rgb(90,160,230)'; ctx.beginPath(); ctx.arc(x, y, 11, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgb(230,240,250)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + Math.cos(aim) * 6, y + Math.sin(aim) * 6); ctx.lineTo(x + Math.cos(aim) * 17, y + Math.sin(aim) * 17); ctx.stroke();
+  }
+  function cursor(ctx, x, y) { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 7, y); ctx.lineTo(x + 7, y); ctx.moveTo(x, y - 7); ctx.lineTo(x, y + 7); ctx.stroke(); }
+  function foe(ctx, x, y, o = {}) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = o.col || '#e0504e'; ctx.fillRect(-10, -10, 20, 20);
+    if (o.flash) { ctx.fillStyle = rgba([255, 255, 255], o.flash); ctx.fillRect(-10, -10, 20, 20); }
+    ctx.restore();
+    if (o.hp !== undefined) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x - 14, y - 24, 28, 4); ctx.fillStyle = o.hpCol || '#e0504e'; ctx.fillRect(x - 14, y - 24, 28 * cl(o.hp), 4); }
+  }
+  function mixCol(a, b, k) { return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`; }
+  function floater(ctx, age, x, y, txt, col, size = 13) {
+    if (age < 0 || age > .8) return;
+    ctx.fillStyle = rgba(col, 1 - age / .8); ctx.font = `800 ${size}px Oxanium, sans-serif`; ctx.textAlign = 'center';
+    ctx.fillText(txt, x, y - 28 - 20 * eo(age / .8));
+  }
+
+  /* ===================================================== the scene's timeline (the same for every look) */
+  const P = { x: 60, y: 210 }, CUR = { x: 236, y: 132 };
+  const FOES = [{ x: 250, y: 150 }, { x: 318, y: 214 }, { x: 196, y: 246 }, { x: 352, y: 128 }, { x: 420, y: 262 }, { x: 448, y: 176 }, { x: 140, y: 120 }];
+  const T_DART = .5, FLY = .14, T_DIE0 = 2.2, SPREAD = .32, T_DIE1 = 3.9, DUR = 5, REACH = 180, LEN = 7.2;
+  // Who is poisoned when, by whom: computed once per option, like the game does it.
+  function timeline() {
+    const st = FOES.map(() => ({ from: -1, t: Infinity, src: -1, str: 0, die: Infinity }));
+    st[0] = { from: -1, t: T_DART + FLY, src: -1, str: 1, die: T_DIE0 };
+    const n = opts.cap ? 5 : 3, k = opts.cap ? 1 : .8;
+    function spread(i, at) {
+      const near = FOES.map((f, j) => ({ j, d: Math.hypot(f.x - FOES[i].x, f.y - FOES[i].y) }))
+        .filter((o) => o.j !== i && o.d < REACH + 10 && st[o.j].t === Infinity && st[o.j].die > at).sort((a, b) => a.d - b.d).slice(0, n);
+      for (const o of near) st[o.j] = { from: i, t: at + SPREAD, src: i, str: st[i].str * k, die: Infinity };
+      return near.map((o) => o.j);
+    }
+    const first = spread(0, T_DIE0);
+    const second = first.includes(1) ? 1 : first[0];
+    st[second].die = T_DIE1;
+    spread(second, T_DIE1);
+    return st;
+  }
+
+  function scene(ctx, look, t) {
+    floor(ctx);
+    const st = timeline();
+    look.ground && look.ground(ctx, t, st);
+    const aim = Math.atan2(CUR.y - P.y, CUR.x - P.x);
+    // enemies
+    FOES.forEach((f, i) => {
+      const s = st[i];
+      if (t >= s.die) return;
+      const pois = t >= s.t && t < s.t + DUR;
+      const hp = i === 0 ? 1 - .2 * (t >= T_DART + FLY) - .8 * cl((t - T_DART - FLY) / (T_DIE0 - T_DART - FLY)) : (s.die < Infinity ? 1 - cl((t - s.t) / (s.die - s.t)) * .95 : 1 - (pois ? .3 * cl((t - s.t) / DUR) : 0));
+      look.foe(ctx, t, f, i, s, pois, hp);
+    });
+    // dart
+    if (t >= T_DART && t < T_DART + FLY) look.dart(ctx, P, FOES[0], (t - T_DART) / FLY, t);
+    if (t >= T_DART + FLY) look.impact(ctx, t - T_DART - FLY, FOES[0]);
+    floater(ctx, t - T_DART - FLY, FOES[0].x, FOES[0].y, '20', [235, 255, 200]);
+    // deaths and spreads
+    FOES.forEach((f, i) => {
+      const s = st[i];
+      if (t >= s.die) look.death(ctx, t - s.die, f);
+      if (s.src >= 0 && t >= s.t - SPREAD && t < s.t + .4) look.spread(ctx, t - (s.t - SPREAD), FOES[s.src], f, i, s);
+      if (s.src >= 0) floater(ctx, t - s.t, f.x, f.y, Math.round(18 * s.str) + '/s', GREEN, 12);
+    });
+    player(ctx, P.x, P.y, aim);
+    cursor(ctx, CUR.x, CUR.y);
+    label(ctx, t < T_DART ? 'ready' : t < T_DART + FLY ? 'dart in flight' : t < T_DIE0 ? 'poisoned: 18 a second' : t < T_DIE0 + .5 ? 'it died poisoned: the poison spreads' : t < T_DIE1 ? (opts.cap ? 'five caught it, full strength' : 'three caught it, at 80%') : t < T_DIE1 + .5 ? 'another dies: it spreads on' : 'the chain carries on');
+  }
+  // remaining-time fraction for a poisoned enemy
+  const left = (t, s) => cl(1 - (t - s.t) / DUR);
+
+  function needle(ctx, x, y, a, len, body, tip, fletch) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    ctx.strokeStyle = body; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-len, 0); ctx.lineTo(0, 0); ctx.stroke();
+    ctx.fillStyle = tip; ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(-2, -2.2); ctx.lineTo(-2, 2.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = fletch; ctx.beginPath(); ctx.moveTo(-len, 0); ctx.lineTo(-len - 5, -4); ctx.lineTo(-len + 3, 0); ctx.lineTo(-len - 5, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function dartLine(ctx, from, to, u, o) {
+    const a = Math.atan2(to.y - from.y, to.x - from.x), x = from.x + (to.x - from.x) * u, y = from.y + (to.y - from.y) * u;
+    const tl = Math.min(70, Math.hypot(to.x - from.x, to.y - from.y) * u);
+    const g = ctx.createLinearGradient(x - Math.cos(a) * tl, y - Math.sin(a) * tl, x, y); g.addColorStop(0, rgba(o.trail, 0)); g.addColorStop(1, rgba(o.trail, .7));
+    ctx.strokeStyle = g; ctx.lineWidth = o.w || 3; ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * tl, y - Math.sin(a) * tl); ctx.lineTo(x, y); ctx.stroke();
+    needle(ctx, x, y, a, 11, o.body, o.tip, o.fletch);
+  }
+  const stuckAngle = (i) => -2.3 + rnd(i + 4) * .8;
+
+  /* ===================================================== the looks */
+  const looks = [
+    { name: 'A · Toxic Drip', tag: 'Recommended · reads at a glance', desc: 'A steel needle with green fletching and a short green trail. A poisoned enemy turns sickly green, drips, and keeps the dart stuck in it. When it dies it bursts in a green splash and lobs a glob onto each enemy it infects.',
+      dart(ctx, from, to, u) { dartLine(ctx, from, to, u, { trail: GREEN, body: '#cfd8de', tip: '#8ef05a', fletch: '#5fbf3a' }); },
+      impact(ctx, a, f) { if (a < .25) { const k = a / .25; ctx.strokeStyle = rgba(LIME, 1 - k); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 12 + 16 * eo(k), 0, TAU); ctx.stroke(); } },
+      foe(ctx, t, f, i, s, pois, hp) {
+        const k = pois ? .45 + .12 * Math.sin(t * 7 + i) : 0;
+        foe(ctx, f.x, f.y, { col: mixCol([224, 80, 78], [110, 200, 70], k), hp, hpCol: pois ? '#8ef05a' : '#e0504e' });
+        if (!pois) return;
+        for (let d = 0; d < 3; d++) { const p = (t * 1.1 + d / 3 + i * .37) % 1; ctx.fillStyle = rgba(GREEN, .9 * (1 - p)); ctx.beginPath(); ctx.arc(f.x + (d - 1) * 6, f.y + 6 + p * 18, 2.4 * (1 - p * .5), 0, TAU); ctx.fill(); }
+        if (s.src < 0) needle(ctx, f.x + Math.cos(stuckAngle(i)) * -4, f.y + Math.sin(stuckAngle(i)) * -4, stuckAngle(i) + Math.PI, 9, '#cfd8de', '#8ef05a', '#5fbf3a');
+        ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.beginPath(); ctx.arc(f.x, f.y - 36, 9, 0, TAU); ctx.fill();
+        ctx.fillStyle = rgba(GREEN, 1); ctx.beginPath(); ctx.arc(f.x, f.y - 34, 4, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.moveTo(f.x - 3.6, f.y - 35.5); ctx.lineTo(f.x, f.y - 42); ctx.lineTo(f.x + 3.6, f.y - 35.5); ctx.fill();
+        ctx.strokeStyle = '#e7eef3'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(f.x - 6, f.y - 30); ctx.lineTo(f.x + 6, f.y - 41); ctx.stroke();
+      },
+      death(ctx, a, f) {
+        if (a > .7) { if (a < 3) { ctx.fillStyle = rgba(DEEP, .35 * (1 - (a - .7) / 2.3)); ctx.beginPath(); ctx.ellipse(f.x, f.y + 4, 22, 14, 0, 0, TAU); ctx.fill(); } return; }
+        const k = a / .7;
+        ctx.fillStyle = rgba(GREEN, .3 * (1 - k)); ctx.beginPath(); ctx.arc(f.x, f.y, 14 + 26 * eo(k), 0, TAU); ctx.fill();
+        for (let d = 0; d < 10; d++) { const an = d / 10 * TAU + .4, r = 8 + 36 * eo(k); ctx.fillStyle = rgba(LIME, 1 - k); ctx.beginPath(); ctx.arc(f.x + Math.cos(an) * r, f.y + Math.sin(an) * r + 10 * k * k, 2.6 * (1 - k * .6), 0, TAU); ctx.fill(); }
+      },
+      spread(ctx, a, from, to) {
+        if (a < SPREAD) { const u = a / SPREAD, x = from.x + (to.x - from.x) * u, y = from.y + (to.y - from.y) * u - 40 * Math.sin(Math.PI * u);
+          for (let g = 1; g <= 4; g++) { const v = Math.max(0, u - g * .06), gx = from.x + (to.x - from.x) * v, gy = from.y + (to.y - from.y) * v - 40 * Math.sin(Math.PI * v); ctx.fillStyle = rgba(GREEN, .45 * (1 - g / 5)); ctx.beginPath(); ctx.arc(gx, gy, 4 - g * .6, 0, TAU); ctx.fill(); }
+          ctx.fillStyle = rgba(LIME, 1); ctx.beginPath(); ctx.arc(x, y, 4.5, 0, TAU); ctx.fill(); }
+        else { const k = (a - SPREAD) / .4; ctx.fillStyle = rgba(GREEN, .5 * (1 - k)); ctx.beginPath(); ctx.arc(to.x, to.y, 10 + 14 * k, 0, TAU); ctx.fill(); }
+      } },
+    { name: 'B · Plague Spores', tag: 'Moodiest', desc: 'A dark violet dart. A poisoned enemy wears a slow, pulsing ring of violet spores; when it dies a spore cloud puffs out and wisps drift (not lob) to the new victims, like something airborne.',
+      dart(ctx, from, to, u) { dartLine(ctx, from, to, u, { trail: VIOLET, body: '#3a2a4a', tip: '#cfa0ff', fletch: '#8a4fd0', w: 2 }); },
+      impact(ctx, a, f) { if (a < .4) for (let d = 0; d < 6; d++) { const an = d / 6 * TAU, r = 10 + 18 * eo(a / .4); ctx.fillStyle = rgba(SPORE, .8 * (1 - a / .4)); ctx.beginPath(); ctx.arc(f.x + Math.cos(an) * r, f.y + Math.sin(an) * r, 2, 0, TAU); ctx.fill(); } },
+      foe(ctx, t, f, i, s, pois, hp) {
+        foe(ctx, f.x, f.y, { col: pois ? mixCol([224, 80, 78], [140, 70, 170], .4) : undefined, hp, hpCol: pois ? '#b07ae8' : '#e0504e' });
+        if (!pois) return;
+        const r = 20 + 2 * Math.sin(t * 3 + i);
+        for (let d = 0; d < 9; d++) { const an = d / 9 * TAU + t * .7 + i, rr = r + 3 * Math.sin(t * 5 + d); ctx.fillStyle = rgba(SPORE, .55 + .3 * Math.sin(t * 4 + d)); ctx.beginPath(); ctx.arc(f.x + Math.cos(an) * rr, f.y + Math.sin(an) * rr, 1.8 + rnd(d) * 1.2, 0, TAU); ctx.fill(); }
+        ctx.strokeStyle = rgba(VIOLET, .25); ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, TAU); ctx.stroke();
+      },
+      death(ctx, a, f) {
+        if (a > 1.2) return; const k = a / 1.2;
+        for (let d = 0; d < 7; d++) { const an = d / 7 * TAU + 1, r = 18 * eo(k); ctx.fillStyle = rgba([110, 70, 140], .45 * (1 - k)); ctx.beginPath(); ctx.arc(f.x + Math.cos(an) * r, f.y + Math.sin(an) * r - 8 * k, 12 + 10 * k, 0, TAU); ctx.fill(); }
+      },
+      spread(ctx, a, from, to, i) {
+        const u = cl(a / (SPREAD + .15));
+        for (let w = 0; w < 5; w++) { const v = cl(u - w * .07), off = Math.sin(v * 9 + w + i) * 10 * (1 - v), dx = to.x - from.x, dy = to.y - from.y, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+          ctx.fillStyle = rgba(SPORE, .7 * (1 - w / 5) * (1 - cl((a - SPREAD) / .4))); ctx.beginPath(); ctx.arc(from.x + dx * v + nx * off, from.y + dy * v + ny * off, 2.5, 0, TAU); ctx.fill(); }
+      } },
+    { name: 'C · Contagion Tether', tag: 'Clearest chain', desc: 'A green dart. A poisoned enemy shows a ring that unwinds as its 5 s run out, so you can see who will spread if killed now. On a death, a jagged green tether snaps to each new victim, like chain lightning but slower and wetter.',
+      dart(ctx, from, to, u) { dartLine(ctx, from, to, u, { trail: GREEN, body: '#9aa8b0', tip: '#d2ff96', fletch: '#8ef05a' }); },
+      impact(ctx, a, f) { if (a < .2) { ctx.fillStyle = rgba(LIME, .7 * (1 - a / .2)); ctx.beginPath(); ctx.arc(f.x, f.y, 16, 0, TAU); ctx.fill(); } },
+      ground(ctx, t, st) {  // faint links between who infected whom, while both live
+        st.forEach((s, i) => { if (s.src < 0 || t < s.t || t > s.t + 1.2) return; const a = FOES[s.src], b = FOES[i]; ctx.strokeStyle = rgba(GREEN, .18 * (1 - (t - s.t) / 1.2)); ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); });
+      },
+      foe(ctx, t, f, i, s, pois, hp) {
+        foe(ctx, f.x, f.y, { col: pois ? mixCol([224, 80, 78], [110, 200, 70], .3) : undefined, hp, hpCol: pois ? '#8ef05a' : '#e0504e' });
+        if (!pois) return;
+        const l = left(t, s), blink = l > .2 || (t % .2) < .1 ? 1 : .3;
+        ctx.strokeStyle = rgba(GREEN, .25 * blink); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 21, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = rgba(GREEN, .95 * blink); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 21, -Math.PI / 2, -Math.PI / 2 + TAU * l); ctx.stroke();
+        ctx.fillStyle = rgba(LIME, blink); ctx.beginPath(); ctx.arc(f.x + Math.cos(-Math.PI / 2 + TAU * l) * 21, f.y + Math.sin(-Math.PI / 2 + TAU * l) * 21, 3, 0, TAU); ctx.fill();
+      },
+      death(ctx, a, f) { if (a < .35) { const k = a / .35; ctx.strokeStyle = rgba(LIME, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 10 + 30 * eo(k), 0, TAU); ctx.stroke(); } },
+      spread(ctx, a, from, to, i) {
+        const reach = cl(a / .12), fade = cl(1 - (a - .12) / .5), dx = to.x - from.x, dy = to.y - from.y, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+        if (fade <= 0) return;
+        ctx.strokeStyle = rgba(GREEN, .9 * fade); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(from.x, from.y);
+        const seg = 7; for (let k = 1; k <= seg; k++) { const v = k / seg * reach, j = k < seg ? (rnd(k + i * 9 + Math.floor(a * 20)) - .5) * 14 : 0; ctx.lineTo(from.x + dx * v + nx * j, from.y + dy * v + ny * j); }
+        ctx.stroke();
+        if (reach >= 1) { ctx.fillStyle = rgba(LIME, .8 * fade); ctx.beginPath(); ctx.arc(to.x, to.y, 6, 0, TAU); ctx.fill(); }
+      } },
+  ];
+
+  /* ===================================================== page wiring */
+  const dpr = Math.min(2, window.devicePixelRatio || 1), cards = [];
+  const host = document.getElementById('g-dart');
+  for (const look of looks) {
+    const card = document.createElement('div'); card.className = 'card';
+    const cv = document.createElement('canvas'); cv.width = W * dpr; cv.height = H * dpr; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', look.name + ': ' + look.desc);
+    const tx = document.createElement('div'); tx.className = 't';
+    tx.innerHTML = `<span class="tag">${look.tag}</span><b>${look.name}</b><span>${look.desc}</span>`;
+    card.append(cv, tx); host.append(card);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cards.push({ ctx, look });
+  }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let paused = reduce, clock = 0, last = performance.now();
+  const pauseBtn = document.getElementById('pause'), slow = document.getElementById('slow');
+  const setPause = (p) => { paused = p; pauseBtn.textContent = p ? 'Play' : 'Pause'; pauseBtn.setAttribute('aria-pressed', String(p)); };
+  setPause(paused);
+  pauseBtn.onclick = () => setPause(!paused);
+  document.getElementById('restart').onclick = () => { clock = 0; draw(); };
+  document.getElementById('cap').onchange = (e) => { opts.cap = e.target.checked; draw(); };
+  function draw() {
+    for (const c of cards) scene(c.ctx, c.look, (paused && reduce && clock === 0) ? 2.6 : clock % LEN);
+  }
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!paused) clock += dt * (slow.checked ? .25 : 1);
+    draw(); requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  window.__setClock = (v) => { paused = true; clock = v; draw(); };  // for screenshots
+})();
+</script>
+</body>
+</html>

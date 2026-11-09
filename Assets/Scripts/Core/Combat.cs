@@ -769,6 +769,7 @@ namespace Arena
                 NonShooterDeath(e);  // a Fuse Runner killed during its fuse, a Tripwire Pod (NonShooters.cs)
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
+                SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
                 foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
                     onKill(this, e);
                 bool bossReward = OnEnemyKilled(e);

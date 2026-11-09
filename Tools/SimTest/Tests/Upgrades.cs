@@ -11,7 +11,7 @@ static partial class Program
     static void CheckStatSheet()
     {
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
-        var p = new Player { Role = Role.Dps, Def = Defs.Get(Role.Dps), BaseHp = 95f, RoleAbility = AbilityId.Dash };
+        var p = new Player { Role = Role.Dps, Def = Defs.Get(Role.Dps), BaseHp = 95f, RoleAbility = AbilityId.PoisonDart };
         var taken = new List<int> { U("Sharpened Rounds"), U("Hollow Points"), U("Fortitude"), U("Multishot"), U("Blink"), U("Executioner") };
         var lines = StatSheet.Describe(p, taken);
         var map = new Dictionary<string, string>();
@@ -197,7 +197,7 @@ static partial class Program
                 s[0].Game.GrantUpgrade(1, id);
                 s[0].Game.GrantUpgrade(2, id);
             }
-        Check(Upgrades.ModOffer(Role.Dps, AbilityId.Dash, s[0].Game.Players[2].Taken) == null, "maxed-out mods are no longer offered");
+        Check(Upgrades.ModOffer(Role.Dps, AbilityId.PoisonDart, s[0].Game.Players[2].Taken) == null, "maxed-out mods are no longer offered");
         var spawnAngle = new Dictionary<int, float>();
         int curved = 0, ricochets = 0, ghosts = 0, frame = 0, compared = 0;
         float worst = 0f;
@@ -287,7 +287,7 @@ static partial class Program
             && !Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, new List<int>()),
             "a class ability card isn't offered twice, and that ability's own upgrades open up");
 
-        // In a match: the DPS Soldier (Space: Dash) gets Airstrike on Q, and the bot calls it in.
+        // In a match: the DPS Soldier (Space: Poison Dart) gets Airstrike on Q, and the bot calls it in.
         var s = StartBuffed(dt, 1, 0);
         Run(s, dt, 1);
         s[0].Game.GrantUpgrade(2, U("Airstrike"));
@@ -296,7 +296,7 @@ static partial class Program
         var hp = s[0].Game.Players[2];
         var cp = s[1].Game.Players[2];
         Console.WriteLine("  DPS Soldier: Space {0}, Q {1} (client sees {2}); airstrike called {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
-        Check(hp.Slots[0].Id == AbilityId.Dash && hp.Slots[1].Id == AbilityId.Airstrike && cp.Slots[1].Id == AbilityId.Airstrike && thrown,
+        Check(hp.Slots[0].Id == AbilityId.PoisonDart && hp.Slots[1].Id == AbilityId.Airstrike && cp.Slots[1].Id == AbilityId.Airstrike && thrown,
             "a class ability card puts that ability on Q, E or Shift, and it works there");
         s[0].Leave(""); s[1].Leave("");
     }
@@ -359,7 +359,7 @@ static partial class Program
             "each mastery level adds 8% potency and takes 4% off the cooldown");
 
 
-        // Capstones: Shockwave knocks back, Nova fires 48, Dash gets a charge, Mark hits three.
+        // Capstones: Shockwave knocks back, Nova fires 48, Mark hits three.
         host.GainMastery(hp, AbilityId.Shockwave, 1e4f);
         var pushed = Dummy(new V2(660f, 470f));
         Run(s, dt, 0.3f, null, Hold);
@@ -379,18 +379,14 @@ static partial class Program
         cast.Invoke(host, new object[] { 1, nova, dummy.Pos, true });
         int novaMax = NovaShots();
         var dp = host.Players[2];
-        int dash = Array.FindIndex(dp.Slots, sl => sl.Id == AbilityId.Dash);
-        int dashBefore = dash >= 0 ? dp.Slots[dash].MaxCharges : -1;
         host.DevMasterAll(2);
         Run(s, dt, 0.3f, null, Hold);
-        int dashAfter = dash >= 0 ? dp.Slots[dash].MaxCharges : -1, dashClient = dash >= 0 ? s[1].Game.Players[2].Slots[dash].MaxCharges : -1;
-        Console.WriteLine("  capstones: shockwave shoves {0:0} px, nova {1} -> {2} shots, dash charges {3} -> {4} (client {5}), {6} gold",
-            shove, novaBase, novaMax, dashBefore, dashAfter, dashClient, string.Join("/", dp.Slots.Where(sl => sl.Id != AbilityId.None).Select(sl => Game.MasteryLevel(dp, sl.Id))));
+        Console.WriteLine("  capstones: shockwave shoves {0:0} px, nova {1} -> {2} shots, {3} gold",
+            shove, novaBase, novaMax, string.Join("/", dp.Slots.Where(sl => sl.Id != AbilityId.None).Select(sl => Game.MasteryLevel(dp, sl.Id))));
         Check(shove > 100f && novaBase == 24 && novaMax == 48, "level 5 unlocks each ability's capstone");
         Check(Game.MasteryLevel(cp, AbilityId.Shockwave) == 5 && host.MasteryToasts.Any(t => t.Ability == AbilityId.Shockwave && t.Level == 3)
-            && s[1].Game.MasteryToasts.Any(t => t.Ability == AbilityId.Dash && t.Level == 5),
+            && s[1].Game.MasteryToasts.Any(t => t.Ability == AbilityId.PoisonDart && t.Level == 5),
             "the player's own game knows the level (and shows a level-up popup)");
-        Check(dash < 0 || dashAfter == dashBefore + 1 && dashClient == dashAfter, "a mastered Dash gets an extra charge on both games");
         Check(dp.Slots.Where(sl => sl.Id != AbilityId.None).All(sl => Game.Mastered(dp, sl.Id)), "the dev menu can master every ability");
         Check(Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().Where(a => a != AbilityId.None).All(a => Game.Capstone(a).Length > 0), "every ability has a capstone");
 

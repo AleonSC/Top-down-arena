@@ -133,6 +133,12 @@ namespace Arena
                 case FxKind.JuggShard:
                     DrawJuggShardFx(fx);  // JuggernautLook.cs
                     break;
+                case FxKind.VenomDart:
+                    DrawVenomDartFx(fx);  // PoisonDartLook.cs, like the one below
+                    break;
+                case FxKind.VenomSpread:
+                    DrawVenomSpreadFx(fx);
+                    break;
                 case FxKind.PactBind:
                     DrawPactBindFx(fx, f, t);  // ForcePactLook.cs, like the three below
                     break;

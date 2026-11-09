@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// The Soldier DPS: the Twin Rifle's grenade tubes (TwinGrenades.cs) and Airstrike (Airstrike.cs).
+// The Soldier DPS: the Twin Rifle's grenade tubes (TwinGrenades.cs), Airstrike (Airstrike.cs) and Poison Dart (PoisonDart.cs).
 static partial class Program
 {
     /// The tubes: rifle hits load them (crossfire twice as fast), two at most; the weapon-action key fires one a press, left then
@@ -205,5 +205,117 @@ static partial class Program
         Check(took(wideOne) > w0, "...but inside one Bigger Boom widened");
         me.Stats.GrenadeRadiusMult = 1f;
         host.Leave(""); client.Leave("");
+    }
+    /// Poison Dart: the dart hits the enemy nearest the cursor and poisons it; killed while poisoned, it passes the poison
+    /// to the nearest three around it (80% as strong, the full time again), and they pass it on; mastered: five, full
+    /// strength; Virulence; the other screen sees the poison and the looks.
+    static void PoisonDartTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var cast = typeof(Game).GetMethod("CastAbility", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var masteredField = typeof(Game).GetField("castMastered", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Gunner", Role.Dps, 0, 0, Kit.Soldier);
+        var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Soldier);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        var def = Upgrades.Ability(AbilityId.PoisonDart);
+        Check(def.Name == "Poison Dart" && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Choice == 0 && (int)AbilityId.PoisonDart == 2,
+            "Poison Dart is the Soldier DPS's first ability, in Dash's place");
+        Check(me.Slots[0].Id == AbilityId.PoisonDart, "a Soldier DPS who picks it has it on Space");
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        var spots = new Dictionary<Enemy, V2>();
+        Func<V2, Enemy> pin = at =>
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; spots[e] = at;
+            return e;
+        };
+        V2 mePos = new V2(300f, 450f);
+        Action<float> step = secs => { for (int f = 0; f < secs / dt; f++) { foreach (var kv in spots) if (g.Enemies.ContainsKey(kv.Key.Id)) kv.Key.Pos = kv.Value; me.Pos = mePos; queue.Clear(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = mePos } : new PlayerInput()); } } };
+        Func<Enemy, float> took = e => e.MaxHp - e.Hp;
+        Action<Enemy> kill = e => { e.Hp = 0f; };
+        Func<Enemy, bool> alive = e => g.Enemies.ContainsKey(e.Id);
+        float k = me.Stats.DmgMult;
+        g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear(); queue.Clear();
+
+        // The cursor at (800, 450): the dart picks the nearest, not the nearest to you.
+        var target = pin(new V2(820f, 450f));
+        var nearMe = pin(new V2(450f, 450f));
+        var n1 = pin(new V2(900f, 450f));    // 80 px from the target
+        var n2 = pin(new V2(820f, 560f));    // 110 px
+        var n3 = pin(new V2(700f, 450f));    // 120 px
+        var n4 = pin(new V2(820f, 300f));    // 150 px: fourth nearest, left out
+        var far = pin(new V2(1070f, 450f));  // 250 px: out of reach of the target, 170 px from n1
+        masteredField.SetValue(g, false);
+        cast.Invoke(g, new object[] { me, 0, new V2(800f, 450f) });
+        Check(Math.Abs(took(target) - Game.VenomHit * k) < 0.5f && took(nearMe) == 0f, "the dart hits the enemy nearest the cursor for 20 (" + took(target) + ")");
+        Check(target.VenomT > 0f && Math.Abs(target.VenomDps - Game.VenomDps * k) < 0.01f, "and poisons it, 18 a second");
+        Check(g.Effects.Any(e => e.Kind == FxKind.VenomDart && (int)e.Radius == target.Id && e.Pos2.DistanceTo(target.Pos) < 1f), "the dart's look flies from you to it");
+        float hit = took(target);
+        step(2f);
+        float dot = took(target) - hit;
+        Console.WriteLine("  poison dart: hit {0:0}, 2 s of poison {1:0.0}", hit, dot);
+        Check(Math.Abs(dot - 2f * Game.VenomDps * k) < 2f, "the poison ticks 18 a second");
+        Check(client.Game.Enemies[target.Id].Venomed && !client.Game.Enemies[n1.Id].Venomed, "the other screen sees who is poisoned");
+        Check(client.Game.Effects.Any(e => e.Kind == FxKind.VenomDart), "and gets the dart's look");
+        Check(n1.VenomT <= 0f && n2.VenomT <= 0f, "nothing spreads while it lives");
+
+        // It dies poisoned: the three nearest catch it, at 80%, with the full 5 s.
+        kill(target);
+        step(dt * 2f);
+        Check(!alive(target), "the target died");
+        Check(n1.VenomT > Game.VenomTime - 0.2f && n2.VenomT > 0f && n3.VenomT > 0f, "it spreads to the three nearest, with the full time");
+        Check(n4.VenomT <= 0f && far.VenomT <= 0f && nearMe.VenomT <= 0f, "only three, and only within reach");
+        Check(Math.Abs(n1.VenomDps - Game.VenomDps * k * Game.VenomFalloff) < 0.01f, "at 80% of the strength");
+        Check(g.Effects.Count(e => e.Kind == FxKind.VenomSpread) == 3, "a glob flies to each");
+
+        // And on: n1 dies, far (200 px from n1) catches it; n2 and n3 already have it and keep it.
+        float n2Left = n2.VenomT;
+        kill(n1);
+        step(dt * 2f);
+        Check(far.VenomT > 0f && Math.Abs(far.VenomDps - Game.VenomDps * k * Game.VenomFalloff * Game.VenomFalloff) < 0.01f, "it chains on from the ones it spread to, weaker again");
+        Check(n2.VenomT <= n2Left, "enemies that already carry it don't catch it again");
+
+        // Wearing off first: a death after the poison ran out spreads nothing.
+        step(Game.VenomTime + 0.5f);
+        Check(n2.VenomT <= 0f && n2.VenomDps == 0f, "the poison wears off after 5 s");
+        g.Effects.Clear();
+        kill(n2);
+        step(dt * 2f);
+        Check(!g.Effects.Any(e => e.Kind == FxKind.VenomSpread) && n4.VenomT <= 0f, "an enemy that dies after it wore off spreads nothing");
+
+        // Mastered: five at a time, at full strength.
+        g.Enemies.Clear(); spots.Clear(); g.Effects.Clear();
+        var t2 = pin(new V2(800f, 450f));
+        var ring = new List<Enemy>();
+        for (int i = 0; i < 6; i++) ring.Add(pin(new V2(800f, 450f) + V2.FromAngle(i * MathX.Tau / 6f) * (90f + i * 10f)));
+        masteredField.SetValue(g, true);
+        cast.Invoke(g, new object[] { me, 0, new V2(800f, 450f) });
+        masteredField.SetValue(g, false);
+        kill(t2);
+        step(dt * 2f);
+        Check(ring.Count(e => e.VenomT > 0f) == Game.VenomJumpsMastered && ring.Where(e => e.VenomT > 0f).All(e => Math.Abs(e.VenomDps - t2.VenomDps) < 0.01f || Math.Abs(e.VenomDps - Game.VenomDps * k) < 0.01f),
+            "mastered: it spreads to five, at full strength");
+
+        // Virulence: 30% stronger, 60 px further.
+        var vir = Upgrades.All.FirstOrDefault(u => u.Name == "Virulence");
+        Check(vir != null && vir.RequiresAbility == AbilityId.PoisonDart && !Upgrades.All.Any(u => u.Name == "Phase Step"), "Virulence (in Phase Step's place) goes with Poison Dart");
+        g.Enemies.Clear(); spots.Clear();
+        g.GrantUpgrade(1, Array.IndexOf(Upgrades.All, vir));
+        var t3 = pin(new V2(800f, 450f));
+        var at220 = pin(new V2(1020f, 450f));  // past 180, inside 240
+        cast.Invoke(g, new object[] { me, 0, new V2(800f, 450f) });
+        Check(Math.Abs(t3.VenomDps - Game.VenomDps * me.Stats.DmgMult * 1.3f) < 0.05f, "Virulence: 30% more poison");
+        kill(t3);
+        step(dt * 2f);
+        Check(at220.VenomT > 0f, "Virulence: it spreads 60 px further");
+        foreach (var x in s) x.Leave("");
     }
 }

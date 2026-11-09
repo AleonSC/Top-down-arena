@@ -5,8 +5,9 @@ namespace Arena
 {
     /// The Soldier DPS abilities' looks (mockup: Docs/Mockups/soldier-dps-abilities.html), all drawing only. With Visual
     /// effects off, none of this runs and the old looks draw as before.
-    ///   Dash            B, Comet Streak: a tapered cyan ribbon from where you started to where you are, cooling off over 0.4 s,
-    ///                   sparks off it, and a ring of sparks where you land (your own dash only, as the dash always was);
+    ///   Dashes          B, Comet Streak (made for the old Dash, which Poison Dart replaced; PoisonDartLook.cs): a tapered cyan
+    ///                   ribbon behind your own Game.DashT movement (Leap Slam, the Royal Dive...), cooling off over 0.4 s, sparks off it,
+    ///                   and a ring of sparks where you land;
     ///   Grenade (the Twin Rifle's tubes; Airstrike's bombs use the blast) A, Frag Burst: an olive grenade with a faint ring growing to its blast radius, then a white flash,
     ///                   an orange blast out to the radius, eight streaking shards and smoke (the scorch is Juice.cs's);
     ///   Mark for Death  A, Reticle Lock, with B's skull floating over it: the reticle snaps down and circles the enemy, a

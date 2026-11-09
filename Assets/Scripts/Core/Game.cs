@@ -419,8 +419,6 @@ namespace Arena
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
             float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id);
-            if (id == AbilityId.Dash)
-                cd *= p.Stats.DashCdMult;
             return cd;
         }
 
@@ -1014,11 +1012,6 @@ namespace Arena
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
                 {
-                    case AbilityId.Dash:
-                        DashDir = move.IsZero ? V2.FromAngle(me.Aim) : move.Normalized();
-                        DashT = DashTime;
-                        dashSpeed = DashSpeed;
-                        break;
                     case AbilityId.LeapSlam:
                     {
                         // Leap to the cursor (up to 320 px); the host lands the slam there.
