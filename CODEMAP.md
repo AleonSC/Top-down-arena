@@ -148,7 +148,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ClassLooks.cs`, `AbilityLooks.cs`, `BloodMageLook.cs`: per-class ability/buff overlays on the model, ability feedback, Blood Mage visuals
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
-- `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
+- `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`, `DrawRootCollar`: the lash swells out of a knot and rootlets at your feet; `Docs/Mockups/treant-root-lash-follow.html`, C)
 - `LumenWardLook.cs`: Lumen Ward's cone of light (look A, Cathedral, of `Docs/Mockups/sanctify-cone.html`: bands, god rays, dust) and the halo on bullets it holds
 - `DeathLotusLook.cs`: the Ninja's Death Lotus (Crimson Reaping: dark arena, three glowing cuts and a lotus stain per enemy struck, camera kick; `FxKind.DeathLotus`)
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)

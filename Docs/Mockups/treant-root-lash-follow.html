@@ -1,0 +1,240 @@
+<title>Treant Root Lash Follow</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one control bar (how the root moves, how fast you walk, slow motion), then four live arenas in a 2x2 grid:
+   the lash as it is now, and three ways to hide its hard start. Colour: bark-tinted neutrals (as the Treant Rod sounds
+   mockup), moss green for the chosen chip. The arenas are game-dark in both themes, like the game. */
+:root{
+  --bg:#eceee8; --fg:#1d2219; --muted:#5d6556; --panel:#f8f9f4; --line:#cdd2c4;
+  --moss:#3f7a2a; --chip:#dfe3d6; --chip-on:#1d2219; --chip-on-fg:#f4f7ee; --tag:#8a5a2b;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10130e; --fg:#e6ebdd; --muted:#98a28c; --panel:#181c14; --line:#2d3427;
+  --moss:#8fd16a; --chip:#232a1e; --chip-on:#e6ebdd; --chip-on-fg:#10130e; --tag:#d9a46a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10130e; --fg:#e6ebdd; --muted:#98a28c; --panel:#181c14; --line:#2d3427;
+  --moss:#8fd16a; --chip:#232a1e; --chip-on:#e6ebdd; --chip-on-fg:#10130e; --tag:#d9a46a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+p{margin:0 0 8px;max-width:68ch;color:var(--muted)} p strong{color:var(--fg)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group > span{font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:4px}
+button.chip{font:500 14px var(--body);padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.chip:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:720px){.grid{grid-template-columns:minmax(0,1fr)}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+canvas{width:100%;aspect-ratio:16/10;max-width:100%;display:block;border-radius:6px;background:#0d1016;border:1px solid var(--line)}
+figcaption{display:flex;flex-direction:column;gap:2px}
+figcaption b{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+figcaption b small{font:500 13px var(--mono);color:var(--tag);letter-spacing:.04em;margin-left:8px;text-transform:none}
+figcaption span{color:var(--muted);font-size:15px}
+.note{font:400 14px var(--mono);color:var(--muted)}
+input[type=range]{accent-color:var(--moss);width:140px}
+</style>
+
+<main>
+  <header>
+    <h1>Treant Rod: root lash</h1>
+    <p>The lash now stays where you cast it: walk and you leave it behind, and it starts 20 px out from you as a <strong>flat, full-width stump</strong>. Here the root rides with you for its whole half second, and three ways to grow it out of the ground instead of out of thin air.</p>
+    <p>The hits don't change: they still land at the swing, along the line you aimed. Only the drawing follows you.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Playback">
+    <div class="group" id="motion"><span>Root</span>
+      <button class="chip" data-v="planted" aria-pressed="false">Planted (now)</button>
+      <button class="chip" data-v="follow" aria-pressed="true">Follows you</button>
+      <button class="chip" data-v="drag" aria-pressed="false">Follows, tip drags</button>
+    </div>
+    <div class="group" id="speed"><span>Walk</span>
+      <button class="chip" data-v="0" aria-pressed="false">Still</button>
+      <button class="chip" data-v="215" aria-pressed="true">Walk</button>
+      <button class="chip" data-v="340" aria-pressed="false">Sprint</button>
+    </div>
+    <div class="group" id="slow"><span>Speed</span>
+      <button class="chip" data-v="1" aria-pressed="true">1x</button>
+      <button class="chip" data-v="0.25" aria-pressed="false">1/4x</button>
+      <button class="chip" data-v="0" aria-pressed="false">Pause</button>
+    </div>
+    <div class="group"><span>Frame</span>
+      <input type="range" id="scrub" min="0" max="0.5" step="0.01" value="0.18" aria-label="Seconds into the lash (pauses)">
+      <output id="scrubv" class="note" for="scrub">0.18 s</output>
+    </div>
+  </div>
+
+  <div class="grid">
+    <figure><canvas id="c0" width="1000" height="625" aria-label="The lash as it is now"></canvas>
+      <figcaption><b>Now<small>reference</small></b><span>A flat stump of full width 20 px out from you, in mid-air.</span></figcaption></figure>
+    <figure><canvas id="c1" width="1000" height="625" aria-label="Option A, tapered start"></canvas>
+      <figcaption><b>A · Taper in<small>cheapest</small></b><span>Starts thin under your body, swells to full width a short way out, then tapers to the bud. Round joints, no flat end.</span></figcaption></figure>
+    <figure><canvas id="c2" width="1000" height="625" aria-label="Option B, ground burst"></canvas>
+      <figcaption><b>B · Ground burst<small>my pick</small></b><span>The root breaks out of a crack of soil at your feet: a dark mound with a few clods kicked up as it lashes. The thick base sits inside the mound.</span></figcaption></figure>
+    <figure><canvas id="c3" width="1000" height="625" aria-label="Option C, root collar"></canvas>
+      <figcaption><b>C · Root collar<small>leafiest</small></b><span>Three small rootlets curl round your feet where the lash leaves, so it reads as one branch of a root you stand on. They curl back in as it snaps home.</span></figcaption></figure>
+  </div>
+  <p class="note">Timing as the game: 0.12 s out, 0.10 s held, 0.20 s back, 250 px, 22 px half width. A lash every 0.8 s, aimed at the top-right; you walk a loop at the Healer's 215 px/s (Sprint: 340).</p>
+</main>
+
+<script>
+(() => {
+  const OUT = 0.12, HOLD = 0.10, BACK = 0.20, LIFE = 0.5, REACH = 250, HALF = 22, BODY = 14, EVERY = 0.8;
+  const BARK = [138, 89, 43], BARKHI = [196, 138, 71], KNOT = [84, 54, 26], THORN = [217, 201, 161], LEAF = [89, 196, 107];
+  const SOIL = [74, 52, 31], SOILHI = [128, 94, 58];
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const state = { motion: 'follow', speed: 215, slow: 1 };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) state.slow = 0.25;
+
+  for (const id of ['motion', 'speed', 'slow']) {
+    const g = document.getElementById(id);
+    g.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      state[id] = id === 'motion' ? b.dataset.v : parseFloat(b.dataset.v);
+    });
+    if (id === 'slow' && reduce) g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === '0.25'));
+  }
+
+  const scrub = document.getElementById('scrub'), scrubv = document.getElementById('scrubv');
+  scrub.addEventListener('input', () => {
+    state.slow = 0; scrubv.textContent = parseFloat(scrub.value).toFixed(2) + ' s';
+    document.querySelectorAll('#slow button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === '0'));
+    const cyc = Math.floor(clock.t / EVERY); clock.t = cyc * EVERY + parseFloat(scrub.value);
+  });
+  const cards = [0, 1, 2, 3].map(i => { const c = document.getElementById('c' + i); return { c, g: c.getContext('2d'), style: i }; });
+
+  function line(g, a, b, w, col, cap) { g.lineCap = cap || 'butt'; g.lineWidth = w; g.strokeStyle = col; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
+  function circle(g, p, r, col) { g.fillStyle = col; g.beginPath(); g.arc(p.x, p.y, r, 0, Math.PI * 2); g.fill(); }
+  const add = (a, b, k = 1) => ({ x: a.x + b.x * k, y: a.y + b.y * k });
+
+  // The game's DrawRoot, with a width profile: `prof(k)` is the width at k along it (0 = base, 1 = tip).
+  // `cap`: 'butt' is the game's flat quads; 'round' hides the joints.
+  function drawRoot(g, from, dir, len, thick, wave, phase, a, prof, cap) {
+    if (len < 2 || a <= 0) return null;
+    const side = { x: -dir.y, y: dir.x };
+    const n = Math.max(4, Math.floor(len / 14));
+    let prev = from;
+    for (let i = 1; i <= n; i++) {
+      const k = i / n, w = prof(k, (i - 0.5) / n);
+      const at = add(add(from, dir, len * k), side, Math.sin(k * 9 - phase) * wave * Math.sin(k * Math.PI));
+      line(g, prev, at, w, rgba(BARK, a), cap);
+      line(g, prev, at, w * 0.35, rgba(BARKHI, a), cap);
+      if (i % 4 === 2) circle(g, at, w * 0.6 * 0.5 + w * 0.05, rgba(KNOT, a));
+      if (i % 3 === 0) { const sd = (Math.floor(i / 3) % 2 === 0) ? 1 : -1; line(g, at, add(add(at, side, sd * (w * 0.9 + 3)), dir, w * 0.6), 2, rgba(THORN, a)); }
+      prev = at;
+    }
+    // the bud
+    g.fillStyle = rgba(LEAF, a); g.beginPath();
+    const e = prev, t1 = add(e, dir, 9), t2 = add(add(e, side, 5), dir, -2), t3 = add(add(e, side, -5), dir, -2);
+    g.moveTo(t1.x, t1.y); g.lineTo(t2.x, t2.y); g.lineTo(t3.x, t3.y); g.closePath(); g.fill();
+    line(g, add(e, dir, -2), add(e, dir, 7), 1, `rgba(217,255,204,${0.7 * a})`);
+    return prev;
+  }
+
+  // The lash's length at t seconds into its life (the game's curve).
+  function lashLen(t) {
+    if (t < OUT) { const u = 1 - t / OUT; return REACH * (1 - u * u); }
+    if (t < OUT + HOLD) return REACH;
+    return REACH * Math.max(0, 1 - (t - OUT - HOLD) / BACK);
+  }
+
+  function drawLash(g, style, base, dir, t) {
+    const len = lashLen(t), wave = t < OUT + HOLD ? 6 : 3, thick = HALF * 0.6, phase = t * 28;
+    const flat = k => thick + (thick * 0.3 - thick) * k;
+    if (style === 0) {  // now
+      if (t < 0.1) { g.strokeStyle = rgba(THORN, 0.6 * (1 - t / 0.1)); g.lineWidth = 2; g.beginPath(); g.arc(base.x + dir.x * 22, base.y + dir.y * 22, 8 + 90 * t, 0, Math.PI * 2); g.stroke(); }
+      const start = add(base, dir, 20);
+      drawRoot(g, start, dir, Math.max(0, len - 20), thick, wave, phase, 1, flat, 'butt');
+      return;
+    }
+    // A, B, C: the root starts under your body. The width swells from a third over the first 15% and tapers after.
+    const swell = k => { const up = Math.min(1, k / 0.15); return (0.35 + 0.65 * Math.sqrt(up)) * (k < 0.15 ? thick : flat((k - 0.15) / 0.85)); };
+    const start = add(base, dir, style === 1 ? 4 : 10);
+    const L = Math.max(0, len - (style === 1 ? 4 : 10));
+    const out = Math.min(1, t / OUT), back = t > OUT + HOLD ? Math.min(1, (t - OUT - HOLD) / BACK) : 0;
+    const side = { x: -dir.y, y: dir.x };
+    if (style === 2) {  // ground burst: a mound of soil with a crack, clods flung out along the aim
+      const m = add(base, dir, 21), grow = Math.min(1, t / 0.06) * (1 - back * 0.6), r = 15 * grow;
+      g.save(); g.translate(m.x, m.y); g.rotate(Math.atan2(dir.y, dir.x));
+      g.fillStyle = rgba(SOIL, 0.9); g.beginPath(); g.ellipse(0, 0, r * 1.15, r * 0.85, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = rgba(SOILHI, 0.9); g.beginPath(); g.ellipse(-r * 0.2, -r * 0.25, r * 0.7, r * 0.4, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = rgba([25, 17, 10], 0.9); g.lineWidth = 1.5; g.beginPath();
+      g.moveTo(-r * 1.3, 2); g.lineTo(-r * 0.6, -1); g.lineTo(-r * 0.1, 3); g.moveTo(-r * 0.6, -1); g.lineTo(-r * 0.9, -r * 0.7); g.stroke();
+      g.restore();
+      if (t < 0.3) for (let i = 0; i < 5; i++) {  // clods
+        const s = t / 0.3, ang = (i - 2) * 0.5 + 0.2 * Math.sin(i * 7), d = 8 + 46 * s * (0.6 + 0.15 * i);
+        const p = add(add(m, dir, d * Math.cos(ang)), side, d * Math.sin(ang) * 0.8);
+        circle(g, p, 2.4 - i * 0.2, rgba(SOILHI, 1 - s));
+      }
+    }
+    const tip = drawRoot(g, start, dir, L, thick, wave, phase, 1, swell, 'round');
+    if (style === 2) {  // the mound's lip over the root's base, so it rises out of the ground
+      const m = add(base, dir, 21), r = 15 * Math.min(1, t / 0.06) * (1 - back * 0.6);
+      g.save(); g.translate(m.x, m.y); g.rotate(Math.atan2(dir.y, dir.x));
+      g.fillStyle = rgba(SOIL, 0.95); g.beginPath(); g.ellipse(-r * 0.35, 0, r * 0.55, r * 0.75, 0, -Math.PI / 2, Math.PI / 2, true); g.fill();
+      g.restore();
+    }
+    if (style === 3) {  // collar: three rootlets curling round your feet at the lash's base
+      const curl = out * (1 - back);
+      for (const sd of [-1, 1, 0]) {
+        const a0 = Math.atan2(dir.y, dir.x) + sd * 0.55 + (sd === 0 ? Math.PI : 0);
+        let p = add(base, { x: Math.cos(a0), y: Math.sin(a0) }, BODY - 2), ang = a0 + sd * 0.4, w = 5;
+        const steps = Math.max(1, Math.round(6 * curl));
+        for (let s = 0; s < steps; s++) {
+          ang += (sd || 1) * 0.42; const q = add(p, { x: Math.cos(ang), y: Math.sin(ang) }, 4.5);
+          line(g, p, q, w, rgba(BARK, 0.95), 'round'); line(g, p, q, w * 0.35, rgba(BARKHI, 0.95), 'round');
+          p = q; w *= 0.8;
+        }
+        if (curl > 0.6) circle(g, add(p, { x: Math.cos(ang + 1.4), y: Math.sin(ang + 1.4) }, 3), 2.3, rgba(LEAF, 0.85 * curl));
+      }
+      circle(g, add(base, dir, BODY - 1), 6 * (0.5 + 0.5 * curl), rgba(KNOT, 0.95));  // the knot it branches from
+    }
+  }
+
+  const clock = { t: 3 * EVERY + 0.18, last: performance.now() };
+  // Shared scene: you walk a loop; a lash every 0.8 s toward the top-right, cast from where you stood.
+  function playerAt(time, speed) {
+    const R = 34, w = speed / (R * 1.2);
+    return { x: 120 + Math.cos(time * w) * R * 1.4, y: 190 + Math.sin(time * w) * R };
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - clock.last) / 1000) * state.slow, rest = state.slow === 0; clock.last = now; clock.t += dt;
+    const T = clock.t, cycle = Math.floor(T / EVERY), age = T - cycle * EVERY, castT = cycle * EVERY;
+    const p = playerAt(T, state.speed), cast = playerAt(castT, state.speed);
+    const aim = -0.55 + 0.25 * Math.sin(cycle * 1.7), dir = { x: Math.cos(aim), y: Math.sin(aim) };
+    for (const card of cards) {
+      const { g, c } = card;
+      g.setTransform(c.width / 440, 0, 0, c.height / 275, 0, 0);
+      g.fillStyle = '#0d1016'; g.fillRect(0, 0, 440, 275);
+      g.strokeStyle = 'rgba(80,200,255,0.06)'; g.lineWidth = 1;
+      for (let x = 0; x <= 440; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 275); g.stroke(); }
+      for (let y = 0; y <= 275; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(440, y); g.stroke(); }
+      if (age < LIFE) {
+        const base = state.motion === 'planted' ? cast : p;
+        let d = dir;
+        if (state.motion === 'drag') {  // the base follows you, the root keeps pointing at the tip you cast
+          const want = add(cast, dir, REACH), v = { x: want.x - base.x, y: want.y - base.y }, l = Math.hypot(v.x, v.y) || 1;
+          d = { x: v.x / l, y: v.y / l };
+        }
+        if (age > OUT && age < OUT + HOLD) line(g, base, add(base, d, REACH), HALF * 2, rgba(BARK, 0.1));  // the width it hit, riding with the root
+        drawLash(g, card.style, base, d, age);
+      }
+      // you: the game's blue ring and body
+      circle(g, { x: p.x, y: p.y + 4 }, BODY + 2, 'rgba(0,0,0,0.3)');
+      circle(g, p, BODY, '#2e6fd8'); circle(g, p, BODY - 4, '#7fb4ff');
+            line(g, p, add(p, dir, BODY + 10), 3, '#cfe3ff', 'round');
+    }
+    if (!rest) { scrub.value = Math.min(0.5, age).toFixed(2); scrubv.textContent = Math.min(0.5, age).toFixed(2) + ' s'; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
