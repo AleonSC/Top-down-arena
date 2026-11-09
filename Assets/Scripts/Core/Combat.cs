@@ -35,6 +35,8 @@ namespace Arena
                     cut = Math.Max(cut, z.DamageCut);
                 if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
+                if (InBath(z, p.Pos, 0f))
+                    cut = Math.Max(cut, BathGuard);  // standing in anyone's Bloodbath (Bloodbath.cs)
             }
             amount *= 1f - cut;  // the Ninja's smoke
             if (p.AdrenalineT > 0f)
@@ -44,6 +46,7 @@ namespace Arena
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
+            amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
@@ -600,7 +603,10 @@ namespace Arena
                             // Invulnerable players (dash, recent hit) let bullets pass through.
                             if (p.InvulnT <= 0f)
                             {
-                                Damage(p, b.Dmg, ShotSource(b));
+                                if (JuggOn(p))
+                                    JuggShot(p, b);  // the suit's armour takes it and throws flak back (Juggernaut.cs)
+                                else
+                                    Damage(p, b.Dmg, ShotSource(b));
                                 scratchIds.Add(b.Id);
                                 if (b.Kind == Defs.StunShot && !p.Downed)
                                 {

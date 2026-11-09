@@ -1,0 +1,653 @@
+<title>Kusarigama Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one big looping arena stage (look, move and speed chips above it), all five looks side by side, then a card per look
+   and the open questions. Colour: the Kusarigama's own lilac (Game.KusariColor 0.7,0.64,1), iron greys, enemies brick red.
+   Type: Barlow Condensed display, Barlow body, Plex Mono for numbers (same family as the other weapon mockups). */
+:root{
+  --bg:#eeedf3; --fg:#1d1b26; --muted:#5f5b70; --panel:#f8f7fb; --line:#d3d0de;
+  --accent:#5b48c9; --chip:#e2e0ec; --chip-on:#1d1b26; --chip-on-fg:#f4f3f8;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f0e15; --fg:#e8e6f0; --muted:#9b97ad; --panel:#17161f; --line:#2c2a38;
+  --accent:#b3a3ff; --chip:#232130; --chip-on:#e8e6f0; --chip-on-fg:#0f0e15; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0e15; --fg:#e8e6f0; --muted:#9b97ad; --panel:#17161f; --line:#2c2a38;
+  --accent:#b3a3ff; --chip:#232130; --chip-on:#e8e6f0; --chip-on-fg:#0f0e15; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px;text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0b0e19;position:relative}
+.frame .cap{position:absolute;left:10px;top:8px;font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#cfc8ff;pointer-events:none}
+.frame .clock{position:absolute;right:10px;top:8px;font:400 12px var(--mono);color:#8c88a8;pointer-events:none;font-variant-numeric:tabular-nums}
+canvas{display:block;width:100%;aspect-ratio:720/420;max-width:100%}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.grid .frame{cursor:pointer}
+.grid .frame[aria-current="true"]{outline:2px solid var(--accent);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.card .tag{font:500 12px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:14px}
+.card dt{font:500 12px/1.7 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.card dd{margin:0}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+ul.q{margin:0;padding-left:20px;max-width:72ch;display:flex;flex-direction:column;gap:8px}
+.keep{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:15px;max-width:72ch}
+.keep b{font-weight:500}
+@media (prefers-reduced-motion:reduce){.frame canvas{animation:none}}
+</style>
+
+<main>
+  <header>
+    <h1>Kusarigama Rework</h1>
+    <p>Four new looks for the Tank Ninja's sickle and chain. The moves, timings and numbers are the game's own (96 px cut over 144°, 280 px throw, a whirl from 70 to 150 px out, a 200 px pull, a 110 px snap); only the drawing changes. Every look drops the old glowing swipe band.</p>
+  </header>
+
+  <section class="stage" aria-label="Main stage">
+    <div class="controls">
+      <div class="group" id="lookChips"><span>Look</span></div>
+      <div class="group" id="moveChips"><span>Move</span></div>
+      <div class="group" id="speedChips"><span>Speed</span></div>
+      <div class="group"><button id="pauseBtn" aria-pressed="false">Pause</button></div>
+    </div>
+    <div class="frame"><canvas id="main" width="720" height="420"></canvas><div class="cap" id="mainCap"></div><div class="clock" id="mainClock"></div></div>
+    <p class="hint">The combo plays the cut, the throw (it bites the far enemy and drags it in), a second cut on it, then the whirl held for 2.2 s and let go for the snap. The enemy on the lower right sits outside the 200 px pull.</p>
+  </section>
+
+  <section>
+    <h2>All looks at once</h2>
+    <div class="grid" id="grid"></div>
+    <p class="hint">Click one to put it on the big stage.</p>
+  </section>
+
+  <section>
+    <h2>What each look does</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>Shared by every new look</h2>
+    <div class="keep">
+      <p><b>A real sickle and chain.</b> The sickle is a curved blade on a wooden grip (today it is a 3 px arc), the chain is drawn as links that sag when slack and pull straight when taut, and the weight is a small iron fundo with a ring, not a spiked ball in a glow disc.</p>
+      <p><b>The cut follows the sickle.</b> The sickle flies out on its chain and the effect is drawn along the path its blade takes, so it reads as a chain weapon rather than a sword.</p>
+      <p><b>Less screen.</b> The whirl drops the turning dashed rings and the chevrons; the pull is shown on the enemies being drawn in and at the 200 px edge only.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Open questions</h2>
+    <ul class="q">
+      <li>Pick one look, or mix: for example the Forged Steel chain and weight with the Moon Crescent cut.</li>
+      <li>Should the whirl gauge stay as a ring round you, or move to the weight (it dims as the whirl runs out)?</li>
+      <li>Keep the two combo diamonds behind you, or show the step on the held weight (it glows when the next press throws)?</li>
+      <li>With Visual effects off the game draws sparks only; should the new chain and sickle models still show there?</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(() => {
+const W = 720, H = 420, P = { x: 330, y: 205 };
+const TAU = Math.PI * 2;
+const LIL = [179, 163, 255], WHITE = [255, 255, 255], STEEL = [196, 200, 214], IRON = [58, 60, 76], SPARK = [255, 196, 120], INKD = [70, 52, 150];
+// Game constants (Core/Kusarigama.cs)
+const CUT_REACH = 96, CUT_HALF = 72 * Math.PI / 180, SWEEP_T = 0.18, HANG_T = 0.5;
+const THROW_T = 0.65, WIND = 0.1, IMPACT = 0.26, DRAG_FROM = 0.31, DRAG_TO = 0.55, THROW_REACH = 280;
+const SPIN_UP = 0.35, OMEGA = 14, ORB_MIN = 70, ORB_MAX = 150, PULL = 200, WHIRL_MAX = 3, SNAP_R = 110;
+
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease3 = u => 1 - Math.pow(1 - u, 3);
+const smooth = u => u * u * (3 - 2 * u);
+const dirv = a => ({ x: Math.cos(a), y: Math.sin(a) });
+const add = (p, d, k) => ({ x: p.x + d.x * k, y: p.y + d.y * k });
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const wrap = a => ((a % TAU) + TAU) % TAU;
+const orbitOf = spin => { const k = 1 - clamp01(spin); return ORB_MIN + (ORB_MAX - ORB_MIN) * (1 - k * k * k); };
+
+function line(c, a, b, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); }
+function arc(c, o, r, a0, a1, w, col) { if (r <= 0) return; c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.arc(o.x, o.y, r, Math.min(a0, a1), Math.max(a0, a1)); c.stroke(); }
+function disc(c, p, r, col) { c.fillStyle = col; c.beginPath(); c.arc(p.x, p.y, Math.max(0, r), 0, TAU); c.fill(); }
+function glow(c, p, r, col, a) {
+  if (a <= 0 || r <= 0) return;
+  const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+  g.addColorStop(0, rgba(col, a)); g.addColorStop(0.4, rgba(col, a * 0.35)); g.addColorStop(1, rgba(col, 0));
+  c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill();
+}
+function additive(c, f) { c.save(); c.globalCompositeOperation = 'lighter'; f(); c.restore(); }
+
+// ---------------------------------------------------------------- scenes
+const MODES = {
+  combo: { name: 'Whole combo', loop: 6.6, enemies: 'all', events: [
+    { type: 'cut', t0: 0.3, sign: 1, aim: -0.4 },
+    { type: 'throw', t0: 1.15, aim: 0, target: 0 },
+    { type: 'cut', t0: 1.95, sign: -1, aim: -0.2 },
+    { type: 'whirl', t0: 2.85, t1: 5.05 } ] },
+  cut: { name: 'Cut', loop: 1.5, enemies: 'cut', events: [ { type: 'cut', t0: 0.25, sign: 1, aim: -0.4 } ] },
+  throw: { name: 'Throw', loop: 1.7, enemies: 'throw', events: [ { type: 'throw', t0: 0.3, aim: 0, target: 0 } ] },
+  whirl: { name: 'Whirl & snap', loop: 3.6, enemies: 'all', events: [ { type: 'whirl', t0: 0.3, t1: 2.5 } ] },
+};
+const ENEMIES = [ // angle, distance, radius
+  [0, 250, 15], [-0.55, 82, 13], [2.35, 165, 14], [3.75, 178, 13], [-2.15, 140, 14], [0.62, 236, 13] ];
+const ENEMY_SET = { all: [0, 1, 2, 3, 4, 5], cut: [1, 4], throw: [0, 1, 5] };
+
+function sim(t, modeKey) {
+  const M = MODES[modeKey]; const loopN = Math.floor(t / M.loop); t = ((t % M.loop) + M.loop) % M.loop;
+  const S = { t, cuts: [], thr: null, whirl: null, snap: null, enemies: [] };
+  for (const i of ENEMY_SET[M.enemies]) { const [a, r, rad] = ENEMIES[i]; S.enemies.push({ id: i, a, r, rad, flash: 0, stun: 0, dust: 0 }); }
+  let cutN = 0;
+  for (const ev of M.events) {
+    if (t < ev.t0) continue;
+    const T = t - ev.t0;
+    if (ev.type === 'cut') {
+      const sign = modeKey === 'cut' ? (loopN % 2 ? -1 : 1) : ev.sign;
+      const start = ev.aim - CUT_HALF * sign, sweep = 2 * CUT_HALF * sign;
+      const at = start + sweep * ease3(clamp01(T / SWEEP_T));
+      S.cuts.push({ T, sign, start, sweep, at, aim: ev.aim, n: cutN++ });
+      for (const e of S.enemies) {
+        if (e.r > CUT_REACH + e.rad) continue;
+        let f = (e.a - start) / sweep; if (f < 0 || f > 1) continue;
+        const tc = SWEEP_T * (1 - Math.cbrt(1 - f));
+        if (T >= tc) { e.flash = Math.max(e.flash, 1 - (T - tc) / 0.16); e.hitAt = tc + ev.t0; if (T - tc < 0.12) e.stun = Math.max(e.stun, 0.12 - (T - tc)); }
+      }
+    } else if (ev.type === 'throw') {
+      if (T > THROW_T + 0.2) { const e = S.enemies.find(x => x.id === ev.target); if (e) e.r = 52; continue; }
+      const e = S.enemies.find(x => x.id === ev.target);
+      const dir = dirv(ev.aim), side = { x: -dir.y, y: dir.x };
+      const hand = { x: P.x + dir.x * 12 - side.x * 10, y: P.y + dir.y * 12 - side.y * 10 };
+      let r0 = e.r, pos, glowK = 1, phase;
+      const endR = r0 - e.rad * 0.7;
+      const end = add(P, dir, endR);
+      if (T < WIND) { const u = T / WIND; pos = add(hand, dirv(ev.aim - TAU * (1 - u)), 36); glowK = u * 0.5; phase = 'wind'; }
+      else if (T < IMPACT) { const u = clamp01((T - WIND) / (IMPACT - WIND)); pos = { x: lerp(hand.x + dir.x * 36, end.x, ease3(u)), y: lerp(hand.y + dir.y * 36, end.y, ease3(u)) }; phase = 'fly'; }
+      else if (T < DRAG_FROM) { pos = end; phase = 'bite'; }
+      else {
+        const u = clamp01((T - DRAG_FROM) / (DRAG_TO - DRAG_FROM)), s = smooth(u);
+        e.r = lerp(r0, 52, s);
+        const home = add(hand, dir, e.rad + 20);
+        pos = T < DRAG_TO ? add(P, dir, e.r - e.rad * 0.7) : { x: lerp(home.x, hand.x, clamp01((T - DRAG_TO) / (THROW_T - DRAG_TO))), y: lerp(home.y, hand.y, clamp01((T - DRAG_TO) / (THROW_T - DRAG_TO))) };
+        glowK = 1 - 0.7 * u; phase = T < DRAG_TO ? 'drag' : 'home';
+        if (T < DRAG_TO) e.dust = 1;
+      }
+      if (T >= IMPACT) { e.flash = Math.max(e.flash, 1 - (T - IMPACT) / 0.18); e.stun = Math.max(e.stun, 0.4 - (T - IMPACT)); }
+      if (T <= THROW_T) S.thr = { T, pos, hand, dir, glow: glowK, phase, aim: ev.aim, start: add(hand, dir, 36), end, impactT: T - IMPACT };
+    } else if (ev.type === 'whirl') {
+      const held = Math.min(t, ev.t1) - ev.t0;
+      // pull: integrate each enemy in toward you, swirling with the chain
+      for (const e of S.enemies) {
+        if (e.r > PULL + e.rad) continue;
+        const stop = 54 + (e.id % 3) * 9; let r = e.r, a = e.a; const dt = 1 / 60;
+        for (let k = 0; k < held; k += dt) { const nr = Math.max(stop, r - 170 * dt); a += (80 / Math.max(r, 40)) * dt; if (nr < r) e.dust = 1; r = nr; }
+        if (r <= stop + 0.5 && held > 0.05) e.dust = Math.max(0, e.dust - 0);
+        e.r = r; e.a = a; e.pulled = true; e.dust = held < ev.t1 - ev.t0 && Math.abs(r - stop) > 1 ? 1 : 0.25;
+      }
+      const spin = clamp01(held / SPIN_UP);
+      const ang = -1.2 + OMEGA * (held < SPIN_UP ? held * held / (2 * SPIN_UP) : held - SPIN_UP / 2);
+      const orbit = orbitOf(spin);
+      if (t < ev.t1) {
+        S.whirl = { held, spin, ang, orbit, T };
+        for (const e of S.enemies) if (e.r < orbit + e.rad) { const lag = wrap(ang - e.a); if (lag < 0.45) e.flash = Math.max(e.flash, (1 - lag / 0.45) * spin); }
+      } else {
+        const u = t - ev.t1;
+        if (u < 0.7) S.snap = { u, ang, orbit, spin };
+        const k = ease3(clamp01(u / 0.22));
+        for (const e of S.enemies) {
+          if (e.r > SNAP_R + e.rad) continue;
+          e.r += 60 * k; e.stun = Math.max(e.stun, 0.6 - u); e.dust = u < 0.25 ? 1 : 0;
+          if (u < 0.2) e.flash = Math.max(e.flash, 1 - u / 0.2);
+        }
+      }
+    }
+  }
+  for (const e of S.enemies) { e.x = P.x + Math.cos(e.a) * e.r; e.y = P.y + Math.sin(e.a) * e.r; }
+  return S;
+}
+
+// ---------------------------------------------------------------- shared drawing
+function floor(c) {
+  c.fillStyle = '#0b0e19'; c.fillRect(0, 0, W, H);
+  c.strokeStyle = 'rgba(90,120,190,0.07)'; c.lineWidth = 1;
+  for (let x = 0; x <= W; x += 40) { c.beginPath(); c.moveTo(x + .5, 0); c.lineTo(x + .5, H); c.stroke(); }
+  for (let y = 0; y <= H; y += 40) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(W, y + .5); c.stroke(); }
+  c.strokeStyle = 'rgba(70,215,230,0.55)'; c.lineWidth = 2; c.fillStyle = 'rgba(70,215,230,0.06)';
+  for (const [x, y, w, h] of [[640, 20, 16, 120], [20, 330, 130, 16], [668, 300, 16, 100]]) { c.fillRect(x, y, w, h); c.strokeRect(x, y, w, h); }
+}
+function enemy(c, e, t) {
+  const p = { x: e.x, y: e.y };
+  c.save(); c.translate(p.x, p.y); c.rotate(t * 0.6 + e.id);
+  c.beginPath();
+  for (let i = 0; i < 12; i++) { const r = i % 2 ? e.rad * 0.62 : e.rad; const a = i * TAU / 12; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+  c.closePath();
+  const f = clamp01(e.flash);
+  c.fillStyle = `rgb(${lerp(205, 255, f)|0},${lerp(72, 255, f)|0},${lerp(84, 255, f)|0})`; c.fill();
+  c.strokeStyle = '#5c1a24'; c.lineWidth = 1.5; c.stroke();
+  c.restore();
+  if (e.stun > 0) for (let i = 0; i < 3; i++) { const a = t * 6 + i * TAU / 3; disc(c, { x: p.x + Math.cos(a) * 11, y: p.y - e.rad - 6 + Math.sin(a) * 3 }, 1.8, 'rgba(255,240,170,0.9)'); }
+}
+function player(c, aim) {
+  glow(c, P, 46, [90, 150, 255], 0.22);
+  disc(c, P, 15, '#16233f'); c.strokeStyle = '#6fb4ff'; c.lineWidth = 2.5; c.beginPath(); c.arc(P.x, P.y, 15, 0, TAU); c.stroke();
+  disc(c, P, 6, '#6fb4ff');
+  c.font = '500 11px Barlow, sans-serif'; c.fillStyle = '#7fa8ff'; c.textAlign = 'center'; c.fillText('Anthony (you)', P.x, P.y - 26);
+}
+// A chain of links from a to b, sagging by `sag` px when slack. Links alternate face-on (ovals) and edge-on (bars).
+function chain(c, a, b, sag, alpha, tint) {
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); if (len < 2) return;
+  const nx = -dy / len, ny = dx / len, n = Math.max(3, Math.round(len / 6.5));
+  const pt = f => ({ x: a.x + dx * f + nx * sag * 4 * f * (1 - f), y: a.y + dy * f + ny * sag * 4 * f * (1 - f) });
+  const col = tint || STEEL;
+  for (let i = 0; i < n; i++) {
+    const p0 = pt(i / n), p1 = pt((i + 1) / n), m = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }, ang = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+    c.save(); c.translate(m.x, m.y); c.rotate(ang);
+    if (i % 2 === 0) { c.strokeStyle = rgba([30, 30, 42], alpha * 0.8); c.lineWidth = 3.2; c.beginPath(); c.ellipse(0, 0, 3.6, 2.2, 0, 0, TAU); c.stroke();
+      c.strokeStyle = rgba(col, alpha); c.lineWidth = 1.5; c.beginPath(); c.ellipse(0, 0, 3.6, 2.2, 0, 0, TAU); c.stroke(); }
+    else { c.strokeStyle = rgba(col, alpha * 0.9); c.lineWidth = 1.8; c.beginPath(); c.moveTo(-3.4, 0); c.lineTo(3.4, 0); c.stroke(); }
+    c.restore();
+  }
+}
+// The kama: a wooden grip pointing back along `ang`, the blade hooking off its end toward side `s`.
+function sickle(c, at, ang, s, alpha, opt = {}) {
+  const d = dirv(ang), sd = { x: -d.y * s, y: d.x * s };
+  const grip0 = add(at, d, -16), base = at;
+  line(c, grip0, base, 4, rgba([110, 78, 46], alpha));
+  line(c, add(grip0, d, 2), add(grip0, d, 5), 4.4, rgba([60, 44, 30], alpha));
+  const tip = { x: base.x + sd.x * 18 - d.x * 5, y: base.y + sd.y * 18 - d.y * 5 };
+  const cOut = { x: base.x + d.x * 11 + sd.x * 8, y: base.y + d.y * 11 + sd.y * 8 };
+  const cIn = { x: base.x + d.x * 4 + sd.x * 7, y: base.y + d.y * 4 + sd.y * 7 };
+  c.beginPath(); c.moveTo(base.x - sd.x * 1.5, base.y - sd.y * 1.5); c.quadraticCurveTo(cOut.x, cOut.y, tip.x, tip.y); c.quadraticCurveTo(cIn.x, cIn.y, base.x + d.x * 0.5, base.y + d.y * 0.5); c.closePath();
+  c.fillStyle = rgba(opt.blade || [150, 156, 176], alpha); c.fill();
+  c.strokeStyle = rgba(opt.edge || WHITE, alpha * (opt.edgeA ?? 0.85)); c.lineWidth = 1.3;
+  c.beginPath(); c.moveTo(base.x - sd.x * 1.5, base.y - sd.y * 1.5); c.quadraticCurveTo(cOut.x, cOut.y, tip.x, tip.y); c.stroke();
+  disc(c, base, 2.2, rgba([60, 62, 78], alpha));
+  return tip;
+}
+function weight(c, p, alpha, spin) {
+  disc(c, { x: p.x + 2, y: p.y + 3 }, 7.5, rgba([0, 0, 0], 0.35 * alpha));
+  disc(c, p, 7, rgba([200, 204, 222], alpha));
+  disc(c, p, 5.8, rgba(IRON, alpha));
+  const g = dirv(spin || 0);
+  disc(c, { x: p.x - 2.2, y: p.y - 2.2 }, 1.8, rgba(WHITE, 0.75 * alpha));
+  c.strokeStyle = rgba(STEEL, alpha); c.lineWidth = 1.4; c.beginPath(); c.arc(p.x + g.x * 7, p.y + g.y * 7, 2.2, 0, TAU); c.stroke();
+}
+function hands(aim) { const d = dirv(aim), sd = { x: -d.y, y: d.x }; return { lead: { x: P.x + d.x * 18 - sd.x * 4, y: P.y + d.y * 18 - sd.y * 4 }, off: { x: P.x + d.x * 6 + sd.x * 13, y: P.y + d.y * 6 + sd.y * 13 }, d, sd }; }
+function glove(c, p) { disc(c, p, 4.2, '#0a0a10'); disc(c, p, 3, '#2b2b3a'); }
+// The new held pose: the sickle in the lead hand, the weight hanging from the off hand on a short slack chain.
+function heldNew(c, aim, t, opts = {}) {
+  const h = hands(aim);
+  if (!opts.noSickle) sickle(c, add(h.lead, h.d, 12), aim - 0.25, -1, 1);
+  if (!opts.noWeight) {
+    const sw = Math.sin(t * 3.1) * 0.35, wt = add(h.off, dirv(aim + Math.PI * 0.72 + sw), 17);
+    chain(c, add(h.lead, h.d, -2), h.off, 3, 0.7);
+    chain(c, h.off, wt, 2, 0.9); weight(c, wt, 1, t * 2);
+  }
+  glove(c, h.lead); glove(c, h.off);
+}
+
+// ---------------------------------------------------------------- the current look (a copy of KusarigamaLook.cs + the old swing model)
+const NOW = {
+  name: 'Now', tag: 'today in the game',
+  heldModel(c, aim, t, opts) {
+    const h = hands(aim);
+    if (!opts.noSickle) { line(c, add(h.lead, h.d, 8), add(P, h.d, 28), 1.5, 'rgba(178,184,199,1)'); arc(c, add(add(P, h.d, 36), { x: -h.sd.x, y: -h.sd.y }, 8), 10, aim - 0.2, aim + 1.7, 3, 'rgb(190,196,212)'); }
+    if (!opts.noWeight) { const wt = add(h.off, dirv(aim + Math.PI * .75 + Math.sin(t * 3.1) * .35), 13); for (let i = 0; i < 4; i++) disc(c, { x: lerp(h.off.x, wt.x, (i + .5) / 4), y: lerp(h.off.y, wt.y, (i + .5) / 4) }, 1.3, 'rgb(184,191,214)'); disc(c, wt, 4.6, 'rgb(217,222,242)'); disc(c, wt, 3.4, 'rgb(69,71,97)'); }
+    glove(c, h.lead); glove(c, h.off);
+  },
+  chainOld(c, a, b, g) {
+    if (g > 0) additive(c, () => { line(c, a, b, 9, rgba(LIL, 0.14 * g)); line(c, a, b, 4.5, rgba(LIL, 0.3 * g)); });
+    const len = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(2, (len / 8) | 0);
+    for (let i = 0; i < n; i++) { const p0 = { x: lerp(a.x, b.x, i / n), y: lerp(a.y, b.y, i / n) }, p1 = { x: lerp(a.x, b.x, (i + .62) / n), y: lerp(a.y, b.y, (i + .62) / n) }; line(c, p0, p1, i % 2 ? 2.2 : 3.4, 'rgb(199,204,230)'); }
+    line(c, a, b, 1, rgba(WHITE, .35 + .4 * g));
+  },
+  weightOld(c, p, g, spin) {
+    additive(c, () => glow(c, p, 30 + 14 * g, LIL, .35 + .6 * g));
+    for (let i = 0; i < 6; i++) { const d = dirv(spin + i * TAU / 6); line(c, add(p, d, 8), add(p, d, 16), 4.5, 'rgb(191,196,219)'); }
+    disc(c, p, 11, 'rgb(217,222,242)'); disc(c, p, 9, 'rgb(69,71,97)'); disc(c, { x: p.x - 3, y: p.y - 3 }, 2.4, 'rgba(255,255,255,.7)');
+  },
+  cut(c, k) {
+    const { T, sign: s, start, sweep, at } = k, reach = CUT_REACH;
+    const fade = T < SWEEP_T ? 1 : 1 - clamp01((T - SWEEP_T) / (HANG_T + .1)); if (fade <= 0) return;
+    additive(c, () => {
+      const rf = T < SWEEP_T ? 1 : 1 - clamp01((T - SWEEP_T) / .18);
+      if (rf > 0) { const tail = at - s * Math.min(Math.abs(sweep), 1.3), n = 24, inner = reach * .42;
+        for (let i = 0; i < n; i++) { const f0 = i / n, f1 = (i + 1) / n, a0 = lerp(tail, at, f0), a1 = lerp(tail, at, f1), k0 = Math.pow(f0, 1.4) * rf;
+          c.fillStyle = rgba(LIL, .6 * k0); c.beginPath(); const d0 = dirv(a0), d1 = dirv(a1);
+          c.moveTo(P.x + d0.x * (inner + (reach - inner) * .3 * (1 - f0)), P.y + d0.y * (inner + (reach - inner) * .3 * (1 - f0))); c.lineTo(P.x + d0.x * reach, P.y + d0.y * reach); c.lineTo(P.x + d1.x * reach, P.y + d1.y * reach); c.lineTo(P.x + d1.x * (inner + (reach - inner) * .3 * (1 - f1)), P.y + d1.y * (inner + (reach - inner) * .3 * (1 - f1))); c.fill();
+          arc(c, P, reach - 2, Math.min(a0, a1), Math.max(a0, a1) + .01, 3, rgba(WHITE, .9 * k0)); } }
+      const hang = T < SWEEP_T ? 1 : 1 - Math.pow(clamp01((T - SWEEP_T) / HANG_T), 2);
+      const a0 = start, a1 = start + (T < SWEEP_T ? at - start : sweep);
+      arc(c, P, reach, a0, a1, 28, rgba(LIL, .13 * hang)); arc(c, P, reach, a0, a1, 7, rgba(LIL, .42 * hang)); arc(c, P, reach, a0, a1, 2.4, rgba(WHITE, .6 * hang));
+      const gl = clamp01((T - SWEEP_T) / (HANG_T * .8));
+      if (T > SWEEP_T && gl < 1) { const ga = start + sweep * gl; glow(c, add(P, dirv(ga), reach), 24, WHITE, .6 * hang); }
+    });
+    if (T < SWEEP_T + 0.12) { const a = T < SWEEP_T ? at : start + sweep, d = dirv(a), sd = { x: -d.y * s, y: d.x * s }; line(c, add(P, d, 12), add(P, d, reach * .97 - 8), 1.5, 'rgb(178,184,199)'); arc(c, { x: P.x + d.x * reach * .97 - sd.x * 8, y: P.y + d.y * reach * .97 - sd.y * 8 }, 10, a - .2, a + 1.7, 3, 'rgb(190,196,212)'); }
+  },
+  throwW(c, th, t) { this.chainOld(c, th.hand, th.pos, th.glow); this.weightOld(c, th.pos, th.glow, t * 14); },
+  whirl(c, w, t, S) {
+    const { spin, orbit, ang } = w;
+    additive(c, () => {
+      arc(c, P, PULL, 0, TAU, 2, rgba(LIL, .28 * spin));
+      for (let i = 0; i < 10; i++) { const u = ((t * 1.1 + i * .17) % 1), r = PULL - u * (PULL - 60), a = i * TAU / 10 + t * .5 + u * .5; const at = add(P, dirv(a), r), inw = add(P, dirv(a), r - 12), sd = dirv(a + Math.PI / 2); const col = rgba(LIL, .55 * spin * (1 - u)); line(c, add(at, sd, -5), inw, 2, col); line(c, add(at, sd, 5), inw, 2, col); }
+      for (let i = 0; i < 6; i++) { const a0 = ang * .6 + i * 1.1; arc(c, P, 80 + i * 20, a0, a0 + .7, 2, rgba(LIL, .12 * spin)); }
+      arc(c, P, orbit, 0, TAU, 2, rgba(LIL, .22 * spin));
+      for (let i = 0; i < 12; i++) { const wd = Math.max(1, (16 - i * 1.2) * spin), al = (1 - i / 12) * spin, a0 = ang - (i + 1) * .14 * spin, a1 = a0 + .14 * spin;
+        arc(c, P, orbit, a0, a1, wd * 2, rgba(LIL, .12 * al)); arc(c, P, orbit, a0, a1, wd, rgba(LIL, .6 * al)); arc(c, P, orbit, a0, a1, Math.max(1, wd * .3), rgba(WHITE, .7 * al)); }
+    });
+    const hand = add(P, dirv(0), 11), bw = add(P, dirv(ang), orbit);
+    this.chainOld(c, hand, bw, spin); this.weightOld(c, bw, spin, t * 18);
+    arc(c, P, 30, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - w.held / WHIRL_MAX), 3, rgba(LIL, .9));
+  },
+  snap(c, s) { const u = s.u; if (u < .45) additive(c, () => { const r = SNAP_R * ease3(clamp01(u / .3)); arc(c, P, r, 0, TAU, 10 * (1 - u / .45), rgba(LIL, .5 * (1 - u / .45))); }); },
+};
+
+// ---------------------------------------------------------------- A: Forged Steel
+function sparks(c, p, t, seed, n, col, spread, dirA) {
+  if (t < 0 || t > 0.35) return;
+  const k = t / 0.35;
+  for (let i = 0; i < n; i++) {
+    const a = (dirA ?? hash(seed + i) * TAU) + (hash(seed + i * 3.1) - .5) * (spread ?? TAU), sp = 60 + 160 * hash(seed + i * 7.3);
+    const d = dirv(a), p0 = add(p, d, sp * t), p1 = add(p, d, sp * t + 5 + 6 * (1 - k));
+    line(c, p0, p1, 1.6, rgba(col, (1 - k) * 0.95));
+  }
+}
+function dustPuffs(c, S, t, col) {
+  for (const e of S.enemies) if (e.dust > 0) for (let i = 0; i < 3; i++) {
+    const ph = ((t * 2.4 + i / 3 + e.id * .37) % 1), back = dirv(e.a), j = (hash(e.id * 9 + i) - .5) * 10;
+    disc(c, { x: e.x + back.x * (e.rad + 4 + ph * 16) - back.y * j, y: e.y + back.y * (e.rad + 4 + ph * 16) + back.x * j }, 2.5 + ph * 4, rgba(col, .22 * (1 - ph) * e.dust));
+  }
+}
+const STEELLOOK = {
+  name: 'A · Forged Steel', short: 'Forged Steel', tag: 'physical, no glow bands',
+  desc: { cut: 'The sickle flies out on its chain; a thin white streak follows only the blade tip, with two fading after-images of the sickle. Orange sparks where it bites.', throw: 'A dull iron weight with three short speed lines behind it, the chain snapping straight. A spark burst and a white impact ring when it lands; dust as the enemy is dragged.', whirl: 'Five ghost chains fan out behind the weight like a propeller blur. The 200 px edge is a faint ring of ticks on the floor; dragged enemies kick up dust.', snap: 'The chain cracks back into your hand: a thin white ring, a spray of grit and sparks.' },
+  cut(c, k, t, S) {
+    const { T, sign: s, start, sweep, at } = k, reach = CUT_REACH;
+    if (T < SWEEP_T + 0.16) {
+      const fade = T < SWEEP_T ? 1 : 1 - (T - SWEEP_T) / 0.16;
+      additive(c, () => {
+        const tail = at - s * Math.min(Math.abs(at - start), 1.0), n = 22;
+        for (let i = 0; i < n; i++) { const f0 = i / n, f1 = (i + 1) / n; arc(c, P, reach + 6, lerp(tail, at, f0), lerp(tail, at, f1) + .002, .4 + 2.6 * f1, rgba(lerp(0, 1, f1) > .6 ? WHITE : STEEL, (0.15 + .8 * f1) * fade)); }
+        arc(c, P, reach + 6, start, at, 1, rgba(LIL, .25 * fade));
+      });
+      for (let g = 2; g >= 1; g--) { const ga = at - s * g * 0.22; if ((ga - start) * s < 0) continue; const d = dirv(ga); sickle(c, add(P, d, reach), ga + s * 0.1, s, 0.28 * fade / g, { blade: [120, 126, 150], edgeA: .4 }); }
+      const a = T < SWEEP_T ? at : start + sweep, d = dirv(a), h = hands(k.aim);
+      chain(c, h.lead, add(P, d, reach - 10), T < SWEEP_T ? 0 : 6 * s, 1);
+      sickle(c, add(P, d, reach), a + s * 0.1, s, fade < 1 ? Math.max(.0, fade) : 1);
+    }
+    for (const e of S.enemies) if (e.hitAt !== undefined && Math.abs(e.hitAt - (S.t - T) - 0) < 99) { const lt = S.t - e.hitAt; if (lt >= 0 && lt < .35 && e.r <= CUT_REACH + e.rad) additive(c, () => sparks(c, { x: e.x, y: e.y }, lt, e.id * 13 + k.n, 9, SPARK, 1.6, e.a + s * Math.PI / 2)); }
+  },
+  throwW(c, th, t) {
+    const sag = th.phase === 'home' ? 6 : 0;
+    chain(c, th.hand, th.pos, sag, 1);
+    if (th.phase === 'fly' || th.phase === 'wind') additive(c, () => { const back = th.phase === 'fly' ? th.dir : dirv(th.aim); for (let i = -1; i <= 1; i++) { const sd = { x: -back.y * i * 5, y: back.x * i * 5 }; line(c, { x: th.pos.x - back.x * 10 + sd.x, y: th.pos.y - back.y * 10 + sd.y }, { x: th.pos.x - back.x * (26 - Math.abs(i) * 8) + sd.x, y: th.pos.y - back.y * (26 - Math.abs(i) * 8) + sd.y }, 1.4, rgba(WHITE, th.phase === 'fly' ? .55 : .2)); } });
+    weight(c, th.pos, 1, t * 14);
+    if (th.impactT >= 0 && th.impactT < .3) additive(c, () => { const u = th.impactT / .3; arc(c, th.pos, 8 + 22 * ease3(u), 0, TAU, 2.2 * (1 - u), rgba(WHITE, .8 * (1 - u))); sparks(c, th.pos, th.impactT, 77, 12, SPARK, 2.2, th.aim + Math.PI); });
+  },
+  whirl(c, w, t, S) {
+    const { spin, orbit, ang } = w, hand = add(P, dirv(ang - .5), 11);
+    // the edge of the pull: short ticks on the floor, turning slowly
+    for (let i = 0; i < 48; i++) { const a = i * TAU / 48 + t * .15; line(c, add(P, dirv(a), PULL - 3), add(P, dirv(a), PULL + 3), 1.5, rgba(STEEL, .14 * spin)); }
+    for (let g = 5; g >= 1; g--) { const ga = ang - g * .13 * spin; const bw = add(P, dirv(ga), orbit); line(c, hand, bw, 2.2, rgba(STEEL, (.26 - g * .04) * spin)); }
+    additive(c, () => arc(c, P, orbit, ang - .9 * spin, ang, 1.2, rgba(WHITE, .25 * spin)));
+    const bw = add(P, dirv(ang), orbit);
+    chain(c, hand, bw, 0, 1); weight(c, bw, 1, t * 18);
+    // the gauge: a thin steel ring that empties
+    arc(c, P, 24, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - w.held / WHIRL_MAX), 2, rgba(STEEL, .8));
+  },
+  snap(c, s) {
+    const u = s.u;
+    if (u < .14) { const r = s.orbit * (1 - ease3(u / .14)); const bw = add(P, dirv(s.ang), r); chain(c, P, bw, 0, 1); weight(c, bw, 1, 0); }
+    additive(c, () => {
+      if (u < .4) { const k = u / .4, r = 20 + (SNAP_R - 20) * ease3(k); arc(c, P, r, 0, TAU, 2.5 * (1 - k), rgba(WHITE, .85 * (1 - k))); arc(c, P, r - 6, 0, TAU, 8 * (1 - k), rgba(STEEL, .12 * (1 - k))); }
+      for (let i = 0; i < 26; i++) { const a = hash(i * 3.7) * TAU, d = dirv(a), k = clamp01(u / .45), r = 18 + (SNAP_R + 10) * ease3(k) * (.6 + .5 * hash(i)); if (k < 1) disc(c, add(P, d, r), 1.4, rgba(i % 3 ? STEEL : SPARK, .8 * (1 - k))); }
+    });
+  },
+  under(c, S, t) { dustPuffs(c, S, t, [150, 150, 170]); },
+};
+
+// ---------------------------------------------------------------- B: Ink Brush
+// A brush stroke along an arc or a line, made of bristles that break up as `dry` goes 0 -> 1.
+function brushArc(c, o, r, a0, a1, width, dry, alpha, seed, profile) {
+  const n = Math.max(12, Math.ceil(Math.abs(a1 - a0) * 40)), B = 9;
+  for (let b = 0; b < B; b++) {
+    const off = (b / (B - 1) - .5);
+    for (let i = 0; i < n; i++) {
+      const f = i / n, f1 = (i + 1) / n, w = width * profile(f);
+      if (w < .3) continue;
+      const nz = hash(seed + b * 31 + Math.floor(f * 18) * 7.3);
+      if (nz < dry * 1.15 - (1 - Math.abs(off) * 2) * .25) continue;
+      const rr = r + off * w + (hash(seed + b) - .5) * 1.5;
+      arc(c, o, rr, lerp(a0, a1, f), lerp(a0, a1, f1) + .003 * Math.sign(a1 - a0), Math.max(.8, w / B * 1.7), rgba(b === 4 ? WHITE : LIL, alpha * (b === 4 ? .3 : .38)));
+    }
+  }
+}
+function brushLine(c, a, b, width, dry, alpha, seed, profile) {
+  const len = Math.hypot(b.x - a.x, b.y - a.y); if (len < 2) return;
+  const d = { x: (b.x - a.x) / len, y: (b.y - a.y) / len }, sd = { x: -d.y, y: d.x }, n = Math.ceil(len / 5), B = 7;
+  for (let k = 0; k < B; k++) { const off = k / (B - 1) - .5;
+    for (let i = 0; i < n; i++) { const f = i / n, f1 = (i + 1) / n, w = width * profile(f); const nz = hash(seed + k * 17 + Math.floor(f * 14) * 3.1); if (nz < dry * 1.15 - (1 - Math.abs(off) * 2) * .25) continue;
+      const p0 = add(add(a, d, len * f), sd, off * w), p1 = add(add(a, d, len * f1), sd, off * width * profile(f1)); line(c, p0, p1, Math.max(.8, w / B * 1.6), rgba(k === 3 ? WHITE : LIL, alpha * (k === 3 ? .3 : .4))); } }
+}
+function droplets(c, p, u, seed, n, reach, dirA, spread) {
+  for (let i = 0; i < n; i++) { const a = (dirA ?? 0) + (hash(seed + i) - .5) * (spread ?? TAU), d = dirv(a), r = reach * (.35 + .65 * hash(seed + i * 2.3)) * ease3(clamp01(u / .2)); disc(c, add(p, d, r), (1.2 + 2.6 * hash(seed + i * 5.1)) * (1 - .4 * u), rgba(LIL, .85 * (1 - clamp01((u - .3) / .5)))); }
+}
+const INK = {
+  name: 'B · Ink Brush', short: 'Ink Brush', tag: 'ninja sumi-e',
+  desc: { cut: 'The sickle paints a single lilac brush stroke along its path: pressed hard at the start, flicking thin at the end. The stroke dries out over half a second, breaking into bristle gaps.', throw: 'The weight drags a straight dry-brush line behind it; an ink splash bursts where it bites.', whirl: 'The weight paints an ensō, the Zen brush circle, round you. It closes as the whirl runs out, so the gap is the gauge. Pulled enemies leave short ink wisps.', snap: 'The circle bursts into flung droplets and a ring of splatter.' },
+  cut(c, k, t, S) {
+    const { T, sign: s, start, sweep, at } = k;
+    const dry = T < SWEEP_T ? 0 : clamp01((T - SWEEP_T) / .55); if (dry >= 1) return;
+    const alpha = 1 - Math.pow(dry, 2);
+    additive(c, () => brushArc(c, P, CUT_REACH - 2, start, at, 15, dry, alpha, k.n * 50 + 3, f => (f < .12 ? .4 + 5 * f : 1) * (1 - .85 * f * f)));
+    if (T > SWEEP_T * .9) additive(c, () => droplets(c, add(P, dirv(start + sweep), CUT_REACH), T - SWEEP_T * .9, k.n * 9 + 1, 6, 26, start + sweep + s * Math.PI / 2, 1.0));
+    if (T < SWEEP_T + .12) { const a = T < SWEEP_T ? at : start + sweep, d = dirv(a), h = hands(k.aim); chain(c, h.lead, add(P, d, CUT_REACH - 10), T < SWEEP_T ? 0 : 6 * s, 1); sickle(c, add(P, d, CUT_REACH), a + s * .1, s, 1); }
+  },
+  throwW(c, th, t) {
+    if (th.phase !== 'wind') { const dry = clamp01((th.T - IMPACT) / .45); additive(c, () => brushLine(c, th.start, th.phase === 'fly' ? th.pos : th.end, 9, dry, 1 - dry * dry, 11, f => .25 + .75 * f)); }
+    chain(c, th.hand, th.pos, th.phase === 'home' ? 6 : 0, 1);
+    weight(c, th.pos, 1, t * 14);
+    if (th.impactT >= 0 && th.impactT < .6) additive(c, () => droplets(c, th.end, th.impactT, 41, 14, 34, th.aim, 2.6));
+  },
+  whirl(c, w, t, S) {
+    const { spin, orbit, ang, held } = w;
+    const done = clamp01(held / WHIRL_MAX), len = (0.6 + 5.2 * done) * spin;  // the ensō grows as time runs out: when it closes, the whirl ends
+    additive(c, () => {
+      brushArc(c, P, orbit, ang - len, ang, 14 * spin, 0.15, .75, 900, f => .25 + .75 * Math.pow(f, .6));
+      for (const e of S.enemies) if (e.dust > .5) { const d = dirv(e.a); brushLine(c, add({ x: e.x, y: e.y }, d, e.rad + 2), add({ x: e.x, y: e.y }, d, e.rad + 22), 5, .3, .5, e.id * 7, f => 1 - f); }
+    });
+    const hand = add(P, dirv(ang - .5), 11), bw = add(P, dirv(ang), orbit);
+    chain(c, hand, bw, 0, 1); weight(c, bw, 1, t * 18);
+    arc(c, P, PULL, 0, TAU, 1, rgba(LIL, .1 * spin));
+  },
+  snap(c, s) {
+    const u = s.u;
+    if (u < .12) { const r = s.orbit * (1 - ease3(u / .12)); chain(c, P, add(P, dirv(s.ang), r), 0, 1); weight(c, add(P, dirv(s.ang), r), 1, 0); }
+    additive(c, () => {
+      const k = clamp01(u / .5); brushArc(c, P, 24 + (SNAP_R - 24) * ease3(clamp01(u / .2)), 0, TAU, 10, k, 1 - k, 321, () => 1);
+      droplets(c, P, u, 55, 30, SNAP_R + 30, 0, TAU);
+    });
+  },
+  under() {},
+};
+
+// ---------------------------------------------------------------- C: Moon Crescent (the Katana's family)
+// A crescent along an arc: thick at the head, thin at the tail; `eat` (0-1) eats the tail toward the head.
+function crescent(c, o, r, tail, head, thick, alpha, eat, col) {
+  const a0 = lerp(tail, head, eat), n = Math.max(10, Math.ceil(Math.abs(head - a0) * 30)); if (Math.abs(head - a0) < .01) return;
+  c.beginPath();
+  for (let i = 0; i <= n; i++) { const a = lerp(a0, head, i / n); c.lineTo(o.x + Math.cos(a) * r, o.y + Math.sin(a) * r); }
+  for (let i = n; i >= 0; i--) { const f = i / n, a = lerp(a0, head, f), th = thick * Math.pow(lerp(eat, 1, f), 1.6); c.lineTo(o.x + Math.cos(a) * (r - th), o.y + Math.sin(a) * (r - th)); }
+  c.closePath();
+  const g = c.createRadialGradient(o.x, o.y, Math.max(0, r - thick), o.x, o.y, r);
+  g.addColorStop(0, rgba(col || LIL, 0)); g.addColorStop(.6, rgba(col || LIL, .55 * alpha)); g.addColorStop(1, rgba(WHITE, .95 * alpha));
+  c.fillStyle = g; c.fill();
+}
+const MOON = {
+  name: 'C · Moon Crescent', short: 'Moon Crescent', tag: 'matches the Katana',
+  desc: { cut: 'A sharp crescent drawn on the blade\'s path, fat at the sickle and thin behind it, white on its outer edge. After the sweep its tail is eaten away toward the head, like the Katana\'s Moon Steel, so nothing hangs in the air.', throw: 'The weight is a small comet: a tapered lilac streak behind it in flight, a crescent flash where it lands.', whirl: 'Only a crescent behind the weight (one radian long), no full ring. The pull shows as curved wind lines spiralling in from the 200 px edge.', snap: 'Three crescents fly outward and spin away from you as the chain cracks in.' },
+  cut(c, k, t, S) {
+    const { T, sign: s, start, sweep, at } = k;
+    const endT = SWEEP_T + .22; if (T > endT) return;
+    const eat = T < SWEEP_T ? 0 : ease3(clamp01((T - SWEEP_T) / .22));
+    const head = T < SWEEP_T ? at : start + sweep, tail = head - s * Math.min(Math.abs(head - start), 1.9);
+    additive(c, () => { crescent(c, P, CUT_REACH + 8, tail, head, 26, 1 - eat * .5, eat); });
+    if (T < SWEEP_T + .1) { const d = dirv(head), h = hands(k.aim); chain(c, h.lead, add(P, d, CUT_REACH - 10), T < SWEEP_T ? 0 : 6 * s, 1); sickle(c, add(P, d, CUT_REACH), head + s * .1, s, 1); }
+    for (const e of S.enemies) { const lt = S.t - (e.hitAt ?? -9); if (lt >= 0 && lt < .3 && e.r <= CUT_REACH + e.rad) additive(c, () => sparks(c, { x: e.x, y: e.y }, lt, e.id * 5 + k.n, 7, LIL, 1.2, e.a)); }
+  },
+  throwW(c, th, t) {
+    chain(c, th.hand, th.pos, th.phase === 'home' ? 6 : 0, 1);
+    if (th.phase === 'fly') additive(c, () => { const L = 70, b = th.dir, sd = { x: -b.y, y: b.x }; c.beginPath(); c.moveTo(th.pos.x + sd.x * 7, th.pos.y + sd.y * 7); c.lineTo(th.pos.x - b.x * L, th.pos.y - b.y * L); c.lineTo(th.pos.x - sd.x * 7, th.pos.y - sd.y * 7); c.closePath(); const g = c.createLinearGradient(th.pos.x, th.pos.y, th.pos.x - b.x * L, th.pos.y - b.y * L); g.addColorStop(0, rgba(WHITE, .9)); g.addColorStop(.3, rgba(LIL, .55)); g.addColorStop(1, rgba(LIL, 0)); c.fillStyle = g; c.fill(); });
+    weight(c, th.pos, 1, t * 14);
+    if (th.impactT >= 0 && th.impactT < .25) additive(c, () => { const u = th.impactT / .25; crescent(c, th.end, 14 + 18 * ease3(u), th.aim + Math.PI - 1.2, th.aim + Math.PI + 1.2, 8, 1 - u, 0); crescent(c, th.end, 14 + 18 * ease3(u), th.aim - 1.2, th.aim + 1.2, 8, (1 - u) * .7, 0); });
+  },
+  whirl(c, w, t, S) {
+    const { spin, orbit, ang } = w;
+    additive(c, () => {
+      // wind lines spiralling in from the pull's edge
+      for (let i = 0; i < 9; i++) { const u = (t * .9 + i / 9) % 1, r0 = PULL - u * 120, a0 = i * TAU / 9 + t * .4 + u * 1.2; c.beginPath(); for (let j = 0; j <= 8; j++) { const f = j / 8, r = r0 - f * 26, a = a0 + f * .35; c.lineTo(P.x + Math.cos(a) * r, P.y + Math.sin(a) * r); } c.strokeStyle = rgba(LIL, .45 * spin * Math.sin(u * Math.PI)); c.lineWidth = 1.4; c.stroke(); }
+      arc(c, P, orbit, 0, TAU, 1, rgba(LIL, .12 * spin));
+      crescent(c, P, orbit + 9, ang - 1.1 * spin, ang, 22 * spin, .95, 0);
+    });
+    const hand = add(P, dirv(ang - .5), 11), bw = add(P, dirv(ang), orbit);
+    chain(c, hand, bw, 0, 1); weight(c, bw, 1, t * 18);
+    // gauge: six crescent pips round you, going out one by one
+    const left = 1 - w.held / WHIRL_MAX;
+    for (let i = 0; i < 6; i++) { const on = left > i / 6; arc(c, P, 25, -Math.PI / 2 + i * TAU / 6 + .12, -Math.PI / 2 + (i + 1) * TAU / 6 - .12, 2.4, on ? rgba(LIL, .9) : 'rgba(255,255,255,.12)'); }
+  },
+  snap(c, s) {
+    const u = s.u;
+    if (u < .12) { const r = s.orbit * (1 - ease3(u / .12)); chain(c, P, add(P, dirv(s.ang), r), 0, 1); weight(c, add(P, dirv(s.ang), r), 1, 0); }
+    if (u < .5) additive(c, () => { const k = u / .5, r = 30 + (SNAP_R - 10) * ease3(k); for (let i = 0; i < 3; i++) { const a = s.ang + i * TAU / 3 + k * 1.6; crescent(c, P, r, a - 1.6, a, 18 * (1 - k * .6), 1 - k, 0); } });
+  },
+  under() {},
+};
+
+// ---------------------------------------------------------------- D: Shadow Afterimage
+const SHADE = [128, 104, 220];
+function smoke(c, p, r, a) { const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, r); g.addColorStop(0, rgba([40, 30, 80], a)); g.addColorStop(1, rgba([40, 30, 80], 0)); c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill(); }
+const SHADOW = {
+  name: 'D · Shadow Afterimage', short: 'Shadow Afterimage', tag: 'strobe and smoke',
+  desc: { cut: 'No trail at all: a strobe of four violet after-images of the chain and sickle across the arc, each fading in turn, and a puff of shadow smoke where the blade passed.', throw: 'Four after-images of the weight hang along its path and fade; a shadow puff bursts where it bites.', whirl: 'The weight leaves a dim disc of after-images (a strobe, not a smear) and smoke curls inward from the 200 px edge.', snap: 'A ring of shadow smoke bursts outward with a bright rim.' },
+  ghostChain(c, h, a, s, alpha) { const d = dirv(a); line(c, h, add(P, d, CUT_REACH - 10), 2, rgba(SHADE, alpha * .8)); sickle(c, add(P, d, CUT_REACH), a + s * .1, s, alpha, { blade: SHADE, edge: [220, 210, 255], edgeA: .7 }); },
+  cut(c, k, t, S) {
+    const { T, sign: s, start, sweep, at } = k, h = hands(k.aim);
+    for (let i = 0; i < 4; i++) {
+      const f = (i + .5) / 4, tf = SWEEP_T * (1 - Math.cbrt(1 - f)); if (T < tf) continue;
+      const age = T - tf, al = 1 - clamp01(age / .32); if (al <= 0) continue;
+      const a = start + sweep * f;
+      smoke(c, add(P, dirv(a), CUT_REACH), 20 + 14 * age / .32, .45 * al);
+      additive(c, () => this.ghostChain(c, h.lead, a, s, .55 * al));
+    }
+    if (T < SWEEP_T + .1) { const a = T < SWEEP_T ? at : start + sweep, d = dirv(a); chain(c, h.lead, add(P, d, CUT_REACH - 10), T < SWEEP_T ? 0 : 6 * s, 1); sickle(c, add(P, d, CUT_REACH), a + s * .1, s, 1, { edge: [220, 210, 255] }); }
+  },
+  throwW(c, th, t) {
+    if (th.phase !== 'wind') for (let i = 0; i < 4; i++) {
+      const f = (i + 1) / 5, tf = WIND + (IMPACT - WIND) * (1 - Math.cbrt(1 - f)); const age = th.T - tf; if (age < 0) continue;
+      const al = 1 - clamp01(age / .35); if (al <= 0) continue; const p = { x: lerp(th.start.x, th.end.x, f), y: lerp(th.start.y, th.end.y, f) };
+      smoke(c, p, 14, .4 * al); additive(c, () => { disc(c, p, 7, rgba(SHADE, .5 * al)); c.strokeStyle = rgba([220, 210, 255], .6 * al); c.lineWidth = 1.2; c.beginPath(); c.arc(p.x, p.y, 7, 0, TAU); c.stroke(); });
+    }
+    chain(c, th.hand, th.pos, th.phase === 'home' ? 6 : 0, 1);
+    weight(c, th.pos, 1, t * 14);
+    if (th.impactT >= 0 && th.impactT < .45) { const u = th.impactT / .45; smoke(c, th.end, 18 + 22 * u, .6 * (1 - u)); additive(c, () => arc(c, th.end, 10 + 20 * ease3(u), 0, TAU, 1.5, rgba([220, 210, 255], .7 * (1 - u)))); }
+  },
+  whirl(c, w, t, S) {
+    const { spin, orbit, ang } = w;
+    for (let i = 0; i < 10; i++) { const u = (t * .7 + i / 10) % 1, a = i * TAU / 10 + t * .3 + u, r = PULL - u * 110; smoke(c, add(P, dirv(a), r), 12 + 8 * u, .35 * spin * Math.sin(u * Math.PI)); }
+    const hand = add(P, dirv(ang - .5), 11);
+    for (let g = 6; g >= 1; g--) { const ga = ang - g * .42 * spin, p = add(P, dirv(ga), orbit), al = (1 - g / 7) * spin; additive(c, () => { line(c, hand, p, 1.6, rgba(SHADE, .35 * al)); disc(c, p, 7, rgba(SHADE, .5 * al)); }); }
+    const bw = add(P, dirv(ang), orbit);
+    chain(c, hand, bw, 0, 1); weight(c, bw, 1, t * 18);
+    arc(c, P, 24, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - w.held / WHIRL_MAX), 2.5, rgba(SHADE, .9));
+  },
+  snap(c, s) {
+    const u = s.u;
+    if (u < .12) { const r = s.orbit * (1 - ease3(u / .12)); chain(c, P, add(P, dirv(s.ang), r), 0, 1); weight(c, add(P, dirv(s.ang), r), 1, 0); }
+    if (u < .55) { const k = u / .55, r = 20 + (SNAP_R - 10) * ease3(k); for (let i = 0; i < 18; i++) smoke(c, add(P, dirv(i * TAU / 18 + k), r), 16 + 10 * k, .5 * (1 - k)); additive(c, () => arc(c, P, r, 0, TAU, 2, rgba([220, 210, 255], .8 * (1 - k)))); }
+  },
+  under(c, S, t) { for (const e of S.enemies) if (e.dust > .5) smoke(c, { x: e.x - Math.cos(e.a) * -e.rad, y: e.y - Math.sin(e.a) * -e.rad }, 16, .35); },
+};
+
+const LOOKS = { now: NOW, steel: STEELLOOK, ink: INK, moon: MOON, shadow: SHADOW };
+
+// ---------------------------------------------------------------- frame
+function render(ctx, lookKey, t, mode) {
+  const L = LOOKS[lookKey], S = sim(t, mode), c = ctx;
+  c.setTransform(c.canvas.width / W, 0, 0, c.canvas.height / H, 0, 0);
+  floor(c);
+  if (L.under) L.under(c, S, t);
+  for (const e of S.enemies) enemy(c, e, t);
+  player(c);
+  // active pieces
+  const cut = S.cuts.length ? S.cuts[S.cuts.length - 1] : null;
+  const cutLive = cut && cut.T < SWEEP_T + 0.12;
+  for (const k of S.cuts) if (k.T < 1.2) L.cut(c, k, t, S);
+  const aim = cut && cut.T < 0.6 ? cut.aim : S.thr ? S.thr.aim : -0.2;
+  const held = L.heldModel ? L.heldModel.bind(L) : heldNew;
+  if (S.whirl) L.whirl(c, S.whirl, t, S);
+  else if (S.snap) { L.snap(c, S.snap, t); if (S.snap.u > .14) held(c, -0.2, t, {}); }
+  else if (S.thr) { L.throwW(c, S.thr, t); held(c, S.thr.aim, t, { noWeight: true }); }
+  else held(c, aim, t, { noSickle: cutLive });
+  return S;
+}
+
+// ---------------------------------------------------------------- UI
+let look = 'steel', mode = 'combo', speed = 1, paused = false, clock = 0, last = performance.now();
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; if (reduced) speed = 0.5;
+const main = document.getElementById('main'), mctx = main.getContext('2d');
+function fit(cv) { const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.width * d * H / W)); if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; } }
+function chips(id, items, get, set) {
+  const g = document.getElementById(id);
+  for (const [k, label] of items) { const b = document.createElement('button'); b.id = id + '-' + k; b.textContent = label; b.setAttribute('aria-pressed', String(get() === k)); b.onclick = () => { set(k); for (const x of g.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x === b)); syncGrid(); }; g.appendChild(b); }
+}
+chips('lookChips', [['now', 'Now'], ['steel', 'A Forged Steel'], ['ink', 'B Ink Brush'], ['moon', 'C Moon Crescent'], ['shadow', 'D Shadow']], () => look, v => look = v);
+chips('moveChips', Object.entries(MODES).map(([k, m]) => [k, m.name]), () => mode, v => { mode = v; clock = 0; });
+chips('speedChips', [[1, '1×'], [0.5, '½×'], [0.25, '¼×']], () => speed, v => speed = +v);
+document.getElementById('pauseBtn').onclick = e => { paused = !paused; e.target.setAttribute('aria-pressed', String(paused)); e.target.textContent = paused ? 'Play' : 'Pause'; };
+
+const grid = document.getElementById('grid'), small = [];
+for (const k of Object.keys(LOOKS)) {
+  const f = document.createElement('div'); f.className = 'frame'; f.tabIndex = 0; f.setAttribute('role', 'button'); f.setAttribute('aria-label', 'Show ' + LOOKS[k].name + ' on the big stage');
+  const cv = document.createElement('canvas'); cv.width = 720; cv.height = 420; f.appendChild(cv);
+  const cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = LOOKS[k].name; f.appendChild(cap);
+  const pick = () => { look = k; for (const x of document.querySelectorAll('#lookChips button')) x.setAttribute('aria-pressed', String(x.id === 'lookChips-' + k)); syncGrid(); };
+  f.onclick = pick; f.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } };
+  grid.appendChild(f); small.push({ k, cv, ctx: cv.getContext('2d'), f });
+}
+function syncGrid() { for (const s of small) s.f.setAttribute('aria-current', String(s.k === look)); document.getElementById('mainCap').textContent = LOOKS[look].name; }
+syncGrid();
+
+const cards = document.getElementById('cards');
+for (const k of ['steel', 'ink', 'moon', 'shadow']) {
+  const L = LOOKS[k], d = document.createElement('div'); d.className = 'card';
+  d.innerHTML = `<span class="tag">${L.tag}</span><h3>${L.name}</h3><dl><dt>Cut</dt><dd>${L.desc.cut}</dd><dt>Throw</dt><dd>${L.desc.throw}</dd><dt>Whirl</dt><dd>${L.desc.whirl}</dd><dt>Snap</dt><dd>${L.desc.snap}</dd></dl>`;
+  cards.appendChild(d);
+}
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!paused) clock += dt * speed;
+  fit(main); render(mctx, look, clock, mode);
+  const M = MODES[mode]; document.getElementById('mainClock').textContent = ((clock % M.loop)).toFixed(2) + ' s / ' + M.loop.toFixed(1);
+  for (const s of small) { fit(s.cv); render(s.ctx, s.k, clock, mode); }
+  requestAnimationFrame(frame);
+}
+// A still first frame (mid-whirl of the combo) so the page reads at rest, then run.
+clock = 3.9; render(mctx, look, clock, mode); for (const s of small) render(s.ctx, s.k, clock, mode);
+window.__kus = { set(t, l, m) { paused = true; clock = t; if (l) look = l; if (m) mode = m; } };
+requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+})();
+</script>

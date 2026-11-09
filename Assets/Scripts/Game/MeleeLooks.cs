@@ -295,6 +295,7 @@ namespace Arena
                 else if (fx.Kind == FxKind.StaffShove)
                     DrawStaffShoveLayer(fx, true);  // BoStaffLook.cs
             }
+            DrawKusariInk();  // the Kusarigama's throw line, ensō and splashes (KusarigamaLook.cs)
         }
 
         // --- Sweeps, thrusts and the Halberd ----------------------------------------------------------------------
@@ -385,7 +386,7 @@ namespace Arena
                 KatanaMarks(o, aim, half, s, reach, T, sweepTime, false, col);
             }
             else if (light && seen.Weapon == WeaponId.Kusarigama && !full)
-                KusariCutLook(fx, o, reach, start, at, T, col);  // KusarigamaLook.cs: the ribbon and the crescent it leaves hanging
+                KusariCutLook(fx, o, reach, start, at, T, col);  // KusarigamaLook.cs: the brush stroke, drying out
             else if (light)
                 GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
             else
@@ -1163,33 +1164,36 @@ namespace Arena
                     break;
                 case WeaponId.Kusarigama:
                 {
+                    // The Ink Brush models (KusarigamaLook.cs): the sickle on its chain at the tip, paid out in a cut; in hand the off
+                    // hand holds the weight hanging at your side on a short chain (not while it's thrown or whirling: KusarigamaLook.cs
+                    // draws it then), glowing lilac while the next press throws it.
                     float tip = reach * 0.97f;
+                    V2 blade = o + dir * tip;
                     if (arm.A > 0f)
                     {
-                        // In hand (the model leaves its own arms out): the sickle's grip in the lead hand, its chain out to the blade
-                        // in a cut; the off hand holds the chain's weight hanging at your side (not while it's thrown or whirling,
-                        // KusarigamaLook.cs draws it then).
                         V2 grip = o + dir * Mathf.Min(20f, tip - 14f) - side * 3f, off = o + dir * 6f + side * 13f;
                         DrawMeleeArms(o, side, grip, off, arm, alpha);
-                        Line(grip - dir * 5f, grip + dir * 8f, 3.2f, new Rgba(0.42f, 0.3f, 0.18f, alpha));  // the wooden grip
-                        if (tip - 8f > (grip - o).Length + 9f)
-                            Line(grip + dir * 8f, o + dir * (tip - 8f), 1.5f, new Rgba(0.7f, 0.72f, 0.78f, alpha));  // the chain, paid out
-                        Arc(o + dir * tip - side * 8f, 10f, 3f, MeleeSteel.WithAlpha(alpha), 10, ang - 0.2f, 1.9f);  // the sickle
                         Player kp;
-                        if (game.Players.TryGetValue(ownerOfModel, out kp) && kp.HookT <= 0f && !kp.KusariWhirl)
+                        bool hangs = game.Players.TryGetValue(ownerOfModel, out kp) && kp.HookT <= 0f && !kp.KusariWhirl;
+                        if (hangs)
+                            DrawKusariChain(grip - dir * 2f, off, 3f, 0.7f * alpha);  // the chain between the hands
+                        if (tip - 16f > (grip - o).Length + 6f)
+                            DrawKusariChain(grip + dir * 4f, blade - dir * 14f, 0f, alpha);  // paid out to the sickle
+                        else
+                            Line(grip - dir * 5f, grip + dir * 8f, 3.2f, KusariWood.WithAlpha(alpha));
+                        DrawKusariSickle(blade, ang + 0.1f, 1f, alpha);
+                        if (hangs)
                         {
                             float sw = Mathf.Sin(game.AnimT * 3.1f) * 0.35f;
-                            V2 wt = off + V2.FromAngle(ang + MathX.Pi * 0.75f + sw) * 13f;
-                            for (int i = 0; i < 4; i++)
-                                Circle(V2.Lerp(off, wt, (i + 0.5f) / 4f), 1.3f, new Rgba(0.72f, 0.75f, 0.84f, alpha), 6);
-                            Circle(wt, 4.6f, new Rgba(0.85f, 0.87f, 0.95f, alpha), 10);
-                            Circle(wt, 3.4f, new Rgba(0.27f, 0.28f, 0.38f, alpha), 10);
+                            V2 wt = off + V2.FromAngle(ang + MathX.Pi * 0.72f + sw) * 17f;
+                            DrawKusariChain(off, wt, 2f, 0.9f * alpha);
+                            DrawKusariWeight(wt, alpha, game.AnimT * 2f, -1f, kp.KusariStep == 1 ? 1f : 0f);
                         }
                         DrawMeleeGloves(grip, off, new Rgba(0.03f, 0.03f, 0.05f, alpha), new Rgba(0.17f, 0.17f, 0.23f, alpha));
                         break;
                     }
-                    Line(o + dir * 12f, o + dir * (tip - 8f), 1.5f, new Rgba(0.7f, 0.72f, 0.78f, alpha));  // the chain
-                    Arc(o + dir * tip - side * 8f, 10f, 3f, MeleeSteel.WithAlpha(alpha), 10, ang - 0.2f, 1.9f);  // the sickle
+                    DrawKusariChain(o + dir * 12f, blade - dir * 14f, 0f, alpha);
+                    DrawKusariSickle(blade, ang + 0.1f, 1f, alpha);
                     break;
                 }
                 case WeaponId.BloodLash:

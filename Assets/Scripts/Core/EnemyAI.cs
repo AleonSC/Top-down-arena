@@ -311,8 +311,8 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
-                if (!p.Downed && p.TauntT > 0f)
-                    return p.Id;  // Roar: everyone goes for the roaring tank
+                if (!p.Downed && (p.TauntT > 0f || JuggOn(p)))
+                    return p.Id;  // Roar (or the Juggernaut Suit): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
@@ -387,6 +387,8 @@ namespace Arena
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
+                if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
+                    e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // KitWeapons.cs
@@ -818,6 +820,8 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
+            else if (e.WadeT > 0f)
+                speed *= e.WadeMult;  // Heavy enemies and bosses ignore the usual slow, but not a Bloodbath (Bloodbath.cs)
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
             if (IsHost && Props.Count > 0 && !e.Def.IsBoss)
@@ -1093,6 +1097,7 @@ namespace Arena
             V2 dir = V2.FromAngle(ang);
             var b = SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0, e.Def.IsBoss);
             b.Source = e.Type;
+            b.Shooter = e.Id;  // (the Juggernaut Suit's flak finds its way back by this)
             b.Look = b.Sent.Look = LookFor(e, ang, angVel);  // a dart, a crescent or round (Readability.cs)
             NoteVolley(e, b);  // a ring or a spray stays round all the way round
         }

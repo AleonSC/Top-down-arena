@@ -647,9 +647,16 @@ namespace Arena
                 {
                     if (fxOn && !p.Downed)
                         break;  // with Visual effects on, MeleeLooks.cs draws it in hand, with arms (DrawMeleeHeldIdle)
-                    MLine(-4f, 0f, 12f, 0f, 2.6f, MWood); MArc(14f, -6f, 8f, 0.2f, 1.9f, 2.6f, MSteel);
+                    // The Ink Brush models (KusarigamaLook.cs) in miniature: the sickle on its grip, and the weight hanging on a short
+                    // chain, ringed in lilac while the next press throws it.
+                    MLine(-4f, 0f, 11f, 0f, 2.6f, MWood); MPoly(MSteel, 11f, 1f, 17f, -5f, 15f, -12f, 9f, -14f, 13f, -8f, 11f, -2f); MLine(17f, -5f, 9f, -14f, 0.8f, Hx(0xffffff));
                     if (p.HookT <= 0f && !p.KusariWhirl)  // (a thrown or whirling weight is drawn in the world: KusarigamaLook.cs)
-                        for (int i = 0; i < 9; i++) { float a = t * 1.5f + i * 0.7f; MCirc(-4f + Mathf.Cos(a) * 6f, 8f + Mathf.Sin(a) * 4f, 1f, Hx(0xb8c2d0), 6); }
+                    {
+                        float sw = Mathf.Sin(t * 3.1f) * 2f;
+                        for (int i = 0; i < 3; i++) MCirc(-3f + sw * i / 3f, 4f + i * 3.2f, 1.1f, Hx(0xc4c7d6), 6);
+                        if (p.KusariStep == 1) MCirc(-3f + sw, 15f, 6.4f, Hx(0xb3a3ff), 12);
+                        MCirc(-3f + sw, 15f, 4.6f, Hx(0xc7ccde), 10); MCirc(-3f + sw, 15f, 3.6f, Hx(0x3b3c4d), 10);
+                    }
                     break;
                 }
                 case WeaponId.BoStaff:

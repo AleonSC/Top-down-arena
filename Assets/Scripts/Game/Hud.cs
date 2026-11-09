@@ -20,6 +20,7 @@ namespace Arena
             DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
             DrawBloodWallHud();  // Blood Wall's drain over each tank laying one (BloodWallLook.cs)
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
+            DrawBathPops();  // Bloodbath's "+n" heals off the Hemomancer (BloodbathLook.cs)
             DrawKnightDpsPops();  // "† 11", READY, the chain ending, Caught Steel's pips (KnightDpsLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)
@@ -58,8 +59,8 @@ namespace Arena
                 if (LaunchHides(p))
                     continue;  // not landed yet (LaunchIntro.cs)
                 DrawLaunchIcon(p, at, r);
-                if (!(hudMode == 2 && p.Id == game.MyId))  // (the "on the player" HUD puts your health there instead)
-                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
+                if (!(hudMode == 2 && p.Id == game.MyId))  // (the "on the player" HUD puts your health there instead; the name rises over a Juggernaut Suit's armour bar)
+                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f), 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12, NameFxOf(p.Id), Time.unscaledTime,
                     ToColor(p.Def.Color.WithAlpha(0.95f)), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {

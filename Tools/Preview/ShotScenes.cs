@@ -361,6 +361,31 @@ static partial class Shot {
           gm.Zones[9000 + zi] = new Zone { Id = 9000 + zi, Kind = ZoneKind.VeinTrail, Owner = me.Id, Pos = start + new V2(d, 0f), Radius = 24f, Duration = 2f, T = 2f - Math.Max(0.2f, rt), Aim = Environment.GetEnvironmentVariable("RUSHMASTERED") != null ? 1f : 0f };
       }
     }
+    if (Environment.GetEnvironmentVariable("JUGG") != null) {
+      // A Tank Soldier's Juggernaut Suit (JuggernautLook.cs): JUGG=<seconds since the cast> (the plates bolt on to 0.6 s; use 0.3 or 3),
+      // JUGGARMOR=<armour left, 0-1> (plates come off a sixth at a time), with six enemies around firing at the suit and flak shards
+      // flying back. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Soldier; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.JuggernautSuit;
+      V2 from = new V2(640f, 480f);
+      me.Pos = me.Disp = from; me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.9f;
+      float jt = float.Parse(Environment.GetEnvironmentVariable("JUGG"));
+      me.JuggT = Math.Max(0.1f, Game.JuggTime - jt); me.UltT = me.JuggT;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      me.JuggMax = Game.JuggArmor; me.JuggArmor = Game.JuggArmor * float.Parse(Environment.GetEnvironmentVariable("JUGGARMOR") ?? "0.72");
+      var rnd = new System.Random(9);
+      for (int i = 0; i < 6; i++) {
+        float ang = -1.1f + i * 0.5f + (float)rnd.NextDouble() * 0.2f;
+        V2 at = from + V2.FromAngle(ang) * (230f + (float)rnd.NextDouble() * 180f);
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 2 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+        if (jt < Game.JuggClamp) continue;
+        V2 hit = from + (at - from).Normalized() * (me.Def.BodyR * 1.3f + 4f);
+        gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
+      }
+    }
     if (Environment.GetEnvironmentVariable("TITHE") != null) {
       // A tank Hemomancer's Vein Tithe (VeinTitheLook.cs): TITHE=<seconds since the cast> (the arteries grow to 1.2 s, then beat once a second; use 0.6 or 4.3),
       // with nine enemies held around. TITHESNAP=<seconds since it ended> shows the arteries letting go instead. Use with mode hud.
@@ -382,6 +407,29 @@ static partial class Shot {
         else me.Tithed.Add(en.Id);
       }
       if (snap == null) { me.TitheClock = Math.Max(0.001f, tt); me.UltT = Math.Max(0.1f, Game.TitheLen - tt); }
+    }
+    if (Environment.GetEnvironmentVariable("BLOODBATH") != null) {
+      // A tank Hemomancer's Bloodbath (BloodbathLook.cs): BLOODBATH=<seconds since the cast> (it floods out to 0.9 s, lasts 10 s and dries over the
+      // last 1.2; use 0.4, 3 or 9.4), with enemies wading in it and around it, an ally inside and a few heal numbers. BATHMASTERED=1: 220 px. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.Bloodbath;
+      V2 from = new V2(700f, 480f);
+      me.Pos = me.Disp = from + new V2(-30f, 20f); me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.7f;
+      float bt = float.Parse(Environment.GetEnvironmentVariable("BLOODBATH"));
+      float R = Environment.GetEnvironmentVariable("BATHMASTERED") != null ? Game.BathRadiusMastered : Game.BathRadius;
+      gm.Zones[9100] = new Zone { Id = 9100, Kind = ZoneKind.Bloodbath, Owner = me.Id, Pos = from, Radius = R, Duration = Game.BathTime, T = Math.Max(0.01f, Game.BathTime - bt) };
+      V2[] spots = { new V2(90f, -60f), new V2(-110f, -40f), new V2(40f, 110f), new V2(130f, 70f), new V2(-60f, 120f), new V2(330f, -40f), new V2(-320f, 90f), new V2(260f, 200f) };
+      for (int i = 0; i < spots.Length; i++) {
+        V2 at = from + spots[i];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Juggernaut : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
+      }
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = from + new V2(-40f, -110f); break; }
+      if (bt > 0.6f)
+        for (int k = 0; k < 3; k++)
+          gm.Effects.Add(new Effect { Kind = FxKind.BathHeal, Pos = me.Pos + new V2(k * 7f, 0f), Pos2 = new V2(me.Id, 0f), Color = new Rgba(1f, 0.35f, 0.4f), Radius = 6f + k * 3f, Dur = Game.BathHealFxTime, T = 0.1f + k * 0.28f });
     }
     if (Environment.GetEnvironmentVariable("RAIN") != null) {
       // A Hemomancer's Sanguine Rain (SanguineRainLook.cs): RAIN=<seconds since the cast> (siphon to 1.8 s, seeds to 2.4 s, then rain; use 4 or 6), with the allies
