@@ -78,6 +78,21 @@ A 1-skull path whose prize is a shop. Decided with the owner (October 2026), fro
 
 Code: `Core/Shop.cs` (state, actions, bots, snapshot fields, `Msg.Shop` / `Msg.ShopGift`) and `Game/ShopUi.cs`.
 
+## Voting (proposed, mockup only)
+
+Replaces "the host decides" so every player has a say. Mockup: [`Mockups/crt-path-vote.html`](Mockups/crt-path-vote.html)
+(three looks: twin tubes, ballot console, tug of war). Not built yet; waiting on the owner's pick of look and rules.
+
+| Question | Proposal |
+|---|---|
+| Who votes | Every player, 1 to 3. One vote each, changeable until it locks. |
+| Options | Path 1, path 2, or the plain arena (now a ballot option for everyone). |
+| Winner | Most votes. A tie goes to the host's vote (so 1-1-1 never stalls). |
+| Locking | 3 s after the last vote (like `ReadyCountdown`); any change restarts it. Host can force the result after 60 s. |
+| Visibility | Live votes by default; optional secret ballot until everyone has voted. |
+| Bots / Boss Lab | Bots vote for the safest path; solo play resolves on your click. |
+| Engineering | `Msg.PathVote` (client -> host: option 0-2), host tallies and rebroadcasts votes in `PathOffer`-style state; `ChoosePath` becomes `ResolvePathVote`. Protocol bump. |
+
 ## Screens
 
 - **Choose your path:** two big cards, each with a live animated preview of its floor and a few enemies from its

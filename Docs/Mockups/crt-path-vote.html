@@ -1,0 +1,335 @@
+<title>Path Vote CRT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: control bar, then three 1280x720 game stages (scaled to fit), one per vote layout. Single dark CRT look on purpose: it is the game's screen. */
+:root {
+  --bg: #070a14; --fg: #dfe8ff; --muted: #8e9cc2; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.55); --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+h2 { font-size: 22px; margin: 0 0 4px; text-wrap: balance; }
+header p, section p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 74ch; }
+section { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.rules div { border: 1px solid var(--line); padding: 10px 12px; font-size: 15px; line-height: 1.4; color: var(--muted); }
+.rules b { display: block; color: var(--fg); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2px; font-family: var(--f-mono); font-weight: 500; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line); }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 13px/1.5 var(--f-mono); color: var(--muted); letter-spacing: .03em; margin: 0; }
+
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; background: #0d1020;
+  background-image: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px); background-size: 40px 40px; }
+.dim { position: absolute; inset: 0; background: rgba(3,4,10,.62); }
+
+/* CRT tube: same parts as the game's lobby/wave-cleared tubes (scanlines, vignette, roll bar, glow text) */
+.tube { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: 0 0 0 3px #0c1224, inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent), 0 0 30px rgba(102,163,255,.1); transition: box-shadow .15s; }
+.tube::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.24) 0 1px, transparent 1px 3px); }
+.tube::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.5) 100%); }
+.tube > .in { position: absolute; inset: 0; z-index: 2; padding: 20px; display: flex; flex-direction: column; gap: 7px; }
+.tube.pick { box-shadow: 0 0 0 3px #0c1224, 0 0 0 5px var(--ink), 0 0 44px rgba(102,163,255,.4); }
+.tube.lead { box-shadow: 0 0 0 3px #0c1224, 0 0 0 5px var(--gold), 0 0 44px rgba(242,193,78,.3); }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 5; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.045), transparent); top: -40%; animation: roll 8s linear infinite; }
+.nofx .roll { display: none; }
+@keyframes roll { to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes tvon { 0% { transform: scaleY(.01) scaleX(.2); opacity: 0; } 40% { transform: scaleY(.02) scaleX(1); opacity: 1; } 100% { transform: none; opacity: 1; } }
+.cur { display: inline-block; width: .45em; height: .72em; background: currentColor; margin-left: 6px; vertical-align: -.02em; animation: blink 1s steps(1) infinite; }
+.nofx .cur { animation: none; }
+.nofx .tube { text-shadow: none; }
+.title { position: absolute; left: 0; right: 0; text-align: center; font-family: var(--f-crt); color: #dfeaff; text-shadow: 0 0 10px rgba(130,170,255,.7); }
+.pv { display: block; width: 100%; image-rendering: pixelated; border: 2px solid var(--dim); background: #000; }
+.lab { font-size: 18px; color: var(--dim); letter-spacing: .1em; text-shadow: none; }
+.nm { font-size: 44px; line-height: 1; letter-spacing: .04em; }
+.sk { display: inline-flex; gap: 4px; font-size: 26px; color: var(--hot); text-shadow: 0 0 8px rgba(255,90,100,.6); }
+ul.rl { list-style: none; margin: 0; padding: 0; font-size: 22px; line-height: 1.1; display: flex; flex-direction: column; gap: 3px; }
+ul.rl li::before { content: "> "; color: var(--dim); }
+.kv { font-size: 21px; display: flex; gap: 14px; line-height: 1; }
+.kv span { width: 140px; color: var(--dim); letter-spacing: .1em; font-size: 18px; text-shadow: none; flex: none; }
+.kv b { font-weight: 400; } .kv .gold { color: var(--gold); } .kv .good { color: var(--good); }
+
+/* keys (inverse video on hover, like the game's CRT keys) */
+.k { font: 26px/1 var(--f-crt); letter-spacing: .08em; color: var(--ink); background: color-mix(in srgb, var(--ink) 9%, transparent); border: 2px solid var(--ink); padding: 9px 14px 7px; cursor: pointer; text-shadow: inherit; width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.k:hover, .k:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; }
+.k.on { background: var(--ink); color: var(--sbg); text-shadow: none; }
+.k kbd { font: 18px var(--f-crt); background: var(--ink); color: var(--sbg); padding: 0 6px; text-shadow: none; }
+.k.on kbd, .k:hover kbd { background: var(--sbg); color: var(--ink); }
+.k.sm { font-size: 21px; padding: 5px 12px 3px; width: auto; }
+
+/* votes: a voter is a coloured square and a name */
+.vt { display: inline-flex; align-items: center; gap: 7px; font-size: 22px; line-height: 1; letter-spacing: .06em; }
+.vt i { width: 14px; height: 14px; background: var(--c); box-shadow: 0 0 8px var(--c); display: inline-block; flex: none; }
+.vt.you::after { content: "YOU"; font-size: 14px; background: var(--c); color: var(--sbg); padding: 1px 5px 0; text-shadow: none; }
+.vt.wait { color: var(--dim); text-shadow: none; } .vt.wait i { background: transparent; border: 2px solid var(--dim); box-shadow: none; }
+.vt.sec i { background: var(--dim); box-shadow: none; }
+.big { font-size: 72px; line-height: .8; }
+.ptag { position: absolute; right: 22px; top: 176px; font-size: 18px; background: var(--gold); color: var(--sbg); padding: 1px 8px 0; text-shadow: none; z-index: 3; }
+
+/* locked overlay */
+.lock { position: absolute; inset: 0; z-index: 50; background: rgba(2,4,10,.8); display: flex; align-items: center; justify-content: center; }
+.lock .box { animation: tvon .5s ease-out; text-align: center; font-family: var(--f-crt); padding: 28px 60px; border: 3px solid var(--ink); background: var(--sbg); color: var(--ink); text-shadow: 0 0 8px var(--glow), 0 0 20px var(--glow); box-shadow: 0 0 60px rgba(102,163,255,.3); max-width: 900px; }
+.lock .t { font-size: 76px; line-height: 1; letter-spacing: .05em; } .lock .s { font-size: 26px; color: var(--dim); letter-spacing: .12em; margin-top: 10px; text-shadow: none; }
+.cd { font-size: 24px; letter-spacing: .1em; color: var(--gold); text-shadow: 0 0 8px rgba(242,193,78,.5); }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .roll, .cur { animation: none; } }
+</style>
+
+<div class="wrap" id="app">
+  <header>
+    <h1>Path voting, CRT mockups</h1>
+    <p>Three ways to turn "Choose your path" from a host-only pick into a squad vote, in the blue CRT language of the lobby and the Wave cleared tube. Click a path (or the no-path key) to cast your vote, change it as often as you like, and watch the table lock once everyone has voted. Teammates are simulated.</p>
+  </header>
+
+  <div class="rules">
+    <div><b>Who votes</b>Every player in the run, 1 to 3. One vote each, changeable until the table locks.</div>
+    <div><b>Three options</b>Path 1, path 2, or the plain arena. The plain arena is a ballot option, not a host-only key.</div>
+    <div><b>Winner</b>Most votes wins. A tie goes to the host's vote, so the host keeps the casting vote and a 1-1-1 split can never stall.</div>
+    <div><b>Locking</b>3 second countdown after the last vote (same as the Ready countdown). Any change restarts it. The host can force the result after 60 s for a stalled player.</div>
+  </div>
+
+  <div class="ctl">
+    <div class="grp"><span>Squad</span><button class="seg" data-act="n" data-v="1">Solo</button><button class="seg" data-act="n" data-v="2">2 players</button><button class="seg" data-act="n" data-v="3">3 players</button></div>
+    <div class="grp"><span>You are</span><button class="seg" data-act="host" data-v="1">Host</button><button class="seg" data-act="host" data-v="0">Guest</button></div>
+    <div class="grp"><span>Ballot</span><button class="seg" data-act="secret" data-v="0">Live votes</button><button class="seg" data-act="secret" data-v="1">Secret until all voted</button></div>
+    <div class="grp"><span>CRT fx</span><button class="seg" data-act="fx" data-v="1">On</button><button class="seg" data-act="fx" data-v="0">Off</button></div>
+    <div class="grp"><button class="seg" data-act="mates">Teammates vote</button><button class="seg" data-act="reset">Reset</button></div>
+  </div>
+
+  <section><div><h2>A. Twin tubes with ballot lists</h2><p>Closest to the shipped cards, so the least code to change. Each tube lists who voted for it, with a big vote count in the corner and a lit border on the leader. The no-path key sits under the tubes with its own count, and a roster row shows who has still to vote.</p></div><div class="view" id="vA"><div class="stage" id="sA"></div></div></section>
+  <section><div><h2>B. Ballot console</h2><p>One tube. Each path is a row with a block-bar tally, number keys 1 to 3 cast the vote, and a short dossier for whichever row you are on prints on the right. Most compact, and the closest to the terminal look of the lobby. The floor preview becomes a small window in each row.</p></div><div class="view" id="vB"><div class="stage" id="sB"></div></div></section>
+  <section><div><h2>C. Tug of war</h2><p>Two full tubes, and between them a long tally bar that slides toward the leading path as votes land. Ties show as a centred bar with a gold casting-vote marker on the host. Best at making the split visible from across the room.</p></div><div class="view" id="vC"><div class="stage" id="sC"></div></div></section>
+
+  <p class="note">Mockup only: nothing here is wired into the game. Paths, rules, bonuses and prizes are the real ones from Core/Paths.cs. Needs a Msg.PathVote and a protocol bump if built.</p>
+</div>
+
+<script>
+// ---------- data (from Core/Paths.cs / Docs/Paths.md) ----------
+const P = {
+  swarm:   { id:'swarm', name:'Swarm Fields', kind:'Enemy mix', danger:2, blurb:'Open grassland overrun by rushers.', rules:['Twice as many melee rushers, at 60% health'], floor:[.16,.32,.14], acc:[.6,1,.5], seed:11 },
+  sniper:  { id:'sniper', name:'Sniper Ridge', kind:'Enemy mix', danger:2, blurb:'High rocky ground with long sightlines.', rules:['Mostly Snipers, Mortars and Grunts','Hardly any melee'], floor:[.34,.25,.16], acc:[1,.78,.4], seed:12 },
+  elite:   { id:'elite', name:'Elite Gauntlet', kind:'Enemy mix', danger:3, blurb:'A proving ground for the strongest.', rules:['Half as many enemies','Every one of them is elite'], floor:[.3,.24,.08], acc:[1,.85,.3], seed:13 },
+  burning: { id:'burning', name:'Burning Grounds', kind:'Hazard floor', danger:3, blurb:'Scorched earth that keeps catching fire.', rules:['Fire patches flash, ignite and spread','They burn you and the enemies alike'], floor:[.2,.09,.05], acc:[1,.45,.2], seed:14 },
+  sanctuary:{ id:'sanctuary', name:'Sanctuary', kind:'Hazard floor', danger:1, blurb:'Quiet ground with springs of healing light.', rules:['Healing pools appear around the arena','20% fewer enemies'], floor:[.08,.16,.26], acc:[.5,.9,1], seed:15 },
+  frozen:  { id:'frozen', name:'Frozen Lake', kind:'Twist', danger:2, blurb:'A sheet of cracked ice. Mind your footing.', rules:['You slide: speed builds and carries on','Enemies are chilled: 10% slower'], floor:[.16,.27,.36], acc:[.65,.92,1], seed:16 },
+  blood:   { id:'blood', name:'Blood Moon', kind:'Twist', danger:3, blurb:'Under a red moon, only the hunt keeps you alive.', rules:['No health orbs and no regeneration','Every kill heals its killer a little'], floor:[.24,.05,.07], acc:[1,.35,.4], seed:17 },
+  fog:     { id:'fog', name:'Fogbound', kind:'Arena rule', danger:2, blurb:'A thick mist rolls in. Stay close together.', rules:['You only see a short way around each player'], floor:[.17,.18,.21], acc:[.8,.85,.95], seed:18 }
+};
+const OFFER = ['sniper', 'burning'];
+const bonus = d => d >= 3 ? '+50% XP and score' : d === 2 ? '+25% XP and score' : 'No bonus';
+const prize = p => p.danger >= 3 ? 'An extra legendary pick' : p.danger === 2 ? '+1 upgrade pick' : 'Full heal and 2 rerolls';
+const ALL = [
+  { name: 'RIVEN', c: '#5fe6ff' }, { name: 'MOSS', c: '#ffb83d' }, { name: 'KITE', c: '#ff6bd6' }
+];
+const FROM = 11, TO = 14, BOSS = 15;
+
+// ---------- state ----------
+const S = { n: 3, host: true, secret: false, fx: true, votes: [], lock: null, cd: 0 };
+// you are always players[0] when host, players[1] (MOSS) when guest; the host is always RIVEN.
+const me = () => S.host ? 0 : 1;
+const players = () => ALL.slice(0, S.n);
+function resetVotes() {
+  S.votes = [null, null, null]; S.lock = null; S.cd = 0; clearTimeout(cdT); clearInterval(cdI);
+  // teammates have already voted when you open the screen, so there is something to react to
+  if (S.n >= 2) S.votes[S.host ? 1 : 0] = 1;
+  if (S.n >= 3) S.votes[2] = 0;
+}
+let cdT, cdI;
+const votesOf = () => S.votes.slice(0, S.n);
+const allVoted = () => votesOf().every(v => v !== null);
+function tally() {
+  const c = [0, 0, 0]; votesOf().forEach(v => { if (v !== null) c[v]++; });
+  const max = Math.max(...c); const w = [0, 1, 2].filter(i => c[i] === max && max > 0);
+  let win = null, why = '';
+  if (w.length === 1) win = w[0];
+  else if (w.length > 1) { const hv = S.votes[0]; win = w.includes(hv) ? hv : w[0]; why = 'tie'; }
+  return { c, win, tie: w.length > 1 };
+}
+const showCounts = () => !S.secret || allVoted();
+function vote(i) {
+  if (S.lock) return;
+  S.votes[me()] = i; clearTimeout(cdT); clearInterval(cdI); S.cd = 0;
+  if (allVoted()) {
+    S.cd = 3; cdI = setInterval(() => { S.cd = Math.max(0, S.cd - 1); render(); }, 1000);
+    cdT = setTimeout(() => { clearInterval(cdI); const t = tally(); S.lock = { i: t.win, ...t }; S.cd = 0; render(); }, 3000);
+  }
+  render();
+}
+function mates() {
+  S.votes.forEach((v, k) => { if (k < S.n && k !== me() && v === null) setTimeout(() => { S.votes[k] = Math.random() < .5 ? 0 : 1; if (allVoted() && S.votes[me()] !== null) vote(S.votes[me()]); else render(); }, 500 + Math.random() * 1500); });
+}
+
+// ---------- helpers ----------
+const SKULL = ['.XXXXXX.','XXXXXXXX','XX.XX.XX','XX.XX.XX','XXXXXXXX','.XXXXXX.','.X.XX.X.','.X.XX.X.'];
+const skPath = SKULL.map((r, y) => [...r].map((c, x) => c === 'X' ? `M${x} ${y}h1v1h-1z` : '').join('')).join('');
+const skSvg = o => `<svg viewBox="0 0 8 8" width="1em" height="1em" style="opacity:${o}" fill="currentColor" shape-rendering="crispEdges"><path d="${skPath}"/></svg>`;
+const sk = d => `<span class="sk" role="img" aria-label="Danger ${d} of 3">${[0,1,2].map(i => skSvg(i < d ? 1 : .2)).join('')}</span>`;
+const rl = (p, fs = 22) => `<ul class="rl" style="font-size:${fs}px">${p.rules.map(r => `<li>${r}</li>`).join('')}</ul>`;
+const kvs = p => `<div class="kv"><span>WHILE ON IT</span><b class="${p.danger > 1 ? 'good' : ''}">${bonus(p.danger)}</b></div><div class="kv"><span>PRIZE</span><b class="gold">${prize(p)}</b></div>`;
+const cv = (p, w, h, st = '') => `<canvas class="pv" data-p="${p.id}" width="${w}" height="${h}" style="${st}"></canvas>`;
+const optName = i => i === 2 ? 'PLAIN ARENA' : P[OFFER[i]].name.toUpperCase();
+// one voter chip. Secret ballot hides who voted for what (but you still see your own vote and who has voted).
+function chip(k, i) {
+  const pl = ALL[k], v = S.votes[k], mine = k === me();
+  if (v === null) return i === undefined ? `<span class="vt wait"><i></i>${pl.name}</span>` : '';
+  if (i !== undefined && v !== i) return '';
+  if (S.secret && !allVoted() && !mine) return i === undefined ? `<span class="vt sec"><i></i>${pl.name}</span>` : '';
+  return `<span class="vt ${mine ? 'you' : ''}" style="--c:${pl.c}"><i></i>${pl.name}</span>`;
+}
+const chipsFor = i => players().map((_, k) => chip(k, i)).join('');
+const roster = () => players().map((_, k) => { const v = S.votes[k]; if (v === null) return chip(k); return S.secret && !allVoted() && k !== me() ? chip(k) : `<span class="vt" style="--c:${ALL[k].c}"><i></i>${ALL[k].name}</span>`; }).join('');
+const status = () => {
+  const n = votesOf().filter(v => v !== null).length;
+  if (S.lock) return 'ROUTE LOCKED';
+  if (S.cd) return `ALL VOTES IN · LOCKING IN <span class="cd">${S.cd}</span> · CHANGE YOUR VOTE TO RESTART`;
+  return `${n} OF ${S.n} VOTED · MOST VOTES WINS · TIE GOES TO ${ALL[0].name} (HOST)`;
+};
+const cnt = i => showCounts() ? tally().c[i] : '?';
+const lockOv = () => {
+  if (!S.lock) return '';
+  const L = S.lock, total = S.n;
+  const why = total === 1 ? 'YOUR CALL' : L.tie ? `TIE · HOST'S VOTE BREAKS IT` : L.c[L.i] === total ? 'UNANIMOUS' : `${L.c[L.i]} VOTES TO ${total - L.c[L.i]}`;
+  return `<div class="lock"><div class="box"><div style="font-size:24px;color:var(--dim);letter-spacing:.14em;text-shadow:none">ROUTE LOCKED · ${why}</div><div class="t">${optName(L.i)}</div><div class="s">WAVES ${FROM}-${TO} · BOSS AT WAVE ${BOSS} IS UNCHANGED</div></div></div>`;
+};
+const head = (sub) => `<div class="dim"></div>
+  <div class="title" style="top:22px;font-size:56px;letter-spacing:.08em">CHOOSE YOUR PATH</div>
+  <div class="title" style="top:82px;font-size:22px;color:#8e9cc2;text-shadow:none;letter-spacing:.1em">${sub}</div>`;
+const sub = `WAVES ${FROM}-${TO} · EVERYONE VOTES · THE BOSS AT WAVE ${BOSS} IS THE SAME EITHER WAY`;
+const statusLine = (top) => `<div class="title" style="top:${top}px;font-size:24px;letter-spacing:.08em;color:${S.cd ? '#dfeaff' : '#8e9cc2'};text-shadow:none">${status()}</div>`;
+const voteKey = (d, i, label, extra = '') => `<button class="k ${S.votes[me()] === i ? 'on' : ''}" data-act="vote" data-i="${i}" ${S.lock ? 'disabled' : ''} ${extra}><span>${label}</span></button>`;
+const mineTxt = i => S.votes[me()] === i ? '[ YOUR VOTE ]' : 'VOTE FOR THIS PATH';
+
+// ---------- A: twin tubes ----------
+function dA() {
+  const t = tally(), lead = showCounts() ? t.win : null;
+  const card = (id, i) => { const p = P[id]; return `<div class="tube ${S.votes[me()] === i ? 'pick' : ''} ${lead === i && S.votes[me()] !== i ? 'lead' : ''}" style="left:60px;top:116px;width:550px;height:450px;${i ? 'left:670px' : ''}">
+    <div class="roll"></div><div class="in">
+      ${cv(p, 220, 52, 'height:118px')}
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="nm">${p.name.toUpperCase()}</span>${sk(p.danger)}</div>
+      <div class="lab">${p.kind.toUpperCase()} · ${p.blurb.toUpperCase()}</div>
+      ${rl(p)}${kvs(p)}
+      <div style="margin-top:auto;display:flex;gap:16px;align-items:flex-end">
+        <div style="flex:none;text-align:center"><div class="lab" style="font-size:16px">VOTES</div><div class="big">${cnt(i)}</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:7px;min-width:0">
+          <div style="display:flex;gap:14px;flex-wrap:wrap;min-height:24px;align-items:center">${chipsFor(i) || '<span class="lab" style="font-size:18px">NO VOTES YET</span>'}</div>
+          ${voteKey('A', i, mineTxt(i))}
+        </div></div>
+    </div></div>`; };
+  return `${head(sub)}${OFFER.map(card).join('')}
+    <div class="tube" style="left:340px;top:586px;width:600px;height:50px"><div class="in" style="padding:0;flex-direction:row;align-items:stretch">
+      <button class="k ${S.votes[me()] === 2 ? 'on' : ''}" data-act="vote" data-i="2" ${S.lock ? 'disabled' : ''} style="border:0;height:100%"><span>NO PATH · STAY ON THE PLAIN ARENA</span><span>${cnt(2)}</span></button></div></div>
+    <div style="position:absolute;left:60px;top:586px;width:260px;display:flex;gap:12px;flex-wrap:wrap;font-family:var(--f-crt);align-content:center;height:50px">${chipsFor(2)}</div>
+    <div style="position:absolute;left:670px;top:586px;width:550px;height:50px;display:flex;gap:16px;align-items:center;justify-content:flex-end;font-family:var(--f-crt);color:var(--ink)">${roster()}</div>
+    ${statusLine(660)}${lockOv()}`;
+}
+
+// ---------- B: ballot console ----------
+function bar(n, total, color) {
+  const cells = 12, full = showCounts() && total ? Math.round(n / total * cells) : 0;
+  return `<span style="letter-spacing:2px;font-size:30px;color:${color}">${'█'.repeat(full)}<span style="color:var(--dim);opacity:.45">${'░'.repeat(cells - full)}</span></span>`;
+}
+function dB() {
+  const t = tally(), lead = showCounts() ? t.win : null, cur = S.votes[me()] === null ? 0 : S.votes[me()], dp = cur === 2 ? null : P[OFFER[cur]];
+  const row = (i) => {
+    const p = i === 2 ? null : P[OFFER[i]], on = S.votes[me()] === i;
+    return `<button class="k ${on ? 'on' : ''}" data-act="vote" data-i="${i}" ${S.lock ? 'disabled' : ''} style="padding:10px 12px 8px;display:grid;grid-template-columns:34px 190px 1fr 40px;align-items:center;gap:12px;height:104px">
+      <kbd>${i + 1}</kbd>
+      ${p ? cv(p, 76, 52, 'height:76px;width:190px;border-color:' + (on ? 'var(--sbg)' : 'var(--dim)')) : `<span style="width:190px;height:76px;border:2px dashed ${on ? 'var(--sbg)' : 'var(--dim)'};display:flex;align-items:center;justify-content:center;font-size:20px;text-shadow:none">NO FLOOR</span>`}
+      <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:34px;line-height:1">${p ? p.name.toUpperCase() : 'PLAIN ARENA'}</span>
+        ${bar(showCounts() ? t.c[i] : 0, S.n, on ? 'var(--sbg)' : (lead === i ? 'var(--gold)' : 'var(--ink)'))}</span>
+      <span style="font-size:44px;text-align:right">${cnt(i)}</span></button>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;min-height:26px;padding:0 4px 4px 50px">${chipsFor(i)}</div>`;
+  };
+  const dossier = dp ? `<div class="nm" style="font-size:38px">${dp.name.toUpperCase()}</div>${sk(dp.danger)}<div class="lab">${dp.kind.toUpperCase()} · ${dp.blurb.toUpperCase()}</div>${rl(dp)}${kvs(dp)}` :
+    `<div class="nm" style="font-size:38px">PLAIN ARENA</div><div class="lab">NO CHANGE FOR THESE WAVES</div><ul class="rl"><li>The usual arena and enemies</li></ul><div class="kv"><span>WHILE ON IT</span><b>No bonus</b></div><div class="kv"><span>PRIZE</span><b>None</b></div>`;
+  return `${head(sub)}
+    <div class="tube" style="left:60px;top:116px;width:1160px;height:500px"><div class="roll"></div><div class="in" style="flex-direction:row;gap:26px">
+      <div style="flex:1.45;display:flex;flex-direction:column;gap:6px;min-width:0"><div class="lab" style="font-size:20px">BALLOT · PRESS 1, 2 OR 3 · ONE VOTE EACH</div>${row(0)}${row(1)}${row(2)}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:9px;border-left:2px solid var(--dim);padding-left:24px;min-width:0"><div class="lab" style="font-size:20px">DOSSIER · ${cur === 2 ? 'PLAIN' : 'PATH ' + (cur + 1)}</div>${dossier}
+        <div style="margin-top:auto"><div class="lab" style="font-size:18px;margin-bottom:6px">BALLOT BOX</div><div style="display:flex;gap:16px;flex-wrap:wrap">${roster()}</div></div></div>
+    </div></div>
+    ${statusLine(640)}${lockOv()}`;
+}
+
+// ---------- C: tug of war ----------
+function dC() {
+  const t = tally(), lead = showCounts() ? t.win : null;
+  const card = (id, i) => { const p = P[id], on = S.votes[me()] === i; return `<div class="tube ${on ? 'pick' : ''} ${lead === i && !on ? 'lead' : ''}" style="top:108px;width:560px;height:346px;left:${i ? 660 : 60}px">
+    <div class="roll"></div><div class="in" style="gap:6px">
+      <div style="display:flex;gap:16px"><div style="width:200px;flex:none">${cv(p, 100, 52, 'height:104px')}</div>
+        <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;align-items:center"><span class="nm" style="font-size:30px;white-space:nowrap">${p.name.toUpperCase()}</span>${sk(p.danger)}</div><div class="lab" style="font-size:16px">${p.kind.toUpperCase()}</div>${rl(p, 19)}</div></div>
+      ${kvs(p)}
+      <div style="display:flex;gap:14px;flex-wrap:wrap;min-height:24px;margin-top:2px">${chipsFor(i)}</div>
+      <div style="margin-top:auto">${voteKey('C', i, mineTxt(i))}</div>
+    </div></div>`; };
+  // tug bar: position runs from path 1 (left) to path 2 (right); plain arena votes sit in the centre cell
+  const tot = Math.max(1, S.n), pos = showCounts() ? 50 + (t.c[1] - t.c[0]) / tot * 42 : 50;
+  const mark = (k) => { const v = S.votes[k]; return v === null ? '' : ''; };
+  const hostChip = showCounts() && t.tie ? `<div style="position:absolute;left:${S.votes[0] === 1 ? 74 : S.votes[0] === 0 ? 26 : 50}%;top:-34px;transform:translateX(-50%);font-size:18px;background:var(--gold);color:var(--sbg);padding:1px 8px 0;text-shadow:none;white-space:nowrap">CASTING VOTE ▼</div>` : '';
+  return `${head(sub)}${OFFER.map(card).join('')}
+    <div class="tube" style="left:60px;top:470px;width:1160px;height:104px"><div class="in" style="padding:14px 22px;justify-content:center;gap:8px">
+      <div style="display:flex;justify-content:space-between;font-size:26px;letter-spacing:.06em"><span>◄ ${P[OFFER[0]].name.toUpperCase()} · ${cnt(0)}</span><span style="color:var(--dim)">PLAIN ARENA · ${cnt(2)}</span><span>${cnt(1)} · ${P[OFFER[1]].name.toUpperCase()} ►</span></div>
+      <div style="position:relative;height:30px;border:2px solid var(--dim);background:repeating-linear-gradient(90deg, rgba(102,163,255,.12) 0 2px, transparent 2px 10%)">
+        <div style="position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--dim)"></div>${hostChip}
+        <div style="position:absolute;top:3px;bottom:3px;left:calc(${pos}% - 22px);width:44px;background:${lead === null ? 'var(--ink)' : 'var(--gold)'};box-shadow:0 0 16px ${lead === null ? 'var(--glow)' : 'rgba(242,193,78,.7)'};transition:left .4s"></div></div>
+    </div></div>
+    <div class="tube" style="left:60px;top:590px;width:1160px;height:56px"><div class="in" style="padding:0;flex-direction:row;align-items:center;gap:20px">
+      <button class="k ${S.votes[me()] === 2 ? 'on' : ''}" data-act="vote" data-i="2" ${S.lock ? 'disabled' : ''} style="border:0;height:100%;width:520px;flex:none"><span>3 · NO PATH · PLAIN ARENA</span><span>${cnt(2)}</span></button>
+      <div style="display:flex;gap:14px;flex:1;min-width:0;flex-wrap:wrap">${chipsFor(2)}</div><div style="display:flex;gap:16px;padding-right:20px">${roster()}</div></div></div>
+    ${statusLine(666)}${lockOv()}`;
+}
+
+// ---------- floor previews (canvas, procedural, one accent pattern each) ----------
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function paint(c, now) {
+  const p = P[c.dataset.p], g = c.getContext('2d'), w = c.width, h = c.height;
+  const rgb = a => `rgb(${a.map(v => Math.round(v * 255)).join(',')})`;
+  g.fillStyle = rgb(p.floor.map(v => v * .85)); g.fillRect(0, 0, w, h);
+  g.fillStyle = `rgba(${p.acc.map(v => Math.round(v * 255)).join(',')},.28)`;
+  for (let i = 0; i < w * h / 50; i++) { const x = hash(i + p.seed) * w | 0, y = (hash(i * 3 + p.seed) * h + (p.id === 'burning' ? 0 : 0)) | 0; g.fillRect(x, y, 1 + (i % 3 === 0), 1); }
+  if (p.id === 'burning') for (let k = 0; k < 4; k++) { const x = hash(k + 5) * w, y = hash(k + 9) * h, r = 7 + 3 * Math.sin(now / 300 + k); g.fillStyle = 'rgba(255,120,40,.55)'; g.fillRect(x - r, y - r / 2, r * 2, r); g.fillStyle = 'rgba(255,220,90,.7)'; g.fillRect(x - r / 2, y - r / 4, r, r / 2); }
+  if (p.id === 'sniper') { g.strokeStyle = 'rgba(255,200,100,.25)'; for (let y = 8; y < h; y += 12) { g.beginPath(); for (let x = 0; x <= w; x += 4) g.lineTo(x, y + 3 * Math.sin(x * .1 + y)); g.stroke(); } }
+  // a few enemy blobs so the floor reads as a battlefield
+  for (let k = 0; k < 4; k++) { const x = (k + .5) / 4 * w, y = h * .5 + (k % 2 ? 7 : -6) + 2 * Math.sin(now / 400 + k); g.fillStyle = `rgb(${p.acc.map(v => Math.round(v * 255)).join(',')})`; g.fillRect(x - 4, y - 4, 8, 8); g.fillStyle = '#000'; g.fillRect(x - 2, y - 1, 1, 2); g.fillRect(x + 1, y - 1, 1, 2); }
+}
+
+// ---------- render ----------
+const IDS = { A: dA, B: dB, C: dC };
+function render() {
+  document.getElementById('app').classList.toggle('nofx', !S.fx);
+  document.querySelectorAll('.stage').forEach(s => s.parentElement.classList.toggle('nofx', !S.fx));
+  for (const k in IDS) document.getElementById('s' + k).innerHTML = IDS[k]();
+  document.querySelectorAll('.seg[data-act]').forEach(b => {
+    const a = b.dataset.act, v = b.dataset.v; if (v === undefined) return;
+    const cur = a === 'n' ? S.n : a === 'host' ? +S.host : a === 'secret' ? +S.secret : a === 'fx' ? +S.fx : null;
+    b.setAttribute('aria-pressed', String(cur === +v));
+  });
+}
+function fit() { document.querySelectorAll('.view').forEach(v => { v.firstElementChild.style.transform = `scale(${v.clientWidth / 1280})`; }); }
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  if (a === 'vote') vote(+b.dataset.i);
+  else if (a === 'n') { S.n = +v; resetVotes(); render(); }
+  else if (a === 'host') { S.host = !!+v; resetVotes(); render(); }
+  else if (a === 'secret') { S.secret = !!+v; render(); }
+  else if (a === 'fx') { S.fx = !!+v; render(); }
+  else if (a === 'mates') mates();
+  else if (a === 'reset') { resetVotes(); render(); }
+});
+window.addEventListener('resize', fit);
+new ResizeObserver(fit).observe(document.body);
+resetVotes(); render(); fit();
+(function loop(now) { document.querySelectorAll('canvas.pv').forEach(c => paint(c, now)); requestAnimationFrame(loop); })(0);
+</script>
