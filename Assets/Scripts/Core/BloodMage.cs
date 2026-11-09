@@ -17,8 +17,6 @@ namespace Arena
         const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
-        public const float PactDuration = 4f;
-        const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f;  // Exsanguinate (Exsanguinate.cs)
         const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f;
         public const float MartyrWardTime = 12f;  // also the halo's twelve beads, one a second (Game/MartyrLook.cs)
@@ -639,12 +637,6 @@ namespace Arena
                 RepayDebt(p, dealt * DebtBossShare * p.DebtRepay, e.Pos, false);
         }
 
-        /// Enemies all go for a Blood Mage under Crimson Pact (PickTarget).
-        bool BloodTaunting(Player p) => p.PactT > 0f;
-
-        /// Damage cut from a mastered Crimson Pact (Damage).
-        float BloodCut(Player p) => p.PactT > 0f && p.PactMastered ? PactMasteredCut : 0f;
-
         /// Blood Lash's Clot: each stack takes 4% off the damage you take.
         public static float ClotCut(Player p) => Math.Min(0.5f, ClotCutEach * p.Clot);
 
@@ -677,15 +669,6 @@ namespace Arena
         {
             e.TargetId = p.Id;
             e.RetargetT = Math.Max(e.RetargetT, time);
-        }
-
-        /// Damage about to come off a player's health (after shields): Crimson Pact stores it.
-        void BloodTookHit(Player p, float amount)
-        {
-            if (amount <= 0f)
-                return;
-            if (p.PactT > 0f)
-                p.PactStore += amount;
         }
 
         // --- Abilities ------------------------------------------------------------------
@@ -750,9 +733,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.CrimsonPact, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
-                Name = "Crimson Pact", Cooldown = 10f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px.",
-                Capstone = "You take 30% less damage while it lasts.",
-                Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.6f,
+                Name = "Blood Wall", Cooldown = 8f, Desc = "Toggle: a wall of blood is laid behind you as you walk. It stops enemy bullets and enemies can't cross it (they bleed 12 a second against it); allies walk through. It stands 6 s. It drains 1% of your max health a second, doubling every 4 s, until you press again or go down.",
+                Capstone = "Enemies against the wall take double and are slowed 40%.",
+                Bot = b => b.HaveTarget && b.TargetD < 320f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
@@ -840,17 +823,7 @@ namespace Arena
                     BroadcastFx(FxKind.ShellPop, p.Pos, new V2(p.Id, 2f), blood, ShellRadius, 0.5f, Sfx.Ability);  // forming
                     return true;
                 case AbilityId.CrimsonPact:
-                    p.PactT = PactTime;
-                    p.PactStore = 0f;
-                    p.PactPower = pw * s.PactMult;
-                    p.PactRadius = PactRadius * s.PactRadiusMult;
-                    p.PactMastered = cap;
-                    foreach (var e in Enemies.Values)
-                    {
-                        e.TargetId = p.Id;
-                        e.RetargetT = PactTime;
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, p.PactRadius, 0.5f, Sfx.Roar);
+                    OpenBloodWall(p, pw, cap);  // BloodWall.cs: a toggle, laid as you walk
                     return true;
                 case AbilityId.Exsanguinate:
                     CastExsanguinate(p, cap, blood);  // Exsanguinate.cs: the whips hook, the yank lands later
@@ -945,7 +918,7 @@ namespace Arena
 
         // --- Timed effects ---------------------------------------------------------------
 
-        /// Host, every tick: Crimson Pact runs down and bursts, Blood Debt's window runs out, Arterial Spray gushes.
+        /// Host, every tick: Blood Wall drains and is laid, Blood Debt's window runs out, Arterial Spray gushes.
         void TickBloodMages(float dt)
         {
             TickCoatings(dt);
@@ -958,7 +931,7 @@ namespace Arena
                     p.Grasp.Clear();  // let go of fire and the tendrils let go too
                 if (p.Downed)
                 {
-                    p.PactT = 0f;
+                    EndBloodWall(p);  // BloodWall.cs
                     ForfeitDebt(p, false);  // BloodDebt.cs
                     if (p.SprayOn)
                         CloseSpray(p, false);  // ArterialSpray.cs
@@ -970,22 +943,7 @@ namespace Arena
                     p.Clot--;
                     p.ClotT = ClotFade;
                 }
-                if (p.PactT > 0f)
-                {
-                    p.PactT -= dt;
-                    if (p.PactT <= 0f)
-                    {
-                        p.PactT = 0f;
-                        float dmg = p.PactStore * PactBurst * p.PactPower * p.Stats.DmgMult;
-                        if (dmg > 0f)
-                            foreach (var e in Enemies.Values)
-                                if (e.SpawnT <= 0f && e.Pos.DistanceTo(p.Pos) < p.PactRadius + e.Radius)
-                                    HurtEnemy(e, dmg, p.Id);
-                        BroadcastFx(FxKind.PactBurst, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), p.PactRadius, 0.45f, Sfx.Explode);
-                        BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), Math.Min(p.PactRadius, 40f + dmg * 0.5f), 0.35f, Sfx.None);  // bigger the more it held
-                        p.PactStore = 0f;
-                    }
-                }
+                TickBloodWall(p, dt);  // BloodWall.cs
                 TickDebt(p, dt);   // BloodDebt.cs
                 TickSpray(p, dt);  // ArterialSpray.cs
             }

@@ -269,21 +269,83 @@ static partial class Program
         Console.WriteLine("  lifesteal: dealt {0:0.0} (Blood Price at half health), healed {1:0.00}", dealt, healed);
         Check(dealt > 120f && Math.Abs(healed - dealt * 0.03f) < 0.05f, "Blood Mage hits heal it for 3% of the damage dealt");
 
-        // Crimson Pact: everyone targets you, and the damage you took bursts back out.
-        hp.Hp = hp.MaxHp;
-        place(1, 820f); run(0.2f);
-        use(AbilityId.CrimsonPact, hp.Pos);
-        bool taunted = g.Enemies.Values.Where(e => !keep.Contains(e)).All(e => e.TargetId == 1);
-        hp.DevGod = false;
-        damage.Invoke(g, new object[] { hp, 50f / g.EnemyDamageScale(g.Wave), "test" });  // 50 after the difficulty's wave growth
-        hp.DevGod = true;
-        run(0.3f);
-        bool seen = client.Game.Players[1].PactT > 0f;
-        float stored = hp.PactStore;
-        eBefore = d1.Hp;
-        run(4f);
-        Console.WriteLine("  crimson pact: stored {0:0}, burst dealt {1:0}; client saw it {2}", stored, eBefore - d1.Hp, seen);
-        Check(taunted && seen && Math.Abs(stored - 50f) < 0.5f && eBefore - d1.Hp > 74f, "Crimson Pact draws every enemy and bursts back 150% of the damage you took");
+        // Blood Wall: a toggle that lays a wall behind you as you walk. It stops enemy shots and enemies (who bleed against
+        // it), drains 1% of max health a second doubling every 4 s, and can take you down; the cooldown starts when it ends.
+        {
+            var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+            var revive = typeof(Game).GetMethod("RevivePlayer", flags);
+            hp.Hp = hp.MaxHp;
+            place(1, 400f); place(2, 1400f); run(0.2f);  // (the healer well away: a healer's aura is what stretches the wall)
+            float w0 = hp.Hp;
+            use(AbilityId.CrimsonPact, hp.Pos);
+            Check(hp.BloodWallOn && hp.Hp == w0, "Blood Wall opens on a press and costs nothing up front");
+            run(0.5f);  // standing still lays nothing
+            int still = g.Zones.Values.Count(z => z.Kind == ZoneKind.BloodWall);
+            Run(s, dt, 2f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; hp.Pos = new V2(Math.Min(700f, hp.Pos.X + 150f * dt), 450f); });
+            var nodes = g.Zones.Values.Where(z => z.Kind == ZoneKind.BloodWall && z.Owner == 1).OrderBy(z => z.Id).ToList();
+            bool chained = nodes.Skip(1).All(z => (int)z.Aim == nodes[nodes.IndexOf(z) - 1].Id) && nodes.All(z => Math.Abs(z.Pos.Y - 450f) < 0.5f);
+            run(0.2f);
+            bool seenWall = client.Game.Players[1].BloodWallOn && client.Game.Zones.Values.Count(z => z.Kind == ZoneKind.BloodWall) >= nodes.Count - 2;
+            Console.WriteLine("  blood wall: {0} nodes standing still, {1} after walking 300 px; chained {2}; the healer sees it {3}", still, nodes.Count, chained, seenWall);
+            Check(still == 0 && nodes.Count >= 22 && nodes.Count <= 26 && chained, "Blood Wall lays a node every 12 px as you walk, none standing still, each linked to the one before");
+            Check(seenWall, "other players see the wall and that it's up");
+
+            // An enemy shot crossing it stops there, red aimed shots too.
+            hp.Pos = new V2(800f, 600f);
+            var shot = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, new V2(550f, 350f), new V2(0f, 260f), 0f, 5f, 8f, 0, false, 0f });
+            var aimed = (Bullet)shoot.Invoke(g, new object[] { Defs.StunShot, new V2(500f, 360f), new V2(0f, 260f), 0f, 5f, 8f, 0, false, 0f });
+            bool splashed = false;
+            float shotY = 0f;
+            Run(s, dt, 0.8f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; hp.Pos = new V2(800f, 600f);
+                Bullet sb; if (g.Bullets.TryGetValue(shot.Id, out sb)) shotY = sb.Pos.Y;
+                splashed |= client.Game.Effects.Exists(e => e.Kind == FxKind.WallSplash); });
+            Console.WriteLine("  blood wall: the shot got to y {0:0}; the healer saw the splash {1}", shotY, splashed);
+            bool stopped = !g.Bullets.ContainsKey(shot.Id) && !g.Bullets.ContainsKey(aimed.Id) && shotY < 450f && splashed;
+            Check(stopped, "enemy shots stop on the wall (with a splash), aimed shots too");
+
+            // An enemy can't stand in it (pushed back out the side it came from) and bleeds while against it.
+            var foe = dummy(new V2(600f, 446f));
+            float wf0 = foe.Hp;
+            run(1f);
+            float bled = wf0 - foe.Hp;
+            Console.WriteLine("  blood wall: the enemy was pushed to y {0:0.0}, bled {1:0.0} in 1 s against it", foe.Pos.Y, bled);
+            Check(foe.Pos.Y <= 450f - Game.WallHalf - foe.Radius + 0.1f, "an enemy on the wall is pushed back out the side it came from");
+            Check(bled > 9f && bled < 16f, "an enemy pressed against the wall bleeds about 12 a second");
+            keep.Remove(foe); foe.Hp = 0f;
+
+            // The drain ramps: 1% of max a second, doubling every 4 s.
+            hp.DevGod = false;
+            hp.Hp = hp.MaxHp;
+            float wc0 = hp.BloodWallClock, h1 = hp.Hp;
+            run(2f);
+            float wc1 = hp.BloodWallClock, wantW = hp.MaxHp * 0.01f * 4f / (float)Math.Log(2) * ((float)Math.Pow(2, wc1 / 4f) - (float)Math.Pow(2, wc0 / 4f));
+            float lost = h1 - hp.Hp;
+            Console.WriteLine("  blood wall: drained {0:0.0} from {1:0.0} s to {2:0.0} s (ramp says {3:0.0})", lost, wc0, wc1, wantW);
+            Check(Math.Abs(lost - wantW) < wantW * 0.2f + 1f, "Blood Wall drains 1% of max health a second, doubling every 4 s");
+            hp.DevGod = true;
+
+            // A second press stops it; the cooldown starts then, and what was laid stands out its 6 s.
+            hp.Slots[0].Charges = 0;
+            cast.Invoke(g, new object[] { 1, 0, hp.Pos, false });
+            int left = g.Zones.Values.Count(z => z.Kind == ZoneKind.BloodWall);
+            Check(!hp.BloodWallOn && hp.Slots[0].Timer > 7f && left > 0, "pressing Blood Wall again stops it, the cooldown starts then, and the wall stays");
+            run(6.2f);
+            Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.BloodWall), "the wall crumbles after 6 s");
+
+            // Ride the ramp too long and it takes you down; the wall ends with you.
+            hp.Hp = hp.MaxHp;
+            use(AbilityId.CrimsonPact, hp.Pos);
+            hp.Slots[0].Charges = 0;  // (the charge the cast spent)
+            hp.DevGod = false;
+            hp.BloodWallClock = 28f;  // 128%/s
+            run(1f);
+            Check(hp.Downed && !hp.BloodWallOn && hp.Slots[0].Timer > 7f, "the ramp can take you down, and the wall ends when it does");
+            revive.Invoke(g, new object[] { hp, 1f, null });
+            hp.DevGod = true;
+            hp.Slots[0].Timer = 0f;
+            place(2, 540f);  // (the healer back where the tests after this expect them)
+            run(0.3f);
+        }
 
         // Exsanguinate: pulls enemies in and drains them into you.
         place(1, 700f); run(0.2f);

@@ -529,9 +529,8 @@ namespace Arena
             s.Float(ref p.DoseT);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
-            s.Float(ref p.PactT);
-            s.Float(ref p.PactStore);   // drawn: how much the Pact holds, and how far it bursts
-            s.Float(ref p.PactRadius);
+            s.Bool(ref p.BloodWallOn);  // Blood Wall (BloodWall.cs): the drain ring is drawn from how long it has been up
+            s.Float(ref p.BloodWallClock);
             s.Float(ref p.DebtT);   // Blood Debt (BloodDebt.cs): the window, what's owed and what the cast took
             s.Float(ref p.Debt);
             s.Float(ref p.DebtOwed);
@@ -803,7 +802,8 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall ? z.GuardFrac  // a Blood Wall node's place along its wall (BloodWall.cs)
+                    : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
             int kind = (int)z.Kind;
             s.Int(ref z.Id);

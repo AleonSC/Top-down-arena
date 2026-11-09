@@ -26,19 +26,6 @@ namespace Arena
                     Arc(p.Disp, r + 3f, 3f, plate, 6, p.Aim + seg * k + 0.08f, seg - 0.16f);
             }
             // Abilities
-            if (p.PactT > 0f)  // Crimson Pact: a ring of thorns growing longer as it stores damage, and the time left
-            {
-                float held = PactFill(p);
-                for (int k = 0; k < 10; k++)
-                {
-                    V2 d = V2.FromAngle(MathX.Tau * k / 10f + t * 0.8f);
-                    Line(p.Disp + d * (r + 8f), p.Disp + d * (r + 14f + 10f * held + 2f * Mathf.Sin(t * 12f + k)), 2f + 1.5f * held, BloodRed.WithAlpha(0.8f * a));
-                }
-                Circle(p.Disp, r * (0.25f + 0.45f * held), new Rgba(1f, 0.25f, 0.3f, (0.35f + 0.4f * held) * a), 16);  // the blood it holds, welling up in you
-                float left = MathX.Clamp01(p.PactT / Game.PactDuration);
-                Arc(p.Disp, r + 5f, 2f, BloodDark.WithAlpha(0.7f * a), 24, -MathX.Pi / 2f, MathX.Tau);
-                Arc(p.Disp, r + 5f, 2f, new Rgba(1f, 0.55f, 0.6f, 0.9f * a), 24, -MathX.Pi / 2f, MathX.Tau * left);  // the countdown
-            }
             // (Blood Debt's ring and Arterial Spray's jet are drawn for any class: WorldPlayers.cs)
         }
 
@@ -89,23 +76,12 @@ namespace Arena
             }
         }
 
-        /// Under a blood mage: Crimson Pact's closing ring (DrawPlayerAuras). Vein Tithe, Sanguine Rain and Crimson Harvest draw their own (VeinTitheLook.cs, SanguineRainLook.cs, CrimsonHarvestLook.cs).
+        /// Under a blood mage: Blood Wall's veins up to their feet and its drain ring (BloodWallLook.cs). Vein Tithe, Sanguine Rain and Crimson Harvest draw their own (VeinTitheLook.cs, SanguineRainLook.cs, CrimsonHarvestLook.cs).
         void DrawBloodAuras(Player p, float t)
         {
             if (p.Downed)
                 return;
-            if (p.PactT > 0f && p.PactRadius > 0f)  // Crimson Pact: where its burst will reach, closing in red as it nears
-            {
-                float left = MathX.Clamp01(p.PactT / Game.PactDuration), soon = 1f - left;
-                bool last = p.PactT < 1f;
-                Circle(p.Disp, p.PactRadius, BloodRed.WithAlpha(0.03f + 0.07f * soon * soon), 56);
-                Arc(p.Disp, p.PactRadius, last ? 3f : 2f, BloodRed.WithAlpha(last && MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.35f + 0.3f * soon), 56);
-                for (int k = 0; k < 12; k++)  // thorns along the rim, pointing out
-                {
-                    V2 d = V2.FromAngle(MathX.Tau * k / 12f - t * 0.4f);
-                    Line(p.Disp + d * (p.PactRadius - 6f), p.Disp + d * (p.PactRadius + 6f + 6f * PactFill(p)), 2f, BloodRed.WithAlpha(0.45f + 0.3f * soon));
-                }
-            }
+            DrawWallTail(p, p.Def.BodyR, t, 1f);
         }
 
         /// Implosion: the enemy your click would hit gets four blood ticks pointing in at it.
@@ -302,9 +278,6 @@ namespace Arena
             }
         }
 
-        /// How full a Crimson Pact is, 0..1: the damage it holds against a third of its caster's max health.
-        static float PactFill(Player p) => p.MaxHp > 0f ? MathX.Clamp01(p.PactStore / (p.MaxHp * 0.33f)) : 0f;
-
         /// A Hemomancer's shield (Blood Shell; Blood Gift cast alone): plates of clotted blood around them, fewer and
         /// cracking as it's worn down, with a glossy sheen.
         void DrawBloodShellOn(Player p, float t)
@@ -391,22 +364,6 @@ namespace Arena
             Circle(a0, w + 6f * (1f - f), BloodDark.WithAlpha(0.6f * (1f - f)), 12);
             if (f > 0.4f)
                 Arc(b0, 12f + 14f * (f - 0.4f), 2.5f, BloodRed.WithAlpha(1f - f), 20);
-        }
-
-        /// Crimson Pact bursting (FxKind.PactBurst): thorns of blood spike out to its reach, and a ring rides out with them.
-        void DrawPactBurstFx(Effect fx, float f)
-        {
-            float g = 1f - (1f - f) * (1f - f), reach = fx.Radius * g;
-            for (int k = 0; k < 18; k++)
-            {
-                V2 d = V2.FromAngle(k * MathX.Tau / 18f + 0.17f);
-                float len = k % 2 == 0 ? 1f : 0.75f;
-                V2 tip = fx.Pos + d * (reach * len), side = d.Orthogonal();
-                SetColor(BloodRed.WithAlpha(0.85f * (1f - f)));
-                Tri(fx.Pos + d * (reach * len * 0.3f) + side * 5f, fx.Pos + d * (reach * len * 0.3f) - side * 5f, tip);
-            }
-            Arc(fx.Pos, Mathf.Max(1f, reach), 4f, BloodRed.WithAlpha(1f - f), 48);
-            Circle(fx.Pos, fx.Radius * 0.3f * (1f - f), BloodDark.WithAlpha(0.7f * (1f - f)), 20);
         }
 
         /// A drop of blood: round, with a point trailing behind its direction of travel.

@@ -426,7 +426,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.BloodBoil && p.SprayOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.BattleFury && p.SteelT > 0f)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.BloodBoil && p.SprayOn || s.Id == AbilityId.CrimsonPact && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.BattleFury && p.SteelT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
@@ -1003,9 +1003,10 @@ namespace Arena
                 bool rainOut = RainPress(me, slot);  // Sanguine Rain pressed again: the host cancels it (SanguineRain.cs)
                 bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
                 bool steelOut = SteelRelease(me, slot);  // Caught Steel pressed again: the host throws the shards (CaughtSteel.cs)
+                bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
                 if (me.Slots[slot].Id == AbilityId.Whirlwind && MercyFirst(me, aimAt) == null)
                     continue;  // Misericorde with nobody wounded in reach: don't waste the cooldown (Misericorde.cs)
-                if (!orbitOut && !standOut && !harvestOut && !rainOut && !shellOut && !sprayOut && !steelOut && !Consume(me, slot, false))
+                if (!orbitOut && !standOut && !harvestOut && !rainOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
@@ -1179,6 +1180,7 @@ namespace Arena
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges();    // the Drawbridge (Drawbridge.cs)
+            KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);

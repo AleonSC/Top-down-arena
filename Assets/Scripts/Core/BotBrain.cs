@@ -265,6 +265,13 @@ namespace Arena
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
+                if (s.Id == AbilityId.CrimsonPact && me.BloodWallOn)
+                {
+                    held[slot] = botHeldLast[slot] = false;
+                    if (me.BloodWallClock > 1f && (me.Hp < me.MaxHp * 0.4f || BotDanger < 0.05f && target == null))  // bled enough, or nothing left to wall off: stop
+                        held[slot] = botHeldLast[slot] = true;
+                    continue;
+                }
                 if (s.Id == AbilityId.BloodShell && me.ShellOn)
                 {
                     held[slot] = botHeldLast[slot] = false;

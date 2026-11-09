@@ -54,7 +54,7 @@ namespace Arena
 
         // --- Buff timers ----------------------------------------------------------------------------------------------
 
-        /// Every timed buff a player can have (all replicated), and its colour. Crimson Pact draws its own countdown.
+        /// Every timed buff a player can have (all replicated), and its colour.
         static readonly KeyValuePair<Func<Player, float>, Rgba>[] Buffs =
         {
             Buff(p => p.BarrierT, new Rgba(0.5f, 0.8f, 1f)),       // Barrier
@@ -111,7 +111,7 @@ namespace Arena
 
         // --- Taunts ---------------------------------------------------------------------------------------------------
 
-        /// The player every enemy is going for right now (Roar, Crimson Pact), or null.
+        /// The player every enemy is going for right now (Roar), or null.
         Player Taunter()
         {
             Player best = null;
@@ -119,7 +119,7 @@ namespace Arena
             {
                 if (p.Downed)
                     continue;
-                if (p.TauntT > 0f || p.PactT > 0f)
+                if (p.TauntT > 0f)
                     best = p;
             }
             return best;

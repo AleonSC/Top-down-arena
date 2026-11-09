@@ -254,6 +254,9 @@ namespace Arena
                 case ZoneKind.Drawbridge:
                     DrawDrawbridge(z, t);  // DrawbridgeLook.cs
                     return;
+                case ZoneKind.BloodWall:
+                    DrawBloodWallNode(z, t);  // BloodWallLook.cs
+                    return;  // no timer ring: it's a wall
                 case ZoneKind.HoneyPool:
                     DrawHoneyPool(z, c, t);  // QueenLootLook.cs
                     break;

@@ -18,6 +18,7 @@ namespace Arena
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
             DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
+            DrawBloodWallHud();  // Blood Wall's drain over each tank laying one (BloodWallLook.cs)
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
             DrawKnightDpsPops();  // "† 11", READY, the chain ending, Caught Steel's pips (KnightDpsLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
@@ -521,6 +522,8 @@ namespace Arena
             }
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
                 Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, Color.white, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
+            else if (slot.Id == AbilityId.CrimsonPact && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "ON", 19, Color.white, new Color(1f, 0.33f, 0.41f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
                 Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
             else

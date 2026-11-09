@@ -4,6 +4,7 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // ROOM, APPROACH, PATTERNS, PATCHES, MODS, PATHON, ...).
 static partial class Shot {
   static void PlayerScenes() {
+    BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
@@ -399,8 +400,7 @@ static partial class Shot {
         foreach (var q in gm.Players.Values) if (q != me) { me.RainClock = 0f; gm.Effects.Add(new Effect { Kind = FxKind.RainRelease, Pos = q.Pos, Pos2 = q.Pos, Color = new Rgba(0.88f, 0.13f, 0.25f), Radius = Game.RainRingR, Dur = 0.9f, T = float.Parse(Environment.GetEnvironmentVariable("RAINEND")) }); }
     }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
-      // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
-      // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
+      // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2). The caster stands in the middle with the enemies brought in around them; its name pops up over them.
       var gm = host.Game; gm.Bot = false;
       var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
       var adef = Upgrades.Ability(aid);
@@ -428,7 +428,6 @@ static partial class Shot {
       }
       me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
-      if (Environment.GetEnvironmentVariable("CASTSTORE") != null) me.PactStore = float.Parse(Environment.GetEnvironmentVariable("CASTSTORE"));
       float ct = float.Parse(Environment.GetEnvironmentVariable("CASTT") ?? "0.2");
       for (int f = 0; f < 60 * ct; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
       me.Disp = me.Pos;
