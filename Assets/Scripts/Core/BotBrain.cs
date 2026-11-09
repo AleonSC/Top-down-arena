@@ -263,6 +263,14 @@ namespace Arena
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
+                Zone bath;
+                if (s.Id == AbilityId.Bloodbath && (bath = ActiveBath(me)) != null)
+                {
+                    held[slot] = botHeldLast[slot] = false;
+                    if (BathAge(bath) > 1.5f && (BathWading(bath) == 0 || me.Hp < me.MaxHp * 0.25f))  // nothing wading, or bled enough: stop the channel
+                        held[slot] = botHeldLast[slot] = true;
+                    continue;
+                }
                 if (s.Id == AbilityId.BloodBoil && me.SprayOn)
                 {
                     held[slot] = botHeldLast[slot] = false;
