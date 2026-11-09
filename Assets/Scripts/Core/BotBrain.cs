@@ -235,6 +235,9 @@ namespace Arena
             }
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
+            else if (me.Weapon.Id == WeaponId.ClotBolt && bowDraw >= BowMinDraw
+                && ClotDistance(BowCharge(me, bowDraw)) * me.Stats.ShotSpeedMult >= aimAt.DistanceTo(me.Pos))
+                firing = false;  // the Clot Cannon: let go once the clot would land on what it's aimed at
 
             // --- Abilities.
             for (int i = 0; i < held.Length; i++)

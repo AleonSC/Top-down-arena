@@ -856,7 +856,7 @@ static partial class Program
 
     static void LastFourTest(float dt)
     {
-        // Clot Bolt pools congeal, sticking enemies and guarding their owner; Transfusion Darts give an ally a lot for a little
+        // The Clot Cannon lobs a clot that splashes the same at any range and leaves a pool that congeals; Transfusion Darts give an ally a lot for a little
         // and steal a sliver from enemies; the Rapier's Tempo, skewering and Flourish; the Katana's chain, meter and Alt strike.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
@@ -893,27 +893,50 @@ static partial class Program
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Zones.Clear(); };
         play(0.3f, new PlayerInput());
 
-        // Clot Bolt: the pool congeals after a second, sticking the enemy in it; standing in it, you take less.
+        // Clot Cannon: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
+        // It splashes everything where it lands and leaves a big pool that congeals after a second, sticking the enemies
+        // in it; standing in your own pool no longer guards you.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ClotBolt);
-        var stuck = dummy(from + new V2(200f, 0f), 1e5f);
+        Check(Game.ChargeWeapon(WeaponId.ClotBolt) && me.Weapon.Name == "Clot Cannon", "the tank Hemomancer's Clot Cannon charges like a bow");
+        var tapNear = dummy(from + new V2(Game.ClotMin, 0f), 1e5f);
+        var tapFar = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
+        me.BowShotDraw = Game.BowMinDraw;
         volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(0.6f, new PlayerInput());
+        play(Game.ClotFlight(0f) + 0.1f, new PlayerInput());
+        float tapHit = tapNear.MaxHp - tapNear.Hp, tapMiss = tapFar.MaxHp - tapFar.Hp;
+        reset();
+        var under = dummy(from + new V2(Game.ClotMax * 0.5f, 0f), 1e5f);
+        var stuck = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
+        var beside = dummy(from + new V2(Game.ClotMax, Game.ClotSplash + 40f), 1e5f);  // outside the splash, inside the pool
+        me.BowShotDraw = g.BowFull(me);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(Game.ClotFlight(1f) + 0.05f, new PlayerInput());
+        float fullHit = stuck.MaxHp - stuck.Hp, underHit = under.MaxHp - under.Hp, besideHit = beside.MaxHp - beside.Hp;
         var pool = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.BloodPool);
-        bool wetFree = stuck.FrozenT <= 0f;
-        play(0.8f, new PlayerInput());
-        bool setStuck = stuck.FrozenT > 0f;
+        Console.WriteLine("  clot cannon: tap {0:0.0} at {1} px, {2:0.0} at {3} px; full {4:0.0} at {3} px, under the arc {5:0.0}, beside the splash {6:0.0}; pool {7:0} px",
+            tapHit, Game.ClotMin, tapMiss, Game.ClotMax, fullHit, underHit, besideHit, pool != null ? pool.Radius : 0f);
+        Check(tapHit > 0f && tapMiss == 0f && fullHit > 0f && underHit == 0f && besideHit == 0f,
+            "a tap lobs the clot close, a full charge as far as it goes, over the enemies under its arc");
+        Check(Math.Abs(tapHit - fullHit) < 0.01f, "the clot hits just as hard at any range");
+        Check(pool != null && Math.Abs(pool.Radius - Game.ClotPoolRadius) < 0.5f && Math.Abs(pool.Pos.X - (from.X + Game.ClotMax)) < 12f,
+            "it leaves a big pool where it lands");
+        play(0.5f, new PlayerInput());
+        bool wetFree = stuck.FrozenT <= 0f && beside.FrozenT <= 0f;
+        play(0.6f, new PlayerInput());
+        bool setStuck = stuck.FrozenT > 0f && beside.FrozenT > 0f;
+        Check(wetFree && setStuck, "the pool congeals after a second, sticking every enemy in it");
         g.DevSetGod(1, false);
         me.Hp = me.MaxHp; me.ShieldHp = 0f; damage.Invoke(g, new object[] { me, 20f, "Test" }); float outside = me.MaxHp - me.Hp;
         if (pool != null) from = pool.Pos;
         play(0.02f, new PlayerInput());
         me.Hp = me.MaxHp; me.ShieldHp = 0f; damage.Invoke(g, new object[] { me, 20f, "Test" }); float inside = me.MaxHp - me.Hp;
         g.DevSetGod(1, true);
-        Console.WriteLine("  clot bolt: pool {0}; enemy free while wet {1}, stuck once it congealed {2}; 20 damage taken outside {3:0.0}, in your pool {4:0.0}",
-            pool != null, wetFree, setStuck, outside, inside);
-        Check(pool != null && wetFree && setStuck, "a Clot Bolt's pool congeals after a second, sticking the enemies in it");
-        Check(Math.Abs(inside - outside * (1f - Game.PoolGuard)) < 0.6f, "you take less damage standing in your own pool");
+        Console.WriteLine("  clot cannon: enemy free while wet {0}, stuck once it congealed {1}; 20 damage taken outside {2:0.0}, in your pool {3:0.0}",
+            wetFree, setStuck, outside, inside);
+        Check(Math.Abs(inside - outside) < 0.01f && outside > 0f, "standing in your own pool doesn't guard you any more");
         from = new V2(300f, 450f);
         reset();
+        g.Orbs.Clear();  // the dummies just cleared may drop health orbs where the next test's ally stands
 
         // Transfusion Darts: a hurt ally gets a lot, you pay a little; an enemy hit steals a sliver.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TransfusionDarts);
@@ -993,6 +1016,7 @@ static partial class Program
 
         // With the +1 upgrade a thrust hits two enemies: two Tempo, and both take the same flat damage.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        me.Hp = me.MaxHp;  // a Hemomancer's Blood Price adds damage while hurt: start whole, so every thrust is alike
         me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
         var near2 = dummy(from + new V2(60f, 0f), 1e6f);
         var far2 = dummy(from + new V2(100f, 0f), 1e6f);

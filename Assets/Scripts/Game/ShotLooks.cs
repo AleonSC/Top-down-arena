@@ -77,6 +77,11 @@ namespace Arena
         {
             if (b.Kind == Defs.SteelShard)
                 return;  // it carries its own glow (KnightDpsLook.cs)
+            if (b.Kind == Defs.ClotShot)
+            {
+                GlowDisc(b.Pos + new V2(0f, -ClotLift(b)), 34f, Defs.BulletColor(b.Kind), 0.3f);  // up on its arc with it (ClotCannonLook.cs)
+                return;
+            }
             if (IsLightCrescent(b))
             {
                 DrawSunriseCrescent(b);  // all light (LightbringerFxLook.cs)

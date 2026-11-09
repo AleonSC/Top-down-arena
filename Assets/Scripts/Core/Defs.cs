@@ -439,7 +439,7 @@ namespace Arena
                 case GustShot: return 9f;
                 case FumaStar: return 20f;  // giant
                 case BloodShot: return 4f;
-                case ClotShot: return 7f;
+                case ClotShot: return 14f;  // the Clot Cannon's massive clot (lobbed: it never collides)
                 case LeechShot: return 3.5f;
                 case TransfuseShot: return 3f;
                 case SanguineShot: return 6.5f;

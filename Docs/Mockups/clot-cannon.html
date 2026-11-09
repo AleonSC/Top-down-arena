@@ -1,0 +1,801 @@
+<title>Clot Cannon</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead, one animated arena with look and speed controls, the three looks as selectable cards,
+   then the timeline of a shot, the numbers against the old Clot Bolt, and open questions.
+   Single dark look: clotted venous blood, deep maroon on near-black stone; crust browns for the congealed state. */
+:root{
+  --bg:#0e0506; --panel:#1a0a0d; --panel2:#22100f; --fg:#f2e4e3; --muted:#b5908f; --line:#3a1619;
+  --acc:#e8263f; --acc2:#6e0a1a; --crust:#a0573c; --arena:#0b0405;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+h1{font:700 clamp(44px,8vw,84px)/.9 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 14px;text-wrap:balance}
+h1 s{color:var(--muted);text-decoration-thickness:4px;text-decoration-color:var(--acc);font-size:.5em;vertical-align:middle;margin-right:.3em}
+.lede{margin:0;max-width:64ch;color:var(--muted);font-size:17px}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px;color:var(--acc);text-wrap:balance}
+p{max-width:68ch}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 22px 60px -24px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:1200/667;cursor:crosshair;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--panel);color:var(--fg);font-variant-numeric:tabular-nums}
+.seg input:checked+label{background:var(--acc);color:#16040a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--acc2);border-color:var(--acc);color:#fff}
+.hint{font:400 13px var(--mono);color:var(--muted)}
+.looks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.look{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px 16px 18px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;min-width:0}
+.look input{position:absolute;opacity:0;pointer-events:none}
+.look .tag{font:500 12px var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.look b{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+.look span.d{color:var(--muted);font-size:15px}
+.look:has(input:checked){border-color:var(--acc);background:linear-gradient(180deg,#2a0c11,var(--panel))}
+.look:has(input:checked) .tag{color:var(--acc)}
+.look:has(input:focus-visible){outline:2px solid var(--fg);outline-offset:2px}
+.tl{display:grid;grid-template-columns:150px 1fr;gap:8px 16px;align-items:center;font-size:15px}
+.tl .lab{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.bar{position:relative;height:30px;border-radius:4px;background:#160809;border:1px solid var(--line)}
+.bar i{position:absolute;top:3px;bottom:3px;border-radius:3px;display:flex;align-items:center;padding:0 8px;font:500 12px var(--mono);font-style:normal;color:#fff;white-space:nowrap;overflow:hidden}
+.ticks{position:relative;height:18px;font:400 11px var(--mono);color:var(--muted)}
+.ticks span{position:absolute;transform:translateX(-50%)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--panel)}
+td:first-child{color:var(--muted);white-space:nowrap}
+td.new{color:var(--fg)} td.old{color:var(--muted)}
+tr:last-child td{border-bottom:0}
+.gone{text-decoration:line-through;text-decoration-color:var(--acc)}
+ol.q{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;max-width:72ch}
+ol.q li::marker{font:700 16px var(--display);color:var(--acc)}
+@media (max-width:720px){.looks{grid-template-columns:1fr}.tl{grid-template-columns:1fr}.tl .lab{margin-top:6px}}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">Hemomancer · Tank · weapon rework</p>
+  <h1><s>Clot Bolt</s> Clot Cannon</h1>
+  <p class="lede">Hold to pack a clot of your own blood: the arc of the lob reaches farther the longer you hold. Let go and the clot sails over enemies, raining drops on the way, and bursts into a wide pool. One second later the pool congeals and holds every enemy standing in it. It hits just as hard at any range.</p>
+</header>
+
+<section class="stage" aria-label="Animated arena">
+  <div class="frame"><canvas id="cv" aria-label="A Hemomancer charging and firing the Clot Cannon at a group of enemies"></canvas></div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Playback speed">
+      <input type="radio" name="spd" id="s1" value="1" checked><label for="s1">1×</label>
+      <input type="radio" name="spd" id="s2" value="0.5"><label for="s2">½×</label>
+      <input type="radio" name="spd" id="s4" value="0.25"><label for="s4">¼×</label>
+    </div>
+    <button id="demo" aria-pressed="true">Demo playing</button>
+    <button id="reset">Clear the floor</button>
+    <span class="hint">Click the arena to take over: hold to charge, let go to fire, WASD to walk.</span>
+  </div>
+</section>
+
+<section aria-labelledby="h-looks">
+  <h2 id="h-looks">Three looks</h2>
+  <div class="looks" role="radiogroup" aria-label="Look">
+    <label class="look"><input type="radio" name="look" value="A" id="lA" checked><span class="tag">Look A</span><b>Gore Mortar</b><span class="d">A trail of beads for the arc. A heavy, dark pool with a wet shine; it congeals into a brown crust that creeps in from the edge and cracks.</span></label>
+    <label class="look"><input type="radio" name="look" value="B" id="lB"><span class="tag">Look B</span><b>Plasma Gloss</b><span class="d">A tapered ribbon with chevrons flowing out to where it lands. A bright, glossy pool that ripples; it congeals as pale fibrin threads knit across it from the centre.</span></label>
+    <label class="look"><input type="radio" name="look" value="C" id="lC"><span class="tag">Look C</span><b>Scab Vein</b><span class="d">A vein for the arc that throbs with a heartbeat, faster as it fills. A near-black pool that simmers; it congeals as scab plates that snap shut from the rim in.</span></label>
+  </div>
+</section>
+
+<section aria-labelledby="h-tl">
+  <h2 id="h-tl">One shot, start to finish</h2>
+  <div class="tl">
+    <span class="lab">Hold</span>
+    <div class="bar"><i style="left:0;width:2.8%;background:#5a2a2e" title="tap"></i><i style="left:2.8%;width:14%;background:var(--acc2)">arc grows · full at 0.9 s</i></div>
+    <span class="lab">Flight</span>
+    <div class="bar"><i style="left:16.8%;width:8.7%;background:#7a1222">over enemies</i></div>
+    <span class="lab">Pool, wet</span>
+    <div class="bar"><i style="left:25.5%;width:18.6%;background:#8e1027">splash 34 · slows 40%</i></div>
+    <span class="lab">Pool, congealed</span>
+    <div class="bar"><i style="left:44.1%;width:18.6%;background:#6b3524">stuck 1 s</i><i style="left:62.7%;width:37.3%;background:#3e1d16">still slows, dries at 4 s</i></div>
+    <span></span>
+    <div class="ticks"><span style="left:0;transform:none">0 s</span><span style="left:25.5%">lands</span><span style="left:44.1%">+1 s</span><span style="left:62.7%">+2 s</span><span style="left:100%;transform:translateX(-100%)">+4 s</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-num">
+  <h2 id="h-num">The numbers</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Clot Bolt (now)</th><th>Clot Cannon (proposed)</th></tr></thead>
+    <tbody>
+      <tr><td>Fire</td><td class="old">Click, one bolt every 0.75 s</td><td class="new">Hold to charge (full at 0.9 s), let go to lob</td></tr>
+      <tr><td>Range</td><td class="old">520 px straight line, stops on the first enemy</td><td class="new">160 px on a tap, out to 520 px at full charge; flies over enemies</td></tr>
+      <tr><td>Damage</td><td class="old">26 to the enemy it hits</td><td class="new">34 to every enemy within 70 px of the landing, the same at any range</td></tr>
+      <tr><td>Pool</td><td class="old">70 px, 3 s, slows 40%</td><td class="new">130 px, 4 s, slows 40%</td></tr>
+      <tr><td>Congeal</td><td class="old">After 1 s, enemies in it stuck 1 s</td><td class="new">Same: after 1 s, enemies in it stuck 1 s (not bosses)</td></tr>
+      <tr><td>You in the pool</td><td class="old">Take 15% less damage</td><td class="new"><span class="gone">Take 15% less damage</span> Removed</td></tr>
+      <tr><td>Drops</td><td class="old">None</td><td class="new">Drip from your hand as you walk, more while charging; rain from the clot in flight. Floor stains only</td></tr>
+      <tr><td>Extra projectiles</td><td class="old">+1 bolt, fanned out</td><td class="new">+1 clot, fanned out, landing at the same distance</td></tr>
+      <tr><td>Area upgrades</td><td class="old">Pools 25% wider</td><td class="new">Splash and pool 25% wider</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="h-q">
+  <h2 id="h-q">Open questions</h2>
+  <ol class="q">
+    <li>I read "an arc that expands as the click is held" as the lob's path reaching farther and higher. If you meant an aim cone that widens instead, say so and I'll redo the charge.</li>
+    <li>The drops here are only for show: stains that fade over about 8 s. They could also slow enemies a little, but that would make the floor busy.</li>
+    <li>Pools overlap freely. Should a clot landing in a pool that has already congealed re-wet it, for a second hold?</li>
+  </ol>
+</section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const W = 1200, H = 667, TAU = Math.PI * 2;
+const K = { MIN_D: 160, MAX_D: 520, FULL: 0.9, MIN_DRAW: 0.15, RECOVER: 0.25, SPLASH: 70, POOL_R: 130, POOL_T: 4,
+  CONGEAL: 1, STUCK: 1, DMG: 34, SLOW: 0.4, BODY: 16, HAND_Z: 14 };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let look = 'A', speed = reduce ? 0.5 : 1, manual = false;
+let S = 1, floor = null, time = 0, shake = 0;
+
+let seed = 7;
+const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const R = (a, b) => a + (b - a) * rnd();
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const charge = d => clamp((d - K.MIN_DRAW) / (K.FULL - K.MIN_DRAW), 0, 1);
+const landD = c => K.MIN_D + (K.MAX_D - K.MIN_D) * c;
+const flightT = c => 0.45 + 0.3 * c;
+const apexH = c => 50 + 110 * c;
+const easeOutBack = x => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const mix = (a, b, t, al = 1) => { const x = hex(a), y = hex(b); return `rgba(${lerp(x[0], y[0], t) | 0},${lerp(x[1], y[1], t) | 0},${lerp(x[2], y[2], t) | 0},${al})`; };
+const beat = (t, per) => { const f = (t % per) / per; return Math.exp(-f * 14) + 0.6 * Math.exp(-Math.max(0, f - 0.18) * 16) * (f > 0.18 ? 1 : 0); };
+
+const P = { x: 300, y: 340, aim: 0, draw: -1, cd: 0, vx: 0, vy: 0, walk: 0, dripAcc: 0, idleAcc: 0, fullT: -1, kick: 0, shownD: K.MIN_D };
+let clots = [], drops = [], stains = [], pools = [], enemies = [], nums = [], rings = [], ripples = [], gibs = [];
+
+// ---------- setup ----------
+function resize() {
+  const r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.max(300, Math.round(r.width * d)); cv.height = Math.round(cv.width * H / W); S = cv.width / W;
+  buildFloor();
+}
+function buildFloor() {
+  floor = document.createElement('canvas'); floor.width = cv.width; floor.height = cv.height;
+  const f = floor.getContext('2d'); f.setTransform(S, 0, 0, S, 0, 0);
+  const keep = seed; seed = 4242;
+  f.fillStyle = '#0c0506'; f.fillRect(0, 0, W, H);
+  const T = 74;
+  for (let y = -T; y < H + T; y += T) for (let x = ((y / T) & 1) * T / 2 - T; x < W + T; x += T) {
+    const l = R(0, 1);
+    f.fillStyle = `rgba(${36 + l * 14 | 0},${18 + l * 7 | 0},${21 + l * 7 | 0},1)`;
+    f.beginPath(); f.rect(x + 2, y + 2, T - 4, T - 4); f.fill();
+    f.fillStyle = 'rgba(255,220,220,0.025)'; f.fillRect(x + 2, y + 2, T - 4, 2);
+  }
+  for (let i = 0; i < 700; i++) { f.fillStyle = `rgba(0,0,0,${R(0.1, 0.4)})`; f.fillRect(R(0, W), R(0, H), R(1, 3), R(1, 3)); }
+  for (let i = 0; i < 14; i++) { // old dried stains baked into the floor
+    f.fillStyle = `rgba(60,10,14,${R(0.12, 0.25)})`; f.beginPath(); f.ellipse(R(0, W), R(0, H), R(6, 26), R(4, 16), R(0, 3), 0, TAU); f.fill();
+  }
+  const g = f.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, W * 0.72);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.65)'); f.fillStyle = g; f.fillRect(0, 0, W, H);
+  seed = keep;
+}
+function newEnemy(e, x) {
+  e = e || {};
+  Object.assign(e, { x: x != null ? x : R(980, 1170), y: R(70, H - 70), hp: 120, max: 120, stuck: 0, slowed: 0, flash: 0, wob: R(0, TAU), dead: -1, r: 13 + R(0, 3) });
+  return e;
+}
+function resetAll() {
+  clots = []; drops = []; stains = []; pools = []; nums = []; rings = []; ripples = []; gibs = [];
+  enemies = []; for (let i = 0; i < 9; i++) enemies.push(newEnemy(null, R(640, 1160)));
+}
+
+// ---------- pools ----------
+function makeCracks() {
+  const out = [];
+  for (let i = 0; i < 8; i++) {
+    let a = i / 8 * TAU + R(-0.3, 0.3), r = R(0.12, 0.3); const pts = [[Math.cos(a) * r, Math.sin(a) * r]];
+    const n = 4 + (rnd() * 3 | 0);
+    for (let k = 0; k < n; k++) { r += R(0.1, 0.18); a += R(-0.35, 0.35); pts.push([Math.cos(a) * Math.min(r, 0.97), Math.sin(a) * Math.min(r, 0.97)]); }
+    out.push(pts);
+    if (rnd() < 0.6) { const j = 1 + (rnd() * (pts.length - 2) | 0); const b = [pts[j]]; let ba = a + R(0.6, 1.1) * (rnd() < 0.5 ? -1 : 1), br = Math.hypot(pts[j][0], pts[j][1]);
+      for (let k = 0; k < 2; k++) { br += R(0.08, 0.14); b.push([Math.cos(ba) * Math.min(br, 0.95), Math.sin(ba) * Math.min(br, 0.95)]); ba += R(-0.3, 0.3); } out.push(b); }
+  }
+  return out;
+}
+function makePlates() {
+  const out = [];
+  for (let i = 0; i < 22; i++) {
+    const a = R(0, TAU), r = Math.sqrt(R(0.04, 0.85)), pts = [];
+    const n = 5 + (rnd() * 3 | 0), size = R(0.13, 0.21);
+    for (let k = 0; k < n; k++) { const aa = k / n * TAU + R(-0.3, 0.3); pts.push([Math.cos(aa) * size * R(0.7, 1.1), Math.sin(aa) * size * R(0.7, 1.1)]); }
+    out.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, r, pts, rot: R(0, TAU) });
+  }
+  return out;
+}
+function blob(p, a) {
+  const s = p.seed;
+  let r = 1 + 0.06 * Math.sin(3 * a + s) + 0.045 * Math.sin(5 * a + s * 1.7) + 0.03 * Math.sin(8 * a + s * 2.3) + 0.018 * Math.sin(13 * a + s * 3.1);
+  if (!p.cong) r += 0.012 * Math.sin(a * 6 + time * 3 + s);
+  return r;
+}
+function poolPath(p, sc) {
+  ctx.beginPath();
+  for (let i = 0; i <= 72; i++) {
+    const a = i / 72 * TAU, r = p.R * sc * blob(p, a);
+    const x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath();
+}
+function poolScale(p) {
+  const spread = easeOutBack(clamp(p.age / 0.42, 0, 1));
+  const end = clamp((K.POOL_T - p.age) / 0.7, 0, 1);
+  const thump = p.age > K.CONGEAL && p.age < K.CONGEAL + 0.22 ? 1 - 0.05 * Math.sin(Math.PI * (p.age - K.CONGEAL) / 0.22) : 1;
+  return { sc: spread * (0.86 + 0.14 * end) * thump, al: end, ck: clamp((p.age - K.CONGEAL) / 0.38, 0, 1) };
+}
+function inPool(x, y, pad = 0) {
+  for (const p of pools) { const { sc } = poolScale(p); if (Math.hypot(x - p.x, y - p.y) < p.R * sc + pad) return p; }
+  return null;
+}
+function wetPoolAt(x, y) {
+  for (const p of pools) if (!p.cong) { const { sc } = poolScale(p); if (Math.hypot(x - p.x, y - p.y) < p.R * sc * 0.95) return p; }
+  return null;
+}
+function drawCracks(p, sc, k, dark, light) {
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const pass of [0, 1]) {
+    ctx.strokeStyle = pass ? light : dark; ctx.lineWidth = pass ? 1 : 2.6;
+    for (const c of p.cracks) {
+      const n = c.length - 1, upto = k * n;
+      ctx.beginPath();
+      for (let i = 0; i <= n && i <= upto + 1; i++) {
+        let x = c[i][0], y = c[i][1];
+        if (i > upto) { const f = upto - (i - 1); x = lerp(c[i - 1][0], x, f); y = lerp(c[i - 1][1], y, f); }
+        const X = p.x + x * p.R * sc + (pass ? 0.8 : 0), Y = p.y + y * p.R * sc + (pass ? 0.8 : 0);
+        i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+      }
+      ctx.stroke();
+    }
+  }
+}
+function congealTell(p, sc) { // a rim arc that fills over the first second: when it closes, the pool sets
+  if (p.cong || p.age < 0.15) return;
+  const f = clamp((p.age - 0.15) / (K.CONGEAL - 0.15), 0, 1);
+  ctx.beginPath(); ctx.arc(p.x, p.y, p.R * sc * 1.07, -Math.PI / 2, -Math.PI / 2 + TAU * f);
+  ctx.strokeStyle = `rgba(255,150,160,${0.25 + 0.35 * f})`; ctx.lineWidth = 2; ctx.stroke();
+}
+function drawPool(p) {
+  const { sc, al, ck } = poolScale(p);
+  ctx.save(); ctx.globalAlpha = al;
+  if (look === 'A') {
+    poolPath(p, sc);
+    const g = ctx.createRadialGradient(p.x - p.R * 0.25 * sc, p.y - p.R * 0.3 * sc, p.R * 0.08 * sc, p.x, p.y, p.R * sc * 1.05);
+    g.addColorStop(0, mix('#a1132a', '#5a2116', ck)); g.addColorStop(0.55, mix('#6c0718', '#43170f', ck)); g.addColorStop(1, mix('#3b030c', '#2a0d0a', ck));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.save(); poolPath(p, sc); ctx.clip();
+    if (ck > 0) {
+      poolPath(p, sc); ctx.lineWidth = easeOut(ck) * p.R * sc * 1.15; ctx.strokeStyle = 'rgba(74,26,15,0.8)'; ctx.stroke();
+      poolPath(p, sc); ctx.lineWidth = easeOut(ck) * p.R * sc * 0.45; ctx.strokeStyle = 'rgba(38,12,8,0.7)'; ctx.stroke();
+      drawCracks(p, sc, ck, 'rgba(14,3,3,0.9)', 'rgba(190,110,80,0.28)');
+    }
+    wetShine(p, sc, 1 - ck, 0.32);
+    ctx.restore();
+    poolPath(p, sc); ctx.lineWidth = 3; ctx.strokeStyle = ck > 0 ? 'rgba(28,9,6,0.95)' : 'rgba(32,2,8,0.95)'; ctx.stroke();
+  } else if (look === 'B') {
+    poolPath(p, sc);
+    const g = ctx.createRadialGradient(p.x - p.R * 0.3 * sc, p.y - p.R * 0.35 * sc, p.R * 0.05 * sc, p.x, p.y, p.R * sc * 1.05);
+    g.addColorStop(0, mix('#e2324d', '#7a2a30', ck)); g.addColorStop(0.5, mix('#a50f28', '#56141c', ck)); g.addColorStop(1, mix('#5c0614', '#330c10', ck));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.save(); poolPath(p, sc); ctx.clip();
+    if (!p.cong) for (let k = 0; k < 3; k++) { // slow rings while it's liquid
+      const f = ((p.age * 0.8 + k / 3) % 1);
+      ctx.beginPath(); ctx.arc(p.x, p.y, f * p.R * sc, 0, TAU); ctx.strokeStyle = `rgba(255,140,160,${0.22 * (1 - f)})`; ctx.lineWidth = 2; ctx.stroke();
+    }
+    if (ck > 0) {
+      ctx.fillStyle = `rgba(40,10,14,${0.4 * ck})`; ctx.fillRect(p.x - p.R * 2, p.y - p.R * 2, p.R * 4, p.R * 4);
+      ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, easeOut(ck) * p.R * sc * 1.15, 0, TAU); ctx.clip();
+      ctx.strokeStyle = `rgba(255,205,212,${0.32 * ck})`; ctx.lineWidth = 1.1;
+      const step = 17;
+      for (const ang of [0.2, 0.2 + Math.PI / 3, 0.2 + 2 * Math.PI / 3]) {
+        const dx = Math.cos(ang), dy = Math.sin(ang), nx = -dy, ny = dx;
+        for (let o = -p.R * 1.2; o <= p.R * 1.2; o += step) {
+          ctx.beginPath();
+          for (let s = -p.R * 1.2; s <= p.R * 1.2; s += 12) {
+            const w = Math.sin(s * 0.09 + o * 0.3 + p.seed) * 1.6;
+            const x = p.x + dx * s + nx * (o + w), y = p.y + dy * s + ny * (o + w);
+            s === -p.R * 1.2 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+    wetShine(p, sc, 1 - ck, 0.5);
+    if (!p.cong) { poolPath(p, sc * 0.94); ctx.strokeStyle = 'rgba(255,120,140,0.28)'; ctx.lineWidth = 2; ctx.stroke(); }
+    ctx.restore();
+    poolPath(p, sc); ctx.lineWidth = 2.5; ctx.strokeStyle = ck > 0 ? 'rgba(60,18,22,0.95)' : 'rgba(70,4,16,0.95)'; ctx.stroke();
+  } else {
+    poolPath(p, sc);
+    const g = ctx.createRadialGradient(p.x, p.y, p.R * 0.1 * sc, p.x, p.y, p.R * sc * 1.05);
+    g.addColorStop(0, mix('#52060f', '#2c0b08', ck)); g.addColorStop(1, mix('#200205', '#170605', ck));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.save(); poolPath(p, sc); ctx.clip();
+    if (!p.cong) for (let k = 0; k < 9; k++) { // simmering bubbles
+      const ph = (p.age * 1.4 + k * 0.37) % 1, a = k * 2.4 + p.seed, rr = (0.15 + (k * 0.29 % 0.75)) * p.R * sc;
+      const bx = p.x + Math.cos(a) * rr, by = p.y + Math.sin(a) * rr, br = 2 + 5 * Math.sin(ph * Math.PI);
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, TAU); ctx.strokeStyle = `rgba(200,40,60,${0.45 * Math.sin(ph * Math.PI)})`; ctx.lineWidth = 1.4; ctx.stroke();
+    }
+    if (ck > 0 || p.cong) {
+      for (const pl of p.plates) {
+        const delay = (1 - pl.r) * 0.55, k = clamp((ck * 1.5 - delay) / 0.45, 0, 1);
+        if (k <= 0) continue;
+        const s = easeOutBack(k) * p.R * sc, cx = p.x + pl.x * p.R * sc, cy = p.y + pl.y * p.R * sc;
+        ctx.beginPath();
+        pl.pts.forEach((q, i) => { const c = Math.cos(pl.rot), si = Math.sin(pl.rot); const x = cx + (q[0] * c - q[1] * si) * s, y = cy + (q[0] * si + q[1] * c) * s; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+        ctx.closePath();
+        ctx.fillStyle = mix('#5a1d12', '#3c120b', pl.r); ctx.fill();
+        ctx.strokeStyle = 'rgba(170,85,60,0.45)'; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+    }
+    wetShine(p, sc, 1 - ck, 0.18);
+    ctx.restore();
+    poolPath(p, sc); ctx.lineWidth = 4; ctx.strokeStyle = ck > 0 ? 'rgba(60,24,14,0.95)' : 'rgba(10,0,2,0.95)'; ctx.stroke();
+  }
+  congealTell(p, sc);
+  ctx.restore();
+}
+function wetShine(p, sc, wet, strength) {
+  if (wet <= 0) return;
+  const gx = p.x - p.R * sc * (0.32 + 0.04 * Math.sin(time * 0.9 + p.seed)), gy = p.y - p.R * sc * (0.36 + 0.03 * Math.cos(time * 0.7));
+  ctx.save(); ctx.translate(gx, gy); ctx.rotate(-0.6);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, p.R * sc * 0.32);
+  g.addColorStop(0, `rgba(255,190,200,${strength * wet})`); g.addColorStop(1, 'rgba(255,190,200,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, p.R * sc * 0.32, p.R * sc * 0.14, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = `rgba(255,230,235,${0.5 * strength * wet})`;
+  ctx.beginPath(); ctx.ellipse(gx + 6, gy + 3, 5, 2.2, -0.6, 0, TAU); ctx.fill();
+  // impact ripples
+  if (p.age < 0.9) for (let k = 0; k < 2; k++) {
+    const f = clamp((p.age - k * 0.16) / 0.7, 0, 1); if (f <= 0 || f >= 1) continue;
+    ctx.beginPath(); ctx.arc(p.x, p.y, f * p.R * sc * 0.9, 0, TAU); ctx.strokeStyle = `rgba(255,120,140,${0.4 * (1 - f) * wet})`; ctx.lineWidth = 3 * (1 - f) + 1; ctx.stroke();
+  }
+}
+
+// ---------- the clot ----------
+function clotPath(x, y, r, t, seedA) {
+  ctx.beginPath();
+  for (let i = 0; i <= 26; i++) {
+    const a = i / 26 * TAU;
+    const rr = r * (1 + 0.11 * Math.sin(3 * a + t * 9 + seedA) + 0.07 * Math.sin(5 * a - t * 7) + 0.04 * Math.sin(9 * a + t * 13));
+    const X = x + Math.cos(a) * rr, Y = y + Math.sin(a) * rr;
+    i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+  }
+  ctx.closePath();
+}
+function drawClot(x, y, r, t, s, glow) {
+  if (glow > 0) {
+    const g = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 2.4);
+    g.addColorStop(0, `rgba(255,50,80,${0.35 * glow})`); g.addColorStop(1, 'rgba(255,50,80,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 2.4, 0, TAU); ctx.fill();
+  }
+  clotPath(x, y, r, t, s);
+  const pal = look === 'B' ? ['#ff6a80', '#c4122e', '#4f0613'] : look === 'C' ? ['#a3162c', '#4a0710', '#180204'] : ['#e0304a', '#8a0c20', '#2b0309'];
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r * 1.15);
+  g.addColorStop(0, pal[0]); g.addColorStop(0.45, pal[1]); g.addColorStop(1, pal[2]);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(20,0,4,0.8)'; ctx.stroke();
+  // fibrous strands across it
+  ctx.strokeStyle = look === 'B' ? 'rgba(255,200,210,0.35)' : 'rgba(30,2,6,0.55)'; ctx.lineWidth = 1.2;
+  for (let k = 0; k < 3; k++) {
+    const a = s + k * 2.1 + t * 1.5; ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a) * r * 0.8, y + Math.sin(a) * r * 0.8);
+    ctx.quadraticCurveTo(x + Math.cos(a + 1.4) * r * 0.25, y + Math.sin(a + 1.4) * r * 0.25, x + Math.cos(a + 2.5) * r * 0.75, y + Math.sin(a + 2.5) * r * 0.75);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255,225,230,0.75)';
+  ctx.beginPath(); ctx.ellipse(x - r * 0.38, y - r * 0.42, r * 0.22, r * 0.12, -0.7, 0, TAU); ctx.fill();
+}
+
+// ---------- the charge arc ----------
+function arcPoint(hx, hy, lx, ly, h, k) {
+  const z = lerp(K.HAND_Z, 0, k) + 4 * h * k * (1 - k);
+  return [lerp(hx, lx, k), lerp(hy, ly, k) - z, z];
+}
+function hand() {
+  const ax = Math.cos(P.aim), ay = Math.sin(P.aim), kick = P.kick * 6;
+  return [P.x + ax * (K.BODY + 8 - kick) - ay * 6, P.y + ay * (K.BODY + 8 - kick) + ax * 6];
+}
+function drawCharge() {
+  if (P.draw < 0) return;
+  const c = charge(P.draw), full = c >= 1;
+  const [hx, hy] = hand();
+  const d = P.shownD, h = apexH(clamp((d - K.MIN_D) / (K.MAX_D - K.MIN_D), 0, 1));
+  const lx = P.x + Math.cos(P.aim) * d, ly = P.y + Math.sin(P.aim) * d;
+  const fullPulse = full ? 0.5 + 0.5 * Math.sin(time * 18) : 0;
+  const hb = beat(time, 0.8 - 0.4 * c);
+  // ground track
+  ctx.setLineDash([3, 9]); ctx.strokeStyle = 'rgba(255,120,130,0.16)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.lineTo(lx, ly); ctx.stroke(); ctx.setLineDash([]);
+  // where it lands
+  const pr = K.POOL_R, sr = K.SPLASH;
+  if (look === 'A') {
+    ctx.save(); ctx.translate(lx, ly); ctx.rotate(time * 0.25);
+    ctx.setLineDash([10, 8]); ctx.beginPath();
+    for (let i = 0; i <= 60; i++) { const a = i / 60 * TAU, r = pr * (1 + 0.05 * Math.sin(3 * a) + 0.035 * Math.sin(5 * a + 1)); i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+    ctx.closePath(); ctx.strokeStyle = `rgba(232,38,63,${0.35 + 0.3 * c + 0.3 * fullPulse})`; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(lx, ly, sr, 0, TAU); ctx.fillStyle = `rgba(232,38,63,${0.08 + 0.1 * c})`; ctx.fill();
+    ctx.strokeStyle = `rgba(255,140,150,${0.4 + 0.3 * c})`; ctx.lineWidth = 1.5; ctx.stroke();
+    // the beads
+    const n = 18;
+    for (let i = 1; i <= n; i++) {
+      const k = i / (n + 1); const [x, y] = arcPoint(hx, hy, lx, ly, h, k);
+      const sway = Math.sin(time * 7 - i * 0.7) * 1.3;
+      const r = lerp(1.8, 4.6, k) * (1 + 0.35 * hb * Math.exp(-Math.abs(k - ((time * 1.4) % 1)) * 8));
+      ctx.fillStyle = full ? `rgba(255,${120 + 80 * fullPulse | 0},${140 + 60 * fullPulse | 0},${0.5 + 0.45 * k})` : `rgba(220,30,56,${0.35 + 0.55 * k})`;
+      ctx.beginPath(); ctx.arc(x, y + sway, r, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,220,225,0.5)'; ctx.beginPath(); ctx.arc(x - r * 0.3, y + sway - r * 0.35, r * 0.3, 0, TAU); ctx.fill();
+    }
+    // a bead dangling at the end
+    const bob = Math.sin(time * 5) * 3;
+    drawTear(lx, ly - 22 + bob, 6, full ? '#ff8094' : '#d81e3a');
+  } else if (look === 'B') {
+    const n = 44, pts = [];
+    for (let i = 0; i <= n; i++) pts.push(arcPoint(hx, hy, lx, ly, h, i / n));
+    for (let i = 0; i < n; i++) {
+      const k = i / n;
+      ctx.beginPath(); ctx.moveTo(pts[i][0], pts[i][1]); ctx.lineTo(pts[i + 1][0], pts[i + 1][1]);
+      ctx.lineCap = 'round'; ctx.lineWidth = lerp(11, 3, k); ctx.strokeStyle = `rgba(255,60,90,${lerp(0.1, 0.32, k) + 0.15 * fullPulse})`; ctx.stroke();
+    }
+    ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]));
+    ctx.lineWidth = 1.6; ctx.strokeStyle = full ? `rgba(255,230,235,${0.7 + 0.3 * fullPulse})` : 'rgba(255,150,170,0.75)'; ctx.stroke();
+    for (let j = 0; j < 7; j++) { // chevrons flowing out
+      const k = ((time * 0.9 + j / 7) % 1); if (k < 0.05 || k > 0.97) continue;
+      const a = arcPoint(hx, hy, lx, ly, h, k), b = arcPoint(hx, hy, lx, ly, h, Math.min(1, k + 0.01));
+      const ang = Math.atan2(b[1] - a[1], b[0] - a[0]), s = lerp(7, 4, k);
+      ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(ang);
+      ctx.beginPath(); ctx.moveTo(-s, -s); ctx.lineTo(0, 0); ctx.lineTo(-s, s);
+      ctx.strokeStyle = `rgba(255,220,228,${0.8 * Math.sin(k * Math.PI)})`; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    }
+    const pulse = 1 + 0.05 * hb;
+    ctx.beginPath(); ctx.arc(lx, ly, pr * pulse, 0, TAU); ctx.fillStyle = `rgba(255,60,90,${0.05 + 0.05 * c})`; ctx.fill();
+    ctx.strokeStyle = `rgba(255,120,145,${0.45 + 0.3 * c})`; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(lx, ly, sr, 0, TAU); ctx.strokeStyle = `rgba(255,220,228,${0.5 + 0.3 * fullPulse})`; ctx.lineWidth = 1.5; ctx.stroke();
+    const fr = ((time * 1.2) % 1); ctx.beginPath(); ctx.arc(lx, ly, sr + (pr - sr) * fr, 0, TAU); ctx.strokeStyle = `rgba(255,120,145,${0.35 * (1 - fr)})`; ctx.stroke();
+  } else {
+    const n = 60, amp = 2.2 + 4.5 * hb;
+    const draw = (w, col) => {
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const k = i / n, a = arcPoint(hx, hy, lx, ly, h, k), b = arcPoint(hx, hy, lx, ly, h, Math.min(1, k + 0.01));
+        let tx = b[0] - a[0], ty = b[1] - a[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+        const off = Math.sin(k * TAU * 3.5 - time * 9) * amp * Math.sin(k * Math.PI);
+        const x = a[0] - ty * off, y = a[1] + tx * off; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.lineWidth = w; ctx.strokeStyle = col; ctx.lineCap = 'round'; ctx.stroke();
+    };
+    draw(6, 'rgba(30,2,6,0.85)'); draw(2.4, full ? `rgba(255,${90 + 120 * fullPulse | 0},${110 + 100 * fullPulse | 0},0.95)` : `rgba(210,26,50,${0.7 + 0.3 * hb})`);
+    ctx.save(); ctx.translate(lx, ly); ctx.rotate(time * 0.6);
+    for (let q = 0; q < 4; q++) {
+      ctx.beginPath(); ctx.arc(0, 0, pr, q * Math.PI / 2 + 0.25, q * Math.PI / 2 + Math.PI / 2 - 0.25);
+      ctx.strokeStyle = `rgba(210,26,50,${0.5 + 0.4 * hb})`; ctx.lineWidth = 3; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(Math.cos(q * Math.PI / 2) * (pr - 10), Math.sin(q * Math.PI / 2) * (pr - 10)); ctx.lineTo(Math.cos(q * Math.PI / 2) * (pr + 8), Math.sin(q * Math.PI / 2) * (pr + 8));
+      ctx.strokeStyle = 'rgba(255,170,180,0.6)'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(lx, ly, sr, 0, TAU); ctx.fillStyle = `rgba(120,8,22,${0.18 + 0.12 * hb})`; ctx.fill();
+  }
+  // the charge ring round you
+  const rr = K.BODY + 12;
+  ctx.beginPath(); ctx.arc(P.x, P.y, rr, 0, TAU); ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(P.x, P.y, rr, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, c));
+  ctx.strokeStyle = full ? `rgba(255,${160 + 80 * fullPulse | 0},${170 + 70 * fullPulse | 0},1)` : 'rgba(232,38,63,0.9)'; ctx.lineWidth = full ? 4.5 : 3; ctx.stroke();
+}
+function drawTear(x, y, r, col) {
+  ctx.fillStyle = col; ctx.beginPath();
+  ctx.moveTo(x, y - r * 2); ctx.quadraticCurveTo(x + r * 1.1, y - r * 0.2, x, y + r); ctx.quadraticCurveTo(x - r * 1.1, y - r * 0.2, x, y - r * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,230,235,0.6)'; ctx.beginPath(); ctx.arc(x - r * 0.3, y - r * 0.2, r * 0.25, 0, TAU); ctx.fill();
+}
+
+// ---------- the player and enemies ----------
+function drawPlayer() {
+  const x = P.x, y = P.y, a = P.aim, ax = Math.cos(a), ay = Math.sin(a), bob = Math.sin(P.walk) * 1.2;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.beginPath(); ctx.ellipse(x, y + 6, K.BODY + 5, K.BODY * 0.6, 0, 0, TAU); ctx.fill();
+  // cloak with a ragged hem
+  ctx.beginPath();
+  for (let i = 0; i <= 24; i++) { const t = i / 24 * TAU, r = K.BODY + 3 + (i % 2 ? -1.6 : 1.2) + Math.sin(t * 3 + P.walk) * 0.8; const X = x + Math.cos(t) * r, Y = y + Math.sin(t) * r + bob; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+  ctx.closePath(); ctx.fillStyle = '#260810'; ctx.fill(); ctx.strokeStyle = '#120306'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y + bob, K.BODY - 2, 0, TAU); ctx.fillStyle = '#4a0f1b'; ctx.fill();
+  // tank pauldrons: thick bone plates either side
+  for (const s of [-1, 1]) {
+    const px = x - ay * s * (K.BODY - 2), py = y + ax * s * (K.BODY - 2) + bob;
+    ctx.beginPath(); ctx.ellipse(px, py, 8, 6, a, 0, TAU); ctx.fillStyle = '#c9b7a6'; ctx.fill(); ctx.strokeStyle = '#5b4637'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(px, py, 4, 2.6, a, 0, TAU); ctx.fillStyle = '#8f1225'; ctx.fill();
+  }
+  // hood
+  ctx.beginPath(); ctx.arc(x + ax * 2, y + ay * 2 + bob, 9, 0, TAU); ctx.fillStyle = '#18040a'; ctx.fill();
+  ctx.beginPath(); ctx.arc(x + ax * 5, y + ay * 5 + bob, 4.5, a - 1.2, a + 1.2); ctx.strokeStyle = '#e8263f'; ctx.lineWidth = 2; ctx.stroke();
+  // arm out to the clot in the hand
+  const [hx, hy] = hand();
+  ctx.beginPath(); ctx.moveTo(x - ay * 9, y + ax * 9 + bob); ctx.lineTo(hx, hy); ctx.strokeStyle = '#3a0c15'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
+  const c = P.draw >= 0 ? charge(P.draw) : 0, full = c >= 1;
+  const r = P.draw >= 0 ? 6 + 9 * easeOut(c) : 5;
+  const hb = beat(time, 0.8 - 0.4 * c);
+  drawClot(hx + ax * r * 0.5, hy + ay * r * 0.5, r * (1 + 0.08 * hb), time, 1.3, P.draw >= 0 ? 0.4 + 0.6 * c * (full ? 1 : 0.5) : 0);
+  if (P.fullT >= 0 && P.fullT < 0.35) { // it's full: a snap of light
+    const f = P.fullT / 0.35;
+    ctx.beginPath(); ctx.arc(hx, hy, 10 + 30 * f, 0, TAU); ctx.strokeStyle = `rgba(255,200,210,${1 - f})`; ctx.lineWidth = 3 * (1 - f) + 0.5; ctx.stroke();
+  }
+}
+function drawEnemy(e) {
+  if (e.dead >= 0) {
+    const f = e.dead / 0.6;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r * (1 + f * 1.4), 0, TAU); ctx.strokeStyle = `rgba(200,180,220,${0.6 * (1 - f)})`; ctx.lineWidth = 3; ctx.stroke();
+    return;
+  }
+  const jx = e.stuck > 0 ? Math.sin(time * 70 + e.wob) * 1.4 : 0;
+  const x = e.x + jx, y = e.y + Math.sin(e.wob) * (e.stuck > 0 ? 0 : 1.5);
+  ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(e.x, e.y + 5, e.r + 3, e.r * 0.55, 0, 0, TAU); ctx.fill();
+  if (e.stuck > 0) { // stuck in the set blood: crust lumps round the feet
+    const k = clamp(e.stuck / 0.2, 0, 1);
+    for (let i = 0; i < 9; i++) {
+      const a = i / 9 * TAU + e.wob, rr = e.r + 3;
+      ctx.beginPath(); ctx.ellipse(e.x + Math.cos(a) * rr, e.y + Math.sin(a) * rr * 0.8 + 3, 5 * k, 3.6 * k, a, 0, TAU);
+      ctx.fillStyle = look === 'B' ? '#6d2c31' : '#4d1a10'; ctx.fill(); ctx.strokeStyle = look === 'B' ? 'rgba(255,200,210,0.4)' : 'rgba(170,90,60,0.5)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+  const dir = Math.atan2(P.y - e.y, P.x - e.x);
+  ctx.beginPath(); ctx.arc(x, y, e.r, 0, TAU); ctx.fillStyle = mix('#5d5170', '#ffffff', e.flash * 0.8); ctx.fill();
+  ctx.strokeStyle = '#231c2e'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y, e.r * 0.62, 0, TAU); ctx.fillStyle = mix('#7a6c90', '#ffffff', e.flash * 0.8); ctx.fill();
+  for (const s of [-0.45, 0.45]) { ctx.fillStyle = '#f3c84b'; ctx.beginPath(); ctx.arc(x + Math.cos(dir + s) * e.r * 0.6, y + Math.sin(dir + s) * e.r * 0.6, 2, 0, TAU); ctx.fill(); }
+  if (e.slowed > 0 && e.stuck <= 0) { // wet feet: a drip falling off
+    const f = (time * 2 + e.wob) % 1; ctx.fillStyle = `rgba(200,20,45,${1 - f})`; ctx.beginPath(); ctx.arc(x + 4, y + e.r * 0.5 + f * 8, 2, 0, TAU); ctx.fill();
+  }
+  if (e.hp < e.max) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(e.x - 14, e.y - e.r - 10, 28, 4);
+    ctx.fillStyle = '#e8263f'; ctx.fillRect(e.x - 14, e.y - e.r - 10, 28 * Math.max(0, e.hp / e.max), 4);
+  }
+}
+
+// ---------- update ----------
+function dripFromHand(c, moving) {
+  const [hx, hy] = hand();
+  drops.push({ x: hx + R(-3, 3), y: hy + R(-3, 3), z: K.HAND_Z, vx: P.vx * 0.5 + R(-14, 14), vy: P.vy * 0.5 + R(-14, 14), vz: R(-20, 30), r: R(1.5, 2.4) + c * 1.6 + (moving ? 0.3 : 0) });
+}
+function fire(draw) {
+  const c = charge(draw), d = landD(c), ax = Math.cos(P.aim), ay = Math.sin(P.aim);
+  clots.push({ x0: P.x, y0: P.y, x1: P.x + ax * d, y1: P.y + ay * d, t: 0, dur: flightT(c), h: apexH(c), c, emit: 0, s: R(0, TAU), x: P.x, y: P.y, z: K.HAND_Z });
+  P.kick = 1;
+  const [hx, hy] = hand();
+  for (let i = 0; i < 10; i++) { const a = P.aim + R(-0.7, 0.7), sp = R(60, 200); drops.push({ x: hx, y: hy, z: K.HAND_Z, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: R(40, 160), r: R(1.5, 3) }); }
+  rings.push({ x: hx, y: hy, r0: 6, r1: 30, t: 0, d: 0.22, w: 4, col: '255,110,130' });
+  shake = Math.min(8, shake + 2);
+}
+function land(cl) {
+  const x = cl.x1, y = cl.y1;
+  shake = Math.min(12, shake + 8);
+  rings.push({ x, y, r0: 12, r1: K.SPLASH * 1.4, t: 0, d: 0.32, w: 7, col: '255,90,110' });
+  rings.push({ x, y, r0: K.SPLASH, r1: K.POOL_R * 1.2, t: 0, d: 0.5, w: 2.5, col: '255,160,170' });
+  for (const e of enemies) if (e.dead < 0 && Math.hypot(e.x - x, e.y - y) < K.SPLASH + e.r) {
+    e.hp -= K.DMG; e.flash = 1;
+    nums.push({ x: e.x + R(-6, 6), y: e.y - 18, t: 0, v: K.DMG });
+    const a = Math.atan2(e.y - y, e.x - x); e.x += Math.cos(a) * 8; e.y += Math.sin(a) * 8;
+    if (e.hp <= 0) { e.dead = 0; for (let i = 0; i < 8; i++) { const b = R(0, TAU), sp = R(60, 180); drops.push({ x: e.x, y: e.y, z: 10, vx: Math.cos(b) * sp, vy: Math.sin(b) * sp, vz: R(60, 200), r: R(1.5, 3) }); } }
+  }
+  for (let i = 0; i < 34; i++) { // the crown of the splash
+    const a = R(0, TAU), sp = R(110, 420);
+    drops.push({ x: x + Math.cos(a) * 8, y: y + Math.sin(a) * 8, z: 3, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: R(140, 420), r: R(2, 5.5) });
+  }
+  gibs.push({ x, y, t: 0, s: cl.s });
+  pools.push({ x, y, R: K.POOL_R, age: 0, seed: R(0, 99), cong: false, cracks: makeCracks(), plates: makePlates() });
+}
+const AI = { t: 0, wait: 0.8, fire: false, target: null };
+const keys = {}; const mouse = { x: 700, y: 330, down: false };
+function input(dt) {
+  if (manual) {
+    let mx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0), my = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
+    const l = Math.hypot(mx, my) || 1; return { mx: mx / l, my: my / l, ax: mouse.x, ay: mouse.y, fire: mouse.down, snap: true };
+  }
+  AI.t += dt;
+  const tx = 300 + 140 * Math.sin(AI.t * 0.42), ty = 333 + 190 * Math.sin(AI.t * 0.71);
+  let mx = tx - P.x, my = ty - P.y; const dd = Math.hypot(mx, my); if (dd > 10) { mx /= dd; my /= dd; } else mx = my = 0;
+  let best = null, bs = -1e9;
+  for (const e of enemies) {
+    if (e.dead >= 0) continue;
+    const d = Math.hypot(e.x - P.x, e.y - P.y); if (d > K.MAX_D + 30) continue;
+    let s = 0; for (const o of enemies) if (o.dead < 0 && Math.hypot(o.x - e.x, o.y - e.y) < 110) s++;
+    if (inPool(e.x, e.y)) s -= 2.5; if (e.stuck > 0) s -= 2;
+    if (s > bs) { bs = s; best = e; }
+  }
+  if (P.draw < 0 && !AI.fire) { AI.wait -= dt; if (AI.wait <= 0 && best) { AI.fire = true; AI.target = best; } }
+  const tgt = AI.target && AI.target.dead < 0 ? AI.target : best;
+  const ax = tgt ? tgt.x : P.x + 300, ay = tgt ? tgt.y : P.y;
+  if (AI.fire && P.draw >= 0) {
+    const want = clamp((Math.hypot(ax - P.x, ay - P.y) - K.MIN_D) / (K.MAX_D - K.MIN_D), 0, 1);
+    const hold = K.MIN_DRAW + want * (K.FULL - K.MIN_DRAW) + (want >= 1 ? 0.35 : 0.04);
+    if (P.draw >= hold) { AI.fire = false; AI.wait = 0.75 + rnd() * 0.6; AI.target = null; }
+  }
+  return { mx, my, ax, ay, fire: AI.fire, snap: false };
+}
+function update(dt) {
+  time += dt;
+  const inp = input(dt);
+  const sp = 190 * (P.draw >= 0 ? 0.85 : 1);
+  P.vx = lerp(P.vx, inp.mx * sp, Math.min(1, dt * 10)); P.vy = lerp(P.vy, inp.my * sp, Math.min(1, dt * 10));
+  P.x = clamp(P.x + P.vx * dt, 30, W - 30); P.y = clamp(P.y + P.vy * dt, 30, H - 30);
+  const moved = Math.hypot(P.vx, P.vy) * dt; P.walk += moved * 0.25;
+  const want = Math.atan2(inp.ay - P.y, inp.ax - P.x);
+  let da = ((want - P.aim + Math.PI * 3) % TAU) - Math.PI; P.aim += inp.snap ? da : da * Math.min(1, dt * 9);
+  P.cd -= dt; P.kick = Math.max(0, P.kick - dt * 6);
+  if (inp.fire) { if (P.draw < 0 && P.cd <= 0) { P.draw = 0; P.fullT = -1; } if (P.draw >= 0) P.draw += dt; }
+  else if (P.draw >= 0) { fire(Math.max(K.MIN_DRAW, P.draw)); P.draw = -1; P.cd = K.RECOVER; }
+  if (P.draw >= 0) {
+    const c = charge(P.draw);
+    if (c >= 1 && P.fullT < 0) P.fullT = 0;
+    if (P.fullT >= 0) P.fullT += dt;
+    const target = landD(c); P.shownD = lerp(P.shownD, target, Math.min(1, dt * 16));
+    P.dripAcc += moved; const every = 22 - 10 * c; while (P.dripAcc > every) { P.dripAcc -= every; dripFromHand(c, true); }
+    P.idleAcc += dt * (1 + 3.5 * c); while (P.idleAcc > 1) { P.idleAcc -= 1; dripFromHand(c, false); }
+  } else {
+    P.shownD = K.MIN_D;
+    P.dripAcc += moved; while (P.dripAcc > 70) { P.dripAcc -= 70; dripFromHand(0, true); }
+  }
+  for (let i = clots.length - 1; i >= 0; i--) {
+    const c = clots[i]; c.t += dt; const k = Math.min(1, c.t / c.dur);
+    const px = c.x, py = c.y;
+    c.x = lerp(c.x0, c.x1, k); c.y = lerp(c.y0, c.y1, k); c.z = lerp(K.HAND_Z, 0, k) + 4 * c.h * k * (1 - k);
+    const vx = (c.x - px) / Math.max(dt, 1e-4), vy = (c.y - py) / Math.max(dt, 1e-4);
+    c.emit += dt * 60;
+    while (c.emit > 1) { c.emit -= 1; drops.push({ x: c.x + R(-7, 7), y: c.y + R(-7, 7), z: c.z + R(-5, 5), vx: vx * R(0.1, 0.35) + R(-30, 30), vy: vy * R(0.1, 0.35) + R(-30, 30), vz: R(-50, 40), r: R(1.8, 3.8) }); }
+    if (k >= 1) { land(c); clots.splice(i, 1); }
+  }
+  for (let i = drops.length - 1; i >= 0; i--) {
+    const d = drops[i]; d.vz -= 1150 * dt; d.z += d.vz * dt; d.x += d.vx * dt; d.y += d.vy * dt; const f = Math.exp(-1.2 * dt); d.vx *= f; d.vy *= f;
+    if (d.z <= 0) {
+      drops.splice(i, 1);
+      if (wetPoolAt(d.x, d.y)) { ripples.push({ x: d.x, y: d.y, t: 0, r: d.r }); continue; }
+      const sats = []; const n = d.r > 3 ? 3 : 1; for (let k = 0; k < n; k++) { const a = Math.atan2(d.vy, d.vx) + R(-0.6, 0.6); sats.push([Math.cos(a) * d.r * R(1.6, 2.8), Math.sin(a) * d.r * R(1.6, 2.8), d.r * R(0.25, 0.45)]); }
+      stains.push({ x: d.x, y: d.y, r: d.r * R(1.1, 1.6), born: time, rot: Math.atan2(d.vy, d.vx), sx: 1 + Math.min(1, Math.hypot(d.vx, d.vy) / 300), sats });
+      if (d.r > 3.2) ripples.push({ x: d.x, y: d.y, t: 0, r: d.r, dry: true });
+    }
+  }
+  if (drops.length > 900) drops.splice(0, drops.length - 900);
+  for (let i = stains.length - 1; i >= 0; i--) if (time - stains[i].born > 8 || time < stains[i].born) stains.splice(i, 1);
+  if (stains.length > 700) stains.splice(0, stains.length - 700);
+  for (let i = ripples.length - 1; i >= 0; i--) { ripples[i].t += dt; if (ripples[i].t > 0.45) ripples.splice(i, 1); }
+  for (let i = pools.length - 1; i >= 0; i--) {
+    const p = pools[i]; p.age += dt;
+    if (!p.cong && p.age >= K.CONGEAL) {
+      p.cong = true; shake = Math.min(10, shake + 2.5);
+      const { sc } = poolScale(p);
+      for (const e of enemies) if (e.dead < 0 && Math.hypot(e.x - p.x, e.y - p.y) < p.R * sc + e.r) e.stuck = Math.max(e.stuck, K.STUCK);
+      rings.push({ x: p.x, y: p.y, r0: p.R * sc * 1.15, r1: p.R * sc * 0.9, t: 0, d: 0.3, w: 5, col: look === 'B' ? '255,210,220' : '190,110,80' });
+    }
+    if (p.age > K.POOL_T) pools.splice(i, 1);
+  }
+  for (const e of enemies) {
+    if (e.dead >= 0) { e.dead += dt; if (e.dead > 0.6) newEnemy(e); continue; }
+    e.flash = Math.max(0, e.flash - dt * 5);
+    e.slowed = inPool(e.x, e.y) ? 1 : 0;
+    if (e.stuck > 0) { e.stuck -= dt; continue; }
+    const dx = P.x - e.x, dy = P.y - e.y, d = Math.hypot(dx, dy) || 1;
+    const spd = 58 * (e.slowed ? 1 - K.SLOW : 1);
+    let vx = 0, vy = 0;
+    if (d > 110) { vx = dx / d * spd; vy = dy / d * spd; }
+    for (const o of enemies) if (o !== e && o.dead < 0) { const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy); if (od < 32 && od > 0.01) { vx += ox / od * 40; vy += oy / od * 40; } }
+    e.x = clamp(e.x + vx * dt, 20, W - 20); e.y = clamp(e.y + vy * dt, 20, H - 20);
+    e.wob += dt * (e.slowed ? 3 : 8);
+  }
+  for (let i = rings.length - 1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t > rings[i].d) rings.splice(i, 1); }
+  for (let i = nums.length - 1; i >= 0; i--) { nums[i].t += dt; if (nums[i].t > 0.9) nums.splice(i, 1); }
+  for (let i = gibs.length - 1; i >= 0; i--) { gibs[i].t += dt; if (gibs[i].t > 0.35) gibs.splice(i, 1); }
+  shake *= Math.exp(-dt * 11);
+}
+
+// ---------- draw ----------
+function draw() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(floor, 0, 0);
+  const sx = reduce ? 0 : (Math.random() - 0.5) * shake, sy = reduce ? 0 : (Math.random() - 0.5) * shake;
+  ctx.setTransform(S, 0, 0, S, sx * S, sy * S);
+  for (const s of stains) {
+    const age = time - s.born, fresh = clamp(1 - age / 2.2, 0, 1), fade = clamp(1 - age / 8, 0, 1);
+    ctx.fillStyle = mix('#5a0e12', '#a0102a', fresh, 0.85 * fade);
+    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.rot);
+    ctx.beginPath(); ctx.ellipse(0, 0, s.r * s.sx, s.r, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+    for (const q of s.sats) { ctx.beginPath(); ctx.arc(s.x + q[0], s.y + q[1], q[2], 0, TAU); ctx.fill(); }
+  }
+  for (const p of pools) drawPool(p);
+  for (const r of ripples) {
+    const f = r.t / 0.45;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (1 + 3 * f), 0, TAU);
+    ctx.strokeStyle = r.dry ? `rgba(200,30,50,${0.5 * (1 - f)})` : `rgba(255,150,165,${0.55 * (1 - f)})`; ctx.lineWidth = 1.3; ctx.stroke();
+  }
+  // shadows of things in the air
+  for (const d of drops) { const a = clamp(0.35 - d.z / 400, 0.05, 0.35); ctx.fillStyle = `rgba(0,0,0,${a})`; ctx.beginPath(); ctx.arc(d.x, d.y, d.r * 0.8, 0, TAU); ctx.fill(); }
+  for (const c of clots) { const r = 15 * (1 - 0.35 * c.z / 170); ctx.fillStyle = `rgba(0,0,0,${0.5 - 0.25 * c.z / 170})`; ctx.beginPath(); ctx.ellipse(c.x, c.y, r * 1.1, r * 0.8, 0, 0, TAU); ctx.fill(); }
+  for (const e of enemies) drawEnemy(e);
+  drawPlayer();
+  drawCharge();
+  for (const d of drops) { // falling drops, stretched by their speed
+    const y = d.y - d.z, len = clamp(-d.vz / 160, 0, 3) * d.r;
+    ctx.fillStyle = '#c4122e';
+    ctx.beginPath(); ctx.ellipse(d.x, y - len * 0.5, d.r, d.r + len * 0.5, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,200,210,0.6)'; ctx.beginPath(); ctx.arc(d.x - d.r * 0.3, y - d.r * 0.3 - len * 0.5, d.r * 0.3, 0, TAU); ctx.fill();
+  }
+  for (const c of clots) {
+    const y = c.y - c.z, k = c.t / c.dur;
+    const dx = c.x1 - c.x0, dy = c.y1 - c.y0, l = Math.hypot(dx, dy) || 1;
+    for (let g = 3; g >= 1; g--) { // a smear behind it
+      ctx.globalAlpha = 0.18 * (4 - g) / 3;
+      clotPath(c.x - dx / l * g * 9, y + (g * 4) * (0.5 - k), 15 * (1 - g * 0.12), time, c.s); ctx.fillStyle = '#8a0c20'; ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    drawClot(c.x, y, 15, time * 1.6, c.s, 0.6);
+  }
+  for (const g of gibs) { // the burst on landing
+    const f = g.t / 0.35;
+    clotPath(g.x, g.y, 15 + 40 * easeOut(f), time, g.s); ctx.fillStyle = `rgba(196,18,46,${0.7 * (1 - f)})`; ctx.fill();
+  }
+  for (const r of rings) {
+    const f = r.t / r.d;
+    ctx.beginPath(); ctx.arc(r.x, r.y, lerp(r.r0, r.r1, easeOut(f)), 0, TAU); ctx.strokeStyle = `rgba(${r.col},${1 - f})`; ctx.lineWidth = r.w * (1 - f) + 0.5; ctx.stroke();
+  }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const n of nums) {
+    const f = n.t / 0.9, pop = f < 0.15 ? 1 + (1 - f / 0.15) * 0.6 : 1;
+    ctx.font = `700 ${22 * pop}px 'Barlow Condensed', sans-serif`;
+    ctx.lineWidth = 4; ctx.strokeStyle = `rgba(20,0,4,${1 - f})`; ctx.strokeText(n.v, n.x, n.y - 30 * easeOut(f));
+    ctx.fillStyle = `rgba(255,214,220,${1 - f})`; ctx.fillText(n.v, n.x, n.y - 30 * easeOut(f));
+  }
+  // HUD
+  ctx.setTransform(S, 0, 0, S, 0, 0);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = "700 22px 'Barlow Condensed', sans-serif"; ctx.fillStyle = '#e8263f';
+  ctx.fillText(({ A: 'A · GORE MORTAR', B: 'B · PLASMA GLOSS', C: 'C · SCAB VEIN' })[look], 22, 36);
+  ctx.font = "500 14px 'IBM Plex Mono', monospace"; ctx.fillStyle = 'rgba(242,228,227,0.75)';
+  const c = P.draw >= 0 ? charge(P.draw) : 0;
+  ctx.fillText(P.draw >= 0 ? `CHARGE ${Math.round(c * 100)}%  ·  LANDS ${Math.round(landD(c))} PX  ·  ${K.DMG} DAMAGE AT ANY RANGE` : `HOLD TO CHARGE  ·  ${K.MIN_D}-${K.MAX_D} PX  ·  ${K.DMG} DAMAGE AT ANY RANGE`, 22, H - 22);
+  ctx.textAlign = 'right'; ctx.fillStyle = manual ? '#e8263f' : 'rgba(242,228,227,0.45)';
+  ctx.fillText(manual ? 'YOU HAVE CONTROL' : 'DEMO', W - 22, 36);
+}
+
+// ---------- wiring ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000) * speed; last = now;
+  update(dt); draw(); requestAnimationFrame(frame);
+}
+function toWorld(ev) { const r = cv.getBoundingClientRect(); return [(ev.clientX - r.left) / r.width * W, (ev.clientY - r.top) / r.height * H]; }
+const demoBtn = document.getElementById('demo');
+function setManual(m) { manual = m; demoBtn.setAttribute('aria-pressed', String(!m)); demoBtn.textContent = m ? 'Back to the demo' : 'Demo playing'; if (!m) { mouse.down = false; AI.fire = false; AI.wait = 0.5; } }
+cv.addEventListener('pointerdown', ev => { setManual(true); [mouse.x, mouse.y] = toWorld(ev); mouse.down = true; cv.setPointerCapture(ev.pointerId); ev.preventDefault(); });
+cv.addEventListener('pointermove', ev => { [mouse.x, mouse.y] = toWorld(ev); });
+cv.addEventListener('pointerup', () => { mouse.down = false; });
+cv.addEventListener('pointercancel', () => { mouse.down = false; });
+addEventListener('keydown', ev => { const k = ev.key.toLowerCase(); if (manual && ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) { keys[k] = true; ev.preventDefault(); } });
+addEventListener('keyup', ev => { keys[ev.key.toLowerCase()] = false; });
+demoBtn.addEventListener('click', () => setManual(!manual));
+document.getElementById('reset').addEventListener('click', resetAll);
+document.querySelectorAll('input[name=look]').forEach(i => i.addEventListener('change', () => { look = i.value; }));
+document.querySelectorAll('input[name=spd]').forEach(i => i.addEventListener('change', () => { speed = +i.value; }));
+if (reduce) document.getElementById('s2').checked = true;
+addEventListener('resize', resize);
+resize(); resetAll();
+for (let i = 0; i < 90; i++) update(1 / 60); // open mid-action
+requestAnimationFrame(frame);
+})();
+</script>

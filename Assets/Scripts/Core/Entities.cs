@@ -452,7 +452,7 @@ namespace Arena
         public float HealAlly;    // host only: heals an ally it passes through
         public float WardAlly;    // host only: wards an ally it passes through instead (Mercy Cut's crescent; Lightbringer.cs)
         public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
-        public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it hits (Clot Bolt)
+        public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it lands (the Clot Cannon)
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Hops;          // host only: a Sprite Staff firefly hops to this many more unseeded enemies when it lands (KitWeapons.cs)
         public int Chain;         // host only: lightning jumps to this many more enemies

@@ -501,6 +501,7 @@ static partial class Program
             {
                 queue.Clear();
                 me.Pos = w.Id == WeaponId.Kusarigama ? center - new V2(70f, 0f)  // within its sickle cut
+                    : w.Id == WeaponId.ClotBolt ? center - new V2(Game.ClotDistance(1f) * me.Stats.ShotSpeedMult, 0f)  // a full charge lobs the clot onto the cluster
                     : w.Melee ? center - new V2(Game.MeleeRange(w.Id) * 0.5f + 40f, 0f) : from;  // knights stand in reach
                 ally.Pos = new V2(560f, 300f);
                 foreach (var e in dummies) { e.Speed = 0f; e.FireT = 99f; e.Pos = e.Disp; }

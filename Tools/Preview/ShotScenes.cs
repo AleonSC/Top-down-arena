@@ -829,6 +829,32 @@ static partial class Shot {
         b.Life = 0.7f * (0.8f - 0.3f * k);
       }
     }
+    if (Environment.GetEnvironmentVariable("CLOT") != null) {
+      // The Clot Cannon: charging (CLOT=<draw seconds>, with the arc and the landing outline), two clots in flight,
+      // a pool still wet and one congealed with an enemy stuck in it.
+      var sbc2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var addZone = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
+      var gm = host.Game; gm.Bot = false;
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.ClotBolt); me.Kit = Kit.Hemomancer;
+      me.Pos = me.Disp = new V2(380f, 520f); me.Aim = -0.2f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("CLOT"), System.Globalization.CultureInfo.InvariantCulture);
+      for (int k = 0; k < 2; k++)
+      {
+        float c = k == 0 ? 1f : 0.4f, fl = Game.ClotFlight(c);
+        var b = (Bullet)sbc2.Invoke(gm, new object[] { Defs.ClotShot, new V2(520f + 260f * k, 300f - 60f * k), new V2(500f, -60f), 0f, fl, 34f, 1, false, 0f });
+        b.Life = fl * (k == 0 ? 0.55f : 0.3f);
+      }
+      var en = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values);
+      V2[] at = { new V2(1020f, 470f), new V2(1080f, 540f), new V2(700f, 700f), new V2(760f, 650f) };
+      for (int k = 0; k < en.Count && k < at.Length; k++) { en[k].Pos = en[k].Disp = at[k]; en[k].FrozenT = k < 2 ? 0.6f : 0f; }
+      V2[] poolAt = { new V2(1040f, 500f), new V2(720f, 680f) };
+      float[] poolAge = { 1.6f, 0.5f };
+      for (int k = 0; k < 2; k++)
+      {
+        float age = poolAge[k];
+        var z = (Zone)addZone.Invoke(gm, new object[] { ZoneKind.BloodPool, me, poolAt[k], Game.ClotPoolRadius, Game.ClotPoolTime });
+        z.T = z.Duration - age; z.Congealed = age >= Game.PoolCongeal;
+      }
+    }
     if (Environment.GetEnvironmentVariable("CAGE") != null) {
       // The Bone Guard: an enemy caged by its darts, the Skeleton Guards shooting at it.
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.BoneGuard); me.Kit = Kit.Summoner; host.Game.Bot = false;
