@@ -121,6 +121,8 @@ namespace Arena
                     DrawBoulderCharge(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
                     DrawArcCharge(p, p.Id == game.MyId, t);
+                else if (p.Weapon.Id == WeaponId.ClotBolt && p.DrawT > 0f && !p.Downed)
+                    DrawClotCharge(p, p.Id == game.MyId, t);  // ClotCannonLook.cs
 
             if (aimDebug && game.Me != null)
             {
@@ -177,6 +179,7 @@ namespace Arena
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
+            DrawClotStains(t);       // the Clot Cannon's drops on the floor (ClotCannonLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
@@ -207,6 +210,7 @@ namespace Arena
                     DrawEnemy(e, t);
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
+            DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);
@@ -215,6 +219,7 @@ namespace Arena
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
             DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests, Misericorde's daggers (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
+            DrawClotAir(t);      // the Clot Cannon's drops falling (ClotCannonLook.cs)
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
             {
@@ -235,6 +240,7 @@ namespace Arena
                 DrawCenser(p, t);  // the Censer held, swung and thrown (CenserLook.cs)
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
+                DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawHeldStunGun(p, t);
             }
             foreach (var b in game.Bullets.Values)
@@ -265,6 +271,7 @@ namespace Arena
                 return;
             LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
+            DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals

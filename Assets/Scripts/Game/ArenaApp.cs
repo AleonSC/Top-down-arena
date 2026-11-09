@@ -175,6 +175,8 @@ namespace Arena
                 weaponChoice = Mathf.Clamp(weapon - 1, 0, Defs.WeaponsPerRole - 1);
             if (opts.TryGetValue("ability", out v) && int.TryParse(v, out weapon))
                 abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.RoleAbilityChoices - 1);
+            if (opts.TryGetValue("ult", out v) && int.TryParse(v, out weapon))
+                ultChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.UltKeys - 1);  // the host clamps it to what the class has
             if (opts.TryGetValue("class", out v))
                 for (int i = 0; i < Defs.KitCount; i++)
                     if (string.Equals(((Kit)i).ToString(), v, StringComparison.OrdinalIgnoreCase))

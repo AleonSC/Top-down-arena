@@ -8,8 +8,14 @@ namespace Arena
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;
-        public const float PoolCongeal = 1f, PoolStuck = 1f, PoolGuard = 0.15f;  // a Clot Bolt's pool congeals after this long, sticking enemies in it; its owner takes less inside  // (each weapon's main reach, speed and damage are in Defs)
+        // The Clot Cannon (WeaponId.ClotBolt kept): hold to charge, let go to lob a clot over enemies. The charge sets only
+        // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
+        // slows enemies and congeals after PoolCongeal, sticking the enemies in it for PoolStuck (not bosses).
+        public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f;
+        public static float ClotDistance(float c) => ClotMin + (ClotMax - ClotMin) * c;
+        public static float ClotFlight(float c) => 0.45f + 0.3f * c;
+        public static float ClotApex(float c) => 50f + 110f * c;  // how high it flies (drawing only)
+        public const float PoolCongeal = 1f, PoolStuck = 1f;  // (each weapon's main reach, speed and damage are in Defs)
         const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
@@ -17,8 +23,6 @@ namespace Arena
         const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
-        public const float PactDuration = 4f;
-        const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f;  // Exsanguinate (Exsanguinate.cs)
         const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f;
         public const float MartyrWardTime = 12f;  // also the halo's twelve beads, one a second (Game/MartyrLook.cs)
@@ -65,12 +69,18 @@ namespace Arena
                 }
                 case WeaponId.ClotBolt:
                 {
+                    // The Clot Cannon: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
+                    // the damage doesn't change with the charge. Extra projectiles fan more clots out to the same distance.
+                    float c = BowCharge(p, p.BowShotDraw), flight = ClotFlight(c);
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
-                        var b = SpawnBullet(Defs.ClotShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.2f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        V2 vel = V2.FromAngle(Fanned(aim, i, n, ClotFan)) * (ClotDistance(c) / flight);  // SpawnBullet adds Velocity Rounds, which send it farther
+                        var b = SpawnBullet(Defs.ClotShot, p.Pos, vel, 0f, flight, w.Damage * dmg, p.Id);
+                        b.Splash = ClotSplash * AreaMult(p);
                         b.Pool = ClotPoolRadius * AreaMult(p);
                         b.PoolTime = ClotPoolTime;
+                        b.Burst = 1;  // marks it as landing (MoveBullets)
                     }
                     break;
                 }
@@ -426,9 +436,6 @@ namespace Arena
                     }
                     break;
                 }
-                case Defs.ClotShot:
-                    AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
-                    break;
                 case Defs.BloodShot:
                     if (p.Weapon.Id == WeaponId.BloodBolts)
                         Hemorrhage(p, e, b.Dmg);
@@ -564,7 +571,24 @@ namespace Arena
                     Zones.Remove(id);
         }
 
-        /// A Clot Bolt's pool sets: enemies still in it are stuck for a moment (not bosses).
+        /// A Clot Cannon's clot landed: it splashes every enemy under it (weapon mods apply to each, as on a melee hit)
+        /// and spreads a pool of blood.
+        void LandClot(Bullet b)
+        {
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                {
+                    HurtEnemy(e, b.Dmg, b.Owner);
+                    OnBulletHit(b, e);
+                }
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
+            Player p;
+            if (Players.TryGetValue(b.Owner, out p))
+                AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
+            BroadcastFx(FxKind.Ring, b.Pos, Defs.BulletColor(Defs.ClotShot), b.Splash * 1.4f, 0.32f, Sfx.Explode);
+        }
+
+        /// A Clot Cannon's pool sets: enemies still in it are stuck for a moment (not bosses).
         void CongealPool(Zone z)
         {
             z.Congealed = true;
@@ -629,8 +653,8 @@ namespace Arena
             if (p.Downed || dealt <= 0f)
                 return;
             float frac = 0f;
-            if (p.Kit == Kit.Hemomancer)
-                frac += BloodSteal;
+            if (p.Kit == Kit.Hemomancer && !bathTick)
+                frac += BloodSteal;  // (a Bloodbath tick pays back its own share instead: Bloodbath.cs)
             if (p.DebtT > 0f)
                 frac += DebtSteal;
             if (frac > 0f)
@@ -638,12 +662,6 @@ namespace Arena
             if (p.Debt > 0f && e.Def.IsBoss)
                 RepayDebt(p, dealt * DebtBossShare * p.DebtRepay, e.Pos, false);
         }
-
-        /// Enemies all go for a Blood Mage under Crimson Pact (PickTarget).
-        bool BloodTaunting(Player p) => p.PactT > 0f;
-
-        /// Damage cut from a mastered Crimson Pact (Damage).
-        float BloodCut(Player p) => p.PactT > 0f && p.PactMastered ? PactMasteredCut : 0f;
 
         /// Blood Lash's Clot: each stack takes 4% off the damage you take.
         public static float ClotCut(Player p) => Math.Min(0.5f, ClotCutEach * p.Clot);
@@ -679,15 +697,6 @@ namespace Arena
             e.RetargetT = Math.Max(e.RetargetT, time);
         }
 
-        /// Damage about to come off a player's health (after shields): Crimson Pact stores it.
-        void BloodTookHit(Player p, float amount)
-        {
-            if (amount <= 0f)
-                return;
-            if (p.PactT > 0f)
-                p.PactStore += amount;
-        }
-
         // --- Abilities ------------------------------------------------------------------
 
         /// The Hemomancer (Kit.Hemomancer): FireBloodWeapon, BloodAbility, TickBloodMages, BloodShotHit. See KitDef (Classes.cs) for what each hook does.
@@ -710,9 +719,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
                 Desc = "A whip of blood. Its tip cracks for double damage and taunts, and enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
-            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
-                Desc = "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it. After a moment the pool congeals and holds enemies still. You take less damage standing in your own pool.",
-                Sound = Sfx.SpellArcane, AreaDesc = "blood pools 25% wider" },
+            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 clot, fanned out", Name = "Clot Cannon", FireInterval = 0.75f,
+                Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. It bursts into a big pool of blood that slows enemies, and after a moment the pool congeals and holds them still.",
+                Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils that grasp nearby enemies while you hold on. They are stunned and drained, and part of the damage heals you.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
@@ -750,9 +759,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.CrimsonPact, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
-                Name = "Crimson Pact", Cooldown = 10f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px.",
-                Capstone = "You take 30% less damage while it lasts.",
-                Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.6f,
+                Name = "Blood Wall", Cooldown = 8f, Desc = "Toggle: a wall of blood is laid behind you as you walk. It stops enemy bullets and enemies can't cross it (they bleed 12 a second against it); allies walk through. It stands 6 s. It drains 1% of your max health a second, doubling every 4 s, until you press again or go down.",
+                Capstone = "Enemies against the wall take double and are slowed 40%.",
+                Bot = b => b.HaveTarget && b.TargetD < 320f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
@@ -812,6 +821,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.Bloodbath, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1, HealthCost = BathCost,
+                Name = "Bloodbath", Cooldown = BathCooldown, Desc = "Pay 15% of your max health: blood floods the floor 170 px round you for 10 s (it stays where you cast it). Enemies wading in it are slowed 50% (Heavy enemies 35%, bosses 20%) and bleed 15 a second, and every drop heals you for 25% of it, wherever you are. Allies standing in it, you included, take 20% less damage.",
+                Capstone = "The pool spreads to 220 px and gives back 35% of the bleed.",
+                Bot = b => b.NearEnemies >= 3 && b.Me.Hp > b.Me.MaxHp * 0.4f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.SanguineRain, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = AbilityDef.Ult,
                 Name = "Sanguine Rain", Cooldown = 80f, Desc = "Draw 12% of your health into a blood orb (1.8 s), then rain circles follow your allies for 10 s, trickling 3% of their health every 0.5 s. It drains you 3% a second and ends when you press it again or fall to 15%.",
                 Capstone = "Lasts 14 s and heals 4% a tick.",
@@ -840,17 +856,7 @@ namespace Arena
                     BroadcastFx(FxKind.ShellPop, p.Pos, new V2(p.Id, 2f), blood, ShellRadius, 0.5f, Sfx.Ability);  // forming
                     return true;
                 case AbilityId.CrimsonPact:
-                    p.PactT = PactTime;
-                    p.PactStore = 0f;
-                    p.PactPower = pw * s.PactMult;
-                    p.PactRadius = PactRadius * s.PactRadiusMult;
-                    p.PactMastered = cap;
-                    foreach (var e in Enemies.Values)
-                    {
-                        e.TargetId = p.Id;
-                        e.RetargetT = PactTime;
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, p.PactRadius, 0.5f, Sfx.Roar);
+                    OpenBloodWall(p, pw, cap);  // BloodWall.cs: a toggle, laid as you walk
                     return true;
                 case AbilityId.Exsanguinate:
                     CastExsanguinate(p, cap, blood);  // Exsanguinate.cs: the whips hook, the yank lands later
@@ -933,6 +939,9 @@ namespace Arena
                     CastTithe(p, cap);  // VeinTithe.cs
                     return true;
                 }
+                case AbilityId.Bloodbath:
+                    CastBloodbath(p, cap);  // Bloodbath.cs
+                    return true;
                 case AbilityId.SanguineRain:
                     CastRain(p, cap);  // SanguineRain.cs
                     return true;
@@ -945,7 +954,7 @@ namespace Arena
 
         // --- Timed effects ---------------------------------------------------------------
 
-        /// Host, every tick: Crimson Pact runs down and bursts, Blood Debt's window runs out, Arterial Spray gushes.
+        /// Host, every tick: Blood Wall drains and is laid, Blood Debt's window runs out, Arterial Spray gushes.
         void TickBloodMages(float dt)
         {
             TickCoatings(dt);
@@ -958,7 +967,7 @@ namespace Arena
                     p.Grasp.Clear();  // let go of fire and the tendrils let go too
                 if (p.Downed)
                 {
-                    p.PactT = 0f;
+                    EndBloodWall(p);  // BloodWall.cs
                     ForfeitDebt(p, false);  // BloodDebt.cs
                     if (p.SprayOn)
                         CloseSpray(p, false);  // ArterialSpray.cs
@@ -970,22 +979,7 @@ namespace Arena
                     p.Clot--;
                     p.ClotT = ClotFade;
                 }
-                if (p.PactT > 0f)
-                {
-                    p.PactT -= dt;
-                    if (p.PactT <= 0f)
-                    {
-                        p.PactT = 0f;
-                        float dmg = p.PactStore * PactBurst * p.PactPower * p.Stats.DmgMult;
-                        if (dmg > 0f)
-                            foreach (var e in Enemies.Values)
-                                if (e.SpawnT <= 0f && e.Pos.DistanceTo(p.Pos) < p.PactRadius + e.Radius)
-                                    HurtEnemy(e, dmg, p.Id);
-                        BroadcastFx(FxKind.PactBurst, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), p.PactRadius, 0.45f, Sfx.Explode);
-                        BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), Math.Min(p.PactRadius, 40f + dmg * 0.5f), 0.35f, Sfx.None);  // bigger the more it held
-                        p.PactStore = 0f;
-                    }
-                }
+                TickBloodWall(p, dt);  // BloodWall.cs
                 TickDebt(p, dt);   // BloodDebt.cs
                 TickSpray(p, dt);  // ArterialSpray.cs
             }

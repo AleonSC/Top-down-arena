@@ -25,7 +25,9 @@ namespace Arena
         public bool AllyThreatened;  // a hurt or downed ally has enemies close on them (Roar draws those enemies off)
         public float DownedD;    // distance to the nearest downed ally (9999 with none)
         public bool TargetMarked;  // its target already carries a Mark for Death
+        public int NearEnemies;    // enemies within BotNearReach of it (Bloodbath wants several)
         public int Crowd;        // enemies within Game.JuggBotRange of it (the Juggernaut Suit's rule; only counted for that one)
+        public int Shooters;       // how many enemies have shots in flight coming at it (Lightning Rod)
     }
 
     public partial class Game
@@ -236,6 +238,9 @@ namespace Arena
             }
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
+            else if (me.Weapon.Id == WeaponId.ClotBolt && bowDraw >= BowMinDraw
+                && ClotDistance(BowCharge(me, bowDraw)) * me.Stats.ShotSpeedMult >= aimAt.DistanceTo(me.Pos))
+                firing = false;  // the Clot Cannon: let go once the clot would land on what it's aimed at
 
             // --- Abilities.
             for (int i = 0; i < held.Length; i++)
@@ -266,6 +271,13 @@ namespace Arena
                         held[slot] = botHeldLast[slot] = true;
                     continue;
                 }
+                if (s.Id == AbilityId.CrimsonPact && me.BloodWallOn)
+                {
+                    held[slot] = botHeldLast[slot] = false;
+                    if (me.BloodWallClock > 1f && (me.Hp < me.MaxHp * 0.4f || BotDanger < 0.05f && target == null))  // bled enough, or nothing left to wall off: stop
+                        held[slot] = botHeldLast[slot] = true;
+                    continue;
+                }
                 if (s.Id == AbilityId.BloodShell && me.ShellOn)
                 {
                     held[slot] = botHeldLast[slot] = false;
@@ -285,6 +297,8 @@ namespace Arena
                     aimAt = me.Pos + (botMove.IsZero ? V2.FromAngle(me.Aim) : botMove.Normalized()) * 220f;  // blink toward safety
                 else if (s.Id == AbilityId.Adrenaline)
                     aimAt = (lowest != null && lowest != me ? lowest : me).Pos;  // the hurt ally, or itself
+                else if (s.Id == AbilityId.BonePhalanx)
+                    aimAt = PhalanxBotAim(me, target);  // the line marches at the biggest group in front (BonePhalanx.cs)
                 else if (HealsWhereAimed(s.Id) && healSpot != null)
                     aimAt = healSpot.Pos;  // a medkit, rain, lantern, cross or cone lands where the hurt ally is
                 else if (target != null)
@@ -303,9 +317,22 @@ namespace Arena
             {
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
-                AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked,
+                AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
                 Crowd = id == AbilityId.JuggernautSuit ? CrowdNear(me) : 0,
+                Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
+        }
+
+        public const float BotNearReach = 170f;
+
+        /// Enemies (up and fighting) within reach of pos.
+        int EnemiesNear(V2 pos, float reach)
+        {
+            int n = 0;
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && !e.Dummy && e.Pos.DistanceTo(pos) < reach + e.Radius)
+                    n++;
+            return n;
         }
 
         /// Abilities that heal where you aim them: a bot casts these at the ally who needs it, not at the boss.

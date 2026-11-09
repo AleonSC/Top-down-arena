@@ -208,6 +208,24 @@ namespace Arena
                 case FxKind.BridgeSpark:
                     DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
                     break;
+                case FxKind.BathHeal:
+                    break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
+                case FxKind.RodBolt:
+                    DrawRodBoltFx(fx);  // LightningRodLook.cs
+                    break;
+                case FxKind.RodArc:
+                    DrawRodArcFx(fx);
+                    break;
+                case FxKind.RodGround:
+                    break;  // its grey number is on the HUD (LightningRodLook.cs DrawRodPops)
+                case FxKind.PhalanxSpark:
+                    DrawPhalanxSparkFx(fx);  // BonePhalanxLook.cs
+                    break;
+                case FxKind.PhalanxBreak:
+                    DrawPhalanxBreakFx(fx);
+                    break;
+                case FxKind.PhalanxJab:
+                    break;  // drawn as the skeleton's spear thrust (BonePhalanxLook.cs DrawPhalanx)
                 case FxKind.SteelCatch:
                 case FxKind.SteelRelease:
                 case FxKind.SteelHit:
@@ -216,8 +234,8 @@ namespace Arena
                 case FxKind.VeinCut:
                     DrawVeinCutFx(fx, t);  // VeinRushLook.cs
                     break;
-                case FxKind.PactBurst:
-                    DrawPactBurstFx(fx, f);
+                case FxKind.WallSplash:
+                    DrawWallSplashFx(fx, f);  // BloodWallLook.cs
                     break;
                 case FxKind.Link:
                     if (!IsLifelinePlain(fx))  // (Lifeline's own beams: LifelineLook.cs)

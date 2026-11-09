@@ -54,7 +54,7 @@ static class Perks { All[]; Get(id); BossOf(id); Slots(Profile); Unlocked(Profil
   ```
   `RiotBlock` sets `RiotT = RiotRecharge`, `InvulnT = max(InvulnT, RiotGraceT)`, and broadcasts a new `FxKind.RiotBlock` (impact direction in `Pos2`).
 - Placing it first means a hit the Parry, Barrier or Fortress already stopped never reaches `Damage`, so it doesn't spend the shield.
-  A hit blocked by the shield doesn't hit a Spirit Ward, a shield, Crimson Pact or the player's Hp.
+  A hit blocked by the shield doesn't hit a Spirit Ward, a shield or the player's Hp.
 - Damage-over-time sources (`burn`, `poison`, hazards) call `Damage` with their own source names. The source test is a small
   list of "doesn't count" names, kept next to the other source names. To confirm while building: list every `Damage(` call and its source string.
 - The per-frame tick (`Game.cs` ~1151, next to the `InvulnT` countdown) counts `RiotT` down, and when it reaches 0 broadcasts a ping effect.

@@ -36,9 +36,9 @@ static partial class Program
         for (int r = 0; r < 3; r++)
             for (int k = 0; k < Defs.KitCount; k++)
                 for (int u = 1; u < Upgrades.UltKeys; u++)
-                    if (Upgrades.AltUltimate((Role)r, (Kit)k, u) != AbilityId.None)
-                        alts++;
-        Check(alts == 1, "every other role and class keeps its three locked slots");
+                    if (Upgrades.AltUltimate((Role)r, (Kit)k, u) != AbilityId.None && !((Role)r == Role.Tank && (Kit)k == Kit.Summoner))
+                        alts++;  // (the Tank Summoner's Bone Phalanx is checked in Phalanx.cs)
+        Check(alts == 3 && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath, "only the Tank Soldier, Tank Elementalist (Lightning Rod) and Tank Hemomancer (Bloodbath) have a key 1; every other role and class keeps its three locked slots");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Soldier);  // (AutoStart: StartMatch below needs no Ready)

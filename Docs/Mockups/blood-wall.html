@@ -1,0 +1,620 @@
+<title>Blood Wall</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: masthead, one live stage (look switch, healer toggle, ramp sliders), the three looks, the ramp chart,
+   the rules card, then open questions. Single dark look like the other Hemomancer mockups: clotted venous red on near-black. */
+:root{
+  --bg:#100507; --panel:#1c0a0e; --fg:#f3e5e6; --muted:#bb9298; --line:#3d1620;
+  --acc:#ff4458; --acc2:#7a0a1d; --heal:#5fe0a8; --arena:#0a0405;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+h1{font:700 clamp(40px,7vw,72px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 14px;text-wrap:balance}
+header p.lede{margin:0;max-width:64ch;color:var(--muted);font-size:17px}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--acc);text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena);box-shadow:0 0 0 1px #0006,0 18px 50px -20px var(--acc2)}
+#cv{display:block;width:100%;height:auto;aspect-ratio:720/400;max-width:100%;cursor:crosshair;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:8px 16px;font:700 16px var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;background:var(--panel);color:var(--fg)}
+.seg input:checked+label{background:var(--acc);color:#14050a}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--acc)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.primary{background:var(--acc);color:#14050a;border-color:var(--acc)}
+.slider,.check{display:flex;align-items:center;gap:10px;font:500 13px var(--mono);color:var(--muted)}
+.slider output{color:var(--fg);min-width:5ch;text-align:right}
+input[type=range]{accent-color:var(--acc);width:120px}
+input[type=checkbox]{accent-color:var(--acc);width:16px;height:16px}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:76ch}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--fg);background:var(--panel)}
+.looks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.look{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--panel);display:flex;flex-direction:column;gap:8px;min-width:0;cursor:pointer;text-align:left}
+.look.on{border-color:var(--acc);box-shadow:0 0 30px -14px var(--acc)}
+.look canvas{display:block;width:100%;height:auto;aspect-ratio:240/90;border-radius:4px;background:var(--arena)}
+.look h3{margin:0;font:700 20px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--fg)}
+.look h3 span{color:var(--acc);margin-right:8px}
+.look p{margin:0;font-size:15px;color:var(--muted)}
+.chartbox{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:14px;min-width:0}
+#chart{display:block;width:100%;height:auto;aspect-ratio:720/300;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font:500 13px var(--mono);color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+.relic{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:28px;align-items:start}
+.tile{margin:0;border:1px solid var(--acc);border-radius:10px;padding:14px;background:var(--panel);box-shadow:0 0 40px -12px var(--acc2),inset 0 0 0 1px #ffffff10}
+.tile canvas{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1/1;border-radius:4px}
+.tile figcaption{font:700 13px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-align:center;margin-top:10px}
+.relic p{margin:0 0 12px;max-width:64ch}
+.relic .lore{font-style:italic;color:var(--muted)}
+dl.rules{display:grid;grid-template-columns:max-content minmax(0,1fr);margin:18px 0 0;border-top:1px solid var(--line)}
+dl.rules dt,dl.rules dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+dl.rules dt{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);padding-right:22px}
+dl.rules dd{font-size:15px}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px}
+.tier{border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--bg)}
+.tier b{display:block;font:700 17px var(--display);letter-spacing:.06em;text-transform:uppercase}
+.tier span{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+ol.q{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;max-width:76ch}
+ol.q li{padding-left:4px}
+ol.q b{color:var(--fg)}
+.was{border-left:3px solid var(--line);padding:4px 0 4px 14px;color:var(--muted);font-size:15px;max-width:76ch;margin:0}
+@media (max-width:620px){.relic{grid-template-columns:minmax(0,1fr)}.tile{max-width:220px}dl.rules{grid-template-columns:minmax(0,1fr)}dl.rules dt{padding-bottom:0;border-bottom:0}}
+@media (prefers-reduced-motion:reduce){.look{transition:none}}
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Hemomancer · Tank · Replaces Crimson Pact</p>
+    <h1>Blood Wall</h1>
+    <p class="lede">A toggle. Press it and you bleed a wall behind you wherever you walk: it stops enemy bullets and enemies can't cross it, while you and your allies walk straight through. It drains your health, and the drain doubles every few seconds. A healer can keep you going longer, but the ramp always wins. Press again to stop, or ride it until it takes you down.</p>
+  </header>
+
+  <section class="stage" aria-label="Live demo">
+    <div class="frame"><canvas id="cv" width="720" height="400" aria-label="A tank walking a figure eight, laying a wall of blood that stops red enemy shots"></canvas></div>
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Wall look">
+        <input type="radio" name="look" id="lookA" value="0" checked><label for="lookA">A · Rampart</label>
+        <input type="radio" name="look" id="lookB" value="1"><label for="lookB">B · Thornvein</label>
+        <input type="radio" name="look" id="lookC" value="2"><label for="lookC">C · Garnet</label>
+      </div>
+      <button id="toggle" class="primary" type="button">Stop wall <kbd>Space</kbd></button>
+      <label class="check" for="healer"><input type="checkbox" id="healer" checked> Healer behind you</label>
+      <label class="check" for="shots"><input type="checkbox" id="shots" checked> Enemy fire</label>
+    </div>
+    <div class="controls">
+      <label class="slider" for="base">Starting drain <input type="range" id="base" min="0.5" max="3" step="0.25" value="1"><output id="baseOut">1%/s</output></label>
+      <label class="slider" for="dbl">Doubles every <input type="range" id="dbl" min="2" max="8" step="0.5" value="4"><output id="dblOut">4 s</output></label>
+      <label class="slider" for="life">Wall stands <input type="range" id="life" min="3" max="10" step="0.5" value="6"><output id="lifeOut">6 s</output></label>
+    </div>
+    <p class="hint">The tank walks a figure eight on their own; hold the mouse (or a finger) on the arena to lead them. <kbd>Space</kbd> or the button toggles the wall. The ring round the tank and the number over them are the drain, heating through the four stages below. Untick the healer to see how much sooner the ramp takes you down alone.</p>
+  </section>
+
+  <section aria-labelledby="looksH">
+    <h2 id="looksH">Three looks for the wall</h2>
+    <div class="looks-grid">
+      <button class="look on" data-look="0" type="button"><canvas width="240" height="90"></canvas><h3><span>A</span>Rampart</h3><p>A thick ridge of clotted blood, glossy on top and dripping on both sides. Fresh wall is wet and bright; it darkens and cracks as it ages, then crumbles into a stain.</p></button>
+      <button class="look" data-look="1" type="button"><canvas width="240" height="90"></canvas><h3><span>B</span>Thornvein</h3><p>Two veins braid along your path with blood thorns jutting out both sides, pulsing with your heartbeat. Faster pulses as the drain climbs.</p></button>
+      <button class="look" data-look="2" type="button"><canvas width="240" height="90"></canvas><h3><span>C</span>Garnet</h3><p>Blood that sets into a palisade of dark red crystal shards, each with a lit facet. Bullets chip sparks off it; old shards cloud over and shatter.</p></button>
+    </div>
+  </section>
+
+  <section aria-labelledby="rampH">
+    <h2 id="rampH">The ramp</h2>
+    <div class="chartbox">
+      <canvas id="chart" width="720" height="300" aria-label="Health over time with the wall up, alone and with a healer"></canvas>
+      <div class="legend" id="legend"></div>
+    </div>
+    <p class="hint" id="rampNote" style="margin-top:10px"></p>
+    <div class="tiers">
+      <div class="tier"><b style="color:#ff8a96">Seep</b><span>under 2%/s</span></div>
+      <div class="tier"><b style="color:#ff5468">Flow</b><span>2 to 4%/s</span></div>
+      <div class="tier"><b style="color:#e8203a">Gush</b><span>4 to 8%/s</span></div>
+      <div class="tier"><b style="color:#ffd0d5">Hemorrhage</b><span>8%/s and up</span></div>
+    </div>
+  </section>
+
+  <section class="relic" aria-labelledby="rulesH">
+    <figure class="tile"><canvas id="icon" width="200" height="200" aria-label="Ability icon"></canvas><figcaption>Blood Wall</figcaption></figure>
+    <div>
+      <h2 id="rulesH">Blood Wall</h2>
+      <p class="lore">"Every step a brick, every brick a pint. Walk until the floor runs dry."</p>
+      <p>Tank Hemomancer, ability slot 2 (where Crimson Pact is). Proposed numbers, all tunable:</p>
+      <dl class="rules">
+        <dt>Press</dt><dd>Toggles it on. No upfront cost. Press again to stop.</dd>
+        <dt>Wall</dt><dd>Laid behind you as you walk, a 12 px thick line along your path. Standing still lays nothing. Each piece stands 6 s, then crumbles.</dd>
+        <dt>Blocks</dt><dd>Every enemy bullet, red aimed shots included. Enemies can't walk through it. You and allies pass freely, and your shots fly over it.</dd>
+        <dt>Drain</dt><dd>1% of your max health a second, doubling every 4 s: 2% at 4 s, 4% at 8 s, 8% at 12 s, 16% at 16 s. No hit grace, and it can take you down.</dd>
+        <dt>Healer</dt><dd>Any healing still lands, so a healer stretches it. A steady 4% a second carries you from about 17 s to about 20 s; nothing outheals 32% a second.</dd>
+        <dt>Ends</dt><dd>On a second press, or when you go down. The wall you laid stays up for the rest of its 6 s either way.</dd>
+        <dt>Cooldown</dt><dd>8 s, starting when it ends.</dd>
+        <dt>Upgrade</dt><dd>Blood Oath (rare, 2 stacks): the wall stands 2 s longer and the drain doubles 1 s slower.</dd>
+        <dt>Contact</dt><dd>Enemies pressed against it bleed 12 a second.</dd>
+        <dt>Capstone</dt><dd>Enemies against the wall take double and are slowed 40%.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section aria-labelledby="qH">
+    <h2 id="qH">Decided (built in the game)</h2>
+    <p class="hint" style="margin-bottom:14px">Look B, Thornvein. Bullets don't wear the wall. Enemies against it take damage (12 a second). No taunt. The ramp stays at 1%/s doubling every 4 s. Bots raise it with an enemy within 320 px above 70% health and stop at 40%. The capstone became double contact damage and a 40% slow. The questions as first asked:</p>
+    <ol class="q">
+      <li><b>Which look?</b> A Rampart, B Thornvein or C Garnet (or a mix, like the Rampart's ridge with Garnet's crystal crumble).</li>
+      <li><b>Does the wall wear down?</b> Proposed: no, it just times out. Alternative: each bullet stopped chips the piece it hit, and a piece breaks after 6 hits.</li>
+      <li><b>Should enemies that walk into it take damage?</b> Proposed: no (the capstone's spikes cover that). Alternative: 4 a second while pressed against it.</li>
+      <li><b>The ramp.</b> 1%/s doubling every 4 s takes a full-health tank down in about 17 s alone. Shorter (doubling every 3 s, about 13 s) or longer?</li>
+      <li><b>Taunt.</b> Crimson Pact made every enemy target you. Should the wall keep a weaker taunt (enemies within 200 px go for you while it's up), or is the wall enough?</li>
+      <li><b>Bots.</b> Proposed: a bot tank turns it on when 3+ enemies are near and off at 40% health.</li>
+    </ol>
+    <p class="was" style="margin-top:16px">Today's Crimson Pact: pay 10% of your max health, every enemy targets you for 4 s, then the damage you took bursts back out at 150% within 220 px (Blood Oath: 50% harder, 30% farther; capstone: 30% less damage while it lasts). The <code>AbilityId.CrimsonPact</code> slot would be kept, as with the other Hemomancer reworks.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const W = 720, H = 400;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+const cv = $('cv'), cx = cv.getContext('2d');
+function fit(c, w, h, ctx) {
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  c.width = w * d; c.height = h * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+fit(cv, W, H, cx);
+
+// --- settings -------------------------------------------------------------------
+const S = { look: 0, healer: true, shots: true, base: 1, dbl: 4, life: 6 };
+const HEAL = 4;  // healer, % a second
+function rate(t) { return S.base * Math.pow(2, t / S.dbl); }
+function tier(r) { return r < 2 ? 0 : r < 4 ? 1 : r < 8 ? 2 : 3; }
+const TIER = ['Seep', 'Flow', 'Gush', 'Hemorrhage'];
+const TIERC = ['#ff8a96', '#ff5468', '#e8203a', '#ffd0d5'];
+
+// --- state ----------------------------------------------------------------------
+const P = { x: 200, y: 200, vx: 0, vy: 0, hp: 100, on: true, t: 0, cd: 0, down: 0, idle: 0, path: 0, lastLay: null, run: 0, beat: 0 };
+const Hl = { x: 150, y: 200 };
+let wall = [];   // {x,y,born,run,i}
+let foes = [], shots = [], fx = [], now = 0, auto = 0, steer = null;
+const rnd = (a, b) => a + Math.random() * (b - a);
+function spawnFoe() {
+  const side = Math.floor(Math.random() * 4);
+  const x = side === 0 ? -10 : side === 1 ? W + 10 : rnd(40, W - 40);
+  const y = side === 2 ? -10 : side === 3 ? H + 10 : rnd(40, H - 40);
+  foes.push({ x, y, r: 11, fire: rnd(0.6, 2), wob: rnd(0, 6) });
+}
+for (let i = 0; i < 6; i++) spawnFoe();
+
+function openWall() { P.on = true; P.t = 0; P.run++; P.lastLay = null; burst(P.x, P.y, 14, 1.2); }
+function closeWall() { P.on = false; P.cd = 8; P.idle = 0; }
+function toggle() {
+  if (P.down > 0) return;
+  if (P.on) closeWall(); else if (P.cd <= 0) openWall();
+  syncBtn();
+}
+function syncBtn() {
+  const b = $('toggle');
+  b.innerHTML = P.on ? 'Stop wall <kbd>Space</kbd>' : P.cd > 0 ? 'Cooldown ' + P.cd.toFixed(1) + ' s' : 'Raise wall <kbd>Space</kbd>';
+  b.className = P.on ? 'primary' : '';
+}
+function burst(x, y, n, sp) {
+  for (let i = 0; i < n; i++) {
+    const a = rnd(0, Math.PI * 2), v = rnd(30, 120) * sp;
+    fx.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, d: rnd(0.3, 0.7), r: rnd(1.2, 3) });
+  }
+}
+
+// --- sim ------------------------------------------------------------------------
+const SPACE = 9, WR = 8;
+function step(dt) {
+  now += dt; auto += dt;
+  // movement
+  let tx, ty;
+  if (P.down > 0) { tx = P.x; ty = P.y; }
+  else if (steer) { tx = steer.x; ty = steer.y; }
+  else { tx = 360 + 250 * Math.sin(auto * 0.42); ty = 200 + 125 * Math.sin(auto * 0.84); }
+  let dx = tx - P.x, dy = ty - P.y, d = Math.hypot(dx, dy);
+  const sp = 165;
+  if (d > 2) { const m = Math.min(sp, d * 6) / d; P.vx = dx * m; P.vy = dy * m; } else { P.vx = P.vy = 0; }
+  P.x += P.vx * dt; P.y += P.vy * dt;
+  // healer trails behind
+  const hx = P.x - P.vx * 0.45 - 30, hy = P.y - P.vy * 0.45 + 18;
+  Hl.x += (hx - Hl.x) * Math.min(1, dt * 3); Hl.y += (hy - Hl.y) * Math.min(1, dt * 3);
+
+  if (P.down > 0) {
+    P.down -= dt;
+    if (P.down <= 0) { P.hp = 100; P.cd = 0; openWall(); }
+  } else if (P.on) {
+    P.t += dt;
+    const r = rate(P.t);
+    P.hp -= r * dt;
+    if (S.healer) P.hp = Math.min(100, P.hp + HEAL * dt);
+    P.beat += dt * (1.2 + tier(r) * 0.9);
+    // lay wall along the path
+    if (!P.lastLay) P.lastLay = { x: P.x, y: P.y };
+    let ld = Math.hypot(P.x - P.lastLay.x, P.y - P.lastLay.y);
+    while (ld >= SPACE) {
+      const k = SPACE / ld;
+      P.lastLay = { x: P.lastLay.x + (P.x - P.lastLay.x) * k, y: P.lastLay.y + (P.y - P.lastLay.y) * k };
+      wall.push({ x: P.lastLay.x, y: P.lastLay.y, born: now, run: P.run, i: wall.length ? wall[wall.length - 1].i + 1 : 0 });
+      ld -= SPACE;
+    }
+    if (P.hp <= 0) { P.hp = 0; P.on = false; P.down = 3; burst(P.x, P.y, 40, 1.6); }
+  } else {
+    P.hp = Math.min(100, P.hp + (S.healer ? HEAL : 0.5) * dt);
+    if (P.cd > 0) P.cd = Math.max(0, P.cd - dt);
+    else { P.idle += dt; if (P.idle > 2.5) openWall(); }
+  }
+  // crumble
+  const life = S.life;
+  while (wall.length && now - wall[0].born > life) {
+    const w = wall.shift();
+    if (Math.random() < 0.35) burst(w.x, w.y, 2, 0.4);
+  }
+  // foes
+  for (const f of foes) {
+    f.wob += dt;
+    const fdx = P.x - f.x, fdy = P.y - f.y, fd = Math.hypot(fdx, fdy) || 1;
+    const want = fd > 70 ? 55 : -20;
+    f.x += (fdx / fd * want + Math.sin(f.wob * 1.7) * 18) * dt;
+    f.y += (fdy / fd * want + Math.cos(f.wob * 1.3) * 18) * dt;
+    for (const w of wall) {
+      const ex = f.x - w.x, ey = f.y - w.y, e = Math.hypot(ex, ey);
+      if (e < f.r + WR && e > 0.01) { const push = (f.r + WR - e) / e; f.x += ex * push; f.y += ey * push; }
+    }
+    if (S.shots && (f.fire -= dt) <= 0 && f.x > 0 && f.x < W && f.y > 0 && f.y < H) {
+      f.fire = rnd(1.3, 2.4);
+      const a = Math.atan2(P.y - f.y, P.x - f.x);
+      shots.push({ x: f.x + Math.cos(a) * 12, y: f.y + Math.sin(a) * 12, vx: Math.cos(a) * 190, vy: Math.sin(a) * 190, t: 0 });
+    }
+  }
+  // shots
+  shots = shots.filter(s => {
+    s.x += s.vx * dt; s.y += s.vy * dt; s.t += dt;
+    for (const w of wall) if ((s.x - w.x) ** 2 + (s.y - w.y) ** 2 < (WR + 3) ** 2) { hitFx(s, w); return false; }
+    if (P.down <= 0 && (s.x - P.x) ** 2 + (s.y - P.y) ** 2 < 14 * 14) { P.hp -= 2; burst(s.x, s.y, 5, 0.6); return false; }
+    return s.t < 4 && s.x > -20 && s.x < W + 20 && s.y > -20 && s.y < H + 20;
+  });
+  fx = fx.filter(p => { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.9; p.vy *= 0.9; return p.t < p.d; });
+  if (!S.shots) shots.length = 0;
+}
+function hitFx(s, w) {
+  const a = Math.atan2(-s.vy, -s.vx);
+  for (let i = 0; i < 6; i++) {
+    const b = a + rnd(-0.9, 0.9), v = rnd(40, 130);
+    fx.push({ x: s.x, y: s.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, t: 0, d: rnd(0.2, 0.45), r: rnd(1, 2.4), spark: S.look === 2 });
+  }
+  w.hit = now;
+}
+
+// --- drawing --------------------------------------------------------------------
+function hash(i) { const s = Math.sin(i * 127.1) * 43758.5453; return s - Math.floor(s); }
+function runs(list) {
+  const out = []; let cur = null;
+  for (const w of list) {
+    if (cur && cur.run === w.run && Math.hypot(w.x - cur.pts[cur.pts.length - 1].x, w.y - cur.pts[cur.pts.length - 1].y) < SPACE * 2.2) cur.pts.push(w);
+    else { cur = { run: w.run, pts: [w] }; out.push(cur); }
+  }
+  return out;
+}
+function ageOf(w, t, life) { return Math.min(1, (t - w.born) / life); }
+
+// A: Rampart, a clotted ridge drawn as overlapping round strokes, wet at the head, dark and cracked at the tail.
+function drawRampart(g, list, t, life, beat) {
+  for (const r of runs(list)) {
+    const pts = r.pts;
+    // drips and pooled base
+    for (const w of pts) {
+      const a = ageOf(w, t, life);
+      if (hash(w.i) < 0.25) {
+        g.fillStyle = `rgba(90,6,18,${0.55 * (1 - a * 0.6)})`;
+        g.beginPath(); g.ellipse(w.x + (hash(w.i + 3) - 0.5) * 10, w.y + 9 + a * 4, 3 + hash(w.i + 1) * 2, 2 + a * 3, 0, 0, 7); g.fill();
+      }
+    }
+    // three passes over the whole run (shadow, body, shine) so the ridge reads as one mass, not beads
+    g.lineCap = 'round';
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 1; i < pts.length; i++) {
+        const p0 = pts[i - 1], p1 = pts[i], a = ageOf(p1, t, life);
+        const crumble = a > 0.85 ? (a - 0.85) / 0.15 : 0;
+        const wid = 17 * (1 - crumble * 0.7);
+        g.beginPath();
+        if (pass === 0) {
+          g.strokeStyle = `rgb(${Math.round(50 - a * 20)},4,10)`; g.lineWidth = wid + 4;
+          g.moveTo(p0.x, p0.y + 3); g.lineTo(p1.x, p1.y + 3);
+        } else if (pass === 1) {
+          g.strokeStyle = `rgb(${Math.round(170 - a * 95)},${Math.round(18 - a * 10)},${Math.round(30 - a * 14)})`; g.lineWidth = wid;
+          g.moveTo(p0.x, p0.y); g.lineTo(p1.x, p1.y);
+        } else {
+          const shine = (1 - a) * (0.55 + 0.25 * Math.sin(beat * 6 - p1.i * 0.4));
+          if (shine <= 0.02) continue;
+          g.strokeStyle = `rgba(255,120,130,${shine})`; g.lineWidth = Math.max(1, wid * 0.22);
+          g.moveTo(p0.x, p0.y - wid * 0.22); g.lineTo(p1.x, p1.y - wid * 0.22);
+        }
+        g.stroke();
+      }
+    }
+    // cracks on old wall
+    g.strokeStyle = 'rgba(15,2,4,0.8)'; g.lineWidth = 1;
+    for (const w of pts) {
+      const a = ageOf(w, t, life);
+      if (a > 0.55 && hash(w.i + 7) < 0.4) {
+        const len = 4 + (a - 0.55) * 14;
+        g.beginPath(); g.moveTo(w.x - len * 0.5, w.y - 2); g.lineTo(w.x, w.y + 1); g.lineTo(w.x + len * 0.4, w.y - 3); g.stroke();
+      }
+    }
+  }
+}
+// B: Thornvein, two braided veins with thorns, pulsing.
+function drawThornvein(g, list, t, life, beat) {
+  for (const r of runs(list)) {
+    const pts = r.pts; if (pts.length < 2) continue;
+    const nrm = i => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)]; const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1; return [-dy / l, dx / l]; };
+    // thorns
+    for (let i = 0; i < pts.length; i++) {
+      const w = pts[i]; if (w.i % 3) continue;
+      const a = ageOf(w, t, life), [nx, ny] = nrm(i), side = (w.i / 3) % 2 ? 1 : -1;
+      const grow = Math.min(1, (t - w.born) / 0.25), len = (8 + hash(w.i) * 6) * grow * (a > 0.85 ? 1 - (a - 0.85) / 0.15 : 1);
+      const tx = w.x + nx * side * len, ty = w.y + ny * side * len;
+      const [ax, ay] = [pts[Math.min(pts.length - 1, i + 1)].x - w.x, pts[Math.min(pts.length - 1, i + 1)].y - w.y];
+      g.fillStyle = `rgb(${140 - a * 70},12,24)`;
+      g.beginPath(); g.moveTo(w.x - ax * 0.5, w.y - ay * 0.5); g.lineTo(tx - ax * 0.3, ty - ay * 0.3); g.lineTo(w.x + ax * 0.5, w.y + ay * 0.5); g.closePath(); g.fill();
+    }
+    for (const ph of [0, Math.PI]) {
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      for (let pass = 0; pass < 2; pass++) {
+        g.beginPath();
+        for (let i = 0; i < pts.length; i++) {
+          const w = pts[i], [nx, ny] = nrm(i), o = Math.sin(w.i * 0.55 + ph) * 4.5;
+          i ? g.lineTo(w.x + nx * o, w.y + ny * o) : g.moveTo(w.x + nx * o, w.y + ny * o);
+        }
+        const a = ageOf(pts[pts.length - 1], t, life);
+        if (pass === 0) { g.strokeStyle = '#3a0309'; g.lineWidth = 8; }
+        else { g.strokeStyle = ph ? '#b3142c' : '#8a0c20'; g.lineWidth = 5; }
+        g.stroke();
+      }
+    }
+    // heartbeat pulse travelling along the run
+    const n = pts.length, k = (beat % 1);
+    const idx = Math.floor((1 - k) * (n - 1));
+    for (let j = -3; j <= 3; j++) {
+      const w = pts[idx + j]; if (!w) continue;
+      g.fillStyle = `rgba(255,110,125,${0.5 - Math.abs(j) * 0.13})`;
+      g.beginPath(); g.arc(w.x, w.y, 5 - Math.abs(j) * 0.6, 0, 7); g.fill();
+    }
+    // older wall greys out
+    for (const w of pts) {
+      const a = ageOf(w, t, life);
+      if (a > 0.6) { g.fillStyle = `rgba(10,4,5,${(a - 0.6) * 1.1})`; g.beginPath(); g.arc(w.x, w.y, 9, 0, 7); g.fill(); }
+    }
+  }
+}
+// C: Garnet, crystal shards standing along the path.
+function drawGarnet(g, list, t, life) {
+  for (const r of runs(list)) {
+    const pts = r.pts;
+    for (let i = 0; i < pts.length; i++) {
+      const w = pts[i], a = ageOf(w, t, life);
+      const prev = pts[Math.max(0, i - 1)], next = pts[Math.min(pts.length - 1, i + 1)];
+      const ang = Math.atan2(next.y - prev.y, next.x - prev.x);
+      const grow = Math.min(1, (t - w.born) / 0.18);
+      const crumble = a > 0.85 ? (a - 0.85) / 0.15 : 0;
+      const h = (12 + hash(w.i) * 8) * grow * (1 - crumble), wd = 7 + hash(w.i + 2) * 3;
+      g.save(); g.translate(w.x, w.y + 3); g.rotate(ang);
+      // shadow
+      g.fillStyle = 'rgba(0,0,0,0.45)';
+      g.beginPath(); g.ellipse(0, 4, wd * 0.8, 3, 0, 0, 7); g.fill();
+      g.rotate(-ang);
+      const lean = (hash(w.i + 5) - 0.5) * 0.5;
+      g.rotate(lean);
+      const base = a < 0.6 ? 1 : 1 - (a - 0.6) * 1.2;
+      g.fillStyle = `rgb(${Math.round(110 * base + 30)},${Math.round(8 + 10 * (1 - base))},${Math.round(26 + 20 * (1 - base))})`;
+      g.beginPath(); g.moveTo(-wd * 0.5, 0); g.lineTo(-wd * 0.35, -h * 0.7); g.lineTo(0, -h); g.lineTo(wd * 0.4, -h * 0.65); g.lineTo(wd * 0.5, 0); g.closePath(); g.fill();
+      g.fillStyle = `rgba(255,90,110,${0.55 * base})`;
+      g.beginPath(); g.moveTo(-wd * 0.35, -h * 0.7); g.lineTo(0, -h); g.lineTo(0.5, -h * 0.25); g.lineTo(-wd * 0.2, -1); g.closePath(); g.fill();
+      if (w.hit && t - w.hit < 0.2) { g.fillStyle = 'rgba(255,230,235,0.8)'; g.beginPath(); g.moveTo(-wd * 0.5, 0); g.lineTo(0, -h); g.lineTo(wd * 0.5, 0); g.fill(); }
+      if (a > 0.6) { g.fillStyle = `rgba(200,180,190,${(a - 0.6) * 0.35})`; g.beginPath(); g.moveTo(-wd * 0.5, 0); g.lineTo(0, -h); g.lineTo(wd * 0.5, 0); g.fill(); }
+      g.restore();
+    }
+  }
+}
+function drawWall(g, list, t, life, beat, look) {
+  if (look === 0) drawRampart(g, list, t, life, beat);
+  else if (look === 1) drawThornvein(g, list, t, life, beat);
+  else drawGarnet(g, list, t, life);
+}
+
+function drawArena() {
+  cx.fillStyle = '#0c0607'; cx.fillRect(0, 0, W, H);
+  cx.strokeStyle = 'rgba(120,40,50,0.08)'; cx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 40) { cx.beginPath(); cx.moveTo(x + 0.5, 0); cx.lineTo(x + 0.5, H); cx.stroke(); }
+  for (let y = 0; y <= H; y += 40) { cx.beginPath(); cx.moveTo(0, y + 0.5); cx.lineTo(W, y + 0.5); cx.stroke(); }
+}
+function drawBody(x, y, col, rim) {
+  cx.fillStyle = 'rgba(0,0,0,0.4)'; cx.beginPath(); cx.ellipse(x, y + 12, 12, 4, 0, 0, 7); cx.fill();
+  cx.fillStyle = col; cx.beginPath(); cx.arc(x, y, 12, 0, 7); cx.fill();
+  cx.strokeStyle = rim; cx.lineWidth = 2; cx.stroke();
+}
+function render() {
+  drawArena();
+  drawWall(cx, wall, now, S.life, P.beat, S.look);
+  // healer tether
+  if (S.healer && P.down <= 0) {
+    cx.strokeStyle = `rgba(95,224,168,${0.25 + 0.15 * Math.sin(now * 6)})`; cx.setLineDash([3, 5]); cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(Hl.x, Hl.y); cx.lineTo(P.x, P.y); cx.stroke(); cx.setLineDash([]);
+    drawBody(Hl.x, Hl.y, '#2a6b55', '#5fe0a8');
+    cx.fillStyle = '#5fe0a8'; cx.font = '500 10px "IBM Plex Mono", monospace'; cx.textAlign = 'center';
+    cx.fillText('+' + HEAL + '%/s', Hl.x, Hl.y - 18);
+  }
+  for (const f of foes) { drawBody(f.x, f.y, '#3a3f4a', '#8c95a6'); cx.fillStyle = '#ff3b4e'; cx.fillRect(f.x - 3, f.y - 3, 6, 6); }
+  for (const s of shots) { cx.fillStyle = '#ff2c3c'; cx.beginPath(); cx.arc(s.x, s.y, 4.5, 0, 7); cx.fill(); cx.fillStyle = '#ffd2d6'; cx.beginPath(); cx.arc(s.x, s.y, 1.8, 0, 7); cx.fill(); }
+  for (const p of fx) { const k = 1 - p.t / p.d; cx.fillStyle = p.spark ? `rgba(255,200,210,${k})` : `rgba(200,20,40,${k})`; cx.beginPath(); cx.arc(p.x, p.y, p.r * k + 0.4, 0, 7); cx.fill(); }
+  // tank
+  if (P.down > 0) {
+    cx.fillStyle = 'rgba(120,8,20,0.6)'; cx.beginPath(); cx.ellipse(P.x, P.y + 4, 26, 12, 0, 0, 7); cx.fill();
+    drawBody(P.x, P.y, '#3b1016', '#7a2a33');
+    cx.fillStyle = '#ffd0d5'; cx.font = '700 16px "Barlow Condensed", sans-serif'; cx.textAlign = 'center';
+    cx.fillText('BLED DRY', P.x, P.y - 22);
+  } else {
+    const r = rate(P.t), ti = tier(r), c = TIERC[ti];
+    if (P.on) {
+      const pulse = 0.5 + 0.5 * Math.sin(P.beat * Math.PI * 2);
+      cx.strokeStyle = c; cx.globalAlpha = 0.35 + 0.4 * pulse; cx.lineWidth = 2 + ti;
+      cx.beginPath(); cx.arc(P.x, P.y, 19 + pulse * 2, 0, 7); cx.stroke(); cx.globalAlpha = 1;
+      // drops falling from the tank into the line
+      if (Math.random() < 0.5 + ti * 0.15) fx.push({ x: P.x + rnd(-6, 6), y: P.y + rnd(-4, 6), vx: rnd(-20, 20), vy: rnd(10, 40), t: 0, d: 0.3, r: 1.6 });
+    }
+    drawBody(P.x, P.y, '#6a1220', '#ff4458');
+    cx.fillStyle = '#ff4458'; cx.beginPath(); cx.arc(P.x + P.vx * 0.04, P.y + P.vy * 0.04, 4, 0, 7); cx.fill();
+    // health bar over the tank
+    const bw = 44, bx = P.x - bw / 2, by = P.y - 30;
+    cx.fillStyle = '#1a0a0d'; cx.fillRect(bx, by, bw, 5);
+    cx.fillStyle = P.hp > 35 ? '#e8203a' : '#ffd0d5'; cx.fillRect(bx, by, bw * Math.max(0, P.hp) / 100, 5);
+    if (P.on) {
+      cx.fillStyle = c; cx.font = '600 11px "IBM Plex Mono", monospace'; cx.textAlign = 'center';
+      cx.fillText('−' + r.toFixed(r < 10 ? 1 : 0) + '%/s', P.x, by - 6);
+    }
+  }
+  // HUD
+  const r = rate(P.t);
+  cx.textAlign = 'left';
+  cx.fillStyle = 'rgba(16,5,7,0.82)'; cx.fillRect(12, 12, 236, 62);
+  cx.strokeStyle = '#3d1620'; cx.strokeRect(12.5, 12.5, 235, 61);
+  cx.fillStyle = '#f3e5e6'; cx.font = '700 17px "Barlow Condensed", sans-serif';
+  cx.fillText('BLOOD WALL', 22, 32);
+  cx.font = '500 11px "IBM Plex Mono", monospace';
+  let status;
+  if (P.down > 0) status = 'down: the ramp won';
+  else if (P.on) status = P.t.toFixed(1) + ' s · ' + TIER[tier(r)];
+  else status = P.cd > 0 ? 'cooldown ' + P.cd.toFixed(1) + ' s' : 'ready';
+  cx.fillStyle = P.on ? TIERC[tier(r)] : '#bb9298'; cx.fillText(status, 108, 32);
+  cx.fillStyle = '#1a0a0d'; cx.fillRect(22, 42, 216, 8);
+  cx.fillStyle = '#e8203a'; cx.fillRect(22, 42, 216 * Math.max(0, P.hp) / 100, 8);
+  cx.fillStyle = '#bb9298'; cx.fillText('health ' + Math.max(0, P.hp).toFixed(0) + '%', 22, 66);
+  // drain pips: one per doubling
+  for (let k = 0; k < 6; k++) {
+    const lit = P.on && P.t >= k * S.dbl;
+    cx.fillStyle = lit ? TIERC[Math.min(3, k)] : '#3d1620';
+    cx.beginPath(); cx.arc(138 + k * 17, 62, 5, 0, 7); cx.fill();
+  }
+}
+
+// --- loop -----------------------------------------------------------------------
+let last = performance.now();
+function frame(t) {
+  let dt = Math.min(0.05, (t - last) / 1000); last = t;
+  if (reduce) dt *= 0.6;
+  step(dt); render();
+  if (!P.on) syncBtn();
+  drawCards(now);
+  requestAnimationFrame(frame);
+}
+syncBtn();
+
+// steering
+function toArena(e) { const b = cv.getBoundingClientRect(); return { x: (e.clientX - b.left) / b.width * W, y: (e.clientY - b.top) / b.height * H }; }
+cv.addEventListener('pointerdown', e => { steer = toArena(e); cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => { if (steer) steer = toArena(e); });
+const release = () => { if (steer) { steer = null; auto = Math.asin(Math.max(-1, Math.min(1, (P.x - 360) / 250))) / 0.42; } };
+cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', release);
+$('toggle').addEventListener('click', toggle);
+addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); toggle(); } });
+
+// controls
+function setLook(v) {
+  S.look = v;
+  document.querySelectorAll('.look').forEach(b => b.classList.toggle('on', +b.dataset.look === v));
+  $(['lookA', 'lookB', 'lookC'][v]).checked = true;
+}
+document.querySelectorAll('input[name=look]').forEach(r => r.addEventListener('change', () => setLook(+r.value)));
+document.querySelectorAll('.look').forEach(b => b.addEventListener('click', () => setLook(+b.dataset.look)));
+$('healer').addEventListener('change', e => { S.healer = e.target.checked; drawChart(); });
+$('shots').addEventListener('change', e => { S.shots = e.target.checked; });
+function bindSlider(id, key, fmt) {
+  const el = $(id), out = $(id + 'Out');
+  const upd = () => { S[key] = +el.value; out.textContent = fmt(+el.value); if (chartOn) drawChart(); };
+  el.addEventListener('input', upd); upd();
+}
+bindSlider('base', 'base', v => v + '%/s');
+bindSlider('dbl', 'dbl', v => v + ' s');
+bindSlider('life', 'life', v => v + ' s');
+
+// --- look cards: a fixed S-curve of wall in each look -----------------------------
+const cards = [...document.querySelectorAll('.look canvas')].map(c => { const g = c.getContext('2d'); fit(c, 240, 90, g); return g; });
+function cardWall(t) {
+  const list = [], n = 26, life = 6;
+  for (let i = 0; i < n; i++) {
+    const x = 16 + i * 8.4, y = 48 + Math.sin(i * 0.28) * 16;
+    list.push({ x, y, born: t - (n - i) * (life / n) * 0.95, run: 1, i, hit: (i === 9 && (t % 1.6) < 0.2) ? t : 0 });
+  }
+  return list;
+}
+function drawCards(t) {
+  const list = cardWall(t);
+  cards.forEach((g, look) => {
+    g.fillStyle = '#0c0607'; g.fillRect(0, 0, 240, 90);
+    drawWall(g, list, t, 6, t * 1.4, look);
+  });
+}
+
+// --- chart ----------------------------------------------------------------------
+const ch = $('chart'), cg = ch.getContext('2d'); fit(ch, 720, 300, cg);
+function simulate(heal) {
+  const out = []; let hp = 100, t = 0; const dt = 0.02;
+  while (hp > 0 && t < 40) { hp += (-rate(t) + heal) * dt; hp = Math.min(100, hp); t += dt; out.push([t, Math.max(0, hp)]); }
+  return out;
+}
+function drawChart() {
+  const L = 52, R = 700, T = 18, B = 260;
+  const solo = simulate(0), duo = simulate(HEAL);
+  const tMax = Math.max(8, Math.ceil((duo[duo.length - 1][0] + 2) / 4) * 4);
+  const X = t => L + (t / tMax) * (R - L), Y = h => B - (h / 100) * (B - T), YR = r => B - (Math.min(r, 40) / 40) * (B - T);
+  cg.fillStyle = '#1c0a0e'; cg.fillRect(0, 0, 720, 300);
+  cg.font = '500 11px "IBM Plex Mono", monospace'; cg.fillStyle = '#bb9298'; cg.strokeStyle = 'rgba(187,146,152,0.12)'; cg.lineWidth = 1;
+  cg.textAlign = 'right';
+  for (let h = 0; h <= 100; h += 25) { cg.beginPath(); cg.moveTo(L, Y(h) + 0.5); cg.lineTo(R, Y(h) + 0.5); cg.stroke(); cg.fillText(h + '%', L - 8, Y(h) + 4); }
+  cg.textAlign = 'center';
+  for (let t = 0; t <= tMax; t += 4) { cg.fillText(t + ' s', X(t), B + 18); }
+  // doubling bands
+  for (let t = 0; t < tMax; t += S.dbl) {
+    const r0 = rate(t), ti = tier(r0);
+    cg.fillStyle = TIERC[ti]; cg.globalAlpha = 0.06 + ti * 0.03; cg.fillRect(X(t), T, X(Math.min(tMax, t + S.dbl)) - X(t), B - T); cg.globalAlpha = 1;
+  }
+  // drain rate (right axis)
+  cg.strokeStyle = '#ffd0d5'; cg.setLineDash([4, 4]); cg.lineWidth = 1.5; cg.beginPath();
+  for (let t = 0; t <= tMax; t += 0.1) { const y = YR(rate(t)); t ? cg.lineTo(X(t), y) : cg.moveTo(X(t), y); if (rate(t) > 40) break; }
+  cg.stroke(); cg.setLineDash([]);
+  cg.textAlign = 'left'; cg.fillStyle = '#ffd0d5'; cg.fillText('drain 0–40%/s', R - 98, T + 12);
+  function line(data, col, w) { cg.strokeStyle = col; cg.lineWidth = w; cg.beginPath(); data.forEach(([t, h], i) => i ? cg.lineTo(X(t), Y(h)) : cg.moveTo(X(0), Y(100))); cg.stroke(); }
+  line(solo, '#e8203a', 3);
+  line(duo, '#5fe0a8', S.healer ? 3 : 1.5);
+  const ts = solo[solo.length - 1][0], td = duo[duo.length - 1][0];
+  for (const [t, col, lab, dy] of [[ts, '#e8203a', 'alone: down at ' + ts.toFixed(1) + ' s', -10], [td, '#5fe0a8', 'healer: down at ' + td.toFixed(1) + ' s', -26]]) {
+    cg.fillStyle = col; cg.beginPath(); cg.arc(X(t), Y(0), 5, 0, 7); cg.fill();
+    cg.textAlign = X(t) > R - 150 ? 'right' : 'left';
+    cg.fillText(lab, X(t) + (cg.textAlign === 'right' ? -8 : 8), Y(0) + dy);
+  }
+  $('legend').innerHTML = '<span><i style="background:#e8203a"></i>health, alone</span><span><i style="background:#5fe0a8"></i>health, healer giving ' + HEAL + '%/s</span><span><i style="background:#ffd0d5"></i>drain a second (dashed)</span>';
+  $('rampNote').textContent = 'At ' + S.base + '%/s doubling every ' + S.dbl + ' s, a full-health tank goes down after ' + ts.toFixed(1) + ' s alone, or ' + td.toFixed(1) + ' s with a healer pouring in ' + HEAL + '% a second: the healer buys ' + (td - ts).toFixed(1) + ' s. The last stretch is where the drain outruns any heal.';
+}
+var chartOn = true; drawChart();
+
+// --- icon -----------------------------------------------------------------------
+(() => {
+  const c = $('icon'), g = c.getContext('2d'); fit(c, 200, 200, g);
+  const grd = g.createRadialGradient(100, 100, 10, 100, 100, 120); grd.addColorStop(0, '#3a0a12'); grd.addColorStop(1, '#0c0406');
+  g.fillStyle = grd; g.fillRect(0, 0, 200, 200);
+  const list = []; for (let i = 0; i < 22; i++) list.push({ x: 18 + i * 7.6, y: 140 - Math.sin(i * 0.16) * 40, born: -i * 0.02, run: 1, i });
+  drawRampart(g, list, 0, 6, 0);
+  g.fillStyle = '#ff4458'; g.beginPath(); g.moveTo(150, 42); g.bezierCurveTo(168, 70, 172, 82, 150, 92); g.bezierCurveTo(128, 82, 132, 70, 150, 42); g.fill();
+  g.fillStyle = 'rgba(255,220,225,0.6)'; g.beginPath(); g.ellipse(144, 76, 3, 6, -0.3, 0, 7); g.fill();
+})();
+
+requestAnimationFrame(frame);
+})();
+</script>

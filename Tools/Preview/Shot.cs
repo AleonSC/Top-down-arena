@@ -87,6 +87,8 @@ static partial class Shot {
   static BindingFlags f2;
   static Action<string, object> set;
   static float launchAt, recallAt, endingAt;
+  static readonly System.Collections.Generic.HashSet<int> rodMine = new System.Collections.Generic.HashSet<int>();  // ROD=: the scene's grunts
+  static readonly V2 RodHome = new V2(Game.Width / 2f - 300f, Game.Height / 2f + 190f);
   static void Main(string[] args) {
     if (Environment.GetEnvironmentVariable("RANDOM") == null) Game.SeedForTests(1);  // the same rolls every run, so uishots.sh -r can compare pixels (RANDOM=1: as random as the game)
     Shot.args = args; wave = int.Parse(args[1]); seconds = float.Parse(args[2]); players = int.Parse(args[3]);
@@ -95,7 +97,8 @@ static partial class Shot {
     host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
     melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA") ?? Environment.GetEnvironmentVariable("BLOOD");
     meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Environment.GetEnvironmentVariable("BLOOD") != null ? Kit.Hemomancer : Kit.Knight;
-    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, melee != null ? int.Parse(melee) : 0, 0, melee != null ? meleeKit : Kit.Elementalist);
+    var rodEnv = Environment.GetEnvironmentVariable("ROD");  // ROD=<seconds since the cast>: you take Lightning Rod (the tank Elementalist's second ultimate) and cast it that long before the shot
+    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, melee != null ? int.Parse(melee) : 0, 0, melee != null ? meleeKit : Kit.Elementalist, 0, rodEnv != null && melee == null ? 1 : 0);
     others = new System.Collections.Generic.List<Session>();
     string[] names = { "Aleon", "Sam" }; Role[] roles = { Role.Dps, Role.Healer }; Kit[] kits = melee != null ? new[] { meleeKit, meleeKit } : new[] { Kit.Soldier, Kit.Summoner };
     for (int i = 1; i < players; i++) { var c = new Session(); c.Game.Bot = true; c.Join("127.0.0.1", host.Port, names[i-1], roles[i-1], 0, 0, kits[i-1]); others.Add(c); }
@@ -105,6 +108,43 @@ static partial class Shot {
     for (int f = 0; f < seconds * 60; f++) {
       Step(host); foreach (var c in others) Step(c); if (f % 4 == 0) Thread.Sleep(1);
       foreach (var p in host.Game.Players.Values) { p.InvulnT = 1f; }
+      if (rodEnv != null && f > 60) foreach (var p in host.Game.Players.Values) { p.InvulnT = 0f; p.Hp = Math.Max(p.Hp, p.MaxHp * 0.6f); }  // ROD=: the hits land, for the grey numbers
+      if (rodEnv != null && f == Math.Max(0, (int)((seconds - float.Parse(rodEnv)) * 60)) && host.Game.Players.ContainsKey(1))
+      {
+        host.Game.Bot = false;  // (it stands still from here: no Space ability or fire hiding the charge)
+        foreach (var bp in host.Game.Players.Values) { bp.AegisT = 0f; bp.BarrierT = 0f; }
+        // A clean stage: the tank in the middle, five grunts in an arc ahead of it (caged: they only shoot when this scene says).
+        host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); rodMine.Clear();
+        var rsp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+        for (int k = 0; k < 5; k++)
+        {
+          var re = (Enemy)rsp.Invoke(host.Game, new object[] { k == 2 ? EnemyType.Brute : EnemyType.Grunt, RodHome + V2.FromAngle(-MathX.Pi / 2f + (k - 2) * 0.38f) * (k % 2 == 0 ? 250f : 200f), 0f, 0, false });
+          re.SpawnT = 0f; re.Hp = re.MaxHp = 1e5f; re.CageT = 999f; rodMine.Add(re.Id);
+        }
+        typeof(Game).GetMethod("Ultimate", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(host.Game, new object[] { host.Game.Players[1], host.Game.Players[1].Slots[Upgrades.UltSlot].Id, host.Game.Players[1].Pos });
+      }
+      if (rodEnv != null && rodMine.Count > 0)
+      {
+        foreach (var id in new System.Collections.Generic.List<int>(host.Game.Enemies.Keys)) if (!rodMine.Contains(id)) host.Game.Enemies.Remove(id);
+        foreach (var bp in host.Game.Players.Values) { bp.Pos = bp.Disp = RodHome; bp.Aim = -MathX.Pi / 2f; }
+      }
+      // While the charge is up, the nearest enemies take turns landing a shot on you every 0.3 s (the last 0.07 s before the shot), so bolts are falling.
+      if (rodEnv != null && host.Game.Players.ContainsKey(1) && host.Game.Players[1].RodT > 0f && ((int)(seconds * 60) - f - 4) % 18 == 0)
+      {
+        var rme = host.Game.Players[1];
+        var near = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+        near.RemoveAll(e => host.Game.IsSpawning(e) || e.Pos.DistanceTo(rme.Pos) > 700f);
+        near.Sort((x, y) => x.Pos.DistanceSq(rme.Pos).CompareTo(y.Pos.DistanceSq(rme.Pos)));
+        if (near.Count > 0)
+        {
+          var shooter = near[(f / 18) % near.Count];
+          var gf = BindingFlags.NonPublic | BindingFlags.Instance;
+          typeof(Game).GetField("actingEnemy", gf).SetValue(host.Game, shooter);
+          V2 dir = (rme.Pos - shooter.Pos).Normalized();
+          typeof(Game).GetMethod("SpawnBullet", gf).Invoke(host.Game, new object[] { Defs.SmallShot, rme.Pos - dir * 6f, dir * 300f, 0f, 2f, Defs.BulletDamage(Defs.SmallShot), 0, false, 0f });
+          typeof(Game).GetField("actingEnemy", gf).SetValue(host.Game, null);
+        }
+      }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
       // SING=<health fraction>: hold the Singularity there (so the shot lands in that stage); SINGTURN=<turn> skips its
@@ -210,6 +250,7 @@ static partial class Shot {
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
+    if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);  // FXOFF=1: Visual effects off (the plain looks)
     ArenaScenes();
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;

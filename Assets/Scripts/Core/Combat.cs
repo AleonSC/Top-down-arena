@@ -11,6 +11,7 @@ namespace Arena
 
         void Damage(Player p, float amount, string source = "Other")
         {
+            lastTaken = 0f;  // (Lightning Rod's grey number reads what got through; LightningRod.cs)
             if (p.DevGod)
                 return;
             if (p.SwallowT > 0f && !stomach)
@@ -22,6 +23,7 @@ namespace Arena
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
+            amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
             foreach (var q in Players.Values)
                 if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
                     amount *= 0.5f;  // a healer's Soul Link halves the damage
@@ -33,8 +35,8 @@ namespace Arena
             {
                 if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, z.DamageCut);
-                if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
-                    cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
+                if (InBath(z, p.Pos, 0f))
+                    cut = Math.Max(cut, BathGuard);  // standing in anyone's Bloodbath (Bloodbath.cs)
             }
             amount *= 1f - cut;  // the Ninja's smoke
             if (p.AdrenalineT > 0f)
@@ -42,7 +44,6 @@ namespace Arena
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
-            amount *= 1f - BloodCut(p);     // a mastered Crimson Pact
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
@@ -63,9 +64,9 @@ namespace Arena
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
-            BloodTookHit(p, amount);  // Crimson Pact stores it
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
+            lastTaken = Math.Max(0f, amount);
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -113,6 +114,7 @@ namespace Arena
         {
             Player p;
             float homing = homingTurn;
+            bool stamp = false;
             bool modded = owner != 0 && Players.TryGetValue(owner, out p) && Moddable(kind);
             if (modded)
             {
@@ -125,10 +127,16 @@ namespace Arena
             if (owner == 0 && Defs.IsEnemyShot(kind))
             {
                 enemyShots++;
+                stamp = true;  // (below: who fired it, for Lightning Rod)
                 if (!Defs.Unblockable(kind) && InIncense(pos))
                     vel = vel.Rotated(Rand(-IncenseStray, IncenseStray));  // fired from inside the Censer's incense: it strays
             }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
+            if (stamp)
+            {
+                b.ShooterId = actingEnemy != null ? actingEnemy.Id : 0;  // the enemy whose turn it is (TickEnemies); 0 for hazards and the like
+                b.ShooterPos = actingEnemy != null ? actingEnemy.Pos : pos;
+            }
             b.Dmg = casting && !firingWeapon ? dmg * castPower : dmg;
             if (owner != 0 && Players.TryGetValue(owner, out p))
             {
@@ -226,14 +234,14 @@ namespace Arena
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
+                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.MedkitShot)
                     PullIntoWells(b, dt);
                 float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
                     b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)
                 else
                     b.Pos += b.Vel * (dt * SmokeSpeed(b) * lumen);
-                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
+                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.MedkitShot)
                     b.Pos += wind * dt;
                 b.Life -= dt * lumen;  // a held bullet doesn't run out of range
                 if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
@@ -272,6 +280,11 @@ namespace Arena
                 if (b.Kind == Defs.BoulderShot)
                 {
                     LandBoulder(b);  // KitWeapons.cs
+                    continue;
+                }
+                if (b.Kind == Defs.ClotShot)
+                {
+                    LandClot(b);  // BloodMage.cs
                     continue;
                 }
                 if (b.Kind == Defs.FlakShell)
@@ -422,8 +435,8 @@ namespace Arena
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
-                    continue;  // grenades, boulders, medkits and flak shells fly over enemies and land or burst where you aimed
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.ClotShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
+                    continue;  // grenades, boulders, Clot Cannon clots, medkits and flak shells fly over enemies and land or burst where you aimed
                 if (LayoutOn && SolidStops(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
@@ -527,9 +540,19 @@ namespace Arena
                         scratchIds.Add(b.Id);
                         continue;
                     }
+                    if (PhalanxStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Bone Phalanx's shields: everything from the front stops, red aimed shots too (BonePhalanx.cs)
+                        continue;
+                    }
                     if (BridgeStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
+                        continue;
+                    }
+                    if (WallStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
                         continue;
                     }
                     foreach (var p in Players.Values)
@@ -595,14 +618,23 @@ namespace Arena
                         float r = p.Def.HitR + b.Radius;
                         if (b.Pos.DistanceSq(p.Pos) < r * r)
                         {
-                            // Invulnerable players (dash, recent hit) let bullets pass through.
-                            if (p.InvulnT <= 0f)
+                            // Invulnerable players (dash, recent hit) let bullets pass through, unless a Lightning Rod grounds them:
+                            // then it's used up and calls its bolt whether it hurt or not (LightningRod.cs).
+                            bool grounded = p.RodT > 0f;
+                            if (grounded && p.InvulnT > 0f)
+                            {
+                                scratchIds.Add(b.Id);
+                                RodShot(p, b, 0f);
+                            }
+                            else if (p.InvulnT <= 0f)
                             {
                                 if (JuggOn(p))
                                     JuggShot(p, b);  // the suit's armour takes it and throws flak back (Juggernaut.cs)
                                 else
                                     Damage(p, b.Dmg, ShotSource(b));
                                 scratchIds.Add(b.Id);
+                                if (grounded)
+                                    RodShot(p, b, p.DevGod ? b.Dmg * EnemyDamageScale(Math.Max(1, Wave)) * (1f - RodCut) : lastTaken);  // (the preview's god mode takes nothing: show what it would have)
                                 if (b.Kind == Defs.StunShot && !p.Downed)
                                 {
                                     p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
@@ -1024,7 +1056,7 @@ namespace Arena
         {
             Bullet live;
             return b.Id != 0 && Bullets.TryGetValue(b.Id, out live) && live == b && b.Pierce < 50 && !b.Bolts && b.Burst == 0 && !b.Ward
-                && b.Kind != Defs.BoulderShot && b.Kind != Defs.FumaStar;
+                && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.FumaStar;
         }
 
         /// The nearest enemy a bounce can go to from `pos`, other than the one it just hit.

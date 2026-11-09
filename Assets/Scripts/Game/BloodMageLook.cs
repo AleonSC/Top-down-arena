@@ -26,19 +26,6 @@ namespace Arena
                     Arc(p.Disp, r + 3f, 3f, plate, 6, p.Aim + seg * k + 0.08f, seg - 0.16f);
             }
             // Abilities
-            if (p.PactT > 0f)  // Crimson Pact: a ring of thorns growing longer as it stores damage, and the time left
-            {
-                float held = PactFill(p);
-                for (int k = 0; k < 10; k++)
-                {
-                    V2 d = V2.FromAngle(MathX.Tau * k / 10f + t * 0.8f);
-                    Line(p.Disp + d * (r + 8f), p.Disp + d * (r + 14f + 10f * held + 2f * Mathf.Sin(t * 12f + k)), 2f + 1.5f * held, BloodRed.WithAlpha(0.8f * a));
-                }
-                Circle(p.Disp, r * (0.25f + 0.45f * held), new Rgba(1f, 0.25f, 0.3f, (0.35f + 0.4f * held) * a), 16);  // the blood it holds, welling up in you
-                float left = MathX.Clamp01(p.PactT / Game.PactDuration);
-                Arc(p.Disp, r + 5f, 2f, BloodDark.WithAlpha(0.7f * a), 24, -MathX.Pi / 2f, MathX.Tau);
-                Arc(p.Disp, r + 5f, 2f, new Rgba(1f, 0.55f, 0.6f, 0.9f * a), 24, -MathX.Pi / 2f, MathX.Tau * left);  // the countdown
-            }
             // (Blood Debt's ring and Arterial Spray's jet are drawn for any class: WorldPlayers.cs)
         }
 
@@ -89,23 +76,12 @@ namespace Arena
             }
         }
 
-        /// Under a blood mage: Crimson Pact's closing ring (DrawPlayerAuras). Vein Tithe, Sanguine Rain and Crimson Harvest draw their own (VeinTitheLook.cs, SanguineRainLook.cs, CrimsonHarvestLook.cs).
+        /// Under a blood mage: Blood Wall's veins up to their feet and its drain ring (BloodWallLook.cs). Vein Tithe, Sanguine Rain and Crimson Harvest draw their own (VeinTitheLook.cs, SanguineRainLook.cs, CrimsonHarvestLook.cs).
         void DrawBloodAuras(Player p, float t)
         {
             if (p.Downed)
                 return;
-            if (p.PactT > 0f && p.PactRadius > 0f)  // Crimson Pact: where its burst will reach, closing in red as it nears
-            {
-                float left = MathX.Clamp01(p.PactT / Game.PactDuration), soon = 1f - left;
-                bool last = p.PactT < 1f;
-                Circle(p.Disp, p.PactRadius, BloodRed.WithAlpha(0.03f + 0.07f * soon * soon), 56);
-                Arc(p.Disp, p.PactRadius, last ? 3f : 2f, BloodRed.WithAlpha(last && MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.35f + 0.3f * soon), 56);
-                for (int k = 0; k < 12; k++)  // thorns along the rim, pointing out
-                {
-                    V2 d = V2.FromAngle(MathX.Tau * k / 12f - t * 0.4f);
-                    Line(p.Disp + d * (p.PactRadius - 6f), p.Disp + d * (p.PactRadius + 6f + 6f * PactFill(p)), 2f, BloodRed.WithAlpha(0.45f + 0.3f * soon));
-                }
-            }
+            DrawWallTail(p, p.Def.BodyR, t, 1f);
         }
 
         /// Implosion: the enemy your click would hit gets four blood ticks pointing in at it.
@@ -302,9 +278,6 @@ namespace Arena
             }
         }
 
-        /// How full a Crimson Pact is, 0..1: the damage it holds against a third of its caster's max health.
-        static float PactFill(Player p) => p.MaxHp > 0f ? MathX.Clamp01(p.PactStore / (p.MaxHp * 0.33f)) : 0f;
-
         /// A Hemomancer's shield (Blood Shell; Blood Gift cast alone): plates of clotted blood around them, fewer and
         /// cracking as it's worn down, with a glossy sheen.
         void DrawBloodShellOn(Player p, float t)
@@ -393,22 +366,6 @@ namespace Arena
                 Arc(b0, 12f + 14f * (f - 0.4f), 2.5f, BloodRed.WithAlpha(1f - f), 20);
         }
 
-        /// Crimson Pact bursting (FxKind.PactBurst): thorns of blood spike out to its reach, and a ring rides out with them.
-        void DrawPactBurstFx(Effect fx, float f)
-        {
-            float g = 1f - (1f - f) * (1f - f), reach = fx.Radius * g;
-            for (int k = 0; k < 18; k++)
-            {
-                V2 d = V2.FromAngle(k * MathX.Tau / 18f + 0.17f);
-                float len = k % 2 == 0 ? 1f : 0.75f;
-                V2 tip = fx.Pos + d * (reach * len), side = d.Orthogonal();
-                SetColor(BloodRed.WithAlpha(0.85f * (1f - f)));
-                Tri(fx.Pos + d * (reach * len * 0.3f) + side * 5f, fx.Pos + d * (reach * len * 0.3f) - side * 5f, tip);
-            }
-            Arc(fx.Pos, Mathf.Max(1f, reach), 4f, BloodRed.WithAlpha(1f - f), 48);
-            Circle(fx.Pos, fx.Radius * 0.3f * (1f - f), BloodDark.WithAlpha(0.7f * (1f - f)), 20);
-        }
-
         /// A drop of blood: round, with a point trailing behind its direction of travel.
         void DrawDrop(V2 c, float r, V2 dir, Rgba col)
         {
@@ -426,11 +383,8 @@ namespace Arena
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             switch (b.Kind)
             {
-                case Defs.ClotShot:  // a lumpy dark clot
-                    Circle(b.Pos, b.Radius + 3f, c.WithAlpha(0.3f), 12);
-                    Circle(b.Pos, b.Radius, c, 12);
-                    Circle(b.Pos + side * 3f - dir * 2f, b.Radius * 0.6f, c, 10);
-                    Circle(b.Pos + dir * 2f - side * 2f, b.Radius * 0.35f, BloodRed, 8);
+                case Defs.ClotShot:  // the Clot Cannon's clot, lobbed over its shadow (ClotCannonLook.cs)
+                    DrawClotLob(b, t);
                     break;
                 case Defs.LeechShot:  // a streak of the beam
                     Line(b.Pos - dir * 14f, b.Pos + dir * 4f, 5f, c.WithAlpha(0.3f));
@@ -458,30 +412,6 @@ namespace Arena
                     break;
             }
             return true;
-        }
-
-        /// The Blood Mage's zone: a Clot Bolt's glossy pool.
-        void DrawBloodZone(Zone z, Rgba c, float t)
-        {
-            // BloodPool
-            {
-                float fade = MathX.Clamp01(z.T / 0.5f);  // dries up at the end
-                Circle(z.Pos, z.Radius * 0.85f, c.WithAlpha(0.2f * fade), 32);
-                for (int k = 0; k < 5; k++)
-                    Circle(z.Pos + V2.FromAngle(k * 1.3f + z.Id) * (z.Radius * 0.6f), z.Radius * 0.3f, c.WithAlpha(0.12f * fade), 16);
-                if (z.Duration - z.T >= Game.PoolCongeal)  // congealed: a dark crust, cracked
-                {
-                    var crust = new Rgba(0.3f, 0.02f, 0.06f, 0.75f * fade);
-                    Arc(z.Pos, z.Radius * 0.85f, 3f, crust, 32);
-                    for (int k = 0; k < 4; k++)
-                    {
-                        V2 d0 = V2.FromAngle(k * 1.6f + z.Id);
-                        Line(z.Pos + d0 * (z.Radius * 0.2f), z.Pos + d0.Rotated(0.3f) * (z.Radius * 0.7f), 1.5f, crust);
-                    }
-                }
-                else
-                    Circle(z.Pos + new V2(-z.Radius * 0.3f, -z.Radius * 0.3f), z.Radius * 0.15f, new Rgba(1f, 0.6f, 0.6f, 0.25f), 10);  // still wet: a glint
-            }
         }
     }
 }

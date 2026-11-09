@@ -246,7 +246,7 @@ namespace Arena
                     break;
                 }
                 case ZoneKind.BloodPool:
-                    DrawBloodZone(z, c, t);  // BloodMageLook.cs
+                    DrawBloodZone(z, c, t);  // ClotCannonLook.cs
                     break;
                 case ZoneKind.VeinTrail:
                     DrawVeinTrail(z, t);  // VeinRushLook.cs
@@ -254,6 +254,15 @@ namespace Arena
                 case ZoneKind.Drawbridge:
                     DrawDrawbridge(z, t);  // DrawbridgeLook.cs
                     return;
+                case ZoneKind.Bloodbath:
+                    DrawBloodbath(z, t);  // BloodbathLook.cs (its own time ring when Visual effects are off)
+                    return;
+                case ZoneKind.BloodWall:
+                    DrawBloodWallNode(z, t);  // BloodWallLook.cs
+                    return;  // no timer ring: it's a wall
+                case ZoneKind.Phalanx:
+                    DrawPhalanx(z, t);  // BonePhalanxLook.cs
+                    return;  // no timer ring: the line is its own clock
                 case ZoneKind.HoneyPool:
                     DrawHoneyPool(z, c, t);  // QueenLootLook.cs
                     break;

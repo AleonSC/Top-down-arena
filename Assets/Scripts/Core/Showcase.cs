@@ -23,6 +23,8 @@ namespace Arena
         int weapon = -1;
         AbilityId ability = AbilityId.None;
         bool demoAbility, ultimate;
+        float rodShotT;  // a Lightning Rod demo: until a dummy next fires at you
+        int rodShots;
         int ultPick;  // the Ultimate row's key (LobbyEntry.Ult)
         float t, castT;
         bool castHeld;
@@ -85,7 +87,9 @@ namespace Arena
                 this.ability = ability;
                 this.ultimate = ultimate;
                 var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit, ultPick) : ability;
-                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f : UltimateEvery;
+                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
+                    : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
+                    : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
@@ -98,7 +102,8 @@ namespace Arena
                 float reach = Game.WeaponRange(Me);
                 Distance = Me.Weapon.Melee ? reach * 0.75f : Math.Min(reach * 0.8f, Math.Max(200f, Math.Min(320f, reach * 0.55f)));
                 Game.ShowcaseDummies(Home, Distance);
-                Extent = shown == AbilityId.Titan ? Math.Max(Distance, 340f) : Distance;  // zoomed out for a 140 px titan
+                Extent = shown == AbilityId.Titan ? Math.Max(Distance, 340f)  // zoomed out for a 140 px titan
+                    : shown == AbilityId.BonePhalanx ? Math.Max(Distance, Game.PhalanxAhead + Game.PhalanxMarch + 40f) : Distance;  // and for the whole march
                 t = 0f;
                 castT = FirstCast;
             }
@@ -130,6 +135,11 @@ namespace Arena
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Idle && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
+            if (me.Weapon.Id == WeaponId.ClotBolt)  // the Clot Cannon: held just long enough to lob the clot onto the dummies
+            {
+                float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
+                input.Fire = !Idle && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
+            }
             // The Bo Staff: fire runs the slash, jab, spin chain; every few seconds the weapon-action key shoves, partway into a chain so the
             // reset shows (BoStaff.cs).
             if (me.Weapon.Id == WeaponId.BoStaff)
@@ -158,6 +168,18 @@ namespace Arena
                 else
                     input.Ability = castHeld;
             }
+            // Lightning Rod: the dummies take turns firing at you while the charge is up, each shot calling a bolt on its shooter (LightningRod.cs).
+            if (me.RodT > 0f && !Idle)
+            {
+                rodShotT -= dt;
+                if (rodShotT <= 0f)
+                {
+                    rodShotT = Game.RodDemoShotEvery;
+                    Game.ShowcaseDummyShot(rodShots++);
+                }
+            }
+            else
+                rodShotT = 0.2f;
             if (allies && aimTicks > 0)
             {
                 input.AimAt = Game.ShowcaseAllyPos(castCount % 2);  // the cursor on a teammate (Adrenaline Shot, Medkit, Healing Rain...), alternating

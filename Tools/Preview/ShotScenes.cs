@@ -4,6 +4,8 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // ROOM, APPROACH, PATTERNS, PATCHES, MODS, PATHON, ...).
 static partial class Shot {
   static void PlayerScenes() {
+    BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
+    PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
@@ -407,6 +409,29 @@ static partial class Shot {
       }
       if (snap == null) { me.TitheClock = Math.Max(0.001f, tt); me.UltT = Math.Max(0.1f, Game.TitheLen - tt); }
     }
+    if (Environment.GetEnvironmentVariable("BLOODBATH") != null) {
+      // A tank Hemomancer's Bloodbath (BloodbathLook.cs): BLOODBATH=<seconds since the cast> (it floods out to 0.9 s, lasts 10 s and dries over the
+      // last 1.2; use 0.4, 3 or 9.4), with enemies wading in it and around it, an ally inside and a few heal numbers. BATHMASTERED=1: 220 px. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.Bloodbath;
+      V2 from = new V2(700f, 480f);
+      me.Pos = me.Disp = from + new V2(-30f, 20f); me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.7f;
+      float bt = float.Parse(Environment.GetEnvironmentVariable("BLOODBATH"));
+      float R = Environment.GetEnvironmentVariable("BATHMASTERED") != null ? Game.BathRadiusMastered : Game.BathRadius;
+      gm.Zones[9100] = new Zone { Id = 9100, Kind = ZoneKind.Bloodbath, Owner = me.Id, Pos = from, Radius = R, Duration = Game.BathTime, T = Math.Max(0.01f, Game.BathTime - bt) };
+      V2[] spots = { new V2(90f, -60f), new V2(-110f, -40f), new V2(40f, 110f), new V2(130f, 70f), new V2(-60f, 120f), new V2(330f, -40f), new V2(-320f, 90f), new V2(260f, 200f) };
+      for (int i = 0; i < spots.Length; i++) {
+        V2 at = from + spots[i];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 3 ? EnemyType.Juggernaut : i == 6 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
+      }
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = from + new V2(-40f, -110f); break; }
+      if (bt > 0.6f)
+        for (int k = 0; k < 3; k++)
+          gm.Effects.Add(new Effect { Kind = FxKind.BathHeal, Pos = me.Pos + new V2(k * 7f, 0f), Pos2 = new V2(me.Id, 0f), Color = new Rgba(1f, 0.35f, 0.4f), Radius = 6f + k * 3f, Dur = Game.BathHealFxTime, T = 0.1f + k * 0.28f });
+    }
     if (Environment.GetEnvironmentVariable("RAIN") != null) {
       // A Hemomancer's Sanguine Rain (SanguineRainLook.cs): RAIN=<seconds since the cast> (siphon to 1.8 s, seeds to 2.4 s, then rain; use 4 or 6), with the allies
       // standing near. RAINEND=<seconds since it ended> shows the rings splashing away instead. Use with mode hud.
@@ -424,8 +449,7 @@ static partial class Shot {
         foreach (var q in gm.Players.Values) if (q != me) { me.RainClock = 0f; gm.Effects.Add(new Effect { Kind = FxKind.RainRelease, Pos = q.Pos, Pos2 = q.Pos, Color = new Rgba(0.88f, 0.13f, 0.25f), Radius = Game.RainRingR, Dur = 0.9f, T = float.Parse(Environment.GetEnvironmentVariable("RAINEND")) }); }
     }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
-      // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
-      // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
+      // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2). The caster stands in the middle with the enemies brought in around them; its name pops up over them.
       var gm = host.Game; gm.Bot = false;
       var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
       var adef = Upgrades.Ability(aid);
@@ -453,7 +477,6 @@ static partial class Shot {
       }
       me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
-      if (Environment.GetEnvironmentVariable("CASTSTORE") != null) me.PactStore = float.Parse(Environment.GetEnvironmentVariable("CASTSTORE"));
       float ct = float.Parse(Environment.GetEnvironmentVariable("CASTT") ?? "0.2");
       for (int f = 0; f < 60 * ct; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
       me.Disp = me.Pos;
@@ -872,6 +895,32 @@ static partial class Shot {
       {
         var b = (Bullet)sbb.Invoke(host.Game, new object[] { Defs.BoulderShot, new V2(560f + 110f * k, 300f), new V2(500f, 0f), 0f, 0.7f, 40f, 1, false, 0f });
         b.Life = 0.7f * (0.8f - 0.3f * k);
+      }
+    }
+    if (Environment.GetEnvironmentVariable("CLOT") != null) {
+      // The Clot Cannon: charging (CLOT=<draw seconds>, with the arc and the landing outline), two clots in flight,
+      // a pool still wet and one congealed with an enemy stuck in it.
+      var sbc2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var addZone = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
+      var gm = host.Game; gm.Bot = false;
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.ClotBolt); me.Kit = Kit.Hemomancer;
+      me.Pos = me.Disp = new V2(380f, 520f); me.Aim = -0.2f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("CLOT"), System.Globalization.CultureInfo.InvariantCulture);
+      for (int k = 0; k < 2; k++)
+      {
+        float c = k == 0 ? 1f : 0.4f, fl = Game.ClotFlight(c);
+        var b = (Bullet)sbc2.Invoke(gm, new object[] { Defs.ClotShot, new V2(520f + 260f * k, 300f - 60f * k), new V2(500f, -60f), 0f, fl, 34f, 1, false, 0f });
+        b.Life = fl * (k == 0 ? 0.55f : 0.3f);
+      }
+      var en = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values);
+      V2[] at = { new V2(1020f, 470f), new V2(1080f, 540f), new V2(700f, 700f), new V2(760f, 650f) };
+      for (int k = 0; k < en.Count && k < at.Length; k++) { en[k].Pos = en[k].Disp = at[k]; en[k].FrozenT = k < 2 ? 0.6f : 0f; }
+      V2[] poolAt = { new V2(1040f, 500f), new V2(720f, 680f) };
+      float[] poolAge = { 1.6f, 0.5f };
+      for (int k = 0; k < 2; k++)
+      {
+        float age = poolAge[k];
+        var z = (Zone)addZone.Invoke(gm, new object[] { ZoneKind.BloodPool, me, poolAt[k], Game.ClotPoolRadius, Game.ClotPoolTime });
+        z.T = z.Duration - age; z.Congealed = age >= Game.PoolCongeal;
       }
     }
     if (Environment.GetEnvironmentVariable("CAGE") != null) {

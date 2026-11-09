@@ -1,0 +1,387 @@
+<title>Bone Phalanx</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the live arena first (scrubbable timeline, scenario keys), then the parts sheet (skeleton at each health,
+   jab, spark, bone pile, plain fallback), then the lobby's Ultimate row, then the numbers. House mockup palette
+   (ultimate-ideas.html): steel and parchment neutrals, gold for ultimates; bone white and soul green are the ability's own. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#a8700a; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee; --arena:#14161a;
+  --bone:#e8e4d4; --soul:#3f9a6a; --tank:#2f6fb3;
+  --crt:#07123a; --crt-ink:#8fb4ff; --crt-dim:#3b5596;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#f0bd54; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f;
+  --soul:#7fe0aa; --tank:#6fb0f0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#f0bd54; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f;
+  --soul:#7fe0aa; --tank:#6fb0f0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:700 clamp(40px,7vw,68px)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+h1 small{display:block;font:500 13px var(--mono);letter-spacing:.06em;color:var(--acc);margin-bottom:8px}
+header p{margin:0;max-width:70ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+section{display:flex;flex-direction:column;gap:12px;min-width:0}
+.sub{margin:0;color:var(--muted);max-width:72ch}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#arena{aspect-ratio:16/9}
+.hud{position:absolute;left:10px;top:8px;font:500 12px var(--mono);color:#d8dccf;text-shadow:0 1px 2px #000;pointer-events:none;letter-spacing:.04em}
+.hud b{color:#f0bd54;font-weight:500}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+button{font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:7px 13px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+.seg button{border:0;border-right:1px solid var(--line);border-radius:0}
+.seg button:last-child{border-right:0}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font:500 13px var(--mono);color:var(--muted)}
+.scrub{display:flex;flex-direction:column;gap:4px}
+.scrub input{width:100%;accent-color:var(--acc)}
+.phases{position:relative;height:18px;font:500 11px var(--mono);color:var(--muted)}
+.phases span{position:absolute;top:0;white-space:nowrap;border-left:1px solid var(--line);padding-left:4px}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px}
+.part{display:flex;flex-direction:column;gap:6px;min-width:0}
+.part canvas{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;background:var(--arena)}
+.part b{font:700 16px var(--display);text-transform:uppercase;letter-spacing:.04em}
+.part span{font-size:14px;color:var(--muted);line-height:1.35}
+.crt{background:var(--crt);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;color:var(--crt-ink);box-shadow:inset 0 0 60px rgba(0,0,0,.6);font-family:var(--display)}
+.crt h3{margin:0;font:700 15px var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--crt-ink);display:flex;gap:10px;align-items:center}
+.crt h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--crt-ink),transparent)}
+.ultrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.key{min-height:44px;border:1.5px solid var(--crt-ink);border-radius:3px;background:transparent;color:var(--crt-ink);font:700 clamp(12px,2.4vw,15px) var(--display);letter-spacing:.06em;padding:4px 6px;text-transform:uppercase;box-shadow:0 0 10px rgba(143,180,255,.25)}
+.key[aria-pressed="true"]{background:var(--crt-ink);color:var(--crt);box-shadow:0 0 16px rgba(143,180,255,.6)}
+.key.locked{border-style:dashed;border-color:var(--crt-dim);color:var(--crt-dim);box-shadow:none;cursor:default}
+.detail{border:1px solid var(--crt-dim);border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.detail strong{font:700 22px/1 var(--display);letter-spacing:.06em;color:#f0d38a;text-transform:uppercase}
+.detail p{margin:0;font:400 14px/1.45 var(--body);color:#c9d8ff;max-width:68ch}
+.detail .cd{font:500 12px var(--mono);color:var(--crt-ink)}
+.nums{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.nums li{font:500 12px var(--mono);background:var(--chip);border-radius:4px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.wrapx{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:700 14px var(--display);text-transform:uppercase;letter-spacing:.05em}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+code{font-family:var(--mono);font-size:.88em}
+</style>
+<main>
+<header>
+  <h1><small>TANK · SUMMONER · SECOND ULTIMATE · 75 S</small>Bone Phalanx</h1>
+  <p>A bone gate cracks open across your aim and eight shield skeletons step out, middle first, then march the front line 260 px forward. Their shields stop every enemy shot from the front, red aimed shots included, while your team fires through. Below is a running copy of the game rules: scrub the timeline, switch scenarios, and turn Visual effects off to see the plain fallback.</p>
+</header>
+
+<section aria-label="Arena">
+  <div class="frame"><canvas id="arena" width="960" height="540"></canvas><div class="hud" id="hud"></div></div>
+  <div class="scrub">
+    <input type="range" id="time" min="0" max="10.5" step="0.01" value="0" aria-label="Time since the cast">
+    <div class="phases" id="phases"></div>
+  </div>
+  <div class="controls">
+    <div class="seg" id="scen" role="group" aria-label="Scenario"></div>
+    <button type="button" id="play" aria-pressed="true">Pause</button>
+    <label class="chk" for="slow"><input type="checkbox" id="slow"> Slow-mo 0.35×</label>
+    <label class="chk" for="fx"><input type="checkbox" id="fx" checked> Visual effects</label>
+    <label class="chk" for="cap"><input type="checkbox" id="cap"> Mastered (10 × 180 HP)</label>
+  </div>
+</section>
+
+<section aria-label="Parts">
+  <h2>The parts</h2>
+  <p class="sub">Each skeleton is drawn from its lane's health byte. Cracks grow across the shield at two thirds and one third, a corner chips off, and the soul fire in the eyes gutters near the end.</p>
+  <div class="parts" id="parts"></div>
+</section>
+
+<section aria-label="Lobby">
+  <h2>Choosing it in the lobby</h2>
+  <p class="sub">The Ultimate row gets a real pick. Key one stays Titan, the default; key two is Bone Phalanx for the Tank Summoner. The picked key is lit in inverse video like the weapon and ability keys, and the detail box and the preview follow it. The last two keys stay locked.</p>
+  <div class="crt">
+    <h3>Ultimate</h3>
+    <div class="ultrow" id="ultrow">
+      <button type="button" class="key" id="u0" aria-pressed="false">Titan</button>
+      <button type="button" class="key" id="u1" aria-pressed="true">Bone Phalanx</button>
+      <button type="button" class="key locked" disabled aria-label="Locked">🔒︎</button>
+      <button type="button" class="key locked" disabled aria-label="Locked">🔒︎</button>
+    </div>
+    <div class="detail" id="detail"></div>
+  </div>
+</section>
+
+<section aria-label="Numbers">
+  <h2>Numbers (first guesses, named constants)</h2>
+  <div class="wrapx"><table>
+    <tr><th>Constant</th><th>Value</th><th>What it does</th></tr>
+    <tr><td><code>PhalanxAhead</code></td><td class="n">60 px</td><td>The gate opens this far ahead of you, across your aim</td></tr>
+    <tr><td><code>PhalanxGate</code></td><td class="n">0.5 s</td><td>The gate cracking open</td></tr>
+    <tr><td><code>PhalanxStepEvery / StepTime</code></td><td class="n">0.09 / 0.35 s</td><td>Skeletons step out middle first; the line is in place at 1.48 s</td></tr>
+    <tr><td><code>PhalanxCount / Spacing</code></td><td class="n">8 × 25 px</td><td>A 200 px front (mastered: 10, a 250 px front)</td></tr>
+    <tr><td><code>PhalanxMarch / MarchTime</code></td><td class="n">260 px / 6 s</td><td>Keeps the heading it was cast with</td></tr>
+    <tr><td><code>PhalanxHold / Crumble</code></td><td class="n">1 s / 0.8 s</td><td>Holds at the end, then falls apart from the ends in</td></tr>
+    <tr><td><code>PhalanxSpear / SpearEvery</code></td><td class="n">15 / 0.5 s</td><td>Each skeleton spears what it shoves; your damage and fire-rate bonuses apply</td></tr>
+    <tr><td><code>PhalanxHp</code></td><td class="n">120 (180)</td><td>Worn by blocked shots and by enemies pressing on the shield</td></tr>
+    <tr><td><code>PhalanxHeavyPace</code></td><td class="n">0.45</td><td>March speed while a Heavy enemy is on the shields; a boss stops it</td></tr>
+    <tr><td><code>PhalanxContactShare</code></td><td class="n">0.5</td><td>Of an enemy's contact damage a skeleton takes each spear beat it is pressed</td></tr>
+  </table></div>
+</section>
+</main>
+
+<script>
+(function(){
+var TAU=Math.PI*2, W=960, H=540;
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v,a,b){if(a===undefined){a=0;b=1}return Math.max(a,Math.min(b,v))}
+function eo(f){f=clamp(f);return 1-Math.pow(1-f,3)}
+function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function circle(c,x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,Math.max(0,r),0,TAU);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.stroke()}}
+function ell(c,x,y,rx,ry,fill){c.beginPath();c.ellipse(x,y,Math.max(0,rx),Math.max(0,ry),0,0,TAU);c.fillStyle=fill;c.fill()}
+function line(c,x0,y0,x1,y1,col,lw){c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.lineWidth=lw||1;c.strokeStyle=col;c.lineCap='round';c.stroke()}
+function poly(c,p,fill,stroke,lw){c.beginPath();p.forEach(function(q,i){i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.lineWidth=lw||1;c.strokeStyle=stroke;c.lineJoin='round';c.stroke()}}
+function glow(c,x,y,r,c0,c1){var g=c.createRadialGradient(x,y,0,x,y,Math.max(1,r));g.addColorStop(0,c0);g.addColorStop(1,c1);c.fillStyle=g;c.beginPath();c.arc(x,y,Math.max(1,r),0,TAU);c.fill()}
+function add(c){c.globalCompositeOperation='lighter'}
+
+/* ---- palette of the ability (ported to Game/BonePhalanxLook.cs) ---- */
+var BONE='#e8e4d4', BONE2='#cfc8b2', BONEDK='#8a8370', RIM='#4f493c', SHIELD='#ddd6c1', SHIELD2='#b9b19a', SOUL='140,255,190';
+
+/* ---- the rules, as Core/BonePhalanx.cs ---- */
+var K={ahead:60,gate:.5,stepEvery:.09,stepTime:.35,spacing:25,march:260,marchTime:6,hold:1,crumble:.8,spear:15,spearEvery:.5,heavyPace:.45,face:4,back:16,contact:.5};
+function order(i,n){var off=i-(n-1)/2;return 2*Math.floor(Math.abs(off))+(off<0?0:1)}
+function outAt(i,n){return K.gate+order(i,n)*K.stepEvery}
+function marchAt(n){return K.gate+(n-1)*K.stepEvery+K.stepTime}
+function life(n){return marchAt(n)+K.marchTime+K.hold+K.crumble}
+function lane(i,n){return (i-(n-1)/2)*K.spacing}
+var P={x:170,y:270};
+
+var SCEN={
+ wave:{label:'The wave',enemies:function(){var e=[];var spots=[[560,180],[600,250],[640,320],[700,210],[520,300],[760,280],[720,360],[800,200],[660,150],[850,330]];
+   spots.forEach(function(s,i){e.push({x:s[0],y:s[1],r:10,hp:60,max:60,v:42+hash(i)*14,fire:.6+hash(i+9)*1.4,every:1.7,dmg:10})});
+   e.push({x:600,y:226,r:16,hp:400,max:400,heavy:1,v:30,fire:1.4,every:.9,dmg:30,red:1});return e}},
+ boss:{label:'A boss',enemies:function(){return[{x:470,y:262,r:38,hp:5000,max:5000,boss:1,v:14,fire:1.2,every:.55,dmg:16,red:1,fan:1},{x:640,y:380,r:10,hp:60,max:60,v:40,fire:1,every:1.8,dmg:10},{x:620,y:160,r:10,hp:60,max:60,v:40,fire:1.6,every:1.8,dmg:10}]}},
+ wall:{label:'A pillar',pillar:{x:470,y:150,w:60,h:70},enemies:function(){return[{x:620,y:300,r:10,hp:60,max:60,v:40,fire:1,every:1.6,dmg:10},{x:700,y:250,r:10,hp:60,max:60,v:44,fire:.4,every:1.6,dmg:10},{x:660,y:360,r:10,hp:60,max:60,v:42,fire:1.3,every:1.6,dmg:10}]}}
+};
+var scen='wave', cap=false, fxOn=true;
+
+/* run the rules from the cast up to time t; returns the state and its events */
+function simulate(T){
+  var S=SCEN[scen], n=cap?10:8, max=cap?180:120, dt=1/60;
+  var st={n:n,max:max,hp:[],spT:[],marched:0,gx:P.x+K.ahead,y:P.y,end:life(n),crumbleAt:-1,E:S.enemies(),B:[],ev:[],pillar:S.pillar,hitP:[]};
+  for(var i=0;i<n;i++){st.hp.push(max);st.spT.push(K.spearEvery*(.5+.5*i/n))}
+  var t=0,bid=0;
+  function standing(i,t){return st.hp[i]>0&&st.crumbleAt<0&&t>=outAt(i,n)+K.stepTime}
+  function laneAt(y){var i=Math.round((y-P.y)/K.spacing+(n-1)/2);return i>=0&&i<n?i:-1}
+  function contact(e,lx,ly,t){if(e.hp<=0||lx>=K.face+e.r||lx<=-K.back-e.r)return -1;var l=laneAt(ly);if(l<0){l=ly<P.y?0:n-1;if(Math.abs(ly-(P.y+lane(l,n)))>=K.spacing/2+e.r*.5)return -1}return standing(l,t)?l:-1}
+  function walled(step){for(var i=0;i<n;i++){if(st.hp[i]<=0)continue;var x=st.gx+st.marched+step+K.face,y=P.y+lane(i,n),pl=st.pillar;if(x>W-12)return true;if(pl&&x>pl.x-6&&x<pl.x+pl.w+6&&y>pl.y-6&&y<pl.y+pl.h+6)return true}return false}
+  function shove(move,t){var pace=1,fx=st.gx+st.marched;st.E.forEach(function(e){var lx=e.x-fx,l=contact(e,lx,e.y,t);if(l<0)return;var ahead=lx>=-4;
+    if(e.boss){if(ahead)pace=0;return}if(ahead&&e.heavy)pace=Math.min(pace,K.heavyPace);if(!move)return;var want=ahead?fx+K.face+e.r:fx-K.back-e.r,pl=st.pillar;
+    if(ahead&&pl&&want+e.r>pl.x&&e.y>pl.y-e.r&&e.y<pl.y+pl.h+e.r&&want<pl.x+pl.w){pace=0;want=pl.x-e.r}if(ahead&&want>W-e.r){pace=0;want=W-e.r}e.x=want;e.pinned=t});return pace}
+  function wear(i,d,t){if(st.hp[i]<=0)return;st.hp[i]-=d;if(st.hp[i]<=0){st.hp[i]=0;st.ev.push({k:'break',t:t,x:st.gx+st.marched-8,y:P.y+lane(i,n),i:i})}}
+  function crumble(t){st.crumbleAt=t;for(var i=0;i<n;i++){if(st.hp[i]<=0)continue;st.ev.push({k:'crumble',t:t+(n-1-order(i,n))*.05,x:st.gx+st.marched-8,y:P.y+lane(i,n),i:i});st.hp[i]=0}}
+  while(t<T){t+=dt;
+    // enemies walk at you and shoot
+    st.E.forEach(function(e){if(e.hp<=0)return;var dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy);if(d>90){e.x+=dx/d*e.v*dt;e.y+=dy/d*e.v*dt*.5}
+      if(t>=e.fire){e.fire+=e.every;var shots=e.fan?[-.22,0,.22]:[0];shots.forEach(function(o){var a=Math.atan2(P.y-e.y,P.x-e.x)+o+(e.red?0:(hash(bid)-.5)*.12),sp=e.red?230:200;
+        st.B.push({id:bid++,x:e.x+Math.cos(a)*e.r,y:e.y+Math.sin(a)*e.r,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,red:e.red,dmg:e.dmg,r:e.red?6:3.5})})}});
+    var age=t, crumbling=st.crumbleAt>=0;
+    if(!crumbling&&age>=st.end-K.crumble)crumble(t);
+    crumbling=st.crumbleAt>=0;
+    if(!crumbling){var ma=marchAt(n);
+      if(age>=ma&&age<ma+K.marchTime&&st.marched<K.march){var pace=shove(false,t);if(pace>0){var step=Math.min(K.march/K.marchTime*pace*dt,K.march-st.marched);if(!walled(step))st.marched+=step}}
+      shove(true,t);
+      for(var i=0;i<n;i++){if(!standing(i,t))continue;st.spT[i]-=dt;if(st.spT[i]>0)continue;st.spT[i]+=K.spearEvery;var press=0,struck=null,fx=st.gx+st.marched;
+        st.E.forEach(function(e){var lx=e.x-fx;lx-=Math.sign(lx+4)*3;if(contact(e,lx,e.y,t)!==i)return;e.hp-=K.spear;e.flash=t;press+=(e.boss?25:e.heavy?20:15)*K.contact;struck=struck||e;
+          if(e.hp<=0)st.ev.push({k:'die',t:t,x:e.x,y:e.y,r:e.r})});
+        if(struck)st.ev.push({k:'jab',t:t,i:i,x:fx-10,y:P.y+lane(i,n)+6,tx:struck.x,ty:struck.y});if(press)wear(i,press,t)}}
+    // bullets: the shields stop them from the front
+    st.B=st.B.filter(function(b){var px=b.x;b.x+=b.vx*dt;b.y+=b.vy*dt;var fx=st.gx+st.marched;
+      if(st.crumbleAt<0&&b.x-fx<=K.face+b.r&&px-fx>=-2&&b.x-fx>=-K.back){var l=laneAt(b.y);if(l>=0&&standing(l,t)){st.ev.push({k:'spark',t:t,x:fx+K.face,y:b.y,red:b.red});wear(l,b.dmg,t);return false}}
+      var pl=st.pillar;if(pl&&b.x>pl.x&&b.x<pl.x+pl.w&&b.y>pl.y&&b.y<pl.y+pl.h)return false;
+      if(Math.hypot(b.x-P.x,b.y-P.y)<14){st.hitP.push(t);return false}
+      return b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20});
+  }
+  st.t=T;return st;
+}
+
+/* ---- drawing (the look; Game/BonePhalanxLook.cs follows it call for call) ---- */
+function floor(c,st){c.fillStyle='#14161a';c.fillRect(0,0,W,H);c.strokeStyle='#1b1f24';c.lineWidth=1;
+  for(var x=0;x<=W;x+=64){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,H);c.stroke()}for(var y=14;y<=H;y+=64){c.beginPath();c.moveTo(0,y+.5);c.lineTo(W,y+.5);c.stroke()}
+  var pl=st.pillar;if(pl){c.fillStyle='rgba(0,0,0,.45)';c.fillRect(pl.x+6,pl.y+8,pl.w,pl.h);c.fillStyle='#3a3f48';c.fillRect(pl.x,pl.y,pl.w,pl.h);c.strokeStyle='#59606c';c.lineWidth=2;c.strokeRect(pl.x+1,pl.y+1,pl.w-2,pl.h-2)}
+  var g=c.createRadialGradient(W/2,H/2,200,W/2,H/2,620);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.5)');c.fillStyle=g;c.fillRect(0,0,W,H)}
+
+/* the bone gate: a seam across the aim, rib-like bones curving off it, a soul-green slit that opens and closes */
+function drawGate(c,st,t){var n=st.n,half=(n*K.spacing)/2+14,gx=st.gx,y0=P.y,ma=marchAt(n);
+  var open=eo(t/K.gate), close=clamp((t-(ma+.25))/.7), a=1-close; if(a<=0)return;
+  var crack=clamp(t/.25);
+  c.save();c.globalAlpha=a;
+  if(!fxOn){line(c,gx,y0-half*crack,gx,y0+half*crack,'rgba(232,228,212,.7)',3);c.restore();return}
+  // scorched floor
+  c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(gx,y0,26*open+4,half*crack+8,0,0,TAU);c.fill();
+  // soul glow in the slit
+  c.save();add(c);var gw=9*open*(1-close*.5);
+  var g=c.createLinearGradient(gx-gw*3,0,gx+gw*3,0);g.addColorStop(0,'rgba('+SOUL+',0)');g.addColorStop(.5,'rgba('+SOUL+','+(.55*open)+')');g.addColorStop(1,'rgba('+SOUL+',0)');
+  c.fillStyle=g;c.fillRect(gx-gw*3,y0-half*crack,gw*6,half*crack*2);c.restore();
+  // the slit, jagged
+  c.beginPath();for(var k=0;k<=24;k++){var f=k/24,yy=y0-half*crack+f*half*crack*2,jx=(hash(k*3.1)-.5)*5;c.lineTo(gx+jx-gw*.5,yy)}for(var k2=24;k2>=0;k2--){var f2=k2/24,yy2=y0-half*crack+f2*half*crack*2,jx2=(hash(k2*3.1)-.5)*5;c.lineTo(gx+jx2+gw*.5,yy2)}
+  c.closePath();c.fillStyle='#050807';c.fill();c.lineWidth=1.5;c.strokeStyle='rgba('+SOUL+','+(.8*open)+')';c.stroke();
+  // ribs: pairs of curved bones off the seam, rising one after another along it, both sides
+  for(var r=0;r<n+1;r++){var yy3=y0+(r-n/2)*K.spacing,rise=eo(clamp((t-.08-Math.abs(r-n/2)*.035)/.3));if(rise<=0)continue;
+    for(var s=-1;s<=1;s+=2){var L=(15+hash(r+s)*5)*rise;c.beginPath();c.moveTo(gx+s*gw*.6,yy3);c.quadraticCurveTo(gx+s*(gw*.6+L*.7),yy3-6,gx+s*(gw*.6+L),yy3+4);
+      c.lineWidth=3.2;c.strokeStyle=BONEDK;c.lineCap='round';c.stroke();c.lineWidth=1.8;c.strokeStyle=BONE;c.stroke()}}
+  // vertebra knuckles down the seam ends
+  [-1,1].forEach(function(s){circle(c,gx,y0+s*half*crack,3.5,BONE,RIM,1.2)});
+  // dust
+  if(t<1.2)for(var d=0;d<16;d++){var age=t-hash(d)*.4;if(age<0||age>.8)continue;var f3=age/.8,yy4=y0+(hash(d+5)-.5)*half*2,dx=(hash(d+7)>.5?1:-1)*(10+40*eo(f3));circle(c,gx+dx,yy4,5+9*f3,'rgba(150,140,118,'+(.35*(1-f3))+')')}
+  c.restore()}
+
+/* one skeleton in its own frame, facing +x: shield at the front (x 0..6), body behind */
+function drawSkel(c,x,y,ang,o){var hp=o.hp,walk=o.walk||0,jab=o.jab==null?-1:o.jab,a=o.alpha==null?1:o.alpha,sc=o.scale||1;
+  c.save();c.translate(x,y);c.rotate(ang);c.scale(sc,sc);c.globalAlpha=a;
+  if(!fxOn){ // plain fallback: a disc, a bar, a stick
+    circle(c,-8,0,7,BONE2,RIM,1.5);line(c,-14,7,14+(jab>=0&&jab<.25?8*(1-jab/.25):0),7,BONEDK,2);
+    var sh=Math.round(120+100*hp);c.fillStyle='rgb('+sh+','+(sh-6)+','+(sh-24)+')';c.fillRect(0,-12,6,24);c.strokeStyle=RIM;c.lineWidth=1.5;c.strokeRect(0,-12,6,24);c.restore();return}
+  var st=Math.sin(walk), bob=Math.abs(Math.cos(walk))*1.2;
+  ell(c,-6,3,13,11,'rgba(0,0,0,.38)');
+  // feet
+  ell(c,-8+st*4,-5,3.2,2.2,BONEDK);ell(c,-8-st*4,5,3.2,2.2,BONEDK);
+  // pelvis and spine
+  ell(c,-15,0,3.5,5.5,BONE2);line(c,-15,0,-8,0,BONEDK,2.4);
+  // ribs
+  for(var k=0;k<3;k++){var rx=-12+k*2.4;c.beginPath();c.moveTo(rx,0);c.quadraticCurveTo(rx-1,-7+k,rx-4,-7.5+k);c.moveTo(rx,0);c.quadraticCurveTo(rx-1,7-k,rx-4,7.5-k);c.lineWidth=1.6;c.strokeStyle=BONE2;c.stroke()}
+  // clavicle and arms (left to the shield, right on the spear)
+  line(c,-7,-9,-7,9,BONE,2.6);line(c,-7,-9,-1,-7,BONE2,2);line(c,-7,9,-2,8,BONE2,2);
+  // spear: shaft along the right side, bone point; the jab thrusts it 9 px
+  var th=jab>=0&&jab<.28?(jab<.07?eo(jab/.07):1-eo((jab-.07)/.21)):0, sx=th*9;
+  line(c,-17+sx,7,15+sx,7,'#6d6250',2.4);line(c,-17+sx,7,15+sx,7,'#9b8f74',1.2);
+  poly(c,[[15+sx,4.6],[24+sx,7],[15+sx,9.4]],BONE,RIM,1);
+  if(th>.4){c.save();add(c);line(c,17+sx,7,30+sx,7,'rgba(255,250,230,'+(.6*th)+')',2.5);c.restore()}
+  // skull, eyes with soul fire
+  circle(c,-7+bob*.4,0,5.6,BONE,RIM,1.3);ell(c,-3.6,0,2,3.4,BONE2);
+  var flick=hp<.33?(.45+.55*hash(Math.floor(performance.now()/90)+y)):1;
+  [-1,1].forEach(function(s){circle(c,-4.4,s*2.1,1.3,'#0c0f0d');c.save();add(c);glow(c,-4.2,s*2.1,3.6,'rgba('+SOUL+','+(.8*flick)+')','rgba('+SOUL+',0)');c.restore()});
+  // the tower shield: convex front, bone ribs across it, a boss, a dark rim
+  var chip=hp<.34;
+  var pts=[[0,-12.4],[4.5,-12],[7,-6],[7.6,0],[7,6],[4.5,12],[0,12.4],[-1.2,0]];
+  if(chip)pts=[[0,-12.4],[2,-12.2],[6,-8.2],[7,-6],[7.6,0],[7,6],[4.5,12],[0,12.4],[-1.2,0]];
+  poly(c,pts,SHIELD,RIM,1.6);
+  c.save();c.beginPath();pts.forEach(function(q,i){i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.closePath();c.clip();
+  c.fillStyle=SHIELD2;c.fillRect(-2,-13,3,26);
+  for(var r=-10;r<=10;r+=4)line(c,.6,r,6.6,r+.6,'rgba(110,100,80,.55)',1);
+  c.fillStyle='rgba(255,255,255,.35)';c.fillRect(5.6,-10,1.2,20);
+  if(hp<.67){c.beginPath();c.moveTo(7.4,-3);c.lineTo(4.2,-1.5);c.lineTo(5,1.2);c.lineTo(1.6,3.4);c.lineWidth=1.1;c.strokeStyle='#3b352a';c.stroke()}
+  if(hp<.34){c.beginPath();c.moveTo(7,5);c.lineTo(3.4,7.6);c.lineTo(4.2,10);c.lineTo(.6,11.2);c.moveTo(3.4,7.6);c.lineTo(1.2,5.8);c.lineWidth=1.1;c.strokeStyle='#3b352a';c.stroke()}
+  c.restore();
+  circle(c,4.4,0,2.1,BONE,RIM,1);
+  c.restore()}
+
+/* a skeleton falling apart: shield tips, skull rolls, bones scatter, then a pile that fades */
+function drawFall(c,ev,t,ang){var age=t-ev.t;if(age<0||age>3.5)return;var f=clamp(age/.45),fade=age>2.6?1-(age-2.6)/.9:1,seed=ev.i*7+ev.x*.01;
+  if(!fxOn){if(age<.4){c.save();c.globalAlpha=1-age/.4;circle(c,ev.x,ev.y,8+age*30,null,BONE,2);c.restore()}return}
+  c.save();c.translate(ev.x,ev.y);c.rotate(ang);c.globalAlpha=fade;
+  if(ev.k==='break'&&age<.25){c.save();add(c);glow(c,6,0,26*(1-age/.25)+6,'rgba(255,250,225,.75)','rgba(255,240,200,0)');c.restore()}
+  // dust ring
+  if(age<.6){var d=age/.6;circle(c,-2,0,8+14*eo(d),'rgba(150,140,118,'+(.16*(1-d))+')')}
+  // the pile
+  for(var k=0;k<7;k++){var a=hash(seed+k)*TAU,L=6+hash(seed+k*2)*5,r=eo(f)*(4+hash(seed+k*3)*12),bx=Math.cos(a)*r-4,by=Math.sin(a)*r,ba=a+f*(hash(seed+k*4)-.5)*4;
+    var dx=Math.cos(ba)*L/2,dy=Math.sin(ba)*L/2;line(c,bx-dx,by-dy,bx+dx,by+dy,BONEDK,3);line(c,bx-dx,by-dy,bx+dx,by+dy,BONE,1.6);circle(c,bx-dx,by-dy,1.6,BONE);circle(c,bx+dx,by+dy,1.6,BONE)}
+  // shield toppled forward
+  c.save();c.translate(6+8*eo(f),0);c.rotate(f*(hash(seed)-.5)*1.4);poly(c,[[-3,-12],[3,-12],[3,12],[-3,12]],SHIELD2,RIM,1.4);line(c,-2,-4,2,3,'#3b352a',1);c.restore();
+  // skull rolled off
+  var sx=-6+eo(f)*(10+hash(seed+9)*10),sy=(hash(seed+11)-.5)*24*eo(f);circle(c,sx,sy,5,BONE,RIM,1.2);circle(c,sx+2,sy-1.8,1.1,'#0c0f0d');circle(c,sx+2,sy+1.8,1.1,'#0c0f0d');
+  // a last wisp of soul leaving
+  if(age<1.2){var w=age/1.2;c.save();add(c);glow(c,sx-w*8,sy-w*14,7*(1-w)+2,'rgba('+SOUL+','+(.6*(1-w))+')','rgba('+SOUL+',0)');c.restore()}
+  c.restore()}
+
+function drawSpark(c,ev,t){var age=t-ev.t;if(age<0||age>.3)return;var f=age/.3;
+  if(!fxOn){if(age<.12)circle(c,ev.x,ev.y,4,'rgba(255,240,200,.9)');return}
+  c.save();add(c);glow(c,ev.x,ev.y,(ev.red?20:13)*(1-f)+3,ev.red?'rgba(255,200,170,.95)':'rgba(255,248,220,.9)','rgba(255,220,160,0)');
+  for(var k=0;k<7;k++){var a=-1.3+hash(ev.t*100+k)*2.6,d=6+26*eo(f)*(.5+hash(k+ev.y)*.7);line(c,ev.x+Math.cos(a)*d*.5,ev.y+Math.sin(a)*d*.5,ev.x+Math.cos(a)*d,ev.y+Math.sin(a)*d,'rgba(255,236,190,'+(1-f)+')',1.4)}
+  c.restore();
+  for(var k2=0;k2<3;k2++){var a2=hash(k2+ev.y)*2-1,d2=4+14*eo(f);c.fillStyle='rgba(220,212,190,'+(1-f)+')';c.fillRect(ev.x+Math.cos(a2)*d2,ev.y+Math.sin(a2)*d2+f*6,2,2)}}
+
+function drawEnemy(c,e,t){if(e.hp<=0)return;var fl=e.flash!=null&&t-e.flash<.08;
+  ell(c,e.x+2,e.y+3,e.r,e.r*.8,'rgba(0,0,0,.35)');
+  circle(c,e.x,e.y,e.r,fl?'#fff':e.boss?'#7a3b4f':e.heavy?'#6e5a86':'#8d7399',e.boss?'#2b0f18':'#2d2039',e.boss?4:2.5);
+  if(e.boss){circle(c,e.x,e.y,e.r-8,null,'rgba(255,120,140,.35)',2)}
+  c.fillStyle='#1b1320';var a=Math.atan2(P.y-e.y,P.x-e.x);[-1,1].forEach(function(s){c.beginPath();c.arc(e.x+Math.cos(a+s*.5)*e.r*.55,e.y+Math.sin(a+s*.5)*e.r*.55,e.boss?3.4:1.8,0,TAU);c.fill()});
+  if(e.hp<e.max){var w=e.boss?70:24;c.fillStyle='rgba(0,0,0,.6)';c.fillRect(e.x-w/2,e.y-e.r-9,w,3.5);c.fillStyle=e.boss?'#e0573f':'#6fbf73';c.fillRect(e.x-w/2,e.y-e.r-9,w*clamp(e.hp/e.max),3.5)}}
+function drawBullet(c,b){c.save();add(c);glow(c,b.x,b.y,b.r*2.4,b.red?'rgba(255,60,50,.6)':'rgba(255,120,100,.5)','rgba(255,80,60,0)');c.restore();circle(c,b.x,b.y,b.r,b.red?'#ffb3a8':'#ffd9cf',b.red?'#e2261b':'#ff5a44',b.red?2:1.2)}
+function drawPlayer(c,x,y,k,hitAge){ell(c,x,y+4,13,7,'rgba(0,0,0,.35)');var me=k===0;
+  if(me){c.save();add(c);glow(c,x,y,26,'rgba(111,176,240,.35)','rgba(111,176,240,0)');c.restore()}
+  line(c,x+4,y,x+18,y,'#59606c',4);circle(c,x,y,11,'#cfd8e6','#4a5463',2);circle(c,x,y,14.5,null,me?'rgba(111,176,240,.95)':'rgba(150,165,185,.6)',2);
+  if(hitAge>=0&&hitAge<.15){c.save();add(c);circle(c,x,y,16,'rgba(255,90,70,'+(.6*(1-hitAge/.15))+')');c.restore()}}
+
+function render(c,T){var st=simulate(T),n=st.n,t=T,ang=0,fx=st.gx+st.marched,crumbling=st.crumbleAt>=0;
+  c.save();c.fillStyle='#14161a';c.fillRect(0,0,W,H);c.translate(-40*1.45,-(P.y*1.45-H/2));c.scale(1.45,1.45);  // the camera: the march fills the frame
+  floor(c,st);drawGate(c,st,t);
+  // the line's footprint: a faint band of trodden dust behind it
+  st.ev.forEach(function(ev){if(ev.k==='break'||ev.k==='crumble')drawFall(c,ev,t,ang)});
+  st.E.forEach(function(e){drawEnemy(c,e,t)});
+  st.ev.forEach(function(ev){if(ev.k!=='die')return;var a=t-ev.t;if(a<0||a>.4)return;c.save();add(c);circle(c,ev.x,ev.y,ev.r+eo(a/.4)*20,null,'rgba(255,240,220,'+(.8*(1-a/.4))+')',2);c.restore()});
+  // skeletons
+  for(var i=0;i<n;i++){var hpF=st.hp[i]/st.max,o=outAt(i,n),a=(t-o)/K.stepTime;if(a<=0)continue;
+    var fallen=st.ev.some(function(ev){return(ev.k==='break'||ev.k==='crumble')&&ev.i===i&&t>=ev.t});if(fallen)continue;
+    if(crumbling&&st.hp[i]<=0){/* waiting for its stagger */}
+    var e2=eo(a),x=st.gx+st.marched-14*(1-e2),y=P.y+lane(i,n);
+    var lastJab=-1;st.ev.forEach(function(ev){if(ev.k==='jab'&&ev.i===i&&ev.t<=t)lastJab=t-ev.t});
+    var hpShown=crumbling?(st.ev.filter(function(ev){return ev.i===i&&ev.k==='crumble'}).length?.8:hpF):hpF;
+    drawSkel(c,x,y,ang,{hp:Math.max(hpShown,.01),walk:st.marched/9+i*1.3,jab:lastJab,alpha:clamp(a*2.5),scale:.75+.25*e2});
+    if(fxOn&&a<1){c.save();add(c);glow(c,x+4,y,14*(1-a),'rgba('+SOUL+','+(.5*(1-a))+')','rgba('+SOUL+',0)');c.restore()}
+    if(fxOn&&st.marched>2&&st.marched<K.march&&!crumbling&&Math.sin(st.marched/9+i*1.3)>.97){circle(c,x-10,y+(i%2?5:-5),5,'rgba(150,140,118,.18)')}}
+  st.ev.forEach(function(ev){if(ev.k==='spark')drawSpark(c,ev,t)});
+  st.B.forEach(function(b){drawBullet(c,b)});
+  var lastHit=-1;st.hitP.forEach(function(h){if(h<=t)lastHit=t-h});
+  drawPlayer(c,P.x-40,P.y-110,1,-1);drawPlayer(c,P.x-30,P.y+120,2,-1);drawPlayer(c,P.x,P.y,0,lastHit);
+  // team shots pass out through the line
+  if(t>.3&&t<9.2)for(var k=0;k<4;k++){var s=(t*1.8+k*.25)%1,from=k%2?{x:P.x-40,y:P.y-110}:{x:P.x-30,y:P.y+120},tx=from.x+(600)*s,ty=from.y+(P.y-from.y)*s*.6;circle(c,tx,ty,3,'#bfe0ff','#4f8ccc',1.2)}
+  // reticle
+  if(t<1.4){c.save();c.globalAlpha=.85*(1-clamp((t-1)/.4));var rx=P.x+300,ry=P.y;circle(c,rx,ry,9,null,'#fff',1.3);line(c,rx-15,ry,rx-6,ry,'#fff',1.3);line(c,rx+6,ry,rx+15,ry,'#fff',1.3);line(c,rx,ry-15,rx,ry-6,'#fff',1.3);line(c,rx,ry+6,rx,ry+15,'#fff',1.3);c.restore()}
+  c.restore();return st}
+
+/* ---- arena player ---- */
+var cv=document.getElementById('arena'),ctx=cv.getContext('2d'),hud=document.getElementById('hud'),range=document.getElementById('time');
+function fit(){var r=Math.min(2,window.devicePixelRatio||1);cv.width=W*r;cv.height=H*r;ctx.setTransform(r,0,0,r,0,0)}fit();
+var T=0,playing=!reduce,last=performance.now(),slow=false;
+function phaseName(t,n){var ma=marchAt(n);return t<K.gate?'GATE OPENS':t<ma?'STEPPING OUT':t<ma+K.marchTime?'MARCH':t<ma+K.marchTime+K.hold?'HOLD':t<life(n)?'CRUMBLE':'—'}
+function draw(){var st=render(ctx,T),n=st.n,alive=st.hp.filter(function(h){return h>0}).length;
+  hud.innerHTML='t <b>'+T.toFixed(2)+' s</b> · '+phaseName(T,n)+' · marched <b>'+Math.round(st.marched)+'</b> / 260 px · standing <b>'+alive+'</b> / '+n;range.value=T}
+function loop(now){var dt=Math.min(.05,(now-last)/1000);last=now;if(playing){T+=dt*(slow?.35:1);if(T>10.5)T=0}draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+range.addEventListener('input',function(){T=+range.value;playing=false;setPlay()});
+var playBtn=document.getElementById('play');function setPlay(){playBtn.textContent=playing?'Pause':'Play';playBtn.setAttribute('aria-pressed',playing)}setPlay();
+playBtn.onclick=function(){playing=!playing;setPlay()};
+document.getElementById('slow').onchange=function(e){slow=e.target.checked};
+document.getElementById('fx').onchange=function(e){fxOn=e.target.checked;drawParts()};
+document.getElementById('cap').onchange=function(e){cap=e.target.checked;T=0;buildPhases()};
+var seg=document.getElementById('scen');Object.keys(SCEN).forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=SCEN[k].label;b.setAttribute('aria-pressed',k===scen);
+  b.onclick=function(){scen=k;T=0;[].forEach.call(seg.children,function(x){x.setAttribute('aria-pressed',x===b)})};seg.appendChild(b)});
+function buildPhases(){var n=cap?10:8,ph=document.getElementById('phases');ph.innerHTML='';[[0,'gate'],[K.gate,'step out'],[marchAt(n),'march'],[marchAt(n)+K.marchTime,'hold'],[marchAt(n)+K.marchTime+K.hold,'crumble']].forEach(function(p){var s=document.createElement('span');s.style.left=(p[0]/10.5*100)+'%';s.textContent=p[1];ph.appendChild(s)})}buildPhases();
+
+/* ---- parts sheet ---- */
+var PARTS=[
+ {name:'Full health',text:'Bone-white tower shield with ribs across it, spear on the right, soul fire in the eyes.',draw:function(c,t){drawSkel(c,60,60,0,{hp:1,walk:t*5})}},
+ {name:'Two thirds',text:'The first crack runs across the shield.',draw:function(c,t){drawSkel(c,60,60,0,{hp:.6,walk:t*5})}},
+ {name:'One third',text:'A second crack, a chipped corner, the eyes flicker.',draw:function(c,t){drawSkel(c,60,60,0,{hp:.2,walk:t*5})}},
+ {name:'The jab',text:'Every 0.5 s the spear thrusts 9 px with a pale streak.',draw:function(c,t){var a=(t%.8);drawSkel(c,48,60,0,{hp:1,jab:a});circle(c,86,67,10,'#8d7399','#2d2039',2.5)}},
+ {name:'Shot stopped',text:'A spark off the shield face; red aimed shots flash bigger.',draw:function(c,t){drawSkel(c,52,60,0,{hp:.8});var a=t%.7;if(a<.35){var bx=118-a*200;if(bx>62)circle(c,bx,60,5,'#ffb3a8','#e2261b',2)}drawSpark(c,{t:0,x:59,y:60,red:1},Math.max(0,a-.28))}},
+ {name:'Broken',text:'Shield topples, skull rolls, bones scatter; the pile fades over 3.5 s.',draw:function(c,t){drawFall(c,{k:'break',t:0,x:58,y:60,i:3},(t%3.6),0)}}
+];
+var partsEl=document.getElementById('parts'),partCv=[];
+PARTS.forEach(function(p){var d=document.createElement('div');d.className='part';var cc=document.createElement('canvas');cc.width=240;cc.height=240;d.appendChild(cc);
+  var b=document.createElement('b');b.textContent=p.name;d.appendChild(b);var s=document.createElement('span');s.textContent=p.text;d.appendChild(s);partsEl.appendChild(d);partCv.push(cc)});
+function drawParts(){var t=reduce?0.2:performance.now()/1000;PARTS.forEach(function(p,i){var c=partCv[i].getContext('2d');c.setTransform(2,0,0,2,0,0);c.fillStyle='#14161a';c.fillRect(0,0,120,120);c.save();c.translate(60,60);c.scale(1.6,1.6);c.translate(-60,-60);p.draw(c,t);c.restore()})}
+(function pl(){drawParts();if(!reduce)requestAnimationFrame(pl)})();
+
+/* ---- lobby ---- */
+var U=[{name:'Titan',cd:'80 s',text:'Summon a huge stone titan for 17 s. It rises from rubble, stomps after enemies, slams them after a short wind-up and blocks bullets with its whole body.'},
+ {name:'Bone Phalanx',cd:'75 s',text:'A bone gate opens ahead of you and 8 skeletons with tower shields march a line 260 px along your aim over 6 s. Their shields stop every enemy shot from the front (red aimed shots too) while your team shoots through; enemies are shoved ahead and speared for 15 every 0.5 s. Each skeleton has 120 health; a broken one leaves a gap. Mastered: 10 skeletons with 180 health each.'}];
+function pick(i){['u0','u1'].forEach(function(id,k){document.getElementById(id).setAttribute('aria-pressed',k===i)});var u=U[i];
+  document.getElementById('detail').innerHTML='<strong>'+u.name+'</strong><span class="cd">ULTIMATE · F · '+u.cd+' COOLDOWN'+(i?' · KEY 2':' · KEY 1, DEFAULT')+'</span><p>'+u.text+'</p>'}
+document.getElementById('u0').onclick=function(){pick(0)};document.getElementById('u1').onclick=function(){pick(1)};pick(1);
+})();
+</script>
