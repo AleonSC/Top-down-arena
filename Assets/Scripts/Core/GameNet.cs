@@ -234,6 +234,8 @@ namespace Arena
                     AddFx(kind, pos, color, radius, dur);
                     Effects[Effects.Count - 1].Pos2 = pos2;
                     Sounds.Add((Sfx)r.ReadByte());
+                    if (kind == FxKind.PerfectParry && color.A > 0.75f)
+                        StartWorldSlow();  // the host's world slowed: this one's shots slow with it (Parry.cs)
                     break;
                 }
                 case Msg.Upgrades:
@@ -511,9 +513,12 @@ namespace Arena
             s.Int(ref p.PreyId);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
+            s.Byte(ref p.KatanaStance);  // the Katana's stance, Flow, meters, next swipe and dashes (Katana.cs)
+            s.Byte(ref p.KatanaFlow);
+            s.Byte(ref p.KatanaKage);
+            s.Byte(ref p.KatanaZan);
             s.Byte(ref p.KatanaStep);
-            s.Byte(ref p.KatanaLunges);
-            s.Byte(ref p.KatanaChain);
+            s.Byte(ref p.KatanaDashes);
             s.Byte(ref p.BoStep);
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
@@ -527,7 +532,6 @@ namespace Arena
             s.Bool(ref p.LancePrimed);  // the Lance's hook primed the Breaching Thrust (Lance.cs)
             s.Byte(ref p.RapierTempo);  // the Rapier's Tempo and its grace period, drawn as diamonds behind you (Game/MeleeLooks.cs)
             s.Byte(ref p.RapierGraceLeft);
-            s.Float(ref p.KatanaMeter);
             s.Byte(ref p.Light);
             s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
             s.Float(ref p.DoseT);
@@ -680,6 +684,8 @@ namespace Arena
             float challengeT = !s.Reading && challengeBy > 0 ? e.ChallengeT : 0f;
             if (challengeBy > 0)
                 s.Float(ref challengeT);
+            int katanaMarks = !s.Reading ? e.KatanaMarks : 0;
+            s.Byte(ref katanaMarks);  // Senbon marks on it (Katana.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -694,6 +700,7 @@ namespace Arena
                 e.Pos = pos;
                 e.Hp = hp;
                 e.MaxHp = maxHp;
+                e.KatanaMarks = (byte)katanaMarks;
                 e.Spawning = spawning;
                 e.Facing = facing;
                 e.Phase = phase;

@@ -90,6 +90,24 @@ static partial class Program
         Check(full1.Count > 0 && full1.All(faction.Contains) && !full1.Contains(EnemyType.RiotShield) && !full1.Contains(EnemyType.GasGrenadier),
             "Fully themed: wave 1 is all prisoners and guards (Riot Shields and Grenadiers join from wave 2)");
 
+        // --- XP: a themed wave pays like a regular one for its health (Approaches.cs KillXp) -----------------------------
+        Func<List<EnemyType>, float> xpPerHp = l => l.Sum(t => (float)Defs.Enemies[(int)t].Xp) / l.Sum(t => Defs.Enemies[(int)t].Hp);
+        gb.Diff.Set(DiffKnob.ApproachShare, 0f);
+        float plainRate = Enumerable.Range(1, 4).Average(n => xpPerHp(wave(gb, n)));
+        gb.Diff.Set(DiffKnob.ApproachShare, 1f);
+        float themedRate = Enumerable.Range(1, 4).Average(n => xpPerHp(wave(gb, n)));
+        Console.WriteLine("  XP per health, waves 1-4: regular {0:0.000}, fully themed {1:0.000}", plainRate, themedRate);
+        Check(themedRate >= plainRate * 0.8f, "the Warden's approach waves give about as much XP for their health as regular waves");
+        var killXp = typeof(Game).GetMethod("KillXp", NP);
+        var gx = new Session().Game;
+        var rioter = new Enemy { Type = EnemyType.Rioter, Def = Defs.Enemies[(int)EnemyType.Rioter] };
+        gx.Wave = 3;
+        float approachXp = (float)killXp.Invoke(gx, new object[] { rioter });
+        gx.Wave = 5;
+        float riotXp = (float)killXp.Invoke(gx, new object[] { rioter });
+        Check(approachXp == Defs.Enemies[(int)EnemyType.Rioter].Xp && riotXp == Game.RioterFodderXp && riotXp < approachXp,
+            "a Rioter pays full XP in the approach, but the Warden's own riot keeps its fodder XP");
+
         // --- The Lich's approach: zombies, ramping with the usual mix ------------------------------------------------------
         var dead = new HashSet<EnemyType>(Approaches.For(EnemyType.Lich).Members.Select(m => m.Type));
         gb.Diff.Set(DiffKnob.ApproachShare, 0.85f);

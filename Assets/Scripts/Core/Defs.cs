@@ -95,7 +95,7 @@ namespace Arena
         public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
 
         // The main attack's numbers, in one place: the code that fires it, WeaponRange (the aim line) and the bots
-        // all read these. Secondary parts (fragments, sword waves, a Katana's lunge and Alt strike, heals) stay with the weapon's code.
+        // all read these. Secondary parts (fragments, sword waves, a Katana's Kage Chain and Zanshin, heals) stay with the weapon's code.
         public float Speed, Life;      // a shot's speed (px/s) and lifetime (s): it reaches Speed × Life
         public float Damage;           // the main shot's or swing's damage (before upgrades)
         public float Reach;            // a swing's reach (px), or a beam's length
@@ -220,9 +220,9 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a pink line, then leaps along it." },
             new EnemyDef { Name = "Hive Bomber", Hp = 30f, Radius = 10f, Speed = 330f, Score = 2, Xp = 0, Sides = 3, Color = new Rgba(1f, 0.45f, 0.15f), Melee = true },
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
-            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 2, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f },
+            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f },
             new EnemyDef { Name = "Hive Egg", Hp = 60f, Radius = 15f, Speed = 0f, Score = 4, Xp = 3, Sides = 10, Color = new Rgba(0.96f, 0.92f, 0.78f), Melee = true },
-            new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 4, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f },
+            new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f },
             new EnemyDef { Name = "The Dual Reaper", IsBoss = true, Hp = 5200f, Radius = 58f, Speed = 150f, Score = 500, Xp = 200, Sides = 10, Color = new Rgba(1f, 0.8f, 0.45f) },
             new EnemyDef { Name = "Reaper Pillar", Hp = 120f, Radius = 24f, Speed = 0f, Score = 5, Xp = 4, Sides = 4, Color = new Rgba(0.55f, 0.5f, 0.75f), Melee = true },
             new EnemyDef { Name = "Singularity Shard", Hp = 1e6f, Radius = 20f, Speed = 0f, Score = 0, Xp = 0, Sides = 5, Color = new Rgba(0.8f, 0.5f, 1f), Melee = true },
@@ -242,9 +242,9 @@ namespace Arena
                 Picker = PickerGroup.Late, Blurb = "Aims where you're going, not where you are. Change direction when it fires." },
             new EnemyDef { Name = "Stitcher", Hp = 120f, Radius = 15f, Speed = 65f, Score = 30, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.82f, 0.45f),
                 Picker = PickerGroup.Late, Blurb = "Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps." },
-            new EnemyDef { Name = "Riot Shield", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 7, Sides = 6, Color = new Rgba(0.55f, 0.68f, 0.95f), Melee = true, Contact = 8f,
+            new EnemyDef { Name = "Riot Shield", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.55f, 0.68f, 0.95f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A guard behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast." },
-            new EnemyDef { Name = "Gas Grenadier", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 6, Sides = 5, Color = new Rgba(0.62f, 0.92f, 0.42f),
+            new EnemyDef { Name = "Gas Grenadier", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.62f, 0.92f, 0.42f),
                 Picker = PickerGroup.Ranged, Blurb = "Lobs tear-gas canisters at you. Step out of the cloud." },
             new EnemyDef { Name = "The Gatekeeper", Hp = 3000f, Radius = 34f, Speed = 55f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(1f, 0.62f, 0.3f), Heavy = true, Contact = 25f, Mini = true,
                 Blurb = "Challenge room mini-boss: a ring of shots with a gap, three aimed fans, and a charge along a shown line that ends in a burst." },
@@ -396,7 +396,8 @@ namespace Arena
             FireflyShot = 55,  // the Sprite Staff's firefly: seeds what it hits, then hops to the nearest enemy that isn't seeded (KitWeapons.cs)
             MedkitShot = 56,   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
             TreantSeed = 57,   // a tiny seed the Treant Rod's Treant flicks at enemies, drawn as a thorn dart (KitWeapons.cs, Game/SeedLook.cs)
-            SteelShard = 58;   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
+            SteelShard = 58,   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
+            ParryNeedle = 59;  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
 
@@ -427,6 +428,7 @@ namespace Arena
                 case FireflyShot: return 5f;
                 case TreantSeed: return 2.5f;
                 case SteelShard: return 4f;
+                case ParryNeedle: return 4f;
                 case BoneShot: return 3.5f;
                 case RockShot: return 6f;
                 case MinionShot: return 3.5f;
@@ -513,6 +515,7 @@ namespace Arena
                 case FireflyShot: return new Rgba(0.89f, 0.97f, 0.56f);
                 case TreantSeed: return new Rgba(0.74f, 0.94f, 0.54f);
                 case SteelShard: return new Rgba(1f, 0.59f, 0.24f);
+                case ParryNeedle: return new Rgba(1f, 1f, 1f);
                 case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
                 case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);

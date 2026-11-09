@@ -187,7 +187,7 @@ namespace Arena
                 case WeaponId.Halberd:
                     return fxOn;  // HalberdLook.cs
                 case WeaponId.Katana:
-                    return fxOn && !p.Downed && p.KatanaMeter < Game.KatanaMeterMax;  // KatanaLook.cs, MeleeLooks.cs (a full meter keeps the model's arms and the sheathed blade)
+                    return fxOn && !p.Downed;  // KatanaLook.cs, MeleeLooks.cs
                 case WeaponId.Censer: case WeaponId.Warhammer: case WeaponId.Greatsword: case WeaponId.Rapier: case WeaponId.HolyMace: case WeaponId.BoStaff:
                 case WeaponId.Kusarigama: case WeaponId.BloodLash:
                     return fxOn && !p.Downed;  // CenserLook.cs, MeleeLooks.cs (Warhammer, Rapier, Kusarigama, Blood Lash), GreatswordLook.cs, QuarterstaffLook.cs, BoStaffLook.cs
@@ -685,16 +685,10 @@ namespace Arena
                     MStar(6f, 0f, 6.5f, 2f, 4, t * 4f, MSteel);
                     break;
                 case WeaponId.Katana:
-                    if (fxOn && p.KatanaMeter < Game.KatanaMeterMax)
-                        break;  // with Visual effects on, the drawn blade is KatanaLook.cs's (DrawKatanaIdle); the sheathed one below stays
+                    if (fxOn)
+                        break;  // with Visual effects on, the blade is KatanaLook.cs's (DrawKatanaIdle)
                     MLine(-6f, 0f, 0f, 0f, 3f, Hx(0x1d1d26)); MCirc(1f, 0f, 3.4f, MGold, 8); MCirc(1f, 0f, 1.4f, Hx(0x1d1d26), 6);
-                    if (p.KatanaMeter >= Game.KatanaMeterMax)  // strike meter full: sheathed, ready to cut, a dark scabbard with a glint running along it
-                    {
-                        MLine(1f, 0f, 36f, 0f, 3.2f, Hx(0x16131f));
-                        float gl = MathX.Fmod(t * 1.6f, 1f) * 35f + 1f, sp = 0.5f + 0.5f * Mathf.Sin(t * 12f);
-                        MLine(gl - 3f, 0f, gl + 3f, 0f, 1.5f, new Rgba(1f, 1f, 1f, sp)); MLine(gl, -3f, gl, 3f, 1.5f, new Rgba(1f, 1f, 1f, sp));
-                    }
-                    else { MLine(1f, 0f, 36f, 0f, 2.4f, Hx(0xdfe7f2)); MLine(2f, -0.9f, 35f, -0.9f, 0.7f, MWhite); MPoly(Hx(0xdfe7f2), 35f, 0f, 35f, -1.2f, 40f, 0f, 35f, 1.2f); }
+                    MLine(1f, 0f, 36f, 0f, 2.4f, Hx(0xdfe7f2)); MLine(2f, -0.9f, 35f, -0.9f, 0.7f, MWhite); MPoly(Hx(0xdfe7f2), 35f, 0f, 35f, -1.2f, 40f, 0f, 35f, 1.2f);
                     break;
                 case WeaponId.Kunai:
                     MLine(-1f, 0f, 5f, 0f, 2.2f, Hx(0x2a2a2a)); MArc(-4f, 0f, 3f, 0f, MathX.Tau, 1.2f, MSteel); MPoly(MSteel, 5f, 0f, 10f, -3f, 18f, 0f, 10f, 3f);

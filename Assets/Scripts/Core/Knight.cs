@@ -36,8 +36,10 @@ namespace Arena
         public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
-        public bool DrawCut;          // the Katana's lunge: a box (HalfWidth) drawn as a long thin slash, not a jab
-        public float Meter;           // the strike meter each enemy this swing hits adds (the Katana's swipes and lunge)
+        public bool DrawCut;          // the Katana's dash-cut: a box (HalfWidth) drawn as a long thin slash, not a jab
+        public byte KatanaMove;       // a Katana attack (Katana.cs): 1 Hayate's dash-cut, 2 Senbon's swipe (its hits fill the stance's meter)
+        public bool FromSet;          // lands from From, not from where the swinger stands by then (the Katana's dash-cut, along the line you dashed)
+        public V2 From;
         public Sfx Sound;             // played in place of the usual swing sound (the Katana's own: KatanaSoundBank.cs)
         public bool Root;             // the Treant Rod's root lash: a box drawn as a thorny root (FxKind.RootLash) that heals allies inside it
         public float RootHeal;        // what an ally touched by the lash is healed
@@ -321,7 +323,7 @@ namespace Arena
 
         void LandSwing(Player p, Swing s)
         {
-            V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
+            V2 origin = s.FromSet ? s.From : p.Pos, dir = V2.FromAngle(s.Aim);
             bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f, circle = s.Circle > 0f;
             V2 circleAt = origin + dir * s.CircleAt;
             for (int i = 0; i < s.Waves; i++)  // the overhead rend's sword waves (Greatsword.cs)
@@ -442,11 +444,6 @@ namespace Arena
                 p.StaffStacks = (byte)Math.Min(StaffCap(p), p.StaffStacks + hits.Count);
             if (hits.Count > 0 && p.Weapon.Melee && !s.Silent)
                 p.MeleeGraceT = MeleeContactGrace;  // you're in the thick of it: touching bodies don't hurt for a moment
-            if (hits.Count > 0 && s.Meter > 0f)  // a Katana step landed: the strike meter builds, per enemy hit
-            {
-                KatanaGain(p, s.Meter * hits.Count);
-                KatanaHitCue(p, s.DrawCut, hits.Count);  // its cut sound, and the lunge's hit-pause (Katana.cs)
-            }
             if (hits.Count > 0 && s.TwinKind > 0)
                 TwinHitCue(p, s.TwinKind, hits.Count);  // a Twin Blades step cut something: its sound, your hit-pause and shake (TwinBlades.cs)
             if (hits.Count > 0 && s.LanceKind > 0)
@@ -506,6 +503,8 @@ namespace Arena
                 if (s.Clots)
                     AddClot(p, crack ? 2 : 1);
             }
+            if (s.KatanaMove > 0)
+                KatanaLanded(p, s, hits);  // the stance's meter, Senbon's marks, a killing dash coming back, the cut's cue (Katana.cs)
             if (s.CenserStep > 0)
                 CenserLanded(p, s, hits.Count);  // Embers, the Benediction's bonus heal and the step's incense (Censer.cs)
             if (s.HealSpin > 0f)
