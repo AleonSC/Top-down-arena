@@ -419,8 +419,6 @@ namespace Arena
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
             float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id);
-            if (id == AbilityId.Dash)
-                cd *= p.Stats.DashCdMult;
             return cd;
         }
 
@@ -1004,21 +1002,17 @@ namespace Arena
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
                 bool shellOut = ShellRelease(me, slot);  // Blood Shell pressed again: the host brings it down (BloodShell.cs)
                 bool rainOut = RainPress(me, slot);  // Sanguine Rain pressed again: the host cancels it (SanguineRain.cs)
+                bool bathOut = BathPress(me, slot);  // Bloodbath pressed again: the host ends the channel (Bloodbath.cs)
                 bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
                 bool steelOut = SteelRelease(me, slot);  // Caught Steel pressed again: the host throws the shards (CaughtSteel.cs)
                 bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
                 if (me.Slots[slot].Id == AbilityId.Whirlwind && MercyFirst(me, aimAt) == null)
                     continue;  // Misericorde with nobody wounded in reach: don't waste the cooldown (Misericorde.cs)
-                if (!orbitOut && !standOut && !harvestOut && !rainOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
+                if (!orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
                 {
-                    case AbilityId.Dash:
-                        DashDir = move.IsZero ? V2.FromAngle(me.Aim) : move.Normalized();
-                        DashT = DashTime;
-                        dashSpeed = DashSpeed;
-                        break;
                     case AbilityId.LeapSlam:
                     {
                         // Leap to the cursor (up to 320 px); the host lands the slam there.

@@ -36,7 +36,6 @@ namespace Arena
         {
             switch (id)
             {
-                case AbilityId.Dash:
                 case AbilityId.LeapSlam:
                 case AbilityId.Lunge:      // the Gauntlet's charge
                 case AbilityId.Whirlwind:  // Misericorde's leaps

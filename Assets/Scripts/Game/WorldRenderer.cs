@@ -205,6 +205,7 @@ namespace Arena
             DrawHeraldHazards(t);  // rods, arcs, the Conductor and the spokes (HeraldLook.cs)
             DrawEclipseMoon(t);    // EclipseLook.cs
             DrawLichScene(t);  // LichLook.cs
+            PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
                     DrawEnemy(e, t);
@@ -225,6 +226,8 @@ namespace Arena
             {
                 if (p.SwallowT > 0f && !p.Downed)
                     continue;  // inside the Devourer (DevourerLook.cs shows them in its mouth)
+                if (LaunchHides(p))
+                    continue;  // not landed yet, beamed out or mid Shadow Step: the held weapons and their arms go with the body (LaunchIntro.cs, Recall.cs)
                 DrawPlayerWrapped(p, t);
                 DrawHalberdIdle(p, t);  // the Halberd held at the ready (HalberdLook.cs)
                 DrawRapierIdle(p, t);  // the Rapier held at the ready (MeleeLooks.cs)

@@ -1,0 +1,348 @@
+<title>Twin Rifle Grenade Launch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one live stage (the launch look picker, playback and a x2.1 close-up of the guns), then the picked look's beats,
+   then the reload beat shared by every look. Colour: olive drab for launcher and grenade, tracer orange for the rifle
+   (the game's own colours, as in twin-rifle-grenade-rework.html). */
+:root{
+  --bg:#ecede6; --fg:#1d2119; --muted:#5d6455; --panel:#f8f9f3; --line:#cfd3c4;
+  --acc:#5d6b1f; --hot:#c2570a; --chip:#e0e3d6; --chip-on:#1d2119; --chip-on-fg:#f4f5ee;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101310; --fg:#e7eadf; --muted:#959c8a; --panel:#181c17; --line:#2c3229;
+  --acc:#b8cc5a; --hot:#ff9a3c; --chip:#232821; --chip-on:#e7eadf; --chip-on-fg:#101310; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101310; --fg:#e7eadf; --muted:#959c8a; --panel:#181c17; --line:#2c3229;
+  --acc:#b8cc5a; --hot:#ff9a3c; --chip:#232821; --chip-on:#e7eadf; --chip-on-fg:#101310; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header h1 span{color:var(--acc)}
+header p{margin:0;max-width:70ch;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button{font:700 18px var(--display);letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 14px;border-radius:6px;cursor:pointer;min-height:40px}
+.tabs button[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:var(--chip-on-fg)}
+.tabs button small{font:400 11px var(--mono);text-transform:none;letter-spacing:0;margin-left:6px;opacity:.85}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button,.bar label{font:500 13px var(--mono);border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 12px;border-radius:6px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;min-height:38px}
+.bar button.go{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.bar button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.bar input{accent-color:var(--acc)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+canvas{width:100%;max-width:100%;aspect-ratio:720/440;border-radius:8px;display:block;background:#0e120f;touch-action:none;cursor:crosshair}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chips li{font:400 12px var(--mono);background:var(--chip);border-radius:4px;padding:4px 8px;transition:background .08s,color .08s}
+.chips li b{font-weight:500}
+.chips li.on{background:var(--chip-on);color:var(--chip-on-fg)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;color:var(--acc)}
+.beats{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.beats li{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:15px}
+.beats li span{font:400 12.5px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.hint{font:400 12px var(--mono);color:var(--muted)}
+.foot{color:var(--muted);font-size:14px;max-width:84ch}
+@media (prefers-reduced-motion:reduce){.chips li{transition:none}}
+</style>
+
+<main>
+  <header>
+    <h1>Twin Rifle <span>Grenade Launch</span></h1>
+    <p>Animations for the under-barrel grenade tubes (the gameplay is in <code>twin-rifle-grenade-rework.html</code> and <code>TwinGrenades.cs</code>). Today a launch is a 16 px ring and a sound; the gun doesn't move. Each look below adds a kick on the firing gun, a breech that opens and spits out the spent shell, and a reload when your hits fill a tube. The guns are drawn in Twin Rifle Firing's pose A, with the tubes where the grenades really start. The flight path and burst point match the game.</p>
+  </header>
+
+  <section class="stage">
+    <div class="tabs" role="tablist" aria-label="Launch look">
+      <button role="tab" id="lThump" aria-selected="true" data-l="thump">Thump<small>recommended</small></button>
+      <button role="tab" id="lLob" aria-selected="false" data-l="lob">Lob</button>
+      <button role="tab" id="lRocket" aria-selected="false" data-l="rocket">Rocket assist</button>
+    </div>
+    <div class="bar" role="toolbar" aria-label="Playback">
+      <button id="bFire" class="go">Fire grenade (Alt)</button>
+      <button id="bLoad">Load a grenade</button>
+      <label><input type="checkbox" id="cDemo" checked> Demo loop</label>
+      <label><input type="checkbox" id="cRifle" checked> Rifles firing</label>
+      <button id="bSlow" aria-pressed="false">Slow ×0.2</button>
+      <button id="bPause" aria-pressed="false">Pause</button>
+    </div>
+    <canvas id="cv" width="720" height="440" aria-label="Twin Rifle grenade launch animation"></canvas>
+    <ul class="chips" id="phases"></ul>
+    <span class="hint">Point at the arena to aim. The grenade bursts at the crossing (your cursor's distance, 120 px to full range). The tubes take turns, left then right.</span>
+  </section>
+
+  <div class="cols">
+    <section class="card">
+      <h2 id="lookTitle">Thump</h2>
+      <ul class="beats" id="lookBeats"></ul>
+    </section>
+    <section class="card">
+      <h2>Reload (every look)</h2>
+      <ul class="beats">
+        <li><span>40th hit</span><div>The empty tube's breech drops open.</div></li>
+        <li><span>0.05–0.17 s</span><div>A fresh olive shell slides in from behind and seats.</div></li>
+        <li><span>0.2 s</span><div>The breech snaps shut with a spark. A green ring pulses off the tube, its muzzle light comes on, and the pip behind you fills. The game's ring and pick-up sound play here.</div></li>
+        <li><span>held</span><div>A loaded tube is olive with a faint glow. The next to fire has a blinking light at its muzzle.</div></li>
+      </ul>
+    </section>
+  </div>
+
+  <p class="foot">Drawing only: no timings change. The firing gun's kick, the opened breech and the shell are client-side, started by the launch ring the host already broadcasts (<code>HostTwinGrenade</code>) or by a <code>TwinNades</code> drop, which lets other players' launches animate too. A load is a <code>TwinNades</code> rise. <b>Lob</b> draws the grenade higher than its hitbox mid-flight (its shadow is the real position), the same trick as the Flak Cannon's shell. <b>Rocket assist</b> adds a backblast behind the gun that is only a look and doesn't hurt anyone.</p>
+</main>
+
+<script>
+(()=>{
+const G=0.933, HALF=30, MX=34, SPEED=820, INT=0.1, FLIGHT=0.45, RADIUS=110, CROSS_MIN=120, CROSS_MAX=574;
+const K={base:'#5b6b52',dark:'#2d3829',sleeve:'#46543e',glove:'#20242a',steel:'#cfd8e6',gdark:'#3a4250',wood:'#8a6a45',sight:'#7bd0ff',olive:'#7c8c45',empty:'#3f4728',lit:'#d6ec8a',trim:'#ff8c40',brass:'#e2b04a',nade:'#a5b85a'};
+const LOOKS={
+  thump:{title:'Thump',beats:[
+    ['0–0.06 s','A fat, short flash at the tube: a white core, an olive-white puff and a ring of smoke that rolls outward. Much duller than the rifle flash, so you can tell the two apart.'],
+    ['0–0.2 s','The firing gun kicks hard: 6 px back and 16° up and out, then springs back. That arm folds, and the body twists 4° toward that side. The other gun keeps firing.'],
+    ['0.08–0.3 s','The breech drops open. A fat 40 mm casing tumbles out behind you, lands with a bounce and stays 1.5 s. Then the breech snaps shut, dark.'],
+    ['flight','The grenade tumbles straight down the stream with a blinking fuse. A faint ring grows to the 110 px blast size (as today).']]},
+  lob:{title:'Lob',beats:[
+    ['0–0.2 s','Same launch as Thump: flash, smoke ring, kick, breech and casing.'],
+    ['flight','The grenade arcs up to 28 px above the floor and back down, swelling a little at the top. Its shadow runs along the real path and is where the hitbox is.'],
+    ['flight','A small target ring pulses where it will land, so teammates can see where the burst will be.'],
+    ['landing','It bursts as its shadow reaches the crossing, the same moment as today.']]},
+  rocket:{title:'Rocket assist',beats:[
+    ['0–0.08 s','A backblast: a hot cone and a jet of smoke out of the back of the tube, behind your shoulder.'],
+    ['0–0.2 s','A lighter kick than Thump (4 px), since the rocket carries the force. The breech opens and drops a short, wide casing.'],
+    ['flight','A flame jet flickers off the grenade\'s tail and it leaves a puffy smoke trail that lingers about 0.6 s, so the line it flew stays visible.'],
+    ['landing','The same burst at the crossing.']]}
+};
+const S={look:'thump',pause:false,slow:false,demo:true,rifle:true,aim:{x:300,y:40},autoAim:true};
+const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function rot(x,y,a){const c=Math.cos(a),s=Math.sin(a);return{x:x*c-y*s,y:x*s+y*c}}
+const cv=document.getElementById('cv'),c=cv.getContext('2d');let dpr=1;
+const W={t:0,fireT:0,since:9,heat:0,rec:[9,9],flash:[null,null],launch:[9,9],load:[9,9],loaded:[true,true],next:0,bul:[],parts:[],nades:[],demoT:0,twist:0};
+
+function aimA(){return Math.atan2(S.aim.y,S.aim.x)}
+function D(){return clamp(Math.hypot(S.aim.x,S.aim.y),CROSS_MIN,CROSS_MAX)}
+function L(p,a){return rot(p.x,p.y,a===undefined?aimA():a)}
+function guns(){
+  const out=[],d=D();
+  for(const s of [-1,1]){
+    const i=s<0?0:1;let ang=Math.atan2(-s*HALF,d-MX);const b=rot(26*G,0,ang);let grip={x:MX-b.x,y:s*HALF-b.y};
+    let back=0,climb=0;const r=W.rec[i];
+    if(r<.12){const f=r/.08;back=r<.08?3*(1-f)**2:-.5*Math.sin(Math.PI*(r-.08)/.04);climb=r<.08?.1*(1-f)**1.5:0}
+    const l=W.launch[i],big=S.look==='rocket'?4:6;
+    if(l<.32){const f=l/.2;back+=l<.2?big*(1-f)**2:-1.2*Math.sin(Math.PI*(l-.2)/.12);climb+=l<.2?.28*(1-f)**1.6*(S.look==='rocket'?.6:1):-.05*Math.sin(Math.PI*(l-.2)/.12)}
+    const bb=rot(back,0,ang);grip={x:grip.x-bb.x,y:grip.y-bb.y};ang+=s*climb;
+    const m=rot(26*G,0,ang),tm=rot(23*G,s*4.6*G,ang),tb=rot(11*G,s*4.6*G,ang);
+    out.push({s,i,grip,ang,muzzle:{x:grip.x+m.x,y:grip.y+m.y},tube:{x:grip.x+tm.x,y:grip.y+tm.y},tubeBack:{x:grip.x+tb.x,y:grip.y+tb.y}});
+  }
+  return out;
+}
+function breech(i){ // how far the tube's breech is open (radians), and whether a shell is sliding in
+  const l=W.launch[i],r=W.load[i];
+  if(l<.32){if(l<.08)return 0;if(l<.14)return .4*(l-.08)/.06;if(l<.28)return .4;return .4*(1-(l-.28)/.04)}
+  if(r<.24){if(r<.06)return .4*r/.06;if(r<.18)return .4;if(r<.2)return .4*(1-(r-.18)/.02);return 0}
+  return 0;
+}
+function fireNade(){
+  if(!W.loaded[0]&&!W.loaded[1])return;
+  let i=W.next;if(!W.loaded[i])i=1-i;
+  const gs=guns(),g=gs[i],a=aimA(),d=D(),from=L(g.tube),to={x:Math.cos(a)*d,y:Math.sin(a)*d};
+  W.loaded[i]=false;W.next=1-i;W.launch[i]=0;
+  W.nades.push({x:from.x,y:from.y,fx:from.x,fy:from.y,tx:to.x,ty:to.y,t:0,spin:rnd(0,6),trailT:0});
+  const ga=a+g.ang,fwd={x:Math.cos(ga),y:Math.sin(ga)};
+  W.parts.push({k:'nflash',x:from.x,y:from.y,r:ga,t:0,l:.07});
+  W.parts.push({k:'ring',x:from.x+fwd.x*3,y:from.y+fwd.y*3,t:0,l:.45,r0:3,r1:15});
+  for(let k=0;k<6;k++){const v=rot(rnd(15,45),rnd(-25,25),ga);W.parts.push({k:'smoke',x:from.x,y:from.y,vx:v.x,vy:v.y,t:0,l:rnd(.5,.9),r0:2,r1:rnd(6,9),a:.4})}
+  if(S.look==='rocket'){const bk=L(g.tubeBack);for(let k=0;k<9;k++){const v=rot(-rnd(60,160),rnd(-30,30),ga);W.parts.push({k:'smoke',x:bk.x,y:bk.y,vx:v.x,vy:v.y,t:0,l:rnd(.4,.8),r0:2,r1:rnd(5,9),a:.45})}
+    W.parts.push({k:'blast',x:bk.x,y:bk.y,r:ga+Math.PI,t:0,l:.08})}
+  W.pend=W.pend||[];W.pend.push({i,at:.12});
+}
+function ejectShell(i){
+  const g=guns()[i],a=aimA(),p=L(g.tubeBack),v=rot(-rnd(40,70),g.s*rnd(30,55),a+g.ang);
+  W.parts.push({k:'shell',x:p.x,y:p.y,vx:v.x,vy:v.y,z:4,vz:rnd(50,70),rot:rnd(0,6),spin:rnd(-12,12),t:0,l:1.6,b:0,wide:S.look==='rocket'});
+}
+function loadNade(){
+  let i=!W.loaded[W.next]?W.next:(!W.loaded[1-W.next]?1-W.next:-1);
+  if(i<0)return;W.load[i]=0;W.pendLoad=W.pendLoad||[];W.pendLoad.push({i,at:.2});
+}
+function rifleShot(){
+  const a=aimA()+rnd(-.035,.035),d=D(),cross={x:Math.cos(a)*d,y:Math.sin(a)*d};
+  for(const g of guns()){const sp=rot(MX,g.s*HALF,a),dx=cross.x-sp.x,dy=cross.y-sp.y,l=Math.hypot(dx,dy);
+    W.bul.push({x:sp.x,y:sp.y,vx:dx/l*SPEED,vy:dy/l*SPEED,t:0});W.flash[g.i]={t:0,v:Math.floor(rnd(0,3))};W.rec[g.i]=0;
+    const port=L(rot(8*G,g.s*2.6*G,g.ang)),gp=L(g.grip),o=rot(rnd(-25,5),g.s*rnd(70,115),aimA()+g.ang);
+    W.parts.push({k:'brass',x:port.x+gp.x,y:port.y+gp.y,vx:o.x,vy:o.y,z:3,vz:rnd(55,80),rot:rnd(0,6),spin:rnd(-22,22),t:0,l:1,b:0})}
+  W.since=0;W.heat=Math.min(1,W.heat+.03);
+}
+function burst(n){
+  W.parts.push({k:'bflash',x:n.tx,y:n.ty,t:0,l:.08});W.parts.push({k:'blastR',x:n.tx,y:n.ty,t:0,l:.32});
+  for(let k=0;k<8;k++){const a=k*Math.PI/4+rnd(-.15,.15);W.parts.push({k:'shard',x:n.tx,y:n.ty,vx:Math.cos(a)*520,vy:Math.sin(a)*520,t:0,l:.22})}
+  for(let k=0;k<10;k++){const a=rnd(0,6.28),r=rnd(10,60);W.parts.push({k:'smoke',x:n.tx+Math.cos(a)*r,y:n.ty+Math.sin(a)*r,vx:Math.cos(a)*20,vy:Math.sin(a)*20,t:0,l:rnd(.7,1.2),r0:6,r1:rnd(14,22),a:.3})}
+}
+function step(dt){
+  W.t+=dt;W.since+=dt;W.rec[0]+=dt;W.rec[1]+=dt;W.launch[0]+=dt;W.launch[1]+=dt;W.load[0]+=dt;W.load[1]+=dt;
+  for(const f of W.flash)if(f)f.t+=dt;
+  if(S.rifle){W.fireT-=dt;if(W.fireT<=0){rifleShot();W.fireT+=INT;if(W.fireT<0)W.fireT=INT}}
+  W.heat=Math.max(0,W.heat-.2*dt);
+  if(S.demo){const prev=W.demoT;W.demoT=(W.demoT+dt)%4.4;const hit=x=>prev<x&&W.demoT>=x||(prev>W.demoT&&(x>prev||x<=W.demoT));
+    if(hit(.3))fireNade();if(hit(1.6))fireNade();if(hit(2.9))loadNade();if(hit(3.6))loadNade();}
+  for(const q of (W.pend||[]))if((q.at-=dt)<=0){ejectShell(q.i);q.done=1}
+  W.pend=(W.pend||[]).filter(q=>!q.done);
+  for(const q of (W.pendLoad||[]))if((q.at-=dt)<=0){W.loaded[q.i]=true;const g=guns()[q.i],p=L(g.tube);W.parts.push({k:'lring',x:p.x,y:p.y,t:0,l:.35});W.parts.push({k:'spark',x:p.x,y:p.y,t:0,l:.06});q.done=1}
+  W.pendLoad=(W.pendLoad||[]).filter(q=>!q.done);
+  for(const n of W.nades){n.t+=dt;const f=Math.min(1,n.t/FLIGHT);n.x=n.fx+(n.tx-n.fx)*f;n.y=n.fy+(n.ty-n.fy)*f;n.spin+=dt*14;
+    if(S.look==='rocket'){n.trailT-=dt;if(n.trailT<=0){n.trailT=.018;W.parts.push({k:'smoke',x:n.x,y:n.y,vx:rnd(-8,8),vy:rnd(-8,8),t:0,l:.6,r0:2.2,r1:rnd(5,7),a:.32})}}
+    if(n.t>=FLIGHT&&!n.done){n.done=1;burst(n)}}
+  W.nades=W.nades.filter(n=>!n.done);
+  for(const b of W.bul){b.x+=b.vx*dt;b.y+=b.vy*dt;b.t+=dt}W.bul=W.bul.filter(b=>b.t<.7);
+  for(const p of W.parts){p.t+=dt;
+    if(p.k==='brass'||p.k==='shell'){p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.spin*dt;p.vz-=420*dt;p.z+=p.vz*dt;
+      if(p.z<=0){p.z=0;if(p.b<1&&p.vz<-20){p.vz=-p.vz*.35;p.b++;p.vx*=.55;p.vy*=.55;p.spin*=.5}else{p.vz=0;const k=Math.pow(.02,dt);p.vx*=k;p.vy*=k;p.spin*=k}}}
+    if(p.k==='smoke'||p.k==='shard'){p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.k==='smoke'){p.vx*=.96;p.vy*=.96}}
+  }
+  W.parts=W.parts.filter(p=>p.t<p.l);
+}
+// ---------------- drawing ----------------
+function scene(cam,inset){
+  const a=aimA(),d=D(),px=1/cam.s;
+  c.setTransform(dpr*cam.s,0,0,dpr*cam.s,dpr*cam.ox,dpr*cam.oy);
+  c.strokeStyle='rgba(150,180,120,.07)';c.lineWidth=px;
+  const x0=-cam.ox/cam.s,y0=-cam.oy/cam.s,x1=x0+720/cam.s,y1=y0+440/cam.s;
+  c.beginPath();for(let x=Math.floor(x0/40)*40;x<x1;x+=40){c.moveTo(x,y0);c.lineTo(x,y1)}for(let y=Math.floor(y0/40)*40;y<y1;y+=40){c.moveTo(x0,y);c.lineTo(x1,y)}c.stroke();
+  const X={x:Math.cos(a)*d,y:Math.sin(a)*d};
+  c.setLineDash([4*px,6*px]);c.strokeStyle='rgba(255,255,255,.13)';c.beginPath();c.moveTo(Math.cos(a)*20,Math.sin(a)*20);c.lineTo(X.x,X.y);c.stroke();c.setLineDash([]);
+  c.strokeStyle='rgba(255,170,90,.7)';c.lineWidth=1.6*px;c.beginPath();c.moveTo(X.x-6,X.y-6);c.lineTo(X.x+6,X.y+6);c.moveTo(X.x+6,X.y-6);c.lineTo(X.x-6,X.y+6);c.stroke();
+  // shells and brass on the floor
+  for(const p of W.parts)if(p.k==='brass'||p.k==='shell')casing(p);
+  // lob: landing marker
+  if(S.look==='lob')for(const n of W.nades){const pu=.5+.5*Math.sin(n.t*30);c.strokeStyle=`rgba(214,236,138,${.35+.35*pu})`;c.lineWidth=1.4*px;c.beginPath();c.arc(n.tx,n.ty,8+3*pu,0,Math.PI*2);c.stroke()}
+  for(const p of W.parts)if(p.k==='smoke'){const f=p.t/p.l;c.fillStyle=`rgba(196,202,186,${p.a*(1-f)})`;c.beginPath();c.arc(p.x,p.y,p.r0+(p.r1-p.r0)*Math.sqrt(f),0,Math.PI*2);c.fill()}
+  player();
+  for(const b of W.bul){const l=Math.hypot(b.vx,b.vy),ux=b.vx/l,uy=b.vy/l,tl=Math.min(130,b.t*SPEED);
+    const g=c.createLinearGradient(b.x-ux*tl,b.y-uy*tl,b.x,b.y);g.addColorStop(0,'rgba(255,160,64,0)');g.addColorStop(1,'rgba(255,160,64,.8)');
+    c.strokeStyle=g;c.lineWidth=2.2;c.lineCap='round';c.beginPath();c.moveTo(b.x-ux*tl,b.y-uy*tl);c.lineTo(b.x,b.y);c.stroke();c.fillStyle='#fff';c.beginPath();c.arc(b.x,b.y,2,0,Math.PI*2);c.fill()}
+  for(const n of W.nades)grenade(n,px);
+  for(const p of W.parts){const f=1-p.t/p.l;
+    if(p.k==='nflash'){c.save();c.translate(p.x,p.y);c.rotate(p.r);c.globalCompositeOperation='lighter';
+      const g=c.createRadialGradient(3,0,0,3,0,12);g.addColorStop(0,`rgba(240,255,200,${.8*f})`);g.addColorStop(.5,`rgba(200,220,130,${.5*f})`);g.addColorStop(1,'rgba(160,180,90,0)');c.fillStyle=g;c.beginPath();c.arc(3,0,12,0,Math.PI*2);c.fill();
+      c.fillStyle=`rgba(255,255,240,${f})`;c.beginPath();c.ellipse(3,0,5*f+2,3.4*f+1.5,0,0,Math.PI*2);c.fill();c.restore()}
+    if(p.k==='ring'){const e=1-(1-p.t/p.l)**3;c.strokeStyle=`rgba(210,214,196,${.55*f})`;c.lineWidth=(2.6*f+.4);c.beginPath();c.arc(p.x,p.y,p.r0+(p.r1-p.r0)*e,0,Math.PI*2);c.stroke()}
+    if(p.k==='blast'){c.save();c.translate(p.x,p.y);c.rotate(p.r);c.globalCompositeOperation='lighter';c.fillStyle=`rgba(255,170,90,${.8*f})`;c.beginPath();c.moveTo(0,-2);c.lineTo(18,-7);c.lineTo(20,0);c.lineTo(18,7);c.lineTo(0,2);c.closePath();c.fill();c.fillStyle=`rgba(255,240,210,${f})`;c.beginPath();c.moveTo(0,-1);c.lineTo(10,0);c.lineTo(0,1);c.fill();c.restore()}
+    if(p.k==='bflash'){c.fillStyle=`rgba(255,255,255,${.9*f})`;c.beginPath();c.arc(p.x,p.y,40*(1-f)+18,0,Math.PI*2);c.fill()}
+    if(p.k==='blastR'){const e=1-f*f;const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,RADIUS*e+1);g.addColorStop(0,`rgba(255,200,110,${.55*f})`);g.addColorStop(.7,`rgba(255,120,40,${.35*f})`);g.addColorStop(1,'rgba(255,90,30,0)');c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,RADIUS*e+1,0,Math.PI*2);c.fill();
+      c.strokeStyle=`rgba(255,180,90,${.6*f})`;c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,RADIUS*e,0,Math.PI*2);c.stroke()}
+    if(p.k==='shard'){const l=Math.hypot(p.vx,p.vy);c.strokeStyle=`rgba(255,220,150,${f})`;c.lineWidth=2;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x-p.vx/l*14,p.y-p.vy/l*14);c.stroke()}
+    if(p.k==='lring'){const e=p.t/p.l;c.strokeStyle=`rgba(214,236,138,${.9*(1-e)})`;c.lineWidth=1.6*(1-e)+.4;c.beginPath();c.arc(p.x,p.y,3+12*e,0,Math.PI*2);c.stroke()}
+    if(p.k==='spark'){c.fillStyle=`rgba(255,255,220,${f})`;for(let k=0;k<4;k++){const a2=k*Math.PI/2+.4;c.fillRect(p.x+Math.cos(a2)*2.5*(1-f+.3)-.4,p.y+Math.sin(a2)*2.5*(1-f+.3)-.4,.8,.8)}}
+  }
+  if(inset){c.setTransform(dpr,0,0,dpr,0,0)}
+}
+function grenade(n,px){
+  const f=Math.min(1,n.t/FLIGHT),h=S.look==='lob'?4*28*f*(1-f):0,sc=1+h/56;
+  // radius ring (the game's current look)
+  const R=RADIUS*(1-(1-f)**3);c.strokeStyle=`rgba(214,236,138,${.16})`;c.lineWidth=1.2*px;c.beginPath();c.arc(n.x,n.y,R,0,Math.PI*2);c.stroke();
+  c.fillStyle=`rgba(0,0,0,${.4-h/100})`;c.beginPath();c.ellipse(n.x+1,n.y+1,3.6*(1-h/80),2.6*(1-h/80),0,0,Math.PI*2);c.fill();
+  const gx=n.x,gy=n.y-h;
+  if(S.look==='rocket'){const l=Math.hypot(n.tx-n.fx,n.ty-n.fy),ux=(n.tx-n.fx)/l,uy=(n.ty-n.fy)/l,fl=7+Math.random()*5;
+    c.save();c.globalCompositeOperation='lighter';c.fillStyle='rgba(255,160,70,.85)';c.beginPath();c.moveTo(gx-ux*3-uy*2.2,gy-uy*3+ux*2.2);c.lineTo(gx-ux*(3+fl),gy-uy*(3+fl));c.lineTo(gx-ux*3+uy*2.2,gy-uy*3-ux*2.2);c.fill();
+    c.fillStyle='rgba(255,240,200,.9)';c.beginPath();c.moveTo(gx-ux*3-uy*1,gy-uy*3+ux*1);c.lineTo(gx-ux*(3+fl*.5),gy-uy*(3+fl*.5));c.lineTo(gx-ux*3+uy*1,gy-uy*3-ux*1);c.fill();c.restore()}
+  c.save();c.translate(gx,gy);c.rotate(S.look==='rocket'?Math.atan2(n.ty-n.fy,n.tx-n.fx):n.spin);c.scale(sc,sc);
+  c.fillStyle='#2f3a1c';c.beginPath();c.ellipse(0,0,4.6,3.4,0,0,Math.PI*2);c.fill();c.fillStyle=K.nade;c.beginPath();c.ellipse(0,0,3.8,2.7,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#cfd8a8';c.fillRect(-1,-2.7,1.2,5.4);
+  if((n.t%.15)<.075){c.fillStyle='#ff4a33';c.beginPath();c.arc(3.4,0,1.3,0,Math.PI*2);c.fill()}
+  c.restore();
+}
+function casing(p){
+  const f=p.t>p.l-.35?(p.l-p.t)/.35:1;c.save();c.globalAlpha=f;
+  c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(p.x+1,p.y+1,p.k==='shell'?3.2:1.6,p.k==='shell'?2.2:.9,p.rot,0,Math.PI*2);c.fill();
+  c.translate(p.x,p.y-p.z*.6);c.rotate(p.rot);
+  if(p.k==='shell'){const w=p.wide?5.2:4.4,h=p.wide?3.6:3.2;c.fillStyle='#b48a32';c.fillRect(-w/2,-h/2,w,h);c.fillStyle=K.brass;c.fillRect(-w/2+.5,-h/2+.5,w-1,h-1);c.fillStyle='#6b5420';c.fillRect(-w/2,-h/2,1,h)}
+  else{c.fillStyle=K.brass;c.fillRect(-1.5,-.8,3,1.6);c.fillStyle='#fff2c0';c.fillRect(.6,-.8,.9,1.6)}
+  c.restore();
+}
+function player(){
+  const a=aimA(),gs=guns();
+  let tw=0;for(const g of gs){const l=W.launch[g.i];if(l<.25)tw+=g.s*.07*(1-l/.25)**2}
+  c.save();c.rotate(a+tw*.3);
+  c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(.7,1.3,7.3,9,0,0,Math.PI*2);c.fill();
+  c.fillStyle=K.dark;c.beginPath();c.ellipse(-4.6,0,3,5.3,0,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(-.7,0,6,8.3,0,0,Math.PI*2);c.fill();
+  c.save();c.rotate(tw);c.fillStyle=K.base;c.beginPath();c.ellipse(-.7,0,4.9,7.3,0,0,Math.PI*2);c.fill();
+  c.strokeStyle=K.trim;c.lineWidth=1.1;c.beginPath();c.ellipse(-.7,0,5.6,7.9,0,-1.2,1.2);c.stroke();c.restore();
+  c.rotate(-tw*.3);
+  for(const g of gs){const sh=rot(-.3,g.s*6,tw),fold=W.launch[g.i]<.2?2.2*(1-W.launch[g.i]/.2):0,el={x:(sh.x+g.grip.x)/2-1.2-fold,y:(sh.y+g.grip.y)/2+g.s*(1.6+fold)};
+    c.strokeStyle='#1d241b';c.lineWidth=4.2;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(sh.x,sh.y);c.lineTo(el.x,el.y);c.lineTo(g.grip.x,g.grip.y);c.stroke();
+    c.strokeStyle=K.sleeve;c.lineWidth=3;c.beginPath();c.moveTo(sh.x,sh.y);c.lineTo(el.x,el.y);c.lineTo(g.grip.x,g.grip.y);c.stroke()}
+  for(const g of gs)gun(g);
+  for(const g of gs){c.fillStyle=K.glove;c.beginPath();c.arc(g.grip.x,g.grip.y,2.2,0,Math.PI*2);c.fill()}
+  c.save();c.rotate(tw*.5);c.fillStyle=K.dark;c.beginPath();c.arc(1.7,0,6.3,0,Math.PI*2);c.fill();c.fillStyle=K.base;c.beginPath();c.arc(1.7,0,5.3,0,Math.PI*2);c.fill();
+  c.fillStyle='#1b2026';c.beginPath();c.ellipse(4.6,0,1.6,3.6,0,0,Math.PI*2);c.fill();c.fillStyle='rgba(255,140,64,.75)';c.fillRect(5.2,-2.6,.7,5.2);c.restore();
+  // the two pips behind you
+  for(const i of [0,1]){const s=i?1:-1,p={x:-17,y:-s*-7.3};const on=W.loaded[i];
+    c.save();c.translate(-17,s*7.3);c.rotate(Math.PI/4);c.fillStyle=on?'#a6b86a':'rgba(255,255,255,.14)';c.fillRect(-2.4,-2.4,4.8,4.8);c.restore();
+    if(on&&W.next===i&&W.loaded[0]&&W.loaded[1]){c.strokeStyle='rgba(214,236,138,.8)';c.lineWidth=.9;c.beginPath();c.arc(-17,s*7.3,5.6,0,Math.PI*2);c.stroke()}}
+  c.restore();
+}
+function gun(g){
+  const bolt=W.rec[g.i]<.07?5*Math.sin(Math.PI*W.rec[g.i]/.07):0,open=breech(g.i),loaded=W.loaded[g.i],r=W.load[g.i];
+  c.save();c.translate(g.grip.x,g.grip.y);c.rotate(g.ang);c.scale(G,g.s<0?-G:G);
+  c.fillStyle=K.wood;c.fillRect(-6,-2,8,4);c.fillStyle=K.gdark;c.fillRect(0,-2.6,14,5.2);
+  const hcol=W.heat>.4?`rgb(${207+48*(W.heat-.4)/.6|0},${216-60*(W.heat-.4)/.6|0},${230-130*(W.heat-.4)/.6|0})`:K.steel;
+  c.strokeStyle=hcol;c.lineWidth=2.4;c.beginPath();c.moveTo(12,0);c.lineTo(26,0);c.stroke();
+  c.fillStyle='#2b313a';c.fillRect(24,-1.9,2.6,3.8);
+  c.fillStyle=K.sight;c.fillRect(5,-5,8,2.6);c.fillStyle=K.steel;c.fillRect(5-bolt,2.6,5,1.4);
+  // the tube, hinged at its front: the breech end swings down and out
+  c.save();c.translate(22,4.6);c.rotate(open);c.translate(-22,-4.6);
+  const glowOn=loaded&&open===0;
+  if(glowOn){c.fillStyle='rgba(214,236,138,.16)';c.fillRect(10,2.1,14,5)}
+  c.fillStyle=loaded||r<.2?K.olive:K.empty;c.fillRect(11,2.9,12,3.4);
+  c.fillStyle='#262c18';c.fillRect(11,2.9,1,3.4);
+  if(r<.2&&r>.05){const k=Math.min(1,(r-.05)/.12);c.fillStyle=K.nade;c.fillRect(11-8*(1-k),3.3,5,2.6);c.fillStyle='#e2b04a';c.fillRect(11-8*(1-k)-1,3.3,1.2,2.6)}
+  if(loaded&&W.next===g.i&&open===0){c.fillStyle=`rgba(214,236,138,${.6+.4*Math.sin(W.t*8)})`;c.beginPath();c.arc(23.6,4.6,1.4,0,Math.PI*2);c.fill()}
+  c.restore();
+  c.restore();
+  const f=W.flash[g.i];
+  if(f&&f.t<.045){const e=1-f.t/.045;c.save();c.translate(g.muzzle.x,g.muzzle.y);c.rotate(g.ang);c.globalCompositeOperation='lighter';
+    const L=[11,8.5,13][f.v]*(.7+.3*e);c.fillStyle=`rgba(255,180,90,${e})`;c.beginPath();c.moveTo(0,-2.6);c.lineTo(L,0);c.lineTo(0,2.6);c.fill();
+    c.fillStyle=`rgba(255,250,230,${e})`;c.beginPath();c.arc(.6,0,1.5,0,Math.PI*2);c.fill();c.restore()}
+}
+function draw(){
+  c.setTransform(dpr,0,0,dpr,0,0);c.fillStyle='#0e120f';c.fillRect(0,0,720,440);
+  scene({ox:80,oy:150,s:1},false);
+  const ix=10,iy=226,iw=300,ih=206,zs=2.1,a=aimA(),ctr=rot(14,0,a);
+  c.save();c.setTransform(dpr,0,0,dpr,0,0);c.beginPath();c.roundRect(ix,iy,iw,ih,6);c.fillStyle='#0a0d0a';c.fill();c.clip();
+  scene({ox:ix+iw/2-ctr.x*zs,oy:iy+ih/2-ctr.y*zs,s:zs},true);c.restore();
+  c.setTransform(dpr,0,0,dpr,0,0);c.strokeStyle='rgba(255,255,255,.28)';c.lineWidth=1;c.beginPath();c.roundRect(ix+.5,iy+.5,iw-1,ih-1,6);c.stroke();
+  c.font='500 10.5px "IBM Plex Mono",monospace';c.fillStyle='rgba(255,255,255,.6)';c.fillText('×2.1 CLOSE-UP',ix+8,iy+ih-8);
+  c.fillText(LOOKS[S.look].title.toUpperCase()+' · tubes '+(W.loaded[0]?'●':'○')+(W.loaded[1]?'●':'○'),12,20);
+}
+// ---------------- UI ----------------
+const phases=[
+  {n:'Launch flash',r:'0–0.06 s',on:()=>Math.min(...W.launch)<.07},
+  {n:'Kick',r:'0–0.2 s',on:()=>Math.min(...W.launch)<.2},
+  {n:'Breech open + shell out',r:'0.08–0.3 s',on:()=>breech(0)>0&&W.launch[0]<.32||breech(1)>0&&W.launch[1]<.32},
+  {n:'Flight',r:'0.45 s',on:()=>W.nades.length>0},
+  {n:'Reload',r:'0.2 s',on:()=>Math.min(...W.load)<.24},
+];
+const ph=document.getElementById('phases');ph.innerHTML=phases.map(p=>`<li><b>${p.n}</b> ${p.r}</li>`).join('');
+function setLook(l){S.look=l;document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.l===l));
+  document.getElementById('lookTitle').textContent=LOOKS[l].title;
+  document.getElementById('lookBeats').innerHTML=LOOKS[l].beats.map(b=>`<li><span>${b[0]}</span><div>${b[1]}</div></li>`).join('')}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>setLook(b.dataset.l));setLook('thump');
+document.getElementById('bFire').onclick=()=>fireNade();document.getElementById('bLoad').onclick=()=>loadNade();
+const cD=document.getElementById('cDemo'),cR=document.getElementById('cRifle'),bS=document.getElementById('bSlow'),bP=document.getElementById('bPause');
+cD.onchange=()=>S.demo=cD.checked;cR.onchange=()=>S.rifle=cR.checked;
+bS.onclick=()=>{S.slow=!S.slow;bS.setAttribute('aria-pressed',S.slow)};bP.onclick=()=>{S.pause=!S.pause;bP.setAttribute('aria-pressed',S.pause)};
+addEventListener('keydown',e=>{if(e.key==='Alt'){e.preventDefault();fireNade()}});
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect(),sx=(e.clientX-r.left)*720/r.width,sy=(e.clientY-r.top)*440/r.height;if(sx<314&&sy>222)return;S.aim={x:sx-80,y:sy-150};S.autoAim=false});
+cv.addEventListener('pointerdown',()=>fireNade());
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){S.slow=true;bS.setAttribute('aria-pressed',true)}
+function size(){dpr=Math.min(2,devicePixelRatio||1);cv.width=720*dpr;cv.height=440*dpr}size();addEventListener('resize',size);
+let last=performance.now(),clock=0;
+function frame(now){let dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
+  if(!S.pause){dt*=S.slow?.2:1;clock+=dt;if(S.autoAim){const an=.12+.18*Math.sin(clock*.4),dd=290+70*Math.sin(clock*.27);S.aim={x:Math.cos(an)*dd,y:Math.sin(an)*dd}}
+    const n=Math.max(1,Math.ceil(dt/(1/120)));for(let i=0;i<n;i++)step(dt/n)}
+  draw();phases.forEach((p,i)=>ph.children[i].classList.toggle('on',p.on()));requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>

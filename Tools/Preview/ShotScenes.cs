@@ -5,6 +5,7 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 static partial class Shot {
   static void PlayerScenes() {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
+    PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
@@ -410,8 +411,8 @@ static partial class Shot {
       if (snap == null) { me.TitheClock = Math.Max(0.001f, tt); me.UltT = Math.Max(0.1f, Game.TitheLen - tt); }
     }
     if (Environment.GetEnvironmentVariable("BLOODBATH") != null) {
-      // A tank Hemomancer's Bloodbath (BloodbathLook.cs): BLOODBATH=<seconds since the cast> (it floods out to 0.9 s, lasts 10 s and dries over the
-      // last 1.2; use 0.4, 3 or 9.4), with enemies wading in it and around it, an ally inside and a few heal numbers. BATHMASTERED=1: 220 px. Use with mode hud.
+      // A tank Hemomancer's Bloodbath (BloodbathLook.cs): BLOODBATH=<seconds since the cast> (it floods out to 0.9 s, the channel runs up to 10 s, then it dries over 1.2;
+      // use 0.4, 3 or 10.6), with enemies wading in it and around it, an ally inside and a few heal numbers. BATHMASTERED=1: 220 px. Use with mode hud.
       var gm = host.Game; gm.Bot = false;
       foreach (var e in gm.Enemies.Values) e.Hp = 0f;
       gm.Bullets.Clear(); gm.Effects.Clear();
@@ -420,7 +421,10 @@ static partial class Shot {
       me.Pos = me.Disp = from + new V2(-30f, 20f); me.Aim = -0.2f; me.AimAt = from + new V2(300f, -60f); me.Hp = me.MaxHp * 0.7f;
       float bt = float.Parse(Environment.GetEnvironmentVariable("BLOODBATH"));
       float R = Environment.GetEnvironmentVariable("BATHMASTERED") != null ? Game.BathRadiusMastered : Game.BathRadius;
-      gm.Zones[9100] = new Zone { Id = 9100, Kind = ZoneKind.Bloodbath, Owner = me.Id, Pos = from, Radius = R, Duration = Game.BathTime, T = Math.Max(0.01f, Game.BathTime - bt) };
+      bool drying = bt >= Game.BathTime;  // past the channel's 10 s: the pool drying up
+      gm.Zones[9100] = new Zone { Id = 9100, Kind = ZoneKind.Bloodbath, Owner = me.Id, Pos = from, Radius = R, Duration = Game.BathTime + Game.BathDry,
+        T = Math.Max(0.01f, Game.BathTime + Game.BathDry - bt), Aim = drying ? 1f : 0f };
+      me.UltT = drying ? 0f : Game.BathTime - bt;
       V2[] spots = { new V2(90f, -60f), new V2(-110f, -40f), new V2(40f, 110f), new V2(130f, 70f), new V2(-60f, 120f), new V2(330f, -40f), new V2(-320f, 90f), new V2(260f, 200f) };
       for (int i = 0; i < spots.Length; i++) {
         V2 at = from + spots[i];
@@ -478,7 +482,11 @@ static partial class Shot {
       me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
       float ct = float.Parse(Environment.GetEnvironmentVariable("CASTT") ?? "0.2");
-      for (int f = 0; f < 60 * ct; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
+      int dartKill = Environment.GetEnvironmentVariable("DARTKILL") != null ? (int)(60f * float.Parse(Environment.GetEnvironmentVariable("DARTKILL"))) : -1;  // DARTKILL=<s>: Poison Dart's target dies then (the poison spreads)
+      for (int f = 0; f < 60 * ct; f++) {
+        if (f == dartKill) foreach (var e in gm.Enemies.Values) if (e.VenomT > 0f) e.Hp = 0f;
+        me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f);
+      }
       me.Disp = me.Pos;
       if (aid == AbilityId.Bulldoze) me.Disp = me.Pos + V2.FromAngle(me.Aim) * System.Math.Min(200f, 750f * System.Math.Min(ct, 0.35f));  // the charge itself is the player's own game; show how far it has got
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
@@ -491,6 +499,26 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
+    // right, the arena otherwise empty). NADELOAD=<s>: instead, the left tube loading that long ago (its breech and shell).
+    if (Environment.GetEnvironmentVariable("NADET") != null || Environment.GetEnvironmentVariable("NADELOAD") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      bool load = Environment.GetEnvironmentVariable("NADELOAD") != null;
+      me.TwinNades = (byte)(load ? 0 : 2); me.TwinNext = 0;
+      V2 aimAt = home + new V2(320f, 0f);
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos; me.Aim = 0f; draw.Invoke(app, null); };
+      for (int f = 0; f < 6; f++) frame();
+      if (load) me.TwinNades = 1;
+      else typeof(Game).GetMethod("HostTwinGrenade", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, aimAt });
+      float at = float.Parse(Environment.GetEnvironmentVariable(load ? "NADELOAD" : "NADET"), ci);
+      for (int f = 0; f < Math.Round(at * 60f); f++) { if (load) me.TwinNades = 1; frame(); }
+      GL.Tris.Clear(); GUI.Log.Clear();  // (only the mode's own draw goes in the picture)
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /
     // 0.3 s, aiming right, the arena otherwise empty (for comparing shot looks with Docs/Mockups/projectiles.html).
     if (Environment.GetEnvironmentVariable("SHOTW") != null) {

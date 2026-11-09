@@ -413,9 +413,9 @@ static partial class Program
     static void BossPowerReport(float dt)
     {
         foreach (var role in new[] { Role.Dps, Role.Tank, Role.Healer })
-            Console.WriteLine("  typical {0,-6} (Dash / Barrier / Mend Pulse): {1}", role,
+            Console.WriteLine("  typical {0,-6} (Poison Dart / Barrier / Mend Pulse): {1}", role,
                 string.Join("  ", new[] { 5, 10, 15, 20, 25, 30, 40, 50 }.Select(w => string.Format("w{0} x{1:0.0}", w,
-                    Game.TypicalPower(role, role == Role.Dps ? AbilityId.Dash : role == Role.Tank ? AbilityId.Barrier : AbilityId.MendPulse, w)))));
+                    Game.TypicalPower(role, role == Role.Dps ? AbilityId.PoisonDart : role == Role.Tank ? AbilityId.Barrier : AbilityId.MendPulse, w)))));
         string[] picks = { "Magnum Rounds", "Hair Trigger", "Usury", "Warden's Guard", "Homing Rounds", "Magnum Rounds", "Hair Trigger", "Light Boots", "Sprinter", "Reinforced Guard", "Hair Trigger", "Warden's Guard", "Sharpened Rounds", "Hive Drones", "Homing Rounds", "Sharpened Rounds", "Multishot", "Blink", "Magnum Rounds", "Barrage", "Overcharge", "Fortitude", "Executioner", "Homing Rounds", "Barrage", "Hair Trigger", "Nova", "Thick Skin", "Vein Rush", "Sharpened Rounds", "Thick Skin", "Hair Trigger", "Magnum Rounds", "Twin Fang", "Second Charge", "Multishot", "Dark Matter", "Velocity Rounds", "Light Guard", "Light Boots", "Crimson Tide", "Quick Trigger", "Barrage", "Quick Trigger", "Collapse Rounds", "Ricochet", "Light Boots" };
         int[] cutAt = { 3, 13, 22, 36, 44, 47 };  // the picks made before each boss (from the session file), and all of them
         int[] waves = { 5, 10, 15, 20, 25, 26 };

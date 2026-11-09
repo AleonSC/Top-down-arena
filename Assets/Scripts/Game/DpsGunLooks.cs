@@ -9,7 +9,7 @@ namespace Arena
     /// lobby's loadout preview runs the same Juice pass, so it shows all of this too.
     ///   Twin Rifle   both guns angle in a little, kick 0.07 s, flick their charging handles back, flash at each muzzle and
     ///                drop brass out of the outer side; the barrels warm the longer you hold fire (+0.045 a volley, cooling
-    ///                0.28 a second).
+    ///                0.28 a second). Its grenade tubes' launch (Rocket assist), breech and reload are TwinNadeLook.cs.
     ///   Railgun      three coils light one after another over the gap between shots, a ring closes on the muzzle when it is
     ///                ready; firing is a white flash, arcs between the rails, a 0.2 s kick that shoves the rails apart and
     ///                steam off the coils.
@@ -18,7 +18,15 @@ namespace Arena
     ///                the real spray cone drawn while it is spinning (WorldRenderer.cs).
     public partial class ArenaApp
     {
-        class DpsSeen { public float T = -99f, Heat, Phase; public int N; }
+        class DpsSeen
+        {
+            public float T = -99f, Heat, Phase; public int N;
+            // the grenade tubes (TwinNadeLook.cs): when each last fired and loaded, which were loaded, where they were drawn
+            public readonly float[] Launch = { -99f, -99f }, Load = { -99f, -99f };
+            public readonly bool[] Snapped = { true, true };
+            public int Mask = -1;
+            public readonly V2[] Mouth = new V2[2], Back = new V2[2];
+        }
 
         const float TwinKick = 0.07f, RailKick = 0.2f, RailFlash = 0.1f, RailVent = 0.45f, RailCharge = 0.62f, SmgKick = 0.05f, TwinHeatUp = 0.045f, TwinHeatDown = 0.28f;
 
@@ -32,7 +40,7 @@ namespace Arena
         bool mDpsOn;
         float mBolt, mDHeat, mCharge = 1f, mDAge = 99f, mSpinPhase, mSpinUp;
 
-        void ClearDpsGunLooks() => dpsSeen.Clear();
+        void ClearDpsGunLooks() { dpsSeen.Clear(); nadeSeen.Clear(); }
 
         static bool IsDpsGun(WeaponId id) => id == WeaponId.TwinRifle || id == WeaponId.Railgun || id == WeaponId.BurstSmg;
 
@@ -96,11 +104,14 @@ namespace Arena
         /// Each frame: the SMG's barrels turn (faster as it spins up) and a fired Railgun's coils steam.
         void UpdateDpsGunLooks(float dt)
         {
+            UpdateNadeTrails(dt);  // TwinNadeLook.cs: the rockets' smoke
             foreach (var p in game.Players.Values)
             {
                 if (!IsDpsGun(p.Weapon.Id))
                     continue;
                 var s = DpsOf(p.Id);
+                if (p.Weapon.Id == WeaponId.TwinRifle)
+                    UpdateTwinTubes(p, s);  // TwinNadeLook.cs: a tube loading
                 if (p.Weapon.Id == WeaponId.BurstSmg)
                     s.Phase = MathX.Fmod(s.Phase + dt * (6f + 60f * p.SpinUp), MathX.Tau);
                 else if (p.Weapon.Id == WeaponId.Railgun && juiceClock - s.T < RailVent && Rnd(0f, 1f) < dt * 50f)
@@ -118,6 +129,7 @@ namespace Arena
         void DpsGunPose(Player p, out float kick)
         {
             kick = 0f;
+            mNadeKick0 = mNadeKick1 = mNadeClimb0 = mNadeClimb1 = 0f;
             mDpsOn = Juicy && IsDpsGun(p.Weapon.Id);
             if (!mDpsOn)
                 return;
@@ -135,6 +147,8 @@ namespace Arena
                         mBolt = 5f * Mathf.Sin(MathX.Pi * age / TwinKick);
                     }
                     mDHeat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
+                    NadeKick(juiceClock - s.Launch[0], out mNadeKick0, out mNadeClimb0);  // a grenade launch kicks its own gun (TwinNadeLook.cs)
+                    NadeKick(juiceClock - s.Launch[1], out mNadeKick1, out mNadeClimb1);
                     break;
                 case WeaponId.Railgun:
                     if (age < RailKick)
@@ -174,9 +188,36 @@ namespace Arena
             if (p == null || p.Weapon.Id != WeaponId.TwinRifle)
                 return;
             bool loaded = Game.TwinTubeLoaded(p, mHeldTube), next = loaded && p.TwinNext == mHeldTube;
-            MRect(11f, 2.9f, 12f, 3.4f, loaded ? TubeOlive : TubeEmpty);
+            var s = DpsOf(p.Id);
+            s.Mouth[mHeldTube] = MW(24.4f, 4.6f);  // where the launch effects go (TwinNadeLook.cs)
+            s.Back[mHeldTube] = MW(11f, 4.6f);
+            float open = 0f, slide = -1f;
+            if (mDpsOn)
+            {
+                open = TubeOpen(s, mHeldTube);
+                float la = juiceClock - s.Load[mHeldTube];
+                if (la < NadeShellIn)
+                {
+                    loaded = false;  // the new shell is still sliding in
+                    slide = Mathf.Clamp01((la - 0.05f) / (NadeShellIn - 0.05f));
+                }
+            }
+            if (open > 0f)
+            {
+                // the breech end swings down and out about its front (+y here is the outer side; the left gun is mirrored)
+                MTubeQuad(open, 11f, 2.9f, 23f, 6.3f, TubeEmpty);
+                MTubeQuad(open, 11f, 2.9f, 12f, 6.3f, Hx(0x262c18));
+            }
+            else
+                MRect(11f, 2.9f, 12f, 3.4f, loaded ? TubeOlive : TubeEmpty);
+            if (slide >= 0f)
+            {
+                float x = 11f - 8f * (1f - slide);
+                MTubeQuad(open, x, 3.3f, x + 5f, 5.9f, NadeOlive);
+                MTubeQuad(open, x - 1f, 3.3f, x + 0.2f, 5.9f, BrassCol);
+            }
             MRect(22f, 2.6f, 2.4f, 4f, Hx(0x2a301c));
-            if (next)
+            if (next && open <= 0f)
                 MCirc(24.8f, 4.6f, 1.4f, TubeLit.WithAlpha(0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 8f)), 8);
         }
 

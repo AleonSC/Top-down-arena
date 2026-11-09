@@ -1,0 +1,409 @@
+<title>Twin Rifle Firing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the problem stated with real numbers, one shared toolbar, then Today and the picked fix side by side (each a live
+   arena at game scale with a x4 close-up inset), then the firing beats and what each fix changes in code.
+   Colour: cool gunmetal neutrals, tracer orange for the rifle (the game's DPS colour), cyan for "where the round really starts". */
+:root{
+  --bg:#eceef1; --card:#ffffff; --fg:#161b22; --muted:#5a6572; --line:#d3d9e0; --chip:#e3e7ec; --chipOn:#161b22; --chipOnFg:#ffffff;
+  --twin:#c9640f; --mark:#0e86b8; --bad:#c23b3b; --good:#2f8a4c;
+  --f-head:'Barlow Condensed','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1318; --card:#171c23; --fg:#e8ecf1; --muted:#94a1af; --line:#2a323c; --chip:#232a33; --chipOn:#e8ecf1; --chipOnFg:#0f1318;
+  --twin:#ff9a42; --mark:#52c9ff; --bad:#ff6b6b; --good:#6fd38c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --card:#171c23; --fg:#e8ecf1; --muted:#94a1af; --line:#2a323c; --chip:#232a33; --chipOn:#e8ecf1; --chipOnFg:#0f1318;
+  --twin:#ff9a42; --mark:#52c9ff; --bad:#ff6b6b; --good:#6fd38c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--f-head);font-weight:700;font-size:clamp(32px,4.4vw,48px);line-height:1;margin:0;letter-spacing:.01em;text-wrap:balance}
+h2{font-family:var(--f-head);font-weight:700;font-size:26px;line-height:1.05;margin:0;text-wrap:balance}
+h3{font-family:var(--f-head);font-weight:600;font-size:19px;margin:0;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.sub{margin:8px 0 0;color:var(--muted);max-width:76ch}
+.diag{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.fact{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.fact b{display:block;font:500 22px var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.fact b.bad{color:var(--bad)} .fact b.mk{color:var(--mark)}
+.fact span{color:var(--muted);font-size:14px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button,.bar label{font:500 13px var(--f-mono);border:1px solid var(--line);background:var(--card);color:var(--fg);padding:8px 12px;border-radius:6px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;min-height:38px}
+.bar button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnFg);border-color:var(--chipOn)}
+.bar input{accent-color:var(--fg)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+.hint{font:400 12px var(--f-mono);color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card header span{font:400 12px var(--f-mono);color:var(--muted)}
+.card.today{border-top:4px solid var(--bad)}
+.card.fix{border-top:4px solid var(--twin)}
+canvas{width:100%;max-width:100%;aspect-ratio:720/380;border-radius:6px;display:block;background:#11151b;touch-action:none;cursor:crosshair}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 15px var(--f-head);letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer;min-height:36px}
+.tabs button[aria-selected="true"]{background:var(--twin);border-color:var(--twin);color:#fff}
+.tabs button small{font:400 11px var(--f-mono);text-transform:none;letter-spacing:0;opacity:.85;margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chips li{font:400 11.5px var(--f-mono);background:var(--chip);border-radius:4px;padding:4px 8px;transition:background .08s,color .08s}
+.chips li b{font-weight:500}
+.chips li.on{background:var(--chipOn);color:var(--chipOnFg)}
+.notes{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
+.notes b{color:var(--fg);font-weight:600}
+.tag{font:500 11px var(--f-mono);padding:2px 7px;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
+.tag.g{color:var(--good)} .tag.w{color:var(--twin)} .tag.b{color:var(--bad)}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+td.t{font:400 13px var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.foot{color:var(--muted);font-size:13.5px;max-width:86ch}
+@media (prefers-reduced-motion:reduce){.chips li{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Twin Rifle Firing</h1>
+    <p class="sub">The DPS Soldier's two rifles, drawn at the game's real size and numbers (DPS body radius 12 px, rounds at 820 px/s every 0.1 s, the streams crossing at your cursor's distance). On the left is what the game draws now. On the right is a fix with new firing animations. Pick A, B or C.</p>
+  </header>
+
+  <section class="diag" aria-label="Why the rounds don't line up">
+    <div class="fact"><b class="bad">15 px</b><span>between the two drawn guns (hands at ±7 px).</span></div>
+    <div class="fact"><b class="mk">60 px</b><span>between where the two streams really start (<code>TwinBarrelGap</code>), ±30 px.</span></div>
+    <div class="fact"><b class="bad">34 → 12 px</b><span>drawn muzzle reach vs where rounds spawn (<code>BodyR</code>). Rounds appear 22 px behind and 23 px outside each gun.</span></div>
+    <div class="fact"><b class="bad">7° vs 3–14°</b><span>the guns tilt in a fixed 7°; the real streams tilt 14° at the closest crossing, 3° at full range.</span></div>
+  </section>
+
+  <div class="bar" role="toolbar" aria-label="Playback">
+    <button id="bPause" aria-pressed="false">Pause</button>
+    <button id="bSlow" aria-pressed="false">Slow motion ×0.2</button>
+    <button id="bMarks" aria-pressed="true">Show where rounds start</button>
+    <button id="bAuto" aria-pressed="true">Auto-aim</button>
+    <label><input type="checkbox" id="cFire" checked> Auto-fire (bursts)</label>
+    <span class="hint">Point at an arena to aim: the crossing follows your cursor's distance. With auto-fire off, hold to shoot.</span>
+  </div>
+
+  <div class="grid">
+    <section class="card today">
+      <header><h2>Today</h2><span>CharacterModels.cs + DpsGunLooks.cs</span></header>
+      <canvas id="cvToday" width="720" height="380" aria-label="The Twin Rifle as the game draws it now"></canvas>
+      <ul class="notes">
+        <li><b>Cyan crosses</b> mark where each round spawns; <b>rings</b> mark the drawn gun muzzles. They are far apart.</li>
+        <li>The muzzle flash is drawn at the spawn point, so it floats in the air beside your shoulder, not on a gun.</li>
+        <li>Both guns kick 2.7 px straight back along your aim, whatever angle the guns are at.</li>
+      </ul>
+    </section>
+
+    <section class="card fix">
+      <header><h2 id="fixTitle">Fix</h2><span id="fixSub"></span></header>
+      <div class="tabs" role="tablist" aria-label="Fix options">
+        <button role="tab" id="tA" aria-selected="true" data-m="A">A · Spread arms<small>recommended</small></button>
+        <button role="tab" id="tB" aria-selected="false" data-m="B">B · Meet halfway</button>
+        <button role="tab" id="tC" aria-selected="false" data-m="C">C · Lead-in tracers</button>
+      </div>
+      <canvas id="cvFix" width="720" height="380" aria-label="The proposed Twin Rifle"></canvas>
+      <ul class="chips" id="phases"></ul>
+      <ul class="notes" id="fixNotes"></ul>
+    </section>
+  </div>
+
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <h3>The new firing animation, beat by beat (same for A, B and C)</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>When</th><th>What you see</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="t">0 – 0.04 s</td><td>A flash on each real muzzle, turned along that gun's barrel: a hot core, a 4-point star (one of three shapes so it never repeats exactly), two short puffs out of the muzzle brake's side ports, and a warm pool of light on the floor.</td><td>The flash rides the gun, so the stream visibly comes out of it.</td></tr>
+          <tr><td class="t">0 – 0.08 s</td><td>Each gun slides back 3 px along its own barrel and the muzzle climbs 6° outward, then springs back with a small overshoot. The arm bends with it, and the body jolts back 0.6 px.</td><td>Recoil follows the real barrel angle instead of the aim, and reads as two separate guns.</td></tr>
+          <tr><td class="t">0 – 0.03 s</td><td>A glint at the ejection port, then a brass casing flips out of the outer side, lands, bounces once, slides and fades after 1 s.</td><td>Floor brass builds up while you hold fire, so the ground tells you how long you've been shooting.</td></tr>
+          <tr><td class="t">held fire</td><td>The barrels heat from the muzzle back: steel, then orange, then white at the tip. Past half heat a shimmer of hot air rises off them.</td><td>Kept from today's heat, now visible as a gradient.</td></tr>
+          <tr><td class="t">after you stop</td><td>Smoke curls out of both muzzles for up to a second, more the hotter they were.</td><td>A small payoff for a long burst.</td></tr>
+          <tr><td class="t">0 – 0.03 s</td><td>The round's first frame is a bright streak from muzzle to round, then the normal tracer.</td><td>Joins gun and round in the eye.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="foot"><b>What each fix changes.</b> <b>A</b> moves the spawn point to the drawn muzzle (34 px ahead instead of 12, still ±30 px apart), so <code>Weapons.cs</code> fires from there, <code>WeaponRange</code> adds the 22 px and <code>TwinTubeMuzzle</code> moves to the tubes. The streams and crossfire are unchanged; rounds start 22 px further out. <b>B</b> does the same and also narrows <code>TwinBarrelGap</code> from 60 to 36. That is a balance change: up close the streams are less likely to pass either side of a small enemy. <b>C</b> changes drawing only: hitboxes start where they do today, and the tracer is drawn from the gun and slides onto its real line in 0.06 s (about 50 px of flight). Still open: with the "+1 barrel" upgrade the middle stream has no gun under it. One idea is that each rifle gets a second barrel.</p>
+</div>
+
+<script>
+(()=>{
+const G=0.933, SPEED=820, LIFE=0.7, INT=0.1, SPREAD=2*Math.PI/180, CROSS_MIN=120, CROSS_MAX=574;
+const K={base:'#5b6b52',dark:'#2d3829',sleeve:'#46543e',glove:'#20242a',steel:'#cfd8e6',gdark:'#3a4250',wood:'#8a6a45',sight:'#7bd0ff',olive:'#7c8c45',trim:'#ff8c40',tracer:'#ffa040',brass:'#e2b04a',mark:'#52c9ff'};
+const S={pause:false,slow:false,marks:true,autoAim:true,autoFire:true,held:false,mode:'A',aim:{x:300,y:-30}};
+const OPT={
+  today:{half:30,mx:12,pose:'today'},
+  A:{half:30,mx:34,pose:'true',title:'A · Spread arms',sub:'no balance change',notes:[
+    '<b>Arms flare out</b> so each rifle\'s muzzle sits exactly where its stream starts (±30 px), and the guns turn to the real stream angle as your cursor moves.',
+    '<b>Rounds spawn at the muzzle</b>, 34 px ahead (today 12). Streams, gap and crossfire stay the same.',
+    'The wide gunslinger stance makes the DPS Soldier\'s outline easy to pick out in a crowd. The arms are long for a 12 px body.']},
+  B:{half:18,mx:34,pose:'true',title:'B · Meet halfway',sub:'balance change: gap 60 → 36',notes:[
+    '<b>Arms out a little</b> (hands at ±16 px) and the barrel gap narrows to 36 px, so the pose stays compact.',
+    '<b>Rounds spawn at the muzzle</b>, 34 px ahead, 18 px each side.',
+    'Up close, the streams are closer together and pass either side of a small enemy less often. This is a small buff.']},
+  C:{half:30,mx:12,pose:'lead',title:'C · Lead-in tracers',sub:'drawing only',notes:[
+    '<b>Pose and hitboxes unchanged.</b> The guns turn to the real stream angle.',
+    'Each <b>tracer is drawn from its gun</b> and slides onto its real line over 0.06 s. The cyan cross shows where the round really is.',
+    'Cheapest fix. For the first 0.06 s the round can hit something the tracer hasn\'t reached yet.']}
+};
+const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function rot(x,y,a){const c=Math.cos(a),s=Math.sin(a);return{x:x*c-y*s,y:x*s+y*c}}
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const A=p(a),B=p(b);return'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')+')'}
+
+class Panel{
+  constructor(id,fixed){
+    this.cv=document.getElementById(id);this.c=this.cv.getContext('2d');this.fixed=fixed;
+    this.t=0;this.fireT=0;this.bul=[];this.parts=[];this.heat=0;this.since=9;this.flash=[null,null];this.rec=[9,9];this.smokeT=0;this.wasFiring=false;this.firing=false;
+    this.cv.addEventListener('pointermove',e=>this.point(e));
+    this.cv.addEventListener('pointerdown',e=>{this.point(e);S.held=true;this.cv.setPointerCapture(e.pointerId)});
+    this.cv.addEventListener('pointerup',()=>S.held=false);this.cv.addEventListener('pointercancel',()=>S.held=false);
+  }
+  get mode(){return this.fixed||S.mode}
+  point(e){const r=this.cv.getBoundingClientRect(),sx=(e.clientX-r.left)*720/r.width,sy=(e.clientY-r.top)*380/r.height;
+    if(sx>404&&sy<224)return; S.aim={x:(sx-70)/1.2,y:(sy-200)/1.2};if(S.autoAim){S.autoAim=false;syncBtns()}}
+  get aim(){return Math.atan2(S.aim.y,S.aim.x)}
+  get D(){return clamp(Math.hypot(S.aim.x,S.aim.y),CROSS_MIN,CROSS_MAX)}
+  // the two guns in the player's local frame (+x along the aim, +y to the right): grip, angle, muzzle
+  guns(){
+    const o=OPT[this.mode],D=this.D,out=[];
+    for(const s of [-1,1]){
+      const i=s<0?0:1;let grip,ang;
+      if(o.pose==='true'){ang=Math.atan2(-s*o.half,D-o.mx);const b=rot(26*G,0,ang);grip={x:o.mx-b.x,y:s*o.half-b.y}}
+      else if(o.pose==='today'){grip={x:9.3,y:s*7.3};ang=-s*0.12}
+      else{grip={x:9.3,y:s*7.3};ang=Math.atan2(-s*7.3,D-33)}
+      let back=0,climb=0;
+      if(this.mode==='today'){if(this.since<.07)back=2.7*(1-this.since/.07)**2}
+      else{const a=this.rec[i];if(a<.12){const f=a/.08;back=a<.08?3*(1-f)**2:-.5*Math.sin(Math.PI*(a-.08)/.04);climb=a<.08?.105*(1-f)**1.5:-.02*Math.sin(Math.PI*(a-.08)/.04)}}
+      if(this.mode==='today')grip={x:grip.x-back,y:grip.y};
+      else{const b=rot(back,0,ang);grip={x:grip.x-b.x,y:grip.y-b.y};ang+=s*climb}
+      const m=rot(26*G,0,ang);
+      out.push({s,i,grip,ang,muzzle:{x:grip.x+m.x,y:grip.y+m.y},spawn:{x:o.mx,y:s*o.half}});
+    }
+    return out;
+  }
+  L(p){const w=rot(p.x,p.y,this.aim);return w}   // local -> world (player at 0,0)
+  shoot(){
+    const o=OPT[this.mode],a=this.aim+rnd(-SPREAD,SPREAD),D=this.D,v={x:Math.cos(a),y:Math.sin(a)},cross={x:v.x*D,y:v.y*D},gs=this.guns();
+    for(const g of gs){
+      const sp=rot(o.mx,g.s*o.half,a),d={x:cross.x-sp.x,y:cross.y-sp.y},l=Math.hypot(d.x,d.y);
+      const b={x:sp.x,y:sp.y,vx:d.x/l*SPEED,vy:d.y/l*SPEED,t:0,off:null,s:g.s};
+      if(this.mode==='C'){const m=this.L(g.muzzle);b.off={x:m.x-sp.x,y:m.y-sp.y}}
+      if(this.mode!=='today'){const m=this.L(g.muzzle);b.from={x:m.x,y:m.y}}
+      this.bul.push(b);
+      if(this.mode==='today'){
+        this.parts.push({k:'cone',x:sp.x,y:sp.y,r:Math.atan2(b.vy,b.vx),t:0,l:.05,size:20});
+        this.parts.push({k:'flash',x:sp.x,y:sp.y,t:0,l:.05,size:7});
+        const bp=this.L({x:14,y:g.s*12}),sv=rot(0,g.s*rnd(90,140),this.aim);
+        this.parts.push({k:'brass',x:bp.x,y:bp.y,vx:sv.x,vy:sv.y,z:0,vz:0,rot:rnd(0,6),spin:rnd(-16,16),t:0,l:.7,flat:true});
+      }else{
+        this.flash[g.i]={t:0,v:Math.floor(rnd(0,3)),rr:rnd(-.3,.3)};this.rec[g.i]=0;
+        const port=this.L(rot(8*G,g.s*2.6*G,g.ang)),pg={x:port.x+this.L(g.grip).x,y:port.y+this.L(g.grip).y};
+        const out=rot(rnd(-25,5),g.s*rnd(70,115),this.aim+g.ang);
+        this.parts.push({k:'glint',x:pg.x,y:pg.y,t:0,l:.035});
+        this.parts.push({k:'brass',x:pg.x,y:pg.y,vx:out.x,vy:out.y,z:3,vz:rnd(55,80),rot:rnd(0,6),spin:rnd(-22,22),t:0,l:1.1,b:0});
+        const m=this.L(g.muzzle);this.parts.push({k:'pool',x:m.x,y:m.y,t:0,l:.06});
+      }
+    }
+    if(this.since>.04){this.heat=Math.min(1,this.heat+.045)}
+    this.since=0;
+  }
+  step(dt){
+    this.t+=dt;this.since+=dt;this.rec[0]+=dt;this.rec[1]+=dt;
+    this.firing=S.autoFire?(this.t%3.4)<2.2:S.held;
+    this.fireT-=dt;
+    if(this.firing){if(this.fireT<=0){this.shoot();this.fireT+=INT;if(this.fireT<0)this.fireT=INT}}else this.fireT=Math.max(this.fireT,0);
+    if(!this.firing&&this.wasFiring)this.smokeT=0.9*Math.min(1,this.heat*1.6);
+    this.wasFiring=this.firing;
+    this.heat=Math.max(0,this.heat-(this.since>.15?.28:0)*dt);
+    for(const f of this.flash)if(f)f.t+=dt;
+    if(this.smokeT>0&&this.mode!=='today'){this.smokeT-=dt;if(Math.random()<dt*26){for(const g of this.guns()){const m=this.L(g.muzzle),v=rot(rnd(8,18),rnd(-6,6),this.aim+g.ang);this.parts.push({k:'smoke',x:m.x,y:m.y,vx:v.x,vy:v.y,t:0,l:rnd(.6,1),r0:1.2,r1:rnd(4,7),a:.32*Math.min(1,this.smokeT+.3)})}}}
+    for(const b of this.bul){b.x+=b.vx*dt;b.y+=b.vy*dt;b.t+=dt}
+    this.bul=this.bul.filter(b=>b.t<LIFE);
+    for(const p of this.parts){p.t+=dt;
+      if(p.k==='brass'){
+        if(p.flat){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.9;p.vy*=.9;p.rot+=p.spin*dt}
+        else{p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.spin*dt;p.vz-=420*dt;p.z+=p.vz*dt;
+          if(p.z<=0){p.z=0;if(p.b<1&&p.vz<-20){p.vz=-p.vz*.35;p.b++;p.vx*=.55;p.vy*=.55;p.spin*=.5}else{p.vz=0;p.vx*=Math.pow(.02,dt);p.vy*=Math.pow(.02,dt);p.spin*=Math.pow(.02,dt)}}}
+      }
+      if(p.k==='smoke'){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97}
+    }
+    this.parts=this.parts.filter(p=>p.t<p.l);
+  }
+  // ---------- drawing ----------
+  draw(){
+    const c=this.c,dpr=this.dpr;
+    c.setTransform(dpr,0,0,dpr,0,0);c.fillStyle='#11151b';c.fillRect(0,0,720,380);
+    this.scene({ox:70,oy:200,s:1.2},false);
+    // close-up inset
+    const ix=406,iy=10,iw=304,ih=208,cx=this.L({x:16,y:0}),zs=2.6;
+    c.save();c.setTransform(dpr,0,0,dpr,0,0);c.beginPath();c.roundRect(ix,iy,iw,ih,6);c.fillStyle='#0b0e13';c.fill();c.clip();
+    this.scene({ox:ix+iw/2-cx.x*zs,oy:iy+ih/2-cx.y*zs,s:zs},true,{ix,iy,iw,ih});
+    c.restore();c.setTransform(dpr,0,0,dpr,0,0);
+    c.strokeStyle='rgba(255,255,255,.28)';c.lineWidth=1;c.beginPath();c.roundRect(ix+.5,iy+.5,iw-1,ih-1,6);c.stroke();
+    c.font='500 10.5px "IBM Plex Mono",monospace';c.fillStyle='rgba(255,255,255,.62)';c.fillText('×2.6 CLOSE-UP',ix+8,iy+ih-8);
+    c.fillStyle='rgba(255,255,255,.5)';c.fillText(this.mode==='today'?'TODAY':OPT[this.mode].title.toUpperCase(),12,20);
+    c.fillText('crossing '+Math.round(this.D)+' px',12,36);
+  }
+  scene(cam,inset,box){
+    const c=this.c,dpr=this.dpr,a=this.aim,D=this.D;
+    c.setTransform(dpr*cam.s,0,0,dpr*cam.s,dpr*cam.ox,dpr*cam.oy);
+    const px=1/cam.s;
+    // floor grid
+    c.strokeStyle='rgba(120,150,190,.07)';c.lineWidth=px;
+    const x0=-cam.ox/cam.s,y0=-cam.oy/cam.s,x1=x0+720/cam.s,y1=y0+380/cam.s;
+    c.beginPath();for(let x=Math.floor(x0/40)*40;x<x1;x+=40){c.moveTo(x,y0);c.lineTo(x,y1)}for(let y=Math.floor(y0/40)*40;y<y1;y+=40){c.moveTo(x0,y);c.lineTo(x1,y)}c.stroke();
+    // aim line + crossing X
+    const v={x:Math.cos(a),y:Math.sin(a)},X={x:v.x*D,y:v.y*D};
+    c.setLineDash([4*px,6*px]);c.strokeStyle='rgba(255,255,255,.14)';c.beginPath();c.moveTo(v.x*20,v.y*20);c.lineTo(X.x,X.y);c.stroke();c.setLineDash([]);
+    c.strokeStyle='rgba(255,170,90,.75)';c.lineWidth=1.6*px;const q=6;c.beginPath();c.moveTo(X.x-q,X.y-q);c.lineTo(X.x+q,X.y+q);c.moveTo(X.x+q,X.y-q);c.lineTo(X.x-q,X.y+q);c.stroke();
+    c.strokeStyle='rgba(255,170,90,.18)';c.beginPath();c.arc(X.x,X.y,45,0,Math.PI*2);c.stroke();
+    // ground parts
+    for(const p of this.parts){
+      if(p.k==='pool'){const f=1-p.t/p.l,g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,24);g.addColorStop(0,`rgba(255,170,80,${.32*f})`);g.addColorStop(1,'rgba(255,170,80,0)');c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,24,0,Math.PI*2);c.fill()}
+    }
+    for(const p of this.parts)if(p.k==='brass')this.brass(p);
+    this.player();
+    for(const p of this.parts)if(p.k==='smoke'){const f=p.t/p.l;c.fillStyle=`rgba(200,206,214,${p.a*(1-f)})`;c.beginPath();c.arc(p.x,p.y,p.r0+(p.r1-p.r0)*f,0,Math.PI*2);c.fill()}
+    // rounds
+    for(const b of this.bul)this.tracer(b,px);
+    // today's flashes (at the spawn point)
+    for(const p of this.parts){const f=1-p.t/p.l;
+      if(p.k==='cone'){c.save();c.translate(p.x,p.y);c.rotate(p.r);c.globalAlpha=f;c.fillStyle='#fff3d0';c.beginPath();c.moveTo(0,-3);c.lineTo(p.size*.55,0);c.lineTo(0,3);c.closePath();c.fill();c.fillStyle='#ff9e3a';c.beginPath();c.moveTo(0,-2);c.lineTo(p.size*.3,0);c.lineTo(0,2);c.fill();c.restore()}
+      if(p.k==='flash'){c.fillStyle=`rgba(255,158,58,${.6*f})`;c.beginPath();c.arc(p.x,p.y,p.size*.6,0,Math.PI*2);c.fill()}
+      if(p.k==='glint'){c.fillStyle=`rgba(255,250,230,${f})`;c.beginPath();c.arc(p.x,p.y,1.4,0,Math.PI*2);c.fill()}
+    }
+    // markers: where rounds start vs drawn muzzles
+    if(S.marks){
+      const o=OPT[this.mode];
+      for(const g of this.guns()){
+        const sp=this.L(g.spawn),m=this.L(g.muzzle);
+        c.strokeStyle=K.mark;c.lineWidth=1.4*px;const r=3.2;
+        c.beginPath();c.moveTo(sp.x-r,sp.y);c.lineTo(sp.x+r,sp.y);c.moveTo(sp.x,sp.y-r);c.lineTo(sp.x,sp.y+r);c.stroke();
+        c.strokeStyle='rgba(255,255,255,.75)';c.beginPath();c.arc(m.x,m.y,2.6,0,Math.PI*2);c.stroke();
+        const gap=Math.hypot(sp.x-m.x,sp.y-m.y);
+        if(gap>4){c.setLineDash([2*px,2*px]);c.strokeStyle='rgba(255,107,107,.85)';c.beginPath();c.moveTo(sp.x,sp.y);c.lineTo(m.x,m.y);c.stroke();c.setLineDash([])}
+      }
+    }
+    if(inset&&S.marks){
+      c.setTransform(dpr,0,0,dpr,0,0);c.font='500 10px "IBM Plex Mono",monospace';
+      const gs=this.guns(),g=gs[0],sp=this.L(g.spawn),m=this.L(g.muzzle);
+            const gap=Math.hypot(sp.x-m.x,sp.y-m.y),lx=box.ix+8,ly=box.iy+16;
+      c.fillStyle=K.mark;c.fillText('+ round starts',lx,ly);c.fillStyle='#ffffff';c.fillText('○ gun muzzle',lx,ly+14);
+      if(gap>4){c.fillStyle='#ff8a8a';c.fillText(Math.round(gap)+' px apart',box.ix+box.iw-84,box.iy+16)}
+      else{c.fillStyle='#8ff0ad';c.fillText('lined up',box.ix+box.iw-64,box.iy+16)}
+    }
+  }
+  tracer(b,px){
+    const c=this.c,l=Math.hypot(b.vx,b.vy),ux=b.vx/l,uy=b.vy/l;
+    let ox=0,oy=0;
+    if(b.off){const f=Math.max(0,1-b.t/.06),e=f*f*(3-2*f);ox=b.off.x*e;oy=b.off.y*e}
+    const hx=b.x+ox,hy=b.y+oy,len=Math.min(10*SPEED/60,b.t*SPEED+(b.from?999:0));
+    let tx=hx-ux*Math.min(len,b.t*SPEED+0.01),ty=hy-uy*Math.min(len,b.t*SPEED+0.01);
+    if(b.from&&b.t<.03){tx=b.from.x;ty=b.from.y}   // first frame: a streak from the muzzle
+    const g=c.createLinearGradient(tx,ty,hx,hy);g.addColorStop(0,'rgba(255,160,64,0)');g.addColorStop(1,'rgba(255,160,64,.85)');
+    c.strokeStyle=g;c.lineWidth=2.4;c.lineCap='round';c.beginPath();c.moveTo(tx,ty);c.lineTo(hx,hy);c.stroke();
+    const gl=c.createRadialGradient(hx,hy,0,hx,hy,9);gl.addColorStop(0,'rgba(255,170,80,.45)');gl.addColorStop(1,'rgba(255,170,80,0)');c.fillStyle=gl;c.beginPath();c.arc(hx,hy,9,0,Math.PI*2);c.fill();
+    c.fillStyle='#fff';c.beginPath();c.arc(hx,hy,2.2,0,Math.PI*2);c.fill();
+    if(b.off&&S.marks&&b.t<.08){c.strokeStyle=K.mark;c.lineWidth=1*px;c.beginPath();c.arc(b.x,b.y,2.5,0,Math.PI*2);c.stroke()}
+  }
+  brass(p){
+    const c=this.c,f=p.t>p.l-.3?(p.l-p.t)/.3:1;
+    c.save();c.globalAlpha=f;
+    if(!p.flat){c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(p.x+1,p.y+1,1.6,.9,p.rot,0,Math.PI*2);c.fill()}
+    c.translate(p.x,p.y-(p.z||0)*.6);c.rotate(p.rot);c.fillStyle=K.brass;c.fillRect(-1.5,-.8,3,1.6);c.fillStyle='#fff2c0';c.fillRect(.6,-.8,.9,1.6);c.restore();
+  }
+  player(){
+    const c=this.c,a=this.aim,jolt=this.mode!=='today'&&this.since<.06?.6*(1-this.since/.06):0;
+    c.save();c.rotate(a);c.translate(-jolt,0);
+    c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(.7,1.3,7.3,9,0,0,Math.PI*2);c.fill();
+    c.fillStyle=K.dark;c.beginPath();c.ellipse(-4.6,0,3,5.3,0,0,Math.PI*2);c.fill();                 // pack
+    c.fillStyle=K.dark;c.beginPath();c.ellipse(-.7,0,6,8.3,0,0,Math.PI*2);c.fill();
+    c.fillStyle=K.base;c.beginPath();c.ellipse(-.7,0,4.9,7.3,0,0,Math.PI*2);c.fill();
+    c.strokeStyle=K.trim;c.lineWidth=1.1;c.beginPath();c.ellipse(-.7,0,5.6,7.9,0,-1.2,1.2);c.stroke();
+    const gs=this.guns();
+    for(const g of gs){ // arms
+      const sh={x:-.3,y:g.s*6},el={x:(sh.x+g.grip.x)/2-1.2,y:(sh.y+g.grip.y)/2+g.s*1.6};
+      c.strokeStyle='#1d241b';c.lineWidth=4.2;c.lineCap='round';c.beginPath();c.moveTo(sh.x,sh.y);c.lineTo(el.x,el.y);c.lineTo(g.grip.x,g.grip.y);c.stroke();
+      c.strokeStyle=K.sleeve;c.lineWidth=3;c.beginPath();c.moveTo(sh.x,sh.y);c.lineTo(el.x,el.y);c.lineTo(g.grip.x,g.grip.y);c.stroke();
+    }
+    for(const g of gs)this.gun(g);
+    for(const g of gs){c.fillStyle=K.glove;c.beginPath();c.arc(g.grip.x,g.grip.y,2.2,0,Math.PI*2);c.fill()}
+    // head
+    c.fillStyle=K.dark;c.beginPath();c.arc(1.7,0,6.3,0,Math.PI*2);c.fill();c.fillStyle=K.base;c.beginPath();c.arc(1.7,0,5.3,0,Math.PI*2);c.fill();
+    c.fillStyle='#1b2026';c.beginPath();c.ellipse(4.6,0,1.6,3.6,0,0,Math.PI*2);c.fill();c.fillStyle='rgba(255,140,64,.75)';c.fillRect(5.2,-2.6,.7,5.2);
+    c.restore();
+  }
+  gun(g){
+    const c=this.c,today=this.mode==='today',h=this.heat,bolt=today?(this.since<.07?5*Math.sin(Math.PI*this.since/.07):0):(this.rec[g.i]<.07?5*Math.sin(Math.PI*this.rec[g.i]/.07):0);
+    c.save();c.translate(g.grip.x,g.grip.y);c.rotate(g.ang);c.scale(G,g.s<0?-G:G);
+    c.fillStyle=K.wood;c.fillRect(-6,-2,8,4);c.fillStyle=K.gdark;c.fillRect(0,-2.6,14,5.2);
+    if(today){c.strokeStyle=mix(K.steel,'#ff8c33',h);c.lineWidth=2.4;c.beginPath();c.moveTo(12,0);c.lineTo(26,0);c.stroke()}
+    else{
+      const gr=c.createLinearGradient(12,0,26,0);gr.addColorStop(0,K.steel);gr.addColorStop(.45,mix(K.steel,'#ff8c33',clamp(h*1.3-.3,0,1)));gr.addColorStop(1,h>.75?mix('#ff8c33','#fff1cc',(h-.75)*4):mix(K.steel,'#ff8c33',clamp(h*1.4,0,1)));
+      c.strokeStyle=gr;c.lineWidth=2.4;c.beginPath();c.moveTo(12,0);c.lineTo(26,0);c.stroke();
+      c.fillStyle='#2b313a';c.fillRect(24,-1.9,2.6,3.8);c.fillStyle='#11151b';c.fillRect(24.6,-1.9,.6,.8);c.fillRect(24.6,1.1,.6,.8);  // muzzle brake with side ports
+    }
+    c.fillStyle=K.sight;c.fillRect(5,-5,8,2.6);
+    c.fillStyle=K.steel;c.fillRect(5-bolt,2.6,5,1.4);
+    c.fillStyle=K.olive;c.fillRect(11,2.9,12,3.4);
+    if(!today&&h>.45){ // heat shimmer
+      c.strokeStyle=`rgba(255,220,180,${.22*(h-.45)/.55})`;c.lineWidth=.6;
+      for(let k=0;k<2;k++){c.beginPath();for(let x=14;x<=27;x+=1){const y=-3.2-k*1.6+Math.sin(x*.9+this.t*22+k*2)*.6;x===14?c.moveTo(x,y):c.lineTo(x,y)}c.stroke()}
+    }
+    c.restore();
+    // the new muzzle flash, riding the gun
+    const f=this.flash[g.i];
+    if(!today&&f&&f.t<.045){
+      const e=1-f.t/.045;c.save();c.translate(g.muzzle.x,g.muzzle.y);c.rotate(g.ang);
+      c.globalCompositeOperation='lighter';
+      const gl=c.createRadialGradient(1,0,0,1,0,9);gl.addColorStop(0,`rgba(255,200,120,${.55*e})`);gl.addColorStop(1,'rgba(255,140,60,0)');c.fillStyle=gl;c.beginPath();c.arc(1,0,9,0,Math.PI*2);c.fill();
+      const L=[11,8.5,13][f.v]*(.7+.3*e),W=[2.6,3.4,2][f.v];
+      c.fillStyle=`rgba(255,180,90,${e})`;c.beginPath();c.moveTo(0,-W);c.lineTo(L,f.rr);c.lineTo(0,W);c.closePath();c.fill();
+      c.fillStyle=`rgba(255,246,220,${e})`;c.beginPath();c.moveTo(0,-W*.55);c.lineTo(L*.55,f.rr*.5);c.lineTo(0,W*.55);c.closePath();c.fill();
+      if(f.v!==1){c.fillStyle=`rgba(255,200,120,${.8*e})`;c.beginPath();c.moveTo(1,0);c.lineTo(3,-4.5);c.lineTo(2.2,0);c.lineTo(3,4.5);c.closePath();c.fill()}
+      c.fillStyle=`rgba(255,215,160,${.7*e})`;for(const sy of [-1,1]){c.beginPath();c.ellipse(-1,sy*2.6,1.4,2.2*e+.6,0,0,Math.PI*2);c.fill()}  // side-port puffs
+      c.fillStyle=`rgba(255,255,255,${e})`;c.beginPath();c.arc(.6,0,1.5,0,Math.PI*2);c.fill();
+      c.restore();
+    }
+  }
+}
+
+const today=new Panel('cvToday','today'),fix=new Panel('cvFix',null),panels=[today,fix];
+const phases=[
+  {n:'Flash',r:'0–0.04 s',on:p=>Math.min(p.rec[0],p.rec[1])<.045},
+  {n:'Kick + climb',r:'0–0.08 s',on:p=>Math.min(p.rec[0],p.rec[1])<.08},
+  {n:'Brass',r:'flips, bounces',on:p=>p.parts.some(q=>q.k==='brass'&&q.z>0)},
+  {n:'Heat',r:'held fire',on:p=>p.heat>.45},
+  {n:'Smoke',r:'after you stop',on:p=>p.smokeT>0},
+];
+const phEl=document.getElementById('phases');
+phEl.innerHTML=phases.map(p=>`<li><b>${p.n}</b> ${p.r}</li>`).join('');
+function setMode(m){S.mode=m;for(const b of document.querySelectorAll('.tabs button'))b.setAttribute('aria-selected',b.dataset.m===m);
+  const o=OPT[m];document.getElementById('fixTitle').textContent=o.title;document.getElementById('fixSub').textContent=o.sub;
+  document.getElementById('fixNotes').innerHTML=o.notes.map(n=>`<li>${n}</li>`).join('');fix.bul=[];fix.parts=[]}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+setMode('A');
+const bP=document.getElementById('bPause'),bS=document.getElementById('bSlow'),bM=document.getElementById('bMarks'),bA=document.getElementById('bAuto'),cF=document.getElementById('cFire');
+function syncBtns(){bP.setAttribute('aria-pressed',S.pause);bS.setAttribute('aria-pressed',S.slow);bM.setAttribute('aria-pressed',S.marks);bA.setAttribute('aria-pressed',S.autoAim)}
+bP.onclick=()=>{S.pause=!S.pause;syncBtns()};bS.onclick=()=>{S.slow=!S.slow;syncBtns()};bM.onclick=()=>{S.marks=!S.marks;syncBtns()};bA.onclick=()=>{S.autoAim=!S.autoAim;syncBtns()};
+cF.onchange=()=>{S.autoFire=cF.checked};
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){S.slow=true;syncBtns()}
+function size(){const d=Math.min(2,window.devicePixelRatio||1);for(const p of panels){p.dpr=d;p.cv.width=720*d;p.cv.height=380*d}}
+size();addEventListener('resize',size);
+let last=performance.now(),clock=0;
+function frame(now){
+  let dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
+  if(!S.pause){dt*=S.slow?.2:1;clock+=dt;
+    if(S.autoAim){const ang=-.22+.3*Math.sin(clock*.45),d=250+130*Math.sin(clock*.31);S.aim={x:Math.cos(ang)*d,y:Math.sin(ang)*d}}
+    const sub=Math.max(1,Math.ceil(dt/(1/120)));for(let i=0;i<sub;i++)for(const p of panels)p.step(dt/sub);}
+  for(const p of panels)p.draw();
+  phases.forEach((ph,i)=>phEl.children[i].classList.toggle('on',ph.on(fix)));
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

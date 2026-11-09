@@ -31,6 +31,11 @@ namespace Arena
                 EndRain(p, true);
                 return;
             }
+            if (BathPress(p, slot))  // Bloodbath pressed again: the channel ends and the pool dries up (no cooldown spent; Bloodbath.cs)
+            {
+                EndBath(ActiveBath(p));
+                return;
+            }
             if (StandRelease(p, slot))  // Last Stand pressed again: it comes down (no cooldown spent for the press)
             {
                 p.Run.AbilitiesUsed++;
@@ -98,10 +103,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Dash, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
-                Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability.",
-                Capstone = "+1 charge.",
-                Bot = b => b.BotDanger > 2.5f,
+                Id = AbilityId.PoisonDart, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0,
+                Name = "Poison Dart", Cooldown = 8f, Desc = "Dart the enemy nearest your cursor: 20 damage, then poison for 18 a second over 5 s. If it dies poisoned, the poison spreads to the 3 nearest enemies (80% as strong), and on from them.",
+                Capstone = "Spreads to 5 enemies at a time, at full strength.",
+                Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
@@ -260,9 +265,8 @@ namespace Arena
                     }
                     break;
                 }
-                case AbilityId.Dash:
-                    p.InvulnT = Math.Max(p.InvulnT, DashTime + 0.12f + s.DashIframeBonus);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.7f, 0.35f), 24f, 0.25f, Sfx.Blink);
+                case AbilityId.PoisonDart:
+                    CastPoisonDart(p, target, cap, pw);  // PoisonDart.cs
                     break;
                 case AbilityId.MendPulse:
                 {

@@ -106,9 +106,9 @@ tr:last-child td{border-bottom:0}
 
 <main>
 <header>
-  <div class="eyebrow"><span class="tank">Tank</span>·<span>Hemomancer</span>·<span class="gold">Ultimate, key 1</span>·<span>75 s</span></div>
+  <div class="eyebrow"><span class="tank">Tank</span>·<span>Hemomancer</span>·<span class="gold">Ultimate, key 1</span>·<span>Channel</span>·<span>75 s</span></div>
   <h1>Blood<span>bath</span></h1>
-  <p class="lede">Pay <b>15% of your max health</b> and flood the floor round you. For <b>10 s</b> everything wading in it drags, bleeds <b>15 a second</b>, and every drop heals you a quarter of it back. Allies standing in it take <b>20% less</b>. The loop below is drawn the way the game draws it.</p>
+  <p class="lede">Channel it and the floor round you floods with your blood, draining <b>4% of your max health a second</b> for up to <b>10 s</b>. Everything wading in it drags and bleeds <b>15 a second</b>, and every drop heals you a quarter of it back, so a crowded pool pays for itself. Allies standing in it take <b>20% less</b>. The loop below is drawn the way the game draws it.</p>
 </header>
 
 <section class="stage" aria-label="Bloodbath in the arena">
@@ -119,10 +119,11 @@ tr:last-child td{border-bottom:0}
   <div class="side">
     <dl class="readout" aria-live="off">
       <div class="t">Live</div>
-      <dt>Pool time left</dt><dd id="rTime">–</dd>
+      <dt>Channel left</dt><dd id="rTime">–</dd>
       <dt>Reach</dt><dd id="rReach">–</dd>
       <dt>Enemies wading</dt><dd id="rWade">0</dd>
       <dt>Bled so far</dt><dd id="rBled">0</dd>
+      <dt>Drained from you</dt><dd id="rDrain">0</dd>
       <dt>Healed back</dt><dd id="rHeal">0</dd>
       <dt>Damage stopped</dt><dd id="rCut">0</dd>
       <dt>Your health</dt><dd id="rHp">210 / 210</dd>
@@ -130,6 +131,7 @@ tr:last-child td{border-bottom:0}
     </dl>
     <div class="toggles">
       <label class="tog" for="tMaster"><input type="checkbox" id="tMaster"><span>Mastered<small>220 px, 35% of the bleed back</small></span></label>
+      <label class="tog" for="tRelease"><input type="checkbox" id="tRelease"><span>Press F again at 6 s<small>let go early: the pool dries at once</small></span></label>
       <label class="tog" for="tPlain"><input type="checkbox" id="tPlain"><span>Visual effects off<small>the plain fallback: disc, rim, time ring</small></span></label>
       <label class="tog" for="tReduced"><input type="checkbox" id="tReduced"><span>Reduced effects<small>no wobble, fewer ripples and drops</small></span></label>
       <label class="tog" for="tSlow"><input type="checkbox" id="tSlow"><span>Slow motion<small>0.35×</small></span></label>
@@ -156,13 +158,13 @@ tr:last-child td{border-bottom:0}
   <div class="col">
     <h2>The rules</h2>
     <ul class="rules">
-      <li><b>Cost</b><span>15% of your max health, paid up front like the Hemomancer's Space abilities. It never takes you below 1 HP, and at 1 HP it still goes off.</span></li>
-      <li><b>The pool</b><span>Floods out from where you cast to 170 px over 0.9 s, stays 10 s and doesn't follow you.</span></li>
+      <li><b>Channel</b><span>Nothing up front. While it runs it drains 4% of your max health a second, with no hit grace. You can move and shoot.</span></li>
+      <li><b>The pool</b><span>Floods out from where you cast to 170 px over 0.9 s and doesn't follow you.</span></li>
       <li><b>Wading</b><span>Enemies in it move 50% slower, Heavy enemies 35%, bosses 20% (Heavy enemies and bosses ignore other slows, not this one).</span></li>
       <li><b>Bleed</b><span>15 a second to everything in it, bosses too, every 0.5 s, scaled by your damage and Blood Price. It stops the moment they step out.</span></li>
       <li><b>Heal</b><span>Each tick heals you 25% of what it dealt, wherever you are. That replaces the class's 3% on those ticks; it doesn't add to it.</span></li>
       <li><b>Guard</b><span>Allies standing in it, you included, take 20% less damage.</span></li>
-      <li><b>Ends</b><span>After 10 s, or between waves. Going down doesn't end it; it just can't heal you while you're down.</span></li>
+      <li><b>Ends</b><span>Press it again (no cooldown spent), or after 10 s, at 15% health, if you go down, or between waves. The pool then does nothing and dries up over 1.2 s.</span></li>
     </ul>
     <p class="cap"><b>Mastered</b>The pool spreads to 220 px and gives back 35% of the bleed.</p>
   </div>
@@ -189,33 +191,34 @@ tr:last-child td{border-bottom:0}
       <table>
         <thead><tr><th>What</th><th>Value</th><th>Constant</th></tr></thead>
         <tbody>
-          <tr><td>Cost</td><td class="v">15% max HP</td><td><code>BathCost</code></td></tr>
+          <tr><td>Drain</td><td class="v">4% max HP /s</td><td><code>BathDrain</code></td></tr>
+          <tr><td>Stops at</td><td class="v">15% health</td><td><code>BathFloor</code></td></tr>
           <tr><td>Cooldown</td><td class="v">75 s</td><td><code>BathCooldown</code></td></tr>
           <tr><td>Radius</td><td class="v">170 px · 220</td><td><code>BathRadius</code>, <code>…Mastered</code></td></tr>
           <tr><td>Flood time</td><td class="v">0.9 s</td><td><code>BathGrow</code></td></tr>
-          <tr><td>Lasts</td><td class="v">10 s</td><td><code>BathTime</code></td></tr>
+          <tr><td>Longest channel</td><td class="v">10 s</td><td><code>BathTime</code></td></tr>
           <tr><td>Slow</td><td class="v">50 / 35 / 20%</td><td><code>BathSlow</code>, <code>…Heavy</code>, <code>…Boss</code></td></tr>
           <tr><td>Bleed</td><td class="v">15 /s, 0.5 s ticks</td><td><code>BathBleed</code>, <code>BathTick</code></td></tr>
           <tr><td>Heal back</td><td class="v">25% · 35%</td><td><code>BathHeal</code>, <code>…Mastered</code></td></tr>
           <tr><td>Ally guard</td><td class="v">20%</td><td><code>BathGuard</code></td></tr>
-          <tr><td>Dry-up (look)</td><td class="v">last 1.2 s</td><td><code>BathDry</code></td></tr>
+          <tr><td>Dry-up (look)</td><td class="v">1.2 s after it stops</td><td><code>BathDry</code></td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </section>
 
-<p class="notes"><b>Build notes.</b> Built in <code>Core/Bloodbath.cs</code> (a <code>ZoneKind.Bloodbath</code> zone with its own bleed tick) and drawn by <code>Game/BloodbathLook.cs</code>; the lobby pick is <code>LobbyEntry.Ult</code>, shared with the Tank Soldier's Juggernaut Suit. Protocol 223. Picked from the first Tank Hemomancer card of the Ultimate Ideas page. The loop here is a stand-in simulation for the look: real numbers, simplified enemies.</p>
+<p class="notes"><b>Build notes.</b> Built in <code>Core/Bloodbath.cs</code> (a <code>ZoneKind.Bloodbath</code> zone with its own bleed tick) and drawn by <code>Game/BloodbathLook.cs</code>; the lobby pick is <code>LobbyEntry.Ult</code>, shared with the Tank Soldier's Juggernaut Suit. Protocol 229. Picked from the first Tank Hemomancer card of the Ultimate Ideas page. The loop here is a stand-in simulation for the look: real numbers, simplified enemies.</p>
 </main>
 
 <script>
 (function(){
 "use strict";
-var W=1280,H=720,ZOOM=1.45,TAU=Math.PI*2,DT=1/60,LOOP=12,CAST=0.6;
-var BATH={time:10,grow:0.9,start:0.12,dry:1.2,tick:0.5,bleed:15,slow:0.5,slowHeavy:0.35,guard:0.2,cost:0.15};
+var W=1280,H=720,ZOOM=1.45,TAU=Math.PI*2,DT=1/60,LOOP=13.5,CAST=0.6;
+var BATH={time:10,grow:0.9,start:0.12,dry:1.2,tick:0.5,bleed:15,slow:0.5,slowHeavy:0.35,guard:0.2,drain:0.04,floor:0.15};
 var cv=document.getElementById('arena'),c=cv.getContext('2d');
 var reduceMotion=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-var opt={master:false,plain:false,reduced:reduceMotion,slow:false};
+var opt={master:false,release:false,plain:false,reduced:reduceMotion,slow:false};
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function hash(i){var s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)}
 function mix(a,b,f){return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f]}
@@ -227,9 +230,11 @@ var RAD=function(){return opt.master?220:170},BACK=function(){return opt.master?
 var P={x:520,y:380},ALLY={x:395,y:290},MAXHP=210;
 var frames=[],events=[];
 function reachAt(age){if(age<0)return 0;var x=clamp(age/BATH.grow,0,1);return RAD()*(BATH.start+(1-BATH.start)*eo(x))}
-function poolAlive(t){var age=t-CAST;return age>=0&&age<BATH.time}
+var chEnd=BATH.time;  // seconds after the cast when the channel stopped (the sim sets it)
+function poolAlive(t){var age=t-CAST;return age>=0&&age<chEnd}
 function simulate(){
   frames=[];events=[];var rnd=1;function rng(){rnd=(rnd*16807)%2147483647;return(rnd-1)/2147483646}
+  chEnd=opt.release?6:BATH.time;var drained=0;
   var E=[],nid=1,hp=MAXHP,bled=0,healed=0,cut=0,tickT=0,shots=[],spawnT=0;
   function spawn(type,x,y){var e={id:nid++,type:type,x:x,y:y,r:type==='heavy'?24:type==='sniper'?12:12,hp:type==='heavy'?900:type==='sniper'?60:34,max:0,speed:type==='heavy'?34:type==='sniper'?62:78,
     stop:type==='heavy'?70:type==='sniper'?310:40+rng()*30,orbit:(rng()-.5)*1.4,fire:1+rng(),dead:-1,flash:0};e.max=e.hp;E.push(e);return e}
@@ -240,7 +245,7 @@ function simulate(){
   var bp=function(){return 1+0.4*clamp((1-hp/MAXHP)/0.9,0,1)};
   for(var f=0;f<=LOOP/DT+1;f++){
     var t=f*DT,age=t-CAST,alive=poolAlive(t),reach=alive?reachAt(age):0;
-    if(f===Math.round(CAST/DT)){var paid=Math.min(MAXHP*BATH.cost,hp-1);hp-=paid;events.push({t:t,x:P.x,y:P.y-34,txt:'−15%',kind:'cost'})}
+    if(alive){var dr=Math.min(MAXHP*BATH.drain*DT,hp-1);hp-=dr;drained+=dr;if(hp<=MAXHP*BATH.floor)chEnd=age}  // the channel's drain; it stops at 15%
     // spawns keep the wave coming
     spawnT-=DT;if(t<10.5&&spawnT<=0){spawnT=0.5+rng()*0.35;var a=rng()*TAU,sx=P.x+Math.cos(a)*720,sy=P.y+Math.sin(a)*460;
       sx=clamp(sx,-30,W+30);sy=clamp(sy,-30,H+30);if(sx<120&&sy<160)sx+=200;spawn('grunt',sx,sy)}
@@ -266,7 +271,7 @@ function simulate(){
     else tickT=0;
     E=E.filter(function(e){return e.dead<0.4});
     frames.push({E:E.map(function(e){return{id:e.id,type:e.type,x:e.x,y:e.y,r:e.r,hp:e.hp/e.max,inPool:!!e.inPool,dead:e.dead,flash:e.flash}}),
-      shots:shots.map(function(s){return{x:s.x,y:s.y}}),hp:hp,bled:bled,healed:healed,cut:cut});
+      shots:shots.map(function(s){return{x:s.x,y:s.y}}),hp:hp,bled:bled,healed:healed,cut:cut,drained:drained});
   }
 }
 
@@ -276,13 +281,13 @@ function floor(){c.fillStyle='#0c0f14';c.fillRect(0,0,W,H);c.strokeStyle='#151a2
   for(var x=0;x<=W;x+=40){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,H);c.stroke()}
   for(var y=0;y<=H;y+=40){c.beginPath();c.moveTo(0,y+.5);c.lineTo(W,y+.5);c.stroke()}
   var g=c.createRadialGradient(W/2,H/2,200,W/2,H/2,820);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.6)');c.fillStyle=g;c.fillRect(0,0,W,H)}
-function dryness(age){return clamp((BATH.dry-(BATH.time-age))/BATH.dry,0,1)}
+function dryness(age){return age<chEnd?0:clamp((age-chEnd)/BATH.dry,0,1)}
 function edgeAt(reach,a,t,dry){var s=reach/170,wob=opt.reduced?0:t*0.6;
   var r=reach+(Math.sin(a*6+1+7+wob)*7+Math.sin(a*11-wob*0.7)*4+Math.sin(a*3+16.1)*5)*s;
   if(dry>0)r*=1-dry*(0.35+0.3*(0.5+0.5*Math.sin(a*3+11.9)));return Math.max(0,r)}
-function drawPool(t){var age=t-CAST;if(age<0||age>=BATH.time)return;var reach=reachAt(age),dry=dryness(age);
+function drawPool(t){var age=t-CAST;if(age<0||age>=chEnd+BATH.dry)return;var reach=reachAt(Math.min(age,chEnd)),dry=dryness(age);
   if(opt.plain){c.beginPath();c.arc(P.x,P.y,reach,0,TAU);c.fillStyle=rgba(FLOOD,.35);c.fill();c.lineWidth=2;c.strokeStyle=rgba(WET,.6);c.stroke();
-    c.beginPath();c.arc(P.x,P.y,reach+4,-Math.PI/2,-Math.PI/2+TAU*(1-age/BATH.time));c.lineWidth=2.5;c.strokeStyle=rgba(FLOOD,.8);c.stroke();return}
+    c.beginPath();c.arc(P.x,P.y,reach+4,-Math.PI/2,-Math.PI/2+TAU*Math.max(0,1-age/BATH.time)*(dry>0?0:1));c.lineWidth=2.5;c.strokeStyle=rgba(FLOOD,.8);c.stroke();return}
   var fade=1-dry*dry,N=72;c.beginPath();
   for(var k=0;k<=N;k++){var a=k/N*TAU,r=edgeAt(reach,a,t,dry),x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;k?c.lineTo(x,y):c.moveTo(x,y)}c.closePath();
   var g=c.createRadialGradient(P.x,P.y,0,P.x,P.y,reach*1.05);g.addColorStop(0,rgba(mix(DEEP,DRIED,dry),.74*fade));g.addColorStop(1,rgba(mix(FLOOD,DRIED,dry),.52*fade));
@@ -294,6 +299,10 @@ function drawPool(t){var age=t-CAST;if(age<0||age>=BATH.time)return;var reach=re
     for(var k2=0;k2<7;k2++){var a0=k2*0.9+7,len=reach*(0.35+0.35*hash(7+k2))*clamp((dry-.25)/.5,0,1),ma=a0+0.25,mx=P.x+Math.cos(ma)*len*.55,my=P.y+Math.sin(ma)*len*.55;
       c.beginPath();c.moveTo(P.x+Math.cos(a0)*reach*.12,P.y+Math.sin(a0)*reach*.12);c.lineTo(mx,my);c.lineWidth=1.5;c.stroke();
       c.beginPath();c.moveTo(mx,my);c.lineTo(P.x+Math.cos(a0-0.15)*len,P.y+Math.sin(a0-0.15)*len);c.lineWidth=1.2;c.stroke()}}
+  // the channel: your blood dripping off you into the pool, and a pulse round you while it drains you
+  if(dry<=0){for(var d=0;d<4;d++){var ph2=((t*0.9+d/4)%1+1)%1;c.beginPath();c.arc(P.x+(hash(d+3)-.5)*10,P.y+8+ph2*24,2.4*(1-0.5*ph2),0,TAU);c.fillStyle=rgba(DROP,.85*(1-ph2*.6));c.fill()}
+    c.beginPath();c.arc(P.x,P.y,15,0,TAU);c.lineWidth=1.5;c.strokeStyle=rgba(WET,.5+.3*Math.sin(t*6));c.stroke()}
+  if(dry>0)return;
   // allies standing in it: the guard arc
   [ALLY,P].forEach(function(q,i){if(Math.hypot(q.x-P.x,q.y-P.y)<=reach){c.beginPath();c.arc(q.x,q.y,22,t*1.5,t*1.5+Math.PI*1.3);c.lineWidth=2;c.strokeStyle=rgba(WET,.55*fade);c.stroke()}})}
 function grunt(e,ang){c.save();c.translate(e.x,e.y);c.rotate(ang);var r=e.r;
@@ -337,7 +346,7 @@ function hud(fr,t){var age=t-CAST,alive=poolAlive(t);var x=W-250,y=H-74;
   c.fillStyle='rgba(8,12,22,.85)';c.fillRect(x,y,226,54);c.lineWidth=1.5;c.strokeStyle='#e0b14a';c.strokeRect(x+.5,y+.5,225,53);
   c.fillStyle='#e0b14a';c.fillRect(x+8,y+8,62,16);c.font='700 12px "IBM Plex Mono",monospace';c.fillStyle='#0b1220';c.textAlign='left';c.fillText('ULT · F',x+12,y+20);
   c.font='700 22px "Barlow Condensed","Arial Narrow",sans-serif';c.fillStyle='#f3e3bd';c.fillText('Bloodbath',x+10,y+46);
-  var right=alive?(BATH.time-age).toFixed(1)+' s':(t<CAST?'ready':'75 s');c.font='600 13px "IBM Plex Mono",monospace';c.textAlign='right';c.fillStyle='#f3e3bd';c.fillText(right,x+216,y+20);
+  var right=alive?'CHANNEL '+(BATH.time-age).toFixed(1)+' s':(t<CAST?'ready':'75 s');c.font='600 13px "IBM Plex Mono",monospace';c.textAlign='right';c.fillStyle='#f3e3bd';c.fillText(right,x+216,y+20);
   if(alive){c.fillStyle='rgba(224,177,74,.25)';c.fillRect(x+90,y+40,126,5);c.fillStyle='#e0b14a';c.fillRect(x+90,y+40,126*(1-age/BATH.time),5)}
   c.textAlign='left'}
 function cast(t){var age=t-CAST;if(age<0||age>0.6)return;var q=age/0.6;c.beginPath();c.arc(P.x,P.y,30+q*RAD()*0.9,0,TAU);c.lineWidth=5*(1-q);c.strokeStyle='rgba(217,31,51,'+(1-q)+')';c.stroke();
@@ -356,25 +365,27 @@ function render(t){var fi=clamp(Math.round(t/DT),0,frames.length-1),fr=frames[fi
 /* ---------------- page wiring ---------------- */
 var $=function(id){return document.getElementById(id)};
 var tNow=0,playing=!reduceMotion,last=null;if(reduceMotion)tNow=4.1;
-var PHASES=[{a:0,b:CAST,name:'Before the cast',col:'#4a5160'},{a:CAST,b:CAST+BATH.grow,name:'Flooding out',col:'#c23a4c'},{a:CAST+BATH.grow,b:CAST+BATH.time-BATH.dry,name:'Wading and bleeding',col:'#8f1626'},
-  {a:CAST+BATH.time-BATH.dry,b:CAST+BATH.time,name:'Drying up',col:'#6b3a22'},{a:CAST+BATH.time,b:LOOP,name:'Gone · 75 s cooldown',col:'#4a5160'}];
-var MOMENTS=[{t:CAST+0.03,b:'Cast and cost',s:'Blood spurts off you as the 15% is paid (−15%), a ring snaps out, and the screen blushes for a moment.'},
+var PHASES=[];
+function buildPhases(){PHASES=[{a:0,b:CAST,name:'Before the cast',col:'#4a5160'},{a:CAST,b:CAST+BATH.grow,name:'Flooding out',col:'#c23a4c'},{a:CAST+BATH.grow,b:CAST+chEnd,name:'Channelling: wading and bleeding',col:'#8f1626'},
+  {a:CAST+chEnd,b:CAST+chEnd+BATH.dry,name:opt.release?'Let go: drying up':'10 s up: drying up',col:'#6b3a22'},{a:CAST+chEnd+BATH.dry,b:LOOP,name:'Gone · 75 s cooldown',col:'#4a5160'}]}
+var MOMENTS=[{t:CAST+0.03,b:'The cast',s:'Nothing is paid up front: a ring snaps out, the screen blushes for a moment, and the channel starts.'},
   {t:CAST+0.35,b:'The flood',s:'The pool spreads from 12% of its size to all of it over 0.9 s, easing out, with a bright splash at the edge.'},
+  {t:CAST+1.6,b:'The channel',s:'While it runs, drops of your blood fall from you into the pool and a red ring pulses round you: 4% of your max health a second.'},
   {t:CAST+2.6,b:'A wavy, wet pool',s:'Dark in the middle, lighter at the rim, an uneven edge that wobbles slowly, ripples rolling outward and a glint of light.'},
   {t:CAST+3.4,b:'Enemies wading',s:'Each one in it is tinted red with a ring of blood at its feet and drops falling off it; small numbers show each tick of the bleed.'},
   {t:CAST+4.15,b:'Heal numbers',s:'A small pink “+n” rises to your right for every tick that heals you, so you can read the pool paying you back.'},
   {t:CAST+5.35,b:'The guard',s:'A thin red arc under everyone standing in it. A shot that lands there shows 16 instead of 20, tagged −20%.'},
-  {t:CAST+9.55,b:'Drying up',s:'In its last 1.2 s the pool browns, pulls back unevenly and cracks, then it’s gone. Between waves it simply goes.'}];
+  {t:CAST+10.5,b:'Drying up',s:'When the channel stops (10 s, a second press, 15% health or going down) the pool does nothing more: it browns, pulls back unevenly and cracks over 1.2 s.'}];
 function phaseAt(t){for(var i=0;i<PHASES.length;i++)if(t<PHASES[i].b)return PHASES[i];return PHASES[PHASES.length-1]}
-function buildTrack(){var b=$('bands'),m=$('marks');b.innerHTML='';m.innerHTML='';
+function buildTrack(){var b=$('bands'),m=$('marks');b.innerHTML='';m.innerHTML='';buildPhases();
   PHASES.forEach(function(p){var i=document.createElement('i');i.style.width=((p.b-p.a)/LOOP*100)+'%';i.style.background=p.col;i.title=p.name;b.appendChild(i)});
-  [[0,'0 s'],[CAST,'cast'],[CAST+BATH.grow,'flooded'],[CAST+BATH.time-BATH.dry,'dries'],[CAST+BATH.time,'gone'],[LOOP,'12 s']].forEach(function(q){var s=document.createElement('span');s.style.left=(q[0]/LOOP*100)+'%';s.textContent=q[1];m.appendChild(s)})}
+  [[0,'0 s'],[CAST,'cast'],[CAST+BATH.grow,'flooded'],[CAST+chEnd,opt.release?'let go':'10 s'],[CAST+chEnd+BATH.dry,'gone'],[LOOP,'13.5 s']].forEach(function(q){var s=document.createElement('span');s.style.left=(q[0]/LOOP*100)+'%';s.textContent=q[1];m.appendChild(s)})}
 function buildMoments(){var ul=$('moments');ul.innerHTML='';MOMENTS.forEach(function(mo,i){var li=document.createElement('li'),bt=document.createElement('button');bt.type='button';
   bt.innerHTML='<time>+'+(mo.t-CAST).toFixed(2)+' s</time><div><b></b><span></span></div>';bt.querySelector('b').textContent=mo.b;bt.querySelector('span').textContent=mo.s;
   bt.addEventListener('click',function(){tNow=mo.t;playing=false;$('play').textContent='Play';update(true)});li.appendChild(bt);ul.appendChild(li)})}
 function update(force){var fr=render(tNow),age=tNow-CAST,alive=poolAlive(tNow);
   $('scrub').value=tNow.toFixed(2);$('clock').textContent=tNow.toFixed(2)+' s';$('phaseTag').textContent=phaseAt(tNow).name;
-  $('rTime').textContent=alive?(BATH.time-age).toFixed(1)+' s':(tNow<CAST?'not cast':'gone');
+  $('rTime').textContent=alive?(BATH.time-age).toFixed(1)+' s':(tNow<CAST?'not cast':'stopped');$('rDrain').textContent=Math.round(fr.drained);
   $('rReach').textContent=alive?Math.round(reachAt(age))+' px':'–';
   $('rWade').textContent=fr.E.filter(function(e){return e.inPool&&e.dead<0}).length;
   $('rBled').textContent=Math.round(fr.bled);$('rHeal').textContent=Math.round(fr.healed);$('rCut').textContent=Math.round(fr.cut);
@@ -387,6 +398,7 @@ $('play').addEventListener('click',function(){playing=!playing;this.textContent=
 $('replay').addEventListener('click',function(){tNow=0;playing=true;$('play').textContent='Pause'});
 $('scrub').addEventListener('input',function(){tNow=parseFloat(this.value)||0;playing=false;$('play').textContent='Play'});
 $('tMaster').addEventListener('change',function(){opt.master=this.checked;simulate()});
+$('tRelease').addEventListener('change',function(){opt.release=this.checked;simulate();buildTrack();if(this.checked){tNow=CAST+5.6;update(true)}});
 $('tPlain').addEventListener('change',function(){opt.plain=this.checked});
 $('tReduced').addEventListener('change',function(){opt.reduced=this.checked});
 $('tSlow').addEventListener('change',function(){opt.slow=this.checked});
@@ -394,7 +406,7 @@ $('tReduced').checked=opt.reduced;if(!playing)$('play').textContent='Play';
 
 /* the lobby's Ultimate row */
 var ULTS=[{n:'VEIN TITHE',d:'<strong>VEIN TITHE</strong> · 75 s TO CHARGE<br>Blood tendrils bind every enemy on screen for 30 s: they can’t move or shoot. You pay 0.25% of your max health a second for each one held (a boss four times that), and deal 40% less damage.<br><em>MASTERED</em> Lasts 40 s and costs 25% less.'},
-  {n:'BLOODBATH',d:'<strong>BLOODBATH</strong> · 75 s TO CHARGE · COSTS 15%<br>Blood floods the floor 170 px round you for 10 s. Enemies wading in it are slowed 50% (Heavy 35%, bosses 20%) and bleed 15 a second; every drop heals you 25% of it. Allies in it take 20% less damage.<br><em>MASTERED</em> 220 px, and 35% of the bleed back.'}];
+  {n:'BLOODBATH',d:'<strong>BLOODBATH</strong> · 75 s TO CHARGE · CHANNEL<br>Blood floods the floor 170 px round you while you channel it, up to 10 s, draining 4% of your max health a second. Enemies wading in it are slowed 50% (Heavy 35%, bosses 20%) and bleed 15 a second; every drop heals you 25% of it. Allies in it take 20% less damage. Press again to stop.<br><em>MASTERED</em> 220 px, and 35% of the bleed back.'}];
 function pickUlt(i){[$('k0'),$('k1')].forEach(function(k,j){k.setAttribute('aria-pressed',j===i?'true':'false')});$('kDetail').innerHTML=ULTS[i].d}
 $('k0').addEventListener('click',function(){pickUlt(0)});$('k1').addEventListener('click',function(){pickUlt(1)});pickUlt(1);
 

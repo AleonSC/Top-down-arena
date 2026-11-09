@@ -3,9 +3,10 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Bloodbath (Bloodbath.cs), the Tank Hemomancer's second ultimate, and the lobby's ultimate pick (LobbyEntry.Ult): the 15% cost and the
-// 1 HP floor, the pool growing out, the slow (normal, Heavy, boss), the bleed starting in the pool and stopping outside it, the 25% heal
-// with no extra 3%, the 20% guard inside, Blood Price, ending on time and between waves but not on going down, mastery, the bot's rule,
+// Bloodbath (Bloodbath.cs), the Tank Hemomancer's second ultimate, and the lobby's ultimate pick (LobbyEntry.Ult): the channel (nothing up
+// front, a 4% a second drain, ending on a second press, at 15% health, on going down, at 10 s and between waves; an ended pool dries up
+// and does nothing), the pool growing out, the slow (normal, Heavy, boss), the bleed starting in the pool and stopping outside it, the 25% heal
+// with no extra 3%, the 20% guard inside, Blood Price, mastery, the bot's rules for starting and stopping it,
 // and the pick reaching the match (both screens, saves, a continued run's seat, the Practice Range, a class with one ultimate).
 static partial class Program
 {
@@ -24,8 +25,8 @@ static partial class Program
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
             && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 1) == AbilityId.CrimsonApotheosis,
             "the Tank Hemomancer has two ultimates (Vein Tithe the default, Bloodbath second); a pick a class lacks falls back to its default");
-        Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0.15f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
-            "Bloodbath: a 75 s Tank Hemomancer ultimate costing 15% of max health");
+        Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
+            "Bloodbath: a 75 s Tank Hemomancer ultimate channelled, with nothing up front");
 
         int port = nextPort++;
         var hostS = new Session { AutoStart = 2, StartWave = 3 };
@@ -71,32 +72,52 @@ static partial class Program
             me.MasteryXp.Remove(AbilityId.Bloodbath);  // (casting levels it up, and its power would grow the bleed)
             make(EnemyType.Grunt, new V2(1500f, 120f));  // far off: the wave goes on (clearing it ends the pool)
         };
-        Func<Zone> bath = () => g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.Bloodbath);
+        Func<Zone> bath = () => g.Zones.Values.FirstOrDefault(z => Game.BathOn(z));  // the pool being channelled
+        Func<Zone> drying = () => g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.Bloodbath && z.Aim > 0f);
         Action cast = () => { me.Slots[Upgrades.UltSlot].Charges = 1; hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false }); };
         float regen = g.PassiveRegen + me.Stats.Regen;
 
-        // The cost: 15% of max health up front; at 1 HP it still goes off.
+        // The channel: nothing up front, then 4% of max health a second.
         reset();
         cast();
         var z0 = bath();
-        Check(Math.Abs(me.Hp - me.MaxHp * 0.85f) < 0.5f, "casting costs 15% of max health");
-        Check(z0 != null && z0.Radius == Game.BathRadius && z0.T == Game.BathTime && z0.Pos.DistanceTo(mePos) < 1f, "the pool is 170 px round where you cast, for 10 s");
+        Check(me.Hp == me.MaxHp, "casting costs nothing up front");
+        Check(z0 != null && z0.Radius == Game.BathRadius && z0.Pos.DistanceTo(mePos) < 1f && me.UltT == Game.BathTime, "the pool is 170 px round where you cast, channelled for up to 10 s");
         Check(z0 != null && Game.BathReach(z0) < Game.BathRadius * 0.2f, "it starts small");
         step(Game.BathGrow + 0.05f);
         Check(z0 != null && Math.Abs(Game.BathReach(z0) - Game.BathRadius) < 0.5f, "and floods out to its full size over 0.9 s");
+        me.Hp = me.MaxHp * 0.9f;
+        float d0 = me.Hp;
+        step(1f);
+        float drained = d0 - me.Hp + regen;
+        Console.WriteLine("  bloodbath: drained {0:0.0} in 1 s (expect {1:0.0})", drained, me.MaxHp * Game.BathDrain);
+        Check(Math.Abs(drained - me.MaxHp * Game.BathDrain) < 0.6f && me.InvulnT <= 0.01f, "channelling drains 4% of your max health a second (no hit grace)");
         mePos = new V2(300f, 300f);
         step(0.3f);
-        Check(bath() != null && bath().Pos.DistanceTo(new V2(500f, 450f)) < 1f, "it doesn't follow you");
+        Check(bath() != null && bath().Pos.DistanceTo(new V2(500f, 450f)) < 1f, "it doesn't follow you, and you can walk off and keep channelling");
         mePos = new V2(500f, 450f);
-        Check(client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath && z.Pos.DistanceTo(z0.Pos) < 1f && Math.Abs(z.T - z0.T) < 0.5f), "other screens see the pool and its time left");
+        Check(client.Game.Zones.Values.Any(z => Game.BathOn(z) && z.Pos.DistanceTo(z0.Pos) < 1f && Math.Abs(z.T - z0.T) < 0.5f) && client.Game.Players[1].UltT > 0f,
+            "other screens see the pool and the channel's time left");
+
+        // Pressing it again stops the channel: the pool turns inert and dries up; no cooldown is spent.
+        var wader = make(EnemyType.Grunt, mePos + new V2(50f, 0f));
+        me.Slots[Upgrades.UltSlot].Charges = 0;
+        hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
+        Check(bath() == null && drying() != null && me.UltT == 0f && me.Slots[Upgrades.UltSlot].Charges == 0, "pressing it again ends the channel; the pool starts drying up");
+        float wh = wader.Hp, hpAfter = me.Hp;
+        step(0.6f);
+        Check(wader.Hp == wh && wader.SlowT <= 0f && me.Hp >= hpAfter, "a drying pool doesn't slow, bleed or drain");
+        Check(client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath && z.Aim > 0f), "other screens see it drying");
+        step(Game.BathDry);
+        Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath), "and it's gone 1.2 s later");
+
+        // The drain stops it at 15% health.
         reset();
-        me.Hp = 1f;
         cast();
-        Check(me.Hp == 1f && bath() != null, "at 1 HP it costs nothing more and still goes off");
-        reset();
-        me.Hp = me.MaxHp * 0.1f;
-        cast();
-        Check(me.Hp >= 1f && bath() != null, "the cost never takes you below 1 HP");
+        me.Hp = me.MaxHp * 0.17f;
+        step(1f);
+        Console.WriteLine("  bloodbath: stopped at {0:0.0}% health", me.Hp / me.MaxHp * 100f);
+        Check(bath() == null && drying() != null && me.Hp >= me.MaxHp * 0.14f && me.Hp <= me.MaxHp * 0.155f, "the channel stops when the drain brings you to 15% health");
 
         // The slow: 50%, Heavy enemies 35%, bosses 20%; nothing outside it.
         reset();
@@ -136,16 +157,17 @@ static partial class Program
 
         // Blood Price scales it.
         reset();
-        pinHp = me.MaxHp * 0.1f;
+        pinHp = me.MaxHp * 0.2f;
         grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
         cast();
-        pinHp = me.MaxHp * 0.1f;
+        pinHp = me.MaxHp * 0.2f;
         step(Game.BathGrow);
         gh = grunt.Hp;
         step(2f);
         float priced = gh - grunt.Hp;
-        Console.WriteLine("  bloodbath: at 10% health it bled {0:0.0} ({1:0.00}x)", priced, priced / bled);
-        Check(Math.Abs(priced / bled - 1.4f) < 0.02f, "Blood Price scales the bleed (40% more at 10% health)");
+        float price = 1f + 0.4f * (0.8f / 0.9f);  // Blood Price at 20% health (the channel stops at 15%)
+        Console.WriteLine("  bloodbath: at 20% health it bled {0:0.0} ({1:0.00}x, expect {2:0.00}x)", priced, priced / bled, price);
+        Check(Math.Abs(priced / bled - price) < 0.02f, "Blood Price scales the bleed (36% more at 20% health)");
 
         // The heal: 25% of what it dealt, wherever you are; not the class's 3% on top.
         reset();
@@ -158,7 +180,7 @@ static partial class Program
         step(0.02f);
         float h0 = me.Hp, e0 = grunt.Hp + grunt2.Hp;
         step(2f);
-        float dealtBy = e0 - grunt.Hp - grunt2.Hp, healed = me.Hp - h0 - regen * 2f;
+        float dealtBy = e0 - grunt.Hp - grunt2.Hp, healed = me.Hp - h0 - regen * 2f + me.MaxHp * Game.BathDrain * 2f;  // (what it healed, past the drain)
         Console.WriteLine("  bloodbath: dealt {0:0.0}, healed {1:0.0} ({2:0.000})", dealtBy, healed, healed / dealtBy);
         Check(Math.Abs(healed / dealtBy - Game.BathHeal) < 0.01f, "every tick heals you 25% of its damage, wherever you are, with no extra 3%");
         Check(g.Effects.Any(e => e.Kind == FxKind.BathHeal && (int)e.Pos2.X == 1 && e.Radius > 0f), "each heal sends its number");
@@ -183,25 +205,38 @@ static partial class Program
         Check(allyOutLoss > 0f && Math.Abs(allyIn / allyOutLoss - 0.8f) < 0.01f, "allies standing in it take 20% less damage, outside it full damage");
         Check(meOut > 0f && Math.Abs(meIn / meOut - 0.8f) < 0.01f, "and so do you");
 
-        // Going down doesn't end it; it still bleeds what's in it.
+        // Going down ends the channel.
         reset();
         grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
         cast();
         step(Game.BathGrow);
         me.InvulnT = 0f; me.ShieldHp = 0f;
         damage.Invoke(g, new object[] { me, me.MaxHp * 10f, "test" });
+        step(0.1f);
         gh = grunt.Hp;
-        step(1.5f);
-        Check(me.Downed && bath() != null && grunt.Hp < gh, "going down doesn't end it");
+        step(1f);
+        Check(me.Downed && bath() == null && drying() != null && grunt.Hp == gh, "going down ends the channel");
         me.Downed = false; me.Hp = me.MaxHp;
 
-        // It ends after 10 s.
+        // It runs at most 10 s.
         reset();
         cast();
         step(Game.BathTime - 0.3f);
-        Check(bath() != null, "it lasts its 10 s");
+        Check(bath() != null && me.Hp > me.MaxHp * 0.5f, "it can be channelled for 10 s");
         step(0.5f);
-        Check(bath() == null, "and is gone after them");
+        Check(bath() == null && drying() != null, "and then stops on its own");
+
+        // The bot keeps channelling while enemies wade in it, and stops when nothing's left in it.
+        reset();
+        g.Bot = true; var skill = g.BotLevel; g.BotLevel = BotSkill.Good;
+        var waded = make(EnemyType.Grunt, mePos + new V2(50f, 0f));
+        cast();
+        step(2f);
+        Check(bath() != null, "a bot keeps channelling while enemies wade in it");
+        pinned[waded.Id] = mePos + new V2(500f, 0f);
+        step(1f);
+        g.Bot = false; g.BotLevel = skill;
+        Check(bath() == null, "and stops when nothing's left in the pool");
 
         // Mastered: 220 px and 35% back.
         reset();
@@ -220,7 +255,8 @@ static partial class Program
         cast();
         step(0.5f);
         waveCleared.Invoke(g, null);
-        Check(bath() == null, "it ends between waves");
+        step(0.05f);
+        Check(bath() == null && drying() == null && me.UltT == 0f, "it ends between waves");
         hostS.Leave(""); client.Leave("");
 
         BloodbathLobbyTest(dt);

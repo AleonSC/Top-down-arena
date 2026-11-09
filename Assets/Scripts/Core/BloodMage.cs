@@ -829,8 +829,8 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Bloodbath, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1, HealthCost = BathCost,
-                Name = "Bloodbath", Cooldown = BathCooldown, Desc = "Pay 15% of your max health: blood floods the floor 170 px round you for 10 s (it stays where you cast it). Enemies wading in it are slowed 50% (Heavy enemies 35%, bosses 20%) and bleed 15 a second, and every drop heals you for 25% of it, wherever you are. Allies standing in it, you included, take 20% less damage.",
+                Id = AbilityId.Bloodbath, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1,
+                Name = "Bloodbath", Cooldown = BathCooldown, Desc = "Channel: blood floods the floor 170 px round you (it stays where you cast it) for up to 10 s, draining 4% of your max health a second. Enemies wading in it are slowed 50% (Heavy enemies 35%, bosses 20%) and bleed 15 a second, and every drop heals you for 25% of it, wherever you are. Allies standing in it, you included, take 20% less damage. Press again to stop; it also stops at 15% health or if you go down.",
                 Capstone = "The pool spreads to 220 px and gives back 35% of the bleed.",
                 Bot = b => b.NearEnemies >= 3 && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },
@@ -968,6 +968,9 @@ namespace Arena
             TickCoatings(dt);
             TickRain(dt);  // SanguineRain.cs
             TickTithe(dt);  // VeinTithe.cs
+            foreach (var p in Players.Values)  // a Bloodbath cleared with the wave's zones: its channel's time goes too (Bloodbath.cs)
+                if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath && ActiveBath(p) == null)
+                    p.UltT = 0f;
             TickReels(dt);  // Exsanguinate.cs
             foreach (var p in Players.Values)
             {

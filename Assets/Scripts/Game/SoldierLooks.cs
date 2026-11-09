@@ -5,8 +5,9 @@ namespace Arena
 {
     /// The Soldier DPS abilities' looks (mockup: Docs/Mockups/soldier-dps-abilities.html), all drawing only. With Visual
     /// effects off, none of this runs and the old looks draw as before.
-    ///   Dash            B, Comet Streak: a tapered cyan ribbon from where you started to where you are, cooling off over 0.4 s,
-    ///                   sparks off it, and a ring of sparks where you land (your own dash only, as the dash always was);
+    ///   Dashes          B, Comet Streak (made for the old Dash, which Poison Dart replaced; PoisonDartLook.cs): a tapered cyan
+    ///                   ribbon behind your own Game.DashT movement (Leap Slam, the Royal Dive...), cooling off over 0.4 s, sparks off it,
+    ///                   and a ring of sparks where you land;
     ///   Grenade (the Twin Rifle's tubes; Airstrike's bombs use the blast) A, Frag Burst: an olive grenade with a faint ring growing to its blast radius, then a white flash,
     ///                   an orange blast out to the radius, eight streaking shards and smoke (the scorch is Juice.cs's);
     ///   Mark for Death  A, Reticle Lock, with B's skull floating over it: the reticle snaps down and circles the enemy, a
@@ -144,6 +145,12 @@ namespace Arena
             int dashes = Mathf.Max(6, (int)(MathX.Tau * R / 12f));
             for (int i = 0; i < dashes; i++)
                 Arc(land, R, 1.5f, FragOrange.WithAlpha(0.28f), 2, MathX.Tau * i / dashes, MathX.Tau / dashes * 0.5f);
+            DrawRocketNade(b, t);  // Rocket assist: nose first, with its flame (TwinNadeLook.cs)
+        }
+
+        /// The old tumbling grenade (unused since Rocket assist; kept for a look that wants it).
+        void DrawTumblingNade(Bullet b, float t)
+        {
             float rot = t * 9f;
             Circle(b.Pos, b.Radius * 0.9f, NadeOlive, 12);
             V2 band = V2.FromAngle(rot) * b.Radius * 0.9f;
