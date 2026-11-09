@@ -41,6 +41,7 @@ namespace Arena
         Dodge,        // client -> host: this player dodged from this spot; the host gives them a moment of invulnerability (Dodge.cs)
         WildcardRequest, // client -> host: a Wildcard's whole loadout at once: weapon, first ability, second ability and its key (Session.SetWildcard)
         Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Misericorde's leaps); only that player's own game moves them
+        UltRequest,   // client -> host: the key this player picked in the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -78,6 +79,8 @@ namespace Arena
         public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
         public byte Wild;     // Wildcard only: its second ability and the key it sits on (Defs.MakeWild)
         public Kit UltKit => Role == Role.Wildcard ? (Kit)(Math.Min((int)Ability, Defs.WildcardChoices - 1) / Defs.WeaponsPerRole) : Kit;  // whose ultimate you get (a Wildcard: its first ability's class)
+        public byte Ult;      // the key picked in the lobby's Ultimate row: 0 the default ultimate, 1 the second where the role and class has one (Upgrades.Ultimate; the host clamps it, a Wildcard's is always 0)
+        public AbilityId UltId => Upgrades.Ultimate(Role, UltKit, Ult);
         public bool Ready;    // clicked Ready in the lobby; the match only starts once everyone has
         public int Seat = -1; // continuing a saved run: which of its seats this player takes (Session.Resume)
         public int Rank = 1;  // the player's account rank (Rank.cs), cosmetic and client-reported (the host clamps it)
@@ -98,7 +101,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 221;
+        public const int ProtocolVersion = 222;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -136,7 +139,7 @@ namespace Arena
 
         string joinName = "Player";
         int joinRole = 255;
-        int joinWeapon, joinAbility, joinKit, joinWild;
+        int joinWeapon, joinAbility, joinKit, joinWild, joinUlt;
         DateTime helloSentAt;
         bool awaitingWelcome;
 
@@ -156,18 +159,18 @@ namespace Arena
         /// A private match with no network: this game hosts and nobody can join (the loadout preview, Showcase).
         /// allies: stand-in teammates (ids 2 and 3, at most 2) for abilities that act on teammates; they only exist in
         /// this private game, never in the real lobby.
-        public void HostOffline(Role role, Kit kit, int weapon, int ability, int allies = 0, int wild = 0)
+        public void HostOffline(Role role, Kit kit, int weapon, int ability, int allies = 0, int wild = 0, int ult = 0)
         {
             Leave("");
             Net = NetPeer.Offline();
             MyId = 1;
-            Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability), Wild = (byte)wild };
+            Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability), Wild = (byte)wild, Ult = (byte)Math.Max(0, ult) };
             ClampLoadout(Lobby[1]);
             for (int k = 0; k < Math.Min(2, allies); k++)
                 Lobby[2 + k] = new LobbyEntry { Id = 2 + k, Name = "Ally " + (k + 1), Role = k == 0 ? Role.Dps : Role.Tank, Kit = Kit.Soldier, Weapon = 0, Ability = 0 };
         }
 
-        public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier, int wild = 0)
+        public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier, int wild = 0, int ult = 0)
         {
             Leave("");
             try
@@ -183,7 +186,7 @@ namespace Arena
             }
             Port = port;
             MyId = 1;
-            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability), Wild = (byte)wild };
+            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability), Wild = (byte)wild, Ult = (byte)Math.Max(0, Math.Min(255, ult)) };
             ClampLoadout(Lobby[1]);
             SyncOwnCosmetics();  // your rank, frame and trail show from the start (not only after the first lobby broadcast, e.g. pressing ready)
             SyncAvatars();       // (and your Hangout character stands in the room from the start too)
@@ -192,7 +195,7 @@ namespace Arena
         }
 
         /// role: preferred role, or null to take the first one nobody has.
-        public void Join(string address, int port, string name, Role? role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier, int wild = 0)
+        public void Join(string address, int port, string name, Role? role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier, int wild = 0, int ult = 0)
         {
             Leave("");
             address = (address ?? "").Trim();
@@ -213,6 +216,7 @@ namespace Arena
             joinAbility = ClampAbility(ability);
             joinKit = (int)kit;
             joinWild = wild;
+            joinUlt = ult;
             Connecting = true;
             Status = "Connecting to " + address + ":" + port + "...";
         }
@@ -485,13 +489,14 @@ namespace Arena
                     int ability = ClampAbility(r.ReadByte());
                     var kit = ClampKit(r.ReadByte());
                     int wild = r.ReadByte();
+                    int ult = r.ReadByte();
                     if (Game.Running || Lobby.Count >= MaxPlayers)
                     {
                         Reject(peer, Game.Running ? "That game has already started. Ask the host to go back to the lobby, then join."
                             : "That game is full (" + MaxPlayers + " players max).");
                         return;
                     }
-                    var joined = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Kit = kit, Weapon = (byte)weapon, Ability = (byte)ability, Wild = (byte)wild };
+                    var joined = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Kit = kit, Weapon = (byte)weapon, Ability = (byte)ability, Wild = (byte)wild, Ult = (byte)ult };
                     ClampLoadout(joined);
                     if (Resume != null)
                     {
@@ -577,6 +582,9 @@ namespace Arena
                     break;
                 case Msg.KitRequest:
                     SetKit(peer, r.ReadByte());
+                    break;
+                case Msg.UltRequest:
+                    SetUlt(peer, r.ReadByte());
                     break;
                 case Msg.WildcardRequest:
                 {
@@ -697,7 +705,7 @@ namespace Arena
         public bool HostResume(RunSave save, int port, string name)
         {
             var first = save.Seats[0];
-            if (!Host(port, name, first.Role, first.Weapon, first.Ability, first.Kit, first.Wild))
+            if (!Host(port, name, first.Role, first.Weapon, first.Ability, first.Kit, first.Wild, first.Ult))
                 return false;
             Resume = save;
             Modifiers = save.Mods;
@@ -735,6 +743,8 @@ namespace Arena
             e.Weapon = (byte)s.Weapon;
             e.Ability = (byte)s.Ability;
             e.Wild = (byte)s.Wild;
+            e.Ult = (byte)s.Ult;
+            ClampLoadout(e);
             e.Ready = false;
         }
 
@@ -771,6 +781,7 @@ namespace Arena
                 e.Weapon = 0;  // weapons and abilities differ per role
                 e.Ability = 0;
                 e.Wild = 0;
+                e.Ult = 0;     // (and so do ultimates)
             }
             e.Role = (Role)role;
             if (e.Role == Role.Wildcard)
@@ -795,6 +806,7 @@ namespace Arena
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;
                 e.Wild = Defs.MakeWild(second, Defs.WildKey(e.Wild));
+                e.Ult = 0;  // a Wildcard's ultimate follows its first ability's class
             }
             else
             {
@@ -803,6 +815,7 @@ namespace Arena
                 if (e.Ability >= Upgrades.RoleAbilityChoices)
                     e.Ability = 0;
                 e.Wild = 0;
+                e.Ult = (byte)Upgrades.ClampUlt(e.Role, e.Kit, e.Ult);
             }
         }
         static Kit ClampKit(int kit) => kit >= 0 && kit < Defs.KitCount ? (Kit)kit : Kit.Soldier;
@@ -814,8 +827,9 @@ namespace Arena
                 return;
             if (e.Kit != ClampKit(kit))
             {
-                e.Weapon = 0;  // each kit has its own weapons and abilities
+                e.Weapon = 0;  // each kit has its own weapons, abilities and ultimates
                 e.Ability = 0;
+                e.Ult = 0;
             }
             e.Kit = ClampKit(kit);
             e.Ready = false;
@@ -828,6 +842,18 @@ namespace Arena
             if (!Lobby.TryGetValue(id, out e) || Resume != null)
                 return;
             e.Ability = (byte)ClampAbility(ability);
+            ClampLoadout(e);
+            e.Ready = false;
+            BroadcastLobby();
+        }
+
+        /// The lobby's Ultimate row: 0 the default ultimate, 1 the second where there is one (clamped to what the role and class has).
+        void SetUlt(int id, int ult)
+        {
+            LobbyEntry e;
+            if (!Lobby.TryGetValue(id, out e) || Resume != null)
+                return;
+            e.Ult = (byte)Math.Max(0, Math.Min(255, ult));
             ClampLoadout(e);
             e.Ready = false;
             BroadcastLobby();
@@ -970,6 +996,7 @@ namespace Arena
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
                 w.Write(e.Wild);
+                w.Write(e.Ult);
                 w.Write(e.Ready);
                 w.Write((sbyte)e.Seat);
                 w.Write((short)e.Rank);
@@ -1000,6 +1027,7 @@ namespace Arena
                     w.Write((byte)s.Weapon);
                     w.Write((byte)s.Ability);
                     w.Write((byte)s.Wild);
+                    w.Write((byte)s.Ult);
                     w.Write(s.Level);
                 }
             }
@@ -1253,6 +1281,21 @@ namespace Arena
             }
         }
 
+        /// Pick a key of the lobby's Ultimate row (0 the default ultimate, 1 the second).
+        public void RequestUlt(int ult)
+        {
+            if (IsHost)
+            {
+                SetUlt(1, ult);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.UltRequest);
+                w.Write((byte)ult);
+                SendToHost(Proto.End(w));
+            }
+        }
+
         /// A Wildcard's whole loadout: weapon and first ability (0-17: kit * 3 + choice), second ability (same), and its key (1 Q, 2 E, 3 Shift).
         public void RequestWildcard(int weapon, int ability, int second, int key)
         {
@@ -1303,6 +1346,7 @@ namespace Arena
                     w.Write((byte)joinAbility);
                     w.Write((byte)joinKit);
                     w.Write((byte)joinWild);
+                    w.Write((byte)joinUlt);
                     SendToHost(Proto.End(w));
                     awaitingWelcome = true;
                     helloSentAt = DateTime.UtcNow;
@@ -1358,6 +1402,7 @@ namespace Arena
                     {
                         var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
                         e.Wild = r.ReadByte();
+                        e.Ult = r.ReadByte();
                         e.Ready = r.ReadBoolean();
                         e.Seat = r.ReadSByte();
                         e.Rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, (int)r.ReadInt16()));
@@ -1385,6 +1430,7 @@ namespace Arena
                         {
                             var s = new SeatSave { Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
                             s.Wild = r.ReadByte();
+                            s.Ult = r.ReadByte();
                             s.Level = r.ReadInt32();
                             Resume.Seats.Add(s);
                         }

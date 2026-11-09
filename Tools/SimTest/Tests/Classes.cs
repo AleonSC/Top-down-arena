@@ -55,7 +55,8 @@ static partial class Program
             foreach (var role in roles)
             {
                 var placed = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Select(c => Upgrades.RoleAbility(role, k.Id, c)).ToList();
-                placed.Add(Upgrades.Ultimate(role, k.Id));
+                for (int u = 0; u < Upgrades.UltChoices(role, k.Id); u++)
+                    placed.Add(Upgrades.Ultimate(role, k.Id, u));  // its ultimate, and the second one where it has one
                 foreach (var id in placed)
                 {
                     var a = Upgrades.Ability(id);

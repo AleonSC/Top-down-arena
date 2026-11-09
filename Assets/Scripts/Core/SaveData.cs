@@ -12,7 +12,7 @@ namespace Arena
         public string Name = "Player";
         public Role Role;
         public Kit Kit;
-        public int Weapon, Ability, Wild;
+        public int Weapon, Ability, Wild, Ult;  // Ult: the lobby's Ultimate pick (LobbyEntry.Ult)
         public readonly List<string> Taken = new List<string>();   // upgrade names, in the order picked
         public readonly string[] BonusKeys = { "", "", "" };        // abilities on Q, E, Shift (by name)
         public readonly List<string> Perks = new List<string>();  // the perks they brought (by name; a continued run can't change them)
@@ -71,7 +71,7 @@ namespace Arena
             {
                 sb.Append("seat\n");
                 Line(sb, "name", s.Name);
-                Line(sb, "class", s.Role + " " + s.Kit + " " + s.Weapon + " " + s.Ability + " " + s.Wild);
+                Line(sb, "class", s.Role + " " + s.Kit + " " + s.Weapon + " " + s.Ability + " " + s.Wild + " " + s.Ult);
                 Line(sb, "level", s.Level);
                 Line(sb, "xp", s.Xp);
                 Line(sb, "rerolls", s.Rerolls);
@@ -161,6 +161,7 @@ namespace Arena
                     s.Weapon = Math.Max(0, Math.Min(top - 1, I(p[2])));
                     s.Ability = Math.Max(0, Math.Min(top - 1, I(p[3])));
                     s.Wild = p.Length > 4 ? Math.Max(0, Math.Min(3 * Defs.WildcardChoices - 1, I(p[4]))) : 0;  // (saves from before Wildcard have no fifth number)
+                    s.Ult = p.Length > 5 ? Upgrades.ClampUlt(s.Role, s.Kit, I(p[5])) : 0;  // (nor those from before the Ultimate pick a sixth)
                     break;
                 }
                 case "level": s.Level = Math.Max(1, I(val)); break;

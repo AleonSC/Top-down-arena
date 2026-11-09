@@ -16,6 +16,7 @@
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
+# PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
 # KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).

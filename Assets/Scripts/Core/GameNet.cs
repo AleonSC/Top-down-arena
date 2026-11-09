@@ -816,6 +816,16 @@ namespace Arena
             s.Float(ref z.Duration);
             s.Float(ref z.GuardFrac);
             s.Float(ref z.Aim);
+            if (z.Kind == ZoneKind.Phalanx)  // the line's walk and each skeleton's health (BonePhalanx.cs)
+            {
+                s.Float(ref z.Marched);
+                int n = z.Bones != null ? z.Bones.Length : 0;
+                s.Byte(ref n);
+                if (s.Reading)
+                    z.Bones = new byte[n];
+                for (int i = 0; i < n; i++)
+                    s.Byte(ref z.Bones[i]);
+            }
             if (s.Reading)
                 Zones[z.Id] = z;
         }

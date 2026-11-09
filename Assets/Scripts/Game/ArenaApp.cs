@@ -27,6 +27,7 @@ namespace Arena
         Role hostRole = Role.Tank;
         Role? joinRole;
         int weaponChoice, abilityChoice;
+        int ultChoice;  // the lobby's Ultimate pick (LobbyEntry.Ult): 0 the default, 1 the second
         int wildSecond = 1, wildKey = 1;  // a Wildcard's second ability (0-17) and its key (1 Q, 2 E, 3 Shift); see Defs.MakeWild
         int wildTab;                      // the lobby's Wildcard picker: 0 edits the first ability, 1 the second
         Kit kitChoice = Kit.Soldier;
@@ -192,7 +193,7 @@ namespace Arena
             else if (opts.TryGetValue("join", out v))
             {
                 addressText = v;
-                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond, wildKey));
+                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond, wildKey), ultChoice);
             }
         }
 
@@ -205,7 +206,7 @@ namespace Arena
         void HostGame()
         {
             SaveMenuFields();
-            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice))
+            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice, ult: ultChoice))
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
 

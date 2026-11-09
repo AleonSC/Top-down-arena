@@ -155,6 +155,7 @@ namespace Arena
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
                 w.Write(e.Wild);
+                w.Write(e.Ult);
                 var perks = PerksFor(e);
                 w.Write((byte)perks.Length);
                 foreach (var id in perks)
@@ -196,6 +197,7 @@ namespace Arena
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
                 int wild = r.ReadByte();  // a Wildcard's second ability and its key (Defs.WildSecond / WildKey)
+                int ult = r.ReadByte();   // the lobby's Ultimate pick (LobbyEntry.Ult)
                 var perkBytes = new List<byte>();
                 for (int pn = r.ReadByte(); pn > 0; pn--)
                     perkBytes.Add(r.ReadByte());
@@ -204,6 +206,7 @@ namespace Arena
                 p.Kit = kit;
                 p.Weapon = Defs.Weapon(role, kit, weapon < (role == Role.Wildcard ? Defs.WildcardChoices : Defs.WeaponsPerRole) ? weapon : 0);
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
+                p.UltChoice = Upgrades.ClampUlt(role, kit, ult);
                 if (role == Role.Wildcard)
                 {
                     p.WildKit = (Kit)(Math.Min(ability, Defs.WildcardChoices - 1) / Defs.WeaponsPerRole);
@@ -347,7 +350,7 @@ namespace Arena
             ids[0] = p.RoleAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
-            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit);
+            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.UltChoice);
             // Bonus abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
             if (p.StartBonus != AbilityId.None)
@@ -1179,6 +1182,7 @@ namespace Arena
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges();    // the Drawbridge (Drawbridge.cs)
+            KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);

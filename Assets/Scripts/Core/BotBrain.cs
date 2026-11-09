@@ -284,6 +284,8 @@ namespace Arena
                     aimAt = me.Pos + (botMove.IsZero ? V2.FromAngle(me.Aim) : botMove.Normalized()) * 220f;  // blink toward safety
                 else if (s.Id == AbilityId.Adrenaline)
                     aimAt = (lowest != null && lowest != me ? lowest : me).Pos;  // the hurt ally, or itself
+                else if (s.Id == AbilityId.BonePhalanx)
+                    aimAt = PhalanxBotAim(me, target);  // the line marches at the biggest group in front (BonePhalanx.cs)
                 else if (HealsWhereAimed(s.Id) && healSpot != null)
                     aimAt = healSpot.Pos;  // a medkit, rain, lantern, cross or cone lands where the hurt ally is
                 else if (target != null)

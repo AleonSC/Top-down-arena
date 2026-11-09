@@ -210,6 +210,7 @@ static partial class Shot {
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
+    if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);  // FXOFF=1: Visual effects off (the plain looks)
     ArenaScenes();
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;

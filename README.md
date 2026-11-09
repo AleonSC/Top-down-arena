@@ -233,15 +233,29 @@ Parry upgrades show up like any other card:
 
 ### Ultimates
 
-**F** fires your **ultimate**. Each role and class combination has its own, fixed one: it
-comes with your role and class and only changes if you pick a different one. Ultimates have long cooldowns
+**F** fires your **ultimate**. Each role and class combination has its own default one, and some have a second you
+can pick instead with the lobby's **Ultimate** row (so far the Tank Summoner: **Titan** or **Bone Phalanx**; the other
+keys of the row are locked for ultimates still to come). A Wildcard always gets its first ability's class's DPS ultimate. Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
 | | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
-| **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead. With Visual effects on a frost lattice spreads out from you, spires cage each frozen enemy and break when the freeze ends, and a ring of spears jabs at bosses | **Titan** (80 s): a huge stone titan (140 px across) rises from rubble over 1.4 s, then stomps after enemies for 17 s, raising its fists for 0.4 s before each slam (90 damage, 190 px, every 1.4 s, shoves enemies back; bosses and Heavy enemies aren't shoved). Its whole body blocks bullets (soaks 1000 boss damage). It crumbles when time is up | **Last Stand** (70 s): plant yourself behind a crescent of plates that stops every shot from the front while you take 10% of it (no timer; press again to cancel) |
+| **Tank** | **Fortress** (70 s): raises a fixed, impenetrable dome (240 px radius) where you stand for 10 s; only players and player bullets cross it, enemies (bosses too) and their shots can't get in or shoot through, and anything inside is pushed out | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead. With Visual effects on a frost lattice spreads out from you, spires cage each frozen enemy and break when the freeze ends, and a ring of spears jabs at bosses | **Titan** (80 s): a huge stone titan (140 px across) rises from rubble over 1.4 s, then stomps after enemies for 17 s, raising its fists for 0.4 s before each slam (90 damage, 190 px, every 1.4 s, shoves enemies back; bosses and Heavy enemies aren't shoved). Its whole body blocks bullets (soaks 1000 boss damage). It crumbles when time is up. *Or, picked with the second Ultimate key:* **Bone Phalanx** (75 s, see below) | **Last Stand** (70 s): plant yourself behind a crescent of plates that stops every shot from the front while you take 10% of it (no timer; press again to cancel) |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability. A heartbeat pulse rolls out from you and a halo and column of light drop over each player as it reaches them | **Sanctum** (80 s): a 7 s holy dome; bullets can't get in, allies inside can't go down, and a healing pulse rolls out from you every 0.9 s (7 pulses: 20 each, the last 30; each ally heals as the ring reaches them) | **World Tree** (80 s): a 100 px tree for 15 s that heals everyone under it (18 HP/s), slows and burns enemies, and sends a wave of healing butterflies, one to each ally (the most hurt first), every 1.9 s; each butterfly flutters to its ally and heals 14 on arrival | **Hallowed Blade** (80 s): a giant sword of light falls at your cursor (200 damage) and stays planted for 8 s; allies in its ring heal 15 HP/s and enemies burn 20 a second, and every 2 s a pulse crosses the whole arena (4 pulses, the last bigger) healing every ally 10 and hurting every enemy 13 as the ring reaches them |
 | **DPS** | **Artillery Assault** (60 s): 6 s of triple fire rate and +2 extra projectiles, with a heat aura, speed streaks and a muzzle flash | **Bullet Rain** (70 s): a downpour at your cursor (330 px across) for 6 s: the whole arena darkens and rains, and inside the zone the drops harden into needles that do 45 damage a second to every enemy in it, bosses too, and leaves them **wet** (as Tsunami does: slowed, and any lightning anywhere arcs to them) for 3 s after they leave | **Legion** (70 s): a blood moon rises and tints the arena for 10 s; 6 wolves and 6 bats circle you for a second, then run 40% faster, and your other minions frenzy | **Drawbridge** (75 s): a gatehouse rises behind you and its drawbridge falls along your aim, crushing the 500 x 100 px lane (140) and throwing the edges aside (45); then for 5 s it's a walkway enemies can't step onto, and their shots stop at its rails |
+
+**Bone Phalanx** (Tank Summoner, the second ultimate, 75 s): a bone gate cracks open in the floor 60 px ahead of you,
+across your aim (0.5 s), and eight skeletons with bone tower shields step out of it, middle first, into a line 25 px
+apart (a 200 px front). Over 6 s the line marches 260 px along the aim it was cast with, even if you turn. The shields
+stop every enemy shot that reaches the line from the front, red aimed shots too; shots from behind (your team's) pass
+through. Enemies in front are shoved along ahead of it, and every 0.5 s each skeleton spears what it is shoving for 15
+(times your damage, faster with your fire-rate bonuses, like other minions). It walks at 45% speed while it shoves a
+Heavy enemy; a boss is never shoved and stops the line, and so do walls, props and an enemy pinned against one. Each
+skeleton has 120 health, worn by the shots it blocks and the enemies pressing on it, and cracks as it wears; a broken
+one falls into a pile of bones and leaves a gap that shots and small enemies get through. At the end it holds 1 s and
+crumbles; it crumbles early if you go down or the wave ends. Mastered: 10 skeletons with 180 health each. Bots that
+have it cast it at the biggest group in front of them. With Visual effects off it is drawn plainly (a disc, a bar and
+a stick per skeleton).
 
 ### Ability mastery
 
@@ -286,7 +300,7 @@ once mastered); the Tab menu shows the level.
 | **Lay on Hands** | Also heals everyone else near them for half as much. | **Misericorde** | Each execution heals you 5% of your health. |
 | **The Gauntlet** | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | **Caught Steel** | Holds up to 18 shards. |
 | **Last Stand** | You take 5% of the damage instead of 10%. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
-| **Drawbridge** | The bridge stands for 8 s. |  |  |
+| **Drawbridge** | The bridge stands for 8 s. | **Bone Phalanx** | 10 skeletons with 180 health each (a 250 px front). |
 
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next one
 fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -294,9 +308,12 @@ fills as it earns XP). What level 5 unlocks is always written in gold under each
 level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
 with "…"; hover a Tab tile to read it in full.
 
-In the lobby, your **ultimate** sits at the bottom of the left column of the loadout screen, under the stat bars: a gold charge ring (half full, as every
-ultimate starts a match half charged) with its key, its charge time, what it does and what mastering it adds. Click
-it to watch it in the preview above; the ring fills while it plays.
+In the lobby, the **Ultimate** row of the loadout screen has four keys: the first is your role and class's default
+ultimate, the second its other ultimate where it has one (the Tank Summoner's Bone Phalanx), and the rest are locked.
+The one you will take into the match is lit (inverse video, like the weapon and ability keys). Clicking one picks it
+and shows it in the detail box (what it does, its charge time, what mastering it adds) and in the preview. Changing
+role or class goes back to the default. The pick is saved with a continued run, and the Practice Range and the Field
+Guide follow it (the guide lists both of the Tank Summoner's ultimates).
 Mastery resets each run.
 
 ## Levels and upgrades

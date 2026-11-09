@@ -60,6 +60,15 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.BonePhalanx, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult, UltChoice = 1,
+                Name = "Bone Phalanx", Cooldown = 75f, Desc = "A bone gate opens ahead of you and 8 skeletons with tower shields march a line 260 px along your aim over 6 s. "
+                    + "Their shields stop every enemy shot from the front (red aimed shots too) while your team shoots through; enemies are shoved ahead and speared for 15 every 0.5 s. "
+                    + "Each skeleton has 120 health; a broken one leaves a gap. Bosses and walls stop the line.",
+                Capstone = "10 skeletons with 180 health each.",
+                Bot = b => b.HaveTarget && b.TargetD < 460f || b.Danger,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.Lifeline, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Ult, Instant = true,
                 Name = "Lifeline", Cooldown = 90f, Desc = "Instantly revive and fully heal the whole party, with 3 s of invulnerability.",
                 Capstone = "Everyone also gets 4 s of Overdrive.",
@@ -137,6 +146,10 @@ namespace Arena
 
                 case AbilityId.Titan:  // Tank: Summoner
                     CastTitan(p, cap);  // Titan.cs
+                    break;
+
+                case AbilityId.BonePhalanx:  // Tank: Summoner, the second ultimate
+                    CastPhalanx(p, target, cap);  // BonePhalanx.cs
                     break;
 
                 case AbilityId.Lifeline:  // Healer: Soldier

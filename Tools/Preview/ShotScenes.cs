@@ -4,6 +4,7 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // ROOM, APPROACH, PATTERNS, PATCHES, MODS, PATHON, ...).
 static partial class Shot {
   static void PlayerScenes() {
+    PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }

@@ -899,6 +899,11 @@ namespace Arena
                     TickVeinTrail(z);  // VeinRush.cs
                 if (z.Kind == ZoneKind.Drawbridge)
                     TickDrawbridge(z);  // Drawbridge.cs
+                if (z.Kind == ZoneKind.Phalanx)
+                {
+                    TickPhalanx(z, dt);  // BonePhalanx.cs
+                    continue;  // (not a circle: nothing below applies)
+                }
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {

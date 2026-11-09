@@ -526,6 +526,11 @@ namespace Arena
                         scratchIds.Add(b.Id);
                         continue;
                     }
+                    if (PhalanxStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Bone Phalanx's shields: everything from the front stops, red aimed shots too (BonePhalanx.cs)
+                        continue;
+                    }
                     if (BridgeStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)

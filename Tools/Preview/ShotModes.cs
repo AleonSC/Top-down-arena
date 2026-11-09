@@ -251,9 +251,9 @@ static partial class Shot {
       set("glMaterial", new Material(null));
       set("addressList", "100.123.48.122, 192.168.1.163");
       if (Environment.GetEnvironmentVariable("INFO") != null) set("connInfoOpen", true);
-      // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability; ABILITY=n hovers that ability.
+      // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n hovers that ability.
       var lo = Environment.GetEnvironmentVariable("LOADOUT");
-      if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); }
+      if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); if (q.Length > 4) le.Ult = byte.Parse(q[4]); }
       var ab = Environment.GetEnvironmentVariable("ABILITY");
       if (ab != null) set("abilityHover", int.Parse(ab));
       {
@@ -261,8 +261,8 @@ static partial class Shot {
         int shown = ab != null ? int.Parse(ab) : le.Ability;
         var sc = new Showcase();
         bool ultDemo = Environment.GetEnvironmentVariable("ULTDEMO") != null;  // ULTDEMO=1: the ultimate is being previewed
-        if (ultDemo) set("ultDemoUntil", 1e9f);
-        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo);
+        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);
+        if (ultDemo) set("detailSel", 2);
         float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
         for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
         set("showcase", sc);
