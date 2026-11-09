@@ -42,6 +42,8 @@ namespace Arena
         Swarmer,
         // enemies that don't shoot (NonShooters.cs, Docs/EnemyRoles.md): a Hunter, a Disruptor, a Zoner and the Zoner's mines
         FuseRunner, Hookman, Sapper, SapperMine,
+        // melee swordsmen (Swordsman.cs): a long blade that cuts a cone, and one with a shield up in front
+        Swordsman, ShieldSwordsman,
     }
 
     public class RoleDef
@@ -278,6 +280,10 @@ namespace Arena
                 Picker = PickerGroup.Late, Blurb = "Plants tripwire pods; armed pods are joined by lasers. Cross a laser or step on a pod and it blows. Shoot a pod to use it on enemies." },
             new EnemyDef { Name = "Tripwire Pod", Hp = 1f, Radius = 7f, Speed = 0f, Score = 0, Xp = 0, Sides = 6, Color = new Rgba(1f, 0.42f, 0.35f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A Sapper's pod: arms in 1 s, then a laser joins it to armed pods near it. Shoot it to blow it up." },
+            new EnemyDef { Name = "Swordsman", Hp = 85f, Radius = 15f, Speed = 95f, Score = 22, Xp = 14, Sides = 24, Color = new Rgba(0.86f, 0.3f, 0.25f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Walks up, raises a long sword and cuts the cone drawn on the floor in front of it. Step out of the cone, then hit it while it recovers." },
+            new EnemyDef { Name = "Shield Swordsman", Hp = 85f, Radius = 15f, Speed = 75f, Score = 28, Xp = 16, Sides = 24, Color = new Rgba(0.86f, 0.3f, 0.25f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side." },
         };
 
         public const int WeaponsPerRole = 3;

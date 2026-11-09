@@ -1088,7 +1088,7 @@ namespace Arena
         {
             V2 goal = tpos;
             if (TheWarden() == null)
-                return (goal - e.Pos).Normalized();  // a boss approach (Approaches.cs): no riot to put down, just you
+                return RouteTo(e, goal);  // a boss approach (Approaches.cs): no riot to put down, just you
             float best = float.MaxValue;
             foreach (var r in Enemies.Values)
                 if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f)
@@ -1100,7 +1100,7 @@ namespace Arena
                         goal = r.Pos;
                     }
                 }
-            return (goal - e.Pos).Normalized();
+            return RouteTo(e, goal);  // round walls and crates (LayoutRules.cs)
         }
 
         void ClearGuards()
@@ -1144,7 +1144,7 @@ namespace Arena
             var w = TheWarden();
             if (w != null && w.Pos.DistanceSq(e.Pos) < tpos.DistanceSq(e.Pos))
                 goal = w.Pos;
-            V2 dir = (goal - e.Pos).Normalized();
+            V2 dir = RouteTo(e, goal);  // round walls and crates (LayoutRules.cs)
             return dir + dir.Orthogonal() * (float)Math.Sin(e.T * 3f + e.Id) * 0.25f;
         }
 

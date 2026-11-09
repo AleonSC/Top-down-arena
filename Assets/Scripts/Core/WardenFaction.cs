@@ -110,10 +110,9 @@ namespace Arena
                     return dir;
             }
             V2 goal = HerdSpot(e, tpos);
-            V2 to = goal - e.Pos;
-            if (to.Length < 8f)
+            if (goal.DistanceTo(e.Pos) < 8f)
                 return V2.Zero;
-            return to.Normalized();
+            return RouteTo(e, goal);  // round walls and crates (LayoutRules.cs)
         }
 
         // --- The Riot Line (the Warden's approach, its last wave: Approaches.cs) --------------------------------------
@@ -176,13 +175,13 @@ namespace Arena
                     return v;
                 int k = shields.IndexOf(e);
                 V2 goal = c + fwd * 40f + across * ((k - (shields.Count - 1) / 2f) * RiotLineGap);
-                return ((goal - e.Pos) / 40f).LimitLength(RiotLineSpeed);
+                return RouteVel(e, goal, ((goal - e.Pos) / 40f).LimitLength(RiotLineSpeed));  // round walls and crates
             }
             var guards = mates.FindAll(m => m.Type != EnemyType.RiotShield);
             guards.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
             int g = guards.IndexOf(e);
             V2 spot = c - fwd * RiotGuardBehind + across * ((g - (guards.Count - 1) / 2f) * RiotGuardGap);
-            return ((spot - e.Pos) / 40f).LimitLength(1f);
+            return RouteVel(e, spot, ((spot - e.Pos) / 40f).LimitLength(1f));
         }
 
         /// Where a Riot Shield walks to: straight at you, or, sent by the Warden while his searchlight hunts, round to

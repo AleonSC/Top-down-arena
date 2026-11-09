@@ -22,7 +22,7 @@ static partial class Shot {
     foreach (var t in new[] { EnemyType.Boss, EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse }) pr.BossBeaten(t, 10);
     pr.RunsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 6; pr.RunsAs[Profile.ClassKey(Role.Dps, Kit.Elementalist)] = 3; pr.RunsAs[Profile.ClassKey(Role.Healer, Kit.Ninja)] = 1; pr.WinsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 1; pr.RoomsPlayed["Defend"] = 5; pr.RoomsWon["Defend"] = 4; pr.RoomsPlayed["MiniBoss"] = 3; pr.RoomsWon["MiniBoss"] = 2; pr.RoomsPlayed["KillRush"] = 3; pr.RoomsWon["KillRush"] = 3; pr.RoomsPlayed["HoldZones"] = 4; pr.RoomsWon["HoldZones"] = 2; pr.RoomsPlayed["Mirror"] = 2; pr.RoomsWon["Mirror"] = 1;
     // Rank (Rank.cs): rank 8 with a few runs logged, as after the run in the "gameover" preview (RANKUP=1: just ranked up).
-    pr.Xp = Rank.XpAt(Environment.GetEnvironmentVariable("RANK") != null ? int.Parse(Environment.GetEnvironmentVariable("RANK")) : 8) + 115; pr.Trail = Environment.GetEnvironmentVariable("TRAIL") ?? "trail-ember";  // RANK=40 TRAIL=trail-prism for the cosmetics window
+    pr.Xp = Rank.XpAt(Environment.GetEnvironmentVariable("RANK") != null ? int.Parse(Environment.GetEnvironmentVariable("RANK")) : 9) + 115; pr.Trail = Environment.GetEnvironmentVariable("TRAIL") ?? "trail-ember";  // RANK=40 TRAIL=trail-prism for the cosmetics window
     pr.Recent.Add(new RankLog { Wave = 11, Result = 0, Xp = 810, MultPct = 150, Mods = "Tough Crowd|Nightfall" });
     pr.Recent.Add(new RankLog { Wave = 23, Result = 1, Xp = 3120, MultPct = 175, Mods = "Death Throes|Frenzy|Tough Crowd" });
     pr.Recent.Add(new RankLog { Wave = 14, Result = 0, Xp = 440, MultPct = 100, Mods = "" });
@@ -299,6 +299,19 @@ static partial class Shot {
       var rs = lput(EnemyType.RiotShield, new V2(300f, 590f)); rs.Phase = 0; typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { rs, Game.RiotWinding, 0.4f });
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LUNGE"), System.Globalization.CultureInfo.InvariantCulture) * 0.6f;
+    }
+    if (Environment.GetEnvironmentVariable("SWORD") != null) {  // SWORD=1: the Swordsman (top row) and the Shield Swordsman (bottom row) in each phase: closing in, wind-up, cut, recovery (SwordsmanLook.cs); SWORDBLOCK=1 flashes the plate
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear();
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      me.Pos = me.Disp = new V2(1500f, 900f);
+      var ages = new[] { 0f, 0.3f, 0.07f, 0.35f };
+      for (int row = 0; row < 2; row++)
+        for (int ph = 0; ph < 4; ph++) {
+          var e = (Enemy)ssp.Invoke(sg, new object[] { row == 0 ? EnemyType.Swordsman : EnemyType.ShieldSwordsman, new V2(260f + 260f * ph, 230f + 280f * row), 0f, 0, false });
+          e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f; e.Phase = (byte)ph; e.SeenPhase = (byte)ph; e.SeenT = ages[ph];
+          if (Environment.GetEnvironmentVariable("SWORDBLOCK") != null) e.T2 = 0.2f;
+        }
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     }
     if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);

@@ -10,6 +10,7 @@
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).
+# SWORD=1 (the Swordsman and Shield Swordsman in each phase: closing in, wind-up, cut, recovery; SWORDBLOCK=1 flashes the shield).
 # LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).
 # AIM=0.7 (the aimed shooters winding up: Sniper, Shard, Medic, Splitter, Phantom, Grunt with their aim lines).
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).

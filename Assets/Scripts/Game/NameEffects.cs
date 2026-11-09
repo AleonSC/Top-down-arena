@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The name effects a rank unlocks (Rank.cs, CosmeticKind.NameEffect): how a player's name is drawn wherever it shows to others
-    /// (the lobby party card and Hangout plate, the tag over a player in a match, your look card). Mockup: Docs/Mockups/name-effects.html.
+    /// (the lobby party card and Hangout plate, the tag over a player in a match, your look card). Mockups: Docs/Mockups/name-effects.html and name-effects-more.html (the last eight: Chrome to Petals).
     /// Built from IMGUI labels: colour gradients are the same text drawn in a few clipped bands, glows and outlines are copies at
     /// small offsets, sheens are a clipped strip. With Visual effects off each is its still self; a small name (13 px or less) keeps
     /// only its colour and glow, so it stays readable.
@@ -32,6 +32,11 @@ namespace Arena
             bool small = size <= 13;
             float w = Ui.TextWidth(text, size, true);
             float x = align == TextAnchor.MiddleCenter || align == TextAnchor.UpperCenter ? r.center.x - w / 2f : align == TextAnchor.MiddleRight || align == TextAnchor.UpperRight ? r.xMax - w : r.x;
+            if (id == "name-terminal")  // fixed pitch, so its width isn't the font's
+            {
+                w = text.Length * Ui.TextWidth("0", size, true) * 1.02f;
+                x = align == TextAnchor.MiddleCenter || align == TextAnchor.UpperCenter ? r.center.x - w / 2f : align == TextAnchor.MiddleRight || align == TextAnchor.UpperRight ? r.xMax - w : r.x;
+            }
             if (shadow)
                 NRun(r, x, text, size, new Color(0f, 0f, 0f, 0.65f), 1f, 1f);
             float cy = r.center.y;
@@ -124,6 +129,131 @@ namespace Arena
                 case "name-rainbow":
                     for (int i = 0; i < text.Length; i++)
                         NRun(r, x + NPrefix(text, i, size), text.Substring(i, 1), size, Color.HSVToRGB(((t * 70f + i * 38f) % 360f) / 360f, 0.85f, 0.95f));
+                    break;
+                case "name-chrome":
+                    NOutline(r, x, text, size, new Color(0.04f, 0.06f, 0.12f), 0.8f);
+                    NBand(r, x, w, text, size, -0.8f, -0.35f, new Color(1f, 1f, 1f));
+                    NBand(r, x, w, text, size, -0.35f, -0.05f, new Color(0.74f, 0.84f, 1f));
+                    NBand(r, x, w, text, size, -0.05f, 0.08f, new Color(0.12f, 0.16f, 0.28f));
+                    NBand(r, x, w, text, size, 0.08f, 0.4f, new Color(0.49f, 0.61f, 0.82f));
+                    NBand(r, x, w, text, size, 0.4f, 0.85f, new Color(0.96f, 0.89f, 0.78f));
+                    NSheen(r, x, w, text, size, t * 0.8f, new Color(1f, 1f, 1f, 0.7f), 0.45f);
+                    break;
+                case "name-toxic":
+                    NOutline(r, x, text, size, new Color(0.05f, 0.18f, 0.02f), Mathf.Max(0.8f, size * 0.045f));
+                    NGlow(r, x, text, size, new Color(0.47f, 1f, 0.16f, 0.14f), 1.1f);
+                    NGradient(r, x, w, text, size, new Color(0.89f, 1f, 0.42f), new Color(0.6f, 0.95f, 0.2f), new Color(0.31f, 0.82f, 0f));
+                    if (!small && t > 0f)
+                        for (int i = 0; i < text.Length; i++)
+                        {
+                            if (text[i] == ' ' || FrameHash(i * 3 + 2) >= 0.55f)
+                                continue;
+                            float px = x + NPrefix(text, i, size) + Ui.TextWidth(text.Substring(i, 1), size, true) * 0.5f, life = (t * 0.45f + FrameHash(i * 5 + 7)) % 1f, len = Mathf.Min(1f, life / 0.6f) * size * 0.3f;
+                            Ui.Fill(new Rect(px - 1f, cy + size * 0.3f, 2f, len), new Color(0.49f, 1f, 0.16f, 1f));
+                            EDot(new Vector2(px, cy + size * 0.3f + len), 1.8f, new Color(0.49f, 1f, 0.16f, 1f));
+                            if (life > 0.6f)
+                            {
+                                float f = (life - 0.6f) / 0.4f;
+                                EDot(new Vector2(px, cy + size * 0.6f + f * size * 0.5f), 1.6f, new Color(0.49f, 1f, 0.16f, 1f - f));
+                            }
+                        }
+                    break;
+                case "name-holo":
+                {
+                    float oldA = Ui.Alpha;
+                    if (!small && t > 0f && FrameHash(Mathf.FloorToInt(t * 20f) + 5) < 0.06f)
+                        Ui.Alpha = oldA * 0.5f;  // drops out for a frame
+                    NRun(r, x, text, size, new Color(1f, 0.24f, 0.78f, 0.6f), size * 0.05f);
+                    NGradient(r, x, w, text, size, new Color(0.79f, 0.99f, 1f), new Color(0.55f, 0.93f, 1f), new Color(0.31f, 0.86f, 1f));
+                    if (t > 0f)
+                    {
+                        float pos = -0.8f + (((t * 0.7f) % 1.4f) / 1.4f) * 1.65f;
+                        NBand(r, x, w, text, size, pos - 0.08f, pos + 0.08f, new Color(1f, 1f, 1f, 0.9f));
+                    }
+                    if (!small)
+                        for (float yy = cy - size * 0.7f; yy < cy + size * 0.7f; yy += 3f)
+                            Ui.Fill(new Rect(x - 2f, yy, w + 4f, 1f), new Color(0.03f, 0.05f, 0.09f, 0.3f));
+                    Ui.Alpha = oldA;
+                    break;
+                }
+                case "name-nebula":
+                    for (int i = 0; i < text.Length; i++)
+                    {
+                        float f = text.Length > 1 ? i / (float)(text.Length - 1) : 0f;
+                        var c = f < 0.5f ? Color.Lerp(new Color(1f, 0.61f, 0.91f), new Color(0.66f, 0.61f, 1f), f * 2f) : Color.Lerp(new Color(0.66f, 0.61f, 1f), new Color(0.44f, 0.85f, 1f), (f - 0.5f) * 2f);
+                        NRun(r, x + NPrefix(text, i, size), text.Substring(i, 1), size, c);
+                    }
+                    NSheen(r, x, w, text, size, t * 0.7f, new Color(1f, 1f, 1f, 0.55f), 0.3f);
+                    if (!small)
+                        for (int i = 0; i < 9; i++)
+                        {
+                            float tw = 0.5f + 0.5f * Mathf.Sin(t * 3f + i * 1.9f);
+                            EDot(new Vector2(x + FrameHash(i) * w, cy + (FrameHash(i + 9) - 0.5f) * size * 0.8f), 0.8f, new Color(1f, 1f, 1f, 0.4f + 0.6f * tw));
+                        }
+                    break;
+                case "name-pixel":  // chunky colour blocks stepping along the name (a clipped column of the text each)
+                {
+                    var pal = new[] { new Color(1f, 0.3f, 0.43f), new Color(1f, 0.82f, 0.4f), new Color(0.02f, 0.84f, 0.63f), new Color(0.3f, 0.79f, 0.94f) };
+                    int step = t > 0f ? Mathf.FloorToInt(t * 6f) : 0;
+                    float block = Mathf.Max(5f, size * 0.3f);
+                    NOutline(r, x, text, size, new Color(0.04f, 0.05f, 0.1f), 0.7f);
+                    for (int k = 0; k * block < w + block; k++)
+                    {
+                        var clip = new Rect(x + k * block, cy - size * 0.8f, Mathf.Min(block, w + 6f - k * block), size * 1.6f);
+                        GUI.BeginGroup(clip);
+                        Ui.Label(new Rect(x - clip.x, r.y - clip.y, w + 24f, r.height), text, size, pal[(k + step) % 4], TextAnchor.MiddleLeft, true);
+                        GUI.EndGroup();
+                    }
+                    break;
+                }
+                case "name-terminal":  // fixed-pitch green with a blinking block cursor; now and then it scrambles and decodes
+                {
+                    float pitch = Ui.TextWidth("0", size, true) * 1.02f, cyc = t % 4f;
+                    int shown = small || t <= 0f || cyc > 0.8f ? text.Length : Mathf.FloorToInt(cyc / 0.8f * text.Length);
+                    var green = new Color(0.42f, 1f, 0.6f);
+                    for (int i = 0; i < text.Length; i++)
+                    {
+                        string ch = i < shown ? text.Substring(i, 1) : GlitchChars.Substring(Mathf.FloorToInt(FrameHash(Mathf.FloorToInt(t * 25f) + i * 7) * GlitchChars.Length) % GlitchChars.Length, 1);
+                        float cx0 = x + i * pitch + (pitch - Ui.TextWidth(ch, size, true)) * 0.5f;
+                        NRun(r, cx0, ch, size, new Color(0.24f, 1f, 0.51f, 0.14f), 0.6f);
+                        NRun(r, cx0, ch, size, green);
+                    }
+                    if (small || t <= 0f || Mathf.FloorToInt(t * 2f) % 2 == 0)
+                        Ui.Fill(new Rect(x + text.Length * pitch + 2f, cy - size * 0.42f, pitch * 0.7f, size * 0.84f), new Color(0.42f, 1f, 0.6f, 0.9f));
+                    break;
+                }
+                case "name-electric":
+                {
+                    int seed = t > 0f ? Mathf.FloorToInt(t * 14f) : 0;
+                    NGlow(r, x, text, size, new Color(0.43f, 0.67f, 1f, 0.12f + 0.08f * FrameHash(seed)), 0.9f);
+                    NRun(r, x, text, size, new Color(1f, 0.97f, 0.78f));
+                    if (!small && t > 0f)
+                        for (int b = 0; b < 2; b++)
+                        {
+                            if (FrameHash(seed * 3 + b * 11) < 0.45f)
+                                continue;
+                            float sy = cy + (FrameHash(seed + b * 5) - 0.5f) * size * 0.9f;
+                            var prev = new Vector2(x - 4f, sy);
+                            for (float px = x + 8f; px < x + w + 4f; px += 9f)
+                            {
+                                var nx = new Vector2(px, sy + (FrameHash(seed * 13 + (int)px + b) - 0.5f) * size * 0.7f);
+                                FrameLine(prev, nx, 0.9f, new Color(0.39f, 0.59f, 1f, 0.22f));
+                                FrameLine(prev, nx, 0.4f, new Color(0.92f, 0.96f, 1f, 0.95f));
+                                prev = nx;
+                            }
+                        }
+                    break;
+                }
+                case "name-petals":
+                    NGlow(r, x, text, size, new Color(1f, 0.51f, 0.69f, 0.14f), 1f);
+                    NGradient(r, x, w, text, size, new Color(1f, 0.96f, 0.97f), new Color(1f, 0.83f, 0.89f), new Color(1f, 0.69f, 0.8f));
+                    if (!small && t > 0f)
+                        for (int i = 0; i < 8; i++)
+                        {
+                            float life = (t * 0.22f + FrameHash(i)) % 1f, px = x - 6f + FrameHash(i * 3 + 1) * (w + 12f) + Mathf.Sin(t * 1.6f + i * 2f) * size * 0.35f, py = cy - size * 0.8f + life * size * 1.7f;
+                            float pw = size * 0.22f * Mathf.Max(0.25f, Mathf.Abs(Mathf.Cos(t * 1.4f + i * 1.3f)));
+                            Ui.Fill(new Rect(px - pw / 2f, py - size * 0.05f, pw, size * 0.11f), new Color(1f, 0.69f + 0.24f * FrameHash(i + 4), 0.78f + 0.16f * FrameHash(i + 6), Mathf.Sin(life * Mathf.PI) * 0.95f));
+                        }
                     break;
                 default:
                     NRun(r, x, text, size, plain);
