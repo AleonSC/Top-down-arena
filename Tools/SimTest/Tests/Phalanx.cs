@@ -49,8 +49,8 @@ static partial class Program
         client.RequestUlt(1);
         for (int i = 0; i < 60 && client.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
         Check(host.Lobby[2].Ult == 1 && client.Lobby[2].Ult == 1, "...and back to everyone");
-        client.RequestKit(Kit.Elementalist);
-        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Elementalist; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        client.RequestKit(Kit.Ninja);  // (a class with no second Tank ultimate yet)
+        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Ninja; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
         Check(host.Lobby[2].Ult == 0, "changing class resets the pick");
         client.RequestUlt(1);
         for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }

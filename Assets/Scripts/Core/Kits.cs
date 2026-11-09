@@ -43,7 +43,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Phalanx }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, Phalanx }
 
     public class ZoneDef
     {
@@ -143,6 +143,7 @@ namespace Arena
             new ZoneDef { Name = "Ward of Light", Color = new Rgba(1f, 0.85f, 0.4f) },  // Guardian's Oath (GuardiansOath.cs): allies inside take less damage (Zone.DamageCut) and downed ones revive faster
             new ZoneDef { Name = "Vein Trail", Color = new Rgba(0.85f, 0.12f, 0.2f), Slow = 0.3f },  // the blood a Vein Rush leaves behind (VeinRush.cs): slows enemies on it
             new ZoneDef { Name = "Drawbridge", Color = new Rgba(0.48f, 0.33f, 0.2f) },  // the DPS Knight's ultimate (Drawbridge.cs): Pos is the hinge, Aim the way it fell
+            new ZoneDef { Name = "Bloodbath", Color = new Rgba(0.55f, 0.03f, 0.08f) },  // the Tank Hemomancer's second ultimate (Bloodbath.cs): slows, bleeds and guards by its own tick
             new ZoneDef { Name = "Bone Phalanx", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Tank Summoner's second ultimate (BonePhalanx.cs): Pos is the middle of the shield face, Aim the heading
         };
 

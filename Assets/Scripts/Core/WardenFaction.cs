@@ -255,7 +255,10 @@ namespace Arena
                 if (p.ParryActive && ParryContact(p, e, RiotBashDamage))
                     continue;  // a raised guard takes it, and you keep your feet
                 if (p.InvulnT <= 0f)
+                {
                     Damage(p, RiotBashDamage, e.Def.Name + " (bash)");
+                    RodTouched(p, e);  // LightningRod.cs
+                }
                 KnockPlayer(p, fwd, RiotKnock);
                 BroadcastFx(FxKind.Spark, p.Pos, new Rgba(0.85f, 0.9f, 1f), 24f, 0.25f, Sfx.Clang);
             }

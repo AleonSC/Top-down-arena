@@ -208,6 +208,16 @@ namespace Arena
                 case FxKind.BridgeSpark:
                     DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs
                     break;
+                case FxKind.BathHeal:
+                    break;  // a Bloodbath tick's heal: a number on the HUD (BloodbathLook.cs DrawBathPops)
+                case FxKind.RodBolt:
+                    DrawRodBoltFx(fx);  // LightningRodLook.cs
+                    break;
+                case FxKind.RodArc:
+                    DrawRodArcFx(fx);
+                    break;
+                case FxKind.RodGround:
+                    break;  // its grey number is on the HUD (LightningRodLook.cs DrawRodPops)
                 case FxKind.PhalanxSpark:
                     DrawPhalanxSparkFx(fx);  // BonePhalanxLook.cs
                     break;

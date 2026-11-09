@@ -629,8 +629,8 @@ namespace Arena
             if (p.Downed || dealt <= 0f)
                 return;
             float frac = 0f;
-            if (p.Kit == Kit.Hemomancer)
-                frac += BloodSteal;
+            if (p.Kit == Kit.Hemomancer && !bathTick)
+                frac += BloodSteal;  // (a Bloodbath tick pays back its own share instead: Bloodbath.cs)
             if (p.DebtT > 0f)
                 frac += DebtSteal;
             if (frac > 0f)
@@ -812,6 +812,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.Bloodbath, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 1, HealthCost = BathCost,
+                Name = "Bloodbath", Cooldown = BathCooldown, Desc = "Pay 15% of your max health: blood floods the floor 170 px round you for 10 s (it stays where you cast it). Enemies wading in it are slowed 50% (Heavy enemies 35%, bosses 20%) and bleed 15 a second, and every drop heals you for 25% of it, wherever you are. Allies standing in it, you included, take 20% less damage.",
+                Capstone = "The pool spreads to 220 px and gives back 35% of the bleed.",
+                Bot = b => b.NearEnemies >= 3 && b.Me.Hp > b.Me.MaxHp * 0.4f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.SanguineRain, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = AbilityDef.Ult,
                 Name = "Sanguine Rain", Cooldown = 80f, Desc = "Draw 12% of your health into a blood orb (1.8 s), then rain circles follow your allies for 10 s, trickling 3% of their health every 0.5 s. It drains you 3% a second and ends when you press it again or fall to 15%.",
                 Capstone = "Lasts 14 s and heals 4% a tick.",
@@ -933,6 +940,9 @@ namespace Arena
                     CastTithe(p, cap);  // VeinTithe.cs
                     return true;
                 }
+                case AbilityId.Bloodbath:
+                    CastBloodbath(p, cap);  // Bloodbath.cs
+                    return true;
                 case AbilityId.SanguineRain:
                     CastRain(p, cap);  // SanguineRain.cs
                     return true;

@@ -11,6 +11,7 @@ namespace Arena
 
         void Damage(Player p, float amount, string source = "Other")
         {
+            lastTaken = 0f;  // (Lightning Rod's grey number reads what got through; LightningRod.cs)
             if (p.DevGod)
                 return;
             if (p.SwallowT > 0f && !stomach)
@@ -22,6 +23,7 @@ namespace Arena
             amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
+            amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
             foreach (var q in Players.Values)
                 if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
                     amount *= 0.5f;  // a healer's Soul Link halves the damage
@@ -35,6 +37,8 @@ namespace Arena
                     cut = Math.Max(cut, z.DamageCut);
                 if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
+                if (InBath(z, p.Pos, 0f))
+                    cut = Math.Max(cut, BathGuard);  // standing in anyone's Bloodbath (Bloodbath.cs)
             }
             amount *= 1f - cut;  // the Ninja's smoke
             if (p.AdrenalineT > 0f)
@@ -66,6 +70,7 @@ namespace Arena
             BloodTookHit(p, amount);  // Crimson Pact stores it
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
+            lastTaken = Math.Max(0f, amount);
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -113,6 +118,7 @@ namespace Arena
         {
             Player p;
             float homing = homingTurn;
+            bool stamp = false;
             bool modded = owner != 0 && Players.TryGetValue(owner, out p) && Moddable(kind);
             if (modded)
             {
@@ -125,10 +131,16 @@ namespace Arena
             if (owner == 0 && Defs.IsEnemyShot(kind))
             {
                 enemyShots++;
+                stamp = true;  // (below: who fired it, for Lightning Rod)
                 if (!Defs.Unblockable(kind) && InIncense(pos))
                     vel = vel.Rotated(Rand(-IncenseStray, IncenseStray));  // fired from inside the Censer's incense: it strays
             }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
+            if (stamp)
+            {
+                b.ShooterId = actingEnemy != null ? actingEnemy.Id : 0;  // the enemy whose turn it is (TickEnemies); 0 for hazards and the like
+                b.ShooterPos = actingEnemy != null ? actingEnemy.Pos : pos;
+            }
             b.Dmg = casting && !firingWeapon ? dmg * castPower : dmg;
             if (owner != 0 && Players.TryGetValue(owner, out p))
             {
@@ -600,14 +612,23 @@ namespace Arena
                         float r = p.Def.HitR + b.Radius;
                         if (b.Pos.DistanceSq(p.Pos) < r * r)
                         {
-                            // Invulnerable players (dash, recent hit) let bullets pass through.
-                            if (p.InvulnT <= 0f)
+                            // Invulnerable players (dash, recent hit) let bullets pass through, unless a Lightning Rod grounds them:
+                            // then it's used up and calls its bolt whether it hurt or not (LightningRod.cs).
+                            bool grounded = p.RodT > 0f;
+                            if (grounded && p.InvulnT > 0f)
+                            {
+                                scratchIds.Add(b.Id);
+                                RodShot(p, b, 0f);
+                            }
+                            else if (p.InvulnT <= 0f)
                             {
                                 if (JuggOn(p))
                                     JuggShot(p, b);  // the suit's armour takes it and throws flak back (Juggernaut.cs)
                                 else
                                     Damage(p, b.Dmg, ShotSource(b));
                                 scratchIds.Add(b.Id);
+                                if (grounded)
+                                    RodShot(p, b, p.DevGod ? b.Dmg * EnemyDamageScale(Math.Max(1, Wave)) * (1f - RodCut) : lastTaken);  // (the preview's god mode takes nothing: show what it would have)
                                 if (b.Kind == Defs.StunShot && !p.Downed)
                                 {
                                     p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)

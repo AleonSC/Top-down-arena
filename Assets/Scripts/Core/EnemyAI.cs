@@ -311,8 +311,8 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
-                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p) || JuggOn(p)))
-                    return p.Id;  // Roar (or the Juggernaut Suit): everyone goes for the tank
+                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p) || JuggOn(p) || p.RodT > 0f))
+                    return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
@@ -381,12 +381,15 @@ namespace Arena
             tickEnemies.AddRange(Enemies.Values);
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
+                actingEnemy = e;  // its shots are stamped with it (Lightning Rod; LightningRod.cs)
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
+                if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
+                    e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // KitWeapons.cs
@@ -482,12 +485,14 @@ namespace Arena
                             p.BossContactT = BossContactEvery;
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
+                        RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
                         if (e.Type == EnemyType.Buzzsaw && !p.Downed)
                             p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
                 }
             }
 
+            actingEnemy = null;
             TickHazards(dt);
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
@@ -818,6 +823,8 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
+            else if (e.WadeT > 0f)
+                speed *= e.WadeMult;  // Heavy enemies and bosses ignore the usual slow, but not a Bloodbath (Bloodbath.cs)
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
             if (IsHost && Props.Count > 0 && !e.Def.IsBoss)

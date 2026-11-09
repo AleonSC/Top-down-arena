@@ -366,7 +366,10 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + BiteReach + p.Def.HitR
                     && Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - s.LungeAng + MathX.Pi, MathX.Tau) - MathX.Pi) < MathX.Pi / 2f + 0.2f)
+                {
                     Damage(p, BiteDamage, "The Devourer (bite)");
+                    RodTouched(p, e);  // LightningRod.cs
+                }
             BroadcastFx(FxKind.Ring, e.Pos + dir * e.Radius, new Rgba(1f, 0.55f, 0.63f), BiteReach, 0.3f, Sfx.BossChomp);
             if (s.LungeRing)
                 for (int i = 0; i < 12; i++)

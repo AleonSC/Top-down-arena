@@ -28,6 +28,8 @@ namespace Arena
         RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
         ScytheThrow,  // the Twin Reapers' legendary: a Q / E / Shift ability (ReaperLoot.cs)
         JuggernautSuit,  // the Tank Soldier's second ultimate (Juggernaut.cs), picked on the lobby's Ultimate row
+        Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
+        LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
         BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
         None = 255,
     }
@@ -144,7 +146,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.ElementalistAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.HemomancerAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities);
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.HemomancerAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates);
 
         /// Each role and class has its default ultimate (key 0 of the lobby's Ultimate row), and may have others on keys 1-3.
         static readonly AbilityId[] Ultimates = LobbyTable(true);

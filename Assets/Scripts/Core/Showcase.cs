@@ -23,6 +23,8 @@ namespace Arena
         int weapon = -1;
         AbilityId ability = AbilityId.None;
         bool demoAbility, ultimate;
+        float rodShotT;  // a Lightning Rod demo: until a dummy next fires at you
+        int rodShots;
         int ultPick;  // the Ultimate row's key (LobbyEntry.Ult)
         float t, castT;
         bool castHeld;
@@ -86,6 +88,7 @@ namespace Arena
                 this.ultimate = ultimate;
                 var shown = ultimate ? Upgrades.Ultimate(role, role == Role.Wildcard ? Upgrades.Ability(ability).Kit : kit, ultPick) : ability;
                 ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
+                    : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
                 allies = TargetsAlly(shown);
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
@@ -160,6 +163,18 @@ namespace Arena
                 else
                     input.Ability = castHeld;
             }
+            // Lightning Rod: the dummies take turns firing at you while the charge is up, each shot calling a bolt on its shooter (LightningRod.cs).
+            if (me.RodT > 0f && !Idle)
+            {
+                rodShotT -= dt;
+                if (rodShotT <= 0f)
+                {
+                    rodShotT = Game.RodDemoShotEvery;
+                    Game.ShowcaseDummyShot(rodShots++);
+                }
+            }
+            else
+                rodShotT = 0.2f;
             if (allies && aimTicks > 0)
             {
                 input.AimAt = Game.ShowcaseAllyPos(castCount % 2);  // the cursor on a teammate (Adrenaline Shot, Medkit, Healing Rain...), alternating
