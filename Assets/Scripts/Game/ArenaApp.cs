@@ -132,6 +132,7 @@ namespace Arena
             LoadCamLean();     // CameraLean.cs
             LoadCamZoom();     // CameraZoom.cs
             LoadHoverNames();  // EnemyTagLook.cs
+            LoadLagChart();  // LagChartUi.cs
             SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
@@ -248,6 +249,7 @@ namespace Arena
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
             UpdateCameraLean(Time.unscaledDeltaTime);  // the picture eases toward your aim (CameraLean.cs)
             StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (WindowAnim.cs)
+            LagChartUpdate();  // F5: the lag chart, and its frame times (LagChartUi.cs)
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
             if (wasPaused && !game.Paused)

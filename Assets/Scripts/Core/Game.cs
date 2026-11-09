@@ -59,7 +59,7 @@ namespace Arena
         V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
-        /// Round trip to the host in milliseconds (0 when you're the host), measured once a second.
+        /// Round trip to the host in milliseconds (0 when you're the host), measured four times a second (Game.PingEvery).
         public float PingMs;
         readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
         float pingT;
@@ -702,6 +702,7 @@ namespace Arena
         /// Fixed-rate simulation step (60 Hz).
         public void FixedStep(float dt, PlayerInput input)
         {
+            TickLag(dt);  // the lag chart (LagNet.cs)
             if (!Running)
                 return;
             if (Paused)
@@ -719,9 +720,10 @@ namespace Arena
                 botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)
             {
-                pingT = 1f;
+                pingT = PingEvery;
                 var pw = Proto.Begin(Msg.Ping);
                 pw.Write(clock.ElapsedTicks);
+                pw.Write((ushort)Math.Min(65535f, Math.Max(0f, (float)Math.Round(PingMs))));  // for the host to share (LagNet.cs)
                 session.SendToHost(Proto.End(pw));
             }
             if (IsHost)

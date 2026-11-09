@@ -6,7 +6,7 @@ namespace Arena
 {
     /// Every control you can change (Settings → Keybinds, KeybindsUi.cs). Fire and Parry may be a key or any mouse button
     /// (left and right click by default); the rest are keys (or the middle and side mouse buttons). The arrow keys always
-    /// move too; the menu keys (Esc, Tab, Enter, 1-8, F1-F4) are fixed. Saved in PlayerPrefs by name, so the order here is
+    /// move too; the menu keys (Esc, Tab, Enter, 1-8, F1-F5) are fixed. Saved in PlayerPrefs by name, so the order here is
     /// only the order on the page (each group is a run of this list).
     public enum KeyAction
     {
@@ -94,7 +94,7 @@ namespace Arena
             if (Mouse01(k) && a != KeyAction.Fire && a != KeyAction.Parry)
                 return false;
             if (k == KeyCode.None || k == KeyCode.Escape || k == KeyCode.Tab || k == KeyCode.Return || k == KeyCode.KeypadEnter
-                || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4
+                || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4 || k == KeyCode.F5
                 || k == KeyCode.UpArrow || k == KeyCode.DownArrow || k == KeyCode.LeftArrow || k == KeyCode.RightArrow)
                 return false;
             return !(k >= KeyCode.Alpha1 && k <= KeyCode.Alpha8);  // the upgrade picker's card keys

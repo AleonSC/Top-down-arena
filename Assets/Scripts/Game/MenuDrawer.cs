@@ -652,11 +652,11 @@ namespace Arena
                         SetHudMode(hudPick);
                     DashLine(x, y + 88f, w);
                     y += 96f;
-                    bool lean2 = SwitchRow(new Rect(x, y, w, 54f), camLean, "Camera lean", "The view eases a few percent toward where you aim and move, so you see a little more that way");
+                    float halfW = (w - 36f) / 2f;  // (camera lean and zoom share a row, to leave room for the lag chart's)
+                    bool lean2 = SwitchRow(new Rect(x, y, halfW, 54f), camLean, "Camera lean", "The view eases toward where you aim and move");
                     if (lean2 != camLean)
                         SetCamLean(lean2);
-                    y += 66f;
-                    bool zoom2 = SwitchRow(new Rect(x, y, w, 54f), scrollZoom, "Scroll-wheel zoom", "Scroll up to zoom in on yourself (up to 2x), down to see the whole arena again");
+                    bool zoom2 = SwitchRow(new Rect(x + halfW + 36f, y, halfW, 54f), scrollZoom, "Scroll-wheel zoom", "Scroll up to zoom in on yourself (up to 2x)");
                     if (zoom2 != scrollZoom)
                         SetCamZoom(zoom2);
                     y += 66f;
@@ -664,6 +664,7 @@ namespace Arena
                     if (hover2 != hoverNames)
                         SetHoverNames(hover2);
                     y += 66f;
+                    y += DrawLagSettingsRow(x, y, w);  // LagChartUi.cs
                     WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look (25% at least)");
                     float mate = Mathf.Max(0.25f, WinSlider(new Rect(x + w - 376f, y + 6f, 376f, 48f), mateShotAlpha));
                     if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)

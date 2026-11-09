@@ -24,6 +24,7 @@
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
+# LAG=pill|chart|guest LAGFROZEN=1 (the lag chart with made-up numbers, ShotLag.cs; mode hud, 3 players).
 # NINJA=n / BLOOD=n (everyone plays that class, with weapon n), CAST="Blood Wall" (cast an ability; CASTT=<seconds after>).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e

@@ -491,6 +491,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
     // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /
     // 0.3 s, aiming right, the arena otherwise empty (for comparing shot looks with Docs/Mockups/projectiles.html).
     if (Environment.GetEnvironmentVariable("SHOTW") != null) {
