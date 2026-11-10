@@ -346,6 +346,7 @@ namespace Arena
                 p.Stats.CdMult *= WildcardCdMult;
             }
             ApplyStatOverrides(p);
+            p.VectorCap = VectorCapBase + p.Stats.VectorCap;  // the Expanding arena's vector cap (ExpansionGame.cs)
             float oldMax = p.MaxHp;
             p.MaxHp = p.BaseHp + p.Stats.BonusHp;
             if (p.MaxHp > oldMax && !p.Downed)
@@ -543,7 +544,7 @@ namespace Arena
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
-            p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id);
+            p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id, ExpandingOn);
             DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
             SendSnapshot();
         }
@@ -604,15 +605,15 @@ namespace Arena
             }
             else if (p.PrizePicks > 0)
             {
-                p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id);  // a challenge room's prize (Challenges.cs)
+                p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn);  // a challenge room's prize (Challenges.cs)
                 p.OfferPrize = true;
             }
-            else if (p.PendingMilestones > 0 && (p.Offer = Upgrades.MilestoneOffer(rng, p.Role, p.RoleAbility, p.Taken)) != null)
+            else if (p.PendingMilestones > 0 && (p.Offer = Upgrades.MilestoneOffer(rng, p.Role, p.RoleAbility, p.Taken, ExpandingOn)) != null)
                 p.OfferMilestone = true;  // its own pool, before the level's normal pick
             else if (p.PendingPicks > 0)
             {
                 p.PendingMilestones = 0;  // (only reached with the milestone pool used up)
-                p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id);
+                p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id, ExpandingOn);
             }
             else
                 p.Offer = null;
@@ -626,6 +627,8 @@ namespace Arena
                 return;
             p.Taken.Add(upgrade);
             Recalc(p);
+            if (ExpandingOn)
+                AddVectors(p, Upgrades.All[upgrade].VectorsNow);  // Architect: vectors now, up to the new cap
             BroadcastUpgrades(p);
         }
 

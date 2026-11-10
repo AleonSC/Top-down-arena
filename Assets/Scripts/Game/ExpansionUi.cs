@@ -11,6 +11,13 @@ namespace Arena
 
         static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
 
+        /// A room's drawer's colour (their class colour), or a neutral blue when they've gone or it was nobody's.
+        Rgba OwnerInk(int owner)
+        {
+            Player p;
+            return owner != 0 && game.Players.TryGetValue(owner, out p) ? p.Def.Color : new Rgba(0.4f, 0.64f, 1f);
+        }
+
         static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
         /// What a Floor room does: that path's rule inside the room only, and its bonus for kills there.
@@ -199,6 +206,13 @@ namespace Arena
                     V2 c = M(d.Pos);
                     RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(0.37f, 0.94f, 1f, 0.8f));
                 }
+                foreach (var q in game.ExpandProposals)  // everyone's proposals so far, in their drawer's colour
+                {
+                    V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
+                    var qi = OwnerInk(q.Owner);
+                    RoomMapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.14f));
+                    RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.85f));
+                }
                 if (hasBox)
                 {
                     V2 p0 = M(new V2(rx, ry)), p1 = M(new V2(rx + rw, ry + rh));
@@ -207,6 +221,14 @@ namespace Arena
                     RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 2f, ink);
                 }
                 EndUiGl();
+            }
+            foreach (var q in game.ExpandProposals)
+            {
+                Player qo;
+                if (!game.Players.TryGetValue(q.Owner, out qo))
+                    continue;
+                V2 q0 = M(new V2(q.X, q.Y));
+                Ui.Label(new Rect(q0.X + 3f, q0.Y + 2f, 160f, 14f), qo.Name + "  " + q.Price, 10, ToColor(OwnerInk(q.Owner)), TextAnchor.UpperLeft, true);
             }
             string line;
             Color lineInk;
@@ -278,7 +300,7 @@ namespace Arena
             float ox = stage.center.x - (hi.X - lo.X) * k / 2f, oy = stage.center.y - (hi.Y - lo.Y) * k / 2f;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
             RoomMapRect(stage.x, stage.y, stage.width, stage.height, new Rgba(0.01f, 0.03f, 0.08f, 0.6f));
-            var ink = KindInk(o.Kind, o.Floor);
+            var ink = o.Owner != 0 ? OwnerInk(o.Owner) : KindInk(o.Kind, o.Floor);
             float pulse = 0.65f + 0.35f * Mathf.Sin(t * 3f);
             for (int i = 0; i < wd.Areas.Length; i++)
             {
@@ -288,6 +310,7 @@ namespace Arena
                 Rgba fill, line;
                 if (isNew) { fill = ink.WithAlpha((afford ? 0.3f : 0.12f) * pulse); line = ink.WithAlpha(afford ? 1f : 0.45f); }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.16f); line = new Rgba(0.4f, 0.64f, 1f, 0.8f); }
+                else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.14f); line = OwnerInk(a.Owner).WithAlpha(0.7f); }
                 else { fill = KindInk(a.Kind, a.Floor).WithAlpha(a.Kind == RoomKind.Combat ? 0.08f : 0.16f); line = KindInk(a.Kind, a.Floor).WithAlpha(0.5f); }
                 RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, isNew ? 2f : 1f, line);

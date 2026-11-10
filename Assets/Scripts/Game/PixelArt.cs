@@ -67,6 +67,8 @@ namespace Arena
             { "Iron Constitution", "heart2" },
             { "Quickening", "hourglass2" },
             { "Milestone Compass", "compass" },
+            { "Deep Inkwell", "regen2" },
+            { "Architect", "compass" },
             { "Bigger Boom", "grenade" },
             { "Exploit Weakness", "crosshair" },
             { "Multishot", "multishot" },

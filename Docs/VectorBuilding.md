@@ -1,6 +1,6 @@
 # Vector building: the Expanding arena without a purse
 
-Status: **steps 1-2 built** (the vector economy; proposals, the vote with random ties, the purse and offers gone); steps 3-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
+Status: **steps 1-4 built** (the vector economy; proposals, the vote with random ties, the purse and offers gone); steps 3-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
 purse and the random room offers of [`ExpandingArena.md`](ExpandingArena.md) (steps 1-5, all built and merged) with per-player
 vectors; **the team still votes on rooms**. The map builder, the draw tool, loops, walls, sync of the room list and the
 camera/minimap/spawn work all stay.
@@ -72,6 +72,25 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 - **UI**: chip "Build rooms" (`ExpandChipUp`), the window with proposal cards (who drew it, cost, votes), "Draw a room / Redraw
   your room", "No room", "Decide later"; the draw screen shows the live vector cost. Previews: `EXPANDVOTE=<rooms>` (window),
   `EXPANDVOTE=<rooms> EXPANDCHIP=1` (chip), `EXPANDDRAW=x,y,w,h`.
+
+## Step 3 (built, no protocol change)
+
+- `RoomArea.Owner` (from `ExpansionRoom.Owner`, which already rides in `Msg.ExpandState`): built rooms show their drawer's class colour
+  as a thin inset line and tint in the arena (`DrawRoomsFloor`), and as the fill and frame on the minimap.
+- While a round is open the minimap grows to include the proposals and draws them as pulsing ghosts in their drawers' colours; the
+  draw screen shows everyone's proposals the same way, with the drawer's name and cost.
+- Proposal cards already showed who drew them, the cost and "<name> has N" (step 2). Previews: `EXPANDMAP=<rooms> EXPANDPROP=1
+  ZOOM=0.5` (5th arg 2 players), `EXPANDDRAW`.
+
+## Step 4 (built, protocol 250)
+
+- Two cards at the end of `Upgrades.All` (`WithBuilders`, so every older upgrade keeps its number): **Deep Inkwell** (uncommon, +10 cap, 4
+  stacks) and **Architect** (milestone, +20 cap and `VectorsNow` 10, 3 stacks). `Stats.VectorCap` carries the bonus; `Recalc` sets
+  `Player.VectorCap = VectorCapBase + Stats.VectorCap`; `GrantUpgrade` gives `VectorsNow` (up to the new cap) in the Expanding arena.
+- `UpgradeDef.NeedsExpanding`: `Available`, `RollOffer`, `PrizeOffer`, `MilestoneOffer`, `RandomOfRarity` take an `expanding` flag
+  (the host passes `ExpandingOn` for level-up offers, challenge prizes, milestone picks, chests and the shop), so the cards never turn
+  up in the other arenas.
+- The boss refill (step 1) already fills the raised cap. Tests: `ExpandingVectorsTest`.
 
 ## Steps
 
