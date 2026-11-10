@@ -2,6 +2,7 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
+- 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
 
 - 256: opened walls: the Expanding arena's openings (WallCut list after the rooms in Msg.ExpandState), Msg.ExpandCut, RoomKind.Opening proposals (ExpansionGame.cs)
 - 255: Msg.ExpandDraw carries the drawn room's theme (a PathId byte; themed rooms, ExpansionGame.cs)
