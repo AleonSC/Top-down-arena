@@ -1196,6 +1196,7 @@ namespace Arena
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
+            TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out

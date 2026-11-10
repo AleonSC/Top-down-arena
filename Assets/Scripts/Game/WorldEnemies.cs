@@ -143,6 +143,12 @@ namespace Arena
                     }
                     return;  // no timer ring: it's a trail
                 }
+                case ZoneKind.FlakMine:  // the Flak Cannon's Proximity Shell (TankAltLook.cs)
+                    DrawFlakMine(z, t);
+                    return;
+                case ZoneKind.TearGas:  // the Riot Repeater's Tear Gas (TankAltLook.cs)
+                    DrawTearGas(z, t);
+                    return;
                 case ZoneKind.OfudaWard:  // an Ofuda charm lying on the ground: a paper strip with a red seal, glowing
                 {
                     float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f + z.Id);

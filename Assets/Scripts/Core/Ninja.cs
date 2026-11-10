@@ -653,7 +653,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashDouble = 19, DashMine = 20, DashGas = 21;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -963,7 +963,12 @@ namespace Arena
                 return;
             }
             if (me.Downed || DashT > 0f || me.StunT > 0f)
+            {
+                LocalTankAlt(me, aimAt, false, dt);  // (just the cooldowns)
                 return;
+            }
+            if (LocalTankAlt(me, aimAt, pressed, dt))
+                return;  // the Tank Soldier's Double Barrel, Proximity Shell and Tear Gas (TankAlts.cs)
             if (me.Weapon.Id == WeaponId.Shuriken && pressed)
             {
                 if (IsHost)
@@ -1109,6 +1114,13 @@ namespace Arena
             if (kind == DashLance)
             {
                 HostSunlance(p, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashDouble || kind == DashMine || kind == DashGas)
+            {
+                if (kind == DashDouble) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
+                else if (kind == DashMine) HostFlakMine(p, target);
+                else HostTearGas(p, target);
                 return;
             }
             if (kind == DashNade)
