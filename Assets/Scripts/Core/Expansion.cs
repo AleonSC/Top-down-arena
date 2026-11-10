@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening: only in a round's proposals, a stretch of wall to open)
+    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening and Link: only in a round's proposals, a stretch of wall to open or a portal pair)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
     public struct WallCut : IEquatable<WallCut>
@@ -13,6 +13,15 @@ namespace Arena
         public short At, From, Till;
         public bool Equals(WallCut o) => Vertical == o.Vertical && At == o.At && From == o.From && Till == o.Till;
         public int Length => Till - From;
+    }
+
+    /// A portal pair the team bought (the Expanding arena, Docs/RoomBuilding2.md step 2): two spots on the 100 px grid, each in a room.
+    public struct PortalLink : IEquatable<PortalLink>
+    {
+        public short AX, AY, BX, BY;
+        public V2 A => new V2(AX, AY);
+        public V2 B => new V2(BX, BY);
+        public bool Equals(PortalLink o) => AX == o.AX && AY == o.AY && BX == o.BX && BY == o.BY;
     }
 
     /// One bought room: a box attached to its parent room (area index; 0 is the hub) with a door on their shared wall.
@@ -417,6 +426,140 @@ namespace Arena
             return 0;
         }
 
+        // --- Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, bought with vectors ---
+
+        public const int MaxLinks = 3;            // portal pairs a map can hold (not counted as rooms)
+        public const int LinkBase = 8, LinkMax = 30;  // a link costs 8, +1 per 2 tiles of walking it saves, at most 30
+        public const float LinkMinSave = 600f;    // it must save at least 6 tiles of walking
+        public const float LinkEdge = 90f, LinkClear = 250f, LinkDoor = 150f;  // kept off walls, other portals and doors
+
+        public static ExpansionRoom LinkProposal(PortalLink l, int price) => new ExpansionRoom
+        {
+            Kind = RoomKind.Link, X = l.AX, Y = l.AY, W = l.BX - l.AX, H = l.BY - l.AY, Price = price,
+        };
+
+        public static PortalLink LinkOf(ExpansionRoom r) => new PortalLink { AX = (short)r.X, AY = (short)r.Y, BX = (short)(r.X + r.W), BY = (short)(r.Y + r.H) };
+
+        static int OpenArea(World w, V2 p, float pad)
+        {
+            for (int i = 0; i < w.Areas.Length; i++)
+                if (!w.Areas[i].Sealed && w.Areas[i].Contains(p, -pad))
+                    return i;
+            return -1;
+        }
+
+        /// How far you walk from a to b on this map: through the doors and any portals already there (float.MaxValue: no way).
+        public static float WalkDistance(World w, V2 a, V2 b)
+        {
+            var pos = new List<V2> { a, b };
+            var areas = new List<int[]> { new[] { OpenArea(w, a, 0f) }, new[] { OpenArea(w, b, 0f) } };
+            foreach (var d in w.Doors) { pos.Add(d.Pos); areas.Add(new[] { d.A, d.B }); }
+            int firstPortal = pos.Count;
+            foreach (var pt in w.Portals) { pos.Add(pt.A); areas.Add(new[] { w.AreaAt(pt.A) }); pos.Add(pt.B); areas.Add(new[] { w.AreaAt(pt.B) }); }
+            int n = pos.Count;
+            var dist = new float[n];
+            var done = new bool[n];
+            for (int i = 0; i < n; i++) dist[i] = float.MaxValue;
+            dist[0] = 0f;
+            for (int step = 0; step < n; step++)
+            {
+                int u = -1;
+                for (int i = 0; i < n; i++)
+                    if (!done[i] && dist[i] < float.MaxValue && (u < 0 || dist[i] < dist[u]))
+                        u = i;
+                if (u < 0) break;
+                if (u == 1) return dist[1];
+                done[u] = true;
+                for (int v = 0; v < n; v++)
+                {
+                    if (done[v]) continue;
+                    float c = float.MaxValue;
+                    if (u >= firstPortal && v >= firstPortal && (u - firstPortal) / 2 == (v - firstPortal) / 2)
+                        c = 0f;  // the two ends of one portal
+                    else
+                        foreach (int x in areas[u]) foreach (int y in areas[v]) if (x >= 0 && x == y) c = pos[u].DistanceTo(pos[v]);
+                    if (c < float.MaxValue && dist[u] + c < dist[v])
+                        dist[v] = dist[u] + c;
+                }
+            }
+            return dist[1];
+        }
+
+        /// What a link costs on this map; 0 with `why` set if it can't go there (off the grid, in a wall, a sealed room, cover, too near a
+        /// door or another portal, the same room, or saving too little walking).
+        public static int LinkPrice(World w, int links, PortalLink l, out string why)
+        {
+            why = null;
+            if (links >= MaxLinks) { why = "The map holds " + MaxLinks + " portal pairs at most"; return 0; }
+            if (l.AX % Step != 0 || l.AY % Step != 0 || l.BX % Step != 0 || l.BY % Step != 0) { why = "Not on the grid"; return 0; }
+            V2 a = l.A, b = l.B;
+            int aa = OpenArea(w, a, LinkEdge), ab = OpenArea(w, b, LinkEdge);
+            if (aa < 0 || ab < 0) { why = "Each end must be inside a connected room, off its walls"; return 0; }
+            if (aa == ab) { why = "The two ends must be in different rooms"; return 0; }
+            foreach (var c in w.Cover)
+                if (Layouts.Inside(c, a, 50f) || Layouts.Inside(c, b, 50f)) { why = "An obstacle is in the way"; return 0; }
+            foreach (var d in w.Doors)
+                if (d.Pos.DistanceTo(a) < LinkDoor || d.Pos.DistanceTo(b) < LinkDoor) { why = "Too near a door"; return 0; }
+            foreach (var pt in w.Portals)
+                foreach (var e in new[] { pt.A, pt.B })
+                    if (e.DistanceTo(a) < LinkClear || e.DistanceTo(b) < LinkClear) { why = "Too near another portal"; return 0; }
+            float walk = WalkDistance(w, a, b);
+            if (walk == float.MaxValue) { why = "No way between them"; return 0; }
+            if (walk < LinkMinSave) { why = "Saves too little walking (at least " + (int)(LinkMinSave / Step) + " tiles)"; return 0; }
+            return Math.Min(LinkMax, LinkBase + (int)Math.Round(walk / (2f * Step)));
+        }
+
+        /// The link that saves the most walking on this map (one clear spot per room, nearest its middle), or null. Bots propose it.
+        public static PortalLink? BestLink(World w, int links)
+        {
+            var spots = new List<V2>();
+            foreach (var a in w.Areas)
+            {
+                if (a.Sealed || a.Hall)
+                    continue;
+                V2? best = null;
+                for (float y = (float)Math.Ceiling((a.Min.Y + LinkEdge) / Step) * Step; y <= a.Max.Y - LinkEdge; y += Step)
+                    for (float x = (float)Math.Ceiling((a.Min.X + LinkEdge) / Step) * Step; x <= a.Max.X - LinkEdge; x += Step)
+                    {
+                        var p = new V2(x, y);
+                        bool ok = true;
+                        foreach (var c in w.Cover) ok &= !Layouts.Inside(c, p, 50f);
+                        foreach (var d in w.Doors) ok &= d.Pos.DistanceTo(p) >= LinkDoor;
+                        if (ok && (!best.HasValue || p.DistanceTo(a.Mid) < best.Value.DistanceTo(a.Mid)))
+                            best = p;
+                    }
+                if (best.HasValue)
+                    spots.Add(best.Value);
+            }
+            PortalLink? top = null;
+            int topPrice = 0;
+            string why;
+            for (int i = 0; i < spots.Count; i++)
+                for (int j = i + 1; j < spots.Count; j++)
+                {
+                    var l = new PortalLink { AX = (short)spots[i].X, AY = (short)spots[i].Y, BX = (short)spots[j].X, BY = (short)spots[j].Y };
+                    int price = LinkPrice(w, links, l, out why);
+                    if (price > topPrice) { topPrice = price; top = l; }
+                }
+            return top;
+        }
+
+        /// A built link as a World portal: each end faces into its room (the way you come out).
+        static WorldPortal PortalOf(RoomArea[] areas, PortalLink l)
+        {
+            Func<V2, V2> inward = p =>
+            {
+                foreach (var a in areas)
+                    if (a.Contains(p))
+                    {
+                        V2 d = a.Mid - p;
+                        return d.Length > 1f ? d.Normalized() : new V2(0f, 1f);
+                    }
+                return new V2(0f, 1f);
+            };
+            return new WorldPortal { A = l.A, B = l.B, InA = inward(l.A), InB = inward(l.B) };
+        }
+
         // --- Themed rooms (Docs/FloatingRooms.md step 4): a path as a room's theme, drawn for extra vectors, unlocked by bosses ---
 
         /// Extra vectors a theme costs on top of the room's walls: its path's danger (1: 3, 2: 6, 3: 10).
@@ -619,7 +762,7 @@ namespace Arena
 
         /// The World for the hub plus these rooms. With no rooms it is the hub alone, walled in (the Single world has no walls).
         /// Rooms sharing a stretch of wall of at least MinDoorRun have a door there (the parent's, and loops).
-        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null)
+        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null)
         {
             int n = rooms.Count + 1;
             var areas = new RoomArea[n];
@@ -711,10 +854,13 @@ namespace Arena
                         doorSpots.Add(d.Pos);
                 AddCover(cover, rooms[a - 1], doorSpots);
             }
+            var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
+            for (int i = 0; i < portals.Length; i++)
+                portals[i] = PortalOf(areas, links[i]);
             return new World
             {
                 Name = "Expanding",
-                Areas = areas, Doors = doors.ToArray(), Portals = new WorldPortal[0], Spans = spans.ToArray(), Cover = cover.ToArray(),
+                Areas = areas, Doors = doors.ToArray(), Portals = portals, Spans = spans.ToArray(), Cover = cover.ToArray(),
                 Min = new V2(minX, minY), VaultMin = new V2(minX, minY), Max = new V2(maxX, maxY),
                 Hub = 0, Vault = -1,
             };

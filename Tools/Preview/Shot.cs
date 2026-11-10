@@ -417,6 +417,10 @@ static partial class Shot {
       eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open: each player's proposal, the first one backed
       var propPool = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded); int pk = 0;
       foreach (var pl in eg.Players.Values) { pl.Vectors = 30 + 8 * pk; if (pk < propPool.Count) { var pr = propPool[pk]; pr.Owner = pl.Id; eg.ExpandProposals.Add(pr); } pk++; }
+      if (Environment.GetEnvironmentVariable("EXPANDLINKCARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDLINKCARD=1: the first proposal is a portal pair
+        string lw; var bl = Expansion.BestLink(eg.ExpansionWorld, 0);
+        if (bl.HasValue) { var lp = Expansion.LinkProposal(bl.Value, Expansion.LinkPrice(eg.ExpansionWorld, 0, bl.Value, out lw)); lp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = lp; }
+      }
       if (eg.ExpandProposals.Count > 0) eg.ExpandVotes[eg.MyId] = eg.ExpandProposals[0].Owner;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
       if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
@@ -430,6 +434,13 @@ static partial class Shot {
         if (themeName != null) typeof(ArenaApp).GetField("expTheme", bf).SetValue(app, (PathId)Enum.Parse(typeof(PathId), themeName));
         typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
         typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
+        if (Environment.GetEnvironmentVariable("EXPANDLINK") != null) {  // EXPANDLINK=1: the draw screen in Portal mode with the best pair placed (and one pair already built)
+          typeof(ArenaApp).GetField("expLinkMode", bf).SetValue(app, true);
+          var first = Expansion.BestLink(eg.ExpansionWorld, 0);
+          if (first.HasValue) { eg.Links.Add(first.Value); typeof(Game).GetField("expWorld", bf).SetValue(eg, null); }
+          var next = Expansion.BestLink(eg.ExpansionWorld, eg.Links.Count);
+          if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
+        }
         if (Environment.GetEnvironmentVariable("EXPANDCUT") != null) {  // EXPANDCUT=1: the draw screen in Open wall mode with the first shared wall dragged out
           typeof(ArenaApp).GetField("expCutMode", bf).SetValue(app, true);
           string cw; var cr = Expansion.Custom(eg.Expanded, 1600, 100, 800, 600, out cw); if (cr.HasValue) { eg.Expanded.Add(cr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
