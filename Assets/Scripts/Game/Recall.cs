@@ -51,7 +51,6 @@ namespace Arena
                     pauseMenuOpen = false;  // everything over the arena gets out of the way
                     pauseSettings = pauseHowTo = pauseRecords = pauseConfirmLobby = false;
                     runStatsOpen = false;
-                    fieldGuideOpen = false;
                 }
             }
             if (recallT >= 0f)
