@@ -257,8 +257,7 @@ namespace Arena
             DrawFrozenShots(t);  // bullets a Lumen Ward is holding (LumenWardLook.cs)
             DrawQueenSwarm(t);  // QueenLook.cs
             DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
-            DrawKatanaMarks(t);  // Senbon's marks on enemies (KatanaLook.cs)
-            DrawKatanaZanshinDim();  // your own Zanshin darkens the arena (KatanaLook.cs)
+            DrawKatanaMarks(t);  // the enemies a Momentum Burst marked, and its cracks (KatanaLook.cs)
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
         }
@@ -291,7 +290,7 @@ namespace Arena
                     V2 at = p.Disp + new V2((k - 1.5f) * p.Def.BodyR * 0.45f, p.Def.BodyR * 0.6f - f * p.Def.BodyR * 1.8f);
                     Circle(at, 2.2f * (1f - f) + 0.8f, new Rgba(0.5f, 1f, 0.6f, 0.85f * (1f - f)), 6);
                 }
-            if (p.Weapon.Id == WeaponId.Katana)  // the stance's meter round you and Flow over your head (KatanaLook.cs)
+            if (p.Weapon.Id == WeaponId.Katana)  // both stances' combo pips over your head (KatanaLook.cs)
                 DrawKatanaHud(p, t);
             if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)
                 DrawBoStaffPips(p, t);

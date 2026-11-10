@@ -301,12 +301,12 @@ namespace Arena
                 }
                 if (fx.Kind == FxKind.KatanaHitCue && fx.Color.A > 0.75f && (int)fx.Pos2.X == game.MyId)
                 {
-                    Hold(Game.KatanaDashHold + Game.KatanaDashHoldPer * Mathf.Min(3f, fx.Radius - 1f), 0.12f);  // your own dash-cut cut something: the picture holds
-                    Shake(0.14f);  // Moon Steel: the dash lands with a kick
+                    Hold(0.07f, 0.12f);  // your own Momentum Burst hit something: a heavy hold and a kick (KatanaLook.cs)
+                    Shake(0.35f);
                 }
                 else if (fx.Kind == FxKind.KatanaHitCue && (int)fx.Pos2.X == game.MyId)
                 {
-                    Hold(0.03f, 0.15f);  // ...and each swipe that cuts something with a lighter one and a 0.03 s hit-stop (a short gap, so a 0.26 s chain gets one each)
+                    Hold(Game.KatanaDashHold + Game.KatanaDashHoldPer * Mathf.Min(3f, fx.Radius - 1f), 0.06f);  // each step that cuts something: a short hit-stop
                     Shake(0.07f);
                 }
                 if (fx.Kind == FxKind.VeinCut && (int)(fx.Radius / 1000f) == game.MyId)
@@ -362,7 +362,7 @@ namespace Arena
                     }
                 }
                 if (fx.Kind == FxKind.KatanaCut && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
-                    Shake(fx.Color.A > 0.75f ? 0.25f : 0.2f);  // a Kage Chain or Zanshin cut lands (a kill harder)
+                    Shake(fx.Color.A > 0.75f ? 0.08f : 0f);  // a Katana kill nearby (KatanaLook.cs)
                 if (fx.Kind == FxKind.Exsanguinate && fx.Pos2.X < 0f && me != null)  // Exsanguinate's Barbed Lash (ExsanguinateLook.cs)
                 {
                     bool mine = (int)fx.Pos2.Y == game.MyId;

@@ -52,6 +52,23 @@ namespace Arena
                 Delay(Tone(0.18f, S, 160f, 60f, 0.22f, noise: 0.3f, lowpass: 0.3f, decay: 2.4f), 0.1f),
                 Delay(Bell(0.4f, KatanaRing * 0.8f, 0.05f), 0.11f)), KatanaRoom * 0.6f), 0.5f), 0.1f);
 
+            // The Momentum Burst: the blade driven into the ground (a crack), a deep thump and a rolling shockwave with a ring on top.
+            Set(Sfx.KatanaBurstSfx, Finish(Room(Mix(
+                Tone(0.04f, S, 3000f, 1200f, 0.22f, noise: 1f, lowpass: 0.9f, decay: 3f),
+                Tone(0.45f, S, 70f, 30f, 0.5f, lowpass: 0.3f, decay: 1.6f),
+                Tone(0.45f, S, 2500f, 120f, 0.3f, noise: 1f, lowpass: 0.5f, attack: 0.01f, decay: 1.4f),
+                Delay(Bell(0.5f, 990f, 0.06f), 0.02f)), KatanaRoom), 0.65f), 0.1f);
+            // Caltrops thrown: a handful of iron spilling out, little ticks scattering over a short whoosh.
+            var tl = new float[6][];
+            tl[0] = Tone(0.18f, S, 700f, 2400f, 0.16f, noise: 0.85f, lowpass: 0.6f, attack: 0.01f, decay: 1.6f);
+            for (int k = 1; k < tl.Length; k++)
+                tl[k] = Delay(Tone(0.03f, Osc.Square, 3200f + 260f * k, 2600f, 0.05f, lowpass: 0.6f, decay: 3f), 0.06f + 0.045f * k);
+            Set(Sfx.KatanaCaltrops, Finish(Mix(tl), 0.45f), 0.1f);
+            // Caltrops flung or seeking: a rising whistle of many small blades.
+            Set(Sfx.KatanaFling, Finish(Room(Mix(
+                Tone(0.22f, S, 1500f, 5000f, 0.18f, noise: 0.9f, lowpass: 0.8f, attack: 0.01f, decay: 1.5f),
+                Delay(Bell(0.3f, 1760f, 0.07f), 0.04f)), KatanaRoom * 0.5f), 0.5f), 0.1f);
+
             // --- The meter (your own screen) ---
             Set(Sfx.KatanaReady, Finish(Room(Mix(
                 Notes(new[] { 1319f, 1760f, 2349f }, 0.05f, S, KatanaChime, 1f),

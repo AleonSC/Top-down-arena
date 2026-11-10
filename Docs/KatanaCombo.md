@@ -1,61 +1,57 @@
-# Katana: two stances (design)
+# Katana: two stance combos (design)
 
-Status: **built** (Nov 2026, protocol 230). Mockup: [`Docs/Mockups/katana-stances.html`](Mockups/katana-stances.html)
-(https://claude.ai/artifact/CV8cs8PEVMuhjqMcDxGX3h), changed as the owner asked afterwards (below). It replaces the swipe,
-swipe, lunge chain and the strike meter (protocol 179 to 227; that version's design is in git history, and its mockups
-`katana-combo.html`, `katana-chain.html` and `katana-reach.html` are still in `Docs/Mockups/`). The first round of ideas is
-[`Docs/Mockups/katana-ninja-rework.html`](Mockups/katana-ninja-rework.html).
+Status: **built** (Nov 2026, protocol 240). Mockup: [`Docs/Mockups/katana-stance-cancels.html`](Mockups/katana-stance-cancels.html)
+(https://claude.ai/artifact/X14SX3LsqfEfUNt8RA3BNQ), version 3, built as drawn. It replaces the first stances (protocol 228-239:
+a dash and swipes with meters spent by holding fire, the Kage Chain and Zanshin; in git history). Earlier ideas:
+`katana-ninja-rework.html`, `katana-stances.html`.
 
-> The Katana has two stances. The weapon-action key switches between them. Each stance has its own attack and its own
-> meter, and holding fire with the meter full spends it on that stance's move.
+> Two basic-attack combos, one per stance. The weapon-action key switches stance at once, and the stance you leave keeps its
+> place in its combo for as long as you're away. The skill is storing a combo one step from its finisher and calling it when
+> it counts. The two finishers feed each other.
 
-## The owner's rules
-- The switch does **nothing extra**: an animation, a small cooldown, and a small burst that pushes nearby enemies back a
-  little. It never spends a meter.
-- The moves the mockup fired on a switch are now **that stance's own move**, triggered by **holding fire** when its meter
-  is full.
-- **Zanshin** builds its own meter, kept when you switch. The **Kage Chain** builds its meter from the enemies Hayate's dashes
-  hit, kept too.
-- **+1** (extra projectiles): one more Kage Chain hop, and every dash and swipe strikes once more (60%).
-- Flow is kept.
+## Switching
+- The weapon-action key (Left Alt), 0.3 s cooldown. It stops the step you're in (what hasn't landed of it never does). No
+  bonus, no penalty.
+- The stance you leave keeps its place forever. The stance you're in starts over after 1.5 s without a step.
+- Raising the parry clears the wait for the next step and keeps both combos' places.
 
-## Hayate (stance 0): the dash
-| | |
-|---|---|
-| Fire | dash-cut 150 px along your aim in 0.1 s, untouchable, a line 36 px wide; everything on it takes 1.4x the weapon's damage (28) |
-| Cooldown | 0.55 s, or none if the dash killed something |
-| Flow | a level per killing dash, up to 5: +8% length, +0.2x damage (+4) each. After 2.2 s without a kill it drops a level every 0.7 s, only while you are in Hayate |
-| Meter | every enemy a dash hits adds 1 to the Kage meter (10 fills it) |
-| Hold fire, meter full | **Kage Chain**: hop through the 6 nearest enemies (each from the last), 75 ms a hop, untouchable, 3.5x (70) to each |
+## Hayate (stance 0): the dash combo. Damage is x the weapon's 20.
+| Step | What | Damage | Next step after |
+|---|---|---|---|
+| Kiri | dash-cut 120 px along your aim in 0.09 s, untouchable, a line 32 px wide | 1.1x (22) | 0.22 s |
+| Kaeshi | the same, angled 20° to alternate sides | 1.1x (22) | 0.22 s |
+| Tsumuji | a 70 px dash into a full spin, 85 px round you | 1.3x (26) | 0.36 s |
+| Momentum Burst | the blade stabbed into the ground (planted 0.2 s): a 150 px shockwave shoves enemies 120 px, cuts the small bullets in it and marks what it hits for 4 s | 0.4x (8) | 0.32 s |
 
-## Senbon (stance 1): the marks
-| | |
-|---|---|
-| Fire | swipes, 120°, 120 px, 0.8x (16), 0.26 s each, alternating sides |
-| Marks | every enemy a swipe hits and doesn't kill takes a mark, up to 3 (every screen sees them) |
-| Meter | every enemy a swipe hits adds 1 to the Zanshin meter (10 fills it) |
-| Hold fire, meter full | **Zanshin**: the marked freeze (not bosses); you hop through each (60 ms), back to where you stood (90 ms), hold still (0.28 s) and sheathe (0.42 s). At the click each marked enemy takes 1.7x (34) per mark, the marks clear, and enemy shots within 380 px are cut. Untouchable throughout |
+A dash that kills brings the next step at once.
 
-## The switch
-- The weapon-action key (Left Alt). 1 s cooldown. No attacks for 0.22 s while the blade turns.
-- Pushes enemies within 110 px back 45 px (not heavy ones), no damage.
-- Meters, marks and Flow are kept.
+## Senbon (stance 1): the fancy combo
+| Step | What | Damage | Next step after |
+|---|---|---|---|
+| Agari | a 130° sweep, 120 px | 0.8x (16) | 0.25 s |
+| Kaeshi | the sweep back the other way | 0.8x (16) | 0.25 s |
+| Engetsu | a 30 px step into a full-moon spin, 105 px | 1x (20) | 0.34 s |
+| Senbon | six crossing slashes (95 px lines) in a cone 60-125 px ahead, 0.05 s apart | 0.35x (7) each | 0.36 s |
+| Caltrops | 16 caltrops thrown out to 60-150 px round you; they lie 8 s, and one stepped on hurts, slows to half speed for 1.5 s and breaks | 0.2x (4) | 0.48 s |
 
-## Holding fire
-With the stance's meter full, a press still attacks once; keep holding 0.35 s and your own game starts the move (it picks
-the hops from what it sees, moves you along them, and tells the host). The host checks the meter, picks its own targets by
-the same rule and lands the cuts on time. With the meter not full, holding fire repeats the attack as before.
+## The finishers together
+- **Caltrops, then the Burst:** the shockwave flings every caltrop you have lying on the ground at the nearest enemy, 0.4x (8) each.
+- **The Burst, then Caltrops:** the caltrops you throw seek the enemies the Burst marked, shared out between them, 0.4x (8) each.
+
+## +1 (extra projectiles)
+Each dash strikes once more at 60%, two more caltrops, and a 25% wider Momentum Burst.
 
 ## Code
-- `Core/Katana.cs`: `FireKatana`, `KatanaLanded` (meters, marks, a killing dash), `TickKatana` (Flow), `TickKatanaFire`,
-  `LocalKatana` (your dash, the switch, the hold, the hops), `HostKatanaDash` / `HostKatanaSwitch`, `TickKatanaRuns`.
-- Constants: top of `Core/Ninja.cs`. Replicated: `Player.KatanaStance`, `KatanaFlow`, `KatanaKage`, `KatanaZan`,
-  `KatanaStep`, `KatanaDashes`; `Enemy.KatanaMarks`. `Msg.WeaponDash` kinds 5 (switch), 17 (Kage Chain), 18 (Zanshin).
-  `FxKind.KatanaStanceFx`, `KatanaHop`; `Sfx.KatanaStanceSwap`.
-- The dash is a `Swing` box landed from where it began (`Swing.FromSet`), so the cut follows the line you dashed.
-- Look: `Game/KatanaLook.cs` (held pose per stance, meters, Flow, marks, the switch, the hops, your own Zanshin's dimming and
-  letterbox), `Game/MeleeLooks.cs` (the dash's spear and afterimages, the swipes' crescents).
-
-## Open
-- Co-op: the marks belong to no one; any Katana's Zanshin cuts every marked enemy.
-- Old sounds kept and unused: `KatanaWindup`, `KatanaLost`, `KatanaEmpty`, `KatanaAim`, `KatanaSwitch`; `FxKind.KatanaStrike`.
+- `Core/Katana.cs`: `FireKatana` (each step), `KatanaLine`/`KatanaArc`/`KatanaSlash` (the cuts, as swings that draw nothing
+  themselves), `KatanaLanded` (each cut's look, a killing dash), `MomentumBurst`, `ThrowCaltrops`, `TickKatanaLater` (timed
+  cuts, marks fading, caltrops landing and flying: the host steers them), `HostKatanaSwitch`, `TickKatana` (the combos' memory),
+  `LocalKatana` (your own game's dashes and steps, the Burst's plant, the switch).
+- Constants: top of `Core/Ninja.cs`. Replicated: `Player.KatanaStance`, `KatanaHay`, `KatanaSen`, `KatanaStep` (the last step,
+  stance * 8 + step), `KatanaDashes`; `Enemy.KatanaShocked`. `Defs.Caltrop` bullets (`Bullet.Tossed` while in the air: they fly
+  over enemies). `FxKind.KatanaDash`, `KatanaSweep`, `KatanaSlash`, `KatanaBurst`, `KatanaCut`, `KatanaStanceFx`;
+  `Sfx.KatanaBurstSfx`, `KatanaCaltrops`, `KatanaFling`, `KatanaStanceSwap`.
+- Look: `Game/KatanaLook.cs`, the mockup's shapes and numbers: the katana model in both hands (curved blade, white edge,
+  temper line, gold habaki and tsuba, wrapped grip), the dash's spear and afterimages, the sweeps' crescents, Senbon's lenses,
+  every cut's line and sparks and a dead enemy's halves in its own colour and shape, the Burst's rings, cracks and flash,
+  marked enemies' turning dashed ring, caltrops, and both stances' combo pips. Hit-stop: `Juice.cs` (25 ms a cutting step,
+  70 ms and a kick on the Burst).

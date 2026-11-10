@@ -77,6 +77,8 @@ namespace Arena
         {
             if (b.Kind == Defs.SteelShard)
                 return;  // it carries its own glow (KnightDpsLook.cs)
+            if (b.Kind == Defs.Caltrop)
+                return;  // a caltrop has no glow (KatanaLook.cs)
             if (b.Kind == Defs.ParryNeedle)
             {
                 GlowDisc(b.Pos, 16f, Rgba.White, 0.5f);  // the parried needle (ParryLook.cs)
