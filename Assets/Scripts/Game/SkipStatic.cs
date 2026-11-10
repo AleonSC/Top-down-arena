@@ -4,14 +4,16 @@ namespace Arena
 {
     /// Skipping an intro with a key or click (the main menu's pen plot, New run's terminal boot, the profile disk going in or
     /// out) plays a 0.22 s "channel flip" instead of a hard cut (Docs/Mockups/intro-skip-static.html, look B): the finished
-    /// screen is grabbed each frame, then drawn back rolling up into place under a black sync bar, with a colour split,
+    /// screen is grabbed once, then drawn back rolling up into place under a black sync bar, with a colour split,
     /// torn rows and snow that all fade as it settles. Drawn last in OnGUI (under the cursor). Reduced effects or Visual
     /// effects off: the plain cut.
     public partial class ArenaApp
     {
         const float SkipStaticLen = 0.22f;
         const int SkipSnowW = 240, SkipSnowH = 135;
-        float skipStaticAt = -1f;          // Time.unscaledTime of the skip; below 0 when none is playing
+        const float SkipStaticMaxStep = 1f / 60f;  // its clock moves at most this much a frame, so a slow frame (the skip itself, the grab) can't eat it
+        float skipStaticT = -1f;           // seconds into the flip; below 0 when none is playing
+        bool skipGrabbed;                  // the finished screen has been grabbed for this flip
         static Texture2D skipGrab, skipSnow, skipVignette;
         static Color32[] skipSnowPx;
 
@@ -19,20 +21,25 @@ namespace Arena
         void StartSkipStatic()
         {
             if (fxOn && !fxReduced)
-                skipStaticAt = Time.unscaledTime;
+            {
+                skipStaticT = 0f;
+                skipGrabbed = false;
+            }
         }
 
-        /// OnGUI, last thing before the cursor: on Repaint, grab what was just drawn and draw it back mid-flip.
+        /// OnGUI, last thing before the cursor: on the first Repaint grab what was just drawn (once: a grab stalls the frame),
+        /// then draw it back mid-flip every frame.
         void DrawSkipStatic()
         {
-            if (skipStaticAt < 0f || Event.current.type != EventType.Repaint)
+            if (skipStaticT < 0f || Event.current.type != EventType.Repaint)
                 return;
-            float s = Time.unscaledTime - skipStaticAt;
-            if (s >= SkipStaticLen || s < 0f)
+            float s = skipStaticT;
+            if (s >= SkipStaticLen)
             {
-                skipStaticAt = -1f;
+                skipStaticT = -1f;
                 return;
             }
+            skipStaticT += Mathf.Min(Time.unscaledDeltaTime, SkipStaticMaxStep);
             int sw = Screen.width, sh = Screen.height;
             if (sw <= 0 || sh <= 0)
                 return;
@@ -40,9 +47,14 @@ namespace Arena
             {
                 if (skipGrab != null) Object.Destroy(skipGrab);
                 skipGrab = new Texture2D(sw, sh, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+                skipGrabbed = false;
             }
-            skipGrab.ReadPixels(new Rect(0, 0, sw, sh), 0, 0, false);
-            skipGrab.Apply(false);
+            if (!skipGrabbed)
+            {
+                skipGrab.ReadPixels(new Rect(0, 0, sw, sh), 0, 0, false);
+                skipGrab.Apply(false);
+                skipGrabbed = true;
+            }
 
             var keepM = GUI.matrix;
             var keepC = GUI.color;
