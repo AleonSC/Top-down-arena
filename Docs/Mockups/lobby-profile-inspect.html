@@ -81,7 +81,16 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 /* inspect: look A, holographic trading card */
 #insA { left: 410px; top: 40px; width: 460px; height: 640px; transform: translateY(24px) scale(.92) rotateX(8deg); perspective: 900px; }
 .holo { position: absolute; inset: 0; border-radius: 22px; padding: 22px 26px; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow: hidden;
-  background: linear-gradient(160deg, #1b2556 0%, #0f1330 55%, #1d1030 100%); border: 2px solid var(--tc); box-shadow: 0 0 0 5px #0b0e20, 0 0 0 7px color-mix(in srgb, var(--tc) 60%, transparent), 0 30px 80px rgba(0,0,0,.7), 0 0 60px -6px var(--tc); }
+  border: 7px solid transparent; background: var(--cardbg) padding-box, var(--frame) border-box; box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 60px -6px var(--fglow); }
+.bg-nebula { --cardbg: radial-gradient(60% 40% at 20% 15%, rgba(181,115,255,.45), transparent), radial-gradient(60% 45% at 85% 80%, rgba(79,209,181,.35), transparent), #0f1330; }
+.bg-grid { --cardbg: linear-gradient(rgba(90,150,255,.14) 1px, transparent 1px) 0 0/22px 22px, linear-gradient(90deg, rgba(90,150,255,.14) 1px, transparent 1px) 0 0/22px 22px, #0f1330; }
+.fr-aurora { --frame: linear-gradient(135deg,#4fd1b5,#b573ff 35%,#ffcc59 65%,#4fd1b5); --fglow: #b573ff; }
+.fr-steel { --frame: linear-gradient(135deg,#d3d9e8,#6c768f 40%,#c5ccdc 70%,#59627a); --fglow: #8a94b0; }
+.fx-prism { background: linear-gradient(90deg,#ff7ad9,#ffcc59,#4fd1b5,#5a96ff,#ff7ad9) 0 0/200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shim 4s linear infinite; }
+.fx-plain { color: #fff; }
+@keyframes shim { to { background-position: 200% 0; } }
+@media (prefers-reduced-motion: reduce) { .fx-prism { animation: none; } }
+.trail { width: 100%; height: 26px; }
 .holo::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.035) 0 1px, transparent 1px 4px); pointer-events: none; }
 .holo::after { content: ""; position: absolute; left: -30%; right: -30%; height: 90px; top: -90px; background: linear-gradient(transparent, color-mix(in srgb, var(--tc) 28%, transparent), transparent); animation: sweep 5s linear infinite; pointer-events: none; }
 @keyframes sweep { to { transform: translateY(760px); } }
@@ -106,6 +115,7 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .row { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; }
 .row span { color: var(--muted); font: 500 11px var(--f-mono); letter-spacing: .06em; } .row b { font-weight: 600; }
 .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.holo.mini { position: relative; inset: auto; height: 118px; border-width: 5px; border-radius: 16px; padding: 10px 18px; gap: 2px; align-items: flex-start; } .holo.mini .nm { font-size: 28px; } .holo.mini::after { display: none; }
 .cap { font: 500 12px var(--f-mono); color: var(--muted); max-width: 70ch; }
 </style>
 
@@ -170,10 +180,11 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 <script>
 const P = {
   c1: { name:'Mira', rank:47, tier:'LEGEND', tc:'var(--t4)', ti:4, role:'Support Medic', rc:'#4fd1b5', weapon:'Mender Gun', ability:'Field Hospital', xp:78, nxt:'Rank 48 · Name effect',
-        stats:[['RUNS','311'],['BEST WAVE','38'],['BOSSES','207']], cos:['Frame: Aurora','Trail: Light cycle','Card: Nebula','Name: Prism'], perks:'Riot Gear · Contraband', tiers:4 },
+        stats:[['RUNS','311'],['BEST WAVE','38'],['BOSSES','207']], cos:['Frame: Aurora','Trail: Light cycle','Card: Nebula','Name: Prism'], perks:'Riot Gear · Contraband', tiers:4, frameCls:'fr-aurora', bgCls:'bg-nebula', fx:'fx-prism', trailCol:'#4fd1b5', trailName:'Light cycle' },
   c2: { name:'Bot Rex', rank:12, tier:'CHALLENGER', tc:'var(--t1)', ti:1, role:'DPS Gunner', rc:'#5a96ff', weapon:'Rail Rifle', ability:'Overdrive', xp:30, nxt:'Rank 13 · Trail',
-        stats:[['RUNS','—'],['BEST WAVE','—'],['BOSSES','—']], cos:['Frame: Steel','Trail: Sparks'], perks:'None', tiers:1 }
+        stats:[['RUNS','—'],['BEST WAVE','—'],['BOSSES','—']], cos:['Frame: Steel','Trail: Sparks'], perks:'None', tiers:1, frameCls:'fr-steel', bgCls:'bg-grid', fx:'fx-plain', trailCol:'#5a96ff', trailName:'Sparks' }
 };
+function trail(p){return `<svg class="trail" viewBox="0 0 400 26" preserveAspectRatio="none"><path d="M0 20 H120 V6 H230 V20 H300 V10 H400" fill="none" stroke="${p.trailCol}" stroke-width="3" style="filter:drop-shadow(0 0 5px ${p.trailCol})"/></svg>`;}
 const TC = ['#8a94b0','#5a96ff','#4fd1b5','#b573ff','#ffcc59'];
 const $ = id => document.getElementById(id);
 let look = 'A', open = null;
@@ -182,7 +193,8 @@ function holo(p) {
   return `<div class="tier">${p.tier} · RANK ${p.rank}</div>
   <div class="shield lg" style="--tc:${p.tc}">${p.rank}</div>
   <div class="chev" style="--tc:${p.tc}">${'<i></i>'.repeat(p.ti + 1)}</div>
-  <div class="nm">${p.name}</div><div class="role" style="--rc:${p.rc}">${p.role}</div>
+  <div class="nm ${p.fx}">${p.name}</div><div class="role" style="--rc:${p.rc}">${p.role}</div>
+  ${trail(p)}
   <div class="xp"><i style="width:${p.xp}%"></i></div>
   <div class="stats">${p.stats.map(s => `<div class="stat"><b>${s[1]}</b><span>${s[0]}</span></div>`).join('')}</div>
   <div class="cos">${p.cos.map(c => `<em>${c}</em>`).join('')}</div>`;
@@ -191,6 +203,8 @@ function side(p) {
   const lad = TC.map((c, i) => `<i class="${i < p.ti ? 'on' : i === p.ti ? 'on cur' : ''}" style="--c:${c}"></i>`).join('');
   return `<div class="top"><div class="shield lg" style="--tc:${p.tc};width:96px;height:112px;font-size:42px;padding-bottom:16px">${p.rank}</div>
     <div><div class="nm">${p.name}</div><div class="rk">${p.tier} · RANK ${p.rank}</div><div class="chev" style="--tc:${p.tc};justify-content:flex-start;margin-top:8px">${'<i></i>'.repeat(p.ti + 1)}</div></div></div>
+  <div class="lab">HOW THEY LOOK IN THE PARTY</div>
+  <div class="holo mini ${p.frameCls} ${p.bgCls}" style="--tc:${p.tc};--rc:${p.rc}"><div class="nm ${p.fx}">${p.name}</div><div class="role">${p.role}</div>${trail(p)}</div>
   <div class="lab">TIER LADDER</div><div class="ladder">${lad}</div>
   <div class="lab">XP TO NEXT: ${p.nxt.toUpperCase()}</div><div class="xp" style="height:8px;border-radius:4px;background:#0a0e20;overflow:hidden"><i style="display:block;height:100%;width:${p.xp}%;background:linear-gradient(90deg,${p.tc},#fff)"></i></div>
   <div class="lab">LOADOUT</div><div class="rows"><div class="row"><span>CLASS</span><b>${p.role}</b></div><div class="row"><span>WEAPON</span><b>${p.weapon}</b></div><div class="row"><span>ABILITY</span><b>${p.ability}</b></div><div class="row"><span>PERKS</span><b>${p.perks}</b></div></div>
@@ -202,8 +216,8 @@ function show(id) {
   $('veil').classList.add('on');
   if (id === 'c0') { $('prof').classList.add('on'); $('cap').textContent = 'Your profile: the same cabinet as the main menu card (Rank, Records, Unlocks, Look).'; return; }
   const p = P[id];
-  if (look === 'A') { $('holoA').style.setProperty('--tc', p.tc); $('holoA').style.setProperty('--rc', p.rc); $('holoA').innerHTML = holo(p); $('insA').style.setProperty('--tc', p.tc); $('insA').classList.add('on'); $('cap').textContent = 'Look A: a big holographic trading card. Rank badge, tier chevrons, class, key records, cosmetics.'; }
-  else { $('bodyB').innerHTML = side(p); $('insB').style.setProperty('--tc', p.tc); $('insB').classList.add('on'); $('cap').textContent = 'Look B: a side panel that keeps the lobby visible. Adds the tier ladder, full loadout and each equipped look.'; }
+  if (look === 'A') { $('holoA').className = 'holo ' + p.frameCls + ' ' + p.bgCls; $('holoA').style.setProperty('--tc', p.tc); $('holoA').style.setProperty('--rc', p.rc); $('holoA').innerHTML = holo(p); $('insA').style.setProperty('--tc', p.tc); $('insA').classList.add('on'); $('cap').textContent = 'Look A: a big holographic card wearing their chosen frame, card background, name effect and trail, plus rank badge, class, records.'; }
+  else { $('bodyB').innerHTML = side(p); $('insB').style.setProperty('--tc', p.tc); $('insB').classList.add('on'); $('cap').textContent = 'Look B: a side panel with a preview of their frame, background, name effect and trail, plus the tier ladder, loadout and each equipped look.'; }
 }
 function close(quiet) { ['prof', 'insA', 'insB'].forEach(i => $(i).classList.remove('on')); $('veil').classList.remove('on'); open = null; if (!quiet) $('cap').textContent = 'Click a card in the party column. Esc or the close key goes back.'; }
 ['c0', 'c1', 'c2'].forEach(id => $(id).addEventListener('click', () => show(id)));
