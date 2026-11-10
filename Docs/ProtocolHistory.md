@@ -2,6 +2,7 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
+- 258: the Repulsion Cannon's Undertow: `Player.RepelMeter` (byte) and `Player.RepelPull` (bool) after `TwinCharge` in each player's snapshot; `Msg.WeaponDash` kinds 19/20 (pull on/off)
 - 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
 
 - 257: boss wave beam-in: `FxKind.BossBeam` (last in the enum) and `Player.WarpT` (a float after `SwallowT` in each player's snapshot).
