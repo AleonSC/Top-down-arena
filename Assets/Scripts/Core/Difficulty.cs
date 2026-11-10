@@ -34,6 +34,7 @@ namespace Arena
         ArenaLayouts,   // on/off: each boss cycle gets a fixed floor plan (Layouts.cs); off = always the open arena
         ArenaRooms,     // on/off: the Arena setting, Rooms (on: side rooms and hallways on regular waves, Rooms.cs) or Classic (off)
         ArenaExpanding, // on/off: the Arena setting, Expanding (on: starts as the Classic box and grows by rooms the team buys, ExpansionGame.cs); wins over Rooms
+        Campaign,       // on/off: every wave is themed enemies, the last boss's fading out and the next one's building up (Approaches.cs, Docs/Campaign.md); off = the Boss approach setting
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
@@ -292,6 +293,10 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.ArenaExpanding, Name = "Expanding arena", Flavour = true,
                 Desc = "On: the arena starts as the Classic box and grows: after each boss the team votes on a new room to buy with a shared purse (paths are off). Off: the other arenas.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
+            // The campaign buildup (Approaches.cs, Docs/Campaign.md): flavour. Every wave is faction enemies; Boss approach and its ramp only apply when this is off.
+            new KnobDef { Knob = DiffKnob.Campaign, Name = "Campaign buildup", Flavour = true,
+                Desc = "On: every wave is made of boss-themed enemies: the last boss's phase out while the next boss's build up. Off: the usual random waves with the Boss approach share.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
         };
     }
 
