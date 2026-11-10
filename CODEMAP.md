@@ -28,6 +28,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `World.cs`: an arena's geometry as data (`World`: areas, doors, portals, wall spans, cover, steering floor plan `With`), `ArenaLayout` (Single, Wings, Expanding later), `World.Single` (the plain box); the Wings map is `Rooms.Wings`, `Game.CurrentWorld`/`ArenaKind` pick the one in play (Docs/ExpandingArena.md)
 - `Rooms.cs`, `Game/RoomsLook.cs`: the Rooms arena (the Arena setting, Docs/Rooms.md): the open map (random spawns `RoomsRandomSpot`, free camera from 1.5x zoom with a prompt), the vault (the Gatekeeper) and the minimap; the parked room-by-room version (`Rooms.RoomByRoom`: nests, spills, locked doors, room rewards); the Wings world (hub, side rooms, hallways, doors; built as a `World`, the `Rooms.Areas/Doors/...` members read it), its walls added to the cycle's floor plan (`Rooms.With`), `PickRooms`/`RoomsOn` (regular waves), `PullIntoHub` (boss waves); the floor and door look. Camera follow in `CameraZoom.cs`
 - `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look (phosphor vector, Docs/Mockups/arena-layouts-digital.html)
+- `Shop.cs`: the Bazaar (gold, shelves that grow with Add stock, shop actions)
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Coins.cs`, `Game/CoinLook.cs`: gold coins dropped by kills in the Expanding arena (`Coin`, `DropCoins`, `TickCoins`, `SyncCoin`); they never despawn, magnet to the nearest living player and give that player their gold; the look spins and glints
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
@@ -242,7 +243,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `WaveBand.cs`: the CRT scan band for GET READY / WAVE N CLEARED (`Hud.DrawBanner`) and WAVE N STARTED (`LaunchIntro.DrawLaunchWave`); mockup `Docs/Mockups/crt-wave-banners.html` option B
 - `SkipStatic.cs`: skipping an intro (main menu, New run boot, profile disk in/out) plays a 0.22 s static channel flip over a grab of the finished screen (`Docs/Mockups/intro-skip-static.html`, B)
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
-- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen (the Tab screen, as hologram panels), hunt tab
+- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen (a sideways carousel of shelf cards then services, no stats sidebar; look: `Docs/Mockups/shop-carousel.html`), run stats screen (the Tab screen, as hologram panels), hunt tab
 - `TabHolo.cs`: the Tab screen's hologram panels (glass, scanlines, band, fringe, flicker, switch-on), the projector beam, and its layout and text helpers
 - `Game/HudModes.cs`: the HUD modes on H (full, corner text, on the player, hidden); the two partial modes in the CRT look of `Docs/Mockups/crt-hud-modes.html`
 
