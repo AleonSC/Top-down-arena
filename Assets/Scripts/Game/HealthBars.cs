@@ -43,6 +43,20 @@ namespace Arena
         static Color GhostColor(Color fill) => new Color(Pale(fill.r), Pale(fill.g), Pale(fill.b), 0.75f);
 
         /// A HUD bar with its damage ghost (just Ui.Bar with Visual effects off).
+        static readonly Color WoundUi = new Color(0.42f, 0.05f, 0.09f, 0.95f), WoundLine = new Color(1f, 0.32f, 0.36f, 0.9f);
+        static readonly Rgba WoundWorld = new Rgba(0.45f, 0.06f, 0.1f, 0.95f);
+
+        /// A wound (Combat.cs, Docs/PowerStacking.md): the end of a player's health bar no heal can reach until the wave is
+        /// cleared, in dark red with a bright edge where healing stops.
+        void DrawWound(Rect hp, Player p)
+        {
+            if (p.Wound <= 0.5f || p.MaxHp <= 0f)
+                return;
+            float w = hp.width * Mathf.Clamp01(p.Wound / p.MaxHp);
+            Ui.Fill(new Rect(hp.xMax - w, hp.y, w, hp.height), WoundUi);
+            Ui.Fill(new Rect(hp.xMax - w - 1f, hp.y, 2f, hp.height), WoundLine);
+        }
+
         void GhostBar(Rect r, float frac, Color fill, long key)
         {
             if (!fxOn)

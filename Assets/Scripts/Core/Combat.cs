@@ -65,6 +65,7 @@ namespace Arena
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             lastTaken = Math.Max(0f, amount);
+            p.Wound = Math.Min(p.MaxHp - 1f, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share that can't be healed back this wave
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -104,7 +105,7 @@ namespace Arena
                 by.Run.Revives++;
             p.Downed = false;
             p.Revive = 0f;
-            p.Hp = Math.Max(p.Hp, p.MaxHp * fraction);
+            p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.MaxHp * fraction));  // (not past the wound)
             p.InvulnT = 1.5f;
         }
 
@@ -906,8 +907,8 @@ namespace Arena
                 {
                     float heal = Math.Min(s.Lifesteal, p.LifestealPool);
                     p.LifestealPool -= heal;
-                    Recorder?.HealReceived(p, Math.Min(heal, p.MaxHp - p.Hp), "lifesteal");
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + heal);
+                    Recorder?.HealReceived(p, Math.Max(0f, Math.Min(heal, p.HealCap - p.Hp)), "lifesteal");
+                    p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + heal));
                 }
                 if (s.SlowOnHit > 0f)
                 {
@@ -1137,8 +1138,8 @@ namespace Arena
             var s = p.Stats;
             if (s.KillHeal > 0f && !p.Downed)
             {
-                Recorder?.HealReceived(p, Math.Min(s.KillHeal, p.MaxHp - p.Hp), "heal on kill");
-                p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
+                Recorder?.HealReceived(p, Math.Max(0f, Math.Min(s.KillHeal, p.HealCap - p.Hp)), "heal on kill");
+                p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + s.KillHeal));
             }
             DroneOnKill(p, e);  // Hive Drones (QueenLoot.cs)
             for (float c = s.BroodChance; c > 0f; c -= 1f)  // over 100% (three stacks): a sure turret, and a chance at another
@@ -1213,8 +1214,8 @@ namespace Arena
                 o.Pos += to.LimitLength(300f * dt);
                 if (to.Length < nearest.Def.BodyR + o.Radius)
                 {
-                    Recorder?.Orb(nearest, Math.Min(o.Heal, nearest.MaxHp - nearest.Hp));
-                    nearest.Hp = Math.Min(nearest.MaxHp, nearest.Hp + o.Heal);
+                    Recorder?.Orb(nearest, Math.Max(0f, Math.Min(o.Heal, nearest.HealCap - nearest.Hp)));
+                    nearest.Hp = Math.Max(nearest.Hp, Math.Min(nearest.HealCap, nearest.Hp + o.Heal));
                     BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), o.Big ? 50f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
                     gone.Add(o.Id);
                 }

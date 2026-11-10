@@ -700,6 +700,8 @@ namespace Arena
             }
             if (u.Role.HasValue)
                 return Defs.Get(u.Role.Value).Name + " only";
+            if (have > 0 && Upgrades.Diminishes(u))  // diminishing returns (Upgrades.CopyStrength): say what this copy is worth
+                return "You have " + have + "  ·  this copy " + Mathf.RoundToInt(Upgrades.CopyStrength(u, have + 1) * 100f) + "% strength";
             return have > 0 ? "You have " + have : "";
         }
 

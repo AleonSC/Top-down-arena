@@ -1060,6 +1060,10 @@ static partial class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("PATHON") != null) { host.Game.CurrentPath = (PathId)int.Parse(Environment.GetEnvironmentVariable("PATHON")); host.Game.PathFrom = host.Game.Wave - 1; host.Game.PathTo = host.Game.Wave + 2; host.Game.Mods = RunMod.Frenzy; if (host.Game.CurrentPath == PathId.Fogbound) host.Game.FogF = 1f; if (host.Game.CurrentPath == PathId.NarrowPass) { host.Game.NarrowF = 1f; foreach (var pl in host.Game.Players.Values) pl.Disp = pl.Pos = pl.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); foreach (var en in host.Game.Enemies.Values) en.Disp = en.Pos = en.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); } }
+    if (Environment.GetEnvironmentVariable("WOUND") != null) {  // WOUND=0.2: everyone wounded that share of max health and down to 55% (Combat.cs, Docs/PowerStacking.md)
+      float wf = float.Parse(Environment.GetEnvironmentVariable("WOUND"), System.Globalization.CultureInfo.InvariantCulture);
+      foreach (var wp in host.Game.Players.Values) { wp.Wound = wp.MaxHp * wf; wp.Hp = wp.MaxHp * 0.55f; }
+    }
     if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // ROOMS=x,y: the Rooms arena's side rooms up (Rooms.cs), you at x,y, the enemies spread over the rooms and hallways
       var rg = host.Game; rg.Diff.Set(DiffKnob.ArenaRooms, 1f); rg.RoomsUp = true; rg.LayoutAge = 5f;
       rg.VaultUp = Environment.GetEnvironmentVariable("VAULT") != null;  // VAULT=1: a vault wave (the Gatekeeper in the vault off the top hall)

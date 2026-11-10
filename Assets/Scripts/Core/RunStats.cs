@@ -28,9 +28,10 @@ namespace Arena
                 return 0f;
             if (casting)
                 amount *= castPower;
-            float applied = Math.Min(amount, target.MaxHp - target.Hp);
-            if (amount > applied && source != null && source.Role == Role.Healer && what != AuraSource)
-                OverhealShield(target, amount - applied);
+            float applied = Math.Min(amount, target.HealCap - target.Hp);  // (not past the wound: Combat.cs)
+            float past = amount - Math.Max(0f, target.MaxHp - target.Hp);  // (only what goes past full health: a wound's share doesn't turn into shield)
+            if (past > 0f && source != null && source.Role == Role.Healer && what != AuraSource)
+                OverhealShield(target, past);
             if (applied <= 0f)
                 return 0f;
             target.Hp += applied;

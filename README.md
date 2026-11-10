@@ -357,6 +357,17 @@ or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Re
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
 start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone have chosen.
 
+**Repeat copies give less.** The plain stat cards you can take any number of times (Sharpened Rounds, Quick Trigger,
+Light Boots, Vitality, Mending, Focus, Hollow Points, Hair Trigger, Sprinter, Fortitude, Regeneration, Clarity) are
+worth a bit less with each extra copy: the 2nd 80%, the 3rd 67%, the 4th 57%, the 5th 50% (copy n: 1 / (1 + 0.25 x (n - 1))).
+Fourteen Hair Triggers come to x2.3 fire rate, not x3.8; six Clarity cut cooldowns to 53%, not 38%. An offer of a card
+you already have says what this copy is worth ("You have 4 · this copy 50% strength"), and the stat preview shows the
+real change. Cards with a stack limit (the squares) keep full strength.
+
+**Wounds.** 10% of every hit you take is a **wound**: it can't be healed back (heals, regeneration, orbs, lifesteal,
+revives) until the wave is cleared. Your health bar shows it as a dark red end with a bright line where healing stops;
+it clears with the wave. A Healer's overheal shield only takes what goes past full health. Both arenas.
+
 | Rarity | Color | What you get |
 |---|---|---|
 | **Common** | white | Small stat boosts: +10% damage, +10% fire rate, 15% bigger shots (Magnum Rounds), +6% speed, +15 HP, regen, -6% cooldowns |

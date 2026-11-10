@@ -1307,8 +1307,8 @@ namespace Arena
                 }
                 if (!OnPathOf(PathId.BloodMoon) && !Has(RunMod.Bloodlust))  // Blood Moon (Paths.cs) and Bloodlust: no regeneration
                 {
-                    Recorder?.HealReceived(p, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.MaxHp - p.Hp), "regeneration");
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
+                    Recorder?.HealReceived(p, Math.Max(0f, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.HealCap - p.Hp)), "regeneration");
+                    p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + (PassiveRegen + p.Stats.Regen) * dt));
                 }
                 if (p.Role == Role.Healer)
                 {
