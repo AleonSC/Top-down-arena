@@ -113,7 +113,7 @@ namespace Arena
         float roomSpawnT;
 
         /// A legendary on offer after a regular wave can only be a challenge room's prize (a boss's come after its wave).
-        public bool PrizeLegendary(Player p) => p.OfferLegendary && Wave % 5 != 0;
+        public bool PrizeLegendary(Player p) => p.OfferLegendary && !BossNow;
 
         /// In the room (its intro to leaving).
         public bool InRoom => Room >= RoomPhase.Intro;
@@ -579,7 +579,7 @@ namespace Arena
         /// Someone touched the altar (or it waited long enough): everyone gets a prize pick, and some a legendary.
         void ClaimPrize()
         {
-            int next = (Wave / 5 + 1) * 5;
+            int next = (Wave + 4) / 5 * 5;  // the boss this cycle leads up to
             var boss = BossForWave(Math.Min(MaxWave, Math.Max(5, next)));
             var key = IsReaper(boss) ? EnemyType.TwinA : boss;
             foreach (var p in Players.Values)

@@ -244,10 +244,10 @@ static partial class Program
         }
         Check(inRooms && inNew, "enemies come in inside a room, never in the gaps between them, and the new room gets some");
         int w0 = g.Wave;
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         pickRooms.Invoke(g, null);
-        Check(g.IsBossWave(g.Wave) && !g.RoomsUp, "a boss wave is fought in the hub alone");
-        g.Wave = w0;
+        Check(g.BossNow && !g.RoomsUp, "a boss wave is fought in the hub alone");
+        g.Wave = w0; g.BossSlot = (w0) % 5 == 0 && (w0) > 0;
         pickRooms.Invoke(g, null);
 
         // A 50/50 tie is a random pick: over eight rounds both players' rooms win, one room is built each round, and the loser pays nothing.
@@ -466,7 +466,7 @@ static partial class Program
         var p1 = g.Players[1];
         Check(p1.Vectors == Game.VectorStart && p1.VectorCap == Game.VectorCapBase && Game.VectorStart < Game.VectorCapBase, "everyone starts with " + Game.VectorStart + " vectors and a cap of " + Game.VectorCapBase);
         g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
-        g.Wave = 6;
+        g.Wave = 6; g.BossSlot = false;
         grantWave.Invoke(g, null);
         Check(p1.Vectors == Game.VectorStart + Game.VectorWaveGain, "a cleared wave gives " + Game.VectorWaveGain + " (" + p1.Vectors + ")");
         p1.Vectors = p1.VectorCap - 2;
@@ -479,12 +479,12 @@ static partial class Program
         grantKill.Invoke(g, new object[] { p1 });
         Check(p1.Vectors == 11, "the 25th kill gives a vector");
         p1.Vectors = 3;
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         grantWave.Invoke(g, null);
         Check(g.Players.Values.All(p => p.Vectors == p.VectorCap + Game.VectorBossBonus), "a cleared boss wave refills everyone to the cap and adds " + Game.VectorBossBonus + " on top");
         grantWave.Invoke(g, null);
         Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "and doesn't stack with itself");
-        g.Wave = 6;
+        g.Wave = 6; g.BossSlot = false;
         grantWave.Invoke(g, null);
         Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "ordinary gains leave a stock above the cap alone");
         Run(s, dt, 0.5f);

@@ -80,7 +80,7 @@ static partial class Program
         var me = g.Players[1];
         Func<int, float> hit = wave =>
         {
-            g.Wave = wave;
+            g.Wave = wave; g.BossSlot = (wave) % 5 == 0 && (wave) > 0;
             me.Hp = me.MaxHp; me.ShieldHp = 0f; me.InvulnT = 0f;
             float t0 = me.Run.DamageTaken;
             damage.Invoke(g, new object[] { me, 10f, "test" });
@@ -96,7 +96,7 @@ static partial class Program
         Check(Math.Abs(n11 / d1 - 1.5f * 1.5f) < 0.01f, "Nightmare: 1.5x damage, growing 5% a wave");
         Check(Math.Abs(grace - 0.25f) < 1e-4f, "Normal: 0.25 s of hit grace after a hit");
 
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         g.Diff = new Difficulty();
         int budgetN = g.ShotBudget;
         g.Diff = Difficulty.Of(DifficultyLevel.Nightmare);

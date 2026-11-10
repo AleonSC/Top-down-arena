@@ -91,7 +91,7 @@ static partial class Program
                             string.Join(", ", g.Enemies.Values.Where(e => e.Pos.DistanceTo(p.Pos) < 300f).Select(e => e.Type + (e.Spilled ? "*" : ""))));
                     downSeen[p.Id] = p.Downed;
                 }
-            bool fighting = g.State == MatchState.Fighting && !g.IsBossWave(g.Wave) && !g.InRoom;
+            bool fighting = g.State == MatchState.Fighting && !g.BossNow && !g.InRoom;
             if (fighting && curWave != g.Wave)
             {
                 curWave = g.Wave;

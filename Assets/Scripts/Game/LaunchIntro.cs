@@ -217,13 +217,13 @@ namespace Arena
             if (k <= 0f)
                 return;
             float a = 1f - o;
-            bool boss = game.IsBossWave(game.Wave);
+            bool boss = game.BossNow;
             int w = Mathf.Max(1, game.Wave);
             var oldColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
-            DrawScanBand("WAVE " + w + " STARTED", game.Practice != null ? "PRACTICE" : boss ? "HOLD THE LINE" : "FIGHT",
-                "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? Ui.Gold : CrtUi.Ink, k, launchT < start + 0.9f);
+            DrawScanBand(boss ? "BOSS STARTED" : "WAVE " + w + " STARTED", game.Practice != null ? "PRACTICE" : boss ? "HOLD THE LINE" : "FIGHT",
+                boss ? "SYS> BOSS LOADED" : "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? Ui.Gold : CrtUi.Ink, k, launchT < start + 0.9f);
             Ui.Alpha = 1f;
             GUI.color = oldColor;
         }

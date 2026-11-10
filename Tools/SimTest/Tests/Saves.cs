@@ -152,9 +152,9 @@ static partial class Program
             // Saving over a save swaps the new file in (no leftover temp file, the old one replaced).
             var over = RunSave.Parse(made.ToText());
             over.Id = "over";
-            over.Wave = 6;
+            over.Wave = 6; over.BossSlot = false;
             bool w1 = SaveStore.Write(over);
-            over.Wave = 9;
+            over.Wave = 9; over.BossSlot = false;
             bool w2 = SaveStore.Write(over);
             var listed = SaveStore.List().Where(x => x.Id == "over").ToList();
             Check(w1 && w2 && listed.Count == 1 && listed[0].Wave == 9 && Directory.GetFiles(folder, "*.tmp").Length == 0,
@@ -210,7 +210,7 @@ static partial class Program
         try
         {
             int port = nextPort++;
-            var host = new Session { AutoStart = 2, StartWave = 5 };
+            var host = new Session { AutoStart = 2, StartWave = -5 };
             var hp = host.Game.ProfileOverride = new Profile();
             host.Host(port, "Host", Role.Tank);
             var client = new Session();
@@ -235,7 +235,7 @@ static partial class Program
 
             // A run with dev tools used, or the bot playing, doesn't count.
             port = nextPort++;
-            host = new Session { StartWave = 5, AutoStart = 1 };
+            host = new Session { StartWave = -5, AutoStart = 1 };
             var dp = host.Game.ProfileOverride = new Profile();
             host.Host(port, "Host", Role.Tank);
             host.StartMatch();

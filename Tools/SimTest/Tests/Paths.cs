@@ -17,7 +17,7 @@ static partial class Program
         var cleared = typeof(Game).GetMethod("WaveCleared", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 5 }, port, false, "Host", Role.Tank);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = -5 }, port, false, "Host", Role.Tank);
         var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -38,14 +38,14 @@ static partial class Program
         var chosen = g.PathOffer[1];
         g.ChoosePath(1);
         Run(s, dt, 1f, null, NoPicks);
-        Check(g.CurrentPath == chosen && client.Game.CurrentPath == chosen && g.PathFrom == 6 && g.PathTo == 9 && client.Game.PathTo == 9 && client.Game.Route.Count == 1,
-            "the host's pick is the path for waves 6-9, for everyone");
-        Check(client.Game.PathWavesLeft == 4 && !client.Game.OnPath, "the HUD counts 4 waves left before it starts");
+        Check(g.CurrentPath == chosen && client.Game.CurrentPath == chosen && g.PathFrom == 6 && g.PathTo == 10 && client.Game.PathTo == 10 && client.Game.Route.Count == 1,
+            "the host's pick is the path for waves 6-10, for everyone");
+        Check(client.Game.PathWavesLeft == 5 && !client.Game.OnPath, "the HUD counts 5 waves left before it starts");
 
         // Each path's enemy mix (built directly at wave 7).
         Func<PathId, List<EnemyType>> Mix = id =>
         {
-            g.CurrentPath = id; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7;
+            g.CurrentPath = id; g.PathFrom = 6; g.PathTo = 10; g.Wave = 7; g.BossSlot = false;
             build.Invoke(g, new object[] { 7 });
             return new List<EnemyType>((List<EnemyType>)queueField.GetValue(g));
         };
@@ -85,7 +85,7 @@ static partial class Program
 
         // Finishing: the prize, then the plain arena for the boss.
         foreach (var p in g.Players.Values) p.PendingPicks = 0;
-        g.Wave = 9; g.PathTo = 9;
+        g.Wave = 9; g.BossSlot = false; g.PathTo = 9;
         cleared.Invoke(g, null);
         Run(s, dt, 0.5f);
         Check(g.CurrentPath == PathId.None && client.Game.CurrentPath == PathId.None && g.Players[1].PendingPicks >= 1 && g.Players[2].PendingPicks >= 1,
@@ -94,7 +94,7 @@ static partial class Program
 
         // A bot host picks a path by itself, so automated runs never stall.
         port = nextPort++;
-        host = new Session { AutoStart = 1, StartWave = 5 };
+        host = new Session { AutoStart = 1, StartWave = -5 };
         host.Host(port, "Bot", Role.Dps);
         g = host.Game; g.Bot = true;
         host.StartMatch();
@@ -130,7 +130,7 @@ static partial class Program
         Run(s, dt, 0.5f);
 
         // No path: the plain arena for the stretch, noted in the route.
-        g.Wave = 5;
+        g.Wave = 5; g.BossSlot = true;
         offer.Invoke(g, null);
         Run(s, dt, 0.3f);
         g.ChoosePath(2);
@@ -139,7 +139,7 @@ static partial class Program
             "the host can choose no path: the plain arena, noted in everyone's route");
 
         // Burning Grounds.
-        g.CurrentPath = PathId.BurningGrounds; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7; g.State = MatchState.Fighting;
+        g.CurrentPath = PathId.BurningGrounds; g.PathFrom = 6; g.PathTo = 10; g.Wave = 7; g.BossSlot = false; g.State = MatchState.Fighting;
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         Run(s, dt, 0.2f);
         g.Patches.Clear();
@@ -163,7 +163,7 @@ static partial class Program
         Check(g.Patches.Count == 0 && client.Game.Patches.Count == 0, "clearing a wave puts the fires out everywhere");
 
         // Sanctuary: 20% fewer enemies, healing pools, and the safe path's prize.
-        g.CurrentPath = PathId.None; g.Wave = 7;
+        g.CurrentPath = PathId.None; g.Wave = 7; g.BossSlot = false;
         build.Invoke(g, new object[] { 7 });
         // Count spawn rolls, not heads: spikers come in pairs and swarmers in fours.
         var squadField = typeof(Game).GetField("squadQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -188,7 +188,7 @@ static partial class Program
         Check(pool != null && me.Hp > hp0 + Paths.PoolHeal * 0.8f, "Sanctuary's pools heal whoever stands in them");
         me.Hp = me.MaxHp * 0.5f;
         int rerolls = me.Rerolls;
-        g.Wave = 9; g.PathTo = 9;
+        g.Wave = 9; g.BossSlot = false; g.PathTo = 9;
         cleared.Invoke(g, null);
         Run(s, dt, 0.3f);
         Check(me.Hp >= me.MaxHp - 0.5f && me.Rerolls == rerolls + 2 && g.CurrentPath == PathId.None, "the safe path's prize: a full heal and 2 rerolls");
@@ -230,7 +230,7 @@ static partial class Program
         Settle();
         float plainStart = Move(new V2(1f, 0f), 0.15f), plainCoast = Move(V2.Zero, 0.4f);
         // Frozen Lake: speed builds, and you keep sliding.
-        g.CurrentPath = PathId.FrozenLake; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7;
+        g.CurrentPath = PathId.FrozenLake; g.PathFrom = 6; g.PathTo = 10; g.Wave = 7; g.BossSlot = false;
         Settle();
         float iceStart = Move(new V2(1f, 0f), 0.15f), iceCoast = Move(V2.Zero, 0.4f);
         Console.WriteLine("  frozen lake: first 0.15 s {0:0} px (plain {1:0}); after letting go {2:0} px more (plain {3:0})", iceStart, plainStart, iceCoast, plainCoast);
@@ -332,13 +332,13 @@ static partial class Program
         Check(!g.Bullets.ContainsKey(shot.Id), "Narrow Pass: bullets stop at the walls");
 
         // The walls open again for the boss.
-        g.Wave = 9;
+        g.Wave = 9; g.BossSlot = false;
         cleared.Invoke(g, null);
         Run(s, dt, 2f, null, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
         Check(g.CurrentPath == PathId.None && g.NarrowF == 0f && client.Game.NarrowF == 0f && g.ArenaMin.X == 0f, "Narrow Pass: the walls open again before the boss");
 
         // Fogbound: the mist rolls in on everyone's screen from the path alone (nothing else is sent).
-        g.CurrentPath = PathId.Fogbound; g.PathFrom = 11; g.PathTo = 14; g.Wave = 10;
+        g.CurrentPath = PathId.Fogbound; g.PathFrom = 11; g.PathTo = 14; g.Wave = 10; g.BossSlot = true;
         broadcast.Invoke(g, null);
         Run(s, dt, 2.5f);
         Check(client.Game.FogF == 1f && g.FogF == 1f && g.NarrowF == 0f, "Fogbound: the mist rolls in for everyone");
@@ -353,7 +353,7 @@ static partial class Program
         var cleared = typeof(Game).GetMethod("WaveCleared", flags);
         var openShop = typeof(Game).GetMethod("OpenShop", flags);
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 5 }, port, false, "Host", Role.Tank);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = -5 }, port, false, "Host", Role.Tank);
         var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -371,7 +371,7 @@ static partial class Program
 
         // Gold: every kill on its waves gives every player the same gold.
         var me = g.Players[1]; var friend = g.Players[2];
-        g.Wave = 7; g.State = MatchState.Fighting;
+        g.Wave = 7; g.BossSlot = false; g.State = MatchState.Fighting;
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         Step(host, dt);
         int gold0 = me.Gold, friend0 = friend.Gold;
@@ -385,7 +385,7 @@ static partial class Program
 
         // The shop opens after its last wave, and the next wave waits for it.
         me.Gold = 400; friend.Gold = 1000;
-        g.Wave = 9; g.PathTo = 9;
+        g.Wave = 9; g.BossSlot = false; g.PathTo = 9;
         cleared.Invoke(g, null);
         NoPicks();
         Run(s, dt, 0.5f, null, NoPicks);
@@ -472,13 +472,13 @@ static partial class Program
 
         // A bot shops by itself and finishes, so automated runs never stall.
         port = nextPort++;
-        host = new Session { AutoStart = 1, StartWave = 5 };
+        host = new Session { AutoStart = 1, StartWave = -5 };
         host.Host(port, "Bot", Role.Dps);
         g = host.Game; g.Bot = true;
         host.StartMatch();
         g.DevSetGod(1, true);
         for (int f = 0; f < 60 * 20 && !(g.State == MatchState.Fighting && g.Enemies.Count > 0); f++) Step(host, dt);
-        g.CurrentPath = PathId.Bazaar; g.PathFrom = 6; g.PathTo = 9; g.Wave = 9;
+        g.CurrentPath = PathId.Bazaar; g.PathFrom = 6; g.PathTo = 9; g.Wave = 9; g.BossSlot = false;
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         g.Players[1].Gold = 300;
         int taken = g.Players[1].Taken.Count;

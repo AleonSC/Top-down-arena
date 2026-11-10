@@ -27,7 +27,7 @@ static partial class Program
                 var perBlock = new int[10];
                 for (int w = 1; w < Game.MaxWave; w++)
                 {
-                    sg.Wave = w;
+                    sg.Wave = w; sg.BossSlot = (w) % 5 == 0 && (w) > 0;
                     sg.State = MatchState.Intermission;
                     maybe.Invoke(sg, null);
                     if (sg.Room == RoomPhase.Portal)

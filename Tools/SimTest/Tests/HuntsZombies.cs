@@ -128,8 +128,8 @@ static partial class Program
         Run(s, dt, 8f, () => g.State == MatchState.Fighting, safe);
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         var all = queue.Concat(g.Enemies.Values.Select(e => e.Type)).ToList();
-        // Wave 3, two players: 10 + 4 for an early wave = 14 usually; a horde has x1.66 of that.
-        int expect = (int)Math.Round(14 * Zombies.CountMult(3));
+        // Wave 3, two players: 10 + 2 for an early wave = 12 usually; a horde has x1.66 of that.
+        int expect = (int)Math.Round(12 * Zombies.CountMult(3));
         Console.WriteLine("  wave 3 horde: {0} enemies (expected {1}): {2}", all.Count, expect, string.Join(",", all.GroupBy(t => t).Select(k => k.Key + " x" + k.Count())));
         Check(c.Has(RunMod.ZombieInfection) && all.Count >= expect - 1 && all.All(t => t == EnemyType.Shambler || t == EnemyType.Runner),
             "Zombie Infection: a regular wave is a bigger horde of zombies (wave 3: Shamblers and Runners) and the friend's game knows the modifier");

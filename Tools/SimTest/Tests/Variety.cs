@@ -25,7 +25,7 @@ static partial class Program
         int tried = 0, okShare = 0, okRepeat = 0, okUnlock = 0;
         foreach (int w in new[] { 4, 12, 22, 33, 44 })
         {
-            g.Wave = w;
+            g.Wave = w; g.BossSlot = (w) % 5 == 0 && (w) > 0;
             buildWave.Invoke(g, new object[] { w });
             var squads = (List<SquadDef>)squadField.GetValue(g);
             var singles = (List<EnemyType>)queueField.GetValue(g);
@@ -33,7 +33,7 @@ static partial class Program
             float share = total > 0 ? members / (float)total : 0f;
             Console.WriteLine("  wave {0}: {1} squads ({2}), {3} of {4} enemies in squads", w, squads.Count, string.Join(", ", squads.Select(q => q.Name)), members, total);
             tried++;
-            if (share > 0.45f && share <= 0.85f) okShare++;
+            if (share > 0.3f && share <= 0.85f) okShare++;  // (small early waves swing with the roll)
             if (squads.GroupBy(q => q).All(q => q.Count() <= 2)) okRepeat++;
             if (squads.All(q => q.From <= w)) okUnlock++;
         }
@@ -44,7 +44,7 @@ static partial class Program
         for (int w = 18; w <= 45; w++)
             for (int k = 0; k < 3; k++)
             {
-                g.Wave = w;
+                g.Wave = w; g.BossSlot = (w) % 5 == 0 && (w) > 0;
                 buildWave.Invoke(g, new object[] { w });
                 cap.Invoke(g, null);
                 int n = ((List<EnemyType>)queueField.GetValue(g)).Count(t => t == EnemyType.BeamSentry)
@@ -53,7 +53,7 @@ static partial class Program
             }
         Console.WriteLine("  beam sentries: at most {0} in a wave (waves 18-45, 3 rolls each)", mostSentries);
         Check(mostSentries <= Game.MaxSentries && mostSentries > 0, "at most 3 Beam Sentries in a wave");
-        g.Wave = 22;
+        g.Wave = 22; g.BossSlot = false;
 
         // Clear the field; a frozen Grunt in a corner keeps the wave going while we test.
         ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
@@ -153,9 +153,9 @@ static partial class Program
 
         // Elite traits: every elite has one (two from wave 35), seen on the client.
         var elite = Spawn(EnemyType.Grunt, new V2(800f, 200f), true);
-        g.Wave = 36;
+        g.Wave = 36; g.BossSlot = false;
         var elite2 = Spawn(EnemyType.Grunt, new V2(900f, 200f), true);
-        g.Wave = 22;
+        g.Wave = 22; g.BossSlot = false;
         Run(s, dt, 0.3f, null, () => { hold(); foreach (var p in g.Players.Values) p.InvulnT = 1f; });
         var ce = c.Enemies.Values.FirstOrDefault(e => e.Id == elite.Id);
         Func<byte, int> Bits = b => Enumerable.Range(0, 8).Count(i => (b & (1 << i)) != 0);

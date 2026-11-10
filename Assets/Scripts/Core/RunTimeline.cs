@@ -324,7 +324,7 @@ namespace Arena
         {
             if (timeline == null)
                 timeline = new RunTimeline();
-            var s = timeline.Begin(timelineT, Wave, State == MatchState.Fighting && IsBossWave(Wave));
+            var s = timeline.Begin(timelineT, Wave, State == MatchState.Fighting && BossNow);
             foreach (var p in Players.Values)
             {
                 int i = timeline.PlayerIndex(p.Id, p.Name, p.Id == MyId);

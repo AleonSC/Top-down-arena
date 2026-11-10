@@ -13,16 +13,17 @@ namespace Arena
         const float ChipW = 320f, ChipH = 80f, ChipGap = 12f;  // (room for a two-line note: the longest are about 70 characters)
         const int ChipMax = 3;
         readonly List<EnemyType> chipTypes = new List<EnemyType>();
-        int chipWave = -1;
+        int chipWave = -1;  // (the wave after this one, doubled; plus one when the boss comes first)
 
         /// The types to show for the wave after this one: new on it, not yet met, with a note.
         List<EnemyType> ChipsFor(int next)
         {
-            if (chipWave != next || game.Profile == null)
+            int key = next * 2 + (game.BossNext ? 1 : 0);
+            if (chipWave != key || game.Profile == null)
             {
-                chipWave = next;
+                chipWave = key;
                 chipTypes.Clear();
-                if (game.Profile != null && game.Practice == null && !game.IsBossWave(next))
+                if (game.Profile != null && game.Practice == null && !game.BossNext)
                     foreach (var t in Game.NewTypesAt(next))
                     {
                         game.Profile.TagSeen.TryGetValue(t.ToString(), out int met);

@@ -207,12 +207,12 @@ namespace Arena
         }
 
         /// Clear the arena and start the given wave after a short countdown.
-        public void DevJumpToWave(int wave)
+        public void DevJumpToWave(int wave, bool boss = false)
         {
             if (!IsHost || State == MatchState.Idle)
                 return;
             wave = Math.Max(1, Math.Min(Endless ? 999 : MaxWave, wave));
-            DevUsed("jumped to wave " + wave);
+            DevUsed((boss ? "jumped to the boss after wave " : "jumped to wave ") + wave);
             if (State == MatchState.Fighting)
                 Recorder?.WaveEnd(this);
             spawnQueue.Clear();
@@ -228,10 +228,11 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (p.Downed)
                     RevivePlayer(p, 1f);
-            Wave = wave - 1;
+            Wave = boss ? wave : wave - 1;
+            BossSlot = !boss && Wave > 0 && Wave % 5 == 0;  // (jumping to wave n lands on regular wave n, not the boss before it; boss: the boss after wave n)
             State = MatchState.Intermission;
             StateTimer = 2f;
-            DoLog("dev: jumping to wave " + wave);
+            DoLog("dev: jumping to " + (boss ? "the boss after " : "") + "wave " + wave);
         }
 
         void BroadcastDevStats(Player p)

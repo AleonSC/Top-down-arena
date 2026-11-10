@@ -172,7 +172,7 @@ static partial class Program
 
         // Bosses get a clear arena.
         g.AddProp(PropKind.Crate, new V2(300f, 700f));
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         waveProps.Invoke(g, null);
         Check(g.Props.Count == 0, "a boss wave clears the props away");
 

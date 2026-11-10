@@ -73,7 +73,7 @@ static partial class Program
 
         // Gold Rush: kills drop gold on any wave, a shop opens before the boss, and the gold left over is kept.
         Check(me.Gold > gold0 && g.Players[2].Gold == me.Gold, "Gold Rush: every kill gives everyone gold");
-        g.Wave = 4;
+        g.Wave = 5; g.BossSlot = false;  // the boss comes next
         cleared.Invoke(g, null);
         Check(g.ShopOpen, "Gold Rush: a shop opens before the boss");
         int kept = me.Gold;
@@ -83,17 +83,17 @@ static partial class Program
         // Tiny Arena: walls after each boss, open for the bosses. Nightfall: dark on every screen.
         Func<Game, float> Room = x => (x.ArenaMax.X - x.ArenaMin.X) * (x.ArenaMax.Y - x.ArenaMin.Y) / (Game.Width * Game.Height);
         float before = Room(g);
-        g.Wave = 6; g.State = MatchState.Fighting;
-        Run(s, dt, 2.5f, null, () => { Quiet(); g.Wave = 6; });
+        g.Wave = 6; g.BossSlot = false; g.State = MatchState.Fighting;
+        Run(s, dt, 2.5f, null, () => { Quiet(); g.Wave = 6; g.BossSlot = false; });
         float one = Room(g), oneClient = Room(client.Game);
-        g.Wave = 16;
-        Run(s, dt, 3f, null, () => { Quiet(); g.Wave = 16; });
+        g.Wave = 16; g.BossSlot = false;
+        Run(s, dt, 3f, null, () => { Quiet(); g.Wave = 16; g.BossSlot = false; });
         float three = Room(g);
-        g.Wave = 41;
-        Run(s, dt, 4f, null, () => { Quiet(); g.Wave = 41; });
+        g.Wave = 41; g.BossSlot = false;
+        Run(s, dt, 4f, null, () => { Quiet(); g.Wave = 41; g.BossSlot = false; });
         float floor = Room(g);
-        g.Wave = 45;
-        Run(s, dt, 4f, null, () => { Quiet(); g.Wave = 45; });
+        g.Wave = 45; g.BossSlot = true;
+        Run(s, dt, 4f, null, () => { Quiet(); g.Wave = 45; g.BossSlot = true; });
         float boss = Room(g);
         Console.WriteLine("  tiny arena: room {0:0.00} before a boss, {1:0.00} after 1 (friend {2:0.00}), {3:0.00} after 3, {4:0.00} after 8, {5:0.00} on a boss wave; walled {6}",
             before, one, oneClient, three, floor, boss, g.Walled);

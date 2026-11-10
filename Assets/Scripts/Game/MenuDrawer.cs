@@ -498,12 +498,12 @@ namespace Arena
             var boss = game.BossAt(Mathf.Min(Game.MaxWave, Mathf.Max(5, next)));
             var tile = new Rect(x, y, 64f, 64f);
             IconTile(tile, null, Ui.Gold, 0f);
-            bool fighting = game.IsBossWave(game.Wave) && game.State == MatchState.Fighting;
-            Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · WAVE " + next), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            bool fighting = game.BossNow && game.State == MatchState.Fighting;
+            Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + next), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
             if (!fighting && game.Practice == null)
             {
-                int to = next - game.Wave - 1;
+                int to = game.Hunt != null ? next - game.Wave - 1 : next - game.Wave;  // (a run: the regular waves left before the boss)
                 Ui.Label(new Rect(x + 78f, y + 46f, 320f, 16f), to <= 0 ? "Next up" : to + (to == 1 ? " wave" : " waves") + " before it", 12, Ui.Muted);
             }
             var bossAt = new V2(tile.center.x, tile.center.y);

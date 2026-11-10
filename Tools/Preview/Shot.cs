@@ -396,9 +396,9 @@ static partial class Shot {
       host.Game.MasteryToasts.Add(new MasteryToast { Ability = me.Slots[1].Id, Level = 3, T = 2f });
       if (Environment.GetEnvironmentVariable("HOVER") != null) Event.current.mousePosition = new Vector2 { x = 500, y = 400 };
     }
-    if (Environment.GetEnvironmentVariable("WAVECLEARED") != null) {  // the between-waves box: WAVECLEARED=1 (waiting), =auto (everyone on auto-ready), =boss (next wave is a boss)
+    if (Environment.GetEnvironmentVariable("WAVECLEARED") != null) {  // the between-waves box: WAVECLEARED=1 (waiting), =auto (everyone on auto-ready), =boss (the boss is next), =beaten (the boss was just beaten)
       var wg = host.Game; string wc = Environment.GetEnvironmentVariable("WAVECLEARED");
-      wg.State = MatchState.Intermission; wg.Wave = Environment.GetEnvironmentVariable("WCWAVE") != null ? int.Parse(Environment.GetEnvironmentVariable("WCWAVE")) : wc == "boss" ? 4 : 4; wg.ProfileOverride = new Profile();  // WCWAVE=<n>: the wave just cleared (the new-enemy chips show what wave n+1 brings) wg.StateTimer = 3.2f; wg.Me.Offer = null;
+      wg.State = MatchState.Intermission; wg.Wave = Environment.GetEnvironmentVariable("WCWAVE") != null ? int.Parse(Environment.GetEnvironmentVariable("WCWAVE")) : wc == "boss" || wc == "beaten" ? 5 : 4; wg.BossSlot = wc == "beaten"; wg.ProfileOverride = new Profile();  // boss: the boss comes next; beaten: it was just beaten  // WCWAVE=<n>: the wave just cleared (the new-enemy chips show what wave n+1 brings) wg.StateTimer = 3.2f; wg.Me.Offer = null;
       var rep = new WaveSummary { Wave = wg.Wave, ClearTime = 42f, ScoreGain = 120 };
       int wi = 0; foreach (var wp in wg.Players.Values) { rep.Lines.Add(new WaveLine { Id = wp.Id, Kills = new[] { 18, 21, 13 }[wi % 3], Damage = new[] { 2140f, 2880f, 1310f }[wi % 3], Taken = new[] { 0f, 96f, 22f }[wi % 3], Awards = new[] { WaveAward.Untouched, WaveAward.MostDamage | WaveAward.MostKills, WaveAward.Reviver }[wi % 3] }); wp.AutoReady = wc == "auto"; wp.Ready = wi == 1; wi++; }
       wg.WaveReport = rep;

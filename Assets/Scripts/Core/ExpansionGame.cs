@@ -69,7 +69,7 @@ namespace Arena
         {
             if (!ExpandingOn)
                 return;
-            bool boss = IsBossWave(Wave);
+            bool boss = BossNow;
             foreach (var p in Players.Values)
             {
                 p.VectorCap = VectorCapBase + p.Stats.VectorCap;

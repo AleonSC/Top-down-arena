@@ -25,13 +25,13 @@ static partial class Program
         var seen = new HashSet<EnemyType>();
         for (int k = 0; k < 30; k++)
         {
-            g.Wave = 22;
+            g.Wave = 22; g.BossSlot = false;
             buildWave.Invoke(g, new object[] { 22 });
             foreach (var t in (List<EnemyType>)queueField.GetValue(g)) seen.Add(t);
             foreach (var q in (List<SquadDef>)squadField.GetValue(g)) foreach (var t in q.Members) seen.Add(t);
         }
         Check(seen.Contains(EnemyType.Pauser) && seen.Contains(EnemyType.Leader) && seen.Contains(EnemyType.Stitcher), "the Pauser, Leader and Stitcher show up by wave 22");
-        g.Wave = 13;
+        g.Wave = 13; g.BossSlot = false;
         bool early = false;
         for (int k = 0; k < 12; k++)
         {
@@ -39,7 +39,7 @@ static partial class Program
             early |= ((List<EnemyType>)queueField.GetValue(g)).Contains(EnemyType.Pauser) || ((List<SquadDef>)squadField.GetValue(g)).Any(q => q.Members.Contains(EnemyType.Pauser));
         }
         Check(!early, "no Pausers before wave 14");
-        g.Wave = 22;
+        g.Wave = 22; g.BossSlot = false;
 
         // Clear the field; a frozen Grunt in a corner keeps the wave going while we test.
         ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);

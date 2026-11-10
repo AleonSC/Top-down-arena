@@ -16,11 +16,11 @@ static partial class Program
         var c = s[1].Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Run(s, dt, 15, () => g.State == MatchState.Fighting);
-        g.Wave = 13;
+        g.Wave = 13; g.BossSlot = false;
 
         // The limit: 4, one more every 6 waves up to 8, a quarter more per extra player.
         int limit = g.ShooterLimit;
-        g.Wave = 1; int early = g.ShooterLimit; g.Wave = 40; int late = g.ShooterLimit; g.Wave = 13;
+        g.Wave = 1; g.BossSlot = false; int early = g.ShooterLimit; g.Wave = 40; g.BossSlot = true; int late = g.ShooterLimit; g.Wave = 13; g.BossSlot = false;
         Console.WriteLine("  shooters at once (2 players): {0} at wave 1, {1} at 13, {2} at 40", early, limit, late);
         Check(early == 5 && limit == 8 && late == 10, "the shooter limit: 4 to 8 by the wave, a quarter more for a second player");
 
