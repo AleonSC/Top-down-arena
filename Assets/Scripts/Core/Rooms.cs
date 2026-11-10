@@ -684,18 +684,32 @@ namespace Arena
         public int AreaAt(V2 p) => CurrentWorld.AreaAt(p);
 
         /// A random spot in the Rooms world (m from an area's edges): in one of its areas, chosen by size (never the vault).
+        /// How likely an area is to be where enemies come in: its size, double for a Floor room of an enemy-mix path (Swarm Fields,
+        /// Sniper Ridge, Elite Gauntlet: they're where the fight is), none for a shop room (a safe place to shop).
+        float SpawnWeight(RoomArea a)
+        {
+            float w = a.Size.X * a.Size.Y;
+            if (!ExpandingOn)
+                return w;
+            if (a.Kind == Arena.RoomKind.Shop)
+                return 0f;
+            if (a.Kind == Arena.RoomKind.Floor && (a.Floor == PathId.SwarmFields || a.Floor == PathId.SniperRidge || a.Floor == PathId.EliteGauntlet))
+                return w * 2f;
+            return w;
+        }
+
         V2 RandomInRooms(float mx, float my)
         {
             float total = 0f;
             foreach (var a in CurrentWorld.Areas)
                 if (!a.Vault)
-                    total += a.Size.X * a.Size.Y;
+                    total += SpawnWeight(a);
             float pick = Rand(0f, total);
             foreach (var a in CurrentWorld.Areas)
             {
                 if (a.Vault)
                     continue;
-                pick -= a.Size.X * a.Size.Y;
+                pick -= SpawnWeight(a);
                 if (pick <= 0f)
                 {
                     float x0 = a.Min.X + Math.Min(mx, a.Size.X / 2f - 1f), x1 = a.Max.X - Math.Min(mx, a.Size.X / 2f - 1f);

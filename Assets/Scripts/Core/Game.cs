@@ -940,7 +940,7 @@ namespace Arena
             else
             {
                 V2 want = move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos);
-                if (OnPathOf(PathId.FrozenLake))
+                if (OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake)
                 {
                     // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
                     iceVel += (want * Paths.IceTopSpeed - iceVel) * Math.Min(1f, Paths.IceGrip * dt);
@@ -1316,7 +1316,7 @@ namespace Arena
                         FireFanned(p, p.Aim, 0);
                     }
                 }
-                if (!OnPathOf(PathId.BloodMoon) && !Has(RunMod.Bloodlust))  // Blood Moon (Paths.cs) and Bloodlust: no regeneration
+                if (!OnPathOf(PathId.BloodMoon) && FloorAt(p.Pos) != PathId.BloodMoon && !Has(RunMod.Bloodlust))  // Blood Moon (Paths.cs) and Bloodlust: no regeneration
                 {
                     Recorder?.HealReceived(p, Math.Max(0f, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.HealCap - p.Hp)), "regeneration");
                     p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + (PassiveRegen + p.Stats.Regen) * dt));

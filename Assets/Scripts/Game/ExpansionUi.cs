@@ -13,6 +13,47 @@ namespace Arena
 
         static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
+        /// What a Floor room does: that path's rule inside the room only, and its bonus for kills there.
+        static string FloorBlurb(PathId f)
+        {
+            var d = Paths.Get(f);
+            string rule;
+            switch (f)
+            {
+                case PathId.SwarmFields: rule = "Twice the crowd comes in here, melee foes at 60% health."; break;
+                case PathId.SniperRidge: rule = "Twice the crowd comes in here."; break;
+                case PathId.EliteGauntlet: rule = "Twice the crowd comes in here, every one elite."; break;
+                case PathId.BurningGrounds: rule = "Fire patches burn in this room."; break;
+                case PathId.Sanctuary: rule = "Healing pools open in this room."; break;
+                case PathId.FrozenLake: rule = "Ice: you slide, foes are chilled."; break;
+                case PathId.BloodMoon: rule = "No regeneration or orbs here: kills heal you."; break;
+                default: rule = d.Name + " ground."; break;
+            }
+            int pct = (int)Mathf.Round((Paths.Bonus(d.Danger) - 1f) * 100f);
+            return rule + (pct > 0 ? " Kills here give +" + pct + "% XP and score." : "");
+        }
+
+        // --- The shop room ------------------------------------------------------------------------------------
+
+        /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
+        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ExpandingOn || !game.HasShopRoom || game.InShopRoom(me) && !me.ShopDone);
+
+        /// The shop is open but you're not in a shop room: a banner and a way to skip it.
+        void DrawShopRoomHint(Player me)
+        {
+            Ui.Alpha = 1f;
+            bool calm = CabCalm;
+            if (me.ShopDone)
+            {
+                Ui.Label(new Rect(0, 150f, W, 22f), "Done shopping  ·  waiting for the others", 14, Ui.Muted, TextAnchor.MiddleCenter, true);
+                return;
+            }
+            Ui.Label(new Rect(0, 130f, W, 26f), "THE SHOP IS OPEN  ·  walk into the gold room on the minimap", 18, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0, 156f, W, 20f), "You have " + me.Gold + " gold. Leftover gold becomes XP when the shop closes.", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, 180f, 240f, 32f), "SKIP THE SHOP", null, 18, calm))
+                game.Shop(ShopAction.Done, 1);
+        }
+
         // --- The vote ----------------------------------------------------------------------------------------
 
         bool expDrawing, expDragging;
@@ -179,12 +220,12 @@ namespace Arena
             var accent = ToColor(KindInk(o.Kind, o.Floor));
             float ty = stage.yMax + 14f;
             int loops = Expansion.LoopsOf(game.Expanded, o);
-            string title = custom ? "YOUR " + o.Shape.ToUpperInvariant() : o.Shape.ToUpperInvariant() + " ROOM";
+            string title = custom ? "YOUR " + o.Shape.ToUpperInvariant() : o.Shape == "Room" ? "ROOM" : o.Shape.ToUpperInvariant() + " ROOM";
             CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), title, r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
             CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (custom ? "DRAWN  ·  " : KindName(o).ToUpperInvariant() + "  ·  ") + o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : ""), 15, afford ? accent : dim, TextAnchor.MiddleLeft, false, calm);
             string blurb = custom ? "Drawn by your team." + (loops > 0 ? " It joins " + (loops + 1) + " rooms, so the map loops round." : "")
-                : o.Kind == RoomKind.Shop ? "A room to shop in. (Its stock arrives with the room features.)"
-                : o.Kind == RoomKind.Floor ? "Fights here are on " + Paths.Get(o.Floor).Name + " ground. (Its hazards arrive with the room features.)"
+                : o.Kind == RoomKind.Shop ? "A safe room: no enemies come in. Kills drop gold, and the shop opens after the first wave following each boss: walk in to shop."
+                : o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor)
                 : "More floor to fight on: and more enemies come with it.";
             CrtUi.Text(new Rect(r.x + 22f, ty + 62f, r.width - 44f, 70f), blurb, 14, dim, TextAnchor.UpperLeft, false, calm, true);
             int votes = 0;

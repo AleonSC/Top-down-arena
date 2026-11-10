@@ -781,7 +781,14 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   same size, and a newer drawing replaces the last one (and its votes).
 - **Rooms**: six shapes (Closet, Room, Chamber, Plaza, Hall, Corridor) in three kinds: **Combat**, **Shop** and **Floor** (a
   path's ground). A new room attaches to a wall of an existing one with a door. Prices go up with each room bought; the map
-  stops at 12 rooms. For now the kinds only change the colour and name: shop stock and floor hazards come later.
+  stops at 12 rooms.
+- **Shop room**: a safe room (no enemy comes in). Once the map has one, every kill drops gold for everyone and the first wave
+  after each boss ends with the shop open: walk into the shop room to shop (the screen opens while you stand in it; Done lets you
+  leave; "Skip the shop" anywhere). Leftover gold becomes XP when it closes, as in the Bazaar.
+- **Floor rooms**: a path's ground inside that room only, with that path's bonus for kills there (+25% XP and score at danger 2,
+  +50% at 3): Burning Grounds (fire patches), Sanctuary (healing pools), Frozen Lake (you slide, foes are chilled), Blood Moon
+  (no regeneration or orbs, kills heal you), Swarm Fields / Sniper Ridge / Elite Gauntlet (twice the crowd comes in there; melee
+  at 60% health, or every foe elite).
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to double). Boss waves are fought in the hub alone, as always.
 - Runs in this arena can't be saved and continued yet.

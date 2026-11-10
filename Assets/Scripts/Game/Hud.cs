@@ -125,12 +125,14 @@ namespace Arena
                             DrawExpansionChoice(Time.unscaledTime);  // ExpansionUi.cs
                         break;
                     }
-                    if (game.ShopOpen && me != null)
+                    if (ShopScreenUp(me))
                     {
                         if (!tabHeld && !pauseUp)
                             DrawShop(me, Time.unscaledTime);  // ShopUi.cs
                         break;
                     }
+                    if (game.ShopOpen && me != null && !pauseUp)
+                        DrawShopRoomHint(me);  // the Expanding arena: walk to the shop room (ExpansionUi.cs)
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingMilestones + p.PrizePicks > 0 && p.Id != game.MyId)

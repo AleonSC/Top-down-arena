@@ -189,10 +189,14 @@ namespace Arena
                     NextOffer(p);
             }
             if (IsBossWave(Wave) && Hunt == null)
+            {
                 if (ExpandingOn)
                     OfferExpansion();  // the Expanding arena: rooms to vote on instead of paths (ExpansionGame.cs)
                 else
                     OfferPaths();  // after a boss: two paths for the next stretch
+            }
+            else if (ExpandingOn && RoomsOn && HasShopRoom && Wave % Expansion.Milestone == 1 && !ShopOpen && Practice == null && Hunt == null)
+                OpenShop();  // the Expanding arena's shop room: the first wave after each boss ends with the shop open (walk into the room)
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
             ClearEnemyBullets();
