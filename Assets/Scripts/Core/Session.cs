@@ -50,6 +50,7 @@ namespace Arena
         ExpandApply,  // client -> host: spend this room kit (index) on this bought room (index) (Docs/RoomModifiers.md, ExpansionGame.cs)
         ExpandCut,    // client -> host: a stretch of interior wall this player proposes to open (vertical, at, from, till) (ExpansionGame.cs)
         ExpandLink,   // client -> host: a portal pair this player proposes (ax, ay, bx, by) (Docs/RoomBuilding2.md step 2, ExpansionGame.cs)
+        ExpandHall,   // client -> host: a bent hallway this player proposes (legs, then x, y, w, h each) (ExpansionGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -593,6 +594,9 @@ namespace Arena
                     break;
                 case Msg.ExpandLink:
                     Game.OnExpandLink(peer, r);
+                    break;
+                case Msg.ExpandHall:
+                    Game.OnExpandHall(peer, r);
                     break;
                 case Msg.WeaponDash:
                     Game.OnWeaponDash(peer, r);

@@ -146,7 +146,7 @@ in that layout with a switch; don't delete code.
 - **Draw tool**: `Expansion.Custom` (grid 100 px, sides 300-1200, area <= 96 tiles, Combat kind, price x1.25).
   `Msg.ExpandDraw` (client -> host) adds it as the last card of the open offer (`Game.ExpandCustom`); a newer drawing
   replaces it and drops its votes; one the purse can't pay for is refused; the "buy nothing" votes move up a place.
-  The draw screen is `ExpansionUi.cs` `DrawExpansionDraw`. Preview: `EXPANDCUSTOM=1`, `EXPANDDRAW=x,y,w,h` with `EXPANDVOTE`.
+  The draw screen is `ExpansionUi.cs` `DrawExpansionDraw`. Preview: `EXPANDCUSTOM=1`, `EXPANDDRAW=x,y,w,h` with `EXPANDVOTE`. Hallway mode: `EXPANDHALL=1 EXPANDDRAW=1700,-900,300,600`; a bent-hallway card: `EXPANDHALLCARD=1`.
 - Left out: door-only and portal offers (a drawn hallway does the same job).
 
 ## Step 5 (built, no protocol change): shop and floor rooms

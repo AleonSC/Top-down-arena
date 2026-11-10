@@ -322,9 +322,33 @@ namespace Arena
         public ExpansionRoom? ProposalOf(int owner)
         {
             foreach (var q in ExpandProposals)
-                if (q.Owner == owner)
+                if (q.Owner == owner && q.Leg == 0)
                     return q;
             return null;
+        }
+
+        /// The open round's proposals, one each (a bent hallway's later legs left out: LegsOf has them).
+        public List<ExpansionRoom> ProposalHeads => ExpandProposals.FindAll(q => q.Leg == 0);
+
+        /// A bent hallway proposal's second and third legs, in order (empty for anything else).
+        public List<ExpansionRoom> LegsOf(int owner) => ExpandProposals.FindAll(q => q.Owner == owner && q.Leg > 0);
+
+        /// Host: this player's proposal is now these entries (a newer one replaces the last, and the votes for the old one go;
+        /// the drawer backs their own until they vote).
+        void SetProposal(int id, List<ExpansionRoom> entries)
+        {
+            bool had = ExpandProposals.RemoveAll(q => q.Owner == id) > 0;
+            if (had)
+                foreach (int voter in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[voter] == id)
+                        ExpandVotes.Remove(voter);
+            foreach (var e in entries)
+            {
+                var q = e;
+                q.Owner = id;
+                ExpandProposals.Add(q);
+            }
+            ExpandVotes.Remove(id);
         }
 
         /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
@@ -423,18 +447,7 @@ namespace Arena
                 return;
             }
             var room = made.Value;
-            room.Owner = id;
-            int old = ExpandProposals.FindIndex(q => q.Owner == id);
-            if (old >= 0)
-            {
-                ExpandProposals[old] = room;
-                foreach (int voter in new List<int>(ExpandVotes.Keys))
-                    if (ExpandVotes[voter] == id)
-                        ExpandVotes.Remove(voter);
-            }
-            else
-                ExpandProposals.Add(room);
-            ExpandVotes.Remove(id);  // (back to backing their own until they cast a vote)
+            SetProposal(id, new List<ExpansionRoom> { room });
             DoLog(p.Name + " proposes a " + w + " x " + h + (theme != PathId.None ? " " + theme : "") + " room for " + room.Price + " vectors");
             FinishOrBroadcast();
         }
@@ -469,19 +482,7 @@ namespace Arena
                 DoLog("opening refused (" + why + ")");
                 return;
             }
-            var prop = Expansion.CutProposal(c, refund);
-            prop.Owner = id;
-            int old = ExpandProposals.FindIndex(q => q.Owner == id);
-            if (old >= 0)
-            {
-                ExpandProposals[old] = prop;
-                foreach (int voter in new List<int>(ExpandVotes.Keys))
-                    if (ExpandVotes[voter] == id)
-                        ExpandVotes.Remove(voter);
-            }
-            else
-                ExpandProposals.Add(prop);
-            ExpandVotes.Remove(id);
+            SetProposal(id, new List<ExpansionRoom> { Expansion.CutProposal(c, refund) });
             DoLog(p.Name + " proposes opening " + c.Length / Expansion.Step + " tiles of wall for " + refund + " vectors");
             FinishOrBroadcast();
         }
@@ -516,20 +517,56 @@ namespace Arena
                 DoLog("portal refused (" + (why ?? "needs " + price + " vectors, has " + p.Vectors) + ")");
                 return;
             }
-            var prop = Expansion.LinkProposal(l, price);
-            prop.Owner = id;
-            int old = ExpandProposals.FindIndex(q => q.Owner == id);
-            if (old >= 0)
-            {
-                ExpandProposals[old] = prop;
-                foreach (int voter in new List<int>(ExpandVotes.Keys))
-                    if (ExpandVotes[voter] == id)
-                        ExpandVotes.Remove(voter);
-            }
-            else
-                ExpandProposals.Add(prop);
-            ExpandVotes.Remove(id);
+            SetProposal(id, new List<ExpansionRoom> { Expansion.LinkProposal(l, price) });
             DoLog(p.Name + " proposes a portal pair for " + price + " vectors");
+            FinishOrBroadcast();
+        }
+
+        /// This game's player draws a bent hallway (up to Expansion.MaxLegs legs, each {x, y, w, h}, joined end to end) and puts it to the vote.
+        public void ProposeExpandHall(IList<int[]> legs)
+        {
+            if (!ExpandOpen || Me == null || legs == null || legs.Count == 0 || legs.Count > Expansion.MaxLegs)
+                return;
+            if (IsHost)
+            {
+                HostExpandHall(MyId, legs);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandHall);
+            pw.Write((byte)legs.Count);
+            foreach (var l in legs)
+            {
+                pw.Write((short)l[0]); pw.Write((short)l[1]); pw.Write((short)l[2]); pw.Write((short)l[3]);
+            }
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandHall(int peer, BinaryReader r)
+        {
+            int n = r.ReadByte();
+            if (n > Expansion.MaxLegs)
+                return;
+            var legs = new List<int[]>(n);
+            for (int i = 0; i < n; i++)
+                legs.Add(new int[] { r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16() });
+            HostExpandHall(peer, legs);
+        }
+
+        /// Host: a bent hallway becomes its drawer's proposal, if every leg fits and they can pay for the lot.
+        void HostExpandHall(int id, IList<int[]> legs)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            string why;
+            var made = Expansion.Hall(Expanded, legs, out why);
+            if (made == null || made[0].Price > p.Vectors)
+            {
+                DoLog("hallway refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            SetProposal(id, made);
+            DoLog(p.Name + " proposes a " + made.Count + "-leg hallway for " + made[0].Price + " vectors");
             FinishOrBroadcast();
         }
 
@@ -552,7 +589,7 @@ namespace Arena
         {
             if (!IsHost || !ExpandOpen)
                 return;
-            var standing = ExpandProposals.FindAll(q => Players.ContainsKey(q.Owner) && Players[q.Owner].Vectors >= q.Price);
+            var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && Players[q.Owner].Vectors >= q.Price);
             var tally = new Dictionary<int, int>();
             foreach (int pid in new List<int>(Players.Keys))
             {
@@ -596,8 +633,10 @@ namespace Arena
                     else
                     {
                         Players[pick].Vectors -= room.Price;
+                        var legs = LegsOf(pick);
                         Expanded.Add(room);
-                        DoLog("room built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                        Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
+                        DoLog((legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
                     }
                     expWorld = null;
                     LayoutAge = 0f;  // the new walls rise
@@ -704,6 +743,7 @@ namespace Arena
                 w.Write((short)r.Price);
                 w.Write((short)r.Owner);
                 w.Write(r.Floating);
+                w.Write(r.Leg);
             }
         }
 
@@ -719,6 +759,7 @@ namespace Arena
                 room.Price = r.ReadInt16();
                 room.Owner = r.ReadInt16();
                 room.Floating = r.ReadBoolean();
+                room.Leg = r.ReadByte();
                 list.Add(room);
             }
             return list;
