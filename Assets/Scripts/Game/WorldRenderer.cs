@@ -110,6 +110,15 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.TwinRifle)
                     DrawTwinNadePips(p);  // DpsGunLooks.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater)
+                    DrawTankAltPips(p);  // TankAltLook.cs
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.LightBolt)
+                {
+                    DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
+                    DrawRepelMeter(p);
+                }
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs
@@ -195,6 +204,7 @@ namespace Arena
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
+            DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
             DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, Misericorde's candles, the Drawbridge's slam (KnightDpsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)

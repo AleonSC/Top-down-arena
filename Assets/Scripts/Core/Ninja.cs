@@ -658,7 +658,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashFumaStance = 19;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -924,6 +924,20 @@ namespace Arena
                 }
                 return;
             }
+            if (me.Weapon.Id == WeaponId.LightBolt && (pressed || released))  // the Repulsion Cannon's Undertow: held, so both edges go to the host (Repulsion.cs)
+            {
+                byte pullKind = pressed ? DashPullOn : DashPullOff;
+                if (IsHost)
+                    HostWeaponDash(MyId, pullKind, aimAt);
+                else
+                {
+                    var pw = Proto.Begin(Msg.WeaponDash);
+                    pw.Write(pullKind);
+                    pw.Write(aimAt);
+                    session.SendToHost(Proto.End(pw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.TwinBlades && pressed && fangLocalCd <= 0f && !me.Downed && me.StunT <= 0f)
             {
                 fangLocalCd = FangCooldown;  // Twin Fang (TwinBlades.cs): no move, the host throws both sabres at the cursor
@@ -983,7 +997,12 @@ namespace Arena
                 return;
             }
             if (me.Downed || DashT > 0f || me.StunT > 0f)
+            {
+                LocalTankAlt(me, aimAt, false, dt);  // (just the cooldowns)
                 return;
+            }
+            if (LocalTankAlt(me, aimAt, pressed, dt))
+                return;  // the Tank Soldier's Double Barrel, Proximity Shell and Tear Gas (TankAlts.cs)
             if (me.Weapon.Id == WeaponId.Shuriken && pressed)
             {
                 if (IsHost)
@@ -1093,6 +1112,11 @@ namespace Arena
                 HostFumaSwitch(p);  // Throw stance to Orbit and back (FumaOrbit.cs)
                 return;
             }
+            if (kind == DashPullOn || kind == DashPullOff)
+            {
+                HostRepelPull(p, kind == DashPullOn);  // (Repulsion.cs)
+                return;
+            }
             if (kind == DashKatanaStance)
             {
                 HostKatanaSwitch(p);  // the stance switch (Katana.cs)
@@ -1134,6 +1158,13 @@ namespace Arena
             if (kind == DashLance)
             {
                 HostSunlance(p, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashDouble || kind == DashMine || kind == DashGas)
+            {
+                if (kind == DashDouble) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
+                else if (kind == DashMine) HostFlakMine(p, target);
+                else HostTearGas(p, target);
                 return;
             }
             if (kind == DashNade)

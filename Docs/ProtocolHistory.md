@@ -2,13 +2,17 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
+Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 259: the Fuma Shuriken's Orbit stance: snapshots carry `Player.FumaStance`, then (in the Orbit stance) its move, step, stars, stolen stars, clock, anchor, start radius, move start, lash aim and steal time; `Msg.WeaponDash` kind 19 switches stance
+- 263: the Fuma Shuriken's Orbit stance: snapshots carry `Player.FumaStance`, then (in the Orbit stance) its move, step, stars, stolen stars, clock, anchor, start radius, move start, lash aim and steal time; `Msg.WeaponDash` kind 24 switches stance
+- 262: `ShopAction.Vectors` (the vendor's vector pack, +10 vectors for 50 gold) in Msg.Shop
+- 261: portal links: the Expanding arena's bought portal pairs (PortalLink list after the openings in Msg.ExpandState), Msg.ExpandLink, RoomKind.Link proposals (ExpansionGame.cs)
+- 260: snapshots carry each player's Double Barrel shells and charge (`ScatShells`, `ScatCharge`); new `Msg.WeaponDash` kinds 21-23, `ZoneKind.FlakMine`/`TearGas`, `FxKind.DoubleBarrel`
+- 259: the Repulsion Cannon's Undertow: `Player.RepelMeter` (byte) and `Player.RepelPull` (bool) after `TwinCharge` in each player's snapshot; `Msg.WeaponDash` kinds 19/20 (pull on/off)
 - 258: shop shelf grows with Add stock: `Player.ShelfSold` is an Int (was a Byte) and only `Game.ShelfCount` shelf slots are sent (6 per stock, up to 4 stocks)
 - 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
+- 257 (second, shipped in parallel with the coins; 258 on carries both): boss wave beam-in: `FxKind.BossBeam` (last in the enum) and `Player.WarpT` (a float after `SwallowT` in each player's snapshot).
 - 256: opened walls: the Expanding arena's openings (WallCut list after the rooms in Msg.ExpandState), Msg.ExpandCut, RoomKind.Opening proposals (ExpansionGame.cs)
-- 257: boss wave beam-in: `FxKind.BossBeam` (last in the enum) and `Player.WarpT` (a float after `SwallowT` in each player's snapshot).
-256: opened walls: the Expanding arena's openings (WallCut list after the rooms in Msg.ExpandState), Msg.ExpandCut, RoomKind.Opening proposals (ExpansionGame.cs)
 - 255: Msg.ExpandDraw carries the drawn room's theme (a PathId byte; themed rooms, ExpansionGame.cs)
 - 254: room kits (RoomToken list after the rooms in Msg.ExpandState), Msg.ExpandApply, ShopAction.RoomKit (the vendor sells one) (ExpansionGame.cs, Shop.cs)
 - 253: the Rapier's Riposte stance: Player.RapierGuard (bool) and RapierCharge (byte) in the player snapshot; Msg.WeaponDash kinds 17 and 18 (stance on, lunge on release)

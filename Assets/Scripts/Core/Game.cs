@@ -829,6 +829,7 @@ namespace Arena
                 c.Disp = IsHost ? c.Pos : V2.Lerp(c.Disp, c.Pos, k);
             foreach (var m in Minions.Values)
                 m.Disp = IsHost ? m.Pos : V2.Lerp(m.Disp, m.Pos, k);
+            BreachAge += dt;
             for (int i = Effects.Count - 1; i >= 0; i--)
             {
                 Effects[i].T += dt;
@@ -839,7 +840,10 @@ namespace Arena
             if (State != lastState)
             {
                 if (State == MatchState.Fighting)
+                {
                     Sounds.Add(Sfx.WaveStart);
+                    BreachAge = 0f;  // this wave's breaches open (Breaches.cs)
+                }
                 else if (State == MatchState.Intermission && lastState == MatchState.Fighting)
                     Sounds.Add(Sfx.WaveClear);
                 else if (State == MatchState.GameOver)
@@ -1195,7 +1199,9 @@ namespace Arena
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
+            TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
+            TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
@@ -1320,7 +1326,7 @@ namespace Arena
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
                     TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

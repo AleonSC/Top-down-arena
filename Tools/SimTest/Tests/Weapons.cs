@@ -95,6 +95,70 @@ static partial class Program
         var orb = g.Orbs.Values.FirstOrDefault(o => o.Tiny);
         Console.WriteLine("  repulsion: {0} tiny orbs about after 8 s of blasting (client saw them {1}), heal {2}", tiny, clientTiny, orb != null ? orb.Heal : 0f);
         Check(tiny >= 2 && clientTiny && orb != null && orb.Heal < Game.OrbHeal && orb.Radius < 6f, "enemies it hits shed tiny health orbs (smaller than the others; everyone sees them)");
+
+        // The Undertow (Alt): blasts that hit fill a meter, more per enemy the more they hit at once; holding Alt pulls
+        // enemies in the cone toward you, drains the meter and stops you firing; it ends when you let go or run dry.
+        queue.Clear(); g.Enemies.Clear(); g.Orbs.Clear();
+        me.RepelMeterF = 0f; me.RepelMeter = 0; me.FireCd = 0f;
+        V2 aim = new V2(800f, 450f);
+        Action<int, bool, bool> Hold = (frames, fire, alt) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aim, Fire = fire, WeaponAction = alt } : new PlayerInput()); }
+            }
+        };
+        Hold(10, false, true);
+        Check(!me.RepelPull, "Alt does nothing with the meter empty");
+        Hold(2, false, false);
+        Check(Game.RepelGain(1) == 5f && Game.RepelGain(4) == 38f && Game.RepelGain(6) == 75f, "each enemy hit adds more the more one blast hits (1: 5, 4: 38, 6: 75)");
+        var pack = new List<Enemy>();
+        for (int i = 0; i < 4; i++)
+            pack.Add(Dummy(new V2(640f, 390f + 40f * i), EnemyType.Grunt));
+        me.FireCd = 0f;
+        Hold(1, true, false);
+        Hold(1, false, false);
+        Console.WriteLine("  undertow: one blast hitting {0} enemies filled the meter to {1:0.0}", pack.Count, me.RepelMeterF);
+        Check(Math.Abs(me.RepelMeterF - Game.RepelGain(4)) < 0.5f, "a blast hitting four enemies fills the meter by RepelGain(4)");
+        Hold(6, false, false);
+        Check(s[1].Game.Players[1].RepelMeter == me.RepelMeter, "the other screen sees the meter");
+        foreach (var e in pack) g.Enemies.Remove(e.Id);
+        var far = Dummy(new V2(500f + 270f, 450f), EnemyType.Grunt);
+        var far2 = Dummy(new V2(500f + 240f, 500f), EnemyType.Grunt);
+        var big = Dummy(new V2(500f + 250f, 400f), EnemyType.Boss);
+        V2 far0 = far.Pos, big0 = big.Pos;
+        float m0 = me.RepelMeterF;
+        int blasts0 = g.Sounds.Count(x => x.Sfx == Sfx.ShotRepulse);
+        Hold(30, true, true);  // half a second, fire held too
+        float pulled = far0.X - far.Pos.X;
+        Console.WriteLine("  undertow: 0.5 s pulled a grunt {0:0} px in, the boss {1:0} px; meter {2:0.0} -> {3:0.0}; client sees the pull {4}", pulled, big.Pos.DistanceTo(big0), m0, me.RepelMeterF, s[1].Game.Players[1].RepelPull);
+        Check(me.RepelPull && pulled > 50f && pulled < 80f && far2.Pos.X < 740f - 50f, "holding Alt drags enemies in the cone toward you (about 140 px a second)");
+        Check(big.Pos.DistanceTo(big0) < 1f, "bosses don't budge");
+        Check(Math.Abs(m0 - me.RepelMeterF - Game.RepelDrain * 0.5f) < 2f, "the pull drains the meter (35 a second)");
+        Check(g.Sounds.Count(x => x.Sfx == Sfx.ShotRepulse) == blasts0, "you can't fire while pulling");
+        Check(s[1].Game.Players[1].RepelPull, "the other screen sees the pull");
+        Check(far.Hp < far.MaxHp, "the current stings what it holds");
+        me.RepelMeterF = Game.RepelMeterMax;  // (enough to bring it all the way in)
+        Hold(240, false, true);
+        float stopAt = far.Pos.DistanceTo(from);
+        Console.WriteLine("  undertow: held till dry, the grunt stopped {0:0} px from you; meter {1:0.0}, pulling {2}", stopAt, me.RepelMeterF, me.RepelPull);
+        Check(!me.RepelPull && me.RepelMeter == 0, "the pull ends when the meter runs dry");
+        Check(stopAt > far.Radius + me.Def.BodyR + Game.RepelPullStop - 2f && stopAt < 110f, "pulled enemies stop just in front of you, not inside you");
+        // Let go, pull, let go: the blast lands on the pulled crowd and refills the meter.
+        me.RepelMeterF = 50f; me.RepelMeter = 50;
+        Hold(1, false, false);
+        Hold(10, false, true);
+        Check(me.RepelPull, "a pull starts again with the meter refilled");
+        Hold(1, false, false);
+        Check(!me.RepelPull, "letting go of Alt stops the pull");
+        me.FireCd = 0f;
+        float before = me.RepelMeterF;
+        Hold(1, true, false);
+        Check(me.RepelMeterF > before, "the blast after a pull refills the meter");
+        me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1);
+        Hold(2, false, false);
+        Check(me.RepelMeter == 0 && !me.RepelPull, "the meter empties when the cannon is put away");
         s[0].Leave(""); s[1].Leave("");
     }
 

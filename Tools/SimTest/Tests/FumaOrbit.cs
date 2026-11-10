@@ -13,7 +13,7 @@ static partial class Program
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var parry = typeof(Game).GetMethod("FumaParry", flags);
         var steal = typeof(Game).GetMethod("FumaSteal", flags);
-        Action swap = () => dash.Invoke(g, new object[] { 1, 19, hp.Pos + new V2(100f, 0f) });
+        Action swap = () => dash.Invoke(g, new object[] { 1, 24, hp.Pos + new V2(100f, 0f) });
         Action fire = () => { hp.FireCd = 0f; volley.Invoke(g, new object[] { hp, 0f, 0 }); };
         Func<Enemy, float> taken = e => e.MaxHp - e.Hp;
         var mine = new List<Enemy>();

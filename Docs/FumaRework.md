@@ -1,6 +1,6 @@
 # Fuma Shuriken: Throw and Orbit stances (design)
 
-Status: **built** (Nov 2026, protocol 259). The owner chose concept **C, Orbit**. Mockup: [`Docs/Mockups/fuma-shuriken-rework.html`](Mockups/fuma-shuriken-rework.html)
+Status: **built** (Nov 2026, protocol 263). The owner chose concept **C, Orbit**. Mockup: [`Docs/Mockups/fuma-shuriken-rework.html`](Mockups/fuma-shuriken-rework.html)
 (https://claude.ai/artifact/H5RR9Yhr9XyDDhQpC2iGC4), version 1. Concepts A (Recall & Buzzsaw) and B (Twin Halves) are in the
 same mockup and were not picked.
 

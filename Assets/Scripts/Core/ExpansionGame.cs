@@ -42,7 +42,9 @@ namespace Arena
         /// The stretches of interior wall the team has opened.
         public readonly List<WallCut> Openings = new List<WallCut>();
 
-        public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings));
+        /// The portal pairs the team bought (Docs/RoomBuilding2.md step 2; synced after the openings in Msg.ExpandState).
+        public readonly List<PortalLink> Links = new List<PortalLink>();
+        public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings, Links));
 
         /// More floor means more enemies (the Rooms arena makes up for its size with damage instead, Rooms.EnemyDamageMult).
         public float ExpansionScale
@@ -159,6 +161,7 @@ namespace Arena
                 case ShopAction.Revive:
                 case ShopAction.Remove:
                 case ShopAction.RoomKit:
+                case ShopAction.Vectors:
                     return InVendorRoom(p);
                 default:
                     return true;
@@ -303,6 +306,7 @@ namespace Arena
             floatCycle = -1;
             Expanded.Clear();
             Openings.Clear();
+            Links.Clear();
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -482,6 +486,53 @@ namespace Arena
             FinishOrBroadcast();
         }
 
+        /// This game's player proposes a portal pair between two rooms (it costs vectors, by the walking it saves).
+        public void ProposeExpandLink(PortalLink l)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostExpandLink(MyId, l);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandLink);
+            pw.Write(l.AX); pw.Write(l.AY); pw.Write(l.BX); pw.Write(l.BY);
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandLink(int peer, BinaryReader r) => HostExpandLink(peer, new PortalLink { AX = r.ReadInt16(), AY = r.ReadInt16(), BX = r.ReadInt16(), BY = r.ReadInt16() });
+
+        /// Host: a portal pair becomes its proposer's proposal (replacing theirs, and the votes it had), if it fits and they can pay.
+        void HostExpandLink(int id, PortalLink l)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            string why;
+            int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
+            if (price <= 0 || price > p.Vectors)
+            {
+                DoLog("portal refused (" + (why ?? "needs " + price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            var prop = Expansion.LinkProposal(l, price);
+            prop.Owner = id;
+            int old = ExpandProposals.FindIndex(q => q.Owner == id);
+            if (old >= 0)
+            {
+                ExpandProposals[old] = prop;
+                foreach (int voter in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[voter] == id)
+                        ExpandVotes.Remove(voter);
+            }
+            else
+                ExpandProposals.Add(prop);
+            ExpandVotes.Remove(id);
+            DoLog(p.Name + " proposes a portal pair for " + price + " vectors");
+            FinishOrBroadcast();
+        }
+
         /// Host: once everyone has cast a vote the round is settled; until then everyone is told how it stands.
         void FinishOrBroadcast()
         {
@@ -530,7 +581,13 @@ namespace Arena
                 if (pick != 0)
                 {
                     var room = standing.Find(q => q.Owner == pick);
-                    if (room.Kind == Arena.RoomKind.Opening)
+                    if (room.Kind == Arena.RoomKind.Link)
+                    {
+                        Links.Add(Expansion.LinkOf(room));
+                        Players[pick].Vectors -= room.Price;
+                        DoLog("portal pair built by " + Players[pick].Name + " for " + room.Price + " vectors");
+                    }
+                    else if (room.Kind == Arena.RoomKind.Opening)
                     {
                         Openings.Add(Expansion.CutOf(room));
                         AddVectors(Players[pick], -room.Price);
@@ -609,6 +666,17 @@ namespace Arena
                 botProposed = true;
                 if (rng.Next(10) < 6 && BotBuildsToFloater())
                     return;
+                if (rng.Next(10) < 2)  // now and then a bot links the two rooms farthest apart (Docs/RoomBuilding2.md step 2)
+                {
+                    var bl = Expansion.BestLink(ExpansionWorld, Links.Count);
+                    string lw;
+                    int lp = bl.HasValue ? Expansion.LinkPrice(ExpansionWorld, Links.Count, bl.Value, out lw) : 0;
+                    if (lp >= 15 && lp <= Me.Vectors)
+                    {
+                        ProposeExpandLink(bl.Value);
+                        return;
+                    }
+                }
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
                 {
                     var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
@@ -666,6 +734,11 @@ namespace Arena
             {
                 w.Write(c.Vertical); w.Write(c.At); w.Write(c.From); w.Write(c.Till);
             }
+            w.Write((byte)Links.Count);
+            foreach (var l in Links)
+            {
+                w.Write(l.AX); w.Write(l.AY); w.Write(l.BX); w.Write(l.BY);
+            }
             w.Write((byte)RoomTokens.Count);
             foreach (var t in RoomTokens)
             {
@@ -709,6 +782,20 @@ namespace Arena
             {
                 Openings.Clear();
                 Openings.AddRange(cuts);
+                expWorld = null;
+                LayoutAge = 0f;
+            }
+            int nl = r.ReadByte();
+            var links = new List<PortalLink>(nl);
+            for (int i = 0; i < nl; i++)
+                links.Add(new PortalLink { AX = r.ReadInt16(), AY = r.ReadInt16(), BX = r.ReadInt16(), BY = r.ReadInt16() });
+            bool linksChanged = links.Count != Links.Count;
+            for (int i = 0; !linksChanged && i < links.Count; i++)
+                linksChanged |= !links[i].Equals(Links[i]);
+            if (linksChanged)
+            {
+                Links.Clear();
+                Links.AddRange(links);
                 expWorld = null;
                 LayoutAge = 0f;
             }
