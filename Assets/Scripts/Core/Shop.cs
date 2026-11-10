@@ -61,7 +61,9 @@ namespace Arena
         }
 
         /// Host, when the Bazaar's last wave is cleared: everyone gets a shelf and the shop opens.
-        void OpenShop(bool reroll = true)
+        void OpenShop() => OpenShopRoom(true);
+
+        void OpenShopRoom(bool reroll)
         {
             ShopOpen = true;
             ShopT = 0f;

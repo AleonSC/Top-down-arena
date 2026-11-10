@@ -205,7 +205,7 @@ namespace Arena
                     OfferPaths();  // after a boss: two paths for the next stretch (the Expanding arena has no paths)
             }
             else if (ServiceRooms && RoomsOn && !ShopOpen && Practice == null && Hunt == null)
-                OpenShop(Wave % Expansion.Milestone == 1);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
+                OpenShopRoom(Wave % Expansion.Milestone == 1);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
             OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
             RemoveTemporaryMinions();
