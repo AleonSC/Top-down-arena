@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 
+- 250: two new upgrades at the end of Upgrades.All (Deep Inkwell, Architect: the Expanding arena's vector cap cards, Core/Upgrades.cs)
 - 249: the Expanding arena's building rounds: Msg.ExpandState (rooms with owners, open flag, proposals, votes), Msg.ExpandVote carries a proposer id, the purse is gone from the snapshot (ExpansionGame.cs)
 - 248: Player.Vectors and VectorCap in the player snapshot (the Expanding arena's drawing budget, ExpansionGame.cs)
 - 247: Msg.ExpandState carries whether the offer is optional (ExpansionGame.cs)

@@ -72,7 +72,7 @@ namespace Arena
             bool boss = IsBossWave(Wave);
             foreach (var p in Players.Values)
             {
-                p.VectorCap = VectorCapBase;
+                p.VectorCap = VectorCapBase + p.Stats.VectorCap;
                 if (boss)
                     p.Vectors = Math.Max(p.Vectors, p.VectorCap + VectorBossBonus);
                 else

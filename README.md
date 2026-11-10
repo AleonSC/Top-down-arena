@@ -379,7 +379,7 @@ it clears with the wave. A Healer's overheal shield only takes what goes past fu
 | **Very rare** | purple | A brand-new ability on **Q**, **E** or **Shift** (you choose the key; each one only once): a universal one (Shockwave, Overdrive, Blink, Nova or Turret), or one of your **class's two other Space abilities**, the ones you didn't pick in the lobby (these count triple, so about 6 in 11 very rare cards are class abilities) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
 | **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times) |
-| **Milestone** | gold | Their own pool, offered **every 10 levels** (levels 10, 20, 30...) as an **extra pick** on top of that level's normal one, before it. Three cards from: **Scholar** (+15% XP), **Second Helping** (+10% chance a level-up gives an extra pick), **Wide Choice** (+1 card in every level-up offer, max 2, so up to 5 cards), **Reroll Cache** (+3 rerolls now and +1 more after every boss), **Fortune** (rarer cards 8% more often), **Iron Constitution** (+25 max HP) and **Quickening** (-4% ability cooldowns). Each card stacks to a cap (5, Wide Choice 2, Reroll Cache 4), shown as circles on the card, and a maxed card leaves the pool. Milestone picks can't be rerolled. The very rare **Milestone Compass** (stacks to 3) is a normal card that gives every level-up a 5% chance per stack of also offering a milestone pick |
+| **Milestone** | gold | Their own pool, offered **every 10 levels** (levels 10, 20, 30...) as an **extra pick** on top of that level's normal one, before it. Three cards from: **Scholar** (+15% XP), **Second Helping** (+10% chance a level-up gives an extra pick), **Wide Choice** (+1 card in every level-up offer, max 2, so up to 5 cards), **Reroll Cache** (+3 rerolls now and +1 more after every boss), **Fortune** (rarer cards 8% more often), **Iron Constitution** (+25 max HP) and **Quickening** (-4% ability cooldowns), and in the Expanding arena only **Architect** (hold 20 more vectors and gain 10 now, stacks to 3). Each card stacks to a cap (5, Wide Choice 2, Reroll Cache 4), shown as circles on the card, and a maxed card leaves the pool. Milestone picks can't be rerolled. The very rare **Milestone Compass** (stacks to 3) is a normal card that gives every level-up a 5% chance per stack of also offering a milestone pick |
 
 | Boss | Legendary weapon upgrades |
 |---|---|
@@ -773,7 +773,8 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 40"): 1 vector = 1 tile of wall.
   You start with 25 and can hold 40; each cleared wave gives 6, every 25 kills gives 1, and a cleared boss wave refills
-  everyone to the cap and adds 10 on top.
+  everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
+  stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3).
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
   for it). Open it, **draw a room or hallway** (drag a box on the grid on the zoomed-out map, 3 to 12 tiles a side, at most 96
   tiles; it must share 3 tiles of wall with a room and not overlap anything) and it becomes **your proposal**; a newer
