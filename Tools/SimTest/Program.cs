@@ -341,7 +341,7 @@ static partial class Program
         Test("tsunami", "Tsunami: the wave, wet, the slow, lightning arcing to every wet enemy, wearing off, the mastered return", () => TsunamiTest(Dt)),
         Test("holycross", "Consecrate's Holy Cross: it grows as it flies, heals and hastens allies, hurts, slows and knocks back enemies, hits each once, the mastered fan", () => HolyCrossTest(Dt)),
         Test("harvest", "Crimson Harvest: rips 20 and the blood of every enemy into a ball, a 5 s hold, a second press throws it for a blast that scales with the blood", () => HarvestTest(Dt)),
-        Test("bloodfreeze", "Blood Freeze: 10% health, a charge then a wave that freezes every enemy it reaches for 5 s (bosses 3 s), no damage, allies untouched, Hungry Earth, mastered +25% damage", () => BloodFreezeTest(Dt)),
+        Test("bloodfreeze", "Blood Freeze: 25% health, a charge then a 260 px wave that freezes every enemy it reaches for 5 s (bosses 3 s), no damage, allies untouched, Hungry Earth, mastered +25% damage", () => BloodFreezeTest(Dt)),
         Test("rod", "Lightning Rod and the lobby's ultimate choice: the pick reaching the match and saves, 80% cut, taunt, a bolt per hit with 2 arcs, the per-enemy cap, wet arcs, ends on time or on going down", () => RodTest(Dt)),
         Test("juggernaut", "the Juggernaut Suit and the lobby's Ultimate row: the pick reaching everyone and clamped, armour before health, a flak shard per bullet, the slow and taunt, ending on time, armour 0, going down and between waves, saved runs", () => JuggernautTest(Dt)),
         Test("tithe", "Vein Tithe: a tendril to every enemy on screen, held enemies frozen for 30 s, a per-enemy health drain, 40% less damage, ends on time or on death", () => TitheTest(Dt)),
