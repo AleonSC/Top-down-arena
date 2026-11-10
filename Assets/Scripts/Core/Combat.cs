@@ -802,14 +802,14 @@ namespace Arena
                     if (e.Def.IsBoss)
                         killer.Run.BossKills++;
                 }
-                if (killer != null && e.Def.Xp > 0 && OnPathOf(PathId.BloodMoon))
+                if (killer != null && e.Def.Xp > 0 && (OnPathOf(PathId.BloodMoon) || FloorAt(killer.Pos) == PathId.BloodMoon))
                     Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
                 else if (killer != null && e.Def.Xp > 0 && Has(RunMod.Bloodlust))
                     Heal(killer, Paths.BloodMoonHeal(Wave), null, "Bloodlust");
-                Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
-                GrantXp(KillXp(e) * (e.Elite ? 3 : 1) * PathBonus * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
+                Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos));
+                GrantXp(KillXp(e) * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos) * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
                 MaybeRise(e, killer);  // Zombies.cs
-                if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush))
+                if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ExpandingOn && HasShopRoom)  // (a shop room in the Expanding map: gold for its shop)
                     GrantGold(e);  // Shop.cs
                 AddPurse(e);  // the Expanding arena's team purse (ExpansionGame.cs)
                 DropOrbs(e, bossReward);
@@ -1176,7 +1176,7 @@ namespace Arena
                     SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
                 return;
             }
-            if (Has(RunMod.Famine) || Has(RunMod.Bloodlust) || OnPathOf(PathId.BloodMoon))
+            if (Has(RunMod.Famine) || Has(RunMod.Bloodlust) || OnPathOf(PathId.BloodMoon) || FloorAt(e.Pos) == PathId.BloodMoon)
                 return;  // run modifier / Blood Moon: no health orbs (bosses still drop theirs)
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)

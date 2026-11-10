@@ -240,6 +240,7 @@ namespace Arena
             }
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
+            PacmanUpdate();  // the Pac-Man game, when a Pac profile's Play opened it (PacmanUi.cs)
             game.Update(devFrozen ? 0f : Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs); nothing ages while P has frozen it
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
@@ -331,7 +332,7 @@ namespace Arena
             Keybinds.SetPickerNumbers(choosing && !tabHeld ? Mathf.Min(me.Offer.Length, CardKeys.Length) : 0);  // its card keys win over a bound number key
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.ExpandOffer != null);
-            bool shopping = session.Screen == AppScreen.Game && game.ShopOpen && me != null;  // the Bazaar's shop covers the arena (ShopUi.cs)
+            bool shopping = session.Screen == AppScreen.Game && ShopScreenUp(me);  // the Bazaar's shop covers the arena (ShopUi.cs)
             bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab() || MouseOnDock() || WaveBoxUp(me) || PracticeDownedUp(me);  // (the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
                 TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
@@ -468,7 +469,7 @@ namespace Arena
                      && Keybinds.Down(KeyAction.DiscardItem))
                 game.DevKillAll(game.MyId);
 
-            bool escTaken = EscPressed && HandleScreenEsc();  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
+            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
                 if (inspectId >= 0)
@@ -713,7 +714,9 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    if (profTr)
+                    if (pacOpen)
+                        DrawPacman();  // PacmanUi.cs
+                    else if (profTr)
                         DrawProfTr();  // the picker and the menu trading places (ProfileTransition.cs)
                     else if (whoOpen)
                         DrawWho();  // ProfilesUi.cs

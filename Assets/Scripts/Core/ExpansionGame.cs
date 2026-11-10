@@ -53,6 +53,77 @@ namespace Arena
             }
         }
 
+        // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
+
+        /// The map has a shop room: kills drop personal gold, and the shop opens after the first wave following each boss.
+        public bool HasShopRoom
+        {
+            get
+            {
+                foreach (var r in Expanded)
+                    if (r.Kind == Arena.RoomKind.Shop)
+                        return true;
+                return false;
+            }
+        }
+
+        /// The room this point is in, if the Expanding map is up (else null).
+        RoomArea? ExpandedAreaAt(V2 pos)
+        {
+            if (!ExpandingOn || !RoomsOn)
+                return null;
+            var w = ExpansionWorld;
+            var a = w.Areas[w.AreaAt(pos)];
+            return a.Contains(pos) ? a : (RoomArea?)null;
+        }
+
+        /// The path whose ground this point is on (a Floor room), else None. Its rules hold in that room only.
+        public PathId FloorAt(V2 pos)
+        {
+            var a = ExpandedAreaAt(pos);
+            return a.HasValue && a.Value.Kind == Arena.RoomKind.Floor ? a.Value.Floor : PathId.None;
+        }
+
+        /// Kills in a Floor room pay that path's bonus (+25% XP and score at danger 2, +50% at 3).
+        float FloorBonusAt(V2 pos)
+        {
+            var f = FloorAt(pos);
+            return f == PathId.None ? 1f : Paths.Bonus(Paths.Get(f).Danger);
+        }
+
+        /// This player is standing in a shop room (the shop screen opens for them there).
+        public bool InShopRoom(Player p)
+        {
+            var a = ExpandedAreaAt(p.Disp);
+            return a.HasValue && a.Value.Kind == Arena.RoomKind.Shop;
+        }
+
+        /// The map has a room with this floor, and how much of the hub's area those rooms add up to.
+        float FloorShare(PathId id)
+        {
+            if (!ExpandingOn || !RoomsOn)
+                return 0f;
+            float area = 0f;
+            foreach (var a in ExpansionWorld.Areas)
+                if (a.Kind == Arena.RoomKind.Floor && a.Floor == id)
+                    area += a.Size.X * a.Size.Y;
+            return area / (Width * Height);
+        }
+
+        /// A random spot inside a room of this floor (null if there is none).
+        V2? RandomInFloorRoom(PathId id, float margin)
+        {
+            var list = new List<RoomArea>();
+            foreach (var a in ExpansionWorld.Areas)
+                if (a.Kind == Arena.RoomKind.Floor && a.Floor == id)
+                    list.Add(a);
+            if (list.Count == 0)
+                return null;
+            var r = list[rng.Next(list.Count)];
+            float mx = Math.Min(margin, r.Size.X / 2f - 1f), my = Math.Min(margin, r.Size.Y / 2f - 1f);
+            return new V2(Rand(r.Min.X + mx, r.Max.X - mx), Rand(r.Min.Y + my, r.Max.Y - my));
+        }
+
         void ResetExpansion()
         {
             Purse = 0;

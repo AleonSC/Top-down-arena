@@ -1,6 +1,6 @@
 # Expanding arena: design plan
 
-Status: **steps 1-4 built** (4: loops and drawn rooms/hallways) (the `World` refactor; rooms, offers and the map builder; the Expanding layout in the game: setting, team vote, purse, sync, camera, minimap, enemy scaling); room features (step 4) and polish/balance (step 5) not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
+Status: **steps 1-5 built** (4: loops and drawn rooms/hallways; 5: shop and floor rooms) (the `World` refactor; rooms, offers and the map builder; the Expanding layout in the game: setting, team vote, purse, sync, camera, minimap, enemy scaling); room features (step 4) and polish/balance (step 5) not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
 and `Shop.cs`. Numbers are first guesses.
 
 ## The idea
@@ -142,6 +142,20 @@ in that layout with a switch; don't delete code.
   replaces it and drops its votes; one the purse can't pay for is refused; the "buy nothing" votes move up a place.
   The draw screen is `ExpansionUi.cs` `DrawExpansionDraw`. Preview: `EXPANDCUSTOM=1`, `EXPANDDRAW=x,y,w,h` with `EXPANDVOTE`.
 - Left out: door-only and portal offers (a drawn hallway does the same job).
+
+## Step 5 (built, no protocol change): shop and floor rooms
+
+- **Shop room**: no enemy spawns in it (`SpawnWeight` 0). With one on the map, kills drop personal gold (`GrantGold`, like
+  Gold Rush) and `OpenShop` runs when the wave after a boss (wave % 5 == 1) is cleared, since the map is up on regular waves
+  only. The shop screen shows only while you stand in a shop room and haven't clicked Done (`ShopScreenUp`); elsewhere a banner
+  and a "Skip the shop" key. The shelf's legendary comes from the last boss beaten. A second shop room adds nothing yet.
+- **Floor rooms** (`FloorAt`): the path's rule inside that room only. Enemies spawned there (`ApplyPathToEnemy`): Swarm
+  melee at 60% health, Frozen Lake chilled, Elite Gauntlet elite. Players there: Frozen Lake ice movement, Blood Moon no
+  regeneration and heals on a kill; no orbs from kills there. Fire and pool patches spawn inside rooms with that floor, the cap
+  scaled by the room's share of the hub's area (`FloorShare`). Mix floors (Swarm, Sniper, Elite) get double spawn weight. Kills
+  there pay the path's danger bonus (`FloorBonusAt`).
+- Not done: Sniper Ridge has only the crowd and the bonus (no ranged-only mix); the vote card text states what each floor does.
+- Previews: `EXPANDSHOP=1` (banner) / `2` (in the shop room). Test: `ExpandingFeaturesTest` in suite `expand`.
 
 ## Open questions (defaults in bold)
 

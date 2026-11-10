@@ -257,7 +257,12 @@ namespace Arena
                 {
                     Ui.PulseRing(KeyUi.Well(MenuHostRect), Ui.Primary, t);
                     if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => KeyUi.Key(MenuHostRect, "PLAY", PixelArt.Get("ui_play"), 34)) && live)
-                        OpenPlayPicker();
+                    {
+                        if (PacSkin)
+                            OpenPacman();  // a Pac profile's Play is the Pac-Man game (PacmanUi.cs)
+                        else
+                            OpenPlayPicker();
+                    }
                 });
             if (join > 0f)
                 MenuRise(join, 24f, () =>
