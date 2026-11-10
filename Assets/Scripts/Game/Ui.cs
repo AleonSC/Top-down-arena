@@ -22,7 +22,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, check, hud, hudGrad, hudLit, hudRim, pill, rim;
+        static GUIStyle panel, button, field, bareField, label, track, thumb, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
@@ -30,7 +30,6 @@ namespace Arena
         static GUIStyle glowStyle;               // a soft glow that falls off over GlowSpread px (Glow)
         static Texture2D dotFill, dotRing;       // true circles (Dot): the 9-sliced capsule collapses when it's small
         public const float GlowSpread = 34f;
-        static Texture2D checkOn, checkOff;
 
         // --- Menu fonts (Assets/Resources/Fonts, the fonts of the CRT mockups) ------------------------------------------
         // Rajdhani for the text of the menus, VT323 for the big screen titles, Permanent Marker for the names on the profile disks. The HUD keeps Unity's default font: the game
@@ -92,13 +91,7 @@ namespace Arena
             if (panel != null)
                 return;
             panel = Style(Rounded(10, new Color(0.11f, 0.12f, 0.18f, 0.96f), new Color(0.08f, 0.09f, 0.13f, 0.96f), new Color(0.27f, 0.32f, 0.46f, 1f), 1.5f), 10);
-            panelAccent = Style(Rounded(10, new Color(0.12f, 0.14f, 0.21f, 0.97f), new Color(0.09f, 0.1f, 0.15f, 0.97f), new Color(0.42f, 0.6f, 1f, 1f), 2f), 10);
 
-            // In-match HUD: translucent so the arena shows through, with a lighter rim.
-            hud = Style(Rounded(9, new Color(0.08f, 0.09f, 0.14f, 0.88f), new Color(0.04f, 0.05f, 0.08f, 0.88f), new Color(1f, 1f, 1f, 0.14f), 1.5f), 9);
-            // The upgrade cards' shading for HUD panels: white at the top and dark at the bottom, tinted by backgroundColor (HudPanel).
-            hudGrad = Style(Rounded(9, new Color(1f, 1f, 1f, 1f), new Color(0.14f, 0.15f, 0.2f, 1f), new Color(1f, 1f, 1f, 0.2f), 1.5f), 9);
-            hudLit = Style(Rounded(9, new Color(1f, 1f, 1f, 0.9f), new Color(0.85f, 0.85f, 0.9f, 0.9f), new Color(1f, 1f, 1f, 1f), 2f), 9);
             hudRim = Style(Rounded(9, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 9);
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
             rim = Style(Rounded(12, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 12);
@@ -149,9 +142,6 @@ namespace Arena
             thumb.normal.background = thumb.hover.background = thumb.active.background = Circle(18, Color.white, Accent);
             thumb.fixedWidth = thumb.fixedHeight = 18f;
 
-            checkOff = Rounded(5, new Color(0.06f, 0.07f, 0.1f), new Color(0.07f, 0.08f, 0.12f), new Color(0.4f, 0.45f, 0.6f), 1.5f, 22);
-            checkOn = Rounded(5, Accent, new Color(0.25f, 0.45f, 0.85f), new Color(0.6f, 0.75f, 1f), 1.5f, 22);
-            check = new GUIStyle();
         }
 
         // --- Drawing ------------------------------------------------------------
@@ -159,33 +149,7 @@ namespace Arena
         /// The blue the big boxes (the menu card, the lobby's body) are lit with.
         public static readonly Color PanelBlue = new Color(0.42f, 0.6f, 1f);
 
-        /// A box shaded top to bottom in an accent colour (rich at the top, dark at the bottom) with a soft glow of the
-        /// accent round it and a rim: the menu card, the lobby's body, the profile cards. glow 0..1, rim 0..1.
-        public static void GlowPanel(Rect r, Color accent, float glow = 0.3f, float rim = 0.8f)
-        {
-            Glow(r, accent, glow);
-            int key = (Mathf.RoundToInt(accent.r * 255f) << 16) | (Mathf.RoundToInt(accent.g * 255f) << 8) | Mathf.RoundToInt(accent.b * 255f);
-            GUIStyle st;
-            if (!gradStyles.TryGetValue(key, out st))
-            {
-                st = new GUIStyle();
-                st.normal.background = GradientBox(accent);
-                st.border = new RectOffset(12, 12, 12, 12);
-                gradStyles[key] = st;
-            }
-            GUI.Box(r, GUIContent.none, st);
-            Rim(r, Color.Lerp(accent, Color.white, 0.15f), rim);
-        }
-
-        /// The lobby's big box (and the menu card it grows into): the blue gradient and rim here, and its soft glow separately
-        /// (BodyGlow), which a screen draws FIRST so it sits under everything else instead of tinting what's drawn before the box.
-        public static void BodyBox(Rect r) => GlowPanel(r, PanelBlue, 0f, 0.85f);
         public static void BodyGlow(Rect r, float scale = 1f) => Glow(r, PanelBlue, 0.14f * scale);  // (the menu card only: the lobby's box has none)
-
-        public static void Panel(Rect r, bool accent = false)
-        {
-            GUI.Box(r, GUIContent.none, accent ? panelAccent : panel);
-        }
 
         public static void Label(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, bool bold = false, bool wrap = false)
         {
@@ -244,19 +208,6 @@ namespace Arena
             GUI.DrawTexture(r, Texture2D.whiteTexture);
             GUI.color = old;
         }
-
-        public static bool Button(Rect r, string text, Color tint)
-        {
-            var old = GUI.backgroundColor;
-            GUI.backgroundColor = tint;
-            NoteHover(r);
-            bool clicked = GUI.Button(r, Shown(r, text), button);
-            clickedThisEvent |= clicked;
-            GUI.backgroundColor = old;
-            return clicked;
-        }
-
-        public static bool Button(Rect r, string text) => Button(r, text, Neutral);
 
         // --- Hover and click sounds ---------------------------------------------
         // Every button, card and click area reports itself while the mouse is over it (on Repaint). The last
@@ -364,26 +315,6 @@ namespace Arena
             return entered;
         }
 
-        /// A button with a small round icon chip before its label (e.g. a check on Ready, a play arrow on Start).
-        public static bool Button(Rect r, string text, Color tint, Texture2D icon)
-        {
-            if (icon == null)
-                return Button(r, text, tint);
-            bool clicked = Button(r, "", tint);
-            float tw = button.CalcSize(new GUIContent(text)).x - button.padding.horizontal;
-            float cs = Mathf.Min(22f, r.height - 16f), total = cs + 9f + tw;
-            float x = r.center.x - total / 2f;
-            var c = new Rect(x, r.center.y - cs / 2f, cs, cs);
-            var old = GUI.color;
-            GUI.color = Faded(new Color(1f, 1f, 1f, 0.28f));
-            GUI.DrawTexture(c, chip);
-            GUI.color = old;
-            float isz = Mathf.Round(cs * 0.6f);
-            Icon(new Rect(c.center.x - isz / 2f, c.center.y - isz / 2f, isz, isz), icon);
-            Label(new Rect(c.xMax + 9f, r.y, tw + 8f, r.height), text, button.fontSize, Color.white, TextAnchor.MiddleLeft, true);
-            return clicked;
-        }
-
         /// A ring that pulses outward around a button (e.g. Ready once you're ready). t = time in seconds.
         public static void PulseRing(Rect r, Color c, float t)
         {
@@ -393,18 +324,6 @@ namespace Arena
             GUI.Box(new Rect(r.x - grow, r.y - grow, r.width + 2f * grow, r.height + 2f * grow), GUIContent.none, cardRim);
             GUI.backgroundColor = old;
         }
-
-        /// A button with smaller text, for tight rows.
-        public static bool SmallButton(Rect r, string text, Color tint, int size = 12)
-        {
-            int old = button.fontSize;
-            button.fontSize = size;
-            bool clicked = Button(r, text, tint);
-            button.fontSize = old;
-            return clicked;
-        }
-
-        public static bool SmallButton(Rect r, string text, int size = 12) => SmallButton(r, text, Neutral, size);
 
         /// A thin bar whose two ends fade out (the colour line along the bottom of a choice card): a solid middle and a
         /// smoothstep ramp at each end, 28 px long (or 30% of a short bar). It's ONE quad with a baked gradient. It used to
@@ -494,100 +413,6 @@ namespace Arena
             float barH = r.height >= 34f ? 3f : 2f;
             FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
             return barH;
-        }
-
-        /// The lobby's big buttons (Back, Ready, Start): the same card as a Choice tile, so they look like part of the
-        /// loadout. on = lit (you're ready, Start can start); a disabled one (GUI.enabled) is dimmed like any other.
-        /// The icon sits left of the label, the pair centred. iconTint colours the icon (Back's red arrow); size is the label's text size; sharp draws square corners (flat fills and a 1 px rim) for small buttons.
-        public static bool ActionButton(Rect r, string text, bool on, Color accent, Texture2D icon, Color? iconTint = null, int size = 20, bool sharp = false, bool glitch = false)
-        {
-            bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
-            float barH = sharp ? SharpChrome(r, on, hover, accent) : ChoiceChrome(r, on, hover, accent, true);
-            Color name = on ? Color.white : new Color(0.81f, 0.85f, 0.92f);
-            float isz = Mathf.Min(size * 1.1f, r.height * 0.45f);
-            if (text.Length == 0)
-            {
-                if (icon != null)
-                    Icon(new Rect(r.center.x - isz / 2f, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
-            }
-            else
-            {
-                int fs = size;
-                float tw = TextWidth(text, fs, true) - 6f, gap = icon != null ? 10f : 0f, ic = icon != null ? isz : 0f;
-                while (fs > 12 && ic + gap + tw > r.width - 16f)
-                    tw = TextWidth(text, --fs, true) - 6f;  // narrow buttons shrink the label to fit
-                float x = r.center.x - (ic + gap + tw) / 2f;
-                if (icon != null)
-                    Icon(new Rect(x, r.center.y - isz / 2f - 1f, isz, isz), icon, iconTint ?? Color.white);
-                var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height - barH);
-                if (glitch)
-                    Glitch(tr, text, fs, name, TextAnchor.MiddleLeft);
-                else
-                    Label(tr, text, fs, name, TextAnchor.MiddleLeft, true);
-            }
-            return HitArea(r);
-        }
-
-        /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
-        /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
-        /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
-        /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
-        /// left of the name and second line, the group centred (the lobby's role cards).
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false, bool glitch = false)
-        {
-            bool hover = r.Contains(Event.current.mousePosition);
-            float barH = ChoiceChrome(r, selected, hover, accent, glow);
-
-            Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
-            int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
-            if (icon != null && iconLeft)
-            {
-                int ns = sub != null ? 15 : size;  // without a second line: the row's text size (shrunk to fit by the caller)
-                float isz = sub != null ? Mathf.Min(28f, r.height * 0.5f) : Mathf.Min(16f, r.height * 0.42f);
-                float tw = Mathf.Max(TextWidth(text, ns, true), sub != null ? TextWidth(sub, 11) : 0f);
-                float igap = sub != null ? 10f : 5f;
-                float gx = r.center.x - (isz + igap + tw) / 2f;
-                Icon(new Rect(gx, r.center.y - isz / 2f - 1f, isz, isz), icon);
-                float tx = gx + isz + igap;
-                if (sub != null)
-                {
-                    Label(new Rect(tx, r.center.y - 19f, tw + 8f, 20f), text, 15, name, TextAnchor.MiddleLeft, true);
-                    Label(new Rect(tx, r.center.y + 1f, tw + 8f, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleLeft);
-                }
-                else
-                {
-                    var nr = new Rect(tx, r.y, tw + 8f, r.height - barH);
-                    if (glitch)
-                        Glitch(nr, text, ns, name, TextAnchor.MiddleLeft);
-                    else
-                        Label(nr, text, ns, name, TextAnchor.MiddleLeft, true);
-                }
-            }
-            else if (icon != null)
-            {
-                float isz = Mathf.Min(24f, r.height * 0.36f);
-                Icon(new Rect(r.center.x - isz / 2f, r.y + 6f, isz, isz), icon);
-                Label(new Rect(r.x, r.y + 8f + isz, r.width, 18f), text, textSize > 0 ? textSize : 15, name, TextAnchor.MiddleCenter, true);
-                if (sub != null)
-                    Label(new Rect(r.x, r.y + 25f + isz, r.width, 14f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleCenter);
-            }
-            else if (sub != null)
-            {
-                Label(new Rect(r.x, r.y + r.height / 2f - 18f, r.width, 20f), text, 15, name, TextAnchor.MiddleCenter, true);
-                Label(new Rect(r.x, r.y + r.height / 2f + 1f, r.width, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleCenter);
-            }
-            else
-            {
-                while (size > 10 && TextWidth(text, size, true) > r.width - 14f)
-                    size--;  // long names in narrow cards (six class buttons) shrink to fit
-                Label(new Rect(r.x + 4f, r.y, r.width - 8f, r.height - barH), text, size, name, TextAnchor.MiddleCenter, true);
-            }
-            return Ui.HitArea(r);
-        }
-
-        public static string Field(Rect r, string value, int maxLength)
-        {
-            return GUI.TextField(r, value, maxLength, field);
         }
 
         /// A text field with no box: the text sits on whatever is behind it (a faint box shows while typing).
@@ -711,28 +536,6 @@ namespace Arena
             Fill(new Rect(th.x + 3f, th.y + 3f, 4f, th.height - 6f), CrtUi.Bg);
         }
 
-        public static bool Toggle(Rect r, bool value, string text)
-        {
-            var box = new Rect(r.x, r.y + (r.height - 22f) / 2f, 22f, 22f);
-            GUI.DrawTexture(box, value ? checkOn : checkOff);
-            if (value)
-                Fill(new Rect(box.x + 6f, box.y + 6f, 10f, 10f), Color.white);
-            Label(new Rect(r.x + 32f, r.y, r.width - 32f, r.height), text, 14, Text);
-            NoteHover(r);
-            bool now = GUI.Toggle(r, value, GUIContent.none, check);
-            clickedThisEvent |= now != value;
-            return now;
-        }
-
-        public static void Badge(Rect r, string text, Color color)
-        {
-            var old = GUI.backgroundColor;
-            GUI.backgroundColor = color * 0.7f;
-            GUI.Box(r, GUIContent.none, button);
-            GUI.backgroundColor = old;
-            Label(r, text, 11, Color.white, TextAnchor.MiddleCenter, true);
-        }
-
         /// A thin horizontal meter, e.g. for comparing two players' numbers.
         public static void Meter(Rect r, float frac, Color color)
         {
@@ -742,40 +545,12 @@ namespace Arena
 
         // --- In-match HUD pieces ------------------------------------------------
 
-        /// A translucent HUD panel. With an accent, the rim glows in that color.
-        public static void HudPanel(Rect r, Color? accent = null)
-        {
-            GUI.Box(r, GUIContent.none, hud);
-            // Shaded like the picker cards (CardArt.Body): a rich top fading to near-black, in the accent's colour (a cool slate when plain).
-            var rc = accent.HasValue ? new Color(accent.Value.r, accent.Value.g, accent.Value.b) : new Color(0.42f, 0.5f, 0.78f);
-            float k = accent.HasValue ? 0.34f : 0.2f, a = accent.HasValue ? Mathf.Clamp01(accent.Value.a) : 1f;
-            var old = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(0.085f + rc.r * k, 0.095f + rc.g * k, 0.14f + rc.b * k, 0.95f);
-            GUI.Box(r, GUIContent.none, hudGrad);
-            if (accent.HasValue)
-            {
-                GUI.backgroundColor = new Color(rc.r, rc.g, rc.b, 0.1f * a);
-                GUI.Box(r, GUIContent.none, hudLit);  // the lit rim, a lighter wash than before: the gradient carries the colour now
-            }
-            GUI.backgroundColor = old;
-        }
-
         /// Just a HUD panel's rim, in a colour (an ability tile flashing; HudTiles.cs).
         public static void HudRim(Rect r, Color c)
         {
             var old = GUI.backgroundColor;
             GUI.backgroundColor = c;
             GUI.Box(r, GUIContent.none, hudRim);
-            GUI.backgroundColor = old;
-        }
-
-        /// A solid card with a colored rim; glow (0..1) sets how strongly the rim shows.
-        public static void Card(Rect r, Color rimColor, float glow)
-        {
-            GUI.Box(r, GUIContent.none, panel);
-            var old = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(rimColor.r, rimColor.g, rimColor.b, Mathf.Clamp01(glow));
-            GUI.Box(r, GUIContent.none, rim);
             GUI.backgroundColor = old;
         }
 
@@ -922,32 +697,6 @@ namespace Arena
         {
             Label(new Rect(r.x + 1f, r.y + 1.5f, r.width, r.height), text, size, new Color(0f, 0f, 0f, 0.75f * color.a), align, bold);
             Label(r, text, size, color, align, bold);
-        }
-
-        /// Game-style text: a soft glow, a dark outline, and a two-tone fill (the top half lighter than
-        /// the bottom, like a metallic sheen). glow = null for none.
-        public static void Fancy(Rect r, string text, int size, Color top, Color bottom, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null)
-        {
-            if (glow.HasValue)
-            {
-                var g = glow.Value;
-                var gc = new Color(g.r, g.g, g.b, 0.3f * g.a);
-                for (int k = 0; k < 8; k++)
-                {
-                    float a = k * Mathf.PI / 4f;
-                    Label(new Rect(r.x + Mathf.Cos(a) * 2.5f, r.y + Mathf.Sin(a) * 2.5f, r.width, r.height), text, size, gc, align, true);
-                }
-            }
-            var outline = new Color(0f, 0f, 0f, 0.85f * bottom.a);
-            Label(new Rect(r.x - 1f, r.y, r.width, r.height), text, size, outline, align, true);
-            Label(new Rect(r.x + 1f, r.y, r.width, r.height), text, size, outline, align, true);
-            Label(new Rect(r.x, r.y - 1f, r.width, r.height), text, size, outline, align, true);
-            Label(new Rect(r.x, r.y + 1.5f, r.width, r.height), text, size, outline, align, true);
-            Label(r, text, size, bottom, align, true);
-            // The top half again in the lighter color, clipped to the upper part of the glyphs.
-            GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * 0.5f + size * 0.02f));
-            Label(new Rect(0f, 0f, r.width, r.height), text, size, top, align, true);
-            GUI.EndGroup();
         }
 
         public enum GlitchKind { Rotate, Punch }

@@ -330,7 +330,7 @@ once mastered); the Tab menu shows the level.
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next one
 fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
 (your Space ability and your ultimate), on the Tab screen's ability tiles, on the cards that give an ability (in the
-level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
+level-up picks and the Bazaar). Where space is tight the text gets smaller, then shortened
 with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
@@ -834,7 +834,7 @@ with an objective plate at the top of the screen:
 a **Challenge prize** pick: three cards, each rare or very rare (no rerolls), and a 1 in 4 chance of a legendary
 pick too. **Lose** (the crystal breaks, the clock runs out, or everyone goes down) and you're simply sent back:
 it's safe to fail, the downed get back up at 30% health and nothing else is lost. Either way the break then starts
-over. The room's two enemies are in the Field guide under **Challenge rooms**. Developer tools (F1, Match) can take
+over. Developer tools (F1, Match) can take
 everyone straight into any of the five.
 
 ## Run modifiers
@@ -1334,8 +1334,8 @@ out (Back or Esc), and only then does the window really close.
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (the cabinet's list
-  switches, like the pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
-  closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
+  switches, like the pause menu's), **HOW TO PLAY** (in the drawer too) and **Quit game** (no Profile or Main menu
+  rows: your lobby card opens the profile and the lobby's red back arrow leaves). The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title over a small disk drive (it says DRIVE A: EMPTY on the picker and your name and READY once a profile is loaded) with a shot arcing over it on a tapered vector stroke. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
   **your player card** (your party card in small; click it to open your **Profile**, where the pencil next to your name renames you; it's remembered; hover it for **Switch
@@ -1356,22 +1356,9 @@ out (Back or Esc), and only then does the window really close.
   won) and **Unlocks**. Mid-run and in the lobby it has no Look tab.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
   basics, Fighting, Between waves, Data Gates (with a little animated gate), Paths and modifiers, Playing
-  together, and the **Field guide** under them.
+  together.
 
-Esc goes back (from the pause menu's Settings, to its list). The **Field guide** is hidden from both menus for now (its code stays; `FieldGuideRow` in MenuDrawer.cs). It opens two in-game databases:
-
-- **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health
-  at your wave for your party (with the run's modifiers), what it does, when it appears, a staged boss's stages, and
-  every attack (shot kind, count, speed, damage, and how often it fires now that enemies fire faster).
-- **Armory:** tabs for **Classes** (each role × class: health, speed, its three weapons, Space abilities and
-  ultimate), **Weapons** (live character, damage, attack rate, range as the aim line shows it, companions,
-  what extra projectiles do), **Abilities** (cooldown, charges, health cost, mastery capstone, your mastery
-  level, the cards that improve it) and **Upgrades** (every card by rarity: stacks, who it's offered to, which
-  boss gives it, how many you have). The Armory reads the game's own definitions, so it's never out of date.
-
-Both have a search box (it matches names and descriptions), ↑/↓ to browse, and names inside an entry link to their own
-entries (a class's weapons, an upgrade's ability...). Whatever is yours this match is marked **YOU**. It reopens where
-you left it, and **Esc** goes back. The same audio options are
+Esc goes back (from the pause menu's Settings, to its list). The same audio options are
 under **Settings** on the main menu, and they're saved between sessions.
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,

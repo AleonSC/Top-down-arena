@@ -235,7 +235,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Menus and lobby (Game)
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
-- `Ui.cs`: IMGUI style kit (panels, buttons, bars)
+- `Ui.cs`: IMGUI drawing primitives (fills, labels, bars, glows, pills, the CRT slider); the widgets (buttons, panels, switches, fields, cards, titles) are `DevKit.cs`'s `Dk...` and the CRT keys
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks
 - `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
 - `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
@@ -259,7 +259,6 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `LobbyCrt.cs`: the lobby's blue CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`, its sounds `PlayCrtEntryCues` with the `Sfx.Crt*` cues: power-on thump, typing keys, line beeps, scan sweep, ready chime; `LobbyEnter.cs` has the other entrances)
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
-- `FieldGuide.cs`, `ReferencePages.cs`: the Field guide button colour
 - `Game/CrtKit.cs`: shared CRT cabinet pieces (retyping text, power-on, boot-log line, scan bar, soft digital key, the floating chassis and soft edges)
 - `Game/DifficultyUi.cs`: the lobby's Difficulty tab (five cards, then every number as a slider with a text box; host edits, others read)
 - `Game/ModifiersUi.cs`: the lobby's Modifiers tab (tiles in two columns under foldable tier headings, `DrawModTile`)
@@ -268,7 +267,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
-- `DevKit.cs`: the CRT look of the dev tools and the chat box: `DkPanel`, `DkSub`, `DkCard`, `DkTitle`, `DkKey`, `DkChoice`, `DkSwitch`, `DkField`, drop-ins for the old `Ui.Panel/Button/Toggle/Choice/Field/Pill` (used by `DevMenu.cs`, `ReplayUi.cs`, `BalanceTestUi.cs`, `DpsMeterUi.cs`, `ChatBox.cs`)
+- `DevKit.cs`: the CRT look of the dev tools and the chat box: `DkPanel`, `DkSub`, `DkCard`, `DkTitle`, `DkKey`, `DkChoice`, `DkSwitch`, `DkField`, the one widget kit for the dev tools, chat, wave editor and most menus (the old `Ui.Panel/Button/Toggle/Choice/Field/Card/Fancy/HudPanel` are gone); also `DkBox`, `DkHud`, `DkTag`, `DkBar` (used by `DevMenu.cs`, `ReplayUi.cs`, `BalanceTestUi.cs`, `DpsMeterUi.cs`, `ChatBox.cs`)
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, F1 wave editor
 - `PracticeUi.cs`: the lobby's Practice tab (CRT look A of `Docs/Mockups/crt-practice-redesign.html`: wave rack, enemy grid, setup files); `TrainingUi.cs`: the Training tab (drill cartridges by group, detail, Load this drill, the training folder); `PracticeDownedUi.cs`: the Practice Range's DOWNED window with Respawn, Restart wave and Back to lobby
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item

@@ -42,7 +42,7 @@ namespace Arena
             var tagRect = new Rect(x0 + areaW / 2f - tagW / 2f, 28f, tagW, 22f);
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            Ui.Fancy(new Rect(x0, 52f, areaW, 44f), "THE BAZAAR", 34, new Color(1f, 0.97f, 0.85f), Ui.Gold, TextAnchor.MiddleCenter, Ui.Gold);
+            DkTitle(new Rect(x0, 52f, areaW, 44f), "THE BAZAAR", 34, Ui.Gold, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(x0, 98f, areaW, 18f), "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 24f, 190f, 56f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
@@ -57,7 +57,7 @@ namespace Arena
                 int u = me.Shelf[i];
                 if (u < 0)
                 {
-                    Ui.Card(r, new Color(1f, 1f, 1f, 0.2f), 0.2f);
+                    DkBox(r, new Color(1f, 1f, 1f, 0.2f), 0.2f);
                     Ui.Label(r, "Sold out", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
                     continue;
                 }
@@ -90,7 +90,7 @@ namespace Arena
                 }
                 bool afford = me.Gold >= price && shopping && !used;
                 bool over = !popup && afford && r.Contains(Event.current.mousePosition);
-                Ui.HudPanel(r, over ? Ui.Gold : (Color?)null);
+                DkHud(r, over ? Ui.Gold : (Color?)null);
                 float a = afford || used ? 1f : 0.5f;
                 Ui.Icon(new Rect(r.x + 12f, r.y + 15f, 36f, 36f), PixelArt.Get(ServiceIcons[k]), used ? 0.4f : a);
                 Ui.Label(new Rect(r.x + 56f, r.y + 12f, r.width - 126f, 20f), name, 13, new Color(1f, 1f, 1f, used ? 0.45f : a), TextAnchor.MiddleLeft, true);
@@ -125,14 +125,14 @@ namespace Arena
             Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), status, 13, Ui.Muted, TextAnchor.MiddleLeft, true);
             if (session.IsHost && game.ShopT >= Game.ShopHostCloseAfter && waiting.Count > 0)
             {
-                if (!popup && Ui.ActionButton(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", false, Ui.Danger, null, null, 13))
+                if (!popup && DkKey(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", Ui.Danger, false, 13))
                     game.Shop(ShopAction.Close);
             }
             else
                 Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), "Leftover gold becomes XP when everyone is done", 13, Ui.Muted, TextAnchor.MiddleRight, true);
             var doneRect = new Rect(x0 + 5f, by + 28f, 320f, 48f);
             string doneText = me.ShopDone ? "Done ✓   (click to keep shopping)" : "Done shopping  ·  " + me.Gold + " gold → +" + Mathf.RoundToInt(me.Gold * Game.GoldToXp) + " XP";
-            if (Ui.ActionButton(doneRect, doneText, me.ShopDone, Ui.Primary, null, null, 15) && !popup)
+            if (DkKey(doneRect, doneText, Ui.Primary, me.ShopDone, 15) && !popup)
                 game.Shop(ShopAction.Done, me.ShopDone ? 0 : 1);
             DrawShopTeam(me, new Rect(doneRect.xMax + 16f, doneRect.y + 6f, areaW - doneRect.width - 30f, 36f), popup);
 
@@ -231,7 +231,7 @@ namespace Arena
                 float nw = Ui.TextWidth(p.Name, 12, true), sw2 = Ui.TextWidth(state, 11), gw = Ui.TextWidth(gold, 12, true);
                 float w = 32f + nw + 8f + sw2 + 12f + 18f + gw + 10f + 48f;
                 var chip = new Rect(x, area.y, w, area.height);
-                Ui.HudPanel(chip, p.ShopDone ? Ui.Good : (Color?)null);
+                DkHud(chip, p.ShopDone ? Ui.Good : (Color?)null);
                 Ui.Icon(new Rect(chip.x + 8f, chip.y + 9f, 18f, 18f), PixelArt.Get(RoleIcons[(int)p.Role]), ToColor(p.Def.Color));
                 float cx = chip.x + 32f;
                 Ui.Label(new Rect(cx, chip.y, nw + 4f, chip.height), p.Name, 12, Color.white, TextAnchor.MiddleLeft, true);
@@ -240,7 +240,7 @@ namespace Arena
                 cx += sw2 + 12f;
                 Ui.Icon(new Rect(cx, chip.y + 11f, 14f, 14f), PixelArt.Get("ui_coin"));
                 Ui.Label(new Rect(cx + 18f, chip.y, gw + 4f, chip.height), gold, 12, Ui.Gold, TextAnchor.MiddleLeft, true);
-                if ((!popup || shopGiveTo == p.Id) && Ui.SmallButton(new Rect(chip.xMax - 48f, chip.y + 7f, 40f, 22f), "Give", Ui.GoldButton, 11))
+                if ((!popup || shopGiveTo == p.Id) && DkKey(new Rect(chip.xMax - 48f, chip.y + 7f, 40f, 22f), "Give", Ui.GoldButton, false, 11))
                     shopGiveTo = shopGiveTo == p.Id ? 0 : p.Id;
                 if (shopGiveTo == p.Id)
                 {
@@ -256,7 +256,7 @@ namespace Arena
             }
             // The Give popup above the teammate's chip.
             var pop = new Rect(Mathf.Min(givingChip.x, W - 290f), givingChip.y - 104f, 270f, 96f);
-            Ui.Card(pop, Ui.Gold, 0.9f);
+            DkBox(pop, Ui.Gold, 0.9f);
             Ui.Label(new Rect(pop.x + 12f, pop.y + 8f, pop.width - 24f, 18f), "Give " + giving.Name + " gold", 13, Color.white, TextAnchor.MiddleLeft, true);
             int[] amounts = { 10, 50, 100, me.Gold };
             for (int k = 0; k < amounts.Length; k++)
@@ -266,7 +266,7 @@ namespace Arena
                 bool ok = amounts[k] > 0 && me.Gold >= amounts[k];
                 bool was = GUI.enabled;
                 GUI.enabled = ok;
-                if (Ui.SmallButton(b, all ? "All " + me.Gold : amounts[k].ToString(), Ui.GoldButton, 12))
+                if (DkKey(b, all ? "All " + me.Gold : amounts[k].ToString(), Ui.GoldButton, false, 12))
                 {
                     game.Shop(ShopAction.Give, giving.Id, amounts[k]);
                     shopGiveTo = 0;
@@ -292,7 +292,7 @@ namespace Arena
             float pw = perRow * bw + (perRow - 1) * gap + 40f, ph = 110f + rows * (bh + gap);
             var r = new Rect(StatsSidebarW + (W - StatsSidebarW) / 2f - pw / 2f, Mathf.Max(30f, H / 2f - ph / 2f), pw, ph);
             Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0f, 0.5f));
-            Ui.Card(r, Ui.Gold, 0.9f);
+            DkBox(r, Ui.Gold, 0.9f);
             Ui.Label(new Rect(r.x + 20f, r.y + 14f, r.width - 40f, 24f), "Remove an upgrade  ·  " + Game.RemovePrice + " gold", 17, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 20f, r.y + 38f, r.width - 40f, 18f), "Takes away one stack. Abilities it gave you go too.", 12, Ui.Muted);
             for (int i = 0; i < seen.Count; i++)
@@ -302,7 +302,7 @@ namespace Arena
                 var b = new Rect(r.x + 20f + (i % perRow) * (bw + gap), r.y + 64f + (i / perRow) * (bh + gap), bw, bh);
                 var rc = ToColor(Upgrades.RarityColor(u.Rarity));
                 bool over = b.Contains(Event.current.mousePosition);
-                Ui.HudPanel(b, over ? rc : (Color?)null);
+                DkHud(b, over ? rc : (Color?)null);
                 Ui.Icon(new Rect(b.x + 6f, b.y + 5f, 24f, 24f), PixelArt.ForUpgrade(u.Name));
                 Ui.Label(new Rect(b.x + 36f, b.y, b.width - 40f, b.height), u.Name + (have > 1 ? "  ×" + have : ""), 12, over ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
                 if (Ui.HitArea(b))
@@ -311,7 +311,7 @@ namespace Arena
                     shopRemoveOpen = false;
                 }
             }
-            if (Ui.SmallButton(new Rect(r.xMax - 120f, r.yMax - 40f, 100f, 28f), "Cancel"))
+            if (DkKey(new Rect(r.xMax - 120f, r.yMax - 40f, 100f, 28f), "Cancel", Ui.Neutral))
                 shopRemoveOpen = false;
         }
     }

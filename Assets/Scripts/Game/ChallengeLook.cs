@@ -404,9 +404,9 @@ namespace Arena
                 }
             float y = at.Y - Challenges.PortalR * UiWorldScale - 78f;
             var card = new Rect(at.X - 130f, y, 260f, 58f);
-            Ui.HudPanel(card, acc);
+            DkHud(card, acc);
             Ui.Label(new Rect(card.x, card.y + 5f, card.width, 14f), "DATA GATE", 10, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleCenter, true);
-            Ui.Fancy(new Rect(card.x, card.y + 18f, card.width, 24f), Challenges.Name(game.RoomKind).ToUpperInvariant(), 18, Color.white, acc, TextAnchor.MiddleCenter);
+            DkTitle(new Rect(card.x, card.y + 18f, card.width, 24f), Challenges.Name(game.RoomKind).ToUpperInvariant(), 18, acc, TextAnchor.MiddleCenter);
             string sub = alive > 1 ? inside + " of " + alive + " in  ·  closes in " + Mathf.CeilToInt(Mathf.Max(0f, game.RoomT)) + " s"
                 : "Step in  ·  closes in " + Mathf.CeilToInt(Mathf.Max(0f, game.RoomT)) + " s";
             Ui.Label(new Rect(card.x, card.y + 40f, card.width, 14f), sub, 11, Ui.Muted, TextAnchor.MiddleCenter, true);
@@ -424,8 +424,7 @@ namespace Arena
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
             Ui.Label(new Rect(0f, H / 2f - 108f, W, 20f), "DATA GATE", 14, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, true);
-            Ui.Fancy(new Rect(W / 2f - 400f * s, H / 2f - 90f - 6f * s, 800f * s, 70f * s), Challenges.Name(game.RoomKind).ToUpperInvariant(), Mathf.RoundToInt(54f * s), Color.white, acc,
-                TextAnchor.MiddleCenter, new Color(acc.r, acc.g, acc.b, 0.6f));
+            DkTitle(new Rect(W / 2f - 400f * s, H / 2f - 90f - 6f * s, 800f * s, 70f * s), Challenges.Name(game.RoomKind).ToUpperInvariant(), Mathf.RoundToInt(54f * s), acc, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(0f, H / 2f - 14f, W, 22f), Challenges.Goal(game.RoomKind, game.Players.Count), 17, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter, true);
             int count = Mathf.CeilToInt(Mathf.Max(0f, game.RoomT));
             if (count > 0)
@@ -439,7 +438,7 @@ namespace Arena
         {
             bool bar = game.RoomKind == ChallengeKind.MiniBoss;  // its boss bar sits at the top
             var plate = new Rect(W / 2f - 210f, bar ? 84f : 14f, 420f, 62f);
-            Ui.HudPanel(plate, acc);
+            DkHud(plate, acc);
             Ui.Label(new Rect(plate.x + 14f, plate.y + 6f, 260f, 16f), Challenges.Name(game.RoomKind).ToUpperInvariant(), 12, acc, TextAnchor.MiddleLeft, true);
             float clock = Challenges.Clock(game.RoomKind);
             if (clock > 0f)
@@ -505,8 +504,7 @@ namespace Arena
             var oldColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, k);
             Ui.Alpha = k;
-            Ui.Fancy(new Rect(W / 2f - 400f * s, 72f - 10f * (s - 1f), 800f * s, 52f * s), title, Mathf.RoundToInt(42f * s), Color.white, col, TextAnchor.MiddleCenter,
-                new Color(col.r, col.g, col.b, 0.55f));
+            DkTitle(new Rect(W / 2f - 400f * s, 72f - 10f * (s - 1f), 800f * s, 52f * s), title, Mathf.RoundToInt(42f * s), col, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(0f, 126f, W, 20f), sub, 14, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter, true);
             Ui.Alpha = 1f;
             GUI.color = oldColor;

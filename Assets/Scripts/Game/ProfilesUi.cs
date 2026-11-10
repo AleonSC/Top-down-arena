@@ -426,9 +426,9 @@ namespace Arena
                 Event.current.Use();
             bool canCancel = whoList.Count > 0;
             float bw = 100f, bx = r.xMax - 16f - bw;
-            if ((Ui.ActionButton(new Rect(bx, r.y + 76f, bw, 32f), "Save", true, Ui.Primary, null, null, 15) || enter))
+            if ((DkKey(new Rect(bx, r.y + 76f, bw, 32f), "Save", Ui.Primary, true, 15) || enter))
                 WhoCommitEdit();
-            if (canCancel && Ui.ActionButton(new Rect(bx - bw - 8f, r.y + 76f, bw, 32f), "Cancel", false, Ui.Primary, null, null, 15))
+            if (canCancel && DkKey(new Rect(bx - bw - 8f, r.y + 76f, bw, 32f), "Cancel", Ui.Primary, false, 15))
             {
                 whoEdit = null;
                 whoError = "";

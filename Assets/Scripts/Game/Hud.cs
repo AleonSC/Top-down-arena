@@ -73,7 +73,7 @@ namespace Arena
                 if (p.Downed)
                 {
                     var tag = new Rect(at.X - 92f, at.Y + r + 10f, 184f, 34f);
-                    Ui.HudPanel(tag, new Color(1f, 0.35f, 0.35f));
+                    DkHud(tag, new Color(1f, 0.35f, 0.35f));
                     Ui.Label(new Rect(tag.x, tag.y + 3f, tag.width, 14f), "DOWNED — stand close to revive", 10, new Color(1f, 0.7f, 0.7f), TextAnchor.MiddleCenter, true);
                     Ui.Bar(new Rect(tag.x + 10f, tag.y + 21f, tag.width - 20f, 6f), p.Revive, Ui.Good);
                 }
@@ -263,7 +263,7 @@ namespace Arena
         void DrawTeammateRow(Player p, Rect r)
         {
             var role = ToColor(p.Def.Color);
-            Ui.HudPanel(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
+            DkHud(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
             Ui.Pill(new Rect(r.x + 5f, r.y + 6f, 3f, r.height - 12f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             Ui.Label(new Rect(r.x + 14f, r.y + 2f, 82f, 14f), p.Name, 11, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 14f, r.y + 15f, 82f, 12f), Defs.KitName(p.Kit) + " " + p.Def.Name, 8, role, TextAnchor.MiddleLeft, true);
@@ -378,7 +378,7 @@ namespace Arena
             }
             else
             {
-                Ui.HudPanel(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
+                DkHud(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
                 Ui.Pill(new Rect(r.x + 6f, r.y + 9f, 4f, r.height - 18f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             }
             Ui.Label(new Rect(r.x + 18f, r.y + 6f, r.width - 70f, 18f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
@@ -410,7 +410,7 @@ namespace Arena
         void DrawAimDebug(Player me)
         {
             var r = new Rect(14f, 12f, 300f, 104f);
-            Ui.HudPanel(r, new Color(0.3f, 0.9f, 1f));
+            DkHud(r, new Color(0.3f, 0.9f, 1f));
             Func<float, string> deg = a => (MathX.Fmod(a * 180f / MathX.Pi + 360f, 360f)).ToString("0.00") + "°";
             float diff = MathX.Fmod(game.LastShotAngle - game.LastShotAim + MathX.Pi, MathX.Tau) - MathX.Pi;
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "AIM DEBUG  (F3)", 11, new Color(0.3f, 0.9f, 1f), TextAnchor.MiddleLeft, true);
@@ -526,22 +526,19 @@ namespace Arena
                 Color hi = ultimate ? new Color(1f, 0.95f, 0.7f) : new Color(0.8f, 1f, 0.85f), lo = ultimate ? Ui.Gold : Ui.Good;
                 float rin = look.ReadyIn;  // sliding in from the right as the tile pops
                 if (rin > 0f)
-                    Ui.Fancy(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, Fade(hi, rin), Fade(lo, rin), TextAnchor.MiddleRight,
-                        new Color(lo.r, lo.g, lo.b, (ultimate ? 0.6f + 0.4f * pulse : 0.8f) * rin));
+                    DkTitle(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, Fade(lo, rin), TextAnchor.MiddleRight);
             }
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, Color.white, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.CrimsonPact && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "ON", 19, Color.white, new Color(1f, 0.33f, 0.41f), TextAnchor.MiddleRight);
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "ON", 19, new Color(1f, 0.33f, 0.41f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
             else
             {
                 // Pressed too early: the timer flashes red.
                 float red = look.Red;
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
-                    19, Color.Lerp(Color.white, new Color(1f, 0.55f, 0.55f), red), Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight,
-                    red > 0f ? new Color(1f, 0.3f, 0.3f, 0.7f * red) : (Color?)null);
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s", 19, Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight);
             }
             // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
             // recharge line, the pair one strip.
@@ -616,7 +613,7 @@ namespace Arena
             float w = 12f + key.Length * 6.5f;
             var cap = new Rect(r.x, r.y, w, r.height);
             Ui.Pill(cap, new Color(color.r, color.g, color.b, 0.2f * color.a + 0.05f));
-            Ui.Fancy(cap, key, 9, new Color(1f, 1f, 1f, 0.55f + 0.45f * color.a), new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
+            DkTitle(cap, key, 9, new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
         }
     }
 }

@@ -29,8 +29,8 @@ no Unity in the cloud container: check changes with the tools below.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
-- The Bestiary and Armory web pages are gone. The in-game Field guide (`FieldGuide.cs`) replaces them: the Armory
-  reads the game's definitions, the Bestiary text is hand-edited in `BestiaryData.Entries.cs` / `BestiaryData.cs`.
+- The Bestiary and Armory web pages and the in-game Field guide are gone (`BestiaryData*.cs` stays: the sim test and `Juice.cs` read it).
+- New UI uses `DevKit.cs`'s CRT widgets (`DkKey`, `DkSwitch`, `DkField`, `DkSub`, `DkPanel`, `DkTitle`, ...); `Ui.cs` holds drawing primitives only.
 - There is no to-do file. Say in the final report what needs a try in Unity ("check in Unity").
 
 ## How the owner works

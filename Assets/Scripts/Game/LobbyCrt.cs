@@ -313,7 +313,7 @@ namespace Arena
                 Ui.BodyGlow(MenuCard, k);
                 WithAlpha(k, () =>
                 {
-                    Ui.BodyBox(MenuCard);
+                    DkPanel(MenuCard);
                     DrawMenuCardInside(t, false);
                 });
                 WithAlpha(k, () =>

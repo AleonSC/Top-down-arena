@@ -106,7 +106,7 @@ namespace Arena
             if (lagMode == LagPill)
             {
                 var pr = new Rect(W - 14f - 132f, 30f, 132f, 26f);
-                Ui.HudPanel(pr, qc);
+                DkHud(pr, qc);
                 Ui.Dot(new Rect(pr.x + 10f, pr.y + 9f, 8f, 8f), qc);
                 Ui.Label(new Rect(pr.x + 24f, pr.y, 60f, pr.height), LagStats.QualityName(q), 11, qc, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(pr.x + 60f, pr.y, pr.width - 70f, pr.height), LagHeadline(host), 11, Color.white, TextAnchor.MiddleRight, true);
@@ -115,7 +115,7 @@ namespace Arena
 
             int rows = game.Players.Count > 1 ? 4 : 3;
             var r = new Rect(W - 14f - 340f, 30f, 340f, 150f + rows * 16f);
-            Ui.HudPanel(r, LagAccent);
+            DkHud(r, LagAccent);
             // Header: LAG, the quality, and the keys (or "Copied").
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, 40f, 16f), "LAG", 11, LagAccent, TextAnchor.MiddleLeft, true);
             Ui.Dot(new Rect(r.x + 44f, r.y + 10f, 8f, 8f), qc);
