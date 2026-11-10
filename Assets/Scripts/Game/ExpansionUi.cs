@@ -52,7 +52,7 @@ namespace Arena
             int n = game.ExpandProposals.Count;
             // Above the Wave cleared box (it starts at y 84 and covers everything below), pulsing until you've voted or drawn.
             var chip = new Rect(W / 2f - 300f, 34f, 600f, 46f);
-            bool mine = game.ExpandVotes.ContainsKey(game.MyId);
+            bool mine = game.ExpandVotes.ContainsKey(game.MyId) || game.ProposalOf(game.MyId).HasValue;
             float pulse = mine ? 0f : 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
             Ui.Pill(chip, new Color(0f, 0.08f * pulse, 0.12f * pulse, 0.75f));
             Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f, 0.6f + 0.4f * pulse));
@@ -111,8 +111,8 @@ namespace Arena
             }
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
             CrtUi.Title(new Rect(0, 22f, W, 56f), "BUILD THE ARENA", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            int mine;
-            bool voted = game.ExpandVotes.TryGetValue(game.MyId, out mine);
+            bool voted = game.ExpandVotes.ContainsKey(game.MyId);
+            int backing = game.EffectiveVote(game.MyId);
             var props = game.ExpandProposals;
             Ui.Label(new Rect(0, 80f, W, 20f), "Your vectors " + me.Vectors + " / " + me.VectorCap + "  ·  " + game.Expanded.Count + " room" + (game.Expanded.Count == 1 ? "" : "s") + " so far  ·  most votes wins, a tie is a coin flip  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 13, Ui.Muted, TextAnchor.MiddleCenter);
             float gap = 30f, cw = Mathf.Min(370f, (W - 80f - (props.Count - 1) * gap) / Mathf.Max(1, props.Count)), ch = 452f, y = 118f;
@@ -122,7 +122,7 @@ namespace Arena
             for (int i = 0; i < props.Count; i++)
             {
                 var r = new Rect(x0 + i * (cw + gap), y, cw, ch);
-                if (DrawProposalCard(r, props[i], voted && mine == props[i].Owner, t, calm))
+                if (DrawProposalCard(r, props[i], backing == props[i].Owner, t, calm))
                     game.CastExpandVote(props[i].Owner);
             }
             float by = y + ch + 12f;
@@ -132,7 +132,7 @@ namespace Arena
                 expDrawing = true; expDragging = false;
                 expA = expB = V2.Zero;
             }
-            bool skip = voted && mine == 0;
+            bool skip = voted && backing == 0;
             if (CrtUi.SoftKey(new Rect(W / 2f + 10f, by, 440f, 34f), "NO ROOM" + (skip ? "  ✓" : ""), null, 22, calm, lit: skip))
                 game.CastExpandVote(0);
             if (CrtUi.SoftKey(new Rect(W - 270f, 28f, 220f, 32f), "DECIDE LATER", null, 18, calm))
@@ -141,8 +141,11 @@ namespace Arena
             foreach (int id in game.Players.Keys)
                 if (!game.ExpandVotes.ContainsKey(id))
                     waiting++;
-            string msg = !voted ? (props.Count > 0 ? "Vote for a room, or draw your own" : "Nothing to vote on yet") : waiting > 0 ? "Voted. Waiting for " + waiting + " more player" + (waiting == 1 ? "" : "s") : "Counting the votes";
-            Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted && props.Count > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            bool ownDrawn = game.ProposalOf(game.MyId).HasValue;
+            string msg = voted ? (waiting > 0 ? "Voted. Waiting for " + waiting + " more player" + (waiting == 1 ? "" : "s") + " to vote (or the wave to start)" : "Counting the votes")
+                : ownDrawn ? "Your room counts as your vote. Click a card to back another, or click yours to lock it in"
+                : props.Count > 0 ? "Vote for a room, or draw your own" : "Nothing to vote on yet";
+            Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted && !ownDrawn && props.Count > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
         }
 
         /// The drawing screen: the whole map, zoomed out; drag a box on the 100 px grid. It's checked live (Expansion.Custom) and goes to the vote on release.
@@ -283,9 +286,7 @@ namespace Arena
             CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : ""), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
             string blurb = loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
             CrtUi.Text(new Rect(r.x + 22f, ty + 62f, r.width - 44f, 70f), blurb, 14, dim, TextAnchor.UpperLeft, false, calm, true);
-            int votes = 0;
-            foreach (var v in game.ExpandVotes.Values)
-                votes += v == o.Owner ? 1 : 0;
+            int votes = game.VotesFor(o.Owner);
             CrtUi.Text(new Rect(r.x + 22f, r.yMax - 82f, r.width - 44f, 30f), o.Price + " VECTORS" + (owner != null ? "  ·  " + owner.Name.ToUpperInvariant() + " HAS " + owner.Vectors : ""), r.width < 330f ? 17 : 20, afford ? new Color(0.37f, 0.94f, 1f) : dim, TextAnchor.MiddleLeft, true, calm);
             CrtUi.Text(new Rect(r.x + 22f, r.yMax - 50f, r.width - 44f, 24f), votes == 0 ? "NO VOTES" : votes + " VOTE" + (votes == 1 ? "" : "S") + (picked ? "  ·  YOURS" : ""), 15, votes > 0 ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
             CrtUi.End(r, t, calm);

@@ -20,8 +20,9 @@ namespace Arena
         /// the team (synced by Msg.ExpandState).
         public bool ExpandOpen;
 
-        /// This round's proposals (at most one per player; Owner is the drawer) and the votes on them: voter id -> the proposer
-        /// id voted for, or 0 for "no room".
+        /// This round's proposals (at most one per player; Owner is the drawer) and the votes players have cast: voter id -> the
+        /// proposer id voted for, or 0 for "no room". A player who hasn't voted still backs their own proposal (EffectiveVote), but
+        /// only cast votes count towards settling the round early.
         public readonly List<ExpansionRoom> ExpandProposals = new List<ExpansionRoom>();
         public readonly Dictionary<int, int> ExpandVotes = new Dictionary<int, int>();
 
@@ -55,7 +56,7 @@ namespace Arena
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
         /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
-        public const int VectorStart = 15, VectorCapBase = 25, VectorWaveGain = 2, VectorBossBonus = 5, VectorKillEvery = 25;
+        public const int VectorStart = 25, VectorCapBase = 35, VectorWaveGain = 4, VectorBossBonus = 10, VectorKillEvery = 15;
 
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
@@ -201,6 +202,25 @@ namespace Arena
             DoLog("building round opens");
         }
 
+        /// The proposer id this player backs: the vote they cast (0 = no room), else their own proposal, else -1.
+        public int EffectiveVote(int player)
+        {
+            int v;
+            if (ExpandVotes.TryGetValue(player, out v))
+                return v;
+            return ProposalOf(player).HasValue ? player : -1;
+        }
+
+        /// How many players back this proposal, counting a drawer who hasn't voted as backing their own.
+        public int VotesFor(int owner)
+        {
+            int n = 0;
+            foreach (int id in Players.Keys)
+                if (EffectiveVote(id) == owner)
+                    n++;
+            return n;
+        }
+
         /// A vote from this game's player: the proposer's id, or 0 for "no room".
         public void CastExpandVote(int choice)
         {
@@ -244,8 +264,8 @@ namespace Arena
 
         public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16());
 
-        /// Host: a drawing becomes its drawer's proposal (a newer one replaces the last, and the votes for the old one go). The drawer
-        /// backs their own. It must fit and the drawer must have the vectors; they only pay if it wins.
+        /// Host: a drawing becomes its drawer's proposal (a newer one replaces the last, and the votes for the old one go). Drawing
+        /// doesn't cast a vote: the drawer backs their own until they vote, and the round isn't settled early by drawing. It must fit and the drawer must have the vectors; they only pay if it wins.
         void HostExpandDraw(int id, int x, int y, int w, int h)
         {
             Player p;
@@ -270,12 +290,12 @@ namespace Arena
             }
             else
                 ExpandProposals.Add(room);
-            ExpandVotes[id] = id;
+            ExpandVotes.Remove(id);  // (back to backing their own until they cast a vote)
             DoLog(p.Name + " proposes a " + w + " x " + h + " room for " + room.Price + " vectors");
             FinishOrBroadcast();
         }
 
-        /// Host: once everyone has voted the round is settled; until then everyone is told how it stands.
+        /// Host: once everyone has cast a vote the round is settled; until then everyone is told how it stands.
         void FinishOrBroadcast()
         {
             bool all = true;
@@ -296,8 +316,11 @@ namespace Arena
                 return;
             var standing = ExpandProposals.FindAll(q => Players.ContainsKey(q.Owner) && Players[q.Owner].Vectors >= q.Price);
             var tally = new Dictionary<int, int>();
-            foreach (int choice in ExpandVotes.Values)
+            foreach (int pid in new List<int>(Players.Keys))
             {
+                int choice = EffectiveVote(pid);
+                if (choice < 0)
+                    continue;
                 if (choice != 0 && !standing.Exists(q => q.Owner == choice))
                     continue;
                 int n;
