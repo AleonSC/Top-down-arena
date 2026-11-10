@@ -9,6 +9,8 @@ namespace Arena
         public string Name;
         public V2 Min, Max;
         public bool Hub, Hall, Vault;
+        public RoomKind Kind;   // what the room does (Expansion.cs; the Wings rooms are all Combat)
+        public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
         public V2 Mid => (Min + Max) * 0.5f;
         public V2 Size => Max - Min;
         public bool Contains(V2 p, float pad = 0f) => p.X >= Min.X - pad && p.X <= Max.X + pad && p.Y >= Min.Y - pad && p.Y <= Max.Y + pad;

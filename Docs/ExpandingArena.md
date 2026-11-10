@@ -1,6 +1,6 @@
 # Expanding arena: design plan
 
-Status: **step 1 built** (the `World` refactor, no behavior change); steps 2-5 not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
+Status: **steps 1-2 built** (the `World` refactor; room types, offers and the map builder, not in the game yet); steps 3-5 not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
 and `Shop.cs`. Numbers are first guesses.
 
 ## The idea
@@ -89,6 +89,25 @@ in that layout with a switch; don't delete code.
 - `Game.ArenaKind` (`ArenaLayout`: Single, Wings, Expanding) comes from the existing on/off Arena setting. The
   three-way setting and the protocol bump are left for step 3 (nothing is synced differently yet, so protocol stays 243).
 - Checked: core + features suites, `wings` suite (new World checks), RenderCheck identical.
+
+## Step 2 (built)
+
+- `Expansion.cs`: `ExpansionRoom` = a box attached to a parent room (area index, 0 = hub), a `RoomKind` (Combat, Shop,
+  Floor) and a path `Floor`. The map is the hub plus this list, so only the list ever needs syncing.
+- **Shapes** (6): Closet 600x400, Room 800x600, Chamber 1000x700, Plaza 900x900, Hall 1200x300, Corridor 300x900.
+- **Offers**: `Expansion.Offers(seed, round, built)` gives 3 different rooms from a deterministic generator
+  (`DetRandom`, not `System.Random`, so every machine agrees). A room attaches to a wall of an existing room, sliding
+  along it in 100 px steps with at least 300 px of shared wall for the door. Rooms with fewer doors are likelier
+  parents, shapes not bought yet are 3x as likely, a shop is offered while the map is short of them (never first), a
+  floor prefers a path floor not used yet.
+- **Rules**: rooms never overlap and touch only through their own door (so the map is a tree: no duplicate walls),
+  max 12 bought rooms, max 6400 x 4000 overall. Price = 40 + area/12000, x1.3 shop, x1.15 floor, +20% per room
+  already bought (first guesses).
+- `Expansion.Build(rooms)` returns the `World` (walls per room, one door per child). With nothing bought it is the
+  hub alone, walled in; step 3 decides when the Expanding layout counts as unwalled Single.
+- **For step 3**: the world's bounding box has void in it, so random spawns, props and the minimap must go by area
+  (`AreaAt`), not by the box.
+- Test suite `expand`: determinism, no overlaps, connected, open doors with steering spots, the cap, variety.
 
 ## Open questions (defaults in bold)
 
