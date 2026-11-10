@@ -225,8 +225,8 @@ namespace Arena
             if (game.ExpandOpen)  // the open round's proposals count too
                 foreach (var q in game.ExpandProposals)
                 {
-                    lo = new V2(Mathf.Min(lo.X, q.X), Mathf.Min(lo.Y, q.Y));
-                    hi = new V2(Mathf.Max(hi.X, q.X + q.W), Mathf.Max(hi.Y, q.Y + q.H));
+                    lo = new V2(Mathf.Min(lo.X, Mathf.Min(q.X, q.X + q.W)), Mathf.Min(lo.Y, Mathf.Min(q.Y, q.Y + q.H)));  // (a portal pair's W and H can be negative)
+                    hi = new V2(Mathf.Max(hi.X, Mathf.Max(q.X, q.X + q.W)), Mathf.Max(hi.Y, Mathf.Max(q.Y, q.Y + q.H)));
                 }
             float k = RoomMapScale, hwx = RoomMapW / k / 2f, hwy = RoomMapH / k / 2f;
             V2 at = game.Me != null ? game.Me.Disp : camFocus;
@@ -267,6 +267,12 @@ namespace Arena
                     V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
                     var qi = OwnerInk(q.Owner);
                     float pulse = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 3f);
+                    if (q.Kind == RoomKind.Link)  // a portal pair: two dots
+                    {
+                        MapRect(q0.X - 3f, q0.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
+                        MapRect(q1.X - 3f, q1.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
+                        continue;
+                    }
                     MapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.16f * pulse));
                     MapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.95f));
                 }

@@ -765,7 +765,61 @@ static partial class Program
         Check(g.BreachesOn && hb.Length > 0 && hb.Select(b => b.Pos).SequenceEqual(cb.Select(b => b.Pos)), "in a wave the host and a friend see the same breaches (" + hb.Length + " / " + cb.Length + ")");
         int byBreach = first.Values.Count(p => hb.Any(b => b.Pos.DistanceTo(p) < 260f));
         Check(first.Count > 0 && byBreach >= first.Count * 0.8f, "enemies come in through them (" + byBreach + " of " + first.Count + " by a breach)");
+        Check(first.Values.All(p => g.CurrentWorld.Areas.Any(a => a.Contains(p))), "every one of them comes in inside a room");
         Check(earliest >= Breaches.Telegraph - 0.2f, "not before the barriers are up (first at " + earliest.ToString("0.00") + " s)");
+    }
+
+    // Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, priced by the walking it saves, voted, synced.
+    static void ExpandingLinksTest(float dt)
+    {
+        string why;
+        var list = new List<ExpansionRoom>();
+        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value; list.Add(east);
+        var south = Expansion.Custom(list, 0, 900, 800, 600, out why).Value; list.Add(south);
+        var w = Expansion.Build(list);
+        Func<RoomArea, V2> clearSpot = a =>  // a grid spot in the room clear of its obstacles and doors
+        {
+            for (float y = a.Min.Y + 100f; y < a.Max.Y; y += 100f)
+                for (float x = a.Min.X + 100f; x < a.Max.X; x += 100f)
+                {
+                    var p = new V2(x, y);
+                    if (a.Contains(p, -Expansion.LinkEdge) && !w.Cover.Any(c => Layouts.Inside(c, p, 60f)) && w.Doors.All(d => d.Pos.DistanceTo(p) >= 300f))
+                        return p;
+                }
+            return a.Mid;
+        };
+        V2 ea = clearSpot(w.Areas[1]), sb = clearSpot(w.Areas[2]);
+        var link = new PortalLink { AX = (short)ea.X, AY = (short)ea.Y, BX = (short)sb.X, BY = (short)sb.Y };
+        float walk = Expansion.WalkDistance(w, link.A, link.B);
+        int price = Expansion.LinkPrice(w, 0, link, out why);
+        Check(walk > 1800f && price == Math.Min(Expansion.LinkMax, Expansion.LinkBase + (int)Math.Round(walk / 200f)), "a link costs 8 + 1 per 2 tiles of walking it saves (" + (int)walk + " px, " + price + " vectors" + (why != null ? ", " + why : "") + ")");
+        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = link.AX, BY = (short)(link.AY + 200) }, out why) == 0 && why != null, "both ends in one room is refused (" + why + ")");
+        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = link.AX, AY = link.AY, BX = 3000, BY = 400 }, out why) == 0 && why != null, "an end outside the map is refused (" + why + ")");
+        Check(Expansion.LinkPrice(w, 0, new PortalLink { AX = 1700, AY = 400, BX = link.BX, BY = link.BY }, out why) == 0 && why != null, "an end by a door is refused (" + why + ")");
+        Check(Expansion.LinkPrice(w, Expansion.MaxLinks, link, out why) == 0 && why != null, "at most " + Expansion.MaxLinks + " pairs");
+        var wl = Expansion.Build(list, null, new List<PortalLink> { link });
+        var exit = wl.PortalExitFor(link.A);
+        Check(wl.Portals.Length == 1 && exit.HasValue && wl.AreaAt(exit.Value) == wl.AreaAt(link.B) && exit.Value.DistanceTo(link.B) < 120f, "built, it is a portal pair: step in one end, come out the other");
+        Check(Expansion.WalkDistance(wl, link.A, link.B) < 1f, "and walking between its ends now takes no time");
+        Check(Expansion.LinkPrice(wl, 1, new PortalLink { AX = (short)(link.AX + 100), AY = link.AY, BX = 1000, BY = 300 }, out why) == 0 && why != null, "a second pair right by the first is refused (" + why + ")");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.ExpandOpen = true; }
+        g.Players[2].Vectors = price + 3;
+        cg.ProposeExpandLink(link);
+        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
+        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Kind == RoomKind.Link && g.ExpandProposals[0].Price == price && cg.ExpandProposals.Count == 1, "a friend's portal pair goes to the vote at its price, on both screens");
+        g.CastExpandVote(2);
+        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => cg.Links.Count == 1);
+        Check(g.Links.Count == 1 && cg.Links.Count == 1 && g.Players[2].Vectors == 3, "the winning pair is built on both screens and its proposer pays (" + g.Players[2].Vectors + " left)");
+        Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
     }
 
     // Balance (Docs/FloatingRooms.md step 5): what it costs to connect a floating room, against the vectors a player has.

@@ -211,7 +211,7 @@ namespace Arena
             V2 breachIn = V2.Zero;
             V2? breach = at.HasValue ? null : BreachSpot(60f, out breachIn);  // the Expanding arena: through one of the wave's breaches (Breaches.cs)
             if (breach.HasValue)
-                basePos = breach.Value;
+                basePos = breach.Value + breachIn * 80f;  // (a squad forms up a little further in: its back row stands behind it)
             else if (RoomsOn && !at.HasValue)
             {
                 if (Rooms.RoomByRoom)
@@ -244,6 +244,12 @@ namespace Arena
                 }
                 if (type == EnemyType.Nest)
                     pos = ClampToArena(basePos + fwd * 140f, 120f);
+                if (breach.HasValue)  // through a breach: everyone stays inside the room it opens into (never out past a corner)
+                {
+                    var room = CurrentWorld.Areas[CurrentWorld.AreaAt(basePos)];
+                    float pad = Defs.Get(type).Radius + 30f;
+                    pos = new V2(Math.Max(room.Min.X + pad, Math.Min(room.Max.X - pad, pos.X)), Math.Max(room.Min.Y + pad, Math.Min(room.Max.Y - pad, pos.Y)));
+                }
                 var e = SpawnEnemyAt(type, pos, 0.9f, 0, RollElite(Defs.Get(type)));
                 e.SquadId = id;
                 e.SquadSlot = i;

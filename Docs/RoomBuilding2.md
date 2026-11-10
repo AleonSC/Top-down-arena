@@ -1,6 +1,6 @@
 # Room building, part 2: breaches, portals and fittings
 
-Status: **step 1 built** (breach spawns, no protocol change); steps 2-3 not started. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
+Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 259); step 3 not started. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
 [`FloatingRooms.md`](FloatingRooms.md) (all built).
 
 ## Why
@@ -34,6 +34,20 @@ Status: **step 1 built** (breach spawns, no protocol change); steps 2-3 not star
 - A new draw-screen mode, **Link**: click two rooms to propose a portal pair. Voted like a room; cost ~ 8 vectors + 1 per 2 tiles of walking distance saved.
 - Reuses the Wings portals (`Rooms.Portals`, `PortalHop` corner-graph links, cooldown, look); enemies use them too.
 - Fixes "too linear" on big maps and gives a late-game vector sink. Cap: 3 pairs.
+
+### Built (step 2, protocol 259)
+
+- `PortalLink` (two grid spots) in `Game.Links`, synced after the openings in `Msg.ExpandState`; proposed with `Msg.ExpandLink` as a
+  `RoomKind.Link` proposal (X, Y = one end; W, H = to the other), voted like a room; the winner's proposer pays.
+- `Expansion.LinkPrice`: 8 + 1 per 2 tiles of `WalkDistance` (doors and portals already built, Dijkstra), at most 30; refused unless it saves
+  6+ tiles, each end is in a connected room 90 px off its walls, clear of cover, 150 px from doors and 250 px from other portals; 3 pairs max.
+- `Expansion.Build(rooms, cuts, links)` turns links into `World.Portals` (each end faces its room's middle), so the Rooms arena's portal
+  code does the rest: you and enemies step through (`RoomsPortal`), steering routes through them, `DrawPortal` and the minimap draw them.
+- Draw screen: a **PORTAL** key (`expLinkMode`), built pairs and proposals as rings with a dashed line; proposal cards say "PORTAL PAIR"
+  and the tiles saved. Bots propose `BestLink` (one clear spot per room, the pair saving the most) 20% of the time when it costs 15+.
+- Previews: `EXPANDVOTE=6 EXPANDDRAW=0,0,0,0 EXPANDLINK=1` (draw screen), `EXPANDLINKCARD=1` (card), `EXPANDMAP=6 EXPANDPORTAL=1` (in the arena).
+- Fixed with it (step 1): a squad coming through a breach formed up with its back row in the wall or past a corner (a wave got stuck);
+  it now forms 80 px further in and stays inside the room.
 
 ## 3. Room fittings
 
