@@ -2,9 +2,9 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
-- 261: the difficulty carries one more knob (`DiffKnob.Campaign`, the campaign buildup switch)
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 263: the difficulty carries one more knob (`DiffKnob.Campaign`, the campaign buildup switch)
 - 262: `ShopAction.Vectors` (the vendor's vector pack, +10 vectors for 50 gold) in Msg.Shop
 - 261: portal links: the Expanding arena's bought portal pairs (PortalLink list after the openings in Msg.ExpandState), Msg.ExpandLink, RoomKind.Link proposals (ExpansionGame.cs)
 - 260: snapshots carry each player's Double Barrel shells and charge (`ScatShells`, `ScatCharge`); new `Msg.WeaponDash` kinds 21-23, `ZoneKind.FlakMine`/`TearGas`, `FxKind.DoubleBarrel`
