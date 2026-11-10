@@ -20,9 +20,9 @@ namespace Arena
 
         static readonly Rect DevPanel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
 
-        static readonly string[] DevTabNames = { "Match", "Players", "Tools", "DPS", "Replays" };
-        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves", "Meter and target dummy", "Record, scrub, rewind runs" };
-        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f), new Color(1f, 0.62f, 0.3f), new Color(1f, 0.45f, 0.5f) };
+        static readonly string[] DevTabNames = { "Match", "Players", "Tools", "DPS", "Replays", "Balance" };
+        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves", "Meter and target dummy", "Record, scrub, rewind runs", "Five-wave test with logs" };
+        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f), new Color(1f, 0.62f, 0.3f), new Color(1f, 0.45f, 0.5f), new Color(0.44f, 0.89f, 0.77f) };
 
         void DrawDevMenu()
         {
@@ -46,14 +46,14 @@ namespace Arena
             float sx = panel.x + 20f, sw = 196f, sy = panel.y + 90f;
             for (int i = 0; i < DevTabNames.Length; i++)
             {
-                var r = new Rect(sx, sy + i * 66f, sw, 58f);
+                var r = new Rect(sx, sy + i * 62f, sw, 55f);
                 bool on = devTab == i, hover = r.Contains(Event.current.mousePosition);
                 var c = DevTabColors[i];
                 Ui.Pill(r, on ? new Color(c.r * 0.35f, c.g * 0.35f, c.b * 0.35f, 0.95f) : new Color(1f, 1f, 1f, hover ? 0.08f : 0.035f));
                 if (on)
                     Ui.Fill(new Rect(r.x, r.y + 8f, 4f, r.height - 16f), c);
                 Ui.Fancy(new Rect(r.x + 16f, r.y + 7f, r.width - 20f, 26f), DevTabNames[i], 17, Color.white, on ? Color.Lerp(c, Color.white, 0.4f) : new Color(0.8f, 0.84f, 0.95f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(r.x + 16f, r.y + 32f, r.width - 20f, 18f), DevTabBlurbs[i], 11, on ? new Color(1f, 1f, 1f, 0.75f) : Ui.Muted);
+                Ui.Label(new Rect(r.x + 16f, r.y + 31f, r.width - 20f, 18f), DevTabBlurbs[i], 11, on ? new Color(1f, 1f, 1f, 0.75f) : Ui.Muted);
                 if (!on && Ui.HitArea(r))
                 {
                     devTab = i;
@@ -77,6 +77,9 @@ namespace Arena
                     break;
                 case 4:
                     DrawDevReplays(body);  // ReplayUi.cs
+                    break;
+                case 5:
+                    if (inMatch) DrawDevBalance(body); else DevNotInMatch(body, "run a balance test");  // BalanceTestUi.cs
                     break;
                 default:
                     DrawDevTools(body);

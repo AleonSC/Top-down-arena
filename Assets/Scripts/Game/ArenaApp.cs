@@ -54,7 +54,11 @@ namespace Arena
         static string SessionsFolder => System.IO.Path.Combine(Application.persistentDataPath, "sessions");
 
         /// Recording happens on the host (which decides every hit), so this only matters when you host.
-        void ApplyRecording() => game.RecordFolder = recordSessions ? SessionsFolder : null;
+        void ApplyRecording()
+        {
+            game.RecordFolder = recordSessions ? SessionsFolder : null;
+            game.BalanceFolder = BalanceFolderPath;  // (the balance test records whatever this is set to; BalanceTestUi.cs)
+        }
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         int pickKey;            // for a card that grants an ability: the key to put it on (1 = Q, 2 = E, 3 = Shift)

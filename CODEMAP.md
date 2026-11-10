@@ -126,7 +126,9 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Net.cs`: `NetPeer`, length-prefixed TCP (`BytesIn`/`BytesOut` for the lag chart)
 - `LagStats.cs`, `LagNet.cs`, `Game/LagChartUi.cs`: the lag chart (F5): `LagStats` (30 s strip of quarter-second columns: ping, snapshot gap, frame time, fps, KB/s; stalls, p95, 1% low, quality, marks, the copied summary, the CSV log), `Game.TickLag` (pings 4/s, `Msg.NetPings` with every player's ping, wave/boss/storm marks), the overlay and its Settings row; `Docs/LagChart.md`; test `run.sh 1 1 lag`; preview `LAG=pill|chart|guest Tools/Preview/shot.sh x hud 6 12.2 3`
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
-- `SessionRecorder.cs`: session JSON recorder (format 3: samples carry each player's nearest enemy and the threats in a 2x-zoom view, Docs/Rooms.md phase 0)
+- `BalanceTest.cs`: the F1 Balance test (`BalanceRun`, `DevStartBalanceTest`): five waves with a fresh recording, then a report
+- `BalanceReport.cs`: `BalanceReport` (tiles, tables, findings) and `SessionRecorder.BuildReport`
+- `SessionRecorder.cs`: session JSON recorder (format 4: damage by source, shots, enemy health, the "test" block; 3: samples carry each player's nearest enemy and the threats in a 2x-zoom view, Docs/Rooms.md phase 0)
 - `RunTimeline.cs`: Records > Recent runs data: `RunTimeline` (a sample of every player's running totals and HP% every 10 s of play: `Rates`, `Series`, `AccuracyPerWave`, text save/load), `RunTimelineStore` (`Profile.Folder/runs/<id>.run`, newest `Profile.RecentKept` kept), and the `Game` sampler (`TickRunTimeline` from `FixedStep`, `FinishTimeline` from the run's End record in `RunSaves.cs`). `RankLog` (in `Profile.cs`) carries the run's class, mode, time, damage and the file name
 - `Replay.cs`: replays: `ReplayFile` (.replay: header, marks, frame lengths, every host message), `ReplayRecorder` (fed by `Session.Broadcast` and `Game.FixedStep`), `ReplayPlayer` (a private client-mode `Session` that reads the messages; seek, step, speeds)
 
@@ -258,6 +260,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 ## Dev tools and editors (Game)
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
+- `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `PracticeUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, Practice Range, F1 wave editor
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
 - `Game/ClickLog.cs`: a temporary lost-click debugging aid: F9 shows the last mouse presses and releases and logs them

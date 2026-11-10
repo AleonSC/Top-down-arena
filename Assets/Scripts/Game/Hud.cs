@@ -46,6 +46,8 @@ namespace Arena
                 DrawAimDebug(me);
             if (dpsMeter)
                 DrawDpsMeter();  // F2 (DpsMeterUi.cs)
+            DrawBalanceStrip();   // the balance test's recording light (BalanceTestUi.cs)
+            DrawBalanceReport();  // and its report when it ends
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
