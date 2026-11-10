@@ -1,0 +1,493 @@
+<title>Security Guard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with the aim switch, one live stage with a legend, a strip of the four phases of a magazine, three bullet
+   looks, then numbers and notes. Same structure as the Swordsman mockup.
+   Colour: slate-teal uniform, hi-vis vest, brass rounds. The floor lane runs amber (ready), red (locked) and the reload ring cream.
+   Type: Barlow Condensed display, Barlow body, Plex Mono for timings. */
+:root{
+  --bg:#ebeef0; --fg:#171d22; --muted:#586169; --panel:#f6f8f9; --line:#ccd3d8;
+  --chip:#dde3e7; --chip-on:#171d22; --chip-on-fg:#f1f5f7;
+  --amber:#b87400; --red:#c0392b; --cream:#7c7a68; --vest:#8a9400; --arena:#10171b;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1214; --fg:#e4eaed; --muted:#8f9ca3; --panel:#161c1f; --line:#283035;
+  --chip:#21292d; --chip-on:#e4eaed; --chip-on-fg:#0e1214;
+  --amber:#ffb02e; --red:#ff6a52; --cream:#e9e2c8; --vest:#dfe84a; --arena:#0a0e10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1214; --fg:#e4eaed; --muted:#8f9ca3; --panel:#161c1f; --line:#283035;
+  --chip:#21292d; --chip-on:#e4eaed; --chip-on-fg:#0e1214;
+  --amber:#ffb02e; --red:#ff6a52; --cream:#e9e2c8; --vest:#dfe84a; --arena:#0a0e10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:62ch;color:var(--muted)}
+header{display:flex;flex-direction:column;gap:18px}
+section{min-width:0}
+.seg{display:inline-flex;align-self:flex-start;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--chip)}
+.seg button{border:0;border-radius:0;padding:10px 20px;background:transparent;font:700 17px var(--display);letter-spacing:.04em;text-transform:uppercase}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg.sm button{padding:6px 12px;font-size:15px}
+.frame{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--arena);box-shadow:0 10px 30px -18px rgba(0,0,0,.6)}
+canvas{display:block;width:100%;height:auto}
+#stage{aspect-ratio:720/400;touch-action:none;cursor:crosshair}
+.hud{position:absolute;left:12px;top:10px;display:flex;gap:10px;flex-wrap:wrap;pointer-events:none}
+.hud span{font:500 12px var(--mono);color:#dfe8e6;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:4px}
+.hud .state{color:#ffd9a0}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:22px;height:12px;border-radius:2px}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin-top:14px}
+.ctl{display:flex;align-items:center;gap:8px;font:500 13px var(--mono);color:var(--muted)}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.controls>button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-fg)}
+.hint{font-size:14px;color:var(--muted);margin-top:10px}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.phase{display:flex;flex-direction:column;gap:8px;min-width:0}
+.phase canvas{aspect-ratio:240/170;border:1px solid var(--line);border-radius:8px;background:var(--arena)}
+.phase h3{font:700 21px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.phase h3 span{font:500 12px var(--mono);color:var(--muted);text-transform:none;letter-spacing:0}
+.phase p{font-size:14px;color:var(--muted)}
+.looks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.look{display:flex;flex-direction:column;gap:8px;min-width:0}
+.look canvas{aspect-ratio:360/150;border:1px solid var(--line);border-radius:8px;background:var(--arena)}
+.look p{font-size:14px;color:var(--muted)}
+.look p b{color:var(--fg)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:28px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child th,tr:last-child td{border-bottom:0}
+th{font-weight:600;white-space:nowrap}
+td{font-family:var(--mono);font-size:13px}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.notes li{max-width:60ch}
+</style>
+
+<main>
+  <header>
+    <div>
+      <div class="eyebrow">New enemy · Warden approach · Ranged</div>
+      <h1>Security Guard</h1>
+      <p class="lede">A prison security officer with a service pistol. It stops, locks onto where you are heading and fires one round, then another, semi-auto. Seven shots empty the magazine, and the 2.2 s reload is your window to rush it. The red lane on the floor is the locked shot.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Aim">
+      <button id="aimLead" aria-pressed="true">Leads you</button>
+      <button id="aimDirect" aria-pressed="false">Aims at you</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="live">
+    <h2 id="live">Live</h2>
+    <div class="frame">
+      <canvas id="stage" width="720" height="400" aria-label="A Security Guard shooting at a player dot"></canvas>
+      <div class="hud" id="hud"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:rgba(255,176,46,.35);border:1px dashed var(--amber)"></i>Ready: where it would shoot now</span>
+      <span><i style="background:var(--red);opacity:.75"></i>Locked: the round leaves when the red reaches the end</span>
+      <span><i style="background:var(--cream)"></i>Reload: the guard is open</span>
+    </div>
+    <div class="controls">
+      <button id="pause" aria-pressed="false">Pause</button>
+      <button id="auto" aria-pressed="true">Auto player</button>
+      <button id="leadBtn" aria-pressed="true">Show lane</button>
+      <div class="seg sm" role="group" aria-label="Bullet look"><button id="lkA" aria-pressed="false">Brass</button><button id="lkB" aria-pressed="true">Tracer</button><button id="lkC" aria-pressed="false">Blue tip</button></div>
+    </div>
+    <p class="hint">Press and drag on the arena to move the player yourself. The guard leads with a straight-line guess from your speed, so changing direction in the 0.25 s of red beats it.</p>
+  </section>
+
+  <section aria-labelledby="ph">
+    <h2 id="ph">One magazine, four phases</h2>
+    <div class="phases">
+      <div class="phase"><canvas id="p0" width="240" height="170"></canvas><h3>Ready <span>0.55 s</span></h3><p>Pistol up, pips show the rounds left. The dashed lane is where it would shoot right now.</p></div>
+      <div class="phase"><canvas id="p1" width="240" height="170"></canvas><h3>Lock on <span>0.25 s</span></h3><p>It plants its feet and the lane fills red toward the lead point. The aim no longer follows you.</p></div>
+      <div class="phase"><canvas id="p2" width="240" height="170"></canvas><h3>Fire <span>1 round</span></h3><p>One shot, slide kicks back, a brass casing flies out. Seven times, 0.8 s apart.</p></div>
+      <div class="phase"><canvas id="p3" width="240" height="170"></canvas><h3>Reload <span>2.2 s</span></h3><p>Empty: it drops the magazine, seats a new one and racks the slide. The cream ring fills. Rush it now.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="lk">
+    <h2 id="lk">Bullet looks</h2>
+    <div class="looks" id="looks"></div>
+  </section>
+
+  <section class="cols">
+    <div>
+      <h2>Proposed numbers</h2>
+      <div class="tbl"><table>
+        <tr><th>Health</th><td>45</td></tr>
+        <tr><th>Move speed</th><td>70 px/s, holds about 300 px, backs off if you close in</td></tr>
+        <tr><th>Turn speed</th><td>2.8 rad/s, locked during the lock-on</td></tr>
+        <tr><th>Lock-on / cycle</th><td>0.25 s / one shot every 0.8 s</td></tr>
+        <tr><th>Bullet</th><td>340 px/s, 7 damage, leads in a straight line</td></tr>
+        <tr><th>Magazine</th><td>7 rounds</td></tr>
+        <tr><th>Reload</th><td>2.2 s, does not move or shoot</td></tr>
+        <tr><th>Full cycle</th><td>about 7.8 s, 6.3 damage/s if every round hits</td></tr>
+        <tr><th>From</th><td>wave 2 of the Warden approach</td></tr>
+        <tr><th>XP</th><td>9</td></tr>
+        <tr><th>Look</th><td>slate uniform, hi-vis vest, peaked cap, brass rounds</td></tr>
+      </table></div>
+    </div>
+    <div>
+      <h2>Notes</h2>
+      <div class="notes"><ul>
+        <li>It sits between the Grunt (fast bursts) and the Sniper (one slow shot). Its threat is rhythm: a steady drip, then a gap.</li>
+        <li>Leading punishes running in straight lines and rewards sudden turns. Circling it works.</li>
+        <li>Two or three guards with offset reloads make the "gap" harder to find, which suits the Patrol squad.</li>
+        <li>The lane is drawn on the floor, under bullets, so it never hides them.</li>
+        <li><b>To decide:</b> a Patrol squad (three guards and two Rioters); whether a perfect parry returns the round; two guards behind the Riot Line on the last wave.</li>
+        <li>Numbers are a starting point for tuning. The code is not written yet.</li>
+      </ul></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var TAU=Math.PI*2, W=720, H=400;
+var WIND=.25, INTERVAL=.8, MAG=7, RELOAD=2.2, BSPEED=340, RANGE=300, GSPEED=70, TURN=2.8, PR=11;
+var look='B', aimMode='lead', paused=false, auto=true, showLane=true, drag=false;
+
+function lerp(a,b,t){return a+(b-a)*t}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function ease(t){t=clamp(t,0,1);return t*t*(3-2*t)}
+function angDiff(a,b){var d=(b-a)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;return d}
+function kf(k,pts){ // piecewise-linear keyframes [[k,x,y],...]
+  if(k<=pts[0][0])return[pts[0][1],pts[0][2]];
+  for(var i=1;i<pts.length;i++){if(k<=pts[i][0]){var a=pts[i-1],b=pts[i],u=(k-a[0])/(b[0]-a[0]);u=ease(u);return[lerp(a[1],b[1],u),lerp(a[2],b[2],u)]}}
+  var l=pts[pts.length-1];return[l[1],l[2]];
+}
+
+/* ---------- floor ---------- */
+function floor(c,w,h){
+  var fl=c.createRadialGradient(w/2,h/2,20,w/2,h/2,Math.max(w,h)*.75);
+  fl.addColorStop(0,'#1c2529');fl.addColorStop(1,'#090d0f');
+  c.fillStyle=fl;c.fillRect(0,0,w,h);
+  c.strokeStyle='rgba(255,255,255,.035)';c.lineWidth=1;
+  for(var x=0;x<=w;x+=40){c.beginPath();c.moveTo(x+.5,0);c.lineTo(x+.5,h);c.stroke()}
+  for(var y=0;y<=h;y+=40){c.beginPath();c.moveTo(0,y+.5);c.lineTo(w,y+.5);c.stroke()}
+}
+
+/* ---------- the guard ---------- */
+var GUN_READY=[16,0];
+function drawGuard(c,x,y,f,s){
+  // s: recoil 0..1, aim 0..1 (pistol raised), reload -1 or 0..1, t seconds
+  var rl=s.reload>=0, rk=rl?s.reload:0;
+  c.save();c.translate(x,y);
+  c.beginPath();c.ellipse(3,5,20,18,0,0,TAU);c.fillStyle='rgba(0,0,0,.4)';c.fill();
+  c.rotate(f);
+  // belt pouch and radio cable trailing behind
+  c.fillStyle='#14232b';c.beginPath();c.moveTo(-10,-11);c.quadraticCurveTo(-20,-10,-22,-4);c.lineTo(-22,4);c.quadraticCurveTo(-20,10,-10,11);c.closePath();c.fill();
+  c.lineWidth=1.5;c.strokeStyle='#0a141a';c.stroke();
+  c.fillStyle='#223641';c.fillRect(-20,-6,6,5);c.fillRect(-20,2,6,5);
+  // body
+  var bg=c.createRadialGradient(-4,-4,2,0,0,16);bg.addColorStop(0,'#6f9cb2');bg.addColorStop(1,'#2a4856');
+  c.beginPath();c.arc(0,0,15,0,TAU);c.fillStyle=bg;c.fill();
+  c.save();c.clip();
+  // hi-vis vest bands across the chest
+  var vg=c.createLinearGradient(0,-15,0,15);vg.addColorStop(0,'#c9d33a');vg.addColorStop(.5,'#eef55c');vg.addColorStop(1,'#c9d33a');
+  c.fillStyle=vg;c.fillRect(-9,-16,3.6,32);c.fillRect(-1.5,-16,2.6,32);
+  c.fillStyle='rgba(255,255,255,.7)';c.fillRect(-7.9,-16,1,32);c.fillRect(-.9,-16,.8,32);
+  c.restore();
+  c.beginPath();c.arc(0,0,15,0,TAU);c.lineWidth=2.5;c.strokeStyle='#0f2029';c.stroke();
+  // shoulder radio with a blinking light
+  c.fillStyle='#10181d';c.fillRect(-3,-19,8,5);c.lineWidth=1;c.strokeStyle='#4d6370';c.strokeRect(-3,-19,8,5);
+  c.beginPath();c.arc(3,-16.5,1.2,0,TAU);c.fillStyle=Math.floor(s.t*1.5)%2?'#5dff9a':'#1a5b37';c.fill();
+
+  // arms and pistol
+  var gx,gy,gr,lh,mag=null,slideBack=s.recoil*4.2;
+  if(!rl){
+    var raise=lerp(0,1,s.aim);
+    gx=lerp(15,20,raise)-s.recoil*3.5;gy=0;gr=0;
+    lh=[gx-1,-1.8];
+  }else{
+    var w=ease(Math.min(rk/.14,1))*(1-ease((rk-.9)/.1));
+    gx=lerp(15,11,w);gy=lerp(0,9,w);gr=lerp(0,.5,w);
+    lh=kf(rk,[[0,15,-1.8],[.14,12,6],[.32,12,6],[.5,-3,-11],[.74,11,6],[.88,11,6],[1,15,-1.8]]);
+    if(rk>.5&&rk<.76)mag=lh;
+    slideBack=rk>.9?Math.sin((rk-.9)/.1*Math.PI)*5:0;
+  }
+  var armCol='#2b4a59',armEdge='#0f2029';
+  function arm(x0,y0,x1,y1){
+    c.lineCap='round';c.lineWidth=8;c.strokeStyle=armEdge;c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();
+    c.lineWidth=5.5;c.strokeStyle=armCol;c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();c.lineCap='butt';
+  }
+  var rh=[gx+1.5,gy+2];
+  arm(0,12,rh[0],rh[1]);arm(0,-12,lh[0],lh[1]);
+  // pistol: frame, slide that kicks back, barrel, front sight
+  c.save();c.translate(gx,gy);c.rotate(gr);
+  c.fillStyle='#262c31';c.fillRect(-2,-2.6,16,5.2);
+  var sg=c.createLinearGradient(0,-2.6,0,2.6);sg.addColorStop(0,'#eef2f5');sg.addColorStop(.5,'#b4bfc7');sg.addColorStop(1,'#7b8892');
+  c.fillStyle=sg;c.fillRect(-1-slideBack,-2.4,13,4.8);
+  c.lineWidth=1;c.strokeStyle='#3c474f';c.strokeRect(-1-slideBack,-2.4,13,4.8);
+  c.fillStyle='#394249';c.fillRect(12,-1.1,3.2,2.2);
+  c.strokeStyle='rgba(40,52,60,.6)';c.lineWidth=.8;for(var i=0;i<3;i++){c.beginPath();c.moveTo(1.5-slideBack+i*1.6,-2.2);c.lineTo(1.5-slideBack+i*1.6,2.2);c.stroke()}
+  if(!rl&&s.aim>.5){c.beginPath();c.arc(11.4,0,1,0,TAU);c.fillStyle='#ffb02e';c.fill()}
+  if(s.recoil>.55){ // muzzle flash
+    var fk=(s.recoil-.55)/.45;
+    c.shadowColor='#ffc866';c.shadowBlur=22;c.fillStyle='rgba(255,244,200,'+fk+')';
+    c.beginPath();c.moveTo(15,0);c.lineTo(22,-4.5*fk-1);c.lineTo(31*fk+8,0);c.lineTo(22,4.5*fk+1);c.closePath();c.fill();
+    c.shadowBlur=0;c.beginPath();c.arc(15,0,3.5*fk,0,TAU);c.fillStyle='rgba(255,255,255,'+fk+')';c.fill();
+  }
+  c.restore();
+  // magazine in the off hand while reloading
+  if(mag){c.fillStyle='#8c969e';c.strokeStyle='#2c363c';c.lineWidth=1;c.fillRect(mag[0]-2.2,mag[1]-4,4.4,8);c.strokeRect(mag[0]-2.2,mag[1]-4,4.4,8);c.fillStyle='#d2a84c';c.fillRect(mag[0]-1.4,mag[1]-4.6,2.8,1.8)}
+  // dropped magazine
+  if(rl&&rk>.15&&rk<.42){
+    var df=(rk-.15)/.27;c.save();c.translate(gx+1,gy+3+df*17);c.rotate(df*1.6);c.globalAlpha=1-df*.8;
+    c.fillStyle='#8c969e';c.fillRect(-2.2,-4,4.4,8);c.strokeStyle='#2c363c';c.lineWidth=1;c.strokeRect(-2.2,-4,4.4,8);c.restore();
+  }
+  // gloves
+  c.fillStyle='#161f25';c.strokeStyle='#050a0d';c.lineWidth=1;
+  c.beginPath();c.arc(rh[0],rh[1],3.3,0,TAU);c.fill();c.stroke();
+  c.beginPath();c.arc(lh[0],lh[1],3.3,0,TAU);c.fill();c.stroke();
+  // epaulettes
+  for(var sg2=-1;sg2<=1;sg2+=2){
+    var px=0,py=13*sg2;
+    var pg=c.createRadialGradient(px-2,py-2,1,px,py,8);pg.addColorStop(0,'#5b7e91');pg.addColorStop(1,'#1d3340');
+    c.beginPath();c.arc(px,py,6.6,0,TAU);c.fillStyle=pg;c.fill();c.lineWidth=1.5;c.strokeStyle='#0a161d';c.stroke();
+    c.beginPath();c.arc(px+1,py,1.7,0,TAU);c.fillStyle='#d2a84c';c.fill();
+  }
+  // peaked cap: crown, band, badge, glossy brim
+  var hg=c.createRadialGradient(-3,-3,1,0,0,11);hg.addColorStop(0,'#46627a');hg.addColorStop(1,'#14212c');
+  c.beginPath();c.arc(0,0,9.6,0,TAU);c.fillStyle=hg;c.fill();c.lineWidth=1.5;c.strokeStyle='#070e13';c.stroke();
+  c.beginPath();c.arc(0,0,6.6,0,TAU);c.lineWidth=1.3;c.strokeStyle='rgba(180,205,220,.35)';c.stroke();
+  c.beginPath();c.moveTo(7,-6.8);c.quadraticCurveTo(15,-5.4,16.5,0);c.quadraticCurveTo(15,5.4,7,6.8);c.closePath();
+  var bgd=c.createLinearGradient(7,0,16,0);bgd.addColorStop(0,'#1a2833');bgd.addColorStop(1,'#05090c');
+  c.fillStyle=bgd;c.fill();c.lineWidth=1;c.strokeStyle='#02060a';c.stroke();
+  c.beginPath();c.moveTo(9,-4.2);c.quadraticCurveTo(14,-3.4,15,-1);c.lineWidth=1.2;c.strokeStyle='rgba(255,255,255,.35)';c.stroke();
+  c.beginPath();c.arc(.5,0,2.4,0,TAU);c.fillStyle='#e6c25e';c.fill();c.lineWidth=.8;c.strokeStyle='#7a5d12';c.stroke();
+  if(s.hurt>0){c.beginPath();c.arc(0,0,15,0,TAU);c.fillStyle='rgba(255,255,255,'+(s.hurt*5)+')';c.fill()}
+  c.restore();
+}
+function pips(c,x,y,n,flash){
+  var w=8,tot=MAG*w+10,x0=x-tot/2;
+  c.fillStyle='rgba(0,0,0,.5)';c.beginPath();
+  if(c.roundRect)c.roundRect(x0,y-8,tot,16,5);else c.rect(x0,y-8,tot,16);c.fill();
+  for(var i=0;i<MAG;i++){
+    var px=x0+9+i*w,on=i<n;
+    c.beginPath();c.moveTo(px-2,y+4);c.lineTo(px-2,y-2);c.quadraticCurveTo(px,y-6.5,px+2,y-2);c.lineTo(px+2,y+4);c.closePath();
+    if(on){c.fillStyle=(flash>0&&i===n-1)?'#fff':'#e8b950';c.fill();c.fillStyle='#b8782a';c.fillRect(px-2,y+1.5,4,2.5)}
+    else{c.strokeStyle='rgba(255,255,255,.22)';c.lineWidth=1;c.stroke()}
+  }
+}
+
+/* ---------- bullets ---------- */
+function bullet(c,lk,x,y,a){
+  c.save();c.translate(x,y);c.rotate(a);c.lineCap='round';
+  if(lk==='A'){
+    var g=c.createLinearGradient(-28,0,0,0);g.addColorStop(0,'rgba(255,200,110,0)');g.addColorStop(1,'rgba(255,200,110,.5)');
+    c.fillStyle=g;c.fillRect(-28,-1.6,28,3.2);
+    c.shadowColor='#ffc866';c.shadowBlur=12;
+    c.fillStyle='#ffd27a';c.beginPath();c.moveTo(-5,-2.8);c.lineTo(3,-2.8);c.quadraticCurveTo(8.5,0,3,2.8);c.lineTo(-5,2.8);c.closePath();c.fill();
+    c.shadowBlur=0;c.fillStyle='#b8782a';c.fillRect(-5,-2.8,2.4,5.6);
+  }else if(lk==='B'){
+    var g2=c.createLinearGradient(-48,0,0,0);g2.addColorStop(0,'rgba(210,235,255,0)');g2.addColorStop(1,'rgba(240,248,255,.95)');
+    c.fillStyle=g2;c.fillRect(-48,-1.2,48,2.4);
+    c.shadowColor='#bcdcff';c.shadowBlur=14;c.fillStyle='#fff';c.beginPath();c.ellipse(0,0,6,2.2,0,0,TAU);c.fill();
+  }else{
+    var g3=c.createLinearGradient(-32,0,0,0);g3.addColorStop(0,'rgba(127,178,255,0)');g3.addColorStop(1,'rgba(127,178,255,.6)');
+    c.fillStyle=g3;c.fillRect(-32,-1.8,32,3.6);
+    c.shadowColor='#6aa6ff';c.shadowBlur=12;
+    c.fillStyle='#ffd27a';c.fillRect(-6,-2.8,7,5.6);
+    c.fillStyle='#7fb2ff';c.beginPath();c.moveTo(1,-2.8);c.quadraticCurveTo(8.5,0,1,2.8);c.closePath();c.fill();
+  }
+  c.restore();
+}
+function playerDot(c,x,y,flash){
+  c.beginPath();c.arc(x,y,PR+5,0,TAU);c.strokeStyle='rgba(89,199,255,.25)';c.lineWidth=2;c.stroke();
+  c.beginPath();c.arc(x,y,PR,0,TAU);
+  c.shadowColor=flash>0?'#ff4a3a':'#59c7ff';c.shadowBlur=14;
+  c.fillStyle=flash>0?'#ff5a48':'#59c7ff';c.fill();c.shadowBlur=0;
+  c.lineWidth=2;c.strokeStyle='rgba(255,255,255,.85)';c.stroke();
+}
+
+/* ---------- one view of the world, used by the stage and the phase strip ---------- */
+function drawView(c,w,h,v){
+  floor(c,w,h);
+  var g=v.g,u=[Math.cos(g.f),Math.sin(g.f)],m=[g.x+u[0]*30,g.y+u[1]*30];
+  // lane and reticle on the floor
+  if(v.lane){
+    var L=v.lane,len=Math.hypot(L.x-m[0],L.y-m[1])+24,k=v.wind>=0?v.wind:0,locked=v.wind>=0;
+    c.save();c.translate(m[0],m[1]);c.rotate(Math.atan2(L.y-m[1],L.x-m[0]));
+    c.fillStyle=locked?'rgba(255,176,46,.14)':'rgba(255,176,46,.06)';c.fillRect(0,-3.5,len,7);
+    if(locked){
+      var fg=c.createLinearGradient(0,0,len,0);fg.addColorStop(0,'rgba(255,60,40,.1)');fg.addColorStop(1,'rgba(255,70,50,.7)');
+      c.fillStyle=fg;c.fillRect(0,-3.5,len*ease(k),7);
+      c.shadowColor='rgba(255,110,80,.9)';c.shadowBlur=10;c.strokeStyle='rgba(255,110,80,.95)';c.lineWidth=1.8;c.setLineDash([]);
+    }else{c.strokeStyle='rgba(255,176,46,.5)';c.lineWidth=1.2;c.setLineDash([6,5])}
+    c.strokeRect(0,-3.5,len,7);c.shadowBlur=0;c.setLineDash([]);c.restore();
+    var rr=locked?lerp(26,11,ease(k)):16,col=locked?'rgba(255,110,80,'+(.5+.45*k)+')':'rgba(255,176,46,.5)';
+    c.strokeStyle=col;c.lineWidth=locked?2.2:1.3;c.beginPath();c.arc(L.x,L.y,rr,0,TAU);c.stroke();
+    for(var i=0;i<4;i++){var a=i*Math.PI/2+Math.PI/4;c.beginPath();c.moveTo(L.x+Math.cos(a)*(rr-3),L.y+Math.sin(a)*(rr-3));c.lineTo(L.x+Math.cos(a)*(rr+4),L.y+Math.sin(a)*(rr+4));c.stroke()}
+  }
+  // reload ring on the floor
+  if(v.gs.reload>=0){
+    var rk=v.gs.reload;
+    c.beginPath();c.arc(g.x,g.y,38,0,TAU);c.setLineDash([3,6]);c.strokeStyle='rgba(233,226,200,.3)';c.lineWidth=1.5;c.stroke();c.setLineDash([]);
+    c.beginPath();c.arc(g.x,g.y,38,-Math.PI/2,-Math.PI/2+TAU*rk);c.strokeStyle='rgba(233,226,200,.9)';c.lineWidth=3;c.shadowColor='rgba(233,226,200,.7)';c.shadowBlur=10;c.lineCap='round';c.stroke();c.shadowBlur=0;c.lineCap='butt';
+    c.fillStyle='rgba(233,226,200,'+(.04+.06*(1-rk))+')';c.beginPath();c.arc(g.x,g.y,38,0,TAU);c.fill();
+  }
+  for(var i2=0;i2<(v.shots||[]).length;i2++){var s=v.shots[i2];bullet(c,v.look,s.x,s.y,Math.atan2(s.vy,s.vx))}
+  if(v.p)playerDot(c,v.p.x,v.p.y,v.hit);
+  // casings
+  for(var j=0;j<(v.casings||[]).length;j++){var cs=v.casings[j];
+    c.save();c.translate(cs.x,cs.y);c.rotate(cs.r);c.globalAlpha=clamp(1-cs.age/.7,0,1);
+    c.fillStyle='#e6c25e';c.fillRect(-3,-1.3,6,2.6);c.fillStyle='#8f6a1c';c.fillRect(-3,-1.3,1.6,2.6);c.restore()}
+  drawGuard(c,g.x,g.y,g.f,v.gs);
+  pips(c,g.x,g.y-34,v.mag,v.flash);
+  c.font='500 10px "IBM Plex Mono",monospace';c.textAlign='center';
+  if(v.gs.reload>=0){c.fillStyle='rgba(233,226,200,.85)';c.fillText('RELOADING',g.x,g.y+54)}
+  else if(v.label){c.fillStyle='rgba(255,255,255,.5)';c.fillText('SECURITY GUARD',g.x,g.y+34)}
+  for(var q=0;q<(v.fx||[]).length;q++){var f=v.fx[q],kk=f.age/.5;
+    c.beginPath();c.arc(f.x,f.y,12+kk*30,0,TAU);c.strokeStyle='rgba(255,255,255,'+(1-kk)+')';c.lineWidth=3;c.stroke();
+    c.beginPath();c.arc(f.x,f.y,10*(1-kk),0,TAU);c.fillStyle='rgba(255,210,122,'+(1-kk)+')';c.fill()}
+}
+
+/* ---------- live simulation ---------- */
+var S={g:{x:150,y:200,f:0},p:{x:470,y:200},pv:{x:0,y:0},pp:{x:470,y:200},tp:0,state:'idle',sk:0,cd:.8,mag:MAG,recoil:0,flash:0,hit:0,
+  lock:null,shots:[],casings:[],fx:[],nShots:0,nHits:0,t:0,strafe:1,sw:0};
+function reset(){S.state='idle';S.sk=0;S.cd=.8;S.mag=MAG;S.recoil=0;S.shots=[];S.casings=[];S.fx=[];S.lock=null;S.nShots=0;S.nHits=0}
+function leadPoint(g,p,v,sp,wind){
+  var m=[g.x+Math.cos(g.f)*30,g.y+Math.sin(g.f)*30];
+  var px=p.x+v.x*wind,py=p.y+v.y*wind;
+  if(aimMode==='direct')return {x:p.x,y:p.y};
+  var dx=px-m[0],dy=py-m[1],a=v.x*v.x+v.y*v.y-sp*sp,b=2*(dx*v.x+dy*v.y),cc=dx*dx+dy*dy,t=0;
+  if(Math.abs(a)<1e-6)t=-cc/b;
+  else{var d=b*b-4*a*cc;if(d>=0){var r1=(-b-Math.sqrt(d))/(2*a),r2=(-b+Math.sqrt(d))/(2*a);t=Math.min(r1>0?r1:1e9,r2>0?r2:1e9)}}
+  if(!(t>0)||t>3)t=Math.hypot(dx,dy)/sp;
+  return {x:clamp(px+v.x*t,10,W-10),y:clamp(py+v.y*t,10,H-10)};
+}
+function step(dt){
+  if(!(dt>0.0001))return;
+  S.t+=dt;var g=S.g,p=S.p;
+  // the player
+  if(auto&&!drag){S.tp+=dt;p.x=470+170*Math.cos(S.tp*.7);p.y=200+125*Math.sin(S.tp*1.1)}
+  var rx=(p.x-S.pp.x)/dt,ry=(p.y-S.pp.y)/dt;S.pv.x=lerp(S.pv.x,rx,.3);S.pv.y=lerp(S.pv.y,ry,.3);S.pp.x=p.x;S.pp.y=p.y;
+  S.recoil=Math.max(0,S.recoil-dt*7);S.flash=Math.max(0,S.flash-dt);S.hit=Math.max(0,S.hit-dt*3);
+  // the guard: holds its distance, turns toward you, stands still to lock on and to reload
+  var toP=Math.atan2(p.y-g.y,p.x-g.x),dist=Math.hypot(p.x-g.x,p.y-g.y);
+  if(S.state==='idle'){
+    var da=angDiff(g.f,toP);g.f+=clamp(da,-TURN*dt,TURN*dt);
+    var mx=0,my=0;
+    if(dist>RANGE+40){mx=Math.cos(toP);my=Math.sin(toP)}
+    else if(dist<RANGE-80){mx=-Math.cos(toP);my=-Math.sin(toP)}
+    else{S.sw+=dt;if(S.sw>4){S.sw=0;S.strafe*=-1}mx=-Math.sin(toP)*S.strafe*.7;my=Math.cos(toP)*S.strafe*.7}
+    g.x=clamp(g.x+mx*GSPEED*dt,36,W-36);g.y=clamp(g.y+my*GSPEED*dt,40,H-36);
+    S.cd-=dt;if(S.cd<=0&&S.mag>0){S.state='wind';S.sk=0;S.lock=leadPoint(g,p,S.pv,BSPEED,WIND);g.f=Math.atan2(S.lock.y-g.y,S.lock.x-g.x)}
+  }else if(S.state==='wind'){
+    S.sk+=dt;
+    if(S.sk>=WIND){
+      var ang=Math.atan2(S.lock.y-g.y,S.lock.x-g.x),ux=Math.cos(ang),uy=Math.sin(ang);
+      S.shots.push({x:g.x+ux*45,y:g.y+uy*45,vx:ux*BSPEED,vy:uy*BSPEED});
+      S.casings.push({x:g.x+ux*12-uy*14,y:g.y+uy*12+ux*14,vx:-uy*70+ux*10,vy:ux*70+uy*10,r:Math.random()*TAU,vr:12,age:0});
+      S.mag--;S.nShots++;S.recoil=1;S.flash=.15;S.lock=null;S.cd=INTERVAL-WIND;S.sk=0;
+      S.state=S.mag<=0?'reload':'idle';
+    }
+  }else{
+    S.sk+=dt;if(S.sk>=RELOAD){S.mag=MAG;S.state='idle';S.cd=.5;S.sk=0}
+  }
+  for(var i=0;i<S.shots.length;i++){var s=S.shots[i];s.x+=s.vx*dt;s.y+=s.vy*dt;
+    if(Math.hypot(s.x-p.x,s.y-p.y)<PR+4){s.dead=true;S.nHits++;S.hit=1;S.fx.push({x:p.x,y:p.y,age:0})}
+    else if(s.x<-40||s.x>W+40||s.y<-40||s.y>H+40)s.dead=true}
+  S.shots=S.shots.filter(function(s){return!s.dead});
+  for(var j=0;j<S.casings.length;j++){var cs=S.casings[j];cs.age+=dt;cs.x+=cs.vx*dt;cs.y+=cs.vy*dt;cs.vx*=.94;cs.vy*=.94;cs.r+=cs.vr*dt;cs.vr*=.95}
+  S.casings=S.casings.filter(function(c2){return c2.age<.7});
+  for(var q=0;q<S.fx.length;q++)S.fx[q].age+=dt;S.fx=S.fx.filter(function(f){return f.age<.5});
+}
+var cv=document.getElementById('stage'),ctx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1);
+cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+function render(){
+  var g=S.g,wind=S.state==='wind'?S.sk/WIND:-1,lane=null;
+  if(S.state==='wind')lane=S.lock;
+  else if(showLane&&S.state==='idle')lane=leadPoint(g,S.p,S.pv,BSPEED,WIND);
+  drawView(ctx,W,H,{g:g,gs:{recoil:S.recoil,aim:S.state==='idle'?.35:S.state==='wind'?1:0,reload:S.state==='reload'?S.sk/RELOAD:-1,t:S.t},
+    p:S.p,lane:showLane||S.state==='wind'?lane:null,wind:wind,mag:S.mag,flash:S.flash,shots:S.shots,casings:S.casings,fx:S.fx,hit:S.hit,look:look,label:true});
+}
+
+/* ---------- phase strip ---------- */
+function phase(id,o){
+  var cvs=document.getElementById(id),c=cvs.getContext('2d'),d=Math.min(2,window.devicePixelRatio||1);
+  cvs.width=240*d;cvs.height=170*d;c.setTransform(d,0,0,d,0,0);
+  var g={x:62,y:92,f:0},p={x:190,y:92};
+  var v={g:g,gs:Object.assign({recoil:0,aim:.4,reload:-1,t:1},o.gs||{}),p:p,lane:o.lane===undefined?null:o.lane,wind:o.wind===undefined?-1:o.wind,
+    mag:o.mag,flash:0,shots:o.shots||[],casings:o.casings||[],fx:[],hit:0,look:look,label:false};
+  drawView(c,240,170,v);
+}
+function drawPhases(){
+  phase('p0',{mag:7,lane:{x:190,y:92},gs:{aim:.35}});
+  phase('p1',{mag:7,lane:{x:190,y:92},wind:.62,gs:{aim:1}});
+  phase('p2',{mag:6,gs:{recoil:.9,aim:1},shots:[{x:122,y:92,vx:340,vy:0}],casings:[{x:68,y:106,r:.8,age:.1}],lane:null});
+  phase('p3',{mag:0,gs:{reload:.55,aim:0}});
+}
+
+/* ---------- bullet look cards ---------- */
+var LOOKS={A:['A · Brass round','A small warm capsule with a faint trail. Reads as a real bullet and sits apart from the Warden\'s coloured orbs.'],
+  B:['B · White tracer','A thin hot-white streak with a long tail. The most visible on dark floors and shows the lead clearly.'],
+  C:['C · Blue tip','A brass round with a blue tip that matches the uniform, so you can tell whose it is at a glance.']};
+var minis=[];
+Object.keys(LOOKS).forEach(function(k){
+  var d=document.createElement('div');d.className='look';
+  var cvm=document.createElement('canvas');cvm.width=360;cvm.height=150;
+  var p=document.createElement('p');p.innerHTML='<b>'+LOOKS[k][0]+'.</b> '+LOOKS[k][1];
+  d.appendChild(cvm);d.appendChild(p);document.getElementById('looks').appendChild(d);
+  var m={k:k,c:cvm.getContext('2d'),vis:true};minis.push(m);
+  new IntersectionObserver(function(es){m.vis=es[0].isIntersecting}).observe(cvm);
+});
+function drawMinis(t){
+  minis.forEach(function(m){
+    if(!m.vis)return;var c=m.c,ph=(t%1.5)/1.5,fireT=ph*1.5;
+    floor(c,360,150);
+    for(var i=0;i<14;i++){var a=t*.6+i*TAU/14,x=205+Math.cos(a)*(40+i*6),y=75+Math.sin(a)*(22+i*3);
+      c.shadowColor='#5fc8ff';c.shadowBlur=8;c.beginPath();c.arc(x,y,3.2,0,TAU);c.fillStyle=['#ff5d5d','#ffb347','#7bdc65','#5fc8ff','#c78bff'][i%5];c.fill();c.shadowBlur=0}
+    var bx=lerp(52,330,ph);
+    if(ph<.95)bullet(c,m.k,bx,75,0);
+    drawGuard(c,40,75,0,{recoil:Math.max(0,1-fireT*7),aim:1,reload:-1,t:t});
+    playerDot(c,335,75,ph>.93?1:0);
+  });
+}
+
+/* ---------- controls ---------- */
+function setPressed(ids,on){ids.forEach(function(id){document.getElementById(id).setAttribute('aria-pressed',id===on)})}
+function $(i){return document.getElementById(i)}
+$('aimLead').onclick=function(){aimMode='lead';setPressed(['aimLead','aimDirect'],'aimLead');reset()};
+$('aimDirect').onclick=function(){aimMode='direct';setPressed(['aimLead','aimDirect'],'aimDirect');reset()};
+$('pause').onclick=function(){paused=!paused;this.setAttribute('aria-pressed',paused);this.textContent=paused?'Play':'Pause'};
+$('auto').onclick=function(){auto=!auto;this.setAttribute('aria-pressed',auto)};
+$('leadBtn').onclick=function(){showLane=!showLane;this.setAttribute('aria-pressed',showLane)};
+['A','B','C'].forEach(function(k){$('lk'+k).onclick=function(){look=k;setPressed(['lkA','lkB','lkC'],'lk'+k);drawPhases()}});
+function at(ev){var r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)/r.width*W,y:(ev.clientY-r.top)/r.height*H}}
+cv.addEventListener('pointerdown',function(ev){drag=true;cv.setPointerCapture(ev.pointerId);var q=at(ev);S.p.x=q.x;S.p.y=q.y});
+cv.addEventListener('pointermove',function(ev){if(drag){var q=at(ev);S.p.x=clamp(q.x,PR,W-PR);S.p.y=clamp(q.y,PR,H-PR)}});
+cv.addEventListener('pointerup',function(){drag=false});
+cv.addEventListener('pointercancel',function(){drag=false});
+
+var hud=$('hud'),last=performance.now(),acc=0,vis=true,sec=document.querySelector('.frame');
+new IntersectionObserver(function(es){vis=es[0].isIntersecting}).observe(sec);
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(vis){
+    if(!paused)step(dt);
+    render();
+    acc+=dt;if(acc>.2){acc=0;var rate=S.nShots?Math.round(100*S.nHits/S.nShots):0;
+      hud.innerHTML='<span class="state">'+(S.state==='wind'?'locking on':S.state==='reload'?'reloading':'ready')+'</span><span>ammo '+S.mag+'/'+MAG+'</span><span>hits '+S.nHits+'/'+S.nShots+(S.nShots?' ('+rate+'%)':'')+'</span>'}
+  }
+  drawMinis(now/1000);
+  requestAnimationFrame(frame);
+}
+function start(){drawPhases();for(var i=0;i<20;i++)step(1/30);S.nShots=0;S.nHits=0;requestAnimationFrame(frame)}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(start);else start();
+})();
+</script>

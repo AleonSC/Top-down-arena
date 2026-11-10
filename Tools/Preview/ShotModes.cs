@@ -388,6 +388,7 @@ static partial class Shot {
     {
       var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);
       lab.Wave = 20; lab.PlayerCount = 3; lab.Seats[1].Kit = Kit.Elementalist; lab.Seats[2].Kit = Kit.Knight; lab.Seats[2].Weapon = 1;
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
       typeof(ArenaApp).GetMethod("DrawLabSetup", f2).Invoke(app, null);
     }
     else if (mode == "labpanel")
@@ -429,7 +430,7 @@ static partial class Shot {
       set("edWave", 1);
       set("edGroup", int.Parse(Environment.GetEnvironmentVariable("EDGROUP") ?? "1"));
       set("edT", float.Parse(Environment.GetEnvironmentVariable("EDT") ?? "6.7"));
-      set("waveEdOpen", true);
+      typeof(ArenaApp).GetProperty("waveEdOpen", f2).SetValue(app, true, null);
       if (Environment.GetEnvironmentVariable("EDPROPS") != null) set("edPropsMode", true);
       if (Environment.GetEnvironmentVariable("EDLOAD") != null) set("edLoadOpen", true);
       var hv2 = Environment.GetEnvironmentVariable("MOUSE");

@@ -456,6 +456,8 @@ namespace Arena
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
+            if (e.Type == EnemyType.SecurityGuard && !spawning)
+                DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
                 DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)
             if (e.Elite)
@@ -469,6 +471,8 @@ namespace Arena
                 DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
             else if (e.Type == EnemyType.Swarmer)
                 DrawChomper(e, pos, r, col, t);
+            else if (e.Type == EnemyType.SecurityGuard)
+                DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else
@@ -883,6 +887,9 @@ namespace Arena
                     break;
                 case EnemyType.TaserGuard:
                     DrawTaserGuardDetails(e, pos, r, t);  // TaserLook.cs
+                    break;
+                case EnemyType.SecurityGuard:
+                    DrawSecurityPips(e, pos, r);  // the rounds left (SecurityLook.cs)
                     break;
                 case EnemyType.HiveEgg:
                     DrawEggDetails(e, pos, r, t);  // QueenLook.cs

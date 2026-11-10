@@ -824,7 +824,8 @@ namespace Arena
 
         string lockedTipText = "Coming soon";
         const string WildcardLockText = "Win a run as a Tank, a Healer and a DPS to unlock";
-        bool WildcardOpen => game.Profile == null || game.Profile.WildcardUnlocked;
+        const bool WildcardUnlockedForTesting = true;  // TODO: set false on release so the Profile.WildcardUnlocked requirement applies
+        bool WildcardOpen => WildcardUnlockedForTesting || game.Profile == null || game.Profile.WildcardUnlocked;
 
         Rect lockedTip;          // the locked slot under the mouse, if any (its tooltip is drawn last, on top)
         bool lockedTipOn;

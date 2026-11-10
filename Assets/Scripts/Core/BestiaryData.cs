@@ -67,6 +67,13 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.SecurityGuard, Name = "Security Guard", Group = "Shooters", Wave = 2,
+                Appears = "The Warden's approach (waves 2-4), alone or in a Patrol",
+                Lead = "Holds its distance, plants its feet and locks on for 0.25 s (a red lane on the floor), then fires one tracer round at where you're heading. It fires seven, one every 0.8 s, then reloads for 2.2 s: rush it then.",
+                Attacks = new[] { new BestiaryAttack { Name = "Tracer round", Pattern = "One aimed round that leads you, seven to a magazine", Shot = "Tracer", ShotColor = new Rgba(0.94f, 0.97f, 1f), Speed = "340", Damage = "7", Every = 0.8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.TaserGuard, Name = "Taser Guard", Group = "Shooters", Wave = 3,
                 Appears = "The Warden's approach (waves 3-4)",
                 Lead = "Keeps its distance, plants its feet and charges its taser for 0.7 s (a dashed aim line, the prongs crackling), then fires a white Fork Bolt that stuns you for 1 s. It doesn't lead you: strafe across the line, or parry the bolt.",

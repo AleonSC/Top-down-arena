@@ -110,6 +110,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies (Riot Shield, Gas Grenadier, Taser Guard: it charges `TaserWindUp` 0.7 s, then one Fork Bolt, `Defs.TaserBolt`, that stuns for `StunTime`; the Warden's searchlight turn and last stand send them, `SendTaserGuards`, instead of firing stun shots himself)
+- `SecurityGuard.cs` (Core), `Game/SecurityLook.cs`: the Warden's Security Guard: a leading single-shot pistol (tracer rounds, `Defs.TracerRound`), seven to a magazine then a 2.2 s reload; its ammo is `Enemy.Phase`; the look draws its lane, reload ring, body, casing, pips and the tracer (`Docs/Mockups/security-guard.html`)
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
   `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
   late-boss logic
@@ -267,6 +268,8 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
+- `UiScreens.cs`: the tool-screen stack (`UiScreen`, `OpenScreen`/`CloseScreen`, `HandleScreenEsc`, `DrawScreens`; `devMenuOpen`, `labSetupOpen`, `waveEdOpen` are properties over it): add a window by registering one screen (HANDOFF.md "Adding a screen or a menu row")
+- `UiLayout.cs`: `DkStack` (column / row / cell / grid layout) and `DkWindow` (the tool window shell)
 - `DevKit.cs`: the CRT look of the dev tools and the chat box: `DkPanel`, `DkSub`, `DkCard`, `DkTitle`, `DkKey`, `DkChoice`, `DkSwitch`, `DkField`, the one widget kit for the dev tools, chat, wave editor and most menus (the old `Ui.Panel/Button/Toggle/Choice/Field/Card/Fancy/HudPanel` are gone); also `DkBox`, `DkHud`, `DkTag`, `DkBar` (used by `DevMenu.cs`, `ReplayUi.cs`, `BalanceTestUi.cs`, `DpsMeterUi.cs`, `ChatBox.cs`)
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, F1 wave editor
 - `PracticeUi.cs`: the lobby's Practice tab (CRT look A of `Docs/Mockups/crt-practice-redesign.html`: wave rack, enemy grid, setup files); `TrainingUi.cs`: the Training tab (drill cartridges by group, detail, Load this drill, the training folder); `PracticeDownedUi.cs`: the Practice Range's DOWNED window with Respawn, Restart wave and Back to lobby
@@ -299,7 +302,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Camera lean (view shift, mouse/label offsets) | `CameraLean.cs`, `Px` in `WorldRenderer.cs`, `MouseArena` in `ArenaApp.cs` |
 | Scroll-wheel zoom | `CameraZoom.cs` (same hooks as the lean; screen overlays skip it in `DrawWorld`) |
 | HUD layout | `HudLayout.cs` (where everything goes), `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
-| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs`; move lobby boxes in `LobbyLayout.cs` |
+| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs` (pause / lobby rows: `PauseMenuRows`, `LobbyMenuRows`), `LobbyUi.cs`, `Ui.cs`; new tool window: `UiScreens.cs`, `UiLayout.cs`; move lobby boxes in `LobbyLayout.cs` |
 | Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Recent runs graphs | `RunTimeline.cs` (data, sampler, files), `RunGraphs.cs` (page), Tests `RecentRuns.cs` |

@@ -792,7 +792,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
             {
                 e.Disp = e.Disp.DistanceTo(e.Pos) > 600f ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
-                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder)  // (the Warder's charge look is timed the same way)
+                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || e.Type == EnemyType.SecurityGuard)  // (the Warder's and the Security Guard's charge look is timed the same way)
                 {
                     if (e.Phase != e.SeenPhase)
                     {

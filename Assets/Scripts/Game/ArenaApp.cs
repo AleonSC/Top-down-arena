@@ -280,7 +280,7 @@ namespace Arena
             // Solo, holding Tab pauses the match while the Run stats screen is up (RunStatsUi.cs); in multiplayer
             // it doesn't (the pause menu's Run stats button is for looking together).
             bool tabKey = session.Screen == AppScreen.Game && me != null && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
-            bool soloTab = tabKey && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !devMenuOpen && !labSetupOpen && !waveEdOpen
+            bool soloTab = tabKey && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !ModalScreenOpen
                 && (game.State == MatchState.Fighting || game.State == MatchState.Intermission);
             if (soloTab && !game.Paused)
             {
@@ -304,7 +304,7 @@ namespace Arena
             if (!devFrozen)
                 devFrozenAck = false;
             if (devPauseKey && Input.GetKeyDown(KeyCode.P) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game && me != null && !LabRunning
-                && !pauseMenuOpen && !devMenuOpen && !labSetupOpen && !waveEdOpen && !RecallActive && !tabPaused
+                && !pauseMenuOpen && !ModalScreenOpen && !RecallActive && !tabPaused
                 && (game.State == MatchState.Fighting || game.State == MatchState.Intermission))
             {
                 if (devFrozen)
@@ -318,7 +318,7 @@ namespace Arena
                     game.RequestPause(true);
                 }
             }
-            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || devMenuOpen || labSetupOpen || waveEdOpen;
+            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || ModalScreenOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // The Hangout's ability press is caught here, every frame, and used by its next draw (a key press read only inside OnGUI could be missed).
             if (session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab && (Keybinds.Down(KeyAction.Ability) || Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(1)))
@@ -464,10 +464,8 @@ namespace Arena
                      && Keybinds.Down(KeyAction.DiscardItem))
                 game.DevKillAll(game.MyId);
 
-            bool edWasOpen = waveEdOpen;  // Esc closes the wave editor first, and nothing else that press (WaveEditorUi.cs)
-            if (edWasOpen && EscPressed && GUIUtility.keyboardControl == 0)
-                waveEdOpen = false;
-            if (session.Screen != AppScreen.Game && EscPressed && !devMenuOpen && !edWasOpen)
+            bool escTaken = EscPressed && HandleScreenEsc();  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
+            if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
                 if (inspectId >= 0)
                     CloseInspect();
@@ -500,14 +498,10 @@ namespace Arena
                 else if (menuPlayOpen && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
                     PlayPickerBack();  // the saved-runs picker: back to the older runs' first page, or to the menu (SavesUi.cs)
             }
-            if (session.Screen == AppScreen.Game && !RecallActive && !edWasOpen)  // (nothing to open while everyone's beaming out: Recall.cs)
+            if (session.Screen == AppScreen.Game && !RecallActive && !escTaken)  // (nothing to open while everyone's beaming out: Recall.cs)
             {
-                if (EscPressed && labSetupOpen)
-                    labSetupOpen = false;
-                else if (EscPressed && runStatsOpen && !devMenuOpen)
+                if (EscPressed && runStatsOpen)
                     runStatsOpen = false;  // back to the pause menu (RunStatsUi.cs)
-                else if (EscPressed && devMenuOpen)
-                    devMenuOpen = false;
                 else if (EscPressed && pauseConfirmLobby && menuUp)
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
                 else if (EscPressed && (pauseSettings || pauseHowTo || pauseRecords) && menuUp)
@@ -710,7 +704,7 @@ namespace Arena
                 Ui.ForgetPress();
             TextEditBeginGui();
             Ui.BeginHoverFrame();
-            bool modal = labSetupOpen || devMenuOpen || textEditOpen || waveEdOpen;
+            bool modal = ModalScreenOpen || textEditOpen;
             if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
@@ -769,7 +763,7 @@ namespace Arena
                     DrawPickOutro();  // an upgrade just taken: the cards flying back into you (PickOutro.cs)
                     if (LabRunning)
                         DrawLabPanel();
-                    if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen && !waveEdOpen)
+                    if ((PauseMenuWanted || pauseAnim > 0f) && !ModalScreenOpen)
                     {
                         Ui.MenuFont = true;
                         if (runStatsOpen && PauseMenuWanted)
@@ -785,12 +779,7 @@ namespace Arena
                 DrawReplayBar();  // the timeline (ReplayUi.cs)
             if (!textEditOpen || Event.current.type == EventType.Repaint)
             {
-                if (waveEdOpen)
-                    DrawWaveEditor();  // WaveEditorUi.cs
-                else if (labSetupOpen)
-                    DrawLabSetup();
-                else if (devMenuOpen)
-                    DrawDevMenu();
+                DrawScreens();  // the top tool screen: F1 menu, wave editor or Boss Lab setup (UiScreens.cs)
             }
             TextEditEndGui();
             DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)
