@@ -62,8 +62,9 @@ namespace Arena
                 var entry = new Rect(x, bottom - ChatEntryH + (1f - a) * 6f, ChatW, ChatEntryH);
                 float old = Ui.Alpha;
                 Ui.Alpha = old * a;
-                Ui.Panel(entry, true);
-                Ui.Label(new Rect(entry.x + 12f, entry.y, 24f, entry.height), "ALL", 9, Ui.Good, TextAnchor.MiddleLeft, true);
+                DkSub(entry, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.95f));
+                Ui.Fill(new Rect(entry.x, entry.y, 3f, entry.height), CrtUi.Ink);
+                Ui.Label(new Rect(entry.x + 12f, entry.y, 24f, entry.height), "ALL", 9, CrtUi.Ink, TextAnchor.MiddleLeft, true);
                 if (chatOpen)
                 {
                     var f = new Rect(entry.x + 40f, entry.y + 4f, entry.width - 84f, entry.height - 8f);
@@ -97,7 +98,7 @@ namespace Arena
                         if (chatText.Length == 0)
                             Ui.Label(f, "Say something...", 12, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
                     }
-                    Ui.Label(new Rect(entry.xMax - 40f, entry.y, 32f, entry.height), (Session.ChatMaxLength - chatText.Length).ToString(), 9, Ui.Muted, TextAnchor.MiddleRight);
+                    Ui.Label(new Rect(entry.xMax - 40f, entry.y, 32f, entry.height), (Session.ChatMaxLength - chatText.Length).ToString(), 9, CrtStyle.Desc, TextAnchor.MiddleRight);
                 }
                 Ui.Alpha = old;
                 bottom = entry.y - 5f;
@@ -130,8 +131,8 @@ namespace Arena
             var r = new Rect(x + ChatW - w, bottom - h, w, h);
             float old = Ui.Alpha;
             Ui.Alpha = old * a;
-            Ui.HudPanel(r);
-            Ui.Pill(new Rect(r.x + 4f, r.y + 4f, 3f, r.height - 8f), edge);
+            DkSub(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.88f));
+            Ui.Fill(new Rect(r.x, r.y, 3f, r.height), edge);
             Ui.Label(new Rect(r.x + 12f, r.y + 2f, nameW, 18f), l.Name, size, edge, TextAnchor.MiddleLeft, true);
             if (two)
                 Ui.Label(new Rect(r.x + 12f, r.y + 19f, inner, 16f), l.Text, size, Color.white, TextAnchor.MiddleLeft);
