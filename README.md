@@ -1037,7 +1037,8 @@ be any key or mouse button), the weapon secondary (Left Alt), take and discard a
 HUD and mute toggles. For Fire and Parry, a "Left click / Right click" pair of buttons appears while you're picking
 (the page can't take a click as a key press, since the click is how you chose the row). Left and right click can't go on
 any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
-changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. The
+changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. Every action also has a **second key**
+(the "+ ADD" slot beside it): either key does the action; right click a second key to clear it. The
 arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
 (Esc, Tab, Enter, F1-F5) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
 while the upgrade picker is open, the numbers of its cards pick a card instead, and while the emote bar is open, the
