@@ -22,6 +22,14 @@ namespace Arena
         public string Shape => Expansion.ShapeName(W, H);
     }
 
+    /// A room modifier the team holds (Docs/RoomModifiers.md): spent once on a Combat room to make it a Shop or a Floor room.
+    public struct RoomToken
+    {
+        public RoomKind Kind;   // Shop or Floor
+        public PathId Floor;    // for a Floor token
+        public string Name => Kind == RoomKind.Shop ? "Shop kit" : Paths.Get(Floor).Name + " floor";
+    }
+
     /// Deterministic random numbers (a plain xorshift), so every game builds the same offers from the same seed.
     public sealed class DetRandom
     {
@@ -37,6 +45,7 @@ namespace Arena
     /// parent), rooms never overlap or touch except through their own door, and it stops growing at a size cap.
     public static class Expansion
     {
+        public const int MaxTokens = 6;          // room kits the team can hold
         public const int MaxRooms = 24;          // bought rooms (the hub is extra)
         public const int MaxWidth = 6400, MaxHeight = 4000;  // the whole map's bounding box
         public const int Step = 100;             // rooms slide along a wall in steps of this
@@ -54,6 +63,45 @@ namespace Arena
 
         /// The floors a Floor room can carry (paths whose ground and hazards read well as a room).
         public static readonly PathId[] Floors = { PathId.SwarmFields, PathId.SniperRidge, PathId.EliteGauntlet, PathId.BurningGrounds, PathId.Sanctuary, PathId.FrozenLake, PathId.BloodMoon };
+
+        /// A Floor token for this wave: a floor not on the map or in the tokens held yet when one is left (else any), seeded so every machine agrees.
+        public static RoomToken FloorToken(int seed, int wave, IList<ExpansionRoom> built, IList<RoomToken> held)
+        {
+            var free = new List<PathId>();
+            foreach (var f in Floors)
+            {
+                bool used = false;
+                foreach (var r in built)
+                    used |= r.Kind == RoomKind.Floor && r.Floor == f;
+                foreach (var t in held)
+                    used |= t.Kind == RoomKind.Floor && t.Floor == f;
+                if (!used)
+                    free.Add(f);
+            }
+            var pool = free.Count > 0 ? free.ToArray() : Floors;
+            return new RoomToken { Kind = RoomKind.Floor, Floor = pool[new DetRandom(seed * 31 + wave).Int(pool.Length)] };
+        }
+
+        /// Can this token turn this bought room (index into the list) into its kind? Combat rooms only: not a floating room, not one already changed.
+        public static bool CanRetype(IList<ExpansionRoom> built, int index, RoomToken token, out string why)
+        {
+            why = null;
+            if (index < 0 || index >= built.Count) { why = "No such room"; return false; }
+            if (token.Kind != RoomKind.Shop && token.Kind != RoomKind.Floor) { why = "Not a room kit"; return false; }
+            if (token.Kind == RoomKind.Floor && Array.IndexOf(Floors, token.Floor) < 0) { why = "Not a floor"; return false; }
+            var r = built[index];
+            if (r.Floating) { why = "Floating rooms keep their job"; return false; }
+            if (r.Kind != RoomKind.Combat) { why = "Already changed: one modifier per room"; return false; }
+            return true;
+        }
+
+        /// The room with the token applied (call CanRetype first).
+        public static ExpansionRoom Retype(ExpansionRoom room, RoomToken token)
+        {
+            room.Kind = token.Kind;
+            room.Floor = token.Kind == RoomKind.Floor ? token.Floor : PathId.None;
+            return room;
+        }
 
         public static string ShapeName(int w, int h)
         {

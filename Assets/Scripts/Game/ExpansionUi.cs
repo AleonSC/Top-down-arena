@@ -60,7 +60,7 @@ namespace Arena
             Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f, 0.6f + 0.4f * pulse));
             if (!mine)
                 CrtKit.Frame(chip, 1.5f, new Color(0.37f, 0.94f, 1f, 0.35f + 0.5f * pulse));
-            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS  ·  " + (n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS" + (game.RoomTokens.Count > 0 ? "  ·  " + game.RoomTokens.Count + " KIT" + (game.RoomTokens.Count == 1 ? "" : "S") : "") + "  ·  " + (n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), game.ExpandVotes.Count + " of " + game.Players.Count + " voted  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
             if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "BUILD / VOTE", null, 15, calm))
                 expOpen = true;
@@ -92,7 +92,8 @@ namespace Arena
 
         // --- The vote ----------------------------------------------------------------------------------------
 
-        bool expDrawing, expDragging, expOpen;  // expOpen: the round's window is open (otherwise just its chip shows)
+        bool expDrawing, expDragging, expOpen, expModify;  // expModify: spending a room kit
+        int expKit;  // the kit picked in the modify screen  // expOpen: the round's window is open (otherwise just its chip shows)
 
         /// The room window covers the screen (you opened it from the chip).
         bool ExpandWindowUp => game.ExpandOpen && expOpen;
@@ -103,7 +104,7 @@ namespace Arena
             var me = game.Me;
             if (!game.ExpandOpen || me == null)
             {
-                expDrawing = expDragging = expOpen = false;
+                expDrawing = expDragging = expOpen = expModify = false;
                 return;
             }
             Ui.Alpha = 1f;
@@ -141,6 +142,10 @@ namespace Arena
                 game.CastExpandVote(0);
             if (CrtUi.SoftKey(new Rect(W - 270f, 28f, 220f, 32f), "DECIDE LATER", null, 18, calm))
                 expOpen = false;
+            if (game.RoomTokens.Count > 0 && CrtUi.SoftKey(new Rect(50f, 28f, 260f, 32f), "ROOM KITS  ·  " + game.RoomTokens.Count, null, 18, calm))
+            {
+                expModify = true; expKit = 0;
+            }
             int waiting = 0;
             foreach (int id in game.Players.Keys)
                 if (!game.ExpandVotes.ContainsKey(id))
@@ -150,6 +155,80 @@ namespace Arena
                 : ownDrawn ? "Your room counts as your vote. Click a card to back another, or click yours to lock it in"
                 : props.Count > 0 ? "Vote for a room, or draw your own" : "Nothing to vote on yet";
             Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted && !ownDrawn && props.Count > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+        }
+
+        /// The room kit screen (Docs/RoomModifiers.md): pick a kit, then click a plain room on the map to turn it into a Shop or Floor room.
+        void DrawExpansionModify(float t, bool calm)
+        {
+            RoundBackdrop(PathDim);
+            var kits = game.RoomTokens;
+            if (kits.Count == 0)
+            {
+                expModify = false;
+                return;
+            }
+            expKit = Mathf.Clamp(expKit, 0, kits.Count - 1);
+            CrtUi.Title(new Rect(0, 22f, W, 56f), "ROOM KITS", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            Ui.Label(new Rect(0, 80f, W, 20f), "Pick a kit, then click a plain room  ·  one change per room, it can't be undone  ·  bosses give floors, won challenges give shops, the vendor sells floors", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            float kw = 190f, kgap = 10f, kx = W / 2f - (kits.Count * kw + (kits.Count - 1) * kgap) / 2f;
+            for (int i = 0; i < kits.Count; i++)
+            {
+                var kr = new Rect(kx + i * (kw + kgap), 106f, kw, 34f);
+                bool sel = i == expKit;
+                if (CrtUi.SoftKey(kr, kits[i].Name.ToUpperInvariant() + (sel ? "  ✓" : ""), null, 15, calm, lit: sel))
+                    expKit = i;
+            }
+            var kit = kits[expKit];
+            var map = new Rect(70f, 152f, W - 140f, 410f);
+            var wd = game.ExpansionWorld;
+            float pad = 300f;
+            V2 lo = wd.Min - new V2(pad, pad), hi = wd.Max + new V2(pad, pad);
+            float k = Mathf.Min(map.width / (hi.X - lo.X), map.height / (hi.Y - lo.Y));
+            float ox = map.center.x - (hi.X - lo.X) * k / 2f, oy = map.center.y - (hi.Y - lo.Y) * k / 2f;
+            System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
+            var ev = Event.current;
+            int hover = -1;
+            for (int i = 0; i < game.Expanded.Count; i++)
+            {
+                var r = game.Expanded[i];
+                V2 p0 = M(new V2(r.X, r.Y)), p1 = M(new V2(r.X1, r.Y1));
+                string why;
+                if (Expansion.CanRetype(game.Expanded, i, kit, out why) && new Rect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y).Contains(ev.mousePosition))
+                    hover = i;
+            }
+            if (ev.type == EventType.MouseDown && ev.button == 0 && hover >= 0)
+            {
+                game.ApplyRoomToken(expKit, hover);
+                ev.Use();
+            }
+            if (BeginUiGl())
+            {
+                RoomMapRect(map.x, map.y, map.width, map.height, new Rgba(0.01f, 0.03f, 0.08f, 0.7f));
+                for (int i = 0; i < wd.Areas.Length; i++)
+                {
+                    var a = wd.Areas[i];
+                    V2 p0 = M(a.Min), p1 = M(a.Max);
+                    var ink = a.Hub ? new Rgba(0.4f, 0.64f, 1f) : KindInk(a.Kind, a.Floor);
+                    bool can = i > 0 && i - 1 == hover;
+                    var pick = KindInk(kit.Kind, kit.Floor);
+                    float pulse = 0.6f + 0.4f * Mathf.Sin(t * 5f);
+                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, (can ? pick : ink).WithAlpha(can ? 0.35f * pulse : a.Hub ? 0.16f : 0.12f));
+                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, can ? 2.5f : 1f, (can ? pick : ink).WithAlpha(0.85f));
+                }
+                EndUiGl();
+            }
+            for (int i = 0; i < game.Expanded.Count; i++)
+            {
+                var r = game.Expanded[i];
+                if (r.Kind == RoomKind.Combat || r.Floating)
+                    continue;
+                V2 p0 = M(new V2(r.X, r.Y));
+                Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, ToColor(KindInk(r.Kind, r.Floor)), TextAnchor.UpperLeft, true);
+            }
+            string line = kit.Kind == RoomKind.Floor ? FloorBlurb(kit.Floor) : "A shop room: kills drop personal gold and the shop opens in the break after each boss.";
+            Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), hover >= 0 ? "Click to turn this room into: " + kit.Name + ".  " + line : line, 14, hover >= 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK", null, 20, calm))
+                expModify = false;
         }
 
         /// The drawing screen: the whole map, zoomed out; drag a box on the 100 px grid. It's checked live (Expansion.Custom) and goes to the vote on release.
