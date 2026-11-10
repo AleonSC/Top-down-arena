@@ -142,6 +142,27 @@ static partial class Program
         Run(s, dt, 0.5f, null, NoPicks);
         Check(g.State == MatchState.Intermission, "with everything dealt with, the wave clears");
 
+        // The dev tool: any upgrade for your build drops like a chest's item; one for another build, or from a guest, doesn't.
+        int okId = -1, badId = -1;
+        for (int i = 0; i < Upgrades.All.Length; i++)
+        {
+            bool av = Upgrades.Available(i, me.Role, me.RoleAbility, me.Taken, me.Weapon.Id);
+            if (av && okId < 0 && !Upgrades.All[i].Unoffered) okId = i;
+            if (!av && badId < 0 && !Upgrades.All[i].Unoffered) badId = i;
+        }
+        Check(okId >= 0 && badId >= 0 && !g.DevSpawnLoot(1, badId) && g.Loots.Count == 0, "the dev spawn refuses an upgrade your build can't be offered");
+        Check(!cg.DevSpawnLoot(2, okId), "only the host can spawn one");
+        Check(g.DevSpawnLoot(1, okId), "the dev spawn drops an upgrade for your build");
+        Run(s, dt, 0.3f);
+        var devLoot = g.Loots.Values.FirstOrDefault(l => l.Owner == 1 && l.Upgrade == okId);
+        Check(devLoot != null && devLoot.Pos.DistanceTo(me.Pos) > 40f && devLoot.Pos.DistanceTo(me.Pos) < 160f, "it lands a few steps in front of you, as a chest's item does");
+        int hadDev = me.Taken.Count;
+        me.Pos = devLoot.Pos;
+        Run(s, dt, 0.1f);
+        g.ResolveLoot(true);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(me.Taken.Count == hadDev + 1 && me.Taken.Last() == okId, "walking onto it and taking it gives you that upgrade");
+
         // Bosses get a clear arena.
         g.AddProp(PropKind.Crate, new V2(300f, 700f));
         g.Wave = 10;

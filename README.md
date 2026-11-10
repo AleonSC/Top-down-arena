@@ -1528,6 +1528,10 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   one. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
   (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). The **PARTY drawer** has **Everyone** buttons: level up, max mastery, full heal and reset stats for every player at once (god mode and full heal are also pinned on the bar). **Challenge
   rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
+- **PARTY > SPAWN AN UPGRADE… (host, in a match):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
+  cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
+  chest's item does: only they see it, walk onto it, then **G** takes it and **X** throws it away (the wave waits for it, like a chest's). Only
+  upgrades their build could be offered are clickable (greyed: another class, a missing ability or weapon). Marks the run as a dev run.
 - **PARTY > EDIT STATS… (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
