@@ -78,6 +78,71 @@ namespace Arena
         /// The faction of a boss, or null if it has none yet.
         public static FactionDef For(EnemyType boss) => Array.Find(All, f => f.Boss == boss);
 
+        /// The fading boss's share of the five waves of a cycle (Docs/Campaign.md), and the older pool's from wave 11 on.
+        public static readonly float[] FadeShare = { 0.35f, 0.25f, 0.15f, 0.05f, 0f };
+        public const float PoolShare = 0.10f;
+
+        /// One faction's slice of a campaign wave.
+        public struct Slice
+        {
+            public FactionDef Faction;
+            public float Share;
+            public bool Current;  // the faction of the boss this wave leads to
+            public float Pool;    // the part of Share that is the older pool (a comeback squad takes it over, Comeback)
+        }
+
+        /// The campaign's split of regular wave `n` between factions (Docs/Campaign.md): the last boss's faction fading
+        /// out, the older bosses' as a pool, the next boss's taking the rest. Only factions that are built appear, so
+        /// the shares may add up to less than 1 (the rest is the usual random mix). Depends on the wave alone.
+        public static List<Slice> Campaign(int n)
+        {
+            var list = new List<Slice>();
+            if (n < 1)
+                return list;
+            int cycle = (n - 1) / 5, p = (n - 1) % 5;
+            float fade = cycle >= 1 ? FadeShare[p] : 0f;
+            float pool = cycle >= 2 ? PoolShare : 0f;
+            Action<EnemyType, float, bool, float> add = (boss, share, cur, poolPart) =>
+            {
+                var f = For(boss);
+                if (f == null || share <= 0f)
+                    return;
+                int i = list.FindIndex(x => x.Faction == f);
+                if (i >= 0)
+                    list[i] = new Slice { Faction = f, Share = list[i].Share + share, Current = list[i].Current || cur, Pool = list[i].Pool + poolPart };
+                else
+                    list.Add(new Slice { Faction = f, Share = share, Current = cur, Pool = poolPart });
+            };
+            add(Game.BossForWave(5 * (cycle + 1)), 1f - fade - pool, true, 0f);
+            if (cycle >= 1)
+                add(Game.BossForWave(5 * cycle), fade, false, 0f);
+            var older = new List<EnemyType>();
+            for (int j = 1; j < cycle; j++)
+                if (For(Game.BossForWave(5 * j)) != null)
+                    older.Add(Game.BossForWave(5 * j));
+            foreach (var b in older)
+                add(b, pool / older.Count, false, pool / older.Count);
+            return list;
+        }
+
+        /// The comeback squad of wave `n` (Docs/Campaign.md), or null: one wave in every five from wave 11 (where the older
+        /// pool starts), never the last wave of a cycle (the approach stays clean). One squad from an earlier built
+        /// faction, picked from the wave number alone so every game agrees. It takes over the wave's older-pool slice.
+        public static SquadDef Comeback(int n, out FactionDef from)
+        {
+            from = null;
+            int cycle = (n - 1) / 5, p = (n - 1) % 5;
+            if (n < 11 || p != (cycle * 3 + 1) % 4)  // one wave in every five, never the last of the cycle, its step moving about
+                return null;
+            uint h = (uint)n * 2654435761u;
+            var pool = Campaign(n).FindAll(x => x.Pool > 0f);
+            pool.RemoveAll(x => x.Faction.Squads.Length == 0);
+            if (pool.Count == 0)
+                return null;
+            from = pool[(int)((h >> 12) % (uint)pool.Count)].Faction;
+            return from.Squads[(int)((h >> 16) % (uint)from.Squads.Length)];
+        }
+
         /// Is this type one of a faction's (for the Bestiary and the Practice Range)?
         public static FactionDef Of(EnemyType t) => Array.Find(All, f => Array.Exists(f.Members, m => m.Type == t));
     }
@@ -118,10 +183,15 @@ namespace Arena
                 return 0f;
             if (Hunt != null)
                 return 1f;  // a Boss Hunt's build-up waves are only its boss's own enemies (Hunts.cs)
+            if (CampaignOn)
+                return Approaches.Campaign(wave).Find(x => x.Current).Share;  // the next boss's slice (0 if it has no faction)
             if (share <= 0f)
                 return 0f;
             return D(DiffKnob.ApproachRamp) >= 0.5f ? share * RampSteps[step - 1] : share;
         }
+
+        /// Is the campaign buildup on (every wave themed, Approaches.Campaign)? Not in a hunt or the Practice Range.
+        public bool CampaignOn => Hunt == null && Practice == null && D(DiffKnob.Campaign) >= 0.5f;
 
         /// With the ramp on, each approach wave's share of the full share: from 40% up to all of it.
         static readonly float[] RampSteps = { 0.4f, 0.6f, 0.8f, 1f };
@@ -136,19 +206,47 @@ namespace Arena
         {
             approachSingles.Clear();
             approachSquads.Clear();
+            int of = OnPath && CurrentPath == PathId.EliteGauntlet ? count / 2 : count;  // Elite Gauntlet halves the whole wave
+            if (CampaignOn)
+            {
+                if (ApproachStepAt(n) == 0)
+                    return;
+                int step = ApproachStep(n);
+                FactionDef cbFrom;
+                var cb = Approaches.Comeback(n, out cbFrom);  // (a comeback squad takes the older pool's slice this wave)
+                foreach (var sl in Approaches.Campaign(n))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
+                {
+                    int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
+                    if (themed > 0)
+                        PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && (n - 1) % 5 == 4, ref count, themed);  // (older factions are in full; only the next boss's builds up)
+                }
+                if (cb != null)
+                {
+                    approachSquads.Add(cb);
+                    count -= Math.Min(count, cb.Members.Length);
+                }
+                return;
+            }
             float share = ApproachShare(n);
             if (share <= 0f)
                 return;
             var f = Approaches.For(ApproachBossAt(n));
-            int of = OnPath && CurrentPath == PathId.EliteGauntlet ? count / 2 : count;  // Elite Gauntlet halves the whole wave
-            int themed = Math.Min(count, (int)Math.Round(of * share));
-            if (themed <= 0)
+            int themed1 = Math.Min(count, (int)Math.Round(of * share));
+            if (themed1 <= 0)
                 return;
             int reach = Hunt != null ? Hunts.Step(n) : ApproachStep(n);  // (a hunt's nine waves reach through the faction as a run's four do)
+            PickFaction(f, reach, Hunt != null ? Hunts.FinaleWave(n) : (n - 1) % 5 == 4, ref count, themed1);
+        }
+
+        /// Takes `themed` enemies off `count` and picks them from a faction: squads where they fit, singles for the rest.
+        /// `reach` is how far into the faction's members and squads the wave goes (their From); the finale comes in when
+        /// asked for, whatever the share.
+        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed)
+        {
             var members = Array.FindAll(f.Members, m => m.From <= reach);
             var squads = Array.FindAll(f.Squads, s => s.From <= reach);
             int spent = 0;
-            if (f.Finale != null && (Hunt != null ? Hunts.FinaleWave(n) : (n - 1) % 5 == 4) && f.Finale.From <= reach)
+            if (withFinale && f.Finale != null && f.Finale.From <= reach)
             {
                 themed = Math.Max(themed, Math.Min(count, f.Finale.Members.Length));  // the set piece comes whatever the share
                 approachSquads.Add(f.Finale);
