@@ -69,6 +69,7 @@ static partial class Shot {
     var names = Environment.GetEnvironmentVariable("TWO") != null ? new[] { "Anthony", "Sam" } : new[] { "Anthony", "Sam", "Little Bee" };
     if (Environment.GetEnvironmentVariable("SANDREAS") != null) names[names.Length - 1] = "GTA:SA";  // the San Andreas disk easter egg
     if (Environment.GetEnvironmentVariable("DOOM") != null) names[1] = "Doom";  // the Doom disk easter egg
+    if (Environment.GetEnvironmentVariable("WIN95") != null) names[2] = "Windows 95";  // the Windows 95 disk easter egg
     if (Environment.GetEnvironmentVariable("MI") != null) names[0] = "Mission Impossible";  // the Mission: Impossible disk easter egg
     int[] ranks = { 14, 6, 3 };
     for (int i = 0; i < names.Length; i++) {

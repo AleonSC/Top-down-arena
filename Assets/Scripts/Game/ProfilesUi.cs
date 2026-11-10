@@ -322,6 +322,37 @@ namespace Arena
             Ui.Fill(new Rect(d.x + 10f * k, d.yMax - 22f * k, 10f * k, 10f * k), new Color(0.3f, 0.28f, 0.27f));
         }
 
+        /// The Windows 95 disk: a dark grey floppy with a white label, the four-colour flag and "Microsoft Windows 95 / Setup Disk 1".
+        void DrawWin95Disk(Rect d, int slot)
+        {
+            float k = d.width / 200f;
+            Color plastic = new Color(0.2f, 0.21f, 0.25f), ink = new Color(0.08f, 0.08f, 0.1f);
+            Ui.Pill(new Rect(d.x + 3f, d.y + 12f * k, d.width - 6f, d.height - 8f * k), new Color(0f, 0f, 0f, 0.4f));
+            float ch = 18f * k;
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y < ch ? d.width - ch + y : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), Color.Lerp(plastic, new Color(0.1f, 0.11f, 0.14f), y / d.height));
+            }
+            Ui.Fill(new Rect(d.x + 2f, d.y, d.width - ch - 2f, 2f), new Color(1f, 1f, 1f, 0.16f));
+            Ui.Fill(new Rect(d.x + 44f * k, d.y, 108f * k, 52f * k), new Color(0.74f, 0.75f, 0.78f));       // the shutter
+            Ui.Fill(new Rect(d.x + 116f * k, d.y, 36f * k, 52f * k), new Color(0.86f, 0.87f, 0.9f));
+            Ui.Fill(new Rect(d.x + 60f * k, d.y + 8f * k, 24f * k, 36f * k), new Color(0.06f, 0.06f, 0.08f));
+            var lb = new Rect(d.x + 14f * k, d.y + 64f * k, 172f * k, 114f * k);                              // the label
+            Ui.Fill(lb, new Color(0.97f, 0.97f, 0.95f));
+            Ui.Fill(new Rect(lb.x, lb.y, lb.width, 5f * k), new Color(0f, 0.5f, 0.5f));                        // a teal band, the desktop colour
+            float fx = lb.x + 12f * k, fy = lb.y + 16f * k, fs = 20f * k;                                     // the flag: four panes
+            Ui.Fill(new Rect(fx, fy, fs, fs), new Color(0.93f, 0.25f, 0.15f));
+            Ui.Fill(new Rect(fx + fs + 3f * k, fy - 2f * k, fs, fs), new Color(0.3f, 0.7f, 0.2f));
+            Ui.Fill(new Rect(fx, fy + fs + 3f * k, fs, fs), new Color(0.1f, 0.45f, 0.9f));
+            Ui.Fill(new Rect(fx + fs + 3f * k, fy + fs + 1f * k, fs, fs), new Color(1f, 0.75f, 0.1f));
+            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 14f * k, lb.width - 66f * k, 14f * k), "Microsoft", Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 28f * k, lb.width - 66f * k, 30f * k), "Windows 95", Mathf.RoundToInt(16f * k), ink, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 58f * k, lb.width - 66f * k, 14f * k), "Setup Disk " + (slot + 1), Mathf.RoundToInt(11f * k), new Color(0.25f, 0.25f, 0.3f), TextAnchor.MiddleLeft);
+            Ui.Fill(new Rect(lb.x + 8f * k, lb.y + 86f * k, lb.width - 16f * k, 1f), new Color(0f, 0f, 0f, 0.2f));
+            Ui.Label(new Rect(lb.x + 8f * k, lb.y + 90f * k, lb.width - 16f * k, 16f * k), "Insert this disk in drive A:", Mathf.Max(6, Mathf.RoundToInt(8f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
+        }
+
         /// The Doom disk: black plastic, a cream label with the red logo ("REGISTERED DISK n", n = the slot), a silver shutter with its window.
         void DrawDoomDisk(Rect d, int slot)
         {
@@ -386,6 +417,11 @@ namespace Arena
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
+            if (p.Disk == "win95")
+            {
+                DrawWin95Disk(d, Mathf.Max(0, whoList.IndexOf(p)));
+                return;
+            }
             if (p.Disk == "mi")
             {
                 DrawMissionDisk(d);
