@@ -780,6 +780,8 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
   cheaper again.
+- **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
+  colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **The vote**: each player backs one proposal (your own counts for you when you draw it) or "No room". When everyone has
   voted, or the next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it

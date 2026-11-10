@@ -1,6 +1,6 @@
 # Vector building: the Expanding arena without a purse
 
-Status: **steps 1-2 built** (the vector economy; proposals, the vote with random ties, the purse and offers gone); steps 3-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
+Status: **steps 1-3 built** (the vector economy; proposals, the vote with random ties, the purse and offers gone); steps 3-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
 purse and the random room offers of [`ExpandingArena.md`](ExpandingArena.md) (steps 1-5, all built and merged) with per-player
 vectors; **the team still votes on rooms**. The map builder, the draw tool, loops, walls, sync of the room list and the
 camera/minimap/spawn work all stay.
@@ -72,6 +72,15 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 - **UI**: chip "Build rooms" (`ExpandChipUp`), the window with proposal cards (who drew it, cost, votes), "Draw a room / Redraw
   your room", "No room", "Decide later"; the draw screen shows the live vector cost. Previews: `EXPANDVOTE=<rooms>` (window),
   `EXPANDVOTE=<rooms> EXPANDCHIP=1` (chip), `EXPANDDRAW=x,y,w,h`.
+
+## Step 3 (built, no protocol change)
+
+- `RoomArea.Owner` (from `ExpansionRoom.Owner`, which already rides in `Msg.ExpandState`): built rooms show their drawer's class colour
+  as a thin inset line and tint in the arena (`DrawRoomsFloor`), and as the fill and frame on the minimap.
+- While a round is open the minimap grows to include the proposals and draws them as pulsing ghosts in their drawers' colours; the
+  draw screen shows everyone's proposals the same way, with the drawer's name and cost.
+- Proposal cards already showed who drew them, the cost and "<name> has N" (step 2). Previews: `EXPANDMAP=<rooms> EXPANDPROP=1
+  ZOOM=0.5` (5th arg 2 players), `EXPANDDRAW`.
 
 ## Steps
 

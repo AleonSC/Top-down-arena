@@ -123,6 +123,9 @@ static partial class Program
         Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 27, "a 3 x 12 hallway standing off the hub costs 30 less the 3 it shares: 27 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
         Check(Expansion.Cost(withEast, under.Value) == 9, "a box that touches two rooms costs less again: 18 less 3 and 6 = 9 (" + Expansion.Cost(withEast, under.Value) + ")");
         Check(Expansion.Cost(none, 500, -400, 600, 400) < Expansion.Cost(none, 500, -400, 1200, 400), "a bigger room costs more");
+        var owned = east; owned.Owner = 2;
+        var ownedWorld = Expansion.Build(new List<ExpansionRoom> { owned });
+        Check(ownedWorld.Areas[1].Owner == 2 && ownedWorld.Areas[0].Owner == 0, "a built room remembers who drew it (the hub nobody)");
     }
 
     // The Expanding arena in a run (ExpansionGame.cs): the Arena setting, the purse, the vote on the offer, the bought
