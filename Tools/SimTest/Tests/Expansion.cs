@@ -22,7 +22,7 @@ static partial class Program
         Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.WallsFor(false).Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
             "with nothing bought the world is the hub alone, walled in");
 
-        int badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, offersSeen = 0;
+        int loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, offersSeen = 0;
         var shapes = new HashSet<string>(); var kinds = new HashSet<RoomKind>(); var floors = new HashSet<PathId>();
         int maxShops = 0; int prevPriceBad = 0;
         for (int seed = 1; seed <= 60; seed++)
@@ -49,10 +49,11 @@ static partial class Program
                 {
                     var p = w.Areas[i]; var q = w.Areas[j];
                     bool overlap = p.Min.X < q.Max.X && q.Min.X < p.Max.X && p.Min.Y < q.Max.Y && q.Min.Y < p.Max.Y;
-                    bool sharesSide = ((p.Max.X == q.Min.X || q.Max.X == p.Min.X) && Math.Min(p.Max.Y, q.Max.Y) > Math.Max(p.Min.Y, q.Min.Y))
-                                   || ((p.Max.Y == q.Min.Y || q.Max.Y == p.Min.Y) && Math.Min(p.Max.X, q.Max.X) > Math.Max(p.Min.X, q.Min.X));
+                    float run = (p.Max.X == q.Min.X || q.Max.X == p.Min.X) ? Math.Max(0f, Math.Min(p.Max.Y, q.Max.Y) - Math.Max(p.Min.Y, q.Min.Y))
+                              : (p.Max.Y == q.Min.Y || q.Max.Y == p.Min.Y) ? Math.Max(0f, Math.Min(p.Max.X, q.Max.X) - Math.Max(p.Min.X, q.Min.X)) : 0f;
                     bool doored = w.Doors.Any(d => d.Joins(i) && d.Joins(j));
-                    if (overlap || (sharesSide && !doored)) badFit++;
+                    if (overlap || (run > 0f && run < Expansion.MinDoorRun) || (run >= Expansion.MinDoorRun && !doored) || (run < Expansion.MinDoorRun && doored)) badFit++;
+                    if (doored) loopDoors++;
                 }
             if (w.Max.X - w.Min.X > Expansion.MaxWidth || w.Max.Y - w.Min.Y > Expansion.MaxHeight) badCap++;
             // connected: every room reachable from the hub through doors (a tree: one door per room)
@@ -63,7 +64,7 @@ static partial class Program
                 foreach (var d in w.Doors.Where(d => d.Joins(cur)))
                     if (seen.Add(d.Other(cur))) queue.Enqueue(d.Other(cur));
             }
-            if (seen.Count != w.Areas.Length || w.Doors.Length != w.Areas.Length - 1) badTree++;
+            if (seen.Count != w.Areas.Length || w.Doors.Length < w.Areas.Length - 1) badTree++;
             // each door sits on both rooms' shared wall, DoorW inside it, and is open (no solid) in the walls and the floor plan
             var plan = w.With(LayoutId.Open);
             foreach (var d in w.Doors)
@@ -74,19 +75,48 @@ static partial class Program
                 if (!onBoth || run < Expansion.MinDoorRun || plan.Solids.Any(sd => Layouts.Inside(sd, d.Pos, 30f))) badDoor++;
                 if (!plan.Waypoints.Any(wp => wp.DistanceTo(d.Pos + d.Across * Rooms.DoorPad) < 1f) || !plan.Waypoints.Any(wp => wp.DistanceTo(d.Pos - d.Across * Rooms.DoorPad) < 1f)) badSteer++;
             }
+            // the walls are closed: every point along every room's edge is wall, except at its doors
+            foreach (var ar in w.Areas)
+                for (int side = 0; side < 4; side++)
+                    for (float t = 10f; t < (side < 2 ? ar.Size.Y : ar.Size.X); t += 25f)
+                    {
+                        V2 pt = side == 0 ? new V2(ar.Min.X, ar.Min.Y + t) : side == 1 ? new V2(ar.Max.X, ar.Min.Y + t) : side == 2 ? new V2(ar.Min.X + t, ar.Min.Y) : new V2(ar.Min.X + t, ar.Max.Y);
+                        bool atDoor = w.Doors.Any(d => pt.DistanceTo(d.Pos) < Rooms.DoorW / 2f + 14f);
+                        if (!atDoor && !plan.Solids.Any(sd => Layouts.Inside(sd, pt, 0f))) badWallGap++;
+                    }
             // every room's centre is in the open and in its own area
             for (int i = 0; i < w.Areas.Length; i++)
                 if (plan.Solids.Any(sd => Layouts.Inside(sd, w.Areas[i].Mid, 0f)) || w.AreaAt(w.Areas[i].Mid) != i) badWall++;
         }
         Check(offersSeen > 600, "offers keep coming until the cap (" + offersSeen + " seen over " + worlds + " maps)");
-        Check(badFit == 0, "rooms never overlap and share a wall only through their own door (" + badFit + " bad)");
-        Check(badTree == 0, "every map is connected, one door per bought room (" + badTree + " bad)");
+        Check(badWallGap == 0, "every wall is closed all the way along, even where a room is wider than the one it joins (" + badWallGap + " gaps)");
+        Check(loopDoors > worlds * 3, "rooms touching along a door's width get a door, so loops form (" + loopDoors + " doors over " + worlds + " maps)");
+        Check(badFit == 0, "rooms never overlap, never touch in a sliver, and every shared stretch of wall has its door (" + badFit + " bad)");
+        Check(badTree == 0, "every map is connected (" + badTree + " bad)");
         Check(badDoor == 0 && badSteer == 0, "every door sits on both rooms' shared wall, is open, and has a steering spot each side (" + badDoor + "/" + badSteer + " bad)");
         Check(badWall == 0, "every room's middle is open ground in its own area (" + badWall + " bad)");
         Check(badCap == 0, "the map stops at " + Expansion.MaxRooms + " rooms and its size cap (" + badCap + " over)");
         Check(shapes.Count == Expansion.Shapes.Length && kinds.Count == 3 && floors.Count >= 4, "the offers use every shape (" + shapes.Count + "), every kind and several floors (" + floors.Count + ")");
         Check(maxShops >= 1 && maxShops <= 3, "shops turn up, a few at most (" + maxShops + ")");
         Check(prevPriceBad == 0, "each room costs more than the same room would have at the start");
+
+        // Drawn rooms (Expansion.Custom): a hallway off the hub is fine; thin, huge, off the grid, overlapping, floating and sliver boxes are refused.
+        string why;
+        var hall = Expansion.Custom(none, 500, -600, 300, 600, out why);
+        Check(hall.HasValue && hall.Value.Parent == 0 && hall.Value.Shape == "Hallway" && hall.Value.Kind == RoomKind.Combat && hall.Value.Price > 0, "a 3-wide hallway off the hub is accepted (" + (hall.HasValue ? hall.Value.Price + " gold" : why) + ")");
+        Check(Expansion.Custom(none, 500, -600, 200, 600, out why) == null && why.Contains("thin"), "too thin is refused: " + why);
+        Check(Expansion.Custom(none, 500, -1300, 1300, 1300, out why) == null && why.Contains("big"), "too big is refused: " + why);
+        Check(Expansion.Custom(none, 550, -600, 300, 600, out why) == null && why.Contains("grid"), "off the grid is refused: " + why);
+        Check(Expansion.Custom(none, 100, 100, 300, 300, out why) == null && why.Contains("Overlaps"), "overlapping the hub is refused: " + why);
+        Check(Expansion.Custom(none, 3000, 3000, 300, 300, out why) == null && why.Contains("share"), "floating off by itself is refused: " + why);
+        Check(Expansion.Custom(none, 1400, -500, 300, 500, out why) == null && why.Contains("briefly"), "a sliver of shared wall is refused: " + why);
+        var east = Expansion.Custom(none, 1600, 0, 600, 300, out why).Value;
+        var withEast = new List<ExpansionRoom> { east };
+        var under = Expansion.Custom(withEast, 1600, 300, 600, 300, out why);
+        Check(under.HasValue && Expansion.LoopsOf(withEast, under.Value) == 1 && under.Value.Parent == 1, "a box touching two rooms closes a loop (parent = the longer wall)");
+        var loopWorld = Expansion.Build(new List<ExpansionRoom> { east, under.Value });
+        Check(loopWorld.Doors.Length == 3 && loopWorld.Doors.Count(d => d.Joins(0)) == 2, "and gets a door to each (" + loopWorld.Doors.Length + " doors)");
+        Check(Expansion.Custom(Enumerable.Range(0, Expansion.MaxRooms).Select(i => east).ToList(), 500, -600, 300, 600, out why) == null, "a full map takes no more");
     }
 
     // The Expanding arena in a run (ExpansionGame.cs): the Arena setting, the purse, the vote on the offer, the bought
@@ -194,6 +224,47 @@ static partial class Program
         g.CastExpandVote(n2); cg.CastExpandVote(n2);
         Run(s, dt, 0.4f);
         Check(g.Expanded.Count == before + 1 && g.Purse >= 500 && cg.Purse == g.Purse && g.ExpandOffer == null, "everyone buying nothing keeps the purse and the map");
+
+        // A drawn room: a player draws one and it joins the vote as a card; a bad or too dear box is refused; a newer one replaces it.
+        g.Purse = 2000;
+        offerExpansion.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        int n0 = g.ExpandOffer.Count;
+        g.CastExpandVote(n0);  // the host votes "buy nothing" first: its vote must move along when the card is added
+        Run(s, dt, 0.2f);
+        int dx = 0, dy = 0, dw = 300, dh = 600;
+        bool found = false;
+        for (int tx = -300; tx <= 1600 && !found; tx += 100)
+        {
+            string w1;
+            if (Expansion.Custom(g.Expanded, tx, -dh, dw, dh, out w1).HasValue) { dx = tx; dy = -dh; found = true; }
+        }
+        Check(found, "there is somewhere to draw a hallway off the hub");
+        cg.ProposeExpandRoom(100, 100, 300, 300);  // overlaps the hub
+        Run(s, dt, 0.3f);
+        Check(g.ExpandOffer.Count == n0 && g.ExpandCustom == -1, "a bad drawing is refused");
+        cg.ProposeExpandRoom(dx, dy, dw, dh);
+        Run(s, dt, 0.4f);
+        Check(g.ExpandOffer.Count == n0 + 1 && g.ExpandCustom == n0 && cg.ExpandCustom == n0 && cg.ExpandOffer.Count == n0 + 1 && cg.ExpandOffer[n0].W == dw,
+            "a drawn room joins the offer as its last card, on both screens");
+        Check(g.ExpandVotes.ContainsKey(1) && g.ExpandVotes[1] == n0 + 1, "the \"buy nothing\" vote moved up a place");
+        g.CastExpandVote(n0);  // the host switches to the drawn room (the client hasn't voted, so it stays open)
+        Run(s, dt, 0.3f);
+        cg.ProposeExpandRoom(dx, dy, dw + 100, dh);  // a newer drawing replaces it and its votes go
+        Run(s, dt, 0.4f);
+        Check(g.ExpandOffer.Count == n0 + 1 && g.ExpandOffer[n0].W == dw + 100 && !g.ExpandVotes.ContainsValue(n0), "a newer drawing replaces the old one and its votes");
+        int purseKeep = g.Purse;
+        g.Purse = 10;
+        cg.ProposeExpandRoom(dx, dy, dw + 200, dh);
+        Run(s, dt, 0.3f);
+        Check(g.ExpandOffer[n0].W == dw + 100, "a drawing the purse can't pay for is refused");
+        g.Purse = purseKeep;
+        int beforeDraw = g.Expanded.Count;
+        g.CastExpandVote(n0); cg.CastExpandVote(n0);
+        Run(s, dt, 0.4f);
+        Check(g.Expanded.Count == beforeDraw + 1 && g.Expanded[beforeDraw].X == dx && g.Expanded[beforeDraw].W == dw + 100 && cg.Expanded.Count == g.Expanded.Count, "both vote for it: the drawn room is bought, on both screens");
+        var drawn = Expansion.Build(g.Expanded);
+        Check(drawn.Doors.Length >= drawn.Areas.Length - 1, "and the map still connects");
 
         // The map stops growing at the cap.
         var full = new List<ExpansionRoom>();

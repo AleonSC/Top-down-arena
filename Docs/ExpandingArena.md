@@ -1,6 +1,6 @@
 # Expanding arena: design plan
 
-Status: **steps 1-3 built** (the `World` refactor; rooms, offers and the map builder; the Expanding layout in the game: setting, team vote, purse, sync, camera, minimap, enemy scaling); room features (step 4) and polish/balance (step 5) not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
+Status: **steps 1-4 built** (4: loops and drawn rooms/hallways) (the `World` refactor; rooms, offers and the map builder; the Expanding layout in the game: setting, team vote, purse, sync, camera, minimap, enemy scaling); room features (step 4) and polish/balance (step 5) not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
 and `Shop.cs`. Numbers are first guesses.
 
 ## The idea
@@ -129,6 +129,19 @@ in that layout with a switch; don't delete code.
 - **Not done**: kinds are labels only (step 4); saved runs don't hold the rooms, so Expanding runs can't be saved;
   steering around the gaps between rooms is untested with real enemies beyond the sim suite.
 - Tests: suite `expand` (`ExpansionTest`, `ExpandingGameTest` with a host and a client, `ExpandingEconomyTest` with bots).
+
+## Step 4 (built, protocol 245): loops and drawn rooms
+
+- **Loops**: any two rooms sharing at least 300 px of wall have a door there (not only parent and child), so a room
+  touching two rooms joins both. A box sharing 1-299 px of wall is refused (a sliver). `Expansion.Placement` is the
+  one check (parent = the longest shared wall); offers that close a loop are kept more often.
+- **Walls**: each room's wall is built per edge, leaving out the stretch an earlier room already has. This also fixes
+  a step 2-3 bug: a room wider than the one it joined had no wall on its overhang.
+- **Draw tool**: `Expansion.Custom` (grid 100 px, sides 300-1200, area <= 96 tiles, Combat kind, price x1.25).
+  `Msg.ExpandDraw` (client -> host) adds it as the last card of the open offer (`Game.ExpandCustom`); a newer drawing
+  replaces it and drops its votes; one the purse can't pay for is refused; the "buy nothing" votes move up a place.
+  The draw screen is `ExpansionUi.cs` `DrawExpansionDraw`. Preview: `EXPANDCUSTOM=1`, `EXPANDDRAW=x,y,w,h` with `EXPANDVOTE`.
+- Left out: door-only and portal offers (a drawn hallway does the same job).
 
 ## Open questions (defaults in bold)
 

@@ -773,6 +773,12 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Expand the arena**: after each boss (every 5 waves) the team sees up to three random rooms and **votes**: click a room to
   vote, or "Buy nothing" to keep the purse. The most votes wins (a tie goes to the room). A room you can't afford is
   greyed out; if none is affordable there is no vote. Paths are off in this arena.
+- **Loops**: a new room that shares a door's width of wall (3 tiles) with more than one room gets a door to each, so the map
+  loops round instead of branching into dead ends; random offers that close a loop are likelier, and the card says LOOP.
+- **Draw your own**: the "Draw your own" key opens the zoomed-out map: drag a box on the grid (at least 3 tiles a side, at most
+  12 x 12 and 96 tiles). 3 tiles wide is a hallway. It must share 3 tiles of wall with a room and not overlap anything; it is
+  checked live (green = fine) and goes to the vote as one extra card on release. It costs 25% more than a random room of the
+  same size, and a newer drawing replaces the last one (and its votes).
 - **Rooms**: six shapes (Closet, Room, Chamber, Plaza, Hall, Corridor) in three kinds: **Combat**, **Shop** and **Floor** (a
   path's ground). A new room attaches to a wall of an existing one with a door. Prices go up with each room bought; the map
   stops at 12 rooms. For now the kinds only change the colour and name: shop stock and floor hazards come later.

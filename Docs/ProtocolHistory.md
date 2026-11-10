@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 
+- 245: the Expanding arena's drawn rooms (Msg.ExpandDraw, a custom card in Msg.ExpandState; ExpansionGame.cs)
 - 244: the Expanding arena (DiffKnob.ArenaExpanding, Msg.ExpandState/ExpandVote, the team purse in the snapshot; ExpansionGame.cs)
 - 243: EnemyType.SecurityGuard and bullet kind TracerRound (SecurityGuard.cs, Game/SecurityLook.cs)
 - 242: EnemyType.TaserGuard, bullet kind TaserBolt and FxKind.TaserHit (WardenFaction.cs, Game/TaserLook.cs)

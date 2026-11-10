@@ -26,6 +26,9 @@ namespace Arena
         public List<ExpansionRoom> ExpandOffer;
         public readonly Dictionary<int, int> ExpandVotes = new Dictionary<int, int>();
 
+        /// Which of the offers is a room a player drew (the last one), or -1.
+        public int ExpandCustom = -1;
+
         int expandSeed;
         float botVoteT;
         World expWorld;
@@ -55,6 +58,7 @@ namespace Arena
             Purse = 0;
             Expanded.Clear();
             ExpandOffer = null;
+            ExpandCustom = -1;
             ExpandVotes.Clear();
             expWorld = null;
             botVoteT = 0f;
@@ -86,6 +90,7 @@ namespace Arena
                 return;
             }
             ExpandOffer = offers;
+            ExpandCustom = -1;
             ExpandVotes.Clear();
             botVoteT = 0f;
             BroadcastExpansion();
@@ -109,6 +114,58 @@ namespace Arena
         }
 
         public void OnExpandVote(int peer, BinaryReader r) => HostExpandVote(peer, r.ReadByte());
+
+        /// This game's player draws a room (a box in world px on the 100 px grid) and puts it to the vote.
+        public void ProposeExpandRoom(int x, int y, int w, int h)
+        {
+            if (ExpandOffer == null || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostExpandDraw(MyId, x, y, w, h);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandDraw);
+            pw.Write((short)x); pw.Write((short)y); pw.Write((short)w); pw.Write((short)h);
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16());
+
+        /// Host: a drawn room joins the offer as its last card (a newer drawing replaces the last one, and its votes go).
+        void HostExpandDraw(int id, int x, int y, int w, int h)
+        {
+            if (!IsHost || ExpandOffer == null || !Players.ContainsKey(id))
+                return;
+            string why;
+            var room = Expansion.Custom(Expanded, x, y, w, h, out why);
+            if (!room.HasValue || room.Value.Price > Purse)
+            {
+                DoLog("expansion: drawn room refused (" + (why ?? "can't afford it") + ")");
+                return;
+            }
+            if (ExpandCustom >= 0)
+            {
+                ExpandOffer[ExpandCustom] = room.Value;
+                var drop = new List<int>();
+                foreach (var kv in ExpandVotes)
+                    if (kv.Value == ExpandCustom)
+                        drop.Add(kv.Key);
+                foreach (int pid in drop)
+                    ExpandVotes.Remove(pid);
+            }
+            else
+            {
+                int skip = ExpandOffer.Count;  // the "buy nothing" vote moves up one place
+                foreach (int pid in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[pid] == skip)
+                        ExpandVotes[pid] = skip + 1;
+                ExpandOffer.Add(room.Value);
+                ExpandCustom = skip;
+            }
+            DoLog("expansion: a drawn room, " + room.Value.W + " x " + room.Value.H + " for " + room.Value.Price);
+            BroadcastExpansion();
+        }
 
         void HostExpandVote(int id, int choice)
         {
@@ -150,6 +207,7 @@ namespace Arena
             else
                 DoLog("expansion: nothing bought (purse " + Purse + ")");
             ExpandOffer = null;
+            ExpandCustom = -1;
             ExpandVotes.Clear();
             BroadcastExpansion();
         }
@@ -205,7 +263,10 @@ namespace Arena
             WriteRooms(w, Expanded);
             w.Write(ExpandOffer != null);
             if (ExpandOffer != null)
+            {
                 WriteRooms(w, ExpandOffer);
+                w.Write((byte)(ExpandCustom < 0 ? 255 : ExpandCustom));
+            }
             w.Write((byte)ExpandVotes.Count);
             foreach (var kv in ExpandVotes)
             {
@@ -229,6 +290,7 @@ namespace Arena
                 LayoutAge = 0f;
             }
             ExpandOffer = r.ReadBoolean() ? ReadRooms(r) : null;
+            ExpandCustom = ExpandOffer != null ? (r.ReadByte() == 255 ? -1 : ExpandOffer.Count - 1) : -1;
             ExpandVotes.Clear();
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)

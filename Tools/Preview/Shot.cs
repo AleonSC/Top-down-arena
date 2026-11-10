@@ -411,6 +411,18 @@ static partial class Shot {
       for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
       eg.Purse = 260 + 40 * bought; eg.ExpandOffer = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded);
       eg.ExpandVotes[eg.MyId] = 1;
+      if (Environment.GetEnvironmentVariable("EXPANDCUSTOM") != null) {  // EXPANDCUSTOM=1: a drawn hallway as the last card
+        for (int tx = -300; tx <= 1600; tx += 100) { string cw; var cr = Expansion.Custom(eg.Expanded, tx, -600, 300, 600, out cw); if (cr.HasValue) { eg.ExpandOffer.Add(cr.Value); eg.ExpandCustom = eg.ExpandOffer.Count - 1; break; } }
+      }
+      string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the drawing screen with that box dragged out
+      if (drawAt != null) {
+        var dq = drawAt.Split(','); var ci = System.Globalization.CultureInfo.InvariantCulture;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        float dx0 = float.Parse(dq[0], ci), dy0 = float.Parse(dq[1], ci), dw0 = float.Parse(dq[2], ci), dh0 = float.Parse(dq[3], ci);
+        typeof(ArenaApp).GetField("expDrawing", bf).SetValue(app, true);
+        typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
+        typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
+      }
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null || Environment.GetEnvironmentVariable("EXPANDVOTE") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("hudT", ht); set("hudShown", ht > 0.5f); }
