@@ -942,6 +942,7 @@ namespace Arena
         {
             foreach (var b in game.Bullets.Values)
                 ShotGlow(b);  // ShotLooks.cs
+            DrawFumaGlow();  // the Fuma Shuriken's trails and halos (FumaLook.cs)
             for (int i = 0; i < partN; i++)
             {
                 var p = parts[i];

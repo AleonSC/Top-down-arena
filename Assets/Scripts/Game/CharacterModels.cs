@@ -693,7 +693,10 @@ namespace Arena
                     MLine(-22f, 0f, 26f, 0f, 3.2f, MWood); MCirc(26f, 0f, 2.2f, Hx(0x1d1d26), 6); MCirc(-22f, 0f, 2.2f, Hx(0x1d1d26), 6); MLine(-2f, -2f, -2f, 2f, 1.4f, Hx(0x1d1d26)); MLine(14f, -2f, 14f, 2f, 1.4f, Hx(0x1d1d26));
                     break;
                 case WeaponId.FumaShuriken:
-                    MStar(12f, 0f, 11f, 3.5f, 4, t * 2f, MSteel); MCirc(12f, 0f, 2.4f, Hx(0x1b2026), 8);
+                    if (p.FumaStance == 0 && !FumaReturning(p))  // (circling you or on its way back, it's drawn in the world: FumaLook.cs)
+                    {
+                        MStar(12f, 0f, 11f, 3.5f, 4, t * 2f, MSteel); MCirc(12f, 0f, 2.4f, Hx(0x1b2026), 8);
+                    }
                     break;
                 case WeaponId.MedicineDarts:
                     for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, MSteel); MCirc(12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, Hx(0x7fffa3), 6); }

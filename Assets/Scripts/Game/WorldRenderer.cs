@@ -129,6 +129,7 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Kusarigama)
                     DrawKusarigama(p);  // KusarigamaLook.cs
+            DrawFumaWorld(t);  // the Fuma Shuriken's Orbit stance (FumaLook.cs)
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                     DrawBowDraw(p, p.Id == game.MyId, t);

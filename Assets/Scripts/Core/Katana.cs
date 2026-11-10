@@ -445,6 +445,11 @@ namespace Arena
                     p.ShoveCd = 0f;
                 return;
             }
+            if (p.Weapon.Id == WeaponId.FumaShuriken)
+            {
+                FumaParry(p);  // a star in flight caught into orbit, or Reversal (FumaOrbit.cs)
+                return;
+            }
             if (p.Weapon.Id == WeaponId.Kusarigama)
             {
                 p.KusariStep = 0;  // back to the sickle cut (a throw already away still lands)
